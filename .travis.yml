@@ -6,16 +6,11 @@ compiler:
 #- cmake --version
 
 script:
-- mkdir build
-- cd build
-- cmake ..
-- cmake --build .
-#- make
-- ctest -VV
+- bash install.sh
 
-after_success:
-- make test
-- coveralls --exclude "test" --exclude "CMakeFiles" --include "lib/" 
+#after_success:
+#- make test
+#- coveralls --exclude "test" --exclude "CMakeFiles" --include "lib/" 
 
-notifications:
-  email: false
+#notifications:
+#  email: false
