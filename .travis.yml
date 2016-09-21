@@ -1,0 +1,14 @@
+language: cpp
+compiler:
+- gcc
+
+install:
+- cmake --version
+
+script:
+- cmake .
+- make
+
+after_success:
+- make test
+- coveralls --exclude "test" --exclude "CMakeFiles" --include "lib/" 
