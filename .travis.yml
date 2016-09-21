@@ -23,8 +23,8 @@ install:
   #- (cd $BOOST_ROOT; ./bootstrap.sh --with-libraries=date_time,filesystem,system,iostreams,regex,python,test)
   #- (cd $BOOST_ROOT; ./b2 threading=multi --prefix=$BOOST_ROOT -d0 install)
   # install cmake
-  - CMAKE_VERSION="2.8.12"
-  - wget "http://www.cmake.org/files/v2.0/cmake-${CMAKE_VERSION}.tar.gz"
+  - CMAKE_VERSION="3.0.0"
+  - wget "http://www.cmake.org/files/v3.0/cmake-${CMAKE_VERSION}.tar.gz"
   - openssl sha1 "cmake-${CMAKE_VERSION}.tar.gz"
   - tar xf "cmake-${CMAKE_VERSION}.tar.gz"
   - cd "cmake-${CMAKE_VERSION}"
