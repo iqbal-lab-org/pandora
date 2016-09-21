@@ -6,9 +6,13 @@ install:
 - cmake --version
 
 script:
-- cmake .
+- mkdir build
+- cd build
+- cmake ..
+#- cmake --build .
 - make
+- ctest -VV
 
-after_success:
-- make test
-- coveralls --exclude "test" --exclude "CMakeFiles" --include "lib/" 
+#after_success:
+#- make test
+#- coveralls --exclude "test" --exclude "CMakeFiles" --include "lib/" 
