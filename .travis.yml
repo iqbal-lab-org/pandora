@@ -9,10 +9,13 @@ script:
 - mkdir build
 - cd build
 - cmake ..
-#- cmake --build .
-- make
+- cmake --build .
+#- make
 - ctest -VV
 
-#after_success:
-#- make test
-#- coveralls --exclude "test" --exclude "CMakeFiles" --include "lib/" 
+after_success:
+- make test
+- coveralls --exclude "test" --exclude "CMakeFiles" --include "lib/" 
+
+notifications:
+  email: false
