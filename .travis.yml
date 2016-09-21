@@ -2,22 +2,6 @@ language: cpp
 compiler:
 - gcc
 
-os:
-- linux
-
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - gcc-4.8
-    - g++-4.8
-    - cmake
-  - which cmake
-  - cmake --version
-  - which g++
-  - g++ -v
-
 script:
 - bash install.sh
 
