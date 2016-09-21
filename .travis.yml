@@ -2,8 +2,8 @@ language: cpp
 compiler:
 - gcc
 
-install:
-- cmake --version
+#install:
+#- cmake --version
 
 script:
 - mkdir build
