@@ -1,5 +1,5 @@
 mkdir build
 cd build
-cmake ..
+cmake .. -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CC_COMPILER=gcc
 cmake --build .
 ctest -VV
