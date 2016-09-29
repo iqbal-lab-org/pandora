@@ -10,14 +10,15 @@ using namespace std;
 Minimizer::Minimizer(string s, list<interval> l)
 {
     miniWord = s;
-    path = new Path(l);
-    startPosOnString = path->start;
-    endPosOnString = path->end;
+    path = Path();
+    path.initialize(l);
+    startPosOnString = path.start;
+    endPosOnString = path.end;
 }
 
 Minimizer::~Minimizer()
 {
-    if (path != NULL) {delete path;}
+    //if (path != NULL) {delete path;}
 }
 
 bool Minimizer::operator < ( const Minimizer& str) const
@@ -38,5 +39,7 @@ bool Minimizer::operator < ( const Minimizer& str) const
 
 void Minimizer::print() const
 {
-    cout << "(" << miniWord << ", " << startPosOnString << ", " << endPosOnString << ") ";
+    cout << "(" << miniWord << ", ";
+    path.print();
+    cout << ") ";
 }

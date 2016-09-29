@@ -11,7 +11,7 @@ using namespace std;
 struct Minimizer
 {
     string miniWord;
-    const Path* path;
+    Path path;
     uint32_t startPosOnString; // actual position along prg, including numbers
     uint32_t endPosOnString;
     bool operator < ( const Minimizer& str) const;

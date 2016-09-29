@@ -46,19 +46,15 @@ TEST_F(MinimizerTest,comparisonCheck){
     s.insert(m5);
 
     uint32_t j = 5;
-    EXPECT_EQ(s.size(),j);
+    EXPECT_EQ(s.size(),j) << "size of set of minimizers " << s.size() << " is not equal to 5.";
 
     vector<Minimizer> v = {m1, m5, m4, m3, m2};
     int i = 0;
     for (std::set<Minimizer>::iterator it=s.begin(); it!=s.end(); ++it)
     {
-	cout << i << ": ";
-	it->print();
-	v[i].print();
-	cout << endl;
-	EXPECT_EQ(it->miniWord, v[i].miniWord);
-	EXPECT_EQ(it->startPosOnString, v[i].startPosOnString);
-	EXPECT_EQ(it->endPosOnString, v[i].endPosOnString);
+	EXPECT_EQ(it->miniWord, v[i].miniWord) << "miniWords do not agree: " << it->miniWord << ", " << v[i].miniWord;
+	EXPECT_EQ(it->startPosOnString, v[i].startPosOnString) << "start positions do not agree: " << it->startPosOnString << ", " << v[i].startPosOnString;
+	EXPECT_EQ(it->endPosOnString, v[i].endPosOnString) << "end positions do not agree: " << it->endPosOnString << ", " << v[i].endPosOnString;
     	++i;
     }
 }

@@ -16,10 +16,11 @@ class Path {
     uint32_t start;
     uint32_t end;
 
-    Path(list<interval>);
+    Path();
     ~Path();
     void add_start_interval(interval);
     void add_end_interval(interval);
+    void initialize(list<interval>);
     void print() const;
 };
 

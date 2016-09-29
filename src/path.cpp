@@ -5,7 +5,9 @@
 
 using namespace std;
 
-Path::Path(list<interval> q)
+Path::Path(){ }
+
+void Path::initialize(list<interval> q)
 {
     path = q;
     length = 0;
@@ -41,9 +43,10 @@ void Path::add_end_interval(interval i)
 
 void Path::print() const
 {
+    cout << "{";
     for (std::list<interval>::const_iterator it=path.begin(); it!=path.end(); ++it)
     {
 	it->print();
     }
-    cout << endl;
+    cout << "} ";
 }
