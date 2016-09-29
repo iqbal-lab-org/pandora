@@ -1,14 +1,18 @@
 //#include <limits.h>
 #include "gtest/gtest.h"
-#include "minimizer.h"
-#include "path.h"
-#include "interval.h"
+#include "minimizer.cpp"
+#include "path.cpp"
+#include "interval.cpp"
 #include <set>
 #include <vector>
 #include <stdint.h> 
 
 using std::set;
 using namespace std;
+
+struct interval;
+class Path;
+struct Minimizer;
 
 class MinimizerTest : public ::testing::Test {
  protected:
