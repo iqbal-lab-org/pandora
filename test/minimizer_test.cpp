@@ -1,11 +1,12 @@
 //#include <limits.h>
 #include "gtest/gtest.h"
-#include "minimizer.cpp"
-#include "path.cpp"
-#include "interval.cpp"
+#include "minimizer.h"
+#include "path.h"
+#include "interval.h"
 #include <set>
 #include <vector>
 #include <stdint.h> 
+#include <iostream>
 
 using std::set;
 using namespace std;
@@ -51,11 +52,13 @@ TEST_F(MinimizerTest,comparisonCheck){
     int i = 0;
     for (std::set<Minimizer>::iterator it=s.begin(); it!=s.end(); ++it)
     {
+	cout << i << ": ";
 	it->print();
 	v[i].print();
+	cout << endl;
 	EXPECT_EQ(it->miniWord, v[i].miniWord);
-	//EXPECT_EQ(it->startPosOnString, v[i].startPosOnString);
-	//EXPECT_EQ(it->endPosOnString, v[i].endPosOnString);
+	EXPECT_EQ(it->startPosOnString, v[i].startPosOnString);
+	EXPECT_EQ(it->endPosOnString, v[i].endPosOnString);
     	++i;
     }
 }
