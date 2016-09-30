@@ -10,7 +10,7 @@ using namespace std;
 
 struct Minimizer
 {
-    string miniWord;
+    string miniKmer;
     Path path;
     uint32_t startPosOnString; // actual position along prg, including numbers
     uint32_t endPosOnString;

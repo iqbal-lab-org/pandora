@@ -9,7 +9,7 @@ using namespace std;
 
 Minimizer::Minimizer(string s, deque<interval> l)
 {
-    miniWord = s;
+    miniKmer = s;
     path = Path();
     path.initialize(l);
     startPosOnString = path.start;
@@ -23,8 +23,8 @@ Minimizer::~Minimizer()
 
 bool Minimizer::operator < ( const Minimizer& str) const
 {
-    if (miniWord < str.miniWord) { return true; }
-    if ( str.miniWord < miniWord ) { return false; }
+    if (miniKmer < str.miniKmer) { return true; }
+    if ( str.miniKmer < miniKmer ) { return false; }
 
     if (startPosOnString < str.startPosOnString) { return true; }
     if ( str.startPosOnString < startPosOnString ) { return false; }
@@ -43,7 +43,7 @@ bool pMiniComp::operator()(Minimizer* lhs, Minimizer* rhs) {
 
 void Minimizer::print() const
 {
-    cout << "(" << miniWord << ", ";
+    cout << "(" << miniKmer << ", ";
     path.print();
     cout << ") ";
 }
