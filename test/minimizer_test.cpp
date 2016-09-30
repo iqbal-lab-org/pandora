@@ -27,10 +27,10 @@ class MinimizerTest : public ::testing::Test {
 };
 
 TEST_F(MinimizerTest,comparisonCheck){
-    list<interval> v1 = {interval(0,15)};
-    list<interval> v2 = {interval(1,12), interval(14,18)};
-    list<interval> v3 = {interval(1,16)};
-    list<interval> v4 = {interval(0,10), interval(15,20)};
+    deque<interval> v1 = {interval(0,15)};
+    deque<interval> v2 = {interval(1,12), interval(14,18)};
+    deque<interval> v3 = {interval(1,16)};
+    deque<interval> v4 = {interval(0,10), interval(15,20)};
 
     Minimizer m1 = Minimizer("abcde", v1);
     Minimizer m2 = Minimizer("abcdg", v1);

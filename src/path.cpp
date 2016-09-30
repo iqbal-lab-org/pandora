@@ -1,13 +1,13 @@
 #include <iostream>
 #include "path.h"
 #include "interval.h"
-#include <list>
+#include <deque>
 
 using namespace std;
 
 Path::Path(){ }
 
-void Path::initialize(list<interval> q)
+void Path::initialize(deque<interval> q)
 {
     path = q;
     length = 0;
@@ -15,7 +15,7 @@ void Path::initialize(list<interval> q)
     //cout << "Paths starts at " << start;
     end = (*--q.end()).end;
     //cout << "Paths ends at " << end;
-    for (std::list<interval>::iterator it=path.begin(); it!=path.end(); ++it)
+    for (std::deque<interval>::iterator it=path.begin(); it!=path.end(); ++it)
     {
 	length += (*it).length;
     }
@@ -44,7 +44,7 @@ void Path::add_end_interval(interval i)
 void Path::print() const
 {
     cout << "{";
-    for (std::list<interval>::const_iterator it=path.begin(); it!=path.end(); ++it)
+    for (std::deque<interval>::const_iterator it=path.begin(); it!=path.end(); ++it)
     {
 	it->print();
     }

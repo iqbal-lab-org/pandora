@@ -7,7 +7,7 @@
 
 using namespace std;
 
-Minimizer::Minimizer(string s, list<interval> l)
+Minimizer::Minimizer(string s, deque<interval> l)
 {
     miniWord = s;
     path = Path();
@@ -35,6 +35,10 @@ bool Minimizer::operator < ( const Minimizer& str) const
     // if both are completely equal (based on strict weak ordering)
     // then just return false since equality doesn't yield less than
     return false;
+}
+
+bool pMiniComp::operator()(Minimizer* lhs, Minimizer* rhs) {
+        return (*lhs)<(*rhs);
 }
 
 void Minimizer::print() const

@@ -15,9 +15,14 @@ struct Minimizer
     uint32_t startPosOnString; // actual position along prg, including numbers
     uint32_t endPosOnString;
     bool operator < ( const Minimizer& str) const;
-    Minimizer(string, list<interval>);
+    Minimizer(string, deque<interval>);
     ~Minimizer();
     void print() const;
+};
+
+struct pMiniComp
+{
+  bool operator()(Minimizer* lhs, Minimizer* rhs);
 };
 
 #endif

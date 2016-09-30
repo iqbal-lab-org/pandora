@@ -1,7 +1,7 @@
 #ifndef __PATH_H_INCLUDED__   // if path.h hasn't been included yet...
 #define __PATH_H_INCLUDED__
 
-#include <list>
+#include <deque>
 #include <cstdint> //or <stdint.h>
 #include "interval.h"
 
@@ -11,7 +11,7 @@ struct interval;
 
 class Path {
   public:
-    list<interval> path;
+    deque<interval> path;
     uint32_t length;
     uint32_t start;
     uint32_t end;
@@ -20,7 +20,7 @@ class Path {
     ~Path();
     void add_start_interval(interval);
     void add_end_interval(interval);
-    void initialize(list<interval>);
+    void initialize(deque<interval>);
     void print() const;
 };
 
