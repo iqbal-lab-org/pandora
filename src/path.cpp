@@ -7,7 +7,7 @@ using namespace std;
 
 Path::Path(){ }
 
-void Path::initialize(deque<interval> q)
+void Path::initialize(deque<Interval> q)
 {
     path = q;
     length = 0;
@@ -15,7 +15,7 @@ void Path::initialize(deque<interval> q)
     //cout << "Paths starts at " << start;
     end = (*--q.end()).end;
     //cout << "Paths ends at " << end;
-    for (std::deque<interval>::iterator it=path.begin(); it!=path.end(); ++it)
+    for (std::deque<Interval>::iterator it=path.begin(); it!=path.end(); ++it)
     {
 	length += (*it).length;
     }
@@ -27,26 +27,26 @@ Path::~Path()
     path.clear();
 }
 
-void Path::add_start_interval(interval i)
+void Path::add_start_interval(Interval i)
 {
     path.push_front(i);
     length += i.length;
     start = i.start;
 }
 
-void Path::add_end_interval(interval i)
+void Path::add_end_interval(Interval i)
 {
     path.push_back(i);
     length += i.length;
     end = i.end;
 }
 
-void Path::print() const
-{
-    cout << "{";
-    for (std::deque<interval>::const_iterator it=path.begin(); it!=path.end(); ++it)
+std::ostream& operator<< (std::ostream & out, Path const& p) {
+    out << "{";
+    for (std::deque<Interval>::const_iterator it=p.path.begin(); it!=p.path.end(); ++it)
     {
-	it->print();
+        out << *it;
     }
-    cout << "} ";
+    out << "}";
+    return out ;
 }

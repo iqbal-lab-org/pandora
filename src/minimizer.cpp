@@ -7,7 +7,7 @@
 
 using namespace std;
 
-Minimizer::Minimizer(string s, deque<interval> l)
+Minimizer::Minimizer(string s, deque<Interval> l)
 {
     miniKmer = s;
     path = Path();
@@ -41,9 +41,7 @@ bool pMiniComp::operator()(Minimizer* lhs, Minimizer* rhs) {
         return (*lhs)<(*rhs);
 }
 
-void Minimizer::print() const
-{
-    cout << "(" << miniKmer << ", ";
-    path.print();
-    cout << ") ";
+std::ostream& operator<< (std::ostream & out, Minimizer const& m) {
+    out << "(" << m.miniKmer << ", " << m.path << ")";
+    return out ;
 }

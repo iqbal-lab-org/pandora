@@ -2,11 +2,11 @@
 #define __SEQ_H_INCLUDED__
 
 #include <string>
-#include <set>
-//#include<functional>
+#include <vector>
+#include <ostream>
 #include "minimizer.h"
 
-using std::set;
+using std::vector;
 using namespace std;
 
 class Seq {
@@ -14,11 +14,12 @@ class Seq {
     uint32_t id;
     string name;
     string seq;
-    set<Minimizer*, pMiniComp> sketch; //argument for set - removes duplicates and orders them
+    //vector<Minimizer*> sketch; //argument for set - removes duplicates and orders them
+    set<Minimizer*, pMiniComp> sketch;
     Seq(uint32_t, string, string, uint32_t, uint32_t);
     ~Seq();
     void minimizer_sketch (uint32_t w, uint32_t k);
-    void print() const;
+  friend ostream& operator<< (ostream& out, const Seq& data); 
 };
 
 #endif

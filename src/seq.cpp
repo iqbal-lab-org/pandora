@@ -1,18 +1,27 @@
 #include <iostream>
+#include <algorithm>
 #include <string>
+#include <vector>
 #include <set>
 #include "minimizer.h"
 #include "seq.h"
 #include "path.h" // for sketching
 
-using std::set;
+using std::vector;
 using namespace std;
+
+pMiniComp myorder;
 
 Seq::Seq (uint32_t i, string n, string p, uint32_t w, uint32_t k) {
     id = i;
     name = n;
     seq = p;
     minimizer_sketch (w, k);
+    //for (uint32_t j=0; j!=sketch.size(); j++)
+    //{
+	//cout << (*sketch[j]) << " ";
+    //}
+    cout << endl;
 }
 
 Seq::~Seq()
@@ -45,19 +54,30 @@ void Seq::minimizer_sketch (uint32_t w, uint32_t k)
 	    string kmer = seq.substr(wpos+i, k);
 	    if (kmer == smallest_word)
             {
-		deque<interval> d = {interval(wpos+i, wpos+i+k)};
+		deque<Interval> d = {Interval(wpos+i, wpos+i+k)};
             	Minimizer *m;
 		m = new Minimizer(kmer, d);
 		sketch.insert(m);
+		//if ( find(sketch.begin(), sketch.end(), m) != sketch.end() )
+		//{
+		//sketch.push_back(m);
+		//} else {
+		//    delete m;
+		//}
 	    }
 	}
     }
 
     //cout << "Found " << sketch.size() << " minimizers." << endl;
+    //sort(sketch.begin(), sketch.end(), myorder);
+    //vector<Minimizer*>::iterator it = unique (sketch.begin(), sketch.end(), myorder);
+    //sketch.resize( distance(sketch.begin(),it) );
+    //sketch.erase( unique( sketch.begin(), sketch.end() ), sketch.end() );
     return;
 }
 
-void Seq::print() const 
-{
-    cout << name << endl;
+std::ostream& operator<< (std::ostream & out, Seq const& data) {
+    out << data.name;
+    return out ;
 }
+

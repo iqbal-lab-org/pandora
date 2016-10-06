@@ -26,10 +26,10 @@ TEST_F(SeqTest,sketchShortReads){
     uint32_t j = 0;
     EXPECT_EQ(s1.sketch.size(),j) << "Have " << s1.sketch.size() << " minimizer when string is too short";
     ++j;
-    EXPECT_EQ(s2.sketch.size(),1) << "Have " << s2.sketch.size() << " minimizers when should have 1";
-    EXPECT_EQ(s3.sketch.size(),1) << "Have " << s3.sketch.size() << " minimizers when should have 1";
+    EXPECT_EQ(s2.sketch.size(),j) << "Have " << s2.sketch.size() << " minimizers when should have 1";
+    EXPECT_EQ(s3.sketch.size(),j) << "Have " << s3.sketch.size() << " minimizers when should have 1";
     ++j;
-    EXPECT_EQ(s4.sketch.size(),2) << "Have " << s4.sketch.size() << " minimizers when should have 2";
+    EXPECT_EQ(s4.sketch.size(),j) << "Have " << s4.sketch.size() << " minimizers when should have 2";
 }
 
 TEST_F(SeqTest,sketchIncludesEveryLetter){
@@ -41,8 +41,7 @@ TEST_F(SeqTest,sketchIncludesEveryLetter){
     set<int> pos_inc;
     for(set<Minimizer*>::iterator it=s4.sketch.begin(); it != s4.sketch.end(); ++it)
     {
-	//(*it)->print();
-        for (std::deque<interval>::iterator it2=((*it)->path).path.begin(); it2!=((*it)->path).path.end(); ++it2)
+        for (std::deque<Interval>::iterator it2=((*it)->path).path.begin(); it2!=((*it)->path).path.end(); ++it2)
         {
             for (uint32_t j = it2->start; j<it2->end; ++j)
             {
@@ -53,13 +52,13 @@ TEST_F(SeqTest,sketchIncludesEveryLetter){
     set<int> expected = {0,1,2,3,4,5,6,7,8,9,10,11};
     EXPECT_EQ(pos_inc, expected) << "sketch misses a letter";
  
-    EXPECT_EQ(s3.sketch.size(), 10) << "sketch with w=1 has incorrect size " << s3.sketch.size();
+    uint32_t j = 10;
+    EXPECT_EQ(s3.sketch.size(), j) << "sketch with w=1 has incorrect size " << s3.sketch.size();
     
     pos_inc.clear();
     for(set<Minimizer*>::iterator it=s2.sketch.begin(); it != s2.sketch.end(); ++it)
     {
-        //(*it)->print();
-        for (std::deque<interval>::iterator it2=((*it)->path).path.begin(); it2!=((*it)->path).path.end(); ++it2)
+        for (std::deque<Interval>::iterator it2=((*it)->path).path.begin(); it2!=((*it)->path).path.end(); ++it2)
         {
             for (uint32_t j = it2->start; j<it2->end; ++j)
             {
@@ -72,8 +71,7 @@ TEST_F(SeqTest,sketchIncludesEveryLetter){
     pos_inc.clear();
     for(set<Minimizer*>::iterator it=s1.sketch.begin(); it != s1.sketch.end(); ++it)
     {
-	//(*it)->print();
-        for (std::deque<interval>::iterator it2=((*it)->path).path.begin(); it2!=((*it)->path).path.end(); ++it2)
+        for (std::deque<Interval>::iterator it2=((*it)->path).path.begin(); it2!=((*it)->path).path.end(); ++it2)
         {
             for (uint32_t j = it2->start; j<it2->end; ++j)
             {

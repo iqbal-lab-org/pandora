@@ -2,3 +2,4 @@
 
 # pandora
 Pan-genome inference with long error-prone sequencing reads
+Warning - this code doesn't do anything yet!

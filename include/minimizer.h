@@ -3,6 +3,7 @@
 
 #include <string>
 #include <functional>
+#include <ostream>
 #include "path.h"
 #include "interval.h"
 
@@ -15,9 +16,9 @@ struct Minimizer
     uint32_t startPosOnString; // actual position along prg, including numbers
     uint32_t endPosOnString;
     bool operator < ( const Minimizer& str) const;
-    Minimizer(string, deque<interval>);
+    Minimizer(string, deque<Interval>);
     ~Minimizer();
-    void print() const;
+    friend ostream& operator<< (ostream& out, const Minimizer& m); 
 };
 
 struct pMiniComp
