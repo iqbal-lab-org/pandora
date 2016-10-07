@@ -10,18 +10,12 @@
 using std::vector;
 using namespace std;
 
-pMiniComp myorder;
 
 Seq::Seq (uint32_t i, string n, string p, uint32_t w, uint32_t k) {
     id = i;
     name = n;
     seq = p;
     minimizer_sketch (w, k);
-    //for (uint32_t j=0; j!=sketch.size(); j++)
-    //{
-	//cout << (*sketch[j]) << " ";
-    //}
-    cout << endl;
 }
 
 Seq::~Seq()
@@ -35,7 +29,9 @@ Seq::~Seq()
 void Seq::minimizer_sketch (uint32_t w, uint32_t k)
 {
     // If sequence too short, just return
-    if (seq.length()+1 < w+k) {cout << "Sequence too short to sketch" << endl; return;}
+    if (seq.length()+1 < w+k) {//cout << "Sequence too short to sketch" << endl; 
+	return;}
+
 
     // for each window position
     for(uint32_t wpos=0; wpos <= seq.length()-w-k+1 ; ++wpos)
@@ -58,21 +54,9 @@ void Seq::minimizer_sketch (uint32_t w, uint32_t k)
             	Minimizer *m;
 		m = new Minimizer(kmer, d);
 		sketch.insert(m);
-		//if ( find(sketch.begin(), sketch.end(), m) != sketch.end() )
-		//{
-		//sketch.push_back(m);
-		//} else {
-		//    delete m;
-		//}
 	    }
 	}
     }
-
-    //cout << "Found " << sketch.size() << " minimizers." << endl;
-    //sort(sketch.begin(), sketch.end(), myorder);
-    //vector<Minimizer*>::iterator it = unique (sketch.begin(), sketch.end(), myorder);
-    //sketch.resize( distance(sketch.begin(),it) );
-    //sketch.erase( unique( sketch.begin(), sketch.end() ), sketch.end() );
     return;
 }
 

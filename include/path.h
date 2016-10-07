@@ -4,6 +4,7 @@
 #include <deque>
 #include <cstdint> //or <stdint.h>
 #include <ostream>
+#include <functional>
 #include "interval.h"
 
 using namespace std;
@@ -22,6 +23,7 @@ class Path {
     void add_start_interval(Interval);
     void add_end_interval(Interval);
     void initialize(deque<Interval>);
+    bool operator < (const Path& y) const;
   friend ostream& operator<< (ostream& out, const Path& p); 
 };
 

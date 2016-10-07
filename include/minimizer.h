@@ -26,4 +26,5 @@ struct pMiniComp
   bool operator()(Minimizer* lhs, Minimizer* rhs);
 };
 
+
 #endif

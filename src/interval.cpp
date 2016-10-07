@@ -12,3 +12,7 @@ std::ostream& operator<< (std::ostream & out, Interval const& i) {
     out << "[" << i.start << ", " << i.end << ")";
     return out ;
 }
+
+bool Interval::operator == (const Interval& y) const {
+    return (start == y.start and end == y.end);
+}

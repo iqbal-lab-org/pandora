@@ -12,3 +12,6 @@ std::ostream& operator<< (std::ostream & out, LocalNode const& n) {
     return out ;
 }
 
+bool LocalNode::operator == (const LocalNode& y) const {
+    return (seq == y.seq and pos == y.pos);
+}

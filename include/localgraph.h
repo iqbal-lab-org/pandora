@@ -5,7 +5,10 @@ class LocalNode;
 
 #include <cstring>
 #include <map>
+#include <set>
 #include "interval.h"
+#include "path.h"
+#include "localnode.h"
 
 using namespace std;
 
@@ -17,6 +20,7 @@ class LocalGraph {
     void add_node (const uint32_t& id, const string& seq, Interval pos);
     void add_edge (const uint32_t&, const uint32_t&);
     void write_gfa (string);
+    set<Path> extend_path(Path p);
 };
 
 #endif

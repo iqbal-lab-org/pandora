@@ -3,7 +3,8 @@
 
 #include <string>
 #include <vector>
-#include<ostream>
+#include <set>
+#include <ostream>
 #include "minimizer.h"
 #include "interval.h"
 #include "localgraph.h"
@@ -12,14 +13,16 @@ using namespace std;
 
 class LocalPRG {
     uint32_t next_id = 0;
-    uint32_t next_site = 5;
+//    uint32_t next_site = 5;
     string buff = " ";
   public:
+    uint32_t next_site = 5;
+
     uint32_t id;
     string name;
     string seq;
     LocalGraph prg;
-    vector<Minimizer*> sketch;
+    set<Minimizer*, pMiniComp> sketch;
     LocalPRG(uint32_t, string, string, uint32_t, uint32_t);
     ~LocalPRG();
     bool isalpha_string(string);

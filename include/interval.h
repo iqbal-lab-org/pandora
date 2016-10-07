@@ -13,5 +13,6 @@ struct Interval {
 
     Interval(uint32_t=0, uint32_t=0);
     friend ostream& operator<< (ostream& out, const Interval& i); 
+    bool operator == (const Interval& y) const;
 };
 #endif
