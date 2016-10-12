@@ -26,11 +26,60 @@ class MinimizerTest : public ::testing::Test {
   }
 };
 
+TEST_F(MinimizerTest,create){
+    deque<Interval> v1 = {Interval(0,5)};
+    deque<Interval> v2 = {Interval(1,4), Interval(15,17)};
+    deque<Interval> v3 = {Interval(1,6)};
+    deque<Interval> v4 = {Interval(0,3), Interval(16,18)};
+
+    Minimizer m1 = Minimizer("abcde", v1);
+    Minimizer m2 = Minimizer("abcdg", v1);
+    Minimizer m3 = Minimizer("abcde", v2);
+    Minimizer m4 = Minimizer("abcde", v3);
+    Minimizer m5 = Minimizer("abcde", v4);
+
+    EXPECT_EQ(m1.miniKmer, "abcde");
+    EXPECT_EQ(m2.miniKmer, "abcdg");
+    EXPECT_EQ(m3.miniKmer, "abcde");
+    EXPECT_EQ(m4.miniKmer, "abcde");
+    EXPECT_EQ(m5.miniKmer, "abcde");
+
+    EXPECT_EQ(m1.startPosOnString, 0);
+    EXPECT_EQ(m2.startPosOnString, 0);
+    EXPECT_EQ(m3.startPosOnString, 1);
+    EXPECT_EQ(m4.startPosOnString, 1);
+    EXPECT_EQ(m5.startPosOnString, 0);
+
+    EXPECT_EQ(m1.endPosOnString, 5);
+    EXPECT_EQ(m2.endPosOnString, 5);
+    EXPECT_EQ(m3.endPosOnString, 17);
+    EXPECT_EQ(m4.endPosOnString, 6);
+    EXPECT_EQ(m5.endPosOnString, 18);
+
+    Path p = Path();
+    p.initialize(v1);
+    EXPECT_EQ(p, m1.path);
+    EXPECT_EQ(p, m2.path);
+    p.initialize(v2);
+    EXPECT_EQ(p, m3.path);
+    p.initialize(v3);
+    EXPECT_EQ(p, m4.path);
+    p.initialize(v4);
+    EXPECT_EQ(p, m5.path);
+
+    deque<Interval> v5 = {Interval(0,3), Interval(16,18), Interval(20,25)};
+    EXPECT_DEATH(Minimizer("abcde", v5),"");
+}
+
 TEST_F(MinimizerTest,comparisonCheck){
-    deque<Interval> v1 = {Interval(0,15)};
-    deque<Interval> v2 = {Interval(1,12), Interval(14,18)};
-    deque<Interval> v3 = {Interval(1,16)};
-    deque<Interval> v4 = {Interval(0,10), Interval(15,20)};
+    //deque<Interval> v1 = {Interval(0,15)};
+    //deque<Interval> v2 = {Interval(1,12), Interval(14,18)};
+    //deque<Interval> v3 = {Interval(1,16)};
+    //deque<Interval> v4 = {Interval(0,10), Interval(15,20)};
+    deque<Interval> v1 = {Interval(0,5)};
+    deque<Interval> v2 = {Interval(1,4), Interval(15,17)};
+    deque<Interval> v3 = {Interval(1,6)};
+    deque<Interval> v4 = {Interval(0,3), Interval(16,18)};
 
     Minimizer m1 = Minimizer("abcde", v1);
     Minimizer m2 = Minimizer("abcdg", v1);

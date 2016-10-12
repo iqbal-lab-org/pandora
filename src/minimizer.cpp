@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstring>
 #include <functional>
+#include <cassert>
 #include "minimizer.h"
 #include "path.h"
 #include "interval.h"
@@ -12,6 +13,7 @@ Minimizer::Minimizer(string s, deque<Interval> l)
     miniKmer = s;
     path = Path();
     path.initialize(l);
+    assert(s.length()==path.length);
     startPosOnString = path.start;
     endPosOnString = path.end;
 }

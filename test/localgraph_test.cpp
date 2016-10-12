@@ -118,11 +118,90 @@ TEST_F(LocalGraphTest, equals)
     lg2p.add_edge(0,1);
     lg2p.add_edge(0,2);
     EXPECT_EQ(lg2, lg2p);
+    
+    // missing an edge does
+    LocalGraph lg2q = LocalGraph();
+    lg2q.add_node(2,"G", Interval(7,8));
+    lg2q.add_node(3,"T", Interval(13,14));
+    lg2q.add_node(1,"GC", Interval(4,6));
+    lg2q.add_node(0,"A", Interval(0,1));
+    lg2q.add_edge(1,3);
+    lg2q.add_edge(2,3);
+    lg2q.add_edge(0,1);
+    EXPECT_EQ((lg2==lg2q), false);
+
+    // adding an extra edge does
+    lg2p.add_edge(0,2);
+    lg2p.add_edge(0,3);
+    EXPECT_EQ((lg2==lg2q), false);
+
+    // adding an extra node
+    LocalGraph lg2r = LocalGraph();
+    lg2r.add_node(2,"G", Interval(7,8));
+    lg2r.add_node(3,"T", Interval(13,14));
+    lg2r.add_node(1,"GC", Interval(4,6));
+    lg2r.add_node(0,"A", Interval(0,1));
+    lg2r.add_edge(1,3);
+    lg2r.add_edge(2,3);
+    lg2r.add_edge(0,1);
+    lg2r.add_edge(0,2);
+    lg2r.add_node(4, "T", Interval(15,16));
+    EXPECT_EQ((lg2==lg2r), false);
 }
 
-/*TEST_F(LocalGraphTest, walk)
+TEST_F(LocalGraphTest, walk)
 {
-}*/
+    LocalGraph lg2 = LocalGraph();
+    lg2.add_node(0,"A", Interval(0,1));
+    lg2.add_node(1,"GC", Interval(4,6));
+    lg2.add_node(2,"G", Interval(7,8));
+    lg2.add_node(3,"T", Interval(13,14));
+    lg2.add_edge(0,1);
+    lg2.add_edge(0,2);
+    lg2.add_edge(1,3);
+    lg2.add_edge(2,3);
+
+    // simple case, there are 2 paths of length 3
+    set<Path> q1;
+    Path p = Path();
+    deque<Interval> d = {Interval(0,1), Interval(4,6)};
+    p.initialize(d);
+    q1.insert(p);
+    d = {Interval(0,1), Interval(7,8), Interval(13,14)};
+    p.initialize(d);
+    q1.insert(p);
+    set<Path> p1 = lg2.walk(0,0,3);
+    EXPECT_ITERABLE_EQ(set<Path>, q1, p1);
+
+    // but only one can be extended to a path of length 4
+    q1.clear();
+    d = {Interval(0,1), Interval(4,6), Interval(13,14)};
+    p.initialize(d);
+    q1.insert(p);
+    p1 = lg2.walk(0,0,4);
+    EXPECT_ITERABLE_EQ(set<Path>, q1, p1);
+
+    // for even simpler path of length 1
+    q1.clear();
+    d = {Interval(0,1)};
+    p.initialize(d);
+    q1.insert(p);
+    p1 = lg2.walk(0,0,1);
+    EXPECT_ITERABLE_EQ(set<Path>, q1, p1);
+
+    // no paths of length 5
+    q1.clear();
+    p1 = lg2.walk(0,0,5);
+    EXPECT_ITERABLE_EQ(set<Path>, q1, p1);
+
+    // 1 path starting from middle var site
+    q1.clear();
+    d = {Interval(4,6), Interval(13,14)};
+    p.initialize(d);
+    q1.insert(p);
+    p1 = lg2.walk(1,4,3);
+    EXPECT_ITERABLE_EQ(set<Path>, q1, p1);
+}
 
 /*TEST_F(LocalGraphTest,extendPath){
     deque<Interval> d = {Interval(0,1)};

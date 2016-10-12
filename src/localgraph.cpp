@@ -86,27 +86,39 @@ void LocalGraph::write_gfa (string filepath)
 set<Path> LocalGraph::walk(uint32_t node_id, uint32_t pos, uint32_t len)
 {
     // walks from position pos in node node for length len bases
-    set<Path> return_paths, walk_paths, new_paths;
+    set<Path> return_paths, walk_paths;
     Path p,p2 = Path();
     deque<Interval> d;
-    d = {Interval(pos, min(nodes[node_id]->pos.end, pos+len))};
-    p.initialize(d);
-    return_paths.insert(p);
+
+    //cout << "pos+len: " << pos+len << " nodes[node_id]->pos.end: " << nodes[node_id]->pos.end << endl;
+    if (pos+len <= nodes[node_id]->pos.end)
+    {
+        d = {Interval(pos, pos+len)};
+        p.initialize(d);
+        //cout << "return path: " << p << endl;
+        return_paths.insert(p);
+        //cout << "return_paths size: " << return_paths.size() << endl; 
+        return return_paths;
+    }
     uint32_t len_added = min(nodes[node_id]->pos.end - pos, len);
 
+    //cout << "len: " << len << " len_added: " << len_added << endl;
     if (len_added < len)
     {
 	for (vector<LocalNode*>::iterator it = nodes[node_id]->outNodes.begin(); it!= nodes[node_id]->outNodes.end(); ++it)
 	{
+	    //cout << "Following node: " << (*it)->id << " to add " << len-len_added << " more bases" << endl;
 	    walk_paths = walk((*it)->id,(*it)->pos.start, len-len_added);
+	    //cout << "walk paths size: " << walk_paths.size() << endl;
 	    for (set<Path>::iterator it2 = walk_paths.begin(); it2!= walk_paths.end(); ++it2)
 	    {
 		// Note, would have just added start interval to each item in walk_paths, but can't seem to force result of it2 to be non-const
-		p2 = *it2;
-		p2.add_start_interval(Interval(pos, min(nodes[node_id]->pos.end, pos+len)));
-		new_paths.insert(p2);
+		//cout << (*it2) << endl;
+		p2.initialize((*it2).path);
+		p2.add_start_interval(Interval(pos, nodes[node_id]->pos.end));
+		//cout << "path: " << p2 << " p2.length: " << p2.length << endl;
+    		if (p2.length == len) {return_paths.insert(p2);}
 	    }
-	    return_paths = new_paths;
 	}
     }
     return return_paths;

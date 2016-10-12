@@ -6,8 +6,9 @@
 #include "localPRG.h"
 #include "interval.h"
 #include "localgraph.h"
+#include "index.h"
 #include "errormessages.h"
-//#include "path.h" // for sketching
+#include "path.h"
 
 using std::vector;
 using namespace std;
@@ -174,10 +175,12 @@ vector<uint32_t> LocalPRG::build_graph(Interval i, vector<uint32_t> from_ids)
     return end_ids;
 }
 
-/*void LocalPRG::minimizer_sketch (uint32_t w, uint32_t k)
+void LocalPRG::minimizer_sketch (Index idx, uint32_t w, uint32_t k)
 {
     set<Path> walk_paths;
     Path current_path;
+    string kmer;
+    set<string> kmers;
     for (map<uint32_t,*LocalNode>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
     {
 	for (uint32_t i=it->start; i!=it->end; ++i)
@@ -186,74 +189,24 @@ vector<uint32_t> LocalPRG::build_graph(Interval i, vector<uint32_t> from_ids)
 	    for (set<Path>::iterator it2=walk_paths.begin(); it2!=walk_paths.end(); ++it)
 	    {
 		// find minimizer for this path	
-	    }
-	}
-    }
-}*/
-
-/*void LocalPRG::minimizer_sketch (uint32_t w, uint32_t k)
-{
-    set<Path> current_paths, new_paths, paths;
-
-    // if have no nodes, just return, can't get minimizers
-    if (prg.nodes.size()<=0)
-	return;
-
-    current_paths.insert(Path({prg.nodes.at(0)->pos});
-    while (current_paths.size()>0)
-    {
-        for (std::set<Path>::iterator it=current_paths.begin(); it!=current_paths.end(); ++it)
-	{
-	    if (it->length < w+k-1 + it->path.begin()->length - 1) // i.e. if any of the paths 
-	    {
-		// if too short increase path size
-		paths = prg.extend_path(*it);
-		new_paths.insert(paths.begin(), paths.end());
-	    } else {
-	        //find minimizers for all paths starting in first interval of the path
-	        for (uint32_t j=it->path.begin()->start; j!=it->path.begin()->end; ++j)
+		for (uint32_t j = 0; j < w; j++)
 		{
+		    kmer = string_along_path(*it2->subpath(i+j,k));
+		    kmers.insert(kmer);
 		}
-	    }
-
-	}
-    }
-}*/
-
-/*void LocalPRG::minimizer_sketch (uint32_t w, uint32_t k)
-{
-    // If sequence too short, just return
-    if (seq.length()+1 < w+k) {cout << "Sequence too short to sketch" << endl; return;}
-
-    // for each window position
-    for(uint32_t wpos=0; wpos <= seq.length()-w-k+1 ; ++wpos)
-    {
-	// find the lex smallest kmer in the window
-	set<string> kmers;
-
-	for (uint32_t i = 0; i < w; i++)
-	{
-	    string kmer = seq.substr(wpos+i, k);
-	    kmers.insert(kmer);
-	}
-	string smallest_word = *kmers.begin();
-	for (uint32_t i = 0; i < w; i++)
-	{
-	    string kmer = seq.substr(wpos+i, k);
-	    if (kmer == smallest_word)
-            {
-		deque<interval> d = {interval(wpos+i, wpos+i+k)};
-            	Minimizer *m;
-		m = new Minimizer(kmer, d);
-		sketch.push_back(m);
+		string smallest_word = *kmers.begin();
+		for (uint32_t j = 0; j < w; j++)
+                {
+                    kmer = string_along_path(*it2->subpath(i+j,k));
+		    if (kmer == smallest_word)
+		    {
+			idx.add_record(kmer, id, *it2->subpath(i+j,k));
+		    }
+                }
 	    }
 	}
     }
-
-    //cout << "Found " << sketch.size() << " minimizers." << endl;
-    sort(sketch.begin(), sketch.end(), pMiniComp);
-    return;
-}*/
+}
 
 std::ostream& operator<< (std::ostream & out, LocalPRG const& data) {
     out << data.name;

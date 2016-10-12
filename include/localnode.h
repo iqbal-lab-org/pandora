@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <ostream>
+#include <algorithm>
 #include "interval.h"
 
 using namespace std;
