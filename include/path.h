@@ -23,7 +23,9 @@ class Path {
     void add_start_interval(Interval);
     void add_end_interval(Interval);
     void initialize(deque<Interval>);
+    Path subpath(uint32_t, uint32_t);
     bool operator < (const Path& y) const;
+    bool operator == (const Path& y) const;
   friend ostream& operator<< (ostream& out, const Path& p); 
 };
 

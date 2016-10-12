@@ -2,6 +2,8 @@
 #include <functional>
 #include "path.h"
 #include "interval.h"
+#include "errormessages.h"
+#include <cassert>
 #include <deque>
 
 using namespace std;
@@ -30,6 +32,7 @@ Path::~Path()
 
 void Path::add_start_interval(Interval i)
 {
+    assert (i.end <= path.begin()->start);// && PATH_ERROR);
     path.push_front(i);
     length += i.length;
     start = i.start;
@@ -37,9 +40,36 @@ void Path::add_start_interval(Interval i)
 
 void Path::add_end_interval(Interval i)
 {
+    assert (i.start >= path.back().end);// && PATH_ERROR);
     path.push_back(i);
     length += i.length;
     end = i.end;
+}
+
+Path Path::subpath(uint32_t start, uint32_t len)
+{
+   Path p;
+   uint32_t added_len = 0;
+   for (deque<Interval>::iterator it=path.begin(); it!=path.end(); ++it)
+   {
+	if (it->start <= start and it->end > start)
+	{
+	    // first interval to add
+	    deque<Interval> d = {Interval(start, min(start+len, it->end))};
+	    p.initialize(d);
+	    added_len += min(start+len, it->end) - start;
+	} else if (it->length < len - added_len and p.path.size() > 0){ //check p initialized with a path
+	    p.add_end_interval(*it);
+	    added_len += it->length;
+	} else if (it->length >= len - added_len and p.path.size() > 0) { //check p initialised with a path
+	    // last interval to add
+	    p.add_end_interval(Interval(it->start, it->start + len - added_len));
+	    added_len = len;
+	    return p;
+	}
+   }
+   assert (added_len == len);// && SUBPATH_ERROR);
+   return p; // this should never happen
 }
 
 bool Path::operator < ( const Path& y) const
@@ -49,6 +79,11 @@ bool Path::operator < ( const Path& y) const
     if ( end < y.end ) { return true; }
     if ( end > y.end ) { return false; }
     return false;
+}
+
+bool Path::operator == ( const Path& y) const
+{
+    return ((start == y.start) and (end == y.end));
 }
 
 std::ostream& operator<< (std::ostream & out, Path const& p) {

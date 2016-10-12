@@ -38,19 +38,21 @@ void Seq::minimizer_sketch (uint32_t w, uint32_t k)
     {
 	// find the lex smallest kmer in the window
 	set<string> kmers;
+	string kmer;
 
 	for (uint32_t i = 0; i < w; i++)
 	{
-	    string kmer = seq.substr(wpos+i, k);
+	    kmer = seq.substr(wpos+i, k);
 	    kmers.insert(kmer);
 	}
 	string smallest_word = *kmers.begin();
+        deque<Interval> d;
 	for (uint32_t i = 0; i < w; i++)
 	{
-	    string kmer = seq.substr(wpos+i, k);
+	    kmer = seq.substr(wpos+i, k);
 	    if (kmer == smallest_word)
             {
-		deque<Interval> d = {Interval(wpos+i, wpos+i+k)};
+		d = {Interval(wpos+i, wpos+i+k)};
             	Minimizer *m;
 		m = new Minimizer(kmer, d);
 		sketch.insert(m);

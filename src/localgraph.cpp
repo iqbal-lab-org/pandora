@@ -2,6 +2,7 @@
 #include <cstring>
 #include <map>
 #include <fstream>
+#include <cassert>
 #include "localnode.h"
 #include "localgraph.h"
 #include "errormessages.h"
@@ -15,8 +16,31 @@ LocalGraph::~LocalGraph()
     delete c.second;
   }
 }
+
+bool LocalGraph::operator == (const LocalGraph& y) const
+{
+    // false if have different numbers of nodes
+    if (y.nodes.size() != nodes.size()) {//cout << "different numbers of nodes" << endl; 
+	return false;}
+
+    // false if have different nodes
+    for ( const auto c: nodes)
+    {
+	// if node id doesn't exist 
+        map<uint32_t, LocalNode*>::const_iterator it=y.nodes.find(c.first);
+	if(it==y.nodes.end()) {//cout << "node id doesn't exist" << endl; 
+	    return false;}
+	// or node entries are different
+        if (!(*c.second == *(it->second))) {//cout << "node id " << c.first << " exists but has different values" << endl; 
+	    return false;}
+    }
+    // otherwise is true
+    return true;
+}
+
 void LocalGraph::add_node (const uint32_t& id, const string& seq, Interval pos)
 {
+    assert(seq.length() == pos.length); 
     map<uint32_t, LocalNode*>::iterator it=nodes.find(id);
     if(it==nodes.end())
     {
@@ -25,9 +49,7 @@ void LocalGraph::add_node (const uint32_t& id, const string& seq, Interval pos)
         nodes[id] = n;
         //cout << "Added node " << id << endl;
     } else {
-        cerr << NODE_EXISTS_ERROR << endl;
-	cerr << id << " " << pos << endl;
-	exit(-1);
+    	assert((it->second->seq == seq) && (it->second->pos == pos)); // NODE_EXISTS_ERROR
     }
     return;
 }
@@ -35,19 +57,16 @@ void LocalGraph::add_edge (const uint32_t& from, const uint32_t& to)
 {
     map<uint32_t, LocalNode*>::iterator from_it=nodes.find(from);
     map<uint32_t, LocalNode*>::iterator to_it=nodes.find(to);
+    assert((from_it!=nodes.end()) && (to_it!=nodes.end())); // NODE_MISSING_ERROR
     if((from_it!=nodes.end()) && (to_it!=nodes.end()))
     {
 	LocalNode *f = (nodes.find(from)->second);
     	LocalNode *t = (nodes.find(to)->second);
     	f->outNodes.push_back(t);
     	//cout << "Added edge (" << f->id << ", " << t->id << ")" << endl;
-    } else {
-	cerr << NODE_MISSING_ERROR << endl;
-	cerr << from << " " << to << endl;
-	exit(-1);
     }
-
 }
+
 void LocalGraph::write_gfa (string filepath)
 {
     ofstream handle;
@@ -64,6 +83,35 @@ void LocalGraph::write_gfa (string filepath)
     handle.close();
 }
 
+set<Path> LocalGraph::walk(uint32_t node_id, uint32_t pos, uint32_t len)
+{
+    // walks from position pos in node node for length len bases
+    set<Path> return_paths, walk_paths, new_paths;
+    Path p,p2 = Path();
+    deque<Interval> d;
+    d = {Interval(pos, min(nodes[node_id]->pos.end, pos+len))};
+    p.initialize(d);
+    return_paths.insert(p);
+    uint32_t len_added = min(nodes[node_id]->pos.end - pos, len);
+
+    if (len_added < len)
+    {
+	for (vector<LocalNode*>::iterator it = nodes[node_id]->outNodes.begin(); it!= nodes[node_id]->outNodes.end(); ++it)
+	{
+	    walk_paths = walk((*it)->id,(*it)->pos.start, len-len_added);
+	    for (set<Path>::iterator it2 = walk_paths.begin(); it2!= walk_paths.end(); ++it2)
+	    {
+		// Note, would have just added start interval to each item in walk_paths, but can't seem to force result of it2 to be non-const
+		p2 = *it2;
+		p2.add_start_interval(Interval(pos, min(nodes[node_id]->pos.end, pos+len)));
+		new_paths.insert(p2);
+	    }
+	    return_paths = new_paths;
+	}
+    }
+    return return_paths;
+}
+
 /*uint32_t query_node_containing(uint32_t i)
 {
     map<uint32_t, LocalNode*>::iterator it=nodes.begin();
@@ -73,12 +121,14 @@ void LocalGraph::write_gfa (string filepath)
     }
     if (it->second->pos.start<=i and it->second->pos.end>i)
     {
-	return i;
-    } else
-	return 
+	return it->first;
+    } else {
+	cerr << NOT_IN_NODE_RANGE_ERROR << endl;
+        exit(-1);
+    }
 }
 
-vector<Path> LocalGraph::get_paths_from_node(uint32_t i, uint32_t len)
+vector<Path> LocalGraph::get_paths_from_position(uint32_t i, uint32_t len)
 {
     vector<Path> v;
     deque<Interval> d = {Interval(i,15)};
@@ -87,7 +137,7 @@ vector<Path> LocalGraph::get_paths_from_node(uint32_t i, uint32_t len)
     return v;
 }*/
 
-set<Path> LocalGraph::extend_path(Path p)
+/*set<Path> LocalGraph::extend_path(Path p)
 {
     set<Path> s;
     // adds next interval(s) to end of path
@@ -107,9 +157,9 @@ set<Path> LocalGraph::extend_path(Path p)
 	{
 	    Path q = p;
 	    q.add_end_interval(it->second->outNodes[i]->pos);
-	    cout << q << endl;
+	    //cout << q << endl;
 	    s.insert(q);
 	}
     }
     return s;	
-}
+}*/

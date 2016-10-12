@@ -26,6 +26,7 @@ class LocalPRG {
     LocalPRG(uint32_t, string, string, uint32_t, uint32_t);
     ~LocalPRG();
     bool isalpha_string(string);
+    string string_along_path(Path);
     vector<Interval> splitBySite(Interval);	
     vector<uint32_t> build_graph(Interval, vector<uint32_t>);
     void minimizer_sketch (uint32_t w, uint32_t k);

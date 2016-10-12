@@ -39,6 +39,16 @@ bool LocalPRG::isalpha_string ( string s )
     return 1; //True
 }
 
+string LocalPRG::string_along_path(Path p)
+{
+    string s;
+    for (deque<Interval>::iterator it=p.path.begin(); it!=p.path.end(); ++it)
+    {
+	s += seq.substr(it->start, it->length);
+    }
+    return s;
+}
+
 vector<Interval> LocalPRG::splitBySite(Interval i)
 {
     // Splits interval by next_site based on substring of seq in the interval
@@ -166,12 +176,47 @@ vector<uint32_t> LocalPRG::build_graph(Interval i, vector<uint32_t> from_ids)
 
 /*void LocalPRG::minimizer_sketch (uint32_t w, uint32_t k)
 {
-    vector<Path> current_paths;
+    set<Path> walk_paths;
+    Path current_path;
+    for (map<uint32_t,*LocalNode>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
+    {
+	for (uint32_t i=it->start; i!=it->end; ++i)
+	{
+	    walk_paths = prg.walk(it->id, i, w+k-1);
+	    for (set<Path>::iterator it2=walk_paths.begin(); it2!=walk_paths.end(); ++it)
+	    {
+		// find minimizer for this path	
+	    }
+	}
+    }
+}*/
+
+/*void LocalPRG::minimizer_sketch (uint32_t w, uint32_t k)
+{
+    set<Path> current_paths, new_paths, paths;
+
+    // if have no nodes, just return, can't get minimizers
     if (prg.nodes.size()<=0)
 	return;
-    current_paths.push_back(Path({prg.nodes.at(0)->pos});
+
+    current_paths.insert(Path({prg.nodes.at(0)->pos});
     while (current_paths.size()>0)
     {
+        for (std::set<Path>::iterator it=current_paths.begin(); it!=current_paths.end(); ++it)
+	{
+	    if (it->length < w+k-1 + it->path.begin()->length - 1) // i.e. if any of the paths 
+	    {
+		// if too short increase path size
+		paths = prg.extend_path(*it);
+		new_paths.insert(paths.begin(), paths.end());
+	    } else {
+	        //find minimizers for all paths starting in first interval of the path
+	        for (uint32_t j=it->path.begin()->start; j!=it->path.begin()->end; ++j)
+		{
+		}
+	    }
+
+	}
     }
 }*/
 

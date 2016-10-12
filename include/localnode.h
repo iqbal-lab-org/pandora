@@ -22,4 +22,13 @@ class LocalNode {
   friend class LocalGraph;
 };
 
+template <typename T>
+struct pointer_values_equal
+{
+    const T* to_find;
+    bool operator()(const T* other) const
+    {
+        return *to_find == *other;
+    }
+};
 #endif
