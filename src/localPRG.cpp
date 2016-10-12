@@ -181,26 +181,26 @@ void LocalPRG::minimizer_sketch (Index idx, uint32_t w, uint32_t k)
     Path current_path;
     string kmer;
     set<string> kmers;
-    for (map<uint32_t,*LocalNode>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
+    for (map<uint32_t,LocalNode*>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
     {
-	for (uint32_t i=it->start; i!=it->end; ++i)
+	for (uint32_t i=it->second->pos.start; i!=it->second->pos.end; ++i)
 	{
-	    walk_paths = prg.walk(it->id, i, w+k-1);
-	    for (set<Path>::iterator it2=walk_paths.begin(); it2!=walk_paths.end(); ++it)
+	    walk_paths = prg.walk(it->second->id, i, w+k-1);
+	    for (set<Path>::iterator it2=walk_paths.begin(); it2!=walk_paths.end(); ++it2)
 	    {
 		// find minimizer for this path	
 		for (uint32_t j = 0; j < w; j++)
 		{
-		    kmer = string_along_path(*it2->subpath(i+j,k));
+		    kmer = string_along_path(it2->subpath(i+j,k));
 		    kmers.insert(kmer);
 		}
 		string smallest_word = *kmers.begin();
 		for (uint32_t j = 0; j < w; j++)
                 {
-                    kmer = string_along_path(*it2->subpath(i+j,k));
+                    kmer = string_along_path(it2->subpath(i+j,k));
 		    if (kmer == smallest_word)
 		    {
-			idx.add_record(kmer, id, *it2->subpath(i+j,k));
+			idx.add_record(kmer, id, it2->subpath(i+j,k));
 		    }
                 }
 	    }

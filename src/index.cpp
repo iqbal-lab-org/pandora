@@ -29,9 +29,10 @@ void Index::add_record(string miniKmer, uint32_t prg_id, Path path)
         newv.push_back(MiniRecord(prg_id, path));
         minhash.insert(pair<string, vector<MiniRecord>>(miniKmer,newv));
     } else {
-        if (find(it->second.begin(), it->second.end(), MiniRecord(prg_id, path))==it->second.end())
+	MiniRecord mr = MiniRecord(prg_id, path);	
+        if (find(it->second.begin(), it->second.end(), mr)==it->second.end())
 	{
-            it->second.push_back(MiniRecord(prg_id, path));
+            it->second.push_back(mr);
 	}
     }
 }

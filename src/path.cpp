@@ -46,11 +46,11 @@ void Path::add_end_interval(Interval i)
     end = i.end;
 }
 
-Path Path::subpath(uint32_t start, uint32_t len)
+Path Path::subpath(uint32_t start, uint32_t len) const
 {
    Path p;
    uint32_t added_len = 0;
-   for (deque<Interval>::iterator it=path.begin(); it!=path.end(); ++it)
+   for (deque<Interval>::const_iterator it=path.begin(); it!=path.end(); ++it)
    {
 	if (it->start <= start and it->end > start)
 	{

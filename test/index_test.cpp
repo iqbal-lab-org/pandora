@@ -31,6 +31,7 @@ TEST_F(IndexTest,addRecord){
     // add again - should stay same size
     idx.add_record("hello", 1, p);
     EXPECT_EQ(1, idx.minhash.size());
+    EXPECT_EQ(1, idx.minhash["hello"].size());
 
     // add a new record with different key
     idx.add_record("henno", 2, p);
@@ -38,5 +39,6 @@ TEST_F(IndexTest,addRecord){
 
     // and a new record which is different but has same key
     idx.add_record("hello", 4, p);
-    EXPECT_EQ(3, idx.minhash.size());
+    EXPECT_EQ(2, idx.minhash.size());
+    EXPECT_EQ(2, idx.minhash["hello"].size());
 }
