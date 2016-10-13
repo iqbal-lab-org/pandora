@@ -5,16 +5,12 @@
 #include <set>
 #include "minimizer.h"
 #include "seq.h"
-#include "path.h" // for sketching
 
 using std::vector;
 using namespace std;
 
 
-Seq::Seq (uint32_t i, string n, string p, uint32_t w, uint32_t k) {
-    id = i;
-    name = n;
-    seq = p;
+Seq::Seq (uint32_t i, string n, string p, uint32_t w, uint32_t k): id(i), name(n), seq(p) {
     minimizer_sketch (w, k);
 }
 
@@ -46,15 +42,13 @@ void Seq::minimizer_sketch (uint32_t w, uint32_t k)
 	    kmers.insert(kmer);
 	}
 	string smallest_word = *kmers.begin();
-        deque<Interval> d;
 	for (uint32_t i = 0; i < w; i++)
 	{
 	    kmer = seq.substr(wpos+i, k);
 	    if (kmer == smallest_word)
             {
-		d = {Interval(wpos+i, wpos+i+k)};
             	Minimizer *m;
-		m = new Minimizer(kmer, d);
+		m = new Minimizer(kmer, wpos+i, wpos+i+k);
 		sketch.insert(m);
 	    }
 	}

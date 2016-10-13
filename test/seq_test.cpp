@@ -41,13 +41,11 @@ TEST_F(SeqTest,sketchIncludesEveryLetter){
     set<int> pos_inc;
     for(set<Minimizer*>::iterator it=s4.sketch.begin(); it != s4.sketch.end(); ++it)
     {
-        for (std::deque<Interval>::iterator it2=((*it)->path).path.begin(); it2!=((*it)->path).path.end(); ++it2)
+        for (uint32_t j = (*it)->pos.start; j<(*it)->pos.end; ++j)
         {
-            for (uint32_t j = it2->start; j<it2->end; ++j)
-            {
-                pos_inc.insert(j);
-            }
+            pos_inc.insert(j);
         }
+        
     } 
     set<int> expected = {0,1,2,3,4,5,6,7,8,9,10,11};
     EXPECT_EQ(pos_inc, expected) << "sketch misses a letter";
@@ -58,12 +56,9 @@ TEST_F(SeqTest,sketchIncludesEveryLetter){
     pos_inc.clear();
     for(set<Minimizer*>::iterator it=s2.sketch.begin(); it != s2.sketch.end(); ++it)
     {
-        for (std::deque<Interval>::iterator it2=((*it)->path).path.begin(); it2!=((*it)->path).path.end(); ++it2)
+        for (uint32_t j = (*it)->pos.start; j<(*it)->pos.end; ++j)
         {
-            for (uint32_t j = it2->start; j<it2->end; ++j)
-            {
-                pos_inc.insert(j);
-            }
+            pos_inc.insert(j);
         }
     }
     EXPECT_EQ(pos_inc, expected) << "sketch for s2 includes/misses wrong letter";
@@ -71,13 +66,9 @@ TEST_F(SeqTest,sketchIncludesEveryLetter){
     pos_inc.clear();
     for(set<Minimizer*>::iterator it=s1.sketch.begin(); it != s1.sketch.end(); ++it)
     {
-        for (std::deque<Interval>::iterator it2=((*it)->path).path.begin(); it2!=((*it)->path).path.end(); ++it2)
+        for (uint32_t j = (*it)->pos.start; j<(*it)->pos.end; ++j)
         {
-            for (uint32_t j = it2->start; j<it2->end; ++j)
-            {
-                pos_inc.insert(j);
-            }
-        }
+            pos_inc.insert(j);         }
     }
     expected = {0,1,2,3,4,5,6,7,8,9};
     EXPECT_EQ(pos_inc, expected) << "sketch for s1 includes/misses wrong letter";

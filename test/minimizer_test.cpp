@@ -26,7 +26,7 @@ class MinimizerTest : public ::testing::Test {
   }
 };
 
-TEST_F(MinimizerTest,create){
+/*TEST_F(MinimizerTest,create){
     deque<Interval> v1 = {Interval(0,5)};
     deque<Interval> v2 = {Interval(1,4), Interval(15,17)};
     deque<Interval> v3 = {Interval(1,6)};
@@ -106,4 +106,4 @@ TEST_F(MinimizerTest,comparisonCheck){
 	EXPECT_EQ(it->endPosOnString, v[i].endPosOnString) << "end positions do not agree: " << it->endPosOnString << ", " << v[i].endPosOnString;
     	++i;
     }
-}
+}*/

@@ -8,14 +8,10 @@
 
 using namespace std;
 
-Minimizer::Minimizer(string s, deque<Interval> l)
+Minimizer::Minimizer(string s, uint32_t a, uint32_t b): kmer(s)
 {
-    miniKmer = s;
-    path = Path();
-    path.initialize(l);
-    assert(s.length()==path.length);
-    startPosOnString = path.start;
-    endPosOnString = path.end;
+    pos = Interval(a,b);
+    assert(kmer.length()==pos.length);
 }
 
 Minimizer::~Minimizer()
@@ -25,14 +21,14 @@ Minimizer::~Minimizer()
 
 bool Minimizer::operator < ( const Minimizer& str) const
 {
-    if (miniKmer < str.miniKmer) { return true; }
-    if ( str.miniKmer < miniKmer ) { return false; }
+    if (kmer < str.kmer) { return true; }
+    if ( str.kmer < kmer ) { return false; }
 
-    if (startPosOnString < str.startPosOnString) { return true; }
-    if ( str.startPosOnString < startPosOnString ) { return false; }
+    if (pos.start < str.pos.start) { return true; }
+    if ( str.pos.start < pos.start ) { return false; }
 
-    if (endPosOnString < str.endPosOnString) { return true; }
-    if ( str.endPosOnString < endPosOnString ) { return false; }
+    if (pos.end < str.pos.end) { return true; }
+    if ( str.pos.end < pos.end ) { return false; }
 
     // if both are completely equal (based on strict weak ordering)
     // then just return false since equality doesn't yield less than
@@ -44,6 +40,6 @@ bool pMiniComp::operator()(Minimizer* lhs, Minimizer* rhs) {
 }
 
 std::ostream& operator<< (std::ostream & out, Minimizer const& m) {
-    out << "(" << m.miniKmer << ", " << m.path << ")";
+    out << "(" << m.kmer << ", " << m.pos << ")";
     return out ;
 }

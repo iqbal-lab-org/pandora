@@ -3,6 +3,7 @@
 #include <algorithm>
 #include "localnode.h"
 #include "interval.h"
+#include "utils.h"
 
 using namespace std;
 

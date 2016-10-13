@@ -19,9 +19,12 @@ class IntervalTest : public ::testing::Test {
 TEST_F(IntervalTest,create)
 {
     Interval i = Interval(1,9);
-    EXPECT_EQ(i.start,1);
-    EXPECT_EQ(i.end,9);
-    EXPECT_EQ(i.length,8);
+    uint32_t j = 1;
+    EXPECT_EQ(i.start,j);
+    j=9;
+    EXPECT_EQ(i.end,j);
+    j=8;
+    EXPECT_EQ(i.length,j);
 
     // should fail if end is before start
     EXPECT_DEATH(Interval(9,1), "");
@@ -36,5 +39,5 @@ TEST_F(IntervalTest,compare)
     EXPECT_EQ(i,j);
     
     Interval k = Interval(0,4);
-    EXPECT_EQ(false, (i==k));
+    EXPECT_EQ((i==k), false);
 }

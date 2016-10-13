@@ -26,19 +26,21 @@ TEST_F(IndexTest,addRecord){
     Path p = Path();
     p.initialize(d);
     idx.add_record("hello", 1, p);
-    EXPECT_EQ(1, idx.minhash.size());
+    uint32_t j=1;
+    EXPECT_EQ(j, idx.minhash.size());
 
     // add again - should stay same size
     idx.add_record("hello", 1, p);
-    EXPECT_EQ(1, idx.minhash.size());
-    EXPECT_EQ(1, idx.minhash["hello"].size());
+    EXPECT_EQ(j, idx.minhash.size());
+    EXPECT_EQ(j, idx.minhash["hello"].size());
 
     // add a new record with different key
     idx.add_record("henno", 2, p);
-    EXPECT_EQ(2, idx.minhash.size());
+    j=2;
+    EXPECT_EQ(j, idx.minhash.size());
 
     // and a new record which is different but has same key
     idx.add_record("hello", 4, p);
-    EXPECT_EQ(2, idx.minhash.size());
-    EXPECT_EQ(2, idx.minhash["hello"].size());
+    EXPECT_EQ(j, idx.minhash.size());
+    EXPECT_EQ(j, idx.minhash["hello"].size());
 }

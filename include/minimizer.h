@@ -4,19 +4,16 @@
 #include <string>
 #include <functional>
 #include <ostream>
-#include "path.h"
 #include "interval.h"
 
 using namespace std;
 
 struct Minimizer
 {
-    string miniKmer;
-    Path path;
-    uint32_t startPosOnString; // actual position along prg, including numbers
-    uint32_t endPosOnString;
+    string kmer;
+    Interval pos;
     bool operator < ( const Minimizer& str) const;
-    Minimizer(string, deque<Interval>);
+    Minimizer(string, uint32_t, uint32_t);
     ~Minimizer();
     friend ostream& operator<< (ostream& out, const Minimizer& m); 
 };

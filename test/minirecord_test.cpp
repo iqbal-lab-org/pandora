@@ -26,19 +26,23 @@ TEST_F(MiniRecordTest,create){
     Path p = Path();
     p.initialize(v1);
     MiniRecord m1 = MiniRecord(1,p);
-    EXPECT_EQ(1, m1.prg_id);
+    uint32_t j=1;
+    EXPECT_EQ(j, m1.prg_id);
     EXPECT_EQ(p, m1.path);
     p.initialize(v2);
     MiniRecord m2 = MiniRecord(2,p);
-    EXPECT_EQ(2, m2.prg_id);
+    j=2;
+    EXPECT_EQ(j, m2.prg_id);
     EXPECT_EQ(p, m2.path);
     p.initialize(v3);
     MiniRecord m3 = MiniRecord(3,p);
-    EXPECT_EQ(3, m3.prg_id);
+    j=3;
+    EXPECT_EQ(j, m3.prg_id);
     EXPECT_EQ(p, m3.path);
     p.initialize(v4);
     MiniRecord m4 = MiniRecord(4,p);
-    EXPECT_EQ(4, m4.prg_id);
+    j=4;
+    EXPECT_EQ(j, m4.prg_id);
     EXPECT_EQ(p, m4.path);
 }
 
