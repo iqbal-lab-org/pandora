@@ -44,3 +44,16 @@ TEST_F(IndexTest,addRecord){
     EXPECT_EQ(j, idx.minhash.size());
     EXPECT_EQ(j, idx.minhash["hello"].size());
 }
+
+TEST_F(IndexTest, clear){
+    Index idx = Index();
+    deque<Interval> d = {Interval(3,5), Interval(9,12)};
+    Path p = Path();
+    p.initialize(d);
+    idx.add_record("hello", 1, p);
+    idx.add_record("henno", 2, p);
+    idx.add_record("hello", 4, p);
+    idx.clear();
+    uint32_t j = 0;
+    EXPECT_EQ(j, idx.minhash.size());
+}

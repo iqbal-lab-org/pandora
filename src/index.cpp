@@ -36,3 +36,9 @@ void Index::add_record(string miniKmer, uint32_t prg_id, Path path)
 	}
     }
 }
+
+void Index::clear()
+{
+    for(auto it = minhash.begin(); it != minhash.end();)
+        it = minhash.erase(it);
+}

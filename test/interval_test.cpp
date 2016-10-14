@@ -18,8 +18,14 @@ class IntervalTest : public ::testing::Test {
 
 TEST_F(IntervalTest,create)
 {
-    Interval i = Interval(1,9);
-    uint32_t j = 1;
+    Interval i = Interval(0,0);
+    uint32_t j = 0;
+    EXPECT_EQ(i.start,j);
+    EXPECT_EQ(i.end,j);
+    EXPECT_EQ(i.length,j);
+
+    i = Interval(1,9);
+    j=1;
     EXPECT_EQ(i.start,j);
     j=9;
     EXPECT_EQ(i.end,j);
@@ -32,7 +38,7 @@ TEST_F(IntervalTest,create)
     EXPECT_DEATH(Interval(-1,10),"");
 }
 
-TEST_F(IntervalTest,compare)
+TEST_F(IntervalTest,equals)
 {
     Interval i = Interval(1,5);
     Interval j = Interval(1,5);
@@ -40,4 +46,8 @@ TEST_F(IntervalTest,compare)
     
     Interval k = Interval(0,4);
     EXPECT_EQ((i==k), false);
+
+    i = Interval(0,0);
+    j = Interval(1,1);
+    EXPECT_EQ((i==j), false);
 }

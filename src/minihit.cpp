@@ -13,6 +13,7 @@ MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecor
     read_interval = m->pos;
     prg_id = r.prg_id;
     prg_path = r.path;
+    assert(read_interval.length==prg_path.length);
 };
 
 bool MinimizerHit::operator == (const MinimizerHit& y) const {

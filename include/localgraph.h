@@ -17,11 +17,12 @@ class LocalGraph {
     map<uint32_t, LocalNode*> nodes; // representing nodes in graph
     LocalGraph() {}
     ~LocalGraph();
-    bool operator == (const LocalGraph& y) const;
     void add_node (const uint32_t& id, const string& seq, Interval pos);
     void add_edge (const uint32_t&, const uint32_t&);
     void write_gfa (string);
     set<Path> walk(uint32_t, uint32_t, uint32_t);
+    bool operator == (const LocalGraph& y) const;
+
 };
 
 #endif

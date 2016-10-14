@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <cassert>
 #include "minimizer.h"
 #include "localPRG.h"
 #include "interval.h"
@@ -42,6 +43,8 @@ bool LocalPRG::isalpha_string ( string s )
 
 string LocalPRG::string_along_path(Path p)
 {
+    assert(p.start<=seq.length());
+    assert(p.end<=seq.length());
     string s;
     for (deque<Interval>::iterator it=p.path.begin(); it!=p.path.end(); ++it)
     {

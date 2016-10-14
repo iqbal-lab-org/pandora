@@ -26,67 +26,40 @@ class MinimizerTest : public ::testing::Test {
   }
 };
 
-/*TEST_F(MinimizerTest,create){
-    deque<Interval> v1 = {Interval(0,5)};
-    deque<Interval> v2 = {Interval(1,4), Interval(15,17)};
-    deque<Interval> v3 = {Interval(1,6)};
-    deque<Interval> v4 = {Interval(0,3), Interval(16,18)};
+TEST_F(MinimizerTest,create){
+    Minimizer m1 = Minimizer("abcde", 0,5);
+    Minimizer m2 = Minimizer("abcdg", 1,6);
+    Minimizer m3 = Minimizer("abcde", 5,10);
 
-    Minimizer m1 = Minimizer("abcde", v1);
-    Minimizer m2 = Minimizer("abcdg", v1);
-    Minimizer m3 = Minimizer("abcde", v2);
-    Minimizer m4 = Minimizer("abcde", v3);
-    Minimizer m5 = Minimizer("abcde", v4);
+    EXPECT_EQ(m1.kmer, "abcde");
+    EXPECT_EQ(m2.kmer, "abcdg");
+    EXPECT_EQ(m3.kmer, "abcde");
 
-    EXPECT_EQ(m1.miniKmer, "abcde");
-    EXPECT_EQ(m2.miniKmer, "abcdg");
-    EXPECT_EQ(m3.miniKmer, "abcde");
-    EXPECT_EQ(m4.miniKmer, "abcde");
-    EXPECT_EQ(m5.miniKmer, "abcde");
+    uint32_t j = 0;
+    EXPECT_EQ(m1.pos.start, j);
+    j = 1;
+    EXPECT_EQ(m2.pos.start, j);
+    j = 5;
+    EXPECT_EQ(m3.pos.start, j);
 
-    EXPECT_EQ(m1.startPosOnString, 0);
-    EXPECT_EQ(m2.startPosOnString, 0);
-    EXPECT_EQ(m3.startPosOnString, 1);
-    EXPECT_EQ(m4.startPosOnString, 1);
-    EXPECT_EQ(m5.startPosOnString, 0);
+    EXPECT_EQ(m1.pos.end, j);
+    j = 6;
+    EXPECT_EQ(m2.pos.end, j);
+    j = 10;
+    EXPECT_EQ(m3.pos.end, j);
 
-    EXPECT_EQ(m1.endPosOnString, 5);
-    EXPECT_EQ(m2.endPosOnString, 5);
-    EXPECT_EQ(m3.endPosOnString, 17);
-    EXPECT_EQ(m4.endPosOnString, 6);
-    EXPECT_EQ(m5.endPosOnString, 18);
-
-    Path p = Path();
-    p.initialize(v1);
-    EXPECT_EQ(p, m1.path);
-    EXPECT_EQ(p, m2.path);
-    p.initialize(v2);
-    EXPECT_EQ(p, m3.path);
-    p.initialize(v3);
-    EXPECT_EQ(p, m4.path);
-    p.initialize(v4);
-    EXPECT_EQ(p, m5.path);
-
-    deque<Interval> v5 = {Interval(0,3), Interval(16,18), Interval(20,25)};
-    EXPECT_DEATH(Minimizer("abcde", v5),"");
+    EXPECT_DEATH(Minimizer("abcde", 0,2),""); // interval too short to be valid
+    EXPECT_DEATH(Minimizer("abcde", 0,8),""); // interval too long to be valid
+    EXPECT_DEATH(Minimizer("abcde", 2,0),""); // doesn't generate an interval as 2>0
 }
 
 TEST_F(MinimizerTest,comparisonCheck){
-    //deque<Interval> v1 = {Interval(0,15)};
-    //deque<Interval> v2 = {Interval(1,12), Interval(14,18)};
-    //deque<Interval> v3 = {Interval(1,16)};
-    //deque<Interval> v4 = {Interval(0,10), Interval(15,20)};
-    deque<Interval> v1 = {Interval(0,5)};
-    deque<Interval> v2 = {Interval(1,4), Interval(15,17)};
-    deque<Interval> v3 = {Interval(1,6)};
-    deque<Interval> v4 = {Interval(0,3), Interval(16,18)};
+    Minimizer m1 = Minimizer("abcde", 0,5);
+    Minimizer m2 = Minimizer("abcdg", 1,6);
+    Minimizer m3 = Minimizer("abcde", 5,10); 
+    Minimizer m4 = Minimizer("abcdg", 0,5);
+    Minimizer m5 = Minimizer("abcdh", 0,5);
 
-    Minimizer m1 = Minimizer("abcde", v1);
-    Minimizer m2 = Minimizer("abcdg", v1);
-    Minimizer m3 = Minimizer("abcde", v2);
-    Minimizer m4 = Minimizer("abcde", v3);
-    Minimizer m5 = Minimizer("abcde", v4);
-    
     set<Minimizer> s;
     s.insert(m1);
     s.insert(m2);
@@ -97,13 +70,13 @@ TEST_F(MinimizerTest,comparisonCheck){
     uint32_t j = 5;
     EXPECT_EQ(s.size(),j) << "size of set of minimizers " << s.size() << " is not equal to 5.";
 
-    vector<Minimizer> v = {m1, m5, m4, m3, m2};
+    vector<Minimizer> v = {m1, m3, m4, m2, m5};
     int i = 0;
     for (std::set<Minimizer>::iterator it=s.begin(); it!=s.end(); ++it)
     {
-	EXPECT_EQ(it->miniKmer, v[i].miniKmer) << "miniKmers do not agree: " << it->miniKmer << ", " << v[i].miniKmer;
-	EXPECT_EQ(it->startPosOnString, v[i].startPosOnString) << "start positions do not agree: " << it->startPosOnString << ", " << v[i].startPosOnString;
-	EXPECT_EQ(it->endPosOnString, v[i].endPosOnString) << "end positions do not agree: " << it->endPosOnString << ", " << v[i].endPosOnString;
+	EXPECT_EQ(it->kmer, v[i].kmer) << "kmers do not agree: " << it->kmer << ", " << v[i].kmer;
+	EXPECT_EQ(it->pos.start, v[i].pos.start) << "start positions do not agree: " << it->pos.start << ", " << v[i].pos.start;
+	EXPECT_EQ(it->pos.end, v[i].pos.end) << "end positions do not agree: " << it->pos.end << ", " << v[i].pos.end;
     	++i;
     }
-}*/
+}

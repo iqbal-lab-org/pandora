@@ -17,27 +17,6 @@ LocalGraph::~LocalGraph()
   }
 }
 
-bool LocalGraph::operator == (const LocalGraph& y) const
-{
-    // false if have different numbers of nodes
-    if (y.nodes.size() != nodes.size()) {//cout << "different numbers of nodes" << endl; 
-	return false;}
-
-    // false if have different nodes
-    for ( const auto c: nodes)
-    {
-	// if node id doesn't exist 
-        map<uint32_t, LocalNode*>::const_iterator it=y.nodes.find(c.first);
-	if(it==y.nodes.end()) {//cout << "node id doesn't exist" << endl; 
-	    return false;}
-	// or node entries are different
-        if (!(*c.second == *(it->second))) {//cout << "node id " << c.first << " exists but has different values" << endl; 
-	    return false;}
-    }
-    // otherwise is true
-    return true;
-}
-
 void LocalGraph::add_node (const uint32_t& id, const string& seq, Interval pos)
 {
     assert(seq.length() == pos.length); 
@@ -122,6 +101,27 @@ set<Path> LocalGraph::walk(uint32_t node_id, uint32_t pos, uint32_t len)
 	}
     }
     return return_paths;
+}
+
+bool LocalGraph::operator == (const LocalGraph& y) const
+{
+    // false if have different numbers of nodes
+    if (y.nodes.size() != nodes.size()) {//cout << "different numbers of nodes" << endl; 
+        return false;}
+
+    // false if have different nodes
+    for ( const auto c: nodes)
+    {
+        // if node id doesn't exist 
+        map<uint32_t, LocalNode*>::const_iterator it=y.nodes.find(c.first);
+        if(it==y.nodes.end()) {//cout << "node id doesn't exist" << endl; 
+            return false;}
+        // or node entries are different
+        if (!(*c.second == *(it->second))) {//cout << "node id " << c.first << " exists but has different values" << endl; 
+            return false;}
+    }
+    // otherwise is true
+    return true;
 }
 
 /*uint32_t query_node_containing(uint32_t i)

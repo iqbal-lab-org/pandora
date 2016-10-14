@@ -3,7 +3,9 @@
 #include "localPRG.h"
 #include "minimizer.h"
 #include "interval.h"
+#include "path.h"
 #include "localgraph.h"
+#include "index.h"
 #include <stdint.h>
 #include <iostream>
 
@@ -25,6 +27,25 @@ class LocalPRGTest : public ::testing::Test {
   LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T", 1, 3);
 
 };
+
+TEST_F(LocalPRGTest, create){
+    uint32_t j = 0;
+    EXPECT_EQ(j, l0.id);
+    EXPECT_EQ("empty", l0.name);
+    EXPECT_EQ("", l0.seq);
+    j = 1;
+    EXPECT_EQ(j, l1.id);
+    EXPECT_EQ("simple", l1.name);
+    EXPECT_EQ("AGCT", l1.seq);
+    j = 2;
+    EXPECT_EQ(j, l2.id);
+    EXPECT_EQ("varsite", l2.name);
+    EXPECT_EQ("A 5 GC 6 G 5 T", l2.seq);
+    j = 3;
+    EXPECT_EQ(j, l3.id);
+    EXPECT_EQ("nested varsite", l2.name);
+    EXPECT_EQ("A 5 G 7 C 8 T 7  6 G 5 T", l2.seq);
+}
 
 TEST_F(LocalPRGTest, isalphaEmptyString){
     bool a0 = l0.isalpha_string("");
@@ -57,6 +78,42 @@ TEST_F(LocalPRGTest, isalphaNumberString){
     EXPECT_EQ(a1, 0) << "isalpha_string thinks a string  containing a number is alphabetic for l1";
     EXPECT_EQ(a2, 0) << "isalpha_string thinks a string  containing a number is alphabetic for l2";
     EXPECT_EQ(a3, 0) << "isalpha_string thinks a string  containing a number is alphabetic for l3";
+}
+
+TEST_F(LocalPRGTest, stringAlongPath){
+    // empty interval
+    deque<Interval> d = {Interval(0,0)};
+    Path p = Path();
+    p.initialize(d);
+    EXPECT_EQ("", l0.string_along_path(p));
+    EXPECT_EQ("", l1.string_along_path(p));
+    EXPECT_EQ("", l2.string_along_path(p));
+    EXPECT_EQ("", l3.string_along_path(p));
+
+    // positive length interval
+    d = {Interval(1,3)};
+    EXPECT_EQ("GC", l1.string_along_path(p));
+    EXPECT_EQ(" 5", l2.string_along_path(p));
+    EXPECT_EQ(" 5", l3.string_along_path(p));
+
+    // multiple intervals
+    d = {Interval(0,1), Interval(2,3)};
+    EXPECT_EQ("AC", l1.string_along_path(p));
+    EXPECT_EQ("A5", l2.string_along_path(p));
+    EXPECT_EQ("A5", l3.string_along_path(p));
+    
+    // including empty interval
+    d = {Interval(0,1), Interval(2,2)};
+    EXPECT_EQ("A", l1.string_along_path(p));
+    EXPECT_EQ("A", l2.string_along_path(p));
+    EXPECT_EQ("A", l3.string_along_path(p));
+
+    // forbidden paths
+    d = {Interval(2,3), Interval(13,25)};
+    EXPECT_DEATH(l1.string_along_path(p),"");
+    EXPECT_DEATH(l1.string_along_path(p),"");
+    EXPECT_DEATH(l2.string_along_path(p),"");
+    EXPECT_DEATH(l3.string_along_path(p),"");
 }
 
 TEST_F(LocalPRGTest, splitBySiteNoSites){
@@ -123,15 +180,15 @@ TEST_F(LocalPRGTest, splitBySiteNestedSite){
     EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(4,16)));// << "Failed to split string in mid Interval" << Interval(5,8);
 }
 
-/*TEST_F(LocalPRGTest, buildGraph)
+TEST_F(LocalPRGTest, buildGraph)
 {
     LocalGraph lg0;
     lg0.add_node(0,"",Interval(0,0));
-    EXPECT_ITERABLE_EQ( map<uint32_t, LocalNode*>, lg0, l0.nodes);
+    EXPECT_EQ(lg0, l0.prg);
 
     LocalGraph lg1;
     lg1.add_node(0,"AGCT", Interval(0,4));
-    EXPECT_ITERABLE_EQ( map<uint32_t, LocalNode*>, lg1, l1.nodes);
+    EXPECT_EQ(lg1, l1.prg);
 
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
@@ -142,7 +199,7 @@ TEST_F(LocalPRGTest, splitBySiteNestedSite){
     lg2.add_edge(0,2);
     lg2.add_edge(1,3);
     lg2.add_edge(2,3);
-    EXPECT_ITERABLE_EQ( map<uint32_t, LocalNode*>, lg2, l2.nodes);
+    EXPECT_EQ(lg2, l2.prg);
 
     LocalGraph lg3;
     lg3.add_node(0,"A", Interval(0,1));
@@ -160,9 +217,47 @@ TEST_F(LocalPRGTest, splitBySiteNestedSite){
     lg3.add_edge(3,4);
     lg3.add_edge(4,6);
     lg3.add_edge(5,6);
-    EXPECT_ITERABLE_EQ( map<uint32_t, LocalNode*>, lg3, l3.nodes);
-}*/
+    EXPECT_EQ(lg3, l3.prg);
+}
+
 //could test that no int is included in more than one node
+
+TEST_F(LocalPRGTest, minimizerSketch){
+    Index idx = Index();
+
+    l0.minimizer_sketch(idx, 1, 3);
+    uint32_t j = 0;
+    EXPECT_EQ(j, idx.minhash.size());
+
+    l1.minimizer_sketch(idx, 2, 3);
+    j = 1;
+    EXPECT_EQ(j, idx.minhash.size());
+    l1.minimizer_sketch(idx, 1, 3);
+    j = 2;
+    EXPECT_EQ(j, idx.minhash.size());
+    
+    idx.clear();
+    l2.minimizer_sketch(idx, 2, 3);
+    j = 1;
+    EXPECT_EQ(j, idx.minhash.size());
+    l2.minimizer_sketch(idx, 1, 3);
+    j = 3;
+    EXPECT_EQ(j, idx.minhash.size());
+
+    idx.clear();
+    l3.minimizer_sketch(idx, 2, 3);
+    j = 2;
+    EXPECT_EQ(j, idx.minhash.size());
+    l3.minimizer_sketch(idx, 1, 3);
+    j = 4;
+    EXPECT_EQ(j, idx.minhash.size());
+    j = 2;
+    EXPECT_EQ(j, idx.minhash["AGT"].size());
+    j = 1;
+    EXPECT_EQ(j, idx.minhash["AGC"].size());
+    EXPECT_EQ(j, idx.minhash["GCT"].size());
+    EXPECT_EQ(j, idx.minhash["GTT"].size());
+}
 
 /*TEST_F(LocalPRGTest,unpackLinearString){
     Seq s1 = Seq(0,"0", "AGCTAATGCGTT", 11, 3);

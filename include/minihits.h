@@ -5,7 +5,6 @@ struct MinimizerHit;
 
 #include <set>
 #include <stdint.h>
-#include "utils.h"
 #include "minimizer.h"
 #include "minirecord.h"
 

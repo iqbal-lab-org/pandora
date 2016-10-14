@@ -203,6 +203,9 @@ TEST_F(LocalGraphTest, walk)
     EXPECT_ITERABLE_EQ(set<Path>, q1, p1);
 }
 
+TEST_F(LocalGraphTest, writeGFA){
+}
+
 /*TEST_F(LocalGraphTest,extendPath){
     deque<Interval> d = {Interval(0,1)};
     Path p;
