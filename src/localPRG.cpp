@@ -50,6 +50,7 @@ string LocalPRG::string_along_path(Path p)
     {
 	s += seq.substr(it->start, it->length);
     }
+    assert(s.length()==p.length);
     return s;
 }
 

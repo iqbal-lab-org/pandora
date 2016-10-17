@@ -83,7 +83,15 @@ bool Path::operator < ( const Path& y) const
 
 bool Path::operator == ( const Path& y) const
 {
-    return ((start == y.start) and (end == y.end));
+    if (path.size() != y.path.size()) { return false;}
+    std::deque<Interval>::const_iterator it2=y.path.begin();
+    for (std::deque<Interval>::const_iterator it=path.begin(); it!=path.end();)
+    {
+        if (!(*it==*it2)) {return false;}
+        it++;
+        it2++;
+    }
+    return true;
 }
 
 std::ostream& operator<< (std::ostream & out, Path const& p) {

@@ -43,8 +43,8 @@ TEST_F(LocalPRGTest, create){
     EXPECT_EQ("A 5 GC 6 G 5 T", l2.seq);
     j = 3;
     EXPECT_EQ(j, l3.id);
-    EXPECT_EQ("nested varsite", l2.name);
-    EXPECT_EQ("A 5 G 7 C 8 T 7  6 G 5 T", l2.seq);
+    EXPECT_EQ("nested varsite", l3.name);
+    EXPECT_EQ("A 5 G 7 C 8 T 7  6 G 5 T", l3.seq);
 }
 
 TEST_F(LocalPRGTest, isalphaEmptyString){

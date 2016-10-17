@@ -60,8 +60,8 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
     MiniRecord mr = MiniRecord(0,p);
     mh.add_hit(1, m, mr, 0);
     expected.push_back(MinimizerHit(1, m, mr, 0));
-    mh.add_hit(2, m, mr, 0);
-    expected.push_back(MinimizerHit(2, m, mr, 0));
+    mh.add_hit(0, m, mr, 0);
+    expected.push_back(MinimizerHit(0, m, mr, 0));
 
     m = new Minimizer("hello", 0,5);
     mh.add_hit(1, m, mr, 0);
@@ -79,12 +79,13 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
     mh.add_hit(1, m, mr, 0);
     expected.push_back(MinimizerHit(1, m, mr, 0));
 
-    uint32_t j = 0;
-    for (set<MinimizerHit*, pComp>::iterator it=mh.hits.begin(); it!=mh.hits.end(); ++it)
+    uint32_t j = 1;
+    for (set<MinimizerHit*, pComp>::iterator it=mh.hits.begin(); it!=--mh.hits.end(); ++it)
     {
         EXPECT_EQ(expected[j], **it);
         j++;
     }
+    EXPECT_EQ(expected[0], **(--mh.hits.end()));
 }
 
 TEST_F(MinimizerHitsTest, clusterCompCheck){
@@ -142,7 +143,7 @@ TEST_F(MinimizerHitsTest, clusterCompCheck){
     j = 0;
     for (set<MinimizerHit*>::iterator it=clusters_of_hits.begin()->begin(); it!=clusters_of_hits.begin()->end(); ++it)
     {
-        EXPECT_EQ(expected2[j], *it);
+        EXPECT_EQ(*expected2[j], **it);
         j++;
     }
 }

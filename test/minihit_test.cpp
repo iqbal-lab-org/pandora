@@ -36,7 +36,7 @@ TEST_F(MinimizerHitTest,create){
     EXPECT_EQ(p, mh.prg_path);
     EXPECT_EQ(j, mh.strand);
 
-    m = new Minimizer("hello",1,6);
+    m = new Minimizer("hell",1,5);
     EXPECT_DEATH(MinimizerHit(1, m, mr, 0), "");
 }
 
@@ -76,12 +76,12 @@ TEST_F(MinimizerHitTest,compare){
     m = new Minimizer("hello", 0,5);
     MinimizerHit mh3 = MinimizerHit(1, m, mr, 0);
 
-    d = {Interval(6,10), Interval(11, 14)};
+    d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
     mr = MiniRecord(0,p);
     MinimizerHit mh4 = MinimizerHit(1, m, mr, 0);
 
-    d = {Interval(6,10), Interval(12, 15)};
+    d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
     mr = MiniRecord(0,p);
     MinimizerHit mh5 = MinimizerHit(1, m, mr, 0);
@@ -99,11 +99,12 @@ TEST_F(MinimizerHitTest,compare){
     expected.push_back(mh4);
     expected.push_back(mh5);
 
-    uint32_t j = 0;
-    for (set<MinimizerHit>::iterator it=hits.begin(); it!=hits.end(); ++it)
+    uint32_t j = 1;
+    for (set<MinimizerHit>::iterator it=hits.begin(); it!=--hits.end(); ++it)
     {
         EXPECT_EQ(expected[j], *it);
         j++;
     }
+    EXPECT_EQ(expected[0], *(--hits.end()));
 }
 
