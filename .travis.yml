@@ -1,15 +1,29 @@
+# Use new trusty images, should yield newer compilers and packages
+sudo: required
+dist: precise
 language: cpp
-compiler:
-- gcc
-install:
-- if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - gcc-4.8
-    - g++-4.8
+
+matrix:
+  include:
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+      env: COMPILER=g++-4.9
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+      env: COMPILER=g++-5
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y libopencv-dev
 script:
 - bash install.sh
 
