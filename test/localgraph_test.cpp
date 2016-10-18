@@ -162,45 +162,73 @@ TEST_F(LocalGraphTest, walk)
     lg2.add_edge(2,3);
 
     // simple case, there are 2 paths of length 3
-    set<Path> q1;
+    vector<Path> q1;
     Path p = Path();
     deque<Interval> d = {Interval(0,1), Interval(4,6)};
     p.initialize(d);
-    q1.insert(p);
+    q1.push_back(p);
     d = {Interval(0,1), Interval(7,8), Interval(13,14)};
     p.initialize(d);
-    q1.insert(p);
-    set<Path> p1 = lg2.walk(0,0,3);
-    EXPECT_ITERABLE_EQ(set<Path>, q1, p1);
+    q1.push_back(p);
+    vector<Path> p1 = lg2.walk(0,0,3);
+    EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
 
     // but only one can be extended to a path of length 4
     q1.clear();
     d = {Interval(0,1), Interval(4,6), Interval(13,14)};
     p.initialize(d);
-    q1.insert(p);
+    q1.push_back(p);
     p1 = lg2.walk(0,0,4);
-    EXPECT_ITERABLE_EQ(set<Path>, q1, p1);
+    EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
 
     // for even simpler path of length 1
     q1.clear();
     d = {Interval(0,1)};
     p.initialize(d);
-    q1.insert(p);
+    q1.push_back(p);
     p1 = lg2.walk(0,0,1);
-    EXPECT_ITERABLE_EQ(set<Path>, q1, p1);
+    EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
 
     // no paths of length 5
     q1.clear();
     p1 = lg2.walk(0,0,5);
-    EXPECT_ITERABLE_EQ(set<Path>, q1, p1);
+    EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
 
     // 1 path starting from middle var site
     q1.clear();
     d = {Interval(4,6), Interval(13,14)};
     p.initialize(d);
-    q1.insert(p);
+    q1.push_back(p);
     p1 = lg2.walk(1,4,3);
-    EXPECT_ITERABLE_EQ(set<Path>, q1, p1);
+    EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
+
+    // test on a slightly more complex graph
+    LocalGraph lg3 = LocalGraph();
+    lg3.add_node(0,"A", Interval(0,1));
+    lg3.add_node(1,"G", Interval(4,5));
+    lg3.add_node(2,"C", Interval(8,9));
+    lg3.add_node(3,"T", Interval(12,13));
+    lg3.add_node(4,"", Interval(16,16));
+    lg3.add_node(5,"G", Interval(19,20));
+    lg3.add_node(6,"T", Interval(23,24));
+    lg3.add_edge(0,1);
+    lg3.add_edge(0,5);
+    lg3.add_edge(1,2);
+    lg3.add_edge(1,3);
+    lg3.add_edge(2,4);
+    lg3.add_edge(3,4);
+    lg3.add_edge(4,6);
+    lg3.add_edge(5,6);
+    
+    q1.clear();
+    d = {Interval(0,1), Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    q1.push_back(p);
+    d = {Interval(0,1), Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    q1.push_back(p);
+    p1 = lg3.walk(0,0,4);
+    EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
 }
 
 TEST_F(LocalGraphTest, writeGFA){

@@ -5,7 +5,7 @@ class LocalNode;
 
 #include <cstring>
 #include <map>
-#include <set>
+#include <vector>
 #include "interval.h"
 #include "path.h"
 #include "localnode.h"
@@ -20,7 +20,7 @@ class LocalGraph {
     void add_node (const uint32_t& id, const string& seq, Interval pos);
     void add_edge (const uint32_t&, const uint32_t&);
     void write_gfa (string);
-    set<Path> walk(uint32_t, uint32_t, uint32_t);
+    vector<Path> walk(uint32_t, uint32_t, uint32_t);
     bool operator == (const LocalGraph& y) const;
 
 };

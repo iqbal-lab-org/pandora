@@ -5,6 +5,7 @@
 #include "interval.h"
 #include "path.h"
 #include "localgraph.h"
+#include "localnode.h"
 #include "index.h"
 #include <stdint.h>
 #include <iostream>
@@ -92,24 +93,28 @@ TEST_F(LocalPRGTest, stringAlongPath){
 
     // positive length interval
     d = {Interval(1,3)};
+    p.initialize(d);
     EXPECT_EQ("GC", l1.string_along_path(p));
     EXPECT_EQ(" 5", l2.string_along_path(p));
     EXPECT_EQ(" 5", l3.string_along_path(p));
 
     // multiple intervals
     d = {Interval(0,1), Interval(2,3)};
+    p.initialize(d);
     EXPECT_EQ("AC", l1.string_along_path(p));
     EXPECT_EQ("A5", l2.string_along_path(p));
     EXPECT_EQ("A5", l3.string_along_path(p));
     
     // including empty interval
     d = {Interval(0,1), Interval(2,2)};
+    p.initialize(d);
     EXPECT_EQ("A", l1.string_along_path(p));
     EXPECT_EQ("A", l2.string_along_path(p));
     EXPECT_EQ("A", l3.string_along_path(p));
 
     // forbidden paths
     d = {Interval(2,3), Interval(13,25)};
+    p.initialize(d);
     EXPECT_DEATH(l1.string_along_path(p),"");
     EXPECT_DEATH(l1.string_along_path(p),"");
     EXPECT_DEATH(l2.string_along_path(p),"");
@@ -193,7 +198,7 @@ TEST_F(LocalPRGTest, buildGraph)
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
     lg2.add_node(1,"GC", Interval(4,6));
-    lg2.add_node(2,"G", Interval(7,8));
+    lg2.add_node(2,"G", Interval(9,10));
     lg2.add_node(3,"T", Interval(13,14));
     lg2.add_edge(0,1);
     lg2.add_edge(0,2);
@@ -223,40 +228,41 @@ TEST_F(LocalPRGTest, buildGraph)
 //could test that no int is included in more than one node
 
 TEST_F(LocalPRGTest, minimizerSketch){
-    Index idx = Index();
+    Index* idx;
+    idx = new Index();
 
     l0.minimizer_sketch(idx, 1, 3);
     uint32_t j = 0;
-    EXPECT_EQ(j, idx.minhash.size());
+    EXPECT_EQ(j, idx->minhash.size());
 
     l1.minimizer_sketch(idx, 2, 3);
     j = 1;
-    EXPECT_EQ(j, idx.minhash.size());
+    EXPECT_EQ(j, idx->minhash.size());
     l1.minimizer_sketch(idx, 1, 3);
     j = 2;
-    EXPECT_EQ(j, idx.minhash.size());
+    EXPECT_EQ(j, idx->minhash.size());
     
-    idx.clear();
+    idx->clear();
     l2.minimizer_sketch(idx, 2, 3);
     j = 1;
-    EXPECT_EQ(j, idx.minhash.size());
+    EXPECT_EQ(j, idx->minhash.size());
     l2.minimizer_sketch(idx, 1, 3);
     j = 3;
-    EXPECT_EQ(j, idx.minhash.size());
+    EXPECT_EQ(j, idx->minhash.size());
 
-    idx.clear();
+    idx->clear();
     l3.minimizer_sketch(idx, 2, 3);
     j = 2;
-    EXPECT_EQ(j, idx.minhash.size());
+    EXPECT_EQ(j, idx->minhash.size());
     l3.minimizer_sketch(idx, 1, 3);
     j = 4;
-    EXPECT_EQ(j, idx.minhash.size());
+    EXPECT_EQ(j, idx->minhash.size());
     j = 2;
-    EXPECT_EQ(j, idx.minhash["AGT"].size());
+    EXPECT_EQ(j, idx->minhash["AGT"].size());
     j = 1;
-    EXPECT_EQ(j, idx.minhash["AGC"].size());
-    EXPECT_EQ(j, idx.minhash["GCT"].size());
-    EXPECT_EQ(j, idx.minhash["GTT"].size());
+    EXPECT_EQ(j, idx->minhash["AGC"].size());
+    EXPECT_EQ(j, idx->minhash["GCT"].size());
+    EXPECT_EQ(j, idx->minhash["GTT"].size());
 }
 
 /*TEST_F(LocalPRGTest,unpackLinearString){

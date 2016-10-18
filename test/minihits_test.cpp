@@ -140,10 +140,9 @@ TEST_F(MinimizerHitsTest, clusterCompCheck){
     EXPECT_EQ(j, clusters_of_hits.begin()->size());
     
     // check that this is indeed the cluster we think
-    j = 0;
+    // note that can't sort the set of hits by pcomp without changing the defintion of cluster comparison function
     for (set<MinimizerHit*>::iterator it=clusters_of_hits.begin()->begin(); it!=clusters_of_hits.begin()->end(); ++it)
     {
-        EXPECT_EQ(*expected2[j], **it);
-        j++;
+        EXPECT_EQ(((*expected2[0] == **it) or (*expected2[1] == **it) or (*expected2[2] == **it)), true);
     }
 }

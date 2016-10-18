@@ -31,7 +31,7 @@ class LocalPRG {
     string string_along_path(Path);
     vector<Interval> splitBySite(Interval);	
     vector<uint32_t> build_graph(Interval, vector<uint32_t>);
-    void minimizer_sketch (Index idx, uint32_t w, uint32_t k);
+    void minimizer_sketch (Index* idx, uint32_t w, uint32_t k);
   friend ostream& operator<< (ostream& out, const LocalPRG& data);  
 };
 

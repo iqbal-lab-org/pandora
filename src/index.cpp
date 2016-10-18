@@ -18,22 +18,24 @@ Index::~Index() {
     }*/
 };
 
-void Index::add_record(string miniKmer, uint32_t prg_id, Path path)
+void Index::add_record(string kmer, uint32_t prg_id, Path path)
 {
-    assert(miniKmer.length()==path.length);
+    assert(kmer.length()==path.length);
     vector<MiniRecord> newv;
-    map<string, vector<MiniRecord>>::iterator it=minhash.find(miniKmer);
+    map<string, vector<MiniRecord>>::iterator it=minhash.find(kmer);
     if(it==minhash.end())
     {
         newv.clear();
         newv.push_back(MiniRecord(prg_id, path));
-        minhash.insert(pair<string, vector<MiniRecord>>(miniKmer,newv));
+        minhash.insert(pair<string, vector<MiniRecord>>(kmer,newv));
+        cout << "New minhash size: " << minhash.size() << endl; 
     } else {
 	MiniRecord mr = MiniRecord(prg_id, path);	
         if (find(it->second.begin(), it->second.end(), mr)==it->second.end())
 	{
             it->second.push_back(mr);
 	}
+        cout << "New minhash[" << kmer << "] size: " << minhash[kmer].size() << endl;
     }
 }
 

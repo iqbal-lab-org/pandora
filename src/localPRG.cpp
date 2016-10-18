@@ -43,12 +43,14 @@ bool LocalPRG::isalpha_string ( string s )
 
 string LocalPRG::string_along_path(Path p)
 {
+    //cout << p << endl;
     assert(p.start<=seq.length());
     assert(p.end<=seq.length());
     string s;
     for (deque<Interval>::iterator it=p.path.begin(); it!=p.path.end(); ++it)
     {
 	s += seq.substr(it->start, it->length);
+        //cout << s << endl;
     }
     assert(s.length()==p.length);
     return s;
@@ -179,10 +181,11 @@ vector<uint32_t> LocalPRG::build_graph(Interval i, vector<uint32_t> from_ids)
     return end_ids;
 }
 
-void LocalPRG::minimizer_sketch (Index idx, uint32_t w, uint32_t k)
+void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
 {
-    set<Path> walk_paths;
-    Path current_path;
+    //cout << "START SKETCH FUNCTION" << endl;
+    vector<Path> walk_paths;
+    Path current_path, kmer_path;
     string kmer;
     set<string> kmers;
     for (map<uint32_t,LocalNode*>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
@@ -190,23 +193,41 @@ void LocalPRG::minimizer_sketch (Index idx, uint32_t w, uint32_t k)
 	for (uint32_t i=it->second->pos.start; i!=it->second->pos.end; ++i)
 	{
 	    walk_paths = prg.walk(it->second->id, i, w+k-1);
-	    for (set<Path>::iterator it2=walk_paths.begin(); it2!=walk_paths.end(); ++it2)
+            //cout << "for id, i: " << it->second->id << ", " << i << " found " << walk_paths.size() << " paths" << endl;
+	    for (vector<Path>::iterator it2=walk_paths.begin(); it2!=walk_paths.end(); ++it2)
 	    {
+		//cout << "Minimize path: " << *it2 << endl;
 		// find minimizer for this path	
-		for (uint32_t j = 0; j < w; j++)
+		for (uint32_t j = 0; j != w; j++)
 		{
-		    kmer = string_along_path(it2->subpath(i+j,k));
-		    kmers.insert(kmer);
+		    //cout << "i+j" << i+j << endl;
+		    kmer_path = it2->subpath(i+j,k);
+		    if (kmer_path.path.size() > 0)
+		    {
+                        //cout << "found path" << endl;
+		        kmer = string_along_path(kmer_path);
+		        kmers.insert(kmer);
+		    }
 		}
 		string smallest_word = *kmers.begin();
-		for (uint32_t j = 0; j < w; j++)
+                //cout << "smallest word: " << smallest_word << endl;
+		for (uint32_t j = 0; j != w; j++)
                 {
-                    kmer = string_along_path(it2->subpath(i+j,k));
-		    if (kmer == smallest_word)
+                    //cout << "i+j" << i+j << endl;
+                    kmer_path = it2->subpath(i+j,k);
+		    //cout << "kmer path" << kmer_path << endl;
+		    if (kmer_path.path.size() > 0)
 		    {
-			idx.add_record(kmer, id, it2->subpath(i+j,k));
+                    	//cout << "found path" << endl;
+                    	kmer = string_along_path(kmer_path);
+		    	if (kmer == smallest_word)
+		    	{
+                            //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+			    idx->add_record(kmer, id, kmer_path);
+		    	}
 		    }
                 }
+		kmers.clear();
 	    }
 	}
     }

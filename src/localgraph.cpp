@@ -3,6 +3,7 @@
 #include <map>
 #include <fstream>
 #include <cassert>
+#include <vector>
 #include "localnode.h"
 #include "localgraph.h"
 #include "errormessages.h"
@@ -62,10 +63,11 @@ void LocalGraph::write_gfa (string filepath)
     handle.close();
 }
 
-set<Path> LocalGraph::walk(uint32_t node_id, uint32_t pos, uint32_t len)
+vector<Path> LocalGraph::walk(uint32_t node_id, uint32_t pos, uint32_t len)
 {
+    //cout << "walking graph from node " << node_id << " pos " << pos << " for length " << len << endl;
     // walks from position pos in node node for length len bases
-    set<Path> return_paths, walk_paths;
+    vector<Path> return_paths, walk_paths;
     Path p,p2 = Path();
     deque<Interval> d;
 
@@ -75,7 +77,7 @@ set<Path> LocalGraph::walk(uint32_t node_id, uint32_t pos, uint32_t len)
         d = {Interval(pos, pos+len)};
         p.initialize(d);
         //cout << "return path: " << p << endl;
-        return_paths.insert(p);
+        return_paths.push_back(p);
         //cout << "return_paths size: " << return_paths.size() << endl; 
         return return_paths;
     }
@@ -89,14 +91,18 @@ set<Path> LocalGraph::walk(uint32_t node_id, uint32_t pos, uint32_t len)
 	    //cout << "Following node: " << (*it)->id << " to add " << len-len_added << " more bases" << endl;
 	    walk_paths = walk((*it)->id,(*it)->pos.start, len-len_added);
 	    //cout << "walk paths size: " << walk_paths.size() << endl;
-	    for (set<Path>::iterator it2 = walk_paths.begin(); it2!= walk_paths.end(); ++it2)
+	    for (vector<Path>::iterator it2 = walk_paths.begin(); it2!= walk_paths.end(); ++it2)
 	    {
 		// Note, would have just added start interval to each item in walk_paths, but can't seem to force result of it2 to be non-const
 		//cout << (*it2) << endl;
 		p2.initialize((*it2).path);
 		p2.add_start_interval(Interval(pos, nodes[node_id]->pos.end));
 		//cout << "path: " << p2 << " p2.length: " << p2.length << endl;
-    		if (p2.length == len) {return_paths.insert(p2);}
+    		if (p2.length == len) {
+		    return_paths.push_back(p2);
+		} else {
+		    //cout << "PATH TOO SHORT " << p2 << endl;
+		}
 	    }
 	}
     }

@@ -71,7 +71,7 @@ TEST_F(MinimizerHitTest,compare){
     MiniRecord mr = MiniRecord(0,p);
     MinimizerHit mh1 = MinimizerHit(1, m, mr, 0);
 
-    MinimizerHit mh2 = MinimizerHit(2, m, mr, 0);
+    MinimizerHit mh2 = MinimizerHit(0, m, mr, 0);
 
     m = new Minimizer("hello", 0,5);
     MinimizerHit mh3 = MinimizerHit(1, m, mr, 0);

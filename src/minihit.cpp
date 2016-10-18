@@ -36,8 +36,10 @@ bool MinimizerHit::operator < ( const MinimizerHit& y) const
     if (y.prg_id < prg_id) { return false; }
 
     // then by difference on target string (want approx co-linear)
-    if (read_interval.start - prg_path.start < y.read_interval.start - y.prg_path.start) { return true; }
-    if (y.read_interval.start - y.prg_path.start < read_interval.start - prg_path.start) { return false; }
+    if (read_interval.start + y.prg_path.start < y.read_interval.start + prg_path.start) { //cout << read_interval.start + y.prg_path.start << " < " << y.read_interval.start + prg_path.start << endl; 
+	return true; }
+    if (y.read_interval.start + prg_path.start < read_interval.start + y.prg_path.start) {//cout << read_interval.start + y.prg_path.start << " > " << y.read_interval.start + prg_path.start << endl; 
+	return false; }
 
     // then by position on query string
     if (read_interval.start < y.read_interval.start) { return true; }
