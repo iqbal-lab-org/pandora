@@ -9,7 +9,7 @@ project(${PROJECT_NAME_STR} C CXX)
 find_package(Threads REQUIRED)
 
 # make sure that we have support for C++11
-#include(CheckCXXCompilerFlag)
+include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 if(COMPILER_SUPPORTS_CXX11)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage -std=c++11")
