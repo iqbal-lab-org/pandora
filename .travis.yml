@@ -1,35 +1,18 @@
-# Use new trusty images, should yield newer compilers and packages
 sudo: required
-dist: precise
 language: cpp
 
-matrix:
-  include:
-    - compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-4.9
-      env: COMPILER=g++-4.9
-    - compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-5
-      env: COMPILER=g++-5
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -y libopencv-dev
 script:
-- bash install.sh
-
-#after_success:
-#- make test
-#- coveralls --exclude "test" --exclude "CMakeFiles" --include "lib/" 
-
+  - sudo unlink /usr/bin/gcc && sudo ln -s /usr/bin/gcc-5 /usr/bin/gcc
+  - gcc --version
+  - bash install.sh
+ 
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-5
+    - g++-5
+    
 notifications:
   email: false
