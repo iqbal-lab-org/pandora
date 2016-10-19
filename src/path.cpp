@@ -8,12 +8,13 @@
 
 using namespace std;
 
-Path::Path(){ }
+Path::Path(){
+    length = 0; 
+}
 
 void Path::initialize(deque<Interval> q)
 {
     path = q;
-    length = 0;
     start = q.begin()->start;
     //cout << "Paths starts at " << start;
     end = (*--q.end()).end;

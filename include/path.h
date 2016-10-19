@@ -14,7 +14,7 @@ struct Interval;
 class Path {
   public:
     deque<Interval> path;
-    uint32_t length = 0;
+    uint32_t length;
     uint32_t start;
     uint32_t end;
 

@@ -14,12 +14,12 @@
 using std::vector;
 using namespace std;
 
-LocalPRG::LocalPRG (uint32_t i, string n, string p, uint32_t w, uint32_t k): id(i), name(n), seq(p) 
+LocalPRG::LocalPRG (uint32_t i, string n, string p, Index* idx, uint32_t w, uint32_t k): id(i), name(n), seq(p) 
 {
     //cout << seq << endl;
     vector<uint32_t> v;
     vector<uint32_t> b = build_graph(Interval(0,seq.size()), v);
-    //minimizer_sketch (w, k);
+    minimizer_sketch (idx, w, k);
 }
 
 LocalPRG::~LocalPRG()
