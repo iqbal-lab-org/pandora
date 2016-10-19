@@ -22,10 +22,10 @@ class LocalPRGTest : public ::testing::Test {
     // (right before the destructor).
   }
 
-  LocalPRG l0 = LocalPRG(0,"empty", "", 1, 3);
-  LocalPRG l1 = LocalPRG(1,"simple", "AGCT", 1, 3);
-  LocalPRG l2 = LocalPRG(2,"varsite", "A 5 GC 6 G 5 T", 1, 3);
-  LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T", 1, 3);
+  LocalPRG l0 = LocalPRG(0,"empty", "");
+  LocalPRG l1 = LocalPRG(1,"simple", "AGCT");
+  LocalPRG l2 = LocalPRG(2,"varsite", "A 5 GC 6 G 5 T");
+  LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
 
 };
 

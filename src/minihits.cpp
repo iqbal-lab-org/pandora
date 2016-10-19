@@ -21,7 +21,7 @@ void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniReco
 {
     MinimizerHit *mh;
     mh = new MinimizerHit(i, m, r, c);
-    set<MinimizerHit*>::iterator it=hits.find(mh);
+    set<MinimizerHit*, pComp>::iterator it=hits.find(mh);
     if(it==hits.end())
     {
         hits.insert(mh);
@@ -39,7 +39,7 @@ bool pComp::operator()(MinimizerHit* lhs, MinimizerHit* rhs) {
         return (*lhs)<(*rhs);
 }
 
-bool clusterComp::operator()(set<MinimizerHit*> lhs, set<MinimizerHit*> rhs) {
+bool clusterComp::operator()(set<MinimizerHit*, pComp> lhs, set<MinimizerHit*, pComp> rhs) {
     if ((*lhs.begin())->read_interval.start < (*rhs.begin())->read_interval.start) { return true; }
     if ((*rhs.begin())->read_interval.start < (*lhs.begin())->read_interval.start) { return false; }
     return false;

@@ -14,12 +14,12 @@
 using std::vector;
 using namespace std;
 
-LocalPRG::LocalPRG (uint32_t i, string n, string p, Index* idx, uint32_t w, uint32_t k): id(i), name(n), seq(p), next_id(0), next_site(5) 
+LocalPRG::LocalPRG (uint32_t i, string n, string p): id(i), name(n), seq(p), next_id(0), next_site(5) 
 {
     //cout << seq << endl;
     vector<uint32_t> v;
     vector<uint32_t> b = build_graph(Interval(0,seq.size()), v);
-    minimizer_sketch (idx, w, k);
+    //minimizer_sketch (idx, w, k);
 }
 
 LocalPRG::~LocalPRG()
@@ -52,6 +52,7 @@ string LocalPRG::string_along_path(Path p)
 	s += seq.substr(it->start, it->length);
         //cout << s << endl;
     }
+    //cout << "lengths: " << s.length() << ", " << p.length << endl;
     assert(s.length()==p.length);
     return s;
 }

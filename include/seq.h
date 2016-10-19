@@ -2,7 +2,7 @@
 #define __SEQ_H_INCLUDED__
 
 #include <string>
-#include <vector>
+#include <set>
 #include <ostream>
 #include "minimizer.h"
 

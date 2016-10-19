@@ -25,7 +25,7 @@ class LocalPRG {
     string seq;
     LocalGraph prg;
     set<Minimizer*, pMiniComp> sketch;
-    LocalPRG(uint32_t, string, string, Index*, uint32_t, uint32_t);
+    LocalPRG(uint32_t, string, string);
     ~LocalPRG();
     bool isalpha_string(string);
     string string_along_path(Path);

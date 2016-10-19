@@ -89,8 +89,8 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
 }
 
 TEST_F(MinimizerHitsTest, clusterCompCheck){
-    set<set<MinimizerHit*>,clusterComp> clusters_of_hits;
-    set<MinimizerHit*> current_cluster;
+    set<set<MinimizerHit*, pComp>,clusterComp> clusters_of_hits;
+    set<MinimizerHit*, pComp> current_cluster;
 
     vector<MinimizerHit*> expected1, expected2;
 
@@ -141,7 +141,7 @@ TEST_F(MinimizerHitsTest, clusterCompCheck){
     
     // check that this is indeed the cluster we think
     // note that can't sort the set of hits by pcomp without changing the defintion of cluster comparison function
-    for (set<MinimizerHit*>::iterator it=clusters_of_hits.begin()->begin(); it!=clusters_of_hits.begin()->end(); ++it)
+    for (set<MinimizerHit*, pComp>::iterator it=clusters_of_hits.begin()->begin(); it!=clusters_of_hits.begin()->end(); ++it)
     {
         EXPECT_EQ(((*expected2[0] == **it) or (*expected2[1] == **it) or (*expected2[2] == **it)), true);
     }

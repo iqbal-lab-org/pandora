@@ -17,7 +17,7 @@ struct pComp
 
 struct clusterComp
 {
-  bool operator()(set<MinimizerHit*> lhs, set<MinimizerHit*> rhs);
+  bool operator()(set<MinimizerHit*, pComp> lhs, set<MinimizerHit*, pComp> rhs);
 };
 
 class MinimizerHits {

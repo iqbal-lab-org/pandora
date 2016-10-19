@@ -16,6 +16,7 @@ void Path::initialize(deque<Interval> q)
 {
     path = q;
     start = q.begin()->start;
+    length = 0;
     //cout << "Paths starts at " << start;
     end = (*--q.end()).end;
     //cout << "Paths ends at " << end;

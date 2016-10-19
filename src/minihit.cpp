@@ -12,7 +12,9 @@ MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecor
 {
     read_interval = m->pos;
     prg_id = r.prg_id;
-    prg_path = r.path;
+    prg_path.initialize(r.path.path);
+    //cout << "minihit initialised with read: " << read_id << ", " << read_interval << ", length " << read_interval.length << endl;
+    //cout << "and prg: " << prg_id << ", " << prg_path << ", length " << prg_path.length << endl;
     assert(read_interval.length==prg_path.length);
 };
 
