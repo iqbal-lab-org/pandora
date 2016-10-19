@@ -14,7 +14,7 @@
 using std::vector;
 using namespace std;
 
-LocalPRG::LocalPRG (uint32_t i, string n, string p, Index* idx, uint32_t w, uint32_t k): id(i), name(n), seq(p) 
+LocalPRG::LocalPRG (uint32_t i, string n, string p, Index* idx, uint32_t w, uint32_t k): id(i), name(n), seq(p), next_id(0), next_site(5) 
 {
     //cout << seq << endl;
     vector<uint32_t> v;
