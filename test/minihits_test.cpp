@@ -29,24 +29,24 @@ TEST_F(MinimizerHitsTest,addHit){
     Path p = Path();
     p.initialize(d);
     MiniRecord mr = MiniRecord(0,p);
-    mh.add_hit(1, m, mr, 0);
-    mh.add_hit(2, m, mr, 0);
+    mhits.add_hit(1, m, mr, 0);
+    mhits.add_hit(2, m, mr, 0);
 
     m = new Minimizer("hello", 0,5);
-    mh.add_hit(1, m, mr, 0);
+    mhits.add_hit(1, m, mr, 0);
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
     mr = MiniRecord(0,p);
-    mh.add_hit(1, m, mr, 0);
+    mhits.add_hit(1, m, mr, 0);
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
     mr = MiniRecord(0,p);
-    mh.add_hit(1, m, mr, 0);
+    mhits.add_hit(1, m, mr, 0);
 
     uint32_t j = 5;
-    EXPECT_EQ(j, mh.hits.size());
+    EXPECT_EQ(j, mhits.hits.size());
 }
 
 TEST_F(MinimizerHitsTest, pCompCheck) {
@@ -59,38 +59,38 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
     Path p = Path();
     p.initialize(d);
     MiniRecord mr = MiniRecord(0,p);
-    mh.add_hit(1, m, mr, 0);
+    mhits.add_hit(1, m, mr, 0);
     expected.push_back(MinimizerHit(1, m, mr, 0));
-    mh.add_hit(0, m, mr, 0);
+    mhits.add_hit(0, m, mr, 0);
     expected.push_back(MinimizerHit(0, m, mr, 0));
 
     m = new Minimizer("hello", 0,5);
-    mh.add_hit(1, m, mr, 0);
+    mhits.add_hit(1, m, mr, 0);
     expected.push_back(MinimizerHit(1, m, mr, 0));
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
     mr = MiniRecord(0,p);
-    mh.add_hit(1, m, mr, 0);
+    mhits.add_hit(1, m, mr, 0);
     expected.push_back(MinimizerHit(1, m, mr, 0));
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
     mr = MiniRecord(0,p);
-    mh.add_hit(1, m, mr, 0);
+    mhits.add_hit(1, m, mr, 0);
     expected.push_back(MinimizerHit(1, m, mr, 0));
 
     uint32_t j = 1;
-    for (set<MinimizerHit*, pComp>::iterator it=mh.hits.begin(); it!=--mh.hits.end(); ++it)
+    for (set<MinimizerHit*, pComp>::iterator it=mhits.hits.begin(); it!=--mhits.hits.end(); ++it)
     {
         EXPECT_EQ(expected[j], **it);
         j++;
     }
-    EXPECT_EQ(expected[0], **(--mh.hits.end()));
+    EXPECT_EQ(expected[0], **(--mhits.hits.end()));
 }
 
 TEST_F(MinimizerHitsTest, clusterCompCheck){
-    MinimizerHits mhits = MinimizerHits();
+    //MinimizerHits mhits = MinimizerHits();
     set<set<MinimizerHit*, pComp>,clusterComp> clusters_of_hits;
     set<MinimizerHit*, pComp> current_cluster;
 
