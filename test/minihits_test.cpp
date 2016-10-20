@@ -22,7 +22,7 @@ class MinimizerHitsTest : public ::testing::Test {
 };
 
 TEST_F(MinimizerHitsTest,addHit){
-    MinimizerHits mh = MinimizerHits();
+    MinimizerHits mhits = MinimizerHits();
     Minimizer* m;
     m = new Minimizer("hello", 1,6);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
@@ -50,7 +50,7 @@ TEST_F(MinimizerHitsTest,addHit){
 }
 
 TEST_F(MinimizerHitsTest, pCompCheck) {
-    MinimizerHits mh = MinimizerHits();
+    MinimizerHits mhits = MinimizerHits();
     vector<MinimizerHit> expected;
 
     Minimizer* m;
@@ -90,7 +90,7 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
 }
 
 TEST_F(MinimizerHitsTest, clusterCompCheck){
-    MinimizerHits mh = MinimizerHits();
+    MinimizerHits mhits = MinimizerHits();
     set<set<MinimizerHit*, pComp>,clusterComp> clusters_of_hits;
     set<MinimizerHit*, pComp> current_cluster;
 
