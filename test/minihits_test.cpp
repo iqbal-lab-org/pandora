@@ -19,10 +19,10 @@ class MinimizerHitsTest : public ::testing::Test {
     // Code here will be called immediately after each test
     // (right before the destructor).
   }
-  MinimizerHits mh = MinimizerHits();
 };
 
 TEST_F(MinimizerHitsTest,addHit){
+    MinimizerHits mh = MinimizerHits();
     Minimizer* m;
     m = new Minimizer("hello", 1,6);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
@@ -50,6 +50,7 @@ TEST_F(MinimizerHitsTest,addHit){
 }
 
 TEST_F(MinimizerHitsTest, pCompCheck) {
+    MinimizerHits mh = MinimizerHits();
     vector<MinimizerHit> expected;
 
     Minimizer* m;
@@ -89,6 +90,7 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
 }
 
 TEST_F(MinimizerHitsTest, clusterCompCheck){
+    MinimizerHits mh = MinimizerHits();
     set<set<MinimizerHit*, pComp>,clusterComp> clusters_of_hits;
     set<MinimizerHit*, pComp> current_cluster;
 
