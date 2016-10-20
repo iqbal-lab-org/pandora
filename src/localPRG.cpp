@@ -14,7 +14,7 @@
 using std::vector;
 using namespace std;
 
-LocalPRG::LocalPRG (uint32_t i, string n, string p): id(i), name(n), seq(p), next_id(0), next_site(5) 
+LocalPRG::LocalPRG (uint32_t i, string n, string p): id(i), name(n), seq(p), next_id(0), next_site(5), buff(" ") 
 {
     //cout << seq << endl;
     vector<uint32_t> v;

@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "pannode.h"
 #include "pangraph.h"
+#include <cassert>
 //#include "minimizerhit.h"
 
 using namespace std;
@@ -25,11 +26,11 @@ void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id)
         PanNode *n;
         n = new PanNode(prg_id);
         nodes[prg_id] = n;
-        cout << "Added node " << *n << endl;
+        //cout << "Added node " << *n << endl;
 	n->add_read(read_id);
         //n->add_hits(cluster);
     } else {
-        cout << "Node " << prg_id << " was already in graph" << endl;
+        //cout << "Node " << prg_id << " was already in graph" << endl;
         it->second->add_read(read_id);
 	//it->second->add_hits(cluster);
     }
@@ -39,17 +40,13 @@ void PanGraph::add_edge (const uint32_t& from, const uint32_t& to)
 {
     map<uint32_t, PanNode*>::iterator from_it=nodes.find(from);
     map<uint32_t, PanNode*>::iterator to_it=nodes.find(to);
-    if((from_it!=nodes.end()) && (to_it!=nodes.end()))
-    {
-	PanNode *f = (nodes.find(from)->second);
-    	PanNode *t = (nodes.find(to)->second);
-    	f->outNodes.push_back(t);
-    	cout << "Added edge (" << f->id << ", " << t->id << ")" << endl;
-    } else {
-	cout << "One of the nodes was missing - could not add edge" << endl;
-    }
-
+    assert((from_it!=nodes.end()) and (to_it!=nodes.end()));
+    PanNode *f = (nodes.find(from)->second);
+    PanNode *t = (nodes.find(to)->second);
+    f->outNodes.push_back(t);
+    //cout << "Added edge (" << f->id << ", " << t->id << ")" << endl;
 }
+
 void PanGraph::write_gfa (string filepath)
 {
     ofstream handle;
@@ -67,20 +64,27 @@ void PanGraph::write_gfa (string filepath)
 }
 
 bool PanGraph::operator == (const PanGraph& y) const {
-    if (nodes.size() != y.nodes.size()) {return false;}
-    for(map<uint32_t, PanNode*>::const_iterator it=nodes.begin(); it!=nodes.end(); ++it)
+    // false if have different numbers of nodes
+    //cout << "Graph == comparison:" << endl;
+    //cout << "numbers of nodes: " << nodes.size() << " " << y.nodes.size() << endl;
+    if (y.nodes.size() != nodes.size()) {//cout << "different numbers of nodes" << endl; 
+        return false;}
+
+    // false if have different nodes
+    for ( const auto c: nodes)
     {
-	// check node exists in y
-        map<uint32_t, PanNode*>::const_iterator f=y.nodes.find(it->first);
-	if (f==y.nodes.end()) {return false;}
-	// and that each edge from node to other node is also in y
-        for (uint32_t j=0; j<it->second->outNodes.size(); ++j)
-        {
-            pointer_values_equal<PanNode> eq = { it->second->outNodes[j] };
-            if ( find_if(f->second->outNodes.begin(), f->second->outNodes.end(), eq) == f->second->outNodes.end() )
-	    {return false;}
-        }
+        //cout << "for node " << c.first;
+        // if node id doesn't exist 
+        map<uint32_t, PanNode*>::const_iterator it=y.nodes.find(c.first);
+        if(it==y.nodes.end()) {//cout << "node id doesn't exist" << endl; 
+            return false;}
+        //cout << " found corresponding y node " << it->first;
+        // or node entries are different
+        if (!(*c.second == *(it->second))) {//cout << "node id " << c.first << " exists but has different values" << endl; 
+            return false;}
+        //cout << " such that " << *c.second << " == " << *(it->second) << endl;
     }
+    // otherwise is true
     return true;
 }
 

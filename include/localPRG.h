@@ -15,8 +15,7 @@ using namespace std;
 
 class LocalPRG {
     uint32_t next_id;
-//    uint32_t next_site = 5;
-    string buff = " ";
+    string buff;
   public:
     uint32_t next_site;
 

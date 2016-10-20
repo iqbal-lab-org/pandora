@@ -22,14 +22,19 @@ class LocalPRGTest : public ::testing::Test {
     // (right before the destructor).
   }
 
-  LocalPRG l0 = LocalPRG(0,"empty", "");
-  LocalPRG l1 = LocalPRG(1,"simple", "AGCT");
-  LocalPRG l2 = LocalPRG(2,"varsite", "A 5 GC 6 G 5 T");
-  LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+  //LocalPRG l0 = LocalPRG(0,"empty", "");
+  //LocalPRG l1 = LocalPRG(1,"simple", "AGCT");
+  //LocalPRG l2 = LocalPRG(2,"varsite", "A 5 GC 6 G 5 T");
+  //LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
 
 };
 
 TEST_F(LocalPRGTest, create){
+    LocalPRG l0 = LocalPRG(0,"empty", "");
+    LocalPRG l1 = LocalPRG(1,"simple", "AGCT");
+    LocalPRG l2 = LocalPRG(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+
     uint32_t j = 0;
     EXPECT_EQ(j, l0.id);
     EXPECT_EQ("empty", l0.name);
@@ -49,6 +54,11 @@ TEST_F(LocalPRGTest, create){
 }
 
 TEST_F(LocalPRGTest, isalphaEmptyString){
+    LocalPRG l0 = LocalPRG(0,"empty", "");
+    LocalPRG l1 = LocalPRG(1,"simple", "AGCT");
+    LocalPRG l2 = LocalPRG(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+
     bool a0 = l0.isalpha_string("");
     bool a1 = l1.isalpha_string("");
     bool a2 = l2.isalpha_string("");
@@ -60,6 +70,11 @@ TEST_F(LocalPRGTest, isalphaEmptyString){
 }
 
 TEST_F(LocalPRGTest, isalphaSpaceString){
+    LocalPRG l0 = LocalPRG(0,"empty", "");
+    LocalPRG l1 = LocalPRG(1,"simple", "AGCT");
+    LocalPRG l2 = LocalPRG(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+
     bool a0 = l0.isalpha_string("AGCT T");
     bool a1 = l1.isalpha_string("AGCT T");
     bool a2 = l2.isalpha_string("AGCT T");
@@ -71,6 +86,11 @@ TEST_F(LocalPRGTest, isalphaSpaceString){
 }
 
 TEST_F(LocalPRGTest, isalphaNumberString){
+    LocalPRG l0 = LocalPRG(0,"empty", "");
+    LocalPRG l1 = LocalPRG(1,"simple", "AGCT");
+    LocalPRG l2 = LocalPRG(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+
     bool a0 = l0.isalpha_string("AGCT 8 T");
     bool a1 = l1.isalpha_string("AGCT 8 T");
     bool a2 = l2.isalpha_string("AGCT 8 T");
@@ -82,6 +102,11 @@ TEST_F(LocalPRGTest, isalphaNumberString){
 }
 
 TEST_F(LocalPRGTest, stringAlongPath){
+    LocalPRG l0 = LocalPRG(0,"empty", "");
+    LocalPRG l1 = LocalPRG(1,"simple", "AGCT");
+    LocalPRG l2 = LocalPRG(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+
     // empty interval
     deque<Interval> d = {Interval(0,0)};
     Path p = Path();
@@ -122,6 +147,11 @@ TEST_F(LocalPRGTest, stringAlongPath){
 }
 
 TEST_F(LocalPRGTest, splitBySiteNoSites){
+    LocalPRG l0 = LocalPRG(0,"empty", "");
+    LocalPRG l1 = LocalPRG(1,"simple", "AGCT");
+    LocalPRG l2 = LocalPRG(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+
     vector<Interval> v0, v1;
     v0.push_back(Interval(0,0));
     EXPECT_ITERABLE_EQ( vector< Interval >, v0, l0.splitBySite(Interval(0,0)));// << "Failed to split empty string with input Interval";
@@ -136,6 +166,11 @@ TEST_F(LocalPRGTest, splitBySiteNoSites){
 }
 
 TEST_F(LocalPRGTest, splitBySiteSite){
+    LocalPRG l0 = LocalPRG(0,"empty", "");
+    LocalPRG l1 = LocalPRG(1,"simple", "AGCT");
+    LocalPRG l2 = LocalPRG(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+
     vector<Interval> v2;
     v2.push_back(Interval(0,1));
     l2.next_site = 5;
@@ -159,6 +194,11 @@ TEST_F(LocalPRGTest, splitBySiteSite){
 }
 
 TEST_F(LocalPRGTest, splitBySiteNestedSite){
+    LocalPRG l0 = LocalPRG(0,"empty", "");
+    LocalPRG l1 = LocalPRG(1,"simple", "AGCT");
+    LocalPRG l2 = LocalPRG(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+
     vector<Interval> v3;
     v3.push_back(Interval(0,1));
     l3.next_site = 5;
@@ -187,6 +227,11 @@ TEST_F(LocalPRGTest, splitBySiteNestedSite){
 
 TEST_F(LocalPRGTest, buildGraph)
 {
+    LocalPRG l0 = LocalPRG(0,"empty", "");
+    LocalPRG l1 = LocalPRG(1,"simple", "AGCT");
+    LocalPRG l2 = LocalPRG(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+
     LocalGraph lg0;
     lg0.add_node(0,"",Interval(0,0));
     EXPECT_EQ(lg0, l0.prg);
@@ -228,6 +273,11 @@ TEST_F(LocalPRGTest, buildGraph)
 //could test that no int is included in more than one node
 
 TEST_F(LocalPRGTest, minimizerSketch){
+    LocalPRG l0 = LocalPRG(0,"empty", "");
+    LocalPRG l1 = LocalPRG(1,"simple", "AGCT");
+    LocalPRG l2 = LocalPRG(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+
     Index* idx;
     idx = new Index();
 
