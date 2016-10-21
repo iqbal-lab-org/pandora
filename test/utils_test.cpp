@@ -143,7 +143,9 @@ TEST_F(UtilsTest, addReadHits){
     p.initialize(d);
     idx->add_record("GTT", 3, p);
 
+    cout << "add read1 hits" << endl;
     add_read_hits(0, "read1", "AGC", mhs, idx, 1, 3);
+    cout << "check if correct" << endl;
     set<MinimizerHit*, pComp>::const_iterator it2 = expected1.hits.begin();
     for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
     {
@@ -152,8 +154,12 @@ TEST_F(UtilsTest, addReadHits){
     }
     
     // same if take w=2 as sketch of read AGCT should just contain AGC
-    mhs->hits.clear();
+    cout << "add read2 hits" << endl;
+    delete mhs;
+    mhs = new MinimizerHits();
+    cout << "just cleared previous hits" << endl;
     add_read_hits(0, "read2", "AGCT", mhs, idx, 2, 3);
+    cout << "check if correct" << endl;
     it2 = expected1.hits.begin();
     for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
     {
@@ -162,16 +168,27 @@ TEST_F(UtilsTest, addReadHits){
     }
 
     // now back to w = 1, add expected2 to expected1 as will get hits against both AGC and GCT
-    mhs->hits.clear();
-    expected1.hits.insert(expected2.hits.begin(), expected2.hits.end());
+    cout << "clear previous hits" << endl;
+    delete mhs;
+    mhs = new MinimizerHits();
+    cout << "add read3 hits" << endl;
     add_read_hits(0, "read3", "AGCT", mhs, idx, 1, 3);
+    cout << "extend set with other set" << endl;
+    expected1.hits.insert(expected2.hits.begin(), expected2.hits.end());
+    cout << "check if correct" << endl;
     it2 = expected1.hits.begin();
     for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
     {
         EXPECT_EQ(**it2, **it);
         it2++;
     }
-    delete m1, m2, m3, m4, idx, mhs;
+    cout << "delete stuff" << endl;
+    delete idx;
+    cout << "index deleted" << endl;
+    delete m1, m2, m3, m4;
+    cout << "hit pointers deleted" << endl;
+    delete mhs;
+    cout << "minihits poiter deleted" << endl;
 }
 
 TEST_F(UtilsTest, inferLocalPRGOrderForRead){
