@@ -19,7 +19,7 @@ class Path {
     uint32_t end;
 
     Path();
-    ~Path();
+  //  ~Path();
     void add_start_interval(Interval);
     void add_end_interval(Interval);
     void initialize(deque<Interval>);

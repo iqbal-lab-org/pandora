@@ -18,8 +18,14 @@ LocalPRG::LocalPRG (uint32_t i, string n, string p): id(i), name(n), seq(p), nex
 {
     //cout << seq << endl;
     vector<uint32_t> v;
-    vector<uint32_t> b = build_graph(Interval(0,seq.size()), v);
-    //minimizer_sketch (idx, w, k);
+    // avoid error if a prg contains only empty space as it's sequence
+    if(seq.find_first_not_of("\t\n\v\f\r") != std::string::npos)
+    {
+        vector<uint32_t> b = build_graph(Interval(0,seq.size()), v);
+        //minimizer_sketch (idx, w, k);
+    } else {
+	prg.add_node(0, "", Interval(0,0));
+    }
 }
 
 LocalPRG::~LocalPRG()

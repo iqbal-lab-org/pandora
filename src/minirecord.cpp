@@ -7,7 +7,9 @@
 
 using namespace std;
 
-MiniRecord::MiniRecord(uint32_t p, Path q): prg_id(p), path(q) {};
+MiniRecord::MiniRecord(uint32_t p, Path q): prg_id(p), path(q) {
+    //path.initialize(q.path);
+};
 
 MiniRecord::~MiniRecord() {};
 

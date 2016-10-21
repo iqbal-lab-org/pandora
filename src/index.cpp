@@ -20,13 +20,15 @@ Index::~Index() {
 
 void Index::add_record(string kmer, uint32_t prg_id, Path path)
 {
+    cout << "Add kmer " << kmer << " id, path " << prg_id << ", " << path << endl;
     assert(kmer.length()==path.length);
     vector<MiniRecord> newv;
     map<string, vector<MiniRecord>>::iterator it=minhash.find(kmer);
     if(it==minhash.end())
     {
         newv.clear();
-        newv.push_back(MiniRecord(prg_id, path));
+        MiniRecord mr = MiniRecord(prg_id, path);
+        newv.push_back(mr);
         minhash.insert(pair<string, vector<MiniRecord>>(kmer,newv));
         //cout << "New minhash size: " << minhash.size() << endl; 
     } else {

@@ -38,6 +38,8 @@ TEST_F(MinimizerHitTest,create){
 
     m = new Minimizer("hell",1,5);
     EXPECT_DEATH(MinimizerHit(1, m, mr, 0), "");
+
+    //TEST SECOND CONSTRUCTOR!!
 }
 
 TEST_F(MinimizerHitTest,equals){

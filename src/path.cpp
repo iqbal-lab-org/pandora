@@ -27,10 +27,10 @@ void Path::initialize(deque<Interval> q)
     end = path.back().end;
 }
 
-Path::~Path()
+/*Path::~Path()
 {
     path.clear();
-}
+}*/
 
 void Path::add_start_interval(Interval i)
 {

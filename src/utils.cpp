@@ -32,11 +32,13 @@ void index_prg_file(vector<LocalPRG*>& prgs, string filepath, Index* idx, uint32
 		    s->minimizer_sketch(idx, w, k);
                     
                     if (s!=nullptr)
-                        {prgs.push_back(s);}
+                    {   
+			prgs.push_back(s);
+			id++;
+		    }
                 }
                 name.clear();
                 read.clear();
-		id++;
                 if (!line.empty())
                 {
                     name = line.substr(1);
@@ -56,10 +58,10 @@ void index_prg_file(vector<LocalPRG*>& prgs, string filepath, Index* idx, uint32
             if (s!=nullptr)
                 {prgs.push_back(s);}
         }
-        cout << "Number of LocalPRGs added to Index: " << prgs.size() << endl;
+        //cout << "Number of LocalPRGs added to Index: " << prgs.size() << endl;
         myfile.close();
     } else {
-        cout << "Unable to open PRG file " << filepath << endl;
+        cerr << "Unable to open PRG file " << filepath << endl;
         exit (EXIT_FAILURE);
     }
     return;
@@ -153,10 +155,10 @@ void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, ui
                     mh = new MinimizerHits;
                     add_read_hits(id, name, read, mh, idx, w, k);
 		    infer_localPRG_order_for_read(mh, pangraph, 500, 4);
+		    id++;
                 }
                 name.clear();
                 read.clear();
-		id++;
                 if (!line.empty())
                 {
                     name = line.substr(1);
