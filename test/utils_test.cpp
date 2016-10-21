@@ -98,6 +98,7 @@ TEST_F(UtilsTest, indexPrgFile){
     EXPECT_EQ(idx->minhash["AGT"].size(), j);
     j = 1;
     EXPECT_EQ(idx->minhash["GTT"].size(), j);
+    delete idx;
 }
 
 TEST_F(UtilsTest, addReadHits){
@@ -106,7 +107,7 @@ TEST_F(UtilsTest, addReadHits){
     mhs = new MinimizerHits();
     MinimizerHits expected1 = MinimizerHits();
     MinimizerHits expected2 = MinimizerHits();
-    MinimizerHit *m;
+    MinimizerHit *m1, *m2, *m3, *m4;
 
     // initialize index as we would expect with example prgs 1 and 3 from above
     Index *idx;
@@ -115,18 +116,18 @@ TEST_F(UtilsTest, addReadHits){
     Path p = Path();
     p.initialize(d);
     idx->add_record("AGC", 1, p);
-    m = new MinimizerHit(0, Interval(0,3), 1, p, 1);
-    expected1.hits.insert(m);
+    m1 = new MinimizerHit(0, Interval(0,3), 1, p, 1);
+    expected1.hits.insert(m1);
     d = {Interval(1,4)};
     p.initialize(d);
     idx->add_record("GCT", 1, p);
-    m = new MinimizerHit(0, Interval(1,4), 1, p, 1);
-    expected2.hits.insert(m);
+    m2 = new MinimizerHit(0, Interval(1,4), 1, p, 1);
+    expected2.hits.insert(m2);
     d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     p.initialize(d);
     idx->add_record("AGC", 3, p);
-    m = new MinimizerHit(0, Interval(0,3), 3, p, 1);
-    expected1.hits.insert(m);
+    m3 = new MinimizerHit(0, Interval(0,3), 3, p, 1);
+    expected1.hits.insert(m3);
     d = {Interval(0,1), Interval(4,5), Interval(12,13)};
     p.initialize(d);
     idx->add_record("AGT", 3, p);
@@ -136,8 +137,8 @@ TEST_F(UtilsTest, addReadHits){
     d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     idx->add_record("GCT", 3, p);
-    m = new MinimizerHit(0, Interval(1,4), 3, p, 1);
-    expected2.hits.insert(m);
+    m4 = new MinimizerHit(0, Interval(1,4), 3, p, 1);
+    expected2.hits.insert(m4);
     d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     idx->add_record("GTT", 3, p);
@@ -170,6 +171,7 @@ TEST_F(UtilsTest, addReadHits){
         EXPECT_EQ(**it2, **it);
         it2++;
     }
+    delete m1, m2, m3, m4, idx, mhs;
 }
 
 TEST_F(UtilsTest, inferLocalPRGOrderForRead){

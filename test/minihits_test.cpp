@@ -28,25 +28,32 @@ TEST_F(MinimizerHitsTest,addHit){
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p = Path();
     p.initialize(d);
-    MiniRecord mr = MiniRecord(0,p);
+    //MiniRecord mr = MiniRecord(0,p);
+    MiniRecord* mr;
+    mr = new MiniRecord(0,p);
     mhits.add_hit(1, m, mr, 0);
     mhits.add_hit(2, m, mr, 0);
 
+    delete m;
     m = new Minimizer("hello", 0,5);
     mhits.add_hit(1, m, mr, 0);
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
-    mr = MiniRecord(0,p);
+    delete mr;
+    mr = new MiniRecord(0,p);
     mhits.add_hit(1, m, mr, 0);
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
-    mr = MiniRecord(0,p);
+    delete mr;
+    mr = new MiniRecord(0,p);
     mhits.add_hit(1, m, mr, 0);
 
     uint32_t j = 5;
     EXPECT_EQ(j, mhits.hits.size());
+
+    delete m, mr;
 }
 
 TEST_F(MinimizerHitsTest, pCompCheck) {
@@ -58,25 +65,29 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p = Path();
     p.initialize(d);
-    MiniRecord mr = MiniRecord(0,p);
+    MiniRecord* mr;
+    mr = new MiniRecord(0,p);
     mhits.add_hit(1, m, mr, 0);
     expected.push_back(MinimizerHit(1, m, mr, 0));
     mhits.add_hit(0, m, mr, 0);
     expected.push_back(MinimizerHit(0, m, mr, 0));
 
+    delete m;
     m = new Minimizer("hello", 0,5);
     mhits.add_hit(1, m, mr, 0);
     expected.push_back(MinimizerHit(1, m, mr, 0));
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
-    mr = MiniRecord(0,p);
+    delete mr;
+    mr = new MiniRecord(0,p);
     mhits.add_hit(1, m, mr, 0);
     expected.push_back(MinimizerHit(1, m, mr, 0));
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
-    mr = MiniRecord(0,p);
+    delete mr;
+    mr = new MiniRecord(0,p);
     mhits.add_hit(1, m, mr, 0);
     expected.push_back(MinimizerHit(1, m, mr, 0));
 
@@ -87,6 +98,8 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
         j++;
     }
     EXPECT_EQ(expected[0], **(--mhits.hits.end()));
+
+    delete m, mr;
 }
 
 TEST_F(MinimizerHitsTest, clusterCompCheck){
@@ -101,7 +114,8 @@ TEST_F(MinimizerHitsTest, clusterCompCheck){
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p = Path();
     p.initialize(d);
-    MiniRecord mr = MiniRecord(0,p);
+    MiniRecord* mr;
+    mr = new MiniRecord(0,p);
     MinimizerHit* mh;
     mh = new MinimizerHit(1, m, mr, 0);
     current_cluster.insert(mh);
@@ -113,6 +127,7 @@ TEST_F(MinimizerHitsTest, clusterCompCheck){
     clusters_of_hits.insert(current_cluster);
 
     current_cluster.clear();
+    delete m;
     m = new Minimizer("hello", 0,5);
     mh = new MinimizerHit(1, m, mr, 0);
     current_cluster.insert(mh);
@@ -120,14 +135,16 @@ TEST_F(MinimizerHitsTest, clusterCompCheck){
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
-    mr = MiniRecord(0,p);
+    delete mr;
+    mr = new MiniRecord(0,p);
     mh = new MinimizerHit(1, m, mr, 0);
     current_cluster.insert(mh);
     expected2.push_back(mh);
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
-    mr = MiniRecord(0,p);
+    delete mr;
+    mr = new MiniRecord(0,p);
     mh = new MinimizerHit(1, m, mr, 0);
     current_cluster.insert(mh);
     expected2.push_back(mh);
@@ -147,4 +164,14 @@ TEST_F(MinimizerHitsTest, clusterCompCheck){
     {
         EXPECT_EQ(((*expected2[0] == **it) or (*expected2[1] == **it) or (*expected2[2] == **it)), true);
     }
+    
+    for (uint32_t k = 0; k!=expected1.size(); ++k)
+    {
+        delete expected1[k];
+    }
+    for (uint32_t k = 0; k!=expected2.size(); ++k)
+    {
+        delete expected2[k];
+    }
+    delete m, mr;
 }

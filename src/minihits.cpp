@@ -17,7 +17,7 @@ MinimizerHits::~MinimizerHits()
     }
 }
 
-void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniRecord r, const uint8_t c)
+void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniRecord* r, const uint8_t c)
 {
     MinimizerHit *mh;
     mh = new MinimizerHit(i, m, r, c);

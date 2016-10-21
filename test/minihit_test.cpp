@@ -26,7 +26,8 @@ TEST_F(MinimizerHitTest,create){
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p = Path();
     p.initialize(d);
-    MiniRecord mr = MiniRecord(0,p);
+    MiniRecord* mr;
+    mr = new MiniRecord(0,p);
     MinimizerHit mh = MinimizerHit(1, m, mr, 0);
     uint32_t j = 1;
     EXPECT_EQ(j, mh.read_id);
@@ -39,6 +40,8 @@ TEST_F(MinimizerHitTest,create){
     m = new Minimizer("hell",1,5);
     EXPECT_DEATH(MinimizerHit(1, m, mr, 0), "");
 
+    delete m;
+    delete mr;
     //TEST SECOND CONSTRUCTOR!!
 }
 
@@ -48,18 +51,22 @@ TEST_F(MinimizerHitTest,equals){
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p = Path();
     p.initialize(d);
-    MiniRecord mr = MiniRecord(0,p);
+    MiniRecord* mr;
+    mr = new MiniRecord(0,p);
     MinimizerHit mh1 = MinimizerHit(1, m, mr, 0);
 
+    delete m;
     m = new Minimizer("hello", 0,5);
     d = {Interval(7,9), Interval(11, 14)};
     p.initialize(d);
-    mr = MiniRecord(0,p);
+    delete mr;
+    mr = new MiniRecord(0,p);
     MinimizerHit mh2 = MinimizerHit(1, m, mr, 0);
 
     EXPECT_EQ(mh1, mh1);
     EXPECT_EQ(mh2, mh2);
     EXPECT_EQ((mh1==mh2), false);
+    delete m, mr;
 }
 
 TEST_F(MinimizerHitTest,compare){
@@ -70,22 +77,26 @@ TEST_F(MinimizerHitTest,compare){
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p = Path();
     p.initialize(d);
-    MiniRecord mr = MiniRecord(0,p);
+    MiniRecord* mr;
+    mr = new MiniRecord(0,p);
     MinimizerHit mh1 = MinimizerHit(1, m, mr, 0);
 
     MinimizerHit mh2 = MinimizerHit(0, m, mr, 0);
 
+    delete m;
     m = new Minimizer("hello", 0,5);
     MinimizerHit mh3 = MinimizerHit(1, m, mr, 0);
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
-    mr = MiniRecord(0,p);
+    delete mr;
+    mr = new MiniRecord(0,p);
     MinimizerHit mh4 = MinimizerHit(1, m, mr, 0);
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
-    mr = MiniRecord(0,p);
+    delete mr;
+    mr = new MiniRecord(0,p);
     MinimizerHit mh5 = MinimizerHit(1, m, mr, 0);
 
     hits.insert(mh1);
@@ -108,5 +119,6 @@ TEST_F(MinimizerHitTest,compare){
         j++;
     }
     EXPECT_EQ(expected[0], *(--hits.end()));
+    delete m, mr;
 }
 

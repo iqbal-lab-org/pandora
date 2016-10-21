@@ -77,7 +77,7 @@ void add_read_hits(uint32_t id, string name, string seq, MinimizerHits* hits, In
         {
 	    for (vector<MiniRecord>::iterator it2=idx->minhash[(*it)->kmer].begin(); it2!=idx->minhash[(*it)->kmer].end(); ++it2)
             {
-	        hits->add_hit(s.id, *it, *it2, 1);
+	        hits->add_hit(s.id, *it, &(*it2), 1);
             }
         }
     }

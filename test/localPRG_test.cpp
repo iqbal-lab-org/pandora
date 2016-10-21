@@ -313,6 +313,8 @@ TEST_F(LocalPRGTest, minimizerSketch){
     EXPECT_EQ(j, idx->minhash["AGC"].size());
     EXPECT_EQ(j, idx->minhash["GCT"].size());
     EXPECT_EQ(j, idx->minhash["GTT"].size());
+    
+    delete idx;
 }
 
 /*TEST_F(LocalPRGTest,unpackLinearString){

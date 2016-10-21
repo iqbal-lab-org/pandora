@@ -25,7 +25,7 @@ class MinimizerHits {
     MinimizerHits() {}
     ~MinimizerHits();
     set<MinimizerHit*, pComp> hits;
-    void add_hit(const uint32_t i, const Minimizer* m, const MiniRecord r, const uint8_t c);
+    void add_hit(const uint32_t i, const Minimizer* m, const MiniRecord* r, const uint8_t c);
     friend ostream& operator<< (ostream& out, const MinimizerHits& m);
 };
 
