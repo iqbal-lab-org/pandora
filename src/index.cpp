@@ -21,7 +21,7 @@ Index::~Index() {
 
 void Index::add_record(string kmer, uint32_t prg_id, Path path)
 {
-    cout << "Add kmer " << kmer << " id, path " << prg_id << ", " << path << endl;
+    //cout << "Add kmer " << kmer << " id, path " << prg_id << ", " << path << endl;
     assert(kmer.length()==path.length);
     vector<MiniRecord> newv;
     map<string, vector<MiniRecord>>::iterator it=minhash.find(kmer);
