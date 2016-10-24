@@ -19,7 +19,7 @@ class LocalNodeTest : public ::testing::Test {
 
 TEST_F(LocalNodeTest,create){
 
-    LocalNode ln = LocalNode("hello", Interval(0,5), 0);
+    LocalNode ln("hello", Interval(0,5), 0);
 
     uint32_t j = 1;
     EXPECT_EQ("hello", ln.seq);
@@ -29,10 +29,10 @@ TEST_F(LocalNodeTest,create){
 }
 
 TEST_F(LocalNodeTest,equals){
-    LocalNode ln1 = LocalNode("hello", Interval(0,5), 0);
-    LocalNode ln2 = LocalNode("heppo", Interval(0,5), 0);
-    LocalNode ln3 = LocalNode("hello", Interval(0,4), 0);
-    LocalNode ln4 = LocalNode("hello", Interval(0,5), 1);
+    LocalNode ln1("hello", Interval(0,5), 0);
+    LocalNode ln2("heppo", Interval(0,5), 0);
+    LocalNode ln3("hello", Interval(0,4), 0);
+    LocalNode ln4("hello", Interval(0,5), 1);
     // can't compare outNodes bit outside of localGraph
     EXPECT_EQ(ln1, ln1);
     EXPECT_EQ(ln2, ln2);

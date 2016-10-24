@@ -22,7 +22,7 @@ class PanGraphTest : public ::testing::Test {
 TEST_F(PanGraphTest, addNode)
 {
     // add node and check it's there
-    PanGraph pg = PanGraph();
+    PanGraph pg;
     pg.add_node(0,0);
 
     PanNode *pn;
@@ -66,7 +66,7 @@ TEST_F(PanGraphTest, addNode)
 
 TEST_F(PanGraphTest, addEdge)
 {
-    PanGraph pg = PanGraph();
+    PanGraph pg;
     pg.add_node(0,0);
     pg.add_node(1,2);
     pg.add_edge(0,1);
@@ -91,7 +91,7 @@ TEST_F(PanGraphTest, addEdge)
 
 TEST_F(PanGraphTest, equals)
 {
-    PanGraph pg1 = PanGraph();
+    PanGraph pg1;
     pg1.add_node(0,0);
     pg1.add_node(1,2);
     pg1.add_node(1,0);
@@ -99,7 +99,7 @@ TEST_F(PanGraphTest, equals)
     pg1.add_edge(0,1);
     pg1.add_edge(1,2);
   
-    PanGraph pg2 = PanGraph();
+    PanGraph pg2;
     pg2.add_node(1,2);
     pg2.add_node(0,0);
     pg2.add_edge(0,1);
@@ -118,7 +118,7 @@ TEST_F(PanGraphTest, equals)
     EXPECT_EQ((pg1 == pg2), false);
 
     // having one fewer edge makes a difference
-    PanGraph pg3 = PanGraph();
+    PanGraph pg3;
     pg3.add_node(1,2);
     pg3.add_node(0,0);
     pg3.add_node(2,2);

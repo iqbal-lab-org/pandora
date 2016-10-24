@@ -18,7 +18,7 @@ class PanNodeTest : public ::testing::Test {
 
 TEST_F(PanNodeTest,create){
 
-    PanNode pn = PanNode(3);
+    PanNode pn(3);
     uint32_t j=3;
     EXPECT_EQ(j, pn.id);
     pn = PanNode(8);
@@ -27,7 +27,7 @@ TEST_F(PanNodeTest,create){
 }
 
 TEST_F(PanNodeTest,addRead){
-    PanNode pn = PanNode(3);
+    PanNode pn(3);
     pn.add_read(0);
     uint32_t j=1;
     EXPECT_EQ(j, pn.foundReads.size());
@@ -47,9 +47,9 @@ TEST_F(PanNodeTest,addRead){
 }
 
 TEST_F(PanNodeTest,equals){
-    PanNode pn1 = PanNode(3);
-    PanNode pn2 = PanNode(2);
-    PanNode pn3 = PanNode(2);
+    PanNode pn1(3);
+    PanNode pn2(2);
+    PanNode pn3(2);
 
     EXPECT_EQ(pn1, pn1);
     EXPECT_EQ(pn2, pn2);

@@ -12,7 +12,8 @@ struct Minimizer
 {
     string kmer;
     Interval pos;
-    bool operator < ( const Minimizer& str) const;
+    bool operator < ( const Minimizer& y) const;
+    bool operator == (const Minimizer& y) const;
     Minimizer(string, uint32_t, uint32_t);
     ~Minimizer();
     friend ostream& operator<< (ostream& out, const Minimizer& m); 

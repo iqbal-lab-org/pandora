@@ -27,9 +27,9 @@ class MinimizerTest : public ::testing::Test {
 };
 
 TEST_F(MinimizerTest,create){
-    Minimizer m1 = Minimizer("abcde", 0,5);
-    Minimizer m2 = Minimizer("abcdg", 1,6);
-    Minimizer m3 = Minimizer("abcde", 5,10);
+    Minimizer m1("abcde", 0,5);
+    Minimizer m2("abcdg", 1,6);
+    Minimizer m3("abcde", 5,10);
 
     EXPECT_EQ(m1.kmer, "abcde");
     EXPECT_EQ(m2.kmer, "abcdg");
@@ -54,11 +54,11 @@ TEST_F(MinimizerTest,create){
 }
 
 TEST_F(MinimizerTest,comparisonCheck){
-    Minimizer m1 = Minimizer("abcde", 0,5);
-    Minimizer m2 = Minimizer("abcdg", 1,6);
-    Minimizer m3 = Minimizer("abcde", 5,10); 
-    Minimizer m4 = Minimizer("abcdg", 0,5);
-    Minimizer m5 = Minimizer("abcdh", 0,5);
+    Minimizer m1("abcde", 0,5);
+    Minimizer m2("abcdg", 1,6);
+    Minimizer m3("abcde", 5,10); 
+    Minimizer m4("abcdg", 0,5);
+    Minimizer m5("abcdh", 0,5);
 
     set<Minimizer> s;
     s.insert(m1);

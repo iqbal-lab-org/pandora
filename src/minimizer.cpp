@@ -19,20 +19,26 @@ Minimizer::~Minimizer()
     //if (path != NULL) {delete path;}
 }
 
-bool Minimizer::operator < ( const Minimizer& str) const
+bool Minimizer::operator < ( const Minimizer& y) const
 {
-    if (kmer < str.kmer) { return true; }
-    if ( str.kmer < kmer ) { return false; }
+    if (kmer < y.kmer) { return true; }
+    if ( y.kmer < kmer ) { return false; }
 
-    if (pos.start < str.pos.start) { return true; }
-    if ( str.pos.start < pos.start ) { return false; }
+    if (pos.start < y.pos.start) { return true; }
+    if ( y.pos.start < pos.start ) { return false; }
 
-    if (pos.end < str.pos.end) { return true; }
-    if ( str.pos.end < pos.end ) { return false; }
+    if (pos.end < y.pos.end) { return true; }
+    if ( y.pos.end < pos.end ) { return false; }
 
     // if both are completely equal (based on strict weak ordering)
     // then just return false since equality doesn't yield less than
     return false;
+}
+
+bool Minimizer::operator == (const Minimizer& y) const {
+    if (kmer != y.kmer) {return false;}
+    if (!(pos == y.pos)) {return false;}
+    return true;
 }
 
 bool pMiniComp::operator()(Minimizer* lhs, Minimizer* rhs) {

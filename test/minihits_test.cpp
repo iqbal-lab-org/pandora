@@ -22,11 +22,11 @@ class MinimizerHitsTest : public ::testing::Test {
 };
 
 TEST_F(MinimizerHitsTest,addHit){
-    MinimizerHits mhits = MinimizerHits();
+    MinimizerHits mhits;
     Minimizer* m;
     m = new Minimizer("hello", 1,6);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
-    Path p = Path();
+    Path p;
     p.initialize(d);
     //MiniRecord mr = MiniRecord(0,p);
     MiniRecord* mr;
@@ -50,20 +50,20 @@ TEST_F(MinimizerHitsTest,addHit){
     mr = new MiniRecord(0,p);
     mhits.add_hit(1, m, mr, 0);
 
-    uint32_t j = 5;
+    uint32_t j(5);
     EXPECT_EQ(j, mhits.hits.size());
 
     delete m, mr;
 }
 
 TEST_F(MinimizerHitsTest, pCompCheck) {
-    MinimizerHits mhits = MinimizerHits();
+    MinimizerHits mhits;
     vector<MinimizerHit> expected;
 
     Minimizer* m;
     m = new Minimizer("hello", 1,6);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
-    Path p = Path();
+    Path p;
     p.initialize(d);
     MiniRecord* mr;
     mr = new MiniRecord(0,p);
@@ -91,7 +91,7 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
     mhits.add_hit(1, m, mr, 0);
     expected.push_back(MinimizerHit(1, m, mr, 0));
 
-    uint32_t j = 1;
+    uint32_t j(1);
     for (set<MinimizerHit*, pComp>::iterator it=mhits.hits.begin(); it!=--mhits.hits.end(); ++it)
     {
         EXPECT_EQ(expected[j], **it);
@@ -112,7 +112,7 @@ TEST_F(MinimizerHitsTest, clusterCompCheck){
     Minimizer* m;
     m = new Minimizer("hello", 1,6);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
-    Path p = Path();
+    Path p;
     p.initialize(d);
     MiniRecord* mr;
     mr = new MiniRecord(0,p);
@@ -152,7 +152,7 @@ TEST_F(MinimizerHitsTest, clusterCompCheck){
     clusters_of_hits.insert(current_cluster);
 
     // have inserted 2 clusters
-    uint32_t j = 2;
+    uint32_t j(2);
     EXPECT_EQ(j, clusters_of_hits.size());
     // expect the cluster of 3 added second to be first
     j=3;

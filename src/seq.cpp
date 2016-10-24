@@ -5,6 +5,7 @@
 #include <set>
 #include "minimizer.h"
 #include "seq.h"
+#include "utils.h"
 
 using std::vector;
 using namespace std;
@@ -49,7 +50,13 @@ void Seq::minimizer_sketch (uint32_t w, uint32_t k)
             {
             	Minimizer *m;
 		m = new Minimizer(kmer, wpos+i, wpos+i+k);
-		sketch.insert(m);
+ 		pointer_values_equal<Minimizer> eq = { m };
+                if ( find_if(sketch.begin(), sketch.end(), eq) == sketch.end() )
+		{
+		    sketch.insert(m);
+		} else {
+		    delete m;
+		}
 	    }
 	}
     }

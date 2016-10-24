@@ -18,7 +18,7 @@ class IntervalTest : public ::testing::Test {
 
 TEST_F(IntervalTest,create)
 {
-    Interval i = Interval(0,0);
+    Interval i(0,0);
     uint32_t j = 0;
     EXPECT_EQ(i.start,j);
     EXPECT_EQ(i.end,j);
@@ -40,11 +40,11 @@ TEST_F(IntervalTest,create)
 
 TEST_F(IntervalTest,equals)
 {
-    Interval i = Interval(1,5);
-    Interval j = Interval(1,5);
+    Interval i(1,5);
+    Interval j(1,5);
     EXPECT_EQ(i,j);
     
-    Interval k = Interval(0,4);
+    Interval k(0,4);
     EXPECT_EQ((i==k), false);
 
     i = Interval(0,0);

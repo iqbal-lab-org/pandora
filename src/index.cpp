@@ -12,6 +12,7 @@ using namespace std;
 Index::Index() {};
 
 Index::~Index() {
+    clear();
     /*for (auto c: minhash)
     {
         delete c.second;
@@ -27,12 +28,12 @@ void Index::add_record(string kmer, uint32_t prg_id, Path path)
     if(it==minhash.end())
     {
         newv.clear();
-        MiniRecord mr = MiniRecord(prg_id, path);
+        MiniRecord mr(prg_id, path);
         newv.push_back(mr);
         minhash.insert(pair<string, vector<MiniRecord>>(kmer,newv));
         //cout << "New minhash size: " << minhash.size() << endl; 
     } else {
-	MiniRecord mr = MiniRecord(prg_id, path);	
+	MiniRecord mr(prg_id, path);	
         if (find(it->second.begin(), it->second.end(), mr)==it->second.end())
 	{
             it->second.push_back(mr);

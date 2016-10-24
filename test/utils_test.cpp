@@ -101,7 +101,7 @@ TEST_F(UtilsTest, indexPrgFile){
     delete idx;
 }
 
-TEST_F(UtilsTest, addReadHits){
+/*TEST_F(UtilsTest, addReadHits){
     // initialize minihits container
     MinimizerHits *mhs;
     mhs = new MinimizerHits();
@@ -189,10 +189,11 @@ TEST_F(UtilsTest, addReadHits){
     cout << "hit pointers deleted" << endl;
     delete mhs;
     cout << "minihits poiter deleted" << endl;
-}
+}*/
 
-TEST_F(UtilsTest, inferLocalPRGOrderForRead){
+/*TEST_F(UtilsTest, inferLocalPRGOrderForRead){
+    
 }
 
 TEST_F(UtilsTest, pangraphFromReadFile){
-}
+}*/

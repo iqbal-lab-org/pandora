@@ -70,7 +70,7 @@ void index_prg_file(vector<LocalPRG*>& prgs, string filepath, Index* idx, uint32
 void add_read_hits(uint32_t id, string name, string seq, MinimizerHits* hits, Index* idx, uint32_t w, uint32_t k)
 {
     // creates Seq object for the read, then looks up minimizers in the Seq sketch and adds hits to a global MinimizerHits object
-    Seq s = Seq(id, name, seq, w, k);
+    Seq s(id, name, seq, w, k);
     for(set<Minimizer*, pMiniComp>::iterator it = s.sketch.begin(); it != s.sketch.end(); ++it)
     {
         if (idx->minhash.find((*it)->kmer) != idx->minhash.end())

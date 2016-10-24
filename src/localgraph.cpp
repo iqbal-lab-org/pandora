@@ -68,7 +68,7 @@ vector<Path> LocalGraph::walk(uint32_t node_id, uint32_t pos, uint32_t len)
     //cout << "walking graph from node " << node_id << " pos " << pos << " for length " << len << endl;
     // walks from position pos in node node for length len bases
     vector<Path> return_paths, walk_paths;
-    Path p,p2 = Path();
+    Path p,p2;
     deque<Interval> d;
 
     //cout << "pos+len: " << pos+len << " nodes[node_id]->pos.end: " << nodes[node_id]->pos.end << endl;

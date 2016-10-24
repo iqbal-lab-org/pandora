@@ -57,9 +57,9 @@ class LocalGraphTest : public ::testing::Test {
 TEST_F(LocalGraphTest, addNode)
 {
     // add node and check it's there
-    LocalGraph lg1 = LocalGraph();
+    LocalGraph lg1;
     lg1.add_node(0,"AGCT", Interval(0,4));
-    LocalNode ln1 = LocalNode("AGCT", Interval(0,4), 0);
+    LocalNode ln1("AGCT", Interval(0,4), 0);
     EXPECT_EQ(ln1, *lg1.nodes[0]);
 
     // add node another time and expect nothing to happen
@@ -73,7 +73,7 @@ TEST_F(LocalGraphTest, addNode)
 
 TEST_F(LocalGraphTest, addEdge)
 {
-    LocalGraph lg2 = LocalGraph();
+    LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
     lg2.add_node(1,"GC", Interval(4,6));
     lg2.add_node(2,"G", Interval(7,8));
@@ -90,11 +90,11 @@ TEST_F(LocalGraphTest, addEdge)
 
 TEST_F(LocalGraphTest, equals)
 {
-    LocalGraph lg1 = LocalGraph();
+    LocalGraph lg1;
     lg1.add_node(0,"AGCT", Interval(0,4));
     EXPECT_EQ(lg1, lg1);
 
-    LocalGraph lg2 = LocalGraph();
+    LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
     lg2.add_node(1,"GC", Interval(4,6));
     lg2.add_node(2,"G", Interval(7,8));
@@ -108,7 +108,7 @@ TEST_F(LocalGraphTest, equals)
     EXPECT_EQ((lg1==lg2), false);
 
     // order adding shouldn't matter
-    LocalGraph lg2p = LocalGraph();
+    LocalGraph lg2p;
     lg2p.add_node(2,"G", Interval(7,8));
     lg2p.add_node(3,"T", Interval(13,14));
     lg2p.add_node(1,"GC", Interval(4,6));
@@ -120,7 +120,7 @@ TEST_F(LocalGraphTest, equals)
     EXPECT_EQ(lg2, lg2p);
     
     // missing an edge does
-    LocalGraph lg2q = LocalGraph();
+    LocalGraph lg2q;
     lg2q.add_node(2,"G", Interval(7,8));
     lg2q.add_node(3,"T", Interval(13,14));
     lg2q.add_node(1,"GC", Interval(4,6));
@@ -136,7 +136,7 @@ TEST_F(LocalGraphTest, equals)
     EXPECT_EQ((lg2==lg2q), false);
 
     // adding an extra node
-    LocalGraph lg2r = LocalGraph();
+    LocalGraph lg2r;
     lg2r.add_node(2,"G", Interval(7,8));
     lg2r.add_node(3,"T", Interval(13,14));
     lg2r.add_node(1,"GC", Interval(4,6));
@@ -151,7 +151,7 @@ TEST_F(LocalGraphTest, equals)
 
 TEST_F(LocalGraphTest, walk)
 {
-    LocalGraph lg2 = LocalGraph();
+    LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
     lg2.add_node(1,"GC", Interval(4,6));
     lg2.add_node(2,"G", Interval(7,8));
@@ -163,7 +163,7 @@ TEST_F(LocalGraphTest, walk)
 
     // simple case, there are 2 paths of length 3
     vector<Path> q1;
-    Path p = Path();
+    Path p;
     deque<Interval> d = {Interval(0,1), Interval(4,6)};
     p.initialize(d);
     q1.push_back(p);
@@ -203,7 +203,7 @@ TEST_F(LocalGraphTest, walk)
     EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
 
     // test on a slightly more complex graph
-    LocalGraph lg3 = LocalGraph();
+    LocalGraph lg3;
     lg3.add_node(0,"A", Interval(0,1));
     lg3.add_node(1,"G", Interval(4,5));
     lg3.add_node(2,"C", Interval(8,9));
