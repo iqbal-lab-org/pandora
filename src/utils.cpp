@@ -77,7 +77,7 @@ void add_read_hits(uint32_t id, string name, string seq, MinimizerHits* hits, In
         {
 	    for (vector<MiniRecord>::iterator it2=idx->minhash[(*it)->kmer].begin(); it2!=idx->minhash[(*it)->kmer].end(); ++it2)
             {
-                cout << (*it)->kmer << " : ";
+                //cout << (*it)->kmer << " : ";
 	        hits->add_hit(s.id, *it, &(*it2), 1);
             }
         }
@@ -104,7 +104,7 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
         {
             if (current_cluster.size() > cluster_thresh)
             {
-                cout << "Found cluster of size: " << current_cluster.size() << endl;
+                //cout << "Found cluster of size: " << current_cluster.size() << endl;
                 clusters_of_hits.insert(current_cluster);
             }
             current_cluster.clear();
@@ -117,7 +117,7 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
     if (current_cluster.size() > cluster_thresh)
     {
         clusters_of_hits.insert(current_cluster);
-        cout << "Found cluster of size: " << current_cluster.size() << endl;
+        //cout << "Found cluster of size: " << current_cluster.size() << endl;
     }
 
     // Next order clusters, remove contained ones, and add inferred order to pangraph
