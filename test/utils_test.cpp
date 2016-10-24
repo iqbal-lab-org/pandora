@@ -2,6 +2,7 @@
 #include "test_macro.cpp"
 #include "utils.h"
 #include "localPRG.h"
+#include "pangraph.h"
 #include "interval.h"
 #include "path.h"
 #include "minihit.h"
@@ -181,8 +182,269 @@ TEST_F(UtilsTest, addReadHits){
     delete mhs;
 }
 
-TEST_F(UtilsTest, inferLocalPRGOrderForRead){    
+TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){    
+    // initialize minihits container
+    MinimizerHits *mhs;
+    mhs = new MinimizerHits();
+
+    // initialize index as we would expect with example prgs (variant of) 1 and 3 from above
+    Index *idx;
+    idx = new Index();
+
+    deque<Interval> d = {Interval(0,3)};
+    Path p;
+    p.initialize(d);
+    idx->add_record("TAC", 1, p);
+
+    d = {Interval(1,4)};
+    p.initialize(d);
+    idx->add_record("ACG", 1, p);
+
+    d = {Interval(0,1), Interval(4,5), Interval(8,9)};
+    p.initialize(d);
+    idx->add_record("AGC", 3, p);
+
+    d = {Interval(0,1), Interval(4,5), Interval(12,13)};
+    p.initialize(d);
+    idx->add_record("AGT", 3, p);
+
+    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
+    p.initialize(d);
+    idx->add_record("AGT", 3, p);
+
+    d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    idx->add_record("GCT", 3, p);
+
+    d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    idx->add_record("GTT", 3, p);
+
+    // add read hits to mhs
+    add_read_hits(0, "read1", "AGTTTACG", mhs, idx, 1, 3);
+
+    // initialize pangraph;
+    PanGraph *pg;
+    pg = new PanGraph();
+    infer_localPRG_order_for_read(mhs, pg, 1, 1, 3);
+
+    // create a pangraph object representing the truth we expect (prg 3 then 1)
+    PanGraph pg_exp;
+    pg_exp.add_node(1,0);
+    pg_exp.add_node(3,0);
+    pg_exp.add_edge(3,1);
+
+    EXPECT_EQ(pg_exp, *pg);
+    delete idx;
+    delete pg;
+    delete mhs;
+}
+
+TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
+    // initialize minihits container
+    MinimizerHits *mhs;
+    mhs = new MinimizerHits();
+
+    // initialize index as we would expect with example prgs
+    Index *idx;
+    idx = new Index();
+
+    deque<Interval> d = {Interval(0,3)};
+    Path p;
+    p.initialize(d);
+    idx->add_record("TAC", 1, p);
+
+    d = {Interval(1,4)};
+    p.initialize(d);
+    idx->add_record("ACG", 1, p);
+
+    d = {Interval(2,5)};
+    p.initialize(d);
+    idx->add_record("CGG", 1, p);
+
+    d = {Interval(3,6)};
+    p.initialize(d);
+    idx->add_record("GGT", 1, p);
+
+    d = {Interval(4,7)};
+    p.initialize(d);
+    idx->add_record("GTA", 1, p);
+
+    d = {Interval(0,1), Interval(4,5), Interval(8,9)};
+    p.initialize(d);
+    idx->add_record("AGC", 3, p);
+
+    d = {Interval(0,1), Interval(4,5), Interval(12,13)};
+    p.initialize(d);
+    idx->add_record("AGT", 3, p);
+
+    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
+    p.initialize(d);
+    idx->add_record("AGT", 3, p);
+
+    d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    idx->add_record("GCT", 3, p);
+
+    d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    idx->add_record("GTT", 3, p);
+
+    d = {Interval(12,13), Interval(16,16), Interval(23,25)};
+    p.initialize(d);
+    idx->add_record("TTA", 3, p);
+
+    d = {Interval(23,26)};
+    p.initialize(d);
+    idx->add_record("TAA", 3, p);
+
+    d = {Interval(24,27)};
+    p.initialize(d);
+    idx->add_record("AAG", 3, p);
+
+    d = {Interval(8,11)};
+    p.initialize(d);
+    idx->add_record("CTA", 4, p);
+
+    d = {Interval(9,12)};
+    p.initialize(d);
+    idx->add_record("TAG", 4, p);
+
+    d = {Interval(0,3)};
+    p.initialize(d);
+    idx->add_record("CTA", 2, p);
+
+    d = {Interval(1,4)};
+    p.initialize(d);
+    idx->add_record("TAC", 2, p);
+
+    d = {Interval(2,5)};
+    p.initialize(d);
+    idx->add_record("ACT", 2, p);
+
+    // add read hits to mhs
+    add_read_hits(0, "read2", "AGTTAAGCTAGCTACTTACGGTA", mhs, idx, 1, 3);
+
+    // initialize pangraph;
+    PanGraph *pg;
+    pg = new PanGraph();
+    infer_localPRG_order_for_read(mhs, pg, 1, 1, 3);
+
+    // create a pangraph object representing the truth we expect (prg 3 4 2 1)
+    // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
+    PanGraph pg_exp;
+    pg_exp.add_node(1,0);
+    pg_exp.add_node(2,0);
+    pg_exp.add_node(3,0);
+    pg_exp.add_node(4,0);
+    pg_exp.add_edge(3,4);
+    pg_exp.add_edge(4,2);
+    pg_exp.add_edge(2,1);
+
+    EXPECT_EQ(pg_exp, *pg);
+    delete pg;
+    delete mhs;
+    delete idx;
 }
 
 TEST_F(UtilsTest, pangraphFromReadFile){
+    // should give exactly the same results, but read the read from a file
+
+    // initialize index as we would expect with example prgs
+    Index *idx;
+    idx = new Index();
+
+    deque<Interval> d = {Interval(0,3)};
+    Path p;
+    p.initialize(d);
+    idx->add_record("TAC", 1, p);
+
+    d = {Interval(1,4)};
+    p.initialize(d);
+    idx->add_record("ACG", 1, p);
+
+    d = {Interval(2,5)};
+    p.initialize(d);
+    idx->add_record("CGG", 1, p);
+
+    d = {Interval(3,6)};
+    p.initialize(d);
+    idx->add_record("GGT", 1, p);
+
+    d = {Interval(4,7)};
+    p.initialize(d);
+    idx->add_record("GTA", 1, p);
+
+    d = {Interval(0,1), Interval(4,5), Interval(8,9)};
+    p.initialize(d);
+    idx->add_record("AGC", 3, p);
+
+    d = {Interval(0,1), Interval(4,5), Interval(12,13)};
+    p.initialize(d);
+    idx->add_record("AGT", 3, p);
+
+    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
+    p.initialize(d);
+    idx->add_record("AGT", 3, p);
+
+    d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    idx->add_record("GCT", 3, p);
+
+    d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    idx->add_record("GTT", 3, p);
+
+    d = {Interval(12,13), Interval(16,16), Interval(23,25)};
+    p.initialize(d);
+    idx->add_record("TTA", 3, p);
+
+    d = {Interval(23,26)};
+    p.initialize(d);
+    idx->add_record("TAA", 3, p);
+
+    d = {Interval(24,27)};
+    p.initialize(d);
+    idx->add_record("AAG", 3, p);
+
+    d = {Interval(8,11)};
+    p.initialize(d);
+    idx->add_record("CTA", 4, p);
+
+    d = {Interval(9,12)};
+    p.initialize(d);
+    idx->add_record("TAG", 4, p);
+
+    d = {Interval(0,3)};
+    p.initialize(d);
+    idx->add_record("CTA", 2, p);
+
+    d = {Interval(1,4)};
+    p.initialize(d);
+    idx->add_record("TAC", 2, p);
+
+    d = {Interval(2,5)};
+    p.initialize(d);
+    idx->add_record("ACT", 2, p);
+
+    // initialize pangraph;
+    PanGraph *pg;
+    pg = new PanGraph();
+
+    pangraph_from_read_file("../test/test_cases/read0.fa", pg, idx, 1, 3, 1, 1);
+
+    // create a pangraph object representing the truth we expect (prg 3 4 2 1)
+    // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
+    PanGraph pg_exp;
+    pg_exp.add_node(1,0);
+    pg_exp.add_node(2,0);
+    pg_exp.add_node(3,0);
+    pg_exp.add_node(4,0);
+    pg_exp.add_edge(3,4);
+    pg_exp.add_edge(4,2);
+    pg_exp.add_edge(2,1);
+
+    EXPECT_EQ(pg_exp, *pg);
+    delete idx;
+    delete pg;
 }

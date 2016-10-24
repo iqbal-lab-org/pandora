@@ -25,6 +25,7 @@ void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniReco
     if(it==hits.end())
     {
         hits.insert(mh);
+        //cout << *mh << endl;
     } else {
         delete mh;
     }

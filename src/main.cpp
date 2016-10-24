@@ -41,6 +41,8 @@ int main(int argc, char *argv[])
 
     uint32_t w = 5;
     uint32_t k = 15;
+    int max_diff = 1;
+    uint32_t cluster_thresh = 1;
 
     cout << "Building Index from PRG file" << endl;
     Index *idx;
@@ -51,7 +53,7 @@ int main(int argc, char *argv[])
     cout << "Reading read file" << endl;
     PanGraph *pangraph;
     pangraph = new PanGraph();
-    pangraph_from_read_file(argv[2], pangraph, idx, w, k);
+    pangraph_from_read_file(argv[2], pangraph, idx, w, k, max_diff, cluster_thresh);
     cout << "Finished building pangraph from reads" << endl;
 	
     // delete all the Seq objects

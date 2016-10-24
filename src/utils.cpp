@@ -77,6 +77,7 @@ void add_read_hits(uint32_t id, string name, string seq, MinimizerHits* hits, In
         {
 	    for (vector<MiniRecord>::iterator it2=idx->minhash[(*it)->kmer].begin(); it2!=idx->minhash[(*it)->kmer].end(); ++it2)
             {
+                cout << (*it)->kmer << " : ";
 	        hits->add_hit(s.id, *it, &(*it2), 1);
             }
         }
@@ -84,7 +85,7 @@ void add_read_hits(uint32_t id, string name, string seq, MinimizerHits* hits, In
     return;
 }
 
-void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pangraph, int max_diff, uint32_t cluster_thresh)
+void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pangraph, int max_diff, uint32_t cluster_thresh, uint32_t k)
 {
     // this step infers the gene order for a read
     // orders hits from a set of minimizer hits, clusters them, removes noise hits, and adds the inferred gene order to the pangraph
@@ -103,7 +104,7 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
         {
             if (current_cluster.size() > cluster_thresh)
             {
-                //cout << "Found cluster of size: " << current_cluster.size() << endl;
+                cout << "Found cluster of size: " << current_cluster.size() << endl;
                 clusters_of_hits.insert(current_cluster);
             }
             current_cluster.clear();
@@ -116,7 +117,7 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
     if (current_cluster.size() > cluster_thresh)
     {
         clusters_of_hits.insert(current_cluster);
-        //cout << "Found cluster of size: " << current_cluster.size() << endl;
+        cout << "Found cluster of size: " << current_cluster.size() << endl;
     }
 
     // Next order clusters, remove contained ones, and add inferred order to pangraph
@@ -125,7 +126,7 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
     pangraph->add_node((*(*c_previous).begin())->prg_id, (*(*c_previous).begin())->read_id);
     for (set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_current = ++clusters_of_hits.begin(); c_current != clusters_of_hits.end(); ++c_current)
     {
-        if((*--(*c_current).end())->read_interval.start > (*--(*c_previous).end())->read_interval.start)
+        if((*--(*c_current).end())->read_interval.start > (*--(*c_previous).end())->read_interval.start + k - 1) // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, so force the next cluster to have at least a hit which is outside this region
         {
             pangraph->add_node((*(*c_current).begin())->prg_id, (*(*c_previous).begin())->read_id);
             pangraph->add_edge((*(*c_previous).begin())->prg_id, (*(*c_current).begin())->prg_id);
@@ -137,7 +138,7 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
     return;
 }
 
-void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, uint32_t w, uint32_t k)
+void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, uint32_t w, uint32_t k, int max_diff, uint32_t cluster_thresh)
 {
     string name, read, line;
     uint32_t id = 0;
@@ -152,9 +153,9 @@ void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, ui
             {
                 if (!name.empty() && !read.empty())
                 {
-                    mh = new MinimizerHits;
+                    mh = new MinimizerHits();
                     add_read_hits(id, name, read, mh, idx, w, k);
-		    infer_localPRG_order_for_read(mh, pangraph, 500, 4);
+		    infer_localPRG_order_for_read(mh, pangraph, max_diff, cluster_thresh, k);
 		    id++;
                 }
                 name.clear();
@@ -172,9 +173,9 @@ void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, ui
         // and last entry
         if (!name.empty() && !read.empty())
         {
-            mh = new MinimizerHits;
+            mh = new MinimizerHits();
             add_read_hits(id, name, read, mh, idx, w, k);
-            infer_localPRG_order_for_read(mh, pangraph, 500, 4);
+            infer_localPRG_order_for_read(mh, pangraph, max_diff, cluster_thresh, k);
         }
         //cout << "Number of reads found: " << id+1 << endl;
         myfile.close();

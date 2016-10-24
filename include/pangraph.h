@@ -14,7 +14,7 @@ using namespace std;
 class PanGraph {
   public:
     map<uint32_t, PanNode*> nodes; // representing nodes in graph
-    PanGraph() {}
+    PanGraph() {};
     ~PanGraph();
     void add_node (uint32_t, uint32_t);
     void add_edge (const uint32_t&, const uint32_t&);
