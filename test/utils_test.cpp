@@ -39,7 +39,7 @@ TEST_F(UtilsTest, indexPrgFile){
  
     // single prg with simple sequence
     index_prg_file(prgs, "../test/test_cases/prg1.fa", idx, 1,3);
-    LocalPRG l1 = LocalPRG(1,"prg1", "AGCT");
+    LocalPRG l1(1,"prg1", "AGCT");
     j = 2;
     EXPECT_EQ(idx->minhash.size(), j);
     j = 1;
@@ -55,7 +55,7 @@ TEST_F(UtilsTest, indexPrgFile){
     j = 0;
     EXPECT_EQ(idx->minhash.size(), j);
     index_prg_file(prgs, "../test/test_cases/prg2.fa", idx, 1,3);
-    LocalPRG l2 = LocalPRG(2,"prg2", "A 5 GC 6 G 5 T");
+    LocalPRG l2(2,"prg2", "A 5 GC 6 G 5 T");
     j = 3;
     EXPECT_EQ(idx->minhash.size(), j);
     j = 2;
@@ -105,15 +105,15 @@ TEST_F(UtilsTest, indexPrgFile){
     // initialize minihits container
     MinimizerHits *mhs;
     mhs = new MinimizerHits();
-    MinimizerHits expected1 = MinimizerHits();
-    MinimizerHits expected2 = MinimizerHits();
+    MinimizerHits expected1;
+    MinimizerHits expected2;
     MinimizerHit *m1, *m2, *m3, *m4;
 
     // initialize index as we would expect with example prgs 1 and 3 from above
     Index *idx;
     idx = new Index();
     deque<Interval> d = {Interval(0,3)};
-    Path p = Path();
+    Path p;
     p.initialize(d);
     idx->add_record("AGC", 1, p);
     m1 = new MinimizerHit(0, Interval(0,3), 1, p, 1);
@@ -191,9 +191,8 @@ TEST_F(UtilsTest, indexPrgFile){
     cout << "minihits poiter deleted" << endl;
 }*/
 
-/*TEST_F(UtilsTest, inferLocalPRGOrderForRead){
-    
+TEST_F(UtilsTest, inferLocalPRGOrderForRead){    
 }
 
 TEST_F(UtilsTest, pangraphFromReadFile){
-}*/
+}
