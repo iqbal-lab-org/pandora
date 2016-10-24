@@ -19,10 +19,10 @@ class SeqTest : public ::testing::Test {
 };
 
 TEST_F(SeqTest,sketchShortReads){
-    Seq s1 = Seq(0,"0", "AGCTAATGCGTT", 11, 3);
-    Seq s2 = Seq(0,"0", "AGCTAATGCGTT", 10, 3);
-    Seq s3 = Seq(0,"0", "AGCTAATGCGTT", 9, 3);
-    Seq s4 = Seq(0,"0", "AGCTAGTGCGTT", 9, 3);
+    Seq s1(0,"0", "AGCTAATGCGTT", 11, 3);
+    Seq s2(0,"0", "AGCTAATGCGTT", 10, 3);
+    Seq s3(0,"0", "AGCTAATGCGTT", 9, 3);
+    Seq s4(0,"0", "AGCTAGTGCGTT", 9, 3);
     uint32_t j = 0;
     EXPECT_EQ(s1.sketch.size(),j) << "Have " << s1.sketch.size() << " minimizer when string is too short";
     ++j;
@@ -33,10 +33,10 @@ TEST_F(SeqTest,sketchShortReads){
 }
 
 TEST_F(SeqTest,sketchIncludesEveryLetter){
-    Seq s1 = Seq(0,"0", "AGCTAATGTGTT", 3, 3);
-    Seq s2 = Seq(0,"0", "AGCTAATGTGTT", 2, 3);
-    Seq s3 = Seq(0,"0", "AGCTAATGTGTT", 1, 3);
-    Seq s4 = Seq(0,"0", "AGCTAATGTGAT", 3, 3);
+    Seq s1(0,"0", "AGCTAATGTGTT", 3, 3);
+    Seq s2(0,"0", "AGCTAATGTGTT", 2, 3);
+    Seq s3(0,"0", "AGCTAATGTGTT", 1, 3);
+    Seq s4(0,"0", "AGCTAATGTGAT", 3, 3);
 
     set<int> pos_inc;
     for(set<Minimizer*>::iterator it=s4.sketch.begin(); it != s4.sketch.end(); ++it)

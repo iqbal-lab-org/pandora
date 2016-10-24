@@ -21,9 +21,9 @@ class IndexTest : public ::testing::Test {
 };
 
 TEST_F(IndexTest,addRecord){
-    Index idx = Index();
+    Index idx;
     deque<Interval> d = {Interval(3,5), Interval(9,12)};
-    Path p = Path();
+    Path p;
     p.initialize(d);
     idx.add_record("hello", 1, p);
     uint32_t j=1;
@@ -46,9 +46,9 @@ TEST_F(IndexTest,addRecord){
 }
 
 TEST_F(IndexTest, clear){
-    Index idx = Index();
+    Index idx;
     deque<Interval> d = {Interval(3,5), Interval(9,12)};
-    Path p = Path();
+    Path p;
     p.initialize(d);
     idx.add_record("hello", 1, p);
     idx.add_record("henno", 2, p);
