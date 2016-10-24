@@ -39,10 +39,10 @@ int main(int argc, char *argv[])
     char* dt = ctime(&now);
     cout << "START: " << dt << endl;
 
-    uint32_t w = 5;
-    uint32_t k = 15;
-    int max_diff = 1;
-    uint32_t cluster_thresh = 1;
+    uint32_t w = 1;//5;
+    uint32_t k = 3;//15;
+    int max_diff = 1;//500;
+    uint32_t cluster_thresh = 1;//4;
 
     cout << "Building Index from PRG file" << endl;
     Index *idx;
