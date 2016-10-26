@@ -22,12 +22,6 @@ class LocalPRGTest : public ::testing::Test {
     // Code here will be called immediately after each test
     // (right before the destructor).
   }
-
-  //LocalPRG l0 = LocalPRG(0,"empty", "");
-  //LocalPRG l1 = LocalPRG(1,"simple", "AGCT");
-  //LocalPRG l2 = LocalPRG(2,"varsite", "A 5 GC 6 G 5 T");
-  //LocalPRG l3 = LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
-
 };
 
 TEST_F(LocalPRGTest, create){
@@ -337,6 +331,37 @@ TEST_F(LocalPRGTest, getCovgs)
     l1.get_covgs(mh);
     uint32_t j = 3;
     EXPECT_EQ(j, l1.prg.nodes[0]->covg);
+
+    delete r;
+    d = {Interval(0,1), Interval(4,6)};
+    p.initialize(d);
+    r = new MiniRecord(2, p);
+    mh->add_hit(0, m, r, 0);
+    l2.get_covgs(mh);
+    j = 1;
+    EXPECT_EQ(j, l2.prg.nodes[0]->covg);
+    j = 2;
+    EXPECT_EQ(j, l2.prg.nodes[1]->covg);
+    j = 0;
+    EXPECT_EQ(j, l2.prg.nodes[2]->covg);
+    EXPECT_EQ(j, l2.prg.nodes[3]->covg);
+
+
+    delete r;
+    d = {Interval(0,1), Interval(4,5), Interval(8,9)};
+    p.initialize(d);
+    r = new MiniRecord(3, p);
+    mh->add_hit(0, m, r, 0);
+    l3.get_covgs(mh);
+    j = 1;
+    EXPECT_EQ(j, l3.prg.nodes[0]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[1]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[2]->covg);
+    j = 0;
+    EXPECT_EQ(j, l3.prg.nodes[3]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[4]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[5]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[6]->covg);
     delete r, m, mh;
 }
 /*TEST_F(LocalPRGTest,unpackLinearString){
