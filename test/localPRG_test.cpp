@@ -2,6 +2,7 @@
 #include "test_macro.cpp"
 #include "localPRG.h"
 #include "minimizer.h"
+#include "minirecord.h"
 #include "interval.h"
 #include "path.h"
 #include "localgraph.h"
@@ -319,7 +320,24 @@ TEST_F(LocalPRGTest, minimizerSketch){
 
 TEST_F(LocalPRGTest, getCovgs)
 {
-    
+    LocalPRG l1(1,"simple", "AGCT");
+    LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T"); 
+
+    MinimizerHits* mh;
+    mh = new MinimizerHits();
+    Minimizer* m;
+    m = new Minimizer("AGC",0,3);
+    MiniRecord* r;
+    Path p;
+    deque<Interval> d = {Interval(0,3)};
+    p.initialize(d);
+    r = new MiniRecord(1, p);
+    mh->add_hit(0, m, r, 0);
+    l1.get_covgs(mh);
+    uint32_t j = 3;
+    EXPECT_EQ(j, l1.prg.nodes[0]->covg);
+    delete r, m, mh;
 }
 /*TEST_F(LocalPRGTest,unpackLinearString){
     Seq s1 = Seq(0,"0", "AGCTAATGCGTT", 11, 3);
