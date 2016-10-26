@@ -23,6 +23,7 @@
 
 #include "utils.h"
 #include "localPRG.h"
+#include "localgraph.h"
 #include "pangraph.h"
 #include "index.h"
 
@@ -50,17 +51,24 @@ int main(int argc, char *argv[])
     vector<LocalPRG*> prgs;
     index_prg_file(prgs, argv[1], idx, w, k);
 
-    cout << "Reading read file" << endl;
+    cout << "Reading Read file" << endl;
     PanGraph *pangraph;
     pangraph = new PanGraph();
-    pangraph_from_read_file(argv[2], pangraph, idx, w, k, max_diff, cluster_thresh);
-    cout << "Finished building pangraph from reads" << endl;
+    pangraph_from_read_file(argv[2], pangraph, idx, prgs, w, k, max_diff, cluster_thresh);
+    cout << "Finished building PanGraph from reads" << endl;
+
+    cout << "Writing PanGraph to file" << endl;
+    string prefix = argv[3];
+    pangraph->write_gfa(prefix + "_pangraph.gfa");
 	
-    // delete all the Seq objects
+    // for each found localPRG, also write out a gfa 
+    // then delete the locaPRG object
     for (uint32_t j=0; j<prgs.size(); ++j)
     {
+	prgs[j]->prg.write_gfa(prefix + "_" + prgs[j]->name + ".gfa");
 	delete prgs[j];
     }
+    delete idx, pangraph;
 
     // current date/time based on current system
     now = time(0);

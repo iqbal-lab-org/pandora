@@ -39,6 +39,11 @@ set(COMMON_TEST ${PROJECT_SOURCE_DIR}/test)
 #-------------------
 # Module source
 #-------------------
+include_directories(${COMMON_INCLUDES} ${COMMON_SRC})
+file(GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
+add_executable(${PROJECT_NAME} ${SRC_FILES})
+target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+
 #set(PROJECT_LIB_NAME ${PROJECT_NAME_STR}_impl)
 
 #include_directories(${COMMON_INCLUDES})
@@ -81,4 +86,4 @@ endif()
 
 target_link_libraries(${PROJECT_TEST_NAME} ${CMAKE_THREAD_LIBS_INIT})
 
-add_test(test1 ${PROJECT_TEST_NAME})
+add_test(testAll ${PROJECT_TEST_NAME})

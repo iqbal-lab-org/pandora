@@ -106,6 +106,10 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
             {
                 //cout << "Found cluster of size: " << current_cluster.size() << endl;
                 clusters_of_hits.insert(current_cluster);
+            //} else {
+		// delete noise clusters
+	    //	for (set<MinimizerHit*, pComp>::const_iterator it=current_cluster.begin(); it!=current_cluster.end(); ++it)
+	    //	{    delete *it;    }
             }
             current_cluster.clear();
             current_cluster.insert(*mh_current);
@@ -118,6 +122,10 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
     {
         clusters_of_hits.insert(current_cluster);
         //cout << "Found cluster of size: " << current_cluster.size() << endl;
+    //} else {
+        // delete noise clusters
+    //    for (set<MinimizerHit*, pComp>::const_iterator it=current_cluster.begin(); it!=current_cluster.end(); ++it)
+    //    {    delete *it;    }
     }
 
     // Next order clusters, remove contained ones, and add inferred order to pangraph
@@ -138,7 +146,7 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
     return;
 }
 
-void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, uint32_t w, uint32_t k, int max_diff, uint32_t cluster_thresh)
+void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, vector<LocalPRG*>& prgs, uint32_t w, uint32_t k, int max_diff, uint32_t cluster_thresh)
 {
     string name, read, line;
     uint32_t id = 0;
@@ -156,6 +164,8 @@ void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, ui
                     mh = new MinimizerHits();
                     add_read_hits(id, name, read, mh, idx, w, k);
 		    infer_localPRG_order_for_read(mh, pangraph, max_diff, cluster_thresh, k);
+		    update_covgs_from_hits(prgs, mh);
+		    delete mh;
 		    id++;
                 }
                 name.clear();
@@ -176,12 +186,23 @@ void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, ui
             mh = new MinimizerHits();
             add_read_hits(id, name, read, mh, idx, w, k);
             infer_localPRG_order_for_read(mh, pangraph, max_diff, cluster_thresh, k);
+	    update_covgs_from_hits(prgs, mh);
+	    delete mh;
         }
         //cout << "Number of reads found: " << id+1 << endl;
         myfile.close();
     } else {
         cerr << "Unable to open read file " << filepath << endl;
         exit (EXIT_FAILURE);
+    }
+    return;
+}
+
+void update_covgs_from_hits(vector<LocalPRG*>& prgs, MinimizerHits* mhs)
+{
+    for (uint32_t i=0; i!= prgs.size(); ++i)
+    {
+        prgs[i]->get_covgs(mhs);
     }
     return;
 }

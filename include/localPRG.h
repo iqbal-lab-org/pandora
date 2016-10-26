@@ -10,6 +10,7 @@
 #include "localgraph.h"
 #include "path.h"
 #include "index.h"
+#include "minihits.h"
 
 using namespace std;
 
@@ -31,6 +32,7 @@ class LocalPRG {
     vector<Interval> splitBySite(Interval);	
     vector<uint32_t> build_graph(Interval, vector<uint32_t>);
     void minimizer_sketch (Index* idx, uint32_t w, uint32_t k);
+    void get_covgs(MinimizerHits* minimizer_hits);
   friend ostream& operator<< (ostream& out, const LocalPRG& data);  
 };
 

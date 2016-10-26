@@ -22,7 +22,6 @@ class LocalGraph {
     void write_gfa (string);
     vector<Path> walk(uint32_t, uint32_t, uint32_t);
     bool operator == (const LocalGraph& y) const;
-
 };
 
 #endif

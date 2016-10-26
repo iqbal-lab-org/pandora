@@ -10,6 +10,8 @@
 #include "index.h"
 #include "errormessages.h"
 #include "path.h"
+#include "minihits.h"
+#include "minihit.h"
 
 using std::vector;
 using namespace std;
@@ -245,3 +247,28 @@ std::ostream& operator<< (std::ostream & out, LocalPRG const& data) {
     return out ;
 }
 
+void LocalPRG::get_covgs(MinimizerHits* minimizer_hits)
+{
+    // for each hit
+    for (set<MinimizerHit*, pComp>::iterator mh = minimizer_hits->hits.begin(); mh != minimizer_hits->hits.end(); ++mh)
+    {
+        // if it is against this prg id
+        if ((*mh)->prg_id == id)
+        {
+            // then for each interval of the hit
+            for (deque<Interval>::const_iterator it=(*mh)->prg_path.path.begin(); it!=(*mh)->prg_path.path.end(); ++it)
+            {
+                // update the covg on the appropriate node of the prg
+                for (map<uint32_t, LocalNode*>::const_iterator n=prg.nodes.begin(); n!=prg.nodes.end(); ++n)
+		{
+                    if (it->end > n->second->pos.start and it->start < n->second->pos.end)
+            	    {
+                        n->second->covg += min(it->end, n->second->pos.end) - max(it->start, n->second->pos.start);
+                    } else if (it->end < n->second->pos.start) 
+		    { break;} // because the local nodes are labelled in order of occurance in the linear prg string, we don't need to search after this
+		}
+            }
+        }
+    }
+    return;
+}

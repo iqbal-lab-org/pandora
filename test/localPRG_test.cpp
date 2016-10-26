@@ -317,6 +317,10 @@ TEST_F(LocalPRGTest, minimizerSketch){
     delete idx;
 }
 
+TEST_F(LocalPRGTest, getCovgs)
+{
+    
+}
 /*TEST_F(LocalPRGTest,unpackLinearString){
     Seq s1 = Seq(0,"0", "AGCTAATGCGTT", 11, 3);
     Seq s2 = Seq(0,"0", "AGCTAATGCGTT", 10, 3);

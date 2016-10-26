@@ -54,7 +54,14 @@ void LocalGraph::write_gfa (string filepath)
     handle << "H\tVN:Z:1.0" << endl;
     for(map<uint32_t, LocalNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
     {
-        handle << "S\t" << it->second->id << "\t" << it->second->seq << "\tRC:i:" << it->second->covg << endl;
+        handle << "S\t" << it->second->id << "\t";
+        if (it->second->seq == "")
+	{
+	    handle << "*";
+	} else {
+	    handle << it->second->seq;
+	}
+	handle << "\tRC:i:" << it->second->covg << endl;
         for (uint32_t j=0; j<it->second->outNodes.size(); ++j)
         {
             handle << "L\t" << it->second->id << "\t+\t" << it->second->outNodes[j]->id << "\t+\t0M" << endl;
@@ -129,55 +136,3 @@ bool LocalGraph::operator == (const LocalGraph& y) const
     // otherwise is true
     return true;
 }
-
-/*uint32_t query_node_containing(uint32_t i)
-{
-    map<uint32_t, LocalNode*>::iterator it=nodes.begin();
-    while (i<it->second->pos.end and it!=nodes.end())
-    {
-	++it;
-    }
-    if (it->second->pos.start<=i and it->second->pos.end>i)
-    {
-	return it->first;
-    } else {
-	cerr << NOT_IN_NODE_RANGE_ERROR << endl;
-        exit(-1);
-    }
-}
-
-vector<Path> LocalGraph::get_paths_from_position(uint32_t i, uint32_t len)
-{
-    vector<Path> v;
-    deque<Interval> d = {Interval(i,15)};
-    Path p = Path(
-    for 
-    return v;
-}*/
-
-/*set<Path> LocalGraph::extend_path(Path p)
-{
-    set<Path> s;
-    // adds next interval(s) to end of path
-    map<uint32_t, LocalNode*>::iterator it = nodes.begin();
-    while (!((it->second)->pos==p.path.back()) and it!=nodes.end())
-    {
-        ++it;
-    }
-
-    if (it==nodes.end())
-    {
-	cerr << INTERVAL_MISSING_FROM_PATH_ERROR << endl;
-        cerr << p.path.back() << endl;
-        exit(-1);
-    } else {
-	for (uint32_t i=0; i!=it->second->outNodes.size(); ++i)
-	{
-	    Path q = p;
-	    q.add_end_interval(it->second->outNodes[i]->pos);
-	    //cout << q << endl;
-	    s.insert(q);
-	}
-    }
-    return s;	
-}*/

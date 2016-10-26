@@ -348,6 +348,7 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
 }
 
 TEST_F(UtilsTest, pangraphFromReadFile){
+    vector<LocalPRG*> prgs;
     // should give exactly the same results, but read the read from a file
 
     // initialize index as we would expect with example prgs
@@ -431,7 +432,7 @@ TEST_F(UtilsTest, pangraphFromReadFile){
     PanGraph *pg;
     pg = new PanGraph();
 
-    pangraph_from_read_file("../test/test_cases/read0.fa", pg, idx, 1, 3, 1, 1);
+    pangraph_from_read_file("../test/test_cases/read0.fa", pg, idx, prgs, 1, 3, 1, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
