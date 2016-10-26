@@ -7,6 +7,7 @@ project(${PROJECT_NAME_STR} C CXX)
 # set up
 #------------------
 find_package(Threads REQUIRED)
+set( CMAKE_VERBOSE_MAKEFILE on )
 
 # make sure that we have support for C++11
 include(CheckCXXCompilerFlag)
@@ -20,8 +21,10 @@ else()
         message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pthread -Wextra -O0 -g")
+
 #if(CMAKE_COMPILER_IS_GNUCXX)
-#    add_definitions(-Wall -pthread --std=c++11 -Wextra)
+#    add_definitions(-Wall -pthread -Wextra -O0 -g)
 #endif()
 
 #if(MSVC)
