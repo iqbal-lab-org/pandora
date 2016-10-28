@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     // current date/time based on current system
     time_t now = time(0);
     // convert now to string form
-    char* dt = ctime(&now);
+    string dt = ctime(&now);
     cout << "START: " << dt << endl;
 
     uint32_t w = 1;//5;
@@ -45,22 +45,42 @@ int main(int argc, char *argv[])
     int max_diff = 1;//500;
     uint32_t cluster_thresh = 1;//4;
 
-    cout << "Building Index from PRG file" << endl;
+    if (argc == 7)
+    {
+        uint32_t w = (unsigned)atoi(argv[4]);
+        uint32_t k = (unsigned)atoi(argv[5]);
+        int max_diff = atoi(argv[6]);
+        uint32_t cluster_thresh = (unsigned)atoi(argv[7]);
+    }
+
+    now = time(0);
+    dt = ctime(&now);
+    string sdt = dt.substr(0,dt.length()-1);
+    cout << sdt << " Building Index from PRG file" << endl;
     Index *idx;
     idx = new Index();
     vector<LocalPRG*> prgs;
     index_prg_file(prgs, argv[1], idx, w, k);
 
-    cout << "Reading Read file" << endl;
+    now = time(0);
+    dt = ctime(&now);
+    sdt = dt.substr(0,dt.length()-1);
+    cout << sdt << " Constructing PanGraph from read file" << endl;
     PanGraph *pangraph;
     pangraph = new PanGraph();
     pangraph_from_read_file(argv[2], pangraph, idx, prgs, w, k, max_diff, cluster_thresh);
-    cout << "Finished building PanGraph from reads" << endl;
 
-    cout << "Writing PanGraph to file" << endl;
+    now = time(0);
+    dt = ctime(&now);
+    sdt = dt.substr(0,dt.length()-1);
+    cout << sdt << " Writing PanGraph to file" << endl;
     string prefix = argv[3];
     pangraph->write_gfa(prefix + "_pangraph.gfa");
-	
+
+    now = time(0);
+    dt = ctime(&now);
+    sdt = dt.substr(0,dt.length()-1);
+    cout << sdt << " Writing LocalGraphs to file" << endl;	
     // for each found localPRG, also write out a gfa 
     // then delete the locaPRG object
     for (uint32_t j=0; j<prgs.size(); ++j)
