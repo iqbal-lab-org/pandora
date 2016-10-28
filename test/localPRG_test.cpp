@@ -331,6 +331,11 @@ TEST_F(LocalPRGTest, getCovgs)
     l1.get_covgs(mh);
     uint32_t j = 3;
     EXPECT_EQ(j, l1.prg.nodes[0]->covg);
+    // add a second identical read
+    mh->add_hit(1, m, r, 0);
+    l1.get_covgs(mh);
+    j = 6;
+    EXPECT_EQ(j, l1.prg.nodes[0]->covg);
 
     delete r;
     d = {Interval(0,1), Interval(4,6)};
@@ -362,6 +367,55 @@ TEST_F(LocalPRGTest, getCovgs)
     EXPECT_EQ(j, l3.prg.nodes[4]->covg);
     EXPECT_EQ(j, l3.prg.nodes[5]->covg);
     EXPECT_EQ(j, l3.prg.nodes[6]->covg);
+    // add same hit again
+    mh->add_hit(1, m, r, 0);
+    l3.get_covgs(mh);
+    j = 2;
+    EXPECT_EQ(j, l3.prg.nodes[0]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[1]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[2]->covg);
+    j = 0;
+    EXPECT_EQ(j, l3.prg.nodes[3]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[4]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[5]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[6]->covg);
+    // add a different hit
+    delete r;
+    d = {Interval(0,1), Interval(4,5), Interval(12,13)};
+    p.initialize(d);
+    r = new MiniRecord(3, p);
+    mh->add_hit(1, m, r, 0);
+    l3.get_covgs(mh);
+    j = 3;
+    EXPECT_EQ(j, l3.prg.nodes[0]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[1]->covg);
+    j = 2;
+    EXPECT_EQ(j, l3.prg.nodes[2]->covg);
+    j = 1;
+    EXPECT_EQ(j, l3.prg.nodes[3]->covg);
+    j = 0;
+    EXPECT_EQ(j, l3.prg.nodes[4]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[5]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[6]->covg);
+    // and a hit crossing the empty string node
+    delete r;
+    d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    r = new MiniRecord(3, p);
+    mh->add_hit(2, m, r, 0);
+    l3.get_covgs(mh);
+    j = 4;
+    EXPECT_EQ(j, l3.prg.nodes[1]->covg);
+    j = 3;
+    EXPECT_EQ(j, l3.prg.nodes[0]->covg);
+    j = 2;
+    EXPECT_EQ(j, l3.prg.nodes[2]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[3]->covg);
+    j = 1;
+    EXPECT_EQ(j, l3.prg.nodes[6]->covg);
+    j = 0;
+    EXPECT_EQ(j, l3.prg.nodes[4]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[5]->covg);
     delete r, m, mh;
 }
 /*TEST_F(LocalPRGTest,unpackLinearString){

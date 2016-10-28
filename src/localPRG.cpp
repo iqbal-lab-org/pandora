@@ -249,6 +249,11 @@ std::ostream& operator<< (std::ostream & out, LocalPRG const& data) {
 
 void LocalPRG::get_covgs(MinimizerHits* minimizer_hits)
 {
+    //first, for each localnode of the localgraph, set covg to 0
+    for (map<uint32_t, LocalNode*>::const_iterator n=prg.nodes.begin(); n!=prg.nodes.end(); ++n)
+    {
+	n->second->covg = 0;
+    }
     // for each hit
     for (set<MinimizerHit*, pComp>::iterator mh = minimizer_hits->hits.begin(); mh != minimizer_hits->hits.end(); ++mh)
     {

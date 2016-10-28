@@ -7,7 +7,7 @@ project(${PROJECT_NAME_STR} C CXX)
 # set up
 #------------------
 find_package(Threads REQUIRED)
-set( CMAKE_VERBOSE_MAKEFILE on )
+#set( CMAKE_VERBOSE_MAKEFILE on )
 
 # make sure that we have support for C++11
 include(CheckCXXCompilerFlag)
