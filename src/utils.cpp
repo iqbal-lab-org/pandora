@@ -148,7 +148,8 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
 
 void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, vector<LocalPRG*>& prgs, uint32_t w, uint32_t k, int max_diff, uint32_t cluster_thresh)
 {
-    string name, read, line;
+    time_t now;
+    string name, read, line, dt, sdt;
     uint32_t id = 0;
     MinimizerHits* mh;
 
@@ -161,9 +162,25 @@ void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, ve
             {
                 if (!name.empty() && !read.empty())
                 {
+    		    now = time(0);
+                    dt = ctime(&now);
+                    sdt = dt.substr(0,dt.length()-1);
+		    cout << sdt << " Found read " << name << endl;
                     mh = new MinimizerHits();
+		    now = time(0);
+                    dt = ctime(&now);
+                    sdt = dt.substr(0,dt.length()-1);
+		    cout << sdt << " Add read hits" << endl;
                     add_read_hits(id, name, read, mh, idx, w, k);
+		    now = time(0);
+                    dt = ctime(&now);
+                    sdt = dt.substr(0,dt.length()-1);
+		    cout << sdt << " Infer gene orders and add to PanGraph" << endl;
 		    infer_localPRG_order_for_read(mh, pangraph, max_diff, cluster_thresh, k);
+		    now = time(0);
+                    dt = ctime(&now);
+                    sdt = dt.substr(0,dt.length()-1);
+		    cout << sdt << " Update coverages within genes" << endl;
 		    update_covgs_from_hits(prgs, mh);
 		    delete mh;
 		    id++;
@@ -183,9 +200,25 @@ void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, ve
         // and last entry
         if (!name.empty() && !read.empty())
         {
+	    now = time(0);
+            dt = ctime(&now);
+            sdt = dt.substr(0,dt.length()-1);
+	    cout << sdt << " Found read " << name << endl;
             mh = new MinimizerHits();
+            now = time(0);
+            dt = ctime(&now);
+            sdt = dt.substr(0,dt.length()-1);
+	    cout << sdt << " Add read hits" << endl;
             add_read_hits(id, name, read, mh, idx, w, k);
+	    now = time(0);
+            dt = ctime(&now);
+            sdt = dt.substr(0,dt.length()-1);
+	    cout << sdt << " Infer gene orders and add to PanGraph" << endl;
             infer_localPRG_order_for_read(mh, pangraph, max_diff, cluster_thresh, k);
+            now = time(0);
+            dt = ctime(&now);
+            sdt = dt.substr(0,dt.length()-1);
+	    cout << sdt << " Update coverages within genes" << endl;
 	    update_covgs_from_hits(prgs, mh);
 	    delete mh;
         }
