@@ -12,11 +12,12 @@
 #include "path.h"
 #include "minihits.h"
 #include "minihit.h"
+#include "inthash.h"
 
 using std::vector;
 using namespace std;
 
-LocalPRG::LocalPRG (uint32_t i, string n, string p): id(i), name(n), seq(p), next_id(0), next_site(5), buff(" ") 
+LocalPRG::LocalPRG (uint32_t i, string n, string p): next_id(0),buff(" "), next_site(5), id(i), name(n), seq(p)
 {
     //cout << seq << endl;
     vector<uint32_t> v;
@@ -196,7 +197,8 @@ void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
     vector<Path> walk_paths;
     Path current_path, kmer_path;
     string kmer;
-    set<string> kmers;
+    uint64_t kh;
+    set<uint64_t> kmers;
     for (map<uint32_t,LocalNode*>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
     {
 	for (uint32_t i=it->second->pos.start; i!=it->second->pos.end; ++i)
@@ -215,10 +217,11 @@ void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
 		    {
                         //cout << "found path" << endl;
 		        kmer = string_along_path(kmer_path);
-		        kmers.insert(kmer);
+                        kh = kmerhash(kmer, k);
+		        kmers.insert(kh);
 		    }
 		}
-		string smallest_word = *kmers.begin();
+		uint64_t smallest_word = *kmers.begin();
                 //cout << "smallest word: " << smallest_word << endl;
 		for (uint32_t j = 0; j != w; j++)
                 {
@@ -229,10 +232,11 @@ void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
 		    {
                     	//cout << "found path" << endl;
                     	kmer = string_along_path(kmer_path);
-		    	if (kmer == smallest_word)
+			kh = kmerhash(kmer, k);
+		    	if (kh == smallest_word)
 		    	{
                             //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
-			    idx->add_record(kmer, id, kmer_path);
+			    idx->add_record(kh, id, kmer_path);
 		    	}
 		    }
                 }

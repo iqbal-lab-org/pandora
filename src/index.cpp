@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cassert>
-#include <cstring>
+//#include <cstring>
 #include <map>
 #include <vector>
 #include "minirecord.h"
@@ -19,18 +19,18 @@ Index::~Index() {
     }*/
 };
 
-void Index::add_record(string kmer, uint32_t prg_id, Path path)
+void Index::add_record(uint64_t kmer, uint32_t prg_id, Path path)
 {
     //cout << "Add kmer " << kmer << " id, path " << prg_id << ", " << path << endl;
-    assert(kmer.length()==path.length);
+    //assert(kmer.length()==path.length);
     vector<MiniRecord> newv;
-    map<string, vector<MiniRecord>>::iterator it=minhash.find(kmer);
+    map<uint64_t, vector<MiniRecord>>::iterator it=minhash.find(kmer);
     if(it==minhash.end())
     {
         newv.clear();
         MiniRecord mr(prg_id, path);
         newv.push_back(mr);
-        minhash.insert(pair<string, vector<MiniRecord>>(kmer,newv));
+        minhash.insert(pair<uint64_t, vector<MiniRecord>>(kmer,newv));
         //cout << "New minhash size: " << minhash.size() << endl; 
     } else {
 	MiniRecord mr(prg_id, path);	

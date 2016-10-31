@@ -8,6 +8,7 @@
 #include "localgraph.h"
 #include "localnode.h"
 #include "index.h"
+#include "inthash.h"
 #include <stdint.h>
 #include <iostream>
 
@@ -303,11 +304,11 @@ TEST_F(LocalPRGTest, minimizerSketch){
     j = 4;
     EXPECT_EQ(j, idx->minhash.size());
     j = 2;
-    EXPECT_EQ(j, idx->minhash["AGT"].size());
+    EXPECT_EQ(j, idx->minhash[kmerhash("AGT",3)].size());
     j = 1;
-    EXPECT_EQ(j, idx->minhash["AGC"].size());
-    EXPECT_EQ(j, idx->minhash["GCT"].size());
-    EXPECT_EQ(j, idx->minhash["GTT"].size());
+    EXPECT_EQ(j, idx->minhash[kmerhash("AGC",3)].size());
+    EXPECT_EQ(j, idx->minhash[kmerhash("GCT",3)].size());
+    EXPECT_EQ(j, idx->minhash[kmerhash("GTT",3)].size());
     
     delete idx;
 }
@@ -321,7 +322,7 @@ TEST_F(LocalPRGTest, getCovgs)
     MinimizerHits* mh;
     mh = new MinimizerHits();
     Minimizer* m;
-    m = new Minimizer("AGC",0,3);
+    m = new Minimizer(kmerhash("AGC",3),0,3);
     MiniRecord* r;
     Path p;
     deque<Interval> d = {Interval(0,3)};
@@ -416,8 +417,11 @@ TEST_F(LocalPRGTest, getCovgs)
     j = 0;
     EXPECT_EQ(j, l3.prg.nodes[4]->covg);
     EXPECT_EQ(j, l3.prg.nodes[5]->covg);
-    delete r, m, mh;
+    delete r;
+    delete m;
+    delete mh;
 }
+
 /*TEST_F(LocalPRGTest,unpackLinearString){
     Seq s1 = Seq(0,"0", "AGCTAATGCGTT", 11, 3);
     Seq s2 = Seq(0,"0", "AGCTAATGCGTT", 10, 3);

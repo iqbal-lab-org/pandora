@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <stdint.h>
+#include "inthash.h"
 #include "minimizer.h"
 #include "seq.h"
 #include "utils.h"
@@ -34,22 +36,26 @@ void Seq::minimizer_sketch (uint32_t w, uint32_t k)
     for(uint32_t wpos=0; wpos <= seq.length()-w-k+1 ; ++wpos)
     {
 	// find the lex smallest kmer in the window
-	set<string> kmers;
+	//set<string> kmers;
+	set<uint64_t> kmers;
 	string kmer;
+	uint64_t kh;
 
 	for (uint32_t i = 0; i < w; i++)
 	{
 	    kmer = seq.substr(wpos+i, k);
-	    kmers.insert(kmer);
+	    kh = kmerhash(kmer, k);
+	    kmers.insert(kh);
 	}
-	string smallest_word = *kmers.begin();
+	uint64_t smallest_word = *kmers.begin();
 	for (uint32_t i = 0; i < w; i++)
 	{
 	    kmer = seq.substr(wpos+i, k);
-	    if (kmer == smallest_word)
+	    kh = kmerhash(kmer, k);
+	    if (kh == smallest_word)
             {
             	Minimizer *m;
-		m = new Minimizer(kmer, wpos+i, wpos+i+k);
+		m = new Minimizer(kh, wpos+i, wpos+i+k);
  		pointer_values_equal<Minimizer> eq = { m };
                 if ( find_if(sketch.begin(), sketch.end(), eq) == sketch.end() )
 		{

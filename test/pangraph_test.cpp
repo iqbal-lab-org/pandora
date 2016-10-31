@@ -86,7 +86,8 @@ TEST_F(PanGraphTest, addEdge)
 
     // expect failure if a node doesn't exist in the graph
     EXPECT_DEATH(pg.add_edge(0,4),"");
-    delete pn1, pn2;
+    delete pn1;
+    delete pn2;
 }
 
 TEST_F(PanGraphTest, equals)

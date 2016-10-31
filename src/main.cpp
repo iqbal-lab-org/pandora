@@ -47,10 +47,10 @@ int main(int argc, char *argv[])
 
     if (argc == 7)
     {
-        uint32_t w = (unsigned)atoi(argv[4]);
-        uint32_t k = (unsigned)atoi(argv[5]);
-        int max_diff = atoi(argv[6]);
-        uint32_t cluster_thresh = (unsigned)atoi(argv[7]);
+        w = (unsigned)atoi(argv[4]);
+        k = (unsigned)atoi(argv[5]);
+        max_diff = atoi(argv[6]);
+        cluster_thresh = (unsigned)atoi(argv[7]);
     }
 
     now = time(0);
@@ -88,7 +88,8 @@ int main(int argc, char *argv[])
 	prgs[j]->prg.write_gfa(prefix + "_" + prgs[j]->name + ".gfa");
 	delete prgs[j];
     }
-    delete idx, pangraph;
+    delete idx;
+    delete pangraph;
 
     // current date/time based on current system
     now = time(0);

@@ -4,17 +4,18 @@
 #include <string>
 #include <functional>
 #include <ostream>
+#include <stdint.h>
 #include "interval.h"
 
 using namespace std;
 
 struct Minimizer
 {
-    string kmer;
+    uint64_t kmer;
     Interval pos;
     bool operator < ( const Minimizer& y) const;
     bool operator == (const Minimizer& y) const;
-    Minimizer(string, uint32_t, uint32_t);
+    Minimizer(uint64_t, uint32_t, uint32_t);
     ~Minimizer();
     friend ostream& operator<< (ostream& out, const Minimizer& m); 
 };

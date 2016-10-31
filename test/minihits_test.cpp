@@ -5,6 +5,7 @@
 #include "minirecord.h"
 #include "interval.h"
 #include "path.h"
+#include "inthash.h"
 #include <stdint.h>
 #include <iostream>
 
@@ -24,7 +25,8 @@ class MinimizerHitsTest : public ::testing::Test {
 TEST_F(MinimizerHitsTest,addHit){
     MinimizerHits mhits;
     Minimizer* m;
-    m = new Minimizer("hello", 1,6);
+    uint64_t kh = kmerhash("ACGTA", 5);
+    m = new Minimizer(kh, 1,6);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
@@ -35,7 +37,7 @@ TEST_F(MinimizerHitsTest,addHit){
     mhits.add_hit(2, m, mr, 0);
 
     delete m;
-    m = new Minimizer("hello", 0,5);
+    m = new Minimizer(kh, 0,5);
     mhits.add_hit(1, m, mr, 0);
 
     d = {Interval(6,10), Interval(11, 12)};
@@ -53,7 +55,8 @@ TEST_F(MinimizerHitsTest,addHit){
     uint32_t j(5);
     EXPECT_EQ(j, mhits.hits.size());
 
-    delete m, mr;
+    delete m;
+    delete mr;
 }
 
 TEST_F(MinimizerHitsTest, pCompCheck) {
@@ -61,7 +64,8 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
     vector<MinimizerHit> expected;
 
     Minimizer* m;
-    m = new Minimizer("hello", 1,6);
+    uint64_t kh = kmerhash("ACGTA", 5);
+    m = new Minimizer(kh, 1,6);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
@@ -73,7 +77,7 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
     expected.push_back(MinimizerHit(0, m, mr, 0));
 
     delete m;
-    m = new Minimizer("hello", 0,5);
+    m = new Minimizer(kh, 0,5);
     mhits.add_hit(1, m, mr, 0);
     expected.push_back(MinimizerHit(1, m, mr, 0));
 
@@ -99,7 +103,8 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
     }
     EXPECT_EQ(expected[0], **(--mhits.hits.end()));
 
-    delete m, mr;
+    delete m;
+    delete mr;
 }
 
 TEST_F(MinimizerHitsTest, clusterCompCheck){
@@ -110,7 +115,8 @@ TEST_F(MinimizerHitsTest, clusterCompCheck){
     vector<MinimizerHit*> expected1, expected2;
 
     Minimizer* m;
-    m = new Minimizer("hello", 1,6);
+    uint64_t kh = kmerhash("ACGTA", 5);
+    m = new Minimizer(kh, 1,6);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
@@ -128,7 +134,7 @@ TEST_F(MinimizerHitsTest, clusterCompCheck){
 
     current_cluster.clear();
     delete m;
-    m = new Minimizer("hello", 0,5);
+    m = new Minimizer(kh, 0,5);
     mh = new MinimizerHit(1, m, mr, 0);
     current_cluster.insert(mh);
     expected2.push_back(mh);
@@ -173,5 +179,6 @@ TEST_F(MinimizerHitsTest, clusterCompCheck){
     {
         delete expected2[k];
     }
-    delete m, mr;
+    delete m;
+    delete mr;
 }

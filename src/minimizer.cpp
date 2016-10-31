@@ -2,16 +2,19 @@
 #include <cstring>
 #include <functional>
 #include <cassert>
+#include <cmath>
+#include <stdint.h>
 #include "minimizer.h"
 #include "path.h"
 #include "interval.h"
 
 using namespace std;
 
-Minimizer::Minimizer(string s, uint32_t a, uint32_t b): kmer(s)
+Minimizer::Minimizer(uint64_t s, uint32_t a, uint32_t b): kmer(s)
 {
     pos = Interval(a,b);
-    assert(kmer.length()==pos.length);
+    assert(s<=pow(4,pos.length)); // used to check kmer length same as interval length. 
+					  // Can't any more but at least know if s is too big for a kmer of interval size to have generated it.
 }
 
 Minimizer::~Minimizer()

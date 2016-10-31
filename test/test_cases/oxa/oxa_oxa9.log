@@ -1,0 +1,6 @@
+START: Fri Oct 28 12:00:31 2016
+
+Fri Oct 28 12:00:31 2016
+ Building Index from PRG file
+In conversion from linear localPRG string to graph, splitting the string by the next var site resulted in the wrong number of intervals. Perhaps ordering of numbers in GFA is irregular?!
+Size of partition based on site 395 is 3

@@ -3,6 +3,7 @@
 #include "path.h"
 #include "index.h"
 #include "interval.h"
+#include "inthash.h"
 #include <vector>
 #include <stdint.h>
 #include <iostream>
@@ -25,24 +26,25 @@ TEST_F(IndexTest,addRecord){
     deque<Interval> d = {Interval(3,5), Interval(9,12)};
     Path p;
     p.initialize(d);
-    idx.add_record("hello", 1, p);
+    uint64_t kh = kmerhash("ACGTA",5);
+    idx.add_record(kh, 1, p);
     uint32_t j=1;
     EXPECT_EQ(j, idx.minhash.size());
 
     // add again - should stay same size
-    idx.add_record("hello", 1, p);
+    idx.add_record(kh, 1, p);
     EXPECT_EQ(j, idx.minhash.size());
-    EXPECT_EQ(j, idx.minhash["hello"].size());
+    EXPECT_EQ(j, idx.minhash[kh].size());
 
     // add a new record with different key
-    idx.add_record("henno", 2, p);
+    idx.add_record(kmerhash("ACTGA",5), 2, p);
     j=2;
     EXPECT_EQ(j, idx.minhash.size());
 
     // and a new record which is different but has same key
-    idx.add_record("hello", 4, p);
+    idx.add_record(kh, 4, p);
     EXPECT_EQ(j, idx.minhash.size());
-    EXPECT_EQ(j, idx.minhash["hello"].size());
+    EXPECT_EQ(j, idx.minhash[kh].size());
 }
 
 TEST_F(IndexTest, clear){
@@ -50,9 +52,9 @@ TEST_F(IndexTest, clear){
     deque<Interval> d = {Interval(3,5), Interval(9,12)};
     Path p;
     p.initialize(d);
-    idx.add_record("hello", 1, p);
-    idx.add_record("henno", 2, p);
-    idx.add_record("hello", 4, p);
+    idx.add_record(kmerhash("ACGTA",5), 1, p);
+    idx.add_record(kmerhash("ACTGA",5), 2, p);
+    idx.add_record(kmerhash("ACGTA",5), 4, p);
     idx.clear();
     uint32_t j = 0;
     EXPECT_EQ(j, idx.minhash.size());

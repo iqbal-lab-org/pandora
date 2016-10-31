@@ -4,6 +4,7 @@
 #include "minirecord.h"
 #include "interval.h"
 #include "path.h"
+#include "inthash.h"
 #include <stdint.h>
 #include <iostream>
 
@@ -22,7 +23,8 @@ class MinimizerHitTest : public ::testing::Test {
 
 TEST_F(MinimizerHitTest,create){
     Minimizer* m;
-    m = new Minimizer("hello", 0,5);
+    uint64_t kh = kmerhash("ACGTA", 5);
+    m = new Minimizer(kh, 0,5);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
@@ -37,7 +39,8 @@ TEST_F(MinimizerHitTest,create){
     EXPECT_EQ(p, mh.prg_path);
     EXPECT_EQ(j, mh.strand);
 
-    m = new Minimizer("hell",1,5);
+    kh = kmerhash("hell", 4);
+    m = new Minimizer(kh,1,5);
     EXPECT_DEATH(MinimizerHit(1, m, mr, 0), "");
 
     delete m;
@@ -47,7 +50,8 @@ TEST_F(MinimizerHitTest,create){
 
 TEST_F(MinimizerHitTest,equals){
     Minimizer* m;
-    m = new Minimizer("hello", 0,5);
+    uint64_t kh = kmerhash("ACGTA", 5);
+    m = new Minimizer(kh, 0,5);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
@@ -56,7 +60,7 @@ TEST_F(MinimizerHitTest,equals){
     MinimizerHit mh1(1, m, mr, 0);
 
     delete m;
-    m = new Minimizer("hello", 0,5);
+    m = new Minimizer(kh, 0,5);
     d = {Interval(7,9), Interval(11, 14)};
     p.initialize(d);
     delete mr;
@@ -66,14 +70,16 @@ TEST_F(MinimizerHitTest,equals){
     EXPECT_EQ(mh1, mh1);
     EXPECT_EQ(mh2, mh2);
     EXPECT_EQ((mh1==mh2), false);
-    delete m, mr;
+    delete m;
+    delete mr;
 }
 
 TEST_F(MinimizerHitTest,compare){
     set<MinimizerHit> hits;
 
     Minimizer* m;
-    m = new Minimizer("hello", 1,6);
+    uint64_t kh = kmerhash("ACGTA", 5);
+    m = new Minimizer(kh, 1,6);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
@@ -84,7 +90,7 @@ TEST_F(MinimizerHitTest,compare){
     MinimizerHit mh2(0, m, mr, 0);
 
     delete m;
-    m = new Minimizer("hello", 0,5);
+    m = new Minimizer(kh, 0,5);
     MinimizerHit mh3(1, m, mr, 0);
 
     d = {Interval(6,10), Interval(11, 12)};
@@ -119,6 +125,7 @@ TEST_F(MinimizerHitTest,compare){
         j++;
     }
     EXPECT_EQ(expected[0], *(--hits.end()));
-    delete m, mr;
+    delete m;
+    delete mr;
 }
 
