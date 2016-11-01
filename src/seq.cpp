@@ -39,22 +39,24 @@ void Seq::minimizer_sketch (uint32_t w, uint32_t k)
     {
 	// find the lex smallest kmer in the window
 	//set<string> kmers;
-	set<uint64_t> kmers;
+	//set<uint64_t> kmers;
 	string kmer;
 	uint64_t kh;
+	uint64_t smallest = std::numeric_limits<uint64_t>::max();
 
 	for (uint32_t i = 0; i < w; i++)
 	{
 	    kmer = seq.substr(wpos+i, k);
 	    kh = kmerhash(kmer, k);
-	    kmers.insert(kh);
+	    //kmers.insert(kh);
+	    smallest = min(smallest, kh);
 	}
-	uint64_t smallest_word = *kmers.begin();
+	//uint64_t smallest_word = *kmers.begin();
 	for (uint32_t i = 0; i < w; i++)
 	{
 	    kmer = seq.substr(wpos+i, k);
 	    kh = kmerhash(kmer, k);
-	    if (kh == smallest_word)
+	    if (kh == smallest)
             {
             	Minimizer *m;
 		m = new Minimizer(kh, wpos+i, wpos+i+k);
