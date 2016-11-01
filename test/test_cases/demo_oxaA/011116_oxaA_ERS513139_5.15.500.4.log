@@ -1,0 +1,17 @@
+WARNING: Kernel address maps (/proc/{kallsyms,modules}) are restricted,
+check /proc/sys/kernel/kptr_restrict.
+
+Samples in kernel functions may not be resolved if a suitable vmlinux
+file is not found in the buildid cache or in the vmlinux path.
+
+Samples in kernel modules won't be resolved at all.
+
+If some relocation was applied (e.g. kexec) symbols may be misresolved
+even with a suitable vmlinux or kallsyms file.
+
+START: Tue Nov  1 11:07:42 2016
+
+Tue Nov  1 11:07:42 2016 Building Index from PRG file
+Tue Nov  1 11:07:42 2016 Constructing PanGraph from read file
+Tue Nov  1 11:07:42 2016 Found read chromosome
+Tue Nov  1 11:07:42 2016 Add read hits

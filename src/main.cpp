@@ -73,18 +73,19 @@ int main(int argc, char *argv[])
     now = time(0);
     dt = ctime(&now);
     sdt = dt.substr(0,dt.length()-1);
-    cout << sdt << " Writing PanGraph to file" << endl;
-    string prefix = argv[3];
+    string prefix = argv[3];        
+    cout << sdt << " Writing PanGraph to file " << prefix << "_pangraph.gfa" << endl;
     pangraph->write_gfa(prefix + "_pangraph.gfa");
 
     now = time(0);
     dt = ctime(&now);
     sdt = dt.substr(0,dt.length()-1);
-    cout << sdt << " Writing LocalGraphs to file" << endl;	
+    cout << sdt << " Writing LocalGraphs to files:" << endl;	
     // for each found localPRG, also write out a gfa 
     // then delete the locaPRG object
     for (uint32_t j=0; j<prgs.size(); ++j)
     {
+        cout << "\t\t" << prefix << "_" << prgs[j]->name << ".gfa" << endl;
 	prgs[j]->prg.write_gfa(prefix + "_" + prgs[j]->name + ".gfa");
 	delete prgs[j];
     }
