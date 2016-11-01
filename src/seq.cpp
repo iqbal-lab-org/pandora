@@ -61,14 +61,7 @@ void Seq::minimizer_sketch (uint32_t w, uint32_t k)
 	        if (kh == smallest)
                 {
 		    m = new Minimizer(kh, wpos+i, wpos+i+k);
- 		    pointer_values_equal<Minimizer> eq = { m };
-                    if ( find_if(v.begin(), v.end(), eq) == v.end() )
-		    {
-			//cout << "Added minimizer " << *m << endl;
-		    	v.push_front(m);
-		    } else {
-		        delete m;
-		    }
+		    v.push_front(m);
 	        }
 	    }
         } else {
