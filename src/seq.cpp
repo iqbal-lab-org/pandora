@@ -79,6 +79,7 @@ void Seq::minimizer_sketch (uint32_t w, uint32_t k)
 	}
     }
     
+    //cout << "Sketch size " << sketch.size() << " for read " << name << endl;
     return;
 }
 

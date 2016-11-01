@@ -58,7 +58,7 @@ set<string> generate_kmers(vector<string> v, uint32_t k)
 }
 
 TEST_F(InthashTest,check1to1){
-    vector<uint32_t> ks = {3};//,5};
+    vector<uint32_t> ks = {3,5};
     for (vector<uint32_t>::iterator jt = ks.begin(); jt != ks.end(); ++jt)
     {
         uint32_t k = *jt;

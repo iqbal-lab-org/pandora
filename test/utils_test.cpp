@@ -357,6 +357,17 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
 
 TEST_F(UtilsTest, pangraphFromReadFile){
     vector<LocalPRG*> prgs;
+    LocalPRG *lp0, *lp1, *lp2, *lp3, *lp4;
+    lp0 = new LocalPRG(0,"0","");
+    prgs.push_back(lp0);
+    lp1 = new LocalPRG(1,"1","");
+    prgs.push_back(lp1);
+    lp2 = new LocalPRG(2,"2","");
+    prgs.push_back(lp2);
+    lp3 = new LocalPRG(3,"3", "");
+    prgs.push_back(lp3);
+    lp4 = new LocalPRG(4,"4", "");
+    prgs.push_back(lp3);
     // should give exactly the same results, but read the read from a file
 
     // initialize index as we would expect with example prgs
@@ -456,4 +467,9 @@ TEST_F(UtilsTest, pangraphFromReadFile){
     EXPECT_EQ(pg_exp, *pg);
     delete idx;
     delete pg;
+    delete lp0;
+    delete lp1;
+    delete lp2;
+    delete lp3;
+    delete lp4;
 }

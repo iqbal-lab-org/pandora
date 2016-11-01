@@ -33,6 +33,7 @@ class LocalPRG {
     vector<uint32_t> build_graph(Interval, vector<uint32_t>);
     void minimizer_sketch (Index* idx, uint32_t w, uint32_t k);
     void get_covgs(MinimizerHits* minimizer_hits);
+    void update_covg_with_hit(MinimizerHit* mh);
   friend ostream& operator<< (ostream& out, const LocalPRG& data);  
 };
 

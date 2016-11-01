@@ -45,7 +45,8 @@ int main(int argc, char *argv[])
     int max_diff = 1;//500;
     uint32_t cluster_thresh = 1;//4;
 
-    if (argc == 7)
+    //cout << argc << endl;
+    if (argc == 8)
     {
         w = (unsigned)atoi(argv[4]);
         k = (unsigned)atoi(argv[5]);
@@ -82,7 +83,7 @@ int main(int argc, char *argv[])
     sdt = dt.substr(0,dt.length()-1);
     cout << sdt << " Writing LocalGraphs to files:" << endl;	
     // for each found localPRG, also write out a gfa 
-    // then delete the locaPRG object
+    // then delete the localPRG object
     for (uint32_t j=0; j<prgs.size(); ++j)
     {
         cout << "\t\t" << prefix << "_" << prgs[j]->name << ".gfa" << endl;

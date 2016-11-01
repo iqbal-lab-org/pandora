@@ -1,4 +1,6 @@
 #include <iostream>
+#include <algorithm>
+#include <stdint.h>
 #include <string>
 #include <vector>
 #include <set>
@@ -197,8 +199,7 @@ void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
     vector<Path> walk_paths;
     Path current_path, kmer_path;
     string kmer;
-    uint64_t kh;
-    set<uint64_t> kmers;
+    uint64_t kh, smallest = std::numeric_limits<uint64_t>::max();;
     for (map<uint32_t,LocalNode*>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
     {
 	for (uint32_t i=it->second->pos.start; i!=it->second->pos.end; ++i)
@@ -209,6 +210,7 @@ void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
 	    {
 		//cout << "Minimize path: " << *it2 << endl;
 		// find minimizer for this path	
+		smallest = std::numeric_limits<uint64_t>::max();
 		for (uint32_t j = 0; j != w; j++)
 		{
 		    //cout << "i+j" << i+j << endl;
@@ -218,10 +220,9 @@ void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
                         //cout << "found path" << endl;
 		        kmer = string_along_path(kmer_path);
                         kh = kmerhash(kmer, k);
-		        kmers.insert(kh);
+		        smallest = min(smallest, kh);
 		    }
 		}
-		uint64_t smallest_word = *kmers.begin();
                 //cout << "smallest word: " << smallest_word << endl;
 		for (uint32_t j = 0; j != w; j++)
                 {
@@ -233,14 +234,13 @@ void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
                     	//cout << "found path" << endl;
                     	kmer = string_along_path(kmer_path);
 			kh = kmerhash(kmer, k);
-		    	if (kh == smallest_word)
+		    	if (kh == smallest)
 		    	{
                             //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
 			    idx->add_record(kh, id, kmer_path);
 		    	}
 		    }
                 }
-		kmers.clear();
 	    }
 	}
     }
@@ -280,4 +280,21 @@ void LocalPRG::get_covgs(MinimizerHits* minimizer_hits)
         }
     }
     return;
+}
+
+void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
+{
+    // then for each interval of the hit
+    for (deque<Interval>::const_iterator it=mh->prg_path.path.begin(); it!=mh->prg_path.path.end(); ++it)
+    {
+        // update the covg on the appropriate node of the prg
+        for (map<uint32_t, LocalNode*>::const_iterator n=prg.nodes.begin(); n!=prg.nodes.end(); ++n)
+        {
+            if (it->end > n->second->pos.start and it->start < n->second->pos.end)
+            {
+                n->second->covg += min(it->end, n->second->pos.end) - max(it->start, n->second->pos.start);
+            } else if (it->end < n->second->pos.start)
+            { break;} // because the local nodes are labelled in order of occurance in the linear prg string, we don't need to search after this
+        }
+    }
 }

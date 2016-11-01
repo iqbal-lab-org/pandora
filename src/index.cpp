@@ -38,7 +38,7 @@ void Index::add_record(uint64_t kmer, uint32_t prg_id, Path path)
 	{
             it->second.push_back(mr);
 	}
-        //cout << "New minhash[" << kmer << "] size: " << minhash[kmer].size() << endl;
+        //cout << "New minhash entry for  kmer " << kmer << endl;
     }
 }
 
