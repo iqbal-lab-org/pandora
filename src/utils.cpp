@@ -22,14 +22,14 @@ void index_prg_file(vector<LocalPRG*>& prgs, string filepath, Index* idx, uint32
     ifstream myfile (filepath);
     if (myfile.is_open())
     {
-	cout << "Opened prg file: " << filepath << endl;
+	//cout << "Opened prg file: " << filepath << endl;
         uint i = 0;
         while ( getline (myfile,line).good() )
         {
-	    cout << "reading line " << i << endl;
+	    //cout << "reading line " << i << endl;
             if (line.empty() || line[0] == '>' )
             {
-		cout << "line empty or starts with >" << endl;
+		//cout << "line empty or starts with >" << endl;
                 if (!name.empty() && !read.empty())
                 {
 		    now = time(0);
@@ -50,13 +50,13 @@ void index_prg_file(vector<LocalPRG*>& prgs, string filepath, Index* idx, uint32
                 if (!line.empty())
                 {
                     name = line.substr(1);
-		    cout << "new name " << name << endl;
+		    //cout << "new name " << name << endl;
                 }
             }
             else
             {
                 read += line;
-		cout << "read starts " << read.substr(0,3) << endl; 
+		//cout << "read starts " << read.substr(0,3) << endl; 
             }
 	    i++;
         }
@@ -177,7 +177,7 @@ void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, ve
     ifstream myfile (filepath);
     if (myfile.is_open())
     {
-	cout << "Opened read file: " << filepath << endl;
+	//cout << "Opened read file: " << filepath << endl;
         while ( getline (myfile,line).good() )
         {
             if (line.empty() || line[0] == '>' )

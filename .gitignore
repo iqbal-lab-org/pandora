@@ -1,6 +1,7 @@
 # Ignore the build and lib dirs
 build
 lib/*
+tmp
 
 # Ignore any executables
 bin/*
@@ -37,3 +38,6 @@ bin/*
 *.exe
 *.out
 *.app
+
+# Logs
+*.log
