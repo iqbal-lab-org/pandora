@@ -14,20 +14,28 @@
 
 void index_prg_file(vector<LocalPRG*>& prgs, string filepath, Index* idx, uint32_t w, uint32_t k)
 {
+    time_t now;
     uint32_t id = 0;
-    string name, read, line;
+    string name, read, line, dt, sdt;
     LocalPRG *s;
 
     ifstream myfile (filepath);
     if (myfile.is_open())
     {
+	cout << "Opened prg file: " << filepath << endl;
+        uint i = 0;
         while ( getline (myfile,line).good() )
         {
+	    cout << "reading line " << i << endl;
             if (line.empty() || line[0] == '>' )
             {
+		cout << "line empty or starts with >" << endl;
                 if (!name.empty() && !read.empty())
                 {
-                    //cout << name << ": " << read << endl;
+		    now = time(0);
+                    dt = ctime(&now);
+                    sdt = dt.substr(0,dt.length()-1);
+                    cout << sdt << " Found PRG " << name << endl;
                     s = new LocalPRG(id, name, read);
 		    s->minimizer_sketch(idx, w, k);
                     
@@ -42,24 +50,33 @@ void index_prg_file(vector<LocalPRG*>& prgs, string filepath, Index* idx, uint32
                 if (!line.empty())
                 {
                     name = line.substr(1);
+		    cout << "new name " << name << endl;
                 }
             }
             else
             {
                 read += line;
+		cout << "read starts " << read.substr(0,3) << endl; 
             }
+	    i++;
         }
         // and last entry
         if (!name.empty() && !read.empty())
         {
-            //cout << name << ": " << read << endl;
+            now = time(0);
+            dt = ctime(&now);
+            sdt = dt.substr(0,dt.length()-1);
+            cout << sdt << " Found PRG " << name << endl;
             s = new LocalPRG(id, name, read);
             s->minimizer_sketch(idx, w, k);
             if (s!=nullptr)
                 {prgs.push_back(s);}
         }
-        //cout << "Number of LocalPRGs added to Index: " << prgs.size() << endl;
-	//cout << "Number of keys in Index: " << idx->minhash.size() << endl;
+        now = time(0);
+        dt = ctime(&now);
+        sdt = dt.substr(0,dt.length()-1);
+        cout << sdt <<  " Number of LocalPRGs added to Index: " << prgs.size() << endl;
+	cout << sdt << " Number of keys in Index: " << idx->minhash.size() << endl;
         myfile.close();
     } else {
         cerr << "Unable to open PRG file " << filepath << endl;
@@ -70,6 +87,8 @@ void index_prg_file(vector<LocalPRG*>& prgs, string filepath, Index* idx, uint32
 
 void add_read_hits(uint32_t id, string name, string seq, MinimizerHits* hits, Index* idx, uint32_t w, uint32_t k)
 {
+    time_t now;
+    string dt, sdt;
     // creates Seq object for the read, then looks up minimizers in the Seq sketch and adds hits to a global MinimizerHits object
     Seq s(id, name, seq, w, k);
     for(set<Minimizer*, pMiniComp>::iterator it = s.sketch.begin(); it != s.sketch.end(); ++it)
@@ -84,7 +103,10 @@ void add_read_hits(uint32_t id, string name, string seq, MinimizerHits* hits, In
             }
         }
     }
-    cout << "Found " << hits->hits.size() << " hits found for read " << name << endl;
+    now = time(0);
+    dt = ctime(&now);
+    sdt = dt.substr(0,dt.length()-1);
+    cout << sdt << " Found " << hits->hits.size() << " hits found for read " << name << endl;
     return;
 }
 
@@ -155,6 +177,7 @@ void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, ve
     ifstream myfile (filepath);
     if (myfile.is_open())
     {
+	cout << "Opened read file: " << filepath << endl;
         while ( getline (myfile,line).good() )
         {
             if (line.empty() || line[0] == '>' )

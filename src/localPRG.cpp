@@ -47,6 +47,7 @@ bool LocalPRG::isalpha_string ( string s )
     for(uint32_t j=0; j<s.length(); ++j)
         if(isalpha (s[j]) == 0)
         {
+	    //cout << "Found non-alpha char: " << s[j] << endl;
             return 0; //False
         }
     return 1; //True
