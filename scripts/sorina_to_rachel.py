@@ -9,7 +9,7 @@ print output_file
 fasta_sequences = SeqIO.parse(open(input_file,'r'),'fasta')
 with open(output_file, 'w') as out_file:
     for fasta in fasta_sequences:
-        name, sequence = fasta.id, str(fasta.seq)
+        name, description, sequence = fasta.id, fasta.description, str(fasta.seq)
 	new_sequence = ""
 	num = ""
 	for letter in sequence:
@@ -20,4 +20,4 @@ with open(output_file, 'w') as out_file:
 		num = ""
 	    else:
 		new_sequence += letter
-        out_file.write(">%s\n%s\n" %(name, new_sequence))
+        out_file.write(">%s\t%s\n%s\n" %(name, description, new_sequence))

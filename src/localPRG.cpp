@@ -26,7 +26,9 @@ LocalPRG::LocalPRG (uint32_t i, string n, string p): next_id(0),buff(" "), next_
     // avoid error if a prg contains only empty space as it's sequence
     if(seq.find_first_not_of("\t\n\v\f\r") != std::string::npos)
     {
+	cout << "build PRG graph ...";
         vector<uint32_t> b = build_graph(Interval(0,seq.size()), v);
+	cout << " done! Found " << prg.nodes.size() << " nodes" << endl;
         //minimizer_sketch (idx, w, k);
     } else {
 	prg.add_node(0, "", Interval(0,0));
@@ -196,14 +198,67 @@ vector<uint32_t> LocalPRG::build_graph(Interval i, vector<uint32_t> from_ids)
 
 void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
 {
-    //cout << "START SKETCH FUNCTION" << endl;
+    cout << "START SKETCH FUNCTION" << endl;
     vector<Path> walk_paths;
-    Path current_path, kmer_path;
+    deque<Interval> d;
+    Path current_path, kmer_path, prev_path;
     string kmer;
-    uint64_t kh, smallest = std::numeric_limits<uint64_t>::max();;
+    uint64_t kh, smallest = std::numeric_limits<uint64_t>::max();
+
     for (map<uint32_t,LocalNode*>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
     {
-	for (uint32_t i=it->second->pos.start; i!=it->second->pos.end; ++i)
+	cout << "Processing node" << it->second->id << endl;
+	// if node has long seq, there will be no branching until  reach len-(w+k-1)th position
+	for (uint32_t i=it->second->pos.start; i!=max(it->second->pos.start+w+k, it->second->pos.end+1)-w-k; ++i)
+	{
+	    //cout << "Node has been deemed long enough and " << it->second->pos.start << " <= " << i << " <= " << it->second->pos.end - w - k + 1 << endl; 
+	    assert(i < it->second->pos.end - w - k + 1);
+      	    assert(i >= it->second->pos.start);
+            // if window pos is first for node or the previous minimizer starts outside current window, calculate new mini from scratch
+            if((i == it->second->pos.start) or (prev_path.start < i))
+            {
+                smallest = std::numeric_limits<uint64_t>::max();
+                // find the lex smallest kmer in the window
+                for (uint32_t j = 0; j < w; j++)
+                {
+		    d = {Interval(i+j, i+j+k)};
+		    kmer_path.initialize(d);
+                    kmer = string_along_path(kmer_path);
+                    kh = kmerhash(kmer, k);
+                    smallest = min(smallest, kh);
+                }
+                for (uint32_t j = 0; j < w; j++)
+                {
+		    d = {Interval(i+j, i+j+k)};
+                    kmer_path.initialize(d);
+                    kmer = string_along_path(kmer_path);
+                    kh = kmerhash(kmer, k);
+                    if (kh == smallest)
+                    {
+			//cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                        idx->add_record(kh, id, kmer_path);
+                        prev_path = kmer_path;
+                    }
+                }
+            } else {
+            // otherwise only need to do something if the kmer from the newest position at end of new window is smaller or equal to the previous smallest
+		d = {Interval(i+w-1, i+w-1+k)};
+                kmer_path.initialize(d);
+                kmer = string_along_path(kmer_path);
+                kh = kmerhash(kmer, k);
+                //cout << "Last kh for wpos: " << kh << " compared to previous smallest: " << smallest << endl;
+                if(kh <= smallest)
+                {
+		    //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                    idx->add_record(kh, id, kmer_path);
+                    prev_path = kmer_path;
+                }
+                smallest = min(smallest, kh);
+            }
+        }
+
+	
+	for (uint32_t i=max(it->second->pos.start+w+k, it->second->pos.end+1)-w-k; i!=it->second->pos.end; ++i)
 	{
 	    walk_paths = prg.walk(it->second->id, i, w+k-1);
             //cout << "for id, i: " << it->second->id << ", " << i << " found " << walk_paths.size() << " paths" << endl;
