@@ -182,7 +182,7 @@ void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, ve
         {
             if (line.empty() || line[0] == '>' )
             {
-                if (!name.empty() && !read.empty())
+                if (!read.empty()) // ok we'll allow reads with no name, removed
                 {
     		    now = time(0);
                     dt = ctime(&now);
@@ -220,7 +220,7 @@ void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, ve
             }
         }
         // and last entry
-        if (!name.empty() && !read.empty())
+        if (!read.empty()) // allow reads with no name
         {
 	    now = time(0);
             dt = ctime(&now);

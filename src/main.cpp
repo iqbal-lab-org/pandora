@@ -65,49 +65,52 @@ int main(int argc, char* argv[])
             return 0;
         } else if ((arg == "-p") || (arg == "--prg_file")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                prgfile = argv[i++]; // Increment 'i' so we don't get the argument as the next argv[i].
+                prgfile = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+		cout << "prgfile: " << prgfile << endl;
             } else { // Uh-oh, there was no argument to the destination option.
                   std::cerr << "--prg_file option requires one argument." << std::endl;
                 return 1;
             }
 	} else if ((arg == "-r") || (arg == "--read_file")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                readfile = argv[i++]; // Increment 'i' so we don't get the argument as the next argv[i].
+                readfile = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+	        cout << "readfile: " << readfile << endl;
             } else { // Uh-oh, there was no argument to the destination option.
                   std::cerr << "--read_file option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "-o") || (arg == "--out_prefix")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                prefix = argv[i++]; // Increment 'i' so we don't get the argument as the next argv[i].
+                prefix = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+		cout << "prefix: " << prefix << endl;
             } else { // Uh-oh, there was no argument to the destination option.
                   std::cerr << "--out_prefix option requires one argument." << std::endl;
                 return 1;
             }
 	} else if (arg == "-w") {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                w = (unsigned)atoi(argv[i++]); // Increment 'i' so we don't get the argument as the next argv[i].
+                w = (unsigned)atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                   std::cerr << "-w option requires one argument." << std::endl;
                 return 1;
             }  
 	} else if (arg == "-k") {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                k = (unsigned)atoi(argv[i++]); // Increment 'i' so we don't get the argument as the next argv[i].
+                k = (unsigned)atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                   std::cerr << "-k option requires one argument." << std::endl;
                 return 1;
             } 
 	} else if ((arg == "-m") || (arg == "--max_diff")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                max_diff = atoi(argv[i++]); // Increment 'i' so we don't get the argument as the next argv[i].
+                max_diff = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                   std::cerr << "--max_diff option requires one argument." << std::endl;
                 return 1;
             }
 	} else if ((arg == "-c") || (arg == "--cthresh")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                cluster_thresh = (unsigned)atoi(argv[i++]); // Increment 'i' so we don't get the argument as the next argv[i].
+                cluster_thresh = (unsigned)atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                   std::cerr << "--cthresh option requires one argument." << std::endl;
                 return 1;
@@ -131,7 +134,7 @@ int main(int argc, char* argv[])
     Index *idx;
     idx = new Index();
     vector<LocalPRG*> prgs;
-    index_prg_file(prgs, argv[1], idx, w, k);
+    index_prg_file(prgs, prgfile, idx, w, k);
 
     now = time(0);
     dt = ctime(&now);
@@ -139,7 +142,7 @@ int main(int argc, char* argv[])
     cout << sdt << " Constructing PanGraph from read file" << endl;
     PanGraph *pangraph;
     pangraph = new PanGraph();
-    pangraph_from_read_file(argv[2], pangraph, idx, prgs, w, k, max_diff, cluster_thresh);
+    pangraph_from_read_file(readfile, pangraph, idx, prgs, w, k, max_diff, cluster_thresh);
 
     now = time(0);
     dt = ctime(&now);
