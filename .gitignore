@@ -47,3 +47,5 @@ bin/*
 
 # for now, ignore test_cases subdirs
 test/test_cases/*/*
+# and log.txt
+log.txt
