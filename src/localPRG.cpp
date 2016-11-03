@@ -21,7 +21,7 @@ using namespace std;
 
 LocalPRG::LocalPRG (uint32_t i, string n, string p): next_id(0),buff(" "), next_site(5), id(i), name(n), seq(p)
 {
-    //cout << seq << endl;
+    cout << "Making new LocalPRG instance " << name << endl;
     vector<uint32_t> v;
     // avoid error if a prg contains only empty space as it's sequence
     if(seq.find_first_not_of("\t\n\v\f\r") != std::string::npos)
@@ -31,6 +31,7 @@ LocalPRG::LocalPRG (uint32_t i, string n, string p): next_id(0),buff(" "), next_
 	cout << " done! Found " << prg.nodes.size() << " nodes" << endl;
         //minimizer_sketch (idx, w, k);
     } else {
+	cout << "seq empty" << endl;
 	prg.add_node(0, "", Interval(0,0));
     }
 }
@@ -128,6 +129,20 @@ vector<Interval> LocalPRG::splitBySite(Interval i)
 	    //cout << "b3" << endl;
 	    w.push_back(Interval(k, v[l].end));
 	}
+    }
+    if (v.size() == w.size() && v.size() == 3)
+    {
+	cout << "There was something dodgy with var site " << next_site << ": found no separated alternates.";
+	cout << " I'm going to assume for now that this is as a result of straggly ends of sequences which don't align nicely,";
+	cout << " but you should check this. To handle, add an empty interval alternate." << endl;
+	vector<Interval> x;
+	for(uint32_t l=0; l!=w.size()-1; ++l)
+	{
+	    x.push_back(w[l]);
+	}
+	x.push_back(Interval(w[w.size()-2].end, w[w.size()-2].end));
+	x.push_back(w[w.size()-1]);
+        w = x;
     }
     //cout << "This was performed on sequence: " << seq << endl;
     return w;
