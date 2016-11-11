@@ -6,7 +6,7 @@ class PanNode;
 
 #include <cstring>
 #include <map>
-//#include <ostream>
+#include <ostream>
 #include <functional>
 
 using namespace std;
@@ -20,7 +20,7 @@ class PanGraph {
     void add_edge (const uint32_t&, const uint32_t&);
     void write_gfa (string);
     bool operator == (const PanGraph& y) const;
-    //friend ostream& operator<< (ostream& out, const PanGraph& m);
+    friend ostream& operator<< (ostream& out, const PanGraph& m);
 };
 
 #endif

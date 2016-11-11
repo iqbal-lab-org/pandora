@@ -88,7 +88,14 @@ bool PanGraph::operator == (const PanGraph& y) const {
     return true;
 }
 
-/*std::ostream& operator<< (std::ostream & out, PanGraph const& m) {
-    out << ;
+std::ostream& operator<< (std::ostream & out, PanGraph const& m) {
+    for(map<uint32_t, PanNode*>::const_iterator it=m.nodes.begin(); it!=m.nodes.end(); ++it)
+    {
+        for (uint32_t j=0; j<it->second->outNodes.size(); ++j)
+        {
+            out << it->second->id << "->" << it->second->outNodes[j]->id << endl;
+        }
+    }
+    out << endl;
     return out ;
-}*/
+}
