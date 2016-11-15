@@ -80,7 +80,7 @@ void Seq::minimizer_sketch (uint32_t w, uint32_t k)
 	        m = new Minimizer(kh.first, wpos+w-1, wpos+w-1+k, 0);
 		sketch.insert(m);
 		m_previous = m;
-       	    } else if (kh.second == smallest)
+       	    } else if (kh.second <= smallest)
             {
                 m = new Minimizer(kh.second, wpos+w-1, wpos+w-1+k, 1);
                 sketch.insert(m);

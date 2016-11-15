@@ -125,7 +125,8 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
     current_cluster.insert(*mh_previous);
     for (set<MinimizerHit*, pComp>::iterator mh_current = ++minimizer_hits->hits.begin(); mh_current != minimizer_hits->hits.end(); ++mh_current)
     {
-        if((*mh_current)->prg_id!=(*mh_previous)->prg_id or (abs((int)(*mh_current)->read_interval.start - (int)(*mh_previous)->read_interval.start)) > max_diff)
+        //cout << "Hit: " << **mh_previous << endl;
+        if((*mh_current)->prg_id!=(*mh_previous)->prg_id or (*mh_current)->strand!=(*mh_previous)->strand or (abs((int)(*mh_current)->read_interval.start - (int)(*mh_previous)->read_interval.start)) > max_diff)
         {
             if (current_cluster.size() > cluster_thresh)
             {
@@ -144,7 +145,7 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
     if (current_cluster.size() > cluster_thresh)
     {
         clusters_of_hits.insert(current_cluster);
-        //cout << "Found cluster of size: " << current_cluster.size() << " ending with " << **mh_previous << endl;
+        //cout << "Found final cluster of size: " << current_cluster.size() << " ending with " << **mh_previous << endl;
     } else {
         //cout << "Final cluster not added had size " << current_cluster.size() << " and ended with " << **mh_previous << endl;
     }
@@ -161,7 +162,7 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
             pangraph->add_edge((*(*c_previous).begin())->prg_id, (*(*c_current).begin())->prg_id);
             c_previous = c_current;
         //} else {
-            //cout << "Contained cluster not added to order" << endl;
+        //    cout << "Contained cluster not added to order" << endl;
         }
     }
     return;

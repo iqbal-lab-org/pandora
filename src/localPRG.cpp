@@ -21,17 +21,17 @@ using namespace std;
 
 LocalPRG::LocalPRG (uint32_t i, string n, string p): next_id(0),buff(" "), next_site(5), id(i), name(n), seq(p)
 {
-    cout << "Making new LocalPRG instance " << name << endl;
+    //cout << "Making new LocalPRG instance " << name << endl;
     vector<uint32_t> v;
     // avoid error if a prg contains only empty space as it's sequence
     if(seq.find_first_not_of("\t\n\v\f\r") != std::string::npos)
     {
-	cout << "build PRG graph ...";
+	//cout << "build PRG graph ...";
         vector<uint32_t> b = build_graph(Interval(0,seq.size()), v);
-	cout << " done! Found " << prg.nodes.size() << " nodes" << endl;
+	//cout << " done! Found " << prg.nodes.size() << " nodes" << endl;
         //minimizer_sketch (idx, w, k);
     } else {
-	cout << "seq empty" << endl;
+	//cout << "seq empty" << endl;
 	prg.add_node(0, "", Interval(0,0));
     }
 }
@@ -223,7 +223,7 @@ void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
 
     for (map<uint32_t,LocalNode*>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
     {
-	cout << "Processing node" << it->second->id << endl;
+	//cout << "Processing node" << it->second->id << endl;
 	// if node has long seq, there will be no branching until  reach len-(w+k-1)th position
 	for (uint32_t i=it->second->pos.start; i!=max(it->second->pos.start+w+k, it->second->pos.end+1)-w-k; ++i)
 	{

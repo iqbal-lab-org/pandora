@@ -50,6 +50,43 @@ TEST_F(MinimizerHitTest,create){
     //TEST SECOND CONSTRUCTOR!!
 }
 
+TEST_F(MinimizerHitTest,checkStrand){
+    Minimizer* m;
+    pair<uint64_t, uint64_t> kh = kmerhash("ACGTA", 5);
+    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    deque<Interval> d = {Interval(7,8), Interval(10, 14)};
+    Path p;
+    p.initialize(d);
+    MiniRecord* mr;
+    mr = new MiniRecord(0,p,0);
+    MinimizerHit mh(1, m, mr);
+    EXPECT_EQ(true, mh.strand);
+
+    delete m;
+    delete mr;
+    m = new Minimizer(min(kh.first,kh.second), 0,5,1);
+    mr = new MiniRecord(0,p,1);
+    MinimizerHit mh1(1, m, mr);
+    EXPECT_EQ(true, mh1.strand);
+
+    delete m;
+    delete mr;
+    m = new Minimizer(min(kh.first,kh.second), 0,5,1);
+    mr = new MiniRecord(0,p,0);
+    MinimizerHit mh2(1, m, mr);
+    EXPECT_EQ(false, mh2.strand);
+ 
+    delete m;
+    delete mr;
+    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    mr = new MiniRecord(0,p,1);
+    MinimizerHit mh3(1, m, mr);
+    EXPECT_EQ(false, mh3.strand);
+
+    delete m;
+    delete mr;
+}
+
 TEST_F(MinimizerHitTest,equals){
     Minimizer* m;
     pair<uint64_t,uint64_t> kh = kmerhash("ACGTA", 5);
