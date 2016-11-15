@@ -213,7 +213,7 @@ vector<uint32_t> LocalPRG::build_graph(Interval i, vector<uint32_t> from_ids)
 
 void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
 {
-    cout << "START SKETCH FUNCTION" << endl;
+    //cout << "START SKETCH FUNCTION" << endl;
     vector<Path> walk_paths;
     deque<Interval> d;
     Path current_path, kmer_path, prev_path;

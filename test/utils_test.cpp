@@ -582,3 +582,5 @@ TEST_F(UtilsTest, pangraphFromReadFile){
     delete lp3;
     delete lp4;
 }
+
+// add test case with rev complement sequence
