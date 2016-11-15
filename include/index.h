@@ -15,7 +15,7 @@ class Index {
     map<uint64_t,vector<MiniRecord>> minhash;
     Index();
     ~Index();
-    void add_record(uint64_t, uint32_t, Path);
+    void add_record(uint64_t, uint32_t, Path, bool);
     void save_index(string filename);
     void clear();
   friend ostream& operator<< (ostream& out, const Index& idx);

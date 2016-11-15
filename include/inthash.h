@@ -5,7 +5,7 @@
 #include <string>
 
 uint64_t hash64(uint64_t key, uint64_t mask);
-uint64_t kmerhash(const std::string s, uint32_t k);
+std::pair<uint64_t,uint64_t> kmerhash(const std::string s, uint32_t k);
 void test_table();
 
 #endif

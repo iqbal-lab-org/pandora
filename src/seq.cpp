@@ -34,7 +34,8 @@ void Seq::minimizer_sketch (uint32_t w, uint32_t k)
 
     // initializations
     string kmer;
-    uint64_t kh, smallest;
+    pair<uint64_t, uint64_t> kh;
+    uint64_t smallest;
     Minimizer *m;
     Minimizer *m_previous;
 
@@ -51,31 +52,42 @@ void Seq::minimizer_sketch (uint32_t w, uint32_t k)
 	    {
 	    	kmer = seq.substr(wpos+i, k);
 	        kh = kmerhash(kmer, k);
-	        smallest = min(smallest, kh);
+	        smallest = min(smallest, min(kh.first, kh.second));
 	    }
 	    for (uint32_t i = 0; i < w; i++)
 	    {
 	        kmer = seq.substr(wpos+i, k);
 	        kh = kmerhash(kmer, k);
-	        if (kh == smallest)
+	        if (kh.first == smallest)
                 {
-		    m = new Minimizer(kh, wpos+i, wpos+i+k);
+		    m = new Minimizer(kh.first, wpos+i, wpos+i+k, 0);
 		    sketch.insert(m);
 		    m_previous = m;
-	        }
+	        } else if (kh.second == smallest)
+		{
+		    m = new Minimizer(kh.second, wpos+i, wpos+i+k, 1);
+                    sketch.insert(m);
+                    m_previous = m;
+                }
 	    }
         } else {
         // otherwise only need to do something if the kmer from the newest position at end of new window is smaller or equal to the previous smallest
 	    kmer = seq.substr(wpos+w-1, k);
             kh = kmerhash(kmer, k);
 	    //cout << "Last kh for wpos: " << kh << " compared to previous smallest: " << smallest << endl;
-	    if(kh <= smallest)
+	    if(kh.first <= smallest)
 	    {
-	        m = new Minimizer(kh, wpos+w-1, wpos+w-1+k);
+	        m = new Minimizer(kh.first, wpos+w-1, wpos+w-1+k, 0);
 		sketch.insert(m);
 		m_previous = m;
-       	    }
-            smallest = min(smallest, kh);
+       	    } else if (kh.second == smallest)
+            {
+                m = new Minimizer(kh.second, wpos+w-1, wpos+w-1+k, 1);
+                sketch.insert(m);
+                m_previous = m;
+            }
+
+            smallest = min(smallest, min(kh.first, kh.second));
 	}
     }
     

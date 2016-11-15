@@ -15,10 +15,10 @@ struct MinimizerHit
     Interval read_interval;
     uint32_t prg_id;
     Path prg_path;
-    uint8_t strand; // forward or reverse complement
+    bool strand; // forward or reverse complement
 
-    MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecord* r, const uint8_t c);
-    MinimizerHit(const uint32_t i, const Interval j, const uint32_t k, const Path p, const uint8_t c); // second allowed constructor
+    MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecord* r);
+    MinimizerHit(const uint32_t i, const Interval j, const uint32_t k, const Path p, const bool c); // second allowed constructor
     bool operator < ( const MinimizerHit& y) const;
     bool operator == (const MinimizerHit& y) const;
     friend ostream& operator<< (ostream& out, const MinimizerHit& m);

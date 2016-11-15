@@ -218,7 +218,8 @@ void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
     deque<Interval> d;
     Path current_path, kmer_path, prev_path;
     string kmer;
-    uint64_t kh, smallest = std::numeric_limits<uint64_t>::max();
+    pair<uint64_t, uint64_t> kh;
+    uint64_t smallest = std::numeric_limits<uint64_t>::max();
 
     for (map<uint32_t,LocalNode*>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
     {
@@ -240,7 +241,7 @@ void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
 		    kmer_path.initialize(d);
                     kmer = string_along_path(kmer_path);
                     kh = kmerhash(kmer, k);
-                    smallest = min(smallest, kh);
+                    smallest = min(smallest, min(kh.first, kh.second));
                 }
                 for (uint32_t j = 0; j < w; j++)
                 {
@@ -248,10 +249,15 @@ void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
                     kmer_path.initialize(d);
                     kmer = string_along_path(kmer_path);
                     kh = kmerhash(kmer, k);
-                    if (kh == smallest)
+                    if (kh.first == smallest)
                     {
 			//cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
-                        idx->add_record(kh, id, kmer_path);
+                        idx->add_record(kh.first, id, kmer_path, 0);
+                        prev_path = kmer_path;
+                    } else if (kh.second == smallest)
+                    {
+                        //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                        idx->add_record(kh.second, id, kmer_path, 1);
                         prev_path = kmer_path;
                     }
                 }
@@ -262,13 +268,18 @@ void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
                 kmer = string_along_path(kmer_path);
                 kh = kmerhash(kmer, k);
                 //cout << "Last kh for wpos: " << kh << " compared to previous smallest: " << smallest << endl;
-                if(kh <= smallest)
+                if(kh.first <= smallest)
                 {
 		    //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
-                    idx->add_record(kh, id, kmer_path);
+                    idx->add_record(kh.first, id, kmer_path, 0);
+                    prev_path = kmer_path;
+                } else if(kh.second <= smallest)
+                {
+                    //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                    idx->add_record(kh.second, id, kmer_path, 1);
                     prev_path = kmer_path;
                 }
-                smallest = min(smallest, kh);
+                smallest = min(smallest, min(kh.first, kh.second));
             }
         }
 
@@ -291,7 +302,7 @@ void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
                         //cout << "found path" << endl;
 		        kmer = string_along_path(kmer_path);
                         kh = kmerhash(kmer, k);
-		        smallest = min(smallest, kh);
+		        smallest = min(smallest, min(kh.first, kh.second));
 		    }
 		}
                 //cout << "smallest word: " << smallest_word << endl;
@@ -305,11 +316,15 @@ void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
                     	//cout << "found path" << endl;
                     	kmer = string_along_path(kmer_path);
 			kh = kmerhash(kmer, k);
-		    	if (kh == smallest)
+		    	if (kh.first == smallest)
 		    	{
                             //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
-			    idx->add_record(kh, id, kmer_path);
-		    	}
+			    idx->add_record(kh.first, id, kmer_path, 0);
+		    	} else if (kh.second == smallest)
+                        {
+                            //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                            idx->add_record(kh.second, id, kmer_path, 1);
+                        }
 		    }
                 }
 	    }

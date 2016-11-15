@@ -7,6 +7,7 @@
 #include "inthash.h"
 #include <stdint.h>
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -23,25 +24,26 @@ class MinimizerHitTest : public ::testing::Test {
 
 TEST_F(MinimizerHitTest,create){
     Minimizer* m;
-    uint64_t kh = kmerhash("ACGTA", 5);
-    m = new Minimizer(kh, 0,5);
+    pair<uint64_t, uint64_t> kh = kmerhash("ACGTA", 5);
+    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
     MiniRecord* mr;
-    mr = new MiniRecord(0,p);
-    MinimizerHit mh(1, m, mr, 0);
+    mr = new MiniRecord(0,p,0);
+    MinimizerHit mh(1, m, mr);
     uint32_t j(1);
     EXPECT_EQ(j, mh.read_id);
     EXPECT_EQ(Interval(0,5), mh.read_interval);
     j=0;
     EXPECT_EQ(j, mh.prg_id);
     EXPECT_EQ(p, mh.prg_path);
-    EXPECT_EQ(j, mh.strand);
+    bool b = true;
+    EXPECT_EQ(b, mh.strand);
 
     kh = kmerhash("hell", 4);
-    m = new Minimizer(kh,1,5);
-    EXPECT_DEATH(MinimizerHit(1, m, mr, 0), "");
+    m = new Minimizer(min(kh.first,kh.second),1,5,0);
+    EXPECT_DEATH(MinimizerHit(1, m, mr), "");
 
     delete m;
     delete mr;
@@ -50,22 +52,22 @@ TEST_F(MinimizerHitTest,create){
 
 TEST_F(MinimizerHitTest,equals){
     Minimizer* m;
-    uint64_t kh = kmerhash("ACGTA", 5);
-    m = new Minimizer(kh, 0,5);
+    pair<uint64_t,uint64_t> kh = kmerhash("ACGTA", 5);
+    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
     MiniRecord* mr;
-    mr = new MiniRecord(0,p);
-    MinimizerHit mh1(1, m, mr, 0);
+    mr = new MiniRecord(0,p,0);
+    MinimizerHit mh1(1, m, mr);
 
     delete m;
-    m = new Minimizer(kh, 0,5);
+    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
     d = {Interval(7,9), Interval(11, 14)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p);
-    MinimizerHit mh2(1, m, mr, 0);
+    mr = new MiniRecord(0,p,0);
+    MinimizerHit mh2(1, m, mr);
 
     EXPECT_EQ(mh1, mh1);
     EXPECT_EQ(mh2, mh2);
@@ -78,32 +80,32 @@ TEST_F(MinimizerHitTest,compare){
     set<MinimizerHit> hits;
 
     Minimizer* m;
-    uint64_t kh = kmerhash("ACGTA", 5);
-    m = new Minimizer(kh, 1,6);
+    pair<uint64_t,uint64_t> kh = kmerhash("ACGTA", 5);
+    m = new Minimizer(min(kh.first,kh.second), 1,6,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
     MiniRecord* mr;
-    mr = new MiniRecord(0,p);
-    MinimizerHit mh1(1, m, mr, 0);
+    mr = new MiniRecord(0,p,0);
+    MinimizerHit mh1(1, m, mr);
 
-    MinimizerHit mh2(0, m, mr, 0);
+    MinimizerHit mh2(0, m, mr);
 
     delete m;
-    m = new Minimizer(kh, 0,5);
-    MinimizerHit mh3(1, m, mr, 0);
+    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    MinimizerHit mh3(1, m, mr);
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p);
-    MinimizerHit mh4(1, m, mr, 0);
+    mr = new MiniRecord(0,p,0);
+    MinimizerHit mh4(1, m, mr);
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p);
-    MinimizerHit mh5(1, m, mr, 0);
+    mr = new MiniRecord(0,p,0);
+    MinimizerHit mh5(1, m, mr);
 
     hits.insert(mh1);
     hits.insert(mh2);

@@ -285,30 +285,34 @@ TEST_F(LocalPRGTest, minimizerSketch){
     j = 1;
     EXPECT_EQ(j, idx->minhash.size());
     l1.minimizer_sketch(idx, 1, 3);
-    j = 2;
     EXPECT_EQ(j, idx->minhash.size());
+    j = 2;
+    pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
     
     idx->clear();
     l2.minimizer_sketch(idx, 2, 3);
     j = 1;
     EXPECT_EQ(j, idx->minhash.size());
     l2.minimizer_sketch(idx, 1, 3);
-    j = 3;
+    j = 2;
     EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
 
     idx->clear();
     l3.minimizer_sketch(idx, 2, 3);
     j = 2;
     EXPECT_EQ(j, idx->minhash.size());
     l3.minimizer_sketch(idx, 1, 3);
-    j = 4;
+    j = 3;
     EXPECT_EQ(j, idx->minhash.size());
     j = 2;
-    EXPECT_EQ(j, idx->minhash[kmerhash("AGT",3)].size());
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGC, GCT
+    kh = kmerhash("AGT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGTx2
     j = 1;
-    EXPECT_EQ(j, idx->minhash[kmerhash("AGC",3)].size());
-    EXPECT_EQ(j, idx->minhash[kmerhash("GCT",3)].size());
-    EXPECT_EQ(j, idx->minhash[kmerhash("GTT",3)].size());
+    kh = kmerhash("GTT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
     
     delete idx;
 }
@@ -322,18 +326,19 @@ TEST_F(LocalPRGTest, getCovgs)
     MinimizerHits* mh;
     mh = new MinimizerHits();
     Minimizer* m;
-    m = new Minimizer(kmerhash("AGC",3),0,3);
+    pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
+    m = new Minimizer(min(kh.first,kh.second),0,3,(min(kh.first,kh.second)==kh.first));
     MiniRecord* r;
     Path p;
     deque<Interval> d = {Interval(0,3)};
     p.initialize(d);
-    r = new MiniRecord(1, p);
-    mh->add_hit(0, m, r, 0);
+    r = new MiniRecord(1, p, 0);
+    mh->add_hit(0, m, r);
     l1.get_covgs(mh);
     uint32_t j = 3;
     EXPECT_EQ(j, l1.prg.nodes[0]->covg);
     // add a second identical read
-    mh->add_hit(1, m, r, 0);
+    mh->add_hit(1, m, r);
     l1.get_covgs(mh);
     j = 6;
     EXPECT_EQ(j, l1.prg.nodes[0]->covg);
@@ -341,8 +346,8 @@ TEST_F(LocalPRGTest, getCovgs)
     delete r;
     d = {Interval(0,1), Interval(4,6)};
     p.initialize(d);
-    r = new MiniRecord(2, p);
-    mh->add_hit(0, m, r, 0);
+    r = new MiniRecord(2, p, 0);
+    mh->add_hit(0, m, r);
     l2.get_covgs(mh);
     j = 1;
     EXPECT_EQ(j, l2.prg.nodes[0]->covg);
@@ -356,8 +361,8 @@ TEST_F(LocalPRGTest, getCovgs)
     delete r;
     d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     p.initialize(d);
-    r = new MiniRecord(3, p);
-    mh->add_hit(0, m, r, 0);
+    r = new MiniRecord(3, p, 0);
+    mh->add_hit(0, m, r);
     l3.get_covgs(mh);
     j = 1;
     EXPECT_EQ(j, l3.prg.nodes[0]->covg);
@@ -369,7 +374,7 @@ TEST_F(LocalPRGTest, getCovgs)
     EXPECT_EQ(j, l3.prg.nodes[5]->covg);
     EXPECT_EQ(j, l3.prg.nodes[6]->covg);
     // add same hit again
-    mh->add_hit(1, m, r, 0);
+    mh->add_hit(1, m, r);
     l3.get_covgs(mh);
     j = 2;
     EXPECT_EQ(j, l3.prg.nodes[0]->covg);
@@ -384,8 +389,8 @@ TEST_F(LocalPRGTest, getCovgs)
     delete r;
     d = {Interval(0,1), Interval(4,5), Interval(12,13)};
     p.initialize(d);
-    r = new MiniRecord(3, p);
-    mh->add_hit(1, m, r, 0);
+    r = new MiniRecord(3, p, 0);
+    mh->add_hit(1, m, r);
     l3.get_covgs(mh);
     j = 3;
     EXPECT_EQ(j, l3.prg.nodes[0]->covg);
@@ -402,8 +407,8 @@ TEST_F(LocalPRGTest, getCovgs)
     delete r;
     d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
-    r = new MiniRecord(3, p);
-    mh->add_hit(2, m, r, 0);
+    r = new MiniRecord(3, p, 0);
+    mh->add_hit(2, m, r);
     l3.get_covgs(mh);
     j = 4;
     EXPECT_EQ(j, l3.prg.nodes[1]->covg);

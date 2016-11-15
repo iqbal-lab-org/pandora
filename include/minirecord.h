@@ -11,8 +11,8 @@ struct MiniRecord
 {
     uint32_t prg_id;
     Path path;
-
-    MiniRecord(const uint32_t, const Path);
+    bool strand;
+    MiniRecord(const uint32_t, const Path, bool);
     ~MiniRecord();
     bool operator == (const MiniRecord& y) const;
     friend ostream& operator<< (ostream& out, const MiniRecord& m);

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecord* r, const uint8_t c): read_id(i), read_interval(m->pos), prg_id(r->prg_id), prg_path(r->path), strand(c)
+MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecord* r): read_id(i), read_interval(m->pos), prg_id(r->prg_id), prg_path(r->path), strand((m->strand == r->strand))
 {
     //prg_path.initialize(r.path.path);
     //cout << "minihit initialised with read: " << read_id << ", " << read_interval << ", length " << read_interval.length << endl;
@@ -16,7 +16,7 @@ MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecor
     assert(read_interval.length==prg_path.length);
 };
 
-MinimizerHit::MinimizerHit(const uint32_t i, const Interval j, const uint32_t k, const Path p, const uint8_t c): read_id(i), read_interval(j), prg_id(k), strand(c)
+MinimizerHit::MinimizerHit(const uint32_t i, const Interval j, const uint32_t k, const Path p, const bool c): read_id(i), read_interval(j), prg_id(k), strand(c)
 {
     prg_path.initialize(p.path);
     assert(read_interval.length==prg_path.length);
@@ -36,6 +36,10 @@ bool MinimizerHit::operator < ( const MinimizerHit& y) const
     // first by the read they map too - should all be the same
     if (read_id < y.read_id){ return true; }
     if (y.read_id < read_id) { return false; }
+
+    // then by direction
+    if (strand < y.strand){ return true; }
+    if (y.strand < strand) { return false; }
 
     // then by the prg they map too
     if (prg_id < y.prg_id){ return true; }
