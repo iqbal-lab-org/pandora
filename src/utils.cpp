@@ -264,11 +264,27 @@ void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, ve
 }*/
 void update_covgs_from_hits(vector<LocalPRG*>& prgs, MinimizerHits* mhs)
 {
+    // note that within mhs, hits which map to same prg should be together
+    //uint32_t current_id = (*mhs->hits.begin())->prg_id;
+    //deque<MinimizerHit*> current_hits;
     //cout << "prgs vector length: " << prgs.size() << endl;
     for (set<MinimizerHit*, pComp>::iterator mh = mhs->hits.begin(); mh != mhs->hits.end(); ++mh)
     {
         //cout << "prg_id: " << (*mh)->prg_id << endl;
 	prgs[(*mh)->prg_id]->update_covg_with_hit(*mh);
+	/*if ((*mh)->prg_id == current_id)
+	{
+	    current_hits.push_back(*mh);
+	} else {
+	    cout << "Update covg on " << current_id << " with " << current_hits.size() << " hits" << endl;
+	    prgs[current_id]->update_covg_with_hits(current_hits);
+	    current_hits.clear();
+	    current_hits.push_back(*mh);
+	    current_id = (*mh)->prg_id;
+	}*/
     }
+    // and last one
+    //cout << "Update covg on " << current_id << " with " << current_hits.size() << " hits" << endl;
+    //prgs[current_id]->update_covg_with_hits(current_hits);
     return;
 }

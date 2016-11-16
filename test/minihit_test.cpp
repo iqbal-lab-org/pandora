@@ -74,14 +74,14 @@ TEST_F(MinimizerHitTest,checkStrand){
     m = new Minimizer(min(kh.first,kh.second), 0,5,1);
     mr = new MiniRecord(0,p,0);
     MinimizerHit mh2(1, m, mr);
-    EXPECT_EQ(false, mh2.strand);
+    EXPECT_EQ(mh2.strand, false);
  
     delete m;
     delete mr;
     m = new Minimizer(min(kh.first,kh.second), 0,5,0);
     mr = new MiniRecord(0,p,1);
     MinimizerHit mh3(1, m, mr);
-    EXPECT_EQ(false, mh3.strand);
+    EXPECT_EQ(mh3.strand, false);
 
     delete m;
     delete mr;

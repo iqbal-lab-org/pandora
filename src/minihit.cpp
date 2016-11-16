@@ -37,13 +37,13 @@ bool MinimizerHit::operator < ( const MinimizerHit& y) const
     if (read_id < y.read_id){ return true; }
     if (y.read_id < read_id) { return false; }
 
-    // then by direction
-    if (strand < y.strand){ return true; }
-    if (y.strand < strand) { return false; }
-
     // then by the prg they map too
     if (prg_id < y.prg_id){ return true; }
     if (y.prg_id < prg_id) { return false; }
+
+    // then by direction
+    if (strand < y.strand){ return true; }
+    if (y.strand < strand) { return false; }
 
     // then by difference on target string (want approx co-linear)
     if (read_interval.start + y.prg_path.start < y.read_interval.start + prg_path.start) { //cout << read_interval.start + y.prg_path.start << " < " << y.read_interval.start + prg_path.start << endl; 

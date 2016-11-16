@@ -34,6 +34,7 @@ class LocalPRG {
     void minimizer_sketch (Index* idx, uint32_t w, uint32_t k);
     void get_covgs(MinimizerHits* minimizer_hits);
     void update_covg_with_hit(MinimizerHit* mh);
+    void update_covg_with_hits(deque<MinimizerHit*>& mhs);
   friend ostream& operator<< (ostream& out, const LocalPRG& data);  
 };
 

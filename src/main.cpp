@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
                 return 1;
             }
         } else {
-            cerr << argv[i] << "could not be attributed to any parameter" << endl;
+            cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
     }
 

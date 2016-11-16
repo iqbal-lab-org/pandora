@@ -384,3 +384,25 @@ void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
         }
     }
 }
+
+void LocalPRG::update_covg_with_hits(deque<MinimizerHit*>& mhs)
+{
+    // iterate over map first, because that is slow bit
+    for (map<uint32_t, LocalNode*>::const_iterator n=prg.nodes.begin(); n!=prg.nodes.end(); ++n)
+    {
+	// for each hit
+        for (deque<MinimizerHit*>::iterator mh = mhs.begin(); mh != mhs.end(); ++mh)
+	{
+	    //for each interval of hit
+	    for (deque<Interval>::const_iterator it=(*mh)->prg_path.path.begin(); it!=(*mh)->prg_path.path.end(); ++it)
+	    {
+                if (it->end > n->second->pos.start and it->start < n->second->pos.end)
+                {
+		    //cout << "added covg" << endl;
+                    n->second->covg += min(it->end, n->second->pos.end) - max(it->start, n->second->pos.start);
+                } //else if (it->end < n->second->pos.start)
+                //{ break;} // because the local nodes are labelled in order of occurance in the linear prg string, we don't need to search after this
+            }
+	}
+    }
+}
