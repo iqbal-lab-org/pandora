@@ -12,7 +12,7 @@ Path::Path(){
     length = 0; 
 }
 
-void Path::initialize(deque<Interval> q)
+void Path::initialize(const deque<Interval>& q)
 {
     path = q;
     start = q.begin()->start;
@@ -20,7 +20,7 @@ void Path::initialize(deque<Interval> q)
     //cout << "Paths starts at " << start;
     end = (*--q.end()).end;
     //cout << "Paths ends at " << end;
-    for (std::deque<Interval>::iterator it=path.begin(); it!=path.end(); ++it)
+    for (std::deque<Interval>::const_iterator it=path.begin(); it!=path.end(); ++it)
     {
 	length += (*it).length;
     }
@@ -32,7 +32,7 @@ void Path::initialize(deque<Interval> q)
     path.clear();
 }*/
 
-void Path::add_start_interval(Interval i)
+void Path::add_start_interval(const Interval& i)
 {
     assert (i.end <= path.begin()->start);// && PATH_ERROR);
     path.push_front(i);
@@ -40,7 +40,7 @@ void Path::add_start_interval(Interval i)
     start = i.start;
 }
 
-void Path::add_end_interval(Interval i)
+void Path::add_end_interval(const Interval& i)
 {
     assert (i.start >= path.back().end);// && PATH_ERROR);
     path.push_back(i);
@@ -48,7 +48,7 @@ void Path::add_end_interval(Interval i)
     end = i.end;
 }
 
-Path Path::subpath(uint32_t start, uint32_t len) const
+Path Path::subpath(const uint32_t start, const uint32_t len) const
 {
     //cout << "start subpath function with : " << start << " " << len << " for path " << *this << endl;
     Path p;

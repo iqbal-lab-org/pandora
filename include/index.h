@@ -16,7 +16,7 @@ class Index {
     Index();
     ~Index();
     void add_record(uint64_t, uint32_t, Path, bool);
-    void save_index(string filename);
+    void save_index(const string& filename);
     void clear();
   friend ostream& operator<< (ostream& out, const Index& idx);
 };

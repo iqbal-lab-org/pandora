@@ -115,7 +115,7 @@ void test_table()
     return;
 }
 
-uint64_t hash64(uint64_t key, uint64_t mask)
+uint64_t hash64(uint64_t& key, const uint64_t& mask)
 {
 	assert(key<=mask);
 	key = (~key + (key << 21)) & mask; // key = (key << 21) - key - 1;
@@ -130,7 +130,7 @@ uint64_t hash64(uint64_t key, uint64_t mask)
 
 /* Now use these functions in my own code */
 
-pair<uint64_t, uint64_t> kmerhash(const std::string s, uint32_t k)
+pair<uint64_t, uint64_t> kmerhash(const std::string& s, const uint32_t k)
 {
     // note this takes the hash of both forwards and reverse complement kmers and returns the minimum 
     assert(s.size() == k);

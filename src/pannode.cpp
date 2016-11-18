@@ -8,9 +8,9 @@
 
 using namespace std;
 
-PanNode::PanNode (uint32_t i): id(i) {}
+PanNode::PanNode (const uint32_t i): id(i) {}
 
-void PanNode::add_read(uint32_t j)
+void PanNode::add_read(const uint32_t j)
 {
     foundReads.push_back(j);
 }

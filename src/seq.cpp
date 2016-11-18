@@ -25,7 +25,7 @@ Seq::~Seq()
     }
 }
 
-void Seq::minimizer_sketch (uint32_t w, uint32_t k)
+void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 {
     //cout << "Start sketching" << endl;
     // If sequence too short, just return

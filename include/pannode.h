@@ -16,9 +16,9 @@ class PanNode {
     vector<PanNode*> outNodes; // representing edges from this node to the nodes in the vector
     vector<uint32_t> foundReads; // representing read ids for those reads intersecting this node
     //set<MinimizerHit*> foundHits;
-    PanNode(uint32_t);
+    PanNode(const uint32_t);
 
-    void add_read(uint32_t);
+    void add_read(const uint32_t);
     //void add_hits(set<MinimizerHit*>);
     bool operator == (const PanNode& y) const;
     friend ostream& operator<< (ostream& out, const PanNode& m);

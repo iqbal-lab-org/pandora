@@ -12,7 +12,7 @@ struct MiniRecord
     uint32_t prg_id;
     Path path;
     bool strand;
-    MiniRecord(const uint32_t, const Path, bool);
+    MiniRecord(const uint32_t, const Path, const bool);
     ~MiniRecord();
     bool operator == (const MiniRecord& y) const;
     friend ostream& operator<< (ostream& out, const MiniRecord& m);

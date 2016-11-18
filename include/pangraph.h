@@ -18,7 +18,7 @@ class PanGraph {
     ~PanGraph();
     void add_node (uint32_t, uint32_t);
     void add_edge (const uint32_t&, const uint32_t&);
-    void write_gfa (string);
+    void write_gfa (const string&);
     bool operator == (const PanGraph& y) const;
     friend ostream& operator<< (ostream& out, const PanGraph& m);
 };

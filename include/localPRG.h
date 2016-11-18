@@ -27,11 +27,11 @@ class LocalPRG {
     set<Minimizer*, pMiniComp> sketch;
     LocalPRG(uint32_t, string, string);
     ~LocalPRG();
-    bool isalpha_string(string);
-    string string_along_path(Path);
-    vector<Interval> splitBySite(Interval);	
-    vector<uint32_t> build_graph(Interval, vector<uint32_t>);
-    void minimizer_sketch (Index* idx, uint32_t w, uint32_t k);
+    bool isalpha_string(const string&);
+    string string_along_path(const Path&);
+    vector<Interval> splitBySite(const Interval&);	
+    vector<uint32_t> build_graph(const Interval&, const vector<uint32_t>&);
+    void minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k);
     void get_covgs(MinimizerHits* minimizer_hits);
     void update_covg_with_hit(MinimizerHit* mh);
     void update_covg_with_hits(deque<MinimizerHit*>& mhs);

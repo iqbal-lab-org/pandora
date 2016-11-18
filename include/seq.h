@@ -18,7 +18,7 @@ class Seq {
     set<Minimizer*, pMiniComp> sketch;
     Seq(uint32_t, string, string, uint32_t, uint32_t);
     ~Seq();
-    void minimizer_sketch (uint32_t w, uint32_t k);
+    void minimizer_sketch (const uint32_t w, const uint32_t k);
   friend ostream& operator<< (ostream& out, const Seq& data); 
 };
 

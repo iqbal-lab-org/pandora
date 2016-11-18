@@ -12,7 +12,7 @@
 #include "minihits.h"
 #include "minihit.h"
 
-void index_prg_file(vector<LocalPRG*>& prgs, string filepath, Index* idx, uint32_t w, uint32_t k)
+void index_prg_file(vector<LocalPRG*>& prgs, const string& filepath, Index* idx, const uint32_t w, const uint32_t k)
 {
     time_t now;
     uint32_t id = 0;
@@ -85,7 +85,7 @@ void index_prg_file(vector<LocalPRG*>& prgs, string filepath, Index* idx, uint32
     return;
 }
 
-void add_read_hits(uint32_t id, string name, string seq, MinimizerHits* hits, Index* idx, uint32_t w, uint32_t k)
+void add_read_hits(const uint32_t id, const string& name, const string& seq, MinimizerHits* hits, Index* idx, const uint32_t w, const uint32_t k)
 {
     time_t now;
     string dt, sdt;
@@ -110,7 +110,7 @@ void add_read_hits(uint32_t id, string name, string seq, MinimizerHits* hits, In
     return;
 }
 
-void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pangraph, int max_diff, uint32_t cluster_thresh, uint32_t k)
+void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pangraph, const int max_diff, const uint32_t cluster_thresh, const uint32_t k)
 {
     // this step infers the gene order for a read
     // orders hits from a set of minimizer hits, clusters them, removes noise hits, and adds the inferred gene order to the pangraph
@@ -168,7 +168,7 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
     return;
 }
 
-void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, vector<LocalPRG*>& prgs, uint32_t w, uint32_t k, int max_diff, uint32_t cluster_thresh)
+void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* idx, const vector<LocalPRG*>& prgs, const uint32_t w, const uint32_t k, const int max_diff, const uint32_t cluster_thresh)
 {
     time_t now;
     string name, read, line, dt, sdt;
@@ -262,7 +262,7 @@ void pangraph_from_read_file(string filepath, PanGraph* pangraph, Index* idx, ve
     }
     return;
 }*/
-void update_covgs_from_hits(vector<LocalPRG*>& prgs, MinimizerHits* mhs)
+void update_covgs_from_hits(const vector<LocalPRG*>& prgs, MinimizerHits* mhs)
 {
     // note that within mhs, hits which map to same prg should be together
     //uint32_t current_id = (*mhs->hits.begin())->prg_id;

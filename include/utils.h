@@ -18,10 +18,10 @@ struct pointer_values_equal
     }
 };
 
-void index_prg_file(vector<LocalPRG*>&, string, Index*, uint32_t, uint32_t);
-void add_read_hits(uint32_t, string, string, MinimizerHits*, Index*, uint32_t, uint32_t);
-void infer_localPRG_order_for_read(MinimizerHits*, PanGraph*, int, uint32_t, uint32_t);
-void pangraph_from_read_file(string, PanGraph*, Index*, vector<LocalPRG*>&, uint32_t, uint32_t, int, uint32_t);
-void update_covgs_from_hits(vector<LocalPRG*>&, MinimizerHits*);
+void index_prg_file(vector<LocalPRG*>&, const string&, Index*, const uint32_t, const uint32_t);
+void add_read_hits(uint32_t, const string&, const string&, MinimizerHits*, Index*, const uint32_t, const uint32_t);
+void infer_localPRG_order_for_read(MinimizerHits*, PanGraph*, const int, const uint32_t, const uint32_t);
+void pangraph_from_read_file(const string&, PanGraph*, Index*, const vector<LocalPRG*>&, const uint32_t, const uint32_t, const int, const uint32_t);
+void update_covgs_from_hits(const vector<LocalPRG*>&, MinimizerHits*);
 
 #endif

@@ -44,7 +44,7 @@ LocalPRG::~LocalPRG()
     }
 }
 
-bool LocalPRG::isalpha_string ( string s )
+bool LocalPRG::isalpha_string (const string& s )
 {
     // Returns if a string s is entirely alphabetic
     for(uint32_t j=0; j<s.length(); ++j)
@@ -56,13 +56,13 @@ bool LocalPRG::isalpha_string ( string s )
     return 1; //True
 }
 
-string LocalPRG::string_along_path(Path p)
+string LocalPRG::string_along_path(const Path& p)
 {
     //cout << p << endl;
     assert(p.start<=seq.length());
     assert(p.end<=seq.length());
     string s;
-    for (deque<Interval>::iterator it=p.path.begin(); it!=p.path.end(); ++it)
+    for (deque<Interval>::const_iterator it=p.path.begin(); it!=p.path.end(); ++it)
     {
 	s += seq.substr(it->start, it->length);
         //cout << s << endl;
@@ -72,7 +72,7 @@ string LocalPRG::string_along_path(Path p)
     return s;
 }
 
-vector<Interval> LocalPRG::splitBySite(Interval i)
+vector<Interval> LocalPRG::splitBySite(const Interval& i)
 {
     // Splits interval by next_site based on substring of seq in the interval
 
@@ -148,7 +148,7 @@ vector<Interval> LocalPRG::splitBySite(Interval i)
     return w;
 }
 
-vector<uint32_t> LocalPRG::build_graph(Interval i, vector<uint32_t> from_ids)
+vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>& from_ids)
 {
     // we will return the ids on the ends of any stretches of graph added
     vector<uint32_t> end_ids;
@@ -211,7 +211,7 @@ vector<uint32_t> LocalPRG::build_graph(Interval i, vector<uint32_t> from_ids)
     return end_ids;
 }
 
-void LocalPRG::minimizer_sketch (Index* idx, uint32_t w, uint32_t k)
+void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 {
     //cout << "START SKETCH FUNCTION" << endl;
     vector<Path> walk_paths;

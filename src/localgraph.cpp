@@ -18,7 +18,7 @@ LocalGraph::~LocalGraph()
   }
 }
 
-void LocalGraph::add_node (const uint32_t& id, const string& seq, Interval pos)
+void LocalGraph::add_node (const uint32_t& id, const string& seq, const Interval& pos)
 {
     assert(seq.length() == pos.length); 
     map<uint32_t, LocalNode*>::iterator it=nodes.find(id);
@@ -47,7 +47,7 @@ void LocalGraph::add_edge (const uint32_t& from, const uint32_t& to)
     }
 }
 
-void LocalGraph::write_gfa (string filepath)
+void LocalGraph::write_gfa (const string& filepath)
 {
     ofstream handle;
     handle.open (filepath);
@@ -70,7 +70,7 @@ void LocalGraph::write_gfa (string filepath)
     handle.close();
 }
 
-vector<Path> LocalGraph::walk(uint32_t node_id, uint32_t pos, uint32_t len)
+vector<Path> LocalGraph::walk(const uint32_t& node_id, const uint32_t& pos, const uint32_t& len)
 {
     //cout << "walking graph from node " << node_id << " pos " << pos << " for length " << len << endl;
     // walks from position pos in node node for length len bases

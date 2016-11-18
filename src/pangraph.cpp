@@ -47,7 +47,7 @@ void PanGraph::add_edge (const uint32_t& from, const uint32_t& to)
     //cout << "Added edge (" << f->id << ", " << t->id << ")" << endl;
 }
 
-void PanGraph::write_gfa (string filepath)
+void PanGraph::write_gfa (const string& filepath)
 {
     ofstream handle;
     handle.open (filepath);
