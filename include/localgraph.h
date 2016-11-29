@@ -17,7 +17,7 @@ class LocalGraph {
     map<uint32_t, LocalNode*> nodes; // representing nodes in graph
     LocalGraph() {}
     ~LocalGraph();
-    void add_node (const uint32_t& id, const string& seq, const Interval& pos);
+    void add_node (const uint32_t& id, const string& seq, const Interval& pos, uint32_t nested_level=0);
     void add_edge (const uint32_t&, const uint32_t&);
     void write_gfa (const string&);
     vector<Path> walk(const uint32_t&, const uint32_t&, const uint32_t&);

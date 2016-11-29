@@ -148,7 +148,7 @@ vector<Interval> LocalPRG::splitBySite(const Interval& i)
     return w;
 }
 
-vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>& from_ids)
+vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>& from_ids, uint32_t current_level)
 {
     // we will return the ids on the ends of any stretches of graph added
     vector<uint32_t> end_ids;
@@ -157,7 +157,7 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
     string s = seq.substr(i.start, i.length); //check length correct with this end...
     if (isalpha_string(s)) // should return true for empty string too
     {
-	prg.add_node(next_id, s, i);
+	prg.add_node(next_id, s, i, current_level);
 	// add edges from previous part of graph to start of this interval
         //cout << "from_ids: ";
         for (uint32_t j=0; j!=from_ids.size(); j++)
@@ -186,7 +186,7 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
             cerr << "After splitting by site " << next_site << " do not have alphabetic sequence before var site: " << v[0] << endl;
             exit(-1);
         }
-	prg.add_node(next_id, s, v[0]);
+	prg.add_node(next_id, s, v[0], current_level);
 	// add edges from previous part of graph to start of this interval
         //cout << "from_ids: ";
         for (uint32_t j=0; j!=from_ids.size(); j++)
@@ -202,7 +202,7 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
 	// add (recurring as necessary) middle intervals
 	for (uint32_t j=1; j!=v.size() - 1; j++)
 	{
-	    vector<uint32_t> w = build_graph(v[j], mid_ids);
+	    vector<uint32_t> w = build_graph(v[j], mid_ids, current_level+1);
 	    end_ids.insert(end_ids.end(), w.begin(), w.end());
 	}
 	// add end interval

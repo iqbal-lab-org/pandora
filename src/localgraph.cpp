@@ -18,14 +18,14 @@ LocalGraph::~LocalGraph()
   }
 }
 
-void LocalGraph::add_node (const uint32_t& id, const string& seq, const Interval& pos)
+void LocalGraph::add_node (const uint32_t& id, const string& seq, const Interval& pos, uint32_t nested_level)
 {
     assert(seq.length() == pos.length); 
     map<uint32_t, LocalNode*>::iterator it=nodes.find(id);
     if(it==nodes.end())
     {
         LocalNode *n;
-        n = new LocalNode(seq, pos, id);
+        n = new LocalNode(seq, pos, id, nested_level);
         nodes[id] = n;
         //cout << "Added node " << id << endl;
     } else {
