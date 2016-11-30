@@ -317,7 +317,7 @@ TEST_F(LocalPRGTest, minimizerSketch){
     delete idx;
 }
 
-TEST_F(LocalPRGTest, getCovgs)
+/*TEST_F(LocalPRGTest, getCovgs)
 {
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
@@ -425,7 +425,7 @@ TEST_F(LocalPRGTest, getCovgs)
     delete r;
     delete m;
     delete mh;
-}
+}*/
 
 /*TEST_F(LocalPRGTest,unpackLinearString){
     Seq s1 = Seq(0,"0", "AGCTAATGCGTT", 11, 3);

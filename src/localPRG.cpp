@@ -337,7 +337,7 @@ std::ostream& operator<< (std::ostream & out, LocalPRG const& data) {
     return out ;
 }
 
-void LocalPRG::get_covgs(MinimizerHits* minimizer_hits)
+/*void LocalPRG::get_covgs(MinimizerHits* minimizer_hits)
 {
     //first, for each localnode of the localgraph, set covg to 0
     for (map<uint32_t, LocalNode*>::const_iterator n=prg.nodes.begin(); n!=prg.nodes.end(); ++n)
@@ -366,7 +366,7 @@ void LocalPRG::get_covgs(MinimizerHits* minimizer_hits)
         }
     }
     return;
-}
+}*/
 
 void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
 {
@@ -385,7 +385,7 @@ void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
     }
 }
 
-void LocalPRG::update_covg_with_hits(deque<MinimizerHit*>& mhs)
+/*void LocalPRG::update_covg_with_hits(deque<MinimizerHit*>& mhs)
 {
     // iterate over map first, because that is slow bit
     for (map<uint32_t, LocalNode*>::const_iterator n=prg.nodes.begin(); n!=prg.nodes.end(); ++n)
@@ -405,4 +405,4 @@ void LocalPRG::update_covg_with_hits(deque<MinimizerHit*>& mhs)
             }
 	}
     }
-}
+}*/

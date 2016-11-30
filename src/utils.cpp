@@ -288,3 +288,6 @@ void update_covgs_from_hits(const vector<LocalPRG*>& prgs, MinimizerHits* mhs)
     //prgs[current_id]->update_covg_with_hits(current_hits);
     return;
 }
+
+/*void infer_most_likely_prg_path_for_read(const vector<LocalPRG*>& prgs, MinimizerHits* mhs, 
+*/
