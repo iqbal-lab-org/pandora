@@ -415,10 +415,13 @@ void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
 
 void LocalPRG::update_minimizer_counts_for_nodes(Path& p)
 {
-    // then for each interval of the record
+    // update total num_minis for PRG
+    num_minis+=1;
+
+    // then for each interval of the record...
     for (deque<Interval>::const_iterator it=p.path.begin(); it!=p.path.end(); ++it)
     {
-        // update the num_minis counts on the appropriate node(s) of the prg
+        // ...update the num_minis counts on the appropriate node(s) of the prg
         for (map<uint32_t, LocalNode*>::const_iterator n=prg.nodes.begin(); n!=prg.nodes.end(); ++n)
         {
             if (it->end > n->second->pos.start and it->start < n->second->pos.end)
