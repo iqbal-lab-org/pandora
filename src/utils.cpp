@@ -89,6 +89,7 @@ void add_read_hits(const uint32_t id, const string& name, const string& seq, Min
 {
     time_t now;
     string dt, sdt;
+    uint32_t hit_count = 0;
     // creates Seq object for the read, then looks up minimizers in the Seq sketch and adds hits to a global MinimizerHits object
     Seq s(id, name, seq, w, k);
     for(set<Minimizer*, pMiniComp>::iterator it = s.sketch.begin(); it != s.sketch.end(); ++it)
@@ -100,17 +101,18 @@ void add_read_hits(const uint32_t id, const string& name, const string& seq, Min
             {
                 //cout << (*it)->kmer << " : ";
 	        hits->add_hit(s.id, *it, &(*it2));
+		hit_count += 1;
             }
         }
     }
     now = time(0);
     dt = ctime(&now);
     sdt = dt.substr(0,dt.length()-1);
-    cout << sdt << " Found " << hits->hits.size() << " hits found for read " << name << endl;
+    cout << sdt << " Found " << hit_count << " hits found for read " << name << endl;
     return;
 }
 
-void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pangraph, const int max_diff, const uint32_t cluster_thresh, const uint32_t k)
+void infer_localPRG_order_for_reads(MinimizerHits* minimizer_hits, PanGraph* pangraph, const int max_diff, const uint32_t cluster_thresh, const uint32_t k)
 {
     // this step infers the gene order for a read
     // orders hits from a set of minimizer hits, clusters them, removes noise hits, and adds the inferred gene order to the pangraph
@@ -126,7 +128,7 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
     for (set<MinimizerHit*, pComp>::iterator mh_current = ++minimizer_hits->hits.begin(); mh_current != minimizer_hits->hits.end(); ++mh_current)
     {
         //cout << "Hit: " << **mh_previous << endl;
-        if((*mh_current)->prg_id!=(*mh_previous)->prg_id or (*mh_current)->strand!=(*mh_previous)->strand or (abs((int)(*mh_current)->read_interval.start - (int)(*mh_previous)->read_interval.start)) > max_diff)
+        if((*mh_current)->read_id!=(*mh_previous)->read_id or (*mh_current)->prg_id!=(*mh_previous)->prg_id or (*mh_current)->strand!=(*mh_previous)->strand or (abs((int)(*mh_current)->read_interval.start - (int)(*mh_previous)->read_interval.start)) > max_diff)
         {
             if (current_cluster.size() > cluster_thresh)
             {
@@ -156,14 +158,19 @@ void infer_localPRG_order_for_read(MinimizerHits* minimizer_hits, PanGraph* pang
     pangraph->add_node((*(*c_previous).begin())->prg_id, (*(*c_previous).begin())->read_id);
     for (set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_current = ++clusters_of_hits.begin(); c_current != clusters_of_hits.end(); ++c_current)
     {
-        if( ((*(*c_current).begin())->prg_id != (*(*c_previous).begin())->prg_id) && ((*--(*c_current).end())->read_interval.start > (*--(*c_previous).end())->read_interval.start + k - 1) ) // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, so force the next cluster to have at least a hit which is outside this region
+        if(((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) &&  ((*(*c_current).begin())->prg_id != (*(*c_previous).begin())->prg_id) && ((*--(*c_current).end())->read_interval.start > (*--(*c_previous).end())->read_interval.start + k - 1) ) // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, so force the next cluster to have at least a hit which is outside this region
         {
             pangraph->add_node((*(*c_current).begin())->prg_id, (*(*c_current).begin())->read_id);
-            pangraph->add_edge((*(*c_previous).begin())->prg_id, (*(*c_current).begin())->prg_id);
+	    pangraph->add_edge((*(*c_previous).begin())->prg_id, (*(*c_current).begin())->prg_id);
             c_previous = c_current;
         //} else {
         //    cout << "Contained cluster not added to order" << endl;
-        }
+        } else if ((*(*c_current).begin())->read_id != (*(*c_previous).begin())->read_id)
+	{
+	    // if we just started looking at hits for a new read, add the first cluster
+	    pangraph->add_node((*(*c_current).begin())->prg_id, (*(*c_current).begin())->read_id);
+            c_previous = c_current;
+	}
     }
     return;
 }
@@ -174,6 +181,7 @@ void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* 
     string name, read, line, dt, sdt;
     uint32_t id = 0;
     MinimizerHits* mh;
+    mh = new MinimizerHits();
 
     ifstream myfile (filepath);
     if (myfile.is_open())
@@ -195,17 +203,17 @@ void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* 
                     sdt = dt.substr(0,dt.length()-1);
 		    cout << sdt << " Add read hits" << endl;
                     add_read_hits(id, name, read, mh, idx, w, k);
-		    now = time(0);
+		    /*now = time(0);
                     dt = ctime(&now);
                     sdt = dt.substr(0,dt.length()-1);
 		    cout << sdt << " Infer gene orders and add to PanGraph" << endl;
-		    infer_localPRG_order_for_read(mh, pangraph, max_diff, cluster_thresh, k);
+		    infer_localPRG_order_for_reads(mh, pangraph, max_diff, cluster_thresh, k);
 		    now = time(0);
                     dt = ctime(&now);
                     sdt = dt.substr(0,dt.length()-1);
 		    cout << sdt << " Update coverages within genes" << endl;
 		    update_covgs_from_hits(prgs, mh);
-		    delete mh;
+		    delete mh;*/
 		    id++;
                 }
                 name.clear();
@@ -233,7 +241,7 @@ void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* 
             sdt = dt.substr(0,dt.length()-1);
 	    cout << sdt << " Add read hits" << endl;
             add_read_hits(id, name, read, mh, idx, w, k);
-	    now = time(0);
+	    /*now = time(0);
             dt = ctime(&now);
             sdt = dt.substr(0,dt.length()-1);
 	    cout << sdt << " Infer gene orders and add to PanGraph" << endl;
@@ -243,9 +251,20 @@ void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* 
             sdt = dt.substr(0,dt.length()-1);
 	    cout << sdt << " Update coverages within genes" << endl;
 	    update_covgs_from_hits(prgs, mh);
-	    delete mh;
+	    delete mh;*/
         }
         //cout << "Number of reads found: " << id+1 << endl;
+        now = time(0);
+        dt = ctime(&now);
+        sdt = dt.substr(0,dt.length()-1);
+        cout << sdt << " Infer gene orders and add to PanGraph" << endl;
+        infer_localPRG_order_for_reads(mh, pangraph, max_diff, cluster_thresh, k);
+        now = time(0);
+        dt = ctime(&now);
+        sdt = dt.substr(0,dt.length()-1);
+        cout << sdt << " Update coverages within genes" << endl;
+        update_covgs_from_hits(prgs, mh);
+        delete mh;
         myfile.close();
     } else {
         cerr << "Unable to open read file " << filepath << endl;
@@ -288,6 +307,7 @@ void update_covgs_from_hits(const vector<LocalPRG*>& prgs, MinimizerHits* mhs)
     //prgs[current_id]->update_covg_with_hits(current_hits);
     return;
 }
+
 
 /*void infer_most_likely_prg_path_for_read(const vector<LocalPRG*>& prgs, MinimizerHits* mhs, 
 */
