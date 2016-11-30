@@ -7,7 +7,7 @@
 
 using namespace std;
 
-LocalNode::LocalNode (string s, Interval p, uint32_t i, uint32_t n): seq(s), pos(p), id(i), nested_level(n), covg(0) {}
+LocalNode::LocalNode (string s, Interval p, uint32_t i, uint32_t n): seq(s), pos(p), id(i), nested_level(n), covg(0), num_minis(0) {}
 
 std::ostream& operator<< (std::ostream & out, LocalNode const& n) {
     out << "(" << n.id << " " << n.pos << " " << n.seq << ")";

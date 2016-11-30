@@ -24,9 +24,10 @@ class LocalPRG {
     string name;
     string seq;
     LocalGraph prg;
-    set<Minimizer*, pMiniComp> sketch;
+    uint32_t num_minis; //number of minimizers in sketch of PRG total
+    //set<Minimizer*, pMiniComp> sketch;
     LocalPRG(uint32_t, string, string);
-    ~LocalPRG();
+    //~LocalPRG();
     bool isalpha_string(const string&);
     string string_along_path(const Path&);
     vector<Interval> splitBySite(const Interval&);	
@@ -35,6 +36,7 @@ class LocalPRG {
     //void get_covgs(MinimizerHits* minimizer_hits);
     void update_covg_with_hit(MinimizerHit* mh);
     //void update_covg_with_hits(deque<MinimizerHit*>& mhs);
+    void update_minimizer_counts_for_nodes(Path& p);
   friend ostream& operator<< (ostream& out, const LocalPRG& data);  
 };
 

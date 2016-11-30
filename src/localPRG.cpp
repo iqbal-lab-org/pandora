@@ -10,16 +10,16 @@
 #include "interval.h"
 #include "localgraph.h"
 #include "index.h"
-#include "errormessages.h"
 #include "path.h"
 #include "minihits.h"
 #include "minihit.h"
 #include "inthash.h"
+#include "errormessages.h"
 
 using std::vector;
 using namespace std;
 
-LocalPRG::LocalPRG (uint32_t i, string n, string p): next_id(0),buff(" "), next_site(5), id(i), name(n), seq(p)
+LocalPRG::LocalPRG (uint32_t i, string n, string p): next_id(0),buff(" "), next_site(5), id(i), name(n), seq(p), num_minis(0)
 {
     //cout << "Making new LocalPRG instance " << name << endl;
     vector<uint32_t> v;
@@ -36,13 +36,13 @@ LocalPRG::LocalPRG (uint32_t i, string n, string p): next_id(0),buff(" "), next_
     }
 }
 
-LocalPRG::~LocalPRG()
+/*LocalPRG::~LocalPRG()
 {
     for (auto c : sketch)
     {
         delete c;
     }
-}
+}*/
 
 bool LocalPRG::isalpha_string (const string& s )
 {
@@ -253,11 +253,13 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                     {
 			//cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                         idx->add_record(kh.first, id, kmer_path, 0);
+			update_minimizer_counts_for_nodes(kmer_path);
                         prev_path = kmer_path;
                     } else if (kh.second == smallest)
                     {
                         //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                         idx->add_record(kh.second, id, kmer_path, 1);
+			update_minimizer_counts_for_nodes(kmer_path);
                         prev_path = kmer_path;
                     }
                 }
@@ -272,11 +274,13 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                 {
 		    //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                     idx->add_record(kh.first, id, kmer_path, 0);
+		    update_minimizer_counts_for_nodes(kmer_path);
                     prev_path = kmer_path;
                 } else if(kh.second <= smallest)
                 {
                     //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                     idx->add_record(kh.second, id, kmer_path, 1);
+		    update_minimizer_counts_for_nodes(kmer_path);
                     prev_path = kmer_path;
                 }
                 smallest = min(smallest, min(kh.first, kh.second));
@@ -320,10 +324,12 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		    	{
                             //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
 			    idx->add_record(kh.first, id, kmer_path, 0);
+			    update_minimizer_counts_for_nodes(kmer_path);
 		    	} else if (kh.second == smallest)
                         {
                             //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                             idx->add_record(kh.second, id, kmer_path, 1);
+			    update_minimizer_counts_for_nodes(kmer_path);
                         }
 		    }
                 }
@@ -406,3 +412,20 @@ void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
 	}
     }
 }*/
+
+void LocalPRG::update_minimizer_counts_for_nodes(Path& p)
+{
+    // then for each interval of the record
+    for (deque<Interval>::const_iterator it=p.path.begin(); it!=p.path.end(); ++it)
+    {
+        // update the num_minis counts on the appropriate node(s) of the prg
+        for (map<uint32_t, LocalNode*>::const_iterator n=prg.nodes.begin(); n!=prg.nodes.end(); ++n)
+        {
+            if (it->end > n->second->pos.start and it->start < n->second->pos.end)
+            {
+                n->second->num_minis += 1;
+            } else if (it->end < n->second->pos.start)
+            { break;} // because the local nodes are labelled in order of occurance in the linear prg string, we don't need to search after this
+        }
+    }
+}
