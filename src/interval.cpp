@@ -18,3 +18,16 @@ std::ostream& operator<< (std::ostream & out, Interval const& i) {
 bool Interval::operator == (const Interval& y) const {
     return (start == y.start and end == y.end);
 }
+
+bool Interval::operator != (const Interval& y) const {
+    return !(start == y.start and end == y.end);
+}
+
+bool Interval::operator < ( const Interval& y) const
+{
+    if (start < y.start) { return true; }
+    if (start > y.start) { return false; }
+    if ( end < y.end ) { return true; }
+    if ( end > y.end ) { return false; }
+    return false;
+}

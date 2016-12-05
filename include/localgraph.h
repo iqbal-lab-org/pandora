@@ -22,6 +22,13 @@ class LocalGraph {
     void write_gfa (const string&);
     vector<Path> walk(const uint32_t&, const uint32_t&, const uint32_t&);
     bool operator == (const LocalGraph& y) const;
+    void add_read_support_node (LocalNode*);
+    void add_read_support_edge (LocalNode*, LocalNode*);
+    vector<deque<LocalNode*>> node_step_forwards(vector<deque<LocalNode*>>&);
+    vector<deque<LocalNode*>> node_step_back(vector<deque<LocalNode*>>&);
+    void infer_read_supported_graph();
+    vector<deque<LocalNode*>> get_read_supported_graph_paths(deque<LocalNode*>&);
+    void write_read_supported_graph_paths(const string&);
 };
 
 #endif

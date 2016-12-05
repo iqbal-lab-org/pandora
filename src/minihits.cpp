@@ -41,6 +41,15 @@ bool pComp::operator()(MinimizerHit* lhs, MinimizerHit* rhs) {
         return (*lhs)<(*rhs);
 }
 
+bool pComp_path::operator()(MinimizerHit* lhs, MinimizerHit* rhs) {
+	if (!(lhs->prg_path==rhs->prg_path))
+	{
+            return lhs->prg_path<rhs->prg_path;
+	} else {
+	    return lhs->read_id<rhs->read_id;
+	}
+}
+
 bool clusterComp::operator()(set<MinimizerHit*, pComp> lhs, set<MinimizerHit*, pComp> rhs) {
     if ((*lhs.begin())->read_interval.start < (*rhs.begin())->read_interval.start) { return true; }
     if ((*rhs.begin())->read_interval.start < (*lhs.begin())->read_interval.start) { return false; }

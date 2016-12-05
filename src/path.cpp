@@ -93,11 +93,17 @@ Path Path::subpath(const uint32_t start, const uint32_t len) const
 
 bool Path::operator < ( const Path& y) const
 {
-    if (start < y.start) { return true; }
-    if (start > y.start) { return false; }
-    if ( end < y.end ) { return true; }
-    if ( end > y.end ) { return false; }
-    return false;
+    std::deque<Interval>::const_iterator it2=y.path.begin();
+    for (std::deque<Interval>::const_iterator it=path.begin(); it!=path.end();)
+    {
+        if (!(*it==*it2)) //for the first interval which is not the same in both paths
+	{
+	    return (*it<*it2); // return interval comparison
+	}
+	it++;
+        it2++;
+    }
+    return false; // shouldn't ever call this
 }
 
 bool Path::operator == ( const Path& y) const

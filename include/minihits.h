@@ -15,6 +15,11 @@ struct pComp
   bool operator()(MinimizerHit* lhs, MinimizerHit* rhs);
 };
 
+struct pComp_path
+{
+  bool operator()(MinimizerHit* lhs, MinimizerHit* rhs);
+};
+
 struct clusterComp
 {
   bool operator()(set<MinimizerHit*, pComp> lhs, set<MinimizerHit*, pComp> rhs);

@@ -136,3 +136,192 @@ bool LocalGraph::operator == (const LocalGraph& y) const
     // otherwise is true
     return true;
 }
+
+void LocalGraph::add_read_support_node (LocalNode* n)
+{
+    n->supported_by_reads = true;
+    /*map<uint32_t, LocalNode*>::iterator it=nodes.find(id);
+    if(it==nodes.end())
+    {
+	cout << "Error, node " << id << " is not in this prg!"<< endl;
+    } else {
+	it->second->supported_by_reads = true;
+    }*/
+    return; 
+}
+
+void LocalGraph::add_read_support_edge (LocalNode* f, LocalNode* t)
+{
+    if (find(f->supported_outNodes.begin(), f->supported_outNodes.end(), t)==f->supported_outNodes.end())
+    {
+        f->supported_outNodes.push_back(t);
+        f->supported_out_deg+=1;
+        t->supported_in_deg+=1;
+    }
+    /*map<uint32_t, LocalNode*>::iterator from_it=nodes.find(from);
+    map<uint32_t, LocalNode*>::iterator to_it=nodes.find(to);
+    assert((from_it!=nodes.end()) && (to_it!=nodes.end())); // NODE_MISSING_ERROR
+    if((from_it!=nodes.end()) && (to_it!=nodes.end()))
+    {
+        LocalNode *f = (nodes.find(from)->second);
+        LocalNode *t = (nodes.find(to)->second);
+	//assert(f->supported_by_reads==true && t->supported_by_reads==true);
+	// if it is not already there...
+	if (find(f->supported_outNodes.begin(), f->supported_outNodes.end(), t)==f->supported_outNodes.end())
+	{
+            f->supported_outNodes.push_back(t);
+	    f->supported_out_deg+=1;
+	    t->supported_in_deg+=1;
+	}
+        //cout << "Added edge (" << f->id << ", " << t->id << ")" << endl;
+    }*/
+    return;
+}
+
+vector<deque<LocalNode*>> LocalGraph::node_step_forwards(vector<deque<LocalNode*>>& in_node_paths)
+{
+    vector<deque<LocalNode*>> out_node_paths;
+    for(uint32_t i=0; i<in_node_paths.size(); ++i)
+    {
+	for(uint32_t j=0; j<in_node_paths[i].back()->outNodes.size(); ++j)
+	{
+	    out_node_paths.push_back(in_node_paths[i]);
+	    out_node_paths.back().push_back(in_node_paths[i].back()->outNodes[j]);
+	}
+    }
+    return out_node_paths;
+}
+
+vector<deque<LocalNode*>> LocalGraph::node_step_back(vector<deque<LocalNode*>>& in_node_paths)
+{
+    vector<deque<LocalNode*>> out_node_paths;
+    for(uint32_t i=0; i<in_node_paths.size(); ++i)
+    {
+	for(map<uint32_t, LocalNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
+	{
+	    for (uint32_t j=0; j<it->second->outNodes.size(); ++j)
+	    {
+		if(it->second->outNodes[j]==in_node_paths[i].front())
+		{
+                    out_node_paths.push_back(in_node_paths[i]);
+                    out_node_paths.back().push_front(it->second);
+		}
+            }
+        }
+    }
+    return out_node_paths;
+}
+
+void LocalGraph::infer_read_supported_graph()
+{
+    // first work out what edges are supported
+    // start by adding any edges from one supported node to another supported node
+    for(map<uint32_t, LocalNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
+    {
+	if (it->second->supported_by_reads==true)
+	{
+            for (uint32_t j=0; j<it->second->supported_outNodes.size(); ++j)
+            {
+		if (it->second->supported_outNodes[j]->supported_by_reads==true)
+		{
+		    add_read_support_edge(it->second, it->second->supported_outNodes[j]);
+		}
+            }
+	}
+    }
+
+    // then look for nodes which have in degree or out degree < 1 and try to connect to nearest (in node steps) supported node
+    for(map<uint32_t, LocalNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
+    {
+        if (it->second->supported_by_reads==true && it->second->supported_out_deg < 1)
+	{
+	    bool found_supported_node = false;
+	    vector<deque<LocalNode*>> v = {{it->second}};
+	    while(found_supported_node == false)
+	    {
+		v = node_step_forwards(v);
+		for(uint32_t i=0; i<v.size(); ++i)
+		{
+		    if (v[i].back()->supported_by_reads==true or v[i].back()->id==nodes.size()-1) // ie if found a supported read, or reached the end of the graph
+		    {
+			// for each pair in node-path v[i] add it as a supported path
+			for (uint32_t j = 1; j!= v[i].size(); ++j)
+			{
+			    add_read_support_node(v[i][j]);
+			    add_read_support_edge(v[i][j-1], v[i][j]);
+			}
+			found_supported_node = true;
+		    }
+		}
+	    }
+	} else if (it->second->supported_by_reads==true && it->second->supported_in_deg < 1)
+	{
+	    bool found_supported_node = false;
+            vector<deque<LocalNode*>> v = {{it->second}};
+            while(found_supported_node == false)
+            {
+                v = node_step_back(v);
+                for(uint32_t i=0; i<v.size(); ++i)
+                {
+                    if (v[i].front()->supported_by_reads==true or v[i].front()->id==0) // ie if found a supported read, or reached the front of the graph
+                    {
+                        // for each pair in node-path v[i] add it as a supported path
+                        for (uint32_t j = 0; j!= v[i].size() - 1; ++j)
+                        {
+                            add_read_support_node(v[i][j]);
+                            add_read_support_edge(v[i][j], v[i][j+1]);
+                        }
+                        found_supported_node = true;
+                    }   
+                }
+            }
+	}
+    }
+    return;
+}
+
+vector<deque<LocalNode*>> LocalGraph::get_read_supported_graph_paths(deque<LocalNode*>& in_node_path)
+{
+    vector<deque<LocalNode*>> out_node_paths;
+    for(uint32_t j=0; j<in_node_path.back()->outNodes.size(); ++j)
+    {
+	if (in_node_path.back()->outNodes[j]->supported_by_reads==true)
+	{
+            out_node_paths.push_back(in_node_path);
+            out_node_paths.back().push_back(in_node_path.back()->outNodes[j]);
+	}
+    }
+    return out_node_paths;
+}
+
+void LocalGraph::write_read_supported_graph_paths(const string& filepath)
+{
+    ofstream handle;
+    handle.open (filepath);
+
+    uint32_t path_num = 0;
+    vector<deque<LocalNode*>> v, new_supported_node_paths, supported_node_paths = {{nodes.begin()->second}};
+    while (supported_node_paths.size()>0)
+    {
+	new_supported_node_paths.clear();
+	for (uint32_t i=0; i!=supported_node_paths.size(); ++i)
+	{
+	    if(supported_node_paths[i].back()->id==nodes.size()-1)
+	    {
+		// write to file
+                handle << ">path_" << path_num << endl;
+		for (uint32_t j=0; j!=supported_node_paths[i].size(); ++j)
+		{
+		    handle << supported_node_paths[i][j]->seq;
+		}
+		handle << endl;
+		path_num += 1;
+	    } else {
+		//step forward
+		v = get_read_supported_graph_paths(supported_node_paths[i]);
+	        new_supported_node_paths.insert(new_supported_node_paths.end(), v.begin(), v.end());
+	    }
+	}
+    }
+    return;
+}

@@ -12,5 +12,7 @@ struct Interval {
     Interval(uint32_t=0, uint32_t=0);
     friend std::ostream& operator<< (std::ostream& out, const Interval& i); 
     bool operator == (const Interval& y) const;
+    bool operator != (const Interval& y) const;
+    bool operator < (const Interval& y) const;
 };
 #endif

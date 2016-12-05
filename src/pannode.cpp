@@ -15,10 +15,10 @@ void PanNode::add_read(const uint32_t j)
     foundReads.push_back(j);
 }
 
-/*void Node::add_hits(set<MinimizerHit*> c)
+void PanNode::add_hits(const set<MinimizerHit*, pComp>& c)
 {
     foundHits.insert(c.begin(), c.end());
-}*/
+}
 
 bool PanNode::operator == (const PanNode& y) const {
     if (id!= y.id) {return false;}
