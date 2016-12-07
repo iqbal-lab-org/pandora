@@ -445,7 +445,6 @@ void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>& prgs, PanNo
     }
 
 
-
     /*// now work out which nodes of graph have support from a kmer with prob > p_thresh
     cout << "now look at which nodes of prg have support" << endl;
     uint32_t num_supported_nodes = 0;
