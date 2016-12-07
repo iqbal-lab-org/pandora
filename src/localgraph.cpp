@@ -52,7 +52,7 @@ void LocalGraph::add_varsite (const uint8_t level, const uint32_t pre_site_id, c
 {
     assert(pre_site_id < post_site_id);
     map<uint8_t, vector<pair<uint32_t, uint32_t>>>::iterator it=index.find(level);
-    if(it==nodes.end())
+    if(it==index.end())
     {
 	vector<pair<uint32_t, uint32_t>> v;
 	v.push_back(make_pair(pre_site_id, post_site_id));

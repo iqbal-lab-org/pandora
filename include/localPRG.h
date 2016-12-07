@@ -38,7 +38,7 @@ class LocalPRG {
     //void get_covgs(MinimizerHits* minimizer_hits);
     void update_covg_with_hit(MinimizerHit* mh);
     //void update_covg_with_hits(deque<MinimizerHit*>& mhs);
-    void update_minimizer_counts_for_nodes(Path& p);
+    //void update_minimizer_counts_for_nodes(Path& p);
   friend ostream& operator<< (ostream& out, const LocalPRG& data);  
 };
 

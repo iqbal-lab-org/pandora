@@ -331,7 +331,7 @@ void update_covgs_from_hits(const vector<LocalPRG*>& prgs, MinimizerHits* mhs)
 
 float p_null(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_of_hits, uint32_t k)
 {
-   float p = (1 - pow(1 - pow(0.25, k), cluster_of_hits.size()))*(1 - pow(1 - pow(0.25, k), prgs[(*cluster_of_hits.begin())->prg_id]->num_minis));
+   float p = (1 - pow(1 - pow(0.25, k), cluster_of_hits.size()))*(1 - pow(1 - pow(0.25, k), prgs[(*cluster_of_hits.begin())->prg_id]->kmer_paths.size()));
    return p;
 }
 
@@ -401,7 +401,7 @@ void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>& prgs, PanNo
     cout << endl;
     cout << "found " << big_p_count << " probs > " << p_thresh << " with max and min probs " << p_max << ", " << p_min << endl;
 
-    // now work out which nodes of graph have support from a kmer with prob > p_thresh
+    /*// now work out which nodes of graph have support from a kmer with prob > p_thresh
     cout << "now look at which nodes of prg have support" << endl;
     uint32_t num_supported_nodes = 0;
     bool found_support;
@@ -440,7 +440,7 @@ void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>& prgs, PanNo
     cout << "next infer the read supported graph (connecting the supported nodes" << endl;
     prgs[pnode->id]->prg.infer_read_supported_graph();
     cout << "finally write the paths through the supported graph to fasta" << endl;
-    prgs[pnode->id]->prg.write_read_supported_graph_paths("supported_path_seqs" + prgs[pnode->id]->name + ".fasta");
+    prgs[pnode->id]->prg.write_read_supported_graph_paths("supported_path_seqs" + prgs[pnode->id]->name + ".fasta");*/
     return;
 }
 
