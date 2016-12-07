@@ -401,6 +401,51 @@ void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>& prgs, PanNo
     cout << endl;
     cout << "found " << big_p_count << " probs > " << p_thresh << " with max and min probs " << p_max << ", " << p_min << endl;
 
+    //now we iterate through the graph from the outmost level to the lowest level working out the most likely path(s)
+    //need 2 data structures, one to remember what the most probable path(s) were for var sites already considered
+    map<uint32_t, vector<pair<vector<LocalNode*>, float>>> max_path_index; // maps from pre_site_ids seen before to a vector of pairs representing max node_paths and their probs (should be the same)
+    //and the second remembering which minimizing kmers have been seen/used before so not included multiple times in the probability
+    vector<bool> kmer_considered_before(prgs[pnode->id]->kmer_paths.size(),false);
+
+    // start with the outmost level
+    uint8_t max_level = 0;
+    for (auto const& element : prgs[pnode->id]->prg.index) {
+        max_level = max(max_level, element->first);
+    }
+    // and for each level..
+    for (uint8_t level = max_level; level > 0; --level)
+    {
+        // ...for each varsite at this level...
+        for (uint i = 0; i!=prgs[pnode->id]->prg.index[level].size(); ++i)
+        {
+	    // ...find the maximally probable paths through varsite
+            vector<pair<vector<LocalNode*>, float>> u, v, w;
+
+            // add the first node of each alternate allele for the varsite to a vector
+            // pre_site_id is prgs[pnode->id]->prg.index[level][i]->first
+            uint32_t pre_site_id is prgs[pnode->id]->prg.index[level][i]->first;
+            for (uint j = 0; j!=prgs[pnode->id]->prg.nodes[pre_site_id]->outNodes.size(); ++j)
+	    {
+		u.push_back(make_pair({prgs[pnode->id]->prg.nodes[pre_site_id]->outNodes[j]}, 1));
+	    } 
+
+            // then until we reach the end varsite:
+            // for each pair in u
+            // if the path in the pair ends at the end of the varsite, it is a done path, add to w
+            // otherwise look up the last node in the max_path_index
+            // if it is there, then we can multiple the running total prob for this allele, and extend the path for each of the maximal paths through the sub_varsite
+            // and add the updated path/prob pairs to v
+            // if not, then work out which minhits overlap this node, and multiply their probabilities, then add the outnode to the end (should only be 1) to get a new path/prob pair to add to v
+            // during this process, update kmer_considered_before to reflect the minihits now used in probabilities
+            // once done for all v, set u = v
+            // when u empty, should have final set in w
+            // work out the max of the probs for pairs in w
+            // add this new max to max_path_index
+	}
+    }
+
+
+
     /*// now work out which nodes of graph have support from a kmer with prob > p_thresh
     cout << "now look at which nodes of prg have support" << endl;
     uint32_t num_supported_nodes = 0;
