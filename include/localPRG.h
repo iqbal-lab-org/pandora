@@ -24,9 +24,9 @@ class LocalPRG {
     string name;
     string seq;
     LocalGraph prg;
-    vector<Path*> kmer_paths;
-    uint32_t max_level; // maximum number of levels of bubbles on bubbles
-    uint32_t num_minis; //number of minimizers in sketch of PRG total
+    vector<Path> kmer_paths;
+    //uint32_t max_level; // maximum number of levels of bubbles on bubbles
+    //uint32_t num_minis; //number of minimizers in sketch of PRG total
     //set<Minimizer*, pMiniComp> sketch;
     LocalPRG(uint32_t, string, string);
     //~LocalPRG();

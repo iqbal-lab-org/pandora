@@ -19,7 +19,7 @@
 using std::vector;
 using namespace std;
 
-LocalPRG::LocalPRG (uint32_t i, string n, string p): next_id(0),buff(" "), next_site(5), id(i), name(n), seq(p), max_level(0), num_minis(0)
+LocalPRG::LocalPRG (uint32_t i, string n, string p): next_id(0),buff(" "), next_site(5), id(i), name(n), seq(p)//, max_level(0), num_minis(0)
 {
     //cout << "Making new LocalPRG instance " << name << endl;
     vector<uint32_t> v;
@@ -101,6 +101,7 @@ vector<Interval> LocalPRG::splitBySite(const Interval& i)
 	v.push_back(Interval(k, i.end));
 	//cout << "a3" << endl;
     }
+    //assert(v.size()==1 or v.size()==3);
 
     // then split by var site + 1
     vector<Interval> w;
@@ -157,8 +158,8 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
     string s = seq.substr(i.start, i.length); //check length correct with this end...
     if (isalpha_string(s)) // should return true for empty string too
     {
-	prg.add_node(next_id, s, i, current_level);
-	max_level = max(max_level, current_level);
+	prg.add_node(next_id, s, i);
+	//max_level = max(max_level, current_level);
 	// add edges from previous part of graph to start of this interval
         //cout << "from_ids: ";
         for (uint32_t j=0; j!=from_ids.size(); j++)
@@ -187,8 +188,9 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
             cerr << "After splitting by site " << next_site << " do not have alphabetic sequence before var site: " << v[0] << endl;
             exit(-1);
         }
-	prg.add_node(next_id, s, v[0], current_level);
-	max_level = max(max_level, current_level);
+	prg.add_node(next_id, s, v[0]);
+	uint32_t pre_site_id = next_id;
+	//max_level = max(max_level, current_level);
 	// add edges from previous part of graph to start of this interval
         //cout << "from_ids: ";
         for (uint32_t j=0; j!=from_ids.size(); j++)
@@ -207,6 +209,8 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
 	    vector<uint32_t> w = build_graph(v[j], mid_ids, current_level+1);
 	    end_ids.insert(end_ids.end(), w.begin(), w.end());
 	}
+	// add this varsite to index
+	prg.add_varsite (current_level + 1, pre_site_id, next_id);
 	// add end interval
 	end_ids = build_graph(v.back(), end_ids);
     }
@@ -214,6 +218,51 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
 }
 
 void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
+{
+    //cout << "START SKETCH FUNCTION" << endl;
+    vector<Path> walk_paths;
+    deque<Interval> d;
+    Path current_path, kmer_path, prev_path;
+    string kmer;
+    pair<uint64_t, uint64_t> kh;
+    uint64_t smallest = std::numeric_limits<uint64_t>::max();
+
+    for (map<uint32_t,LocalNode*>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
+    {
+        //cout << "Processing node" << it->second->id << endl;
+        // if node has long seq, there will be no branching until  reach len-(w+k-1)th position
+        for (uint32_t i=it->second->pos.start; i!=max(it->second->pos.start+w+k, it->second->pos.end+1)-w-k; ++i)
+        {
+            //cout << "Node has been deemed long enough and " << it->second->pos.start << " <= " << i << " <= " << it->second->pos.end - w - k + 1 << endl; 
+            assert(i < it->second->pos.end - w - k + 1);
+            assert(i >= it->second->pos.start);
+            // if window pos is first for node or the previous minimizer starts outside current window, calculate new mini from scratch
+            if((i == it->second->pos.start) or (prev_path.start < i))
+            {
+                smallest = std::numeric_limits<uint64_t>::max();
+                // find the lex smallest kmer in the window
+                for (uint32_t j = 0; j < w; j++)
+                {
+                    d = {Interval(i+j, i+j+k)};
+                    kmer_path.initialize(d);
+                    kmer = string_along_path(kmer_path);
+                    kh = kmerhash(kmer, k);
+                    smallest = min(smallest, min(kh.first, kh.second));
+                }
+                for (uint32_t j = 0; j < w; j++)
+                {
+                    d = {Interval(i+j, i+j+k)};
+                    kmer_path.initialize(d);
+                    kmer = string_along_path(kmer_path);
+                    kh = kmerhash(kmer, k);
+                    if (kh.first == smallest)
+                    {
+                        //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                        idx->add_record(kh.first, id, kmer_path, 0);
+                        kmer_paths.push_back(kmer_path);
+                        update_minimizer_counts_for_nodes(kmer_path);
+
+/*void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 {
     //cout << "START SKETCH FUNCTION" << endl;
     vector<Path> walk_paths;
@@ -255,14 +304,14 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                     {
 			//cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                         idx->add_record(kh.first, id, kmer_path, 0);
-			kmer_paths.push_back(&kmer_path);
+			kmer_paths.push_back(kmer_path);
 			update_minimizer_counts_for_nodes(kmer_path);
                         prev_path = kmer_path;
                     } else if (kh.second == smallest)
                     {
                         //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                         idx->add_record(kh.second, id, kmer_path, 1);
-			kmer_paths.push_back(&kmer_path);
+			kmer_paths.push_back(kmer_path);
 			update_minimizer_counts_for_nodes(kmer_path);
                         prev_path = kmer_path;
                     }
@@ -278,14 +327,14 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                 {
 		    //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                     idx->add_record(kh.first, id, kmer_path, 0);
-		    kmer_paths.push_back(&kmer_path);
+		    kmer_paths.push_back(kmer_path);
 		    update_minimizer_counts_for_nodes(kmer_path);
                     prev_path = kmer_path;
                 } else if(kh.second <= smallest)
                 {
                     //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                     idx->add_record(kh.second, id, kmer_path, 1);
-		    kmer_paths.push_back(&kmer_path);
+		    kmer_paths.push_back(kmer_path);
 		    update_minimizer_counts_for_nodes(kmer_path);
                     prev_path = kmer_path;
                 }
@@ -330,13 +379,13 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		    	{
                             //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
 			    idx->add_record(kh.first, id, kmer_path, 0);
-			    kmer_paths.push_back(&kmer_path);
+			    kmer_paths.push_back(kmer_path);
 			    update_minimizer_counts_for_nodes(kmer_path);
 		    	} else if (kh.second == smallest)
                         {
                             //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                             idx->add_record(kh.second, id, kmer_path, 1);
-			    kmer_paths.push_back(&kmer_path);
+			    kmer_paths.push_back(kmer_path);
 			    update_minimizer_counts_for_nodes(kmer_path);
                         }
 		    }
@@ -344,7 +393,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	    }
 	}
     }
-}
+}*/
 
 std::ostream& operator<< (std::ostream & out, LocalPRG const& data) {
     out << data.name;
@@ -424,7 +473,7 @@ void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
 void LocalPRG::update_minimizer_counts_for_nodes(Path& p)
 {
     // update total num_minis for PRG
-    num_minis+=1;
+    //num_minis+=1;
 
     // then for each interval of the record...
     for (deque<Interval>::const_iterator it=p.path.begin(); it!=p.path.end(); ++it)

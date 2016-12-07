@@ -136,7 +136,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
             //if (current_cluster.size() > cluster_thresh)
             pn = p_null(prgs, current_cluster, k);
 	    cout << "pnull is " << pn << " for cluster of size " << current_cluster.size() << endl;
-            if (pn < 0.5)
+            if (pn < 0.05)
             {
                 //cout << "Found cluster of size: " << current_cluster.size() << " ending with " << **mh_previous << ". Next hit " << **mh_current << endl;
                 clusters_of_hits.insert(current_cluster);
@@ -153,7 +153,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     //if (current_cluster.size() > cluster_thresh)
     pn = p_null(prgs, current_cluster, k);
     cout << "pnull is " << pn << " for cluster of size " << current_cluster.size() << endl;
-    if (pn < 0.5)
+    if (pn < 0.05)
     {
         clusters_of_hits.insert(current_cluster);
         //cout << "Found final cluster of size: " << current_cluster.size() << " ending with " << **mh_previous << endl;
@@ -273,6 +273,18 @@ void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* 
         sdt = dt.substr(0,dt.length()-1);
         cout << sdt << " Update coverages within genes" << endl;
         update_covgs_from_hits(prgs, mh);
+        now = time(0);
+        dt = ctime(&now);
+        sdt = dt.substr(0,dt.length()-1);
+        cout << sdt << " Infer overlapped PRG paths for each PRG present" << endl;
+        for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode) 
+	{
+	    now = time(0);
+            dt = ctime(&now);
+            sdt = dt.substr(0,dt.length()-1);
+            cout << sdt << " Looking at PRG " << pnode->second->id << endl;
+	    infer_most_likely_prg_path_for_pannode(prgs, pnode->second, k, 0.0015);
+	}
         delete mh;
         myfile.close();
     } else {
@@ -328,43 +340,70 @@ void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>& prgs, PanNo
     // note that within the foundHits, hits which map to same read, prg and strand will be grouped together
     // we want to know for each prg minimizer, how much support there is from the reads
     // start by counting how many hits against each minimizing_kmer of prg
+    cout << "start by counting how many hits against each minimizing kmer in prg" << endl;
     vector<uint32_t> kmer_path_hit_counts(prgs[pnode->id]->kmer_paths.size(),0);  
+    cout << "there are " << prgs[pnode->id]->kmer_paths.size() << " minimizing kmers to count hits against" << endl;
     set<MinimizerHit*, pComp_path>::iterator mh_previous = pnode->foundHits.begin();
-    for (set<MinimizerHit*, pComp_path>::iterator mh = pnode->foundHits.begin(); mh != pnode->foundHits.end(); ++mh)
+    uint32_t num_hits = 1, num_kmers=0;
+    for (set<MinimizerHit*, pComp_path>::iterator mh = (pnode->foundHits.begin()); mh != pnode->foundHits.end();)
     {
-	uint32_t num_hits = 0, num_kmers=0;
-	if ((*mh)->strand != (*mh_previous)->strand or !((*mh)->prg_path == (*mh_previous)->prg_path))
+	mh++;
+	if (mh==pnode->foundHits.end() or (*mh)->strand != (*mh_previous)->strand or !((*mh)->prg_path == (*mh_previous)->prg_path))
 	{
 	    for (uint32_t i=num_kmers; i!=prgs[pnode->id]->kmer_paths.size(); ++i)
 	    {
-		if (*(prgs[pnode->id]->kmer_paths[i])==(*mh_previous)->prg_path)
+		if (prgs[pnode->id]->kmer_paths[i]==(*mh_previous)->prg_path)
 		{
+		    //cout << "found path " << prgs[pnode->id]->kmer_paths[i] << " == " << (*mh_previous)->prg_path << endl;
 		    kmer_path_hit_counts[i] = num_hits;
-		    num_hits = 0;
+		    //cout << "kmer_path_hit_counts[" << i << "] = " << num_hits << endl;
+		    num_hits = 1;
 		    num_kmers +=1;
 		    break;
 		}
 	    }
-	    assert(num_hits==0);
+	    assert(num_hits==1);
 	} else {
 	    num_hits += 1;
+	    //cout << num_hits << " ";
 	}
-	mh_previous = mh;
+	mh_previous++;
     }
+
+    uint32_t sum_of_elems = 0;
+    for (uint32_t n : kmer_path_hit_counts)
+    {sum_of_elems += n;}
+    cout << "after adding counts of the " << pnode->foundHits.size() << " hits, have still got " << sum_of_elems << " hits added to tallies" << endl;
+    assert(sum_of_elems==pnode->foundHits.size());
 
     // now for each of the minimizing kmers, work out the prob of seeing this number of hits given the number of reads
     // this is the bit where I assume that we have an independent trial for each read (binomial hit counts for true kmers)
+    cout << "next work out prob of seeing this number of hits against a kmer assuming it is truly present" << endl;
+    float p_thresh=0.5;
     vector<float> kmer_path_probs;
-    float p_kmer, p;
-    uint32_t n = pnode->foundReads.size();
+    float p_kmer, p=1/exp(e_rate*k), p_max=0, p_min=1;
+    uint32_t n = pnode->foundReads.size(), big_p_count=0;
+    cout << "n: " << n << ", p: " << p << endl;
+    cout << "count:0 " << nchoosek(n,0) << " * " << pow(p,0) << " * " << pow(1-p,n-0) << endl;
+    cout << "count:1 " << nchoosek(n,1) << " * " << pow(p,1) << " * " << pow(1-p,n-1) << endl;
     for (uint32_t i=0; i!=kmer_path_hit_counts.size(); ++i)
     {
-	p = exp(-e_rate*k);
         p_kmer = nchoosek(n, kmer_path_hit_counts[i])*pow(p,kmer_path_hit_counts[i])*pow(1-p,n-kmer_path_hit_counts[i]);
         kmer_path_probs.push_back(p_kmer);
+        p_max = max(p_max, p_kmer);
+        p_min = min(p_min, p_kmer);
+	if(p_kmer>p_thresh)
+        {
+            //cout << p_kmer << " ";
+            big_p_count+=1;
+        }
     }
+    cout << endl;
+    cout << "found " << big_p_count << " probs > " << p_thresh << " with max and min probs " << p_max << ", " << p_min << endl;
 
-    // now work out which nodes of graph have support from a kmer with prob > 0.5
+    // now work out which nodes of graph have support from a kmer with prob > p_thresh
+    cout << "now look at which nodes of prg have support" << endl;
+    uint32_t num_supported_nodes = 0;
     bool found_support;
     // i.e. for each prg node...
     for (map<uint32_t,LocalNode*>::iterator n=prgs[pnode->id]->prg.nodes.begin(); n!=prgs[pnode->id]->prg.nodes.end(); ++n)
@@ -374,15 +413,16 @@ void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>& prgs, PanNo
 	//...check each minimizer...
 	while(found_support == false and i!=prgs[pnode->id]->kmer_paths.size())
 	{
-	    //...and if it has prob > 0.5 and overlaps the node, then the node has support
-	    if (kmer_path_probs[i]>0.5)
+	    //...and if it has prob > p_thresh and overlaps the node, then the node has support
+	    if (kmer_path_probs[i]>p_thresh)
 	    {
-	        for (deque<Interval>::const_iterator it=prgs[pnode->id]->kmer_paths[i]->path.begin(); it!=prgs[pnode->id]->kmer_paths[i]->path.end(); ++it)
+	        for (deque<Interval>::const_iterator it=prgs[pnode->id]->kmer_paths[i].path.begin(); it!=prgs[pnode->id]->kmer_paths[i].path.end(); ++it)
                 {
 		    if (it->end > n->second->pos.start and it->start < n->second->pos.end)
 		    {
 			prgs[pnode->id]->prg.add_read_support_node(n->second);
 			found_support = true;
+			num_supported_nodes += 1;
 			break; //breaks loop over intervals in minimizer
 		    }
                 }
@@ -390,12 +430,17 @@ void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>& prgs, PanNo
 	    ++i;
 	}
     }
+    cout << "found " << num_supported_nodes << " supported nodes" << endl;
+    assert(num_supported_nodes>0);
+    assert(num_supported_nodes<kmer_path_hit_counts.size());
 
     // now infer the paths through these supported nodes
     // for now, write them straight to a fasta
     // in future, could choose most likely of these paths
+    cout << "next infer the read supported graph (connecting the supported nodes" << endl;
     prgs[pnode->id]->prg.infer_read_supported_graph();
-    prgs[pnode->id]->prg.write_read_supported_graph_paths("supported_path_seqs.fasta");
+    cout << "finally write the paths through the supported graph to fasta" << endl;
+    prgs[pnode->id]->prg.write_read_supported_graph_paths("supported_path_seqs" + prgs[pnode->id]->name + ".fasta");
     return;
 }
 
@@ -407,6 +452,7 @@ uint32_t nchoosek (uint32_t n, uint32_t k)
 
     if (n == 0) {return 0;}
     if (k == 0) {return 1;}
+    if (n == k) {return 1;}
     
     return (n * nchoosek(n - 1, k - 1)) / k;
 }
