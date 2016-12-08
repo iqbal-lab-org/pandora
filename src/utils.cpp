@@ -423,26 +423,70 @@ void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>& prgs, PanNo
 	    vector<LocalNode*> x;
 
             // add the first node of each alternate allele for the varsite to a vector
-            // pre_site_id is prgs[pnode->id]->prg.index[level][i]->first
-            uint32_t pre_site_id = prgs[pnode->id]->prg.index[level][i].first;
+            uint32_t pre_site_id = prgs[pnode->id]->prg.index[level][i].first, post_site_id = prgs[pnode->id]->prg.index[level][i].second;
             for (uint j = 0; j!=prgs[pnode->id]->prg.nodes[pre_site_id]->outNodes.size(); ++j)
 	    {
 		x.push_back(prgs[pnode->id]->prg.nodes[pre_site_id]->outNodes[j]);
 		u.push_back(make_pair(x, 1));
+		x.clear();
 	    } 
 
             // then until we reach the end varsite:
-            // for each pair in u
-            // if the path in the pair ends at the end of the varsite, it is a done path, add to w
-            // otherwise look up the last node in the max_path_index
-            // if it is there, then we can multiple the running total prob for this allele, and extend the path for each of the maximal paths through the sub_varsite
-            // and add the updated path/prob pairs to v
-            // if not, then work out which minhits overlap this node, and multiply their probabilities, then add the outnode to the end (should only be 1) to get a new path/prob pair to add to v
-            // during this process, update kmer_considered_before to reflect the minihits now used in probabilities
-            // once done for all v, set u = v
-            // when u empty, should have final set in w
-            // work out the max of the probs for pairs in w
-            // add this new max to max_path_index
+	    while (u.size()>0)
+	    {
+                // for each pair in u
+                for (uint j = 0; j!=u.size(); ++j)
+		{
+            	    // if the path in the pair ends at the end of the varsite, it is a done path, add to w
+            	    if (u[j].first.back()->id == post_site_id)
+		    {
+			w.push_back(u[j]);
+		    } else {
+            		// otherwise look up the last node in the max_path_index
+            		// if it is there, then we can multiple the running total prob for this allele, 
+            		// and extend the path for each of the maximal paths through the sub_varsite
+            		// and add the updated path/prob pairs to v
+            		map<uint32_t, vector<pair<vector<LocalNode*>, float>>>::iterator it=max_path_index.find(u[j].first.back()->id);
+            		if (it != max_path_index.end())
+			{
+			    //extend node path with the max paths seen before from this point
+			    for (uint n = 0; n!=it->second.size(); ++n)
+			    {
+				v.push_back(u[j]);
+				v.back().first.insert(v.back().first.end(), it->second[n].first.begin(), it->second[n].first.end());
+				v.back().second = v.back().second * it->second[n].second;
+			    }
+			} else {
+            		    // if not, then work out which minhits overlap this node, and multiply their probabilities, 
+            		    // then add the outnode to the end (should only be 1) to get a new path/prob pair to add to v
+                            // during this process, update kmer_considered_before to reflect the minihits now used in probabilities
+                        }
+		    }
+		}
+		// once done for all of what was in u, set u = v
+		u = v;
+	    }
+	    // when u empty, should have final set in w and can work out the max of the probs
+	    float max_prob = 0;
+	    // find max for all probs we could work out values for
+    	    for (uint n = 0; n!=w.size(); ++n)
+	    {
+		if (w[n].second != 1) // if no mini kmers in prg overlapping node, can't define prob data came from that node, 
+			    		           // so set the prob to 1 intially, then set to max path value 
+						   // only happens for really short paths
+		{
+		    max_prob = max(max_prob, w[n].second);
+		}
+	    }
+            // now add both those paths achieving max, and paths cannot judge to max_path_index
+	    max_path_index[pre_site_id] = u; // know u is empty vector
+            for (uint n = 0; n!=w.size(); ++n)
+            {
+		if (w[n].second == 1 or w[n].second == max_prob)
+		{
+		    max_path_index[pre_site_id].push_back(w[n]); // know u is empty vector
+		}
+	    }
 	}
     }
 
