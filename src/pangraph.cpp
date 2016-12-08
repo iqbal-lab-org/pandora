@@ -18,6 +18,23 @@ PanGraph::~PanGraph()
     delete c.second;
   }
 }
+void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id) // make cluster and optional parameter, by defining two functions
+{
+    map<uint32_t, PanNode*>::iterator it=nodes.find(prg_id);
+    if(it==nodes.end())
+    {
+        PanNode *n;
+        n = new PanNode(prg_id);
+        nodes[prg_id] = n;
+        //cout << "Added node " << *n << endl;
+        n->add_read(read_id);
+    } else {
+        //cout << "Node " << prg_id << " was already in graph" << endl;
+        it->second->add_read(read_id);
+    }
+    return;
+}
+
 void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id, const set<MinimizerHit*, pComp>& cluster)
 {
     map<uint32_t, PanNode*>::iterator it=nodes.find(prg_id);

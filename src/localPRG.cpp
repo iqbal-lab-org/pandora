@@ -230,50 +230,54 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 
     for (map<uint32_t,LocalNode*>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
     {
-        //cout << "Processing node" << it->second->id << endl;
-        // if node has long seq, there will be no branching until  reach len-(w+k-1)th position
-        for (uint32_t i=max(it->second->pos.start, prev_path.end); i<max(it->second->pos.start+w+k, it->second->pos.end+1)-w-k;)
-        {
-            //cout << "Node has been deemed long enough and " << it->second->pos.start << " <= " << i << " <= " << it->second->pos.end - w - k + 1 << endl; 
-            assert(i < it->second->pos.end - w - k + 1);
-            assert(i >= it->second->pos.start);
-            // if window pos is first for node or the previous minimizer starts outside current window, calculate new mini from scratch
-            if((i == it->second->pos.start) or (prev_path.start < i))
+	if (it->second->pos.end < prev_path.end)
+	{
+	    //if the end of the previous path is after the end of this (short) node, skip to the next one
+	
+            //cout << "Processing node" << it->second->id << endl;
+            // if node has long seq, there will be no branching until  reach len-(w+k-1)th position
+            for (uint32_t i=max(it->second->pos.start, prev_path.end); i!=max(it->second->pos.start+w+k, it->second->pos.end+1)-w-k;)
             {
-                smallest = std::numeric_limits<uint64_t>::max();
-                // find the lex smallest kmer in the window
-                for (uint32_t j = 0; j < w; j++)
+                //cout << "Node has been deemed long enough and " << it->second->pos.start << " <= " << i << " <= " << it->second->pos.end - w - k + 1 << endl; 
+                assert(i < it->second->pos.end - w - k + 1);
+                assert(i >= it->second->pos.start);
+                // if window pos is first for node or the previous minimizer starts outside current window, calculate new mini from scratch
+                if((i == it->second->pos.start) or (prev_path.start < i))
                 {
-                    d = {Interval(i+j, i+j+k)};
-                    kmer_path.initialize(d);
-                    kmer = string_along_path(kmer_path);
-                    kh = kmerhash(kmer, k);
-                    smallest = min(smallest, min(kh.first, kh.second));
-                }
-                for (uint32_t j = 0; j < w; j++)
-                {
-                    d = {Interval(i+j, i+j+k)};
-                    kmer_path.initialize(d);
-                    kmer = string_along_path(kmer_path);
-                    kh = kmerhash(kmer, k);
-                    if (kh.first == smallest)
+                    smallest = std::numeric_limits<uint64_t>::max();
+                    // find the lex smallest kmer in the window
+                    for (uint32_t j = 0; j < w; j++)
                     {
-                        //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
-                        idx->add_record(kh.first, id, kmer_path, 0);
-                        kmer_paths.push_back(kmer_path);
-                        //update_minimizer_counts_for_nodes(kmer_path);
-                        prev_path = kmer_path;
-                    } else if (kh.second == smallest)
-                    {
-                        //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
-                        idx->add_record(kh.second, id, kmer_path, 1);
-                        kmer_paths.push_back(kmer_path);
-                        //update_minimizer_counts_for_nodes(kmer_path);
-                        prev_path = kmer_path;
+                        d = {Interval(i+j, i+j+k)};
+                        kmer_path.initialize(d);
+                        kmer = string_along_path(kmer_path);
+                        kh = kmerhash(kmer, k);
+                        smallest = min(smallest, min(kh.first, kh.second));
                     }
-                }
-            } else {
-		cout << "ERROR, should always start outside window now" << endl;
+                    for (uint32_t j = 0; j < w; j++)
+                    {
+                        d = {Interval(i+j, i+j+k)};
+                        kmer_path.initialize(d);
+                        kmer = string_along_path(kmer_path);
+                        kh = kmerhash(kmer, k);
+                        if (kh.first == smallest)
+                        {
+                            //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                            idx->add_record(kh.first, id, kmer_path, 0);
+                            kmer_paths.push_back(kmer_path);
+                            //update_minimizer_counts_for_nodes(kmer_path);
+                            prev_path = kmer_path;
+                        } else if (kh.second == smallest)
+                        {
+                            //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                            idx->add_record(kh.second, id, kmer_path, 1);
+                            kmer_paths.push_back(kmer_path);
+                            //update_minimizer_counts_for_nodes(kmer_path);
+                            prev_path = kmer_path;
+                        }
+                    }
+                } else {
+		    cout << "ERROR, should always start outside window now" << endl;
             /*// otherwise only need to do something if the kmer from the newest position at end of new window is smaller or equal to the previous smallest
                 d = {Interval(i+w-1, i+w-1+k)};
                 kmer_path.initialize(d);
@@ -296,60 +300,63 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                     prev_path = kmer_path;
                 }
                 smallest = min(smallest, min(kh.first, kh.second));*/
+                }
+	         i = prev_path.end;
+	        if (i > max(it->second->pos.start+w+k, it->second->pos.end+1)-w-k) { break;} // for some reason setting < rather than != in for loop doesn't work
             }
-	    i = prev_path.end;
-        }
 
         
-        for (uint32_t i=max(max(it->second->pos.start+w+k, it->second->pos.end+1)-w-k, prev_path.end); i<it->second->pos.end;)
-        {
-            walk_paths = prg.walk(it->second->id, i, w+k-1);
-            //cout << "for id, i: " << it->second->id << ", " << i << " found " << walk_paths.size() << " paths" << endl;
-            for (vector<Path>::iterator it2=walk_paths.begin(); it2!=walk_paths.end(); ++it2)
+            for (uint32_t i=max(max(it->second->pos.start+w+k, it->second->pos.end+1)-w-k, prev_path.end); i!=it->second->pos.end;)
             {
-                //cout << "Minimize path: " << *it2 << endl;
-                // find minimizer for this path 
-                smallest = std::numeric_limits<uint64_t>::max();
-                for (uint32_t j = 0; j != w; j++)
+                walk_paths = prg.walk(it->second->id, i, w+k-1);
+                //cout << "for id, i: " << it->second->id << ", " << i << " found " << walk_paths.size() << " paths" << endl;
+                for (vector<Path>::iterator it2=walk_paths.begin(); it2!=walk_paths.end(); ++it2)
                 {
-                    //cout << "i+j" << i+j << endl;
-                    kmer_path = it2->subpath(i+j,k);
-                    if (kmer_path.path.size() > 0)
+                    //cout << "Minimize path: " << *it2 << endl;
+                    // find minimizer for this path 
+                    smallest = std::numeric_limits<uint64_t>::max();
+                    for (uint32_t j = 0; j != w; j++)
                     {
-                        //cout << "found path" << endl;
-                        kmer = string_along_path(kmer_path);
-                        kh = kmerhash(kmer, k);
-                        smallest = min(smallest, min(kh.first, kh.second));
+                        //cout << "i+j" << i+j << endl;
+                        kmer_path = it2->subpath(i+j,k);
+                        if (kmer_path.path.size() > 0)
+                        {
+                            //cout << "found path" << endl;
+                            kmer = string_along_path(kmer_path);
+                            kh = kmerhash(kmer, k);
+                            smallest = min(smallest, min(kh.first, kh.second));
+                        }
                     }
-                }
-                //cout << "smallest word: " << smallest_word << endl;
-                for (uint32_t j = 0; j != w; j++)
-                {
-                    //cout << "i+j" << i+j << endl;
-                    kmer_path = it2->subpath(i+j,k);
-                    //cout << "kmer path" << kmer_path << endl;
-                    if (kmer_path.path.size() > 0)
+                    //cout << "smallest word: " << smallest_word << endl;
+                    for (uint32_t j = 0; j != w; j++)
                     {
-                        //cout << "found path" << endl;
-                        kmer = string_along_path(kmer_path);
-                        kh = kmerhash(kmer, k);
-                        if (kh.first == smallest)
+                        //cout << "i+j" << i+j << endl;
+                        kmer_path = it2->subpath(i+j,k);
+                        //cout << "kmer path" << kmer_path << endl;
+                        if (kmer_path.path.size() > 0)
                         {
-                            //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
-                            idx->add_record(kh.first, id, kmer_path, 0);
-                            kmer_paths.push_back(kmer_path);
-                            //update_minimizer_counts_for_nodes(kmer_path);
-                        } else if (kh.second == smallest)
-                        {
-                            //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
-                            idx->add_record(kh.second, id, kmer_path, 1);
-                            kmer_paths.push_back(kmer_path);
-                            //update_minimizer_counts_for_nodes(kmer_path);
+                            //cout << "found path" << endl;
+                            kmer = string_along_path(kmer_path);
+                            kh = kmerhash(kmer, k);
+                            if (kh.first == smallest)
+                            {
+                                //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                                idx->add_record(kh.first, id, kmer_path, 0);
+                                kmer_paths.push_back(kmer_path);
+                                //update_minimizer_counts_for_nodes(kmer_path);
+                            } else if (kh.second == smallest)
+                            {
+                                //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                                idx->add_record(kh.second, id, kmer_path, 1);
+                                kmer_paths.push_back(kmer_path);
+                                //update_minimizer_counts_for_nodes(kmer_path);
+                            }
                         }
                     }
                 }
-            }
-	i = prev_path.end;
+	        i = prev_path.end;
+	        if (i > it->second->pos.end) { break; } // similarly, in for loop def can't seem to use < rather than !=
+	    }
 	}
     }
 }
