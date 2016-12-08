@@ -410,7 +410,7 @@ void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>& prgs, PanNo
     // start with the outmost level
     uint8_t max_level = 0;
     for (auto const& element : prgs[pnode->id]->prg.index) {
-        max_level = max(max_level, element->first);
+        max_level = max(max_level, element.first);
     }
     // and for each level..
     for (uint8_t level = max_level; level > 0; --level)
@@ -420,13 +420,15 @@ void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>& prgs, PanNo
         {
 	    // ...find the maximally probable paths through varsite
             vector<pair<vector<LocalNode*>, float>> u, v, w;
+	    vector<LocalNode*> x;
 
             // add the first node of each alternate allele for the varsite to a vector
             // pre_site_id is prgs[pnode->id]->prg.index[level][i]->first
-            uint32_t pre_site_id is prgs[pnode->id]->prg.index[level][i]->first;
+            uint32_t pre_site_id = prgs[pnode->id]->prg.index[level][i].first;
             for (uint j = 0; j!=prgs[pnode->id]->prg.nodes[pre_site_id]->outNodes.size(); ++j)
 	    {
-		u.push_back(make_pair({prgs[pnode->id]->prg.nodes[pre_site_id]->outNodes[j]}, 1));
+		x.push_back(prgs[pnode->id]->prg.nodes[pre_site_id]->outNodes[j]);
+		u.push_back(make_pair(x, 1));
 	    } 
 
             // then until we reach the end varsite:
