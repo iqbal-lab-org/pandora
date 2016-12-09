@@ -249,7 +249,7 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
 
 void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 {
-    cout << "START SKETCH FUNCTION" << endl;
+    //cout << "START SKETCH FUNCTION" << endl;
     vector<Path> walk_paths;
     deque<Interval> d;
     Path current_path, kmer_path;
@@ -259,12 +259,12 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 
     for (map<uint32_t,LocalNode*>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
     {
-	cout << "Processing node" << it->second->id << endl;
+	//cout << "Processing node" << it->second->id << endl;
 	
 	// if part of the node has already been included in a mini, we start after this part
 	for (uint32_t i=it->second->sketch_next; i!=max(it->second->sketch_next+w+k, it->second->pos.end+2)-w-k;)
         {
-            cout << "Node has been deemed long enough and " << it->second->pos.start << " <= " << i << " <= " << it->second->pos.end - w - k + 1 << endl; 
+            //cout << "Node has been deemed long enough and " << it->second->pos.start << " <= " << i << " <= " << it->second->pos.end - w - k + 1 << endl; 
             assert(i <= it->second->pos.end - w - k + 1);
             assert(i >= it->second->pos.start);
 	    
@@ -287,13 +287,13 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                 kh = kmerhash(kmer, k);
                 if (kh.first == smallest)
                 {
-                    cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                    //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                     idx->add_record(kh.first, id, kmer_path, 0);
                     kmer_paths.push_back(kmer_path);
 		    it->second->sketch_next = kmer_path.path.back().end;
                 } else if (kh.second == smallest)
                 {
-                    cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                    //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                     idx->add_record(kh.second, id, kmer_path, 1);
                     kmer_paths.push_back(kmer_path);
 		    it->second->sketch_next = kmer_path.path.back().end;
@@ -338,26 +338,26 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                         kh = kmerhash(kmer, k);
                         if (kh.first == smallest)
                         {
-                            cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                            //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                             idx->add_record(kh.first, id, kmer_path, 0);
                             kmer_paths.push_back(kmer_path);
 			    vector<LocalNode*> n = nodes_along_path(kmer_path);
 			    for (vector<LocalNode*>::iterator it3 = n.begin(); it3!=n.end(); ++it3)
 			    {
-				cout << "for node " << (*it3)->id << " sketch next was " << (*it3)->sketch_next << endl;
-				cout << " and will now be " << min((*it3)->pos.end, kmer_path.path.back().end) << endl;
+				//cout << "for node " << (*it3)->id << " sketch next was " << (*it3)->sketch_next << endl;
+				//cout << " and will now be " << min((*it3)->pos.end, kmer_path.path.back().end) << endl;
 				(*it3)->sketch_next = min((*it3)->pos.end, kmer_path.path.back().end);
 			    }
                         } else if (kh.second == smallest)
                         {
-                            cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                            //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                             idx->add_record(kh.second, id, kmer_path, 1);
                             kmer_paths.push_back(kmer_path);
 			    vector<LocalNode*> n = nodes_along_path(kmer_path);
                             for (vector<LocalNode*>::iterator it3 = n.begin(); it3!=n.end(); ++it3)
                             {   
-				cout << "for node " << (*it3)->id << " sketch next was " << (*it3)->sketch_next << endl;
-                                cout << " and will now be " << min((*it3)->pos.end, kmer_path.path.back().end) << endl;
+				//cout << "for node " << (*it3)->id << " sketch next was " << (*it3)->sketch_next << endl;
+                                //cout << " and will now be " << min((*it3)->pos.end, kmer_path.path.back().end) << endl;
                                 (*it3)->sketch_next = min((*it3)->pos.end, kmer_path.path.back().end);
                             }
                         }
@@ -677,7 +677,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
         max_level = max(max_level, element.first);
     }
     // and for each level..
-    for (uint level = max_level; level < max_level + 1; --level)
+    for (uint level = max_level; level <= max_level; --level)
     {
 	cout << "Looking at level " << level << endl;
         // ...for each varsite at this level...
@@ -807,17 +807,24 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                     max_prob = max(max_prob, w[n].second);
                 }
             }
+	    cout << "max_prob for paths at this varsite: " << max_prob << endl;
 
             // now add paths achieving max, or if none add paths cannot judge to max_path_index
 	    // note that in the case pre_site_id == 0 and level == 0, we may overwrite a previous entry to the index
+	    // if the probability has dropped really low, only add the first path, to avoid exploding memory stores
             max_path_index[pre_site_id] = u; // know u is empty vector
             for (uint n = 0; n!=w.size(); ++n)
             {
                 if ((max_prob == 0 and w[n].second == 1) or w[n].second == max_prob)
                 {
 		    w[n].second = w[n].second * p_last; // note that p_last is 1 unless we are on the last one
-                    max_path_index[pre_site_id].push_back(w[n]); // know u is empty vector
+                    max_path_index[pre_site_id].push_back(w[n]);
+		    if (max_prob < 0.1)
+		    {
+			break;
+		    }
                 }
+		
             }
 	    assert(max_path_index[pre_site_id].size()>0);
         }
