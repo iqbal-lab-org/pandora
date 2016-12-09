@@ -17,6 +17,7 @@ class LocalNode {
     uint32_t id;
     //uint32_t nested_level;
     uint32_t covg; // covg by hits
+    uint32_t sketch_next; // used by minimizer_sketch function in localPRG.cpp
     //uint32_t num_minis; // number of minimizers covering node in sketch of PRG
     //bool supported_by_reads;
     //uint32_t supported_in_deg;

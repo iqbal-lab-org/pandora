@@ -283,7 +283,7 @@ void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* 
             dt = ctime(&now);
             sdt = dt.substr(0,dt.length()-1);
             cout << sdt << " Looking at PRG " << pnode->second->id << endl;
-	    infer_most_likely_prg_path_for_pannode(prgs, pnode->second, k, 0.0015);
+	    prgs[pnode->second->id]->infer_most_likely_prg_paths_for_corresponding_pannode(pnode->second, k, 0.0015);
 	}
         delete mh;
         myfile.close();
@@ -331,11 +331,12 @@ void update_covgs_from_hits(const vector<LocalPRG*>& prgs, MinimizerHits* mhs)
 
 float p_null(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_of_hits, uint32_t k)
 {
+   cout << "in p_null, using |y|=" << prgs[(*cluster_of_hits.begin())->prg_id]->kmer_paths.size() << " and |x|=" << cluster_of_hits.size() << endl;
    float p = (1 - pow(1 - pow(0.25, k), cluster_of_hits.size()))*(1 - pow(1 - pow(0.25, k), prgs[(*cluster_of_hits.begin())->prg_id]->kmer_paths.size()));
    return p;
 }
 
-void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>& prgs, PanNode* pnode, uint32_t k, float e_rate)
+/*void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>& prgs, PanNode* pnode, uint32_t k, float e_rate)
 {
     // note that within the foundHits, hits which map to same read, prg and strand will be grouped together
     // we want to know for each prg minimizer, how much support there is from the reads
@@ -413,7 +414,7 @@ void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>& prgs, PanNo
         max_level = max(max_level, element.first);
     }
     // and for each level..
-    for (uint8_t level = max_level; level > 0; --level)
+    for (uint8_t level = max_level; level < max_level + 1; --level)
     {
         // ...for each varsite at this level...
         for (uint i = 0; i!=prgs[pnode->id]->prg.index[level].size(); ++i)
@@ -489,50 +490,12 @@ void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>& prgs, PanNo
 	    }
 	}
     }
+    
+    // finally, write out the maximal paths to file
+    write_paths_to_fasta(max_path_index[0], "supported_path_seqs_" + prgs[pnode->id]->name + ".fasta");
 
-
-    /*// now work out which nodes of graph have support from a kmer with prob > p_thresh
-    cout << "now look at which nodes of prg have support" << endl;
-    uint32_t num_supported_nodes = 0;
-    bool found_support;
-    // i.e. for each prg node...
-    for (map<uint32_t,LocalNode*>::iterator n=prgs[pnode->id]->prg.nodes.begin(); n!=prgs[pnode->id]->prg.nodes.end(); ++n)
-    {
-	found_support = false;
-	uint32_t i=0;
-	//...check each minimizer...
-	while(found_support == false and i!=prgs[pnode->id]->kmer_paths.size())
-	{
-	    //...and if it has prob > p_thresh and overlaps the node, then the node has support
-	    if (kmer_path_probs[i]>p_thresh)
-	    {
-	        for (deque<Interval>::const_iterator it=prgs[pnode->id]->kmer_paths[i].path.begin(); it!=prgs[pnode->id]->kmer_paths[i].path.end(); ++it)
-                {
-		    if (it->end > n->second->pos.start and it->start < n->second->pos.end)
-		    {
-			prgs[pnode->id]->prg.add_read_support_node(n->second);
-			found_support = true;
-			num_supported_nodes += 1;
-			break; //breaks loop over intervals in minimizer
-		    }
-                }
-	    }
-	    ++i;
-	}
-    }
-    cout << "found " << num_supported_nodes << " supported nodes" << endl;
-    assert(num_supported_nodes>0);
-    assert(num_supported_nodes<kmer_path_hit_counts.size());
-
-    // now infer the paths through these supported nodes
-    // for now, write them straight to a fasta
-    // in future, could choose most likely of these paths
-    cout << "next infer the read supported graph (connecting the supported nodes" << endl;
-    prgs[pnode->id]->prg.infer_read_supported_graph();
-    cout << "finally write the paths through the supported graph to fasta" << endl;
-    prgs[pnode->id]->prg.write_read_supported_graph_paths("supported_path_seqs" + prgs[pnode->id]->name + ".fasta");*/
     return;
-}
+}*/
 
 uint32_t nchoosek (uint32_t n, uint32_t k)
 {
@@ -546,3 +509,25 @@ uint32_t nchoosek (uint32_t n, uint32_t k)
     
     return (n * nchoosek(n - 1, k - 1)) / k;
 }
+
+/*void write_paths_to_fasta(vector<pair<vector<LocalNode*>, float>> p, const string& filepath)
+{
+    ofstream handle;
+    handle.open (filepath);
+    for (uint i = 0; i!= p.size(); ++i)
+    {
+        handle << ">\t" << it->second->id << "\t";
+        if (it->second->seq == "")
+        {
+            handle << "*";
+        } else {
+            handle << it->second->seq;
+        }
+        handle << "\tRC:i:" << it->second->covg << endl;
+        for (uint32_t j=0; j<it->second->outNodes.size(); ++j)
+        {
+            handle << "L\t" << it->second->id << "\t+\t" << it->second->outNodes[j]->id << "\t+\t0M" << endl;
+        }
+    }
+    handle.close();
+}*/

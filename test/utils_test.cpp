@@ -264,7 +264,7 @@ TEST_F(UtilsTest, addReadHits){
     delete mhs;
 }
 
-TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){    
+/*TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){    
     // initialize minihits container
     MinimizerHits *mhs;
     mhs = new MinimizerHits();
@@ -329,9 +329,9 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     delete idx;
     delete pg;
     delete mhs;
-}
+}*/
 
-TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
+/*TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     // initialize minihits container
     MinimizerHits *mhs;
     mhs = new MinimizerHits();
@@ -456,9 +456,9 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     delete pg;
     delete mhs;
     delete idx;
-}
+}*/
 
-TEST_F(UtilsTest, pangraphFromReadFile){
+/*TEST_F(UtilsTest, pangraphFromReadFile){
     vector<LocalPRG*> prgs;
     LocalPRG *lp0, *lp1, *lp2, *lp3, *lp4;
     lp0 = new LocalPRG(0,"0","");
@@ -587,6 +587,6 @@ TEST_F(UtilsTest, pangraphFromReadFile){
     delete lp2;
     delete lp3;
     delete lp4;
-}
+}*/
 
 // add test case with rev complement sequence

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <stdint.h>
 #include <string>
@@ -14,6 +15,8 @@
 #include "minihits.h"
 #include "minihit.h"
 #include "inthash.h"
+#include "pannode.h"
+#include "utils.h"
 #include "errormessages.h"
 
 using std::vector;
@@ -70,6 +73,25 @@ string LocalPRG::string_along_path(const Path& p)
     //cout << "lengths: " << s.length() << ", " << p.length << endl;
     assert(s.length()==p.length);
     return s;
+}
+
+vector<LocalNode*> LocalPRG::nodes_along_path(const Path& p)
+{
+    vector<LocalNode*> v;
+    // for each interval of the path
+    for (deque<Interval>::const_iterator it=p.path.begin(); it!=p.path.end(); ++it)
+    {
+        // find the appropriate node of the prg
+        for (map<uint32_t, LocalNode*>::const_iterator n=prg.nodes.begin(); n!=prg.nodes.end(); ++n)
+        {
+            if (it->end > n->second->pos.start and it->start < n->second->pos.end)
+            {
+		v.push_back(n->second);
+            } else if (it->end < n->second->pos.start)
+            { break;} // because the local nodes are labelled in order of occurance in the linear prg string, we don't need to search after this
+        }
+    }
+    return v;
 }
 
 vector<Interval> LocalPRG::splitBySite(const Interval& i)
@@ -154,6 +176,9 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
     // we will return the ids on the ends of any stretches of graph added
     vector<uint32_t> end_ids;
 
+    // save the start id, so can add 0, and the last id to the index at level 0 at the end
+    uint32_t start_id = next_id;
+
     // add nodes
     string s = seq.substr(i.start, i.length); //check length correct with this end...
     if (isalpha_string(s)) // should return true for empty string too
@@ -214,151 +239,137 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
 	// add end interval
 	end_ids = build_graph(v.back(), end_ids);
     }
+    if (start_id == 0)
+    {
+	assert(end_ids.size()==1);
+	prg.add_varsite (0, start_id, next_id - 1);
+    }
     return end_ids;
 }
 
 void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 {
-    //cout << "START SKETCH FUNCTION" << endl;
+    cout << "START SKETCH FUNCTION" << endl;
     vector<Path> walk_paths;
-    deque<Interval> d = {Interval(0,0)};
-    Path current_path, kmer_path, prev_path;
-    prev_path.initialize(d);
+    deque<Interval> d;
+    Path current_path, kmer_path;
     string kmer;
     pair<uint64_t, uint64_t> kh;
     uint64_t smallest = std::numeric_limits<uint64_t>::max();
 
     for (map<uint32_t,LocalNode*>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
     {
-	if (it->second->pos.end < prev_path.end)
-	{
-	    //if the end of the previous path is after the end of this (short) node, skip to the next one
+	cout << "Processing node" << it->second->id << endl;
 	
-            //cout << "Processing node" << it->second->id << endl;
-            // if node has long seq, there will be no branching until  reach len-(w+k-1)th position
-            for (uint32_t i=max(it->second->pos.start, prev_path.end); i!=max(it->second->pos.start+w+k, it->second->pos.end+1)-w-k;)
+	// if part of the node has already been included in a mini, we start after this part
+	for (uint32_t i=it->second->sketch_next; i!=max(it->second->sketch_next+w+k, it->second->pos.end+2)-w-k;)
+        {
+            cout << "Node has been deemed long enough and " << it->second->pos.start << " <= " << i << " <= " << it->second->pos.end - w - k + 1 << endl; 
+            assert(i <= it->second->pos.end - w - k + 1);
+            assert(i >= it->second->pos.start);
+	    
+	    // note that as we are sketching disjoint kmers, have to work out from scratch for each window
+            smallest = std::numeric_limits<uint64_t>::max();
+            // find the lex smallest kmer in the window
+            for (uint32_t j = 0; j < w; j++)
             {
-                //cout << "Node has been deemed long enough and " << it->second->pos.start << " <= " << i << " <= " << it->second->pos.end - w - k + 1 << endl; 
-                assert(i < it->second->pos.end - w - k + 1);
-                assert(i >= it->second->pos.start);
-                // if window pos is first for node or the previous minimizer starts outside current window, calculate new mini from scratch
-                if((i == it->second->pos.start) or (prev_path.start < i))
+                d = {Interval(i+j, i+j+k)};
+                kmer_path.initialize(d);
+                kmer = string_along_path(kmer_path);
+                kh = kmerhash(kmer, k);
+                smallest = min(smallest, min(kh.first, kh.second));
+            }
+            for (uint32_t j = 0; j < w; j++)
+            {
+                d = {Interval(i+j, i+j+k)};
+                kmer_path.initialize(d);
+                kmer = string_along_path(kmer_path);
+                kh = kmerhash(kmer, k);
+                if (kh.first == smallest)
                 {
-                    smallest = std::numeric_limits<uint64_t>::max();
-                    // find the lex smallest kmer in the window
-                    for (uint32_t j = 0; j < w; j++)
+                    cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                    idx->add_record(kh.first, id, kmer_path, 0);
+                    kmer_paths.push_back(kmer_path);
+		    it->second->sketch_next = kmer_path.path.back().end;
+                } else if (kh.second == smallest)
+                {
+                    cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                    idx->add_record(kh.second, id, kmer_path, 1);
+                    kmer_paths.push_back(kmer_path);
+		    it->second->sketch_next = kmer_path.path.back().end;
+                }
+            }
+	    i=it->second->sketch_next;
+	    if (i > it->second->pos.end+1-w-k)
+	    {break;} // too close to the end of this node for this method
+	}
+
+        for (uint32_t i=it->second->sketch_next; i!=it->second->pos.end;)
+        {
+            walk_paths = prg.walk(it->second->id, i, w+k-1);
+            cout << "for id, i: " << it->second->id << ", " << i << " found " << walk_paths.size() << " paths" << endl;
+            for (vector<Path>::iterator it2=walk_paths.begin(); it2!=walk_paths.end(); ++it2)
+            {
+                //cout << "Minimize path: " << *it2 << endl;
+                // find minimizer for this path 
+                smallest = std::numeric_limits<uint64_t>::max();
+                for (uint32_t j = 0; j != w; j++)
+                {
+                    //cout << "i+j" << i+j << endl;
+                    kmer_path = it2->subpath(i+j,k);
+                    if (kmer_path.path.size() > 0)
                     {
-                        d = {Interval(i+j, i+j+k)};
-                        kmer_path.initialize(d);
+                        //cout << "found path" << endl;
                         kmer = string_along_path(kmer_path);
                         kh = kmerhash(kmer, k);
                         smallest = min(smallest, min(kh.first, kh.second));
                     }
-                    for (uint32_t j = 0; j < w; j++)
+                }
+                //cout << "smallest word: " << smallest_word << endl;
+                for (uint32_t j = 0; j != w; j++)
+                {
+                    //cout << "i+j" << i+j << endl;
+                    kmer_path = it2->subpath(i+j,k);
+                    //cout << "kmer path" << kmer_path << endl;
+                    if (kmer_path.path.size() > 0)
                     {
-                        d = {Interval(i+j, i+j+k)};
-                        kmer_path.initialize(d);
+                        //cout << "found path" << endl;
                         kmer = string_along_path(kmer_path);
                         kh = kmerhash(kmer, k);
                         if (kh.first == smallest)
                         {
-                            //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                            cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                             idx->add_record(kh.first, id, kmer_path, 0);
                             kmer_paths.push_back(kmer_path);
-                            //update_minimizer_counts_for_nodes(kmer_path);
-                            prev_path = kmer_path;
+			    vector<LocalNode*> n = nodes_along_path(kmer_path);
+			    for (vector<LocalNode*>::iterator it3 = n.begin(); it3!=n.end(); ++it3)
+			    {
+				cout << "for node " << (*it3)->id << " sketch next was " << (*it3)->sketch_next << endl;
+				cout << " and will now be " << min((*it3)->pos.end, kmer_path.path.back().end) << endl;
+				(*it3)->sketch_next = min((*it3)->pos.end, kmer_path.path.back().end);
+			    }
                         } else if (kh.second == smallest)
                         {
-                            //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                            cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                             idx->add_record(kh.second, id, kmer_path, 1);
                             kmer_paths.push_back(kmer_path);
-                            //update_minimizer_counts_for_nodes(kmer_path);
-                            prev_path = kmer_path;
-                        }
-                    }
-                } else {
-		    cout << "ERROR, should always start outside window now" << endl;
-            /*// otherwise only need to do something if the kmer from the newest position at end of new window is smaller or equal to the previous smallest
-                d = {Interval(i+w-1, i+w-1+k)};
-                kmer_path.initialize(d);
-                kmer = string_along_path(kmer_path);
-                kh = kmerhash(kmer, k);
-                //cout << "Last kh for wpos: " << kh << " compared to previous smallest: " << smallest << endl;
-                if(kh.first <= smallest)
-                {
-                    //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
-                    idx->add_record(kh.first, id, kmer_path, 0);
-                    kmer_paths.push_back(kmer_path);
-                    //update_minimizer_counts_for_nodes(kmer_path);
-                    prev_path = kmer_path;
-                } else if(kh.second <= smallest)
-                {
-                    //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
-                    idx->add_record(kh.second, id, kmer_path, 1);
-                    kmer_paths.push_back(kmer_path);
-                    //update_minimizer_counts_for_nodes(kmer_path);
-                    prev_path = kmer_path;
-                }
-                smallest = min(smallest, min(kh.first, kh.second));*/
-                }
-	         i = prev_path.end;
-	        if (i > max(it->second->pos.start+w+k, it->second->pos.end+1)-w-k) { break;} // for some reason setting < rather than != in for loop doesn't work
-            }
-
-        
-            for (uint32_t i=max(max(it->second->pos.start+w+k, it->second->pos.end+1)-w-k, prev_path.end); i!=it->second->pos.end;)
-            {
-                walk_paths = prg.walk(it->second->id, i, w+k-1);
-                //cout << "for id, i: " << it->second->id << ", " << i << " found " << walk_paths.size() << " paths" << endl;
-                for (vector<Path>::iterator it2=walk_paths.begin(); it2!=walk_paths.end(); ++it2)
-                {
-                    //cout << "Minimize path: " << *it2 << endl;
-                    // find minimizer for this path 
-                    smallest = std::numeric_limits<uint64_t>::max();
-                    for (uint32_t j = 0; j != w; j++)
-                    {
-                        //cout << "i+j" << i+j << endl;
-                        kmer_path = it2->subpath(i+j,k);
-                        if (kmer_path.path.size() > 0)
-                        {
-                            //cout << "found path" << endl;
-                            kmer = string_along_path(kmer_path);
-                            kh = kmerhash(kmer, k);
-                            smallest = min(smallest, min(kh.first, kh.second));
-                        }
-                    }
-                    //cout << "smallest word: " << smallest_word << endl;
-                    for (uint32_t j = 0; j != w; j++)
-                    {
-                        //cout << "i+j" << i+j << endl;
-                        kmer_path = it2->subpath(i+j,k);
-                        //cout << "kmer path" << kmer_path << endl;
-                        if (kmer_path.path.size() > 0)
-                        {
-                            //cout << "found path" << endl;
-                            kmer = string_along_path(kmer_path);
-                            kh = kmerhash(kmer, k);
-                            if (kh.first == smallest)
-                            {
-                                //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
-                                idx->add_record(kh.first, id, kmer_path, 0);
-                                kmer_paths.push_back(kmer_path);
-                                //update_minimizer_counts_for_nodes(kmer_path);
-                            } else if (kh.second == smallest)
-                            {
-                                //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
-                                idx->add_record(kh.second, id, kmer_path, 1);
-                                kmer_paths.push_back(kmer_path);
-                                //update_minimizer_counts_for_nodes(kmer_path);
+			    vector<LocalNode*> n = nodes_along_path(kmer_path);
+                            for (vector<LocalNode*>::iterator it3 = n.begin(); it3!=n.end(); ++it3)
+                            {   
+				cout << "for node " << (*it3)->id << " sketch next was " << (*it3)->sketch_next << endl;
+                                cout << " and will now be " << min((*it3)->pos.end, kmer_path.path.back().end) << endl;
+                                (*it3)->sketch_next = min((*it3)->pos.end, kmer_path.path.back().end);
                             }
                         }
-                    }
-                }
-	        i = prev_path.end;
-	        if (i > it->second->pos.end) { break; } // similarly, in for loop def can't seem to use < rather than !=
+		    }
+		}
 	    }
+	    i=it->second->sketch_next;
+            if (i > it->second->pos.end+1-w-k)
+            {break;} // too close to the end of this node for this method
 	}
     }
+    return;
 }
 
 /*void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
@@ -588,3 +599,250 @@ void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
         }
     }
 }*/
+
+void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNode* pnode, uint32_t k, float e_rate)
+{
+    // note that within the foundHits for a pnode, hits which map to same read, prg and strand will be grouped together
+    // we want to know for each prg minimizer, how much support there is from the reads
+    // start by counting how many hits against each minimizing_kmer of prg
+    cout << "start by counting how many hits against each minimizing kmer in prg" << endl;
+    vector<uint32_t> kmer_path_hit_counts(kmer_paths.size(),0);
+    cout << "there are " << kmer_paths.size() << " minimizing kmers to count hits against" << endl;
+    set<MinimizerHit*, pComp_path>::iterator mh_previous = pnode->foundHits.begin();
+    uint32_t num_hits = 1, num_kmers=0;
+    for (set<MinimizerHit*, pComp_path>::iterator mh = (pnode->foundHits.begin()); mh != pnode->foundHits.end();)
+    {
+        mh++;
+        if (mh==pnode->foundHits.end() or (*mh)->strand != (*mh_previous)->strand or !((*mh)->prg_path == (*mh_previous)->prg_path))
+        {
+            for (uint32_t i=num_kmers; i!=kmer_paths.size(); ++i)
+            {
+                if (kmer_paths[i]==(*mh_previous)->prg_path)
+                {
+                    //cout << "found path " << kmer_paths[i] << " == " << (*mh_previous)->prg_path << endl;
+                    kmer_path_hit_counts[i] = num_hits;
+                    //cout << "kmer_path_hit_counts[" << i << "] = " << num_hits << endl;
+                    num_hits = 1;
+                    num_kmers +=1;
+                    break;
+                }
+            }
+            assert(num_hits==1);
+        } else {
+            num_hits += 1;
+            //cout << num_hits << " ";
+        }
+        mh_previous++;
+    }
+    uint32_t sum_of_elems = 0;
+    for (uint32_t n : kmer_path_hit_counts)
+    {sum_of_elems += n;}
+    cout << "after adding counts of the " << pnode->foundHits.size() << " hits, have still got " << sum_of_elems << " hits added to tallies" << endl;
+    assert(sum_of_elems==pnode->foundHits.size());
+
+    // now for each of the minimizing kmers, work out the prob of seeing this number of hits given the number of reads
+    // this is the bit where I assume that we have an independent trial for each read (binomial hit counts for true kmers)
+    cout << "next work out prob of seeing this number of hits against a kmer assuming it is truly present" << endl;
+    float p_thresh=0.5;
+    vector<float> kmer_path_probs;
+    float p_kmer, p=1/exp(e_rate*k), p_max=0, p_min=1;
+    uint32_t n = pnode->foundReads.size(), big_p_count=0;
+    cout << "n: " << n << ", p: " << p << endl;
+    cout << "count:0 " << nchoosek(n,0) << " * " << pow(p,0) << " * " << pow(1-p,n-0) << endl;
+    cout << "count:1 " << nchoosek(n,1) << " * " << pow(p,1) << " * " << pow(1-p,n-1) << endl;
+    for (uint32_t i=0; i!=kmer_path_hit_counts.size(); ++i)
+    {
+        p_kmer = nchoosek(n, kmer_path_hit_counts[i])*pow(p,kmer_path_hit_counts[i])*pow(1-p,n-kmer_path_hit_counts[i]);
+        kmer_path_probs.push_back(p_kmer);
+        p_max = max(p_max, p_kmer);
+        p_min = min(p_min, p_kmer);
+        if(p_kmer>p_thresh)
+        {
+            //cout << p_kmer << " ";
+            big_p_count+=1;
+        }
+    }
+    cout << endl;
+    cout << "found " << big_p_count << " probs > " << p_thresh << " with max and min probs " << p_max << ", " << p_min << endl;
+
+    //now we iterate through the graph from the outmost level to the lowest level working out the most likely path(s)
+    //need 2 data structures, one to remember what the most probable path(s) were for var sites already considered
+    //the first is max_path_index, stored by the LocalPRG class
+    //and the second remembering which minimizing kmers have been seen/used before so not included multiple times in the probability
+    vector<bool> kmer_considered_before(kmer_paths.size(),false);
+
+    // start with the outmost level
+    uint8_t max_level = 0;
+    for (auto const& element : prg.index) {
+        max_level = max(max_level, element.first);
+    }
+    // and for each level..
+    for (uint level = max_level; level < max_level + 1; --level)
+    {
+	cout << "Looking at level " << level << endl;
+        // ...for each varsite at this level...
+        for (uint i = 0; i!=prg.index[level].size(); ++i)
+        {
+            // ...find the maximally probable paths through varsite
+            vector<pair<vector<LocalNode*>, float>> u, v, w;
+            vector<LocalNode*> x;
+
+            // add the first node of each alternate allele for the varsite to a vector
+            uint32_t pre_site_id = prg.index[level][i].first, post_site_id = prg.index[level][i].second;
+	    if (level == 0)
+	    {
+		assert(pre_site_id == 0);
+		cout << "finally find best path through whole prg" << endl;
+		x.push_back(prg.nodes[pre_site_id]);
+		u.push_back(make_pair(x, 1));
+		x.clear();
+	    } else {
+	        cout << "Looking at varsite number " << i << " at this level, from the outnodes of " << pre_site_id << " to the innodes of " << post_site_id << endl;
+                for (uint j = 0; j!=prg.nodes[pre_site_id]->outNodes.size(); ++j)
+                {
+                    x.push_back(prg.nodes[pre_site_id]->outNodes[j]);
+                    u.push_back(make_pair(x, 1));
+                    x.clear();
+                }
+	    }
+
+	    assert (u.size()>0); // we just added either start node, or branching outnodes of a varsite to it!
+
+            // then until we reach the end varsite:
+            while (u.size()>0)
+            {
+		cout << "restart loop with u.size() == " << u.size() << endl;
+                // for each pair in u
+                for (uint j = 0; j!=u.size(); ++j)
+                {
+                    // if the path in the pair ends at the end of the varsite, it is a done path, add to w
+                    if (u[j].first.back()->id == post_site_id)
+                    {
+                        w.push_back(u[j]);
+                    } else {
+                        // otherwise look up the last node in the max_path_index
+                        // if it is there, then we can multiply the running total prob for this allele, 
+                        // and extend the path for each of the maximal paths through the sub_varsite
+                        // and add the updated path/prob pairs to v
+                        map<uint32_t, vector<pair<vector<LocalNode*>, float>>>::iterator it=max_path_index.find(u[j].first.back()->id);
+                        if (it != max_path_index.end())
+                        {
+                            //extend node path with the max paths seen before from this point
+                            for (uint n = 0; n!=it->second.size(); ++n)
+                            {
+                                v.push_back(u[j]);
+                                v.back().first.insert(v.back().first.end(), it->second[n].first.begin(), it->second[n].first.end());
+                                v.back().second = v.back().second * it->second[n].second;
+                            }
+                        } else {
+                            // if not, then work out which minhits overlap this node, and multiply their probabilities, 
+                            // then add the outnode to the end (should only be 1) to get a new path/prob pair to add to v
+                            // during this process, update kmer_considered_before to reflect the minihits now used in probabilities
+                            // note that although this node is 'at the end of a site', it may also be the start of another site and have multiple outNodes
+                            for (uint32_t n=0; n!=kmer_paths.size(); ++n)
+			    {
+				// if we've already used this kmer
+				if(kmer_considered_before[n]==false)
+				{
+				    for (deque<Interval>::const_iterator it2=kmer_paths[n].path.begin(); it2!=kmer_paths[n].path.end(); ++it2)
+				    {
+				        if (it2->end > u[j].first.back()->pos.start and it2->start < u[j].first.back()->pos.end)
+				        {
+					    // then this node overlaps this kmer
+					    u[j].second = u[j].second * kmer_path_probs[n];
+					    kmer_considered_before[n] = true;
+					    break;
+				        }
+				    }
+				}
+			    }
+			    for (uint32_t n=0; n!=u[j].first.back()->outNodes.size(); ++n)
+			    {
+				v.push_back(u[j]);
+                                v.back().first.push_back(u[j].first.back()->outNodes[n]);
+			    }
+                        }
+                    }
+                }
+                // once done for all of what was in u, set u = v
+                u = v;
+		v.clear();
+            }
+
+	    assert(w.size()>0); // we have to have found some paths
+
+	    // if we are at level 0, we will want to include the probability of the last node as well
+	    float p_last = 1;
+	    if (level == 0)
+	    {
+		for (uint32_t n=0; n!=kmer_paths.size(); ++n)
+                {
+                    // if we've not already used this kmer
+                    if(kmer_considered_before[n]==false)
+                    {
+			// if it overlaps the last node (wlog last of the first path in w)
+                    	for (deque<Interval>::const_iterator it2=kmer_paths[n].path.begin(); it2!=kmer_paths[n].path.end(); ++it2)
+                        {
+                            if (it2->end > w[0].first.back()->pos.start and it2->start < w[0].first.back()->pos.end)
+                            {
+                                // then this node overlaps this kmer
+                                p_last = p_last * kmer_path_probs[n];
+                                kmer_considered_before[n] = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+	    }
+
+            // when u empty, should have final set in w and can work out the max of the probs
+            float max_prob = 0;
+            // find max for all probs we could work out values for
+            for (uint n = 0; n!=w.size(); ++n)
+            {
+                if (w[n].second != 1) // if no mini kmers in prg overlapping node, can't define prob data came from that node, 
+                                                   // so set the prob to 1 intially, then set to max path value 
+                                                   // only happens for really short paths
+                {
+                    max_prob = max(max_prob, w[n].second);
+                }
+            }
+
+            // now add paths achieving max, or if none add paths cannot judge to max_path_index
+	    // note that in the case pre_site_id == 0 and level == 0, we may overwrite a previous entry to the index
+            max_path_index[pre_site_id] = u; // know u is empty vector
+            for (uint n = 0; n!=w.size(); ++n)
+            {
+                if ((max_prob == 0 and w[n].second == 1) or w[n].second == max_prob)
+                {
+		    w[n].second = w[n].second * p_last; // note that p_last is 1 unless we are on the last one
+                    max_path_index[pre_site_id].push_back(w[n]); // know u is empty vector
+                }
+            }
+	    assert(max_path_index[pre_site_id].size()>0);
+        }
+    }
+    return;
+}
+
+void LocalPRG::write_max_paths_to_fasta(const string& filepath)
+{
+    assert(max_path_index.size()>0);
+    map<uint32_t, vector<pair<vector<LocalNode*>, float>>>::iterator it=max_path_index.find(0);
+    assert(it!=max_path_index.end());
+    assert(max_path_index[0].size()>0);
+
+    ofstream handle;
+    handle.open (filepath);
+    for (uint i = 0; i!= max_path_index[0].size(); ++i)
+    {
+        handle << ">" << id << "." << i << "\t P(data|sequence)=" << max_path_index[0][i].second << endl;
+	for (uint j = 0; j!= max_path_index[0][i].first.size(); ++j)
+	{
+            handle << max_path_index[0][i].first[j]->seq;
+        }
+        handle << endl;
+    }
+    handle.close();
+    return;
+}

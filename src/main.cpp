@@ -25,6 +25,7 @@
 #include "localPRG.h"
 #include "localgraph.h"
 #include "pangraph.h"
+#include "pannode.h"
 #include "index.h"
 
 using std::set;
@@ -149,6 +150,16 @@ int main(int argc, char* argv[])
     sdt = dt.substr(0,dt.length()-1);
     cout << sdt << " Writing PanGraph to file " << prefix << "_pangraph.gfa" << endl;
     pangraph->write_gfa(prefix + "_pangraph.gfa");
+
+    now = time(0);
+    dt = ctime(&now);
+    sdt = dt.substr(0,dt.length()-1);
+    cout << sdt << " Writing maximally likely paths to files:" << endl;
+    for (auto c: pangraph->nodes)
+    {
+	cout << "\t\t" << prefix << "_" << prgs[c.second->id]->name << "_mlp.fasta" << endl;
+	prgs[c.second->id]->write_max_paths_to_fasta(prefix + "_" + prgs[c.second->id]->name + "_mlp.fasta");
+    }
 
     now = time(0);
     dt = ctime(&now);

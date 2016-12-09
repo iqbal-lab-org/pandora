@@ -7,7 +7,7 @@
 
 using namespace std;
 
-LocalNode::LocalNode (string s, Interval p, uint32_t i): seq(s), pos(p), id(i), covg(0) {}//, num_minis(0), supported_by_reads(false), supported_in_deg(0), supported_out_deg(0) {}
+LocalNode::LocalNode (string s, Interval p, uint32_t i): seq(s), pos(p), id(i), covg(0), sketch_next(pos.start) {}//, num_minis(0), supported_by_reads(false), supported_in_deg(0), supported_out_deg(0) {}
 
 std::ostream& operator<< (std::ostream & out, LocalNode const& n) {
     out << "(" << n.id << " " << n.pos << " " << n.seq << ")";
