@@ -37,6 +37,13 @@ PanGraph::~PanGraph()
 
 void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id, const set<MinimizerHit*, pComp>& cluster)
 {
+    //cout << "prg: " << prg_id << " read: " << read_id << " cluster_size: " << cluster.size() << endl;
+    for (set<MinimizerHit*, pComp>::iterator it = cluster.begin(); it != cluster.end(); ++it)
+    {
+            //cout << "read id and cluster read ids: " << read_id << " " << (*it)->read_id << endl;
+            assert(read_id == (*it)->read_id); // the hits should correspond to the read we are saying...
+	    assert(prg_id == (*it)->prg_id);
+    }
     map<uint32_t, PanNode*>::iterator it=nodes.find(prg_id);
     if(it==nodes.end())
     {
@@ -46,11 +53,6 @@ void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id, const se
         //cout << "Added node " << *n << endl;
 	n->add_read(read_id);
         n->add_hits(cluster);
-        for (set<MinimizerHit*, pComp>::iterator it = cluster.begin(); it != cluster.end(); ++it)
-        {
-	    cout << "read id and cluster read ids: " << read_id << " " << (*it)->read_id << endl;
-	    assert(read_id == (*it)->read_id); // the hits should correspond to the read we are saying...
-        }
     } else {
         //cout << "Node " << prg_id << " was already in graph" << endl;
         it->second->add_read(read_id);

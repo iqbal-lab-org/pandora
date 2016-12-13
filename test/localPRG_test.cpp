@@ -145,7 +145,7 @@ TEST_F(LocalPRGTest, stringAlongPath){
 TEST_F(LocalPRGTest, nodesAlongPath)
 {
     cout << "define" << endl;
-    //LocalPRG l0(0,"empty", "");
+    LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
@@ -158,7 +158,7 @@ TEST_F(LocalPRGTest, nodesAlongPath)
     cout << "test" << endl;
     //EXPECT_EQ(v, l0.nodes_along_path(p));
     EXPECT_EQ(v, l1.nodes_along_path(p));
-    /*EXPECT_EQ(v, l2.nodes_along_path(p));
+    EXPECT_EQ(v, l2.nodes_along_path(p));
     EXPECT_EQ(v, l3.nodes_along_path(p));
 
     // positive length interval
@@ -193,7 +193,7 @@ TEST_F(LocalPRGTest, nodesAlongPath)
     EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
     j = 1;
     EXPECT_EQ(j, l2.nodes_along_path(p)[1]->id);
-    EXPECT_EQ(j, l3.nodes_along_path(p)[2]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p)[1]->id);
 
     // including empty interval
     d = {Interval(12,13), Interval(16,16), Interval(23,24)};

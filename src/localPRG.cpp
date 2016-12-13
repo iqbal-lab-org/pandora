@@ -307,7 +307,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
         for (uint32_t i=it->second->sketch_next; i!=it->second->pos.end;)
         {
             walk_paths = prg.walk(it->second->id, i, w+k-1);
-            cout << "for id, i: " << it->second->id << ", " << i << " found " << walk_paths.size() << " paths" << endl;
+            //cout << "for id, i: " << it->second->id << ", " << i << " found " << walk_paths.size() << " paths" << endl;
             for (vector<Path>::iterator it2=walk_paths.begin(); it2!=walk_paths.end(); ++it2)
             {
                 //cout << "Minimize path: " << *it2 << endl;

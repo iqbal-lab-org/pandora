@@ -86,13 +86,15 @@ TEST_F(PanGraphTest, addNode)
     EXPECT_EQ(*pg.nodes[2], *pn);
     j = 3;
     EXPECT_EQ(pg.nodes.size(), j);
-    j = 1;
+    j = 2;
     EXPECT_EQ(pg.nodes[2]->foundHits.size(), j);
+    j = 1;
     EXPECT_EQ(pg.nodes[2]->foundReads.size(), j);
     MinimizerHit* mh2;
-    mh2 = new MinimizerHit(0, Interval(1,5), 2, p, true);
+    mh2 = new MinimizerHit(0, Interval(1,5), 0, p, true);
     mhs.insert(mh2);
-    EXPECT_DEATH(pg.add_node(0,2, mhs), "");
+    //pg.add_node(0,0, mhs);
+    EXPECT_DEATH(pg.add_node(0,0, mhs), "");
     delete pn;
     delete mh0;
     delete mh1;

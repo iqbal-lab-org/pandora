@@ -17,9 +17,9 @@ void PanNode::add_read(const uint32_t j)
 
 void PanNode::add_hits(const set<MinimizerHit*, pComp>& c)
 {
-    cout << "adding " << c.size() << " hits" << endl;
+    //cout << "adding " << c.size() << " hits" << endl;
     foundHits.insert(c.begin(), c.end());
-    cout << "added " << foundHits.size() << " hits" << endl;
+    //cout << "added " << foundHits.size() << " hits" << endl;
 }
 
 bool PanNode::operator == (const PanNode& y) const {
