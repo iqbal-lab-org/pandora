@@ -7,7 +7,7 @@
 #include "pannode.h"
 #include "pangraph.h"
 #include <cassert>
-//#include "minimizerhit.h"
+#include "minihit.h"
 
 using namespace std;
 
@@ -18,7 +18,7 @@ PanGraph::~PanGraph()
     delete c.second;
   }
 }
-void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id) // make cluster and optional parameter, by defining two functions
+/*void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id) // make cluster and optional parameter, by defining two functions
 {
     map<uint32_t, PanNode*>::iterator it=nodes.find(prg_id);
     if(it==nodes.end())
@@ -33,7 +33,7 @@ void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id) // make 
         it->second->add_read(read_id);
     }
     return;
-}
+}*/
 
 void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id, const set<MinimizerHit*, pComp>& cluster)
 {
@@ -46,6 +46,11 @@ void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id, const se
         //cout << "Added node " << *n << endl;
 	n->add_read(read_id);
         n->add_hits(cluster);
+        for (set<MinimizerHit*, pComp>::iterator it = cluster.begin(); it != cluster.end(); ++it)
+        {
+	    cout << "read id and cluster read ids: " << read_id << " " << (*it)->read_id << endl;
+	    assert(read_id == (*it)->read_id); // the hits should correspond to the read we are saying...
+        }
     } else {
         //cout << "Node " << prg_id << " was already in graph" << endl;
         it->second->add_read(read_id);

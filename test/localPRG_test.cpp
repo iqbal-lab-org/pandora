@@ -142,6 +142,82 @@ TEST_F(LocalPRGTest, stringAlongPath){
     EXPECT_DEATH(l3.string_along_path(p),"");
 }
 
+TEST_F(LocalPRGTest, nodesAlongPath)
+{
+    cout << "define" << endl;
+    //LocalPRG l0(0,"empty", "");
+    LocalPRG l1(1,"simple", "AGCT");
+    LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+    
+    // empty interval expects no nodes along
+    deque<Interval> d = {Interval(0,0)};
+    Path p;
+    p.initialize(d);
+    vector<LocalNode*> v;
+    cout << "test" << endl;
+    //EXPECT_EQ(v, l0.nodes_along_path(p));
+    EXPECT_EQ(v, l1.nodes_along_path(p));
+    /*EXPECT_EQ(v, l2.nodes_along_path(p));
+    EXPECT_EQ(v, l3.nodes_along_path(p));
+
+    // positive length interval
+    d = {Interval(1,3)};
+    p.initialize(d);
+    uint32_t j = 1;
+    EXPECT_EQ(j, l1.nodes_along_path(p).size());
+    j = 0;
+    EXPECT_EQ(j, l1.nodes_along_path(p)[0]->id);
+    EXPECT_EQ(j, l2.nodes_along_path(p).size()); // no nodes in this interval
+    EXPECT_EQ(j, l3.nodes_along_path(p).size());
+    // different interval
+    d = {Interval(4,5)};
+    p.initialize(d);
+    j = 1;
+    EXPECT_EQ(j, l2.nodes_along_path(p).size());
+    EXPECT_EQ(j, l3.nodes_along_path(p).size());
+    EXPECT_EQ(j, l2.nodes_along_path(p)[0]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+
+    // multiple intervals
+    d = {Interval(0,1), Interval(4,5)};
+    p.initialize(d);
+    j = 1;
+    EXPECT_EQ(j, l1.nodes_along_path(p).size());
+    j = 2;
+    EXPECT_EQ(j, l2.nodes_along_path(p).size());
+    EXPECT_EQ(j, l3.nodes_along_path(p).size());
+    j = 0;
+    EXPECT_EQ(j, l1.nodes_along_path(p)[0]->id);
+    EXPECT_EQ(j, l2.nodes_along_path(p)[0]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+    j = 1;
+    EXPECT_EQ(j, l2.nodes_along_path(p)[1]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p)[2]->id);
+
+    // including empty interval
+    d = {Interval(12,13), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    j = 3;
+    EXPECT_EQ(j, l3.string_along_path(p).size());
+    j = 3;
+    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+    j = 4;
+    EXPECT_EQ(j, l3.nodes_along_path(p)[1]->id);
+    j = 6;
+    EXPECT_EQ(j, l3.nodes_along_path(p)[2]->id);
+
+    // and a path that can't really exist still works
+    d = {Interval(12,13),Interval(19,20)};
+    p.initialize(d);
+    j = 2;
+    EXPECT_EQ(j, l3.nodes_along_path(p).size());
+    j = 3;
+    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+    j = 5;
+    EXPECT_EQ(j, l3.nodes_along_path(p)[2]->id);*/
+}
+
 TEST_F(LocalPRGTest, splitBySiteNoSites){
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
@@ -231,10 +307,15 @@ TEST_F(LocalPRGTest, buildGraph)
     LocalGraph lg0;
     lg0.add_node(0,"",Interval(0,0));
     EXPECT_EQ(lg0, l0.prg);
+    uint32_t j = 0;
+    EXPECT_EQ(j, l0.max_path_index.size());
 
     LocalGraph lg1;
     lg1.add_node(0,"AGCT", Interval(0,4));
     EXPECT_EQ(lg1, l1.prg);
+    j = 1;
+    EXPECT_EQ(j, l1.prg.index.size());
+    EXPECT_EQ(j, l1.prg.index[0].size());
 
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
@@ -246,6 +327,11 @@ TEST_F(LocalPRGTest, buildGraph)
     lg2.add_edge(1,3);
     lg2.add_edge(2,3);
     EXPECT_EQ(lg2, l2.prg);
+    j = 2;
+    EXPECT_EQ(j, l2.prg.index.size());
+    j = 1;
+    EXPECT_EQ(j, l2.prg.index[0].size());
+    EXPECT_EQ(j, l2.prg.index[1].size());
 
     LocalGraph lg3;
     lg3.add_node(0,"A", Interval(0,1));
@@ -264,11 +350,89 @@ TEST_F(LocalPRGTest, buildGraph)
     lg3.add_edge(4,6);
     lg3.add_edge(5,6);
     EXPECT_EQ(lg3, l3.prg);
+    j = 3;
+    EXPECT_EQ(j, l3.prg.index.size());
+    j = 1;
+    EXPECT_EQ(j, l3.prg.index[0].size());
+    EXPECT_EQ(j, l3.prg.index[1].size());
+    EXPECT_EQ(j, l3.prg.index[2].size());
+    j = 0;
+    EXPECT_EQ(j, l3.prg.index[0][0].first);
+    EXPECT_EQ(j, l3.prg.index[1][0].first);
+    j = 6;
+    EXPECT_EQ(j, l3.prg.index[0][0].second);
+    EXPECT_EQ(j, l3.prg.index[1][0].second);
+    j = 1;
+    EXPECT_EQ(j, l3.prg.index[2][0].first);
+    j = 4;
+    EXPECT_EQ(j, l3.prg.index[2][0].second);
 }
 
 //could test that no int is included in more than one node
-
 TEST_F(LocalPRGTest, minimizerSketch){
+    // note this is a bad test
+    LocalPRG l0(0,"empty", "");
+    LocalPRG l1(1,"simple", "AGCT");
+    LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+
+    Index* idx;
+    idx = new Index();
+
+    l0.minimizer_sketch(idx, 1, 3);
+    uint32_t j = 0;
+    EXPECT_EQ(j, idx->minhash.size());
+
+    l1.minimizer_sketch(idx, 2, 3);
+    j = 1;
+    EXPECT_EQ(j, idx->minhash.size());
+    l1.minimizer_sketch(idx, 1, 3);
+    EXPECT_EQ(j, idx->minhash.size());
+    j = 2;
+    pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
+    
+    idx->clear();
+    l2.minimizer_sketch(idx, 2, 3);
+    j = 1;
+    EXPECT_EQ(j, idx->minhash.size());
+    l2.minimizer_sketch(idx, 1, 3);
+    //j = 2;
+    EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
+
+    idx->clear();
+    l3.minimizer_sketch(idx, 2, 3);
+    j = 2;
+    EXPECT_EQ(j, idx->minhash.size());
+    l3.minimizer_sketch(idx, 1, 3);
+    //j = 3;
+    EXPECT_EQ(j, idx->minhash.size());
+    j = 1;
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGC, GCT
+    kh = kmerhash("AGT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGTx2
+    j = 0;
+    kh = kmerhash("GTT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
+    
+    delete idx;
+}
+
+TEST_F(LocalPRGTest, updateCovgWithHit)
+{
+}
+
+TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
+{
+}
+
+TEST_F(LocalPRGTest, writeFasta)
+{
+}
+
+// this version does not apply to forcing minis to be disjoint (on a path)
+/*TEST_F(LocalPRGTest, minimizerSketch){
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
@@ -315,7 +479,7 @@ TEST_F(LocalPRGTest, minimizerSketch){
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
     
     delete idx;
-}
+}*/
 
 /*TEST_F(LocalPRGTest, getCovgs)
 {

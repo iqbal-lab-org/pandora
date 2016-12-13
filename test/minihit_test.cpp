@@ -130,7 +130,7 @@ TEST_F(MinimizerHitTest,compare){
 
     delete m;
     m = new Minimizer(min(kh.first,kh.second), 0,5,0);
-    MinimizerHit mh3(1, m, mr);
+    //MinimizerHit mh3(1, m, mr);
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
@@ -146,14 +146,14 @@ TEST_F(MinimizerHitTest,compare){
 
     hits.insert(mh1);
     hits.insert(mh2);
-    hits.insert(mh3);
+    //hits.insert(mh3);
     hits.insert(mh4);
     hits.insert(mh5);
     
     vector<MinimizerHit> expected;
     expected.push_back(mh1);
     expected.push_back(mh2);
-    expected.push_back(mh3);
+    //expected.push_back(mh3);
     expected.push_back(mh4);
     expected.push_back(mh5);
 

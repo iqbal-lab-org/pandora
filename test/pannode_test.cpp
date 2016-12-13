@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "pannode.h"
+#include "minihit.h"
 #include <stdint.h>
 #include <iostream>
 
@@ -44,6 +45,46 @@ TEST_F(PanNodeTest,addRead){
     EXPECT_EQ(j, pn.foundReads.size());
     j=7;
     EXPECT_EQ(j, pn.foundReads[2]);
+}
+
+TEST_F(PanNodeTest, addHits)
+{
+    set<MinimizerHit*, pComp> c;
+    vector<MinimizerHit*> v;
+
+    Path p;
+    deque<Interval> d = {Interval(0,1), Interval(4,7)};
+    p.initialize(d);
+    MinimizerHit* mh0;
+    mh0 = new MinimizerHit(0, Interval(1,5), 2, p, true);
+    c.insert(mh0);
+    v.push_back(mh0);
+
+    d = {Interval(0,1), Interval(5,8)};
+    p.initialize(d);
+    MinimizerHit* mh1;
+    mh1 = new MinimizerHit(0, Interval(1,5), 2, p, true);
+    c.insert(mh1);
+    v.push_back(mh1);
+
+    MinimizerHit* mh2;
+    mh2 = new MinimizerHit(1, Interval(1,5), 2, p, true);
+    c.insert(mh2);
+    v.push_back(mh2);
+
+    PanNode pn(2);
+    pn.add_hits(c);
+    
+    EXPECT_EQ(v.size(), pn.foundHits.size());
+    uint32_t j = 0;
+    for (set<MinimizerHit*, pComp_path>::iterator it = pn.foundHits.begin(); it != pn.foundHits.end(); ++it)
+    {
+	EXPECT_EQ(**it, *v[j]);
+        j++;
+    }
+    delete mh0;
+    delete mh1;
+    delete mh2;
 }
 
 TEST_F(PanNodeTest,equals){

@@ -43,10 +43,10 @@ TEST_F(UtilsTest, indexPrgFile){
     // single prg with simple sequence
     index_prg_file(prgs, "../test/test_cases/prg1.fa", idx, 1,3);
     LocalPRG l1(1,"prg1", "AGCT");
-    j = 2;
+    j = 1;
     pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
     EXPECT_EQ(idx->minhash[min(kh.first, kh.second)].size(), j);
-    j = 1;
+    //j = 1;
     EXPECT_EQ(idx->minhash.size(), j);
     EXPECT_EQ(prgs.size(), j);
     j = 0;
@@ -63,8 +63,9 @@ TEST_F(UtilsTest, indexPrgFile){
     LocalPRG l2(2,"prg2", "A 5 GC 6 G 5 T");
     j = 2;
     EXPECT_EQ(idx->minhash.size(), j);
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
     EXPECT_EQ(prgs.size(), j);
+    j = 1;
+    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
     j = 0;
     EXPECT_EQ(prgs[1]->id, j);
     EXPECT_EQ(prgs[1]->name, "prg2");
@@ -78,10 +79,12 @@ TEST_F(UtilsTest, indexPrgFile){
     index_prg_file(prgs, "../test/test_cases/prg3.fa", idx, 1,3);
     LocalPRG l3 = LocalPRG(3,"prg3", "A 5 G 7 C 8 T 7  6 G 5 T");
     j = 3;
-    EXPECT_EQ(idx->minhash.size(), j);
     EXPECT_EQ(prgs.size(), j);
     j = 2;
+    EXPECT_EQ(idx->minhash.size(), j);
+    j = 1;
     EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
+    j = 2;
     kh = kmerhash("AGT",3);
     EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
     j = 0;
@@ -97,20 +100,20 @@ TEST_F(UtilsTest, indexPrgFile){
     prgs.clear();
     EXPECT_EQ(prgs.size(), j);
     index_prg_file(prgs, "../test/test_cases/prg0123.fa", idx, 1,3);
-    j = 3;
+    j = 2;
     EXPECT_EQ(idx->minhash.size(), j);
+    j = 3;
     EXPECT_EQ(prgs.size(), j);
-    j = 6;
     kh = kmerhash("AGC",3);
     EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
     kh = kmerhash("GCT",3);
     EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j); // same
-    j = 3;
+    //j = 3;
     kh = kmerhash("AGT",3);
     EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
     kh = kmerhash("ACT",3);
     EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j); // same
-    j = 1;
+    j = 0;
     kh = kmerhash("GTT",3);
     EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j); //same
     kh = kmerhash("AAC",3);

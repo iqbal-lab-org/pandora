@@ -84,7 +84,7 @@ vector<LocalNode*> LocalPRG::nodes_along_path(const Path& p)
         // find the appropriate node of the prg
         for (map<uint32_t, LocalNode*>::const_iterator n=prg.nodes.begin(); n!=prg.nodes.end(); ++n)
         {
-            if (it->end > n->second->pos.start and it->start < n->second->pos.end)
+            if ((it->end > n->second->pos.start and it->start < n->second->pos.end) or (it->start == n->second->pos.start and it->end == n->second->pos.end))
             {
 		v.push_back(n->second);
             } else if (it->end < n->second->pos.start)
@@ -684,8 +684,9 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
         for (uint i = 0; i!=prg.index[level].size(); ++i)
         {
             // ...find the maximally probable paths through varsite
-            vector<pair<vector<LocalNode*>, float>> u, v, w;
+            vector<pair<vector<LocalNode*>, float>> u, v, w, z;
             vector<LocalNode*> x;
+	    float p_new = 1;
 
             // add the first node of each alternate allele for the varsite to a vector
             uint32_t pre_site_id = prg.index[level][i].first, post_site_id = prg.index[level][i].second;
@@ -698,12 +699,16 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 		x.clear();
 	    } else {
 	        cout << "Looking at varsite number " << i << " at this level, from the outnodes of " << pre_site_id << " to the innodes of " << post_site_id << endl;
-                for (uint j = 0; j!=prg.nodes[pre_site_id]->outNodes.size(); ++j)
+		// we want the index to be inclusive of first node/pre_site_id prob, but exclusive of end node prob
+		x.push_back(prg.nodes[pre_site_id]);
+		u.push_back(make_pair(x, 1));
+		x.clear();
+                /*for (uint j = 0; j!=prg.nodes[pre_site_id]->outNodes.size(); ++j)
                 {
                     x.push_back(prg.nodes[pre_site_id]->outNodes[j]);
                     u.push_back(make_pair(x, 1));
                     x.clear();
-                }
+                }*/
 	    }
 
 	    assert (u.size()>0); // we just added either start node, or branching outnodes of a varsite to it!
@@ -728,6 +733,8 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                         if (it != max_path_index.end())
                         {
                             //extend node path with the max paths seen before from this point
+                            //NOTE need to find prob of start node here toooooooo
+                            cout << "found " << u[j].first.back()->id << " in max_path_index with first prob " << it->second[0].second << " and " << it->second.size() << " paths" << endl;
                             for (uint n = 0; n!=it->second.size(); ++n)
                             {
                                 v.push_back(u[j]);
@@ -736,9 +743,12 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                             }
                         } else {
                             // if not, then work out which minhits overlap this node, and multiply their probabilities, 
-                            // then add the outnode to the end (should only be 1) to get a new path/prob pair to add to v
+                            // then add the outnodes to get a new path/prob pair to add to v
                             // during this process, update kmer_considered_before to reflect the minihits now used in probabilities
                             // note that although this node is 'at the end of a site', it may also be the start of another site and have multiple outNodes
+                            // also save this all to the index for repeat calls
+                            cout << "did not find " << u[j].first.back()->id << " in max_path_index, so work out prob of node from scratch" << endl;
+			    
                             for (uint32_t n=0; n!=kmer_paths.size(); ++n)
 			    {
 				// if we've already used this kmer
@@ -750,17 +760,38 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 				        {
 					    // then this node overlaps this kmer
 					    u[j].second = u[j].second * kmer_path_probs[n];
+					    p_new = p_new * kmer_path_probs[n];
 					    kmer_considered_before[n] = true;
 					    break;
 				        }
 				    }
 				}
 			    }
+			    
+			    x.push_back(u[j].first.back()); // for index
+
 			    for (uint32_t n=0; n!=u[j].first.back()->outNodes.size(); ++n)
 			    {
 				v.push_back(u[j]);
                                 v.back().first.push_back(u[j].first.back()->outNodes[n]);
 			    }
+			    for (uint32_t n=0; n!=u[j].first.back()->outNodes.size(); ++n)
+			    {	
+				// and also add to lookup index to avoid repeat calculations
+				// but again, if prob very small, only add the first to avoid explosion of stored paths
+				z.push_back(make_pair(x, p_new));
+				z.back().first.push_back(u[j].first.back()->outNodes[n]);
+				if (p_new > 0 && p_new < 0.01)
+				{
+				    break;
+				}
+			    }
+			    max_path_index[u[j].first.back()->id] = z;
+                            x.clear();
+			    z.clear();
+			    p_new = 1;
+			    
+
                         }
                     }
                 }
@@ -819,7 +850,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                 {
 		    w[n].second = w[n].second * p_last; // note that p_last is 1 unless we are on the last one
                     max_path_index[pre_site_id].push_back(w[n]);
-		    if (max_prob < 0.1)
+		    if (max_prob < 0.01)
 		    {
 			break;
 		    }

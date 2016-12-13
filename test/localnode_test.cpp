@@ -46,6 +46,3 @@ TEST_F(LocalNodeTest,equals){
     EXPECT_EQ((ln3==ln4), false);
 }
 
-TEST_F(LocalNodeTest,compare){
-}
-

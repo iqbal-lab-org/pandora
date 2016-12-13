@@ -72,3 +72,83 @@ TEST_F(PathTest, subpath)
     // can't get subpath of right length if not enough length left in path from start
     //EXPECT_DEATH(p.subpath(39,3), "");
 }
+
+TEST_F(PathTest, lessthan)
+{
+    deque<Interval> d, d1;
+    d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
+    d1 = {Interval(1,3), Interval(4,5), Interval(8,9), Interval(9,40)}; // same number intervals, different intervals
+    Path p, p1;
+    p.initialize(d);
+    p1.initialize(d1);
+
+    EXPECT_EQ((p<p1), true);
+    EXPECT_EQ((p1<p), false);
+
+    d1 = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)}; // identical
+    p1.initialize(d1);
+    EXPECT_EQ((p<p1), false);
+    EXPECT_EQ((p1<p), false);
+
+    d1 = {Interval(1,3), Interval(4,5), Interval(9,40)}; // different number of intervals missing middle one
+    p1.initialize(d1);
+    EXPECT_EQ((p<p1), true);
+    EXPECT_EQ((p1<p), false);
+
+    d1 = {Interval(4,5), Interval(6,6), Interval(9,40)}; // different number of intervals missing first
+    p1.initialize(d1);
+    EXPECT_EQ((p<p1), true);
+    EXPECT_EQ((p1<p), false);
+
+    d1 = {Interval(1,3), Interval(4,6), Interval(6,6), Interval(9,40)}; // different end to one interval
+    p1.initialize(d1);
+    EXPECT_EQ((p<p1), true);
+    EXPECT_EQ((p1<p), false);
+
+    d1 = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(10,40)}; // different start to one interval
+    p1.initialize(d1);
+    EXPECT_EQ((p<p1), true);
+    EXPECT_EQ((p1<p), false);
+}
+
+TEST_F(PathTest, equals)
+{
+    deque<Interval> d, d1;
+    d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
+    d1 = {Interval(1,3), Interval(4,5), Interval(8,9), Interval(9,40)}; // same number intervals, different intervals
+    Path p, p1;
+    p.initialize(d);
+    p1.initialize(d1);
+
+    EXPECT_EQ(p,p);
+    EXPECT_EQ(p1,p1);
+    EXPECT_EQ((p==p1),false);
+    EXPECT_EQ((p1==p),false);
+
+    d1 = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)}; // identical
+    p1.initialize(d1);
+    EXPECT_EQ(p,p1);
+    EXPECT_EQ(p1,p);
+
+    d1 = {Interval(1,3), Interval(4,5), Interval(9,40)}; // different number of intervals missing middle one
+    p1.initialize(d1);
+    EXPECT_EQ((p==p1),false);
+    EXPECT_EQ((p1==p),false);
+
+    d1 = {Interval(4,5), Interval(6,6), Interval(9,40)}; // different number of intervals missing first
+    p1.initialize(d1);
+    EXPECT_EQ((p==p1),false);
+    EXPECT_EQ((p1==p),false);
+
+    d1 = {Interval(1,3), Interval(4,6), Interval(6,6), Interval(9,40)}; // different end to one interval
+    p1.initialize(d1);
+    EXPECT_EQ((p==p1),false);
+    EXPECT_EQ((p1==p),false);
+
+    d1 = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(10,40)}; // different start to one interval
+    p1.initialize(d1);
+    EXPECT_EQ((p==p1),false);
+    EXPECT_EQ((p1==p),false);
+}
+
+
