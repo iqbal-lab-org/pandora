@@ -138,10 +138,10 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
 	    cout << "pnull is " << pn << " for cluster of size " << current_cluster.size() << endl;
             if (pn < 0.05)
             {
-                //cout << "Found cluster of size: " << current_cluster.size() << " ending with " << **mh_previous << ". Next hit " << **mh_current << endl;
+                cout << "Found cluster of size: " << current_cluster.size() << " ending with " << **mh_previous << ". Next hit " << **mh_current << endl;
                 clusters_of_hits.insert(current_cluster);
             } else {
-		//cout << "Cluster not added had size " << current_cluster.size() << " and ended with " << **mh_previous << endl;
+		cout << "Cluster not added had size " << current_cluster.size() << " and ended with " << **mh_previous << endl;
 	    }
             current_cluster.clear();
             current_cluster.insert(*mh_current);
@@ -156,9 +156,9 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     if (pn < 0.05)
     {
         clusters_of_hits.insert(current_cluster);
-        //cout << "Found final cluster of size: " << current_cluster.size() << " ending with " << **mh_previous << endl;
+        cout << "Found final cluster of size: " << current_cluster.size() << " ending with " << **mh_previous << endl;
     } else {
-        //cout << "Final cluster not added had size " << current_cluster.size() << " and ended with " << **mh_previous << endl;
+        cout << "Final cluster not added had size " << current_cluster.size() << " and ended with " << **mh_previous << endl;
     }
 
     // Next order clusters, remove contained ones, and add inferred order to pangraph
@@ -331,9 +331,27 @@ void update_covgs_from_hits(const vector<LocalPRG*>& prgs, MinimizerHits* mhs)
 
 float p_null(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_of_hits, uint32_t k)
 {
-   cout << "in p_null, using |y|=" << prgs[(*cluster_of_hits.begin())->prg_id]->kmer_paths.size() << " and |x|=" << cluster_of_hits.size() << endl;
-   float p = (1 - pow(1 - pow(0.25, k), cluster_of_hits.size()))*(1 - pow(1 - pow(0.25, k), prgs[(*cluster_of_hits.begin())->prg_id]->kmer_paths.size()));
-   return p;
+    cout << "finding p_null for cluster of size |x|=" << cluster_of_hits.size() << endl;
+    float p = 0;
+
+    // Assumes only one PRG in the vector has the id, (or works out p_null for the first occurance)
+    assert(cluster_of_hits.size() > 0);
+    bool id_found = false;
+
+    for (uint32_t i=0; i!= prgs.size(); ++i)
+    {
+        if (prgs[i]->id == (*cluster_of_hits.begin())->prg_id)
+	{
+    	    cout << "in p_null, using |y|=" << prgs[i]->kmer_paths.size() << " and |x|=" << cluster_of_hits.size() << endl;
+            p = (1 - pow(1 - pow(0.25, k), cluster_of_hits.size()))*(1 - pow(1 - pow(0.25, k), prgs[i]->kmer_paths.size()));
+	    id_found = true;
+            return p;
+	}
+    }
+    // if we have got here, then it couldn't be found
+    cout << "did not find id" << endl;
+    assert(id_found == true);
+    return p;
 }
 
 /*void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>& prgs, PanNode* pnode, uint32_t k, float e_rate)

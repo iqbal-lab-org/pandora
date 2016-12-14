@@ -267,13 +267,19 @@ TEST_F(UtilsTest, addReadHits){
     delete mhs;
 }
 
-/*TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){    
+TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){    
     // initialize minihits container
     MinimizerHits *mhs;
     mhs = new MinimizerHits();
 
     // initialize a prgs object
     vector<LocalPRG*> prgs;
+    LocalPRG* lp1;
+    LocalPRG* lp3;
+    lp1 = new LocalPRG(1, "1", "");
+    lp3 = new LocalPRG(3, "3", "");
+    prgs.push_back(lp1);
+    prgs.push_back(lp3);
 
     // initialize index as we would expect with example prgs (variant of) 1 and 3 from above
     Index *idx;
@@ -284,63 +290,88 @@ TEST_F(UtilsTest, addReadHits){
     p.initialize(d);
     pair<uint64_t,uint64_t> kh = kmerhash("TAC",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
+    lp1->kmer_paths.push_back(p);
 
     d = {Interval(1,4)};
     p.initialize(d);
     kh = kmerhash("ACG",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
+    lp1->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     p.initialize(d);
     kh = kmerhash("AGC",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(4,5), Interval(12,13)};
     p.initialize(d);
     kh = kmerhash("AGT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(19,20), Interval(23,24)};
     p.initialize(d);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
 
     d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     kh = kmerhash("GCT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
 
     d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     kh = kmerhash("GTT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
 
     // add read hits to mhs
+    cout << "add read hits" << endl; 
     add_read_hits(0, "read1", "AGTTTACG", mhs, idx, 1, 3);
 
     // initialize pangraph;
+    cout << "initialize pangraph" << endl;
     PanGraph *pg;
     pg = new PanGraph();
     infer_localPRG_order_for_reads(prgs, mhs, pg, 1, 1, 3);
 
     // create a pangraph object representing the truth we expect (prg 3 then 1)
+    cout << "create a pangraph object representing the truth we expect (prg 3 then 1)" << endl;
     PanGraph pg_exp;
-    pg_exp.add_node(1,0);
-    pg_exp.add_node(3,0);
+    MinimizerHits mhs_dummy;
+    pg_exp.add_node(1,0, mhs_dummy.hits);
+    pg_exp.add_node(3,0, mhs_dummy.hits);
     pg_exp.add_edge(3,1);
 
     EXPECT_EQ(pg_exp, *pg);
     delete idx;
     delete pg;
+    delete lp1;
+    delete lp3;
     delete mhs;
-}*/
+}
 
-/*TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
+TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     // initialize minihits container
     MinimizerHits *mhs;
     mhs = new MinimizerHits();
 
     // initialize a prgs object
     vector<LocalPRG*> prgs;
+    LocalPRG* lp1;
+    LocalPRG* lp2;
+    LocalPRG* lp3;
+    LocalPRG* lp4;
+    lp1 = new LocalPRG(1, "1", "");
+    lp3 = new LocalPRG(3, "3", "");
+    lp4 = new LocalPRG(4, "4", "");
+    lp2 = new LocalPRG(2, "2", "");
+    prgs.push_back(lp1);
+    prgs.push_back(lp3);
+    prgs.push_back(lp4);
+    prgs.push_back(lp2);
 
     // initialize index as we would expect with example prgs
     Index *idx;
@@ -351,90 +382,108 @@ TEST_F(UtilsTest, addReadHits){
     p.initialize(d);
     pair<uint64_t,uint64_t> kh = kmerhash("TAC",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
+    lp1->kmer_paths.push_back(p);
 
     d = {Interval(1,4)};
     p.initialize(d);
     kh = kmerhash("ACG",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
+    lp1->kmer_paths.push_back(p);
 
     d = {Interval(2,5)};
     p.initialize(d);
     kh = kmerhash("CGG",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
+    lp1->kmer_paths.push_back(p);
 
     d = {Interval(3,6)};
     p.initialize(d);
     kh = kmerhash("GGT",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
+    lp1->kmer_paths.push_back(p);
 
     d = {Interval(4,7)};
     p.initialize(d);
     kh = kmerhash("GTA",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
+    lp1->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     p.initialize(d);
     kh = kmerhash("AGC",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(4,5), Interval(12,13)};
     p.initialize(d);
     kh = kmerhash("AGT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(19,20), Interval(23,24)};
     p.initialize(d);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
 
     d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     kh = kmerhash("GCT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
 
     d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     kh = kmerhash("GTT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
 
     d = {Interval(12,13), Interval(16,16), Interval(23,25)};
     p.initialize(d);
     kh = kmerhash("TTA",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
 
     d = {Interval(23,26)};
     p.initialize(d);
     kh = kmerhash("TAA",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
 
     d = {Interval(24,27)};
     p.initialize(d);
     kh = kmerhash("AAG",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
 
     d = {Interval(8,11)};
     p.initialize(d);
     kh = kmerhash("CTA",3);
     idx->add_record(min(kh.first,kh.second), 4, p, (kh.first < kh.second));
+    lp4->kmer_paths.push_back(p);
 
     d = {Interval(9,12)};
     p.initialize(d);
     kh = kmerhash("TAG",3);
     idx->add_record(min(kh.first,kh.second), 4, p, (kh.first < kh.second));
+    lp4->kmer_paths.push_back(p);
 
     d = {Interval(0,3)};
     p.initialize(d);
     kh = kmerhash("CTA",3);
     idx->add_record(min(kh.first,kh.second), 2, p, (kh.first < kh.second));
+    lp2->kmer_paths.push_back(p);
 
     d = {Interval(1,4)};
     p.initialize(d);
     kh = kmerhash("TAC",3);
     idx->add_record(min(kh.first,kh.second), 2, p, (kh.first < kh.second));
+    lp2->kmer_paths.push_back(p);
 
     d = {Interval(2,5)};
     p.initialize(d);
     kh = kmerhash("ACT",3);
     idx->add_record(min(kh.first,kh.second), 2, p, (kh.first < kh.second));
+    lp2->kmer_paths.push_back(p);
 
     // add read hits to mhs
     add_read_hits(0, "read2", "AGTTAAGCTAGCTACTTACGGTA", mhs, idx, 1, 3);
@@ -447,19 +496,24 @@ TEST_F(UtilsTest, addReadHits){
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
     PanGraph pg_exp;
-    pg_exp.add_node(1,0);
-    pg_exp.add_node(2,0);
-    pg_exp.add_node(3,0);
-    pg_exp.add_node(4,0);
+    MinimizerHits mhs_dummy;
+    pg_exp.add_node(1,0, mhs_dummy.hits);
+    pg_exp.add_node(2,0, mhs_dummy.hits);
+    pg_exp.add_node(3,0, mhs_dummy.hits);
+    pg_exp.add_node(4,0, mhs_dummy.hits);
     pg_exp.add_edge(3,4);
     pg_exp.add_edge(4,2);
     pg_exp.add_edge(2,1);
 
     EXPECT_EQ(pg_exp, *pg);
     delete pg;
+    delete lp1;
+    delete lp2;
+    delete lp3;
+    delete lp4;
     delete mhs;
     delete idx;
-}*/
+}
 
 /*TEST_F(UtilsTest, pangraphFromReadFile){
     vector<LocalPRG*> prgs;

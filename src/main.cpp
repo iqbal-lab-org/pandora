@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
     // otherwise, parse the parameters from the command line
     string prgfile, readfile, prefix;
     uint32_t w=1, k=3, cluster_thresh = 1; // default parameters
-    int max_diff = 1;
+    int max_diff = 2;//1;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {

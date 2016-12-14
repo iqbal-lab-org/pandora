@@ -81,14 +81,19 @@ vector<LocalNode*> LocalPRG::nodes_along_path(const Path& p)
     // for each interval of the path
     for (deque<Interval>::const_iterator it=p.path.begin(); it!=p.path.end(); ++it)
     {
+	//cout << "looking at interval " << *it << endl;
         // find the appropriate node of the prg
         for (map<uint32_t, LocalNode*>::const_iterator n=prg.nodes.begin(); n!=prg.nodes.end(); ++n)
         {
             if ((it->end > n->second->pos.start and it->start < n->second->pos.end) or (it->start == n->second->pos.start and it->end == n->second->pos.end))
             {
 		v.push_back(n->second);
+		//cout << "found node " << *(n->second) << " so return vector size is now " << v.size() << endl;
             } else if (it->end < n->second->pos.start)
-            { break;} // because the local nodes are labelled in order of occurance in the linear prg string, we don't need to search after this
+            {
+		//cout << "gave up" << endl;
+		break;
+	    } // because the local nodes are labelled in order of occurance in the linear prg string, we don't need to search after this
         }
     }
     return v;
@@ -698,7 +703,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 		u.push_back(make_pair(x, 1));
 		x.clear();
 	    } else {
-	        cout << "Looking at varsite number " << i << " at this level, from the outnodes of " << pre_site_id << " to the innodes of " << post_site_id << endl;
+	        //cout << "Looking at varsite number " << i << " at this level, from the outnodes of " << pre_site_id << " to the innodes of " << post_site_id << endl;
 		// we want the index to be inclusive of first node/pre_site_id prob, but exclusive of end node prob
 		x.push_back(prg.nodes[pre_site_id]);
 		u.push_back(make_pair(x, 1));
@@ -775,6 +780,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 				v.push_back(u[j]);
                                 v.back().first.push_back(u[j].first.back()->outNodes[n]);
 			    }
+                            cout << "save partial path to index" << endl;
 			    for (uint32_t n=0; n!=u[j].first.back()->outNodes.size(); ++n)
 			    {	
 				// and also add to lookup index to avoid repeat calculations
@@ -783,6 +789,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 				z.back().first.push_back(u[j].first.back()->outNodes[n]);
 				if (p_new > 0 && p_new < 0.01)
 				{
+				    cout << "prob small so only add first partial path to index" << endl;
 				    break;
 				}
 			    }
@@ -852,6 +859,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                     max_path_index[pre_site_id].push_back(w[n]);
 		    if (max_prob < 0.01)
 		    {
+			cout << "prob small so only add first path to index" << endl;
 			break;
 		    }
                 }

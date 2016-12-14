@@ -199,8 +199,8 @@ TEST_F(LocalPRGTest, nodesAlongPath)
     d = {Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     j = 3;
-    EXPECT_EQ(j, l3.string_along_path(p).size());
-    j = 3;
+    vector<LocalNode*> w = l3.nodes_along_path(p);
+    EXPECT_EQ(j, w.size());
     EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
     j = 4;
     EXPECT_EQ(j, l3.nodes_along_path(p)[1]->id);
@@ -215,7 +215,7 @@ TEST_F(LocalPRGTest, nodesAlongPath)
     j = 3;
     EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
     j = 5;
-    EXPECT_EQ(j, l3.nodes_along_path(p)[2]->id);*/
+    EXPECT_EQ(j, l3.nodes_along_path(p)[1]->id);
 }
 
 TEST_F(LocalPRGTest, splitBySiteNoSites){
@@ -423,9 +423,22 @@ TEST_F(LocalPRGTest, updateCovgWithHit)
 {
 }
 
-TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
+/*TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
 {
-}
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+    PanNode* pn;
+    pn = new PanNode(3);
+    pn->add_read(0);
+    MinimizerHits mhs;
+    deque<Interval> d = {Interval(0,1)};
+    Path p;
+    p.initialize(d);
+    pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
+    idx->add_record(min(kh.first,kh.second), 1, p, 0);
+    m1 = new MinimizerHit(0, Interval(0,3), 1, p, 1);
+    mhs.add_hit();
+    pn->add_hits(mhs.hits);
+}*/
 
 TEST_F(LocalPRGTest, writeFasta)
 {
