@@ -312,6 +312,7 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
 
     d = {Interval(0,1), Interval(19,20), Interval(23,24)};
     p.initialize(d);
+    kh = kmerhash("ATT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
@@ -327,9 +328,27 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
+    d = {Interval(12,13), Interval(16,16), Interval(23,25)};
+    p.initialize(d);
+    kh = kmerhash("TTA",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(23,26)};
+    p.initialize(d);
+    kh = kmerhash("TAA",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(24,27)};
+    p.initialize(d);
+    kh = kmerhash("AAG",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
     // add read hits to mhs
     cout << "add read hits" << endl; 
-    add_read_hits(0, "read1", "AGTTTACG", mhs, idx, 1, 3);
+    add_read_hits(0, "read1", "AGTTAAGTACG", mhs, idx, 1, 3);
 
     // initialize pangraph;
     cout << "initialize pangraph" << endl;
@@ -422,6 +441,7 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
 
     d = {Interval(0,1), Interval(19,20), Interval(23,24)};
     p.initialize(d);
+    kh = kmerhash("ATT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 

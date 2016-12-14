@@ -135,13 +135,18 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
         {
             //if (current_cluster.size() > cluster_thresh)
             pn = p_null(prgs, current_cluster, k);
-	    cout << "pnull is " << pn << " for cluster of size " << current_cluster.size() << endl;
-            if (pn < 0.05)
+	    //cout << "pnull is " << pn << " for cluster of size " << current_cluster.size() << endl;
+            if (pn < 0.001)
             {
-                cout << "Found cluster of size: " << current_cluster.size() << " ending with " << **mh_previous << ". Next hit " << **mh_current << endl;
+                cout << "Found cluster of size: " << current_cluster.size() << " for prg " << (*mh_previous)->prg_id << endl;
                 clusters_of_hits.insert(current_cluster);
+		/*for (set<MinimizerHit*, pComp>::iterator mh = current_cluster.begin(); mh!=current_cluster.end(); ++mh)
+		{
+		    cout << **mh << endl;
+		}
+		cout << endl;*/
             } else {
-		cout << "Cluster not added had size " << current_cluster.size() << " and ended with " << **mh_previous << endl;
+		//cout << "Cluster not added had size " << current_cluster.size() << " and ended with " << **mh_previous << endl;
 	    }
             current_cluster.clear();
             current_cluster.insert(*mh_current);
@@ -152,23 +157,26 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     }
     //if (current_cluster.size() > cluster_thresh)
     pn = p_null(prgs, current_cluster, k);
-    cout << "pnull is " << pn << " for cluster of size " << current_cluster.size() << endl;
-    if (pn < 0.05)
+    //cout << "pnull is " << pn << " for cluster of size " << current_cluster.size() << endl;
+    if (pn < 0.001)
     {
         clusters_of_hits.insert(current_cluster);
-        cout << "Found final cluster of size: " << current_cluster.size() << " ending with " << **mh_previous << endl;
+        cout << "Found final cluster of size: " << current_cluster.size() << " for prg " << (*mh_previous)->prg_id << endl;
     } else {
-        cout << "Final cluster not added had size " << current_cluster.size() << " and ended with " << **mh_previous << endl;
+        //cout << "Final cluster not added had size " << current_cluster.size() << " and ended with " << **mh_previous << endl;
     }
+    cout << "Found " << clusters_of_hits.size() << " clusters" << endl;
 
-    // Next order clusters, remove contained ones, and add inferred order to pangraph
+    // Next order clusters, remove contained ones, and add inferred order to pangraph    
     if (clusters_of_hits.size() == 0) { return;}
     set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_previous = clusters_of_hits.begin();
     pangraph->add_node((*(*c_previous).begin())->prg_id, (*(*c_previous).begin())->read_id, *c_previous);
+    cout << "first cluster added " << (*(*c_previous).begin())->prg_id << endl; 
     for (set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_current = ++clusters_of_hits.begin(); c_current != clusters_of_hits.end(); ++c_current)
     {
-        if(((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) &&  ((*(*c_current).begin())->prg_id != (*(*c_previous).begin())->prg_id) && ((*--(*c_current).end())->read_interval.start > (*--(*c_previous).end())->read_interval.start + k - 1) ) // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, so force the next cluster to have at least a hit which is outside this region
+        if(((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) &&  ((*(*c_current).begin())->prg_id != (*(*c_previous).begin())->prg_id) && ((*--(*c_current).end())->read_interval.start > (*--(*c_previous).end())->read_interval.start) ) // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, so force the next cluster to have at least a hit which is outside this region
         {
+	    cout << "added cluster with id " << (*(*c_current).begin())->prg_id << endl;
             pangraph->add_node((*(*c_current).begin())->prg_id, (*(*c_current).begin())->read_id, *c_current);
 	    pangraph->add_edge((*(*c_previous).begin())->prg_id, (*(*c_current).begin())->prg_id);
             c_previous = c_current;
@@ -179,6 +187,11 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
 	    // if we just started looking at hits for a new read, add the first cluster
 	    pangraph->add_node((*(*c_current).begin())->prg_id, (*(*c_current).begin())->read_id, *c_current);
             c_previous = c_current;
+	} else {
+	    cout << "Did not add cluster. Criteria which may have failed:" << endl;
+	    cout << "read_ids equal: " << (*(*c_current).begin())->read_id << "==" << (*(*c_previous).begin())->read_id << ", " << ((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) << endl;
+	    cout << "prg_ids different: " << (*(*c_current).begin())->prg_id << "!=" << (*(*c_previous).begin())->prg_id << ", " << ((*(*c_current).begin())->prg_id != (*(*c_previous).begin())->prg_id) << endl;
+	    cout << "not contained: " << (*--(*c_current).end())->read_interval.start << ">" << (*--(*c_previous).end())->read_interval.start << ", " << ((*--(*c_current).end())->read_interval.start > (*--(*c_previous).end())->read_interval.start) << endl;
 	}
     }
     return;
@@ -331,7 +344,7 @@ void update_covgs_from_hits(const vector<LocalPRG*>& prgs, MinimizerHits* mhs)
 
 float p_null(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_of_hits, uint32_t k)
 {
-    cout << "finding p_null for cluster of size |x|=" << cluster_of_hits.size() << endl;
+    //cout << "finding p_null for cluster of size |x|=" << cluster_of_hits.size() << endl;
     float p = 0;
 
     // Assumes only one PRG in the vector has the id, (or works out p_null for the first occurance)
@@ -342,9 +355,10 @@ float p_null(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_o
     {
         if (prgs[i]->id == (*cluster_of_hits.begin())->prg_id)
 	{
-    	    cout << "in p_null, using |y|=" << prgs[i]->kmer_paths.size() << " and |x|=" << cluster_of_hits.size() << endl;
-            p = (1 - pow(1 - pow(0.25, k), cluster_of_hits.size()))*(1 - pow(1 - pow(0.25, k), prgs[i]->kmer_paths.size()));
+            //p = (1 - pow(1 - pow(0.25, k), cluster_of_hits.size()))*(1 - pow(1 - pow(0.25, k), prgs[i]->kmer_paths.size()));
+            p = pow(1 - pow(1 - pow(0.25, k), prgs[i]->kmer_paths.size()), cluster_of_hits.size());
 	    id_found = true;
+            cout << "p_null = " << p << ", using |y|=" << prgs[i]->kmer_paths.size() << " and |x|=" << cluster_of_hits.size() << " for prg " << prgs[i]->id << " and strand " << (*cluster_of_hits.begin())->strand << endl;
             return p;
 	}
     }
