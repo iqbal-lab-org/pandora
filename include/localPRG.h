@@ -11,6 +11,7 @@
 #include "path.h"
 #include "index.h"
 #include "minihits.h"
+#include "pannode.h"
 
 class LocalNode;
 class PanNode;

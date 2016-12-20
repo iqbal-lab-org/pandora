@@ -9,6 +9,8 @@
 #include "localnode.h"
 #include "index.h"
 #include "inthash.h"
+#include "pannode.h"
+#include "utils.h"
 #include <stdint.h>
 #include <iostream>
 
@@ -144,7 +146,6 @@ TEST_F(LocalPRGTest, stringAlongPath){
 
 TEST_F(LocalPRGTest, nodesAlongPath)
 {
-    cout << "define" << endl;
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
@@ -155,7 +156,7 @@ TEST_F(LocalPRGTest, nodesAlongPath)
     Path p;
     p.initialize(d);
     vector<LocalNode*> v;
-    cout << "test" << endl;
+
     //EXPECT_EQ(v, l0.nodes_along_path(p));
     EXPECT_EQ(v, l1.nodes_along_path(p));
     EXPECT_EQ(v, l2.nodes_along_path(p));
@@ -423,22 +424,95 @@ TEST_F(LocalPRGTest, updateCovgWithHit)
 {
 }
 
-/*TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
+TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
 {
-    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
-    PanNode* pn;
-    pn = new PanNode(3);
-    pn->add_read(0);
-    MinimizerHits mhs;
-    deque<Interval> d = {Interval(0,1)};
+    // initialize minihits container
+    MinimizerHits *mhs;
+    mhs = new MinimizerHits();
+
+    // initialize a prgs object
+    vector<LocalPRG*> prgs;
+    LocalPRG* lp3;
+    lp3 = new LocalPRG(3, "3", "A 5 G 7 C 8 T 7  6 G 5 TAAG");
+    prgs.push_back(lp3);
+
+    // initialize index as we would expect with example prgs
+    Index *idx;
+    idx = new Index();
+
+    deque<Interval> d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     Path p;
     p.initialize(d);
     pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
-    idx->add_record(min(kh.first,kh.second), 1, p, 0);
-    m1 = new MinimizerHit(0, Interval(0,3), 1, p, 1);
-    mhs.add_hit();
-    pn->add_hits(mhs.hits);
-}*/
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(0,1), Interval(4,5), Interval(12,13)};
+    p.initialize(d);
+    kh = kmerhash("AGT",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
+    p.initialize(d);
+    kh = kmerhash("ATT",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    kh = kmerhash("GCT",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    kh = kmerhash("GTT",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(8,9), Interval(16,16), Interval(23,25)};
+    p.initialize(d);
+    kh = kmerhash("CTA",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(12,13), Interval(16,16), Interval(23,25)};
+    p.initialize(d);
+    kh = kmerhash("TTA",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(19,20), Interval(23,25)};
+    p.initialize(d);
+    kh = kmerhash("TTA",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(23,26)};
+    p.initialize(d);
+    kh = kmerhash("TAA",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(24,27)};
+    p.initialize(d);
+    kh = kmerhash("AAG",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+    
+    PanNode* pn;
+    pn = new PanNode(3);
+    pn->add_read(0);
+    add_read_hits(0, "read0", "AGTTAAG", mhs, idx, 1, 3); //AGTTAAGCTAGCTACTTACGGTA
+    pn->add_hits(mhs->hits);
+    
+    lp3->infer_most_likely_prg_paths_for_corresponding_pannode(pn, 3, 0.0015);
+
+    delete mhs;
+    delete idx;
+    delete pn;
+}
 
 TEST_F(LocalPRGTest, writeFasta)
 {

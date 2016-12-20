@@ -324,7 +324,15 @@ void update_covgs_from_hits(const vector<LocalPRG*>& prgs, MinimizerHits* mhs)
     for (set<MinimizerHit*, pComp>::iterator mh = mhs->hits.begin(); mh != mhs->hits.end(); ++mh)
     {
         //cout << "prg_id: " << (*mh)->prg_id << endl;
-	prgs[(*mh)->prg_id]->update_covg_with_hit(*mh);
+        for (uint32_t i=0; i!= prgs.size(); ++i)
+	{
+	    if (prgs[i]->id == (*mh)->prg_id)
+	    {
+	        prgs[i]->update_covg_with_hit(*mh);
+		break;
+	    }
+	}
+	
 	/*if ((*mh)->prg_id == current_id)
 	{
 	    current_hits.push_back(*mh);
