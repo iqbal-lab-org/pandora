@@ -640,6 +640,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
         }
         mh_previous++;
     }
+    // check all the hits have been added by this process
     uint32_t sum_of_elems = 0;
     for (uint32_t n : kmer_path_hit_counts)
     {sum_of_elems += n;}
@@ -649,16 +650,16 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
     // now for each of the minimizing kmers, work out the prob of seeing this number of hits given the number of reads
     // this is the bit where I assume that we have an independent trial for each read (binomial hit counts for true kmers)
     cout << "next work out prob of seeing this number of hits against a kmer assuming it is truly present" << endl;
-    float p_thresh=0.5;
+    float p_thresh=-0.5;
     vector<float> kmer_path_probs;
-    float p_kmer, p=1/exp(e_rate*k), p_max=0, p_min=1;
+    float p_kmer, p=1/exp(e_rate*k), p_max=numeric_limits<float>::lowest(), p_min=0;
     uint32_t n = pnode->foundReads.size(), big_p_count=0;
     cout << "n: " << n << ", p: " << p << endl;
     cout << "count:0 " << nchoosek(n,0) << " * " << pow(p,0) << " * " << pow(1-p,n-0) << endl;
     cout << "count:1 " << nchoosek(n,1) << " * " << pow(p,1) << " * " << pow(1-p,n-1) << endl;
     for (uint32_t i=0; i!=kmer_path_hit_counts.size(); ++i)
     {
-        p_kmer = nchoosek(n, kmer_path_hit_counts[i])*pow(p,kmer_path_hit_counts[i])*pow(1-p,n-kmer_path_hit_counts[i]);
+        p_kmer = log(nchoosek(n, kmer_path_hit_counts[i])*pow(p,kmer_path_hit_counts[i])*pow(1-p,n-kmer_path_hit_counts[i]));
 	cout << kmer_paths[i] << " " << kmer_path_hit_counts[i] << " " << p_kmer << endl;
         kmer_path_probs.push_back(p_kmer);
         p_max = max(p_max, p_kmer);
@@ -670,7 +671,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
         }
     }
     cout << endl;
-    cout << "found " << big_p_count << " probs > " << p_thresh << " with max and min probs " << p_max << ", " << p_min << endl;
+    cout << "found " << big_p_count << " log probs > " << p_thresh << " with max and min log probs " << p_max << ", " << p_min << endl;
 
     //now we iterate through the graph from the outmost level to the lowest level working out the most likely path(s)
     //need 2 data structures, one to remember what the most probable path(s) were for var sites already considered
@@ -693,7 +694,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
             // ...find the maximally probable paths through varsite
             vector<pair<vector<LocalNode*>, float>> u, v, w, z;
             vector<LocalNode*> x;
-	    float p_new = 1;
+	    float p_new = 0;
 
             // add the first node of each alternate allele for the varsite to a vector
             uint32_t pre_site_id = prg.index[level][i].first, post_site_id = prg.index[level][i].second;
@@ -702,7 +703,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 		assert(pre_site_id == 0);
 		cout << "finally find best path through whole prg" << endl;
 		x.push_back(prg.nodes[pre_site_id]);
-		u.push_back(make_pair(x, 1));
+		u.push_back(make_pair(x, 0));
 		x.clear();
 	    } else {
 	        //cout << "Looking at varsite number " << i << " at this level, from the outnodes of " << pre_site_id << " to the innodes of " << post_site_id << endl;
@@ -714,7 +715,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                 {
 		    x.push_back(prg.nodes[pre_site_id]);
                     x.push_back(prg.nodes[pre_site_id]->outNodes[j]);
-                    u.push_back(make_pair(x, 1));
+                    u.push_back(make_pair(x, 0));
                     x.clear();
                 }
 	    }
@@ -759,7 +760,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                             {
                                 v.push_back(u[j]);
                                 v.back().first.insert(v.back().first.end(), ++(it->second[n].first.begin()), it->second[n].first.end());
-                                v.back().second = v.back().second * it->second[n].second;
+                                v.back().second = v.back().second + it->second[n].second;
 				cout << "new size " << v.size() << endl;
                             }
                         } else {
@@ -794,7 +795,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 				    }
 				}
 			    }
-			    // want only the disjoint ones of these
+			    // if have several covering directions at a branching/closing point, want only one of the options
 			    vector<uint32_t> subnums;
 			    bool disjoint = true;
 			    for (uint32_t n=0; n!=nums.size(); ++n)
@@ -803,30 +804,16 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 				{
 				    for (uint32_t m=n+1; m!=nums.size(); ++m)
 				    {
-				    	// for any pair of numbers, if not disjoint, add the one with the smaller probability into the subset
-				    	disjoint = true;
-				    	for (deque<Interval>::const_iterator it2=kmer_paths[nums[n]].path.begin(); it2!=kmer_paths[nums[n]].path.end(); ++it2)
-				    	{
-					    for (deque<Interval>::const_iterator it3=kmer_paths[nums[m]].path.begin(); it3!=kmer_paths[nums[m]].path.end(); ++it3)
+				    	// for any pair of numbers, if they represent branching paths, add the one with the smaller probability into the subset
+				    	if (kmer_paths[nums[n]].is_branching(kmer_paths[nums[m]]))
+					{
+					    if (kmer_path_probs[nums[n]] > kmer_path_probs[nums[m]])
 					    {
-					        if (it2->end > it3->start and it2->start < it3->end)
-					        {
-						    // overlap
-						    if (kmer_path_probs[nums[n]] > kmer_path_probs[nums[m]])
-						    {
-						        cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " overlap but prob " << kmer_path_probs[nums[n]] << " > " << kmer_path_probs[nums[m]] << endl;
-						        subnums.push_back(m);
-						    } else { // if (kmer_path_probs[nums[m]] > kmer_path_probs[nums[n]]) {
-						        cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " overlap but prob " << kmer_path_probs[nums[n]] << " <= " << kmer_path_probs[nums[m]] << endl;
-						        subnums.push_back(n);
-						    }
-						    disjoint = false;
-						    break;
-					        }
-					    }
-					    if (disjoint == false)
-					    {
-					        break;
+					        cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " overlap but prob " << kmer_path_probs[nums[n]] << " > " << kmer_path_probs[nums[m]] << endl;
+						subnums.push_back(m);
+					    } else if (kmer_path_probs[nums[m]] > kmer_path_probs[nums[n]]) {
+						cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " overlap but prob " << kmer_path_probs[nums[n]] << " < " << kmer_path_probs[nums[m]] << endl;
+						subnums.push_back(n);
 					    }
 				        }
 				    }
@@ -838,8 +825,8 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 			        if (std::find(subnums.begin(), subnums.end(), n) == subnums.end())
 				{
 				    cout << "At level " << level << "found a kmer " << kmer_paths[nums[n]] << " which overlaps node " << u[j].first.back()->id << " " << u[j].first.back()->pos << " and which has prob " << kmer_path_probs[nums[n]] << endl;
-				    u[j].second = u[j].second * kmer_path_probs[nums[n]];
-				    p_new = p_new * kmer_path_probs[nums[n]];
+				    u[j].second = u[j].second + kmer_path_probs[nums[n]];
+				    p_new = p_new + kmer_path_probs[nums[n]];
 				    kmer_considered_before[nums[n]] = true;
 				}
 			    }
@@ -874,7 +861,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 			    max_path_index[u[j].first.back()->id] = z;
                             x.clear();
 			    z.clear();
-			    p_new = 1;
+			    p_new = 0;
 
                         }
                     }
@@ -899,7 +886,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                         {
                             cout << "found a kmer which overlaps node " << prg.nodes[pre_site_id]->id << " and which has prob " << kmer_path_probs[n] << endl;
                             // then this node overlaps this kmer
-                            p_new = p_new * kmer_path_probs[n];
+                            p_new = p_new + kmer_path_probs[n];
                             kmer_considered_before[n] = true;
                             break;
                         }
@@ -909,12 +896,12 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 	    cout << "pre_site_id " << pre_site_id << " has probabilty " << p_new << endl;
 	    for (uint n = 0; n!=w.size(); ++n)
             {
-		w[n].second = w[n].second * p_new;
+		w[n].second = w[n].second + p_new;
 	    }
-	    p_new = 1;
+	    p_new = 0;
 
 	    // if we are at level 0, we will want to include the probability of the last node as well
-	    float p_last = 1;
+	    float p_last = 0;
 	    if (level == 0)
 	    {
 		for (uint32_t n=0; n!=kmer_paths.size(); ++n)
@@ -928,7 +915,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                             if (it2->end > w[0].first.back()->pos.start and it2->start < w[0].first.back()->pos.end)
                             {
                                 // then this node overlaps this kmer
-                                p_last = p_last * kmer_path_probs[n];
+                                p_last = p_last + kmer_path_probs[n];
                                 kmer_considered_before[n] = true;
                                 break;
                             }
@@ -938,11 +925,11 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 	    }
 
             // when u empty, should have final set in w and can work out the max of the probs
-            float max_prob = 0;
+            float max_prob = numeric_limits<float>::lowest();
             // find max for all probs we could work out values for
             for (uint n = 0; n!=w.size(); ++n)
             {
-                if (w[n].second != 1) // if no mini kmers in prg overlapping node, can't define prob data came from that node, 
+                if (w[n].second != 0) // if no mini kmers in prg overlapping node, can't define prob data came from that node, 
                                                    // so set the prob to 1 intially, then set to max path value 
                                                    // only happens for really short paths
                 {
@@ -957,9 +944,9 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
             max_path_index[pre_site_id] = u; // know u is empty vector
             for (uint n = 0; n!=w.size(); ++n)
             {
-                if ((max_prob == 0 and w[n].second == 1) or w[n].second == max_prob)
+                if ((max_prob == numeric_limits<float>::lowest() and w[n].second == 0) or w[n].second == max_prob)
                 {
-		    w[n].second = w[n].second * p_last; // note that p_last is 1 unless we are on the last one
+		    w[n].second = w[n].second + p_last; // note that p_last is 0 unless we are on the last one
                     max_path_index[pre_site_id].push_back(w[n]);
 		    cout << "Add path to index: ";
 		    for (uint32_t m = 0; m!= w[n].first.size(); ++m)
@@ -967,7 +954,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 			cout << w[n].first[m]->id << "->";
 		    }
 		    cout << w[n].second << endl;
-		    if (max_prob < 0.01)
+		    if (max_prob < log(0.01))
 		    {
 			cout << "prob small so only add first path to index" << endl;
 			break;

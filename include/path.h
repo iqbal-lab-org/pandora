@@ -24,6 +24,7 @@ class Path {
     void add_end_interval(const Interval&);
     void initialize(const deque<Interval>&);
     Path subpath(const uint32_t, const uint32_t) const;
+    bool is_branching(const Path& y) const;
     bool operator < (const Path& y) const;
     bool operator == (const Path& y) const;
   friend ostream& operator<< (ostream& out, const Path& p); 

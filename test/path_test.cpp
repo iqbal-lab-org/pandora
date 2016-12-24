@@ -73,6 +73,36 @@ TEST_F(PathTest, subpath)
     //EXPECT_DEATH(p.subpath(39,3), "");
 }
 
+TEST_F(PathTest, isBranching)
+{
+    deque<Interval> d, d1;
+    d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
+    d1 = {Interval(1,3), Interval(4,5), Interval(8,9), Interval(9,40)}; // same number intervals, different intervals
+    Path p, p1;
+    p.initialize(d);
+    p1.initialize(d1);
+    EXPECT_EQ(p.is_branching(p), false);
+    EXPECT_EQ(p1.is_branching(p1), false);
+    EXPECT_EQ(p.is_branching(p1), true);
+    EXPECT_EQ(p1.is_branching(p), true);
+
+    d1 = {Interval(4,5), Interval(6,6), Interval(9,47)};
+    p1.initialize(d1);
+    EXPECT_EQ(p1.is_branching(p1), false);
+    EXPECT_EQ(p1.is_branching(p), false);
+    EXPECT_EQ(p.is_branching(p1), false);
+
+    d1 = {Interval(0,0), Interval(4,5), Interval(6,6), Interval(9,40)};
+    p1.initialize(d1);
+    EXPECT_EQ(p.is_branching(p1), true);
+    EXPECT_EQ(p1.is_branching(p), true);
+
+    d1 = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(41,50)};
+    p1.initialize(d1);
+    EXPECT_EQ(p.is_branching(p1), true);
+    EXPECT_EQ(p1.is_branching(p), true);
+}
+
 TEST_F(PathTest, lessthan)
 {
     deque<Interval> d, d1;
