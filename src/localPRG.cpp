@@ -6,6 +6,7 @@
 #include <vector>
 #include <set>
 #include <cassert>
+#include <limits>
 #include <cmath>
 #include "minimizer.h"
 #include "localPRG.h"
@@ -606,6 +607,86 @@ void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
     }
 }*/
 
+float LocalPRG::find_new_node_prob(LocalNode* node, vector<float> &kmer_path_probs, vector<bool> &kmer_considered_before)
+{
+    float p_new;
+    vector<uint32_t> nums;
+    set<uint32_t> subnums;
+
+    cout << "update prob for each kmer find overlapping node (and not used before) " << endl;
+
+    for (uint32_t n=0; n!=kmer_paths.size(); ++n)
+    {
+        // if we've already used this kmer
+        if(kmer_considered_before[n]==false)
+        {
+            for (deque<Interval>::const_iterator it2=kmer_paths[n].path.begin(); it2!=kmer_paths[n].path.end(); ++it2)
+            {
+                if (it2->end > node->pos.start and it2->start < node->pos.end)
+                {
+                    // then this node overlaps this kmer
+                    nums.push_back(n);
+                    break;
+                }
+            }
+        }
+    }
+
+    // if have several covering directions at a branching/closing point, want only one of the options
+    for (uint32_t n=0; n!=nums.size(); ++n)
+    {
+	// if we haven't already decided to eliminate the kmer because it represents an alternative branch path, find kmers that branch from this kmer
+        if (subnums.find(n) == subnums.end())
+        {
+	    bool added_m_or_n = false;
+	    bool found_overlap = false;
+            for (uint32_t m=n+1; m!=nums.size(); ++m)
+            {
+                // for any pair of numbers, if they represent branching paths, add the one with the smaller probability into the subset
+                //cout << n << " vs " << m << endl;
+                if (kmer_paths[nums[n]].is_branching(kmer_paths[nums[m]]))
+                {
+		    found_overlap = true;
+                    if (kmer_path_probs[nums[n]] > kmer_path_probs[nums[m]])
+                    {
+                        cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " overlap but prob " << kmer_path_probs[nums[n]] << " > " << kmer_path_probs[nums[m]] << endl;
+                        subnums.insert(m);
+			added_m_or_n = true;	//we have kept/added n
+                    } else if (kmer_path_probs[nums[m]] > kmer_path_probs[nums[n]]) {
+                        cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " overlap but prob " << kmer_path_probs[nums[n]] << " < " << kmer_path_probs[nums[m]] << endl;
+                        subnums.insert(n);
+			added_m_or_n = true; //we have kept/added m
+                    } else {
+                        cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " overlap and have same prob" << endl;
+                        subnums.insert(m);
+                        subnums.insert(n);
+                    }
+                } else {
+                    cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " do not overlap" << endl;
+                }
+	    }
+	    // if we haven't kept any of the overlapping options, remove n from the subnums set
+	    if (found_overlap == true and added_m_or_n == false)
+	    {
+		cout << "found many overlapping kmers with same prob, so add " << kmer_paths[nums[n]] << endl;
+	        subnums.erase(n);
+            }
+        }
+    } 
+
+    // now for all numbers in nums not in subnums, multiply the probabilities/add log probs
+    for (uint32_t n=0; n!=nums.size(); ++n)
+    {
+        if (std::find(subnums.begin(), subnums.end(), n) == subnums.end())
+        {
+            cout << "Found a kmer " << kmer_paths[nums[n]] << " which overlaps node " << node->id << " " << node->pos << " and which has prob " << kmer_path_probs[nums[n]] << endl;
+            p_new = p_new + kmer_path_probs[nums[n]];
+            kmer_considered_before[nums[n]] = true;
+        }
+    }
+    return p_new;
+}
+
 void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNode* pnode, uint32_t k, float e_rate)
 {
     // note that within the foundHits for a pnode, hits which map to same read, prg and strand will be grouped together
@@ -770,66 +851,8 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                             // note that although this node is 'at the end of a site', it may also be the start of another site and have multiple outNodes
                             // also save this all to the index for repeat calls
                             cout << "did not find " << u[j].first.back()->id << " in max_path_index, so work out prob of node from scratch" << endl;
-			    assert(u[j].first.back()->outNodes.size() == 1); // if the back is the start of a bubble, should already be in index!
-			    cout << "update prob for each kmer find overlapping node (and not used before) " << endl;
-			    vector<uint32_t> nums;
-                            for (uint32_t n=0; n!=kmer_paths.size(); ++n)
-			    {
-				// if we've already used this kmer
-				if(kmer_considered_before[n]==false)
-				{
-				    for (deque<Interval>::const_iterator it2=kmer_paths[n].path.begin(); it2!=kmer_paths[n].path.end(); ++it2)
-				    {
-				        if (it2->end > u[j].first.back()->pos.start and it2->start < u[j].first.back()->pos.end)
-				        {
-					    // then this node overlaps this kmer
-					    nums.push_back(n);
-					    break;
-					    //cout << "At level " << level << "found a kmer " << kmer_paths[n] << " which overlaps node " << u[j].first.back()->id << " " << u[j].first.back()->pos << " and which has prob " << kmer_path_probs[n] << endl;
-					    // then this node overlaps this kmer
-					    //u[j].second = u[j].second * kmer_path_probs[n];
-					    //p_new = p_new * kmer_path_probs[n];
-					    //kmer_considered_before[n] = true;
-					    //break;
-				        }
-				    }
-				}
-			    }
-			    // if have several covering directions at a branching/closing point, want only one of the options
-			    vector<uint32_t> subnums;
-			    bool disjoint = true;
-			    for (uint32_t n=0; n!=nums.size(); ++n)
-			    {
-				if (std::find(subnums.begin(), subnums.end(), n) == subnums.end())
-				{
-				    for (uint32_t m=n+1; m!=nums.size(); ++m)
-				    {
-				    	// for any pair of numbers, if they represent branching paths, add the one with the smaller probability into the subset
-				    	if (kmer_paths[nums[n]].is_branching(kmer_paths[nums[m]]))
-					{
-					    if (kmer_path_probs[nums[n]] > kmer_path_probs[nums[m]])
-					    {
-					        cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " overlap but prob " << kmer_path_probs[nums[n]] << " > " << kmer_path_probs[nums[m]] << endl;
-						subnums.push_back(m);
-					    } else if (kmer_path_probs[nums[m]] > kmer_path_probs[nums[n]]) {
-						cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " overlap but prob " << kmer_path_probs[nums[n]] << " < " << kmer_path_probs[nums[m]] << endl;
-						subnums.push_back(n);
-					    }
-				        }
-				    }
-				}
-			    } 
-			    // for all numbers in nums not in subnums, multiply the probabilities
-			    for (uint32_t n=0; n!=nums.size(); ++n)
-			    {
-			        if (std::find(subnums.begin(), subnums.end(), n) == subnums.end())
-				{
-				    cout << "At level " << level << "found a kmer " << kmer_paths[nums[n]] << " which overlaps node " << u[j].first.back()->id << " " << u[j].first.back()->pos << " and which has prob " << kmer_path_probs[nums[n]] << endl;
-				    u[j].second = u[j].second + kmer_path_probs[nums[n]];
-				    p_new = p_new + kmer_path_probs[nums[n]];
-				    kmer_considered_before[nums[n]] = true;
-				}
-			    }
+    			    assert(u[j].first.back()->outNodes.size() == 1); // if the back is the start of a bubble, should already be in index!
+			    u[j].second = u[j].second + find_new_node_prob(u[j].first.back(), kmer_path_probs, kmer_considered_before);
 			    x.push_back(u[j].first.back()); // for index
 
 			    cout << "extend v with each of the outnodes - original size " << v.size() << endl;
@@ -875,24 +898,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 	
 	    // at this point, add the pre_var_site node to each of the paths found
 	    cout << "update prob for each of these paths with the prob of the pre_site_id " << endl;
-            for (uint32_t n=0; n!=kmer_paths.size(); ++n)
-            {
-                // if we've not already used this kmer
-                if(kmer_considered_before[n]==false)
-                {
-                    for (deque<Interval>::const_iterator it2=kmer_paths[n].path.begin(); it2!=kmer_paths[n].path.end(); ++it2)
-                    {
-                        if (it2->end > prg.nodes[pre_site_id]->pos.start and it2->start < prg.nodes[pre_site_id]->pos.end)
-                        {
-                            cout << "found a kmer which overlaps node " << prg.nodes[pre_site_id]->id << " and which has prob " << kmer_path_probs[n] << endl;
-                            // then this node overlaps this kmer
-                            p_new = p_new + kmer_path_probs[n];
-                            kmer_considered_before[n] = true;
-                            break;
-                        }
-                    }
-                }
-            }
+	    p_new = find_new_node_prob(prg.nodes[pre_site_id], kmer_path_probs, kmer_considered_before);
 	    cout << "pre_site_id " << pre_site_id << " has probabilty " << p_new << endl;
 	    for (uint n = 0; n!=w.size(); ++n)
             {
@@ -925,17 +931,24 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 	    }
 
             // when u empty, should have final set in w and can work out the max of the probs
-            float max_prob = numeric_limits<float>::lowest();
+            float max_prob = numeric_limits<float>::lowest(), next_largest = numeric_limits<float>::lowest();
             // find max for all probs we could work out values for
+            cout << "Finding max of: " << endl;
             for (uint n = 0; n!=w.size(); ++n)
             {
                 if (w[n].second != 0) // if no mini kmers in prg overlapping node, can't define prob data came from that node, 
                                                    // so set the prob to 1 intially, then set to max path value 
                                                    // only happens for really short paths
                 {
-                    max_prob = max(max_prob, w[n].second);
+		    cout << w[n].second << ", ";
+		    if (w[n].second > max_prob)
+		    {
+			next_largest = max_prob;
+                        max_prob = w[n].second;
+		    }
                 }
             }
+	    cout << endl;
 	    cout << "max_prob for paths at this varsite: " << max_prob << endl;
 
             // now add paths achieving max, or if none add paths cannot judge to max_path_index
@@ -944,7 +957,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
             max_path_index[pre_site_id] = u; // know u is empty vector
             for (uint n = 0; n!=w.size(); ++n)
             {
-                if ((max_prob == numeric_limits<float>::lowest() and w[n].second == 0) or w[n].second == max_prob)
+                if ((max_prob == numeric_limits<float>::lowest() and w[n].second == 0) or w[n].second == max_prob or (max_prob - next_largest < 0.1 and w[n].second == next_largest))
                 {
 		    w[n].second = w[n].second + p_last; // note that p_last is 0 unless we are on the last one
                     max_path_index[pre_site_id].push_back(w[n]);

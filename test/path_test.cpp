@@ -101,6 +101,15 @@ TEST_F(PathTest, isBranching)
     p1.initialize(d1);
     EXPECT_EQ(p.is_branching(p1), true);
     EXPECT_EQ(p1.is_branching(p), true);
+    
+    d = {Interval(16810, 16812), Interval(16897, 16904), Interval(16909, 16909), Interval(16914, 16920)};
+    d1 = {Interval(16819, 16822), Interval(16897, 16904), Interval(16909, 16909), Interval(16914, 16920)};
+    p.initialize(d);
+    p1.initialize(d1);
+    EXPECT_EQ(p.is_branching(p), false);
+    EXPECT_EQ(p1.is_branching(p1), false);
+    EXPECT_EQ(p.is_branching(p1), true);
+    EXPECT_EQ(p1.is_branching(p), true);
 }
 
 TEST_F(PathTest, lessthan)

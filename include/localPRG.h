@@ -48,6 +48,7 @@ class LocalPRG {
     void update_covg_with_hit(MinimizerHit* mh);
     //void update_covg_with_hits(deque<MinimizerHit*>& mhs);
     //void update_minimizer_counts_for_nodes(Path& p);
+    float find_new_node_prob(LocalNode*, vector<float>&, vector<bool>&);
     void infer_most_likely_prg_paths_for_corresponding_pannode(const PanNode*, uint32_t, float);
     void write_max_paths_to_fasta(const string&);
   friend ostream& operator<< (ostream& out, const LocalPRG& data);  
