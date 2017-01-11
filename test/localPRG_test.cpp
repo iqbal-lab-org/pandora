@@ -239,10 +239,7 @@ TEST_F(LocalPRGTest, splitBySiteNoSites){
 }
 
 TEST_F(LocalPRGTest, splitBySiteSite){
-    LocalPRG l0(0,"empty", "");
-    LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
-    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
 
     vector<Interval> v2;
     v2.push_back(Interval(0,1));
@@ -250,7 +247,7 @@ TEST_F(LocalPRGTest, splitBySiteSite){
     EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,1)));// << "Failed to split string in Interval" << Interval(0,1);
     EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,2)));// << "Failed to split string in Interval" << Interval(0,2);
     EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,3)));// << "Failed to split string in Interval" << Interval(0,3);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,4)));// << "Failed to split string in Interval" << Interval(0,4);
+    //EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,4)));// << "Failed to split string in Interval" << Interval(0,4);
     v2.push_back(Interval(4,6));
     EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,6)));// << "Failed to split string in Interval" << Interval(0,6);
     EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,7)));// << "Failed to split string in Interval" << Interval(0,7);
@@ -267,10 +264,8 @@ TEST_F(LocalPRGTest, splitBySiteSite){
 }
 
 TEST_F(LocalPRGTest, splitBySiteNestedSite){
-    LocalPRG l0(0,"empty", "");
-    LocalPRG l1(1,"simple", "AGCT");
-    LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+    LocalPRG l4(4,"nested varsite start immediately", " 5 G 7 C 8 T 7  6 G 5 ");
 
     vector<Interval> v3;
     v3.push_back(Interval(0,1));
@@ -278,7 +273,7 @@ TEST_F(LocalPRGTest, splitBySiteNestedSite){
     EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,1)));// << "Failed to split string in Interval" << Interval(0,1);
     EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,2)));// << "Failed to split string in Interval" << Interval(0,2);
     EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,3)));// << "Failed to split string in Interval" << Interval(0,3);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,4)));// << "Failed to split string in Interval" << Interval(0,4);
+    //EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,4)));// << "Failed to split string in Interval" << Interval(0,4);
     v3.push_back(Interval(4,16));
     EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,16)));// << "Failed to split string in Interval" << Interval(0,6);
     EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,17)));// << "Failed to split string in Interval" << Interval(0,7);
@@ -296,6 +291,27 @@ TEST_F(LocalPRGTest, splitBySiteNestedSite){
     v3.push_back(Interval(12,13));
     v3.push_back(Interval(16,16));
     EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(4,16)));// << "Failed to split string in mid Interval" << Interval(5,8);
+
+    vector<Interval> v4;
+    v4.push_back(Interval(0,0));
+    l4.next_site = 5;
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.splitBySite(Interval(0,1)));// << "Failed to split string in Interval" << Interval(0,1);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.splitBySite(Interval(0,2)));// << "Failed to split string in Interval" << Interval(0,2);
+    v4.push_back(Interval(3,15));
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.splitBySite(Interval(0,15)));// << "Failed to split string in Interval" << Interval(0,6);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.splitBySite(Interval(0,16)));// << "Failed to split string in Interval" << Interval(0,7);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.splitBySite(Interval(0,17)));// << "Failed to split string in Interval" << Interval(0,8);
+    v4.push_back(Interval(18,19));
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.splitBySite(Interval(0,19)));// << "Failed to split string in Interval" << Interval(0,10);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.splitBySite(Interval(0,20)));// << "Failed to split string in Interval" << Interval(0,11);
+    l4.next_site = 7;
+    v4.clear();
+    v4.push_back(Interval(0,4));
+    v4.push_back(Interval(7,8));
+    v4.push_back(Interval(11,12));
+    v4.push_back(Interval(15,22));
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.splitBySite(Interval(0,22)));// << "Failed to split string in mid Interval" << Interval(5,8);
+    
 }
 
 TEST_F(LocalPRGTest, buildGraph)

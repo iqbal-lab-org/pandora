@@ -6,6 +6,8 @@
 #include <cassert>
 #include <deque>
 
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
+
 using namespace std;
 
 Path::Path(){
@@ -34,7 +36,7 @@ void Path::initialize(const deque<Interval>& q)
 
 void Path::add_start_interval(const Interval& i)
 {
-    assert (i.end <= path.begin()->start);// && PATH_ERROR);
+    assert (i.end <= path.begin()->start || assert_msg(i.end << ">" << path.begin()->start));
     path.push_front(i);
     length += i.length;
     start = i.start;

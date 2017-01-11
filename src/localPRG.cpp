@@ -21,6 +21,8 @@
 #include "utils.h"
 #include "errormessages.h"
 
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
+
 using std::vector;
 using namespace std;
 
@@ -104,13 +106,14 @@ vector<LocalNode*> LocalPRG::nodes_along_path(const Path& p)
 vector<Interval> LocalPRG::splitBySite(const Interval& i)
 {
     // Splits interval by next_site based on substring of seq in the interval
+    //cout << "splitting by site " << next_site << " in interval " << i << endl;
 
     // Split first by var site
     vector<Interval> v;
     string::size_type k = i.start;
     string d = buff + to_string(next_site) + buff;
     string::size_type j = seq.find(d, k);
-    while (j!=string::npos and j+d.size()<i.end) {
+    while (j!=string::npos and j+d.size()<=i.end) {
         v.push_back(Interval(k, j));
         k = j + d.size();
         j = seq.find(d, k);
@@ -130,16 +133,28 @@ vector<Interval> LocalPRG::splitBySite(const Interval& i)
 	v.push_back(Interval(k, i.end));
 	//cout << "a3" << endl;
     }
-    //assert(v.size()==1 or v.size()==3);
+
+    //cout << "after splitting by " << d << " got intervals " << v[0];
+    assert(v[0].start >= i.start);
+    for(uint32_t l=1; l!=v.size(); ++l)
+    {
+	//cout << " " << v[l];
+        assert(v[l-1].end <= v[l].start|| assert_msg(v[l-1].end << ">" << v[l].start << " giving overlapping intervals  " << v[l-1] << " and " << v[l]));
+    }
+    //cout << endl;
+    assert(v.back().end <= i.end);
+
+    //assert(v.size()==1 or v.size()==3 || assert_msg(v.size() << "!=1,3 with first intervals " << v[0] << " and " << v[1]));
 
     // then split by var site + 1
     vector<Interval> w;
     d = buff + to_string(next_site+1) + buff;
     for(uint32_t l=0; l!=v.size(); ++l)
     {
+	//cout << "splitting interval " << v[l] << " by " << d << endl;
 	k = v[l].start;
 	j = seq.find(d, k);
-        while (j!=string::npos and j+d.size()<v[l].end) {
+        while (j!=string::npos and j+d.size()<=v[l].end) {
             w.push_back(Interval(k, j));
             k = j + d.size();
             j = seq.find(d, k);
@@ -175,6 +190,15 @@ vector<Interval> LocalPRG::splitBySite(const Interval& i)
         w = x;
     }
     //cout << "This was performed on sequence: " << seq << endl;
+    //cout << "after splitting by " << d << " got intervals " << w[0];
+    assert(w[0].start >= i.start);
+    for(uint32_t l=1; l!=w.size(); ++l)
+    {
+	//cout << " " << w[l];
+	assert(w[l-1].end <= w[l].start|| assert_msg(w[l-1].end << ">" << w[l].start << " giving overlapping intervals  " << w[l-1] << " and " << w[l] << " when splitting seq :" << seq.substr(i.start, i.length)));
+    }
+    //cout << endl;
+    assert(w.back().end <= i.end);
     return w;
 }
 
@@ -204,6 +228,7 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
 	next_id++;
     } else {
 	// split by next var site
+	//cout << "split by site " << next_site << " in interval " << i << endl;
 	vector<Interval> v = splitBySite(i); // should have length at least 4
 	if(v.size()<(uint)4)
         {
@@ -220,6 +245,7 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
             cerr << "After splitting by site " << next_site << " do not have alphabetic sequence before var site: " << v[0] << endl;
             exit(-1);
         }
+	//cout << "add pre site string " << s << endl;
 	prg.add_node(next_id, s, v[0]);
 	uint32_t pre_site_id = next_id;
 	//max_level = max(max_level, current_level);
@@ -238,6 +264,7 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
 	// add (recurring as necessary) middle intervals
 	for (uint32_t j=1; j!=v.size() - 1; j++)
 	{
+	    //cout << "add segment " << j << " /interval " << v[j] << endl;
 	    vector<uint32_t> w = build_graph(v[j], mid_ids, current_level+1);
 	    end_ids.insert(end_ids.end(), w.begin(), w.end());
 	}

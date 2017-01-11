@@ -8,6 +8,8 @@
 #include "localgraph.h"
 #include "errormessages.h"
 
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
+
 using namespace std;
 
 LocalGraph::~LocalGraph()
@@ -42,6 +44,7 @@ void LocalGraph::add_edge (const uint32_t& from, const uint32_t& to)
     {
 	LocalNode *f = (nodes.find(from)->second);
     	LocalNode *t = (nodes.find(to)->second);
+	assert(f->pos.end<=t->pos.start || assert_msg(f->pos.end << ">" << t->pos.start << " so cannot add edge from node " << *f << " to node " << *t));
     	f->outNodes.push_back(t);
     	//cout << "Added edge (" << f->id << ", " << t->id << ")" << endl;
     }
