@@ -42,12 +42,15 @@ bool pComp::operator()(MinimizerHit* lhs, MinimizerHit* rhs) {
 }
 
 bool pComp_path::operator()(MinimizerHit* lhs, MinimizerHit* rhs) {
-	if (!(lhs->prg_path==rhs->prg_path))
-	{
-            return lhs->prg_path<rhs->prg_path;
-	} else {
-	    return lhs->read_id<rhs->read_id;
-	}
+    if (lhs->prg_path<rhs->prg_path) { return true;}
+    if (rhs->prg_path<lhs->prg_path) { return false;}
+    if (lhs->read_id<rhs->read_id) { return true;}
+    if (rhs->read_id<lhs->read_id) { return false;}
+    if (lhs->read_interval<rhs->read_interval) { return true;}
+    if (rhs->read_interval<lhs->read_interval) { return false;}
+    if (lhs->strand<rhs->strand) {return true;}
+    if (rhs->strand<lhs->strand) {return false;}
+    return false;
 }
 
 bool clusterComp::operator()(set<MinimizerHit*, pComp> lhs, set<MinimizerHit*, pComp> rhs) {

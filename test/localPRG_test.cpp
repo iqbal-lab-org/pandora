@@ -449,7 +449,7 @@ TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
     // initialize a prgs object
     vector<LocalPRG*> prgs;
     LocalPRG* lp3;
-    lp3 = new LocalPRG(3, "3", "A 5 G 7 C 8 T 7  6 G 5 TAAG");
+    lp3 = new LocalPRG(3, "3", "T 5 G 7 C 8 T 7  6 G 5 TATG");
     prgs.push_back(lp3);
 
     // initialize index as we would expect with example prgs
@@ -459,19 +459,19 @@ TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
     deque<Interval> d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     Path p;
     p.initialize(d);
-    pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
+    pair<uint64_t,uint64_t> kh = kmerhash("TGC",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(4,5), Interval(12,13)};
     p.initialize(d);
-    kh = kmerhash("AGT",3);
+    kh = kmerhash("TGT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(19,20), Interval(23,24)};
     p.initialize(d);
-    kh = kmerhash("ATT",3);
+    kh = kmerhash("TTT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
@@ -499,28 +499,28 @@ TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
-    d = {Interval(19,20), Interval(23,25)};
+    /*d = {Interval(19,20), Interval(23,25)};
     p.initialize(d);
     kh = kmerhash("TTA",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_paths.push_back(p);
+    lp3->kmer_paths.push_back(p);*/
 
     d = {Interval(23,26)};
     p.initialize(d);
-    kh = kmerhash("TAA",3);
+    kh = kmerhash("TAT",3); //inconsistent, i don't care
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(24,27)};
     p.initialize(d);
-    kh = kmerhash("AAG",3);
+    kh = kmerhash("ATG",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
     
     PanNode* pn;
     pn = new PanNode(3);
     pn->add_read(0);
-    add_read_hits(0, "read0", "AGTTAAG", mhs, idx, 1, 3); //AGTTAAGCTAGCTACTTACGGTA
+    add_read_hits(0, "read0", "TGTTATG", mhs, idx, 1, 3); //AGTTAAGCTAGCTACTTACGGTA
     pn->add_hits(mhs->hits);
     
     lp3->infer_most_likely_prg_paths_for_corresponding_pannode(pn, 3, 0.0015);

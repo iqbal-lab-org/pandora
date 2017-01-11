@@ -465,13 +465,13 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
 
     d = {Interval(23,26)};
     p.initialize(d);
-    kh = kmerhash("TAA",3);
+    kh = kmerhash("TAT",3);//inconsistent but I don't care
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(24,27)};
     p.initialize(d);
-    kh = kmerhash("AAG",3);
+    kh = kmerhash("ATG",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
@@ -506,7 +506,7 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     lp2->kmer_paths.push_back(p);
 
     // add read hits to mhs
-    add_read_hits(0, "read2", "AGTTAAGCTAGCTACTTACGGTA", mhs, idx, 1, 3);
+    add_read_hits(0, "read2", "AGTTATGCTAGCTACTTACGGTA", mhs, idx, 1, 3);
 
     // initialize pangraph;
     PanGraph *pg;

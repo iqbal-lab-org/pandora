@@ -727,13 +727,13 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
     for (set<MinimizerHit*, pComp_path>::iterator mh = (pnode->foundHits.begin()); mh != pnode->foundHits.end();)
     {
         mh++;
-        if (mh==pnode->foundHits.end() or (*mh)->strand != (*mh_previous)->strand or !((*mh)->prg_path == (*mh_previous)->prg_path))
+        if ((mh==pnode->foundHits.end()) or !((*mh)->prg_path == (*mh_previous)->prg_path)) // or (*mh)->strand != (*mh_previous)->strand
         {
             for (uint32_t i=num_kmers; i!=kmer_paths.size(); ++i)
             {
                 if (kmer_paths[i]==(*mh_previous)->prg_path)
                 {
-                    //cout << "found path " << kmer_paths[i] << " == " << (*mh_previous)->prg_path << endl;
+                    //cout << "found path " << kmer_paths[i] << " == " << (*mh_previous)->prg_path << " with hit count " << num_hits << endl;
                     kmer_path_hit_counts[i] = num_hits;
                     //cout << "kmer_path_hit_counts[" << i << "] = " << num_hits << endl;
                     num_hits = 1;
@@ -749,9 +749,9 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
         mh_previous++;
     }
     // check all the hits have been added by this process
-    uint32_t sum_of_elems = 0;
-    for (uint32_t n : kmer_path_hit_counts)
-    {sum_of_elems += n;}
+    uint32_t sum_of_elems = std::accumulate(kmer_path_hit_counts.begin(), kmer_path_hit_counts.end(), 0);
+    //for (uint32_t n : kmer_path_hit_counts)
+    //{sum_of_elems += n;}
     cout << "after adding counts of the " << pnode->foundHits.size() << " hits, have still got " << sum_of_elems << " hits added to tallies" << endl;
     assert(sum_of_elems==pnode->foundHits.size());
 

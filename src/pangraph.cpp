@@ -50,13 +50,14 @@ void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id, const se
         PanNode *n;
         n = new PanNode(prg_id);
         nodes[prg_id] = n;
-        //cout << "Added node " << *n << endl;
 	n->add_read(read_id);
         n->add_hits(cluster);
+	cout << "Added node " << *n << " and " << n->foundHits.size() << " hits" << endl;
     } else {
         //cout << "Node " << prg_id << " was already in graph" << endl;
         it->second->add_read(read_id);
 	it->second->add_hits(cluster);
+	cout << "Added hits to node " << *(it->second) << " giving a total of " << it->second->foundHits.size() << " hits" << endl;
     }
     return;
 }

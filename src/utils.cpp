@@ -14,6 +14,10 @@
 #include "minihits.h"
 #include "minihit.h"
 
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
+
+using namespace std;
+
 void index_prg_file(vector<LocalPRG*>& prgs, const string& filepath, Index* idx, const uint32_t w, const uint32_t k)
 {
     time_t now;
@@ -110,7 +114,7 @@ void add_read_hits(const uint32_t id, const string& name, const string& seq, Min
     now = time(0);
     dt = ctime(&now);
     sdt = dt.substr(0,dt.length()-1);
-    cout << sdt << " Found " << hit_count << " hits found for read " << name << endl;
+    cout << sdt << " Found " << hit_count << " hits found for read " << name << " so size of MinimizerHits is now " << hits->hits.size() << endl;
     return;
 }
 
@@ -219,7 +223,7 @@ void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* 
                     dt = ctime(&now);
                     sdt = dt.substr(0,dt.length()-1);
 		    cout << sdt << " Found read " << name << endl;
-                    mh = new MinimizerHits();
+                    //mh = new MinimizerHits();
 		    now = time(0);
                     dt = ctime(&now);
                     sdt = dt.substr(0,dt.length()-1);
@@ -257,7 +261,7 @@ void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* 
             dt = ctime(&now);
             sdt = dt.substr(0,dt.length()-1);
 	    cout << sdt << " Found read " << name << endl;
-            mh = new MinimizerHits();
+            //mh = new MinimizerHits();
             now = time(0);
             dt = ctime(&now);
             sdt = dt.substr(0,dt.length()-1);
@@ -539,7 +543,7 @@ float p_null(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_o
 
 uint32_t nchoosek (uint32_t n, uint32_t k)
 {
-    assert(n >= k);
+    assert(n >= k || assert_msg("Currently the model assumes that the most a given kmer (defined by position) can occur is once per read, i.e. an error somewhere else in the read cannot result in this kmer. If you are getting this message, then you have evidence of violation of this assumption. Either try using a bigger k, or come up with a better model"));
     //assert(n >= 0);
     //assert(k >= 0);
 
