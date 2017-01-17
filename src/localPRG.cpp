@@ -758,9 +758,8 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
     // now for each of the minimizing kmers, work out the prob of seeing this number of hits given the number of reads
     // this is the bit where I assume that we have an independent trial for each read (binomial hit counts for true kmers)
     cout << "next work out prob of seeing this number of hits against a kmer assuming it is truly present" << endl;
-    float p_thresh=-0.5;
     vector<float> kmer_path_probs;
-    float p_kmer, p=1/exp(e_rate*k), p_max=numeric_limits<float>::lowest(), p_min=0;
+    float p_kmer, p=1/exp(e_rate*k), p_max=numeric_limits<float>::lowest(), p_min=0, p_thresh;
     uint32_t n = pnode->foundReads.size(), big_p_count=0;
     cout << "n: " << n << ", p: " << p << endl;
     cout << "count:0 " << nchoosek(n,0) << " * " << pow(p,0) << " * " << pow(1-p,n-0) << endl;
@@ -772,14 +771,15 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
         kmer_path_probs.push_back(p_kmer);
         p_max = max(p_max, p_kmer);
         p_min = min(p_min, p_kmer);
-        if(p_kmer>p_thresh)
+        if(p_kmer>-0.5)
         {
             //cout << p_kmer << " ";
             big_p_count+=1;
         }
     }
     cout << endl;
-    cout << "found " << big_p_count << " log probs > " << p_thresh << " with max and min log probs " << p_max << ", " << p_min << endl;
+    cout << "found " << big_p_count << " log probs > " << -0.5 << " with max and min log probs " << p_max << ", " << p_min << endl;
+    p_thresh = 10*p_min;
 
     //now we iterate through the graph from the outmost level to the lowest level working out the most likely path(s)
     //need 2 data structures, one to remember what the most probable path(s) were for var sites already considered
@@ -847,6 +847,13 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 			}
 			cout << u[j].second << endl;
                         w.push_back(u[j]);
+		    } else if ((v.size()>0 or j<u.size()-1) and u[j].second < p_thresh) {
+			cout << "drop path ";
+                        for (uint32_t m = 0; m!= u[j].first.size(); ++m)
+                        {
+                            cout << u[j].first[m]->id << "->";
+                        }
+                        cout << u[j].second << " as it has too low a probability (" << u[j].second << "<" << p_thresh << ")" << endl;
                     } else {
                         // otherwise look up the last node in the max_path_index
                         // if it is there, then we can multiply the running total prob for this allele, 
@@ -994,7 +1001,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 			cout << w[n].first[m]->id << "->";
 		    }
 		    cout << w[n].second << endl;
-		    if (max_prob < log(0.01))
+		    if (max_prob < p_thresh)
 		    {
 			cout << "prob small so only add first path to index" << endl;
 			break;
@@ -1019,6 +1026,9 @@ void LocalPRG::write_max_paths_to_fasta(const string& filepath)
     assert(it!=max_path_index.end());
     assert(max_path_index[0].size()>0);
 
+    // sort by the operator defined below    
+    std::sort (max_path_index[0].begin(), max_path_index[0].end());
+
     ofstream handle;
     handle.open (filepath);
     for (uint i = 0; i!= max_path_index[0].size(); ++i)
@@ -1032,4 +1042,12 @@ void LocalPRG::write_max_paths_to_fasta(const string& filepath)
     }
     handle.close();
     return;
+}
+
+bool operator<(const pair<vector<LocalNode*>, float> &p1, const pair<vector<LocalNode*>, float> &p2){
+    if (p1.second < p2.second) { return true; }
+    if (p2.second < p1.second) { return false; }
+    if (p1.first.size() > p2.first.size()) { return true; }
+    if (p2.first.size() > p1.first.size()) { return false; }
+    return false;
 }

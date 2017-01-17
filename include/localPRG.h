@@ -51,7 +51,10 @@ class LocalPRG {
     float find_new_node_prob(LocalNode*, vector<float>&, vector<bool>&);
     void infer_most_likely_prg_paths_for_corresponding_pannode(const PanNode*, uint32_t, float);
     void write_max_paths_to_fasta(const string&);
+
   friend ostream& operator<< (ostream& out, const LocalPRG& data);  
 };
+
+bool operator < (const pair<vector<LocalNode*>, float> &p1, const pair<vector<LocalNode*>, float> &p2);
 
 #endif

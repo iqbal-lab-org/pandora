@@ -70,7 +70,7 @@ void LocalGraph::write_gfa (const string& filepath)
 {
     ofstream handle;
     handle.open (filepath);
-    handle << "H\tVN:Z:1.0" << endl;
+    handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
     for(map<uint32_t, LocalNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
     {
         handle << "S\t" << it->second->id << "\t";

@@ -300,7 +300,7 @@ void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* 
             dt = ctime(&now);
             sdt = dt.substr(0,dt.length()-1);
             cout << sdt << " Looking at PRG " << pnode->second->id << endl;
-	    prgs[pnode->second->id]->infer_most_likely_prg_paths_for_corresponding_pannode(pnode->second, k, 0.0015);
+	    prgs[pnode->second->id]->infer_most_likely_prg_paths_for_corresponding_pannode(pnode->second, k, 0.00001);
 	}
         delete mh;
         myfile.close();
