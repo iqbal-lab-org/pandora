@@ -855,7 +855,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
     //need a data structure to remember what the most probable path(s) were for var sites already considered
     //the max_path_index, stored by the LocalPRG class
 
-    vector<MaxPath> u, v, w, z;
+    vector<MaxPath> u, v, w;
     vector<LocalNode*> x;
     vector<bool> y(kmer_paths.size(),false), y_prime(kmer_paths.size(),false);
 
@@ -933,41 +933,17 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                         {
                             //extend node path with the max paths seen before from this point
                             cout << "found " << u[j].npath.back()->id << " in max_path_index" << endl;
-                            cout << "add to v which has original size " << v.size() << endl;
-                            for (uint32_t n=0; n!=it->second.size(); ++it)
-			    {
-                                v.push_back(u[j]);
-			        v.back().extend(it->second[n]);
-				assert(v.back().npath[0]->id == pre_site_id);
-			        v.back().kmers_on_path = find_kmers_on_node_path(v.back().npath, v.back().kmers_on_path); // this corrects for wrongly chosen ones and extends if 
-												      // new ones can be inferred to be present
-			        cout << "new size " << v.size() << endl;
-                            } 
-                        } else {
-                            // if not, then work out which minikmers overlap this node, 
-                            // then add the outnodes to get a new path/prob pair to add to v
-                            // note that although this node is 'at the end of a site', it may also be the start of another site and have multiple outNodes
-                            // also save this all to the index for repeat calls
-                            cout << "did not find " << u[j].npath.back()->id << " in max_path_index, so work out node from scratch" << endl;
-    			    assert(u[j].npath.back()->outNodes.size() == 1); // if the back is the start of a bubble, should already be in index!
-			    /*x.push_back(u[j].npath.back()); // for index
-
-			    for (uint32_t n=0; n!=u[j].npath.back()->outNodes.size(); ++n)
-			    {
-				z.push_back(MaxPath(x,y,0));
-                                z.back().npath.push_back(u[j].npath.back()->outNodes[n]);
-				z.back().kmers_on_path = find_kmers_on_node_path(z.back().npath, z.back().kmers_on_path);
-			    }
-                            cout << "save partial paths for node " << *(u[j].npath.back()) << " to index - there are " << z.size() << endl;
-			    max_path_index[u[j].npath.back()->id] = z;
-			    v.insert(v.begin(), z.begin(), z.end());
-			    x.clear();
-			    z.clear();*/
-				
+			    assert(it->second.size() == 1);
+			    u[j].extend(it->second[0]);
+			} else {
+			    //otherwise extend with the outnode of the last node in node_path
+			    cout << "did not find " << u[j].npath.back()->id << " in max_path_index, so add outnode" << endl;
+			    assert(u[j].npath.back()->outNodes.size() == 1); // if the back is the start of a bubble, should already be in index!
 			    u[j].npath.push_back(u[j].npath.back()->outNodes[0]);
-			    u[j].kmers_on_path = find_kmers_on_node_path(u[j].npath, y);
-			    v.push_back(u[j]);
-                        }
+			}
+			// either way, reevaluate the kmers on this new longer node_path, and add extended node_path to v
+			u[j].kmers_on_path = find_kmers_on_node_path(u[j].npath, y);
+			v.push_back(u[j]);
                     }
                 }
                 // once done for all of what was in u, set u = v

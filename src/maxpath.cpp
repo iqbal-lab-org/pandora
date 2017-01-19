@@ -21,17 +21,16 @@ MaxPath::MaxPath(vector<LocalNode*> x, vector<bool> y, uint32_t z)
 
 void MaxPath::extend(const MaxPath new_mp)
 {
-    uint old_size = npath.size();
-    npath.insert(npath.end(),new_mp.npath.begin(),new_mp.npath.end());
-    assert(npath.size() == old_size + new_mp.npath.size());
-    assert(new_mp.kmers_on_path.size()==kmers_on_path.size());
-    for (uint i=0; i!=new_mp.kmers_on_path.size(); ++i)
+    vector<LocalNode*>::const_iterator it = new_mp.npath.begin();
+    for (uint n=0; n!=npath.size(); ++n)
     {
-	if (new_mp.kmers_on_path[i]==true)
+	if (*npath[n] == **it)
 	{
-	    kmers_on_path[i] = true;
+	    it++;
 	}
     }
+    npath.insert(npath.end(),it,new_mp.npath.end());
+    assert(new_mp.kmers_on_path.size()==kmers_on_path.size());
     return;
 }
 
