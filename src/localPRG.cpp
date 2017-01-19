@@ -932,7 +932,6 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                             cout << "found " << u[j].npath.back()->id << " in max_path_index" << endl;
 			    assert(it->second.size() == 1);
 			    u[j].extend(it->second[0]);
-			    update_kmers_on_node_path(u[j]);
 			} else {
 			    //otherwise extend with the outnode of the last node in node_path
 			    cout << "did not find " << u[j].npath.back()->id << " in max_path_index, so add outnode" << endl;
@@ -991,6 +990,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 		
             }
 	    assert(max_path_index[pre_site_id].size()==1);
+	    w.clear();
         }
     }
     return;
