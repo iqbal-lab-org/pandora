@@ -636,9 +636,9 @@ void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
     }
 }*/
 
-vector<bool> LocalPRG::find_kmers_on_node_path(const vector<LocalNode*>& npath, vector<bool> kmers_on_path)
+void LocalPRG::update_kmers_on_node_path(MaxPath& mp)
 {
-    assert(kmers_on_path.size() == kmer_paths.size());
+    assert(mp.kmers_on_path.size() == kmer_paths.size());
     
     deque<Interval>::const_iterator it;
     vector<LocalNode*>::const_iterator node;
@@ -648,9 +648,9 @@ vector<bool> LocalPRG::find_kmers_on_node_path(const vector<LocalNode*>& npath, 
 
     cout << "looking for kmers overlapping node_path " << endl;
 
-    for (uint32_t n=0; n!=npath.size(); ++n)
+    for (uint32_t n=0; n!=mp.npath.size(); ++n)
     {
-	cout << *npath[n] << " ";
+	cout << *(mp.npath[n]) << " ";
     }
     cout << endl; 
 
@@ -658,43 +658,43 @@ vector<bool> LocalPRG::find_kmers_on_node_path(const vector<LocalNode*>& npath, 
     for (uint32_t n=0; n!=kmer_paths.size(); ++n)
     {
         it=kmer_paths[n].path.begin();
-        node=npath.begin();
+        node=mp.npath.begin();
 	found = false;
 	reject = false;
 	
-        if (kmers_on_path[n] == true)
+        if (mp.kmers_on_path[n] == true)
 	{
 	    found = true;
 	}
 
-        while (reject == false and found == false and node!=npath.end() and it!=kmer_paths[n].path.end())
+        while (reject == false and found == false and node!=mp.npath.end() and it!=kmer_paths[n].path.end())
 	{
             if ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or (*it == (*node)->pos))
             {
                 // then this node overlaps this interval of the kmer
                 // it needs to continue to overlap to end of kmer or node_path
                 found = true;
-		cout << endl << "found start of a match: " <<  *it << " " << (*node)->pos << endl;
-		cout << "note " << (reject == false) << " " << (node!=npath.end()) << " " << (it!=kmer_paths[n].path.end()) << endl; 
-		while (reject == false and node!=npath.end() and it!=kmer_paths[n].path.end())
+		//cout << endl << "found start of a match: " <<  *it << " " << (*node)->pos << endl;
+		//cout << "note " << (reject == false) << " " << (node!=mp.npath.end()) << " " << (it!=kmer_paths[n].path.end()) << endl; 
+		while (reject == false and node!=mp.npath.end() and it!=kmer_paths[n].path.end())
 		{
 		    if ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or (*it == (*node)->pos))
                     {
-			cout << *it << " " << (*node)->pos << " match" << endl;
+			//cout << *it << " " << (*node)->pos << " match" << endl;
 			node++;
 			it++;
 		    } else {
 			// we have stopped matching and not because we reached the end of the kmer or node path
-			cout << "reject: " << kmer_paths[n] << " since " << *it << " and " << (*node)->pos  << " do not match " << endl;
+			//cout << "reject: " << kmer_paths[n] << " since " << *it << " and " << (*node)->pos  << " do not match " << endl;
 			reject = true;
 		    }
 		}
-		cout << "end of while" << endl;
+		//cout << "end of while" << endl;
 	    } else {
 		// no match for this node and inteval
 		// a match has to start either with the first node of node_path, or first interval of kmer
 		// try iterating through combinations
-		if (node==npath.begin() and it!=kmer_paths[n].path.end())
+		if (node==mp.npath.begin() and it!=kmer_paths[n].path.end())
 		{
 		    it++;
 		} else {
@@ -762,13 +762,12 @@ vector<bool> LocalPRG::find_kmers_on_node_path(const vector<LocalNode*>& npath, 
         if (std::find(subnums.begin(), subnums.end(), n) == subnums.end())
         {
             //cout << "Found a kmer " << kmer_paths[nums[n]] << " which branches from node " << node->id << " " << node->pos << " and which has prob " << kmer_path_probs[nums[n]] << endl;
-            kmers_on_path[nums[n]] = true;
+            mp.kmers_on_path[nums[n]] = true;
         } else {
-	    kmers_on_path[nums[n]] = false;
+	    mp.kmers_on_path[nums[n]] = false;
 	}
     }
     cout << "done identifying kmers on path" << endl;
-    return kmers_on_path;
 }
 
 void LocalPRG::get_kmer_path_hit_counts(const PanNode* pnode)
@@ -857,7 +856,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 
     vector<MaxPath> u, v, w;
     vector<LocalNode*> x;
-    vector<bool> y(kmer_paths.size(),false), y_prime(kmer_paths.size(),false);
+    vector<bool> y(kmer_paths.size(),false);
 
     // start with the outmost level
     uint8_t max_level = 0;
@@ -889,11 +888,9 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 		    cout << "add " << pre_site_id << "->" << prg.nodes[pre_site_id]->outNodes[j]->id << " to u" << endl;
 		    x.push_back(prg.nodes[pre_site_id]);
                     x.push_back(prg.nodes[pre_site_id]->outNodes[j]);
-		    cout << "find kmers on node path" << endl;
-		    y_prime = find_kmers_on_node_path(x,y);
 		    cout << "make maxpath" << endl;
-                    //u.push_back(MaxPath(x, find_kmers_on_node_path(x,y), 0));
-                    u.push_back(MaxPath(x, y_prime, 0));
+                    u.push_back(MaxPath(x, y, 0));
+		    update_kmers_on_node_path(u.back());
                     x.clear();
                 }
 	    }
@@ -935,14 +932,16 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                             cout << "found " << u[j].npath.back()->id << " in max_path_index" << endl;
 			    assert(it->second.size() == 1);
 			    u[j].extend(it->second[0]);
+			    update_kmers_on_node_path(u[j]);
 			} else {
 			    //otherwise extend with the outnode of the last node in node_path
 			    cout << "did not find " << u[j].npath.back()->id << " in max_path_index, so add outnode" << endl;
 			    assert(u[j].npath.back()->outNodes.size() == 1); // if the back is the start of a bubble, should already be in index!
 			    u[j].npath.push_back(u[j].npath.back()->outNodes[0]);
+			    u[j].kmers_on_path = y; 
 			}
-			// either way, reevaluate the kmers on this new longer node_path, and add extended node_path to v
-			u[j].kmers_on_path = find_kmers_on_node_path(u[j].npath, y);
+			// either way, add extended node_path to v
+			update_kmers_on_node_path(u[j]);
 			v.push_back(u[j]);
                     }
                 }

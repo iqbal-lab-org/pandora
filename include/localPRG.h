@@ -51,7 +51,7 @@ class LocalPRG {
     vector<uint32_t> build_graph(const Interval&, const vector<uint32_t>&, uint32_t current_level=0);
     void minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k);
     void update_covg_with_hit(MinimizerHit*);
-    vector<bool> find_kmers_on_node_path(const vector<LocalNode*>&, vector<bool>);
+    void update_kmers_on_node_path(MaxPath&);
     void get_kmer_path_hit_counts(const PanNode*);
     void get_kmer_path_probs(const PanNode*, uint32_t, float);
     void infer_most_likely_prg_paths_for_corresponding_pannode(const PanNode*, uint32_t, float);

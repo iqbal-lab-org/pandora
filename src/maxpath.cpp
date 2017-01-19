@@ -6,8 +6,8 @@ using namespace std;
 
 MaxPath::MaxPath(){};
 
-//MaxPath::MaxPath(vector<LocalNode*> x, vector<bool> y, uint32_t z): npath(x), kmers_on_path(y), num_equivalent_paths(z){};
-MaxPath::MaxPath(vector<LocalNode*> x, vector<bool> y, uint32_t z)
+MaxPath::MaxPath(vector<LocalNode*> x, vector<bool> y, uint32_t z): npath(x), kmers_on_path(y), num_equivalent_paths(z){};
+/*MaxPath::MaxPath(vector<LocalNode*> x, vector<bool> y, uint32_t z)
 {
     cout << "make maxpath" << endl;
     npath = x;
@@ -16,7 +16,7 @@ MaxPath::MaxPath(vector<LocalNode*> x, vector<bool> y, uint32_t z)
     cout << "added kmers_on_path" << endl;
     num_equivalent_paths = z;
     cout << "done creating maxpath" << endl;
-}
+}*/
     
 
 void MaxPath::extend(const MaxPath new_mp)
@@ -31,6 +31,14 @@ void MaxPath::extend(const MaxPath new_mp)
     }
     npath.insert(npath.end(),it,new_mp.npath.end());
     assert(new_mp.kmers_on_path.size()==kmers_on_path.size());
+    // keep the intersection of kmers
+    for (uint n=0; n!=kmers_on_path.size(); ++n)
+    {
+	if (new_mp.kmers_on_path[n] != kmers_on_path[n])
+	{
+	    kmers_on_path[n] = false;
+	}
+    }
     return;
 }
 
