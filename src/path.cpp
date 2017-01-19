@@ -121,7 +121,7 @@ bool Path::is_branching(const Path& y) const // returns true if the two paths br
             for (it2=y.path.begin(); it2!=y.path.end(); ++it2)
 	    {
 	        //cout << *it << " " << *it2 << endl;
-	        if (it->end > it2->start and it->start < it2->end)
+	        if ((it->end > it2->start and it->start < it2->end) or (*it==*it2))
 	        {
 	            // then the paths overlap
 	            overlap = true;
