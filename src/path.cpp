@@ -58,7 +58,7 @@ Path Path::subpath(const uint32_t start, const uint32_t len) const
     uint32_t added_len = 0;
     for (deque<Interval>::const_iterator it=path.begin(); it!=path.end(); ++it)
     {
-	if (it->start <= start and it->end > start)
+	if ((it->start <= start and it->end > start) or (it->start == start and it->length == 0))
 	{
 	    //cout << "start of subpath" << endl;
 	    // first interval to add

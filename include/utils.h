@@ -19,6 +19,7 @@ struct pointer_values_equal
     }
 };
 
+string now();
 void index_prg_file(vector<LocalPRG*>&, const string&, Index*, const uint32_t, const uint32_t);
 void add_read_hits(uint32_t, const string&, const string&, MinimizerHits*, Index*, const uint32_t, const uint32_t);
 void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits*, PanGraph*, const int, const uint32_t, const uint32_t);

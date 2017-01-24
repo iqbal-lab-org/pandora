@@ -246,6 +246,14 @@ TEST_F(LocalGraphTest, walk)
     q1.push_back(p);
     p1 = lg3.walk(0,0,4);
     EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
+
+    // also want to allow walks starting from an empty node, including the empty node
+    q1.clear();
+    d = {Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    q1.push_back(p);
+    p1 = lg3.walk(4,16,1);
+    EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
 }
 
 TEST_F(LocalGraphTest, writeGFA){

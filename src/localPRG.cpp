@@ -295,12 +295,12 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 
     for (map<uint32_t,LocalNode*>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
     {
-	//cout << "Processing node" << it->second->id << endl;
+	cout << "Processing node" << it->second->id << endl;
 	
 	// if part of the node has already been included in a mini, we start after this part
 	for (uint32_t i=it->second->sketch_next; i!=max(it->second->sketch_next+w+k, it->second->pos.end+2)-w-k;)
         {
-            //cout << "Node has been deemed long enough and " << it->second->pos.start << " <= " << i << " <= " << it->second->pos.end - w - k + 1 << endl; 
+            cout << "Node is long enough for whole w+k-1 length to fit in, " << it->second->pos.start << " <= " << i << " <= " << it->second->pos.end - w - k + 1 << endl; 
             assert(i <= it->second->pos.end - w - k + 1);
             assert(i >= it->second->pos.start);
 	    
@@ -323,27 +323,37 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                 kh = kmerhash(kmer, k);
                 if (kh.first == smallest)
                 {
-                    //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                    cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                     idx->add_record(kh.first, id, kmer_path, 0);
                     kmer_paths.push_back(kmer_path);
 		    it->second->sketch_next = kmer_path.path.back().end;
                 } else if (kh.second == smallest)
                 {
-                    //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                    cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                     idx->add_record(kh.second, id, kmer_path, 1);
                     kmer_paths.push_back(kmer_path);
 		    it->second->sketch_next = kmer_path.path.back().end;
                 }
             }
 	    i=it->second->sketch_next;
-	    if (i > it->second->pos.end+1-w-k)
-	    {break;} // too close to the end of this node for this method
+	    if (i+w+k > it->second->pos.end+1)
+	    {
+		break;
+	    } // too close to the end of this node for this method
 	}
 
-        for (uint32_t i=it->second->sketch_next; i!=it->second->pos.end;)
+	// now sketch the remaining bit which overlaps the end boundary. If we have an empty node, still want a kmer covering, 
+	// with corresponding empty interval at start. 
+        for (uint32_t i=it->second->sketch_next; i<max(it->second->pos.end, it->second->pos.start+1);)
         {
+	    cout << "start " << it->second->pos.start << " <= " << i << " <= " << it->second->pos.end << " end" << endl;
+	    if (i>=max(it->second->pos.end, it->second->pos.start+1))
+	    {
+		cout << "I don't know how I got here" << endl;
+		break;
+	    }
             walk_paths = prg.walk(it->second->id, i, w+k-1);
-            //cout << "for id, i: " << it->second->id << ", " << i << " found " << walk_paths.size() << " paths" << endl;
+            cout << "for id, i: " << it->second->id << ", " << i << " found " << walk_paths.size() << " paths" << endl;
             for (vector<Path>::iterator it2=walk_paths.begin(); it2!=walk_paths.end(); ++it2)
             {
                 //cout << "Minimize path: " << *it2 << endl;
@@ -401,8 +411,13 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		}
 	    }
 	    i=it->second->sketch_next;
-            if (i > it->second->pos.end+1-w-k)
-            {break;} // too close to the end of this node for this method
+	    cout << "next i: " << i << " and it->second->pos.end: " << it->second->pos.end << endl;
+            if (i+w+k > it->second->pos.end+1)
+            {
+		break;
+	    } else { // too close to the end of this node for this method
+		cout << i << "<=" << it->second->pos.end-w-k+1 << endl;
+	    }
 	}
     }
     return;
@@ -768,6 +783,7 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp)
 	}
     }
     cout << "done identifying kmers on path" << endl;
+    //assert(std::accumulate(mp.kmers_on_path.begin(), mp.kmers_on_path.end(), 0) > 0);
 }
 
 void LocalPRG::get_kmer_path_hit_counts(const PanNode* pnode)
@@ -842,12 +858,12 @@ void LocalPRG::get_kmer_path_probs(const PanNode* pnode, uint32_t k, float e_rat
 void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNode* pnode, uint32_t k, float e_rate)
 {
     // start by counting how many hits against each minimizing_kmer of prg
-    cout << "start by counting how many hits against each minimizing kmer in prg" << endl;
+    cout << now() << "start by counting how many hits against each minimizing kmer in prg" << endl;
     get_kmer_path_hit_counts(pnode);
 
     // now for each of the minimizing kmers, work out the prob of seeing this number of hits given the number of reads
     // this is the bit where I assume that we have an independent trial for each read (binomial hit counts for true kmers)
-    cout << "next work out prob of seeing this number of hits against a kmer assuming it is truly present" << endl;
+    cout << now() << "next work out prob of seeing this number of hits against a kmer assuming it is truly present" << endl;
     get_kmer_path_probs(pnode, k, e_rate);
 
     //now we iterate through the graph from the outmost level to the lowest level working out the most likely path(s)
@@ -867,7 +883,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
     // and for each level..
     for (uint level = max_level; level <= max_level; --level)
     {
-	cout << endl << "Looking at level " << level << endl;
+	cout << endl << now() << "Looking at level " << level << endl;
         // ...for each varsite at this level...
         for (uint i = 0; i!=prg.index[level].size(); ++i)
         {
@@ -876,19 +892,19 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 	    if (level == 0)
 	    {
 		assert(pre_site_id == 0);
-		cout << "finally find best path through whole prg" << endl;
+		cout << now() << "finally find best path through whole prg" << endl;
 		x.push_back(prg.nodes[pre_site_id]);
 		u.push_back(MaxPath(x, y, 0));
 		x.clear();
 	    } else {
-	        cout << "Looking at varsite number " << i << " at this level, from the outnodes of " << pre_site_id << " to the innodes of " << post_site_id << endl;
+	        cout << now() << "Looking at varsite number " << i << " at this level, from the outnodes of " << pre_site_id << " to the innodes of " << post_site_id << endl;
 		// we want the index to be inclusive of first node/pre_site_id prob, but exclusive of end node prob
                 for (uint j = 0; j!=prg.nodes[pre_site_id]->outNodes.size(); ++j)
                 {
-		    cout << "add " << pre_site_id << "->" << prg.nodes[pre_site_id]->outNodes[j]->id << " to u" << endl;
+		    cout << now() << "add " << pre_site_id << "->" << prg.nodes[pre_site_id]->outNodes[j]->id << " to u" << endl;
 		    x.push_back(prg.nodes[pre_site_id]);
                     x.push_back(prg.nodes[pre_site_id]->outNodes[j]);
-		    cout << "make maxpath" << endl;
+		    cout << now() << "make maxpath" << endl;
                     u.push_back(MaxPath(x, y, 0));
 		    update_kmers_on_node_path(u.back());
                     x.clear();
@@ -900,14 +916,14 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
             // then until we reach the end varsite:
             while (u.size()>0)
             {
-		cout << "restart loop with u.size() == " << u.size() << endl;
+		cout << now() << "restart loop with u.size() == " << u.size() << endl;
                 // for each tuple in u
                 for (uint j = 0; j!=u.size(); ++j)
                 {
                     // if the path in the tuple ends at the end of the varsite, it is a done path, add to w
                     if (u[j].npath.back()->id == post_site_id)
                     {
-			cout << "finished path ";
+			cout << now() << "finished path ";
 			for (uint32_t m = 0; m!= u[j].npath.size(); ++m)
 			{
 			    cout << u[j].npath[m]->id << "->";
@@ -919,7 +935,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                         // if it is there, then we have a path to extend by, 
                         // and extend the path for each of the maximal paths through the sub_varsite
                         // and add the updated path/prob pairs to v
-                        cout << "extend path ";
+                        cout << now() << "extend path ";
 			for (uint32_t m = 0; m!= u[j].npath.size(); ++m)
                         {
                             cout << u[j].npath[m]->id << "->";
@@ -929,12 +945,18 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                         if (it != max_path_index.end())
                         {
                             //extend node path with the max paths seen before from this point
-                            cout << "found " << u[j].npath.back()->id << " in max_path_index" << endl;
+                            cout << now() << "found " << u[j].npath.back()->id << " in max_path_index" << endl;
 			    assert(it->second.size() == 1);
 			    u[j].extend(it->second[0]);
+			    cout << now() << "extended npath with found npath giving: ";
+			    for (uint32_t m = 0; m!= u[j].npath.size(); ++m)
+                            {
+                                cout << u[j].npath[m]->id << "->";
+                            }
+			    cout << endl;
 			} else {
 			    //otherwise extend with the outnode of the last node in node_path
-			    cout << "did not find " << u[j].npath.back()->id << " in max_path_index, so add outnode" << endl;
+			    cout << now() << "did not find " << u[j].npath.back()->id << " in max_path_index, so add outnode" << endl;
 			    assert(u[j].npath.back()->outNodes.size() == 1); // if the back is the start of a bubble, should already be in index!
 			    u[j].npath.push_back(u[j].npath.back()->outNodes[0]);
 			    u[j].kmers_on_path = y; 
@@ -957,7 +979,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 
             float max_prob = numeric_limits<float>::lowest(), next_largest = numeric_limits<float>::lowest();
             // find max for all probs we could work out values for
-            cout << "Finding max of: " << endl;
+            cout << now() << "Finding max of: " << endl;
             for (uint n = 0; n!=w.size(); ++n)
             {
 		cout << w[n].get_mean_prob(kmer_path_probs) << ", ";
@@ -968,7 +990,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 		}
             }
 	    cout << endl;
-	    cout << "max_prob (mean) for paths at this varsite: " << max_prob << endl;
+	    cout << now() << "max_prob (mean) for paths at this varsite: " << max_prob << endl;
 
             // now add (a) path achieving max to max_path_index
 	    // if there are multiple such paths, we just add the first
@@ -979,7 +1001,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                 if ((max_prob == numeric_limits<float>::lowest() and w[n].get_mean_prob(kmer_path_probs) == 0) or w[n].get_mean_prob(kmer_path_probs) == max_prob)
                 {
                     max_path_index[pre_site_id].push_back(w[n]);
-		    cout << "Add path to index: ";
+		    cout << now() << "Add path to index: ";
 		    for (uint32_t m = 0; m!= w[n].npath.size(); ++m)
 		    {
 			cout << w[n].npath[m]->id << "->";

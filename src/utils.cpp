@@ -18,6 +18,16 @@
 
 using namespace std;
 
+string now()
+{
+    time_t now;
+    string dt;
+    
+    now = time(0);
+    dt = ctime(&now);
+    return dt.substr(0,dt.length()-1) + " ";
+}
+
 void index_prg_file(vector<LocalPRG*>& prgs, const string& filepath, Index* idx, const uint32_t w, const uint32_t k)
 {
     time_t now;

@@ -14,6 +14,7 @@ struct MaxPath
     uint32_t num_equivalent_paths;
     float prob;
     float mean_prob;
+    float median_prob;
 
     MaxPath();
     MaxPath(vector<LocalNode*>, vector<bool>, uint32_t);
@@ -21,6 +22,7 @@ struct MaxPath
     void extend(const MaxPath);
     float get_prob(const vector<float>&);
     float get_mean_prob(const vector<float>&);
+    float get_median_prob(const vector<float>&);
 };
 
 #endif

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cassert>
+#include <cmath>
 #include "maxpath.h"
 
 using namespace std;
@@ -21,18 +22,26 @@ MaxPath::MaxPath(vector<LocalNode*> x, vector<bool> y, uint32_t z): npath(x), km
 
 void MaxPath::extend(const MaxPath new_mp)
 {
+    cout << "extend npaths" << endl;
     uint old_size = npath.size();
+    cout << "old size: " << old_size << endl;
     vector<LocalNode*>::const_iterator it = new_mp.npath.begin();
-    for (uint n=0; n!=npath.size(); ++n)
+    while((*it)->id <= npath.back()->id and it!=new_mp.npath.end())
+    {
+	it++;
+    }
+    /*for (uint n=0; n!=npath.size(); ++n)
     {
 	if (*npath[n] == **it)
 	{
 	    it++;
 	}
-    }
+    }*/
     npath.insert(npath.end(),it,new_mp.npath.end());
     assert(npath.size()>old_size);
+    cout << "new size: " << npath.size() << endl;
 
+    cout << "take intersection of kmers" << endl;
     assert(new_mp.kmers_on_path.size()==kmers_on_path.size());
     // keep the intersection of kmers
     for (uint n=0; n!=kmers_on_path.size(); ++n)
@@ -63,6 +72,7 @@ float MaxPath::get_prob(const vector<float>& kmer_path_probs)
 
 float MaxPath::get_mean_prob(const vector<float>& kmer_path_probs)
 {
+    // currently does not give mean, testing
     float p = 0;
     uint t = 0;
     assert(kmers_on_path.size() == kmer_path_probs.size());
@@ -71,7 +81,7 @@ float MaxPath::get_mean_prob(const vector<float>& kmer_path_probs)
     {
         if (kmers_on_path[i] == true)
         {
-            p += kmer_path_probs[i];
+            p += exp(kmer_path_probs[i]);
             t += 1;
         }
     }
@@ -80,7 +90,29 @@ float MaxPath::get_mean_prob(const vector<float>& kmer_path_probs)
 	mean_prob = 0;
 	return 0;
     }
-    mean_prob = p/t;
-    return p/t;
+    mean_prob = log(p/t);
+    return log(p/t);
 }
 
+float MaxPath::get_median_prob(const vector<float>& kmer_path_probs)
+{
+    float p = 0;
+    vector<float> ps;
+    assert(kmers_on_path.size() == kmer_path_probs.size());
+
+    for (uint i = 0; i!=kmers_on_path.size(); ++i)
+    {
+        if (kmers_on_path[i] == true)
+        {
+            ps.push_back(kmer_path_probs[i]);
+        }
+    }
+    if (ps.size() == 0)
+    {
+	median_prob = 0;
+	return 0;
+    }
+    uint t = (ps.size() + 1)/2;
+    median_prob = ps[t];
+    return ps[t];
+}
