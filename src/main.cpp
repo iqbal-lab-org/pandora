@@ -136,6 +136,10 @@ int main(int argc, char* argv[])
     idx = new Index();
     vector<LocalPRG*> prgs;
     index_prg_file(prgs, prgfile, idx, w, k);
+    /*for (auto c:prgs)
+    {
+	write_prg_starts(prefix + "_" + c->name + "_start_100.txt", c, 100);
+    }*/
 
     now = time(0);
     dt = ctime(&now);

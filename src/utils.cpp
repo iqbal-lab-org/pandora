@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cmath>
 #include <cassert>
+#include <algorithm>
 #include "utils.h"
 #include "index.h"
 #include "localPRG.h"
@@ -562,6 +563,58 @@ uint32_t nchoosek (uint32_t n, uint32_t k)
     if (n == k) {return 1;}
     
     return (n * nchoosek(n - 1, k - 1)) / k;
+}
+
+void write_prg_starts(string filepath, LocalPRG* prg, uint length)
+{
+    ofstream handle;
+    handle.open (filepath);
+
+    string kmer;
+    uint i = 0;
+    vector<LocalNode*> nodes;
+
+    vector<Path> walk_paths = prg->prg.walk(0, 0, length); 
+    handle << "there are " << walk_paths.size() << " paths of length " << length << endl;
+    /*for (vector<Path>::iterator it=walk_paths.begin(); it!=walk_paths.end(); ++it)
+    {
+	kmer = prg->string_along_path(*it);
+	handle << "PRG " << i << endl;
+	i++;
+	handle << kmer << endl;
+        nodes = prg->nodes_along_path(*it);
+	for (vector<LocalNode*>::iterator n = nodes.begin(); n!=nodes.end(); ++n)
+	{
+	    handle << (*n)->id << "->";
+	}
+	handle << endl << endl;
+    }*/
+
+    handle.close();
+}
+
+char complement(char n)
+{   
+    switch(n)
+    {   
+    case 'A':
+        return 'T';
+    case 'T':
+        return 'A';
+    case 'G':
+        return 'C';
+    case 'C':
+        return 'G';
+    }   
+    assert(false);
+    return ' ';
+}
+
+string rev_complement(string s)
+{
+    transform(begin(s), end(s), begin(s), complement);
+    reverse(s.begin(), s.end());
+    return s;
 }
 
 /*void write_paths_to_fasta(vector<pair<vector<LocalNode*>, float>> p, const string& filepath)

@@ -29,4 +29,7 @@ void update_covgs_from_hits(const vector<LocalPRG*>&, MinimizerHits*);
 float p_null(const vector<LocalPRG*>&, set<MinimizerHit*, pComp>&, uint32_t);
 void infer_most_likely_prg_path_for_pannode(const vector<LocalPRG*>&, PanNode*, uint32_t, float);
 uint32_t nchoosek (uint32_t n, uint32_t k);
+void write_prg_starts(string, LocalPRG*, uint);
+char complement(char);
+string rev_complement(string);
 #endif

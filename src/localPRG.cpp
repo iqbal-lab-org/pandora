@@ -295,12 +295,12 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 
     for (map<uint32_t,LocalNode*>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
     {
-	cout << "Processing node" << it->second->id << endl;
+	//cout << "Processing node" << it->second->id << endl;
 	
 	// if part of the node has already been included in a mini, we start after this part
 	for (uint32_t i=it->second->sketch_next; i!=max(it->second->sketch_next+w+k, it->second->pos.end+2)-w-k;)
         {
-            cout << "Node is long enough for whole w+k-1 length to fit in, " << it->second->pos.start << " <= " << i << " <= " << it->second->pos.end - w - k + 1 << endl; 
+            //cout << "Node is long enough for whole w+k-1 length to fit in, " << it->second->pos.start << " <= " << i << " <= " << it->second->pos.end - w - k + 1 << endl; 
             assert(i <= it->second->pos.end - w - k + 1);
             assert(i >= it->second->pos.start);
 	    
@@ -323,13 +323,13 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                 kh = kmerhash(kmer, k);
                 if (kh.first == smallest)
                 {
-                    cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                    //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                     idx->add_record(kh.first, id, kmer_path, 0);
                     kmer_paths.push_back(kmer_path);
 		    it->second->sketch_next = kmer_path.path.back().end;
                 } else if (kh.second == smallest)
                 {
-                    cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
+                    //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
                     idx->add_record(kh.second, id, kmer_path, 1);
                     kmer_paths.push_back(kmer_path);
 		    it->second->sketch_next = kmer_path.path.back().end;
@@ -346,14 +346,14 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	// with corresponding empty interval at start. 
         for (uint32_t i=it->second->sketch_next; i<max(it->second->pos.end, it->second->pos.start+1);)
         {
-	    cout << "start " << it->second->pos.start << " <= " << i << " <= " << it->second->pos.end << " end" << endl;
+	    //cout << "start " << it->second->pos.start << " <= " << i << " <= " << it->second->pos.end << " end" << endl;
 	    if (i>=max(it->second->pos.end, it->second->pos.start+1))
 	    {
-		cout << "I don't know how I got here" << endl;
+		//cout << "I don't know how I got here" << endl;
 		break;
 	    }
             walk_paths = prg.walk(it->second->id, i, w+k-1);
-            cout << "for id, i: " << it->second->id << ", " << i << " found " << walk_paths.size() << " paths" << endl;
+            //cout << "for id, i: " << it->second->id << ", " << i << " found " << walk_paths.size() << " paths" << endl;
             for (vector<Path>::iterator it2=walk_paths.begin(); it2!=walk_paths.end(); ++it2)
             {
                 //cout << "Minimize path: " << *it2 << endl;
@@ -411,12 +411,12 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		}
 	    }
 	    i=it->second->sketch_next;
-	    cout << "next i: " << i << " and it->second->pos.end: " << it->second->pos.end << endl;
+	    //cout << "next i: " << i << " and it->second->pos.end: " << it->second->pos.end << endl;
             if (i+w+k > it->second->pos.end+1)
             {
 		break;
 	    } else { // too close to the end of this node for this method
-		cout << i << "<=" << it->second->pos.end-w-k+1 << endl;
+		//cout << i << "<=" << it->second->pos.end-w-k+1 << endl;
 	    }
 	}
     }
@@ -977,16 +977,17 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 	    // including the pre_site_id node and the post_site_id
 	    // Can now work out the max of the mean probs along path
 
-            float max_prob = numeric_limits<float>::lowest(), next_largest = numeric_limits<float>::lowest();
+            float max_prob = numeric_limits<float>::lowest(), max_mean_prob = numeric_limits<float>::lowest(), next_largest = numeric_limits<float>::lowest();
             // find max for all probs we could work out values for
             cout << now() << "Finding max of: " << endl;
             for (uint n = 0; n!=w.size(); ++n)
             {
 		cout << w[n].get_mean_prob(kmer_path_probs) << ", ";
-		if (w[n].get_mean_prob(kmer_path_probs) > max_prob)
+		if (w[n].get_mean_prob(kmer_path_probs) > max_mean_prob)
 		{
-		    next_largest = max_prob;
-                    max_prob = w[n].get_mean_prob(kmer_path_probs);
+		    next_largest = max_mean_prob;
+                    max_mean_prob = w[n].get_mean_prob(kmer_path_probs);
+		    max_prob = max(max_prob, w[n].get_prob(kmer_path_probs));
 		}
             }
 	    cout << endl;
@@ -998,7 +999,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
             max_path_index[pre_site_id] = u; // know u is empty vector
             for (uint n = 0; n!=w.size(); ++n)
             {
-                if ((max_prob == numeric_limits<float>::lowest() and w[n].get_mean_prob(kmer_path_probs) == 0) or w[n].get_mean_prob(kmer_path_probs) == max_prob)
+                if ((max_mean_prob == numeric_limits<float>::lowest() and w[n].get_mean_prob(kmer_path_probs) == 0) or (w[n].mean_prob == max_mean_prob and w[n].prob == max_prob))
                 {
                     max_path_index[pre_site_id].push_back(w[n]);
 		    cout << now() << "Add path to index: ";
@@ -1006,7 +1007,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 		    {
 			cout << w[n].npath[m]->id << "->";
 		    }
-		    cout << "mean_p: " << w[n].get_mean_prob(kmer_path_probs) << " compared to next largest " << next_largest << ", and p: " << w[n].get_prob(kmer_path_probs) << endl;
+		    cout << "mean_p: " << w[n].mean_prob << " compared to next largest " << next_largest << ", and p: " << w[n].prob << endl;
 		    break;
                 }
 		
@@ -1033,6 +1034,14 @@ void LocalPRG::write_max_paths_to_fasta(const string& filepath)
 	for (uint j = 0; j!= max_path_index[0][i].npath.size(); ++j)
 	{
             handle << max_path_index[0][i].npath[j]->seq;
+        }
+        handle << endl;
+
+	// and the reverse complement
+	handle << ">rc_" << id << "." << i << "\t P(data|sequence)=" << max_path_index[0][i].prob << endl;
+        for (uint j = max_path_index[0][i].npath.size(); j!= 0; --j)
+        {
+            handle << rev_complement(max_path_index[0][i].npath[j-1]->seq);
         }
         handle << endl;
     }
