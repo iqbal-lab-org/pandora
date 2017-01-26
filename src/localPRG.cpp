@@ -982,24 +982,32 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
             cout << now() << "Finding max of: " << endl;
             for (uint n = 0; n!=w.size(); ++n)
             {
-		cout << w[n].get_mean_prob(kmer_path_probs) << ", ";
 		if (w[n].get_mean_prob(kmer_path_probs) > max_mean_prob)
 		{
 		    next_largest = max_mean_prob;
-                    max_mean_prob = w[n].get_mean_prob(kmer_path_probs);
-		    max_prob = max(max_prob, w[n].get_prob(kmer_path_probs));
+                    max_mean_prob = w[n].mean_prob;
 		}
+		cout << w[n].mean_prob << ", ";
             }
 	    cout << endl;
-	    cout << now() << "max_prob (mean) for paths at this varsite: " << max_prob << endl;
+	    // for ties, use max_prob
+	    for (uint n = 0; n!=w.size(); ++n)
+            {
+                if (w[n].mean_prob == max_mean_prob)
+                {
+                    max_prob = max(max_prob, w[n].get_prob(kmer_path_probs));
+                }
+            }
+	    cout << now() << "max_prob (mean) for paths at this varsite: " << max_mean_prob << " and max_prob: " << max_prob << endl;
 
             // now add (a) path achieving max to max_path_index
 	    // if there are multiple such paths, we just add the first
 	    // note that in the case pre_site_id == 0 and level == 0, we may overwrite a previous entry to the index
+	    u.clear();
             max_path_index[pre_site_id] = u; // know u is empty vector
             for (uint n = 0; n!=w.size(); ++n)
             {
-                if ((max_mean_prob == numeric_limits<float>::lowest() and w[n].get_mean_prob(kmer_path_probs) == 0) or (w[n].mean_prob == max_mean_prob and w[n].prob == max_prob))
+                if ((max_mean_prob == numeric_limits<float>::lowest() and w[n].mean_prob == 0) or (w[n].mean_prob == max_mean_prob and w[n].prob == max_prob))
                 {
                     max_path_index[pre_site_id].push_back(w[n]);
 		    cout << now() << "Add path to index: ";
