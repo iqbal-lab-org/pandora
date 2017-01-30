@@ -25,4 +25,9 @@ struct MaxPath
     float get_median_prob(const vector<float>&);
 };
 
+struct VMPgreater
+{
+    bool operator()( const vector<MaxPath>& lx, const vector<MaxPath>& rx );
+};
+
 #endif

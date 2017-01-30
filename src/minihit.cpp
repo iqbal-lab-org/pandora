@@ -8,7 +8,7 @@
 
 using namespace std;
 
-MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecord* r): read_id(i), read_interval(m->pos), prg_id(r->prg_id), prg_path(r->path), strand((m->strand == r->strand))
+MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecord* r): read_id(i), read_interval(m->pos), prg_id(r->prg_id), prg_path(r->path), strand((m->strand != r->strand))
 {
     //prg_path.initialize(r.path.path);
     //cout << "minihit initialised with read: " << read_id << ", " << read_interval << ", length " << read_interval.length << endl;

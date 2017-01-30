@@ -42,14 +42,17 @@ bool pComp::operator()(MinimizerHit* lhs, MinimizerHit* rhs) {
 }
 
 bool pComp_path::operator()(MinimizerHit* lhs, MinimizerHit* rhs) {
+    //want those that match against the same prg_path together
     if (lhs->prg_path<rhs->prg_path) { return true;}
     if (rhs->prg_path<lhs->prg_path) { return false;}
+    //separated into two categories, corresponding to a forward, and a rev-complement hit
+    if (lhs->strand<rhs->strand) {return true;}
+    if (rhs->strand<lhs->strand) {return false;}
+    // finally, make sure that hits from separate reads aren't removed from the set as "=="
     if (lhs->read_id<rhs->read_id) { return true;}
     if (rhs->read_id<lhs->read_id) { return false;}
     if (lhs->read_interval<rhs->read_interval) { return true;}
     if (rhs->read_interval<lhs->read_interval) { return false;}
-    if (lhs->strand<rhs->strand) {return true;}
-    if (rhs->strand<lhs->strand) {return false;}
     return false;
 }
 

@@ -650,8 +650,16 @@ void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
         }
     }
 }*/
+void LocalPRG::update_kmers_on_node_paths(vector<MaxPath>& vmp)
+{
+    for (uint direction=0; direction!=3; ++direction)
+    {
+	update_kmers_on_node_path(vmp[direction], kmer_path_probs[direction]);
+    }
+    return;
+}
 
-void LocalPRG::update_kmers_on_node_path(MaxPath& mp)
+void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_probs)
 {
     assert(mp.kmers_on_path.size() == kmer_paths.size());
     
@@ -744,13 +752,13 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp)
                 if (kmer_paths[nums[n]].is_branching(kmer_paths[nums[m]]))
                 {
                     found_branch = true;
-                    if (kmer_path_probs[nums[n]] > kmer_path_probs[nums[m]])
+                    if (kp_probs[nums[n]] > kp_probs[nums[m]])
                     {
-                        cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " branch but prob " << kmer_path_probs[nums[n]] << " > " << kmer_path_probs[nums[m]] << endl;
+                        cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " branch but prob " << kp_probs[nums[n]] << " > " << kp_probs[nums[m]] << endl;
                         subnums.insert(m);
                         added_m_or_n = true;    //we have kept/added n
-                    } else if (kmer_path_probs[nums[m]] > kmer_path_probs[nums[n]]) {
-                        cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " branch but prob " << kmer_path_probs[nums[n]] << " < " << kmer_path_probs[nums[m]] << endl;
+                    } else if (kp_probs[nums[m]] > kp_probs[nums[n]]) {
+                        cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " branch but prob " << kp_probs[nums[n]] << " < " << kp_probs[nums[m]] << endl;
                         subnums.insert(n);
                         added_m_or_n = true; //we have kept/added m
                     } else {
@@ -765,7 +773,7 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp)
             // if we haven't kept any of the branching options, remove n from the subnums set
             if (found_branch == true and added_m_or_n == false)
             {
-                cout << "found many branching kmers with same prob, so add " << kmer_paths[nums[n]] << endl;
+                cout << "found many branching kmers with same prob, so add " << (kmer_paths[nums[n]]) << endl;
                 subnums.erase(n);
             }
         }
@@ -791,21 +799,23 @@ void LocalPRG::get_kmer_path_hit_counts(const PanNode* pnode)
     // note that within the foundHits for a pnode, hits which map to same read, prg and strand will be grouped together
     // we want to know for each prg minimizer, how much support there is from the reads
     // count how many hits against each minimizing_kmer of prg
-    kmer_path_hit_counts.resize(kmer_paths.size(),0);
+    vector<uint32_t> counts(kmer_paths.size(), 0);
+    kmer_path_hit_counts.resize(3, counts);
     cout << "there are " << kmer_paths.size() << " minimizing kmers to count hits against" << endl;
     set<MinimizerHit*, pComp_path>::iterator mh_previous = pnode->foundHits.begin();
     uint32_t num_hits = 1, num_kmers=0;
     for (set<MinimizerHit*, pComp_path>::iterator mh = (pnode->foundHits.begin()); mh != pnode->foundHits.end();)
     {
         mh++;
-        if ((mh==pnode->foundHits.end()) or !((*mh)->prg_path == (*mh_previous)->prg_path)) // or (*mh)->strand != (*mh_previous)->strand
+        if ((mh==pnode->foundHits.end()) or !((*mh)->prg_path == (*mh_previous)->prg_path) or ((*mh)->strand != (*mh_previous)->strand))
         {
             for (uint32_t i=num_kmers; i!=kmer_paths.size(); ++i)
             {
                 if (kmer_paths[i]==(*mh_previous)->prg_path)
                 {
                     //cout << "found path " << kmer_paths[i] << " == " << (*mh_previous)->prg_path << " with hit count " << num_hits << endl;
-                    kmer_path_hit_counts[i] = num_hits;
+                    kmer_path_hit_counts[(*mh_previous)->strand][i] = num_hits;
+		    kmer_path_hit_counts[2][i] += num_hits; // vector for both forward and reverse hits to catch any partially inverted copies
                     //cout << "kmer_path_hit_counts[" << i << "] = " << num_hits << endl;
                     num_hits = 1;
                     num_kmers +=1;
@@ -820,7 +830,7 @@ void LocalPRG::get_kmer_path_hit_counts(const PanNode* pnode)
         mh_previous++;
     }
     // check all the hits have been added by this process
-    uint32_t sum_of_elems = std::accumulate(kmer_path_hit_counts.begin(), kmer_path_hit_counts.end(), 0);
+    uint32_t sum_of_elems = std::accumulate(kmer_path_hit_counts[2].begin(), kmer_path_hit_counts[2].end(), 0);
     cout << "after adding counts of the " << pnode->foundHits.size() << " hits, have still got " << sum_of_elems << " hits added to tallies" << endl;
     assert(sum_of_elems==pnode->foundHits.size());
     return;
@@ -831,26 +841,31 @@ void LocalPRG::get_kmer_path_probs(const PanNode* pnode, uint32_t k, float e_rat
     // now for each of the minimizing kmers, work out the prob of seeing this number of hits given the number of reads
     // this is the bit where I assume that we have an independent trial for each read (binomial hit counts for true kmers)
     cout << "work out prob of seeing this number of hits against a kmer assuming it is truly present" << endl;
-    float p_kmer, p=1/exp(e_rate*k), p_max=numeric_limits<float>::lowest(), p_min=0;
+    float p_kmer, p_max, p_min, p=1/exp(e_rate*k);
     uint32_t n = pnode->foundReads.size(), big_p_count=0;
     cout << "n: " << n << ", p: " << p << endl;
     cout << "count:0 " << nchoosek(n,0) << " * " << pow(p,0) << " * " << pow(1-p,n-0) << endl;
     cout << "count:1 " << nchoosek(n,1) << " * " << pow(p,1) << " * " << pow(1-p,n-1) << endl;
-    for (uint32_t i=0; i!=kmer_path_hit_counts.size(); ++i)
-    {
-        p_kmer = log(nchoosek(n, kmer_path_hit_counts[i])*pow(p,kmer_path_hit_counts[i])*pow(1-p,n-kmer_path_hit_counts[i]));
-        cout << kmer_paths[i] << " " << kmer_path_hit_counts[i] << " " << p_kmer << endl;
-        kmer_path_probs.push_back(p_kmer);
-        p_max = max(p_max, p_kmer);
-        p_min = min(p_min, p_kmer);
-        if(p_kmer>-0.5)
+    for (uint32_t direction=0; direction!=3; ++direction) // directions 0,1,2 correspond to forward hit, rev_complement hit and either/both
+    {	
+	kmer_path_probs.push_back({});
+        p_max=numeric_limits<float>::lowest(), p_min=0;
+        for (uint32_t i=0; i!=kmer_path_hit_counts[direction].size(); ++i)
         {
-            //cout << p_kmer << " ";
-            big_p_count+=1;
+            p_kmer = log(nchoosek(n, kmer_path_hit_counts[direction][i])*pow(p,kmer_path_hit_counts[direction][i])*pow(1-p,n-kmer_path_hit_counts[direction][i]));
+            cout << kmer_paths[i] << " " << kmer_path_hit_counts[direction][i] << " " << p_kmer << endl;
+            kmer_path_probs[direction].push_back(p_kmer);
+            p_max = max(p_max, p_kmer);
+            p_min = min(p_min, p_kmer);
+            if(p_kmer>-0.5)
+            {
+                //cout << p_kmer << " ";
+                big_p_count+=1;
+            }
         }
+        cout << "for " << direction << " direction found " << big_p_count << " log probs > " << -0.5 << " with max and min log probs " << p_max << ", " << p_min << endl;
+        cout << endl;
     }
-    cout << endl;
-    cout << "found " << big_p_count << " log probs > " << -0.5 << " with max and min log probs " << p_max << ", " << p_min << endl;
     return;
 }
 
@@ -870,9 +885,12 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
     //need a data structure to remember what the most probable path(s) were for var sites already considered
     //the max_path_index, stored by the LocalPRG class
 
-    vector<MaxPath> u, v, w;
+    vector<vector<MaxPath>> u, v, w; // w <- u <=> v
     vector<LocalNode*> x;
+    vector<MaxPath> t; // each of u,v,w contains items of form t, with 3 components corresponding to fwd,rev,both
     vector<bool> y(kmer_paths.size(),false);
+    float max_prob, max_mean_prob, next_largest;
+
 
     // start with the outmost level
     uint8_t max_level = 0;
@@ -894,8 +912,10 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 		assert(pre_site_id == 0);
 		cout << now() << "finally find best path through whole prg" << endl;
 		x.push_back(prg.nodes[pre_site_id]);
-		u.push_back(MaxPath(x, y, 0));
+		t.resize(3, MaxPath(x, y, 0));
+		u.push_back(t);
 		x.clear();
+		t.clear();
 	    } else {
 	        cout << now() << "Looking at varsite number " << i << " at this level, from the outnodes of " << pre_site_id << " to the innodes of " << post_site_id << endl;
 		// we want the index to be inclusive of first node/pre_site_id prob, but exclusive of end node prob
@@ -905,9 +925,12 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 		    x.push_back(prg.nodes[pre_site_id]);
                     x.push_back(prg.nodes[pre_site_id]->outNodes[j]);
 		    cout << now() << "make maxpath" << endl;
-                    u.push_back(MaxPath(x, y, 0));
-		    update_kmers_on_node_path(u.back());
+		    t.resize(3, MaxPath(x, y, 0));
+                    u.push_back(t);
                     x.clear();
+                    t.clear();
+
+		    update_kmers_on_node_paths(u.back());
                 }
 	    }
 
@@ -920,49 +943,67 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                 // for each tuple in u
                 for (uint j = 0; j!=u.size(); ++j)
                 {
+		    assert(u[j].size() == 3 || assert_msg(u[j].size() << "== u[j].size()=/= 3")); // should have fwd, rev, both MaxPaths
+		    assert(u[j][0].npath.back()->id == u[j][1].npath.back()->id); // the rest of the path may differ
+		    assert(u[j][0].npath.back()->id == u[j][2].npath.back()->id);
                     // if the path in the tuple ends at the end of the varsite, it is a done path, add to w
-                    if (u[j].npath.back()->id == post_site_id)
+                    if (u[j][0].npath.back()->id == post_site_id)
                     {
-			cout << now() << "finished path ";
-			for (uint32_t m = 0; m!= u[j].npath.size(); ++m)
+			cout << now() << "finished paths: " << endl;
+			for (uint32_t dir = 0; dir != 3; ++dir)
 			{
-			    cout << u[j].npath[m]->id << "->";
+			    cout << "direction-" << dir << " ";
+			    for (uint32_t m = 0; m!= u[j][dir].npath.size(); ++m)
+			    {
+			        cout << u[j][dir].npath[m]->id << "->";
+			    }
+			    cout << "p: " << u[j][dir].get_prob(kmer_path_probs[dir]) << endl;
 			}
-			cout << "p: " << u[j].get_prob(kmer_path_probs) << endl;
                         w.push_back(u[j]);
                     } else {
                         // otherwise look up the last node in the max_path_index
                         // if it is there, then we have a path to extend by, 
                         // and extend the path for each of the maximal paths through the sub_varsite
                         // and add the updated path/prob pairs to v
-                        cout << now() << "extend path ";
-			for (uint32_t m = 0; m!= u[j].npath.size(); ++m)
-                        {
-                            cout << u[j].npath[m]->id << "->";
-                        }
-                        cout << "p: " << u[j].get_prob(kmer_path_probs) << endl;
-                        map<uint32_t, vector<MaxPath>>::iterator it=max_path_index.find(u[j].npath.back()->id);
+                        cout << now() << "extend paths: " << endl;
+			for (uint32_t dir = 0; dir != 3; ++dir)
+			{
+			    cout << "direction-" << dir << " ";
+			    for (uint32_t m = 0; m!= u[j][dir].npath.size(); ++m)
+                            {
+                                cout << u[j][dir].npath[m]->id << "->";
+                            }
+                            cout << "p: " << u[j][dir].get_prob(kmer_path_probs[dir]) << endl;
+			}
+                        map<uint32_t, vector<vector<MaxPath>>>::iterator it=max_path_index.find(u[j][0].npath.back()->id);
                         if (it != max_path_index.end())
                         {
                             //extend node path with the max paths seen before from this point
-                            cout << now() << "found " << u[j].npath.back()->id << " in max_path_index" << endl;
-			    assert(it->second.size() == 1);
-			    u[j].extend(it->second[0]);
-			    cout << now() << "extended npath with found npath giving: ";
-			    for (uint32_t m = 0; m!= u[j].npath.size(); ++m)
-                            {
-                                cout << u[j].npath[m]->id << "->";
-                            }
-			    cout << endl;
+                            cout << now() << "found " << u[j][0].npath.back()->id << " in max_path_index" << endl;
+			    assert(it->second.size() == 3);
+			    for (uint32_t dir = 0; dir != 3; ++dir)
+			    {
+				assert(it->second[dir].size() == 1);
+			        u[j][dir].extend(it->second[dir][0]);
+			        cout << now() << "extended npath with found npath giving: ";
+			        for (uint32_t m = 0; m!= u[j][dir].npath.size(); ++m)
+                                {
+                                    cout << u[j][dir].npath[m]->id << "->";
+                                }
+			        cout << endl;
+			    }
 			} else {
 			    //otherwise extend with the outnode of the last node in node_path
-			    cout << now() << "did not find " << u[j].npath.back()->id << " in max_path_index, so add outnode" << endl;
-			    assert(u[j].npath.back()->outNodes.size() == 1); // if the back is the start of a bubble, should already be in index!
-			    u[j].npath.push_back(u[j].npath.back()->outNodes[0]);
-			    u[j].kmers_on_path = y; 
+			    cout << now() << "did not find " << u[j][0].npath.back()->id << " in max_path_index, so add outnode" << endl;
+			    assert(u[j][0].npath.back()->outNodes.size() == 1); // if the back is the start of a bubble, should already be in index!
+			    for (uint32_t dir = 0; dir != 3; ++dir)
+			    {
+			        u[j][dir].npath.push_back(u[j][dir].npath.back()->outNodes[0]);
+			        u[j][dir].kmers_on_path = y; 
+			    }
 			}
 			// either way, add extended node_path to v
-			update_kmers_on_node_path(u[j]);
+			update_kmers_on_node_paths(u[j]);
 			v.push_back(u[j]);
                     }
                 }
@@ -972,86 +1013,102 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
             }
 
 	    assert(w.size()>0); // we have to have found some paths
-	
+	    assert(u.size()==0);
+	    assert(t.size()==0);
+
 	    // at this point, all the paths should have up to date vectors of bools representing which kmers overlapped, 
 	    // including the pre_site_id node and the post_site_id
-	    // Can now work out the max of the mean probs along path
+	    // Can now work out the max of the mean probs along path for each direction
 
-            float max_prob = numeric_limits<float>::lowest(), max_mean_prob = numeric_limits<float>::lowest(), next_largest = numeric_limits<float>::lowest();
-            // find max for all probs we could work out values for
-            cout << now() << "Finding max of: " << endl;
-            for (uint n = 0; n!=w.size(); ++n)
-            {
-		if (w[n].get_mean_prob(kmer_path_probs) > max_mean_prob)
-		{
-		    next_largest = max_mean_prob;
-                    max_mean_prob = w[n].mean_prob;
-		}
-		cout << w[n].mean_prob << ", ";
-            }
-	    cout << endl;
-	    // for ties, use max_prob
-	    for (uint n = 0; n!=w.size(); ++n)
-            {
-                if (w[n].mean_prob == max_mean_prob)
-                {
-                    max_prob = max(max_prob, w[n].get_prob(kmer_path_probs));
-                }
-            }
-	    cout << now() << "max_prob (mean) for paths at this varsite: " << max_mean_prob << " and max_prob: " << max_prob << endl;
+	    for (uint32_t dir = 0; dir != 3; ++dir)
+	    {
+                max_prob = numeric_limits<float>::lowest(); 
+		max_mean_prob = numeric_limits<float>::lowest();
+		next_largest = numeric_limits<float>::lowest();
 
-            // now add (a) path achieving max to max_path_index
-	    // if there are multiple such paths, we just add the first
-	    // note that in the case pre_site_id == 0 and level == 0, we may overwrite a previous entry to the index
-	    u.clear();
-            max_path_index[pre_site_id] = u; // know u is empty vector
-            for (uint n = 0; n!=w.size(); ++n)
-            {
-                if ((max_mean_prob == numeric_limits<float>::lowest() and w[n].mean_prob == 0) or (w[n].mean_prob == max_mean_prob and w[n].prob == max_prob))
+                // find max for all probs we could work out values for
+                cout << now() << "Finding max of: " << endl;
+                for (uint n = 0; n!=w.size(); ++n)
                 {
-                    max_path_index[pre_site_id].push_back(w[n]);
-		    cout << now() << "Add path to index: ";
-		    for (uint32_t m = 0; m!= w[n].npath.size(); ++m)
+		    if (w[n][dir].get_mean_prob(kmer_path_probs[dir]) > max_mean_prob)
 		    {
-			cout << w[n].npath[m]->id << "->";
+		        next_largest = max_mean_prob;
+                        max_mean_prob = w[n][dir].mean_prob;
 		    }
-		    cout << "mean_p: " << w[n].mean_prob << " compared to next largest " << next_largest << ", and p: " << w[n].prob << endl;
-		    break;
+		    cout << w[n][dir].mean_prob << ", ";
                 }
-		
-            }
-	    assert(max_path_index[pre_site_id].size()==1);
+	        cout << endl;
+	        // for ties, use max_prob
+	        for (uint n = 0; n!=w.size(); ++n)
+                {
+                    if (w[n][dir].mean_prob == max_mean_prob)
+                    {
+                        max_prob = max(max_prob, w[n][dir].get_prob(kmer_path_probs[dir]));
+                    }
+                }
+	        cout << now() << "max_prob (mean) for paths at this varsite: " << max_mean_prob << " and max_prob: " << max_prob << endl;
+
+                // now add (a) path achieving max to max_path_index
+	        // if there are multiple such paths, we just add the first
+	        // note that in the case pre_site_id == 0 and level == 0, 
+	        // we may overwrite a previous entry to the index
+                for (uint n = 0; n!=w.size(); ++n)
+                {
+                    if ((max_mean_prob == numeric_limits<float>::lowest() and w[n][dir].mean_prob == 0) or (w[n][dir].mean_prob == max_mean_prob and w[n][dir].prob == max_prob))
+                    {
+			t.push_back(w[n][dir]);
+		        cout << now() << "Add path to index: ";
+		        for (uint32_t m = 0; m!= w[n][dir].npath.size(); ++m)
+		        {
+			    cout << w[n][dir].npath[m]->id << "->";
+		        }
+		        cout << "mean_p: " << w[n][dir].mean_prob << " compared to next largest " << next_largest << ", and p: " << w[n][dir].prob << endl;
+		        break;
+                    }	
+                }
+		assert(t.size() == 1);
+		u.push_back(t);
+		t.clear();
+	    }
+
+	    assert(u.size() == 3);
+            max_path_index[pre_site_id] = u;
 	    w.clear();
+	    u.clear();
         }
     }
+    sort( max_path_index[0].begin(), max_path_index[0].end(), VMPgreater() );
     return;
 }
 
 void LocalPRG::write_max_paths_to_fasta(const string& filepath)
 {
     assert(max_path_index.size()>0);
-    map<uint32_t, vector<MaxPath>>::iterator it=max_path_index.find(0);
+    map<uint32_t, vector<vector<MaxPath>>>::iterator it=max_path_index.find(0);
     assert(it!=max_path_index.end());
-    assert(max_path_index[0].size()>0);
+    assert(max_path_index[0].size()==3);
+    assert(max_path_index[0][0].size()>0);
+    assert(max_path_index[0][1].size()>0);
+    assert(max_path_index[0][2].size()>0);
 
     ofstream handle;
     handle.open (filepath);
-    for (uint i = 0; i!= max_path_index[0].size(); ++i)
+    for (uint i = 0; i!= 3; ++i)
     {
-        handle << ">" << id << "." << i << "\t P(data|sequence)=" << max_path_index[0][i].prob << endl;
-	for (uint j = 0; j!= max_path_index[0][i].npath.size(); ++j)
+        handle << ">" << name << "." << i << "\t P(data|sequence)=" << max_path_index[0][i][0].prob << endl;
+	for (uint j = 0; j!= max_path_index[0][i][0].npath.size(); ++j)
 	{
-            handle << max_path_index[0][i].npath[j]->seq;
+            handle << max_path_index[0][i][0].npath[j]->seq;
         }
         handle << endl;
 
-	// and the reverse complement
+	/*// and the reverse complement
 	handle << ">rc_" << id << "." << i << "\t P(data|sequence)=" << max_path_index[0][i].prob << endl;
-        for (uint j = max_path_index[0][i].npath.size(); j!= 0; --j)
+        for (uint j = max_path_index[0][i][0].npath.size(); j!= 0; --j)
         {
             handle << rev_complement(max_path_index[0][i].npath[j-1]->seq);
         }
-        handle << endl;
+        handle << endl;*/
     }
     handle.close();
     return;

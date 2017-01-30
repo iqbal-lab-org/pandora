@@ -3,6 +3,8 @@
 #include <cmath>
 #include "maxpath.h"
 
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
+
 using namespace std;
 
 MaxPath::MaxPath(){};
@@ -57,7 +59,7 @@ void MaxPath::extend(const MaxPath new_mp)
 float MaxPath::get_prob(const vector<float>& kmer_path_probs)
 {
     float p = 0;
-    assert(kmers_on_path.size() == kmer_path_probs.size());
+    assert(kmers_on_path.size() == kmer_path_probs.size() || assert_msg("kmers_on_path.size(): " << kmers_on_path.size() << ", kmer_path_probs.size(): " << kmer_path_probs.size()));
 
     for (uint i = 0; i!=kmers_on_path.size(); ++i)
     {
@@ -116,3 +118,8 @@ float MaxPath::get_median_prob(const vector<float>& kmer_path_probs)
     median_prob = ps[t];
     return ps[t];
 }
+
+bool VMPgreater::operator()( const vector<MaxPath>& lx, const vector<MaxPath>& rx )
+{
+    return lx[0].prob < rx[0].prob;
+};

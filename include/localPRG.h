@@ -34,14 +34,16 @@ class LocalPRG {
     vector<Path> kmer_paths; // added during index construction when PRG is sketched
 
     vector<uint32_t> kmer_path_clashes; // number of places elsewhere in PRG where a kmer occurs TO DO!!
-    vector<uint32_t> kmer_path_hit_counts;
-    vector<float> kmer_path_probs;
-    map<uint32_t, vector<MaxPath>> max_path_index;      // maps from pre_site_ids seen before to a node_path
-									   // representing a maximally probable node_path, which mini kmers overlap
-									   // the path and its confidence
-									   // used when reads suggest this PRG is present in a sample
-									   // in the process of working out which path through the PRG is present
-									   // Also used to store partial paths (hence vector) during this process
+    vector<vector<uint32_t>> kmer_path_hit_counts; //[forward vector, reverse vector, both vector] 
+    vector<vector<float>> kmer_path_probs; //[forward vector, reverse vector, both vector]
+    map<uint32_t, vector<vector<MaxPath>>> max_path_index;         // maps from pre_site_ids seen before to a vector
+								   // of size three representing (forward, reverse, both), 
+								   // each vector containing the maximally probable node_path, 
+								   // which mini kmers overlap
+								   // the path and its confidence
+								   // used when reads suggest this PRG is present in a sample
+								   // in the process of working out which path through the PRG is present
+								   // Also used to store partial paths (hence vector) during this process
     LocalPRG(uint32_t, string, string);
     //~LocalPRG();
     bool isalpha_string(const string&);
@@ -51,7 +53,8 @@ class LocalPRG {
     vector<uint32_t> build_graph(const Interval&, const vector<uint32_t>&, uint32_t current_level=0);
     void minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k);
     void update_covg_with_hit(MinimizerHit*);
-    void update_kmers_on_node_path(MaxPath&);
+    void update_kmers_on_node_path(MaxPath&, const vector<float>&);
+    void update_kmers_on_node_paths(vector<MaxPath>&);
     void get_kmer_path_hit_counts(const PanNode*);
     void get_kmer_path_probs(const PanNode*, uint32_t, float);
     void infer_most_likely_prg_paths_for_corresponding_pannode(const PanNode*, uint32_t, float);
