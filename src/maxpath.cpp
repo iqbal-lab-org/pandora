@@ -121,5 +121,5 @@ float MaxPath::get_median_prob(const vector<float>& kmer_path_probs)
 
 bool VMPgreater::operator()( const vector<MaxPath>& lx, const vector<MaxPath>& rx )
 {
-    return lx[0].prob < rx[0].prob;
+    return lx[0].prob > rx[0].prob;
 };

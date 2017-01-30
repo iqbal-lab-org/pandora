@@ -1077,6 +1077,12 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 	    u.clear();
         }
     }
+
+    // to finish, label the paths by which direction they came from, and sort so
+    // most likely comes first
+    max_path_index[0][0][0].direction = "forward";
+    max_path_index[0][1][0].direction = "reverse-complement";
+    max_path_index[0][2][0].direction = "both/inversion";
     sort( max_path_index[0].begin(), max_path_index[0].end(), VMPgreater() );
     return;
 }
@@ -1095,7 +1101,7 @@ void LocalPRG::write_max_paths_to_fasta(const string& filepath)
     handle.open (filepath);
     for (uint i = 0; i!= 3; ++i)
     {
-        handle << ">" << name << "." << i << "\t P(data|sequence)=" << max_path_index[0][i][0].prob << endl;
+        handle << ">" << name << "." << max_path_index[0][i][0].direction << "\t P(data|sequence)=" << max_path_index[0][i][0].prob << endl;
 	for (uint j = 0; j!= max_path_index[0][i][0].npath.size(); ++j)
 	{
             handle << max_path_index[0][i][0].npath[j]->seq;

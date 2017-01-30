@@ -16,6 +16,8 @@ struct MaxPath
     float mean_prob;
     float median_prob;
 
+    string direction;
+
     MaxPath();
     MaxPath(vector<LocalNode*>, vector<bool>, uint32_t);
 
