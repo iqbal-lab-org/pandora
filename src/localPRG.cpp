@@ -836,6 +836,16 @@ void LocalPRG::get_kmer_path_hit_counts(const PanNode* pnode)
     return;
 }
 
+/*void LocalPRG::get_kmer_path_clash_counts()
+{
+    for (uint32_t i=0; i!=kmer_paths.size(); ++i)
+    {
+        kh = kmerhash(string_along_path(kmer_paths[i]), k);
+	 
+    vector<uint32_t> kmer_path_clashes; // number of places elsewhere in PRG where a kmer occurs TO DO!!
+
+}*/
+
 void LocalPRG::get_kmer_path_probs(const PanNode* pnode, uint32_t k, float e_rate)
 {
     // now for each of the minimizing kmers, work out the prob of seeing this number of hits given the number of reads
@@ -1022,15 +1032,16 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 
 	    for (uint32_t dir = 0; dir != 3; ++dir)
 	    {
-                max_prob = numeric_limits<float>::lowest(); 
+                //max_prob = numeric_limits<float>::lowest(); 
 		max_mean_prob = numeric_limits<float>::lowest();
 		next_largest = numeric_limits<float>::lowest();
+		int max_num_minis = 0;
 
                 // find max for all probs we could work out values for
                 cout << now() << "Finding max of: " << endl;
                 for (uint n = 0; n!=w.size(); ++n)
                 {
-		    if (w[n][dir].get_mean_prob(kmer_path_probs[dir]) > max_mean_prob)
+		    if (w[n][dir].get_mean_prob(kmer_path_probs[dir]) > max_mean_prob and w[n][dir].mean_prob != 0)
 		    {
 		        next_largest = max_mean_prob;
                         max_mean_prob = w[n][dir].mean_prob;
@@ -1038,14 +1049,38 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 		    cout << w[n][dir].mean_prob << ", ";
                 }
 	        cout << endl;
-	        // for ties, use max_prob
+		// for ties, pick the path with the most minimizers
+		for (uint n = 0; n!=w.size(); ++n)
+                {
+                    if (w[n][dir].mean_prob == max_mean_prob)
+                    {
+			max_num_minis = max(max_num_minis, accumulate(w[n][dir].kmers_on_path.begin(), w[n][dir].kmers_on_path.end(), 0));
+		    }
+		}
+		cout << endl;
+		// write the sequences out for forward dir
+		cout << now() << "Potential max paths: " << endl;
+		for (uint n = 0; n!=w.size(); ++n)
+                {
+		    cout << "option " << n << ": mean_p " << w[n][dir].mean_prob << ", p " << w[n][dir].get_prob(kmer_path_probs[dir]);
+		    cout << ", number minimizers on path " << accumulate(w[n][dir].kmers_on_path.begin(), w[n][dir].kmers_on_path.end(), 0) << endl; 
+		    for (uint j = 0; j!= w[n][dir].npath.size(); ++j)
+        	    {
+            	        cout << w[n][dir].npath[j]->seq;
+        	    }
+		    cout << endl;
+          
+                }
+                cout << endl;
+			
+	        /*// for ties, use max_prob
 	        for (uint n = 0; n!=w.size(); ++n)
                 {
                     if (w[n][dir].mean_prob == max_mean_prob)
                     {
                         max_prob = max(max_prob, w[n][dir].get_prob(kmer_path_probs[dir]));
                     }
-                }
+                }*/
 	        cout << now() << "max_prob (mean) for paths at this varsite: " << max_mean_prob << " and max_prob: " << max_prob << endl;
 
                 // now add (a) path achieving max to max_path_index
@@ -1054,7 +1089,8 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 	        // we may overwrite a previous entry to the index
                 for (uint n = 0; n!=w.size(); ++n)
                 {
-                    if ((max_mean_prob == numeric_limits<float>::lowest() and w[n][dir].mean_prob == 0) or (w[n][dir].mean_prob == max_mean_prob and w[n][dir].prob == max_prob))
+                    //if ((max_mean_prob == numeric_limits<float>::lowest() and w[n][dir].mean_prob == 0) or (w[n][dir].mean_prob == max_mean_prob and w[n][dir].prob == max_prob))
+                    if ((max_mean_prob == numeric_limits<float>::lowest() and w[n][dir].mean_prob == 0) or (w[n][dir].mean_prob == max_mean_prob and accumulate(w[n][dir].kmers_on_path.begin(), w[n][dir].kmers_on_path.end(), 0) == max_num_minis))
                     {
 			t.push_back(w[n][dir]);
 		        cout << now() << "Add path to index: ";
