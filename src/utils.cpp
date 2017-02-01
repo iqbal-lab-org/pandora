@@ -312,6 +312,7 @@ void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* 
             sdt = dt.substr(0,dt.length()-1);
             cout << sdt << " Looking at PRG " << pnode->second->id << endl;
 	    prgs[pnode->second->id]->infer_most_likely_prg_paths_for_corresponding_pannode(pnode->second, k, 0.00001);
+	    prgs[pnode->second->id]->write_path_vs_found_path("/data2/users/rachel/projects/pandora/test/test_cases/all_oxa/k15/" + name + "write_path_vs_found_path.txt", read);
 	}
         delete mh;
         myfile.close();

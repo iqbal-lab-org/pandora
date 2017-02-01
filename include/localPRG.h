@@ -48,6 +48,7 @@ class LocalPRG {
     //~LocalPRG();
     bool isalpha_string(const string&);
     string string_along_path(const Path&);
+    vector<LocalNode*> path_corresponding_to_string(const string&);
     vector<LocalNode*> nodes_along_path(const Path&);
     vector<Interval> splitBySite(const Interval&);	
     vector<uint32_t> build_graph(const Interval&, const vector<uint32_t>&, uint32_t current_level=0);
@@ -58,6 +59,7 @@ class LocalPRG {
     void get_kmer_path_hit_counts(const PanNode*);
     void get_kmer_path_probs(const PanNode*, uint32_t, float);
     void infer_most_likely_prg_paths_for_corresponding_pannode(const PanNode*, uint32_t, float);
+    void write_path_vs_found_path(const string&, const string&);
     void write_max_paths_to_fasta(const string&);
 
   friend ostream& operator<< (ostream& out, const LocalPRG& data);  

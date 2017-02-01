@@ -99,6 +99,14 @@ Path Path::subpath(const uint32_t start, const uint32_t len) const
 
 bool Path::is_branching(const Path& y) const // returns true if the two paths branch together or coalesce apart
 {
+
+    // simple case, one ends before the other starts -> return false
+    if (end < y.start or y.end < start)
+    {
+	return false;
+    }
+
+    // otherwise, check it out
     bool overlap = false;
     deque<Interval>::const_iterator it, it2;
     for (it=path.begin(); it!=path.end(); ++it)
