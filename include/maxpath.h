@@ -5,31 +5,29 @@
 #include <vector>
 #include "localnode.h"
 
-using namespace std;
-
 struct MaxPath
 {
-    vector<LocalNode*> npath; //node path
-    vector<bool> kmers_on_path; // indicates which of the localPRG hits lie along node path
+    std::vector<LocalNode*> npath; //node path
+    std::vector<bool> kmers_on_path; // indicates which of the localPRG hits lie along node path
     uint32_t num_equivalent_paths;
     float prob;
     float mean_prob;
     float median_prob;
 
-    string direction;
+    std::string direction;
 
     MaxPath();
-    MaxPath(vector<LocalNode*>, vector<bool>, uint32_t);
+    MaxPath(std::vector<LocalNode*>, std::vector<bool>, uint32_t);
 
     void extend(const MaxPath);
-    float get_prob(const vector<float>&);
-    float get_mean_prob(const vector<float>&);
-    float get_median_prob(const vector<float>&);
+    float get_prob(const std::vector<float>&);
+    float get_mean_prob(const std::vector<float>&);
+    float get_median_prob(const std::vector<float>&);
 };
 
 struct VMPgreater
 {
-    bool operator()( const vector<MaxPath>& lx, const vector<MaxPath>& rx );
+    bool operator()( const std::vector<MaxPath>& lx, const std::vector<MaxPath>& rx );
 };
 
 #endif

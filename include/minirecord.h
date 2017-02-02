@@ -5,8 +5,6 @@
 #include <algorithm>
 #include "path.h"
 
-using namespace std;
-
 struct MiniRecord
 {
     uint32_t prg_id;
@@ -15,7 +13,7 @@ struct MiniRecord
     MiniRecord(const uint32_t, const Path, const bool);
     ~MiniRecord();
     bool operator == (const MiniRecord& y) const;
-    friend ostream& operator<< (ostream& out, const MiniRecord& m);
+    friend std::ostream& operator<< (std::ostream& out, const MiniRecord& m);
 };
 
 #endif

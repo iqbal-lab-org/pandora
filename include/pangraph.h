@@ -10,19 +10,17 @@ class MinimizerHit;
 #include <functional>
 #include <minihits.h>
 
-using namespace std;
-
 class PanGraph {
   public:
-    map<uint32_t, PanNode*> nodes; // representing nodes in graph
+    std::map<uint32_t, PanNode*> nodes; // representing nodes in graph
     PanGraph() {};
     ~PanGraph();
     //void add_node (const uint32_t, const uint32_t);
-    void add_node (uint32_t, uint32_t, const set<MinimizerHit*, pComp>&);
+    void add_node (uint32_t, uint32_t, const std::set<MinimizerHit*, pComp>&);
     void add_edge (const uint32_t&, const uint32_t&);
-    void write_gfa (const string&);
+    void write_gfa (const std::string&);
     bool operator == (const PanGraph& y) const;
-    friend ostream& operator<< (ostream& out, const PanGraph& m);
+    friend std::ostream& operator<< (std::ostream& out, const PanGraph& m);
 };
 
 #endif

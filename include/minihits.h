@@ -8,8 +8,6 @@ struct MinimizerHit;
 #include "minimizer.h"
 #include "minirecord.h"
 
-using namespace std;
-
 struct pComp
 {
   bool operator()(MinimizerHit* lhs, MinimizerHit* rhs);
@@ -22,16 +20,16 @@ struct pComp_path
 
 struct clusterComp
 {
-  bool operator()(set<MinimizerHit*, pComp> lhs, set<MinimizerHit*, pComp> rhs);
+  bool operator()(std::set<MinimizerHit*, pComp> lhs, std::set<MinimizerHit*, pComp> rhs);
 };
 
 class MinimizerHits {
   public:
     MinimizerHits() {}
     ~MinimizerHits();
-    set<MinimizerHit*, pComp> hits;
+    std::set<MinimizerHit*, pComp> hits;
     void add_hit(const uint32_t i, const Minimizer* m, const MiniRecord* r);
-    friend ostream& operator<< (ostream& out, const MinimizerHits& m);
+    friend std::ostream& operator<< (std::ostream& out, const MinimizerHits& m);
 };
 
 #endif

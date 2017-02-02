@@ -7,8 +7,6 @@
 #include "minimizer.h"
 #include "minirecord.h"
 
-using namespace std;
-
 struct MinimizerHit
 {
     uint32_t read_id;
@@ -21,7 +19,7 @@ struct MinimizerHit
     MinimizerHit(const uint32_t i, const Interval j, const uint32_t k, const Path p, const bool c); // second allowed constructor
     bool operator < ( const MinimizerHit& y) const;
     bool operator == (const MinimizerHit& y) const;
-    friend ostream& operator<< (ostream& out, const MinimizerHit& m);
+    friend std::ostream& operator<< (std::ostream& out, const MinimizerHit& m);
 };
 
 #endif
