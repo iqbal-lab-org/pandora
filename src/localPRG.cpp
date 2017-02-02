@@ -789,10 +789,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 
 
     // start with the outmost level
-    uint8_t max_level = 0;
-    for (auto const& element : prg.index) {
-        max_level = max(max_level, element.first);
-    }
+    uint8_t max_level = prg.index.size() - 1;
 
     // and for each level..
     for (uint level = max_level; level <= max_level; --level)

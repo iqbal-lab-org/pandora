@@ -13,10 +13,10 @@ class LocalNode;
 class LocalGraph {
   public:
     std::map<uint32_t, LocalNode*> nodes; // representing nodes in graph
-    std::map<uint8_t, std::vector<std::pair<uint32_t, uint32_t>>> index; // varsite index
+    std::vector<std::vector<std::pair<uint32_t, uint32_t>>> index; // varsite index
 	// For each nesting level, has a vector of node pairs, each corresponding to a pre-varsite and post-varsite node id. 
 	// Every varsite is represented somewhere in this index.
-    LocalGraph() {}
+    LocalGraph();
     ~LocalGraph();
     void add_node (const uint32_t& id, const std::string& seq, const Interval& pos);
     void add_edge (const uint32_t&, const uint32_t&);

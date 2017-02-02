@@ -11,6 +11,12 @@
 
 using namespace std;
 
+LocalGraph::LocalGraph()
+{
+    // reserve space in index
+    index.reserve(10);
+}
+
 LocalGraph::~LocalGraph()
 {
   for (auto c: nodes)
@@ -53,16 +59,13 @@ void LocalGraph::add_edge (const uint32_t& from, const uint32_t& to)
 void LocalGraph::add_varsite (const uint8_t level, const uint32_t pre_site_id, const uint32_t post_site_id)
 {
     assert(pre_site_id <= post_site_id);
-    map<uint8_t, vector<pair<uint32_t, uint32_t>>>::iterator it=index.find(level);
-    if(it==index.end())
+    while (level >= index.size())
     {
-	vector<pair<uint32_t, uint32_t>> v;
-	v.reserve(400);
-	v.push_back(make_pair(pre_site_id, post_site_id));
-	index[level]=v;
-    } else {
-	it->second.push_back(make_pair(pre_site_id, post_site_id));
+        vector<pair<uint32_t, uint32_t>> levelv = {};
+	levelv.reserve(400);
+	index.insert(index.end(), 1, levelv);
     }
+    index[level].push_back(make_pair(pre_site_id, post_site_id));
     return;
 }
 
