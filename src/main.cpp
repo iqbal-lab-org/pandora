@@ -43,21 +43,20 @@ static void show_usage(string name)
 	      << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers\n"
 	      << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers\n"
 	      << "\t-m,--max_diff MAX_DIFF\t\tMaximum distance between consecutive hits within a cluster\n"
-	      << "\t-c,--cthresh CLUSTER_THRESH\tMinimum number of hits in a cluster"
               << std::endl;
 }
 
 int main(int argc, char* argv[])
 {
     // if not enough arguments, print usage
-    if (argc < 7) {
+    if (argc < 6) {
         show_usage(argv[0]);
         return 1;
     }
 
     // otherwise, parse the parameters from the command line
     string prgfile, readfile, prefix;
-    uint32_t w=1, k=3, cluster_thresh = 1; // default parameters
+    uint32_t w=1, k=3; // default parameters
     int max_diff = 2;//1;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
@@ -109,13 +108,6 @@ int main(int argc, char* argv[])
                   std::cerr << "--max_diff option requires one argument." << std::endl;
                 return 1;
             }
-	} else if ((arg == "-c") || (arg == "--cthresh")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                cluster_thresh = (unsigned)atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                  std::cerr << "--cthresh option requires one argument." << std::endl;
-                return 1;
-            }
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -147,7 +139,7 @@ int main(int argc, char* argv[])
     cout << sdt << " Constructing PanGraph from read file" << endl;
     PanGraph *pangraph;
     pangraph = new PanGraph();
-    pangraph_from_read_file(readfile, pangraph, idx, prgs, w, k, max_diff, cluster_thresh);
+    pangraph_from_read_file(readfile, pangraph, idx, prgs, w, k, max_diff);
 
     now = time(0);
     dt = ctime(&now);

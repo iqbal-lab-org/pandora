@@ -101,7 +101,6 @@ float MaxPath::get_mean_prob(const vector<float>& kmer_path_probs)
 
 float MaxPath::get_median_prob(const vector<float>& kmer_path_probs)
 {
-    float p = 0;
     vector<float> ps;
     assert(kmers_on_path.size() == kmer_path_probs.size());
 

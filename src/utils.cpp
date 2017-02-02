@@ -129,7 +129,7 @@ void add_read_hits(const uint32_t id, const string& name, const string& seq, Min
     return;
 }
 
-void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits* minimizer_hits, PanGraph* pangraph, const int max_diff, const uint32_t cluster_thresh, const uint32_t k)
+void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits* minimizer_hits, PanGraph* pangraph, const int max_diff, const uint32_t k)
 {
     // this step infers the gene order for a read
     // orders hits from a set of minimizer hits, clusters them, removes noise hits, and adds the inferred gene order to the pangraph
@@ -138,7 +138,6 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     if (minimizer_hits->hits.size() == 0) {return;}
 
     // First cluster hits matching same localPRG, not more than max_diff read bases from the last hit (this last bit is to handle repeat genes). 
-    // Keep clusters with more than cluster_thresh hits.
     set<MinimizerHit*, pComp>::iterator mh_previous = minimizer_hits->hits.begin();
     set<MinimizerHit*, pComp> current_cluster;
     current_cluster.insert(*mh_previous);
@@ -148,7 +147,6 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
         //cout << "Hit: " << **mh_previous << endl;
         if((*mh_current)->read_id!=(*mh_previous)->read_id or (*mh_current)->prg_id!=(*mh_previous)->prg_id or (*mh_current)->strand!=(*mh_previous)->strand or (abs((int)(*mh_current)->read_interval.start - (int)(*mh_previous)->read_interval.start)) > max_diff)
         {
-            //if (current_cluster.size() > cluster_thresh)
             pn = p_null(prgs, current_cluster, k);
 	    //cout << "pnull is " << pn << " for cluster of size " << current_cluster.size() << endl;
             if (pn < 0.001)
@@ -170,7 +168,6 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
         }
         mh_previous = mh_current;
     }
-    //if (current_cluster.size() > cluster_thresh)
     pn = p_null(prgs, current_cluster, k);
     //cout << "pnull is " << pn << " for cluster of size " << current_cluster.size() << endl;
     if (pn < 0.001)
@@ -212,7 +209,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     return;
 }
 
-void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* idx, const vector<LocalPRG*>& prgs, const uint32_t w, const uint32_t k, const int max_diff, const uint32_t cluster_thresh)
+void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* idx, const vector<LocalPRG*>& prgs, const uint32_t w, const uint32_t k, const int max_diff)
 {
     time_t now;
     string name, read, line, dt, sdt;
@@ -295,7 +292,7 @@ void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* 
         dt = ctime(&now);
         sdt = dt.substr(0,dt.length()-1);
         cout << sdt << " Infer gene orders and add to PanGraph" << endl;
-        infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, cluster_thresh, k);
+        infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, k);
         now = time(0);
         dt = ctime(&now);
         sdt = dt.substr(0,dt.length()-1);
@@ -572,7 +569,6 @@ void write_prg_starts(string filepath, LocalPRG* prg, uint length)
     handle.open (filepath);
 
     string kmer;
-    uint i = 0;
     vector<LocalNode*> nodes;
 
     vector<Path> walk_paths = prg->prg.walk(0, 0, length); 
