@@ -943,8 +943,13 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
     //the max_path_index, stored by the LocalPRG class
 
     vector<vector<MaxPath>> u, v, w; // w <- u <=> v
+    u.reserve(5);
+    v.reserve(5);
+    w.reserve(5);
     vector<LocalNode*> x;
+    x.reserve(100);
     vector<MaxPath> t; // each of u,v,w contains items of form t, with 3 components corresponding to fwd,rev,both
+    t.reserve(3);
     vector<bool> y(kmer_paths.size(),false);
     float max_prob, max_mean_prob, next_largest;
 
