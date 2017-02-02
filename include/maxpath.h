@@ -8,7 +8,7 @@
 struct MaxPath
 {
     std::vector<LocalNode*> npath; //node path
-    std::vector<bool> kmers_on_path; // indicates which of the localPRG hits lie along node path
+    std::vector<int> kmers_on_path; // indicates which of the localPRG hits lie along node path
     uint32_t num_equivalent_paths;
     float prob;
     float mean_prob;
@@ -17,7 +17,7 @@ struct MaxPath
     std::string direction;
 
     MaxPath();
-    MaxPath(std::vector<LocalNode*>, std::vector<bool>, uint32_t);
+    MaxPath(std::vector<LocalNode*>, std::vector<int>, uint32_t);
 
     void extend(const MaxPath);
     float get_prob(const std::vector<float>&);

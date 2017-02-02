@@ -575,7 +575,7 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_pr
 	found = false;
 	reject = false;
 	
-        if (mp.kmers_on_path[n] == true)
+        if (mp.kmers_on_path[n] == 1)
 	{
 	    found = true;
 	}
@@ -681,9 +681,9 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_pr
         if (std::find(subnums.begin(), subnums.end(), n) == subnums.end())
         {
             //cout << "Found a kmer " << kmer_paths[nums[n]] << " which branches from node " << node->id << " " << node->pos << " and which has prob " << kmer_path_probs[nums[n]] << endl;
-            mp.kmers_on_path[nums[n]] = true;
+            mp.kmers_on_path[nums[n]] = 1; // true
         } else {
-	    mp.kmers_on_path[nums[n]] = false;
+	    mp.kmers_on_path[nums[n]] = 0; // false
 	}
     }
     cout << "done identifying kmers on path - found " << accumulate(mp.kmers_on_path.begin(), mp.kmers_on_path.end(), 0) << endl;
@@ -799,7 +799,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
     x.reserve(100);
     vector<MaxPath> t; // each of u,v,w contains items of form t, with 3 components corresponding to fwd,rev,both
     t.reserve(3);
-    vector<bool> y(kmer_paths.size(),false);
+    vector<int> y(kmer_paths.size(),0);
     float max_mean_prob;
 
 
@@ -1021,7 +1021,7 @@ void LocalPRG::write_path_vs_found_path(const string& filepath, const string& qu
 {
     // for true string, find path, kmers on path, prob
     vector<LocalNode*> npath = nodes_along_string(query_string);
-    vector<bool> y(kmer_paths.size(),false);
+    vector<int> y(kmer_paths.size(),0);
     MaxPath mp(npath, y, 0);
     update_kmers_on_node_path(mp, kmer_path_probs[0]);
     mp.get_prob(kmer_path_probs[0]);
@@ -1041,7 +1041,7 @@ void LocalPRG::write_path_vs_found_path(const string& filepath, const string& qu
     handle << "kmers on path: ";
     for (uint j = 0; j!= mp.kmers_on_path.size(); ++j)
     {
-	if (mp.kmers_on_path[j] == true)
+	if (mp.kmers_on_path[j] == 1)
 	{
             handle << j << ", ";
 	}
@@ -1059,7 +1059,7 @@ void LocalPRG::write_path_vs_found_path(const string& filepath, const string& qu
     handle << "kmers on path: ";
     for (uint j = 0; j!= max_path_index[0][0][0].kmers_on_path.size(); ++j)
     {
-        if (max_path_index[0][0][0].kmers_on_path[j] == true)
+        if (max_path_index[0][0][0].kmers_on_path[j] == 1)
         {
             handle << j << ", ";
         }

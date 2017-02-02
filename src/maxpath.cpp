@@ -9,7 +9,7 @@ using namespace std;
 
 MaxPath::MaxPath(){};
 
-MaxPath::MaxPath(vector<LocalNode*> x, vector<bool> y, uint32_t z): npath(x), kmers_on_path(y), num_equivalent_paths(z)
+MaxPath::MaxPath(vector<LocalNode*> x, vector<int> y, uint32_t z): npath(x), kmers_on_path(y), num_equivalent_paths(z)
 {
     npath.reserve(100);
 }
@@ -53,7 +53,7 @@ void MaxPath::extend(const MaxPath new_mp)
     {
 	if (new_mp.kmers_on_path[n] != kmers_on_path[n])
 	{
-	    kmers_on_path[n] = false;
+	    kmers_on_path[n] = 0;
 	}
     }
     return;
@@ -66,7 +66,7 @@ float MaxPath::get_prob(const vector<float>& kmer_path_probs)
 
     for (uint i = 0; i!=kmers_on_path.size(); ++i)
     {
-        if (kmers_on_path[i] == true)
+        if (kmers_on_path[i] == 1)
         {
             p += kmer_path_probs[i];
         }
@@ -84,7 +84,7 @@ float MaxPath::get_mean_prob(const vector<float>& kmer_path_probs)
 
     for (uint i = 0; i!=kmers_on_path.size(); ++i)
     {
-        if (kmers_on_path[i] == true)
+        if (kmers_on_path[i] == 1)
         {
             p += exp(kmer_path_probs[i]);
             t += 1;
@@ -106,7 +106,7 @@ float MaxPath::get_median_prob(const vector<float>& kmer_path_probs)
 
     for (uint i = 0; i!=kmers_on_path.size(); ++i)
     {
-        if (kmers_on_path[i] == true)
+        if (kmers_on_path[i] == 1)
         {
             ps.push_back(kmer_path_probs[i]);
         }
