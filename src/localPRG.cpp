@@ -86,7 +86,7 @@ vector<LocalNode*> LocalPRG::nodes_along_string(const string& query_string)
     string candidate_string = "";
     
     assert(prg.nodes.size()>0); //otherwise empty prg -> segfault
-    u.push_back({prg.nodes[0]});
+    u = {{prg.nodes[0]}};
 
     while (u.size() > 0)
     {
@@ -747,6 +747,8 @@ void LocalPRG::get_kmer_path_probs(const PanNode* pnode, uint32_t k, float e_rat
     // now for each of the minimizing kmers, work out the prob of seeing this number of hits given the number of reads
     // this is the bit where I assume that we have an independent trial for each read (binomial hit counts for true kmers)
     cout << "work out prob of seeing this number of hits against a kmer assuming it is truly present" << endl;
+    vector<float> probs(kmer_paths.size(), 0);
+    kmer_path_probs.resize(3, probs);
     float p_kmer, p_max, p_min, p=1/exp(e_rate*k);
     uint32_t n = pnode->foundReads.size(), big_p_count=0;
     cout << "n: " << n << ", p: " << p << endl;
@@ -754,13 +756,12 @@ void LocalPRG::get_kmer_path_probs(const PanNode* pnode, uint32_t k, float e_rat
     cout << "count:1 " << nchoosek(n,1) << " * " << pow(p,1) << " * " << pow(1-p,n-1) << endl;
     for (uint32_t direction=0; direction!=3; ++direction) // directions 0,1,2 correspond to forward hit, rev_complement hit and either/both
     {	
-	kmer_path_probs.push_back({});
         p_max=numeric_limits<float>::lowest(), p_min=0;
         for (uint32_t i=0; i!=kmer_path_hit_counts[direction].size(); ++i)
         {
             p_kmer = log(nchoosek(n, kmer_path_hit_counts[direction][i])*pow(p,kmer_path_hit_counts[direction][i])*pow(1-p,n-kmer_path_hit_counts[direction][i]));
             cout << kmer_paths[i] << " " << kmer_path_hit_counts[direction][i] << " " << p_kmer << endl;
-            kmer_path_probs[direction].push_back(p_kmer);
+            kmer_path_probs[direction][i] = p_kmer;
             p_max = max(p_max, p_kmer);
             p_min = min(p_min, p_kmer);
             if(p_kmer>-0.5)
@@ -822,27 +823,14 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 	    {
 		assert(pre_site_id == 0);
 		cout << now() << "finally find best path through whole prg" << endl;
-		u.push_back({MaxPath({prg.nodes[pre_site_id]}, y, 0), MaxPath({prg.nodes[pre_site_id]}, y, 0), MaxPath({prg.nodes[pre_site_id]}, y, 0)});
-		//x.push_back(prg.nodes[pre_site_id]);
-		//t.resize(3, MaxPath(x, y, 0));
-		//u.push_back(t);
-		//x.clear();
-		//t.clear();
+		u = {{MaxPath({prg.nodes[pre_site_id]}, y, 0), MaxPath({prg.nodes[pre_site_id]}, y, 0), MaxPath({prg.nodes[pre_site_id]}, y, 0)}};
 	    } else {
 	        cout << now() << "Looking at varsite number " << i << " at this level, from the outnodes of " << pre_site_id << " to the innodes of " << post_site_id << endl;
 		// we want the index to be inclusive of first node/pre_site_id prob, but exclusive of end node prob
                 for (uint j = 0; j!=prg.nodes[pre_site_id]->outNodes.size(); ++j)
                 {
 		    cout << now() << "add " << pre_site_id << "->" << prg.nodes[pre_site_id]->outNodes[j]->id << " to u" << endl;
-		    u.push_back({MaxPath({prg.nodes[pre_site_id], prg.nodes[pre_site_id]->outNodes[j]}, y, 0), MaxPath({prg.nodes[pre_site_id], prg.nodes[pre_site_id]->outNodes[j]}, y, 0), MaxPath({prg.nodes[pre_site_id], prg.nodes[pre_site_id]->outNodes[j]}, y, 0)});
-		    //x.push_back(prg.nodes[pre_site_id]);
-                    //x.push_back(prg.nodes[pre_site_id]->outNodes[j]);
-		    //cout << now() << "make maxpath" << endl;
-		    //t.resize(3, MaxPath(x, y, 0));
-                    //u.push_back(t);
-                    //x.clear();
-                    //t.clear();
-
+		    u = {{MaxPath({prg.nodes[pre_site_id], prg.nodes[pre_site_id]->outNodes[j]}, y, 0), MaxPath({prg.nodes[pre_site_id], prg.nodes[pre_site_id]->outNodes[j]}, y, 0), MaxPath({prg.nodes[pre_site_id], prg.nodes[pre_site_id]->outNodes[j]}, y, 0)}};
 		    update_kmers_on_node_paths(u.back());
                 }
 	    }
