@@ -23,7 +23,6 @@ class LocalPRG {
     std::string buff;
   public:
     uint32_t next_site;
-
     uint32_t id;
     std::string name;
     std::string seq;
@@ -33,24 +32,28 @@ class LocalPRG {
 
     std::vector<uint32_t> kmer_path_clashes; // number of places elsewhere in PRG where a kmer occurs TO DO!!
     std::vector<std::vector<uint32_t>> kmer_path_hit_counts; //[forward vector, reverse vector, both vector] 
-    std::vector<std::vector<float>> kmer_path_probs; //[forward vector, reverse vector, both vector]
-    std::map<uint32_t, std::vector<std::vector<MaxPath>>> max_path_index;         // maps from pre_site_ids seen before to a vector
-								   // of size three representing (forward, reverse, both), 
-								   // each vector containing the maximally probable node_path, 
-								   // which mini kmers overlap
-								   // the path and its confidence
-								   // used when reads suggest this PRG is present in a sample
-								   // in the process of working out which path through the PRG is present
-								   // Also used to store partial paths (hence vector) during this process
+    std::vector<std::vector<float>> kmer_path_probs;         //[forward vector, reverse vector, both vector]
+    std::map<uint32_t, std::vector<std::vector<MaxPath>>> max_path_index;          // maps from pre_site_ids seen before to a vector
+										   // of size three representing (forward, reverse, both), 
+										   // each vector containing the maximally probable node_path, 
+										   // which mini kmers overlap
+										   // the path and its confidence
+										   // used when reads suggest this PRG is present in a sample
+										   // in the process of working out which path through the PRG is present
+										   // Also used to store partial paths (hence vector) during this process
+								   
     LocalPRG(uint32_t, std::string, std::string);
-    //~LocalPRG();
+
+    // functions used to create LocalGraph from PRG string, and to sketch graph
     bool isalpha_string(const std::string&);
     std::string string_along_path(const Path&);
-    std::vector<LocalNode*> path_corresponding_to_string(const std::string&);
+    std::vector<LocalNode*> nodes_along_string(const std::string&);
     std::vector<LocalNode*> nodes_along_path(const Path&);
-    std::vector<Interval> splitBySite(const Interval&);	
+    std::vector<Interval> split_by_site(const Interval&);	
     std::vector<uint32_t> build_graph(const Interval&, const std::vector<uint32_t>&, uint32_t current_level=0);
     void minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k);
+
+    // functions used once hits have been collected against the PRG
     void update_covg_with_hit(MinimizerHit*);
     void update_kmers_on_node_path(MaxPath&, const std::vector<float>&);
     void update_kmers_on_node_paths(std::vector<MaxPath>&);
