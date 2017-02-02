@@ -43,6 +43,9 @@ LocalPRG::LocalPRG (uint32_t i, string n, string p): next_id(0),buff(" "), next_
 	//cout << "seq empty" << endl;
 	prg.add_node(0, "", Interval(0,0));
     }
+
+    kmer_paths.reserve(50000);
+    kmer_path_clashes.reserve(50000);
 }
 
 /*LocalPRG::~LocalPRG()
@@ -86,13 +89,16 @@ vector<LocalNode*> LocalPRG::path_corresponding_to_string(const string& query_st
     vector<vector<LocalNode*>> u,v;   // u <=> v
 				      // ie reject paths in u, or extend and add to v
 				      // then set u=v and continue
+    u.reserve(100);
+    v.reserve(100);
     vector<LocalNode*> npath;
+    npath.reserve(50);
     string candidate_string = "";
     
     assert(prg.nodes.size()>0); //otherwise empty prg -> segfault
-    npath.push_back(prg.nodes[0]);
-    u.push_back(npath);
-    npath.clear();
+    //npath.push_back(prg.nodes[0]);
+    u.push_back({prg.nodes[0]});
+    //npath.clear();
 
     while (u.size() > 0)
     {
@@ -131,6 +137,7 @@ vector<LocalNode*> LocalPRG::path_corresponding_to_string(const string& query_st
 vector<LocalNode*> LocalPRG::nodes_along_path(const Path& p)
 {
     vector<LocalNode*> v;
+    v.reserve(100);
     // for each interval of the path
     for (deque<Interval>::const_iterator it=p.path.begin(); it!=p.path.end(); ++it)
     {
@@ -159,6 +166,7 @@ vector<Interval> LocalPRG::splitBySite(const Interval& i)
 
     // Split first by var site
     vector<Interval> v;
+    v.reserve(4);
     string::size_type k = i.start;
     string d = buff + to_string(next_site) + buff;
     string::size_type j = seq.find(d, k);
@@ -197,6 +205,7 @@ vector<Interval> LocalPRG::splitBySite(const Interval& i)
 
     // then split by var site + 1
     vector<Interval> w;
+    w.reserve(20);
     d = buff + to_string(next_site+1) + buff;
     for(uint32_t l=0; l!=v.size(); ++l)
     {
@@ -255,6 +264,7 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
 {
     // we will return the ids on the ends of any stretches of graph added
     vector<uint32_t> end_ids;
+    end_ids.reserve(20);
 
     // save the start id, so can add 0, and the last id to the index at level 0 at the end
     uint32_t start_id = next_id;
@@ -308,6 +318,7 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
         //cout << endl;
 
 	vector<uint32_t> mid_ids;
+        mid_ids.reserve(20);
 	mid_ids.push_back(next_id);
 	next_id++;
 	// add (recurring as necessary) middle intervals
@@ -943,9 +954,9 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
     //the max_path_index, stored by the LocalPRG class
 
     vector<vector<MaxPath>> u, v, w; // w <- u <=> v
-    u.reserve(5);
-    v.reserve(5);
-    w.reserve(5);
+    u.reserve(10);
+    v.reserve(10);
+    w.reserve(10);
     vector<LocalNode*> x;
     x.reserve(100);
     vector<MaxPath> t; // each of u,v,w contains items of form t, with 3 components corresponding to fwd,rev,both
@@ -973,24 +984,26 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 	    {
 		assert(pre_site_id == 0);
 		cout << now() << "finally find best path through whole prg" << endl;
-		x.push_back(prg.nodes[pre_site_id]);
-		t.resize(3, MaxPath(x, y, 0));
-		u.push_back(t);
-		x.clear();
-		t.clear();
+		u.push_back({MaxPath({prg.nodes[pre_site_id]}, y, 0), MaxPath({prg.nodes[pre_site_id]}, y, 0), MaxPath({prg.nodes[pre_site_id]}, y, 0)});
+		//x.push_back(prg.nodes[pre_site_id]);
+		//t.resize(3, MaxPath(x, y, 0));
+		//u.push_back(t);
+		//x.clear();
+		//t.clear();
 	    } else {
 	        cout << now() << "Looking at varsite number " << i << " at this level, from the outnodes of " << pre_site_id << " to the innodes of " << post_site_id << endl;
 		// we want the index to be inclusive of first node/pre_site_id prob, but exclusive of end node prob
                 for (uint j = 0; j!=prg.nodes[pre_site_id]->outNodes.size(); ++j)
                 {
 		    cout << now() << "add " << pre_site_id << "->" << prg.nodes[pre_site_id]->outNodes[j]->id << " to u" << endl;
-		    x.push_back(prg.nodes[pre_site_id]);
-                    x.push_back(prg.nodes[pre_site_id]->outNodes[j]);
-		    cout << now() << "make maxpath" << endl;
-		    t.resize(3, MaxPath(x, y, 0));
-                    u.push_back(t);
-                    x.clear();
-                    t.clear();
+		    u.push_back({MaxPath({prg.nodes[pre_site_id], prg.nodes[pre_site_id]->outNodes[j]}, y, 0), MaxPath({prg.nodes[pre_site_id], prg.nodes[pre_site_id]->outNodes[j]}, y, 0), MaxPath({prg.nodes[pre_site_id], prg.nodes[pre_site_id]->outNodes[j]}, y, 0)});
+		    //x.push_back(prg.nodes[pre_site_id]);
+                    //x.push_back(prg.nodes[pre_site_id]->outNodes[j]);
+		    //cout << now() << "make maxpath" << endl;
+		    //t.resize(3, MaxPath(x, y, 0));
+                    //u.push_back(t);
+                    //x.clear();
+                    //t.clear();
 
 		    update_kmers_on_node_paths(u.back());
                 }

@@ -9,7 +9,10 @@ using namespace std;
 
 MaxPath::MaxPath(){};
 
-MaxPath::MaxPath(vector<LocalNode*> x, vector<bool> y, uint32_t z): npath(x), kmers_on_path(y), num_equivalent_paths(z){};
+MaxPath::MaxPath(vector<LocalNode*> x, vector<bool> y, uint32_t z): npath(x), kmers_on_path(y), num_equivalent_paths(z)
+{
+    npath.reserve(100);
+}
 /*MaxPath::MaxPath(vector<LocalNode*> x, vector<bool> y, uint32_t z)
 {
     cout << "make maxpath" << endl;
