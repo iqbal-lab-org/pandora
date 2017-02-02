@@ -556,12 +556,11 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_pr
     vector<LocalNode*>::const_iterator node;
     bool found, reject, added_m_or_n, found_branch;
     vector<uint32_t> nums;
-    nums.reserve(kmer_paths.size());
-    set<uint32_t> subnums;
+    nums.reserve(40);
 
-    /*cout << "looking for kmers overlapping node_path " << endl;
+    cout << "looking for kmers overlapping node_path " << endl;
 
-    for (uint32_t n=0; n!=mp.npath.size(); ++n)
+    /*for (uint32_t n=0; n!=mp.npath.size(); ++n)
     {
 	cout << *(mp.npath[n]) << " ";
     }
@@ -570,65 +569,65 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_pr
     // find the set of kmer_paths which overlap this node_path
     for (uint32_t n=0; n!=kmer_paths.size(); ++n)
     {
-        it=kmer_paths[n].path.begin();
-        node=mp.npath.begin();
-	found = false;
-	reject = false;
+	if (mp.kmers_on_path[n] == 1)
+	{
+	    nums.push_back(n);
+	} else {
+	    found = false;
+	    reject = false;
 	
-        if (mp.kmers_on_path[n] == 1)
-	{
-	    found = true;
-	}
-
-        // if there is no overlap, reject
-	if (kmer_paths[n].end < (*node)->pos.start or kmer_paths[n].start > mp.npath.back()->pos.end)
-	{
-	    reject = true;
-	}
-
-        while (reject == false and found == false and node!=mp.npath.end())
-	{
-            if ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or (*it == (*node)->pos))
-            {
-                // then this node overlaps this interval of the kmer
-                // it needs to continue to overlap to end of kmer or node_path
-                found = true;
-		//cout << endl << "found start of a match: " <<  *it << " " << (*node)->pos << endl;
-		//cout << "note " << (reject == false) << " " << (node!=mp.npath.end()) << " " << (it!=kmer_paths[n].path.end()) << endl; 
-		while (reject == false and node!=mp.npath.end() and it!=kmer_paths[n].path.end())
-		{
-		    if ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or (*it == (*node)->pos))
-                    {
-			//cout << *it << " " << (*node)->pos << " match" << endl;
-			node++;
-			it++;
-		    } else {
-			// we have stopped matching and not because we reached the end of the kmer or node path
-			//cout << "reject: " << kmer_paths[n] << " since " << *it << " and " << (*node)->pos  << " do not match " << endl;
-			reject = true;
-		    }
-		}
-		//cout << "end of while" << endl;
-	    } else {
-		// no match for this node and inteval
-		// a match has to start either with the first node of node_path, or first interval of kmer
-		// try iterating through combinations
-		if (node==mp.npath.begin() and it!=kmer_paths[n].path.end())
-		{
-		    it++;
-		} else {
-		    it=kmer_paths[n].path.begin();
-		    node++;
-		}
+            // if there is no overlap, reject
+	    if (kmer_paths[n].end < mp.npath[0]->pos.start or kmer_paths[n].start > mp.npath.back()->pos.end)
+	    {
+	        reject = true;
 	    }
-	}
 
-        // now if it was found and not rejected, add to nums;
-        if (found == true and reject == false)
-	{
-            nums.push_back(n);
-	    cout << "found kmer match for " << kmer_paths[n] << endl;
-	}
+	    it=kmer_paths[n].path.begin();
+            node=mp.npath.begin();
+
+            while (reject == false and found == false and node!=mp.npath.end())
+	    {
+                if ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or (*it == (*node)->pos))
+                {
+                    // then this node overlaps this interval of the kmer
+                    // it needs to continue to overlap to end of kmer or node_path
+                    found = true;
+		    node++;
+                    it++;
+		    while (reject == false and node!=mp.npath.end() and it!=kmer_paths[n].path.end())
+		    {
+		        if ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or (*it == (*node)->pos))
+                        {
+			    node++;
+			    it++;
+		        } else {
+			    // we have stopped matching and not because we reached the end of the kmer or node path
+			    reject = true;
+		        }
+		    }
+	        } else {
+		    // no match for this node and inteval
+		    // a match has to start either with the first node of node_path, or first interval of kmer
+		    // try iterating through combinations
+		    if (node==mp.npath.begin() and it!=kmer_paths[n].path.end())
+		    {
+		        it++;
+		    } else {
+		        it=kmer_paths[n].path.begin();
+		        node++;
+		    }
+	        }
+	    }
+	    
+
+            // now if it was found and not rejected, add to nums;
+            if (found == true and reject == false)
+	    {
+		nums.push_back(n);
+                //mp.kmers_on_path[n] = 1;
+	        cout << "found kmer match for " << kmer_paths[n] << endl;
+	    }
+        }
     }
 
     cout << "have a list of " << nums.size() << " overlapping kmers, now chose between ones which branch" << endl;
@@ -636,56 +635,41 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_pr
     // if have several covering directions at a branching/closing point, want only one of the options so take a subset
     for (uint32_t n=0; n!=nums.size(); ++n)
     {
-        // if we haven't already decided to eliminate the kmer because it represents an alternative branch path, find kmers that branch from this kmer
-        if (subnums.find(n) == subnums.end())
-        {
-            added_m_or_n = false;
-            found_branch = false;
-            for (uint32_t m=n+1; m!=nums.size(); ++m)
-            {
-                // for any pair of numbers, if they represent branching paths, add the one with the smaller probability into the subset
-                //cout << n << " vs " << m << endl;
+	added_m_or_n = false;
+        found_branch = false;
+        for (uint32_t m=n+1; m!=nums.size(); ++m)
+	{
+	    if ((mp.kmers_on_path[nums[n]] == 1 or found_branch == true) and mp.kmers_on_path[nums[m]] == 1)
+	    {
+		//check that these two kmers are not branching, removing one or both if they are
                 if (kmer_paths[nums[n]].is_branching(kmer_paths[nums[m]]))
                 {
                     found_branch = true;
                     if (kp_probs[nums[n]] > kp_probs[nums[m]])
                     {
                         cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " branch but prob " << kp_probs[nums[n]] << " > " << kp_probs[nums[m]] << endl;
-                        subnums.insert(m);
+                        mp.kmers_on_path[nums[m]] = 0;
                         added_m_or_n = true;    //we have kept/added n
                     } else if (kp_probs[nums[m]] > kp_probs[nums[n]]) {
                         cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " branch but prob " << kp_probs[nums[n]] << " < " << kp_probs[nums[m]] << endl;
-                        subnums.insert(n);
+                        mp.kmers_on_path[nums[n]] = 0;
                         added_m_or_n = true; //we have kept/added m
                     } else {
                         cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " branch and have same prob" << endl;
-                        subnums.insert(m);
-                        subnums.insert(n);
+                        mp.kmers_on_path[nums[m]] = 0;
+                        mp.kmers_on_path[nums[n]] = 0;
                     }
-                //} else {
-                //    cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " do not branch" << endl;
                 }
             }
             // if we haven't kept any of the branching options, remove n from the subnums set
             if (found_branch == true and added_m_or_n == false)
             {
-                cout << "found many branching kmers with same prob, so add " << (kmer_paths[nums[n]]) << endl;
-                subnums.erase(n);
+                cout << "found many branching kmers with same prob, so add " << (kmer_paths[n]) << endl;
+                mp.kmers_on_path[nums[n]] = 1;
             }
         }
     }
 
-    // now for all numbers in nums not in subnums, indicate to keep
-    for (uint32_t n=0; n!=nums.size(); ++n)
-    {
-        if (std::find(subnums.begin(), subnums.end(), n) == subnums.end())
-        {
-            //cout << "Found a kmer " << kmer_paths[nums[n]] << " which branches from node " << node->id << " " << node->pos << " and which has prob " << kmer_path_probs[nums[n]] << endl;
-            mp.kmers_on_path[nums[n]] = 1; // true
-        } else {
-	    mp.kmers_on_path[nums[n]] = 0; // false
-	}
-    }
     cout << "done identifying kmers on path - found " << accumulate(mp.kmers_on_path.begin(), mp.kmers_on_path.end(), 0) << endl;
     //assert(std::accumulate(mp.kmers_on_path.begin(), mp.kmers_on_path.end(), 0) > 0);
 }
