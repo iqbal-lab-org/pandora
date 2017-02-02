@@ -5,7 +5,6 @@
 #include <cassert>
 #include <cstring>
 #include <cmath>
-#include <string>
 #include <utility>
 #include "inthash.h"
 
@@ -132,7 +131,7 @@ uint64_t hash64(uint64_t& key, const uint64_t& mask)
 
 pair<uint64_t, uint64_t> kmerhash(const std::string& s, const uint32_t k)
 {
-    // note this takes the hash of both forwards and reverse complement kmers and returns the minimum 
+    // this takes the hash of both forwards and reverse complement kmers and returns them as a pair 
     assert(s.size() == k);
     int c;
     uint64_t mask = pow(4,k) - 1, kh = 0, rckh = 0;

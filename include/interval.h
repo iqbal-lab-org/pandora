@@ -1,7 +1,7 @@
 #ifndef __INTERVAL_H_INCLUDED__   // if interval.h hasn't been included yet...
 #define __INTERVAL_H_INCLUDED__
 
-#include <cstdint> //or <stdint.h>
+#include <cstdint>
 #include <ostream>
 
 struct Interval {
