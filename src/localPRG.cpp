@@ -551,6 +551,7 @@ void LocalPRG::update_kmers_on_node_paths(vector<MaxPath>& vmp)
 void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_probs)
 {
     assert(mp.kmers_on_path.size() == kmer_paths.size());
+    assert(mp.kmers_on_path.size() == kp_probs.size());
     
     deque<Interval>::const_iterator it;
     vector<LocalNode*>::const_iterator node;
@@ -587,7 +588,9 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_pr
 
             while (reject == false and found == false and node!=mp.npath.end())
 	    {
-                if ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or (*it == (*node)->pos))
+                if (it!=kmer_paths[n].path.end() and
+		   ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or 
+		   (*it == (*node)->pos)))
                 {
                     // then this node overlaps this interval of the kmer
                     // it needs to continue to overlap to end of kmer or node_path
@@ -596,7 +599,9 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_pr
                     it++;
 		    while (reject == false and node!=mp.npath.end() and it!=kmer_paths[n].path.end())
 		    {
-		        if ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or (*it == (*node)->pos))
+		        if (it!=kmer_paths[n].path.end() and
+			    ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or 
+			    (*it == (*node)->pos)))
                         {
 			    node++;
 			    it++;
@@ -625,7 +630,7 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_pr
 	    {
 		nums.push_back(n);
                 mp.kmers_on_path[n] = 1;
-	        cout << "found kmer match for " << kmer_paths[n] << endl;
+	        //cout << "found kmer match for " << kmer_paths[n] << endl;
 	    }
         }
     }
@@ -647,27 +652,27 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_pr
                     found_branch = true;
                     if (kp_probs[nums[n]] > kp_probs[nums[m]])
                     {
-                        cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " branch but prob " << kp_probs[nums[n]] << " > " << kp_probs[nums[m]] << endl;
+                        //cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " branch but prob " << kp_probs[nums[n]] << " > " << kp_probs[nums[m]] << endl;
                         mp.kmers_on_path[nums[m]] = 0;
                         added_m_or_n = true;    //we have kept/added n
                     } else if (kp_probs[nums[m]] > kp_probs[nums[n]]) {
-                        cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " branch but prob " << kp_probs[nums[n]] << " < " << kp_probs[nums[m]] << endl;
+                        //cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " branch but prob " << kp_probs[nums[n]] << " < " << kp_probs[nums[m]] << endl;
                         mp.kmers_on_path[nums[n]] = 0;
                         added_m_or_n = true; //we have kept/added m
                     } else {
-                        cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " branch and have same prob" << endl;
+                        //cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " branch and have same prob" << endl;
                         mp.kmers_on_path[nums[m]] = 0;
                         mp.kmers_on_path[nums[n]] = 0;
                     }
                 } else {
-		    cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " do not branch" << endl;
+		    //cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " do not branch" << endl;
 	        }
 	    }
 	}
         // if we haven't kept any of the branching options, remove n from the subnums set
         if (found_branch == true and added_m_or_n == false)
         {
-            cout << "found many branching kmers with same prob, so add " << (kmer_paths[n]) << endl;
+            //cout << "found many branching kmers with same prob, so add " << (kmer_paths[n]) << endl;
             mp.kmers_on_path[nums[n]] = 1;
         }
     }
@@ -788,7 +793,6 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
     vector<LocalNode*> x;
     x.reserve(100);
     vector<MaxPath> t; // each of u,v,w contains items of form t, with 3 components corresponding to fwd,rev,both
-    t.reserve(3);
     vector<int> y(kmer_paths.size(),0);
     float max_mean_prob;
 

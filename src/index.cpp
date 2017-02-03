@@ -19,8 +19,9 @@ void Index::add_record(uint64_t kmer, uint32_t prg_id, Path path, bool strand)
     map<uint64_t, vector<MiniRecord>>::iterator it=minhash.find(kmer);
     if(it==minhash.end())
     {
-        vector<MiniRecord> newv = {MiniRecord(prg_id, path, strand)};
+        vector<MiniRecord> newv;
         newv.reserve(20);
+	newv.push_back(MiniRecord(prg_id, path, strand));
         minhash.insert(pair<uint64_t, vector<MiniRecord>>(kmer,newv));
         //cout << "New minhash size: " << minhash.size() << endl; 
     } else {
