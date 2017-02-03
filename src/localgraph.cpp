@@ -98,8 +98,8 @@ vector<Path> LocalGraph::walk(const uint32_t& node_id, const uint32_t& pos, cons
     // walks from position pos in node node for length len bases
     assert(nodes[node_id]->pos.start <= pos && nodes[node_id]->pos.end >= pos); // if this fails, pos given lies on a different node
     vector<Path> return_paths, walk_paths;
-    return_paths.reserve(20);
-    walk_paths.reserve(20);
+    //return_paths.reserve(20);
+    //walk_paths.reserve(20);
     Path p,p2;
     deque<Interval> d;
 

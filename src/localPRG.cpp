@@ -624,7 +624,7 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_pr
             if (found == true and reject == false)
 	    {
 		nums.push_back(n);
-                //mp.kmers_on_path[n] = 1;
+                mp.kmers_on_path[n] = 1;
 	        cout << "found kmer match for " << kmer_paths[n] << endl;
 	    }
         }
@@ -639,9 +639,9 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_pr
         found_branch = false;
         for (uint32_t m=n+1; m!=nums.size(); ++m)
 	{
+	    //check that these two kmers are not branching, removing one or both if they are
 	    if ((mp.kmers_on_path[nums[n]] == 1 or found_branch == true) and mp.kmers_on_path[nums[m]] == 1)
 	    {
-		//check that these two kmers are not branching, removing one or both if they are
                 if (kmer_paths[nums[n]].is_branching(kmer_paths[nums[m]]))
                 {
                     found_branch = true;
@@ -659,14 +659,16 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_pr
                         mp.kmers_on_path[nums[m]] = 0;
                         mp.kmers_on_path[nums[n]] = 0;
                     }
-                }
-            }
-            // if we haven't kept any of the branching options, remove n from the subnums set
-            if (found_branch == true and added_m_or_n == false)
-            {
-                cout << "found many branching kmers with same prob, so add " << (kmer_paths[n]) << endl;
-                mp.kmers_on_path[nums[n]] = 1;
-            }
+                } else {
+		    cout << "Kmers " << kmer_paths[nums[n]] << " and " << kmer_paths[nums[m]] << " do not branch" << endl;
+	        }
+	    }
+	}
+        // if we haven't kept any of the branching options, remove n from the subnums set
+        if (found_branch == true and added_m_or_n == false)
+        {
+            cout << "found many branching kmers with same prob, so add " << (kmer_paths[n]) << endl;
+            mp.kmers_on_path[nums[n]] = 1;
         }
     }
 
@@ -733,6 +735,8 @@ void LocalPRG::get_kmer_path_probs(const PanNode* pnode, uint32_t k, float e_rat
     cout << "work out prob of seeing this number of hits against a kmer assuming it is truly present" << endl;
     vector<float> probs(kmer_paths.size(), 0);
     kmer_path_probs.resize(3, probs);
+    assert(kmer_path_probs.size() == 3);
+    assert(kmer_path_probs[0].size() == kmer_paths.size());
     float p_kmer, p_max, p_min, p=1/exp(e_rate*k);
     uint32_t n = pnode->foundReads.size(), big_p_count=0;
     cout << "n: " << n << ", p: " << p << endl;
@@ -741,6 +745,7 @@ void LocalPRG::get_kmer_path_probs(const PanNode* pnode, uint32_t k, float e_rat
     for (uint32_t direction=0; direction!=3; ++direction) // directions 0,1,2 correspond to forward hit, rev_complement hit and either/both
     {	
         p_max=numeric_limits<float>::lowest(), p_min=0;
+	assert(kmer_path_hit_counts[direction].size() == kmer_path_probs[direction].size());
         for (uint32_t i=0; i!=kmer_path_hit_counts[direction].size(); ++i)
         {
             p_kmer = log(nchoosek(n, kmer_path_hit_counts[direction][i])*pow(p,kmer_path_hit_counts[direction][i])*pow(1-p,n-kmer_path_hit_counts[direction][i]));
@@ -800,22 +805,27 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
         {
             // add the first node of each alternate allele for the varsite to a vector
             uint32_t pre_site_id = prg.index[level][i].first, post_site_id = prg.index[level][i].second;
+	    assert(u.size()==0);
 	    if (level == 0)
 	    {
 		assert(pre_site_id == 0);
 		cout << now() << "finally find best path through whole prg" << endl;
-		u = {{MaxPath({prg.nodes[pre_site_id]}, y, 0), MaxPath({prg.nodes[pre_site_id]}, y, 0), MaxPath({prg.nodes[pre_site_id]}, y, 0)}};
+		t.resize(3, MaxPath({prg.nodes[pre_site_id]}, y, 0));
+		u = {t};
+		t.clear();
 	    } else {
 	        cout << now() << "Looking at varsite number " << i << " at this level, from the outnodes of " << pre_site_id << " to the innodes of " << post_site_id << endl;
 		// we want the index to be inclusive of first node/pre_site_id prob, but exclusive of end node prob
                 for (uint j = 0; j!=prg.nodes[pre_site_id]->outNodes.size(); ++j)
                 {
 		    cout << now() << "add " << pre_site_id << "->" << prg.nodes[pre_site_id]->outNodes[j]->id << " to u" << endl;
-		    u = {{MaxPath({prg.nodes[pre_site_id], prg.nodes[pre_site_id]->outNodes[j]}, y, 0), MaxPath({prg.nodes[pre_site_id], prg.nodes[pre_site_id]->outNodes[j]}, y, 0), MaxPath({prg.nodes[pre_site_id], prg.nodes[pre_site_id]->outNodes[j]}, y, 0)}};
+		    t.resize(3, MaxPath({prg.nodes[pre_site_id], prg.nodes[pre_site_id]->outNodes[j]}, y, 0));
+                    u.push_back(t);
+		    t.clear();
 		    update_kmers_on_node_paths(u.back());
                 }
 	    }
-
+	
 	    assert (u.size()>0); // we just added either start node, or branching outnodes of a varsite to it!
 
             // then until we reach the end varsite:
