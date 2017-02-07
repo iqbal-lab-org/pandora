@@ -14,17 +14,6 @@ MaxPath::MaxPath(vector<LocalNode*> x, vector<int> y, uint32_t z): kmers_on_path
     npath.reserve(100);
     npath = x;
 }
-/*MaxPath::MaxPath(vector<LocalNode*> x, vector<bool> y, uint32_t z)
-{
-    cout << "make maxpath" << endl;
-    npath = x;
-    cout << "added npath" << endl;
-    kmers_on_path = y;
-    cout << "added kmers_on_path" << endl;
-    num_equivalent_paths = z;
-    cout << "done creating maxpath" << endl;
-}*/
-    
 
 void MaxPath::extend(const MaxPath new_mp)
 {
@@ -36,13 +25,6 @@ void MaxPath::extend(const MaxPath new_mp)
     {
 	it++;
     }
-    /*for (uint n=0; n!=npath.size(); ++n)
-    {
-	if (*npath[n] == **it)
-	{
-	    it++;
-	}
-    }*/
     npath.insert(npath.end(),it,new_mp.npath.end());
     assert(npath.size()>old_size);
     cout << "new size: " << npath.size() << endl;
@@ -98,28 +80,6 @@ float MaxPath::get_mean_prob(const vector<float>& kmer_path_probs)
     }
     mean_prob = log(p/t);
     return log(p/t);
-}
-
-float MaxPath::get_median_prob(const vector<float>& kmer_path_probs)
-{
-    vector<float> ps;
-    assert(kmers_on_path.size() == kmer_path_probs.size());
-
-    for (uint i = 0; i!=kmers_on_path.size(); ++i)
-    {
-        if (kmers_on_path[i] == 1)
-        {
-            ps.push_back(kmer_path_probs[i]);
-        }
-    }
-    if (ps.size() == 0)
-    {
-	median_prob = 0;
-	return 0;
-    }
-    uint t = (ps.size() + 1)/2;
-    median_prob = ps[t];
-    return ps[t];
 }
 
 bool VMPgreater::operator()( const vector<MaxPath>& lx, const vector<MaxPath>& rx )

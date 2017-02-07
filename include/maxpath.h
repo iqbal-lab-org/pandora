@@ -12,7 +12,6 @@ struct MaxPath
     uint32_t num_equivalent_paths;
     float prob;
     float mean_prob;
-    float median_prob;
 
     std::string direction;
 
@@ -22,7 +21,6 @@ struct MaxPath
     void extend(const MaxPath);
     float get_prob(const std::vector<float>&);
     float get_mean_prob(const std::vector<float>&);
-    float get_median_prob(const std::vector<float>&);
 };
 
 struct VMPgreater
