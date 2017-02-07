@@ -1,7 +1,7 @@
 #ifndef __INTERVAL_H_INCLUDED__   // if interval.h hasn't been included yet...
 #define __INTERVAL_H_INCLUDED__
 
-#include <cstdint> //or <stdint.h>
+#include <cstdint>
 #include <ostream>
 
 struct Interval {
@@ -12,5 +12,7 @@ struct Interval {
     Interval(uint32_t=0, uint32_t=0);
     friend std::ostream& operator<< (std::ostream& out, const Interval& i); 
     bool operator == (const Interval& y) const;
+    bool operator != (const Interval& y) const;
+    bool operator < (const Interval& y) const;
 };
 #endif

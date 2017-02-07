@@ -7,7 +7,7 @@
 #include "pannode.h"
 #include "pangraph.h"
 #include <cassert>
-//#include "minimizerhit.h"
+#include "minihit.h"
 
 using namespace std;
 
@@ -18,7 +18,7 @@ PanGraph::~PanGraph()
     delete c.second;
   }
 }
-void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id)
+/*void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id) // make cluster and optional parameter, by defining two functions
 {
     map<uint32_t, PanNode*>::iterator it=nodes.find(prg_id);
     if(it==nodes.end())
@@ -27,12 +27,37 @@ void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id)
         n = new PanNode(prg_id);
         nodes[prg_id] = n;
         //cout << "Added node " << *n << endl;
-	n->add_read(read_id);
-        //n->add_hits(cluster);
+        n->add_read(read_id);
     } else {
         //cout << "Node " << prg_id << " was already in graph" << endl;
         it->second->add_read(read_id);
-	//it->second->add_hits(cluster);
+    }
+    return;
+}*/
+
+void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id, const set<MinimizerHit*, pComp>& cluster)
+{
+    //cout << "prg: " << prg_id << " read: " << read_id << " cluster_size: " << cluster.size() << endl;
+    for (set<MinimizerHit*, pComp>::iterator it = cluster.begin(); it != cluster.end(); ++it)
+    {
+            //cout << "read id and cluster read ids: " << read_id << " " << (*it)->read_id << endl;
+            assert(read_id == (*it)->read_id); // the hits should correspond to the read we are saying...
+	    assert(prg_id == (*it)->prg_id);
+    }
+    map<uint32_t, PanNode*>::iterator it=nodes.find(prg_id);
+    if(it==nodes.end())
+    {
+        PanNode *n;
+        n = new PanNode(prg_id);
+        nodes[prg_id] = n;
+	n->add_read(read_id);
+        n->add_hits(cluster);
+	cout << "Added node " << *n << " and " << n->foundHits.size() << " hits" << endl;
+    } else {
+        //cout << "Node " << prg_id << " was already in graph" << endl;
+        it->second->add_read(read_id);
+	it->second->add_hits(cluster);
+	cout << "Added hits to node " << *(it->second) << " giving a total of " << it->second->foundHits.size() << " hits" << endl;
     }
     return;
 }
@@ -47,7 +72,7 @@ void PanGraph::add_edge (const uint32_t& from, const uint32_t& to)
     //cout << "Added edge (" << f->id << ", " << t->id << ")" << endl;
 }
 
-void PanGraph::write_gfa (string filepath)
+void PanGraph::write_gfa (const string& filepath)
 {
     ofstream handle;
     handle.open (filepath);
@@ -88,7 +113,14 @@ bool PanGraph::operator == (const PanGraph& y) const {
     return true;
 }
 
-/*std::ostream& operator<< (std::ostream & out, PanGraph const& m) {
-    out << ;
+std::ostream& operator<< (std::ostream & out, PanGraph const& m) {
+    for(map<uint32_t, PanNode*>::const_iterator it=m.nodes.begin(); it!=m.nodes.end(); ++it)
+    {
+        for (uint32_t j=0; j<it->second->outNodes.size(); ++j)
+        {
+            out << it->second->id << "->" << it->second->outNodes[j]->id << endl;
+        }
+    }
+    out << endl;
     return out ;
-}*/
+}

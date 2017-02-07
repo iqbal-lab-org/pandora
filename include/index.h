@@ -8,17 +8,15 @@
 #include "minirecord.h"
 #include "path.h"
 
-using namespace std;
-
 class Index {
   public:
-    map<uint64_t,vector<MiniRecord>> minhash;
+    std::map<uint64_t,std::vector<MiniRecord>> minhash;
     Index();
     ~Index();
-    void add_record(uint64_t, uint32_t, Path);
-    void save_index(string filename);
+    void add_record(uint64_t, uint32_t, Path, bool);
+    void save_index(const std::string& filename);
     void clear();
-  friend ostream& operator<< (ostream& out, const Index& idx);
+  friend std::ostream& operator<< (std::ostream& out, const Index& idx);
 };
 
 #endif

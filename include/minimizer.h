@@ -7,17 +7,16 @@
 #include <stdint.h>
 #include "interval.h"
 
-using namespace std;
-
 struct Minimizer
 {
     uint64_t kmer;
     Interval pos;
+    bool strand;
     bool operator < ( const Minimizer& y) const;
     bool operator == (const Minimizer& y) const;
-    Minimizer(uint64_t, uint32_t, uint32_t);
+    Minimizer(uint64_t, uint32_t, uint32_t, bool);
     ~Minimizer();
-    friend ostream& operator<< (ostream& out, const Minimizer& m); 
+    friend std::ostream& operator<< (std::ostream& out, const Minimizer& m); 
 };
 
 struct pMiniComp

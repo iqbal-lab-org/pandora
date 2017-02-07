@@ -7,26 +7,23 @@
 #include <functional>
 #include "interval.h"
 
-using namespace std;
-
-struct Interval;
-
 class Path {
   public:
-    deque<Interval> path;
+    std::deque<Interval> path;
     uint32_t length;
     uint32_t start;
     uint32_t end;
 
     Path();
   //  ~Path();
-    void add_start_interval(Interval);
-    void add_end_interval(Interval);
-    void initialize(deque<Interval>);
-    Path subpath(uint32_t, uint32_t) const;
+    void add_start_interval(const Interval&);
+    void add_end_interval(const Interval&);
+    void initialize(const std::deque<Interval>&);
+    Path subpath(const uint32_t, const uint32_t) const;
+    bool is_branching(const Path& y) const;
     bool operator < (const Path& y) const;
     bool operator == (const Path& y) const;
-  friend ostream& operator<< (ostream& out, const Path& p); 
+  friend std::ostream& operator<< (std::ostream& out, const Path& p); 
 };
 
 #endif

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecord* r, const uint8_t c): read_id(i), read_interval(m->pos), prg_id(r->prg_id), prg_path(r->path), strand(c)
+MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecord* r): read_id(i), read_interval(m->pos), prg_id(r->prg_id), prg_path(r->path), strand((m->strand != r->strand))
 {
     //prg_path.initialize(r.path.path);
     //cout << "minihit initialised with read: " << read_id << ", " << read_interval << ", length " << read_interval.length << endl;
@@ -16,7 +16,7 @@ MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecor
     assert(read_interval.length==prg_path.length);
 };
 
-MinimizerHit::MinimizerHit(const uint32_t i, const Interval j, const uint32_t k, const Path p, const uint8_t c): read_id(i), read_interval(j), prg_id(k), strand(c)
+MinimizerHit::MinimizerHit(const uint32_t i, const Interval j, const uint32_t k, const Path p, const bool c): read_id(i), read_interval(j), prg_id(k), strand(c)
 {
     prg_path.initialize(p.path);
     assert(read_interval.length==prg_path.length);
@@ -41,12 +41,16 @@ bool MinimizerHit::operator < ( const MinimizerHit& y) const
     if (prg_id < y.prg_id){ return true; }
     if (y.prg_id < prg_id) { return false; }
 
-    // then by difference on target string (want approx co-linear)
+    // then by direction
+    if (strand < y.strand){ return true; }
+    if (y.strand < strand) { return false; }
+
+/*    // then by difference on target string (want approx co-linear)
     if (read_interval.start + y.prg_path.start < y.read_interval.start + prg_path.start) { //cout << read_interval.start + y.prg_path.start << " < " << y.read_interval.start + prg_path.start << endl; 
 	return true; }
     if (y.read_interval.start + prg_path.start < read_interval.start + y.prg_path.start) {//cout << read_interval.start + y.prg_path.start << " > " << y.read_interval.start + prg_path.start << endl; 
 	return false; } 
-
+*/
     // then by position on query string
     if (read_interval.start < y.read_interval.start) { return true; }
     if (y.read_interval.start < read_interval.start) { return false; }

@@ -28,17 +28,17 @@ class MinimizerTest : public ::testing::Test {
 };
 
 TEST_F(MinimizerTest,create){
-    uint64_t kh = kmerhash("ACGTA", 5);
-    Minimizer m1(kh, 0,5);
+    pair<uint64_t,uint64_t> kh = kmerhash("ACGTA", 5);
+    Minimizer m1(kh.first, 0,5, 0);
     kh = kmerhash("ACGTG", 5);
-    Minimizer m2(kh, 1,6);
+    Minimizer m2(kh.first, 1,6, 0);
     kh = kmerhash("ACGTA", 5);
-    Minimizer m3(kh, 5,10);
+    Minimizer m3(kh.first, 5,10, 0);
 
-    EXPECT_EQ(m1.kmer, kh);
-    EXPECT_EQ(m3.kmer, kh);
+    EXPECT_EQ(m1.kmer, kh.first);
+    EXPECT_EQ(m3.kmer, kh.first);
     kh = kmerhash("ACGTG", 5);
-    EXPECT_EQ(m2.kmer, kh);
+    EXPECT_EQ(m2.kmer, kh.first);
 
     uint32_t j = 0;
     EXPECT_EQ(m1.pos.start, j);
@@ -53,20 +53,20 @@ TEST_F(MinimizerTest,create){
     j = 10;
     EXPECT_EQ(m3.pos.end, j);
 
-    EXPECT_DEATH(Minimizer(kh, 0,2),""); // interval too short to be valid
-    //EXPECT_DEATH(Minimizer(kh, 0,8),""); // interval too long to be valid
-    EXPECT_DEATH(Minimizer(kh, 2,0),""); // doesn't generate an interval as 2>0
+    EXPECT_DEATH(Minimizer(kh.first, 0,2,0),""); // interval too short to be valid
+    //EXPECT_DEATH(Minimizer(kh.first, 0,8,0),""); // interval too long to be valid
+    EXPECT_DEATH(Minimizer(kh.first, 2,0,0),""); // doesn't generate an interval as 2>0
 }
 
 TEST_F(MinimizerTest,comparisonCheck){
-    uint64_t kh1 = kmerhash("AGGTG", 5);
-    Minimizer m1(kh1, 0,5);
-    uint64_t kh2 = kmerhash("ACGTA", 5);
-    Minimizer m2(kh2, 1,6);
-    Minimizer m3(kh1, 5,10); 
-    Minimizer m4(kh2, 0,5);
-    uint64_t kh3 = kmerhash("ACGTG", 5);
-    Minimizer m5(kh3, 0,5);
+    pair<uint64_t,uint64_t> kh1 = kmerhash("AGGTG", 5);
+    Minimizer m1(kh1.first, 0,5,0);
+    pair<uint64_t,uint64_t> kh2 = kmerhash("ACGTA", 5);
+    Minimizer m2(kh2.first, 1,6,0);
+    Minimizer m3(kh1.first, 5,10,0); 
+    Minimizer m4(kh2.first, 0,5,0);
+    pair<uint64_t,uint64_t> kh3 = kmerhash("ACGTG", 5);
+    Minimizer m5(kh3.first, 0,5,0);
 
     //cout << kh1 << " " << kh2 << " " << kh3 << endl;
     set<Minimizer> s;

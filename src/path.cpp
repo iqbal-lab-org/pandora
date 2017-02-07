@@ -6,13 +6,15 @@
 #include <cassert>
 #include <deque>
 
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
+
 using namespace std;
 
 Path::Path(){
     length = 0; 
 }
 
-void Path::initialize(deque<Interval> q)
+void Path::initialize(const deque<Interval>& q)
 {
     path = q;
     start = q.begin()->start;
@@ -20,7 +22,7 @@ void Path::initialize(deque<Interval> q)
     //cout << "Paths starts at " << start;
     end = (*--q.end()).end;
     //cout << "Paths ends at " << end;
-    for (std::deque<Interval>::iterator it=path.begin(); it!=path.end(); ++it)
+    for (std::deque<Interval>::const_iterator it=path.begin(); it!=path.end(); ++it)
     {
 	length += (*it).length;
     }
@@ -32,15 +34,15 @@ void Path::initialize(deque<Interval> q)
     path.clear();
 }*/
 
-void Path::add_start_interval(Interval i)
+void Path::add_start_interval(const Interval& i)
 {
-    assert (i.end <= path.begin()->start);// && PATH_ERROR);
+    assert (i.end <= path.begin()->start || assert_msg(i.end << ">" << path.begin()->start));
     path.push_front(i);
     length += i.length;
     start = i.start;
 }
 
-void Path::add_end_interval(Interval i)
+void Path::add_end_interval(const Interval& i)
 {
     assert (i.start >= path.back().end);// && PATH_ERROR);
     path.push_back(i);
@@ -48,7 +50,7 @@ void Path::add_end_interval(Interval i)
     end = i.end;
 }
 
-Path Path::subpath(uint32_t start, uint32_t len) const
+Path Path::subpath(const uint32_t start, const uint32_t len) const
 {
     //cout << "start subpath function with : " << start << " " << len << " for path " << *this << endl;
     Path p;
@@ -56,7 +58,7 @@ Path Path::subpath(uint32_t start, uint32_t len) const
     uint32_t added_len = 0;
     for (deque<Interval>::const_iterator it=path.begin(); it!=path.end(); ++it)
     {
-	if (it->start <= start and it->end > start)
+	if ((it->start <= start and it->end > start) or (it->start == start and it->length == 0))
 	{
 	    //cout << "start of subpath" << endl;
 	    // first interval to add
@@ -91,13 +93,81 @@ Path Path::subpath(uint32_t start, uint32_t len) const
     return p; // this should never happen
 }
 
+/*bool Path::is_disjoint(const Path& y) const // does the path overlap this path
+{
+}*/
+
+bool Path::is_branching(const Path& y) const // returns true if the two paths branch together or coalesce apart
+{
+
+    // simple case, one ends before the other starts -> return false
+    if (end < y.start or y.end < start)
+    {
+	return false;
+    }
+
+    // otherwise, check it out
+    bool overlap = false;
+    deque<Interval>::const_iterator it, it2;
+    for (it=path.begin(); it!=path.end(); ++it)
+    {
+        if (overlap == true)
+        {
+            if (it->start != it2->start)
+            {
+                // had paths which overlapped and now don't
+                //cout << "branch" << endl;
+                return true; // represent branching paths at this point
+            }
+            if (it2!=y.path.end())
+            {
+                ++it2;
+            } else {
+		break;
+	    }
+        } else {
+            for (it2=y.path.begin(); it2!=y.path.end(); ++it2)
+	    {
+	        //cout << *it << " " << *it2 << endl;
+	        if ((it->end > it2->start and it->start < it2->end) or (*it==*it2))
+	        {
+	            // then the paths overlap
+	            overlap = true;
+	            // first query the previous intervals if they exist, to see if they overlap
+	            if (it!=path.begin() && it2!=y.path.begin() && (--it)->end!=(--it2)->end)
+		    {
+	  	        //cout << "coal" << endl;
+		        return true; // represent coalescent paths at this point
+		    } else {
+		        if (it2!=y.path.end())
+            		{
+            		    ++it2;
+            		} else {
+			    return false;
+			}
+		        break; // we will step through intervals from here comparing to path
+		    }
+	        }
+	    }
+	}
+    }
+
+    return false;
+}
+
 bool Path::operator < ( const Path& y) const
 {
-    if (start < y.start) { return true; }
-    if (start > y.start) { return false; }
-    if ( end < y.end ) { return true; }
-    if ( end > y.end ) { return false; }
-    return false;
+    std::deque<Interval>::const_iterator it2=y.path.begin();
+    for (std::deque<Interval>::const_iterator it=path.begin(); it!=path.end();)
+    {
+        if (!(*it==*it2)) //for the first interval which is not the same in both paths
+	{
+	    return (*it<*it2); // return interval comparison
+	}
+	it++;
+        it2++;
+    }
+    return false; // shouldn't ever call this
 }
 
 bool Path::operator == ( const Path& y) const

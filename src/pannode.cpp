@@ -8,17 +8,19 @@
 
 using namespace std;
 
-PanNode::PanNode (uint32_t i): id(i) {}
+PanNode::PanNode (const uint32_t i): id(i) {}
 
-void PanNode::add_read(uint32_t j)
+void PanNode::add_read(const uint32_t j)
 {
     foundReads.push_back(j);
 }
 
-/*void Node::add_hits(set<MinimizerHit*> c)
+void PanNode::add_hits(const set<MinimizerHit*, pComp>& c)
 {
+    //cout << "adding " << c.size() << " hits" << endl;
     foundHits.insert(c.begin(), c.end());
-}*/
+    //cout << "added " << foundHits.size() << " hits" << endl;
+}
 
 bool PanNode::operator == (const PanNode& y) const {
     if (id!= y.id) {return false;}

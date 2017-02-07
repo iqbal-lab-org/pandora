@@ -8,6 +8,7 @@
 #include "inthash.h"
 #include <stdint.h>
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -25,32 +26,32 @@ class MinimizerHitsTest : public ::testing::Test {
 TEST_F(MinimizerHitsTest,addHit){
     MinimizerHits mhits;
     Minimizer* m;
-    uint64_t kh = kmerhash("ACGTA", 5);
-    m = new Minimizer(kh, 1,6);
+    pair<uint64_t,uint64_t> kh = kmerhash("ACGTA", 5);
+    m = new Minimizer(min(kh.first,kh.second), 1,6,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
-    //MiniRecord mr = MiniRecord(0,p);
+    //MiniRecord mr = MiniRecord(0,p,0);
     MiniRecord* mr;
-    mr = new MiniRecord(0,p);
-    mhits.add_hit(1, m, mr, 0);
-    mhits.add_hit(2, m, mr, 0);
+    mr = new MiniRecord(0,p,0);
+    mhits.add_hit(1, m, mr);
+    mhits.add_hit(2, m, mr);
 
     delete m;
-    m = new Minimizer(kh, 0,5);
-    mhits.add_hit(1, m, mr, 0);
+    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    mhits.add_hit(1, m, mr);
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p);
-    mhits.add_hit(1, m, mr, 0);
+    mr = new MiniRecord(0,p,0);
+    mhits.add_hit(1, m, mr);
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p);
-    mhits.add_hit(1, m, mr, 0);
+    mr = new MiniRecord(0,p,0);
+    mhits.add_hit(1, m, mr);
 
     uint32_t j(5);
     EXPECT_EQ(j, mhits.hits.size());
@@ -64,36 +65,36 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
     vector<MinimizerHit> expected;
 
     Minimizer* m;
-    uint64_t kh = kmerhash("ACGTA", 5);
-    m = new Minimizer(kh, 1,6);
+    pair<uint64_t,uint64_t> kh = kmerhash("ACGTA", 5);
+    m = new Minimizer(min(kh.first,kh.second), 1,6,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
     MiniRecord* mr;
-    mr = new MiniRecord(0,p);
-    mhits.add_hit(1, m, mr, 0);
-    expected.push_back(MinimizerHit(1, m, mr, 0));
-    mhits.add_hit(0, m, mr, 0);
-    expected.push_back(MinimizerHit(0, m, mr, 0));
+    mr = new MiniRecord(0,p,0);
+    mhits.add_hit(1, m, mr);
+    expected.push_back(MinimizerHit(1, m, mr));
+    mhits.add_hit(0, m, mr);
+    expected.push_back(MinimizerHit(0, m, mr));
 
     delete m;
-    m = new Minimizer(kh, 0,5);
-    mhits.add_hit(1, m, mr, 0);
-    expected.push_back(MinimizerHit(1, m, mr, 0));
+    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    //mhits.add_hit(1, m, mr);
+    //expected.push_back(MinimizerHit(1, m, mr));
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p);
-    mhits.add_hit(1, m, mr, 0);
-    expected.push_back(MinimizerHit(1, m, mr, 0));
+    mr = new MiniRecord(0,p,0);
+    mhits.add_hit(1, m, mr);
+    expected.push_back(MinimizerHit(1, m, mr));
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p);
-    mhits.add_hit(1, m, mr, 0);
-    expected.push_back(MinimizerHit(1, m, mr, 0));
+    mr = new MiniRecord(0,p,0);
+    mhits.add_hit(1, m, mr);
+    expected.push_back(MinimizerHit(1, m, mr));
 
     uint32_t j(1);
     for (set<MinimizerHit*, pComp>::iterator it=mhits.hits.begin(); it!=--mhits.hits.end(); ++it)
@@ -107,6 +108,58 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
     delete mr;
 }
 
+TEST_F(MinimizerHitsTest, pCompPath) {
+    set<MinimizerHit*, pComp_path> mhitspath;
+    MinimizerHits mhits;
+    deque<MinimizerHit> expected;
+
+    Minimizer* m;
+    pair<uint64_t,uint64_t> kh = kmerhash("ACGTA", 5);
+    m = new Minimizer(min(kh.first,kh.second), 1,6,0);
+    deque<Interval> d = {Interval(7,8), Interval(10, 14)};
+    Path p;
+    p.initialize(d);
+    MiniRecord* mr;
+    mr = new MiniRecord(0,p,0);
+    mhits.add_hit(0, m, mr);
+    expected.push_back(MinimizerHit(0, m, mr));
+    mhits.add_hit(1, m, mr);
+    expected.push_back(MinimizerHit(1, m, mr));
+
+    delete m;
+    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    mhits.add_hit(2, m, mr);
+    expected.push_back(MinimizerHit(2, m, mr));
+
+    d = {Interval(6,10), Interval(12, 13)};
+    p.initialize(d);
+    delete mr;
+    mr = new MiniRecord(0,p,0);
+    mhits.add_hit(1, m, mr);
+    expected.push_front(MinimizerHit(1, m, mr));
+
+    d = {Interval(6,10), Interval(11, 12)};
+    p.initialize(d);
+    delete mr;
+    mr = new MiniRecord(0,p,0);
+    mhits.add_hit(1, m, mr);
+    expected.push_front(MinimizerHit(1, m, mr));
+
+    for (set<MinimizerHit*, pComp>::iterator it=mhits.hits.begin(); it!=--mhits.hits.end(); ++it)
+    {
+	mhitspath.insert(*it);
+    }
+    uint32_t j(0);
+    for (set<MinimizerHit*, pComp_path>::iterator it=mhitspath.begin(); it!=mhitspath.end(); ++it)
+    {
+        EXPECT_EQ(expected[j], **it);
+        j++;
+    }
+
+    delete m;
+    delete mr;
+}
+
 TEST_F(MinimizerHitsTest, clusterCompCheck){
     //MinimizerHits mhits = MinimizerHits();
     set<set<MinimizerHit*, pComp>,clusterComp> clusters_of_hits;
@@ -115,43 +168,43 @@ TEST_F(MinimizerHitsTest, clusterCompCheck){
     vector<MinimizerHit*> expected1, expected2;
 
     Minimizer* m;
-    uint64_t kh = kmerhash("ACGTA", 5);
-    m = new Minimizer(kh, 1,6);
+    pair<uint64_t,uint64_t> kh = kmerhash("ACGTA", 5);
+    m = new Minimizer(min(kh.first,kh.second), 1,6,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
     MiniRecord* mr;
-    mr = new MiniRecord(0,p);
+    mr = new MiniRecord(0,p,0);
     MinimizerHit* mh;
-    mh = new MinimizerHit(1, m, mr, 0);
+    mh = new MinimizerHit(1, m, mr);
     current_cluster.insert(mh);
     expected1.push_back(mh);
 
-    mh = new MinimizerHit(2, m, mr, 0);
+    mh = new MinimizerHit(2, m, mr);
     current_cluster.insert(mh);
     expected1.push_back(mh);
     clusters_of_hits.insert(current_cluster);
 
     current_cluster.clear();
     delete m;
-    m = new Minimizer(kh, 0,5);
-    mh = new MinimizerHit(1, m, mr, 0);
+    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    mh = new MinimizerHit(1, m, mr);
     current_cluster.insert(mh);
     expected2.push_back(mh);
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p);
-    mh = new MinimizerHit(1, m, mr, 0);
+    mr = new MiniRecord(0,p,0);
+    mh = new MinimizerHit(1, m, mr);
     current_cluster.insert(mh);
     expected2.push_back(mh);
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p);
-    mh = new MinimizerHit(1, m, mr, 0);
+    mr = new MiniRecord(0,p,0);
+    mh = new MinimizerHit(1, m, mr);
     current_cluster.insert(mh);
     expected2.push_back(mh);
 

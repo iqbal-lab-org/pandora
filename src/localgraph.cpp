@@ -6,9 +6,16 @@
 #include <vector>
 #include "localnode.h"
 #include "localgraph.h"
-#include "errormessages.h"
+
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
+
+LocalGraph::LocalGraph()
+{
+    // reserve space in index
+    index.reserve(10);
+}
 
 LocalGraph::~LocalGraph()
 {
@@ -18,7 +25,7 @@ LocalGraph::~LocalGraph()
   }
 }
 
-void LocalGraph::add_node (const uint32_t& id, const string& seq, Interval pos)
+void LocalGraph::add_node (const uint32_t& id, const string& seq, const Interval& pos)
 {
     assert(seq.length() == pos.length); 
     map<uint32_t, LocalNode*>::iterator it=nodes.find(id);
@@ -29,7 +36,7 @@ void LocalGraph::add_node (const uint32_t& id, const string& seq, Interval pos)
         nodes[id] = n;
         //cout << "Added node " << id << endl;
     } else {
-    	assert((it->second->seq == seq) && (it->second->pos == pos)); // NODE_EXISTS_ERROR
+    	assert((it->second->seq == seq) && (it->second->pos == pos));
     }
     return;
 }
@@ -37,21 +44,37 @@ void LocalGraph::add_edge (const uint32_t& from, const uint32_t& to)
 {
     map<uint32_t, LocalNode*>::iterator from_it=nodes.find(from);
     map<uint32_t, LocalNode*>::iterator to_it=nodes.find(to);
-    assert((from_it!=nodes.end()) && (to_it!=nodes.end())); // NODE_MISSING_ERROR
+    assert((from_it!=nodes.end()) && (to_it!=nodes.end()));
     if((from_it!=nodes.end()) && (to_it!=nodes.end()))
     {
 	LocalNode *f = (nodes.find(from)->second);
     	LocalNode *t = (nodes.find(to)->second);
+	assert(f->pos.end<=t->pos.start || assert_msg(f->pos.end << ">" << t->pos.start << " so cannot add edge from node " << *f << " to node " << *t));
     	f->outNodes.push_back(t);
     	//cout << "Added edge (" << f->id << ", " << t->id << ")" << endl;
     }
+    return;
 }
 
-void LocalGraph::write_gfa (string filepath)
+void LocalGraph::add_varsite (const uint8_t level, const uint32_t pre_site_id, const uint32_t post_site_id)
+{
+    assert(pre_site_id <= post_site_id);
+    while (level >= index.size())
+    {
+        vector<pair<uint32_t, uint32_t>> levelv;
+	levelv.reserve(400);
+	//levelv = {};
+	index.insert(index.end(), 1, levelv);
+    }
+    index[level].push_back(make_pair(pre_site_id, post_site_id));
+    return;
+}
+
+void LocalGraph::write_gfa (const string& filepath)
 {
     ofstream handle;
     handle.open (filepath);
-    handle << "H\tVN:Z:1.0" << endl;
+    handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
     for(map<uint32_t, LocalNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
     {
         handle << "S\t" << it->second->id << "\t";
@@ -70,11 +93,14 @@ void LocalGraph::write_gfa (string filepath)
     handle.close();
 }
 
-vector<Path> LocalGraph::walk(uint32_t node_id, uint32_t pos, uint32_t len)
+vector<Path> LocalGraph::walk(const uint32_t& node_id, const uint32_t& pos, const uint32_t& len)
 {
     //cout << "walking graph from node " << node_id << " pos " << pos << " for length " << len << endl;
     // walks from position pos in node node for length len bases
+    assert(nodes[node_id]->pos.start <= pos && nodes[node_id]->pos.end >= pos); // if this fails, pos given lies on a different node
     vector<Path> return_paths, walk_paths;
+    return_paths.reserve(20);
+    walk_paths.reserve(20);
     Path p,p2;
     deque<Interval> d;
 
@@ -107,8 +133,6 @@ vector<Path> LocalGraph::walk(uint32_t node_id, uint32_t pos, uint32_t len)
 		//cout << "path: " << p2 << " p2.length: " << p2.length << endl;
     		if (p2.length == len) {
 		    return_paths.push_back(p2);
-		} else {
-		    //cout << "PATH TOO SHORT " << p2 << endl;
 		}
 	    }
 	}
@@ -136,3 +160,4 @@ bool LocalGraph::operator == (const LocalGraph& y) const
     // otherwise is true
     return true;
 }
+

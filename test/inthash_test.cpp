@@ -66,18 +66,27 @@ TEST_F(InthashTest,check1to1){
         vector<string> dna = {"A", "G", "T", "C"};
         set<string> kmers = generate_kmers(dna, k);
         // generate inthash of each kmer and assert it is different to the previous ones
-        vector<uint64_t> khs;
-        uint64_t kh;
+        vector<uint64_t> khs, khs1, khs2;
+        pair<uint64_t,uint64_t> kh;
         for (set<string>::iterator it = kmers.begin(); it != kmers.end(); ++it)
         {
             kh = kmerhash(*it, k);
-            EXPECT_EQ((kh < pow(4,k)), true);
-            if (find(khs.begin(), khs.end(), kh) != khs.end())
+            EXPECT_EQ((kh.first < pow(4,k)), true);
+            if (find(khs.begin(), khs.end(), kh.first) != khs.end())
             {
-		cout << *it << ": " << kh << " == " << *find(khs.begin(), khs.end(), kh) << endl;
+		cout << *it << ": " << kh.first << " == " << *find(khs.begin(), khs.end(), kh.first) << endl;
 	    }
-            EXPECT_EQ((find(khs.begin(), khs.end(), kh) == khs.end()), true);
-            khs.push_back(kh);
+            EXPECT_EQ((find(khs.begin(), khs.end(), kh.first) == khs.end()), true);
+            khs.push_back(kh.first); // so each kmerhash value is first in one
+
+            // don't expect any kmerhash value to be in more than 2 pairs
+	    EXPECT_EQ((find(khs2.begin(), khs2.end(), min(kh.first, kh.second)) == khs2.end()), true);
+            if (find(khs1.begin(), khs1.end(), min(kh.first, kh.second)) != khs1.end())
+	    {
+		khs2.push_back(min(kh.first,kh.second)); // if we found it as min once before, add to things seen twice
+	    } else {
+		khs1.push_back(min(kh.first,kh.second)); // otherwise, add to list seen once
+	    }
         }
     }
 }

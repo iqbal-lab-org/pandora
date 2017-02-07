@@ -7,7 +7,7 @@
 
 using namespace std;
 
-MiniRecord::MiniRecord(uint32_t p, Path q): prg_id(p), path(q) {
+MiniRecord::MiniRecord(uint32_t p, Path q, bool c): prg_id(p), path(q), strand(c){
     //path.initialize(q.path);
 };
 
@@ -18,10 +18,11 @@ bool MiniRecord::operator == (const MiniRecord& y) const {
     //cout << path << "," << y.path << endl;
     if (prg_id != y.prg_id) {return false;}
     if (!(path == y.path)) {return false;}
+    if (strand != y.strand) {return false;}
     return true;
 }
 
 std::ostream& operator<< (std::ostream & out, MiniRecord const& m) {
-    out << "(" << m.prg_id << ", " << m.path << ")";
+    out << "(" << m.prg_id << ", " << m.path << ", " << m.strand << ")";
     return out ;
 }

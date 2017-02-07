@@ -6,20 +6,17 @@
 #include <ostream>
 #include "minimizer.h"
 
-using std::vector;
-using namespace std;
-
 class Seq {
   public:
     uint32_t id;
-    string name;
-    string seq;
+    std::string name;
+    std::string seq;
     //vector<Minimizer*> sketch; //argument for set - removes duplicates and orders them
-    set<Minimizer*, pMiniComp> sketch;
-    Seq(uint32_t, string, string, uint32_t, uint32_t);
+    std::set<Minimizer*, pMiniComp> sketch;
+    Seq(uint32_t, std::string, std::string, uint32_t, uint32_t);
     ~Seq();
-    void minimizer_sketch (uint32_t w, uint32_t k);
-  friend ostream& operator<< (ostream& out, const Seq& data); 
+    void minimizer_sketch (const uint32_t w, const uint32_t k);
+  friend std::ostream& operator<< (std::ostream& out, const Seq& data); 
 };
 
 #endif

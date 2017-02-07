@@ -9,6 +9,8 @@
 #include "localnode.h"
 #include "index.h"
 #include "inthash.h"
+#include "pannode.h"
+#include "utils.h"
 #include <stdint.h>
 #include <iostream>
 
@@ -142,7 +144,82 @@ TEST_F(LocalPRGTest, stringAlongPath){
     EXPECT_DEATH(l3.string_along_path(p),"");
 }
 
-TEST_F(LocalPRGTest, splitBySiteNoSites){
+TEST_F(LocalPRGTest, nodesAlongPath)
+{
+    LocalPRG l0(0,"empty", "");
+    LocalPRG l1(1,"simple", "AGCT");
+    LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+    
+    // empty interval expects no nodes along
+    deque<Interval> d = {Interval(0,0)};
+    Path p;
+    p.initialize(d);
+    vector<LocalNode*> v;
+
+    //EXPECT_EQ(v, l0.nodes_along_path(p));
+    EXPECT_EQ(v, l1.nodes_along_path(p));
+    EXPECT_EQ(v, l2.nodes_along_path(p));
+    EXPECT_EQ(v, l3.nodes_along_path(p));
+
+    // positive length interval
+    d = {Interval(1,3)};
+    p.initialize(d);
+    uint32_t j = 1;
+    EXPECT_EQ(j, l1.nodes_along_path(p).size());
+    j = 0;
+    EXPECT_EQ(j, l1.nodes_along_path(p)[0]->id);
+    EXPECT_EQ(j, l2.nodes_along_path(p).size()); // no nodes in this interval
+    EXPECT_EQ(j, l3.nodes_along_path(p).size());
+    // different interval
+    d = {Interval(4,5)};
+    p.initialize(d);
+    j = 1;
+    EXPECT_EQ(j, l2.nodes_along_path(p).size());
+    EXPECT_EQ(j, l3.nodes_along_path(p).size());
+    EXPECT_EQ(j, l2.nodes_along_path(p)[0]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+
+    // multiple intervals
+    d = {Interval(0,1), Interval(4,5)};
+    p.initialize(d);
+    j = 1;
+    EXPECT_EQ(j, l1.nodes_along_path(p).size());
+    j = 2;
+    EXPECT_EQ(j, l2.nodes_along_path(p).size());
+    EXPECT_EQ(j, l3.nodes_along_path(p).size());
+    j = 0;
+    EXPECT_EQ(j, l1.nodes_along_path(p)[0]->id);
+    EXPECT_EQ(j, l2.nodes_along_path(p)[0]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+    j = 1;
+    EXPECT_EQ(j, l2.nodes_along_path(p)[1]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p)[1]->id);
+
+    // including empty interval
+    d = {Interval(12,13), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    j = 3;
+    vector<LocalNode*> w = l3.nodes_along_path(p);
+    EXPECT_EQ(j, w.size());
+    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+    j = 4;
+    EXPECT_EQ(j, l3.nodes_along_path(p)[1]->id);
+    j = 6;
+    EXPECT_EQ(j, l3.nodes_along_path(p)[2]->id);
+
+    // and a path that can't really exist still works
+    d = {Interval(12,13),Interval(19,20)};
+    p.initialize(d);
+    j = 2;
+    EXPECT_EQ(j, l3.nodes_along_path(p).size());
+    j = 3;
+    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+    j = 5;
+    EXPECT_EQ(j, l3.nodes_along_path(p)[1]->id);
+}
+
+TEST_F(LocalPRGTest, split_by_siteNoSites){
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
@@ -150,75 +227,91 @@ TEST_F(LocalPRGTest, splitBySiteNoSites){
 
     vector<Interval> v0, v1;
     v0.push_back(Interval(0,0));
-    EXPECT_ITERABLE_EQ( vector< Interval >, v0, l0.splitBySite(Interval(0,0)));// << "Failed to split empty string with input Interval";
+    EXPECT_ITERABLE_EQ( vector< Interval >, v0, l0.split_by_site(Interval(0,0)));// << "Failed to split empty string with input Interval";
     v1.push_back(Interval(0,4));
-    EXPECT_ITERABLE_EQ( vector< Interval >, v1, l1.splitBySite(Interval(0,4)));// << "Failed to split string with input Interval";
+    EXPECT_ITERABLE_EQ( vector< Interval >, v1, l1.split_by_site(Interval(0,4)));// << "Failed to split string with input Interval";
     v1.clear();
     v1.push_back(Interval(0,2));
-    EXPECT_ITERABLE_EQ( vector< Interval >, v1, l1.splitBySite(Interval(0,2)));// << "Failed to split string with short input Interval";
+    EXPECT_ITERABLE_EQ( vector< Interval >, v1, l1.split_by_site(Interval(0,2)));// << "Failed to split string with short input Interval";
     v1.clear();
     v1.push_back(Interval(1,3));
-    EXPECT_ITERABLE_EQ( vector< Interval >, v1, l1.splitBySite(Interval(1,3)));// << "Failed to split string with middle input Interval";
+    EXPECT_ITERABLE_EQ( vector< Interval >, v1, l1.split_by_site(Interval(1,3)));// << "Failed to split string with middle input Interval";
 }
 
-TEST_F(LocalPRGTest, splitBySiteSite){
-    LocalPRG l0(0,"empty", "");
-    LocalPRG l1(1,"simple", "AGCT");
+TEST_F(LocalPRGTest, split_by_siteSite){
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
-    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
 
     vector<Interval> v2;
     v2.push_back(Interval(0,1));
     l2.next_site = 5;
-    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,1)));// << "Failed to split string in Interval" << Interval(0,1);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,2)));// << "Failed to split string in Interval" << Interval(0,2);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,3)));// << "Failed to split string in Interval" << Interval(0,3);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,4)));// << "Failed to split string in Interval" << Interval(0,4);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.split_by_site(Interval(0,1)));// << "Failed to split string in Interval" << Interval(0,1);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.split_by_site(Interval(0,2)));// << "Failed to split string in Interval" << Interval(0,2);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.split_by_site(Interval(0,3)));// << "Failed to split string in Interval" << Interval(0,3);
+    //EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.split_by_site(Interval(0,4)));// << "Failed to split string in Interval" << Interval(0,4);
     v2.push_back(Interval(4,6));
-    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,6)));// << "Failed to split string in Interval" << Interval(0,6);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,7)));// << "Failed to split string in Interval" << Interval(0,7);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,8)));// << "Failed to split string in Interval" << Interval(0,8);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.split_by_site(Interval(0,6)));// << "Failed to split string in Interval" << Interval(0,6);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.split_by_site(Interval(0,7)));// << "Failed to split string in Interval" << Interval(0,7);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.split_by_site(Interval(0,8)));// << "Failed to split string in Interval" << Interval(0,8);
     v2.push_back(Interval(9,10));
-    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,10)));// << "Failed to split string in Interval" << Interval(0,10);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,11)));// << "Failed to split string in Interval" << Interval(0,11);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,12)));// << "Failed to split string in Interval" << Interval(0,12);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.split_by_site(Interval(0,10)));// << "Failed to split string in Interval" << Interval(0,10);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.split_by_site(Interval(0,11)));// << "Failed to split string in Interval" << Interval(0,11);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.split_by_site(Interval(0,12)));// << "Failed to split string in Interval" << Interval(0,12);
     v2.push_back(Interval(13,14));
-    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(0,14)));// << "Failed to split string in Interval" << Interval(0,14);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.split_by_site(Interval(0,14)));// << "Failed to split string in Interval" << Interval(0,14);
     v2.clear();
     v2.push_back(Interval(5,6));
-    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.splitBySite(Interval(5,8)));// << "Failed to split string in mid Interval" << Interval(5,8);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.split_by_site(Interval(5,8)));// << "Failed to split string in mid Interval" << Interval(5,8);
 }
 
-TEST_F(LocalPRGTest, splitBySiteNestedSite){
-    LocalPRG l0(0,"empty", "");
-    LocalPRG l1(1,"simple", "AGCT");
-    LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
+TEST_F(LocalPRGTest, split_by_siteNestedSite){
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+    LocalPRG l4(4,"nested varsite start immediately", " 5 G 7 C 8 T 7  6 G 5 ");
 
     vector<Interval> v3;
     v3.push_back(Interval(0,1));
     l3.next_site = 5;
-    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,1)));// << "Failed to split string in Interval" << Interval(0,1);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,2)));// << "Failed to split string in Interval" << Interval(0,2);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,3)));// << "Failed to split string in Interval" << Interval(0,3);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,4)));// << "Failed to split string in Interval" << Interval(0,4);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.split_by_site(Interval(0,1)));// << "Failed to split string in Interval" << Interval(0,1);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.split_by_site(Interval(0,2)));// << "Failed to split string in Interval" << Interval(0,2);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.split_by_site(Interval(0,3)));// << "Failed to split string in Interval" << Interval(0,3);
+    //EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.split_by_site(Interval(0,4)));// << "Failed to split string in Interval" << Interval(0,4);
     v3.push_back(Interval(4,16));
-    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,16)));// << "Failed to split string in Interval" << Interval(0,6);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,17)));// << "Failed to split string in Interval" << Interval(0,7);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,18)));// << "Failed to split string in Interval" << Interval(0,8);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.split_by_site(Interval(0,16)));// << "Failed to split string in Interval" << Interval(0,6);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.split_by_site(Interval(0,17)));// << "Failed to split string in Interval" << Interval(0,7);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.split_by_site(Interval(0,18)));// << "Failed to split string in Interval" << Interval(0,8);
     v3.push_back(Interval(19,20));
-    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,20)));// << "Failed to split string in Interval" << Interval(0,10);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,21)));// << "Failed to split string in Interval" << Interval(0,11);
-    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,22)));// << "Failed to split string in Interval" << Interval(0,12);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.split_by_site(Interval(0,20)));// << "Failed to split string in Interval" << Interval(0,10);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.split_by_site(Interval(0,21)));// << "Failed to split string in Interval" << Interval(0,11);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.split_by_site(Interval(0,22)));// << "Failed to split string in Interval" << Interval(0,12);
     v3.push_back(Interval(23,24));
-    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(0,24)));// << "Failed to split string in Interval" << Interval(0,14);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.split_by_site(Interval(0,24)));// << "Failed to split string in Interval" << Interval(0,14);
     l3.next_site = 7;    
     v3.clear();
     v3.push_back(Interval(4,5));
     v3.push_back(Interval(8,9));
     v3.push_back(Interval(12,13));
     v3.push_back(Interval(16,16));
-    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.splitBySite(Interval(4,16)));// << "Failed to split string in mid Interval" << Interval(5,8);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v3, l3.split_by_site(Interval(4,16)));// << "Failed to split string in mid Interval" << Interval(5,8);
+
+    vector<Interval> v4;
+    v4.push_back(Interval(0,0));
+    l4.next_site = 5;
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.split_by_site(Interval(0,1)));// << "Failed to split string in Interval" << Interval(0,1);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.split_by_site(Interval(0,2)));// << "Failed to split string in Interval" << Interval(0,2);
+    v4.push_back(Interval(3,15));
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.split_by_site(Interval(0,15)));// << "Failed to split string in Interval" << Interval(0,6);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.split_by_site(Interval(0,16)));// << "Failed to split string in Interval" << Interval(0,7);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.split_by_site(Interval(0,17)));// << "Failed to split string in Interval" << Interval(0,8);
+    v4.push_back(Interval(18,19));
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.split_by_site(Interval(0,19)));// << "Failed to split string in Interval" << Interval(0,10);
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.split_by_site(Interval(0,20)));// << "Failed to split string in Interval" << Interval(0,11);
+    l4.next_site = 7;
+    v4.clear();
+    v4.push_back(Interval(0,4));
+    v4.push_back(Interval(7,8));
+    v4.push_back(Interval(11,12));
+    v4.push_back(Interval(15,22));
+    EXPECT_ITERABLE_EQ( vector< Interval >,v4, l4.split_by_site(Interval(0,22)));// << "Failed to split string in mid Interval" << Interval(5,8);
+    
 }
 
 TEST_F(LocalPRGTest, buildGraph)
@@ -231,10 +324,15 @@ TEST_F(LocalPRGTest, buildGraph)
     LocalGraph lg0;
     lg0.add_node(0,"",Interval(0,0));
     EXPECT_EQ(lg0, l0.prg);
+    uint32_t j = 0;
+    EXPECT_EQ(j, l0.max_path_index.size());
 
     LocalGraph lg1;
     lg1.add_node(0,"AGCT", Interval(0,4));
     EXPECT_EQ(lg1, l1.prg);
+    j = 1;
+    EXPECT_EQ(j, l1.prg.index.size());
+    EXPECT_EQ(j, l1.prg.index[0].size());
 
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
@@ -246,6 +344,11 @@ TEST_F(LocalPRGTest, buildGraph)
     lg2.add_edge(1,3);
     lg2.add_edge(2,3);
     EXPECT_EQ(lg2, l2.prg);
+    j = 2;
+    EXPECT_EQ(j, l2.prg.index.size());
+    j = 1;
+    EXPECT_EQ(j, l2.prg.index[0].size());
+    EXPECT_EQ(j, l2.prg.index[1].size());
 
     LocalGraph lg3;
     lg3.add_node(0,"A", Interval(0,1));
@@ -264,11 +367,27 @@ TEST_F(LocalPRGTest, buildGraph)
     lg3.add_edge(4,6);
     lg3.add_edge(5,6);
     EXPECT_EQ(lg3, l3.prg);
+    j = 3;
+    EXPECT_EQ(j, l3.prg.index.size());
+    j = 1;
+    EXPECT_EQ(j, l3.prg.index[0].size());
+    EXPECT_EQ(j, l3.prg.index[1].size());
+    EXPECT_EQ(j, l3.prg.index[2].size());
+    j = 0;
+    EXPECT_EQ(j, l3.prg.index[0][0].first);
+    EXPECT_EQ(j, l3.prg.index[1][0].first);
+    j = 6;
+    EXPECT_EQ(j, l3.prg.index[0][0].second);
+    EXPECT_EQ(j, l3.prg.index[1][0].second);
+    j = 1;
+    EXPECT_EQ(j, l3.prg.index[2][0].first);
+    j = 4;
+    EXPECT_EQ(j, l3.prg.index[2][0].second);
 }
 
 //could test that no int is included in more than one node
-
 TEST_F(LocalPRGTest, minimizerSketch){
+    // note this is a bad test
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
@@ -285,35 +404,187 @@ TEST_F(LocalPRGTest, minimizerSketch){
     j = 1;
     EXPECT_EQ(j, idx->minhash.size());
     l1.minimizer_sketch(idx, 1, 3);
-    j = 2;
     EXPECT_EQ(j, idx->minhash.size());
+    j = 2;
+    pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
     
     idx->clear();
     l2.minimizer_sketch(idx, 2, 3);
     j = 1;
     EXPECT_EQ(j, idx->minhash.size());
     l2.minimizer_sketch(idx, 1, 3);
-    j = 3;
+    //j = 2;
     EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
 
     idx->clear();
     l3.minimizer_sketch(idx, 2, 3);
     j = 2;
     EXPECT_EQ(j, idx->minhash.size());
     l3.minimizer_sketch(idx, 1, 3);
-    j = 4;
+    //j = 3;
     EXPECT_EQ(j, idx->minhash.size());
-    j = 2;
-    EXPECT_EQ(j, idx->minhash[kmerhash("AGT",3)].size());
     j = 1;
-    EXPECT_EQ(j, idx->minhash[kmerhash("AGC",3)].size());
-    EXPECT_EQ(j, idx->minhash[kmerhash("GCT",3)].size());
-    EXPECT_EQ(j, idx->minhash[kmerhash("GTT",3)].size());
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGC, GCT
+    kh = kmerhash("AGT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGTx2
+    j = 0;
+    kh = kmerhash("GTT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
     
     delete idx;
 }
 
-TEST_F(LocalPRGTest, getCovgs)
+TEST_F(LocalPRGTest, updateCovgWithHit)
+{
+}
+
+TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
+{
+    // initialize minihits container
+    MinimizerHits *mhs;
+    mhs = new MinimizerHits();
+
+    // initialize a prgs object
+    vector<LocalPRG*> prgs;
+    LocalPRG* lp3;
+    lp3 = new LocalPRG(3, "3", "T 5 G 7 C 8 T 7  6 G 5 TATG");
+    prgs.push_back(lp3);
+
+    // initialize index as we would expect with example prgs
+    Index *idx;
+    idx = new Index();
+
+    deque<Interval> d = {Interval(0,1), Interval(4,5), Interval(8,9)};
+    Path p;
+    p.initialize(d);
+    pair<uint64_t,uint64_t> kh = kmerhash("TGC",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(0,1), Interval(4,5), Interval(12,13)};
+    p.initialize(d);
+    kh = kmerhash("TGT",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
+    p.initialize(d);
+    kh = kmerhash("TTT",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    kh = kmerhash("GCT",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    kh = kmerhash("GTT",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(8,9), Interval(16,16), Interval(23,25)};
+    p.initialize(d);
+    kh = kmerhash("CTA",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(12,13), Interval(16,16), Interval(23,25)};
+    p.initialize(d);
+    kh = kmerhash("TTA",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    /*d = {Interval(19,20), Interval(23,25)};
+    p.initialize(d);
+    kh = kmerhash("TTA",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);*/
+
+    d = {Interval(23,26)};
+    p.initialize(d);
+    kh = kmerhash("TAT",3); //inconsistent, i don't care
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+
+    d = {Interval(24,27)};
+    p.initialize(d);
+    kh = kmerhash("ATG",3);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    lp3->kmer_paths.push_back(p);
+    
+    PanNode* pn;
+    pn = new PanNode(3);
+    pn->add_read(0);
+    add_read_hits(0, "read0", "TGTTATG", mhs, idx, 1, 3); //AGTTAAGCTAGCTACTTACGGTA
+    pn->add_hits(mhs->hits);
+    
+    lp3->infer_most_likely_prg_paths_for_corresponding_pannode(pn, 3, 0.0015);
+
+    delete mhs;
+    delete idx;
+    delete pn;
+}
+
+TEST_F(LocalPRGTest, writeFasta)
+{
+}
+
+// this version does not apply to forcing minis to be disjoint (on a path)
+/*TEST_F(LocalPRGTest, minimizerSketch){
+    LocalPRG l0(0,"empty", "");
+    LocalPRG l1(1,"simple", "AGCT");
+    LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+
+    Index* idx;
+    idx = new Index();
+
+    l0.minimizer_sketch(idx, 1, 3);
+    uint32_t j = 0;
+    EXPECT_EQ(j, idx->minhash.size());
+
+    l1.minimizer_sketch(idx, 2, 3);
+    j = 1;
+    EXPECT_EQ(j, idx->minhash.size());
+    l1.minimizer_sketch(idx, 1, 3);
+    EXPECT_EQ(j, idx->minhash.size());
+    j = 2;
+    pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
+    
+    idx->clear();
+    l2.minimizer_sketch(idx, 2, 3);
+    j = 1;
+    EXPECT_EQ(j, idx->minhash.size());
+    l2.minimizer_sketch(idx, 1, 3);
+    j = 2;
+    EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
+
+    idx->clear();
+    l3.minimizer_sketch(idx, 2, 3);
+    j = 2;
+    EXPECT_EQ(j, idx->minhash.size());
+    l3.minimizer_sketch(idx, 1, 3);
+    j = 3;
+    EXPECT_EQ(j, idx->minhash.size());
+    j = 2;
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGC, GCT
+    kh = kmerhash("AGT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGTx2
+    j = 1;
+    kh = kmerhash("GTT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
+    
+    delete idx;
+}*/
+
+/*TEST_F(LocalPRGTest, getCovgs)
 {
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
@@ -322,18 +593,19 @@ TEST_F(LocalPRGTest, getCovgs)
     MinimizerHits* mh;
     mh = new MinimizerHits();
     Minimizer* m;
-    m = new Minimizer(kmerhash("AGC",3),0,3);
+    pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
+    m = new Minimizer(min(kh.first,kh.second),0,3,(min(kh.first,kh.second)==kh.first));
     MiniRecord* r;
     Path p;
     deque<Interval> d = {Interval(0,3)};
     p.initialize(d);
-    r = new MiniRecord(1, p);
-    mh->add_hit(0, m, r, 0);
+    r = new MiniRecord(1, p, 0);
+    mh->add_hit(0, m, r);
     l1.get_covgs(mh);
     uint32_t j = 3;
     EXPECT_EQ(j, l1.prg.nodes[0]->covg);
     // add a second identical read
-    mh->add_hit(1, m, r, 0);
+    mh->add_hit(1, m, r);
     l1.get_covgs(mh);
     j = 6;
     EXPECT_EQ(j, l1.prg.nodes[0]->covg);
@@ -341,8 +613,8 @@ TEST_F(LocalPRGTest, getCovgs)
     delete r;
     d = {Interval(0,1), Interval(4,6)};
     p.initialize(d);
-    r = new MiniRecord(2, p);
-    mh->add_hit(0, m, r, 0);
+    r = new MiniRecord(2, p, 0);
+    mh->add_hit(0, m, r);
     l2.get_covgs(mh);
     j = 1;
     EXPECT_EQ(j, l2.prg.nodes[0]->covg);
@@ -356,8 +628,8 @@ TEST_F(LocalPRGTest, getCovgs)
     delete r;
     d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     p.initialize(d);
-    r = new MiniRecord(3, p);
-    mh->add_hit(0, m, r, 0);
+    r = new MiniRecord(3, p, 0);
+    mh->add_hit(0, m, r);
     l3.get_covgs(mh);
     j = 1;
     EXPECT_EQ(j, l3.prg.nodes[0]->covg);
@@ -369,7 +641,7 @@ TEST_F(LocalPRGTest, getCovgs)
     EXPECT_EQ(j, l3.prg.nodes[5]->covg);
     EXPECT_EQ(j, l3.prg.nodes[6]->covg);
     // add same hit again
-    mh->add_hit(1, m, r, 0);
+    mh->add_hit(1, m, r);
     l3.get_covgs(mh);
     j = 2;
     EXPECT_EQ(j, l3.prg.nodes[0]->covg);
@@ -384,8 +656,8 @@ TEST_F(LocalPRGTest, getCovgs)
     delete r;
     d = {Interval(0,1), Interval(4,5), Interval(12,13)};
     p.initialize(d);
-    r = new MiniRecord(3, p);
-    mh->add_hit(1, m, r, 0);
+    r = new MiniRecord(3, p, 0);
+    mh->add_hit(1, m, r);
     l3.get_covgs(mh);
     j = 3;
     EXPECT_EQ(j, l3.prg.nodes[0]->covg);
@@ -402,8 +674,8 @@ TEST_F(LocalPRGTest, getCovgs)
     delete r;
     d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
-    r = new MiniRecord(3, p);
-    mh->add_hit(2, m, r, 0);
+    r = new MiniRecord(3, p, 0);
+    mh->add_hit(2, m, r);
     l3.get_covgs(mh);
     j = 4;
     EXPECT_EQ(j, l3.prg.nodes[1]->covg);
@@ -420,7 +692,7 @@ TEST_F(LocalPRGTest, getCovgs)
     delete r;
     delete m;
     delete mh;
-}
+}*/
 
 /*TEST_F(LocalPRGTest,unpackLinearString){
     Seq s1 = Seq(0,"0", "AGCTAATGCGTT", 11, 3);

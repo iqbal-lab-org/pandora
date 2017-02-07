@@ -5,7 +5,7 @@
 #include <cassert>
 #include <cstring>
 #include <cmath>
-#include <string>
+#include <utility>
 #include "inthash.h"
 
 using namespace std;
@@ -114,7 +114,7 @@ void test_table()
     return;
 }
 
-uint64_t hash64(uint64_t key, uint64_t mask)
+uint64_t hash64(uint64_t& key, const uint64_t& mask)
 {
 	assert(key<=mask);
 	key = (~key + (key << 21)) & mask; // key = (key << 21) - key - 1;
@@ -129,11 +129,12 @@ uint64_t hash64(uint64_t key, uint64_t mask)
 
 /* Now use these functions in my own code */
 
-uint64_t kmerhash(const std::string s, uint32_t k)
+pair<uint64_t, uint64_t> kmerhash(const std::string& s, const uint32_t k)
 {
+    // this takes the hash of both forwards and reverse complement kmers and returns them as a pair 
     assert(s.size() == k);
     int c;
-    uint64_t mask = pow(4,k) - 1, kh = 0;
+    uint64_t mask = pow(4,k) - 1, kh = 0, rckh = 0;
     char myArray[s.size()+1];//as 1 char space for null is also required
     strcpy(myArray, s.c_str());
     for (uint32_t i = 0; i < s.size(); ++i)
@@ -142,10 +143,14 @@ uint64_t kmerhash(const std::string s, uint32_t k)
         //cout << s[i] << " -> " << c;
         if (c < 4) { // not an ambiguous base
 	    kh += c*pow(4,i);
+	    rckh += (3-c)*pow(4,k-i-1);
 	}
         //cout << " so kh is now " << kh << endl;
     } 
     //cout << "s: " << s << " -> " << kh << endl;
     kh = hash64(kh, mask);
-    return kh;
+    rckh = hash64(rckh, mask);
+    return make_pair(kh, rckh);
 }
+
+

@@ -88,6 +88,23 @@ TEST_F(LocalGraphTest, addEdge)
     EXPECT_DEATH(lg2.add_edge(0,4),"");
 }
 
+TEST_F(LocalGraphTest, addVarsite)
+{
+    LocalGraph lg2;
+    lg2.add_varsite(1,0,3);
+    EXPECT_EQ(lg2.index[1][0], make_pair((uint)0,(uint)3));
+    lg2.add_varsite(0,0,3);
+    EXPECT_EQ(lg2.index[0][0], make_pair((uint)0,(uint)3));
+
+    LocalGraph lg3;
+    lg3.add_varsite(2,1,4);
+    EXPECT_EQ(lg3.index[2][0], make_pair((uint)1,(uint)4));
+    lg3.add_varsite(1,0,6);
+    EXPECT_EQ(lg3.index[1][0], make_pair((uint)0,(uint)6));
+    lg3.add_varsite(0,0,6);
+    EXPECT_EQ(lg3.index[0][0], make_pair((uint)0,(uint)6));
+}
+
 TEST_F(LocalGraphTest, equals)
 {
     LocalGraph lg1;
@@ -229,69 +246,16 @@ TEST_F(LocalGraphTest, walk)
     q1.push_back(p);
     p1 = lg3.walk(0,0,4);
     EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
+
+    // also want to allow walks starting from an empty node, including the empty node
+    q1.clear();
+    d = {Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    q1.push_back(p);
+    p1 = lg3.walk(4,16,1);
+    EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
 }
 
 TEST_F(LocalGraphTest, writeGFA){
 }
-
-/*TEST_F(LocalGraphTest,extendPath){
-    deque<Interval> d = {Interval(0,1)};
-    Path p;
-    p.initialize(d);
-    LocalGraph lg3;
-    lg3.add_node(0,"A", Interval(0,1));
-    lg3.add_node(1,"G", Interval(4,5));
-    lg3.add_node(2,"C", Interval(8,9));
-    lg3.add_node(3,"T", Interval(12,13));
-    lg3.add_node(4,"", Interval(16,16));
-    lg3.add_node(5,"G", Interval(19,20));
-    lg3.add_node(6,"T", Interval(23,24));
-    lg3.add_edge(0,1);
-    lg3.add_edge(0,5);
-    lg3.add_edge(1,2);
-    lg3.add_edge(1,3);
-    lg3.add_edge(2,4);
-    lg3.add_edge(3,4);
-    lg3.add_edge(4,6);
-    lg3.add_edge(5,6);
-
-    // extend path over branch point
-    set<Path> s1 = lg3.extend_path(p);
-    set<Path> s_prime;
-    deque<Interval> d_prime = {Interval(0,1), Interval(4,5)};
-    Path p_prime;
-    p_prime.initialize(d_prime);
-    s_prime.insert(p_prime);
-    d_prime = {Interval(0,1), Interval(19,20)};
-    p_prime.initialize(d_prime);
-    s_prime.insert(p_prime);
-    EXPECT_ITERABLE_EQ(set<Path>, s_prime, s1);
-
-    //extend path again
-    set<Path>::iterator it = s1.begin();
-    set<Path> s2 = lg3.extend_path(*it);
-    s_prime.clear();
-    d_prime = {Interval(0,1), Interval(4,5), Interval(8,9)};
-    p_prime.initialize(d_prime);
-    s_prime.insert(p_prime);
-    d_prime = {Interval(0,1), Interval(4,5), Interval(12,13)};
-    p_prime.initialize(d_prime);
-    s_prime.insert(p_prime);
-    EXPECT_ITERABLE_EQ(set<Path>, s_prime, s2);
-
-    // extend path no branch point
-    it++;
-    s2 = lg3.extend_path(*it);
-    s_prime.clear();
-    d_prime = {Interval(0,1), Interval(19,20), Interval(23,24)};
-    p_prime.initialize(d_prime);
-    s_prime.insert(p_prime);
-    EXPECT_ITERABLE_EQ(set<Path>, s_prime, s2);
-
-    // extend path at end, should return empty set
-    s2 = lg3.extend_path(*s2.begin());
-    s_prime.clear();
-    EXPECT_ITERABLE_EQ(set<Path>, s_prime, s2);
-}*/
-
 

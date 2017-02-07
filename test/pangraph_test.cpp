@@ -2,6 +2,7 @@
 #include "test_macro.cpp"
 #include "pangraph.h"
 #include "pannode.h"
+#include "minihit.h"
 #include <stdint.h>
 #include <cassert>
 #include <iostream>
@@ -21,9 +22,11 @@ class PanGraphTest : public ::testing::Test {
 
 TEST_F(PanGraphTest, addNode)
 {
+    set<MinimizerHit*, pComp> mhs;
+
     // add node and check it's there
     PanGraph pg;
-    pg.add_node(0,0);
+    pg.add_node(0,0, mhs);
 
     PanNode *pn;
     pn = new PanNode(0);
@@ -32,9 +35,11 @@ TEST_F(PanGraphTest, addNode)
     uint32_t j = 1;
     EXPECT_EQ(pg.nodes.size(), j);
     EXPECT_EQ(pg.nodes[0]->foundReads.size(), j);
+    j = 0;
+    EXPECT_EQ(pg.nodes[0]->foundHits.size(), j);
 
     // add node again with same read
-    pg.add_node(0,0);
+    pg.add_node(0,0, mhs);
     pn->add_read(0);
     EXPECT_EQ(*pg.nodes[0], *pn);
     j = 1;
@@ -43,7 +48,7 @@ TEST_F(PanGraphTest, addNode)
     EXPECT_EQ(pg.nodes[0]->foundReads.size(), j);
 
     // add node again with different read
-    pg.add_node(0,2);
+    pg.add_node(0,2, mhs);
     pn->add_read(2);
     EXPECT_EQ(*pg.nodes[0], *pn);
     j = 1;
@@ -53,7 +58,7 @@ TEST_F(PanGraphTest, addNode)
     delete pn;
 
     // add different node
-    pg.add_node(1,2);
+    pg.add_node(1,2, mhs);
     pn = new PanNode(1);
     pn->add_read(2);
     EXPECT_EQ(*pg.nodes[1], *pn);
@@ -62,13 +67,46 @@ TEST_F(PanGraphTest, addNode)
     j = 1;
     EXPECT_EQ(pg.nodes[1]->foundReads.size(), j);
     delete pn;
+
+    // add a node with hits
+    Path p;
+    deque<Interval> d = {Interval(0,1), Interval(4,7)};
+    p.initialize(d);
+    MinimizerHit* mh0;
+    mh0 = new MinimizerHit(2, Interval(1,5), 2, p, true);
+    mhs.insert(mh0);
+    d = {Interval(0,1), Interval(5,8)};
+    p.initialize(d);
+    MinimizerHit* mh1;
+    mh1 = new MinimizerHit(2, Interval(1,5), 2, p, true);
+    mhs.insert(mh1);
+    pg.add_node(2,2, mhs);
+    pn = new PanNode(2);
+    pn->add_read(2);
+    EXPECT_EQ(*pg.nodes[2], *pn);
+    j = 3;
+    EXPECT_EQ(pg.nodes.size(), j);
+    j = 2;
+    EXPECT_EQ(pg.nodes[2]->foundHits.size(), j);
+    j = 1;
+    EXPECT_EQ(pg.nodes[2]->foundReads.size(), j);
+    MinimizerHit* mh2;
+    mh2 = new MinimizerHit(0, Interval(1,5), 0, p, true);
+    mhs.insert(mh2);
+    //pg.add_node(0,0, mhs);
+    EXPECT_DEATH(pg.add_node(0,0, mhs), "");
+    delete pn;
+    delete mh0;
+    delete mh1;
+    delete mh2;
 }
 
 TEST_F(PanGraphTest, addEdge)
 {
+    set<MinimizerHit*, pComp> mhs;
     PanGraph pg;
-    pg.add_node(0,0);
-    pg.add_node(1,2);
+    pg.add_node(0,0, mhs);
+    pg.add_node(1,2, mhs);
     pg.add_edge(0,1);
 
     PanNode *pn1;
@@ -92,20 +130,21 @@ TEST_F(PanGraphTest, addEdge)
 
 TEST_F(PanGraphTest, equals)
 {
+    set<MinimizerHit*, pComp> mhs;
     PanGraph pg1;
-    pg1.add_node(0,0);
-    pg1.add_node(1,2);
-    pg1.add_node(1,0);
-    pg1.add_node(2,2);
+    pg1.add_node(0,0, mhs);
+    pg1.add_node(1,2, mhs);
+    pg1.add_node(1,0, mhs);
+    pg1.add_node(2,2, mhs);
     pg1.add_edge(0,1);
     pg1.add_edge(1,2);
   
     PanGraph pg2;
-    pg2.add_node(1,2);
-    pg2.add_node(0,0);
+    pg2.add_node(1,2, mhs);
+    pg2.add_node(0,0, mhs);
     pg2.add_edge(0,1);
-    pg2.add_node(2,2);
-    pg2.add_node(1,0);
+    pg2.add_node(2,2, mhs);
+    pg2.add_node(1,0, mhs);
     pg2.add_edge(1,2);
 
     // adding nodes and edges in different order should make no difference
@@ -120,17 +159,17 @@ TEST_F(PanGraphTest, equals)
 
     // having one fewer edge makes a difference
     PanGraph pg3;
-    pg3.add_node(1,2);
-    pg3.add_node(0,0);
-    pg3.add_node(2,2);
-    pg3.add_node(1,0);
+    pg3.add_node(1,2, mhs);
+    pg3.add_node(0,0, mhs);
+    pg3.add_node(2,2, mhs);
+    pg3.add_node(1,0, mhs);
     pg3.add_edge(1,2);
     EXPECT_EQ((pg1 == pg3), false);
 
     // or one extra node
     pg3.add_edge(0,1);
     EXPECT_EQ((pg1 == pg3), true); //adds the missing edge
-    pg3.add_node(3,0);
+    pg3.add_node(3,0, mhs);
     EXPECT_EQ((pg1 == pg3), false);
 
 }

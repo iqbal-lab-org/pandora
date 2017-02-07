@@ -3,21 +3,16 @@
 #include <algorithm>
 #include "localnode.h"
 #include "interval.h"
-#include "utils.h"
+#include "utils.h" // for pointer_values_equal
 
 using namespace std;
 
-LocalNode::LocalNode (string s, Interval p, uint32_t i): seq(s), pos(p), id(i), covg(0) {}
+LocalNode::LocalNode (string s, Interval p, uint32_t i): seq(s), pos(p), id(i), covg(0), sketch_next(pos.start) {}
 
 std::ostream& operator<< (std::ostream & out, LocalNode const& n) {
     out << "(" << n.id << " " << n.pos << " " << n.seq << ")";
     return out ;
 }
-
-/*bool comparator::operator()(LocalNode const* ln)
-{
-    return *toFine == *ln;
-} LocalNode* toFind;*/
 
 bool LocalNode::operator == (const LocalNode& y) const {
     if (seq != y.seq) {//cout << "different seq" << endl; 
