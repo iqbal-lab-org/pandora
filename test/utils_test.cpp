@@ -28,7 +28,7 @@ class UtilsTest : public ::testing::Test {
 
 };
 
-TEST_F(UtilsTest, indexPrgFile){
+/*TEST_F(UtilsTest, indexPrgFile){
     vector<LocalPRG*> prgs;
     Index *idx;
     idx = new Index;
@@ -119,7 +119,7 @@ TEST_F(UtilsTest, indexPrgFile){
     kh = kmerhash("AAC",3);
     EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
     delete idx;
-}
+}*/
 
 TEST_F(UtilsTest, addReadHits){
     // initialize minihits container

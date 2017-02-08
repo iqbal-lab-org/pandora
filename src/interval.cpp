@@ -12,7 +12,17 @@ Interval::Interval(uint32_t s, uint32_t e): start(s), end(e)
 
 ostream& operator<< (ostream & out, Interval const& i) {
     out << "[" << i.start << ", " << i.end << ")";
-    return out ;
+    return out;
+}
+
+istream& operator>> (istream & in, Interval& i) {
+    in.ignore('[');
+    in >> i.start;
+    in.ignore(' ');
+    in >> i.end;
+    in.ignore(')');
+    i.length = i.end - i.start;
+    return in;
 }
 
 bool Interval::operator == (const Interval& y) const {

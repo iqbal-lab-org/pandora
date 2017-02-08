@@ -22,7 +22,9 @@ class LocalGraph {
     void add_edge (const uint32_t&, const uint32_t&);
     void add_varsite (const uint8_t, const uint32_t, const uint32_t);
     void write_gfa (const std::string&);
+    void read_gfa (const std::string&);
     std::vector<Path> walk(const uint32_t&, const uint32_t&, const uint32_t&);
+    std::vector<LocalNode*> nodes_along_string(const std::string&);
     bool operator == (const LocalGraph& y) const;
 };
 

@@ -3,7 +3,7 @@
 
 #include <deque>
 #include <cstdint> //or <stdint.h>
-#include <ostream>
+#include <iostream>
 #include <functional>
 #include "interval.h"
 
@@ -24,6 +24,7 @@ class Path {
     bool operator < (const Path& y) const;
     bool operator == (const Path& y) const;
   friend std::ostream& operator<< (std::ostream& out, const Path& p); 
+  friend std::istream& operator>> (std::istream& in, Path& p);
 };
 
 #endif

@@ -75,7 +75,7 @@ string LocalPRG::string_along_path(const Path& p)
     return s;
 }
 
-vector<LocalNode*> LocalPRG::nodes_along_string(const string& query_string)
+/*vector<LocalNode*> LocalPRG::nodes_along_string(const string& query_string)
 {
     vector<vector<LocalNode*>> u,v;   // u <=> v
 				      // ie reject paths in u, or extend and add to v
@@ -120,7 +120,7 @@ vector<LocalNode*> LocalPRG::nodes_along_string(const string& query_string)
     }
     // found no successful path, so return an empty vector
     return npath;
-}
+}*/
 
 vector<LocalNode*> LocalPRG::nodes_along_path(const Path& p)
 {
@@ -1000,7 +1000,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
     return;
 }
 
-void LocalPRG::write_path_vs_found_path(const string& filepath, const string& query_string)
+/*void LocalPRG::write_path_vs_found_path(const string& filepath, const string& query_string)
 {
     // for true string, find path, kmers on path, prob
     vector<LocalNode*> npath = nodes_along_string(query_string);
@@ -1049,7 +1049,7 @@ void LocalPRG::write_path_vs_found_path(const string& filepath, const string& qu
     }
     handle << endl;
     return;
-}
+}*/
 
 void LocalPRG::write_max_paths_to_fasta(const string& filepath)
 {

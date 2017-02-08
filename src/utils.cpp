@@ -29,32 +29,39 @@ string now()
     return dt.substr(0,dt.length()-1) + " ";
 }
 
-void index_prg_file(vector<LocalPRG*>& prgs, const string& filepath, Index* idx, const uint32_t w, const uint32_t k)
+vector<string> split(const string& query, const string& d)
 {
-    time_t now;
+    vector<string> v;
+    string::size_type k = 0;
+    string::size_type j = query.find(d, k);
+    while (j!=string::npos) {
+        v.push_back(query.substr(k, j-k));
+        k = j + d.size();
+        j = query.find(d, k);
+    }
+    return v;
+}
+
+void read_prg_file(vector<LocalPRG*>& prgs, const string& filepath)
+{
+    cout << now() << "Loading PRGs from file " << filepath << endl;
+
     uint32_t id = 0;
-    string name, read, line, dt, sdt;
+    string name, read, line;
     LocalPRG *s;
 
     ifstream myfile (filepath);
     if (myfile.is_open())
     {
-	//cout << "Opened prg file: " << filepath << endl;
         uint i = 0;
         while ( getline (myfile,line).good() )
         {
-	    //cout << "reading line " << i << endl;
             if (line.empty() || line[0] == '>' )
             {
-		//cout << "line empty or starts with >" << endl;
                 if (!name.empty() && !read.empty())
                 {
-		    now = time(0);
-                    dt = ctime(&now);
-                    sdt = dt.substr(0,dt.length()-1);
-                    cout << sdt << " Found PRG " << name << endl;
+                    cout << now() << "Found PRG " << name << endl;
                     s = new LocalPRG(id, name, read);
-		    s->minimizer_sketch(idx, w, k);
                     
                     if (s!=nullptr)
                     {   
@@ -67,33 +74,23 @@ void index_prg_file(vector<LocalPRG*>& prgs, const string& filepath, Index* idx,
                 if (!line.empty())
                 {
                     name = line.substr(1);
-		    //cout << "new name " << name << endl;
                 }
             }
             else
             {
                 read += line;
-		//cout << "read starts " << read.substr(0,3) << endl; 
             }
 	    i++;
         }
         // and last entry
         if (!name.empty() && !read.empty())
         {
-            now = time(0);
-            dt = ctime(&now);
-            sdt = dt.substr(0,dt.length()-1);
-            cout << sdt << " Found PRG " << name << endl;
+            cout << now() << "Found PRG " << name << endl;
             s = new LocalPRG(id, name, read);
-            s->minimizer_sketch(idx, w, k);
             if (s!=nullptr)
                 {prgs.push_back(s);}
         }
-        now = time(0);
-        dt = ctime(&now);
-        sdt = dt.substr(0,dt.length()-1);
-        cout << sdt <<  " Number of LocalPRGs added to Index: " << prgs.size() << endl;
-	cout << sdt << " Number of keys in Index: " << idx->minhash.size() << endl;
+        cout << now() <<  "Number of LocalPRGs read: " << prgs.size() << endl;
         myfile.close();
     } else {
         cerr << "Unable to open PRG file " << filepath << endl;
@@ -309,7 +306,6 @@ void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* 
             sdt = dt.substr(0,dt.length()-1);
             cout << sdt << " Looking at PRG " << pnode->second->id << endl;
 	    prgs[pnode->second->id]->infer_most_likely_prg_paths_for_corresponding_pannode(pnode->second, k, 0.00001);
-	    prgs[pnode->second->id]->write_path_vs_found_path("/data2/users/rachel/projects/pandora/test/test_cases/all_oxa/k15/" + name + "write_path_vs_found_path.txt", read);
 	}
         delete mh;
         myfile.close();
