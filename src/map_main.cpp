@@ -49,7 +49,7 @@ static void show_map_usage()
 int pandora_map(int argc, char* argv[])
 {
     // if not enough arguments, print usage
-    if (argc < 6) {
+    if (argc < 7) {
         show_map_usage();
         return 1;
     }

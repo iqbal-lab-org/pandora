@@ -28,26 +28,27 @@ class UtilsTest : public ::testing::Test {
 
 };
 
-/*TEST_F(UtilsTest, indexPrgFile){
+TEST_F(UtilsTest, split)
+{
+    vector<string> v = {"abc", "def", "ghi"};
+    EXPECT_EQ(v, split("abc, def, ghi", ", "));
+    EXPECT_EQ(v, split("abc, def, ghi, ", ", "));
+    EXPECT_EQ(v, split(", abc, def, ghi", ", "));    
+}
+
+TEST_F(UtilsTest, readPrgFile){
     vector<LocalPRG*> prgs;
-    Index *idx;
-    idx = new Index;
 
     // simple case first, single prg with empty string sequence
     // doesn't get added to prgs 
-    index_prg_file(prgs, "../test/test_cases/prg0.fa", idx, 1,3);
+    read_prg_file(prgs, "../test/test_cases/prg0.fa");
     uint32_t j = 0;
-    EXPECT_EQ(idx->minhash.size(), j);
     EXPECT_EQ(prgs.size(), j);
  
     // single prg with simple sequence
-    index_prg_file(prgs, "../test/test_cases/prg1.fa", idx, 1,3);
+    read_prg_file(prgs, "../test/test_cases/prg1.fa");
     LocalPRG l1(1,"prg1", "AGCT");
     j = 1;
-    pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
-    EXPECT_EQ(idx->minhash[min(kh.first, kh.second)].size(), j);
-    //j = 1;
-    EXPECT_EQ(idx->minhash.size(), j);
     EXPECT_EQ(prgs.size(), j);
     j = 0;
     EXPECT_EQ(prgs[0]->id, j);
@@ -56,16 +57,10 @@ class UtilsTest : public ::testing::Test {
     EXPECT_EQ(prgs[0]->prg, l1.prg);
 
     // single prg with a variant site
-    idx->clear();
-    j = 0;
-    EXPECT_EQ(idx->minhash.size(), j);
-    index_prg_file(prgs, "../test/test_cases/prg2.fa", idx, 1,3);
+    read_prg_file(prgs, "../test/test_cases/prg2.fa");
     LocalPRG l2(2,"prg2", "A 5 GC 6 G 5 T");
     j = 2;
-    EXPECT_EQ(idx->minhash.size(), j);
     EXPECT_EQ(prgs.size(), j);
-    j = 1;
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
     j = 0;
     EXPECT_EQ(prgs[1]->id, j);
     EXPECT_EQ(prgs[1]->name, "prg2");
@@ -73,20 +68,10 @@ class UtilsTest : public ::testing::Test {
     EXPECT_EQ(prgs[1]->prg, l2.prg);
 
     // single prg with a nested variant site
-    idx->clear();
-    j = 0;
-    EXPECT_EQ(idx->minhash.size(), j);
-    index_prg_file(prgs, "../test/test_cases/prg3.fa", idx, 1,3);
+    read_prg_file(prgs, "../test/test_cases/prg3.fa");
     LocalPRG l3 = LocalPRG(3,"prg3", "A 5 G 7 C 8 T 7  6 G 5 T");
     j = 3;
     EXPECT_EQ(prgs.size(), j);
-    j = 2;
-    EXPECT_EQ(idx->minhash.size(), j);
-    j = 1;
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
-    j = 2;
-    kh = kmerhash("AGT",3);
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
     j = 0;
     EXPECT_EQ(prgs[2]->id, j);
     EXPECT_EQ(prgs[2]->name, "prg3");
@@ -94,32 +79,12 @@ class UtilsTest : public ::testing::Test {
     EXPECT_EQ(prgs[2]->prg, l3.prg);    
 
     // now a prg input file with all 4 in
-    idx->clear();
-    j = 0;
-    EXPECT_EQ(idx->minhash.size(), j);
     prgs.clear();
     EXPECT_EQ(prgs.size(), j);
-    index_prg_file(prgs, "../test/test_cases/prg0123.fa", idx, 1,3);
-    j = 2;
-    EXPECT_EQ(idx->minhash.size(), j);
+    read_prg_file(prgs, "../test/test_cases/prg0123.fa");
     j = 3;
     EXPECT_EQ(prgs.size(), j);
-    kh = kmerhash("AGC",3);
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
-    kh = kmerhash("GCT",3);
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j); // same
-    //j = 3;
-    kh = kmerhash("AGT",3);
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
-    kh = kmerhash("ACT",3);
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j); // same
-    j = 0;
-    kh = kmerhash("GTT",3);
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j); //same
-    kh = kmerhash("AAC",3);
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
-    delete idx;
-}*/
+}
 
 TEST_F(UtilsTest, addReadHits){
     // initialize minihits container

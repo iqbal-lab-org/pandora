@@ -70,6 +70,7 @@ void Index::load(const string& prgfile)
     //string line;
     //vector<string> vstring;
     uint32_t key;
+    int c;
     MiniRecord mr;
     vector<MiniRecord> vmr;
 
@@ -78,35 +79,18 @@ void Index::load(const string& prgfile)
     {
 	while (myfile.good())
 	{
-	    if (myfile >> key)
+	    c = myfile.peek();
+	    if (isdigit(c))
 	    {
+		myfile >> key;
 		minhash[key] = vmr;
-	    } else if (myfile >> mr) {
+		myfile.ignore(1,'\t');
+	    } else {
+		myfile >> mr;
 	        minhash[key].push_back(mr);
+		myfile.ignore(1,'\t');
 	    }
 	}
-        /*while ( getline (myfile,line).good() )
-	{
-	    vstring = split(line, "\t");
-	    assert(vstring.size() >= 2);
-	    vstring[1] << >> mr;
-	    minhash[(uint)vstring[0]] = {mr};
-	    for (uint i=2; i!=vstring.size(); ++i)
-	    {
-		vstring[i] << >> mr;
-		minhash[(uint)vstring[0]].push_back(mr);
-	    }
-	}
-	//last line
-	vstring = split(line, "\t");
-        assert(vstring.size() >= 2);
-        vstring[1] << >> mr;
-        minhash[(uint)vstring[0]] = {mr};
-        for (uint i=2; i!=vstring.size(); ++i)
-        {
-            vstring[i] << >> mr;
-            minhash[(uint)vstring[0]].push_back(mr);
-        }*/
     } else {
         cerr << "Unable to open index file " << prgfile << ".idx" << endl;
 	exit(1);

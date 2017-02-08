@@ -198,12 +198,12 @@ std::istream& operator>> (std::istream & in, Path& p) {
     uint32_t num_intervals;
     in >> num_intervals;
     deque<Interval> d(num_intervals, Interval());
-    in.ignore('{');
+    in.ignore(1,'{');
     for (uint32_t i = 0; i != num_intervals; ++i)
     {
         in >> d[i];
     }
-    in.ignore('{');
+    in.ignore(1,'{');
     p.initialize(d); 
     return in;
 }

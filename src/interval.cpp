@@ -16,11 +16,11 @@ ostream& operator<< (ostream & out, Interval const& i) {
 }
 
 istream& operator>> (istream & in, Interval& i) {
-    in.ignore('[');
+    in.ignore(1,'[');
     in >> i.start;
-    in.ignore(' ');
+    in.ignore(2,' ');
     in >> i.end;
-    in.ignore(')');
+    in.ignore(1,')');
     i.length = i.end - i.start;
     return in;
 }

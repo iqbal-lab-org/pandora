@@ -38,6 +38,24 @@ TEST_F(IntervalTest,create)
     EXPECT_DEATH(Interval(-1,10),"");
 }
 
+TEST_F(IntervalTest, write)
+{
+    Interval i(1,5);
+    stringstream out;
+    out << i;
+    EXPECT_EQ(out.str(), "[1, 5)");
+}
+
+TEST_F(IntervalTest, read)
+{
+    Interval i(1,5);
+    stringstream out;
+    out << i;
+    Interval j;
+    out >> j;
+    EXPECT_EQ(i,j);
+}
+
 TEST_F(IntervalTest,equals)
 {
     Interval i(1,5);

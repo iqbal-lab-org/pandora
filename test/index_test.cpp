@@ -64,3 +64,37 @@ TEST_F(IndexTest, clear){
     uint32_t j = 0;
     EXPECT_EQ(j, idx.minhash.size());
 }
+
+TEST_F(IndexTest, save){
+    Index idx;
+    deque<Interval> d = {Interval(3,5), Interval(9,12)};
+    Path p;
+    p.initialize(d);
+    pair<uint64_t,uint64_t> kh = kmerhash("ACGTA",5);
+    idx.add_record(min(kh.first, kh.second), 1, p,0);
+    kh = kmerhash("ACTGA",5);
+    idx.add_record(min(kh.first,kh.second), 2, p,0);
+    kh = kmerhash("ACGTA",5);
+    idx.add_record(min(kh.first, kh.second), 4, p,0);
+    idx.save("indextext");
+}
+
+TEST_F(IndexTest, load){
+    Index idx1, idx2;
+    deque<Interval> d = {Interval(3,5), Interval(9,12)};
+    Path p;
+    p.initialize(d);
+    pair<uint64_t,uint64_t> kh1 = kmerhash("ACGTA",5);
+    idx1.add_record(min(kh1.first, kh1.second), 1, p,0);
+    pair<uint64_t,uint64_t> kh2 = kmerhash("ACTGA",5);
+    idx1.add_record(min(kh2.first,kh2.second), 2, p,0);
+    idx1.add_record(min(kh1.first, kh1.second), 4, p,0);
+    
+    idx2.load("indextext");
+    EXPECT_EQ(idx1.minhash.size(), idx2.minhash.size());
+    EXPECT_EQ(idx1.minhash[min(kh1.first, kh1.second)].size(), idx2.minhash[min(kh1.first, kh1.second)].size());
+    EXPECT_EQ(idx1.minhash[min(kh2.first, kh2.second)].size(), idx2.minhash[min(kh2.first, kh2.second)].size());
+    EXPECT_EQ(idx1.minhash[min(kh1.first, kh1.second)][0], idx2.minhash[min(kh1.first, kh1.second)][0]);
+    EXPECT_EQ(idx1.minhash[min(kh1.first, kh1.second)][1], idx2.minhash[min(kh1.first, kh1.second)][1]);
+    EXPECT_EQ(idx1.minhash[min(kh2.first, kh2.second)][0], idx2.minhash[min(kh2.first, kh2.second)][0]);
+}

@@ -34,7 +34,7 @@ static void show_index_usage()
 int pandora_index(int argc, char *argv[]) // the "pandora index" comand
 {
     // if not enough arguments, print usage
-    if (argc < 1) {
+    if (argc < 2) {
 	show_index_usage();
         return 1;
     }

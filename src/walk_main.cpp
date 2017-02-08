@@ -9,7 +9,7 @@ using namespace std;
 
 int pandora_walk(int argc, char *argv[]) // the "pandora walk" comand
 {
-    if (argc != 2) {
+    if (argc != 3) {
 	fprintf(stderr, "Usage: pandora walk <in.gfa> <seq.fa>\n");
 	return 1;
     }

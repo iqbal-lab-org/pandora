@@ -26,16 +26,16 @@ bool MiniRecord::operator == (const MiniRecord& y) const {
 
 std::ostream& operator<< (std::ostream& out, MiniRecord const& m) {
     out << "(" << m.prg_id << ", " << m.path << ", " << m.strand << ")";
-    return out ;
+    return out;
 }
 
 std::istream& operator>> (std::istream& in, MiniRecord& m) {
-    in.ignore('(');
+    in.ignore(1,'(');
     in >> m.prg_id;
-    in.ignore(' ');
+    in.ignore(2,' ');
     in >> m.path;
-    in.ignore(' ');
+    in.ignore(2,' ');
     in >> m.strand;
-    in.ignore(')');
-    return in ;
+    in.ignore(1,')');
+    return in;
 }
