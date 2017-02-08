@@ -124,9 +124,14 @@ int pandora_map(int argc, char* argv[])
     read_prg_file(prgs, prgfile);
 
     cout << now() << "Constructing PanGraph from read file" << endl;
+    MinimizerHits *mhs;
+    mhs = new MinimizerHits();
     PanGraph *pangraph;
     pangraph = new PanGraph();
-    pangraph_from_read_file(readfile, pangraph, idx, prgs, w, k, max_diff);
+    pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
+    
+    cout << now() << "Update LocalPRGs with hits and infer paths" << endl;
+    update_localPRGs_with_hits(pangraph, mhs, prgs, k);
 
     cout << now() << "Writing PanGraph to file " << prefix << "_pangraph.gfa" << endl;
     pangraph->write_gfa(prefix + "_pangraph.gfa");
@@ -148,6 +153,7 @@ int pandora_map(int argc, char* argv[])
 	delete prgs[j];
     }
     delete idx;
+    delete mhs;
     delete pangraph;
 
     // current date/time based on current system

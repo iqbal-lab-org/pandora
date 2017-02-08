@@ -36,6 +36,24 @@ TEST_F(UtilsTest, split)
     EXPECT_EQ(v, split(", abc, def, ghi", ", "));    
 }
 
+TEST_F(UtilsTest, revComplement)
+{
+    string s = "ACCTGATTGCGTA";
+    EXPECT_EQ(s, rev_complement(rev_complement(s)));
+    
+    string t = "TACGCAATCAGGT";
+    EXPECT_EQ(t, rev_complement(s));
+
+    s = "ACCTGATTgCGTA";
+    EXPECT_EQ(t, rev_complement(s));
+    
+    s = "ACCTGATTYCGTA";
+    t = "TACGNAATCAGGT";
+    EXPECT_EQ(t, rev_complement(s));
+}
+
+// don't bother with nchoosek test as will remove function
+
 TEST_F(UtilsTest, readPrgFile){
     vector<LocalPRG*> prgs;
 
@@ -500,10 +518,9 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     delete idx;
 }
 
-/*TEST_F(UtilsTest, pangraphFromReadFile)
+TEST_F(UtilsTest, pangraphFromReadFile)
 {
-    // initialize minihits container
-    MinimizerHits *mhs;
+    MinimizerHits* mhs;
     mhs = new MinimizerHits();
 
     // initialize a prgs object
@@ -594,13 +611,13 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
 
     d = {Interval(23,26)};
     p.initialize(d);
-    kh = kmerhash("TAA",3);
+    kh = kmerhash("TAT",3);//inconsistent but I don't care
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(24,27)};
     p.initialize(d);
-    kh = kmerhash("AAG",3);
+    kh = kmerhash("ATG",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
@@ -634,14 +651,10 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     idx->add_record(min(kh.first,kh.second), 2, p, (kh.first < kh.second));
     lp2->kmer_paths.push_back(p);
 
-    // add read hits to mhs
-    add_read_hits(0, "read2", "AGTTAAGCTAGCTACTTACGGTA", mhs, idx, 1, 3);
-
     // initialize pangraph;
     PanGraph *pg;
     pg = new PanGraph();
-    pangraph_from_read_file("../test/test_cases/read0.fa", pg, idx, prgs, 1, 3, 1, 1);
-    //infer_localPRG_order_for_reads(prgs, mhs, pg, 1, 1, 3);
+    pangraph_from_read_file("../test/test_cases/read2.fa", mhs, pg, idx, prgs, 1, 3, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
@@ -657,12 +670,14 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
 
     EXPECT_EQ(pg_exp, *pg);
     delete pg;
+    delete mhs;
     delete lp1;
     delete lp2;
     delete lp3;
     delete lp4;
-    delete mhs;
     delete idx;
-}*/
+}
 
-// add test case with rev complement sequence
+//update_covgs_from_hits
+//p_null
+
