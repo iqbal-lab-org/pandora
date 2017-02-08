@@ -35,10 +35,17 @@ vector<string> split(const string& query, const string& d)
     string::size_type k = 0;
     string::size_type j = query.find(d, k);
     while (j!=string::npos) {
-        v.push_back(query.substr(k, j-k));
+	if (j > k)
+        {
+	    v.push_back(query.substr(k, j-k));
+	}
         k = j + d.size();
         j = query.find(d, k);
     }
+    if (k < query.length())
+    {
+	v.push_back(query.substr(k));
+    }	
     return v;
 }
 
@@ -208,8 +215,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
 
 void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* idx, const vector<LocalPRG*>& prgs, const uint32_t w, const uint32_t k, const int max_diff)
 {
-    time_t now;
-    string name, read, line, dt, sdt;
+    string name, read, line;
     uint32_t id = 0;
     MinimizerHits* mh;
     mh = new MinimizerHits();
@@ -224,15 +230,12 @@ void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* 
             {
                 if (!read.empty()) // ok we'll allow reads with no name, removed
                 {
-    		    now = time(0);
-                    dt = ctime(&now);
-                    sdt = dt.substr(0,dt.length()-1);
-		    cout << sdt << " Found read " << name << endl;
+		    cout << now() << "Found read " << name << endl;
                     //mh = new MinimizerHits();
 		    now = time(0);
                     dt = ctime(&now);
                     sdt = dt.substr(0,dt.length()-1);
-		    cout << sdt << " Add read hits" << endl;
+		    cout << now() << "Add read hits" << endl;
                     add_read_hits(id, name, read, mh, idx, w, k);
 		    /*now = time(0);
                     dt = ctime(&now);
@@ -262,15 +265,9 @@ void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* 
         // and last entry
         if (!read.empty()) // allow reads with no name
         {
-	    now = time(0);
-            dt = ctime(&now);
-            sdt = dt.substr(0,dt.length()-1);
-	    cout << sdt << " Found read " << name << endl;
+	    cout << now() << "Found read " << name << endl;
             //mh = new MinimizerHits();
-            now = time(0);
-            dt = ctime(&now);
-            sdt = dt.substr(0,dt.length()-1);
-	    cout << sdt << " Add read hits" << endl;
+	    cout << now() << "Add read hits" << endl;
             add_read_hits(id, name, read, mh, idx, w, k);
 	    /*now = time(0);
             dt = ctime(&now);
@@ -285,26 +282,14 @@ void pangraph_from_read_file(const string& filepath, PanGraph* pangraph, Index* 
 	    delete mh;*/
         }
         //cout << "Number of reads found: " << id+1 << endl;
-        now = time(0);
-        dt = ctime(&now);
-        sdt = dt.substr(0,dt.length()-1);
-        cout << sdt << " Infer gene orders and add to PanGraph" << endl;
+        cout << now() << "Infer gene orders and add to PanGraph" << endl;
         infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, k);
-        now = time(0);
-        dt = ctime(&now);
-        sdt = dt.substr(0,dt.length()-1);
-        cout << sdt << " Update coverages within genes" << endl;
+        cout << now() << "Update coverages within genes" << endl;
         update_covgs_from_hits(prgs, mh);
-        now = time(0);
-        dt = ctime(&now);
-        sdt = dt.substr(0,dt.length()-1);
-        cout << sdt << " Infer overlapped PRG paths for each PRG present" << endl;
+        cout << now() << "Infer overlapped PRG paths for each PRG present" << endl;
         for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode) 
 	{
-	    now = time(0);
-            dt = ctime(&now);
-            sdt = dt.substr(0,dt.length()-1);
-            cout << sdt << " Looking at PRG " << pnode->second->id << endl;
+            cout << now() << "Looking at PRG " << pnode->second->id << endl;
 	    prgs[pnode->second->id]->infer_most_likely_prg_paths_for_corresponding_pannode(pnode->second, k, 0.00001);
 	}
         delete mh;
