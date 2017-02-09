@@ -8,6 +8,7 @@ class Index;
 class MinimizerHits;
 class PanGraph;
 class PanNode;
+class LocalPRG;
 
 template <typename T>
 struct pointer_values_equal
@@ -28,6 +29,8 @@ uint32_t nchoosek (uint32_t n, uint32_t k);
 
 //probably should be moved to map_main.cpp
 void read_prg_file(std::vector<LocalPRG*>&, const std::string&);
+void save_LocalPRG_kmer_paths(std::vector<LocalPRG*>&, const std::string&);
+void load_LocalPRG_kmer_paths(std::vector<LocalPRG*>&, const std::string&);
 void add_read_hits(uint32_t, const std::string&, const std::string&, MinimizerHits*, Index*, const uint32_t, const uint32_t);
 void infer_localPRG_order_for_reads(const std::vector<LocalPRG*>& prgs, MinimizerHits*, PanGraph*, const int, const uint32_t);
 void pangraph_from_read_file(const std::string&, MinimizerHits*, PanGraph*, Index*, const std::vector<LocalPRG*>&, const uint32_t, const uint32_t, const int);

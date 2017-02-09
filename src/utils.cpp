@@ -81,7 +81,7 @@ string rev_complement(string s)
 uint32_t nchoosek (uint32_t n, uint32_t k)
 {
     assert(n >= k || assert_msg("Currently the model assumes that the most a given kmer (defined by position) can occur is once per read, i.e. an error somewhere else in the read cannot result in this kmer. If you are getting this message, then you have evidence of violation of this assumption. Either try using a bigger k, or come up with a better model"));
-    //assert(n >= 0);
+    //assert(n >= 0);x
     //assert(k >= 0);
 
     if (n == 0) {return 0;}
@@ -144,6 +144,59 @@ void read_prg_file(vector<LocalPRG*>& prgs, const string& filepath)
     } else {
         cerr << "Unable to open PRG file " << filepath << endl;
         exit (EXIT_FAILURE);
+    }
+    return;
+}
+
+void save_LocalPRG_kmer_paths(vector<LocalPRG*>& prgs, const string& prgfile)
+{
+    cout << now() << "Saving PRG minimizers" << endl;
+    ofstream handle;
+    handle.open (prgfile + ".mini");
+
+    for (uint32_t i = 0; i != prgs.size(); ++i)
+    {
+        handle << i;
+        for (uint j = 0; j!=prgs[i]->kmer_paths.size(); ++j)
+        {
+            handle << "\t" << prgs[i]->kmer_paths[j];
+        }
+        handle << endl;
+
+    }
+    handle.close();
+    cout << now() << "Finished saving " << prgs.size() << " entries to file" << endl;
+    return;
+}
+
+void load_LocalPRG_kmer_paths(vector<LocalPRG*>& prgs, const string& prgfile)
+{
+    cout << now() << "Loading PRG minimizers" << endl;
+    uint32_t key;
+    int c;
+    Path p;
+
+    ifstream myfile (prgfile + ".mini");
+    if (myfile.is_open())
+    {
+        myfile >> key;
+        while (myfile.good())
+        {
+            c = myfile.peek();
+            if (c == '\n')
+            {
+		myfile.ignore(1,'\n');
+                myfile >> key;
+		assert(key < prgs.size());
+            } else {
+		myfile.ignore(1,'\t');
+                myfile >> p;
+                prgs[key]->kmer_paths.push_back(p);
+            }
+        }
+    } else {
+        cerr << "Unable to open PRG minimizer file " << prgfile << ".mini" << endl;
+        exit(1);
     }
     return;
 }

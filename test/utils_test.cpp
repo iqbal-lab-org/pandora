@@ -104,6 +104,41 @@ TEST_F(UtilsTest, readPrgFile){
     EXPECT_EQ(prgs.size(), j);
 }
 
+TEST_F(UtilsTest, saveLocalPRGkmerpaths)
+{
+    Index* idx;
+    idx = new Index();
+
+    vector<LocalPRG*> prgs;
+    read_prg_file(prgs, "../test/test_cases/prg0123.fa");
+    for (uint i=0; i != prgs.size(); ++i)
+    {
+        prgs[i]->minimizer_sketch(idx, 1, 3);
+    }
+    save_LocalPRG_kmer_paths(prgs, "../test/test_cases/prg0123.fa");
+    delete idx;
+}
+
+TEST_F(UtilsTest, loadLocalPRGkmerpaths)
+{
+    Index* idx;
+    idx = new Index();
+
+    vector<LocalPRG*> prgs1;
+    read_prg_file(prgs1, "../test/test_cases/prg0123.fa");
+    load_LocalPRG_kmer_paths(prgs1, "../test/test_cases/prg0123.fa");
+
+    vector<LocalPRG*> prgs2;
+    read_prg_file(prgs2, "../test/test_cases/prg0123.fa");
+    for (uint i=0; i != prgs2.size(); ++i)
+    {
+        prgs2[i]->minimizer_sketch(idx, 1, 3);
+        cout << prgs1[i]->kmer_paths.size() << endl;
+	EXPECT_ITERABLE_EQ(vector<Path>, prgs1[i]->kmer_paths, prgs2[i]->kmer_paths);
+    }
+    delete idx;
+}
+
 TEST_F(UtilsTest, addReadHits){
     // initialize minihits container
     MinimizerHits *mhs;
