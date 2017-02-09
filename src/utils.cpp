@@ -88,7 +88,7 @@ float lognchoosek (uint32_t n, uint32_t k)
 	total += log(m);
     }
 
-    for (uint m=0; m!=k; ++m)
+    for (uint m=1; m!=k; ++m)
     {
 	total -= log(m+1);
     }
@@ -121,6 +121,9 @@ void read_prg_file(vector<LocalPRG*>& prgs, const string& filepath)
                     {   
 			prgs.push_back(s);
 			id++;
+		    } else {
+			cerr << "Failed to make LocalPRG for " << name << endl;	
+			exit(1);
 		    }
                 }
                 name.clear();
@@ -142,7 +145,11 @@ void read_prg_file(vector<LocalPRG*>& prgs, const string& filepath)
             cout << now() << "Found PRG " << name << endl;
             s = new LocalPRG(id, name, read);
             if (s!=nullptr)
-                {prgs.push_back(s);}
+            {prgs.push_back(s);
+	    } else {
+                cerr << "Failed to make LocalPRG for " << name << endl;
+                exit(1);
+            }
         }
         cout << now() <<  "Number of LocalPRGs read: " << prgs.size() << endl;
         myfile.close();
@@ -213,12 +220,10 @@ void add_read_hits(const uint32_t id, const string& name, const string& seq, Min
     Seq s(id, name, seq, w, k);
     for(set<Minimizer*, pMiniComp>::iterator it = s.sketch.begin(); it != s.sketch.end(); ++it)
     {
-	//cout << (*it)->kmer << endl;
         if (idx->minhash.find((*it)->kmer) != idx->minhash.end())
         {
 	    for (vector<MiniRecord>::iterator it2=idx->minhash[(*it)->kmer].begin(); it2!=idx->minhash[(*it)->kmer].end(); ++it2)
             {
-                //cout << (*it)->kmer << " : ";
 	        hits->add_hit(s.id, *it, &(*it2));
 		hit_count += 1;
             }
@@ -230,70 +235,57 @@ void add_read_hits(const uint32_t id, const string& name, const string& seq, Min
 
 void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits* minimizer_hits, PanGraph* pangraph, const int max_diff, const uint32_t k)
 {
-    // this step infers the gene order for a read
-    // orders hits from a set of minimizer hits, clusters them, removes noise hits, and adds the inferred gene order to the pangraph
+    // this step infers the gene order for a read and adds this to the pangraph
+    // by defining clusters of hits, keeping those which are not noise and
+    // then adding the inferred gene ordering
     set<set<MinimizerHit*, pComp>,clusterComp> clusters_of_hits;
 
     if (minimizer_hits->hits.size() == 0) {return;}
 
-    // First cluster hits matching same localPRG, not more than max_diff read bases from the last hit (this last bit is to handle repeat genes). 
+    // First define clusters of hits matching same localPRG, not more than max_diff read bases from the last hit (this last bit is to handle repeat genes). 
     set<MinimizerHit*, pComp>::iterator mh_previous = minimizer_hits->hits.begin();
     set<MinimizerHit*, pComp> current_cluster;
     current_cluster.insert(*mh_previous);
     float pn;
     for (set<MinimizerHit*, pComp>::iterator mh_current = ++minimizer_hits->hits.begin(); mh_current != minimizer_hits->hits.end(); ++mh_current)
     {
-        //cout << "Hit: " << **mh_previous << endl;
         if((*mh_current)->read_id!=(*mh_previous)->read_id or (*mh_current)->prg_id!=(*mh_previous)->prg_id or (*mh_current)->strand!=(*mh_previous)->strand or (abs((int)(*mh_current)->read_interval.start - (int)(*mh_previous)->read_interval.start)) > max_diff)
         {
+	    // keep clusters which have a low enough probability of occuring by chance
             pn = p_null(prgs, current_cluster, k);
-	    //cout << "pnull is " << pn << " for cluster of size " << current_cluster.size() << endl;
             if (pn < 0.001)
             {
-                //cout << "Found cluster of size: " << current_cluster.size() << " for prg " << (*mh_previous)->prg_id << endl;
                 clusters_of_hits.insert(current_cluster);
 	    }
             current_cluster.clear();
-            current_cluster.insert(*mh_current);
-        } else {
-            current_cluster.insert(*mh_current);
         }
+	current_cluster.insert(*mh_current);
         mh_previous = mh_current;
     }
+    // keep final cluster if it has a low enough probability of occuring by chance
     pn = p_null(prgs, current_cluster, k);
-    //cout << "pnull is " << pn << " for cluster of size " << current_cluster.size() << endl;
     if (pn < 0.001)
     {
         clusters_of_hits.insert(current_cluster);
-        //cout << "Found final cluster of size: " << current_cluster.size() << " for prg " << (*mh_previous)->prg_id << endl;
     }
-    //cout << "Found " << clusters_of_hits.size() << " clusters" << endl;
 
     // Next order clusters, remove contained ones, and add inferred order to pangraph    
     if (clusters_of_hits.size() == 0) { return;}
+    // to do this consider pairs of clusters in turn
     set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_previous = clusters_of_hits.begin();
     pangraph->add_node((*(*c_previous).begin())->prg_id, (*(*c_previous).begin())->read_id, *c_previous);
-    //cout << "first cluster added " << (*(*c_previous).begin())->prg_id << endl; 
     for (set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_current = ++clusters_of_hits.begin(); c_current != clusters_of_hits.end(); ++c_current)
     {
         if(((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) &&  ((*(*c_current).begin())->prg_id != (*(*c_previous).begin())->prg_id) && ((*--(*c_current).end())->read_interval.start > (*--(*c_previous).end())->read_interval.start) ) // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, so force the next cluster to have at least a hit which is outside this region
         {
-	    //cout << "added cluster with id " << (*(*c_current).begin())->prg_id << endl;
             pangraph->add_node((*(*c_current).begin())->prg_id, (*(*c_current).begin())->read_id, *c_current);
 	    pangraph->add_edge((*(*c_previous).begin())->prg_id, (*(*c_current).begin())->prg_id);
             c_previous = c_current;
-        //} else {
-        //    //cout << "Contained cluster not added to order" << endl;
         } else if ((*(*c_current).begin())->read_id != (*(*c_previous).begin())->read_id)
 	{
 	    // if we just started looking at hits for a new read, add the first cluster
 	    pangraph->add_node((*(*c_current).begin())->prg_id, (*(*c_current).begin())->read_id, *c_current);
             c_previous = c_current;
-	} else {
-	    //cout << "Did not add cluster. Criteria which may have failed:" << endl;
-	    //cout << "read_ids equal: " << (*(*c_current).begin())->read_id << "==" << (*(*c_previous).begin())->read_id << ", " << ((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) << endl;
-	    //cout << "prg_ids different: " << (*(*c_current).begin())->prg_id << "!=" << (*(*c_previous).begin())->prg_id << ", " << ((*(*c_current).begin())->prg_id != (*(*c_previous).begin())->prg_id) << endl;
-	    //cout << "not contained: " << (*--(*c_current).end())->read_interval.start << ">" << (*--(*c_previous).end())->read_interval.start << ", " << ((*--(*c_current).end())->read_interval.start > (*--(*c_previous).end())->read_interval.start) << endl;
 	}
     }
     return;
@@ -391,7 +383,7 @@ float p_null(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_o
     //cout << "finding p_null for cluster of size |x|=" << cluster_of_hits.size() << endl;
     float p = 0;
 
-    // Assumes only one PRG in the vector has the id, (or works out p_null for the first occurance)
+    // Assumes only one PRG in the vector has the id, (or works out p_null for the first occurrence)
     assert(cluster_of_hits.size() > 0);
     bool id_found = false;
 
