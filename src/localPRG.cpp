@@ -964,6 +964,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 	        // if there are multiple such paths, we just add the first
 	        // note that in the case pre_site_id == 0 and level == 0, 
 	        // we may overwrite a previous entry to the index
+	        assert(t.size() == 0);
                 for (uint n = 0; n!=w.size(); ++n)
                 {
                     if ((max_mean_prob == numeric_limits<float>::lowest() and w[n][dir].mean_prob == 0) or 

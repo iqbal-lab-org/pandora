@@ -42,7 +42,8 @@ static void show_map_usage()
 	      << "\t-o,--out_prefix OUT_PREFIX\tSpecify prefix of output\n"
 	      << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers\n"
 	      << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers\n"
-	      << "\t-m,--max_diff MAX_DIFF\t\tMaximum distance between consecutive hits within a cluster\n"
+	      << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster\n"
+	      << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads\n"
               << std::endl;
 }
 
@@ -58,6 +59,7 @@ int pandora_map(int argc, char* argv[])
     string prgfile, readfile, prefix;
     uint32_t w=1, k=15; // default parameters
     int max_diff = 2;//1;
+    float e_rate = 0.05;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -108,6 +110,13 @@ int pandora_map(int argc, char* argv[])
                   std::cerr << "--max_diff option requires one argument." << std::endl;
                 return 1;
             }
+        } else if ((arg == "-e") || (arg == "--error_rate")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                e_rate = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                  std::cerr << "--error_rate option requires one argument." << std::endl;
+                return 1;
+            }
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -132,7 +141,7 @@ int pandora_map(int argc, char* argv[])
     pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
     
     cout << now() << "Update LocalPRGs with hits and infer paths" << endl;
-    update_localPRGs_with_hits(pangraph, mhs, prgs, k);
+    update_localPRGs_with_hits(pangraph, mhs, prgs, k, e_rate);
 
     cout << now() << "Writing PanGraph to file " << prefix << "_pangraph.gfa" << endl;
     pangraph->write_gfa(prefix + "_pangraph.gfa");
@@ -147,7 +156,7 @@ int pandora_map(int argc, char* argv[])
     cout << now() << "Writing LocalGraphs to files:" << endl;	
     // for each found localPRG, also write out a gfa 
     // then delete the localPRG object
-    for (uint32_t j=0; j<prgs.size(); ++j)
+    for (uint32_t j=0; j!=prgs.size(); ++j)
     {
         cout << "\t\t" << prefix << "_" << prgs[j]->name << ".gfa" << endl;
 	prgs[j]->prg.write_gfa(prefix + "_" + prgs[j]->name + ".gfa");

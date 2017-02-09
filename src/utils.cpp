@@ -348,7 +348,7 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
     return;
 }
 
-void update_localPRGs_with_hits(PanGraph* pangraph, MinimizerHits* mh, const vector<LocalPRG*>& prgs, const uint32_t k)
+void update_localPRGs_with_hits(PanGraph* pangraph, MinimizerHits* mh, const vector<LocalPRG*>& prgs, const uint32_t k, const float& e_rate)
 {
     cout << now() << "Update coverages within genes" << endl;
     update_covgs_from_hits(prgs, mh);
@@ -356,9 +356,8 @@ void update_localPRGs_with_hits(PanGraph* pangraph, MinimizerHits* mh, const vec
     for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode)
     {
             cout << now() << "Looking at PRG " << pnode->second->id << endl;
-            prgs[pnode->second->id]->infer_most_likely_prg_paths_for_corresponding_pannode(pnode->second, k, 0.00001);
+            prgs[pnode->second->id]->infer_most_likely_prg_paths_for_corresponding_pannode(pnode->second, k, e_rate);
     }
-    delete mh;
 }
 
 /*void update_covgs_from_hits(vector<LocalPRG*>& prgs, MinimizerHits* mhs)
