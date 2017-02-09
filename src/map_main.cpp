@@ -40,10 +40,10 @@ static void show_map_usage()
               << "\t-p,--prg_file PRG_FILE\t\tSpecify a fasta-style prg file\n"
 	      << "\t-r,--read_file READ_FILE\tSpecify a file of reads in fasta format\n"
 	      << "\t-o,--out_prefix OUT_PREFIX\tSpecify prefix of output\n"
-	      << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers\n"
-	      << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers\n"
-	      << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster\n"
-	      << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads\n"
+	      << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 1\n"
+	      << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
+	      << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 500 (bps)\n"
+	      << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.05\n"
               << std::endl;
 }
 
@@ -58,7 +58,7 @@ int pandora_map(int argc, char* argv[])
     // otherwise, parse the parameters from the command line
     string prgfile, readfile, prefix;
     uint32_t w=1, k=15; // default parameters
-    int max_diff = 2;//1;
+    int max_diff = 500;
     float e_rate = 0.05;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];

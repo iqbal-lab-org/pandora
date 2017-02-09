@@ -26,8 +26,8 @@ static void show_index_usage()
     std::cerr << "Usage: pandora index [options] <prgs.fa>\n"
               << "Options:\n"
               << "\t-h,--help\t\t\tShow this help message\n"
-              << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers\n"
-              << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers\n"
+              << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 1\n"
+              << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
               << std::endl;
 }
 
