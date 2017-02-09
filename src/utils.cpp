@@ -78,17 +78,22 @@ string rev_complement(string s)
 }
 
 // note this function is to be replaced due to considering log probs
-uint32_t nchoosek (uint32_t n, uint32_t k)
+float lognchoosek (uint32_t n, uint32_t k)
 {
     assert(n >= k || assert_msg("Currently the model assumes that the most a given kmer (defined by position) can occur is once per read, i.e. an error somewhere else in the read cannot result in this kmer. If you are getting this message, then you have evidence of violation of this assumption. Either try using a bigger k, or come up with a better model"));
-    //assert(n >= 0);x
-    //assert(k >= 0);
+    float total = 0;
 
-    if (n == 0) {return 0;}
-    if (k == 0) {return 1;}
-    if (n == k) {return 1;}
+    for (uint m=n; m!=n-k; --m)
+    {
+	total += log(m);
+    }
 
-    return (n * nchoosek(n - 1, k - 1)) / k;
+    for (uint m=0; m!=k; ++m)
+    {
+	total -= log(m+1);
+    }
+
+    return total;
 }
 
 void read_prg_file(vector<LocalPRG*>& prgs, const string& filepath)

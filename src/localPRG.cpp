@@ -737,34 +737,26 @@ void LocalPRG::get_kmer_path_probs(const PanNode* pnode, uint32_t k, float e_rat
 {
     // now for each of the minimizing kmers, work out the prob of seeing this number of hits given the number of reads
     // this is the bit where I assume that we have an independent trial for each read (binomial hit counts for true kmers)
-    cout << now() << "For each PRG kmer, ind probability of seeing this number of hits assuming it is truly present" << endl;
+    cout << now() << "For each PRG kmer, find log probability of seeing this number of hits assuming it is truly present" << endl;
     vector<float> probs(kmer_paths.size(), 0);
     kmer_path_probs.resize(3, probs);
     assert(kmer_path_probs.size() == 3);
     assert(kmer_path_probs[0].size() == kmer_paths.size());
     float p_kmer, p_max, p_min, p=1/exp(e_rate*k);
-    uint32_t n = pnode->foundReads.size(), big_p_count=0;
+    uint32_t n = pnode->foundReads.size();
     cout << "n: " << n << ", p: " << p << endl;
-    //cout << "count:0 " << nchoosek(n,0) << " * " << pow(p,0) << " * " << pow(1-p,n-0) << endl;
-    //cout << "count:1 " << nchoosek(n,1) << " * " << pow(p,1) << " * " << pow(1-p,n-1) << endl;
     for (uint32_t direction=0; direction!=3; ++direction) // directions 0,1,2 correspond to forward hit, rev_complement hit and either/both
     {	
         p_max=numeric_limits<float>::lowest(), p_min=0;
 	assert(kmer_path_hit_counts[direction].size() == kmer_path_probs[direction].size());
         for (uint32_t i=0; i!=kmer_path_hit_counts[direction].size(); ++i)
         {
-            p_kmer = log(nchoosek(n, kmer_path_hit_counts[direction][i])*pow(p,kmer_path_hit_counts[direction][i])*pow(1-p,n-kmer_path_hit_counts[direction][i]));
-            //cout << kmer_paths[i] << " " << kmer_path_hit_counts[direction][i] << " " << p_kmer << endl;
+            p_kmer = lognchoosek(n, kmer_path_hit_counts[direction][i]) + kmer_path_hit_counts[direction][i]*log(p) + (n-kmer_path_hit_counts[direction][i])*log(1-p);
             kmer_path_probs[direction][i] = p_kmer;
             p_max = max(p_max, p_kmer);
             p_min = min(p_min, p_kmer);
-            if(p_kmer>-0.5)
-            {
-                //cout << p_kmer << " ";
-                big_p_count+=1;
-            }
         }
-        cout << now() << "For " << direction << " direction found " << big_p_count << " log probs > " << -0.5 << " with max and min log probs " << p_max << ", " << p_min << endl;
+        cout << now() << "For " << direction << " direction found max and min log probs " << p_max << ", " << p_min << endl;
         cout << endl;
     }
     return;
