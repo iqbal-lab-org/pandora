@@ -133,7 +133,6 @@ TEST_F(UtilsTest, loadLocalPRGkmerpaths)
     for (uint i=0; i != prgs2.size(); ++i)
     {
         prgs2[i]->minimizer_sketch(idx, 1, 3);
-        cout << prgs1[i]->kmer_paths.size() << endl;
 	EXPECT_ITERABLE_EQ(vector<Path>, prgs1[i]->kmer_paths, prgs2[i]->kmer_paths);
     }
     delete idx;
@@ -365,17 +364,14 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     lp3->kmer_paths.push_back(p);
 
     // add read hits to mhs
-    cout << "add read hits" << endl; 
     add_read_hits(0, "read1", "AGTTAAGTACG", mhs, idx, 1, 3);
 
     // initialize pangraph;
-    cout << "initialize pangraph" << endl;
     PanGraph *pg;
     pg = new PanGraph();
     infer_localPRG_order_for_reads(prgs, mhs, pg, 1, 3);
 
     // create a pangraph object representing the truth we expect (prg 3 then 1)
-    cout << "create a pangraph object representing the truth we expect (prg 3 then 1)" << endl;
     PanGraph pg_exp;
     MinimizerHits mhs_dummy;
     pg_exp.add_node(1,0, mhs_dummy.hits);
