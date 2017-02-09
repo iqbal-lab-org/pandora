@@ -112,7 +112,7 @@ int pandora_map(int argc, char* argv[])
             }
         } else if ((arg == "-e") || (arg == "--error_rate")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                e_rate = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                e_rate = atof(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                   std::cerr << "--error_rate option requires one argument." << std::endl;
                 return 1;
