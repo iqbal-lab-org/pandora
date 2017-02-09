@@ -511,33 +511,13 @@ void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
             if (it->end > n->second->pos.start and it->start < n->second->pos.end)
             {
                 n->second->covg += min(it->end, n->second->pos.end) - max(it->start, n->second->pos.start);
+	    } else if (*it == n->second->pos) {
+		n->second->covg += 1;
             } else if (it->end < n->second->pos.start)
             { break;} // because the local nodes are labelled in order of occurance in the linear prg string, we don't need to search after this
         }
     }
 }
-
-/*void LocalPRG::update_covg_with_hits(deque<MinimizerHit*>& mhs)
-{
-    // iterate over map first, because that is slow bit
-    for (map<uint32_t, LocalNode*>::const_iterator n=prg.nodes.begin(); n!=prg.nodes.end(); ++n)
-    {
-	// for each hit
-        for (deque<MinimizerHit*>::iterator mh = mhs.begin(); mh != mhs.end(); ++mh)
-	{
-	    //for each interval of hit
-	    for (deque<Interval>::const_iterator it=(*mh)->prg_path.path.begin(); it!=(*mh)->prg_path.path.end(); ++it)
-	    {
-                if (it->end > n->second->pos.start and it->start < n->second->pos.end)
-                {
-		    //cout << "added covg" << endl;
-                    n->second->covg += min(it->end, n->second->pos.end) - max(it->start, n->second->pos.start);
-                } //else if (it->end < n->second->pos.start)
-                //{ break;} // because the local nodes are labelled in order of occurance in the linear prg string, we don't need to search after this
-            }
-	}
-    }
-}*/
 
 void LocalPRG::update_kmers_on_node_paths(vector<MaxPath>& vmp)
 {
@@ -558,14 +538,6 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_pr
     bool found, reject, added_m_or_n, found_branch;
     vector<uint32_t> nums;
     nums.reserve(40);
-
-    //cout << "looking for kmers overlapping node_path " << endl;
-
-    /*for (uint32_t n=0; n!=mp.npath.size(); ++n)
-    {
-	cout << *(mp.npath[n]) << " ";
-    }
-    cout << endl; */
 
     // find the set of kmer_paths which overlap this node_path
     for (uint32_t n=0; n!=kmer_paths.size(); ++n)
@@ -853,16 +825,6 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                         // if it is there, then we have a path to extend by, 
                         // and extend the path for each of the maximal paths through the sub_varsite
                         // and add the updated path/prob pairs to v
-                        //cout << now() << "extend paths: " << endl;
-			for (uint32_t dir = 0; dir != 3; ++dir)
-			{
-			    //cout << "direction-" << dir << " ";
-			    //for (uint32_t m = 0; m!= u[j][dir].npath.size(); ++m)
-                            //{
-                            //    cout << u[j][dir].npath[m]->id << "->";
-                            //}
-                            //cout << "p: " << u[j][dir].get_prob(kmer_path_probs[dir]) << endl;
-			}
                         map<uint32_t, vector<vector<MaxPath>>>::iterator it=max_path_index.find(u[j][0].npath.back()->id);
                         if (it != max_path_index.end())
                         {
@@ -873,12 +835,6 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 			    {
 				assert(it->second[dir].size() == 1);
 			        u[j][dir].extend(it->second[dir][0]);
-			        //cout << now() << "extended npath with found npath giving: ";
-			        //for (uint32_t m = 0; m!= u[j][dir].npath.size(); ++m)
-                                //{
-                                //    cout << u[j][dir].npath[m]->id << "->";
-                                //}
-			        //cout << endl;
 			    }
 			} else {
 			    //otherwise extend with the outnode of the last node in node_path
@@ -934,21 +890,6 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 		    }
 		}
 
-		// write the sequences out for forward dir
-		/*cout << now() << "Potential max paths: " << endl;
-		for (uint n = 0; n!=w.size(); ++n)
-                {
-		    cout << "option " << n << ": mean_p " << w[n][dir].mean_prob << ", p " << w[n][dir].get_prob(kmer_path_probs[dir]);
-		    cout << ", number minimizers on path " << accumulate(w[n][dir].kmers_on_path.begin(), w[n][dir].kmers_on_path.end(), 0) << endl; 
-		    for (uint j = 0; j!= w[n][dir].npath.size(); ++j)
-        	    {
-            	        cout << w[n][dir].npath[j]->seq;
-        	    }
-		    cout << endl;
-          
-                }
-                cout << endl;*/
-			
 	        cout << now() << "Max_prob (mean) for paths at this varsite: " << max_mean_prob << endl;
 
                 // now add (a) path achieving max to max_path_index
@@ -962,12 +903,6 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 			(w[n][dir].mean_prob == max_mean_prob and accumulate(w[n][dir].kmers_on_path.begin(), w[n][dir].kmers_on_path.end(), 0) == max_num_minis))
                     {
 			t.push_back(w[n][dir]);
-		        /*cout << now() << "Add path to index: ";
-		        for (uint32_t m = 0; m!= w[n][dir].npath.size(); ++m)
-		        {
-			    cout << w[n][dir].npath[m]->id << "->";
-		        }
-		        cout << "mean_p: " << w[n][dir].mean_prob << ", and p: " << w[n][dir].prob << endl;*/
 		        break;
                     }	
                 }
@@ -992,57 +927,6 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
     return;
 }
 
-/*void LocalPRG::write_path_vs_found_path(const string& filepath, const string& query_string)
-{
-    // for true string, find path, kmers on path, prob
-    vector<LocalNode*> npath = nodes_along_string(query_string);
-    vector<int> y(kmer_paths.size(),0);
-    MaxPath mp(npath, y, 0);
-    update_kmers_on_node_path(mp, kmer_path_probs[0]);
-    mp.get_prob(kmer_path_probs[0]);
-    mp.get_mean_prob(kmer_path_probs[0]);
-
-    ofstream handle;
-    handle.open (filepath);
-
-    // write for true string
-    handle << ">" << name << ".true_path\t P(data|sequence)=" << mp.prob << "\t meanP=" << mp.mean_prob << endl;
-    handle << "node path: ";
-    for (uint j = 0; j!= mp.npath.size(); ++j)
-    {
-        handle << mp.npath[j]->id << "->";
-    }
-    handle << endl;
-    handle << "kmers on path: ";
-    for (uint j = 0; j!= mp.kmers_on_path.size(); ++j)
-    {
-	if (mp.kmers_on_path[j] == 1)
-	{
-            handle << j << ", ";
-	}
-    }
-    handle << endl;
-
-    // write for found fwd string
-    handle << ">" << name << ".found_path\t P(data|sequence)=" << max_path_index[0][0][0].prob << "\t meanP=" << max_path_index[0][0][0].mean_prob << endl;
-    handle << "node path: ";
-    for (uint j = 0; j!= max_path_index[0][0][0].npath.size(); ++j)
-    {
-        handle << max_path_index[0][0][0].npath[j]->id << "->";
-    }
-    handle << endl;
-    handle << "kmers on path: ";
-    for (uint j = 0; j!= max_path_index[0][0][0].kmers_on_path.size(); ++j)
-    {
-        if (max_path_index[0][0][0].kmers_on_path[j] == 1)
-        {
-            handle << j << ", ";
-        }
-    }
-    handle << endl;
-    return;
-}*/
-
 void LocalPRG::write_max_paths_to_fasta(const string& filepath)
 {
     assert(max_path_index.size()>0);
@@ -1063,14 +947,6 @@ void LocalPRG::write_max_paths_to_fasta(const string& filepath)
             handle << max_path_index[0][i][0].npath[j]->seq;
         }
         handle << endl;
-
-	/*// and the reverse complement
-	handle << ">rc_" << id << "." << i << "\t P(data|sequence)=" << max_path_index[0][i].prob << endl;
-        for (uint j = max_path_index[0][i][0].npath.size(); j!= 0; --j)
-        {
-            handle << rev_complement(max_path_index[0][i].npath[j-1]->seq);
-        }
-        handle << endl;*/
     }
     handle.close();
     return;

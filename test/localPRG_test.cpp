@@ -3,6 +3,7 @@
 #include "localPRG.h"
 #include "minimizer.h"
 #include "minirecord.h"
+#include "minihit.h"
 #include "interval.h"
 #include "path.h"
 #include "localgraph.h"
@@ -438,6 +439,80 @@ TEST_F(LocalPRGTest, minimizerSketch){
 
 TEST_F(LocalPRGTest, updateCovgWithHit)
 {
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+
+    Minimizer* m;
+    pair<uint64_t,uint64_t> kh = kmerhash("AGC", 3);
+    m = new Minimizer(min(kh.first,kh.second), 1,4,0);
+    deque<Interval> d = {Interval(0,1), Interval(4,5), Interval(8, 9)};
+    Path p;
+    p.initialize(d);
+    MiniRecord* mr;
+    mr = new MiniRecord(3,p,0);
+    MinimizerHit* mh;
+    mh = new MinimizerHit(1, m, mr);
+
+    l3.update_covg_with_hit(mh);
+    uint j = 1;
+    EXPECT_EQ(j, l3.prg.nodes[0]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[1]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[2]->covg);
+     
+    delete m;
+    delete mr;
+    delete mh;
+    kh = kmerhash("CTA", 3); 
+    m = new Minimizer(min(kh.first,kh.second), 3,6,0);
+    d = {Interval(8, 9), Interval(16, 16), Interval(23, 25)};
+    p.initialize(d);
+    mr = new MiniRecord(3,p,0);
+    mh = new MinimizerHit(1, m, mr);
+
+    l3.update_covg_with_hit(mh);
+    j = 1;
+    EXPECT_EQ(j, l3.prg.nodes[0]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[1]->covg);
+    j = 2;
+    EXPECT_EQ(j, l3.prg.nodes[2]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[6]->covg);
+
+    delete m;
+    delete mr;
+    delete mh;
+}
+
+TEST_F(LocalPRGTest, updadeKmersOnNodePath)
+{
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+    Index* idx;
+    idx = new Index();
+    l3.minimizer_sketch(idx, 1, 3);
+
+    vector<LocalNode*> npath = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
+    
+    vector<float> kp(l3.kmer_paths.size(), 0);
+    vector<int> y(l3.kmer_paths.size(),0);
+    MaxPath mp(npath, y, 0);
+    l3.update_kmers_on_node_path(mp, kp);
+    vector<int> y_exp = {0,1,0,1};
+    EXPECT_ITERABLE_EQ(vector<int>, y_exp, mp.kmers_on_path);
+
+    npath = {l3.prg.nodes[0], l3.prg.nodes[1]};
+    y = {0,0,0,0};
+    mp = MaxPath(npath, y, 0);
+    l3.update_kmers_on_node_path(mp, kp);
+    y_exp = {1,0,0,0};
+    EXPECT_ITERABLE_EQ(vector<int>, y_exp, mp.kmers_on_path);
+
+    delete idx;
+}
+
+TEST_F(LocalPRGTest, getKmerPathHitCounts)
+{
+}
+
+TEST_F(LocalPRGTest, getKmerPathProbs)
+{
 }
 
 TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
@@ -524,6 +599,12 @@ TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
     pn->add_hits(mhs->hits);
     
     lp3->infer_most_likely_prg_paths_for_corresponding_pannode(pn, 3, 0.0015);
+    vector<LocalNode*> v_exp = {lp3->prg.nodes[0], lp3->prg.nodes[1], lp3->prg.nodes[3], lp3->prg.nodes[4], lp3->prg.nodes[6]};
+    EXPECT_EQ(v_exp.size(), lp3->max_path_index[0][0][0].npath.size());
+    for (uint j = 0; j!= v_exp.size(); ++j)
+    {
+	EXPECT_EQ(*(v_exp[j]), *(lp3->max_path_index[0][0][0].npath[j]));
+    }
 
     delete mhs;
     delete idx;
@@ -533,232 +614,3 @@ TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
 TEST_F(LocalPRGTest, writeFasta)
 {
 }
-
-// this version does not apply to forcing minis to be disjoint (on a path)
-/*TEST_F(LocalPRGTest, minimizerSketch){
-    LocalPRG l0(0,"empty", "");
-    LocalPRG l1(1,"simple", "AGCT");
-    LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
-    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
-
-    Index* idx;
-    idx = new Index();
-
-    l0.minimizer_sketch(idx, 1, 3);
-    uint32_t j = 0;
-    EXPECT_EQ(j, idx->minhash.size());
-
-    l1.minimizer_sketch(idx, 2, 3);
-    j = 1;
-    EXPECT_EQ(j, idx->minhash.size());
-    l1.minimizer_sketch(idx, 1, 3);
-    EXPECT_EQ(j, idx->minhash.size());
-    j = 2;
-    pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
-    
-    idx->clear();
-    l2.minimizer_sketch(idx, 2, 3);
-    j = 1;
-    EXPECT_EQ(j, idx->minhash.size());
-    l2.minimizer_sketch(idx, 1, 3);
-    j = 2;
-    EXPECT_EQ(j, idx->minhash.size());
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
-
-    idx->clear();
-    l3.minimizer_sketch(idx, 2, 3);
-    j = 2;
-    EXPECT_EQ(j, idx->minhash.size());
-    l3.minimizer_sketch(idx, 1, 3);
-    j = 3;
-    EXPECT_EQ(j, idx->minhash.size());
-    j = 2;
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGC, GCT
-    kh = kmerhash("AGT",3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGTx2
-    j = 1;
-    kh = kmerhash("GTT",3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
-    
-    delete idx;
-}*/
-
-/*TEST_F(LocalPRGTest, getCovgs)
-{
-    LocalPRG l1(1,"simple", "AGCT");
-    LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
-    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T"); 
-
-    MinimizerHits* mh;
-    mh = new MinimizerHits();
-    Minimizer* m;
-    pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
-    m = new Minimizer(min(kh.first,kh.second),0,3,(min(kh.first,kh.second)==kh.first));
-    MiniRecord* r;
-    Path p;
-    deque<Interval> d = {Interval(0,3)};
-    p.initialize(d);
-    r = new MiniRecord(1, p, 0);
-    mh->add_hit(0, m, r);
-    l1.get_covgs(mh);
-    uint32_t j = 3;
-    EXPECT_EQ(j, l1.prg.nodes[0]->covg);
-    // add a second identical read
-    mh->add_hit(1, m, r);
-    l1.get_covgs(mh);
-    j = 6;
-    EXPECT_EQ(j, l1.prg.nodes[0]->covg);
-
-    delete r;
-    d = {Interval(0,1), Interval(4,6)};
-    p.initialize(d);
-    r = new MiniRecord(2, p, 0);
-    mh->add_hit(0, m, r);
-    l2.get_covgs(mh);
-    j = 1;
-    EXPECT_EQ(j, l2.prg.nodes[0]->covg);
-    j = 2;
-    EXPECT_EQ(j, l2.prg.nodes[1]->covg);
-    j = 0;
-    EXPECT_EQ(j, l2.prg.nodes[2]->covg);
-    EXPECT_EQ(j, l2.prg.nodes[3]->covg);
-
-
-    delete r;
-    d = {Interval(0,1), Interval(4,5), Interval(8,9)};
-    p.initialize(d);
-    r = new MiniRecord(3, p, 0);
-    mh->add_hit(0, m, r);
-    l3.get_covgs(mh);
-    j = 1;
-    EXPECT_EQ(j, l3.prg.nodes[0]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[1]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[2]->covg);
-    j = 0;
-    EXPECT_EQ(j, l3.prg.nodes[3]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[4]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[5]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[6]->covg);
-    // add same hit again
-    mh->add_hit(1, m, r);
-    l3.get_covgs(mh);
-    j = 2;
-    EXPECT_EQ(j, l3.prg.nodes[0]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[1]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[2]->covg);
-    j = 0;
-    EXPECT_EQ(j, l3.prg.nodes[3]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[4]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[5]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[6]->covg);
-    // add a different hit
-    delete r;
-    d = {Interval(0,1), Interval(4,5), Interval(12,13)};
-    p.initialize(d);
-    r = new MiniRecord(3, p, 0);
-    mh->add_hit(1, m, r);
-    l3.get_covgs(mh);
-    j = 3;
-    EXPECT_EQ(j, l3.prg.nodes[0]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[1]->covg);
-    j = 2;
-    EXPECT_EQ(j, l3.prg.nodes[2]->covg);
-    j = 1;
-    EXPECT_EQ(j, l3.prg.nodes[3]->covg);
-    j = 0;
-    EXPECT_EQ(j, l3.prg.nodes[4]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[5]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[6]->covg);
-    // and a hit crossing the empty string node
-    delete r;
-    d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
-    p.initialize(d);
-    r = new MiniRecord(3, p, 0);
-    mh->add_hit(2, m, r);
-    l3.get_covgs(mh);
-    j = 4;
-    EXPECT_EQ(j, l3.prg.nodes[1]->covg);
-    j = 3;
-    EXPECT_EQ(j, l3.prg.nodes[0]->covg);
-    j = 2;
-    EXPECT_EQ(j, l3.prg.nodes[2]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[3]->covg);
-    j = 1;
-    EXPECT_EQ(j, l3.prg.nodes[6]->covg);
-    j = 0;
-    EXPECT_EQ(j, l3.prg.nodes[4]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[5]->covg);
-    delete r;
-    delete m;
-    delete mh;
-}*/
-
-/*TEST_F(LocalPRGTest,unpackLinearString){
-    Seq s1 = Seq(0,"0", "AGCTAATGCGTT", 11, 3);
-    Seq s2 = Seq(0,"0", "AGCTAATGCGTT", 10, 3);
-    Seq s3 = Seq(0,"0", "AGCTAATGCGTT", 9, 3);
-    Seq s4 = Seq(0,"0", "AGCTAGTGCGTT", 9, 3);
-    uint32_t j = 0;
-    EXPECT_EQ(s1.sketch.size(),j) << "Have " << s1.sketch.size() << " minimizer when string is too short";
-    ++j;
-    EXPECT_EQ(s2.sketch.size(),j) << "Have " << s2.sketch.size() << " minimizers when should have 1";
-    EXPECT_EQ(s3.sketch.size(),j) << "Have " << s3.sketch.size() << " minimizers when should have 1";
-    ++j;
-    EXPECT_EQ(s4.sketch.size(),j) << "Have " << s4.sketch.size() << " minimizers when should have 2";
-}
-
-TEST_F(SeqTest,sketchIncludesEveryLetter){
-    Seq s1 = Seq(0,"0", "AGCTAATGTGTT", 3, 3);
-    Seq s2 = Seq(0,"0", "AGCTAATGTGTT", 2, 3);
-    Seq s3 = Seq(0,"0", "AGCTAATGTGTT", 1, 3);
-    Seq s4 = Seq(0,"0", "AGCTAATGTGAT", 3, 3);
-
-    set<int> pos_inc;
-    for(set<Minimizer*>::iterator it=s4.sketch.begin(); it != s4.sketch.end(); ++it)
-    {
-        for (std::deque<Interval>::iterator it2=((*it)->path).path.begin(); it2!=((*it)->path).path.end(); ++it2)
-        {
-            for (uint32_t j = it2->start; j<it2->end; ++j)
-            {
-                pos_inc.insert(j);
-            }
-        }
-    } 
-    set<int> expected = {0,1,2,3,4,5,6,7,8,9,10,11};
-    EXPECT_EQ(pos_inc, expected) << "sketch misses a letter";
- 
-    uint32_t j = 10;
-    EXPECT_EQ(s3.sketch.size(), j) << "sketch with w=1 has incorrect size " << s3.sketch.size();
-    
-    pos_inc.clear();
-    for(set<Minimizer*>::iterator it=s2.sketch.begin(); it != s2.sketch.end(); ++it)
-    {
-        for (std::deque<Interval>::iterator it2=((*it)->path).path.begin(); it2!=((*it)->path).path.end(); ++it2)
-        {
-            for (uint32_t j = it2->start; j<it2->end; ++j)
-            {
-                pos_inc.insert(j);
-            }
-        }
-    }
-    EXPECT_EQ(pos_inc, expected) << "sketch for s2 includes/misses wrong letter";
-
-    pos_inc.clear();
-    for(set<Minimizer*>::iterator it=s1.sketch.begin(); it != s1.sketch.end(); ++it)
-    {
-        for (std::deque<Interval>::iterator it2=((*it)->path).path.begin(); it2!=((*it)->path).path.end(); ++it2)
-        {
-            for (uint32_t j = it2->start; j<it2->end; ++j)
-            {
-                pos_inc.insert(j);
-            }
-        }
-    }
-    expected = {0,1,2,3,4,5,6,7,8,9};
-    EXPECT_EQ(pos_inc, expected) << "sketch for s1 includes/misses wrong letter";
-
-}*/
-
-//TEST_F(SeqTest,sketchCorrect){
-//}

@@ -47,7 +47,6 @@ class LocalPRG {
     // functions used to create LocalGraph from PRG string, and to sketch graph
     bool isalpha_string(const std::string&);
     std::string string_along_path(const Path&);
-    //std::vector<LocalNode*> nodes_along_string(const std::string&);
     std::vector<LocalNode*> nodes_along_path(const Path&);
     std::vector<Interval> split_by_site(const Interval&);	
     std::vector<uint32_t> build_graph(const Interval&, const std::vector<uint32_t>&, uint32_t current_level=0);
@@ -60,7 +59,6 @@ class LocalPRG {
     void get_kmer_path_hit_counts(const PanNode*);
     void get_kmer_path_probs(const PanNode*, uint32_t, float);
     void infer_most_likely_prg_paths_for_corresponding_pannode(const PanNode*, uint32_t, float);
-    //void write_path_vs_found_path(const std::string&, const std::string&);
     void write_max_paths_to_fasta(const std::string&);
 
   friend std::ostream& operator<< (std::ostream& out, const LocalPRG& data);  
