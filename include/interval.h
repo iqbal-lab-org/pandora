@@ -2,7 +2,7 @@
 #define __INTERVAL_H_INCLUDED__
 
 #include <cstdint>
-#include <ostream>
+#include <iostream>
 
 struct Interval {
     uint32_t start;
@@ -11,6 +11,7 @@ struct Interval {
 
     Interval(uint32_t=0, uint32_t=0);
     friend std::ostream& operator<< (std::ostream& out, const Interval& i); 
+    friend std::istream& operator>> (std::istream& in, Interval& i);
     bool operator == (const Interval& y) const;
     bool operator != (const Interval& y) const;
     bool operator < (const Interval& y) const;

@@ -17,9 +17,7 @@ MaxPath::MaxPath(vector<LocalNode*> x, vector<int> y, uint32_t z): kmers_on_path
 
 void MaxPath::extend(const MaxPath new_mp)
 {
-    cout << "extend npaths" << endl;
     uint old_size = npath.size();
-    cout << "old size: " << old_size << endl;
     vector<LocalNode*>::const_iterator it = new_mp.npath.begin();
     while((*it)->id <= npath.back()->id and it!=new_mp.npath.end())
     {
@@ -27,9 +25,7 @@ void MaxPath::extend(const MaxPath new_mp)
     }
     npath.insert(npath.end(),it,new_mp.npath.end());
     assert(npath.size()>old_size);
-    cout << "new size: " << npath.size() << endl;
 
-    cout << "take intersection of kmers" << endl;
     assert(new_mp.kmers_on_path.size()==kmers_on_path.size());
     // keep the intersection of kmers
     for (uint n=0; n!=kmers_on_path.size(); ++n)

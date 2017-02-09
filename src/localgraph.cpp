@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cassert>
 #include <vector>
+#include "utils.h"
 #include "localnode.h"
 #include "localgraph.h"
 
@@ -93,6 +94,49 @@ void LocalGraph::write_gfa (const string& filepath)
     handle.close();
 }
 
+void LocalGraph::read_gfa (const string& filepath)
+{
+    uint32_t id, from, to;
+    string line;
+    vector<string> split_line;
+    Interval i(0,0); // node requires an interval, so use a dummy
+
+    ifstream myfile (filepath);
+    if (myfile.is_open())
+    {
+        while ( getline (myfile,line).good() )
+        {
+            if (line[0] == 'S')
+            {
+		split_line = split(line, "\t");
+		assert(split_line.size() >= 3);
+		if (split_line[2] == "*")
+		{
+		    split_line[2] = "";
+		}
+		id = stoi(split_line[1]);
+		add_node(id, (string)split_line[2], i);
+	    } else if (line[0] == 'L') {
+	        split_line = split(line, "\t");
+		assert(split_line.size() >= 5);
+		if (split_line[2] == split_line[4])
+		{
+		    from = stoi(split_line[1]);
+		    to = stoi(split_line[3]);
+		} else {
+		    from = stoi(split_line[3]);
+                    to = stoi(split_line[1]);
+		}
+		add_edge(from, to);
+	    }
+	}
+    } else {
+        cerr << "Unable to open GFA file " << filepath << endl;
+        exit(1);
+    }
+    return;		
+}
+
 vector<Path> LocalGraph::walk(const uint32_t& node_id, const uint32_t& pos, const uint32_t& len)
 {
     //cout << "walking graph from node " << node_id << " pos " << pos << " for length " << len << endl;
@@ -138,6 +182,53 @@ vector<Path> LocalGraph::walk(const uint32_t& node_id, const uint32_t& pos, cons
 	}
     }
     return return_paths;
+}
+
+vector<LocalNode*> LocalGraph::nodes_along_string(const string& query_string)
+{
+    vector<vector<LocalNode*>> u,v;   // u <=> v
+                                      // ie reject paths in u, or extend and add to v
+                                      // then set u=v and continue
+    u.reserve(100);
+    v.reserve(100);
+    vector<LocalNode*> npath;
+    string candidate_string = "";
+
+    assert(nodes.size()>0); //otherwise empty nodes -> segfault
+    u = {{nodes[0]}};
+
+    while (u.size() > 0)
+    {
+        for (uint32_t i=0; i!=u.size(); ++i)
+        {
+            for (uint32_t j=0; j!=u[i].size(); ++j)
+            {
+                candidate_string += u[i][j]->seq;
+            }
+
+            for (uint32_t j=0; j!=u[i].back()->outNodes.size(); ++j)
+            {
+                // if the start of query_string matches extended candidate_string, want to query candidate path extensions
+                if ( query_string.substr(0,candidate_string.size()+u[i].back()->outNodes[j]->seq.size()) == candidate_string+u[i].back()->outNodes[j]->seq)
+                {
+                    if (candidate_string.size()+u[i].back()->outNodes[j]->seq.size() >= query_string.size())
+                    {
+                        // we have now found the whole of the query_string
+                        u[i].push_back(u[i].back()->outNodes[j]);
+                        return u[i];
+                    } else {
+                        v.push_back(u[i]);
+                        v.back().push_back(u[i].back()->outNodes[j]);
+                    }
+                }
+            }
+            candidate_string = "";
+        }
+        u = v;
+        v.clear();
+    }
+    // found no successful path, so return an empty vector
+    return npath;
 }
 
 bool LocalGraph::operator == (const LocalGraph& y) const

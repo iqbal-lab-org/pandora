@@ -28,26 +28,45 @@ class UtilsTest : public ::testing::Test {
 
 };
 
-TEST_F(UtilsTest, indexPrgFile){
+TEST_F(UtilsTest, split)
+{
+    vector<string> v = {"abc", "def", "ghi"};
+    EXPECT_EQ(v, split("abc, def, ghi", ", "));
+    EXPECT_EQ(v, split("abc, def, ghi, ", ", "));
+    EXPECT_EQ(v, split(", abc, def, ghi", ", "));    
+}
+
+TEST_F(UtilsTest, revComplement)
+{
+    string s = "ACCTGATTGCGTA";
+    EXPECT_EQ(s, rev_complement(rev_complement(s)));
+    
+    string t = "TACGCAATCAGGT";
+    EXPECT_EQ(t, rev_complement(s));
+
+    s = "ACCTGATTgCGTA";
+    EXPECT_EQ(t, rev_complement(s));
+    
+    s = "ACCTGATTYCGTA";
+    t = "TACGNAATCAGGT";
+    EXPECT_EQ(t, rev_complement(s));
+}
+
+// don't bother with nchoosek test as will remove function
+
+TEST_F(UtilsTest, readPrgFile){
     vector<LocalPRG*> prgs;
-    Index *idx;
-    idx = new Index;
 
     // simple case first, single prg with empty string sequence
     // doesn't get added to prgs 
-    index_prg_file(prgs, "../test/test_cases/prg0.fa", idx, 1,3);
+    read_prg_file(prgs, "../test/test_cases/prg0.fa");
     uint32_t j = 0;
-    EXPECT_EQ(idx->minhash.size(), j);
     EXPECT_EQ(prgs.size(), j);
  
     // single prg with simple sequence
-    index_prg_file(prgs, "../test/test_cases/prg1.fa", idx, 1,3);
+    read_prg_file(prgs, "../test/test_cases/prg1.fa");
     LocalPRG l1(1,"prg1", "AGCT");
     j = 1;
-    pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
-    EXPECT_EQ(idx->minhash[min(kh.first, kh.second)].size(), j);
-    //j = 1;
-    EXPECT_EQ(idx->minhash.size(), j);
     EXPECT_EQ(prgs.size(), j);
     j = 0;
     EXPECT_EQ(prgs[0]->id, j);
@@ -56,16 +75,10 @@ TEST_F(UtilsTest, indexPrgFile){
     EXPECT_EQ(prgs[0]->prg, l1.prg);
 
     // single prg with a variant site
-    idx->clear();
-    j = 0;
-    EXPECT_EQ(idx->minhash.size(), j);
-    index_prg_file(prgs, "../test/test_cases/prg2.fa", idx, 1,3);
+    read_prg_file(prgs, "../test/test_cases/prg2.fa");
     LocalPRG l2(2,"prg2", "A 5 GC 6 G 5 T");
     j = 2;
-    EXPECT_EQ(idx->minhash.size(), j);
     EXPECT_EQ(prgs.size(), j);
-    j = 1;
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
     j = 0;
     EXPECT_EQ(prgs[1]->id, j);
     EXPECT_EQ(prgs[1]->name, "prg2");
@@ -73,20 +86,10 @@ TEST_F(UtilsTest, indexPrgFile){
     EXPECT_EQ(prgs[1]->prg, l2.prg);
 
     // single prg with a nested variant site
-    idx->clear();
-    j = 0;
-    EXPECT_EQ(idx->minhash.size(), j);
-    index_prg_file(prgs, "../test/test_cases/prg3.fa", idx, 1,3);
+    read_prg_file(prgs, "../test/test_cases/prg3.fa");
     LocalPRG l3 = LocalPRG(3,"prg3", "A 5 G 7 C 8 T 7  6 G 5 T");
     j = 3;
     EXPECT_EQ(prgs.size(), j);
-    j = 2;
-    EXPECT_EQ(idx->minhash.size(), j);
-    j = 1;
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
-    j = 2;
-    kh = kmerhash("AGT",3);
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
     j = 0;
     EXPECT_EQ(prgs[2]->id, j);
     EXPECT_EQ(prgs[2]->name, "prg3");
@@ -94,30 +97,44 @@ TEST_F(UtilsTest, indexPrgFile){
     EXPECT_EQ(prgs[2]->prg, l3.prg);    
 
     // now a prg input file with all 4 in
-    idx->clear();
-    j = 0;
-    EXPECT_EQ(idx->minhash.size(), j);
     prgs.clear();
     EXPECT_EQ(prgs.size(), j);
-    index_prg_file(prgs, "../test/test_cases/prg0123.fa", idx, 1,3);
-    j = 2;
-    EXPECT_EQ(idx->minhash.size(), j);
+    read_prg_file(prgs, "../test/test_cases/prg0123.fa");
     j = 3;
     EXPECT_EQ(prgs.size(), j);
-    kh = kmerhash("AGC",3);
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
-    kh = kmerhash("GCT",3);
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j); // same
-    //j = 3;
-    kh = kmerhash("AGT",3);
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
-    kh = kmerhash("ACT",3);
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j); // same
-    j = 0;
-    kh = kmerhash("GTT",3);
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j); //same
-    kh = kmerhash("AAC",3);
-    EXPECT_EQ(idx->minhash[min(kh.first,kh.second)].size(), j);
+}
+
+TEST_F(UtilsTest, saveLocalPRGkmerpaths)
+{
+    Index* idx;
+    idx = new Index();
+
+    vector<LocalPRG*> prgs;
+    read_prg_file(prgs, "../test/test_cases/prg0123.fa");
+    for (uint i=0; i != prgs.size(); ++i)
+    {
+        prgs[i]->minimizer_sketch(idx, 1, 3);
+    }
+    save_LocalPRG_kmer_paths(prgs, "../test/test_cases/prg0123.fa");
+    delete idx;
+}
+
+TEST_F(UtilsTest, loadLocalPRGkmerpaths)
+{
+    Index* idx;
+    idx = new Index();
+
+    vector<LocalPRG*> prgs1;
+    read_prg_file(prgs1, "../test/test_cases/prg0123.fa");
+    load_LocalPRG_kmer_paths(prgs1, "../test/test_cases/prg0123.fa");
+
+    vector<LocalPRG*> prgs2;
+    read_prg_file(prgs2, "../test/test_cases/prg0123.fa");
+    for (uint i=0; i != prgs2.size(); ++i)
+    {
+        prgs2[i]->minimizer_sketch(idx, 1, 3);
+	EXPECT_ITERABLE_EQ(vector<Path>, prgs1[i]->kmer_paths, prgs2[i]->kmer_paths);
+    }
     delete idx;
 }
 
@@ -347,17 +364,14 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     lp3->kmer_paths.push_back(p);
 
     // add read hits to mhs
-    cout << "add read hits" << endl; 
     add_read_hits(0, "read1", "AGTTAAGTACG", mhs, idx, 1, 3);
 
     // initialize pangraph;
-    cout << "initialize pangraph" << endl;
     PanGraph *pg;
     pg = new PanGraph();
     infer_localPRG_order_for_reads(prgs, mhs, pg, 1, 3);
 
     // create a pangraph object representing the truth we expect (prg 3 then 1)
-    cout << "create a pangraph object representing the truth we expect (prg 3 then 1)" << endl;
     PanGraph pg_exp;
     MinimizerHits mhs_dummy;
     pg_exp.add_node(1,0, mhs_dummy.hits);
@@ -535,10 +549,9 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     delete idx;
 }
 
-/*TEST_F(UtilsTest, pangraphFromReadFile)
+TEST_F(UtilsTest, pangraphFromReadFile)
 {
-    // initialize minihits container
-    MinimizerHits *mhs;
+    MinimizerHits* mhs;
     mhs = new MinimizerHits();
 
     // initialize a prgs object
@@ -629,13 +642,13 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
 
     d = {Interval(23,26)};
     p.initialize(d);
-    kh = kmerhash("TAA",3);
+    kh = kmerhash("TAT",3);//inconsistent but I don't care
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(24,27)};
     p.initialize(d);
-    kh = kmerhash("AAG",3);
+    kh = kmerhash("ATG",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
@@ -669,14 +682,10 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     idx->add_record(min(kh.first,kh.second), 2, p, (kh.first < kh.second));
     lp2->kmer_paths.push_back(p);
 
-    // add read hits to mhs
-    add_read_hits(0, "read2", "AGTTAAGCTAGCTACTTACGGTA", mhs, idx, 1, 3);
-
     // initialize pangraph;
     PanGraph *pg;
     pg = new PanGraph();
-    pangraph_from_read_file("../test/test_cases/read0.fa", pg, idx, prgs, 1, 3, 1, 1);
-    //infer_localPRG_order_for_reads(prgs, mhs, pg, 1, 1, 3);
+    pangraph_from_read_file("../test/test_cases/read2.fa", mhs, pg, idx, prgs, 1, 3, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
@@ -692,12 +701,14 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
 
     EXPECT_EQ(pg_exp, *pg);
     delete pg;
+    delete mhs;
     delete lp1;
     delete lp2;
     delete lp3;
     delete lp4;
-    delete mhs;
     delete idx;
-}*/
+}
 
-// add test case with rev complement sequence
+//update_covgs_from_hits
+//p_null
+

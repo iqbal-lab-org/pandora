@@ -190,4 +190,28 @@ TEST_F(PathTest, equals)
     EXPECT_EQ((p1==p),false);
 }
 
+TEST_F(PathTest, write)
+{
+    deque<Interval> d;
+    d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
+    Path p;
+    p.initialize(d);
 
+    stringstream out;
+    out << p;
+    EXPECT_EQ(out.str(), "4{[1, 3)[4, 5)[6, 6)[9, 40)}"); 
+}
+
+TEST_F(PathTest, read)
+{
+    deque<Interval> d;
+    d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
+    Path p, q;
+    p.initialize(d);
+
+    stringstream out;
+    out << p;
+
+    out >> q;
+    EXPECT_EQ(p,q); 
+}

@@ -71,3 +71,31 @@ TEST_F(MiniRecordTest,equals){
     EXPECT_EQ((m1==m4), false);
     EXPECT_EQ((m3==m4), false);
 }
+
+TEST_F(MiniRecordTest, write)
+{
+    deque<Interval> d;
+    d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
+    Path p;
+    p.initialize(d);
+    MiniRecord mr(1,p,0);
+
+    stringstream out;
+    out << mr;
+    EXPECT_EQ(out.str(), "(1, 4{[1, 3)[4, 5)[6, 6)[9, 40)}, 0)");
+}
+
+TEST_F(MiniRecordTest, read)
+{
+    deque<Interval> d;
+    d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
+    Path p;
+    p.initialize(d);
+    MiniRecord mr1(1,p,0), mr2;
+
+    stringstream out;
+    out << mr1;
+
+    out >> mr2;
+    EXPECT_EQ(mr1, mr2);
+}

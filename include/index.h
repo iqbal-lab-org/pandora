@@ -14,9 +14,10 @@ class Index {
     Index();
     ~Index();
     void add_record(uint64_t, uint32_t, Path, bool);
-    void save_index(const std::string& filename);
+    void save(const std::string& prgfile);
+    void load(const std::string& prgfile);
     void clear();
-  friend std::ostream& operator<< (std::ostream& out, const Index& idx);
+  //friend std::ostream& operator<< (std::ostream& out, const Index& idx);
 };
 
 #endif
