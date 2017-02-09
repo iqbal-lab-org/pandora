@@ -21,15 +21,21 @@ void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniReco
 {
     MinimizerHit *mh;
     mh = new MinimizerHit(i, m, r);
-    set<MinimizerHit*, pComp>::iterator it=hits.find(mh);
-    if(it==hits.end())
+    //set<MinimizerHit*, pComp>::iterator it=hits.find(mh);
+    unordered_set<MinimizerHit*>::iterator it=uhits.find(mh);
+    if(it==uhits.end())
     {
-        hits.insert(mh);
-        //cout << "Added hit " << *mh << endl;
-        //cout << *mh << endl;
+        uhits.insert(mh);
     } else {
         delete mh;
     }
+}
+
+void MinimizerHits::sort()
+{
+    hits.insert(uhits.begin(), uhits.end());
+    uhits.clear();
+    return;
 }
 
 /*std::ostream& operator<< (std::ostream & out, MinimizerHits const& m) {

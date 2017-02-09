@@ -229,6 +229,7 @@ void add_read_hits(const uint32_t id, const string& name, const string& seq, Min
             }
         }
     }
+    hits->sort();
     cout << now() << "Found " << hit_count << " hits found for read " << name << " so size of MinimizerHits is now " << hits->hits.size() << endl;
     return;
 }

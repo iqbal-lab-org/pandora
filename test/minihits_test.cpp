@@ -54,6 +54,7 @@ TEST_F(MinimizerHitsTest,addHit){
     mhits.add_hit(1, m, mr);
 
     uint32_t j(5);
+    mhits.sort();
     EXPECT_EQ(j, mhits.hits.size());
 
     delete m;
@@ -96,6 +97,7 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
     mhits.add_hit(1, m, mr);
     expected.push_back(MinimizerHit(1, m, mr));
 
+    mhits.sort();
     uint32_t j(1);
     for (set<MinimizerHit*, pComp>::iterator it=mhits.hits.begin(); it!=--mhits.hits.end(); ++it)
     {
@@ -145,6 +147,7 @@ TEST_F(MinimizerHitsTest, pCompPath) {
     mhits.add_hit(1, m, mr);
     expected.push_front(MinimizerHit(1, m, mr));
 
+    mhits.sort();
     for (set<MinimizerHit*, pComp>::iterator it=mhits.hits.begin(); it!=--mhits.hits.end(); ++it)
     {
 	mhitspath.insert(*it);

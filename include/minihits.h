@@ -4,6 +4,7 @@
 struct MinimizerHit;
 
 #include <set>
+#include <unordered_set>
 #include <stdint.h>
 #include "minimizer.h"
 #include "minirecord.h"
@@ -27,8 +28,10 @@ class MinimizerHits {
   public:
     MinimizerHits() {}
     ~MinimizerHits();
+    std::unordered_set<MinimizerHit*> uhits;
     std::set<MinimizerHit*, pComp> hits;
     void add_hit(const uint32_t i, const Minimizer* m, const MiniRecord* r);
+    void sort();
     friend std::ostream& operator<< (std::ostream& out, const MinimizerHits& m);
 };
 
