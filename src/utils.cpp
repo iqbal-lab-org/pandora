@@ -356,27 +356,12 @@ void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prg
 
 float p_null(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_of_hits, uint32_t k)
 {
-    //cout << "finding p_null for cluster of size |x|=" << cluster_of_hits.size() << endl;
-    float p = 0;
-
     // Assumes only one PRG in the vector has the id, (or works out p_null for the first occurrence)
     assert(cluster_of_hits.size() > 0);
-    bool id_found = false;
+    assert((*cluster_of_hits.begin())->prg_id < prgs.size());
 
-    for (uint32_t i=0; i!= prgs.size(); ++i)
-    {
-        if (prgs[i]->id == (*cluster_of_hits.begin())->prg_id)
-	{
-            //p = (1 - pow(1 - pow(0.25, k), cluster_of_hits.size()))*(1 - pow(1 - pow(0.25, k), prgs[i]->kmer_paths.size()));
-            p = pow(1 - pow(1 - pow(0.25, k), prgs[i]->kmer_paths.size()), cluster_of_hits.size());
-	    id_found = true;
-            //cout << "p_null = " << p << ", using |y|=" << prgs[i]->kmer_paths.size() << " and |x|=" << cluster_of_hits.size() << " for prg " << prgs[i]->id << " and strand " << (*cluster_of_hits.begin())->strand << endl;
-            return p;
-	}
-    }
-    // if we have got here, then it couldn't be found
-    cout << "did not find id" << endl;
-    assert(id_found == true);
+    uint32_t i = (*cluster_of_hits.begin())->prg_id;
+    float p = pow(1 - pow(1 - pow(0.25, k), prgs[i]->kmer_paths.size()), cluster_of_hits.size());
     return p;
 }
 

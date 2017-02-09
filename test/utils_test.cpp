@@ -294,9 +294,9 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     LocalPRG* lp1;
     LocalPRG* lp3;
     lp1 = new LocalPRG(1, "1", "");
-    lp3 = new LocalPRG(3, "3", "");
-    prgs.push_back(lp1);
+    lp3 = new LocalPRG(0, "0", "");
     prgs.push_back(lp3);
+    prgs.push_back(lp1);
 
     // initialize index as we would expect with example prgs (variant of) 1 and 3 from above
     Index *idx;
@@ -318,49 +318,49 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     p.initialize(d);
     kh = kmerhash("AGC",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(4,5), Interval(12,13)};
     p.initialize(d);
     kh = kmerhash("AGT",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(19,20), Interval(23,24)};
     p.initialize(d);
     kh = kmerhash("ATT",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     kh = kmerhash("GCT",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     kh = kmerhash("GTT",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(12,13), Interval(16,16), Interval(23,25)};
     p.initialize(d);
     kh = kmerhash("TTA",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(23,26)};
     p.initialize(d);
     kh = kmerhash("TAA",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(24,27)};
     p.initialize(d);
     kh = kmerhash("AAG",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
+    idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     // add read hits to mhs
@@ -375,8 +375,8 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     PanGraph pg_exp;
     MinimizerHits mhs_dummy;
     pg_exp.add_node(1,0, mhs_dummy.hits);
-    pg_exp.add_node(3,0, mhs_dummy.hits);
-    pg_exp.add_edge(3,1);
+    pg_exp.add_node(0,0, mhs_dummy.hits);
+    pg_exp.add_edge(0,1);
 
     EXPECT_EQ(pg_exp, *pg);
     delete idx;
@@ -399,12 +399,12 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     LocalPRG* lp4;
     lp1 = new LocalPRG(1, "1", "");
     lp3 = new LocalPRG(3, "3", "");
-    lp4 = new LocalPRG(4, "4", "");
+    lp4 = new LocalPRG(0, "", "");
     lp2 = new LocalPRG(2, "2", "");
-    prgs.push_back(lp1);
-    prgs.push_back(lp3);
     prgs.push_back(lp4);
+    prgs.push_back(lp1);
     prgs.push_back(lp2);
+    prgs.push_back(lp3);
 
     // initialize index as we would expect with example prgs
     Index *idx;
@@ -492,13 +492,13 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     d = {Interval(8,11)};
     p.initialize(d);
     kh = kmerhash("CTA",3);
-    idx->add_record(min(kh.first,kh.second), 4, p, (kh.first < kh.second));
+    idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp4->kmer_paths.push_back(p);
 
     d = {Interval(9,12)};
     p.initialize(d);
     kh = kmerhash("TAG",3);
-    idx->add_record(min(kh.first,kh.second), 4, p, (kh.first < kh.second));
+    idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp4->kmer_paths.push_back(p);
 
     d = {Interval(0,3)};
@@ -534,9 +534,9 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     pg_exp.add_node(1,0, mhs_dummy.hits);
     pg_exp.add_node(2,0, mhs_dummy.hits);
     pg_exp.add_node(3,0, mhs_dummy.hits);
-    pg_exp.add_node(4,0, mhs_dummy.hits);
-    pg_exp.add_edge(3,4);
-    pg_exp.add_edge(4,2);
+    pg_exp.add_node(0,0, mhs_dummy.hits);
+    pg_exp.add_edge(3,0);
+    pg_exp.add_edge(0,2);
     pg_exp.add_edge(2,1);
 
     EXPECT_EQ(pg_exp, *pg);
@@ -562,12 +562,12 @@ TEST_F(UtilsTest, pangraphFromReadFile)
     LocalPRG* lp4;
     lp1 = new LocalPRG(1, "1", "");
     lp3 = new LocalPRG(3, "3", "");
-    lp4 = new LocalPRG(4, "4", "");
+    lp4 = new LocalPRG(0, "0", "");
     lp2 = new LocalPRG(2, "2", "");
-    prgs.push_back(lp1);
-    prgs.push_back(lp3);
     prgs.push_back(lp4);
+    prgs.push_back(lp1);
     prgs.push_back(lp2);
+    prgs.push_back(lp3);
 
     // initialize index as we would expect with example prgs
     Index *idx;
@@ -655,13 +655,13 @@ TEST_F(UtilsTest, pangraphFromReadFile)
     d = {Interval(8,11)};
     p.initialize(d);
     kh = kmerhash("CTA",3);
-    idx->add_record(min(kh.first,kh.second), 4, p, (kh.first < kh.second));
+    idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp4->kmer_paths.push_back(p);
 
     d = {Interval(9,12)};
     p.initialize(d);
     kh = kmerhash("TAG",3);
-    idx->add_record(min(kh.first,kh.second), 4, p, (kh.first < kh.second));
+    idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp4->kmer_paths.push_back(p);
 
     d = {Interval(0,3)};
@@ -694,9 +694,9 @@ TEST_F(UtilsTest, pangraphFromReadFile)
     pg_exp.add_node(1,0, mhs_dummy.hits);
     pg_exp.add_node(2,0, mhs_dummy.hits);
     pg_exp.add_node(3,0, mhs_dummy.hits);
-    pg_exp.add_node(4,0, mhs_dummy.hits);
-    pg_exp.add_edge(3,4);
-    pg_exp.add_edge(4,2);
+    pg_exp.add_node(0,0, mhs_dummy.hits);
+    pg_exp.add_edge(3,0);
+    pg_exp.add_edge(0,2);
     pg_exp.add_edge(2,1);
 
     EXPECT_EQ(pg_exp, *pg);
