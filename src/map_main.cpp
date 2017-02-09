@@ -141,7 +141,7 @@ int pandora_map(int argc, char* argv[])
     pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
     
     cout << now() << "Update LocalPRGs with hits and infer paths" << endl;
-    update_localPRGs_with_hits(pangraph, mhs, prgs, k, e_rate);
+    update_localPRGs_with_hits(pangraph, prgs, k, e_rate);
 
     cout << now() << "Writing PanGraph to file " << prefix << "_pangraph.gfa" << endl;
     pangraph->write_gfa(prefix + "_pangraph.gfa");
