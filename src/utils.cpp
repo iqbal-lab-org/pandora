@@ -88,7 +88,7 @@ float lognchoosek (uint32_t n, uint32_t k)
 	total += log(m);
     }
 
-    for (uint m=1; m!=k; ++m)
+    for (uint m=1; m<k; ++m)
     {
 	total -= log(m+1);
     }
@@ -340,42 +340,17 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
     return;
 }
 
-void update_localPRGs_with_hits(PanGraph* pangraph, MinimizerHits* mh, const vector<LocalPRG*>& prgs, const uint32_t k, const float& e_rate)
+void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prgs, const uint32_t k, const float& e_rate)
 {
-    cout << now() << "Update coverages within genes" << endl;
-    update_covgs_from_hits(prgs, mh);
-    cout << now() << "Infer overlapped PRG paths for each PRG present" << endl;
     for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode)
     {
-            cout << now() << "Looking at PRG " << pnode->second->id << endl;
-            prgs[pnode->second->id]->infer_most_likely_prg_paths_for_corresponding_pannode(pnode->second, k, e_rate);
-    }
-}
-
-/*void update_covgs_from_hits(vector<LocalPRG*>& prgs, MinimizerHits* mhs)
-{
-    for (uint32_t i=0; i!= prgs.size(); ++i)
-    {
-        prgs[i]->get_covgs(mhs);
-    }
-    return;
-}*/
-void update_covgs_from_hits(const vector<LocalPRG*>& prgs, MinimizerHits* mhs)
-{
-    // note that within mhs, hits which map to same prg should be together
-    for (set<MinimizerHit*, pComp>::iterator mh = mhs->hits.begin(); mh != mhs->hits.end(); ++mh)
-    {
-        //cout << "prg_id: " << (*mh)->prg_id << endl;
-        for (uint32_t i=0; i!= prgs.size(); ++i)
+        cout << now() << "Update coverages for PRG " << pnode->second->id << endl;
+	for (set<MinimizerHit*, pComp_path>::iterator mh = pnode->second->foundHits.begin(); mh != pnode->second->foundHits.end(); ++mh)
 	{
-	    if (prgs[i]->id == (*mh)->prg_id)
-	    {
-	        prgs[i]->update_covg_with_hit(*mh);
-		break;
-	    }
+	    prgs[pnode->second->id]->update_covg_with_hit(*mh);
 	}
+        prgs[pnode->second->id]->infer_most_likely_prg_paths_for_corresponding_pannode(pnode->second, k, e_rate);
     }
-    return;
 }
 
 float p_null(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_of_hits, uint32_t k)
