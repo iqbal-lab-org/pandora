@@ -802,10 +802,6 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                     // if the path in the tuple ends at the end of the varsite, it is a done path, add to w
                     if (u[j][0].npath.back()->id == post_site_id)
                     {
-                        for (uint32_t dir = 0; dir != 3; ++dir)
-                        {
-                            u[j][dir].get_prob(kmer_path_probs[dir]);
-                        }
                         w.push_back(u[j]);
                     } else {
                         // otherwise look up the last node in the max_path_index
@@ -882,6 +878,7 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
                     if ((max_mean_prob == numeric_limits<float>::lowest() and w[n][dir].mean_prob == 0) or 
 			(w[n][dir].mean_prob == max_mean_prob and accumulate(w[n][dir].kmers_on_path.begin(), w[n][dir].kmers_on_path.end(), 0) == max_num_minis))
                     {
+			w[n][dir].get_prob(kmer_path_probs[dir]);
 			t.push_back(w[n][dir]);
 		        break;
                     }	
