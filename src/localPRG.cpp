@@ -337,6 +337,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
     Path current_path, kmer_path;
     string kmer;
     pair<uint64_t, uint64_t> kh;
+    KmerHash hash;
     uint64_t smallest = std::numeric_limits<uint64_t>::max();
 
     for (map<uint32_t,LocalNode*>::iterator it=prg.nodes.begin(); it!=prg.nodes.end(); ++it)
@@ -358,7 +359,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                 d = {Interval(i+j, i+j+k)};
                 kmer_path.initialize(d);
                 kmer = string_along_path(kmer_path);
-                kh = kmerhash(kmer, k);
+                kh = hash.kmerhash(kmer, k);
                 smallest = min(smallest, min(kh.first, kh.second));
             }
             for (uint32_t j = 0; j < w; j++)
@@ -366,7 +367,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                 d = {Interval(i+j, i+j+k)};
                 kmer_path.initialize(d);
                 kmer = string_along_path(kmer_path);
-                kh = kmerhash(kmer, k);
+                kh = hash.kmerhash(kmer, k);
                 if (kh.first == smallest)
                 {
                     //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;
@@ -413,7 +414,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                     {
                         //cout << "found path" << endl;
                         kmer = string_along_path(kmer_path);
-                        kh = kmerhash(kmer, k);
+                        kh = hash.kmerhash(kmer, k);
                         smallest = min(smallest, min(kh.first, kh.second));
                     }
                 }
@@ -427,7 +428,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                     {
                         //cout << "found path" << endl;
                         kmer = string_along_path(kmer_path);
-                        kh = kmerhash(kmer, k);
+                        kh = hash.kmerhash(kmer, k);
                         if (kh.first == smallest)
                         {
                             //cout << "add record: " << kmer << " " << id << " " << kmer_path << endl;

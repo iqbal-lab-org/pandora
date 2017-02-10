@@ -24,7 +24,8 @@ class MinimizerHitTest : public ::testing::Test {
 
 TEST_F(MinimizerHitTest,create){
     Minimizer* m;
-    pair<uint64_t, uint64_t> kh = kmerhash("ACGTA", 5);
+    KmerHash hash;
+    pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
     m = new Minimizer(min(kh.first,kh.second), 0,5,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
@@ -41,7 +42,7 @@ TEST_F(MinimizerHitTest,create){
     bool b = false;
     EXPECT_EQ(b, mh.strand);
 
-    kh = kmerhash("hell", 4);
+    kh = hash.kmerhash("hell", 4);
     m = new Minimizer(min(kh.first,kh.second),1,5,0);
     EXPECT_DEATH(MinimizerHit(1, m, mr), "");
 
@@ -52,7 +53,8 @@ TEST_F(MinimizerHitTest,create){
 
 TEST_F(MinimizerHitTest,checkStrand){
     Minimizer* m;
-    pair<uint64_t, uint64_t> kh = kmerhash("ACGTA", 5);
+    KmerHash hash;
+    pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
     m = new Minimizer(min(kh.first,kh.second), 0,5,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
@@ -89,7 +91,8 @@ TEST_F(MinimizerHitTest,checkStrand){
 
 TEST_F(MinimizerHitTest,equals){
     Minimizer* m;
-    pair<uint64_t,uint64_t> kh = kmerhash("ACGTA", 5);
+    KmerHash hash;
+    pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
     m = new Minimizer(min(kh.first,kh.second), 0,5,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
@@ -115,9 +118,10 @@ TEST_F(MinimizerHitTest,equals){
 
 TEST_F(MinimizerHitTest,compare){
     set<MinimizerHit> hits;
+    KmerHash hash;
 
     Minimizer* m;
-    pair<uint64_t,uint64_t> kh = kmerhash("ACGTA", 5);
+    pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
     m = new Minimizer(min(kh.first,kh.second), 1,6,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;

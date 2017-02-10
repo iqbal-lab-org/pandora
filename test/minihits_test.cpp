@@ -25,8 +25,9 @@ class MinimizerHitsTest : public ::testing::Test {
 
 TEST_F(MinimizerHitsTest,addHit){
     MinimizerHits mhits;
+    KmerHash hash;
     Minimizer* m;
-    pair<uint64_t,uint64_t> kh = kmerhash("ACGTA", 5);
+    pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
     m = new Minimizer(min(kh.first,kh.second), 1,6,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
@@ -64,9 +65,9 @@ TEST_F(MinimizerHitsTest,addHit){
 TEST_F(MinimizerHitsTest, pCompCheck) {
     MinimizerHits mhits;
     vector<MinimizerHit> expected;
-
+    KmerHash hash;
     Minimizer* m;
-    pair<uint64_t,uint64_t> kh = kmerhash("ACGTA", 5);
+    pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
     m = new Minimizer(min(kh.first,kh.second), 1,6,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
@@ -114,9 +115,9 @@ TEST_F(MinimizerHitsTest, pCompPath) {
     set<MinimizerHit*, pComp_path> mhitspath;
     MinimizerHits mhits;
     deque<MinimizerHit> expected;
-
+    KmerHash hash;
     Minimizer* m;
-    pair<uint64_t,uint64_t> kh = kmerhash("ACGTA", 5);
+    pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
     m = new Minimizer(min(kh.first,kh.second), 1,6,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
@@ -170,8 +171,9 @@ TEST_F(MinimizerHitsTest, clusterCompCheck){
 
     vector<MinimizerHit*> expected1, expected2;
 
+    KmerHash hash;
     Minimizer* m;
-    pair<uint64_t,uint64_t> kh = kmerhash("ACGTA", 5);
+    pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
     m = new Minimizer(min(kh.first,kh.second), 1,6,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;

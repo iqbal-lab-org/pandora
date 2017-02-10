@@ -59,6 +59,7 @@ set<string> generate_kmers(vector<string> v, uint32_t k)
 
 TEST_F(InthashTest,check1to1){
     vector<uint32_t> ks = {3,5};
+    KmerHash hash;
     for (vector<uint32_t>::iterator jt = ks.begin(); jt != ks.end(); ++jt)
     {
         uint32_t k = *jt;
@@ -70,7 +71,7 @@ TEST_F(InthashTest,check1to1){
         pair<uint64_t,uint64_t> kh;
         for (set<string>::iterator it = kmers.begin(); it != kmers.end(); ++it)
         {
-            kh = kmerhash(*it, k);
+            kh = hash.kmerhash(*it, k);
             EXPECT_EQ((kh.first < pow(4,k)), true);
             if (find(khs.begin(), khs.end(), kh.first) != khs.end())
             {

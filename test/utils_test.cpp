@@ -148,12 +148,13 @@ TEST_F(UtilsTest, addReadHits){
     MinimizerHit *m1, *m2, *m3, *m4, *m5, *m6, *m7, *m8, *m9, *m10, *m11;
 
     // initialize index as we would expect with example prgs 1 and 3 from above
+    KmerHash hash;
     Index *idx;
     idx = new Index();
     deque<Interval> d = {Interval(0,3)};
     Path p;
     p.initialize(d);
-    pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
+    pair<uint64_t,uint64_t> kh = hash.kmerhash("AGC",3);
     idx->add_record(min(kh.first,kh.second), 1, p, 0);
     m1 = new MinimizerHit(0, Interval(0,3), 1, p, 0);
     m2 = new MinimizerHit(0, Interval(1,4), 1, p, 1);
@@ -161,7 +162,7 @@ TEST_F(UtilsTest, addReadHits){
     expected2.hits.insert(m2);
     d = {Interval(1,4)};
     p.initialize(d);
-    kh = kmerhash("GCT",3);
+    kh = hash.kmerhash("GCT",3);
     idx->add_record(min(kh.first,kh.second), 1, p, 1);
     m3 = new MinimizerHit(0, Interval(1,4), 1, p, 0);
     m4 = new MinimizerHit(0, Interval(0,3), 1, p, 1);
@@ -169,7 +170,7 @@ TEST_F(UtilsTest, addReadHits){
     expected1.hits.insert(m4);
     d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     p.initialize(d);
-    kh = kmerhash("AGC",3);
+    kh = hash.kmerhash("AGC",3);
     idx->add_record(min(kh.first,kh.second), 3, p, 0);
     m5 = new MinimizerHit(0, Interval(0,3), 3, p, 0);
     m6 = new MinimizerHit(0, Interval(1,4), 3, p, 1);
@@ -177,7 +178,7 @@ TEST_F(UtilsTest, addReadHits){
     expected2.hits.insert(m6);
     d = {Interval(0,1), Interval(4,5), Interval(12,13)};
     p.initialize(d);
-    kh = kmerhash("AGT",3);
+    kh = hash.kmerhash("AGT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, 0);
     m9 = new MinimizerHit(0, Interval(0,3), 3, p, 1);
     expected3.hits.insert(m9);
@@ -188,7 +189,7 @@ TEST_F(UtilsTest, addReadHits){
     expected3.hits.insert(m10);
     d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
     p.initialize(d);
-    kh = kmerhash("GCT",3);
+    kh = hash.kmerhash("GCT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, 0);
     m7 = new MinimizerHit(0, Interval(1,4), 3, p, 1);
     m8 = new MinimizerHit(0, Interval(0,3), 3, p, 0);
@@ -196,7 +197,7 @@ TEST_F(UtilsTest, addReadHits){
     expected1.hits.insert(m8);
     d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
-    kh = kmerhash("GTT",3);
+    kh = hash.kmerhash("GTT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, 0);
     m11 = new MinimizerHit(0, Interval(1,4), 3, p, 1);
 
@@ -288,6 +289,7 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     // initialize minihits container
     MinimizerHits *mhs;
     mhs = new MinimizerHits();
+    KmerHash hash;
 
     // initialize a prgs object
     vector<LocalPRG*> prgs;
@@ -305,61 +307,61 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     deque<Interval> d = {Interval(0,3)};
     Path p;
     p.initialize(d);
-    pair<uint64_t,uint64_t> kh = kmerhash("TAC",3);
+    pair<uint64_t,uint64_t> kh = hash.kmerhash("TAC",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
     lp1->kmer_paths.push_back(p);
 
     d = {Interval(1,4)};
     p.initialize(d);
-    kh = kmerhash("ACG",3);
+    kh = hash.kmerhash("ACG",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
     lp1->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     p.initialize(d);
-    kh = kmerhash("AGC",3);
+    kh = hash.kmerhash("AGC",3);
     idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(4,5), Interval(12,13)};
     p.initialize(d);
-    kh = kmerhash("AGT",3);
+    kh = hash.kmerhash("AGT",3);
     idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(19,20), Interval(23,24)};
     p.initialize(d);
-    kh = kmerhash("ATT",3);
+    kh = hash.kmerhash("ATT",3);
     idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
     p.initialize(d);
-    kh = kmerhash("GCT",3);
+    kh = hash.kmerhash("GCT",3);
     idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
-    kh = kmerhash("GTT",3);
+    kh = hash.kmerhash("GTT",3);
     idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(12,13), Interval(16,16), Interval(23,25)};
     p.initialize(d);
-    kh = kmerhash("TTA",3);
+    kh = hash.kmerhash("TTA",3);
     idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(23,26)};
     p.initialize(d);
-    kh = kmerhash("TAA",3);
+    kh = hash.kmerhash("TAA",3);
     idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(24,27)};
     p.initialize(d);
-    kh = kmerhash("AAG",3);
+    kh = hash.kmerhash("AAG",3);
     idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
@@ -390,6 +392,7 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     // initialize minihits container
     MinimizerHits *mhs;
     mhs = new MinimizerHits();
+    KmerHash hash;
 
     // initialize a prgs object
     vector<LocalPRG*> prgs;
@@ -413,109 +416,109 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     deque<Interval> d = {Interval(0,3)};
     Path p;
     p.initialize(d);
-    pair<uint64_t,uint64_t> kh = kmerhash("TAC",3);
+    pair<uint64_t,uint64_t> kh = hash.kmerhash("TAC",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
     lp1->kmer_paths.push_back(p);
 
     d = {Interval(1,4)};
     p.initialize(d);
-    kh = kmerhash("ACG",3);
+    kh = hash.kmerhash("ACG",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
     lp1->kmer_paths.push_back(p);
 
     d = {Interval(2,5)};
     p.initialize(d);
-    kh = kmerhash("CGG",3);
+    kh = hash.kmerhash("CGG",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
     lp1->kmer_paths.push_back(p);
 
     d = {Interval(3,6)};
     p.initialize(d);
-    kh = kmerhash("GGT",3);
+    kh = hash.kmerhash("GGT",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
     lp1->kmer_paths.push_back(p);
 
     d = {Interval(4,7)};
     p.initialize(d);
-    kh = kmerhash("GTA",3);
+    kh = hash.kmerhash("GTA",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
     lp1->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     p.initialize(d);
-    kh = kmerhash("AGC",3);
+    kh = hash.kmerhash("AGC",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(4,5), Interval(12,13)};
     p.initialize(d);
-    kh = kmerhash("AGT",3);
+    kh = hash.kmerhash("AGT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(19,20), Interval(23,24)};
     p.initialize(d);
-    kh = kmerhash("ATT",3);
+    kh = hash.kmerhash("ATT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
     p.initialize(d);
-    kh = kmerhash("GCT",3);
+    kh = hash.kmerhash("GCT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
-    kh = kmerhash("GTT",3);
+    kh = hash.kmerhash("GTT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(12,13), Interval(16,16), Interval(23,25)};
     p.initialize(d);
-    kh = kmerhash("TTA",3);
+    kh = hash.kmerhash("TTA",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(23,26)};
     p.initialize(d);
-    kh = kmerhash("TAT",3);//inconsistent but I don't care
+    kh = hash.kmerhash("TAT",3);//inconsistent but I don't care
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(24,27)};
     p.initialize(d);
-    kh = kmerhash("ATG",3);
+    kh = hash.kmerhash("ATG",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(8,11)};
     p.initialize(d);
-    kh = kmerhash("CTA",3);
+    kh = hash.kmerhash("CTA",3);
     idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp4->kmer_paths.push_back(p);
 
     d = {Interval(9,12)};
     p.initialize(d);
-    kh = kmerhash("TAG",3);
+    kh = hash.kmerhash("TAG",3);
     idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp4->kmer_paths.push_back(p);
 
     d = {Interval(0,3)};
     p.initialize(d);
-    kh = kmerhash("CTA",3);
+    kh = hash.kmerhash("CTA",3);
     idx->add_record(min(kh.first,kh.second), 2, p, (kh.first < kh.second));
     lp2->kmer_paths.push_back(p);
 
     d = {Interval(1,4)};
     p.initialize(d);
-    kh = kmerhash("TAC",3);
+    kh = hash.kmerhash("TAC",3);
     idx->add_record(min(kh.first,kh.second), 2, p, (kh.first < kh.second));
     lp2->kmer_paths.push_back(p);
 
     d = {Interval(2,5)};
     p.initialize(d);
-    kh = kmerhash("ACT",3);
+    kh = hash.kmerhash("ACT",3);
     idx->add_record(min(kh.first,kh.second), 2, p, (kh.first < kh.second));
     lp2->kmer_paths.push_back(p);
 
@@ -553,6 +556,7 @@ TEST_F(UtilsTest, pangraphFromReadFile)
 {
     MinimizerHits* mhs;
     mhs = new MinimizerHits();
+    KmerHash hash;
 
     // initialize a prgs object
     vector<LocalPRG*> prgs;
@@ -576,109 +580,109 @@ TEST_F(UtilsTest, pangraphFromReadFile)
     deque<Interval> d = {Interval(0,3)};
     Path p;
     p.initialize(d);
-    pair<uint64_t,uint64_t> kh = kmerhash("TAC",3);
+    pair<uint64_t,uint64_t> kh = hash.kmerhash("TAC",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
     lp1->kmer_paths.push_back(p);
 
     d = {Interval(1,4)};
     p.initialize(d);
-    kh = kmerhash("ACG",3);
+    kh = hash.kmerhash("ACG",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
     lp1->kmer_paths.push_back(p);
 
     d = {Interval(2,5)};
     p.initialize(d);
-    kh = kmerhash("CGG",3);
+    kh = hash.kmerhash("CGG",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
     lp1->kmer_paths.push_back(p);
 
     d = {Interval(3,6)};
     p.initialize(d);
-    kh = kmerhash("GGT",3);
+    kh = hash.kmerhash("GGT",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
     lp1->kmer_paths.push_back(p);
 
     d = {Interval(4,7)};
     p.initialize(d);
-    kh = kmerhash("GTA",3);
+    kh = hash.kmerhash("GTA",3);
     idx->add_record(min(kh.first,kh.second), 1, p, (kh.first < kh.second));
     lp1->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     p.initialize(d);
-    kh = kmerhash("AGC",3);
+    kh = hash.kmerhash("AGC",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(4,5), Interval(12,13)};
     p.initialize(d);
-    kh = kmerhash("AGT",3);
+    kh = hash.kmerhash("AGT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(19,20), Interval(23,24)};
     p.initialize(d);
-    kh = kmerhash("ATT",3);
+    kh = hash.kmerhash("ATT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
     p.initialize(d);
-    kh = kmerhash("GCT",3);
+    kh = hash.kmerhash("GCT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
-    kh = kmerhash("GTT",3);
+    kh = hash.kmerhash("GTT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(12,13), Interval(16,16), Interval(23,25)};
     p.initialize(d);
-    kh = kmerhash("TTA",3);
+    kh = hash.kmerhash("TTA",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(23,26)};
     p.initialize(d);
-    kh = kmerhash("TAT",3);//inconsistent but I don't care
+    kh = hash.kmerhash("TAT",3);//inconsistent but I don't care
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(24,27)};
     p.initialize(d);
-    kh = kmerhash("ATG",3);
+    kh = hash.kmerhash("ATG",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(8,11)};
     p.initialize(d);
-    kh = kmerhash("CTA",3);
+    kh = hash.kmerhash("CTA",3);
     idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp4->kmer_paths.push_back(p);
 
     d = {Interval(9,12)};
     p.initialize(d);
-    kh = kmerhash("TAG",3);
+    kh = hash.kmerhash("TAG",3);
     idx->add_record(min(kh.first,kh.second), 0, p, (kh.first < kh.second));
     lp4->kmer_paths.push_back(p);
 
     d = {Interval(0,3)};
     p.initialize(d);
-    kh = kmerhash("CTA",3);
+    kh = hash.kmerhash("CTA",3);
     idx->add_record(min(kh.first,kh.second), 2, p, (kh.first < kh.second));
     lp2->kmer_paths.push_back(p);
 
     d = {Interval(1,4)};
     p.initialize(d);
-    kh = kmerhash("TAC",3);
+    kh = hash.kmerhash("TAC",3);
     idx->add_record(min(kh.first,kh.second), 2, p, (kh.first < kh.second));
     lp2->kmer_paths.push_back(p);
 
     d = {Interval(2,5)};
     p.initialize(d);
-    kh = kmerhash("ACT",3);
+    kh = hash.kmerhash("ACT",3);
     idx->add_record(min(kh.first,kh.second), 2, p, (kh.first < kh.second));
     lp2->kmer_paths.push_back(p);
 

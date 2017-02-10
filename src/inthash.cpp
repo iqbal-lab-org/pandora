@@ -129,8 +129,15 @@ uint64_t hash64(uint64_t& key, const uint64_t& mask)
 
 /* Now use these functions in my own code */
 
-pair<uint64_t, uint64_t> kmerhash(const std::string& s, const uint32_t k)
+pair<uint64_t, uint64_t> KmerHash::kmerhash(const std::string& s, const uint32_t k)
 {
+    // if we've already worked out the answer, return
+    unordered_map<string,pair<uint64_t,uint64_t>>::const_iterator it=lookup.find(s);
+    if(it!=lookup.end())
+    {
+	return it->second;
+    }
+
     // this takes the hash of both forwards and reverse complement kmers and returns them as a pair 
     assert(s.size() == k);
     int c;
@@ -150,7 +157,10 @@ pair<uint64_t, uint64_t> kmerhash(const std::string& s, const uint32_t k)
     //cout << "s: " << s << " -> " << kh << endl;
     kh = hash64(kh, mask);
     rckh = hash64(rckh, mask);
-    return make_pair(kh, rckh);
+
+    pair<uint64_t,uint64_t> ret = make_pair(kh, rckh);
+    lookup[s] = ret;
+    return ret;
 }
 
 

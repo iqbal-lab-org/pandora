@@ -28,16 +28,17 @@ class MinimizerTest : public ::testing::Test {
 };
 
 TEST_F(MinimizerTest,create){
-    pair<uint64_t,uint64_t> kh = kmerhash("ACGTA", 5);
+    KmerHash hash;
+    pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
     Minimizer m1(kh.first, 0,5, 0);
-    kh = kmerhash("ACGTG", 5);
+    kh = hash.kmerhash("ACGTG", 5);
     Minimizer m2(kh.first, 1,6, 0);
-    kh = kmerhash("ACGTA", 5);
+    kh = hash.kmerhash("ACGTA", 5);
     Minimizer m3(kh.first, 5,10, 0);
 
     EXPECT_EQ(m1.kmer, kh.first);
     EXPECT_EQ(m3.kmer, kh.first);
-    kh = kmerhash("ACGTG", 5);
+    kh = hash.kmerhash("ACGTG", 5);
     EXPECT_EQ(m2.kmer, kh.first);
 
     uint32_t j = 0;
@@ -59,13 +60,14 @@ TEST_F(MinimizerTest,create){
 }
 
 TEST_F(MinimizerTest,comparisonCheck){
-    pair<uint64_t,uint64_t> kh1 = kmerhash("AGGTG", 5);
+    KmerHash hash;
+    pair<uint64_t,uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
     Minimizer m1(kh1.first, 0,5,0);
-    pair<uint64_t,uint64_t> kh2 = kmerhash("ACGTA", 5);
+    pair<uint64_t,uint64_t> kh2 = hash.kmerhash("ACGTA", 5);
     Minimizer m2(kh2.first, 1,6,0);
     Minimizer m3(kh1.first, 5,10,0); 
     Minimizer m4(kh2.first, 0,5,0);
-    pair<uint64_t,uint64_t> kh3 = kmerhash("ACGTG", 5);
+    pair<uint64_t,uint64_t> kh3 = hash.kmerhash("ACGTG", 5);
     Minimizer m5(kh3.first, 0,5,0);
 
     //cout << kh1 << " " << kh2 << " " << kh3 << endl;
@@ -79,7 +81,7 @@ TEST_F(MinimizerTest,comparisonCheck){
     uint32_t j = 5;
     EXPECT_EQ(s.size(),j) << "size of set of minimizers " << s.size() << " is not equal to 5.";
 
-    // note this is a bad test as need to know the order of kmerhash values to set this up
+    // note this is a bad test as need to know the order of hash.kmerhash values to set this up
     vector<Minimizer> v = {m1, m3, m4, m2, m5};
     int i = 0;
     for (std::set<Minimizer>::iterator it=s.begin(); it!=s.end(); ++it)
