@@ -528,86 +528,87 @@ void LocalPRG::update_kmers_on_node_paths(vector<MaxPath>& vmp)
     return;
 }
 
-void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_probs)
+vector<uint32_t> LocalPRG::find_overlapping_kmer_paths(MaxPath& mp)
 {
-    assert(mp.kmers_on_path.size() == kmer_paths.size());
-    assert(mp.kmers_on_path.size() == kp_probs.size());
-    
+
     deque<Interval>::const_iterator it;
     vector<LocalNode*>::const_iterator node;
-    bool found, reject, added_m_or_n, found_branch;
+
+    bool found, reject;
     vector<uint32_t> nums;
     nums.reserve(40);
 
     // find the set of kmer_paths which overlap this node_path
     for (uint32_t n=0; n!=kmer_paths.size(); ++n)
     {
-	if (mp.kmers_on_path[n] == 1)
-	{
-	    nums.push_back(n);
-	} else {
-	    found = false;
-	    reject = false;
-	
-            // if there is no overlap, reject
-	    if (kmer_paths[n].end < mp.npath[0]->pos.start or kmer_paths[n].start > mp.npath.back()->pos.end)
-	    {
-	        reject = true;
-	    }
+        if (mp.kmers_on_path[n] == 1)
+        {
+            nums.push_back(n);
+        } else {
+            found = false;
+            reject = false;
 
-	    it=kmer_paths[n].path.begin();
+            // if there is no overlap, reject
+            if (kmer_paths[n].end < mp.npath[0]->pos.start or kmer_paths[n].start > mp.npath.back()->pos.end)
+            {
+                reject = true;
+            }
+
+            it=kmer_paths[n].path.begin();
             node=mp.npath.begin();
 
             while (reject == false and found == false and node!=mp.npath.end())
-	    {
+            {
                 if (it!=kmer_paths[n].path.end() and
-		   ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or 
-		   (*it == (*node)->pos)))
+                   ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or
+                   (*it == (*node)->pos)))
                 {
                     // then this node overlaps this interval of the kmer
                     // it needs to continue to overlap to end of kmer or node_path
                     found = true;
-		    node++;
+                    node++;
                     it++;
-		    while (reject == false and node!=mp.npath.end() and it!=kmer_paths[n].path.end())
-		    {
-		        if (it!=kmer_paths[n].path.end() and
-			    ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or 
-			    (*it == (*node)->pos)))
+                    while (reject == false and node!=mp.npath.end() and it!=kmer_paths[n].path.end())
+                    {
+                        if (it!=kmer_paths[n].path.end() and
+                            ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or
+                            (*it == (*node)->pos)))
                         {
-			    node++;
-			    it++;
-		        } else {
-			    // we have stopped matching and not because we reached the end of the kmer or node path
-			    reject = true;
-		        }
-		    }
-	        } else {
-		    // no match for this node and inteval
-		    // a match has to start either with the first node of node_path, or first interval of kmer
-		    // try iterating through combinations
-		    if (node==mp.npath.begin() and it!=kmer_paths[n].path.end())
-		    {
-		        it++;
-		    } else {
-		        it=kmer_paths[n].path.begin();
-		        node++;
-		    }
-	        }
-	    }
-	    
-
+                            node++;
+                            it++;
+                        } else {
+                            // we have stopped matching and not because we reached the end of the kmer or node path
+                            reject = true;
+                        }
+                    }
+                } else {
+                    // no match for this node and inteval
+                    // a match has to start either with the first node of node_path, or first interval of kmer
+                    // try iterating through combinations
+                    if (node==mp.npath.begin() and it!=kmer_paths[n].path.end())
+                    {
+                        it++;
+                    } else {
+                        it=kmer_paths[n].path.begin();
+                        node++;
+                    }
+                }
+            }
             // now if it was found and not rejected, add to nums;
             if (found == true and reject == false)
-	    {
-		nums.push_back(n);
+            {
+                nums.push_back(n);
                 mp.kmers_on_path[n] = 1;
-	        //cout << "found kmer match for " << kmer_paths[n] << endl;
-	    }
+                //cout << "found kmer match for " << kmer_paths[n] << endl;
+            }
         }
     }
+    return nums;
+}
 
-    //cout << "have a list of " << nums.size() << " overlapping kmers, now chose between ones which branch" << endl;
+void LocalPRG::filter_branching_kmer_paths(MaxPath& mp, const vector<float>& kp_probs, const vector<uint32_t>& nums)
+{
+    bool added_m_or_n, found_branch;
 
     // if have several covering directions at a branching/closing point, want only one of the options so take a subset
     for (uint32_t n=0; n!=nums.size(); ++n)
@@ -651,6 +652,20 @@ void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_pr
 
     //cout << "done identifying kmers on path - found " << accumulate(mp.kmers_on_path.begin(), mp.kmers_on_path.end(), 0) << endl;
     //assert(std::accumulate(mp.kmers_on_path.begin(), mp.kmers_on_path.end(), 0) > 0);
+}
+
+void LocalPRG::update_kmers_on_node_path(MaxPath& mp, const vector<float>& kp_probs)
+{
+    assert(mp.kmers_on_path.size() == kmer_paths.size());
+    assert(mp.kmers_on_path.size() == kp_probs.size());
+
+    // find the set of kmer_paths which overlap this node_path
+    vector<uint32_t> nums = find_overlapping_kmer_paths(mp);
+    //cout << "have a list of " << nums.size() << " overlapping kmers, now chose between ones which branch" << endl;
+
+    // filter branching kmer_paths
+    filter_branching_kmer_paths(mp, kp_probs, nums);
+    return;
 }
 
 void LocalPRG::get_kmer_path_hit_counts(const PanNode* pnode)
