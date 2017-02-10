@@ -544,15 +544,10 @@ vector<uint32_t> LocalPRG::find_overlapping_kmer_paths(MaxPath& mp)
         if (mp.kmers_on_path[n] == 1)
         {
             nums.push_back(n);
-        } else {
+        } else if (kmer_paths[n].end >= mp.npath[0]->pos.start and kmer_paths[n].start <= mp.npath.back()->pos.end) {
+	    
             found = false;
             reject = false;
-
-            // if there is no overlap, reject
-            if (kmer_paths[n].end < mp.npath[0]->pos.start or kmer_paths[n].start > mp.npath.back()->pos.end)
-            {
-                reject = true;
-            }
 
             it=kmer_paths[n].path.begin();
             node=mp.npath.begin();
@@ -571,14 +566,15 @@ vector<uint32_t> LocalPRG::find_overlapping_kmer_paths(MaxPath& mp)
                     while (reject == false and node!=mp.npath.end() and it!=kmer_paths[n].path.end())
                     {
                         if (it!=kmer_paths[n].path.end() and
-                            ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or
-                            (*it == (*node)->pos)))
+                            ((*it == (*node)->pos) or
+			    (it->end > (*node)->pos.start and it->start < (*node)->pos.end)))
                         {
                             node++;
                             it++;
                         } else {
                             // we have stopped matching and not because we reached the end of the kmer or node path
                             reject = true;
+			    break;
                         }
                     }
                 } else {
