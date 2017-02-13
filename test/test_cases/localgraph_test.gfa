@@ -1,0 +1,9 @@
+H	VN:Z:1.0	bn:Z:--linear --singlearr
+S	0	A	RC:i:1
+L	0	+	1	+	0M
+L	0	+	2	+	0M
+S	1	GC	RC:i:2
+L	1	+	3	+	0M
+S	2	G	RC:i:1
+L	2	+	3	+	0M
+S	3	T	RC:i:1

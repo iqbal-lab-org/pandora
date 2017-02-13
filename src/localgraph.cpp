@@ -99,7 +99,7 @@ void LocalGraph::read_gfa (const string& filepath)
     uint32_t id, from, to;
     string line;
     vector<string> split_line;
-    Interval i(0,0); // node requires an interval, so use a dummy
+    uint32_t i = 0;
 
     ifstream myfile (filepath);
     if (myfile.is_open())
@@ -115,8 +115,17 @@ void LocalGraph::read_gfa (const string& filepath)
 		    split_line[2] = "";
 		}
 		id = stoi(split_line[1]);
-		add_node(id, (string)split_line[2], i);
-	    } else if (line[0] == 'L') {
+		add_node(id, (string)split_line[2], Interval(i,i+split_line[2].size()));
+		i += split_line[2].size();
+	    }
+	}
+
+        myfile.clear();
+        myfile.seekg(0, myfile.beg);
+	while ( getline (myfile,line).good() )
+	{
+	    if (line[0] == 'L') 
+	    {
 	        split_line = split(line, "\t");
 		assert(split_line.size() >= 5);
 		if (split_line[2] == split_line[4])
@@ -186,6 +195,7 @@ vector<Path> LocalGraph::walk(const uint32_t& node_id, const uint32_t& pos, cons
 
 vector<LocalNode*> LocalGraph::nodes_along_string(const string& query_string)
 {
+    // Note expects the query string to start at the start of the PRG - can change this later
     vector<vector<LocalNode*>> u,v;   // u <=> v
                                       // ie reject paths in u, or extend and add to v
                                       // then set u=v and continue
@@ -252,3 +262,14 @@ bool LocalGraph::operator == (const LocalGraph& y) const
     return true;
 }
 
+std::ostream& operator<< (std::ostream & out, LocalGraph const& data) {
+    for (const auto c: data.nodes)
+    {
+        out << c.second->id << endl;
+        for (uint j = 0; j!= c.second->outNodes.size(); ++j)
+	{
+	    out << c.second->id << "->" << c.second->outNodes[j]->id << endl;
+        }
+    }
+    return out ;
+}

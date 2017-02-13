@@ -457,10 +457,18 @@ TEST_F(LocalPRGTest, updateCovgWithHit)
     mh = new MinimizerHit(1, m, mr);
 
     l3.update_covg_with_hit(mh);
-    uint j = 1;
+    uint j = 2;
     EXPECT_EQ(j, l3.prg.nodes[0]->covg);
     EXPECT_EQ(j, l3.prg.nodes[1]->covg);
     EXPECT_EQ(j, l3.prg.nodes[2]->covg);
+    j = 0;
+    EXPECT_EQ(j, l3.prg.nodes[4]->covg);
+    j = 1;
+    EXPECT_EQ(j, l3.prg.nodes[3]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[5]->covg);
+    j = 3;
+    EXPECT_EQ(j, l3.prg.nodes[6]->covg);
+    
      
     delete m;
     delete mr;
@@ -473,11 +481,16 @@ TEST_F(LocalPRGTest, updateCovgWithHit)
     mh = new MinimizerHit(1, m, mr);
 
     l3.update_covg_with_hit(mh);
-    j = 1;
+    j = 2;
     EXPECT_EQ(j, l3.prg.nodes[0]->covg);
     EXPECT_EQ(j, l3.prg.nodes[1]->covg);
-    j = 2;
+    j = 3;
     EXPECT_EQ(j, l3.prg.nodes[2]->covg);
+    j = 1;
+    EXPECT_EQ(j, l3.prg.nodes[4]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[3]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[5]->covg);
+    j = 5;
     EXPECT_EQ(j, l3.prg.nodes[6]->covg);
 
     delete m;
