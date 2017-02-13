@@ -17,8 +17,8 @@ static int usage()
 	      << "                       to input sequence, provided it exists\n"
 	      << "         map           identify PRG ordering and sequence from reads\n"
 	      << "\n"
-	      << "Note: To map reads against PRG sequences, you need to first index them\n"
-	      << "      with pandora index\n"
+	      << "Note: To map reads against PRG sequences, you need to first index the\n"
+	      << "      PRGs with pandora index\n"
               << std::endl;
 	return 1;
 }

@@ -38,6 +38,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
     uint64_t smallest;
     Minimizer *m;
     Minimizer *m_previous;
+    KmerHash hash;
 
     // for each window position
     for(uint32_t wpos=0; wpos <= seq.length()-w-k+1 ; ++wpos)
@@ -51,13 +52,13 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 	    for (uint32_t i = 0; i < w; i++)
 	    {
 	    	kmer = seq.substr(wpos+i, k);
-	        kh = kmerhash(kmer, k);
+	        kh = hash.kmerhash(kmer, k);
 	        smallest = min(smallest, min(kh.first, kh.second));
 	    }
 	    for (uint32_t i = 0; i < w; i++)
 	    {
 	        kmer = seq.substr(wpos+i, k);
-	        kh = kmerhash(kmer, k);
+	        kh = hash.kmerhash(kmer, k);
 	        if (kh.first == smallest)
                 {
 		    m = new Minimizer(kh.first, wpos+i, wpos+i+k, 0);
@@ -73,7 +74,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
         } else {
         // otherwise only need to do something if the kmer from the newest position at end of new window is smaller or equal to the previous smallest
 	    kmer = seq.substr(wpos+w-1, k);
-            kh = kmerhash(kmer, k);
+            kh = hash.kmerhash(kmer, k);
 	    //cout << "Last kh for wpos: " << kh << " compared to previous smallest: " << smallest << endl;
 	    if(kh.first <= smallest)
 	    {

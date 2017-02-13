@@ -56,7 +56,7 @@ float MaxPath::get_prob(const vector<float>& kmer_path_probs)
 
 float MaxPath::get_mean_prob(const vector<float>& kmer_path_probs)
 {
-    // currently does not give mean, testing
+    // instead return mean log prob (not log mean prob)
     float p = 0;
     uint t = 0;
     assert(kmers_on_path.size() == kmer_path_probs.size());
@@ -65,17 +65,17 @@ float MaxPath::get_mean_prob(const vector<float>& kmer_path_probs)
     {
         if (kmers_on_path[i] == 1)
         {
-            p += exp(kmer_path_probs[i]);
+            p += kmer_path_probs[i];
             t += 1;
         }
     }
     if (t == 0)
     {
 	mean_prob = 0;
-	return 0;
+	return 1;
     }
-    mean_prob = log(p/t);
-    return log(p/t);
+    mean_prob = p/t;
+    return p/t;
 }
 
 bool VMPgreater::operator()( const vector<MaxPath>& lx, const vector<MaxPath>& rx )

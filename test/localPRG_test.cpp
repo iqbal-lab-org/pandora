@@ -397,6 +397,8 @@ TEST_F(LocalPRGTest, minimizerSketch){
     Index* idx;
     idx = new Index();
 
+    KmerHash hash;
+
     l0.minimizer_sketch(idx, 1, 3);
     uint32_t j = 0;
     EXPECT_EQ(j, idx->minhash.size());
@@ -407,7 +409,7 @@ TEST_F(LocalPRGTest, minimizerSketch){
     l1.minimizer_sketch(idx, 1, 3);
     EXPECT_EQ(j, idx->minhash.size());
     j = 2;
-    pair<uint64_t,uint64_t> kh = kmerhash("AGC",3);
+    pair<uint64_t,uint64_t> kh = hash.kmerhash("AGC",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
     
     idx->clear();
@@ -428,10 +430,10 @@ TEST_F(LocalPRGTest, minimizerSketch){
     EXPECT_EQ(j, idx->minhash.size());
     j = 1;
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGC, GCT
-    kh = kmerhash("AGT",3);
+    kh = hash.kmerhash("AGT",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGTx2
     j = 0;
-    kh = kmerhash("GTT",3);
+    kh = hash.kmerhash("GTT",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
     
     delete idx;
@@ -441,8 +443,10 @@ TEST_F(LocalPRGTest, updateCovgWithHit)
 {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
+    KmerHash hash;
+
     Minimizer* m;
-    pair<uint64_t,uint64_t> kh = kmerhash("AGC", 3);
+    pair<uint64_t,uint64_t> kh = hash.kmerhash("AGC", 3);
     m = new Minimizer(min(kh.first,kh.second), 1,4,0);
     deque<Interval> d = {Interval(0,1), Interval(4,5), Interval(8, 9)};
     Path p;
@@ -453,15 +457,23 @@ TEST_F(LocalPRGTest, updateCovgWithHit)
     mh = new MinimizerHit(1, m, mr);
 
     l3.update_covg_with_hit(mh);
-    uint j = 1;
+    uint j = 2;
     EXPECT_EQ(j, l3.prg.nodes[0]->covg);
     EXPECT_EQ(j, l3.prg.nodes[1]->covg);
     EXPECT_EQ(j, l3.prg.nodes[2]->covg);
+    j = 0;
+    EXPECT_EQ(j, l3.prg.nodes[4]->covg);
+    j = 1;
+    EXPECT_EQ(j, l3.prg.nodes[3]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[5]->covg);
+    j = 3;
+    EXPECT_EQ(j, l3.prg.nodes[6]->covg);
+    
      
     delete m;
     delete mr;
     delete mh;
-    kh = kmerhash("CTA", 3); 
+    kh = hash.kmerhash("CTA", 3); 
     m = new Minimizer(min(kh.first,kh.second), 3,6,0);
     d = {Interval(8, 9), Interval(16, 16), Interval(23, 25)};
     p.initialize(d);
@@ -469,11 +481,16 @@ TEST_F(LocalPRGTest, updateCovgWithHit)
     mh = new MinimizerHit(1, m, mr);
 
     l3.update_covg_with_hit(mh);
-    j = 1;
+    j = 2;
     EXPECT_EQ(j, l3.prg.nodes[0]->covg);
     EXPECT_EQ(j, l3.prg.nodes[1]->covg);
-    j = 2;
+    j = 3;
     EXPECT_EQ(j, l3.prg.nodes[2]->covg);
+    j = 1;
+    EXPECT_EQ(j, l3.prg.nodes[4]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[3]->covg);
+    EXPECT_EQ(j, l3.prg.nodes[5]->covg);
+    j = 5;
     EXPECT_EQ(j, l3.prg.nodes[6]->covg);
 
     delete m;
@@ -521,6 +538,8 @@ TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
     MinimizerHits *mhs;
     mhs = new MinimizerHits();
 
+    KmerHash hash;
+
     // initialize a prgs object
     vector<LocalPRG*> prgs;
     LocalPRG* lp3;
@@ -534,61 +553,61 @@ TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
     deque<Interval> d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     Path p;
     p.initialize(d);
-    pair<uint64_t,uint64_t> kh = kmerhash("TGC",3);
+    pair<uint64_t,uint64_t> kh = hash.kmerhash("TGC",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(4,5), Interval(12,13)};
     p.initialize(d);
-    kh = kmerhash("TGT",3);
+    kh = hash.kmerhash("TGT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(0,1), Interval(19,20), Interval(23,24)};
     p.initialize(d);
-    kh = kmerhash("TTT",3);
+    kh = hash.kmerhash("TTT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
     p.initialize(d);
-    kh = kmerhash("GCT",3);
+    kh = hash.kmerhash("GCT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
-    kh = kmerhash("GTT",3);
+    kh = hash.kmerhash("GTT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(8,9), Interval(16,16), Interval(23,25)};
     p.initialize(d);
-    kh = kmerhash("CTA",3);
+    kh = hash.kmerhash("CTA",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(12,13), Interval(16,16), Interval(23,25)};
     p.initialize(d);
-    kh = kmerhash("TTA",3);
+    kh = hash.kmerhash("TTA",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     /*d = {Interval(19,20), Interval(23,25)};
     p.initialize(d);
-    kh = kmerhash("TTA",3);
+    kh = hash.kmerhash("TTA",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);*/
 
     d = {Interval(23,26)};
     p.initialize(d);
-    kh = kmerhash("TAT",3); //inconsistent, i don't care
+    kh = hash.kmerhash("TAT",3); //inconsistent, i don't care
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
 
     d = {Interval(24,27)};
     p.initialize(d);
-    kh = kmerhash("ATG",3);
+    kh = hash.kmerhash("ATG",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_paths.push_back(p);
     

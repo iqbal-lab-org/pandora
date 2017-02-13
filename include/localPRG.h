@@ -54,6 +54,8 @@ class LocalPRG {
 
     // functions used once hits have been collected against the PRG
     void update_covg_with_hit(MinimizerHit*);
+    std::vector<uint32_t> find_overlapping_kmer_paths(MaxPath&);
+    void filter_branching_kmer_paths(MaxPath&, const std::vector<float>&, const std::vector<uint32_t>&);
     void update_kmers_on_node_path(MaxPath&, const std::vector<float>&);
     void update_kmers_on_node_paths(std::vector<MaxPath>&);
     void get_kmer_path_hit_counts(const PanNode*);

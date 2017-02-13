@@ -7,7 +7,7 @@
 
 using namespace std;
 
-LocalNode::LocalNode (string s, Interval p, uint32_t i): seq(s), pos(p), id(i), covg(0), sketch_next(pos.start) {}
+LocalNode::LocalNode (string s, Interval p, uint32_t i): seq(s), pos(p), id(i), covg(p.length), sketch_next(pos.start) {}
 
 std::ostream& operator<< (std::ostream & out, LocalNode const& n) {
     out << "(" << n.id << " " << n.pos << " " << n.seq << ")";
@@ -17,8 +17,8 @@ std::ostream& operator<< (std::ostream & out, LocalNode const& n) {
 bool LocalNode::operator == (const LocalNode& y) const {
     if (seq != y.seq) {//cout << "different seq" << endl; 
 	return false;}
-    if (!(pos == y.pos)) {//cout << "different interval" << endl; 
-	return false;}
+    //if (!(pos == y.pos)) {//cout << "different interval" << endl; 
+	//return false;}
     if (id != y.id) {//cout << "different id" << endl; 
 	return false;}
     if (outNodes.size() != y.outNodes.size()) {//cout << "differnet numbers of out edges" << endl; 

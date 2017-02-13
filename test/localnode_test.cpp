@@ -39,7 +39,7 @@ TEST_F(LocalNodeTest,equals){
     EXPECT_EQ(ln3, ln3);
     EXPECT_EQ(ln4, ln4);
     EXPECT_EQ((ln1==ln2), false);
-    EXPECT_EQ((ln1==ln3), false);
+    //EXPECT_EQ((ln1==ln3), false); //now interval associated with a node does not matter
     EXPECT_EQ((ln1==ln4), false);
     EXPECT_EQ((ln2==ln3), false);
     EXPECT_EQ((ln2==ln4), false);

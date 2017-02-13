@@ -257,5 +257,65 @@ TEST_F(LocalGraphTest, walk)
 }
 
 TEST_F(LocalGraphTest, writeGFA){
+    LocalGraph lg2;
+    lg2.add_node(0,"A", Interval(0,1));
+    lg2.add_node(1,"GC", Interval(4,6));
+    lg2.add_node(2,"G", Interval(7,8));
+    lg2.add_node(3,"T", Interval(13,14));
+    lg2.add_edge(0,1);
+    lg2.add_edge(0,2);
+    lg2.add_edge(1,3);
+    lg2.add_edge(2,3);
+
+    lg2.write_gfa("../test/test_cases/localgraph_test.gfa");
 }
+
+TEST_F(LocalGraphTest, readGFA){
+    LocalGraph lg2, read_lg2;
+    lg2.add_node(0,"A", Interval(0,1));
+    lg2.add_node(1,"GC", Interval(4,6));
+    lg2.add_node(2,"G", Interval(7,8));
+    lg2.add_node(3,"T", Interval(13,14));
+    lg2.add_edge(0,1);
+    lg2.add_edge(0,2);
+    lg2.add_edge(1,3);
+    lg2.add_edge(2,3);
+
+    read_lg2.read_gfa("../test/test_cases/localgraph_test.gfa");
+    EXPECT_EQ(lg2, read_lg2);
+}
+
+TEST_F(LocalGraphTest, nodesAlongString)
+{
+    LocalGraph lg2, read_lg2;
+    lg2.add_node(0,"A", Interval(0,1));
+    lg2.add_node(1,"GC", Interval(4,6));
+    lg2.add_node(2,"G", Interval(7,8));
+    lg2.add_node(3,"T", Interval(13,14));
+    lg2.add_edge(0,1);
+    lg2.add_edge(0,2);
+    lg2.add_edge(1,3);
+    lg2.add_edge(2,3);
+
+    vector<LocalNode*> v_exp = {lg2.nodes[0], lg2.nodes[1], lg2.nodes[3]};
+    vector<LocalNode*> v = lg2.nodes_along_string("AGCT");
+    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+
+    v_exp = {lg2.nodes[0], lg2.nodes[2], lg2.nodes[3]};
+    v = lg2.nodes_along_string("AGT");
+    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+
+    v_exp = {lg2.nodes[0], lg2.nodes[1]};
+    v = lg2.nodes_along_string("AGC");
+    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+
+    //v_exp = {lg2.nodes[1], lg2.nodes[3]};
+    //v = lg2.nodes_along_string("GCT");
+    //EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+
+    //v_exp = {lg2.nodes[1], lg2.nodes[3]};
+    //v = lg2.nodes_along_string("CT");
+    //EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+}
+
 
