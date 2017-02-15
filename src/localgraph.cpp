@@ -241,6 +241,37 @@ vector<LocalNode*> LocalGraph::nodes_along_string(const string& query_string)
     return npath;
 }
 
+vector<LocalNode*> LocalGraph::top_path()
+{
+    vector<LocalNode*> npath;
+
+    assert(nodes.size()>0); //otherwise empty nodes -> segfault
+
+    npath.push_back(nodes[0]);
+    while (npath.back()->outNodes.size() > 0)
+    {
+	npath.push_back(npath.back()->outNodes[0]);
+	cout << "back is now " << npath.back()->id << " which has outnode size " << npath.back()->outNodes.size() << endl;
+    }
+
+    return npath;
+}
+
+vector<LocalNode*> LocalGraph::bottom_path()
+{
+    vector<LocalNode*> npath;
+
+    assert(nodes.size()>0); //otherwise empty nodes -> segfault
+
+    npath.push_back(nodes[0]);
+    while (npath.back()->outNodes.size() > 0)
+    {
+        npath.push_back(npath.back()->outNodes.back());
+    }
+
+    return npath;
+}
+
 bool LocalGraph::operator == (const LocalGraph& y) const
 {
     // false if have different numbers of nodes

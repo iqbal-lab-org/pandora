@@ -2,6 +2,7 @@
 #include "test_macro.cpp"
 #include "interval.h"
 #include "path.h"
+#include "localPRG.h"
 #include "localgraph.h"
 #include "localnode.h"
 #include <stdint.h>
@@ -318,4 +319,46 @@ TEST_F(LocalGraphTest, nodesAlongString)
     //EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
 }
 
+TEST_F(LocalGraphTest, topPath)
+{
+    LocalGraph lg2;
+    lg2.add_node(0,"A", Interval(0,1));
+    lg2.add_node(1,"GC", Interval(4,6));
+    lg2.add_node(2,"G", Interval(7,8));
+    lg2.add_node(3,"T", Interval(13,14));
+    lg2.add_edge(0,1);
+    lg2.add_edge(0,2);
+    lg2.add_edge(1,3);
+    lg2.add_edge(2,3);
 
+    vector<LocalNode*> v_exp = {lg2.nodes[0], lg2.nodes[1], lg2.nodes[3]};
+    vector<LocalNode*> v = lg2.top_path();
+    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+
+    LocalPRG lp3 = LocalPRG(3, "3", "T 5 G 7 C 8 T 7  6 G 5 TATG");
+    v_exp = {lp3.prg.nodes[0], lp3.prg.nodes[1], lp3.prg.nodes[2], lp3.prg.nodes[4], lp3.prg.nodes[6]};
+    v = lp3.prg.top_path();
+    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+}
+
+TEST_F(LocalGraphTest, bottomPath)
+{
+    LocalGraph lg2;
+    lg2.add_node(0,"A", Interval(0,1));
+    lg2.add_node(1,"GC", Interval(4,6));
+    lg2.add_node(2,"G", Interval(7,8));
+    lg2.add_node(3,"T", Interval(13,14));
+    lg2.add_edge(0,1);
+    lg2.add_edge(0,2);
+    lg2.add_edge(1,3);
+    lg2.add_edge(2,3);
+
+    vector<LocalNode*> v_exp = {lg2.nodes[0], lg2.nodes[2], lg2.nodes[3]};
+    vector<LocalNode*> v = lg2.bottom_path();
+    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+
+    LocalPRG lp3 = LocalPRG(3, "3", "T 5 G 7 C 8 T 7  6 G 5 TATG");
+    v_exp = {lp3.prg.nodes[0], lp3.prg.nodes[5], lp3.prg.nodes[6]};
+    v = lp3.prg.bottom_path();
+    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+}
