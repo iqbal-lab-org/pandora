@@ -251,7 +251,6 @@ vector<LocalNode*> LocalGraph::top_path()
     while (npath.back()->outNodes.size() > 0)
     {
 	npath.push_back(npath.back()->outNodes[0]);
-	cout << "back is now " << npath.back()->id << " which has outnode size " << npath.back()->outNodes.size() << endl;
     }
 
     return npath;
