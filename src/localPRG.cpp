@@ -916,19 +916,9 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
     return;
 }
 
-vector<float> LocalPRG::get_covered_maxpath_log_probs(const PanNode* pnode, uint32_t k, float e_rate, uint dir, uint num_minis)
+vector<float> LocalPRG::get_covered_maxpath_log_probs(uint dir, uint num_minis)
 {
-    // start by counting how many hits against each minimizing_kmer of prg
-    //get_kmer_path_hit_counts(pnode);
-
-    // now for each of the minimizing kmers, work out the prob of seeing this number of hits given the number of reads
-    // this is the bit where I assume that we have an independent trial for each read (binomial hit counts for true kmers)
-    //get_kmer_path_probs(pnode, k, e_rate);
-
-    //now we iterate through the graph from the outmost level to the lowest level working out the most likely path(s)
-    //need a data structure to remember what the most probable path(s) were for var sites already considered
-    //the max_path_index, stored by the LocalPRG class
-
+    //we iterate through the graph from the outmost level to the lowest level working out the covered path(s)
     vector<MaxPath> u, v, w; // w <- u <=> v
     map<uint32_t, vector<MaxPath>> bubble_paths;
 				     // this time each has size 3, with an unknown number of options within that

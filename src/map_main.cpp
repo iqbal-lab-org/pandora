@@ -44,6 +44,7 @@ static void show_map_usage()
 	      << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
 	      << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 500 (bps)\n"
 	      << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.05\n"
+              << "\t--output_p_dist \t\tFlag results in log_p values for all similar PRG paths being written to file\n"
               << std::endl;
 }
 
@@ -60,6 +61,7 @@ int pandora_map(int argc, char* argv[])
     uint32_t w=1, k=15; // default parameters
     int max_diff = 500;
     float e_rate = 0.05;
+    bool output_p_dist = false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -117,6 +119,8 @@ int pandora_map(int argc, char* argv[])
                   std::cerr << "--error_rate option requires one argument." << std::endl;
                 return 1;
             }
+        } else if ((arg == "--output_p_dist")) {
+	    output_p_dist = true;
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -141,7 +145,7 @@ int pandora_map(int argc, char* argv[])
     pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
     
     cout << now() << "Update LocalPRGs with hits and infer paths" << endl;
-    update_localPRGs_with_hits(pangraph, prgs, k, e_rate);
+    update_localPRGs_with_hits(pangraph, prgs, k, e_rate, output_p_dist);
 
     cout << now() << "Writing PanGraph to file " << prefix << "_pangraph.gfa" << endl;
     pangraph->write_gfa(prefix + "_pangraph.gfa");
