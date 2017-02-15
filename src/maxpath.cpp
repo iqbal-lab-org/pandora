@@ -82,7 +82,7 @@ bool MaxPath::has_at_least_n_hit_minis_on_path(const vector<uint32_t>& counts, u
 {
     assert(kmers_on_path.size() == counts.size() || assert_msg("kmers_on_path.size(): " << kmers_on_path.size() << ", counts.size(): " << counts.size()));
 
-    tally = 0;
+    uint tally = 0;
     for (uint i = 0; i!=kmers_on_path.size(); ++i)
     {
         if (kmers_on_path[i] == 1 and counts[i] >= 1)

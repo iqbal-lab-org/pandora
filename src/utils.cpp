@@ -351,7 +351,7 @@ void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prg
 	    prgs[pnode->second->id]->update_covg_with_hit(*mh);
 	}
         prgs[pnode->second->id]->infer_most_likely_prg_paths_for_corresponding_pannode(pnode->second, k, e_rate);
-	vector<float> path_probs = prgs[pnode->second->id]->get_distribution_covered_maxpath_log_probs(pnode->second, k, e_rate, 0, 2);
+	vector<float> path_probs = prgs[pnode->second->id]->get_covered_maxpath_log_probs(pnode->second, k, e_rate, 0, 4);
 	cout << "Path probs: " << endl;
 	for (uint n=0; n!= path_probs.size(); ++n)
 	{

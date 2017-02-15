@@ -919,11 +919,11 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 vector<float> LocalPRG::get_covered_maxpath_log_probs(const PanNode* pnode, uint32_t k, float e_rate, uint dir, uint num_minis)
 {
     // start by counting how many hits against each minimizing_kmer of prg
-    get_kmer_path_hit_counts(pnode);
+    //get_kmer_path_hit_counts(pnode);
 
     // now for each of the minimizing kmers, work out the prob of seeing this number of hits given the number of reads
     // this is the bit where I assume that we have an independent trial for each read (binomial hit counts for true kmers)
-    get_kmer_path_probs(pnode, k, e_rate);
+    //get_kmer_path_probs(pnode, k, e_rate);
 
     //now we iterate through the graph from the outmost level to the lowest level working out the most likely path(s)
     //need a data structure to remember what the most probable path(s) were for var sites already considered
@@ -961,7 +961,7 @@ vector<float> LocalPRG::get_covered_maxpath_log_probs(const PanNode* pnode, uint
                 for (uint j = 0; j!=prg.nodes[pre_site_id]->outNodes.size(); ++j)
                 {
                     u.push_back(MaxPath({prg.nodes[pre_site_id], prg.nodes[pre_site_id]->outNodes[j]}, y, 0));
-		    update_kmers_on_node_paths(u.back(), kmer_path_probs[dir]);
+		    update_kmers_on_node_path(u.back(), kmer_path_probs[dir]);
                 }
 	    }
 	
@@ -991,7 +991,7 @@ vector<float> LocalPRG::get_covered_maxpath_log_probs(const PanNode* pnode, uint
 			    {
 				v.push_back(u[j]);
 			        v.back().extend(it->second[i]);
-				update_kmers_on_node_paths(v.back());
+				update_kmers_on_node_path(v.back(), kmer_path_probs[dir]);
 			    }
 			} else {
 			    //otherwise extend with the outnode of the last node in node_path
@@ -1016,7 +1016,7 @@ vector<float> LocalPRG::get_covered_maxpath_log_probs(const PanNode* pnode, uint
 
             for (uint n = 0; n!=w.size(); ++n)
             {
-                if (accumulate(w[n].kmers_on_path.begin(), w[n].kmers_on_path.end(), 0) < num_minis or 
+                if ((uint)accumulate(w[n].kmers_on_path.begin(), w[n].kmers_on_path.end(), 0) < num_minis or 
 		    w[n].has_at_least_n_hit_minis_on_path(kmer_path_hit_counts[dir], num_minis))
                 {
 		    u.push_back(w[n]);
