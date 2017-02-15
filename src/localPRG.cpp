@@ -916,6 +916,129 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
     return;
 }
 
+vector<float> LocalPRG::get_covered_maxpath_log_probs(const PanNode* pnode, uint32_t k, float e_rate, uint dir, uint num_minis)
+{
+    // start by counting how many hits against each minimizing_kmer of prg
+    get_kmer_path_hit_counts(pnode);
+
+    // now for each of the minimizing kmers, work out the prob of seeing this number of hits given the number of reads
+    // this is the bit where I assume that we have an independent trial for each read (binomial hit counts for true kmers)
+    get_kmer_path_probs(pnode, k, e_rate);
+
+    //now we iterate through the graph from the outmost level to the lowest level working out the most likely path(s)
+    //need a data structure to remember what the most probable path(s) were for var sites already considered
+    //the max_path_index, stored by the LocalPRG class
+
+    vector<MaxPath> u, v, w; // w <- u <=> v
+    map<uint32_t, vector<MaxPath>> bubble_paths;
+				     // this time each has size 3, with an unknown number of options within that
+    vector<LocalNode*> x;
+    x.reserve(100);
+    u.reserve(100);
+    v.reserve(100);
+    w.reserve(100);
+    vector<int> y(kmer_paths.size(),0);
+
+    // start with the outmost level
+    uint8_t max_level = prg.index.size() - 1;
+
+    // and for each level..
+    for (uint level = max_level; level <= max_level; --level)
+    {
+	cout << now() << "Looking at level " << level << endl;
+        // ...for each varsite at this level...
+        for (uint i = 0; i!=prg.index[level].size(); ++i)
+        {
+            // add the first node of each alternate allele for the varsite to a vector
+            uint32_t pre_site_id = prg.index[level][i].first, post_site_id = prg.index[level][i].second;
+	    assert(u.size()==0);
+	    if (level == 0)
+	    {
+		assert(pre_site_id == 0);
+		u.push_back(MaxPath({prg.nodes[pre_site_id]}, y, 0));
+	    } else {
+		// we want the index to be inclusive of first node/pre_site_id prob, but exclusive of end node prob
+                for (uint j = 0; j!=prg.nodes[pre_site_id]->outNodes.size(); ++j)
+                {
+                    u.push_back(MaxPath({prg.nodes[pre_site_id], prg.nodes[pre_site_id]->outNodes[j]}, y, 0));
+		    update_kmers_on_node_paths(u.back(), kmer_path_probs[dir]);
+                }
+	    }
+	
+	    assert (u.size()>0); // we just added either start node, or branching outnodes of a varsite to it!
+
+            // then until we reach the end varsite:
+            while (u.size()>0)
+            {
+		cout << "u.size()==" << u.size() << endl;
+                // for each path in u
+                for (uint j = 0; j!=u.size(); ++j)
+                {
+                    // if the path ends at the end of the varsite, it is a done path, add to w
+                    if (u[j].npath.back()->id == post_site_id)
+                    {
+                        w.push_back(u[j]);
+                    } else {
+                        // otherwise look up the last node in the max_path_index
+                        // if it is there, then we have a path to extend by, 
+                        // and extend the path for each of the maximal paths through the sub_varsite
+                        // and add the updated path/prob pairs to v
+                        map<uint32_t, vector<MaxPath>>::iterator it=bubble_paths.find(u[j].npath.back()->id);
+                        if (it != bubble_paths.end())
+                        {
+                            //extend node path with the max paths seen before from this point
+			    for (uint32_t i = 0; i != it->second.size(); ++i)
+			    {
+				v.push_back(u[j]);
+			        v.back().extend(it->second[i]);
+				update_kmers_on_node_paths(v.back());
+			    }
+			} else {
+			    //otherwise extend with the outnode of the last node in node_path
+			    assert(u[j].npath.back()->outNodes.size() == 1); // if the back is the start of a bubble, should already be in index!
+			    u[j].npath.push_back(u[j].npath.back()->outNodes[0]);
+			    u[j].kmers_on_path = y; 
+			    v.push_back(u[j]);
+			}
+                    }
+                }
+                // once done for all of what was in u, set u = v
+                u = v;
+		v.clear();
+            }
+
+	    assert(w.size()>0); // we have to have found some paths
+	    assert(u.size()==0);
+
+	    // at this point, all the paths should have up to date vectors of bools representing which kmers overlapped, 
+	    // including the pre_site_id node and the post_site_id
+	    // can work out which have enough minis which have hits
+
+            for (uint n = 0; n!=w.size(); ++n)
+            {
+                if (accumulate(w[n].kmers_on_path.begin(), w[n].kmers_on_path.end(), 0) < num_minis or 
+		    w[n].has_at_least_n_hit_minis_on_path(kmer_path_hit_counts[dir], num_minis))
+                {
+		    u.push_back(w[n]);
+                }
+	    }
+
+            bubble_paths[pre_site_id] = u;
+	    cout << "added " << u.size() << " paths to bubble_paths[" << pre_site_id << "]" << endl;
+	    w.clear();
+	    u.clear();
+        }
+    }
+
+    // to finish return the vector of probs for 0 in bubble_paths
+    vector<float> ret_values;
+    for (uint n = 0; n != bubble_paths[0].size(); ++n)
+    {
+	ret_values.push_back(bubble_paths[0][n].get_prob(kmer_path_probs[dir]));
+    }
+    return ret_values;
+}
+
 void LocalPRG::write_max_paths_to_fasta(const string& filepath)
 {
     assert(max_path_index.size()>0);

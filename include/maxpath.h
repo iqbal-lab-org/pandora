@@ -21,6 +21,7 @@ struct MaxPath
     void extend(const MaxPath);
     float get_prob(const std::vector<float>&);
     float get_mean_prob(const std::vector<float>&);
+    bool has_at_least_n_hit_minis_on_path(const std::vector<uint32_t>&, uint32_t);
 };
 
 struct VMPgreater

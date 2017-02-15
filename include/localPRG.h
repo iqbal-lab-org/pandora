@@ -61,6 +61,7 @@ class LocalPRG {
     void get_kmer_path_hit_counts(const PanNode*);
     void get_kmer_path_probs(const PanNode*, uint32_t, float);
     void infer_most_likely_prg_paths_for_corresponding_pannode(const PanNode*, uint32_t, float);
+    std::vector<float> get_covered_maxpath_log_probs(const PanNode*, uint32_t, float, uint, uint);
     void write_max_paths_to_fasta(const std::string&);
 
   friend std::ostream& operator<< (std::ostream& out, const LocalPRG& data);  
