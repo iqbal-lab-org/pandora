@@ -97,6 +97,14 @@ bool MaxPath::has_at_least_n_hit_minis_on_path(const vector<uint32_t>& counts, u
     return false;
 }
 
+ostream& operator<< (ostream & out, MaxPath const& mp) {
+    for (uint n = 0; n != mp.npath.size(); ++n)
+    {
+        out << mp.npath[n]->id << "->";
+    }
+    return out ;
+}
+
 bool VMPgreater::operator()( const vector<MaxPath>& lx, const vector<MaxPath>& rx )
 {
     return lx[0].prob > rx[0].prob;

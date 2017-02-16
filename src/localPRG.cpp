@@ -918,15 +918,16 @@ void LocalPRG::infer_most_likely_prg_paths_for_corresponding_pannode(const PanNo
 
 vector<float> LocalPRG::get_covered_maxpath_log_probs(uint dir, uint num_minis)
 {
+    //assert that we already have counts and probs
+    assert(accumulate(kmer_path_hit_counts[2].begin(), kmer_path_hit_counts[2].end(), 0) > 0);
+
     //we iterate through the graph from the outmost level to the lowest level working out the covered path(s)
     vector<MaxPath> u, v, w; // w <- u <=> v
     map<uint32_t, vector<MaxPath>> bubble_paths;
 				     // this time each has size 3, with an unknown number of options within that
-    vector<LocalNode*> x;
-    x.reserve(100);
-    u.reserve(100);
-    v.reserve(100);
-    w.reserve(100);
+    u.reserve(100000);
+    v.reserve(100000);
+    w.reserve(5000);
     vector<int> y(kmer_paths.size(),0);
 
     // start with the outmost level
@@ -968,7 +969,8 @@ vector<float> LocalPRG::get_covered_maxpath_log_probs(uint dir, uint num_minis)
                     if (u[j].npath.back()->id == post_site_id)
                     {
                         w.push_back(u[j]);
-                    } else {
+                    } else if ((uint)std::accumulate(u[j].kmers_on_path.begin(), u[j].kmers_on_path.end(), 0) < 4*num_minis or
+                               u[j].has_at_least_n_hit_minis_on_path(kmer_path_hit_counts[dir], num_minis)) {
                         // otherwise look up the last node in the max_path_index
                         // if it is there, then we have a path to extend by, 
                         // and extend the path for each of the maximal paths through the sub_varsite
@@ -987,17 +989,21 @@ vector<float> LocalPRG::get_covered_maxpath_log_probs(uint dir, uint num_minis)
 			    //otherwise extend with the outnode of the last node in node_path
 			    assert(u[j].npath.back()->outNodes.size() == 1); // if the back is the start of a bubble, should already be in index!
 			    u[j].npath.push_back(u[j].npath.back()->outNodes[0]);
-			    u[j].kmers_on_path = y; 
+			    update_kmers_on_node_path(u[j], kmer_path_probs[dir]);
 			    v.push_back(u[j]);
 			}
-                    }
+                    } else {
+			cout << "reject path " << u[j] << " which has " << std::accumulate(u[j].kmers_on_path.begin(), u[j].kmers_on_path.end(), 0);
+                        cout << " minis on path and (at least " << num_minis << " have been hit) is ";
+                        cout << u[j].has_at_least_n_hit_minis_on_path(kmer_path_hit_counts[dir], num_minis) << endl;
+		    }
                 }
                 // once done for all of what was in u, set u = v
                 u = v;
 		v.clear();
             }
 
-	    assert(w.size()>0); // we have to have found some paths
+	    //assert(w.size()>0); // we have to have found some paths
 	    assert(u.size()==0);
 
 	    // at this point, all the paths should have up to date vectors of bools representing which kmers overlapped, 
@@ -1006,11 +1012,18 @@ vector<float> LocalPRG::get_covered_maxpath_log_probs(uint dir, uint num_minis)
 
             for (uint n = 0; n!=w.size(); ++n)
             {
-                if ((uint)accumulate(w[n].kmers_on_path.begin(), w[n].kmers_on_path.end(), 0) < num_minis or 
+                if ((uint)std::accumulate(w[n].kmers_on_path.begin(), w[n].kmers_on_path.end(), 0) < 4*num_minis or 
 		    w[n].has_at_least_n_hit_minis_on_path(kmer_path_hit_counts[dir], num_minis))
                 {
+		    cout << "keep path " << w[n] << " which has " << std::accumulate(w[n].kmers_on_path.begin(), w[n].kmers_on_path.end(), 0);
+                    cout << " minis on path and (at least " << num_minis << " have been hit) is ";
+                    cout << w[n].has_at_least_n_hit_minis_on_path(kmer_path_hit_counts[dir], num_minis) << endl;
 		    u.push_back(w[n]);
-                }
+                } else {
+		    cout << "reject path " << w[n] << " which has " << std::accumulate(w[n].kmers_on_path.begin(), w[n].kmers_on_path.end(), 0);
+                    cout << " minis on path and (at least " << num_minis << " have been hit) is ";
+                    cout << w[n].has_at_least_n_hit_minis_on_path(kmer_path_hit_counts[dir], num_minis) << endl;
+		}
 	    }
 
             bubble_paths[pre_site_id] = u;

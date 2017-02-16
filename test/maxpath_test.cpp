@@ -76,3 +76,21 @@ TEST_F(MaxPathTest,extend)
 TEST_F(MaxPathTest,getmeanprob)
 {
 }*/
+
+TEST_F(MaxPathTest, hasAtLeastNHits)
+{
+    vector<uint32_t> counts = {0,1,1,2,0,0,0,0,0,0,1,1,0};
+    uint n = 3;
+    vector<LocalNode*> v;
+    vector<int> y = {0,1,1,1,0,0,0,0,0,0,0,0,0};
+    MaxPath mp1(v, y, 0);
+    EXPECT_EQ(mp1.has_at_least_n_hit_minis_on_path(counts, n), true);
+  
+    y = {1,1,1,0,0,0,0,0,0,0,0,0,0};
+    MaxPath mp2(v, y, 0);
+    EXPECT_EQ(mp2.has_at_least_n_hit_minis_on_path(counts, n), false);
+
+    y = {1,1,1,0,0,0,0,0,0,0,1,1,0};
+    MaxPath mp3(v, y, 0);
+    EXPECT_EQ(mp3.has_at_least_n_hit_minis_on_path(counts, n), true);
+}

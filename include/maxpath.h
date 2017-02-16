@@ -1,7 +1,7 @@
 #ifndef __MAXPATH_H_INCLUDED__   // if maxpath.h hasn't been included yet...
 #define __MAXPATH_H_INCLUDED__
 
-#include <ostream>
+#include <iostream>
 #include <vector>
 #include "localnode.h"
 
@@ -22,6 +22,7 @@ struct MaxPath
     float get_prob(const std::vector<float>&);
     float get_mean_prob(const std::vector<float>&);
     bool has_at_least_n_hit_minis_on_path(const std::vector<uint32_t>&, uint32_t);
+    friend std::ostream& operator<< (std::ostream& out, const MaxPath& p);
 };
 
 struct VMPgreater
