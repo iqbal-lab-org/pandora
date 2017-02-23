@@ -183,6 +183,11 @@ bool Path::operator == ( const Path& y) const
     return true;
 }
 
+bool Path::operator != ( const Path& y) const
+{
+    return (! (path == y.path));
+}
+
 std::ostream& operator<< (std::ostream & out, Path const& p) {
     uint32_t num_intervals = p.path.size();
     out << num_intervals << "{";

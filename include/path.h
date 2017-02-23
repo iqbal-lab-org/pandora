@@ -23,6 +23,7 @@ class Path {
     bool is_branching(const Path& y) const;
     bool operator < (const Path& y) const;
     bool operator == (const Path& y) const;
+    bool operator != (const Path& y) const;
   friend std::ostream& operator<< (std::ostream& out, const Path& p); 
   friend std::istream& operator>> (std::istream& in, Path& p);
 };
