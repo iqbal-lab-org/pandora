@@ -18,5 +18,6 @@ class KmerNode {
 
   friend std::ostream& operator<< (std::ostream& out, const KmerNode& n);  
   friend class KmerGraph;
+  friend struct condition;
 };
 #endif

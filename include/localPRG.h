@@ -14,6 +14,7 @@
 #include "minihits.h"
 #include "pannode.h"
 #include "maxpath.h"
+#include "kmergraph.h"
 
 class LocalNode;
 class PanNode;
@@ -27,6 +28,7 @@ class LocalPRG {
     std::string name;
     std::string seq;
     LocalGraph prg;
+    KmerGraph kmer_prg;
 
     std::vector<Path> kmer_paths; // added during index construction when PRG is sketched
 

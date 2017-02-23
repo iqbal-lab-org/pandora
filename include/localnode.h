@@ -6,8 +6,10 @@
 #include <ostream>
 #include <algorithm>
 #include "interval.h"
+#include "path.h"
 
 class LocalNode {
+    std::vector<Path> prev_kmer_paths;
   public:
     std::string seq;
     Interval pos;
@@ -21,5 +23,6 @@ class LocalNode {
     bool operator == (const LocalNode& y) const;
   friend std::ostream& operator<< (std::ostream& out, const LocalNode& n);  
   friend class LocalGraph;
+  friend class LocalPRG;
 };
 #endif

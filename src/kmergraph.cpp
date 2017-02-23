@@ -55,6 +55,28 @@ void KmerGraph::add_edge (const uint32_t& from, const uint32_t& to)
     return;
 }
 
+condition::condition(const Path& p): q(p) {};
+bool condition::operator()(const KmerNode* kn) const { return kn->path == q; }
+
+void KmerGraph::add_edge (const Path& from, const Path& to)
+{
+    vector<KmerNode*>::iterator from_it = find_if(nodes.begin(), nodes.end(), condition(from));
+    vector<KmerNode*>::iterator to_it = find_if(nodes.begin(), nodes.end(), condition(to));
+    assert(from_it != nodes.end() && to_it != nodes.end());
+
+    pointer_values_equal<KmerNode> eq_t = { *to_it };
+    if ( find_if((*from_it)->outNodes.begin(), (*from_it)->outNodes.end(), eq_t) == (*from_it)->outNodes.end() )
+    {
+        (*from_it)->outNodes.push_back(*to_it);
+    }
+    pointer_values_equal<KmerNode> eq_f = { *from_it };
+    if ( find_if((*to_it)->inNodes.begin(), (*to_it)->inNodes.end(), eq_f) == (*to_it)->inNodes.end() )
+    {
+        (*to_it)->inNodes.push_back((*from_it));
+    }
+    return;
+}
+
 void KmerGraph::save (const string& filepath)
 {
     ofstream handle;

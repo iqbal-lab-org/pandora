@@ -18,10 +18,19 @@ class KmerGraph {
     ~KmerGraph();
     void add_node (const Path&);
     void add_edge (const uint32_t&, const uint32_t&);
+    void add_edge (const Path&, const Path&);
     void save (const std::string&);
     void load (const std::string&);
     bool operator == (const KmerGraph& y) const;
     friend std::ostream& operator<< (std::ostream & out, KmerGraph const& data);
+    friend struct condition;
+};
+
+struct condition
+{
+    Path q;
+    condition(const Path&);
+    bool operator()(const KmerNode*) const;
 };
 
 #endif
