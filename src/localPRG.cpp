@@ -689,7 +689,7 @@ void LocalPRG::get_kmer_path_hit_counts(const PanNode* pnode)
 		    kmer_path_hit_counts[2][i] += num_hits; // vector for both forward and reverse hits to catch any partially inverted copies
                     //cout << "kmer_path_hit_counts[" << i << "] = " << num_hits << endl;
                     num_hits = 1;
-                    num_kmers +=1;
+                    //num_kmers +=1;
                     break;
                 }
             }
@@ -925,9 +925,9 @@ vector<float> LocalPRG::get_covered_maxpath_log_probs(uint dir, uint num_minis)
     vector<MaxPath> u, v, w; // w <- u <=> v
     map<uint32_t, vector<MaxPath>> bubble_paths;
 				     // this time each has size 3, with an unknown number of options within that
-    u.reserve(100000);
-    v.reserve(100000);
-    w.reserve(5000);
+    u.reserve(600000);
+    v.reserve(600000);
+    w.reserve(100000);
     vector<int> y(kmer_paths.size(),0);
 
     // start with the outmost level
@@ -1041,6 +1041,14 @@ vector<float> LocalPRG::get_covered_maxpath_log_probs(uint dir, uint num_minis)
     }
     return ret_values;
 }
+
+/*void LocalPRG::write_max_path_to_vcf(const string& filepath)
+{
+    assert(max_path_index[0].size()==3);
+    assert(max_path_index[0][0].size()>0);
+    vector<LocalNode*> ref = prg.top_path();
+    vector<LocalNode*> query = max_path_index[0][0][0].npath;
+}*/
 
 void LocalPRG::write_max_paths_to_fasta(const string& filepath)
 {
