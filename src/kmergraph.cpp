@@ -19,10 +19,18 @@ KmerGraph::KmerGraph()
 
 KmerGraph::~KmerGraph()
 {
+    clear();
+}
+
+void KmerGraph::clear()
+{
   for (auto c: nodes)
   {
     delete c;
   }
+  nodes.clear();
+  assert(nodes.size() == 0);
+  next_id = 0;
 }
 
 void KmerGraph::add_node (const Path& p)
@@ -33,13 +41,15 @@ void KmerGraph::add_node (const Path& p)
     if ( find_if(nodes.begin(), nodes.end(), eq) == nodes.end() )
     {
 	nodes.push_back(n);
+        cout << "added node " << *n;
 	next_id++;
     } else {
 	delete n;
     }
     return;
 }
-void KmerGraph::add_edge (const uint32_t& from, const uint32_t& to)
+
+/*void KmerGraph::add_edge (const uint32_t& from, const uint32_t& to)
 {
     assert(from <= nodes.size() && to <= nodes.size());
     pointer_values_equal<KmerNode> eq = { nodes[to] };
@@ -53,7 +63,7 @@ void KmerGraph::add_edge (const uint32_t& from, const uint32_t& to)
         nodes[to]->inNodes.push_back(nodes[from]);
     }
     return;
-}
+}*/
 
 condition::condition(const Path& p): q(p) {};
 bool condition::operator()(const KmerNode* kn) const { return kn->path == q; }
@@ -73,6 +83,21 @@ void KmerGraph::add_edge (const Path& from, const Path& to)
     if ( find_if((*to_it)->inNodes.begin(), (*to_it)->inNodes.end(), eq_f) == (*to_it)->inNodes.end() )
     {
         (*to_it)->inNodes.push_back((*from_it));
+    }
+    cout << "added edge from " << (*from_it)->id << " to " << (*to_it)->id << endl;
+    return;
+}
+
+void KmerGraph::check (uint num_minikmers)
+{
+    // should have a node for every minikmer found, plus a dummy start and end
+    assert(num_minikmers == 0 or nodes.size() == num_minikmers + 2 || assert_msg("nodes.size(): " << nodes.size() << " and num minikmers: " << num_minikmers));
+
+    // should not have any leaves, only nodes with degree 0 are start and end
+    for (auto c: nodes)
+    {
+	assert(c->inNodes.size() > 0 or c->id == 0 || assert_msg("node" << *c << " has inNodes size " << c->inNodes.size()));
+	assert(c->outNodes.size() > 0 or c->id == nodes.size() - 1 || assert_msg("node" << *c << " has outNodes size " << c->outNodes.size()));
     }
     return;
 }

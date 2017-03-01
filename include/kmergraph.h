@@ -16,9 +16,11 @@ class KmerGraph {
     std::vector<KmerNode*> nodes; // representing nodes in graph
     KmerGraph();
     ~KmerGraph();
+    void clear();
     void add_node (const Path&);
-    void add_edge (const uint32_t&, const uint32_t&);
+    //void add_edge (const uint32_t&, const uint32_t&);
     void add_edge (const Path&, const Path&);
+    void check (uint);
     void save (const std::string&);
     void load (const std::string&);
     bool operator == (const KmerGraph& y) const;
