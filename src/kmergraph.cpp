@@ -42,7 +42,6 @@ void KmerGraph::add_node (const Path& p)
     if ( find_if(nodes.begin(), nodes.end(), eq) == nodes.end() )
     {
 	nodes.push_back(n);
-        cout << "added node " << *n;
 	next_id++;
     } else {
 	delete n;
@@ -53,13 +52,11 @@ void KmerGraph::add_node (const Path& p)
 void KmerGraph::add_edge (const uint32_t& from, const uint32_t& to)
 {
     assert(from <= nodes.size() && to <= nodes.size());
-    pointer_values_equal<KmerNode> eq = { nodes[to] };
-    if ( find_if(nodes[from]->outNodes.begin(), nodes[from]->outNodes.end(), eq) == nodes[from]->outNodes.end() )
+    if ( find(nodes[from]->outNodes.begin(), nodes[from]->outNodes.end(), nodes[to]) == nodes[from]->outNodes.end() )
     {
         nodes[from]->outNodes.push_back(nodes[to]);
     }
-    eq = { nodes[from] };
-    if ( find_if(nodes[to]->inNodes.begin(), nodes[to]->inNodes.end(), eq) == nodes[to]->inNodes.end() )
+    if ( find(nodes[to]->inNodes.begin(), nodes[to]->inNodes.end(), nodes[from]) == nodes[to]->inNodes.end() )
     {
         nodes[to]->inNodes.push_back(nodes[from]);
     }
@@ -75,17 +72,50 @@ void KmerGraph::add_edge (const Path& from, const Path& to)
     vector<KmerNode*>::iterator to_it = find_if(nodes.begin(), nodes.end(), condition(to));
     assert(from_it != nodes.end() && to_it != nodes.end());
 
-    pointer_values_equal<KmerNode> eq_t = { *to_it };
-    if ( find_if((*from_it)->outNodes.begin(), (*from_it)->outNodes.end(), eq_t) == (*from_it)->outNodes.end() )
+    /*bool added = false;
+    cout << "check outnodes" << endl;
+    for (uint i=0; i!=(*from_it)->outNodes.size(); ++i)
+    {
+	cout << *(*from_it)->outNodes[i] << endl;
+	if ((*from_it)->outNodes[i] == *to_it)
+	{
+	    cout << "edge already added" << endl;
+	    added = true;
+	    break;
+	}
+    }
+    if (added == false)
+    {
+        cout << "add outnode" << endl;
+        (*from_it)->outNodes.push_back(*to_it);
+    }*/
+    if ( find((*from_it)->outNodes.begin(), (*from_it)->outNodes.end(), (*to_it)) == (*from_it)->outNodes.end() )
     {
         (*from_it)->outNodes.push_back(*to_it);
+	(*to_it)->inNodes.push_back((*from_it));
     }
-    pointer_values_equal<KmerNode> eq_f = { *from_it };
-    if ( find_if((*to_it)->inNodes.begin(), (*to_it)->inNodes.end(), eq_f) == (*to_it)->inNodes.end() )
+
+    /*added = false;
+    cout << "check innodes" << endl;
+    for (uint i=0; i!=(*to_it)->inNodes.size(); ++i)
+    {
+	cout << *(*to_it)->inNodes[i] << endl;
+        if ((*to_it)->inNodes[i] == *from_it)
+        {
+            cout << "edge already added" << endl;
+            added = true;
+            break;
+        }
+    }
+    if (added == false)
+    {
+        cout << "add new in edge" << endl;
+        (*to_it)->inNodes.push_back(*from_it);
+    }*/
+    /*if ( find((*to_it)->inNodes.begin(), (*to_it)->inNodes.end(), (*from_it)) == (*to_it)->inNodes.end() )
     {
         (*to_it)->inNodes.push_back((*from_it));
-    }
-    cout << "added edge from " << (*from_it)->id << " to " << (*to_it)->id << endl;
+    }*/
     return;
 }
 
@@ -101,6 +131,40 @@ void KmerGraph::check (uint num_minikmers)
 	assert(c->outNodes.size() > 0 or c->id == nodes.size() - 1 || assert_msg("node" << *c << " has outNodes size " << c->outNodes.size()));
     }
     return;
+}
+
+vector<KmerNode*> KmerGraph::get_node_order()
+{
+    int num_bubble_starts = 0, num_bubble_ends = 0;
+    vector<KmerNode*> return_order;
+    return_order.reserve(next_id);
+    vector<vector<KmerNode*>> nodes_by_level(10, return_order);
+    assert(nodes_by_level.size() == 10);
+
+    for (uint i=0; i!=nodes.size(); ++i)
+    {
+	if (nodes[i]->inNodes.size() > 1)
+	{
+	    num_bubble_ends += 1;
+	    //cout << "num_bubble_ends is now " << num_bubble_ends << endl;
+	}
+	//cout << i << " " << num_bubble_starts - num_bubble_ends << endl;
+	assert(num_bubble_starts - num_bubble_ends >= 0);
+	nodes_by_level[num_bubble_starts - num_bubble_ends].push_back(nodes[i]);
+	if (nodes[i]->outNodes.size() > 1)
+        {
+            num_bubble_starts += 1;
+	    //cout << "num_bubble_starts is now " << num_bubble_starts << endl;
+        }
+    }
+    
+    //cout << "and output new order..." << endl;
+    for (uint i=nodes_by_level.size(); i!=0; --i)
+    {
+	//cout << return_order.size() << " ";
+        return_order.insert(return_order.end(), nodes_by_level[i-1].begin(), nodes_by_level[i-1].end());
+    }
+    return return_order;
 }
 
 void KmerGraph::save (const string& filepath)
@@ -142,7 +206,7 @@ void KmerGraph::load (const string& filepath)
 		ss.clear();
                 add_node(p);
 		assert(nodes.back()->id == id);
-		covg = stoi(split(split_line[3], "RC:i:")[1]);
+		covg = stoi(split(split_line[3], "RC:i:")[0]);
 		nodes.back()->covg = covg;
             }
 	}
@@ -165,7 +229,6 @@ void KmerGraph::load (const string& filepath)
                 add_edge(from, to);
             }
         }
-        myfile.clear();
     } else {
         cerr << "Unable to open kmergraph file " << filepath << endl;
         exit(1);
@@ -180,10 +243,10 @@ bool KmerGraph::operator == (const KmerGraph& y) const
         return false;}
 
     // false if have different nodes
-    for ( const auto c: nodes)
+    for (uint i=0; i!=nodes.size(); ++i)
     {
         // if node not equal to a node in y, then false
-        pointer_values_equal<KmerNode> eq = { c };
+        pointer_values_equal<KmerNode> eq = { nodes[i] };
         if ( find_if(y.nodes.begin(), y.nodes.end(), eq) == y.nodes.end() )
 	{
             return false;

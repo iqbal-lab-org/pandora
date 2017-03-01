@@ -20,5 +20,11 @@ class KmerNode {
   friend class KmerGraph;
   friend struct condition;
   friend class LocalPRG;
+  friend class KmerGraphTest_addNode_Test;
+  friend class KmerGraphTest_addEdge_Test;
+  friend class KmerGraphTest_save_Test;
+  friend class KmerGraphTest_load_Test;
+  friend class KmerNodeTest_create_Test;
+  friend class KmerNodeTest_equals_Test;
 };
 #endif

@@ -21,6 +21,7 @@ class KmerGraph {
     void add_edge (const uint32_t&, const uint32_t&);
     void add_edge (const Path&, const Path&);
     void check (uint);
+    std::vector<KmerNode*> get_node_order();
     void save (const std::string&);
     void load (const std::string&);
     bool operator == (const KmerGraph& y) const;
