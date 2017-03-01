@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <cstring>
 #include <fstream>
 #include <cassert>
@@ -49,7 +50,7 @@ void KmerGraph::add_node (const Path& p)
     return;
 }
 
-/*void KmerGraph::add_edge (const uint32_t& from, const uint32_t& to)
+void KmerGraph::add_edge (const uint32_t& from, const uint32_t& to)
 {
     assert(from <= nodes.size() && to <= nodes.size());
     pointer_values_equal<KmerNode> eq = { nodes[to] };
@@ -63,7 +64,7 @@ void KmerGraph::add_node (const Path& p)
         nodes[to]->inNodes.push_back(nodes[from]);
     }
     return;
-}*/
+}
 
 condition::condition(const Path& p): q(p) {};
 bool condition::operator()(const KmerNode* kn) const { return kn->path == q; }
@@ -106,20 +107,64 @@ void KmerGraph::save (const string& filepath)
 {
     ofstream handle;
     handle.open (filepath);
+    handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
+    for(uint i=0; i!=nodes.size(); ++i)
+    {
+        handle << "S\t" << nodes[i]->id << "\t" << nodes[i]->path << "\tRC:i:" << nodes[i]->covg << endl;
+        for (uint32_t j=0; j<nodes[i]->outNodes.size(); ++j)
+        {
+            handle << "L\t" << nodes[i]->id << "\t+\t" << nodes[i]->outNodes[j]->id << "\t+\t0M" << endl;
+        }
+    }
     handle.close();
 }
 
 void KmerGraph::load (const string& filepath)
 {
     string line;
+    vector<string> split_line;
+    stringstream ss;
+    uint32_t id, covg, from, to;
+    Path p;
 
     ifstream myfile (filepath);
     if (myfile.is_open())
     {
         while ( getline (myfile,line).good() )
         {
+	    if (line[0] == 'S')
+            {
+                split_line = split(line, "\t");
+                assert(split_line.size() >= 4);
+                id = stoi(split_line[1]);
+		ss << split_line[2];
+		ss >> p;
+		ss.clear();
+                add_node(p);
+		assert(nodes.back()->id == id);
+		covg = stoi(split(split_line[3], "RC:i:")[1]);
+		nodes.back()->covg = covg;
+            }
 	}
-
+        myfile.clear();
+        myfile.seekg(0, myfile.beg);
+        while ( getline (myfile,line).good() )
+        {
+            if (line[0] == 'L')
+            {
+                split_line = split(line, "\t");
+                assert(split_line.size() >= 5);
+                if (split_line[2] == split_line[4])
+                {
+                    from = stoi(split_line[1]);
+                    to = stoi(split_line[3]);
+                } else {
+                    from = stoi(split_line[3]);
+                    to = stoi(split_line[1]);
+                }
+                add_edge(from, to);
+            }
+        }
         myfile.clear();
     } else {
         cerr << "Unable to open kmergraph file " << filepath << endl;
