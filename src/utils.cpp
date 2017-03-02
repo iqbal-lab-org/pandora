@@ -213,6 +213,15 @@ void load_LocalPRG_kmer_paths(vector<LocalPRG*>& prgs, const string& prgfile)
     return;
 }
 
+void load_PRG_kmergraphs(vector<LocalPRG*>& prgs, const string& prgfile)
+{
+    for (uint i=0; i!=prgs.size(); ++i)
+    {
+	prgs[i]->kmer_prg.load(prgfile + "." + to_string(i) + ".gfa");
+    }
+    return;
+}
+
 void add_read_hits(const uint32_t id, const string& name, const string& seq, MinimizerHits* hits, Index* idx, const uint32_t w, const uint32_t k)
 {
     uint32_t hit_count = 0;

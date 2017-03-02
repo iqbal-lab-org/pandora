@@ -136,6 +136,7 @@ int pandora_map(int argc, char* argv[])
     vector<LocalPRG*> prgs;
     read_prg_file(prgs, prgfile);
     load_LocalPRG_kmer_paths(prgs, prgfile); 
+    load_PRG_kmergraphs(prgs, prgfile);
 
     cout << now() << "Constructing PanGraph from read file" << endl;
     MinimizerHits *mhs;
@@ -155,6 +156,7 @@ int pandora_map(int argc, char* argv[])
     {
 	cout << "\t\t" << prefix << "_" << prgs[c.second->id]->name << "_mlp.fasta" << endl;
 	prgs[c.second->id]->write_max_paths_to_fasta(prefix + "_" + prgs[c.second->id]->name + "_mlp.fasta");
+	prgs[c.second->id]->write_kmer_max_paths_to_fasta(prefix + "_" + prgs[c.second->id]->name + "_kmlp.fasta", e_rate);
     }
 
     cout << now() << "Writing LocalGraphs to files:" << endl;	

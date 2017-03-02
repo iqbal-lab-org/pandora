@@ -56,6 +56,7 @@ class LocalPRG {
 
     // functions used once hits have been collected against the PRG
     void update_covg_with_hit(MinimizerHit*);
+    std::vector<LocalNode*> localnode_path_from_kmernode_path(std::vector<KmerNode*>);
     std::vector<uint32_t> find_overlapping_kmer_paths(MaxPath&);
     void filter_branching_kmer_paths(MaxPath&, const std::vector<float>&, const std::vector<uint32_t>&);
     void update_kmers_on_node_path(MaxPath&, const std::vector<float>&);
@@ -65,6 +66,7 @@ class LocalPRG {
     void infer_most_likely_prg_paths_for_corresponding_pannode(const PanNode*, uint32_t, float);
     std::vector<float> get_covered_maxpath_log_probs(uint, uint);
     void write_max_paths_to_fasta(const std::string&);
+    void write_kmer_max_paths_to_fasta(const std::string&, float);
 
   friend std::ostream& operator<< (std::ostream& out, const LocalPRG& data);  
 };

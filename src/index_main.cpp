@@ -84,6 +84,12 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
 
     // save minis
     save_LocalPRG_kmer_paths(prgs, prgfile);
+
+    // save kmergraphs
+    for (uint i=0; i!=prgs.size(); ++i)
+    {
+	prgs[i]->kmer_prg.save(prgfile + "." + to_string(i) + ".gfa");
+    }
     return 0;
 }
 

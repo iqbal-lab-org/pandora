@@ -628,6 +628,27 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
     return;
 }*/
 
+vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*> kmernode_path)
+{
+    vector<LocalNode*> localnode_path, kmernode;
+    for (uint i=0; i!=kmernode_path.size(); ++i)
+    {
+        kmernode = nodes_along_path(kmernode_path[i]->path);
+	// if the start of the new localnode path is after the end of the previous, join up WLOG with top path
+        while (kmernode[0]->id > localnode_path.back()->outNodes[0]->id)
+        {
+            localnode_path.push_back(localnode_path.back()->outNodes[0]);
+        }
+	// if new the localnodes in kmernode overlap old ones, truncate localnode_path
+	while (kmernode[0]->id <= localnode_path.back()->id)
+	{
+	    localnode_path.pop_back();
+	}
+	localnode_path.insert(localnode_path.end(), kmernode.begin(), kmernode.end());
+    }
+    return localnode_path;
+}
+
 void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
 {
     // then for each interval of the hit
@@ -644,6 +665,16 @@ void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
             } else if (it->end < n->second->pos.start)
             { break;} // because the local nodes are labelled in order of occurance in the linear prg string, we don't need to search after this
         }
+    }
+
+    // update the covg in the kmer_prg
+    for (uint i=0; i!=kmer_prg.nodes.size(); ++i)
+    {
+	if (kmer_prg.nodes[i]->path == mh->prg_path)
+	{
+	    kmer_prg.nodes[i]->covg[mh->strand] += 1;
+	    break;
+	}
     }
 }
 
@@ -1176,6 +1207,26 @@ vector<float> LocalPRG::get_covered_maxpath_log_probs(uint dir, uint num_minis)
     vector<LocalNode*> ref = prg.top_path();
     vector<LocalNode*> query = max_path_index[0][0][0].npath;
 }*/
+
+void LocalPRG::write_kmer_max_paths_to_fasta(const string& filepath, float e_rate)
+{
+    ofstream handle;
+    handle.open (filepath);
+    for (uint dir=0; dir!=2; dir++)
+    {
+        vector<KmerNode*> kmp = kmer_prg.find_max_path(dir, e_rate);
+	vector<LocalNode*> lmp = localnode_path_from_kmernode_path(kmp);
+
+        handle << ">" << name << "." << dir << "\t P(data|sequence)=?" << endl;
+        for (uint j = 0; j!= lmp.size(); ++j)
+        {
+            handle << lmp[j]->seq;
+        }
+        handle << endl;
+    }
+    handle.close();
+    return;
+}
 
 void LocalPRG::write_max_paths_to_fasta(const string& filepath)
 {

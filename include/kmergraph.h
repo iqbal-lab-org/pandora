@@ -26,7 +26,7 @@ class KmerGraph {
     void check (uint);
     //std::vector<KmerNode*> get_node_order();
     float prob(uint, int);
-    void find_max_path(int, float);
+    std::vector<KmerNode*> find_max_path(int, float);
     void save (const std::string&);
     void load (const std::string&);
     bool operator == (const KmerGraph& y) const;

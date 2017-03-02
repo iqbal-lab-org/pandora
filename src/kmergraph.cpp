@@ -183,7 +183,7 @@ float KmerGraph::prob(uint j, int dir)
     return lognchoosek(num_reads, nodes[j]->covg[dir]) + nodes[j]->covg[dir]*log(p) + (num_reads-nodes[j]->covg[dir])*log(1-p);
 }
 
-void KmerGraph::find_max_path(int dir, float e_rate)
+vector<KmerNode*> KmerGraph::find_max_path(int dir, float e_rate)
 {
     // update global p
     p = 1/exp(e_rate*k);
@@ -221,7 +221,7 @@ void KmerGraph::find_max_path(int dir, float e_rate)
 	prev_node = prev[prev_node];
     }
 
-    return;
+    return maxpath;
 }
 
 void KmerGraph::save (const string& filepath)
