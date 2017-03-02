@@ -16,6 +16,9 @@ KmerGraph::KmerGraph()
 {
     nodes.reserve(5000);
     next_id = 0;
+    num_reads = 0;
+    k = 0; // nb the kmer size is determined by the first non-null node added
+    p = 1;
 }
 
 KmerGraph::~KmerGraph()
@@ -25,13 +28,16 @@ KmerGraph::~KmerGraph()
 
 void KmerGraph::clear()
 {
-  for (auto c: nodes)
-  {
-    delete c;
-  }
-  nodes.clear();
-  assert(nodes.size() == 0);
-  next_id = 0;
+    for (auto c: nodes)
+    {
+        delete c;
+    }
+    nodes.clear();
+    assert(nodes.size() == 0);
+    next_id = 0;
+    num_reads = 0;
+    k = 0;
+    p = 1;
 }
 
 void KmerGraph::add_node (const Path& p)
@@ -42,6 +48,11 @@ void KmerGraph::add_node (const Path& p)
     if ( find_if(nodes.begin(), nodes.end(), eq) == nodes.end() )
     {
 	nodes.push_back(n);
+	assert(k==0 or p.length==0 or p.length==k);
+	if (k == 0 and p.length > 0)
+	{
+	    k = p.length;
+	}  
 	next_id++;
     } else {
 	delete n;
@@ -133,7 +144,7 @@ void KmerGraph::check (uint num_minikmers)
     return;
 }
 
-vector<KmerNode*> KmerGraph::get_node_order()
+/*vector<KmerNode*> KmerGraph::get_node_order()
 {
     int num_bubble_starts = 0, num_bubble_ends = 0;
     vector<KmerNode*> return_order;
@@ -165,6 +176,52 @@ vector<KmerNode*> KmerGraph::get_node_order()
         return_order.insert(return_order.end(), nodes_by_level[i-1].begin(), nodes_by_level[i-1].end());
     }
     return return_order;
+}*/
+
+float KmerGraph::prob(uint j, int dir)
+{
+    return lognchoosek(num_reads, nodes[j]->covg[dir]) + nodes[j]->covg[dir]*log(p) + (num_reads-nodes[j]->covg[dir])*log(1-p);
+}
+
+void KmerGraph::find_max_path(int dir, float e_rate)
+{
+    // update global p
+    p = 1/exp(e_rate*k);
+
+    // create vectors to hold the intermediate values
+    vector<float> M(next_id, 0); // max log prob pf paths from pos i to end of graph
+    vector<int> len(next_id, 1); // length of max log path from pos i to end of graph
+    vector<uint> prev(next_id, next_id-1); // prev node along path
+    float max_mean;
+
+    M[next_id-1] = prob(next_id-1, dir);
+    len[next_id-1] = 1;
+    
+    for (uint j=next_id-1; j!=0; --j)
+    {
+	max_mean = numeric_limits<float>::lowest(); 
+	for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
+	{
+	    if (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean)
+	    {
+		M[j-1] = prob(j-1, dir) + M[nodes[j-1]->outNodes[i]->id];
+		len[j-1] = 1 + len[nodes[j-1]->outNodes[i]->id];
+		prev[j-1] = nodes[j-1]->outNodes[i]->id;
+		max_mean = M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id];
+	    }
+	}
+    }
+
+    // extract path
+    vector<KmerNode*> maxpath;
+    uint prev_node = prev[0];
+    while (prev_node < next_id - 1)
+    {
+	maxpath.push_back(nodes[prev_node]);
+	prev_node = prev[prev_node];
+    }
+
+    return;
 }
 
 void KmerGraph::save (const string& filepath)
@@ -174,7 +231,7 @@ void KmerGraph::save (const string& filepath)
     handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
     for(uint i=0; i!=nodes.size(); ++i)
     {
-        handle << "S\t" << nodes[i]->id << "\t" << nodes[i]->path << "\tRC:i:" << nodes[i]->covg << endl;
+        handle << "S\t" << nodes[i]->id << "\t" << nodes[i]->path << "\tRC:i:" << nodes[i]->covg[0] << "," << nodes[i]->covg[0] << endl;
         for (uint32_t j=0; j<nodes[i]->outNodes.size(); ++j)
         {
             handle << "L\t" << nodes[i]->id << "\t+\t" << nodes[i]->outNodes[j]->id << "\t+\t0M" << endl;
@@ -206,8 +263,10 @@ void KmerGraph::load (const string& filepath)
 		ss.clear();
                 add_node(p);
 		assert(nodes.back()->id == id);
-		covg = stoi(split(split_line[3], "RC:i:")[0]);
-		nodes.back()->covg = covg;
+		covg = stoi(split(split(split_line[3], "RC:i:")[0], ",")[0]);
+		nodes.back()->covg[0] = covg;
+		covg = stoi(split(split(split_line[3], "RC:i:")[0], ",")[1]);
+                nodes.back()->covg[1] = covg;
             }
 	}
         myfile.clear();

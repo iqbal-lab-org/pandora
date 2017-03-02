@@ -12,6 +12,9 @@ class KmerNode;
 
 class KmerGraph {
     uint32_t next_id;
+    uint32_t num_reads;
+    uint32_t k;
+    float p;
   public:
     std::vector<KmerNode*> nodes; // representing nodes in graph
     KmerGraph();
@@ -21,7 +24,9 @@ class KmerGraph {
     void add_edge (const uint32_t&, const uint32_t&);
     void add_edge (const Path&, const Path&);
     void check (uint);
-    std::vector<KmerNode*> get_node_order();
+    //std::vector<KmerNode*> get_node_order();
+    float prob(uint, int);
+    void find_max_path(int, float);
     void save (const std::string&);
     void load (const std::string&);
     bool operator == (const KmerGraph& y) const;

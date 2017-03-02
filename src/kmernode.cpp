@@ -7,7 +7,7 @@
 
 using namespace std;
 
-KmerNode::KmerNode (uint32_t i, const Path& p): id(i), path(p), covg(0) {}
+KmerNode::KmerNode (uint32_t i, const Path& p): id(i), path(p), covg(2,0) {}
 
 std::ostream& operator<< (std::ostream & out, KmerNode const& n) {
     out << n.id << " " << n.path << endl;

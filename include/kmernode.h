@@ -10,7 +10,7 @@ class KmerNode {
     Path path;
     std::vector<KmerNode*> outNodes; // representing edges from this node to the nodes in the vector
     std::vector<KmerNode*> inNodes; // representing edges from other nodes to this node
-    uint32_t covg; // covg by hits
+    std::vector<uint32_t> covg; // covg by hits in fwd, rev dir
 
   public:
     KmerNode(uint32_t, const Path&);
