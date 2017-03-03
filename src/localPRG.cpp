@@ -545,7 +545,18 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                                 //cout << " and will now be " << min((*it3)->pos.end, kmer_path.path.back().end) << endl;
                                 (*it3)->sketch_next = min((*it3)->pos.end, kmer_path.path.back().end);
                             }
-                        }
+                        } else if (kmer_path.end == it->second->pos.end){
+			    // want to add last kmer for each path
+			    n = nodes_along_path(kmer_path);
+			    while (n.back()->outNodes.size() == 1 and n.back()->outNodes[0]->pos.length == 0)
+			    {
+				n.push_back(n.back()->outNodes[0]);
+			    }
+			    if (n.back()->pos.end == (--prg.nodes.end())->second->pos.end)
+			    {
+			        (--prg.nodes.end())->second->prev_kmer_paths.insert(kmer_path);
+			    }
+			}
 		    }
 		}
 	    }
