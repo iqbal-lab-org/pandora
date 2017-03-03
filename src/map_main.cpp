@@ -156,6 +156,7 @@ int pandora_map(int argc, char* argv[])
     {
 	cout << "\t\t" << prefix << "_" << prgs[c.second->id]->name << "_mlp.fasta" << endl;
 	prgs[c.second->id]->write_max_paths_to_fasta(prefix + "_" + prgs[c.second->id]->name + "_mlp.fasta");
+	cout << "\t\t" << prefix << "_" << prgs[c.second->id]->name << "_kmlp.fasta" << endl;
 	prgs[c.second->id]->write_kmer_max_paths_to_fasta(prefix + "_" + prgs[c.second->id]->name + "_kmlp.fasta", e_rate);
     }
 

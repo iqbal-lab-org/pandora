@@ -360,6 +360,7 @@ void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prg
 	    prgs[pnode->second->id]->update_covg_with_hit(*mh);
 	}
         prgs[pnode->second->id]->infer_most_likely_prg_paths_for_corresponding_pannode(pnode->second, k, e_rate);
+	prgs[pnode->second->id]->kmer_prg.num_reads = pnode->second->foundReads.size();
 	if (output_p_dist == true)
 	{
 	    vector<float> path_probs = prgs[pnode->second->id]->get_covered_maxpath_log_probs(0, 3);

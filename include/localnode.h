@@ -17,6 +17,7 @@ class LocalNode {
     uint32_t id;
     uint32_t covg; // covg by hits
     uint32_t sketch_next; // used by minimizer_sketch function in localPRG.cpp
+    bool skip; //used by minimizer_sketch function in localPRG.cpp
 
     std::vector<LocalNode*> outNodes; // representing edges from this node to the nodes in the vector
 

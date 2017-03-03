@@ -26,5 +26,7 @@ class KmerNode {
   friend class KmerGraphTest_load_Test;
   friend class KmerNodeTest_create_Test;
   friend class KmerNodeTest_equals_Test;
+  friend class KmerGraphTest_findMaxPathSimple_Test;
+  friend class KmerGraphTest_findMaxPath2Level_Test;
 };
 #endif

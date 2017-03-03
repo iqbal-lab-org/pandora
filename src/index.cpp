@@ -40,7 +40,9 @@ void Index::add_record(uint64_t kmer, uint32_t prg_id, Path path, bool strand)
 void Index::clear()
 {
     for(auto it = minhash.begin(); it != minhash.end();)
+    {
         it = minhash.erase(it);
+    }
 }
 
 void Index::save(const string& prgfile)

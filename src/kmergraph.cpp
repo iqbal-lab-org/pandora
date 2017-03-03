@@ -48,6 +48,7 @@ void KmerGraph::add_node (const Path& p)
     if ( find_if(nodes.begin(), nodes.end(), eq) == nodes.end() )
     {
 	nodes.push_back(n);
+	//cout << "added node " << *n << endl;
 	assert(k==0 or p.length==0 or p.length==k);
 	if (k == 0 and p.length > 0)
 	{
@@ -62,6 +63,10 @@ void KmerGraph::add_node (const Path& p)
 
 void KmerGraph::add_edge (const uint32_t& from, const uint32_t& to)
 {
+    if (from == to)
+    {
+        return;
+    }
     assert(from <= nodes.size() && to <= nodes.size());
     if ( find(nodes[from]->outNodes.begin(), nodes[from]->outNodes.end(), nodes[to]) == nodes[from]->outNodes.end() )
     {
@@ -79,6 +84,10 @@ bool condition::operator()(const KmerNode* kn) const { return kn->path == q; }
 
 void KmerGraph::add_edge (const Path& from, const Path& to)
 {
+    if (from == to)
+    {
+	return;
+    }
     vector<KmerNode*>::iterator from_it = find_if(nodes.begin(), nodes.end(), condition(from));
     vector<KmerNode*>::iterator to_it = find_if(nodes.begin(), nodes.end(), condition(to));
     assert(from_it != nodes.end() && to_it != nodes.end());
@@ -183,21 +192,25 @@ float KmerGraph::prob(uint j, int dir)
     return lognchoosek(num_reads, nodes[j]->covg[dir]) + nodes[j]->covg[dir]*log(p) + (num_reads-nodes[j]->covg[dir])*log(1-p);
 }
 
-vector<KmerNode*> KmerGraph::find_max_path(int dir, float e_rate)
+float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath)
 {
+    cout << now() << "Find kmer max path for direction " << dir;
     // update global p
     p = 1/exp(e_rate*k);
+    cout << " with parameters n: " << num_reads << " and p: " << p << endl;
+    cout << "Kmer graph has " << nodes.size() << " nodes" << endl;
 
     // create vectors to hold the intermediate values
-    vector<float> M(next_id, 0); // max log prob pf paths from pos i to end of graph
-    vector<int> len(next_id, 1); // length of max log path from pos i to end of graph
-    vector<uint> prev(next_id, next_id-1); // prev node along path
+    vector<float> M(nodes.size(), 0); // max log prob pf paths from pos i to end of graph
+    vector<int> len(nodes.size(), 1); // length of max log path from pos i to end of graph
+    vector<uint> prev(nodes.size(), nodes.size()-1); // prev node along path
     float max_mean;
 
-    M[next_id-1] = prob(next_id-1, dir);
-    len[next_id-1] = 1;
+    M[nodes.size()-1] = prob(nodes.size()-1, dir);
+    len[nodes.size()-1] = 1;
+    //cout << nodes.size()-1 << "  M: " << M[nodes.size()-1] << " len: " << len[nodes.size()-1] << " prev: " << prev[nodes.size()-1] << endl;
     
-    for (uint j=next_id-1; j!=0; --j)
+    for (uint j=nodes.size()-1; j!=0; --j)
     {
 	max_mean = numeric_limits<float>::lowest(); 
 	for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
@@ -210,18 +223,20 @@ vector<KmerNode*> KmerGraph::find_max_path(int dir, float e_rate)
 		max_mean = M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id];
 	    }
 	}
+	//cout << j-1 << "  M: " << M[j-1] << " len: " << len[j-1] << " prev: " << prev[j-1] << endl;
     }
 
     // extract path
-    vector<KmerNode*> maxpath;
     uint prev_node = prev[0];
-    while (prev_node < next_id - 1)
+    while (prev_node < nodes.size() - 1)
     {
+	//cout << prev_node << "->";
 	maxpath.push_back(nodes[prev_node]);
 	prev_node = prev[prev_node];
     }
+    //cout << endl;
 
-    return maxpath;
+    return M[0]/len[0];
 }
 
 void KmerGraph::save (const string& filepath)
