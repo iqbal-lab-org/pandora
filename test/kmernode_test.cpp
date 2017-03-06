@@ -69,11 +69,5 @@ TEST_F(KmerNodeTest,equals){
     EXPECT_EQ(kn1, kn5);
     EXPECT_EQ(kn5, kn1);
 
-    //outnodes does affect equals
-    kn5.outNodes.push_back(&kn2);
-    EXPECT_EQ(kn5, kn5);
-    EXPECT_EQ((kn1==kn5), false);
-    EXPECT_EQ((kn5==kn1), false);
-    
 }
 

@@ -48,7 +48,7 @@ void KmerGraph::add_node (const Path& p)
     if ( find_if(nodes.begin(), nodes.end(), eq) == nodes.end() )
     {
 	nodes.push_back(n);
-	//cout << "added node " << *n << endl;
+	cout << "added node " << *n;
 	assert(k==0 or p.length==0 or p.length==k);
 	if (k == 0 and p.length > 0)
 	{
@@ -76,6 +76,7 @@ void KmerGraph::add_edge (const uint32_t& from, const uint32_t& to)
     {
         nodes[to]->inNodes.push_back(nodes[from]);
     }
+    cout << "added edge from  " << *nodes[from] << " to " << *nodes[to] << endl;
     return;
 }
 
@@ -136,6 +137,7 @@ void KmerGraph::add_edge (const Path& from, const Path& to)
     {
         (*to_it)->inNodes.push_back((*from_it));
     }*/
+    cout << "added edge from " << **(from_it) << " to " << **(to_it) << endl;
     return;
 }
 
@@ -321,10 +323,22 @@ bool KmerGraph::operator == (const KmerGraph& y) const
     {
         // if node not equal to a node in y, then false
         pointer_values_equal<KmerNode> eq = { nodes[i] };
-        if ( find_if(y.nodes.begin(), y.nodes.end(), eq) == y.nodes.end() )
+	vector<KmerNode*>::const_iterator found = find_if(y.nodes.begin(), y.nodes.end(), eq);
+        if ( found == y.nodes.end() )
 	{
             return false;
 	}
+
+	// if the node is found but has different edges, then false
+	if (nodes[i]->outNodes.size() != (*found)->outNodes.size()) {return false;}
+	if (nodes[i]->inNodes.size() != (*found)->inNodes.size()) {return false;}
+	for (uint32_t j=0; j!=nodes[i]->outNodes.size(); ++j)
+        {
+            pointer_values_equal<KmerNode> eq2 = { nodes[i]->outNodes[j] };
+            if ( find_if((*found)->outNodes.begin(), (*found)->outNodes.end(), eq2) == (*found)->outNodes.end() )
+            {return false;}
+        }
+	
     }
     // otherwise is true
     return true;
