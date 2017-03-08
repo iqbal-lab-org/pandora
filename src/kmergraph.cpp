@@ -76,7 +76,7 @@ void KmerGraph::add_edge (const uint32_t& from, const uint32_t& to)
     {
         nodes[to]->inNodes.push_back(nodes[from]);
     }
-    cout << "added edge from  " << *nodes[from] << " to " << *nodes[to] << endl;
+    cout << "added edge from  " << from << " to " << to << endl;
     return;
 }
 
@@ -93,51 +93,13 @@ void KmerGraph::add_edge (const Path& from, const Path& to)
     vector<KmerNode*>::iterator to_it = find_if(nodes.begin(), nodes.end(), condition(to));
     assert(from_it != nodes.end() && to_it != nodes.end());
 
-    /*bool added = false;
-    cout << "check outnodes" << endl;
-    for (uint i=0; i!=(*from_it)->outNodes.size(); ++i)
-    {
-	cout << *(*from_it)->outNodes[i] << endl;
-	if ((*from_it)->outNodes[i] == *to_it)
-	{
-	    cout << "edge already added" << endl;
-	    added = true;
-	    break;
-	}
-    }
-    if (added == false)
-    {
-        cout << "add outnode" << endl;
-        (*from_it)->outNodes.push_back(*to_it);
-    }*/
     if ( find((*from_it)->outNodes.begin(), (*from_it)->outNodes.end(), (*to_it)) == (*from_it)->outNodes.end() )
     {
         (*from_it)->outNodes.push_back(*to_it);
 	(*to_it)->inNodes.push_back((*from_it));
     }
 
-    /*added = false;
-    cout << "check innodes" << endl;
-    for (uint i=0; i!=(*to_it)->inNodes.size(); ++i)
-    {
-	cout << *(*to_it)->inNodes[i] << endl;
-        if ((*to_it)->inNodes[i] == *from_it)
-        {
-            cout << "edge already added" << endl;
-            added = true;
-            break;
-        }
-    }
-    if (added == false)
-    {
-        cout << "add new in edge" << endl;
-        (*to_it)->inNodes.push_back(*from_it);
-    }*/
-    /*if ( find((*to_it)->inNodes.begin(), (*to_it)->inNodes.end(), (*from_it)) == (*to_it)->inNodes.end() )
-    {
-        (*to_it)->inNodes.push_back((*from_it));
-    }*/
-    cout << "added edge from " << **(from_it) << " to " << **(to_it) << endl;
+    cout << "added edge from " << (*from_it)->id << " to " << (*to_it)->id << endl;
     return;
 }
 

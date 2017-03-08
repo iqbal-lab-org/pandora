@@ -413,9 +413,9 @@ TEST_F(LocalPRGTest, minimizerSketch){
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
     
     idx->clear();
-    l2.minimizer_sketch(idx, 2, 3);
-    j = 1;
-    EXPECT_EQ(j, idx->minhash.size());
+    //l2.minimizer_sketch(idx, 2, 3);
+    //j = 1;
+    //EXPECT_EQ(j, idx->minhash.size());
     l2.minimizer_sketch(idx, 1, 3);
     j = 2;
     EXPECT_EQ(j, idx->minhash.size());
@@ -423,9 +423,9 @@ TEST_F(LocalPRGTest, minimizerSketch){
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
 
     idx->clear();
-    l3.minimizer_sketch(idx, 2, 3);
+    //l3.minimizer_sketch(idx, 2, 3);
     j = 2;
-    EXPECT_EQ(j, idx->minhash.size());
+    //EXPECT_EQ(j, idx->minhash.size());
     l3.minimizer_sketch(idx, 1, 3);
     EXPECT_EQ(j, idx->minhash.size());
     j = 1;
