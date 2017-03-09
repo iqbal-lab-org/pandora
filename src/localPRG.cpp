@@ -361,12 +361,10 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 
     // force every start kmer to be in the graph
     walk_paths = prg.walk(prg.nodes.begin()->second->id, 0, k);
-    assert(walk_paths.size()>1);
-    if (walk_paths.size() == 1 and walk_paths.back().path.size() == 0)
+    //assert(walk_paths.size()>=1 or prg.nodes.size()<=1);
+    if (walk_paths.size() == 1 and walk_paths.back().path.size() == 1)
     {
         prg.nodes.begin()->second->prev_kmer_paths.clear();
-    } else if (prg.nodes.begin()->second->pos == Interval(0,0)) {
-	prg.nodes.begin()->second->skip = true;
     }
     for (uint i=0; i!=walk_paths.size(); ++i)
     {
@@ -382,18 +380,12 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	}
 	kmer_prg.add_node(walk_paths[i]);
         kmer_prg.add_edge(kmer_prg.nodes[0]->path, walk_paths[i]);
-	{
-	    prg.nodes.begin()->second->prev_kmer_paths.clear();
-	}
 	n = nodes_along_path(walk_paths[i]);
 	for (uint m=0; m!=n.size(); ++m)
         {
             n[m]->sketch_next = min(n[m]->pos.end, walk_paths[i].path.back().end);
             n[m]->prev_kmer_paths.insert(walk_paths[i]);
-        }
-	for (uint m=1; m<n.size() - 1; ++m)
-        {
-            n[m]->skip = true;
+	    n[m]->skip = true; 
         }
         if (walk_paths[i].end == n.back()->pos.end and n.back()->outNodes.size() > 0)
         {
@@ -411,16 +403,16 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	// if we have a null node which has already been sketched, skip
         while (it!=prg.nodes.end() and it->second->skip == true and it->second->pos.length == 0)
         {
-            cout << "skip node " << *(it->second);// <<  " and push prev_kmer_paths to nodes ";
-            /*for (uint n=0; n!=it->second->outNodes.size(); ++n)
-            {
-                cout << it->second->outNodes[n]->id << " ";
-                it->second->outNodes[n]->prev_kmer_paths.insert(it->second->prev_kmer_paths.begin(), it->second->prev_kmer_paths.end());
-            }*/
-            cout << endl;
+            cout << "skip node " << *(it->second) << endl;
 	    it++;
-	    if (it==prg.nodes.end())
-	    { break;}
+	    /*if (it==prg.nodes.end())
+	    {
+		break;
+	    }*/
+        }
+	if (it==prg.nodes.end())
+        {
+            break;
         }
 
         cout << "Processing node" << *(it->second) << endl;
@@ -433,6 +425,10 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
             walk_paths = prg.walk(it->second->id, i, w+k-1);
 	    //assert(walk_paths.size()>=1);
 	    cout << "found " << walk_paths.size() << " walk paths" << endl;
+	    if (walk_paths.size() == 0)
+	    {
+		break;
+	    }
 
             for (vector<Path>::iterator it2=walk_paths.begin(); it2!=walk_paths.end(); ++it2)
             {
@@ -455,129 +451,135 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                     {
                         kmer = string_along_path(kmer_path);
                         kh = hash.kmerhash(kmer, k);
-                        if (kh.first == smallest or kh.second == smallest)
+
+			n = nodes_along_path(kmer_path);
+                        // add null nodes to end end of the kmer path if there is not enough length
+                        // left to end of PRG for them to be included in another kmer
+                        if (prg.walk(n.back()->id, n.back()->pos.end, w+k-1).size() == 0)
                         {
-                            n = nodes_along_path(kmer_path);
+                            while (kmer_path.end >= n.back()->pos.end and n.back()->outNodes.size() == 1 and n.back()->outNodes[0]->pos.length == 0)
+                            {
+                                kmer_path.add_end_interval(n.back()->outNodes[0]->pos);
+                                n.push_back(n.back()->outNodes[0]);
+                            }
+                        }
+	
+                        if (kh.first == smallest or kh.second == smallest or n.back() == (--(prg.nodes.end()))->second)
+                        {
+                            /*n = nodes_along_path(kmer_path);
 
 			    // add null nodes to end end of the kmer path if there is not enough length
 			    // left to end of PRG for them to be included in another kmer
 			    if (prg.walk(n.back()->id, n.back()->pos.end, w+k-1).size() == 0)
 			    {
-			        while (n.back()->outNodes.size() == 1 and n.back()->outNodes[0]->pos.length == 0)
+			        while (kmer_path.end >= n.back()->pos.end and n.back()->outNodes.size() == 1 and n.back()->outNodes[0]->pos.length == 0)
                                 {
 				    kmer_path.add_end_interval(n.back()->outNodes[0]->pos);
                                     n.push_back(n.back()->outNodes[0]);
 				}
-                            }
-
-			    // label intervals in the middle of path as ones to skip (disjointness)
-			    for (uint m=1; m<n.size() - 1; ++m)
-                            {
-                                n[m]->skip = true;
-                            }
+				if (n.back() == (--(prg.nodes.end()))->second)
+				{
+				    it->second->sketch_next = it->second->pos.end;
+				    break;//don't want to duplicate nodes, so add terminal ones at the end
+				}
+                            }*/
 
 			    // add to index, kmer_prg and kmer_paths
-			    if (kh.first ==smallest)
-			    {
-			        idx->add_record(kh.first, id, kmer_path, 0);
-			    } else {
-				idx->add_record(kh.first, id, kmer_path, 1);
-			    }
+			    idx->add_record(min(kh.first, kh.second), id, kmer_path, (kh.first<=kh.second));
                             kmer_paths.push_back(kmer_path);
 			    kmer_prg.add_node(kmer_path);
 			    for (set<Path>::iterator l = it->second->prev_kmer_paths.begin(); l!=it->second->prev_kmer_paths.end(); ++l)
 			    {
 				kmer_prg.add_edge(*l, kmer_path);
 			    }
-			    if (walk_paths.size() == 1)// and walk_paths[i].path.size() == 1)
-        		    {
-        		        it->second->prev_kmer_paths.clear();
-        		    }	
-			    for (uint m=0; m!=n.size(); ++m)
+			    ends.insert(kmer_path);    
+			    it->second->sketch_next = min(it->second->pos.end, kmer_path.path.back().end);
+			    for (uint m=1; m<n.size(); ++m)
 			    {
 				n[m]->sketch_next = min(n[m]->pos.end, kmer_path.path.back().end);
 				n[m]->prev_kmer_paths.insert(kmer_path);
+				n[m]->skip = true; // nb only used by null nodes, and only last kmers in prg can end on null kmers
 			    }
 			    if (n.back()->sketch_next == n.back()->pos.end and n.back()->outNodes.size() > 0)
                             {
-                                cout << "add kmer path to outnodes" << endl;
+                                cout << "add kmer path to outnodes ";
                                 for (uint m=0; m!=n.back()->outNodes.size(); ++m)
                                 {
+				    cout << n.back()->outNodes[m]->id << " ";
                                     n.back()->outNodes[m]->prev_kmer_paths.insert(kmer_path);
+				    // additionally push to outnodes of outnodes if the outnode is null
+				    LocalNode* ln = n.back()->outNodes[m];
+				    while (ln->pos.length == 0 and ln->outNodes.size()>0)
+				    {
+					cout << ln->outNodes[0]->id << " ";
+                                        ln->outNodes[0]->prev_kmer_paths.insert(kmer_path);
+					ln = ln->outNodes[0];
+				    }
                                 }
+				cout << endl;
 			    }
 			}
 		    }
 		}
 	    }
-
-            for (uint32_t j = max(it->second->sketch_next+1,i+k)-k; j < max(it->second->sketch_next, it->second->pos.start+1); ++j)
-            {
-		// want to add last kmer for each path through whole PRG, even if it doesn't minimize
-		cout << "for pos " << j << " there are " << prg.walk(it->second->id, j, k).size() << " paths of length k, and " << prg.walk(it->second->id, j, k+1).size() << " of length k+1" << endl;
-                if (prg.walk(it->second->id, j, k).size() > 0 and prg.walk(it->second->id, j, k+1).size() == 0)
-		{
-		    cout << "add end kmers" << endl;
-		    walk_paths = prg.walk(it->second->id, j, k);
-		    for (vector<Path>::iterator it2=walk_paths.begin(); it2!=walk_paths.end(); ++it2)
-		    {
-			    n = nodes_along_path(*it2);
-			    kmer = string_along_path(*it2);
-                            kh = hash.kmerhash(kmer, k);
-			    while (n.back()->outNodes.size() == 1 and n.back()->outNodes[0]->pos.length == 0)
-			    {
-				it2->add_end_interval(n.back()->outNodes[0]->pos);
-				n.push_back(n.back()->outNodes[0]);
-			    }
-			    assert(n.back() == (--prg.nodes.end())->second);
-
-			    for (uint m=1; m<n.size() - 1; ++m)
-                            {
-                                n[m]->skip = true;
-                            }
-
-                            idx->add_record(min(kh.first, kh.second), id, *it2, 0);
-                            kmer_paths.push_back(*it2);
-                            kmer_prg.add_node(*it2);
-                            for (set<Path>::iterator l = it->second->prev_kmer_paths.begin(); l!=it->second->prev_kmer_paths.end(); ++l)
-                            {
-                                kmer_prg.add_edge(*l, *it2);
-                            }
-
-                            for (uint m=0; m!=n.size(); ++m)
-                            {
-                                n[m]->sketch_next = min(n[m]->pos.end, it2->end);
-                                n[m]->prev_kmer_paths.insert(*it2);
-                            }
-			    (--prg.nodes.end())->second->prev_kmer_paths.insert(*it2);
-		    }
-		    break;
-		} else if (prg.walk(it->second->id, j, k).size() == 0 and prg.walk(it->second->id, j, k+1).size() == 0) {
-		    it->second->sketch_next++;
-		    break;
-		}
-	    }
+	    it->second->prev_kmer_paths = ends;
+	    ends.clear();
 	    i=it->second->sketch_next;
-	    cout << "sketch " << i << " next" << endl;
-	    if (i >= it->second->pos.end)
-            //if (i+w+k > it->second->pos.end+1)
+            cout << "sketch " << i << " next" << endl;
+            if (i >= it->second->pos.end)
             {
-		cout << "finish node, as " << i << ">=" << it->second->pos.end << endl;
-		break;
-	    }
+                cout << "finish node, as " << i << ">=" << it->second->pos.end << endl;
+                break;
+            }
 	}
+    }
 
-	assert(it->second->prev_kmer_paths.size() > 0 or it->second->skip == true or it->second->sketch_next==it->second->pos.end);
+    // now force adding of the last kmer for each path
+    cout << "add end nodes" << endl;
+    walk_paths = prg.walk_back((--(prg.nodes.end()))->second->id, (--(prg.nodes.end()))->second->pos.end, k);
+    //assert(walk_paths.size()>=1);
+    for (uint i=0; i!=walk_paths.size(); ++i)
+    {
+	if (find((--(prg.nodes.end()))->second->prev_kmer_paths.begin(), (--(prg.nodes.end()))->second->prev_kmer_paths.end(), walk_paths[i]) == (--(prg.nodes.end()))->second->prev_kmer_paths.end())
+	{
+            kmer = string_along_path(walk_paths[i]);
+            kh = hash.kmerhash(kmer, k);
+
+            // add to index, kmer_prg and kmer_paths
+            if (kh.first <= kh.second)
+            {
+                idx->add_record(min(kh.first, kh.second), id, walk_paths[i], 0);
+            } else {
+                idx->add_record(min(kh.first, kh.second), id, walk_paths[i], 1);
+            }
+	    n = nodes_along_path(walk_paths[i]);
+	    kmer_prg.add_node(walk_paths[i]);
+            for (set<Path>::iterator l = n[0]->prev_kmer_paths.begin(); l!=n[0]->prev_kmer_paths.end(); ++l)
+            {
+                kmer_prg.add_edge(*l, walk_paths[i]);
+            }
+	    if (walk_paths.size()==0 and walk_paths[i].path.size() == 1)
+	    {
+	        n.back()->prev_kmer_paths.clear();
+	    }
+            (--(prg.nodes.end()))->second->prev_kmer_paths.insert(walk_paths[i]);
+            kmer_paths.push_back(walk_paths[i]);
+	}
     }
 
     // create a null end node in the kmer graph
-    map<uint32_t,LocalNode*>::iterator it=--prg.nodes.end();
+    cout << "add null end" << endl;
+    map<uint32_t,LocalNode*>::iterator it=--(prg.nodes.end());
     d = {Interval(it->second->pos.end,it->second->pos.end)};
     kmer_path.initialize(d);
+    if (kmer_path == kmer_prg.nodes[0]->path)
+    {
+	return;
+    }
     kmer_prg.add_node(kmer_path);
 
     // want to add edges joining this to ends of paths
-    pointer_values_equal<LocalNode> eq = { it->second };
+    /*pointer_values_equal<LocalNode> eq = { it->second };
     ends.insert(it->second->prev_kmer_paths.begin(), it->second->prev_kmer_paths.end()); // copies the end paths from the last node
     for (map<uint32_t,LocalNode*>::iterator it2=prg.nodes.begin(); it2!=it; ++it2)
     {
@@ -595,7 +597,8 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		}
             }
         }
-    }
+    }*/
+    ends = (--(prg.nodes.end()))->second->prev_kmer_paths;
     for (set<Path>::iterator l = ends.begin(); l!=ends.end(); ++l)
     {
         kmer_prg.add_edge(*l, kmer_path);

@@ -87,7 +87,7 @@ bool condition::operator()(const KmerNode* kn) const { return kn->path == q; }
 
 void KmerGraph::add_edge (const Path& from, const Path& to)
 {
-    assert(from < to );
+    assert(from < to ||assert_msg(from << " is not less than " << to) );
     /*if (from == to)
     {
 	return;

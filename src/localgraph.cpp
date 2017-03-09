@@ -193,6 +193,53 @@ vector<Path> LocalGraph::walk(const uint32_t& node_id, const uint32_t& pos, cons
     return return_paths;
 }
 
+vector<Path> LocalGraph::walk_back(const uint32_t& node_id, const uint32_t& pos, const uint32_t& len)
+{
+    cout << "start walking back from " << pos << " in node " << node_id << " for length " << len << endl;
+    // walks from position pos in node back through prg for length len bases
+    assert((nodes[node_id]->pos.start <= pos && nodes[node_id]->pos.end >= pos) || assert_msg(nodes[node_id]->pos.start << "<=" << pos << " and " << nodes[node_id]->pos.end << ">=" << pos)); // if this fails, pos given lies on a different node
+    vector<Path> return_paths, walk_paths;
+    return_paths.reserve(20);
+    walk_paths.reserve(20);
+    Path p,p2;
+    deque<Interval> d;
+
+    if (nodes[node_id]->pos.start+len <= pos)
+    {
+        d = {Interval(pos-len, pos)};
+        p.initialize(d);
+	cout << "return path: " << p << endl;
+        return_paths.push_back(p);
+        return return_paths;
+    }
+
+    uint32_t len_added = min(pos - nodes[node_id]->pos.start, len);
+    cout << "len: " << len << " len_added: " << len_added << endl;
+
+    vector<LocalNode*>::iterator innode;
+    if (len_added < len)
+    {
+	for (map<uint32_t, LocalNode*>::iterator it=nodes.begin(); it!=nodes.find(node_id); ++it)
+	{
+	    innode = find(it->second->outNodes.begin(), it->second->outNodes.end(), nodes[node_id]);
+	    if ( innode != it->second->outNodes.end())
+	    {
+                walk_paths = walk_back(it->second->id, it->second->pos.end, len-len_added);
+		for (uint i=0; i!=walk_paths.size(); ++i)
+		{
+                    p2.initialize(walk_paths[i].path);
+                    p2.add_end_interval(Interval(nodes[node_id]->pos.start, pos));
+                    if (p2.length == len) {
+                        return_paths.push_back(p2);
+                    }
+                }
+	    }
+        }
+    }
+    return return_paths;
+}
+     
+
 vector<LocalNode*> LocalGraph::nodes_along_string(const string& query_string)
 {
     // Note expects the query string to start at the start of the PRG - can change this later

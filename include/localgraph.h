@@ -25,6 +25,7 @@ class LocalGraph {
     void write_gfa (const std::string&);
     void read_gfa (const std::string&);
     std::vector<Path> walk(const uint32_t&, const uint32_t&, const uint32_t&);
+    std::vector<Path> walk_back(const uint32_t&, const uint32_t&, const uint32_t&);
     std::vector<LocalNode*> nodes_along_string(const std::string&);
     std::vector<LocalNode*> top_path();
     std::vector<LocalNode*> bottom_path();

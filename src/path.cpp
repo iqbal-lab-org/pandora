@@ -44,7 +44,7 @@ void Path::add_start_interval(const Interval& i)
 
 void Path::add_end_interval(const Interval& i)
 {
-    assert (i.start >= path.back().end);// && PATH_ERROR);
+    assert (i.start >= path.back().end || assert_msg("tried to add interval starting at " << i.start << " to end of path finishing at " << path.back().end));
     path.push_back(i);
     length += i.length;
     end = i.end;
