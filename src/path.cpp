@@ -158,7 +158,8 @@ bool Path::is_branching(const Path& y) const // returns true if the two paths br
 bool Path::operator < ( const Path& y) const
 {
     std::deque<Interval>::const_iterator it2=y.path.begin();
-    for (std::deque<Interval>::const_iterator it=path.begin(); it!=path.end();)
+    std::deque<Interval>::const_iterator it=path.begin();
+    while (it!=path.end() and it2!=y.path.end())
     {
         if (!(*it==*it2)) //for the first interval which is not the same in both paths
 	{
@@ -167,6 +168,12 @@ bool Path::operator < ( const Path& y) const
 	it++;
         it2++;
     }
+    if (it==path.end() and it2!=y.path.end())
+    {
+	// if path is shorter than comparison path, but equal otherwise, return that it is smaller
+	return true;
+    }
+
     return false; // shouldn't ever call this
 }
 

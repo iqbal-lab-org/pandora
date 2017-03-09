@@ -174,6 +174,8 @@ TEST_F(KmerGraphTest, equals)
     kg1.add_edge(0,1);
     kg2.add_edge(0,1);
 
+    d = {Interval(2,5)};
+    p3.initialize(d);
     kg2.add_node(p3);
 
     // same as themselves, different if different numbers of nodes

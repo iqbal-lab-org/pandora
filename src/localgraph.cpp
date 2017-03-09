@@ -150,7 +150,7 @@ vector<Path> LocalGraph::walk(const uint32_t& node_id, const uint32_t& pos, cons
 {
     //cout << "walking graph from node " << node_id << " pos " << pos << " for length " << len << endl;
     // walks from position pos in node node for length len bases
-    assert(nodes[node_id]->pos.start <= pos && nodes[node_id]->pos.end >= pos); // if this fails, pos given lies on a different node
+    assert((nodes[node_id]->pos.start <= pos && nodes[node_id]->pos.end >= pos) || assert_msg(nodes[node_id]->pos.start << "<=" << pos << " and " << nodes[node_id]->pos.end << ">=" << pos)); // if this fails, pos given lies on a different node
     vector<Path> return_paths, walk_paths;
     return_paths.reserve(20);
     walk_paths.reserve(20);
