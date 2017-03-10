@@ -195,7 +195,7 @@ vector<Path> LocalGraph::walk(const uint32_t& node_id, const uint32_t& pos, cons
 
 vector<Path> LocalGraph::walk_back(const uint32_t& node_id, const uint32_t& pos, const uint32_t& len)
 {
-    cout << "start walking back from " << pos << " in node " << node_id << " for length " << len << endl;
+    //cout << "start walking back from " << pos << " in node " << node_id << " for length " << len << endl;
     // walks from position pos in node back through prg for length len bases
     assert((nodes[node_id]->pos.start <= pos && nodes[node_id]->pos.end >= pos) || assert_msg(nodes[node_id]->pos.start << "<=" << pos << " and " << nodes[node_id]->pos.end << ">=" << pos)); // if this fails, pos given lies on a different node
     vector<Path> return_paths, walk_paths;
@@ -229,7 +229,7 @@ vector<Path> LocalGraph::walk_back(const uint32_t& node_id, const uint32_t& pos,
 		{
                     p2.initialize(walk_paths[i].path);
                     p2.add_end_interval(Interval(nodes[node_id]->pos.start, pos));
-		    cout << p2 << endl;
+		    //cout << p2 << endl;
                     if (p2.length == len) {
 			//cout << "output path: " << p2 << endl;
                         return_paths.push_back(p2);

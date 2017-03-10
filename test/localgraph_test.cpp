@@ -341,10 +341,10 @@ TEST_F(LocalGraphTest, walkBack)
 
     // also want to allow walks starting from an empty node, including the empty node
     q1.clear();
-    d = {Interval(12,13), Interval(16,16)};
+    d = {Interval(8,9), Interval(16,16)};
     p.initialize(d);
     q1.push_back(p);
-    d = {Interval(8,9), Interval(16,16)};
+    d = {Interval(12,13), Interval(16,16)};
     p.initialize(d);
     q1.push_back(p);
     p1 = lg3.walk_back(4,16,1);
