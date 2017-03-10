@@ -467,7 +467,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 			    }
 			    ends.insert(kmer_path);    
 			    it->second->sketch_next = min(it->second->pos.end, kmer_path.path.back().end);
-			    for (uint m=1; m<n.size(); ++m)
+			    for (uint m=(it->second == n[0]); m<n.size(); ++m)
 			    {
 				n[m]->sketch_next = min(n[m]->pos.end, kmer_path.path.back().end);
 				n[m]->prev_kmer_paths.insert(kmer_path);
@@ -535,7 +535,6 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	    {
 	        n.back()->prev_kmer_paths.clear();
 	    }
-            //(--(prg.nodes.end()))->second->prev_kmer_paths.insert(walk_paths[i]);
             kmer_paths.push_back(walk_paths[i]);
 	}
 	ends.insert(walk_paths[i]);
