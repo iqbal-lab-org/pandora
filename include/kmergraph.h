@@ -23,6 +23,7 @@ class KmerGraph {
     void add_node (const Path&);
     void add_edge (const uint32_t&, const uint32_t&);
     void add_edge (const Path&, const Path&);
+    void copy_innodes (const Path&, const Path&);
     void check (uint);
     //std::vector<KmerNode*> get_node_order();
     float prob(uint, int);

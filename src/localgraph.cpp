@@ -208,13 +208,13 @@ vector<Path> LocalGraph::walk_back(const uint32_t& node_id, const uint32_t& pos,
     {
         d = {Interval(pos-len, pos)};
         p.initialize(d);
-	cout << "return path: " << p << endl;
+	//cout << "return path: " << p << endl;
         return_paths.push_back(p);
         return return_paths;
     }
 
     uint32_t len_added = min(pos - nodes[node_id]->pos.start, len);
-    cout << "len: " << len << " len_added: " << len_added << endl;
+    //cout << "len: " << len << " len_added: " << len_added << endl;
 
     vector<LocalNode*>::iterator innode;
     if (len_added < len)
@@ -229,7 +229,9 @@ vector<Path> LocalGraph::walk_back(const uint32_t& node_id, const uint32_t& pos,
 		{
                     p2.initialize(walk_paths[i].path);
                     p2.add_end_interval(Interval(nodes[node_id]->pos.start, pos));
+		    cout << p2 << endl;
                     if (p2.length == len) {
+			//cout << "output path: " << p2 << endl;
                         return_paths.push_back(p2);
                     }
                 }

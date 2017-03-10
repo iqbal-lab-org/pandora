@@ -419,21 +419,20 @@ TEST_F(LocalPRGTest, minimizerSketch){
     l2.minimizer_sketch(idx, 1, 3);
     j = 2;
     EXPECT_EQ(j, idx->minhash.size());
-    j = 1;
+    //j = 1;
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
 
     idx->clear();
     //l3.minimizer_sketch(idx, 2, 3);
-    j = 2;
+    j = 3;
     //EXPECT_EQ(j, idx->minhash.size());
     l3.minimizer_sketch(idx, 1, 3);
     EXPECT_EQ(j, idx->minhash.size());
-    j = 1;
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGC
     j = 2;
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGC
     kh = hash.kmerhash("AGT",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGTx2
-    j = 0;
+    j = 1;
     kh = hash.kmerhash("GTT",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
     
@@ -512,14 +511,14 @@ TEST_F(LocalPRGTest, updadeKmersOnNodePath)
     vector<int> y(l3.kmer_paths.size(),0);
     MaxPath mp(npath, y, 0);
     l3.update_kmers_on_node_path(mp, kp);
-    vector<int> y_exp = {0,1,0,1};
+    vector<int> y_exp = {0,1,0,1,1};
     EXPECT_ITERABLE_EQ(vector<int>, y_exp, mp.kmers_on_path);
 
     npath = {l3.prg.nodes[0], l3.prg.nodes[1]};
-    y = {0,0,0,0};
+    y = {0,0,0,0,0};
     mp = MaxPath(npath, y, 0);
     l3.update_kmers_on_node_path(mp, kp);
-    y_exp = {1,0,0,0};
+    y_exp = {1,0,0,0,0};
     EXPECT_ITERABLE_EQ(vector<int>, y_exp, mp.kmers_on_path);
 
     delete idx;

@@ -193,7 +193,7 @@ TEST_F(KmerGraphTest, equals)
     EXPECT_EQ((kg1==kg2), false);
     EXPECT_EQ((kg2==kg1), false);
 
-    kg1.add_edge(p3, p2);
+    kg1.add_edge(p2, p3);
 
     // same as themselves, different if edges in different places
     EXPECT_EQ(kg1, kg1);
