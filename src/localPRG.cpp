@@ -372,12 +372,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
         kh = hash.kmerhash(kmer, k);
 
 	// add to index, kmer_prg and kmer_paths
-	if (kh.first <= kh.second)
-	{
-	    idx->add_record(min(kh.first, kh.second), id, walk_paths[i], 0);
-	} else {
-	    idx->add_record(min(kh.first, kh.second), id, walk_paths[i], 1);
-	}
+	idx->add_record(min(kh.first, kh.second), id, walk_paths[i], (kh.first>kh.second));
 	kmer_prg.add_node(walk_paths[i]);
         kmer_prg.add_edge(kmer_prg.nodes[0]->path, walk_paths[i]);
 	n = nodes_along_path(walk_paths[i]);
@@ -463,7 +458,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                         if (kh.first == smallest or kh.second == smallest or n.back() == (--(prg.nodes.end()))->second)
                         {
 			    // add to index, kmer_prg and kmer_paths
-			    idx->add_record(min(kh.first, kh.second), id, kmer_path, (kh.first<=kh.second));
+			    idx->add_record(min(kh.first, kh.second), id, kmer_path, (kh.first>kh.second));
                             kmer_paths.push_back(kmer_path);
 			    kmer_prg.add_node(kmer_path);
 			    for (set<Path>::iterator l = it->second->prev_kmer_paths.begin(); l!=it->second->prev_kmer_paths.end(); ++l)
@@ -524,12 +519,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
             kh = hash.kmerhash(kmer, k);
 
             // add to index, kmer_prg and kmer_paths
-            if (kh.first <= kh.second)
-            {
-                idx->add_record(min(kh.first, kh.second), id, walk_paths[i], 0);
-            } else {
-                idx->add_record(min(kh.first, kh.second), id, walk_paths[i], 1);
-            }
+            idx->add_record(min(kh.first, kh.second), id, walk_paths[i], (kh.first>kh.second));
 	    n = nodes_along_path(walk_paths[i]);
 	    kmer_prg.add_node(walk_paths[i]);
             for (set<Path>::iterator l = n[0]->prev_kmer_paths.begin(); l!=n[0]->prev_kmer_paths.end(); ++l)

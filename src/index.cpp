@@ -18,7 +18,7 @@ Index::~Index() {
 
 void Index::add_record(uint64_t kmer, uint32_t prg_id, Path path, bool strand)
 {
-    //cout << "Add kmer " << kmer << " id, path " << prg_id << ", " << path << endl;
+    //cout << "Add kmer " << kmer << " id, path, strand " << prg_id << ", " << path << ", " << strand << endl;
     map<uint64_t, vector<MiniRecord>>::iterator it=minhash.find(kmer);
     if(it==minhash.end())
     {
