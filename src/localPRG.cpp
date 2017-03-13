@@ -424,7 +424,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                 kmer_path.initialize(d);
                 kmer = string_along_path(kmer_path);
                 kh = hash.kmerhash(kmer, k);
-		//cout << "compare last kmer " << min(kh.first, kh.second) << " with smallest kmer " << smallest << endl;
+		cout << "compare last kmer " << min(kh.first, kh.second) << " with smallest kmer " << smallest << endl;
                 if(kh.first <= smallest or kh.second <= smallest)
                 {
 		    idx->add_record(min(kh.first, kh.second), id, kmer_path, (kh.first>kh.second));
@@ -441,7 +441,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		//cout << "walk and minimize window" << endl;
                 walk_paths = prg.walk(it->second->id, i, w+k-1);
 	        //assert(walk_paths.size()>=1);
-	        //cout << "found " << walk_paths.size() << " walk paths" << endl;
+	        cout << "found " << walk_paths.size() << " walk paths" << endl;
 	        if (walk_paths.size() == 0)
 	        {
 		    break;
@@ -482,7 +482,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                                 }
                             }
 	
-                            if ((kh.first == smallest or kh.second == smallest or n.back() == (--(prg.nodes.end()))->second) and 
+                            if ((kh.first == smallest or kh.second == smallest) and // or n.back() == (--(prg.nodes.end()))->second) and 
 				(find(kmer_paths.begin(), kmer_paths.end(), kmer_path)==kmer_paths.end()))
                             {
 			        // add to index, kmer_prg and kmer_paths
@@ -537,7 +537,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
     {
 	if (find((--(prg.nodes.end()))->second->prev_kmer_paths.begin(), (--(prg.nodes.end()))->second->prev_kmer_paths.end(), walk_paths[i]) == (--(prg.nodes.end()))->second->prev_kmer_paths.end())
 	{
-	    cout << "add previously unfound end kmer" << endl;
+	    //cout << "add previously unfound end kmer" << endl;
             kmer = string_along_path(walk_paths[i]);
             kh = hash.kmerhash(kmer, k);
 
@@ -546,27 +546,30 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	    n = nodes_along_path(walk_paths[i]);
 	    kmer_prg.add_node(walk_paths[i]);
 	    set<Path> s = n[0]->prev_kmer_paths;
-	    cout << "prev_kmer_paths from n[0] " << *n[0] << " has size " << s.size() << endl;
-	    set<Path> t;
-	    cout << "while back " << *(kmer_prg.nodes.back()) << " has no innodes" << endl;
-	    while (kmer_prg.nodes.back()->inNodes.size() == 0)
+	    //cout << "prev_kmer_paths from n[0] " << *n[0] << " has size " << s.size() << endl;
+	    set<Path> t, u;
+	    //cout << "while back " << *(kmer_prg.nodes.back()) << " has no innodes" << endl;
+	    while (kmer_prg.nodes.back()->inNodes.size() == 0 and s.size() > 0)
 	    {
-		cout << "try to find an innode from a set of size " << s.size() << endl;
+		//cout << "try to find an innode from a set of size " << s.size() << endl;
 		for (set<Path>::iterator l = s.begin(); l!=s.end(); ++l)
 		{
-		    cout << "consider adding edge to path " << *l << endl;
+		    //cout << "consider adding edge to path " << *l << endl;
 		    if ((*l < walk_paths[i]) and !(walk_paths[i].is_branching(*l)))
                     {
                         kmer_prg.add_edge(*l, walk_paths[i]);
-		    } else if (walk_paths[i] < *l) {
-			cout << "consider innodes instead" << endl;
-		        t.insert(kmer_prg.get_innodes(*l).begin(), kmer_prg.get_innodes(*l).end());
+		    } else if ((walk_paths[i] < *l) and (!(walk_paths[i].is_branching(*l)) or (kmer_prg.nodes.back()->inNodes.size()==0 and t.size()==0))) {
+			//cout << "consider innodes instead" << endl;
+			u = kmer_prg.get_innodes(*l);
+			assert(u.size() > 0);
+		        t.insert(u.begin(), u.end());
 		    } else {
-			cout << walk_paths[i] << " and " << *l << " are not compatible" << endl;
+			//cout << walk_paths[i] << " and " << *l << " are not compatible" << endl;
 		    }
 		}
 		s = t;
                 t.clear();
+		//assert(s.size() > 0);
 	    }
 	    assert(kmer_prg.nodes.back()->inNodes.size() > 0);
 	    if (walk_paths.size()==0 and walk_paths[i].path.size() == 1)
