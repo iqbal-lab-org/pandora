@@ -48,7 +48,7 @@ void KmerGraph::add_node (const Path& p)
     if ( find_if(nodes.begin(), nodes.end(), eq) == nodes.end() )
     {
 	nodes.push_back(n);
-	//cout << "added node " << *n;
+	cout << "added node " << *n;
 	assert(k==0 or p.length==0 or p.length==k);
 	if (k == 0 and p.length > 0)
 	{
@@ -56,7 +56,7 @@ void KmerGraph::add_node (const Path& p)
 	}  
 	next_id++;
     } else {
-	//cout << "node " << *n << " was duplicate" << endl;
+	cout << "node " << *n << " was duplicate" << endl;
 	delete n;
     }
     return;
@@ -78,7 +78,7 @@ void KmerGraph::add_edge (const uint32_t& from, const uint32_t& to)
     {
         nodes[to]->inNodes.push_back(nodes[from]);
     }
-    //cout << "added edge from  " << from << " to " << to << endl;
+    cout << "added edge from  " << from << " to " << to << endl;
     return;
 }
 
@@ -103,11 +103,11 @@ void KmerGraph::add_edge (const Path& from, const Path& to)
 	(*to_it)->inNodes.push_back((*from_it));
     }
 
-    //cout << "added edge from " << (*from_it)->id << " to " << (*to_it)->id << endl;
+    cout << "added edge from " << (*from_it)->id << " to " << (*to_it)->id << endl;
     return;
 }
 
-void KmerGraph::copy_innodes (const Path& from, const Path& to)
+/*void KmerGraph::copy_innodes (const Path& from, const Path& to)
 {
     vector<KmerNode*>::iterator from_it = find_if(nodes.begin(), nodes.end(), condition(from));
     assert(from_it != nodes.end());
@@ -117,6 +117,19 @@ void KmerGraph::copy_innodes (const Path& from, const Path& to)
 	add_edge((*from_it)->inNodes[i]->path, to);
     }
     return;
+}*/
+
+set<Path> KmerGraph::get_innodes (const Path& from)
+{
+    set<Path> return_paths;
+    vector<KmerNode*>::iterator from_it = find_if(nodes.begin(), nodes.end(), condition(from));
+    assert(from_it != nodes.end());
+
+    for (uint i=0; i!=(*from_it)->inNodes.size(); ++i)
+    {
+	return_paths.insert((*from_it)->inNodes[i]->path);
+    }
+    return return_paths;
 }
 
 void KmerGraph::check (uint num_minikmers)

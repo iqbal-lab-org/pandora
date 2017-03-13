@@ -119,10 +119,10 @@ bool Path::is_branching(const Path& y) const // returns true if the two paths br
                 //cout << "branch" << endl;
                 return true; // represent branching paths at this point
             }
-            if (it2!=y.path.end())
+	    ++it2;
+            if (it2==y.path.end())
             {
-                ++it2;
-            } else {
+		return false;
 		break;
 	    }
         } else {
@@ -133,16 +133,16 @@ bool Path::is_branching(const Path& y) const // returns true if the two paths br
 	        {
 	            // then the paths overlap
 	            overlap = true;
+		    //cout << "overlap" << endl;
 	            // first query the previous intervals if they exist, to see if they overlap
 	            if (it!=path.begin() && it2!=y.path.begin() && (--it)->end!=(--it2)->end)
 		    {
 	  	        //cout << "coal" << endl;
 		        return true; // represent coalescent paths at this point
 		    } else {
-		        if (it2!=y.path.end())
+			++it2;
+		        if (it2==y.path.end())
             		{
-            		    ++it2;
-            		} else {
 			    return false;
 			}
 		        break; // we will step through intervals from here comparing to path

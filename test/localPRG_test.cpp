@@ -413,22 +413,24 @@ TEST_F(LocalPRGTest, minimizerSketch){
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
     
     idx->clear();
-    //l2.minimizer_sketch(idx, 2, 3);
-    //j = 1;
-    //EXPECT_EQ(j, idx->minhash.size());
-    l2.minimizer_sketch(idx, 1, 3);
+    l2.minimizer_sketch(idx, 2, 3);
     j = 2;
     EXPECT_EQ(j, idx->minhash.size());
-    //j = 1;
+    l2.minimizer_sketch(idx, 1, 3);
+    EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
+    j = 1;
+    kh = hash.kmerhash("AGT",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
 
     idx->clear();
-    //l3.minimizer_sketch(idx, 2, 3);
+    l3.minimizer_sketch(idx, 2, 3);
     j = 3;
-    //EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, idx->minhash.size());
     l3.minimizer_sketch(idx, 1, 3);
     EXPECT_EQ(j, idx->minhash.size());
     j = 2;
+    kh = hash.kmerhash("AGC",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGC
     kh = hash.kmerhash("AGT",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGTx2
@@ -498,7 +500,7 @@ TEST_F(LocalPRGTest, updateCovgWithHit)
     delete mh;
 }
 
-TEST_F(LocalPRGTest, updadeKmersOnNodePath)
+TEST_F(LocalPRGTest, updateKmersOnNodePath)
 {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
     Index* idx;
