@@ -435,8 +435,6 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                     it->second->prev_kmer_paths.clear();
 		    it->second->prev_kmer_paths.insert(kmer_path);
 		    smallest = min(kh.first, kh.second);
-                //} else {
-		//   cout << "smallest is still smallest" << endl;
 		}
 	    } else {
 
@@ -485,7 +483,6 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                             }
 	
                             if ((kh.first == smallest or kh.second == smallest or n.back() == (--(prg.nodes.end()))->second) and 
-				//(n.back()->prev_kmer_paths.find(kmer_path)==n.back()->prev_kmer_paths.end()))
 				(find(kmer_paths.begin(), kmer_paths.end(), kmer_path)==kmer_paths.end()))
                             {
 			        // add to index, kmer_prg and kmer_paths
@@ -500,16 +497,6 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                                         kmer_prg.add_edge(*l, kmer_path);
                                     }
                                 }	
-				//assert(it->second->prev_kmer_paths.size() > 0);
-			        /*for (set<Path>::iterator l = it->second->prev_kmer_paths.begin(); l!=it->second->prev_kmer_paths.end(); ++l)
-			        {
-				    if ((*l < kmer_path) and !(kmer_path.is_branching(*l)))
-				    {
-				        kmer_prg.add_edge(*l, kmer_path);
-				    //} else {
-				    //	cout << "did not add edge to " << *l << " because (*l < kmer_path)==" << (*l < kmer_path) << " and (kmer_path.is_branching(*l))" << (kmer_path.is_branching(*l)) << endl;
-				    }
-			        }*/
 				assert(kmer_prg.nodes.back()->inNodes.size() > 0);
 			        ends.insert(kmer_path);    
 			        for (uint m=(it->second == n[0]); m<n.size(); ++m)
@@ -524,24 +511,6 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                                         n.back()->outNodes[m]->prev_kmer_paths.insert(kmer_path);
 				    }
 				}
-			        /*if (n.back()->sketch_next == n.back()->pos.end and n.back()->outNodes.size() > 0)
-                                {
-                                    //cout << "add kmer path to outnodes ";
-                                    for (uint m=0; m!=n.back()->outNodes.size(); ++m)
-                                    {
-				        //cout << n.back()->outNodes[m]->id << " ";
-                                        n.back()->outNodes[m]->prev_kmer_paths.insert(kmer_path);
-				        // additionally push to outnodes of outnodes if the outnode is null
-				        LocalNode* ln = n.back()->outNodes[m];
-				        while (ln->pos.length == 0 and ln->outNodes.size()>0)
-				        {
-				  	    //cout << ln->outNodes[0]->id << " ";
-                                            ln->outNodes[0]->prev_kmer_paths.insert(kmer_path);
-					    ln = ln->outNodes[0];
-				        }
-                                    }
-				    //cout << endl;
-			        }*/
 			    } else if (kh.first == smallest or kh.second == smallest or n.back() == (--(prg.nodes.end()))->second) {
 				ends.insert(kmer_path);
 			    }
@@ -564,7 +533,6 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
     // now force adding of the last kmer for each path
     //cout << "add end nodes" << endl;
     walk_paths = prg.walk_back((--(prg.nodes.end()))->second->id, (--(prg.nodes.end()))->second->pos.end, k);
-    //assert(walk_paths.size()>=1);
     for (uint i=0; i!=walk_paths.size(); ++i)
     {
 	if (find((--(prg.nodes.end()))->second->prev_kmer_paths.begin(), (--(prg.nodes.end()))->second->prev_kmer_paths.end(), walk_paths[i]) == (--(prg.nodes.end()))->second->prev_kmer_paths.end())
@@ -577,15 +545,6 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
             idx->add_record(min(kh.first, kh.second), id, walk_paths[i], (kh.first>kh.second));
 	    n = nodes_along_path(walk_paths[i]);
 	    kmer_prg.add_node(walk_paths[i]);
-            /*for (set<Path>::iterator l = n[0]->prev_kmer_paths.begin(); l!=n[0]->prev_kmer_paths.end(); ++l)
-            {
-		if ((*l < walk_paths[i]) and !(kmer_path.is_branching(*l)))
-                {
-                    kmer_prg.add_edge(*l, walk_paths[i]);
-		//} else {
-		//    kmer_prg.copy_innodes(*l, walk_paths[i]);
-		}
-            }*/
 	    set<Path> s = n[0]->prev_kmer_paths;
 	    cout << "prev_kmer_paths from n[0] " << *n[0] << " has size " << s.size() << endl;
 	    set<Path> t;
