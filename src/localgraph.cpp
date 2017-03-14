@@ -15,7 +15,7 @@ using namespace std;
 LocalGraph::LocalGraph()
 {
     // reserve space in index
-    index.reserve(10);
+    //index.reserve(10);
 }
 
 LocalGraph::~LocalGraph()
@@ -57,7 +57,7 @@ void LocalGraph::add_edge (const uint32_t& from, const uint32_t& to)
     return;
 }
 
-void LocalGraph::add_varsite (const uint8_t level, const uint32_t pre_site_id, const uint32_t post_site_id)
+/*void LocalGraph::add_varsite (const uint8_t level, const uint32_t pre_site_id, const uint32_t post_site_id)
 {
     assert(pre_site_id <= post_site_id);
     while (level >= index.size())
@@ -69,7 +69,7 @@ void LocalGraph::add_varsite (const uint8_t level, const uint32_t pre_site_id, c
     }
     index[level].push_back(make_pair(pre_site_id, post_site_id));
     return;
-}
+}*/
 
 void LocalGraph::write_gfa (const string& filepath)
 {

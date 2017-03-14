@@ -160,59 +160,6 @@ void read_prg_file(vector<LocalPRG*>& prgs, const string& filepath)
     return;
 }
 
-void save_LocalPRG_kmer_paths(vector<LocalPRG*>& prgs, const string& prgfile)
-{
-    cout << now() << "Saving PRG minimizers" << endl;
-    ofstream handle;
-    handle.open (prgfile + ".mini");
-
-    for (uint32_t i = 0; i != prgs.size(); ++i)
-    {
-        handle << i;
-        for (uint j = 0; j!=prgs[i]->kmer_paths.size(); ++j)
-        {
-            handle << "\t" << prgs[i]->kmer_paths[j];
-        }
-        handle << endl;
-
-    }
-    handle.close();
-    cout << now() << "Finished saving " << prgs.size() << " entries to file" << endl;
-    return;
-}
-
-void load_LocalPRG_kmer_paths(vector<LocalPRG*>& prgs, const string& prgfile)
-{
-    cout << now() << "Loading PRG minimizers" << endl;
-    uint32_t key;
-    int c;
-    Path p;
-
-    ifstream myfile (prgfile + ".mini");
-    if (myfile.is_open())
-    {
-        myfile >> key;
-        while (myfile.good())
-        {
-            c = myfile.peek();
-            if (c == '\n')
-            {
-		myfile.ignore(1,'\n');
-                myfile >> key;
-		assert(key < prgs.size());
-            } else {
-		myfile.ignore(1,'\t');
-                myfile >> p;
-                prgs[key]->kmer_paths.push_back(p);
-            }
-        }
-    } else {
-        cerr << "Unable to open PRG minimizer file " << prgfile << ".mini" << endl;
-        exit(1);
-    }
-    return;
-}
-
 void load_PRG_kmergraphs(vector<LocalPRG*>& prgs, const string& prgfile)
 {
     for (uint i=0; i!=prgs.size(); ++i)
@@ -350,7 +297,7 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
     return;
 }
 
-void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prgs, const uint32_t k, const float& e_rate, bool output_p_dist)
+void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prgs) //, const uint32_t k, const float& e_rate, bool output_p_dist)
 {
     for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode)
     {
@@ -359,18 +306,7 @@ void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prg
 	{
 	    prgs[pnode->second->id]->update_covg_with_hit(*mh);
 	}
-        prgs[pnode->second->id]->infer_most_likely_prg_paths_for_corresponding_pannode(pnode->second, k, e_rate);
 	prgs[pnode->second->id]->kmer_prg.num_reads = pnode->second->foundReads.size();
-	if (output_p_dist == true)
-	{
-	    vector<float> path_probs = prgs[pnode->second->id]->get_covered_maxpath_log_probs(0, 3);
-	    cout << "Path probs: " << endl;
-	    for (uint n=0; n!= path_probs.size(); ++n)
-	    {
-	        cout << path_probs[n] << ", ";
-	    }
-	    cout << endl;
-	}
     }
 }
 
@@ -381,7 +317,9 @@ float p_null(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_o
     assert((*cluster_of_hits.begin())->prg_id < prgs.size());
 
     uint32_t i = (*cluster_of_hits.begin())->prg_id;
-    float p = pow(1 - pow(1 - pow(0.25, k), prgs[i]->kmer_paths.size()), cluster_of_hits.size());
+    float p = pow(1 - pow(1 - pow(0.25, k), prgs[i]->kmer_prg.nodes.size()-2), cluster_of_hits.size());
+    //cout << "found cluster against prg " << i << " with pnull " << p << endl;
+
     return p;
 }
 

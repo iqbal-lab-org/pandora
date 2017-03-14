@@ -135,7 +135,6 @@ int pandora_map(int argc, char* argv[])
     idx->load(prgfile);
     vector<LocalPRG*> prgs;
     read_prg_file(prgs, prgfile);
-    load_LocalPRG_kmer_paths(prgs, prgfile); 
     load_PRG_kmergraphs(prgs, prgfile);
 
     cout << now() << "Constructing PanGraph from read file" << endl;
@@ -146,7 +145,7 @@ int pandora_map(int argc, char* argv[])
     pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
     
     cout << now() << "Update LocalPRGs with hits and infer paths" << endl;
-    update_localPRGs_with_hits(pangraph, prgs, k, e_rate, output_p_dist);
+    update_localPRGs_with_hits(pangraph, prgs);
 
     cout << now() << "Writing PanGraph to file " << prefix << "_pangraph.gfa" << endl;
     pangraph->write_gfa(prefix + "_pangraph.gfa");
@@ -154,8 +153,6 @@ int pandora_map(int argc, char* argv[])
     cout << now() << "Writing maximally likely paths to files:" << endl;
     for (auto c: pangraph->nodes)
     {
-	cout << "\t\t" << prefix << "_" << prgs[c.second->id]->name << "_mlp.fasta" << endl;
-	prgs[c.second->id]->write_max_paths_to_fasta(prefix + "_" + prgs[c.second->id]->name + "_mlp.fasta");
 	cout << "\t\t" << prefix << "_" << prgs[c.second->id]->name << "_kmlp.fasta" << endl;
 	prgs[c.second->id]->write_kmer_max_paths_to_fasta(prefix + "_" + prgs[c.second->id]->name + "_kmlp.fasta", e_rate);
     }

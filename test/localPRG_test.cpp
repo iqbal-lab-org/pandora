@@ -325,15 +325,10 @@ TEST_F(LocalPRGTest, buildGraph)
     LocalGraph lg0;
     lg0.add_node(0,"",Interval(0,0));
     EXPECT_EQ(lg0, l0.prg);
-    uint32_t j = 0;
-    EXPECT_EQ(j, l0.max_path_index.size());
 
     LocalGraph lg1;
     lg1.add_node(0,"AGCT", Interval(0,4));
     EXPECT_EQ(lg1, l1.prg);
-    j = 1;
-    EXPECT_EQ(j, l1.prg.index.size());
-    EXPECT_EQ(j, l1.prg.index[0].size());
 
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
@@ -345,11 +340,6 @@ TEST_F(LocalPRGTest, buildGraph)
     lg2.add_edge(1,3);
     lg2.add_edge(2,3);
     EXPECT_EQ(lg2, l2.prg);
-    j = 2;
-    EXPECT_EQ(j, l2.prg.index.size());
-    j = 1;
-    EXPECT_EQ(j, l2.prg.index[0].size());
-    EXPECT_EQ(j, l2.prg.index[1].size());
 
     LocalGraph lg3;
     lg3.add_node(0,"A", Interval(0,1));
@@ -368,22 +358,6 @@ TEST_F(LocalPRGTest, buildGraph)
     lg3.add_edge(4,6);
     lg3.add_edge(5,6);
     EXPECT_EQ(lg3, l3.prg);
-    j = 3;
-    EXPECT_EQ(j, l3.prg.index.size());
-    j = 1;
-    EXPECT_EQ(j, l3.prg.index[0].size());
-    EXPECT_EQ(j, l3.prg.index[1].size());
-    EXPECT_EQ(j, l3.prg.index[2].size());
-    j = 0;
-    EXPECT_EQ(j, l3.prg.index[0][0].first);
-    EXPECT_EQ(j, l3.prg.index[1][0].first);
-    j = 6;
-    EXPECT_EQ(j, l3.prg.index[0][0].second);
-    EXPECT_EQ(j, l3.prg.index[1][0].second);
-    j = 1;
-    EXPECT_EQ(j, l3.prg.index[2][0].first);
-    j = 4;
-    EXPECT_EQ(j, l3.prg.index[2][0].second);
 }
 
 //could test that no int is included in more than one node
@@ -443,7 +417,8 @@ TEST_F(LocalPRGTest, minimizerSketch){
 
 TEST_F(LocalPRGTest, updateCovgWithHit)
 {
-    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+// do need a test for this, but function currently altered to only update on kmers, not for localnodes
+/*    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
     KmerHash hash;
 
@@ -497,44 +472,10 @@ TEST_F(LocalPRGTest, updateCovgWithHit)
 
     delete m;
     delete mr;
-    delete mh;
+    delete mh;*/
 }
 
-TEST_F(LocalPRGTest, updateKmersOnNodePath)
-{
-    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-    Index* idx;
-    idx = new Index();
-    l3.minimizer_sketch(idx, 1, 3);
-
-    vector<LocalNode*> npath = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
-    
-    vector<float> kp(l3.kmer_paths.size(), 0);
-    vector<int> y(l3.kmer_paths.size(),0);
-    MaxPath mp(npath, y, 0);
-    l3.update_kmers_on_node_path(mp, kp);
-    vector<int> y_exp = {0,1,0,1,1};
-    EXPECT_ITERABLE_EQ(vector<int>, y_exp, mp.kmers_on_path);
-
-    npath = {l3.prg.nodes[0], l3.prg.nodes[1]};
-    y = {0,0,0,0,0};
-    mp = MaxPath(npath, y, 0);
-    l3.update_kmers_on_node_path(mp, kp);
-    y_exp = {1,0,0,0,0};
-    EXPECT_ITERABLE_EQ(vector<int>, y_exp, mp.kmers_on_path);
-
-    delete idx;
-}
-
-TEST_F(LocalPRGTest, getKmerPathHitCounts)
-{
-}
-
-TEST_F(LocalPRGTest, getKmerPathProbs)
-{
-}
-
-TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
+/*TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
 {
     // initialize minihits container
     MinimizerHits *mhs;
@@ -552,66 +493,74 @@ TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
     Index *idx;
     idx = new Index();
 
-    deque<Interval> d = {Interval(0,1), Interval(4,5), Interval(8,9)};
+    deque<Interval> d = {Interval(0,0)};
     Path p;
+    p.initialize(d);
+    lp3->kmer_prg.add_node(p);
+
+    d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     p.initialize(d);
     pair<uint64_t,uint64_t> kh = hash.kmerhash("TGC",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_paths.push_back(p);
+    lp3->kmer_prg.add_node(p);
 
     d = {Interval(0,1), Interval(4,5), Interval(12,13)};
     p.initialize(d);
     kh = hash.kmerhash("TGT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_paths.push_back(p);
+    lp3->kmer_prg.add_node(p);
 
     d = {Interval(0,1), Interval(19,20), Interval(23,24)};
     p.initialize(d);
     kh = hash.kmerhash("TTT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_paths.push_back(p);
+    lp3->kmer_prg.add_node(p);
 
     d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     kh = hash.kmerhash("GCT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_paths.push_back(p);
+    lp3->kmer_prg.add_node(p);
 
     d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     kh = hash.kmerhash("GTT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_paths.push_back(p);
+    lp3->kmer_prg.add_node(p);
 
     d = {Interval(8,9), Interval(16,16), Interval(23,25)};
     p.initialize(d);
     kh = hash.kmerhash("CTA",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_paths.push_back(p);
+    lp3->kmer_prg.add_node(p);
 
     d = {Interval(12,13), Interval(16,16), Interval(23,25)};
     p.initialize(d);
     kh = hash.kmerhash("TTA",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_paths.push_back(p);
+    lp3->kmer_prg.add_node(p);
 
-    /*d = {Interval(19,20), Interval(23,25)};
+    d = {Interval(19,20), Interval(23,25)};
     p.initialize(d);
     kh = hash.kmerhash("TTA",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_paths.push_back(p);*/
+    lp3->kmer_prg.add_node(p);
 
     d = {Interval(23,26)};
     p.initialize(d);
     kh = hash.kmerhash("TAT",3); //inconsistent, i don't care
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_paths.push_back(p);
+    lp3->kmer_prg.add_node(p);
 
     d = {Interval(24,27)};
     p.initialize(d);
     kh = hash.kmerhash("ATG",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_paths.push_back(p);
+    lp3->kmer_prg.add_node(p);
+
+    d = {Interval(27,27)};
+    p.initialize(d);
+    lp3->kmer_prg.add_node(p);
     
     PanNode* pn;
     pn = new PanNode(3);
@@ -630,7 +579,7 @@ TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
     delete mhs;
     delete idx;
     delete pn;
-}
+}*/
 
 TEST_F(LocalPRGTest, writeFasta)
 {

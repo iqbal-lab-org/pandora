@@ -135,7 +135,7 @@ set<Path> KmerGraph::get_innodes (const Path& from)
 void KmerGraph::check (uint num_minikmers)
 {
     // should have a node for every minikmer found, plus a dummy start and end
-    assert(num_minikmers == 0 or nodes.size() == num_minikmers + 2 || assert_msg("nodes.size(): " << nodes.size() << " and num minikmers: " << num_minikmers));
+    assert(num_minikmers == 0 or nodes.size() == num_minikmers || assert_msg("nodes.size(): " << nodes.size() << " and num minikmers: " << num_minikmers));
 
     // should not have any leaves, only nodes with degree 0 are start and end
     for (auto c: nodes)

@@ -89,7 +89,7 @@ TEST_F(LocalGraphTest, addEdge)
     EXPECT_DEATH(lg2.add_edge(0,4),"");
 }
 
-TEST_F(LocalGraphTest, addVarsite)
+/*TEST_F(LocalGraphTest, addVarsite)
 {
     LocalGraph lg2;
     lg2.add_varsite(1,0,3);
@@ -104,7 +104,7 @@ TEST_F(LocalGraphTest, addVarsite)
     EXPECT_EQ(lg3.index[1][0], make_pair((uint)0,(uint)6));
     lg3.add_varsite(0,0,6);
     EXPECT_EQ(lg3.index[0][0], make_pair((uint)0,(uint)6));
-}
+}*/
 
 TEST_F(LocalGraphTest, equals)
 {
