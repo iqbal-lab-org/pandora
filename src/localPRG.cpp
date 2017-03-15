@@ -550,6 +550,76 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
     return;
 }
 
+vector<KmerNode*> LocalPRG::find_kmernodes_on_localnode_path(vector<LocalNode*>& npath)
+{
+
+    deque<Interval>::const_iterator it;
+    vector<LocalNode*>::const_iterator node;
+
+    bool found, reject;
+    vector<KmerNode*> nums;
+    nums.reserve(500);
+
+    // find the set of kmer_paths which overlap this node_path
+    for (uint32_t n=1; n!=kmer_prg.nodes.size() - 1; ++n)
+    {
+        if (kmer_prg.nodes[n]->path.end >= npath[0]->pos.start and kmer_prg.nodes[n]->path.start <= npath.back()->pos.end) {
+	    
+            found = false;
+            reject = false;
+
+            it=kmer_prg.nodes[n]->path.path.begin();
+            node=npath.begin();
+
+            while (reject == false and found == false and node!=npath.end())
+            {
+                if (it!=kmer_prg.nodes[n]->path.path.end() and
+                   ((it->end > (*node)->pos.start and it->start < (*node)->pos.end) or
+                   (*it == (*node)->pos)))
+                {
+                    // then this node overlaps this interval of the kmer
+                    // it needs to continue to overlap to end of kmer or node_path
+                    found = true;
+                    node++;
+                    it++;
+                    while (reject == false and node!=npath.end() and it!=kmer_prg.nodes[n]->path.path.end())
+                    {
+                        if (it!=kmer_prg.nodes[n]->path.path.end() and
+                            ((*it == (*node)->pos) or
+			    (it->end > (*node)->pos.start and it->start < (*node)->pos.end)))
+                        {
+                            node++;
+                            it++;
+                        } else {
+                            // we have stopped matching and not because we reached the end of the kmer or node path
+                            reject = true;
+			    break;
+                        }
+                    }
+                } else {
+                    // no match for this node and inteval
+                    // a match has to start either with the first node of node_path, or first interval of kmer
+                    // try iterating through combinations
+                    if (node==npath.begin() and it!=kmer_prg.nodes[n]->path.path.end())
+                    {
+                        it++;
+                    } else {
+                        it=kmer_prg.nodes[n]->path.path.begin();
+                        node++;
+                    }
+                }
+            }
+            // now if it was found and not rejected, add to nums;
+            if (found == true and reject == false)
+            {
+                nums.push_back(kmer_prg.nodes[n]);
+                //cout << "found kmer match for " << kmer_paths[n] << endl;
+            }
+        }
+    }
+    return nums;
+}
+
 vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*> kmernode_path)
 {
     cout << now() << "convert kmernode path to localnode path" << endl;

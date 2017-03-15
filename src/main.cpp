@@ -5,6 +5,7 @@
 int pandora_index(int argc, char *argv[]);
 int pandora_walk(int argc, char *argv[]);
 int pandora_map(int argc, char *argv[]);
+int pandora_check_kmergraph(int argc, char *argv[]);
 
 static int usage()
 {
@@ -30,6 +31,7 @@ int main(int argc, char *argv[])
 	if (strcmp(argv[1], "index") == 0) ret = pandora_index(argc-1, argv+1);
 	else if (strcmp(argv[1], "walk") == 0) ret = pandora_walk(argc-1, argv+1);
 	else if (strcmp(argv[1], "map") == 0) ret = pandora_map(argc-1, argv+1);
+	else if (strcmp(argv[1], "check_kmergraph") == 0) ret = pandora_check_kmergraph(argc-1, argv+1);
 	else {
 		fprintf(stderr, "[main] unrecognized command '%s'\n", argv[1]);
 		return 1;
