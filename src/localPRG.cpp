@@ -378,7 +378,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		    idx->add_record(min(kh.first, kh.second), id, kmer_path, (kh.first>kh.second));
 		    num_kmers_added += 1;
                     kmer_prg.add_node(kmer_path);
-		    assert(it->second->prev_kmer_paths.size()==1);
+		    //assert(it->second->prev_kmer_paths.size()==1);
 		    kmer_prg.add_edge(*(it->second->prev_kmer_paths.begin()), kmer_path);
                     it->second->prev_kmer_paths.clear();
 		    it->second->prev_kmer_paths.insert(kmer_path);

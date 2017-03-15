@@ -10,7 +10,7 @@
 
 class Index {
   public:
-    std::map<uint64_t,std::vector<MiniRecord>> minhash;
+    std::map<uint64_t,std::vector<MiniRecord>*> minhash;
     Index();
     ~Index();
     void add_record(uint64_t, uint32_t, Path, bool);

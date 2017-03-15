@@ -178,7 +178,7 @@ void add_read_hits(const uint32_t id, const string& name, const string& seq, Min
     {
         if (idx->minhash.find((*it)->kmer) != idx->minhash.end())
         {
-	    for (vector<MiniRecord>::iterator it2=idx->minhash[(*it)->kmer].begin(); it2!=idx->minhash[(*it)->kmer].end(); ++it2)
+	    for (vector<MiniRecord>::iterator it2=idx->minhash[(*it)->kmer]->begin(); it2!=idx->minhash[(*it)->kmer]->end(); ++it2)
             {
 	        hits->add_hit(s.id, *it, &(*it2));
 		hit_count += 1;

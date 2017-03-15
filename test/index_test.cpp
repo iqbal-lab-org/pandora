@@ -36,7 +36,7 @@ TEST_F(IndexTest,addRecord){
     // add again - should stay same size
     idx.add_record(min(kh.first, kh.second), 1, p,0);
     EXPECT_EQ(j, idx.minhash.size());
-    EXPECT_EQ(j, idx.minhash[min(kh.first, kh.second)].size());
+    EXPECT_EQ(j, idx.minhash[min(kh.first, kh.second)]->size());
 
     // add a new record with different key
     pair<uint64_t,uint64_t> kh2 = hash.kmerhash("ACTGA",5);
@@ -47,7 +47,7 @@ TEST_F(IndexTest,addRecord){
     // and a new record which is different but has same key
     idx.add_record(min(kh.first, kh.second), 4, p,0);
     EXPECT_EQ(j, idx.minhash.size());
-    EXPECT_EQ(j, idx.minhash[min(kh.first, kh.second)].size());
+    EXPECT_EQ(j, idx.minhash[min(kh.first, kh.second)]->size());
 }
 
 TEST_F(IndexTest, clear){
@@ -96,9 +96,9 @@ TEST_F(IndexTest, load){
     
     idx2.load("indextext");
     EXPECT_EQ(idx1.minhash.size(), idx2.minhash.size());
-    EXPECT_EQ(idx1.minhash[min(kh1.first, kh1.second)].size(), idx2.minhash[min(kh1.first, kh1.second)].size());
-    EXPECT_EQ(idx1.minhash[min(kh2.first, kh2.second)].size(), idx2.minhash[min(kh2.first, kh2.second)].size());
-    EXPECT_EQ(idx1.minhash[min(kh1.first, kh1.second)][0], idx2.minhash[min(kh1.first, kh1.second)][0]);
-    EXPECT_EQ(idx1.minhash[min(kh1.first, kh1.second)][1], idx2.minhash[min(kh1.first, kh1.second)][1]);
-    EXPECT_EQ(idx1.minhash[min(kh2.first, kh2.second)][0], idx2.minhash[min(kh2.first, kh2.second)][0]);
+    EXPECT_EQ(idx1.minhash[min(kh1.first, kh1.second)]->size(), idx2.minhash[min(kh1.first, kh1.second)]->size());
+    EXPECT_EQ(idx1.minhash[min(kh2.first, kh2.second)]->size(), idx2.minhash[min(kh2.first, kh2.second)]->size());
+    EXPECT_EQ(idx1.minhash[min(kh1.first, kh1.second)]->at(0), idx2.minhash[min(kh1.first, kh1.second)]->at(0));
+    EXPECT_EQ(idx1.minhash[min(kh1.first, kh1.second)]->at(1), idx2.minhash[min(kh1.first, kh1.second)]->at(1));
+    EXPECT_EQ(idx1.minhash[min(kh2.first, kh2.second)]->at(0), idx2.minhash[min(kh2.first, kh2.second)]->at(0));
 }

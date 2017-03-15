@@ -384,7 +384,7 @@ TEST_F(LocalPRGTest, minimizerSketch){
     EXPECT_EQ(j, idx->minhash.size());
     j = 2;
     pair<uint64_t,uint64_t> kh = hash.kmerhash("AGC",3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
     
     idx->clear();
     l2.minimizer_sketch(idx, 2, 3);
@@ -392,10 +392,10 @@ TEST_F(LocalPRGTest, minimizerSketch){
     EXPECT_EQ(j, idx->minhash.size());
     l2.minimizer_sketch(idx, 1, 3);
     EXPECT_EQ(j, idx->minhash.size());
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
     j = 1;
     kh = hash.kmerhash("AGT",3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
 
     idx->clear();
     l3.minimizer_sketch(idx, 2, 3);
@@ -405,13 +405,14 @@ TEST_F(LocalPRGTest, minimizerSketch){
     EXPECT_EQ(j, idx->minhash.size());
     j = 2;
     kh = hash.kmerhash("AGC",3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGC
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size()); //AGC
     kh = hash.kmerhash("AGT",3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size()); //AGTx2
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size()); //AGTx2
     j = 1;
     kh = hash.kmerhash("GTT",3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)].size());
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
     
+    idx->clear();
     delete idx;
 }
 
@@ -577,6 +578,7 @@ TEST_F(LocalPRGTest, updateCovgWithHit)
     }
 
     delete mhs;
+    idx->clear();
     delete idx;
     delete pn;
 }*/

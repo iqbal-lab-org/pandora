@@ -236,6 +236,7 @@ TEST_F(UtilsTest, addReadHits){
     expected1.hits.clear();
     expected2.hits.clear();
     expected3.hits.clear();
+    idx->clear();
     delete idx;
     delete m1;
     delete m2;
@@ -363,6 +364,7 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     pg_exp.add_edge(0,1);
 
     EXPECT_EQ(pg_exp, *pg);
+    idx->clear();
     delete idx;
     delete pg;
     delete lp1;
@@ -563,6 +565,7 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     delete lp3;
     delete lp4;
     delete mhs;
+    idx->clear();
     delete idx;
 }
 
@@ -755,6 +758,7 @@ TEST_F(UtilsTest, pangraphFromReadFile)
     delete lp2;
     delete lp3;
     delete lp4;
+    idx->clear();
     delete idx;
 }
 
