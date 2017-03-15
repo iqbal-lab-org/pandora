@@ -4,13 +4,13 @@
 #include <stdint.h>
 #include <ostream>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include "minirecord.h"
 #include "path.h"
 
 class Index {
   public:
-    std::map<uint64_t,std::vector<MiniRecord>*> minhash;
+    std::unordered_map<uint64_t,std::vector<MiniRecord>*> minhash;
     Index();
     ~Index();
     void add_record(uint64_t, uint32_t, Path, bool);

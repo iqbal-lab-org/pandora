@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include "minirecord.h"
 #include "path.h"
@@ -19,7 +19,7 @@ Index::~Index() {
 void Index::add_record(uint64_t kmer, uint32_t prg_id, Path path, bool strand)
 {
     //cout << "Add kmer " << kmer << " id, path, strand " << prg_id << ", " << path << ", " << strand << endl;
-    map<uint64_t, vector<MiniRecord>*>::iterator it=minhash.find(kmer);
+    unordered_map<uint64_t, vector<MiniRecord>*>::iterator it=minhash.find(kmer);
     if(it==minhash.end())
     {
         vector<MiniRecord>* newv = new vector<MiniRecord>;
@@ -52,9 +52,11 @@ void Index::save(const string& prgfile)
     ofstream handle;
     handle.open (prgfile + ".idx");
 
+    handle << minhash.size() << endl;
+
     for (auto it = minhash.begin(); it != minhash.end(); ++it)
     {
-        handle << it->first;
+        handle << it->first << "\t" << it->second->size();
         for (uint j = 0; j!=it->second->size(); ++j)
         {
             handle << "\t" << (*(it->second))[j];
@@ -73,8 +75,10 @@ void Index::load(const string& prgfile)
     //string line;
     //vector<string> vstring;
     uint32_t key;
+    size_t size;
     int c;
     MiniRecord mr;
+    bool first = true;
     //vector<MiniRecord> vmr;
 
     ifstream myfile (prgfile + ".idx");
@@ -83,10 +87,18 @@ void Index::load(const string& prgfile)
 	while (myfile.good())
 	{
 	    c = myfile.peek();
-	    if (isdigit(c))
+	    if (isdigit(c) and first == true)
 	    {
+		myfile >> size;
+		minhash.reserve(size);
+		first = false;
+		myfile.ignore(1,'\t');
+	    } else if (isdigit(c) and first == false) {
 		myfile >> key;
+		myfile.ignore(1,'\t');
+		myfile >> size;
 		vector<MiniRecord>* vmr = new vector<MiniRecord>;
+		vmr->reserve(size);
 		minhash[key] = vmr;
 		myfile.ignore(1,'\t');
 	    } else {
