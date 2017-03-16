@@ -442,7 +442,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                                 num_kmers_added += 1;
 			        kn = kmer_prg.add_node(kmer_path);
 				assert(it->second->prev_kmer_paths.size() > 0);
-				for (unordered_set<KmerNode*>::iterator l = it->second->prev_kmer_paths.begin(); l!=it->second->prev_kmer_paths.end(); ++l)
+				for (unordered_set<KmerNode*>::iterator l = n[0]->prev_kmer_paths.begin(); l!=n[0]->prev_kmer_paths.end(); ++l)
                                 {
                                     if (((*l)->path < kmer_path) and !(kmer_path.is_branching((*l)->path)))
                                     {
