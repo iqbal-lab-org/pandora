@@ -40,12 +40,13 @@ void KmerGraph::clear()
     p = 1;
 }
 
-void KmerGraph::add_node (const Path& p)
+KmerNode* KmerGraph::add_node (const Path& p)
 {
     KmerNode *n;
     n = new KmerNode(next_id, p);
     pointer_values_equal<KmerNode> eq = { n };
-    if ( find_if(nodes.begin(), nodes.end(), eq) == nodes.end() )
+    vector<KmerNode*>::iterator it = find_if(nodes.begin(), nodes.end(), eq);
+    if ( it == nodes.end() )
     {
 	nodes.push_back(n);
 	cout << "added node " << *n;
@@ -58,8 +59,9 @@ void KmerGraph::add_node (const Path& p)
     } else {
 	cout << "node " << *n << " was duplicate" << endl;
 	delete n;
+	n = *it;
     }
-    return;
+    return n;
 }
 
 void KmerGraph::add_edge (const uint32_t& from, const uint32_t& to)
@@ -104,6 +106,17 @@ void KmerGraph::add_edge (const Path& from, const Path& to)
     }
 
     cout << "added edge from " << (*from_it)->id << " to " << (*to_it)->id << endl;
+    return;
+}
+
+void KmerGraph::add_edge (KmerNode* from, KmerNode* to)
+{
+    assert(from->id < to->id ||assert_msg(from->id << " is not less than " << to->id) );
+
+     from->outNodes.push_back(to);
+     to->inNodes.push_back(from);
+
+    cout << "added edge from " << from->id << " to " << to->id << endl;
     return;
 }
 
@@ -198,6 +211,7 @@ float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath
     vector<int> len(nodes.size(), 1); // length of max log path from pos i to end of graph
     vector<uint> prev(nodes.size(), nodes.size()-1); // prev node along path
     float max_mean;
+    int max_len;
 
     M[nodes.size()-1] = prob(nodes.size()-1, dir);
     len[nodes.size()-1] = 1;
@@ -206,14 +220,17 @@ float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath
     for (uint j=nodes.size()-1; j!=0; --j)
     {
 	max_mean = numeric_limits<float>::lowest(); 
+	max_len = 0; // tie break with longest kmer path
 	for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
 	{
-	    if (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean)
+	    if (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean or
+		(M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] == max_mean and len[nodes[j-1]->outNodes[i]->id] > max_len))
 	    {
 		M[j-1] = prob(j-1, dir) + M[nodes[j-1]->outNodes[i]->id];
 		len[j-1] = 1 + len[nodes[j-1]->outNodes[i]->id];
 		prev[j-1] = nodes[j-1]->outNodes[i]->id;
 		max_mean = M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id];
+		max_len = len[nodes[j-1]->outNodes[i]->id];
 	    }
 	}
 	//cout << j-1 << "  M: " << M[j-1] << " len: " << len[j-1] << " prev: " << prev[j-1] << endl;
@@ -255,6 +272,7 @@ void KmerGraph::load (const string& filepath)
     stringstream ss;
     uint32_t id, covg, from, to;
     Path p;
+    KmerNode* n;
 
     ifstream myfile (filepath);
     if (myfile.is_open())
@@ -269,7 +287,14 @@ void KmerGraph::load (const string& filepath)
 		ss << split_line[2];
 		ss >> p;
 		ss.clear();
-                add_node(p);
+                //add_node(p);
+                n = new KmerNode(next_id, p);
+		nodes.push_back(n);
+		next_id++;
+		if (k == 0 and p.length > 0)
+                {
+                    k = p.length;
+                }
 		assert(nodes.back()->id == id);
 		covg = stoi(split(split(split_line[3], "RC:i:")[0], ",")[0]);
 		nodes.back()->covg[0] = covg;
@@ -293,7 +318,9 @@ void KmerGraph::load (const string& filepath)
                     from = stoi(split_line[3]);
                     to = stoi(split_line[1]);
                 }
-                add_edge(from, to);
+                //add_edge(from, to);
+                nodes[from]->outNodes.push_back(nodes[to]);
+		nodes[to]->inNodes.push_back(nodes[from]);
             }
         }
     } else {

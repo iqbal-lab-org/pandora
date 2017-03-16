@@ -3,14 +3,16 @@
 
 #include <string>
 #include <vector>
-#include <set>
+#include <unordered_set>
 #include <ostream>
 #include <algorithm>
 #include "interval.h"
 #include "path.h"
 
+class KmerNode;
+
 class LocalNode {
-    std::set<Path> prev_kmer_paths;
+    std::unordered_set<KmerNode*> prev_kmer_paths;
   public:
     std::string seq;
     Interval pos;

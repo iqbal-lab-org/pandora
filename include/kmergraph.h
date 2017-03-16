@@ -20,9 +20,10 @@ class KmerGraph {
     KmerGraph();
     ~KmerGraph();
     void clear();
-    void add_node (const Path&);
+    KmerNode* add_node (const Path&);
     void add_edge (const uint32_t&, const uint32_t&);
     void add_edge (const Path&, const Path&);
+    void add_edge (KmerNode*, KmerNode*);
     //void copy_innodes (const Path&, const Path&);
     std::set<Path> get_innodes (const Path&);
     void check (uint);
