@@ -299,7 +299,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
     KmerHash hash;
     uint64_t smallest = std::numeric_limits<uint64_t>::max();
     uint num_kmers_added = 0;
-    KmerNode *kn, *kn_search;
+    KmerNode *kn;//, *kn_search;
     vector<KmerNode*>::iterator found;
 
     // create a null start node in the kmer graph
@@ -434,15 +434,14 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                             }
 			    
 			    found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(kmer_path));
-                            if ((kh.first == smallest or kh.second == smallest) and 
-				(found==kmer_prg.nodes.end()))
+                            if ((kh.first == smallest or kh.second == smallest) and (found==kmer_prg.nodes.end()))
                             {
 			        // add to index, kmer_prg and kmer_paths
 			        idx->add_record(min(kh.first, kh.second), id, kmer_path, (kh.first>kh.second));
                                 num_kmers_added += 1;
 			        kn = kmer_prg.add_node(kmer_path);
 				assert(it->second->prev_kmer_paths.size() > 0);
-				for (unordered_set<KmerNode*>::iterator l = n[0]->prev_kmer_paths.begin(); l!=n[0]->prev_kmer_paths.end(); ++l)
+				for (unordered_set<KmerNode*>::iterator l = it->second->prev_kmer_paths.begin(); l!=it->second->prev_kmer_paths.end(); ++l)
                                 {
                                     if (((*l)->path < kmer_path) and !(kmer_path.is_branching((*l)->path)))
                                     {
@@ -465,6 +464,25 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                                         n.back()->outNodes[m]->prev_kmer_paths.insert(kn);
 				    }
 				}
+			    } else if (i == it->second->pos.start and (kh.first == smallest or kh.second == smallest)) {
+				// even if we've already added the node, may have new edges to add to it
+				assert(it->second->prev_kmer_paths.size() > 0);
+                                for (unordered_set<KmerNode*>::iterator l = it->second->prev_kmer_paths.begin(); l!=it->second->prev_kmer_paths.end(); ++l)
+                                {
+                                    if (((*l)->path < kmer_path) and (*l)->id < (*found)->id and !(kmer_path.is_branching((*l)->path)))
+                                    {
+                                        kmer_prg.add_edge(*l, *found);
+                                    }
+                                }
+                                assert((*found)->inNodes.size() > 0);
+				ends.insert(*found);
+				if (i+1 == it->second->pos.end and n.back() == it->second)
+                                {
+                                    for (uint m=0; m!=n.back()->outNodes.size(); ++m)
+                                    {
+                                        n.back()->outNodes[m]->prev_kmer_paths.insert(kn);
+                                    }
+                                }
 			    } else if (kh.first == smallest or kh.second == smallest) {
 				ends.insert(*found);
 			    }
@@ -489,9 +507,10 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
     walk_paths = prg.walk_back((--(prg.nodes.end()))->second->id, (--(prg.nodes.end()))->second->pos.end, k);
     for (uint i=0; i!=walk_paths.size(); ++i)
     {
-	kn_search = new KmerNode(0, walk_paths[i]);
-	pointer_values_equal<KmerNode> eq = { kn_search };
-	found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), eq);
+	//kn_search = new KmerNode(0, walk_paths[i]);
+	//pointer_values_equal<KmerNode> eq = { kn_search };
+	//found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), eq);
+	found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(walk_paths[i]));
 	if (found == kmer_prg.nodes.end())
 	{
 	    cout << "add previously unfound end kmer" << endl;
@@ -536,7 +555,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	} else {
 	    ends.insert(*found);
 	}
-	delete kn_search;
+	//delete kn_search;
     }
 
     // create a null end node in the kmer graph

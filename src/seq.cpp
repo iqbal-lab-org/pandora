@@ -40,8 +40,15 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
     Minimizer *m_previous;
     KmerHash hash;
 
+    // force inclusion of first kmer
+    kmer = seq.substr(0, k);
+    kh = hash.kmerhash(kmer, k);
+    m = new Minimizer(min(kh.first, kh.second), 0, k, 0);
+    sketch.insert(m);
+    m_previous = m;
+
     // for each window position
-    for(uint32_t wpos=0; wpos <= seq.length()-w-k+1 ; ++wpos)
+    for(uint32_t wpos=1; wpos <= seq.length()-w-k+1 ; ++wpos)
     {
 	//cout << "wpos: " << wpos << endl;
     	// if wpos==0 or the previous minimizer starts outside current window, calculate new mini from scratch
@@ -90,6 +97,15 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 
             smallest = min(smallest, min(kh.first, kh.second));
 	}
+    }
+
+    // force inclusion of first last
+    kmer = seq.substr(seq.length()-k, k);
+    kh = hash.kmerhash(kmer, k);
+    m = new Minimizer(min(kh.first, kh.second), seq.length()-k, seq.length(), 0);
+    if (!(*m_previous==*m))
+    {
+        sketch.insert(m);
     }
     
     //cout << "Sketch size " << sketch.size() << " for read " << name << endl;

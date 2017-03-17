@@ -90,10 +90,10 @@ bool condition::operator()(const KmerNode* kn) const { return kn->path == q; }
 void KmerGraph::add_edge (const Path& from, const Path& to)
 {
     assert(from < to ||assert_msg(from << " is not less than " << to) );
-    /*if (from == to)
+    if (from == to)
     {
 	return;
-    }*/
+    }
 
     vector<KmerNode*>::iterator from_it = find_if(nodes.begin(), nodes.end(), condition(from));
     vector<KmerNode*>::iterator to_it = find_if(nodes.begin(), nodes.end(), condition(to));
@@ -103,9 +103,9 @@ void KmerGraph::add_edge (const Path& from, const Path& to)
     {
         (*from_it)->outNodes.push_back(*to_it);
 	(*to_it)->inNodes.push_back((*from_it));
+	cout << "added edge from " << (*from_it)->id << " to " << (*to_it)->id << endl;
     }
 
-    cout << "added edge from " << (*from_it)->id << " to " << (*to_it)->id << endl;
     return;
 }
 
