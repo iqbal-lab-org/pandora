@@ -121,13 +121,19 @@ void KmerGraph::add_edge (KmerNode* from, KmerNode* to)
     if (from->id > to->id)
     {
 	cout << "switch id for nodes " << from->id << " and " << to->id << endl;
-	for (uint i=to->id; i<from->id; ++i)
+	vector<KmerNode*> new_nodes;
+	new_nodes.insert(new_nodes.begin(), nodes.begin(), nodes.begin()+to->id);
+	new_nodes.insert(new_nodes.end(), nodes.begin()+to->id+1, nodes.begin()+from->id+1);
+	new_nodes.insert(new_nodes.end(),nodes.begin()+to->id, nodes.begin()+to->id+1);
+	new_nodes.insert(new_nodes.end(), nodes.begin()+from->id+1, nodes.end());
+	assert(new_nodes.size() == nodes.size());
+	nodes = new_nodes;
+	for (uint i=to->id; i<=from->id+1; ++i)
 	{
-	    nodes[i] = nodes[i+1];
+	    cout << nodes[i]->id << "->" << i << ", ";
 	    nodes[i]->id = i;
 	}
-	nodes[from->id + 1] = to;
-	nodes[from->id + 1]->id = from->id + 1;
+	cout << endl;
     }
 
     from->outNodes.push_back(to);
@@ -172,10 +178,10 @@ void KmerGraph::check (uint num_minikmers)
     {
 	assert(c->inNodes.size() > 0 or c->id == 0 || assert_msg("node" << *c << " has inNodes size " << c->inNodes.size()));
 	assert(c->outNodes.size() > 0 or c->id == nodes.size() - 1 || assert_msg("node" << *c << " has outNodes size " << c->outNodes.size()));
-	for (auto d: c->outNodes)
+	/*for (auto d: c->outNodes)
 	{
-	    assert(c->id < d->id);
-	}
+	    assert(c->id < d->id || assert_msg(c->id << " is not less than " << d->id));
+	}*/
     }
     return;
 }

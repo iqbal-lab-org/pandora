@@ -85,7 +85,7 @@ vector<LocalNode*> LocalPRG::nodes_along_path(const Path& p)
         // find the appropriate node of the prg
         for (map<uint32_t, LocalNode*>::const_iterator n=prg.nodes.begin(); n!=prg.nodes.end(); ++n)
         {
-            if ((it->end >= n->second->pos.start and it->start <= n->second->pos.end) or (it->start == n->second->pos.start and it->end == n->second->pos.end))
+            if ((it->end > n->second->pos.start and it->start < n->second->pos.end) or (it->start == n->second->pos.start and (it->end == n->second->pos.end or it->length == 0 or n->second->pos.length == 0)))
             {
 		v.push_back(n->second);
 		//cout << "found node " << *(n->second) << " so return vector size is now " << v.size() << endl;
@@ -296,6 +296,7 @@ vector<Path> LocalPRG::shift(Path p)
     vector<Path> return_paths;
     deque<Path> short_paths = {q};
     vector<Path> k_paths;
+    Interval i;
     bool non_terminus;
 
     // first find extensions of the path
@@ -308,8 +309,9 @@ vector<Path> LocalPRG::shift(Path p)
 	// if we can extend within the same localnode, do
 	if (p.end < n.back()->pos.end)
         {
-            p.path.back() = Interval(p.path.back().start, p.end + 1);
+            p.path.back().end += 1;
 	    p.end += 1;
+	    p.path.back().length += 1;
 	    k_paths.push_back(p);    
 	} else if (p.end != (--(prg.nodes.end()))->second->pos.end) {
 	    for (uint i=0; i!=n.back()->outNodes.size(); ++i)
@@ -432,6 +434,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	{
 	    v = shifts.front();
 	    shifts.pop_front();	    
+	    assert(v.back().length() == k);
 	    kmer = string_along_path(v.back());
             kh = hash.kmerhash(kmer, k);
 	    if (v.back().end == (--(prg.nodes.end()))->second->pos.end)
