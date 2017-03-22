@@ -121,11 +121,13 @@ void KmerGraph::add_edge (KmerNode* from, KmerNode* to)
     if (from->id > to->id)
     {
 	cout << "switch id for nodes " << from->id << " and " << to->id << endl;
-	nodes[to->id] = from;
-	nodes[from->id] = to;
-	uint32_t i = from->id;
-	from->id = to->id;
-	to->id = i;
+	for (uint i=to->id; i<from->id; ++i)
+	{
+	    nodes[i] = nodes[i+1];
+	    nodes[i]->id = i;
+	}
+	nodes[from->id + 1] = to;
+	nodes[from->id + 1]->id = from->id + 1;
     }
 
     from->outNodes.push_back(to);
@@ -242,8 +244,8 @@ float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath
 	max_len = 0; // tie break with longest kmer path
 	for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
 	{
-	    if (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean or
-		(M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] == max_mean and len[nodes[j-1]->outNodes[i]->id] > max_len))
+	    if (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean)// or
+		//(M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] == max_mean and len[nodes[j-1]->outNodes[i]->id] > max_len))
 	    {
 		M[j-1] = prob(j-1, dir) + M[nodes[j-1]->outNodes[i]->id];
 		len[j-1] = 1 + len[nodes[j-1]->outNodes[i]->id];

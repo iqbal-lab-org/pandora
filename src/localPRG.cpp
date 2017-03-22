@@ -299,24 +299,19 @@ vector<Path> LocalPRG::shift(Path p)
     bool non_terminus;
 
     // first find extensions of the path
-    cout << "find path extensions" << endl;
     while (short_paths.size() > 0)
     {
 	p = short_paths.front();
 	n = nodes_along_path(p);
 	short_paths.pop_front();
-	cout << "extend " << p << endl;
 	
 	// if we can extend within the same localnode, do
-	cout << p.end << " " << n.back()->pos.end << endl;
 	if (p.end < n.back()->pos.end)
         {
-	    cout << "can add a letter" << endl;
             p.path.back() = Interval(p.path.back().start, p.end + 1);
 	    p.end += 1;
 	    k_paths.push_back(p);    
 	} else if (p.end != (--(prg.nodes.end()))->second->pos.end) {
-	    cout << "add end interval" << endl;
 	    for (uint i=0; i!=n.back()->outNodes.size(); ++i)
 	    {
 		short_paths.push_back(p);
@@ -326,32 +321,23 @@ vector<Path> LocalPRG::shift(Path p)
     }
 
     // now check if by adding null nodes we reach the end of the prg
-    cout << "now add null nodes" << endl;
     for (uint i=0; i!= k_paths.size(); ++i)
     {
 	short_paths = {k_paths[i]};
 	non_terminus = false; // assume there all extensions are terminal i.e. reach end or prg
-        cout << "consider kmer " << k_paths[i] << endl;
 
 	while (short_paths.size() > 0)
 	{
 	    p = short_paths.front();
             n = nodes_along_path(p);
             short_paths.pop_front();
-	    cout << "extend " << p << endl;
-	    cout << *n.back() << endl;
-	    cout << n.back()->pos.end << endl;
-	    cout << *(--(prg.nodes.end()))->second << endl;
-	    cout << (--(prg.nodes.end()))->second->pos.end << endl;
 	    
 	    if (n.back()->pos.end==(--(prg.nodes.end()))->second->pos.end)
             {
-		cout << "reached terminus" << endl;
                 return_paths.push_back(p);
 	    } else {
                 for (uint i=0; i!=n.back()->outNodes.size(); ++i)
 		{
-		    cout << "add null outnodes" << endl;
 		    if (n.back()->outNodes[i]->pos.length == 0)
 		    {
                         short_paths.push_back(p);
@@ -381,8 +367,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 
     // declare variables
     vector<Path> walk_paths, shift_paths, v;
-    set<KmerNode*, pCompKmerNode> current_leaves;
-    deque<KmerNode*> end_leaves;
+    deque<KmerNode*> current_leaves, end_leaves;
     deque<vector<Path>> shifts;
     deque<Interval> d;
     Path kmer_path;
@@ -416,7 +401,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	// add to index, kmer_prg and kmer_paths
 	idx->add_record(min(kh.first, kh.second), id, walk_paths[i], (kh.first>kh.second));
 	kn = kmer_prg.add_node_with_kh(walk_paths[i], min(kh.first, kh.second));
-	current_leaves.insert(kn);
+	current_leaves.push_back(kn);
 	num_kmers_added += 1;
         kmer_prg.add_edge(kmer_prg.nodes[0]->path, walk_paths[i]);
     }
@@ -425,14 +410,12 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
     // in the prg to find the next minikmers as you walk the prg
     while (current_leaves.size()>0)
     {
-	kn = *current_leaves.begin();
-	current_leaves.erase(kn);
-	cout << "find outnodes of " << kn->path << endl;
+	kn = current_leaves.front();
+	current_leaves.pop_front();
 	assert(kn->khash < std::numeric_limits<uint64_t>::max());
 
         // find all paths which are this kmernode shifted by one place along the graph
 	shift_paths = shift(kn->path);
-        cout << "size of shifts is " << shift_paths.size() << endl;
 	if (shift_paths.size() == 0)
 	{
 	    assert(kn->path.start == 0);
@@ -451,11 +434,9 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	    shifts.pop_front();	    
 	    kmer = string_along_path(v.back());
             kh = hash.kmerhash(kmer, k);
-	    cout << v.back().end << " " << (--(prg.nodes.end()))->second->pos.end << endl;
 	    if (v.back().end == (--(prg.nodes.end()))->second->pos.end)
             {
 		// this kmer is a terminus
-		cout << "found kmer_prg terminus" << endl;
 		found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v.back()));
                 if (found == kmer_prg.nodes.end())
                 {
@@ -469,21 +450,19 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		}
 	    } else if (kh.first <= kn->khash or kh.second <= kn->khash) {
 		// found next minimizer
-		cout << "found smaller kmer" << endl;
 		found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v.back()));
 		if (found == kmer_prg.nodes.end())
 		{
 		    idx->add_record(min(kh.first, kh.second), id, v.back(), (kh.first>kh.second));
                     new_kn = kmer_prg.add_node_with_kh(v.back(), min(kh.first, kh.second));
                     kmer_prg.add_edge(kn, new_kn);
-                    current_leaves.insert(new_kn);
+                    current_leaves.push_back(new_kn);
                     num_kmers_added += 1;
 		} else {
 		    kmer_prg.add_edge(kn, *found);
 		}
             } else if (v.size() == w) {
 		// the old minimizer has dropped out the window, minimizer the w new kmers
-		cout << "new window, find new mini" << endl;
 		smallest = std::numeric_limits<uint64_t>::max();
                 for (uint j = 0; j != w; j++)
                 {
@@ -503,7 +482,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 			        idx->add_record(min(kh.first, kh.second), id, v[j], (kh.first>kh.second));
                                 new_kn = kmer_prg.add_node_with_kh(v[j], min(kh.first, kh.second));
                                 kmer_prg.add_edge(kn, new_kn);
-                                current_leaves.insert(new_kn);
+                                current_leaves.push_back(new_kn);
                                 num_kmers_added += 1;
 			    } else {
 				kmer_prg.add_edge(kn, *found);
@@ -511,7 +490,6 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		    }
 		}
 	    } else {
-		cout << "find shift paths" << endl;
 		shift_paths = shift(v.back());
                 for (uint i=0; i!=shift_paths.size(); ++i)
                 {
@@ -525,7 +503,6 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
     }
 
     // create a null end node, and for each end leaf add an edge to this terminus
-    cout << "add end node" << endl;
     assert(end_leaves.size()>0);
     d = {Interval((--(prg.nodes.end()))->second->pos.end,(--(prg.nodes.end()))->second->pos.end)};
     kmer_path.initialize(d);
