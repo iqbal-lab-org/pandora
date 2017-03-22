@@ -38,6 +38,7 @@ class LocalPRG {
     std::vector<LocalNode*> nodes_along_path(const Path&);
     std::vector<Interval> split_by_site(const Interval&);	
     std::vector<uint32_t> build_graph(const Interval&, const std::vector<uint32_t>&, uint32_t current_level=0);
+    std::vector<Path> shift(Path);
     void minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k);
 
     // functions used once hits have been collected against the PRG

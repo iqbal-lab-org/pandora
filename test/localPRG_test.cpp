@@ -360,7 +360,21 @@ TEST_F(LocalPRGTest, buildGraph)
     EXPECT_EQ(lg3, l3.prg);
 }
 
-//could test that no int is included in more than one node
+TEST_F(LocalPRGTest, shift){
+    LocalPRG l1(1,"simple", "AGCT");
+    LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+
+    deque<Interval> d = {Interval(0,3)};
+    Path p, q;
+    p.initialize(d);
+    d = {Interval(1,4)};
+    q.initialize(d);
+    vector<Path> v_exp = {q};
+    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l1.shift(p));
+
+}
+
 TEST_F(LocalPRGTest, minimizerSketch){
     // note this is a bad test
     LocalPRG l0(0,"empty", "");

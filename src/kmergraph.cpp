@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cassert>
 #include <vector>
+#include <limits>
 #include "utils.h"
 #include "kmernode.h"
 #include "kmergraph.h"
@@ -50,10 +51,10 @@ KmerNode* KmerGraph::add_node (const Path& p)
     {
 	nodes.push_back(n);
 	cout << "added node " << *n;
-	assert(k==0 or p.length==0 or p.length==k);
-	if (k == 0 and p.length > 0)
+	assert(k==0 or p.length()==0 or p.length()==k);
+	if (k == 0 and p.length() > 0)
 	{
-	    k = p.length;
+	    k = p.length();
 	}  
 	next_id++;
     } else {
@@ -64,13 +65,18 @@ KmerNode* KmerGraph::add_node (const Path& p)
     return n;
 }
 
-void KmerGraph::add_edge (const uint32_t& from, const uint32_t& to)
+KmerNode* KmerGraph::add_node_with_kh (const Path& p, const uint64_t& kh)
+{
+    KmerNode *n = add_node(p);
+    n->khash = kh;
+    assert(n->khash < std::numeric_limits<uint64_t>::max());
+    return n;
+}
+    
+
+/*void KmerGraph::add_edge (const uint32_t& from, const uint32_t& to)
 {
     assert(from < to);
-    /*if (from == to)
-    {
-        return;
-    }*/
     assert(from <= nodes.size() && to <= nodes.size());
     if ( find(nodes[from]->outNodes.begin(), nodes[from]->outNodes.end(), nodes[to]) == nodes[from]->outNodes.end() )
     {
@@ -82,7 +88,7 @@ void KmerGraph::add_edge (const uint32_t& from, const uint32_t& to)
     }
     cout << "added edge from  " << from << " to " << to << endl;
     return;
-}
+}*/
 
 condition::condition(const Path& p): q(p) {};
 bool condition::operator()(const KmerNode* kn) const { return kn->path == q; }
@@ -111,10 +117,19 @@ void KmerGraph::add_edge (const Path& from, const Path& to)
 
 void KmerGraph::add_edge (KmerNode* from, KmerNode* to)
 {
-    assert(from->id < to->id ||assert_msg(from->id << " is not less than " << to->id) );
+    assert(from->path < to->path ||assert_msg(from->id << " is not less than " << to->id) );
+    if (from->id > to->id)
+    {
+	cout << "switch id for nodes " << from->id << " and " << to->id << endl;
+	nodes[to->id] = from;
+	nodes[from->id] = to;
+	uint32_t i = from->id;
+	from->id = to->id;
+	to->id = i;
+    }
 
-     from->outNodes.push_back(to);
-     to->inNodes.push_back(from);
+    from->outNodes.push_back(to);
+    to->inNodes.push_back(from);
 
     cout << "added edge from " << from->id << " to " << to->id << endl;
     return;
@@ -155,6 +170,10 @@ void KmerGraph::check (uint num_minikmers)
     {
 	assert(c->inNodes.size() > 0 or c->id == 0 || assert_msg("node" << *c << " has inNodes size " << c->inNodes.size()));
 	assert(c->outNodes.size() > 0 or c->id == nodes.size() - 1 || assert_msg("node" << *c << " has outNodes size " << c->outNodes.size()));
+	for (auto d: c->outNodes)
+	{
+	    assert(c->id < d->id);
+	}
     }
     return;
 }
@@ -291,9 +310,9 @@ void KmerGraph::load (const string& filepath)
                 n = new KmerNode(next_id, p);
 		nodes.push_back(n);
 		next_id++;
-		if (k == 0 and p.length > 0)
+		if (k == 0 and p.length() > 0)
                 {
-                    k = p.length;
+                    k = p.length();
                 }
 		assert(nodes.back()->id == id);
 		covg = stoi(split(split(split_line[3], "RC:i:")[0], ",")[0]);
@@ -360,6 +379,10 @@ bool KmerGraph::operator == (const KmerGraph& y) const
     }
     // otherwise is true
     return true;
+}
+
+bool pCompKmerNode::operator()(KmerNode* lhs, KmerNode* rhs) {
+        return (lhs->path)<(rhs->path);
 }
 
 std::ostream& operator<< (std::ostream & out, KmerGraph const& data) {

@@ -11,6 +11,7 @@ class KmerNode {
     std::vector<KmerNode*> outNodes; // representing edges from this node to the nodes in the vector
     std::vector<KmerNode*> inNodes; // representing edges from other nodes to this node
     std::vector<uint32_t> covg; // covg by hits in fwd, rev dir
+    uint64_t khash; //the kmer hash value
 
   public:
     KmerNode(uint32_t, const Path&);
@@ -19,6 +20,7 @@ class KmerNode {
   friend std::ostream& operator<< (std::ostream& out, const KmerNode& n);  
   friend class KmerGraph;
   friend struct condition;
+  friend struct pCompKmerNode;
   friend class LocalPRG;
   friend int pandora_check_kmergraph(int argc, char *argv[]);
   friend class KmerGraphTest_addNode_Test;

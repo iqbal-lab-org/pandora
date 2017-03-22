@@ -10,22 +10,25 @@
 
 using namespace std;
 
-Path::Path(){
-    length = 0; 
+Path::Path(){}
+
+uint32_t Path::length() const
+{
+    uint32_t i = 0;
+    for (deque<Interval>::const_iterator it = path.begin(); it!=path.end(); ++it)
+    {
+	i+=it->length;
+    }
+    return i;
 }
 
 void Path::initialize(const deque<Interval>& q)
 {
     path = q;
     start = q.begin()->start;
-    length = 0;
     //cout << "Paths starts at " << start;
     end = (*--q.end()).end;
     //cout << "Paths ends at " << end;
-    for (std::deque<Interval>::const_iterator it=path.begin(); it!=path.end(); ++it)
-    {
-	length += (*it).length;
-    }
     end = path.back().end;
 }
 
@@ -38,7 +41,6 @@ void Path::add_start_interval(const Interval& i)
 {
     assert (i.end <= path.begin()->start || assert_msg(i.end << ">" << path.begin()->start));
     path.push_front(i);
-    length += i.length;
     start = i.start;
 }
 
@@ -46,7 +48,6 @@ void Path::add_end_interval(const Interval& i)
 {
     assert (i.start >= path.back().end || assert_msg("tried to add interval starting at " << i.start << " to end of path finishing at " << path.back().end));
     path.push_back(i);
-    length += i.length;
     end = i.end;
 }
 

@@ -13,13 +13,13 @@ MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecor
     //prg_path.initialize(r.path.path);
     //cout << "minihit initialised with read: " << read_id << ", " << read_interval << ", length " << read_interval.length << endl;
     //cout << "and prg: " << prg_id << ", " << prg_path << ", length " << prg_path.length << endl;
-    assert(read_interval.length==prg_path.length);
+    assert(read_interval.length==prg_path.length());
 };
 
 MinimizerHit::MinimizerHit(const uint32_t i, const Interval j, const uint32_t k, const Path p, const bool c): read_id(i), read_interval(j), prg_id(k), strand(c)
 {
     prg_path.initialize(p.path);
-    assert(read_interval.length==prg_path.length);
+    assert(read_interval.length==prg_path.length());
 };
 
 bool MinimizerHit::operator == (const MinimizerHit& y) const {

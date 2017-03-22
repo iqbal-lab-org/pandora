@@ -184,7 +184,7 @@ vector<Path> LocalGraph::walk(const uint32_t& node_id, const uint32_t& pos, cons
 		p2.initialize((*it2).path);
 		p2.add_start_interval(Interval(pos, nodes[node_id]->pos.end));
 		//cout << "path: " << p2 << " p2.length: " << p2.length << endl;
-    		if (p2.length == len) {
+    		if (p2.length() == len) {
 		    return_paths.push_back(p2);
 		}
 	    }
@@ -230,7 +230,7 @@ vector<Path> LocalGraph::walk_back(const uint32_t& node_id, const uint32_t& pos,
                     p2.initialize(walk_paths[i].path);
                     p2.add_end_interval(Interval(nodes[node_id]->pos.start, pos));
 		    //cout << p2 << endl;
-                    if (p2.length == len) {
+                    if (p2.length() == len) {
 			//cout << "output path: " << p2 << endl;
                         return_paths.push_back(p2);
                     }

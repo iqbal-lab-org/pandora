@@ -1,13 +1,14 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <limits>
 #include "kmernode.h"
 #include "path.h"
 #include "utils.h" // for pointer_values_equal
 
 using namespace std;
 
-KmerNode::KmerNode (uint32_t i, const Path& p): id(i), path(p), covg({0,0}) {}
+KmerNode::KmerNode (uint32_t i, const Path& p): id(i), path(p), covg({0,0}), khash(std::numeric_limits<uint64_t>::max()) {}
 
 std::ostream& operator<< (std::ostream & out, KmerNode const& n) {
     out << n.id << " " << n.path << endl;

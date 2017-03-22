@@ -109,7 +109,7 @@ TEST_F(KmerGraphTest, addEdge)
     EXPECT_DEATH(kg.add_edge(p1,p3),"");
     EXPECT_DEATH(kg.add_edge(p3,p2),"");
 
-    //now test the same with id edge constructor
+    /*//now test the same with id edge constructor
     KmerGraph kg2;
     kg2.add_node(p1);
     kg2.add_node(p2);
@@ -130,7 +130,7 @@ TEST_F(KmerGraphTest, addEdge)
     EXPECT_EQ(j, kg2.nodes[1]->inNodes.size());
     j = 0;
     EXPECT_EQ(j, kg2.nodes[1]->outNodes.size());
-    EXPECT_EQ(j, kg2.nodes[0]->inNodes.size());
+    EXPECT_EQ(j, kg2.nodes[0]->inNodes.size());*/
 
 }
 
@@ -144,7 +144,7 @@ TEST_F(KmerGraphTest, clear)
     d = {Interval(1,4)};
     p2.initialize(d);
     kg.add_node(p2);
-    kg.add_edge(0,1);
+    kg.add_edge(p1,p2);
     uint j = 2;
     EXPECT_EQ(j, kg.nodes.size());
 
@@ -154,7 +154,7 @@ TEST_F(KmerGraphTest, clear)
 
     kg.add_node(p1);
     kg.add_node(p2);
-    kg.add_edge(0,1);
+    kg.add_edge(p1,p2);
     j = 2;
     EXPECT_EQ(j, kg.nodes.size());
 }
@@ -171,8 +171,8 @@ TEST_F(KmerGraphTest, equals)
     p2.initialize(d);
     kg1.add_node(p2);
     kg2.add_node(p2);
-    kg1.add_edge(0,1);
-    kg2.add_edge(0,1);
+    kg1.add_edge(p1,p2);
+    kg2.add_edge(p1,p2);
 
     d = {Interval(2,5)};
     p3.initialize(d);
@@ -230,14 +230,14 @@ TEST_F(KmerGraphTest,findMaxPathSimple)
     uint j = 7;
     EXPECT_EQ(j, kg.nodes.size());
 
-    kg.add_edge(0,1);
-    kg.add_edge(1,2);
-    kg.add_edge(0,3);
-    kg.add_edge(3,4);
-    kg.add_edge(0,5);
-    kg.add_edge(2,6);
-    kg.add_edge(4,6);
-    kg.add_edge(5,6);
+    kg.add_edge(kg.nodes[0],kg.nodes[1]);
+    kg.add_edge(kg.nodes[1],kg.nodes[2]);
+    kg.add_edge(kg.nodes[0],kg.nodes[3]);
+    kg.add_edge(kg.nodes[3],kg.nodes[4]);
+    kg.add_edge(kg.nodes[0],kg.nodes[5]);
+    kg.add_edge(kg.nodes[2],kg.nodes[6]);
+    kg.add_edge(kg.nodes[4],kg.nodes[6]);
+    kg.add_edge(kg.nodes[5],kg.nodes[6]);
 
     kg.nodes[1]->covg[0]+=4;
     kg.nodes[2]->covg[0]+=3;
@@ -294,17 +294,17 @@ TEST_F(KmerGraphTest,findMaxPath2Level)
     uint j = 10;
     EXPECT_EQ(j, kg.nodes.size());
 
-    kg.add_edge(0,1);
-    kg.add_edge(1,2);
-    kg.add_edge(2,3);
-    kg.add_edge(0,4);
-    kg.add_edge(4,5);
-    kg.add_edge(5,6);
-    kg.add_edge(3,7);
-    kg.add_edge(6,7);
-    kg.add_edge(0,8);
-    kg.add_edge(7,9);
-    kg.add_edge(8,9);
+    kg.add_edge(kg.nodes[0],kg.nodes[1]);
+    kg.add_edge(kg.nodes[1],kg.nodes[2]);
+    kg.add_edge(kg.nodes[2],kg.nodes[3]);
+    kg.add_edge(kg.nodes[0],kg.nodes[4]);
+    kg.add_edge(kg.nodes[4],kg.nodes[5]);
+    kg.add_edge(kg.nodes[5],kg.nodes[6]);
+    kg.add_edge(kg.nodes[3],kg.nodes[7]);
+    kg.add_edge(kg.nodes[6],kg.nodes[7]);
+    kg.add_edge(kg.nodes[0],kg.nodes[8]);
+    kg.add_edge(kg.nodes[7],kg.nodes[9]);
+    kg.add_edge(kg.nodes[8],kg.nodes[9]);
 
     kg.nodes[4]->covg[0]+=4;
     kg.nodes[5]->covg[0]+=3;
@@ -335,7 +335,7 @@ TEST_F(KmerGraphTest, save){
     d = {Interval(1,4)};
     p2.initialize(d);
     kg.add_node(p2);
-    kg.add_edge(0,1);
+    kg.add_edge(p1,p2);
     kg.nodes[0]->covg[1] +=5;
 
     kg.save("../test/test_cases/kmergraph_test.gfa");
@@ -350,7 +350,7 @@ TEST_F(KmerGraphTest, load){
     d = {Interval(1,4)};
     p2.initialize(d);
     kg.add_node(p2);
-    kg.add_edge(0,1);
+    kg.add_edge(p1,p2);
     kg.nodes[0]->covg[1] +=5;
 
     read_kg.load("../test/test_cases/kmergraph_test.gfa");

@@ -21,7 +21,8 @@ class KmerGraph {
     ~KmerGraph();
     void clear();
     KmerNode* add_node (const Path&);
-    void add_edge (const uint32_t&, const uint32_t&);
+    KmerNode* add_node_with_kh (const Path&, const uint64_t&);
+    //void add_edge (const uint32_t&, const uint32_t&);
     void add_edge (const Path&, const Path&);
     void add_edge (KmerNode*, KmerNode*);
     //void copy_innodes (const Path&, const Path&);
@@ -44,6 +45,11 @@ struct condition
     Path q;
     condition(const Path&);
     bool operator()(const KmerNode*) const;
+};
+
+struct pCompKmerNode
+{
+  bool operator()(KmerNode*, KmerNode*);
 };
 
 #endif
