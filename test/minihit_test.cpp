@@ -39,7 +39,7 @@ TEST_F(MinimizerHitTest,create){
     j=0;
     EXPECT_EQ(j, mh.prg_id);
     EXPECT_EQ(p, mh.prg_path);
-    bool b = false;
+    bool b = true;
     EXPECT_EQ(b, mh.strand);
 
     kh = hash.kmerhash("hell", 4);
@@ -62,28 +62,28 @@ TEST_F(MinimizerHitTest,checkStrand){
     MiniRecord* mr;
     mr = new MiniRecord(0,p,0);
     MinimizerHit mh(1, m, mr);
-    EXPECT_EQ(mh.strand, false);
+    EXPECT_EQ(mh.strand, true);
 
     delete m;
     delete mr;
     m = new Minimizer(min(kh.first,kh.second), 0,5,1);
     mr = new MiniRecord(0,p,1);
     MinimizerHit mh1(1, m, mr);
-    EXPECT_EQ(mh1.strand, false);
+    EXPECT_EQ(mh1.strand, true);
 
     delete m;
     delete mr;
     m = new Minimizer(min(kh.first,kh.second), 0,5,1);
     mr = new MiniRecord(0,p,0);
     MinimizerHit mh2(1, m, mr);
-    EXPECT_EQ(mh2.strand, true);
+    EXPECT_EQ(mh2.strand, false);
  
     delete m;
     delete mr;
     m = new Minimizer(min(kh.first,kh.second), 0,5,0);
     mr = new MiniRecord(0,p,1);
     MinimizerHit mh3(1, m, mr);
-    EXPECT_EQ(mh3.strand, true);
+    EXPECT_EQ(mh3.strand, false);
 
     delete m;
     delete mr;

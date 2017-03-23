@@ -121,42 +121,42 @@ TEST_F(UtilsTest, addReadHits){
     Path p;
     p.initialize(d);
     pair<uint64_t,uint64_t> kh = hash.kmerhash("AGC",3);
-    idx->add_record(min(kh.first,kh.second), 1, p, 0);
-    m1 = new MinimizerHit(0, Interval(0,3), 1, p, 0);
-    m2 = new MinimizerHit(0, Interval(1,4), 1, p, 1);
+    idx->add_record(min(kh.first,kh.second), 1, p, (kh.first<kh.second));
+    m1 = new MinimizerHit(0, Interval(0,3), 1, p, 1);
+    m2 = new MinimizerHit(0, Interval(1,4), 1, p, 0);
     expected1.hits.insert(m1);
     expected2.hits.insert(m2);
     d = {Interval(1,4)};
     p.initialize(d);
     kh = hash.kmerhash("GCT",3);
-    idx->add_record(min(kh.first,kh.second), 1, p, 1);
-    m3 = new MinimizerHit(0, Interval(1,4), 1, p, 0);
-    m4 = new MinimizerHit(0, Interval(0,3), 1, p, 1);
+    idx->add_record(min(kh.first,kh.second), 1, p, (kh.first<kh.second));
+    m3 = new MinimizerHit(0, Interval(1,4), 1, p, 1);
+    m4 = new MinimizerHit(0, Interval(0,3), 1, p, 0);
     expected2.hits.insert(m3);
     expected1.hits.insert(m4);
     d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     p.initialize(d);
     kh = hash.kmerhash("AGC",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, 0);
-    m5 = new MinimizerHit(0, Interval(0,3), 3, p, 0);
-    m6 = new MinimizerHit(0, Interval(1,4), 3, p, 1);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first<kh.second));
+    m5 = new MinimizerHit(0, Interval(0,3), 3, p, 1);
+    m6 = new MinimizerHit(0, Interval(1,4), 3, p, 0);
     expected1.hits.insert(m5);
     expected2.hits.insert(m6);
     d = {Interval(0,1), Interval(4,5), Interval(12,13)};
     p.initialize(d);
     kh = hash.kmerhash("AGT",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, 0);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first<kh.second));
     m9 = new MinimizerHit(0, Interval(0,3), 3, p, 1);
     expected3.hits.insert(m9);
     d = {Interval(0,1), Interval(19,20), Interval(23,24)};
     p.initialize(d);
-    idx->add_record(min(kh.first,kh.second), 3, p, 0);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first<kh.second));
     m10 = new MinimizerHit(0, Interval(0,3), 3, p, 1);
     expected3.hits.insert(m10);
     d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     kh = hash.kmerhash("GCT",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, 0);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first<kh.second));
     m7 = new MinimizerHit(0, Interval(1,4), 3, p, 1);
     m8 = new MinimizerHit(0, Interval(0,3), 3, p, 0);
     expected2.hits.insert(m7);
@@ -164,9 +164,9 @@ TEST_F(UtilsTest, addReadHits){
     d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     kh = hash.kmerhash("GTT",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, 0);
+    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first<kh.second));
     m11 = new MinimizerHit(0, Interval(1,4), 3, p, 1);
-    expected3.hits.insert(m11);
+    //expected3.hits.insert(m11);
 
     add_read_hits(0, "read1", "AGC", mhs, idx, 1, 3);
     EXPECT_EQ(expected1.hits.size(), mhs->hits.size());
@@ -192,7 +192,7 @@ TEST_F(UtilsTest, addReadHits){
     }
 
     // but for w=1, only add one more hit, for GTT
-    //expected3.hits.insert(m11);
+    expected3.hits.insert(m11);
     delete mhs;
     mhs = new MinimizerHits();
     EXPECT_EQ(j, mhs->hits.size());

@@ -209,6 +209,29 @@ TEST_F(LocalPRGTest, nodesAlongPath)
     j = 6;
     EXPECT_EQ(j, l3.nodes_along_path(p)[2]->id);
 
+    // a path with an empty node at end
+    d = {Interval(12,13), Interval(16,16), Interval(23,23)};
+    p.initialize(d);
+    j = 3;
+    w = l3.nodes_along_path(p);
+    EXPECT_EQ(j, w.size());
+    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+    j = 4;
+    EXPECT_EQ(j, l3.nodes_along_path(p)[1]->id);
+    j = 6;
+    EXPECT_EQ(j, l3.nodes_along_path(p)[2]->id);
+
+    // and a path which ends on a null node
+    d = {Interval(12,13), Interval(16,16)};
+    p.initialize(d);
+    j = 2;
+    w = l3.nodes_along_path(p);
+    EXPECT_EQ(j, w.size());
+    j = 3;
+    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+    j = 4;
+    EXPECT_EQ(j, l3.nodes_along_path(p)[1]->id);
+
     // and a path that can't really exist still works
     d = {Interval(12,13),Interval(19,20)};
     p.initialize(d);
@@ -372,10 +395,31 @@ TEST_F(LocalPRGTest, shift){
     q.initialize(d);
     vector<Path> v_exp = {q};
     EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l1.shift(p));
+    v_exp.clear();
+    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l1.shift(q)); // there are no shifts over end of prg
 
+    d = {Interval(0,1), Interval(4,6)};
+    p.initialize(d);
+    d = {Interval(4,6), Interval(13,14)};
+    q.initialize(d);
+    v_exp = {q};
+    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l2.shift(p));
+    v_exp.clear();
+    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l2.shift(q));
+
+/*    d = {Interval(0,1)};
+    p.initialize(d);
+    d = {Interval(4,5)};
+    q.initialize(d);
+    v_exp.push_back(q);
+    d = {Interval(19,20)};
+    q.initialize(d);
+    v_exp.push_back(q);
+    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l3.shift(p));
+*/
 }
 
-TEST_F(LocalPRGTest, minimizerSketch){
+/*TEST_F(LocalPRGTest, minimizerSketch){
     // note this is a bad test
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
@@ -428,7 +472,7 @@ TEST_F(LocalPRGTest, minimizerSketch){
     
     idx->clear();
     delete idx;
-}
+}*/
 
 TEST_F(LocalPRGTest, updateCovgWithHit)
 {

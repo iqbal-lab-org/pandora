@@ -28,6 +28,7 @@ class KmerGraph {
     //void copy_innodes (const Path&, const Path&);
     std::set<Path> get_innodes (const Path&);
     void check (uint);
+    void sort_topologically();
     //std::vector<KmerNode*> get_node_order();
     float prob(uint, int);
     float find_max_path(int, float, std::vector<KmerNode*>&);

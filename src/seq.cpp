@@ -40,15 +40,15 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
     Minimizer *m_previous;
     KmerHash hash;
 
-    // force inclusion of first kmer
+    /*// force inclusion of first kmer
     kmer = seq.substr(0, k);
     kh = hash.kmerhash(kmer, k);
     m = new Minimizer(min(kh.first, kh.second), 0, k, 0);
     sketch.insert(m);
-    m_previous = m;
+    m_previous = m;*/
 
     // for each window position
-    for(uint32_t wpos=1; wpos <= seq.length()-w-k+1 ; ++wpos)
+    for(uint32_t wpos=0; wpos <= seq.length()-w-k+1 ; ++wpos)
     {
 	//cout << "wpos: " << wpos << endl;
     	// if wpos==0 or the previous minimizer starts outside current window, calculate new mini from scratch
@@ -66,16 +66,11 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 	    {
 	        kmer = seq.substr(wpos+i, k);
 	        kh = hash.kmerhash(kmer, k);
-	        if (kh.first == smallest)
+	        if (kh.first == smallest or kh.second == smallest)
                 {
-		    m = new Minimizer(kh.first, wpos+i, wpos+i+k, 0);
+		    m = new Minimizer(min(kh.first, kh.second), wpos+i, wpos+i+k, (kh.first<kh.second));
 		    sketch.insert(m);
 		    m_previous = m;
-	        } else if (kh.second == smallest)
-		{
-		    m = new Minimizer(kh.second, wpos+i, wpos+i+k, 1);
-                    sketch.insert(m);
-                    m_previous = m;
                 }
 	    }
         } else {
@@ -83,30 +78,25 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 	    kmer = seq.substr(wpos+w-1, k);
             kh = hash.kmerhash(kmer, k);
 	    //cout << "Last kh for wpos: " << kh << " compared to previous smallest: " << smallest << endl;
-	    if(kh.first <= smallest)
+	    if(kh.first <= smallest or kh.second <= smallest)
 	    {
-	        m = new Minimizer(kh.first, wpos+w-1, wpos+w-1+k, 0);
+	        m = new Minimizer(min(kh.first, kh.second), wpos+w-1, wpos+w-1+k, (kh.first<kh.second));
 		sketch.insert(m);
 		m_previous = m;
-       	    } else if (kh.second <= smallest)
-            {
-                m = new Minimizer(kh.second, wpos+w-1, wpos+w-1+k, 1);
-                sketch.insert(m);
-                m_previous = m;
             }
 
             smallest = min(smallest, min(kh.first, kh.second));
 	}
     }
 
-    // force inclusion of first last
+    /*// force inclusion of last
     kmer = seq.substr(seq.length()-k, k);
     kh = hash.kmerhash(kmer, k);
     m = new Minimizer(min(kh.first, kh.second), seq.length()-k, seq.length(), 0);
     if (!(*m_previous==*m))
     {
         sketch.insert(m);
-    }
+    }*/
     
     //cout << "Sketch size " << sketch.size() << " for read " << name << endl;
     return;
