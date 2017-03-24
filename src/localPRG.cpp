@@ -710,11 +710,11 @@ void LocalPRG::write_kmer_max_paths_to_fasta(const string& filepath, float e_rat
     {
 	cout << now() << "find kmer max paths for dir " << dir << endl;
         vector<KmerNode*> kmp;
-	kmp.reserve(50);
+	kmp.reserve(800);
 	float ppath = kmer_prg.find_max_path(dir, e_rate, kmp);
 	vector<LocalNode*> lmp = localnode_path_from_kmernode_path(kmp);
 
-        handle << ">" << name << "." << dir << "\t P(data|sequence)=" << ppath << endl;
+        handle << ">" << name << "." << dir << "\tlog P(data|sequence)=" << ppath << endl;
         for (uint j = 0; j!= lmp.size(); ++j)
         {
             handle << lmp[j]->seq;

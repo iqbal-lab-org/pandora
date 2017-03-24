@@ -313,7 +313,7 @@ float KmerGraph::prob(uint j, int dir)
     return M[nodes.size()-1]/len[nodes.size()-1];
 }*/
 
-float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath)
+/*float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath)
 {
     cout << now() << "Find kmer max path for direction " << dir;
     // update global p
@@ -362,6 +362,51 @@ float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath
     //cout << endl;
 
     return M[0]/len[0];
+}*/
+
+float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath)
+{
+    // maximise based on total coverage
+    cout << now() << "Find kmer max path for direction " << dir;
+    // update global p
+    p = 1/exp(e_rate*k);
+    cout << " with parameters n: " << num_reads << " and p: " << p << endl;
+    cout << "Kmer graph has " << nodes.size() << " nodes" << endl;
+
+    // create vectors to hold the intermediate values
+    vector<uint> M(nodes.size(), 0); // max total covg from pos i to end of graph
+    vector<uint> prev(nodes.size(), nodes.size()-1); // prev node along path
+    uint max_covg;
+
+    for (uint j=nodes.size()-1; j!=0; --j)
+    {
+        max_covg = 0;
+        for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
+        {
+            if (M[nodes[j-1]->outNodes[i]->id] >= max_covg)
+            {
+                M[j-1] = nodes[j-1]->covg[dir] + M[nodes[j-1]->outNodes[i]->id];
+                prev[j-1] = nodes[j-1]->outNodes[i]->id;
+                max_covg = M[nodes[j-1]->outNodes[i]->id];
+            }
+        }
+	cout << j-1 << "  M: " << M[j-1] << " prev: " << prev[j-1] << endl;
+    }
+
+    // extract path
+    uint prev_node = prev[0];
+    float ret_prob = 0;
+    while (prev_node < nodes.size() - 1)
+    {
+        cout << prev_node << "->";
+        maxpath.push_back(nodes[prev_node]);
+        prev_node = prev[prev_node];
+	ret_prob += prob(prev_node, dir);
+    }
+    cout << endl;
+
+    assert(maxpath.size() > 0);
+    return ret_prob/maxpath.size();
 }
 
 void KmerGraph::save (const string& filepath)
@@ -371,7 +416,7 @@ void KmerGraph::save (const string& filepath)
     handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
     for(uint i=0; i!=nodes.size(); ++i)
     {
-        handle << "S\t" << nodes[i]->id << "\t" << nodes[i]->path << "\tRC:i:" << nodes[i]->covg[0] << "," << nodes[i]->covg[0] << endl;
+        handle << "S\t" << nodes[i]->id << "\t" << nodes[i]->path << "\tRC:i:" << nodes[i]->covg[1] << "," << nodes[i]->covg[0] << endl;
         for (uint32_t j=0; j<nodes[i]->outNodes.size(); ++j)
         {
             handle << "L\t" << nodes[i]->id << "\t+\t" << nodes[i]->outNodes[j]->id << "\t+\t0M" << endl;

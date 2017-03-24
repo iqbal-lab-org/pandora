@@ -78,22 +78,23 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
             {
                 if (!name.empty() && !read.empty())
                 {
-		    cout << name;
+		    cout << name << endl;
+		    cout << "node path: ";
 		    npath = prgs[0]->prg.nodes_along_string(read);
 		    for (uint j=0; j != npath.size(); ++j)
 		    {
-			cout << "->" << npath[j]->id;
+			cout << "->" << *npath[j];
                     }
 		    cout << endl;
 		    vector<KmerNode*> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
-        	    cout << kpath[0]->id;
+        	    cout << "kmer path: " << kpath[0]->path;
         	    for (uint j=1; j != kpath.size(); ++j)
         	    {
 		  	if (find(kpath[j]->inNodes.begin(), kpath[j]->inNodes.end(), kpath[j-1])!=kpath[j]->inNodes.end())
             	        {
             	            cout << "->" << kpath[j]->path;
             	        } else {
-            	            cout << "  " << kpath[j]->path;
+            	            cout << endl << "no edge from " << kpath[j-1]->path << " to " << kpath[j]->path;
             	        }
         	    }
         	    cout << endl;
@@ -121,14 +122,14 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
             }
 	    cout << endl;
 	    vector<KmerNode*> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
-            cout << kpath[0]->id;
+            cout << kpath[0]->path;
             for (uint j=1; j != kpath.size(); ++j)
             {
 		if (find(kpath[j]->inNodes.begin(), kpath[j]->inNodes.end(), kpath[j-1])!=kpath[j]->inNodes.end())
                 {
-                    cout << "->" << kpath[j]->id;
+                    cout << "->" << kpath[j]->path;
                 } else {
-                    cout << "  " << kpath[j]->id;
+                    cout << "  " << kpath[j]->path;
                 }
             }
             cout << endl;
