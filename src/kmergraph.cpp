@@ -5,6 +5,7 @@
 #include <cassert>
 #include <vector>
 #include <limits>
+//#include <algorithm>
 #include "utils.h"
 #include "kmernode.h"
 #include "kmergraph.h"
@@ -260,6 +261,58 @@ float KmerGraph::prob(uint j, int dir)
     return lognchoosek(num_reads, nodes[j]->covg[dir]) + nodes[j]->covg[dir]*log(p) + (num_reads-nodes[j]->covg[dir])*log(1-p);
 }
 
+/*float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath)
+{
+    cout << now() << "Find kmer max path for direction " << dir;
+    // update global p
+    p = 1/exp(e_rate*k);
+    cout << " with parameters n: " << num_reads << " and p: " << p << endl;
+    cout << "Kmer graph has " << nodes.size() << " nodes" << endl;
+
+    // create vectors to hold the intermediate values
+    vector<float> M(nodes.size(), 0); // max log prob pf paths from pos i to end of graph
+    vector<int> len(nodes.size(), 1); // length of max log path from pos i to end of graph
+    vector<uint> prev(nodes.size(), 0); // prev node along path
+    float max_mean;
+    int max_len;
+
+    //M[0] = 0;
+    //len[0] = 1;
+    
+    for (uint j=1; j!=nodes.size(); j++)
+    {
+	cout << j << " ";
+	max_mean = numeric_limits<float>::lowest(); 
+	max_len = 0; // tie break with longest kmer path
+	for (uint i=0; i!=nodes[j]->inNodes.size(); ++i)
+	{
+	    if ((M[nodes[j]->inNodes[i]->id]/len[nodes[j]->inNodes[i]->id] > max_mean) or
+		(M[nodes[j]->inNodes[i]->id]/len[nodes[j]->inNodes[i]->id] == max_mean and len[nodes[j]->inNodes[i]->id] > max_len))
+	    {
+		M[j] = prob(j, dir) + M[nodes[j]->inNodes[i]->id];
+		len[j] = 1 + len[nodes[j]->inNodes[i]->id];
+		prev[j] = nodes[j]->inNodes[i]->id;
+		max_mean = M[nodes[j]->inNodes[i]->id]/len[nodes[j]->inNodes[i]->id];
+		max_len = len[nodes[j]->inNodes[i]->id];
+	    }
+	}
+	cout << j << "  M: " << M[j] << " len: " << len[j] << " prev: " << prev[j] << endl;
+    }
+
+    // extract path
+    uint prev_node = prev[nodes.size()-1];
+    while (prev_node > 0)
+    {
+	cout << prev_node << "->";
+	maxpath.push_back(nodes[prev_node]);
+	prev_node = prev[prev_node];
+    }
+    cout << endl;
+
+    reverse(maxpath.begin(), maxpath.end());
+    return M[nodes.size()-1]/len[nodes.size()-1];
+}*/
+
 float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath)
 {
     cout << now() << "Find kmer max path for direction " << dir;
@@ -278,33 +331,33 @@ float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath
     M[nodes.size()-1] = prob(nodes.size()-1, dir);
     len[nodes.size()-1] = 1;
     //cout << nodes.size()-1 << "  M: " << M[nodes.size()-1] << " len: " << len[nodes.size()-1] << " prev: " << prev[nodes.size()-1] << endl;
-    
+
     for (uint j=nodes.size()-1; j!=0; --j)
     {
-	max_mean = numeric_limits<float>::lowest(); 
-	max_len = 0; // tie break with longest kmer path
-	for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
-	{
-	    if (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean)// or
-		//(M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] == max_mean and len[nodes[j-1]->outNodes[i]->id] > max_len))
-	    {
-		M[j-1] = prob(j-1, dir) + M[nodes[j-1]->outNodes[i]->id];
-		len[j-1] = 1 + len[nodes[j-1]->outNodes[i]->id];
-		prev[j-1] = nodes[j-1]->outNodes[i]->id;
-		max_mean = M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id];
-		max_len = len[nodes[j-1]->outNodes[i]->id];
-	    }
-	}
-	//cout << j-1 << "  M: " << M[j-1] << " len: " << len[j-1] << " prev: " << prev[j-1] << endl;
+        max_mean = numeric_limits<float>::lowest();
+        max_len = 0; // tie break with longest kmer path
+        for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
+        {
+            if ((M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean) or
+                (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] == max_mean and len[nodes[j-1]->outNodes[i]->id] > max_len))
+            {
+                M[j-1] = prob(j-1, dir) + M[nodes[j-1]->outNodes[i]->id];
+                len[j-1] = 1 + len[nodes[j-1]->outNodes[i]->id];
+                prev[j-1] = nodes[j-1]->outNodes[i]->id;
+                max_mean = M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id];
+                max_len = len[nodes[j-1]->outNodes[i]->id];
+            }
+        }
+        //cout << j-1 << "  M: " << M[j-1] << " len: " << len[j-1] << " prev: " << prev[j-1] << endl;
     }
 
     // extract path
     uint prev_node = prev[0];
     while (prev_node < nodes.size() - 1)
     {
-	//cout << prev_node << "->";
-	maxpath.push_back(nodes[prev_node]);
-	prev_node = prev[prev_node];
+        //cout << prev_node << "->";
+        maxpath.push_back(nodes[prev_node]);
+        prev_node = prev[prev_node];
     }
     //cout << endl;
 
