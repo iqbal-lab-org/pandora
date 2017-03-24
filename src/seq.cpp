@@ -68,7 +68,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 	        kh = hash.kmerhash(kmer, k);
 	        if (kh.first == smallest or kh.second == smallest)
                 {
-		    m = new Minimizer(min(kh.first, kh.second), wpos+i, wpos+i+k, (kh.first<kh.second));
+		    m = new Minimizer(min(kh.first, kh.second), wpos+i, wpos+i+k, (kh.first<=kh.second));
 		    sketch.insert(m);
 		    m_previous = m;
                 }
@@ -80,7 +80,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 	    //cout << "Last kh for wpos: " << kh << " compared to previous smallest: " << smallest << endl;
 	    if(kh.first <= smallest or kh.second <= smallest)
 	    {
-	        m = new Minimizer(min(kh.first, kh.second), wpos+w-1, wpos+w-1+k, (kh.first<kh.second));
+	        m = new Minimizer(min(kh.first, kh.second), wpos+w-1, wpos+w-1+k, (kh.first<=kh.second));
 		sketch.insert(m);
 		m_previous = m;
             }

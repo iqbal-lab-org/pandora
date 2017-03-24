@@ -382,6 +382,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
     uint num_kmers_added = 0;
     KmerNode *kn, *new_kn;
     vector<KmerNode*>::iterator found;
+    vector<LocalNode*> n;
 
     // create a null start node in the kmer graph
     d = {Interval(0,0)};
@@ -448,7 +449,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                 {
 		    // add to index, kmer_prg
 		    idx->add_record(min(kh.first, kh.second), id, kmer_path, (kh.first<=kh.second));
-		    kn = kmer_prg.add_node(kmer_path);	
+		    kn = kmer_prg.add_node_with_kh(kmer_path, min(kh.first, kh.second));	
 		    current_leaves.push_back(kn);
 		}
 	    }
@@ -538,13 +539,21 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 			        idx->add_record(min(kh.first, kh.second), id, v[j], (kh.first<=kh.second));
                                 new_kn = kmer_prg.add_node_with_kh(v[j], min(kh.first, kh.second));
                                 kmer_prg.add_edge(kn, new_kn);
-                                current_leaves.push_back(new_kn);
+                                //current_leaves.push_back(new_kn);
+				if (v.back().end == (--(prg.nodes.end()))->second->pos.end)
+                                {
+                                    end_leaves.push_back(new_kn);
+                                } else {
+                                    current_leaves.push_back(new_kn);
+                                }
                                 num_kmers_added += 1;
 			    } else {
 				kmer_prg.add_edge(kn, *found);
 			    }
 		    }
 		}
+	    } else if (v.back().end == (--(prg.nodes.end()))->second->pos.end) {
+                end_leaves.push_back(kn);
 	    } else {
 		shift_paths = shift(v.back());
                 for (uint i=0; i!=shift_paths.size(); ++i)
