@@ -50,7 +50,7 @@ KmerNode* KmerGraph::add_node (const Path& p)
     if ( it == nodes.end() )
     {
 	nodes.push_back(n);
-	cout << "added node " << *n;
+	//cout << "added node " << *n;
 	assert(k==0 or p.length()==0 or p.length()==k);
 	if (k == 0 and p.length() > 0)
 	{
@@ -58,7 +58,7 @@ KmerNode* KmerGraph::add_node (const Path& p)
 	}  
 	next_id++;
     } else {
-	cout << "node " << *n << " was duplicate" << endl;
+	//cout << "node " << *n << " was duplicate" << endl;
 	delete n;
 	n = *it;
     }
@@ -109,7 +109,7 @@ void KmerGraph::add_edge (const Path& from, const Path& to)
     {
         (*from_it)->outNodes.push_back(*to_it);
 	(*to_it)->inNodes.push_back((*from_it));
-	cout << "added edge from " << (*from_it)->id << " to " << (*to_it)->id << endl;
+	//cout << "added edge from " << (*from_it)->id << " to " << (*to_it)->id << endl;
     }
 
     return;
@@ -139,7 +139,7 @@ void KmerGraph::add_edge (KmerNode* from, KmerNode* to)
     from->outNodes.push_back(to);
     to->inNodes.push_back(from);
 
-    cout << "added edge from " << from->id << " to " << to->id << endl;
+    //cout << "added edge from " << from->id << " to " << to->id << endl;
     return;
 }
 
@@ -198,7 +198,7 @@ void KmerGraph::sort_topologically()
     {
 	kn = to_add.front();
 	found_order.push_back(kn);
-	cout << kn->id << " ";
+	//cout << kn->id << " ";
 	to_add.pop_front();
 
 	for (uint i=0; i!=kn->outNodes.size(); ++i)
@@ -210,10 +210,10 @@ void KmerGraph::sort_topologically()
 	    }
 	}
     }
-    cout << endl << "found list size: " << found_order.size() << " as compared to " << nodes.size() << endl;
+    //cout << endl << "found list size: " << found_order.size() << " as compared to " << nodes.size() << endl;
     assert(found_order.size() == nodes.size());
     nodes = found_order;
-    cout << "reallocate ids" << endl;
+    //cout << "reallocate ids" << endl;
     for (uint i=0; i!=nodes.size(); ++i)
     {
 	nodes[i]->id = i;

@@ -450,6 +450,8 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		    // add to index, kmer_prg
 		    idx->add_record(min(kh.first, kh.second), id, kmer_path, (kh.first<=kh.second));
 		    kn = kmer_prg.add_node_with_kh(kmer_path, min(kh.first, kh.second));	
+		    num_kmers_added += 1;
+                    kmer_prg.add_edge(kmer_prg.nodes[0]->path, kmer_path);
 		    current_leaves.push_back(kn);
 		}
 	    }
@@ -663,7 +665,7 @@ vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*>
     vector<LocalNode*> localnode_path, kmernode;
     for (uint i=0; i!=kmernode_path.size(); ++i)
     {
-	//cout << kmernode_path[i]->path << endl;
+	cout << kmernode_path[i]->path << endl;
         kmernode = nodes_along_path(kmernode_path[i]->path);
 	// if the start of the new localnode path is after the end of the previous, join up WLOG with top path
         while (localnode_path.size() > 0 and localnode_path.back()->outNodes.size() > 0 and kmernode[0]->id > localnode_path.back()->outNodes[0]->id)
@@ -677,6 +679,13 @@ vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*>
 	}
 	localnode_path.insert(localnode_path.end(), kmernode.begin(), kmernode.end());
     }
+
+    cout << endl << "so localnode path found is: " << endl;
+    for(uint i=0; i!=localnode_path.size(); ++i)
+    {
+	cout << *localnode_path[i] << " -> ";
+    }
+    cout << endl;
     return localnode_path;
 }
 
@@ -697,11 +706,11 @@ void LocalPRG::write_kmer_max_paths_to_fasta(const string& filepath, float e_rat
 {
     ofstream handle;
     handle.open (filepath);
-    for (uint dir=0; dir!=2; dir++)
+    for (int dir=1; dir>=0; dir--)
     {
 	cout << now() << "find kmer max paths for dir " << dir << endl;
         vector<KmerNode*> kmp;
-	kmp.reserve(30);
+	kmp.reserve(50);
 	float ppath = kmer_prg.find_max_path(dir, e_rate, kmp);
 	vector<LocalNode*> lmp = localnode_path_from_kmernode_path(kmp);
 

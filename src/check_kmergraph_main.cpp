@@ -91,9 +91,9 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
         	    {
 		  	if (find(kpath[j]->inNodes.begin(), kpath[j]->inNodes.end(), kpath[j-1])!=kpath[j]->inNodes.end())
             	        {
-            	            cout << "->" << kpath[j]->id;
+            	            cout << "->" << kpath[j]->path;
             	        } else {
-            	            cout << "  " << kpath[j]->id;
+            	            cout << "  " << kpath[j]->path;
             	        }
         	    }
         	    cout << endl;
