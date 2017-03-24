@@ -181,6 +181,7 @@ void KmerGraph::check (uint num_minikmers)
 	for (auto d: c->outNodes)
 	{
 	    assert(c->path < d->path || assert_msg(c->path << " is not less than " << d->path));
+	    assert(c->id < d->id || assert_msg(c->id << " is not less than " << d->id));
 	}
     }
     return;
@@ -188,7 +189,7 @@ void KmerGraph::check (uint num_minikmers)
 
 void KmerGraph::sort_topologically()
 {
-    vector<uint> num_seen_edges(0, nodes.size());
+    vector<uint> num_seen_edges(nodes.size(), 0);
     vector<KmerNode*> found_order;
     deque<KmerNode*> to_add = {nodes[0]};
     KmerNode* kn;
@@ -197,6 +198,7 @@ void KmerGraph::sort_topologically()
     {
 	kn = to_add.front();
 	found_order.push_back(kn);
+	cout << kn->id << " ";
 	to_add.pop_front();
 
 	for (uint i=0; i!=kn->outNodes.size(); ++i)
@@ -208,8 +210,15 @@ void KmerGraph::sort_topologically()
 	    }
 	}
     }
+    cout << endl << "found list size: " << found_order.size() << " as compared to " << nodes.size() << endl;
     assert(found_order.size() == nodes.size());
     nodes = found_order;
+    cout << "reallocate ids" << endl;
+    for (uint i=0; i!=nodes.size(); ++i)
+    {
+	nodes[i]->id = i;
+    }
+    return;
 }
 
 /*vector<KmerNode*> KmerGraph::get_node_order()

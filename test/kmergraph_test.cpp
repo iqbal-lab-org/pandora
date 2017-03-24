@@ -202,6 +202,54 @@ TEST_F(KmerGraphTest, equals)
     EXPECT_EQ((kg2==kg1), false);
 }
 
+TEST_F(KmerGraphTest, sortTopologically)
+{
+    KmerGraph kg;
+    deque<Interval> d = {Interval(0,0)};
+    Path p;
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,1), Interval(4,5), Interval(8, 9)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(4,5), Interval(8, 9), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(24,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,1), Interval(4,5), Interval(12, 13)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(4,5), Interval(12, 13), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    kg.add_edge(kg.nodes[0],kg.nodes[1]);
+    kg.add_edge(kg.nodes[1],kg.nodes[2]);
+    kg.add_edge(kg.nodes[2],kg.nodes[3]);
+    kg.add_edge(kg.nodes[0],kg.nodes[4]);
+    kg.add_edge(kg.nodes[4],kg.nodes[5]);
+    kg.add_edge(kg.nodes[0],kg.nodes[6]);
+    kg.add_edge(kg.nodes[5],kg.nodes[3]);
+    kg.add_edge(kg.nodes[6],kg.nodes[3]);
+
+    kg.sort_topologically();
+
+    // for each node, outnodes are further along vector
+    vector<KmerNode*>::iterator it;
+    for (vector<KmerNode*>::iterator c=kg.nodes.begin(); c!=kg.nodes.end(); ++c)
+    {
+        for (auto d: (*c)->outNodes)
+        {
+	    it = find_if(c, kg.nodes.end(), condition(d->path));
+    	    EXPECT_EQ((it != kg.nodes.end()), true);
+        }
+    }
+}
+
 TEST_F(KmerGraphTest,findMaxPathSimple)
 {
     KmerGraph kg;

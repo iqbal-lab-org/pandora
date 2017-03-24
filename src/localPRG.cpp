@@ -395,7 +395,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	return;
     }
 
-    // force every start kmer to be in the graph
+    /*// force every start kmer to be in the graph
     walk_paths = prg.walk(prg.nodes.begin()->second->id, 0, k);
     for (uint i=0; i!=walk_paths.size(); ++i)
     {
@@ -408,6 +408,51 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	current_leaves.push_back(kn);
 	num_kmers_added += 1;
         kmer_prg.add_edge(kmer_prg.nodes[0]->path, walk_paths[i]);
+    }*/
+
+    // find first w,k minimizers
+    walk_paths = prg.walk(prg.nodes.begin()->second->id, 0, w+k-1);
+    for (uint i=0; i!=walk_paths.size(); ++i)
+    {
+        // find minimizer for this path 
+        smallest = std::numeric_limits<uint64_t>::max();
+        for (uint32_t j = 0; j != w; j++)
+        {
+            kmer_path = walk_paths[i].subpath(j,k);
+            if (kmer_path.path.size() > 0)
+            {
+                kmer = string_along_path(kmer_path);
+                kh = hash.kmerhash(kmer, k);
+                smallest = min(smallest, min(kh.first, kh.second));
+            }
+        }
+        for (uint32_t j = 0; j != w; j++)
+        {
+	    kmer_path = walk_paths[i].subpath(j,k);
+            if (kmer_path.path.size() > 0)
+            {       
+                kmer = string_along_path(kmer_path);
+                kh = hash.kmerhash(kmer, k);
+		n = nodes_along_path(kmer_path);
+	
+                if (prg.walk(n.back()->id, n.back()->pos.end, w+k-1).size() == 0)
+                {
+                    while (kmer_path.end >= n.back()->pos.end and n.back()->outNodes.size() == 1 and n.back()->outNodes[0]->pos.length == 0)
+                    {
+                        kmer_path.add_end_interval(n.back()->outNodes[0]->pos);
+                        n.push_back(n.back()->outNodes[0]);
+                    }
+                }
+	
+                if (kh.first == smallest or kh.second == smallest)
+                {
+		    // add to index, kmer_prg
+		    idx->add_record(min(kh.first, kh.second), id, kmer_path, (kh.first<=kh.second));
+		    kn = kmer_prg.add_node(kmer_path);	
+		    current_leaves.push_back(kn);
+		}
+	    }
+	}
     }
 
     // while we have intermediate leaves of the kmergraph, for each in turn, explore the neighbourhood
@@ -439,13 +484,13 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	    assert(v.back().length() == k);
 	    kmer = string_along_path(v.back());
             kh = hash.kmerhash(kmer, k);
-	    if (v.back().end == (--(prg.nodes.end()))->second->pos.end)
+	    /*if (v.back().end == (--(prg.nodes.end()))->second->pos.end)
             {
 		// this kmer is a terminus
 		found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v.back()));
                 if (found == kmer_prg.nodes.end())
                 {
-		    idx->add_record(min(kh.first, kh.second), id, v.back(), (kh.first<kh.second));
+		    idx->add_record(min(kh.first, kh.second), id, v.back(), (kh.first<=kh.second));
 		    new_kn = kmer_prg.add_node(v.back());
 	  	    kmer_prg.add_edge(kn, new_kn);
 		    end_leaves.push_back(new_kn);
@@ -453,15 +498,21 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		} else {
 		    kmer_prg.add_edge(kn, *found);
 		}
-	    } else if (kh.first <= kn->khash or kh.second <= kn->khash) {
+	    } else */
+	    if (kh.first <= kn->khash or kh.second <= kn->khash) {
 		// found next minimizer
 		found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v.back()));
 		if (found == kmer_prg.nodes.end())
 		{
-		    idx->add_record(min(kh.first, kh.second), id, v.back(), (kh.first<kh.second));
+		    idx->add_record(min(kh.first, kh.second), id, v.back(), (kh.first<=kh.second));
                     new_kn = kmer_prg.add_node_with_kh(v.back(), min(kh.first, kh.second));
                     kmer_prg.add_edge(kn, new_kn);
-                    current_leaves.push_back(new_kn);
+		    if (v.back().end == (--(prg.nodes.end()))->second->pos.end)
+		    {
+			end_leaves.push_back(new_kn);
+		    } else {
+                        current_leaves.push_back(new_kn);
+		    }
                     num_kmers_added += 1;
 		} else {
 		    kmer_prg.add_edge(kn, *found);
@@ -484,7 +535,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 			    found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v[j]));
 			    if (found == kmer_prg.nodes.end())
 			    {
-			        idx->add_record(min(kh.first, kh.second), id, v[j], (kh.first<kh.second));
+			        idx->add_record(min(kh.first, kh.second), id, v[j], (kh.first<=kh.second));
                                 new_kn = kmer_prg.add_node_with_kh(v[j], min(kh.first, kh.second));
                                 kmer_prg.add_edge(kn, new_kn);
                                 current_leaves.push_back(new_kn);
@@ -520,7 +571,9 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 
     // print, check and return
     //cout << "kmer prg: " << endl << kmer_prg << endl;
+    cout << "sort kmernodes topologically" << endl;
     kmer_prg.sort_topologically();
+    cout << "check prg" << endl;
     kmer_prg.check(num_kmers_added);
     return;
 }
