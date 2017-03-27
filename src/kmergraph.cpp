@@ -51,7 +51,7 @@ KmerNode* KmerGraph::add_node (const Path& p)
     if ( it == nodes.end() )
     {
 	nodes.push_back(n);
-	//cout << "added node " << *n;
+	cout << "added node " << *n;
 	assert(k==0 or p.length()==0 or p.length()==k);
 	if (k == 0 and p.length() > 0)
 	{
@@ -140,7 +140,7 @@ void KmerGraph::add_edge (KmerNode* from, KmerNode* to)
     from->outNodes.push_back(to);
     to->inNodes.push_back(from);
 
-    //cout << "added edge from " << from->id << " to " << to->id << endl;
+    cout << "added edge from " << from->id << " to " << to->id << endl;
     return;
 }
 
@@ -416,7 +416,7 @@ void KmerGraph::save (const string& filepath)
     handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
     for(uint i=0; i!=nodes.size(); ++i)
     {
-        handle << "S\t" << nodes[i]->id << "\t" << nodes[i]->path << "\tRC:i:" << nodes[i]->covg[1] << "," << nodes[i]->covg[0] << endl;
+        handle << "S\t" << nodes[i]->id << "\t" << nodes[i]->path << "\tRC:i:" << nodes[i]->covg[1] << endl;// << "," << nodes[i]->covg[0] << endl;
         for (uint32_t j=0; j<nodes[i]->outNodes.size(); ++j)
         {
             handle << "L\t" << nodes[i]->id << "\t+\t" << nodes[i]->outNodes[j]->id << "\t+\t0M" << endl;
@@ -456,10 +456,12 @@ void KmerGraph::load (const string& filepath)
                     k = p.length();
                 }
 		assert(nodes.back()->id == id);
-		covg = stoi(split(split(split_line[3], "RC:i:")[0], ",")[0]);
+		covg = stoi(split(split_line[3], "RC:i:")[0]);
 		nodes.back()->covg[0] = covg;
-		covg = stoi(split(split(split_line[3], "RC:i:")[0], ",")[1]);
-                nodes.back()->covg[1] = covg;
+		//covg = stoi(split(split(split_line[3], "RC:i:")[0], ",")[0]);
+		//nodes.back()->covg[0] = covg;
+		//covg = stoi(split(split(split_line[3], "RC:i:")[0], ",")[1]);
+                //nodes.back()->covg[1] = covg;
             }
 	}
         myfile.clear();

@@ -386,7 +386,8 @@ TEST_F(LocalPRGTest, buildGraph)
 TEST_F(LocalPRGTest, shift){
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
-    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+    LocalPRG l3(3,"nested varsite", "AT 5 G 7 C 8 T 7  6 G 5 T");
+    //LocalPRG l4(4, "much more complex", "TCATTC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AGCTG");
 
     deque<Interval> d = {Interval(0,3)};
     Path p, q;
@@ -407,24 +408,37 @@ TEST_F(LocalPRGTest, shift){
     v_exp.clear();
     EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l2.shift(q));
 
-/*    d = {Interval(0,1)};
+    v_exp.clear();
+    d = {Interval(0,2)};
     p.initialize(d);
-    d = {Interval(4,5)};
+    d = {Interval(1,2), Interval(5,6)};
     q.initialize(d);
     v_exp.push_back(q);
-    d = {Interval(19,20)};
+    d = {Interval(1,2), Interval(20,21)};
     q.initialize(d);
     v_exp.push_back(q);
     EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l3.shift(p));
-*/
+
+    v_exp.clear();
+    d = {Interval(1,2), Interval(5,6)};
+    p.initialize(d);
+    d = {Interval(5,6), Interval(9,10)};
+    q.initialize(d);
+    v_exp.push_back(q);
+    d = {Interval(5,6), Interval(13,14)};
+    q.initialize(d);
+    v_exp.push_back(q);
+    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l3.shift(p));
+
 }
 
-/*TEST_F(LocalPRGTest, minimizerSketch){
+TEST_F(LocalPRGTest, minimizerSketch){
     // note this is a bad test
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+    LocalPRG l4(4, "much more complex", "TCATTC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AGCTG");
 
     Index* idx;
     idx = new Index();
@@ -446,9 +460,10 @@ TEST_F(LocalPRGTest, shift){
     
     idx->clear();
     l2.minimizer_sketch(idx, 2, 3);
-    j = 2;
+    j = 1;
     EXPECT_EQ(j, idx->minhash.size());
     l2.minimizer_sketch(idx, 1, 3);
+    j = 2;
     EXPECT_EQ(j, idx->minhash.size());
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
     j = 1;
@@ -457,9 +472,10 @@ TEST_F(LocalPRGTest, shift){
 
     idx->clear();
     l3.minimizer_sketch(idx, 2, 3);
-    j = 3;
+    j = 2;
     EXPECT_EQ(j, idx->minhash.size());
     l3.minimizer_sketch(idx, 1, 3);
+    j = 3;
     EXPECT_EQ(j, idx->minhash.size());
     j = 2;
     kh = hash.kmerhash("AGC",3);
@@ -471,8 +487,80 @@ TEST_F(LocalPRGTest, shift){
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
     
     idx->clear();
+    l4.minimizer_sketch(idx, 1, 3);
+    j = 16;
+    EXPECT_EQ(j, idx->minhash.size());
+    j = 5;
+    kh = hash.kmerhash("TCA",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    j = 4;
+    kh = hash.kmerhash("CTA",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    j = 3;
+    kh = hash.kmerhash("ACT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size()); 
+    kh = hash.kmerhash("CAA",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("AAG",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("TCT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("AGC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    j = 2;
+    kh = hash.kmerhash("TTC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size()); 
+    kh = hash.kmerhash("CAC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("CTC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    j = 1;
+    kh = hash.kmerhash("CAT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("ATT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("GTC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("GTT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("TGT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("CTG",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+
+    idx->clear();
+    l4.minimizer_sketch(idx, 3, 3);
+    j = 11;
+    EXPECT_EQ(j, idx->minhash.size());
+    j = 3;
+    kh = hash.kmerhash("TTG",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("AGC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    j = 2;
+    kh = hash.kmerhash("TTC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("CAC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("CTC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("TCT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("AGT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    j = 1;
+    kh = hash.kmerhash("CAT",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("GTC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("TCA",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("CTG",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    
+    idx->clear();
     delete idx;
-}*/
+}
 
 TEST_F(LocalPRGTest, updateCovgWithHit)
 {
