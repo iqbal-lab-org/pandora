@@ -48,22 +48,27 @@ TEST_F(PathTest, subpath)
     p.initialize(d);
 
     // regular
-    p1 = p.subpath(1,3);
+    p1 = p.subpath(0,3);
     d1 = {Interval(1,3), Interval(4,5)};
     EXPECT_ITERABLE_EQ(deque<Interval>, d1, p1.path);
 
     // handle zero-length interval
-    p1 = p.subpath(2,3);
+    p1 = p.subpath(1,3);
     d1 = {Interval(2,3), Interval(4,5), Interval(6,6), Interval(9,10)};
     EXPECT_ITERABLE_EQ(deque<Interval>, d1, p1.path);
 
     // start in another interval
-    p1 = p.subpath(4,3);
+    p1 = p.subpath(2,3);
     d1 = {Interval(4,5), Interval(6,6), Interval(9,11)};
     EXPECT_ITERABLE_EQ(deque<Interval>, d1, p1.path);
 
     // all in one interval
-    p1 = p.subpath(10,3);
+    p1 = p.subpath(3,3);
+    d1 = {Interval(9,12)};
+    EXPECT_ITERABLE_EQ(deque<Interval>, d1, p1.path);
+
+    // all in one interval
+    p1 = p.subpath(4,3);
     d1 = {Interval(10,13)};
     EXPECT_ITERABLE_EQ(deque<Interval>, d1, p1.path);
 

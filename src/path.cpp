@@ -53,45 +53,38 @@ void Path::add_end_interval(const Interval& i)
 
 Path Path::subpath(const uint32_t start, const uint32_t len) const
 {
-    //cout << "start subpath function with : " << start << " " << len << " for path " << *this << endl;
+    //function now returns the path starting at position start along the path, rather than at position start on 
+    //linear PRG, and for length len
+    //cout << "find subpath of " << *this << " from " << start << " for length " << len << endl;
+    assert(start+len <= length());
     Path p;
     deque<Interval> d;
+    uint32_t covered_length = 0;
     uint32_t added_len = 0;
     for (deque<Interval>::const_iterator it=path.begin(); it!=path.end(); ++it)
     {
-	if ((it->start <= start and it->end > start) or (it->start == start and it->length == 0))
+	if (covered_length <= start and covered_length + it->length > start and it->length > 0)
 	{
-	    //cout << "start of subpath" << endl;
-	    // first interval to add
-	    d = {Interval(start, min(start+len, it->end))};
+            assert(added_len == 0);
+	    d = {Interval(it->start + start - covered_length, min(it->end, it->start + start - covered_length + len - added_len))};
 	    p.initialize(d);
-	    added_len += min(start+len, it->end) - start;
-            if (added_len == len)
-            { return p;}
-	} else if (it->length < len - added_len and p.path.size() > 0){ //check p initialized with a path
-	    //cout << "mid subpath interval" << endl;
-	    p.add_end_interval(*it);
-	    added_len += it->length;
-	} else if (it->length >= len - added_len and p.path.size() > 0) { //check p initialised with a path
-	    //cout << "end of subpath" << endl;
-	    // last interval to add
-	    p.add_end_interval(Interval(it->start, it->start + len - added_len));
-            //cout << "p is now: " << p << endl;
-	    added_len = len;
-	    return p;
-	} else if (it->start > start and p.path.size() == 0) {
-	    // start doesn't lie in an interval of the path
-	    return p;
+	    added_len += min(len - added_len, it->length - start + covered_length);
+            //cout << "added first interval " << p.path.back() << " and added length is now " << added_len << endl;
+	} else if (covered_length > start and added_len <= len)
+	{
+	    p.add_end_interval(Interval(it->start, min(it->end, it->start + len - added_len)));
+	    added_len += min(len - added_len, it->length);
+	    //cout << "added interval " << p.path.back() << " and added length is now " << added_len << endl;
 	}
-	
+	covered_length += it->length;
+	//cout << "covered length is now " << covered_length << endl;
+	if (added_len >= len)
+	{
+	    break;
+	}
     }
-    //cout << "after subpath processing" << endl;
-    // should only be here if added_len <len
-    // return empty path, not half a path
-    assert(added_len < len);
-    d.clear();
-    p.initialize(d);
-    return p; // this should never happen
+    assert(added_len == len);
+    return p;
 }
 
 /*bool Path::is_disjoint(const Path& y) const // does the path overlap this path

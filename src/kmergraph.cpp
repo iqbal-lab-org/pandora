@@ -16,7 +16,7 @@ using namespace std;
 
 KmerGraph::KmerGraph()
 {
-    nodes.reserve(50000);
+    nodes.reserve(60000);
     next_id = 0;
     num_reads = 0;
     k = 0; // nb the kmer size is determined by the first non-null node added

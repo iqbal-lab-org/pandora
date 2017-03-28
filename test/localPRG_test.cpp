@@ -388,6 +388,7 @@ TEST_F(LocalPRGTest, shift){
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
     LocalPRG l3(3,"nested varsite", "AT 5 G 7 C 8 T 7  6 G 5 T");
     //LocalPRG l4(4, "much more complex", "TCATTC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AGCTG");
+    LocalPRG l5(5, "one with lots of null at start and end, and a long stretch in between", " 5  7  9  11 AGTTCTGAAACATTGCGCGTGAGATCTCTG 12 T 11  10 A 9  8 C 7  6 G 5 ");
 
     deque<Interval> d = {Interval(0,3)};
     Path p, q;
@@ -430,6 +431,13 @@ TEST_F(LocalPRGTest, shift){
     v_exp.push_back(q);
     EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l3.shift(p));
 
+    v_exp.clear();
+    d = {Interval(0, 0), Interval(3, 3), Interval(6, 6), Interval(9, 9), Interval(13, 18)};
+    p.initialize(d);
+    d = {Interval(14, 19)};
+    q.initialize(d);
+    v_exp.push_back(q);
+    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l5.shift(p));
 }
 
 TEST_F(LocalPRGTest, minimizerSketch){
@@ -439,6 +447,7 @@ TEST_F(LocalPRGTest, minimizerSketch){
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
     LocalPRG l4(4, "much more complex", "TCATTC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AGCTG");
+    LocalPRG l5(5, "one with lots of null at start and end, and a long stretch in between", " 5  7  9  11 AGTTCTGAAACATTGCGCGTGAGATCTCTG 12 T 11  10 A 9  8 C 7  6 G 5 ");
 
     Index* idx;
     idx = new Index();
@@ -505,9 +514,9 @@ TEST_F(LocalPRGTest, minimizerSketch){
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
     kh = hash.kmerhash("TCT",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    j = 2;
     kh = hash.kmerhash("AGC",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
-    j = 2;
     kh = hash.kmerhash("TTC",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size()); 
     kh = hash.kmerhash("CAC",3);
@@ -535,9 +544,9 @@ TEST_F(LocalPRGTest, minimizerSketch){
     j = 3;
     kh = hash.kmerhash("TTG",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    j = 2;
     kh = hash.kmerhash("AGC",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
-    j = 2;
     kh = hash.kmerhash("TTC",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
     kh = hash.kmerhash("CAC",3);
@@ -558,6 +567,10 @@ TEST_F(LocalPRGTest, minimizerSketch){
     kh = hash.kmerhash("CTG",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
     
+    idx->clear();
+    l5.minimizer_sketch(idx, 4, 5);
+    EXPECT_EQ((idx->minhash.size()>2), true);
+
     idx->clear();
     delete idx;
 }

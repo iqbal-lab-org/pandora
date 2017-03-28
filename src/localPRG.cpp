@@ -281,19 +281,7 @@ vector<Path> LocalPRG::shift(Path p)
 {
     // returns all paths of the same length which have been shifted by one position along prg graph
     Path q;
-    for (uint i=0; i!=p.path.size(); ++i)
-    {
-	if (p.path[i].length > 1)
-	{
-	    q = p.subpath(p.path[i].start+1,p.length()-1);
-	    break;
-	} else if (p.path[i].length == 1){
-	    assert(i+1<p.path.size());
-	    q = p.subpath(p.path[i+1].start,p.length()-1);
-            break;
-	}
-	// otherwise length is 0, so look at next interval along path   
-    }
+    q = p.subpath(1,p.length()-1);
     vector<LocalNode*> n;
     vector<Path> return_paths;
     deque<Path> short_paths = {q};
@@ -339,7 +327,7 @@ vector<Path> LocalPRG::shift(Path p)
 	    if (n.back()->pos.end==(--(prg.nodes.end()))->second->pos.end)
             {
                 return_paths.push_back(p);
-	    } else {
+	    } else if (n.back()->pos.end==p.end) {
                 for (uint i=0; i!=n.back()->outNodes.size(); ++i)
 		{
 		    if (n.back()->outNodes[i]->pos.length == 0)
@@ -350,7 +338,9 @@ vector<Path> LocalPRG::shift(Path p)
 			non_terminus = true;
 		    }
 		}
-            }
+            } else {
+		non_terminus = true;
+	    }
 	}
 	if (non_terminus == true)
 	{
@@ -551,7 +541,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 			        idx->add_record(min(kh.first, kh.second), id, v[j], (kh.first<=kh.second));
                                 new_kn = kmer_prg.add_node_with_kh(v[j], min(kh.first, kh.second));
 
-				// we have found a new mini, check if edges should go to an equivalent mini in window, or not
+				// if there is more than one mini in the window, edge should go to the first, and from the first to the second
 				if (mini_found_in_window == false)
                                 {
                                     kmer_prg.add_edge(kn, new_kn);
@@ -580,9 +570,8 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		shift_paths = shift(v.back());
                 for (uint i=0; i!=shift_paths.size(); ++i)
                 {
-		    v.push_back(shift_paths[i]);
-                    shifts.push_back(v);
-		    v.pop_back();
+		    shifts.push_back(v);
+		    shifts.back().push_back(shift_paths[i]);
                 }
                 shift_paths.clear();
 	    }

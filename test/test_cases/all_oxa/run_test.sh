@@ -1,7 +1,7 @@
 k=$1
 w=$2
 mkdir k$k.w$w
-#../../../build/pandora index oxa_kmeans_k15_ordered_prg.fasta -k $k -w $w &> test_index.k$k.w$w.log
+../../../build/pandora index oxa_kmeans_k15_ordered_prg.fasta -k $k -w $w &> test_index.k$k.w$w.log
 
 for i in {2..532..2}
     do
