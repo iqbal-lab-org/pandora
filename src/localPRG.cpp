@@ -370,7 +370,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
     pair<uint64_t, uint64_t> kh;
     KmerHash hash;
     uint num_kmers_added = 0;
-    KmerNode *kn, *new_kn, *prev_kn;
+    KmerNode *kn, *new_kn;
     vector<KmerNode*>::iterator found;
     vector<LocalNode*> n;
     bool mini_found_in_window;

@@ -63,14 +63,14 @@ Path Path::subpath(const uint32_t start, const uint32_t len) const
     uint32_t added_len = 0;
     for (deque<Interval>::const_iterator it=path.begin(); it!=path.end(); ++it)
     {
-	if (covered_length <= start and covered_length + it->length > start and it->length > 0)
+	if ((covered_length <= start and covered_length + it->length > start and p.path.size() == 0) or (covered_length == start and it->length == 0))
 	{
             assert(added_len == 0);
 	    d = {Interval(it->start + start - covered_length, min(it->end, it->start + start - covered_length + len - added_len))};
 	    p.initialize(d);
 	    added_len += min(len - added_len, it->length - start + covered_length);
-            //cout << "added first interval " << p.path.back() << " and added length is now " << added_len << endl;
-	} else if (covered_length > start and added_len <= len)
+            ///cout << "added first interval " << p.path.back() << " and added length is now " << added_len << endl;
+	} else if (covered_length >= start and added_len <= len)
 	{
 	    p.add_end_interval(Interval(it->start, min(it->end, it->start + len - added_len)));
 	    added_len += min(len - added_len, it->length);

@@ -64,7 +64,7 @@ TEST_F(PathTest, subpath)
 
     // all in one interval
     p1 = p.subpath(3,3);
-    d1 = {Interval(9,12)};
+    d1 = {Interval(6,6), Interval(9,12)};
     EXPECT_ITERABLE_EQ(deque<Interval>, d1, p1.path);
 
     // all in one interval
