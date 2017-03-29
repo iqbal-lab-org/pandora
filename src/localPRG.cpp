@@ -737,7 +737,7 @@ void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
 	}
     }
     num_hits[mh->strand] += 1;
-    assert(added == true);
+    assert(added == true || assert_msg("could not find kmernode corresponding to " << *mh));
 }
 
 void LocalPRG::write_kmer_max_paths_to_fasta(const string& filepath, float e_rate)
