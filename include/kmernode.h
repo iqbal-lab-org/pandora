@@ -16,6 +16,7 @@ class KmerNode {
   public:
     KmerNode(uint32_t, const Path&);
     bool operator == (const KmerNode& y) const;
+  friend bool equal_except_null_nodes (const KmerNode& x, const KmerNode& y);
 
   friend std::ostream& operator<< (std::ostream& out, const KmerNode& n);  
   friend class KmerGraph;
@@ -33,4 +34,6 @@ class KmerNode {
   friend class KmerGraphTest_findMaxPathSimple_Test;
   friend class KmerGraphTest_findMaxPath2Level_Test;
 };
+
+bool equal_except_null_nodes (const KmerNode& x, const KmerNode& y);
 #endif

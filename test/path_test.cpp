@@ -72,6 +72,13 @@ TEST_F(PathTest, subpath)
     d1 = {Interval(10,13)};
     EXPECT_ITERABLE_EQ(deque<Interval>, d1, p1.path);
 
+    // and several null nodes at start of path
+    d = {Interval(0,0), Interval(1,1), Interval(3,3), Interval(4,5), Interval(6,6), Interval(9,40)};
+    p.initialize(d);
+    d1 = {Interval(0,0), Interval(1,1), Interval(3,3), Interval(4,5), Interval(6,6), Interval(9,10)};
+    p1 = p.subpath(0,2);
+    EXPECT_ITERABLE_EQ(deque<Interval>, d1, p1.path);
+
     // can't get subpath from a coordinate not in path
     //EXPECT_DEATH(p.subpath(0,3), "");
     // can't get subpath of right length if not enough length left in path from start

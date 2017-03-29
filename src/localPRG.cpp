@@ -439,17 +439,21 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	
                 if (kh.first == smallest or kh.second == smallest)
                 {
-		    // add to index, kmer_prg
-		    cout << "add first minikmer for i:" << i << " j: " << j << " kmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << kmer_path << endl;
-		    idx->add_record(min(kh.first, kh.second), id, kmer_path, (kh.first<=kh.second));
-		    kn = kmer_prg.add_node_with_kh(kmer_path, min(kh.first, kh.second));	
-		    num_kmers_added += 1;
-		    if (mini_found_in_window == false)
-		    {
-                        kmer_prg.add_edge(kmer_prg.nodes[0]->path, kmer_path);
+		    found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(kmer_path));
+                    if (found == kmer_prg.nodes.end())
+                    {
+		        // add to index, kmer_prg
+		        cout << "add first minikmer for i:" << i << " j: " << j << " kmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << kmer_path << endl;
+		        idx->add_record(min(kh.first, kh.second), id, kmer_path, (kh.first<=kh.second));
+		        kn = kmer_prg.add_node_with_kh(kmer_path, min(kh.first, kh.second));	
+		        num_kmers_added += 1;
+		        if (mini_found_in_window == false)
+		        {
+                            kmer_prg.add_edge(kmer_prg.nodes[0]->path, kmer_path);
+		        }
+		        mini_found_in_window = true;
+		        current_leaves.push_back(kn);
 		    }
-		    mini_found_in_window = true;
-		    current_leaves.push_back(kn);
 		}
 	    }
 	}
@@ -660,7 +664,22 @@ vector<KmerNode*> LocalPRG::find_kmernodes_on_localnode_path(vector<LocalNode*>&
             // now if it was found and not rejected, add to nums;
             if (found == true and reject == false)
             {
-                nums.push_back(kmer_prg.nodes[n]);
+		if (nums.size() > 0 and nums.back()->path.end == kmer_prg.nodes[n]->path.end)
+		{
+		    if (nums.back()->path.start > kmer_prg.nodes[n]->path.start)
+		    {
+			nums.pop_back();
+		    }
+		} else {
+		/*if (equal_except_null_nodes(nums.back()->path, kmer_prg.nodes[n]->path))
+		{
+		    if (nums.back()->path.start > kmer_prg.nodes[n]->path.start)
+		    {
+			nums.pop_back();
+		    }
+		} else {*/
+                    nums.push_back(kmer_prg.nodes[n]);
+		}
                 //cout << "found kmer match for " << kmer_paths[n] << endl;
             }
         }
@@ -715,21 +734,32 @@ void LocalPRG::write_kmer_max_paths_to_fasta(const string& filepath, float e_rat
 {
     ofstream handle;
     handle.open (filepath);
-    for (int dir=1; dir>=0; dir--)
-    {
-	cout << now() << "find kmer max paths for dir " << dir << endl;
-        vector<KmerNode*> kmp;
-	kmp.reserve(800);
-	float ppath = kmer_prg.find_max_path(dir, e_rate, kmp);
-	vector<LocalNode*> lmp = localnode_path_from_kmernode_path(kmp);
 
-        handle << ">" << name << "." << dir << "\tlog P(data|sequence)=" << ppath << endl;
-        for (uint j = 0; j!= lmp.size(); ++j)
-        {
-            handle << lmp[j]->seq;
-        }
-        handle << endl;
+    vector<KmerNode*> kmp;
+    kmp.reserve(800);
+    float ppath;
+    vector<LocalNode*> lmp;
+    
+    cout << now() << "find kmer max paths for forward direction" << endl;
+    ppath = kmer_prg.find_max_path(1, e_rate, kmp);
+    lmp = localnode_path_from_kmernode_path(kmp);
+    handle << ">" << name << ".fwd" << "\tlog P(data|sequence)=" << ppath << endl;
+    for (uint j = 0; j!= lmp.size(); ++j)
+    {
+        handle << lmp[j]->seq;
     }
+    handle << endl;
+
+    cout << now() << "find kmer max paths for reverse complement direction" << endl;
+    ppath = kmer_prg.find_max_path(0, e_rate, kmp);
+    lmp = localnode_path_from_kmernode_path(kmp);
+    handle << ">" << name << ".rc" << "\tlog P(data|sequence)=" << ppath << endl;
+    for (uint j = lmp.size(); j!= 0; --j)
+    {
+        handle << rev_complement(lmp[j-1]->seq);
+    }
+    handle << endl;
+
     handle.close();
     return;
 }

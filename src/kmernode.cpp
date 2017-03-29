@@ -37,3 +37,7 @@ bool KmerNode::operator == (const KmerNode& y) const {
     }*/
     return true;
 }
+
+bool equal_except_null_nodes (const KmerNode& x, const KmerNode& y) {
+    return equal_except_null_nodes(x.path, y.path);
+}

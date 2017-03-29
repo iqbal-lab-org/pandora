@@ -59,10 +59,11 @@ KmerNode* KmerGraph::add_node (const Path& p)
 	}  
 	next_id++;
     } else {
-	//cout << "node " << *n << " was duplicate" << endl;
+	cout << "node " << *n << " was duplicate" << endl;
 	delete n;
 	n = *it;
     }
+
     return n;
 }
 
@@ -390,7 +391,7 @@ float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath
                 max_covg = M[nodes[j-1]->outNodes[i]->id];
             }
         }
-	cout << j-1 << "  M: " << M[j-1] << " prev: " << prev[j-1] << endl;
+	cout << j-1 << " " << *nodes[j-1] << "  M: " << M[j-1] << " prev: " << prev[j-1] << endl;
     }
 
     // extract path

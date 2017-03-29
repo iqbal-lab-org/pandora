@@ -63,7 +63,7 @@ Path Path::subpath(const uint32_t start, const uint32_t len) const
     uint32_t added_len = 0;
     for (deque<Interval>::const_iterator it=path.begin(); it!=path.end(); ++it)
     {
-	if ((covered_length <= start and covered_length + it->length > start and p.path.size() == 0) or (covered_length == start and it->length == 0))
+	if ((covered_length <= start and covered_length + it->length > start and p.path.size() == 0) or (covered_length == start and it->length == 0 and p.path.size() == 0))
 	{
             assert(added_len == 0);
 	    d = {Interval(it->start + start - covered_length, min(it->end, it->start + start - covered_length + len - added_len))};
@@ -180,6 +180,38 @@ bool Path::operator == ( const Path& y) const
         if (!(*it==*it2)) {return false;}
         it++;
         it2++;
+    }
+    return true;
+}
+
+bool equal_except_null_nodes (const Path& x, const Path& y)
+{
+    std::deque<Interval>::const_iterator it2=y.path.begin();
+    for (std::deque<Interval>::const_iterator it=x.path.begin(); it!=x.path.end();)
+    {
+	while (it!=x.path.end() and it->length == 0)
+	{
+	    it++;
+	}
+	while (it2!=y.path.end() and it2->length == 0)
+        {
+            it2++;
+        }
+
+	if (it==x.path.end() and it2==y.path.end())
+	{
+	    break;
+	} else if (it==x.path.end() or it2==y.path.end())
+	{ 
+	    return false;
+	}
+
+        if (it->length > 0 and it2->length > 0 and !(*it==*it2)) {
+	    return false;
+	} else {
+            it++;
+            it2++;
+	}
     }
     return true;
 }

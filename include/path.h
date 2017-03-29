@@ -26,6 +26,8 @@ class Path {
     bool operator != (const Path& y) const;
   friend std::ostream& operator<< (std::ostream& out, const Path& p); 
   friend std::istream& operator>> (std::istream& in, Path& p);
+  friend bool equal_except_null_nodes (const Path&, const Path&);
 };
 
+bool equal_except_null_nodes (const Path&, const Path&);
 #endif
