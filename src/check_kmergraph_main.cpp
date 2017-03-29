@@ -92,9 +92,15 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
         	    {
 		  	if (find(kpath[j]->inNodes.begin(), kpath[j]->inNodes.end(), kpath[j-1])!=kpath[j]->inNodes.end())
             	        {
-            	            cout << "->" << kpath[j]->path;
+            	            cout << "->" << kpath[j]->id;
             	        } else {
-            	            cout << endl << "no edge from " << kpath[j-1]->path << " to " << kpath[j]->path;
+            	            cout << endl << "no edge from " << kpath[j-1]->path << " to " << kpath[j]->path << endl;
+			    cout << "outnodes are: " << endl;
+			    for (uint n=0; n!= kpath[j-1]->outNodes.size(); ++n)
+			    {
+				cout << kpath[j-1]->outNodes[n]->path << endl;
+			    }
+				
             	        }
         	    }
         	    cout << endl;

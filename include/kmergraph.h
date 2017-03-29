@@ -31,7 +31,9 @@ class KmerGraph {
     void sort_topologically();
     //std::vector<KmerNode*> get_node_order();
     float prob(uint, int);
-    float find_max_path(int, float, std::vector<KmerNode*>&);
+    float find_max_path_backward(int, float, std::vector<KmerNode*>&);
+    float find_max_path_forward(int, float, std::vector<KmerNode*>&);
+    float find_max_path_coverage(int, float, std::vector<KmerNode*>&);
     void save (const std::string&);
     void load (const std::string&);
     bool operator == (const KmerGraph& y) const;

@@ -252,6 +252,7 @@ vector<LocalNode*> LocalGraph::nodes_along_string(const string& query_string)
     v.reserve(100);
     vector<LocalNode*> npath;
     string candidate_string = "";
+    bool extended = true;
 
     assert(nodes.size()>0); //otherwise empty nodes -> segfault
     u = {{nodes[0]}};
@@ -274,6 +275,19 @@ vector<LocalNode*> LocalGraph::nodes_along_string(const string& query_string)
                     {
                         // we have now found the whole of the query_string
                         u[i].push_back(u[i].back()->outNodes[j]);
+			while (u[i].back()->outNodes.size() > 0 and extended == true)
+			{
+			    extended = false;
+			    for (uint n=0; n!=u[i].back()->outNodes.size(); ++n)
+			    {
+				if (u[i].back()->outNodes[n]->pos.length == 0)
+				{
+				    u[i].push_back(u[i].back()->outNodes[n]);
+				    extended = true;
+				    break;
+				}
+			    }
+			}
                         return u[i];
                     } else {
                         v.push_back(u[i]);

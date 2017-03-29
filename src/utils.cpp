@@ -206,8 +206,10 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     float pn;
     for (set<MinimizerHit*, pComp>::iterator mh_current = ++minimizer_hits->hits.begin(); mh_current != minimizer_hits->hits.end(); ++mh_current)
     {
+	cout << **mh_current << endl;
         if((*mh_current)->read_id!=(*mh_previous)->read_id or (*mh_current)->prg_id!=(*mh_previous)->prg_id or (*mh_current)->strand!=(*mh_previous)->strand or (abs((int)(*mh_current)->read_interval.start - (int)(*mh_previous)->read_interval.start)) > max_diff)
         {
+	    cout << "change cluster because strand change==" << ((*mh_current)->strand!=(*mh_previous)->strand) << " or read position changed more than max_diff==" << ((abs((int)(*mh_current)->read_interval.start - (int)(*mh_previous)->read_interval.start)) > max_diff) << endl;
 	    // keep clusters which have a low enough probability of occuring by chance
             pn = p_null(prgs, current_cluster, k);
             if (pn < 0.001)
@@ -307,6 +309,7 @@ void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prg
 	    prgs[pnode->second->id]->update_covg_with_hit(*mh);
 	}
 	prgs[pnode->second->id]->kmer_prg.num_reads = pnode->second->foundReads.size();
+	cout << now() << "Added " << prgs[pnode->second->id]->num_hits[1] << " hits in the forward direction and " << prgs[pnode->second->id]->num_hits[0] << " hits in the reverse" << endl;
     }
 }
 
@@ -318,7 +321,7 @@ float p_null(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_o
 
     uint32_t i = (*cluster_of_hits.begin())->prg_id;
     float p = pow(1 - pow(1 - pow(0.25, k), prgs[i]->kmer_prg.nodes.size()-2), cluster_of_hits.size());
-    //cout << "found cluster against prg " << i << " with pnull " << p << endl;
+    cout << "found cluster of size " << cluster_of_hits.size() << " against prg " << i << " with pnull " << p << endl;
 
     return p;
 }

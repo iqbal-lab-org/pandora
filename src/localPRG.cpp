@@ -26,7 +26,7 @@
 
 using namespace std;
 
-LocalPRG::LocalPRG (uint32_t i, string n, string p): next_id(0), buff(" "), next_site(5), id(i), name(n), seq(p)
+LocalPRG::LocalPRG (uint32_t i, string n, string p): next_id(0), buff(" "), next_site(5), id(i), name(n), seq(p), num_hits(2, 0)
 {
     //cout << "Making new LocalPRG instance " << name << endl;
     vector<uint32_t> v;
@@ -670,7 +670,13 @@ vector<KmerNode*> LocalPRG::find_kmernodes_on_localnode_path(vector<LocalNode*>&
 		    {
 			nums.pop_back();
 		    }
-		} else {
+		} else if (nums.size() > 0 and nums.back()->path.start == kmer_prg.nodes[n]->path.start)
+                {
+                    if (nums.back()->path.end < kmer_prg.nodes[n]->path.end)
+                    {
+                        nums.pop_back();
+                    }
+                } else {
 		/*if (equal_except_null_nodes(nums.back()->path, kmer_prg.nodes[n]->path))
 		{
 		    if (nums.back()->path.start > kmer_prg.nodes[n]->path.start)
@@ -719,15 +725,19 @@ vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*>
 
 void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
 {
+    bool added = false;
     // update the covg in the kmer_prg
     for (uint i=0; i!=kmer_prg.nodes.size(); ++i)
     {
 	if (kmer_prg.nodes[i]->path == mh->prg_path)
 	{
 	    kmer_prg.nodes[i]->covg[mh->strand] += 1;
+	    added = true;
 	    break;
 	}
     }
+    num_hits[mh->strand] += 1;
+    assert(added == true);
 }
 
 void LocalPRG::write_kmer_max_paths_to_fasta(const string& filepath, float e_rate)
@@ -735,15 +745,27 @@ void LocalPRG::write_kmer_max_paths_to_fasta(const string& filepath, float e_rat
     ofstream handle;
     handle.open (filepath);
 
-    vector<KmerNode*> kmp;
-    kmp.reserve(800);
-    float ppath;
+    vector<KmerNode*> kmp_f, kmp_b, kmp_c;
+    kmp_f.reserve(800);
+    kmp_b.reserve(800);
+    kmp_c.reserve(800);
+    float ppath_b, ppath_f, ppath_c;
     vector<LocalNode*> lmp;
     
     cout << now() << "find kmer max paths for forward direction" << endl;
-    ppath = kmer_prg.find_max_path(1, e_rate, kmp);
-    lmp = localnode_path_from_kmernode_path(kmp);
-    handle << ">" << name << ".fwd" << "\tlog P(data|sequence)=" << ppath << endl;
+    ppath_b = kmer_prg.find_max_path_backward(1, e_rate, kmp_b);
+    //ppath_f = kmer_prg.find_max_path_forward(1, e_rate, kmp_f);
+    //ppath_c = kmer_prg.find_max_path_coverage(1, e_rate, kmp_c);
+    cout << "backward prob = " << ppath_b << endl;//" and forward prob = " << ppath_f << " and coverage prob = " << ppath_c << endl;
+    //assert(ppath_bwd == ppath_fwd || assert_msg("backward prob = " << ppath_bwd << " and forward prob = " << ppath_fwd));
+    /*if (ppath_b >= ppath_f)
+    {
+        lmp = localnode_path_from_kmernode_path(kmp_b);
+    } else {
+	lmp = localnode_path_from_kmernode_path(kmp_f);
+    }*/
+    lmp = localnode_path_from_kmernode_path(kmp_b);
+    handle << ">" << name << ".fwd" << "\tlog P(data|sequence)=" << ppath_b  << endl;
     for (uint j = 0; j!= lmp.size(); ++j)
     {
         handle << lmp[j]->seq;
@@ -751,9 +773,10 @@ void LocalPRG::write_kmer_max_paths_to_fasta(const string& filepath, float e_rat
     handle << endl;
 
     cout << now() << "find kmer max paths for reverse complement direction" << endl;
-    ppath = kmer_prg.find_max_path(0, e_rate, kmp);
-    lmp = localnode_path_from_kmernode_path(kmp);
-    handle << ">" << name << ".rc" << "\tlog P(data|sequence)=" << ppath << endl;
+    kmp_b.clear();
+    ppath_b = kmer_prg.find_max_path_backward(0, e_rate, kmp_b);
+    lmp = localnode_path_from_kmernode_path(kmp_b);
+    handle << ">" << name << ".rc" << "\tlog P(data|sequence)=" << ppath_b << endl;
     for (uint j = lmp.size(); j!= 0; --j)
     {
         handle << rev_complement(lmp[j-1]->seq);

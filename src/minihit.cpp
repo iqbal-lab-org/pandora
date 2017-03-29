@@ -42,9 +42,9 @@ bool MinimizerHit::operator < ( const MinimizerHit& y) const
     if (prg_id < y.prg_id){ return true; }
     if (y.prg_id < prg_id) { return false; }
 
-    // then by direction
-    if (strand < y.strand){ return true; }
-    if (y.strand < strand) { return false; }
+    // then by direction NB this bias is in favour of the forward direction
+    if (strand < y.strand){ return false; }
+    if (y.strand < strand) { return true; }
 
 /*    // then by difference on target string (want approx co-linear)
     if (read_interval.start + y.prg_path.start < y.read_interval.start + prg_path.start) { //cout << read_interval.start + y.prg_path.start << " < " << y.read_interval.start + prg_path.start << endl; 

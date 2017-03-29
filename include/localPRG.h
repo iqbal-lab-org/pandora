@@ -29,6 +29,7 @@ class LocalPRG {
     std::string seq;
     LocalGraph prg;
     KmerGraph kmer_prg;
+    std::vector<uint32_t> num_hits;
 
     LocalPRG(uint32_t, std::string, std::string);
 
