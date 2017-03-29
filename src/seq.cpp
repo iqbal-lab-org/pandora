@@ -70,6 +70,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
                 {
 		    m = new Minimizer(min(kh.first, kh.second), wpos+i, wpos+i+k, (kh.first<=kh.second));
 		    sketch.insert(m);
+		    //cout << "found from scratch: " << *m << " so sketch size is now " << sketch.size() << endl;
 		    m_previous = m;
                 }
 	    }
@@ -77,7 +78,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
         // otherwise only need to do something if the kmer from the newest position at end of new window is smaller or equal to the previous smallest
 	    kmer = seq.substr(wpos+w-1, k);
             kh = hash.kmerhash(kmer, k);
-	    //cout << "Last kh for wpos: " << kh << " compared to previous smallest: " << smallest << endl;
+	    //cout << "End kh for wpos: " << min(kh.first, kh.second) << " compared to previous smallest: " << smallest << endl;
 	    if(kh.first <= smallest or kh.second <= smallest)
 	    {
 	        m = new Minimizer(min(kh.first, kh.second), wpos+w-1, wpos+w-1+k, (kh.first<=kh.second));
@@ -98,7 +99,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
         sketch.insert(m);
     }*/
     
-    //cout << "Sketch size " << sketch.size() << " for read " << name << endl;
+    cout << now() << "Sketch size " << sketch.size() << " for read " << name << endl;
     return;
 }
 

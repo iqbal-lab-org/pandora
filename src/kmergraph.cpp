@@ -321,7 +321,8 @@ float KmerGraph::find_max_path_forward(int dir, float e_rate, vector<KmerNode*>&
     return M[nodes.size()-1]/len[nodes.size()-1];
 }
 
-float KmerGraph::find_max_path_backward(int dir, float e_rate, vector<KmerNode*>& maxpath)
+//float KmerGraph::find_max_path_backward(int dir, float e_rate, vector<KmerNode*>& maxpath)
+float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath)
 {
     cout << now() << "Find backward kmer max path for direction " << dir;
     // update global p

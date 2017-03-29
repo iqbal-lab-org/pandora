@@ -178,12 +178,15 @@ void add_read_hits(const uint32_t id, const string& name, const string& seq, Min
     {
         if (idx->minhash.find((*it)->kmer) != idx->minhash.end())
         {
+	    cout << "found " << (*it)->kmer << " in index" << endl;
 	    for (vector<MiniRecord>::iterator it2=idx->minhash[(*it)->kmer]->begin(); it2!=idx->minhash[(*it)->kmer]->end(); ++it2)
             {
 	        hits->add_hit(s.id, *it, &(*it2));
 		hit_count += 1;
             }
-        }
+        } else {
+	    cout << "did not find " << (*it)->kmer << " in index" << endl;
+	}
     }
     hits->sort();
     cout << now() << "Found " << hit_count << " hits found for read " << name << " so size of MinimizerHits is now " << hits->hits.size() << endl;
@@ -319,7 +322,7 @@ float p_null(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_o
 
     uint32_t i = (*cluster_of_hits.begin())->prg_id;
     float p = pow(1 - pow(1 - pow(0.25, k), prgs[i]->kmer_prg.nodes.size()-2), cluster_of_hits.size());
-    //cout << "found cluster of size " << cluster_of_hits.size() << " against prg " << i << " with pnull " << p << endl;
+    cout << "found cluster of size " << cluster_of_hits.size() << " against prg " << i << " with pnull " << p << endl;
 
     return p;
 }

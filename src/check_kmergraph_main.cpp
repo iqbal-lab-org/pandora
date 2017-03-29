@@ -87,7 +87,7 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
                     }
 		    cout << endl;
 		    vector<KmerNode*> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
-        	    cout << "kmer path: " << kpath[0]->path;
+        	    cout << "kmer path: " << kpath[0]->id;
         	    for (uint j=1; j != kpath.size(); ++j)
         	    {
 		  	if (find(kpath[j]->inNodes.begin(), kpath[j]->inNodes.end(), kpath[j-1])!=kpath[j]->inNodes.end())
@@ -104,6 +104,10 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
             	        }
         	    }
         	    cout << endl;
+		    for (uint j=0; j != kpath.size(); ++j)
+                    {
+			cout << kpath[j]->khash << endl;
+		    }
                 }
                 name.clear();
                 read.clear();
@@ -128,17 +132,27 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
             }
 	    cout << endl;
 	    vector<KmerNode*> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
-            cout << kpath[0]->path;
+            cout << "kmer path: " << kpath[0]->id;
             for (uint j=1; j != kpath.size(); ++j)
             {
 		if (find(kpath[j]->inNodes.begin(), kpath[j]->inNodes.end(), kpath[j-1])!=kpath[j]->inNodes.end())
                 {
-                    cout << "->" << kpath[j]->path;
+                    cout << "->" << kpath[j]->id;
                 } else {
-                    cout << "  " << kpath[j]->path;
+		    cout << endl << "no edge from " << kpath[j-1]->path << " to " << kpath[j]->path << endl;
+                    cout << "outnodes are: " << endl;
+                    for (uint n=0; n!= kpath[j-1]->outNodes.size(); ++n)
+                    {
+                        cout << kpath[j-1]->outNodes[n]->path << endl;
+                    }
+
                 }
             }
             cout << endl;
+            for (uint j=0; j != kpath.size(); ++j)
+            {
+                cout << kpath[j]->khash << endl;
+            }
         }
         myfile.close();
     } else {

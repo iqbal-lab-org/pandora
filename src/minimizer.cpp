@@ -32,8 +32,8 @@ bool Minimizer::operator < ( const Minimizer& y) const
     if (pos.end < y.pos.end) { return true; }
     if ( y.pos.end < pos.end ) { return false; }
 
-    if (strand < y.strand) { return true; }
-    if ( y.strand < strand ) { return false; }
+    if (strand < y.strand) { return false; }
+    if ( y.strand < strand ) { return true; }
     
     // if both are completely equal (based on strict weak ordering)
     // then just return false since equality doesn't yield less than
