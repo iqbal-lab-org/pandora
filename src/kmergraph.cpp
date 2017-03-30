@@ -347,10 +347,10 @@ float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath
         max_len = 0; // tie break with longest kmer path
         for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
         {
-	    if (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > -10)
+	    /*if (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > -10)
             {
                 cout << j-1 << "  path: " << nodes[j-1]->path << " consider outnode: " << nodes[j-1]->outNodes[i]->id << " which has M: " << M[nodes[j-1]->outNodes[i]->id] << " len: " << len[nodes[j-1]->outNodes[i]->id] << " giving mean " << M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] << " and the current max_mean: " << max_mean << endl;
-            }
+            }*/
             if ((M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean + 0.000001) or
                 (max_mean - M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] <= 0.000001 and len[nodes[j-1]->outNodes[i]->id] > max_len))
             {

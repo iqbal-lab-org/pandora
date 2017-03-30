@@ -699,7 +699,7 @@ vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*>
     vector<LocalNode*> localnode_path, kmernode;
     for (uint i=0; i!=kmernode_path.size(); ++i)
     {
-	cout << kmernode_path[i]->path << endl;
+	//cout << kmernode_path[i]->path << endl;
         kmernode = nodes_along_path(kmernode_path[i]->path);
 	// if the start of the new localnode path is after the end of the previous, join up WLOG with top path
         while (localnode_path.size() > 0 and localnode_path.back()->outNodes.size() > 0 and kmernode[0]->id > localnode_path.back()->outNodes[0]->id)
