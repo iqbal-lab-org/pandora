@@ -169,24 +169,26 @@ void load_PRG_kmergraphs(vector<LocalPRG*>& prgs, const string& prgfile)
     return;
 }
 
-void add_read_hits(const uint32_t id, const string& name, const string& seq, MinimizerHits* hits, Index* idx, const uint32_t w, const uint32_t k)
+//void add_read_hits(const uint32_t id, const string& name, const string& seq, MinimizerHits* hits, Index* idx, const uint32_t w, const uint32_t k)
+void add_read_hits(Seq* s, MinimizerHits* hits, Index* idx)
 {
+    //cout << now() << "Search for hits for read " << s->name << " which has sketch size " << s->sketch.size() << " against index of size " << idx->minhash.size() << endl;
     uint32_t hit_count = 0;
     // creates Seq object for the read, then looks up minimizers in the Seq sketch and adds hits to a global MinimizerHits object
-    Seq s(id, name, seq, w, k);
-    for(set<Minimizer*, pMiniComp>::iterator it = s.sketch.begin(); it != s.sketch.end(); ++it)
+    //Seq s(id, name, seq, w, k);
+    for(set<Minimizer*, pMiniComp>::const_iterator it = s->sketch.begin(); it != s->sketch.end(); ++it)
     {
         if (idx->minhash.find((*it)->kmer) != idx->minhash.end())
         {
 	    for (vector<MiniRecord>::iterator it2=idx->minhash[(*it)->kmer]->begin(); it2!=idx->minhash[(*it)->kmer]->end(); ++it2)
             {
-	        hits->add_hit(s.id, *it, &(*it2));
+	        hits->add_hit(s->id, *it, &(*it2));
 		hit_count += 1;
             }
 	}
     }
     hits->sort();
-    cout << now() << "Found " << hit_count << " hits found for read " << name << " so size of MinimizerHits is now " << hits->hits.size() << endl;
+    cout << now() << "Found " << hit_count << " hits found for read " << s->name << " so size of MinimizerHits is now " << hits->hits.size() << endl;
     return;
 }
 
@@ -251,6 +253,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
 void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph* pangraph, Index* idx, const vector<LocalPRG*>& prgs, const uint32_t w, const uint32_t k, const int max_diff)
 {
     string name, read, line;
+    Seq *s;
     uint32_t id = 0;
 
     ifstream myfile (filepath);
@@ -264,7 +267,10 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
                 {
 		    cout << now() << "Found read " << name << endl;
 		    cout << now() << "Add read hits" << endl;
-                    add_read_hits(id, name, read, mh, idx, w, k);
+                    //add_read_hits(id, name, read, mh, idx, w, k);
+                    s = new Seq(id, name, read, w, k);
+		    add_read_hits(s, mh, idx);
+		    delete s;
 		    id++;
                 }
                 name.clear();
@@ -284,7 +290,10 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
         {
 	    cout << now() << "Found read " << name << endl;
 	    cout << now() << "Add read hits" << endl;
-            add_read_hits(id, name, read, mh, idx, w, k);
+            //add_read_hits(id, name, read, mh, idx, w, k);
+            s = new Seq(id, name, read, w, k);
+            add_read_hits(s, mh, idx);
+	    delete s;
         }
         //cout << "Number of reads found: " << id+1 << endl;
         cout << now() << "Infer gene orders and add to PanGraph" << endl;
@@ -319,7 +328,7 @@ float p_null(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_o
 
     uint32_t i = (*cluster_of_hits.begin())->prg_id;
     float p = pow(1 - pow(1 - pow(0.25, k), prgs[i]->kmer_prg.nodes.size()-2), cluster_of_hits.size());
-    cout << "found cluster of size " << cluster_of_hits.size() << " against prg " << i << " with pnull " << p << endl;
+    //cout << "found cluster of size " << cluster_of_hits.size() << " against prg " << i << " with pnull " << p << endl;
 
     return p;
 }

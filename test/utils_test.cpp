@@ -168,7 +168,9 @@ TEST_F(UtilsTest, addReadHits){
     m11 = new MinimizerHit(0, Interval(1,4), 3, p, 1);
     //expected3.hits.insert(m11);
 
-    add_read_hits(0, "read1", "AGC", mhs, idx, 1, 3);
+    Seq *s;
+    s = new Seq(0, "read1", "AGC", 1, 3);
+    add_read_hits(s, mhs, idx);
     EXPECT_EQ(expected1.hits.size(), mhs->hits.size());
     set<MinimizerHit*, pComp>::const_iterator it2 = expected1.hits.begin();
     for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
@@ -179,10 +181,12 @@ TEST_F(UtilsTest, addReadHits){
     
     // if take w=2 as sketch of read AGTT should contain AGT, which occurs twice in PRG and GTT
     delete mhs;
+    delete s;
     mhs = new MinimizerHits();
     uint32_t j = 0;
     EXPECT_EQ(j, mhs->hits.size());
-    add_read_hits(0, "read2", "AGTT", mhs, idx, 2, 3);
+    s = new Seq(0, "read2", "AGTT", 2, 3);
+    add_read_hits(s, mhs, idx);
     EXPECT_EQ(expected3.hits.size(), mhs->hits.size());
     it2 = expected3.hits.begin();
     for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
@@ -194,23 +198,27 @@ TEST_F(UtilsTest, addReadHits){
     // but for w=1, only add one more hit, for GTT
     expected3.hits.insert(m11);
     delete mhs;
+    delete s;
     mhs = new MinimizerHits();
     EXPECT_EQ(j, mhs->hits.size());
-    add_read_hits(0, "read2", "AGTT", mhs, idx, 1, 3);
+    s = new Seq(0, "read2", "AGTT", 1, 3);
+    add_read_hits(s, mhs, idx);
     EXPECT_EQ(expected3.hits.size(), mhs->hits.size());
     it2 = expected3.hits.begin();
-    /*for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
-    {
-        EXPECT_EQ(**it2, **it);
-        it2++;
-    }*/
+    //for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
+    //{
+    //    EXPECT_EQ(**it2, **it);
+    //    it2++;
+    //}
 
     // now back to w = 1, add expected2 to expected1 as will get hits against both AGC and GCT
     delete mhs;
+    delete s;
     mhs = new MinimizerHits();
     j = 0;
     EXPECT_EQ(j, mhs->hits.size());
-    add_read_hits(0, "read3", "AGCT", mhs, idx, 1, 3);
+    s = new Seq(0, "read3", "AGCT", 1, 3);
+    add_read_hits(s, mhs, idx);
     expected1.hits.insert(expected2.hits.begin(), expected2.hits.end());
     EXPECT_EQ(expected1.hits.size(), mhs->hits.size());
     it2 = expected1.hits.begin();
@@ -222,10 +230,12 @@ TEST_F(UtilsTest, addReadHits){
 
     // same for w = 2, add expected2 to expected1 as will get hits against both because AGC and GCT are joint minimums
     delete mhs;
+    delete s;
     mhs = new MinimizerHits();
     j = 0;
     EXPECT_EQ(j, mhs->hits.size());
-    add_read_hits(0, "read3", "AGCT", mhs, idx, 2, 3);
+    s = new Seq(0, "read3", "AGCT", 2, 3);
+    add_read_hits(s, mhs, idx);
     EXPECT_EQ(expected1.hits.size(), mhs->hits.size());
     it2 = expected1.hits.begin();
     for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
@@ -251,6 +261,7 @@ TEST_F(UtilsTest, addReadHits){
     delete m10;
     delete m11;
     delete mhs;
+    delete s;
 }
 
 TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){    
@@ -350,7 +361,11 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     lp3->kmer_prg.add_node(p);
 
     // add read hits to mhs
-    add_read_hits(0, "read1", "AGTTAAGTACG", mhs, idx, 1, 3);
+    Seq *s;
+    s = new Seq(0, "read1", "AGTTAAGTACG", 1, 3);
+    add_read_hits(s, mhs, idx);
+    delete s;
+    //add_read_hits(0, "read1", "AGTTAAGTACG", mhs, idx, 1, 3);
 
     // initialize pangraph;
     PanGraph *pg;
@@ -540,7 +555,11 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     lp2->kmer_prg.add_node(p);
 
     // add read hits to mhs
-    add_read_hits(0, "read2", "AGTTATGCTAGCTACTTACGGTA", mhs, idx, 1, 3);
+    Seq *s;
+    s = new Seq(0, "read2", "AGTTATGCTAGCTACTTACGGTA", 1, 3);
+    add_read_hits(s, mhs, idx);
+    delete s;
+    //add_read_hits(0, "read2", "AGTTATGCTAGCTACTTACGGTA", mhs, idx, 1, 3);
 
     // initialize pangraph;
     PanGraph *pg;

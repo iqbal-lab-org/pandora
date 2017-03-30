@@ -12,7 +12,6 @@
 using std::vector;
 using namespace std;
 
-
 Seq::Seq (uint32_t i, string n, string p, uint32_t w, uint32_t k): id(i), name(n), seq(p) {
     minimizer_sketch (w, k);
 }

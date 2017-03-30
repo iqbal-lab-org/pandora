@@ -9,6 +9,10 @@
 
 using namespace std;
 
+MinimizerHits::MinimizerHits() {
+    uhits.reserve(20000);
+}
+
 MinimizerHits::~MinimizerHits()
 {
     for (auto c: hits)
