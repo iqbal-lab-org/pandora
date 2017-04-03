@@ -745,35 +745,21 @@ void LocalPRG::write_kmer_max_paths_to_fasta(const string& filepath, float e_rat
     ofstream handle;
     handle.open (filepath);
 
-    vector<KmerNode*> kmp_b;//, kmp_f, kmp_c;
-    kmp_b.reserve(800);
-    //kmp_f.reserve(800);
-    //kmp_c.reserve(800);
-    float ppath_b;//, ppath_f, ppath_c;
+    vector<KmerNode*> kmp;
+    kmp.reserve(800);
+    float ppath;
     vector<LocalNode*> lmp;
     
-    cout << now() << "find kmer max paths for forward direction" << endl;
-    ppath_b = kmer_prg.find_max_path(1, e_rate, kmp_b);
-    //ppath_b = kmer_prg.find_max_path_backward(1, e_rate, kmp_b);
-    //ppath_f = kmer_prg.find_max_path_forward(1, e_rate, kmp_f);
-    //ppath_c = kmer_prg.find_max_path_coverage(1, e_rate, kmp_c);
-    cout << "backward prob = " << ppath_b << endl;//" and forward prob = " << ppath_f << " and coverage prob = " << ppath_c << endl;
-    //assert(ppath_bwd == ppath_fwd || assert_msg("backward prob = " << ppath_bwd << " and forward prob = " << ppath_fwd));
-    /*if (ppath_b >= ppath_f)
-    {
-        lmp = localnode_path_from_kmernode_path(kmp_b);
-    } else {
-	lmp = localnode_path_from_kmernode_path(kmp_f);
-    }*/
-    lmp = localnode_path_from_kmernode_path(kmp_b);
-    handle << ">" << name << ".fwd" << "\tlog P(data|sequence)=" << ppath_b  << endl;
+    ppath = kmer_prg.find_max_path(e_rate, kmp);
+    lmp = localnode_path_from_kmernode_path(kmp);
+    handle << ">" << name << "\tlog P(data|sequence)=" << ppath  << endl;
     for (uint j = 0; j!= lmp.size(); ++j)
     {
         handle << lmp[j]->seq;
     }
     handle << endl;
 
-    cout << now() << "find kmer max paths for reverse complement direction" << endl;
+    /*cout << now() << "find kmer max paths for reverse complement direction" << endl;
     kmp_b.clear();
     ppath_b = kmer_prg.find_max_path(0, e_rate, kmp_b);
     lmp = localnode_path_from_kmernode_path(kmp_b);
@@ -782,7 +768,7 @@ void LocalPRG::write_kmer_max_paths_to_fasta(const string& filepath, float e_rat
     {
         handle << rev_complement(lmp[j-1]->seq);
     }
-    handle << endl;
+    handle << endl;*/
 
     handle.close();
     return;

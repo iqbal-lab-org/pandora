@@ -259,17 +259,17 @@ void KmerGraph::sort_topologically()
     return return_order;
 }*/
 
-float KmerGraph::prob(uint j, int dir)
+float KmerGraph::prob(uint j)
 {
-    if (j==0 or j==nodes.size()-1 or nodes[j]->covg[dir] > num_reads)
+    if (j==0 or j==nodes.size()-1 or nodes[j]->covg[0]+nodes[j]->covg[1] > num_reads)
     {
 	return num_reads*log(p);
     } else {
-        return lognchoosek(num_reads, nodes[j]->covg[dir]) + nodes[j]->covg[dir]*log(p) + (num_reads-nodes[j]->covg[dir])*log(1-p);
+        return lognchoosek(num_reads, nodes[j]->covg[0]+nodes[j]->covg[1]) + (nodes[j]->covg[0]+nodes[j]->covg[1])*log(p) + (num_reads-(nodes[j]->covg[0]+nodes[j]->covg[1]))*log(1-p);
     }
 }
 
-float KmerGraph::find_max_path_forward(int dir, float e_rate, vector<KmerNode*>& maxpath)
+/*float KmerGraph::find_max_path_forward(int dir, float e_rate, vector<KmerNode*>& maxpath)
 {
     cout << now() << "Find forward kmer max path for direction " << dir;
     // update global p
@@ -319,12 +319,11 @@ float KmerGraph::find_max_path_forward(int dir, float e_rate, vector<KmerNode*>&
 
     reverse(maxpath.begin(), maxpath.end());
     return M[nodes.size()-1]/len[nodes.size()-1];
-}
+}*/
 
 //float KmerGraph::find_max_path_backward(int dir, float e_rate, vector<KmerNode*>& maxpath)
-float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath)
+float KmerGraph::find_max_path(float e_rate, vector<KmerNode*>& maxpath)
 {
-    cout << now() << "Find backward kmer max path for direction " << dir;
     // update global p
     p = 1/exp(e_rate*k);
     cout << " with parameters n: " << num_reads << " and p: " << p << endl;
@@ -337,7 +336,7 @@ float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath
     float max_mean;
     int max_len;
 
-    M[nodes.size()-1] = prob(nodes.size()-1, dir);
+    M[nodes.size()-1] = prob(nodes.size()-1);
     //len[nodes.size()-1] = 1;
     //cout << nodes.size()-1 << "  M: " << M[nodes.size()-1] << " len: " << len[nodes.size()-1] << " prev: " << prev[nodes.size()-1] << endl;
 
@@ -354,7 +353,7 @@ float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath
             if ((M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean + 0.000001) or
                 (max_mean - M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] <= 0.000001 and len[nodes[j-1]->outNodes[i]->id] > max_len))
             {
-                M[j-1] = prob(j-1, dir) + M[nodes[j-1]->outNodes[i]->id];
+                M[j-1] = prob(j-1) + M[nodes[j-1]->outNodes[i]->id];
                 len[j-1] = 1 + len[nodes[j-1]->outNodes[i]->id];
                 prev[j-1] = nodes[j-1]->outNodes[i]->id;
                 max_mean = M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id];
@@ -382,7 +381,7 @@ float KmerGraph::find_max_path(int dir, float e_rate, vector<KmerNode*>& maxpath
     return M[0]/len[0];
 }
 
-float KmerGraph::find_max_path_coverage(int dir, float e_rate, vector<KmerNode*>& maxpath)
+/*float KmerGraph::find_max_path_coverage(int dir, float e_rate, vector<KmerNode*>& maxpath)
 {
     // maximise based on total coverage
     cout << now() << "Find coverage kmer max path for direction " << dir;
@@ -429,7 +428,7 @@ float KmerGraph::find_max_path_coverage(int dir, float e_rate, vector<KmerNode*>
 
     assert(maxpath.size() > 0);
     return ret_prob/maxpath.size();
-}
+}*/
 
 void KmerGraph::save (const string& filepath)
 {

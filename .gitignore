@@ -1,6 +1,6 @@
 # Ignore the build and lib dirs
 build
-lib/*
+ext
 tmp
 
 # Ignore any executables
