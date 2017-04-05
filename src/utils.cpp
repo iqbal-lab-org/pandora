@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cassert>
 #include <algorithm>
+#include "FastxParser.hpp"
 #include "utils.h"
 #include "index.h"
 #include "localPRG.h"
@@ -249,6 +250,27 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     }
     return;
 }
+
+/*void pangraph_from_read_file_new(const string& filepath)
+{
+    vector<string> files = {filepath};
+    size_t nt = 4;
+    size_t np = 2;
+    fastx_parser::FastxParser<fastx_parser::ReadSeq> parser(files, nt, np);
+    parser.start();
+
+    // Get the read group by which this thread will
+    // communicate with the parser (*once per-thread*)
+    auto rg = parser.getReadGroup();
+
+    while (parser.refill(rg)) {
+        // Here, rg will contain a chunk of reads
+        // we can process.
+        for (auto& read : rg) {
+            cout << "read name: " << read.name << ", seq: " << read.seq << '\n';
+        }
+    }
+}*/
 
 void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph* pangraph, Index* idx, const vector<LocalPRG*>& prgs, const uint32_t w, const uint32_t k, const int max_diff)
 {

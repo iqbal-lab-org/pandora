@@ -39,12 +39,16 @@ set(COMMON_INCLUDES ${PROJECT_SOURCE_DIR}/include)
 set(COMMON_SRC ${PROJECT_SOURCE_DIR}/src)
 set(EXT_PROJECTS_DIR ${PROJECT_SOURCE_DIR}/ext)
 set(COMMON_TEST ${PROJECT_SOURCE_DIR}/test)
+
 #-------------------
 # Module source
 #-------------------
-include_directories(${COMMON_INCLUDES} ${COMMON_SRC})
-file(GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
+include_directories(${COMMON_INCLUDES} ${COMMON_SRC} ${EXT_PROJECTS_DIR}/FQFeeder/include)
+file(GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp) 
+#add_subdirectory(${EXT_PROJECTS_DIR}/FQFeeder)
 add_executable(${PROJECT_NAME} ${SRC_FILES})
+#add_dependencies(${PROJECT_TEST_NAME} FQFeeder)
+#target_link_libraries(${PROJECT_NAME} FQFeeder)
 target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
 
 #set(PROJECT_LIB_NAME ${PROJECT_NAME_STR}_impl)
@@ -63,12 +67,14 @@ add_definitions(${MSVC_COMPILER_DEFS})
 enable_testing()
 set(PROJECT_TEST_NAME ${PROJECT_NAME_STR}_test)
 
-include_directories(${GTEST_INCLUDE_DIRS} ${COMMON_INCLUDES} ${COMMON_SRC} ${COMMON_TEST})
+include_directories(${GTEST_INCLUDE_DIRS} ${COMMON_INCLUDES} ${COMMON_SRC}
+${COMMON_TEST} ${EXT_PROJECTS_DIR}/FQFeeder/include)
 
 file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/test/*.cpp ${COMMON_SRC}/*.cpp)
 list(REMOVE_ITEM TEST_SRC_FILES ${COMMON_SRC}/main.cpp)
 add_executable(${PROJECT_TEST_NAME} ${TEST_SRC_FILES})
 add_dependencies(${PROJECT_TEST_NAME} googletest)
+#target_link_libraries(${PROJECT_NAME} FQFeeder)
 
 
 if(NOT WIN32 OR MINGW)
