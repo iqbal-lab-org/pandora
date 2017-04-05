@@ -263,9 +263,12 @@ float KmerGraph::prob(uint j)
 {
     if (j==0 or j==nodes.size()-1 or nodes[j]->covg[0]+nodes[j]->covg[1] > num_reads)
     {
-	return num_reads*log(p);
+	return num_reads*log(p) + lognchoosek(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0]) +
+                (nodes[j]->covg[0]+nodes[j]->covg[1])*log(0.5);
     } else {
-        return lognchoosek(num_reads, nodes[j]->covg[0]+nodes[j]->covg[1]) + (nodes[j]->covg[0]+nodes[j]->covg[1])*log(p) + (num_reads-(nodes[j]->covg[0]+nodes[j]->covg[1]))*log(1-p);
+        return lognchoosek(num_reads, nodes[j]->covg[0]+nodes[j]->covg[1]) + (nodes[j]->covg[0]+nodes[j]->covg[1])*log(p) + 
+		(num_reads-(nodes[j]->covg[0]+nodes[j]->covg[1]))*log(1-p) + lognchoosek(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0]) +
+		(nodes[j]->covg[0]+nodes[j]->covg[1])*log(0.5);
     }
 }
 
@@ -358,11 +361,11 @@ float KmerGraph::find_max_path(float e_rate, vector<KmerNode*>& maxpath)
                 prev[j-1] = nodes[j-1]->outNodes[i]->id;
                 max_mean = M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id];
                 max_len = len[nodes[j-1]->outNodes[i]->id];
-		if (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > -10)
-                {
-		    cout << "chose " << prev[j-1] << endl;
+		//if (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > -10)
+                //{
+		    //cout << "chose " << prev[j-1] << endl;
                     //cout << j-1 << "  path: " << nodes[j-1]->path << " prob: " << prob(j-1, dir) << " M: " << M[j-1] << " len: " << len[j-1] << " max_mean: " << max_mean << " prev: " << prev[j-1] << endl;
-                }
+                //}
             }
         }
         //cout << j-1 << " path: " << nodes[j-1]->path << "  M: " << M[j-1] << " len: " << len[j-1] << " prev: " << prev[j-1] << endl;

@@ -12,6 +12,16 @@ using namespace std;
 void index_prgs(vector<LocalPRG*>& prgs, Index* idx, const uint32_t w, const uint32_t k)
 {
     cout << now() << "Index PRGs" << endl;
+
+    // first reserve an estimated index size
+    uint r=0;
+    for (uint i=0; i != prgs.size(); ++i)
+    {
+	r += prgs[i]->seq.length();
+    }
+    idx->minhash.reserve(r);
+
+    // now fill index
     for (uint i=0; i != prgs.size(); ++i)
     {
         prgs[i]->minimizer_sketch(idx, w, k);

@@ -229,24 +229,50 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
         clusters_of_hits.insert(current_cluster);
     }
 
-    // Next order clusters, remove contained ones, and add inferred order to pangraph    
+    // Next order clusters, choose between those that overlap by too much
+    cout << now() << "Found " << clusters_of_hits.size() << " clusters of hits " << endl;
     if (clusters_of_hits.size() == 0) { return;}
     // to do this consider pairs of clusters in turn
     set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_previous = clusters_of_hits.begin();
+    for (set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_current = ++clusters_of_hits.begin(); c_current != clusters_of_hits.end(); ++c_current)
+    {
+        if(((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) && 
+	 //((*(*c_current).begin())->prg_id != (*(*c_previous).begin())->prg_id) &&
+	   ((*--(*c_current).end())->read_interval.start <= (*--(*c_previous).end())->read_interval.start)) // if not least one hit outside overlap 
+	 // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, but could also impose no more than 2k hits in overlap
+        {
+	    if (c_previous->size() >= c_current->size())
+	    {
+		clusters_of_hits.erase(c_current);
+		cout << "erase current" << endl;
+		c_current = c_previous;
+	    } else {
+		clusters_of_hits.erase(c_previous);
+		cout << "erase previous" << endl;
+		c_previous = c_current;
+	    }
+	}
+    }
+
+    // Add inferred order to pangraph    
+    cout << now() << "After removing contained clusters, have " << clusters_of_hits.size() << " clusters of hits " << endl;
+    if (clusters_of_hits.size() == 0) { return;}
+    // to do this consider pairs of clusters in turn
+    c_previous = clusters_of_hits.begin();
     pangraph->add_node((*(*c_previous).begin())->prg_id, (*(*c_previous).begin())->read_id, *c_previous);
     for (set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_current = ++clusters_of_hits.begin(); c_current != clusters_of_hits.end(); ++c_current)
     {
-        if(((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) &&  ((*(*c_current).begin())->prg_id != (*(*c_previous).begin())->prg_id) && ((*--(*c_current).end())->read_interval.start > (*--(*c_previous).end())->read_interval.start) ) // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, so force the next cluster to have at least a hit which is outside this region
+        if((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id)
         {
             pangraph->add_node((*(*c_current).begin())->prg_id, (*(*c_current).begin())->read_id, *c_current);
-	    pangraph->add_edge((*(*c_previous).begin())->prg_id, (*(*c_current).begin())->prg_id);
+            pangraph->add_edge((*(*c_previous).begin())->prg_id, (*(*c_current).begin())->prg_id);
             c_previous = c_current;
         } else if ((*(*c_current).begin())->read_id != (*(*c_previous).begin())->read_id)
-	{
-	    // if we just started looking at hits for a new read, add the first cluster
-	    pangraph->add_node((*(*c_current).begin())->prg_id, (*(*c_current).begin())->read_id, *c_current);
+        {
+            // if we just started looking at hits for a new read, add the first cluster
+            pangraph->add_node((*(*c_current).begin())->prg_id, (*(*c_current).begin())->read_id, *c_current);
             c_previous = c_current;
-	}
+        }
     }
     return;
 }
