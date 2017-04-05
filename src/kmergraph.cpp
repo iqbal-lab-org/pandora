@@ -264,7 +264,7 @@ float KmerGraph::prob(uint j)
     if (j==0 or j==nodes.size()-1 or nodes[j]->covg[0]+nodes[j]->covg[1] > num_reads)
     {
 	return num_reads*log(p) + lognchoosek(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0]) +
-                (nodes[j]->covg[0]+nodes[j]->covg[1])*log(0.5);
+                num_reads*log(0.5); // note num_reads rather than covg1+covg2, or give disadvantaget to repeat kmers
     } else {
         return lognchoosek(num_reads, nodes[j]->covg[0]+nodes[j]->covg[1]) + (nodes[j]->covg[0]+nodes[j]->covg[1])*log(p) + 
 		(num_reads-(nodes[j]->covg[0]+nodes[j]->covg[1]))*log(1-p) + lognchoosek(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0]) +
