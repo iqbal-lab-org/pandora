@@ -24,6 +24,15 @@ Seq::~Seq()
     }
 }
 
+void Seq::initialize(uint32_t i, string n, string p, uint32_t w, uint32_t k)
+{
+    id = i;
+    name = n;
+    seq = p;
+    sketch.clear();
+    minimizer_sketch (w, k);
+}
+
 void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 {
     //cout << "Start sketching" << endl;

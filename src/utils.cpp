@@ -280,6 +280,12 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
 void pangraph_from_read_file_new(const string& filepath, MinimizerHits* mh, PanGraph* pangraph, Index* idx, const vector<LocalPRG*>& prgs, const uint32_t w, const uint32_t k, const int max_diff)
 {
     Seq *s;
+    s = new Seq(0, "null", "", w, k);
+    if (s==nullptr)
+    {
+        cerr << "Failed to create new Seq, something must be dying " << endl;
+        exit (EXIT_FAILURE);
+    }
     uint32_t id = 0;
 
     vector<string> files = {filepath};
@@ -298,13 +304,13 @@ void pangraph_from_read_file_new(const string& filepath, MinimizerHits* mh, PanG
         for (auto& read : rg) {
             //cout << "read name: " << read.name << ", seq: " << read.seq << '\n';
 	    cout << now() << "Found read " << read.name << endl;
-	    s = new Seq(id, read.name, read.seq, w, k);
+	    s->initialize(id, read.name, read.seq, w, k);
             cout << now() << "Add read hits" << endl;
             add_read_hits(s, mh, idx);
-            delete s;
             id++;
         }
     }
+    delete s;
     cout << now() << "Infer gene orders and add to PanGraph" << endl;
     infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, k);
     return;
@@ -314,6 +320,12 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
 {
     string name, read, line;
     Seq *s;
+    s = new Seq(0, "null", "", w, k);
+    if (s==nullptr)
+    {
+        cerr << "Failed to create new Seq, something must be dying " << endl;
+        exit (EXIT_FAILURE);
+    }
     uint32_t id = 0;
 
     ifstream myfile (filepath);
@@ -328,9 +340,8 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
 		    cout << now() << "Found read " << name << endl;
 		    cout << now() << "Add read hits" << endl;
                     //add_read_hits(id, name, read, mh, idx, w, k);
-                    s = new Seq(id, name, read, w, k);
+                    s->initialize(id, name, read, w, k);
 		    add_read_hits(s, mh, idx);
-		    delete s;
 		    id++;
                 }
                 name.clear();
@@ -351,13 +362,13 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
 	    cout << now() << "Found read " << name << endl;
 	    cout << now() << "Add read hits" << endl;
             //add_read_hits(id, name, read, mh, idx, w, k);
-            s = new Seq(id, name, read, w, k);
+            s->initialize(id, name, read, w, k);
             add_read_hits(s, mh, idx);
-	    delete s;
         }
         //cout << "Number of reads found: " << id+1 << endl;
         cout << now() << "Infer gene orders and add to PanGraph" << endl;
         infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, k);
+	delete s;
         myfile.close();
     } else {
         cerr << "Unable to open read file " << filepath << endl;
