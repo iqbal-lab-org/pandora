@@ -8,6 +8,11 @@ project(${PROJECT_NAME_STR} C CXX)
 #------------------
 find_package(Threads REQUIRED)
 #set( CMAKE_VERBOSE_MAKEFILE on )
+find_package (ZLIB)
+if (NOT ZLIB_FOUND)
+	message (FATAL_ERROR "zlib must be installed before configuration &
+building can proceed")
+endif()
 
 # make sure that we have support for C++11
 include(CheckCXXCompilerFlag)
@@ -22,7 +27,7 @@ else()
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pthread -Wextra -O0 -g")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lz")
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lz")
 
 #if(CMAKE_COMPILER_IS_GNUCXX)
 #    add_definitions(-Wall -pthread -Wextra -O0 -g)
@@ -48,7 +53,7 @@ include_directories(${COMMON_INCLUDES} ${COMMON_SRC} ${EXT_PROJECTS_DIR}/FQFeede
 file(GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp
 ${EXT_PROJECTS_DIR}/FQFeeder/src/FastxParser.cpp) 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARY})
 
 #set(PROJECT_LIB_NAME ${PROJECT_NAME_STR}_impl)
 
@@ -92,6 +97,6 @@ else()
         )
 endif()
 
-target_link_libraries(${PROJECT_TEST_NAME} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${PROJECT_TEST_NAME} ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARY})
 
 add_test(testAll ${PROJECT_TEST_NAME})
