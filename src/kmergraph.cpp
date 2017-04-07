@@ -51,7 +51,7 @@ KmerNode* KmerGraph::add_node (const Path& p)
     if ( it == nodes.end() )
     {
 	nodes.push_back(n);
-	cout << "added node " << *n;
+	//cout << "added node " << *n;
 	assert(k==0 or p.length()==0 or p.length()==k);
 	if (k == 0 and p.length() > 0)
 	{
@@ -59,7 +59,7 @@ KmerNode* KmerGraph::add_node (const Path& p)
 	}  
 	next_id++;
     } else {
-	cout << "node " << *n << " was duplicate" << endl;
+	//cout << "node " << *n << " was duplicate" << endl;
 	delete n;
 	n = *it;
     }
@@ -141,7 +141,7 @@ void KmerGraph::add_edge (KmerNode* from, KmerNode* to)
     from->outNodes.push_back(to);
     to->inNodes.push_back(from);
 
-    cout << "added edge from " << from->id << " to " << to->id << endl;
+    //cout << "added edge from " << from->id << " to " << to->id << endl;
     return;
 }
 

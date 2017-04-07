@@ -539,34 +539,33 @@ TEST_F(LocalPRGTest, minimizerSketch){
 
     idx->clear();
     l4.minimizer_sketch(idx, 3, 3);
-    j = 11;
+    j = 10;
     EXPECT_EQ(j, idx->minhash.size());
-    j = 3;
-    kh = hash.kmerhash("TTG",3);
+    j = 4;
+    kh = hash.kmerhash("CTA",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
-    kh = hash.kmerhash("AGC",3);
+    j = 3;
+    kh = hash.kmerhash("CTT",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
     j = 2;
-    kh = hash.kmerhash("TTC",3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
     kh = hash.kmerhash("CAC",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
-    kh = hash.kmerhash("CTC",3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
-    kh = hash.kmerhash("TCT",3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
-    kh = hash.kmerhash("AGT",3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
     j = 1;
-    kh = hash.kmerhash("CAT",3);
+    kh = hash.kmerhash("ATT",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
-    kh = hash.kmerhash("GTC",3);
+    kh = hash.kmerhash("ACT",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
     kh = hash.kmerhash("TCA",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("AAC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("GTC",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
+    kh = hash.kmerhash("GAG",3);
+    EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
     kh = hash.kmerhash("CTG",3);
     EXPECT_EQ(j, idx->minhash[min(kh.first,kh.second)]->size());
-    
+
     idx->clear();
     l5.minimizer_sketch(idx, 4, 5);
     EXPECT_EQ((idx->minhash.size()>2), true);

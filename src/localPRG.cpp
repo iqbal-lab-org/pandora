@@ -443,7 +443,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                     if (found == kmer_prg.nodes.end())
                     {
 		        // add to index, kmer_prg
-		        cout << "add first minikmer for i:" << i << " j: " << j << " kmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << kmer_path << endl;
+		        //cout << "add first minikmer for i:" << i << " j: " << j << " kmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << kmer_path << endl;
 		        idx->add_record(min(kh.first, kh.second), id, kmer_path, (kh.first<=kh.second));
 		        kn = kmer_prg.add_node_with_kh(kmer_path, min(kh.first, kh.second));	
 		        num_kmers_added += 1;
@@ -508,7 +508,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v.back()));
 		if (found == kmer_prg.nodes.end())
 		{
-		    cout << "add minikmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << v.back() << endl;
+		    //cout << "add minikmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << v.back() << endl;
 		    idx->add_record(min(kh.first, kh.second), id, v.back(), (kh.first<=kh.second));
                     new_kn = kmer_prg.add_node_with_kh(v.back(), min(kh.first, kh.second));
                     kmer_prg.add_edge(kn, new_kn);
@@ -541,7 +541,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 			    found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v[j]));
 			    if (found == kmer_prg.nodes.end())
 			    {
-				cout << "add minikmer for j: " << j << " kmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << v[j] << endl;
+				//cout << "add minikmer for j: " << j << " kmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << v[j] << endl;
 			        idx->add_record(min(kh.first, kh.second), id, v[j], (kh.first<=kh.second));
                                 new_kn = kmer_prg.add_node_with_kh(v[j], min(kh.first, kh.second));
 
@@ -595,9 +595,9 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 
     // print, check and return
     //cout << "kmer prg: " << endl << kmer_prg << endl;
-    cout << "sort kmernodes topologically" << endl;
+    //cout << "sort kmernodes topologically" << endl;
     kmer_prg.sort_topologically();
-    cout << "check prg" << endl;
+    //cout << "check prg" << endl;
     kmer_prg.check(num_kmers_added);
     return;
 }

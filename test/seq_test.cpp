@@ -22,14 +22,15 @@ TEST_F(SeqTest,sketchShortReads){
     Seq s1(0,"0", "AGCTAATGCGTT", 11, 3);
     Seq s2(0,"0", "AGCTAATGCGTT", 10, 3);
     Seq s3(0,"0", "AGCTAATGCGTT", 9, 3);
-    Seq s4(0,"0", "AGCTAGTGCGTT", 9, 3);
+    Seq s4(0,"0", "AGCTAATGCATA", 9, 3);
     uint32_t j = 0;
     EXPECT_EQ(s1.sketch.size(),j) << "Have " << s1.sketch.size() << " minimizer when string is too short";
     ++j;
     EXPECT_EQ(s2.sketch.size(),j) << "Have " << s2.sketch.size() << " minimizers when should have 1";
-    EXPECT_EQ(s3.sketch.size(),j) << "Have " << s3.sketch.size() << " minimizers when should have 1";
     ++j;
-    EXPECT_EQ(s4.sketch.size(),j) << "Have " << s4.sketch.size() << " minimizers when should have 2";
+    EXPECT_EQ(s3.sketch.size(),j) << "Have " << s3.sketch.size() << " minimizers when should have 2";
+    j=1;
+    EXPECT_EQ(s4.sketch.size(),j) << "Have " << s4.sketch.size() << " minimizers when should have 1";
 }
 
 TEST_F(SeqTest,sketchIncludesEveryLetter){

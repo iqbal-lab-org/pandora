@@ -111,6 +111,7 @@ TEST_F(UtilsTest, addReadHits){
     MinimizerHits expected1;
     MinimizerHits expected2;
     MinimizerHits expected3;
+    MinimizerHits expected4;
     MinimizerHit *m1, *m2, *m3, *m4, *m5, *m6, *m7, *m8, *m9, *m10, *m11;
 
     // initialize index as we would expect with example prgs 1 and 3 from above
@@ -166,7 +167,7 @@ TEST_F(UtilsTest, addReadHits){
     kh = hash.kmerhash("GTT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first<kh.second));
     m11 = new MinimizerHit(0, Interval(1,4), 3, p, 1);
-    //expected3.hits.insert(m11);
+    expected4.hits.insert(m11);
 
     Seq *s;
     s = new Seq(0, "read1", "AGC", 1, 3);
@@ -179,7 +180,7 @@ TEST_F(UtilsTest, addReadHits){
         it2++;
     }
     
-    // if take w=2 as sketch of read AGTT should contain AGT, which occurs twice in PRG and GTT
+    // if take w=2 as sketch of read AGTT should miss AGT, which occurs twice in PRG and contain GTT
     delete mhs;
     delete s;
     mhs = new MinimizerHits();
@@ -187,8 +188,8 @@ TEST_F(UtilsTest, addReadHits){
     EXPECT_EQ(j, mhs->hits.size());
     s = new Seq(0, "read2", "AGTT", 2, 3);
     add_read_hits(s, mhs, idx);
-    EXPECT_EQ(expected3.hits.size(), mhs->hits.size());
-    it2 = expected3.hits.begin();
+    EXPECT_EQ(expected4.hits.size(), mhs->hits.size());
+    it2 = expected4.hits.begin();
     for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
     {
         EXPECT_EQ(**it2, **it);
@@ -205,11 +206,11 @@ TEST_F(UtilsTest, addReadHits){
     add_read_hits(s, mhs, idx);
     EXPECT_EQ(expected3.hits.size(), mhs->hits.size());
     it2 = expected3.hits.begin();
-    //for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
-    //{
-    //    EXPECT_EQ(**it2, **it);
-    //    it2++;
-    //}
+    for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
+    {
+        EXPECT_EQ(**it2, **it);
+        it2++;
+    }
 
     // now back to w = 1, add expected2 to expected1 as will get hits against both AGC and GCT
     delete mhs;
@@ -247,6 +248,7 @@ TEST_F(UtilsTest, addReadHits){
     expected1.hits.clear();
     expected2.hits.clear();
     expected3.hits.clear();
+    expected4.hits.clear();
     idx->clear();
     delete idx;
     delete m1;

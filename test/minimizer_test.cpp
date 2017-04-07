@@ -82,11 +82,11 @@ TEST_F(MinimizerTest,comparisonCheck){
     EXPECT_EQ(s.size(),j) << "size of set of minimizers " << s.size() << " is not equal to 5.";
 
     // note this is a bad test as need to know the order of hash.kmerhash values to set this up
-    vector<Minimizer> v = {m1, m3, m4, m2, m5};
+    vector<Minimizer> v = {m4, m2, m5, m1, m3};
     int i = 0;
     for (std::set<Minimizer>::iterator it=s.begin(); it!=s.end(); ++it)
     {
-	EXPECT_EQ(it->kmer, v[i].kmer) << "kmers do not agree: " << it->kmer << ", " << v[i].kmer;
+	EXPECT_EQ(it->kmer, v[i].kmer) << "for i " << i << " kmers do not agree: " << it->kmer << ", " << v[i].kmer;
 	EXPECT_EQ(it->pos.start, v[i].pos.start) << "start positions do not agree: " << it->pos.start << ", " << v[i].pos.start;
 	EXPECT_EQ(it->pos.end, v[i].pos.end) << "end positions do not agree: " << it->pos.end << ", " << v[i].pos.end;
     	++i;
