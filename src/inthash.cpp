@@ -141,7 +141,8 @@ pair<uint64_t, uint64_t> KmerHash::kmerhash(const std::string& s, const uint32_t
     // this takes the hash of both forwards and reverse complement kmers and returns them as a pair 
     assert(s.size() == k);
     int c;
-    uint64_t mask = pow(4,k) - 1, kh = 0, rckh = 0;
+    uint64_t shift1 = 2 * (k - 1), mask = (1ULL<<2*k) - 1, kmer[2] = {0,0};
+    //uint64_t mask = pow(4,k) - 1, kh = 0, rckh = 0;
     char myArray[s.size()+1];//as 1 char space for null is also required
     strcpy(myArray, s.c_str());
     for (uint32_t i = 0; i < s.size(); ++i)
@@ -149,16 +150,18 @@ pair<uint64_t, uint64_t> KmerHash::kmerhash(const std::string& s, const uint32_t
         c = seq_nt4_table[(uint8_t)s[i]];
         //cout << s[i] << " -> " << c;
         if (c < 4) { // not an ambiguous base
-	    kh += c*pow(4,i);
-	    rckh += (3-c)*pow(4,k-i-1);
+	    kmer[0] = (kmer[0] << 2 | c) & mask;           // forward k-mer
+	    kmer[1] = (kmer[1] >> 2) | (3ULL^c) << shift1; // reverse k-mer
+	    //kh += c*pow(4,i);
+	    //rckh += (3-c)*pow(4,k-i-1);
 	}
         //cout << " so kh is now " << kh << endl;
     } 
     //cout << "s: " << s << " -> " << kh << endl;
-    kh = hash64(kh, mask);
-    rckh = hash64(rckh, mask);
+    kmer[0] = hash64(kmer[0], mask);
+    kmer[1] = hash64(kmer[1], mask);
 
-    pair<uint64_t,uint64_t> ret = make_pair(kh, rckh);
+    pair<uint64_t,uint64_t> ret = make_pair(kmer[0], kmer[1]);
     lookup[s] = ret;
     return ret;
 }
