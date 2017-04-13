@@ -139,9 +139,9 @@ int pandora_map(int argc, char* argv[])
     PanGraph *pangraph;
     pangraph = new PanGraph();
     //cout << "test new parser" << endl;
-    pangraph_from_read_file_new(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
+    //pangraph_from_read_file_new(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
     //cout << "end test new parser" << endl;
-    //pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
+    pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
     
     cout << now() << "Update LocalPRGs with hits and infer paths" << endl;
     update_localPRGs_with_hits(pangraph, prgs);

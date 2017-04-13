@@ -172,6 +172,7 @@ TEST_F(UtilsTest, addReadHits){
     Seq *s;
     s = new Seq(0, "read1", "AGC", 1, 3);
     add_read_hits(s, mhs, idx);
+    mhs->sort();
     EXPECT_EQ(expected1.hits.size(), mhs->hits.size());
     set<MinimizerHit*, pComp>::const_iterator it2 = expected1.hits.begin();
     for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
@@ -188,6 +189,7 @@ TEST_F(UtilsTest, addReadHits){
     EXPECT_EQ(j, mhs->hits.size());
     s = new Seq(0, "read2", "AGTT", 2, 3);
     add_read_hits(s, mhs, idx);
+    mhs->sort();
     EXPECT_EQ(expected4.hits.size(), mhs->hits.size());
     it2 = expected4.hits.begin();
     for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
@@ -204,6 +206,7 @@ TEST_F(UtilsTest, addReadHits){
     EXPECT_EQ(j, mhs->hits.size());
     s = new Seq(0, "read2", "AGTT", 1, 3);
     add_read_hits(s, mhs, idx);
+    mhs->sort();
     EXPECT_EQ(expected3.hits.size(), mhs->hits.size());
     it2 = expected3.hits.begin();
     for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
@@ -220,6 +223,7 @@ TEST_F(UtilsTest, addReadHits){
     EXPECT_EQ(j, mhs->hits.size());
     s = new Seq(0, "read3", "AGCT", 1, 3);
     add_read_hits(s, mhs, idx);
+    mhs->sort();
     expected1.hits.insert(expected2.hits.begin(), expected2.hits.end());
     EXPECT_EQ(expected1.hits.size(), mhs->hits.size());
     it2 = expected1.hits.begin();
@@ -237,6 +241,7 @@ TEST_F(UtilsTest, addReadHits){
     EXPECT_EQ(j, mhs->hits.size());
     s = new Seq(0, "read3", "AGCT", 2, 3);
     add_read_hits(s, mhs, idx);
+    mhs->sort();
     EXPECT_EQ(expected1.hits.size(), mhs->hits.size());
     it2 = expected1.hits.begin();
     for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
@@ -372,7 +377,7 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     // initialize pangraph;
     PanGraph *pg;
     pg = new PanGraph();
-    infer_localPRG_order_for_reads(prgs, mhs, pg, 1, 3);
+    infer_localPRG_order_for_reads(prgs, mhs, pg, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 then 1)
     PanGraph pg_exp;
@@ -566,7 +571,7 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     // initialize pangraph;
     PanGraph *pg;
     pg = new PanGraph();
-    infer_localPRG_order_for_reads(prgs, mhs, pg, 1, 3);
+    infer_localPRG_order_for_reads(prgs, mhs, pg, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
@@ -785,5 +790,4 @@ TEST_F(UtilsTest, pangraphFromReadFile)
 }
 
 //update_covgs_from_hits
-//p_null
 

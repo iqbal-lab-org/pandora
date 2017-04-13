@@ -135,7 +135,7 @@ pair<uint64_t, uint64_t> KmerHash::kmerhash(const std::string& s, const uint32_t
     unordered_map<string,pair<uint64_t,uint64_t>>::const_iterator it=lookup.find(s);
     if(it!=lookup.end())
     {
-	return it->second;
+    	return it->second;
     }
 
     // this takes the hash of both forwards and reverse complement kmers and returns them as a pair 
