@@ -10,7 +10,7 @@
 using namespace std;
 
 MinimizerHits::MinimizerHits() {
-    uhits.reserve(20000);
+    uhits.reserve(30000);
 }
 
 MinimizerHits::~MinimizerHits()

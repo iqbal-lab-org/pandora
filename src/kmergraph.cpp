@@ -19,6 +19,7 @@ KmerGraph::KmerGraph()
     nodes.reserve(60000);
     next_id = 0;
     num_reads = 0;
+    shortest_path_length = 0;    
     k = 0; // nb the kmer size is determined by the first non-null node added
     p = 1;
 }
@@ -38,6 +39,7 @@ void KmerGraph::clear()
     assert(nodes.size() == 0);
     next_id = 0;
     num_reads = 0;
+    shortest_path_length = 0;
     k = 0;
     p = 1;
 }
@@ -432,6 +434,28 @@ float KmerGraph::find_max_path(float e_rate, vector<KmerNode*>& maxpath)
     assert(maxpath.size() > 0);
     return ret_prob/maxpath.size();
 }*/
+
+uint KmerGraph::min_path_length()
+{
+    if (shortest_path_length > 0)
+    {
+	return shortest_path_length;
+    }
+
+    vector<uint> len(nodes.size(), 0); // length of shortest path from pos i to end of graph
+    for (uint j=nodes.size()-1; j!=0; --j)
+    {
+        for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
+        {
+	    if (len[nodes[j-1]->outNodes[i]->id] + 1 > len[j-1])
+	    {
+		len[j-1] = len[nodes[j-1]->outNodes[i]->id] + 1;
+	    }
+	}
+    }
+    shortest_path_length = len[0];
+    return len[0];
+}
 
 void KmerGraph::save (const string& filepath)
 {

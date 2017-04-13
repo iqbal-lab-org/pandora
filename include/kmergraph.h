@@ -16,6 +16,7 @@ class KmerGraph {
     float p;
   public:
     uint32_t num_reads;
+    uint32_t shortest_path_length;
     std::vector<KmerNode*> nodes; // representing nodes in graph
     KmerGraph();
     ~KmerGraph();
@@ -35,6 +36,7 @@ class KmerGraph {
     //float find_max_path_backward(int, float, std::vector<KmerNode*>&);
     //float find_max_path_forward(int, float, std::vector<KmerNode*>&);
     //float find_max_path_coverage(int, float, std::vector<KmerNode*>&);
+    uint min_path_length();
     void save (const std::string&);
     void load (const std::string&);
     bool operator == (const KmerGraph& y) const;
