@@ -50,6 +50,7 @@ TEST_F(SeqTest,sketchIncludesEveryLetter){
     } 
     for (uint32_t i = 3-1; i!=12-3+1; ++i) // first or last w-1 may not be included
     {
+	cout << "looking for pos " << i << endl;
 	EXPECT_EQ((pos_inc.find(i)!=pos_inc.end()), true);
     }
     //set<int> expected = {0,1,2,3,4,5,6,7,8,9,10,11};

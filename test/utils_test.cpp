@@ -465,7 +465,7 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
 
     d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     p.initialize(d);
-    kh = hash.kmerhash("AGC",3);
+    kh = hash.kmerhash("ACC",3); // inconsistent
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_prg.add_node(p);
 
@@ -665,7 +665,7 @@ TEST_F(UtilsTest, pangraphFromReadFile)
 
     d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     p.initialize(d);
-    kh = hash.kmerhash("AGC",3);
+    kh = hash.kmerhash("ACC",3); // inconsistent
     idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
     lp3->kmer_prg.add_node(p);
 

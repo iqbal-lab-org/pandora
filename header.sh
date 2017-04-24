@@ -1,0 +1,5 @@
+echo "##############################################################"
+echo "START: $(date)"
+echo "git commit: $(git rev-parse HEAD)"
+echo "python running: $(which python)"
+echo "##############################################################"

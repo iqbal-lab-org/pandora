@@ -189,7 +189,7 @@ void add_read_hits(Seq* s, MinimizerHits* hits, Index* idx)
 	}
     }
     //hits->sort();
-    cout << now() << "Found " << hit_count << " hits found for read " << s->name << " so size of MinimizerHits is now " << hits->hits.size() << endl;
+    cout << now() << "Found " << hit_count << " hits found for read " << s->name << " so size of MinimizerHits is now " << hits->hits.size() + hits->uhits.size() << endl;
     return;
 }
 
@@ -198,9 +198,9 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     // this step infers the gene order for a read and adds this to the pangraph
     // by defining clusters of hits, keeping those which are not noise and
     // then adding the inferred gene ordering
-    cout << "sort" << endl;
+    //cout << "sort" << endl;
     minimizer_hits->sort();
-    cout << "end sort" << endl;
+    //cout << "end sort" << endl;
     set<set<MinimizerHit*, pComp>,clusterComp> clusters_of_hits;
 
     if (minimizer_hits->hits.size() == 0) {return;}
@@ -214,7 +214,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
         if((*mh_current)->read_id!=(*mh_previous)->read_id or (*mh_current)->prg_id!=(*mh_previous)->prg_id or (*mh_current)->strand!=(*mh_previous)->strand or (abs((int)(*mh_current)->read_interval.start - (int)(*mh_previous)->read_interval.start)) > max_diff)
         {
 	    // keep clusters which cover at least 5% of the shortest kmer path
-            if (current_cluster.size() > prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()/20)
+            if (current_cluster.size() > max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()/20, (uint)1))
             {
                 clusters_of_hits.insert(current_cluster);
 	    }
@@ -224,7 +224,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
         mh_previous = mh_current;
     }
     // keep final cluster if it has a low enough probability of occuring by chance
-    if (current_cluster.size() > prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()/20)
+    if (current_cluster.size() > max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()/20, (uint)1))
     {
         clusters_of_hits.insert(current_cluster);
     }
@@ -234,24 +234,35 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     if (clusters_of_hits.size() == 0) { return;}
     // to do this consider pairs of clusters in turn
     set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_previous = clusters_of_hits.begin();
+    /*cout << "first cluster" << endl;
+    for (set<MinimizerHit*, pComp>::iterator p=c_previous->begin(); p!=c_previous->end(); ++p)
+    {
+	cout << **p << endl;
+    }*/
     for (set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_current = ++clusters_of_hits.begin(); c_current != clusters_of_hits.end(); ++c_current)
     {
-        if(((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) && 
-	 //((*(*c_current).begin())->prg_id != (*(*c_previous).begin())->prg_id) &&
-	   ((*--(*c_current).end())->read_interval.start <= (*--(*c_previous).end())->read_interval.start)) // if not least one hit outside overlap 
+	/*cout << "current cluster" << endl;
+        for (set<MinimizerHit*, pComp>::iterator p=c_current->begin(); p!=c_current->end(); ++p)
+        {
+            cout << **p << endl;
+        }*/
+        if(((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) && // if on same read and either
+	  ((((*(*c_current).begin())->prg_id == (*(*c_previous).begin())->prg_id) && // same prg, different strand
+	  ((*(*c_current).begin())->strand != (*(*c_previous).begin())->strand)) or // or cluster is contained
+	  ((*--(*c_current).end())->read_interval.start <= (*--(*c_previous).end())->read_interval.start))) // i.e. not least one hit outside overlap 
 	 // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, but could also impose no more than 2k hits in overlap
         {
 	    if (c_previous->size() >= c_current->size())
 	    {
 		clusters_of_hits.erase(c_current);
-		cout << "erase current" << endl;
+		//cout << "erase current" << endl;
 		c_current = c_previous;
 	    } else {
 		clusters_of_hits.erase(c_previous);
-		cout << "erase previous" << endl;
-		c_previous = c_current;
+		//cout << "erase previous" << endl;
 	    }
 	}
+	c_previous = c_current;
     }
 
     // Add inferred order to pangraph    

@@ -4,7 +4,8 @@
 #include <cstdint>
 #include <unordered_map>
 
-uint64_t hash64(uint64_t& key, const uint64_t& mask);
+uint nt4(char);
+uint64_t hash64(uint64_t key, const uint64_t& mask);
 void test_table();
 
 class KmerHash {

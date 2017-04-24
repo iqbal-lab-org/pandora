@@ -35,6 +35,84 @@ void Seq::initialize(uint32_t i, string n, string p, uint32_t w, uint32_t k)
 
 void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 {
+    if (seq.length()+1 < w+k) {//cout << "Sequence too short to sketch" << endl; 
+        return;}
+
+    // initializations
+    uint c, i;
+    uint64_t shift1 = 2 * (k - 1), mask = (1ULL<<2*k) - 1, smallest, kmer[2] = {0,0}, kh[2] = {0,0};
+    vector<Minimizer*> vm;
+    vm.reserve(w);
+    Minimizer* m;
+
+    char myArray[seq.size()+1];//as 1 char space for null is also required
+    strcpy(myArray, seq.c_str());
+
+    for(uint32_t buff=0; buff < seq.length() ; ++buff)
+    {
+	c = nt4(seq[buff]);
+        if (c < 4) { // not an ambiguous base
+            kmer[0] = (kmer[0] << 2 | c) & mask;           // forward k-mer
+            kmer[1] = (kmer[1] >> 2) | (3ULL^c) << shift1; // reverse k-mer	
+	    kh[0] = hash64(kmer[0], mask);
+            kh[1] = hash64(kmer[1], mask);
+	} else {
+	    cout << "bad letter - not sure how to handle this so skipping read" << endl;
+        }
+	
+	if (buff >=k-1)
+	{
+	    //make a mini
+	    m = new Minimizer(min(kh[0], kh[1]), buff-k+1, buff+1, (kh[0]<=kh[1]));
+	    vm.push_back(m);
+	}
+
+	if (buff == w+k-2 or vm.size()==w)
+	{
+	    smallest = std::numeric_limits<uint64_t>::max();
+	    // find smallest khash value for the w kmers
+	    for (i=0; i!=vm.size(); ++i)
+	    {
+		smallest = min(vm[i]->kmer, smallest);
+	    }
+	    // add these minimizers to sketch, and delete others
+	    for (i=0; i!=vm.size(); ++i)
+            {
+		if (vm[i]->kmer == smallest)
+		{
+		    sketch.insert(vm[i]);
+		} else {
+		    delete vm[i];
+		}
+	    }
+	    vm.clear();		
+	} else if ( buff >= w+k-1 and min(kh[0], kh[1]) <= smallest)
+	{
+	    sketch.insert(vm.back());
+	    // delete all but the last kmer
+	    for (i=0; i!=vm.size()-1; ++i)
+	    {
+		delete vm[i];
+	    }
+	    vm.clear();
+	}
+
+	if (buff == seq.length()-1)
+        {
+	    // delete remaining elements of vm
+	    for (i=0; i!=vm.size(); ++i)
+            {
+                delete vm[i];
+            }
+            vm.clear();
+	}
+    }
+    cout << now() << "Sketch size " << sketch.size() << " for read " << name << endl;
+    return;
+}
+
+/*void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
+{
     //cout << "Start sketching" << endl;
     // If sequence too short, just return
     if (seq.length()+1 < w+k) {//cout << "Sequence too short to sketch" << endl; 
@@ -48,12 +126,12 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
     Minimizer *m_previous;
     KmerHash hash;
 
-    /*// force inclusion of first kmer
-    kmer = seq.substr(0, k);
-    kh = hash.kmerhash(kmer, k);
-    m = new Minimizer(min(kh.first, kh.second), 0, k, 0);
-    sketch.insert(m);
-    m_previous = m;*/
+    // force inclusion of first kmer
+    //kmer = seq.substr(0, k);
+    //kh = hash.kmerhash(kmer, k);
+    //m = new Minimizer(min(kh.first, kh.second), 0, k, 0);
+    //sketch.insert(m);
+    //m_previous = m;
 
     // for each window position
     for(uint32_t wpos=0; wpos <= seq.length()-w-k+1 ; ++wpos)
@@ -98,18 +176,18 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 	}
     }
 
-    /*// force inclusion of last
-    kmer = seq.substr(seq.length()-k, k);
-    kh = hash.kmerhash(kmer, k);
-    m = new Minimizer(min(kh.first, kh.second), seq.length()-k, seq.length(), 0);
-    if (!(*m_previous==*m))
-    {
-        sketch.insert(m);
-    }*/
+    // force inclusion of last
+    //kmer = seq.substr(seq.length()-k, k);
+    //kh = hash.kmerhash(kmer, k);
+    //m = new Minimizer(min(kh.first, kh.second), seq.length()-k, seq.length(), 0);
+    //if (!(*m_previous==*m))
+    //{
+    //    sketch.insert(m);
+    //}
     
     cout << now() << "Sketch size " << sketch.size() << " for read " << name << endl;
     return;
-}
+}*/
 
 std::ostream& operator<< (std::ostream & out, Seq const& data) {
     out << data.name;
