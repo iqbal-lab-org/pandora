@@ -263,15 +263,22 @@ void KmerGraph::sort_topologically()
 
 float KmerGraph::prob(uint j)
 {
+    float ret;
     if (j==0 or j==nodes.size()-1 or nodes[j]->covg[0]+nodes[j]->covg[1] > num_reads)
     {
-	return num_reads*log(p) + lognchoosek(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0]) +
-                num_reads*log(0.5); // note num_reads rather than covg1+covg2, or give disadvantaget to repeat kmers
+	ret = num_reads*log(p) + lognchoosek(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0]) +
+            num_reads*log(0.5); // note num_reads rather than covg1+covg2, or give disadvantaget to repeat kmers
+	//cout << "j: " << j << " special prob " << ret << " since has " << nodes[j]->covg[0] << " and " << nodes[j]->covg[1] << " hits" << endl;
     } else {
-        return lognchoosek(num_reads, nodes[j]->covg[0]+nodes[j]->covg[1]) + (nodes[j]->covg[0]+nodes[j]->covg[1])*log(p) + 
+        ret = lognchoosek(num_reads, nodes[j]->covg[0]+nodes[j]->covg[1]) + (nodes[j]->covg[0]+nodes[j]->covg[1])*log(p) + 
 		(num_reads-(nodes[j]->covg[0]+nodes[j]->covg[1]))*log(1-p) + lognchoosek(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0]) +
 		(nodes[j]->covg[0]+nodes[j]->covg[1])*log(0.5);
+        //cout << "j: " << j << " normal prob " << ret << " since has " << nodes[j]->covg[0] << " and " << nodes[j]->covg[1] << " hits" << endl;
+	//cout << lognchoosek(num_reads, nodes[j]->covg[0]+nodes[j]->covg[1]) << " + " << (nodes[j]->covg[0]+nodes[j]->covg[1]) << "*" <<log(p) << " + ";
+        //cout << (num_reads-(nodes[j]->covg[0]+nodes[j]->covg[1])) << "*" << log(1-p) << " + " << lognchoosek(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0]);
+	//cout << " + " << (nodes[j]->covg[0]+nodes[j]->covg[1]) << "*" << log(0.5) << endl;
     }
+    return ret;
 }
 
 /*float KmerGraph::find_max_path_forward(int dir, float e_rate, vector<KmerNode*>& maxpath)
@@ -336,12 +343,12 @@ float KmerGraph::find_max_path(float e_rate, vector<KmerNode*>& maxpath)
 
     // create vectors to hold the intermediate values
     vector<float> M(nodes.size(), 0); // max log prob pf paths from pos i to end of graph
-    vector<int> len(nodes.size(), 1); // length of max log path from pos i to end of graph
+    vector<int> len(nodes.size(), 0); // length of max log path from pos i to end of graph
     vector<uint> prev(nodes.size(), nodes.size()-1); // prev node along path
     float max_mean;
     int max_len;
 
-    M[nodes.size()-1] = prob(nodes.size()-1);
+    //M[nodes.size()-1] = prob(nodes.size()-1);
     //len[nodes.size()-1] = 1;
     //cout << nodes.size()-1 << "  M: " << M[nodes.size()-1] << " len: " << len[nodes.size()-1] << " prev: " << prev[nodes.size()-1] << endl;
 
@@ -351,18 +358,20 @@ float KmerGraph::find_max_path(float e_rate, vector<KmerNode*>& maxpath)
         max_len = 0; // tie break with longest kmer path
         for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
         {
-	    /*if (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > -10)
-            {
-                cout << j-1 << "  path: " << nodes[j-1]->path << " consider outnode: " << nodes[j-1]->outNodes[i]->id << " which has M: " << M[nodes[j-1]->outNodes[i]->id] << " len: " << len[nodes[j-1]->outNodes[i]->id] << " giving mean " << M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] << " and the current max_mean: " << max_mean << endl;
-            }*/
-            if ((M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean + 0.000001) or
+	    if (nodes[j-1]->outNodes[i]->id == nodes.size()-1)
+	    
+            //cout << j-1 << " consider outnode: " << nodes[j-1]->outNodes[i]->id << " which has M: " << M[nodes[j-1]->outNodes[i]->id] << " len: " << len[nodes[j-1]->outNodes[i]->id] << " and the current max_mean: " << max_mean << endl;
+            if ((nodes[j-1]->outNodes[i]->id == nodes.size()-1) or (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean + 0.000001) or
                 (max_mean - M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] <= 0.000001 and len[nodes[j-1]->outNodes[i]->id] > max_len))
             {
                 M[j-1] = prob(j-1) + M[nodes[j-1]->outNodes[i]->id];
                 len[j-1] = 1 + len[nodes[j-1]->outNodes[i]->id];
                 prev[j-1] = nodes[j-1]->outNodes[i]->id;
-                max_mean = M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id];
-                max_len = len[nodes[j-1]->outNodes[i]->id];
+		if (nodes[j-1]->outNodes[i]->id != nodes.size()-1)
+		{
+                    max_mean = M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id];
+		    max_len = len[nodes[j-1]->outNodes[i]->id];
+		}
 		//if (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > -10)
                 //{
 		    //cout << "chose " << prev[j-1] << endl;

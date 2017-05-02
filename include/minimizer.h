@@ -19,6 +19,11 @@ struct Minimizer
     friend std::ostream& operator<< (std::ostream& out, const Minimizer& m); 
 };
 
+struct MiniPos
+{
+  bool operator()(Minimizer* lhs, Minimizer* rhs);
+};
+
 struct pMiniComp
 {
   bool operator()(Minimizer* lhs, Minimizer* rhs);

@@ -789,5 +789,12 @@ TEST_F(UtilsTest, pangraphFromReadFile)
     delete idx;
 }
 
+TEST_F(UtilsTest, lognChoosek)
+{
+    EXPECT_EQ(0.0, lognchoosek(0,0));
+    EXPECT_EQ(0.0, lognchoosek(1,0));
+    EXPECT_EQ(0.0, lognchoosek(1,1));
+}
+
 //update_covgs_from_hits
 

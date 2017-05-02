@@ -30,6 +30,7 @@ void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniReco
     if(it==uhits.end())
     {
         uhits.insert(mh);
+	//cout << "added hit " << *mh << endl;
     } else {
         delete mh;
     }
