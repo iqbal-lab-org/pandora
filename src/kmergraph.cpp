@@ -358,25 +358,28 @@ float KmerGraph::find_max_path(float e_rate, vector<KmerNode*>& maxpath)
         max_len = 0; // tie break with longest kmer path
         for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
         {
-	    if (nodes[j-1]->outNodes[i]->id == nodes.size()-1)
-	    
-            //cout << j-1 << " consider outnode: " << nodes[j-1]->outNodes[i]->id << " which has M: " << M[nodes[j-1]->outNodes[i]->id] << " len: " << len[nodes[j-1]->outNodes[i]->id] << " and the current max_mean: " << max_mean << endl;
-            if ((nodes[j-1]->outNodes[i]->id == nodes.size()-1) or (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean + 0.000001) or
-                (max_mean - M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] <= 0.000001 and len[nodes[j-1]->outNodes[i]->id] > max_len))
+	    //cout << i << " ";
+
+	    /*if (nodes[j-1]->outNodes[i]->id != nodes.size()-1 and M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > -5)
+	    {
+                cout << j-1 << " path: " << nodes[j-1]->path << " consider outnode: " << nodes[j-1]->outNodes[i]->id << " which has M: " << M[nodes[j-1]->outNodes[i]->id] << " len: " << len[nodes[j-1]->outNodes[i]->id] << " and the current max_mean: " << max_mean << endl;
+	    }*/
+
+            if ((nodes[j-1]->outNodes[i]->id == nodes.size()-1 and len[nodes[j-1]->outNodes[i]->id] >= max_len) or 
+		(M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean + 0.0000001) or
+                (max_mean - M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] <= 0.0000001 and len[nodes[j-1]->outNodes[i]->id] > max_len))
             {
                 M[j-1] = prob(j-1) + M[nodes[j-1]->outNodes[i]->id];
                 len[j-1] = 1 + len[nodes[j-1]->outNodes[i]->id];
                 prev[j-1] = nodes[j-1]->outNodes[i]->id;
+		cout << j-1 << " path: " << nodes[j-1]->path << " has prob: " << prob(j-1) << "  M: " << M[j-1] << " len: " << len[j-1] << " prev: " << prev[j-1];
 		if (nodes[j-1]->outNodes[i]->id != nodes.size()-1)
 		{
                     max_mean = M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id];
 		    max_len = len[nodes[j-1]->outNodes[i]->id];
+		    cout << " and new max_mean: " << max_mean;
 		}
-		//if (M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > -10)
-                //{
-		    //cout << "chose " << prev[j-1] << endl;
-                    //cout << j-1 << "  path: " << nodes[j-1]->path << " prob: " << prob(j-1, dir) << " M: " << M[j-1] << " len: " << len[j-1] << " max_mean: " << max_mean << " prev: " << prev[j-1] << endl;
-                //}
+		cout << endl;
             }
         }
         //cout << j-1 << " path: " << nodes[j-1]->path << "  M: " << M[j-1] << " len: " << len[j-1] << " prev: " << prev[j-1] << endl;

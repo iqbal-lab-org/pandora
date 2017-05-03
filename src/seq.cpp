@@ -67,7 +67,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 	    vm.push_back(m);
 	}
 
-	if (buff == w+k-2 or vm.size()==w)
+	if (vm.size()==w)
 	{
 	    smallest = std::numeric_limits<uint64_t>::max();
 	    // find smallest khash value for the w kmers

@@ -33,7 +33,8 @@ class KmerNode {
   friend class KmerGraphTest_sortTopologically_Test;
   friend class KmerGraphTest_findMaxPathSimple_Test;
   friend class KmerGraphTest_findMaxPath2Level_Test;
-  friend class LocalPRGTest_minimizerSketchSameAsSeq_Test;
+  friend class LocalPRGTest_minimizerSketchSameAsSeqw1_Test;
+  friend class LocalPRGTest_minimizerSketchSameAsSeqw5_Test;
 };
 
 bool equal_except_null_nodes (const KmerNode& x, const KmerNode& y);

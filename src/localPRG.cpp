@@ -732,7 +732,7 @@ void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
 	if (kmer_prg.nodes[i]->path == mh->prg_path)
 	{
 	    kmer_prg.nodes[i]->covg[mh->strand] += 1;
-	    //cout << "kmernode " << i << " with path " << kmer_prg.nodes[i]->path << " now has " << mh->strand << " coverage " << kmer_prg.nodes[i]->covg[mh->strand] << endl;
+	    cout << "kmernode " << i << " with path " << kmer_prg.nodes[i]->path << " now has " << mh->strand << " coverage " << kmer_prg.nodes[i]->covg[mh->strand] << endl;
 	    added = true;
 	    break;
 	}

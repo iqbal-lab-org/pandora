@@ -39,6 +39,7 @@ void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniReco
 void MinimizerHits::sort()
 {
     hits.insert(uhits.begin(), uhits.end());
+    assert(hits.size() == uhits.size());
     uhits.clear();
     return;
 }

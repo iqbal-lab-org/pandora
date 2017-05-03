@@ -186,6 +186,8 @@ void add_read_hits(Seq* s, MinimizerHits* hits, Index* idx)
 	        hits->add_hit(s->id, *it, &(idx->minhash[(*it)->kmer]->operator[](j)));
 		hit_count += 1;
             }
+	} else {
+	    cout << "did not find minimizer " << (*it)->kmer << " in index" << endl;
 	}
     }
     //hits->sort();
@@ -217,6 +219,12 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
             if (current_cluster.size() > max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()/20, (uint)1))
             {
                 clusters_of_hits.insert(current_cluster);
+	    } else {
+		cout << "rejected hits" << endl;
+		for (set<MinimizerHit*, pComp>::iterator p=current_cluster.begin(); p!=current_cluster.end(); ++p)
+                {
+                    cout << **p << endl;
+                }
 	    }
             current_cluster.clear();
         }
@@ -227,6 +235,12 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     if (current_cluster.size() > max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()/20, (uint)1))
     {
         clusters_of_hits.insert(current_cluster);
+    } else {
+	cout << "rejected hits" << endl;
+        for (set<MinimizerHit*, pComp>::iterator p=current_cluster.begin(); p!=current_cluster.end(); ++p)
+        {
+            cout << **p << endl;
+        }
     }
 
     // Next order clusters, choose between those that overlap by too much
