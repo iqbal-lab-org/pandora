@@ -443,7 +443,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                     if (found == kmer_prg.nodes.end())
                     {
 		        // add to index, kmer_prg
-		        //cout << "add first minikmer for i:" << i << " j: " << j << " kmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << kmer_path << endl;
+		        cout << "add first minikmer for i:" << i << " j: " << j << " kmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << kmer_path << endl;
 		        idx->add_record(min(kh.first, kh.second), id, kmer_path, (kh.first<=kh.second));
 		        kn = kmer_prg.add_node_with_kh(kmer_path, min(kh.first, kh.second));	
 		        num_kmers_added += 1;
@@ -466,6 +466,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	kn = current_leaves.front();
 	current_leaves.pop_front();
 	assert(kn->khash < std::numeric_limits<uint64_t>::max());
+	//cout << "looking for outnodes of " << kn->path << endl;
 
         // find all paths which are this kmernode shifted by one place along the graph
 	shift_paths = shift(kn->path);
@@ -503,12 +504,13 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		    kmer_prg.add_edge(kn, *found);
 		}
 	    } else */
-	    if (kh.first <= kn->khash or kh.second <= kn->khash) {
+	    //if (kh.first <= kn->khash or kh.second <= kn->khash) {
+	    if (min(kh.first, kh.second) <= kn->khash) {
 		// found next minimizer
 		found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v.back()));
 		if (found == kmer_prg.nodes.end())
 		{
-		    //cout << "add minikmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << v.back() << endl;
+		    //cout << "add minikmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << v.back() << " as smaller than " << kn->khash << endl;
 		    idx->add_record(min(kh.first, kh.second), id, v.back(), (kh.first<=kh.second));
                     new_kn = kmer_prg.add_node_with_kh(v.back(), min(kh.first, kh.second));
                     kmer_prg.add_edge(kn, new_kn);
@@ -526,11 +528,13 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		// the old minimizer has dropped out the window, minimizer the w new kmers
 		smallest = std::numeric_limits<uint64_t>::max();
 		mini_found_in_window = false;
+		//cout << "vsize is w" << endl;
                 for (uint j = 0; j != w; j++)
                 {
                     kmer = string_along_path(v[j]);
                     kh = hash.kmerhash(kmer, k);
                     smallest = min(smallest, min(kh.first, kh.second));
+		    //cout << min(kh.first, kh.second) << " ";
                 }
 		for (uint j = 0; j != w; j++)
                 {
@@ -541,7 +545,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 			    found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v[j]));
 			    if (found == kmer_prg.nodes.end())
 			    {
-				//cout << "add minikmer for j: " << j << " kmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << v[j] << endl;
+				//cout << "add minikmer for j: " << j << " kmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << v[j] << " since v.size()==" << v.size() << endl;
 			        idx->add_record(min(kh.first, kh.second), id, v[j], (kh.first<=kh.second));
                                 new_kn = kmer_prg.add_node_with_kh(v[j], min(kh.first, kh.second));
 
@@ -569,8 +573,10 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		    }
 		}
 	    } else if (v.back().end == (--(prg.nodes.end()))->second->pos.end) {
+		//cout << "reached terminus" << endl;
                 end_leaves.push_back(kn);
 	    } else {
+		//cout << "not found a new mini or terminus so shift again";
 		shift_paths = shift(v.back());
                 for (uint i=0; i!=shift_paths.size(); ++i)
                 {
@@ -578,6 +584,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		    shifts.back().push_back(shift_paths[i]);
                 }
                 shift_paths.clear();
+		//cout << " - shifts now has size " << shifts.size() << endl;
 	    }
 	}
     }
