@@ -366,8 +366,8 @@ float KmerGraph::find_max_path(float e_rate, vector<KmerNode*>& maxpath)
 	    }*/
 
             if ((nodes[j-1]->outNodes[i]->id == nodes.size()-1 and len[nodes[j-1]->outNodes[i]->id] >= max_len) or 
-		(M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean + 0.0000001) or
-                (max_mean - M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] <= 0.0000001 and len[nodes[j-1]->outNodes[i]->id] > max_len))
+		(M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean + 0.000001) or
+                (max_mean - M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] <= 0.000001 and len[nodes[j-1]->outNodes[i]->id] > max_len))
             {
                 M[j-1] = prob(j-1) + M[nodes[j-1]->outNodes[i]->id];
                 len[j-1] = 1 + len[nodes[j-1]->outNodes[i]->id];
