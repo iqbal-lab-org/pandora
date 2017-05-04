@@ -443,7 +443,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                     if (found == kmer_prg.nodes.end())
                     {
 		        // add to index, kmer_prg
-		        cout << "add first minikmer for i:" << i << " j: " << j << " kmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << kmer_path << endl;
+		        //cout << "add first minikmer for i:" << i << " j: " << j << " kmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << kmer_path << endl;
 		        idx->add_record(min(kh.first, kh.second), id, kmer_path, (kh.first<=kh.second));
 		        kn = kmer_prg.add_node_with_kh(kmer_path, min(kh.first, kh.second));	
 		        num_kmers_added += 1;

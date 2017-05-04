@@ -186,8 +186,8 @@ void add_read_hits(Seq* s, MinimizerHits* hits, Index* idx)
 	        hits->add_hit(s->id, *it, &(idx->minhash[(*it)->kmer]->operator[](j)));
 		hit_count += 1;
             }
-	} else {
-	    cout << "did not find minimizer " << (*it)->kmer << " in index" << endl;
+	//} else {
+	//    cout << "did not find minimizer " << (*it)->kmer << " in index" << endl;
 	}
     }
     //hits->sort();
