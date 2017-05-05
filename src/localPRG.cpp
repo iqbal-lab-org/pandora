@@ -288,6 +288,7 @@ vector<Path> LocalPRG::shift(Path p)
     vector<Path> k_paths;
     Interval i;
     bool non_terminus;
+    //uint exp_num_return_seqs = 0;
 
     // first find extensions of the path
     while (short_paths.size() > 0)
@@ -306,6 +307,7 @@ vector<Path> LocalPRG::shift(Path p)
 	} else if (p.end != (--(prg.nodes.end()))->second->pos.end) {
 	    for (uint i=0; i!=n.back()->outNodes.size(); ++i)
 	    {
+		//exp_num_return_seqs += 1;
 		short_paths.push_back(p);
 		short_paths.back().add_end_interval(Interval(n.back()->outNodes[i]->pos.start, n.back()->outNodes[i]->pos.start));
 	    }
@@ -348,6 +350,7 @@ vector<Path> LocalPRG::shift(Path p)
 	}
     }
 
+    //assert(return_paths.size() == max(exp_num_return_seqs, (uint)1)|| assert_msg("Have " << return_paths.size() << " return paths, when we considered " << exp_num_return_seqs << " outnodes from the input path"));
     return return_paths;
 }
 
@@ -485,6 +488,12 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	while(shifts.size() > 0)
 	{
 	    v = shifts.front();
+	    /*cout << "have shifts :" << endl;
+	    for (uint l=0; l!=v.size(); ++l)
+	    {
+		cout << v[l] << "  ";
+	    }
+	    cout << endl;*/
 	    shifts.pop_front();	    
 	    assert(v.back().length() == k);
 	    kmer = string_along_path(v.back());
@@ -506,6 +515,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	    } else */
 	    //if (kh.first <= kn->khash or kh.second <= kn->khash) {
 	    if (min(kh.first, kh.second) <= kn->khash) {
+		//cout << "found new smallest" << endl;
 		// found next minimizer
 		found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v.back()));
 		if (found == kmer_prg.nodes.end())
@@ -523,8 +533,15 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
                     num_kmers_added += 1;
 		} else {
 		    kmer_prg.add_edge(kn, *found);
+		    if (v.back().end == (--(prg.nodes.end()))->second->pos.end)
+                    {
+                        end_leaves.push_back(*found);
+                    } else {
+                        current_leaves.push_back(*found);
+                    }
 		}
             } else if (v.size() == w) {
+		//cout << "window size reached" << endl;
 		// the old minimizer has dropped out the window, minimizer the w new kmers
 		smallest = std::numeric_limits<uint64_t>::max();
 		mini_found_in_window = false;
@@ -569,11 +586,17 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 				    kmer_prg.add_edge(kn, *found);
 				}
 				mini_found_in_window = true;
+				if (v.back().end == (--(prg.nodes.end()))->second->pos.end)
+                                {
+                                    end_leaves.push_back(*found);
+                                } else {
+                                    current_leaves.push_back(*found);
+                                }
 			    }
 		    }
 		}
 	    } else if (v.back().end == (--(prg.nodes.end()))->second->pos.end) {
-		//cout << "reached terminus" << endl;
+		//cout << "node " << *kn << " is a terminus" << endl;
                 end_leaves.push_back(kn);
 	    } else {
 		//cout << "not found a new mini or terminus so shift again";

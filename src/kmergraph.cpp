@@ -140,10 +140,12 @@ void KmerGraph::add_edge (KmerNode* from, KmerNode* to)
 	cout << endl;
     }*/
 
-    from->outNodes.push_back(to);
-    to->inNodes.push_back(from);
-
-    //cout << "added edge from " << from->id << " to " << to->id << endl;
+    if ( find(from->outNodes.begin(), from->outNodes.end(), to) == from->outNodes.end() )
+    {
+        from->outNodes.push_back(to);
+        to->inNodes.push_back(from);
+        //cout << "added edge from " << from->id << " to " << to->id << endl;
+    }
     return;
 }
 

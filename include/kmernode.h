@@ -33,6 +33,7 @@ class KmerNode {
   friend class KmerGraphTest_sortTopologically_Test;
   friend class KmerGraphTest_findMaxPathSimple_Test;
   friend class KmerGraphTest_findMaxPath2Level_Test;
+  friend class LocalPRGTest_minimizerSketch_Test;
   friend class LocalPRGTest_minimizerSketchSameAsSeqw1_Test;
   friend class LocalPRGTest_minimizerSketchSameAsSeqw5_Test;
   friend class LocalPRGTest_minimizerSketchSameAsSeqw10_Test;

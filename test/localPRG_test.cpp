@@ -390,6 +390,7 @@ TEST_F(LocalPRGTest, shift){
     LocalPRG l3(3,"nested varsite", "AT 5 G 7 C 8 T 7  6 G 5 T");
     //LocalPRG l4(4, "much more complex", "TCATTC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AGCTG");
     LocalPRG l5(5, "one with lots of null at start and end, and a long stretch in between", " 5  7  9  11 AGTTCTGAAACATTGCGCGTGAGATCTCTG 12 T 11  10 A 9  8 C 7  6 G 5 ");
+    LocalPRG l6(6, "one representing a possible deletion at end", "GATCTCTAG 5 TTATG 6  5 ");
 
     deque<Interval> d = {Interval(0,3)};
     Path p, q;
@@ -439,6 +440,25 @@ TEST_F(LocalPRGTest, shift){
     q.initialize(d);
     v_exp.push_back(q);
     EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l5.shift(p));
+
+    v_exp.clear();
+    d = {Interval(3, 8)};
+    p.initialize(d);
+    d = {Interval(4, 9), Interval(20,20), Interval(23,23)};
+    q.initialize(d);
+    v_exp.push_back(q);
+    d = {Interval(4, 9)};
+    q.initialize(d);
+    v_exp.push_back(q);
+    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l6.shift(p));
+
+    v_exp.clear();
+    d = {Interval(4, 9)};
+    p.initialize(d);
+    d = {Interval(5, 9), Interval(12,13)};
+    q.initialize(d);
+    v_exp.push_back(q);
+    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l6.shift(p));
 }
 
 TEST_F(LocalPRGTest, minimizerSketch){
@@ -449,6 +469,7 @@ TEST_F(LocalPRGTest, minimizerSketch){
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
     LocalPRG l4(4, "much more complex", "TCATTC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AGCTG");
     LocalPRG l5(5, "one with lots of null at start and end, and a long stretch in between", " 5  7  9  11 AGTTCTGAAACATTGCGCGTGAGATCTCTG 12 T 11  10 A 9  8 C 7  6 G 5 ");
+    //LocalPRG l7(7, "an awkward bit of OXA that was going wrong, in which we have some end points mid graph", " 5 TTCGCACTGAATATTGATACGCCAAACAG 7 AATGGATGATCTTTTCAAGAGGGAGGCAATC 8 GATGGATGACCTTTTCAAAAGGGAGGCAATA 7 GTGCGGGCAATCCTT 9 CGCTCTATTGAAGCGTTACCGCCCAACCCGGCAGTCAACTCGGACGC 11 TGCGCGATAA 12 AGCGCGATAA 11  10 CGCTCTATCGAAGCGTTGCCGCCCAACCCGGCAGTCAACTCGGACGCAGCGCGATAA 10  10 C 9  6  5 ");
 
     Index* idx;
     idx = new Index();
@@ -570,6 +591,14 @@ TEST_F(LocalPRGTest, minimizerSketch){
     idx->clear();
     l5.minimizer_sketch(idx, 4, 5);
     EXPECT_EQ((idx->minhash.size()>2), true);
+
+    /*idx->clear();
+    l7.minimizer_sketch(idx, 10, 15);
+    // kmer nodes 21 and 22 come between first and second proper var sites. 
+    // Given that the second has multiple alleles, check that we have outnodes to this effect
+    EXPECT_EQ((l7.kmer_prg.nodes[22]->outNodes.size()>2), true);
+    EXPECT_EQ((l7.kmer_prg.nodes[21]->outNodes.size()>2), true);
+    */
 
     idx->clear();
     delete idx;
