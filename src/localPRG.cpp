@@ -469,7 +469,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 	kn = current_leaves.front();
 	current_leaves.pop_front();
 	assert(kn->khash < std::numeric_limits<uint64_t>::max());
-	//cout << "looking for outnodes of " << kn->path << endl;
+	//cout << "looking for outnodes of " << kn->id << " " << kn->path << endl;
 
         // find all paths which are this kmernode shifted by one place along the graph
 	shift_paths = shift(kn->path);
@@ -527,7 +527,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		    if (v.back().end == (--(prg.nodes.end()))->second->pos.end)
 		    {
 			end_leaves.push_back(new_kn);
-		    } else {
+		    } else if (find(current_leaves.begin(), current_leaves.end(), new_kn) == current_leaves.end()){
                         current_leaves.push_back(new_kn);
 		    }
                     num_kmers_added += 1;
@@ -536,7 +536,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		    if (v.back().end == (--(prg.nodes.end()))->second->pos.end)
                     {
                         end_leaves.push_back(*found);
-                    } else {
+                    } else if (find(current_leaves.begin(), current_leaves.end(), *found) == current_leaves.end()) {
                         current_leaves.push_back(*found);
                     }
 		}
@@ -576,7 +576,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 				if (v.back().end == (--(prg.nodes.end()))->second->pos.end)
                                 {
                                     end_leaves.push_back(new_kn);
-                                } else {
+                                } else if (find(current_leaves.begin(), current_leaves.end(), new_kn) == current_leaves.end()){
                                     current_leaves.push_back(new_kn);
                                 }
                                 num_kmers_added += 1;
@@ -589,7 +589,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 				if (v.back().end == (--(prg.nodes.end()))->second->pos.end)
                                 {
                                     end_leaves.push_back(*found);
-                                } else {
+                                } else if (find(current_leaves.begin(), current_leaves.end(), *found) == current_leaves.end()){
                                     current_leaves.push_back(*found);
                                 }
 			    }
