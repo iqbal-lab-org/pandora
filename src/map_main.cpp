@@ -155,6 +155,7 @@ int pandora_map(int argc, char* argv[])
 	cout << "\t\t" << prefix << "_" << prgs[c.second->id]->name << "_kmlp.fasta" << endl;
 	prgs[c.second->id]->write_kmer_max_paths_to_fasta(prefix + "_" + prgs[c.second->id]->name + "_kmlp.fasta", e_rate);
 	prgs[c.second->id]->kmer_prg.save(prefix + "_" + prgs[c.second->id]->name + ".kg.gfa");
+	prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "_" + prgs[c.second->id]->name + ".covg.txt");
     }
 
     cout << now() << "Writing LocalGraphs to files:" << endl;	

@@ -403,6 +403,20 @@ float KmerGraph::find_max_path(float e_rate, vector<KmerNode*>& maxpath)
     return M[0]/len[0];
 }
 
+void KmerGraph::save_covg_dist(const string& filepath)
+{
+
+    ofstream handle;
+    handle.open(filepath);
+
+    for (uint j=1; j!=nodes.size()-1; ++j)
+    {
+        handle << nodes[j]->covg[0]+nodes[j]->covg[1] << " ";
+    }
+    handle.close();
+    return;
+}
+
 /*float KmerGraph::find_max_path_coverage(int dir, float e_rate, vector<KmerNode*>& maxpath)
 {
     // maximise based on total coverage

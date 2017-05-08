@@ -33,6 +33,7 @@ class KmerGraph {
     //std::vector<KmerNode*> get_node_order();
     float prob(uint);
     float find_max_path(float, std::vector<KmerNode*>&);
+    void save_covg_dist(const std::string&);
     //float find_max_path_backward(int, float, std::vector<KmerNode*>&);
     //float find_max_path_forward(int, float, std::vector<KmerNode*>&);
     //float find_max_path_coverage(int, float, std::vector<KmerNode*>&);
