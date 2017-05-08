@@ -266,7 +266,9 @@ void KmerGraph::sort_topologically()
 float KmerGraph::prob(uint j)
 {
     float ret;
-    if (j==0 or j==nodes.size()-1 or nodes[j]->covg[0]+nodes[j]->covg[1] > num_reads)
+    if (j==0 or j==nodes.size()-1)
+    {    ret = num_reads*log(p) + lognchoosek(num_reads, (uint)num_reads/2) + num_reads*log(0.5);
+    } else if (nodes[j]->covg[0]+nodes[j]->covg[1] > num_reads)
     {
 	ret = num_reads*log(p) + lognchoosek(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0]) +
             num_reads*log(0.5); // note num_reads rather than covg1+covg2, or give disadvantaget to repeat kmers
@@ -368,7 +370,7 @@ float KmerGraph::find_max_path(float e_rate, vector<KmerNode*>& maxpath)
                 cout << j-1 << " path: " << nodes[j-1]->path << " consider outnode: " << nodes[j-1]->outNodes[i]->id << " which has M: " << M[nodes[j-1]->outNodes[i]->id] << " len: " << len[nodes[j-1]->outNodes[i]->id] << " and the current max_mean: " << max_mean << endl;
 	    }
 
-            if ((nodes[j-1]->outNodes[i]->id == nodes.size()-1 and M[nodes[j-1]->outNodes[i]->id] > max_mean + 0.000001) or 
+            if ((nodes[j-1]->outNodes[i]->id == nodes.size()-1 and prob(nodes[j-1]->outNodes[i]->id) > max_mean + 0.000001) or 
 		(M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean + 0.000001) or
                 (max_mean - M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] <= 0.000001 and len[nodes[j-1]->outNodes[i]->id] > max_len))
             {
