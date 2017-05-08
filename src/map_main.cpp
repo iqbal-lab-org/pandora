@@ -128,7 +128,7 @@ int pandora_map(int argc, char* argv[])
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
     Index *idx;
     idx = new Index();
-    idx->load(prgfile);
+    idx->load(prgfile, w, k);
     vector<LocalPRG*> prgs;
     read_prg_file(prgs, prgfile);
     load_PRG_kmergraphs(prgs, prgfile + ".k" + to_string(k) + ".w" + to_string(w));

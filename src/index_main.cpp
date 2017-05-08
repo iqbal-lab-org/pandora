@@ -90,7 +90,7 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
     index_prgs(prgs, idx, w, k);
 
     // save index
-    idx->save(prgfile);
+    idx->save(prgfile, w, k);
 
     // save kmergraphs
     for (uint i=0; i!=prgs.size(); ++i)

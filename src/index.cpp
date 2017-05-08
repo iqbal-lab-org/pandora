@@ -46,11 +46,11 @@ void Index::clear()
     }
 }
 
-void Index::save(const string& prgfile)
+void Index::save(const string& prgfile, uint32_t w, uint32_t k)
 {
     cout << now() << "Saving index" << endl;
     ofstream handle;
-    handle.open (prgfile + ".idx");
+    handle.open (prgfile + ".k" + to_string(k) + ".w" + to_string(w) + ".idx");
 
     handle << minhash.size() << endl;
 
@@ -69,7 +69,7 @@ void Index::save(const string& prgfile)
     return;
 }
 
-void Index::load(const string& prgfile)
+void Index::load(const string& prgfile, uint32_t w, uint32_t k)
 {
     cout << now() << "Loading index" << endl;
     //string line;
@@ -81,7 +81,7 @@ void Index::load(const string& prgfile)
     bool first = true;
     //vector<MiniRecord> vmr;
 
-    ifstream myfile (prgfile + ".idx");
+    ifstream myfile (prgfile + ".k" + to_string(k) + ".w" + to_string(w) + ".idx");
     if (myfile.is_open())
     {
 	while (myfile.good())
