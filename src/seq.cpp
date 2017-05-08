@@ -10,6 +10,8 @@
 #include "seq.h"
 #include "utils.h"
 
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
+
 using std::vector;
 using namespace std;
 
@@ -91,7 +93,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 		if (vm[i]->kmer == smallest)
 		{
 		    sketch.insert(vm[i]);
-		    //cout << "add minikmer: " << seq.substr(vm[i]->pos.start, k) << " " << *vm[i] << " as new smallest, since vm.size()==" << vm.size() << endl;
+		    //cout << "add minikmer for pos: " << vm[i]->pos.start << " " << *vm[i] << " as new smallest, since vm.size()==" << vm.size() << endl;
 		    num_minis_found += 1;
 		} else if (i < i_) 
 		{
@@ -104,10 +106,11 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 		vm.pop_front();
 	    }
 	    
+	    assert(vm.size() < w || assert_msg("we can't have added a smallest kmer correctly as vm still has size " << vm.size()));
 	} else if ( buff >= w+k-1 and vm.back()->kmer <= smallest)
 	{
 	    sketch.insert(vm.back());
-	    //cout << "add minikmer: " << seq.substr(vm.back()->pos.start, k) << " " << *vm.back() << " which is smaller than " << smallest << endl;
+	    //cout << "add minikmer for pos: " << vm.back()->pos.start << " " << *vm.back() << " which is smaller than " << smallest << endl;
 	    num_minis_found += 1;
 	    smallest = vm.back()->kmer;
 	    // delete all but the last kmer
@@ -121,6 +124,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 	if (buff == seq.length()-1)
         {
 	    // delete remaining elements of vm
+	    //cout << "we have reached final position " << buff << " and vm.size()==" << vm.size() << endl;
 	    for (i=0; i!=vm.size(); ++i)
             {
                 delete vm[i];
