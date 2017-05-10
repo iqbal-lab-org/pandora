@@ -55,14 +55,14 @@ def main():
 		# compare pandora sequence to ref
 		with open(pandora_files[0], 'r') as f:
 		    content = f.read().splitlines()
-		    output_file.write(content[0])
+		    output_file.write(content[0]+"\n")
 		    logging.debug("echo -e '%s\n%s' | ~/apps/cortex/scripts/analyse_variants/needleman_wunsch/needleman_wunsch --stdin --zam", seq1, content[1])
                     retvalue1 = subprocess.check_output("echo -e '%s\n%s' | ~/apps/cortex/scripts/analyse_variants/needleman_wunsch/needleman_wunsch --stdin --zam" %(seq1,content[1]), shell=True)
-		    sd1 = int(retvalue1.split('\n')[3].split()[0])+int(retvalue1.split('\n')[3].split()[1])
+		    sd1 = int(retvalue1.split('\n')[3].split()[0])#+int(retvalue1.split('\n')[3].split()[1])
                     seq = Seq(content[1])
 		    content[1] = seq.reverse_complement()
 		    retvalue2 = subprocess.check_output("echo -e '%s\n%s' | ~/apps/cortex/scripts/analyse_variants/needleman_wunsch/needleman_wunsch --stdin --zam" %(seq1,content[1]), shell=True)
-                    sd2 = int(retvalue2.split('\n')[3].split()[0])+int(retvalue2.split('\n')[3].split()[1])
+                    sd2 = int(retvalue2.split('\n')[3].split()[0])#+int(retvalue2.split('\n')[3].split()[1])
 		    if sd1 <= sd2:
 		        output_file.write(retvalue1)
 		    else:
