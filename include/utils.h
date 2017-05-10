@@ -25,7 +25,7 @@ std::string now();
 std::vector<std::string> split(const std::string&, const std::string&);
 char complement(char);
 std::string rev_complement(std::string);
-float lognchoosek (uint32_t n, uint32_t k);
+float lognchoosek2 (uint32_t, uint32_t, uint32_t);
 
 //probably should be moved to map_main.cpp
 void read_prg_file(std::vector<LocalPRG*>&, const std::string&);

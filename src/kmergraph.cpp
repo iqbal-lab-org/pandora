@@ -267,16 +267,16 @@ float KmerGraph::prob(uint j)
 {
     float ret;
     if (j==0 or j==nodes.size()-1)
-    {    ret = num_reads*log(p) + lognchoosek(num_reads, (uint)num_reads/2) + num_reads*log(0.5);
+    {    ret = 0; // is really undefined
     } else if (nodes[j]->covg[0]+nodes[j]->covg[1] > num_reads)
     {
-	ret = num_reads*log(p) + lognchoosek(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0]) +
-            num_reads*log(0.5); // note num_reads rather than covg1+covg2, or give disadvantaget to repeat kmers
+	// under model assumptions this can't happen, but it inevitably will, so bodge
+	ret = lognchoosek2(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0], nodes[j]->covg[1]) + (nodes[j]->covg[0]+nodes[j]->covg[1])*log(p/2);
+        // note this may give disadvantage to repeat kmers
 	//cout << "j: " << j << " special prob " << ret << " since has " << nodes[j]->covg[0] << " and " << nodes[j]->covg[1] << " hits" << endl;
     } else {
-        ret = lognchoosek(num_reads, nodes[j]->covg[0]+nodes[j]->covg[1]) + (nodes[j]->covg[0]+nodes[j]->covg[1])*log(p) + 
-		(num_reads-(nodes[j]->covg[0]+nodes[j]->covg[1]))*log(1-p) + lognchoosek(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0]) +
-		(nodes[j]->covg[0]+nodes[j]->covg[1])*log(0.5);
+        ret = lognchoosek2(num_reads, nodes[j]->covg[0], nodes[j]->covg[1]) + (nodes[j]->covg[0]+nodes[j]->covg[1])*log(p/2) + 
+		(num_reads-(nodes[j]->covg[0]+nodes[j]->covg[1]))*log(1-p);
         //cout << "j: " << j << " normal prob " << ret << " since has " << nodes[j]->covg[0] << " and " << nodes[j]->covg[1] << " hits" << endl;
 	//cout << lognchoosek(num_reads, nodes[j]->covg[0]+nodes[j]->covg[1]) << " + " << (nodes[j]->covg[0]+nodes[j]->covg[1]) << "*" <<log(p) << " + ";
         //cout << (num_reads-(nodes[j]->covg[0]+nodes[j]->covg[1])) << "*" << log(1-p) << " + " << lognchoosek(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0]);

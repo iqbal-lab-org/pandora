@@ -78,20 +78,24 @@ string rev_complement(string s)
     return s;
 }
 
-// note this function is to be replaced due to considering log probs
-float lognchoosek (uint32_t n, uint32_t k)
+float lognchoosek2 (uint32_t n, uint32_t k1, uint32_t k2)
 {
-    assert(n >= k || assert_msg("Currently the model assumes that the most a given kmer (defined by position) can occur is once per read, i.e. an error somewhere else in the read cannot result in this kmer. If you are getting this message, then you have evidence of violation of this assumption. Either try using a bigger k, or come up with a better model"));
+    assert(n >= k1+k2 || assert_msg("Currently the model assumes that the most a given kmer (defined by position) can occur is once per read, i.e. an error somewhere else in the read cannot result in this kmer. If you are getting this message, then you have evidence of violation of this assumption. Either try using a bigger k, or come up with a better model"));
     float total = 0;
 
-    for (uint m=n; m!=n-k; --m)
+    for (uint m=n; m!=n-k1-k2; --m)
     {
 	total += log(m);
     }
 
-    for (uint m=1; m<k; ++m)
+    for (uint m=1; m<k1; ++m)
     {
 	total -= log(m+1);
+    }
+
+    for (uint m=1; m<k2; ++m)
+    {
+        total -= log(m+1);
     }
 
     return total;
