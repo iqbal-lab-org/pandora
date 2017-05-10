@@ -365,7 +365,7 @@ float KmerGraph::find_max_path(float e_rate, vector<KmerNode*>& maxpath)
         {
 	    //cout << i << " ";
 
-	    if (M[nodes[j-1]->outNodes[i]->id] > -5)
+	    if (M[nodes[j-1]->outNodes[i]->id] > log(0.005))
 	    {
                 cout << j-1 << " path: " << nodes[j-1]->path << " consider outnode: " << nodes[j-1]->outNodes[i]->id << " which has M: " << M[nodes[j-1]->outNodes[i]->id] << " len: " << len[nodes[j-1]->outNodes[i]->id] << " and the current max_mean: " << max_mean << endl;
 	    }
@@ -413,7 +413,7 @@ void KmerGraph::save_covg_dist(const string& filepath)
 
     for (uint j=1; j!=nodes.size()-1; ++j)
     {
-        handle << nodes[j]->covg[0]+nodes[j]->covg[1] << " ";
+        handle << nodes[j]->covg[0] << "," << nodes[j]->covg[1] << " ";
     }
     handle.close();
     return;
