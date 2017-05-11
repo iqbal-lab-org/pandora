@@ -771,17 +771,12 @@ void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
     assert(added == true || assert_msg("could not find kmernode corresponding to " << *mh));
 }
 
-void LocalPRG::write_kmer_max_paths_to_fasta(const string& filepath, float e_rate)
+void LocalPRG::write_kmer_max_paths_to_fasta(const string& filepath, const vector<KmerNode*>& kmp, const float& ppath)
 {
     ofstream handle;
     handle.open (filepath);
 
-    vector<KmerNode*> kmp;
-    kmp.reserve(800);
-    float ppath;
     vector<LocalNode*> lmp;
-    
-    ppath = kmer_prg.find_max_path(e_rate, kmp);
     lmp = localnode_path_from_kmernode_path(kmp);
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath  << endl;
     for (uint j = 0; j!= lmp.size(); ++j)

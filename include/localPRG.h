@@ -46,7 +46,7 @@ class LocalPRG {
     std::vector<KmerNode*> find_kmernodes_on_localnode_path(std::vector<LocalNode*>&);
     void update_covg_with_hit(MinimizerHit*);
     std::vector<LocalNode*> localnode_path_from_kmernode_path(std::vector<KmerNode*>);
-    void write_kmer_max_paths_to_fasta(const std::string&, float);
+    void write_kmer_max_paths_to_fasta(const std::string&, const std::vector<KmerNode*>&, const float&);
 
   friend std::ostream& operator<< (std::ostream& out, const LocalPRG& data);  
 };
