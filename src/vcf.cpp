@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <cassert>
+#include <ctime>
 #include <vector>
 #include "vcfrecord.h"
 #include "vcf.h"
@@ -40,10 +41,22 @@ void VCF::clear()
 void VCF::save(const string& filepath)
 {
     cout << now() << "Saving VCF to " << filepath << endl;
+
+    // find date
+    time_t t = time(0);
+    char mbstr[10];
+    strftime(mbstr, sizeof(mbstr), "%d/%m/%y", localtime(&t));
+
+    // open and write header
     ofstream handle;
     handle.open (filepath);
 
     handle << "##fileformat=VCFv4.3" << endl;
+    handle << "##fileDate==" << mbstr << endl;
+    handle << "##ALT=<ID=SNP,Description=\"SNP\">" << endl;
+    handle << "##ALT=<ID=INDEL,Description=\"Insertion-deletion\">" << endl;
+    handle << "##ALT=<ID=COMPLEX,Description=\"Complex variant, collection of SNPs and indels\">" << endl;
+    handle << "##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of variant\">" << endl;
     handle << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO" << endl;
 
     sort(records.begin(), records.end()); // we need the records in order for it to be a valid vcf

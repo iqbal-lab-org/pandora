@@ -36,7 +36,7 @@ TEST_F(VCFRecordTest,create){
     EXPECT_EQ("T", vr.alt);
     EXPECT_EQ(".", vr.qual);
     EXPECT_EQ(".", vr.filter);
-    EXPECT_EQ(".", vr.info);
+    EXPECT_EQ("SVTYPE=SNP", vr.info);
 }
 
 TEST_F(VCFRecordTest,equals){
