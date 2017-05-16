@@ -16,6 +16,7 @@ class VCF {
     void clear();
     void save(const std::string&);
     void load(const std::string&);
+    bool operator == (const VCF& y) const;
 };
 
 #endif

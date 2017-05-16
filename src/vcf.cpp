@@ -44,13 +44,13 @@ void VCF::save(const string& filepath)
     handle.open (filepath);
 
     handle << "##fileformat=VCFv4.3" << endl;
-    handle << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT" << endl;
+    handle << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO" << endl;
 
     sort(records.begin(), records.end()); // we need the records in order for it to be a valid vcf
 
     for (uint i=0; i!=records.size(); ++i)
     {
-        handle << records[i] << endl;
+        handle << records[i];
     }
     handle.close();
     cout << now() << "Finished saving " << records.size() << " entries to file" << endl;
@@ -75,6 +75,7 @@ void VCF::load(const string& filepath)
             {
 		ss << line;
                 ss >> vr;
+		ss.clear();
 		add_record(vr);
 		added += 1;
 	    }
@@ -87,3 +88,14 @@ void VCF::load(const string& filepath)
     return;
 }
 
+bool VCF::operator == (const VCF& y) const {
+    if (records.size() != y.records.size()){return false;}
+    for (uint i=0; i!=y.records.size(); ++i)
+    {
+	if ( find(records.begin(), records.end(), y.records[i] ) == records.end())
+	{
+	    return false;
+	}
+    }
+    return true;
+}

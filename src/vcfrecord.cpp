@@ -56,7 +56,7 @@ std::istream& operator>> (std::istream& in, VCFRecord& m) {
     in >> m.filter;
     in.ignore(1,'\t');
     in >> m.info;
-    in.ignore(1,'\n');
+    //in.ignore(1,'\n');
     return in;
 }
 
