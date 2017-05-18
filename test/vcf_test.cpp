@@ -126,9 +126,9 @@ TEST_F(VCFTest,load){
 
     vcf1.load("../test/test_cases/vcf_test.vcf");
 
-    for(uint i=0; i!=vcf1.records.size(); ++i)
+    /*for(uint i=0; i!=vcf1.records.size(); ++i)
     {
         cout << vcf1.records[i];
-    }
+    }*/
     EXPECT_EQ(vcf == vcf1, true);
 }

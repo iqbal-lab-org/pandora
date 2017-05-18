@@ -134,7 +134,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
     }
     //cout << "num_minis_found " << num_minis_found << " and sketch size " << sketch.size() << endl;
     assert(num_minis_found == sketch.size());
-    cout << now() << "Sketch size " << sketch.size() << " for read " << name << endl;
+    //cout << now() << "Sketch size " << sketch.size() << " for read " << name << endl;
     return;
 }
 
