@@ -802,19 +802,12 @@ void LocalPRG::update_vcf(const vector<LocalNode*>& lmp)
     toppath.reserve(100);
     toppath.push_back(prg.nodes[0]);
 
-    uint lmp_range_start = 0, lmp_range_end = 0, pos=0;
+    uint lmp_range_start = 0, lmp_range_end = 0, pos=lmp[0]->pos.length;
     int level = 0;
     string vartype = ".", ref = "", alt = "";
 
-    if (toppath.back()->outNodes.size() > 1)
-    {
-        level += 1;
-    } else {
-	level -= 1;
-    }
-
     // do until we reach the end of the localPRG
-    while (toppath.back()->outNodes.size() > 0)
+    while (toppath.back()->outNodes.size() > 0 or toppath.size() > 1)
     {
         // first update the level we are at
         if (toppath.back()->outNodes.size() > 1)
@@ -880,8 +873,14 @@ void LocalPRG::update_vcf(const vector<LocalNode*>& lmp)
 	    vartype = ".";
 	}
 
-        // finally, extend the toppath
-        toppath.push_back(toppath.back()->outNodes[0]);
+        // finally, extend the toppath, or end
+        if (toppath.back()->outNodes.size() == 0)
+        {
+	    assert(toppath.size() <= 1);
+	    break;
+	} else {
+            toppath.push_back(toppath.back()->outNodes[0]);
+	}
     }
 
     return;

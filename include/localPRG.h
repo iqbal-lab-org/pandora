@@ -50,7 +50,6 @@ class LocalPRG {
     std::vector<LocalNode*> localnode_path_from_kmernode_path(std::vector<KmerNode*>);
     void write_max_path_to_fasta(const std::string&, const std::vector<LocalNode*>&, const float&);
     void update_vcf(const std::vector<LocalNode*>&);
-    void write_vcf(const std::string&);
     void find_path_and_variants(const std::string&, const float&);
 
   friend std::ostream& operator<< (std::ostream& out, const LocalPRG& data);  

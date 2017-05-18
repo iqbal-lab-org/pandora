@@ -700,6 +700,39 @@ TEST_F(LocalPRGTest, minimizerSketchSameAsSeqw15){
     }
 }
 
+TEST_F(LocalPRGTest, updateVcf)
+{
+    LocalPRG l1(1,"simple", "AGCT");
+    LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+
+    vector<LocalNode*> lmp1 = {l1.prg.nodes[0]};
+    l1.update_vcf(lmp1);
+    uint j = 0;
+    EXPECT_EQ(j, l1.vcf.records.size());
+
+    vector<LocalNode*> lmp2 = {l2.prg.nodes[0], l2.prg.nodes[2], l2.prg.nodes[3]};
+    l2.update_vcf(lmp2);
+    j = 1;
+    EXPECT_EQ(j, l2.vcf.records.size());
+    EXPECT_EQ("varsite", l2.vcf.records[0].chrom);
+    EXPECT_EQ(1, l2.vcf.records[0].pos);
+    EXPECT_EQ("GC", l2.vcf.records[0].ref);
+    EXPECT_EQ("G", l2.vcf.records[0].alt);
+    EXPECT_EQ("SVTYPE=INDEL", l2.vcf.records[0].info);
+    
+    vector<LocalNode*> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
+    l3.update_vcf(lmp3);
+    j = 1;
+    EXPECT_EQ(j, l3.vcf.records.size());
+    EXPECT_EQ("nested varsite", l3.vcf.records[0].chrom);
+    EXPECT_EQ(1, l3.vcf.records[0].pos);
+    EXPECT_EQ("GC", l3.vcf.records[0].ref);
+    EXPECT_EQ("GT", l3.vcf.records[0].alt);
+    EXPECT_EQ("SVTYPE=COMPLEX", l3.vcf.records[0].info);
+    
+}
+
 TEST_F(LocalPRGTest, updateCovgWithHit)
 {
 // do need a test for this, but function currently altered to only update on kmers, not for localnodes
@@ -866,7 +899,3 @@ TEST_F(LocalPRGTest, updateCovgWithHit)
     delete idx;
     delete pn;
 }*/
-
-TEST_F(LocalPRGTest, writeFasta)
-{
-}
