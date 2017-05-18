@@ -796,12 +796,95 @@ void LocalPRG::write_max_path_to_fasta(const string& filepath, const vector<Loca
 
 void LocalPRG::update_vcf(const vector<LocalNode*>& lmp)
 {
-    return;
-}
+    assert(prg.nodes.size()>0); //otherwise empty nodes -> segfault
 
-void LocalPRG::write_vcf(const string& filepath)
-{
-   return;
+    vector<LocalNode*> toppath;
+    toppath.reserve(100);
+    toppath.push_back(prg.nodes[0]);
+
+    uint lmp_range_start = 0, lmp_range_end = 0, pos=0;
+    int level = 0;
+    string vartype = ".", ref = "", alt = "";
+
+    if (toppath.back()->outNodes.size() > 1)
+    {
+        level += 1;
+    } else {
+	level -= 1;
+    }
+
+    // do until we reach the end of the localPRG
+    while (toppath.back()->outNodes.size() > 0)
+    {
+        // first update the level we are at
+        if (toppath.back()->outNodes.size() > 1)
+        {
+            level += 1;
+        } else {
+            level -= 1;
+        }
+        assert(level >= 0);
+
+        // update vartype if complex
+        if (level > 1)
+	{
+	    vartype = "SVTYPE=COMPLEX";
+	}
+
+        // next, if we are at level 0, then we have reached the end of a varsite
+        // so add it to the vcf
+        if (level == 0)
+	{
+	    // first find the range of the maxpath which corresponds to this varsite
+	    while (lmp[lmp_range_end]->id < toppath.back()->outNodes[0]->id)
+	    {
+		lmp_range_end += 1;
+            }
+	    assert(lmp[lmp_range_end]->id == toppath.back()->outNodes[0]->id);
+
+	    // define what type of variation this is
+	    if (vartype == ".")
+	    {
+		for (uint j=0; j!= toppath[0]->outNodes.size(); ++j)
+		{
+		    vartype = "SVTYPE=SNP";
+		    if (toppath[0]->outNodes[j]->pos.length != 1)
+		    {
+			vartype = "SVTYPE=INDEL";
+			break;
+		    }
+		}
+	    }
+
+	    // add to vcf
+	    for (uint j=1; j!= toppath.size(); ++j)
+	    {
+		ref += toppath[j]->seq;
+	    }
+	    for (uint j=lmp_range_start+1; j!= lmp_range_end; ++j)
+            {
+                alt += lmp[j]->seq;
+            }
+	    vcf.add_record(name, pos, ref, alt, vartype);
+
+	    // prepare variables for next increment
+	    for (uint j=lmp_range_start+1; j!= lmp_range_end+1; ++j)
+            {
+                pos += lmp[j]->pos.length;
+            }
+            lmp_range_start = lmp_range_end;
+	    toppath.clear();
+	    toppath.push_back(lmp[lmp_range_start]);
+	    ref = "";
+	    alt = "";
+	    vartype = ".";
+	}
+
+        // finally, extend the toppath
+        toppath.push_back(toppath.back()->outNodes[0]);
+    }
+
+    return;
 }
 
 void LocalPRG::find_path_and_variants(const string& prefix, const float& e_rate)
@@ -820,7 +903,7 @@ void LocalPRG::find_path_and_variants(const string& prefix, const float& e_rate)
     //kmer_prg.save_covg_dist(prefix + "_" + name + ".covg.txt");
 
     update_vcf(lmp);
-    write_vcf(prefix + "_" + name + ".vcf");
+    vcf.save(prefix + "_" + name + ".vcf");
     return;
 }
 

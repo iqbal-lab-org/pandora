@@ -16,9 +16,9 @@ VCF::~VCF() {
     clear();
 };
 
-void VCF::add_record(std::string c, uint32_t p, std::string r, std::string a)
+void VCF::add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i)
 {
-    VCFRecord vr(c, p, r, a);
+    VCFRecord vr(c, p, r, a, i);
     if ( find(records.begin(), records.end(), vr) == records.end())
     {
 	records.push_back(vr);

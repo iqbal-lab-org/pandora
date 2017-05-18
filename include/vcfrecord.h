@@ -16,7 +16,7 @@ struct VCFRecord
     std::string filter;
     std::string info;
 
-    VCFRecord(std::string, uint32_t, std::string, std::string);
+    VCFRecord(std::string, uint32_t, std::string, std::string, std::string i = ".");
     VCFRecord();
     ~VCFRecord();
     bool operator == (const VCFRecord& y) const;

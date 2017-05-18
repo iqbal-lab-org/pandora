@@ -11,7 +11,7 @@ class VCF {
     std::vector<VCFRecord> records;
     VCF();
     ~VCF();
-    void add_record(std::string c, uint32_t p, std::string r, std::string a);
+    void add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i=".");
     void add_record(VCFRecord&);
     void clear();
     void save(const std::string&);
