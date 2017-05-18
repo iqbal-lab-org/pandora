@@ -14,6 +14,7 @@
 #include "minihits.h"
 #include "pannode.h"
 #include "kmergraph.h"
+#include "vcf.h"
 
 class LocalNode;
 class PanNode;
@@ -29,6 +30,7 @@ class LocalPRG {
     std::string seq;
     LocalGraph prg;
     KmerGraph kmer_prg;
+    VCF vcf;
     std::vector<uint32_t> num_hits;
 
     LocalPRG(uint32_t, std::string, std::string);
@@ -46,7 +48,10 @@ class LocalPRG {
     std::vector<KmerNode*> find_kmernodes_on_localnode_path(std::vector<LocalNode*>&);
     void update_covg_with_hit(MinimizerHit*);
     std::vector<LocalNode*> localnode_path_from_kmernode_path(std::vector<KmerNode*>);
-    void write_kmer_max_paths_to_fasta(const std::string&, const std::vector<KmerNode*>&, const float&);
+    void write_max_path_to_fasta(const std::string&, const std::vector<LocalNode*>&, const float&);
+    void update_vcf(const std::vector<LocalNode*>&);
+    void write_vcf(const std::string&);
+    void find_path_and_variants(const std::string&, const float&);
 
   friend std::ostream& operator<< (std::ostream& out, const LocalPRG& data);  
 };

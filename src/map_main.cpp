@@ -150,17 +150,9 @@ int pandora_map(int argc, char* argv[])
     pangraph->write_gfa(prefix + "_pangraph.gfa");
 
     cout << now() << "Writing maximally likely paths to files:" << endl;
-    vector<KmerNode*> kmp;
-    kmp.reserve(800);
-    float ppath;
     for (auto c: pangraph->nodes)
     {
-	cout << "\t\t" << prefix << "_" << prgs[c.second->id]->name << "_kmlp.fasta" << endl;    
-	kmp.clear();
-	ppath = prgs[c.second->id]->kmer_prg.find_max_path(e_rate, kmp);
-	prgs[c.second->id]->write_kmer_max_paths_to_fasta(prefix + "_" + prgs[c.second->id]->name + "_kmlp.fasta", kmp, ppath);
-	prgs[c.second->id]->kmer_prg.save(prefix + "_" + prgs[c.second->id]->name + ".kg.gfa");
-	prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "_" + prgs[c.second->id]->name + ".covg.txt");
+	prgs[c.second->id]->find_path_and_variants(prefix, e_rate);
     }
 
     cout << now() << "Writing LocalGraphs to files:" << endl;	

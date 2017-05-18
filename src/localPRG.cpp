@@ -20,6 +20,7 @@
 #include "inthash.h"
 #include "pannode.h"
 #include "utils.h"
+#include "vcf.h"
 #include "errormessages.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
@@ -771,13 +772,11 @@ void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
     assert(added == true || assert_msg("could not find kmernode corresponding to " << *mh));
 }
 
-void LocalPRG::write_kmer_max_paths_to_fasta(const string& filepath, const vector<KmerNode*>& kmp, const float& ppath)
+void LocalPRG::write_max_path_to_fasta(const string& filepath, const vector<LocalNode*>& lmp, const float& ppath)
 {
     ofstream handle;
     handle.open (filepath);
 
-    vector<LocalNode*> lmp;
-    lmp = localnode_path_from_kmernode_path(kmp);
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath  << endl;
     for (uint j = 0; j!= lmp.size(); ++j)
     {
@@ -785,18 +784,43 @@ void LocalPRG::write_kmer_max_paths_to_fasta(const string& filepath, const vecto
     }
     handle << endl;
 
-    /*cout << now() << "find kmer max paths for reverse complement direction" << endl;
-    kmp_b.clear();
-    ppath_b = kmer_prg.find_max_path(0, e_rate, kmp_b);
-    lmp = localnode_path_from_kmernode_path(kmp_b);
-    handle << ">" << name << ".rc" << "\tlog P(data|sequence)=" << ppath_b << endl;
-    for (uint j = lmp.size(); j!= 0; --j)
+    /*for (uint j = lmp.size(); j!= 0; --j)
     {
         handle << rev_complement(lmp[j-1]->seq);
     }
     handle << endl;*/
 
     handle.close();
+    return;
+}
+
+void LocalPRG::update_vcf(const vector<LocalNode*>& lmp)
+{
+    return;
+}
+
+void LocalPRG::write_vcf(const string& filepath)
+{
+   return;
+}
+
+void LocalPRG::find_path_and_variants(const string& prefix, const float& e_rate)
+{
+    vector<KmerNode*> kmp;
+    kmp.reserve(800);
+    vector<LocalNode*> lmp;
+    lmp.reserve(100);
+    float ppath;
+
+    ppath = kmer_prg.find_max_path(e_rate, kmp);
+    lmp = localnode_path_from_kmernode_path(kmp);
+
+    write_max_path_to_fasta(prefix + "_" + name + "_kmlp.fasta", lmp, ppath);
+    //kmer_prg.save(prefix + "_" + name + ".kg.gfa");
+    //kmer_prg.save_covg_dist(prefix + "_" + name + ".covg.txt");
+
+    update_vcf(lmp);
+    write_vcf(prefix + "_" + name + ".vcf");
     return;
 }
 
