@@ -79,11 +79,14 @@ TEST_F(IndexTest, save){
     idx.add_record(min(kh.first,kh.second), 2, p,0);
     kh = hash.kmerhash("ACGTA",5);
     idx.add_record(min(kh.first, kh.second), 4, p,0);
-    idx.save("indextext", 1, 5);
+    idx.save("test/indextext", 1, 5);
+    ASSERT_TRUE(fopen("test/indextext.k5.w1.idx", "r") != NULL)
 }
 
 TEST_F(IndexTest, load){
+    cout << "load indexes" << endl;
     Index idx1, idx2;
+    cout << "defining variables" << endl;
     KmerHash hash;
     deque<Interval> d = {Interval(3,5), Interval(9,12)};
     Path p;
@@ -94,7 +97,9 @@ TEST_F(IndexTest, load){
     idx1.add_record(min(kh2.first,kh2.second), 2, p,0);
     idx1.add_record(min(kh1.first, kh1.second), 4, p,0);
     
-    idx2.load("indextext", 1, 5);
+    cout << "load" << endl;
+    idx2.load("test/indextext", 1, 5);
+    cout << "compare" << endl;
     EXPECT_EQ(idx1.minhash.size(), idx2.minhash.size());
     EXPECT_EQ(idx1.minhash[min(kh1.first, kh1.second)]->size(), idx2.minhash[min(kh1.first, kh1.second)]->size());
     EXPECT_EQ(idx1.minhash[min(kh2.first, kh2.second)]->size(), idx2.minhash[min(kh2.first, kh2.second)]->size());
