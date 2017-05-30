@@ -1,12 +1,11 @@
 language: cpp
 
-os:
-  - linux
-  - osx
-
-compiler: 
- - g++
- - clang
+matrix:
+  include:
+    - os: linux
+      compiler: g++
+    - os: osx
+      compiler: clang
 
 before_install:
  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
