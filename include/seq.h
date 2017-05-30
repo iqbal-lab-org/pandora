@@ -7,7 +7,7 @@
 #include "minimizer.h"
 
 class Seq {
-    unsigned char seq_nt4_table[256];
+    //unsigned char seq_nt4_table[256];
   public:
     uint32_t id;
     std::string name;

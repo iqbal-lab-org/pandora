@@ -2,7 +2,7 @@
 #define __PANGRAPH_H_INCLUDED__
 
 class PanNode;
-class MinimizerHit;
+struct MinimizerHit;
 
 #include <cstring>
 #include <map>
