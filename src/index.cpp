@@ -72,6 +72,7 @@ void Index::save(const string& prgfile, uint32_t w, uint32_t k)
 void Index::load(const string& prgfile, uint32_t w, uint32_t k)
 {
     cout << now() << "Loading index" << endl;
+    cout << now() << "File is " << prgfile << ".k" << to_string(k) << ".w" << to_string(w) << ".idx" << endl;
     //string line;
     //vector<string> vstring;
     uint32_t key;

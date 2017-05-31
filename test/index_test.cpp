@@ -79,8 +79,8 @@ TEST_F(IndexTest, save){
     idx.add_record(min(kh.first,kh.second), 2, p,0);
     kh = hash.kmerhash("ACGTA",5);
     idx.add_record(min(kh.first, kh.second), 4, p,0);
-    idx.save("test/indextext", 1, 5);
-    ASSERT_TRUE(fopen("test/indextext.k5.w1.idx", "r") != NULL)
+    idx.save("indextext", 1, 5);
+    ASSERT_TRUE(fopen("indextext.k5.w1.idx", "r") != NULL);
 }
 
 TEST_F(IndexTest, load){
@@ -98,7 +98,7 @@ TEST_F(IndexTest, load){
     idx1.add_record(min(kh1.first, kh1.second), 4, p,0);
     
     cout << "load" << endl;
-    idx2.load("test/indextext", 1, 5);
+    idx2.load("indextext", 1, 5);
     cout << "compare" << endl;
     EXPECT_EQ(idx1.minhash.size(), idx2.minhash.size());
     EXPECT_EQ(idx1.minhash[min(kh1.first, kh1.second)]->size(), idx2.minhash[min(kh1.first, kh1.second)]->size());
