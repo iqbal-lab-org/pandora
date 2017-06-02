@@ -9,10 +9,12 @@
 class VCF {
   public:
     std::vector<VCFRecord> records;
+    std::vector<std::string> samples;
     VCF();
     ~VCF();
-    void add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i=".");
+    void add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i=".", std::string g="");
     void add_record(VCFRecord&);
+    void add_sample_gt(std::string c, uint32_t p, std::string r, std::string a);
     void clear();
     void save(const std::string&);
     void load(const std::string&);

@@ -16,12 +16,13 @@ VCF::~VCF() {
     clear();
 };
 
-void VCF::add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i)
+void VCF::add_record(string c, uint32_t p, string r, string a, string i, string g)
 {
-    VCFRecord vr(c, p, r, a, i);
+    VCFRecord vr(c, p, r, a, i, g);
     if ( find(records.begin(), records.end(), vr) == records.end())
     {
 	records.push_back(vr);
+	records.back().samples.insert(records.back().samples.end(), samples.size(), ".");
     }
 }
 
@@ -30,7 +31,46 @@ void VCF::add_record(VCFRecord& vr)
     if ( find(records.begin(), records.end(), vr) == records.end())
     {
         records.push_back(vr);
+	records.back().samples.insert(records.back().samples.end(), samples.size(), ".");
     }
+}
+
+void VCF::add_sample_gt(std::string c, uint32_t p, std::string r, std::string a)
+{
+    string name = "sample";
+
+    // if this sample has not been added before, add a column for it
+    if (find(samples.begin(), samples.end(), name) == samples.end())
+    {
+	for (uint i=0; i!=records.size(); ++i)
+	{
+	    records[i].samples.push_back(".");
+	}
+    }
+
+    VCFRecord vr(c, p, r, a);
+    vector<VCFRecord>::iterator it = find(records.begin(), records.end(), vr);
+    if (it != records.end())
+    {
+	it->samples[0] = "0/1";
+    } else {
+	// either we have the ref allele, or a mistake
+	bool added = false;
+	for (uint i=0; i!=records.size(); ++i)
+	{
+	    if (records[i].pos == p)
+	    {
+		assert(records[i].ref == r);
+		records[i].samples[0] = "1/0";	
+		added = true;
+	    } else if (records[i].pos > p) {
+		break;
+	    }
+	}
+	assert(added == true);
+    }
+
+    return;
 }
 
 void VCF::clear()
@@ -54,6 +94,7 @@ void VCF::save(const string& filepath)
     handle << "##fileformat=VCFv4.3" << endl;
     handle << "##fileDate==" << mbstr << endl;
     handle << "##ALT=<ID=SNP,Description=\"SNP\">" << endl;
+    handle << "##ALT=<ID=PH_SNPs,Description=\"Phased SNPs\">" << endl;
     handle << "##ALT=<ID=INDEL,Description=\"Insertion-deletion\">" << endl;
     handle << "##ALT=<ID=COMPLEX,Description=\"Complex variant, collection of SNPs and indels\">" << endl;
     handle << "##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of variant\">" << endl;

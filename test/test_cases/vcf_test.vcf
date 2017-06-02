@@ -1,6 +1,7 @@
 ##fileformat=VCFv4.3
-##fileDate==18/05/17
+##fileDate==02/06/17
 ##ALT=<ID=SNP,Description="SNP">
+##ALT=<ID=PH_SNPs,Description="Phased SNPs">
 ##ALT=<ID=INDEL,Description="Insertion-deletion">
 ##ALT=<ID=COMPLEX,Description="Complex variant, collection of SNPs and indels">
 ##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of variant">

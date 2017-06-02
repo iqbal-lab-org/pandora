@@ -8,7 +8,7 @@ struct VCFRecord
 {
     //#CHROM POS ID REF ALT QUAL FILTER INFO FORMAT
     std::string chrom;
-    int32_t pos;
+    uint32_t pos;
     std::string id;
     std::string ref;
     std::string alt;
@@ -17,7 +17,7 @@ struct VCFRecord
     std::string info;
     std::vector<std::string> samples;
 
-    VCFRecord(std::string, uint32_t, std::string, std::string, std::string i = ".");
+    VCFRecord(std::string, uint32_t, std::string, std::string, std::string i = ".", std::string g = "");
     VCFRecord();
     ~VCFRecord();
     bool operator == (const VCFRecord& y) const;
