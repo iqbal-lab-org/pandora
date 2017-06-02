@@ -860,7 +860,6 @@ void LocalPRG::build_vcf()
 	}
 
         // define ref sequence
-	cout << "define ref seq" << endl;
         for (uint j=1; j< toppath.size(); ++j)
         {
             ref += toppath[j]->seq;
@@ -911,6 +910,12 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
     uint lmp_range_start = 0, lmp_range_end = 0, pos=lmp[0]->pos.length;
     int level = 0;
     string ref = "", alt = "";
+
+    // if prg has only one node, simple case
+    if(prg.nodes.size() == 1)
+    {
+	vcf.samples.push_back("sample");
+    }
 
     // do until we reach the end of the localPRG
     while (toppath.back()->outNodes.size() > 0 or toppath.size() > 1)

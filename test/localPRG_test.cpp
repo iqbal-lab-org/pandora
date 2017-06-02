@@ -707,15 +707,11 @@ TEST_F(LocalPRGTest, buildVcf)
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
     LocalPRG l4(4, "small real PRG", "ATGACAAAACGAAGTGGAAGTAATACGCGCAGGCGGGCTATCAGTCGCCCTGTTCGTCTGACGGCAGAAGAAGACCAGGAAATCAGAAAAAGGGCTGCTGAATGCGGCAAGACCGTTTC 5 T 6 C 5 GGTTTTTTACGGGCGGCAGCTCTCGGTAAGAAAGTTAA 7 TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG 8 CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA 7 CAGAAAAAACTCTTTATCGACGGCAAGCGTGTCGGGGACAG 9 A 10 G 9 GAGTATGCGGAGGTGCTGAT 11 A 12 C 11 GCTATTACGGAGTATCACCG 13 G 14 T 13 GCCCTGTTATCCAGGCTTATGGCAGATTAG");
 
-    //vector<LocalNode*> lmp1 = {l1.prg.nodes[0]};
-    //l1.update_vcf(lmp1);
     l1.build_vcf();
     uint j = 0;
     EXPECT_EQ(j, l1.vcf.records.size());
     EXPECT_EQ(j, l1.vcf.samples.size());
 
-    //vector<LocalNode*> lmp2 = {l2.prg.nodes[0], l2.prg.nodes[2], l2.prg.nodes[3]};
-    //l2.update_vcf(lmp2);
     l2.build_vcf();
     j = 1;
     EXPECT_EQ(j, l2.vcf.records.size());
@@ -725,8 +721,6 @@ TEST_F(LocalPRGTest, buildVcf)
     EXPECT_EQ("G", l2.vcf.records[0].alt);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", l2.vcf.records[0].info);
     
-    //vector<LocalNode*> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
-    //l3.update_vcf(lmp3);
     l3.build_vcf();
     j = 2;
     EXPECT_EQ(j, l3.vcf.records.size());
@@ -740,8 +734,6 @@ TEST_F(LocalPRGTest, buildVcf)
     EXPECT_EQ("GT", l3.vcf.records[1].alt);
     EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=COMPLEX", l3.vcf.records[1].info);    
 
-    //vector<LocalNode*> lmp4 = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[5], l4.prg.nodes[6], l4.prg.nodes[8], l4.prg.nodes[9], l4.prg.nodes[10], l4.prg.nodes[12], l4.prg.nodes[13], l4.prg.nodes[15]};
-    //l4.update_vcf(lmp4);
     l4.build_vcf();
     j = 5;
     EXPECT_EQ(j, l4.vcf.records.size());
@@ -770,6 +762,50 @@ TEST_F(LocalPRGTest, buildVcf)
     EXPECT_EQ("G", l4.vcf.records[4].ref);
     EXPECT_EQ("T", l4.vcf.records[4].alt);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", l4.vcf.records[4].info);
+}
+
+TEST_F(LocalPRGTest, add_sample_to_vcf)
+{
+    LocalPRG l1(1,"simple", "AGCT");
+    LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+    LocalPRG l4(4, "small real PRG", "ATGACAAAACGAAGTGGAAGTAATACGCGCAGGCGGGCTATCAGTCGCCCTGTTCGTCTGACGGCAGAAGAAGACCAGGAAATCAGAAAAAGGGCTGCTGAATGCGGCAAGACCGTTTC 5 T 6 C 5 GGTTTTTTACGGGCGGCAGCTCTCGGTAAGAAAGTTAA 7 TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG 8 CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA 7 CAGAAAAAACTCTTTATCGACGGCAAGCGTGTCGGGGACAG 9 A 10 G 9 GAGTATGCGGAGGTGCTGAT 11 A 12 C 11 GCTATTACGGAGTATCACCG 13 G 14 T 13 GCCCTGTTATCCAGGCTTATGGCAGATTAG");
+
+    vector<LocalNode*> lmp1 = {l1.prg.nodes[0]};
+    l1.build_vcf();
+    l1.add_sample_to_vcf(lmp1);
+    uint j = 1;
+    EXPECT_EQ(j, l1.vcf.samples.size());
+
+    vector<LocalNode*> lmp2 = {l2.prg.nodes[0], l2.prg.nodes[2], l2.prg.nodes[3]};
+    l2.build_vcf();
+    l2.add_sample_to_vcf(lmp2);
+    j = 1;
+    EXPECT_EQ(j, l2.vcf.samples.size());
+    EXPECT_EQ(j, l2.vcf.records[0].samples.size());
+    EXPECT_EQ("0/1", l2.vcf.records[0].samples[0]);
+
+    vector<LocalNode*> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
+    l3.build_vcf();
+    l3.add_sample_to_vcf(lmp3);
+    EXPECT_EQ(j, l3.vcf.samples.size());
+    EXPECT_EQ(j, l3.vcf.records[0].samples.size());
+    EXPECT_EQ("0/1", l3.vcf.records[1].samples[0]);
+
+    vector<LocalNode*> lmp4 = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[5], l4.prg.nodes[6], l4.prg.nodes[8], l4.prg.nodes[9], l4.prg.nodes[10], l4.prg.nodes[12], l4.prg.nodes[13], l4.prg.nodes[15]};
+    l4.build_vcf();
+    l4.add_sample_to_vcf(lmp4);
+    EXPECT_EQ(j, l4.vcf.samples.size());
+    EXPECT_EQ(j, l4.vcf.records[0].samples.size());
+    EXPECT_EQ("1/0", l4.vcf.records[0].samples[0]);
+    EXPECT_EQ(j, l4.vcf.records[1].samples.size());
+    EXPECT_EQ("0/1", l4.vcf.records[1].samples[0]);
+    EXPECT_EQ(j, l4.vcf.records[2].samples.size());
+    EXPECT_EQ("0/1", l4.vcf.records[2].samples[0]);
+    EXPECT_EQ(j, l4.vcf.records[3].samples.size());
+    EXPECT_EQ("1/0", l4.vcf.records[3].samples[0]);
+    EXPECT_EQ(j, l4.vcf.records[4].samples.size());
+    EXPECT_EQ("1/0", l4.vcf.records[4].samples[0]);
 }
 
 TEST_F(LocalPRGTest, updateCovgWithHit)

@@ -42,20 +42,21 @@ void VCF::add_sample_gt(std::string c, uint32_t p, std::string r, std::string a)
     // if this sample has not been added before, add a column for it
     if (find(samples.begin(), samples.end(), name) == samples.end())
     {
+	samples.push_back(name);
 	for (uint i=0; i!=records.size(); ++i)
 	{
 	    records[i].samples.push_back(".");
 	}
     }
 
-    VCFRecord vr(c, p, r, a);
+    VCFRecord vr(c, p, r, a);        
+    bool added = false;
     vector<VCFRecord>::iterator it = find(records.begin(), records.end(), vr);
     if (it != records.end())
     {
 	it->samples[0] = "0/1";
     } else {
 	// either we have the ref allele, or a mistake
-	bool added = false;
 	for (uint i=0; i!=records.size(); ++i)
 	{
 	    if (records[i].pos == p)
