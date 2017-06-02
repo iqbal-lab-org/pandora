@@ -15,6 +15,7 @@ struct VCFRecord
     std::string qual;
     std::string filter;
     std::string info;
+    std::vector<std::string> samples;
 
     VCFRecord(std::string, uint32_t, std::string, std::string, std::string i = ".");
     VCFRecord();

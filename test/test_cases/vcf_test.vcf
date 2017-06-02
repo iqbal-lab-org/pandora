@@ -1,0 +1,10 @@
+##fileformat=VCFv4.3
+##fileDate==18/05/17
+##ALT=<ID=SNP,Description="SNP">
+##ALT=<ID=INDEL,Description="Insertion-deletion">
+##ALT=<ID=COMPLEX,Description="Complex variant, collection of SNPs and indels">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of variant">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chrom1	5	.	A	G	.	.	SVTYPE=SNP
+chrom1	46	.	T	TA	.	.	SVTYPE=INDEL
+chrom1	79	.	C	G	.	.	SVTYPE=SNP

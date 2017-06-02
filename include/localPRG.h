@@ -49,6 +49,7 @@ class LocalPRG {
     void update_covg_with_hit(MinimizerHit*);
     std::vector<LocalNode*> localnode_path_from_kmernode_path(std::vector<KmerNode*>);
     void write_max_path_to_fasta(const std::string&, const std::vector<LocalNode*>&, const float&);
+    void build_vcf();
     void update_vcf(const std::vector<LocalNode*>&);
     void find_path_and_variants(const std::string&, const float&);
 

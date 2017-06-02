@@ -794,8 +794,125 @@ void LocalPRG::write_max_path_to_fasta(const string& filepath, const vector<Loca
     return;
 }
 
+void LocalPRG::build_vcf()
+{
+    cout << "start build vcf" << endl;
+    assert(prg.nodes.size()>0); //otherwise empty nodes -> segfault
+
+    vector<LocalNode*> toppath, varpath;
+    varpath.reserve(100);
+    toppath.reserve(100);
+    toppath.push_back(prg.nodes[0]);
+
+    deque<vector<LocalNode*>> paths;
+    paths.reserve(100);
+    paths.push_back(toppath);
+
+    vector<vector<LocalNode*>> alts;
+    alts.reserve(100);
+
+    int level = 0;
+    uint pos=prg.nodes[0]->pos.length;
+    string vartype = ".", ref = "", alt = "";
+
+    // do until we reach the end of the localPRG
+    while (toppath.back()->outNodes.size() > 0 or toppath.size() > 1)
+    {
+	// extend the top path until level 0 is reached again
+	while(level>0 or toppath.size() == 1)
+	{
+            // first update the level we are at
+            if (toppath.back()->outNodes.size() > 1)
+            {
+                level += 1;
+            } else {
+                level -= 1;
+            }
+            cout << "new level " << level << endl;
+            assert(level >= 0);
+
+            // update vartype if complex
+            if (level > 1)
+            {
+                vartype = "SVTYPE=COMPLEX";
+            }
+
+	    //extend if necessary
+	    toppath.push_back(toppath.back()->outNodes[0]);
+	}
+
+    	// next collect all the alts
+	while(paths.size() > 0)
+	{
+	    varpath = paths[0];
+	    paths.pop_front();
+		
+	    if (varpath.back()->outNodes[0]->id == toppath.back()->outNodes[0]->id)
+	    {
+		alts.push_back(varpath);
+	    } else {
+		for (uint j=0; j!=varpath.back()->outNodes.size(); ++j)
+		{
+		    paths.push_back(varpath);
+		    paths.back().push_back(varpath.back()->outNodes[j]);
+		}
+	    }
+	}
+
+	// update what type of variation this is
+        if (vartype == ".")
+        {
+            for (uint j=0; j!= toppath[0]->outNodes.size(); ++j)
+            {
+                vartype = "SVTYPE=SNP";
+                if (toppath[0]->outNodes[j]->pos.length != 1)
+                {
+                    vartype = "SVTYPE=INDEL";
+                    break;
+                }
+            }
+        }
+
+        // define ref sequence
+        for (uint j=1; j< toppath.size(); ++j)
+        {
+            ref += toppath[j]->seq;
+        }
+
+        // add each alt to the vcf
+	for (uint i=1; i<paths.size(); ++i)
+	{
+	    for (uint j=1; j<paths[i].size(); ++j)
+	    {
+		alt += paths[i][j]->seq;
+	    }
+
+            vcf.add_record(name, pos, ref, alt, vartype);
+
+	    alt = "";
+	}
+
+	// clear up
+        if (toppath.back()->outNodes.size() == 0)
+        {
+            break;
+        } else {
+	    pos += ref.length() + toppath.back()->outNodes[0]->pos.length;
+    	    vartype = ".";
+    	    ref = "";
+       	    alt = "";
+	    toppath.clear()
+	    toppath.push_back(alts[0].back()->outNodes[0]);
+	    alts.clear();
+	    alts.push_back(toppath);
+	}
+    }
+    return;
+}
+
 void LocalPRG::update_vcf(const vector<LocalNode*>& lmp)
 {
+    cout << "start update vcf" << endl;
     assert(prg.nodes.size()>0); //otherwise empty nodes -> segfault
 
     vector<LocalNode*> toppath;
@@ -809,6 +926,13 @@ void LocalPRG::update_vcf(const vector<LocalNode*>& lmp)
     // do until we reach the end of the localPRG
     while (toppath.back()->outNodes.size() > 0 or toppath.size() > 1)
     {
+	cout << "level " << level << endl;
+	for (uint j=0; j!= toppath.size(); ++j)
+	{
+	    cout << toppath[j]->id << " ";
+	}
+	cout << endl;
+
         // first update the level we are at
         if (toppath.back()->outNodes.size() > 1)
         {
@@ -816,6 +940,7 @@ void LocalPRG::update_vcf(const vector<LocalNode*>& lmp)
         } else {
             level -= 1;
         }
+	cout << "new level " << level << endl;
         assert(level >= 0);
 
         // update vartype if complex
@@ -828,13 +953,20 @@ void LocalPRG::update_vcf(const vector<LocalNode*>& lmp)
         // so add it to the vcf
         if (level == 0)
 	{
+	    cout << "add new variant site" << endl;
 	    // first find the range of the maxpath which corresponds to this varsite
+	    assert(toppath.size() > 0 || assert_msg("toppath has size " << toppath.size() << " when it should have entries!"));
+	    assert(toppath.back()->outNodes.size() > 0 || assert_msg("node " << toppath.back()->id << " has no outnodes!"));
+	    assert(lmp_range_end < lmp.size() || assert_msg("lmp_range_end = " << lmp_range_end << " but lmp.size() = " << lmp.size() << " which should be bigger"));
+	    assert(lmp[lmp_range_end]->id < toppath.back()->outNodes[0]->id || assert_msg("lmp[lmp_range_end]->id " << lmp[lmp_range_end]->id << " should be less than toppath.back()->outNodes[0]->id " << toppath.back()->outNodes[0]->id));
 	    while (lmp[lmp_range_end]->id < toppath.back()->outNodes[0]->id)
 	    {
-		lmp_range_end += 1;
+		cout << "lmp_range_end = " << lmp_range_end << " has id " << lmp[lmp_range_end]->id << " and lmp.size() = " << lmp.size() << " while toppath.back()->outNodes[0]->id = " << toppath.back()->outNodes[0]->id << endl;
+                lmp_range_end += 1;
+		cout << "e" << endl;
             }
+	    cout << "f" << endl;
 	    assert(lmp[lmp_range_end]->id == toppath.back()->outNodes[0]->id);
-
 	    // define what type of variation this is
 	    if (vartype == ".")
 	    {
@@ -850,31 +982,37 @@ void LocalPRG::update_vcf(const vector<LocalNode*>& lmp)
 	    }
 
 	    // add to vcf
-	    for (uint j=1; j!= toppath.size(); ++j)
+	    for (uint j=1; j< toppath.size(); ++j)
 	    {
 		ref += toppath[j]->seq;
 	    }
-	    for (uint j=lmp_range_start+1; j!= lmp_range_end; ++j)
+
+	    for (uint j=lmp_range_start+1; j< lmp_range_end; ++j)
             {
                 alt += lmp[j]->seq;
             }
+
 	    vcf.add_record(name, pos, ref, alt, vartype);
 
 	    // prepare variables for next increment
-	    for (uint j=lmp_range_start+1; j!= lmp_range_end+1; ++j)
+	    assert(lmp_range_end+1 <= lmp.size() || assert_msg("lmp_range_end+1 = " << lmp_range_end+1 << " but lmp.size() = " << lmp.size() << " which is bigger"));
+	    for (uint j=lmp_range_start+1; j < lmp_range_end+1; ++j)
             {
                 pos += lmp[j]->pos.length;
             }
+
             lmp_range_start = lmp_range_end;
 	    toppath.clear();
-	    toppath.push_back(lmp[lmp_range_start]);
 	    ref = "";
 	    alt = "";
 	    vartype = ".";
 	}
 
         // finally, extend the toppath, or end
-        if (toppath.back()->outNodes.size() == 0)
+        if (toppath.size() == 0)
+	{
+	    toppath.push_back(lmp[lmp_range_start]);
+	} else if (toppath.back()->outNodes.size() == 0)
         {
 	    assert(toppath.size() <= 1);
 	    break;
