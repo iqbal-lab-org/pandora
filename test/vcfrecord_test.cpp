@@ -20,7 +20,7 @@ TEST_F(VCFRecordTest,create){
 
     VCFRecord vr;
     EXPECT_EQ(".", vr.chrom);
-    EXPECT_EQ(0, vr.pos);
+    EXPECT_EQ((uint)0, vr.pos);
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ(".", vr.ref);
     EXPECT_EQ(".", vr.alt);
@@ -30,7 +30,7 @@ TEST_F(VCFRecordTest,create){
 
     vr = VCFRecord("chrom1", 3, "A", "T");
     EXPECT_EQ("chrom1", vr.chrom);
-    EXPECT_EQ(3, vr.pos);
+    EXPECT_EQ((uint)3, vr.pos);
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ("A", vr.ref);
     EXPECT_EQ("T", vr.alt);

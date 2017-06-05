@@ -59,7 +59,12 @@ bool VCFRecord::operator <  (const VCFRecord& y) const {
 
 
 std::ostream& operator<< (std::ostream& out, VCFRecord const& m) {
-    out << m.chrom << "\t" << m.pos << "\t" << m.id << "\t" << m.ref << "\t" << m.alt << "\t" << m.qual << "\t" << m.filter << "\t" << m.info << endl;
+    out << m.chrom << "\t" << m.pos << "\t" << m.id << "\t" << m.ref << "\t" << m.alt << "\t" << m.qual << "\t" << m.filter << "\t" << m.info << "\t" << m.format;
+    for (uint i=0; i!=m.samples.size(); ++i)
+    {
+	out << "\t" << m.samples[i];
+    }
+    out << endl;
     return out;
 }
 
@@ -79,7 +84,13 @@ std::istream& operator>> (std::istream& in, VCFRecord& m) {
     in >> m.filter;
     in.ignore(1,'\t');
     in >> m.info;
-    //in.ignore(1,'\n');
+    in.ignore(1,'\t');
+    in >> m.format;
+    string token;
+    while (in >> token)
+    {
+	m.samples.push_back(token);
+    }
     return in;
 }
 

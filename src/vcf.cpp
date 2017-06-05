@@ -79,7 +79,9 @@ void VCF::clear()
     records.clear();
 }
 
-void VCF::save(const string& filepath)
+// NB in the absence of filter flags being set to true, all results are saved. If one or more filter flags for SVTYPE are set, 
+// then only those matching the filter are saved. Similarly for GRAPHTYPE.
+void VCF::save(const string& filepath, bool simple, bool complexgraph, bool snp, bool indel, bool phsnps, bool complexvar)
 {
     cout << now() << "Saving VCF to " << filepath << endl;
 
@@ -99,13 +101,31 @@ void VCF::save(const string& filepath)
     handle << "##ALT=<ID=INDEL,Description=\"Insertion-deletion\">" << endl;
     handle << "##ALT=<ID=COMPLEX,Description=\"Complex variant, collection of SNPs and indels\">" << endl;
     handle << "##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of variant\">" << endl;
-    handle << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO" << endl;
+    handle << "##ALT=<ID=SIMPLE,Description=\"Graph bubble is simple\">" << endl;
+    handle << "##ALT=<ID=COMPLEX,Description=\"Variation site was a nested feature in the graph\">" << endl;
+    handle << "##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description=\"Type of graph feature\">" << endl;
+    handle << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT";
+    for (uint i=0; i!=samples.size(); ++i)
+    {
+	handle << "\t" << samples[i];
+    }
+    handle << endl;
 
     sort(records.begin(), records.end()); // we need the records in order for it to be a valid vcf
 
     for (uint i=0; i!=records.size(); ++i)
     {
-        handle << records[i];
+	if (((simple==false and complexgraph==false) or 
+	     (simple==true and records[i].info.find("GRAPHTYPE=SIMPLE")!=std::string::npos) or
+             (complexgraph==true and records[i].info.find("GRAPHTYPE=COMPLEX")!=std::string::npos)) and
+	    ((snp==false and indel==false and phsnps==false and complexvar==false) or
+	     (snp==true and records[i].info.find("SVTYPE=SNP")!=std::string::npos) or
+             (indel==true and records[i].info.find("SVTYPE=INDEL")!=std::string::npos) or
+             (phsnps==true and records[i].info.find("SVTYPE=PH_SNPs")!=std::string::npos) or
+             (complexvar==true and records[i].info.find("SVTYPE=COMPLEX")!=std::string::npos)))
+	{
+            handle << records[i];
+	}
     }
     handle.close();
     cout << now() << "Finished saving " << records.size() << " entries to file" << endl;
