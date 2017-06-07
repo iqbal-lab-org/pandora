@@ -1003,7 +1003,7 @@ void LocalPRG::find_path_and_variants(const string& prefix, const float& e_rate)
 
     build_vcf();
     add_sample_to_vcf(lmp);
-    vcf.save(prefix + "_" + name + ".vcf");
+    vcf.save(prefix + "_" + name + ".vcf", true, true, true, true, true, true);
     return;
 }
 
