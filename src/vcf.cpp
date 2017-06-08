@@ -68,6 +68,12 @@ void VCF::add_sample_gt(std::string c, uint32_t p, std::string r, std::string a)
 		break;
 	    }
 	}
+	if (added == false and r!=a)
+	{
+	    add_record(c, p, r, a, "SVTPYE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
+	    records.back().samples[0] = "1/0";
+	    added = true;
+	}
 	assert(added == true);
     }
 
@@ -81,7 +87,7 @@ void VCF::clear()
 
 // NB in the absence of filter flags being set to true, all results are saved. If one or more filter flags for SVTYPE are set, 
 // then only those matching the filter are saved. Similarly for GRAPHTYPE.
-void VCF::save(const string& filepath, bool simple, bool complexgraph, bool snp, bool indel, bool phsnps, bool complexvar)
+void VCF::save(const string& filepath, bool simple, bool complexgraph, bool toomanyalts, bool snp, bool indel, bool phsnps, bool complexvar)
 {
     cout << now() << "Saving VCF to " << filepath << endl;
 
@@ -103,6 +109,7 @@ void VCF::save(const string& filepath, bool simple, bool complexgraph, bool snp,
     handle << "##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of variant\">" << endl;
     handle << "##ALT=<ID=SIMPLE,Description=\"Graph bubble is simple\">" << endl;
     handle << "##ALT=<ID=COMPLEX,Description=\"Variation site was a nested feature in the graph\">" << endl;
+    handle << "##ALT=<ID=TOO_MANY_ALTS,Description=\"Variation site was a multinested feature with too many alts to include all in the VCF\">" << endl;
     handle << "##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description=\"Type of graph feature\">" << endl;
     handle << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT";
     for (uint i=0; i!=samples.size(); ++i)
@@ -117,7 +124,8 @@ void VCF::save(const string& filepath, bool simple, bool complexgraph, bool snp,
     {
 	if (((simple==false and complexgraph==false) or 
 	     (simple==true and records[i].info.find("GRAPHTYPE=SIMPLE")!=std::string::npos) or
-             (complexgraph==true and records[i].info.find("GRAPHTYPE=COMPLEX")!=std::string::npos)) and
+             (complexgraph==true and records[i].info.find("GRAPHTYPE=COMPLEX")!=std::string::npos) or
+	     (toomanyalts==true and records[i].info.find("GRAPHTYPE=TOO_MANY_ALTS")!=std::string::npos)) and
 	    ((snp==false and indel==false and phsnps==false and complexvar==false) or
 	     (snp==true and records[i].info.find("SVTYPE=SNP")!=std::string::npos) or
              (indel==true and records[i].info.find("SVTYPE=INDEL")!=std::string::npos) or

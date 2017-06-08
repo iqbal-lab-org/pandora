@@ -171,13 +171,13 @@ TEST_F(VCFTest, filter)
     vcf.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
     vcf.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=PH_SNPs;GRAPHTYPE=COMPLEX");
 
-    vcf.save("../test/test_cases/vcf_filter_test.vcf", true, false, false, false, false, false);
+    vcf.save("../test/test_cases/vcf_filter_test.vcf", true, false, false, false, false, false, false);
     vcf1.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
     vcf1.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
     vcf2.load("../test/test_cases/vcf_filter_test.vcf");
     EXPECT_EQ(vcf2 == vcf1, true);
 
-    vcf.save("../test/test_cases/vcf_filter_test.vcf", false, false, false, false, true, false);
+    vcf.save("../test/test_cases/vcf_filter_test.vcf", false, false, false, false, false, true, false);
     vcf3.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
     vcf3.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=SNP;GRAPHTYPE=COMPLEX");
     vcf4.load("../test/test_cases/vcf_filter_test.vcf");

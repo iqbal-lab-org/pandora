@@ -726,7 +726,7 @@ vector<KmerNode*> LocalPRG::find_kmernodes_on_localnode_path(vector<LocalNode*>&
 
 vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*> kmernode_path)
 {
-    cout << now() << "convert kmernode path to localnode path" << endl;
+    cout << now() << "Convert kmernode path to localnode path" << endl;
     vector<LocalNode*> localnode_path, kmernode;
     for (uint i=0; i!=kmernode_path.size(); ++i)
     {
@@ -745,12 +745,12 @@ vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*>
 	localnode_path.insert(localnode_path.end(), kmernode.begin(), kmernode.end());
     }
 
-    cout << endl << "so localnode path found is: " << endl;
-    for(uint i=0; i!=localnode_path.size(); ++i)
-    {
-	cout << *localnode_path[i] << " -> ";
-    }
-    cout << endl;
+    //cout << endl << "so localnode path found is: " << endl;
+    //for(uint i=0; i!=localnode_path.size(); ++i)
+    //{
+	//cout << *localnode_path[i] << " -> ";
+    //}
+    //cout << endl;
     return localnode_path;
 }
 
@@ -796,13 +796,15 @@ void LocalPRG::write_max_path_to_fasta(const string& filepath, const vector<Loca
 
 void LocalPRG::build_vcf()
 {
+    cout << now() << "Build VCF for prg " << name << endl;
     assert(prg.nodes.size()>0); //otherwise empty nodes -> segfault
 
     vector<LocalNode*> varpath;
     varpath.reserve(100);
-    vector<LocalNode*> toppath;
+    vector<LocalNode*> toppath, bottompath;
     toppath.reserve(100);
     toppath.push_back(prg.nodes[0]);
+    bottompath.reserve(100);
 
     deque<vector<LocalNode*>> paths;
     paths.push_back(toppath);
@@ -810,13 +812,14 @@ void LocalPRG::build_vcf()
     vector<vector<LocalNode*>> alts;
     alts.reserve(100);
 
-    int level = 0;
+    int level = 0, max_level=0;
     uint pos=prg.nodes[0]->pos.length;
     string vartype = "GRAPHTYPE=SIMPLE", ref = "", alt = "";
 
     // do until we reach the end of the localPRG
     while (toppath.back()->outNodes.size() > 0 or toppath.size() > 1)
-    {
+    {	
+	cout << "extend toppath from id " << toppath.back()->id << endl;
 	// extend the top path until level 0 is reached again
 	while(level>0 or toppath.size() == 1)
 	{
@@ -827,6 +830,7 @@ void LocalPRG::build_vcf()
             } else {
                 level -= 1;
             }
+	    max_level = max(level, max_level);
             assert(level >= 0);
 
             // update vartype if complex
@@ -842,6 +846,7 @@ void LocalPRG::build_vcf()
 	    }
 	}
 
+        cout << "collect all alts" << endl;
     	// next collect all the alts
 	while(paths.size() > 0)
 	{
@@ -857,14 +862,31 @@ void LocalPRG::build_vcf()
 		    paths.back().push_back(varpath.back()->outNodes[j]);
 		}
 	    }
+
+	    // if have too many alts, just give bottom path 
+	    if ((paths.size() > 100 and max_level > 2) or paths.size() > 1000)
+	    {
+		paths.clear();
+		alts.clear();
+		bottompath.push_back(toppath[0]);
+		while(bottompath.back()->outNodes.size()>0 and bottompath.back()->outNodes[0]->id != toppath.back()->outNodes[0]->id)
+		{
+		    bottompath.push_back(bottompath.back()->outNodes.back());
+		}
+		alts.push_back(bottompath);	
+		vartype = "GRAPHTYPE=TOO_MANY_ALTS";
+		break;
+	    }
 	}
 
+	cout << "define ref seq" << endl;
         // define ref sequence
         for (uint j=1; j< toppath.size(); ++j)
         {
             ref += toppath[j]->seq;
         }
 
+	cout << "add alts to vcf" << endl;
         // add each alt to the vcf
 	for (uint i=0; i<alts.size(); ++i)
 	{
@@ -880,13 +902,16 @@ void LocalPRG::build_vcf()
 	    alt = "";
 	}
 
+	cout << "clear up" << endl;
 	// clear up
 	pos += ref.length() + toppath.back()->outNodes[0]->pos.length;
         vartype = "GRAPHTYPE=SIMPLE";
         ref = "";
         alt = "";
-        toppath.clear();
-        toppath.push_back(alts[0].back()->outNodes[0]);
+	max_level = 0;
+        toppath = {toppath.back()->outNodes[0]};
+	bottompath.clear();
+        //toppath.push_back(alts[0].back()->outNodes[0]);
         alts.clear();
         paths.push_back(toppath);
 	if (toppath.back()->outNodes.size() == 0)
@@ -894,13 +919,14 @@ void LocalPRG::build_vcf()
             break;
 	}
     }
+    cout << "sort vcf" << endl;
     sort(vcf.records.begin(), vcf.records.end());
     return;
 }
 
 void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
 {
-    cout << "start adding sample to vcf" << endl;
+    cout << now() << "Update VCF with sample path" << endl;
     assert(prg.nodes.size()>0); //otherwise empty nodes -> segfault
 
     vector<LocalNode*> toppath;
@@ -1003,7 +1029,7 @@ void LocalPRG::find_path_and_variants(const string& prefix, const float& e_rate)
 
     build_vcf();
     add_sample_to_vcf(lmp);
-    vcf.save(prefix + "_" + name + ".vcf", true, true, true, true, true, true);
+    vcf.save(prefix + "_" + name + ".vcf", true, true, true, true, true, true, true);
     return;
 }
 

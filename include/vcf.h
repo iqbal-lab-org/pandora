@@ -16,7 +16,7 @@ class VCF {
     void add_record(VCFRecord&);
     void add_sample_gt(std::string c, uint32_t p, std::string r, std::string a);
     void clear();
-    void save(const std::string&, bool simple=false, bool complexgraph=false, bool snp=false, bool indel=false, bool phsnps=false, bool complexvar=false);
+    void save(const std::string&, bool simple=false, bool complexgraph=false, bool toomanyalts=false, bool snp=false, bool indel=false, bool phsnps=false, bool complexvar=false);
     void load(const std::string&);
     bool operator == (const VCF& y) const;
 };
