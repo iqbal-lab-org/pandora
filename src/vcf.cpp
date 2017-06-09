@@ -37,11 +37,13 @@ void VCF::add_record(VCFRecord& vr)
 
 void VCF::add_sample_gt(std::string c, uint32_t p, std::string r, std::string a)
 {
+    //cout << "adding gt " << r << " vs " << a << endl;
     string name = "sample";
 
     // if this sample has not been added before, add a column for it
     if (find(samples.begin(), samples.end(), name) == samples.end())
     {
+	//cout << "this is the first time this sample has been added" << endl;
 	samples.push_back(name);
 	for (uint i=0; i!=records.size(); ++i)
 	{
@@ -55,22 +57,29 @@ void VCF::add_sample_gt(std::string c, uint32_t p, std::string r, std::string a)
     if (it != records.end())
     {
 	it->samples[0] = "0/1";
+	//cout << "found record with this ref and alt" << endl;
     } else {
-	// either we have the ref allele, or a mistake
+	//cout << "didn't find a record" << endl;
+	// either we have the ref allele, an alternative allele for a too nested site, or a mistake
 	for (uint i=0; i!=records.size(); ++i)
 	{
-	    if (records[i].pos == p)
+	    if (records[i].pos == p and r==a)
 	    {
+		//cout << "have ref allele" << endl;
 		assert(records[i].ref == r);
 		records[i].samples[0] = "1/0";	
 		added = true;
+	    } else if (records[i].pos == p and r!=a) {
+		assert(records[i].ref == r);
+                records[i].samples[0] = "0/0";
 	    } else if (records[i].pos > p) {
 		break;
 	    }
 	}
 	if (added == false and r!=a)
 	{
-	    add_record(c, p, r, a, "SVTPYE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
+	    //cout << "have very nested allele" << endl;
+	    add_record(c, p, r, a, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
 	    records.back().samples[0] = "1/0";
 	    added = true;
 	}
@@ -89,6 +98,11 @@ void VCF::clear()
 // then only those matching the filter are saved. Similarly for GRAPHTYPE.
 void VCF::save(const string& filepath, bool simple, bool complexgraph, bool toomanyalts, bool snp, bool indel, bool phsnps, bool complexvar)
 {
+    if (samples.size() == 0)
+    {
+	cout << now() << "Did not save VCF for sample" << endl;
+	return;
+    }
     cout << now() << "Saving VCF to " << filepath << endl;
 
     // find date

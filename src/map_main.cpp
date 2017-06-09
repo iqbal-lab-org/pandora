@@ -152,7 +152,7 @@ int pandora_map(int argc, char* argv[])
     cout << now() << "Writing maximally likely paths to files:" << endl;
     for (auto c: pangraph->nodes)
     {
-	prgs[c.second->id]->find_path_and_variants(prefix, e_rate);
+	prgs[c.second->id]->find_path_and_variants(prefix, e_rate, w);
     }
 
     cout << now() << "Writing LocalGraphs to files:" << endl;	

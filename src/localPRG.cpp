@@ -724,10 +724,11 @@ vector<KmerNode*> LocalPRG::find_kmernodes_on_localnode_path(vector<LocalNode*>&
     return nums;
 }
 
-vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*> kmernode_path)
+vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*> kmernode_path, uint w)
 {
     cout << now() << "Convert kmernode path to localnode path" << endl;
-    vector<LocalNode*> localnode_path, kmernode;
+    vector<LocalNode*> localnode_path, kmernode, walk_path;
+    vector<Path> walk_paths;
     for (uint i=0; i!=kmernode_path.size(); ++i)
     {
 	//cout << kmernode_path[i]->path << endl;
@@ -745,12 +746,92 @@ vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*>
 	localnode_path.insert(localnode_path.end(), kmernode.begin(), kmernode.end());
     }
 
-    //cout << endl << "so localnode path found is: " << endl;
-    //for(uint i=0; i!=localnode_path.size(); ++i)
-    //{
-	//cout << *localnode_path[i] << " -> ";
-    //}
-    //cout << endl;
+    // extend to beginning of graph if possible
+    bool overlap;
+    if (localnode_path[0]->id != 0)
+    {	
+	walk_paths = prg.walk(0,0,w);
+	for (uint i=0; i!= walk_paths.size(); ++i)
+	{
+	    walk_path = nodes_along_path(walk_paths[i]);
+
+	    // does it overlap
+	    uint n=0, m=0;
+	    overlap = false;	
+	    for (uint j=0; j!= walk_path.size(); ++j)
+	    {
+		if (walk_path[j] == localnode_path[n])
+		{
+		    if (overlap == false)
+		    {
+			m=j;
+		    }
+		    overlap = true;
+		    if (n+1 >= localnode_path.size())
+		    {
+			break;
+		    } else {
+			++n;
+		    }
+		} else if (overlap == true) {
+		    overlap = false;
+		    break;
+		}
+	    }
+	    if (overlap == true)
+	    {
+		localnode_path.insert(localnode_path.begin(), walk_path.begin(), walk_path.begin()+m-1);
+		break;
+	    }
+	}
+    }
+
+    // extend to end of graph if possible
+    if (localnode_path.back()->id != prg.nodes.size()-1)
+    {
+        walk_paths = prg.walk_back(prg.nodes.size()-1,seq.length(),w);
+        for (uint i=0; i!= walk_paths.size(); ++i)
+        {
+            walk_path = nodes_along_path(walk_paths[i]);
+
+            // does it overlap
+            uint n=localnode_path.size(), m=0;
+            overlap = false;
+            for (uint j=walk_path.size(); j!= 0; --j)
+            {   
+                if (walk_path[j-1] == localnode_path[n-1])
+                {   
+                    if (overlap == false)
+                    {
+                        m=j;
+                    }
+                    overlap = true;
+                    if (n-1 == 0)
+                    {
+                        break;
+                    } else {
+                        --n;
+                    }
+                } else if (overlap == true) {
+                    overlap = false;
+                    break;
+                }
+            }
+            if (overlap == true)
+            {
+                localnode_path.insert(localnode_path.end(), walk_path.begin()+m, walk_path.end());
+                break;
+            }
+        }
+    }
+
+    /*cout << endl << "localnode path found: " << endl;
+    for(uint i=0; i!=localnode_path.size(); ++i)
+    {
+        cout << *localnode_path[i] << " ";
+    }
+    cout << endl;*/
+		
     return localnode_path;
 }
 
@@ -819,7 +900,7 @@ void LocalPRG::build_vcf()
     // do until we reach the end of the localPRG
     while (toppath.back()->outNodes.size() > 0 or toppath.size() > 1)
     {	
-	cout << "extend toppath from id " << toppath.back()->id << endl;
+	//cout << "extend toppath from id " << toppath.back()->id << endl;
 	// extend the top path until level 0 is reached again
 	while(level>0 or toppath.size() == 1)
 	{
@@ -846,7 +927,7 @@ void LocalPRG::build_vcf()
 	    }
 	}
 
-        cout << "collect all alts" << endl;
+        //cout << "collect all alts" << endl;
     	// next collect all the alts
 	while(paths.size() > 0)
 	{
@@ -879,14 +960,14 @@ void LocalPRG::build_vcf()
 	    }
 	}
 
-	cout << "define ref seq" << endl;
+	//cout << "define ref seq" << endl;
         // define ref sequence
         for (uint j=1; j< toppath.size(); ++j)
         {
             ref += toppath[j]->seq;
         }
 
-	cout << "add alts to vcf" << endl;
+	//cout << "add alts to vcf" << endl;
         // add each alt to the vcf
 	for (uint i=0; i<alts.size(); ++i)
 	{
@@ -902,7 +983,7 @@ void LocalPRG::build_vcf()
 	    alt = "";
 	}
 
-	cout << "clear up" << endl;
+	//cout << "clear up" << endl;
 	// clear up
 	pos += ref.length() + toppath.back()->outNodes[0]->pos.length;
         vartype = "GRAPHTYPE=SIMPLE";
@@ -919,7 +1000,7 @@ void LocalPRG::build_vcf()
             break;
 	}
     }
-    cout << "sort vcf" << endl;
+    //cout << "sort vcf" << endl;
     sort(vcf.records.begin(), vcf.records.end());
     return;
 }
@@ -946,6 +1027,7 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
     // do until we reach the end of the localPRG
     while (toppath.back()->outNodes.size() > 0 or toppath.size() > 1)
     {
+	//cout << "toppath ends with node " << toppath.back()->id << endl;
         // first update the level we are at
         if (toppath.back()->outNodes.size() > 1)
         {
@@ -954,6 +1036,7 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
             level -= 1;
         }
         assert(level >= 0);
+	//cout << "level is " << level << endl;
 
         // next, if we are at level 0, then we have reached the end of a varsite
         // so add it to the vcf
@@ -961,16 +1044,27 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
 	{
 	    // first find the range of the maxpath which corresponds to this varsite
 	    assert(toppath.size() > 0 || assert_msg("toppath has size " << toppath.size() << " when it should have entries!"));
-	    assert(toppath.back()->outNodes.size() > 0 || assert_msg("node " << toppath.back()->id << " has no outnodes!"));
-	    assert(lmp_range_end < lmp.size() || assert_msg("lmp_range_end = " << lmp_range_end << " but lmp.size() = " << lmp.size() << " which should be bigger"));
-	    assert(lmp[lmp_range_end]->id < toppath.back()->outNodes[0]->id || assert_msg("lmp[lmp_range_end]->id " << lmp[lmp_range_end]->id << " should be less than toppath.back()->outNodes[0]->id " << toppath.back()->outNodes[0]->id));
-	    while (lmp[lmp_range_end]->id < toppath.back()->outNodes[0]->id)
-	    {
+            assert(toppath.back()->outNodes.size() > 0 || assert_msg("node " << toppath.back()->id << " has no outnodes!"));
+            assert(lmp_range_end < lmp.size() || assert_msg("lmp_range_end = " << lmp_range_end << " but lmp.size() = " << lmp.size() << " which should be bigger"));
+
+	    while (lmp[lmp_range_end]->id < toppath.back()->outNodes[0]->id and lmp_range_end < lmp.size()-1)
+            {
+                //cout << "lmp_range_end = " << lmp_range_end << " and alt end id is " << lmp[lmp_range_end]->id << " < " << toppath.back()->outNodes[0]->id << endl;
                 lmp_range_end += 1;
             }
-	    assert(lmp[lmp_range_end]->id == toppath.back()->outNodes[0]->id);
+
+	    if ((lmp[lmp_range_start]->id != toppath[0]->id) or // ref allele and var allele don't start at the same node
+		(lmp[lmp_range_end]->id != toppath.back()->outNodes[0]->id)) // ref allele and var allele don't end at the same node
+	    {
+		cout << now() << "ERROR adding sample to VCF - start or end of varsite did not agree" << endl;
+		cout << now() << "Starts : " << lmp[lmp_range_start]->id << " vs " << toppath[0]->id << endl;
+		cout << now() << "Ends : " << lmp[lmp_range_end]->id << " vs " << toppath.back()->outNodes[0]->id << endl;
+		vcf.samples.clear();
+		return;
+	    }
 
 	    // add to vcf
+	    //cout << "add varsite to vcf" << endl;
 	    for (uint j=1; j< toppath.size(); ++j)
 	    {
 		ref += toppath[j]->seq;
@@ -978,11 +1072,14 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
 
 	    for (uint j=lmp_range_start+1; j< lmp_range_end; ++j)
             {
+		//cout << "j: " << j << " which is " << *lmp[j] << endl;
                 alt += lmp[j]->seq;
+		//cout << "alt is now " << alt << endl;
             }
 
 	    vcf.add_sample_gt(name, pos, ref, alt);
-
+	
+	    //cout << "prepare for next site" << endl;
 	    // prepare variables for next increment
 	    assert(lmp_range_end+1 <= lmp.size() || assert_msg("lmp_range_end+1 = " << lmp_range_end+1 << " but lmp.size() = " << lmp.size() << " which is bigger"));
 	    for (uint j=lmp_range_start+1; j < lmp_range_end+1; ++j)
@@ -1012,7 +1109,7 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
     return;
 }
 
-void LocalPRG::find_path_and_variants(const string& prefix, const float& e_rate)
+void LocalPRG::find_path_and_variants(const string& prefix, const float& e_rate, uint w)
 {
     vector<KmerNode*> kmp;
     kmp.reserve(800);
@@ -1021,7 +1118,7 @@ void LocalPRG::find_path_and_variants(const string& prefix, const float& e_rate)
     float ppath;
 
     ppath = kmer_prg.find_max_path(e_rate, kmp);
-    lmp = localnode_path_from_kmernode_path(kmp);
+    lmp = localnode_path_from_kmernode_path(kmp, w);
 
     write_max_path_to_fasta(prefix + "_" + name + "_kmlp.fasta", lmp, ppath);
     //kmer_prg.save(prefix + "_" + name + ".kg.gfa");

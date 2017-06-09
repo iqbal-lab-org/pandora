@@ -170,6 +170,7 @@ TEST_F(VCFTest, filter)
     vcf.add_record("chrom1", 46, "T", "TA", "SVTYPE=INDEL;GRAPHTYPE=COMPLEX");
     vcf.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
     vcf.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=PH_SNPs;GRAPHTYPE=COMPLEX");
+    vcf.samples.push_back("dummy");
 
     vcf.save("../test/test_cases/vcf_filter_test.vcf", true, false, false, false, false, false, false);
     vcf1.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
