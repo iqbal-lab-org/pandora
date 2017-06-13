@@ -1125,6 +1125,12 @@ void LocalPRG::find_path_and_variants(const string& prefix, const float& e_rate,
     //kmer_prg.save_covg_dist(prefix + "_" + name + ".covg.txt");
 
     build_vcf();
+    cout << "lmp ids on path: "; 
+    for (uint i=0; i!=lmp.size(); ++i)
+    {
+	cout << lmp[i]->id << " ";
+    }
+    cout << endl;
     add_sample_to_vcf(lmp);
     vcf.save(prefix + "_" + name + ".vcf", true, true, true, true, true, true, true);
     return;

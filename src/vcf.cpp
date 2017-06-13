@@ -24,6 +24,7 @@ void VCF::add_record(string c, uint32_t p, string r, string a, string i, string 
 	records.push_back(vr);
 	records.back().samples.insert(records.back().samples.end(), samples.size(), ".");
     }
+    //cout << "added record: " << vr << endl;
 }
 
 void VCF::add_record(VCFRecord& vr)
@@ -58,6 +59,16 @@ void VCF::add_sample_gt(std::string c, uint32_t p, std::string r, std::string a)
     {
 	it->samples[0] = "0/1";
 	//cout << "found record with this ref and alt" << endl;
+	for (uint i=0; i!=records.size(); ++i)
+        {
+	    if (records[i].pos == p and records[i].alt!=a)
+            {
+                assert(records[i].ref == r);
+                records[i].samples[0] = "0/0";
+	    } else if (records[i].pos > p) {
+                break;
+            }
+	}
     } else {
 	//cout << "didn't find a record" << endl;
 	// either we have the ref allele, an alternative allele for a too nested site, or a mistake

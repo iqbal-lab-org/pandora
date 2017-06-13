@@ -770,6 +770,7 @@ TEST_F(LocalPRGTest, add_sample_to_vcf)
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
     LocalPRG l4(4, "small real PRG", "ATGACAAAACGAAGTGGAAGTAATACGCGCAGGCGGGCTATCAGTCGCCCTGTTCGTCTGACGGCAGAAGAAGACCAGGAAATCAGAAAAAGGGCTGCTGAATGCGGCAAGACCGTTTC 5 T 6 C 5 GGTTTTTTACGGGCGGCAGCTCTCGGTAAGAAAGTTAA 7 TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG 8 CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA 7 CAGAAAAAACTCTTTATCGACGGCAAGCGTGTCGGGGACAG 9 A 10 G 9 GAGTATGCGGAGGTGCTGAT 11 A 12 C 11 GCTATTACGGAGTATCACCG 13 G 14 T 13 GCCCTGTTATCCAGGCTTATGGCAGATTAG");
+    LocalPRG l5(5, "another real PRG", " 5 ATGCTTATTGGCTATGT 7  9 ACGCGTA 10 TCGCGTA 10 ACGTGTG 9 TCAACAAATGACCAGAACAC 11 A 12 C 11  8 ACGCGTATCAACAAATGATCAGAACACA 7 GATCTACAACGTAATGCG 6 AAGT 5 ");
 
     vector<LocalNode*> lmp1 = {l1.prg.nodes[0]};
     l1.build_vcf();
@@ -806,6 +807,37 @@ TEST_F(LocalPRGTest, add_sample_to_vcf)
     EXPECT_EQ("1/0", l4.vcf.records[3].samples[0]);
     EXPECT_EQ(j, l4.vcf.records[4].samples.size());
     EXPECT_EQ("1/0", l4.vcf.records[4].samples[0]);
+
+    vector<LocalNode*> lmp5 = {l5.prg.nodes[0], l5.prg.nodes[1], l5.prg.nodes[9], l5.prg.nodes[10], l5.prg.nodes[11], l5.prg.nodes[13]};
+    l5.build_vcf(); 
+    l5.add_sample_to_vcf(lmp5);
+    EXPECT_EQ(j, l5.vcf.samples.size());
+    EXPECT_EQ((uint)7, l5.vcf.records.size());
+    EXPECT_EQ(j, l5.vcf.records[0].samples.size());
+    EXPECT_EQ("0/0", l5.vcf.records[0].samples[0]);
+    EXPECT_EQ(j, l5.vcf.records[1].samples.size());
+    EXPECT_EQ("0/0", l5.vcf.records[1].samples[0]);
+    EXPECT_EQ(j, l5.vcf.records[2].samples.size());
+    EXPECT_EQ("0/1", l5.vcf.records[2].samples[0]);
+    EXPECT_EQ(j, l5.vcf.records[3].samples.size());
+    EXPECT_EQ("0/0", l5.vcf.records[3].samples[0]);
+    EXPECT_EQ(j, l5.vcf.records[4].samples.size());
+    EXPECT_EQ("0/0", l5.vcf.records[4].samples[0]);
+    EXPECT_EQ(j, l5.vcf.records[5].samples.size());
+    EXPECT_EQ("0/0", l5.vcf.records[5].samples[0]);
+    EXPECT_EQ(j, l5.vcf.records[6].samples.size());
+    EXPECT_EQ("0/0", l5.vcf.records[6].samples[0]);
+}
+
+TEST_F(LocalPRGTest, moreupdateVCF)
+{
+    // load PRGs from file
+    vector<LocalPRG*> prgs;
+    read_prg_file(prgs, "../test/test_cases/updatevcf_test.fa");
+
+    EXPECT_EQ((uint)2, prgs.size());
+    prgs[0]->build_vcf();
+    prgs[1]->build_vcf();
 }
 
 TEST_F(LocalPRGTest, updateCovgWithHit)
