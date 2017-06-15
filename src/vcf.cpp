@@ -63,7 +63,7 @@ void VCF::add_sample_gt(std::string c, uint32_t p, std::string r, std::string a)
         {
 	    if (records[i].pos == p and records[i].alt!=a)
             {
-                assert(records[i].ref == r);
+                assert(records[i].ref == r or r == "");
                 records[i].samples[0] = ".";
 	    } else if (records[i].pos > p) {
                 break;
@@ -77,11 +77,11 @@ void VCF::add_sample_gt(std::string c, uint32_t p, std::string r, std::string a)
 	    if (records[i].pos == p and r==a)
 	    {
 		//cout << "have ref allele" << endl;
-		assert(records[i].ref == r);
+		assert(records[i].ref == r or r == "");
 		records[i].samples[0] = "0";	
 		added = true;
 	    } else if (records[i].pos == p and r!=a) {
-		assert(records[i].ref == r);
+		assert(records[i].ref == r or r == "");
                 records[i].samples[0] = ".";
 		//cout << "found another alt at the position" << endl;
 	    } else if (records[i].pos > p) {

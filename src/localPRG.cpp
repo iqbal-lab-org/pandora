@@ -1094,7 +1094,7 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
                 lmp_range_end += 1;
             }
 
-	    if ((lmp[lmp_range_start]->id != toppath[0]->id) or // ref allele and var allele don't start at the same node
+	    if (((toppath.size() > 0) and (lmp[lmp_range_start]->id != toppath[0]->id)) or // ref allele and var allele don't start at the same node
 		(lmp[lmp_range_end]->id != toppath.back()->outNodes[0]->id)) // ref allele and var allele don't end at the same node
 	    {
 		cout << now() << "ERROR adding sample to VCF - start or end of varsite did not agree" << endl;
@@ -1112,6 +1112,7 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
 		//cout << toppath[j]->id << " ";
 		ref += toppath[j]->seq;
 	    }
+	    //cout << ref << endl;
 
 	    //cout << " and alt path ";
 	    for (uint j=lmp_range_start+1; j< lmp_range_end; ++j)
@@ -1121,7 +1122,7 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
                 alt += lmp[j]->seq;
 		//cout << "alt is now " << alt << endl;
             }
-	    //cout << endl;
+	    //cout << alt << endl;
 
 	    vcf.add_sample_gt(name, pos, ref, alt);
 	
