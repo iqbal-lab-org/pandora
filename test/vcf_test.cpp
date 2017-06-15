@@ -64,7 +64,7 @@ TEST_F(VCFTest, add_sample_gt)
     uint j = 1;
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[1].samples.size());
-    EXPECT_EQ("0/1", vcf.records[1].samples[0]);
+    EXPECT_EQ("1", vcf.records[1].samples[0]);
     EXPECT_EQ(j, vcf.records[0].samples.size());
     EXPECT_EQ(".", vcf.records[0].samples[0]);
     EXPECT_EQ(j, vcf.records[2].samples.size());
@@ -73,13 +73,13 @@ TEST_F(VCFTest, add_sample_gt)
     vcf.add_sample_gt("chrom1", 79, "C", "C");
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[1].samples.size());
-    EXPECT_EQ("0/1", vcf.records[1].samples[0]);
+    EXPECT_EQ("1", vcf.records[1].samples[0]);
     EXPECT_EQ(j, vcf.records[0].samples.size());
     EXPECT_EQ(".", vcf.records[0].samples[0]);
     EXPECT_EQ(j, vcf.records[2].samples.size());
-    EXPECT_EQ("1/0", vcf.records[2].samples[0]);
+    EXPECT_EQ("0", vcf.records[2].samples[0]);
     EXPECT_EQ(j, vcf.records[3].samples.size());
-    EXPECT_EQ("1/0", vcf.records[3].samples[0]);
+    EXPECT_EQ("0", vcf.records[3].samples[0]);
 }
 
 TEST_F(VCFTest,clear){

@@ -786,29 +786,29 @@ TEST_F(LocalPRGTest, add_sample_to_vcf)
     j = 1;
     EXPECT_EQ(j, l2.vcf.samples.size());
     EXPECT_EQ(j, l2.vcf.records[0].samples.size());
-    EXPECT_EQ("0/1", l2.vcf.records[0].samples[0]);
+    EXPECT_EQ("1", l2.vcf.records[0].samples[0]);
 
     vector<LocalNode*> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
     l3.build_vcf();
     l3.add_sample_to_vcf(lmp3);
     EXPECT_EQ(j, l3.vcf.samples.size());
     EXPECT_EQ(j, l3.vcf.records[0].samples.size());
-    EXPECT_EQ("0/1", l3.vcf.records[1].samples[0]);
+    EXPECT_EQ("1", l3.vcf.records[1].samples[0]);
 
     vector<LocalNode*> lmp4 = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[5], l4.prg.nodes[6], l4.prg.nodes[8], l4.prg.nodes[9], l4.prg.nodes[10], l4.prg.nodes[12], l4.prg.nodes[13], l4.prg.nodes[15]};
     l4.build_vcf();
     l4.add_sample_to_vcf(lmp4);
     EXPECT_EQ(j, l4.vcf.samples.size());
     EXPECT_EQ(j, l4.vcf.records[0].samples.size());
-    EXPECT_EQ("1/0", l4.vcf.records[0].samples[0]);
+    EXPECT_EQ("0", l4.vcf.records[0].samples[0]);
     EXPECT_EQ(j, l4.vcf.records[1].samples.size());
-    EXPECT_EQ("0/1", l4.vcf.records[1].samples[0]);
+    EXPECT_EQ("1", l4.vcf.records[1].samples[0]);
     EXPECT_EQ(j, l4.vcf.records[2].samples.size());
-    EXPECT_EQ("0/1", l4.vcf.records[2].samples[0]);
+    EXPECT_EQ("1", l4.vcf.records[2].samples[0]);
     EXPECT_EQ(j, l4.vcf.records[3].samples.size());
-    EXPECT_EQ("1/0", l4.vcf.records[3].samples[0]);
+    EXPECT_EQ("0", l4.vcf.records[3].samples[0]);
     EXPECT_EQ(j, l4.vcf.records[4].samples.size());
-    EXPECT_EQ("1/0", l4.vcf.records[4].samples[0]);
+    EXPECT_EQ("0", l4.vcf.records[4].samples[0]);
 
     vector<LocalNode*> lmp5 = {l5.prg.nodes[0], l5.prg.nodes[1], l5.prg.nodes[9], l5.prg.nodes[10], l5.prg.nodes[11], l5.prg.nodes[13]};
     l5.build_vcf(); 
@@ -816,19 +816,19 @@ TEST_F(LocalPRGTest, add_sample_to_vcf)
     EXPECT_EQ(j, l5.vcf.samples.size());
     EXPECT_EQ((uint)7, l5.vcf.records.size());
     EXPECT_EQ(j, l5.vcf.records[0].samples.size());
-    EXPECT_EQ("0/0", l5.vcf.records[0].samples[0]);
+    EXPECT_EQ(".", l5.vcf.records[0].samples[0]);
     EXPECT_EQ(j, l5.vcf.records[1].samples.size());
-    EXPECT_EQ("0/0", l5.vcf.records[1].samples[0]);
+    EXPECT_EQ(".", l5.vcf.records[1].samples[0]);
     EXPECT_EQ(j, l5.vcf.records[2].samples.size());
-    EXPECT_EQ("0/1", l5.vcf.records[2].samples[0]);
+    EXPECT_EQ("1", l5.vcf.records[2].samples[0]);
     EXPECT_EQ(j, l5.vcf.records[3].samples.size());
-    EXPECT_EQ("0/0", l5.vcf.records[3].samples[0]);
+    EXPECT_EQ(".", l5.vcf.records[3].samples[0]);
     EXPECT_EQ(j, l5.vcf.records[4].samples.size());
-    EXPECT_EQ("0/0", l5.vcf.records[4].samples[0]);
+    EXPECT_EQ(".", l5.vcf.records[4].samples[0]);
     EXPECT_EQ(j, l5.vcf.records[5].samples.size());
-    EXPECT_EQ("0/0", l5.vcf.records[5].samples[0]);
+    EXPECT_EQ(".", l5.vcf.records[5].samples[0]);
     EXPECT_EQ(j, l5.vcf.records[6].samples.size());
-    EXPECT_EQ("0/0", l5.vcf.records[6].samples[0]);
+    EXPECT_EQ(".", l5.vcf.records[6].samples[0]);
 }
 
 TEST_F(LocalPRGTest, find_kmernodes_on_localnode_path)

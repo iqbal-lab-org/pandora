@@ -57,14 +57,14 @@ void VCF::add_sample_gt(std::string c, uint32_t p, std::string r, std::string a)
     vector<VCFRecord>::iterator it = find(records.begin(), records.end(), vr);
     if (it != records.end())
     {
-	it->samples[0] = "0/1";
+	it->samples[0] = "1";
 	//cout << "found record with this ref and alt" << endl;
 	for (uint i=0; i!=records.size(); ++i)
         {
 	    if (records[i].pos == p and records[i].alt!=a)
             {
                 assert(records[i].ref == r);
-                records[i].samples[0] = "0/0";
+                records[i].samples[0] = ".";
 	    } else if (records[i].pos > p) {
                 break;
             }
@@ -78,11 +78,11 @@ void VCF::add_sample_gt(std::string c, uint32_t p, std::string r, std::string a)
 	    {
 		//cout << "have ref allele" << endl;
 		assert(records[i].ref == r);
-		records[i].samples[0] = "1/0";	
+		records[i].samples[0] = "0";	
 		added = true;
 	    } else if (records[i].pos == p and r!=a) {
 		assert(records[i].ref == r);
-                records[i].samples[0] = "0/0";
+                records[i].samples[0] = ".";
 		//cout << "found another alt at the position" << endl;
 	    } else if (records[i].pos > p) {
 		break;
@@ -92,7 +92,7 @@ void VCF::add_sample_gt(std::string c, uint32_t p, std::string r, std::string a)
 	{
 	    //cout << "have very nested allele" << endl;
 	    add_record(c, p, r, a, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
-	    records.back().samples[0] = "1/0";
+	    records.back().samples[0] = "1";
 	    added = true;
 	}
 	assert(added == true);
