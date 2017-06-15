@@ -70,19 +70,20 @@ void VCF::add_sample_gt(std::string c, uint32_t p, std::string r, std::string a)
             }
 	}
     } else {
-	//cout << "didn't find a record" << endl;
+	cout << "didn't find a record for pos " << p << " ref " << r << " and alt " << a << endl;
 	// either we have the ref allele, an alternative allele for a too nested site, or a mistake
 	for (uint i=0; i!=records.size(); ++i)
 	{
 	    if (records[i].pos == p and r==a)
 	    {
-		//cout << "have ref allele" << endl;
+		cout << "have ref allele" << endl;
 		assert(records[i].ref == r);
 		records[i].samples[0] = "1/0";	
 		added = true;
 	    } else if (records[i].pos == p and r!=a) {
 		assert(records[i].ref == r);
                 records[i].samples[0] = "0/0";
+		cout << "found another alt at the position" << endl;
 	    } else if (records[i].pos > p) {
 		break;
 	    }

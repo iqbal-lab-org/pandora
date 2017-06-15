@@ -838,6 +838,13 @@ TEST_F(LocalPRGTest, moreupdateVCF)
     EXPECT_EQ((uint)2, prgs.size());
     prgs[0]->build_vcf();
     prgs[1]->build_vcf();
+    for (uint i=0; i!=prgs[1]->vcf.records.size(); ++i)
+    {
+	cout << prgs[1]->vcf.records[i];
+    }
+    vector<LocalNode*> lmp1 = {prgs[1]->prg.nodes[0], prgs[1]->prg.nodes[11], prgs[1]->prg.nodes[12], prgs[1]->prg.nodes[17], prgs[1]->prg.nodes[65], prgs[1]->prg.nodes[67]};
+    cout << "PRG 1 has " << prgs[1]->prg.nodes.size() << " nodes" << endl;
+    prgs[1]->add_sample_to_vcf(lmp1);
 }
 
 TEST_F(LocalPRGTest, updateCovgWithHit)
