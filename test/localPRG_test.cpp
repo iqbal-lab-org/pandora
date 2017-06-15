@@ -13,6 +13,8 @@
 #include "pannode.h"
 #include "utils.h"
 #include "seq.h"
+#include "kmergraph.h"
+#include "kmernode.h"
 #include <stdint.h>
 #include <iostream>
 
@@ -829,6 +831,47 @@ TEST_F(LocalPRGTest, add_sample_to_vcf)
     EXPECT_EQ("0/0", l5.vcf.records[6].samples[0]);
 }
 
+TEST_F(LocalPRGTest, find_kmernodes_on_localnode_path)
+{
+}
+
+TEST_F(LocalPRGTest, localnode_path_from_kmernode_path)
+{
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+    LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
+    LocalPRG l5(5, "one with lots of null at start and end, and a long stretch in between", " 5  7  9  11 AGTTCTGAAACATTGCGCGTGAGATCTCTG 12 T 11  10 A 9  8 C 7  6 G 5 ");
+    
+    Index* idx;
+    idx = new Index();
+
+    KmerHash hash;
+
+    l3.minimizer_sketch(idx, 2, 3);
+    vector<KmerNode*> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
+    vector<LocalNode*> lmp = l3.localnode_path_from_kmernode_path(kmp);
+    vector<LocalNode*> lmp_exp = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
+    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
+    lmp = l3.localnode_path_from_kmernode_path(kmp, 2);
+    lmp_exp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
+    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
+
+    idx->clear(); 
+    l4.minimizer_sketch(idx, 3, 3);
+    kmp = {l4.kmer_prg.nodes[2], l4.kmer_prg.nodes[4], l4.kmer_prg.nodes[8]};
+    lmp = l4.localnode_path_from_kmernode_path(kmp, 2);
+    lmp_exp = {l4.prg.nodes[1], l4.prg.nodes[3]};
+    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
+    lmp = l4.localnode_path_from_kmernode_path(kmp, 3);
+    lmp_exp = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6]};
+    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
+
+    /*idx->clear();
+    l5.minimizer_sketch(idx, 4, 3);
+    cout << l5.kmer_prg;*/
+ 
+    delete idx;
+}
+
 TEST_F(LocalPRGTest, moreupdateVCF)
 {
     // load PRGs from file
@@ -838,10 +881,10 @@ TEST_F(LocalPRGTest, moreupdateVCF)
     EXPECT_EQ((uint)2, prgs.size());
     prgs[0]->build_vcf();
     prgs[1]->build_vcf();
-    for (uint i=0; i!=prgs[1]->vcf.records.size(); ++i)
+    /*for (uint i=0; i!=prgs[1]->vcf.records.size(); ++i)
     {
 	cout << prgs[1]->vcf.records[i];
-    }
+    }*/
     vector<LocalNode*> lmp1 = {prgs[1]->prg.nodes[0], prgs[1]->prg.nodes[11], prgs[1]->prg.nodes[12], prgs[1]->prg.nodes[17], prgs[1]->prg.nodes[65], prgs[1]->prg.nodes[67]};
     cout << "PRG 1 has " << prgs[1]->prg.nodes.size() << " nodes" << endl;
     prgs[1]->add_sample_to_vcf(lmp1);

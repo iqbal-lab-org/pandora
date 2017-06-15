@@ -727,12 +727,22 @@ vector<KmerNode*> LocalPRG::find_kmernodes_on_localnode_path(vector<LocalNode*>&
 vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*> kmernode_path, uint w)
 {
     cout << now() << "Convert kmernode path to localnode path" << endl;
+    /*cout << "input: ";
+    for (uint i=0; i!=kmernode_path.size(); ++i)
+    {
+	cout << kmernode_path[i]->path << " ";
+    }
+    cout << endl;*/
     vector<LocalNode*> localnode_path, kmernode, walk_path;
     vector<Path> walk_paths;
     for (uint i=0; i!=kmernode_path.size(); ++i)
     {
-	//cout << kmernode_path[i]->path << endl;
+	if (kmernode_path[i] == kmer_prg.nodes.back())
+	{
+	    break;
+	}
         kmernode = nodes_along_path(kmernode_path[i]->path);
+
 	// if the start of the new localnode path is after the end of the previous, join up WLOG with top path
         while (localnode_path.size() > 0 and localnode_path.back()->outNodes.size() > 0 and kmernode[0]->id > localnode_path.back()->outNodes[0]->id)
         {
@@ -747,12 +757,12 @@ vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*>
     }
 
     // extend to beginning of graph if possible
-    cout << "original localnode_path starts ";	    
-    for (uint i=0; i<min((int)localnode_path.size(), 4); ++i)
+    /*cout << "original localnode_path starts ";	    
+    for (uint i=0; i<min((uint)localnode_path.size(), (uint)4); ++i)
     {
-	cout << *localnode_path[i] << " ";
+	cout << localnode_path[i]->id << " " << *localnode_path[i] << " ";
     }
-    cout << endl;
+    cout << endl;*/
     bool overlap;
     if (localnode_path[0]->id != 0)
     {	
@@ -760,11 +770,11 @@ vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*>
 	for (uint i=0; i!= walk_paths.size(); ++i)
 	{
 	    walk_path = nodes_along_path(walk_paths[i]);
-	    cout << "walk path: ";
+	    /*cout << "walk path: ";
 	    for (uint j=0; j!= walk_path.size(); ++j)
             {
-		cout << walk_path[j] << " ";
-	    }
+		cout << *walk_path[j] << " ";
+	    }*/
 	    // does it overlap
 	    uint n=0, m=0;
 	    overlap = false;	
@@ -784,15 +794,15 @@ vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*>
 			++n;
 		    }
 		} else if (overlap == true) {
-		    cout << "overlaps then deviates" << endl;
+		    //cout << "overlaps then deviates" << endl;
 		    overlap = false;
 		    break;
 		}
 	    }
 	    if (overlap == true)
 	    {
-		cout << "found an overlapping start" << endl;
-		localnode_path.insert(localnode_path.begin(), walk_path.begin(), walk_path.begin()+m-1);
+		//cout << "found an overlapping start" << endl;
+		localnode_path.insert(localnode_path.begin(), walk_path.begin(), walk_path.begin()+m);
 		break;
 	    }
 	}
@@ -803,18 +813,23 @@ vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*>
     }
 
     // extend to end of graph if possible
-    cout << "original localnode_path ends ";      
-    for (uint i=0; i<min((int)localnode_path.size(), 4); ++i)
+    /*cout << "original localnode_path ends ";      
+    for (uint i=0; i<min((uint)localnode_path.size(), (uint)4); ++i)
     {
-        cout << *localnode_path[localnode_path.size()-1-i] << " ";
+        cout << localnode_path[i]->id << " " << *localnode_path[localnode_path.size()-1-i] << " ";
     }
-    cout << endl;
+    cout << "." << endl;*/
     if (localnode_path.back()->id != prg.nodes.size()-1)
     {
         walk_paths = prg.walk_back(prg.nodes.size()-1,seq.length(),w);
         for (uint i=0; i!= walk_paths.size(); ++i)
         {
             walk_path = nodes_along_path(walk_paths[i]);
+	    /*cout << "walk path: ";
+            for (uint j=0; j!= walk_path.size(); ++j)
+            {
+                cout << *walk_path[j] << " ";
+            }*/
 
             // does it overlap
             uint n=localnode_path.size(), m=0;
@@ -851,12 +866,12 @@ vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*>
         }
     }
 
-    cout << endl << "localnode path found: " << endl;
+    /*cout << endl << "localnode path found: " << endl;
     for(uint i=0; i!=localnode_path.size(); ++i)
     {
         cout << *localnode_path[i] << " ";
     }
-    cout << endl;
+    cout << endl;*/
 		
     return localnode_path;
 }
@@ -1091,22 +1106,22 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
 
 	    // add to vcf
 	    //cout << "add varsite to vcf" << endl;
-	    cout << "add sample gt for toppath ";
+	    //cout << "add sample gt for toppath ";
 	    for (uint j=1; j< toppath.size(); ++j)
 	    {
-		cout << toppath[j]->id << " ";
+		//cout << toppath[j]->id << " ";
 		ref += toppath[j]->seq;
 	    }
 
-	    cout << " and alt path ";
+	    //cout << " and alt path ";
 	    for (uint j=lmp_range_start+1; j< lmp_range_end; ++j)
             {
-		cout << lmp[j]->id << " ";
+		//cout << lmp[j]->id << " ";
 		//cout << "j: " << j << " which is " << *lmp[j] << endl;
                 alt += lmp[j]->seq;
 		//cout << "alt is now " << alt << endl;
             }
-	    cout << endl;
+	    //cout << endl;
 
 	    vcf.add_sample_gt(name, pos, ref, alt);
 	
