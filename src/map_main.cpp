@@ -153,6 +153,7 @@ int pandora_map(int argc, char* argv[])
     for (auto c: pangraph->nodes)
     {
 	prgs[c.second->id]->find_path_and_variants(prefix, e_rate, w);
+	prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "_" + prgs[c.second->id]->name + ".covg.txt");
     }
 
     cout << now() << "Writing LocalGraphs to files:" << endl;	
