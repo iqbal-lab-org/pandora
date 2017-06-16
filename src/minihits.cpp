@@ -69,6 +69,8 @@ bool pComp_path::operator()(MinimizerHit* lhs, MinimizerHit* rhs) {
 }
 
 bool clusterComp::operator()(set<MinimizerHit*, pComp> lhs, set<MinimizerHit*, pComp> rhs) {
+    if ((*lhs.begin())->read_id < (*rhs.begin())->read_id) { return true; }
+    if ((*rhs.begin())->read_id < (*lhs.begin())->read_id) { return false; }
     if ((*lhs.begin())->read_interval.start < (*rhs.begin())->read_interval.start) { return true; }
     if ((*rhs.begin())->read_interval.start < (*lhs.begin())->read_interval.start) { return false; }
     return false;
