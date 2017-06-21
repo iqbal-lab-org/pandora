@@ -41,6 +41,7 @@ TEST_F(KmerGraphTest, addNode)
     j = 0;
     EXPECT_EQ(j, kg.nodes[0]->covg[0]);
     EXPECT_EQ(j, kg.nodes[0]->covg[0]);
+    EXPECT_EQ(j, kg.nodes[0]->num_AT);
 
     // add node another time and expect nothing to happen
     kg.add_node(p);
@@ -54,6 +55,7 @@ TEST_F(KmerGraphTest, addNode)
     j = 0;
     EXPECT_EQ(j, kg.nodes[0]->covg[0]);
     EXPECT_EQ(j, kg.nodes[0]->covg[0]);
+    EXPECT_EQ(j, kg.nodes[0]->num_AT);
 
     // add a second node and check gets next id
     d = {Interval(1,4)};
@@ -66,6 +68,7 @@ TEST_F(KmerGraphTest, addNode)
     EXPECT_EQ(j, kg.nodes[0]->id);
     EXPECT_EQ(j, kg.nodes[0]->covg[0]);
     EXPECT_EQ(j, kg.nodes[1]->covg[0]);
+    EXPECT_EQ(j, kg.nodes[0]->num_AT);
     j = 1;
     EXPECT_EQ(j, kg.nodes[1]->id);
 }
@@ -385,6 +388,7 @@ TEST_F(KmerGraphTest, save){
     kg.add_node(p2);
     kg.add_edge(p1,p2);
     kg.nodes[0]->covg[1] +=5;
+    EXPECT_EQ((uint)0, kg.nodes[0]->num_AT);
 
     kg.save("../test/test_cases/kmergraph_test.gfa");
 }

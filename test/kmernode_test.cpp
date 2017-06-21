@@ -32,6 +32,7 @@ TEST_F(KmerNodeTest,create){
     j = 0;
     EXPECT_EQ(j, kn.covg[0]);
     EXPECT_EQ(j, kn.covg[0]);
+    EXPECT_EQ(j, kn.num_AT);
     EXPECT_EQ(p, kn.path);
 }
 
