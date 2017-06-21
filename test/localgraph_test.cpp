@@ -19,40 +19,6 @@ class LocalGraphTest : public ::testing::Test {
     // Code here will be called immediately after each test
     // (right before the destructor).
   }
-
-/*  LocalGraph lg0 = LocalGraph();
-  lg0.add_node(0,"",Interval(0,0));
-
-  LocalGraph lg1 = LocalGraph();
-  lg1.add_node(0,"AGCT", Interval(0,4));
-
-  LocalGraph lg2 = LocalGraph();
-  lg2.add_node(0,"A", Interval(0,1));
-  lg2.add_node(1,"GC", Interval(4,6));
-  lg2.add_node(2,"G", Interval(7,8));
-  lg2.add_node(3,"T", Interval(13,14));
-  lg2.add_edge(0,1);
-  lg2.add_edge(0,2);
-  lg2.add_edge(1,3);
-  lg2.add_edge(2,3);
-
-  LocalGraph lg3 = LocalGraph();
-  lg3.add_node(0,"A", Interval(0,1));
-  lg3.add_node(1,"G", Interval(4,5));
-  lg3.add_node(2,"C", Interval(8,9));
-  lg3.add_node(3,"T", Interval(12,13));
-  lg3.add_node(4,"", Interval(16,16));
-  lg3.add_node(5,"G", Interval(19,20));
-  lg3.add_node(6,"T", Interval(23,24));
-  lg3.add_edge(0,1);
-  lg3.add_edge(0,5);
-  lg3.add_edge(1,2);
-  lg3.add_edge(1,3);
-  lg3.add_edge(2,4);
-  lg3.add_edge(3,4);
-  lg3.add_edge(4,6);
-  lg3.add_edge(5,6);
-*/
 };
 
 TEST_F(LocalGraphTest, addNode)
@@ -165,6 +131,35 @@ TEST_F(LocalGraphTest, equals)
     lg2r.add_edge(0,2);
     lg2r.add_node(4, "T", Interval(15,16));
     EXPECT_EQ((lg2==lg2r), false);
+}
+
+TEST_F(LocalGraphTest, writeGFA){
+    LocalGraph lg2;
+    lg2.add_node(0,"A", Interval(0,1));
+    lg2.add_node(1,"GC", Interval(4,6));
+    lg2.add_node(2,"G", Interval(7,8));
+    lg2.add_node(3,"T", Interval(13,14));
+    lg2.add_edge(0,1);
+    lg2.add_edge(0,2);
+    lg2.add_edge(1,3);
+    lg2.add_edge(2,3);
+
+    lg2.write_gfa("../test/test_cases/localgraph_test.gfa");
+}
+
+TEST_F(LocalGraphTest, readGFA){
+    LocalGraph lg2, read_lg2;
+    lg2.add_node(0,"A", Interval(0,1));
+    lg2.add_node(1,"GC", Interval(4,6));
+    lg2.add_node(2,"G", Interval(7,8));
+    lg2.add_node(3,"T", Interval(13,14));
+    lg2.add_edge(0,1);
+    lg2.add_edge(0,2);
+    lg2.add_edge(1,3);
+    lg2.add_edge(2,3);
+
+    read_lg2.read_gfa("../test/test_cases/localgraph_test.gfa");
+    EXPECT_EQ(lg2, read_lg2);
 }
 
 TEST_F(LocalGraphTest, walk)
@@ -351,35 +346,6 @@ TEST_F(LocalGraphTest, walkBack)
     EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
 }
 
-TEST_F(LocalGraphTest, writeGFA){
-    LocalGraph lg2;
-    lg2.add_node(0,"A", Interval(0,1));
-    lg2.add_node(1,"GC", Interval(4,6));
-    lg2.add_node(2,"G", Interval(7,8));
-    lg2.add_node(3,"T", Interval(13,14));
-    lg2.add_edge(0,1);
-    lg2.add_edge(0,2);
-    lg2.add_edge(1,3);
-    lg2.add_edge(2,3);
-
-    lg2.write_gfa("../test/test_cases/localgraph_test.gfa");
-}
-
-TEST_F(LocalGraphTest, readGFA){
-    LocalGraph lg2, read_lg2;
-    lg2.add_node(0,"A", Interval(0,1));
-    lg2.add_node(1,"GC", Interval(4,6));
-    lg2.add_node(2,"G", Interval(7,8));
-    lg2.add_node(3,"T", Interval(13,14));
-    lg2.add_edge(0,1);
-    lg2.add_edge(0,2);
-    lg2.add_edge(1,3);
-    lg2.add_edge(2,3);
-
-    read_lg2.read_gfa("../test/test_cases/localgraph_test.gfa");
-    EXPECT_EQ(lg2, read_lg2);
-}
-
 TEST_F(LocalGraphTest, nodesAlongString)
 {
     LocalGraph lg2, read_lg2;
@@ -404,6 +370,8 @@ TEST_F(LocalGraphTest, nodesAlongString)
     v = lg2.nodes_along_string("AGC");
     EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
 
+    // function expects string to start at the start of the PRG, 
+    // so the following not good tests
     //v_exp = {lg2.nodes[1], lg2.nodes[3]};
     //v = lg2.nodes_along_string("GCT");
     //EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
