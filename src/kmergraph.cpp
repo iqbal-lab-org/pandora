@@ -414,7 +414,7 @@ void KmerGraph::save_covg_dist(const string& filepath)
 
     for (uint j=1; j!=nodes.size()-1; ++j)
     {
-        handle << nodes[j]->covg[0] << "," << nodes[j]->covg[1] << "," << nodes[j]->num_AT << " ";
+        handle << nodes[j]->covg[0] << "," << nodes[j]->covg[1] << "," << (unsigned)nodes[j]->num_AT << " ";
     }
     handle.close();
     return;

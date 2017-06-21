@@ -23,7 +23,7 @@ TEST_F(SeqTest, create)
     Seq s1(0,"0", "AGCTAATGCGTT", 11, 3);
     EXPECT_EQ((uint)0, s1.id);
     EXPECT_EQ("0", s1.name);
-    //EXPECT_EQ("AGCTAATGCGTT", s1.seq);
+    EXPECT_EQ("AGCTAATGCGTT", s1.seq);
 }
 
 TEST_F(SeqTest, initialize)
@@ -32,7 +32,7 @@ TEST_F(SeqTest, initialize)
     s1.initialize(1,"new", "AGCTAATGCATA", 9, 3);
     EXPECT_EQ((uint)1, s1.id);
     EXPECT_EQ("new", s1.name);
-    //EXPECT_EQ("AGCTAATGCATA", s1.seq);
+    EXPECT_EQ("AGCTAATGCATA", s1.seq);
 }
 
 TEST_F(SeqTest,sketchShortReads){
