@@ -11,9 +11,6 @@ using namespace std;
 MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecord* r): read_id(i), read_interval(m->pos), prg_id(r->prg_id), prg_path(r->path), strand((m->strand == r->strand))
 {
     //cout << *m << " + " << *r << " = " << "(" << read_id << ", " << read_interval << ", " << prg_id << ", " << prg_path << ", " << strand << ")" << endl;
-    //prg_path.initialize(r.path.path);
-    //cout << "minihit initialised with read: " << read_id << ", " << read_interval << ", length " << read_interval.length << endl;
-    //cout << "and prg: " << prg_id << ", " << prg_path << ", length " << prg_path.length << endl;
     assert(read_interval.length==prg_path.length());
 };
 
@@ -46,12 +43,6 @@ bool MinimizerHit::operator < ( const MinimizerHit& y) const
     if (strand < y.strand){ return false; }
     if (y.strand < strand) { return true; }
 
-/*    // then by difference on target string (want approx co-linear)
-    if (read_interval.start + y.prg_path.start < y.read_interval.start + prg_path.start) { //cout << read_interval.start + y.prg_path.start << " < " << y.read_interval.start + prg_path.start << endl; 
-	return true; }
-    if (y.read_interval.start + prg_path.start < read_interval.start + y.prg_path.start) {//cout << read_interval.start + y.prg_path.start << " > " << y.read_interval.start + prg_path.start << endl; 
-	return false; } 
-*/
     // then by position on query string
     if (read_interval.start < y.read_interval.start) { return true; }
     if (y.read_interval.start < read_interval.start) { return false; }
