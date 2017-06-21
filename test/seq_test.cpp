@@ -18,6 +18,23 @@ class SeqTest : public ::testing::Test {
   }
 };
 
+TEST_F(SeqTest, create)
+{
+    Seq s1(0,"0", "AGCTAATGCGTT", 11, 3);
+    EXPECT_EQ((uint)0, s1.id);
+    EXPECT_EQ("0", s1.name);
+    //EXPECT_EQ("AGCTAATGCGTT", s1.seq);
+}
+
+TEST_F(SeqTest, initialize)
+{
+    Seq s1(0,"0", "AGCTAATGCGTT", 11, 3);
+    s1.initialize(1,"new", "AGCTAATGCATA", 9, 3);
+    EXPECT_EQ((uint)1, s1.id);
+    EXPECT_EQ("new", s1.name);
+    //EXPECT_EQ("AGCTAATGCATA", s1.seq);
+}
+
 TEST_F(SeqTest,sketchShortReads){
     Seq s1(0,"0", "AGCTAATGCGTT", 11, 3);
     Seq s2(0,"0", "AGCTAATGCGTT", 10, 3);
@@ -52,8 +69,6 @@ TEST_F(SeqTest,sketchIncludesEveryLetter){
     {
 	EXPECT_EQ((pos_inc.find(i)!=pos_inc.end()), true);
     }
-    //set<int> expected = {0,1,2,3,4,5,6,7,8,9,10,11};
-    //EXPECT_EQ(pos_inc, expected) << "sketch misses a letter";
  
     uint32_t j = 10;
     EXPECT_EQ(s3.sketch.size(), j) << "sketch with w=1 has incorrect size " << s3.sketch.size();
@@ -70,7 +85,6 @@ TEST_F(SeqTest,sketchIncludesEveryLetter){
     {
         EXPECT_EQ((pos_inc.find(i)!=pos_inc.end()), true);
     }
-    //EXPECT_EQ(pos_inc, expected) << "sketch for s2 includes/misses wrong letter";
 
     pos_inc.clear();
     for(set<Minimizer*>::iterator it=s1.sketch.begin(); it != s1.sketch.end(); ++it)
@@ -83,10 +97,6 @@ TEST_F(SeqTest,sketchIncludesEveryLetter){
     {
         EXPECT_EQ((pos_inc.find(i)!=pos_inc.end()), true);
     }
-    //expected = {0,1,2,3,4,5,6,7,8,9};
-    //EXPECT_EQ(pos_inc, expected) << "sketch for s1 includes/misses wrong letter";
 
 }
 
-//TEST_F(SeqTest,sketchCorrect){
-//}
