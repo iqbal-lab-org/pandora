@@ -693,6 +693,148 @@ TEST_F(LocalPRGTest, minimizerSketchSameAsSeqw15){
     }
 }
 
+TEST_F(LocalPRGTest, localnode_path_from_kmernode_path)
+{   
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+    LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
+    //LocalPRG l5(5, "one with lots of null at start and end, and a long stretch in between", " 5  7  9  11 AGTTCTGAAACATTGCGCGTGAGATCTCTG 12 T 11  10 A 9  8 C 7  6 G 5 ");
+    
+    Index* idx;
+    idx = new Index();
+    
+    KmerHash hash;
+    
+    l3.minimizer_sketch(idx, 2, 3);
+    vector<KmerNode*> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
+    vector<LocalNode*> lmp = l3.localnode_path_from_kmernode_path(kmp);
+    vector<LocalNode*> lmp_exp = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
+    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
+    lmp = l3.localnode_path_from_kmernode_path(kmp, 2);
+    lmp_exp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
+    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
+
+    idx->clear();
+    l4.minimizer_sketch(idx, 3, 3);
+    kmp = {l4.kmer_prg.nodes[2], l4.kmer_prg.nodes[4], l4.kmer_prg.nodes[8]};
+    lmp = l4.localnode_path_from_kmernode_path(kmp, 2);
+    lmp_exp = {l4.prg.nodes[1], l4.prg.nodes[3]};
+    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
+    lmp = l4.localnode_path_from_kmernode_path(kmp, 3);
+    lmp_exp = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6]};
+    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
+
+    /*idx->clear();
+    l5.minimizer_sketch(idx, 4, 3);
+    cout << l5.kmer_prg;*/
+
+    delete idx;
+}
+
+TEST_F(LocalPRGTest, updateCovgWithHit)
+{
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+
+    Index* idx;
+    idx = new Index();
+
+    l3.minimizer_sketch(idx, 1, 3);
+
+    KmerHash hash;
+    Minimizer* m;
+    pair<uint64_t,uint64_t> kh = hash.kmerhash("AGC", 3);
+    m = new Minimizer(min(kh.first,kh.second), 1,4,1);
+    deque<Interval> d = {Interval(0,1), Interval(4,5), Interval(12, 13)};
+    Path p;
+    p.initialize(d);
+    MiniRecord* mr;
+    mr = new MiniRecord(3,p,0);
+    MinimizerHit* mh;
+    mh = new MinimizerHit(1, m, mr);
+
+    l3.update_covg_with_hit(mh);
+    uint j = 1;
+    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[0]);
+    j = 0;
+    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[1]);
+    for (uint i=3; i!=l3.kmer_prg.nodes.size(); ++i)
+    {
+        EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[0]);
+	EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[1]);
+    }
+     
+    l3.update_covg_with_hit(mh);
+    j = 2;
+    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[0]);
+    j = 0;
+    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[1]);
+    for (uint i=3; i!=l3.kmer_prg.nodes.size(); ++i)
+    {
+        EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[0]);
+        EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[1]);
+    }
+
+    delete m;
+    delete mr;
+    delete mh;
+
+    kh = hash.kmerhash("TAT", 3);
+    m = new Minimizer(min(kh.first,kh.second), 1,4,1);
+    d = {Interval(16,16), Interval(23, 26)};
+    p.initialize(d);
+    mr = new MiniRecord(3,p,1);
+    mh = new MinimizerHit(1, m, mr);
+
+    l3.update_covg_with_hit(mh);
+    j = 1;
+    EXPECT_EQ(j, l3.kmer_prg.nodes[8]->covg[1]);
+    j = 2;
+    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[0]);
+    j = 0;
+    EXPECT_EQ(j, l3.kmer_prg.nodes[8]->covg[0]);
+    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[1]);
+    for (uint i=3; i<8; ++i)
+    {
+        EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[0]);
+        EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[1]);
+    }
+ 
+    l3.update_covg_with_hit(mh);
+    j = 2;
+    EXPECT_EQ(j, l3.kmer_prg.nodes[8]->covg[1]);
+    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[0]);
+    j = 0;
+    EXPECT_EQ(j, l3.kmer_prg.nodes[8]->covg[0]);
+    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[1]);
+    for (uint i=3; i<8; ++i)
+    {
+        EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[0]);
+        EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[1]);
+    }   
+
+    delete m;
+    delete mr;
+    delete mh;
+
+    // could add futher examples for inner kmers?
+
+    delete idx;
+}
+
+TEST_F(LocalPRGTest, write_max_path_to_fasta)
+{
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+
+    Index* idx;
+    idx = new Index();
+
+    l3.minimizer_sketch(idx, 1, 3);
+
+    vector<LocalNode*> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
+    l3.write_max_path_to_fasta("../test/test_cases/localPRG_test.maxpath.fa", lmp3, 0.00);
+    
+    delete idx;
+}
+
 TEST_F(LocalPRGTest, buildVcf)
 {
     LocalPRG l1(1,"simple", "AGCT");
@@ -822,43 +964,6 @@ TEST_F(LocalPRGTest, add_sample_to_vcf)
     EXPECT_EQ(".", l5.vcf.records[6].samples[0]);
 }
 
-TEST_F(LocalPRGTest, localnode_path_from_kmernode_path)
-{
-    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
-    LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
-    LocalPRG l5(5, "one with lots of null at start and end, and a long stretch in between", " 5  7  9  11 AGTTCTGAAACATTGCGCGTGAGATCTCTG 12 T 11  10 A 9  8 C 7  6 G 5 ");
-    
-    Index* idx;
-    idx = new Index();
-
-    KmerHash hash;
-
-    l3.minimizer_sketch(idx, 2, 3);
-    vector<KmerNode*> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
-    vector<LocalNode*> lmp = l3.localnode_path_from_kmernode_path(kmp);
-    vector<LocalNode*> lmp_exp = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
-    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
-    lmp = l3.localnode_path_from_kmernode_path(kmp, 2);
-    lmp_exp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
-    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
-
-    idx->clear(); 
-    l4.minimizer_sketch(idx, 3, 3);
-    kmp = {l4.kmer_prg.nodes[2], l4.kmer_prg.nodes[4], l4.kmer_prg.nodes[8]};
-    lmp = l4.localnode_path_from_kmernode_path(kmp, 2);
-    lmp_exp = {l4.prg.nodes[1], l4.prg.nodes[3]};
-    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
-    lmp = l4.localnode_path_from_kmernode_path(kmp, 3);
-    lmp_exp = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6]};
-    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
-
-    /*idx->clear();
-    l5.minimizer_sketch(idx, 4, 3);
-    cout << l5.kmer_prg;*/
- 
-    delete idx;
-}
-
 TEST_F(LocalPRGTest, moreupdateVCF)
 {
     // load PRGs from file
@@ -889,169 +994,15 @@ TEST_F(LocalPRGTest, moreupdateVCF)
     prgs[2]->add_sample_to_vcf(lmp2);
 }
 
-TEST_F(LocalPRGTest, updateCovgWithHit)
+TEST_F(LocalPRGTest, find_path_and_variants)
 {
-// do need a test for this, but function currently altered to only update on kmers, not for localnodes
-/*    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
-    KmerHash hash;
-
-    Minimizer* m;
-    pair<uint64_t,uint64_t> kh = hash.kmerhash("AGC", 3);
-    m = new Minimizer(min(kh.first,kh.second), 1,4,0);
-    deque<Interval> d = {Interval(0,1), Interval(4,5), Interval(8, 9)};
-    Path p;
-    p.initialize(d);
-    MiniRecord* mr;
-    mr = new MiniRecord(3,p,0);
-    MinimizerHit* mh;
-    mh = new MinimizerHit(1, m, mr);
-
-    l3.update_covg_with_hit(mh);
-    uint j = 2;
-    EXPECT_EQ(j, l3.prg.nodes[0]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[1]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[2]->covg);
-    j = 0;
-    EXPECT_EQ(j, l3.prg.nodes[4]->covg);
-    j = 1;
-    EXPECT_EQ(j, l3.prg.nodes[3]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[5]->covg);
-    j = 3;
-    EXPECT_EQ(j, l3.prg.nodes[6]->covg);
-    
-     
-    delete m;
-    delete mr;
-    delete mh;
-    kh = hash.kmerhash("CTA", 3); 
-    m = new Minimizer(min(kh.first,kh.second), 3,6,0);
-    d = {Interval(8, 9), Interval(16, 16), Interval(23, 25)};
-    p.initialize(d);
-    mr = new MiniRecord(3,p,0);
-    mh = new MinimizerHit(1, m, mr);
-
-    l3.update_covg_with_hit(mh);
-    j = 2;
-    EXPECT_EQ(j, l3.prg.nodes[0]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[1]->covg);
-    j = 3;
-    EXPECT_EQ(j, l3.prg.nodes[2]->covg);
-    j = 1;
-    EXPECT_EQ(j, l3.prg.nodes[4]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[3]->covg);
-    EXPECT_EQ(j, l3.prg.nodes[5]->covg);
-    j = 5;
-    EXPECT_EQ(j, l3.prg.nodes[6]->covg);
-
-    delete m;
-    delete mr;
-    delete mh;*/
-}
-
-/*TEST_F(LocalPRGTest, inferMostLikelyPrgPathsForCorrespondingPannode)
-{
-    // initialize minihits container
-    MinimizerHits *mhs;
-    mhs = new MinimizerHits();
-
-    KmerHash hash;
-
-    // initialize a prgs object
-    vector<LocalPRG*> prgs;
-    LocalPRG* lp3;
-    lp3 = new LocalPRG(3, "3", "T 5 G 7 C 8 T 7  6 G 5 TATG");
-    prgs.push_back(lp3);
-
-    // initialize index as we would expect with example prgs
-    Index *idx;
+    Index* idx;
     idx = new Index();
 
-    deque<Interval> d = {Interval(0,0)};
-    Path p;
-    p.initialize(d);
-    lp3->kmer_prg.add_node(p);
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+    l3.minimizer_sketch(idx, 1, 3);
 
-    d = {Interval(0,1), Interval(4,5), Interval(8,9)};
-    p.initialize(d);
-    pair<uint64_t,uint64_t> kh = hash.kmerhash("TGC",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_prg.add_node(p);
-
-    d = {Interval(0,1), Interval(4,5), Interval(12,13)};
-    p.initialize(d);
-    kh = hash.kmerhash("TGT",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_prg.add_node(p);
-
-    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
-    p.initialize(d);
-    kh = hash.kmerhash("TTT",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_prg.add_node(p);
-
-    d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
-    p.initialize(d);
-    kh = hash.kmerhash("GCT",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_prg.add_node(p);
-
-    d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
-    p.initialize(d);
-    kh = hash.kmerhash("GTT",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_prg.add_node(p);
-
-    d = {Interval(8,9), Interval(16,16), Interval(23,25)};
-    p.initialize(d);
-    kh = hash.kmerhash("CTA",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_prg.add_node(p);
-
-    d = {Interval(12,13), Interval(16,16), Interval(23,25)};
-    p.initialize(d);
-    kh = hash.kmerhash("TTA",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_prg.add_node(p);
-
-    d = {Interval(19,20), Interval(23,25)};
-    p.initialize(d);
-    kh = hash.kmerhash("TTA",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_prg.add_node(p);
-
-    d = {Interval(23,26)};
-    p.initialize(d);
-    kh = hash.kmerhash("TAT",3); //inconsistent, i don't care
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_prg.add_node(p);
-
-    d = {Interval(24,27)};
-    p.initialize(d);
-    kh = hash.kmerhash("ATG",3);
-    idx->add_record(min(kh.first,kh.second), 3, p, (kh.first < kh.second));
-    lp3->kmer_prg.add_node(p);
-
-    d = {Interval(27,27)};
-    p.initialize(d);
-    lp3->kmer_prg.add_node(p);
-    
-    PanNode* pn;
-    pn = new PanNode(3);
-    pn->add_read(0);
-    add_read_hits(0, "read0", "TGTTATG", mhs, idx, 1, 3); //AGTTAAGCTAGCTACTTACGGTA
-    pn->add_hits(mhs->hits);
-    
-    lp3->infer_most_likely_prg_paths_for_corresponding_pannode(pn, 3, 0.0015);
-    vector<LocalNode*> v_exp = {lp3->prg.nodes[0], lp3->prg.nodes[1], lp3->prg.nodes[3], lp3->prg.nodes[4], lp3->prg.nodes[6]};
-    EXPECT_EQ(v_exp.size(), lp3->max_path_index[0][0][0].npath.size());
-    for (uint j = 0; j!= v_exp.size(); ++j)
-    {
-	EXPECT_EQ(*(v_exp[j]), *(lp3->max_path_index[0][0][0].npath[j]));
-    }
-
-    delete mhs;
-    idx->clear();
+    cout << l3.kmer_prg;  
     delete idx;
-    delete pn;
-}*/
+}

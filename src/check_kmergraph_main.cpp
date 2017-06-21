@@ -86,7 +86,7 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
 			cout << "->" << *npath[j];
                     }
 		    cout << endl;
-		    i/*vector<KmerNode*> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
+		    /*vector<KmerNode*> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
 
 		    cout << "kmers on path: " << endl;
                     for (uint j=0; j != kpath.size(); ++j)

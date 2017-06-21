@@ -39,6 +39,8 @@ class KmerNode {
   friend class LocalPRGTest_minimizerSketchSameAsSeqw5_Test;
   friend class LocalPRGTest_minimizerSketchSameAsSeqw10_Test;
   friend class LocalPRGTest_minimizerSketchSameAsSeqw15_Test;
+  friend class LocalPRGTest_updateCovgWithHit_Test;
+  friend class LocalPRGTest_find_path_and_variants_Test;
 };
 
 bool equal_except_null_nodes (const KmerNode& x, const KmerNode& y);
