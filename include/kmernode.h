@@ -17,8 +17,8 @@ class KmerNode {
   public:
     KmerNode(uint32_t, const Path&);
     bool operator == (const KmerNode& y) const;
-  friend bool equal_except_null_nodes (const KmerNode& x, const KmerNode& y);
 
+  friend bool equal_except_null_nodes (const KmerNode& x, const KmerNode& y);
   friend std::ostream& operator<< (std::ostream& out, const KmerNode& n);  
   friend class KmerGraph;
   friend struct condition;
@@ -43,5 +43,4 @@ class KmerNode {
   friend class LocalPRGTest_find_path_and_variants_Test;
 };
 
-bool equal_except_null_nodes (const KmerNode& x, const KmerNode& y);
 #endif

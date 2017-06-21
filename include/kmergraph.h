@@ -18,9 +18,11 @@ class KmerGraph {
     uint32_t num_reads;
     uint32_t shortest_path_length;
     std::vector<KmerNode*> nodes; // representing nodes in graph
+
     KmerGraph();
     ~KmerGraph();
     void clear();
+
     KmerNode* add_node (const Path&);
     KmerNode* add_node_with_kh (const Path&, const uint64_t&, const uint8_t& num=0);
     //void add_edge (const uint32_t&, const uint32_t&);

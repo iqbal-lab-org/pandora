@@ -22,23 +22,5 @@ std::ostream& operator<< (std::ostream & out, KmerNode const& n) {
 
 bool KmerNode::operator == (const KmerNode& y) const {
     if (!(path == y.path)) {return false;}
-/*    if (outNodes.size() != y.outNodes.size()) {return false;}
-    if (inNodes.size() != y.inNodes.size()) {return false;}
-    for (uint32_t i=0; i!=outNodes.size(); ++i)
-    {
-        pointer_values_equal<KmerNode> eq = { outNodes[i] };
-        if ( find_if(y.outNodes.begin(), y.outNodes.end(), eq) == y.outNodes.end() )
-	{return false;}
-    }
-    for (uint32_t i=0; i!=inNodes.size(); ++i)
-    {
-        pointer_values_equal<KmerNode> eq = { inNodes[i] };
-        if ( find_if(y.inNodes.begin(), y.inNodes.end(), eq) == y.inNodes.end() )
-        {return false;}
-    }*/
     return true;
-}
-
-bool equal_except_null_nodes (const KmerNode& x, const KmerNode& y) {
-    return equal_except_null_nodes(x.path, y.path);
 }
