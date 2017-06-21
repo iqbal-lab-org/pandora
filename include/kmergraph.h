@@ -25,20 +25,15 @@ class KmerGraph {
 
     KmerNode* add_node (const Path&);
     KmerNode* add_node_with_kh (const Path&, const uint64_t&, const uint8_t& num=0);
-    //void add_edge (const uint32_t&, const uint32_t&);
     void add_edge (const Path&, const Path&);
     void add_edge (KmerNode*, KmerNode*);
-    //void copy_innodes (const Path&, const Path&);
-    std::set<Path> get_innodes (const Path&);
+
     void check (uint);
     void sort_topologically();
-    //std::vector<KmerNode*> get_node_order();
+
     float prob(uint);
     float find_max_path(float, std::vector<KmerNode*>&);
     void save_covg_dist(const std::string&);
-    //float find_max_path_backward(int, float, std::vector<KmerNode*>&);
-    //float find_max_path_forward(int, float, std::vector<KmerNode*>&);
-    //float find_max_path_coverage(int, float, std::vector<KmerNode*>&);
     uint min_path_length();
     void save (const std::string&);
     void load (const std::string&);

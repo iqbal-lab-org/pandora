@@ -25,13 +25,14 @@ class KmerNode {
   friend struct pCompKmerNode;
   friend class LocalPRG;
   friend int pandora_check_kmergraph(int argc, char *argv[]);
-  friend class KmerGraphTest_addNode_Test;
-  friend class KmerGraphTest_addEdge_Test;
+  friend class KmerGraphTest_add_node_Test;
+  friend class KmerGraphTest_add_node_with_kh_Test;
+  friend class KmerGraphTest_add_edge_Test;
   friend class KmerGraphTest_save_Test;
   friend class KmerGraphTest_load_Test;
   friend class KmerNodeTest_create_Test;
   friend class KmerNodeTest_equals_Test;
-  friend class KmerGraphTest_sortTopologically_Test;
+  friend class KmerGraphTest_sort_topologically_Test;
   friend class KmerGraphTest_findMaxPathSimple_Test;
   friend class KmerGraphTest_findMaxPath2Level_Test;
   friend class LocalPRGTest_minimizerSketch_Test;
