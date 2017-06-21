@@ -17,7 +17,7 @@ class VCFTest : public ::testing::Test {
   }
 };
 
-TEST_F(VCFTest,addRecord){
+TEST_F(VCFTest,add_record){
 
     VCF vcf;
     uint j = 0;

@@ -70,7 +70,7 @@ TEST_F(VCFRecordTest,equals){
 
 }
 
-TEST_F(VCFRecordTest,less){
+TEST_F(VCFRecordTest,less_than){
     VCFRecord vr1("chrom1", 3, "A", "T");
     VCFRecord vr2("chrom2", 3, "A", "T");
     EXPECT_EQ((vr2<vr1), false);
