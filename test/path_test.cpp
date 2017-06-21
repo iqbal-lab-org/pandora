@@ -18,7 +18,38 @@ class PathTest : public ::testing::Test {
   }
 };
 
-TEST_F(PathTest,addStartInterval)
+TEST_F(PathTest, initialize)
+{
+    Path p;
+    deque<Interval> d = {Interval(0,1), Interval(3,3), Interval(5,10)};
+    p.initialize(d);
+    EXPECT_EQ(p.path.size(), d.size());
+    for(uint i=0; i!=d.size(); ++i)
+    {
+	EXPECT_EQ(p.path[i], d[i]);
+    }
+}
+
+TEST_F(PathTest, length)
+{
+    Path p;
+    deque<Interval> d = {Interval(0,0)};
+    p.initialize(d);
+    uint j = 0;
+    EXPECT_EQ(j, p.length());
+
+    d = {Interval(0,1), Interval(3,3), Interval(5,10)};
+    p.initialize(d);
+    j = 6;
+    EXPECT_EQ(j, p.length());
+
+    d = {Interval(0,1), Interval(3,3)};
+    p.initialize(d);
+    j = 1;
+    EXPECT_EQ(j, p.length());
+}
+
+TEST_F(PathTest,add_start_interval)
 {
     deque<Interval> d = {Interval(4,5)};
     Path p;
@@ -29,7 +60,7 @@ TEST_F(PathTest,addStartInterval)
     EXPECT_DEATH(p.add_start_interval(Interval(3,4)), "");
 }
 
-TEST_F(PathTest,addEndInterval)
+TEST_F(PathTest,add_end_interval)
 {
     deque<Interval> d = {Interval(4,5)};
     Path p;
@@ -85,7 +116,7 @@ TEST_F(PathTest, subpath)
     //EXPECT_DEATH(p.subpath(39,3), "");
 }
 
-TEST_F(PathTest, isBranching)
+TEST_F(PathTest, is_branching)
 {
     deque<Interval> d, d1;
     d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
@@ -133,7 +164,7 @@ TEST_F(PathTest, isBranching)
     EXPECT_EQ(p1.is_branching(p), false);
 }
 
-TEST_F(PathTest, lessthan)
+TEST_F(PathTest, less_than)
 {
     deque<Interval> d, d1;
     d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
@@ -209,6 +240,26 @@ TEST_F(PathTest, equals)
     p1.initialize(d1);
     EXPECT_EQ((p==p1),false);
     EXPECT_EQ((p1==p),false);
+}
+
+TEST_F(PathTest, equal_except_null_nodes)
+{   
+    deque<Interval> d, d1, d2;
+    d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
+    d1 = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40), Interval(40,40), Interval(59,59)};
+    d2 = {Interval(0,0), Interval(1,1), Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
+
+    Path p, p1, p2;
+    p.initialize(d);
+    p1.initialize(d1);
+    p2.initialize(d2);
+
+    EXPECT_EQ(equal_except_null_nodes(p,p), true);
+    EXPECT_EQ(equal_except_null_nodes(p,p1), true);
+    EXPECT_EQ(equal_except_null_nodes(p,p2), true);
+    EXPECT_EQ(equal_except_null_nodes(p1,p1), true);
+    EXPECT_EQ(equal_except_null_nodes(p1,p2), true);
+    EXPECT_EQ(equal_except_null_nodes(p2,p2), true);
 }
 
 TEST_F(PathTest, write)

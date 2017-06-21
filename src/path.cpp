@@ -12,6 +12,14 @@ using namespace std;
 
 Path::Path(){}
 
+void Path::initialize(const deque<Interval>& q)
+{
+    path = q;
+    start = q.begin()->start;
+    end = (*--q.end()).end;
+    end = path.back().end;
+}
+
 uint32_t Path::length() const
 {
     uint32_t i = 0;
@@ -21,21 +29,6 @@ uint32_t Path::length() const
     }
     return i;
 }
-
-void Path::initialize(const deque<Interval>& q)
-{
-    path = q;
-    start = q.begin()->start;
-    //cout << "Paths starts at " << start;
-    end = (*--q.end()).end;
-    //cout << "Paths ends at " << end;
-    end = path.back().end;
-}
-
-/*Path::~Path()
-{
-    path.clear();
-}*/
 
 void Path::add_start_interval(const Interval& i)
 {
@@ -86,10 +79,6 @@ Path Path::subpath(const uint32_t start, const uint32_t len) const
     assert(added_len == len);
     return p;
 }
-
-/*bool Path::is_disjoint(const Path& y) const // does the path overlap this path
-{
-}*/
 
 bool Path::is_branching(const Path& y) const // returns true if the two paths branch together or coalesce apart
 {
@@ -184,6 +173,8 @@ bool Path::operator == ( const Path& y) const
     return true;
 }
 
+// tests if the paths are equal except for null nodes at the start or
+// ends of the paths
 bool equal_except_null_nodes (const Path& x, const Path& y)
 {
     std::deque<Interval>::const_iterator it2=y.path.begin();

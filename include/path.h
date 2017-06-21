@@ -14,11 +14,10 @@ class Path {
     uint32_t end;
 
     Path();
-  //  ~Path();
+    void initialize(const std::deque<Interval>&);
     uint32_t length() const;
     void add_start_interval(const Interval&);
     void add_end_interval(const Interval&);
-    void initialize(const std::deque<Interval>&);
     Path subpath(const uint32_t, const uint32_t) const;
     bool is_branching(const Path& y) const;
     bool operator < (const Path& y) const;
