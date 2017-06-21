@@ -69,10 +69,11 @@ KmerNode* KmerGraph::add_node (const Path& p)
     return n;
 }
 
-KmerNode* KmerGraph::add_node_with_kh (const Path& p, const uint64_t& kh)
+KmerNode* KmerGraph::add_node_with_kh (const Path& p, const uint64_t& kh, const uint8_t& num)
 {
     KmerNode *n = add_node(p);
     n->khash = kh;
+    n->num_AT = num;
     assert(n->khash < std::numeric_limits<uint64_t>::max());
     return n;
 }
@@ -413,7 +414,7 @@ void KmerGraph::save_covg_dist(const string& filepath)
 
     for (uint j=1; j!=nodes.size()-1; ++j)
     {
-        handle << nodes[j]->covg[0] << "," << nodes[j]->covg[1] << " ";
+        handle << nodes[j]->covg[0] << "," << nodes[j]->covg[1] << "," << nodes[j]->num_AT << " ";
     }
     handle.close();
     return;

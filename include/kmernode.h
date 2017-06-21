@@ -12,6 +12,7 @@ class KmerNode {
     std::vector<KmerNode*> inNodes; // representing edges from other nodes to this node
     std::vector<uint32_t> covg; // covg by hits in fwd, rev dir
     uint64_t khash; //the kmer hash value
+    uint8_t num_AT; // the number of As and Ts in this kmer
 
   public:
     KmerNode(uint32_t, const Path&);

@@ -378,6 +378,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
     vector<KmerNode*>::iterator found;
     vector<LocalNode*> n;
     bool mini_found_in_window;
+    size_t num_AT=0;
 
     // create a null start node in the kmer graph
     d = {Interval(0,0)};
@@ -449,7 +450,8 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		        // add to index, kmer_prg
 		        //cout << "add first minikmer for i:" << i << " j: " << j << " kmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << kmer_path << endl;
 		        idx->add_record(min(kh.first, kh.second), id, kmer_path, (kh.first<=kh.second));
-		        kn = kmer_prg.add_node_with_kh(kmer_path, min(kh.first, kh.second));	
+		        num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
+		        kn = kmer_prg.add_node_with_kh(kmer_path, min(kh.first, kh.second), num_AT);	
 		        num_kmers_added += 1;
 		        if (mini_found_in_window == false)
 		        {
@@ -523,7 +525,8 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 		{
 		    //cout << "add minikmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << v.back() << " as smaller than " << kn->khash << endl;
 		    idx->add_record(min(kh.first, kh.second), id, v.back(), (kh.first<=kh.second));
-                    new_kn = kmer_prg.add_node_with_kh(v.back(), min(kh.first, kh.second));
+		    num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
+                    new_kn = kmer_prg.add_node_with_kh(v.back(), min(kh.first, kh.second), num_AT);
                     kmer_prg.add_edge(kn, new_kn);
 		    if (v.back().end == (--(prg.nodes.end()))->second->pos.end)
 		    {
@@ -565,7 +568,8 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 			    {
 				//cout << "add minikmer for j: " << j << " kmer: " << kmer << " kh:" << min(kh.first, kh.second)  << " and path: " << v[j] << " since v.size()==" << v.size() << endl;
 			        idx->add_record(min(kh.first, kh.second), id, v[j], (kh.first<=kh.second));
-                                new_kn = kmer_prg.add_node_with_kh(v[j], min(kh.first, kh.second));
+				num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
+                                new_kn = kmer_prg.add_node_with_kh(v[j], min(kh.first, kh.second), num_AT);
 
 				// if there is more than one mini in the window, edge should go to the first, and from the first to the second
 				if (mini_found_in_window == false)

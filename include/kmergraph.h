@@ -22,7 +22,7 @@ class KmerGraph {
     ~KmerGraph();
     void clear();
     KmerNode* add_node (const Path&);
-    KmerNode* add_node_with_kh (const Path&, const uint64_t&);
+    KmerNode* add_node_with_kh (const Path&, const uint64_t&, const uint8_t& num=0);
     //void add_edge (const uint32_t&, const uint32_t&);
     void add_edge (const Path&, const Path&);
     void add_edge (KmerNode*, KmerNode*);
