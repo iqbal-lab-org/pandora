@@ -23,7 +23,8 @@ class MinimizerHitsTest : public ::testing::Test {
   }
 };
 
-TEST_F(MinimizerHitsTest,addHit){
+TEST_F(MinimizerHitsTest,add_hit){
+    // tests both add_hit and sort
     MinimizerHits mhits;
     KmerHash hash;
     Minimizer* m;
@@ -32,7 +33,6 @@ TEST_F(MinimizerHitsTest,addHit){
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
-    //MiniRecord mr = MiniRecord(0,p,0);
     MiniRecord* mr;
     mr = new MiniRecord(0,p,0);
     mhits.add_hit(1, m, mr);
@@ -62,7 +62,7 @@ TEST_F(MinimizerHitsTest,addHit){
     delete mr;
 }
 
-TEST_F(MinimizerHitsTest, pCompCheck) {
+TEST_F(MinimizerHitsTest, pComp) {
     MinimizerHits mhits;
     vector<MinimizerHit> expected;
     KmerHash hash;
@@ -81,8 +81,6 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
 
     delete m;
     m = new Minimizer(min(kh.first,kh.second), 0,5,0);
-    //mhits.add_hit(1, m, mr);
-    //expected.push_back(MinimizerHit(1, m, mr));
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
@@ -111,7 +109,7 @@ TEST_F(MinimizerHitsTest, pCompCheck) {
     delete mr;
 }
 
-TEST_F(MinimizerHitsTest, pCompPath) {
+TEST_F(MinimizerHitsTest, pComp_path) {
     set<MinimizerHit*, pComp_path> mhitspath;
     MinimizerHits mhits;
     deque<MinimizerHit> expected;
@@ -164,8 +162,7 @@ TEST_F(MinimizerHitsTest, pCompPath) {
     delete mr;
 }
 
-TEST_F(MinimizerHitsTest, clusterCompCheck){
-    //MinimizerHits mhits = MinimizerHits();
+TEST_F(MinimizerHitsTest, clusterComp){
     set<set<MinimizerHit*, pComp>,clusterComp> clusters_of_hits;
     set<MinimizerHit*, pComp> current_cluster;
 
