@@ -27,7 +27,7 @@ TEST_F(PanNodeTest,create){
     EXPECT_EQ(j, pn.id);
 }
 
-TEST_F(PanNodeTest,addRead){
+TEST_F(PanNodeTest,add_read){
     PanNode pn(3);
     pn.add_read(0);
     uint32_t j=1;
@@ -47,7 +47,7 @@ TEST_F(PanNodeTest,addRead){
     EXPECT_EQ(j, pn.foundReads[2]);
 }
 
-TEST_F(PanNodeTest, addHits)
+TEST_F(PanNodeTest, add_hits)
 {
     set<MinimizerHit*, pComp> c;
     vector<MinimizerHit*> v;
