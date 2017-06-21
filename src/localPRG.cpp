@@ -637,7 +637,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
     return;
 }
 
-vector<KmerNode*> LocalPRG::find_kmernodes_on_localnode_path(vector<LocalNode*>& npath)
+/*vector<KmerNode*> LocalPRG::find_kmernodes_on_localnode_path(vector<LocalNode*>& npath)
 {
 
     deque<Interval>::const_iterator it;
@@ -712,13 +712,13 @@ vector<KmerNode*> LocalPRG::find_kmernodes_on_localnode_path(vector<LocalNode*>&
                         nums.pop_back();
                     }
                 } else {
-		/*if (equal_except_null_nodes(nums.back()->path, kmer_prg.nodes[n]->path))
-		{
-		    if (nums.back()->path.start > kmer_prg.nodes[n]->path.start)
-		    {
-			nums.pop_back();
-		    }
-		} else {*/
+		//if (equal_except_null_nodes(nums.back()->path, kmer_prg.nodes[n]->path))
+		//{
+		//    if (nums.back()->path.start > kmer_prg.nodes[n]->path.start)
+		//    {
+		//	nums.pop_back();
+		//    }
+		//} else {
                     nums.push_back(kmer_prg.nodes[n]);
 		}
                 //cout << "found kmer match for " << kmer_paths[n] << endl;
@@ -726,7 +726,7 @@ vector<KmerNode*> LocalPRG::find_kmernodes_on_localnode_path(vector<LocalNode*>&
         }
     }
     return nums;
-}
+}*/
 
 vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*> kmernode_path, uint w)
 {

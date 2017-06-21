@@ -45,7 +45,7 @@ class LocalPRG {
     void minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k);
 
     // functions used once hits have been collected against the PRG
-    std::vector<KmerNode*> find_kmernodes_on_localnode_path(std::vector<LocalNode*>&);
+    //std::vector<KmerNode*> find_kmernodes_on_localnode_path(std::vector<LocalNode*>&);
     void update_covg_with_hit(MinimizerHit*);
     std::vector<LocalNode*> localnode_path_from_kmernode_path(std::vector<KmerNode*>, uint w=0);
     void write_max_path_to_fasta(const std::string&, const std::vector<LocalNode*>&, const float&);

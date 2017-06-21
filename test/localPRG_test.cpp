@@ -471,7 +471,6 @@ TEST_F(LocalPRGTest, minimizerSketch){
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
     LocalPRG l4(4, "much more complex", "TCATTC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AGCTG");
     LocalPRG l5(5, "one with lots of null at start and end, and a long stretch in between", " 5  7  9  11 AGTTCTGAAACATTGCGCGTGAGATCTCTG 12 T 11  10 A 9  8 C 7  6 G 5 ");
-    //LocalPRG l7(7, "an awkward bit of OXA that was going wrong, in which we have some end points mid graph", " 5 TTCGCACTGAATATTGATACGCCAAACAG 7 AATGGATGATCTTTTCAAGAGGGAGGCAATC 8 GATGGATGACCTTTTCAAAAGGGAGGCAATA 7 GTGCGGGCAATCCTT 9 CGCTCTATTGAAGCGTTACCGCCCAACCCGGCAGTCAACTCGGACGC 11 TGCGCGATAA 12 AGCGCGATAA 11  10 CGCTCTATCGAAGCGTTGCCGCCCAACCCGGCAGTCAACTCGGACGCAGCGCGATAA 10  10 C 9  6  5 ");
 
     Index* idx;
     idx = new Index();
@@ -593,14 +592,6 @@ TEST_F(LocalPRGTest, minimizerSketch){
     idx->clear();
     l5.minimizer_sketch(idx, 4, 5);
     EXPECT_EQ((idx->minhash.size()>2), true);
-
-    /*idx->clear();
-    l7.minimizer_sketch(idx, 10, 15);
-    // kmer nodes 21 and 22 come between first and second proper var sites. 
-    // Given that the second has multiple alleles, check that we have outnodes to this effect
-    EXPECT_EQ((l7.kmer_prg.nodes[22]->outNodes.size()>2), true);
-    EXPECT_EQ((l7.kmer_prg.nodes[21]->outNodes.size()>2), true);
-    */
 
     idx->clear();
     delete idx;
@@ -829,10 +820,6 @@ TEST_F(LocalPRGTest, add_sample_to_vcf)
     EXPECT_EQ(".", l5.vcf.records[5].samples[0]);
     EXPECT_EQ(j, l5.vcf.records[6].samples.size());
     EXPECT_EQ(".", l5.vcf.records[6].samples[0]);
-}
-
-TEST_F(LocalPRGTest, find_kmernodes_on_localnode_path)
-{
 }
 
 TEST_F(LocalPRGTest, localnode_path_from_kmernode_path)
