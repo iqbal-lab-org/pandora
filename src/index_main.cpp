@@ -9,7 +9,7 @@
 
 using namespace std;
 
-void index_prgs(vector<LocalPRG*>& prgs, Index* idx, const uint32_t w, const uint32_t k)
+void index_prgs(vector<LocalPRG*>& prgs, Index* idx, const uint32_t w, const uint32_t k, const string& prgfile)
 {
     cout << now() << "Index PRGs" << endl;
 
@@ -25,6 +25,7 @@ void index_prgs(vector<LocalPRG*>& prgs, Index* idx, const uint32_t w, const uin
     for (uint i=0; i != prgs.size(); ++i)
     {
         prgs[i]->minimizer_sketch(idx, w, k);
+	prgs[i]->kmer_prg.save(prgfile + ".k" + to_string(k) + ".w" + to_string(w) + "." + to_string(i) + ".gfa");
     }
     cout << now() << "Finished adding " << prgs.size() << " LocalPRGs" << endl;
     cout << now() << "Number of keys in Index: " << idx->minhash.size() << endl;
@@ -87,16 +88,11 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
     // index PRGs
     Index *idx;
     idx = new Index();
-    index_prgs(prgs, idx, w, k);
+    index_prgs(prgs, idx, w, k, prgfile);
 
     // save index
     idx->save(prgfile, w, k);
 
-    // save kmergraphs
-    for (uint i=0; i!=prgs.size(); ++i)
-    {
-	prgs[i]->kmer_prg.save(prgfile + ".k" + to_string(k) + ".w" + to_string(w) + "." + to_string(i) + ".gfa");
-    }
     return 0;
 }
 

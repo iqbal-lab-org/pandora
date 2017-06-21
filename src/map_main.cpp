@@ -154,15 +154,17 @@ int pandora_map(int argc, char* argv[])
     {
 	prgs[c.second->id]->find_path_and_variants(prefix, e_rate, w);
 	prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "_" + prgs[c.second->id]->name + ".covg.txt");
+	cout << "\t\t" << prefix << "_" << prgs[c.second->id]->name << ".gfa" << endl;
+        prgs[c.second->id]->prg.write_gfa(prefix + "_" + prgs[c.second->id]->name + ".gfa");
     }
 
-    cout << now() << "Writing LocalGraphs to files:" << endl;	
+    //cout << now() << "Writing LocalGraphs to files:" << endl;	
     // for each found localPRG, also write out a gfa 
     // then delete the localPRG object
     for (uint32_t j=0; j!=prgs.size(); ++j)
     {
-        cout << "\t\t" << prefix << "_" << prgs[j]->name << ".gfa" << endl;
-	prgs[j]->prg.write_gfa(prefix + "_" + prgs[j]->name + ".gfa");
+        //cout << "\t\t" << prefix << "_" << prgs[j]->name << ".gfa" << endl;
+	//prgs[j]->prg.write_gfa(prefix + "_" + prgs[j]->name + ".gfa");
 	delete prgs[j];
     }
     idx->clear();
