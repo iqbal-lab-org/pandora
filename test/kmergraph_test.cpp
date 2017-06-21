@@ -406,6 +406,30 @@ TEST_F(KmerGraphTest,findMaxPath2Level)
     EXPECT_ITERABLE_EQ(vector<KmerNode*>, exp_order, mp);
 }
 
+TEST_F(KmerGraphTest, save_covg_dist){
+    KmerGraph kg;
+    deque<Interval> d = {Interval(0,0)};
+    Path p,p1,p2;
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,3)};
+    p1.initialize(d);
+    kg.add_node(p1);
+    d = {Interval(1,4)};
+    p2.initialize(d);
+    kg.add_node(p2);
+    kg.add_edge(p1,p2);
+    d = {Interval(4,4)};
+    p.initialize(d);
+    kg.add_node(p);
+    kg.nodes[1]->covg[1] +=5;
+    kg.nodes[2]->covg[1] +=4;
+    kg.nodes[1]->num_AT = 4;
+    kg.nodes[2]->num_AT = 6;
+
+    kg.save_covg_dist("../test/test_cases/kmergraph_test.covg.txt");
+}
+
 TEST_F(KmerGraphTest, save){
     KmerGraph kg;
     deque<Interval> d = {Interval(0,3)};

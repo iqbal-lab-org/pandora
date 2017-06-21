@@ -21,7 +21,7 @@ class LocalGraphTest : public ::testing::Test {
   }
 };
 
-TEST_F(LocalGraphTest, addNode)
+TEST_F(LocalGraphTest, add_node)
 {
     // add node and check it's there
     LocalGraph lg1;
@@ -38,7 +38,7 @@ TEST_F(LocalGraphTest, addNode)
     EXPECT_DEATH(lg1.add_node(1,"AGG", Interval(0,4)), "");
 }
 
-TEST_F(LocalGraphTest, addEdge)
+TEST_F(LocalGraphTest, add_edge)
 {
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
@@ -54,23 +54,6 @@ TEST_F(LocalGraphTest, addEdge)
     // expect failure if a node doesn't exist in the graph
     EXPECT_DEATH(lg2.add_edge(0,4),"");
 }
-
-/*TEST_F(LocalGraphTest, addVarsite)
-{
-    LocalGraph lg2;
-    lg2.add_varsite(1,0,3);
-    EXPECT_EQ(lg2.index[1][0], make_pair((uint)0,(uint)3));
-    lg2.add_varsite(0,0,3);
-    EXPECT_EQ(lg2.index[0][0], make_pair((uint)0,(uint)3));
-
-    LocalGraph lg3;
-    lg3.add_varsite(2,1,4);
-    EXPECT_EQ(lg3.index[2][0], make_pair((uint)1,(uint)4));
-    lg3.add_varsite(1,0,6);
-    EXPECT_EQ(lg3.index[1][0], make_pair((uint)0,(uint)6));
-    lg3.add_varsite(0,0,6);
-    EXPECT_EQ(lg3.index[0][0], make_pair((uint)0,(uint)6));
-}*/
 
 TEST_F(LocalGraphTest, equals)
 {
@@ -133,7 +116,7 @@ TEST_F(LocalGraphTest, equals)
     EXPECT_EQ((lg2==lg2r), false);
 }
 
-TEST_F(LocalGraphTest, writeGFA){
+TEST_F(LocalGraphTest, write_gfa){
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
     lg2.add_node(1,"GC", Interval(4,6));
@@ -147,7 +130,7 @@ TEST_F(LocalGraphTest, writeGFA){
     lg2.write_gfa("../test/test_cases/localgraph_test.gfa");
 }
 
-TEST_F(LocalGraphTest, readGFA){
+TEST_F(LocalGraphTest, read_gfa){
     LocalGraph lg2, read_lg2;
     lg2.add_node(0,"A", Interval(0,1));
     lg2.add_node(1,"GC", Interval(4,6));
@@ -252,7 +235,7 @@ TEST_F(LocalGraphTest, walk)
     EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
 }
 
-TEST_F(LocalGraphTest, walkBack)
+TEST_F(LocalGraphTest, walk_back)
 {
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
@@ -346,7 +329,7 @@ TEST_F(LocalGraphTest, walkBack)
     EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
 }
 
-TEST_F(LocalGraphTest, nodesAlongString)
+TEST_F(LocalGraphTest, nodes_along_string)
 {
     LocalGraph lg2, read_lg2;
     lg2.add_node(0,"A", Interval(0,1));
@@ -381,7 +364,7 @@ TEST_F(LocalGraphTest, nodesAlongString)
     //EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
 }
 
-TEST_F(LocalGraphTest, topPath)
+TEST_F(LocalGraphTest, top_path)
 {
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
@@ -403,7 +386,7 @@ TEST_F(LocalGraphTest, topPath)
     EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
 }
 
-TEST_F(LocalGraphTest, bottomPath)
+TEST_F(LocalGraphTest, bottom_path)
 {
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
