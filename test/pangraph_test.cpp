@@ -176,4 +176,14 @@ TEST_F(PanGraphTest, equals)
 
 TEST_F(PanGraphTest, writeGFA)
 {
+    set<MinimizerHit*, pComp> mhs;
+
+    PanGraph pg2;
+    pg2.add_node(1,2, mhs);
+    pg2.add_node(0,0, mhs);
+    pg2.add_edge(0,1);
+    pg2.add_node(2,2, mhs);
+    pg2.add_node(1,0, mhs);
+    pg2.add_edge(1,2);
+    p2.save("../test/test_cases/pangraph_test_save.gfa");
 }
