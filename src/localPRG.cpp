@@ -1172,7 +1172,9 @@ void LocalPRG::find_path_and_variants(const string& prefix, const float& e_rate,
     ppath = kmer_prg.find_max_path(e_rate, kmp);
     lmp = localnode_path_from_kmernode_path(kmp, w);
 
-    write_max_path_to_fasta(prefix + "_" + name + "_kmlp.fasta", lmp, ppath);
+    string new_name = name;
+    std::replace(new_name.begin(),new_name.end(), ' ', '_');
+    write_max_path_to_fasta(prefix + "." + new_name + "_kmlp.fasta", lmp, ppath);
     //kmer_prg.save(prefix + "_" + name + ".kg.gfa");
     //kmer_prg.save_covg_dist(prefix + "_" + name + ".covg.txt");
 
@@ -1184,7 +1186,7 @@ void LocalPRG::find_path_and_variants(const string& prefix, const float& e_rate,
     }
     cout << endl;
     add_sample_to_vcf(lmp);
-    vcf.save(prefix + "_" + name + ".vcf", true, true, true, true, true, true, true);
+    vcf.save(prefix + "." + new_name + ".vcf", true, true, true, true, true, true, true);
     return;
 }
 

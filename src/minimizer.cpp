@@ -47,10 +47,6 @@ bool Minimizer::operator == (const Minimizer& y) const {
     return true;
 }
 
-bool MiniPos::operator()(Minimizer* lhs, Minimizer* rhs) {
-        return (lhs->pos.start)<(rhs->pos.start);
-}
-
 bool pMiniComp::operator()(Minimizer* lhs, Minimizer* rhs) {
         return (*lhs)<(*rhs);
 }

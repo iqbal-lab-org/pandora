@@ -59,7 +59,7 @@ TEST_F(MinimizerTest,create){
     EXPECT_DEATH(Minimizer(kh.first, 2,0,0),""); // doesn't generate an interval as 2>0
 }
 
-TEST_F(MinimizerTest,comparisonCheck){
+TEST_F(MinimizerTest,less_than){
     KmerHash hash;
     pair<uint64_t,uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
     Minimizer m1(kh1.first, 0,5,0);
@@ -91,4 +91,74 @@ TEST_F(MinimizerTest,comparisonCheck){
 	EXPECT_EQ(it->pos.end, v[i].pos.end) << "end positions do not agree: " << it->pos.end << ", " << v[i].pos.end;
     	++i;
     }
+}
+
+TEST_F(MinimizerTest,equals){
+    KmerHash hash;
+    pair<uint64_t,uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
+    Minimizer m1(kh1.first, 0,5,0);
+    pair<uint64_t,uint64_t> kh2 = hash.kmerhash("ACGTA", 5);
+    Minimizer m2(kh2.first, 0,5,0);
+    Minimizer m3(kh2.first, 1,6,0);
+    Minimizer m4(kh2.first, 1,6,1);
+
+    EXPECT_EQ(m1, m1);
+    EXPECT_EQ(m2, m2);
+    EXPECT_EQ((m1==m2), false);
+    EXPECT_EQ((m2==m1), false);
+
+    EXPECT_EQ(m3, m3);
+    EXPECT_EQ((m3==m2), false);
+    EXPECT_EQ((m2==m3), false);
+    
+    EXPECT_EQ(m4, m4);
+    EXPECT_EQ((m3==m4), false);
+    EXPECT_EQ((m4==m3), false);
+}
+
+/*TEST_F(MinimizerTest,MiniPos){
+    KmerHash hash;
+    Minimizer* m1, m2, m3, m4;
+    pair<uint64_t,uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
+    m1 = new Minimizer(kh1.first, 0,5,0);
+    pair<uint64_t,uint64_t> kh2 = hash.kmerhash("ACGTA", 5);
+    m2 = new Minimizer(kh2.first, 0,5,0);
+    m3 = new Minimizer(kh2.first, 1,6,0);
+    m4 = new Minimizer(kh2.first, 1,6,1);
+    
+    EXPECT_EQ(MiniPos(m1, m2), false);
+    EXPECT_EQ(MiniPos(m2, m3), true);
+    EXPECT_EQ(MiniPos(m3, m4), false);
+
+    delete m1;
+    delete m2;
+    delete m3;
+    delete m4;   
+}*/
+
+TEST_F(MinimizerTest,pMiniComp){
+    KmerHash hash;
+    Minimizer *m1, *m2, *m3, *m4;
+    pair<uint64_t,uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
+    m1 = new Minimizer(kh1.first, 0,5,0);
+    pair<uint64_t,uint64_t> kh2 = hash.kmerhash("ACGTA", 5);
+    m2 = new Minimizer(kh2.first, 0,5,0);
+    m3 = new Minimizer(kh2.first, 1,6,0);
+    m4 = new Minimizer(kh2.first, 1,6,1);
+
+    set<Minimizer*, pMiniComp> s = {m1, m2, m3, m4};
+    vector<Minimizer*> v = {m2, m4, m3, m1};
+
+    EXPECT_EQ(v.size(), s.size());
+    uint i=0;
+    for (set<Minimizer*, pMiniComp>::iterator it = s.begin(); it!=s.end(); ++it)
+    {
+        EXPECT_EQ(v[i], *it);
+        i++;
+    }
+    
+    delete m1;
+    delete m2;
+    delete m3; 
+    delete m4;
 }
