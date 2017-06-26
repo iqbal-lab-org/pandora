@@ -163,9 +163,43 @@ float KmerGraph::prob(uint j)
     return ret;
 }
 
+void KmerGraph::discover_p(float e_rate)
+{
+    // default based on input parameter for e_rate
+    p = 1/exp(e_rate*k);
+
+    // if we can improve on this, do
+    if (num_reads > 40) 
+    {
+        // collect total coverages for kmers seen more than a couple of times (there is a peak at 0 because of kmers not present which we want to avoid)
+        // this is currently done with a hard threshold of covg > 4, but a variable one could be introduced, or for higher coverages, the heavy 0 tail
+	// will increase estimated error rate. Alternatively, could introduce a mode based method.
+	vector<uint> kmer_covgs;
+	for (uint j=nodes.size()-1; j!=0; --j)
+	{
+	    if (nodes[j]->covg[0]+nodes[j]->covg[1]>4)
+	    {
+		kmer_covgs.push_back(nodes[j]->covg[0]+nodes[j]->covg[1]);
+	    }
+	}
+
+	// find mean of these
+	if (kmer_covgs.size() == 0)
+	{
+	    // default to input
+	    return;
+	}
+	float mean = std::accumulate(kmer_covgs.begin(), kmer_covgs.end(), 0.0) / kmer_covgs.size();
+	p = mean/num_reads;
+	cout << now() << "Found sufficient coverage to change estimated error rate from " << e_rate << " to " << -log(p)/15 << endl;
+    }
+    return;
+}
+
 float KmerGraph::find_max_path(float e_rate, vector<KmerNode*>& maxpath)
 {
-    p = 1/exp(e_rate*k);
+    discover_p(e_rate);
+    //p = 1/exp(e_rate*k);
     //cout << " with parameters n: " << num_reads << " and p: " << p << endl;
     //cout << "Kmer graph has " << nodes.size() << " nodes" << endl;
 

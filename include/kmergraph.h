@@ -32,6 +32,7 @@ class KmerGraph {
     void sort_topologically();
 
     float prob(uint);
+    void discover_p(float);
     float find_max_path(float, std::vector<KmerNode*>&);
     void save_covg_dist(const std::string&);
     uint min_path_length();

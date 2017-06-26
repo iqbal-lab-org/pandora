@@ -43,7 +43,7 @@ static void show_map_usage()
 	      << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 1\n"
 	      << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
 	      << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 500 (bps)\n"
-	      << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.05\n"
+	      << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
               << std::endl;
 }
 
@@ -59,7 +59,7 @@ int pandora_map(int argc, char* argv[])
     string prgfile, readfile, prefix;
     uint32_t w=1, k=15; // default parameters
     int max_diff = 500;
-    float e_rate = 0.05;
+    float e_rate = 0.11;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -153,9 +153,9 @@ int pandora_map(int argc, char* argv[])
     for (auto c: pangraph->nodes)
     {
 	prgs[c.second->id]->find_path_and_variants(prefix, e_rate, w);
-	prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "_" + prgs[c.second->id]->name + ".covg.txt");
-	cout << "\t\t" << prefix << "_" << prgs[c.second->id]->name << ".gfa" << endl;
-        prgs[c.second->id]->prg.write_gfa(prefix + "_" + prgs[c.second->id]->name + ".gfa");
+	prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "." + prgs[c.second->id]->name + ".covg.txt");
+	cout << "\t\t" << prefix << "." << prgs[c.second->id]->name << ".gfa" << endl;
+        prgs[c.second->id]->prg.write_gfa(prefix + "." + prgs[c.second->id]->name + ".gfa");
     }
 
     //cout << now() << "Writing LocalGraphs to files:" << endl;	
