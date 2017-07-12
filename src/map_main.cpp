@@ -144,16 +144,16 @@ int pandora_map(int argc, char* argv[])
     //cout << "end test new parser" << endl;
     pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
     
-    cout << now() << "Estimate parameters for kmer graph model" << endl;
-    estimate_parameters(pangraph, prgs, prefix, k, e_rate);
-
-    cout << now() << "Update LocalPRGs with hits and infer paths" << endl;
-    update_localPRGs_with_hits(pangraph, prgs);
-
     cout << now() << "Writing PanGraph to file " << prefix << "_pangraph.gfa" << endl;
     pangraph->write_gfa(prefix + "_pangraph.gfa");
 
-    cout << now() << "Writing maximally likely paths to files:" << endl;
+    cout << now() << "Update LocalPRGs with hits" << endl;
+    update_localPRGs_with_hits(pangraph, prgs);
+
+    cout << now() << "Estimate parameters for kmer graph model" << endl;
+    estimate_parameters(pangraph, prgs, prefix, k, e_rate);
+
+    cout << now() << "Find Max Likeliood paths and write to files:" << endl;
     for (auto c: pangraph->nodes)
     {
 	prgs[c.second->id]->find_path_and_variants(prefix, w);

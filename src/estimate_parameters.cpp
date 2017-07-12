@@ -56,7 +56,7 @@ int find_prob_thresh(vector<uint>& kmer_prob_dist)
     int thresh = kmer_prob_dist.size()-1;
     for (uint i=kmer_prob_dist.size()-1; i!=0; --i)
     {
-        if (kmer_prob_dist[i] > 0 and kmer_prob_dist[i] < kmer_prob_dist[thresh])
+        if (kmer_prob_dist[i] > 0 and (kmer_prob_dist[i] < kmer_prob_dist[thresh]) or (kmer_prob_dist[thresh] == 0))
         {
             thresh = i;
         }
@@ -98,9 +98,9 @@ void estimate_parameters(PanGraph* pangraph, const vector<LocalPRG*>& prgs, stri
     num_reads = num_reads / pangraph->nodes.size();
 
     // save coverage distribution
-    cout << now() << "Writing kmer coverage distribution to " << prefix << "_kmer_covgs.txt" << endl;
+    cout << now() << "Writing kmer coverage distribution to " << prefix << ".kmer_covgs.txt" << endl;
     ofstream handle;
-    handle.open(prefix + "_kmer_covgs.txt");
+    handle.open(prefix + ".kmer_covgs.txt");
     for (uint j=0; j!=kmer_covg_dist.size(); ++j)
     {
         handle << j << "\t" << kmer_covg_dist[j] << endl;
@@ -108,7 +108,7 @@ void estimate_parameters(PanGraph* pangraph, const vector<LocalPRG*>& prgs, stri
     handle.close();
 
     // evaluate error rate
-    if (num_reads > 100)
+    if (num_reads > 30)
     {
         mean_covg = find_mean_covg(kmer_covg_dist);
         cout << now() << "Estimated error rate updated from " << e_rate << " to ";
@@ -138,8 +138,8 @@ void estimate_parameters(PanGraph* pangraph, const vector<LocalPRG*>& prgs, stri
     }
 
     // save probability distribution
-    cout << now() << "Writing kmer probability distribution to " << prefix << "_kmer_probs.txt" << endl;
-    handle.open(prefix + "_kmer_probs.txt");
+    cout << now() << "Writing kmer probability distribution to " << prefix << ".kmer_probs.txt" << endl;
+    handle.open(prefix + ".kmer_probs.txt");
     for (int j=0; (uint)j!=kmer_prob_dist.size(); ++j)
     {
         handle << j-200 << "\t" << kmer_prob_dist[j] << endl;
