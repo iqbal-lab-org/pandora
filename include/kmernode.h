@@ -1,6 +1,9 @@
 #ifndef __KMERNODE_H_INCLUDED__   // if kmernode.h hasn't been included yet...
 #define __KMERNODE_H_INCLUDED__
 
+class PanGraph;
+class LocalPRG;
+
 #include <vector>
 #include <ostream>
 #include "path.h"
@@ -25,6 +28,7 @@ class KmerNode {
   friend struct pCompKmerNode;
   friend class LocalPRG;
   friend int pandora_check_kmergraph(int argc, char *argv[]);
+  friend void estimate_parameters(PanGraph*, const std::vector<LocalPRG*>&, std::string&, uint32_t, float&);
   friend class KmerGraphTest_add_node_Test;
   friend class KmerGraphTest_add_node_with_kh_Test;
   friend class KmerGraphTest_add_edge_Test;

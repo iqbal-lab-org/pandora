@@ -2,6 +2,8 @@
 #define __KMERGRAPH_H_INCLUDED__
 
 class KmerNode;
+class PanGraph;
+class LocalPRG;
 
 #include <cstring>
 #include <map>
@@ -14,6 +16,7 @@ class KmerGraph {
     uint32_t next_id;
     uint32_t k;
     float p;
+    int thresh;
   public:
     uint32_t num_reads;
     uint32_t shortest_path_length;
@@ -31,15 +34,16 @@ class KmerGraph {
     void check (uint);
     void sort_topologically();
 
+    void set_p(const float);
     float prob(uint);
-    void discover_p(float);
-    float find_max_path(float, std::vector<KmerNode*>&);
+    float find_max_path(std::vector<KmerNode*>&);
     void save_covg_dist(const std::string&);
     uint min_path_length();
     void save (const std::string&);
     void load (const std::string&);
     bool operator == (const KmerGraph& y) const;
     friend std::ostream& operator<< (std::ostream & out, KmerGraph const& data);
+    friend void estimate_parameters(PanGraph*, const std::vector<LocalPRG*>&, std::string&, uint32_t, float&);
     friend struct condition;
     friend class KmerGraphTest_findMaxPathSimple_Test;
     friend class KmerGraphTest_findMaxPath2Level_Test;

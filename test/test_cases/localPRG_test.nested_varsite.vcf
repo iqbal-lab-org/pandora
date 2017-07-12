@@ -1,5 +1,5 @@
 ##fileformat=VCFv4.3
-##fileDate==26/06/17
+##fileDate==12/07/17
 ##ALT=<ID=SNP,Description="SNP">
 ##ALT=<ID=PH_SNPs,Description="Phased SNPs">
 ##ALT=<ID=INDEL,Description="Insertion-deletion">

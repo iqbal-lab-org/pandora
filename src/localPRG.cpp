@@ -925,7 +925,7 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
     return;
 }
 
-void LocalPRG::find_path_and_variants(const string& prefix, const float& e_rate, uint w)
+void LocalPRG::find_path_and_variants(const string& prefix, uint w)
 {
     vector<KmerNode*> kmp;
     kmp.reserve(800);
@@ -933,7 +933,7 @@ void LocalPRG::find_path_and_variants(const string& prefix, const float& e_rate,
     lmp.reserve(100);
     float ppath;
 
-    ppath = kmer_prg.find_max_path(e_rate, kmp);
+    ppath = kmer_prg.find_max_path(kmp);
     lmp = localnode_path_from_kmernode_path(kmp, w);
 
     string new_name = name;

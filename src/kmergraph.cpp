@@ -22,6 +22,7 @@ KmerGraph::KmerGraph()
     shortest_path_length = 0;    
     k = 0; // nb the kmer size is determined by the first non-null node added
     p = 1;
+    thresh = -25;
 }
 
 KmerGraph::~KmerGraph()
@@ -146,6 +147,11 @@ void KmerGraph::sort_topologically()
     return;
 }
 
+void KmerGraph::set_p(const float e_rate)
+{
+    p = 1/exp(e_rate*k);
+}
+
 float KmerGraph::prob(uint j)
 {
     float ret;
@@ -163,45 +169,14 @@ float KmerGraph::prob(uint j)
     return ret;
 }
 
-void KmerGraph::discover_p(float e_rate)
+float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
 {
-    // default based on input parameter for e_rate
-    p = 1/exp(e_rate*k);
-
-    // if we can improve on this, do
-    if (num_reads > 40) 
-    {
-        // collect total coverages for kmers seen more than a couple of times (there is a peak at 0 because of kmers not present which we want to avoid)
-        // this is currently done with a hard threshold of covg > 4, but a variable one could be introduced, or for higher coverages, the heavy 0 tail
-	// will increase estimated error rate. Alternatively, could introduce a mode based method.
-	vector<uint> kmer_covgs;
-	for (uint j=nodes.size()-1; j!=0; --j)
-	{
-	    if (nodes[j]->covg[0]+nodes[j]->covg[1]>4)
-	    {
-		kmer_covgs.push_back(nodes[j]->covg[0]+nodes[j]->covg[1]);
-	    }
-	}
-
-	// find mean of these
-	if (kmer_covgs.size() == 0)
-	{
-	    // default to input
-	    return;
-	}
-	float mean = std::accumulate(kmer_covgs.begin(), kmer_covgs.end(), 0.0) / kmer_covgs.size();
-	p = mean/num_reads;
-	cout << now() << "Found sufficient coverage to change estimated error rate from " << e_rate << " to " << -log(p)/15 << endl;
-    }
-    return;
-}
-
-float KmerGraph::find_max_path(float e_rate, vector<KmerNode*>& maxpath)
-{
-    discover_p(e_rate);
+    // need to catch if p not asserted...
     //p = 1/exp(e_rate*k);
     //cout << " with parameters n: " << num_reads << " and p: " << p << endl;
     //cout << "Kmer graph has " << nodes.size() << " nodes" << endl;
+    
+    // need to catch if thesh not set too...
 
     // create vectors to hold the intermediate values
     vector<float> M(nodes.size(), 0); // max log prob pf paths from pos i to end of graph
@@ -216,7 +191,7 @@ float KmerGraph::find_max_path(float e_rate, vector<KmerNode*>& maxpath)
         max_len = 0; // tie break with longest kmer path
         for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
         {
-            if ((nodes[j-1]->outNodes[i]->id == nodes.size()-1 and -25 > max_mean + 0.000001) or 
+            if ((nodes[j-1]->outNodes[i]->id == nodes.size()-1 and thresh > max_mean + 0.000001) or 
 		(M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean + 0.000001) or
                 (max_mean - M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] <= 0.000001 and len[nodes[j-1]->outNodes[i]->id] > max_len))
             {

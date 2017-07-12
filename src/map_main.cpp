@@ -27,6 +27,7 @@
 #include "pangraph.h"
 #include "pannode.h"
 #include "index.h"
+#include "estimate_parameters.h"
 
 using std::set;
 using std::vector;
@@ -143,6 +144,9 @@ int pandora_map(int argc, char* argv[])
     //cout << "end test new parser" << endl;
     pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
     
+    cout << now() << "Estimate parameters for kmer graph model" << endl;
+    estimate_parameters(pangraph, prgs, prefix, k, e_rate);
+
     cout << now() << "Update LocalPRGs with hits and infer paths" << endl;
     update_localPRGs_with_hits(pangraph, prgs);
 
@@ -152,7 +156,7 @@ int pandora_map(int argc, char* argv[])
     cout << now() << "Writing maximally likely paths to files:" << endl;
     for (auto c: pangraph->nodes)
     {
-	prgs[c.second->id]->find_path_and_variants(prefix, e_rate, w);
+	prgs[c.second->id]->find_path_and_variants(prefix, w);
 	prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "." + prgs[c.second->id]->name + ".covg.txt");
 	cout << "\t\t" << prefix << "." << prgs[c.second->id]->name << ".gfa" << endl;
         prgs[c.second->id]->prg.write_gfa(prefix + "." + prgs[c.second->id]->name + ".gfa");

@@ -1015,5 +1015,6 @@ TEST_F(LocalPRGTest, find_path_and_variants)
     l3.kmer_prg.nodes[8]->covg[0] = 6;
     l3.kmer_prg.num_reads = 6;
 
-    l3.find_path_and_variants("../test/test_cases/localPRG_test", 0.0001);
+    l3.kmer_prg.set_p(0.0001);
+    l3.find_path_and_variants("../test/test_cases/localPRG_test");
 }
