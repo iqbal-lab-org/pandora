@@ -40,7 +40,36 @@ uint find_mean_covg(vector<uint>& kmer_covg_dist)
             // have a new max
             max_covg = i;
         }
+
     }
+
+    // if first_peak is still true, then have not enough of a spread of covgs to use the noise buffer. Try again without.
+    /*if (first_peak == true)
+    {
+	for (uint i=1; i!=kmer_covg_dist.size(); ++i)
+        {
+            if (kmer_covg_dist[i] <= kmer_covg_dist[i-1])
+            {   
+                // only interested in where we stop being in a decreasing section
+                continue;
+            } else if (first_peak == true)
+            {   
+                // probably out of first peak
+                first_peak = false;
+                max_covg = i;
+            } else if (kmer_covg_dist[i] > kmer_covg_dist[max_covg])
+            {   
+                // have a new max
+                max_covg = i;
+            }
+        }
+    }*/
+
+    // if still have first_peak true, was a mistake to try with this covg
+    if (first_peak = true)
+    {
+	max_covg = 0;
+    }	
 
     return max_covg;
 }
@@ -111,9 +140,13 @@ void estimate_parameters(PanGraph* pangraph, const vector<LocalPRG*>& prgs, stri
     if (num_reads > 30)
     {
         mean_covg = find_mean_covg(kmer_covg_dist);
-        cout << now() << "Estimated error rate updated from " << e_rate << " to ";
-        e_rate = -log(mean_covg/num_reads)/k;
-        cout << e_rate << endl;
+	if (mean_covg > 0)
+	{   
+	    cout << "found mean covg" << mean_covg << " and avg num reads " << num_reads << endl;
+            cout << now() << "Estimated error rate updated from " << e_rate << " to ";
+            e_rate = (-log(mean_covg/num_reads)/k);
+            cout << e_rate << endl;
+	}
     } else {
 	cout << now() << "Insufficient coverage to update error rate" << endl;
     }
@@ -128,7 +161,7 @@ void estimate_parameters(PanGraph* pangraph, const vector<LocalPRG*>& prgs, stri
             p = prgs[pnode->second->id]->kmer_prg.prob(i);
             for (int j = 0; j<200; ++j)
             {
-                if (j-200 <= p and j+1-200 > p)
+                if ((float)j-200 <= p and (float)j+1-200 > p)
                 {
                     kmer_prob_dist[j] += 1;
                     break;
@@ -147,8 +180,22 @@ void estimate_parameters(PanGraph* pangraph, const vector<LocalPRG*>& prgs, stri
     handle.close();
 
     // evaluate threshold
-    thresh = find_prob_thresh(kmer_prob_dist);
-    cout << now() << "Estimated threshold for true kmers is " << thresh << endl;
+    vector<uint>::iterator it = kmer_prob_dist.begin();
+    while (*it == 0 and it!=kmer_prob_dist.end()-1)
+    {
+	++it;
+    }
+    ++it;
+    // it now represents most negative prob bin with non-zero coverage.
+    // if there are enough remaining kmers, estimate thresh, otherwise use a default
+    if (std::accumulate(it, kmer_prob_dist.end(), 0) > 1000)
+    {
+        thresh = find_prob_thresh(kmer_prob_dist);
+        cout << now() << "Estimated threshold for true kmers is " << thresh << endl;
+    } else {
+	thresh = std::distance(kmer_prob_dist.begin(), it) - 200;
+	cout << now() << "Did not find enough non-zero coverage kmers to estimated threshold for true kmers. Use the naive threshold " << thresh << endl;	
+    }
 
     // set threshold in each kmer graph
     for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode)

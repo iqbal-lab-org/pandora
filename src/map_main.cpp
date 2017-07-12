@@ -144,8 +144,8 @@ int pandora_map(int argc, char* argv[])
     //cout << "end test new parser" << endl;
     pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
     
-    cout << now() << "Writing PanGraph to file " << prefix << "_pangraph.gfa" << endl;
-    pangraph->write_gfa(prefix + "_pangraph.gfa");
+    cout << now() << "Writing PanGraph to file " << prefix << ".pangraph.gfa" << endl;
+    pangraph->write_gfa(prefix + ".pangraph.gfa");
 
     cout << now() << "Update LocalPRGs with hits" << endl;
     update_localPRGs_with_hits(pangraph, prgs);
@@ -157,9 +157,9 @@ int pandora_map(int argc, char* argv[])
     for (auto c: pangraph->nodes)
     {
 	prgs[c.second->id]->find_path_and_variants(prefix, w);
-	prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "." + prgs[c.second->id]->name + ".covg.txt");
-	cout << "\t\t" << prefix << "." << prgs[c.second->id]->name << ".gfa" << endl;
-        prgs[c.second->id]->prg.write_gfa(prefix + "." + prgs[c.second->id]->name + ".gfa");
+	//prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "." + prgs[c.second->id]->name + ".covg.txt");
+	//cout << "\t\t" << prefix << "." << prgs[c.second->id]->name << ".gfa" << endl;
+        //prgs[c.second->id]->prg.write_gfa(prefix + "." + prgs[c.second->id]->name + ".gfa");
     }
 
     //cout << now() << "Writing LocalGraphs to files:" << endl;	
