@@ -171,6 +171,8 @@ float KmerGraph::prob(uint j)
 
 float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
 {
+    // finds a max likelihood path
+
     // need to catch if p not asserted...
     //p = 1/exp(e_rate*k);
     //cout << " with parameters n: " << num_reads << " and p: " << p << endl;
@@ -205,7 +207,7 @@ float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
 		    max_len = len[nodes[j-1]->outNodes[i]->id];
 		  //  cout << " and new max_mean: " << max_mean;
 		} else {
-		    max_mean = log(0.005);
+		    max_mean = thresh;
 		}
 		//cout << endl;
             }
@@ -224,6 +226,54 @@ float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
     //cout << endl;
 
     return M[0]/len[0];
+}
+
+float KmerGraph::find_min_path(vector<KmerNode*>& maxpath)
+{
+    // finds a paths with best minimum probability
+
+    // need to catch if p not asserted...
+
+    // create vectors to hold the intermediate values
+    vector<float> M(nodes.size(), 0); // min log prob of best path from pos i to end of graph
+    vector<int> len(nodes.size(), 0); // length of min log path from pos i to end of graph
+    vector<uint> prev(nodes.size(), nodes.size()-1); // prev node along path
+    float best_min;
+    int best_len;
+
+    for (uint j=nodes.size()-1; j!=0; --j)
+    {
+        best_min = numeric_limits<float>::lowest();
+        best_len = 0; // tie break with longest kmer path
+        for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
+        {
+            if ((nodes[j-1]->outNodes[i]->id == nodes.size()-1 and thresh > best_min + 0.000001) or 
+                (M[nodes[j-1]->outNodes[i]->id] > best_min + 0.000001) or
+                (best_min - M[nodes[j-1]->outNodes[i]->id] <= 0.000001 and len[nodes[j-1]->outNodes[i]->id] > best_len))
+            {
+                M[j-1] = min(prob(j-1), M[nodes[j-1]->outNodes[i]->id]);
+                len[j-1] = 1 + len[nodes[j-1]->outNodes[i]->id];
+                prev[j-1] = nodes[j-1]->outNodes[i]->id;
+                if (nodes[j-1]->outNodes[i]->id != nodes.size()-1)
+                {
+                    best_min = M[nodes[j-1]->outNodes[i]->id];
+                    best_len = len[nodes[j-1]->outNodes[i]->id];
+                } else {
+                    best_min = thresh;
+                }
+            }
+        }
+    }
+
+    // extract path
+    uint prev_node = prev[0];
+    while (prev_node < nodes.size() - 1)
+    {
+        maxpath.push_back(nodes[prev_node]);
+        prev_node = prev[prev_node];
+    }
+
+    return M[0];
 }
 
 void KmerGraph::save_covg_dist(const string& filepath)

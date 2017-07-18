@@ -46,6 +46,7 @@ static void show_map_usage()
 	      << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 500 (bps)\n"
 	      << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
 	      << "\t--output_prg\t\t\t\tSave kmer graphs with fwd and rev coverage annotations for found localPRGs\n"
+	      << "\t--method\t\tMethod for path inference, can be max likelihood (default), 'min' to maximize the min probability on the path, or 'both' to create outputs with both methods\n"
               << std::endl;
 }
 
@@ -62,7 +63,7 @@ int pandora_map(int argc, char* argv[])
     uint32_t w=1, k=15; // default parameters
     int max_diff = 500;
     float e_rate = 0.11;
-    bool output_gfa = false;
+    bool output_gfa = false, max_path=true, min_path=false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -122,6 +123,21 @@ int pandora_map(int argc, char* argv[])
             }
 	} else if ((arg == "--output_gfa")) {
 	    output_gfa = true;
+	} else if ((arg == "--method")) {
+	    if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                string method = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+		if (method == "min")
+		{
+		    max_path = false;
+		    min_path = true;
+		} else if (method == "both")
+		{
+		    min_path = true;
+		}
+            } else { // Uh-oh, there was no argument to the destination option.
+                  std::cerr << "--method option requires one argument." << std::endl;
+                return 1;
+            }
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -157,13 +173,13 @@ int pandora_map(int argc, char* argv[])
     cout << now() << "Estimate parameters for kmer graph model" << endl;
     estimate_parameters(pangraph, prgs, prefix, k, e_rate);
 
-    cout << now() << "Find Max Likeliood paths and write to files:" << endl;
+    cout << now() << "Find PRG paths and write to files:" << endl;
     for (auto c: pangraph->nodes)
     {
-	prgs[c.second->id]->find_path_and_variants(prefix, w);
+	prgs[c.second->id]->find_path_and_variants(prefix, w, max_path, min_path);
 	if (output_gfa == true)
 	{
-	    prgs[c.second->id]->kmer_prg.save(prefix + "_" + prgs[c.second->id]->name + ".kg.gfa");
+	    prgs[c.second->id]->kmer_prg.save(prefix + "." + prgs[c.second->id]->name + ".kg.gfa");
 	}
 	//prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "." + prgs[c.second->id]->name + ".covg.txt");
 	//cout << "\t\t" << prefix << "." << prgs[c.second->id]->name << ".gfa" << endl;

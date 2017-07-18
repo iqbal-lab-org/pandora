@@ -925,38 +925,55 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
     return;
 }
 
-void LocalPRG::find_path_and_variants(const string& prefix, uint w)
+void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_path, bool min_path)
 {
+    string new_name = name;
+    std::replace(new_name.begin(),new_name.end(), ' ', '_');
+
     vector<KmerNode*> kmp;
     kmp.reserve(800);
     vector<LocalNode*> lmp;
     lmp.reserve(100);
     float ppath;
 
-    ppath = kmer_prg.find_max_path(kmp);
-    // if the path we found is not good enough, don't write it
-    // NB do I then remove from pangraph?
-    /*if (ppath < kmer_prg.thresh)
+    if (max_path == true)
     {
-	return;
-    }*/
-    lmp = localnode_path_from_kmernode_path(kmp, w);
+        ppath = kmer_prg.find_max_path(kmp);
+    	lmp = localnode_path_from_kmernode_path(kmp, w);
 
-    string new_name = name;
-    std::replace(new_name.begin(),new_name.end(), ' ', '_');
-    write_max_path_to_fasta(prefix + "." + new_name + "_kmlp.fasta", lmp, ppath);
-    //kmer_prg.save(prefix + "_" + name + ".kg.gfa");
-    //kmer_prg.save_covg_dist(prefix + "_" + name + ".covg.txt");
+    	write_max_path_to_fasta(prefix + "." + new_name + "_kmlp.fasta", lmp, ppath);
 
-    build_vcf();
-    cout << "lmp ids on path: "; 
-    for (uint i=0; i!=lmp.size(); ++i)
+    	build_vcf();
+    	cout << "localPRG ids on max likelihood path: "; 
+    	for (uint i=0; i!=lmp.size(); ++i)
+    	{
+	    cout << lmp[i]->id << " ";
+        }
+    	cout << endl;
+    	add_sample_to_vcf(lmp);
+    	vcf.save(prefix + "." + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
+   }
+
+    if (min_path == true)
     {
-	cout << lmp[i]->id << " ";
+	kmp.clear();
+	lmp.clear();
+	vcf.clear();
+
+	ppath = kmer_prg.find_min_path(kmp);
+	
+    	write_max_path_to_fasta(prefix + "." + new_name + "_kminp.fasta", lmp, ppath);
+
+    	build_vcf();
+    	cout << "localPRG node ids on min path: ";
+    	for (uint i=0; i!=lmp.size(); ++i)
+    	{
+            cout << lmp[i]->id << " ";
+    	}
+    	cout << endl;
+    	add_sample_to_vcf(lmp);
+    	vcf.save(prefix + "." + new_name + ".kminp.vcf", true, true, true, true, true, true, true);
     }
-    cout << endl;
-    add_sample_to_vcf(lmp);
-    vcf.save(prefix + "." + new_name + ".vcf", true, true, true, true, true, true, true);
     return;
 }
 

@@ -37,6 +37,7 @@ class KmerGraph {
     void set_p(const float);
     float prob(uint);
     float find_max_path(std::vector<KmerNode*>&);
+    float find_min_path(std::vector<KmerNode*>&);
     void save_covg_dist(const std::string&);
     uint min_path_length();
     void save (const std::string&);
