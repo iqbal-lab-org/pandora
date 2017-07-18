@@ -45,6 +45,7 @@ static void show_map_usage()
 	      << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
 	      << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 500 (bps)\n"
 	      << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
+	      << "\t--output_prg\t\t\t\tSave kmer graphs with fwd and rev coverage annotations for found localPRGs\n"
               << std::endl;
 }
 
@@ -61,6 +62,7 @@ int pandora_map(int argc, char* argv[])
     uint32_t w=1, k=15; // default parameters
     int max_diff = 500;
     float e_rate = 0.11;
+    bool output_gfa = false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -118,6 +120,8 @@ int pandora_map(int argc, char* argv[])
                   std::cerr << "--error_rate option requires one argument." << std::endl;
                 return 1;
             }
+	} else if ((arg == "--output_gfa")) {
+	    output_gfa = true;
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -132,7 +136,7 @@ int pandora_map(int argc, char* argv[])
     idx->load(prgfile, w, k);
     vector<LocalPRG*> prgs;
     read_prg_file(prgs, prgfile);
-    load_PRG_kmergraphs(prgs, prgfile + ".k" + to_string(k) + ".w" + to_string(w));
+    load_PRG_kmergraphs(prgs, w, k);
 
     cout << now() << "Constructing PanGraph from read file" << endl;
     MinimizerHits *mhs;
@@ -157,6 +161,10 @@ int pandora_map(int argc, char* argv[])
     for (auto c: pangraph->nodes)
     {
 	prgs[c.second->id]->find_path_and_variants(prefix, w);
+	if (output_gfa == true)
+	{
+	    prgs[c.second->id]->kmer_prg.save("kmer_prgs/" + prgs[c.second->id]->name + ".k" + to_string(k) + ".w" + to_string(w) + ".gfa");
+	}
 	//prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "." + prgs[c.second->id]->name + ".covg.txt");
 	//cout << "\t\t" << prefix << "." << prgs[c.second->id]->name << ".gfa" << endl;
         //prgs[c.second->id]->prg.write_gfa(prefix + "." + prgs[c.second->id]->name + ".gfa");

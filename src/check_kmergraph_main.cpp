@@ -19,7 +19,7 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
     // load prg graphs and kmergraphs, for now assume there is only one PRG in this file
     vector<LocalPRG*> prgs;
     read_prg_file(prgs, argv[1]);
-    load_PRG_kmergraphs(prgs, string(argv[1]) + ".k" + string(argv[3]) + ".w" + string(argv[4]));
+    load_PRG_kmergraphs(prgs, stoi(argv[4]), stoi(argv[3]));
     assert(prgs.size() > 0);
 	
     if (strcmp(argv[2],"--top") == 0)

@@ -3,13 +3,14 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
+#include <cstdlib>
 #include "utils.h"
 #include "index.h"
 #include "localPRG.h"
 
 using namespace std;
 
-void index_prgs(vector<LocalPRG*>& prgs, Index* idx, const uint32_t w, const uint32_t k, const string& prgfile)
+void index_prgs(vector<LocalPRG*>& prgs, Index* idx, const uint32_t w, const uint32_t k)
 {
     cout << now() << "Index PRGs" << endl;
 
@@ -25,7 +26,7 @@ void index_prgs(vector<LocalPRG*>& prgs, Index* idx, const uint32_t w, const uin
     for (uint i=0; i != prgs.size(); ++i)
     {
         prgs[i]->minimizer_sketch(idx, w, k);
-	prgs[i]->kmer_prg.save(prgfile + ".k" + to_string(k) + ".w" + to_string(w) + "." + to_string(i) + ".gfa");
+	prgs[i]->kmer_prg.save("kmer_prgs/" + prgs[i]->name + ".k" + to_string(k) + ".w" + to_string(w) + ".gfa");
     }
     cout << now() << "Finished adding " << prgs.size() << " LocalPRGs" << endl;
     cout << now() << "Number of keys in Index: " << idx->minhash.size() << endl;
@@ -85,10 +86,18 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
     vector<LocalPRG*> prgs;
     read_prg_file(prgs, prgfile);
 
+    // create output directory for the gfa
+    const int dir_err = system("mkdir -p kmer_prgs");
+    if (-1 == dir_err)
+    {
+        printf("Error creating directory!n");
+        exit(1);
+    }
+
     // index PRGs
     Index *idx;
     idx = new Index();
-    index_prgs(prgs, idx, w, k, prgfile);
+    index_prgs(prgs, idx, w, k);
 
     // save index
     idx->save(prgfile, w, k);

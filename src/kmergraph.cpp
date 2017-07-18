@@ -269,7 +269,7 @@ void KmerGraph::save (const string& filepath)
     handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
     for(uint i=0; i!=nodes.size(); ++i)
     {
-        handle << "S\t" << nodes[i]->id << "\t" << nodes[i]->path << "\tRC:i:" << nodes[i]->covg[1] << "\t" << (unsigned)nodes[i]->num_AT << endl;// << "," << nodes[i]->covg[0] << endl;
+        handle << "S\t" << nodes[i]->id << "\t" << nodes[i]->path << "\tFC:i:" << nodes[i]->covg[0] << "\t" << "\tRC:i:" << nodes[i]->covg[1] << endl;//"\t" << (unsigned)nodes[i]->num_AT << endl;
         for (uint32_t j=0; j<nodes[i]->outNodes.size(); ++j)
         {
             handle << "L\t" << nodes[i]->id << "\t+\t" << nodes[i]->outNodes[j]->id << "\t+\t0M" << endl;
@@ -309,11 +309,13 @@ void KmerGraph::load (const string& filepath)
                     k = p.length();
                 }
 		assert(nodes.back()->id == id);
-		covg = stoi(split(split_line[3], "RC:i:")[0]);
+		covg = stoi(split(split_line[3], "FC:i:")[0]);
 		nodes.back()->covg[0] = covg;
-		if (split_line.size() >= 5)
+		covg = stoi(split(split_line[4], "RC:i:")[0]);
+		nodes.back()->covg[1] = covg;
+		if (split_line.size() >= 6)
 		{
-		    nodes.back()->num_AT = stoi(split_line[4]);
+		    nodes.back()->num_AT = stoi(split_line[5]);
 		}
 		//covg = stoi(split(split(split_line[3], "RC:i:")[0], ",")[0]);
 		//nodes.back()->covg[0] = covg;

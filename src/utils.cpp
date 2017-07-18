@@ -165,11 +165,11 @@ void read_prg_file(vector<LocalPRG*>& prgs, const string& filepath)
     return;
 }
 
-void load_PRG_kmergraphs(vector<LocalPRG*>& prgs, const string& prgfile)
+void load_PRG_kmergraphs(vector<LocalPRG*>& prgs, const uint& w, const uint& k)
 {
     for (uint i=0; i!=prgs.size(); ++i)
     {
-	prgs[i]->kmer_prg.load(prgfile + "." + to_string(i) + ".gfa");
+	prgs[i]->kmer_prg.load("kmer_prgs/" + prgs[i]->name + ".k" + to_string(k) + ".w" + to_string(w) + ".gfa");
     }
     return;
 }
