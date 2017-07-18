@@ -934,6 +934,12 @@ void LocalPRG::find_path_and_variants(const string& prefix, uint w)
     float ppath;
 
     ppath = kmer_prg.find_max_path(kmp);
+    // if the path we found is not good enough, don't write it
+    // NB do I then remove from pangraph?
+    if (ppath < kmer_prg.thresh)
+    {
+	return;
+    }
     lmp = localnode_path_from_kmernode_path(kmp, w);
 
     string new_name = name;

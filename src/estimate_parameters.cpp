@@ -25,7 +25,7 @@ uint find_mean_covg(vector<uint>& kmer_covg_dist)
         {
             // only interested in where we stop being in a decreasing section
             continue;
-        } else if (first_peak == true and noise_buffer <= 3)
+        } else if (first_peak == true and noise_buffer < 3)
         {
             // increase buffer -> have to see several increases to believe not noise
             noise_buffer += 1;
@@ -43,31 +43,10 @@ uint find_mean_covg(vector<uint>& kmer_covg_dist)
 
     }
 
-    // if first_peak is still true, then have not enough of a spread of covgs to use the noise buffer. Try again without.
-    /*if (first_peak == true)
-    {
-	for (uint i=1; i!=kmer_covg_dist.size(); ++i)
-        {
-            if (kmer_covg_dist[i] <= kmer_covg_dist[i-1])
-            {   
-                // only interested in where we stop being in a decreasing section
-                continue;
-            } else if (first_peak == true)
-            {   
-                // probably out of first peak
-                first_peak = false;
-                max_covg = i;
-            } else if (kmer_covg_dist[i] > kmer_covg_dist[max_covg])
-            {   
-                // have a new max
-                max_covg = i;
-            }
-        }
-    }*/
-
     // if still have first_peak true, was a mistake to try with this covg
-    if (first_peak = true)
+    if (first_peak == true)
     {
+	cout << now() << "Did not find 2 distinct peaks - use default error rate" << endl;
 	max_covg = 0;
     }	
 
@@ -77,21 +56,76 @@ uint find_mean_covg(vector<uint>& kmer_covg_dist)
 int find_prob_thresh(vector<uint>& kmer_prob_dist)
 {
     // naive way is to pick window with minimal positive covg
+    // sligtly less naive way is to find this minimal value between two peaks more than 10 apart
     if (kmer_prob_dist.size() == 0)
     {
         return 0;
     }
 
-    int thresh = kmer_prob_dist.size()-1;
+    int peak, first_peak = 0, second_peak = kmer_prob_dist.size()-1;
+    while ((first_peak == (int)0 or second_peak == (int)kmer_prob_dist.size()-1) and first_peak != second_peak)
+    {
+	peak = distance(kmer_prob_dist.begin(), max_element(kmer_prob_dist.begin() + first_peak, kmer_prob_dist.begin() + second_peak));
+	cout << "Found new peak between " << first_peak - 200 << " and " << second_peak - 200 << " at " << peak - 200 << endl;
+	if (peak > (int)kmer_prob_dist.size()-15)
+	{
+	    second_peak = peak;
+	} else {
+	    first_peak = peak;
+	}
+    }
+
+    // if first_peak == second_peak, probably wrongly set threshold for where first peak ends
+    if (first_peak == second_peak)
+    {
+	// first try with lower thresold for where first peak is
+	first_peak = 0;
+	second_peak = kmer_prob_dist.size()-1;
+	while ((first_peak == (int)0 or second_peak == (int)kmer_prob_dist.size()-1) and first_peak != second_peak)
+        {   
+            peak = distance(kmer_prob_dist.begin(), max_element(kmer_prob_dist.begin() + first_peak, kmer_prob_dist.begin() + second_peak));
+            cout << "Found new peak between " << first_peak - 200 << " and " << second_peak - 200 << " at " << peak - 200 << endl;
+            if (peak > (int)kmer_prob_dist.size()-6)
+            {   
+                second_peak = peak;
+            } else {
+                first_peak = peak;
+            }
+        }
+
+	// secondly, find single peak and pick a min value closer to 0
+	if (first_peak == second_peak)
+	{
+	    peak = distance(kmer_prob_dist.begin(), max_element(kmer_prob_dist.begin(), kmer_prob_dist.end()));
+	    for (uint i=peak; i!=kmer_prob_dist.size(); ++i)	 
+	    {
+		if (kmer_prob_dist[i] > 0 and (kmer_prob_dist[i] < kmer_prob_dist[peak] or kmer_prob_dist[peak] == 0))
+                {
+                    peak = i;
+                }
+	    }
+	    cout << now() << "Found a single peak. Chose a minimal non-zero threshold" << endl;
+	    return peak - 200;
+	} else {
+	    cout << now() << "Found a 2 peaks with low -log p values (>-15)" << endl;    
+	}
+    } else {
+	cout << now() << "Found a 2 peaks" << endl;  
+    }
+
+    peak = distance(kmer_prob_dist.begin(), min_element(kmer_prob_dist.begin() + first_peak, kmer_prob_dist.begin() + second_peak));
+    cout << now() << "Minimum found between " << first_peak - 200 << " and " << second_peak - 200 << " at " << peak - 200 << endl;
+    
+    /*int thresh = kmer_prob_dist.size()-1;
     for (uint i=kmer_prob_dist.size()-1; i!=0; --i)
     {
         if (kmer_prob_dist[i] > 0 and (kmer_prob_dist[i] < kmer_prob_dist[thresh]) or (kmer_prob_dist[thresh] == 0))
         {
             thresh = i;
         }
-    }
+    }*/
 
-    return thresh - 200;
+    return peak - 200;
 }
 
 void estimate_parameters(PanGraph* pangraph, const vector<LocalPRG*>& prgs, string& prefix, uint32_t k, float& e_rate)
@@ -140,11 +174,11 @@ void estimate_parameters(PanGraph* pangraph, const vector<LocalPRG*>& prgs, stri
     if (num_reads > 30)
     {
         mean_covg = find_mean_covg(kmer_covg_dist);
+	cout << "found mean covg " << mean_covg << " and avg num reads " << num_reads << endl;
 	if (mean_covg > 0)
 	{   
-	    cout << "found mean covg" << mean_covg << " and avg num reads " << num_reads << endl;
             cout << now() << "Estimated error rate updated from " << e_rate << " to ";
-            e_rate = (-log(mean_covg/num_reads)/k);
+            e_rate = -log((float)mean_covg/num_reads)/k;
             cout << e_rate << endl;
 	}
     } else {
