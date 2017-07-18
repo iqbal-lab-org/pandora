@@ -45,8 +45,10 @@ static void show_map_usage()
 	      << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
 	      << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 500 (bps)\n"
 	      << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
-	      << "\t--output_prg\t\t\t\tSave kmer graphs with fwd and rev coverage annotations for found localPRGs\n"
-	      << "\t--method\t\tMethod for path inference, can be max likelihood (default), 'min' to maximize the min probability on the path, or 'both' to create outputs with both methods\n"
+	      << "\t--output_kg\t\t\tSave kmer graphs with fwd and rev coverage annotations for found localPRGs\n"
+	      << "\t--output_vcf\t\t\tSave a vcf file for each found localPRG\n"
+	      << "\t--method\t\t\tMethod for path inference, can be max likelihood (default), 'min' to maximize\n"
+	      << "\t\t\t\t\t\tthe min probability on the path, or 'both' to create outputs with both methods\n"
               << std::endl;
 }
 
@@ -63,7 +65,7 @@ int pandora_map(int argc, char* argv[])
     uint32_t w=1, k=15; // default parameters
     int max_diff = 500;
     float e_rate = 0.11;
-    bool output_gfa = false, max_path=true, min_path=false;
+    bool output_kg = false, output_vcf = false, max_path=true, min_path=false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -121,8 +123,10 @@ int pandora_map(int argc, char* argv[])
                   std::cerr << "--error_rate option requires one argument." << std::endl;
                 return 1;
             }
-	} else if ((arg == "--output_gfa")) {
-	    output_gfa = true;
+	} else if ((arg == "--output_kg")) {
+	    output_kg = true;
+	} else if ((arg == "--output_vcf")) {
+            output_vcf = true;
 	} else if ((arg == "--method")) {
 	    if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 string method = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
@@ -176,8 +180,8 @@ int pandora_map(int argc, char* argv[])
     cout << now() << "Find PRG paths and write to files:" << endl;
     for (auto c: pangraph->nodes)
     {
-	prgs[c.second->id]->find_path_and_variants(prefix, w, max_path, min_path);
-	if (output_gfa == true)
+	prgs[c.second->id]->find_path_and_variants(prefix, w, max_path, min_path, output_vcf);
+	if (output_kg == true)
 	{
 	    prgs[c.second->id]->kmer_prg.save(prefix + "." + prgs[c.second->id]->name + ".kg.gfa");
 	}
