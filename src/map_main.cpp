@@ -163,7 +163,7 @@ int pandora_map(int argc, char* argv[])
 	prgs[c.second->id]->find_path_and_variants(prefix, w);
 	if (output_gfa == true)
 	{
-	    prgs[c.second->id]->kmer_prg.save("kmer_prgs/" + prgs[c.second->id]->name + ".k" + to_string(k) + ".w" + to_string(w) + ".gfa");
+	    prgs[c.second->id]->kmer_prg.save(prefix + "_" + name + ".kg.gfa");
 	}
 	//prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "." + prgs[c.second->id]->name + ".covg.txt");
 	//cout << "\t\t" << prefix << "." << prgs[c.second->id]->name << ".gfa" << endl;
