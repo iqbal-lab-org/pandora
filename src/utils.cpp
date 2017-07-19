@@ -408,7 +408,7 @@ void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prg
 {
     for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode)
     {
-        cout << now() << "Update coverages for PRG " << pnode->second->name << endl;
+        cout << now() << "Update coverages for PRG " << prgs[pnode->second->id]->name << endl;
 	for (set<MinimizerHit*, pComp_path>::iterator mh = pnode->second->foundHits.begin(); mh != pnode->second->foundHits.end(); ++mh)
 	{
 	    prgs[pnode->second->id]->update_covg_with_hit(*mh);
