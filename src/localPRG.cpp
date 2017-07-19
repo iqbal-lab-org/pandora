@@ -965,6 +965,7 @@ void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_pat
 	vcf.clear();
 
 	ppath = kmer_prg.find_min_path(kmp);
+	lmp = localnode_path_from_kmernode_path(kmp, w);
 	
     	write_max_path_to_fasta(prefix + "." + new_name + "_kminp.fasta", lmp, ppath);
 

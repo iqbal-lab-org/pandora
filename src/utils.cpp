@@ -219,8 +219,8 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     {
         if((*mh_current)->read_id!=(*mh_previous)->read_id or (*mh_current)->prg_id!=(*mh_previous)->prg_id or (*mh_current)->strand!=(*mh_previous)->strand or (abs((int)(*mh_current)->read_interval.start - (int)(*mh_previous)->read_interval.start)) > max_diff)
         {
-	    // keep clusters which cover at least 5% of the shortest kmer path
-            if (current_cluster.size() > max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()/20, (uint)1))
+	    // keep clusters which cover at least 10% of the shortest kmer path
+            if (current_cluster.size() > max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()/10, (uint)1))
             {
                 clusters_of_hits.insert(current_cluster);
 	    /*} else {
@@ -408,7 +408,7 @@ void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prg
 {
     for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode)
     {
-        cout << now() << "Update coverages for PRG " << pnode->second->id << endl;
+        cout << now() << "Update coverages for PRG " << pnode->second->name << endl;
 	for (set<MinimizerHit*, pComp_path>::iterator mh = pnode->second->foundHits.begin(); mh != pnode->second->foundHits.end(); ++mh)
 	{
 	    prgs[pnode->second->id]->update_covg_with_hit(*mh);

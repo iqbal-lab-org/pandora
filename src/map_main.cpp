@@ -48,7 +48,7 @@ static void show_map_usage()
 	      << "\t--output_kg\t\t\tSave kmer graphs with fwd and rev coverage annotations for found localPRGs\n"
 	      << "\t--output_vcf\t\t\tSave a vcf file for each found localPRG\n"
 	      << "\t--method\t\t\tMethod for path inference, can be max likelihood (default), 'min' to maximize\n"
-	      << "\t\t\t\t\t\tthe min probability on the path, or 'both' to create outputs with both methods\n"
+	      << "\t\t\t\t\tthe min probability on the path, or 'both' to create outputs with both methods\n"
               << std::endl;
 }
 
@@ -163,9 +163,6 @@ int pandora_map(int argc, char* argv[])
     mhs = new MinimizerHits();
     PanGraph *pangraph;
     pangraph = new PanGraph();
-    //cout << "test new parser" << endl;
-    //pangraph_from_read_file_new(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
-    //cout << "end test new parser" << endl;
     pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
     
     cout << now() << "Writing PanGraph to file " << prefix << ".pangraph.gfa" << endl;
