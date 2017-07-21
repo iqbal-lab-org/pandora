@@ -377,7 +377,7 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     // initialize pangraph;
     PanGraph *pg;
     pg = new PanGraph();
-    infer_localPRG_order_for_reads(prgs, mhs, pg, 1);
+    infer_localPRG_order_for_reads(prgs, mhs, pg, 1, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 then 1)
     PanGraph pg_exp;
@@ -571,7 +571,7 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     // initialize pangraph;
     PanGraph *pg;
     pg = new PanGraph();
-    infer_localPRG_order_for_reads(prgs, mhs, pg, 1);
+    infer_localPRG_order_for_reads(prgs, mhs, pg, 1, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
@@ -764,7 +764,7 @@ TEST_F(UtilsTest, pangraphFromReadFile)
     // initialize pangraph;
     PanGraph *pg;
     pg = new PanGraph();
-    pangraph_from_read_file("../test/test_cases/read2.fa", mhs, pg, idx, prgs, 1, 3, 1);
+    pangraph_from_read_file("../test/test_cases/read2.fa", mhs, pg, idx, prgs, 1, 3, 1, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs

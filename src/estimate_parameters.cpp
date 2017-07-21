@@ -65,7 +65,7 @@ int find_prob_thresh(vector<uint>& kmer_prob_dist)
     int peak, first_peak = 0, second_peak = kmer_prob_dist.size()-1;
     while ((first_peak == (int)0 or second_peak == (int)kmer_prob_dist.size()-1) and first_peak != second_peak)
     {
-	peak = distance(kmer_prob_dist.begin(), max_element(kmer_prob_dist.begin() + first_peak, kmer_prob_dist.begin() + second_peak));
+	peak = distance(kmer_prob_dist.begin()+1, max_element(kmer_prob_dist.begin() + first_peak, kmer_prob_dist.begin() + second_peak));
 	cout << "Found new peak between " << first_peak - 200 << " and " << second_peak - 200 << " at " << peak - 200 << endl;
 	if (peak > (int)kmer_prob_dist.size()-15)
 	{
@@ -83,7 +83,7 @@ int find_prob_thresh(vector<uint>& kmer_prob_dist)
 	second_peak = kmer_prob_dist.size()-1;
 	while ((first_peak == (int)0 or second_peak == (int)kmer_prob_dist.size()-1) and first_peak != second_peak)
         {   
-            peak = distance(kmer_prob_dist.begin(), max_element(kmer_prob_dist.begin() + first_peak, kmer_prob_dist.begin() + second_peak));
+            peak = distance(kmer_prob_dist.begin()+1, max_element(kmer_prob_dist.begin() + first_peak, kmer_prob_dist.begin() + second_peak));
             cout << "Found new peak between " << first_peak - 200 << " and " << second_peak - 200 << " at " << peak - 200 << endl;
             if (peak > (int)kmer_prob_dist.size()-6)
             {   

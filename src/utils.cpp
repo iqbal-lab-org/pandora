@@ -199,7 +199,7 @@ void add_read_hits(Seq* s, MinimizerHits* hits, Index* idx)
     return;
 }
 
-void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits* minimizer_hits, PanGraph* pangraph, const int max_diff)
+void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits* minimizer_hits, PanGraph* pangraph, const int max_diff, const uint min_cluster_size)
 {
     // this step infers the gene order for a read and adds this to the pangraph
     // by defining clusters of hits, keeping those which are not noise and
@@ -220,7 +220,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
         if((*mh_current)->read_id!=(*mh_previous)->read_id or (*mh_current)->prg_id!=(*mh_previous)->prg_id or (*mh_current)->strand!=(*mh_previous)->strand or (abs((int)(*mh_current)->read_interval.start - (int)(*mh_previous)->read_interval.start)) > max_diff)
         {
 	    // keep clusters which cover at least 10% of the shortest kmer path
-            if (current_cluster.size() > max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()/10, (uint)1))
+            if (current_cluster.size() > max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()/10, min_cluster_size))
             {
                 clusters_of_hits.insert(current_cluster);
 	    /*} else {
@@ -236,7 +236,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
         mh_previous = mh_current;
     }
     // keep final cluster if it has a low enough probability of occuring by chance
-    if (current_cluster.size() > max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()/20, (uint)1))
+    if (current_cluster.size() > max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()/20, min_cluster_size))
     {
         clusters_of_hits.insert(current_cluster);
     /*} else {
@@ -345,7 +345,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     return;
 }*/
 
-void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph* pangraph, Index* idx, const vector<LocalPRG*>& prgs, const uint32_t w, const uint32_t k, const int max_diff)
+void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph* pangraph, Index* idx, const vector<LocalPRG*>& prgs, const uint32_t w, const uint32_t k, const int max_diff, const uint min_cluster_size)
 {
     string name, read, line;
     Seq *s;
@@ -394,7 +394,7 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
         }
         //cout << "Number of reads found: " << id+1 << endl;
         cout << now() << "Infer gene orders and add to PanGraph" << endl;
-        infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff);
+        infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, min_cluster_size);
 	delete s;
         myfile.close();
     } else {
