@@ -12,7 +12,7 @@ Warning - this code is still in development.
 ## Installation
 Requires gcc 4.7 or higher on a Unix OS.
 
-    git clone pandora
+    git clone git@github.com:rmnorris/pandora.git
     cd pandora
     bash install.sh
     
