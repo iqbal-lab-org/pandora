@@ -47,6 +47,13 @@ bin/*
 
 # for now, ignore test_cases subdirs
 test/test_cases/*/*
+*.vcf
 
 # and log.txt
 log.txt
+
+# and files for debugging and sending to other people
+EcoliK12_pandora*
+
+#internal scripts
+scripts/*
