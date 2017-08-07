@@ -9,8 +9,8 @@
 
 using namespace std;
 
-MinimizerHits::MinimizerHits() {
-    uhits.reserve(30000);
+MinimizerHits::MinimizerHits(const uint& num_hits) {
+    uhits.reserve(num_hits);
 }
 
 MinimizerHits::~MinimizerHits()

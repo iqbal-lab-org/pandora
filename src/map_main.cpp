@@ -160,7 +160,7 @@ int pandora_map(int argc, char* argv[])
 
     cout << now() << "Constructing PanGraph from read file" << endl;
     MinimizerHits *mhs;
-    mhs = new MinimizerHits();
+    mhs = new MinimizerHits(100*idx->minhash.size());
     PanGraph *pangraph;
     pangraph = new PanGraph();
     pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);

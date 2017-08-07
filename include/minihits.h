@@ -26,7 +26,7 @@ struct clusterComp
 
 class MinimizerHits {
   public:
-    MinimizerHits();
+    MinimizerHits(const uint& num_hits=30000);
     ~MinimizerHits();
     std::unordered_set<MinimizerHit*> uhits;
     std::set<MinimizerHit*, pComp> hits;
