@@ -9,6 +9,8 @@
 
 using namespace std;
 
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
+
 MinimizerHits::MinimizerHits(const uint& num_hits) {
     uhits.reserve(num_hits);
 }
@@ -38,9 +40,25 @@ void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniReco
 
 void MinimizerHits::sort()
 {
-    hits.insert(uhits.begin(), uhits.end());
-    assert(hits.size() == uhits.size());
-    uhits.clear();
+    if (hits.max_size()>uhits.size())
+    {
+        hits.insert(uhits.begin(), uhits.end());
+        /*for (auto h=uhits.begin(); h!=uhits.end(); ++h)
+	{
+	    auto f = hits.find(*h);
+	    if (f == hits.end())
+	    {
+		hits.insert(*h);
+	    } else {
+		cout << "Minihit " << **h << " was already in the set: " << **f << endl;
+	    }
+	}*/
+        assert(hits.size() == uhits.size() || assert_msg("Expected uhits.size()=" << uhits.size() << " to equal hits.size()=" << hits.size()));
+        uhits.clear();
+    } else {
+	cerr << "Could not create a set big enough for " << uhits.size() << " elements. The max size is " << hits.max_size() << endl;
+	exit (EXIT_FAILURE);
+    }
     return;
 }
 

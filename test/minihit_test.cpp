@@ -139,24 +139,40 @@ TEST_F(MinimizerHitTest,compare){
     p.initialize(d);
     delete mr;
     mr = new MiniRecord(0,p,0);
-    MinimizerHit mh4(1, m, mr);
+    MinimizerHit mh3(1, m, mr);
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
     mr = new MiniRecord(0,p,0);
+    MinimizerHit mh4(1, m, mr);
+
+    d = {Interval(6,10), Interval(13, 13), Interval(14,15)};
+    p.initialize(d);
+    delete mr;
+    mr = new MiniRecord(0,p,0);
     MinimizerHit mh5(1, m, mr);
+    
+    d = {Interval(6,10), Interval(14, 14), Interval(14,15)};
+    p.initialize(d);
+    delete mr;
+    mr = new MiniRecord(0,p,0);
+    MinimizerHit mh6(1, m, mr);
 
     hits.insert(mh1);
     hits.insert(mh2);
+    hits.insert(mh3);
     hits.insert(mh4);
     hits.insert(mh5);
+    hits.insert(mh6);
     
     vector<MinimizerHit> expected;
     expected.push_back(mh1);
     expected.push_back(mh2);
+    expected.push_back(mh3);
     expected.push_back(mh4);
     expected.push_back(mh5);
+    expected.push_back(mh6);
 
     uint32_t j(1);
     for (set<MinimizerHit>::iterator it=hits.begin(); it!=--hits.end(); ++it)

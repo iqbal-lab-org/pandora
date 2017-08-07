@@ -1,4 +1,5 @@
 #include <cassert>
+//#include <stdint.h>
 #include <functional>
 #include <iostream>
 #include <cstring>
@@ -8,10 +9,14 @@
 
 using namespace std;
 
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
+
 MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecord* r): read_id(i), read_interval(m->pos), prg_id(r->prg_id), prg_path(r->path), strand((m->strand == r->strand))
 {
     //cout << *m << " + " << *r << " = " << "(" << read_id << ", " << read_interval << ", " << prg_id << ", " << prg_path << ", " << strand << ")" << endl;
     assert(read_interval.length==prg_path.length());
+    assert(read_id < std::numeric_limits<uint32_t>::max() || assert_msg("Variable sizes too small to handle this number of reads"));
+    assert(prg_id < std::numeric_limits<uint32_t>::max() || assert_msg("Variable sizes too small to handle this number of prgs"));
 };
 
 MinimizerHit::MinimizerHit(const uint32_t i, const Interval j, const uint32_t k, const Path p, const bool c): read_id(i), read_interval(j), prg_id(k), strand(c)
@@ -48,10 +53,8 @@ bool MinimizerHit::operator < ( const MinimizerHit& y) const
     if (y.read_interval.start < read_interval.start) { return false; }
 
     // then by position on target string
-    if (prg_path.start < y.prg_path.start) { return true; }
-    if (y.prg_path.start < prg_path.start) { return false; }
-    if (prg_path.end < y.prg_path.end) { return true; }
-    if (y.prg_path.end < prg_path.end) { return false; }
+    if (prg_path < y.prg_path) { return true; }
+    if (y.prg_path < prg_path) { return false; }
 
     return false;
 }
