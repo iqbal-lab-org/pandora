@@ -156,7 +156,7 @@ int pandora_map(int argc, char* argv[])
     idx->load(prgfile, w, k);
     vector<LocalPRG*> prgs;
     read_prg_file(prgs, prgfile);
-    load_PRG_kmergraphs(prgs, w, k);
+    load_PRG_kmergraphs(prgs, w, k, prgfile);
 
     cout << now() << "Constructing PanGraph from read file" << endl;
     MinimizerHits *mhs;

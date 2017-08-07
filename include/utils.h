@@ -29,7 +29,7 @@ float lognchoosek2 (uint32_t, uint32_t, uint32_t);
 
 //probably should be moved to map_main.cpp
 void read_prg_file(std::vector<LocalPRG*>&, const std::string&);
-void load_PRG_kmergraphs(std::vector<LocalPRG*>&, const uint&, const uint&);
+void load_PRG_kmergraphs(std::vector<LocalPRG*>&, const uint&, const uint&, const std::string&);
 //void add_read_hits(uint32_t, const std::string&, const std::string&, MinimizerHits*, Index*, const uint32_t, const uint32_t);
 void add_read_hits(Seq*, MinimizerHits*, Index*);
 void infer_localPRG_order_for_reads(const std::vector<LocalPRG*>& prgs, MinimizerHits*, PanGraph*, const int, const uint min_cluster_size=5);
