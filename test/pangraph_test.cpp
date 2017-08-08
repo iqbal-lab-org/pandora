@@ -172,6 +172,62 @@ TEST_F(PanGraphTest, equals)
     pg3.add_node(3,"3",0, mhs);
     EXPECT_EQ((pg1 == pg3), false);
 
+    // should not break when have a cycle in pangraph
+    pg1.add_edge(2,0);
+    EXPECT_EQ(pg1, pg1);      
+}
+
+TEST_F(PanGraphTest, clean)
+{
+    set<MinimizerHit*, pComp> mhs;
+
+    PanGraph pg1, pg2;
+    pg1.add_node(0,"0",0, mhs);
+    pg1.add_node(1,"1",2, mhs);
+    pg1.add_edge(0,1);
+    pg1.add_node(2,"2",2, mhs);
+    pg1.add_edge(1,2);
+    pg1.add_node(3,"3",2, mhs);
+    pg1.add_edge(2,3);
+    pg1.add_node(4,"4",0, mhs);
+    pg1.add_edge(3,4);
+    pg1.add_node(5,"5",2, mhs);
+    pg1.add_edge(4,5);
+    pg1.add_edge(5,1);
+
+    pg2.add_node(0,"0",0, mhs);
+    pg2.add_node(1,"1",2, mhs);
+    pg2.add_edge(0,1);
+    pg2.add_node(2,"2",2, mhs);
+    pg2.add_edge(1,2);
+    pg2.add_node(3,"3",2, mhs);
+    pg2.add_edge(2,3);
+    pg2.add_node(4,"4",0, mhs);
+    pg2.add_edge(3,4);
+    pg2.add_node(5,"5",2, mhs);
+    pg2.add_edge(4,5);
+    pg2.add_edge(5,1);
+
+    pg2.nodes[0]->outNodeCounts[1] += 40;
+    pg2.nodes[1]->outNodeCounts[2] += 30;
+    pg2.nodes[2]->outNodeCounts[3] += 43;
+    pg2.nodes[3]->outNodeCounts[4] += 32;
+    pg2.nodes[4]->outNodeCounts[5] += 37;
+    pg2.nodes[5]->outNodeCounts[1] += 26;
+
+    pg2.add_node(6,"6",2, mhs);
+    pg2.add_edge(4,6);
+    
+    pg2.add_node(7,"7",2, mhs);
+    pg2.add_edge(1,7);
+    pg2.nodes[1]->outNodeCounts[7] +=2;
+
+    pg2.clean(300);
+    cout << pg1 << endl;
+    cout << pg2 << endl;
+
+    cout << (pg1==pg2) <<endl;
+    //EXPECT_EQ((pg1 == pg2), true);
 }
 
 TEST_F(PanGraphTest, write_gfa)

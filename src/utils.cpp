@@ -353,9 +353,10 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     return;
 }*/
 
-void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph* pangraph, Index* idx, const vector<LocalPRG*>& prgs, const uint32_t w, const uint32_t k, const int max_diff, const uint min_cluster_size)
+void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph* pangraph, Index* idx, const vector<LocalPRG*>& prgs, const uint32_t w, const uint32_t k, const int max_diff, const uint min_cluster_size, const uint genome_size)
 {
     string name, read, line;
+    uint64_t covg = 0;
     Seq *s;
     s = new Seq(0, "null", "", w, k);
     if (s==nullptr)
@@ -376,6 +377,7 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
                 {
 		    cout << now() << "Found read " << name << endl;
                     s->initialize(id, name, read, w, k);
+		    covg += s->seq.length();
 		    cout << now() << "Add read hits" << endl;
 		    add_read_hits(s, mh, idx);
 		    id++;
@@ -397,12 +399,18 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
         {
 	    cout << now() << "Found read " << name << endl;
             s->initialize(id, name, read, w, k);
+	    covg += s->seq.length();
             cout << now() << "Add read hits" << endl;
             add_read_hits(s, mh, idx);
         }
+	covg = covg/genome_size;
+	cout << now() << "Estimated coverage: " << covg << endl;
         //cout << "Number of reads found: " << id+1 << endl;
         cout << now() << "Infer gene orders and add to PanGraph" << endl;
         infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, min_cluster_size);
+	cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
+        pangraph->clean(covg);
+        cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
 	delete s;
         myfile.close();
     } else {

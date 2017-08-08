@@ -24,19 +24,39 @@ void PanNode::add_hits(const set<MinimizerHit*, pComp>& c)
 
 bool PanNode::operator == (const PanNode& y) const {
     if (id!= y.id) {return false;}
+
+    bool found_outnode;
     for (uint32_t i=0; i!=outNodes.size(); ++i)
     {
-        pointer_values_equal<PanNode> eq = { outNodes[i] };
-        if ( find_if(y.outNodes.begin(), y.outNodes.end(), eq) == y.outNodes.end() )
-        {//cout << "the out edge points to a different node" << endl; 
-            return false;}
+	found_outnode = false;	
+	for (uint32_t j=0; j!=y.outNodes.size(); ++j)
+	{
+	    if (outNodes[i]->id == y.outNodes[j]->id)
+	    {
+		found_outnode = true;
+		break;
+	    }
+	}
+	if (found_outnode == false)
+	{
+	    return false;
+	}
     }
     for (uint32_t i=0; i!=y.outNodes.size(); ++i)
-    {
-        pointer_values_equal<PanNode> eq = { y.outNodes[i] };
-        if ( find_if(outNodes.begin(), outNodes.end(), eq) == outNodes.end() )
-        {//cout << "the out edge points to a different node" << endl; 
-            return false;}
+    {   
+        found_outnode = false;  
+        for (uint32_t j=0; j!=outNodes.size(); ++j)
+        {   
+            if (y.outNodes[i]->id == outNodes[j]->id)
+            {   
+                found_outnode = true;
+                break;
+            }
+        }
+        if (found_outnode == false)
+        {   
+            return false;
+        }   
     }
     return true;
 }

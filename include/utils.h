@@ -34,7 +34,7 @@ void load_PRG_kmergraphs(std::vector<LocalPRG*>&, const uint&, const uint&, cons
 void add_read_hits(Seq*, MinimizerHits*, Index*);
 void infer_localPRG_order_for_reads(const std::vector<LocalPRG*>& prgs, MinimizerHits*, PanGraph*, const int, const uint min_cluster_size=5);
 //void pangraph_from_read_file_new(const std::string&, MinimizerHits*, PanGraph*, Index*, const std::vector<LocalPRG*>&, const uint32_t, const uint32_t, const int);
-void pangraph_from_read_file(const std::string&, MinimizerHits*, PanGraph*, Index*, const std::vector<LocalPRG*>&, const uint32_t, const uint32_t, const int, const uint min_cluster_size=5);
+void pangraph_from_read_file(const std::string&, MinimizerHits*, PanGraph*, Index*, const std::vector<LocalPRG*>&, const uint32_t, const uint32_t, const int, const uint min_cluster_size=5, const uint genome_size=5000000);
 void update_localPRGs_with_hits(PanGraph*, const std::vector<LocalPRG*>&);//, const uint32_t, const float&, bool);
 //float p_null(const std::vector<LocalPRG*>&, std::set<MinimizerHit*, pComp>&, uint32_t);
 void infer_most_likely_prg_path_for_pannode(const std::vector<LocalPRG*>&, PanNode*, uint32_t, float);
