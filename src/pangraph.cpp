@@ -67,7 +67,7 @@ void PanGraph::add_edge (const uint32_t& from, const uint32_t& to)
 void PanGraph::clean(const uint32_t& covg)
 {
     uint thresh = 0.025*covg;
-    //cout << "thresh is " << thresh << endl;
+    cout << now() << "Cleaning with threshold " << thresh << endl;
     bool found;
 
     // remove all edges with less than 2.5% coverage (mostly we want to remove all the singley occuring edges)
