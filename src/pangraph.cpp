@@ -19,7 +19,7 @@ PanGraph::~PanGraph()
   }
 }
 
-void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id, const set<MinimizerHit*, pComp>& cluster)
+void PanGraph::add_node (const uint32_t prg_id, const string prg_name, const uint32_t read_id, const set<MinimizerHit*, pComp>& cluster)
 {
     //cout << "prg: " << prg_id << " read: " << read_id << " cluster_size: " << cluster.size() << endl;
     for (set<MinimizerHit*, pComp>::iterator it = cluster.begin(); it != cluster.end(); ++it)
@@ -32,7 +32,7 @@ void PanGraph::add_node (const uint32_t prg_id, const uint32_t read_id, const se
     if(it==nodes.end())
     {
         PanNode *n;
-        n = new PanNode(prg_id);
+        n = new PanNode(prg_id, prg_name);
         nodes[prg_id] = n;
 	n->add_read(read_id);
         n->add_hits(cluster);
@@ -52,7 +52,15 @@ void PanGraph::add_edge (const uint32_t& from, const uint32_t& to)
     assert((from_it!=nodes.end()) and (to_it!=nodes.end()));
     PanNode *f = (nodes.find(from)->second);
     PanNode *t = (nodes.find(to)->second);
-    f->outNodes.push_back(t);
+    //f->outNodes.push_back(t);
+
+    if (std::find(f->outNodes.begin(), f->outNodes.end(), t) == f->outNodes.end())
+    {
+	f->outNodes.push_back(t);
+	f->outNodeCounts[t->id] = 1;
+    } else {
+	f->outNodeCounts[t->id] += 1;
+    }
     //cout << "Added edge (" << f->id << ", " << t->id << ")" << endl;
 }
 
@@ -83,10 +91,10 @@ void PanGraph::write_gfa (const string& filepath)
     handle << "H\tVN:Z:1.0" << endl;
     for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
     {
-        handle << "S\t" << it->second->id << "\t*" << endl; //\tRC:i:" << it->second->foundHits.size() * k << endl;
+        handle << "S\t" << it->second->name << "\t*" << endl; //\tRC:i:" << it->second->foundHits.size() * k << endl;
         for (uint32_t j=0; j<it->second->outNodes.size(); ++j)
         {
-            handle << "L\t" << it->second->id << "\t+\t" << it->second->outNodes[j]->id << "\t+\t0M" << endl;
+            handle << "L\t" << it->second->name << "\t+\t" << it->second->outNodes[j]->name << "\t+\t0M\tRC:i:" << it->second->outNodeCounts[it->second->outNodes[j]->id] << endl;
         }
     }
     handle.close();

@@ -382,8 +382,8 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     // create a pangraph object representing the truth we expect (prg 3 then 1)
     PanGraph pg_exp;
     MinimizerHits mhs_dummy;
-    pg_exp.add_node(1,0, mhs_dummy.hits);
-    pg_exp.add_node(0,0, mhs_dummy.hits);
+    pg_exp.add_node(1,"1",0, mhs_dummy.hits);
+    pg_exp.add_node(0,"0",0, mhs_dummy.hits);
     pg_exp.add_edge(0,1);
 
     EXPECT_EQ(pg_exp, *pg);
@@ -577,10 +577,10 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
     PanGraph pg_exp;
     MinimizerHits mhs_dummy;
-    pg_exp.add_node(1,0, mhs_dummy.hits);
-    pg_exp.add_node(2,0, mhs_dummy.hits);
-    pg_exp.add_node(3,0, mhs_dummy.hits);
-    pg_exp.add_node(0,0, mhs_dummy.hits);
+    pg_exp.add_node(1,"1",0, mhs_dummy.hits);
+    pg_exp.add_node(2,"2",0, mhs_dummy.hits);
+    pg_exp.add_node(3,"3",0, mhs_dummy.hits);
+    pg_exp.add_node(0,"0",0, mhs_dummy.hits);
     pg_exp.add_edge(3,0);
     pg_exp.add_edge(0,2);
     pg_exp.add_edge(2,1);
@@ -770,10 +770,10 @@ TEST_F(UtilsTest, pangraphFromReadFile)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
     PanGraph pg_exp;
     MinimizerHits mhs_dummy;
-    pg_exp.add_node(1,0, mhs_dummy.hits);
-    pg_exp.add_node(2,0, mhs_dummy.hits);
-    pg_exp.add_node(3,0, mhs_dummy.hits);
-    pg_exp.add_node(0,0, mhs_dummy.hits);
+    pg_exp.add_node(1,"1",0, mhs_dummy.hits);
+    pg_exp.add_node(2,"2",0, mhs_dummy.hits);
+    pg_exp.add_node(3,"3",0, mhs_dummy.hits);
+    pg_exp.add_node(0,"0",0, mhs_dummy.hits);
     pg_exp.add_edge(3,0);
     pg_exp.add_edge(0,2);
     pg_exp.add_edge(2,1);

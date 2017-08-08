@@ -8,7 +8,7 @@
 
 using namespace std;
 
-PanNode::PanNode (const uint32_t i): id(i) {}
+PanNode::PanNode (const uint32_t i, const string n): id(i), name(n) {}
 
 void PanNode::add_read(const uint32_t j)
 {
