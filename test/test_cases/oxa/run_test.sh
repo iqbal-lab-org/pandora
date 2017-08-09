@@ -1,4 +1,5 @@
 prg=oxa_aligned_kmeans_k15_orientated.fasta
+#prg="/data2/users/rachel/projects/pandora/test/test_cases/oxa/oxa_aligned_kmeans_k15_orientated.fasta"
 
 #bash ../../../header.sh &> test_index.log
 #../../../build/pandora index $prg -w 5 &>> test_index.log

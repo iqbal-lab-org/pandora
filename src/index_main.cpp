@@ -38,6 +38,7 @@ static void show_index_usage()
     std::cerr << "Usage: pandora index [options] <prgs.fa>\n"
               << "Options:\n"
               << "\t-h,--help\t\t\tShow this help message\n"
+	      //<< "\t-u, --update\t\tLook for an index and add only PRGs with new names\n"
               << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 1\n"
               << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
               << std::endl;
@@ -53,12 +54,15 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
 
     // otherwise, parse the parameters from the command line
     string prgfile;
+    bool update = false;
     uint32_t w=1, k=15; // default parameters
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
             show_index_usage();
             return 0;
+	} else if ((arg == "-u") || (arg == "--update")) {
+	    update = true;
 	} else if (arg == "-w") {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 w = (unsigned)atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
