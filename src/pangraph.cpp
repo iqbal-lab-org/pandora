@@ -9,6 +9,8 @@
 #include <cassert>
 #include "minihit.h"
 
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
+
 using namespace std;
 
 PanGraph::~PanGraph()
@@ -45,28 +47,63 @@ void PanGraph::add_node (const uint32_t prg_id, const string prg_name, const uin
     }
     return;
 }
-void PanGraph::add_edge (const uint32_t& from, const uint32_t& to)
+void PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uint& orientation)
 {
     map<uint32_t, PanNode*>::iterator from_it=nodes.find(from);
     map<uint32_t, PanNode*>::iterator to_it=nodes.find(to);
     assert((from_it!=nodes.end()) and (to_it!=nodes.end()));
+    assert((orientation < (uint)4) || assert_msg("tried to add an edge with a rubbish orientation " << orientation << " which should be < 4"));
     PanNode *f = (nodes.find(from)->second);
     PanNode *t = (nodes.find(to)->second);
     //f->outNodes.push_back(t);
 
-    if (std::find(f->outNodes.begin(), f->outNodes.end(), t) == f->outNodes.end())
+    assert(f->outNodes.size() == 4);
+    assert(t->outNodes.size() == 4);
+    assert(f->outNodeCounts.size() == 4);
+    assert(t->outNodeCounts.size() == 4);
+
+    //cout << orientation << " " << 3-orientation << endl;
+    if (std::find(f->outNodes[orientation].begin(), f->outNodes[orientation].end(), t) == f->outNodes[orientation].end())
     {
-	f->outNodes.push_back(t);
-	f->outNodeCounts[t->id] = 1;
+	//cout << "Added edge (" << f->id << ", " << t->id << " " << orientation << ")" << endl;
+	f->outNodes[orientation].push_back(t);
+	f->outNodeCounts[orientation][t->id] = 1;
     } else {
-	f->outNodeCounts[t->id] += 1;
+	//cout << "Added count for (" << f->id << ", " << t->id << " " << orientation << ")" << endl;
+	f->outNodeCounts[orientation][t->id] += 1;
+    }
+
+    if (std::find(t->outNodes[3-orientation].begin(), t->outNodes[3-orientation].end(), f) == t->outNodes[3-orientation].end())
+    {
+	//cout << "Added edge (" << t->id << ", " << f->id << " " << 3-orientation << ")" << endl;
+        t->outNodes[3-orientation].push_back(f);
+        t->outNodeCounts[3-orientation][f->id] = 1;
+    } else {
+	//cout << "Added count for (" << t->id << ", " << f->id << " " << 3-orientation << ")" << endl;
+        t->outNodeCounts[3-orientation][f->id] += 1;
     }
     //cout << "Added edge (" << f->id << ", " << t->id << ")" << endl;
 }
 
+
 void PanGraph::clean(const uint32_t& covg)
 {
-    uint thresh = 0.025*covg;
+    // first check
+    for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
+    {  
+        for (uint k=0; k<4; ++k)
+        {
+            for (uint32_t j=it->second->outNodes[k].size(); j!=0; --j)
+	    {
+		if (std::find(it->second->outNodes[k][j-1]->outNodes[3-k].begin(), it->second->outNodes[k][j-1]->outNodes[3-k].end(), it->second) == it->second->outNodes[k][j-1]->outNodes[3-k].end())
+		{
+		    cout << "asymmetric edge between " << it->second->name << " and " << it->second->outNodes[k][j-1]->name << endl;
+		}
+	    }
+	}
+    }
+        
+    uint thresh = 0.05*covg;
     cout << now() << "Cleaning with threshold " << thresh << endl;
     bool found;
 
@@ -74,42 +111,64 @@ void PanGraph::clean(const uint32_t& covg)
     for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
     {
 	//cout << *(it->second) << endl;
-        for (uint32_t j=it->second->outNodes.size(); j!=0; --j)
-        {
-	    //cout << "outnode " << it->second->outNodes[j-1]->id;
-	    //cout << " has count " << it->second->outNodeCounts[it->second->outNodes[j-1]->id] << endl;
-	    if (it->second->outNodeCounts[it->second->outNodes[j-1]->id] < thresh)
-	    {
-		// delete the edge
-		//cout << "delete edge " << it->second->id << "->" << it->second->outNodes[j-1]->id << endl;
-		it->second->outNodes.erase(it->second->outNodes.begin() + j-1);
-	    }
-        }
-    }
-    //cout << "now remove isolated nodes" << endl;
-    // remove unconnected nodes
-    for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
-    {
-	if (it->second->outNodes.size() == 0)
+	for (uint k=0; k<4; ++k)
 	{
-	    // no outnodes, look for innodes
-	    found = false;
-	    for(map<uint32_t, PanNode*>::iterator it2=nodes.begin(); it2!=nodes.end(); ++it2)
+            for (uint32_t j=it->second->outNodes[k].size(); j!=0; --j)
+            {
+	        //cout << "outnode " << it->second->outNodes[k][j-1]->id;
+	        //cout << " has count " << it->second->outNodeCounts[it->second->outNodes[k][j-1]->id] << endl;
+	        if (it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id] < thresh)
+	        {
+		    // delete the edge
+		    cout << "delete edge " << it->second->outNodes[k][j-1]->name << "->" << it->second->name << " " << 3-k << endl;
+                    it->second->outNodes[k][j-1]->outNodes[3-k].erase(std::remove(it->second->outNodes[k][j-1]->outNodes[3-k].begin(),
+                                                                                  it->second->outNodes[k][j-1]->outNodes[3-k].end(),
+                                                                                  it->second),
+                                                                      it->second->outNodes[k][j-1]->outNodes[3-k].end());
+                    cout << "delete edge " << it->second->name << "->" << it->second->outNodes[k][j-1]->name << " " << k << endl;
+		    it->second->outNodes[k].erase(it->second->outNodes[k].begin() + j-1);
+	        }
+            }
+	}
+    }
+    // remove unconnected nodes
+    for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end();)
+    {
+	found = false;
+	for (uint k=0; k<4; ++k)
+	{
+	    if (it->second->outNodes[k].size() > 0)
 	    {
-		if (std::find(it2->second->outNodes.begin(), it2->second->outNodes.end(), it->second) != it2->second->outNodes.end())
-    		{
-		    found = true;
-		    break;
-	    	}
-	    }
-	    if (found == false)
-	    {
-	        //cout << "delete node " << it->second->id << endl;
-	        delete it->second;
-	        nodes.erase(it);
+	        // found outnodes, or innodes
+		found = true;
+		break;
 	    }
 	}
+	if (found == false)
+	{
+	    cout << "delete node " << it->second->name;
+	    delete it->second;
+	    nodes.erase(it++);
+	    cout << " so pangraph now has " << nodes.size() << " nodes" << endl;
+	} else {
+	    ++it;
+	}
     }	    
+
+    // check again
+    for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
+    {
+        for (uint k=0; k<4; ++k)
+        {
+            for (uint32_t j=it->second->outNodes[k].size(); j!=0; --j)
+            {
+                if (std::find(it->second->outNodes[k][j-1]->outNodes[3-k].begin(), it->second->outNodes[k][j-1]->outNodes[3-k].end(), it->second) == it->second->outNodes[k][j-1]->outNodes[3-k].end())
+                {
+                    cout << "asymmetric edge between " << it->second->name << " and " << it->second->outNodes[k][j-1]->name << endl;
+                }
+            }
+        }
+    }
 }
 
 bool PanGraph::operator == (const PanGraph& y) const {
@@ -142,10 +201,16 @@ void PanGraph::write_gfa (const string& filepath)
     handle << "H\tVN:Z:1.0" << endl;
     for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
     {
+	cout << it->second->id << endl;
+	
         handle << "S\t" << it->second->name << "\t*" << endl; //\tRC:i:" << it->second->foundHits.size() * k << endl;
-        for (uint32_t j=0; j<it->second->outNodes.size(); ++j)
+        for (uint32_t j=0; j<it->second->outNodes[3].size(); ++j)
         {
-            handle << "L\t" << it->second->name << "\t+\t" << it->second->outNodes[j]->name << "\t+\t0M\tRC:i:" << it->second->outNodeCounts[it->second->outNodes[j]->id] << endl;
+            handle << "L\t" << it->second->name << "\t+\t" << it->second->outNodes[3][j]->name << "\t+\t0M\tRC:i:" << it->second->outNodeCounts[3][it->second->outNodes[3][j]->id] << endl;
+        }
+	for (uint32_t j=0; j<it->second->outNodes[1].size(); ++j)
+        {
+            handle << "L\t" << it->second->name << "\t+\t" << it->second->outNodes[1][j]->name << "\t-\t0M\tRC:i:" << it->second->outNodeCounts[1][it->second->outNodes[1][j]->id] << endl;
         }
     }
     handle.close();
@@ -154,10 +219,15 @@ void PanGraph::write_gfa (const string& filepath)
 std::ostream& operator<< (std::ostream & out, PanGraph const& m) {
     for(map<uint32_t, PanNode*>::const_iterator it=m.nodes.begin(); it!=m.nodes.end(); ++it)
     {
-        for (uint32_t j=0; j<it->second->outNodes.size(); ++j)
+        for (uint32_t j=0; j<it->second->outNodes[3].size(); ++j)
         {
-            out << it->second->id << "->" << it->second->outNodes[j]->id << endl;
+            out << "+" << it->second->id << " -> +" << it->second->outNodes[3][j]->id << endl;
         }
+	for (uint32_t j=0; j<it->second->outNodes[1].size(); ++j)
+        {
+            out << "+" << it->second->id << " -> -" << it->second->outNodes[1][j]->id << endl;
+        }
+	
     }
     out << endl;
     return out ;

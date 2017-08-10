@@ -22,6 +22,10 @@ TEST_F(PanNodeTest,create){
     PanNode pn(3, "3");
     uint32_t j=3;
     EXPECT_EQ(j, pn.id);
+    EXPECT_EQ("3", pn.name);
+    j=4;
+    EXPECT_EQ(j, pn.outNodes.size());
+    EXPECT_EQ(j, pn.outNodeCounts.size());
     PanNode pn2(8, "8");
     j=8;
     EXPECT_EQ(j, pn2.id);

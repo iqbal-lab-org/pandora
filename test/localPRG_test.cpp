@@ -977,13 +977,13 @@ TEST_F(LocalPRGTest, moreupdateVCF)
     prgs[1]->build_vcf();
     prgs[2]->build_vcf();
 
-    for (uint i=0; i!=prgs[2]->vcf.records.size(); ++i)
+    /*for (uint i=0; i!=prgs[2]->vcf.records.size(); ++i)
     {
 	cout << prgs[2]->vcf.records[i];
-    }
+    }*/
 
     vector<LocalNode*> lmp1 = {prgs[1]->prg.nodes[0], prgs[1]->prg.nodes[11], prgs[1]->prg.nodes[12], prgs[1]->prg.nodes[17], prgs[1]->prg.nodes[65], prgs[1]->prg.nodes[67]};
-    cout << "PRG 1 has " << prgs[1]->prg.nodes.size() << " nodes" << endl;
+    //cout << "PRG 1 has " << prgs[1]->prg.nodes.size() << " nodes" << endl;
     prgs[1]->add_sample_to_vcf(lmp1);
 
     vector<LocalNode*> lmp2 = {prgs[2]->prg.nodes[0], prgs[2]->prg.nodes[1], prgs[2]->prg.nodes[3], prgs[2]->prg.nodes[4], prgs[2]->prg.nodes[6], prgs[2]->prg.nodes[7],
@@ -992,7 +992,7 @@ TEST_F(LocalPRGTest, moreupdateVCF)
 			       prgs[2]->prg.nodes[119], prgs[2]->prg.nodes[121], prgs[2]->prg.nodes[123], prgs[2]->prg.nodes[125], prgs[2]->prg.nodes[126], 
 			       prgs[2]->prg.nodes[130], prgs[2]->prg.nodes[131], prgs[2]->prg.nodes[133], prgs[2]->prg.nodes[135], prgs[2]->prg.nodes[141], 
 			       prgs[2]->prg.nodes[142], prgs[2]->prg.nodes[144], prgs[2]->prg.nodes[145], prgs[2]->prg.nodes[160]};
-    cout << "PRG 2 has " << prgs[2]->prg.nodes.size() << " nodes" << endl;
+    //cout << "PRG 2 has " << prgs[2]->prg.nodes.size() << " nodes" << endl;
     prgs[2]->add_sample_to_vcf(lmp2);
 }
 
