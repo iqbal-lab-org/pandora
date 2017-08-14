@@ -17,7 +17,7 @@ class PanNode {
 						 // 			  2 -+
 						 // 			  3 ++
 						 // so outNodes[1] is a vector of PanNode* which were found next but in rev comp orientation in reads
-    std::vector<std::unordered_map<uint32_t,uint16_t>> outNodeCounts;
+    std::vector<std::unordered_map<uint32_t,std::vector<uint32_t>>> outNodeCounts;
     std::vector<uint32_t> foundReads; // representing read ids for those reads intersecting this node
     std::set<MinimizerHit*, pComp_path> foundHits;
     PanNode(const uint32_t, const std::string);

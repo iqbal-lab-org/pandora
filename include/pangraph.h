@@ -16,7 +16,8 @@ class PanGraph {
     PanGraph() {};
     ~PanGraph();
     void add_node (const uint32_t, const std::string, uint32_t, const std::set<MinimizerHit*, pComp>&);
-    void add_edge (const uint32_t&, const uint32_t&, const uint&);
+    void add_edge (const uint32_t&, const uint32_t&, const uint&, const uint&);
+    void delete_edge(PanNode*, PanNode*, const uint&);
     void clean(const uint32_t&);
     bool operator == (const PanGraph& y) const;
     void write_gfa (const std::string&);

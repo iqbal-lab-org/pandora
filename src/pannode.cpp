@@ -11,7 +11,7 @@ using namespace std;
 PanNode::PanNode (const uint32_t i, const string n): id(i), name(n) 
 {
     vector<PanNode*> v;
-    unordered_map<uint32_t,uint16_t> m;
+    unordered_map<uint32_t,vector<uint32_t>> m;
     for (uint k=0; k<4; ++k)
     {
         outNodes.push_back(v);

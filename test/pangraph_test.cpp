@@ -4,6 +4,7 @@
 #include "pannode.h"
 #include "minihit.h"
 #include <stdint.h>
+#include <numeric>
 #include <cassert>
 #include <iostream>
 
@@ -107,7 +108,7 @@ TEST_F(PanGraphTest, addEdge)
     PanGraph pg;
     pg.add_node(0,"0",0, mhs);
     pg.add_node(1,"1",2, mhs);
-    pg.add_edge(0,1,3); //++
+    pg.add_edge(0,1,3,0); //++
 
     PanNode *pn1;
     pn1 = new PanNode(0,"0");
@@ -123,12 +124,11 @@ TEST_F(PanGraphTest, addEdge)
 
     EXPECT_EQ(*(pg.nodes[0]->outNodes[3][0]), *pn2);
     EXPECT_EQ(*(pg.nodes[1]->outNodes[0][0]), *pn1);
-    uint j=1;
-    EXPECT_EQ(1, pg.nodes[0]->outNodeCounts[3][1]);
-    EXPECT_EQ(1, pg.nodes[1]->outNodeCounts[0][0]);
+    EXPECT_EQ(1, pg.nodes[0]->outNodeCounts[3][1].size());
+    EXPECT_EQ(1, pg.nodes[1]->outNodeCounts[0][0].size());
 
     // expect failure if a node doesn't exist in the graph
-    EXPECT_DEATH(pg.add_edge(0,4,0),"");
+    EXPECT_DEATH(pg.add_edge(0,4,0,0),"");
     delete pn1;
     delete pn2;
 }
@@ -141,16 +141,16 @@ TEST_F(PanGraphTest, equals)
     pg1.add_node(1,"1",2, mhs);
     pg1.add_node(1,"1",0, mhs);
     pg1.add_node(2,"2",2, mhs);
-    pg1.add_edge(0,1,3);
-    pg1.add_edge(1,2,3);
+    pg1.add_edge(0,1,3,0);
+    pg1.add_edge(1,2,3,0);
   
     PanGraph pg2;
     pg2.add_node(1,"1",2, mhs);
     pg2.add_node(0,"0",0, mhs);
-    pg2.add_edge(0,1,3);
+    pg2.add_edge(0,1,3,0);
     pg2.add_node(2,"2",2, mhs);
     pg2.add_node(1,"1",0, mhs);
-    pg2.add_edge(1,2,3);
+    pg2.add_edge(1,2,3,0);
 
     // adding nodes and edges in different order should make no difference
     EXPECT_EQ(pg1, pg1);
@@ -159,7 +159,7 @@ TEST_F(PanGraphTest, equals)
     EXPECT_EQ(pg2, pg1);
 
     // adding an extra edge does make a difference
-    pg2.add_edge(0,2,3);
+    pg2.add_edge(0,2,3,0);
     EXPECT_EQ((pg1 == pg2), false);
     EXPECT_EQ((pg2 == pg1), false);
 
@@ -169,12 +169,12 @@ TEST_F(PanGraphTest, equals)
     pg3.add_node(0,"0",0, mhs);
     pg3.add_node(2,"2",2, mhs);
     pg3.add_node(1,"1",0, mhs);
-    pg3.add_edge(1,2,3);
+    pg3.add_edge(1,2,3,0);
     EXPECT_EQ((pg1 == pg3), false);
     EXPECT_EQ((pg3 == pg1), false);
 
     // or one extra node
-    pg3.add_edge(0,1,3);
+    pg3.add_edge(0,1,3,0);
     EXPECT_EQ((pg1 == pg3), true); //adds the missing edge
     EXPECT_EQ((pg3 == pg1), true); //adds the missing edge
     pg3.add_node(3,"3",0, mhs);
@@ -182,7 +182,7 @@ TEST_F(PanGraphTest, equals)
     EXPECT_EQ((pg3 == pg1), false);
 
     // should not break when have a cycle in pangraph
-    pg1.add_edge(2,0,3);
+    pg1.add_edge(2,0,3,0);
     EXPECT_EQ(pg1, pg1);      
 }
 
@@ -193,31 +193,45 @@ TEST_F(PanGraphTest, clean)
     PanGraph pg1, pg2;
     pg1.add_node(0,"0",0, mhs);
     pg1.add_node(1,"1",2, mhs);
-    pg1.add_edge(0,1,3);
+    pg1.add_edge(0,1,3,0);
     pg1.add_node(2,"2",2, mhs);
-    pg1.add_edge(1,2,3);
+    pg1.add_edge(1,2,3,0);
     pg1.add_node(3,"3",2, mhs);
-    pg1.add_edge(2,3,3);
+    pg1.add_edge(2,3,3,0);
     pg1.add_node(4,"4",0, mhs);
-    pg1.add_edge(3,4,3);
+    pg1.add_edge(3,4,3,0);
     pg1.add_node(5,"5",2, mhs);
-    pg1.add_edge(4,5,3);
-    pg1.add_edge(5,0,3);
+    pg1.add_edge(4,5,3,0);
+    pg1.add_edge(5,0,3,0);
 
     pg2.add_node(0,"0",0, mhs);
     pg2.add_node(1,"1",2, mhs);
-    pg2.add_edge(0,1,3);
+    pg2.add_edge(0,1,3,0);
     pg2.add_node(2,"2",2, mhs);
-    pg2.add_edge(1,2,3);
+    pg2.add_edge(1,2,3,0);
     pg2.add_node(3,"3",2, mhs);
-    pg2.add_edge(2,3,3);
+    pg2.add_edge(2,3,3,0);
     pg2.add_node(4,"4",0, mhs);
-    pg2.add_edge(3,4,3);
+    pg2.add_edge(3,4,3,0);
     pg2.add_node(5,"5",2, mhs);
-    pg2.add_edge(4,5,3);
-    pg2.add_edge(5,0,3);
+    pg2.add_edge(4,5,3,0);
+    pg2.add_edge(5,0,3,0);
 
-    pg2.nodes[0]->outNodeCounts[3][1] += 40;
+    vector<uint32_t> reads(40,0);
+    iota( reads.begin(), reads.end(), 1 );
+    pg2.nodes[0]->outNodeCounts[3][1] = reads;
+    pg2.nodes[1]->outNodeCounts[3][2] = reads;
+    pg2.nodes[2]->outNodeCounts[3][3] = reads;
+    pg2.nodes[3]->outNodeCounts[3][4] = reads;
+    pg2.nodes[4]->outNodeCounts[3][5] = reads;
+    pg2.nodes[5]->outNodeCounts[3][0] = reads;
+    pg2.nodes[1]->outNodeCounts[0][0] = reads;
+    pg2.nodes[2]->outNodeCounts[0][1] = reads;
+    pg2.nodes[3]->outNodeCounts[0][2] = reads;
+    pg2.nodes[4]->outNodeCounts[0][3] = reads;
+    pg2.nodes[5]->outNodeCounts[0][4] = reads;
+    pg2.nodes[0]->outNodeCounts[0][5] = reads;
+    /*pg2.nodes[0]->outNodeCounts[3][1] += 40;
     pg2.nodes[1]->outNodeCounts[3][2] += 30;
     pg2.nodes[2]->outNodeCounts[3][3] += 43;
     pg2.nodes[3]->outNodeCounts[3][4] += 32;
@@ -228,15 +242,16 @@ TEST_F(PanGraphTest, clean)
     pg2.nodes[3]->outNodeCounts[0][2] += 43;
     pg2.nodes[4]->outNodeCounts[0][3] += 32;
     pg2.nodes[5]->outNodeCounts[0][4] += 37;
-    pg2.nodes[0]->outNodeCounts[0][5] += 26;
+    pg2.nodes[0]->outNodeCounts[0][5] += 26;*/
 
     pg2.add_node(6,"6",2, mhs);
-    pg2.add_edge(4,6,3);
+    pg2.add_edge(4,6,3,0);
     
     pg2.add_node(7,"7",2, mhs);
-    pg2.add_edge(1,7,3);
-    pg2.nodes[1]->outNodeCounts[3][7] +=2;
-    pg2.nodes[7]->outNodeCounts[0][1] +=2;
+    pg2.add_edge(1,7,3,0);
+    vector<uint32_t> noise = {50, 51};
+    pg2.nodes[1]->outNodeCounts[3][7] = noise;
+    pg2.nodes[7]->outNodeCounts[0][1] = noise;
 
     pg2.clean(300);
     //cout << pg1 << endl;
@@ -253,10 +268,10 @@ TEST_F(PanGraphTest, write_gfa)
     PanGraph pg2;
     pg2.add_node(1,"1",2, mhs);
     pg2.add_node(0,"0",0, mhs);
-    pg2.add_edge(0,1,3);
+    pg2.add_edge(0,1,3,0);
     pg2.add_node(2,"2",2, mhs);
     pg2.add_node(1,"1",0, mhs);
-    pg2.add_edge(1,2,3);
-    pg2.add_edge(1,2,3);
+    pg2.add_edge(1,2,3,0);
+    pg2.add_edge(1,2,3,0);
     pg2.write_gfa("../test/test_cases/pangraph_test_save.gfa");
 }
