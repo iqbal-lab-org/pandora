@@ -62,7 +62,6 @@ void PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uint& o
     assert(f->outNodeCounts.size() == 4);
     assert(t->outNodeCounts.size() == 4);
 
-    //cout << orientation << " " << 3-orientation << endl;
     if (std::find(f->outNodes[orientation].begin(), f->outNodes[orientation].end(), t) == f->outNodes[orientation].end())
     {
 	//cout << "Added edge (" << f->id << ", " << t->id << " " << orientation << ")" << endl;
@@ -73,109 +72,153 @@ void PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uint& o
 	f->outNodeCounts[orientation][t->id].push_back(read_id);
     }
 
-    if (std::find(t->outNodes[3-orientation].begin(), t->outNodes[3-orientation].end(), f) == t->outNodes[3-orientation].end())
+    if (std::find(t->outNodes[rev_orient(orientation)].begin(), t->outNodes[rev_orient(orientation)].end(), f) == t->outNodes[rev_orient(orientation)].end())
     {
 	//cout << "Added edge (" << t->id << ", " << f->id << " " << 3-orientation << ")" << endl;
-        t->outNodes[3-orientation].push_back(f);
-        t->outNodeCounts[3-orientation][f->id].push_back(read_id);
+        t->outNodes[rev_orient(orientation)].push_back(f);
+        t->outNodeCounts[rev_orient(orientation)][f->id].push_back(read_id);
     } else {
 	//cout << "Added count for (" << t->id << ", " << f->id << " " << 3-orientation << ")" << endl;
-        t->outNodeCounts[3-orientation][f->id].push_back(read_id);
+        t->outNodeCounts[rev_orient(orientation)][f->id].push_back(read_id);
     }
     //cout << "Added edge (" << f->id << ", " << t->id << ")" << endl;
 }
 
 void PanGraph::delete_edge(PanNode* from, PanNode* to, const uint& orientation)
 {
-    cout << "delete edge " << to->name << "->" << from->name << " " << 3-orientation << endl;
-    to->outNodes[3-orientation].erase(std::remove(to->outNodes[3-orientation].begin(),
-                                                  to->outNodes[3-orientation].end(),
+    cout << now() << "delete edge " << to->name << "->" << from->name << " " << rev_orient(orientation) << endl;
+    to->outNodes[rev_orient(orientation)].erase(std::remove(to->outNodes[rev_orient(orientation)].begin(),
+                                                  to->outNodes[rev_orient(orientation)].end(),
                                                   from),
-                                      to->outNodes[3-orientation].end());
-    cout << "delete edge " << from->name << "->" << to->name << " " << orientation << endl;
+                                      to->outNodes[rev_orient(orientation)].end());
+    cout << now() << "delete edge " << from->name << "->" << to->name << " " << orientation << endl;
     from->outNodes[orientation].erase(std::remove(from->outNodes[orientation].begin(),
                                                   from->outNodes[orientation].end(),
                                                   to),
                                       from->outNodes[orientation].end());
-
-    cout << "replace with edges joining to next node in read" << endl;
-    // for each compatible orientation of an edge B->C
-    uint k = 0;
-    if (orientation > 1)
-    {
-	k = 1;
-    }
-    while (k < 4)
-    {
-	// iterate over the map of outnotes of 'to'
-	for (std::unordered_map<uint32_t,vector<uint32_t>>::iterator it=to->outNodeCounts[k].begin(); it!=to->outNodeCounts[k].end(); ++it)
-	{
-	    // for each read id on deleted edge, search for the read id for an edge from 'to' to outnode
-	    for (vector<uint32_t>::iterator id=from->outNodeCounts[orientation][to->id].begin(); id!=from->outNodeCounts[orientation][to->id].end(); ++id)
-	    {
-		if (find(it->second.begin(), it->second.end(), *id) != it->second.end())
-		{
-		    // if we find one, add a new edge
-		    cout << "added edge from " << from->id << "->" << it->first << ", " << orientation + k -3*(orientation>1) << " for read " << *id << endl;
-		    add_edge(from->id, it->first, orientation + k -3*(orientation>1), *id);
-		}
-	    }
-	}
-	k += 2;
-    }
-    to->outNodeCounts[3-orientation].erase(from->id);
+    to->outNodeCounts[rev_orient(orientation)].erase(from->id);
     from->outNodeCounts[orientation].erase(to->id);
 }
 
-void PanGraph::clean(const uint32_t& covg)
+uint PanGraph::rev_orient(const uint& orientation)
 {
-    // first check
+    // 3 A  -> B  = B- -> A- 0
+    // 2 A- -> B  = B- -> A  2
+    // 0 A- -> B- = B  -> A  3
+    // 1 A  -> B- = B  -> A- 1
+
+    uint r_orientation = orientation;
+    if (orientation == 0)
+    {
+        r_orientation = 3;
+    } else if (orientation == 3)
+    {
+        r_orientation = 0;
+    }
+    return r_orientation;
+}
+
+void PanGraph::check_graph_symmetry()
+{
+    // checks that all out edges A->B have a corresponding in edge B<-A
     for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
-    {  
+    {
         for (uint k=0; k<4; ++k)
         {
             for (uint32_t j=it->second->outNodes[k].size(); j!=0; --j)
-	    {
-		if (std::find(it->second->outNodes[k][j-1]->outNodes[3-k].begin(), it->second->outNodes[k][j-1]->outNodes[3-k].end(), it->second) == it->second->outNodes[k][j-1]->outNodes[3-k].end())
-		{
-		    cout << "asymmetric edge between " << it->second->name << " and " << it->second->outNodes[k][j-1]->name << endl;
-		}
-	    }
-	}
+            {
+                assert(std::find(it->second->outNodes[k][j-1]->outNodes[rev_orient(k)].begin(), it->second->outNodes[k][j-1]->outNodes[rev_orient(k)].end(), it->second) != it->second->outNodes[k][j-1]->outNodes[rev_orient(k)].end() || assert_msg("asymmetric edge between " << it->second->name << " and " << it->second->outNodes[k][j-1]->name));
+            }
+        }
     }
-        
-    uint thresh = 0.025*covg;
-    cout << now() << "Cleaning with threshold " << thresh << endl;
-    bool found;
+}
 
-    // remove all edges with less than 2.5% coverage (mostly we want to remove all the singley occuring edges)
+void PanGraph::remove_low_covg_nodes(const uint& thresh)
+{
+    // if A <-x- B -y-> C then the resulting equivalent A -> C has orientation
+    //       y
+    //    0 1 2 3
+    //  0 . 1 . 3
+    //  1 1 . 3 .
+    //x 2 . 0 . 2 
+    //  3 0 . 2 .
+    //
+
+    cout << now() << "Node cleaning with threshold " << thresh << endl;
+    PanNode *from;
+    PanNode *to;
+    bool found_from, found_to;
+    uint new_k;
     for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
     {
-	//cout << *(it->second) << endl;
-	for (uint k=0; k<4; ++k)
+	if (it->second->foundReads.size() < thresh)
 	{
-            for (uint32_t j=it->second->outNodes[k].size(); j!=0; --j)
-            {
-	        //cout << "outnode " << it->second->outNodes[k][j-1]->id;
-	        //cout << " has count " << it->second->outNodeCounts[it->second->outNodes[k][j-1]->id] << endl;
-	        if (it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].size() < thresh)
+	    // for each read, search for an in edge and an out edge corresponding to the read
+	    for (vector<uint>::iterator id = it->second->foundReads.begin(); id!= it->second->foundReads.end(); ++id)
+	    {
+		found_from = false;
+		found_to = false;
+		new_k = 0;
+	        for (uint k=0; k<4; ++k)
 	        {
-		    // delete the edge
-		    /*cout << "delete edge " << it->second->outNodes[k][j-1]->name << "->" << it->second->name << " " << 3-k << endl;
-                    it->second->outNodes[k][j-1]->outNodes[3-k].erase(std::remove(it->second->outNodes[k][j-1]->outNodes[3-k].begin(),
-                                                                                  it->second->outNodes[k][j-1]->outNodes[3-k].end(),
-                                                                                  it->second),
-                                                                      it->second->outNodes[k][j-1]->outNodes[3-k].end());
-                    cout << "delete edge " << it->second->name << "->" << it->second->outNodes[k][j-1]->name << " " << k << endl;
-		    it->second->outNodes[k].erase(it->second->outNodes[k].begin() + j-1);*/
+		    for (uint j=it->second->outNodes[k].size(); j!=0; --j)
+		    {
+			cout << "looking for read " << *id << endl;
+		        cout << "orientation " << k << " outnode " << it->second->outNodes[k][j-1]->name << " is covered by reads ";
+			for (uint i=0; i!=it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].size(); ++i)
+			{
+			    cout << it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id][i] << " ";
+			}
+			cout << endl;
+			if (find(it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].begin(), it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].end(), *id) != it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].end())
+			{
+			    if (k == 0 or k == 2)
+			    {
+				cout << "found from edge " << it->second->name << " -> " << it->second->outNodes[k][j-1]->name << " " << k << " for read " << *id << endl;
+			        found_from = true;
+				from = it->second->outNodes[k][j-1];
+				new_k += (k==0);
+			    } else {
+				cout << "found to edge " << it->second->name << " -> " << it->second->outNodes[k][j-1]->name << " " << k << " for read " << *id << endl;
+				found_to = true;
+				to = it->second->outNodes[k][j-1];
+				new_k += 2*(k==3);
+			    }
+			}
+
+			// either way, delete the edge 
+			//delete_edge(it->second, it->second->outNodes[k][j-1], k);
+		    }
+		}
+		if (found_from == true and found_to == true)
+		{
+		    cout << "add edge from  " << from->name << " -> " << to->name << " " << new_k << " for read  " << *id << endl;
+		    add_edge(from->id, to->id, new_k, *id);
+		}
+	    }
+
+	    // delete edges
+	    for (uint k=0; k<4; ++k)
+            {
+                for (uint j=it->second->outNodes[k].size(); j!=0; --j)
+                {
 		    delete_edge(it->second, it->second->outNodes[k][j-1], k);
-	        }
-            }
+		}
+	    }
+
+	    // delete the node
+	    cout << "delete node " << it->second->name << endl;
+	    delete it->second;
+            nodes.erase(it++);
 	}
     }
-    // and again for higher coverage
-    thresh = 0.05*covg;
-    cout << now() << "Cleaning with threshold " << thresh << endl;
+}
+
+void PanGraph::remove_low_covg_edges(const uint& thresh)
+{
+    cout << now() << "Edge cleaning with threshold " << thresh << endl;
+
+    // remove all edges with less than thresh% coverage (mostly we want to remove all the singley occuring edges)
     for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
     {
         for (uint k=0; k<4; ++k)
@@ -184,49 +227,87 @@ void PanGraph::clean(const uint32_t& covg)
             {
                 if (it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].size() < thresh)
                 {
-                    delete_edge(it->second, it->second->outNodes[k][j-1], k);
+		    cout << now() << "delete edge " << it->second->outNodes[k][j-1]->name << "->" << it->second->name << " " << rev_orient(k) << endl;
+    		    it->second->outNodes[k][j-1]->outNodes[rev_orient(k)].erase(std::remove(it->second->outNodes[k][j-1]->outNodes[rev_orient(k)].begin(),
+                                                  					    it->second->outNodes[k][j-1]->outNodes[rev_orient(k)].end(),
+                                                 					    it->second),
+                                                                                it->second->outNodes[k][j-1]->outNodes[rev_orient(k)].end());
+    		    cout << now() << "delete edge " << it->second->name << "->" << it->second->outNodes[k][j-1]->name << " " << k << endl;
+                    it->second->outNodes[k].erase(std::remove(it->second->outNodes[k].begin(),
+                                                  			it->second->outNodes[k].end(),
+                                                  			it->second->outNodes[k][j-1]),
+                                      			    it->second->outNodes[k].end());
+    		    it->second->outNodes[k][j-1]->outNodeCounts[rev_orient(k)].erase(it->second->id);
+                    it->second->outNodeCounts[k].erase(it->second->outNodes[k][j-1]->id);
                 }
+		assert(j-1 <= it->second->outNodes[k].size() || assert_msg("something has gone wrong when deleting edge " << it->second->name << "->" << it->second->outNodes[k][j-1]->name << " " << k << ". Did the edge occur twice in this read?"));
             }
         }
     }
-    // remove unconnected nodes
+}
+
+void PanGraph::remove_isolated_nodes()
+{
+    cout << now() << "remove isolated nodes" << endl;
+    bool found;
     for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end();)
     {
-	found = false;
-	for (uint k=0; k<4; ++k)
-	{
-	    if (it->second->outNodes[k].size() > 0)
-	    {
-	        // found outnodes, or innodes
-		found = true;
-		break;
-	    }
-	}
-	if (found == false)
-	{
-	    cout << "delete node " << it->second->name;
-	    delete it->second;
-	    nodes.erase(it++);
-	    cout << " so pangraph now has " << nodes.size() << " nodes" << endl;
-	} else {
-	    ++it;
-	}
-    }	    
-
-    // check again
-    for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
-    {
+        found = false;
         for (uint k=0; k<4; ++k)
         {
-            for (uint32_t j=it->second->outNodes[k].size(); j!=0; --j)
+            if (it->second->outNodes[k].size() > 0)
             {
-                if (std::find(it->second->outNodes[k][j-1]->outNodes[3-k].begin(), it->second->outNodes[k][j-1]->outNodes[3-k].end(), it->second) == it->second->outNodes[k][j-1]->outNodes[3-k].end())
-                {
-                    cout << "asymmetric edge between " << it->second->name << " and " << it->second->outNodes[k][j-1]->name << endl;
-                }
+                // found outnodes, or innodes
+                found = true;
+                break;
             }
         }
+        if (found == false)
+        {
+            cout << "delete node " << it->second->name;
+            delete it->second;
+            nodes.erase(it++);
+            cout << " so pangraph now has " << nodes.size() << " nodes" << endl;
+        } else {
+            ++it;
+        }
     }
+}
+
+/*void PanGraph::delete_node(PanNode* n)
+{
+    // delete edges to node
+    for (uint orientation=0; orientation<4; ++orientation)
+    {
+        for (uint32_t j=n->outNodes[k].size(); j!=0; --j)
+        {
+	    n->outNodes[k][j-1]->outNodes[r_orientation].erase(std::remove( n->outNodes[k][j-1]->outNodes[r_orientation].begin(),
+                                                                            n->outNodes[k][j-1]->outNodes[r_orientation].end(),
+                                                                            n),
+                                                               n->outNodes[k][j-1]->outNodes[r_orientation].end());
+	    n->outNodes[k][j-1]->outNodeCounts[r_orientation].erase(std::remove( n->outNodes[k][j-1]->outNodeCounts[r_orientation].begin(),
+                                                                                 n->outNodes[k][j-1]->outNodeCounts[r_orientation].end(),
+                                                                                 n->id),
+                                                               n->outNodes[k][j-1]->outNodeCounts[r_orientation].end());
+	}
+    }
+
+    // delete node
+     cout << "delete node " << n->name;
+    delete n;
+    nodes.erase(n);
+}*/
+
+void PanGraph::clean(const uint32_t& covg)
+{
+    uint thresh = 0.025*covg;
+    check_graph_symmetry();
+    //remove_low_covg_nodes(thresh);
+    //check_graph_symmetry();
+    remove_low_covg_edges(thresh);
+    //check_graph_symmetry();
+    remove_isolated_nodes();
+    check_graph_symmetry();
 }
 
 bool PanGraph::operator == (const PanGraph& y) const {
@@ -259,7 +340,7 @@ void PanGraph::write_gfa (const string& filepath)
     handle << "H\tVN:Z:1.0" << endl;
     for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
     {
-	cout << it->second->id << endl;
+	//cout << it->second->id << endl;
 	
         handle << "S\t" << it->second->name << "\t*" << endl; //\tRC:i:" << it->second->foundHits.size() * k << endl;
         for (uint32_t j=0; j<it->second->outNodes[3].size(); ++j)

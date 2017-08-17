@@ -21,7 +21,11 @@ PanNode::PanNode (const uint32_t i, const string n): id(i), name(n)
 
 void PanNode::add_read(const uint32_t j)
 {
-    foundReads.push_back(j);
+    if (foundReads.size() == 0 or foundReads.back() != j)
+    {
+        foundReads.push_back(j);
+    }
+   
 }
 
 void PanNode::add_hits(const set<MinimizerHit*, pComp>& c)

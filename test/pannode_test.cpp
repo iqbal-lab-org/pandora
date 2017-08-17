@@ -40,15 +40,15 @@ TEST_F(PanNodeTest,add_read){
     EXPECT_EQ(j, pn.foundReads[0]);
     pn.add_read(0);
     j=2;
-    EXPECT_EQ(j, pn.foundReads.size());
+    //EXPECT_EQ(j, pn.foundReads.size()); // changed code so can't have 2 of a gene in a row.
     j=0;
     EXPECT_EQ(j, pn.foundReads[0]);
-    EXPECT_EQ(j, pn.foundReads[1]);
+    //EXPECT_EQ(j, pn.foundReads[1]);
     pn.add_read(7);
-    j=3;
+    j=2;
     EXPECT_EQ(j, pn.foundReads.size());
     j=7;
-    EXPECT_EQ(j, pn.foundReads[2]);
+    EXPECT_EQ(j, pn.foundReads[1]);
 }
 
 TEST_F(PanNodeTest, add_hits)

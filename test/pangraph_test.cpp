@@ -45,7 +45,7 @@ TEST_F(PanGraphTest, addNode)
     EXPECT_EQ(*pg.nodes[0], *pn);
     j = 1;
     EXPECT_EQ(pg.nodes.size(), j);
-    j = 2;
+    j = 1;
     EXPECT_EQ(pg.nodes[0]->foundReads.size(), j);
 
     // add node again with different read
@@ -54,7 +54,7 @@ TEST_F(PanGraphTest, addNode)
     EXPECT_EQ(*pg.nodes[0], *pn);
     j = 1;
     EXPECT_EQ(pg.nodes.size(), j);
-    j = 3;
+    j = 2;
     EXPECT_EQ(pg.nodes[0]->foundReads.size(), j);
     delete pn;
 
@@ -124,8 +124,8 @@ TEST_F(PanGraphTest, addEdge)
 
     EXPECT_EQ(*(pg.nodes[0]->outNodes[3][0]), *pn2);
     EXPECT_EQ(*(pg.nodes[1]->outNodes[0][0]), *pn1);
-    EXPECT_EQ(1, pg.nodes[0]->outNodeCounts[3][1].size());
-    EXPECT_EQ(1, pg.nodes[1]->outNodeCounts[0][0].size());
+    EXPECT_EQ((uint)1, pg.nodes[0]->outNodeCounts[3][1].size());
+    EXPECT_EQ((uint)1, pg.nodes[1]->outNodeCounts[0][0].size());
 
     // expect failure if a node doesn't exist in the graph
     EXPECT_DEATH(pg.add_edge(0,4,0,0),"");
@@ -219,6 +219,12 @@ TEST_F(PanGraphTest, clean)
 
     vector<uint32_t> reads(40,0);
     iota( reads.begin(), reads.end(), 1 );
+    pg2.nodes[0]->foundReads = reads;
+    pg2.nodes[1]->foundReads = reads;
+    pg2.nodes[2]->foundReads = reads;
+    pg2.nodes[3]->foundReads = reads;
+    pg2.nodes[4]->foundReads = reads;
+    pg2.nodes[5]->foundReads = reads;
     pg2.nodes[0]->outNodeCounts[3][1] = reads;
     pg2.nodes[1]->outNodeCounts[3][2] = reads;
     pg2.nodes[2]->outNodeCounts[3][3] = reads;
