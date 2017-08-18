@@ -74,7 +74,6 @@ int pandora_map(int argc, char* argv[])
         } else if ((arg == "-p") || (arg == "--prg_file")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 prgfile = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
-		cout << "prgfile: " << prgfile << endl;
             } else { // Uh-oh, there was no argument to the destination option.
                   std::cerr << "--prg_file option requires one argument." << std::endl;
                 return 1;
@@ -82,7 +81,6 @@ int pandora_map(int argc, char* argv[])
 	} else if ((arg == "-r") || (arg == "--read_file")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 readfile = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
-	        cout << "readfile: " << readfile << endl;
             } else { // Uh-oh, there was no argument to the destination option.
                   std::cerr << "--read_file option requires one argument." << std::endl;
                 return 1;
@@ -90,7 +88,6 @@ int pandora_map(int argc, char* argv[])
         } else if ((arg == "-o") || (arg == "--out_prefix")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 prefix = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
-		cout << "prefix: " << prefix << endl;
             } else { // Uh-oh, there was no argument to the destination option.
                   std::cerr << "--out_prefix option requires one argument." << std::endl;
                 return 1;
@@ -149,6 +146,18 @@ int pandora_map(int argc, char* argv[])
 
     //then run the programme...
     cout << "START: " << now() << endl;
+    cout << "\nUsing parameters: " << endl;
+    cout << "\tprgfile\t\t" << prgfile << endl;
+    cout << "\treadfile\t" << readfile << endl;
+    cout << "\tout_prefix\t" << prefix << endl;
+    cout << "\tw\t\t" << w << endl;
+    cout << "\tk\t\t" << k << endl;
+    cout << "\tmax_diff\t" << max_diff << endl;
+    cout << "\terror_rate\t" << e_rate << endl;
+    cout << "\toutput_kg\t" << output_kg << endl;
+    cout << "\toutput_vcf\t" << output_vcf << endl;
+    cout << "\tmax_path\t" << max_path << endl;
+    cout << "\tmin_path\t" << min_path << endl << endl;
 
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
     Index *idx;

@@ -227,6 +227,9 @@ void PanGraph::remove_low_covg_edges(const uint& thresh)
             {
                 if (it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].size() < thresh)
                 {
+		    it->second->outNodes[k][j-1]->outNodeCounts[rev_orient(k)].erase(it->second->id);
+                    it->second->outNodeCounts[k].erase(it->second->outNodes[k][j-1]->id);
+
 		    cout << now() << "delete edge " << it->second->outNodes[k][j-1]->name << "->" << it->second->name << " " << rev_orient(k) << endl;
     		    it->second->outNodes[k][j-1]->outNodes[rev_orient(k)].erase(std::remove(it->second->outNodes[k][j-1]->outNodes[rev_orient(k)].begin(),
                                                   					    it->second->outNodes[k][j-1]->outNodes[rev_orient(k)].end(),
@@ -237,8 +240,6 @@ void PanGraph::remove_low_covg_edges(const uint& thresh)
                                                   			it->second->outNodes[k].end(),
                                                   			it->second->outNodes[k][j-1]),
                                       			    it->second->outNodes[k].end());
-    		    it->second->outNodes[k][j-1]->outNodeCounts[rev_orient(k)].erase(it->second->id);
-                    it->second->outNodeCounts[k].erase(it->second->outNodes[k][j-1]->id);
                 }
 		assert(j-1 <= it->second->outNodes[k].size() || assert_msg("something has gone wrong when deleting edge " << it->second->name << "->" << it->second->outNodes[k][j-1]->name << " " << k << ". Did the edge occur twice in this read?"));
             }
@@ -300,12 +301,12 @@ void PanGraph::remove_isolated_nodes()
 
 void PanGraph::clean(const uint32_t& covg)
 {
-    uint thresh = 0.025*covg;
+    uint thresh = 0.05*covg;
     check_graph_symmetry();
-    //remove_low_covg_nodes(thresh);
-    //check_graph_symmetry();
+    remove_low_covg_nodes(thresh);
+    check_graph_symmetry();
     remove_low_covg_edges(thresh);
-    //check_graph_symmetry();
+    check_graph_symmetry();
     remove_isolated_nodes();
     check_graph_symmetry();
 }
@@ -347,9 +348,17 @@ void PanGraph::write_gfa (const string& filepath)
         {
             handle << "L\t" << it->second->name << "\t+\t" << it->second->outNodes[3][j]->name << "\t+\t0M\tRC:i:" << it->second->outNodeCounts[3][it->second->outNodes[3][j]->id].size() << endl;
         }
+        for (uint32_t j=0; j<it->second->outNodes[2].size(); ++j)
+        {
+            handle << "L\t" << it->second->name << "\t+\t" << it->second->outNodes[2][j]->name << "\t-\t0M\tRC:i:" << it->second->outNodeCounts[2][it->second->outNodes[2][j]->id].size() << endl;
+        }
 	for (uint32_t j=0; j<it->second->outNodes[1].size(); ++j)
         {
             handle << "L\t" << it->second->name << "\t+\t" << it->second->outNodes[1][j]->name << "\t-\t0M\tRC:i:" << it->second->outNodeCounts[1][it->second->outNodes[1][j]->id].size() << endl;
+        }
+	for (uint32_t j=0; j<it->second->outNodes[0].size(); ++j)
+        {
+            handle << "L\t" << it->second->name << "\t+\t" << it->second->outNodes[0][j]->name << "\t-\t0M\tRC:i:" << it->second->outNodeCounts[0][it->second->outNodes[0][j]->id].size() << endl;
         }
     }
     handle.close();
