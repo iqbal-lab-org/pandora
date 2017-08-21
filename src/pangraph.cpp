@@ -133,7 +133,7 @@ void PanGraph::check_graph_symmetry()
     }
 }
 
-void PanGraph::remove_low_covg_nodes(const uint& thresh)
+/*void PanGraph::remove_low_covg_nodes(const uint& thresh)
 {
     // if A <-x- B -y-> C then the resulting equivalent A -> C has orientation
     //       y
@@ -149,6 +149,87 @@ void PanGraph::remove_low_covg_nodes(const uint& thresh)
     PanNode *to;
     bool found_from, found_to;
     uint new_k;
+    for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
+    {
+        if (it->second->foundReads.size() < thresh)
+        {
+            // for each read, search for an in edge and an out edge corresponding to the read
+            for (vector<uint>::iterator id = it->second->foundReads.begin(); id!= it->second->foundReads.end(); ++id)
+            {
+                found_from = false;
+                found_to = false;
+                new_k = 0;
+                for (uint k=0; k<4; ++k)
+                {
+                    for (uint j=it->second->outNodes[k].size(); j!=0; --j)
+                    {
+                        cout << "looking for read " << *id << endl;
+                        cout << "orientation " << k << " outnode " << it->second->outNodes[k][j-1]->name << " is covered by reads ";
+                        for (uint i=0; i!=it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].size(); ++i)
+                        {
+                            cout << it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id][i] << " ";
+                        }
+                        cout << endl;
+                        if (find(it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].begin(), it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].end(), *id) != it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].end())
+                        {
+                            if (k == 0 or k == 2)
+                            {
+                                cout << "found from edge " << it->second->name << " -> " << it->second->outNodes[k][j-1]->name << " " << k << " for read " << *id << endl;
+                                found_from = true;
+                                from = it->second->outNodes[k][j-1];
+                                new_k += (k==0);
+                            } else {
+                                cout << "found to edge " << it->second->name << " -> " << it->second->outNodes[k][j-1]->name << " " << k << " for read " << *id << endl;
+                                found_to = true;
+                                to = it->second->outNodes[k][j-1];
+                                new_k += 2*(k==3);
+                            }
+                        }
+
+                        // either way, delete the edge 
+                        //delete_edge(it->second, it->second->outNodes[k][j-1], k);
+                    }
+                }
+                if (found_from == true and found_to == true)
+                {
+                    cout << "add edge from  " << from->name << " -> " << to->name << " " << new_k << " for read  " << *id << endl;
+                    add_edge(from->id, to->id, new_k, *id);
+                }
+            }
+
+            // delete edges
+            for (uint k=0; k<4; ++k)
+            {
+                for (uint j=it->second->outNodes[k].size(); j!=0; --j)
+                {
+                    delete_edge(it->second, it->second->outNodes[k][j-1], k);
+                }
+            }
+
+            // delete the node
+            cout << "delete node " << it->second->name << endl;
+            delete it->second;
+            nodes.erase(it++);
+        }
+    }
+}*/
+
+void PanGraph::remove_low_covg_nodes(const uint& thresh)
+{
+    // if A <-x- B -y-> C then the resulting equivalent A -> C has orientation
+    //       y
+    //    0 1 2 3
+    //  0 . 1 . 3
+    //  1 1 . 3 .
+    //x 2 . 0 . 2 
+    //  3 0 . 2 .
+    //
+
+    cout << now() << "Node cleaning with threshold " << thresh << endl;
+    PanNode *from;
+    PanNode *to;
+    bool found_from, found_to;
+    uint new_k, from_k=0, to_k=0;
     for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
     {
 	if (it->second->foundReads.size() < thresh)
@@ -210,6 +291,52 @@ void PanGraph::remove_low_covg_nodes(const uint& thresh)
 	    cout << "delete node " << it->second->name << endl;
 	    delete it->second;
             nodes.erase(it++);
+	} else {
+            // for each read, search for an in edge and an out edge corresponding to the read and if the coverage on these edges is low, remove node from read
+            for (vector<uint>::iterator id = it->second->foundReads.begin(); id!= it->second->foundReads.end();)
+            {
+                found_from = false;
+                found_to = false;
+                new_k = 0;
+                for (uint k=0; k<4; ++k)
+                {
+                    for (uint j=it->second->outNodes[k].size(); j!=0; --j)
+                    {
+                        for (uint i=0; i!=it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].size(); ++i)
+                        {
+                            cout << it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id][i] << " ";
+                        }
+                        cout << endl;
+                        if (find(it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].begin(), it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].end(), *id) != it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].end())
+                        {
+                            if ((k == 0 or k == 2) and it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].size() < thresh)
+                            {
+                                cout << "found low covg from edge " << it->second->name << " -> " << it->second->outNodes[k][j-1]->name << " " << k << " for read " << *id << endl;
+                                found_from = true;
+                                from = it->second->outNodes[k][j-1];
+				from_k = k;
+                                new_k += (k==0);
+                            } else if (it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].size() < thresh) {
+                                cout << "found low covg to edge " << it->second->name << " -> " << it->second->outNodes[k][j-1]->name << " " << k << " for read " << *id << endl;
+                                found_to = true;
+                                to = it->second->outNodes[k][j-1];
+				to_k = k;
+                                new_k += 2*(k==3);
+                            }
+                        }
+                    }
+                }
+                if (found_from == true and found_to == true)
+                {
+                    cout << "add edge from  " << from->name << " -> " << to->name << " " << new_k << " for read  " << *id << endl;
+                    add_edge(from->id, to->id, new_k, *id);
+		    delete_edge(it->second, from, from_k);
+                    delete_edge(it->second, to, to_k);
+		    it->second->foundReads.erase(id);
+                } else {
+		    ++id;
+		}
+            }
 	}
     }
 }
@@ -301,11 +428,11 @@ void PanGraph::remove_isolated_nodes()
 
 void PanGraph::clean(const uint32_t& covg)
 {
-    uint thresh = 0.05*covg;
+    uint thresh = 0.025*covg;
     check_graph_symmetry();
     remove_low_covg_nodes(thresh);
     check_graph_symmetry();
-    remove_low_covg_edges(thresh);
+    remove_low_covg_edges(2*thresh);
     check_graph_symmetry();
     remove_isolated_nodes();
     check_graph_symmetry();
@@ -350,11 +477,11 @@ void PanGraph::write_gfa (const string& filepath)
         }
         for (uint32_t j=0; j<it->second->outNodes[2].size(); ++j)
         {
-            handle << "L\t" << it->second->name << "\t+\t" << it->second->outNodes[2][j]->name << "\t-\t0M\tRC:i:" << it->second->outNodeCounts[2][it->second->outNodes[2][j]->id].size() << endl;
+            handle << "L\t" << it->second->name << "\t-\t" << it->second->outNodes[2][j]->name << "\t+\t0M\tRC:i:" << it->second->outNodeCounts[2][it->second->outNodes[2][j]->id].size() << endl;
         }
 	for (uint32_t j=0; j<it->second->outNodes[1].size(); ++j)
         {
-            handle << "L\t" << it->second->name << "\t+\t" << it->second->outNodes[1][j]->name << "\t-\t0M\tRC:i:" << it->second->outNodeCounts[1][it->second->outNodes[1][j]->id].size() << endl;
+            handle << "L\t" << it->second->name << "\t-\t" << it->second->outNodes[1][j]->name << "\t-\t0M\tRC:i:" << it->second->outNodeCounts[1][it->second->outNodes[1][j]->id].size() << endl;
         }
 	for (uint32_t j=0; j<it->second->outNodes[0].size(); ++j)
         {
