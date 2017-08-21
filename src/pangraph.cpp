@@ -133,7 +133,7 @@ void PanGraph::check_graph_symmetry()
     }
 }
 
-/*void PanGraph::remove_low_covg_nodes(const uint& thresh)
+void PanGraph::remove_low_covg_nodes(const uint& thresh)
 {
     // if A <-x- B -y-> C then the resulting equivalent A -> C has orientation
     //       y
@@ -165,11 +165,11 @@ void PanGraph::check_graph_symmetry()
                     {
                         cout << "looking for read " << *id << endl;
                         cout << "orientation " << k << " outnode " << it->second->outNodes[k][j-1]->name << " is covered by reads ";
-                        for (uint i=0; i!=it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].size(); ++i)
+                        /*for (uint i=0; i!=it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].size(); ++i)
                         {
                             cout << it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id][i] << " ";
                         }
-                        cout << endl;
+                        cout << endl;*/
                         if (find(it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].begin(), it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].end(), *id) != it->second->outNodeCounts[k][it->second->outNodes[k][j-1]->id].end())
                         {
                             if (k == 0 or k == 2)
@@ -212,9 +212,9 @@ void PanGraph::check_graph_symmetry()
             nodes.erase(it++);
         }
     }
-}*/
+}
 
-void PanGraph::remove_low_covg_nodes(const uint& thresh)
+/*void PanGraph::remove_low_covg_nodes(const uint& thresh)
 {
     // if A <-x- B -y-> C then the resulting equivalent A -> C has orientation
     //       y
@@ -339,7 +339,7 @@ void PanGraph::remove_low_covg_nodes(const uint& thresh)
             }
 	}
     }
-}
+}*/
 
 void PanGraph::remove_low_covg_edges(const uint& thresh)
 {
