@@ -9,6 +9,7 @@ class MinimizerHits;
 class PanGraph;
 class PanNode;
 class LocalPRG;
+class Seq;
 
 template <typename T>
 struct pointer_values_equal

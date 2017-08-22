@@ -432,11 +432,14 @@ void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prg
     for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode)
     {
         cout << now() << "Update coverages for PRG " << prgs[pnode->second->id]->name << endl;
-	for (set<MinimizerHit*, pComp_path>::iterator mh = pnode->second->foundHits.begin(); mh != pnode->second->foundHits.end(); ++mh)
+	for (auto read : reads)
 	{
-	    prgs[pnode->second->id]->update_covg_with_hit(*mh);
+	    for (set<MinimizerHit*, pComp_path>::iterator mh = read->hits[pnode->second->id].begin(); mh != read->hits[pnode->second->id].end(); ++mh)
+	    {
+	        prgs[pnode->second->id]->update_covg_with_hit(*mh);
+	    }
 	}
-	prgs[pnode->second->id]->kmer_prg.num_reads = pnode->second->foundReads.size();
+	prgs[pnode->second->id]->kmer_prg.num_reads = pnode->second->reads.size();
 	cout << now() << "Added " << prgs[pnode->second->id]->num_hits[1] << " hits in the forward direction and " << prgs[pnode->second->id]->num_hits[0] << " hits in the reverse" << endl;
     }
 }
