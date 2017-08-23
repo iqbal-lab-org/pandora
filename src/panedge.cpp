@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "panedge.h"
+#include "pannode.h"
 
 using namespace std;
 

@@ -2,6 +2,8 @@
 #define __PANNODE_H_INCLUDED__
 
 #include <string>
+#include <unordered_set>
+#include <vector>
 
 class PanEdge;
 class PanRead;
@@ -10,7 +12,7 @@ class PanNode {
   public:
     const uint32_t id; // corresponding the the LocalPRG id
     const std::string name;
-    uint32_t covg;
+    mutable uint32_t covg;
 
     std::vector<PanEdge*> edges;
     std::unordered_set<PanRead*> reads;

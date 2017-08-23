@@ -13,6 +13,7 @@
 #include "seq.h"
 #include "pangraph.h"
 #include "pannode.h"
+#include "panread.h"
 #include "minihits.h"
 #include "minihit.h"
 
@@ -432,7 +433,7 @@ void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prg
     for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode)
     {
         cout << now() << "Update coverages for PRG " << prgs[pnode->second->id]->name << endl;
-	for (auto read : reads)
+	for (auto read : pnode->second->reads)
 	{
 	    for (set<MinimizerHit*, pComp_path>::iterator mh = read->hits[pnode->second->id].begin(); mh != read->hits[pnode->second->id].end(); ++mh)
 	    {

@@ -6,6 +6,8 @@
 #include "utils.h"
 #include "pannode.h"
 #include "pangraph.h"
+#include "panread.h"
+#include "panedge.h"
 #include <cassert>
 #include "minihit.h"
 
@@ -46,21 +48,22 @@ void PanGraph::add_node (const uint32_t prg_id, const string prg_name, const uin
         n = new PanNode(prg_id, prg_name);
         nodes[prg_id] = n;
     } else {
-	n = *it;
-	it->covg += 1;
+	n = it->second;
+	it->second->covg += 1;
     }
 
     // add a new read if it doesn't exist
     map<uint32_t, PanRead*>::iterator rit=reads.find(read_id);
-    if(rit==reads.end())
-	PanRead *r;
+    if (rit==reads.end())
+    {
+	PanRead* r;
         r = new PanRead(read_id);
 	r->add_hits(prg_id, cluster);
         reads[read_id] = r;
 	n->reads.insert(r);	
     } else {
-	rit->add_hits(prg_id, cluster);
-	n->reads.insert(*rit);
+	rit->second->add_hits(prg_id, cluster);
+	n->reads.insert(rit->second);
     }
 
     return;
@@ -90,12 +93,12 @@ PanEdge* PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uin
 	delete rev_e;
 	return e;
     } else if (rit == edges.end()) {
-	it->covg += 1;
+	(*it)->covg += 1;
     	delete e;
         delete rev_e;
 	return *it;
     } else {
-	rit->covg += 1;
+	(*rit)->covg += 1;
         delete e;
         delete rev_e;
 	return *rit;
@@ -104,7 +107,8 @@ PanEdge* PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uin
 
 void PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uint& orientation, const uint& read_id)
 {
-    PanEdge *e = add_edge(const uint32_t& from, const uint32_t& to, const uint& orientation);
+    PanEdge* e;
+    e = add_edge(from, to, orientation);
  
     PanRead *r;
     map<uint32_t, PanRead*>::iterator read_it=reads.find(read_id);
@@ -113,7 +117,7 @@ void PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uint& o
         r = new PanRead(read_id);
         reads[read_id] = r;
     } else {
-        r = (read_it-second);
+        r = (read_it->second);
     }   
 
     r->edges.push_back(e);
@@ -139,7 +143,7 @@ void PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uint& o
 
 }
 
-uint PanGraph::rev_orient(const uint& orientation)
+uint PanGraph::rev_orient(const uint& orientation) const
 {
     // 3 A  -> B  = B- -> A- 0
     // 2 A- -> B  = B- -> A  2
@@ -163,8 +167,8 @@ void PanGraph::read_clean(const uint& thresh)
 
     for(map<uint32_t, PanRead*>::iterator read=reads.begin(); read!=reads.end(); ++read)
     {
-	vector<PanEdge*>::iterator prev = (*read)->edges.begin();
-	for (vector<PanEdge*>::iterator current=++(*read)->edges.begin(); current!=(*read)->edges.end();)
+	vector<PanEdge*>::iterator prev = read->second->edges.begin();
+	for (vector<PanEdge*>::iterator current=++read->second->edges.begin(); current!=read->second->edges.end();)
 	{
 	    if ((*prev)->covg < thresh and (*current)->covg < thresh)
 	    {
@@ -187,10 +191,10 @@ void PanGraph::read_clean(const uint& thresh)
 		    (*prev)->from->covg -= 1;
                 }
 		(*prev)->covg -= 1;
-		prev = (*read)->edges.insert(prev, e);
-		(*read)->edges.erase(prev+1);
+		prev = read->second->edges.insert(prev, e);
+		read->second->edges.erase(prev+1);
 		(*current)->covg -= 1;
-		current = (*read)->edges.erase(current);
+		current = read->second->edges.erase(current);
 	    } else {
 		prev = current;
 		++current;
@@ -236,9 +240,9 @@ void PanGraph::remove_low_covg_edges(const uint& thresh)
     }
 }
 
-void PanGraph::clean(const uint32_t& covg)
+void PanGraph::clean(const uint32_t& coverage)
 {
-    uint thresh = 0.025*covg;
+    uint thresh = 0.025*coverage;
     read_clean(thresh);   
     remove_low_covg_edges(thresh);
     remove_low_covg_nodes(0);

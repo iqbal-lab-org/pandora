@@ -2,6 +2,8 @@
 #include <string>
 #include <fstream>
 #include "panread.h"
+#include "panedge.h"
+#include "pannode.h"
 #include "minihits.h"
 
 using namespace std;
@@ -23,17 +25,17 @@ bool PanRead::operator == (const PanRead& y) const {
     if (edges.size() != y.edges.size()) {return false;}
     for (uint i=0; i!=edges.size(); ++i)
     {
-	if !(edges[i] == y.edges[i]) {return false;}
+	if (!(edges[i] == y.edges[i])) {return false;}
     }
 	
     return true;
 }
 
 std::ostream& operator<< (std::ostream & out, PanRead const& r) {
-    out << n.id << "\t";
-    for (uint i=0; i!=edges.size(); ++i)
+    out << r.id << "\t";
+    for (uint i=0; i!=r.edges.size(); ++i)
     {
-	out << edges[i]->from->name << "->"
+	out << r.edges[i]->from->name << "->";
     }
     return out ;
 }
