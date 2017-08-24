@@ -6,7 +6,7 @@
 
 using namespace std;
 
-PanEdge::PanEdge (const PanNode* f, const PanNode* t, uint i): from(f), to(t), orientation(i), covg(1) {
+PanEdge::PanEdge (PanNode* f, PanNode* t, uint i): from(f), to(t), orientation(i), covg(1) {
     assert(i<4);
 }
 

@@ -226,74 +226,224 @@ TEST_F(PanGraphTest, equals)
     EXPECT_EQ(pg2, pg1);
 }
 
-/*TEST_F(PanGraphTest, clean)
+TEST_F(PanGraphTest, read_clean)
 {
     set<MinimizerHit*, pComp> mhs;
 
     PanGraph pg1, pg2;
+    // read 0: 0->1->2->3
     pg1.add_node(0,"0",0, mhs);
-    pg1.add_node(1,"1",2, mhs);
+    pg1.add_node(1,"1",0, mhs);
     pg1.add_edge(0,1,3,0);
-    pg1.add_node(2,"2",2, mhs);
+    pg1.add_node(2,"2",0, mhs);
     pg1.add_edge(1,2,3,0);
-    pg1.add_node(3,"3",2, mhs);
+    pg1.add_node(3,"3",0, mhs);
     pg1.add_edge(2,3,3,0);
-    pg1.add_node(4,"4",0, mhs);
-    pg1.add_edge(3,4,3,0);
-    pg1.add_node(5,"5",2, mhs);
-    pg1.add_edge(4,5,3,0);
-    pg1.add_edge(5,0,3,0);
+    // read 1: -4 -> -3 -> -1
+    pg1.add_node(4,"4",1, mhs);
+    pg1.add_edge(4,3,0,1);
+    pg1.add_edge(3,1,0,1);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg1.add_edge(0,1,3,2);
+    pg1.add_edge(1,3,3,2);
+    pg1.add_edge(3,4,3,2);
+    // read 3: 0 -> -5
+    pg1.add_node(5,"5",3, mhs);
+    pg1.add_edge(0,5,1,3);
+    // read 4: 5 -> -2
+    pg1.add_edge(5,2,2,4);
 
+    // read 0: 0->1->3
     pg2.add_node(0,"0",0, mhs);
-    pg2.add_node(1,"1",2, mhs);
+    pg2.add_node(1,"1",0, mhs);
     pg2.add_edge(0,1,3,0);
-    pg2.add_node(2,"2",2, mhs);
-    pg2.add_edge(1,2,3,0);
-    pg2.add_node(3,"3",2, mhs);
-    pg2.add_edge(2,3,3,0);
-    pg2.add_node(4,"4",0, mhs);
-    pg2.add_edge(3,4,3,0);
-    pg2.add_node(5,"5",2, mhs);
-    pg2.add_edge(4,5,3,0);
-    pg2.add_edge(5,0,3,0);
+    pg2.add_node(2,"2",0, mhs);
+    pg2.add_node(3,"3",0, mhs);
+    pg2.add_edge(1,3,3,0);
+    pg2.add_edge(1,2,3,0); // with covg 0
+    pg2.edges.back()->covg -= 1;
+    pg2.add_edge(2,3,3,0); // with covg 0
+    pg2.edges.back()->covg -= 1;
+    // read 1: -4 -> -3 -> -1
+    pg2.add_node(4,"4",1, mhs);
+    pg2.add_edge(4,3,0,1);
+    pg2.add_edge(3,1,0,1);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg2.add_edge(0,1,3,2);
+    pg2.add_edge(1,3,3,2);
+    pg2.add_edge(3,4,3,2);
+    // read 3: 0 -> -5
+    pg2.add_node(5,"5",3, mhs);
+    pg2.add_edge(0,5,1,3);
+    // read 4: 5 -> -2
+    pg2.add_edge(5,2,2,4);    
 
-    vector<uint32_t> reads(40,0);
-    iota( reads.begin(), reads.end(), 1 );
-    pg2.nodes[0]->foundReads = reads;
-    pg2.nodes[1]->foundReads = reads;
-    pg2.nodes[2]->foundReads = reads;
-    pg2.nodes[3]->foundReads = reads;
-    pg2.nodes[4]->foundReads = reads;
-    pg2.nodes[5]->foundReads = reads;
-    pg2.nodes[0]->outNodeCounts[3][1] = reads;
-    pg2.nodes[1]->outNodeCounts[3][2] = reads;
-    pg2.nodes[2]->outNodeCounts[3][3] = reads;
-    pg2.nodes[3]->outNodeCounts[3][4] = reads;
-    pg2.nodes[4]->outNodeCounts[3][5] = reads;
-    pg2.nodes[5]->outNodeCounts[3][0] = reads;
-    pg2.nodes[1]->outNodeCounts[0][0] = reads;
-    pg2.nodes[2]->outNodeCounts[0][1] = reads;
-    pg2.nodes[3]->outNodeCounts[0][2] = reads;
-    pg2.nodes[4]->outNodeCounts[0][3] = reads;
-    pg2.nodes[5]->outNodeCounts[0][4] = reads;
-    pg2.nodes[0]->outNodeCounts[0][5] = reads;
-
-    pg2.add_node(6,"6",2, mhs);
-    pg2.add_edge(4,6,3,0);
-    
-    pg2.add_node(7,"7",2, mhs);
-    pg2.add_edge(1,7,3,0);
-    vector<uint32_t> noise = {50, 51};
-    pg2.nodes[1]->outNodeCounts[3][7] = noise;
-    pg2.nodes[7]->outNodeCounts[0][1] = noise;
-
-    pg2.clean(300);
-    //cout << pg1 << endl;
-    //cout << pg2 << endl;
-
+    pg1.read_clean(1);
     EXPECT_EQ(pg1, pg2);
-    EXPECT_EQ(pg2, pg1);	
-}*/
+}
+
+TEST_F(PanGraphTest, remove_low_covg_nodes)
+{
+    set<MinimizerHit*, pComp> mhs;
+
+    PanGraph pg1, pg2;
+    // read 0: 0->1->2->3
+    pg1.add_node(0,"0",0, mhs);
+    pg1.add_node(1,"1",0, mhs);
+    pg1.add_edge(0,1,3,0);
+    pg1.add_node(2,"2",0, mhs);
+    pg1.add_edge(1,2,3,0);
+    pg1.add_node(3,"3",0, mhs);
+    pg1.add_edge(2,3,3,0);
+    // read 1: -4 -> -3 -> -1
+    pg1.add_node(4,"4",1, mhs);
+    pg1.add_node(3,"3",1, mhs);
+    pg1.add_node(1,"1",1, mhs);
+    pg1.add_edge(4,3,0,1);
+    pg1.add_edge(3,1,0,1);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg1.add_node(0,"0",2, mhs);
+    pg1.add_node(1,"1",2, mhs);
+    pg1.add_node(3,"3",2, mhs);
+    pg1.add_node(4,"4",2, mhs);
+    pg1.add_edge(0,1,3,2);
+    pg1.add_edge(1,3,3,2);
+    pg1.add_edge(3,4,3,2);
+    // read 3: 0 -> -5
+    pg1.add_node(0,"0",3, mhs);
+    pg1.add_node(5,"5",3, mhs);
+    pg1.add_edge(0,5,1,3);
+    // read 4: 5 -> -1
+    pg1.add_node(1,"1",4, mhs);
+    pg1.add_node(5,"5",4, mhs);
+    pg1.add_edge(5,1,2,4);
+
+    // read 0: 0->1 3
+    pg2.add_node(0,"0",0, mhs);
+    pg2.add_node(1,"1",0, mhs);
+    pg2.add_edge(0,1,3,0);
+    pg2.add_node(3,"3",0, mhs);
+    // read 1: -4 -> -3 -> -1
+    pg2.add_node(4,"4",1, mhs);
+    pg2.add_edge(4,3,0,1);
+    pg2.add_edge(3,1,0,1);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg2.add_edge(0,1,3,2);
+    pg2.add_edge(1,3,3,2);
+    pg2.add_edge(3,4,3,2);
+    // read 3: 0 -> -5
+    pg2.add_node(5,"5",3, mhs);
+    pg2.add_edge(0,5,1,3);
+    // read 4: 5 -> -1
+    pg2.add_edge(5,1,2,4);
+
+    pg1.remove_low_covg_nodes(1);
+    EXPECT_EQ(pg1, pg2);
+}
+
+TEST_F(PanGraphTest, remove_low_covg_edges)
+{
+    set<MinimizerHit*, pComp> mhs;
+
+    PanGraph pg1, pg2;
+    // read 0: 0->1->2->3
+    pg1.add_node(0,"0",0, mhs);
+    pg1.add_node(1,"1",0, mhs);
+    pg1.add_edge(0,1,3,0);
+    pg1.add_node(2,"2",0, mhs);
+    pg1.add_edge(1,2,3,0);
+    pg1.add_node(3,"3",0, mhs);
+    pg1.add_edge(2,3,3,0);
+    // read 1: -4 -> -3 -> -1
+    pg1.add_node(4,"4",1, mhs);
+    pg1.add_edge(4,3,0,1);
+    pg1.add_edge(3,1,0,1);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg1.add_edge(0,1,3,2);
+    pg1.add_edge(1,3,3,2);
+    pg1.add_edge(3,4,3,2);
+    // read 3: 0 -> -5
+    pg1.add_node(5,"5",3, mhs);
+    pg1.add_edge(0,5,1,3);
+    // read 4: 5 -> -1
+    pg1.add_edge(5,1,2,4);
+
+    // read 0: 0->1 2 3
+    pg2.add_node(0,"0",0, mhs);
+    pg2.add_node(1,"1",0, mhs);
+    pg2.add_edge(0,1,3,0);
+    pg2.add_node(2,"2",0, mhs);
+    pg2.add_node(3,"3",0, mhs);
+    // read 1: -4 -> -3 -> -1
+    pg2.add_node(4,"4",1, mhs);
+    pg2.add_edge(4,3,0,1);
+    pg2.add_edge(3,1,0,1);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg2.add_edge(0,1,3,2);
+    pg2.add_edge(1,3,3,2);
+    pg2.add_edge(3,4,3,2);
+    // read 3: 0  -5
+    pg2.add_node(5,"5",3, mhs);
+    // read 4: 5  -1
+    
+    pg1.remove_low_covg_edges(1);
+    EXPECT_EQ(pg1, pg2);
+}
+
+TEST_F(PanGraphTest, clean)
+{
+    set<MinimizerHit*, pComp> mhs;
+
+    PanGraph pg1, pg2;
+    // read 0: 0->1->2->3
+    pg1.add_node(0,"0",0, mhs);
+    pg1.add_node(1,"1",0, mhs);
+    pg1.add_edge(0,1,3,0);
+    pg1.add_node(2,"2",0, mhs);
+    pg1.add_edge(1,2,3,0);
+    pg1.add_node(3,"3",0, mhs);
+    pg1.add_edge(2,3,3,0);
+    // read 1: -4 -> -3 -> -1
+    pg1.add_node(4,"4",1, mhs);
+    pg1.add_node(3,"3",1, mhs);
+    pg1.add_node(1,"1",1, mhs);
+    pg1.add_edge(4,3,0,1);
+    pg1.add_edge(3,1,0,1);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg1.add_node(0,"0",2, mhs);
+    pg1.add_node(1,"1",2, mhs);
+    pg1.add_node(3,"3",2, mhs);
+    pg1.add_node(4,"4",2, mhs);
+    pg1.add_edge(0,1,3,2);
+    pg1.add_edge(1,3,3,2);
+    pg1.add_edge(3,4,3,2);
+    // read 3: 0 -> -5
+    pg1.add_node(0,"0",3, mhs);
+    pg1.add_node(5,"5",3, mhs);
+    pg1.add_edge(0,5,1,3);
+    // read 4: 5 -> -1
+    pg1.add_node(1,"1",4, mhs);
+    pg1.add_node(5,"5",4, mhs);
+    pg1.add_edge(5,1,2,4);
+
+    // read 0: 0->1->3
+    pg2.add_node(0,"0",0, mhs);
+    pg2.add_node(1,"1",0, mhs);
+    pg2.add_edge(0,1,3,0);
+    pg2.add_node(3,"3",0, mhs);
+    pg2.add_edge(1,3,3,0);
+    // read 1: -4 -> -3 -> -1
+    pg2.add_node(4,"4",1, mhs);
+    pg2.add_edge(4,3,0,1);
+    pg2.add_edge(3,1,0,1);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg2.add_edge(0,1,3,2);
+    pg2.add_edge(1,3,3,2);
+    pg2.add_edge(3,4,3,2);
+
+    pg1.clean(40);
+    EXPECT_EQ(pg1, pg2);
+}
 
 TEST_F(PanGraphTest, write_gfa)
 {

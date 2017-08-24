@@ -21,6 +21,6 @@ bool PanNode::operator < (const PanNode& y) const {
 }
 
 std::ostream& operator<< (std::ostream & out, PanNode const& n) {
-    out << n.id;
+    out << n.id << " covg: " << n.covg;
     return out ;
 }

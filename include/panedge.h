@@ -5,15 +5,15 @@ class PanNode;
 
 class PanEdge {
   public:
-    const PanNode* from;
-    const PanNode* to;
+    PanNode* from;
+    PanNode* to;
     const uint orientation;	// 0 --
 				// 1 +-
 				// 2 -+
 				// 3 ++
     uint32_t covg;
 
-    PanEdge(const PanNode*, const PanNode*, uint);
+    PanEdge(PanNode*, PanNode*, uint);
 
     bool operator == (const PanEdge& y) const;
     bool operator != (const PanEdge& y) const;
