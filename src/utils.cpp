@@ -379,7 +379,7 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
     {
         while ( getline (myfile,line).good() )
         {
-            if (line.empty() || line[0] == '>' )
+            if (line.empty() || line[0] == '>' || line[0] == '@' )
             {
                 if (!read.empty()) // ok we'll allow reads with no name, removed
                 {
@@ -396,7 +396,11 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
                 {
                     name = line.substr(1);
                 }
-            }
+            } else if (line[0] == '+' )
+	    {
+		//skip this line and the qual score line
+		getline(myfile,line);
+	    }
             else
             {
                 read += line;
