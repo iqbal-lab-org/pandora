@@ -16,7 +16,11 @@ class PanEdge {
     PanEdge(const PanNode*, const PanNode*, uint);
 
     bool operator == (const PanEdge& y) const;
+    bool operator != (const PanEdge& y) const;
+    bool operator < (const PanEdge& y) const;
     friend std::ostream& operator<< (std::ostream& out, const PanEdge& e);
 };
+
+uint rev_orient(const uint&);
 
 #endif

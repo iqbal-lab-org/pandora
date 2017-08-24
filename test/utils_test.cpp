@@ -9,6 +9,7 @@
 #include "minihits.h"
 #include "index.h"
 #include "inthash.h"
+#include "seq.h"
 #include <stdint.h>
 #include <iostream>
 #include <algorithm>

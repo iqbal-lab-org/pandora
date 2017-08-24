@@ -56,14 +56,20 @@ void PanGraph::add_node (const uint32_t prg_id, const string prg_name, const uin
     map<uint32_t, PanRead*>::iterator rit=reads.find(read_id);
     if (rit==reads.end())
     {
+	//cout << "new read " << read_id << endl;
 	PanRead* r;
         r = new PanRead(read_id);
 	r->add_hits(prg_id, cluster);
         reads[read_id] = r;
 	n->reads.insert(r);	
     } else {
+	//cout << "read " << read_id  << " already existed " << endl;
 	rit->second->add_hits(prg_id, cluster);
-	n->reads.insert(rit->second);
+	pointer_values_equal<PanRead> eq = { rit->second };
+        if (find_if(n->reads.begin(), n->reads.end(), eq) == n->reads.end())
+	{
+	    n->reads.insert(rit->second);
+	}
     }
 
     return;
@@ -80,28 +86,18 @@ PanEdge* PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uin
     PanNode *t = (nodes.find(to)->second);
 
     // update edges with new edge or increase edge coverage, and also add edge to read
-    PanEdge *e, *rev_e;
+    PanEdge *e;
     e = new PanEdge(f, t, orientation);
-    rev_e = new PanEdge(t, f, rev_orient(orientation));
     pointer_values_equal<PanEdge> eq = { e };
     auto it = find_if(edges.begin(), edges.end(), eq);
-    pointer_values_equal<PanEdge> r_eq = { rev_e };
-    auto rit = find_if(edges.begin(), edges.end(), r_eq);
-    if (it == edges.end() and rit == edges.end())
+    if (it == edges.end())
     {
 	edges.push_back(e);
-	delete rev_e;
 	return e;
-    } else if (rit == edges.end()) {
+    } else {
 	(*it)->covg += 1;
     	delete e;
-        delete rev_e;
 	return *it;
-    } else {
-	(*rit)->covg += 1;
-        delete e;
-        delete rev_e;
-	return *rit;
     }
 }
 
@@ -122,43 +118,6 @@ void PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uint& o
 
     r->edges.push_back(e);
 
-    /*PanEdge *e;
-    e = new PanEdge(f, t, orientation);
-    pointer_values_equal<PanEdge> eq = { e };
-    auto it = find_if(edges.begin(), edges.end(), eq);
-    if (it != edges.end()) {
-        r->edges.push_back(*it);
-        delete e;
-        delete rev_e;
-    } else {
-	PanEdge rev_e;
-	rev_e = new PanEdge(t, f, rev_orient(orientation));
-        pointer_values_equal<PanEdge> r_eq = { rev_e };
-	it = find_if(edges.begin(), edges.end(), r_eq);
-	assert(it != edges.end());
-        r->edges.push_back(*it);
-        delete rev_e;
-    }
-    delete e;*/
-
-}
-
-uint PanGraph::rev_orient(const uint& orientation) const
-{
-    // 3 A  -> B  = B- -> A- 0
-    // 2 A- -> B  = B- -> A  2
-    // 0 A- -> B- = B  -> A  3
-    // 1 A  -> B- = B  -> A- 1
-
-    uint r_orientation = orientation;
-    if (orientation == 0)
-    {
-        r_orientation = 3;
-    } else if (orientation == 3)
-    {
-        r_orientation = 0;
-    }
-    return r_orientation;
 }
 
 void PanGraph::read_clean(const uint& thresh)
@@ -251,6 +210,13 @@ void PanGraph::clean(const uint32_t& coverage)
 bool PanGraph::operator == (const PanGraph& y) const {
     // false if have different numbers of nodes
     if (y.nodes.size() != nodes.size()) {
+	//cout << "different num nodes " << nodes.size() << "!=" << y.nodes.size() << endl;
+        return false;
+    }
+
+    // false if have different numbers of edges
+    if (y.edges.size() != edges.size()) {
+        //cout << "different num edges " << edges.size() << "!=" << y.edges.size() << endl;
         return false;
     }
 
@@ -260,6 +226,7 @@ bool PanGraph::operator == (const PanGraph& y) const {
         // if node id doesn't exist 
         map<uint32_t, PanNode*>::const_iterator it=y.nodes.find(c.first);
         if(it==y.nodes.end()) {
+	    //cout << "can't find node " << c.first << endl;
             return false;
 	}
     }
@@ -269,12 +236,8 @@ bool PanGraph::operator == (const PanGraph& y) const {
 	pointer_values_equal<PanEdge> eq = { e };
     	auto it = find_if(y.edges.begin(), y.edges.end(), eq);
 
-	PanEdge *re;
-	re = new PanEdge(e->to, e->from, rev_orient(e->orientation));
-        pointer_values_equal<PanEdge> eq2 = { re };
-        auto it2 = find_if(y.edges.begin(), y.edges.end(), eq2);
-
-	if (it == y.edges.end() and it2 == y.edges.end()) {
+	if (it == y.edges.end()) {
+	    //cout << "couldn't find " << *e << endl;
             return false;
 	}
 
@@ -313,8 +276,13 @@ void PanGraph::write_gfa (const string& filepath)
     handle.close();
 }
 
-/*std::ostream& operator<< (std::ostream & out, PanGraph const& m) {
-    for(map<uint32_t, PanNode*>::const_iterator it=m.nodes.begin(); it!=m.nodes.end(); ++it)
+std::ostream& operator<< (std::ostream & out, PanGraph const& m) {
+    cout << "printing pangraph" << endl;
+    for (auto e : m.edges)
+    {
+        cout << *e << endl;
+    }
+    /*for(map<uint32_t, PanNode*>::const_iterator it=m.nodes.begin(); it!=m.nodes.end(); ++it)
     {
         for (uint32_t j=0; j<it->second->outNodes[3].size(); ++j)
         {
@@ -326,6 +294,6 @@ void PanGraph::write_gfa (const string& filepath)
         }
 	
     }
-    out << endl;
+    out << endl;*/
     return out ;
-}*/
+}

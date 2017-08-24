@@ -36,29 +36,30 @@ TEST_F(MinimizerHitsTest,add_hit){
     MiniRecord* mr;
     mr = new MiniRecord(0,p,0);
     mhits.add_hit(1, m, mr);
-    EXPECT_EQ((uint)1, mhits.hits.size());   
+    EXPECT_EQ((uint)1, mhits.uhits.size());   
     mhits.add_hit(1, m, mr);
-    EXPECT_EQ((uint)1, mhits.hits.size());
+    EXPECT_EQ((uint)1, mhits.uhits.size());
     mhits.add_hit(2, m, mr);
-    EXPECT_EQ((uint)2, mhits.hits.size());
+    EXPECT_EQ((uint)2, mhits.uhits.size());
 
     delete m;
     m = new Minimizer(min(kh.first,kh.second), 0,5,0);
     mhits.add_hit(1, m, mr);
-    EXPECT_EQ((uint)3, mhits.hits.size());
+    EXPECT_EQ((uint)3, mhits.uhits.size());
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
     delete mr;
     mr = new MiniRecord(0,p,0);
     mhits.add_hit(1, m, mr);
-    EXPECT_EQ((uint)4, mhits.hits.size());
+    EXPECT_EQ((uint)4, mhits.uhits.size());
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
     mr = new MiniRecord(0,p,0);
     mhits.add_hit(1, m, mr);
+    EXPECT_EQ((uint)5, mhits.uhits.size());
 
     uint32_t j(5);
     mhits.sort();

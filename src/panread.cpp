@@ -21,21 +21,29 @@ void PanRead::add_hits(const uint32_t prg_id, const set<MinimizerHit*, pComp>& c
 }
 
 bool PanRead::operator == (const PanRead& y) const {
-    if (id!= y.id) {return false;}
-    if (edges.size() != y.edges.size()) {return false;}
+    if (id != y.id) {return false;}
+    /*if (edges.size() != y.edges.size()) {return false;}
     for (uint i=0; i!=edges.size(); ++i)
     {
-	if (!(edges[i] == y.edges[i])) {return false;}
-    }
+	if (edges[i] != y.edges[i]) {return false;}
+    }*/
 	
     return true;
+}
+
+bool PanRead::operator != (const PanRead& y) const {
+    return !(*this == y);
+}
+
+bool PanRead::operator < (const PanRead& y) const {
+    return (id < y.id);
 }
 
 std::ostream& operator<< (std::ostream & out, PanRead const& r) {
     out << r.id << "\t";
     for (uint i=0; i!=r.edges.size(); ++i)
     {
-	out << r.edges[i]->from->name << "->";
+	out << *r.edges[i] << ", ";
     }
     return out ;
 }

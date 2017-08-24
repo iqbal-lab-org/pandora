@@ -24,14 +24,13 @@ class PanGraph {
     void add_node (const uint32_t, const std::string, uint32_t, const std::set<MinimizerHit*, pComp>&);
     PanEdge* add_edge (const uint32_t&, const uint32_t&, const uint&);
     void add_edge (const uint32_t&, const uint32_t&, const uint&, const uint&);
-    uint rev_orient(const uint&) const;
     void read_clean(const uint&);
     void remove_low_covg_nodes(const uint&);
     void remove_low_covg_edges(const uint&);
     void clean(const uint32_t&);
     bool operator == (const PanGraph& y) const;
     void write_gfa (const std::string&);
-    //friend std::ostream& operator<< (std::ostream& out, const PanGraph& m);
+    friend std::ostream& operator<< (std::ostream& out, const PanGraph& m);
 };
 
 #endif

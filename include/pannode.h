@@ -20,6 +20,8 @@ class PanNode {
     PanNode(const uint32_t, const std::string);
 
     bool operator == (const PanNode& y) const;
+    bool operator != (const PanNode& y) const;
+    bool operator < (const PanNode& y) const;
     friend std::ostream& operator<< (std::ostream& out, const PanNode& n);
 };
 
