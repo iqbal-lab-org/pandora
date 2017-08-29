@@ -1,6 +1,7 @@
 #include <cassert>
 #include <functional>
 #include <iostream>
+#include <sstream>
 #include <cstring>
 #include "minihits.h"
 #include "minihit.h"
@@ -29,10 +30,10 @@ void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniReco
     MinimizerHit *mh;
     mh = new MinimizerHit(i, m, r);
     //set<MinimizerHit*, pComp>::iterator it=hits.find(mh);
-    //unordered_set<MinimizerHit*>::iterator it=uhits.find(mh);
-    //if(it==uhits.end())
-    pointer_values_equal<MinimizerHit> eq = { mh };
-    if (find_if(uhits.begin(), uhits.end(), eq) == uhits.end())
+    unordered_set<MinimizerHit*, Hash, pEq>::iterator it=uhits.find(mh);
+    if(it==uhits.end())
+    //pointer_values_equal<MinimizerHit> eq = { mh };
+    //if (find_if(uhits.begin(), uhits.end(), eq) == uhits.end())
     {
         uhits.insert(mh);
 	//cout << "added hit " << *mh << endl;
@@ -70,8 +71,21 @@ void MinimizerHits::sort()
     return out ;
 }*/
 
-bool pComp::operator()(MinimizerHit* lhs, MinimizerHit* rhs) {
+bool pComp::operator () (MinimizerHit* lhs, MinimizerHit* rhs) {
         return (*lhs)<(*rhs);
+}
+
+bool pEq::operator() (const MinimizerHit* lhs, const MinimizerHit* rhs) const {
+        return *lhs == *rhs;
+}
+
+size_t Hash::operator()(const MinimizerHit* mh) const
+{
+    stringstream ss;
+    string temp;
+    ss << *mh;
+    ss >> temp;
+    return hash<string>()(temp);
 }
 
 bool pComp_path::operator()(MinimizerHit* lhs, MinimizerHit* rhs) {
