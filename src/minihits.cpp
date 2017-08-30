@@ -30,16 +30,16 @@ void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniReco
     MinimizerHit *mh;
     mh = new MinimizerHit(i, m, r);
     //set<MinimizerHit*, pComp>::iterator it=hits.find(mh);
-    unordered_set<MinimizerHit*, Hash, pEq>::iterator it=uhits.find(mh);
-    if(it==uhits.end())
+    //unordered_set<MinimizerHit*, Hash, pEq>::iterator it=uhits.find(mh);
+    //if(it==uhits.end())
     //pointer_values_equal<MinimizerHit> eq = { mh };
     //if (find_if(uhits.begin(), uhits.end(), eq) == uhits.end())
-    {
-        uhits.insert(mh);
+    //{
+    uhits.insert(mh);
 	//cout << "added hit " << *mh << endl;
-    } else {
-        delete mh;
-    }
+    //} else {
+    //    delete mh;
+    //}
 }
 
 void MinimizerHits::sort()

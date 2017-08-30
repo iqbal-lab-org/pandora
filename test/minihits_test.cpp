@@ -37,8 +37,8 @@ TEST_F(MinimizerHitsTest,add_hit){
     mr = new MiniRecord(0,p,0);
     mhits.add_hit(1, m, mr);
     EXPECT_EQ((uint)1, mhits.uhits.size());   
-    mhits.add_hit(1, m, mr);
-    EXPECT_EQ((uint)1, mhits.uhits.size());
+    //mhits.add_hit(1, m, mr);
+    //EXPECT_EQ((uint)1, mhits.uhits.size());
     mhits.add_hit(2, m, mr);
     EXPECT_EQ((uint)2, mhits.uhits.size());
 

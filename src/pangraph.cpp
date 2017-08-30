@@ -94,14 +94,14 @@ PanEdge* PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uin
     auto it = find_if(edges.begin(), edges.end(), eq);
     if (it == edges.end())
     {
-	//cout << "add edge " << *e << endl;
+	cout << "add edge " << *e << endl;
 	edges.push_back(e);
 	f->edges.push_back(e);
         t->edges.push_back(e);
 	return e;
     } else {
 	(*it)->covg += 1;
-	//cout << "edge " << **it << " already in graph" << endl;
+	cout << "edge " << **it << " already in graph" << endl;
     	delete e;
 	return *it;
     }
@@ -126,61 +126,116 @@ void PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uint& o
 
 }
 
+PanEdge* PanGraph::add_shortcut_edge(const vector<PanEdge*>::iterator prev, const vector<PanEdge*>::iterator current)
+{
+    PanEdge* e;
+
+    //have edges A->B and B->C, create edge A->C
+    if ((*prev)->to->id == (*current)->from->id)
+    {
+        e = add_edge((*prev)->from->id, (*current)->to->id, (*prev)->orientation + (*current)->orientation -3*((*prev)->orientation > 1));
+        cout << "decrease covg on node " << (*prev)->to->id << endl;
+        (*prev)->to->covg -= 1;
+    } else if ((*prev)->to->id == (*current)->to->id)
+    {
+        e = add_edge((*prev)->from->id, (*current)->from->id, (*prev)->orientation + rev_orient((*current)->orientation) -3*((*prev)->orientation > 1));
+        cout << "decrease covg on node " << (*prev)->to->id << endl;
+        (*prev)->to->covg -= 1;
+    } else if ((*prev)->from->id == (*current)->to->id)
+    {
+        e = add_edge((*prev)->to->id, (*current)->from->id, rev_orient((*prev)->orientation) + rev_orient((*current)->orientation) -3*(rev_orient((*prev)->orientation) > 1));
+        cout << "decrease covg on node " << (*prev)->from->id << endl;
+        (*prev)->from->covg -= 1;
+    } else if ((*prev)->from->id == (*current)->from->id)
+    {
+        e = add_edge((*prev)->to->id, (*current)->to->id, rev_orient((*prev)->orientation) + (*current)->orientation -3*(rev_orient((*prev)->orientation) > 1));
+        cout << "decrease covg on node " << (*prev)->from->id << endl;
+        (*prev)->from->covg -= 1;
+    }    
+    return e;
+}
+
 void PanGraph::read_clean(const uint& thresh)
 {
+    cout << now() << "Start read cleaning" << endl;
     PanEdge* e;
 
     for(map<uint32_t, PanRead*>::iterator read=reads.begin(); read!=reads.end(); ++read)
     {
-	//cout << "read " << read->first << endl;
+	cout << "read " << read->first << endl;
+        if (read->second->edges.size() < 3)
+	{
+	    cout << "read has too few nodes" << endl;
+	    continue;
+	}
 	vector<PanEdge*>::iterator prev = read->second->edges.begin();
 	for (vector<PanEdge*>::iterator current=++read->second->edges.begin(); current!=read->second->edges.end();)
 	{
-	    //cout << "start prev: " << **prev << " and curr: " << **current << endl;
+	    cout << "consider edges" << **prev << " and " << **current << endl;
 	    if ((*prev)->covg <= thresh and (*current)->covg <= thresh)
 	    {
-		//cout << "edges " << **prev << " and " << **current << " have low covg, so replace" << endl;
+		cout << "edges " << **prev << " and " << **current << " have low covg, so replace" << endl;
+		e = add_shortcut_edge(prev, current);
 		//replace these two edge with an new edge
-		if ((*prev)->to->id == (*current)->from->id)
+		/*if ((*prev)->to->id == (*current)->from->id)
 		{
 		    e = add_edge((*prev)->from->id, (*current)->to->id, (*prev)->orientation + (*current)->orientation -3*((*prev)->orientation > 1));
-		    //cout << "decrease covg on node " << (*prev)->to->id << endl;
+		    cout << "decrease covg on node " << (*prev)->to->id << endl;
 		    (*prev)->to->covg -= 1;
 		} else if ((*prev)->to->id == (*current)->to->id)
 		{
 		    e = add_edge((*prev)->from->id, (*current)->from->id, (*prev)->orientation + rev_orient((*current)->orientation) -3*((*prev)->orientation > 1));
-		    //cout << "decrease covg on node " << (*prev)->to->id << endl;
+		    cout << "decrease covg on node " << (*prev)->to->id << endl;
 		    (*prev)->to->covg -= 1;
 		} else if ((*prev)->from->id == (*current)->to->id)
                 {
                     e = add_edge((*prev)->to->id, (*current)->from->id, rev_orient((*prev)->orientation) + rev_orient((*current)->orientation) -3*(rev_orient((*prev)->orientation) > 1));
-		    //cout << "decrease covg on node " << (*prev)->from->id << endl;
+		    cout << "decrease covg on node " << (*prev)->from->id << endl;
 		    (*prev)->from->covg -= 1;
                 } else if ((*prev)->from->id == (*current)->from->id)
                 {
 		    e = add_edge((*prev)->to->id, (*current)->to->id, rev_orient((*prev)->orientation) + (*current)->orientation -3*(rev_orient((*prev)->orientation) > 1));
-		    //cout << "decrease covg on node " << (*prev)->from->id << endl;
+		    cout << "decrease covg on node " << (*prev)->from->id << endl;
 		    (*prev)->from->covg -= 1;
-                }
+                }*/
 		(*prev)->covg -= 1;
+		cout << "prev was " << **prev << " and is now ";
+		prev = read->second->edges.erase(prev);
 		prev = read->second->edges.insert(prev, e);
-		//cout << "read is now " << *read->second << endl;
-		read->second->edges.erase(prev+1);
-		//cout << "read is now " << *read->second << endl;
+		//read->second->edges.erase(prev+1);
+		if (prev!=read->second->edges.end())
+		{
+		    cout << **prev << endl;
+		} else {
+		    cout << "END" << endl;
+		    break;
+		}
+		assert((*prev == e));
 		(*current)->covg -= 1;
+		cout << "current was " << **current << " and is now ";
 		current = read->second->edges.erase(current);
-		//cout << "read is now " << *read->second << endl;
-		//cout << "next prev: " << **prev << " and curr: " << **current << endl;
+		if (current!=read->second->edges.end())
+                {
+                    cout << **current << endl;
+                } else {
+                    cout << "END" << endl;
+                }
+		cout << "read is now " << *read->second << endl;
+		cout << "moving on" << endl;
 	    } else {
 		prev = current;
 		++current;
-		/*if (current!=read->second->edges.end())
+		if (current!=read->second->edges.end())
 		{
 		    cout << "next prev: " << **prev << " and curr: " << **current << endl;
-		}*/
+		} else {
+		    cout << "end of read" << endl;
+		}
 	    }
+	    cout << "end of this pair" << endl;
 	}
     }
+    cout << now() << "Finished read cleaning" << endl;
 }
 
 void PanGraph::remove_low_covg_nodes(const uint& thresh)

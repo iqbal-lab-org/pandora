@@ -37,7 +37,8 @@ class MinimizerHits {
   public:
     MinimizerHits(const uint& num_hits=30000);
     ~MinimizerHits();
-    std::unordered_set<MinimizerHit*, Hash, pEq> uhits;
+    //std::unordered_set<MinimizerHit*, Hash, pEq> uhits;
+    std::unordered_set<MinimizerHit*> uhits;
     std::set<MinimizerHit*, pComp> hits;
     void add_hit(const uint32_t i, const Minimizer* m, const MiniRecord* r);
     void sort();

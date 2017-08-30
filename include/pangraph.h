@@ -24,6 +24,7 @@ class PanGraph {
     void add_node (const uint32_t, const std::string, uint32_t, const std::set<MinimizerHit*, pComp>&);
     PanEdge* add_edge (const uint32_t&, const uint32_t&, const uint&);
     void add_edge (const uint32_t&, const uint32_t&, const uint&, const uint&);
+    PanEdge* add_shortcut_edge(const std::vector<PanEdge*>::iterator, const std::vector<PanEdge*>::iterator);
     void read_clean(const uint&);
     void remove_low_covg_nodes(const uint&);
     void remove_low_covg_edges(const uint&);
