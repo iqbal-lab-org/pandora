@@ -252,6 +252,22 @@ TEST_F(PanGraphTest, read_clean)
     pg1.add_edge(0,5,1,3);
     // read 4: 5 -> -2
     pg1.add_edge(5,2,2,4);
+    // read 5: 3 -> 5 -> 3
+    pg1.add_edge(3,5,3,5);
+    pg1.add_edge(5,3,3,5);
+    // read 6: 0 -> 1 -> 4 -> 1
+    pg1.add_edge(0,1,3,6);
+    pg1.add_edge(1,4,3,6);
+    pg1.add_edge(4,1,3,6);
+    // read 7: 0 -> 2 -> 0 -> 4
+    pg1.add_edge(0,2,3,8);
+    pg1.add_edge(2,0,3,8);
+    pg1.add_edge(0,4,3,8);
+    // read 8: 4 -> -3 -> 4 -> 5 -> 1
+    pg1.add_edge(4,3,1,7);
+    pg1.add_edge(3,4,2,7);
+    pg1.add_edge(4,5,3,7);
+    pg1.add_edge(5,1,3,7);
 
     // read 0: 0->1->3
     pg2.add_node(0,"0",0, mhs);
@@ -277,6 +293,33 @@ TEST_F(PanGraphTest, read_clean)
     pg2.add_edge(0,5,1,3);
     // read 4: 5 -> -2
     pg2.add_edge(5,2,2,4);    
+    // read 5: 0 -> 5 -> 0
+    pg2.add_edge(3,5,3,5);
+    pg2.edges.back()->covg -= 1;
+    pg2.add_edge(5,3,3,5);
+    pg2.edges.back()->covg -= 1;
+    // read 6: 0 -> 1 -> 4 -> 1
+    pg2.add_edge(0,1,3,6);
+    pg2.add_edge(1,4,3,6);
+    pg2.edges.back()->covg -= 1;
+    pg2.add_edge(4,1,3,6);
+    pg2.edges.back()->covg -= 1;
+    // read 7: 0 -> 2 -> 0 -> 4 -> 5
+    pg2.add_edge(0,2,3,8);
+    pg2.edges.back()->covg -= 1;
+    pg2.add_edge(2,0,3,8);
+    pg2.edges.back()->covg -= 1;
+    pg2.add_edge(0,4,3,8);
+    pg2.edges.back()->covg -= 1;
+    // read 8: 4 -> 3 -> 4 -> 5 -> 1
+    pg2.add_edge(4,3,1,7);
+    pg2.edges.back()->covg -= 1;
+    pg2.add_edge(3,4,2,7);
+    pg2.edges.back()->covg -= 1;
+    pg2.add_edge(4,5,3,7);
+    pg2.edges.back()->covg -= 1;
+    pg2.add_edge(5,1,3,7);
+    pg2.edges.back()->covg -= 1;
 
     pg1.read_clean(1);
     EXPECT_EQ(pg1, pg2);
