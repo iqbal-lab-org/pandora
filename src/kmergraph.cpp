@@ -5,7 +5,9 @@
 #include <cassert>
 #include <vector>
 #include <limits>
-//#include <algorithm>
+#include <stdio.h>      /* NULL */
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 #include "utils.h"
 #include "kmernode.h"
 #include "kmergraph.h"
@@ -274,6 +276,51 @@ float KmerGraph::find_min_path(vector<KmerNode*>& maxpath)
     }
 
     return M[0];
+}
+
+vector<KmerNode*> KmerGraph::get_random_path()
+{
+    // find a random path through kmergraph picking ~uniformly from the outnodes at each point
+    vector<KmerNode*> rpath;
+    time_t now;
+    uint i;
+
+    if (nodes.size() > 0)
+    {
+        rpath.push_back(nodes[0]);   
+	while (rpath.back() != nodes[nodes.size()-1])
+	{
+	    if (rpath.back()->outNodes.size() == 1)
+	    {
+		rpath.push_back(rpath.back()->outNodes[0]);
+	    } else {
+                now = time(0);
+                srand((unsigned int)now);
+  	        i = rand() % rpath.back()->outNodes.size();
+	        rpath.push_back(rpath.back()->outNodes[i]);
+	    }
+	}
+    }
+    return rpath;
+}
+
+float KmerGraph::prob_path(const vector<KmerNode*>& kpath)
+{
+    float ret_p = 0;
+    for (uint i=0; i!=kpath.size(); ++i)
+    {
+        ret_p += prob(kpath[i]->id);
+    }
+    uint len = kpath.size();
+    if (kpath[0] == nodes[0])
+    {
+	len -= 1;
+    }
+    if (len == 0)
+    {
+	len = 1;
+    } 
+    return ret_p/len;
 }
 
 void KmerGraph::save_covg_dist(const string& filepath)

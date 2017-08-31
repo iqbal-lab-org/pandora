@@ -40,6 +40,8 @@ class KmerGraph {
     float find_min_path(std::vector<KmerNode*>&);
     void save_covg_dist(const std::string&);
     uint min_path_length();
+    std::vector<KmerNode*> get_random_path();
+    float prob_path(const std::vector<KmerNode*>&);
     void save (const std::string&);
     void load (const std::string&);
     bool operator == (const KmerGraph& y) const;
@@ -48,6 +50,7 @@ class KmerGraph {
     friend struct condition;
     friend class KmerGraphTest_findMaxPathSimple_Test;
     friend class KmerGraphTest_findMaxPath2Level_Test;
+    friend class KmerGraphTest_path_prob_Test;
 };
 
 struct condition
