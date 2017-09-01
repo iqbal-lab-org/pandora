@@ -40,7 +40,7 @@ class KmerNode {
   friend class KmerGraphTest_sort_topologically_Test;
   friend class KmerGraphTest_findMaxPathSimple_Test;
   friend class KmerGraphTest_findMaxPath2Level_Test;
-  friend class KmerGraphTest_random_path_Test;
+  friend class KmerGraphTest_random_paths_Test;
   friend class KmerGraphTest_path_prob_Test;
   friend class LocalPRGTest_minimizer_sketch_Test;
   friend class LocalPRGTest_minimizer_sketch_SameAsSeqw1_Test;

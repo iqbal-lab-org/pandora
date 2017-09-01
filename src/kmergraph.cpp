@@ -216,6 +216,8 @@ float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
         }
         //cout << j-1 << " path: " << nodes[j-1]->path << "  M: " << M[j-1] << " len: " << len[j-1] << " prev: " << prev[j-1] << endl;
     }
+    // remove the final length added for the null start node
+    len[0] -= 1;
 
     // extract path
     uint prev_node = prev[0];
@@ -226,6 +228,7 @@ float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
         prev_node = prev[prev_node];
     }
     //cout << endl;
+    //cout << "len[0]: " << len[0] << " maxpath.size(): " << maxpath.size() << " maxpath.back()->id: " << maxpath.back()->id << endl;
 
     return M[0]/len[0];
 }
@@ -278,30 +281,39 @@ float KmerGraph::find_min_path(vector<KmerNode*>& maxpath)
     return M[0];
 }
 
-vector<KmerNode*> KmerGraph::get_random_path()
+vector<vector<KmerNode*>> KmerGraph::get_random_paths(uint num_paths)
 {
     // find a random path through kmergraph picking ~uniformly from the outnodes at each point
+    vector<vector<KmerNode*>> rpaths;
     vector<KmerNode*> rpath;
-    time_t now;
     uint i;
+
+    time_t now;
+    now = time(0);
+    srand((unsigned int)now);
 
     if (nodes.size() > 0)
     {
-        rpath.push_back(nodes[0]);   
-	while (rpath.back() != nodes[nodes.size()-1])
+	for (uint j=0; j!=num_paths; ++j)
 	{
-	    if (rpath.back()->outNodes.size() == 1)
+	    i = rand() % nodes[0]->outNodes.size();
+            rpath.push_back(nodes[0]->outNodes[i]);
+	    while (rpath.back() != nodes[nodes.size()-1])
 	    {
-		rpath.push_back(rpath.back()->outNodes[0]);
-	    } else {
-                now = time(0);
-                srand((unsigned int)now);
-  	        i = rand() % rpath.back()->outNodes.size();
-	        rpath.push_back(rpath.back()->outNodes[i]);
+	        if (rpath.back()->outNodes.size() == 1)
+	        {
+		    rpath.push_back(rpath.back()->outNodes[0]);
+	        } else {
+  	            i = rand() % rpath.back()->outNodes.size();
+	            rpath.push_back(rpath.back()->outNodes[i]);
+	        }
 	    }
+	    rpath.pop_back();
+	    rpaths.push_back(rpath);
+	    rpath.clear();
 	}
     }
-    return rpath;
+    return rpaths;
 }
 
 float KmerGraph::prob_path(const vector<KmerNode*>& kpath)
@@ -315,6 +327,10 @@ float KmerGraph::prob_path(const vector<KmerNode*>& kpath)
     if (kpath[0] == nodes[0])
     {
 	len -= 1;
+    }
+    if (kpath.back() == nodes.back())
+    {
+        len -= 1;
     }
     if (len == 0)
     {

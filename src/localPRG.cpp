@@ -687,6 +687,24 @@ void LocalPRG::write_max_path_to_fasta(const string& filepath, const vector<Loca
 {
     ofstream handle;
     handle.open (filepath);
+    assert (!handle.fail());
+
+    handle << ">" << name << "\tlog P(data|sequence)=" << ppath  << endl;
+    for (uint j = 0; j!= lmp.size(); ++j)
+    {
+        handle << lmp[j]->seq;
+    }
+    handle << endl;
+
+    handle.close();
+    return;
+}
+
+void LocalPRG::append_path_to_fasta(const string& filepath, const vector<LocalNode*>& lmp, const float& ppath)
+{
+    ofstream handle;
+    handle.open (filepath, ios::app);
+    assert (!handle.fail());  
 
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath  << endl;
     for (uint j = 0; j!= lmp.size(); ++j)
@@ -925,15 +943,16 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
     return;
 }
 
-void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_path, bool min_path, bool output_vcf)
+void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_path, bool min_path, bool output_vcf, bool output_comparison_paths)
 {
     string new_name = name;
     std::replace(new_name.begin(),new_name.end(), ' ', '_');
 
     vector<KmerNode*> kmp;
     kmp.reserve(800);
-    vector<LocalNode*> lmp;
+    vector<LocalNode*> lmp, almp;
     lmp.reserve(100);
+    almp.reserve(100);
     float ppath;
 
     if (max_path == true)
@@ -956,7 +975,31 @@ void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_pat
     	    add_sample_to_vcf(lmp);
     	    vcf.save(prefix + "." + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
 	}
-   }
+	if (output_comparison_paths == true)
+	{
+	    cout << "kmlp: ";
+	    for (uint i=0; i!=kmp.size(); ++i)
+	    {
+		cout << kmp[i]->id << " ";
+	    }
+	    cout << endl;
+	    vector<vector<KmerNode*>> altkmps = kmer_prg.get_random_paths(10);
+	    for (uint i=0; i!=altkmps.size(); ++i)
+	    {
+		if (altkmps[i] != kmp)
+		{
+		    cout << "altkmp: ";
+            	    for (uint j=0; j!=altkmps[i].size(); ++j)
+                    {
+            	        cout << altkmps[i][j]->id << " ";
+            	    }
+		    cout << endl;
+		    almp = localnode_path_from_kmernode_path(altkmps[i], w);
+		    append_path_to_fasta(prefix + "." + new_name + "_altpaths.fasta", almp, kmer_prg.prob_path(altkmps[i]));
+		}
+	    }
+	}    
+    }
 
     if (min_path == true)
     {
@@ -984,6 +1027,22 @@ void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_pat
 	}
     }
     return;
+}
+
+bool operator != (const vector<KmerNode*>& lhs, const vector<KmerNode*>& rhs)
+{
+    if(lhs.size() != rhs.size())
+    {
+	return true;
+    }
+    for (uint i=0; i!=lhs.size(); ++i)
+    {
+	if (lhs[i]!=rhs[i])
+	{
+	    return true;
+	}
+    }
+    return false;
 }
 
 std::ostream& operator<< (std::ostream & out, LocalPRG const& data) {

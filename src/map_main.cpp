@@ -49,6 +49,7 @@ static void show_map_usage()
 	      << "\t--output_vcf\t\t\tSave a vcf file for each found localPRG\n"
 	      << "\t--method\t\t\tMethod for path inference, can be max likelihood (default), 'min' to maximize\n"
 	      << "\t\t\t\t\tthe min probability on the path, or 'both' to create outputs with both methods\n"
+	      << "\t--output_comparison_paths\tSave a fasta file for a random selection of paths through localPRG\n"
               << std::endl;
 }
 
@@ -65,7 +66,7 @@ int pandora_map(int argc, char* argv[])
     uint32_t w=1, k=15; // default parameters
     int max_diff = 500;
     float e_rate = 0.11;
-    bool output_kg = false, output_vcf = false, max_path=true, min_path=false;
+    bool output_kg=false, output_vcf=false, max_path=true, min_path=false, output_comparison_paths=false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -139,6 +140,8 @@ int pandora_map(int argc, char* argv[])
                   std::cerr << "--method option requires one argument." << std::endl;
                 return 1;
             }
+	} else if ((arg == "--output_comparison_paths")) {
+            output_comparison_paths = true;
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -157,7 +160,8 @@ int pandora_map(int argc, char* argv[])
     cout << "\toutput_kg\t" << output_kg << endl;
     cout << "\toutput_vcf\t" << output_vcf << endl;
     cout << "\tmax_path\t" << max_path << endl;
-    cout << "\tmin_path\t" << min_path << endl << endl;
+    cout << "\tmin_path\t" << min_path << endl;
+    cout << "\toutput_comparison_paths\t" << output_comparison_paths << endl << endl;
 
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
     Index *idx;
@@ -186,7 +190,7 @@ int pandora_map(int argc, char* argv[])
     cout << now() << "Find PRG paths and write to files:" << endl;
     for (auto c: pangraph->nodes)
     {
-	prgs[c.second->id]->find_path_and_variants(prefix, w, max_path, min_path, output_vcf);
+	prgs[c.second->id]->find_path_and_variants(prefix, w, max_path, min_path, output_vcf, output_comparison_paths);
 	if (output_kg == true)
 	{
 	    prgs[c.second->id]->kmer_prg.save(prefix + "." + prgs[c.second->id]->name + ".kg.gfa");
