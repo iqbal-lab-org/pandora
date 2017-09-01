@@ -118,9 +118,12 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
 		    }
 		    if (flag == true)
 		    {
-			if (npath.size() == 0)
+			if (npath.size() == 0 and read.size() < 300)
 			{
-			    cout << "fail!" << endl;
+			    cout << "short fail!" << endl;
+			} else if (npath.size() == 0 and read.size() >= 300)
+                        {   
+                            cout << "long fail!" << endl;
 			} else {
 			    cout << "success!" << endl;
 			}
@@ -201,9 +204,12 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
             }
 	    if (flag == true)
             {
-                if (npath.size() == 0)
+                if (npath.size() == 0 and read.size() < 300)
                 {
-                    cout << "fail!" << endl;
+                    cout << "short fail!" << endl;
+		} else if (npath.size() == 0 and read.size() >= 300)
+                {
+                    cout << "long fail!" << endl;
                 } else {
                     cout << "success!" << endl;
                 }

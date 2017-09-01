@@ -256,6 +256,13 @@ vector<LocalNode*> LocalGraph::nodes_along_string(const string& query_string)
     bool extended = true;
 
     assert(nodes.size()>0); //otherwise empty nodes -> segfault
+
+    // if there is only one node in PRG, simple case, do simple string compare
+    if (nodes.size() == 1 and strcasecmp(query_string.c_str(), nodes[0]->seq.c_str()) == 0)
+    {
+	return {nodes[0]};
+    }
+	
     u = {{nodes[0]}};
 
     while (u.size() > 0)

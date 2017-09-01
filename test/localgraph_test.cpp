@@ -356,6 +356,16 @@ TEST_F(LocalGraphTest, nodes_along_string)
     v = lg2.nodes_along_string("AgC");
     EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
 
+    // check for simple prgs
+    LocalGraph lg1, read_lg1;
+    lg1.add_node(0,"AGTTCGTAGACCAACGCGCT", Interval(0,20)); 
+    v_exp = {lg1.nodes[0]};
+    v = lg1.nodes_along_string("AGTTCGTagACCAACGCGCT");
+    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+    v_exp = {};
+    v = lg1.nodes_along_string("AGTTCGTAGACCAACGCGGT");
+    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+
     // function expects string to start at the start of the PRG, 
     // so the following not good tests
     //v_exp = {lg2.nodes[1], lg2.nodes[3]};
