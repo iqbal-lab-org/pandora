@@ -353,6 +353,9 @@ TEST_F(LocalGraphTest, nodes_along_string)
     v = lg2.nodes_along_string("AGC");
     EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
 
+    v = lg2.nodes_along_string("AgC");
+    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+
     // function expects string to start at the start of the PRG, 
     // so the following not good tests
     //v_exp = {lg2.nodes[1], lg2.nodes[3]};

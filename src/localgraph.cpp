@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstring>
+#include <string.h>
 #include <map>
 #include <fstream>
 #include <cassert>
@@ -269,7 +270,8 @@ vector<LocalNode*> LocalGraph::nodes_along_string(const string& query_string)
             for (uint32_t j=0; j!=u[i].back()->outNodes.size(); ++j)
             {
                 // if the start of query_string matches extended candidate_string, want to query candidate path extensions
-                if ( query_string.substr(0,candidate_string.size()+u[i].back()->outNodes[j]->seq.size()) == candidate_string+u[i].back()->outNodes[j]->seq)
+                //if ( query_string.substr(0,candidate_string.size()+u[i].back()->outNodes[j]->seq.size()) == candidate_string+u[i].back()->outNodes[j]->seq)
+                if (strcasecmp(query_string.substr(0,candidate_string.size()+u[i].back()->outNodes[j]->seq.size()).c_str(), (candidate_string+u[i].back()->outNodes[j]->seq).c_str()) == 0)
                 {
                     if (candidate_string.size()+u[i].back()->outNodes[j]->seq.size() >= query_string.size())
                     {
