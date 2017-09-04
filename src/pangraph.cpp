@@ -269,9 +269,12 @@ void PanGraph::remove_low_covg_edges(const uint& thresh)
 
 void PanGraph::clean(const uint32_t& coverage)
 {
-    uint thresh = 0.025*coverage;
-    read_clean(thresh);   
-    remove_low_covg_edges(thresh);
+    read_clean(0.025*coverage);
+    read_clean(0.05*coverage);
+    read_clean(0.01*coverage);
+    read_clean(0.02*coverage);
+
+    remove_low_covg_edges(0.025*coverage);
     remove_low_covg_nodes(0);
 }
 
