@@ -527,6 +527,92 @@ TEST_F(PanGraphTest, clean)
     pg1.add_node(5,"5",4, mhs);
     pg1.add_edge(5,1,2,4);
 
+    // repeats
+    // read 1: -4 -> -3 -> -1
+    pg1.add_node(4,"4",1, mhs);
+    pg1.add_node(3,"3",1, mhs);
+    pg1.add_node(1,"1",1, mhs);
+    pg1.add_edge(4,3,0,1);
+    pg1.add_edge(3,1,0,1);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg1.add_node(0,"0",2, mhs);
+    pg1.add_node(1,"1",2, mhs);
+    pg1.add_node(3,"3",2, mhs);
+    pg1.add_node(4,"4",2, mhs);
+    pg1.add_edge(0,1,3,2);
+    pg1.add_edge(1,3,3,2);
+    pg1.add_edge(3,4,3,2);
+    // read 1: -4 -> -3 -> -1
+    pg1.add_node(4,"4",1, mhs);
+    pg1.add_node(3,"3",1, mhs);
+    pg1.add_node(1,"1",1, mhs);
+    pg1.add_edge(4,3,0,1);
+    pg1.add_edge(3,1,0,1);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg1.add_node(0,"0",2, mhs);
+    pg1.add_node(1,"1",2, mhs);
+    pg1.add_node(3,"3",2, mhs);
+    pg1.add_node(4,"4",2, mhs);
+    pg1.add_edge(0,1,3,2);
+    pg1.add_edge(1,3,3,2);
+    pg1.add_edge(3,4,3,2);
+    // read 1: -4 -> -3 -> -1
+    pg1.add_node(4,"4",1, mhs);
+    pg1.add_node(3,"3",1, mhs);
+    pg1.add_node(1,"1",1, mhs);
+    pg1.add_edge(4,3,0,1);
+    pg1.add_edge(3,1,0,1);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg1.add_node(0,"0",2, mhs);
+    pg1.add_node(1,"1",2, mhs);
+    pg1.add_node(3,"3",2, mhs);
+    pg1.add_node(4,"4",2, mhs);
+    pg1.add_edge(0,1,3,2);
+    pg1.add_edge(1,3,3,2);
+    pg1.add_edge(3,4,3,2);
+    // read 1: -4 -> -3 -> -1
+    pg1.add_node(4,"4",1, mhs);
+    pg1.add_node(3,"3",1, mhs);
+    pg1.add_node(1,"1",1, mhs);
+    pg1.add_edge(4,3,0,1);
+    pg1.add_edge(3,1,0,1);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg1.add_node(0,"0",2, mhs);
+    pg1.add_node(1,"1",2, mhs);
+    pg1.add_node(3,"3",2, mhs);
+    pg1.add_node(4,"4",2, mhs);
+    pg1.add_edge(0,1,3,2);
+    pg1.add_edge(1,3,3,2);
+    pg1.add_edge(3,4,3,2);
+    // read 1: -4 -> -3 -> -1
+    pg1.add_node(4,"4",1, mhs);
+    pg1.add_node(3,"3",1, mhs);
+    pg1.add_node(1,"1",1, mhs);
+    pg1.add_edge(4,3,0,1);
+    pg1.add_edge(3,1,0,1);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg1.add_node(0,"0",2, mhs);
+    pg1.add_node(1,"1",2, mhs);
+    pg1.add_node(3,"3",2, mhs);
+    pg1.add_node(4,"4",2, mhs);
+    pg1.add_edge(0,1,3,2);
+    pg1.add_edge(1,3,3,2);
+    pg1.add_edge(3,4,3,2);
+    // read 1: -4 -> -3 -> -1
+    pg1.add_node(4,"4",1, mhs);
+    pg1.add_node(3,"3",1, mhs);
+    pg1.add_node(1,"1",1, mhs);
+    pg1.add_edge(4,3,0,1);
+    pg1.add_edge(3,1,0,1);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg1.add_node(0,"0",2, mhs);
+    pg1.add_node(1,"1",2, mhs);
+    pg1.add_node(3,"3",2, mhs);
+    pg1.add_node(4,"4",2, mhs);
+    pg1.add_edge(0,1,3,2);
+    pg1.add_edge(1,3,3,2);
+    pg1.add_edge(3,4,3,2);
+
     // read 0: 0->1->3
     pg2.add_node(0,"0",0, mhs);
     pg2.add_node(1,"1",0, mhs);
