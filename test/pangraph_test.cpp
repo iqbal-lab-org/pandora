@@ -142,7 +142,7 @@ TEST_F(PanGraphTest, add_node)
     delete mh2;
 }
 
-TEST_F(PanGraphTest, addEdge)
+TEST_F(PanGraphTest, add_edge)
 {
     set<MinimizerHit*, pComp> mhs;
     PanGraph pg;
@@ -224,6 +224,64 @@ TEST_F(PanGraphTest, equals)
     pg1.add_edge(2,0,0,0);
     EXPECT_EQ(pg1, pg2);
     EXPECT_EQ(pg2, pg1);
+}
+
+TEST_F(PanGraphTest, not_equals)
+{
+    set<MinimizerHit*, pComp> mhs;
+    PanGraph pg1;
+    pg1.add_node(0,"0",0, mhs);
+    pg1.add_node(1,"1",2, mhs);
+    pg1.add_node(1,"1",0, mhs);
+    pg1.add_node(2,"2",2, mhs);
+    pg1.add_edge(0,1,3,0);
+    pg1.add_edge(1,2,3,0);
+
+    PanGraph pg2;
+    pg2.add_node(1,"1",2, mhs);
+    pg2.add_node(0,"0",0, mhs);
+    pg2.add_edge(0,1,3,0);
+    pg2.add_node(2,"2",2, mhs);
+    pg2.add_node(1,"1",0, mhs);
+    pg2.add_edge(1,2,3,0);
+
+    // adding nodes and edges in different order should make no difference
+    EXPECT_EQ((pg1!=pg1), false);
+    EXPECT_EQ((pg2!=pg2), false);
+    EXPECT_EQ((pg1!=pg2), false);
+    EXPECT_EQ((pg2!=pg1), false);
+
+    // adding an extra edge does make a difference
+    pg2.add_edge(0,2,3,0);
+    EXPECT_EQ((pg1 != pg2), true);
+    EXPECT_EQ((pg2 != pg1), true);
+
+    // having one fewer edge makes a difference
+    PanGraph pg3;
+    pg3.add_node(1,"1",2, mhs);
+    pg3.add_node(0,"0",0, mhs);
+    pg3.add_node(2,"2",2, mhs);
+    pg3.add_node(1,"1",0, mhs);
+    pg3.add_edge(1,2,3,0);
+    EXPECT_EQ((pg1 != pg3), true);
+    EXPECT_EQ((pg3 != pg1), true);
+
+    // or one extra node
+    pg3.add_edge(0,1,3,0);
+    EXPECT_EQ((pg1 != pg3), false); //adds the missing edge
+    EXPECT_EQ((pg3 != pg1), false); //adds the missing edge
+    pg3.add_node(3,"3",0, mhs);
+    EXPECT_EQ((pg1 != pg3), true);
+    EXPECT_EQ((pg3 != pg1), true);
+
+    // should not break when have a cycle in pangraph
+    pg3.add_edge(2,0,3,0);
+    EXPECT_EQ((pg3!=pg3), false);
+
+    // having edges orientated in a complementary way shouldn't make a difference (A->B == B- -> A-)
+    pg1.add_edge(2,0,0,0);
+    EXPECT_EQ((pg1!=pg2), false);
+    EXPECT_EQ((pg2!=pg1), false);
 }
 
 TEST_F(PanGraphTest, read_clean)

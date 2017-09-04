@@ -22,7 +22,7 @@ class IndexTest : public ::testing::Test {
   }
 };
 
-TEST_F(IndexTest,addRecord){
+TEST_F(IndexTest,add_record){
     Index idx;
     KmerHash hash;
     deque<Interval> d = {Interval(3,5), Interval(9,12)};

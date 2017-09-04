@@ -45,6 +45,7 @@ void KmerGraph::clear()
     shortest_path_length = 0;
     k = 0;
     p = 1;
+    thresh = -25;
 }
 
 KmerNode* KmerGraph::add_node (const Path& p)

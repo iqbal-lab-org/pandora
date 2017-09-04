@@ -314,6 +314,10 @@ bool PanGraph::operator == (const PanGraph& y) const {
     return true;
 }
 
+bool PanGraph::operator != (const PanGraph& y) const {
+    return !(*this == y);
+}
+
 void PanGraph::write_gfa (const string& filepath)
 {
     ofstream handle;
@@ -346,22 +350,13 @@ void PanGraph::write_gfa (const string& filepath)
 
 std::ostream& operator<< (std::ostream & out, PanGraph const& m) {
     //cout << "printing pangraph" << endl;
+    for (auto n : m.nodes)
+    {
+	cout << n.second->id << endl;
+    }
     for (auto e : m.edges)
     {
         cout << *e << endl;
     }
-    /*for(map<uint32_t, PanNode*>::const_iterator it=m.nodes.begin(); it!=m.nodes.end(); ++it)
-    {
-        for (uint32_t j=0; j<it->second->outNodes[3].size(); ++j)
-        {
-            out << "+" << it->second->id << " -> +" << it->second->outNodes[3][j]->id << endl;
-        }
-	for (uint32_t j=0; j<it->second->outNodes[1].size(); ++j)
-        {
-            out << "+" << it->second->id << " -> -" << it->second->outNodes[1][j]->id << endl;
-        }
-	
-    }
-    out << endl;*/
     return out ;
 }

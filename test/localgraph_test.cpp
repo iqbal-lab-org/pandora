@@ -116,6 +116,67 @@ TEST_F(LocalGraphTest, equals)
     EXPECT_EQ((lg2==lg2r), false);
 }
 
+TEST_F(LocalGraphTest, not_equals)
+{
+    LocalGraph lg1;
+    lg1.add_node(0,"AGCT", Interval(0,4));
+    EXPECT_EQ((lg1!=lg1), false);
+
+    LocalGraph lg2;
+    lg2.add_node(0,"A", Interval(0,1));
+    lg2.add_node(1,"GC", Interval(4,6));
+    lg2.add_node(2,"G", Interval(7,8));
+    lg2.add_node(3,"T", Interval(13,14));
+    lg2.add_edge(0,1);
+    lg2.add_edge(0,2);
+    lg2.add_edge(1,3);
+    lg2.add_edge(2,3);
+    EXPECT_EQ((lg2!=lg2), false);
+
+    EXPECT_EQ((lg1!=lg2), true);
+
+    // order adding shouldn't matter
+    LocalGraph lg2p;
+    lg2p.add_node(2,"G", Interval(7,8));
+    lg2p.add_node(3,"T", Interval(13,14));
+    lg2p.add_node(1,"GC", Interval(4,6));
+    lg2p.add_node(0,"A", Interval(0,1));
+    lg2p.add_edge(1,3);
+    lg2p.add_edge(2,3);
+    lg2p.add_edge(0,1);
+    lg2p.add_edge(0,2);
+    EXPECT_EQ((lg2!=lg2p), false);
+
+    // missing an edge does
+    LocalGraph lg2q;
+    lg2q.add_node(2,"G", Interval(7,8));
+    lg2q.add_node(3,"T", Interval(13,14));
+    lg2q.add_node(1,"GC", Interval(4,6));
+    lg2q.add_node(0,"A", Interval(0,1));
+    lg2q.add_edge(1,3);
+    lg2q.add_edge(2,3);
+    lg2q.add_edge(0,1);
+    EXPECT_EQ((lg2!=lg2q), true);
+
+    // adding an extra edge does
+    lg2p.add_edge(0,2);
+    lg2p.add_edge(0,3);
+    EXPECT_EQ((lg2!=lg2q), true);
+
+    // adding an extra node
+    LocalGraph lg2r;
+    lg2r.add_node(2,"G", Interval(7,8));
+    lg2r.add_node(3,"T", Interval(13,14));
+    lg2r.add_node(1,"GC", Interval(4,6));
+    lg2r.add_node(0,"A", Interval(0,1));
+    lg2r.add_edge(1,3);
+    lg2r.add_edge(2,3);
+    lg2r.add_edge(0,1);
+    lg2r.add_edge(0,2);
+    lg2r.add_node(4, "T", Interval(15,16));
+    EXPECT_EQ((lg2!=lg2r), true);
+}
+
 TEST_F(LocalGraphTest, write_gfa){
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
@@ -366,15 +427,6 @@ TEST_F(LocalGraphTest, nodes_along_string)
     v = lg1.nodes_along_string("AGTTCGTAGACCAACGCGGT");
     EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
 
-    // function expects string to start at the start of the PRG, 
-    // so the following not good tests
-    //v_exp = {lg2.nodes[1], lg2.nodes[3]};
-    //v = lg2.nodes_along_string("GCT");
-    //EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
-
-    //v_exp = {lg2.nodes[1], lg2.nodes[3]};
-    //v = lg2.nodes_along_string("CT");
-    //EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
 }
 
 TEST_F(LocalGraphTest, top_path)

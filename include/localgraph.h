@@ -28,6 +28,7 @@ class LocalGraph {
     std::vector<LocalNode*> top_path();
     std::vector<LocalNode*> bottom_path();
     bool operator == (const LocalGraph& y) const;
+    bool operator != (const LocalGraph& y) const;
     friend std::ostream& operator<< (std::ostream & out, LocalGraph const& data);
 };
 

@@ -17,7 +17,6 @@ class Index {
     void save(const std::string& prgfile, uint32_t w, uint32_t k);
     void load(const std::string& prgfile, uint32_t w, uint32_t k);
     void clear();
-  //friend std::ostream& operator<< (std::ostream& out, const Index& idx);
 };
 
 #endif

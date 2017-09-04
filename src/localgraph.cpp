@@ -364,6 +364,10 @@ bool LocalGraph::operator == (const LocalGraph& y) const
     return true;
 }
 
+bool LocalGraph::operator != (const LocalGraph& y) const {
+    return !(*this == y);
+}
+
 std::ostream& operator<< (std::ostream & out, LocalGraph const& data) {
     for (const auto c: data.nodes)
     {
