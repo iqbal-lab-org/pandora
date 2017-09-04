@@ -21,7 +21,6 @@
 #include "pannode.h"
 #include "utils.h"
 #include "vcf.h"
-#include "errormessages.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -203,7 +202,8 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
 	vector<Interval> v = split_by_site(i); // should have length at least 4
 	if(v.size()<(uint)4)
         {
-	    cerr << SPLIT_SITE_WRONG_SIZE_ERROR << endl;
+	    cerr << "In conversion from linear localPRG string to graph, splitting the string by the next var site" << endl;
+	    cerr << "resulted in the wrong number of intervals. Perhaps ordering of numbers in GFA is irregular?!" << endl;
             cerr << "Size of partition based on site " << next_site << " is " << v.size() << endl;
             exit(-1);
         }
@@ -212,7 +212,8 @@ vector<uint32_t> LocalPRG::build_graph(const Interval& i, const vector<uint32_t>
 	s = seq.substr(v[0].start, v[0].length);
 	if (! (isalpha_string(s)))
         {
-            cerr << SPLIT_SITE_ERROR << endl;
+            cerr << "In conversion from linear localPRG string to graph, splitting the string by the next var site" << endl;
+	    cerr << "resulted in the first interval being non alphabetic. Perhaps ordering of numbers in GFA is irregular?!" << endl;
             cerr << "After splitting by site " << next_site << " do not have alphabetic sequence before var site: " << v[0] << endl;
             exit(-1);
         }

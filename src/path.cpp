@@ -2,7 +2,6 @@
 #include <functional>
 #include "path.h"
 #include "interval.h"
-#include "errormessages.h"
 #include <cassert>
 #include <deque>
 
