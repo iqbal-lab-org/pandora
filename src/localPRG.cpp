@@ -553,7 +553,7 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 
 vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*> kmernode_path, uint w)
 {
-    cout << now() << "Convert kmernode path to localnode path" << endl;
+    //cout << now() << "Convert kmernode path to localnode path" << endl;
     vector<LocalNode*> localnode_path, kmernode, walk_path;
     vector<Path> walk_paths;
     for (uint i=0; i!=kmernode_path.size(); ++i)
@@ -983,17 +983,17 @@ void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_pat
 		cout << kmp[i]->id << " ";
 	    }
 	    cout << endl;
-	    vector<vector<KmerNode*>> altkmps = kmer_prg.get_random_paths(10);
+	    vector<vector<KmerNode*>> altkmps = kmer_prg.get_random_paths(1000);
 	    for (uint i=0; i!=altkmps.size(); ++i)
 	    {
 		if (altkmps[i] != kmp)
 		{
-		    cout << "altkmp: ";
+		    /*cout << "altkmp: ";
             	    for (uint j=0; j!=altkmps[i].size(); ++j)
                     {
             	        cout << altkmps[i][j]->id << " ";
             	    }
-		    cout << endl;
+		    cout << endl;*/
 		    almp = localnode_path_from_kmernode_path(altkmps[i], w);
 		    append_path_to_fasta(prefix + "." + new_name + "_altpaths.fasta", almp, kmer_prg.prob_path(altkmps[i]));
 		}
