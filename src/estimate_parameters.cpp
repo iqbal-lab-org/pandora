@@ -15,6 +15,8 @@ using namespace std;
 
 uint find_mean_covg(vector<uint>& kmer_covg_dist)
 {
+    // tries to return the position in vector at which the maximum of the second peak occurs
+    // expects at least 3 increases of covg to decide we are out of the first peak
     bool first_peak = true;
     uint max_covg;
     uint noise_buffer = 0;
@@ -55,6 +57,7 @@ uint find_mean_covg(vector<uint>& kmer_covg_dist)
 
 int find_prob_thresh(vector<uint>& kmer_prob_dist)
 {
+    // finds position at which minimum occurs between two peaks 
     // naive way is to pick window with minimal positive covg
     // sligtly less naive way is to find this minimal value between two peaks more than 10 apart
     if (kmer_prob_dist.size() == 0)

@@ -1004,12 +1004,12 @@ void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_pat
 	}
 	if (output_comparison_paths == true)
 	{
-	    cout << "kmlp: ";
+	    /*cout << "kmlp: ";
 	    for (uint i=0; i!=kmp.size(); ++i)
 	    {
 		cout << kmp[i]->id << " ";
 	    }
-	    cout << endl;
+	    cout << endl;*/
 	    vector<vector<KmerNode*>> altkmps = kmer_prg.get_random_paths(1000);
 	    for (uint i=0; i!=altkmps.size(); ++i)
 	    {
