@@ -48,6 +48,7 @@ bin/*
 # for now, ignore test_cases subdirs
 test/test_cases/*/*
 *.vcf
+test/test_cases/localPRG_test.nested_varsite_altpaths.fasta
 
 # and log.txt
 log.txt

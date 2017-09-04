@@ -986,7 +986,7 @@ void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_pat
         ppath = kmer_prg.find_max_path(kmp);
     	lmp = localnode_path_from_kmernode_path(kmp, w);
 
-    	write_max_path_to_fasta(prefix + "." + new_name + "_kmlp.fasta", lmp, ppath);
+    	write_max_path_to_fasta(prefix + "." + new_name + ".kmlp.fasta", lmp, ppath);
 	
     	cout << now() << "LocalPRG ids on max likelihood path: "; 
     	for (uint i=0; i!=lmp.size(); ++i)
@@ -1021,7 +1021,7 @@ void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_pat
             	    }
 		    cout << endl;*/
 		    almp = localnode_path_from_kmernode_path(altkmps[i], w);
-		    append_path_to_fasta(prefix + "." + new_name + "_altpaths.fasta", almp, kmer_prg.prob_path(altkmps[i]));
+		    append_path_to_fasta(prefix + "." + new_name + ".altpaths.fasta", almp, kmer_prg.prob_path(altkmps[i]));
 		}
 	    }
 	}    
@@ -1036,7 +1036,7 @@ void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_pat
 	ppath = kmer_prg.find_min_path(kmp);
 	lmp = localnode_path_from_kmernode_path(kmp, w);
 	
-    	write_max_path_to_fasta(prefix + "." + new_name + "_kminp.fasta", lmp, ppath);
+    	write_max_path_to_fasta(prefix + "." + new_name + ".kminp.fasta", lmp, ppath);
 
     	cout << "localPRG node ids on min path: ";
     	for (uint i=0; i!=lmp.size(); ++i)
