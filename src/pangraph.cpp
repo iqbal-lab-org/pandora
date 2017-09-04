@@ -161,7 +161,7 @@ PanEdge* PanGraph::add_shortcut_edge(const vector<PanEdge*>::iterator prev, cons
 
 void PanGraph::read_clean(const uint& thresh)
 {
-    cout << now() << "Start read cleaning" << endl;
+    cout << now() << "Start read cleaning with threshold " << thresh << endl;
     PanEdge* e;
 
     for(map<uint32_t, PanRead*>::iterator read=reads.begin(); read!=reads.end(); ++read)
@@ -271,8 +271,8 @@ void PanGraph::clean(const uint32_t& coverage)
 {
     read_clean(0.025*coverage);
     read_clean(0.05*coverage);
-    read_clean(0.01*coverage);
-    read_clean(0.02*coverage);
+    read_clean(0.1*coverage);
+    read_clean(0.2*coverage);
 
     remove_low_covg_edges(0.025*coverage);
     remove_low_covg_nodes(0);
