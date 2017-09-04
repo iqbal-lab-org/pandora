@@ -717,6 +717,32 @@ void LocalPRG::append_path_to_fasta(const string& filepath, const vector<LocalNo
     return;
 }
 
+void LocalPRG::write_aligned_path_to_fasta(const string& filepath, const vector<LocalNode*>& lmp, const float& ppath)
+{
+    ofstream handle;
+    handle.open (filepath);
+    assert (!handle.fail());
+
+    handle << ">" << name << "\tlog P(data|sequence)=" << ppath  << endl;
+
+    uint i = 0;
+    for (auto c : prg.nodes)
+    {
+	if (c.second == lmp[i])
+	{
+	    handle << lmp[i]->seq;
+	    i++;
+	} else {
+	    string s(c.second->seq.length(), '-'); // s == "------"
+	    handle << s;
+	}
+    }
+    handle << endl;
+
+    handle.close();
+    return;
+}
+
 void LocalPRG::build_vcf()
 {
     cout << now() << "Build VCF for prg " << name << endl;

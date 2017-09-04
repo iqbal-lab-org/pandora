@@ -837,6 +837,36 @@ TEST_F(LocalPRGTest, write_max_path_to_fasta)
     delete idx;
 }
 
+TEST_F(LocalPRGTest, append_path_to_fasta)
+{
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+
+    Index* idx;
+    idx = new Index();
+
+    l3.minimizer_sketch(idx, 1, 3);
+
+    vector<LocalNode*> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
+    l3.append_path_to_fasta("../test/test_cases/localPRG_test.maxpath.fa", lmp3, 0.00);
+
+    delete idx;
+}
+
+TEST_F(LocalPRGTest, write_aligned_path_to_fasta)
+{
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+
+    Index* idx;
+    idx = new Index();
+
+    l3.minimizer_sketch(idx, 1, 3);
+
+    vector<LocalNode*> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
+    l3.write_aligned_path_to_fasta("../test/test_cases/localPRG_test.alignedpath.fa", lmp3, 0.00);
+
+    delete idx;
+}
+
 TEST_F(LocalPRGTest, build_vcf)
 {
     LocalPRG l1(1,"simple", "AGCT");
