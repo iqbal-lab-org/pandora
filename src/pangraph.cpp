@@ -177,9 +177,17 @@ void PanGraph::read_clean(const uint& thresh)
     for(map<uint32_t, PanRead*>::iterator read=reads.begin(); read!=reads.end(); ++read)
     {
 	cout << "read " << read->first << endl;
-        if (read->second->edges.size() < 2)
+        if (read->second->edges.size() == 0)
 	{
-	    //cout << "read has too few nodes" << endl;
+	    continue;
+	} else if (read->second->edges.size() == 1)
+	{
+            // read has too few nodes, but in the special case where has 1 edge and 2 nodes can 
+	    // remove the edge if it has too low coverage
+	    if (read->second->edges[0]->covg <= thresh)
+	    {
+		read->second->edges.pop_back();
+	    }	
 	    continue;
 	}
 	vector<PanEdge*>::iterator prev = read->second->edges.begin();
