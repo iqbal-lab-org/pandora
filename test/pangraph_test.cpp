@@ -32,11 +32,12 @@ TEST_F(PanGraphTest, add_node)
     pg.add_node(0,"0",1, mhs);
 
     PanNode *pn;
-    pn = new PanNode(0,"0");
+    pn = new PanNode(0,0,"0");
     uint32_t j = 1;
     EXPECT_EQ(pg.nodes.size(), j);
     EXPECT_EQ(*pg.nodes[0], *pn);
-    EXPECT_EQ(pg.nodes[0]->id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
     EXPECT_EQ(pg.nodes[0]->name, "0");
     EXPECT_EQ(pg.nodes[0]->covg, j);
     EXPECT_EQ(pg.nodes[0]->reads.size(), j);
@@ -55,7 +56,8 @@ TEST_F(PanGraphTest, add_node)
 
     EXPECT_EQ(pg.nodes.size(), j);
     EXPECT_EQ(*pg.nodes[0], *pn);
-    EXPECT_EQ(pg.nodes[0]->id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
     EXPECT_EQ(pg.nodes[0]->name, "0");
     EXPECT_EQ(pg.nodes[0]->covg, (uint)2);
     EXPECT_EQ(pg.nodes[0]->reads.size(), j);
@@ -71,7 +73,8 @@ TEST_F(PanGraphTest, add_node)
 
     EXPECT_EQ(pg.nodes.size(), j);
     EXPECT_EQ(*pg.nodes[0], *pn);
-    EXPECT_EQ(pg.nodes[0]->id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
     EXPECT_EQ(pg.nodes[0]->name, "0");
     EXPECT_EQ(pg.nodes[0]->covg, (uint)3);
     EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)2);
@@ -90,10 +93,11 @@ TEST_F(PanGraphTest, add_node)
 
     // add different node
     pg.add_node(1,"1",2, mhs);
-    pn = new PanNode(1,"1");
+    pn = new PanNode(1,1,"1");
     EXPECT_EQ(pg.nodes.size(), (uint)2);
     EXPECT_EQ(*pg.nodes[1], *pn);
-    EXPECT_EQ(pg.nodes[1]->id, j);
+    EXPECT_EQ(pg.nodes[1]->node_id, j);
+    EXPECT_EQ(pg.nodes[1]->prg_id, j);
     EXPECT_EQ(pg.nodes[1]->name, "1");
     EXPECT_EQ(pg.nodes[1]->covg, j);
     EXPECT_EQ(pg.nodes[1]->reads.size(), j);
@@ -118,10 +122,10 @@ TEST_F(PanGraphTest, add_node)
     mh1 = new MinimizerHit(2, Interval(1,5), 2, p, true);
     mhs.insert(mh1);
     pg.add_node(2,"2",2, mhs);
-    pn = new PanNode(2,"2");
+    pn = new PanNode(2,2,"2");
     EXPECT_EQ(pg.nodes.size(), (uint)3);
     EXPECT_EQ(*pg.nodes[2], *pn);
-    EXPECT_EQ(pg.nodes[2]->id, (uint)2);
+    EXPECT_EQ(pg.nodes[2]->node_id, (uint)2);
     EXPECT_EQ(pg.nodes[2]->name, "2");
     EXPECT_EQ(pg.nodes[2]->covg, j);
     EXPECT_EQ(pg.nodes[2]->reads.size(), j);
@@ -151,9 +155,9 @@ TEST_F(PanGraphTest, add_edge)
     pg.add_edge(0,1,3,0); //++
 
     PanNode *pn1;
-    pn1 = new PanNode(0,"0");
+    pn1 = new PanNode(0,0,"0");
     PanNode *pn2;
-    pn2 = new PanNode(1,"1");
+    pn2 = new PanNode(1,1,"1");
     PanEdge *pe;
     pe = new PanEdge(pn1, pn2, 3);
 

@@ -13,12 +13,13 @@ struct MinimizerHit;
 #include <minihits.h>
 
 class PanGraph {
+    uint next_id;
   public:
     std::map<uint32_t, PanNode*> nodes;
     std::vector<PanEdge*> edges;
     std::map<uint32_t, PanRead*> reads;
 
-    PanGraph() {};
+    PanGraph();
     ~PanGraph();
 
     // graph additions/removals

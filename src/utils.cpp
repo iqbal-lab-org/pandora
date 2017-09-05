@@ -436,16 +436,16 @@ void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prg
 {
     for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode)
     {
-        cout << now() << "Update coverages for PRG " << prgs[pnode->second->id]->name << endl;
+        cout << now() << "Update coverages for PRG " << pnode->second->name << endl;
 	for (auto read : pnode->second->reads)
 	{
-	    for (set<MinimizerHit*, pComp_path>::iterator mh = read->hits[pnode->second->id].begin(); mh != read->hits[pnode->second->id].end(); ++mh)
+	    for (set<MinimizerHit*, pComp_path>::iterator mh = read->hits[pnode->second->node_id].begin(); mh != read->hits[pnode->second->node_id].end(); ++mh)
 	    {
-	        prgs[pnode->second->id]->update_covg_with_hit(*mh);
+	        prgs[pnode->second->prg_id]->update_covg_with_hit(*mh);
 	    }
 	}
-	prgs[pnode->second->id]->kmer_prg.num_reads = pnode->second->reads.size();
-	cout << now() << "Added " << prgs[pnode->second->id]->num_hits[1] << " hits in the forward direction and " << prgs[pnode->second->id]->num_hits[0] << " hits in the reverse" << endl;
+	prgs[pnode->second->prg_id]->kmer_prg.num_reads = pnode->second->reads.size();
+	cout << now() << "Added " << prgs[pnode->second->prg_id]->num_hits[1] << " hits in the forward direction and " << prgs[pnode->second->prg_id]->num_hits[0] << " hits in the reverse" << endl;
     }
 }
 

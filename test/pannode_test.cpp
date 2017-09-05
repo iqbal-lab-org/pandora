@@ -17,17 +17,18 @@ class PanNodeTest : public ::testing::Test {
 
 TEST_F(PanNodeTest,create){
 
-    PanNode pn(3, "3");
+    PanNode pn(4, 3, "3");
     uint32_t j=3;
-    EXPECT_EQ(j, pn.id);
+    EXPECT_EQ(j, pn.node_id);
+    EXPECT_EQ((uint)4, pn.prg_id);
     EXPECT_EQ("3", pn.name);
     EXPECT_EQ((uint)1, pn.covg);
 }
 
 TEST_F(PanNodeTest,equals){
-    PanNode pn1(3,"3");
-    PanNode pn2(2,"2");
-    PanNode pn3(2,"2");
+    PanNode pn1(3,3,"3");
+    PanNode pn2(2,2,"2");
+    PanNode pn3(2,2,"2");
 
     EXPECT_EQ(pn1, pn1);
     EXPECT_EQ(pn2, pn2);
@@ -39,9 +40,9 @@ TEST_F(PanNodeTest,equals){
 }
 
 TEST_F(PanNodeTest,nequals){
-    PanNode pn1(3,"3");
-    PanNode pn2(2,"2");
-    PanNode pn3(2,"2");
+    PanNode pn1(3,3,"3");
+    PanNode pn2(2,2,"2");
+    PanNode pn3(2,2,"2");
 
     EXPECT_EQ((pn1!=pn2), true);
     EXPECT_EQ((pn2!=pn1), true);
@@ -52,9 +53,9 @@ TEST_F(PanNodeTest,nequals){
 }
 
 TEST_F(PanNodeTest,less){
-    PanNode pn1(3,"3");
-    PanNode pn2(2,"2");
-    PanNode pn3(2,"2");
+    PanNode pn1(3,3,"3");
+    PanNode pn2(2,2,"2");
+    PanNode pn3(2,2,"2");
 
     EXPECT_EQ((pn1<pn1), false);
     EXPECT_EQ((pn2<pn2), false);

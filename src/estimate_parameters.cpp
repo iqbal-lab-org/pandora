@@ -149,10 +149,10 @@ void estimate_parameters(PanGraph* pangraph, const vector<LocalPRG*>& prgs, stri
     cout << now() << "Collect kmer coverage distribution" << endl;
     for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode)
     {
-	num_reads += prgs[pnode->second->id]->kmer_prg.num_reads;
-	for (uint i=1; i!=prgs[pnode->second->id]->kmer_prg.nodes.size()-1; ++i) //NB first and last kmer in kmergraph are null
+	num_reads += prgs[pnode->second->prg_id]->kmer_prg.num_reads;
+	for (uint i=1; i!=prgs[pnode->second->prg_id]->kmer_prg.nodes.size()-1; ++i) //NB first and last kmer in kmergraph are null
         {
-	    c = prgs[pnode->second->id]->kmer_prg.nodes[i]->covg[0] + prgs[pnode->second->id]->kmer_prg.nodes[i]->covg[1];
+	    c = prgs[pnode->second->prg_id]->kmer_prg.nodes[i]->covg[0] + prgs[pnode->second->prg_id]->kmer_prg.nodes[i]->covg[1];
 	    if (c < 1000)
 	    {
 		kmer_covg_dist[c] += 1;
@@ -192,10 +192,10 @@ void estimate_parameters(PanGraph* pangraph, const vector<LocalPRG*>& prgs, stri
     cout << now() << "Collect kmer probability distribution" << endl;
     for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode)
     {
-	prgs[pnode->second->id]->kmer_prg.set_p(e_rate);
-        for (uint i=1; i!=prgs[pnode->second->id]->kmer_prg.nodes.size()-1; ++i) //NB first and last kmer in kmergraph are null
+	prgs[pnode->second->prg_id]->kmer_prg.set_p(e_rate);
+        for (uint i=1; i!=prgs[pnode->second->prg_id]->kmer_prg.nodes.size()-1; ++i) //NB first and last kmer in kmergraph are null
         {
-            p = prgs[pnode->second->id]->kmer_prg.prob(i);
+            p = prgs[pnode->second->prg_id]->kmer_prg.prob(i);
             for (int j = 0; j<200; ++j)
             {
                 if ((float)j-200 <= p and (float)j+1-200 > p)
@@ -237,7 +237,7 @@ void estimate_parameters(PanGraph* pangraph, const vector<LocalPRG*>& prgs, stri
     // set threshold in each kmer graph
     for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode)
     {
-        prgs[pnode->second->id]->kmer_prg.thresh = thresh;
+        prgs[pnode->second->prg_id]->kmer_prg.thresh = thresh;
     }
 
     return;

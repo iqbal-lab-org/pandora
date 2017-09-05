@@ -10,14 +10,14 @@ using namespace std;
 
 PanRead::PanRead (const uint32_t i): id(i) {}
 
-void PanRead::add_hits(const uint32_t prg_id, const set<MinimizerHit*, pComp>& c)
+void PanRead::add_hits(const uint32_t node_id, const set<MinimizerHit*, pComp>& c)
 {
-    /*map<uint32_t, std::set<MinimizerHit*, pComp>>::iterator it=hits.find(prg_id);
+    /*map<uint32_t, std::set<MinimizerHit*, pComp>>::iterator it=hits.find(node_id);
     if(it==hits.end())
     {
-	hits[prg_id] = {};
+	hits[node_id] = {};
     }*/
-    hits[prg_id].insert(c.begin(), c.end());
+    hits[node_id].insert(c.begin(), c.end());
 }
 
 bool PanRead::operator == (const PanRead& y) const {

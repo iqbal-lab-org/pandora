@@ -18,12 +18,12 @@ class PanEdgeTest : public ::testing::Test {
 TEST_F(PanEdgeTest,create){
 
     PanNode *pn1, *pn2;
-    pn1 = new PanNode(3, "three");
-    pn2 = new PanNode(6, "six");
+    pn1 = new PanNode(4,3, "three");
+    pn2 = new PanNode(7,6, "six");
     PanEdge pe(pn1, pn2, 0);
 
-    EXPECT_EQ((uint)3, pe.from->id);
-    EXPECT_EQ((uint)6, pe.to->id);
+    EXPECT_EQ((uint)3, pe.from->node_id);
+    EXPECT_EQ((uint)6, pe.to->node_id);
     EXPECT_EQ((uint)0, pe.orientation);
     EXPECT_EQ((uint)1, pe.covg);
 
@@ -34,9 +34,9 @@ TEST_F(PanEdgeTest,create){
 
 TEST_F(PanEdgeTest,equals){
     PanNode *pn1, *pn2, *pn3;
-    pn1 = new PanNode(3, "three");
-    pn2 = new PanNode(6, "six");
-    pn3 = new PanNode(9, "nine");
+    pn1 = new PanNode(3,3, "three");
+    pn2 = new PanNode(6,6, "six");
+    pn3 = new PanNode(9,9, "nine");
     PanEdge pe1(pn1, pn2, 0);
     PanEdge pe2(pn1, pn2, 2);
     PanEdge pe3(pn2, pn1, 0);
@@ -78,9 +78,9 @@ TEST_F(PanEdgeTest,equals){
 
 TEST_F(PanEdgeTest,nequals){
     PanNode *pn1, *pn2, *pn3;
-    pn1 = new PanNode(3, "three");
-    pn2 = new PanNode(6, "six");
-    pn3 = new PanNode(9, "nine");
+    pn1 = new PanNode(3,3, "three");
+    pn2 = new PanNode(6,6, "six");
+    pn3 = new PanNode(9,9, "nine");
     PanEdge pe1(pn1, pn2, 0);
     PanEdge pe2(pn1, pn2, 2);
     PanEdge pe3(pn2, pn1, 0);
@@ -112,9 +112,9 @@ TEST_F(PanEdgeTest,nequals){
 
 TEST_F(PanEdgeTest,less){
     PanNode *pn1, *pn2, *pn3;
-    pn1 = new PanNode(3, "three");
-    pn2 = new PanNode(6, "six");
-    pn3 = new PanNode(9, "nine");
+    pn1 = new PanNode(3,3, "three");
+    pn2 = new PanNode(6,6, "six");
+    pn3 = new PanNode(9,9, "nine");
     PanEdge pe1(pn1, pn2, 0);
     PanEdge pe2(pn1, pn2, 2);
     PanEdge pe3(pn2, pn1, 0);

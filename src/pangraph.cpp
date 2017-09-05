@@ -15,6 +15,8 @@
 
 using namespace std;
 
+PanGraph::PanGraph() : next_id(0) {}
+
 PanGraph::~PanGraph()
 {
     for (auto c: reads)
@@ -45,7 +47,7 @@ void PanGraph::add_node (const uint32_t prg_id, const string prg_name, const uin
     map<uint32_t, PanNode*>::iterator it=nodes.find(prg_id);
     if(it==nodes.end())
     {
-        n = new PanNode(prg_id, prg_name);
+        n = new PanNode(prg_id, prg_id, prg_name);
 	//cout << "add node " << *n << endl;
         nodes[prg_id] = n;
     } else {
@@ -79,6 +81,8 @@ void PanGraph::add_node (const uint32_t prg_id, const string prg_name, const uin
 
 PanEdge* PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uint& orientation)
 {
+    // NB this adds an edge from node_id from to node_id to
+    //
     // checks
     map<uint32_t, PanNode*>::iterator from_it=nodes.find(from);
     map<uint32_t, PanNode*>::iterator to_it=nodes.find(to);
@@ -142,25 +146,25 @@ PanEdge* PanGraph::add_shortcut_edge(const vector<PanEdge*>::iterator prev, cons
     PanEdge* e;
 
     //have edges A->B and B->C, create edge A->C
-    if ((*prev)->to->id == (*current)->from->id and (*prev)->from->id != (*current)->to->id)
+    if ((*prev)->to->node_id == (*current)->from->node_id and (*prev)->from->node_id != (*current)->to->node_id)
     {
-        e = add_edge((*prev)->from->id, (*current)->to->id, combine_orientations((*prev)->orientation, (*current)->orientation));
-        //cout << "decrease covg on node " << (*prev)->to->id << endl;
+        e = add_edge((*prev)->from->node_id, (*current)->to->node_id, combine_orientations((*prev)->orientation, (*current)->orientation));
+        //cout << "decrease covg on node " << (*prev)->to->node_id << endl;
         (*prev)->to->covg -= 1;
-    } else if ((*prev)->to->id == (*current)->to->id and (*prev)->from->id != (*current)->from->id)
+    } else if ((*prev)->to->node_id == (*current)->to->node_id and (*prev)->from->node_id != (*current)->from->node_id)
     {
-        e = add_edge((*prev)->from->id, (*current)->from->id, combine_orientations((*prev)->orientation, rev_orient((*current)->orientation)));
-        //cout << "decrease covg on node " << (*prev)->to->id << endl;
+        e = add_edge((*prev)->from->node_id, (*current)->from->node_id, combine_orientations((*prev)->orientation, rev_orient((*current)->orientation)));
+        //cout << "decrease covg on node " << (*prev)->to->node_id << endl;
         (*prev)->to->covg -= 1;
-    } else if ((*prev)->from->id == (*current)->to->id and (*prev)->to->id != (*current)->from->id)
+    } else if ((*prev)->from->node_id == (*current)->to->node_id and (*prev)->to->node_id != (*current)->from->node_id)
     {
-        e = add_edge((*prev)->to->id, (*current)->from->id, combine_orientations(rev_orient((*prev)->orientation), rev_orient((*current)->orientation)));
-        //cout << "decrease covg on node " << (*prev)->from->id << endl;
+        e = add_edge((*prev)->to->node_id, (*current)->from->node_id, combine_orientations(rev_orient((*prev)->orientation), rev_orient((*current)->orientation)));
+        //cout << "decrease covg on node " << (*prev)->from->node_id << endl;
         (*prev)->from->covg -= 1;
-    } else if ((*prev)->from->id == (*current)->from->id and (*prev)->to->id != (*current)->to->id)
+    } else if ((*prev)->from->node_id == (*current)->from->node_id and (*prev)->to->node_id != (*current)->to->node_id)
     {
-        e = add_edge((*prev)->to->id, (*current)->to->id, combine_orientations(rev_orient((*prev)->orientation), (*current)->orientation));
-        //cout << "decrease covg on node " << (*prev)->from->id << endl;
+        e = add_edge((*prev)->to->node_id, (*current)->to->node_id, combine_orientations(rev_orient((*prev)->orientation), (*current)->orientation));
+        //cout << "decrease covg on node " << (*prev)->from->node_id << endl;
         (*prev)->from->covg -= 1;
     } else {
 	e = nullptr;
@@ -373,7 +377,7 @@ std::ostream& operator<< (std::ostream & out, PanGraph const& m) {
     //cout << "printing pangraph" << endl;
     for (auto n : m.nodes)
     {
-	cout << n.second->id << endl;
+	cout << n.second->prg_id << endl;
     }
     for (auto e : m.edges)
     {

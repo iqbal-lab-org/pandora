@@ -190,10 +190,10 @@ int pandora_map(int argc, char* argv[])
     cout << now() << "Find PRG paths and write to files:" << endl;
     for (auto c: pangraph->nodes)
     {
-	prgs[c.second->id]->find_path_and_variants(prefix, w, max_path, min_path, output_vcf, output_comparison_paths);
+	prgs[c.second->prg_id]->find_path_and_variants(prefix, w, max_path, min_path, output_vcf, output_comparison_paths);
 	if (output_kg == true)
 	{
-	    prgs[c.second->id]->kmer_prg.save(prefix + "." + prgs[c.second->id]->name + ".kg.gfa");
+	    prgs[c.second->prg_id]->kmer_prg.save(prefix + "." + prgs[c.second->prg_id]->name + ".kg.gfa");
 	}
 	//prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "." + prgs[c.second->id]->name + ".covg.txt");
 	//cout << "\t\t" << prefix << "." << prgs[c.second->id]->name << ".gfa" << endl;
