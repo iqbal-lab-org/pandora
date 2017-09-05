@@ -304,7 +304,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
         if((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id)
         {
             pangraph->add_node((*(*c_current).begin())->prg_id, prgs[(*(*c_current).begin())->prg_id]->name, (*(*c_current).begin())->read_id, *c_current);
-	    if ((*(*c_previous).begin())->prg_id != (*(*c_current).begin())->prg_id)
+	    if ((*(*c_previous).begin())->prg_id != (*(*c_current).begin())->prg_id or (*(*c_previous).begin())->strand != (*(*c_current).begin())->strand)
 	    {
                 pangraph->add_edge((*(*c_previous).begin())->prg_id, (*(*c_current).begin())->prg_id, (*(*c_previous).begin())->strand+2*(*(*c_current).begin())->strand, (*(*c_current).begin())->read_id);
 	        //cout << prgs[(*(*c_current).begin())->prg_id]->name << endl;
