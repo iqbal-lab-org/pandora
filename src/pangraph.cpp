@@ -351,7 +351,7 @@ void PanGraph::write_gfa (const string& filepath)
     for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
     {
 	
-        handle << "S\t" << it->second->name << "\t*" << endl; //\tRC:i:" << it->second->foundHits.size() * k << endl;
+        handle << "S\t" << it->second->name << "\t*\tRC:i:" << it->second->covg << endl;
     }
 
     for (uint i=0; i!=edges.size(); ++i)
