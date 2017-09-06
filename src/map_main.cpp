@@ -185,12 +185,12 @@ int pandora_map(int argc, char* argv[])
     update_localPRGs_with_hits(pangraph, prgs);
 
     cout << now() << "Estimate parameters for kmer graph model" << endl;
-    estimate_parameters(pangraph, prgs, prefix, k, e_rate);
+    estimate_parameters(pangraph, prefix, k, e_rate);
 
     cout << now() << "Find PRG paths and write to files:" << endl;
     for (auto c: pangraph->nodes)
     {
-	prgs[c.second->prg_id]->find_path_and_variants(prefix, w, max_path, min_path, output_vcf, output_comparison_paths);
+	prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, max_path, min_path, output_vcf, output_comparison_paths);
 	if (output_kg == true)
 	{
 	    prgs[c.second->prg_id]->kmer_prg.save(prefix + "." + prgs[c.second->prg_id]->name + ".kg.gfa");

@@ -19,6 +19,8 @@ class KmerNode {
 
   public:
     KmerNode(uint32_t, const Path&);
+    KmerNode(const KmerNode&);
+    KmerNode& operator=(const KmerNode&);
     bool operator == (const KmerNode& y) const;
 
   friend bool equal_except_null_nodes (const KmerNode& x, const KmerNode& y);
@@ -27,8 +29,9 @@ class KmerNode {
   friend struct condition;
   friend struct pCompKmerNode;
   friend class LocalPRG;
+  friend class PanGraph;
   friend int pandora_check_kmergraph(int argc, char *argv[]);
-  friend void estimate_parameters(PanGraph*, const std::vector<LocalPRG*>&, std::string&, uint32_t, float&);
+  friend void estimate_parameters(PanGraph*, std::string&, uint32_t, float&);
   friend class KmerGraphTest_add_node_Test;
   friend class KmerGraphTest_add_node_with_kh_Test;
   friend class KmerGraphTest_add_edge_Test;

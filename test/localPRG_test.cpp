@@ -1035,16 +1035,20 @@ TEST_F(LocalPRGTest, find_path_and_variants)
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
     l3.minimizer_sketch(idx, 1, 3);
 
-    l3.kmer_prg.nodes[2]->covg[0] = 4;
-    l3.kmer_prg.nodes[2]->covg[1] = 3;
-    l3.kmer_prg.nodes[5]->covg[0] = 4;
-    l3.kmer_prg.nodes[5]->covg[0] = 5;
-    l3.kmer_prg.nodes[7]->covg[0] = 2;
-    l3.kmer_prg.nodes[7]->covg[1] = 3;
-    l3.kmer_prg.nodes[8]->covg[0] = 4;
-    l3.kmer_prg.nodes[8]->covg[0] = 6;
-    l3.kmer_prg.num_reads = 6;
+    PanNode *pn3;
+    pn3 = new PanNode(3,3,"3");
+    pn3->kmer_prg = l3.kmer_prg;
+    pn3->kmer_prg.nodes[2]->covg[0] = 4;
+    pn3->kmer_prg.nodes[2]->covg[1] = 3;
+    pn3->kmer_prg.nodes[5]->covg[0] = 4;
+    pn3->kmer_prg.nodes[5]->covg[0] = 5;
+    pn3->kmer_prg.nodes[7]->covg[0] = 2;
+    pn3->kmer_prg.nodes[7]->covg[1] = 3;
+    pn3->kmer_prg.nodes[8]->covg[0] = 4;
+    pn3->kmer_prg.nodes[8]->covg[0] = 6;
+    pn3->kmer_prg.num_reads = 6;
+    pn3->kmer_prg.set_p(0.0001);
 
-    l3.kmer_prg.set_p(0.0001);
-    l3.find_path_and_variants("../test/test_cases/localPRG_test", 0, true, false, false, true);
+    l3.find_path_and_variants(pn3, "../test/test_cases/localPRG_test", 0, true, false, false, true);
+    delete pn3;
 }

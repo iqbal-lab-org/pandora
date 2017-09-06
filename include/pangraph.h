@@ -5,6 +5,7 @@ class PanNode;
 class PanEdge;
 class PanRead;
 struct MinimizerHit;
+class LocalPRG;
 
 #include <cstring>
 #include <map>
@@ -33,6 +34,9 @@ class PanGraph {
     void remove_low_covg_nodes(const uint&);
     void remove_low_covg_edges(const uint&);
     void clean(const uint32_t&);
+
+    // graph magic
+    void add_hits_to_kmergraphs(const std::vector<LocalPRG*>&);
     
     // graph comparison
     bool operator == (const PanGraph& y) const;
@@ -44,3 +48,4 @@ class PanGraph {
 };
 
 #endif
+

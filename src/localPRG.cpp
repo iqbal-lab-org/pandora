@@ -970,8 +970,9 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
     return;
 }
 
-void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_path, bool min_path, bool output_vcf, bool output_comparison_paths)
+void LocalPRG::find_path_and_variants(PanNode* pnode, const string& prefix, uint w, bool max_path, bool min_path, bool output_vcf, bool output_comparison_paths)
 {
+    cout << "called find path and variants" << endl;
     string new_name = name;
     std::replace(new_name.begin(),new_name.end(), ' ', '_');
 
@@ -984,7 +985,9 @@ void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_pat
 
     if (max_path == true)
     {
-        ppath = kmer_prg.find_max_path(kmp);
+	cout << "find maxpath" << endl;
+        ppath = pnode->kmer_prg.find_max_path(kmp);
+        cout << "found maxpath" << endl;
     	lmp = localnode_path_from_kmernode_path(kmp, w);
 
     	write_max_path_to_fasta(prefix + "." + new_name + ".kmlp.fasta", lmp, ppath);
@@ -1010,7 +1013,7 @@ void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_pat
 		cout << kmp[i]->id << " ";
 	    }
 	    cout << endl;*/
-	    vector<vector<KmerNode*>> altkmps = kmer_prg.get_random_paths(1000);
+	    vector<vector<KmerNode*>> altkmps = pnode->kmer_prg.get_random_paths(1000);
 	    for (uint i=0; i!=altkmps.size(); ++i)
 	    {
 		if (altkmps[i] != kmp)
@@ -1022,7 +1025,7 @@ void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_pat
             	    }
 		    cout << endl;*/
 		    almp = localnode_path_from_kmernode_path(altkmps[i], w);
-		    append_path_to_fasta(prefix + "." + new_name + ".altpaths.fasta", almp, kmer_prg.prob_path(altkmps[i]));
+		    append_path_to_fasta(prefix + "." + new_name + ".altpaths.fasta", almp, pnode->kmer_prg.prob_path(altkmps[i]));
 		}
 	    }
 	}    
@@ -1034,7 +1037,7 @@ void LocalPRG::find_path_and_variants(const string& prefix, uint w, bool max_pat
 	lmp.clear();
 	vcf.clear();
 
-	ppath = kmer_prg.find_min_path(kmp);
+	ppath = pnode->kmer_prg.find_min_path(kmp);
 	lmp = localnode_path_from_kmernode_path(kmp, w);
 	
     	write_max_path_to_fasta(prefix + "." + new_name + ".kminp.fasta", lmp, ppath);

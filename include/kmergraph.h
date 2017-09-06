@@ -23,6 +23,8 @@ class KmerGraph {
     std::vector<KmerNode*> nodes; // representing nodes in graph
 
     KmerGraph();
+    KmerGraph(const KmerGraph&);
+    KmerGraph& operator=(const KmerGraph&);
     ~KmerGraph();
     void clear();
 
@@ -46,7 +48,7 @@ class KmerGraph {
     void load (const std::string&);
     bool operator == (const KmerGraph& y) const;
     friend std::ostream& operator<< (std::ostream & out, KmerGraph const& data);
-    friend void estimate_parameters(PanGraph*, const std::vector<LocalPRG*>&, std::string&, uint32_t, float&);
+    friend void estimate_parameters(PanGraph*, std::string&, uint32_t, float&);
     friend struct condition;
     friend class KmerGraphTest_findMaxPathSimple_Test;
     friend class KmerGraphTest_findMaxPath2Level_Test;

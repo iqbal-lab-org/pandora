@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include "kmergraph.h"
 
 class PanEdge;
 class PanRead;
@@ -14,6 +15,7 @@ class PanNode {
     const uint32_t node_id; // unique node id, so can have multiple copies of a localPRG in graph
     const std::string name;
     mutable uint32_t covg;
+    KmerGraph kmer_prg;
 
     std::vector<PanEdge*> edges;
     std::unordered_set<PanRead*> reads;

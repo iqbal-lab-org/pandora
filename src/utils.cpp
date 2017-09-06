@@ -432,7 +432,7 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
     return;
 }
 
-void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prgs) //, const uint32_t k, const float& e_rate, bool output_p_dist)
+/*void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prgs) //, const uint32_t k, const float& e_rate, bool output_p_dist)
 {
     for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode)
     {
@@ -447,6 +447,11 @@ void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prg
 	prgs[pnode->second->prg_id]->kmer_prg.num_reads = pnode->second->reads.size();
 	cout << now() << "Added " << prgs[pnode->second->prg_id]->num_hits[1] << " hits in the forward direction and " << prgs[pnode->second->prg_id]->num_hits[0] << " hits in the reverse" << endl;
     }
+}*/
+
+void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prgs) //, const uint32_t k, const float& e_rate, bool output_p_dist)
+{   
+    pangraph->add_hits_to_kmergraphs(prgs);
 }
 
 /*float p_null(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_of_hits, uint32_t k, const vector<uint32_t>& sketch_sizes)

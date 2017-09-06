@@ -27,6 +27,78 @@ KmerGraph::KmerGraph()
     thresh = -25;
 }
 
+// copy constructor
+KmerGraph::KmerGraph(const KmerGraph& other)
+{
+    next_id = other.next_id;
+    num_reads = other.num_reads;
+    shortest_path_length = other.shortest_path_length;
+    k = other.k;
+    p = other.p;
+    thresh = other.thresh;
+
+    // create deep copies of the nodes, minus the edges
+    KmerNode* n;
+    for (uint i=0; i<other.nodes.size(); ++i)
+    {   
+        assert(other.nodes[i]->id == i);
+        n = new KmerNode(*other.nodes[i]);
+        nodes.push_back(n);
+    }
+
+    // now need to copy the edges
+    for (uint i=0; i<other.nodes.size(); ++i)
+    {
+	for (uint j=0; j<other.nodes[i]->outNodes.size(); ++j)
+	{
+	    add_edge(nodes[i], nodes[other.nodes[i]->outNodes[j]->id]);
+	}
+    }
+}
+
+// Assignment operator
+KmerGraph& KmerGraph::operator=(const KmerGraph& other)
+{
+    // check for self-assignment
+    if (this == &other)
+        return *this;
+
+    // first we need to deallocate for any nodes already got!
+    for (auto c: nodes)
+    {
+        delete c;
+    }
+    nodes.clear();
+
+    // shallow copy no pointers
+    next_id = other.next_id;
+    num_reads = other.num_reads;
+    shortest_path_length = other.shortest_path_length;
+    k = other.k;
+    p = other.p;
+    thresh = other.thresh;
+
+    // deep copy the vector of node pointers, excluding edges
+    KmerNode* n;
+    for (uint i=0; i<other.nodes.size(); ++i)
+    {
+	assert(other.nodes[i]->id == i);
+	n = new KmerNode(*other.nodes[i]);
+	nodes.push_back(n);
+    }
+
+    // now need to copy the edges
+    for (uint i=0; i<other.nodes.size(); ++i)
+    {
+        for (uint j=0; j<other.nodes[i]->outNodes.size(); ++j)
+        {
+            add_edge(nodes[i], nodes[other.nodes[i]->outNodes[j]->id]);
+        }
+    }
+
+    return *this;
+}
+
 KmerGraph::~KmerGraph()
 {
     clear();
@@ -177,6 +249,7 @@ float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
     // finds a max likelihood path
 
     // need to catch if p not asserted...
+    assert( p<1 || assert_msg("p was not set in kmergraph"));
     //p = 1/exp(e_rate*k);
     //cout << " with parameters n: " << num_reads << " and p: " << p << endl;
     //cout << "Kmer graph has " << nodes.size() << " nodes" << endl;
