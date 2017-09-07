@@ -1,10 +1,13 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <cassert>
 #include "panread.h"
 #include "panedge.h"
 #include "pannode.h"
 #include "minihits.h"
+
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
 
@@ -18,6 +21,45 @@ void PanRead::add_hits(const uint32_t node_id, const set<MinimizerHit*, pComp>& 
 	hits[node_id] = {};
     }*/
     hits[node_id].insert(c.begin(), c.end());
+}
+
+vector<PanEdge*>::iterator PanRead::get_edge(const PanEdge* e)
+{
+    return find(edges.begin(), edges.end(), e);
+}
+
+vector<PanEdge*>::iterator PanRead::get_next_edge(const PanEdge* e)
+{
+    vector<PanEdge*>::iterator found = find(edges.begin(), edges.end(), e);
+    assert(found != edges.end() || assert_msg("couldn't find edge " << *e << " in read");
+    return ++found;   
+}
+
+vector<PanEdge*>::iterator PanRead::get_previous_edge(const PanEdge* e)
+{
+    vector<PanEdge*>::iterator found = find(edges.begin(), edges.end(), e);
+    assert(found != edges.end() || assert_msg("couldn't find edge " << *e << " in read");
+    if (found == edges.begin())
+    {
+	return edges.end(); // handle the case where e is first edge, and there is nothing before
+    }
+    return --found;
+}
+
+vector<PanEdge*>::iterator PanRead::get_other_edge(const PanEdge* e, const PanNode* n)
+{
+    // get the other edge in read containing node n
+    PanEdge* found = get_next_edge(e);
+    if (found != edges.end() and (found->from == n or found->to == n))
+    {
+	return found;
+    }
+    found = get_previous_edge(e);
+    if (found != edges.end() and (found->from == n or found->to == n))
+    {
+        return found;
+    }
+    return edges.end();
 }
 
 bool PanRead::operator == (const PanRead& y) const {

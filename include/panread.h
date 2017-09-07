@@ -6,6 +6,7 @@
 #include "minihits.h"
 
 class PanEdge;
+class PanNode;
 
 class PanRead {
   public:
@@ -15,6 +16,9 @@ class PanRead {
 
     PanRead(const uint32_t);
     void add_hits(const uint32_t, const std::set<MinimizerHit*, pComp>&);
+    vector<PanEdge*>::iterator get_next_edge(const PanEdge*);
+    vector<PanEdge*>::iterator get_previous_edge(const PanEdge*);
+    vector<PanEdge*>::iterator get_other_edge(const PanEdge*, const PanNode*);
 
     bool operator == (const PanRead& y) const;
     bool operator != (const PanRead& y) const;

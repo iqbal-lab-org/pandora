@@ -2,6 +2,7 @@
 #define __PANEDGE_H_INCLUDED__
 
 class PanNode;
+class PanRead;
 
 class PanEdge {
   public:
@@ -12,6 +13,8 @@ class PanEdge {
 				// 2 -+
 				// 3 ++
     uint32_t covg;
+
+    std::unordered_set<PanRead*> reads;
 
     PanEdge(PanNode*, PanNode*, uint);
 

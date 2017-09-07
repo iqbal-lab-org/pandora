@@ -4,13 +4,28 @@
 #include "panedge.h"
 #include "pannode.h"
 
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
+
 using namespace std;
 
 PanEdge::PanEdge (PanNode* f, PanNode* t, uint i): from(f), to(t), orientation(i), covg(1) {
     assert(i<4);
 }
 
-// idea : make rev complement edge actually equal in this definition?
+bool is_out_edge(const PanNode* n)
+{
+    // is e and out edge of node n?
+    assert(from == n or to == n || assert_msg("expected from or to to be " << *n << " but they were " << *from << " and " << *to);
+    if (from == n and orientation % 2 == 1)
+    {
+	return true;
+    } else if (to == n and orientation < 2)
+    {
+	return true;
+    }
+    return false;
+}
+
 bool PanEdge::operator == (const PanEdge& y) const {
     if (from->node_id==y.from->node_id and to->node_id==y.to->node_id and orientation==y.orientation) { return true;}
     if (from->node_id==y.to->node_id and to->node_id==y.from->node_id and orientation==rev_orient(y.orientation)) { return true;}
