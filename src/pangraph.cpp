@@ -549,6 +549,8 @@ void PanGraph::clean(const uint32_t& coverage)
     read_clean(0.05*coverage);
     read_clean(0.1*coverage);
     read_clean(0.2*coverage);
+    split_nodes_by_reads(coverage);
+    read_clean(0.2*coverage);
 
     remove_low_covg_edges(0.025*coverage);
     remove_low_covg_nodes(0);

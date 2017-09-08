@@ -972,7 +972,7 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
 
 void LocalPRG::find_path_and_variants(PanNode* pnode, const string& prefix, uint w, bool max_path, bool min_path, bool output_vcf, bool output_comparison_paths)
 {
-    cout << "called find path and variants" << endl;
+    //cout << "called find path and variants" << endl;
     string new_name = name;
     std::replace(new_name.begin(),new_name.end(), ' ', '_');
 
@@ -985,9 +985,9 @@ void LocalPRG::find_path_and_variants(PanNode* pnode, const string& prefix, uint
 
     if (max_path == true)
     {
-	cout << "find maxpath" << endl;
+	//cout << "find maxpath" << endl;
         ppath = pnode->kmer_prg.find_max_path(kmp);
-        cout << "found maxpath" << endl;
+        //cout << "found maxpath" << endl;
     	lmp = localnode_path_from_kmernode_path(kmp, w);
 
     	write_max_path_to_fasta(prefix + "." + new_name + ".kmlp.fasta", lmp, ppath);
