@@ -31,14 +31,14 @@ vector<PanEdge*>::iterator PanRead::get_edge(const PanEdge* e)
 vector<PanEdge*>::iterator PanRead::get_next_edge(const PanEdge* e)
 {
     vector<PanEdge*>::iterator found = find(edges.begin(), edges.end(), e);
-    assert(found != edges.end() || assert_msg("couldn't find edge " << *e << " in read");
+    assert(found != edges.end() || assert_msg("couldn't find edge " << *e << " in read"));
     return ++found;   
 }
 
 vector<PanEdge*>::iterator PanRead::get_previous_edge(const PanEdge* e)
 {
     vector<PanEdge*>::iterator found = find(edges.begin(), edges.end(), e);
-    assert(found != edges.end() || assert_msg("couldn't find edge " << *e << " in read");
+    assert(found != edges.end() || assert_msg("couldn't find edge " << *e << " in read"));
     if (found == edges.begin())
     {
 	return edges.end(); // handle the case where e is first edge, and there is nothing before
@@ -49,13 +49,13 @@ vector<PanEdge*>::iterator PanRead::get_previous_edge(const PanEdge* e)
 vector<PanEdge*>::iterator PanRead::get_other_edge(const PanEdge* e, const PanNode* n)
 {
     // get the other edge in read containing node n
-    PanEdge* found = get_next_edge(e);
-    if (found != edges.end() and (found->from == n or found->to == n))
+    vector<PanEdge*>::iterator found = get_next_edge(e);
+    if (found != edges.end() and ((*found)->from == n or (*found)->to == n))
     {
 	return found;
     }
     found = get_previous_edge(e);
-    if (found != edges.end() and (found->from == n or found->to == n))
+    if (found != edges.end() and ((*found)->from == n or (*found)->to == n))
     {
         return found;
     }

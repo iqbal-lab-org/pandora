@@ -29,6 +29,10 @@ class PanGraph {
     void add_edge (const uint32_t&, const uint32_t&, const uint&, const uint&);
     PanEdge* add_shortcut_edge(const std::vector<PanEdge*>::iterator, const std::vector<PanEdge*>::iterator);
 
+    // graph manipulation
+    std::vector<PanEdge*>::iterator split_node_by_edges(PanNode*, PanEdge*, PanEdge*);
+    void split_nodes_by_reads(const uint&);
+
     // graph cleaning
     void read_clean(const uint&);
     void remove_low_covg_nodes(const uint&);

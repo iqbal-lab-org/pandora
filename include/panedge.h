@@ -1,6 +1,8 @@
 #ifndef __PANEDGE_H_INCLUDED__   // if panedge.h hasn't been included yet...
 #define __PANEDGE_H_INCLUDED__
 
+#include <unordered_set>
+
 class PanNode;
 class PanRead;
 

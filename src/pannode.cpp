@@ -8,11 +8,11 @@ using namespace std;
 
 PanNode::PanNode (const uint32_t i, const uint32_t j, const string n): prg_id(i), node_id(j), name(n), covg(1) {}
 
-// copy constructor
+/*// copy constructor
 PanNode::PanNode(const PanNode& other)
 {
     prg_id = other.prg_id;
-    node_id = other.node_id;
+    //node_id = other.node_id;
     name = other.name;
     covg = other.covg;
     kmer_prg = other.kmer_prg;
@@ -28,7 +28,7 @@ PanNode& PanNode::operator=(const PanNode& other)
         return *this;
 
     prg_id = other.prg_id;
-    node_id = other.node_id;
+    //node_id = other.node_id;
     name = other.name;
     covg = other.covg;
     kmer_prg = other.kmer_prg;
@@ -36,7 +36,7 @@ PanNode& PanNode::operator=(const PanNode& other)
     //reads = other.reads;
 
     return *this;
-}
+}*/
 
 bool PanNode::operator == (const PanNode& y) const {
     return (node_id == y.node_id);

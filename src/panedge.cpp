@@ -12,10 +12,10 @@ PanEdge::PanEdge (PanNode* f, PanNode* t, uint i): from(f), to(t), orientation(i
     assert(i<4);
 }
 
-bool is_out_edge(const PanNode* n)
+/*bool is_out_edge(const PanNode* n)
 {
     // is e and out edge of node n?
-    assert(from == n or to == n || assert_msg("expected from or to to be " << *n << " but they were " << *from << " and " << *to);
+    assert(from == n or to == n || assert_msg("expected from or to to be " << *n << " but they were " << *from << " and " << *to));
     if (from == n and orientation % 2 == 1)
     {
 	return true;
@@ -24,7 +24,7 @@ bool is_out_edge(const PanNode* n)
 	return true;
     }
     return false;
-}
+}*/
 
 bool PanEdge::operator == (const PanEdge& y) const {
     if (from->node_id==y.from->node_id and to->node_id==y.to->node_id and orientation==y.orientation) { return true;}
