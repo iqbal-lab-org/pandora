@@ -45,7 +45,8 @@ bool PanEdge::operator < (const PanEdge& y) const {
     return false;
 }
 std::ostream& operator<< (std::ostream & out, PanEdge const& e) {
-    out << e.from->prg_id << "->" << e.to->prg_id << " " << e.orientation << " covg: " << e.covg;
+    //out << e.from->prg_id << "->" << e.to->prg_id << " " << e.orientation << " covg: " << e.covg;
+    out << e.from->node_id << "->" << e.to->node_id << " " << e.orientation << " covg: " << e.covg;
     return out ;
 }
 
