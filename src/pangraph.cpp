@@ -132,14 +132,14 @@ PanEdge* PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uin
     auto it = find_if(edges.begin(), edges.end(), eq);
     if (it == edges.end())
     {
-	cout << "add edge " << *e << endl;
+	//cout << "add edge " << *e << endl;
 	edges.push_back(e);
 	f->edges.push_back(e);
         t->edges.push_back(e);
 	return e;
     } else {
 	(*it)->covg += 1;
-	cout << "edge " << **it << " already in graph" << endl;
+	//cout << "edge " << **it << " already in graph" << endl;
     	delete e;
 	return *it;
     }
@@ -162,7 +162,7 @@ void PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uint& o
 
     r->edges.push_back(e);
     e->reads.insert(r);
-    cout << *e << " has read size " << e->reads.size() << endl;
+    //cout << *e << " has read size " << e->reads.size() << endl;
     //cout << "added edge " << *e << endl;
 
 }
@@ -213,7 +213,7 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
 {
     // results in two copies of n_original, one keeping the reads covered by e_original1
     // and the other without them.
-    cout << "input node " << *n_original << " and edges " << *e_original1 << " and " << *e_original2 << endl;
+    //cout << "input node " << *n_original << " and edges " << *e_original1 << " and " << *e_original2 << endl;
     assert(n_original == e_original1->from or n_original == e_original1->to);
 
     // give a unique id
@@ -229,24 +229,24 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
 
     // create new edges
     PanEdge *e1, *e2;
-    cout << "add edge equivalent to " << *e_original1 << endl;
+    //cout << "add edge equivalent to " << *e_original1 << endl;
     if (n_original == e_original1->from)
     {
-	cout << "try to add edge " << n->node_id << " -> " << e_original1->to->node_id << " " << e_original1->orientation << endl;
+	//cout << "try to add edge " << n->node_id << " -> " << e_original1->to->node_id << " " << e_original1->orientation << endl;
    	e1 = add_edge(n->node_id, e_original1->to->node_id, e_original1->orientation);
     } else if (n_original == e_original1->to)
     {
-	cout << "try to add edge " << e_original1->from->node_id << " -> " << n->node_id << " " << e_original1->orientation << endl;
+	//cout << "try to add edge " << e_original1->from->node_id << " -> " << n->node_id << " " << e_original1->orientation << endl;
 	e1 = add_edge(e_original1->from->node_id, n->node_id, e_original1->orientation);
     }
-    cout << "add edge equivalent to " << *e_original2 << endl;
+    //cout << "add edge equivalent to " << *e_original2 << endl;
     if (n_original == e_original2->from)
     {
-	cout << "try to add edge " << n->node_id << " -> " << e_original2->to->node_id << " " << e_original2->orientation << endl;   
+	//cout << "try to add edge " << n->node_id << " -> " << e_original2->to->node_id << " " << e_original2->orientation << endl;   
         e2 = add_edge(n->node_id, e_original2->to->node_id, e_original2->orientation);
     } else if (n_original == e_original2->to)
     {
-	cout << "try to add edge " << e_original2->from->node_id << " -> " << n->node_id << " " << e_original2->orientation << endl;
+	//cout << "try to add edge " << e_original2->from->node_id << " -> " << n->node_id << " " << e_original2->orientation << endl;
         e2 = add_edge(e_original2->from->node_id, n->node_id, e_original2->orientation);
     }
     // we are going to add covg for each read, so subtract the covg added by creating the edge
@@ -254,95 +254,86 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
     e2->covg -= 1;
     
     // amend reads
-    cout << "now fix reads" << endl;
+    //cout << "now fix reads" << endl;
     vector<PanEdge*>::iterator it, it2;
     unordered_set<PanRead*>::iterator r = e_original1->reads.begin();
     while (r!=e_original1->reads.end())
     {
-	cout << **r << endl;
+	//cout << **r << endl;
 
 	// add read to new node n and remove from n_original
-	cout << "remove read from n_original " << *n_original << endl;
+	//cout << "remove read from n_original " << *n_original << endl;
 	n_original->reads.erase(*r);
         n_original->covg -= 1;
-	cout << *n_original << endl;
-	cout << "add read to n " << *n << endl;
+	//cout << *n_original << endl;
+	//cout << "add read to n " << *n << endl;
         n->reads.insert(*r);
         n->covg += 1;
-        cout << *n << endl;
+        //cout << *n << endl;
 
         // replace e_original2
-        cout << "replace " << *e_original2 << endl;
+        //cout << "replace " << *e_original2 << endl;
         it = (*r)->get_edge(e_original2);
 	if (it != (*r)->edges.end())
 	{
-	    cout << "found " << **it << endl;
+	    //cout << "found " << **it << endl;
             it = (*r)->edges.erase(it);
-	    cout << "after erasing, r is " << **r << endl;
+	    //cout << "after erasing, r is " << **r << endl;
             it = (*r)->edges.insert(it, e2);
-	    cout << "after inserting, r is " << **r << endl;
+	    //cout << "after inserting, r is " << **r << endl;
 	    e2->reads.insert(*r);
 	    e2->covg += 1;
             e_original2->reads.erase(*r);
             e_original2->covg -= 1;
-	    cout << "edge " << *e_original2 << endl;
+	    //cout << "edge " << *e_original2 << endl;
 	}
 
 	// replace e_original1 in read
-	cout << "replace " << *e_original1 << endl;
+	//cout << "replace " << *e_original1 << endl;
         it = (*r)->get_edge(e_original1);
-	cout << "found " << **it << endl;
+	//cout << "found " << **it << endl;
         it = (*r)->edges.erase(it);
-	cout << "after erasing, r is " << **r << endl;
+	//cout << "after erasing, r is " << **r << endl;
         it = (*r)->edges.insert(it, e1);
-	cout << "after inserting, r is " << **r << endl;
+	//cout << "after inserting, r is " << **r << endl;
         e1->reads.insert(*r);
 	e1->covg += 1;
         r = e_original1->reads.erase(r);
         e_original1->covg -= 1;
-	cout << "edge " << *e_original2 << endl;
+	//cout << "edge " << *e_original2 << endl;
     }
 
     // if e_original1 or e_original2 now have 0 covg, delete both from nodes and graph
-    cout << "last bit" << endl;
     if (e_original2->covg == 0)
     {
         assert(e_original2->reads.size() == 0);
         e_original2->from->edges.erase(std::remove(e_original2->from->edges.begin(), e_original2->from->edges.end(), e_original2), e_original2->from->edges.end());
         e_original2->to->edges.erase(std::remove(e_original2->to->edges.begin(), e_original2->to->edges.end(), e_original2), e_original2->to->edges.end());
 	it = find(edges.begin(), edges.end(), e_original2);
-	cout << "delete " << *e_original2 << endl;
+	//cout << "delete " << *e_original2 << endl;
         delete e_original2;
         edges.erase(it);
     }
 
     assert(e_original1->covg == 0);
     assert(e_original1->reads.size() == 0);
-    cout << "1" << endl;
     if (e_original1->to == n_original)
     {
-	cout << "2" << endl;
         e_original1->from->edges.erase(std::remove(e_original1->from->edges.begin(), e_original1->from->edges.end(), e_original1), e_original1->from->edges.end());
-	cout << "3" << endl;
 	//it = e_original1->to->edges.erase(std::remove(e_original1->to->edges.begin(), e_original1->to->edges.end(), e_original1), e_original1->to->edges.end());
 	it = find(n_original->edges.begin(), n_original->edges.end(), e_original1);
 	it = n_original->edges.erase(it);
-	cout << "4" << endl;
     } else {
-	cout << "5" << endl;
 	//it = e_original1->from->edges.erase(std::remove(e_original1->from->edges.begin(), e_original1->from->edges.end(), e_original1), e_original1->from->edges.end());
 	it = find(n_original->edges.begin(), n_original->edges.end(), e_original1);
         it = n_original->edges.erase(it);
-	cout << "6" << endl;
     	e_original1->to->edges.erase(std::remove(e_original1->to->edges.begin(), e_original1->to->edges.end(), e_original1), e_original1->to->edges.end());
-	cout << "7" << endl;
     }
-    cout << " have removed e_original1 from to and from" << endl;
+    //cout << " have removed e_original1 from to and from" << endl;
     it2 = find(edges.begin(), edges.end(), e_original1);
-    cout << "delete " << *e_original1 << endl;
+    //cout << "delete " << *e_original1 << endl;
     delete e_original1;
     edges.erase(it2);   
-    cout << "done " << endl;
     
     return it;	    
 }
