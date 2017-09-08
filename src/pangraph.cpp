@@ -177,7 +177,7 @@ uint combine_orientations(uint f, uint t)
     }
     return fix;
 }
-PanEdge* PanGraph::add_shortcut_edge(const vector<PanEdge*>::iterator prev, const vector<PanEdge*>::iterator current)
+PanEdge* PanGraph::add_shortcut_edge(const vector<PanEdge*>::iterator prev, const vector<PanEdge*>::iterator current, PanRead* r)
 {
     PanEdge* e;
 
@@ -187,21 +187,25 @@ PanEdge* PanGraph::add_shortcut_edge(const vector<PanEdge*>::iterator prev, cons
         e = add_edge((*prev)->from->node_id, (*current)->to->node_id, combine_orientations((*prev)->orientation, (*current)->orientation));
         //cout << "decrease covg on node " << (*prev)->to->node_id << endl;
         (*prev)->to->covg -= 1;
+	(*prev)->to->reads.erase(r);
     } else if ((*prev)->to->node_id == (*current)->to->node_id and (*prev)->from->node_id != (*current)->from->node_id)
     {
         e = add_edge((*prev)->from->node_id, (*current)->from->node_id, combine_orientations((*prev)->orientation, rev_orient((*current)->orientation)));
         //cout << "decrease covg on node " << (*prev)->to->node_id << endl;
         (*prev)->to->covg -= 1;
+	(*prev)->to->reads.erase(r);
     } else if ((*prev)->from->node_id == (*current)->to->node_id and (*prev)->to->node_id != (*current)->from->node_id)
     {
         e = add_edge((*prev)->to->node_id, (*current)->from->node_id, combine_orientations(rev_orient((*prev)->orientation), rev_orient((*current)->orientation)));
         //cout << "decrease covg on node " << (*prev)->from->node_id << endl;
         (*prev)->from->covg -= 1;
+	(*prev)->from->reads.erase(r);
     } else if ((*prev)->from->node_id == (*current)->from->node_id and (*prev)->to->node_id != (*current)->to->node_id)
     {
         e = add_edge((*prev)->to->node_id, (*current)->to->node_id, combine_orientations(rev_orient((*prev)->orientation), (*current)->orientation));
         //cout << "decrease covg on node " << (*prev)->from->node_id << endl;
         (*prev)->from->covg -= 1;
+	(*prev)->from->reads.erase(r);
     } else {
 	e = nullptr;
     }
@@ -404,18 +408,21 @@ void PanGraph::read_clean(const uint& thresh)
 	    if ((*prev)->covg <= thresh and (*current)->covg <= thresh)
 	    {
 		cout << "edges " << **prev << " and " << **current << " have low covg";
-		e = add_shortcut_edge(prev, current);
+		e = add_shortcut_edge(prev, current, read->second);
 
 		if (e != nullptr)
 		{
 		    (*current)->covg -= 1;
+		    (*current)->reads.erase(read->second);
                     current = read->second->edges.erase(current);
 
 		    (*prev)->covg -= 1;
+		    (*prev)->reads.erase(read->second);
 		    prev = read->second->edges.erase(prev);
 		    prev = read->second->edges.insert(prev, e);
 		    assert((*prev == e));
 
+		    e->reads.insert(read->second);
 		    cout << " so replace with " << *e << endl;
 		} else {
 		    // this can only happen if we had something circular like A->B and B->A, in which case we want to delete both
@@ -423,16 +430,20 @@ void PanGraph::read_clean(const uint& thresh)
 		    if (current + 1 != read->second->edges.end() and current + 2 != read->second->edges.end())
                     {
 			(*current)->covg -= 1;
+			(*current)->reads.erase(read->second);
 		        current = read->second->edges.erase(current);
 			(*prev)->covg -= 1;
+			(*prev)->reads.erase(read->second);
 		        prev = read->second->edges.erase(prev);
 		        prev = current;
 			++current;
 		    } else {
 			//cout << "current was end so delete and break" << endl;
 			(*current)->covg -= 1;
+			(*current)->reads.erase(read->second);
 			read->second->edges.erase(current);
 			(*prev)->covg -= 1;
+			(*prev)->reads.erase(read->second);
 			read->second->edges.erase(prev);
 			break;
 		    }
