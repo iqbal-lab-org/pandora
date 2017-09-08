@@ -316,52 +316,163 @@ TEST_F(PanGraphTest, split_node_by_edges)
     pg1.add_node(3,"3",2, mhs);
     pg1.add_node(4,"4",2, mhs);
 
-    cout << "pg1:" << endl;
-    cout << pg1 << endl;
-    cout << "edges in order" << endl;
-    for (auto e : pg1.edges)
-    {
-	cout << *e << endl;
-    }
-
-    // check we are testing the right node/edges
-    EXPECT_EQ((uint)5, pg1.nodes.size());
-    EXPECT_EQ((uint)5, pg1.edges.size());
-    EXPECT_EQ((uint)1, pg1.nodes[1]->node_id);
-    EXPECT_EQ((uint)1, pg1.edges[4]->to->node_id);
-    EXPECT_EQ((uint)1, pg1.edges[0]->to->node_id);
-    EXPECT_EQ((uint)3, pg1.edges[4]->from->node_id);
-    EXPECT_EQ((uint)0, pg1.edges[0]->from->node_id);
+    // read 0: 0->1->2->3 
+    pg2.add_node(0,"0",0, mhs);
+    pg2.add_node(1,"1",0, mhs);
+    pg2.add_edge(0,1,3,0);
+    pg2.add_node(2,"2",0, mhs);
+    pg2.add_edge(1,2,3,0);
+    pg2.add_node(3,"3",0, mhs);
+    pg2.add_edge(2,3,3,0);
+    // read 1: -4 -> -3 -> -5
+    pg2.add_node(4,"4",1, mhs);
+    pg2.add_edge(4,3,0,1);
+    pg2.add_node(5,"5",1, mhs);
+    pg2.add_edge(3,5,0,1);
+    pg2.add_node(3,"3",1, mhs);
+    // read 2: 0 -> 5 -> 3 -> 4
+    pg2.add_edge(0,5,3,2);
+    pg2.add_edge(5,3,3,2);
+    pg2.add_edge(3,4,3,2);
+    pg2.add_node(0,"0",2, mhs);
+    pg2.add_node(5,"5",2, mhs);
+    pg2.add_node(3,"3",2, mhs);
+    pg2.add_node(4,"4",2, mhs); 
 
     // run split
     pg1.split_node_by_edges(pg1.nodes[1], pg1.edges[4], pg1.edges[0]);
     
-    cout << "pg1:" << endl;
-    cout << pg1 << endl;
+    EXPECT_EQ(pg2, pg1);
+    EXPECT_EQ(pg1, pg2);
+}
 
-    // check graph looks as we expect after
-    EXPECT_EQ((uint)6, pg1.nodes.size());
-    EXPECT_EQ((uint)6, pg1.edges.size());
-    EXPECT_EQ((uint)2, pg1.nodes[0]->edges.size()); // expect edges 0->1 and 0->5
-    EXPECT_EQ((uint)2, pg1.nodes[1]->edges.size());
-    EXPECT_EQ((uint)2, pg1.nodes[2]->edges.size());
-    EXPECT_EQ((uint)3, pg1.nodes[3]->edges.size()); 
-    EXPECT_EQ((uint)1, pg1.nodes[4]->edges.size());
-    EXPECT_EQ((uint)2, pg1.nodes[5]->edges.size());
-    EXPECT_EQ((uint)1, pg1.edges[0]->reads.size());
-    EXPECT_EQ((uint)1, pg1.edges[1]->reads.size());
-    EXPECT_EQ((uint)1, pg1.edges[2]->reads.size());
-    EXPECT_EQ((uint)2, pg1.edges[3]->reads.size());
-    EXPECT_EQ((uint)2, pg1.edges[4]->reads.size());
-    EXPECT_EQ((uint)1, pg1.edges[5]->reads.size());
-    EXPECT_EQ(pg1.edges[0], pg1.reads[0]->edges[0]);
-    EXPECT_EQ(pg1.edges[1], pg1.reads[0]->edges[1]);
-    EXPECT_EQ(pg1.edges[2], pg1.reads[0]->edges[2]);
-    EXPECT_EQ(pg1.edges[3], pg1.reads[1]->edges[0]);
-    EXPECT_EQ(pg1.edges[4], pg1.reads[1]->edges[1]);
-    EXPECT_EQ(pg1.edges[5], pg1.reads[2]->edges[0]);
-    EXPECT_EQ(pg1.edges[4], pg1.reads[2]->edges[1]);
-    EXPECT_EQ(pg1.edges[3], pg1.reads[2]->edges[2]);
+TEST_F(PanGraphTest, split_nodes_by_reads)
+{
+    set<MinimizerHit*, pComp> mhs;
+
+    PanGraph pg1, pg2;
+    // read 0: 0->1->2->3
+    pg1.add_node(0,"0",0, mhs);
+    pg1.add_node(1,"1",0, mhs);
+    pg1.add_edge(0,1,3,0);
+    pg1.add_node(2,"2",0, mhs);
+    pg1.add_edge(1,2,3,0);
+    pg1.add_node(3,"3",0, mhs);
+    pg1.add_edge(2,3,3,0);
+    // read 1: -4 -> -3 -> -1
+    pg1.add_node(4,"4",1, mhs);
+    pg1.add_edge(4,3,0,1);
+    pg1.add_edge(3,1,0,1);
+    pg1.add_node(3,"3",1, mhs);
+    pg1.add_node(1,"1",1, mhs);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg1.add_edge(0,1,3,2);
+    pg1.add_edge(1,3,3,2);
+    pg1.add_edge(3,4,3,2);
+    pg1.add_node(0,"0",2, mhs);
+    pg1.add_node(1,"1",2, mhs);
+    pg1.add_node(3,"3",2, mhs);
+    pg1.add_node(4,"4",2, mhs);
+
+    // read 0: 0->5->2->3 
+    pg2.add_node(0,"0",0, mhs);
+    pg2.add_node(5,"5",0, mhs);
+    pg2.add_edge(0,5,3,0);
+    pg2.add_node(2,"2",0, mhs);
+    pg2.add_edge(5,2,3,0);
+    pg2.add_node(3,"3",0, mhs);
+    pg2.add_edge(2,3,3,0);
+    // read 1: -4 -> -6 -> -1
+    pg2.add_node(4,"4",1, mhs);
+    pg2.add_node(6,"6",1, mhs);
+    pg2.add_edge(4,6,0,1);
+    pg2.add_node(1,"1",1, mhs);
+    pg2.add_edge(6,1,0,1);
+    // read 2: 0 -> 1 -> 6 -> 4
+    pg2.add_edge(0,1,3,2);
+    pg2.add_edge(1,6,3,2);
+    pg2.add_edge(6,4,3,2);
+    pg2.add_node(0,"0",2, mhs);
+    pg2.add_node(1,"1",2, mhs);
+    pg2.add_node(6,"6",2, mhs);
+    pg2.add_node(4,"4",2, mhs);
+
+    // run split
+    pg1.split_nodes_by_reads(2);
+
+    EXPECT_EQ(pg2, pg1);
+    EXPECT_EQ(pg1, pg2);
+
+    // second example, with a 3 way split
+    PanGraph pg3, pg4;
+    // read 0: 0->1->2->3
+    pg3.add_node(0,"0",0, mhs);
+    pg3.add_node(1,"1",0, mhs);
+    pg3.add_edge(0,1,3,0);
+    pg3.add_node(2,"2",0, mhs);
+    pg3.add_edge(1,2,3,0);
+    pg3.add_node(3,"3",0, mhs);
+    pg3.add_edge(2,3,3,0);
+    // read 1: -4 -> -3 -> -1
+    pg3.add_node(4,"4",1, mhs);
+    pg3.add_edge(4,3,0,1);
+    pg3.add_edge(3,1,0,1);
+    pg3.add_node(3,"3",1, mhs);
+    pg3.add_node(1,"1",1, mhs);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg3.add_edge(0,1,3,2);
+    pg3.add_edge(1,3,3,2);
+    pg3.add_edge(3,4,3,2);
+    pg3.add_node(0,"0",2, mhs);
+    pg3.add_node(1,"1",2, mhs);
+    pg3.add_node(3,"3",2, mhs);
+    pg3.add_node(4,"4",2, mhs); 
+    // read 3: 0 -> 1 -> 5 -> 4
+    pg3.add_node(0,"0",4, mhs);
+    pg3.add_node(1,"1",4, mhs);
+    pg3.add_edge(0,1,3,4);
+    pg3.add_node(5,"5",4, mhs);
+    pg3.add_node(4,"4",4, mhs);
+    pg3.add_edge(1,5,3,4);
+    pg3.add_edge(5,4,3,4);
+
+    cout << endl << "new test " << endl << endl;
+    // read 0: 0->6->2->3
+    pg4.add_node(0,"0",0, mhs);
+    pg4.add_node(6,"6",0, mhs);
+    pg4.add_edge(0,6,3,0);
+    pg4.add_node(2,"2",0, mhs);
+    pg4.add_edge(6,2,3,0);
+    pg4.add_node(3,"3",0, mhs);
+    pg4.add_edge(2,3,3,0);
+    // read 1: -4 -> -8 -> -7
+    pg4.add_node(4,"4",1, mhs);
+    pg4.add_node(8,"8",1, mhs);
+    pg4.add_edge(4,8,0,1);
+    pg4.add_node(7,"7",1, mhs);
+    pg4.add_edge(8,7,0,1);
+    // read 2: 0 -> 7 -> 8 -> 4
+    pg4.add_edge(0,7,3,2);
+    pg4.add_edge(7,8,3,2);
+    pg4.add_edge(8,4,3,2);
+    pg4.add_node(0,"0",2, mhs);
+    pg4.add_node(7,"7",2, mhs);
+    pg4.add_node(8,"8",2, mhs);
+    pg4.add_node(4,"4",2, mhs);
+    // read 3: 0 -> 1 -> 5 -> 4
+    pg4.add_node(0,"0",4, mhs);
+    pg4.add_node(1,"1",4, mhs);
+    pg4.add_node(5,"5",4, mhs);
+    pg4.add_node(4,"4",4, mhs);
+    pg4.add_edge(0,1,3,4);
+    pg4.add_edge(1,5,3,4);
+    pg4.add_edge(5,4,3,4);
+    
+    // run split
+    pg3.split_nodes_by_reads(2);
+
+    EXPECT_EQ(pg4, pg3);
+    EXPECT_EQ(pg3, pg4);
 }
 
 TEST_F(PanGraphTest, read_clean)

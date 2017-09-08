@@ -213,8 +213,8 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
 {
     // results in two copies of n_original, one keeping the reads covered by e_original1
     // and the other without them.
-    assert(n_original == e_original1->from or n_original == e_original1->to);
     cout << "input node " << *n_original << " and edges " << *e_original1 << " and " << *e_original2 << endl;
+    assert(n_original == e_original1->from or n_original == e_original1->to);
 
     // give a unique id
     while( nodes.find(next_id) != nodes.end() )
@@ -227,11 +227,8 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
     n->covg = 0;
     nodes[next_id] = n;
 
-    // fix up edges
+    // create new edges
     PanEdge *e1, *e2;
-    vector<PanEdge*>::iterator it;
-
-    // define new e1, e2
     cout << "add edge equivalent to " << *e_original1 << endl;
     if (n_original == e_original1->from)
     {
@@ -256,7 +253,9 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
     e1->covg -= 1;
     e2->covg -= 1;
     
+    // amend reads
     cout << "now fix reads" << endl;
+    vector<PanEdge*>::iterator it, it2;
     unordered_set<PanRead*>::iterator r = e_original1->reads.begin();
     while (r!=e_original1->reads.end())
     {
@@ -304,7 +303,7 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
 	cout << "edge " << *e_original2 << endl;
     }
 
-    // if e_original1 or e_original2 now have 0 covg, delete
+    // if e_original1 or e_original2 now have 0 covg, delete both from nodes and graph
     cout << "last bit" << endl;
     if (e_original2->covg == 0)
     {
@@ -319,12 +318,31 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
 
     assert(e_original1->covg == 0);
     assert(e_original1->reads.size() == 0);
-    e_original1->from->edges.erase(std::remove(e_original1->from->edges.begin(), e_original1->from->edges.end(), e_original1), e_original1->from->edges.end());
-    e_original1->to->edges.erase(std::remove(e_original1->to->edges.begin(), e_original1->to->edges.end(), e_original1), e_original1->to->edges.end());
-    it = find(edges.begin(), edges.end(), e_original1);
+    cout << "1" << endl;
+    if (e_original1->to == n_original)
+    {
+	cout << "2" << endl;
+        e_original1->from->edges.erase(std::remove(e_original1->from->edges.begin(), e_original1->from->edges.end(), e_original1), e_original1->from->edges.end());
+	cout << "3" << endl;
+	//it = e_original1->to->edges.erase(std::remove(e_original1->to->edges.begin(), e_original1->to->edges.end(), e_original1), e_original1->to->edges.end());
+	it = find(n_original->edges.begin(), n_original->edges.end(), e_original1);
+	it = n_original->edges.erase(it);
+	cout << "4" << endl;
+    } else {
+	cout << "5" << endl;
+	//it = e_original1->from->edges.erase(std::remove(e_original1->from->edges.begin(), e_original1->from->edges.end(), e_original1), e_original1->from->edges.end());
+	it = find(n_original->edges.begin(), n_original->edges.end(), e_original1);
+        it = n_original->edges.erase(it);
+	cout << "6" << endl;
+    	e_original1->to->edges.erase(std::remove(e_original1->to->edges.begin(), e_original1->to->edges.end(), e_original1), e_original1->to->edges.end());
+	cout << "7" << endl;
+    }
+    cout << " have removed e_original1 from to and from" << endl;
+    it2 = find(edges.begin(), edges.end(), e_original1);
     cout << "delete " << *e_original1 << endl;
     delete e_original1;
-    it = edges.erase(it);
+    edges.erase(it2);   
+    cout << "done " << endl;
     
     return it;	    
 }
@@ -335,12 +353,14 @@ void PanGraph::split_nodes_by_reads(const uint& thresh)
     {
         if (n.second->edges.size() > 2 and n.second->covg > thresh)
         {
-            for (vector<PanEdge*>::iterator it=edges.begin(); it!= edges.end(); ++it)
+	    vector<PanEdge*>::iterator it=n.second->edges.begin();
+            while (it!= n.second->edges.end() and n.second->edges.size() > 2)
             {
                 // see if all reads along this edge enter/leave the node along the same edge
                 unordered_set<PanEdge*> s;
                 for (auto r : (*it)->reads)
                 {
+		    cout << "look at node " << n.first << " edge " << **it << " and read " << *r << endl;
                     vector<PanEdge*>::iterator found = r->get_other_edge(*it, n.second);
                     if ( found != r->edges.end())
                     {
@@ -353,10 +373,12 @@ void PanGraph::split_nodes_by_reads(const uint& thresh)
                 }
 
                 // if they do, clone the node
-                if (s.size() == 2)
+                if (s.size() == 1)
                 {
                     it = split_node_by_edges(n.second, *it, *s.begin());
-                }
+                } else {
+		    ++it;
+		}
             }
         }
     }
