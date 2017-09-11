@@ -48,7 +48,7 @@ vector<PanEdge*>::iterator PanRead::get_previous_edge(const PanEdge* e)
 
 vector<PanEdge*>::iterator PanRead::get_other_edge(const PanEdge* e, const PanNode* n)
 {
-    cout << "get other edge containing node " << *n << " which isn't " << *e << endl;
+    //cout << "get other edge containing node " << *n << " which isn't " << *e << endl;
     // get the other edge in read containing node n
     vector<PanEdge*>::iterator found = get_next_edge(e);
     if (found != edges.end() and ((*found)->from == n or (*found)->to == n))

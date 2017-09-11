@@ -44,8 +44,8 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
     // initializations
     uint c, i, i_, num_minis_found=0;
     uint64_t shift1 = 2 * (k - 1), mask = (1ULL<<2*k) - 1, smallest, kmer[2] = {0,0}, kh[2] = {0,0};
-    deque<Minimizer*> vm;
-    //vm.reserve(w); can't reserve a deque
+    vector<Minimizer*> vm;
+    vm.reserve(w); //can't reserve a deque
     Minimizer* m;
 
     char myArray[seq.size()+1];//as 1 char space for null is also required
@@ -101,10 +101,11 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 		}
 	    }
 
-            for (i=0; i!=i_+1; ++i)
+	    vm.erase(vm.begin(), vm.begin()+i_+1);
+            /*for (i=0; i!=i_+1; ++i)
             {
 		vm.pop_front();
-	    }
+	    }*/
 	    
 	    assert(vm.size() < w || assert_msg("we can't have added a smallest kmer correctly as vm still has size " << vm.size()));
 	} else if ( buff >= w+k-1 and vm.back()->kmer <= smallest)
@@ -134,7 +135,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
     }
     //cout << "num_minis_found " << num_minis_found << " and sketch size " << sketch.size() << endl;
     assert(num_minis_found == sketch.size());
-    //cout << now() << "Sketch size " << sketch.size() << " for read " << name << endl;
+    cout << now() << "Sketch size " << sketch.size() << " for read " << name << endl;
     return;
 }
 

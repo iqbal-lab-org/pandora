@@ -226,6 +226,12 @@ void KmerGraph::set_p(const float e_rate)
 
 float KmerGraph::prob(uint j)
 {
+    if (sorted_nodes.size() == 0 and nodes.size() > 0)
+    {
+	sort_topologically();
+        check();
+    }
+	
     float ret;
     if (j==sorted_nodes[0]->id or j==sorted_nodes.back()->id)
     {    ret = 0; // is really undefined
@@ -255,7 +261,7 @@ float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
     
     // need to catch if thesh not set too...
 
-    if (sorted_nodes.size() == 0)
+    if (sorted_nodes.size() == 0 and nodes.size() > 0)
     {
 	sort_topologically();
         check();

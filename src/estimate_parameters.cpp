@@ -177,7 +177,7 @@ void estimate_parameters(PanGraph* pangraph, string& prefix, uint32_t k, float& 
     if (num_reads > 30)
     {
         mean_covg = find_mean_covg(kmer_covg_dist);
-	cout << "found mean covg " << mean_covg << " and avg num reads " << num_reads << endl;
+	cout << "found mean kmer covg " << mean_covg << " and avg num reads covering node" << num_reads << endl;
 	if (mean_covg > 0)
 	{   
             cout << now() << "Estimated error rate updated from " << e_rate << " to ";
@@ -193,7 +193,7 @@ void estimate_parameters(PanGraph* pangraph, string& prefix, uint32_t k, float& 
     for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode)
     {
 	pnode->second->kmer_prg.set_p(e_rate);
-        for (uint i=1; i!=pnode->second->kmer_prg.nodes.size()-1; ++i) //NB first and last kmer in kmergraph are null
+        for (uint i=1; i<pnode->second->kmer_prg.nodes.size()-1; ++i) //NB first and last kmer in kmergraph are null
         {
             p = pnode->second->kmer_prg.prob(i);
             for (int j = 0; j<200; ++j)

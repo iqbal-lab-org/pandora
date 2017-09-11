@@ -993,7 +993,7 @@ void LocalPRG::find_path_and_variants(PanNode* pnode, const string& prefix, uint
 
     	write_max_path_to_fasta(prefix + "." + new_name + ".kmlp.fasta", lmp, ppath);
 	
-    	cout << now() << "LocalPRG ids on max likelihood path: "; 
+    	cout << now() << "LocalPRG ids on max likelihood path for " << name << " : "; 
     	for (uint i=0; i!=lmp.size(); ++i)
     	{
 	    cout << lmp[i]->id << " ";
