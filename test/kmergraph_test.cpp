@@ -228,7 +228,7 @@ TEST_F(KmerGraphTest, equals)
     EXPECT_EQ((kg2==kg1), false);
 }
 
-TEST_F(KmerGraphTest, sort_topologically)
+/*TEST_F(KmerGraphTest, sort_topologically)
 {
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
@@ -274,7 +274,7 @@ TEST_F(KmerGraphTest, sort_topologically)
     	    EXPECT_EQ((it != kg.nodes.end()), true);
         }
     }
-}
+}*/
 
 TEST_F(KmerGraphTest,findMaxPathSimple)
 {
@@ -410,7 +410,7 @@ TEST_F(KmerGraphTest,findMaxPath2Level)
     EXPECT_ITERABLE_EQ(vector<KmerNode*>, exp_order, mp);
 }
 
-TEST_F(KmerGraphTest,random_paths)
+/*TEST_F(KmerGraphTest,random_paths)
 {
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
@@ -484,7 +484,7 @@ TEST_F(KmerGraphTest,random_paths)
 	}
 	//cout << endl;
     }
-}
+}*/
 
 TEST_F(KmerGraphTest,path_prob)
 {

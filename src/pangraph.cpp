@@ -582,9 +582,11 @@ void PanGraph::add_hits_to_kmergraphs(const vector<LocalPRG*>& prgs)
         {
             for (set<MinimizerHit*, pComp_path>::iterator mh = read->hits[pnode.second->node_id].begin(); mh != read->hits[pnode.second->node_id].end(); ++mh)
             {
-		bool added = false;
+		//bool added = false;
                 // update the covg in the kmer_prg
-                for (uint i=0; i!=pnode.second->kmer_prg.nodes.size(); ++i)
+		pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] += 1;
+		num_hits[(*mh)->strand] += 1;
+                /*for (uint i=0; i!=pnode.second->kmer_prg.nodes.size(); ++i)
                 {
                     if (pnode.second->kmer_prg.nodes[i]->path == (*mh)->prg_path)
                     {
@@ -594,7 +596,7 @@ void PanGraph::add_hits_to_kmergraphs(const vector<LocalPRG*>& prgs)
                         break;
                     }
                 }
-                assert(added == true || assert_msg("could not find kmernode corresponding to " << **mh));
+                assert(added == true || assert_msg("could not find kmernode corresponding to " << **mh));*/
             }
         }
         cout << now() << "Added " << num_hits[1] << " hits in the forward direction and " << num_hits[0] << " hits in the reverse" << endl;

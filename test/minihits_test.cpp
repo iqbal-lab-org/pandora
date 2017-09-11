@@ -34,7 +34,7 @@ TEST_F(MinimizerHitsTest,add_hit){
     Path p;
     p.initialize(d);
     MiniRecord* mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     mhits.add_hit(1, m, mr);
     EXPECT_EQ((uint)1, mhits.uhits.size());   
     //mhits.add_hit(1, m, mr);
@@ -50,14 +50,14 @@ TEST_F(MinimizerHitsTest,add_hit){
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     mhits.add_hit(1, m, mr);
     EXPECT_EQ((uint)4, mhits.uhits.size());
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     mhits.add_hit(1, m, mr);
     EXPECT_EQ((uint)5, mhits.uhits.size());
 
@@ -80,7 +80,7 @@ TEST_F(MinimizerHitsTest, pComp) {
     Path p;
     p.initialize(d);
     MiniRecord* mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     mhits.add_hit(1, m, mr);
     expected.push_back(MinimizerHit(1, m, mr));
     mhits.add_hit(0, m, mr);
@@ -92,14 +92,14 @@ TEST_F(MinimizerHitsTest, pComp) {
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     mhits.add_hit(1, m, mr);
     expected.push_back(MinimizerHit(1, m, mr));
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     mhits.add_hit(1, m, mr);
     expected.push_back(MinimizerHit(1, m, mr));
 
@@ -128,7 +128,7 @@ TEST_F(MinimizerHitsTest, pComp_path) {
     Path p;
     p.initialize(d);
     MiniRecord* mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     mhits.add_hit(0, m, mr);
     expected.push_back(MinimizerHit(0, m, mr));
     mhits.add_hit(1, m, mr);
@@ -142,14 +142,14 @@ TEST_F(MinimizerHitsTest, pComp_path) {
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     mhits.add_hit(1, m, mr);
     expected.push_front(MinimizerHit(1, m, mr));
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     mhits.add_hit(1, m, mr);
     expected.push_front(MinimizerHit(1, m, mr));
 
@@ -183,7 +183,7 @@ TEST_F(MinimizerHitsTest, clusterComp){
     Path p;
     p.initialize(d);
     MiniRecord* mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     MinimizerHit* mh;
     mh = new MinimizerHit(1, m, mr);
     current_cluster.insert(mh);
@@ -204,7 +204,7 @@ TEST_F(MinimizerHitsTest, clusterComp){
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     mh = new MinimizerHit(1, m, mr);
     current_cluster.insert(mh);
     expected2.push_back(mh);
@@ -212,7 +212,7 @@ TEST_F(MinimizerHitsTest, clusterComp){
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     mh = new MinimizerHit(1, m, mr);
     current_cluster.insert(mh);
     expected2.push_back(mh);

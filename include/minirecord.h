@@ -9,9 +9,10 @@ struct MiniRecord
 {
     uint32_t prg_id;
     Path path;
+    uint32_t knode_id;
     bool strand;
     MiniRecord();
-    MiniRecord(const uint32_t, const Path, const bool);
+    MiniRecord(const uint32_t, const Path, const uint32_t, const bool);
     ~MiniRecord();
     bool operator == (const MiniRecord& y) const;
     friend std::ostream& operator<< (std::ostream& out, const MiniRecord& m);

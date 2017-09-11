@@ -39,19 +39,18 @@ KmerGraph::KmerGraph(const KmerGraph& other)
 
     // create deep copies of the nodes, minus the edges
     KmerNode* n;
-    for (uint i=0; i<other.nodes.size(); ++i)
-    {   
-        assert(other.nodes[i]->id == i);
-        n = new KmerNode(*other.nodes[i]);
-        nodes.push_back(n);
+    for (unordered_map<uint32_t, KmerNode*>::const_iterator it=other.nodes.begin(); it!=other.nodes.end(); ++it)
+    {
+	n = new KmerNode((*it->second));
+	nodes[it->first] = n;
     }
 
     // now need to copy the edges
-    for (uint i=0; i<other.nodes.size(); ++i)
+    for (auto c : other.nodes)
     {
-	for (uint j=0; j<other.nodes[i]->outNodes.size(); ++j)
+	for (uint j=0; j<c.second->outNodes.size(); ++j)
 	{
-	    add_edge(nodes[i], nodes[other.nodes[i]->outNodes[j]->id]);
+	    add_edge(nodes[c.first], nodes[c.second->outNodes[j]->id]);
 	}
     }
 }
@@ -66,7 +65,7 @@ KmerGraph& KmerGraph::operator=(const KmerGraph& other)
     // first we need to deallocate for any nodes already got!
     for (auto c: nodes)
     {
-        delete c;
+        delete c.second;
     }
     nodes.clear();
 
@@ -80,19 +79,18 @@ KmerGraph& KmerGraph::operator=(const KmerGraph& other)
 
     // deep copy the vector of node pointers, excluding edges
     KmerNode* n;
-    for (uint i=0; i<other.nodes.size(); ++i)
+    for (unordered_map<uint32_t, KmerNode*>::const_iterator it=other.nodes.begin(); it!=other.nodes.end(); ++it)
     {
-	assert(other.nodes[i]->id == i);
-	n = new KmerNode(*other.nodes[i]);
-	nodes.push_back(n);
+        n = new KmerNode(*(it->second));
+        nodes[it->first] = n;
     }
 
     // now need to copy the edges
-    for (uint i=0; i<other.nodes.size(); ++i)
+    for (auto c : other.nodes)
     {
-        for (uint j=0; j<other.nodes[i]->outNodes.size(); ++j)
+        for (uint j=0; j<c.second->outNodes.size(); ++j)
         {
-            add_edge(nodes[i], nodes[other.nodes[i]->outNodes[j]->id]);
+            add_edge(nodes[c.first], nodes[c.second->outNodes[j]->id]);
         }
     }
 
@@ -108,7 +106,7 @@ void KmerGraph::clear()
 {
     for (auto c: nodes)
     {
-        delete c;
+        delete c.second;
     }
     nodes.clear();
     assert(nodes.size() == 0);
@@ -122,26 +120,24 @@ void KmerGraph::clear()
 
 KmerNode* KmerGraph::add_node (const Path& p)
 {
-    KmerNode *n;
-    n = new KmerNode(next_id, p);
-    pointer_values_equal<KmerNode> eq = { n };
-    vector<KmerNode*>::iterator it = find_if(nodes.begin(), nodes.end(), eq);
-    if ( it == nodes.end() )
+    for (auto c : nodes)
     {
-	nodes.push_back(n);
-	//cout << "added node " << *n;
-	assert(k==0 or p.length()==0 or p.length()==k);
-	if (k == 0 and p.length() > 0)
+	if (c.second->path == p)
 	{
-	    k = p.length();
-	}  
-	next_id++;
-    } else {
-	//cout << "node " << *n << " was duplicate" << endl;
-	delete n;
-	n = *it;
+	    return c.second;
+	}
     }
 
+    // if we didn't find an existing node
+    KmerNode *n;
+    n = new KmerNode(next_id, p);
+    nodes[next_id] = n;
+    assert(k==0 or p.length()==0 or p.length()==k);
+    if (k == 0 and p.length() > 0)
+    {
+        k = p.length();
+    }
+    next_id++;
     return n;
 }
 
@@ -155,7 +151,7 @@ KmerNode* KmerGraph::add_node_with_kh (const Path& p, const uint64_t& kh, const 
 }
     
 condition::condition(const Path& p): q(p) {};
-bool condition::operator()(const KmerNode* kn) const { return kn->path == q; }
+bool condition::operator()(const pair<uint32_t,KmerNode*>& kn) const { return kn.second->path == q; }
 
 void KmerGraph::add_edge (const Path& from, const Path& to)
 {
@@ -165,14 +161,14 @@ void KmerGraph::add_edge (const Path& from, const Path& to)
 	return;
     }
 
-    vector<KmerNode*>::iterator from_it = find_if(nodes.begin(), nodes.end(), condition(from));
-    vector<KmerNode*>::iterator to_it = find_if(nodes.begin(), nodes.end(), condition(to));
+    unordered_map<uint32_t, KmerNode*>::iterator from_it = find_if(nodes.begin(), nodes.end(), condition(from));
+    unordered_map<uint32_t, KmerNode*>::iterator to_it = find_if(nodes.begin(), nodes.end(), condition(to));
     assert(from_it != nodes.end() && to_it != nodes.end());
 
-    if ( find((*from_it)->outNodes.begin(), (*from_it)->outNodes.end(), (*to_it)) == (*from_it)->outNodes.end() )
+    if ( find(from_it->second->outNodes.begin(), from_it->second->outNodes.end(), to_it->second) == from_it->second->outNodes.end() )
     {
-        (*from_it)->outNodes.push_back(*to_it);
-	(*to_it)->inNodes.push_back((*from_it));
+        from_it->second->outNodes.push_back(to_it->second);
+	to_it->second->inNodes.push_back(from_it->second);
 	//cout << "added edge from " << (*from_it)->id << " to " << (*to_it)->id << endl;
     }
 
@@ -192,20 +188,22 @@ void KmerGraph::add_edge (KmerNode* from, KmerNode* to)
     return;
 }
 
-void KmerGraph::check (uint num_minikmers)
+void KmerGraph::check ()
 {
-    // should have a node for every minikmer found, plus a dummy start and end
-    assert(num_minikmers == 0 or nodes.size() == num_minikmers || assert_msg("nodes.size(): " << nodes.size() << " and num minikmers: " << num_minikmers));
+    if (sorted_nodes.size() == 0)
+    {
+	sort_topologically();
+    }
 
     // should not have any leaves, only nodes with degree 0 are start and end
-    for (auto c: nodes)
+    for (vector<KmerNode*>::iterator c=sorted_nodes.begin(); c!=sorted_nodes.end(); ++c)
     {
-	assert(c->inNodes.size() > 0 or c->id == 0 || assert_msg("node" << *c << " has inNodes size " << c->inNodes.size()));
-	assert(c->outNodes.size() > 0 or c->id == nodes.size() - 1 || assert_msg("node" << *c << " has outNodes size " << c->outNodes.size()));
-	for (auto d: c->outNodes)
+	assert((*c)->inNodes.size() > 0 or (*c) == sorted_nodes[0] || assert_msg("node" << **c << " has inNodes size " << (*c)->inNodes.size()));
+	assert((*c)->outNodes.size() > 0 or (*c) == sorted_nodes.back() || assert_msg("node" << **c << " has outNodes size " << (*c)->outNodes.size() << " and isn't equal to back node " << *sorted_nodes.back() ));
+	for (auto d: (*c)->outNodes)
 	{
-	    assert(c->path < d->path || assert_msg(c->path << " is not less than " << d->path));
-	    assert(c->id < d->id || assert_msg(c->id << " is not less than " << d->id));
+	    assert((*c)->path < d->path || assert_msg((*c)->path << " is not less than " << d->path));
+	    assert(find(c, sorted_nodes.end(), d) != sorted_nodes.end() || assert_msg(d->id << " does not occur later in sorted list than " << (*c)->id));
 	}
     }
     return;
@@ -213,13 +211,12 @@ void KmerGraph::check (uint num_minikmers)
 
 void KmerGraph::sort_topologically()
 {
-    sort(nodes.begin(), nodes.end(), pCompKmerNode());
-    //cout << "reallocate ids" << endl;
-    for (uint i=0; i!=nodes.size(); ++i)
+    sorted_nodes.reserve(nodes.size());
+    for(unordered_map<uint32_t,KmerNode*>::iterator it = nodes.begin(); it != nodes.end(); ++it) 
     {
-	nodes[i]->id = i;
+  	sorted_nodes.push_back(it->second);
     }
-    return;
+    sort(sorted_nodes.begin(), sorted_nodes.end(), pCompKmerNode());
 }
 
 void KmerGraph::set_p(const float e_rate)
@@ -230,15 +227,17 @@ void KmerGraph::set_p(const float e_rate)
 float KmerGraph::prob(uint j)
 {
     float ret;
-    if (j==0 or j==nodes.size()-1)
+    if (j==sorted_nodes[0]->id or j==sorted_nodes.back()->id)
     {    ret = 0; // is really undefined
     } else if (nodes[j]->covg[0]+nodes[j]->covg[1] > num_reads)
     {
 	// under model assumptions this can't happen, but it inevitably will, so bodge
-	ret = lognchoosek2(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0], nodes[j]->covg[1]) + (nodes[j]->covg[0]+nodes[j]->covg[1])*log(p/2);
+	ret = lognchoosek2(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0], nodes[j]->covg[1]) + 
+		(nodes[j]->covg[0]+nodes[j]->covg[1])*log(p/2);
         // note this may give disadvantage to repeat kmers
     } else {
-        ret = lognchoosek2(num_reads, nodes[j]->covg[0], nodes[j]->covg[1]) + (nodes[j]->covg[0]+nodes[j]->covg[1])*log(p/2) + 
+        ret = lognchoosek2(num_reads, nodes[j]->covg[0], nodes[j]->covg[1]) + 
+		(nodes[j]->covg[0]+nodes[j]->covg[1])*log(p/2) + 
 		(num_reads-(nodes[j]->covg[0]+nodes[j]->covg[1]))*log(1-p);
     }
     return ret;
@@ -256,6 +255,12 @@ float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
     
     // need to catch if thesh not set too...
 
+    if (sorted_nodes.size() == 0)
+    {
+	sort_topologically();
+        check();
+    }
+
     // create vectors to hold the intermediate values
     vector<float> M(nodes.size(), 0); // max log prob pf paths from pos i to end of graph
     vector<int> len(nodes.size(), 0); // length of max log path from pos i to end of graph
@@ -267,20 +272,20 @@ float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
     {
         max_mean = numeric_limits<float>::lowest();
         max_len = 0; // tie break with longest kmer path
-        for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
+        for (uint i=0; i!=sorted_nodes[j-1]->outNodes.size(); ++i)
         {
-            if ((nodes[j-1]->outNodes[i]->id == nodes.size()-1 and thresh > max_mean + 0.000001) or 
-		(M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] > max_mean + 0.000001) or
-                (max_mean - M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id] <= 0.000001 and len[nodes[j-1]->outNodes[i]->id] > max_len))
+            if ((sorted_nodes[j-1]->outNodes[i]->id == sorted_nodes.back()->id and thresh > max_mean + 0.000001) or 
+		(M[sorted_nodes[j-1]->outNodes[i]->id]/len[sorted_nodes[j-1]->outNodes[i]->id] > max_mean + 0.000001) or
+                (max_mean - M[sorted_nodes[j-1]->outNodes[i]->id]/len[sorted_nodes[j-1]->outNodes[i]->id] <= 0.000001 and len[sorted_nodes[j-1]->outNodes[i]->id] > max_len))
             {
-                M[j-1] = prob(j-1) + M[nodes[j-1]->outNodes[i]->id];
-                len[j-1] = 1 + len[nodes[j-1]->outNodes[i]->id];
-                prev[j-1] = nodes[j-1]->outNodes[i]->id;
-		//cout << j-1 << " path: " << nodes[j-1]->path << " has prob: " << prob(j-1) << "  M: " << M[j-1] << " len: " << len[j-1] << " prev: " << prev[j-1];
-		if (nodes[j-1]->outNodes[i]->id != nodes.size()-1)
+                M[sorted_nodes[j-1]->id] = prob(sorted_nodes[j-1]->id) + M[sorted_nodes[j-1]->outNodes[i]->id];
+                len[sorted_nodes[j-1]->id] = 1 + len[sorted_nodes[j-1]->outNodes[i]->id];
+                prev[sorted_nodes[j-1]->id] = sorted_nodes[j-1]->outNodes[i]->id;
+		//cout << j-1 << " path: " << sorted_nodes[j-1]->path << " has prob: " << prob(j-1) << "  M: " << M[j-1] << " len: " << len[j-1] << " prev: " << prev[j-1];
+		if (sorted_nodes[j-1]->outNodes[i]->id != sorted_nodes.back()->id)
 		{
-                    max_mean = M[nodes[j-1]->outNodes[i]->id]/len[nodes[j-1]->outNodes[i]->id];
-		    max_len = len[nodes[j-1]->outNodes[i]->id];
+                    max_mean = M[sorted_nodes[j-1]->outNodes[i]->id]/len[sorted_nodes[j-1]->outNodes[i]->id];
+		    max_len = len[sorted_nodes[j-1]->outNodes[i]->id];
 		  //  cout << " and new max_mean: " << max_mean;
 		} else {
 		    max_mean = thresh;
@@ -288,14 +293,14 @@ float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
 		//cout << endl;
             }
         }
-        //cout << j-1 << " path: " << nodes[j-1]->path << "  M: " << M[j-1] << " len: " << len[j-1] << " prev: " << prev[j-1] << endl;
+        //cout << j-1 << " path: " << sorted_nodes[j-1]->path << "  M: " << M[sorted_nodes[j-1]->id] << " len: " << len[sorted_nodes[j-1]->id] << " prev: " << prev[sorted_nodes[j-1]->id] << endl;
     }
     // remove the final length added for the null start node
     len[0] -= 1;
 
     // extract path
-    uint prev_node = prev[0];
-    while (prev_node < nodes.size() - 1)
+    uint prev_node = prev[sorted_nodes[0]->id];
+    while (prev_node < sorted_nodes.size() - 1)
     {
         //cout << prev_node << "->";
         maxpath.push_back(nodes[prev_node]);
@@ -313,30 +318,36 @@ float KmerGraph::find_min_path(vector<KmerNode*>& maxpath)
 
     // need to catch if p not asserted...
 
+    if (sorted_nodes.size() == 0)
+    {
+        sort_topologically();
+        check();
+    }
+
     // create vectors to hold the intermediate values
-    vector<float> M(nodes.size(), 0); // min log prob of best path from pos i to end of graph
-    vector<int> len(nodes.size(), 0); // length of min log path from pos i to end of graph
-    vector<uint> prev(nodes.size(), nodes.size()-1); // prev node along path
+    vector<float> M(sorted_nodes.size(), 0); // min log prob of best path from pos i to end of graph
+    vector<int> len(sorted_nodes.size(), 0); // length of min log path from pos i to end of graph
+    vector<uint> prev(sorted_nodes.size(), sorted_nodes.size()-1); // prev node along path
     float best_min;
     int best_len;
 
-    for (uint j=nodes.size()-1; j!=0; --j)
+    for (uint j=sorted_nodes.size()-1; j!=0; --j)
     {
         best_min = numeric_limits<float>::lowest();
         best_len = 0; // tie break with longest kmer path
-        for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
+        for (uint i=0; i!=sorted_nodes[j-1]->outNodes.size(); ++i)
         {
-            if ((nodes[j-1]->outNodes[i]->id == nodes.size()-1 and thresh > best_min + 0.000001) or 
-                (M[nodes[j-1]->outNodes[i]->id] > best_min + 0.000001) or
-                (best_min - M[nodes[j-1]->outNodes[i]->id] <= 0.000001 and len[nodes[j-1]->outNodes[i]->id] > best_len))
+            if ((sorted_nodes[j-1]->outNodes[i]->id == sorted_nodes.size()-1 and thresh > best_min + 0.000001) or 
+                (M[sorted_nodes[j-1]->outNodes[i]->id] > best_min + 0.000001) or
+                (best_min - M[sorted_nodes[j-1]->outNodes[i]->id] <= 0.000001 and len[sorted_nodes[j-1]->outNodes[i]->id] > best_len))
             {
-                M[j-1] = min(prob(j-1), M[nodes[j-1]->outNodes[i]->id]);
-                len[j-1] = 1 + len[nodes[j-1]->outNodes[i]->id];
-                prev[j-1] = nodes[j-1]->outNodes[i]->id;
-                if (nodes[j-1]->outNodes[i]->id != nodes.size()-1)
+                M[j-1] = min(prob(j-1), M[sorted_nodes[j-1]->outNodes[i]->id]);
+                len[j-1] = 1 + len[sorted_nodes[j-1]->outNodes[i]->id];
+                prev[j-1] = sorted_nodes[j-1]->outNodes[i]->id;
+                if (sorted_nodes[j-1]->outNodes[i]->id != sorted_nodes.size()-1)
                 {
-                    best_min = M[nodes[j-1]->outNodes[i]->id];
-                    best_len = len[nodes[j-1]->outNodes[i]->id];
+                    best_min = M[sorted_nodes[j-1]->outNodes[i]->id];
+                    best_len = len[sorted_nodes[j-1]->outNodes[i]->id];
                 } else {
                     best_min = thresh;
                 }
@@ -346,9 +357,9 @@ float KmerGraph::find_min_path(vector<KmerNode*>& maxpath)
 
     // extract path
     uint prev_node = prev[0];
-    while (prev_node < nodes.size() - 1)
+    while (prev_node < sorted_nodes.size() - 1)
     {
-        maxpath.push_back(nodes[prev_node]);
+        maxpath.push_back(sorted_nodes[prev_node]);
         prev_node = prev[prev_node];
     }
 
@@ -398,11 +409,11 @@ float KmerGraph::prob_path(const vector<KmerNode*>& kpath)
         ret_p += prob(kpath[i]->id);
     }
     uint len = kpath.size();
-    if (kpath[0] == nodes[0])
+    if (kpath[0]->path.length() == 0)
     {
 	len -= 1;
     }
-    if (kpath.back() == nodes.back())
+    if (kpath.back()->path.length() == 0)
     {
         len -= 1;
     }
@@ -419,9 +430,9 @@ void KmerGraph::save_covg_dist(const string& filepath)
     ofstream handle;
     handle.open(filepath);
 
-    for (uint j=1; j!=nodes.size()-1; ++j)
+    for (auto c : nodes)
     {
-        handle << nodes[j]->covg[0] << "," << nodes[j]->covg[1] << "," << (unsigned)nodes[j]->num_AT << " ";
+        handle << c.second->covg[0] << "," << c.second->covg[1] << "," << (unsigned)c.second->num_AT << " ";
     }
     handle.close();
     return;
@@ -434,14 +445,20 @@ uint KmerGraph::min_path_length()
 	return shortest_path_length;
     }
 
-    vector<uint> len(nodes.size(), 0); // length of shortest path from pos i to end of graph
-    for (uint j=nodes.size()-1; j!=0; --j)
+    if (sorted_nodes.size() == 0)
     {
-        for (uint i=0; i!=nodes[j-1]->outNodes.size(); ++i)
+        sort_topologically();
+        check();
+    }
+
+    vector<uint> len(sorted_nodes.size(), 0); // length of shortest path from node i to end of graph
+    for (uint j=sorted_nodes.size()-1; j!=0; --j)
+    {
+        for (uint i=0; i!=sorted_nodes[j-1]->outNodes.size(); ++i)
         {
-	    if (len[nodes[j-1]->outNodes[i]->id] + 1 > len[j-1])
+	    if (len[sorted_nodes[j-1]->outNodes[i]->id] + 1 > len[j-1])
 	    {
-		len[j-1] = len[nodes[j-1]->outNodes[i]->id] + 1;
+		len[j-1] = len[sorted_nodes[j-1]->outNodes[i]->id] + 1;
 	    }
 	}
     }
@@ -454,12 +471,12 @@ void KmerGraph::save (const string& filepath)
     ofstream handle;
     handle.open (filepath);
     handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
-    for(uint i=0; i!=nodes.size(); ++i)
+    for(auto c : nodes)
     {
-        handle << "S\t" << nodes[i]->id << "\t" << nodes[i]->path << "\tFC:i:" << nodes[i]->covg[0] << "\t" << "\tRC:i:" << nodes[i]->covg[1] << endl;//"\t" << (unsigned)nodes[i]->num_AT << endl;
-        for (uint32_t j=0; j<nodes[i]->outNodes.size(); ++j)
+        handle << "S\t" << c.second->id << "\t" << c.second->path << "\tFC:i:" << c.second->covg[0] << "\t" << "\tRC:i:" << c.second->covg[1] << endl;//"\t" << (unsigned)nodes[i].second->num_AT << endl;
+        for (uint32_t j=0; j<c.second->outNodes.size(); ++j)
         {
-            handle << "L\t" << nodes[i]->id << "\t+\t" << nodes[i]->outNodes[j]->id << "\t+\t0M" << endl;
+            handle << "L\t" << c.second->id << "\t+\t" << c.second->outNodes[j]->id << "\t+\t0M" << endl;
         }
     }
     handle.close();
@@ -488,26 +505,22 @@ void KmerGraph::load (const string& filepath)
 		ss >> p;
 		ss.clear();
                 //add_node(p);
-                n = new KmerNode(next_id, p);
-		nodes.push_back(n);
+                n = new KmerNode(id, p);
+		nodes[id] = n;
 		next_id++;
 		if (k == 0 and p.length() > 0)
                 {
                     k = p.length();
                 }
-		assert(nodes.back()->id == id);
+		assert(n->id == id);
 		covg = stoi(split(split_line[3], "FC:i:")[0]);
-		nodes.back()->covg[0] = covg;
+		n->covg[0] = covg;
 		covg = stoi(split(split_line[4], "RC:i:")[0]);
-		nodes.back()->covg[1] = covg;
+		n->covg[1] = covg;
 		if (split_line.size() >= 6)
 		{
-		    nodes.back()->num_AT = stoi(split_line[5]);
+		    n->num_AT = stoi(split_line[5]);
 		}
-		//covg = stoi(split(split(split_line[3], "RC:i:")[0], ",")[0]);
-		//nodes.back()->covg[0] = covg;
-		//covg = stoi(split(split(split_line[3], "RC:i:")[0], ",")[1]);
-                //nodes.back()->covg[1] = covg;
             }
 	}
         myfile.clear();
@@ -545,23 +558,21 @@ bool KmerGraph::operator == (const KmerGraph& y) const
         return false;}
 
     // false if have different nodes
-    for (uint i=0; i!=nodes.size(); ++i)
+    for (auto c : nodes)
     {
         // if node not equal to a node in y, then false
-        pointer_values_equal<KmerNode> eq = { nodes[i] };
-	vector<KmerNode*>::const_iterator found = find_if(y.nodes.begin(), y.nodes.end(), eq);
+	unordered_map<uint32_t, KmerNode*>::const_iterator found = find_if(y.nodes.begin(), y.nodes.end(), condition(c.second->path));
         if ( found == y.nodes.end() )
 	{
             return false;
 	}
 
 	// if the node is found but has different edges, then false
-	if (nodes[i]->outNodes.size() != (*found)->outNodes.size()) {return false;}
-	if (nodes[i]->inNodes.size() != (*found)->inNodes.size()) {return false;}
-	for (uint32_t j=0; j!=nodes[i]->outNodes.size(); ++j)
-        {
-            pointer_values_equal<KmerNode> eq2 = { nodes[i]->outNodes[j] };
-            if ( find_if((*found)->outNodes.begin(), (*found)->outNodes.end(), eq2) == (*found)->outNodes.end() )
+	if (c.second->outNodes.size() != found->second->outNodes.size()) {return false;}
+	if (c.second->inNodes.size() != found->second->inNodes.size()) {return false;}
+	for (uint32_t j=0; j!=c.second->outNodes.size(); ++j)
+        {   pointer_values_equal<KmerNode> eq = { c.second->outNodes[j] };
+            if ( find_if(found->second->outNodes.begin(), found->second->outNodes.end(), eq) == found->second->outNodes.end() )
             {return false;}
         }
 	
@@ -577,7 +588,7 @@ bool pCompKmerNode::operator()(KmerNode* lhs, KmerNode* rhs) {
 std::ostream& operator<< (std::ostream & out, KmerGraph const& data) {
     for (const auto c: data.nodes)
     {
-        out << *c;
+        out << *(c.second);
     }
     return out ;
 }

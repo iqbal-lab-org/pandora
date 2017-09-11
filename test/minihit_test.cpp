@@ -31,7 +31,7 @@ TEST_F(MinimizerHitTest,create){
     Path p;
     p.initialize(d);
     MiniRecord* mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     MinimizerHit mh(1, m, mr);
     uint32_t j(1);
     EXPECT_EQ(j, mh.read_id);
@@ -60,28 +60,28 @@ TEST_F(MinimizerHitTest,checkStrand){
     Path p;
     p.initialize(d);
     MiniRecord* mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     MinimizerHit mh(1, m, mr);
     EXPECT_EQ(mh.strand, true);
 
     delete m;
     delete mr;
     m = new Minimizer(min(kh.first,kh.second), 0,5,1);
-    mr = new MiniRecord(0,p,1);
+    mr = new MiniRecord(0,p,0,1);
     MinimizerHit mh1(1, m, mr);
     EXPECT_EQ(mh1.strand, true);
 
     delete m;
     delete mr;
     m = new Minimizer(min(kh.first,kh.second), 0,5,1);
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     MinimizerHit mh2(1, m, mr);
     EXPECT_EQ(mh2.strand, false);
  
     delete m;
     delete mr;
     m = new Minimizer(min(kh.first,kh.second), 0,5,0);
-    mr = new MiniRecord(0,p,1);
+    mr = new MiniRecord(0,p,0,1);
     MinimizerHit mh3(1, m, mr);
     EXPECT_EQ(mh3.strand, false);
 
@@ -98,7 +98,7 @@ TEST_F(MinimizerHitTest,equals){
     Path p;
     p.initialize(d);
     MiniRecord* mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     MinimizerHit mh1(1, m, mr);
 
     delete m;
@@ -106,7 +106,7 @@ TEST_F(MinimizerHitTest,equals){
     d = {Interval(7,9), Interval(11, 14)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     MinimizerHit mh2(1, m, mr);
 
     EXPECT_EQ(mh1, mh1);
@@ -127,7 +127,7 @@ TEST_F(MinimizerHitTest,compare){
     Path p;
     p.initialize(d);
     MiniRecord* mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     MinimizerHit mh1(1, m, mr);
 
     MinimizerHit mh2(0, m, mr);
@@ -138,25 +138,25 @@ TEST_F(MinimizerHitTest,compare){
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     MinimizerHit mh3(1, m, mr);
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     MinimizerHit mh4(1, m, mr);
 
     d = {Interval(6,10), Interval(13, 13), Interval(14,15)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     MinimizerHit mh5(1, m, mr);
     
     d = {Interval(6,10), Interval(14, 14), Interval(14,15)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0);
+    mr = new MiniRecord(0,p,0,0);
     MinimizerHit mh6(1, m, mr);
 
     hits.insert(mh1);

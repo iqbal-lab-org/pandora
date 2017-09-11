@@ -114,12 +114,12 @@ TEST_F(PanGraphTest, add_node)
     deque<Interval> d = {Interval(0,1), Interval(4,7)};
     p.initialize(d);
     MinimizerHit* mh0;
-    mh0 = new MinimizerHit(2, Interval(1,5), 2, p, true);
+    mh0 = new MinimizerHit(2, Interval(1,5), 2, p, 0, true);
     mhs.insert(mh0);
     d = {Interval(0,1), Interval(5,8)};
     p.initialize(d);
     MinimizerHit* mh1;
-    mh1 = new MinimizerHit(2, Interval(1,5), 2, p, true);
+    mh1 = new MinimizerHit(2, Interval(1,5), 2, p, 0, true);
     mhs.insert(mh1);
     pg.add_node(2,"2",2, mhs);
     pn = new PanNode(2,2,"2");
@@ -137,7 +137,7 @@ TEST_F(PanGraphTest, add_node)
 
     // expect death if some hit doesn't match the prg id expect
     MinimizerHit* mh2;
-    mh2 = new MinimizerHit(0, Interval(1,5), 0, p, true);
+    mh2 = new MinimizerHit(0, Interval(1,5), 0, p, 0, true);
     mhs.insert(mh2);
     EXPECT_DEATH(pg.add_node(0,"0",0, mhs), "");
     delete pn;

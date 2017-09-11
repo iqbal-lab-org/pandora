@@ -16,7 +16,7 @@ Index::~Index() {
     clear();
 };
 
-void Index::add_record(uint64_t kmer, uint32_t prg_id, Path path, bool strand)
+void Index::add_record(const uint64_t kmer, const uint32_t prg_id, const Path path, const uint32_t knode_id, const bool strand)
 {
     //cout << "Add kmer " << kmer << " id, path, strand " << prg_id << ", " << path << ", " << strand << endl;
     unordered_map<uint64_t, vector<MiniRecord>*>::iterator it=minhash.find(kmer);
@@ -24,11 +24,11 @@ void Index::add_record(uint64_t kmer, uint32_t prg_id, Path path, bool strand)
     {
         vector<MiniRecord>* newv = new vector<MiniRecord>;
         newv->reserve(20);
-	newv->push_back(MiniRecord(prg_id, path, strand));
+	newv->push_back(MiniRecord(prg_id, path, knode_id, strand));
         minhash.insert(pair<uint64_t, vector<MiniRecord>*>(kmer,newv));
         //cout << "New minhash size: " << minhash.size() << endl; 
     } else {
-	MiniRecord mr(prg_id, path, strand);	
+	MiniRecord mr(prg_id, path, knode_id, strand);	
         if (find(it->second->begin(), it->second->end(), mr)==it->second->end())
 	{
             it->second->push_back(mr);
