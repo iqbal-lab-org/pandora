@@ -193,18 +193,22 @@ PanEdge* PanGraph::add_shortcut_edge(const vector<PanEdge*>::iterator prev, cons
     if ((*prev)->to->node_id == (*current)->from->node_id and (*prev)->from->node_id != (*current)->to->node_id)
     {
         e = add_edge((*prev)->from->node_id, (*current)->to->node_id, combine_orientations((*prev)->orientation, (*current)->orientation));
+	e->covg -= 1;
         n = (*prev)->to;
     } else if ((*prev)->to->node_id == (*current)->to->node_id and (*prev)->from->node_id != (*current)->from->node_id)
     {
         e = add_edge((*prev)->from->node_id, (*current)->from->node_id, combine_orientations((*prev)->orientation, rev_orient((*current)->orientation)));
+        e->covg -= 1;
 	n = (*prev)->to;
     } else if ((*prev)->from->node_id == (*current)->to->node_id and (*prev)->to->node_id != (*current)->from->node_id)
     {
         e = add_edge((*prev)->to->node_id, (*current)->from->node_id, combine_orientations(rev_orient((*prev)->orientation), rev_orient((*current)->orientation)));
+        e->covg -= 1;
 	n = (*prev)->from;
     } else if ((*prev)->from->node_id == (*current)->from->node_id and (*prev)->to->node_id != (*current)->to->node_id)
     {
         e = add_edge((*prev)->to->node_id, (*current)->to->node_id, combine_orientations(rev_orient((*prev)->orientation), (*current)->orientation));
+        e->covg -= 1;
 	n = (*prev)->from;
     } else {
         vector<PanEdge*>::iterator it = r->get_previous_edge(*prev);
@@ -515,14 +519,13 @@ void PanGraph::clean(const uint32_t& coverage)
     read_clean(0.1*edges_per_node);
     read_clean(0.2*edges_per_node);
     remove_low_covg_edges(0);
-    remove_low_covg_nodes(0);
+    remove_low_covg_nodes(0.05*coverage);
 
     split_nodes_by_reads(edges_per_node);
     read_clean(0.2*edges_per_node);
 
     remove_low_covg_edges(0.05*edges_per_node);
-    //remove_low_covg_edges(0);
-    remove_low_covg_nodes(0);
+    remove_low_covg_nodes(0.05*coverage);
 }
 
 void PanGraph::add_hits_to_kmergraphs(const vector<LocalPRG*>& prgs)
@@ -612,23 +615,23 @@ void PanGraph::write_gfa (const string& filepath)
     for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
     {
 	
-        handle << "S\t" << it->second->name << "\t*" << endl; //\tRC:i:" << it->second->covg << endl;
+        handle << "S\t" << it->second->name << "." << it->first << "\t*\tFC:i:" << it->second->covg << endl;
     }
 
     for (uint i=0; i!=edges.size(); ++i)
     {
 	if (edges[i]->orientation == 0)
 	{
-	    handle << "L\t" << edges[i]->from->name << "\t-\t" << edges[i]->to->name << "\t-\t0M\tRC:i:" << edges[i]->covg << endl;
+	    handle << "L\t" << edges[i]->from->name << "." << edges[i]->from->node_id << "\t-\t" << edges[i]->to->name << "." << edges[i]->to->node_id << "\t-\t0M\tRC:i:" << edges[i]->covg << endl;
 	} else if (edges[i]->orientation == 1)
 	{
-	    handle << "L\t" << edges[i]->from->name << "\t+\t" << edges[i]->to->name << "\t-\t0M\tRC:i:" << edges[i]->covg << endl;
+	    handle << "L\t" << edges[i]->from->name << "." << edges[i]->from->node_id << "\t+\t" << edges[i]->to->name << "." << edges[i]->to->node_id << "\t-\t0M\tRC:i:" << edges[i]->covg << endl;
         } else if (edges[i]->orientation == 2)
         {
-            handle << "L\t" << edges[i]->from->name << "\t-\t" << edges[i]->to->name << "\t+\t0M\tRC:i:" << edges[i]->covg << endl;
+            handle << "L\t" << edges[i]->from->name << "." << edges[i]->from->node_id << "\t-\t" << edges[i]->to->name << "." << edges[i]->to->node_id << "\t+\t0M\tRC:i:" << edges[i]->covg << endl;
         } else if (edges[i]->orientation == 3)
         {
-            handle << "L\t" << edges[i]->from->name << "\t+\t" << edges[i]->to->name << "\t+\t0M\tRC:i:" << edges[i]->covg << endl;
+            handle << "L\t" << edges[i]->from->name << "." << edges[i]->from->node_id << "\t+\t" << edges[i]->to->name << "." << edges[i]->to->node_id << "\t+\t0M\tRC:i:" << edges[i]->covg << endl;
         }
     }
     handle.close();
