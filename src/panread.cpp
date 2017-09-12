@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <cassert>
+#include <unordered_set>
 #include "panread.h"
 #include "panedge.h"
 #include "pannode.h"
@@ -15,11 +16,6 @@ PanRead::PanRead (const uint32_t i): id(i) {}
 
 void PanRead::add_hits(const uint32_t node_id, const set<MinimizerHit*, pComp>& c)
 {
-    /*map<uint32_t, std::set<MinimizerHit*, pComp>>::iterator it=hits.find(node_id);
-    if(it==hits.end())
-    {
-	hits[node_id] = {};
-    }*/
     hits[node_id].insert(c.begin(), c.end());
 }
 
@@ -61,6 +57,80 @@ vector<PanEdge*>::iterator PanRead::get_other_edge(const PanEdge* e, const PanNo
         return found;
     }
     return edges.end();
+}
+
+vector<PanEdge*>::iterator PanRead::replace_edge(PanEdge* e_original, PanEdge* e, PanRead* me)
+{
+    vector<PanEdge*>::iterator it = get_edge(e_original);
+    if (it != edges.end())
+    {   
+        it = edges.erase(it);
+        it = edges.insert(it, e);
+        e->reads.insert(me);
+        e->covg += 1;
+        e_original->reads.erase(me);
+        e_original->covg -= 1;
+    }
+    return it;
+}
+
+unordered_set<PanRead*>::iterator PanRead::replace_edge(PanEdge* e_original, PanEdge* e, unordered_set<PanRead*>::iterator me)
+{
+    unordered_set<PanRead*>::iterator rt = e_original->reads.find(*me);
+    vector<PanEdge*>::iterator it = get_edge(e_original);
+    if (it != edges.end())
+    {
+        it = edges.erase(it);
+        it = edges.insert(it, e);
+        e->reads.insert(*me);
+        e->covg += 1;
+	assert(rt!=e_original->reads.end());
+        rt = e_original->reads.erase(rt);
+        e_original->covg -= 1;
+    }
+    return rt;
+}
+
+vector<PanEdge*>::iterator PanRead::remove_edge(PanEdge* e_original, PanRead* me)
+{
+    vector<PanEdge*>::iterator it = get_edge(e_original);
+    if (it != edges.end())
+    {
+        it = edges.erase(it);
+        e_original->reads.erase(me);
+        e_original->covg -= 1;
+    }
+    return it;
+}
+
+unordered_set<PanRead*>::iterator PanRead::remove_edge(PanEdge* e_original, unordered_set<PanRead*>::iterator me)
+{
+    unordered_set<PanRead*>::iterator rt = e_original->reads.find(*me);
+    vector<PanEdge*>::iterator it = get_edge(e_original);
+    if (it != edges.end())
+    {
+        it = edges.erase(it);
+        rt = e_original->reads.erase(rt);
+        e_original->covg -= 1;
+    }
+    return rt;
+}
+
+void PanRead::replace_node(PanNode* n_original, PanNode* n, PanRead* me)
+{
+    // does not change the edges including the node in read
+    n_original->reads.erase(me);
+    n_original->covg -= 1;
+    n->reads.insert(me);
+    n->covg += 1;
+    hits[n->node_id] = hits[n_original->node_id]; //NB we don't remove the n_original hits in case of reads long enough to pass through node twice
+} 
+
+void PanRead::remove_node(PanNode* n_original, PanRead* me)
+{
+    // does not change the edges including the node in read
+    n_original->reads.erase(me);
+    n_original->covg -= 1;
 }
 
 bool PanRead::operator == (const PanRead& y) const {
