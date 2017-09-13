@@ -971,7 +971,7 @@ void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
     return;
 }
 
-void LocalPRG::find_path_and_variants(PanNode* pnode, const string& prefix, uint w, bool max_path, bool min_path, bool output_vcf, bool output_comparison_paths)
+vector<KmerNode*> LocalPRG::find_path_and_variants(PanNode* pnode, const string& prefix, uint w, bool max_path, bool min_path, bool output_vcf, bool output_comparison_paths)
 {
     //cout << "called find path and variants" << endl;
     string new_name = name;
@@ -1057,7 +1057,7 @@ void LocalPRG::find_path_and_variants(PanNode* pnode, const string& prefix, uint
     	    vcf.save(prefix + "." + new_name + ".kminp.vcf", true, true, true, true, true, true, true);
 	}
     }
-    return;
+    return kmp;
 }
 
 bool operator != (const vector<KmerNode*>& lhs, const vector<KmerNode*>& rhs)

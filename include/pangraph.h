@@ -4,8 +4,10 @@
 class PanNode;
 class PanEdge;
 class PanRead;
+class PanSample;
 struct MinimizerHit;
 class LocalPRG;
+class KmerNode;
 
 #include <cstring>
 #include <map>
@@ -19,13 +21,15 @@ class PanGraph {
     std::map<uint32_t, PanNode*> nodes;
     std::vector<PanEdge*> edges;
     std::map<uint32_t, PanRead*> reads;
+    std::map<std::string, PanSample*> samples;
 
     PanGraph();
     ~PanGraph();
     void clear();
 
     // graph additions/removals
-    void add_node (const uint32_t, const std::string, uint32_t, const std::set<MinimizerHit*, pComp>&);
+    void add_node (const uint32_t, const std::string, uint32_t, const std::set<MinimizerHit*, pComp>&); // used by pandora map
+    void add_node (const uint32_t, const std::string&, const std::string&, const std::vector<KmerNode*>&); // used by pandora compare
     PanEdge* add_edge (const uint32_t&, const uint32_t&, const uint&);
     void add_edge (const uint32_t&, const uint32_t&, const uint&, const uint&);
     std::vector<PanEdge*>::iterator remove_edge (PanEdge*);

@@ -8,6 +8,7 @@
 #include "pangraph.h"
 #include "panread.h"
 #include "panedge.h"
+#include "pansample.h"
 #include <cassert>
 #include "minihit.h"
 
@@ -34,6 +35,11 @@ void PanGraph::clear()
         delete c.second;
     }
     nodes.clear();
+    for (auto c: samples)
+    {   
+        delete c.second;
+    }
+    samples.clear();
 }
 
 PanGraph::~PanGraph()
@@ -85,6 +91,40 @@ void PanGraph::add_node (const uint32_t prg_id, const string prg_name, const uin
     }
 
     return;
+}
+
+void PanGraph::add_node (const uint32_t prg_id, const string& prg_name, const string& sample_name, const vector<KmerNode*>& kmp)
+{   
+    // add new node if it doesn't exist
+    PanNode *n;
+    map<uint32_t, PanNode*>::iterator it=nodes.find(prg_id);
+    if(it==nodes.end())
+    {   
+        n = new PanNode(prg_id, prg_id, prg_name);
+        //cout << "add node " << *n << endl;
+        nodes[prg_id] = n;
+    } else {
+        n = it->second;
+        it->second->covg += 1;
+        //cout << "node " << *n << " already existed " << endl;
+    }
+    
+    // add a new sample if it doesn't exist
+    map<string, PanSample*>::iterator sit=samples.find(sample_name);
+    if (sit==samples.end())
+    {   
+        //cout << "new sample " << sample_name << endl;
+        PanSample* s;
+        s = new PanSample(sample_name);
+        s->add_path(prg_id, kmp);
+        samples[sample_name] = s;
+        n->samples.insert(s);
+    } else {
+        //cout << "sample " << sample_name  << " already existed " << endl;
+        sit->second->add_path(prg_id, kmp);
+        n->samples.insert(sit->second);
+    }
+ return;
 }
 
 PanEdge* PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uint& orientation)
@@ -303,6 +343,24 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
 	// replace e_original1 in read
 	r = (*r)->replace_edge(e_original1, e1, r);
 
+    }
+    // be greedy and also steal edges along e_original2 if it is the only edge in the read
+    r = e_original2->reads.begin();
+    while (r!=e_original2->reads.end())
+    {
+	if ((*r)->edges.size() == 1)
+	{
+            // add read to new node n and remove from n_original
+            (*r)->replace_node(n_original, n, *r);
+
+            // replace e_original2 in read
+            (*r)->replace_edge(e_original2, e2, r);
+
+            // replace e_original1 in read
+            r = (*r)->replace_edge(e_original1, e1, r);
+	} else {
+	    ++r;
+	}
     }
 
     //cout << "delete edges if they have 0 covg" << endl;

@@ -4,7 +4,13 @@
  * each gene inferred present in that sample. Then compares the paths found through each gene and 
  * outputs a vcf and aligned fasta for each one. 
  */
+/*
+ * QUESTIONS:
+ * How do I handle multiple occurances of a gene in a sample? I would like to output all the versions called against my new reference
+ */
+
 #include <iostream>
+#include <sstream>
 #include <ctime>
 #include <cstring>
 #include <vector>
@@ -31,11 +37,12 @@ using namespace std;
 
 static void show_compare_usage()
 {
-    std::cerr << "Usage: pandora map -p PRG_FILE -r READ_FILE -o OUT_PREFIX <option(s)>\n"
+    std::cerr << "Usage: pandora compare -p PRG_FILE -r READ_INDEX -o OUT_PREFIX <option(s)>\n"
               << "Options:\n"
               << "\t-h,--help\t\t\tShow this help message\n"
               << "\t-p,--prg_file PRG_FILE\t\tSpecify a fasta-style prg file\n"
-	      << "\t-r,--read_file READ_FILE\tSpecify a file of reads in fasta format\n"
+	      << "\t-r,--read_index READ_INDEX\tSpecify a file with a line per sample\n"
+	      << "\t\t\t\t\tsample_id <tab> filepath to reads in fasta/q format\n"
 	      << "\t-o,--out_prefix OUT_PREFIX\tSpecify prefix of output\n"
 	      << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 1\n"
 	      << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
@@ -49,6 +56,34 @@ static void show_compare_usage()
               << std::endl;
 }
 
+map<string,string> load_read_index(const string& readindex)
+{
+    map<string,string> samples;
+    string name, reads_path, line;
+    ifstream myfile (readindex);
+    if (myfile.is_open())
+    {
+        while ( getline (myfile,line).good() )
+        {
+            istringstream linestream(line);
+            if (std::getline(linestream, name, '\t'))
+            {
+                linestream >> reads_path;
+                if (samples.find(name) != samples.end())
+                {
+                    cout << "Warning: non-unique sample ids given! Only the last of these will be kept" << endl;
+                }
+                samples[name] = reads_path;
+            }
+        }
+    } else {
+        cerr << "Unable to open read index file " << readindex << endl;
+        exit(1);
+    }
+    cout << now() << "Finished loading " << samples.size() << " samples from read index" << endl;
+    return samples;
+}
+
 int pandora_compare(int argc, char* argv[])
 {
     // if not enough arguments, print usage
@@ -58,7 +93,7 @@ int pandora_compare(int argc, char* argv[])
     }
 
     // otherwise, parse the parameters from the command line
-    string prgfile, readfile, prefix;
+    string prgfile, readindex, prefix, readfile;
     uint32_t w=1, k=15; // default parameters
     int max_diff = 500;
     float e_rate = 0.11;
@@ -75,11 +110,11 @@ int pandora_compare(int argc, char* argv[])
                   std::cerr << "--prg_file option requires one argument." << std::endl;
                 return 1;
             }
-	} else if ((arg == "-r") || (arg == "--read_file")) {
+	} else if ((arg == "-r") || (arg == "--read_index")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 readfile = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
-                  std::cerr << "--read_file option requires one argument." << std::endl;
+                  std::cerr << "--read_index option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "-o") || (arg == "--out_prefix")) {
@@ -147,7 +182,7 @@ int pandora_compare(int argc, char* argv[])
     cout << "START: " << now() << endl;
     cout << "\nUsing parameters: " << endl;
     cout << "\tprgfile\t\t" << prgfile << endl;
-    cout << "\treadfile\t" << readfile << endl;
+    cout << "\treadindex\t" << readindex << endl;
     cout << "\tout_prefix\t" << prefix << endl;
     cout << "\tw\t\t" << w << endl;
     cout << "\tk\t\t" << k << endl;
@@ -167,51 +202,52 @@ int pandora_compare(int argc, char* argv[])
     read_prg_file(prgs, prgfile);
     load_PRG_kmergraphs(prgs, w, k, prgfile);
 
-    cout << now() << "Constructing PanGraph from read file" << endl;
+    PanGraph *pangraph, *pangraph_sample;
+    pangraph = new PanGraph();
+    pangraph_sample = new PanGraph();
     MinimizerHits *mhs;
     mhs = new MinimizerHits(100*idx->minhash.size());
-    PanGraph *pangraph;
-    pangraph = new PanGraph();
-    pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
-    
-    cout << now() << "Writing PanGraph to file " << prefix << ".pangraph.gfa" << endl;
-    pangraph->write_gfa(prefix + ".pangraph.gfa");
 
-    cout << now() << "Update LocalPRGs with hits" << endl;
-    update_localPRGs_with_hits(pangraph, prgs);
+    // load read index
+    map<string,string> samples = load_read_index(readindex);
+    vector<KmerNode*> kmp;
 
-    cout << now() << "Estimate parameters for kmer graph model" << endl;
-    estimate_parameters(pangraph, prefix, k, e_rate);
-
-    cout << now() << "Find PRG paths and write to files:" << endl;
-    for (auto c: pangraph->nodes)
+    // for each sample, run pandora to get the sample pangraph
+    for (map<string,string>::const_iterator sample = samples.begin(); sample!=samples.end(); ++sample)
     {
-	prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, max_path, min_path, output_vcf, output_comparison_paths);
-	if (output_kg == true)
-	{
-	    prgs[c.second->prg_id]->kmer_prg.save(prefix + "." + prgs[c.second->prg_id]->name + ".kg.gfa");
-	}
-	//prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "." + prgs[c.second->id]->name + ".covg.txt");
-	//cout << "\t\t" << prefix << "." << prgs[c.second->id]->name << ".gfa" << endl;
-        //prgs[c.second->id]->prg.write_gfa(prefix + "." + prgs[c.second->id]->name + ".gfa");
+	pangraph_sample->clear();
+	mhs->clear();
+	
+	// construct the pangraph for this sample
+        cout << now() << "Constructing PanGraph from read file " << sample->second << endl;
+        pangraph_from_read_file(sample->second, mhs, pangraph_sample, idx, prgs, w, k, max_diff);
+    
+        cout << now() << "Update LocalPRGs with hits" << endl;
+        update_localPRGs_with_hits(pangraph_sample, prgs);
+
+        cout << now() << "Estimate parameters for kmer graph model" << endl;
+        estimate_parameters(pangraph_sample, prefix, k, e_rate);
+
+        cout << now() << "Find max likelihood PRG paths and write to files:" << endl;
+        for (auto c: pangraph_sample->nodes)
+        {
+	    kmp = prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, max_path, min_path, output_vcf, output_comparison_paths);
+	    pangraph->add_node(c.second->prg_id, c.second->name, sample->first, kmp);
+        }
     }
 
-    //cout << now() << "Writing LocalGraphs to files:" << endl;	
-    // for each found localPRG, also write out a gfa 
-    // then delete the localPRG object
+    // clear up
     for (uint32_t j=0; j!=prgs.size(); ++j)
     {
-        //cout << "\t\t" << prefix << "_" << prgs[j]->name << ".gfa" << endl;
-	//prgs[j]->prg.write_gfa(prefix + "_" + prgs[j]->name + ".gfa");
 	delete prgs[j];
     }
     idx->clear();
     delete idx;
     delete mhs;
     delete pangraph;
+    delete pangraph_sample;
 
     // current date/time based on current system
     cout << "FINISH: " << now() << endl;
     return 0;
 }
-
