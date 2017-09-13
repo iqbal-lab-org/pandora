@@ -17,12 +17,24 @@ MinimizerHits::MinimizerHits(const uint& num_hits) {
     uhits.reserve(num_hits);
 }
 
-MinimizerHits::~MinimizerHits()
+void MinimizerHits::clear()
 {
     for (auto c: hits)
     {
         delete c;
     }
+    hits.clear();
+
+    for (auto c: uhits)
+    {   
+        delete c;
+    }
+    uhits.clear();
+}
+
+MinimizerHits::~MinimizerHits()
+{
+    clear();
 }
 
 void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniRecord* r)

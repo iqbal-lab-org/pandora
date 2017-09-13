@@ -17,20 +17,28 @@ using namespace std;
 
 PanGraph::PanGraph() : next_id(0) {}
 
-PanGraph::~PanGraph()
+void PanGraph::clear()
 {
     for (auto c: reads)
-    { 
+    {   
         delete c.second;
     }
+    reads.clear();
     for (auto c: edges)
     {   
         delete c;
     }
+    edges.clear();
     for (auto c: nodes)
-    {
+    {   
         delete c.second;
     }
+    nodes.clear();
+}
+
+PanGraph::~PanGraph()
+{
+    clear();
 }
 
 void PanGraph::add_node (const uint32_t prg_id, const string prg_name, const uint32_t read_id, const set<MinimizerHit*, pComp>& cluster)
@@ -423,7 +431,7 @@ void PanGraph::remove_low_covg_nodes(const uint& thresh)
     for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end();)
     {
 	//cout << "look at node " << *(it->second) << endl;
-	if (it->second->covg <= thresh or it->second->edges.size() == 0)
+	if (it->second->covg <= thresh or (edges.size() > 0 and it->second->edges.size() == 0))
         {
             //cout << "delete node " << it->second->name;
             it = remove_node(it->second);
@@ -521,10 +529,10 @@ void PanGraph::clean(const uint32_t& coverage)
     remove_low_covg_edges(0);
     remove_low_covg_nodes(0.05*coverage);
 
-    split_nodes_by_reads(edges_per_node);
+    split_nodes_by_reads(coverage);
     read_clean(0.2*edges_per_node);
 
-    remove_low_covg_edges(0.05*edges_per_node);
+    remove_low_covg_edges(0.2*edges_per_node);
     remove_low_covg_nodes(0.05*coverage);
 }
 

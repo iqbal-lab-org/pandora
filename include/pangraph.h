@@ -22,6 +22,7 @@ class PanGraph {
 
     PanGraph();
     ~PanGraph();
+    void clear();
 
     // graph additions/removals
     void add_node (const uint32_t, const std::string, uint32_t, const std::set<MinimizerHit*, pComp>&);

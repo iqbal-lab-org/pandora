@@ -37,6 +37,7 @@ class MinimizerHits {
   public:
     MinimizerHits(const uint& num_hits=30000);
     ~MinimizerHits();
+    void clear();
     //std::unordered_set<MinimizerHit*, Hash, pEq> uhits;
     std::unordered_set<MinimizerHit*> uhits;
     std::set<MinimizerHit*, pComp> hits;
