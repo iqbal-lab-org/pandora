@@ -34,7 +34,7 @@ class PanGraph {
 
     // graph manipulation
     std::vector<PanEdge*>::iterator split_node_by_edges(PanNode*, PanEdge*, PanEdge*);
-    void split_nodes_by_reads(const uint&);
+    void split_nodes_by_reads(const uint&, const uint&);
 
     // graph cleaning
     void read_clean(const uint&);

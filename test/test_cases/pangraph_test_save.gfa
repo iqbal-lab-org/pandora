@@ -1,6 +1,6 @@
 H	VN:Z:1.0
-S	0	*	RC:i:1
-S	1	*	RC:i:2
-S	2	*	RC:i:1
+S	0	*	FC:i:1
+S	1	*	FC:i:2
+S	2	*	FC:i:1
 L	0	+	1	+	0M	RC:i:1
 L	1	+	2	+	0M	RC:i:2

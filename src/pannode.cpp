@@ -8,6 +8,16 @@ using namespace std;
 
 PanNode::PanNode (const uint32_t i, const uint32_t j, const string n): prg_id(i), node_id(j), name(n), covg(1) {}
 
+string PanNode::get_name()
+{
+    if (prg_id != node_id)
+    {
+	return name + "." + to_string(node_id);
+    } else {
+	return name;
+    }
+}
+	
 /*// copy constructor
 PanNode::PanNode(const PanNode& other)
 {

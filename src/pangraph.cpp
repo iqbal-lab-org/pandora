@@ -329,16 +329,21 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
     return it;	    
 }
 
-void PanGraph::split_nodes_by_reads(const uint& thresh)
+void PanGraph::split_nodes_by_reads(const uint& node_thresh, const uint& edge_thresh)
 {
     cout << "Start breaking up pannodes by reads" << endl;
     for (auto n : nodes)
     {
-        if (n.second->edges.size() > 2 and n.second->covg > thresh)
+        if (n.second->edges.size() > 2 and n.second->covg > node_thresh)
         {
 	    vector<PanEdge*>::iterator it=n.second->edges.begin();
             while (it!= n.second->edges.end() and n.second->edges.size() > 2)
             {
+		if ((*it)->covg <= edge_thresh)
+		{
+		    ++it;
+		    continue;
+		}
                 // see if all reads along this edge enter/leave the node along the same edge
                 unordered_set<PanEdge*> s;
                 for (auto r : (*it)->reads)
@@ -529,7 +534,7 @@ void PanGraph::clean(const uint32_t& coverage)
     remove_low_covg_edges(0);
     remove_low_covg_nodes(0.05*coverage);
 
-    split_nodes_by_reads(coverage);
+    split_nodes_by_reads(coverage, edges_per_node);
     read_clean(0.2*edges_per_node);
 
     remove_low_covg_edges(0.2*edges_per_node);
@@ -623,23 +628,23 @@ void PanGraph::write_gfa (const string& filepath)
     for(map<uint32_t, PanNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
     {
 	
-        handle << "S\t" << it->second->name << "." << it->first << "\t*\tFC:i:" << it->second->covg << endl;
+        handle << "S\t" << it->second->get_name() << "\t*\tFC:i:" << it->second->covg << endl;
     }
 
     for (uint i=0; i!=edges.size(); ++i)
     {
 	if (edges[i]->orientation == 0)
 	{
-	    handle << "L\t" << edges[i]->from->name << "." << edges[i]->from->node_id << "\t-\t" << edges[i]->to->name << "." << edges[i]->to->node_id << "\t-\t0M\tRC:i:" << edges[i]->covg << endl;
+	    handle << "L\t" << edges[i]->from->get_name() << "\t-\t" << edges[i]->to->get_name() << "\t-\t0M\tRC:i:" << edges[i]->covg << endl;
 	} else if (edges[i]->orientation == 1)
 	{
-	    handle << "L\t" << edges[i]->from->name << "." << edges[i]->from->node_id << "\t+\t" << edges[i]->to->name << "." << edges[i]->to->node_id << "\t-\t0M\tRC:i:" << edges[i]->covg << endl;
+	    handle << "L\t" << edges[i]->from->get_name() << "\t+\t" << edges[i]->to->get_name() << "\t-\t0M\tRC:i:" << edges[i]->covg << endl;
         } else if (edges[i]->orientation == 2)
         {
-            handle << "L\t" << edges[i]->from->name << "." << edges[i]->from->node_id << "\t-\t" << edges[i]->to->name << "." << edges[i]->to->node_id << "\t+\t0M\tRC:i:" << edges[i]->covg << endl;
+            handle << "L\t" << edges[i]->from->get_name() << "\t-\t" << edges[i]->to->get_name() << "\t+\t0M\tRC:i:" << edges[i]->covg << endl;
         } else if (edges[i]->orientation == 3)
         {
-            handle << "L\t" << edges[i]->from->name << "." << edges[i]->from->node_id << "\t+\t" << edges[i]->to->name << "." << edges[i]->to->node_id << "\t+\t0M\tRC:i:" << edges[i]->covg << endl;
+            handle << "L\t" << edges[i]->from->get_name() << "\t+\t" << edges[i]->to->get_name() << "\t+\t0M\tRC:i:" << edges[i]->covg << endl;
         }
     }
     handle.close();

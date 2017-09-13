@@ -398,7 +398,7 @@ TEST_F(PanGraphTest, split_nodes_by_reads)
     pg2.add_node(4,"4",2, mhs);
 
     // run split
-    pg1.split_nodes_by_reads(2);
+    pg1.split_nodes_by_reads(2,0);
 
     EXPECT_EQ(pg2, pg1);
     EXPECT_EQ(pg1, pg2);
@@ -469,7 +469,7 @@ TEST_F(PanGraphTest, split_nodes_by_reads)
     pg4.add_edge(5,4,3,4);
     
     // run split
-    pg3.split_nodes_by_reads(2);
+    pg3.split_nodes_by_reads(2,0);
 
     EXPECT_EQ(pg4, pg3);
     EXPECT_EQ(pg3, pg4);

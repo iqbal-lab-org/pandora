@@ -23,6 +23,8 @@ class PanNode {
     PanNode(const uint32_t, const uint32_t, const std::string);
     //PanNode(const PanNode&);
     //PanNode& operator=(const PanNode&);
+    
+    std::string get_name();
 
     bool operator == (const PanNode& y) const;
     bool operator != (const PanNode& y) const;
