@@ -322,45 +322,6 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     return;
 }
 
-/*void pangraph_from_read_file_new(const string& filepath, MinimizerHits* mh, PanGraph* pangraph, Index* idx, const vector<LocalPRG*>& prgs, const uint32_t w, const uint32_t k, const int max_diff)
-{
-    Seq *s;
-    s = new Seq(0, "null", "", w, k);
-    if (s==nullptr)
-    {
-        cerr << "Failed to create new Seq, something must be dying " << endl;
-        exit (EXIT_FAILURE);
-    }
-    uint32_t id = 0;
-
-    vector<string> files = {filepath};
-    size_t nt = 8;
-    size_t np = 1;
-    fastx_parser::FastxParser<fastx_parser::ReadSeq> parser(files, nt, np);
-    parser.start();
-
-    // Get the read group by which this thread will
-    // communicate with the parser (*once per-thread*)
-    auto rg = parser.getReadGroup();
-
-    while (parser.refill(rg)) {
-        // Here, rg will contain a chunk of reads
-        // we can process.
-        for (auto& read : rg) {
-            //cout << "read name: " << read.name << ", seq: " << read.seq << '\n';
-	    cout << now() << "Found read " << read.name << endl;
-	    s->initialize(id, read.name, read.seq, w, k);
-            cout << now() << "Add read hits" << endl;
-            add_read_hits(s, mh, idx);
-            id++;
-        }
-    }
-    delete s;
-    cout << now() << "Infer gene orders and add to PanGraph" << endl;
-    infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff);
-    return;
-}*/
-
 void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph* pangraph, Index* idx, const vector<LocalPRG*>& prgs, const uint32_t w, const uint32_t k, const int max_diff, const uint min_cluster_size, const uint genome_size)
 {
     string name, read, line;
@@ -432,86 +393,8 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
     return;
 }
 
-/*void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prgs) //, const uint32_t k, const float& e_rate, bool output_p_dist)
-{
-    for(map<uint32_t, PanNode*>::iterator pnode=pangraph->nodes.begin(); pnode!=pangraph->nodes.end(); ++pnode)
-    {
-        cout << now() << "Update coverages for PRG " << pnode->second->name << endl;
-	for (auto read : pnode->second->reads)
-	{
-	    for (set<MinimizerHit*, pComp_path>::iterator mh = read->hits[pnode->second->node_id].begin(); mh != read->hits[pnode->second->node_id].end(); ++mh)
-	    {
-	        prgs[pnode->second->prg_id]->update_covg_with_hit(*mh);
-	    }
-	}
-	prgs[pnode->second->prg_id]->kmer_prg.num_reads = pnode->second->reads.size();
-	cout << now() << "Added " << prgs[pnode->second->prg_id]->num_hits[1] << " hits in the forward direction and " << prgs[pnode->second->prg_id]->num_hits[0] << " hits in the reverse" << endl;
-    }
-}*/
-
 void update_localPRGs_with_hits(PanGraph* pangraph, const vector<LocalPRG*>& prgs) //, const uint32_t k, const float& e_rate, bool output_p_dist)
 {   
     pangraph->add_hits_to_kmergraphs(prgs);
 }
 
-/*float p_null(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_of_hits, uint32_t k, const vector<uint32_t>& sketch_sizes)
-{
-    // Assumes only one PRG in the vector has the id, (or works out p_null for the first occurrence)
-    assert(cluster_of_hits.size() > 0);
-    assert((*cluster_of_hits.begin())->prg_id < prgs.size());
-
-    uint32_t i = (*cluster_of_hits.begin())->prg_id;
-    uint32_t sketch_size = sketch_sizes[(*cluster_of_hits.begin())->read_id];
-    //float p = pow(1 - pow(1 - pow(0.25, k), prgs[i]->kmer_prg.nodes.size()-2), cluster_of_hits.size());
-    float p_x = 1 - pow(1 - pow(0.25, k), prgs[i]->kmer_prg.nodes.size()-2);
-    float p_y = 1 - pow(1 - pow(0.25, k), sketch_size);
-    float J_null = p_x * p_y / (p_x + p_y - p_x * p_y);
-    if (cluster_of_hits.size() > 2)
-    {
-	cout << "sketch size for read " << (*cluster_of_hits.begin())->read_id << " was " << sketch_size << " giving p_y " << p_y <<endl;
-	cout << "Jnull is " << J_null << endl;
-    }
-    float p = 1;
-    for (uint j=0; j!=cluster_of_hits.size(); ++j)
-    {
-	p -= nchoosek(sketch_size, j)*pow(J_null, j)*pow(1-J_null, sketch_size - j);
-    }
-    cout << "found cluster of size " << cluster_of_hits.size() << " against prg " << i << " with pnull " << p << endl;
-
-    return p;
-}*/
-
-/*uint32_t nchoosek(const uint32_t n, const uint32_t k)
-{
-    uint32_t ret = 1;
-    assert (n>=k);
-    //assert (k>=0);
-
-    if (n == k or k == 0)
-    {
-	ret = 1;
-    } else {
-        for (uint i=n; i>k; --i)
-	{
-	    ret *=ret;
-	}
-	for (uint i=1; i<=n-k; ++i)
-        {
-	    assert (i>0);
-            ret /=ret;
-        }
-    }
-    return ret;
-}*/
-
-/*float p_one(const vector<LocalPRG*>& prgs, set<MinimizerHit*, pComp>& cluster_of_hits, uint32_t k, float e_rate)
-{
-    // Assumes only one PRG in the vector has the id, (or works out p_null for the first occurrence)
-    assert(cluster_of_hits.size() > 0);
-    assert((*cluster_of_hits.begin())->prg_id < prgs.size());
-
-    uint32_t i = (*cluster_of_hits.begin())->prg_id;
-    float p = // put something to do with error rate, prob of getting this many correct
-
-    return p;
-}*/
