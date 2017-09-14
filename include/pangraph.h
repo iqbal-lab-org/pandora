@@ -29,7 +29,7 @@ class PanGraph {
 
     // graph additions/removals
     void add_node (const uint32_t, const std::string, uint32_t, const std::set<MinimizerHit*, pComp>&); // used by pandora map
-    void add_node (const uint32_t, const std::string&, const std::string&, const std::vector<KmerNode*>&); // used by pandora compare
+    void add_node (const uint32_t, const std::string&, const std::string&, const std::vector<KmerNode*>&, const std::vector<LocalPRG*>&); // used by pandora compare
     PanEdge* add_edge (const uint32_t&, const uint32_t&, const uint&);
     void add_edge (const uint32_t&, const uint32_t&, const uint&, const uint&);
     std::vector<PanEdge*>::iterator remove_edge (PanEdge*);

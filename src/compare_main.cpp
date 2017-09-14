@@ -232,9 +232,13 @@ int pandora_compare(int argc, char* argv[])
         for (auto c: pangraph_sample->nodes)
         {
 	    kmp = prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, max_path, min_path, output_vcf, output_comparison_paths);
-	    pangraph->add_node(c.second->prg_id, c.second->name, sample->first, kmp);
+	    pangraph->add_node(c.second->prg_id, c.second->name, sample->first, kmp, prgs);
         }
     }
+
+    // for each pannode in graph, find a best reference and output a vcf and aligned fasta of sample paths through it
+
+    // output a vcf which has the presence/absence of each prg in each sample
 
     // clear up
     for (uint32_t j=0; j!=prgs.size(); ++j)

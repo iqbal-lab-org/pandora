@@ -9,6 +9,7 @@
 class PanEdge;
 class PanRead;
 class PanSample;
+class KmerNode;
 
 class PanNode {
   public:
@@ -27,6 +28,7 @@ class PanNode {
     //PanNode& operator=(const PanNode&);
     
     std::string get_name();
+    void add_path(const std::vector<KmerNode*>&);
 
     bool operator == (const PanNode& y) const;
     bool operator != (const PanNode& y) const;

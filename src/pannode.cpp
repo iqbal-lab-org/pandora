@@ -1,8 +1,11 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <cassert>
 #include "pannode.h"
 #include "utils.h"
+
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
 
@@ -15,6 +18,16 @@ string PanNode::get_name()
 	return name + "." + to_string(node_id);
     } else {
 	return name;
+    }
+}
+
+void PanNode::add_path(const vector<KmerNode*>& kmp)
+{
+    for (uint i=0; i!=kmp.size(); ++i)
+    {
+	assert(kmer_prg.nodes.find(kmp[i]->id)!=kmer_prg.nodes.end() || assert_msg("Must have wrong kmergraph as has different nodes"));
+        kmer_prg.nodes[kmp[i]->id]->covg[0] += 1;
+	kmer_prg.nodes[kmp[i]->id]->covg[1] += 1;
     }
 }
 	

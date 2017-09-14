@@ -93,7 +93,7 @@ void PanGraph::add_node (const uint32_t prg_id, const string prg_name, const uin
     return;
 }
 
-void PanGraph::add_node (const uint32_t prg_id, const string& prg_name, const string& sample_name, const vector<KmerNode*>& kmp)
+void PanGraph::add_node (const uint32_t prg_id, const string& prg_name, const string& sample_name, const vector<KmerNode*>& kmp, const vector<LocalPRG*>& prgs)
 {   
     // add new node if it doesn't exist
     PanNode *n;
@@ -101,6 +101,7 @@ void PanGraph::add_node (const uint32_t prg_id, const string& prg_name, const st
     if(it==nodes.end())
     {   
         n = new PanNode(prg_id, prg_id, prg_name);
+	n->kmer_prg = prgs[prg_id]->kmer_prg;
         //cout << "add node " << *n << endl;
         nodes[prg_id] = n;
     } else {
@@ -119,10 +120,12 @@ void PanGraph::add_node (const uint32_t prg_id, const string& prg_name, const st
         s->add_path(prg_id, kmp);
         samples[sample_name] = s;
         n->samples.insert(s);
+	n->add_path(kmp);
     } else {
         //cout << "sample " << sample_name  << " already existed " << endl;
         sit->second->add_path(prg_id, kmp);
         n->samples.insert(sit->second);
+	n->add_path(kmp);
     }
  return;
 }

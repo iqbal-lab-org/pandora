@@ -297,7 +297,7 @@ void filter_clusters(set<set<MinimizerHit*, pComp>,clusterComp>& clusters_of_hit
     cout << now() << "Now have " << clusters_of_hits.size() << " clusters of hits " << endl;
 }
 
-/*void filter_clusters2(set<set<MinimizerHit*, pComp>,clusterComp>& clusters_of_hits, const uint& genome_size)
+void filter_clusters2(set<set<MinimizerHit*, pComp>,clusterComp>& clusters_of_hits, const uint& genome_size)
 {
     // Sort clusters by size, and filter out those small clusters which are entirely contained in bigger clusters on reads
     cout << now() << "Filter the " << clusters_of_hits.size() << " clusters of hits " << endl;
@@ -344,7 +344,7 @@ void filter_clusters(set<set<MinimizerHit*, pComp>,clusterComp>& clusters_of_hit
 	++it;
     }
 
-}*/  
+}  
 
 void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits* minimizer_hits, PanGraph* pangraph, const int max_diff, const uint& genome_size, const uint min_cluster_size)
 {
