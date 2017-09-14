@@ -272,6 +272,52 @@ TEST_F(UtilsTest, addReadHits){
     delete s;
 }
 
+TEST_F(UtilsTest, filter_clusters2)
+{
+    MinimizerHit* mh;
+    deque<Interval> d = {Interval(0,10)};
+    Path p;
+    p.initialize(d);
+
+    set<MinimizerHit*, pComp> s;
+    set<set<MinimizerHit*, pComp>,clusterComp> ss, ss_exp;
+
+    for (uint i=0; i!=6; ++i)
+    {
+        mh = new MinimizerHit(1,Interval(i,i+10),0,p,0,0);
+	s.insert(mh);
+    }
+    ss.insert(s);
+    ss_exp.insert(s);
+    s.clear();
+    for (uint i=5; i!=15; ++i)
+    {
+        mh = new MinimizerHit(1,Interval(i,i+10),1,p,0,0);
+        s.insert(mh);
+    }
+    ss.insert(s);
+    ss_exp.insert(s);
+    s.clear();
+    for (uint i=3; i!=7; ++i)
+    {
+        mh = new MinimizerHit(1,Interval(i,i+10),2,p,0,0);
+        s.insert(mh);
+    }
+    ss.insert(s);
+
+    filter_clusters2(ss, 20);
+
+    EXPECT_EQ(ss_exp.size(), ss.size());
+    for (auto j : ss)
+    {
+	for (auto k : j)
+	{
+	    delete k;
+	}
+    }
+    
+}
+
 TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){    
     // initialize minihits container
     MinimizerHits *mhs;
@@ -409,7 +455,7 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     // initialize pangraph;
     PanGraph *pg;
     pg = new PanGraph();
-    infer_localPRG_order_for_reads(prgs, mhs, pg, 1, 1);
+    infer_localPRG_order_for_reads(prgs, mhs, pg, 1, 100, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 then 1)
     PanGraph pg_exp;
@@ -656,7 +702,7 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     // initialize pangraph;
     PanGraph *pg;
     pg = new PanGraph();
-    infer_localPRG_order_for_reads(prgs, mhs, pg, 1, 1);
+    infer_localPRG_order_for_reads(prgs, mhs, pg, 1, 100, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs

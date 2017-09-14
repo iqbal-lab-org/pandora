@@ -33,6 +33,11 @@ struct clusterComp
   bool operator()(std::set<MinimizerHit*, pComp> lhs, std::set<MinimizerHit*, pComp> rhs);
 };
 
+struct clusterComp_size
+{
+  bool operator()(std::set<MinimizerHit*, pComp> lhs, std::set<MinimizerHit*, pComp> rhs);
+};
+
 class MinimizerHits {
   public:
     MinimizerHits(const uint& num_hits=30000);

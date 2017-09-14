@@ -120,8 +120,24 @@ bool clusterComp::operator()(set<MinimizerHit*, pComp> lhs, set<MinimizerHit*, p
     if ((*rhs.begin())->read_id < (*lhs.begin())->read_id) { return false; }
     if ((*lhs.begin())->read_interval.start < (*rhs.begin())->read_interval.start) { return true; }
     if ((*rhs.begin())->read_interval.start < (*lhs.begin())->read_interval.start) { return false; }
-    if (lhs.size() < rhs.size()) { return true; }
-    if (rhs.size() < lhs.size()) { return false; }
+    if (lhs.size() > rhs.size()) { return true; } // want bigger first!
+    if (rhs.size() > lhs.size()) { return false; }
+    if ((*lhs.begin())->prg_id < (*rhs.begin())->prg_id) { return true; }
+    if ((*rhs.begin())->prg_id < (*lhs.begin())->prg_id) { return false; }
+    if ((*lhs.begin())->prg_path < (*rhs.begin())->prg_path) { return true; }
+    if ((*rhs.begin())->prg_path < (*lhs.begin())->prg_path) { return false; }
+    if ((*lhs.begin())->strand < (*rhs.begin())->strand) { return true; }
+    if ((*rhs.begin())->strand < (*lhs.begin())->strand) { return false; }
+    return false;
+}
+
+bool clusterComp_size::operator()(set<MinimizerHit*, pComp> lhs, set<MinimizerHit*, pComp> rhs) {
+    if ((*lhs.begin())->read_id < (*rhs.begin())->read_id) { return true; }
+    if ((*rhs.begin())->read_id < (*lhs.begin())->read_id) { return false; }
+    if (lhs.size() > rhs.size()) { return true; }
+    if (rhs.size() > lhs.size()) { return false; }
+    if ((*lhs.begin())->read_interval.start < (*rhs.begin())->read_interval.start) { return true; }
+    if ((*rhs.begin())->read_interval.start < (*lhs.begin())->read_interval.start) { return false; }
     if ((*lhs.begin())->prg_id < (*rhs.begin())->prg_id) { return true; }
     if ((*rhs.begin())->prg_id < (*lhs.begin())->prg_id) { return false; }
     if ((*lhs.begin())->prg_path < (*rhs.begin())->prg_path) { return true; }

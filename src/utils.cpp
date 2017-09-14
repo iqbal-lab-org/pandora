@@ -208,95 +208,163 @@ void add_read_hits(Seq* s, MinimizerHits* hits, Index* idx)
     return;
 }
 
-void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits* minimizer_hits, PanGraph* pangraph, const int max_diff, const uint min_cluster_size)
+void define_clusters(set<set<MinimizerHit*, pComp>,clusterComp>& clusters_of_hits, const vector<LocalPRG*>& prgs, const MinimizerHits* minimizer_hits, const int max_diff, const uint min_cluster_size)
 {
-    // this step infers the gene order for a read and adds this to the pangraph
-    // by defining clusters of hits, keeping those which are not noise and
-    // then adding the inferred gene ordering
-    //cout << "sort" << endl;
-    minimizer_hits->sort();
-    //cout << "end sort" << endl;
-    set<set<MinimizerHit*, pComp>,clusterComp> clusters_of_hits;
+    cout << now() << "Define clusters of hits " << endl;
 
     if (minimizer_hits->hits.size() == 0) {return;}
 
-    // First define clusters of hits matching same localPRG, not more than max_diff read bases from the last hit (this last bit is to handle repeat genes). 
+    // A cluster of hits should match same localPRG, each hit not more than max_diff read bases from the last hit (this last bit is to handle repeat genes). 
     set<MinimizerHit*, pComp>::iterator mh_previous = minimizer_hits->hits.begin();
     set<MinimizerHit*, pComp> current_cluster;
     current_cluster.insert(*mh_previous);
     for (set<MinimizerHit*, pComp>::iterator mh_current = ++minimizer_hits->hits.begin(); mh_current != minimizer_hits->hits.end(); ++mh_current)
     {
-        if((*mh_current)->read_id!=(*mh_previous)->read_id or (*mh_current)->prg_id!=(*mh_previous)->prg_id or (*mh_current)->strand!=(*mh_previous)->strand or (abs((int)(*mh_current)->read_interval.start - (int)(*mh_previous)->read_interval.start)) > max_diff)
+        if((*mh_current)->read_id!=(*mh_previous)->read_id or 
+	   (*mh_current)->prg_id!=(*mh_previous)->prg_id or 
+	   (*mh_current)->strand!=(*mh_previous)->strand or 
+	   (abs((int)(*mh_current)->read_interval.start - (int)(*mh_previous)->read_interval.start)) > max_diff)
         {
-	    // keep clusters which cover at least 10% of the shortest kmer path
+            // keep clusters which cover at least 10% of the shortest kmer path
             if (current_cluster.size() > max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()/10, min_cluster_size))
             {
                 clusters_of_hits.insert(current_cluster);
-	    /*} else {
-		cout << "rejected hits" << endl;
-		for (set<MinimizerHit*, pComp>::iterator p=current_cluster.begin(); p!=current_cluster.end(); ++p)
+            /*} else {
+                cout << "rejected hits" << endl;
+                for (set<MinimizerHit*, pComp>::iterator p=current_cluster.begin(); p!=current_cluster.end(); ++p)
                 {
                     cout << **p << endl;
                 }*/
-	    }
-            current_cluster.clear();
+            }
+	    current_cluster.clear();
         }
-	current_cluster.insert(*mh_current);
+        current_cluster.insert(*mh_current);
         mh_previous = mh_current;
     }
-    // keep final cluster if it has a low enough probability of occuring by chance
+   
     if (current_cluster.size() > max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()/20, min_cluster_size))
     {
         clusters_of_hits.insert(current_cluster);
     /*} else {
-	cout << "rejected hits" << endl;
+        cout << "rejected hits" << endl;
         for (set<MinimizerHit*, pComp>::iterator p=current_cluster.begin(); p!=current_cluster.end(); ++p)
         {
             cout << **p << endl;
         }*/
-    }
+    }   
 
+    cout << now() << "Found " << clusters_of_hits.size() << " clusters of hits" << endl;
+    return;
+}
+
+void filter_clusters(set<set<MinimizerHit*, pComp>,clusterComp>& clusters_of_hits)
+{
     // Next order clusters, choose between those that overlap by too much
-    cout << now() << "Found " << clusters_of_hits.size() << " clusters of hits " << endl;
+    cout << now() << "Filter the " << clusters_of_hits.size() << " clusters of hits " << endl;
     if (clusters_of_hits.size() == 0) { return;}
     // to do this consider pairs of clusters in turn
     set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_previous = clusters_of_hits.begin();
     /*cout << "first cluster" << endl;
     for (set<MinimizerHit*, pComp>::iterator p=c_previous->begin(); p!=c_previous->end(); ++p)
     {
-	cout << **p << endl;
+        cout << **p << endl;
     }*/
     for (set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_current = ++clusters_of_hits.begin(); c_current != clusters_of_hits.end(); ++c_current)
     {
-	/*cout << "current cluster" << endl;
+        /*cout << "current cluster" << endl;
         for (set<MinimizerHit*, pComp>::iterator p=c_current->begin(); p!=c_current->end(); ++p)
         {
             cout << **p << endl;
         }*/
         if(((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) && // if on same read and either
-	  ((((*(*c_current).begin())->prg_id == (*(*c_previous).begin())->prg_id) && // same prg, different strand
-	  ((*(*c_current).begin())->strand != (*(*c_previous).begin())->strand)) or // or cluster is contained
-	  ((*--(*c_current).end())->read_interval.start <= (*--(*c_previous).end())->read_interval.start))) // i.e. not least one hit outside overlap 
-	 // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, but could also impose no more than 2k hits in overlap
+          ((((*(*c_current).begin())->prg_id == (*(*c_previous).begin())->prg_id) && // same prg, different strand
+          ((*(*c_current).begin())->strand != (*(*c_previous).begin())->strand)) or // or cluster is contained
+          ((*--(*c_current).end())->read_interval.start <= (*--(*c_previous).end())->read_interval.start))) // i.e. not least one hit outside overlap 
+         // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, but could also impose no more than 2k hits in overlap
         {
-	    if (c_previous->size() >= c_current->size())
+            if (c_previous->size() >= c_current->size())
+            {
+                clusters_of_hits.erase(c_current);
+                //cout << "erase current" << endl;
+                c_current = c_previous;
+            } else {
+                clusters_of_hits.erase(c_previous);
+                //cout << "erase previous" << endl;
+            }
+        }
+        c_previous = c_current;
+    }
+    cout << now() << "Now have " << clusters_of_hits.size() << " clusters of hits " << endl;
+}
+
+/*void filter_clusters2(set<set<MinimizerHit*, pComp>,clusterComp>& clusters_of_hits, const uint& genome_size)
+{
+    // Sort clusters by size, and filter out those small clusters which are entirely contained in bigger clusters on reads
+    cout << now() << "Filter the " << clusters_of_hits.size() << " clusters of hits " << endl;
+    if (clusters_of_hits.size() == 0) { return;}
+
+    set<set<MinimizerHit*, pComp>,clusterComp_size> clusters_by_size(clusters_of_hits.begin(), clusters_of_hits.end());
+
+    set<set<MinimizerHit*, pComp>,clusterComp_size>::iterator it = clusters_by_size.begin();
+    std::vector<int> read_v(genome_size, 0);   
+    cout << "fill from " << (*(it->begin()))->read_interval.start << " to " << (*--(it->end()))->read_interval.start << endl;
+    fill(read_v.begin()+(*(it->begin()))->read_interval.start, read_v.begin()+(*--(it->end()))->read_interval.start, 1);
+    bool contained;
+    for (set<set<MinimizerHit*, pComp>,clusterComp_size>::iterator it_next = ++clusters_by_size.begin(); it_next!= clusters_by_size.end(); ++it_next)
+    {
+	cout << "read id " << (*(it_next->begin()))->prg_id << endl;
+	if ((*(it_next->begin()))->read_id == (*(it->begin()))->read_id)
+	{
+	    //check if have any 0s in interval of read_v between first and last
+	    contained = true;
+	    for (uint i = (*(it_next->begin()))->read_interval.start; i <(*--(it_next->end()))->read_interval.start; ++i)
 	    {
-		clusters_of_hits.erase(c_current);
-		//cout << "erase current" << endl;
-		c_current = c_previous;
-	    } else {
-		clusters_of_hits.erase(c_previous);
-		//cout << "erase previous" << endl;
+		cout << i << ":" << read_v[i] << "\t";
+		if (read_v[i] == 0)
+		{
+		    contained = false;
+		    cout << "found unique element at read position " << i << endl;
+		    cout << "fill from " << i << " to " << (*--(it_next->end()))->read_interval.start << endl;
+		    fill(read_v.begin()+i, read_v.begin()+(*--(it_next->end()))->read_interval.start, 1);	
+		    break;
+		}   
+		 
 	    }
+ 	    cout << endl;
+	    if (contained == true)
+	    {
+		cout << "erase cluster so clusters_of_hits has size decrease from " << clusters_of_hits.size();
+		clusters_of_hits.erase(*it_next);
+		cout << " to " << clusters_of_hits.size() << endl;
+	    }
+	} else {
+	    cout << "consider new read" << endl;
+	    fill(read_v.begin(), read_v.end(), 0);
 	}
-	c_previous = c_current;
+	++it;
     }
 
+}*/  
+
+void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits* minimizer_hits, PanGraph* pangraph, const int max_diff, const uint& genome_size, const uint min_cluster_size)
+{
+    // this step infers the gene order for a read and adds this to the pangraph
+    // by defining clusters of hits, keeping those which are not noise and
+    // then adding the inferred gene ordering
+
+    minimizer_hits->sort();
+    if (minimizer_hits->hits.size() == 0) {return;}
+
+    set<set<MinimizerHit*, pComp>,clusterComp> clusters_of_hits;
+    define_clusters(clusters_of_hits, prgs, minimizer_hits, max_diff, min_cluster_size);
+
+    filter_clusters(clusters_of_hits);
+    //filter_clusters2(clusters_of_hits, genome_size);
+
     // Add inferred order to pangraph    
-    cout << now() << "After removing contained clusters, have " << clusters_of_hits.size() << " clusters of hits " << endl;
     if (clusters_of_hits.size() == 0) { return;}
     // to do this consider pairs of clusters in turn
-    c_previous = clusters_of_hits.begin();
+    set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_previous = clusters_of_hits.begin();
     pangraph->add_node((*(*c_previous).begin())->prg_id, prgs[(*(*c_previous).begin())->prg_id]->name, (*(*c_previous).begin())->read_id, *c_previous);
     cout << "nodes on read " << (*(*c_previous).begin())->read_id << endl << prgs[(*(*c_previous).begin())->prg_id]->name << " : ";
     for (set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_current = ++clusters_of_hits.begin(); c_current != clusters_of_hits.end(); ++c_current)
@@ -380,7 +448,7 @@ void pangraph_from_read_file(const string& filepath, MinimizerHits* mh, PanGraph
 	cout << now() << "Estimated coverage: " << covg << endl;
         //cout << "Number of reads found: " << id+1 << endl;
         cout << now() << "Infer gene orders and add to PanGraph" << endl;
-        infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, min_cluster_size);
+        infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, min_cluster_size);
 	cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
         pangraph->clean(covg);
         cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
