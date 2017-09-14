@@ -19,6 +19,7 @@ using namespace std;
 KmerGraph::KmerGraph()
 {
     nodes.reserve(60000);
+    reserved_size = 60000;
     next_id = 0;
     num_reads = 0;
     shortest_path_length = 0;    
@@ -138,6 +139,11 @@ KmerNode* KmerGraph::add_node (const Path& p)
         k = p.length();
     }
     next_id++;
+    if (next_id == reserved_size)
+    {
+	reserved_size *= 2;
+        nodes.reserve(reserved_size);
+    }
     return n;
 }
 

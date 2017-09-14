@@ -237,8 +237,12 @@ int pandora_compare(int argc, char* argv[])
     }
 
     // for each pannode in graph, find a best reference and output a vcf and aligned fasta of sample paths through it
+    /*for (auto c: pangraph->nodes)
+    {
+	c.second->output_samples_vcf(prgs[c.first], w);
+    }*/
 
-    // output a vcf which has the presence/absence of each prg in each sample
+    // output a matrix/vcf which has the presence/absence of each prg in each sample
 
     // clear up
     for (uint32_t j=0; j!=prgs.size(); ++j)

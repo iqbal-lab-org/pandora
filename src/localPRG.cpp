@@ -330,6 +330,8 @@ void LocalPRG::minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k)
 
     // declare variables
     vector<Path> walk_paths, shift_paths, v;
+    walk_paths.reserve(100);
+    shift_paths.reserve(100);
     deque<KmerNode*> current_leaves, end_leaves;
     deque<vector<Path>> shifts;
     deque<Interval> d;
@@ -619,6 +621,19 @@ vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*>
 	if (localnode_path[0]->id != 0)
 	{
 	    cout << "localnode path still does not start with 0" << endl;
+	    // add the first path to start
+	    LocalNode* next = nullptr;
+	    while (localnode_path[0]->id != 0 and next!=localnode_path[0])
+	    {
+		cout << "look for a previous node to " << *localnode_path[0] << endl;
+		next = prg.get_previous_node(localnode_path[0]);
+		if (next!=nullptr)
+		{
+		    cout << "add " << *next << endl;
+		    localnode_path.insert(localnode_path.begin(), next);
+		}
+		cout << "new start node is " << *localnode_path[0] << endl;
+	    }	
 	}
     }
 
@@ -662,6 +677,13 @@ vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(vector<KmerNode*>
 	if (localnode_path.back()->id != prg.nodes.size()-1)
         {
             cout << "localnode path still does not end with " << prg.nodes.size()-1 << endl;
+	    // add the first path to end
+            while (localnode_path.back()->id != prg.nodes.size()-1 and localnode_path.back()->outNodes.size()>0)
+            {
+		cout << "extend " << *localnode_path.back();
+		localnode_path.push_back(localnode_path.back()->outNodes[0]);
+		cout << " with " << *localnode_path.back() << endl;
+            }
         }
     }
 
@@ -875,6 +897,9 @@ void LocalPRG::build_vcf(const vector<LocalNode*>& ref)
     cout << now() << "Build VCF for prg " << name << endl;
     assert(prg.nodes.size()>0); //otherwise empty nodes -> segfault
 
+    // if ref doesn't start at node 0 and end at last node, extend with toppath to the ends
+    // TO DO!!
+
     vector<LocalNode*> varpath;
     varpath.reserve(100);
     vector<LocalNode*> refpath, bottompath;
@@ -913,7 +938,7 @@ void LocalPRG::build_vcf(const vector<LocalNode*>& ref)
             // update vartype if complex
             if (level > 1)
             {
-                vartype = "GRAPHTYPE=COMPLEX";
+                vartype = "GRAPHTYPE=COMPLEX"; // NB this is badly defined as it depends on which thing is the ref.
             }
             //extend if necessary
             if (level>0 or refpath.size() == 1)

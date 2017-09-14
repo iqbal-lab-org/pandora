@@ -242,6 +242,25 @@ vector<Path> LocalGraph::walk_back(const uint32_t& node_id, const uint32_t& pos,
     return return_paths;
 }
      
+LocalNode* LocalGraph::get_previous_node(const LocalNode* n) const
+{
+    if (n->id == 0)
+    {
+	return nullptr;
+    } else {
+	for (auto c : nodes)
+	{
+	    if (find(c.second->outNodes.begin(), c.second->outNodes.end(), n) != c.second->outNodes.end())
+	    {
+		return c.second;
+	    } else if (c.first > n->id) {
+		break;
+	    }
+	}
+	// if we get here, there was no previous node to be found. 
+	return nullptr;
+    }
+}
 
 vector<LocalNode*> LocalGraph::nodes_along_string(const string& query_string)
 {

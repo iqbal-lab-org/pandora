@@ -14,6 +14,7 @@ class LocalPRG;
 #include "kmernode.h"
 
 class KmerGraph {
+    uint reserved_size;
     uint32_t next_id;
     uint32_t k;
     float p;

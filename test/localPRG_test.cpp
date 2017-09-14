@@ -718,10 +718,9 @@ TEST_F(LocalPRGTest, localnode_path_from_kmernode_path)
     //vector<KmerNode*> kmp = {l3.kmer_prg.nodes[0], l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<KmerNode*> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<LocalNode*> lmp = l3.localnode_path_from_kmernode_path(kmp);
-    vector<LocalNode*> lmp_exp = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
+    vector<LocalNode*> lmp_exp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
     EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
     lmp = l3.localnode_path_from_kmernode_path(kmp, 2);
-    lmp_exp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
     EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
 
     idx->clear();
@@ -729,10 +728,9 @@ TEST_F(LocalPRGTest, localnode_path_from_kmernode_path)
     //kmp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[1], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[7], l4.kmer_prg.nodes[9], l4.kmer_prg.nodes[11], l4.kmer_prg.nodes[13]};
     kmp = {l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[7]};
     lmp = l4.localnode_path_from_kmernode_path(kmp, 2);
-    lmp_exp = {l4.prg.nodes[1], l4.prg.nodes[3]};
+    lmp_exp = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6]};
     EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
     lmp = l4.localnode_path_from_kmernode_path(kmp, 3);
-    lmp_exp = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6]};
     EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
 
     delete idx;
@@ -959,6 +957,16 @@ TEST_F(LocalPRGTest, build_vcf_non_ref)
     EXPECT_EQ("GC", l2.vcf.records[0].ref);
     EXPECT_EQ("G", l2.vcf.records[0].alt);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", l2.vcf.records[0].info);
+    l2.vcf.clear();
+    vector<LocalNode*> lmp = {l2.prg.nodes[0], l2.prg.nodes[2], l2.prg.nodes[3]};
+    l2.build_vcf(lmp);
+    j = 1;
+    EXPECT_EQ(j, l2.vcf.records.size());
+    EXPECT_EQ("varsite", l2.vcf.records[0].chrom);
+    EXPECT_EQ((uint)1, l2.vcf.records[0].pos);
+    EXPECT_EQ("G", l2.vcf.records[0].ref);
+    EXPECT_EQ("GC", l2.vcf.records[0].alt);
+    EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", l2.vcf.records[0].info);
 
     l3.build_vcf(l3.prg.top_path());
     j = 2;
@@ -972,6 +980,34 @@ TEST_F(LocalPRGTest, build_vcf_non_ref)
     EXPECT_EQ("GC", l3.vcf.records[1].ref);
     EXPECT_EQ("GT", l3.vcf.records[1].alt);
     EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=COMPLEX", l3.vcf.records[1].info);
+
+    l3.vcf.clear();
+    lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
+    l3.build_vcf(lmp);
+    EXPECT_EQ(j, l3.vcf.records.size());
+    EXPECT_EQ("nested varsite", l3.vcf.records[0].chrom);
+    EXPECT_EQ((uint)1, l3.vcf.records[0].pos);
+    EXPECT_EQ("GT", l3.vcf.records[0].ref);
+    EXPECT_EQ("G", l3.vcf.records[0].alt);
+    EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=COMPLEX", l3.vcf.records[0].info);
+    EXPECT_EQ((uint)1, l3.vcf.records[1].pos);
+    EXPECT_EQ("GT", l3.vcf.records[1].ref);
+    EXPECT_EQ("GC", l3.vcf.records[1].alt);
+    EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=COMPLEX", l3.vcf.records[1].info);
+
+    l3.vcf.clear();
+    lmp = {l3.prg.nodes[0], l3.prg.nodes[5], l3.prg.nodes[6]};
+    l3.build_vcf(lmp);
+    EXPECT_EQ(j, l3.vcf.records.size());
+    EXPECT_EQ("nested varsite", l3.vcf.records[0].chrom);
+    EXPECT_EQ((uint)1, l3.vcf.records[0].pos);
+    EXPECT_EQ("G", l3.vcf.records[0].ref);
+    EXPECT_EQ("GC", l3.vcf.records[0].alt);
+    EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", l3.vcf.records[0].info);
+    EXPECT_EQ((uint)1, l3.vcf.records[1].pos);
+    EXPECT_EQ("G", l3.vcf.records[1].ref);
+    EXPECT_EQ("GT", l3.vcf.records[1].alt);
+    EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", l3.vcf.records[1].info);
 
     l4.build_vcf(l4.prg.top_path());
     j = 5;
@@ -1000,6 +1036,37 @@ TEST_F(LocalPRGTest, build_vcf_non_ref)
     EXPECT_EQ((uint)293, l4.vcf.records[4].pos);
     EXPECT_EQ("G", l4.vcf.records[4].ref);
     EXPECT_EQ("T", l4.vcf.records[4].alt);
+    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", l4.vcf.records[4].info);
+
+    l4.vcf.clear();
+    lmp = {l4.prg.nodes[0], l4.prg.nodes[2], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6], l4.prg.nodes[8], l4.prg.nodes[9], l4.prg.nodes[10], l4.prg.nodes[12], l4.prg.nodes[14], l4.prg.nodes[15]};
+    l4.build_vcf(lmp);
+    j = 5;
+    EXPECT_EQ(j, l4.vcf.records.size());
+    EXPECT_EQ("small real PRG", l4.vcf.records[0].chrom);
+    EXPECT_EQ((uint)119, l4.vcf.records[0].pos);
+    EXPECT_EQ("C", l4.vcf.records[0].ref);
+    EXPECT_EQ("T", l4.vcf.records[0].alt);
+    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", l4.vcf.records[0].info);
+
+    EXPECT_EQ((uint)158, l4.vcf.records[1].pos);
+    EXPECT_EQ("TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG", l4.vcf.records[1].ref);
+    EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA", l4.vcf.records[1].alt);
+    EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE", l4.vcf.records[1].info);
+
+    EXPECT_EQ((uint)251, l4.vcf.records[2].pos);
+    EXPECT_EQ("G", l4.vcf.records[2].ref);
+    EXPECT_EQ("A", l4.vcf.records[2].alt);
+    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", l4.vcf.records[2].info);
+
+    EXPECT_EQ((uint)272, l4.vcf.records[3].pos);
+    EXPECT_EQ("A", l4.vcf.records[3].ref);
+    EXPECT_EQ("C", l4.vcf.records[3].alt);
+    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", l4.vcf.records[3].info);
+
+    EXPECT_EQ((uint)293, l4.vcf.records[4].pos);
+    EXPECT_EQ("T", l4.vcf.records[4].ref);
+    EXPECT_EQ("G", l4.vcf.records[4].alt);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", l4.vcf.records[4].info);
 }
 

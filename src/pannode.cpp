@@ -30,6 +30,30 @@ void PanNode::add_path(const vector<KmerNode*>& kmp)
 	kmer_prg.nodes[kmp[i]->id]->covg[1] += 1;
     }
 }
+
+/*void PanNode::output_samples_vcf(const LocalPRG* prg, const uint w)
+{
+    vector<KmerNode*> kmp;
+    kmp.reserve(800);
+    vector<LocalNode*> lmp, sample_lmp;
+    lmp.reserve(100);
+    sample_lmp.reserve(100);
+
+    // find best ref
+    kmer_prg.find_max_path(kmp);
+    lmp = prg->localnode_path_from_kmernode_path(kmp, w);
+
+    // create a with respect to this ref
+    prg->build_vcf();
+    for each sample
+    {
+	sample_lmp.clear();
+	sample_lmp = prg->localnode_path_from_kmernode_path(sample_kmp, w);
+        add_sample_to_vcf(sample_lmp); 
+	sample_lmp.clear();
+    }
+    prg->vcf.save(prefix + "." + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
+}*/
 	
 /*// copy constructor
 PanNode::PanNode(const PanNode& other)
