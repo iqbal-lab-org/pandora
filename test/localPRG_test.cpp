@@ -939,6 +939,70 @@ TEST_F(LocalPRGTest, build_vcf)
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", l4.vcf.records[4].info);
 }
 
+TEST_F(LocalPRGTest, build_vcf_non_ref)
+{
+    LocalPRG l1(1,"simple", "AGCT");
+    LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+    LocalPRG l4(4, "small real PRG", "ATGACAAAACGAAGTGGAAGTAATACGCGCAGGCGGGCTATCAGTCGCCCTGTTCGTCTGACGGCAGAAGAAGACCAGGAAATCAGAAAAAGGGCTGCTGAATGCGGCAAGACCGTTTC 5 T 6 C 5 GGTTTTTTACGGGCGGCAGCTCTCGGTAAGAAAGTTAA 7 TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG 8 CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA 7 CAGAAAAAACTCTTTATCGACGGCAAGCGTGTCGGGGACAG 9 A 10 G 9 GAGTATGCGGAGGTGCTGAT 11 A 12 C 11 GCTATTACGGAGTATCACCG 13 G 14 T 13 GCCCTGTTATCCAGGCTTATGGCAGATTAG");
+
+    l1.build_vcf(l1.prg.top_path());
+    uint j = 0;
+    EXPECT_EQ(j, l1.vcf.records.size());
+    EXPECT_EQ(j, l1.vcf.samples.size());
+
+    l2.build_vcf(l2.prg.top_path());
+    j = 1;
+    EXPECT_EQ(j, l2.vcf.records.size());
+    EXPECT_EQ("varsite", l2.vcf.records[0].chrom);
+    EXPECT_EQ((uint)1, l2.vcf.records[0].pos);
+    EXPECT_EQ("GC", l2.vcf.records[0].ref);
+    EXPECT_EQ("G", l2.vcf.records[0].alt);
+    EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", l2.vcf.records[0].info);
+
+    l3.build_vcf(l3.prg.top_path());
+    j = 2;
+    EXPECT_EQ(j, l3.vcf.records.size());
+    EXPECT_EQ("nested varsite", l3.vcf.records[0].chrom);
+    EXPECT_EQ((uint)1, l3.vcf.records[0].pos);
+    EXPECT_EQ("GC", l3.vcf.records[0].ref);
+    EXPECT_EQ("G", l3.vcf.records[0].alt);
+    EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=COMPLEX", l3.vcf.records[0].info);
+    EXPECT_EQ((uint)1, l3.vcf.records[1].pos);
+    EXPECT_EQ("GC", l3.vcf.records[1].ref);
+    EXPECT_EQ("GT", l3.vcf.records[1].alt);
+    EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=COMPLEX", l3.vcf.records[1].info);
+
+    l4.build_vcf(l4.prg.top_path());
+    j = 5;
+    EXPECT_EQ(j, l4.vcf.records.size());
+    EXPECT_EQ("small real PRG", l4.vcf.records[0].chrom);
+    EXPECT_EQ((uint)119, l4.vcf.records[0].pos);
+    EXPECT_EQ("T", l4.vcf.records[0].ref);
+    EXPECT_EQ("C", l4.vcf.records[0].alt);
+    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", l4.vcf.records[0].info);
+
+    EXPECT_EQ((uint)158, l4.vcf.records[1].pos);
+    EXPECT_EQ("TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG", l4.vcf.records[1].ref);
+    EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA", l4.vcf.records[1].alt);
+    EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE", l4.vcf.records[1].info);
+
+    EXPECT_EQ((uint)251, l4.vcf.records[2].pos);
+    EXPECT_EQ("A", l4.vcf.records[2].ref);
+    EXPECT_EQ("G", l4.vcf.records[2].alt);
+    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", l4.vcf.records[2].info);
+
+    EXPECT_EQ((uint)272, l4.vcf.records[3].pos);
+    EXPECT_EQ("A", l4.vcf.records[3].ref);
+    EXPECT_EQ("C", l4.vcf.records[3].alt);
+    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", l4.vcf.records[3].info);
+
+    EXPECT_EQ((uint)293, l4.vcf.records[4].pos);
+    EXPECT_EQ("G", l4.vcf.records[4].ref);
+    EXPECT_EQ("T", l4.vcf.records[4].alt);
+    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", l4.vcf.records[4].info);
+}
+
 TEST_F(LocalPRGTest, add_sample_to_vcf)
 {
     LocalPRG l1(1,"simple", "AGCT");

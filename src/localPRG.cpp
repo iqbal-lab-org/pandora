@@ -870,6 +870,133 @@ void LocalPRG::build_vcf()
     return;
 }
 
+void LocalPRG::build_vcf(const vector<LocalNode*>& ref)
+{
+    cout << now() << "Build VCF for prg " << name << endl;
+    assert(prg.nodes.size()>0); //otherwise empty nodes -> segfault
+
+    vector<LocalNode*> varpath;
+    varpath.reserve(100);
+    vector<LocalNode*> refpath, bottompath;
+    refpath.reserve(100);
+    refpath.push_back(ref[0]);
+    uint ref_i=1;
+    bottompath.reserve(100);
+
+    deque<vector<LocalNode*>> paths;
+    paths.push_back(refpath);
+
+    vector<vector<LocalNode*>> alts;
+    alts.reserve(100);
+
+    int level = 0, max_level=0;
+    uint pos=ref[0]->pos.length;
+    string vartype = "GRAPHTYPE=SIMPLE", ref_seq = "", alt_seq = "";
+
+    // do until we reach the end of the localPRG
+    while (ref_i < ref.size() or refpath.size() > 1)
+    {
+        //cout << "extend toppath from id " << toppath.back()->id << endl;
+        // extend the top path until level 0 is reached again
+        while(level>0 or refpath.size() == 1)
+        {
+            // first update the level we are at
+            if (refpath.back()->outNodes.size() > 1)
+            {
+                level += 1;
+            } else {
+                level -= 1;
+            }
+            max_level = max(level, max_level);
+            assert(level >= 0);
+
+            // update vartype if complex
+            if (level > 1)
+            {
+                vartype = "GRAPHTYPE=COMPLEX";
+            }
+            //extend if necessary
+            if (level>0 or refpath.size() == 1)
+            {
+                refpath.push_back(ref[ref_i]);
+		ref_i++;
+            }
+        }
+
+        // next collect all the alts
+        while(paths.size() > 0)
+        {
+            varpath = paths[0];
+            paths.pop_front();
+            if (varpath.back()->outNodes[0]->id == refpath.back()->outNodes[0]->id)
+            {
+                alts.push_back(varpath);
+            } else {
+                for (uint j=0; j!=varpath.back()->outNodes.size(); ++j)
+                {
+                    paths.push_back(varpath);
+                    paths.back().push_back(varpath.back()->outNodes[j]);
+                }
+            }
+
+            // if have too many alts, just give bottom path 
+            if ((paths.size() > 100 and max_level > 2) or paths.size() > 1000)
+            {
+                paths.clear();
+                alts.clear();
+                bottompath.push_back(refpath[0]);
+                while(bottompath.back()->outNodes.size()>0 and bottompath.back()->outNodes[0]->id != refpath.back()->outNodes[0]->id)
+                {
+                    bottompath.push_back(bottompath.back()->outNodes.back());
+                }
+                alts.push_back(bottompath);
+                vartype = "GRAPHTYPE=TOO_MANY_ALTS";
+                break;
+            }
+        }
+
+        // define ref_seq sequence
+        for (uint j=1; j< refpath.size(); ++j)
+        {
+            ref_seq += refpath[j]->seq;
+        }
+
+        // add each alt to the vcf
+        for (uint i=0; i<alts.size(); ++i)
+        {
+            for (uint j=1; j<alts[i].size(); ++j)
+            {
+                alt_seq += alts[i][j]->seq;
+            }
+
+            if (ref_seq != alt_seq)
+            {
+                vcf.add_record(name, pos, ref_seq, alt_seq, ".", vartype);
+            }
+            alt_seq = "";
+        }
+
+        // clear up
+        pos += ref_seq.length() + ref[ref_i]->pos.length;
+        vartype = "GRAPHTYPE=SIMPLE";
+        ref_seq = "";
+        alt_seq = "";
+        max_level = 0;
+        refpath = {ref[ref_i]};
+        ref_i++;
+        bottompath.clear();
+        alts.clear();
+        paths.push_back(refpath);
+        if (refpath.back()->outNodes.size() == 0)
+        {
+            break;
+        }
+    }
+    //cout << "sort vcf" << endl;
+    sort(vcf.records.begin(), vcf.records.end());
+    return;
+}
+
 void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
 {
     cout << now() << "Update VCF with sample path" << endl;
