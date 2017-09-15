@@ -43,6 +43,7 @@ class KmerGraph {
     float prob(uint);
     float find_max_path(std::vector<KmerNode*>&);
     float find_min_path(std::vector<KmerNode*>&);
+    std::vector<std::vector<KmerNode*>> find_max_paths(uint);
     void save_covg_dist(const std::string&);
     uint min_path_length();
     std::vector<std::vector<KmerNode*>> get_random_paths(uint);

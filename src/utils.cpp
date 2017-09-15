@@ -358,8 +358,8 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     set<set<MinimizerHit*, pComp>,clusterComp> clusters_of_hits;
     define_clusters(clusters_of_hits, prgs, minimizer_hits, max_diff, min_cluster_size);
 
-    filter_clusters(clusters_of_hits);
-    //filter_clusters2(clusters_of_hits, genome_size);
+    //filter_clusters(clusters_of_hits);
+    filter_clusters2(clusters_of_hits, genome_size);
 
     // Add inferred order to pangraph    
     if (clusters_of_hits.size() == 0) { return;}

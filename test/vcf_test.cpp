@@ -60,7 +60,7 @@ TEST_F(VCFTest, add_sample_gt)
     vcf.add_record("chrom1", 79, "C", "G");
     vcf.add_record("chrom1", 79, "C", "A");
 
-    vcf.add_sample_gt("chrom1", 46, "T", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 46, "T", "TA");
     uint j = 1;
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[1].samples.size());
@@ -70,7 +70,7 @@ TEST_F(VCFTest, add_sample_gt)
     EXPECT_EQ(j, vcf.records[2].samples.size());
     EXPECT_EQ(".", vcf.records[2].samples[0]);
 
-    vcf.add_sample_gt("chrom1", 79, "C", "C");
+    vcf.add_sample_gt("sample", "chrom1", 79, "C", "C");
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[1].samples.size());
     EXPECT_EQ("1", vcf.records[1].samples[0]);
@@ -81,6 +81,34 @@ TEST_F(VCFTest, add_sample_gt)
     EXPECT_EQ(j, vcf.records[3].samples.size());
     EXPECT_EQ("0", vcf.records[3].samples[0]);
 }
+
+TEST_F(VCFTest, reorder_add_record_and_sample)
+{
+    VCF vcf;
+    vcf.add_record("chrom1", 5, "A", "G");
+    vcf.add_record("chrom1", 46, "T", "TA");
+    vcf.add_sample_gt("sample1", "chrom1", 46, "T", "TA");
+    vcf.add_record("chrom1", 79, "C", "G");
+    vcf.add_sample_gt("sample2", "chrom1", 79, "C", "C");
+    vcf.add_sample_gt("sample1", "chrom1", 79, "C", "A");
+
+    EXPECT_EQ((uint)2, vcf.samples.size());
+    EXPECT_EQ((uint)4, vcf.records.size());
+    EXPECT_EQ((uint)2, vcf.records[0].samples.size());
+    EXPECT_EQ((uint)2, vcf.records[1].samples.size());
+    EXPECT_EQ((uint)2, vcf.records[2].samples.size());
+    EXPECT_EQ((uint)2, vcf.records[3].samples.size());
+    EXPECT_EQ(".", vcf.records[0].samples[0]);
+    EXPECT_EQ("1", vcf.records[1].samples[0]);
+    EXPECT_EQ(".", vcf.records[2].samples[0]);
+    EXPECT_EQ("1", vcf.records[3].samples[0]);
+    EXPECT_EQ(".", vcf.records[0].samples[1]);
+    EXPECT_EQ(".", vcf.records[1].samples[1]);
+    EXPECT_EQ("0", vcf.records[2].samples[1]);
+    EXPECT_EQ("0", vcf.records[3].samples[1]);
+
+}
+
 
 TEST_F(VCFTest,clear){
     VCF vcf;

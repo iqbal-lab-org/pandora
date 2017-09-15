@@ -30,30 +30,31 @@ class LocalPRG {
     std::string seq;
     LocalGraph prg;
     KmerGraph kmer_prg;
-    VCF vcf;
+    //VCF vcf;
     std::vector<uint32_t> num_hits;
 
     LocalPRG(uint32_t, std::string, std::string);
 
     // functions used to create LocalGraph from PRG string, and to sketch graph
-    bool isalpha_string(const std::string&);
-    std::string string_along_path(const Path&);
-    std::vector<LocalNode*> nodes_along_path(const Path&);
-    std::vector<Interval> split_by_site(const Interval&);	
+    bool isalpha_string(const std::string&) const;
+    std::string string_along_path(const Path&) const;
+    std::vector<LocalNode*> nodes_along_path(const Path&) const;
+    std::vector<Interval> split_by_site(const Interval&) const;	
     std::vector<uint32_t> build_graph(const Interval&, const std::vector<uint32_t>&, uint32_t current_level=0);
-    std::vector<Path> shift(Path);
+    std::vector<Path> shift(Path) const;
     void minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k);
 
     // functions used once hits have been collected against the PRG
     //void update_covg_with_hit(MinimizerHit*);
-    std::vector<LocalNode*> localnode_path_from_kmernode_path(std::vector<KmerNode*>, uint w=0);
-    void write_max_path_to_fasta(const std::string&, const std::vector<LocalNode*>&, const float&);
-    void append_path_to_fasta(const std::string&, const std::vector<LocalNode*>&, const float&);
-    void write_aligned_path_to_fasta(const std::string&, const std::vector<LocalNode*>&, const float&);
-    void build_vcf();
-    void build_vcf(const std::vector<LocalNode*>&);
-    void add_sample_to_vcf(const std::vector<LocalNode*>&);
-    std::vector<KmerNode*> find_path_and_variants(PanNode*, const std::string&, uint w=0, bool max_path=true, bool min_path=false, bool output_vcf = false, bool output_comparison_paths = false);
+    std::vector<LocalNode*> localnode_path_from_kmernode_path(const std::vector<KmerNode*>&, const uint w=0) const;
+    void write_path_to_fasta(const std::string&, const std::vector<LocalNode*>&, const float&) const;
+    void append_path_to_fasta(const std::string&, const std::vector<LocalNode*>&, const float&) const;
+    void write_aligned_path_to_fasta(const std::string&, const std::vector<LocalNode*>&, const float&) const;
+    //void build_vcf();
+    void build_vcf(VCF&, const std::vector<LocalNode*>&) const;
+    //void add_sample_to_vcf(const std::vector<LocalNode*>&);
+    void add_sample_to_vcf(VCF&, const std::vector<LocalNode*>&, const std::vector<LocalNode*>&, const std::string& sample_name="sample") const;
+    std::vector<KmerNode*> find_path_and_variants(PanNode*, const std::string&, uint w=0, bool max_path=true, bool min_path=false, bool output_vcf = false, bool output_comparison_paths = false) const;
 
   friend std::ostream& operator<< (std::ostream& out, const LocalPRG& data);  
 };

@@ -17,6 +17,8 @@ uint find_mean_covg(vector<uint>& kmer_covg_dist)
 {
     // tries to return the position in vector at which the maximum of the second peak occurs
     // expects at least 3 increases of covg to decide we are out of the first peak
+    // Note that if there are localPRGs which occur twice (or more) we expect the kmer covgs
+    // to have an additional smaller peak(s)
     bool first_peak = true;
     uint max_covg;
     uint noise_buffer = 0;

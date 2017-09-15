@@ -324,6 +324,33 @@ float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
     return M[0]/len[0];
 }
 
+vector<vector<KmerNode*>> KmerGraph::find_max_paths(uint num)
+{
+    vector<vector<KmerNode*>> paths;
+    vector<KmerNode*> maxpath;
+    find_max_path(maxpath);
+    //uint min_covg;
+    paths.push_back(maxpath);
+
+    while (paths.size() < num)
+    {
+	/*min_covg = 10000;
+	for (uint i=0; i!=maxpath.size(); ++i)
+	{
+	    min_covg = min(min_covg, min(maxpath[i]->covg[0], maxpath[i]->covg[1]));	    
+	}*/
+	for (uint i=0; i!=maxpath.size(); ++i)
+	{
+	    maxpath[i]->covg[0] -= min(maxpath[i]->covg[0], (uint)p*num_reads/num);
+	    maxpath[i]->covg[1] -= min(maxpath[i]->covg[1], (uint)p*num_reads/num);
+	}
+        maxpath.clear();
+	find_max_path(maxpath);
+	paths.push_back(maxpath);
+    }
+    return paths;	
+}
+
 float KmerGraph::find_min_path(vector<KmerNode*>& maxpath)
 {
     // finds a paths with best minimum probability

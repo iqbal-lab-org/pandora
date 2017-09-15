@@ -19,15 +19,15 @@ class LocalGraph {
     ~LocalGraph();
     void add_node (const uint32_t& id, const std::string& seq, const Interval& pos);
     void add_edge (const uint32_t&, const uint32_t&);
-    void write_gfa (const std::string&);
+    void write_gfa (const std::string&) const;
     void read_gfa (const std::string&);
 
-    std::vector<Path> walk(const uint32_t&, const uint32_t&, const uint32_t&);
-    std::vector<Path> walk_back(const uint32_t&, const uint32_t&, const uint32_t&);
+    std::vector<Path> walk(const uint32_t&, const uint32_t&, const uint32_t&) const;
+    std::vector<Path> walk_back(const uint32_t&, const uint32_t&, const uint32_t&) const;
     LocalNode* get_previous_node(const LocalNode*) const;
-    std::vector<LocalNode*> nodes_along_string(const std::string&);
-    std::vector<LocalNode*> top_path();
-    std::vector<LocalNode*> bottom_path();
+    std::vector<LocalNode*> nodes_along_string(const std::string&) const;
+    std::vector<LocalNode*> top_path() const;
+    std::vector<LocalNode*> bottom_path() const;
     bool operator == (const LocalGraph& y) const;
     bool operator != (const LocalGraph& y) const;
     friend std::ostream& operator<< (std::ostream & out, LocalGraph const& data);

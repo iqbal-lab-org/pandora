@@ -31,7 +31,7 @@ void PanNode::add_path(const vector<KmerNode*>& kmp)
     }
 }
 
-/*void PanNode::output_samples_vcf(const LocalPRG* prg, const uint w)
+/*void PanNode::output_samples_vcf(const LocalPRG* prg)
 {
     vector<KmerNode*> kmp;
     kmp.reserve(800);
@@ -44,12 +44,12 @@ void PanNode::add_path(const vector<KmerNode*>& kmp)
     lmp = prg->localnode_path_from_kmernode_path(kmp, w);
 
     // create a with respect to this ref
-    prg->build_vcf();
+    VCF vcf = prg->build_vcf(lmp);
     for each sample
     {
 	sample_lmp.clear();
 	sample_lmp = prg->localnode_path_from_kmernode_path(sample_kmp, w);
-        add_sample_to_vcf(sample_lmp); 
+        prg->add_sample_to_vcf(sample_lmp); 
 	sample_lmp.clear();
     }
     prg->vcf.save(prefix + "." + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);

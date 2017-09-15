@@ -72,12 +72,12 @@ void LocalGraph::add_edge (const uint32_t& from, const uint32_t& to)
     return;
 }*/
 
-void LocalGraph::write_gfa (const string& filepath)
+void LocalGraph::write_gfa (const string& filepath) const
 {
     ofstream handle;
     handle.open (filepath);
     handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
-    for(map<uint32_t, LocalNode*>::iterator it=nodes.begin(); it!=nodes.end(); ++it)
+    for(map<uint32_t, LocalNode*>::const_iterator it=nodes.begin(); it!=nodes.end(); ++it)
     {
         handle << "S\t" << it->second->id << "\t";
         if (it->second->seq == "")
@@ -147,19 +147,19 @@ void LocalGraph::read_gfa (const string& filepath)
     return;		
 }
 
-vector<Path> LocalGraph::walk(const uint32_t& node_id, const uint32_t& pos, const uint32_t& len)
+vector<Path> LocalGraph::walk(const uint32_t& node_id, const uint32_t& pos, const uint32_t& len) const
 {
     //cout << "walking graph from node " << node_id << " pos " << pos << " for length " << len << endl;
     // walks from position pos in node node for length len bases
-    assert((nodes[node_id]->pos.start <= pos && nodes[node_id]->pos.end >= pos) || assert_msg(nodes[node_id]->pos.start << "<=" << pos << " and " << nodes[node_id]->pos.end << ">=" << pos)); // if this fails, pos given lies on a different node
+    assert((nodes.at(node_id)->pos.start <= pos && nodes.at(node_id)->pos.end >= pos) || assert_msg(nodes.at(node_id)->pos.start << "<=" << pos << " and " << nodes.at(node_id)->pos.end << ">=" << pos)); // if this fails, pos given lies on a different node
     vector<Path> return_paths, walk_paths;
     return_paths.reserve(20);
     walk_paths.reserve(20);
     Path p,p2;
     deque<Interval> d;
 
-    //cout << "pos+len: " << pos+len << " nodes[node_id]->pos.end: " << nodes[node_id]->pos.end << endl;
-    if (pos+len <= nodes[node_id]->pos.end)
+    //cout << "pos+len: " << pos+len << " nodes.at(node_id)->pos.end: " << nodes.at(node_id)->pos.end << endl;
+    if (pos+len <= nodes.at(node_id)->pos.end)
     {
         d = {Interval(pos, pos+len)};
         p.initialize(d);
@@ -168,12 +168,12 @@ vector<Path> LocalGraph::walk(const uint32_t& node_id, const uint32_t& pos, cons
         //cout << "return_paths size: " << return_paths.size() << endl; 
         return return_paths;
     }
-    uint32_t len_added = min(nodes[node_id]->pos.end - pos, len);
+    uint32_t len_added = min(nodes.at(node_id)->pos.end - pos, len);
 
     //cout << "len: " << len << " len_added: " << len_added << endl;
     if (len_added < len)
     {
-	for (vector<LocalNode*>::iterator it = nodes[node_id]->outNodes.begin(); it!= nodes[node_id]->outNodes.end(); ++it)
+	for (vector<LocalNode*>::iterator it = nodes.at(node_id)->outNodes.begin(); it!= nodes.at(node_id)->outNodes.end(); ++it)
 	{
 	    //cout << "Following node: " << (*it)->id << " to add " << len-len_added << " more bases" << endl;
 	    walk_paths = walk((*it)->id,(*it)->pos.start, len-len_added);
@@ -183,7 +183,7 @@ vector<Path> LocalGraph::walk(const uint32_t& node_id, const uint32_t& pos, cons
 		// Note, would have just added start interval to each item in walk_paths, but can't seem to force result of it2 to be non-const
 		//cout << (*it2) << endl;
 		p2.initialize((*it2).path);
-		p2.add_start_interval(Interval(pos, nodes[node_id]->pos.end));
+		p2.add_start_interval(Interval(pos, nodes.at(node_id)->pos.end));
 		//cout << "path: " << p2 << " p2.length: " << p2.length << endl;
     		if (p2.length() == len) {
 		    return_paths.push_back(p2);
@@ -194,18 +194,18 @@ vector<Path> LocalGraph::walk(const uint32_t& node_id, const uint32_t& pos, cons
     return return_paths;
 }
 
-vector<Path> LocalGraph::walk_back(const uint32_t& node_id, const uint32_t& pos, const uint32_t& len)
+vector<Path> LocalGraph::walk_back(const uint32_t& node_id, const uint32_t& pos, const uint32_t& len) const
 {
     //cout << "start walking back from " << pos << " in node " << node_id << " for length " << len << endl;
     // walks from position pos in node back through prg for length len bases
-    assert((nodes[node_id]->pos.start <= pos && nodes[node_id]->pos.end >= pos) || assert_msg(nodes[node_id]->pos.start << "<=" << pos << " and " << nodes[node_id]->pos.end << ">=" << pos)); // if this fails, pos given lies on a different node
+    assert((nodes.at(node_id)->pos.start <= pos && nodes.at(node_id)->pos.end >= pos) || assert_msg(nodes.at(node_id)->pos.start << "<=" << pos << " and " << nodes.at(node_id)->pos.end << ">=" << pos)); // if this fails, pos given lies on a different node
     vector<Path> return_paths, walk_paths;
     return_paths.reserve(20);
     walk_paths.reserve(20);
     Path p,p2;
     deque<Interval> d;
 
-    if (nodes[node_id]->pos.start+len <= pos)
+    if (nodes.at(node_id)->pos.start+len <= pos)
     {
         d = {Interval(pos-len, pos)};
         p.initialize(d);
@@ -214,22 +214,22 @@ vector<Path> LocalGraph::walk_back(const uint32_t& node_id, const uint32_t& pos,
         return return_paths;
     }
 
-    uint32_t len_added = min(pos - nodes[node_id]->pos.start, len);
+    uint32_t len_added = min(pos - nodes.at(node_id)->pos.start, len);
     //cout << "len: " << len << " len_added: " << len_added << endl;
 
     vector<LocalNode*>::iterator innode;
     if (len_added < len)
     {
-	for (map<uint32_t, LocalNode*>::iterator it=nodes.begin(); it!=nodes.find(node_id); ++it)
+	for (map<uint32_t, LocalNode*>::const_iterator it=nodes.begin(); it!=nodes.find(node_id); ++it)
 	{
-	    innode = find(it->second->outNodes.begin(), it->second->outNodes.end(), nodes[node_id]);
+	    innode = find(it->second->outNodes.begin(), it->second->outNodes.end(), nodes.at(node_id));
 	    if ( innode != it->second->outNodes.end())
 	    {
                 walk_paths = walk_back(it->second->id, it->second->pos.end, len-len_added);
 		for (uint i=0; i!=walk_paths.size(); ++i)
 		{
                     p2.initialize(walk_paths[i].path);
-                    p2.add_end_interval(Interval(nodes[node_id]->pos.start, pos));
+                    p2.add_end_interval(Interval(nodes.at(node_id)->pos.start, pos));
 		    //cout << p2 << endl;
                     if (p2.length() == len) {
 			//cout << "output path: " << p2 << endl;
@@ -262,7 +262,7 @@ LocalNode* LocalGraph::get_previous_node(const LocalNode* n) const
     }
 }
 
-vector<LocalNode*> LocalGraph::nodes_along_string(const string& query_string)
+vector<LocalNode*> LocalGraph::nodes_along_string(const string& query_string) const
 {
     // Note expects the query string to start at the start of the PRG - can change this later
     vector<vector<LocalNode*>> u,v;   // u <=> v
@@ -277,12 +277,12 @@ vector<LocalNode*> LocalGraph::nodes_along_string(const string& query_string)
     assert(nodes.size()>0); //otherwise empty nodes -> segfault
 
     // if there is only one node in PRG, simple case, do simple string compare
-    if (nodes.size() == 1 and strcasecmp(query_string.c_str(), nodes[0]->seq.c_str()) == 0)
+    if (nodes.size() == 1 and strcasecmp(query_string.c_str(), nodes.at(0)->seq.c_str()) == 0)
     {
-	return {nodes[0]};
+	return {nodes.at(0)};
     }
 	
-    u = {{nodes[0]}};
+    u = {{nodes.at(0)}};
 
     while (u.size() > 0)
     {
@@ -332,13 +332,13 @@ vector<LocalNode*> LocalGraph::nodes_along_string(const string& query_string)
     return npath;
 }
 
-vector<LocalNode*> LocalGraph::top_path()
+vector<LocalNode*> LocalGraph::top_path() const
 {
     vector<LocalNode*> npath;
 
     assert(nodes.size()>0); //otherwise empty nodes -> segfault
 
-    npath.push_back(nodes[0]);
+    npath.push_back(nodes.at(0));
     while (npath.back()->outNodes.size() > 0)
     {
 	npath.push_back(npath.back()->outNodes[0]);
@@ -347,13 +347,13 @@ vector<LocalNode*> LocalGraph::top_path()
     return npath;
 }
 
-vector<LocalNode*> LocalGraph::bottom_path()
+vector<LocalNode*> LocalGraph::bottom_path() const
 {
     vector<LocalNode*> npath;
 
     assert(nodes.size()>0); //otherwise empty nodes -> segfault
 
-    npath.push_back(nodes[0]);
+    npath.push_back(nodes.at(0));
     while (npath.back()->outNodes.size() > 0)
     {
         npath.push_back(npath.back()->outNodes.back());
