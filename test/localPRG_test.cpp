@@ -917,10 +917,10 @@ TEST_F(LocalPRGTest, build_vcf)
     EXPECT_EQ("GC", vcf.records[0].ref);
     EXPECT_EQ("G", vcf.records[0].alt);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=COMPLEX", vcf.records[0].info);
-    EXPECT_EQ((uint)1, vcf.records[1].pos);
-    EXPECT_EQ("GC", vcf.records[1].ref);
-    EXPECT_EQ("GT", vcf.records[1].alt);
-    EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=COMPLEX", vcf.records[1].info);
+    EXPECT_EQ((uint)2, vcf.records[1].pos);
+    EXPECT_EQ("C", vcf.records[1].ref);
+    EXPECT_EQ("T", vcf.records[1].alt);
+    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=COMPLEX", vcf.records[1].info);
 
     vcf.clear();
     lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
@@ -931,10 +931,10 @@ TEST_F(LocalPRGTest, build_vcf)
     EXPECT_EQ("GT", vcf.records[0].ref);
     EXPECT_EQ("G", vcf.records[0].alt);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=COMPLEX", vcf.records[0].info);
-    EXPECT_EQ((uint)1, vcf.records[1].pos);
-    EXPECT_EQ("GT", vcf.records[1].ref);
-    EXPECT_EQ("GC", vcf.records[1].alt);
-    EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=COMPLEX", vcf.records[1].info);
+    EXPECT_EQ((uint)2, vcf.records[1].pos);
+    EXPECT_EQ("T", vcf.records[1].ref);
+    EXPECT_EQ("C", vcf.records[1].alt);
+    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=COMPLEX", vcf.records[1].info);
 
     vcf.clear();
     lmp = {l3.prg.nodes[0], l3.prg.nodes[5], l3.prg.nodes[6]};
@@ -1062,7 +1062,7 @@ TEST_F(LocalPRGTest, add_sample_to_vcf)
     EXPECT_EQ("0", vcf.records[4].samples[0]);
 
     vcf.clear();
-    vector<LocalNode*> lmp5 = {l5.prg.nodes[0], l5.prg.nodes[1], l5.prg.nodes[9], l5.prg.nodes[10], l5.prg.nodes[11], l5.prg.nodes[13]};
+    vector<LocalNode*> lmp5 = {l5.prg.nodes[0], l5.prg.nodes[1], l5.prg.nodes[10], l5.prg.nodes[11], l5.prg.nodes[13]};
     l5.build_vcf(vcf, l5.prg.top_path());
     l5.add_sample_to_vcf(vcf, l5.prg.top_path(), lmp5, "sample");
     EXPECT_EQ(j, vcf.samples.size());

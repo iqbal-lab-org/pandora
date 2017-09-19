@@ -8,6 +8,8 @@
 #include "vcf.h"
 #include "utils.h"
 
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
+
 using namespace std;
 
 VCF::VCF() {};
@@ -24,7 +26,7 @@ void VCF::add_record(string c, uint32_t p, string r, string a, string i, string 
 	records.push_back(vr);
 	records.back().samples.insert(records.back().samples.end(), samples.size(), ".");
     }
-    //cout << "added record: " << vr << endl;
+    cout << "added record: " << vr << endl;
 }
 
 void VCF::add_record(VCFRecord& vr)
@@ -38,6 +40,7 @@ void VCF::add_record(VCFRecord& vr)
 
 void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, const string& r, const string& a)
 {
+    cout << "adding gt " << c << " " << p << " " << r << " vs " << name << " " << a << endl;
     if (r == ""  and a == "")
     {
 	return;
@@ -51,7 +54,7 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
     vector<string>::iterator sample_it = find(samples.begin(), samples.end(), name);
     if (sample_it == samples.end())
     {
-	//cout << "this is the first time this sample has been added" << endl;
+	cout << "this is the first time this sample has been added" << endl;
 	samples.push_back(name);
 	for (uint i=0; i!=records.size(); ++i)
 	{
@@ -68,12 +71,12 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
     if (it != records.end())
     {
 	it->samples[sample_index] = "1";
-	//cout << "found record with this ref and alt" << endl;
+	cout << "found record with this ref and alt" << endl;
 	for (uint i=0; i!=records.size(); ++i)
         {
 	    if (records[i].pos == p and records[i].alt!=a)
             {
-                assert(records[i].ref == r or r == "");
+                //assert(records[i].ref == r or r == "");
                 records[i].samples[sample_index] = ".";
 	    
 	    } else if (records[i].pos > p) {
@@ -81,27 +84,27 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
             }
 	}
     } else {
-	//cout << "didn't find a record for pos " << p << " ref " << r << " and alt " << a << endl;
+	cout << "didn't find a record for pos " << p << " ref " << r << " and alt " << a << endl;
 	// either we have the ref allele, an alternative allele for a too nested site, or a mistake
 	for (uint i=0; i!=records.size(); ++i)
 	{
 	    if (records[i].pos == p and r==a)
 	    {
-		//cout << "have ref allele" << endl;
-		assert(records[i].ref == r or r == "");
+		cout << "have ref allele" << endl;
+		assert(records[i].ref == r or r == "" || assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
 		records[i].samples[sample_index] = "0";	
 		added = true;
 	    } else if (records[i].pos == p and r!=a) {
-		assert(records[i].ref == r or r == "");
+		cout << "found another alt at the position" << endl;
+		//assert(records[i].ref == r or r == "" || assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
                 records[i].samples[sample_index] = ".";
-		//cout << "found another alt at the position" << endl;
 	    } else if (records[i].pos > p) {
 		break;
 	    }
 	}
 	if (added == false and r!=a)
 	{
-	    //cout << "have very nested allele" << endl;
+	    cout << "have very nested allele" << endl;
 	    add_record(c, p, r, a, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
 	    records.back().samples[sample_index] = "1";
 	    added = true;
@@ -109,6 +112,36 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
 	assert(added == true);
     }
 
+    return;
+}
+
+void VCF::add_sample_ref_alleles(const string& sample_name, const string& name, const uint& pos, const uint& pos_to)
+{
+    ptrdiff_t sample_index;
+
+    // if this sample has not been added before, add a column for it
+    vector<string>::iterator sample_it = find(samples.begin(), samples.end(), sample_name);
+    if (sample_it == samples.end())
+    {
+        cout << "this is the first time this sample has been added" << endl;
+        samples.push_back(sample_name);
+        for (uint i=0; i!=records.size(); ++i)
+        {
+            records[i].samples.push_back(".");
+        }
+        sample_index = samples.size() - 1;
+    } else {
+        sample_index = distance(samples.begin(), sample_it);
+    }
+
+    for (uint i=0; i!=records.size(); ++i)
+    {
+        if (pos <= records[i].pos and records[i].pos < pos_to)
+	{
+	    records[i].samples[sample_index] = "0";
+	    cout << "update record " << records[i] << endl;
+	}
+    }
     return;
 }
 

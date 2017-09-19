@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cmath>
 #include <cassert>
+#include <numeric>
 #include "utils.h"
 #include "localPRG.h"
 #include "pangraph.h"

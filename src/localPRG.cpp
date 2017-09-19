@@ -787,6 +787,7 @@ void LocalPRG::write_aligned_path_to_fasta(const string& filepath, const vector<
 
     int level = 0, max_level=0;
     uint pos=prg.nodes[0]->pos.length;
+    uint pos_var=pos;
     string vartype = "GRAPHTYPE=SIMPLE", ref = "", alt = "";
 
     // do until we reach the end of the localPRG
@@ -915,7 +916,7 @@ void LocalPRG::build_vcf(VCF& vcf, const vector<LocalNode*>& ref) const
     alts.reserve(100);
 
     int level = 0, max_level=0;
-    uint pos=ref[0]->pos.length;
+    uint pos_var, pos=ref[0]->pos.length;
     string vartype = "GRAPHTYPE=SIMPLE", ref_seq = "", alt_seq = "";
 
     // do until we reach the end of the localPRG
@@ -981,27 +982,58 @@ void LocalPRG::build_vcf(VCF& vcf, const vector<LocalNode*>& ref) const
         }
 
         // define ref_seq sequence
-        for (uint j=1; j< refpath.size(); ++j)
+        /*for (uint j=1; j< refpath.size(); ++j)
         {
             ref_seq += refpath[j]->seq;
-        }
+        }*/
 
         // add each alt to the vcf
         for (uint i=0; i<alts.size(); ++i)
         {
-            for (uint j=1; j<alts[i].size(); ++j)
+	    pos_var = pos;
+	    uint prefix = 1;
+	    while (prefix<min(refpath.size(), alts[i].size()))
+	    {
+		if (refpath[prefix] != alts[i][prefix])
+		{
+		    break;
+		} else {
+		    pos_var += refpath[prefix]->seq.length();
+		    prefix++;
+		}
+	    }
+	    uint suffix = 1;
+            while (prefix+suffix<min(refpath.size(), alts[i].size()))
+            {
+                if (refpath[refpath.size() - suffix] != alts[i][alts[i].size() - suffix])
+                {
+                    break;
+                } else {
+                    suffix++;
+                }
+            }
+	    for (uint j=prefix; j<= refpath.size()-suffix; ++j)
+            {
+                ref_seq += refpath[j]->seq;
+            }
+            for (uint j=prefix; j<=alts[i].size()-suffix; ++j)
             {
                 alt_seq += alts[i][j]->seq;
             }
 
             if (ref_seq != alt_seq)
             {
-                vcf.add_record(name, pos, ref_seq, alt_seq, ".", vartype);
+                vcf.add_record(name, pos_var, ref_seq, alt_seq, ".", vartype);
             }
             alt_seq = "";
+	    ref_seq = "";
         }
 
         // clear up
+	for (uint j=1; j< refpath.size(); ++j)
+        {
+            ref_seq += refpath[j]->seq;
+        }
         pos += ref_seq.length() + ref[ref_i]->pos.length;
         vartype = "GRAPHTYPE=SIMPLE";
         ref_seq = "";
@@ -1038,8 +1070,9 @@ void LocalPRG::add_sample_to_vcf(VCF& vcf, const vector<LocalNode*>& rpath, cons
     refpath.push_back(rpath[0]);
     samplepath.reserve(100);
     samplepath.push_back(sample_path[0]);
-    uint ref_i = 1, sample_id = 1, pos=0;
+    uint ref_i = 1, sample_id = 1, pos=0, pos_to=0;
     string ref = "", alt = "";
+    bool found_new_site = false;
 
     cout << "start adding sample" << endl;
     while (refpath.back()->outNodes.size() > 0 or refpath.size() > 1)
@@ -1049,32 +1082,56 @@ void LocalPRG::add_sample_to_vcf(VCF& vcf, const vector<LocalNode*>& rpath, cons
 	{
 	    cout << "add a node along ref path" << endl;
 	    refpath.push_back(rpath[ref_i]);
+	    found_new_site = true;
+	    cout << "ref path equals ";
+	    for (uint n=0; n!=refpath.size(); ++n)
+	    {
+		cout << *refpath[n] << endl;
+	    }
 	    ref_i++;
 	} else if (samplepath.back()->id < refpath.back()->id)
 	{
 	    cout << "add a node along sample path" << endl;
 	    samplepath.push_back(sample_path[sample_id]);
+	    found_new_site = true;
+	    cout << "sample path equals ";
+	    for (uint n=0; n!=samplepath.size(); ++n)
+            {
+                cout << *samplepath[n] << endl;
+            }
 	    sample_id++;
-	} else {
+	} else if (found_new_site == true) 
+	{
 	    // refpath back == samplepath back
-	    // add site to vcf
+	    // add ref allele from previous site to this one
+	    cout << "update with ref alleles from " << pos << " to " << pos_to << endl;
+	    vcf.add_sample_ref_alleles(sample_name, name, pos, pos_to);
+	    pos = pos_to;
+
+	    // add new site to vcf
 	    cout << "find ref seq" << endl;
             for (uint j=1; j< refpath.size()-1; ++j)
             {
                 ref += refpath[j]->seq;
-		pos += refpath[j]->pos.length;
+		cout << ref << endl;
             }
 	    cout << "find alt seq" << endl;
             for (uint j=1; j<samplepath.size()-1; ++j)
             {
-                alt += sample_path[j]->seq;
+                alt += samplepath[j]->seq;
+		cout << alt << endl;
             }
 
 	    cout << "add sample gt" << endl;
             vcf.add_sample_gt(sample_name, name, pos, ref, alt);
+	    found_new_site = false;
 
 	    cout << "prepare for next iter" << endl;
 	    // prepare for next iteration
+	    for (uint j=1; j< refpath.size()-1; ++j)
+            {
+                pos += refpath[j]->pos.length;
+            }
 	    refpath.erase(refpath.begin(), refpath.end()-1);
 	    if (refpath.back()->id != prg.nodes.size()-1)
 	    {
@@ -1087,8 +1144,25 @@ void LocalPRG::add_sample_to_vcf(VCF& vcf, const vector<LocalNode*>& rpath, cons
 	        samplepath.push_back(sample_path[sample_id]);
                 sample_id++;
 	    }
-	}
+	    pos_to = pos;
+	} else {
+	    cout << "intermediate" << endl;
+	    refpath.erase(refpath.begin(), refpath.end()-1);
+            if (refpath.back()->id != prg.nodes.size()-1)
+            {
+                ref = "";
+                alt = "";
+                pos_to += refpath.back()->pos.length;
+                refpath.push_back(rpath[ref_i]);
+                ref_i++;
+                samplepath.erase(samplepath.begin(), samplepath.end()-1);
+                samplepath.push_back(sample_path[sample_id]);
+                sample_id++;
+            }
+        }
     }
+    cout << "update at end with ref alleles from " << pos << " to " << pos_to << endl;
+    vcf.add_sample_ref_alleles(sample_name, name, pos, pos_to);
 }
 
 /*void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)

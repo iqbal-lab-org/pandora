@@ -7,7 +7,7 @@
 #include "minihits.h"
 
 class Index;
-class MinimizerHit;
+struct MinimizerHit;
 class PanGraph;
 class PanNode;
 class LocalPRG;
