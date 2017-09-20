@@ -29,12 +29,13 @@ class PanGraph {
 
     // graph additions/removals
     void add_node (const uint32_t, const std::string, uint32_t, const std::set<MinimizerHit*, pComp>&); // used by pandora map
-    void add_node (const uint32_t, const std::string&, const std::string&, const std::vector<KmerNode*>&, const std::vector<LocalPRG*>&); // used by pandora compare
+    void add_node (const uint32_t, const std::string&, const std::string&, const std::vector<KmerNode*>&, const LocalPRG*); // used by pandora compare
     PanEdge* add_edge (const uint32_t&, const uint32_t&, const uint&);
     void add_edge (const uint32_t&, const uint32_t&, const uint&, const uint&);
     std::vector<PanEdge*>::iterator remove_edge (PanEdge*);
     std::map<uint32_t, PanNode*>::iterator remove_node(PanNode*);
-    PanEdge* add_shortcut_edge(const std::vector<PanEdge*>::iterator, const std::vector<PanEdge*>::iterator, PanRead*);
+    //PanEdge* add_shortcut_edge(const std::vector<PanEdge*>::iterator, const std::vector<PanEdge*>::iterator, PanRead*);
+    std::vector<PanEdge*>::iterator add_shortcut_edge(const std::vector<PanEdge*>::iterator, PanRead*);
 
     // graph manipulation
     std::vector<PanEdge*>::iterator split_node_by_edges(PanNode*, PanEdge*, PanEdge*);
@@ -55,6 +56,7 @@ class PanGraph {
 
     // graph read/write
     void write_gfa (const std::string&);
+    void save_matrix(const std::string&);
     friend std::ostream& operator<< (std::ostream& out, const PanGraph& m);
 };
 

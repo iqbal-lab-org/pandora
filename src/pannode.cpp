@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cassert>
 #include "pannode.h"
+#include "pansample.h"
 #include "utils.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
@@ -31,7 +32,7 @@ void PanNode::add_path(const vector<KmerNode*>& kmp)
     }
 }
 
-/*void PanNode::output_samples_vcf(const LocalPRG* prg)
+void PanNode::output_samples_vcf(const LocalPRG* prg, const string& prefix, const uint w)
 {
     vector<KmerNode*> kmp;
     kmp.reserve(800);
@@ -44,16 +45,28 @@ void PanNode::add_path(const vector<KmerNode*>& kmp)
     lmp = prg->localnode_path_from_kmernode_path(kmp, w);
 
     // create a with respect to this ref
-    VCF vcf = prg->build_vcf(lmp);
-    for each sample
+    VCF vcf;
+    prg->build_vcf(vcf, lmp);
+    uint count = 0;
+    for (auto s : samples)
     {
-	sample_lmp.clear();
-	sample_lmp = prg->localnode_path_from_kmernode_path(sample_kmp, w);
-        prg->add_sample_to_vcf(sample_lmp); 
-	sample_lmp.clear();
+	count = 0;
+	for (auto p : s->paths[prg_id])
+        {
+	    sample_lmp.clear();
+	    sample_lmp = prg->localnode_path_from_kmernode_path(p, w);
+	    if (count == 0)
+	    {
+                prg->add_sample_to_vcf(vcf, lmp, sample_lmp, s->name); 
+	    } else {
+		prg->add_sample_to_vcf(vcf, lmp, sample_lmp, s->name + to_string(count)); 
+	    }
+	    sample_lmp.clear();
+	    count++;
+	}
     }
-    prg->vcf.save(prefix + "." + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
-}*/
+    vcf.save(prefix + "." + name + ".multisample.vcf", true, true, true, true, true, true, true);
+}
 	
 /*// copy constructor
 PanNode::PanNode(const PanNode& other)

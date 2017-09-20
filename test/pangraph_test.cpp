@@ -4,7 +4,9 @@
 #include "pannode.h"
 #include "panedge.h"
 #include "panread.h"
+#include "pansample.h"
 #include "minihit.h"
+#include "localPRG.h"
 #include <stdint.h>
 #include <numeric>
 #include <cassert>
@@ -146,6 +148,116 @@ TEST_F(PanGraphTest, add_node)
     delete mh2;
 }
 
+TEST_F(PanGraphTest, add_node_sample)
+{
+    // add node and check it's there
+    PanGraph pg;
+
+    LocalPRG* l0;
+    l0 = new LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA");
+    vector<KmerNode*> kmp;
+    
+    pg.add_node(0, "zero", "sample", kmp, l0);
+
+    EXPECT_EQ(pg.nodes.size(), (uint)1);
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->name, "zero");
+    EXPECT_EQ(pg.nodes[0]->covg, (uint)1);
+    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)0);
+    EXPECT_EQ(pg.nodes[0]->edges.size(), (uint)0);
+    EXPECT_EQ(pg.nodes[0]->samples.size(), (uint)1);
+
+    EXPECT_EQ(pg.samples.size(), (uint)1);
+    EXPECT_EQ(pg.samples["sample"]->name, "sample");
+    EXPECT_EQ(pg.samples["sample"]->paths.size(), (uint)1);
+    EXPECT_EQ(pg.samples["sample"]->paths[0].size(), (uint)1);
+    EXPECT_EQ(pg.samples["sample"]->edges.size(), (uint)0);
+
+    EXPECT_EQ(pg.edges.size(), (uint)0);
+    EXPECT_EQ(pg.reads.size(), (uint)0);
+
+    // add a second time
+    pg.add_node(0, "zero", "sample", kmp, l0);
+    EXPECT_EQ(pg.nodes.size(), (uint)1);
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->name, "zero");
+    EXPECT_EQ(pg.nodes[0]->covg, (uint)2);
+    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)0);
+    EXPECT_EQ(pg.nodes[0]->edges.size(), (uint)0);
+    EXPECT_EQ(pg.nodes[0]->samples.size(), (uint)1);
+
+    EXPECT_EQ(pg.samples.size(), (uint)1);
+    EXPECT_EQ(pg.samples["sample"]->name, "sample");
+    EXPECT_EQ(pg.samples["sample"]->paths.size(), (uint)1);
+    EXPECT_EQ(pg.samples["sample"]->paths[0].size(), (uint)2);
+    EXPECT_EQ(pg.samples["sample"]->edges.size(), (uint)0);
+
+    EXPECT_EQ(pg.edges.size(), (uint)0);
+    EXPECT_EQ(pg.reads.size(), (uint)0);
+
+    // add a node with a different sample
+    pg.add_node(0, "zero", "sample1", kmp, l0);
+    EXPECT_EQ(pg.nodes.size(), (uint)1);
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->name, "zero");
+    EXPECT_EQ(pg.nodes[0]->covg, (uint)3);
+    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)0);
+    EXPECT_EQ(pg.nodes[0]->edges.size(), (uint)0);
+    EXPECT_EQ(pg.nodes[0]->samples.size(), (uint)2);
+    
+    EXPECT_EQ(pg.samples.size(), (uint)2);
+    EXPECT_EQ(pg.samples["sample"]->name, "sample");
+    EXPECT_EQ(pg.samples["sample"]->paths.size(), (uint)1);
+    EXPECT_EQ(pg.samples["sample"]->paths[0].size(), (uint)2);
+    EXPECT_EQ(pg.samples["sample"]->edges.size(), (uint)0);
+    EXPECT_EQ(pg.samples["sample1"]->name, "sample1");
+    EXPECT_EQ(pg.samples["sample1"]->paths.size(), (uint)1);
+    EXPECT_EQ(pg.samples["sample1"]->paths[0].size(), (uint)1);
+    EXPECT_EQ(pg.samples["sample1"]->edges.size(), (uint)0);
+
+    EXPECT_EQ(pg.edges.size(), (uint)0);
+    EXPECT_EQ(pg.reads.size(), (uint)0);
+    
+    // add a node with a different prg
+    pg.add_node(1, "one", "sample1", kmp, l0);
+    EXPECT_EQ(pg.nodes.size(), (uint)2);
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->name, "zero");
+    EXPECT_EQ(pg.nodes[0]->covg, (uint)3);
+    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)0);
+    EXPECT_EQ(pg.nodes[0]->edges.size(), (uint)0);
+    EXPECT_EQ(pg.nodes[0]->samples.size(), (uint)2);
+    EXPECT_EQ(pg.nodes[1]->node_id, (uint)1);
+    EXPECT_EQ(pg.nodes[1]->prg_id, (uint)1);
+    EXPECT_EQ(pg.nodes[1]->name, "one");
+    EXPECT_EQ(pg.nodes[1]->covg, (uint)1);
+    EXPECT_EQ(pg.nodes[1]->reads.size(), (uint)0);
+    EXPECT_EQ(pg.nodes[1]->edges.size(), (uint)0);
+    EXPECT_EQ(pg.nodes[1]->samples.size(), (uint)1);
+    
+    EXPECT_EQ(pg.samples.size(), (uint)2);
+    EXPECT_EQ(pg.samples["sample"]->name, "sample");
+    EXPECT_EQ(pg.samples["sample"]->paths.size(), (uint)1);
+    EXPECT_EQ(pg.samples["sample"]->paths[0].size(), (uint)2);
+    EXPECT_EQ(pg.samples["sample"]->edges.size(), (uint)0);
+    EXPECT_EQ(pg.samples["sample1"]->name, "sample1");
+    EXPECT_EQ(pg.samples["sample1"]->paths.size(), (uint)2);
+    EXPECT_EQ(pg.samples["sample1"]->paths[0].size(), (uint)1);
+    EXPECT_EQ(pg.samples["sample1"]->paths[1].size(), (uint)1);
+    EXPECT_EQ(pg.samples["sample1"]->edges.size(), (uint)0);
+
+    EXPECT_EQ(pg.edges.size(), (uint)0);
+    EXPECT_EQ(pg.reads.size(), (uint)0);
+
+    delete l0;
+}
+
+
+
 TEST_F(PanGraphTest, add_edge)
 {
     set<MinimizerHit*, pComp> mhs;
@@ -286,6 +398,87 @@ TEST_F(PanGraphTest, not_equals)
     pg1.add_edge(2,0,0,0);
     EXPECT_EQ((pg1!=pg2), false);
     EXPECT_EQ((pg2!=pg1), false);
+}
+
+TEST_F(PanGraphTest, remove_edge)
+{
+    set<MinimizerHit*, pComp> mhs;
+
+    PanGraph pg1, pg2;
+    // read 0: 0->1->2->3
+    pg1.add_node(0,"0",0, mhs);
+    pg1.add_node(1,"1",0, mhs);
+    pg1.add_edge(0,1,3,0);
+    pg1.add_node(2,"2",0, mhs);
+    pg1.add_edge(1,2,3,0);
+    pg1.add_node(3,"3",0, mhs);
+    pg1.add_edge(2,3,3,0);
+
+    // read 0: 0->1 2->3
+    pg2.add_node(0,"0",0, mhs);
+    pg2.add_node(1,"1",0, mhs);
+    pg2.add_edge(0,1,3,0);
+    pg2.add_node(2,"2",0, mhs);
+    pg2.add_node(3,"3",0, mhs);
+    pg2.add_edge(2,3,3,0);
+
+    pg1.remove_edge(pg1.edges[1]);
+    EXPECT_EQ(pg1, pg2);
+}
+
+TEST_F(PanGraphTest, remove_node)
+{
+    set<MinimizerHit*, pComp> mhs;
+
+    PanGraph pg1, pg2;
+    // read 0: 0->1->2->3
+    pg1.add_node(0,"0",0, mhs);
+    pg1.add_node(1,"1",0, mhs);
+    pg1.add_edge(0,1,3,0);
+    pg1.add_node(2,"2",0, mhs);
+    pg1.add_edge(1,2,3,0);
+    pg1.add_node(3,"3",0, mhs);
+    pg1.add_edge(2,3,3,0);
+
+    // read 0: 0->1 3
+    pg2.add_node(0,"0",0, mhs);
+    pg2.add_node(1,"1",0, mhs);
+    pg2.add_edge(0,1,3,0);
+    pg2.add_node(3,"3",0, mhs);
+
+    pg1.remove_node(pg1.nodes[2]);
+    EXPECT_EQ(pg1, pg2);
+}
+
+TEST_F(PanGraphTest, add_shortcut_edge)
+{
+    set<MinimizerHit*, pComp> mhs;
+
+    PanGraph pg1, pg2;
+    // read 0: 0->1->2->3
+    pg1.add_node(0,"0",0, mhs);
+    pg1.add_node(1,"1",0, mhs);
+    pg1.add_edge(0,1,3,0);
+    pg1.add_node(2,"2",0, mhs);
+    pg1.add_edge(1,2,3,0);
+    pg1.add_node(3,"3",0, mhs);
+    pg1.add_edge(2,3,3,0);
+
+    // read 0: 0->1->3
+    pg2.add_node(0,"0",0, mhs);
+    pg2.add_node(1,"1",0, mhs);
+    pg2.add_edge(0,1,3,0);
+    pg2.add_node(2,"2",0, mhs);
+    pg2.add_edge(1,2,3,0);
+    pg2.add_node(3,"3",0, mhs);
+    pg2.add_edge(2,3,3,0);
+    pg2.add_edge(1,3,3,0);
+    pg2.edges[1]->covg = 0;
+    pg2.edges[2]->covg = 0;
+
+    vector<PanEdge*>::iterator e1 = pg1.edges.begin()+1, e2 = pg1.edges.begin()+2;
+    pg1.add_shortcut_edge(e1, pg1.reads[0]);
+    EXPECT_EQ(pg1, pg2);
 }
 
 TEST_F(PanGraphTest, split_node_by_edges)
@@ -836,4 +1029,22 @@ TEST_F(PanGraphTest, write_gfa)
     pg2.add_edge(1,2,3,0);
     pg2.add_edge(1,2,3,0);
     pg2.write_gfa("../test/test_cases/pangraph_test_save.gfa");
+}
+
+TEST_F(PanGraphTest, save_matrix)
+{
+    // add node and check it's there
+    PanGraph pg;
+
+    LocalPRG* l0;
+    l0 = new LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA");
+    vector<KmerNode*> kmp;
+   
+    pg.add_node(0, "zero", "sample1", kmp, l0);
+    pg.add_node(0, "zero", "sample1", kmp, l0);
+    pg.add_node(0, "zero", "sample2", kmp, l0);
+    pg.add_node(1, "one", "sample1", kmp, l0);
+    pg.add_node(2, "two", "sample3", kmp, l0);
+    
+    pg.save_matrix("../test/test_cases/pangraph_test_save.matrix");
 }

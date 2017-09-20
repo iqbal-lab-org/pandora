@@ -93,7 +93,7 @@ void PanGraph::add_node (const uint32_t prg_id, const string prg_name, const uin
     return;
 }
 
-void PanGraph::add_node (const uint32_t prg_id, const string& prg_name, const string& sample_name, const vector<KmerNode*>& kmp, const vector<LocalPRG*>& prgs)
+void PanGraph::add_node (const uint32_t prg_id, const string& prg_name, const string& sample_name, const vector<KmerNode*>& kmp, const LocalPRG* prg)
 {   
     // add new node if it doesn't exist
     PanNode *n;
@@ -101,7 +101,7 @@ void PanGraph::add_node (const uint32_t prg_id, const string& prg_name, const st
     if(it==nodes.end())
     {   
         n = new PanNode(prg_id, prg_id, prg_name);
-	n->kmer_prg = prgs[prg_id]->kmer_prg;
+	n->kmer_prg = prg->kmer_prg;
         //cout << "add node " << *n << endl;
         nodes[prg_id] = n;
     } else {
@@ -235,10 +235,15 @@ uint combine_orientations(uint f, uint t)
     }
     return fix;
 }
-PanEdge* PanGraph::add_shortcut_edge(const vector<PanEdge*>::iterator prev, const vector<PanEdge*>::iterator current, PanRead* r)
+vector<PanEdge*>::iterator PanGraph::add_shortcut_edge(vector<PanEdge*>::iterator prev, PanRead* r)
 {
+
+    // creates the new edge, and removes old ones from middle node
+    // does not add the new edge in the place of the old 2 in the read
     PanEdge* e = nullptr;
     PanNode* n = nullptr;
+    vector<PanEdge*>::iterator current = prev;
+    current++;
 
     //have edges A->B and B->C, create edge A->C
     if ((*prev)->to->node_id == (*current)->from->node_id and (*prev)->from->node_id != (*current)->to->node_id)
@@ -283,7 +288,25 @@ PanEdge* PanGraph::add_shortcut_edge(const vector<PanEdge*>::iterator prev, cons
 	r->remove_node(n, r);
     }
 
-    return e;
+    if (e != nullptr)
+    {
+        current = r->remove_edge(*current, r);
+        prev = r->replace_edge(*prev, e, r);
+        assert((*prev == e));
+    } else {
+        // this can only happen if we had something circular like A->B and B->A, in which case we want to delete both
+        if (current + 1 != r->edges.end() and current + 2 != r->edges.end())
+        {
+            current = r->remove_edge(*current, r);
+            prev = r->remove_edge(*prev, r);
+            prev = current;
+        } else {
+            r->remove_edge(*current, r);
+            prev = r->remove_edge(*prev, r);
+        }
+    } 
+
+    return prev;
 }
 
 vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, PanEdge* e_original1, PanEdge* e_original2)
@@ -453,16 +476,29 @@ void PanGraph::read_clean(const uint& thresh)
 	{
 	    continue;
 	}
-	vector<PanEdge*>::iterator prev = read->second->edges.begin();
-	for (vector<PanEdge*>::iterator current=++read->second->edges.begin(); current!=read->second->edges.end();)
+	//vector<PanEdge*>::iterator prev = read->second->edges.begin();
+	//for (vector<PanEdge*>::iterator current=++read->second->edges.begin(); current!=read->second->edges.end();)
+	vector<PanEdge*>::iterator current;
+	for (vector<PanEdge*>::iterator prev=read->second->edges.begin(); prev!=--read->second->edges.end();)
 	{
+	    current = prev;
+	    current++;
 	    //cout << "consider edges" << **prev << " and " << **current << endl;
 	    if ((*prev)->covg <= thresh and (*current)->covg <= thresh)
 	    {
 		cout << "read " << read->first << " edges " << **prev << " and " << **current << " have low covg " << endl;
-		e = add_shortcut_edge(prev, current, read->second);
+		prev = add_shortcut_edge(prev, read->second);
+		current = prev;
+		if (prev != read->second->edges.end() and prev != --read->second->edges.end())
+		{
+                    current++;
+		} else {
+		    break;
+		}
+		
+		//e = add_shortcut_edge(prev, current, read->second);
 
-		if (e != nullptr)
+		/*if (e != nullptr)
 		{
 		    current = read->second->remove_edge(*current, read->second);
 		    prev = read->second->replace_edge(*prev, e, read->second);
@@ -480,7 +516,7 @@ void PanGraph::read_clean(const uint& thresh)
                         read->second->remove_edge(*prev, read->second);
 			break;
 		    }
-		}
+		}*/
 		cout << "read is now: " << *(read->second) << endl;
 	    } else {
 		prev = current;
@@ -709,6 +745,37 @@ void PanGraph::write_gfa (const string& filepath)
         }
     }
     handle.close();
+}
+
+void PanGraph::save_matrix(const string& filepath)
+{
+    // write a presence/absence matrix for samples and nodes
+    ofstream handle;
+    handle.open (filepath);
+    
+    // save header line with sample names
+    for (auto s : samples)
+    {
+	handle << "\t" << s.second->name;
+    }
+    handle << endl;
+
+    // for each node, save number of each sample
+    for (auto n : nodes)
+    {
+	handle << n.second->name;
+	for (auto s : samples)
+	{
+	    if (s.second->paths.find(n.second->node_id) == s.second->paths.end())
+	    {
+		handle << "\t0";
+	    } else {
+		handle << "\t" << s.second->paths[n.second->node_id].size();
+	    }
+	}
+	handle << endl;
+    }
+    return;
 }
 
 std::ostream& operator<< (std::ostream & out, PanGraph const& m) {
