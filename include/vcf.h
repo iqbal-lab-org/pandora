@@ -17,6 +17,7 @@ class VCF {
     void add_sample_gt(const std::string& name, const std::string& c, const uint32_t p, const std::string& r, const std::string& a);
     void add_sample_ref_alleles(const std::string&, const std::string&, const uint&, const uint&);
     void clear();
+    void sort_records();
     void save(const std::string&, bool simple=false, bool complexgraph=false, bool toomanyalts=false, bool snp=false, bool indel=false, bool phsnps=false, bool complexvar=false);
     void load(const std::string&);
     bool operator == (const VCF& y) const;

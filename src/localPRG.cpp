@@ -767,293 +767,142 @@ void LocalPRG::write_aligned_path_to_fasta(const string& filepath, const vector<
     return;
 }
 
-/*void LocalPRG::build_vcf()
-{
-    cout << now() << "Build VCF for prg " << name << endl;
-    assert(prg.nodes.size()>0); //otherwise empty nodes -> segfault
-
-    vector<LocalNode*> varpath;
-    varpath.reserve(100);
-    vector<LocalNode*> toppath, bottompath;
-    toppath.reserve(100);
-    toppath.push_back(prg.nodes[0]);
-    bottompath.reserve(100);
-
-    deque<vector<LocalNode*>> paths;
-    paths.push_back(toppath);
-
-    vector<vector<LocalNode*>> alts;
-    alts.reserve(100);
-
-    int level = 0, max_level=0;
-    uint pos=prg.nodes[0]->pos.length;
-    uint pos_var=pos;
-    string vartype = "GRAPHTYPE=SIMPLE", ref = "", alt = "";
-
-    // do until we reach the end of the localPRG
-    while (toppath.back()->outNodes.size() > 0 or toppath.size() > 1)
-    {	
-	//cout << "extend toppath from id " << toppath.back()->id << endl;
-	// extend the top path until level 0 is reached again
-	while(level>0 or toppath.size() == 1)
-	{
-            // first update the level we are at
-            if (toppath.back()->outNodes.size() > 1)
-            {
-                level += 1;
-            } else {
-                level -= 1;
-            }
-	    max_level = max(level, max_level);
-            assert(level >= 0);
-
-            // update vartype if complex
-            if (level > 1)
-            {
-                vartype = "GRAPHTYPE=COMPLEX";
-            }
-
-	    //extend if necessary
-	    if (level>0 or toppath.size() == 1)
-	    {
-	        toppath.push_back(toppath.back()->outNodes[0]);
-	    }
-	}
-
-    	// next collect all the alts
-	while(paths.size() > 0)
-	{
-	    varpath = paths[0];
-	    paths.pop_front();
-	    if (varpath.back()->outNodes[0]->id == toppath.back()->outNodes[0]->id)
-	    {
-		alts.push_back(varpath);
-	    } else {
-		for (uint j=0; j!=varpath.back()->outNodes.size(); ++j)
-		{
-		    paths.push_back(varpath);
-		    paths.back().push_back(varpath.back()->outNodes[j]);
-		}
-	    }
-
-	    // if have too many alts, just give bottom path 
-	    if ((paths.size() > 100 and max_level > 2) or paths.size() > 1000)
-	    {
-		paths.clear();
-		alts.clear();
-		bottompath.push_back(toppath[0]);
-		while(bottompath.back()->outNodes.size()>0 and bottompath.back()->outNodes[0]->id != toppath.back()->outNodes[0]->id)
-		{
-		    bottompath.push_back(bottompath.back()->outNodes.back());
-		}
-		alts.push_back(bottompath);	
-		vartype = "GRAPHTYPE=TOO_MANY_ALTS";
-		break;
-	    }
-	}
-
-        // define ref sequence
-        for (uint j=1; j< toppath.size(); ++j)
-        {
-            ref += toppath[j]->seq;
-        }
-
-        // add each alt to the vcf
-	for (uint i=0; i<alts.size(); ++i)
-	{
-	    for (uint j=1; j<alts[i].size(); ++j)
-	    {
-		alt += alts[i][j]->seq;
-	    }
-
-	    if (ref != alt)
-	    {
-                vcf.add_record(name, pos, ref, alt, ".", vartype);
-	    }
-	    alt = "";
-	}
-
-	// clear up
-	pos += ref.length() + toppath.back()->outNodes[0]->pos.length;
-        vartype = "GRAPHTYPE=SIMPLE";
-        ref = "";
-        alt = "";
-	max_level = 0;
-        toppath = {toppath.back()->outNodes[0]};
-	bottompath.clear();
-        alts.clear();
-        paths.push_back(toppath);
-	if (toppath.back()->outNodes.size() == 0)
-        {
-            break;
-	}
-    }
-    //cout << "sort vcf" << endl;
-    sort(vcf.records.begin(), vcf.records.end());
-    return;
-}*/
-
 void LocalPRG::build_vcf(VCF& vcf, const vector<LocalNode*>& ref) const
 {
     cout << now() << "Build VCF for prg " << name << endl;
     assert(prg.nodes.size()>0); //otherwise empty nodes -> segfault
 
-    // if ref doesn't start at node 0 and end at last node, extend with toppath to the ends
-    // TO DO!!
-
     vector<LocalNode*> varpath;
     varpath.reserve(100);
-    vector<LocalNode*> refpath, bottompath;
-    refpath.reserve(100);
-    refpath.push_back(ref[0]);
-    uint ref_i=1;
+    vector<LocalNode*> bottompath;
     bottompath.reserve(100);
+    uint ref_i=0;
 
     deque<vector<LocalNode*>> paths;
-    paths.push_back(refpath);
 
     vector<vector<LocalNode*>> alts;
     alts.reserve(100);
 
+    vector<uint> level_start;
+
     int level = 0, max_level=0;
-    uint pos_var, pos=ref[0]->pos.length;
+    uint pos;
     string vartype = "GRAPHTYPE=SIMPLE", ref_seq = "", alt_seq = "";
 
-    // do until we reach the end of the localPRG
-    while (ref_i < ref.size() or refpath.size() > 1)
+    // simple case
+    if (ref.size() == 1)
     {
-        //cout << "extend toppath from id " << toppath.back()->id << endl;
-        // extend the top path until level 0 is reached again
-        while(level>0 or refpath.size() == 1)
-        {
-            // first update the level we are at
-            if (refpath.back()->outNodes.size() > 1)
-            {
-                level += 1;
-            } else {
-                level -= 1;
-            }
-            max_level = max(level, max_level);
-            assert(level >= 0);
-
-            // update vartype if complex
-            if (level > 1)
-            {
-                vartype = "GRAPHTYPE=COMPLEX"; // NB this is badly defined as it depends on which thing is the ref.
-            }
-            //extend if necessary
-            if (level>0 or refpath.size() == 1)
-            {
-                refpath.push_back(ref[ref_i]);
-		ref_i++;
-            }
-        }
-
-        // next collect all the alts
-        while(paths.size() > 0)
-        {
-            varpath = paths[0];
-            paths.pop_front();
-            if (varpath.back()->outNodes[0]->id == refpath.back()->outNodes[0]->id)
-            {
-                alts.push_back(varpath);
-            } else {
-                for (uint j=0; j!=varpath.back()->outNodes.size(); ++j)
-                {
-                    paths.push_back(varpath);
-                    paths.back().push_back(varpath.back()->outNodes[j]);
-                }
-            }
-
-            // if have too many alts, just give bottom path 
-            if ((paths.size() > 100 and max_level > 2) or paths.size() > 1000)
-            {
-                paths.clear();
-                alts.clear();
-                bottompath.push_back(refpath[0]);
-                while(bottompath.back()->outNodes.size()>0 and bottompath.back()->outNodes[0]->id != refpath.back()->outNodes[0]->id)
-                {
-                    bottompath.push_back(bottompath.back()->outNodes.back());
-                }
-                alts.push_back(bottompath);
-                vartype = "GRAPHTYPE=TOO_MANY_ALTS";
-                break;
-            }
-        }
-
-        // define ref_seq sequence
-        /*for (uint j=1; j< refpath.size(); ++j)
-        {
-            ref_seq += refpath[j]->seq;
-        }*/
-
-        // add each alt to the vcf
-        for (uint i=0; i<alts.size(); ++i)
-        {
-	    pos_var = pos;
-	    uint prefix = 1;
-	    while (prefix<min(refpath.size(), alts[i].size()))
-	    {
-		if (refpath[prefix] != alts[i][prefix])
-		{
-		    break;
-		} else {
-		    pos_var += refpath[prefix]->seq.length();
-		    prefix++;
-		}
-	    }
-	    uint suffix = 1;
-            while (prefix+suffix<min(refpath.size(), alts[i].size()))
-            {
-                if (refpath[refpath.size() - suffix] != alts[i][alts[i].size() - suffix])
-                {
-                    break;
-                } else {
-                    suffix++;
-                }
-            }
-	    for (uint j=prefix; j<= refpath.size()-suffix; ++j)
-            {
-                ref_seq += refpath[j]->seq;
-            }
-            for (uint j=prefix; j<=alts[i].size()-suffix; ++j)
-            {
-                alt_seq += alts[i][j]->seq;
-            }
-
-            if (ref_seq != alt_seq)
-            {
-                vcf.add_record(name, pos_var, ref_seq, alt_seq, ".", vartype);
-            }
-            alt_seq = "";
-	    ref_seq = "";
-        }
-
-        // clear up
-	for (uint j=1; j< refpath.size(); ++j)
-        {
-            ref_seq += refpath[j]->seq;
-        }
-        pos += ref_seq.length() + ref[ref_i]->pos.length;
-        vartype = "GRAPHTYPE=SIMPLE";
-        ref_seq = "";
-        alt_seq = "";
-        max_level = 0;
-        refpath = {ref[ref_i]};
-        ref_i++;
-        bottompath.clear();
-        alts.clear();
-        paths.push_back(refpath);
-        if (refpath.back()->outNodes.size() == 0)
-        {
-            break;
-        }
+	return;
     }
-    //cout << "sort vcf" << endl;
-    sort(vcf.records.begin(), vcf.records.end());
+
+    while(ref_i < ref.size()-1)
+    {
+        // first update the level we are at
+        if (ref[ref_i]->outNodes.size() > 1)
+        {   
+            level += 1; 
+            max_level = max(level, max_level);
+            level_start.push_back(ref_i);
+            
+            if (level > 1)
+            {   
+                vartype = "GRAPHTYPE=NESTED"; 
+            }
+        } else {
+            // we have come down a level, add the alts compared to this region
+            level -= 1;
+            assert(level >= 0);
+            assert(level_start.size()>0);
+            // define ref and pos
+            pos = 0;
+            ref_seq = "";
+            for (uint j=0; j<=level_start.back(); ++j)
+            {   
+                pos += ref[j]->seq.length();
+            }
+            for (uint j=level_start.back()+1; j<=ref_i; ++j)
+            {
+                ref_seq += ref[j]->seq;
+            }
+
+            // initialise alt paths
+            for (uint n=0; n<ref[level_start.back()]->outNodes.size(); ++n)
+            {
+		if (ref[level_start.back()]->outNodes[n] != ref[level_start.back()+1])
+		{
+                    varpath = {ref[level_start.back()]->outNodes[n]};
+                    paths.push_back(varpath);
+		}
+            }
+
+            // extend alt paths to end of site
+            while(paths.size() > 0)
+            {
+                varpath = paths[0];
+                paths.pop_front();
+                if (varpath.back()->outNodes[0]->id == ref[ref_i]->outNodes[0]->id)
+                {
+                    alts.push_back(varpath);
+                } else {
+                    for (uint j=0; j!=varpath.back()->outNodes.size(); ++j)
+                    {
+                        paths.push_back(varpath);
+                        paths.back().push_back(varpath.back()->outNodes[j]);
+                    }
+                }
+
+                // if have too many alts, just give bottom path and top path
+                if (paths.size() > 1000)
+                {
+                    paths.clear();
+                    alts.clear();
+                    bottompath.push_back(ref[level_start.back()]->outNodes.back());
+                    while(bottompath.back()->outNodes.size()>0 and bottompath.back()->outNodes[0]->id != ref[ref_i]->outNodes[0]->id)
+                    {
+                        bottompath.push_back(bottompath.back()->outNodes.back());
+                    }
+                    alts.push_back(bottompath);
+
+		    bottompath.clear();
+		    bottompath.push_back(ref[level_start.back()]->outNodes[0]);
+                    while(bottompath.back()->outNodes.size()>0 and bottompath.back()->outNodes[0]->id != ref[ref_i]->outNodes[0]->id)
+                    {
+                        bottompath.push_back(bottompath.back()->outNodes[0]);
+                    }
+                    alts.push_back(bottompath);
+		    bottompath.clear();
+
+                    vartype = "GRAPHTYPE=TOO_MANY_ALTS";
+                    break;
+                }
+            }
+
+            // add sites to vcf
+            for (uint i=0; i<alts.size(); ++i)
+            {
+                for (uint j=0; j<alts[i].size(); ++j)
+                {
+                    alt_seq += alts[i][j]->seq;
+                }
+                if (ref_seq != alt_seq)
+                {
+                    vcf.add_record(name, pos, ref_seq, alt_seq, ".", vartype);
+                }
+                alt_seq = "";
+            }
+	    alts.clear();
+
+            level_start.pop_back();
+            if (level == 0)
+            {
+                assert(level_start.size() == 0);
+                vartype = "GRAPHTYPE=SIMPLE";
+            }
+        }
+        ref_i++;
+    }
     return;
 }
-
 void LocalPRG::add_sample_to_vcf(VCF& vcf, const vector<LocalNode*>& rpath, const vector<LocalNode*>& sample_path, const string& sample_name) const
 {
     cout << now() << "Update VCF with sample path" << endl;
@@ -1074,59 +923,44 @@ void LocalPRG::add_sample_to_vcf(VCF& vcf, const vector<LocalNode*>& rpath, cons
     string ref = "", alt = "";
     bool found_new_site = false;
 
-    cout << "start adding sample" << endl;
     while (refpath.back()->outNodes.size() > 0 or refpath.size() > 1)
     {
-	cout << refpath.back()->id << " " <<  samplepath.back()->id << endl;
 	if (refpath.back()->id < samplepath.back()->id)
 	{
-	    cout << "add a node along ref path" << endl;
 	    refpath.push_back(rpath[ref_i]);
 	    found_new_site = true;
-	    cout << "ref path equals ";
-	    for (uint n=0; n!=refpath.size(); ++n)
-	    {
-		cout << *refpath[n] << endl;
-	    }
 	    ref_i++;
 	} else if (samplepath.back()->id < refpath.back()->id)
 	{
-	    cout << "add a node along sample path" << endl;
 	    samplepath.push_back(sample_path[sample_id]);
 	    found_new_site = true;
-	    cout << "sample path equals ";
-	    for (uint n=0; n!=samplepath.size(); ++n)
-            {
-                cout << *samplepath[n] << endl;
-            }
 	    sample_id++;
 	} else if (found_new_site == true) 
 	{
 	    // refpath back == samplepath back
 	    // add ref allele from previous site to this one
-	    cout << "update with ref alleles from " << pos << " to " << pos_to << endl;
+	    //cout << "update with ref alleles from " << pos << " to " << pos_to << endl;
 	    vcf.add_sample_ref_alleles(sample_name, name, pos, pos_to);
 	    pos = pos_to;
 
 	    // add new site to vcf
-	    cout << "find ref seq" << endl;
+	    //cout << "find ref seq" << endl;
             for (uint j=1; j< refpath.size()-1; ++j)
             {
                 ref += refpath[j]->seq;
-		cout << ref << endl;
+		//cout << ref << endl;
             }
-	    cout << "find alt seq" << endl;
+	    //cout << "find alt seq" << endl;
             for (uint j=1; j<samplepath.size()-1; ++j)
             {
                 alt += samplepath[j]->seq;
-		cout << alt << endl;
+		//cout << alt << endl;
             }
 
-	    cout << "add sample gt" << endl;
+	    //cout << "add sample gt" << endl;
             vcf.add_sample_gt(sample_name, name, pos, ref, alt);
 	    found_new_site = false;
 
-	    cout << "prepare for next iter" << endl;
 	    // prepare for next iteration
 	    for (uint j=1; j< refpath.size()-1; ++j)
             {
@@ -1146,7 +980,6 @@ void LocalPRG::add_sample_to_vcf(VCF& vcf, const vector<LocalNode*>& rpath, cons
 	    }
 	    pos_to = pos;
 	} else {
-	    cout << "intermediate" << endl;
 	    refpath.erase(refpath.begin(), refpath.end()-1);
             if (refpath.back()->id != prg.nodes.size()-1)
             {
@@ -1161,7 +994,6 @@ void LocalPRG::add_sample_to_vcf(VCF& vcf, const vector<LocalNode*>& rpath, cons
             }
         }
     }
-    cout << "update at end with ref alleles from " << pos << " to " << pos_to << endl;
     vcf.add_sample_ref_alleles(sample_name, name, pos, pos_to);
 }
 

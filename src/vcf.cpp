@@ -26,7 +26,7 @@ void VCF::add_record(string c, uint32_t p, string r, string a, string i, string 
 	records.push_back(vr);
 	records.back().samples.insert(records.back().samples.end(), samples.size(), ".");
     }
-    cout << "added record: " << vr << endl;
+    //cout << "added record: " << vr << endl;
 }
 
 void VCF::add_record(VCFRecord& vr)
@@ -40,7 +40,7 @@ void VCF::add_record(VCFRecord& vr)
 
 void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, const string& r, const string& a)
 {
-    cout << "adding gt " << c << " " << p << " " << r << " vs " << name << " " << a << endl;
+    //cout << "adding gt " << c << " " << p << " " << r << " vs " << name << " " << a << endl;
     if (r == ""  and a == "")
     {
 	return;
@@ -54,7 +54,7 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
     vector<string>::iterator sample_it = find(samples.begin(), samples.end(), name);
     if (sample_it == samples.end())
     {
-	cout << "this is the first time this sample has been added" << endl;
+	//cout << "this is the first time this sample has been added" << endl;
 	samples.push_back(name);
 	for (uint i=0; i!=records.size(); ++i)
 	{
@@ -71,7 +71,7 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
     if (it != records.end())
     {
 	it->samples[sample_index] = "1";
-	cout << "found record with this ref and alt" << endl;
+	//cout << "found record with this ref and alt" << endl;
 	for (uint i=0; i!=records.size(); ++i)
         {
 	    if (records[i].pos == p and records[i].alt!=a)
@@ -84,18 +84,18 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
             }
 	}
     } else {
-	cout << "didn't find a record for pos " << p << " ref " << r << " and alt " << a << endl;
+	//cout << "didn't find a record for pos " << p << " ref " << r << " and alt " << a << endl;
 	// either we have the ref allele, an alternative allele for a too nested site, or a mistake
 	for (uint i=0; i!=records.size(); ++i)
 	{
 	    if (records[i].pos == p and r==a)
 	    {
-		cout << "have ref allele" << endl;
+		//cout << "have ref allele" << endl;
 		assert(records[i].ref == r or r == "" || assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
 		records[i].samples[sample_index] = "0";	
 		added = true;
 	    } else if (records[i].pos == p and r!=a) {
-		cout << "found another alt at the position" << endl;
+		//cout << "found another alt at the position" << endl;
 		//assert(records[i].ref == r or r == "" || assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
                 records[i].samples[sample_index] = ".";
 	    } else if (records[i].pos > p) {
@@ -104,10 +104,24 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
 	}
 	if (added == false and r!=a)
 	{
-	    cout << "have very nested allele" << endl;
+	    //cout << "have very nested allele" << endl;
 	    add_record(c, p, r, a, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
 	    records.back().samples[sample_index] = "1";
 	    added = true;
+	    // also check if other samples had ref allele at this pos
+	    for (uint i=0; i!=records.size(); ++i)
+	    {
+		if (records[i].pos <= p and records[i].pos + records[i].ref.length() > p)
+		{
+		    for (uint j=0; j!=records[i].samples.size(); ++j)
+		    {
+			if (records[i].samples[j] == "0")
+			{
+			    records.back().samples[j] = "0";
+			}
+		    }
+		}
+	    }
 	}
 	assert(added == true);
     }
@@ -123,7 +137,7 @@ void VCF::add_sample_ref_alleles(const string& sample_name, const string& name, 
     vector<string>::iterator sample_it = find(samples.begin(), samples.end(), sample_name);
     if (sample_it == samples.end())
     {
-        cout << "this is the first time this sample has been added" << endl;
+        //cout << "this is the first time this sample has been added" << endl;
         samples.push_back(sample_name);
         for (uint i=0; i!=records.size(); ++i)
         {
@@ -136,10 +150,10 @@ void VCF::add_sample_ref_alleles(const string& sample_name, const string& name, 
 
     for (uint i=0; i!=records.size(); ++i)
     {
-        if (pos <= records[i].pos and records[i].pos < pos_to)
+        if (pos <= records[i].pos and records[i].pos + records[i].ref.length() <= pos_to and records[i].chrom == name)
 	{
 	    records[i].samples[sample_index] = "0";
-	    cout << "update record " << records[i] << endl;
+	    //cout << "update record " << records[i] << endl;
 	}
     }
     return;
@@ -148,6 +162,12 @@ void VCF::add_sample_ref_alleles(const string& sample_name, const string& name, 
 void VCF::clear()
 {
     records.clear();
+}
+
+void VCF::sort_records()
+{
+    sort(records.begin(), records.end());
+    return;
 }
 
 // NB in the absence of filter flags being set to true, all results are saved. If one or more filter flags for SVTYPE are set, 
@@ -178,7 +198,7 @@ void VCF::save(const string& filepath, bool simple, bool complexgraph, bool toom
     handle << "##ALT=<ID=COMPLEX,Description=\"Complex variant, collection of SNPs and indels\">" << endl;
     handle << "##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of variant\">" << endl;
     handle << "##ALT=<ID=SIMPLE,Description=\"Graph bubble is simple\">" << endl;
-    handle << "##ALT=<ID=COMPLEX,Description=\"Variation site was a nested feature in the graph\">" << endl;
+    handle << "##ALT=<ID=NESTED,Description=\"Variation site was a nested feature in the graph\">" << endl;
     handle << "##ALT=<ID=TOO_MANY_ALTS,Description=\"Variation site was a multinested feature with too many alts to include all in the VCF\">" << endl;
     handle << "##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description=\"Type of graph feature\">" << endl;
     handle << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT";
