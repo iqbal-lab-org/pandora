@@ -468,7 +468,6 @@ void PanGraph::split_nodes_by_reads(const uint& node_thresh, const uint& edge_th
 void PanGraph::read_clean(const uint& thresh)
 {
     cout << now() << "Start read cleaning with threshold " << thresh << " and " << edges.size() << " edges" << endl;
-    PanEdge* e;
 
     for(map<uint32_t, PanRead*>::iterator read=reads.begin(); read!=reads.end(); ++read)
     {
@@ -476,8 +475,6 @@ void PanGraph::read_clean(const uint& thresh)
 	{
 	    continue;
 	}
-	//vector<PanEdge*>::iterator prev = read->second->edges.begin();
-	//for (vector<PanEdge*>::iterator current=++read->second->edges.begin(); current!=read->second->edges.end();)
 	vector<PanEdge*>::iterator current;
 	for (vector<PanEdge*>::iterator prev=read->second->edges.begin(); prev!=--read->second->edges.end();)
 	{
@@ -496,27 +493,6 @@ void PanGraph::read_clean(const uint& thresh)
 		    break;
 		}
 		
-		//e = add_shortcut_edge(prev, current, read->second);
-
-		/*if (e != nullptr)
-		{
-		    current = read->second->remove_edge(*current, read->second);
-		    prev = read->second->replace_edge(*prev, e, read->second);
-		    assert((*prev == e));
-		} else {
-		    // this can only happen if we had something circular like A->B and B->A, in which case we want to delete both
-		    if (current + 1 != read->second->edges.end() and current + 2 != read->second->edges.end())
-		    {
-			current = read->second->remove_edge(*current, read->second);
-			prev = read->second->remove_edge(*prev, read->second);
-			prev = current;
-                        ++current;
-		    } else {
-		   	read->second->remove_edge(*current, read->second);
-                        read->second->remove_edge(*prev, read->second);
-			break;
-		    }
-		}*/
 		cout << "read is now: " << *(read->second) << endl;
 	    } else {
 		prev = current;

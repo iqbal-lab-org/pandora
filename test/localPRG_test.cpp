@@ -1069,7 +1069,6 @@ TEST_F(LocalPRGTest, add_sample_to_vcf)
     EXPECT_EQ("0", vcf.records[4].samples[0]);
 
     vcf.clear();
-    cout << l5.prg << endl;
     vector<LocalNode*> lmp5 = {l5.prg.nodes[0], l5.prg.nodes[1], l5.prg.nodes[10], l5.prg.nodes[11], l5.prg.nodes[13]};
     l5.build_vcf(vcf, l5.prg.top_path());
     vcf.sort_records();

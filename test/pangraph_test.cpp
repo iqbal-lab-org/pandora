@@ -629,7 +629,6 @@ TEST_F(PanGraphTest, split_nodes_by_reads)
     pg3.add_edge(1,5,3,4);
     pg3.add_edge(5,4,3,4);
 
-    cout << endl << "new test " << endl << endl;
     // read 0: 0->6->2->3
     pg4.add_node(0,"0",0, mhs);
     pg4.add_node(6,"6",0, mhs);

@@ -307,38 +307,38 @@ void filter_clusters2(set<set<MinimizerHit*, pComp>,clusterComp>& clusters_of_hi
 
     set<set<MinimizerHit*, pComp>,clusterComp_size>::iterator it = clusters_by_size.begin();
     std::vector<int> read_v(genome_size, 0);   
-    cout << "fill from " << (*(it->begin()))->read_interval.start << " to " << (*--(it->end()))->read_interval.start << endl;
+    //cout << "fill from " << (*(it->begin()))->read_interval.start << " to " << (*--(it->end()))->read_interval.start << endl;
     fill(read_v.begin()+(*(it->begin()))->read_interval.start, read_v.begin()+(*--(it->end()))->read_interval.start, 1);
     bool contained;
     for (set<set<MinimizerHit*, pComp>,clusterComp_size>::iterator it_next = ++clusters_by_size.begin(); it_next!= clusters_by_size.end(); ++it_next)
     {
-	cout << "read id " << (*(it_next->begin()))->prg_id << endl;
+	//cout << "read id " << (*(it_next->begin()))->prg_id << endl;
 	if ((*(it_next->begin()))->read_id == (*(it->begin()))->read_id)
 	{
 	    //check if have any 0s in interval of read_v between first and last
 	    contained = true;
 	    for (uint i = (*(it_next->begin()))->read_interval.start; i <(*--(it_next->end()))->read_interval.start; ++i)
 	    {
-		cout << i << ":" << read_v[i] << "\t";
+		//cout << i << ":" << read_v[i] << "\t";
 		if (read_v[i] == 0)
 		{
 		    contained = false;
-		    cout << "found unique element at read position " << i << endl;
-		    cout << "fill from " << i << " to " << (*--(it_next->end()))->read_interval.start << endl;
+		    //cout << "found unique element at read position " << i << endl;
+		    //cout << "fill from " << i << " to " << (*--(it_next->end()))->read_interval.start << endl;
 		    fill(read_v.begin()+i, read_v.begin()+(*--(it_next->end()))->read_interval.start, 1);	
 		    break;
 		}   
 		 
 	    }
- 	    cout << endl;
+ 	    //cout << endl;
 	    if (contained == true)
 	    {
-		cout << "erase cluster so clusters_of_hits has size decrease from " << clusters_of_hits.size();
+		//cout << "erase cluster so clusters_of_hits has size decrease from " << clusters_of_hits.size();
 		clusters_of_hits.erase(*it_next);
-		cout << " to " << clusters_of_hits.size() << endl;
+		//cout << " to " << clusters_of_hits.size() << endl;
 	    }
 	} else {
-	    cout << "consider new read" << endl;
+	    //cout << "consider new read" << endl;
 	    fill(read_v.begin(), read_v.end(), 0);
 	}
 	++it;
