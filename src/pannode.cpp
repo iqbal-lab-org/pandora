@@ -55,12 +55,12 @@ void PanNode::output_samples_vcf(const LocalPRG* prg, const string& prefix, cons
 	count = 0;
 	for (auto p : s->paths[prg_id])
         {
-	    cout << s->name << " ";
+	    /*cout << s->name << " ";
 	    for (uint i=0; i!=p.size(); ++i)
 	    {
 	        cout << *p[i] << " ";
 	    }
-	    cout << endl;
+	    cout << endl;*/
 	    sample_lmp = prg->localnode_path_from_kmernode_path(p, w);
 	    if (count == 0)
 	    {

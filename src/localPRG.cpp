@@ -903,12 +903,12 @@ void LocalPRG::build_vcf(VCF& vcf, const vector<LocalNode*>& ref) const
 }
 void LocalPRG::add_sample_to_vcf(VCF& vcf, const vector<LocalNode*>& rpath, const vector<LocalNode*>& sample_path, const string& sample_name) const
 {
-    cout << now() << "Update VCF with sample path" << endl;
+    /*cout << now() << "Update VCF with sample path" << endl;
     for (uint i=0; i!=sample_path.size(); ++i)
     {
 	cout << *sample_path[i] << " ";
     }
-    cout << endl;
+    cout << endl;*/
     assert(prg.nodes.size()>0); //otherwise empty nodes -> segfault
 
     // if prg has only one node, simple case

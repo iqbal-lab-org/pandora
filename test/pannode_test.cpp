@@ -130,11 +130,6 @@ TEST_F(PanNodeTest,output_samples_vcf)
     kg.add_edge(kg.sorted_nodes[4],kg.sorted_nodes[6]);
     kg.add_edge(kg.sorted_nodes[5],kg.sorted_nodes[6]);
 
-    for (uint i=0; i!= kg.sorted_nodes.size(); ++i)
-    {
-        cout << *kg.sorted_nodes[i] << endl;
-    }
-    cout << kg << endl;
     EXPECT_EQ((uint)7, kg.nodes.size());
 
     pn1.kmer_prg = kg;
