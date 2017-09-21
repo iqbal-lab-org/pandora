@@ -208,13 +208,13 @@ void VCF::save(const string& filepath, bool simple, bool complexgraph, bool toom
     }
     handle << endl;
 
-    sort(records.begin(), records.end()); // we need the records in order for it to be a valid vcf
+    sort_records();
 
     for (uint i=0; i!=records.size(); ++i)
     {
 	if (((simple==false and complexgraph==false) or 
 	     (simple==true and records[i].info.find("GRAPHTYPE=SIMPLE")!=std::string::npos) or
-             (complexgraph==true and records[i].info.find("GRAPHTYPE=COMPLEX")!=std::string::npos) or
+             (complexgraph==true and records[i].info.find("GRAPHTYPE=NESTED")!=std::string::npos) or
 	     (toomanyalts==true and records[i].info.find("GRAPHTYPE=TOO_MANY_ALTS")!=std::string::npos)) and
 	    ((snp==false and indel==false and phsnps==false and complexvar==false) or
 	     (snp==true and records[i].info.find("SVTYPE=SNP")!=std::string::npos) or
@@ -223,7 +223,9 @@ void VCF::save(const string& filepath, bool simple, bool complexgraph, bool toom
              (complexvar==true and records[i].info.find("SVTYPE=COMPLEX")!=std::string::npos)))
 	{
             handle << records[i];
-	}
+	} else {
+	    cout << records[i];
+        }
     }
     handle.close();
     cout << now() << "Finished saving " << records.size() << " entries to file" << endl;

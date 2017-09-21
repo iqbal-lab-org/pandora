@@ -228,6 +228,42 @@ TEST_F(KmerGraphTest, equals)
     EXPECT_EQ((kg2==kg1), false);
 }
 
+TEST_F(KmerGraphTest, copy)
+{
+    KmerGraph kg1;
+    deque<Interval> d = {Interval(0,3)};
+    Path p1,p2,p3;
+    p1.initialize(d);
+    kg1.add_node(p1);
+    d = {Interval(1,4)};
+    p2.initialize(d);
+    kg1.add_node(p2);
+    kg1.add_edge(p1,p2);
+
+    KmerGraph kg2(kg1);
+
+    EXPECT_EQ(kg1, kg1);
+    EXPECT_EQ(kg2, kg2);
+}
+
+TEST_F(KmerGraphTest, assign)
+{
+    KmerGraph kg1;
+    deque<Interval> d = {Interval(0,3)};
+    Path p1,p2,p3;
+    p1.initialize(d);
+    kg1.add_node(p1);
+    d = {Interval(1,4)};
+    p2.initialize(d);
+    kg1.add_node(p2);
+    kg1.add_edge(p1,p2);
+
+    KmerGraph kg2 = kg1;
+
+    EXPECT_EQ(kg1, kg1);
+    EXPECT_EQ(kg2, kg2);
+}
+
 /*TEST_F(KmerGraphTest, sort_topologically)
 {
     KmerGraph kg;

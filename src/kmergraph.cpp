@@ -261,17 +261,14 @@ float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
 
     // need to catch if p not asserted...
     assert( p<1 || assert_msg("p was not set in kmergraph"));
+    assert( num_reads > 0 || assert_msg("num_reads was not set in kmergraph"));
     //p = 1/exp(e_rate*k);
     //cout << " with parameters n: " << num_reads << " and p: " << p << endl;
     //cout << "Kmer graph has " << nodes.size() << " nodes" << endl;
     
     // need to catch if thesh not set too...
 
-    if (sorted_nodes.size() == 0 and nodes.size() > 0)
-    {
-	sort_topologically();
-        check();
-    }
+    check();
 
     // create vectors to hold the intermediate values
     vector<float> M(nodes.size(), 0); // max log prob pf paths from pos i to end of graph
@@ -284,6 +281,7 @@ float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
     {
         max_mean = numeric_limits<float>::lowest();
         max_len = 0; // tie break with longest kmer path
+	//cout << "node " << j-1 << " has " << sorted_nodes[j-1]->outNodes.size() << " outnodes" << endl;
         for (uint i=0; i!=sorted_nodes[j-1]->outNodes.size(); ++i)
         {
             if ((sorted_nodes[j-1]->outNodes[i]->id == sorted_nodes.back()->id and thresh > max_mean + 0.000001) or 
@@ -321,6 +319,7 @@ float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
     //cout << endl;
     //cout << "len[0]: " << len[0] << " maxpath.size(): " << maxpath.size() << " maxpath.back()->id: " << maxpath.back()->id << endl;
 
+    assert(len[0] > 0 || assert_msg("found no path through kmer prg"));
     return M[0]/len[0];
 }
 

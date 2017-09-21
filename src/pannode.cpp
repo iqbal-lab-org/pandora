@@ -41,6 +41,8 @@ void PanNode::output_samples_vcf(const LocalPRG* prg, const string& prefix, cons
     sample_lmp.reserve(100);
 
     // find best ref
+    kmer_prg.set_p(0.01);
+    kmer_prg.num_reads = covg;
     kmer_prg.find_max_path(kmp);
     lmp = prg->localnode_path_from_kmernode_path(kmp, w);
 

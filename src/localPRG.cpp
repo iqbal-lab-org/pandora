@@ -85,7 +85,6 @@ vector<LocalNode*> LocalPRG::nodes_along_path(const Path& p) const
 		//cout << "found node " << *(n->second) << " so return vector size is now " << v.size() << endl;
             } else if (it->end < n->second->pos.start)
             {
-		//cout << "gave up" << endl;
 		break;
 	    } // because the local nodes are labelled in order of occurance in the linear prg string, we don't need to search after this
         }
@@ -620,19 +619,19 @@ vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(const vector<Kmer
 	}
 	if (localnode_path[0]->id != 0)
 	{
-	    cout << "localnode path still does not start with 0" << endl;
+	    //cout << "localnode path still does not start with 0" << endl;
 	    // add the first path to start
 	    LocalNode* next = nullptr;
 	    while (localnode_path[0]->id != 0 and next!=localnode_path[0])
 	    {
-		cout << "look for a previous node to " << *localnode_path[0] << endl;
+		//cout << "look for a previous node to " << *localnode_path[0] << endl;
 		next = prg.get_previous_node(localnode_path[0]);
 		if (next!=nullptr)
 		{
-		    cout << "add " << *next << endl;
+		    //cout << "add " << *next << endl;
 		    localnode_path.insert(localnode_path.begin(), next);
 		}
-		cout << "new start node is " << *localnode_path[0] << endl;
+		//cout << "new start node is " << *localnode_path[0] << endl;
 	    }	
 	}
     }
@@ -676,17 +675,16 @@ vector<LocalNode*> LocalPRG::localnode_path_from_kmernode_path(const vector<Kmer
         }
 	if (localnode_path.back()->id != prg.nodes.size()-1)
         {
-            cout << "localnode path still does not end with " << prg.nodes.size()-1 << endl;
+            //cout << "localnode path still does not end with " << prg.nodes.size()-1 << endl;
 	    // add the first path to end
             while (localnode_path.back()->id != prg.nodes.size()-1 and localnode_path.back()->outNodes.size()>0)
             {
-		cout << "extend " << *localnode_path.back();
+		//cout << "extend " << *localnode_path.back();
 		localnode_path.push_back(localnode_path.back()->outNodes[0]);
-		cout << " with " << *localnode_path.back() << endl;
+		//cout << " with " << *localnode_path.back() << endl;
             }
         }
     }
-
     return localnode_path;
 }
 

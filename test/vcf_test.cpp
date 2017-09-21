@@ -82,6 +82,44 @@ TEST_F(VCFTest, add_sample_gt)
     EXPECT_EQ("0", vcf.records[3].samples[0]);
 }
 
+TEST_F(VCFTest, add_sample_ref_alleles)
+{
+    VCF vcf;
+    vcf.add_record("chrom1", 5, "A", "G");
+    vcf.add_record("chrom1", 46, "T", "TA");
+    vcf.add_record("chrom1", 79, "C", "G");
+    vcf.add_record("chrom1", 79, "C", "A");
+    vcf.add_record("chrom2", 30, "C", "A");
+
+    vcf.add_sample_ref_alleles("sample", "chrom1", 15, 78);
+    EXPECT_EQ((uint)1, vcf.samples.size());
+    EXPECT_EQ((uint)5, vcf.records.size());
+    EXPECT_EQ((uint)1, vcf.records[0].samples.size());
+    EXPECT_EQ(".", vcf.records[0].samples[0]);
+    EXPECT_EQ((uint)1, vcf.records[1].samples.size());
+    EXPECT_EQ("0", vcf.records[1].samples[0]);
+    EXPECT_EQ((uint)1, vcf.records[2].samples.size());
+    EXPECT_EQ(".", vcf.records[2].samples[0]);
+    EXPECT_EQ((uint)1, vcf.records[3].samples.size());
+    EXPECT_EQ(".", vcf.records[3].samples[0]);
+    EXPECT_EQ((uint)1, vcf.records[4].samples.size());
+    EXPECT_EQ(".", vcf.records[4].samples[0]);
+
+    vcf.add_sample_ref_alleles("sample2", "chrom1", 5, 46);
+    EXPECT_EQ((uint)2, vcf.samples.size());
+    EXPECT_EQ((uint)5, vcf.records.size());
+    EXPECT_EQ((uint)2, vcf.records[0].samples.size());
+    EXPECT_EQ("0", vcf.records[0].samples[1]);
+    EXPECT_EQ((uint)2, vcf.records[1].samples.size());
+    EXPECT_EQ(".", vcf.records[1].samples[1]);
+    EXPECT_EQ((uint)2, vcf.records[2].samples.size());
+    EXPECT_EQ(".", vcf.records[2].samples[1]);
+    EXPECT_EQ((uint)2, vcf.records[3].samples.size());
+    EXPECT_EQ(".", vcf.records[3].samples[1]);
+    EXPECT_EQ((uint)2, vcf.records[4].samples.size());
+    EXPECT_EQ(".", vcf.records[4].samples[1]);
+}
+
 TEST_F(VCFTest, reorder_add_record_and_sample)
 {
     VCF vcf;
@@ -196,9 +234,9 @@ TEST_F(VCFTest, filter)
 {
     VCF vcf, vcf1, vcf2, vcf3, vcf4;
     vcf.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
-    vcf.add_record("chrom1", 46, "T", "TA", "SVTYPE=INDEL;GRAPHTYPE=COMPLEX");
+    vcf.add_record("chrom1", 46, "T", "TA", "SVTYPE=INDEL;GRAPHTYPE=NESTED");
     vcf.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
-    vcf.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=PH_SNPs;GRAPHTYPE=COMPLEX");
+    vcf.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=PH_SNPs;GRAPHTYPE=NESTED");
     vcf.samples.push_back("dummy");
 
     vcf.save("../test/test_cases/vcf_filter_test.vcf", true, false, false, false, false, false, false);
@@ -209,7 +247,7 @@ TEST_F(VCFTest, filter)
 
     vcf.save("../test/test_cases/vcf_filter_test.vcf", false, false, false, false, false, true, false);
     vcf3.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
-    vcf3.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=SNP;GRAPHTYPE=COMPLEX");
+    vcf3.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=SNP;GRAPHTYPE=NESTED");
     vcf4.load("../test/test_cases/vcf_filter_test.vcf");
     EXPECT_EQ(vcf3 == vcf4, true);
 

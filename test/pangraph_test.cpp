@@ -476,7 +476,7 @@ TEST_F(PanGraphTest, add_shortcut_edge)
     pg2.edges[1]->covg = 0;
     pg2.edges[2]->covg = 0;
 
-    vector<PanEdge*>::iterator e1 = pg1.edges.begin()+1, e2 = pg1.edges.begin()+2;
+    vector<PanEdge*>::iterator e1 = pg1.edges.begin()+1;
     pg1.add_shortcut_edge(e1, pg1.reads[0]);
     EXPECT_EQ(pg1, pg2);
 }
