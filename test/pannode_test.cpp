@@ -122,13 +122,19 @@ TEST_F(PanNodeTest,output_samples_vcf)
     kg.add_node(p);
     kg.sort_topologically();
     kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[1]);
-    kg.add_edge(kg.sorted_nodes[1],kg.sorted_nodes[2]);
+    kg.add_edge(kg.sorted_nodes[1],kg.sorted_nodes[4]);
+    kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[2]);
+    kg.add_edge(kg.sorted_nodes[2],kg.sorted_nodes[5]);
     kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[3]);
-    kg.add_edge(kg.sorted_nodes[3],kg.sorted_nodes[4]);
-    kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[5]);
-    kg.add_edge(kg.sorted_nodes[2],kg.sorted_nodes[6]);
+    kg.add_edge(kg.sorted_nodes[3],kg.sorted_nodes[6]);
     kg.add_edge(kg.sorted_nodes[4],kg.sorted_nodes[6]);
     kg.add_edge(kg.sorted_nodes[5],kg.sorted_nodes[6]);
+
+    for (uint i=0; i!= kg.sorted_nodes.size(); ++i)
+    {
+        cout << *kg.sorted_nodes[i] << endl;
+    }
+    cout << kg << endl;
     EXPECT_EQ((uint)7, kg.nodes.size());
 
     pn1.kmer_prg = kg;
@@ -137,23 +143,23 @@ TEST_F(PanNodeTest,output_samples_vcf)
     EXPECT_EQ((uint)7, pn1.kmer_prg.sorted_nodes.size());
 
     // want this path to be the ref, so add first a couple of times so it is weighted
-    kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[3], pn1.kmer_prg.sorted_nodes[4], pn1.kmer_prg.sorted_nodes[6]};
+    kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[2], pn1.kmer_prg.sorted_nodes[5], pn1.kmer_prg.sorted_nodes[6]};
     pn1.add_path(kmp);
     pn1.add_path(kmp);
 
     EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[0]->covg[0]);
     EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[1]->covg[0]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[2]->covg[0]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[3]->covg[0]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[4]->covg[0]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[5]->covg[0]);
+    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[2]->covg[0]);
+    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[3]->covg[0]);
+    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[4]->covg[0]);
+    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[5]->covg[0]);
     EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[6]->covg[0]);
     EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[0]->covg[1]);
     EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[1]->covg[1]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[2]->covg[1]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[3]->covg[1]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[4]->covg[1]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[5]->covg[1]);
+    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[2]->covg[1]);
+    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[3]->covg[1]);
+    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[4]->covg[1]);
+    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[5]->covg[1]);
     EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[6]->covg[1]);
 
     // define 3 samples, one with ref path and 2 with alts
@@ -165,13 +171,13 @@ TEST_F(PanNodeTest,output_samples_vcf)
     pn1.samples.insert(ps1);
     pn1.add_path(kmp);
 
-    kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[1], pn1.kmer_prg.sorted_nodes[2], pn1.kmer_prg.sorted_nodes[6]};
+    kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[1], pn1.kmer_prg.sorted_nodes[4], pn1.kmer_prg.sorted_nodes[6]};
     ps2 = new PanSample("sample2");
     ps2->paths[3] = {kmp};
     pn1.samples.insert(ps2);
     pn1.add_path(kmp);
 
-    kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[5], pn1.kmer_prg.sorted_nodes[6]};
+    kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[3], pn1.kmer_prg.sorted_nodes[6]};
     ps3 = new PanSample("sample3");
     ps3->paths[3] = {kmp};
     pn1.samples.insert(ps3);
@@ -179,17 +185,17 @@ TEST_F(PanNodeTest,output_samples_vcf)
 
     EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[0]->covg[0]);
     EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[1]->covg[0]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[2]->covg[0]);
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[3]->covg[0]);
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[4]->covg[0]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[5]->covg[0]);
+    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[2]->covg[0]);
+    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[3]->covg[0]);
+    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[4]->covg[0]);
+    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[5]->covg[0]);
     EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[6]->covg[0]);
     EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[0]->covg[1]);
     EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[1]->covg[1]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[2]->covg[1]);
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[3]->covg[1]);
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[4]->covg[1]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[5]->covg[1]);
+    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[2]->covg[1]);
+    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[3]->covg[1]);
+    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[4]->covg[1]);
+    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[5]->covg[1]);
     EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[6]->covg[1]);
 
     pn1.covg = 3;

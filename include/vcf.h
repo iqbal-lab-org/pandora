@@ -6,6 +6,8 @@
 #include <vector>
 #include "vcfrecord.h"
 
+class LocalNode;
+
 class VCF {
   public:
     std::vector<VCFRecord> records;
@@ -18,8 +20,10 @@ class VCF {
     void add_sample_ref_alleles(const std::string&, const std::string&, const uint&, const uint&);
     void clear();
     void sort_records();
+    bool pos_in_range(const uint, const uint);
     void save(const std::string&, bool simple=false, bool complexgraph=false, bool toomanyalts=false, bool snp=false, bool indel=false, bool phsnps=false, bool complexvar=false);
     void load(const std::string&);
+    void write_aligned_fasta(const std::string& , const std::vector<LocalNode*>&);
     bool operator == (const VCF& y) const;
 };
 

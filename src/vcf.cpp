@@ -7,6 +7,7 @@
 #include "vcfrecord.h"
 #include "vcf.h"
 #include "utils.h"
+#include "localnode.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -40,7 +41,7 @@ void VCF::add_record(VCFRecord& vr)
 
 void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, const string& r, const string& a)
 {
-    //cout << "adding gt " << c << " " << p << " " << r << " vs " << name << " " << a << endl;
+    cout << "adding gt " << c << " " << p << " " << r << " vs " << name << " " << a << endl;
     if (r == ""  and a == "")
     {
 	return;
@@ -170,6 +171,18 @@ void VCF::sort_records()
     return;
 }
 
+bool VCF::pos_in_range(const uint from, const uint to)
+{
+    for (uint i=0; i!=records.size(); ++i)
+    {
+        if (from < records[i].pos and records[i].pos + records[i].ref.length() <= to)
+	{
+	    return true;
+	}
+    }
+    return false;
+}
+
 // NB in the absence of filter flags being set to true, all results are saved. If one or more filter flags for SVTYPE are set, 
 // then only those matching the filter are saved. Similarly for GRAPHTYPE.
 void VCF::save(const string& filepath, bool simple, bool complexgraph, bool toomanyalts, bool snp, bool indel, bool phsnps, bool complexvar)
@@ -223,8 +236,6 @@ void VCF::save(const string& filepath, bool simple, bool complexgraph, bool toom
              (complexvar==true and records[i].info.find("SVTYPE=COMPLEX")!=std::string::npos)))
 	{
             handle << records[i];
-	} else {
-	    cout << records[i];
         }
     }
     handle.close();
@@ -261,6 +272,121 @@ void VCF::load(const string& filepath)
     }
     cout << now() << "Finished loading " << added << " entries to VCF, which now has size " << records.size() << endl;
     return;
+}
+
+void VCF::write_aligned_fasta(const string& filepath, const vector<LocalNode*>& lmp)
+{
+    sort_records();
+
+    /*cout << "lmp:" << endl;
+    for (uint i=0; i!= lmp.size(); ++i)
+    {
+	cout << *lmp[i] << endl;
+    }*/
+
+    int prev_pos = -1;
+    uint max_len = 0;
+    uint n = 0; // position in lmp
+    uint ref_len = 0;
+    vector<string> seqs(samples.size(), "");
+    vector<uint> alt_until(samples.size(), 0);
+
+    for (uint i=0; i!=records.size(); ++i)
+    {
+	if (records[i].pos != (uint)prev_pos)
+	{
+	    // equalise lengths of sequences
+	    for (uint j=0; j!=samples.size(); ++j)
+	    {
+		if (seqs[j].length() < max_len)
+		{
+		    //cout << "equalise length of seq " << j << endl;
+		    string s(max_len - seqs[j].length(), '-'); // s == "------"
+		    seqs[j] += s;
+		}
+	    }
+
+	    // add ref sequence for gaps
+	    while (ref_len < records[i].pos)
+	    {
+	        for (uint j=0; j!=samples.size(); ++j)
+                {
+                    if (alt_until[j] < records[i].pos)
+                    {
+			//cout << "add ref gap allele to seq " << j << endl;
+                        seqs[j] += lmp[n]->seq;
+                    }
+                }
+		ref_len += lmp[n]->seq.length();
+		n++;
+	    }
+	}
+	//cout << "record[" << i << "] " << records[i] << endl;
+	for (uint j=0; j!=samples.size(); ++j)
+	{
+	    if (records[i].samples[j] == "0" and records[i].pos != (uint)prev_pos and pos_in_range(records[i].pos, records[i].pos+records[i].ref.length()) == false)
+	    {
+		//cout << j << " add ref allele at site" << endl;
+		seqs[j] += records[i].ref;
+		max_len = max(max_len, (uint)seqs[j].length());
+		ref_len += records[i].ref.length();
+		n++;
+	    } else if (records[i].samples[j] == "1")
+	    {
+		//cout << j << " add alt allele at site" << endl;
+		assert(records[i].pos != (uint)prev_pos);
+	        seqs[j] += records[i].alt;
+		max_len = max(max_len, (uint)seqs[j].length());
+		alt_until[j] = records[i].pos + records[i].ref.length();
+	    }
+	}
+    }
+
+    // equalise lengths of sequences
+    for (uint j=0; j!=samples.size(); ++j)
+    {
+        if (seqs[j].length() < max_len)
+        {
+            //cout << "equalise length of seq " << j << endl;
+            string s(max_len - seqs[j].length(), '-'); // s == "------"
+            seqs[j] += s;
+        }
+    }
+
+    // add ref sequence for end gaps
+    while (n < lmp.size())
+    {
+        for (uint j=0; j!=samples.size(); ++j)
+        {
+            if (alt_until[j] <= ref_len)
+            {
+                //cout << "add ref gap allele to seq " << j << endl;
+                seqs[j] += lmp[n]->seq;
+            //} else {
+		//cout << "alt_until[j] > ref_len" << alt_until[j]  << " " << ref_len << endl;
+	    }
+        }
+        ref_len += lmp[n]->seq.length();
+        n++;
+    }
+    /*cout << "seqs now are " << endl;
+    for (uint j=0; j!=samples.size(); ++j)
+    {
+	cout << j << " " << seqs[j] << endl;
+    }*/
+
+    ofstream handle;
+    handle.open (filepath);
+    assert (!handle.fail());
+
+    for (uint j=0; j!=samples.size(); ++j)
+    {
+	handle << ">" << samples[j] << endl;
+	handle << seqs[j] << endl;
+    }
+    handle.close();
+    return;
+
 }
 
 bool VCF::operator == (const VCF& y) const {

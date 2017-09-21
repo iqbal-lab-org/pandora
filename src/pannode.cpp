@@ -55,7 +55,12 @@ void PanNode::output_samples_vcf(const LocalPRG* prg, const string& prefix, cons
 	count = 0;
 	for (auto p : s->paths[prg_id])
         {
-	    sample_lmp.clear();
+	    cout << s->name << " ";
+	    for (uint i=0; i!=p.size(); ++i)
+	    {
+	        cout << *p[i] << " ";
+	    }
+	    cout << endl;
 	    sample_lmp = prg->localnode_path_from_kmernode_path(p, w);
 	    if (count == 0)
 	    {
@@ -68,8 +73,9 @@ void PanNode::output_samples_vcf(const LocalPRG* prg, const string& prefix, cons
 	}
     }
     vcf.save(prefix + "." + name + ".multisample.vcf", true, true, true, true, true, true, true);
+    vcf.write_aligned_fasta(prefix + "." + name + ".multisample.fa", lmp);
 }
-	
+
 /*// copy constructor
 PanNode::PanNode(const PanNode& other)
 {
