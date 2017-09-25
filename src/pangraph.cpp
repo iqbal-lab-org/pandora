@@ -302,7 +302,8 @@ vector<PanEdge*>::iterator PanGraph::add_shortcut_edge(vector<PanEdge*>::iterato
             prev = current;
         } else {
             r->remove_edge(*current, r);
-            prev = r->remove_edge(*prev, r);
+            r->remove_edge(*prev, r);
+	    prev = r->edges.end();
         }
     } 
 
@@ -380,10 +381,7 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
             (*r)->replace_node(n_original, n, *r);
 
             // replace e_original2 in read
-            (*r)->replace_edge(e_original2, e2, r);
-
-            // replace e_original1 in read
-            r = (*r)->replace_edge(e_original1, e1, r);
+            r = (*r)->replace_edge(e_original2, e2, r);
 	} else {
 	    ++r;
 	}
@@ -476,7 +474,7 @@ void PanGraph::read_clean(const uint& thresh)
 	    continue;
 	}
 	vector<PanEdge*>::iterator current;
-	for (vector<PanEdge*>::iterator prev=read->second->edges.begin(); prev!=--read->second->edges.end();)
+	for (vector<PanEdge*>::iterator prev=read->second->edges.begin(); prev != read->second->edges.end() and prev != --read->second->edges.end();)
 	{
 	    current = prev;
 	    current++;
@@ -485,18 +483,9 @@ void PanGraph::read_clean(const uint& thresh)
 	    {
 		cout << "read " << read->first << " edges " << **prev << " and " << **current << " have low covg " << endl;
 		prev = add_shortcut_edge(prev, read->second);
-		current = prev;
-		if (prev != read->second->edges.end() and prev != --read->second->edges.end())
-		{
-                    current++;
-		} else {
-		    break;
-		}
-		
 		cout << "read is now: " << *(read->second) << endl;
 	    } else {
 		prev = current;
-		++current;
 	    }
 	}
     }
@@ -647,6 +636,7 @@ void PanGraph::add_hits_to_kmergraphs(const vector<LocalPRG*>& prgs)
             }
         }
         cout << now() << "Added " << num_hits[1] << " hits in the forward direction and " << num_hits[0] << " hits in the reverse" << endl;
+	pnode.second->kmer_prg.num_reads = pnode.second->covg;
     }
 }
 
