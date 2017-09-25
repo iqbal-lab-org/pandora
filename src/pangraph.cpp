@@ -391,13 +391,13 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
     // if e_original1 or e_original2 now have 0 covg, delete both from nodes and graph
     if (e_original2->covg == 0)
     {
-        assert(e_original2->reads.size() == 0);
+        assert(e_original2->reads.size() == 0 || assert_msg("e_original2->reads.size() == " << e_original2->reads.size()));
 	remove_edge(e_original2);
     }
 
     //cout << "same for original edge" << endl;
-    assert(e_original1->covg == 0);
-    assert(e_original1->reads.size() == 0);
+    assert(e_original1->covg == 0 || assert_msg("e_original1->covg == " << e_original1->covg));
+    assert(e_original1->reads.size() == 0 || assert_msg("e_original1->reads.size() == " << e_original1->reads.size()));
     if (e_original1->to == n_original)
     {
 	it = find(n_original->edges.begin(), n_original->edges.end(), e_original1);
