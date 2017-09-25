@@ -32,7 +32,7 @@ void PanNode::add_path(const vector<KmerNode*>& kmp)
     }
 }
 
-void PanNode::output_samples_vcf(const LocalPRG* prg, const string& prefix, const uint w)
+void PanNode::output_samples(const LocalPRG* prg, const string& prefix, const uint w)
 {
     vector<KmerNode*> kmp;
     kmp.reserve(800);

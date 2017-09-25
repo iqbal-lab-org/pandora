@@ -30,7 +30,7 @@ class PanNode {
     
     std::string get_name();
     void add_path(const std::vector<KmerNode*>&);
-    void output_samples_vcf(const LocalPRG*, const std::string&, const uint);
+    void output_samples(const LocalPRG*, const std::string&, const uint);
 
     bool operator == (const PanNode& y) const;
     bool operator != (const PanNode& y) const;
