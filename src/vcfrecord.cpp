@@ -6,7 +6,7 @@
 
 using namespace std;
 
-VCFRecord::VCFRecord(std::string c, uint32_t p, std::string r, std::string a, std::string i, std::string g): chrom(c), pos(p), id("."), ref(r), alt(a), qual("."), filter("."), info(i){
+VCFRecord::VCFRecord(std::string c, uint32_t p, std::string r, std::string a, std::string i, std::string g): chrom(c), pos(p), id("."), ref(r), alt(a), qual("."), filter("."), info(i), format("GT") {
     // fix so no empty strings
     if (ref == "") {ref = ".";}
     if (alt == "") {alt = ".";}

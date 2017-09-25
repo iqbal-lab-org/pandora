@@ -5,6 +5,7 @@
 #include "localPRG.h"
 #include <stdint.h>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -92,7 +93,7 @@ TEST_F(PanNodeTest,add_path){
     EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[6]->covg[1]);
 }
 
-TEST_F(PanNodeTest,output_samples_vcf)
+TEST_F(PanNodeTest,output_samples)
 {
     PanNode pn1(3,3,"three");
     vector<KmerNode*> kmp;
@@ -198,12 +199,46 @@ TEST_F(PanNodeTest,output_samples_vcf)
     LocalPRG* l3;
     l3 = new LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
 
-    pn1.output_samples_vcf(l3,"../test/test_cases/updatevcf_pannode",0);
+    pn1.output_samples(l3,"../test/test_cases/updatevcf_pannode",0);
 
     delete ps1;
     delete ps2;
     delete ps3;
     delete l3;
+
+    // now check is as expect
+
+    string vcffile = R"(##fileformat=VCFv4.3
+##fileDate==25/09/17
+##ALT=<ID=SNP,Description="SNP">
+##ALT=<ID=PH_SNPs,Description="Phased SNPs">
+##ALT=<ID=INDEL,Description="Insertion-deletion">
+##ALT=<ID=COMPLEX,Description="Complex variant, collection of SNPs and indels">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of variant">
+##ALT=<ID=SIMPLE,Description="Graph bubble is simple">
+##ALT=<ID=NESTED,Description="Variation site was a nested feature in the graph">
+##ALT=<ID=TOO_MANY_ALTS,Description="Variation site was a multinested feature with too many alts to include all in the VCF">
+##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description="Type of graph feature">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample3	sample2	sample1
+nested varsite	1	.	GT	G	.	.	SVTYPE=INDEL;GRAPHTYPE=NESTED	GT	1	.	0
+nested varsite	2	.	T	C	.	.	SVTYPE=SNP;GRAPHTYPE=NESTED	GT	.	1	0
+)";
+
+    ifstream ifs("../test/test_cases/updatevcf_pannode.three.multisample.vcf");
+    string content( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()) );
+    EXPECT_EQ(vcffile, content);
+
+    string fafile = R"(>sample3
+AG--T
+>sample2
+A-GCT
+>sample1
+A-GTT
+)";
+
+    ifstream ifs2("../test/test_cases/updatevcf_pannode.three.multisample.fa");
+    string content2( (std::istreambuf_iterator<char>(ifs2) ),(std::istreambuf_iterator<char>()) );
+    EXPECT_EQ(fafile, content2);
 }
 
 
