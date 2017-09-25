@@ -54,7 +54,7 @@ class KmerNode {
   friend class LocalPRGTest_update_covg_with_hit_Test;
   friend class LocalPRGTest_find_path_and_variants_Test;
   friend class PanNodeTest_add_path_Test;
-  friend class PanNodeTest_output_samples_vcf_Test;
+  friend class PanNodeTest_output_samples_Test;
 };
 
 #endif
