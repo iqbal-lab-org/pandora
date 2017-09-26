@@ -62,11 +62,14 @@ vector<PanEdge*>::iterator PanRead::get_other_edge(const PanEdge* e, const PanNo
 
 vector<PanEdge*>::iterator PanRead::replace_edge(PanEdge* e_original, PanEdge* e, PanRead* me)
 {
+    uint size = edges.size();
     vector<PanEdge*>::iterator it = get_edge(e_original);
     if (it != edges.end())
     {   
         it = edges.erase(it);
+        assert(edges.size() == size - 1);
         it = edges.insert(it, e);
+        assert(edges.size() == size);
         e->reads.insert(me);
         e->covg += 1;
         e_original->reads.erase(me);
@@ -77,7 +80,8 @@ vector<PanEdge*>::iterator PanRead::replace_edge(PanEdge* e_original, PanEdge* e
 
 unordered_set<PanRead*>::iterator PanRead::replace_edge(PanEdge* e_original, PanEdge* e, unordered_set<PanRead*>::iterator me)
 {
-    unordered_set<PanRead*>::iterator rt = e_original->reads.find(*me);
+    uint size = e_original->reads.size();
+    //unordered_set<PanRead*>::iterator rt = e_original->reads.find(*me);
     vector<PanEdge*>::iterator it = get_edge(e_original);
     if (it != edges.end())
     {
@@ -85,11 +89,12 @@ unordered_set<PanRead*>::iterator PanRead::replace_edge(PanEdge* e_original, Pan
         it = edges.insert(it, e);
         e->reads.insert(*me);
         e->covg += 1;
-	assert(rt!=e_original->reads.end());
-        rt = e_original->reads.erase(rt);
+	assert(me!=e_original->reads.end());
+        me = e_original->reads.erase(me);
+	assert(e_original->reads.size() == size - 1);
         e_original->covg -= 1;
     }
-    return rt;
+    return me;
 }
 
 vector<PanEdge*>::iterator PanRead::remove_edge(PanEdge* e_original, PanRead* me)

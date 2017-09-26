@@ -481,7 +481,7 @@ TEST_F(PanGraphTest, add_shortcut_edge)
     EXPECT_EQ(pg1, pg2);
 }
 
-TEST_F(PanGraphTest, split_node_by_edges)
+/*TEST_F(PanGraphTest, split_node_by_edges)
 {
     set<MinimizerHit*, pComp> mhs;
 
@@ -1013,7 +1013,7 @@ TEST_F(PanGraphTest, clean)
 
     pg1.clean(40);
     EXPECT_EQ(pg1, pg2);
-}
+}*/
 
 TEST_F(PanGraphTest, write_gfa)
 {

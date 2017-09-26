@@ -2,6 +2,7 @@
 #include "pannode.h"
 #include "panedge.h"
 #include "panread.h"
+#include "pangraph.h"
 #include "minihit.h"
 #include <stdint.h>
 #include <iostream>
@@ -300,10 +301,348 @@ TEST_F(PanReadTest,get_other_edge)
 
 TEST_F(PanReadTest,replace_edge1)
 {
+    set<MinimizerHit*, pComp> mhs;
+
+    PanGraph pg;
+    // read 0: 0->1->2->3
+    pg.add_node(0,"0",0, mhs);
+    pg.add_node(1,"1",0, mhs);
+    pg.add_edge(0,1,3,0);
+    pg.add_node(2,"2",0, mhs);
+    pg.add_edge(1,2,3,0);
+    pg.add_node(3,"3",0, mhs);
+    pg.add_edge(2,3,3,0);
+    // read 1: -4 -> -3 -> -1
+    pg.add_node(4,"4",1, mhs);
+    pg.add_edge(4,3,0,1);
+    pg.add_edge(3,1,0,1);
+    pg.add_node(3,"3",1, mhs);
+    pg.add_node(1,"1",1, mhs);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg.add_edge(0,1,3,2);
+    pg.add_edge(1,3,3,2);
+    pg.add_edge(3,4,3,2);
+    pg.add_node(0,"0",2, mhs);
+    pg.add_node(1,"1",2, mhs);
+    pg.add_node(3,"3",2, mhs);
+    pg.add_node(4,"4",2, mhs);
+
+    // check all nodes and edges where expect to start with
+    EXPECT_EQ((uint)5, pg.nodes.size());
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->covg, (uint)2);
+    EXPECT_EQ(pg.nodes[1]->node_id, (uint)1);
+    EXPECT_EQ(pg.nodes[1]->covg, (uint)3);
+    EXPECT_EQ(pg.nodes[2]->node_id, (uint)2);
+    EXPECT_EQ(pg.nodes[2]->covg, (uint)1);
+    EXPECT_EQ(pg.nodes[3]->node_id, (uint)3);
+    EXPECT_EQ(pg.nodes[3]->covg, (uint)3);
+    EXPECT_EQ(pg.nodes[4]->node_id, (uint)4);
+    EXPECT_EQ(pg.nodes[4]->covg, (uint)2);
+    EXPECT_EQ((uint)5, pg.edges.size());
+    EXPECT_EQ(pg.edges[0]->from->node_id, (uint)0);
+    EXPECT_EQ(pg.edges[0]->to->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[0]->covg, (uint)2);
+    EXPECT_EQ(pg.edges[1]->from->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[1]->to->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[1]->covg, (uint)1);
+    EXPECT_EQ(pg.edges[2]->from->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[2]->to->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[2]->covg, (uint)1);
+    EXPECT_EQ(pg.edges[3]->from->node_id, (uint)4);
+    EXPECT_EQ(pg.edges[3]->to->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[3]->covg, (uint)2);
+    EXPECT_EQ(pg.edges[4]->from->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[4]->to->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[4]->covg, (uint)2);
+    EXPECT_EQ((uint)3, pg.reads.size());
+    EXPECT_EQ((uint)3, pg.reads[0]->edges.size());
+    EXPECT_EQ(pg.edges[0], pg.reads[0]->edges[0]);
+    EXPECT_EQ(pg.edges[1], pg.reads[0]->edges[1]); 
+    EXPECT_EQ(pg.edges[2], pg.reads[0]->edges[2]);
+    EXPECT_EQ((uint)2, pg.reads[1]->edges.size());
+    EXPECT_EQ(pg.edges[3], pg.reads[1]->edges[0]);
+    EXPECT_EQ(pg.edges[4], pg.reads[1]->edges[1]);    
+    EXPECT_EQ((uint)3, pg.reads[2]->edges.size());
+    EXPECT_EQ(pg.edges[0], pg.reads[2]->edges[0]);
+    EXPECT_EQ(pg.edges[4], pg.reads[2]->edges[1]);    
+    EXPECT_EQ(pg.edges[3], pg.reads[2]->edges[2]);
+
+    pg.add_edge(2,4,3);
+    pg.edges.back()->covg -= 1;
+    vector<PanEdge*>::iterator r = pg.reads[0]->replace_edge(pg.edges[2], pg.edges.back(), pg.reads[0]);
+    // expect to get an iterator to the edge we have just inserted which now lies on read
+    EXPECT_EQ((uint)5, pg.nodes.size());
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->covg, (uint)2);
+    EXPECT_EQ(pg.nodes[1]->node_id, (uint)1);
+    EXPECT_EQ(pg.nodes[1]->covg, (uint)3);
+    EXPECT_EQ(pg.nodes[2]->node_id, (uint)2);
+    EXPECT_EQ(pg.nodes[2]->covg, (uint)1);
+    EXPECT_EQ(pg.nodes[3]->node_id, (uint)3);
+    EXPECT_EQ(pg.nodes[3]->covg, (uint)3); // note this is really now 2, but not been changed
+    EXPECT_EQ(pg.nodes[4]->node_id, (uint)4);
+    EXPECT_EQ(pg.nodes[4]->covg, (uint)2); // note this is really now 3
+    EXPECT_EQ((uint)6, pg.edges.size());
+    EXPECT_EQ(pg.edges[0]->from->node_id, (uint)0);
+    EXPECT_EQ(pg.edges[0]->to->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[0]->covg, (uint)2);
+    EXPECT_EQ(pg.edges[1]->from->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[1]->to->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[1]->covg, (uint)1);
+    EXPECT_EQ(pg.edges[2]->from->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[2]->to->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[2]->covg, (uint)0);
+    EXPECT_EQ(pg.edges[3]->from->node_id, (uint)4);
+    EXPECT_EQ(pg.edges[3]->to->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[3]->covg, (uint)2);
+    EXPECT_EQ(pg.edges[4]->from->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[4]->to->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[4]->covg, (uint)2);
+    EXPECT_EQ(pg.edges[5]->from->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[5]->to->node_id, (uint)4);
+    EXPECT_EQ(pg.edges[5]->covg, (uint)1);
+    EXPECT_EQ((uint)3, pg.reads.size());
+    EXPECT_EQ((uint)3, pg.reads[0]->edges.size());
+    EXPECT_EQ(pg.edges[0], pg.reads[0]->edges[0]);
+    EXPECT_EQ(pg.edges[1], pg.reads[0]->edges[1]);    
+    EXPECT_EQ(pg.edges[5], pg.reads[0]->edges[2]);
+    EXPECT_EQ((uint)2, pg.reads[1]->edges.size());
+    EXPECT_EQ(pg.edges[3], pg.reads[1]->edges[0]);
+    EXPECT_EQ(pg.edges[4], pg.reads[1]->edges[1]);
+    EXPECT_EQ((uint)3, pg.reads[2]->edges.size());
+    EXPECT_EQ(pg.edges[0], pg.reads[2]->edges[0]);
+    EXPECT_EQ(pg.edges[4], pg.reads[2]->edges[1]); 
+    EXPECT_EQ(pg.edges[3], pg.reads[2]->edges[2]);    
+
+    EXPECT_EQ(r, pg.reads[0]->edges.begin()+2);
+    EXPECT_EQ(*r, pg.edges.back());
+
+    pg.add_edge(3,2,3);
+    pg.edges.back()->covg -= 1;
+    r = pg.reads[2]->replace_edge(pg.edges[3], pg.edges.back(), pg.reads[2]);
+    // expect to get an iterator to the edge we have just inserted which now lies on read
+    EXPECT_EQ((uint)5, pg.nodes.size());
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->covg, (uint)2);
+    EXPECT_EQ(pg.nodes[1]->node_id, (uint)1);
+    EXPECT_EQ(pg.nodes[1]->covg, (uint)3);
+    EXPECT_EQ(pg.nodes[2]->node_id, (uint)2);
+    EXPECT_EQ(pg.nodes[2]->covg, (uint)1); // is really now 2
+    EXPECT_EQ(pg.nodes[3]->node_id, (uint)3);
+    EXPECT_EQ(pg.nodes[3]->covg, (uint)3); // note this is really now 2, but not been changed
+    EXPECT_EQ(pg.nodes[4]->node_id, (uint)4);
+    EXPECT_EQ(pg.nodes[4]->covg, (uint)2); // note this is really now 2
+    EXPECT_EQ((uint)7, pg.edges.size());
+    EXPECT_EQ(pg.edges[0]->from->node_id, (uint)0);
+    EXPECT_EQ(pg.edges[0]->to->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[0]->covg, (uint)2);
+    EXPECT_EQ(pg.edges[1]->from->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[1]->to->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[1]->covg, (uint)1);
+    EXPECT_EQ(pg.edges[2]->from->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[2]->to->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[2]->covg, (uint)0);
+    EXPECT_EQ(pg.edges[3]->from->node_id, (uint)4);
+    EXPECT_EQ(pg.edges[3]->to->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[3]->covg, (uint)1);
+    EXPECT_EQ(pg.edges[4]->from->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[4]->to->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[4]->covg, (uint)2);
+    EXPECT_EQ(pg.edges[5]->from->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[5]->to->node_id, (uint)4);
+    EXPECT_EQ(pg.edges[5]->covg, (uint)1);
+    EXPECT_EQ(pg.edges[6]->from->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[6]->to->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[6]->covg, (uint)1);
+    EXPECT_EQ((uint)3, pg.reads.size());
+    EXPECT_EQ((uint)3, pg.reads[0]->edges.size());
+    EXPECT_EQ(pg.edges[0], pg.reads[0]->edges[0]);
+    EXPECT_EQ(pg.edges[1], pg.reads[0]->edges[1]);
+    EXPECT_EQ(pg.edges[5], pg.reads[0]->edges[2]);
+    EXPECT_EQ((uint)2, pg.reads[1]->edges.size());
+    EXPECT_EQ(pg.edges[3], pg.reads[1]->edges[0]);
+    EXPECT_EQ(pg.edges[4], pg.reads[1]->edges[1]);
+    EXPECT_EQ((uint)3, pg.reads[2]->edges.size());
+    EXPECT_EQ(pg.edges[0], pg.reads[2]->edges[0]);
+    EXPECT_EQ(pg.edges[4], pg.reads[2]->edges[1]);
+    EXPECT_EQ(pg.edges[6], pg.reads[2]->edges[2]);  
+
+    EXPECT_EQ(r, pg.reads[2]->edges.begin()+2);
+    EXPECT_EQ(*r, pg.edges.back());                                                    
 }
 
 TEST_F(PanReadTest,replace_edge2)
 {
+   set<MinimizerHit*, pComp> mhs;
+
+    PanGraph pg;
+    // read 0: 0->1->2->3
+    pg.add_node(0,"0",0, mhs);
+    pg.add_node(1,"1",0, mhs);
+    pg.add_edge(0,1,3,0);
+    pg.add_node(2,"2",0, mhs);
+    pg.add_edge(1,2,3,0);
+    pg.add_node(3,"3",0, mhs);
+    pg.add_edge(2,3,3,0);
+    // read 1: -4 -> -3 -> -1
+    pg.add_node(4,"4",1, mhs);
+    pg.add_edge(4,3,0,1);
+    pg.add_edge(3,1,0,1);
+    pg.add_node(3,"3",1, mhs);
+    pg.add_node(1,"1",1, mhs);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg.add_edge(0,1,3,2);
+    pg.add_edge(1,3,3,2);
+    pg.add_edge(3,4,3,2);
+    pg.add_node(0,"0",2, mhs);
+    pg.add_node(1,"1",2, mhs);
+    pg.add_node(3,"3",2, mhs);
+    pg.add_node(4,"4",2, mhs);
+
+    // check all nodes and edges where expect to start with
+    EXPECT_EQ((uint)5, pg.nodes.size());
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->covg, (uint)2);
+    EXPECT_EQ(pg.nodes[1]->node_id, (uint)1);
+    EXPECT_EQ(pg.nodes[1]->covg, (uint)3);
+    EXPECT_EQ(pg.nodes[2]->node_id, (uint)2);
+    EXPECT_EQ(pg.nodes[2]->covg, (uint)1);
+    EXPECT_EQ(pg.nodes[3]->node_id, (uint)3);
+    EXPECT_EQ(pg.nodes[3]->covg, (uint)3);
+    EXPECT_EQ(pg.nodes[4]->node_id, (uint)4);
+    EXPECT_EQ(pg.nodes[4]->covg, (uint)2);
+    EXPECT_EQ((uint)5, pg.edges.size());
+    EXPECT_EQ(pg.edges[0]->from->node_id, (uint)0);
+    EXPECT_EQ(pg.edges[0]->to->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[0]->covg, (uint)2);
+    EXPECT_EQ(pg.edges[1]->from->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[1]->to->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[1]->covg, (uint)1);
+    EXPECT_EQ(pg.edges[2]->from->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[2]->to->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[2]->covg, (uint)1);
+    EXPECT_EQ(pg.edges[3]->from->node_id, (uint)4);
+    EXPECT_EQ(pg.edges[3]->to->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[3]->covg, (uint)2);
+    EXPECT_EQ(pg.edges[4]->from->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[4]->to->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[4]->covg, (uint)2);
+    EXPECT_EQ((uint)3, pg.reads.size());
+    EXPECT_EQ((uint)3, pg.reads[0]->edges.size());
+    EXPECT_EQ(pg.edges[0], pg.reads[0]->edges[0]);
+    EXPECT_EQ(pg.edges[1], pg.reads[0]->edges[1]);
+    EXPECT_EQ(pg.edges[2], pg.reads[0]->edges[2]);
+    EXPECT_EQ((uint)2, pg.reads[1]->edges.size());
+    EXPECT_EQ(pg.edges[3], pg.reads[1]->edges[0]);
+    EXPECT_EQ(pg.edges[4], pg.reads[1]->edges[1]);
+    EXPECT_EQ((uint)3, pg.reads[2]->edges.size());
+    EXPECT_EQ(pg.edges[0], pg.reads[2]->edges[0]);
+    EXPECT_EQ(pg.edges[4], pg.reads[2]->edges[1]);
+    EXPECT_EQ(pg.edges[3], pg.reads[2]->edges[2]);
+
+    pg.add_edge(2,4,3);
+    pg.edges.back()->covg -= 1;
+    unordered_set<PanRead*>::iterator r = pg.reads[0]->replace_edge(pg.edges[2], pg.edges.back(), pg.edges[2]->reads.begin());
+    // expect to get an iterator to the edge we have just inserted which now lies on read
+    EXPECT_EQ((uint)5, pg.nodes.size());
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->covg, (uint)2);
+    EXPECT_EQ(pg.nodes[1]->node_id, (uint)1);
+    EXPECT_EQ(pg.nodes[1]->covg, (uint)3);
+    EXPECT_EQ(pg.nodes[2]->node_id, (uint)2);
+    EXPECT_EQ(pg.nodes[2]->covg, (uint)1);
+    EXPECT_EQ(pg.nodes[3]->node_id, (uint)3);
+    EXPECT_EQ(pg.nodes[3]->covg, (uint)3); // note this is really now 2, but not been changed
+    EXPECT_EQ(pg.nodes[4]->node_id, (uint)4);
+    EXPECT_EQ(pg.nodes[4]->covg, (uint)2); // note this is really now 3
+    EXPECT_EQ((uint)6, pg.edges.size());
+    EXPECT_EQ(pg.edges[0]->from->node_id, (uint)0);
+    EXPECT_EQ(pg.edges[0]->to->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[0]->covg, (uint)2);
+    EXPECT_EQ(pg.edges[1]->from->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[1]->to->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[1]->covg, (uint)1);
+    EXPECT_EQ(pg.edges[2]->from->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[2]->to->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[2]->covg, (uint)0);
+    EXPECT_EQ(pg.edges[3]->from->node_id, (uint)4);
+    EXPECT_EQ(pg.edges[3]->to->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[3]->covg, (uint)2);
+    EXPECT_EQ(pg.edges[4]->from->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[4]->to->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[4]->covg, (uint)2);
+    EXPECT_EQ(pg.edges[5]->from->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[5]->to->node_id, (uint)4);
+    EXPECT_EQ(pg.edges[5]->covg, (uint)1);
+    EXPECT_EQ((uint)3, pg.reads.size());
+    EXPECT_EQ((uint)3, pg.reads[0]->edges.size());
+    EXPECT_EQ(pg.edges[0], pg.reads[0]->edges[0]);
+    EXPECT_EQ(pg.edges[1], pg.reads[0]->edges[1]);
+    EXPECT_EQ(pg.edges[5], pg.reads[0]->edges[2]);
+    EXPECT_EQ((uint)2, pg.reads[1]->edges.size());
+    EXPECT_EQ(pg.edges[3], pg.reads[1]->edges[0]);
+    EXPECT_EQ(pg.edges[4], pg.reads[1]->edges[1]);
+    EXPECT_EQ((uint)3, pg.reads[2]->edges.size());
+    EXPECT_EQ(pg.edges[0], pg.reads[2]->edges[0]);
+    EXPECT_EQ(pg.edges[4], pg.reads[2]->edges[1]);
+    EXPECT_EQ(pg.edges[3], pg.reads[2]->edges[2]);
+
+    EXPECT_EQ(r, pg.edges[2]->reads.end());
+
+    pg.add_edge(3,0,3);
+    pg.edges.back()->covg -= 1;
+    EXPECT_EQ(*pg.edges[3]->reads.begin(), pg.reads[2]);
+    r = pg.reads[2]->replace_edge(pg.edges[3], pg.edges.back(), pg.edges[3]->reads.begin());
+    // expect to get an iterator to the edge we have just inserted which now lies on read
+    EXPECT_EQ((uint)5, pg.nodes.size());
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
+    EXPECT_EQ(pg.nodes[0]->covg, (uint)2); // is really now 3
+    EXPECT_EQ(pg.nodes[1]->node_id, (uint)1);
+    EXPECT_EQ(pg.nodes[1]->covg, (uint)3);
+    EXPECT_EQ(pg.nodes[2]->node_id, (uint)2);
+    EXPECT_EQ(pg.nodes[2]->covg, (uint)1); 
+    EXPECT_EQ(pg.nodes[3]->node_id, (uint)3);
+    EXPECT_EQ(pg.nodes[3]->covg, (uint)3); // note this is really now 2, but not been changed
+    EXPECT_EQ(pg.nodes[4]->node_id, (uint)4);
+    EXPECT_EQ(pg.nodes[4]->covg, (uint)2); // note this is really now 2
+    EXPECT_EQ((uint)7, pg.edges.size());
+    EXPECT_EQ(pg.edges[0]->from->node_id, (uint)0);
+    EXPECT_EQ(pg.edges[0]->to->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[0]->covg, (uint)2);
+    EXPECT_EQ(pg.edges[1]->from->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[1]->to->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[1]->covg, (uint)1);
+    EXPECT_EQ(pg.edges[2]->from->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[2]->to->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[2]->covg, (uint)0);
+    EXPECT_EQ(pg.edges[3]->from->node_id, (uint)4);
+    EXPECT_EQ(pg.edges[3]->to->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[3]->covg, (uint)1);
+    EXPECT_EQ(pg.edges[4]->from->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[4]->to->node_id, (uint)1);
+    EXPECT_EQ(pg.edges[4]->covg, (uint)2);
+    EXPECT_EQ(pg.edges[5]->from->node_id, (uint)2);
+    EXPECT_EQ(pg.edges[5]->to->node_id, (uint)4);
+    EXPECT_EQ(pg.edges[5]->covg, (uint)1);
+    EXPECT_EQ(pg.edges[6]->from->node_id, (uint)3);
+    EXPECT_EQ(pg.edges[6]->to->node_id, (uint)0);
+    EXPECT_EQ(pg.edges[6]->covg, (uint)1);
+    EXPECT_EQ((uint)3, pg.reads.size());
+    EXPECT_EQ((uint)3, pg.reads[0]->edges.size());
+    EXPECT_EQ(pg.edges[0], pg.reads[0]->edges[0]);
+    EXPECT_EQ(pg.edges[1], pg.reads[0]->edges[1]);
+    EXPECT_EQ(pg.edges[5], pg.reads[0]->edges[2]);
+    EXPECT_EQ((uint)2, pg.reads[1]->edges.size());
+    EXPECT_EQ(pg.edges[3], pg.reads[1]->edges[0]);
+    EXPECT_EQ(pg.edges[4], pg.reads[1]->edges[1]);
+    EXPECT_EQ((uint)3, pg.reads[2]->edges.size());
+    EXPECT_EQ(pg.edges[0], pg.reads[2]->edges[0]);
+    EXPECT_EQ(pg.edges[4], pg.reads[2]->edges[1]);
+    EXPECT_EQ(pg.edges[6], pg.reads[2]->edges[2]);
+
+    EXPECT_EQ(r, pg.edges[3]->reads.begin());
+    EXPECT_EQ(*r, pg.reads[1]);
 }
 
 TEST_F(PanReadTest,remove_edge1)
