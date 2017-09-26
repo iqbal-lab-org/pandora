@@ -41,6 +41,7 @@ class KmerGraph {
 
     void set_p(const float);
     float prob(uint);
+    float prob(uint, uint);
     float find_max_path(std::vector<KmerNode*>&);
     float find_min_path(std::vector<KmerNode*>&);
     std::vector<std::vector<KmerNode*>> find_max_paths(uint);
@@ -48,6 +49,7 @@ class KmerGraph {
     uint min_path_length();
     std::vector<std::vector<KmerNode*>> get_random_paths(uint);
     float prob_path(const std::vector<KmerNode*>&);
+    float prob_paths(const std::vector<std::vector<KmerNode*>>&);
     void save (const std::string&);
     void load (const std::string&);
     bool operator == (const KmerGraph& y) const;

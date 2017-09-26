@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <iostream>
 #include <fstream>
+#include <ctime>
+#include <cstring>
 
 using namespace std;
 
@@ -207,9 +209,14 @@ TEST_F(PanNodeTest,output_samples)
     delete l3;
 
     // now check is as expect
+    // find date
+    time_t t = time(0);
+    char mbstr[10];
+    strftime(mbstr, sizeof(mbstr), "%d/%m/%y", localtime(&t));
+    string dat(mbstr);
 
     string vcffile = R"(##fileformat=VCFv4.3
-##fileDate==25/09/17
+##fileDate==)" + dat + R"(
 ##ALT=<ID=SNP,Description="SNP">
 ##ALT=<ID=PH_SNPs,Description="Phased SNPs">
 ##ALT=<ID=INDEL,Description="Insertion-deletion">

@@ -255,6 +255,31 @@ float KmerGraph::prob(uint j)
     return ret;
 }
 
+float KmerGraph::prob(uint j, uint num)
+{
+    if (sorted_nodes.size() == 0 and nodes.size() > 0)
+    {
+        sort_topologically();
+        check();
+    }
+
+    float ret;
+    if (j==sorted_nodes[0]->id or j==sorted_nodes.back()->id)
+    {    ret = 0; // is really undefined
+    } else if (nodes[j]->covg[0]+nodes[j]->covg[1] > num)
+    {
+        // under model assumptions this can't happen, but it inevitably will, so bodge
+        ret = lognchoosek2(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0], nodes[j]->covg[1]) +
+                (nodes[j]->covg[0]+nodes[j]->covg[1])*log(p/2);
+        // note this may give disadvantage to repeat kmers
+    } else {
+        ret = lognchoosek2(num, nodes[j]->covg[0], nodes[j]->covg[1]) +
+                (nodes[j]->covg[0]+nodes[j]->covg[1])*log(p/2) +
+                (num-(nodes[j]->covg[0]+nodes[j]->covg[1]))*log(1-p);
+    }
+    return ret;
+}
+
 float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
 {
     // finds a max likelihood path
@@ -325,6 +350,16 @@ float KmerGraph::find_max_path(vector<KmerNode*>& maxpath)
 
 vector<vector<KmerNode*>> KmerGraph::find_max_paths(uint num)
 {
+
+    // save original coverges so can put back at the end
+    vector<uint> original_covgs0, original_covgs1;
+    for (uint i=0; i!=nodes.size(); ++i)
+    {
+        original_covgs0.push_back(nodes[i]->covg[0]);
+	original_covgs1.push_back(nodes[i]->covg[1]);
+    }
+    
+    // find num max paths
     vector<vector<KmerNode*>> paths;
     vector<KmerNode*> maxpath;
     find_max_path(maxpath);
@@ -333,11 +368,6 @@ vector<vector<KmerNode*>> KmerGraph::find_max_paths(uint num)
 
     while (paths.size() < num)
     {
-	/*min_covg = 10000;
-	for (uint i=0; i!=maxpath.size(); ++i)
-	{
-	    min_covg = min(min_covg, min(maxpath[i]->covg[0], maxpath[i]->covg[1]));	    
-	}*/
 	for (uint i=0; i!=maxpath.size(); ++i)
 	{
 	    maxpath[i]->covg[0] -= min(maxpath[i]->covg[0], (uint)p*num_reads/num);
@@ -347,6 +377,14 @@ vector<vector<KmerNode*>> KmerGraph::find_max_paths(uint num)
 	find_max_path(maxpath);
 	paths.push_back(maxpath);
     }
+
+    // put covgs back
+    for (uint i=0; i!=nodes.size(); ++i)
+    {   
+	nodes[i]->covg[0] = original_covgs0[i];
+	nodes[i]->covg[1] = original_covgs1[i];
+    }
+
     return paths;	
 }
 
@@ -459,6 +497,46 @@ float KmerGraph::prob_path(const vector<KmerNode*>& kpath)
     {
 	len = 1;
     } 
+    return ret_p/len;
+}
+
+float KmerGraph::prob_paths(const vector<vector<KmerNode*>>& kpaths)
+{
+    if (kpaths.size() == 0)
+    {
+	return 0; // is this the correct default?
+    }
+
+    // collect how much coverage we expect on each node from these paths
+    vector<uint> path_node_covg(nodes.size(), 0);
+    for (uint i=0; i!=kpaths.size(); ++i)
+    {
+	for (uint j=0; j!=kpaths[i].size(); ++j)
+	{
+	    path_node_covg[kpaths[i][j]->id] += 1;
+	}
+    }
+
+    // now calculate max likelihood assuming independent paths
+    float ret_p = 0;
+    uint len;
+    for (uint i=0; i!=path_node_covg.size(); ++i)
+    {
+	if (path_node_covg[i] > 0)
+	{
+	    ret_p += prob(nodes[i]->id, num_reads*path_node_covg[i]/kpaths.size());
+	    if (nodes[i]->path.length() > 0)
+	    {
+	        len += 1;
+	    }
+	}
+    }
+
+    if (len == 0)
+    {
+        len = 1;
+    }
+
     return ret_p/len;
 }
 

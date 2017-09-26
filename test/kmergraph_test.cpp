@@ -264,53 +264,80 @@ TEST_F(KmerGraphTest, assign)
     EXPECT_EQ(kg2, kg2);
 }
 
-/*TEST_F(KmerGraphTest, sort_topologically)
+TEST_F(KmerGraphTest, sort_topologically)
 {
+    vector<KmerNode*> exp_sorted_nodes;
+    KmerNode* n;
+
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
     Path p;
     p.initialize(d);
-    kg.add_node(p);
+    n = kg.add_node(p);
+    exp_sorted_nodes.push_back(n);
     d = {Interval(0,1), Interval(4,5), Interval(8, 9)};
     p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4,5), Interval(8, 9), Interval(16,16), Interval(23,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(24,24)};
-    p.initialize(d);
-    kg.add_node(p);
+    n = kg.add_node(p);
+    exp_sorted_nodes.push_back(n);
     d = {Interval(0,1), Interval(4,5), Interval(12, 13)};
     p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4,5), Interval(12, 13), Interval(16,16), Interval(23,24)};
-    p.initialize(d);
-    kg.add_node(p);
+    n = kg.add_node(p);
+    exp_sorted_nodes.push_back(n);
     d = {Interval(0,1), Interval(19,20), Interval(23,24)};
     p.initialize(d);
-    kg.add_node(p);
+    n = kg.add_node(p);
+    exp_sorted_nodes.push_back(n);
+    d = {Interval(4,5), Interval(8, 9), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    n = kg.add_node(p);
+    exp_sorted_nodes.push_back(n);
+    d = {Interval(4,5), Interval(12, 13), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    n = kg.add_node(p);
+    exp_sorted_nodes.push_back(n);
+    d = {Interval(24,24)};
+    p.initialize(d);
+    n = kg.add_node(p);
+    exp_sorted_nodes.push_back(n);
+
+    for (uint i=0; i!=kg.nodes.size(); ++i)
+    {
+        cout << *kg.nodes[i] << endl;
+    }
+
     kg.add_edge(kg.nodes[0],kg.nodes[1]);
-    kg.add_edge(kg.nodes[1],kg.nodes[2]);
-    kg.add_edge(kg.nodes[2],kg.nodes[3]);
-    kg.add_edge(kg.nodes[0],kg.nodes[4]);
-    kg.add_edge(kg.nodes[4],kg.nodes[5]);
-    kg.add_edge(kg.nodes[0],kg.nodes[6]);
-    kg.add_edge(kg.nodes[5],kg.nodes[3]);
-    kg.add_edge(kg.nodes[6],kg.nodes[3]);
+    kg.add_edge(kg.nodes[0],kg.nodes[2]);
+    kg.add_edge(kg.nodes[0],kg.nodes[3]);
+    kg.add_edge(kg.nodes[1],kg.nodes[4]);
+    kg.add_edge(kg.nodes[2],kg.nodes[5]);
+    kg.add_edge(kg.nodes[3],kg.nodes[6]);
+    kg.add_edge(kg.nodes[4],kg.nodes[6]);
+    kg.add_edge(kg.nodes[5],kg.nodes[6]);
 
     kg.sort_topologically();
+    for (uint i=0; i!=kg.sorted_nodes.size(); ++i)
+    {
+	cout << *kg.sorted_nodes[i] << endl;
+    }
 
     // for each node, outnodes are further along vector
     vector<KmerNode*>::iterator it;
-    for (vector<KmerNode*>::iterator c=kg.nodes.begin(); c!=kg.nodes.end(); ++c)
+    uint i = 0;
+    for (vector<KmerNode*>::iterator c=kg.sorted_nodes.begin(); c!=kg.sorted_nodes.end(); ++c)
     {
         for (auto d: (*c)->outNodes)
         {
-	    it = find_if(c, kg.nodes.end(), condition(d->path));
-    	    EXPECT_EQ((it != kg.nodes.end()), true);
+	    it = c+1;
+	    while ((*it)->path != d->path and it != kg.sorted_nodes.end())
+	    {	
+		it++;
+            }
+    	    EXPECT_EQ((it != kg.sorted_nodes.end()), true);
         }
+	EXPECT_EQ(exp_sorted_nodes[i], *c);
+	i++;
     }
-}*/
+}
 
 TEST_F(KmerGraphTest,findMaxPathSimple)
 {
