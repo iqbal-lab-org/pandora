@@ -365,7 +365,7 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
 	(*r)->replace_node(n_original, n);
 
         // replace e_original2 in read
-        (*r)->replace_edge(e_original2, e2, r);
+        (*r)->replace_edge(e_original2, e2);
 	
 	// replace e_original1 in read
 	r = (*r)->replace_edge(e_original1, e1, r);
