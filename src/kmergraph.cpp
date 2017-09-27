@@ -228,6 +228,7 @@ void KmerGraph::sort_topologically()
 void KmerGraph::set_p(const float e_rate)
 {
     p = 1/exp(e_rate*k);
+    //cout << "using p: " << p << endl;
 }
 
 float KmerGraph::prob(uint j)
@@ -360,6 +361,7 @@ vector<vector<KmerNode*>> KmerGraph::find_max_paths(uint num)
     }
     
     // find num max paths
+    //cout << "expected covg " << (uint)(p*num_reads/num) << endl;
     vector<vector<KmerNode*>> paths;
     vector<KmerNode*> maxpath;
     find_max_path(maxpath);
@@ -370,8 +372,8 @@ vector<vector<KmerNode*>> KmerGraph::find_max_paths(uint num)
     {
 	for (uint i=0; i!=maxpath.size(); ++i)
 	{
-	    maxpath[i]->covg[0] -= min(maxpath[i]->covg[0], (uint)p*num_reads/num);
-	    maxpath[i]->covg[1] -= min(maxpath[i]->covg[1], (uint)p*num_reads/num);
+	    maxpath[i]->covg[0] -= min(maxpath[i]->covg[0], (uint)(p*num_reads/num));
+	    maxpath[i]->covg[1] -= min(maxpath[i]->covg[1], (uint)(p*num_reads/num));
 	}
         maxpath.clear();
 	find_max_path(maxpath);

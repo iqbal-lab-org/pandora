@@ -92,9 +92,7 @@ unordered_set<PanRead*>::iterator PanRead::replace_edge(PanEdge* e_original, Pan
         e->covg += 1;
 	assert(me!=e_original->reads.end());
         //rt = e_original->reads.erase(rt);
-        cout << "before erase" << endl;
         me = e_original->reads.erase(me);
-        cout << "after erase" << endl;
 	assert(e_original->reads.size() == size - 1);
         e_original->covg -= 1;
     }
@@ -121,9 +119,7 @@ unordered_set<PanRead*>::iterator PanRead::remove_edge(PanEdge* e_original, unor
     {
         it = edges.erase(it);
         //rt = e_original->reads.erase(rt);
-        cout << "before erase" << endl;
         me = e_original->reads.erase(me);
-	cout << "after erase" << endl;
         e_original->covg -= 1;
     }
     return me;

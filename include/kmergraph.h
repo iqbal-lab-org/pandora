@@ -58,6 +58,7 @@ class KmerGraph {
     friend struct condition;
     friend class KmerGraphTest_findMaxPathSimple_Test;
     friend class KmerGraphTest_findMaxPath2Level_Test;
+    friend class KmerGraphTest_find_max_paths_2Level_Test;
     friend class KmerGraphTest_path_prob_Test;
 };
 
