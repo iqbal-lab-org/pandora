@@ -285,24 +285,24 @@ vector<PanEdge*>::iterator PanGraph::add_shortcut_edge(vector<PanEdge*>::iterato
     // if n is not null, remove node from read r
     if (n != nullptr)
     {
-	r->remove_node(n, r);
+	r->remove_node(n);
     }
 
     if (e != nullptr)
     {
-        current = r->remove_edge(*current, r);
-        prev = r->replace_edge(*prev, e, r);
+        current = r->remove_edge(*current);
+        prev = r->replace_edge(*prev, e);
         assert((*prev == e));
     } else {
         // this can only happen if we had something circular like A->B and B->A, in which case we want to delete both
         if (current + 1 != r->edges.end() and current + 2 != r->edges.end())
         {
-            current = r->remove_edge(*current, r);
-            prev = r->remove_edge(*prev, r);
+            current = r->remove_edge(*current);
+            prev = r->remove_edge(*prev);
             prev = current;
         } else {
-            r->remove_edge(*current, r);
-            r->remove_edge(*prev, r);
+            r->remove_edge(*current);
+            r->remove_edge(*prev);
 	    prev = r->edges.end();
         }
     } 
@@ -362,7 +362,7 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
     while (r!=e_original1->reads.end())
     {
 	// add read to new node n and remove from n_original
-	(*r)->replace_node(n_original, n, *r);
+	(*r)->replace_node(n_original, n);
 
         // replace e_original2 in read
         (*r)->replace_edge(e_original2, e2, r);
@@ -378,7 +378,7 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
 	if ((*r)->edges.size() == 1)
 	{
             // add read to new node n and remove from n_original
-            (*r)->replace_node(n_original, n, *r);
+            (*r)->replace_node(n_original, n);
 
             // replace e_original2 in read
             r = (*r)->replace_edge(e_original2, e2, r);

@@ -21,12 +21,12 @@ class PanRead {
     std::vector<PanEdge*>::iterator get_next_edge(const PanEdge*);
     std::vector<PanEdge*>::iterator get_previous_edge(const PanEdge*);
     std::vector<PanEdge*>::iterator get_other_edge(const PanEdge*, const PanNode*);
-    std::vector<PanEdge*>::iterator replace_edge(PanEdge*, PanEdge*, PanRead*);
+    std::vector<PanEdge*>::iterator replace_edge(PanEdge*, PanEdge*);
     std::unordered_set<PanRead*>::iterator replace_edge(PanEdge*, PanEdge*, std::unordered_set<PanRead*>::iterator);
-    std::vector<PanEdge*>::iterator remove_edge(PanEdge*, PanRead*);
+    std::vector<PanEdge*>::iterator remove_edge(PanEdge*);
     std::unordered_set<PanRead*>::iterator remove_edge(PanEdge*, std::unordered_set<PanRead*>::iterator);
-    void replace_node(PanNode*, PanNode*, PanRead*);
-    void remove_node(PanNode*, PanRead*);
+    void replace_node(PanNode*, PanNode*);
+    void remove_node(PanNode*);
 
     bool operator == (const PanRead& y) const;
     bool operator != (const PanRead& y) const;
