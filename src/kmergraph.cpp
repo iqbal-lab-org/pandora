@@ -227,43 +227,29 @@ void KmerGraph::sort_topologically()
 
 void KmerGraph::set_p(const float e_rate)
 {
+    assert(k!=0);
+    assert(0 < e_rate and e_rate < 1);
     p = 1/exp(e_rate*k);
     //cout << "using p: " << p << endl;
 }
 
 float KmerGraph::prob(uint j)
 {
-    if (sorted_nodes.size() == 0 and nodes.size() > 0)
-    {
-	sort_topologically();
-        check();
-    }
-	
-    float ret;
-    if (j==sorted_nodes[0]->id or j==sorted_nodes.back()->id)
-    {    ret = 0; // is really undefined
-    } else if (nodes[j]->covg[0]+nodes[j]->covg[1] > num_reads)
-    {
-	// under model assumptions this can't happen, but it inevitably will, so bodge
-	ret = lognchoosek2(nodes[j]->covg[0]+nodes[j]->covg[1], nodes[j]->covg[0], nodes[j]->covg[1]) + 
-		(nodes[j]->covg[0]+nodes[j]->covg[1])*log(p/2);
-        // note this may give disadvantage to repeat kmers
-    } else {
-        ret = lognchoosek2(num_reads, nodes[j]->covg[0], nodes[j]->covg[1]) + 
-		(nodes[j]->covg[0]+nodes[j]->covg[1])*log(p/2) + 
-		(num_reads-(nodes[j]->covg[0]+nodes[j]->covg[1]))*log(1-p);
-    }
-    return ret;
+    assert(num_reads!=0);
+    return prob(j, num_reads);
 }
 
 float KmerGraph::prob(uint j, uint num)
 {
+    assert(p!=1);
+    assert(j<nodes.size()); 
     if (sorted_nodes.size() == 0 and nodes.size() > 0)
     {
         sort_topologically();
         check();
     }
 
+    //cout << "find prob of node " << j << " given " << num << " reads covering and covg " << nodes[j]->covg[0] << " , " << nodes[j]->covg[1] << endl;
     float ret;
     if (j==sorted_nodes[0]->id or j==sorted_nodes.back()->id)
     {    ret = 0; // is really undefined
@@ -521,11 +507,12 @@ float KmerGraph::prob_paths(const vector<vector<KmerNode*>>& kpaths)
 
     // now calculate max likelihood assuming independent paths
     float ret_p = 0;
-    uint len;
+    uint len = 0;
     for (uint i=0; i!=path_node_covg.size(); ++i)
     {
 	if (path_node_covg[i] > 0)
 	{
+	    //cout << "prob of node " << nodes[i]->id << " which has path covg " << path_node_covg[i] << " and so we expect to see " << num_reads*path_node_covg[i]/kpaths.size() << " times IS " << prob(nodes[i]->id, num_reads*path_node_covg[i]/kpaths.size()) << endl;
 	    ret_p += prob(nodes[i]->id, num_reads*path_node_covg[i]/kpaths.size());
 	    if (nodes[i]->path.length() > 0)
 	    {
@@ -539,6 +526,7 @@ float KmerGraph::prob_paths(const vector<vector<KmerNode*>>& kpaths)
         len = 1;
     }
 
+    //cout << "len " << len << endl;
     return ret_p/len;
 }
 

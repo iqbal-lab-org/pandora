@@ -93,7 +93,7 @@ int pandora_compare(int argc, char* argv[])
     }
 
     // otherwise, parse the parameters from the command line
-    string prgfile, readindex, prefix, readfile;
+    string prgfile, readindex, prefix;
     uint32_t w=1, k=15; // default parameters
     int max_diff = 500;
     float e_rate = 0.11;
@@ -112,7 +112,7 @@ int pandora_compare(int argc, char* argv[])
             }
 	} else if ((arg == "-r") || (arg == "--read_index")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                readfile = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+                readindex = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                   std::cerr << "--read_index option requires one argument." << std::endl;
                 return 1;

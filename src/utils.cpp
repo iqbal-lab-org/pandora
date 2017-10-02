@@ -366,7 +366,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
     // to do this consider pairs of clusters in turn
     set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_previous = clusters_of_hits.begin();
     pangraph->add_node((*(*c_previous).begin())->prg_id, prgs[(*(*c_previous).begin())->prg_id]->name, (*(*c_previous).begin())->read_id, *c_previous);
-    cout << "nodes on read " << (*(*c_previous).begin())->read_id << endl << prgs[(*(*c_previous).begin())->prg_id]->name << " : ";
+    cout << "nodes on read " << (*(*c_previous).begin())->read_id << " : " << prgs[(*(*c_previous).begin())->prg_id]->name;
     for (set<set<MinimizerHit*, pComp>, clusterComp>::iterator c_current = ++clusters_of_hits.begin(); c_current != clusters_of_hits.end(); ++c_current)
     {
         if((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id)
@@ -381,7 +381,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG*>& prgs, MinimizerHits
         } else if ((*(*c_current).begin())->read_id != (*(*c_previous).begin())->read_id)
         {
             // if we just started looking at hits for a new read, add the first cluster
-            cout << endl << "nodes on read " << (*(*c_current).begin())->read_id << endl << prgs[(*(*c_current).begin())->prg_id]->name << " : ";
+            cout << endl << "nodes on read " << (*(*c_current).begin())->read_id << " : " << prgs[(*(*c_current).begin())->prg_id]->name;
             pangraph->add_node((*(*c_current).begin())->prg_id, prgs[(*(*c_current).begin())->prg_id]->name, (*(*c_current).begin())->read_id, *c_current);
             c_previous = c_current;
         }

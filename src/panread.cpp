@@ -91,7 +91,6 @@ unordered_set<PanRead*>::iterator PanRead::replace_edge(PanEdge* e_original, Pan
         e->reads.insert(*me);
         e->covg += 1;
 	assert(me!=e_original->reads.end());
-        //rt = e_original->reads.erase(rt);
         me = e_original->reads.erase(me);
 	assert(e_original->reads.size() == size - 1);
         e_original->covg -= 1;
@@ -118,7 +117,6 @@ unordered_set<PanRead*>::iterator PanRead::remove_edge(PanEdge* e_original, unor
     if (it != edges.end())
     {
         it = edges.erase(it);
-        //rt = e_original->reads.erase(rt);
         me = e_original->reads.erase(me);
         e_original->covg -= 1;
     }
@@ -129,18 +127,24 @@ unordered_set<PanRead*>::iterator PanRead::remove_edge(PanEdge* e_original, unor
 void PanRead::replace_node(PanNode* n_original, PanNode* n)
 {
     // does not change the edges including the node in read
-    n_original->reads.erase(this);
-    n_original->covg -= 1;
-    n->reads.insert(this);
-    n->covg += 1;
-    hits[n->node_id] = hits[n_original->node_id]; //NB we don't remove the n_original hits in case of reads long enough to pass through node twice
+    if (n_original->reads.find(this)!=n_original->reads.end())
+    {
+        n_original->reads.erase(this);
+        n_original->covg -= 1;
+        n->reads.insert(this);
+        n->covg += 1;
+        hits[n->node_id] = hits[n_original->node_id]; //NB we don't remove the n_original hits in case of reads long enough to pass through node twice
+    }
 } 
 
 void PanRead::remove_node(PanNode* n_original)
 {
     // does not change the edges including the node in read
-    n_original->reads.erase(this);
-    n_original->covg -= 1;
+    if (n_original->reads.find(this)!=n_original->reads.end())
+    {
+        n_original->reads.erase(this);
+        n_original->covg -= 1;
+    }
 }
 
 bool PanRead::operator == (const PanRead& y) const {
