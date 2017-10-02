@@ -6,6 +6,7 @@
 #include "minihit.h"
 #include <stdint.h>
 #include <iostream>
+#include <set>
 
 using namespace std;
 
@@ -543,7 +544,7 @@ TEST_F(PanReadTest,replace_edge2)
 
     pg.add_edge(2,4,3);
     pg.edges.back()->covg -= 1;
-    unordered_set<PanRead*>::iterator r = pg.reads[0]->replace_edge(pg.edges[2], pg.edges.back(), pg.edges[2]->reads.begin());
+    unordered_multiset<PanRead*>::iterator r = pg.reads[0]->replace_edge(pg.edges[2], pg.edges.back(), pg.edges[2]->reads.begin());
     // expect to get an iterator to the edge we have just inserted which now lies on read
     EXPECT_EQ((uint)5, pg.nodes.size());
     EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
@@ -871,7 +872,7 @@ TEST_F(PanReadTest,remove_edge2)
     EXPECT_EQ(pg.edges[4], pg.reads[2]->edges[1]);
     EXPECT_EQ(pg.edges[3], pg.reads[2]->edges[2]);
 
-    unordered_set<PanRead*>::iterator r = pg.reads[0]->remove_edge(pg.edges[2], pg.edges[2]->reads.begin());
+    unordered_multiset<PanRead*>::iterator r = pg.reads[0]->remove_edge(pg.edges[2], pg.edges[2]->reads.begin());
     // expect to get an iterator to the edge we have just inserted which now lies on read
     EXPECT_EQ((uint)5, pg.nodes.size());
     EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);

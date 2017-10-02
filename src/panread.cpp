@@ -72,17 +72,16 @@ vector<PanEdge*>::iterator PanRead::replace_edge(PanEdge* e_original, PanEdge* e
         assert(edges.size() == size);
         e->reads.insert(this);
         e->covg += 1;
-        e_original->reads.erase(this);
+        e_original->reads.erase(e_original->reads.find(this));
         e_original->covg -= 1;
     }
     return it;
 }
 
-unordered_set<PanRead*>::iterator PanRead::replace_edge(PanEdge* e_original, PanEdge* e, unordered_set<PanRead*>::iterator me)
+unordered_multiset<PanRead*>::iterator PanRead::replace_edge(PanEdge* e_original, PanEdge* e, unordered_multiset<PanRead*>::iterator me)
 {
     // Note that the iterator must be over e_original reads
     uint size = e_original->reads.size();
-    //unordered_set<PanRead*>::iterator rt = e_original->reads.find(*me);
     vector<PanEdge*>::iterator it = get_edge(e_original);
     if (it != edges.end())
     {
@@ -104,15 +103,14 @@ vector<PanEdge*>::iterator PanRead::remove_edge(PanEdge* e_original)
     if (it != edges.end())
     {
         it = edges.erase(it);
-        e_original->reads.erase(this);
+        e_original->reads.erase(e_original->reads.find(this));
         e_original->covg -= 1;
     }
     return it;
 }
 
-unordered_set<PanRead*>::iterator PanRead::remove_edge(PanEdge* e_original, unordered_set<PanRead*>::iterator me)
+unordered_multiset<PanRead*>::iterator PanRead::remove_edge(PanEdge* e_original, unordered_multiset<PanRead*>::iterator me)
 {
-    //unordered_set<PanRead*>::iterator rt = e_original->reads.find(*me);
     vector<PanEdge*>::iterator it = get_edge(e_original);
     if (it != edges.end())
     {
@@ -129,7 +127,7 @@ void PanRead::replace_node(PanNode* n_original, PanNode* n)
     // does not change the edges including the node in read
     if (n_original->reads.find(this)!=n_original->reads.end())
     {
-        n_original->reads.erase(this);
+        n_original->reads.erase(n_original->reads.find(this));
         n_original->covg -= 1;
         n->reads.insert(this);
         n->covg += 1;
@@ -142,7 +140,7 @@ void PanRead::remove_node(PanNode* n_original)
     // does not change the edges including the node in read
     if (n_original->reads.find(this)!=n_original->reads.end())
     {
-        n_original->reads.erase(this);
+        n_original->reads.erase(n_original->reads.find(this));
         n_original->covg -= 1;
     }
 }

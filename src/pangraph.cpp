@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstring>
 #include <map>
+#include <unordered_set>
 #include <vector>
 #include <fstream>
 #include "utils.h"
@@ -178,6 +179,10 @@ void PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uint& o
     }   
 
     r->edges.push_back(e);
+    /*if (e->reads.find(r)!=e->reads.end())
+    {
+	cout << "have edge " << *e << " more than once in read " << *r << endl;
+    }*/
     e->reads.insert(r);
     //cout << *e << " has read size " << e->reads.size() << endl;
     //cout << "added edge " << *e << endl;
@@ -192,7 +197,7 @@ vector<PanEdge*>::iterator PanGraph::remove_edge (PanEdge* e)
     e->to->edges.erase(std::remove(e->to->edges.begin(), e->to->edges.end(), e), e->to->edges.end());
     // remove mentions from reads. Note that if the edge is present in any reads, the vector of
     // edges along that read will become inconsistent
-    for (unordered_set<PanRead*>::iterator r = e->reads.begin(); r!=e->reads.end();)
+    for (unordered_multiset<PanRead*>::iterator r = e->reads.begin(); r!=e->reads.end();)
     {
 	cout << "read was " << **r << endl;
         r = (*r)->remove_edge(e, r);
@@ -237,9 +242,7 @@ uint combine_orientations(uint f, uint t)
 }
 vector<PanEdge*>::iterator PanGraph::add_shortcut_edge(vector<PanEdge*>::iterator prev, PanRead* r)
 {
-
-    // creates the new edge, and removes old ones from middle node
-    // does not add the new edge in the place of the old 2 in the read
+    // creates a new edge to replace prev and prev+1 in read r
     PanEdge* e = nullptr;
     PanNode* n = nullptr;
     vector<PanEdge*>::iterator current = prev;
@@ -267,6 +270,7 @@ vector<PanEdge*>::iterator PanGraph::add_shortcut_edge(vector<PanEdge*>::iterato
         e->covg -= 1;
 	n = (*prev)->from;
     } else {
+	// have a loop A->B and B->A, work out which node B is
         vector<PanEdge*>::iterator it = r->get_previous_edge(*prev);
 	if (it==r->edges.end())
 	{
@@ -358,7 +362,7 @@ vector<PanEdge*>::iterator PanGraph::split_node_by_edges(PanNode* n_original, Pa
     // amend reads
     //cout << "now fix reads" << endl;
     vector<PanEdge*>::iterator it, it2;
-    unordered_set<PanRead*>::iterator r = e_original1->reads.begin();
+    unordered_multiset<PanRead*>::iterator r = e_original1->reads.begin();
     while (r!=e_original1->reads.end())
     {
 	// add read to new node n and remove from n_original

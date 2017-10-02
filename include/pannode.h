@@ -21,7 +21,7 @@ class PanNode {
     KmerGraph kmer_prg;
 
     std::vector<PanEdge*> edges;
-    std::unordered_set<PanRead*> reads;
+    std::unordered_multiset<PanRead*> reads;
     std::unordered_set<PanSample*> samples;
 
     PanNode(const uint32_t, const uint32_t, const std::string);

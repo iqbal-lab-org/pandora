@@ -22,9 +22,9 @@ class PanRead {
     std::vector<PanEdge*>::iterator get_previous_edge(const PanEdge*);
     std::vector<PanEdge*>::iterator get_other_edge(const PanEdge*, const PanNode*);
     std::vector<PanEdge*>::iterator replace_edge(PanEdge*, PanEdge*);
-    std::unordered_set<PanRead*>::iterator replace_edge(PanEdge*, PanEdge*, std::unordered_set<PanRead*>::iterator);
+    std::unordered_multiset<PanRead*>::iterator replace_edge(PanEdge*, PanEdge*, std::unordered_multiset<PanRead*>::iterator);
     std::vector<PanEdge*>::iterator remove_edge(PanEdge*);
-    std::unordered_set<PanRead*>::iterator remove_edge(PanEdge*, std::unordered_set<PanRead*>::iterator);
+    std::unordered_multiset<PanRead*>::iterator remove_edge(PanEdge*, std::unordered_multiset<PanRead*>::iterator);
     void replace_node(PanNode*, PanNode*);
     void remove_node(PanNode*);
 

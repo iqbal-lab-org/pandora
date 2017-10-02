@@ -16,7 +16,7 @@ class PanEdge {
 				// 3 ++
     uint32_t covg;
 
-    std::unordered_set<PanRead*> reads;
+    std::unordered_multiset<PanRead*> reads;
 
     PanEdge(PanNode*, PanNode*, uint);
 
