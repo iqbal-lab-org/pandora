@@ -67,7 +67,6 @@ vector<PanEdge*>::iterator PanRead::replace_edge(PanEdge* e_original, PanEdge* e
     if (it != edges.end())
     {   
         it = edges.erase(it);
-        assert(edges.size() == size - 1);
         it = edges.insert(it, e);
         assert(edges.size() == size);
         e->reads.insert(this);
@@ -75,6 +74,8 @@ vector<PanEdge*>::iterator PanRead::replace_edge(PanEdge* e_original, PanEdge* e
         e_original->reads.erase(e_original->reads.find(this));
         e_original->covg -= 1;
     }
+    assert(e_original->covg == e_original->reads.size());
+    assert(e->covg == e->reads.size());
     return it;
 }
 
@@ -94,6 +95,8 @@ unordered_multiset<PanRead*>::iterator PanRead::replace_edge(PanEdge* e_original
 	assert(e_original->reads.size() == size - 1);
         e_original->covg -= 1;
     }
+    assert(e_original->covg == e_original->reads.size());
+    assert(e->covg == e->reads.size());
     return me;
 }
 
@@ -106,6 +109,7 @@ vector<PanEdge*>::iterator PanRead::remove_edge(PanEdge* e_original)
         e_original->reads.erase(e_original->reads.find(this));
         e_original->covg -= 1;
     }
+    assert(e_original->covg == e_original->reads.size());
     return it;
 }
 
@@ -118,8 +122,8 @@ unordered_multiset<PanRead*>::iterator PanRead::remove_edge(PanEdge* e_original,
         me = e_original->reads.erase(me);
         e_original->covg -= 1;
     }
+    assert(e_original->covg == e_original->reads.size());
     return me;
-    //return rt;
 }
 
 void PanRead::replace_node(PanNode* n_original, PanNode* n)
@@ -133,6 +137,8 @@ void PanRead::replace_node(PanNode* n_original, PanNode* n)
         n->covg += 1;
         hits[n->node_id] = hits[n_original->node_id]; //NB we don't remove the n_original hits in case of reads long enough to pass through node twice
     }
+    assert(n_original->covg == n_original->reads.size());
+    assert(n->covg == n->reads.size());
 } 
 
 void PanRead::remove_node(PanNode* n_original)
@@ -143,6 +149,7 @@ void PanRead::remove_node(PanNode* n_original)
         n_original->reads.erase(n_original->reads.find(this));
         n_original->covg -= 1;
     }
+    assert(n_original->covg == n_original->reads.size());
 }
 
 bool PanRead::operator == (const PanRead& y) const {

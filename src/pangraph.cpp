@@ -128,6 +128,8 @@ void PanGraph::add_node (const uint32_t prg_id, const string& prg_name, const st
         n->samples.insert(sit->second);
 	n->add_path(kmp);
     }
+
+    assert(n->covg == n->reads.size());
  return;
 }
 
@@ -187,6 +189,8 @@ void PanGraph::add_edge (const uint32_t& from, const uint32_t& to, const uint& o
     //cout << *e << " has read size " << e->reads.size() << endl;
     //cout << "added edge " << *e << endl;
 
+    assert(e->covg == e->reads.size());
+   return;
 }
 
 vector<PanEdge*>::iterator PanGraph::remove_edge (PanEdge* e)
@@ -290,6 +294,7 @@ vector<PanEdge*>::iterator PanGraph::add_shortcut_edge(vector<PanEdge*>::iterato
     if (n != nullptr)
     {
 	r->remove_node(n);
+	assert(n->reads.size() == n->covg);
     }
 
     if (e != nullptr)
@@ -309,6 +314,7 @@ vector<PanEdge*>::iterator PanGraph::add_shortcut_edge(vector<PanEdge*>::iterato
             r->remove_edge(*prev);
 	    prev = r->edges.end();
         }
+	assert(e->reads.size() == e->covg);
     } 
 
     return prev;
