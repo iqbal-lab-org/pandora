@@ -91,6 +91,7 @@ void PanGraph::add_node (const uint32_t prg_id, const string prg_name, const uin
 	}
     }
 
+    assert(n->covg == n->reads.size());
     return;
 }
 
@@ -129,7 +130,6 @@ void PanGraph::add_node (const uint32_t prg_id, const string& prg_name, const st
 	n->add_path(kmp);
     }
 
-    assert(n->covg == n->reads.size());
  return;
 }
 
