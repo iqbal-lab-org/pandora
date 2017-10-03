@@ -1,5 +1,4 @@
 #include <iostream>
-#include <fstream>
 #include <cassert>
 #include "panedge.h"
 #include "pannode.h"

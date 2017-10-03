@@ -235,17 +235,52 @@ nested varsite	2	.	T	C	.	.	SVTYPE=SNP;GRAPHTYPE=NESTED	GT	.	1	0
     string content( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()) );
     EXPECT_EQ(vcffile, content);
 
-    string fafile = R"(>sample3
+    string fafile1 = R"(>sample3
+AG--T
+>sample1
+A-GTT
+>sample2
+A-GCT
+)";
+    string fafile2 = R"(>sample3
 AG--T
 >sample2
 A-GCT
 >sample1
 A-GTT
 )";
+    string fafile3 = R"(>sample2
+A-GCT
+>sample3
+AG--T
+>sample1
+A-GTT
+)";
+    string fafile4 = R"(>sample2
+A-GCT
+>sample1
+A-GTT
+>sample3
+AG--T
+)";
+    string fafile5 = R"(>sample1
+A-GTT
+>sample2
+A-GCT
+>sample3
+AG--T
+)";
+    string fafile6 = R"(>sample1
+A-GTT
+>sample3
+AG--T
+>sample2
+A-GCT
+)";
 
     ifstream ifs2("../test/test_cases/updatevcf_pannode.three.multisample.fa");
     string content2( (std::istreambuf_iterator<char>(ifs2) ),(std::istreambuf_iterator<char>()) );
-    EXPECT_EQ(fafile, content2);
+    EXPECT_EQ((fafile1==content2) or (fafile2==content2) or(fafile3==content2) or (fafile4==content2) or (fafile5==content2) or (fafile6==content2), true);
 }
 
 

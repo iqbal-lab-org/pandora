@@ -1,5 +1,4 @@
 #include <iostream>
-#include <string>
 #include <fstream>
 #include <cassert>
 #include "pannode.h"
@@ -53,7 +52,7 @@ void PanNode::output_samples(const LocalPRG* prg, const string& prefix, const ui
     for (auto s : samples)
     {
 	count = 0;
-	for (auto p : s->paths[prg_id])
+	for (const auto &p : s->paths[prg_id])
         {
 	    /*cout << s->name << " ";
 	    for (uint i=0; i!=p.size(); ++i)
