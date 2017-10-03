@@ -62,7 +62,7 @@ TEST_F(PanGraphTest, add_node)
     EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
     EXPECT_EQ(pg.nodes[0]->name, "0");
     EXPECT_EQ(pg.nodes[0]->covg, (uint)2);
-    EXPECT_EQ(pg.nodes[0]->reads.size(), j);
+    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)2);
     EXPECT_EQ(pg.nodes[0]->edges.size(), (uint)0);
     EXPECT_EQ(pg.reads.size(), j);
     EXPECT_EQ(*pg.reads[1], *pr);
@@ -79,7 +79,7 @@ TEST_F(PanGraphTest, add_node)
     EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
     EXPECT_EQ(pg.nodes[0]->name, "0");
     EXPECT_EQ(pg.nodes[0]->covg, (uint)3);
-    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)2);
+    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)3);
     EXPECT_EQ(pg.nodes[0]->edges.size(), (uint)0);
     EXPECT_EQ(pg.reads.size(), (uint)2);
     EXPECT_EQ(*pg.reads[1], *pr);

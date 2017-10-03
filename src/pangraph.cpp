@@ -84,11 +84,7 @@ void PanGraph::add_node (const uint32_t prg_id, const string prg_name, const uin
     } else {
 	//cout << "read " << read_id  << " already existed " << endl;
 	rit->second->add_hits(prg_id, cluster);
-	pointer_values_equal<PanRead> eq = { rit->second };
-        if (find_if(n->reads.begin(), n->reads.end(), eq) == n->reads.end())
-	{
-	    n->reads.insert(rit->second);
-	}
+	n->reads.insert(rit->second);
     }
 
     assert(n->covg == n->reads.size());
@@ -302,6 +298,7 @@ vector<PanEdge*>::iterator PanGraph::add_shortcut_edge(vector<PanEdge*>::iterato
         current = r->remove_edge(*current);
         prev = r->replace_edge(*prev, e);
         assert((*prev == e));
+        assert(e->reads.size() == e->covg);
     } else {
         // this can only happen if we had something circular like A->B and B->A, in which case we want to delete both
         if (current + 1 != r->edges.end() and current + 2 != r->edges.end())
@@ -314,7 +311,6 @@ vector<PanEdge*>::iterator PanGraph::add_shortcut_edge(vector<PanEdge*>::iterato
             r->remove_edge(*prev);
 	    prev = r->edges.end();
         }
-	assert(e->reads.size() == e->covg);
     } 
 
     return prev;
