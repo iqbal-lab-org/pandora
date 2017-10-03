@@ -6,7 +6,7 @@
  */
 /*
  * QUESTIONS:
- * How do I handle multiple occurances of a gene in a sample? I would like to output all the versions called against my new reference
+ * How do I handle multiple occurrences of a gene in a sample? I would like to output all the versions called against my new reference
  */
 
 #include <iostream>

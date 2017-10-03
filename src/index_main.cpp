@@ -2,11 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include <cassert>
-#include <cstdlib>
 #include "utils.h"
-#include "index.h"
-#include "localPRG.h"
 
 using namespace std;
 
@@ -30,7 +26,6 @@ void index_prgs(vector<LocalPRG*>& prgs, Index* idx, const uint32_t w, const uin
     }
     cout << now() << "Finished adding " << prgs.size() << " LocalPRGs" << endl;
     cout << now() << "Number of keys in Index: " << idx->minhash.size() << endl;
-    return;
 }
 
 static void show_index_usage()
@@ -77,7 +72,7 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
                 std::cerr << "-k option requires one argument." << std::endl;
                 return 1;
             }
-        } else if (prgfile.size() == 0){
+        } else if (prgfile.empty()){
             prgfile = argv[i]; // Increment 'i' so we don't get the argument as the next argv[i].
             cout << "prgfile: " << prgfile << endl;
 	} else {

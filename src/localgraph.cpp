@@ -1,13 +1,9 @@
 #include <iostream>
-#include <cstring>
-#include <string.h>
 #include <map>
 #include <fstream>
 #include <cassert>
 #include <vector>
 #include "utils.h"
-#include "localnode.h"
-#include "localgraph.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -26,7 +22,7 @@ LocalGraph::~LocalGraph() {
 
 void LocalGraph::add_node(const uint32_t &id, const string &seq, const Interval &pos) {
     assert(seq.length() == pos.length);
-    map<uint32_t, LocalNode *>::iterator it = nodes.find(id);
+    auto it = nodes.find(id);
     if (it == nodes.end()) {
         LocalNode *n;
         n = new LocalNode(seq, pos, id);
@@ -35,12 +31,11 @@ void LocalGraph::add_node(const uint32_t &id, const string &seq, const Interval 
     } else {
         assert((it->second->seq == seq) && (it->second->pos == pos));
     }
-    return;
 }
 
 void LocalGraph::add_edge(const uint32_t &from, const uint32_t &to) {
-    map<uint32_t, LocalNode *>::iterator from_it = nodes.find(from);
-    map<uint32_t, LocalNode *>::iterator to_it = nodes.find(to);
+    auto from_it = nodes.find(from);
+    auto to_it = nodes.find(to);
     assert((from_it != nodes.end()) && (to_it != nodes.end()));
     if ((from_it != nodes.end()) && (to_it != nodes.end())) {
         LocalNode *f = (nodes.find(from)->second);
@@ -50,7 +45,6 @@ void LocalGraph::add_edge(const uint32_t &from, const uint32_t &to) {
         f->outNodes.push_back(t);
         //cout << "Added edge (" << f->id << ", " << t->id << ")" << endl;
     }
-    return;
 }
 
 /*void LocalGraph::add_varsite (const uint8_t level, const uint32_t pre_site_id, const uint32_t post_site_id)
@@ -71,16 +65,16 @@ void LocalGraph::write_gfa(const string &filepath) const {
     ofstream handle;
     handle.open(filepath);
     handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
-    for (map<uint32_t, LocalNode *>::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
-        handle << "S\t" << it->second->id << "\t";
-        if (it->second->seq == "") {
+    for (const auto &node : nodes) {
+        handle << "S\t" << node.second->id << "\t";
+        if (node.second->seq.empty()) {
             handle << "*";
         } else {
-            handle << it->second->seq;
+            handle << node.second->seq;
         }
-        handle << "\tRC:i:" << it->second->covg << endl;
-        for (uint32_t j = 0; j < it->second->outNodes.size(); ++j) {
-            handle << "L\t" << it->second->id << "\t+\t" << it->second->outNodes[j]->id << "\t+\t0M" << endl;
+        handle << "\tRC:i:" << node.second->covg << endl;
+        for (uint32_t j = 0; j < node.second->outNodes.size(); ++j) {
+            handle << "L\t" << node.second->id << "\t+\t" << node.second->outNodes[j]->id << "\t+\t0M" << endl;
         }
     }
     handle.close();
@@ -127,7 +121,6 @@ void LocalGraph::read_gfa(const string &filepath) {
         cerr << "Unable to open GFA file " << filepath << endl;
         exit(1);
     }
-    return;
 }
 
 vector<Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos, const uint32_t &len) const {
@@ -155,15 +148,15 @@ vector<Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos, cons
 
     //cout << "len: " << len << " len_added: " << len_added << endl;
     if (len_added < len) {
-        for (vector<LocalNode *>::iterator it = nodes.at(node_id)->outNodes.begin();
+        for (auto it = nodes.at(node_id)->outNodes.begin();
              it != nodes.at(node_id)->outNodes.end(); ++it) {
             //cout << "Following node: " << (*it)->id << " to add " << len-len_added << " more bases" << endl;
             walk_paths = walk((*it)->id, (*it)->pos.start, len - len_added);
             //cout << "walk paths size: " << walk_paths.size() << endl;
-            for (vector<Path>::iterator it2 = walk_paths.begin(); it2 != walk_paths.end(); ++it2) {
+            for (auto &walk_path : walk_paths) {
                 // Note, would have just added start interval to each item in walk_paths, but can't seem to force result of it2 to be non-const
                 //cout << (*it2) << endl;
-                p2.initialize((*it2).path);
+                p2.initialize(walk_path.path);
                 p2.add_start_interval(Interval(pos, nodes.at(node_id)->pos.end));
                 //cout << "path: " << p2 << " p2.length: " << p2.length << endl;
                 if (p2.length() == len) {
@@ -200,7 +193,7 @@ vector<Path> LocalGraph::walk_back(const uint32_t &node_id, const uint32_t &pos,
 
     vector<LocalNode *>::iterator innode;
     if (len_added < len) {
-        for (map<uint32_t, LocalNode *>::const_iterator it = nodes.begin(); it != nodes.find(node_id); ++it) {
+        for (auto it = nodes.begin(); it != nodes.find(node_id); ++it) {
             innode = find(it->second->outNodes.begin(), it->second->outNodes.end(), nodes.at(node_id));
             if (innode != it->second->outNodes.end()) {
                 walk_paths = walk_back(it->second->id, it->second->pos.end, len - len_added);
@@ -246,7 +239,7 @@ vector<LocalNode *> LocalGraph::nodes_along_string(const string &query_string) c
     string candidate_string = "";
     bool extended = true;
 
-    assert(nodes.size() > 0); //otherwise empty nodes -> segfault
+    assert(!nodes.empty()); //otherwise empty nodes -> segfault
 
     // if there is only one node in PRG, simple case, do simple string compare
     if (nodes.size() == 1 and strcasecmp(query_string.c_str(), nodes.at(0)->seq.c_str()) == 0) {
@@ -255,7 +248,7 @@ vector<LocalNode *> LocalGraph::nodes_along_string(const string &query_string) c
 
     u = {{nodes.at(0)}};
 
-    while (u.size() > 0) {
+    while (!u.empty()) {
         for (uint32_t i = 0; i != u.size(); ++i) {
             for (uint32_t j = 0; j != u[i].size(); ++j) {
                 candidate_string += u[i][j]->seq;
@@ -270,7 +263,7 @@ vector<LocalNode *> LocalGraph::nodes_along_string(const string &query_string) c
                     if (candidate_string.size() + u[i].back()->outNodes[j]->seq.size() >= query_string.size()) {
                         // we have now found the whole of the query_string
                         u[i].push_back(u[i].back()->outNodes[j]);
-                        while (u[i].back()->outNodes.size() > 0 and extended == true) {
+                        while (!u[i].back()->outNodes.empty() and extended) {
                             extended = false;
                             for (uint n = 0; n != u[i].back()->outNodes.size(); ++n) {
                                 if (u[i].back()->outNodes[n]->pos.length == 0) {
@@ -299,7 +292,7 @@ vector<LocalNode *> LocalGraph::nodes_along_string(const string &query_string) c
 vector<LocalNode *> LocalGraph::top_path() const {
     vector<LocalNode *> npath;
 
-    assert(nodes.size() > 0); //otherwise empty nodes -> segfault
+    assert(!nodes.empty()); //otherwise empty nodes -> segfault
 
     npath.push_back(nodes.at(0));
     while (npath.back()->outNodes.size() > 0) {
@@ -312,10 +305,10 @@ vector<LocalNode *> LocalGraph::top_path() const {
 vector<LocalNode *> LocalGraph::bottom_path() const {
     vector<LocalNode *> npath;
 
-    assert(nodes.size() > 0); //otherwise empty nodes -> segfault
+    assert(!nodes.empty()); //otherwise empty nodes -> segfault
 
     npath.push_back(nodes.at(0));
-    while (npath.back()->outNodes.size() > 0) {
+    while (!npath.back()->outNodes.empty()) {
         npath.push_back(npath.back()->outNodes.back());
     }
 
@@ -331,7 +324,7 @@ bool LocalGraph::operator==(const LocalGraph &y) const {
     // false if have different nodes
     for (const auto c: nodes) {
         // if node id doesn't exist 
-        map<uint32_t, LocalNode *>::const_iterator it = y.nodes.find(c.first);
+        auto it = y.nodes.find(c.first);
         if (it == y.nodes.end()) {//cout << "node id doesn't exist" << endl;
             return false;
         }

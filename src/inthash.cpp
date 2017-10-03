@@ -1,11 +1,7 @@
 #include <stdint.h>
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
 #include <cassert>
-#include <cstring>
 #include <cmath>
-#include <utility>
 #include "inthash.h"
 
 using namespace std;
@@ -150,9 +146,8 @@ pair<uint64_t, uint64_t> KmerHash::kmerhash(const std::string& s, const uint32_t
     //uint64_t mask1 = pow(4,k) - 1, kh = 0, rckh = 0;
     char myArray[s.size()+1];//as 1 char space for null is also required
     strcpy(myArray, s.c_str());
-    for (uint32_t i = 0; i < s.size(); ++i)
-    {
-        c = seq_nt4_table[(uint8_t)s[i]];
+    for (char i : s) {
+        c = seq_nt4_table[(uint8_t) i];
         //cout << s[i] << " -> " << c;
         if (c < 4) { // not an ambiguous base
 	    kmer[0] = (kmer[0] << 2 | c) & mask;           // forward k-mer
