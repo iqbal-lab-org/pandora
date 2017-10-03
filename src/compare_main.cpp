@@ -229,11 +229,11 @@ int pandora_compare(int argc, char* argv[])
         estimate_parameters(pangraph_sample, prefix, k, e_rate);
 
         cout << now() << "Find max likelihood PRG paths and write to files:" << endl;
-        for (auto c: pangraph_sample->nodes)
+        for (const auto c: pangraph_sample->nodes)
         {
 	    //kmp = prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, max_path, min_path, output_vcf, output_comparison_paths);
 	    kmp.clear();
-	    prgs[c.second->prg_id]->kmer_prg.find_max_path(kmp);
+	    c.second->kmer_prg.find_max_path(kmp);
 	    pangraph->add_node(c.second->prg_id, c.second->name, sample->first, kmp, prgs[c.second->prg_id]);
         }
     }

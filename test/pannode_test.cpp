@@ -230,10 +230,27 @@ TEST_F(PanNodeTest,output_samples)
 nested varsite	1	.	GT	G	.	.	SVTYPE=INDEL;GRAPHTYPE=NESTED	GT	1	.	0
 nested varsite	2	.	T	C	.	.	SVTYPE=SNP;GRAPHTYPE=NESTED	GT	.	1	0
 )";
+    string vcffile2 = R"(##fileformat=VCFv4.3
+##fileDate==)" + dat + R"(
+##ALT=<ID=SNP,Description="SNP">
+##ALT=<ID=PH_SNPs,Description="Phased SNPs">
+##ALT=<ID=INDEL,Description="Insertion-deletion">
+##ALT=<ID=COMPLEX,Description="Complex variant, collection of SNPs and indels">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of variant">
+##ALT=<ID=SIMPLE,Description="Graph bubble is simple">
+##ALT=<ID=NESTED,Description="Variation site was a nested feature in the graph">
+##ALT=<ID=TOO_MANY_ALTS,Description="Variation site was a multinested feature with too many alts to include all in the VCF">
+##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description="Type of graph feature">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample2	sample3	sample1
+nested varsite	1	.	GT	G	.	.	SVTYPE=INDEL;GRAPHTYPE=NESTED	GT	.	1	0
+nested varsite	2	.	T	C	.	.	SVTYPE=SNP;GRAPHTYPE=NESTED	GT	1	.	0
+)";
 
     ifstream ifs("../test/test_cases/updatevcf_pannode.three.multisample.vcf");
     string content( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()) );
-    EXPECT_EQ(vcffile, content);
+    //EXPECT_EQ(vcffile,content);
+    //EXPECT_EQ(vcffile2,content);
+    EXPECT_EQ((vcffile==content) or (vcffile2==content), true);
 
     string fafile1 = R"(>sample3
 AG--T

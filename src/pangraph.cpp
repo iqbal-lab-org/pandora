@@ -18,19 +18,19 @@ using namespace std;
 PanGraph::PanGraph() : next_id(0) {}
 
 void PanGraph::clear() {
-    for (auto c: reads) {
+    for (const auto &c: reads) {
         delete c.second;
     }
     reads.clear();
-    for (auto c: edges) {
+    for (const auto &c: edges) {
         delete c;
     }
     edges.clear();
-    for (auto c: nodes) {
+    for (const auto &c: nodes) {
         delete c.second;
     }
     nodes.clear();
-    for (auto c: samples) {
+    for (const auto &c: samples) {
         delete c.second;
     }
     samples.clear();
