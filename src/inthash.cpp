@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
+#include <cstring>
 #include "inthash.h"
 
 using namespace std;

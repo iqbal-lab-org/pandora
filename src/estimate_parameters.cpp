@@ -14,7 +14,7 @@ uint find_mean_covg(vector<uint> &kmer_covg_dist) {
     // Note that if there are localPRGs which occur twice (or more) we expect the kmer covgs
     // to have an additional smaller peak(s)
     bool first_peak = true;
-    uint max_covg = NULL;
+    uint max_covg = 0;
     uint noise_buffer = 0;
 
     for (uint i = 1; i != kmer_covg_dist.size(); ++i) {

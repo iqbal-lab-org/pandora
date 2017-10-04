@@ -2,12 +2,13 @@
 #define __ESTIMATEPARAMETERS_H_INCLUDED__
 
 class Pangraph;
+
 class LocalPRG;
 
-uint find_mean_covg(std::vector<uint>&);
+uint find_mean_covg(std::vector<uint> &);
 
-int find_prob_thresh(std::vector<uint>&);
+int find_prob_thresh(std::vector<uint> &);
 
-void estimate_parameters(PanGraph*, std::string&, uint32_t, float&);
+void estimate_parameters(PanGraph *, std::string &, uint32_t, float &);
 
 #endif
