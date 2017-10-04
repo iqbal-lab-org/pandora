@@ -49,15 +49,19 @@ int find_prob_thresh(vector<uint> &kmer_prob_dist) {
     // finds position at which minimum occurs between two peaks 
     // naive way is to pick window with minimal positive covg
     // sligtly less naive way is to find this minimal value between two peaks more than 10 apart
+    // Note we are working with log probs so expect all negative, lots near 0 and some larger
+    // negatives. We expect the threshold to be not very far from 0
+    // Also note that we have forced kmer_prob_dist to have size 200 so we can cast
+    // all the long things as ints since we know they are between 0 and 200
     if (kmer_prob_dist.empty()) {
         return 0;
     }
 
-    unsigned long second_peak = kmer_prob_dist.size() - 1;
-    unsigned long first_peak = 0;
-    unsigned long peak;
+    int second_peak = (int) kmer_prob_dist.size() - 1;
+    int first_peak = 0;
+    int peak;
     while ((first_peak == (int) 0 or second_peak == (int) kmer_prob_dist.size() - 1) and first_peak != second_peak) {
-        peak = distance(kmer_prob_dist.begin(),
+        peak = (int) distance(kmer_prob_dist.begin(),
                         max_element(kmer_prob_dist.begin() + 1 + first_peak, kmer_prob_dist.begin() + second_peak));
         cout << "Found new peak between " << first_peak - 200 << " and " << second_peak - 200 << " at " << peak - 200
              << endl;
@@ -72,10 +76,10 @@ int find_prob_thresh(vector<uint> &kmer_prob_dist) {
     if (first_peak == second_peak) {
         // first try with lower thresold for where first peak is
         first_peak = 0;
-        second_peak = kmer_prob_dist.size() - 1;
+        second_peak = (int) kmer_prob_dist.size() - 1;
         while ((first_peak == (int) 0 or second_peak == (int) kmer_prob_dist.size() - 1) and
                first_peak != second_peak) {
-            peak = distance(kmer_prob_dist.begin(),
+            peak = (int) distance(kmer_prob_dist.begin(),
                             max_element(kmer_prob_dist.begin() + 1 + first_peak, kmer_prob_dist.begin() + second_peak));
             cout << "Found new peak between " << first_peak - 200 << " and " << second_peak - 200 << " at "
                  << peak - 200 << endl;
@@ -88,8 +92,8 @@ int find_prob_thresh(vector<uint> &kmer_prob_dist) {
 
         // secondly, find single peak and pick a min value closer to 0
         if (first_peak == second_peak) {
-            peak = distance(kmer_prob_dist.begin(), max_element(kmer_prob_dist.begin(), kmer_prob_dist.end()));
-            for (uint i = peak; i != kmer_prob_dist.size(); ++i) {
+            peak = (int) distance(kmer_prob_dist.begin(), max_element(kmer_prob_dist.begin(), kmer_prob_dist.end()));
+            for (uint i = (uint) peak; i != kmer_prob_dist.size(); ++i) {
                 if (kmer_prob_dist[i] > 0 and (kmer_prob_dist[i] < kmer_prob_dist[peak] or kmer_prob_dist[peak] == 0)) {
                     peak = i;
                 }
@@ -103,7 +107,7 @@ int find_prob_thresh(vector<uint> &kmer_prob_dist) {
         cout << now() << "Found a 2 peaks" << endl;
     }
 
-    peak = distance(kmer_prob_dist.begin(),
+    peak = (int) distance(kmer_prob_dist.begin(),
                     min_element(kmer_prob_dist.begin() + first_peak, kmer_prob_dist.begin() + second_peak));
     cout << now() << "Minimum found between " << first_peak - 200 << " and " << second_peak - 200 << " at "
          << peak - 200 << endl;
@@ -127,9 +131,10 @@ void estimate_parameters(PanGraph *pangraph, string &prefix, uint32_t k, float &
     }
 
     vector<uint> kmer_covg_dist(1000, 0); //empty vector of zeroes to represent kmer coverages between 0 and 1000
-    vector<uint> kmer_prob_dist(200,
-                                0); //empty vector of zeroes to represent the distribution of log probs between -200 and 0
-    uint c, mean_covg, num_reads = 0;
+    vector<uint> kmer_prob_dist(200, 0); //empty vector of zeroes to represent the
+                                         // distribution of log probs between -200 and 0
+    uint c, mean_covg;
+    unsigned long num_reads = 0;
     int thresh;
     float p;
 
@@ -205,11 +210,11 @@ void estimate_parameters(PanGraph *pangraph, string &prefix, uint32_t k, float &
     ++it;
     // it now represents most negative prob bin with non-zero coverage.
     // if there are enough remaining kmers, estimate thresh, otherwise use a default
-    if (std::accumulate(it, kmer_prob_dist.end(), 0) > 1000) {
+    if (std::accumulate(it, kmer_prob_dist.end(), (uint)0) > 1000) {
         thresh = find_prob_thresh(kmer_prob_dist);
         cout << now() << "Estimated threshold for true kmers is " << thresh << endl;
     } else {
-        thresh = std::distance(kmer_prob_dist.begin(), it) - 200;
+        thresh = (int) std::distance(kmer_prob_dist.begin(), it) - 200;
         cout << now()
              << "Did not find enough non-zero coverage kmers to estimated threshold for true kmers. Use the naive threshold "
              << thresh << endl;
