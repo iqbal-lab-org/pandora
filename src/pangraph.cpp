@@ -123,15 +123,16 @@ PanEdge *PanGraph::add_edge(const uint32_t &from, const uint32_t &to, const uint
     assert((from_it != nodes.end()) and (to_it != nodes.end()));
     assert((orientation < (uint) 4) ||
            assert_msg("tried to add an edge with a rubbish orientation " << to_string(orientation) << " which should be < 4"));
-    PanNode *f = (nodes.find(from)->second);
-    PanNode *t = (nodes.find(to)->second);
+    PanNode *f = (from_it->second);
+    PanNode *t = (to_it->second);
 
     // update edges with new edge or increase edge coverage, and also add edge to read
     PanEdge *e;
     e = new PanEdge(f, t, orientation);
     pointer_values_equal<PanEdge> eq = {e};
-    auto it = find_if(edges.begin(), edges.end(), eq);
-    if (it == edges.end()) {
+    // if we have the edge, it will be added to from node, so just search the edges of that to see if it exists
+    auto it = find_if(f->edges.begin(), f->edges.end(), eq);
+    if (it == f->edges.end()) {
         //cout << "add edge " << *e << endl;
         edges.push_back(e);
         f->edges.push_back(e);

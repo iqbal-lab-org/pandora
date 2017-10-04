@@ -100,7 +100,7 @@ void read_prg_file(vector<LocalPRG *> &prgs, const string &filepath) {
         while (getline(myfile, line).good()) {
             if (line.empty() || line[0] == '>') {
                 if (!name.empty() && !read.empty()) {
-                    cout << now() << "Found PRG " << name << endl;
+                    //cout << now() << "Found PRG " << name << endl;
                     s = new LocalPRG(id, name, read);
 
                     if (s != nullptr) {
@@ -123,7 +123,7 @@ void read_prg_file(vector<LocalPRG *> &prgs, const string &filepath) {
         }
         // and last entry
         if (!name.empty() && !read.empty()) {
-            cout << now() << "Found PRG " << name << endl;
+            //cout << now() << "Found PRG " << name << endl;
             s = new LocalPRG(id, name, read);
             if (s != nullptr) {
                 prgs.push_back(s);
@@ -171,8 +171,8 @@ void add_read_hits(Seq *s, MinimizerHits *hits, Index *idx) {
         }
     }
     //hits->sort();
-    cout << now() << "Found " << hit_count << " hits found for read " << s->name << " so size of MinimizerHits is now "
-         << hits->hits.size() + hits->uhits.size() << endl;
+    //cout << now() << "Found " << hit_count << " hits found for read " << s->name << " so size of MinimizerHits is now "
+    //     << hits->hits.size() + hits->uhits.size() << endl;
 }
 
 void define_clusters(set<set<MinimizerHit *, pComp>, clusterComp> &clusters_of_hits, const vector<LocalPRG *> &prgs,
@@ -374,10 +374,10 @@ void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
             if (line.empty() || line[0] == '>' || line[0] == '@') {
                 if (!read.empty()) // ok we'll allow reads with no name, removed
                 {
-                    cout << now() << "Found read " << name << endl;
+                    //cout << now() << "Found read " << name << endl;
                     s->initialize(id, name, read, w, k);
                     covg += s->seq.length();
-                    cout << now() << "Add read hits" << endl;
+                    //cout << now() << "Add read hits" << endl;
                     add_read_hits(s, mh, idx);
                     id++;
                 }
@@ -396,10 +396,10 @@ void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
         // and last entry
         if (!read.empty()) // allow reads with no name
         {
-            cout << now() << "Found read " << name << endl;
+            //cout << now() << "Found read " << name << endl;
             s->initialize(id, name, read, w, k);
             covg += s->seq.length();
-            cout << now() << "Add read hits" << endl;
+            //cout << now() << "Add read hits" << endl;
             add_read_hits(s, mh, idx);
         }
         covg = covg / genome_size;
@@ -408,7 +408,7 @@ void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
         cout << now() << "Infer gene orders and add to PanGraph" << endl;
         infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, min_cluster_size);
         cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
-        pangraph->clean(covg);
+        //pangraph->clean(covg);
         cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
         delete s;
         myfile.close();

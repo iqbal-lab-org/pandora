@@ -167,7 +167,7 @@ int pandora_map(int argc, char *argv[]) {
     read_prg_file(prgs, prgfile);
     load_PRG_kmergraphs(prgs, w, k, prgfile);
 
-    cout << now() << "Constructing PanGraph from read file" << endl;
+    cout << now() << "Constructing PanGraph from read file (this will take a while)" << endl;
     MinimizerHits *mhs;
     mhs = new MinimizerHits(100 * idx->minhash.size());
     PanGraph *pangraph;
