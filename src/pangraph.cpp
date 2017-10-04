@@ -630,7 +630,7 @@ void PanGraph::write_gfa(const string &filepath) {
     handle << "H\tVN:Z:1.0" << endl;
     for (auto &node : nodes) {
 
-        handle << "S\t" << node.second->get_name() << "\t*\tFC:i:" << node.second->covg << endl;
+        handle << "S\t" << node.second->get_name() << "\tN\tFC:i:" << node.second->covg << endl;
     }
 
     for (uint i = 0; i != edges.size(); ++i) {

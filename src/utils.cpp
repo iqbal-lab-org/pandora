@@ -408,7 +408,7 @@ void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
         cout << now() << "Infer gene orders and add to PanGraph" << endl;
         infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, min_cluster_size);
         cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
-        //pangraph->clean(covg);
+        pangraph->clean(covg);
         cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
         delete s;
         myfile.close();
