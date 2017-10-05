@@ -401,7 +401,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
                 if (found == kmer_prg.nodes.end()) {
                     num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
                     new_kn = kmer_prg.add_node_with_kh(v.back(), min(kh.first, kh.second), num_AT);
-                    idx->add_record(min(kh.first, kh.second), id, v.back(), kn->id, (kh.first <= kh.second));
+                    idx->add_record(min(kh.first, kh.second), id, v.back(), new_kn->id, (kh.first <= kh.second));
                     kmer_prg.add_edge(kn, new_kn);
                     if (v.back().end == (--(prg.nodes.end()))->second->pos.end) {
                         end_leaves.push_back(new_kn);

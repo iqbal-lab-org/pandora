@@ -185,6 +185,7 @@ void estimate_parameters(PanGraph *pangraph, string &prefix, uint32_t k, float &
              i < node.second->kmer_prg.nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
         {
             p = node.second->kmer_prg.prob(i);
+	    //cout << i << " " << p << " because has covg " << node.second->kmer_prg.nodes[i]->covg[0] << ", " << node.second->kmer_prg.nodes[i]->covg[1] << endl;
             for (int j = 0; j < 200; ++j) {
                 if ((float) j - 200 <= p and (float) j + 1 - 200 > p) {
                     kmer_prob_dist[j] += 1;

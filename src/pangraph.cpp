@@ -553,6 +553,7 @@ void PanGraph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
     for (auto pnode : nodes) {
         // copy kmergraph
         pnode.second->kmer_prg = prgs[pnode.second->prg_id]->kmer_prg;
+	assert(pnode.second->kmer_prg == prgs[pnode.second->prg_id]->kmer_prg);
         num_hits[0] = 0;
         num_hits[1] = 0;
 
@@ -564,6 +565,7 @@ void PanGraph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
                 // update the covg in the kmer_prg
                 pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] += 1;
                 num_hits[(*mh)->strand] += 1;
+		//cout << "add hit " << **mh << " to " << *pnode.second->kmer_prg.nodes[(*mh)->knode_id] << " which has path " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->path << endl;
                 /*for (uint i=0; i!=pnode.second->kmer_prg.nodes.size(); ++i)
                 {
                     if (pnode.second->kmer_prg.nodes[i]->path == (*mh)->prg_path)

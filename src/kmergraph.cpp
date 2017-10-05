@@ -209,6 +209,7 @@ float KmerGraph::prob(uint j) {
 }
 
 float KmerGraph::prob(uint j, uint num) {
+    //prob of node j where j is node id (hence pos in nodes)
     assert(p != 1);
     assert(j < nodes.size());
     if (sorted_nodes.empty() and !nodes.empty()) {
@@ -216,7 +217,7 @@ float KmerGraph::prob(uint j, uint num) {
         check();
     }
 
-    //cout << "find prob of node " << j << " given " << num << " reads covering and covg " << nodes[j]->covg[0] << " , " << nodes[j]->covg[1] << endl;
+    //cout << "prob of node " << j << " given " << num << " reads covering and covg " << nodes[j]->covg[0] << " , " << nodes[j]->covg[1];
     float ret;
     if (j == sorted_nodes[0]->id or j == sorted_nodes.back()->id) {
         ret = 0; // is really undefined
@@ -230,6 +231,7 @@ float KmerGraph::prob(uint j, uint num) {
               (nodes[j]->covg[0] + nodes[j]->covg[1]) * log(p / 2) +
               (num - (nodes[j]->covg[0] + nodes[j]->covg[1])) * log(1 - p);
     }
+    //cout << " is " << ret << endl;
     return ret;
 }
 
@@ -267,7 +269,7 @@ float KmerGraph::find_max_path(vector<KmerNode *> &maxpath) {
                 M[sorted_nodes[j - 1]->id] = prob(sorted_nodes[j - 1]->id) + M[sorted_nodes[j - 1]->outNodes[i]->id];
                 len[sorted_nodes[j - 1]->id] = 1 + len[sorted_nodes[j - 1]->outNodes[i]->id];
                 prev[sorted_nodes[j - 1]->id] = sorted_nodes[j - 1]->outNodes[i]->id;
-                //cout << j-1 << " path: " << sorted_nodes[j-1]->path << " has prob: " << prob(j-1) << "  M: " << M[j-1] << " len: " << len[j-1] << " prev: " << prev[j-1];
+                //cout << sorted_nodes[j-1]->id << " path: " << sorted_nodes[j-1]->path << " has prob: " << prob(j-1) << "  M: " << M[sorted_nodes[j - 1]->id] << " len: " << len[sorted_nodes[j - 1]->id] << " prev: " << prev[sorted_nodes[j - 1]->id] << endl;
                 if (sorted_nodes[j - 1]->outNodes[i]->id != sorted_nodes.back()->id) {
                     max_mean = M[sorted_nodes[j - 1]->outNodes[i]->id] / len[sorted_nodes[j - 1]->outNodes[i]->id];
                     max_len = len[sorted_nodes[j - 1]->outNodes[i]->id];
@@ -278,7 +280,7 @@ float KmerGraph::find_max_path(vector<KmerNode *> &maxpath) {
                 //cout << endl;
             }
         }
-        //cout << j-1 << " path: " << sorted_nodes[j-1]->path << "  M: " << M[sorted_nodes[j-1]->id] << " len: " << len[sorted_nodes[j-1]->id] << " prev: " << prev[sorted_nodes[j-1]->id] << endl;
+        //cout << sorted_nodes[j-1]->id << " path: " << sorted_nodes[j-1]->path << "  M: " << M[sorted_nodes[j-1]->id] << " len: " << len[sorted_nodes[j-1]->id] << " prev: " << prev[sorted_nodes[j-1]->id] << endl;
     }
     // remove the final length added for the null start node
     len[0] -= 1;
@@ -579,8 +581,7 @@ bool KmerGraph::operator==(const KmerGraph &y) const {
     // false if have different nodes
     for (auto c : nodes) {
         // if node not equal to a node in y, then false
-        auto found = find_if(y.nodes.begin(), y.nodes.end(),
-                                                                            condition(c.second->path));
+        auto found = find_if(y.nodes.begin(), y.nodes.end(), condition(c.second->path));
         if (found == y.nodes.end()) {
             return false;
         }

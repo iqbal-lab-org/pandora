@@ -249,7 +249,11 @@ TEST_F(KmerGraphTest, copy)
 TEST_F(KmerGraphTest, assign)
 {
     KmerGraph kg1;
-    deque<Interval> d = {Interval(0,3)};
+    deque<Interval> d = {Interval(0,0)};
+    Path p;
+    p.initialize(d);
+    kg1.add_node(p);
+    d = {Interval(0,3)};
     Path p1,p2,p3;
     p1.initialize(d);
     kg1.add_node(p1);
@@ -257,8 +261,24 @@ TEST_F(KmerGraphTest, assign)
     p2.initialize(d);
     kg1.add_node(p2);
     kg1.add_edge(p1,p2);
+    d = {Interval(11,14)};
+    p3.initialize(d);
+    kg1.add_node(p3);
+    kg1.add_edge(p1,p3);
+    d = {Interval(15,18)};
+    p1.initialize(d);
+    kg1.add_node(p1);
+    kg1.add_edge(p2,p1);
+    d = {Interval(20,20)};
+    p.initialize(d);
+    kg1.add_node(p);
+    kg1.add_edge(p1,p);
+    kg1.add_edge(p3,p);
 
     KmerGraph kg2 = kg1;
+    cout << "original " << kg1 << endl;
+
+    cout << "copy " << kg2 << endl;
 
     EXPECT_EQ(kg1, kg1);
     EXPECT_EQ(kg2, kg2);

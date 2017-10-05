@@ -177,7 +177,7 @@ void add_read_hits(Seq *s, MinimizerHits *hits, Index *idx) {
 
 void define_clusters(set<set<MinimizerHit *, pComp>, clusterComp> &clusters_of_hits, const vector<LocalPRG *> &prgs,
                      const MinimizerHits *minimizer_hits, const int max_diff, const uint min_cluster_size) {
-    cout << now() << "Define clusters of hits " << endl;
+    cout << now() << "Define clusters of hits from the " << minimizer_hits->hits.size() << " hits" << endl;
 
     if (minimizer_hits->hits.empty()) { return; }
 
@@ -195,6 +195,7 @@ void define_clusters(set<set<MinimizerHit *, pComp>, clusterComp> &clusters_of_h
             if (current_cluster.size() >
                 max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length() / 10, min_cluster_size)) {
                 clusters_of_hits.insert(current_cluster);
+	        //cout << "Found cluster of size " << current_cluster.size() << endl;
                 /*} else {
                     cout << "rejected hits" << endl;
                     for (set<MinimizerHit*, pComp>::iterator p=current_cluster.begin(); p!=current_cluster.end(); ++p)
@@ -210,6 +211,7 @@ void define_clusters(set<set<MinimizerHit *, pComp>, clusterComp> &clusters_of_h
 
     if (current_cluster.size() > max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length() / 20, min_cluster_size)) {
         clusters_of_hits.insert(current_cluster);
+	//cout << "Found cluster of size " << current_cluster.size() << endl;
         /*} else {
             cout << "rejected hits" << endl;
             for (set<MinimizerHit*, pComp>::iterator p=current_cluster.begin(); p!=current_cluster.end(); ++p)

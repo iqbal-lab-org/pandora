@@ -60,7 +60,7 @@ bool MinimizerHit::operator < ( const MinimizerHit& y) const
 }
 
 std::ostream& operator<< (std::ostream & out, MinimizerHit const& m) {
-    out << "(" << m.read_id << ", " << m.read_interval << ", " << m.prg_id << ", " << m.prg_path << ", " << m.strand << ")";
+    out << "(" << m.read_id << ", " << m.read_interval << ", " << m.prg_id << ", " << m.prg_path << ", " << m.strand << ", " << m.knode_id << ")";
     return out ;
 }
 
