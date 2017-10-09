@@ -330,8 +330,8 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
     auto c_previous = clusters_of_hits.begin();
     pangraph->add_node((*(*c_previous).begin())->prg_id, prgs[(*(*c_previous).begin())->prg_id]->name,
                        (*(*c_previous).begin())->read_id, *c_previous);
-    cout << "nodes on read " << (*(*c_previous).begin())->read_id << " : "
-         << prgs[(*(*c_previous).begin())->prg_id]->name;
+    //cout << "nodes on read " << (*(*c_previous).begin())->read_id << " : "
+    //     << prgs[(*(*c_previous).begin())->prg_id]->name;
     for (auto c_current = ++clusters_of_hits.begin();
          c_current != clusters_of_hits.end(); ++c_current) {
         if ((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) {
@@ -342,13 +342,13 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
                 pangraph->add_edge((*(*c_previous).begin())->prg_id, (*(*c_current).begin())->prg_id,
                                    (*(*c_previous).begin())->strand + 2 * (*(*c_current).begin())->strand,
                                    (*(*c_current).begin())->read_id);
-                cout << "\t" << prgs[(*(*c_current).begin())->prg_id]->name;
+                //cout << "\t" << prgs[(*(*c_current).begin())->prg_id]->name;
             }
             c_previous = c_current;
         } else if ((*(*c_current).begin())->read_id != (*(*c_previous).begin())->read_id) {
             // if we just started looking at hits for a new read, add the first cluster
-            cout << endl << "nodes on read " << (*(*c_current).begin())->read_id << " : "
-                 << prgs[(*(*c_current).begin())->prg_id]->name;
+            //cout << endl << "nodes on read " << (*(*c_current).begin())->read_id << " : "
+            //     << prgs[(*(*c_current).begin())->prg_id]->name;
             pangraph->add_node((*(*c_current).begin())->prg_id, prgs[(*(*c_current).begin())->prg_id]->name,
                                (*(*c_current).begin())->read_id, *c_current);
             c_previous = c_current;
