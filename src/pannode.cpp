@@ -42,12 +42,20 @@ void PanNode::output_samples(const LocalPRG* prg, const string& prefix, const ui
     // find best ref
     kmer_prg.set_p(0.01);
     kmer_prg.num_reads = covg;
+    cout << "have " << covg << " samples with this node" << endl;
     kmer_prg.find_max_path(kmp);
     lmp = prg->localnode_path_from_kmernode_path(kmp, w);
+    /*cout << "best ref: " << endl;
+    for (uint i=0; i!=lmp.size(); ++i)
+    {
+	cout << lmp[i]->id << "->";
+    }
+    cout << endl;*/
 
     // create a with respect to this ref
     VCF vcf;
     prg->build_vcf(vcf, lmp);
+    cout << "done" << endl;
     uint count = 0;
     for (auto s : samples)
     {
