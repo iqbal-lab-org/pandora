@@ -376,7 +376,6 @@ void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
             if (line.empty() || line[0] == '>' || line[0] == '@') {
                 if (!read.empty()) // ok we'll allow reads with no name, removed
                 {
-                    //cout << now() << "Found read " << name << endl;
                     s->initialize(id, name, read, w, k);
                     covg += s->seq.length();
                     //cout << now() << "Add read hits" << endl;

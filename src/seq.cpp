@@ -60,7 +60,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 	    kh[0] = hash64(kmer[0], mask);
             kh[1] = hash64(kmer[1], mask);
 	} else {
-	    cout << "bad letter - not sure how to handle this so skipping read" << endl;
+	    cout << now() << "bad letter - found a non AGCT base in read so skipping read " << name << endl;
         }
 	
 	if (buff >=k-1)

@@ -55,7 +55,6 @@ void PanNode::output_samples(const LocalPRG* prg, const string& prefix, const ui
     // create a with respect to this ref
     VCF vcf;
     prg->build_vcf(vcf, lmp);
-    cout << "done" << endl;
     uint count = 0;
     for (auto s : samples)
     {

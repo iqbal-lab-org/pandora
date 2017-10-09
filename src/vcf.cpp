@@ -41,7 +41,7 @@ void VCF::add_record(VCFRecord& vr)
 
 void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, const string& r, const string& a)
 {
-    cout << "adding gt " << c << " " << p << " " << r << " vs " << name << " " << a << endl;
+    //cout << "adding gt " << c << " " << p << " " << r << " vs " << name << " " << a << endl;
     if (r == ""  and a == "")
     {
 	return;
