@@ -228,7 +228,7 @@ int pandora_compare(int argc, char* argv[])
         cout << now() << "Estimate parameters for kmer graph model" << endl;
         estimate_parameters(pangraph_sample, prefix, k, e_rate);
 
-        cout << now() << "Find max likelihood PRG paths and write to files:" << endl;
+        cout << now() << "Find max likelihood PRG paths" << endl;
         for (const auto c: pangraph_sample->nodes)
         {
 	    //kmp = prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, max_path, min_path, output_vcf, output_comparison_paths);
@@ -239,15 +239,21 @@ int pandora_compare(int argc, char* argv[])
     }
 
     // for each pannode in graph, find a best reference and output a vcf and aligned fasta of sample paths through it
+    cout << now() << "Multi-sample pangraph has " << pangraph->nodes.size() << " nodes" << endl;
+    cout << "Prefix: " << prefix << endl;
     for (auto c: pangraph->nodes)
     {
+	cout << " c.first: " << c.first;
+        cout << " prgs[c.first]->name: " << prgs[c.first]->name << endl;
 	c.second->output_samples(prgs[c.first], prefix, w);
     }
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
+    cout << now() << "Output matrix" << endl;
     pangraph->save_matrix(prefix + "multisample.matrix");
 
     // clear up
+    cout << now() << "Clear up" << endl;
     for (uint32_t j=0; j!=prgs.size(); ++j)
     {
 	delete prgs[j];

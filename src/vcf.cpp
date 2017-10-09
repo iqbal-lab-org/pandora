@@ -276,7 +276,13 @@ void VCF::load(const string& filepath)
 
 void VCF::write_aligned_fasta(const string& filepath, const vector<LocalNode*>& lmp)
 {
+    cout << "Write aligned fasta to " << filepath << endl;
     sort_records();
+
+    if (lmp.empty() or samples.empty())
+    {
+	return;
+    }
 
     /*cout << "lmp:" << endl;
     for (uint i=0; i!= lmp.size(); ++i)
@@ -307,7 +313,7 @@ void VCF::write_aligned_fasta(const string& filepath, const vector<LocalNode*>& 
 	    }
 
 	    // add ref sequence for gaps
-	    while (ref_len < records[i].pos)
+	    while (ref_len < records[i].pos and n < lmp.size())
 	    {
 	        for (uint j=0; j!=samples.size(); ++j)
                 {
@@ -363,7 +369,7 @@ void VCF::write_aligned_fasta(const string& filepath, const vector<LocalNode*>& 
                 //cout << "add ref gap allele to seq " << j << endl;
                 seqs[j] += lmp[n]->seq;
             //} else {
-		//cout << "alt_until[j] > ref_len" << alt_until[j]  << " " << ref_len << endl;
+	    //	cout << "alt_until[j] > ref_len" << alt_until[j]  << " " << ref_len << endl;
 	    }
         }
         ref_len += lmp[n]->seq.length();

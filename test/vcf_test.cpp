@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 #include "vcf.h"
 #include "vcfrecord.h"
+#include "interval.h"
+#include "localnode.h"
 #include <stdint.h>
 #include <iostream>
 
@@ -250,5 +252,51 @@ TEST_F(VCFTest, filter)
     vcf3.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=SNP;GRAPHTYPE=NESTED");
     vcf4.load("../test/test_cases/vcf_filter_test.vcf");
     EXPECT_EQ(vcf3 == vcf4, true);
+
+}
+
+TEST_F(VCFTest,write_aligned_fasta){
+    VCF vcf;
+    vcf.add_record("chrom1", 1, "A", "G");
+    vcf.add_record("chrom1", 3, "T", "TA");
+    VCFRecord vr = VCFRecord("chrom1", 5, "C", "G");
+    vcf.add_record(vr);
+    uint j = 3;
+    EXPECT_EQ(j, vcf.records.size());
+
+    vector<LocalNode*> lmp;
+    vcf.write_aligned_fasta("../test/test_cases/vcf1.multisample.fa", lmp);
+
+    // add just the ref
+    LocalNode* ln0;
+    ln0 = new LocalNode("A", Interval(0,1), 1);
+    lmp.push_back(ln0);
+    LocalNode* ln1;
+    ln1 = new LocalNode("A", Interval(5,6), 2);
+    lmp.push_back(ln1);
+    LocalNode* ln4;
+    ln4 = new LocalNode("A", Interval(7,8), 3);
+    lmp.push_back(ln4);
+    LocalNode* ln2;
+    ln2 = new LocalNode("T", Interval(46,47), 4);
+    lmp.push_back(ln2);
+    LocalNode* ln5;
+    ln5 = new LocalNode("A", Interval(50,51), 5);
+    lmp.push_back(ln5);
+    LocalNode* ln3;
+    ln3 = new LocalNode("C", Interval(79,80), 6);
+    lmp.push_back(ln3);
+    vcf.write_aligned_fasta("../test/test_cases/vcf2.multisample.fa", lmp);
+
+    // now add a sample
+    vcf.add_sample_gt("sample1", "chrom1", 46, "T", "TA");
+    vcf.write_aligned_fasta("../test/test_cases/vcf3.multisample.fa", lmp);
+
+    delete ln1; 
+    delete ln2;
+    delete ln3;
+    delete ln0;
+    delete ln4;
+    delete ln5;
 
 }
