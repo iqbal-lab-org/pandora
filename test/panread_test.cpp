@@ -115,7 +115,7 @@ TEST_F(PanReadTest,less){
 TEST_F(PanReadTest,add_hits)
 {
     PanRead pr1(1);
-    set<MinimizerHit*, pComp> c;
+    set<MinimizerHitPtr, pComp> c;
 
     pr1.add_hits(4, c);
     EXPECT_EQ((uint)1, pr1.hits.size());
@@ -126,8 +126,8 @@ TEST_F(PanReadTest,add_hits)
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
-    MinimizerHit* mh;
-    mh = new MinimizerHit(4, i, 0, p, 0, 0);
+    MinimizerHitPtr mh (make_shared<MinimizerHit>(4, i, 0, p, 0, 0));
+
     c.insert(mh);
     pr1.add_hits(4, c);
     EXPECT_EQ((uint)1, pr1.hits.size());
@@ -139,7 +139,6 @@ TEST_F(PanReadTest,add_hits)
     EXPECT_EQ((uint)1, pr1.hits[5].size());
     EXPECT_EQ((uint)1, pr1.hits[4].size());
 
-    delete mh;
 }
 
 TEST_F(PanReadTest,get_edge)
@@ -302,7 +301,7 @@ TEST_F(PanReadTest,get_other_edge)
 
 TEST_F(PanReadTest,replace_edge1)
 {
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg;
     // read 0: 0->1->2->3
@@ -475,7 +474,7 @@ TEST_F(PanReadTest,replace_edge1)
 
 TEST_F(PanReadTest,replace_edge2)
 {
-   set<MinimizerHit*, pComp> mhs;
+   set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg;
     // read 0: 0->1->2->3
@@ -649,7 +648,7 @@ TEST_F(PanReadTest,replace_edge2)
 TEST_F(PanReadTest,remove_edge1)
 {
 
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg;
     // read 0: 0->1->2->3
@@ -805,7 +804,7 @@ TEST_F(PanReadTest,remove_edge1)
 
 TEST_F(PanReadTest,remove_edge2)
 {
-   set<MinimizerHit*, pComp> mhs;
+   set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg;
     // read 0: 0->1->2->3
@@ -962,7 +961,7 @@ TEST_F(PanReadTest,remove_edge2)
 
 TEST_F(PanReadTest,replace_node)
 {
-   set<MinimizerHit*, pComp> mhs;
+   set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg;
     // read 0: 0->1->2->3
@@ -1183,9 +1182,8 @@ TEST_F(PanReadTest,replace_node)
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
-    MinimizerHit* mh;
-    mh = new MinimizerHit(4, i, 0, p, 0, 0);
-    set<MinimizerHit*, pComp> c;
+    MinimizerHitPtr mh(make_shared<MinimizerHit>(4, i, 0, p, 0, 0));
+    set<MinimizerHitPtr, pComp> c;
     c.insert(mh);
     pg.reads[2]->add_hits(4, c);
 
@@ -1271,13 +1269,12 @@ TEST_F(PanReadTest,replace_node)
     EXPECT_EQ(pg.nodes[7]->reads.size(), (uint)1);
 
     //example where node appears twice in read
-    delete mh;
 }
 
 TEST_F(PanReadTest,remove_node)
 {
 
-   set<MinimizerHit*, pComp> mhs;
+   set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg;
     // read 0: 0->1->2->3
@@ -1473,9 +1470,8 @@ TEST_F(PanReadTest,remove_node)
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
-    MinimizerHit* mh;
-    mh = new MinimizerHit(4, i, 0, p, 0, 0);
-    set<MinimizerHit*, pComp> c;
+    MinimizerHitPtr mh (make_shared<MinimizerHit>(4, i, 0, p, 0, 0));
+    set<MinimizerHitPtr, pComp> c;
     c.insert(mh);
     pg.reads[2]->add_hits(4, c);
 
@@ -1541,5 +1537,4 @@ TEST_F(PanReadTest,remove_node)
     EXPECT_EQ(pg.nodes[4]->reads.size(), (uint)1);
 
     //example where node appears twice in read
-    delete mh;
 }

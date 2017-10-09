@@ -27,7 +27,7 @@ class PanGraphTest : public ::testing::Test {
 
 TEST_F(PanGraphTest, add_node)
 {
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
 
     // add node and check it's there
     PanGraph pg;
@@ -115,13 +115,11 @@ TEST_F(PanGraphTest, add_node)
     Path p;
     deque<Interval> d = {Interval(0,1), Interval(4,7)};
     p.initialize(d);
-    MinimizerHit* mh0;
-    mh0 = new MinimizerHit(2, Interval(1,5), 2, p, 0, true);
+    MinimizerHitPtr mh0 (make_shared<MinimizerHit>(2, Interval(1,5), 2, p, 0, true));
     mhs.insert(mh0);
     d = {Interval(0,1), Interval(5,8)};
     p.initialize(d);
-    MinimizerHit* mh1;
-    mh1 = new MinimizerHit(2, Interval(1,5), 2, p, 0, true);
+    MinimizerHitPtr mh1 (make_shared<MinimizerHit>(2, Interval(1,5), 2, p, 0, true));
     mhs.insert(mh1);
     pg.add_node(2,"2",2, mhs);
     pn = new PanNode(2,2,"2");
@@ -138,14 +136,11 @@ TEST_F(PanGraphTest, add_node)
     EXPECT_EQ(pg.reads[2]->edges.size(), (uint)0);
 
     // expect death if some hit doesn't match the prg id expect
-    MinimizerHit* mh2;
-    mh2 = new MinimizerHit(0, Interval(1,5), 0, p, 0, true);
+    MinimizerHitPtr mh2 (make_shared<MinimizerHit>(0, Interval(1,5), 0, p, 0, true));
     mhs.insert(mh2);
     EXPECT_DEATH(pg.add_node(0,"0",0, mhs), "");
     delete pn;
-    delete mh0;
-    delete mh1;
-    delete mh2;
+
 }
 
 TEST_F(PanGraphTest, add_node_sample)
@@ -260,7 +255,7 @@ TEST_F(PanGraphTest, add_node_sample)
 
 TEST_F(PanGraphTest, add_edge)
 {
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
     PanGraph pg;
     pg.add_node(0,"0",0, mhs);
     pg.add_node(1,"1",0, mhs);
@@ -286,7 +281,7 @@ TEST_F(PanGraphTest, add_edge)
 
 TEST_F(PanGraphTest, equals)
 {
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
     PanGraph pg1;
     pg1.add_node(0,"0",0, mhs);
     pg1.add_node(1,"1",2, mhs);
@@ -344,7 +339,7 @@ TEST_F(PanGraphTest, equals)
 
 TEST_F(PanGraphTest, not_equals)
 {
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
     PanGraph pg1;
     pg1.add_node(0,"0",0, mhs);
     pg1.add_node(1,"1",2, mhs);
@@ -402,7 +397,7 @@ TEST_F(PanGraphTest, not_equals)
 
 TEST_F(PanGraphTest, remove_edge)
 {
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg1, pg2;
     // read 0: 0->1->2->3
@@ -428,7 +423,7 @@ TEST_F(PanGraphTest, remove_edge)
 
 TEST_F(PanGraphTest, remove_node)
 {
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg1, pg2;
     // read 0: 0->1->2->3
@@ -452,7 +447,7 @@ TEST_F(PanGraphTest, remove_node)
 
 TEST_F(PanGraphTest, add_shortcut_edge)
 {
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg1, pg2;
     // read 0: 0->1->2->3
@@ -483,7 +478,7 @@ TEST_F(PanGraphTest, add_shortcut_edge)
 
 TEST_F(PanGraphTest, split_node_by_edges)
 {
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg1, pg2;
     // read 0: 0->1->2->3
@@ -541,7 +536,7 @@ TEST_F(PanGraphTest, split_node_by_edges)
 
 TEST_F(PanGraphTest, split_nodes_by_reads)
 {
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg1, pg2;
     // read 0: 0->1->2->3
@@ -669,7 +664,7 @@ TEST_F(PanGraphTest, split_nodes_by_reads)
 
 TEST_F(PanGraphTest, read_clean)
 {
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg1, pg2;
     // read 0: 0->1->2->3
@@ -768,7 +763,7 @@ TEST_F(PanGraphTest, read_clean)
 
 TEST_F(PanGraphTest, remove_low_covg_nodes)
 {
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg1, pg2;
     // read 0: 0->1->2->3
@@ -827,7 +822,7 @@ TEST_F(PanGraphTest, remove_low_covg_nodes)
 
 TEST_F(PanGraphTest, remove_low_covg_edges)
 {
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg1, pg2;
     // read 0: 0->1->2->3
@@ -876,7 +871,7 @@ TEST_F(PanGraphTest, remove_low_covg_edges)
 
 TEST_F(PanGraphTest, clean)
 {
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg1, pg2;
     // read 0: 0->1->2->3
@@ -1017,7 +1012,7 @@ TEST_F(PanGraphTest, clean)
 
 TEST_F(PanGraphTest, write_gfa)
 {
-    set<MinimizerHit*, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
 
     PanGraph pg2;
     pg2.add_node(1,"1",2, mhs);

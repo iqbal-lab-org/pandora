@@ -14,7 +14,7 @@ using namespace std;
 
 PanRead::PanRead (const uint32_t i): id(i) {}
 
-void PanRead::add_hits(const uint32_t node_id, const set<MinimizerHit*, pComp>& c)
+void PanRead::add_hits(const uint32_t node_id, const set<MinimizerHitPtr, pComp>& c)
 {
     hits[node_id].insert(c.begin(), c.end());
 }

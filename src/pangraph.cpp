@@ -41,7 +41,7 @@ PanGraph::~PanGraph() {
 }
 
 void PanGraph::add_node(const uint32_t prg_id, const string prg_name, const uint32_t read_id,
-                        const set<MinimizerHit *, pComp> &cluster) {
+                        const set<MinimizerHitPtr, pComp> &cluster) {
     // check sensible things in new cluster
     for (const auto &it : cluster) {
         assert(read_id == it->read_id); // the hits should correspond to the read we are saying...

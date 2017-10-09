@@ -113,7 +113,6 @@ TEST_F(UtilsTest, addReadHits){
     MinimizerHits expected2;
     MinimizerHits expected3;
     MinimizerHits expected4;
-    MinimizerHit *m1, *m2, *m3, *m4, *m5, *m6, *m7, *m8, *m9, *m10, *m11;
 
     // initialize index as we would expect with example prgs 1 and 3 from above
     KmerHash hash;
@@ -124,50 +123,50 @@ TEST_F(UtilsTest, addReadHits){
     p.initialize(d);
     pair<uint64_t,uint64_t> kh = hash.kmerhash("AGC",3);
     idx->add_record(min(kh.first,kh.second), 1, p, 0, (kh.first<kh.second));
-    m1 = new MinimizerHit(0, Interval(0,3), 1, p, 0, 1);
-    m2 = new MinimizerHit(0, Interval(1,4), 1, p, 0, 0);
+    MinimizerHitPtr m1 (make_shared<MinimizerHit>(0, Interval(0,3), 1, p, 0, 1));
+    MinimizerHitPtr m2 (make_shared<MinimizerHit>(0, Interval(1,4), 1, p, 0, 0));
     expected1.hits.insert(m1);
     expected2.hits.insert(m2);
     d = {Interval(1,4)};
     p.initialize(d);
     kh = hash.kmerhash("GCT",3);
     idx->add_record(min(kh.first,kh.second), 1, p, 0, (kh.first<kh.second));
-    m3 = new MinimizerHit(0, Interval(1,4), 1, p, 0, 1);
-    m4 = new MinimizerHit(0, Interval(0,3), 1, p, 0, 0);
+    MinimizerHitPtr m3 (make_shared<MinimizerHit>(0, Interval(1,4), 1, p, 0, 1));
+    MinimizerHitPtr m4 (make_shared<MinimizerHit>(0, Interval(0,3), 1, p, 0, 0));
     expected2.hits.insert(m3);
     expected1.hits.insert(m4);
     d = {Interval(0,1), Interval(4,5), Interval(8,9)};
     p.initialize(d);
     kh = hash.kmerhash("AGC",3);
     idx->add_record(min(kh.first,kh.second), 3, p, 0, (kh.first<kh.second));
-    m5 = new MinimizerHit(0, Interval(0,3), 3, p, 0, 1);
-    m6 = new MinimizerHit(0, Interval(1,4), 3, p, 0, 0);
+    MinimizerHitPtr m5 (make_shared<MinimizerHit>(0, Interval(0,3), 3, p, 0, 1));
+    MinimizerHitPtr m6 (make_shared<MinimizerHit>(0, Interval(1,4), 3, p, 0, 0));
     expected1.hits.insert(m5);
     expected2.hits.insert(m6);
     d = {Interval(0,1), Interval(4,5), Interval(12,13)};
     p.initialize(d);
     kh = hash.kmerhash("AGT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, 0, (kh.first<kh.second));
-    m9 = new MinimizerHit(0, Interval(0,3), 3, p, 0, 1);
+    MinimizerHitPtr m9 (make_shared<MinimizerHit>(0, Interval(0,3), 3, p, 0, 1));
     expected3.hits.insert(m9);
     d = {Interval(0,1), Interval(19,20), Interval(23,24)};
     p.initialize(d);
     idx->add_record(min(kh.first,kh.second), 3, p, 0, (kh.first<kh.second));
-    m10 = new MinimizerHit(0, Interval(0,3), 3, p, 0, 1);
+    MinimizerHitPtr m10 (make_shared<MinimizerHit>(0, Interval(0,3), 3, p, 0, 1));
     expected3.hits.insert(m10);
     d = {Interval(4,5), Interval(8,9), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     kh = hash.kmerhash("GCT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, 0, (kh.first<kh.second));
-    m7 = new MinimizerHit(0, Interval(1,4), 3, p, 0, 1);
-    m8 = new MinimizerHit(0, Interval(0,3), 3, p, 0, 0);
+    MinimizerHitPtr m7 (make_shared<MinimizerHit>(0, Interval(1,4), 3, p, 0, 1));
+    MinimizerHitPtr m8 (make_shared<MinimizerHit>(0, Interval(0,3), 3, p, 0, 0));
     expected2.hits.insert(m7);
     expected1.hits.insert(m8);
     d = {Interval(4,5), Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     kh = hash.kmerhash("GTT",3);
     idx->add_record(min(kh.first,kh.second), 3, p, 0, (kh.first<kh.second));
-    m11 = new MinimizerHit(0, Interval(1,4), 3, p, 0, 1);
+    MinimizerHitPtr m11 (make_shared<MinimizerHit>(0, Interval(1,4), 3, p, 0, 1));
     expected4.hits.insert(m11);
 
     Seq *s;
@@ -175,8 +174,8 @@ TEST_F(UtilsTest, addReadHits){
     add_read_hits(s, mhs, idx);
     mhs->sort();
     EXPECT_EQ(expected1.hits.size(), mhs->hits.size());
-    set<MinimizerHit*, pComp>::const_iterator it2 = expected1.hits.begin();
-    for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
+    set<MinimizerHitPtr, pComp>::const_iterator it2 = expected1.hits.begin();
+    for (set<MinimizerHitPtr, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
     {
         EXPECT_EQ(**it2, **it);
         it2++;
@@ -193,7 +192,7 @@ TEST_F(UtilsTest, addReadHits){
     mhs->sort();
     EXPECT_EQ(expected4.hits.size(), mhs->hits.size());
     it2 = expected4.hits.begin();
-    for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
+    for (set<MinimizerHitPtr, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
     {
         EXPECT_EQ(**it2, **it);
         it2++;
@@ -210,7 +209,7 @@ TEST_F(UtilsTest, addReadHits){
     mhs->sort();
     EXPECT_EQ(expected3.hits.size(), mhs->hits.size());
     it2 = expected3.hits.begin();
-    for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
+    for (set<MinimizerHitPtr, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
     {
         EXPECT_EQ(**it2, **it);
         it2++;
@@ -228,7 +227,7 @@ TEST_F(UtilsTest, addReadHits){
     expected1.hits.insert(expected2.hits.begin(), expected2.hits.end());
     EXPECT_EQ(expected1.hits.size(), mhs->hits.size());
     it2 = expected1.hits.begin();
-    for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
+    for (set<MinimizerHitPtr, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
     {
         EXPECT_EQ(**it2, **it);
         it2++;
@@ -245,7 +244,7 @@ TEST_F(UtilsTest, addReadHits){
     mhs->sort();
     EXPECT_EQ(expected1.hits.size(), mhs->hits.size());
     it2 = expected1.hits.begin();
-    for (set<MinimizerHit*, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
+    for (set<MinimizerHitPtr, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it)
     {
         EXPECT_EQ(**it2, **it);
         it2++;
@@ -257,34 +256,23 @@ TEST_F(UtilsTest, addReadHits){
     expected4.hits.clear();
     idx->clear();
     delete idx;
-    delete m1;
-    delete m2;
-    delete m3;
-    delete m4;
-    delete m5;
-    delete m6;
-    delete m7;
-    delete m8;
-    delete m9;
-    delete m10;
-    delete m11;
     delete mhs;
     delete s;
 }
 
 TEST_F(UtilsTest, filter_clusters2)
 {
-    MinimizerHit* mh;
     deque<Interval> d = {Interval(0,10)};
     Path p;
     p.initialize(d);
 
-    set<MinimizerHit*, pComp> s;
-    set<set<MinimizerHit*, pComp>,clusterComp> ss, ss_exp;
+    set<MinimizerHitPtr, pComp> s;
+    set<set<MinimizerHitPtr, pComp>,clusterComp> ss, ss_exp;
 
+    MinimizerHitPtr mh;
     for (uint i=0; i!=6; ++i)
     {
-        mh = new MinimizerHit(1,Interval(i,i+10),0,p,0,0);
+        mh = make_shared<MinimizerHit>(1,Interval(i,i+10),0,p,0,0);
 	s.insert(mh);
     }
     ss.insert(s);
@@ -292,7 +280,7 @@ TEST_F(UtilsTest, filter_clusters2)
     s.clear();
     for (uint i=5; i!=15; ++i)
     {
-        mh = new MinimizerHit(1,Interval(i,i+10),1,p,0,0);
+        mh = make_shared<MinimizerHit>(1,Interval(i,i+10),1,p,0,0);
         s.insert(mh);
     }
     ss.insert(s);
@@ -300,7 +288,7 @@ TEST_F(UtilsTest, filter_clusters2)
     s.clear();
     for (uint i=3; i!=7; ++i)
     {
-        mh = new MinimizerHit(1,Interval(i,i+10),2,p,0,0);
+        mh = make_shared<MinimizerHit>(1,Interval(i,i+10),2,p,0,0);
         s.insert(mh);
     }
     ss.insert(s);
@@ -308,14 +296,7 @@ TEST_F(UtilsTest, filter_clusters2)
     filter_clusters2(ss, 20);
 
     EXPECT_EQ(ss_exp.size(), ss.size());
-    for (auto j : ss)
-    {
-	for (auto k : j)
-	{
-	    delete k;
-	}
-    }
-    
+
 }
 
 TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){    

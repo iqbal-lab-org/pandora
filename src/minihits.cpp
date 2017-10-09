@@ -2,6 +2,7 @@
 #include <functional>
 #include <iostream>
 #include <sstream>
+#include <memory>
 #include <cstring>
 #include "minihits.h"
 #include "minihit.h"
@@ -19,16 +20,16 @@ MinimizerHits::MinimizerHits(const uint& num_hits) {
 
 void MinimizerHits::clear()
 {
-    for (auto c: hits)
+    /*for (auto c: hits)
     {
         delete c;
-    }
+    }*/
     hits.clear();
 
-    for (auto c: uhits)
+    /*for (auto c: uhits)
     {   
         delete c;
-    }
+    }*/
     uhits.clear();
 }
 
@@ -39,8 +40,8 @@ MinimizerHits::~MinimizerHits()
 
 void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniRecord* r)
 {
-    MinimizerHit *mh;
-    mh = new MinimizerHit(i, m, r);
+    //MinimizerHit *mh;
+    MinimizerHitPtr mh (make_shared<MinimizerHit>(i, m, r));
     //set<MinimizerHit*, pComp>::iterator it=hits.find(mh);
     //unordered_set<MinimizerHit*, Hash, pEq>::iterator it=uhits.find(mh);
     //if(it==uhits.end())
@@ -83,24 +84,24 @@ void MinimizerHits::sort()
     return out ;
 }*/
 
-bool pComp::operator () (MinimizerHit* lhs, MinimizerHit* rhs) {
+bool pComp::operator () (const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) {
         return (*lhs)<(*rhs);
 }
 
-bool pEq::operator() (const MinimizerHit* lhs, const MinimizerHit* rhs) const {
+bool pEq::operator() (const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) const {
         return *lhs == *rhs;
 }
 
-size_t Hash::operator()(const MinimizerHit* mh) const
+/*size_t Hash::operator()(const MinimizerHit* mh) const
 {
     stringstream ss;
     string temp;
     ss << *mh;
     ss >> temp;
     return hash<string>()(temp);
-}
+}*/
 
-bool pComp_path::operator()(MinimizerHit* lhs, MinimizerHit* rhs) {
+bool pComp_path::operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) {
     //want those that match against the same prg_path together
     if (lhs->prg_path<rhs->prg_path) { return true;}
     if (rhs->prg_path<lhs->prg_path) { return false;}
@@ -115,7 +116,7 @@ bool pComp_path::operator()(MinimizerHit* lhs, MinimizerHit* rhs) {
     return false;
 }
 
-bool clusterComp::operator()(set<MinimizerHit*, pComp> lhs, set<MinimizerHit*, pComp> rhs) {
+bool clusterComp::operator()(set<MinimizerHitPtr, pComp> lhs, set<MinimizerHitPtr, pComp> rhs) {
     if ((*lhs.begin())->read_id < (*rhs.begin())->read_id) { return true; }
     if ((*rhs.begin())->read_id < (*lhs.begin())->read_id) { return false; }
     if ((*lhs.begin())->read_interval.start < (*rhs.begin())->read_interval.start) { return true; }
@@ -131,7 +132,7 @@ bool clusterComp::operator()(set<MinimizerHit*, pComp> lhs, set<MinimizerHit*, p
     return false;
 }
 
-bool clusterComp_size::operator()(set<MinimizerHit*, pComp> lhs, set<MinimizerHit*, pComp> rhs) {
+bool clusterComp_size::operator()(set<MinimizerHitPtr, pComp> lhs, set<MinimizerHitPtr, pComp> rhs) {
     if ((*lhs.begin())->read_id < (*rhs.begin())->read_id) { return true; }
     if ((*rhs.begin())->read_id < (*lhs.begin())->read_id) { return false; }
     if (lhs.size() > rhs.size()) { return true; }

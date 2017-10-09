@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cmath>
 #include <cassert>
+#include <memory>
 //#include "FastxParser.hpp"
 #include "utils.h"
 #include "seq.h"
@@ -175,7 +176,7 @@ void add_read_hits(Seq *s, MinimizerHits *hits, Index *idx) {
     //     << hits->hits.size() + hits->uhits.size() << endl;
 }
 
-void define_clusters(set<set<MinimizerHit *, pComp>, clusterComp> &clusters_of_hits, const vector<LocalPRG *> &prgs,
+void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, const vector<LocalPRG *> &prgs,
                      const MinimizerHits *minimizer_hits, const int max_diff, const uint min_cluster_size) {
     cout << now() << "Define clusters of hits from the " << minimizer_hits->hits.size() << " hits" << endl;
 
@@ -183,7 +184,7 @@ void define_clusters(set<set<MinimizerHit *, pComp>, clusterComp> &clusters_of_h
 
     // A cluster of hits should match same localPRG, each hit not more than max_diff read bases from the last hit (this last bit is to handle repeat genes). 
     auto mh_previous = minimizer_hits->hits.begin();
-    set<MinimizerHit *, pComp> current_cluster;
+    set<MinimizerHitPtr, pComp> current_cluster;
     current_cluster.insert(*mh_previous);
     for (auto mh_current = ++minimizer_hits->hits.begin();
          mh_current != minimizer_hits->hits.end(); ++mh_current) {
@@ -223,7 +224,7 @@ void define_clusters(set<set<MinimizerHit *, pComp>, clusterComp> &clusters_of_h
     cout << now() << "Found " << clusters_of_hits.size() << " clusters of hits" << endl;
 }
 
-void filter_clusters(set<set<MinimizerHit *, pComp>, clusterComp> &clusters_of_hits) {
+void filter_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits) {
     // Next order clusters, choose between those that overlap by too much
     cout << now() << "Filter the " << clusters_of_hits.size() << " clusters of hits " << endl;
     if (clusters_of_hits.empty()) { return; }
@@ -262,12 +263,12 @@ void filter_clusters(set<set<MinimizerHit *, pComp>, clusterComp> &clusters_of_h
     cout << now() << "Now have " << clusters_of_hits.size() << " clusters of hits " << endl;
 }
 
-void filter_clusters2(set<set<MinimizerHit *, pComp>, clusterComp> &clusters_of_hits, const uint &genome_size) {
+void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, const uint &genome_size) {
     // Sort clusters by size, and filter out those small clusters which are entirely contained in bigger clusters on reads
     cout << now() << "Filter2 the " << clusters_of_hits.size() << " clusters of hits " << endl;
     if (clusters_of_hits.empty()) { return; }
 
-    set<set<MinimizerHit *, pComp>, clusterComp_size> clusters_by_size(clusters_of_hits.begin(),
+    set<set<MinimizerHitPtr, pComp>, clusterComp_size> clusters_by_size(clusters_of_hits.begin(),
                                                                        clusters_of_hits.end());
 
     auto it = clusters_by_size.begin();
@@ -318,7 +319,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
     minimizer_hits->sort();
     if (minimizer_hits->hits.empty()) { return; }
 
-    set<set<MinimizerHit *, pComp>, clusterComp> clusters_of_hits;
+    set<set<MinimizerHitPtr, pComp>, clusterComp> clusters_of_hits;
     define_clusters(clusters_of_hits, prgs, minimizer_hits, max_diff, min_cluster_size);
 
     filter_clusters(clusters_of_hits);
@@ -380,6 +381,8 @@ void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
                     covg += s->seq.length();
                     //cout << now() << "Add read hits" << endl;
                     add_read_hits(s, mh, idx);
+                    infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, min_cluster_size);
+                    mh->clear();
                     id++;
                 }
                 name.clear();

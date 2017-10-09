@@ -5,18 +5,21 @@ struct MinimizerHit;
 
 #include <set>
 #include <unordered_set>
-#include <stdint.h>
+#include <cstdint>
+#include <memory>
 #include "minimizer.h"
 #include "minirecord.h"
 
+typedef std::shared_ptr<MinimizerHit> MinimizerHitPtr;
+
 struct pComp
 {
-  bool operator() (MinimizerHit* lhs, MinimizerHit* rhs);
+  bool operator() (const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs);
 };
 
 struct pEq
 {
-  bool operator() (const MinimizerHit* lhs, const MinimizerHit* rhs) const;
+  bool operator() (const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) const;
 };
 
 struct Hash {
@@ -25,17 +28,17 @@ struct Hash {
 
 struct pComp_path
 {
-  bool operator()(MinimizerHit* lhs, MinimizerHit* rhs);
+  bool operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs);
 };
 
 struct clusterComp
 {
-  bool operator()(std::set<MinimizerHit*, pComp> lhs, std::set<MinimizerHit*, pComp> rhs);
+  bool operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<MinimizerHitPtr, pComp> rhs);
 };
 
 struct clusterComp_size
 {
-  bool operator()(std::set<MinimizerHit*, pComp> lhs, std::set<MinimizerHit*, pComp> rhs);
+  bool operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<MinimizerHitPtr, pComp> rhs);
 };
 
 class MinimizerHits {
@@ -44,8 +47,8 @@ class MinimizerHits {
     ~MinimizerHits();
     void clear();
     //std::unordered_set<MinimizerHit*, Hash, pEq> uhits;
-    std::unordered_set<MinimizerHit*> uhits;
-    std::set<MinimizerHit*, pComp> hits;
+    std::unordered_set<MinimizerHitPtr> uhits;
+    std::set<MinimizerHitPtr, pComp> hits;
     void add_hit(const uint32_t i, const Minimizer* m, const MiniRecord* r);
     void sort();
     friend std::ostream& operator<< (std::ostream& out, const MinimizerHits& m);

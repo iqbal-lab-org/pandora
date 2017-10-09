@@ -105,7 +105,7 @@ TEST_F(MinimizerHitsTest, pComp) {
 
     mhits.sort();
     uint32_t j(1);
-    for (set<MinimizerHit*, pComp>::iterator it=mhits.hits.begin(); it!=--mhits.hits.end(); ++it)
+    for (set<MinimizerHitPtr, pComp>::iterator it=mhits.hits.begin(); it!=--mhits.hits.end(); ++it)
     {
         EXPECT_EQ(expected[j], **it);
         j++;
@@ -117,7 +117,7 @@ TEST_F(MinimizerHitsTest, pComp) {
 }
 
 TEST_F(MinimizerHitsTest, pComp_path) {
-    set<MinimizerHit*, pComp_path> mhitspath;
+    set<MinimizerHitPtr, pComp_path> mhitspath;
     MinimizerHits mhits;
     deque<MinimizerHit> expected;
     KmerHash hash;
@@ -154,12 +154,12 @@ TEST_F(MinimizerHitsTest, pComp_path) {
     expected.push_front(MinimizerHit(1, m, mr));
 
     mhits.sort();
-    for (set<MinimizerHit*, pComp>::iterator it=mhits.hits.begin(); it!=--mhits.hits.end(); ++it)
+    for (set<MinimizerHitPtr, pComp>::iterator it=mhits.hits.begin(); it!=--mhits.hits.end(); ++it)
     {
 	mhitspath.insert(*it);
     }
     uint32_t j(0);
-    for (set<MinimizerHit*, pComp_path>::iterator it=mhitspath.begin(); it!=mhitspath.end(); ++it)
+    for (set<MinimizerHitPtr, pComp_path>::iterator it=mhitspath.begin(); it!=mhitspath.end(); ++it)
     {
         EXPECT_EQ(expected[j], **it);
         j++;
@@ -170,10 +170,10 @@ TEST_F(MinimizerHitsTest, pComp_path) {
 }
 
 TEST_F(MinimizerHitsTest, clusterComp){
-    set<set<MinimizerHit*, pComp>,clusterComp> clusters_of_hits;
-    set<MinimizerHit*, pComp> current_cluster;
+    set<set<MinimizerHitPtr, pComp>,clusterComp> clusters_of_hits;
+    set<MinimizerHitPtr, pComp> current_cluster;
 
-    vector<MinimizerHit*> expected1, expected2;
+    vector<MinimizerHitPtr> expected1, expected2;
 
     KmerHash hash;
     Minimizer* m;
@@ -184,12 +184,11 @@ TEST_F(MinimizerHitsTest, clusterComp){
     p.initialize(d);
     MiniRecord* mr;
     mr = new MiniRecord(0,p,0,0);
-    MinimizerHit* mh;
-    mh = new MinimizerHit(1, m, mr);
+    MinimizerHitPtr mh (make_shared<MinimizerHit>(1, m, mr));
     current_cluster.insert(mh);
     expected1.push_back(mh);
 
-    mh = new MinimizerHit(2, m, mr);
+    mh = make_shared<MinimizerHit>(2, m, mr);
     current_cluster.insert(mh);
     expected1.push_back(mh);
     clusters_of_hits.insert(current_cluster);
@@ -197,7 +196,7 @@ TEST_F(MinimizerHitsTest, clusterComp){
     current_cluster.clear();
     delete m;
     m = new Minimizer(min(kh.first,kh.second), 0,5,0);
-    mh = new MinimizerHit(1, m, mr);
+    mh = make_shared<MinimizerHit>(1, m, mr);
     current_cluster.insert(mh);
     expected2.push_back(mh);
 
@@ -205,7 +204,7 @@ TEST_F(MinimizerHitsTest, clusterComp){
     p.initialize(d);
     delete mr;
     mr = new MiniRecord(0,p,0,0);
-    mh = new MinimizerHit(1, m, mr);
+    mh = make_shared<MinimizerHit>(1, m, mr);
     current_cluster.insert(mh);
     expected2.push_back(mh);
 
@@ -213,7 +212,7 @@ TEST_F(MinimizerHitsTest, clusterComp){
     p.initialize(d);
     delete mr;
     mr = new MiniRecord(0,p,0,0);
-    mh = new MinimizerHit(1, m, mr);
+    mh = make_shared<MinimizerHit>(1, m, mr);
     current_cluster.insert(mh);
     expected2.push_back(mh);
 
@@ -228,19 +227,11 @@ TEST_F(MinimizerHitsTest, clusterComp){
     
     // check that this is indeed the cluster we think
     // note that can't sort the set of hits by pcomp without changing the defintion of cluster comparison function
-    for (set<MinimizerHit*, pComp>::iterator it=clusters_of_hits.begin()->begin(); it!=clusters_of_hits.begin()->end(); ++it)
+    for (set<MinimizerHitPtr, pComp>::iterator it=clusters_of_hits.begin()->begin(); it!=clusters_of_hits.begin()->end(); ++it)
     {
         EXPECT_EQ(((*expected2[0] == **it) or (*expected2[1] == **it) or (*expected2[2] == **it)), true);
     }
-    
-    for (uint32_t k = 0; k!=expected1.size(); ++k)
-    {
-        delete expected1[k];
-    }
-    for (uint32_t k = 0; k!=expected2.size(); ++k)
-    {
-        delete expected2[k];
-    }
+
     delete m;
     delete mr;
 }
