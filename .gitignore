@@ -49,6 +49,7 @@ bin/*
 test/test_cases/*/*
 *.vcf
 test/test_cases/localPRG_test*
+test/test_cases/vcf3.multisample.fa
 
 # and log.txt
 log.txt

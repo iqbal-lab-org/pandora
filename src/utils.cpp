@@ -381,8 +381,6 @@ void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
                     covg += s->seq.length();
                     //cout << now() << "Add read hits" << endl;
                     add_read_hits(s, mh, idx);
-                    infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, min_cluster_size);
-                    mh->clear();
                     id++;
                 }
                 name.clear();
