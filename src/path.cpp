@@ -13,10 +13,12 @@ Path::Path(){}
 
 void Path::initialize(const deque<Interval>& q)
 {
+  if (!q.empty()) {
     path = q;
     start = q.begin()->start;
     end = (*--q.end()).end;
     end = path.back().end;
+  }
 }
 
 uint32_t Path::length() const
