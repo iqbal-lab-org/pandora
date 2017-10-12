@@ -914,9 +914,12 @@ TEST_F(PanReadTest,remove_edge2)
 
     EXPECT_EQ(r, pg.edges[2]->reads.end());
 
-    EXPECT_EQ(*pg.edges[3]->reads.begin(), pg.reads[2]);
+    //EXPECT_EQ(pg.edges[3]->reads.find(pg.reads[2]) != pg.edges[3]->reads.end(), true);
+    r = pg.edges[3]->reads.find(pg.reads[2]);
+    //EXPECT_EQ(*pg.edges[3]->reads.begin(), pg.reads[2]);
     r = pg.reads[2]->remove_edge(pg.edges[3], pg.edges[3]->reads.begin());
-    // expect to get an iterator to the edge we have just inserted which now lies on read
+    r = pg.reads[2]->remove_edge(pg.edges[3], r);
+    // expect to get an iterator to the read after the one we removed
     EXPECT_EQ((uint)5, pg.nodes.size());
     EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
     EXPECT_EQ(pg.nodes[0]->covg, (uint)2);

@@ -94,10 +94,12 @@ void Index::load(const string& prgfile, uint32_t w, uint32_t k)
 		myfile >> key;
 		myfile.ignore(1,'\t');
 		myfile >> size;
-            auto * vmr = new vector<MiniRecord>;
+                auto * vmr = new vector<MiniRecord>;
 		vmr->reserve(size);
 		minhash[key] = vmr;
 		myfile.ignore(1,'\t');
+	    } else if (c == EOF) {
+		break;
 	    } else {
 		myfile >> mr;
 	        minhash[key]->push_back(mr);
