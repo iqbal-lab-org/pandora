@@ -215,10 +215,10 @@ int pandora_compare(int argc, char* argv[])
     // for each sample, run pandora to get the sample pangraph
     for (map<string,string>::const_iterator sample = samples.begin(); sample!=samples.end(); ++sample)
     {
-	pangraph_sample->clear();
-	mhs->clear();
+	    pangraph_sample->clear();
+	    mhs->clear();
 	
-	// construct the pangraph for this sample
+	    // construct the pangraph for this sample
         cout << now() << "Constructing PanGraph from read file " << sample->second << endl;
         pangraph_from_read_file(sample->second, mhs, pangraph_sample, idx, prgs, w, k, max_diff);
     
@@ -231,10 +231,10 @@ int pandora_compare(int argc, char* argv[])
         cout << now() << "Find max likelihood PRG paths" << endl;
         for (const auto c: pangraph_sample->nodes)
         {
-	    //kmp = prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, max_path, min_path, output_vcf, output_comparison_paths);
-	    kmp.clear();
-	    c.second->kmer_prg.find_max_path(kmp);
-	    pangraph->add_node(c.second->prg_id, c.second->name, sample->first, kmp, prgs[c.second->prg_id]);
+	        //kmp = prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, max_path, min_path, output_vcf, output_comparison_paths);
+	        kmp.clear();
+	        c.second->kmer_prg.find_max_path(kmp);
+	        pangraph->add_node(c.second->prg_id, c.second->name, sample->first, kmp, prgs[c.second->prg_id]);
         }
     }
 
@@ -243,9 +243,9 @@ int pandora_compare(int argc, char* argv[])
     cout << "Prefix: " << prefix << endl;
     for (auto c: pangraph->nodes)
     {
-	cout << " c.first: " << c.first;
+	    cout << " c.first: " << c.first;
         cout << " prgs[c.first]->name: " << prgs[c.first]->name << endl;
-	c.second->output_samples(prgs[c.first], prefix, w);
+	    c.second->output_samples(prgs[c.first], prefix, w);
     }
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
@@ -256,7 +256,7 @@ int pandora_compare(int argc, char* argv[])
     cout << now() << "Clear up" << endl;
     for (uint32_t j=0; j!=prgs.size(); ++j)
     {
-	delete prgs[j];
+	    delete prgs[j];
     }
     idx->clear();
     delete idx;

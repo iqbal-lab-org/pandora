@@ -832,7 +832,7 @@ void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNode *> &rpath, con
         } else if (found_new_site) {
             // refpath back == samplepath back
             // add ref allele from previous site to this one
-            //cout << "update with ref alleles from " << pos << " to " << pos_to << endl;
+            cout << "update with ref alleles from " << pos << " to " << pos_to << endl;
             vcf.add_sample_ref_alleles(sample_name, name, pos, pos_to);
             pos = pos_to;
 
