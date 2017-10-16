@@ -215,10 +215,10 @@ int pandora_compare(int argc, char* argv[])
     // for each sample, run pandora to get the sample pangraph
     for (map<string,string>::const_iterator sample = samples.begin(); sample!=samples.end(); ++sample)
     {
-	    pangraph_sample->clear();
-	    mhs->clear();
+	pangraph_sample->clear();
+	mhs->clear();
 	
-	    // construct the pangraph for this sample
+	// construct the pangraph for this sample
         cout << now() << "Constructing PanGraph from read file " << sample->second << endl;
         pangraph_from_read_file(sample->second, mhs, pangraph_sample, idx, prgs, w, k, max_diff);
     
@@ -244,7 +244,7 @@ int pandora_compare(int argc, char* argv[])
     for (auto c: pangraph->nodes)
     {
 	    cout << " c.first: " << c.first;
-        cout << " prgs[c.first]->name: " << prgs[c.first]->name << endl;
+            cout << " prgs[c.first]->name: " << prgs[c.first]->name << endl;
 	    c.second->output_samples(prgs[c.first], prefix, w);
     }
 

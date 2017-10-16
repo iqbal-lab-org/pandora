@@ -49,7 +49,7 @@ void PanNode::output_samples(const LocalPRG* prg, const string& prefix, const ui
     cout << "best ref: " << endl;
     for (uint i=0; i!=lmp.size(); ++i)
     {
-	    cout << lmp[i]->id << "->";
+	cout << lmp[i]->id << "->";
     }
     cout << endl;
 
@@ -59,31 +59,33 @@ void PanNode::output_samples(const LocalPRG* prg, const string& prefix, const ui
     uint count = 0;
     for (auto s : samples)
     {
-	    count = 0;
-	    for (const auto &p : s->paths[prg_id])
+	cout << "new sample" << endl;
+	count = 0;
+	for (const auto &p : s->paths[prg_id])
         {
-	        /*cout << s->name << " ";
-	        for (uint i=0; i!=p.size(); ++i)
-	        {
-	            cout << *p[i] << " ";
-	        }
-	        cout << endl;*/
-	        sample_lmp = prg->localnode_path_from_kmernode_path(p, w);
+	    cout << s->name << " ";
+	    for (uint i=0; i!=p.size(); ++i)
+	    {
+	        cout << p[i]->id << " ";
+	    }
+	    cout << endl;
+	    sample_lmp = prg->localnode_path_from_kmernode_path(p, w);
             cout << "sample lmp:" << endl;
             for (uint i=0; i!=sample_lmp.size(); ++i)
             {
                 cout << sample_lmp[i]->id << "->";
             }
             cout << endl;
-	        if (count == 0)
-	        {
+	    if (count == 0)
+	    {
                 prg->add_sample_to_vcf(vcf, lmp, sample_lmp, s->name); 
-	        } else {
-		        prg->add_sample_to_vcf(vcf, lmp, sample_lmp, s->name + to_string(count));
-	        }
-	        sample_lmp.clear();
-	        count++;
+	    } else {
+		prg->add_sample_to_vcf(vcf, lmp, sample_lmp, s->name + to_string(count));
 	    }
+	    sample_lmp.clear();
+	    count++;
+	    cout << "finished adding sample " << s->name << " path " << count << endl;
+	}
     }
     vcf.save(prefix + "." + name + ".multisample.vcf", true, true, true, true, true, true, true);
     vcf.write_aligned_fasta(prefix + "." + name + ".multisample.fa", lmp);

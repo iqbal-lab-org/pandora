@@ -869,6 +869,7 @@ void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNode *> &rpath, con
             }
             pos_to = pos;
         } else {
+	    cout << pos_to << endl;
             refpath.erase(refpath.begin(), refpath.end() - 1);
             if (refpath.back()->id != prg.nodes.size() - 1) {
                 ref = "";
