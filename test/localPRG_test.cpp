@@ -1085,6 +1085,22 @@ TEST_F(LocalPRGTest, add_sample_to_vcf)
     EXPECT_EQ("1", vcf.records[3].samples[0]);
     EXPECT_EQ(j, vcf.records[4].samples.size());
     EXPECT_EQ(".", vcf.records[4].samples[0]);
+
+    // add the ref path
+    l5.add_sample_to_vcf(vcf, l5.prg.top_path(), l5.prg.top_path(), "sample2");
+    EXPECT_EQ((uint)2, vcf.samples.size());
+    EXPECT_EQ((uint)5, vcf.records.size());
+    EXPECT_EQ((uint)2, vcf.records[0].samples.size());
+    EXPECT_EQ("0", vcf.records[0].samples[1]);
+    EXPECT_EQ((uint)2, vcf.records[1].samples.size());
+    EXPECT_EQ("0", vcf.records[1].samples[1]);
+    EXPECT_EQ((uint)2, vcf.records[2].samples.size());
+    EXPECT_EQ("0", vcf.records[2].samples[1]);
+    EXPECT_EQ((uint)2, vcf.records[3].samples.size());
+    EXPECT_EQ("0", vcf.records[3].samples[1]);
+    EXPECT_EQ((uint)2, vcf.records[4].samples.size());
+    EXPECT_EQ("0", vcf.records[4].samples[1]);
+
 }
 
 TEST_F(LocalPRGTest, moreupdateVCF)
