@@ -27,7 +27,7 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
     if (strcmp(argv[2], "--top") == 0) {
         for (uint i = 0; i != prgs.size(); ++i) {
             cout << "Top node path along PRG " << prgs[i]->name << ": ";
-            vector<LocalNode *> npath = prgs[i]->prg.top_path();
+            vector<LocalNodePtr> npath = prgs[i]->prg.top_path();
             for (uint j = 0; j != npath.size(); ++j) {
                 cout << "->" << npath[j]->id;
             }
@@ -49,7 +49,7 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
     } else if (strcmp(argv[2], "--bottom") == 0) {
         for (uint i = 0; i != prgs.size(); ++i) {
             cout << "Bottom node path along PRG " << prgs[i]->name << ": ";
-            vector<LocalNode *> npath = prgs[i]->prg.bottom_path();
+            vector<LocalNodePtr> npath = prgs[i]->prg.bottom_path();
             for (uint j = 0; j != npath.size(); ++j) {
                 cout << "->" << npath[j]->id;
             }
@@ -74,7 +74,7 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
     }
 
     // for each read in readfile,  infer node path along sequence
-    vector<LocalNode *> npath;
+    vector<LocalNodePtr> npath;
     string name, read, line;
     uint read_num = 0;
 

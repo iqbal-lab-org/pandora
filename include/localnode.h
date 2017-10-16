@@ -6,10 +6,13 @@
 #include <unordered_set>
 #include <ostream>
 #include <algorithm>
+#include <memory>
 #include "interval.h"
 #include "path.h"
 
 class KmerNode;
+class LocalNode;
+typedef std::shared_ptr<LocalNode> LocalNodePtr;
 
 class LocalNode {
     std::unordered_set<KmerNode*> prev_kmer_paths;
@@ -21,7 +24,7 @@ class LocalNode {
     uint32_t sketch_next; // used by minimizer_sketch function in localPRG.cpp
     bool skip; //used by minimizer_sketch function in localPRG.cpp
 
-    std::vector<LocalNode*> outNodes; // representing edges from this node to the nodes in the vector
+    std::vector<LocalNodePtr> outNodes; // representing edges from this node to the nodes in the vector
 
     LocalNode(std::string, Interval, uint32_t);
     bool operator == (const LocalNode& y) const;
@@ -29,4 +32,6 @@ class LocalNode {
   friend class LocalGraph;
   friend class LocalPRG;
 };
+
+
 #endif

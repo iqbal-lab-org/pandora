@@ -49,8 +49,8 @@ string LocalPRG::string_along_path(const Path &p) const {
     return s;
 }
 
-vector<LocalNode *> LocalPRG::nodes_along_path(const Path &p) const {
-    vector<LocalNode *> v;
+vector<LocalNodePtr> LocalPRG::nodes_along_path(const Path &p) const {
+    vector<LocalNodePtr> v;
     v.reserve(100);
     // for each interval of the path
     for (auto it = p.path.begin(); it != p.path.end(); ++it) {
@@ -223,7 +223,7 @@ vector<Path> LocalPRG::shift(Path p) const {
     // returns all paths of the same length which have been shifted by one position along prg graph
     Path q;
     q = p.subpath(1, p.length() - 1);
-    vector<LocalNode *> n;
+    vector<LocalNodePtr> n;
     vector<Path> return_paths;
     deque<Path> short_paths = {q};
     vector<Path> k_paths;
@@ -307,7 +307,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
     uint num_kmers_added = 0;
     KmerNode *kn, *new_kn;
     unordered_map<uint32_t, KmerNode *>::const_iterator found;
-    vector<LocalNode *> n;
+    vector<LocalNodePtr> n;
     bool mini_found_in_window;
     size_t num_AT = 0;
 
@@ -496,10 +496,10 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
     //kmer_prg.check(num_kmers_added);
 }
 
-vector<LocalNode *>
+vector<LocalNodePtr>
 LocalPRG::localnode_path_from_kmernode_path(const vector<KmerNode *> &kmernode_path, const uint w) const {
     //cout << now() << "Convert kmernode path to localnode path" << endl;
-    vector<LocalNode *> localnode_path, kmernode, walk_path;
+    vector<LocalNodePtr> localnode_path, kmernode, walk_path;
     vector<Path> walk_paths;
     for (uint i = 0; i != kmernode_path.size(); ++i) {
         if (i != 0 and kmernode_path[i]->path.length() == 0) // only have null paths at beginning and end
@@ -553,7 +553,7 @@ LocalPRG::localnode_path_from_kmernode_path(const vector<KmerNode *> &kmernode_p
         if (localnode_path[0]->id != 0) {
             //cout << "localnode path still does not start with 0" << endl;
             // add the first path to start
-            LocalNode *next = nullptr;
+            LocalNodePtr next = nullptr;
             while (localnode_path[0]->id != 0 and next != localnode_path[0]) {
                 //cout << "look for a previous node to " << *localnode_path[0] << endl;
                 next = prg.get_previous_node(localnode_path[0]);
@@ -626,7 +626,7 @@ LocalPRG::localnode_path_from_kmernode_path(const vector<KmerNode *> &kmernode_p
     assert(added == true || assert_msg("could not find kmernode corresponding to " << *mh));
 }*/
 
-void LocalPRG::write_path_to_fasta(const string &filepath, const vector<LocalNode *> &lmp, const float &ppath) const {
+void LocalPRG::write_path_to_fasta(const string &filepath, const vector<LocalNodePtr> &lmp, const float &ppath) const {
     ofstream handle;
     handle.open(filepath);
     assert (!handle.fail());
@@ -640,7 +640,7 @@ void LocalPRG::write_path_to_fasta(const string &filepath, const vector<LocalNod
     handle.close();
 }
 
-void LocalPRG::append_path_to_fasta(const string &filepath, const vector<LocalNode *> &lmp, const float &ppath) const {
+void LocalPRG::append_path_to_fasta(const string &filepath, const vector<LocalNodePtr> &lmp, const float &ppath) const {
     ofstream handle;
     handle.open(filepath, ios::app);
     assert (!handle.fail());
@@ -654,7 +654,7 @@ void LocalPRG::append_path_to_fasta(const string &filepath, const vector<LocalNo
     handle.close();
 }
 
-void LocalPRG::write_aligned_path_to_fasta(const string &filepath, const vector<LocalNode *> &lmp,
+void LocalPRG::write_aligned_path_to_fasta(const string &filepath, const vector<LocalNodePtr> &lmp,
                                            const float &ppath) const {
     ofstream handle;
     handle.open(filepath);
@@ -677,19 +677,19 @@ void LocalPRG::write_aligned_path_to_fasta(const string &filepath, const vector<
     handle.close();
 }
 
-void LocalPRG::build_vcf(VCF &vcf, const vector<LocalNode *> &ref) const {
+void LocalPRG::build_vcf(VCF &vcf, const vector<LocalNodePtr> &ref) const {
     cout << now() << "Build VCF for prg " << name << endl;
     assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
 
-    vector<LocalNode *> varpath;
+    vector<LocalNodePtr> varpath;
     varpath.reserve(100);
-    vector<LocalNode *> bottompath;
+    vector<LocalNodePtr> bottompath;
     bottompath.reserve(100);
     uint ref_i = 0;
 
-    deque<vector<LocalNode *>> paths;
+    deque<vector<LocalNodePtr>> paths;
 
-    vector<vector<LocalNode *>> alts;
+    vector<vector<LocalNodePtr>> alts;
     alts.reserve(100);
 
     vector<uint> level_start;
@@ -796,7 +796,7 @@ void LocalPRG::build_vcf(VCF &vcf, const vector<LocalNode *> &ref) const {
     }
 }
 
-void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNode *> &rpath, const vector<LocalNode *> &sample_path,
+void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, const vector<LocalNodePtr> &sample_path,
                                  const string &sample_name) const {
     /*cout << now() << "Update VCF with sample path" << endl;
     for (uint i=0; i!=sample_path.size(); ++i)
@@ -811,7 +811,7 @@ void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNode *> &rpath, con
         vcf.samples.push_back(sample_name);
     }
 
-    vector<LocalNode *> refpath, samplepath;
+    vector<LocalNodePtr> refpath, samplepath;
     refpath.reserve(100);
     refpath.push_back(rpath[0]);
     samplepath.reserve(100);
@@ -886,12 +886,12 @@ void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNode *> &rpath, con
     vcf.add_sample_ref_alleles(sample_name, name, pos, pos_to);
 }
 
-/*void LocalPRG::add_sample_to_vcf(const vector<LocalNode*>& lmp)
+/*void LocalPRG::add_sample_to_vcf(const vector<LocalNodePtr>& lmp)
 {
     cout << now() << "Update VCF with sample path" << endl;
     assert(prg.nodes.size()>0); //otherwise empty nodes -> segfault
 
-    vector<LocalNode*> toppath;
+    vector<LocalNodePtr> toppath;
     toppath.reserve(100);
     toppath.push_back(prg.nodes[0]);
 
@@ -996,7 +996,7 @@ LocalPRG::find_path_and_variants(PanNode *pnode, const string &prefix, uint w, b
 
     vector<KmerNode *> kmp;
     kmp.reserve(800);
-    vector<LocalNode *> lmp, almp;
+    vector<LocalNodePtr> lmp, almp;
     lmp.reserve(100);
     almp.reserve(100);
     float ppath;

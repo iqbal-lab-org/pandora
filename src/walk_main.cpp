@@ -20,7 +20,7 @@ int pandora_walk(int argc, char *argv[]) // the "pandora walk" comand
 	
     if (strcmp(argv[2],"--top") == 0)
     {
-	vector<LocalNode*> npath = lg.top_path();
+	vector<LocalNodePtr> npath = lg.top_path();
         for (uint j=0; j != npath.size(); ++j)
         {
             cout << "->" << npath[j]->id;
@@ -28,7 +28,7 @@ int pandora_walk(int argc, char *argv[]) // the "pandora walk" comand
         cout << endl;
         return 0;
     } else if (strcmp(argv[2],"--bottom") == 0) {
-        vector<LocalNode*> npath = lg.bottom_path();
+        vector<LocalNodePtr> npath = lg.bottom_path();
         for (uint j=0; j != npath.size(); ++j)
         {
             cout << "->" << npath[j]->id;
@@ -38,7 +38,7 @@ int pandora_walk(int argc, char *argv[]) // the "pandora walk" comand
     }
 
     // for each read in readfile,  infer node path along sequence
-    vector<LocalNode*> npath;
+    vector<LocalNodePtr> npath;
     string name, read, line;
 
     ifstream myfile (argv[2]);

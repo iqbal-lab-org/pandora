@@ -15,17 +15,17 @@ LocalGraph::LocalGraph() {
 }
 
 LocalGraph::~LocalGraph() {
-    for (auto c: nodes) {
+    /*for (auto c: nodes) {
         delete c.second;
-    }
+    }*/
+    nodes.clear();
 }
 
 void LocalGraph::add_node(const uint32_t &id, const string &seq, const Interval &pos) {
     assert(seq.length() == pos.length);
     auto it = nodes.find(id);
     if (it == nodes.end()) {
-        LocalNode *n;
-        n = new LocalNode(seq, pos, id);
+        LocalNodePtr n(make_shared<LocalNode>(seq, pos, id));
         nodes[id] = n;
         //cout << "Added node " << id << endl;
     } else {
@@ -38,8 +38,8 @@ void LocalGraph::add_edge(const uint32_t &from, const uint32_t &to) {
     auto to_it = nodes.find(to);
     assert((from_it != nodes.end()) && (to_it != nodes.end()));
     if ((from_it != nodes.end()) && (to_it != nodes.end())) {
-        LocalNode *f = (nodes.find(from)->second);
-        LocalNode *t = (nodes.find(to)->second);
+        LocalNodePtr f = (nodes.find(from)->second);
+        LocalNodePtr t = (nodes.find(to)->second);
         assert(f->pos.end <= t->pos.start || assert_msg(
                 f->pos.end << ">" << t->pos.start << " so cannot add edge from node " << *f << " to node " << *t));
         f->outNodes.push_back(t);
@@ -191,7 +191,7 @@ vector<Path> LocalGraph::walk_back(const uint32_t &node_id, const uint32_t &pos,
     uint32_t len_added = min(pos - nodes.at(node_id)->pos.start, len);
     //cout << "len: " << len << " len_added: " << len_added << endl;
 
-    vector<LocalNode *>::iterator innode;
+    vector<LocalNodePtr>::iterator innode;
     if (len_added < len) {
         for (auto it = nodes.begin(); it != nodes.find(node_id); ++it) {
             innode = find(it->second->outNodes.begin(), it->second->outNodes.end(), nodes.at(node_id));
@@ -212,7 +212,7 @@ vector<Path> LocalGraph::walk_back(const uint32_t &node_id, const uint32_t &pos,
     return return_paths;
 }
 
-LocalNode *LocalGraph::get_previous_node(const LocalNode *n) const {
+LocalNodePtr LocalGraph::get_previous_node(const LocalNodePtr n) const {
     if (n->id == 0) {
         return nullptr;
     } else {
@@ -228,14 +228,14 @@ LocalNode *LocalGraph::get_previous_node(const LocalNode *n) const {
     }
 }
 
-vector<LocalNode *> LocalGraph::nodes_along_string(const string &query_string) const {
+vector<LocalNodePtr> LocalGraph::nodes_along_string(const string &query_string) const {
     // Note expects the query string to start at the start of the PRG - can change this later
-    vector<vector<LocalNode *>> u, v;   // u <=> v
+    vector<vector<LocalNodePtr>> u, v;   // u <=> v
     // ie reject paths in u, or extend and add to v
     // then set u=v and continue
     u.reserve(100);
     v.reserve(100);
-    vector<LocalNode *> npath;
+    vector<LocalNodePtr> npath;
     string candidate_string = "";
     bool extended = true;
 
@@ -289,8 +289,8 @@ vector<LocalNode *> LocalGraph::nodes_along_string(const string &query_string) c
     return npath;
 }
 
-vector<LocalNode *> LocalGraph::top_path() const {
-    vector<LocalNode *> npath;
+vector<LocalNodePtr> LocalGraph::top_path() const {
+    vector<LocalNodePtr> npath;
 
     assert(!nodes.empty()); //otherwise empty nodes -> segfault
 
@@ -302,8 +302,8 @@ vector<LocalNode *> LocalGraph::top_path() const {
     return npath;
 }
 
-vector<LocalNode *> LocalGraph::bottom_path() const {
-    vector<LocalNode *> npath;
+vector<LocalNodePtr> LocalGraph::bottom_path() const {
+    vector<LocalNodePtr> npath;
 
     assert(!nodes.empty()); //otherwise empty nodes -> segfault
 

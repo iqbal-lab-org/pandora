@@ -36,7 +36,7 @@ void PanNode::output_samples(const LocalPRG* prg, const string& prefix, const ui
 {
     vector<KmerNode*> kmp;
     kmp.reserve(800);
-    vector<LocalNode*> lmp, sample_lmp;
+    vector<LocalNodePtr> lmp, sample_lmp;
     lmp.reserve(100);
     sample_lmp.reserve(100);
 

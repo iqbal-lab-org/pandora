@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <set>
+#include <memory>
 #include "localPRG.h"
 #include "minihits.h"
 
@@ -18,6 +19,16 @@ struct pointer_values_equal
 {
     const T* to_find;
     bool operator()(const T* other) const
+    {
+        return *to_find == *other;
+    }
+};
+
+template <typename T>
+struct spointer_values_equal
+{
+    const std::shared_ptr<T> to_find;
+    bool operator()(const std::shared_ptr<T> other) const
     {
         return *to_find == *other;
     }

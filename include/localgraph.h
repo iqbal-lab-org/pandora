@@ -13,7 +13,7 @@ class LocalNode;
 
 class LocalGraph {
   public:
-    std::map<uint32_t, LocalNode*> nodes; // representing nodes in graph
+    std::map<uint32_t, LocalNodePtr> nodes; // representing nodes in graph
 
     LocalGraph();
     ~LocalGraph();
@@ -24,10 +24,10 @@ class LocalGraph {
 
     std::vector<Path> walk(const uint32_t&, const uint32_t&, const uint32_t&) const;
     std::vector<Path> walk_back(const uint32_t&, const uint32_t&, const uint32_t&) const;
-    LocalNode* get_previous_node(const LocalNode*) const;
-    std::vector<LocalNode*> nodes_along_string(const std::string&) const;
-    std::vector<LocalNode*> top_path() const;
-    std::vector<LocalNode*> bottom_path() const;
+    LocalNodePtr get_previous_node(const LocalNodePtr) const;
+    std::vector<LocalNodePtr> nodes_along_string(const std::string&) const;
+    std::vector<LocalNodePtr> top_path() const;
+    std::vector<LocalNodePtr> bottom_path() const;
     bool operator == (const LocalGraph& y) const;
     bool operator != (const LocalGraph& y) const;
     friend std::ostream& operator<< (std::ostream & out, LocalGraph const& data);

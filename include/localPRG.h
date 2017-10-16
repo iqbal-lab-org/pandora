@@ -38,7 +38,7 @@ class LocalPRG {
     // functions used to create LocalGraph from PRG string, and to sketch graph
     bool isalpha_string(const std::string&) const;
     std::string string_along_path(const Path&) const;
-    std::vector<LocalNode*> nodes_along_path(const Path&) const;
+    std::vector<LocalNodePtr> nodes_along_path(const Path&) const;
     std::vector<Interval> split_by_site(const Interval&) const;	
     std::vector<uint32_t> build_graph(const Interval&, const std::vector<uint32_t>&, uint32_t current_level=0);
     std::vector<Path> shift(Path) const;
@@ -46,19 +46,19 @@ class LocalPRG {
 
     // functions used once hits have been collected against the PRG
     //void update_covg_with_hit(MinimizerHit*);
-    std::vector<LocalNode*> localnode_path_from_kmernode_path(const std::vector<KmerNode*>&, const uint w=0) const;
-    void write_path_to_fasta(const std::string&, const std::vector<LocalNode*>&, const float&) const;
-    void append_path_to_fasta(const std::string&, const std::vector<LocalNode*>&, const float&) const;
-    void write_aligned_path_to_fasta(const std::string&, const std::vector<LocalNode*>&, const float&) const;
+    std::vector<LocalNodePtr> localnode_path_from_kmernode_path(const std::vector<KmerNode*>&, const uint w=0) const;
+    void write_path_to_fasta(const std::string&, const std::vector<LocalNodePtr>&, const float&) const;
+    void append_path_to_fasta(const std::string&, const std::vector<LocalNodePtr>&, const float&) const;
+    void write_aligned_path_to_fasta(const std::string&, const std::vector<LocalNodePtr>&, const float&) const;
     //void build_vcf();
-    void build_vcf(VCF&, const std::vector<LocalNode*>&) const;
-    //void add_sample_to_vcf(const std::vector<LocalNode*>&);
-    void add_sample_to_vcf(VCF&, const std::vector<LocalNode*>&, const std::vector<LocalNode*>&, const std::string& sample_name="sample") const;
+    void build_vcf(VCF&, const std::vector<LocalNodePtr>&) const;
+    //void add_sample_to_vcf(const std::vector<LocalNodePtr>&);
+    void add_sample_to_vcf(VCF&, const std::vector<LocalNodePtr>&, const std::vector<LocalNodePtr>&, const std::string& sample_name="sample") const;
     std::vector<KmerNode*> find_path_and_variants(PanNode*, const std::string&, uint w=0, bool max_path=true, bool min_path=false, bool output_vcf = false, bool output_comparison_paths = false) const;
 
   friend std::ostream& operator<< (std::ostream& out, const LocalPRG& data);  
 };
 
-bool operator < (const std::pair<std::vector<LocalNode*>, float> &p1, const std::pair<std::vector<LocalNode*>, float> &p2);
+bool operator < (const std::pair<std::vector<LocalNodePtr>, float> &p1, const std::pair<std::vector<LocalNodePtr>, float> &p2);
 bool operator != (const std::vector<KmerNode*>& lhs, const std::vector<KmerNode*>& rhs);
 #endif

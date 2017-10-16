@@ -402,30 +402,30 @@ TEST_F(LocalGraphTest, nodes_along_string)
     lg2.add_edge(1,3);
     lg2.add_edge(2,3);
 
-    vector<LocalNode*> v_exp = {lg2.nodes[0], lg2.nodes[1], lg2.nodes[3]};
-    vector<LocalNode*> v = lg2.nodes_along_string("AGCT");
-    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+    vector<LocalNodePtr> v_exp = {lg2.nodes[0], lg2.nodes[1], lg2.nodes[3]};
+    vector<LocalNodePtr> v = lg2.nodes_along_string("AGCT");
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
     v_exp = {lg2.nodes[0], lg2.nodes[2], lg2.nodes[3]};
     v = lg2.nodes_along_string("AGT");
-    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
     v_exp = {lg2.nodes[0], lg2.nodes[1]};
     v = lg2.nodes_along_string("AGC");
-    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
     v = lg2.nodes_along_string("AgC");
-    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
     // check for simple prgs
     LocalGraph lg1, read_lg1;
     lg1.add_node(0,"AGTTCGTAGACCAACGCGCT", Interval(0,20)); 
     v_exp = {lg1.nodes[0]};
     v = lg1.nodes_along_string("AGTTCGTagACCAACGCGCT");
-    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
     v_exp = {};
     v = lg1.nodes_along_string("AGTTCGTAGACCAACGCGGT");
-    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
 }
 
@@ -441,14 +441,14 @@ TEST_F(LocalGraphTest, top_path)
     lg2.add_edge(1,3);
     lg2.add_edge(2,3);
 
-    vector<LocalNode*> v_exp = {lg2.nodes[0], lg2.nodes[1], lg2.nodes[3]};
-    vector<LocalNode*> v = lg2.top_path();
-    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+    vector<LocalNodePtr> v_exp = {lg2.nodes[0], lg2.nodes[1], lg2.nodes[3]};
+    vector<LocalNodePtr> v = lg2.top_path();
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
     LocalPRG lp3 = LocalPRG(3, "3", "T 5 G 7 C 8 T 7  6 G 5 TATG");
     v_exp = {lp3.prg.nodes[0], lp3.prg.nodes[1], lp3.prg.nodes[2], lp3.prg.nodes[4], lp3.prg.nodes[6]};
     v = lp3.prg.top_path();
-    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 }
 
 TEST_F(LocalGraphTest, bottom_path)
@@ -463,12 +463,12 @@ TEST_F(LocalGraphTest, bottom_path)
     lg2.add_edge(1,3);
     lg2.add_edge(2,3);
 
-    vector<LocalNode*> v_exp = {lg2.nodes[0], lg2.nodes[2], lg2.nodes[3]};
-    vector<LocalNode*> v = lg2.bottom_path();
-    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+    vector<LocalNodePtr> v_exp = {lg2.nodes[0], lg2.nodes[2], lg2.nodes[3]};
+    vector<LocalNodePtr> v = lg2.bottom_path();
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
     LocalPRG lp3 = LocalPRG(3, "3", "T 5 G 7 C 8 T 7  6 G 5 TATG");
     v_exp = {lp3.prg.nodes[0], lp3.prg.nodes[5], lp3.prg.nodes[6]};
     v = lp3.prg.bottom_path();
-    EXPECT_ITERABLE_EQ(vector<LocalNode*>, v_exp, v);
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 }

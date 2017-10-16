@@ -159,7 +159,7 @@ TEST_F(LocalPRGTest, nodes_along_path)
     deque<Interval> d = {Interval(0,0)};
     Path p;
     p.initialize(d);
-    vector<LocalNode*> v;
+    vector<LocalNodePtr> v;
 
     //EXPECT_EQ(v, l0.nodes_along_path(p));
     EXPECT_EQ(v, l1.nodes_along_path(p));
@@ -204,7 +204,7 @@ TEST_F(LocalPRGTest, nodes_along_path)
     d = {Interval(12,13), Interval(16,16), Interval(23,24)};
     p.initialize(d);
     j = 3;
-    vector<LocalNode*> w = l3.nodes_along_path(p);
+    vector<LocalNodePtr> w = l3.nodes_along_path(p);
     EXPECT_EQ(j, w.size());
     EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
     j = 4;
@@ -717,11 +717,11 @@ TEST_F(LocalPRGTest, localnode_path_from_kmernode_path)
     l3.minimizer_sketch(idx, 2, 3);
     //vector<KmerNode*> kmp = {l3.kmer_prg.nodes[0], l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<KmerNode*> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
-    vector<LocalNode*> lmp = l3.localnode_path_from_kmernode_path(kmp);
-    vector<LocalNode*> lmp_exp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
-    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
+    vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp);
+    vector<LocalNodePtr> lmp_exp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
+    EXPECT_ITERABLE_EQ( vector<LocalNodePtr>,lmp_exp, lmp);
     lmp = l3.localnode_path_from_kmernode_path(kmp, 2);
-    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
+    EXPECT_ITERABLE_EQ( vector<LocalNodePtr>,lmp_exp, lmp);
 
     idx->clear();
     l4.minimizer_sketch(idx, 3, 3);
@@ -729,9 +729,9 @@ TEST_F(LocalPRGTest, localnode_path_from_kmernode_path)
     kmp = {l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[7]};
     lmp = l4.localnode_path_from_kmernode_path(kmp, 2);
     lmp_exp = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6]};
-    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
+    EXPECT_ITERABLE_EQ( vector<LocalNodePtr>,lmp_exp, lmp);
     lmp = l4.localnode_path_from_kmernode_path(kmp, 3);
-    EXPECT_ITERABLE_EQ( vector<LocalNode*>,lmp_exp, lmp);
+    EXPECT_ITERABLE_EQ( vector<LocalNodePtr>,lmp_exp, lmp);
 
     delete idx;
 }
@@ -837,7 +837,7 @@ TEST_F(LocalPRGTest, write_path_to_fasta)
 
     l3.minimizer_sketch(idx, 1, 3);
 
-    vector<LocalNode*> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
+    vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
     l3.write_path_to_fasta("../test/test_cases/localPRG_test.maxpath.fa", lmp3, 0.00);
     
     delete idx;
@@ -852,7 +852,7 @@ TEST_F(LocalPRGTest, append_path_to_fasta)
 
     l3.minimizer_sketch(idx, 1, 3);
 
-    vector<LocalNode*> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
+    vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
     l3.append_path_to_fasta("../test/test_cases/localPRG_test.maxpath.fa", lmp3, 0.00);
 
     delete idx;
@@ -867,7 +867,7 @@ TEST_F(LocalPRGTest, write_aligned_path_to_fasta)
 
     l3.minimizer_sketch(idx, 1, 3);
 
-    vector<LocalNode*> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
+    vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
     l3.write_aligned_path_to_fasta("../test/test_cases/localPRG_test.alignedpath.fa", lmp3, 0.00);
 
     delete idx;
@@ -898,7 +898,7 @@ TEST_F(LocalPRGTest, build_vcf)
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.records[0].info);
 
     vcf.clear();
-    vector<LocalNode*> lmp = {l2.prg.nodes[0], l2.prg.nodes[2], l2.prg.nodes[3]};
+    vector<LocalNodePtr> lmp = {l2.prg.nodes[0], l2.prg.nodes[2], l2.prg.nodes[3]};
     l2.build_vcf(vcf, lmp);
     j = 1;
     EXPECT_EQ(j, vcf.records.size());
@@ -1027,14 +1027,14 @@ TEST_F(LocalPRGTest, add_sample_to_vcf)
 
     VCF vcf;
 
-    vector<LocalNode*> lmp1 = {l1.prg.nodes[0]};
+    vector<LocalNodePtr> lmp1 = {l1.prg.nodes[0]};
     l1.build_vcf(vcf, l1.prg.top_path());
     l1.add_sample_to_vcf(vcf, l1.prg.top_path(), lmp1, "sample");
     uint j = 1;
     EXPECT_EQ(j, vcf.samples.size());
 
     vcf.clear();
-    vector<LocalNode*> lmp2 = {l2.prg.nodes[0], l2.prg.nodes[2], l2.prg.nodes[3]};
+    vector<LocalNodePtr> lmp2 = {l2.prg.nodes[0], l2.prg.nodes[2], l2.prg.nodes[3]};
     l2.build_vcf(vcf, l2.prg.top_path());
     l2.add_sample_to_vcf(vcf, l2.prg.top_path(), lmp2, "sample");
     j = 1;
@@ -1043,7 +1043,7 @@ TEST_F(LocalPRGTest, add_sample_to_vcf)
     EXPECT_EQ("1", vcf.records[0].samples[0]);
 
     vcf.clear();
-    vector<LocalNode*> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
+    vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
     l3.build_vcf(vcf, l3.prg.top_path());
     vcf.sort_records();
     l3.add_sample_to_vcf(vcf, l3.prg.top_path(), lmp3, "sample");
@@ -1052,7 +1052,7 @@ TEST_F(LocalPRGTest, add_sample_to_vcf)
     EXPECT_EQ("1", vcf.records[1].samples[0]);
 
     vcf.clear();
-    vector<LocalNode*> lmp4 = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[5], l4.prg.nodes[6], l4.prg.nodes[8], l4.prg.nodes[9], l4.prg.nodes[10], l4.prg.nodes[12], l4.prg.nodes[13], l4.prg.nodes[15]};
+    vector<LocalNodePtr> lmp4 = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[5], l4.prg.nodes[6], l4.prg.nodes[8], l4.prg.nodes[9], l4.prg.nodes[10], l4.prg.nodes[12], l4.prg.nodes[13], l4.prg.nodes[15]};
     l4.build_vcf(vcf, l4.prg.top_path());
     vcf.sort_records();
     l4.add_sample_to_vcf(vcf, l4.prg.top_path(), lmp4, "sample");
@@ -1069,7 +1069,7 @@ TEST_F(LocalPRGTest, add_sample_to_vcf)
     EXPECT_EQ("0", vcf.records[4].samples[0]);
 
     vcf.clear();
-    vector<LocalNode*> lmp5 = {l5.prg.nodes[0], l5.prg.nodes[1], l5.prg.nodes[10], l5.prg.nodes[11], l5.prg.nodes[13]};
+    vector<LocalNodePtr> lmp5 = {l5.prg.nodes[0], l5.prg.nodes[1], l5.prg.nodes[10], l5.prg.nodes[11], l5.prg.nodes[13]};
     l5.build_vcf(vcf, l5.prg.top_path());
     vcf.sort_records();
     l5.add_sample_to_vcf(vcf, l5.prg.top_path(), lmp5, "sample");
@@ -1123,11 +1123,11 @@ TEST_F(LocalPRGTest, moreupdateVCF)
 	cout << prgs[2]->vcf.records[i];
     }*/
 
-    vector<LocalNode*> lmp1 = {prgs[1]->prg.nodes[0], prgs[1]->prg.nodes[11], prgs[1]->prg.nodes[12], prgs[1]->prg.nodes[17], prgs[1]->prg.nodes[65], prgs[1]->prg.nodes[67]};
+    vector<LocalNodePtr> lmp1 = {prgs[1]->prg.nodes[0], prgs[1]->prg.nodes[11], prgs[1]->prg.nodes[12], prgs[1]->prg.nodes[17], prgs[1]->prg.nodes[65], prgs[1]->prg.nodes[67]};
     //cout << "PRG 1 has " << prgs[1]->prg.nodes.size() << " nodes" << endl;
     prgs[1]->add_sample_to_vcf(vcf, prgs[1]->prg.top_path(), lmp1, "sample");
 
-    vector<LocalNode*> lmp2 = {prgs[2]->prg.nodes[0], prgs[2]->prg.nodes[1], prgs[2]->prg.nodes[3], prgs[2]->prg.nodes[4], prgs[2]->prg.nodes[6], prgs[2]->prg.nodes[7],
+    vector<LocalNodePtr> lmp2 = {prgs[2]->prg.nodes[0], prgs[2]->prg.nodes[1], prgs[2]->prg.nodes[3], prgs[2]->prg.nodes[4], prgs[2]->prg.nodes[6], prgs[2]->prg.nodes[7],
 			       prgs[2]->prg.nodes[9], prgs[2]->prg.nodes[10], prgs[2]->prg.nodes[11], prgs[2]->prg.nodes[13], prgs[2]->prg.nodes[14], prgs[2]->prg.nodes[16],
 			       prgs[2]->prg.nodes[17], prgs[2]->prg.nodes[19], prgs[2]->prg.nodes[44], prgs[2]->prg.nodes[45], prgs[2]->prg.nodes[47], prgs[2]->prg.nodes[118],
 			       prgs[2]->prg.nodes[119], prgs[2]->prg.nodes[121], prgs[2]->prg.nodes[123], prgs[2]->prg.nodes[125], prgs[2]->prg.nodes[126], 

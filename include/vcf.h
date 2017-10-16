@@ -4,9 +4,12 @@
 #include <stdint.h>
 #include <ostream>
 #include <vector>
+#include <memory>
 #include "vcfrecord.h"
 
 class LocalNode;
+
+typedef std::shared_ptr<LocalNode> LocalNodePtr;
 
 class VCF {
   public:
@@ -23,7 +26,7 @@ class VCF {
     bool pos_in_range(const uint, const uint);
     void save(const std::string&, bool simple=false, bool complexgraph=false, bool toomanyalts=false, bool snp=false, bool indel=false, bool phsnps=false, bool complexvar=false);
     void load(const std::string&);
-    void write_aligned_fasta(const std::string& , const std::vector<LocalNode*>&);
+    void write_aligned_fasta(const std::string& , const std::vector<LocalNodePtr>&);
     bool operator == (const VCF& y) const;
 };
 

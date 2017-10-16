@@ -274,7 +274,7 @@ void VCF::load(const string& filepath)
     return;
 }
 
-void VCF::write_aligned_fasta(const string& filepath, const vector<LocalNode*>& lmp)
+void VCF::write_aligned_fasta(const string& filepath, const vector<LocalNodePtr>& lmp)
 {
     cout << "Write aligned fasta to " << filepath << endl;
     sort_records();

@@ -264,39 +264,26 @@ TEST_F(VCFTest,write_aligned_fasta){
     uint j = 3;
     EXPECT_EQ(j, vcf.records.size());
 
-    vector<LocalNode*> lmp;
+    vector<LocalNodePtr> lmp;
     vcf.write_aligned_fasta("../test/test_cases/vcf1.multisample.fa", lmp);
 
     // add just the ref
-    LocalNode* ln0;
-    ln0 = new LocalNode("A", Interval(0,1), 1);
+    LocalNodePtr ln0(make_shared<LocalNode>("A", Interval(0,1), 1));
     lmp.push_back(ln0);
-    LocalNode* ln1;
-    ln1 = new LocalNode("A", Interval(5,6), 2);
+    LocalNodePtr ln1(make_shared<LocalNode>("A", Interval(5,6), 2));
     lmp.push_back(ln1);
-    LocalNode* ln4;
-    ln4 = new LocalNode("A", Interval(7,8), 3);
+    LocalNodePtr ln4(make_shared<LocalNode>("A",  Interval(7,8), 3));
     lmp.push_back(ln4);
-    LocalNode* ln2;
-    ln2 = new LocalNode("T", Interval(46,47), 4);
+    LocalNodePtr ln2(make_shared<LocalNode>("T", Interval(46,47), 4));
     lmp.push_back(ln2);
-    LocalNode* ln5;
-    ln5 = new LocalNode("A", Interval(50,51), 5);
+    LocalNodePtr ln5(make_shared<LocalNode>("A", Interval(50,51), 5));
     lmp.push_back(ln5);
-    LocalNode* ln3;
-    ln3 = new LocalNode("C", Interval(79,80), 6);
+    LocalNodePtr ln3(make_shared<LocalNode>("C", Interval(79,80), 6));
     lmp.push_back(ln3);
     vcf.write_aligned_fasta("../test/test_cases/vcf2.multisample.fa", lmp);
 
     // now add a sample
     vcf.add_sample_gt("sample1", "chrom1", 46, "T", "TA");
     vcf.write_aligned_fasta("../test/test_cases/vcf3.multisample.fa", lmp);
-
-    delete ln1; 
-    delete ln2;
-    delete ln3;
-    delete ln0;
-    delete ln4;
-    delete ln5;
 
 }
