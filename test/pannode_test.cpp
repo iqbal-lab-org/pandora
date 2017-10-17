@@ -202,6 +202,11 @@ TEST_F(PanNodeTest,output_samples)
     LocalPRG* l3;
     l3 = new LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
 
+    // clear the kmergraph and vectors to check that the shared pointers have really been kept valid
+    // within pg!
+    kg.clear();
+    kmp.clear();
+
     pn1.output_samples(l3,"../test/test_cases/updatevcf_pannode",0);
 
     delete ps1;
@@ -357,6 +362,11 @@ TEST_F(PanNodeTest,output_samples2)
 
     kmp = {lp.kmer_prg.sorted_nodes[0], lp.kmer_prg.sorted_nodes[3], lp.kmer_prg.sorted_nodes[6]};
     pg.add_node(5, "five", "sample3", kmp, &lp);
+
+    // clear the kmergraph and vectors to check that the shared pointers have really been kept valid
+    // within pg!
+    kg.clear();
+    kmp.clear();
 
     pg.nodes[5]->output_samples(&lp,"../test/test_cases/updatevcf_pannode2",0);
 
