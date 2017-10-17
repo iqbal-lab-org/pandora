@@ -177,7 +177,8 @@ void add_read_hits(Seq *s, MinimizerHits *hits, Index *idx) {
 }
 
 void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, const vector<LocalPRG *> &prgs,
-                     const MinimizerHits *minimizer_hits, const int max_diff, const uint min_cluster_size) {
+                     const MinimizerHits *minimizer_hits, const int max_diff, const float& scale_cluster_size,
+                     const uint min_cluster_size, const uint short_read_length) {
     cout << now() << "Define clusters of hits from the " << minimizer_hits->hits.size() << " hits" << endl;
 
     if (minimizer_hits->hits.empty()) { return; }
@@ -186,6 +187,7 @@ void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
     auto mh_previous = minimizer_hits->hits.begin();
     set<MinimizerHitPtr, pComp> current_cluster;
     current_cluster.insert(*mh_previous);
+    uint length_based_threshold;
     for (auto mh_current = ++minimizer_hits->hits.begin();
          mh_current != minimizer_hits->hits.end(); ++mh_current) {
         if ((*mh_current)->read_id != (*mh_previous)->read_id or
@@ -193,8 +195,15 @@ void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
             (*mh_current)->strand != (*mh_previous)->strand or
             (abs((int) (*mh_current)->read_interval.start - (int) (*mh_previous)->read_interval.start)) > max_diff) {
             // keep clusters which cover at least 10% of the shortest kmer path
+            length_based_threshold = min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
+                                        short_read_length)*scale_cluster_size;
+            /*cout << "gene length " << prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()
+                 << " short read length: " << short_read_length
+                 << " scale cluster size: " << scale_cluster_size
+                 << " length based threshold: " << length_based_threshold
+                 << " min cluster size: " << min_cluster_size << endl;*/
             if (current_cluster.size() >
-                max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length() / 10, min_cluster_size)) {
+                max(length_based_threshold, min_cluster_size)) {
                 clusters_of_hits.insert(current_cluster);
 	        //cout << "Found cluster of size " << current_cluster.size() << endl;
                 /*} else {
@@ -209,10 +218,18 @@ void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
         current_cluster.insert(*mh_current);
         mh_previous = mh_current;
     }
-
-    if (current_cluster.size() > max(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length() / 20, min_cluster_size)) {
+    length_based_threshold = min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
+                                short_read_length)*scale_cluster_size;
+    /*cout << "gene length " << prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()
+         << " short read length: " << short_read_length
+         << " scale cluster size: " << scale_cluster_size
+         << " length based threshold: " << length_based_threshold
+         << " min cluster size: " << min_cluster_size << endl;*/
+    if (current_cluster.size() >
+        max(length_based_threshold, min_cluster_size))
+    {
         clusters_of_hits.insert(current_cluster);
-	//cout << "Found cluster of size " << current_cluster.size() << endl;
+	    //cout << "Found cluster of size " << current_cluster.size() << endl;
         /*} else {
             cout << "rejected hits" << endl;
             for (set<MinimizerHit*, pComp>::iterator p=current_cluster.begin(); p!=current_cluster.end(); ++p)
@@ -311,7 +328,8 @@ void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of
 }
 
 void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHits *minimizer_hits, PanGraph *pangraph,
-                                    const int max_diff, const uint &genome_size, const uint min_cluster_size) {
+                                    const int max_diff, const uint &genome_size, const float& scale_cluster_size,
+                                    const uint min_cluster_size, const uint short_read_length) {
     // this step infers the gene order for a read and adds this to the pangraph
     // by defining clusters of hits, keeping those which are not noise and
     // then adding the inferred gene ordering
@@ -320,7 +338,8 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
     if (minimizer_hits->hits.empty()) { return; }
 
     set<set<MinimizerHitPtr, pComp>, clusterComp> clusters_of_hits;
-    define_clusters(clusters_of_hits, prgs, minimizer_hits, max_diff, min_cluster_size);
+    define_clusters(clusters_of_hits, prgs, minimizer_hits, max_diff, scale_cluster_size,
+                    min_cluster_size, short_read_length);
 
     filter_clusters(clusters_of_hits);
     //filter_clusters2(clusters_of_hits, genome_size);
@@ -359,10 +378,15 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
 }
 
 void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph *pangraph, Index *idx,
-                             const vector<LocalPRG *> &prgs, const uint32_t w, const uint32_t k, const int max_diff,
-                             const uint min_cluster_size, const uint genome_size) {
+                             const vector<LocalPRG *> &prgs, const uint32_t w, const uint32_t k,
+                             const int max_diff, const float& e_rate,
+                             const uint min_cluster_size, const uint genome_size,
+                             const bool illumina)
+{
     string name, read, line;
     uint64_t covg = 0;
+    float scale_cluster_size = 0.75 / exp(e_rate * k);
+    uint short_read_length = std::numeric_limits<uint>::max();
     Seq *s;
     s = new Seq(0, "null", "", w, k);
     if (s == nullptr) {
@@ -379,6 +403,10 @@ void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
                 {
                     s->initialize(id, name, read, w, k);
                     covg += s->seq.length();
+                    if (illumina == true and short_read_length == std::numeric_limits<uint>::max())
+                    {
+                        short_read_length = s->seq.length();
+                    }
                     //cout << now() << "Add read hits" << endl;
                     add_read_hits(s, mh, idx);
                     id++;
@@ -401,6 +429,10 @@ void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
             //cout << now() << "Found read " << name << endl;
             s->initialize(id, name, read, w, k);
             covg += s->seq.length();
+            if (illumina == true and short_read_length == std::numeric_limits<uint>::max())
+            {
+                short_read_length = s->seq.length();
+            }
             //cout << now() << "Add read hits" << endl;
             add_read_hits(s, mh, idx);
         }
@@ -408,7 +440,8 @@ void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
         cout << now() << "Estimated coverage: " << covg << endl;
         //cout << "Number of reads found: " << id+1 << endl;
         cout << now() << "Infer gene orders and add to PanGraph" << endl;
-        infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, min_cluster_size);
+        infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, scale_cluster_size,
+                                       min_cluster_size, short_read_length);
         cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
         pangraph->clean(covg);
         cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
