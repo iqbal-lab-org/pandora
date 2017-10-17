@@ -46,7 +46,7 @@ class LocalPRG {
 
     // functions used once hits have been collected against the PRG
     //void update_covg_with_hit(MinimizerHit*);
-    std::vector<LocalNodePtr> localnode_path_from_kmernode_path(const std::vector<KmerNode*>&, const uint w=0) const;
+    std::vector<LocalNodePtr> localnode_path_from_kmernode_path(const std::vector<KmerNodePtr>&, const uint w=0) const;
     void write_path_to_fasta(const std::string&, const std::vector<LocalNodePtr>&, const float&) const;
     void append_path_to_fasta(const std::string&, const std::vector<LocalNodePtr>&, const float&) const;
     void write_aligned_path_to_fasta(const std::string&, const std::vector<LocalNodePtr>&, const float&) const;
@@ -54,11 +54,11 @@ class LocalPRG {
     void build_vcf(VCF&, const std::vector<LocalNodePtr>&) const;
     //void add_sample_to_vcf(const std::vector<LocalNodePtr>&);
     void add_sample_to_vcf(VCF&, const std::vector<LocalNodePtr>&, const std::vector<LocalNodePtr>&, const std::string& sample_name="sample") const;
-    std::vector<KmerNode*> find_path_and_variants(PanNode*, const std::string&, uint w=0, bool max_path=true, bool min_path=false, bool output_vcf = false, bool output_comparison_paths = false) const;
+    std::vector<KmerNodePtr> find_path_and_variants(PanNode*, const std::string&, uint w=0, bool max_path=true, bool min_path=false, bool output_vcf = false, bool output_comparison_paths = false) const;
 
   friend std::ostream& operator<< (std::ostream& out, const LocalPRG& data);  
 };
 
 bool operator < (const std::pair<std::vector<LocalNodePtr>, float> &p1, const std::pair<std::vector<LocalNodePtr>, float> &p2);
-bool operator != (const std::vector<KmerNode*>& lhs, const std::vector<KmerNode*>& rhs);
+bool operator != (const std::vector<KmerNodePtr>& lhs, const std::vector<KmerNodePtr>& rhs);
 #endif

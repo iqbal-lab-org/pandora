@@ -286,8 +286,8 @@ TEST_F(KmerGraphTest, assign)
 
 TEST_F(KmerGraphTest, sort_topologically)
 {
-    vector<KmerNode*> exp_sorted_nodes;
-    KmerNode* n;
+    vector<KmerNodePtr> exp_sorted_nodes;
+    KmerNodePtr n;
 
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
@@ -341,9 +341,9 @@ TEST_F(KmerGraphTest, sort_topologically)
     }*/
 
     // for each node, outnodes are further along vector
-    vector<KmerNode*>::iterator it;
+    vector<KmerNodePtr>::iterator it;
     uint i = 0;
-    for (vector<KmerNode*>::iterator c=kg.sorted_nodes.begin(); c!=kg.sorted_nodes.end(); ++c)
+    for (vector<KmerNodePtr>::iterator c=kg.sorted_nodes.begin(); c!=kg.sorted_nodes.end(); ++c)
     {
         for (auto d: (*c)->outNodes)
         {
@@ -495,11 +495,11 @@ TEST_F(KmerGraphTest,findMaxPathSimple)
     kg.num_reads = 5;
     kg.k = 3;
 
-    vector<KmerNode*> mp;
+    vector<KmerNodePtr> mp;
     kg.set_p(0.01);
     kg.find_max_path(mp);
-    vector<KmerNode*> exp_order = {kg.nodes[1], kg.nodes[2]};    
-    EXPECT_ITERABLE_EQ(vector<KmerNode*>, exp_order, mp);
+    vector<KmerNodePtr> exp_order = {kg.nodes[1], kg.nodes[2]};
+    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
 
     mp.clear();
     kg.nodes[1]->covg[0]-=4;
@@ -508,7 +508,7 @@ TEST_F(KmerGraphTest,findMaxPathSimple)
     kg.set_p(0.01);
     kg.find_max_path(mp);
     exp_order = {kg.nodes[5]};
-    EXPECT_ITERABLE_EQ(vector<KmerNode*>, exp_order, mp);
+    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
 }
 
 TEST_F(KmerGraphTest,findMaxPath2Level)
@@ -568,11 +568,11 @@ TEST_F(KmerGraphTest,findMaxPath2Level)
     kg.num_reads = 5;
     kg.k = 3;
 
-    vector<KmerNode*> mp;
+    vector<KmerNodePtr> mp;
     kg.set_p(0.01);
     kg.find_max_path(mp);
-    vector<KmerNode*> exp_order = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7]};
-    EXPECT_ITERABLE_EQ(vector<KmerNode*>, exp_order, mp);
+    vector<KmerNodePtr> exp_order = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7]};
+    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
 
     mp.clear();
     kg.nodes[4]->covg[0]-=4;
@@ -583,7 +583,7 @@ TEST_F(KmerGraphTest,findMaxPath2Level)
     kg.set_p(0.01);
     kg.find_max_path(mp);
     exp_order = {kg.nodes[8]};
-    EXPECT_ITERABLE_EQ(vector<KmerNode*>, exp_order, mp);
+    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
 }
 
 
@@ -646,13 +646,13 @@ TEST_F(KmerGraphTest,find_max_paths_2Level)
     kg.k = 3;
 
     kg.set_p(0.01);
-    vector<vector<KmerNode*>> mps = kg.find_max_paths(2);
+    vector<vector<KmerNodePtr>> mps = kg.find_max_paths(2);
     EXPECT_EQ((uint)2, mps.size());
-    vector<KmerNode*> exp_order = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7]};
-    EXPECT_ITERABLE_EQ(vector<KmerNode*>, exp_order, mps[1]);
+    vector<KmerNodePtr> exp_order = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7]};
+    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mps[1]);
 
     exp_order = {kg.nodes[8]};
-    EXPECT_ITERABLE_EQ(vector<KmerNode*>, exp_order, mps[0]);
+    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mps[0]);
 }
 
 TEST_F(KmerGraphTest,random_paths)
@@ -704,10 +704,10 @@ TEST_F(KmerGraphTest,random_paths)
     kg.add_edge(kg.nodes[7],kg.nodes[9]);
     kg.add_edge(kg.nodes[8],kg.nodes[9]);
 
-    vector<vector<KmerNode*>> rps;
-    vector<KmerNode*> exp_order1 = {kg.nodes[1], kg.nodes[2], kg.nodes[3], kg.nodes[7]};
-    vector<KmerNode*> exp_order2 = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7]};
-    vector<KmerNode*> exp_order3 = {kg.nodes[8]};
+    vector<vector<KmerNodePtr>> rps;
+    vector<KmerNodePtr> exp_order1 = {kg.nodes[1], kg.nodes[2], kg.nodes[3], kg.nodes[7]};
+    vector<KmerNodePtr> exp_order2 = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7]};
+    vector<KmerNodePtr> exp_order3 = {kg.nodes[8]};
 
     rps = kg.get_random_paths(10);
     for (uint i=0; i!=rps.size(); ++i)
@@ -718,13 +718,13 @@ TEST_F(KmerGraphTest,random_paths)
 	    //cout << rps[i][j]->id << "->";
 	    if (rps[i][j]->id == 1)
 	    {
-		EXPECT_ITERABLE_EQ(vector<KmerNode*>, exp_order1, rps[i]);
+		EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order1, rps[i]);
 	    } else if (rps[i][j]->id == 4)
 	    {
-		EXPECT_ITERABLE_EQ(vector<KmerNode*>, exp_order2, rps[i]);
+		EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order2, rps[i]);
 	    } else if (rps[i][j]->id == 8)
             {
-                EXPECT_ITERABLE_EQ(vector<KmerNode*>, exp_order3, rps[i]);
+                EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order3, rps[i]);
 	    }
 	}
 	//cout << endl;
@@ -788,10 +788,10 @@ TEST_F(KmerGraphTest,path_prob)
     kg.num_reads = 5;
     kg.k = 3;
 
-    vector<KmerNode*> mp;
+    vector<KmerNodePtr> mp;
     kg.set_p(0.01);
     float mp_p = kg.find_max_path(mp);
-    vector<KmerNode*> exp_order = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7], kg.nodes[9]};
+    vector<KmerNodePtr> exp_order = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7], kg.nodes[9]};
     float exp_p = 0;
     for (uint i=0; i!=exp_order.size(); ++i)
     {
@@ -876,11 +876,11 @@ TEST_F(KmerGraphTest,path_probs)
     kg.num_reads = 10;
     kg.k = 3;
     kg.set_p(0.01);
-    vector<vector<KmerNode*>> mps = kg.find_max_paths(2);
+    vector<vector<KmerNodePtr>> mps = kg.find_max_paths(2);
     EXPECT_EQ((uint)2, mps.size());
 
     // check get right answer
-    vector<KmerNode*> exp_nodes = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7], kg.nodes[8]};
+    vector<KmerNodePtr> exp_nodes = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7], kg.nodes[8]};
     float exp_p = 0;
     for (uint i=0; i!=exp_nodes.size(); ++i)
     {

@@ -619,7 +619,7 @@ TEST_F(LocalPRGTest, minimizer_sketch_SameAsSeqw1){
 
     set<Minimizer*, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
     l.kmer_prg.sort_topologically();
-    vector<KmerNode*>::iterator lit = l.kmer_prg.sorted_nodes.begin();
+    vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
     for (set<Minimizer*, MiniPos>::iterator sit = sketch.begin(); sit != sketch.end(); ++sit)
@@ -644,7 +644,7 @@ TEST_F(LocalPRGTest, minimizer_sketch_SameAsSeqw5){
 
     set<Minimizer*, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
     l.kmer_prg.sort_topologically();
-    vector<KmerNode*>::iterator lit = l.kmer_prg.sorted_nodes.begin();
+    vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
     for (set<Minimizer*, MiniPos>::iterator sit = sketch.begin(); sit != sketch.end(); ++sit)
@@ -669,7 +669,7 @@ TEST_F(LocalPRGTest, minimizer_sketch_SameAsSeqw10){
 
     set<Minimizer*, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
     l.kmer_prg.sort_topologically();
-    vector<KmerNode*>::iterator lit = l.kmer_prg.sorted_nodes.begin();
+    vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
     for (set<Minimizer*, MiniPos>::iterator sit = sketch.begin(); sit != sketch.end(); ++sit)
@@ -694,7 +694,7 @@ TEST_F(LocalPRGTest, minimizer_sketch_SameAsSeqw15){
 
     set<Minimizer*, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
     l.kmer_prg.sort_topologically();
-    vector<KmerNode*>::iterator lit = l.kmer_prg.sorted_nodes.begin();
+    vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
     for (set<Minimizer*, MiniPos>::iterator sit = sketch.begin(); sit != sketch.end(); ++sit)
@@ -715,8 +715,8 @@ TEST_F(LocalPRGTest, localnode_path_from_kmernode_path)
     KmerHash hash;
     
     l3.minimizer_sketch(idx, 2, 3);
-    //vector<KmerNode*> kmp = {l3.kmer_prg.nodes[0], l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
-    vector<KmerNode*> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
+    //vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0], l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
+    vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp);
     vector<LocalNodePtr> lmp_exp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
     EXPECT_ITERABLE_EQ( vector<LocalNodePtr>,lmp_exp, lmp);

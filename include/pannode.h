@@ -29,7 +29,7 @@ class PanNode {
     //PanNode& operator=(const PanNode&);
     
     std::string get_name();
-    void add_path(const std::vector<KmerNode*>&);
+    void add_path(const std::vector<KmerNodePtr>&);
     void output_samples(const LocalPRG*, const std::string&, const uint);
 
     bool operator == (const PanNode& y) const;

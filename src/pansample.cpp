@@ -13,7 +13,7 @@ using namespace std;
 
 PanSample::PanSample (const string& s): name(s) {}
 
-void PanSample::add_path(const uint32_t node_id, const vector<KmerNode*>& c)
+void PanSample::add_path(const uint32_t node_id, const vector<KmerNodePtr>& c)
 {
     if (paths.find(node_id) == paths.end())
     {

@@ -318,8 +318,8 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     Index *idx;
     idx = new Index();
 
-    vector<KmerNode*> v;
-    KmerNode* kn;
+    vector<KmerNodePtr> v;
+    KmerNodePtr kn;
 
     deque<Interval> d = {Interval(0,0)};
     Path p;
@@ -479,8 +479,8 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     Index *idx;
     idx = new Index();
 
-    vector<KmerNode*> v;
-    KmerNode* kn;
+    vector<KmerNodePtr> v;
+    KmerNodePtr kn;
 
     deque<Interval> d = {Interval(0,0)};
     Path p;
@@ -733,8 +733,8 @@ TEST_F(UtilsTest, pangraphFromReadFile)
     Index *idx;
     idx = new Index();
 
-    vector<KmerNode*> v;
-    KmerNode* kn;
+    vector<KmerNodePtr> v;
+    KmerNodePtr kn;
 
     deque<Interval> d = {Interval(0,0)};
     Path p;

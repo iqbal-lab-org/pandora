@@ -210,7 +210,7 @@ int pandora_compare(int argc, char* argv[])
 
     // load read index
     map<string,string> samples = load_read_index(readindex);
-    vector<KmerNode*> kmp;
+    vector<KmerNodePtr> kmp;
 
     // for each sample, run pandora to get the sample pangraph
     for (map<string,string>::const_iterator sample = samples.begin(); sample!=samples.end(); ++sample)

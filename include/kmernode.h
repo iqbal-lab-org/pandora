@@ -3,16 +3,20 @@
 
 class PanGraph;
 class LocalPRG;
+class KmerNode;
 
 #include <vector>
 #include <ostream>
+#include <memory>
 #include "path.h"
+
+typedef std::shared_ptr<KmerNode> KmerNodePtr;
 
 class KmerNode {
     uint32_t id;
     Path path;
-    std::vector<KmerNode*> outNodes; // representing edges from this node to the nodes in the vector
-    std::vector<KmerNode*> inNodes; // representing edges from other nodes to this node
+    std::vector<KmerNodePtr> outNodes; // representing edges from this node to the nodes in the vector
+    std::vector<KmerNodePtr> inNodes; // representing edges from other nodes to this node
     std::vector<uint32_t> covg; // covg by hits in fwd, rev dir
     uint64_t khash; //the kmer hash value
     uint8_t num_AT; // the number of As and Ts in this kmer

@@ -35,7 +35,7 @@ TEST_F(PanSampleTest,create){
 TEST_F(PanSampleTest, add_path)
 {
     PanSample ps("sample");
-    std::vector<KmerNode*> kmp;
+    std::vector<KmerNodePtr> kmp;
     ps.add_path(2,kmp);
     EXPECT_EQ((uint)1, ps.paths.size());
     EXPECT_EQ((uint)1, ps.paths[2].size());

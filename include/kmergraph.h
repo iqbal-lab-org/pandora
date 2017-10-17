@@ -22,8 +22,8 @@ class KmerGraph {
   public:
     uint32_t num_reads;
     uint32_t shortest_path_length;
-    std::unordered_map<uint32_t, KmerNode*> nodes;
-    std::vector<KmerNode*> sorted_nodes; // representing ordering of the nodes compatible with dp
+    std::unordered_map<uint32_t, KmerNodePtr> nodes;
+    std::vector<KmerNodePtr> sorted_nodes; // representing ordering of the nodes compatible with dp
 
     KmerGraph();
     KmerGraph(const KmerGraph&);
@@ -31,10 +31,10 @@ class KmerGraph {
     ~KmerGraph();
     void clear();
 
-    KmerNode* add_node (const Path&);
-    KmerNode* add_node_with_kh (const Path&, const uint64_t&, const uint8_t& num=0);
+    KmerNodePtr add_node (const Path&);
+    KmerNodePtr add_node_with_kh (const Path&, const uint64_t&, const uint8_t& num=0);
     void add_edge (const Path&, const Path&);
-    void add_edge (KmerNode*, KmerNode*);
+    void add_edge (KmerNodePtr, KmerNodePtr);
 
     void sort_topologically();
     void check();
@@ -42,14 +42,14 @@ class KmerGraph {
     void set_p(const float);
     float prob(uint);
     float prob(uint, uint);
-    float find_max_path(std::vector<KmerNode*>&);
-    float find_min_path(std::vector<KmerNode*>&);
-    std::vector<std::vector<KmerNode*>> find_max_paths(uint);
+    float find_max_path(std::vector<KmerNodePtr>&);
+    float find_min_path(std::vector<KmerNodePtr>&);
+    std::vector<std::vector<KmerNodePtr>> find_max_paths(uint);
     void save_covg_dist(const std::string&);
     uint min_path_length();
-    std::vector<std::vector<KmerNode*>> get_random_paths(uint);
-    float prob_path(const std::vector<KmerNode*>&);
-    float prob_paths(const std::vector<std::vector<KmerNode*>>&);
+    std::vector<std::vector<KmerNodePtr>> get_random_paths(uint);
+    float prob_path(const std::vector<KmerNodePtr>&);
+    float prob_paths(const std::vector<std::vector<KmerNodePtr>>&);
     void save (const std::string&);
     void load (const std::string&);
     bool operator == (const KmerGraph& y) const;
@@ -69,12 +69,12 @@ struct condition
 {
     Path q;
     condition(const Path&);
-    bool operator()(const std::pair<uint32_t,KmerNode*>&) const;
+    bool operator()(const std::pair<uint32_t,KmerNodePtr>&) const;
 };
 
 struct pCompKmerNode
 {
-  bool operator()(KmerNode*, KmerNode*);
+  bool operator()(KmerNodePtr, KmerNodePtr);
 };
 
 #endif

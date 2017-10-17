@@ -21,7 +21,7 @@ string PanNode::get_name()
     }
 }
 
-void PanNode::add_path(const vector<KmerNode*>& kmp)
+void PanNode::add_path(const vector<KmerNodePtr>& kmp)
 {
     for (uint i=0; i!=kmp.size(); ++i)
     {
@@ -34,7 +34,7 @@ void PanNode::add_path(const vector<KmerNode*>& kmp)
 
 void PanNode::output_samples(const LocalPRG* prg, const string& prefix, const uint w)
 {
-    vector<KmerNode*> kmp;
+    vector<KmerNodePtr> kmp;
     kmp.reserve(800);
     vector<LocalNodePtr> lmp, sample_lmp;
     lmp.reserve(100);

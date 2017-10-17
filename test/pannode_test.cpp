@@ -46,7 +46,7 @@ TEST_F(PanNodeTest,get_name){
 
 TEST_F(PanNodeTest,add_path){
     PanNode pn1(3,3,"3");
-    vector<KmerNode*> kmp;
+    vector<KmerNodePtr> kmp;
     pn1.add_path(kmp);
 
     KmerGraph kg;
@@ -99,7 +99,7 @@ TEST_F(PanNodeTest,add_path){
 TEST_F(PanNodeTest,output_samples)
 {
     PanNode pn1(3,3,"three");
-    vector<KmerNode*> kmp;
+    vector<KmerNodePtr> kmp;
 
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
@@ -306,7 +306,7 @@ TEST_F(PanNodeTest,output_samples2)
     PanGraph pg;
     LocalPRG lp(5, "five", "A 5 G 7 C 8 T 7  6 G 5 T");
 
-    vector<KmerNode*> kmp;
+    vector<KmerNodePtr> kmp;
 
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};

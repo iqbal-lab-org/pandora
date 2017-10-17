@@ -296,7 +296,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
     vector<Path> walk_paths, shift_paths, v;
     walk_paths.reserve(100);
     shift_paths.reserve(100);
-    deque<KmerNode *> current_leaves, end_leaves;
+    deque<KmerNodePtr> current_leaves, end_leaves;
     deque<vector<Path>> shifts;
     deque<Interval> d;
     Path kmer_path;
@@ -305,8 +305,8 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
     pair<uint64_t, uint64_t> kh;
     KmerHash hash;
     uint num_kmers_added = 0;
-    KmerNode *kn, *new_kn;
-    unordered_map<uint32_t, KmerNode *>::const_iterator found;
+    KmerNodePtr kn, new_kn;
+    unordered_map<uint32_t, KmerNodePtr>::const_iterator found;
     vector<LocalNodePtr> n;
     bool mini_found_in_window;
     size_t num_AT = 0;
@@ -497,7 +497,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
 }
 
 vector<LocalNodePtr>
-LocalPRG::localnode_path_from_kmernode_path(const vector<KmerNode *> &kmernode_path, const uint w) const {
+LocalPRG::localnode_path_from_kmernode_path(const vector<KmerNodePtr> &kmernode_path, const uint w) const {
     //cout << now() << "Convert kmernode path to localnode path" << endl;
     vector<LocalNodePtr> localnode_path, kmernode, walk_path;
     vector<Path> walk_paths;
@@ -987,14 +987,14 @@ void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, co
     return;
 }*/
 
-vector<KmerNode *>
+vector<KmerNodePtr>
 LocalPRG::find_path_and_variants(PanNode *pnode, const string &prefix, uint w, bool max_path, bool min_path,
                                  bool output_vcf, bool output_comparison_paths) const {
     //cout << "called find path and variants" << endl;
     string new_name = name;
     std::replace(new_name.begin(), new_name.end(), ' ', '_');
 
-    vector<KmerNode *> kmp;
+    vector<KmerNodePtr> kmp;
     kmp.reserve(800);
     vector<LocalNodePtr> lmp, almp;
     lmp.reserve(100);
@@ -1028,7 +1028,7 @@ LocalPRG::find_path_and_variants(PanNode *pnode, const string &prefix, uint w, b
             cout << kmp[i]->id << " ";
             }
             cout << endl;*/
-            vector<vector<KmerNode *>> altkmps = pnode->kmer_prg.get_random_paths(1000);
+            vector<vector<KmerNodePtr>> altkmps = pnode->kmer_prg.get_random_paths(1000);
             for (uint i = 0; i != altkmps.size(); ++i) {
                 if (altkmps[i] != kmp) {
                     /*cout << "altkmp: ";
@@ -1070,7 +1070,7 @@ LocalPRG::find_path_and_variants(PanNode *pnode, const string &prefix, uint w, b
     return kmp;
 }
 
-bool operator!=(const vector<KmerNode *> &lhs, const vector<KmerNode *> &rhs) {
+bool operator!=(const vector<KmerNodePtr> &lhs, const vector<KmerNodePtr> &rhs) {
     if (lhs.size() != rhs.size()) {
         return true;
     }

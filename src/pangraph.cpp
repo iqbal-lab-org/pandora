@@ -80,7 +80,7 @@ void PanGraph::add_node(const uint32_t prg_id, const string prg_name, const uint
 }
 
 void PanGraph::add_node(const uint32_t prg_id, const string &prg_name, const string &sample_name,
-                        const vector<KmerNode *> &kmp, const LocalPRG *prg) {
+                        const vector<KmerNodePtr> &kmp, const LocalPRG *prg) {
     // add new node if it doesn't exist
     PanNode *n;
     auto it = nodes.find(prg_id);

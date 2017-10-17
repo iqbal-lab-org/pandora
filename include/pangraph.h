@@ -13,7 +13,10 @@ class KmerNode;
 #include <map>
 #include <ostream>
 #include <functional>
+#include <memory>
 #include <minihits.h>
+
+typedef std::shared_ptr<KmerNode> KmerNodePtr;
 
 class PanGraph {
     uint next_id;
@@ -31,7 +34,7 @@ public:
     // graph additions/removals
     void add_node(const uint32_t, const std::string, uint32_t,
                   const std::set<MinimizerHitPtr, pComp> &); // used by pandora map
-    void add_node(const uint32_t, const std::string &, const std::string &, const std::vector<KmerNode *> &,
+    void add_node(const uint32_t, const std::string &, const std::string &, const std::vector<KmerNodePtr> &,
                   const LocalPRG *); // used by pandora compare
     PanEdge *add_edge(const uint32_t &, const uint32_t &, const uint &);
     void add_edge(const uint32_t &, const uint32_t &, const uint &, const uint &);

@@ -150,7 +150,7 @@ TEST_F(PanGraphTest, add_node_sample)
 
     LocalPRG* l0;
     l0 = new LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA");
-    vector<KmerNode*> kmp;
+    vector<KmerNodePtr> kmp;
     
     pg.add_node(0, "zero", "sample", kmp, l0);
 
@@ -1032,7 +1032,7 @@ TEST_F(PanGraphTest, save_matrix)
 
     LocalPRG* l0;
     l0 = new LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA");
-    vector<KmerNode*> kmp;
+    vector<KmerNodePtr> kmp;
    
     pg.add_node(0, "zero", "sample1", kmp, l0);
     pg.add_node(0, "zero", "sample1", kmp, l0);

@@ -13,9 +13,10 @@
 class KmerNode;
 class LocalNode;
 typedef std::shared_ptr<LocalNode> LocalNodePtr;
+typedef std::shared_ptr<KmerNode> KmerNodePtr;
 
 class LocalNode {
-    std::unordered_set<KmerNode*> prev_kmer_paths;
+    std::unordered_set<KmerNodePtr> prev_kmer_paths;
   public:
     std::string seq;
     Interval pos;
