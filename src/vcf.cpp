@@ -90,17 +90,17 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
 	    {
 	        if (records[i].pos == p and r==a)
 	        {
-		        cout << "have ref allele" << endl;
-		        assert(records[i].ref == r or r == "" ||
-                               assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
-		        records[i].samples[sample_index] = "0";
-		        added = true;
+		    cout << "have ref allele" << endl;
+		    assert(records[i].ref == r or r == "" ||
+                    assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
+		    records[i].samples[sample_index] = "0";
+		    added = true;
 	        } else if (records[i].pos == p and r!=a) {
-		        cout << "found another alt at the position" << endl;
-		        //assert(records[i].ref == r or r == "" || assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
-                records[i].samples[sample_index] = ".";
-            } else if (records[i].pos > p) {
-		        break;
+		    cout << "found another alt at the position" << endl;
+		    //assert(records[i].ref == r or r == "" || assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
+                    records[i].samples[sample_index] = ".";
+                /*} else if (records[i].pos > p) {
+		    break;*/
 	        }
 	    }
 	    if (added == false and r!=a)
@@ -187,12 +187,12 @@ bool VCF::pos_in_range(const uint from, const uint to)
 // then only those matching the filter are saved. Similarly for GRAPHTYPE.
 void VCF::save(const string& filepath, bool simple, bool complexgraph, bool toomanyalts, bool snp, bool indel, bool phsnps, bool complexvar)
 {
-    if (samples.size() == 0)
+    /*if (samples.size() == 0)
     {
 	    cout << now() << "Did not save VCF for sample" << endl;
 	    return;
-    }
-        cout << now() << "Saving VCF to " << filepath << endl;
+    }*/
+    cout << now() << "Saving VCF to " << filepath << endl;
 
     // find date
     time_t t = time(0);

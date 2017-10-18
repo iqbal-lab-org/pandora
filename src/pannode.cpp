@@ -43,39 +43,40 @@ void PanNode::output_samples(const LocalPRG* prg, const string& prefix, const ui
     // find best ref
     kmer_prg.set_p(0.01);
     kmer_prg.num_reads = covg;
-    cout << "have " << covg << " samples with this node" << endl;
+    //cout << "have " << covg << " samples with this node" << endl;
     kmer_prg.find_max_path(kmp);
     lmp = prg->localnode_path_from_kmernode_path(kmp, w);
-    cout << "best ref: " << endl;
+    /*cout << "best ref: " << endl;
     for (uint i=0; i!=lmp.size(); ++i)
     {
 	cout << lmp[i]->id << "->";
     }
-    cout << endl;
+    cout << endl;*/
 
     // create a with respect to this ref
     VCF vcf;
     prg->build_vcf(vcf, lmp);
+    vcf.save(prefix + "." + name + ".multisample.vcf", true, true, true, true, true, true, true);
     uint count = 0;
     for (auto s : samples)
     {
-	cout << "new sample" << endl;
+	//cout << "new sample" << endl;
 	count = 0;
 	for (const auto &p : s->paths[prg_id])
         {
-	    cout << s->name << " ";
+	    /*cout << s->name << " ";
 	    for (uint i=0; i!=p.size(); ++i)
 	    {
 	        cout << p[i]->id << " ";
 	    }
-	    cout << endl;
+	    cout << endl;*/
 	    sample_lmp = prg->localnode_path_from_kmernode_path(p, w);
-            cout << "sample lmp:" << endl;
+            /*cout << "sample lmp:" << endl;
             for (uint i=0; i!=sample_lmp.size(); ++i)
             {
                 cout << sample_lmp[i]->id << "->";
             }
-            cout << endl;
+            cout << endl;*/
 	    if (count == 0)
 	    {
                 prg->add_sample_to_vcf(vcf, lmp, sample_lmp, s->name); 
@@ -84,7 +85,7 @@ void PanNode::output_samples(const LocalPRG* prg, const string& prefix, const ui
 	    }
 	    sample_lmp.clear();
 	    count++;
-	    cout << "finished adding sample " << s->name << " path " << count << endl;
+	    //cout << "finished adding sample " << s->name << " path " << count << endl;
 	}
     }
     vcf.save(prefix + "." + name + ".multisample.vcf", true, true, true, true, true, true, true);
