@@ -172,7 +172,7 @@ int pandora_map(int argc, char *argv[]) {
     mhs = new MinimizerHits(100 * idx->minhash.size());
     PanGraph *pangraph;
     pangraph = new PanGraph();
-    pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff);
+    pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, e_rate, max_diff);
 
     cout << now() << "Writing PanGraph to file " << prefix << ".pangraph.gfa" << endl;
     pangraph->write_gfa(prefix + ".pangraph.gfa");

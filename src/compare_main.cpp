@@ -220,7 +220,7 @@ int pandora_compare(int argc, char* argv[])
 	
 	// construct the pangraph for this sample
         cout << now() << "Constructing PanGraph from read file " << sample->second << endl;
-        pangraph_from_read_file(sample->second, mhs, pangraph_sample, idx, prgs, w, k, max_diff);
+        pangraph_from_read_file(sample->second, mhs, pangraph_sample, idx, prgs, w, k, e_rate, max_diff);
     
         cout << now() << "Update LocalPRGs with hits" << endl;
         update_localPRGs_with_hits(pangraph_sample, prgs);
