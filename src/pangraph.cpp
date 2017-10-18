@@ -433,10 +433,10 @@ void PanGraph::read_clean(const uint &thresh) {
             current++;
             //cout << "consider edges" << **prev << " and " << **current << endl;
             if ((*prev)->covg <= thresh and (*current)->covg <= thresh) {
-                cout << "read " << read.first << " edges " << **prev << " and " << **current << " have low covg "
-                     << endl;
+                //cout << "read " << read.first << " edges " << **prev << " and " << **current << " have low covg "
+                //     << endl;
                 prev = add_shortcut_edge(prev, read.second);
-                cout << "read is now: " << *(read.second) << endl;
+                //cout << "read is now: " << *(read.second) << endl;
             } else {
                 prev = current;
             }
@@ -446,21 +446,22 @@ void PanGraph::read_clean(const uint &thresh) {
 }
 
 void PanGraph::remove_low_covg_nodes(const uint &thresh) {
-    cout << now() << "remove nodes with covg <= " << thresh << endl;
+    cout << now() << "Remove nodes with covg <= " << thresh << endl;
     for (auto it = nodes.begin(); it != nodes.end();) {
         //cout << "look at node " << *(it->second) << endl;
         if (it->second->covg <= thresh or (!edges.empty() and it->second->edges.empty())) {
             //cout << "delete node " << it->second->name;
             it = remove_node(it->second);
-            cout << " so pangraph now has " << nodes.size() << " nodes" << endl;
+            //cout << " so pangraph now has " << nodes.size() << " nodes" << endl;
         } else {
             ++it;
         }
     }
+    cout << now() << "Pangraph now has " << nodes.size() << " nodes" << endl;
 }
 
 void PanGraph::remove_low_covg_edges(const uint &thresh) {
-    cout << now() << "remove edges with covg <= " << thresh << endl;
+    cout << now() << "Remove edges with covg <= " << thresh << endl;
     for (auto it = edges.begin(); it != edges.end();) {
         //cout << "look at edge " << **it << endl;
         if ((*it)->covg <= thresh) {
@@ -470,6 +471,7 @@ void PanGraph::remove_low_covg_edges(const uint &thresh) {
             ++it;
         }
     }
+    cout << now() << "Pangraph now has " << edges.size() << " edges" << endl;
 }
 
 /*reroute_edge(PanEdge* e, PanEdge* d1, PanEdge* d2)
@@ -526,13 +528,13 @@ void PanGraph::clean(const uint32_t &coverage) {
     for (uint i = 0; i != edges.size(); ++i) {
         edge_covg += edges[i]->covg;
     }
-    cout << edge_covg << endl;
+    cout << "Edge covg " << edge_covg << endl;
     for (auto n : nodes) {
         node_covg += n.second->covg;
     }
-    cout << node_covg << endl;
+    cout << "Node covg " << node_covg << endl;
     float edges_per_node = coverage * edge_covg / node_covg;
-    cout << "factor " << edges_per_node << endl;
+    cout << "Factor " << edges_per_node << endl;
     read_clean(0.025 * edges_per_node);
     read_clean(0.05 * edges_per_node);
     read_clean(0.1 * edges_per_node);
@@ -579,8 +581,8 @@ void PanGraph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
                 assert(added == true || assert_msg("could not find kmernode corresponding to " << **mh));*/
             }
         }
-        cout << now() << "Added " << num_hits[1] << " hits in the forward direction and " << num_hits[0]
-             << " hits in the reverse" << endl;
+        //cout << now() << "Added " << num_hits[1] << " hits in the forward direction and " << num_hits[0]
+        //     << " hits in the reverse" << endl;
         pnode.second->kmer_prg.num_reads = pnode.second->covg;
     }
 }

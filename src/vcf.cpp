@@ -72,7 +72,7 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
     if (it != records.end())
     {
 	    it->samples[sample_index] = "1";
-	    cout << "found record with this ref and alt" << endl;
+	    //cout << "found record with this ref and alt" << endl;
 	    for (uint i=0; i!=records.size(); ++i)
         {
 	        if (records[i].pos == p and records[i].alt!=a)
@@ -84,19 +84,19 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
             }
 	    }
     } else {
-	    cout << "didn't find a record for pos " << p << " ref " << r << " and alt " << a << endl;
+	    //cout << "didn't find a record for pos " << p << " ref " << r << " and alt " << a << endl;
 	    // either we have the ref allele, an alternative allele for a too nested site, or a mistake
 	    for (uint i=0; i!=records.size(); ++i)
 	    {
 	        if (records[i].pos == p and r==a)
 	        {
-		    cout << "have ref allele" << endl;
+		    //cout << "have ref allele" << endl;
 		    assert(records[i].ref == r or r == "" ||
                     assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
 		    records[i].samples[sample_index] = "0";
 		    added = true;
 	        } else if (records[i].pos == p and r!=a) {
-		    cout << "found another alt at the position" << endl;
+		    //cout << "found another alt at the position" << endl;
 		    //assert(records[i].ref == r or r == "" || assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
                     records[i].samples[sample_index] = ".";
                 /*} else if (records[i].pos > p) {
@@ -105,7 +105,7 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
 	    }
 	    if (added == false and r!=a)
 	    {
-	        cout << "have very nested allele" << endl;
+	        //cout << "have very nested allele" << endl;
 	        add_record(c, p, r, a, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
 	        records.back().samples[sample_index] = "1";
 	        added = true;
@@ -276,7 +276,7 @@ void VCF::load(const string& filepath)
 
 void VCF::write_aligned_fasta(const string& filepath, const vector<LocalNodePtr>& lmp)
 {
-    cout << "Write aligned fasta to " << filepath << endl;
+    cout << now() << "Write aligned fasta to " << filepath << endl;
     sort_records();
 
     if (lmp.empty() or samples.empty())
