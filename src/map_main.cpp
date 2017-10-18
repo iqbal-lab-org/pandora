@@ -49,6 +49,7 @@ static void show_map_usage() {
               << "\t--method\t\t\tMethod for path inference, can be max likelihood (default), 'min' to maximize\n"
               << "\t\t\t\t\tthe min probability on the path, or 'both' to create outputs with both methods\n"
               << "\t--output_comparison_paths\tSave a fasta file for a random selection of paths through localPRG\n"
+	      << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is shorter with low error rate\n"
               << std::endl;
 }
 
@@ -61,10 +62,10 @@ int pandora_map(int argc, char *argv[]) {
 
     // otherwise, parse the parameters from the command line
     string prgfile, readfile, prefix;
-    uint32_t w = 1, k = 15; // default parameters
+    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000; // default parameters
     int max_diff = 500;
     float e_rate = 0.11;
-    bool output_kg = false, output_vcf = false, max_path = true, min_path = false, output_comparison_paths = false;
+    bool output_kg = false, output_vcf = false, max_path = true, min_path = false, output_comparison_paths = false, illumina = false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -138,6 +139,12 @@ int pandora_map(int argc, char *argv[]) {
             }
         } else if ((arg == "--output_comparison_paths")) {
             output_comparison_paths = true;
+	} else if ((arg == "--illumina")) {
+            illumina = true;
+	    if (e_rate > 0.05)
+	    {
+	        e_rate = 0.001;
+	    }
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -172,7 +179,7 @@ int pandora_map(int argc, char *argv[]) {
     mhs = new MinimizerHits(100 * idx->minhash.size());
     PanGraph *pangraph;
     pangraph = new PanGraph();
-    pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, e_rate, max_diff);
+    pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, illumina);
 
     cout << now() << "Writing PanGraph to file " << prefix << ".pangraph.gfa" << endl;
     pangraph->write_gfa(prefix + ".pangraph.gfa");

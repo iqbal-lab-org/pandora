@@ -194,7 +194,7 @@ void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
             (*mh_current)->prg_id != (*mh_previous)->prg_id or
             (*mh_current)->strand != (*mh_previous)->strand or
             (abs((int) (*mh_current)->read_interval.start - (int) (*mh_previous)->read_interval.start)) > max_diff) {
-            // keep clusters which cover at least 10% of the shortest kmer path
+            // keep clusters which cover at least 3/4 the expected number of minihits
             length_based_threshold = min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
                                         short_read_length)*scale_cluster_size;
             /*cout << "gene length " << prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()
@@ -405,7 +405,8 @@ void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
                     covg += s->seq.length();
                     if (illumina == true and short_read_length == std::numeric_limits<uint>::max())
                     {
-                        short_read_length = s->seq.length();
+			assert(w!=0);
+                        short_read_length = s->seq.length() * 2/w;
                     }
                     //cout << now() << "Add read hits" << endl;
                     add_read_hits(s, mh, idx);
@@ -431,7 +432,7 @@ void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
             covg += s->seq.length();
             if (illumina == true and short_read_length == std::numeric_limits<uint>::max())
             {
-                short_read_length = s->seq.length();
+                short_read_length = s->seq.length() * 2/w;
             }
             //cout << now() << "Add read hits" << endl;
             add_read_hits(s, mh, idx);
