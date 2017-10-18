@@ -44,7 +44,7 @@ static void show_compare_usage()
 	      << "\t-r,--read_index READ_INDEX\tSpecify a file with a line per sample\n"
 	      << "\t\t\t\t\tsample_id <tab> filepath to reads in fasta/q format\n"
 	      << "\t-o,--out_prefix OUT_PREFIX\tSpecify prefix of output\n"
-	      << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 1\n"
+	      << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 14444\n"
 	      << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
 	      << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 500 (bps)\n"
 	      << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
@@ -149,6 +149,10 @@ int pandora_compare(int argc, char* argv[])
         } else if ((arg == "-e") || (arg == "--error_rate")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 e_rate = atof(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+		if (e_rate < 0.01)
+                {
+                    illumina = true;
+                }
             } else { // Uh-oh, there was no argument to the destination option.
                   std::cerr << "--error_rate option requires one argument." << std::endl;
                 return 1;

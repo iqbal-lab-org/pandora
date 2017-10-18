@@ -40,7 +40,7 @@ static void show_map_usage() {
               << "\t-p,--prg_file PRG_FILE\t\tSpecify a fasta-style prg file\n"
               << "\t-r,--read_file READ_FILE\tSpecify a file of reads in fasta format\n"
               << "\t-o,--out_prefix OUT_PREFIX\tSpecify prefix of output\n"
-              << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 1\n"
+              << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 14\n"
               << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
               << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 500 (bps)\n"
               << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
@@ -116,6 +116,10 @@ int pandora_map(int argc, char *argv[]) {
         } else if ((arg == "-e") || (arg == "--error_rate")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 e_rate = static_cast<float>(atof(argv[++i])); // Increment 'i' so we don't get the argument as the next argv[i].
+		if (e_rate < 0.01)
+		{
+		    illumina = true;
+		}
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--error_rate option requires one argument." << std::endl;
                 return 1;
@@ -164,7 +168,8 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\toutput_vcf\t" << output_vcf << endl;
     cout << "\tmax_path\t" << max_path << endl;
     cout << "\tmin_path\t" << min_path << endl;
-    cout << "\toutput_comparison_paths\t" << output_comparison_paths << endl << endl;
+    cout << "\toutput_comparison_paths\t" << output_comparison_paths << endl;
+    cout << "\tillumina\t" << illumina << endl << endl;
 
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
     Index *idx;
