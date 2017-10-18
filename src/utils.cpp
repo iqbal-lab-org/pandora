@@ -377,7 +377,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
     cout << endl;
 }
 
-void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph *pangraph, Index *idx,
+uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph *pangraph, Index *idx,
                              const vector<LocalPRG *> &prgs, const uint32_t w, const uint32_t k,
                              const int max_diff, const float& e_rate,
                              const uint min_cluster_size, const uint genome_size,
@@ -402,7 +402,10 @@ void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
                 if (!read.empty()) // ok we'll allow reads with no name, removed
                 {
                     s->initialize(id, name, read, w, k);
-                    covg += s->seq.length();
+		    if (!s->sketch.empty())
+		    {
+                        covg += s->seq.length();
+		    }
                     if (illumina == true and short_read_length == std::numeric_limits<uint>::max())
                     {
 			assert(w!=0);
@@ -429,7 +432,10 @@ void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
         {
             //cout << now() << "Found read " << name << endl;
             s->initialize(id, name, read, w, k);
-            covg += s->seq.length();
+	    if (!s->sketch.empty())
+	    {
+                covg += s->seq.length();
+	    }
             if (illumina == true and short_read_length == std::numeric_limits<uint>::max())
             {
                 short_read_length = s->seq.length() * 2/w;
@@ -452,6 +458,7 @@ void pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
         cerr << "Unable to open read file " << filepath << endl;
         exit(EXIT_FAILURE);
     }
+    return covg;
 }
 
 void update_localPRGs_with_hits(PanGraph *pangraph,

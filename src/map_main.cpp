@@ -184,7 +184,7 @@ int pandora_map(int argc, char *argv[]) {
     mhs = new MinimizerHits(100 * idx->minhash.size());
     PanGraph *pangraph;
     pangraph = new PanGraph();
-    pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, illumina);
+    uint covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, illumina);
 
     cout << now() << "Writing PanGraph to file " << prefix << ".pangraph.gfa" << endl;
     pangraph->write_gfa(prefix + ".pangraph.gfa");
@@ -193,7 +193,7 @@ int pandora_map(int argc, char *argv[]) {
     update_localPRGs_with_hits(pangraph, prgs);
 
     cout << now() << "Estimate parameters for kmer graph model" << endl;
-    estimate_parameters(pangraph, prefix, k, e_rate);
+    estimate_parameters(pangraph, prefix, k, e_rate, covg);
 
     cout << now() << "Find PRG paths and write to files:" << endl;
     for (auto c: pangraph->nodes) {

@@ -172,14 +172,14 @@ void PanGraph::add_edge(const uint32_t &from, const uint32_t &to, const uint &or
 }
 
 vector<PanEdge *>::iterator PanGraph::remove_edge(PanEdge *e) {
-    cout << "Remove graph edge " << *e << endl;
+    //cout << "Remove graph edge " << *e << endl;
     // remove mentions of edge from nodes
     e->from->edges.erase(std::remove(e->from->edges.begin(), e->from->edges.end(), e), e->from->edges.end());
     e->to->edges.erase(std::remove(e->to->edges.begin(), e->to->edges.end(), e), e->to->edges.end());
     // remove mentions from reads. Note that if the edge is present in any reads, the vector of
     // edges along that read will become inconsistent
     for (auto r = e->reads.begin(); r != e->reads.end();) {
-        cout << "read was " << **r << endl;
+        //cout << "read was " << **r << endl;
         r = (*r)->remove_edge(e, r);
         //cout << "read is now " << **r << endl;
     }
@@ -192,7 +192,7 @@ vector<PanEdge *>::iterator PanGraph::remove_edge(PanEdge *e) {
 }
 
 map<uint32_t, PanNode *>::iterator PanGraph::remove_node(PanNode *n) {
-    cout << "Remove graph node " << *n << endl;
+    //cout << "Remove graph node " << *n << endl;
     // removes node n and for consistency all edges including n
     // this will remove those edges from reads which is likely to lead to
     // inconsistent vectors of edges in reads unless handled.
@@ -289,7 +289,7 @@ vector<PanEdge *>::iterator
 PanGraph::split_node_by_edges(PanNode *n_original, PanEdge *e_original1, PanEdge *e_original2) {
     // results in two copies of n_original, one keeping the reads covered by e_original1
     // and the other without them.
-    cout << "Split node " << *n_original << " by edge " << *e_original1 << " (and " << *e_original2 << ")" << endl;
+    //cout << "Split node " << *n_original << " by edge " << *e_original1 << " (and " << *e_original2 << ")" << endl;
     assert(n_original == e_original1->from or n_original == e_original1->to);
 
     // give a unique id
@@ -377,7 +377,7 @@ PanGraph::split_node_by_edges(PanNode *n_original, PanEdge *e_original1, PanEdge
 }
 
 void PanGraph::split_nodes_by_reads(const uint &node_thresh, const uint &edge_thresh) {
-    cout << "Start breaking up pannodes by reads" << endl;
+    cout << now() << "Start breaking up pannodes by reads" << endl;
     for (auto n : nodes) {
         if (n.second->edges.size() > 2 and n.second->covg > node_thresh) {
             auto it = n.second->edges.begin();
@@ -415,7 +415,7 @@ void PanGraph::split_nodes_by_reads(const uint &node_thresh, const uint &edge_th
             }
         }
     }
-    cout << "Finished splitting nodes by reads. PanGraph now has  " << nodes.size() << " nodes and " << edges.size()
+    cout << now() << "Finished splitting nodes by reads. PanGraph now has  " << nodes.size() << " nodes and " << edges.size()
          << " edges" << endl;
 }
 

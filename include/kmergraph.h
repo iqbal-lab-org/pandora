@@ -54,7 +54,7 @@ class KmerGraph {
     void load (const std::string&);
     bool operator == (const KmerGraph& y) const;
     friend std::ostream& operator<< (std::ostream & out, KmerGraph const& data);
-    friend void estimate_parameters(PanGraph*, std::string&, uint32_t, float&);
+    friend void estimate_parameters(PanGraph*, const std::string&, const uint32_t, float&, const uint);
     friend struct condition;
     friend class KmerGraphTest_set_p_Test;
     friend class KmerGraphTest_prob_Test;

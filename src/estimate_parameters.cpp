@@ -124,7 +124,7 @@ int find_prob_thresh(vector<uint> &kmer_prob_dist) {
     return peak - 200;
 }
 
-void estimate_parameters(PanGraph *pangraph, string &prefix, uint32_t k, float &e_rate) {
+void estimate_parameters(PanGraph *pangraph, const string &prefix, const uint32_t k, float &e_rate, const uint covg) {
     // ignore trivial case
     if (pangraph->nodes.empty()) {
         return;
@@ -165,12 +165,12 @@ void estimate_parameters(PanGraph *pangraph, string &prefix, uint32_t k, float &
     handle.close();
 
     // evaluate error rate
-    if (num_reads > 30) {
+    if (num_reads > 30 or covg > 30) {
         mean_covg = find_mean_covg(kmer_covg_dist);
-        cout << "found mean kmer covg " << mean_covg << " and avg num reads covering node" << num_reads << endl;
+        cout << "found mean kmer covg " << mean_covg << " and mean global covg " << covg << " with avg num reads covering node " << num_reads << endl;
         if (mean_covg > 0) {
             cout << now() << "Estimated error rate updated from " << e_rate << " to ";
-            e_rate = -log((float) mean_covg / num_reads) / k;
+            e_rate = -log((float) mean_covg / covg) / k;
             cout << e_rate << endl;
         }
     } else {

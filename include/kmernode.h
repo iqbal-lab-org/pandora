@@ -36,7 +36,7 @@ class KmerNode {
   friend class PanGraph;
   friend class PanNode;
   friend int pandora_check_kmergraph(int argc, char *argv[]);
-  friend void estimate_parameters(PanGraph*, std::string&, uint32_t, float&);
+  friend void estimate_parameters(PanGraph*, const std::string&, const uint32_t, float&, const uint);
   friend class KmerGraphTest_add_node_Test;
   friend class KmerGraphTest_add_node_with_kh_Test;
   friend class KmerGraphTest_add_edge_Test;

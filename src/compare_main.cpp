@@ -219,6 +219,7 @@ int pandora_compare(int argc, char* argv[])
     pangraph_sample = new PanGraph();
     MinimizerHits *mhs;
     mhs = new MinimizerHits(100*idx->minhash.size());
+    uint covg;
 
     // load read index
     map<string,string> samples = load_read_index(readindex);
@@ -232,13 +233,13 @@ int pandora_compare(int argc, char* argv[])
 	
 	// construct the pangraph for this sample
         cout << now() << "Constructing PanGraph from read file " << sample->second << endl;
-	pangraph_from_read_file(sample->second, mhs, pangraph_sample, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, illumina);
+	covg = pangraph_from_read_file(sample->second, mhs, pangraph_sample, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, illumina);
     
         cout << now() << "Update LocalPRGs with hits" << endl;
         update_localPRGs_with_hits(pangraph_sample, prgs);
 
         cout << now() << "Estimate parameters for kmer graph model" << endl;
-        estimate_parameters(pangraph_sample, prefix, k, e_rate);
+        estimate_parameters(pangraph_sample, prefix, k, e_rate, covg);
 
         cout << now() << "Find max likelihood PRG paths" << endl;
         for (const auto c: pangraph_sample->nodes)
