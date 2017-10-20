@@ -88,11 +88,11 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
 	    // either we have the ref allele, an alternative allele for a too nested site, or a mistake
 	    for (uint i=0; i!=records.size(); ++i)
 	    {
-	        if (records[i].pos == p and r==a)
+	        if (records[i].pos == p and r==a and records[i].ref == r)
 	        {
 		    //cout << "have ref allele" << endl;
-		    assert(records[i].ref == r or r == "" ||
-                    assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
+		    //assert(records[i].ref == r or r == "" ||
+                    //assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
 		    records[i].samples[sample_index] = "0";
 		    added = true;
 	        } else if (records[i].pos == p and r!=a) {
