@@ -28,7 +28,7 @@ std::ostream &operator<<(std::ostream &out, Tuple const &t) {
     out << "(";
     for (const auto n : t.edges)
     { 
-	out << *n << ", ";
+	out << *n << ",";
     }
     out << ")";
     return out;

@@ -635,6 +635,7 @@ void PanGraph::construct_tuple_graph(uint tuple_size, TupleGraph& tg)
 	    tg.add_tuple(e, r.second);
 	}
     }
+    cout << tg << endl;
 }
 
 bool PanGraph::operator!=(const PanGraph &y) const {

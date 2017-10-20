@@ -18,6 +18,7 @@ class TupleGraph {
 
     bool operator == (const TupleGraph& y) const;
     bool operator != (const TupleGraph& y) const;
+    friend std::ostream& operator<< (std::ostream& out, const TupleGraph& tg);
 };
 
 #endif

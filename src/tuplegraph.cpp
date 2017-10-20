@@ -61,3 +61,15 @@ bool TupleGraph::operator!=(const TupleGraph &y) const {
     return !(*this == y);
 }
 
+std::ostream &operator<<(std::ostream &out, TupleGraph const &tg) {
+    out << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
+    for (const auto t : tg.tuples)
+    {
+        out << "S\t" << *t << "\t*\n"
+	for (const auto s : t->outTuples)
+	{
+	    out << "L\t" << *t << "\t+\t" << *s << "\t+\t0M\n" 
+	}
+    }
+    return out;
+}
