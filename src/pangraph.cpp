@@ -10,6 +10,7 @@
 #include "pansample.h"
 #include <cassert>
 #include "minihit.h"
+#include "tuplegraph.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -622,6 +623,18 @@ bool PanGraph::operator==(const PanGraph &y) const {
     }
     // otherwise is true
     return true;
+}
+
+void PanGraph::construct_tuple_graph(uint tuple_size, TupleGraph& tg)
+{
+    for (auto r : reads)
+    {
+	for (uint i=0; i+tuple_size<r.second->edges.size(); ++i)
+	{
+	    vector<PanEdge*> e(r.second->edges.begin()+i, r.second->edges.begin()+i+tuple_size);
+	    tg.add_tuple(e, r.second);
+	}
+    }
 }
 
 bool PanGraph::operator!=(const PanGraph &y) const {

@@ -15,6 +15,7 @@ class KmerNode;
 #include <functional>
 #include <memory>
 #include <minihits.h>
+#include "tuplegraph.h"
 
 typedef std::shared_ptr<KmerNode> KmerNodePtr;
 
@@ -54,6 +55,8 @@ public:
 
     // graph magic
     void add_hits_to_kmergraphs(const std::vector<LocalPRG *> &);
+
+    void construct_tuple_graph(uint, TupleGraph&);
 
     // graph comparison
     bool operator==(const PanGraph &y) const;
