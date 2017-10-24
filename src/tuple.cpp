@@ -3,7 +3,7 @@
 
 using namespace std;
 
-Tuple::Tuple(const vector<PanEdge*>& n, PanRead* r) : edges(n), reads({r}) {}
+Tuple::Tuple(const uint32_t& i, const vector<PanEdge*>& n, PanRead* r) : id(i), edges(n), reads({r}) {}
 
 bool Tuple::operator==(const Tuple &y) const 
 {

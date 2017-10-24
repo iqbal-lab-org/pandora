@@ -7,18 +7,22 @@
 
 class PanRead;
 class PanEdge;
+class TupleGraph;
 
 class Tuple {
+    const uint32_t id;
     std::vector<PanEdge*> edges;
     std::vector<Tuple*> outTuples;
   public:
     std::unordered_multiset<PanRead*> reads;
 
-    Tuple(const std::vector<PanEdge*>&, PanRead*);
+    Tuple(const uint32_t&, const std::vector<PanEdge*>&, PanRead*);
 
     bool operator == (const Tuple& y) const;
     bool operator != (const Tuple& y) const;
     friend std::ostream& operator<< (std::ostream& out, const Tuple& t);
+    friend std::ostream& operator<< (std::ostream& out, const TupleGraph& tg);
+    friend class TupleGraph;
 };
 
 #endif

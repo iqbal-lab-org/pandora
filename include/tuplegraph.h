@@ -11,13 +11,16 @@ class PanEdge;
 
 class TupleGraph {
     std::unordered_set<Tuple*> tuples; // representing nodes in graph
+    uint32_t next_id;
   public:
     TupleGraph();
     ~TupleGraph();
-    void add_tuple (const std::vector<PanEdge*>&, PanRead*);
+    Tuple* add_tuple (const std::vector<PanEdge*>&, PanRead*);
+    void add_edge (Tuple*, Tuple*);
 
     bool operator == (const TupleGraph& y) const;
     bool operator != (const TupleGraph& y) const;
+    void save(const std::string&);
     friend std::ostream& operator<< (std::ostream& out, const TupleGraph& tg);
 };
 
