@@ -4,9 +4,11 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
+#include <set>
+#include <deque>
 #include "de_bruijn/ns.cpp"
 #include "de_bruijn/node.h"
-
 
 class debruijn::Graph {
     uint16_t next_id;
@@ -17,6 +19,10 @@ public:
 
     NodePtr add_node(const vector<uint16_t>&, uint32_t);
     void add_edge (NodePtr, NodePtr);
+
+    unordered_set<uint16_t> get_leaves();
+    set<deque<uint16_t>> get_unitigs();
+    void extend_unitig(deque<uint16_t>&);
 
     bool operator == (const Graph& y) const;
     bool operator != (const Graph& y) const;

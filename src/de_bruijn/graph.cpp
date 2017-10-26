@@ -1,6 +1,8 @@
 #include <vector>
 #include <fstream>
 #include <unordered_set>
+#include <set>
+#include <deque>
 #include <iostream>
 #include <memory>
 #include "de_bruijn/graph.h"
@@ -42,6 +44,77 @@ void Graph::add_edge (NodePtr from, NodePtr to)
     {
         from->out_nodes.push_back(to->id);
         to->out_nodes.push_back(from->id);
+    }
+}
+
+unordered_set<uint16_t> Graph::get_leaves()
+{
+    unordered_set<uint16_t> s;
+    for (auto c : nodes)
+    {
+        if (c.second->out_nodes.size() <= 1)
+        {
+            s.insert(c.second->id);
+        }
+    }
+    return s;
+}
+
+set<deque<uint16_t>> Graph::get_unitigs()
+{
+    set<deque<uint16_t>> s;
+    vector<uint16_t> seen(nodes.size(), 0);
+    deque<uint16_t> d;
+
+    for (auto c : nodes)
+    {
+        if (seen[c.second->id] == 0 and c.second->out_nodes.size() == 2)
+        {
+            d = {c.second->id};
+            extend_unitig(d);
+            for (auto i : d)
+            {
+                seen[i] = 1;
+            }
+            s.insert(d);
+        } else {
+            seen[c.second->id] = 1;
+        }
+    }
+    return s;
+}
+
+void Graph::extend_unitig(deque<uint16_t>& tig)
+{
+    if (tig.size() == 0)
+    {
+        return;
+    } else if (tig.size() == 1 and nodes[tig.back()]->out_nodes.size() == 2)
+    {
+        tig.push_front(nodes[tig.back()]->out_nodes[0]);
+        tig.push_back(nodes[tig.back()]->out_nodes[1]);
+    }
+    while (nodes[tig.back()]->out_nodes.size() == 2)
+    {
+        if (nodes[tig.back()]->out_nodes[0] == tig[tig.size()-2])
+        {
+            tig.push_back(nodes[tig.back()]->out_nodes[1]);
+        } else if (nodes[tig.back()]->out_nodes[1] == tig[tig.size()-2])
+        {
+            tig.push_back(nodes[tig.back()]->out_nodes[0]);
+        }
+        // else error?
+    }
+    while (nodes[tig.front()]->out_nodes.size() == 2)
+    {
+        if (nodes[tig.front()]->out_nodes[0] == tig[1])
+        {
+            tig.push_front(nodes[tig.front()]->out_nodes[1]);
+        } else if (nodes[tig.front()]->out_nodes[1] == tig[1])
+        {
+            tig.push_front(nodes[tig.front()]->out_nodes[0]);
+        }
+        // else error?
     }
 }
 
