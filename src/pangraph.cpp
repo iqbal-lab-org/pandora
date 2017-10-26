@@ -10,7 +10,6 @@
 #include "pansample.h"
 #include <cassert>
 #include "minihit.h"
-#include "tuplegraph.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -525,10 +524,6 @@ void PanGraph::remove_triangles(const uint& thresh)
 
 void PanGraph::clean(const uint32_t &coverage) {
 
-    TupleGraph tg;
-    construct_tuple_graph(5, tg);
-    tg.save("/data2/users/rachel/projects/pandora_dev/test/test_cases/EcoliK12_pan/k15.w14/before.tuplegraph.gfa");
-
     // get total edge covg / total node covg (will be < 1 is short reads and closer to 1 if long reads)
     uint edge_covg = 0, node_covg = 0;
     for (uint i = 0; i != edges.size(); ++i) {
@@ -545,10 +540,6 @@ void PanGraph::clean(const uint32_t &coverage) {
     read_clean(0.05 * edges_per_node);
     read_clean(0.1 * edges_per_node);
     read_clean(0.2 * edges_per_node);
-
-    TupleGraph tg2;
-    construct_tuple_graph(5, tg2);
-    tg2.save("/data2/users/rachel/projects/pandora_dev/test/test_cases/EcoliK12_pan/k15.w14/after.tuplegraph.gfa");
 
     //remove_low_covg_edges(0);
     //remove_low_covg_nodes(0);
@@ -633,26 +624,6 @@ bool PanGraph::operator==(const PanGraph &y) const {
     }
     // otherwise is true
     return true;
-}
-
-void PanGraph::construct_tuple_graph(uint tuple_size, TupleGraph& tg)
-{
-    cout << now() << "Construct TupleGraph" << endl;
-    Tuple *prev_t, *new_t;
-    for (auto r : reads)
-    {
-	prev_t = nullptr;
-	for (uint i=0; i+tuple_size<r.second->edges.size(); ++i)
-	{
-	    vector<PanEdge*> e(r.second->edges.begin()+i, r.second->edges.begin()+i+tuple_size);
-	    new_t = tg.add_tuple(e, r.second);
-	    if (prev_t != nullptr)
-	    {
-		tg.add_edge(prev_t, new_t);
-	    }
-	    prev_t = new_t;
-	}
-    }
 }
 
 bool PanGraph::operator!=(const PanGraph &y) const {
