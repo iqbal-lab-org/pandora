@@ -50,7 +50,8 @@ set(COMMON_TEST ${PROJECT_SOURCE_DIR}/test)
 # Module source
 #-------------------
 include_directories(${COMMON_INCLUDES} ${COMMON_SRC})# ${EXT_PROJECTS_DIR}/FQFeeder/include)
-file(GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
+file(GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp
+        ${PROJECT_SOURCE_DIR}/src/*/*.cpp)
 #${EXT_PROJECTS_DIR}/FQFeeder/src/FastxParser.cpp) 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARY})
@@ -74,7 +75,9 @@ set(PROJECT_TEST_NAME ${PROJECT_NAME_STR}_test)
 include_directories(${GTEST_INCLUDE_DIRS} ${COMMON_INCLUDES} ${COMMON_SRC}
 ${COMMON_TEST})# ${EXT_PROJECTS_DIR}/FQFeeder/include)
 
-file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/test/*.cpp ${COMMON_SRC}/*.cpp)
+file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/test/*.cpp
+        ${COMMON_SRC}/*.cpp
+        ${COMMON_SRC}/*/*.cpp)
 #${EXT_PROJECTS_DIR}/FQFeeder/src/FastxParser.cpp)
 list(REMOVE_ITEM TEST_SRC_FILES ${COMMON_SRC}/main.cpp)
 add_executable(${PROJECT_TEST_NAME} ${TEST_SRC_FILES})
