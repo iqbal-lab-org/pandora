@@ -13,7 +13,7 @@ class debruijn::Node {
     std::vector<uint16_t> hashed_node_ids;
     std::unordered_multiset<uint32_t> read_ids;
 public:
-    std::vector<uint16_t> out_nodes;
+    std::unordered_set<uint16_t> out_nodes;
 
     Node(const uint16_t, const vector<uint16_t>&, const uint32_t);
 

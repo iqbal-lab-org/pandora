@@ -12,13 +12,15 @@
 
 class debruijn::Graph {
     uint16_t next_id;
+    uint8_t size;
     unordered_map<uint16_t, NodePtr> nodes;
 public:
-    Graph();
+    Graph(uint8_t);
     ~Graph();
 
     NodePtr add_node(const vector<uint16_t>&, uint32_t);
     void add_edge (NodePtr, NodePtr);
+    void remove_node(const uint16_t);
 
     unordered_set<uint16_t> get_leaves();
     set<deque<uint16_t>> get_unitigs();

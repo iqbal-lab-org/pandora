@@ -16,8 +16,10 @@ class pangenome::Read {
 public:
     Read(const uint32_t);
     void add_hits(const uint32_t, const std::set<MinimizerHitPtr, pComp>&);
-    //void replace_node(NodePtr, NodePtr);
     void remove_node(NodePtr);
+    // remove nodes
+    //void replace_node(NodePtr, NodePtr);
+    // replace nodes
 
     bool operator == (const Read& y) const;
     bool operator != (const Read& y) const;

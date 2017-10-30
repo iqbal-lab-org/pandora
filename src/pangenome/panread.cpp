@@ -18,6 +18,18 @@ void Read::add_hits(const uint32_t node_id, const set<MinimizerHitPtr, pComp>& c
     hits[node_id].insert(c.begin(), c.end());
 }
 
+void Read::remove_node(NodePtr n_original)
+{
+    auto it = find(nodes.begin(), nodes.end(), n_original);
+    while (it != nodes.end())
+    {
+        uint d = distance(nodes.begin(), it);
+        nodes.erase(it);
+        node_orientations.erase(node_orientations.begin() + d);
+        it = find(nodes.begin(), nodes.end(), n_original);
+    }
+}
+
 /*void Read::replace_node(NodePtr n_original, NodePtr n) //?orientation
 {
     if (n_original->reads.find(this)!=n_original->reads.end())
@@ -32,26 +44,6 @@ void Read::add_hits(const uint32_t node_id, const set<MinimizerHitPtr, pComp>& c
     assert(n_original->covg == n_original->reads.size());
     assert(n->covg == n->reads.size());
 }*/
-
-void Read::remove_node(NodePtr n_original)
-{
-    auto it = find(nodes.begin(), nodes.end(), n_original);
-    if (it != nodes.end())
-    {
-        uint d = distance(nodes.begin(), it);
-        nodes.erase(it);
-        node_orientations.erase(node_orientations.begin() + d);
-    }
-    // doesn't update n_original by removing read
-
-    // does not change the edges including the node in read
-    /*if (n_original->reads.find(this)!=n_original->reads.end())
-    {
-        n_original->reads.erase(n_original->reads.find(this));
-        n_original->covg -= 1;
-    }
-    assert(n_original->covg == n_original->reads.size());*/
-}
 
 bool Read::operator == (const Read& y) const {
     if (id != y.id) {return false;}

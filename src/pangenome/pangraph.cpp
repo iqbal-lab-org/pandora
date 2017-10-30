@@ -27,6 +27,7 @@ Graph::~Graph() {
     clear();
 }
 
+// add a node corresponding to a cluster of hits against a given localPRG from a read
 void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_t read_id,
                         const set<MinimizerHitPtr, pComp> &cluster) {
     // check sensible things in new cluster
@@ -83,6 +84,7 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
     assert(n->covg == n->reads.size());
 }
 
+// add a node corresponding to an instance of a localPRG found in a sample
 void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string &sample_name,
                         const vector<KmerNodePtr> &kmp, const LocalPRG *prg) {
     // add new node if it doesn't exist
@@ -117,12 +119,11 @@ void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string
 
 }
 
-
-map<uint32_t, NodePtr>::iterator Graph::remove_node(NodePtr n) {
+// remove the node n, and all references to it
+map<uint32_t, NodePtr>::iterator Graph::remove_node(NodePtr n)
+{
     //cout << "Remove graph node " << *n << endl;
-    // removes node n and for consistency all edges including n
-    // this will remove those edges from reads which is likely to lead to
-    // inconsistent vectors of edges in reads unless handled.
+    // removes all instances of node n and references to it in reads
     for (auto r : n->reads)
     {
         r->remove_node(n);
@@ -135,6 +136,9 @@ map<uint32_t, NodePtr>::iterator Graph::remove_node(NodePtr n) {
     return it;
 }
 
+// remove the all instances of the pattern of nodes/orienations from graph
+
+// remove nodes with covg <= thresh from graph
 void Graph::remove_low_covg_nodes(const uint &thresh) {
     cout << now() << "Remove nodes with covg <= " << thresh << endl;
     for (auto it = nodes.begin(); it != nodes.end();) {
@@ -202,8 +206,6 @@ bool Graph::operator==(const Graph &y) const {
 bool Graph::operator!=(const Graph &y) const {
     return !(*this == y);
 }
-
-
 
 void Graph::save_matrix(const string &filepath) {
     // write a presence/absence matrix for samples and nodes
