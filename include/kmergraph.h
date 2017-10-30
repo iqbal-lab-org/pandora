@@ -2,7 +2,6 @@
 #define __KMERGRAPH_H_INCLUDED__
 
 class KmerNode;
-class PanGraph;
 class LocalPRG;
 
 #include <cstring>
@@ -12,6 +11,8 @@ class LocalPRG;
 #include <iostream>
 #include "path.h"
 #include "kmernode.h"
+#include "pangenome/ns.cpp"
+
 
 class KmerGraph {
     uint reserved_size;
@@ -54,7 +55,7 @@ class KmerGraph {
     void load (const std::string&);
     bool operator == (const KmerGraph& y) const;
     friend std::ostream& operator<< (std::ostream & out, KmerGraph const& data);
-    friend void estimate_parameters(PanGraph*, const std::string&, const uint32_t, float&, const uint);
+    friend void estimate_parameters(pangenome::Graph*, const std::string&, const uint32_t, float&, const uint);
     friend struct condition;
     friend class KmerGraphTest_set_p_Test;
     friend class KmerGraphTest_prob_Test;

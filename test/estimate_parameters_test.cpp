@@ -2,7 +2,7 @@
 #include <cstring>
 #include <iostream>
 #include "gtest/gtest.h"
-#include "pangraph.h"
+#include "pangenome/pangraph.h"
 #include "estimate_parameters.h"
 
 using namespace std;

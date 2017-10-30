@@ -12,13 +12,14 @@
 #include "path.h"
 #include "index.h"
 #include "minihits.h"
-#include "pannode.h"
+#include "pangenome/pannode.h"
 #include "kmergraph.h"
 #include "vcf.h"
 
 class LocalNode;
-class PanNode;
 class KmerNode;
+
+typedef std::shared_ptr<pangenome::Node> PanNodePtr;
 
 class LocalPRG {
     uint32_t next_id;
@@ -54,7 +55,7 @@ class LocalPRG {
     void build_vcf(VCF&, const std::vector<LocalNodePtr>&) const;
     //void add_sample_to_vcf(const std::vector<LocalNodePtr>&);
     void add_sample_to_vcf(VCF&, const std::vector<LocalNodePtr>&, const std::vector<LocalNodePtr>&, const std::string& sample_name="sample") const;
-    std::vector<KmerNodePtr> find_path_and_variants(PanNode*, const std::string&, uint w=0, bool max_path=true, bool min_path=false, bool output_vcf = false, bool output_comparison_paths = false) const;
+    std::vector<KmerNodePtr> find_path_and_variants(PanNodePtr, const std::string&, uint w=0, bool max_path=true, bool min_path=false, bool output_vcf = false, bool output_comparison_paths = false) const;
 
   friend std::ostream& operator<< (std::ostream& out, const LocalPRG& data);  
 };

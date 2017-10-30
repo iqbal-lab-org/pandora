@@ -988,7 +988,7 @@ void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, co
 }*/
 
 vector<KmerNodePtr>
-LocalPRG::find_path_and_variants(PanNode *pnode, const string &prefix, uint w, bool max_path, bool min_path,
+LocalPRG::find_path_and_variants(PanNodePtr pnode, const string &prefix, uint w, bool max_path, bool min_path,
                                  bool output_vcf, bool output_comparison_paths) const {
     //cout << "called find path and variants" << endl;
     string new_name = name;

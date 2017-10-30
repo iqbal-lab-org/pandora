@@ -4,7 +4,7 @@
 #include <cmath>
 #include <numeric>
 #include "utils.h"
-#include "pangraph.h"
+#include "pangenome/pangraph.h"
 
 using namespace std;
 
@@ -124,7 +124,7 @@ int find_prob_thresh(vector<uint> &kmer_prob_dist) {
     return peak - 200;
 }
 
-void estimate_parameters(PanGraph *pangraph, const string &prefix, const uint32_t k, float &e_rate, const uint covg) {
+void estimate_parameters(pangenome::Graph *pangraph, const string &prefix, const uint32_t k, float &e_rate, const uint covg) {
     // ignore trivial case
     if (pangraph->nodes.empty()) {
         return;

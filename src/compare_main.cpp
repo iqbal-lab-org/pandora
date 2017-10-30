@@ -26,8 +26,8 @@
 #include "utils.h"
 #include "localPRG.h"
 #include "localgraph.h"
-#include "pangraph.h"
-#include "pannode.h"
+#include "pangenome/pangraph.h"
+#include "pangenome/pannode.h"
 #include "index.h"
 #include "estimate_parameters.h"
 
@@ -214,9 +214,9 @@ int pandora_compare(int argc, char* argv[])
     read_prg_file(prgs, prgfile);
     load_PRG_kmergraphs(prgs, w, k, prgfile);
 
-    PanGraph *pangraph, *pangraph_sample;
-    pangraph = new PanGraph();
-    pangraph_sample = new PanGraph();
+    pangenome::Graph *pangraph, *pangraph_sample;
+    pangraph = new pangenome::Graph();
+    pangraph_sample = new pangenome::Graph();
     MinimizerHits *mhs;
     mhs = new MinimizerHits(100*idx->minhash.size());
     uint covg;
@@ -232,7 +232,7 @@ int pandora_compare(int argc, char* argv[])
 	mhs->clear();
 	
 	// construct the pangraph for this sample
-        cout << now() << "Constructing PanGraph from read file " << sample->second << endl;
+        cout << now() << "Constructing pangenome::Graph from read file " << sample->second << endl;
 	covg = pangraph_from_read_file(sample->second, mhs, pangraph_sample, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, illumina);
     
         cout << now() << "Update LocalPRGs with hits" << endl;

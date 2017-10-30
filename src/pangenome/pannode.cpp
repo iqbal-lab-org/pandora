@@ -1,17 +1,17 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
-#include "pannode.h"
-#include "pansample.h"
+#include "pangenome/pannode.h"
+#include "pangenome/pansample.h"
 #include "utils.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-using namespace std;
+using namespace pangenome;
 
-PanNode::PanNode (const uint32_t i, const uint32_t j, const string n): prg_id(i), node_id(j), name(n), covg(1) {}
+Node::Node (const uint32_t i, const uint32_t j, const string n): prg_id(i), node_id(j), name(n), covg(1) {}
 
-string PanNode::get_name()
+string Node::get_name()
 {
     if (prg_id != node_id)
     {
@@ -21,7 +21,7 @@ string PanNode::get_name()
     }
 }
 
-void PanNode::add_path(const vector<KmerNodePtr>& kmp)
+void Node::add_path(const vector<KmerNodePtr>& kmp)
 {
     for (uint i=0; i!=kmp.size(); ++i)
     {
@@ -32,7 +32,7 @@ void PanNode::add_path(const vector<KmerNodePtr>& kmp)
     }
 }
 
-void PanNode::output_samples(const LocalPRG* prg, const string& prefix, const uint w)
+void Node::output_samples(const LocalPRG* prg, const string& prefix, const uint w)
 {
     vector<KmerNodePtr> kmp;
     kmp.reserve(800);
@@ -93,7 +93,7 @@ void PanNode::output_samples(const LocalPRG* prg, const string& prefix, const ui
 }
 
 /*// copy constructor
-PanNode::PanNode(const PanNode& other)
+Node::Node(const Node& other)
 {
     prg_id = other.prg_id;
     //node_id = other.node_id;
@@ -105,7 +105,7 @@ PanNode::PanNode(const PanNode& other)
 }
 
 // Assignment operatorNode& KmerNode::operator=(const KmerNode& other)
-PanNode& PanNode::operator=(const PanNode& other)
+Node& Node::operator=(const Node& other)
 {
     // check for self-assignment
     if (this == &other)
@@ -122,19 +122,19 @@ PanNode& PanNode::operator=(const PanNode& other)
     return *this;
 }*/
 
-bool PanNode::operator == (const PanNode& y) const {
+bool Node::operator == (const Node& y) const {
     return (node_id == y.node_id);
 }
 
-bool PanNode::operator != (const PanNode& y) const {
+bool Node::operator != (const Node& y) const {
     return (node_id != y.node_id);
 }
 
-bool PanNode::operator < (const PanNode& y) const {
+bool Node::operator < (const Node& y) const {
     return (node_id < y.node_id);
 }
 
-std::ostream& operator<< (std::ostream & out, PanNode const& n) {
+std::ostream& pangenome::operator<< (std::ostream & out, pangenome::Node const& n) {
     out << n.prg_id << " covg: " << n.covg;
     return out ;
 }

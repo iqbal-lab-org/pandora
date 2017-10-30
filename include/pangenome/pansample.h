@@ -4,26 +4,24 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include "pangenome/ns.cpp"
 
-class PanEdge;
 class KmerNode;
 
 typedef std::shared_ptr<KmerNode> KmerNodePtr;
 
-
-class PanSample {
+class pangenome::Sample {
   public:
-    const std::string name; // corresponding the the read id
-    std::vector<PanEdge*> edges;
+    const std::string name; // first column in index of read files
     std::unordered_map<uint32_t, std::vector<std::vector<KmerNodePtr>>> paths; // from prg id (or unique id) to kmernnode path(s) through each node
 
-    PanSample(const std::string&);
+    Sample(const std::string&);
     void add_path(const uint32_t, const std::vector<KmerNodePtr>&);
 
-    bool operator == (const PanSample& y) const;
-    bool operator != (const PanSample& y) const;
-    bool operator < (const PanSample& y) const;
-    friend std::ostream& operator<< (std::ostream& out, const PanSample& r);
+    bool operator == (const Sample& y) const;
+    bool operator != (const Sample& y) const;
+    bool operator < (const Sample& y) const;
+    friend std::ostream& operator<< (std::ostream& out, const Sample& r);
 };
 
 #endif

@@ -24,8 +24,8 @@
 #include "utils.h"
 #include "localPRG.h"
 #include "localgraph.h"
-#include "pangraph.h"
-#include "pannode.h"
+#include "pangenome/pangraph.h"
+#include "pangenome/pannode.h"
 #include "index.h"
 #include "estimate_parameters.h"
 
@@ -179,15 +179,15 @@ int pandora_map(int argc, char *argv[]) {
     read_prg_file(prgs, prgfile);
     load_PRG_kmergraphs(prgs, w, k, prgfile);
 
-    cout << now() << "Constructing PanGraph from read file (this will take a while)" << endl;
+    cout << now() << "Constructing pangenome::Graph from read file (this will take a while)" << endl;
     MinimizerHits *mhs;
     mhs = new MinimizerHits(100 * idx->minhash.size());
-    PanGraph *pangraph;
-    pangraph = new PanGraph();
+    pangenome::Graph *pangraph;
+    pangraph = new pangenome::Graph();
     uint covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, illumina);
 
-    cout << now() << "Writing PanGraph to file " << prefix << ".pangraph.gfa" << endl;
-    pangraph->write_gfa(prefix + ".pangraph.gfa");
+    cout << now() << "Writing pangenome::Graph to file " << prefix << ".pangraph.gfa" << endl;
+    //pangraph->write_gfa(prefix + ".pangraph.gfa");
 
     cout << now() << "Update LocalPRGs with hits" << endl;
     update_localPRGs_with_hits(pangraph, prgs);

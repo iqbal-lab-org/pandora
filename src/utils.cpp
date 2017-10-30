@@ -9,8 +9,8 @@
 //#include "FastxParser.hpp"
 #include "utils.h"
 #include "seq.h"
-#include "pangraph.h"
-#include "panread.h"
+#include "pangenome/pangraph.h"
+#include "pangenome/panread.h"
 #include "minihit.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
@@ -327,7 +327,7 @@ void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of
     cout << now() << "Now have " << clusters_of_hits.size() << " clusters of hits " << endl;
 }
 
-void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHits *minimizer_hits, PanGraph *pangraph,
+void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHits *minimizer_hits, pangenome::Graph *pangraph,
                                     const int max_diff, const uint &genome_size, const float& scale_cluster_size,
                                     const uint min_cluster_size, const uint short_read_length) {
     // this step infers the gene order for a read and adds this to the pangraph
@@ -344,7 +344,8 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
     filter_clusters(clusters_of_hits);
     //filter_clusters2(clusters_of_hits, genome_size);
 
-    // Add inferred order to pangraph    
+    // Add inferred order to pangraph
+    cout << now() << "Add inferred order to PanGraph" << endl;
     if (clusters_of_hits.empty()) { return; }
     // to do this consider pairs of clusters in turn
     auto c_previous = clusters_of_hits.begin();
@@ -357,13 +358,6 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
         if ((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) {
             pangraph->add_node((*(*c_current).begin())->prg_id, prgs[(*(*c_current).begin())->prg_id]->name,
                                (*(*c_current).begin())->read_id, *c_current);
-            if ((*(*c_previous).begin())->prg_id != (*(*c_current).begin())->prg_id or
-                (*(*c_previous).begin())->strand != (*(*c_current).begin())->strand) {
-                pangraph->add_edge((*(*c_previous).begin())->prg_id, (*(*c_current).begin())->prg_id,
-                                   (*(*c_previous).begin())->strand + 2 * (*(*c_current).begin())->strand,
-                                   (*(*c_current).begin())->read_id);
-                //cout << "\t" << prgs[(*(*c_current).begin())->prg_id]->name;
-            }
             c_previous = c_current;
         } else if ((*(*c_current).begin())->read_id != (*(*c_previous).begin())->read_id) {
             // if we just started looking at hits for a new read, add the first cluster
@@ -377,7 +371,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
     cout << endl;
 }
 
-uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph *pangraph, Index *idx,
+uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenome::Graph *pangraph, Index *idx,
                              const vector<LocalPRG *> &prgs, const uint32_t w, const uint32_t k,
                              const int max_diff, const float& e_rate,
                              const uint min_cluster_size, const uint genome_size,
@@ -446,11 +440,11 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
         covg = covg / genome_size;
         cout << now() << "Estimated coverage: " << covg << endl;
         //cout << "Number of reads found: " << id+1 << endl;
-        cout << now() << "Infer gene orders and add to PanGraph" << endl;
+        cout << now() << "Infer gene orders and add to pangenome::Graph" << endl;
         infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, scale_cluster_size,
                                        min_cluster_size, short_read_length);
         cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
-        pangraph->clean(covg);
+        //pangraph->clean(covg);
         cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
         delete s;
         myfile.close();
@@ -461,7 +455,7 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, PanGraph
     return covg;
 }
 
-void update_localPRGs_with_hits(PanGraph *pangraph,
+void update_localPRGs_with_hits(pangenome::Graph *pangraph,
                                 const vector<LocalPRG *> &prgs) //, const uint32_t k, const float& e_rate, bool output_p_dist)
 {
     pangraph->add_hits_to_kmergraphs(prgs);

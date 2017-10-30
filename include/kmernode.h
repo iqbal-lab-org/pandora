@@ -1,7 +1,6 @@
 #ifndef __KMERNODE_H_INCLUDED__   // if kmernode.h hasn't been included yet...
 #define __KMERNODE_H_INCLUDED__
 
-class PanGraph;
 class LocalPRG;
 class KmerNode;
 
@@ -9,6 +8,7 @@ class KmerNode;
 #include <ostream>
 #include <memory>
 #include "path.h"
+#include "pangenome/ns.cpp"
 
 typedef std::shared_ptr<KmerNode> KmerNodePtr;
 
@@ -33,10 +33,10 @@ class KmerNode {
   friend struct condition;
   friend struct pCompKmerNode;
   friend class LocalPRG;
-  friend class PanGraph;
-  friend class PanNode;
+  friend class pangenome::Graph;
+  friend class pangenome::Node;
   friend int pandora_check_kmergraph(int argc, char *argv[]);
-  friend void estimate_parameters(PanGraph*, const std::string&, const uint32_t, float&, const uint);
+  friend void estimate_parameters(pangenome::Graph*, const std::string&, const uint32_t, float&, const uint);
   friend class KmerGraphTest_add_node_Test;
   friend class KmerGraphTest_add_node_with_kh_Test;
   friend class KmerGraphTest_add_edge_Test;

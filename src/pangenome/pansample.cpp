@@ -3,40 +3,39 @@
 #include <fstream>
 #include <cassert>
 #include <unordered_set>
-#include "pansample.h"
-#include "panedge.h"
-#include "pannode.h"
+#include "pangenome/pansample.h"
+#include "pangenome/pannode.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-using namespace std;
+using namespace pangenome;
 
-PanSample::PanSample (const string& s): name(s) {}
+Sample::Sample (const string& s): name(s) {}
 
-void PanSample::add_path(const uint32_t node_id, const vector<KmerNodePtr>& c)
+void Sample::add_path(const uint32_t node_id, const vector<KmerNodePtr>& c)
 {
     if (paths.find(node_id) == paths.end())
     {
-	paths[node_id] = {c};
+	    paths[node_id] = {c};
     } else {
-	paths[node_id].push_back(c);
+	    paths[node_id].push_back(c);
     }
 }
 
-bool PanSample::operator == (const PanSample& y) const {
+bool Sample::operator == (const Sample& y) const {
     if (name != y.name) {return false;}
     return true;
 }
 
-bool PanSample::operator != (const PanSample& y) const {
+bool Sample::operator != (const Sample& y) const {
     return !(*this == y);
 }
 
-bool PanSample::operator < (const PanSample& y) const {
+bool Sample::operator < (const Sample& y) const {
     return (name < y.name);
 }
 
-std::ostream& operator<< (std::ostream & out, PanSample const& s) {
+std::ostream& pangenome::operator<< (std::ostream & out, pangenome::Sample const& s) {
     out << s.name << ":\t";
     for(auto p : s.paths)
     {

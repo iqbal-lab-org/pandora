@@ -9,7 +9,6 @@
 
 class Index;
 struct MinimizerHit;
-class PanGraph;
 class PanNode;
 class LocalPRG;
 class Seq;
@@ -50,12 +49,12 @@ void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>,clusterComp>&, co
                      const MinimizerHits*, const int, const float&, const uint, const uint);
 void filter_clusters(std::set<std::set<MinimizerHitPtr, pComp>,clusterComp>&);
 void filter_clusters2(std::set<std::set<MinimizerHitPtr, pComp>,clusterComp>&, const uint&);
-void infer_localPRG_order_for_reads(const std::vector<LocalPRG*>& prgs, MinimizerHits*, PanGraph*, const int,
+void infer_localPRG_order_for_reads(const std::vector<LocalPRG*>& prgs, MinimizerHits*, pangenome::Graph*, const int,
                                     const uint&, const float&, const uint min_cluster_size=10,
                                     const uint short_read_length=std::numeric_limits<uint>::max());
-uint pangraph_from_read_file(const std::string&, MinimizerHits*, PanGraph*, Index*, const std::vector<LocalPRG*>&,
+uint pangraph_from_read_file(const std::string&, MinimizerHits*, pangenome::Graph*, Index*, const std::vector<LocalPRG*>&,
                              const uint32_t, const uint32_t, const int, const float&, const uint min_cluster_size=10,
                              const uint genome_size=5000000, const bool illumina=false);
-void update_localPRGs_with_hits(PanGraph*, const std::vector<LocalPRG*>&);//, const uint32_t, const float&, bool);
+void update_localPRGs_with_hits(pangenome::Graph*, const std::vector<LocalPRG*>&);//, const uint32_t, const float&, bool);
 void infer_most_likely_prg_path_for_pannode(const std::vector<LocalPRG*>&, PanNode*, uint32_t, float);
 #endif
