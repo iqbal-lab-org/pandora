@@ -9,11 +9,12 @@
 #include "pangenome/ns.cpp"
 
 class pangenome::Read {
+public:
     const uint32_t id; // corresponding the the read id
     vector<NodePtr> nodes;
     vector<bool> node_orientations;
     std::unordered_map<uint32_t,std::set<MinimizerHitPtr, pComp_path>> hits; // from node id to cluster of hits against that node in this read
-public:
+
     Read(const uint32_t);
     void add_hits(const uint32_t, const std::set<MinimizerHitPtr, pComp>&);
     void remove_node(NodePtr);

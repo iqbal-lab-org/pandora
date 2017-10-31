@@ -14,10 +14,9 @@
 
 using namespace pangenome;
 
-Graph::Graph() : next_id(0) {}
+Graph::Graph(){}
 
 void Graph::clear() {
-    next_id = 0;
     reads.clear();
     nodes.clear();
     samples.clear();
@@ -32,30 +31,30 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
                         const set<MinimizerHitPtr, pComp> &cluster) {
     // check sensible things in new cluster
     // NB if cluster is empty, handle by adding in 0 orientation
-    cout << now() << "Add node" << endl;
+    //cout << now() << "Add node" << endl;
     for (const auto &it : cluster) {
         assert(read_id == it->read_id); // the hits should correspond to the read we are saying...
         assert(prg_id == it->prg_id); // and the prg we are saying
     }
-    cout << now() << "Checked cluster was sensible" << endl;
+    //cout << now() << "Checked cluster was sensible" << endl;
 
     // add new node if it doesn't exist
     NodePtr n;
     auto it = nodes.find(prg_id);
     if (it == nodes.end()) {
         n = make_shared<Node>(prg_id, prg_id, prg_name);
-        cout << "add node " << *n << endl;
+        //cout << "add node " << *n << endl;
         nodes[prg_id] = n;
     } else {
         n = it->second;
         it->second->covg += 1;
-        cout << "node " << *n << " already existed " << endl;
+        //cout << "node " << *n << " already existed " << endl;
     }
 
     // add a new read if it doesn't exist
     auto rit = reads.find(read_id);
     if (rit == reads.end()) {
-        cout << "new read " << read_id << endl;
+        //cout << "new read " << read_id << endl;
         ReadPtr r(make_shared<Read>(read_id));
         reads[read_id] = r;
 
@@ -69,7 +68,7 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
             r->node_orientations.push_back(0);
         }
     } else {
-        cout << "read " << read_id  << " already existed " << endl;
+        //cout << "read " << read_id  << " already existed " << endl;
         n->reads.insert(rit->second);
         rit->second->add_hits(prg_id, cluster);
         rit->second->nodes.push_back(n);
@@ -185,7 +184,7 @@ void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
 bool Graph::operator==(const Graph &y) const {
     // false if have different numbers of nodes
     if (y.nodes.size() != nodes.size()) {
-        cout << "different num nodes " << nodes.size() << "!=" << y.nodes.size() << endl;
+        //cout << "different num nodes " << nodes.size() << "!=" << y.nodes.size() << endl;
         return false;
     }
 
@@ -194,7 +193,7 @@ bool Graph::operator==(const Graph &y) const {
         // if node id doesn't exist 
         auto it = y.nodes.find(c.first);
         if (it == y.nodes.end()) {
-            cout << "can't find node " << c.first << endl;
+            //cout << "can't find node " << c.first << endl;
             return false;
         }
     }

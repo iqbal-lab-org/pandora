@@ -12,10 +12,9 @@ class KmerNode;
 class LocalPRG;
 
 class pangenome::Node {
+public:
     std::unordered_multiset<ReadPtr> reads;
     std::unordered_set<SamplePtr> samples;
-
-public:
     const uint32_t prg_id; // corresponding the the LocalPRG id
     const uint32_t node_id; // unique node id, so can have multiple copies of a localPRG in graph
     const std::string name;

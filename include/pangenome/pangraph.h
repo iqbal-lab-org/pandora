@@ -17,7 +17,7 @@ class KmerNode;
 typedef std::shared_ptr<KmerNode> KmerNodePtr;
 
 class pangenome::Graph {
-    uint next_id;
+protected:
     std::map<uint32_t, ReadPtr> reads;
     std::map<std::string, SamplePtr> samples;
 public:

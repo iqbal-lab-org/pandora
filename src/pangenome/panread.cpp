@@ -20,6 +20,7 @@ void Read::add_hits(const uint32_t node_id, const set<MinimizerHitPtr, pComp>& c
 
 void Read::remove_node(NodePtr n_original)
 {
+    //removes all copies of node
     auto it = find(nodes.begin(), nodes.end(), n_original);
     while (it != nodes.end())
     {

@@ -83,6 +83,14 @@ unordered_set<uint16_t> Graph::get_leaves()
     return s;
 }
 
+// get the pangenome node ids and orientations corresponding to leaf tips
+// (ie last one on the dbg node)
+unordered_set<uint16_t> Graph::get_leaf_tips()
+{
+    unordered_set<uint16_t> s;
+    return s;
+}
+
 // get deques of dbg node ids corresponding to maximal non-branching paths in dbg
 set<deque<uint16_t>> Graph::get_unitigs()
 {
