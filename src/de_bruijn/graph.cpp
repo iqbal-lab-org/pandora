@@ -1,4 +1,4 @@
-#include <vector>
+#include <deque>
 #include <fstream>
 #include <unordered_set>
 #include <set>
@@ -22,9 +22,9 @@ Graph::~Graph()
     nodes.clear();
 }
 
-// add a node in dbg corresponding to a fixed size vector of pangenome graph
+// add a node in dbg corresponding to a fixed size deque of pangenome graph
 // node/orientation ids and labelled with the read_ids which cover it
-NodePtr Graph::add_node (const vector<uint16_t>& node_ids, uint32_t read_id)
+NodePtr Graph::add_node (const deque<uint16_t>& node_ids, uint32_t read_id)
 {
     assert(node_ids.size() == size);
     NodePtr n (make_shared<Node>(next_id, node_ids, read_id));
@@ -36,7 +36,7 @@ NodePtr Graph::add_node (const vector<uint16_t>& node_ids, uint32_t read_id)
 	        return c.second;
 	    }
     }
-    cout << "new tuple " << next_id << endl;
+    //cout << "new node " << next_id << endl;
     nodes[next_id] = n;
     next_id++;
     return n;
@@ -92,7 +92,7 @@ set<deque<uint16_t>> Graph::get_unitigs()
 
     for (auto c : nodes)
     {
-        if (seen[c.second->id] == 0 and c.second->out_nodes.size() == 2)
+        if (seen[c.second->id] == 0 and c.second->out_nodes.size() <= 2)
         {
             d = {c.second->id};
             extend_unitig(d);
@@ -117,27 +117,37 @@ void Graph::extend_unitig(deque<uint16_t>& tig)
     } else if (tig.size() == 1 and nodes[tig.back()]->out_nodes.size() == 2)
     {
         tig.push_front(*nodes[tig.back()]->out_nodes.begin());
-        tig.push_back(*nodes[tig.back()]->out_nodes.begin()+1);
+        tig.push_back(*++nodes[tig.back()]->out_nodes.begin());
+    } else if (tig.size() == 1 and nodes[tig.back()]->out_nodes.size() == 1)
+    {
+        tig.push_front(*nodes[tig.back()]->out_nodes.begin());
     }
+
     while (nodes[tig.back()]->out_nodes.size() == 2)
     {
+
         if (*nodes[tig.back()]->out_nodes.begin() == tig[tig.size()-2])
         {
-            tig.push_back(*nodes[tig.back()]->out_nodes.begin()+1);
-        } else if (*nodes[tig.back()]->out_nodes.begin()+1 == tig[tig.size()-2])
+            tig.push_back(*++nodes[tig.back()]->out_nodes.begin());
+        } else if (*++nodes[tig.back()]->out_nodes.begin() == tig[tig.size()-2])
         {
             tig.push_back(*nodes[tig.back()]->out_nodes.begin());
+        } else {
+            break;
         }
         // else error?
     }
+    cout << "tig front " << tig.front() << endl;
     while (nodes[tig.front()]->out_nodes.size() == 2)
     {
         if (*nodes[tig.front()]->out_nodes.begin() == tig[1])
         {
-            tig.push_front(*nodes[tig.front()]->out_nodes.begin()+1);
-        } else if (*nodes[tig.front()]->out_nodes.begin()+1 == tig[1])
+            tig.push_front(*++nodes[tig.front()]->out_nodes.begin());
+        } else if (*++nodes[tig.front()]->out_nodes.begin() == tig[1])
         {
             tig.push_front(*nodes[tig.front()]->out_nodes.begin());
+        } else {
+            break;
         }
         // else error?
     }
@@ -151,11 +161,33 @@ bool Graph::operator == (const Graph& y) const
     {
 	    return false;
     }
+
     for (const auto t : nodes) {
-        bool found = false;
+        bool out_found, found = false;
         for (const auto s : y.nodes) {
             if (*t.second == *s.second) {
                 found = true;
+
+                // also check the outnodes are the same
+                if (t.second->out_nodes.size() != s.second->out_nodes.size())
+                {
+                    return false;
+                }
+                for (const auto i : t.second->out_nodes) {
+                    out_found = false;
+                    for (const auto j : s.second->out_nodes) {
+                        if (*nodes.at(i) == *y.nodes.at(j))
+                        {
+                            out_found = true;
+                            break;
+                        }
+                    }
+                    if (out_found == false)
+                    {
+                        return false;
+                    }
+                }
+
                 break;
             }
         }
@@ -169,4 +201,16 @@ bool Graph::operator == (const Graph& y) const
 
 bool Graph::operator!=(const Graph &y) const {
     return !(*this == y);
+}
+
+namespace debruijn {
+    std::ostream &operator<<(std::ostream &out, const Graph &m) {
+        for (const auto &n : m.nodes) {
+            out << n.first << endl;
+            for (const auto &o : n.second->out_nodes) {
+                out << n.first << " -> " << o << endl;
+            }
+        }
+        return out;
+    }
 }

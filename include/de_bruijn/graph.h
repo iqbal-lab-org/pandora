@@ -1,16 +1,18 @@
 #ifndef __DBGRAPH_H_INCLUDED__   // if de_bruijn/graph.h hasn't been included yet...
 #define __DBGRAPH_H_INCLUDED__
 
-#include <vector>
+#include <deque>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <set>
 #include <deque>
+#include <iostream>
 #include "de_bruijn/ns.cpp"
 #include "de_bruijn/node.h"
 
 class debruijn::Graph {
+protected:
     uint16_t next_id;
     uint8_t size;
     unordered_map<uint16_t, NodePtr> nodes;
@@ -18,7 +20,7 @@ public:
     Graph(uint8_t);
     ~Graph();
 
-    NodePtr add_node(const vector<uint16_t>&, uint32_t);
+    NodePtr add_node(const deque<uint16_t>&, uint32_t);
     void add_edge (NodePtr, NodePtr);
     void remove_node(const uint16_t);
 
@@ -29,6 +31,7 @@ public:
     bool operator == (const Graph& y) const;
     bool operator != (const Graph& y) const;
 
+    friend std::ostream & operator<< (std::ostream &,const Graph&);
 };
 
 #endif

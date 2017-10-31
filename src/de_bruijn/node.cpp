@@ -2,7 +2,7 @@
 
 using namespace debruijn;
 
-Node::Node(const uint16_t i, const vector<uint16_t>& n, const uint32_t r) : id(i), hashed_node_ids(n),
+Node::Node(const uint16_t i, const deque<uint16_t>& n, const uint32_t r) : id(i), hashed_node_ids(n),
                                                                             read_ids({r}) {}
 
 bool Node::operator == (const Node& y) const
