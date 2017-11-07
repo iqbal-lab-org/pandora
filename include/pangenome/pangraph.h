@@ -6,7 +6,7 @@ class LocalPRG;
 class KmerNode;
 
 #include <cstring>
-#include <map>
+#include <unordered_map>
 #include <ostream>
 #include <functional>
 #include <memory>
@@ -18,10 +18,10 @@ typedef std::shared_ptr<KmerNode> KmerNodePtr;
 
 class pangenome::Graph {
 protected:
-    std::map<uint32_t, ReadPtr> reads;
-    std::map<std::string, SamplePtr> samples;
+    std::unordered_map<uint32_t, ReadPtr> reads;
+    std::unordered_map<std::string, SamplePtr> samples;
 public:
-    std::map<uint32_t, NodePtr> nodes;
+    std::unordered_map<uint32_t, NodePtr> nodes;
 
     Graph();
     ~Graph();
@@ -33,7 +33,7 @@ public:
     void add_node(const uint32_t, const std::string &, const std::string &, const std::vector<KmerNodePtr> &,
                   const LocalPRG *); // used by pandora compare
 
-    std::map<uint32_t, NodePtr>::iterator remove_node(NodePtr);
+    std::unordered_map<uint32_t, NodePtr>::iterator remove_node(NodePtr);
 
     void remove_low_covg_nodes(const uint &);
 

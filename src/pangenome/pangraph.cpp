@@ -1,5 +1,5 @@
 #include <iostream>
-#include <map>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 #include <fstream>
@@ -119,7 +119,7 @@ void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string
 }
 
 // remove the node n, and all references to it
-map<uint32_t, NodePtr>::iterator Graph::remove_node(NodePtr n)
+unordered_map<uint32_t, NodePtr>::iterator Graph::remove_node(NodePtr n)
 {
     //cout << "Remove graph node " << *n << endl;
     // removes all instances of node n and references to it in reads

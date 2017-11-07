@@ -17,6 +17,9 @@ public:
 
     Read(const uint32_t);
     void add_hits(const uint32_t, const std::set<MinimizerHitPtr, pComp>&);
+
+    uint find_position(const vector<uint16_t>&, const vector<bool>&);
+
     void remove_node(NodePtr);
     // remove nodes
     //void replace_node(NodePtr, NodePtr);

@@ -58,6 +58,71 @@ TEST_F(PangenomeReadTest,add_hits)
 
 }
 
+TEST_F(PangenomeReadTest, find_position)
+{
+    set<MinimizerHitPtr, pComp> mhs;
+
+    PGraphTester pg;
+
+    // read 0: 0->1->2->3->5->0->7->2->3->5->9
+    pg.add_node(0,"0",0, mhs);
+    pg.add_node(1,"1",0, mhs);
+    pg.add_node(2,"2",0, mhs);
+    pg.add_node(3,"3",0, mhs);
+    pg.add_node(5,"5",0, mhs);
+    pg.add_node(0,"0",0, mhs);
+    pg.add_node(7,"7",0, mhs);
+    pg.add_node(2,"2",0, mhs);
+    pg.add_node(3,"3",0, mhs);
+    pg.add_node(5,"5",0, mhs);
+    pg.add_node(9,"9",0, mhs);
+
+    pg.reads[0]->node_orientations[6] = 1;
+
+    vector<uint16_t> v = {2,3,5};
+    vector<bool> b = {0,0,0};
+    uint p = pg.reads[0]->find_position(v,b);
+    EXPECT_EQ(p,(uint)2);
+
+    // one at the end of the string
+    v = {3,5,9};
+    p = pg.reads[0]->find_position(v,b);
+    EXPECT_EQ(p,(uint)8);
+
+    // one overlapping the end
+    v = {5,9,9};
+    p = pg.reads[0]->find_position(v,b);
+    EXPECT_EQ(p,(uint)9);
+
+    // one in reverse
+    v = {0,5,3};
+    b = {1,1,1};
+    p = pg.reads[0]->find_position(v,b);
+    EXPECT_EQ(p,(uint)3);
+
+    // one overlapping start
+    v = {9,0,1};
+    b = {0,0,0};
+    p = pg.reads[0]->find_position(v,b);
+    EXPECT_EQ(p,(uint)0);
+
+    // one in reverse overlapping start
+    v = {1,0,9};
+    b = {1,1,1};
+    p = pg.reads[0]->find_position(v,b);
+    EXPECT_EQ(p,(uint)0);
+
+    // one not a match
+    v = {8,8,8};
+    p = pg.reads[0]->find_position(v,b);
+    EXPECT_EQ(p,std::numeric_limits<uint>::max());
+
+    // one where orientations mean not a match
+    v = {2,7,0};
+    p = pg.reads[0]->find_position(v,b);
+    EXPECT_EQ(p,std::numeric_limits<uint>::max());
+}
+
 /*TEST_F(PangenomeReadTest,replace_node)
 {
    set<MinimizerHitPtr, pComp> mhs;
