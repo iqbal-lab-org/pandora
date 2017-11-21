@@ -94,12 +94,12 @@ uint Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& n
 
             search_pos = 0;
             found_pos = 0;
-            while (i + 1 + found_pos < nodes.size()
+            while (i + 1 + found_pos <= nodes.size()
                    and nodes[nodes.size() -1 -i -found_pos]->node_id == node_ids[search_pos]
                    and node_orientations[nodes.size() -1  -i -found_pos] == !node_orients[search_pos])
             {
                 cout << "bwd " << search_pos << " " << nodes.size() -1 -i -found_pos << endl;
-                if (search_pos == node_ids.size() - 1 or i + 1 +found_pos == nodes.size())
+                if (search_pos == node_ids.size() - 1 or i + 1 + found_pos == nodes.size())
                 {
                     return nodes.size() -1 -i -found_pos;
                 }
@@ -112,7 +112,7 @@ uint Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& n
         // if we are considering matches which overlap the start backwards, also consider ones which overlap
         // the end backwards by the same amount
         cout << "compare nodes pos " << nodes.size() -1 << " with node_ids " << nodes.size() -1 - i << endl;
-        if (nodes.size() -1 -i < node_ids.size()
+        if (nodes.size() -1 -i <= node_ids.size()
             and nodes.back()->node_id == node_ids[node_ids.size() - nodes.size()-1 - i]
             and node_orientations.back() == !node_orients[node_ids.size() - nodes.size()-1 - i] )
         {
