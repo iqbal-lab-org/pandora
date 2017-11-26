@@ -86,7 +86,7 @@ uint Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& n
 
         cout << "compare nodes pos " << nodes.size() -1 -i << " with node_ids " << 0 << endl;
         if (nodes[nodes.size() -1 -i]->node_id == node_ids[0]
-                   and node_orientations[node_orientations.size() -1  -i] == !node_orients[0])
+            and node_orientations[node_orientations.size() -1  -i] == !node_orients[0])
         {
             cout << "start node " << i << " bwd " << nodes[nodes.size() -1 -i]->node_id;
             cout << " " << node_orientations[nodes.size() -1 -i];
@@ -94,7 +94,7 @@ uint Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& n
 
             search_pos = 0;
             found_pos = 0;
-            while (i + 1 + found_pos <= nodes.size()
+            while (i + found_pos < nodes.size()
                    and nodes[nodes.size() -1 -i -found_pos]->node_id == node_ids[search_pos]
                    and node_orientations[nodes.size() -1  -i -found_pos] == !node_orients[search_pos])
             {
@@ -112,25 +112,30 @@ uint Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& n
         // if we are considering matches which overlap the start backwards, also consider ones which overlap
         // the end backwards by the same amount
         cout << "compare nodes pos " << nodes.size() -1 << " with node_ids " << nodes.size() -1 - i << endl;
-        if (nodes.size() -1 -i <= node_ids.size()
-            and nodes.back()->node_id == node_ids[node_ids.size() - nodes.size()-1 - i]
-            and node_orientations.back() == !node_orients[node_ids.size() - nodes.size()-1 - i] )
+        if (i + node_ids.size() > nodes.size()
+            //and nodes[nodes.size() -1 -i]->node_id == node_ids[i + node_ids.size() - nodes.size()]
+            //and node_orientations[node_orientations.size() -1  -i] == !node_orients[i + node_orients.size() - nodes.size()])
+            and nodes.back()->node_id == node_ids[i + node_ids.size() - nodes.size()]
+            and node_orientations.back() == !node_orients[i + node_orients.size() - nodes.size()])
+
         {
             cout << "start node " << i << " truncated bwd " << nodes.back()->node_id;
             cout << " " << node_orientations.back();
-            cout << " matches " << node_ids[node_ids.size() - nodes.size()-1 - i];
-            cout << " and " << !node_orients[node_ids.size() - nodes.size()-1 - i] << endl;
+            //cout << " matches " << node_ids[node_ids.size() - nodes.size()-1 - i];
+            //cout << " and " << !node_orients[node_ids.size() - nodes.size()-1 - i] << endl;
+            cout << " matches " << node_ids[i + node_ids.size() - nodes.size()];
+            cout << " and " << !node_orients[i + node_ids.size() - nodes.size()] << endl;
 
-            search_pos = node_ids.size() - nodes.size() -1 - i;
+            search_pos = i + node_ids.size() - nodes.size();
             found_pos = 0;
-            while (i + 1 < nodes.size() + found_pos
+            while (found_pos < nodes.size()
                    and nodes[nodes.size() -1 -found_pos]->node_id == node_ids[search_pos]
                    and node_orientations[nodes.size() - 1 -found_pos] == !node_orients[search_pos])
             {
                 cout << "bwd " << search_pos << " " << found_pos << endl;
-                if (search_pos == node_ids.size() - 1 or i + 1 == nodes.size() + found_pos)
+                if (search_pos == node_ids.size() - 1 or i + 1 + found_pos == nodes.size())
                 {
-                    return node_ids.size() -1 - search_pos;
+                    return nodes.size() -1 - found_pos;
                 }
                 search_pos++;
                 found_pos++;

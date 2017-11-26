@@ -89,11 +89,6 @@ TEST_F(PangenomeReadTest, find_position)
     p = pg.reads[0]->find_position(v,b);
     EXPECT_EQ(p,(uint)8);
 
-    // one overlapping the end
-    v = {5,9,9};
-    p = pg.reads[0]->find_position(v,b);
-    EXPECT_EQ(p,(uint)9);
-
     // one in reverse
     v = {0,5,3};
     b = {1,1,1};
@@ -112,13 +107,26 @@ TEST_F(PangenomeReadTest, find_position)
     p = pg.reads[0]->find_position(v,b);
     EXPECT_EQ(p,(uint)0);
 
+    // one overlapping the end
+    b = {0,0,0};
+    v = {5,9,9};
+    p = pg.reads[0]->find_position(v,b);
+    EXPECT_EQ(p,(uint)9);
+
+    // one in reverse overlapping end
+    b = {1,1,1};
+    v = {0,9,5};
+    p = pg.reads[0]->find_position(v,b);
+    EXPECT_EQ(p,(uint)9);
+
     // one not a match
+    b = {0,0,0};
     v = {8,8,8};
     p = pg.reads[0]->find_position(v,b);
     EXPECT_EQ(p,std::numeric_limits<uint>::max());
 
     // one where orientations mean not a match
-    v = {2,7,0};
+    v = {3,2,7};
     p = pg.reads[0]->find_position(v,b);
     EXPECT_EQ(p,std::numeric_limits<uint>::max());
 }
