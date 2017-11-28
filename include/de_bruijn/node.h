@@ -6,8 +6,6 @@
 #include <memory>
 #include "de_bruijn/ns.cpp"
 
-typedef std::shared_ptr<debruijn::Node> NodePtr;
-
 class debruijn::Node {
 public:
     uint16_t id;

@@ -292,6 +292,12 @@ void Read::remove_node(NodePtr n_original)
     }
 }
 
+void Read::remove_node(vector<NodePtr>::iterator nit)
+{
+    //(*nit)->covg -= 1;
+    nodes.erase(nit);
+}
+
 /*void Read::replace_node(NodePtr n_original, NodePtr n) //?orientation
 {
     if (n_original->reads.find(this)!=n_original->reads.end())
@@ -325,6 +331,11 @@ bool Read::operator < (const Read& y) const {
 std::ostream & pangenome::operator<<(std::ostream &out, const pangenome::Read &r) {
     out << r.id << "\t";
 
+    for (const auto i : r.nodes)
+    {
+        out << *i << " ";
+    }
+    out << endl;
     return out;
 }
 

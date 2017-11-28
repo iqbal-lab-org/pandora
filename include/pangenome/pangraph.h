@@ -18,9 +18,9 @@ typedef std::shared_ptr<KmerNode> KmerNodePtr;
 
 class pangenome::Graph {
 protected:
-    std::unordered_map<uint32_t, ReadPtr> reads;
     std::unordered_map<std::string, SamplePtr> samples;
 public:
+    std::unordered_map<uint32_t, ReadPtr> reads;
     std::unordered_map<uint32_t, NodePtr> nodes;
 
     Graph();
@@ -34,6 +34,7 @@ public:
                   const LocalPRG *); // used by pandora compare
 
     std::unordered_map<uint32_t, NodePtr>::iterator remove_node(NodePtr);
+    void remove_read(const uint32_t);
 
     void remove_low_covg_nodes(const uint &);
 

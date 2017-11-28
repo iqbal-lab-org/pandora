@@ -14,9 +14,10 @@
 class debruijn::Graph {
 protected:
     uint16_t next_id;
+public:
     uint8_t size;
     unordered_map<uint16_t, NodePtr> nodes;
-public:
+
     Graph(uint8_t);
     ~Graph();
 

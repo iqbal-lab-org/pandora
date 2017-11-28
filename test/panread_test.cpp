@@ -77,6 +77,11 @@ TEST_F(PangenomeReadTest, find_position)
     pg.add_node(5,"5",0, mhs);
     pg.add_node(9,"9",0, mhs);
 
+    // read 1: 0->1->2
+    pg.add_node(0,"0",1, mhs);
+    pg.add_node(1,"1",1, mhs);
+    pg.add_node(2,"2",1, mhs);
+
     pg.reads[0]->node_orientations[6] = 1;
 
     vector<uint16_t> v = {2,3,5};
@@ -129,6 +134,11 @@ TEST_F(PangenomeReadTest, find_position)
     v = {3,2,7};
     p = pg.reads[0]->find_position(v,b);
     EXPECT_EQ(p,std::numeric_limits<uint>::max());
+
+    // and when is whole read
+    v = {0,1,2};
+    p = pg.reads[1]->find_position(v,b);
+    EXPECT_EQ(p,(uint)0);
 }
 
 /*TEST_F(PangenomeReadTest,replace_node)

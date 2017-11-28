@@ -121,7 +121,7 @@ void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string
 // remove the node n, and all references to it
 unordered_map<uint32_t, NodePtr>::iterator Graph::remove_node(NodePtr n)
 {
-    //cout << "Remove graph node " << *n << endl;
+    cout << "Remove graph node " << *n << endl;
     // removes all instances of node n and references to it in reads
     for (auto r : n->reads)
     {
@@ -133,6 +133,16 @@ unordered_map<uint32_t, NodePtr>::iterator Graph::remove_node(NodePtr n)
         it = nodes.erase(it);
     }
     return it;
+}
+
+void Graph::remove_read(const uint32_t read_id)
+{
+    for (auto n : reads[read_id]->nodes)
+    {
+        n->covg -= 1;
+        n->reads.erase(reads[read_id]);
+    }
+    reads.erase(read_id);
 }
 
 // remove the all instances of the pattern of nodes/orienations from graph
@@ -184,7 +194,7 @@ void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
 bool Graph::operator==(const Graph &y) const {
     // false if have different numbers of nodes
     if (y.nodes.size() != nodes.size()) {
-        //cout << "different num nodes " << nodes.size() << "!=" << y.nodes.size() << endl;
+        cout << "different num nodes " << nodes.size() << "!=" << y.nodes.size() << endl;
         return false;
     }
 
@@ -193,7 +203,7 @@ bool Graph::operator==(const Graph &y) const {
         // if node id doesn't exist 
         auto it = y.nodes.find(c.first);
         if (it == y.nodes.end()) {
-            //cout << "can't find node " << c.first << endl;
+            cout << "can't find node " << c.first << endl;
             return false;
         }
     }
@@ -234,8 +244,11 @@ void Graph::save_matrix(const string &filepath) {
 
 std::ostream & pangenome::operator<<(std::ostream &out, pangenome::Graph const &m) {
     //cout << "printing pangraph" << endl;
-    for (const auto &n : m.nodes) {
+    /*for (const auto &n : m.nodes) {
         cout << n.second->prg_id << endl;
+    }*/
+    for (const auto &n : m.reads) {
+        cout << *(n.second) << endl;
     }
 
     return out;

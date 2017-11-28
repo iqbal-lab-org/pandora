@@ -11,6 +11,20 @@ using namespace pangenome;
 
 Node::Node (const uint32_t i, const uint32_t j, const string n): prg_id(i), node_id(j), name(n), covg(1) {}
 
+void Node::remove_read(ReadPtr r)
+{
+    reads.erase(r);
+    covg -= 1;
+    /*//removes all copies of read
+    auto it = find(reads.begin(), reads.end(), r);
+    while (it != reads.end())
+    {
+        covg -= 1;
+        reads.erase(it);
+        it = find(reads.begin(), reads.end(), r);
+    }*/
+}
+
 string Node::get_name()
 {
     if (prg_id != node_id)

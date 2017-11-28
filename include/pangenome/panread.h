@@ -21,6 +21,7 @@ public:
     uint find_position(const vector<uint16_t>&, const vector<bool>&);
 
     void remove_node(NodePtr);
+    void remove_node(vector<NodePtr>::iterator);
     // remove nodes
     //void replace_node(NodePtr, NodePtr);
     // replace nodes

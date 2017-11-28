@@ -198,6 +198,77 @@ TEST_F(DeBruijnGraphTest,get_leaves)
     //EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, l, l_exp);
 }
 
+TEST_F(DeBruijnGraphTest, get_leaves2)
+{
+    Graph dbg_exp(3);
+    deque<uint16_t> d = {0,2,4}; //0
+    NodePtr n1 = dbg_exp.add_node(d, 0);
+    d = {2,4,6};//1
+    NodePtr n2 = dbg_exp.add_node(d, 0);
+    dbg_exp.add_edge(n1,n2);
+    d = {4,6,8};//2
+    n1 = dbg_exp.add_node(d, 0);
+    dbg_exp.add_edge(n2,n1);
+    d = {6,8,10};//3
+    n2 = dbg_exp.add_node(d, 0);
+    dbg_exp.add_edge(n1,n2);
+
+    d = {6,8,10};//3
+    n2 = dbg_exp.add_node(d, 1);
+    d = {8,10,0};//4
+    n1 = dbg_exp.add_node(d, 1);
+    dbg_exp.add_edge(n2,n1);
+    d = {10,0,2};//5
+    n2 = dbg_exp.add_node(d, 1);
+    dbg_exp.add_edge(n1,n2);
+    d = {0,2,4};//0
+    n1 = dbg_exp.add_node(d, 1);
+    dbg_exp.add_edge(n2,n1);
+
+    d = {2,4,6};//1
+    n1 = dbg_exp.add_node(d, 2);
+    d = {4,6,14};//6
+    n2 = dbg_exp.add_node(d, 2);
+    dbg_exp.add_edge(n1,n2);
+
+    d = {0,12,6};//7
+    n1 = dbg_exp.add_node(d, 3);
+    d = {12,6,8};//8
+    n2 = dbg_exp.add_node(d, 3);
+    dbg_exp.add_edge(n1,n2);
+
+    d = {0,2,4};//0
+    n1 = dbg_exp.add_node(d, 4);
+    d = {2,4,12};//9
+    n2 = dbg_exp.add_node(d, 4);
+    dbg_exp.add_edge(n1,n2);
+    d = {4,12,6};//10
+    n1 = dbg_exp.add_node(d, 4);
+    dbg_exp.add_edge(n2,n1);
+    d = {12,6,8};//8
+    n2 = dbg_exp.add_node(d, 4);
+    dbg_exp.add_edge(n1,n2);
+    d = {6,8,10};//3
+    n1 = dbg_exp.add_node(d, 4);
+    dbg_exp.add_edge(n2,n1);
+
+    d = {12,2,4};//11
+    n1 = dbg_exp.add_node(d, 5);
+    d = {2,4,12};//9
+    n2 = dbg_exp.add_node(d, 5);
+    dbg_exp.add_edge(n1,n2);
+    d = {4,12,6};//10
+    n1 = dbg_exp.add_node(d, 5);
+    dbg_exp.add_edge(n2,n1);
+
+    unordered_set<uint16_t> l = dbg_exp.get_leaves();
+    unordered_set<uint16_t> l_exp = {6,7,11};
+    for (auto i : l_exp)
+    {
+        EXPECT_EQ(l.find(i)!=l.end(), true);
+    }
+}
+
 TEST_F(DeBruijnGraphTest,get_unitigs)
 {
     // 0 -> 1

@@ -24,6 +24,8 @@ public:
     Node(const uint32_t, const uint32_t, const std::string);
     //Node(const Node&);
     //Node& operator=(const Node&);
+
+    void remove_read(ReadPtr);
     
     std::string get_name();
     void add_path(const std::vector<KmerNodePtr>&);

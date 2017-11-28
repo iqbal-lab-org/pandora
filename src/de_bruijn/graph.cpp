@@ -27,6 +27,12 @@ Graph::~Graph()
 NodePtr Graph::add_node (const deque<uint16_t>& node_ids, uint32_t read_id)
 {
     assert(node_ids.size() == size);
+    cout << "add dbg node ";
+    for (const auto i : node_ids)
+    {
+        cout << i << " ";
+    }
+    cout << endl;
     NodePtr n (make_shared<Node>(next_id, node_ids, read_id));
     for (auto c : nodes)
     {
@@ -55,7 +61,9 @@ void Graph::add_edge (NodePtr from, NodePtr to)
 // remove de bruijn node with id given
 void Graph::remove_node(const uint16_t dbg_node_id)
 {
+    cout << "remove node " << dbg_node_id;
     auto it = nodes.find(dbg_node_id);
+    cout << it->first << endl;
     if ( it != nodes.end())
     {
         // remove this node from lists of out nodes from other graph nodes
@@ -80,14 +88,6 @@ unordered_set<uint16_t> Graph::get_leaves()
             s.insert(c.second->id);
         }
     }
-    return s;
-}
-
-// get the pangenome node ids and orientations corresponding to leaf tips
-// (ie last one on the dbg node)
-unordered_set<uint16_t> Graph::get_leaf_tips()
-{
-    unordered_set<uint16_t> s;
     return s;
 }
 
@@ -167,6 +167,7 @@ bool Graph::operator == (const Graph& y) const
     // the ids given them is different.
     if (nodes.size() != y.nodes.size())
     {
+        cout << "different num nodes" << endl;
 	    return false;
     }
 
@@ -179,6 +180,7 @@ bool Graph::operator == (const Graph& y) const
                 // also check the outnodes are the same
                 if (t.second->out_nodes.size() != s.second->out_nodes.size())
                 {
+                    cout << "node has different number of outnodes" << endl;
                     return false;
                 }
                 for (const auto i : t.second->out_nodes) {
@@ -192,6 +194,7 @@ bool Graph::operator == (const Graph& y) const
                     }
                     if (out_found == false)
                     {
+                        cout << "did not find outnode" << endl;
                         return false;
                     }
                 }
@@ -201,6 +204,7 @@ bool Graph::operator == (const Graph& y) const
         }
         if (found == false) {
             return false;
+            cout << "did not find node" << endl;
         }
     }
     // nodes can't be equal within a graph so don't need to check vice versa
