@@ -163,6 +163,71 @@ void Graph::remove_low_covg_nodes(const uint &thresh) {
     cout << now() << "Pangraph now has " << nodes.size() << " nodes" << endl;
 }
 
+void Graph::split_node_by_reads(unordered_set<ReadPtr> reads_along_tig, vector<uint16_t> node_ids,
+                            vector<bool> node_orients, uint16_t node_id)
+{
+    auto next_id = 0;
+    while (nodes.find(next_id)!=nodes.end())
+    {
+        next_id++;
+    }
+
+    // define new node
+    NodePtr n = make_shared<Node>(next_id, nodes[node_id]->prg_id, nodes[node_id]->name);
+    nodes[next_id] = n;
+
+    // switch old node to new node in reads
+    vector<NodePtr>::iterator it;
+    uint pos;
+    for (auto r : reads_along_tig)
+    {
+        // ignore if this node does not contain this read
+        if (nodes[node_id]->reads.find(r)==nodes[node_id]->reads.end())
+        {
+            continue;
+        }
+
+        //find iterator to the node in the read
+        pos = r->find_position(node_ids, node_orients);
+        it = std::find(r->nodes.begin()+pos, r->nodes.end(), nodes[node_id]);
+
+        // replace the node in the read
+        r->replace_node(it, n);
+        (*it)->reads.erase(r);
+        (*it)->covg -= 1;
+        n->reads.insert(r);
+        n->covg += 1;
+
+    }
+}
+
+
+/*Graph::unordered_set<ReadPtr> find_reads_on_node_path(const vector<uint16_t> node_path_ids,
+                                                      const vector<bool> node_path_orients)
+{
+    unordered_set<ReadPtr> reads_on_node_path;
+
+    // collect all reads on nodes
+    for (const auto i : node_path_ids)
+    {
+        for (const auto r : nodes[n]->reads)
+        {
+            reads_on_node_path.insert(r);
+        }
+    }
+
+    // remove reads which deviate from path
+    for (auto rit = reads_on_node_path.begin(); rit != reads_on_node_path.end();)
+    {
+        if ((*rit)->find_position(node_path_ids, node_path_orients) == std::numeric_limits<uint>::max())
+        {
+            rit = reads_on_node_path.erase(rit);
+        } else {
+            rit++;
+        }
+    }
+    return reads_on_node_path;
+}*/
 
 void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
     uint num_hits[2];

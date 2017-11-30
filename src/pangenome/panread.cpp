@@ -298,20 +298,14 @@ void Read::remove_node(vector<NodePtr>::iterator nit)
     nodes.erase(nit);
 }
 
-/*void Read::replace_node(NodePtr n_original, NodePtr n) //?orientation
+void Read::replace_node(vector<NodePtr>::iterator n_original, NodePtr n)
 {
-    if (n_original->reads.find(this)!=n_original->reads.end())
-    {
-        n_original->reads.erase(n_original->reads.find(this));
-        n_original->covg -= 1;
-        n->reads.insert(this);
-        n->covg += 1;
+    auto it = nodes.erase(n_original);
+    nodes.insert(it, n);
+    hits[n->node_id] = hits[(*n_original)->node_id];
+    //hits.erase((*n_original)->node_id);
 
-        hits[n->node_id] = hits[n_original->node_id]; //NB we don't remove the n_original hits in case of reads long enough to pass through node twice
-    }
-    assert(n_original->covg == n_original->reads.size());
-    assert(n->covg == n->reads.size());
-}*/
+}
 
 bool Read::operator == (const Read& y) const {
     if (id != y.id) {return false;}

@@ -23,7 +23,7 @@ public:
     void remove_node(NodePtr);
     void remove_node(vector<NodePtr>::iterator);
     // remove nodes
-    //void replace_node(NodePtr, NodePtr);
+    void replace_node(vector<NodePtr>::iterator, NodePtr);
     // replace nodes
 
     bool operator == (const Read& y) const;

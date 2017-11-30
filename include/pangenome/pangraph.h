@@ -38,6 +38,8 @@ public:
 
     void remove_low_covg_nodes(const uint &);
 
+    void split_node_by_reads(unordered_set<ReadPtr>, vector<uint16_t>, vector<bool>, uint16_t);
+    //unordered_set<ReadPtr> find_reads_on_node_path(const std::vector<uint16_t>, const std::vector<bool> );
     void add_hits_to_kmergraphs(const std::vector<LocalPRG *> &);
 
     // graph comparison

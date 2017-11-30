@@ -173,14 +173,36 @@ void filter_unitigs(pangenome::Graph & pg, debruijn::Graph & dbg, const uint16_t
 
 void detangle_pangraph_with_debruijn_graph(pangenome::Graph & pg, debruijn::Graph & dbg)
 {
+    vector<uint16_t> node_ids;
+    vector<bool> node_orients;
+    bool all_reads_tig;
+    unordered_set<pangenome::ReadPtr> reads_along_tig;
+
     set<deque<uint16_t>> unitigs = dbg.get_unitigs();
     for (auto d : unitigs)
     {
-        
-        // for middle nodes
-        // reverse look up ids
-        // if they have degree > 2 in pangraph,
-        // add new nodes to represent this set of reads
+        // look up the node ids and orientations associated with this node
+        hashed_node_ids_to_ids_and_orientations(d, node_ids, node_orients);
+
+        // for each node on tig, for each read covering that node, if read doesn't lie along whole tig, create a new node
+        for (auto n : node_ids)
+        {
+            all_reads_tig = true;
+            for (auto r : pg.nodes[n]->reads)
+            {
+                if (reads_along_tig.find(r) == reads_along_tig.end()) {
+                    if (r->find_position(node_ids, node_orients) == std::numeric_limits<uint>::max()) {
+                        all_reads_tig = false;
+                    } else {
+                        reads_along_tig.insert(r);
+                    }
+                }
+            }
+            if (!all_reads_tig)
+            {
+                pg.split_node_by_reads(reads_along_tig, node_ids, node_orients, n);
+            }
+        }
     }
 }
 

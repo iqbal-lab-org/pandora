@@ -11,18 +11,46 @@ using namespace pangenome;
 
 Node::Node (const uint32_t i, const uint32_t j, const string n): prg_id(i), node_id(j), name(n), covg(1) {}
 
+/*// copy constructor
+Node::Node(const Node& other)
+{
+    prg_id = other.prg_id;
+    node_id = other.node_id;
+    name = other.name;
+    covg = other.covg;
+    kmer_prg = other.kmer_prg;
+    reads = other.reads;
+    samples = other.samples;
+}
+
+// Assignment operator
+Node& Node::operator=(const Node& other)
+{
+    // check for self-assignment
+    if (this == &other)
+        return *this;
+
+    prg_id = other.prg_id;
+    node_id = other.node_id;
+    name = other.name;
+    covg = other.covg;
+    kmer_prg = other.kmer_prg;
+    reads = other.reads;
+    samples = other.samples;
+
+    return *this;
+}*/
+
 void Node::remove_read(ReadPtr r)
 {
-    reads.erase(r);
-    covg -= 1;
-    /*//removes all copies of read
+    //removes single copy of read
     auto it = find(reads.begin(), reads.end(), r);
-    while (it != reads.end())
+    if (it != reads.end())
     {
         covg -= 1;
         reads.erase(it);
-        it = find(reads.begin(), reads.end(), r);
-    }*/
+        //it = find(reads.begin(), reads.end(), r);
+    }
 }
 
 string Node::get_name()
@@ -105,36 +133,6 @@ void Node::output_samples(const LocalPRG* prg, const string& prefix, const uint 
     vcf.save(prefix + "." + name + ".multisample.vcf", true, true, true, true, true, true, true);
     vcf.write_aligned_fasta(prefix + "." + name + ".multisample.fa", lmp);
 }
-
-/*// copy constructor
-Node::Node(const Node& other)
-{
-    prg_id = other.prg_id;
-    //node_id = other.node_id;
-    name = other.name;
-    covg = other.covg;
-    kmer_prg = other.kmer_prg;
-    //edges = other.edges; // shallow copies, so will point to same edges and reads
-    //reads = other.reads;
-}
-
-// Assignment operatorNode& KmerNode::operator=(const KmerNode& other)
-Node& Node::operator=(const Node& other)
-{
-    // check for self-assignment
-    if (this == &other)
-        return *this;
-
-    prg_id = other.prg_id;
-    //node_id = other.node_id;
-    name = other.name;
-    covg = other.covg;
-    kmer_prg = other.kmer_prg;
-    //edges = other.edges; // shallow copies, so will point to same edges and reads
-    //reads = other.reads;
-
-    return *this;
-}*/
 
 bool Node::operator == (const Node& y) const {
     return (node_id == y.node_id);
