@@ -334,6 +334,13 @@ void KmerGraph::find_compatible_paths(const uint16_t read_id, vector<deque<KmerN
     }
 }
 
+void KmerGraph::find_all_compatible_paths(std::vector<std::deque<KmerNodePtr>>& paths, std::vector<std::vector<uint16_t>>& num_hits)
+{
+    // adds all the compatible paths for all reads to paths
+    // for each read, for each path num_hits[read_id][path_id] gives the number of minimizer hits
+    // on that path in that read
+}
+
 void KmerGraph::set_p(const float e_rate) {
     assert(k != 0);
     assert(0 < e_rate and e_rate < 1);

@@ -559,7 +559,7 @@ void PanGraph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
         pnode.second->kmer_prg = prgs[pnode.second->prg_id]->kmer_prg;
 	    assert(pnode.second->kmer_prg == prgs[pnode.second->prg_id]->kmer_prg);
         // initialise kmergraph covgs to 0
-        pnode.second->kmer_prg.covgs = vector<vector<vector<uint16_t>>>(pnode.second->reads.size(), vector<vector<uint16_t>>(2, vector<uint16_t>(pnode.second->kmer_prg.nodes.size(), 0)));
+        pnode.second->kmer_prg.covgs = vector<vector<vector<uint8_t>>>(pnode.second->reads.size(), vector<vector<uint8_t>>(2, vector<uint8_t>(pnode.second->kmer_prg.nodes.size(), 0)));
 
         num_hits[0] = 0;
         num_hits[1] = 0;

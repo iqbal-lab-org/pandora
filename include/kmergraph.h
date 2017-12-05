@@ -25,7 +25,7 @@ class KmerGraph {
     uint32_t shortest_path_length;
     std::unordered_map<uint32_t, KmerNodePtr> nodes;
     std::vector<KmerNodePtr> sorted_nodes; // representing ordering of the nodes compatible with dp
-    std::vector<std::vector<std::vector<uint16_t>>> covgs;
+    std::vector<std::vector<std::vector<uint8_t>>> covgs;
 
 
     KmerGraph();
@@ -47,6 +47,7 @@ class KmerGraph {
     void extend_paths_back(std::vector<std::deque<KmerNodePtr>>&, const std::vector<std::deque<KmerNodePtr>>&);
     void extend_paths_forward(std::vector<std::deque<KmerNodePtr>>&, const std::vector<std::deque<KmerNodePtr>>&);
     void find_compatible_paths(const uint16_t, std::vector<std::deque<KmerNodePtr>>&);
+    void KmerGraph::find_all_compatible_paths(std::vector<std::deque<KmerNodePtr>>& paths, std::vector<std::vector<uint16_t>>& num_hits)
 
     void set_p(const float);
     float prob(uint);
