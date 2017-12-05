@@ -557,35 +557,27 @@ void PanGraph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
     for (auto pnode : nodes) {
         // copy kmergraph
         pnode.second->kmer_prg = prgs[pnode.second->prg_id]->kmer_prg;
-	assert(pnode.second->kmer_prg == prgs[pnode.second->prg_id]->kmer_prg);
+	    assert(pnode.second->kmer_prg == prgs[pnode.second->prg_id]->kmer_prg);
+        // initialise kmergraph covgs to 0
+        pnode.second->kmer_prg.covgs = vector<vector<vector<uint16_t>>>(pnode.second->reads.size(), vector<vector<uint16_t>>(2, vector<uint16_t>(pnode.second->kmer_prg.nodes.size(), 0)));
+
         num_hits[0] = 0;
         num_hits[1] = 0;
 
         // add hits
+
         for (auto read : pnode.second->reads) {
             for (auto mh = read->hits[pnode.second->node_id].begin();
                  mh != read->hits[pnode.second->node_id].end(); ++mh) {
-                //bool added = false;
                 // update the covg in the kmer_prg
                 pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] += 1;
+                pnode.second->kmer_prg.covgs[read->id][(*mh)->strand][(*mh)->knode_id] += 1;
                 num_hits[(*mh)->strand] += 1;
-		//cout << "add hit " << **mh << " to " << *pnode.second->kmer_prg.nodes[(*mh)->knode_id] << " which has path " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->path << endl;
-                /*for (uint i=0; i!=pnode.second->kmer_prg.nodes.size(); ++i)
-                {
-                    if (pnode.second->kmer_prg.nodes[i]->path == (*mh)->prg_path)
-                    {
-                        pnode.second->kmer_prg.nodes[i]->covg[(*mh)->strand] += 1;
-			num_hits[(*mh)->strand] += 1;
-                        added = true;
-                        break;
-                    }
-                }
-                assert(added == true || assert_msg("could not find kmernode corresponding to " << **mh));*/
-            }
+		    }
         }
         //cout << now() << "Added " << num_hits[1] << " hits in the forward direction and " << num_hits[0]
         //     << " hits in the reverse" << endl;
-        pnode.second->kmer_prg.num_reads = pnode.second->covg;
+        pnode.second->kmer_prg.num_reads = pnode.second->reads.size(); // assume covg == num reads in multiset
     }
 }
 
