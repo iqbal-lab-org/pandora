@@ -1,16 +1,17 @@
 #include <cmath>
 #include "pathAbundanceEstimator.h"
 
-PathAbundanceEstimator::PathAbundanceEstimator(KmerGraph& kmerGraph, double epsilonIn, uint16_t maxItrCntIn):
+PathAbundanceEstimator::PathAbundanceEstimator(std::vector<std::vector<std::pair<uint16_t, uint16_t>>> hitCntPerRead4Paths,
+                                               std::vector<std::deque<KmerNodePtr>> paths,
+                                               double epsilonIn,
+                                               uint16_t maxItrCntIn):
   epsilon(epsilonIn), maxItrCnt(maxItrCntIn) {
-  std::vector<std::vector<std::pair<uint16_t, uint16_t>>> hitCntPerRead4Paths;
-  std::vector<std::deque<KmerNodePtr>> paths;
-  kmerGraph.find_all_compatible_paths(paths, hitCntPerRead4Paths);
   pathCnts.resize(paths.size());
   std::fill_n(pathCnts.begin(), pathCnts.size(), 1);
   readProbs.resize(hitCntPerRead4Paths.size());
 
   // calculate probability of each read coming from any of the paths in its compatible list of paths
+  uint16_t i = 0;
   for (auto readIt = hitCntPerRead4Paths.begin(); readIt != hitCntPerRead4Paths.end(); readIt++) {
     std::vector<std::pair<uint16_t, double>> readProb;
     // calculate the probability of each read coming from a path : (# of hits) / (path total # of minimizers)
@@ -19,7 +20,7 @@ PathAbundanceEstimator::PathAbundanceEstimator(KmerGraph& kmerGraph, double epsi
       // hitIt->second : # of hits
       readProb.emplace_back(hitIt->first, static_cast<double>(hitIt->second)/static_cast<double>(paths[hitIt->first].size()));
     }
-    readProbs.push_back(readProb);
+    readProbs[i++] = readProb;
   }
 
 };
