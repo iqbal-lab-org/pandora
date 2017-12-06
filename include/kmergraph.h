@@ -25,7 +25,7 @@ class KmerGraph {
     uint32_t shortest_path_length;
     std::unordered_map<uint32_t, KmerNodePtr> nodes;
     std::vector<KmerNodePtr> sorted_nodes; // representing ordering of the nodes compatible with dp
-    std::vector<std::vector<std::vector<uint8_t>>> covgs;
+    std::vector<std::vector<std::vector<bool>>> covgs;
 
 
     KmerGraph();
