@@ -7,6 +7,7 @@
 #include "kmernode.h"
 #include <stdint.h>
 #include <iostream>
+#include <utility>
 
 using namespace std;
 
@@ -698,6 +699,186 @@ TEST_F(KmerGraphTest, get_next)
     kg.get_next(1,1,5,next, next_paths);
     EXPECT_EQ((uint)6, next);
     EXPECT_ITERABLE_EQ(vector<deque<KmerNodePtr>>, next_paths_exp, next_paths);
+}
+
+TEST_F(KmerGraphTest, extend_paths_back)
+{
+    KmerGraph kg;
+    deque<Interval> d = {Interval(0,0)};
+    Path p;
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,1), Interval(4,5), Interval(8, 9)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,1), Interval(4,5), Interval(12, 13)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(4,5), Interval(8, 9), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(4,5), Interval(12, 13), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(24,24)};
+    p.initialize(d);
+    kg.add_node(p);
+
+    // note these are nonsense paths
+    vector<deque<KmerNodePtr>> paths_to_extend = {{kg.nodes[0]}, {kg.nodes[0],kg.nodes[1]}};
+    vector<deque<KmerNodePtr>> path_extensions = {{kg.nodes[4], kg.nodes[5],kg.nodes[0]}, {kg.nodes[6],kg.nodes[0]}};
+    vector<deque<KmerNodePtr>> expected_result = {{kg.nodes[4], kg.nodes[5],kg.nodes[0]},
+                                                  {kg.nodes[6], kg.nodes[0]},
+                                                  {kg.nodes[4], kg.nodes[5], kg.nodes[0], kg.nodes[1]},
+                                                  {kg.nodes[6], kg.nodes[0], kg.nodes[1]}};
+    kg.extend_paths_back(paths_to_extend, path_extensions);
+    EXPECT_ITERABLE_EQ(vector<deque<KmerNodePtr>>, expected_result, paths_to_extend);
+}
+
+TEST_F(KmerGraphTest, extend_paths_forward)
+{
+    KmerGraph kg;
+    deque<Interval> d = {Interval(0,0)};
+    Path p;
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,1), Interval(4,5), Interval(8, 9)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,1), Interval(4,5), Interval(12, 13)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(4,5), Interval(8, 9), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(4,5), Interval(12, 13), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(24,24)};
+    p.initialize(d);
+    kg.add_node(p);
+
+    // note these are nonsense paths
+    vector<deque<KmerNodePtr>> paths_to_extend = {{kg.nodes[0], kg.nodes[1]}, {kg.nodes[1]}};
+    vector<deque<KmerNodePtr>> path_extensions = {{kg.nodes[1], kg.nodes[4], kg.nodes[5]}, {kg.nodes[1], kg.nodes[6]}};
+    vector<deque<KmerNodePtr>> expected_result = {{kg.nodes[0], kg.nodes[1], kg.nodes[4], kg.nodes[5]},
+                                                  {kg.nodes[0],kg.nodes[1], kg.nodes[6]},
+                                                  {kg.nodes[1], kg.nodes[4], kg.nodes[5]},
+                                                  {kg.nodes[1],kg.nodes[6]}};
+    kg.extend_paths_forward(paths_to_extend, path_extensions);
+    EXPECT_ITERABLE_EQ(vector<deque<KmerNodePtr>>, expected_result, paths_to_extend);
+}
+
+TEST_F(KmerGraphTest,find_compatible_paths)
+{
+    KmerGraph kg;
+    deque<Interval> d = {Interval(0,0)};
+    Path p;
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,1), Interval(4,5), Interval(8, 9)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,1), Interval(4,5), Interval(12, 13)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(4,5), Interval(8, 9), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(4,5), Interval(12, 13), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(24,24)};
+    p.initialize(d);
+    kg.add_node(p);
+
+    kg.add_edge(kg.nodes[0],kg.nodes[1]);
+    kg.add_edge(kg.nodes[0],kg.nodes[2]);
+    kg.add_edge(kg.nodes[0],kg.nodes[3]);
+    kg.add_edge(kg.nodes[1],kg.nodes[4]);
+    kg.add_edge(kg.nodes[2],kg.nodes[5]);
+    kg.add_edge(kg.nodes[3],kg.nodes[6]);
+    kg.add_edge(kg.nodes[4],kg.nodes[6]);
+    kg.add_edge(kg.nodes[5],kg.nodes[6]);
+
+    kg.covgs = {{{0,1,1,0,0,1,0},{0,0,0,0,0,0,0}},{{0,0,0,0,0,0,0},{0,0,1,1,0,0,0}}};
+    vector<deque<KmerNodePtr>> paths;
+    vector<deque<KmerNodePtr>> exp_paths = {{kg.nodes[0],kg.nodes[1],kg.nodes[4],kg.nodes[6]},
+                                            {kg.nodes[0],kg.nodes[2],kg.nodes[5],kg.nodes[6]}};
+    kg.find_compatible_paths(0,paths);
+    EXPECT_ITERABLE_EQ(vector<deque<KmerNodePtr>>, exp_paths, paths);
+
+    paths.clear();
+    exp_paths = {{kg.nodes[0],kg.nodes[2],kg.nodes[5],kg.nodes[6]},
+                 {kg.nodes[0],kg.nodes[3],kg.nodes[6]}};
+    kg.find_compatible_paths(1,paths);
+    EXPECT_ITERABLE_EQ(vector<deque<KmerNodePtr>>, exp_paths, paths);
+
+}
+
+TEST_F(KmerGraphTest,find_all_compatible_paths)
+{
+    KmerGraph kg;
+    deque<Interval> d = {Interval(0,0)};
+    Path p;
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,1), Interval(4,5), Interval(8, 9)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,1), Interval(4,5), Interval(12, 13)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(4,5), Interval(8, 9), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(4,5), Interval(12, 13), Interval(16,16), Interval(23,24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(24,24)};
+    p.initialize(d);
+    kg.add_node(p);
+
+    kg.add_edge(kg.nodes[0],kg.nodes[1]);
+    kg.add_edge(kg.nodes[0],kg.nodes[2]);
+    kg.add_edge(kg.nodes[0],kg.nodes[3]);
+    kg.add_edge(kg.nodes[1],kg.nodes[4]);
+    kg.add_edge(kg.nodes[2],kg.nodes[5]);
+    kg.add_edge(kg.nodes[3],kg.nodes[6]);
+    kg.add_edge(kg.nodes[4],kg.nodes[6]);
+    kg.add_edge(kg.nodes[5],kg.nodes[6]);
+
+    kg.covgs = {{{0,1,1,0,0,1,0},{0,0,0,0,0,0,0}},{{0,0,0,0,0,0,0},{0,0,1,0,1,0,0}}};
+    vector<deque<KmerNodePtr>> paths;
+    vector<deque<KmerNodePtr>> exp_paths = {{kg.nodes[0],kg.nodes[1],kg.nodes[4],kg.nodes[6]},
+                                        {kg.nodes[0],kg.nodes[2],kg.nodes[5],kg.nodes[6]}};
+    vector<vector<pair<uint16_t,uint16_t>>> hit_pairs;
+    vector<vector<pair<uint16_t,uint16_t>>> exp_hit_pairs = {{make_pair(0,1), make_pair(1,2)},
+                                                             {make_pair(1,1), make_pair(0,1)}};
+    kg.find_all_compatible_paths(paths, hit_pairs);
+
+    EXPECT_ITERABLE_EQ(vector<deque<KmerNodePtr>>, exp_paths, paths);
+    EXPECT_EQ(exp_hit_pairs.size(), hit_pairs.size());
+    EXPECT_EQ(exp_hit_pairs[0].size(), hit_pairs[0].size());
+    EXPECT_EQ(exp_hit_pairs[0][0], hit_pairs[0][0]);
+    EXPECT_EQ(exp_hit_pairs[0][1], hit_pairs[0][1]);
+    EXPECT_EQ(exp_hit_pairs[1].size(), hit_pairs[1].size());
+    EXPECT_EQ(exp_hit_pairs[1][0], hit_pairs[1][0]);
+    EXPECT_EQ(exp_hit_pairs[1][1], hit_pairs[1][1]);
+
+    //EXPECT_ITERABLE_EQ(vector<vector<pair<uint16_t,uint16_t>>>, exp_hit_pairs, hit_pairs);
 }
 
 TEST_F(KmerGraphTest, set_p)
