@@ -8,6 +8,7 @@ class LocalPRG;
 #include <cstring>
 #include <map>
 #include <vector>
+#include <deque>
 #include <unordered_map>
 #include <iostream>
 #include "path.h"
@@ -24,6 +25,8 @@ class KmerGraph {
     uint32_t shortest_path_length;
     std::unordered_map<uint32_t, KmerNodePtr> nodes;
     std::vector<KmerNodePtr> sorted_nodes; // representing ordering of the nodes compatible with dp
+    std::vector<std::vector<std::vector<uint8_t>>> covgs;
+
 
     KmerGraph();
     KmerGraph(const KmerGraph&);
@@ -39,9 +42,17 @@ class KmerGraph {
     void sort_topologically();
     void check();
 
+    void get_prev(const uint16_t, const uint8_t, const uint16_t, uint16_t&, std::vector<std::deque<KmerNodePtr>>&);
+    void get_next(const uint16_t, const uint8_t, const uint16_t, uint16_t&, std::vector<std::deque<KmerNodePtr>>&);
+    void extend_paths_back(std::vector<std::deque<KmerNodePtr>>&, const std::vector<std::deque<KmerNodePtr>>&);
+    void extend_paths_forward(std::vector<std::deque<KmerNodePtr>>&, const std::vector<std::deque<KmerNodePtr>>&);
+    void find_compatible_paths(const uint16_t, std::vector<std::deque<KmerNodePtr>>&);
+    void find_all_compatible_paths(std::vector<std::deque<KmerNodePtr>>&, std::vector<std::vector<std::pair<uint16_t, uint16_t>>>&);
+
     void set_p(const float);
     float prob(uint);
     float prob(uint, uint);
+
     float find_max_path(std::vector<KmerNodePtr>&);
     float find_min_path(std::vector<KmerNodePtr>&);
     std::vector<std::vector<KmerNodePtr>> find_max_paths(uint);
