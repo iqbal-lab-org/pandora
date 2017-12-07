@@ -27,7 +27,7 @@ PathAbundanceEstimator::PathAbundanceEstimator(std::vector<std::vector<std::pair
 
 std::vector<double>& PathAbundanceEstimator::runEM() {
   uint16_t iterationCntr = 0;
-  bool converged = true;
+  bool converged = false;
 
   uint32_t i = 0;
   std::vector<double> tmpPathCnts(pathCnts.size());
@@ -46,6 +46,7 @@ std::vector<double>& PathAbundanceEstimator::runEM() {
         denom += newReadProbs[i++];
       }
       // normalize probabilities for each read
+
       i = 0;
       for (auto probIt = readIt->begin(); probIt != readIt->end(); probIt++) {
         tmpPathCnts[probIt->first] += newReadProbs[i++] / denom;
@@ -64,6 +65,8 @@ std::vector<double>& PathAbundanceEstimator::runEM() {
   }
   if (iterationCntr == maxItrCnt)
     std::cerr << "INFO: Didn't converge.\n";
+  // TODO question: do we need to replace p(p|gama)p(r|p) instead of p(r|p) in the readProbs vector at the end?
+
   return pathCnts;
 };
 
