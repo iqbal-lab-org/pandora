@@ -559,21 +559,22 @@ void PanGraph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
         pnode.second->kmer_prg = prgs[pnode.second->prg_id]->kmer_prg;
 	    assert(pnode.second->kmer_prg == prgs[pnode.second->prg_id]->kmer_prg);
         // initialise kmergraph covgs to 0
-        pnode.second->kmer_prg.covgs = vector<vector<vector<uint8_t>>>(pnode.second->reads.size(), vector<vector<uint8_t>>(2, vector<uint8_t>(pnode.second->kmer_prg.nodes.size(), 0)));
+        pnode.second->kmer_prg.covgs = vector<vector<vector<bool>>>(pnode.second->reads.size(), vector<vector<bool>>(2, vector<bool>(pnode.second->kmer_prg.nodes.size(), 0)));
 
         num_hits[0] = 0;
         num_hits[1] = 0;
 
         // add hits
-
+        uint16_t read_num = 0;
         for (auto read : pnode.second->reads) {
             for (auto mh = read->hits[pnode.second->node_id].begin();
                  mh != read->hits[pnode.second->node_id].end(); ++mh) {
                 // update the covg in the kmer_prg
                 pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] += 1;
-                pnode.second->kmer_prg.covgs[read->id][(*mh)->strand][(*mh)->knode_id] += 1;
+                pnode.second->kmer_prg.covgs[read_num][(*mh)->strand][(*mh)->knode_id] = 1;
                 num_hits[(*mh)->strand] += 1;
 		    }
+            read_num++;
         }
         //cout << now() << "Added " << num_hits[1] << " hits in the forward direction and " << num_hits[0]
         //     << " hits in the reverse" << endl;
