@@ -1,5 +1,6 @@
 #include <cmath>
 #include "pathAbundanceEstimator.h"
+#include "utils.h"
 
 PathAbundanceEstimator::PathAbundanceEstimator(std::vector<std::vector<std::pair<uint16_t, uint16_t>>> hitCntPerRead4Paths,
                                                std::vector<std::deque<KmerNodePtr>> paths,
@@ -26,12 +27,14 @@ PathAbundanceEstimator::PathAbundanceEstimator(std::vector<std::vector<std::pair
 };
 
 std::vector<double>& PathAbundanceEstimator::runEM() {
+  std::cout << now() << "Start EM to find abundance of these paths" << std::endl;
   uint16_t iterationCntr = 0;
   bool converged = false;
 
   uint32_t i = 0;
   std::vector<double> tmpPathCnts(pathCnts.size());
   while (iterationCntr++ < maxItrCnt && !converged) {
+    std::cout << ".";
     converged = true;
     // E Step
     for (auto readIt = readProbs.begin(); readIt != readProbs.end(); readIt++) {
@@ -67,6 +70,7 @@ std::vector<double>& PathAbundanceEstimator::runEM() {
     std::cerr << "INFO: Didn't converge.\n";
   // TODO question: do we need to replace p(p|gama)p(r|p) instead of p(r|p) in the readProbs vector at the end?
 
+  std::cout << std::endl;
   return pathCnts;
 };
 

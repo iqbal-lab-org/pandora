@@ -161,16 +161,27 @@ void add_read_hits(Seq *s, MinimizerHits *hits, Index *idx) {
     uint32_t hit_count = 0;
     // creates Seq object for the read, then looks up minimizers in the Seq sketch and adds hits to a global MinimizerHits object
     //Seq s(id, name, seq, w, k);
+    vector<uint> v(idx->minhash.size(),0);
     for (auto it = s->sketch.begin(); it != s->sketch.end(); ++it) {
         if (idx->minhash.find((*it)->kmer) != idx->minhash.end()) {
             for (uint j = 0; j != idx->minhash[(*it)->kmer]->size(); ++j) {
                 hits->add_hit(s->id, *it, &(idx->minhash[(*it)->kmer]->operator[](j)));
                 hit_count += 1;
             }
+	    v[distance(idx->minhash.begin(), idx->minhash.find((*it)->kmer))] += idx->minhash[(*it)->kmer]->size();
             //} else {
             //    cout << "did not find minimizer " << (*it)->kmer << " in index" << endl;
         }
     }
+    /*if (!std::all_of(v.begin(), v.end(), [](uint i) { return i==0; }))
+    {
+    	cout << s->name << "\t";
+    	for (auto i : v)
+    	{
+            cout << i << "\t";
+    	}
+   	cout << endl;
+    }*/
     //hits->sort();
     //cout << now() << "Found " << hit_count << " hits found for read " << s->name << " so size of MinimizerHits is now "
     //     << hits->hits.size() + hits->uhits.size() << endl;
