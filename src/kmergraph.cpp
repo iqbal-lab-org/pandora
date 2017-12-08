@@ -196,138 +196,6 @@ void KmerGraph::sort_topologically() {
     sort(sorted_nodes.begin(), sorted_nodes.end(), pCompKmerNode());
 }
 
-void KmerGraph::get_prev(const uint16_t read_id, const uint8_t strand, const uint16_t kmer_id, uint16_t& prev_id, vector<deque<KmerNodePtr>>& prev_paths)
-{
-    // walk back in the graph until get hit or start node
-    deque<KmerNodePtr> v = {nodes[kmer_id]};
-    deque<deque<KmerNodePtr>> current_paths;
-    current_paths.push_back(v);
-
-    while(current_paths.size() > 0 and current_paths.size() < 1000)
-    {
-        v = current_paths.front();
-        current_paths.pop_front();
-
-        for (auto k : v.front()->inNodes)
-        {
-            v.push_front(k);
-            if (covgs[read_id][strand][k->id] > 0 or k->id == 0)
-            {
-                // keep this path if it is the shortest (or joint shortest) to reach a minihit/start
-                // or if it is an alternative path which reaches the same minihit as a path already in prev_paths
-                if (prev_paths.size() == 0 or v.size()==prev_paths[0].size())
-                {
-                    prev_paths.push_back(v);
-                    prev_id = k->id; // only captures one of the previous ids
-                } else {
-                    for (auto p : prev_paths)
-                    {
-                        if (k->id == p.front()->id)
-                        {
-                            prev_paths.push_back(v);
-                            break;
-                        }
-                    }
-                }
-            } else {
-                current_paths.push_back(v);
-            }
-            v.pop_front();
-        }
-    }
-}
-
-/*void KmerGraph::get_prev(const uint16_t kmer_id, const uint8_t thresh, unordered_set<uint16_t>& prev_ids, vector<deque<KmerNodePtr>>& prev_paths)
-{   
-    // walk back in the graph until get node with covg > thresh or start node
-    deque<KmerNodePtr> v = {nodes[kmer_id]};
-    deque<deque<KmerNodePtr>> current_paths;
-    current_paths.push_back(v);
-    uint8_t num_shared_read;
-    
-    while(current_paths.size() > 0 and current_paths.size() < 1000)
-    {   
-        v = current_paths.front();
-        current_paths.pop_front();
-        
-        for (auto k : v.front()->inNodes)
-        {   
-            v.push_front(k);
-	    if (k->id == 0)
-	    {
-		prev_paths.push_back(v);
-                prev_ids.insert(k->id);
-	    } else if (k->covg[0] + k->covg[1] >= max((uint8_t)1,thresh))
-            {   
-		// check if there are any reads which have a hit for both prev_id and kmer_id
-		num_shared_read = 0;
-                for (auto r : covgs)
-                {
-                    if (r[0][kmer_id]+r[1][kmer_id]+r[0][k->id]+r[1][k->id] >= 2)
-                    {
-                        num_shared_read += 1;
-                        if (num_shared_read >= thresh)
-                        {
-                            break;
-                        }
-                    }
-                }
-                if (num_shared_read > thresh)
-                {
-		    prev_paths.push_back(v);
-                    prev_ids.insert(k->id);
-                } else if (prev_paths.size()>0 and v.size()<=3*prev_paths[0].size()){
-		    current_paths.push_back(v);
-		}		    
-            } else {
-                current_paths.push_back(v);
-            }
-            v.pop_front();
-        }
-    }
-}*/
-
-void KmerGraph::get_next(const uint16_t read_id, const uint8_t strand, const uint16_t kmer_id, uint16_t& next_id, vector<deque<KmerNodePtr>>& next_paths)
-{
-    // walk back in the graph until get hit or start node
-    deque<KmerNodePtr> v = {nodes[kmer_id]};
-    deque<deque<KmerNodePtr>> current_paths;
-    current_paths.push_back(v);
-
-    while(current_paths.size() > 0 and current_paths.size() < 1000)
-    {
-        v = current_paths.front();
-        current_paths.pop_front();
-
-        for (auto k : v.back()->outNodes)
-        {
-            v.push_back(k);
-            if (covgs[read_id][strand][k->id] > 0 or k->id == nodes[nodes.size()-1]->id)
-            {
-                // keep this path if it is the shortest (or joint shortest) to reach a minihit/end
-                // or if it is an alternative path which reaches the same minihit as a path already in prev_paths
-                if (next_paths.size() == 0 or v.size()==next_paths[0].size())
-                {
-                    next_paths.push_back(v);
-                    next_id = k->id;
-                } else {
-                    for (auto p : next_paths)
-                    {
-                        if (k->id == p.back()->id)
-                        {
-                            next_paths.push_back(v);
-                            break;
-                        }
-                    }
-                }
-            } else {
-                current_paths.push_back(v);
-            }
-            v.pop_back();
-        }
-    }
-}
-
 void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t thresh, unordered_set<uint16_t>& next_ids, vector<deque<KmerNodePtr>>& next_paths)
 {
     // walk back in the graph until get hit or start node
@@ -344,7 +212,7 @@ void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t thresh, unordered
         for (auto k : v.back()->outNodes)
         {
             v.push_back(k);
-	    if (k->id == nodes[nodes.size()-1]->id)
+	    if (k->id == nodes[nodes.size()-1]->id or kmer_id == 0)
 	    {
 		next_paths.push_back(v);
                 next_ids.insert(k->id);
@@ -428,7 +296,7 @@ void KmerGraph::extend_paths_forward(vector<deque<KmerNodePtr>>& paths_to_extend
         for (const auto d_ : path_extensions)
         {
 	    cout << "with extension ";
-	    for (auto n : *it)
+	    for (auto n : d_)
             {
            	cout << n->id << " ";
             }
@@ -543,6 +411,7 @@ void KmerGraph::find_compatible_paths(const uint8_t thresh, vector<deque<KmerNod
     {
         if (nodes[i]->covg[0] + nodes[i]->covg[1] >= thresh or i==0)
         {
+	    cout << i << " as covg " << nodes[i]->covg[0] + nodes[i]->covg[1] << endl;
             get_next(i, thresh, next[i], next_paths[i]);
             hits_to_cover.insert(i);
         }
@@ -553,7 +422,13 @@ void KmerGraph::find_compatible_paths(const uint8_t thresh, vector<deque<KmerNod
     uint i;
 
     cout << "cover with hits" << endl;
-    paths = next_paths[0];
+    for (auto p : next_paths[0])
+    {
+	if (hits_to_cover.find(p.back()->id)!=hits_to_cover.end())
+	{
+	    paths.push_back(p);
+	}
+    }
     while (hits_to_cover.size() > 0)
     {
         i = *hits_to_cover.begin();

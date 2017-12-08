@@ -403,7 +403,7 @@ TEST_F(KmerGraphTest, check)
     EXPECT_DEATH(kg.check(),"");
 }
 
-TEST_F(KmerGraphTest, get_prev)
+/*TEST_F(KmerGraphTest, get_prev)
 {
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
@@ -550,9 +550,9 @@ TEST_F(KmerGraphTest, get_prev)
     kg.get_prev(1,1,6,prev, prev_paths);
     EXPECT_EQ((uint)4, prev);
     EXPECT_ITERABLE_EQ(vector<deque<KmerNodePtr>>, prev_paths_exp, prev_paths);
-}
+}*/
 
-TEST_F(KmerGraphTest, get_next)
+/*TEST_F(KmerGraphTest, get_next)
 {
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
@@ -699,7 +699,7 @@ TEST_F(KmerGraphTest, get_next)
     kg.get_next(1,1,5,next, next_paths);
     EXPECT_EQ((uint)6, next);
     EXPECT_ITERABLE_EQ(vector<deque<KmerNodePtr>>, next_paths_exp, next_paths);
-}
+}*/
 
 /*TEST_F(KmerGraphTest, extend_paths_back)
 {
