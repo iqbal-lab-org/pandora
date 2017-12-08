@@ -34,7 +34,6 @@ std::vector<double>& PathAbundanceEstimator::runEM() {
   uint32_t i = 0;
   std::vector<double> tmpPathCnts(pathCnts.size());
   while (iterationCntr++ < maxItrCnt && !converged) {
-    std::cout << ".";
     converged = true;
     // E Step
     for (auto readIt = readProbs.begin(); readIt != readProbs.end(); readIt++) {
