@@ -701,7 +701,7 @@ TEST_F(KmerGraphTest, get_next)
     EXPECT_ITERABLE_EQ(vector<deque<KmerNodePtr>>, next_paths_exp, next_paths);
 }
 
-TEST_F(KmerGraphTest, extend_paths_back)
+/*TEST_F(KmerGraphTest, extend_paths_back)
 {
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
@@ -736,7 +736,7 @@ TEST_F(KmerGraphTest, extend_paths_back)
                                                   {kg.nodes[6], kg.nodes[0], kg.nodes[1]}};
     kg.extend_paths_back(paths_to_extend, path_extensions);
     EXPECT_ITERABLE_EQ(vector<deque<KmerNodePtr>>, expected_result, paths_to_extend);
-}
+}*/
 
 TEST_F(KmerGraphTest, extend_paths_forward)
 {

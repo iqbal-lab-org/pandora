@@ -10,6 +10,7 @@ class LocalPRG;
 #include <vector>
 #include <deque>
 #include <unordered_map>
+#include <unordered_set>
 #include <iostream>
 #include "path.h"
 #include "kmernode.h"
@@ -43,10 +44,10 @@ class KmerGraph {
     void check();
 
     void get_prev(const uint16_t, const uint8_t, const uint16_t, uint16_t&, std::vector<std::deque<KmerNodePtr>>&);
-    void get_prev(const uint16_t, const uint8_t, uint16_t&, std::vector<std::deque<KmerNodePtr>>&);
+    //void get_prev(const uint16_t, const uint8_t, uint16_t&, std::vector<std::deque<KmerNodePtr>>&);
     void get_next(const uint16_t, const uint8_t, const uint16_t, uint16_t&, std::vector<std::deque<KmerNodePtr>>&);
-    void get_next(const uint16_t, const uint8_t, uint16_t&, std::vector<std::deque<KmerNodePtr>>&);
-    void extend_paths_back(std::vector<std::deque<KmerNodePtr>>&, const std::vector<std::deque<KmerNodePtr>>&);
+    void get_next(const uint16_t, const uint8_t, std::unordered_set<uint16_t>&, std::vector<std::deque<KmerNodePtr>>&);
+    //void extend_paths_back(std::vector<std::deque<KmerNodePtr>>&, const std::vector<std::deque<KmerNodePtr>>&);
     void extend_paths_forward(std::vector<std::deque<KmerNodePtr>>&, const std::vector<std::deque<KmerNodePtr>>&);
     //void find_compatible_paths(const uint16_t, std::vector<std::deque<KmerNodePtr>>&);
     void find_compatible_paths(const uint8_t, std::vector<std::deque<KmerNodePtr>>&);
