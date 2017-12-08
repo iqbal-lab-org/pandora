@@ -50,7 +50,7 @@ class KmerGraph {
     void extend_paths_forward(std::vector<std::deque<KmerNodePtr>>&, const std::vector<std::deque<KmerNodePtr>>&);
     //void find_compatible_paths(const uint16_t, std::vector<std::deque<KmerNodePtr>>&);
     void find_compatible_paths(const uint8_t, std::vector<std::deque<KmerNodePtr>>&);
-    void find_all_compatible_paths(std::vector<std::deque<KmerNodePtr>>&, std::vector<std::vector<std::pair<uint16_t, uint16_t>>>&, const uint8_t thresh=8);
+    void find_all_compatible_paths(std::vector<std::deque<KmerNodePtr>>&, std::vector<std::vector<std::pair<uint16_t, uint16_t>>>&, const uint8_t thresh=16);
 
     void set_p(const float);
     float prob(uint);

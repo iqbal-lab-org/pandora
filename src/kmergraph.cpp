@@ -253,42 +253,32 @@ void KmerGraph::get_prev(const uint16_t kmer_id, const uint8_t thresh, uint16_t&
         for (auto k : v.front()->inNodes)
         {   
             v.push_front(k);
-            if (k->covg[0] + k->covg[1] > thresh or k->id == 0)
+	    if (k->id == 0)
+	    {
+		prev_paths.push_back(v);
+                prev_id = k->id;
+	    } else if (k->covg[0] + k->covg[1] > thresh)
             {   
 		// check if there are any reads which have a hit for both prev_id and kmer_id
 		num_shared_read = 0;
                 for (auto r : covgs)
                 {
-                    if (r[0][kmer_id]+r[1][kmer_id]+r[0][k->id]+r[1][k->id] == 2)
+                    if (r[0][kmer_id]+r[1][kmer_id]+r[0][k->id]+r[1][k->id] >= 2)
                     {
                         num_shared_read += 1;
-                        if (num_shared_read == thresh)
+                        if (num_shared_read > thresh)
                         {
                             break;
                         }
                     }
                 }
-                if (num_shared_read < thresh)
+                if (num_shared_read > thresh)
                 {
-                    continue;
-                }
-
-                // keep this path if it is the shortest (or joint shortest) to reach a minihit/start
-                // or if it is an alternative path which reaches the same minihit as a path already in prev_paths
-                if (prev_paths.size() == 0 or v.size()==prev_paths[0].size())
-                {   
-                    prev_paths.push_back(v);
+		    prev_paths.push_back(v);
                     prev_id = k->id; // only captures one of the previous ids
-                } else {
-                    for (auto p : prev_paths)
-                    {   
-                        if (k->id == p.front()->id)
-                        {   
-                            prev_paths.push_back(v);
-                            break;
-                        }
-                    }
-                }
+                } else if (prev_paths.size()>0 and v.size()<=3*prev_paths[0].size()){
+		    current_paths.push_back(v);
+		}		    
             } else {
                 current_paths.push_back(v);
             }
@@ -377,26 +367,9 @@ void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t thresh, uint16_t&
                 {
 		    next_paths.push_back(v);
                     next_id = k->id;
-                } else {
+                } else if (next_paths.size()>0 and v.size()<=3*next_paths[0].size()) {
 		    current_paths.push_back(v);
 		}		    
-
-                // keep this path if it is the shortest (or joint shortest) to reach a minihit/end
-                // or if it is an alternative path which reaches the same minihit as a path already in prev_paths
-                /*if (next_paths.size() == 0 or v.size()==next_paths[0].size())
-                {
-                    next_paths.push_back(v);
-                    next_id = k->id;
-                } else {
-                    for (auto p : next_paths)
-                    {
-                        if (k->id == p.back()->id)
-                        {
-                            next_paths.push_back(v);
-                            break;
-                        }
-                    }
-                }*/
             } else {
                 current_paths.push_back(v);
             }
