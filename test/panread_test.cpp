@@ -568,6 +568,121 @@ TEST_F(PangenomeReadTest,remove_node)
     EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[2]->node_orientations, exp_read_orientations);
 }
 
+TEST_F(PangenomeReadTest,remove_node_it)
+{
+   set<MinimizerHitPtr, pComp> mhs;
+
+    PGraphTester pg;
+    vector<NodePtr> exp_read_nodes;
+    vector<bool> exp_read_orientations;
+
+    // read 0: 0->1->2->3
+    pg.add_node(0,"0",0, mhs);
+    pg.add_node(1,"1",0, mhs);
+    pg.add_node(2,"2",0, mhs);
+    pg.add_node(3,"3",0, mhs);
+
+    // read 1: -4 -> -3 -> -1
+    pg.add_node(4,"4",1, mhs);
+    pg.add_node(3,"3",1, mhs);
+    pg.add_node(1,"1",1, mhs);
+
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg.add_node(0,"0",2, mhs);
+    pg.add_node(1,"1",2, mhs);
+    pg.add_node(3,"3",2, mhs);
+    pg.add_node(4,"4",2, mhs);
+
+    // check all as expected
+    exp_read_nodes = {pg.nodes[0], pg.nodes[1], pg.nodes[2], pg.nodes[3]};
+    exp_read_orientations = {0,0,0,0};
+    EXPECT_ITERABLE_EQ(vector<NodePtr>, pg.reads[0]->nodes, exp_read_nodes);
+    EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[0]->node_orientations, exp_read_orientations);
+    exp_read_nodes = {pg.nodes[4], pg.nodes[3], pg.nodes[1]};
+    exp_read_orientations = {0,0,0};
+    EXPECT_ITERABLE_EQ(vector<NodePtr>, pg.reads[1]->nodes, exp_read_nodes);
+    EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[1]->node_orientations, exp_read_orientations);
+    exp_read_nodes = {pg.nodes[0], pg.nodes[1], pg.nodes[3], pg.nodes[4]};
+    exp_read_orientations = {0,0,0,0};
+    EXPECT_ITERABLE_EQ(vector<NodePtr>, pg.reads[2]->nodes, exp_read_nodes);
+    EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[2]->node_orientations, exp_read_orientations);
+
+    // example removing a node which only appears in one read
+    auto it = find(pg.reads[0]->nodes.begin(), pg.reads[0]->nodes.end(),pg.nodes[2]);
+    pg.reads[0]->remove_node(it);
+
+    exp_read_nodes = {pg.nodes[0], pg.nodes[1], pg.nodes[3]};
+    exp_read_orientations = {0,0,0};
+    EXPECT_ITERABLE_EQ(vector<NodePtr>, pg.reads[0]->nodes, exp_read_nodes);
+    EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[0]->node_orientations, exp_read_orientations);
+    exp_read_nodes = {pg.nodes[4], pg.nodes[3], pg.nodes[1]};
+    exp_read_orientations = {0,0,0};
+    EXPECT_ITERABLE_EQ(vector<NodePtr>, pg.reads[1]->nodes, exp_read_nodes);
+    EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[1]->node_orientations, exp_read_orientations);
+    exp_read_nodes = {pg.nodes[0], pg.nodes[1], pg.nodes[3], pg.nodes[4]};
+    exp_read_orientations = {0,0,0,0};
+    EXPECT_ITERABLE_EQ(vector<NodePtr>, pg.reads[2]->nodes, exp_read_nodes);
+    EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[2]->node_orientations, exp_read_orientations);
+
+    // example where old node appears in more than one read
+    pg.reads[0]->remove_node(pg.nodes[1]);
+
+    exp_read_nodes = {pg.nodes[0], pg.nodes[3]};
+    exp_read_orientations = {0,0};
+    EXPECT_ITERABLE_EQ(vector<NodePtr>, pg.reads[0]->nodes, exp_read_nodes);
+    EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[0]->node_orientations, exp_read_orientations);
+    exp_read_nodes = {pg.nodes[4], pg.nodes[3], pg.nodes[1]};
+    exp_read_orientations = {0,0,0};
+    EXPECT_ITERABLE_EQ(vector<NodePtr>, pg.reads[1]->nodes, exp_read_nodes);
+    EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[1]->node_orientations, exp_read_orientations);
+    exp_read_nodes = {pg.nodes[0], pg.nodes[1], pg.nodes[3], pg.nodes[4]};
+    exp_read_orientations = {0,0,0,0};
+    EXPECT_ITERABLE_EQ(vector<NodePtr>, pg.reads[2]->nodes, exp_read_nodes);
+    EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[2]->node_orientations, exp_read_orientations);
+
+    // example where have actual hit
+    Interval i(0,5);
+    deque<Interval> d = {Interval(7,8), Interval(10, 14)};
+    Path p;
+    p.initialize(d);
+    MinimizerHitPtr mh (make_shared<MinimizerHit>(4, i, 0, p, 0, 0));
+    set<MinimizerHitPtr, pComp> c;
+    c.insert(mh);
+    pg.reads[2]->add_hits(4, c);
+
+    pg.reads[2]->remove_node(pg.nodes[4]);
+
+    exp_read_nodes = {pg.nodes[0], pg.nodes[3]};
+    exp_read_orientations = {0,0};
+    EXPECT_ITERABLE_EQ(vector<NodePtr>, pg.reads[0]->nodes, exp_read_nodes);
+    EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[0]->node_orientations, exp_read_orientations);
+    exp_read_nodes = {pg.nodes[4], pg.nodes[3], pg.nodes[1]};
+    exp_read_orientations = {0,0,0};
+    EXPECT_ITERABLE_EQ(vector<NodePtr>, pg.reads[1]->nodes, exp_read_nodes);
+    EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[1]->node_orientations, exp_read_orientations);
+    exp_read_nodes = {pg.nodes[0], pg.nodes[1], pg.nodes[3]};
+    exp_read_orientations = {0,0,0};
+    EXPECT_ITERABLE_EQ(vector<NodePtr>, pg.reads[2]->nodes, exp_read_nodes);
+    EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[2]->node_orientations, exp_read_orientations);
+
+    //example where node appears twice in read
+    pg.add_node(1,"1",2, mhs);
+    pg.reads[2]->remove_node(pg.nodes[1]);
+
+    exp_read_nodes = {pg.nodes[0], pg.nodes[3]};
+    exp_read_orientations = {0,0};
+    EXPECT_ITERABLE_EQ(vector<NodePtr>, pg.reads[0]->nodes, exp_read_nodes);
+    EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[0]->node_orientations, exp_read_orientations);
+    exp_read_nodes = {pg.nodes[4], pg.nodes[3], pg.nodes[1]};
+    exp_read_orientations = {0,0,0};
+    EXPECT_ITERABLE_EQ(vector<NodePtr>, pg.reads[1]->nodes, exp_read_nodes);
+    EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[1]->node_orientations, exp_read_orientations);
+    exp_read_nodes = {pg.nodes[0], pg.nodes[3]};
+    exp_read_orientations = {0,0};
+    EXPECT_ITERABLE_EQ(vector<NodePtr>, pg.reads[2]->nodes, exp_read_nodes);
+    EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[2]->node_orientations, exp_read_orientations);
+}
+
 TEST_F(PangenomeReadTest,equals){
     Read pr1(1);
     Read pr2(2);
