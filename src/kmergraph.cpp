@@ -312,9 +312,9 @@ void KmerGraph::find_compatible_paths(const uint8_t covg_thresh, const uint8_t r
     // walk from each hit until cover all paths to the nearest hit
     for (uint i=0; i<nodes.size(); ++i)
     {
-        if (nodes[i]->covg[0] + nodes[i]->covg[1] >= covg_thresh or i==0)
+        if (nodes[i]->covg[0] + nodes[i]->covg[1] >= covg_thresh or i==0 or hits_to_cover.find(i)!=hits_to_cover.end())
         {
-	        cout << i << " as covg " << nodes[i]->covg[0] + nodes[i]->covg[1] << endl;
+	    cout << i << " as covg " << nodes[i]->covg[0] + nodes[i]->covg[1] << endl;
             get_next(i, read_share_thresh, next[i], next_paths[i]);
             hits_to_cover.insert(i);
             for (auto j : next[i])
@@ -380,10 +380,10 @@ void KmerGraph::find_all_compatible_paths(vector<deque<KmerNodePtr>>& all_paths,
             {
                 num_hits += covgs[read][0][k->id] + covgs[read][1][k->id];
             }
-	        if (num_hits >= read_share_thresh)
-	        {
+	    if (num_hits >= read_share_thresh)
+	    {
                 path_hits[read].push_back(make_pair(i, num_hits));
-	        }
+	    }
         }
         //cout << "found " << path_hits[read].size() << " compatible paths for read " << read << endl;
     }
