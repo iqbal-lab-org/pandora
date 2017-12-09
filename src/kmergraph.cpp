@@ -236,10 +236,10 @@ void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t thresh, unordered
 		            next_paths.push_back(v);
                     next_ids.insert(k->id);
                 } else if (next_paths.size()>0 and v.size()<=3*next_paths[0].size()) {
-		            current_paths.push_back(v);
+		            current_paths.push_front(v);
 		        }
             } else {
-                current_paths.push_back(v);
+                current_paths.push_front(v);
             }
             v.pop_back();
         }
@@ -248,9 +248,23 @@ void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t thresh, unordered
     {
         for (auto k : nodes[kmer_id]->outNodes)
         {
-            v = {nodes[kmer_id], k};
-            next_paths.push_back(v);
-            next_ids.insert(k->id);
+            if (k->covg[0]+k->covg[1] > thresh)
+            {
+                v = {nodes[kmer_id], k};
+                next_paths.push_back(v);
+                next_ids.insert(k->id);
+            }
+        }
+        if (next_ids.size() == 0)
+        {
+            for (auto k : nodes[kmer_id]->outNodes) {
+                if (k->covg[0]+k->covg[1] > 1)
+                {
+                    v = {nodes[kmer_id], k};
+                    next_paths.push_back(v);
+                    next_ids.insert(k->id);
+                }
+            }
         }
     }
 }
@@ -264,7 +278,7 @@ void KmerGraph::extend_paths_forward(vector<deque<KmerNodePtr>>& paths_to_extend
 
     deque<KmerNodePtr> a_path;
     vector<deque<KmerNodePtr>> extended_paths;
-    extended_paths.reserve(50000);
+    extended_paths.reserve(5000);
     bool extended;
     for (auto it=paths_to_extend.begin(); it!=paths_to_extend.end();)
     {
@@ -312,18 +326,19 @@ void KmerGraph::find_compatible_paths(const uint8_t covg_thresh, const uint8_t r
     // order the nodes of the kmergraph
     check();
 
-
     unordered_set<uint16_t> v;
     vector<unordered_set<uint16_t>> next(nodes.size(), v);
     vector<deque<KmerNodePtr>> w;
-    w.reserve(500);
+    w.reserve(1000);
     vector<vector<deque<KmerNodePtr>>> next_paths(nodes.size(), w);
     set<uint> hits_to_cover; // redefine this with custom sort based on sorted_nodes
 
-    // walk from each hit until cover all paths to the nearest hit
+    // walk from each hit until cover all paths to the next hit
     for (uint i=0; i<sorted_nodes.size(); ++i)
     {
-        if (sorted_nodes[i]->covg[0] + sorted_nodes[i]->covg[1] >= covg_thresh or i==0 or hits_to_cover.find(sorted_nodes[i]->id)!=hits_to_cover.end())
+        if (sorted_nodes[i]->covg[0] + sorted_nodes[i]->covg[1] >= covg_thresh
+            or i==0
+            or hits_to_cover.find(sorted_nodes[i]->id)!=hits_to_cover.end())
         {
 	        cout << sorted_nodes[i]->id << " has covg " << sorted_nodes[i]->covg[0] + sorted_nodes[i]->covg[1] << endl;
             get_next(sorted_nodes[i]->id, read_share_thresh, next[sorted_nodes[i]->id], next_paths[sorted_nodes[i]->id]);
@@ -336,19 +351,49 @@ void KmerGraph::find_compatible_paths(const uint8_t covg_thresh, const uint8_t r
     }
 
     // collect this information into a set of paths to return
-    vector<deque<KmerNodePtr>> path_extensions;
-    uint i;
+    //vector<deque<KmerNodePtr>> path_extensions;
+    //uint i;
 
     cout << "cover with hits" << endl;
+    // start paths off with the outnodes of 0 which we included in hits_to_cover
+    deque<deque<KmerNodePtr>> current_paths;
     for (auto p : next_paths[0])
     {
-	    if (hits_to_cover.find(p.back()->id)!=hits_to_cover.end())
-	    {
-	        paths.push_back(p);
-	    }
+        if (hits_to_cover.find(p.back()->id)!=hits_to_cover.end())
+        {
+            current_paths.push_back(p);
+        }
     }
 
-    // consider hit nodes in the order they appear in sorted_nodes
+    // now extend paths until they reach the end
+    cout << "extend the start paths" << endl;
+    deque<KmerNodePtr> a_path, another_path;
+    while (current_paths.size() > 0 and current_paths.size() < 50000)
+    {
+        a_path = current_paths.back();
+        current_paths.pop_back();
+        for (auto p : next_paths[a_path.back()->id])
+        {
+            another_path = a_path;
+            another_path.insert(another_path.end(), ++p.begin(), p.end());
+            if (another_path.back()->id == nodes.size()-1)
+            {
+                paths.push_back(another_path);
+                /*cout << "found complete path";
+                for (auto n : another_path)
+                {
+                    cout << n->id << " ";
+                }
+                cout << endl;*/
+            } else {
+                current_paths.push_back(another_path);
+            }
+        }
+        //cout << endl;
+    }
+    cout << "found " << paths.size() << " paths " << endl;
+
+    /*// consider hit nodes in the order they appear in sorted_nodes
     for (uint l=0; l<sorted_nodes.size(); ++l)
     {
         i = sorted_nodes[l]->id;
@@ -381,7 +426,7 @@ void KmerGraph::find_compatible_paths(const uint8_t covg_thresh, const uint8_t r
         {
             paths.erase(paths.begin() + i-1);
         }
-    }
+    }*/
 
 }
 

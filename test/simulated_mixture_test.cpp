@@ -98,25 +98,29 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     // check the true paths are in the input compatible paths
     for (auto p : paths)
     {
-	kmp = vector<KmerNodePtr>(p.begin(), p.end());
-   	lmp = prgs[0]->localnode_path_from_kmernode_path(kmp, w); 
-	result = "";
-	for (auto n : lmp)
+        cout << ".";
+	    kmp = vector<KmerNodePtr>(p.begin(), p.end());
+    	lmp = prgs[0]->localnode_path_from_kmernode_path(kmp, w);
+	    result = "";
+	    for (auto n : lmp)
     	{
             result += n->seq;
     	}
-	if (result == truth1 or result == truth2)
-	{
-	    found += 1;
-	}
-	if (found == 2)
-	{
-	    break;
-	}
+	    if (result == truth1 or result == truth2)
+	    {
+            cout << endl << result << endl;
+            found += 1;
+	    }
+	    /*if (found == 2)
+	    {
+	        break;
+	    }*/
     }
+    cout << "done" << endl;
     EXPECT_EQ((uint)2, found);
 
     // check the best 2 paths at end of EM
+    cout << "check 1";
     kmp = vector<KmerNodePtr>(paths[path_i].begin(), paths[path_i].end());
     lmp = prgs[0]->localnode_path_from_kmernode_path(kmp, w); 
     result = "";
@@ -124,8 +128,10 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     {
         result += n->seq;
     }
+    cout << " gives " << endl;
     EXPECT_EQ((result==truth1) or (result==truth2), true);
 
+    cout << "check 2";
     kmp = vector<KmerNodePtr>(paths[next_i].begin(), paths[next_i].end());
     lmp = prgs[0]->localnode_path_from_kmernode_path(kmp, w);
     result = "";
@@ -133,9 +139,11 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     {   
         result += n->seq;
     }
+    cout << " gives " << endl;
     EXPECT_EQ((result==truth1) or (result==truth2), true);
 
-    // clear up   
+    // clear up
+    cout << "clear up" << endl;
     idx->clear();
     delete idx;
     delete mhs;
