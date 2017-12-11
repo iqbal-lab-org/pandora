@@ -109,6 +109,16 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
 	    if (result == truth1 or result == truth2)
 	    {
             cout << endl << result << endl;
+            for (auto l : kmp)
+            {
+                cout << l->id << " ";
+            }
+            for (auto l : lmp)
+            {
+                cout << *l << " ";
+            }
+            cout << endl;
+
             found += 1;
 	    }
 	    /*if (found == 2)

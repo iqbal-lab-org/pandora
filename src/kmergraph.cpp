@@ -238,7 +238,7 @@ void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t thresh, unordered
                 } else if (next_paths.size()>0 and v.size()<=3*next_paths[0].size()) {
 		            current_paths.push_front(v);
 		        }
-            } else {
+            } else if (k->covg[0] + k->covg[1] >= 2){
                 current_paths.push_front(v);
             }
             v.pop_back();
