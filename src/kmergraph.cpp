@@ -200,7 +200,7 @@ void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t covg_thresh, cons
 {
     // walk back in the graph until get hit or start node
     deque<KmerNodePtr> v = {nodes[kmer_id]};
-    deque<deque<KmerNodePtr>> current_paths;
+    /*deque<deque<KmerNodePtr>> current_paths;
     current_paths.push_back(v);
     uint8_t num_shared_read;
     bool added_to_next;
@@ -250,10 +250,10 @@ void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t covg_thresh, cons
     if (next_ids.size() == 0 or current_paths.size() == 5000)
     {
         next_paths.clear();
-        next_ids.clear();
+        next_ids.clear();*/
         for (auto k : nodes[kmer_id]->outNodes)
         {
-            if (k->covg[0]+k->covg[1] >= read_share_thresh)
+            if (k->id == nodes[nodes.size()-1]->id or k->covg[0]+k->covg[1] >= 0)//read_share_thresh)
             {
                 v.push_back(k);
                 next_paths.push_back(v);
@@ -261,7 +261,7 @@ void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t covg_thresh, cons
                 v.pop_back();
             }
         }
-    }
+    //}
 }
 
 void KmerGraph::extend_paths_forward(vector<deque<KmerNodePtr>>& paths_to_extend, const vector<deque<KmerNodePtr>>& path_extensions)
@@ -331,7 +331,7 @@ void KmerGraph::find_compatible_paths(const uint8_t covg_thresh, const uint8_t r
     // walk from each hit until cover all paths to the next hit
     for (uint i=0; i<sorted_nodes.size(); ++i)
     {
-        if (sorted_nodes[i]->covg[0] + sorted_nodes[i]->covg[1] >= covg_thresh
+        /*if (sorted_nodes[i]->covg[0] + sorted_nodes[i]->covg[1] >= covg_thresh
             or i==0
             or hits_to_cover.find(sorted_nodes[i]->id)!=hits_to_cover.end())
         {
@@ -342,7 +342,8 @@ void KmerGraph::find_compatible_paths(const uint8_t covg_thresh, const uint8_t r
             {
                 hits_to_cover.insert(j);
             }
-        }
+        }*/
+        get_next(sorted_nodes[i]->id, covg_thresh, read_share_thresh, next[sorted_nodes[i]->id], next_paths[sorted_nodes[i]->id]);
     }
 
     // collect this information into a set of paths to return
@@ -380,7 +381,19 @@ void KmerGraph::find_compatible_paths(const uint8_t covg_thresh, const uint8_t r
                 }
                 cout << endl;*/
             } else {
-                current_paths.push_back(another_path);
+                uint missing = 0;
+                for (auto n : another_path)
+                {
+                    if (n->covg[0]+n->covg[1]<=read_share_thresh)
+                    {
+                        missing += 1;
+                    }
+                }
+                if (missing < 3)
+                {
+                    current_paths.push_back(another_path);
+
+                }
             }
         }
         //cout << endl;

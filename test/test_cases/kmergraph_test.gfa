@@ -1,4 +1,4 @@
 H	VN:Z:1.0	bn:Z:--linear --singlearr
-S	1	1{[1, 4)}	FC:i:0		RC:i:0
-S	0	1{[0, 3)}	FC:i:0		RC:i:5
+S	1	N	RC:i:0
+S	0	N	RC:i:5
 L	0	+	1	+	0M

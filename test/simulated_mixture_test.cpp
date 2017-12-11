@@ -57,7 +57,7 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     pangraph = new PanGraph();
 
     // read in the coverage information from the readfile
-    string readfile = "../test/test_cases/mixtures/read_mixtures/gene1gene2_50.50_300x.fa"; 
+    string readfile = "../test/test_cases/mixtures/read_mixtures/gene2gene3_75.25_300x.fa";
     pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, false);
     update_localPRGs_with_hits(pangraph, prgs);  
 
@@ -73,18 +73,6 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     pangraph->nodes[0]->kmer_prg.find_all_compatible_paths(paths, hit_pairs);
 
     EXPECT_GE(paths.size(), (uint)2);
-
-    // now run EM
-    double eps = 10;
-    PathAbundanceEstimator pae(hit_pairs, paths, 1e-8, 2000);
-    std::vector<double> pathCnts = pae.runEM();
-
-    EXPECT_EQ(pathCnts.size(), paths.size());
-    uint path_i = distance(pathCnts.begin(), max_element(pathCnts.begin(),pathCnts.end()));
-    EXPECT_LE(std::abs(pathCnts[path_i]-static_cast<double>(pangraph->nodes[0]->kmer_prg.covgs.size()/2)), eps);
-    uint next_i = max(distance(pathCnts.begin(), max_element(pathCnts.begin(),pathCnts.begin()+path_i)),
-		      distance(pathCnts.begin(), max_element(pathCnts.begin()+path_i+1,pathCnts.end())));
-    EXPECT_LE(std::abs(pathCnts[next_i]-static_cast<double>(pangraph->nodes[0]->kmer_prg.covgs.size()/2)), eps);
 
     // compare the sequences chosen with the truth
     string truth1 = "ATGACTCAGAAAAATTTCGTTGAACTGCGCAACGTCACTAAACGATTTGGCAGTAATACGGTAATCGACAATATCAACCTCACCATCCCGCAGGGGCAAATGGTGACGCTGCTCGGCCCGTCCGGCTGCGGCAAAACCACTATTTTGCGCCTGGTTGCCGGGCTGGAAAAACCGAGCGAAGGGCAAATTTTCATTGATGGCGAAGACGTCACCCATCGCTCTATTCAGCAGCGCGATATCTGTATGGTGTTTCAGTCCTATGCCCTGTTCCCGCATATGTCGCTGGGAGAGAATGTCGGTTATGGCCTGAAAATGCTCGGCGTACCGCGCGCAGAGCTGAAAGCCCGCGTCAAAGAGGCGTTGGCGATGGTGGATCTGGAAGGATTCGAAGACCGCTTTGTCGATCAGATCTCCGGCGGGCAGCAGCAGCAGCGCGTGGCGCTGGCCCGCGCGCTGATCCTCAAGCCGAAAGTGCTGCTGTTTGATGAGCCGTTGAGTAACCTCGACGCCAACCTGCGTCGCAGCATGCGCGACAAGATCCGCGAGTTGCAAAAGCAGTTTGATATCACCTCGCTGTACGTCACCCACGATCAGAGCGAAGCCTTTGCGGTTTCTGATACTGTGCTGGTGATGAACAAGGGACACATCATGCAGATCGGCTCACCGCAGGATCTTTACCGCCAGCCCGCCTCCCGCTTTATGGCGAGCTTTATGGGCGATGCCAACCTGTTCCCGGCAACCTTCAGCGACGGATACGTTGATATCTACGGCTATCATCTGCCGCGCCCGCTGCACTTTGGTACACAGGGTGAAGGGATGGTCGGTGTGCGCCCGGAAGCGATCACGCTCAGCGATCGCGGCGAAGAGAGCCAGCGCTGCGTGATCCGCCATGTCGCCTATATGGGGCCGCAGTATGAAGTGACGGTGGAATGGCACGGGCAGGAGATATTATTGCAGGTCAACGCTACGCGTCTGCAACCGGACGTCGGCGAGCAGTATTATCTTGAAATCCATCCGTACGGCATGTTTGTTCTGGCGGATGCGGCA";
@@ -130,6 +118,18 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     }
     cout << "done" << endl;
     EXPECT_EQ((uint)2, found);
+
+    // now run EM
+    double eps = 10;
+    PathAbundanceEstimator pae(hit_pairs, paths, 1e-8, 2000);
+    std::vector<double> pathCnts = pae.runEM();
+
+    EXPECT_EQ(pathCnts.size(), paths.size());
+    uint path_i = distance(pathCnts.begin(), max_element(pathCnts.begin(),pathCnts.end()));
+    EXPECT_LE(std::abs(pathCnts[path_i]-static_cast<double>(pangraph->nodes[0]->kmer_prg.covgs.size()*0.75)), eps);
+    uint next_i = max(distance(pathCnts.begin(), max_element(pathCnts.begin(),pathCnts.begin()+path_i)),
+                  distance(pathCnts.begin(), max_element(pathCnts.begin()+path_i+1,pathCnts.end())));
+    EXPECT_LE(std::abs(pathCnts[next_i]-static_cast<double>(pangraph->nodes[0]->kmer_prg.covgs.size()*0.25)), eps);
 
     // check the best 2 paths at end of EM
     cout << "check 1";
