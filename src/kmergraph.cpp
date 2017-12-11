@@ -214,7 +214,7 @@ void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t covg_thresh, cons
         {
             v.push_back(k);
             added_to_next = false;
-	        if (k->id == nodes[nodes.size()-1]->id or kmer_id == 0 or k->covg[0] + k->covg[1] >= covg_thresh) {
+	        if (k->id == nodes[nodes.size()-1]->id or kmer_id == 0 or k->covg[0] + k->covg[1] >= covg_thresh*0.75){
                 next_paths.push_back(v);
                 next_ids.insert(k->id);
                 added_to_next = true;
@@ -224,30 +224,36 @@ void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t covg_thresh, cons
                 for (auto r : covgs) {
                     if (r[0][kmer_id] + r[1][kmer_id] + r[0][k->id] + r[1][k->id] >= 2) {
                         num_shared_read += 1;
-                        if (num_shared_read >= thresh) {
+                        if (num_shared_read >= read_share_thresh) {
                             break;
                         }
                     }
                 }
-                if (num_shared_read >= thresh) {
+                if (num_shared_read >= read_share_thresh) {
                     next_paths.push_back(v);
                     next_ids.insert(k->id);
                     added_to_next = true;
                 }
             }
-            if (added_to_next == false and k->covg[0] + k->covg[1] >= 2
-                    and ((next_paths.size()==0) or (next_paths.size()>0 and v.size()<=3*next_paths[0].size())))
+
+            // see if we want to continue adding to the path
+            if (added_to_next == false
+                and k->covg[0] + k->covg[1] >= read_share_thresh/2
+                and ((next_paths.size()==0) or (next_paths.size()>0 and v.size()<=3*next_paths[0].size())))
             {
                 current_paths.push_front(v);
             }
             v.pop_back();
         }
     }
-    if (next_ids.size() == 0)
+
+    if (next_ids.size() == 0 or current_paths.size() == 5000)
     {
-        /*for (auto k : nodes[kmer_id]->outNodes)
+        next_paths.clear();
+        next_ids.clear();
+        for (auto k : nodes[kmer_id]->outNodes)
         {
-            if (k->covg[0]+k->covg[1] > thresh)
+            if (k->covg[0]+k->covg[1] >= read_share_thresh)
             {
                 v.push_back(k);
                 next_paths.push_back(v);
@@ -255,18 +261,6 @@ void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t covg_thresh, cons
                 v.pop_back();
             }
         }
-        if (next_ids.size() == 0)
-        {*/
-            for (auto k : nodes[kmer_id]->outNodes) {
-                //if (k->covg[0]+k->covg[1] > 1)
-                //{
-                    v.push_back(k);
-                    next_paths.push_back(v);
-                    next_ids.insert(k->id);
-                    v.pop_back();
-                //}
-            }
-        //}
     }
 }
 
@@ -360,10 +354,7 @@ void KmerGraph::find_compatible_paths(const uint8_t covg_thresh, const uint8_t r
     deque<deque<KmerNodePtr>> current_paths;
     for (auto p : next_paths[0])
     {
-        if (hits_to_cover.find(p.back()->id)!=hits_to_cover.end())
-        {
-            current_paths.push_back(p);
-        }
+        current_paths.push_back(p);
     }
 
     // now extend paths until they reach the end
@@ -777,8 +768,9 @@ void KmerGraph::save(const string &filepath) {
     handle.open(filepath);
     handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
     for (auto c : nodes) {
-        handle << "S\t" << c.second->id << "\t" << c.second->path << "\tFC:i:" << c.second->covg[0] << "\t" << "\tRC:i:"
-               << c.second->covg[1] << endl;//"\t" << (unsigned)nodes[i].second->num_AT << endl;
+        handle << "S\t" << c.second->id << "\tN" /*<< c.second->path*/ << "\tRC:i:" << c.second->covg[0]+c.second->covg[1] << endl;
+        //handle << "S\t" << c.second->id << "\t" << c.second->path << "\tFC:i:" << c.second->covg[0] << "\t" << "\tRC:i:"
+        //       << c.second->covg[1] << endl;//"\t" << (unsigned)nodes[i].second->num_AT << endl;
         for (uint32_t j = 0; j < c.second->outNodes.size(); ++j) {
             handle << "L\t" << c.second->id << "\t+\t" << c.second->outNodes[j]->id << "\t+\t0M" << endl;
         }

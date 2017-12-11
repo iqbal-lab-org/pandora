@@ -65,6 +65,8 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     ASSERT_GE((uint)1,pangraph->nodes.size());
     EXPECT_TRUE((pangraph->nodes[0]->kmer_prg.covgs.size() >= 200) && (pangraph->nodes[0]->kmer_prg.covgs.size() <= 300)); // we have the gene in all 300 reads, 
 															// so expect to find it ~200-300 times
+    pangraph->nodes[0]->kmer_prg.save("../test/test_cases/simulated_mixtures.kg.gfa");
+
     // find the compatible paths to use as input
     vector<deque<KmerNodePtr>> paths;
     vector<vector<pair<uint16_t,uint16_t>>> hit_pairs;
