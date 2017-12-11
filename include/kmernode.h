@@ -63,6 +63,7 @@ class KmerNode {
   friend class LocalPRGTest_find_path_and_variants_Test;
   friend class PanNodeTest_add_path_Test;
   friend class PanNodeTest_output_samples_Test;
+  friend class SimulatedMixtureTest_gene1gene2_5050_Test;
 };
 
 #endif

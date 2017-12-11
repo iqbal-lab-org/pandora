@@ -196,13 +196,14 @@ void KmerGraph::sort_topologically() {
     sort(sorted_nodes.begin(), sorted_nodes.end(), pCompKmerNode());
 }
 
-void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t thresh, unordered_set<uint16_t>& next_ids, vector<deque<KmerNodePtr>>& next_paths)
+void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t covg_thresh, const uint8_t read_share_thresh, unordered_set<uint16_t>& next_ids, vector<deque<KmerNodePtr>>& next_paths)
 {
     // walk back in the graph until get hit or start node
     deque<KmerNodePtr> v = {nodes[kmer_id]};
     deque<deque<KmerNodePtr>> current_paths;
     current_paths.push_back(v);
     uint8_t num_shared_read;
+    bool added_to_next;
 
     while(current_paths.size() > 0 and current_paths.size() < 5000)
     {
@@ -212,33 +213,31 @@ void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t thresh, unordered
         for (auto k : v.back()->outNodes)
         {
             v.push_back(k);
-	        if (k->id == nodes[nodes.size()-1]->id or kmer_id == 0)
-	        {
-		        next_paths.push_back(v);
+            added_to_next = false;
+	        if (k->id == nodes[nodes.size()-1]->id or kmer_id == 0 or k->covg[0] + k->covg[1] >= covg_thresh) {
+                next_paths.push_back(v);
                 next_ids.insert(k->id);
-	        } else if (k->covg[0] + k->covg[1] >= max((uint8_t)1,thresh))
-            {
-		        // check if there are any reads which have a hit for both prev_id and kmer_id
+                added_to_next = true;
+	        } else if (k->covg[0] + k->covg[1] >= max((uint8_t)1,read_share_thresh)) {
+                // check if there are any reads which have a hit for both prev_id and kmer_id
                 num_shared_read = 0;
-                for (auto r : covgs)
-                {
-                    if (r[0][kmer_id]+r[1][kmer_id]+r[0][k->id]+r[1][k->id] >= 2)
-                    {
+                for (auto r : covgs) {
+                    if (r[0][kmer_id] + r[1][kmer_id] + r[0][k->id] + r[1][k->id] >= 2) {
                         num_shared_read += 1;
-                        if (num_shared_read >= thresh)
-			            {
-			                break;
-			            }
+                        if (num_shared_read >= thresh) {
+                            break;
+                        }
                     }
                 }
-                if (num_shared_read >= thresh)
-                {
-		            next_paths.push_back(v);
+                if (num_shared_read >= thresh) {
+                    next_paths.push_back(v);
                     next_ids.insert(k->id);
-                } else if (next_paths.size()>0 and v.size()<=3*next_paths[0].size()) {
-		            current_paths.push_front(v);
-		        }
-            } else if (k->covg[0] + k->covg[1] >= 2){
+                    added_to_next = true;
+                }
+            }
+            if (added_to_next == false and k->covg[0] + k->covg[1] >= 2
+                    and ((next_paths.size()==0) or (next_paths.size()>0 and v.size()<=3*next_paths[0].size())))
+            {
                 current_paths.push_front(v);
             }
             v.pop_back();
@@ -246,26 +245,28 @@ void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t thresh, unordered
     }
     if (next_ids.size() == 0)
     {
-        for (auto k : nodes[kmer_id]->outNodes)
+        /*for (auto k : nodes[kmer_id]->outNodes)
         {
             if (k->covg[0]+k->covg[1] > thresh)
             {
-                v = {nodes[kmer_id], k};
+                v.push_back(k);
                 next_paths.push_back(v);
                 next_ids.insert(k->id);
+                v.pop_back();
             }
         }
         if (next_ids.size() == 0)
-        {
+        {*/
             for (auto k : nodes[kmer_id]->outNodes) {
-                if (k->covg[0]+k->covg[1] > 1)
-                {
-                    v = {nodes[kmer_id], k};
+                //if (k->covg[0]+k->covg[1] > 1)
+                //{
+                    v.push_back(k);
                     next_paths.push_back(v);
                     next_ids.insert(k->id);
-                }
+                    v.pop_back();
+                //}
             }
-        }
+        //}
     }
 }
 
@@ -341,7 +342,7 @@ void KmerGraph::find_compatible_paths(const uint8_t covg_thresh, const uint8_t r
             or hits_to_cover.find(sorted_nodes[i]->id)!=hits_to_cover.end())
         {
 	        cout << sorted_nodes[i]->id << " has covg " << sorted_nodes[i]->covg[0] + sorted_nodes[i]->covg[1] << endl;
-            get_next(sorted_nodes[i]->id, read_share_thresh, next[sorted_nodes[i]->id], next_paths[sorted_nodes[i]->id]);
+            get_next(sorted_nodes[i]->id, covg_thresh, read_share_thresh, next[sorted_nodes[i]->id], next_paths[sorted_nodes[i]->id]);
             hits_to_cover.insert(sorted_nodes[i]->id);
             for (auto j : next[sorted_nodes[i]->id])
             {
@@ -375,6 +376,8 @@ void KmerGraph::find_compatible_paths(const uint8_t covg_thresh, const uint8_t r
         for (auto p : next_paths[a_path.back()->id])
         {
             another_path = a_path;
+            assert(p.size()>=2);
+            assert(another_path.back() == p.front());
             another_path.insert(another_path.end(), ++p.begin(), p.end());
             if (another_path.back()->id == nodes.size()-1)
             {
