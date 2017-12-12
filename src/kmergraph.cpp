@@ -196,7 +196,7 @@ void KmerGraph::sort_topologically() {
     sort(sorted_nodes.begin(), sorted_nodes.end(), pCompKmerNode());
 }
 
-/*void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t covg_thresh, const uint8_t read_share_thresh, unordered_set<uint16_t>& next_ids)
+void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t covg_thresh, const uint8_t read_share_thresh, unordered_set<uint16_t>& next_ids)
 {
     // walk back in the graph until get hit or start node
     uint8_t num_shared_read;
@@ -306,7 +306,7 @@ void KmerGraph::find_all_compatible_paths(vector<deque<KmerNodePtr>>& all_paths,
         //cout << "found " << path_hits[read].size() << " compatible paths for read " << read << endl;
     }
     assert(path_hits.size() == covgs.size());
-}*/
+}
 
 void KmerGraph::set_p(const float e_rate) {
     assert(k != 0);
