@@ -202,7 +202,7 @@ void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t covg_thresh, cons
     uint8_t num_shared_read;
     for (auto k : nodes[kmer_id]->outNodes)
     {
-        num_shared_read = 0;
+        /*num_shared_read = 0;
         for (auto r : covgs) {
             if (r[0][kmer_id] + r[1][kmer_id] + r[0][k->id] + r[1][k->id] >= 2) {
                 num_shared_read += 1;
@@ -214,9 +214,9 @@ void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t covg_thresh, cons
         if (k->id == nodes[nodes.size()-1]->id
             or k->covg[0]+k->covg[1] >= covg_thresh
             or num_shared_read >= read_share_thresh)
-        {
+        {*/
             next_ids.insert(k->id);
-        }
+        //}
     }
 }
 
@@ -245,15 +245,15 @@ void KmerGraph::find_compatible_paths(const uint8_t covg_thresh, const uint8_t r
         a_path = current_paths.back();
         current_paths.pop_back();
         for (auto n : next[a_path.back()->id]) {
-            a_path.push_back(n);
+            a_path.push_back(nodes[n]);
             if (a_path.back()->id == nodes.size() - 1) {
                 paths.push_back(a_path);
-                //cout << "found complete path";
-                //for (auto n : another_path)
-                //{
-                //    cout << n->id << " ";
-                //}
-                //cout << endl;
+                /*cout << "found complete path";
+                for (auto n : a_path)
+                {
+                    cout << n->id << " ";
+                }
+                cout << endl;*/
             } else {
                 uint missing = 0;
                 for (auto n : a_path) {
@@ -616,9 +616,9 @@ void KmerGraph::save(const string &filepath) {
     handle.open(filepath);
     handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
     for (auto c : nodes) {
-        handle << "S\t" << c.second->id << "\tN" /*<< c.second->path*/ << "\tRC:i:" << c.second->covg[0]+c.second->covg[1] << endl;
-        //handle << "S\t" << c.second->id << "\t" << c.second->path << "\tFC:i:" << c.second->covg[0] << "\t" << "\tRC:i:"
-        //       << c.second->covg[1] << endl;//"\t" << (unsigned)nodes[i].second->num_AT << endl;
+        //handle << "S\t" << c.second->id << "\tN" /*<< c.second->path*/ << "\tRC:i:" << c.second->covg[0]+c.second->covg[1] << endl;
+        handle << "S\t" << c.second->id << "\t" << c.second->path << "\tFC:i:" << c.second->covg[0] << "\t" << "\tRC:i:"
+               << c.second->covg[1] << endl;//"\t" << (unsigned)nodes[i].second->num_AT << endl;
         for (uint32_t j = 0; j < c.second->outNodes.size(); ++j) {
             handle << "L\t" << c.second->id << "\t+\t" << c.second->outNodes[j]->id << "\t+\t0M" << endl;
         }
