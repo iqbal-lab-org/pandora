@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cassert>
 #include <memory>
+#include <utility>
 //#include "FastxParser.hpp"
 #include "utils.h"
 #include "seq.h"
