@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <algorithm>
+#include <utility>
 
 using namespace std;
 
@@ -170,10 +171,11 @@ TEST_F(MinimizerHitsTest, pComp_path) {
 }
 
 TEST_F(MinimizerHitsTest, clusterComp){
-    set<set<MinimizerHitPtr, pComp>,clusterComp> clusters_of_hits;
-    set<MinimizerHitPtr, pComp> current_cluster;
+    set<MinimizerHitPtr, pComp> hits;
+    set<pair<set<MinimizerHitPtr, pComp>::iterator,
+             set<MinimizerHitPtr, pComp>::iterator>,clusterComp> clusters_of_hits;
 
-    vector<MinimizerHitPtr> expected1, expected2;
+    vector<vector<MinimizerHitPtr>> expected(6);
 
     KmerHash hash;
     Minimizer* m;
@@ -185,51 +187,65 @@ TEST_F(MinimizerHitsTest, clusterComp){
     MiniRecord* mr;
     mr = new MiniRecord(0,p,0,0);
     MinimizerHitPtr mh (make_shared<MinimizerHit>(1, m, mr));
-    current_cluster.insert(mh);
-    expected1.push_back(mh);
+    hits.insert(mh);
+    expected[4].push_back(mh);
 
     mh = make_shared<MinimizerHit>(2, m, mr);
-    current_cluster.insert(mh);
-    expected1.push_back(mh);
-    clusters_of_hits.insert(current_cluster);
+    hits.insert(mh);
+    expected[5].push_back(mh);
 
-    current_cluster.clear();
     delete m;
     m = new Minimizer(min(kh.first,kh.second), 0,5,0);
     mh = make_shared<MinimizerHit>(1, m, mr);
-    current_cluster.insert(mh);
-    expected2.push_back(mh);
+    hits.insert(mh);
+    expected[0].push_back(mh);
+    expected[1].push_back(mh);
+
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
     delete mr;
     mr = new MiniRecord(0,p,0,0);
     mh = make_shared<MinimizerHit>(1, m, mr);
-    current_cluster.insert(mh);
-    expected2.push_back(mh);
+    hits.insert(mh);
+    expected[1].push_back(mh);
+    expected[2].push_back(mh);
 
     d = {Interval(6,10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
     mr = new MiniRecord(0,p,0,0);
     mh = make_shared<MinimizerHit>(1, m, mr);
-    current_cluster.insert(mh);
-    expected2.push_back(mh);
+    hits.insert(mh);
+    expected[1].push_back(mh);
+    expected[3].push_back(mh);
 
-    clusters_of_hits.insert(current_cluster);
+    clusters_of_hits.insert(make_pair(next(hits.begin(), 3),next(hits.begin(), 3))); // hit 1
+    clusters_of_hits.insert(make_pair(next(hits.begin(), 4),next(hits.begin(), 4))); // hit 2
+    clusters_of_hits.insert(make_pair(hits.begin(), next(hits.begin(), 2))); // hits 3 4
+    clusters_of_hits.insert(make_pair(next(hits.begin(), 2),next(hits.begin(), 2))); // hit 5
+    clusters_of_hits.insert(make_pair(hits.begin(), next(hits.begin(), 2))); // hits 3 4 5
+    clusters_of_hits.insert(make_pair(next(hits.begin(), 1),next(hits.begin(), 1))); // hit 4
 
-    // have inserted 2 clusters
-    uint32_t j(2);
+    // have inserted 6 clusters
+    uint32_t j(6);
     EXPECT_EQ(j, clusters_of_hits.size());
-    // expect the cluster of 3 added second to be first
-    j=3;
-    EXPECT_EQ(j, clusters_of_hits.begin()->size());
-    
-    // check that this is indeed the cluster we think
-    // note that can't sort the set of hits by pcomp without changing the defintion of cluster comparison function
-    for (set<MinimizerHitPtr, pComp>::iterator it=clusters_of_hits.begin()->begin(); it!=clusters_of_hits.begin()->end(); ++it)
+
+    // check clusters are in the order we expect
+    j = 0;
+    for (auto it : clusters_of_hits)
     {
-        EXPECT_EQ(((*expected2[0] == **it) or (*expected2[1] == **it) or (*expected2[2] == **it)), true);
+        EXPECT_EQ((uint)distance(it.first, it.second), expected[j].size());
+        if((uint)distance(it.first, it.second)==expected[j].size())
+        {
+            uint k=0;
+            for (auto r=it.first; r!=it.second; ++r)
+            {
+                EXPECT_EQ(*r, expected[j][k]);
+                k+=1;
+            }
+        }
+        j+=1;
     }
 
     delete m;

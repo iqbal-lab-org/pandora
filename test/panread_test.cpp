@@ -115,9 +115,10 @@ TEST_F(PanReadTest,less){
 TEST_F(PanReadTest,add_hits)
 {
     PanRead pr1(1);
-    set<MinimizerHitPtr, pComp> c;
+    set<MinimizerHitPtr, pComp> hits;
+    pair<set<MinimizerHitPtr, pComp>::iterator,set<MinimizerHitPtr, pComp>::iterator> mhs(hits.begin(), hits.begin());
 
-    pr1.add_hits(4, c);
+    pr1.add_hits(4, mhs);
     EXPECT_EQ((uint)1, pr1.hits.size());
     EXPECT_EQ((uint)0, pr1.hits[4].size());
 
@@ -128,13 +129,14 @@ TEST_F(PanReadTest,add_hits)
     p.initialize(d);
     MinimizerHitPtr mh (make_shared<MinimizerHit>(4, i, 0, p, 0, 0));
 
-    c.insert(mh);
-    pr1.add_hits(4, c);
+    hits.insert(mh);
+    mhs = make_pair(hits.begin(), --hits.end());
+    pr1.add_hits(4, mhs);
     EXPECT_EQ((uint)1, pr1.hits.size());
     EXPECT_EQ((uint)1, pr1.hits[4].size());
 
     // add to new id
-    pr1.add_hits(5, c);
+    pr1.add_hits(5, mhs);
     EXPECT_EQ((uint)2, pr1.hits.size());
     EXPECT_EQ((uint)1, pr1.hits[5].size());
     EXPECT_EQ((uint)1, pr1.hits[4].size());
@@ -301,7 +303,8 @@ TEST_F(PanReadTest,get_other_edge)
 
 TEST_F(PanReadTest,replace_edge1)
 {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> hits;
+    pair<set<MinimizerHitPtr, pComp>::iterator,set<MinimizerHitPtr, pComp>::iterator> mhs(hits.begin(), hits.begin());
 
     PanGraph pg;
     // read 0: 0->1->2->3
@@ -474,7 +477,8 @@ TEST_F(PanReadTest,replace_edge1)
 
 TEST_F(PanReadTest,replace_edge2)
 {
-   set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> hits;
+    pair<set<MinimizerHitPtr, pComp>::iterator,set<MinimizerHitPtr, pComp>::iterator> mhs(hits.begin(), hits.begin());
 
     PanGraph pg;
     // read 0: 0->1->2->3
@@ -646,8 +650,8 @@ TEST_F(PanReadTest,replace_edge2)
 
 TEST_F(PanReadTest,remove_edge1)
 {
-
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> hits;
+    pair<set<MinimizerHitPtr, pComp>::iterator,set<MinimizerHitPtr, pComp>::iterator> mhs(hits.begin(), hits.begin());
 
     PanGraph pg;
     // read 0: 0->1->2->3
@@ -803,7 +807,8 @@ TEST_F(PanReadTest,remove_edge1)
 
 TEST_F(PanReadTest,remove_edge2)
 {
-   set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> hits;
+    pair<set<MinimizerHitPtr, pComp>::iterator,set<MinimizerHitPtr, pComp>::iterator> mhs(hits.begin(), hits.begin());
 
     PanGraph pg;
     // read 0: 0->1->2->3
@@ -959,7 +964,8 @@ TEST_F(PanReadTest,remove_edge2)
 
 TEST_F(PanReadTest,replace_node)
 {
-   set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> hits;
+    pair<set<MinimizerHitPtr, pComp>::iterator,set<MinimizerHitPtr, pComp>::iterator> mhs(hits.begin(), hits.begin());
 
     PanGraph pg;
     // read 0: 0->1->2->3
@@ -1183,7 +1189,8 @@ TEST_F(PanReadTest,replace_node)
     MinimizerHitPtr mh(make_shared<MinimizerHit>(4, i, 0, p, 0, 0));
     set<MinimizerHitPtr, pComp> c;
     c.insert(mh);
-    pg.reads[2]->add_hits(4, c);
+    auto cl = make_pair(c.begin(), --c.end());
+    pg.reads[2]->add_hits(4, cl);
 
     PanNode *n7;
     n7 = new PanNode(4, 7, "4");
@@ -1271,8 +1278,8 @@ TEST_F(PanReadTest,replace_node)
 
 TEST_F(PanReadTest,remove_node)
 {
-
-   set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> hits;
+    pair<set<MinimizerHitPtr, pComp>::iterator,set<MinimizerHitPtr, pComp>::iterator> mhs(hits.begin(), hits.begin());
 
     PanGraph pg;
     // read 0: 0->1->2->3
@@ -1471,7 +1478,9 @@ TEST_F(PanReadTest,remove_node)
     MinimizerHitPtr mh (make_shared<MinimizerHit>(4, i, 0, p, 0, 0));
     set<MinimizerHitPtr, pComp> c;
     c.insert(mh);
-    pg.reads[2]->add_hits(4, c);
+    auto cl = make_pair(c.begin(), --c.end());
+
+    pg.reads[2]->add_hits(4, cl);
 
     pg.reads[2]->remove_node(pg.nodes[4]);
     
