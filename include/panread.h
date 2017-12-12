@@ -16,7 +16,7 @@ class PanRead {
     std::unordered_map<uint32_t,std::set<MinimizerHitPtr, pComp_path>> hits; // from node id to cluster of hits against that node in this read
 
     PanRead(const uint32_t);
-    void add_hits(const uint32_t, const std::set<MinimizerHitPtr, pComp>&);
+    void add_hits(const uint32_t, const std::pair<std::set<MinimizerHitPtr, pComp>::iterator, std::set<MinimizerHitPtr, pComp>::iterator>&);
     std::vector<PanEdge*>::iterator get_edge(const PanEdge*);
     std::vector<PanEdge*>::iterator get_next_edge(const PanEdge*);
     std::vector<PanEdge*>::iterator get_previous_edge(const PanEdge*);

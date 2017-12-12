@@ -33,7 +33,8 @@ struct pComp_path
 
 struct clusterComp
 {
-  bool operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<MinimizerHitPtr, pComp> rhs);
+  bool operator()(std::pair<std::set<MinimizerHitPtr, pComp>::iterator, std::set<MinimizerHitPtr, pComp>::iterator> lhs,
+                  std::pair<std::set<MinimizerHitPtr, pComp>::iterator, std::set<MinimizerHitPtr, pComp>::iterator> rhs);
 };
 
 struct clusterComp_size

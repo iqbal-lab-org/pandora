@@ -33,7 +33,7 @@ public:
 
     // graph additions/removals
     void add_node(const uint32_t, const std::string, uint32_t,
-                  const std::set<MinimizerHitPtr, pComp> &); // used by pandora map
+                  const std::pair<std::set<MinimizerHitPtr, pComp>::iterator, std::set<MinimizerHitPtr, pComp>::iterator> &); // used by pandora map
     void add_node(const uint32_t, const std::string &, const std::string &, const std::vector<KmerNodePtr> &,
                   const LocalPRG *); // used by pandora compare
     PanEdge *add_edge(const uint32_t &, const uint32_t &, const uint &);

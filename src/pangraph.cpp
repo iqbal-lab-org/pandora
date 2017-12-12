@@ -41,12 +41,12 @@ PanGraph::~PanGraph() {
 }
 
 void PanGraph::add_node(const uint32_t prg_id, const string prg_name, const uint32_t read_id,
-                        const set<MinimizerHitPtr, pComp> &cluster) {
+                        const pair<set<MinimizerHitPtr, pComp>::iterator, set<MinimizerHitPtr, pComp>::iterator> &cluster) {
     // check sensible things in new cluster
-    for (const auto &it : cluster) {
+    /*for (const auto &it : cluster) {
         assert(read_id == it->read_id); // the hits should correspond to the read we are saying...
         assert(prg_id == it->prg_id);
-    }
+    }*/
 
     // add new node if it doesn't exist
     PanNode *n;

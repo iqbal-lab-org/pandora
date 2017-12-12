@@ -187,7 +187,7 @@ void add_read_hits(Seq *s, MinimizerHits *hits, Index *idx) {
     //     << hits->hits.size() + hits->uhits.size() << endl;
 }
 
-void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, const vector<LocalPRG *> &prgs,
+void define_clusters(set<pair<set<MinimizerHitPtr, pComp>::iterator, set<MinimizerHitPtr, pComp>::iterator>, clusterComp> &clusters_of_hits, const vector<LocalPRG *> &prgs,
                      const MinimizerHits *minimizer_hits, const int max_diff, const float& scale_cluster_size,
                      const uint min_cluster_size, const uint short_read_length) {
     cout << now() << "Define clusters of hits from the " << minimizer_hits->hits.size() << " hits" << endl;
@@ -196,8 +196,9 @@ void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
 
     // A cluster of hits should match same localPRG, each hit not more than max_diff read bases from the last hit (this last bit is to handle repeat genes). 
     auto mh_previous = minimizer_hits->hits.begin();
-    set<MinimizerHitPtr, pComp> current_cluster;
-    current_cluster.insert(*mh_previous);
+    pair<set<MinimizerHitPtr, pComp>::iterator, set<MinimizerHitPtr, pComp>::iterator> current_cluster(mh_previous, mh_previous);
+    //set<MinimizerHitPtr, pComp> current_cluster;
+    //current_cluster.insert(*mh_previous);
     uint length_based_threshold;
     for (auto mh_current = ++minimizer_hits->hits.begin();
          mh_current != minimizer_hits->hits.end(); ++mh_current) {
@@ -213,8 +214,9 @@ void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
                  << " scale cluster size: " << scale_cluster_size
                  << " length based threshold: " << length_based_threshold
                  << " min cluster size: " << min_cluster_size << endl;*/
-            if (current_cluster.size() >
+            if (distance(current_cluster.first, current_cluster.second) >
                 max(length_based_threshold, min_cluster_size)) {
+                current_cluster.second = mh_previous;
                 clusters_of_hits.insert(current_cluster);
 	        //cout << "Found cluster of size " << current_cluster.size() << endl;
                 /*} else {
@@ -224,9 +226,8 @@ void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
                         cout << **p << endl;
                     }*/
             }
-            current_cluster.clear();
+            current_cluster.first = mh_current;
         }
-        current_cluster.insert(*mh_current);
         mh_previous = mh_current;
     }
     length_based_threshold = min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
@@ -236,9 +237,10 @@ void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
          << " scale cluster size: " << scale_cluster_size
          << " length based threshold: " << length_based_threshold
          << " min cluster size: " << min_cluster_size << endl;*/
-    if (current_cluster.size() >
+    if (distance(current_cluster.first, current_cluster.second) >
         max(length_based_threshold, min_cluster_size))
     {
+        current_cluster.second = mh_previous;
         clusters_of_hits.insert(current_cluster);
 	    //cout << "Found cluster of size " << current_cluster.size() << endl;
         /*} else {
@@ -252,7 +254,7 @@ void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
     cout << now() << "Found " << clusters_of_hits.size() << " clusters of hits" << endl;
 }
 
-void filter_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits) {
+void filter_clusters(set<pair<set<MinimizerHitPtr, pComp>::iterator, set<MinimizerHitPtr, pComp>::iterator>, clusterComp> &clusters_of_hits) {
     // Next order clusters, choose between those that overlap by too much
     cout << now() << "Filter the " << clusters_of_hits.size() << " clusters of hits " << endl;
     if (clusters_of_hits.empty()) { return; }
@@ -270,14 +272,13 @@ void filter_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
         {
             cout << **p << endl;
         }*/
-        if (((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) && // if on same read and either
-            ((((*(*c_current).begin())->prg_id == (*(*c_previous).begin())->prg_id) && // same prg, different strand
-              ((*(*c_current).begin())->strand != (*(*c_previous).begin())->strand)) or // or cluster is contained
-             ((*--(*c_current).end())->read_interval.start <=
-              (*--(*c_previous).end())->read_interval.start))) // i.e. not least one hit outside overlap
+        if (((*c_current->first)->read_id == (*c_previous->first)->read_id) && // if on same read and either
+            ((((*c_current->first)->prg_id == (*c_previous->first)->prg_id) && // same prg, different strand
+              ((*c_current->first)->strand != (*c_previous->first)->strand)) or // or cluster is contained
+             ((*c_current->second)->read_interval.start <= (*c_previous->second)->read_interval.start))) // i.e. not least one hit outside overlap
             // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, but could also impose no more than 2k hits in overlap
         {
-            if (c_previous->size() >= c_current->size()) {
+            if (distance(c_previous->first, c_previous->second) >= distance(c_current->first, c_current->second)) {
                 clusters_of_hits.erase(c_current);
                 //cout << "erase current" << endl;
                 c_current = c_previous;
@@ -291,7 +292,7 @@ void filter_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
     cout << now() << "Now have " << clusters_of_hits.size() << " clusters of hits " << endl;
 }
 
-void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, const uint &genome_size) {
+/*void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, const uint &genome_size) {
     // Sort clusters by size, and filter out those small clusters which are entirely contained in bigger clusters on reads
     cout << now() << "Filter2 the " << clusters_of_hits.size() << " clusters of hits " << endl;
     if (clusters_of_hits.empty()) { return; }
@@ -336,7 +337,7 @@ void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of
         ++it;
     }
     cout << now() << "Now have " << clusters_of_hits.size() << " clusters of hits " << endl;
-}
+}*/
 
 void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHits *minimizer_hits, PanGraph *pangraph,
                                     const int max_diff, const uint &genome_size, const float& scale_cluster_size,
@@ -348,7 +349,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
     minimizer_hits->sort();
     if (minimizer_hits->hits.empty()) { return; }
 
-    set<set<MinimizerHitPtr, pComp>, clusterComp> clusters_of_hits;
+    set<pair<set<MinimizerHitPtr, pComp>::iterator, set<MinimizerHitPtr, pComp>::iterator>, clusterComp> clusters_of_hits;
     define_clusters(clusters_of_hits, prgs, minimizer_hits, max_diff, scale_cluster_size,
                     min_cluster_size, short_read_length);
 
@@ -359,29 +360,29 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
     if (clusters_of_hits.empty()) { return; }
     // to do this consider pairs of clusters in turn
     auto c_previous = clusters_of_hits.begin();
-    pangraph->add_node((*(*c_previous).begin())->prg_id, prgs[(*(*c_previous).begin())->prg_id]->name,
-                       (*(*c_previous).begin())->read_id, *c_previous);
+    pangraph->add_node((*c_previous->first)->prg_id, prgs[(*c_previous->first)->prg_id]->name,
+                       (*c_previous->first)->read_id, *c_previous);
     //cout << "nodes on read " << (*(*c_previous).begin())->read_id << " : "
     //     << prgs[(*(*c_previous).begin())->prg_id]->name;
     for (auto c_current = ++clusters_of_hits.begin();
          c_current != clusters_of_hits.end(); ++c_current) {
-        if ((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) {
-            pangraph->add_node((*(*c_current).begin())->prg_id, prgs[(*(*c_current).begin())->prg_id]->name,
-                               (*(*c_current).begin())->read_id, *c_current);
-            if ((*(*c_previous).begin())->prg_id != (*(*c_current).begin())->prg_id or
-                (*(*c_previous).begin())->strand != (*(*c_current).begin())->strand) {
-                pangraph->add_edge((*(*c_previous).begin())->prg_id, (*(*c_current).begin())->prg_id,
-                                   (*(*c_previous).begin())->strand + 2 * (*(*c_current).begin())->strand,
-                                   (*(*c_current).begin())->read_id);
+        if ((*c_current->first)->read_id == (*c_previous->first)->read_id) {
+            pangraph->add_node((*c_current->first)->prg_id, prgs[(*c_current->first)->prg_id]->name,
+                               (*c_current->first)->read_id, *c_current);
+            if ((*c_previous->first)->prg_id != (*c_current->first)->prg_id or
+                (*c_previous->first)->strand != (*c_current->first)->strand) {
+                pangraph->add_edge((*c_previous->first)->prg_id, (*c_current->first)->prg_id,
+                                   (*c_previous->first)->strand + 2 * (*c_current->first)->strand,
+                                   (*c_current->first)->read_id);
                 //cout << "\t" << prgs[(*(*c_current).begin())->prg_id]->name;
             }
             c_previous = c_current;
-        } else if ((*(*c_current).begin())->read_id != (*(*c_previous).begin())->read_id) {
+        } else if ((*c_current->first)->read_id != (*c_previous->first)->read_id) {
             // if we just started looking at hits for a new read, add the first cluster
             //cout << endl << "nodes on read " << (*(*c_current).begin())->read_id << " : "
             //     << prgs[(*(*c_current).begin())->prg_id]->name;
-            pangraph->add_node((*(*c_current).begin())->prg_id, prgs[(*(*c_current).begin())->prg_id]->name,
-                               (*(*c_current).begin())->read_id, *c_current);
+            pangraph->add_node((*c_current->first)->prg_id, prgs[(*c_current->first)->prg_id]->name,
+                               (*c_current->first)->read_id, *c_current);
             c_previous = c_current;
         }
     }

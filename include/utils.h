@@ -49,7 +49,7 @@ void add_read_hits(Seq*, MinimizerHits*, Index*);
 void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>,clusterComp>&, const std::vector<LocalPRG*>&,
                      const MinimizerHits*, const int, const float&, const uint, const uint);
 void filter_clusters(std::set<std::set<MinimizerHitPtr, pComp>,clusterComp>&);
-void filter_clusters2(std::set<std::set<MinimizerHitPtr, pComp>,clusterComp>&, const uint&);
+//void filter_clusters2(std::set<std::set<MinimizerHitPtr, pComp>,clusterComp>&, const uint&);
 void infer_localPRG_order_for_reads(const std::vector<LocalPRG*>& prgs, MinimizerHits*, PanGraph*, const int,
                                     const uint&, const float&, const uint min_cluster_size=10,
                                     const uint short_read_length=std::numeric_limits<uint>::max());

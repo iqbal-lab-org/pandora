@@ -116,19 +116,20 @@ bool pComp_path::operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& r
     return false;
 }
 
-bool clusterComp::operator()(set<MinimizerHitPtr, pComp> lhs, set<MinimizerHitPtr, pComp> rhs) {
-    if ((*lhs.begin())->read_id < (*rhs.begin())->read_id) { return true; }
-    if ((*rhs.begin())->read_id < (*lhs.begin())->read_id) { return false; }
-    if ((*lhs.begin())->read_interval.start < (*rhs.begin())->read_interval.start) { return true; }
-    if ((*rhs.begin())->read_interval.start < (*lhs.begin())->read_interval.start) { return false; }
-    if (lhs.size() > rhs.size()) { return true; } // want bigger first!
-    if (rhs.size() > lhs.size()) { return false; }
-    if ((*lhs.begin())->prg_id < (*rhs.begin())->prg_id) { return true; }
-    if ((*rhs.begin())->prg_id < (*lhs.begin())->prg_id) { return false; }
-    if ((*lhs.begin())->prg_path < (*rhs.begin())->prg_path) { return true; }
-    if ((*rhs.begin())->prg_path < (*lhs.begin())->prg_path) { return false; }
-    if ((*lhs.begin())->strand < (*rhs.begin())->strand) { return true; }
-    if ((*rhs.begin())->strand < (*lhs.begin())->strand) { return false; }
+bool clusterComp::operator()(pair<set<MinimizerHitPtr, pComp>::iterator, set<MinimizerHitPtr, pComp>::iterator> lhs,
+                             pair<set<MinimizerHitPtr, pComp>::iterator, set<MinimizerHitPtr, pComp>::iterator> rhs) {
+    if ((*lhs.first)->read_id < (*rhs.first)->read_id) { return true; }
+    if ((*rhs.first)->read_id < (*lhs.first)->read_id) { return false; }
+    if ((*lhs.first)->read_interval.start < (*rhs.first)->read_interval.start) { return true; }
+    if ((*rhs.first)->read_interval.start < (*lhs.first)->read_interval.start) { return false; }
+    if (distance(lhs.first, lhs.second) > distance(rhs.first, rhs.second)) { return true; } // want bigger first!
+    if (distance(lhs.first, lhs.second) < distance(rhs.first, rhs.second)) { return false; }
+    if ((*lhs.first)->prg_id < (*rhs.first)->prg_id) { return true; }
+    if ((*rhs.first)->prg_id < (*lhs.first)->prg_id) { return false; }
+    if ((*lhs.first)->prg_path < (*rhs.first)->prg_path) { return true; }
+    if ((*rhs.first)->prg_path < (*lhs.first)->prg_path) { return false; }
+    if ((*lhs.first)->strand < (*rhs.first)->strand) { return true; }
+    if ((*rhs.first)->strand < (*lhs.first)->strand) { return false; }
     return false;
 }
 

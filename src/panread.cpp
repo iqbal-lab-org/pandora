@@ -14,9 +14,9 @@ using namespace std;
 
 PanRead::PanRead (const uint32_t i): id(i) {}
 
-void PanRead::add_hits(const uint32_t node_id, const set<MinimizerHitPtr, pComp>& c)
+void PanRead::add_hits(const uint32_t node_id, const pair<set<MinimizerHitPtr, pComp>::iterator, set<MinimizerHitPtr, pComp>::iterator>& c)
 {
-    hits[node_id].insert(c.begin(), c.end());
+    hits[node_id].insert(c.first, c.second);
 }
 
 vector<PanEdge*>::iterator PanRead::get_edge(const PanEdge* e)
