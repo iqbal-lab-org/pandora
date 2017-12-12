@@ -57,7 +57,7 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     pangraph = new PanGraph();
 
     // read in the coverage information from the readfile
-    string readfile = "../test/test_cases/mixtures/read_mixtures/gene1gene2_50.50_300x.fa";
+    string readfile = "../test/test_cases/mixtures/read_mixtures/gene1gene3_50.50_300x.fa";
     //string readfile = "../test/test_cases/mixtures/read_mixtures/gene1gene3_50.50_300x.fa";
     pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, false);
     update_localPRGs_with_hits(pangraph, prgs);  
@@ -80,11 +80,14 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     string truth2 = "ATGAGTCAGAAAAATTTTGTGGAACTGCGCAACGTCACTAAACGATTCGGCAGTAATACGGTTATCGACAATATCAATCTCACCATCCCACAAGGGCAAATGGTGACGCTGCTTGGCCCTTCCGGCTGCGGCAAAACCACCATTTTGCGTCTGGTTGCCGGGCTGGAAAAACCGAGTGAAGGGCAAATCTTTATTGATGGCGAAGATGTCACGCATCGTTCCATTCAGCAGCGCGATATCTGCATGGTGTTTCAGTCATACGCTCTGTTCCCGCATATGTCGCTGGGCGAAAACGTCGGCTACGGGTTAAAGATGCTCGGCGTGTCGCGTAGCGAAGTAAAGCAGCGGGTGAAAGAGGCGCTGGCAATGGTGGATCTGGAAGGGTTCGAGGACCGCTATGTCGACCAGATTTCCGGTGGTCAGCAACAGCGCGTGGCGCTGGCCCGCGCGTTGATCCTCAAACCAAAGGTGCTGCTGTTTGATGAGCCGTTAAGTAACCTCGATGCCAACCTGCGCCGCAGCATGCGCGATAAGATCCGCGAGCTGCAAAAGCAGTTTAATATCACGTCGCTCTACGTGACTCACGATCAAAGTGAGGCCTTCGCGGTTTCCGACACTGTGCTGGTGATGAATAAAGGTCACATCATGCAGATTGGCTCACCGCAGGATCTCTATCGTCAGCCAGCCTCCCGCTTTATGGCAAGTTTTATGGGCGACGCCAACCTGTTCCCGGCGAACTTTAGCGAAGAGTATGTCGATATCTACGGTTATCGCCTGCCGCGCGCGGCGCATTTCCCGGTGCAAGGTAGCGGCACCGTCGGCGTTCGCCCGGAAGCCATCACCTTAAGCAATCACGGCGAAGAGAGTCAGCGTTGTGTTATTCGCCATGTCGCCTACATGGGGCCGCAGTACGAAGTGACCGTAGAGTGGCATGGACAGGAGATTTTATTACAAGTAAACGCCACCCGTTTACAGCCCGATATTGGTGAGCACTATTACCTCGAAATCCATCCTTACGGGATGTTTGTTTTAGCGGATGCGGCA";
     string truth3 = "ATGAGTCAGAAAAATTTTGTTGAACTGCGCAACGTCACTAAACGATTCGGCAGTAATACGGTTATCGACAATATCAATCTCACCATTCCACAAGGGCAAATGGTGACGCTGCTCGGTCCTTCCGGCTGTGGCAAAACCACCATTTTGCGTCTGGTTGCCGGGCTGGAAAAACCGAGCGAAGGGCAAATTTTTATTGATGGCGAAGATGTCACGCATCGTTCCATTCAACAGCGCGATATCTGCATGGTGTTTCAGTCATACGCTCTGTTCCCGCATATGTCGCTGGGTGAAAACGTTGGCTACGGGCTGAAGATGCTTGGCGTGTCGCGTAGCGAAGTGAAACAGCGGGTGAAGGAGGCGCTGGCAATGGTGGATCTGGAAGGCTTCGAGGACCGCTATGTCGATCAGATTTCCGGTGGTCAGCAACAGCGTGTGGCACTGGCCCGCGCGTTGATCCTCAAGCCAAAGGTGCTGCTGTTTGATGAGCCGTTAAGTAACCTCGATGCCAACCTGCGCCGCAGTATGCGCGATAAGATCCGCGAGCTGCAAAAGCAGTTTAATATCACGTCGCTCTACGTCACTCACGATCAAAGTGAAGCTTTCGCGGTGTCCGACACTGTGCTGGTGATGAATAAAGGTCACATCATGCAGATTGGCTCACCGCAGGATCTCTATCGTCAGCCAGCCTCCCGATTTATGGCAAGTTTTATGGGCGACGCCAACCTGTTCCCGGCGAACTTTAGCGAAGAGTATGTCGATATCTACGGTTATCGCCTGCCGCGCGCGGCGCATTTCCCGGCGCAAGGTAGCGGCACCGTCGGCGTTCGCCCGGAAGCCATCACCTTAAGCAATCACGGCGAAGAGAGTCAGCGTTGTGTTATTCGCCATGTCGCCTACATGGGGCCGCAGTACGAAGTGACCGTAGAGTGGCCTGGACAGGAGATTTTATTACAAGTAAACGCCACCCGTTTACAGCCCGATATTGGTGAGCACTATTACCTCGAAATCCATCCTTACGGGATGTTTGTTTTAGCGGATGCGGCA";
     truth1.erase(truth1.length()-15, truth1.length()-15);
-    cout << truth1 < endl;
+    truth1.erase(0, 15);
+    cout << truth1 << endl;
     truth2.erase(truth2.length()-15, truth2.length()-15);
-    cout << truth1 < endl;
+    truth2.erase(0, 15);
+    cout << truth2 << endl;
     truth3.erase(truth3.length()-15, truth3.length()-15);
-    cout << truth1 < endl;
+    truth3.erase(0, 15);
+    cout << truth3 << endl;
 
 
 
@@ -106,9 +109,9 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     	{
             result += n->seq;
     	}
-        result1 = result.substr(0,truth1.length());
-        result2 = result.substr(0,truth2.length());
-        result3 = result.substr(0,truth3.length());
+        result1 = result.substr(15,truth1.length());
+        result2 = result.substr(15,truth2.length());
+        result3 = result.substr(15,truth3.length());
 	    if ((result1 == truth1) or (result2 == truth2) or (result3 == truth3))
 	    {
             cout << endl << (result1 == truth1) << (result2 == truth2) << (result3 == truth3) << endl;
@@ -154,13 +157,13 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     {
         result += n->seq;
     }
-    result1 = result.substr(0,truth1.length());
-    result2 = result.substr(0,truth2.length());
-    result3 = result.substr(0,truth3.length());
+    result1 = result.substr(15,truth1.length());
+    result2 = result.substr(15,truth2.length());
+    result3 = result.substr(15,truth3.length());
     cout << " gives " << endl;
     EXPECT_EQ((result1==truth1) or (result2==truth2) or (result3==truth3), true);
-    cout << result cout << endl << (result1 == truth1) << (result2 == truth2) << (result3 == truth3) << endl;
-    cout << result << endl; endl;
+    cout << endl << (result1 == truth1) << (result2 == truth2) << (result3 == truth3) << endl;
+    cout << result << endl;
 
     cout << "check 2";
     kmp = vector<KmerNodePtr>(paths[next_i].begin(), paths[next_i].end());

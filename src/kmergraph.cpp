@@ -196,83 +196,93 @@ void KmerGraph::sort_topologically() {
     sort(sorted_nodes.begin(), sorted_nodes.end(), pCompKmerNode());
 }
 
-void KmerGraph::get_next(const uint16_t kmer_id, const uint8_t covg_thresh, const uint8_t read_share_thresh, unordered_set<uint16_t>& next_ids)
+void KmerGraph::get_contig_fwd(const uint16_t kmer_id, const uint8_t min_read_share, vector<KmerNodePtr>& contig)
 {
-    // walk back in the graph until get hit or start node
-    uint8_t num_shared_read;
-    for (auto k : nodes[kmer_id]->outNodes)
+    // extend from a node forwards to get contig
+    contig.push_back(nodes[kmer_id]);
+    while (contig.back()->outNodes.size()==1)
     {
-        /*num_shared_read = 0;
-        for (auto r : covgs) {
-            if (r[0][kmer_id] + r[1][kmer_id] + r[0][k->id] + r[1][k->id] >= 2) {
-                num_shared_read += 1;
-                if (num_shared_read >= read_share_thresh) {
-                    break;
-                }
+        contig.push_back(contig.back()->outNodes[0]);
+    }
+
+    // count the number of reads seen in more than 1 node
+    uint num_nodes_seen_in, num_shared_reads=0;
+    for (auto r : covgs) {
+        num_nodes_seen_in = 0;
+        for (auto n : contig) {
+            if (r[0][n->id] + r[1][n->id] > 0) {
+                num_nodes_seen_in += 1;
             }
         }
-        if (k->id == nodes[nodes.size()-1]->id
-            or k->covg[0]+k->covg[1] >= covg_thresh
-            or num_shared_read >= read_share_thresh)
-        {*/
-            next_ids.insert(k->id);
-        //}
+        if (num_nodes_seen_in > 1)
+        {
+            num_shared_reads += 1;
+        }
+    }
+    if (contig.size()> and num_shared_reads < min_read_share)
+    {
+        contig.clear();
     }
 }
 
-void KmerGraph::find_compatible_paths(const uint8_t covg_thresh, const uint8_t read_share_thresh, vector<deque<KmerNodePtr>>& paths) {
+void KmerGraph::find_compatible_paths(const uint8_t min_covg, const uint8_t min_read_share, const uint8_t max_misses, vector<deque<KmerNodePtr>>& paths) {
 
     // order the nodes of the kmergraph
     check();
 
-    unordered_set<uint16_t> v;
-    vector<unordered_set<uint16_t>> next(nodes.size(), v);
-
-    // for each hit get compatible next hit
-    for (uint i = 0; i < sorted_nodes.size(); ++i) {
-        get_next(sorted_nodes[i]->id, covg_thresh, read_share_thresh, next[sorted_nodes[i]->id]);
-    }
-
     // start paths off with 0
     deque<KmerNodePtr> d = {sorted_nodes[0]};
-    deque<deque<KmerNodePtr>> current_paths = {d};
-
+    deque<pair<deque<KmerNodePtr>, uint8_t>> current_paths = {make_pair(d,0)};
 
     // now extend paths until they reach the end
     cout << "extend the start paths" << endl;
-    deque<KmerNodePtr> a_path;
+    pair<deque<KmerNodePtr>, uint8_t> a_path, b_path;
+    uint num_shared_read;
     while (current_paths.size() > 0 and current_paths.size() < 50000) {
         a_path = current_paths.back();
+        b_path = a_path;
         current_paths.pop_back();
-        for (auto n : next[a_path.back()->id]) {
-            a_path.push_back(nodes[n]);
-            if (a_path.back()->id == nodes.size() - 1) {
-                paths.push_back(a_path);
-                /*cout << "found complete path";
-                for (auto n : a_path)
+        for (auto n : a_path.first.back()->outNodes) {
+            if (n->id == nodes.size() - 1) {
+                a_path.first.push_back(n);
+                paths.push_back(a_path.first);
+                cout << "found complete path ";
+                for (auto m : a_path.first)
                 {
-                    cout << n->id << " ";
+                    cout << m->id << " ";
                 }
-                cout << endl;*/
+                cout << endl;
             } else {
-                uint missing = 0;
-                for (auto n : a_path) {
-                    if (n->covg[0] + n->covg[1] < read_share_thresh) {
-                        missing += 1;
+                num_shared_read = 0;
+                for (auto r : covgs) {
+                    if (r[0][a_path.first.back()->id] + r[1][a_path.first.back()->id] + r[0][n->id] + r[1][n->id] >= 2) {
+                        num_shared_read += 1;
+                        if (num_shared_read >= min_read_share) {
+                            break;
+                        }
                     }
                 }
-                if (missing < 3) {
+                if (n->covg[0]+n->covg[1] < min_covg or num_shared_read < min_read_share)
+                {
+                    a_path.second += 1;
+                }
+                if (a_path.second <= max_misses)
+                {
+                    a_path.first.push_back(n);
                     current_paths.push_back(a_path);
-
                 }
             }
-            a_path.pop_back();
+            a_path = b_path;
         }
+    }
+    if (current_paths.size() == 50000)
+    {
+        cout << "maxed out current_paths" << endl;
     }
     cout << "found " << paths.size() << " paths " << endl;
 }
 
-void KmerGraph::find_all_compatible_paths(vector<deque<KmerNodePtr>>& all_paths, vector<vector<pair<uint16_t,uint16_t>>>& path_hits, const uint8_t covg_thresh, const uint8_t read_share_thresh)
+void KmerGraph::find_all_compatible_paths(vector<deque<KmerNodePtr>>& all_paths, vector<vector<pair<uint16_t,uint16_t>>>& path_hits, const uint8_t min_covg, const uint8_t min_read_share, const uint8_t max_misses)
 {
     // adds all the compatible paths for all reads to paths
     // for each read, path_hits[read_id] gives a vector of <path_id, num_hits> pairs
@@ -284,7 +294,7 @@ void KmerGraph::find_all_compatible_paths(vector<deque<KmerNodePtr>>& all_paths,
     uint8_t num_hits;
 
     // collect the paths
-    find_compatible_paths(covg_thresh, read_share_thresh, all_paths);
+    find_compatible_paths(min_covg, min_read_share, max_misses, all_paths);
     cout << now() << "Found " << all_paths.size() << " compatible paths for node" << endl;
 
     // fill in hit data for reads
@@ -298,7 +308,7 @@ void KmerGraph::find_all_compatible_paths(vector<deque<KmerNodePtr>>& all_paths,
             {
                 num_hits += covgs[read][0][k->id] + covgs[read][1][k->id];
             }
-	        if (num_hits >= read_share_thresh)
+	        if (num_hits >= min_covg)
 	        {
                 path_hits[read].push_back(make_pair(i, num_hits));
 	        }
