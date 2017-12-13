@@ -138,7 +138,7 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
 
     // now run EM
     double eps = 40;
-    PathAbundanceEstimator pae(hit_pairs, paths, 1e-8, 2000);
+    PathAbundanceEstimator pae(hit_pairs, paths, 1e-8, 1000);
     std::vector<double> pathCnts = pae.runEM();
 
     EXPECT_EQ(pathCnts.size(), paths.size());

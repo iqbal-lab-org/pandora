@@ -302,7 +302,9 @@ void KmerGraph::find_compatible_paths(const uint8_t min_covg, const uint8_t min_
                 missing = 0;
                 for (auto m : a_path)
                 {
-                    if (m->covg[0]+m->covg[1] < min_covg)
+                    if (m->id != 0
+                        and m->id != nodes.size()-1
+                        and m->covg[0]+m->covg[1] < min_covg)
                     {
                         missing += 1;
                     }
