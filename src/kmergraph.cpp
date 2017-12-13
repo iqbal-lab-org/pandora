@@ -196,14 +196,16 @@ void KmerGraph::sort_topologically() {
     sort(sorted_nodes.begin(), sorted_nodes.end(), pCompKmerNode());
 }
 
-void KmerGraph::get_contig_fwd(const uint16_t kmer_id, const uint8_t min_read_share, vector<KmerNodePtr>& contig)
+uint8_t KmerGraph::get_contig_fwd(const uint16_t kmer_id, const uint8_t min_read_share, vector<KmerNodePtr>& contig)
 {
     // extend from a node forwards to get contig
     contig.push_back(nodes[kmer_id]);
     while (contig.back()->outNodes.size()==1)
     {
+        //cout << contig.back()->id << " ";
         contig.push_back(contig.back()->outNodes[0]);
     }
+    //cout << contig.back()->id;
 
     // count the number of reads seen in more than 1 node
     uint num_nodes_seen_in, num_shared_reads=0;
@@ -219,9 +221,14 @@ void KmerGraph::get_contig_fwd(const uint16_t kmer_id, const uint8_t min_read_sh
             num_shared_reads += 1;
         }
     }
-    if (contig.size()> and num_shared_reads < min_read_share)
+    //cout << "contig size " << contig.size() << " and num shared reads " << num_shared_reads << endl;
+    if (contig.size()>3 and num_shared_reads < min_read_share*contig.size())
     {
-        contig.clear();
+        //cout << " REJECT" << endl;
+        return 1;
+    } else {
+        //cout << " KEEP" << endl;
+        return 0;
     }
 }
 
@@ -230,49 +237,91 @@ void KmerGraph::find_compatible_paths(const uint8_t min_covg, const uint8_t min_
     // order the nodes of the kmergraph
     check();
 
+    // precompute contigs
+    vector<KmerNodePtr> contig;
+    contig.reserve(50);
+    vector<vector<KmerNodePtr>> contigs(nodes.size(), contig);
+    vector<bool> found_contigs(nodes.size(), 0);
+    uint8_t i;
+    for (auto n : sorted_nodes)
+    {
+        if (n->outNodes.size()==1 and found_contigs[n->id]==0) // nb if reject, have to work out all offsets...
+        {
+            i = get_contig_fwd(n->id, min_read_share, contigs[n->id]);
+            for (auto m : contigs[n->id])
+            {
+                found_contigs[m->id] = 1;
+            }
+            if (i!=0)
+            {
+                contigs[n->id].clear();
+            }
+
+        }
+    }
+
     // start paths off with 0
     deque<KmerNodePtr> d = {sorted_nodes[0]};
-    deque<pair<deque<KmerNodePtr>, uint8_t>> current_paths = {make_pair(d,0)};
+    vector<deque<KmerNodePtr>> current_paths = {d};
+    current_paths.reserve(50000);
 
     // now extend paths until they reach the end
-    cout << "extend the start paths" << endl;
-    pair<deque<KmerNodePtr>, uint8_t> a_path, b_path;
-    uint num_shared_read;
+    cout << "find paths" << endl;
+    deque<KmerNodePtr> a_path, b_path;
+    uint missing;
+
     while (current_paths.size() > 0 and current_paths.size() < 50000) {
         a_path = current_paths.back();
         b_path = a_path;
         current_paths.pop_back();
-        for (auto n : a_path.first.back()->outNodes) {
-            if (n->id == nodes.size() - 1) {
-                a_path.first.push_back(n);
-                paths.push_back(a_path.first);
-                cout << "found complete path ";
-                for (auto m : a_path.first)
+        if ( a_path.back()->outNodes.size() == 1)
+        {
+            if (contigs[a_path.back()->id].size() > 0)
+            {
+                a_path.insert(a_path.end(), ++contigs[a_path.back()->id].begin(), contigs[a_path.back()->id].end());
+                current_paths.push_back(a_path);
+            /*} else {
+                cout << "killed path ";
+                for (auto m : a_path)
                 {
                     cout << m->id << " ";
                 }
-                cout << endl;
-            } else {
-                num_shared_read = 0;
-                for (auto r : covgs) {
-                    if (r[0][a_path.first.back()->id] + r[1][a_path.first.back()->id] + r[0][n->id] + r[1][n->id] >= 2) {
-                        num_shared_read += 1;
-                        if (num_shared_read >= min_read_share) {
-                            break;
+                cout << endl;*/
+            }
+        } else {
+            for (auto n : a_path.back()->outNodes) {
+                a_path.push_back(n);
+                if (n->id == nodes.size() - 1) {
+                    paths.push_back(a_path);
+                    cout << "found complete path ";
+                    for (auto m : a_path)
+                    {
+                        cout << m->id << " ";
+                    }
+                    cout << endl;
+                } else {
+                    missing = 0;
+                    for (auto m : a_path)
+                    {
+                        if (m->covg[0]+m->covg[1] < min_covg)
+                        {
+                            missing += 1;
                         }
                     }
+                    if (missing <= max_misses)
+                    {
+                        current_paths.push_back(a_path);
+                    /*} else {
+                        cout << "to many misses on path ";
+                        for (auto m : a_path)
+                        {
+                            cout << m->id << " ";
+                        }
+                        cout << endl;*/
+                    }
                 }
-                if (n->covg[0]+n->covg[1] < min_covg or num_shared_read < min_read_share)
-                {
-                    a_path.second += 1;
-                }
-                if (a_path.second <= max_misses)
-                {
-                    a_path.first.push_back(n);
-                    current_paths.push_back(a_path);
-                }
+                a_path = b_path;
             }
-            a_path = b_path;
         }
     }
     if (current_paths.size() == 50000)
