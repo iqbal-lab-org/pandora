@@ -248,10 +248,10 @@ void KmerGraph::find_compatible_paths(const uint8_t min_covg, const uint8_t min_
         if (n->outNodes.size()==1 and found_contigs[n->id]==0) // nb if reject, have to work out all offsets...
         {
             i = get_contig_fwd(n->id, min_read_share, contigs[n->id]);
-            for (auto m : contigs[n->id])
+            /*for (auto m : contigs[n->id])
             {
                 found_contigs[m->id] = 1;
-            }
+            }*/
             if (i!=0)
             {
                 contigs[n->id].clear();
@@ -270,11 +270,18 @@ void KmerGraph::find_compatible_paths(const uint8_t min_covg, const uint8_t min_
     deque<KmerNodePtr> a_path, b_path;
     uint missing;
 
-    while (current_paths.size() > 0 and current_paths.size() < 50000) {
+    while (current_paths.size() > 0 and current_paths.size() < 50000 and paths.size() < 50000) {
         a_path = current_paths.back();
         b_path = a_path;
         current_paths.pop_back();
-        if ( a_path.back()->outNodes.size() == 1)
+        if (a_path.back()->id == nodes.size() - 1) {
+            paths.push_back(a_path);
+            cout << "found complete path ";
+            for (auto m : a_path) {
+                cout << m->id << " ";
+            }
+            cout << endl;
+        } else if ( a_path.back()->outNodes.size() == 1)
         {
             if (contigs[a_path.back()->id].size() > 0)
             {
@@ -289,44 +296,39 @@ void KmerGraph::find_compatible_paths(const uint8_t min_covg, const uint8_t min_
                 cout << endl;*/
             }
         } else {
-            for (auto n : a_path.back()->outNodes) {
+            for (auto n : a_path.back()->outNodes)
+            {
                 a_path.push_back(n);
-                if (n->id == nodes.size() - 1) {
-                    paths.push_back(a_path);
-                    cout << "found complete path ";
+                missing = 0;
+                for (auto m : a_path)
+                {
+                    if (m->covg[0]+m->covg[1] < min_covg)
+                    {
+                        missing += 1;
+                    }
+                }
+                if (missing <= max_misses)
+                {
+                    current_paths.push_back(a_path);
+                /*} else {
+                    cout << "to many misses " << missing << " on path ";
                     for (auto m : a_path)
                     {
                         cout << m->id << " ";
                     }
-                    cout << endl;
-                } else {
-                    missing = 0;
-                    for (auto m : a_path)
-                    {
-                        if (m->covg[0]+m->covg[1] < min_covg)
-                        {
-                            missing += 1;
-                        }
-                    }
-                    if (missing <= max_misses)
-                    {
-                        current_paths.push_back(a_path);
-                    /*} else {
-                        cout << "to many misses on path ";
-                        for (auto m : a_path)
-                        {
-                            cout << m->id << " ";
-                        }
-                        cout << endl;*/
-                    }
+                    cout << endl;*/
                 }
                 a_path = b_path;
             }
         }
     }
-    if (current_paths.size() == 50000)
+    if (current_paths.size() >= 50000)
     {
         cout << "maxed out current_paths" << endl;
+    }
+    if (paths.size() >= 50000)
+    {
+        cout << "maxed out paths" << endl;
     }
     cout << "found " << paths.size() << " paths " << endl;
 }
