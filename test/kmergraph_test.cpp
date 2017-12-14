@@ -446,15 +446,15 @@ TEST_F(KmerGraphTest,find_compatible_paths)
     kg.nodes[3]->covg[1]+=1;
 
     vector<deque<KmerNodePtr>> paths;
-    vector<deque<KmerNodePtr>> exp_paths = {{kg.nodes[0],kg.nodes[1],kg.nodes[4],kg.nodes[6]},
+    vector<deque<KmerNodePtr>> exp_paths = {{kg.nodes[0],kg.nodes[3],kg.nodes[6]},
                                             {kg.nodes[0],kg.nodes[2],kg.nodes[5],kg.nodes[6]},
-					                        {kg.nodes[0],kg.nodes[3],kg.nodes[6]}};
+                                            {kg.nodes[0],kg.nodes[1],kg.nodes[4],kg.nodes[6]}};
     kg.find_compatible_paths(1,0,1,paths);
     EXPECT_ITERABLE_EQ(vector<deque<KmerNodePtr>>, exp_paths, paths);
 
     paths.clear();
     exp_paths = {{kg.nodes[0],kg.nodes[2],kg.nodes[5],kg.nodes[6]}};
-    kg.find_compatible_paths(1,1,0,paths);
+    kg.find_compatible_paths(2,0,1,paths);
     EXPECT_ITERABLE_EQ(vector<deque<KmerNodePtr>>, exp_paths, paths);
 
 }
@@ -501,10 +501,10 @@ TEST_F(KmerGraphTest,find_all_compatible_paths)
     kg.nodes[2]->covg[1]+=1;
     kg.nodes[4]->covg[1]+=1;
     vector<deque<KmerNodePtr>> paths;
-    vector<deque<KmerNodePtr>> exp_paths = {{kg.nodes[0],kg.nodes[1],kg.nodes[4],kg.nodes[6]},
-                                        {kg.nodes[0],kg.nodes[2],kg.nodes[5],kg.nodes[6]}};
+    vector<deque<KmerNodePtr>> exp_paths = {{kg.nodes[0],kg.nodes[2],kg.nodes[5],kg.nodes[6]},
+                                            {kg.nodes[0],kg.nodes[1],kg.nodes[4],kg.nodes[6]}};
     vector<vector<pair<uint16_t,uint16_t>>> hit_pairs;
-    vector<vector<pair<uint16_t,uint16_t>>> exp_hit_pairs = {{make_pair(0,1), make_pair(1,2)},
+    vector<vector<pair<uint16_t,uint16_t>>> exp_hit_pairs = {{make_pair(0,2), make_pair(1,1)},
                                                              {make_pair(0,1), make_pair(1,1)}};
     kg.find_all_compatible_paths(paths, hit_pairs, 1,0,0);
 

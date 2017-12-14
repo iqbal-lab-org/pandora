@@ -71,6 +71,7 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     // find the compatible paths to use as input
     vector<deque<KmerNodePtr>> paths;
     vector<vector<pair<uint16_t,uint16_t>>> hit_pairs;
+    pangraph->nodes[0]->kmer_prg.remove_shortcut_edges();
     pangraph->nodes[0]->kmer_prg.find_all_compatible_paths(paths, hit_pairs);
 
     EXPECT_GE(paths.size(), (uint)2);
@@ -100,8 +101,6 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     truth5.erase(truth5.length()-15, truth5.length()-15);
     truth5.erase(0, 15);
     //cout << truth5 << endl;
-
-
 
     vector<KmerNodePtr> kmp;
     kmp.reserve(200);
@@ -152,22 +151,19 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
 	    }*/
     }
     cout << "done" << endl;
-    EXPECT_EQ((uint)2, found);
+    EXPECT_LE((uint)2, found);
 
     // now run EM
-    double eps = 40;
-    PathAbundanceEstimator pae(hit_pairs, paths, 1e-8, 1000);
+    double eps = 10;
+    PathAbundanceEstimator pae(hit_pairs, paths, 1e-8, 10000);
     std::vector<double> pathCnts = pae.runEM();
-
     EXPECT_EQ(pathCnts.size(), paths.size());
-    uint path_i = distance(pathCnts.begin(), max_element(pathCnts.begin(),pathCnts.end()));
-    EXPECT_LE(std::abs(pathCnts[path_i]-static_cast<double>(pangraph->nodes[0]->kmer_prg.covgs.size()/2)), eps);
-    uint next_i = max(distance(pathCnts.begin(), max_element(pathCnts.begin(),pathCnts.begin()+path_i)),
-                  distance(pathCnts.begin(), max_element(pathCnts.begin()+path_i+1,pathCnts.end())));
-    EXPECT_LE(std::abs(pathCnts[next_i]-static_cast<double>(pangraph->nodes[0]->kmer_prg.covgs.size()/2)), eps);
 
     // check the best 2 paths at end of EM
-    cout << "check 1";
+    cout << "check top path";
+    uint path_i = distance(pathCnts.begin(), max_element(pathCnts.begin(),pathCnts.end()));
+    EXPECT_LE(std::abs(pathCnts[path_i]-static_cast<double>(pangraph->nodes[0]->kmer_prg.covgs.size()/2)), eps);
+
     kmp = vector<KmerNodePtr>(paths[path_i].begin(), paths[path_i].end());
     lmp = prgs[0]->localnode_path_from_kmernode_path(kmp, w); 
     result = "";
@@ -185,7 +181,11 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     cout << endl << (result1 == truth1) << (result2 == truth2) << (result3 == truth3) << (result4 == truth4) << (result5 == truth5) << endl;
     cout << result << endl;
 
-    cout << "check 2";
+    cout << "check next path";
+    uint next_i = max(distance(pathCnts.begin(), max_element(pathCnts.begin(),pathCnts.begin()+path_i)),
+                  distance(pathCnts.begin(), max_element(pathCnts.begin()+path_i+1,pathCnts.end())));
+    EXPECT_LE(std::abs(pathCnts[next_i]-static_cast<double>(pangraph->nodes[0]->kmer_prg.covgs.size()/2)), eps);
+
     kmp = vector<KmerNodePtr>(paths[next_i].begin(), paths[next_i].end());
     lmp = prgs[0]->localnode_path_from_kmernode_path(kmp, w);
     result = "";

@@ -168,6 +168,47 @@ void KmerGraph::add_edge(KmerNodePtr from, KmerNodePtr to) {
     }
 }
 
+void KmerGraph::remove_shortcut_edges()
+{
+    cout << "remove shortcut edges from kmergraph" << endl;
+    bool need_to_iterate;
+    Path temp_path;
+    uint num_removed_edges = 0;
+
+    for (auto n : nodes)
+    {
+        cout << n.first << endl;
+        for (vector<KmerNodePtr>::iterator out=n.second->outNodes.begin(); out!=n.second->outNodes.end();)
+        {
+            need_to_iterate = true;
+            for (auto next_out : (*out)->outNodes)
+            {
+                // if the outnode of an outnode of A is another outnode of A
+                if (find(n.second->outNodes.begin(), n.second->outNodes.end(), next_out)!=n.second->outNodes.end())
+                {
+                    temp_path = get_union(n.second->path, next_out->path);
+                    cout << "found the union of " << n.second->path << " and " << next_out->path << endl;
+                    cout << "check if " << temp_path << " contains " << (*out)->path << endl;
+                    if ((*out)->path.is_subpath(temp_path))
+                    {
+                        //remove out
+                        (*out)->inNodes.erase(find((*out)->inNodes.begin(), (*out)->inNodes.end(), n.second));
+                        out = n.second->outNodes.erase(out);
+                        need_to_iterate = false;
+                        num_removed_edges += 1;
+                        break;
+                    }
+                }
+            }
+            if (need_to_iterate)
+            {
+                out++;
+            }
+        }
+    }
+    cout << "removed " << num_removed_edges << "from the kmergraph" << endl;
+}
+
 void KmerGraph::check() {
     if (sorted_nodes.empty()) {
         sort_topologically();
@@ -232,7 +273,20 @@ uint8_t KmerGraph::get_contig_fwd(const uint16_t kmer_id, const uint8_t min_read
     }
 }
 
-void KmerGraph::find_compatible_paths(const uint8_t min_covg, const uint8_t min_read_share, const uint8_t max_misses, vector<deque<KmerNodePtr>>& paths) {
+void KmerGraph::find_compatible_paths(uint8_t min_covg, const uint8_t min_read_share, const uint8_t max_misses, vector<deque<KmerNodePtr>>& paths) {
+
+    // update min_covg if it is too high so that we will get at least 1 path
+    vector<KmerNodePtr> kmp;
+    kmp.reserve(800);
+    set_p(0.11);
+    num_reads = covgs.size();
+    find_max_path(kmp);
+    cout << "set min covg " << +min_covg << endl;
+    for (auto n : kmp)
+    {
+        min_covg = (uint8_t)min((uint)min_covg, (n->covg[0]+n->covg[1]));
+    }
+    cout << "use min covg " << +min_covg << endl;
 
     // order the nodes of the kmergraph
     check();
@@ -276,11 +330,11 @@ void KmerGraph::find_compatible_paths(const uint8_t min_covg, const uint8_t min_
         current_paths.pop_back();
         if (a_path.back()->id == nodes.size() - 1) {
             paths.push_back(a_path);
-            cout << "found complete path ";
+            /*cout << "found complete path ";
             for (auto m : a_path) {
                 cout << m->id << " ";
             }
-            cout << endl;
+            cout << endl;*/
         } else if ( a_path.back()->outNodes.size() == 1)
         {
             if (contigs[a_path.back()->id].size() > 0)
