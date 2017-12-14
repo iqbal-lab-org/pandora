@@ -20,12 +20,14 @@ class Path {
     void add_end_interval(const Interval&);
     Path subpath(const uint32_t, const uint32_t) const;
     bool is_branching(const Path& y) const;
+    bool is_subpath(const Path& y) const;
     bool operator < (const Path& y) const;
     bool operator == (const Path& y) const;
     bool operator != (const Path& y) const;
-  friend std::ostream& operator<< (std::ostream& out, const Path& p); 
-  friend std::istream& operator>> (std::istream& in, Path& p);
-  friend bool equal_except_null_nodes (const Path&, const Path&);
+    friend std::ostream& operator<< (std::ostream& out, const Path& p);
+    friend std::istream& operator>> (std::istream& in, Path& p);
+    friend bool equal_except_null_nodes (const Path&, const Path&);
+    friend Path get_union(const Path&, const Path&);
 };
 
 bool equal_except_null_nodes (const Path&, const Path&);
