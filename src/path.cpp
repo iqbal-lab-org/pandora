@@ -283,6 +283,9 @@ Path get_union(const Path&x, const Path&y)
     if (x.end < y.start or x.is_branching(y))
     {
         return p;
+    } else if (x.path.size() == 0)
+    {
+        return y;
     }
 
     while (xit != x.path.end() and yit != y.path.end() and xit->end < yit->start)
@@ -300,9 +303,9 @@ Path get_union(const Path&x, const Path&y)
         // then we have overlap
         if (p.path.size() == 0)
         {
-            p.initialize({Interval(xit->start, min(yit->end, xit->end))});
+            p.initialize({Interval(xit->start, max(yit->end, xit->end))});
         } else {
-            p.add_end_interval(Interval(xit->start, min(yit->end, xit->end)));
+            p.add_end_interval(Interval(xit->start, max(yit->end, xit->end)));
         }
         while (yit != --y.path.end())
         {

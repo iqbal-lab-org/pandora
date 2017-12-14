@@ -453,7 +453,8 @@ TEST_F(KmerGraphTest,find_compatible_paths)
     EXPECT_ITERABLE_EQ(vector<deque<KmerNodePtr>>, exp_paths, paths);
 
     paths.clear();
-    exp_paths = {{kg.nodes[0],kg.nodes[2],kg.nodes[5],kg.nodes[6]}};
+    exp_paths = {{kg.nodes[0],kg.nodes[3],kg.nodes[6]},
+                 {kg.nodes[0],kg.nodes[2],kg.nodes[5],kg.nodes[6]}};
     kg.find_compatible_paths(2,0,1,paths);
     EXPECT_ITERABLE_EQ(vector<deque<KmerNodePtr>>, exp_paths, paths);
 
