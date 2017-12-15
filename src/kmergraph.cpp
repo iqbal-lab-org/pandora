@@ -238,7 +238,7 @@ uint8_t KmerGraph::get_contig_fwd(const uint16_t kmer_id, const uint8_t min_read
 {
     // extend from a node forwards to get contig
     contig.push_back(nodes[kmer_id]);
-    while (contig.back()->outNodes.size()==1)
+    while (contig.back()->outNodes.size()==1) //and (contig.size() == 1 or contig.back()->inNodes.size()==1))
     {
         //cout << contig.back()->id << " ";
         contig.push_back(contig.back()->outNodes[0]);
@@ -270,6 +270,31 @@ uint8_t KmerGraph::get_contig_fwd(const uint16_t kmer_id, const uint8_t min_read
     }
 }
 
+uint8_t KmerGraph::get_num_shared_reads(deque<KmerNodePtr>& contig1, vector<KmerNodePtr>& contig2)
+{
+    uint8_t num_nodes_seen_in, num_shared_reads=0;
+    for (auto r : covgs) {
+        num_nodes_seen_in = 0;
+        for (auto n : contig1) {
+            if (r[0][n->id] + r[1][n->id] > 0) {
+                num_nodes_seen_in += 1;
+                break;
+            }
+        }
+        for (auto n : contig2) {
+            if (r[0][n->id] + r[1][n->id] > 0) {
+                num_nodes_seen_in += 1;
+                break;
+            }
+        }
+        if (num_nodes_seen_in > 1)
+        {
+            num_shared_reads += 1;
+        }
+    }
+    return num_shared_reads;
+}
+
 void KmerGraph::find_compatible_paths(uint8_t min_covg, const uint8_t min_read_share, const uint8_t max_misses, vector<deque<KmerNodePtr>>& paths) {
 
     // order the nodes of the kmergraph
@@ -279,17 +304,12 @@ void KmerGraph::find_compatible_paths(uint8_t min_covg, const uint8_t min_read_s
     vector<KmerNodePtr> contig;
     contig.reserve(50);
     vector<vector<KmerNodePtr>> contigs(nodes.size(), contig);
-    vector<bool> found_contigs(nodes.size(), 0);
     uint8_t i;
     for (auto n : sorted_nodes)
     {
-        if (n->outNodes.size()==1 and found_contigs[n->id]==0) // nb if reject, have to work out all offsets...
+        if (n->outNodes.size()==1) // nb if reject, have to work out all offsets...
         {
             i = get_contig_fwd(n->id, min_read_share, contigs[n->id]);
-            /*for (auto m : contigs[n->id])
-            {
-                found_contigs[m->id] = 1;
-            }*/
             if (i!=0)
             {
                 contigs[n->id].clear();
@@ -322,19 +342,23 @@ void KmerGraph::find_compatible_paths(uint8_t min_covg, const uint8_t min_read_s
         {
             if (contigs[a_path.back()->id].size() > 0)
             {
-                a_path.insert(a_path.end(), ++contigs[a_path.back()->id].begin(), contigs[a_path.back()->id].end());
-                missing = 0;
-                for (auto m : a_path)
-                {
-                    if (m->id != 0
-                        and m->id != nodes.size()-1
-                        and m->covg[0]+m->covg[1] < min_covg)
-                    {
-                        missing += 1;
+                cout << +min(a_path.size(), contigs[a_path.back()->id].size()) << " " << +get_num_shared_reads(a_path, contigs[a_path.back()->id]) << endl;
+                if (min(a_path.size(), contigs[a_path.back()->id].size()) <= 5
+                        or get_num_shared_reads(a_path, contigs[a_path.back()->id])*min(a_path.size(), contigs[a_path.back()->id].size()) >= min_read_share) {
+                    a_path.insert(a_path.end(), ++contigs[a_path.back()->id].begin(), contigs[a_path.back()->id].end());
+                    missing = 0;
+                    for (auto m : a_path) {
+                        if (m->id != 0
+                            and m->id != nodes.size() - 1
+                            and m->covg[0] + m->covg[1] < min_covg) {
+                            missing += 1;
+                        }
                     }
-                }
-                if (missing <= max_misses) {
-                    current_paths.push_back(a_path);
+                    if (missing <= max_misses) {
+                        current_paths.push_back(a_path);
+                    }
+                } else {
+                    cout << "threw away path due to lack of read sharing" << endl;
                 }
             /*} else {
                 cout << "killed path ";
@@ -728,9 +752,9 @@ void KmerGraph::save(const string &filepath) {
     handle.open(filepath);
     handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
     for (auto c : nodes) {
-        //handle << "S\t" << c.second->id << "\tN" /*<< c.second->path*/ << "\tRC:i:" << c.second->covg[0]+c.second->covg[1] << endl;
-        handle << "S\t" << c.second->id << "\t" << c.second->path << "\tFC:i:" << c.second->covg[0] << "\t" << "\tRC:i:"
-               << c.second->covg[1] << endl;//"\t" << (unsigned)nodes[i].second->num_AT << endl;
+        handle << "S\t" << c.second->id << "\tN" /*<< c.second->path*/ << "\tRC:i:" << c.second->covg[0]+c.second->covg[1] << endl;
+        //handle << "S\t" << c.second->id << "\t" << c.second->path << "\tFC:i:" << c.second->covg[0] << "\t" << "\tRC:i:"
+        //       << c.second->covg[1] << endl;//"\t" << (unsigned)nodes[i].second->num_AT << endl;
         for (uint32_t j = 0; j < c.second->outNodes.size(); ++j) {
             handle << "L\t" << c.second->id << "\t+\t" << c.second->outNodes[j]->id << "\t+\t0M" << endl;
         }

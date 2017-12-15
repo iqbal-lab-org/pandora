@@ -57,8 +57,10 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     pangraph = new PanGraph();
 
     // read in the coverage information from the readfile
-    string readfile = "../test/test_cases/mixtures/read_mixtures/gene1gene5_50.50_300x.fa";
-    //string readfile = "../test/test_cases/mixtures/read_mixtures/gene1gene2_50.50_300x.fa";
+    //string readfile = "../test/test_cases/mixtures/read_mixtures/gene1gene5_50.50_300x.fa";
+    string readfile = "../test/test_cases/mixtures/read_mixtures/gene1gene2_50.50_300x.fa";
+    //string readfile = "../test/test_cases/mixtures/read_mixtures/gene2gene3_50.50_300x.fa";
+
     pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, false);
     update_localPRGs_with_hits(pangraph, prgs);  
 
@@ -81,6 +83,7 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     {
         min_covg = (uint8_t)min((uint)min_covg, (n->covg[0]+n->covg[1]));
     }
+    min_covg = min_covg/2;
     cout << " to " << +min_covg << endl;
 
     // find the compatible paths to use as input
@@ -123,16 +126,24 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     uint found = 0;
 
     // check the true paths are in the input compatible paths
+    uint count = 0;
     for (auto p : paths)
     {
         cout << ".";
 	    kmp = vector<KmerNodePtr>(p.begin(), p.end());
+        for (auto n : kmp)
+        {
+            cout << n->path << " ";
+        }
+        cout << endl;
     	lmp = prgs[0]->localnode_path_from_kmernode_path(kmp, w);
 	    result = "";
 	    for (auto n : lmp)
     	{
+            cout << *n ";
             result += n->seq;
     	}
+        cout << endl;
         result1 = result.substr(15,truth1.length());
         result2 = result.substr(15,truth2.length());
         result3 = result.substr(15,truth3.length());
@@ -158,10 +169,11 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
 
             found += 1;
 	    }
-	    /*if (found == 2)
+        count += 1
+	    if (count == 20)
 	    {
 	        break;
-	    }*/
+	    }
     }
     cout << "done" << endl;
     EXPECT_LE((uint)2, found);
