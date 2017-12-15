@@ -67,12 +67,27 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     EXPECT_TRUE((pangraph->nodes[0]->kmer_prg.covgs.size() >= 200) && (pangraph->nodes[0]->kmer_prg.covgs.size() <= 300)); // we have the gene in all 300 reads, 
 															// so expect to find it ~200-300 times
     pangraph->nodes[0]->kmer_prg.save("../test/test_cases/simulated_mixtures.kg.gfa");
+    prgs[0]->prg.write_gfa("../test/test_cases/simulated_mixtures.lg.gfa");
+
+    // choose a sensible parameter for min_covg
+    vector<KmerNodePtr> kmp;
+    kmp.reserve(800);
+    uint8_t min_covg = 30;
+    pangraph->nodes[0]->kmer_prg.set_p(0.11);
+    pangraph->nodes[0]->kmer_prg.num_reads = pangraph->nodes[0]->kmer_prg.covgs.size();
+    pangraph->nodes[0]->kmer_prg.find_max_path(kmp);
+    cout << "Update min covg from default " << +min_covg;
+    for (auto n : kmp)
+    {
+        min_covg = (uint8_t)min((uint)min_covg, (n->covg[0]+n->covg[1]));
+    }
+    cout << " to " << +min_covg << endl;
 
     // find the compatible paths to use as input
     vector<deque<KmerNodePtr>> paths;
     vector<vector<pair<uint16_t,uint16_t>>> hit_pairs;
     pangraph->nodes[0]->kmer_prg.remove_shortcut_edges();
-    pangraph->nodes[0]->kmer_prg.find_all_compatible_paths(paths, hit_pairs);
+    pangraph->nodes[0]->kmer_prg.find_all_compatible_paths(paths, hit_pairs, min_covg);
 
     EXPECT_GE(paths.size(), (uint)2);
 
@@ -102,8 +117,6 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     truth5.erase(0, 15);
     //cout << truth5 << endl;
 
-    vector<KmerNodePtr> kmp;
-    kmp.reserve(200);
     vector<LocalNodePtr> lmp;
     lmp.reserve(100);
     string result, result1, result2, result3, result4, result5;
@@ -154,8 +167,8 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     EXPECT_LE((uint)2, found);
 
     // now run EM
-    double eps = 10;
-    PathAbundanceEstimator pae(hit_pairs, paths, 1e-8, 10000);
+    double eps = 50;
+    PathAbundanceEstimator pae(hit_pairs, paths, 1e-8, 1000);
     std::vector<double> pathCnts = pae.runEM();
     EXPECT_EQ(pathCnts.size(), paths.size());
 
@@ -204,7 +217,6 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     cout << result << endl;
 
     // clear up
-    cout << "clear up" << endl;
     idx->clear();
     delete idx;
     delete mhs;
