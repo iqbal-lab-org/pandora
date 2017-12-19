@@ -126,24 +126,23 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
     uint found = 0;
 
     // check the true paths are in the input compatible paths
-    uint count = 0;
     for (auto p : paths)
     {
         cout << ".";
 	    kmp = vector<KmerNodePtr>(p.begin(), p.end());
-        for (auto n : kmp)
-        {
-            cout << n->path << " ";
-        }
-        cout << endl;
+        //for (auto n : kmp)
+        //{
+        //    cout << n->path << " ";
+        //}
+        //cout << endl;
     	lmp = prgs[0]->localnode_path_from_kmernode_path(kmp, w);
 	    result = "";
 	    for (auto n : lmp)
     	{
-            cout << *n ";
+            //cout << *n << " ";
             result += n->seq;
     	}
-        cout << endl;
+        //cout << endl;
         result1 = result.substr(15,truth1.length());
         result2 = result.substr(15,truth2.length());
         result3 = result.substr(15,truth3.length());
@@ -161,16 +160,15 @@ TEST_F(SimulatedMixtureTest, gene1gene2_5050) {
             {
                 cout << l->id << " ";
             }
-            /*for (auto l : lmp)
+            for (auto l : lmp)
             {
                 cout << *l << " ";
-            }*/
+            }
             cout << endl;
 
             found += 1;
 	    }
-        count += 1
-	    if (count == 20)
+	    if (found == 2)
 	    {
 	        break;
 	    }
