@@ -502,6 +502,10 @@ LocalPRG::localnode_path_from_kmernode_path(const vector<KmerNodePtr> &kmernode_
     vector<LocalNodePtr> localnode_path, kmernode, walk_path;
     vector<Path> walk_paths;
     for (uint i = 0; i != kmernode_path.size(); ++i) {
+        if (kmernode_path[i]->id == 0 or kmernode_path[i]->id == kmer_prg.nodes.size()-1)
+        {
+            continue;
+        }
         if (i != 0 and kmernode_path[i]->path.length() == 0) // only have null paths at beginning and end
         {
             break;
@@ -526,6 +530,12 @@ LocalPRG::localnode_path_from_kmernode_path(const vector<KmerNodePtr> &kmernode_
         walk_paths = prg.walk(0, 0, w);
         for (uint i = 0; i != walk_paths.size(); ++i) {
             walk_path = nodes_along_path(walk_paths[i]);
+            /*cout << "consider start path ";
+            for (auto w : walk_path)
+            {
+                cout << *w << " ";
+            }
+            cout << endl;*/
             // does it overlap
             uint n = 0, m = 0;
             overlap = false;
