@@ -173,6 +173,8 @@ void KmerGraph::remove_shortcut_edges()
     cout << now() << "Remove 'bad' edges from kmergraph" << endl;
     Path temp_path;
     uint num_removed_edges = 0;
+    vector<KmerNodePtr> v = {};
+    deque <vector<KmerNodePtr>> d;
 
     for (auto n : nodes)
     {
@@ -341,14 +343,17 @@ void KmerGraph::find_compatible_paths(uint8_t min_covg, const uint8_t min_read_s
                 keep = true;
                 for (auto c : contig_path) {
                     total_misses += get_num_missing(min_covg, contigs[c]);
-                    if (total_misses > max_misses
-                        or (contigs[c].size() > 4
+                    if (contigs[c].size() > 4
                             and contigs[o->id].size() > 4
-                            and get_num_shared_reads(contigs[c], contigs[o->id]) < max(contigs[c].size(),contigs[o->id].size())*min_read_share))
+                            and get_num_shared_reads(contigs[c], contigs[o->id]) <= min(contigs[c].size(),contigs[o->id].size())*min_read_share)
                         {
-                            keep = false;
-                            break;
+                            total_misses += 1;
                         }
+                    if (total_misses > max_misses)
+                    {
+                        keep = false;
+                        break;
+                    }
                 }
                 if (keep == true){
                     contig_path.push_back(o->id);
