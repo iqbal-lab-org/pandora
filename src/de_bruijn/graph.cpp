@@ -27,12 +27,12 @@ Graph::~Graph()
 NodePtr Graph::add_node (const deque<uint16_t>& node_ids, uint32_t read_id)
 {
     assert(node_ids.size() == size);
-    cout << "add dbg node ";
+    /*cout << "add dbg node ";
     for (const auto i : node_ids)
     {
         cout << i << " ";
     }
-    cout << endl;
+    cout << endl;*/
     NodePtr n (make_shared<Node>(next_id, node_ids, read_id));
     for (auto c : nodes)
     {
@@ -61,19 +61,81 @@ void Graph::add_edge (NodePtr from, NodePtr to)
 // remove de bruijn node with id given
 void Graph::remove_node(const uint16_t dbg_node_id)
 {
-    cout << "remove node " << dbg_node_id;
+    cout << "remove node " << dbg_node_id << endl;
     auto it = nodes.find(dbg_node_id);
-    cout << it->first << endl;
     if ( it != nodes.end())
     {
         // remove this node from lists of out nodes from other graph nodes
         for (auto n : it->second->out_nodes)
         {
+            cout << "remove " << dbg_node_id << " from ";
+            for (auto m : nodes[n]->out_nodes)
+            {
+                cout << m << " ";
+            }
             nodes[n]->out_nodes.erase(dbg_node_id);
+            cout << " to get ";
+            for (auto m : nodes[n]->out_nodes)
+            {
+                cout << m << " ";
+            }
+            cout << endl;
         }
 
         // and remove from nodes
         nodes.erase(dbg_node_id);
+    }
+}
+
+// remove read from de bruijn node
+void Graph::remove_read_from_node(const uint32_t read_id, const uint16_t dbg_node_id)
+{
+    cout << "remove read " << (uint)read_id << " from node " << (uint)dbg_node_id << endl;
+    auto it = nodes.find(dbg_node_id);
+    bool found_read_intersect;
+    if ( it != nodes.end())
+    {
+        //cout << "found node " << *(it->second) << endl;
+        auto rit = it->second->read_ids.find(read_id);
+        if (rit != it->second->read_ids.end())
+        {
+            //cout << "found read id on node" << endl;
+            it->second->read_ids.erase(rit);
+            //cout << "removed read id" << endl;
+
+            // if there are no more reads covering it, remove the node
+
+            if (it->second->read_ids.empty())
+            {
+                //cout << "no more reads, so remove node" << endl;
+                remove_node(dbg_node_id);
+            } else {
+                // otherwise, remove any outnodes which no longer share a read
+                //cout << "remove outnodes which no longer share a read" << endl;
+                for (unordered_set<uint16_t>::iterator nit = it->second->out_nodes.begin();
+                     nit != it->second->out_nodes.end();)
+                {
+                    //cout << "out node " << *nit << endl;
+                    found_read_intersect = false;
+                    for (auto r : it->second->read_ids) {
+                        if (nodes[*nit]->read_ids.find(r) != nodes[*nit]->read_ids.end()) {
+                            found_read_intersect = true;
+                            //cout << " shares a read" << endl;
+                            break;
+                        }
+                    }
+                    if (found_read_intersect == false)
+                    {
+                        //cout << " does not share a read" << endl;
+                        nodes[*nit]->out_nodes.erase(dbg_node_id);
+                        nit = it->second->out_nodes.erase(nit);
+                        cout << "removed" << endl;
+                    } else {
+                        nit++;
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -95,7 +157,7 @@ unordered_set<uint16_t> Graph::get_leaves()
 set<deque<uint16_t>> Graph::get_unitigs()
 {
     set<deque<uint16_t>> s;
-    vector<uint16_t> seen(nodes.size(), 0);
+    vector<bool> seen(nodes.size(), 0);
     deque<uint16_t> d;
 
     for (auto c : nodes)
@@ -109,8 +171,13 @@ set<deque<uint16_t>> Graph::get_unitigs()
                 seen[i] = 1;
             }
             s.insert(d);
-        } else {
-            seen[c.second->id] = 1;
+            for (auto n : d)
+            {
+                cout << *nodes[n] << " ";
+            }
+            cout << endl;
+        //} else {
+        //    seen[c.second->id] = 1;
         }
     }
     return s;
@@ -145,7 +212,7 @@ void Graph::extend_unitig(deque<uint16_t>& tig)
         }
         // else error?
     }
-    cout << "tig front " << tig.front() << endl;
+    //cout << "tig front " << tig.front() << endl;
     while (nodes[tig.front()]->out_nodes.size() == 2)
     {
         if (*nodes[tig.front()]->out_nodes.begin() == tig[1])
@@ -203,8 +270,8 @@ bool Graph::operator == (const Graph& y) const
             }
         }
         if (found == false) {
+            cout << "did not find node " << t.first << " " << *t.second << endl;
             return false;
-            cout << "did not find node" << endl;
         }
     }
     // nodes can't be equal within a graph so don't need to check vice versa
@@ -218,7 +285,7 @@ bool Graph::operator!=(const Graph &y) const {
 namespace debruijn {
     std::ostream &operator<<(std::ostream &out, const Graph &m) {
         for (const auto &n : m.nodes) {
-            out << n.first << endl;
+            out << n.first << ": " << *(n.second) << endl;
             for (const auto &o : n.second->out_nodes) {
                 out << n.first << " -> " << o << endl;
             }

@@ -18,6 +18,7 @@ public:
     bool operator == (const Node& y) const;
     bool operator != (const Node& y) const;
 
+    friend std::ostream & operator<< (std::ostream &,const Node&);
 };
 
 #endif

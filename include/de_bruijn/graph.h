@@ -24,6 +24,7 @@ public:
     NodePtr add_node(const deque<uint16_t>&, uint32_t);
     void add_edge (NodePtr, NodePtr);
     void remove_node(const uint16_t);
+    void remove_read_from_node(const uint32_t, const uint16_t);
 
     unordered_set<uint16_t> get_leaves();
     unordered_set<uint16_t> get_leaf_tips();

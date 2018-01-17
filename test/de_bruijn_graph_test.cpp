@@ -163,6 +163,127 @@ TEST_F(DeBruijnGraphTest,remove_node)
     EXPECT_EQ(g.nodes[0]->out_nodes.size(),(uint)0);
 }
 
+
+TEST_F(DeBruijnGraphTest,remove_read_from_node)
+{
+    GraphTester g(3);
+    deque<uint16_t> v1({4,6,8});
+    deque<uint16_t> v2({6,9,3});
+    deque<uint16_t> v3({1,2,3});
+
+    g.add_node(v1, 0);
+    g.add_node(v2, 4);
+    g.add_node(v3, 5);
+    NodePtr n1 = g.add_node(v1, 7);
+    NodePtr n2 = g.add_node(v2, 7);
+    g.add_edge(n1, n2);
+
+    EXPECT_EQ(g.nodes.size(), (uint)3);
+    EXPECT_EQ(*g.nodes[0], Node(0, v1, 7));
+    EXPECT_EQ(*g.nodes[1], Node(1, v2, 7));
+    EXPECT_EQ(*g.nodes[2], Node(3, v3, 5));
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[0]->hashed_node_ids, v1);
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[1]->hashed_node_ids, v2);
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[2]->hashed_node_ids, v3);
+    unordered_multiset<uint32_t> w1({0,7});
+    unordered_multiset<uint32_t> w2({4,7});
+    unordered_multiset<uint32_t> w3({5});
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[0]->read_ids,w1);
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[1]->read_ids,w2);
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[2]->read_ids,w3);
+    unordered_set<uint16_t> s({1});
+    unordered_set<uint16_t> t({0});
+    unordered_set<uint16_t> u;
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[0]->out_nodes,s);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[1]->out_nodes,t);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[2]->out_nodes,u);
+
+    // remove a read which doesn't exist - nothing should happen
+    g.remove_read_from_node(1,0);
+    EXPECT_EQ(g.nodes.size(), (uint)3);
+    EXPECT_EQ(*g.nodes[0], Node(0, v1, 7));
+    EXPECT_EQ(*g.nodes[1], Node(1, v2, 7));
+    EXPECT_EQ(*g.nodes[2], Node(3, v3, 5));
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[0]->hashed_node_ids, v1);
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[1]->hashed_node_ids, v2);
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[2]->hashed_node_ids, v3);
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[0]->read_ids,w1);
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[1]->read_ids,w2);
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[2]->read_ids,w3);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[0]->out_nodes,s);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[1]->out_nodes,t);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[2]->out_nodes,u);
+
+    // remove a read from a node which doesn't exist - nothing should happen
+    g.remove_read_from_node(0,3);
+    EXPECT_EQ(g.nodes.size(), (uint)3);
+    EXPECT_EQ(*g.nodes[0], Node(0, v1, 7));
+    EXPECT_EQ(*g.nodes[1], Node(1, v2, 7));
+    EXPECT_EQ(*g.nodes[2], Node(3, v3, 5));
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[0]->hashed_node_ids, v1);
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[1]->hashed_node_ids, v2);
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[2]->hashed_node_ids, v3);
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[0]->read_ids,w1);
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[1]->read_ids,w2);
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[2]->read_ids,w3);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[0]->out_nodes,s);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[1]->out_nodes,t);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[2]->out_nodes,u);
+
+    // remove read from a node where should just change the read id list for node
+    g.remove_read_from_node(7,1);
+    EXPECT_EQ(g.nodes.size(), (uint)3);
+    EXPECT_EQ(*g.nodes[0], Node(0, v1, 7));
+    EXPECT_EQ(*g.nodes[1], Node(1, v2, 7));
+    EXPECT_EQ(*g.nodes[2], Node(3, v3, 5));
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[0]->hashed_node_ids, v1);
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[1]->hashed_node_ids, v2);
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[2]->hashed_node_ids, v3);
+    w2 = {4};
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[0]->read_ids,w1);
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[1]->read_ids,w2);
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[2]->read_ids,w3);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[0]->out_nodes,u);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[1]->out_nodes,u);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[2]->out_nodes,u);
+
+    // remove read from a node where should result in node being removed
+    g.remove_read_from_node(5,2);
+    EXPECT_EQ(g.nodes.size(), (uint)2);
+    EXPECT_EQ(*g.nodes[0], Node(0, v1, 7));
+    EXPECT_EQ(*g.nodes[1], Node(1, v2, 7));
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[0]->hashed_node_ids, v1);
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[1]->hashed_node_ids, v2);
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[0]->read_ids,w1);
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[1]->read_ids,w2);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[0]->out_nodes,u);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[1]->out_nodes,u);
+
+    // continue removing reads until graph empty
+    g.remove_read_from_node(0,0);
+    EXPECT_EQ(g.nodes.size(), (uint)2);
+    EXPECT_EQ(*g.nodes[0], Node(0, v1, 7));
+    EXPECT_EQ(*g.nodes[1], Node(1, v2, 7));
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[0]->hashed_node_ids, v1);
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[1]->hashed_node_ids, v2);
+    w1 = {7};
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[0]->read_ids,w1);
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[1]->read_ids,w2);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[0]->out_nodes,u);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[1]->out_nodes,u);
+
+    g.remove_read_from_node(4,1);
+    EXPECT_EQ(g.nodes.size(), (uint)1);
+    EXPECT_EQ(*g.nodes[0], Node(0, v1, 7));
+    EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[0]->hashed_node_ids, v1);
+    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[0]->read_ids,w1);
+    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[0]->out_nodes,u);
+
+    g.remove_read_from_node(7,0);
+    EXPECT_EQ(g.nodes.size(), (uint)0);
+}
+
+
 TEST_F(DeBruijnGraphTest,get_leaves)
 {
     GraphTester g(3);

@@ -570,7 +570,7 @@ TEST_F(PangenomeReadTest,remove_node)
 
 TEST_F(PangenomeReadTest,remove_node_it)
 {
-   set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> mhs;
 
     PGraphTester pg;
     vector<NodePtr> exp_read_nodes;

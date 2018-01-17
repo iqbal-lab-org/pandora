@@ -42,3 +42,16 @@ bool Node::operator == (const Node& y) const
 bool Node::operator!=(const Node &y) const {
     return !(*this == y);
 }
+
+namespace debruijn {
+    std::ostream &operator<<(std::ostream &out, const Node &m) {
+        string sep = "";
+        out << "(";
+        for (const auto &n : m.hashed_node_ids) {
+            out << sep << n;
+            sep = ",";
+        }
+        out << ")";
+        return out;
+    }
+}
