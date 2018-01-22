@@ -297,10 +297,10 @@ bool same_prg_id::operator()(const pair<uint32_t, NodePtr> &n) const { return (n
 
 bool Graph::operator==(const Graph &y) const {
     // false if have different numbers of nodes
-    if (y.nodes.size() != nodes.size()) {
+    /*if (y.nodes.size() != nodes.size()) {
         cout << "different num nodes " << nodes.size() << "!=" << y.nodes.size() << endl;
         return false;
-    }
+    }*/
 
     // false if have different nodes
     for (const auto c: nodes) {
