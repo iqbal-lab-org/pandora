@@ -19,6 +19,7 @@ public:
                          uint16_t maxItrCntIn = 100);
   std::vector<double>& runEM();
   std::vector<double>& getPathCnts();
+  std::vector<uint16_t> getMostLikelyAssignments();
 
 friend class PathAbundanceEstimatorTest_constructor_Test;
 };

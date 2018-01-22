@@ -15,6 +15,7 @@ PathAbundanceEstimator::PathAbundanceEstimator(std::vector<std::vector<std::pair
   uint16_t i = 0;
   for (auto readIt = hitCntPerRead4Paths.begin(); readIt != hitCntPerRead4Paths.end(); readIt++) {
     std::vector<std::pair<uint16_t, double>> readProb;
+    readProb.reserve(readIt->size());
     // calculate the probability of each read coming from a path : (# of hits) / (path total # of minimizers)
     for (auto hitIt = readIt->begin(); hitIt != readIt->end(); hitIt++) {
       // hitIt->first : path ID
@@ -75,4 +76,29 @@ std::vector<double>& PathAbundanceEstimator::runEM() {
 
 std::vector<double>& PathAbundanceEstimator::getPathCnts() {
   return pathCnts;
+}
+
+std::vector<uint16_t> PathAbundanceEstimator::getMostLikelyAssignments() {
+  std::vector<uint16_t> pathChoices;
+  // NOTE: not sure what to size this with.
+  // pathChoices.reserve(readProbs.size());
+
+  // This essentially runs a round of the EM to determine the single most likely path for each read, and then
+  // assigns that read to the most likely path.
+for (auto readIt = readProbs.begin(); readIt != readProbs.end(); readIt++) {
+      // first go over all compatible paths for a read and calculate the denomerator to normalize the probabilities for this read condition on each paths
+      // keep track of the new probabilities in newReadProbs just to skip multiplication again
+      // NOTE the value calculated in this step is not actually probability but a value proportional to the probability which will be normalized in next step
+      std::vector<double> newReadProbs(readIt->size());
+      int32_t bestPath{-1}; double bestScore{-1.0};
+      for (auto probIt = readIt->begin(); probIt != readIt->end(); probIt++) {
+        auto prob = pathCnts[probIt->first] * probIt->second; 
+        if (prob > bestScore) {
+          bestScore = prob;
+          bestPath = probIt->first;
+        }
+      }
+      pathChoices.push_back(bestPath);
+    }
+    return pathChoices;
 }
