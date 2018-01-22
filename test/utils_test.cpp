@@ -940,15 +940,17 @@ TEST_F(UtilsTest, pangraphFromReadFile)
     pg_exp.add_node(2,"2",0, mhs_dummy.hits);
     pg_exp.add_node(3,"3",0, mhs_dummy.hits);
     pg_exp.add_node(0,"0",0, mhs_dummy.hits);
-    //pg_exp.add_edge(3,0,3,0);
-    //pg_exp.add_edge(0,2,3,0);
-    //pg_exp.add_edge(2,1,3,0);
 
     EXPECT_EQ(pg_exp, *pg);
     delete pg;
 
     pg = new pangenome::Graph();
+    mhs->clear();
     pangraph_from_read_file("../test/test_cases/read2.fq", mhs, pg, idx, prgs, 1, 3, 1, 0.1, 1);
+    pg_exp.add_node(1,"1",0, mhs_dummy.hits);
+    pg_exp.add_node(2,"2",0, mhs_dummy.hits);
+    pg_exp.add_node(3,"3",0, mhs_dummy.hits);
+    pg_exp.add_node(0,"0",0, mhs_dummy.hits);
 
     delete mhs;
     delete lp1;

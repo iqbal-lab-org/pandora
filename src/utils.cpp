@@ -11,6 +11,7 @@
 #include "seq.h"
 #include "pangenome/pangraph.h"
 #include "pangenome/panread.h"
+#include "noise_filtering.h"
 #include "minihit.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
@@ -444,6 +445,7 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
         infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, scale_cluster_size,
                                        min_cluster_size, short_read_length);
         cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
+        clean_pangraph_with_debruijn_graph(pangraph, 3, 1);
         //pangraph->clean(covg);
         cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
         delete s;

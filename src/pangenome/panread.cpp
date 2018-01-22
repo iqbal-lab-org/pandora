@@ -62,7 +62,6 @@ uint Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& n
                 if (search_pos == node_ids.size() - 1 or i + found_pos == nodes.size() - 1) {
                     if (found_pos + 1 >= min_overlap)
                     {
-                        cout << "A " << i << endl;
                         return i;
                     } else {
                         break;
@@ -96,7 +95,6 @@ uint Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& n
                 if (search_pos == node_ids.size() - 1 or found_pos == nodes.size() - 1) {
                     if (found_pos + 1 >= min_overlap)
                     {
-                        cout << "B " << 0 << endl;
                         return 0;
                     } else {
                         break;
@@ -126,7 +124,6 @@ uint Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& n
                 {
                     if (found_pos + 1 >= min_overlap)
                     {
-                        cout << "C " << nodes.size() -1 -i -found_pos << endl;
                         return nodes.size() -1 -i -found_pos;
                     } else {
                         break;
@@ -166,7 +163,6 @@ uint Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& n
                 {
                     if (found_pos + 1 >= min_overlap)
                     {
-                        cout << "D " << nodes.size() -1 -found_pos << endl;
                         return nodes.size() -1 -found_pos;
                     } else {
                         break;

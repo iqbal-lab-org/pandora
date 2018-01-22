@@ -26,7 +26,7 @@ public:
     void remove_node(const uint16_t);
     void remove_read_from_node(const uint32_t, const uint16_t);
 
-    unordered_set<uint16_t> get_leaves();
+    unordered_set<uint16_t> get_leaves(uint16_t covg_thresh=1);
     unordered_set<uint16_t> get_leaf_tips();
     set<deque<uint16_t>> get_unitigs();
     void extend_unitig(deque<uint16_t>&);

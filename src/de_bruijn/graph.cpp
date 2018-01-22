@@ -61,25 +61,25 @@ void Graph::add_edge (NodePtr from, NodePtr to)
 // remove de bruijn node with id given
 void Graph::remove_node(const uint16_t dbg_node_id)
 {
-    cout << "remove node " << dbg_node_id << endl;
+    //cout << "remove node " << dbg_node_id << endl;
     auto it = nodes.find(dbg_node_id);
     if ( it != nodes.end())
     {
         // remove this node from lists of out nodes from other graph nodes
         for (auto n : it->second->out_nodes)
         {
-            cout << "remove " << dbg_node_id << " from ";
+            /*cout << "remove " << dbg_node_id << " from ";
             for (auto m : nodes[n]->out_nodes)
             {
                 cout << m << " ";
-            }
+            }*/
             nodes[n]->out_nodes.erase(dbg_node_id);
-            cout << " to get ";
+            /*cout << " to get ";
             for (auto m : nodes[n]->out_nodes)
             {
                 cout << m << " ";
             }
-            cout << endl;
+            cout << endl;*/
         }
 
         // and remove from nodes
@@ -90,7 +90,7 @@ void Graph::remove_node(const uint16_t dbg_node_id)
 // remove read from de bruijn node
 void Graph::remove_read_from_node(const uint32_t read_id, const uint16_t dbg_node_id)
 {
-    cout << "remove read " << (uint)read_id << " from node " << (uint)dbg_node_id << endl;
+    //cout << "remove read " << (uint)read_id << " from node " << (uint)dbg_node_id << endl;
     auto it = nodes.find(dbg_node_id);
     bool found_read_intersect;
     if ( it != nodes.end())
@@ -129,7 +129,7 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint16_t dbg_nod
                         //cout << " does not share a read" << endl;
                         nodes[*nit]->out_nodes.erase(dbg_node_id);
                         nit = it->second->out_nodes.erase(nit);
-                        cout << "removed" << endl;
+                        //cout << "removed" << endl;
                     } else {
                         nit++;
                     }
@@ -140,13 +140,14 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint16_t dbg_nod
 }
 
 // get the dbg node ids corresponding to leaves
-unordered_set<uint16_t> Graph::get_leaves()
+unordered_set<uint16_t> Graph::get_leaves(uint16_t covg_thresh)
 {
     unordered_set<uint16_t> s;
     for (auto c : nodes)
     {
-        if (c.second->out_nodes.size() <= 1)
-        {
+        if (c.second->read_ids.size() > covg_thresh) {
+            continue;
+        } else if (c.second->out_nodes.size() <= 1) {
             s.insert(c.second->id);
         }
     }
