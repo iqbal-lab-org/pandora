@@ -46,6 +46,9 @@ void hashed_node_ids_to_ids_and_orientations(const deque<uint16_t>& hashed_node_
                                              vector<uint16_t>& node_ids,
                                              vector<bool>& node_orients)
 {
+    node_ids.clear();
+    node_orients.clear();
+
     uint16_t node_id;
     bool orientation;
     for (auto i : hashed_node_ids)
@@ -102,16 +105,20 @@ void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph & dbg,
                                           vector<uint16_t>& node_ids,
                                           vector<bool>& node_orients)
 {
+    node_ids.clear();
+    node_orients.clear();
+
     if (dbg_node_ids.empty())
     {
         return;
     }
+
     deque<uint16_t> hashed_pg_node_ids = dbg.nodes.at(dbg_node_ids.at(0))->hashed_node_ids;
     deque<uint16_t> rev_node;
     //cout << "hashed pg length " << hashed_pg_node_ids.size() << endl;
     for (uint i=1; i<dbg_node_ids.size(); ++i)
     {
-        /*cout << "hashed dbg is currently ";
+        cout << "hashed dbg is currently ";
         for (auto j : hashed_pg_node_ids)
         {
             cout << j << " ";
@@ -122,20 +129,20 @@ void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph & dbg,
         {
             cout << j << " ";
         }
-        cout << endl;*/
+        cout << endl;
         rev_node = reverse_hashed_node(dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids);
-        if(overlap_forwards(hashed_pg_node_ids, dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids))
-        {
-            hashed_pg_node_ids.push_back(dbg.nodes.at(dbg_node_ids[i])->hashed_node_ids.back());
-        } else if (overlap_backwards(hashed_pg_node_ids, dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids))
+        if (overlap_backwards(hashed_pg_node_ids, dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids))
         {
             hashed_pg_node_ids.push_front(dbg.nodes.at(dbg_node_ids[i])->hashed_node_ids[0]);
-        } else if (overlap_forwards(hashed_pg_node_ids, rev_node ))
-        {
-            hashed_pg_node_ids.push_back(rc_num(dbg.nodes.at(dbg_node_ids[i])->hashed_node_ids[0]));
         } else if (overlap_backwards(hashed_pg_node_ids, rev_node))
         {
             hashed_pg_node_ids.push_front(rc_num(dbg.nodes.at(dbg_node_ids[i])->hashed_node_ids.back()));
+        } else if (overlap_forwards(hashed_pg_node_ids, dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids))
+        {
+            hashed_pg_node_ids.push_back(dbg.nodes.at(dbg_node_ids[i])->hashed_node_ids.back());
+        } else if (overlap_forwards(hashed_pg_node_ids, rev_node ))
+        {
+            hashed_pg_node_ids.push_back(rc_num(dbg.nodes.at(dbg_node_ids[i])->hashed_node_ids[0]));
         } else {
             cout << "ERROR" << endl;
         }
@@ -147,7 +154,7 @@ void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph & dbg,
 
 debruijn::Graph construct_debruijn_graph_from_pangraph(uint8_t size, const pangenome::Graph & pg)
 {
-    cout << now() << "Construct de Bruijn Graph from PanGraph with size " << size << endl;
+    cout << now() << "Construct de Bruijn Graph from PanGraph with size " << (uint)size << endl;
     debruijn::Graph dbg(size);
 
     debruijn::NodePtr prev, current;
@@ -186,6 +193,7 @@ debruijn::Graph construct_debruijn_graph_from_pangraph(uint8_t size, const pange
 
 void remove_leaves(pangenome::Graph & pg, debruijn::Graph & dbg)
 {
+    cout << now() << "Remove leaves of debruijn graph from pangraph" << endl;
     bool leaves_exist = true;
     unordered_set<uint16_t> leaves;
     vector<uint16_t> node_ids;
@@ -241,16 +249,53 @@ void remove_leaves(pangenome::Graph & pg, debruijn::Graph & dbg)
                 pg.remove_node(node);
             }
 
-            //clean node ids/orients
-            node_ids.clear();
-            node_orients.clear();
-
             // remove dbg node
             dbg.remove_node(i);
 
             //cout << "pg is now: " << endl << pg << endl;
         }
     }
+}
+
+void find_reads_along_tig(const debruijn::Graph & dbg,
+                     deque<uint16_t>& dbg_node_ids,
+                     const pangenome::Graph & pg,
+                     vector<uint16_t>& pg_node_ids,
+                     vector<bool>& pg_node_orients,
+                     unordered_set<pangenome::ReadPtr>& reads_along_tig,
+                     bool& all_reads_along_tig)
+{
+    // collect the reads covering that tig
+    for (auto n : dbg_node_ids)
+    {
+        for (auto r : dbg.nodes.at(n)->read_ids)
+        {
+            reads_along_tig.insert(pg.reads.at(r));
+        }
+    }
+    cout << "candidate reads ";
+    for (auto r : reads_along_tig)
+    {
+        cout << r->id << " ";
+    }
+    cout << endl;
+
+    // filter out some which don't really overlap the unitig, keeping those
+    // which overlap at least consecutive 2 dbg nodes or only one node
+    all_reads_along_tig = true;
+    cout << "kept reads along tig: ";
+    for (unordered_set<pangenome::ReadPtr>::iterator r=reads_along_tig.begin(); r!=reads_along_tig.end();)
+    {
+        if ((*r)->nodes.size() > dbg.size and (*r)->find_position(pg_node_ids, pg_node_orients, dbg.size+1) == std::numeric_limits<uint>::max())
+        {
+            r = reads_along_tig.erase(r);
+            all_reads_along_tig = false;
+        } else {
+            cout << (*r)->id << " ";
+            ++r;
+        }
+    }
+    cout << endl;
 }
 
 // Remove the internal nodes of low coverage unitigs e.g.
@@ -266,6 +311,7 @@ void filter_unitigs(pangenome::Graph & pg, debruijn::Graph & dbg, const uint16_t
     vector<bool> node_orients;
     unordered_set<pangenome::ReadPtr> reads_along_tig;
     uint pos;
+    bool all_reads_tig;
 
     set<deque<uint16_t>> unitigs = dbg.get_unitigs();
     for (auto d : unitigs)
@@ -280,34 +326,7 @@ void filter_unitigs(pangenome::Graph & pg, debruijn::Graph & dbg, const uint16_t
         cout << endl;
 
         // collect the reads covering that tig
-        for (auto n : d)
-        {
-            for (auto r : dbg.nodes[n]->read_ids)
-            {
-                reads_along_tig.insert(pg.reads[r]);
-            }
-        }
-        cout << "candidate reads ";
-        for (auto r : reads_along_tig)
-        {
-            cout << r->id << " ";
-        }
-        cout << endl;
-
-        // filter out some which don't really overlap the unitig, keeping those
-        // which overlap at least consecutive 2 dbg nodes
-        cout << "kept reads along tig: ";
-        for (unordered_set<pangenome::ReadPtr>::iterator r=reads_along_tig.begin(); r!=reads_along_tig.end();)
-        {
-            if ((*r)->find_position(node_ids, node_orients, dbg.size+1) == std::numeric_limits<uint>::max())
-            {
-                r = reads_along_tig.erase(r);
-            } else {
-                cout << (*r)->id << " ";
-                ++r;
-            }
-        }
-        cout << endl;
+        find_reads_along_tig(dbg, d, pg, node_ids, node_orients, reads_along_tig, all_reads_tig);
 
         // now if the number of reads covering tig falls below threshold, remove the
         // middle nodes of this tig from the reads
@@ -357,13 +376,12 @@ void filter_unitigs(pangenome::Graph & pg, debruijn::Graph & dbg, const uint16_t
             cout << "tig had enough reads" << endl;
         }
         reads_along_tig.clear();
-        node_ids.clear();
-        node_orients.clear();
     }
 }
 
 void detangle_pangraph_with_debruijn_graph(pangenome::Graph & pg, debruijn::Graph & dbg)
 {
+    cout << now() << "Detangle pangraph with debruijn graph" << endl;
     vector<uint16_t> node_ids;
     vector<bool> node_orients;
     bool all_reads_tig;
@@ -374,24 +392,36 @@ void detangle_pangraph_with_debruijn_graph(pangenome::Graph & pg, debruijn::Grap
     {
         // look up the node ids and orientations associated with this node
         dbg_node_ids_to_ids_and_orientations(dbg, d, node_ids, node_orients);
-
-        // for each node on tig, for each read covering that node, if read doesn't lie along whole tig, create a new node
+        cout << "tig: ";
         for (auto n : node_ids)
         {
-            all_reads_tig = true;
-            for (auto r : pg.nodes[n]->reads)
+            cout << n << " ";
+        }
+        cout << endl;
+
+        // collect the reads covering that tig
+        find_reads_along_tig(dbg, d, pg, node_ids, node_orients, reads_along_tig, all_reads_tig);
+
+        // for each node on tig, for each read covering that node,
+        // if we find a read which doesn't lie along whole tig,
+        // split that node by reads and create a new node on the tig
+        if (!all_reads_tig and !reads_along_tig.empty())
+        {
+            cout << "not all reads contain tig" << endl;
+            for (uint i=0; i<node_ids.size(); ++i)
             {
-                if (reads_along_tig.find(r) == reads_along_tig.end()) {
-                    if (r->find_position(node_ids, node_orients) == std::numeric_limits<uint>::max()) {
-                        all_reads_tig = false;
-                    } else {
-                        reads_along_tig.insert(r);
+                cout << "for node " << pg.nodes[node_ids[i]]->node_id << endl;
+                for (auto r : pg.nodes[node_ids[i]]->reads)
+                {
+                    cout << "for read " << r->id << endl;
+                    if (reads_along_tig.find(r) == reads_along_tig.end())
+                    {
+                        cout << "split node" << endl;
+                        pg.split_node_by_reads(reads_along_tig, node_ids, node_orients, node_ids[i]);
+                        cout << "done" << endl;
+                        break;
                     }
                 }
-            }
-            if (!all_reads_tig)
-            {
-                pg.split_node_by_reads(reads_along_tig, node_ids, node_orients, n);
                 cout << pg << endl;
             }
         }
@@ -400,7 +430,11 @@ void detangle_pangraph_with_debruijn_graph(pangenome::Graph & pg, debruijn::Grap
 
 void clean_pangraph_with_debruijn_graph(pangenome::Graph & pg, debruijn::Graph & dbg, const uint16_t threshold)
 {
-    filter_unitigs(pg, dbg, threshold);
     remove_leaves(pg, dbg);
+    filter_unitigs(pg, dbg, threshold);
+
+    // update dbg now that have removed leaves and some inner nodes
+    dbg = construct_debruijn_graph_from_pangraph(dbg.size,pg);
+
     detangle_pangraph_with_debruijn_graph(pg,dbg);
 }

@@ -2,6 +2,8 @@
 #include "test_macro.cpp"
 #include "noise_filtering.h"
 #include "pangenome_graph_class.h"
+#include "pangenome/panread.h"
+#include "pangenome/pannode.h"
 #include "minihit.h"
 
 using namespace std;
@@ -455,12 +457,8 @@ TEST_F(NoiseFilteringTest,filter_unitigs)
     pg.add_node(4,"4",4, mhs);
     pg.add_node(5,"5",4, mhs);
 
-    cout << "original pg is: " << endl << pg << endl;
-
     debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
     filter_unitigs(pg, dbg, 1);
-
-    cout << "dbg is now: " << endl << dbg << endl;
 
     debruijn::Graph dbg_exp(3);
     deque<uint16_t> d = {0,2,4};
@@ -509,8 +507,6 @@ TEST_F(NoiseFilteringTest,filter_unitigs)
 
     EXPECT_EQ(dbg_exp, dbg);
 
-    cout << "pg is now: " << endl << pg << endl;
-
     pangenome::Graph pg_exp;
     pg_exp.add_node(0,"0",0, mhs);
     pg_exp.add_node(1,"1",0, mhs);
@@ -547,7 +543,6 @@ TEST_F(NoiseFilteringTest,filter_unitigs)
     pg_exp.add_node(4,"4",4, mhs);
     pg_exp.add_node(5,"5",4, mhs);
 
-    cout << "so google test" << endl;
     EXPECT_EQ(pg_exp, pg);
 }
 
@@ -598,14 +593,135 @@ TEST_F(NoiseFilteringTest,detangle_pangraph_with_debruijn_graph)
     debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
     detangle_pangraph_with_debruijn_graph(pg, dbg);
 
-    /*pangenome::Graph pg_exp;
-    pg_exp.add_node(8,"0",0, mhs);
-    pg_exp.add_node(9,"1",0, mhs);
-    pg_exp.add_node(10,"2",0, mhs);
-    pg_exp.add_node(11,"3",0, mhs);
-    pg_exp.add_node(12,"4",0, mhs);
-    pg_exp.add_node(13,"5",0, mhs);
-    pg_exp.add_node(14,"0",0, mhs);
+    pangenome::Graph pg_exp;
+    pangenome::ReadPtr r;
+    pangenome::NodePtr n;
+    n = make_shared<pangenome::Node>(0,0,"0");
+    pg_exp.nodes[0] = n;
+    n = make_shared<pangenome::Node>(1,1,"1");
+    pg_exp.nodes[1] = n;
+    n = make_shared<pangenome::Node>(2,2,"2");
+    pg_exp.nodes[2] = n;
+    n = make_shared<pangenome::Node>(3,8,"3");
+    pg_exp.nodes[8] = n;
+    n = make_shared<pangenome::Node>(4,9,"4");
+    pg_exp.nodes[9] = n;
+    n = make_shared<pangenome::Node>(5,10,"5");
+    pg_exp.nodes[10] = n;
+    n = make_shared<pangenome::Node>(0,11,"0");
+    pg_exp.nodes[11] = n;
+    r = make_shared<pangenome::Read>(0);
+    pg_exp.reads[0] = r;
+    r->nodes={pg_exp.nodes[0],pg_exp.nodes[1],pg_exp.nodes[2],pg_exp.nodes[8],
+                pg_exp.nodes[9],pg_exp.nodes[10],pg_exp.nodes[11]};
+
+    n = make_shared<pangenome::Node>(1,12,"1");
+    pg_exp.nodes[12] = n;
+    n = make_shared<pangenome::Node>(2,13,"2");
+    pg_exp.nodes[13] = n;
+    r = make_shared<pangenome::Read>(1);
+    pg_exp.reads[1] = r;
+    r->nodes={pg_exp.nodes[8],pg_exp.nodes[9],pg_exp.nodes[10],pg_exp.nodes[11],
+                pg_exp.nodes[12],pg_exp.nodes[13]};
+
+    n = make_shared<pangenome::Node>(1,20,"1");
+    pg_exp.nodes[20] = n;
+    n = make_shared<pangenome::Node>(2,21,"2");
+    pg_exp.nodes[21] = n;
+    n = make_shared<pangenome::Node>(3,22,"3");
+    pg_exp.nodes[22] = n;
+    n = make_shared<pangenome::Node>(7,7,"7");
+    pg_exp.nodes[7] = n;
+    r = make_shared<pangenome::Read>(2);
+    pg_exp.reads[2] = r;
+    r->nodes={pg_exp.nodes[20],pg_exp.nodes[21],pg_exp.nodes[22],pg_exp.nodes[7]};
+
+    n = make_shared<pangenome::Node>(0,23,"0");
+    pg_exp.nodes[23] = n;
+    n = make_shared<pangenome::Node>(5,5,"5");
+    pg_exp.nodes[5] = n;
+    n = make_shared<pangenome::Node>(3,3,"3");
+    pg_exp.nodes[3] = n;
+    n = make_shared<pangenome::Node>(4,4,"4");
+    pg_exp.nodes[4] = n;
+    r = make_shared<pangenome::Read>(3);
+    pg_exp.reads[3] = r;
+    r->nodes={pg_exp.nodes[23],pg_exp.nodes[5],pg_exp.nodes[3],pg_exp.nodes[4]};
+
+    n = make_shared<pangenome::Node>(0,14,"0");
+    pg_exp.nodes[14] = n;
+    n = make_shared<pangenome::Node>(1,15,"1");
+    pg_exp.nodes[15] = n;
+    n = make_shared<pangenome::Node>(2,16,"2");
+    pg_exp.nodes[16] = n;
+    n = make_shared<pangenome::Node>(6,6,"6");
+    pg_exp.nodes[6] = n;
+    n = make_shared<pangenome::Node>(3,17,"3");
+    pg_exp.nodes[17] = n;
+    n = make_shared<pangenome::Node>(4,18,"4");
+    pg_exp.nodes[18] = n;
+    n = make_shared<pangenome::Node>(5,19,"5");
+    pg_exp.nodes[19] = n;
+    r = make_shared<pangenome::Read>(4);
+    pg_exp.reads[4] = r;
+    r->nodes={pg_exp.nodes[14],pg_exp.nodes[15],pg_exp.nodes[16],pg_exp.nodes[6],
+                pg_exp.nodes[17],pg_exp.nodes[18],pg_exp.nodes[19]};
+
+    EXPECT_EQ(pg_exp, pg);
+}
+
+TEST_F(NoiseFilteringTest,clean_pangraph_with_debruijn_graph)
+{
+    set<MinimizerHitPtr, pComp> mhs;
+    pangenome::Graph pg;
+    pg.add_node(0,"0",0, mhs);
+    pg.add_node(1,"1",0, mhs);
+    pg.add_node(2,"2",0, mhs);
+    pg.add_node(3,"3",0, mhs);
+    pg.add_node(4,"4",0, mhs);
+    pg.add_node(5,"5",0, mhs);
+    pg.add_node(0,"0",0, mhs);
+
+    // overlapping in loop
+    pg.add_node(3,"3",1, mhs);
+    pg.add_node(4,"4",1, mhs);
+    pg.add_node(5,"5",1, mhs);
+    pg.add_node(0,"0",1, mhs);
+    pg.add_node(1,"1",1, mhs);
+    pg.add_node(2,"2",1, mhs);
+
+    // starts correct and deviates
+    pg.add_node(1,"1",2, mhs);
+    pg.add_node(2,"2",2, mhs);
+    pg.add_node(3,"3",2, mhs);
+    pg.add_node(7,"7",2, mhs);
+
+    // incorrect short
+    pg.add_node(0,"0",3, mhs);
+    pg.add_node(5,"5",3, mhs);//6
+    pg.add_node(3,"3",3, mhs);
+    pg.add_node(4,"4",3, mhs);
+
+    // deviates in middle
+    pg.add_node(0,"0",4, mhs);
+    pg.add_node(1,"1",4, mhs);
+    pg.add_node(2,"2",4, mhs);
+    pg.add_node(6,"6",4, mhs);
+    pg.add_node(3,"3",4, mhs);
+    pg.add_node(4,"4",4, mhs);
+    pg.add_node(5,"5",4, mhs);
+
+    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    clean_pangraph_with_debruijn_graph(pg, dbg, 1);
+
+    pangenome::Graph pg_exp;
+    pg_exp.add_node(0,"0",0, mhs);
+    pg_exp.add_node(1,"1",0, mhs);
+    pg_exp.add_node(2,"2",0, mhs);
+    pg_exp.add_node(3,"3",0, mhs);
+    pg_exp.add_node(4,"4",0, mhs);
+    pg_exp.add_node(5,"5",0, mhs);
+    pg_exp.add_node(0,"0",0, mhs);
 
     pg_exp.add_node(3,"3",1,mhs);
     pg_exp.add_node(4,"4",1, mhs);
@@ -618,13 +734,6 @@ TEST_F(NoiseFilteringTest,detangle_pangraph_with_debruijn_graph)
     pg_exp.add_node(1,"1",2, mhs);
     pg_exp.add_node(2,"2",2, mhs);
     pg_exp.add_node(3,"3",2, mhs);
-    pg_exp.add_node(7,"7",2, mhs);
-
-    // incorrect short
-    pg_exp.add_node(0,"0",3, mhs);
-    pg_exp.add_node(5,"5",3, mhs);//6
-    pg_exp.add_node(3,"3",3, mhs);
-    pg_exp.add_node(4,"4",3, mhs);
 
     // deviates in middle
     pg_exp.add_node(0,"0",4, mhs);
@@ -632,5 +741,7 @@ TEST_F(NoiseFilteringTest,detangle_pangraph_with_debruijn_graph)
     pg_exp.add_node(2,"2",4, mhs);
     pg_exp.add_node(3,"3",4, mhs);
     pg_exp.add_node(4,"4",4, mhs);
-    pg_exp.add_node(5,"5",4, mhs);*/
+    pg_exp.add_node(5,"5",4, mhs);
+
+    EXPECT_EQ(pg_exp, pg);
 }

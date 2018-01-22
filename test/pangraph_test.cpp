@@ -267,6 +267,13 @@ TEST_F(PangenomeGraphTest, equals)
     EXPECT_EQ(pg1, pg2);
     EXPECT_EQ(pg2, pg1);
 
+    // should not matter if node_id is different provided prg_id is same
+    pg2.nodes[7] = make_shared<Node>(2, 7, "2");
+    pg2.nodes.erase(2);
+    EXPECT_EQ(pg2, pg2);
+    EXPECT_EQ(pg1, pg2);
+    EXPECT_EQ(pg2, pg1);
+
     // or one extra node
     pg2.add_node(3,"3",0, mhs);
     EXPECT_EQ((pg1 == pg2), false);
@@ -328,6 +335,42 @@ TEST_F(PangenomeGraphTest, remove_node)
     EXPECT_EQ(pg1, pg2);
 }
 
+TEST_F(PangenomeGraphTest, remove_read)
+{
+    set<MinimizerHitPtr, pComp> mhs;
+
+    PGraphTester pg1, pg2, pg3;
+    // read 0: 0->1->2->3
+    pg1.add_node(0,"0",0, mhs);
+    pg1.add_node(1,"1",0, mhs);
+    pg1.add_node(2,"2",0, mhs);
+    pg1.add_node(3,"3",0, mhs);
+
+    // read 1: 4->5->0->5
+    pg1.add_node(4,"4",1, mhs);
+    pg1.add_node(5,"5",1, mhs);
+    pg1.add_node(0,"0",1, mhs);
+    pg1.add_node(5,"5",1, mhs);
+
+    // read 1: 4->5->0->5
+    pg2.add_node(4,"0",1, mhs);
+    pg2.add_node(5,"5",1, mhs);
+    pg2.add_node(0,"0",1, mhs);
+    pg2.add_node(5,"5",1, mhs);
+
+    pg1.remove_read(0);
+    EXPECT_EQ(pg1, pg2);
+
+    EXPECT_EQ(pg1.nodes[4]->covg, pg2.nodes[4]->covg);
+    EXPECT_EQ(pg1.nodes[5]->covg, pg2.nodes[5]->covg);
+    EXPECT_EQ(pg1.nodes[0]->covg, pg2.nodes[0]->covg);
+    EXPECT_EQ(pg1.nodes[4]->reads.size(), pg2.nodes[4]->reads.size());
+    EXPECT_EQ(pg1.nodes[5]->reads.size(), pg2.nodes[5]->reads.size());
+    EXPECT_EQ(pg1.nodes[0]->reads.size(), pg2.nodes[0]->reads.size());
+
+    pg1.remove_read(1);
+    EXPECT_EQ(pg1, pg3);
+}
 
 TEST_F(PangenomeGraphTest, remove_low_covg_nodes)
 {
@@ -396,6 +439,111 @@ TEST_F(PangenomeGraphTest, remove_low_covg_nodes)
 
     pg1.remove_low_covg_nodes(2);
     EXPECT_EQ(pg1, pg3);
+}
+
+TEST_F(PangenomeGraphTest, split_node_by_reads)
+{
+    set<MinimizerHitPtr, pComp> mhs;
+
+    PGraphTester pg1, pg2, pg3;
+    // read 0: 0->1->2->3
+    pg1.add_node(0,"0",0, mhs);
+    pg1.add_node(1,"1",0, mhs);
+    pg1.add_node(2,"2",0, mhs);
+    pg1.add_node(3,"3",0, mhs);
+
+    // read 1: 4->5->0->5
+    pg1.add_node(4,"4",1, mhs);
+    pg1.add_node(5,"5",1, mhs);
+    pg1.add_node(0,"0",1, mhs);
+    pg1.add_node(5,"5",1, mhs);
+
+    EXPECT_EQ((uint)6, pg1.nodes.size());
+    EXPECT_EQ(pg1.nodes[0]->prg_id, (uint)0);
+    EXPECT_EQ(pg1.nodes[0]->covg, (uint)2);
+    EXPECT_EQ(pg1.nodes[1]->prg_id, (uint)1);
+    EXPECT_EQ(pg1.nodes[1]->covg, (uint)1);
+    EXPECT_EQ(pg1.nodes[2]->prg_id, (uint)2);
+    EXPECT_EQ(pg1.nodes[2]->covg, (uint)1);
+    EXPECT_EQ(pg1.nodes[3]->prg_id, (uint)3);
+    EXPECT_EQ(pg1.nodes[3]->covg, (uint)1);
+    EXPECT_EQ(pg1.nodes[4]->prg_id, (uint)4);
+    EXPECT_EQ(pg1.nodes[4]->covg, (uint)1);
+    EXPECT_EQ(pg1.nodes[5]->prg_id, (uint)5);
+    EXPECT_EQ(pg1.nodes[5]->covg, (uint)2);
+
+    // read 0: 0->1->2->3
+    pg2.add_node(0,"0",0, mhs);
+    pg2.add_node(1,"1",0, mhs);
+    NodePtr n = make_shared<Node>(2, 7, "2");
+    pg2.nodes[7] = n;
+    pg2.add_node(3,"3",0, mhs);
+
+    // read 1: 4->5->0->5
+    pg2.add_node(4,"4",1, mhs);
+    pg2.add_node(5,"5",1, mhs);
+    pg2.add_node(0,"0",1, mhs);
+    pg2.add_node(5,"5",1, mhs);
+
+    unordered_set<ReadPtr> reads = {pg1.reads[0]};
+    vector<uint16_t> node_ids = {1,2,3};
+    vector<uint16_t> node_ids_exp = {1,6,3};
+    vector<bool> node_orients = {0,0,0};
+    pg1.split_node_by_reads(reads, node_ids, node_orients, 2);
+    EXPECT_EQ(pg1, pg2);
+    EXPECT_ITERABLE_EQ(vector<uint16_t>, node_ids_exp, node_ids);
+
+    EXPECT_EQ((uint)6, pg1.nodes.size());
+    EXPECT_EQ(pg1.nodes[0]->prg_id, (uint)0);
+    EXPECT_EQ(pg1.nodes[0]->covg, (uint)2);
+    EXPECT_EQ(pg1.nodes[1]->prg_id, (uint)1);
+    EXPECT_EQ(pg1.nodes[1]->covg, (uint)1);
+    EXPECT_EQ(pg1.nodes[6]->prg_id, (uint)2);
+    EXPECT_EQ(pg1.nodes[6]->covg, (uint)1);
+    EXPECT_EQ(pg1.nodes[3]->prg_id, (uint)3);
+    EXPECT_EQ(pg1.nodes[3]->covg, (uint)1);
+    EXPECT_EQ(pg1.nodes[4]->prg_id, (uint)4);
+    EXPECT_EQ(pg1.nodes[4]->covg, (uint)1);
+    EXPECT_EQ(pg1.nodes[5]->prg_id, (uint)5);
+    EXPECT_EQ(pg1.nodes[5]->covg, (uint)2);
+
+    // read 0: 0->1->2->3
+    pg3.add_node(0,"0",0, mhs);
+    pg3.add_node(1,"1",0, mhs);
+    n = make_shared<Node>(2, 7, "2");
+    pg3.nodes[7] = n;
+    pg3.add_node(3,"3",0, mhs);
+
+    // read 1: 4->5->0->5
+    pg3.add_node(4,"4",1, mhs);
+    n = make_shared<Node>(5, 8, "5");
+    pg3.nodes[8] = n;
+    pg3.add_node(0,"0",1, mhs);
+    pg3.add_node(5,"5",1, mhs);
+
+    reads = {pg1.reads[1]};
+    node_ids = {5,0,5};
+    node_ids_exp = {7,0,5};
+    pg1.split_node_by_reads(reads, node_ids, node_orients, 5);
+    EXPECT_EQ(pg1, pg3);
+    EXPECT_ITERABLE_EQ(vector<uint16_t>, node_ids_exp, node_ids);
+
+    EXPECT_EQ((uint)7, pg1.nodes.size());
+    EXPECT_EQ(pg1.nodes[0]->prg_id, (uint)0);
+    EXPECT_EQ(pg1.nodes[0]->covg, (uint)2);
+    EXPECT_EQ(pg1.nodes[1]->prg_id, (uint)1);
+    EXPECT_EQ(pg1.nodes[1]->covg, (uint)1);
+    EXPECT_EQ(pg1.nodes[6]->prg_id, (uint)2);
+    EXPECT_EQ(pg1.nodes[6]->covg, (uint)1);
+    EXPECT_EQ(pg1.nodes[3]->prg_id, (uint)3);
+    EXPECT_EQ(pg1.nodes[3]->covg, (uint)1);
+    EXPECT_EQ(pg1.nodes[4]->prg_id, (uint)4);
+    EXPECT_EQ(pg1.nodes[4]->covg, (uint)1);
+    EXPECT_EQ(pg1.nodes[5]->prg_id, (uint)5);
+    EXPECT_EQ(pg1.nodes[5]->covg, (uint)1);
+    EXPECT_EQ(pg1.nodes[7]->prg_id, (uint)5);
+    EXPECT_EQ(pg1.nodes[7]->covg, (uint)1);
+
 }
 
 TEST_F(PangenomeGraphTest, add_hits_to_kmergraph)

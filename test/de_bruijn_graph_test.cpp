@@ -506,6 +506,42 @@ TEST_F(DeBruijnGraphTest,extend_unitig)
     g.extend_unitig(d);
     d_exp = {4};
     EXPECT_ITERABLE_EQ(deque<uint16_t>, d, d_exp);
+
+    // and check doesn't break if there is a cycle
+    g.nodes.clear();
+    g.next_id = 0;
+    v1 = {0,1,2};
+    v2 = {1,2,3};
+    v3 = {2,3,4};
+    v4 = {3,4,5};
+    v5 = {4,5,0};
+    deque<uint16_t> v6({5,0,1});
+
+    n1 = g.add_node(v1, 0);
+    n2 = g.add_node(v2, 0);
+    g.add_edge(n1, n2);
+    n3 = g.add_node(v3, 0);
+    g.add_edge(n2, n3);
+    n4 = g.add_node(v4, 0);
+    g.add_edge(n3, n4);
+    n5 = g.add_node(v5, 0);
+    g.add_edge(n4, n5);
+    NodePtr n6 = g.add_node(v6, 0);
+    g.add_edge(n5, n6);
+    g.add_edge(n6, n1);
+
+    EXPECT_EQ(g.nodes.size(), (uint)6);
+    EXPECT_EQ(g.nodes[0]->out_nodes.size(), (uint)2);
+    EXPECT_EQ(g.nodes[1]->out_nodes.size(), (uint)2);
+    EXPECT_EQ(g.nodes[2]->out_nodes.size(), (uint)2);
+    EXPECT_EQ(g.nodes[3]->out_nodes.size(), (uint)2);
+    EXPECT_EQ(g.nodes[4]->out_nodes.size(), (uint)2);
+
+    d = {1};
+    g.extend_unitig(d);
+    d_exp = {0,1,2,3,4,5,0};
+    d_exp1 = {2,1,0,5,4,3,2};
+    EXPECT_EQ((d == d_exp or d == d_exp1),true);
 }
 
 TEST_F(DeBruijnGraphTest,equals)

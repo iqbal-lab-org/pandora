@@ -14,7 +14,7 @@
 
 using namespace pangenome;
 
-Graph::Graph(){}
+Graph::Graph(): next_id(0) {}
 
 void Graph::clear() {
     reads.clear();
@@ -121,7 +121,7 @@ void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string
 // remove the node n, and all references to it
 unordered_map<uint32_t, NodePtr>::iterator Graph::remove_node(NodePtr n)
 {
-    cout << "Remove graph node " << *n << endl;
+    //cout << "Remove graph node " << *n << endl;
     // removes all instances of node n and references to it in reads
     for (auto r : n->reads)
     {
@@ -139,8 +139,13 @@ void Graph::remove_read(const uint32_t read_id)
 {
     for (auto n : reads[read_id]->nodes)
     {
+        //cout << "looking at read node " << n->node_id;
         n->covg -= 1;
         n->reads.erase(reads[read_id]);
+        if (n->covg == 0)
+        {
+            remove_node(n);
+        }
     }
     reads.erase(read_id);
 }
@@ -163,26 +168,35 @@ void Graph::remove_low_covg_nodes(const uint &thresh) {
     cout << now() << "Pangraph now has " << nodes.size() << " nodes" << endl;
 }
 
-void Graph::split_node_by_reads(unordered_set<ReadPtr> reads_along_tig, vector<uint16_t> node_ids,
-                            vector<bool> node_orients, uint16_t node_id)
+void Graph::split_node_by_reads(const unordered_set<ReadPtr>& reads_along_tig, vector<uint16_t>& node_ids,
+                            const vector<bool>& node_orients, const uint16_t node_id)
 {
-    auto next_id = 0;
+    if (reads_along_tig.empty())
+    {
+        return;
+    }
+
+    // replace the first instance of node_id which it finds on the read
+    // (in the context of node_ids) with a new node
     while (nodes.find(next_id)!=nodes.end())
     {
         next_id++;
     }
 
     // define new node
-    NodePtr n = make_shared<Node>(next_id, nodes[node_id]->prg_id, nodes[node_id]->name);
+    NodePtr n = make_shared<Node>(nodes[node_id]->prg_id, next_id, nodes[node_id]->name);
+    n->covg -= 1;
     nodes[next_id] = n;
 
     // switch old node to new node in reads
     vector<NodePtr>::iterator it;
+    unordered_multiset<ReadPtr>::iterator rit;
     uint pos;
     for (auto r : reads_along_tig)
     {
         // ignore if this node does not contain this read
-        if (nodes[node_id]->reads.find(r)==nodes[node_id]->reads.end())
+        rit = nodes[node_id]->reads.find(r);
+        if (rit==nodes[node_id]->reads.end())
         {
             continue;
         }
@@ -192,12 +206,33 @@ void Graph::split_node_by_reads(unordered_set<ReadPtr> reads_along_tig, vector<u
         it = std::find(r->nodes.begin()+pos, r->nodes.end(), nodes[node_id]);
 
         // replace the node in the read
-        r->replace_node(it, n);
-        (*it)->reads.erase(r);
-        (*it)->covg -= 1;
-        n->reads.insert(r);
-        n->covg += 1;
+        if (it != r->nodes.end())
+        {
+            //cout << "replace node " << (*it)->node_id << " in this read" << endl;
+            //cout << "read was " << *r << endl;
+            r->replace_node(it, n);
+            //cout << "read is now " << *r << endl;
+            nodes[node_id]->reads.erase(rit);
+            nodes[node_id]->covg -= 1;
+            if (nodes[node_id]->covg == 0)
+            {
+                remove_node(nodes[node_id]);
+            }
+            n->reads.insert(r);
+            n->covg += 1;
+        //} else {
+        //    cout  << "read does not contain this node in context of the tig" << endl;
+        }
+    }
 
+    // replace node in tig
+    for (uint i=0; i<node_ids.size(); ++i)
+    {
+        if (node_ids[i] == node_id)
+        {
+            node_ids[i] = next_id;
+            break;
+        }
     }
 }
 
@@ -256,6 +291,10 @@ void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
     }
 }
 
+same_prg_id::same_prg_id(const NodePtr &p) : q(p->prg_id) {};
+
+bool same_prg_id::operator()(const pair<uint32_t, NodePtr> &n) const { return (n.second->prg_id == q);}
+
 bool Graph::operator==(const Graph &y) const {
     // false if have different numbers of nodes
     if (y.nodes.size() != nodes.size()) {
@@ -265,9 +304,17 @@ bool Graph::operator==(const Graph &y) const {
 
     // false if have different nodes
     for (const auto c: nodes) {
-        // if node id doesn't exist 
-        auto it = y.nodes.find(c.first);
+        // if node id doesn't exist
+        auto it = find_if(y.nodes.begin(), y.nodes.end(), same_prg_id(c.second));
         if (it == y.nodes.end()) {
+            cout << "can't find node " << c.first << endl;
+            return false;
+        }
+    }
+    for (const auto c: y.nodes) {
+        // if node id doesn't exist
+        auto it = find_if(nodes.begin(), nodes.end(), same_prg_id(c.second));
+        if (it == nodes.end()) {
             cout << "can't find node " << c.first << endl;
             return false;
         }

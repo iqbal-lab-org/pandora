@@ -147,6 +147,6 @@ bool Node::operator < (const Node& y) const {
 }
 
 std::ostream& pangenome::operator<< (std::ostream & out, pangenome::Node const& n) {
-    out << n.prg_id << " covg: " << n.covg;
+    out << n.node_id << "," << n.prg_id << " covg: " << n.covg;
     return out ;
 }

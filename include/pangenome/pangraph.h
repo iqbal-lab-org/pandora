@@ -19,6 +19,7 @@ typedef std::shared_ptr<KmerNode> KmerNodePtr;
 class pangenome::Graph {
 protected:
     std::unordered_map<std::string, SamplePtr> samples;
+    uint32_t next_id;
 public:
     std::unordered_map<uint32_t, ReadPtr> reads;
     std::unordered_map<uint32_t, NodePtr> nodes;
@@ -38,7 +39,7 @@ public:
 
     void remove_low_covg_nodes(const uint &);
 
-    void split_node_by_reads(unordered_set<ReadPtr>, vector<uint16_t>, vector<bool>, uint16_t);
+    void split_node_by_reads(const unordered_set<ReadPtr>&, vector<uint16_t>&, const vector<bool>&, const uint16_t);
     //unordered_set<ReadPtr> find_reads_on_node_path(const std::vector<uint16_t>, const std::vector<bool> );
     void add_hits_to_kmergraphs(const std::vector<LocalPRG *> &);
 
@@ -53,5 +54,11 @@ public:
 
 };
 
+struct same_prg_id
+{
+    uint32_t q;
+    same_prg_id(const pangenome::NodePtr&);
+    bool operator()(const std::pair<uint32_t,pangenome::NodePtr>&) const;
+};
 #endif
 

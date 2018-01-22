@@ -156,12 +156,14 @@ unordered_set<uint16_t> Graph::get_leaves()
 // get deques of dbg node ids corresponding to maximal non-branching paths in dbg
 set<deque<uint16_t>> Graph::get_unitigs()
 {
+    //cout << "get unitigs" << endl;
     set<deque<uint16_t>> s;
     vector<bool> seen(nodes.size(), 0);
     deque<uint16_t> d;
 
     for (auto c : nodes)
     {
+        //cout << c.first << endl;
         if (seen[c.second->id] == 0 and c.second->out_nodes.size() <= 2)
         {
             d = {c.second->id};
@@ -186,6 +188,7 @@ set<deque<uint16_t>> Graph::get_unitigs()
 // extend a dbg path on either end to a branch point
 void Graph::extend_unitig(deque<uint16_t>& tig)
 {
+    //cout << "extend unitig" << endl;
     if (tig.size() == 0)
     {
         return;
@@ -198,9 +201,14 @@ void Graph::extend_unitig(deque<uint16_t>& tig)
         tig.push_front(*nodes[tig.back()]->out_nodes.begin());
     }
 
-    while (nodes[tig.back()]->out_nodes.size() == 2)
+    while (nodes[tig.back()]->out_nodes.size() == 2 and tig.back()!=tig.front())
     {
-
+        /*cout << "tig: ";
+        for (auto n : tig)
+        {
+            cout << n << " ";
+        }
+        cout << endl;*/
         if (*nodes[tig.back()]->out_nodes.begin() == tig[tig.size()-2])
         {
             tig.push_back(*++nodes[tig.back()]->out_nodes.begin());
@@ -213,8 +221,14 @@ void Graph::extend_unitig(deque<uint16_t>& tig)
         // else error?
     }
     //cout << "tig front " << tig.front() << endl;
-    while (nodes[tig.front()]->out_nodes.size() == 2)
+    while (nodes[tig.front()]->out_nodes.size() == 2 and tig.back()!=tig.front())
     {
+        /*cout << "tig: ";
+        for (auto n : tig)
+        {
+            cout << n << " ";
+        }
+        cout << endl;*/
         if (*nodes[tig.front()]->out_nodes.begin() == tig[1])
         {
             tig.push_front(*++nodes[tig.front()]->out_nodes.begin());
