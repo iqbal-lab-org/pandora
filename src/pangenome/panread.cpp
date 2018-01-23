@@ -14,9 +14,9 @@ using namespace pangenome;
 
 Read::Read (const uint32_t i): id(i) {}
 
-void Read::add_hits(const uint32_t node_id, const set<MinimizerHitPtr, pComp>& c)
+void Read::add_hits(const uint32_t prg_id, const set<MinimizerHitPtr, pComp>& c)
 {
-    hits[node_id].insert(c.begin(), c.end());
+    hits[prg_id].insert(c.begin(), c.end());
 }
 
 // find the index i in the nodes and node_orientations vectors such that [i,i+v.size()]

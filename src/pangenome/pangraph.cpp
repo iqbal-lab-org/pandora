@@ -269,7 +269,7 @@ void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
     for (auto pnode : nodes) {
         // copy kmergraph
         pnode.second->kmer_prg = prgs[pnode.second->prg_id]->kmer_prg;
-	    assert(pnode.second->kmer_prg == prgs[pnode.second->prg_id]->kmer_prg);
+	assert(pnode.second->kmer_prg == prgs[pnode.second->prg_id]->kmer_prg);
         num_hits[0] = 0;
         num_hits[1] = 0;
 
@@ -281,7 +281,9 @@ void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
             {
                 //bool added = false;
                 // update the covg in the kmer_prg
+                //cout << "pnode " << pnode.second->prg_id << " knode " << (*mh)->knode_id << " strand " << (*mh)->strand << " updated from " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand];
                 pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] += 1;
+		//cout << " to " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] << endl;
                 num_hits[(*mh)->strand] += 1;
             }
         }

@@ -237,16 +237,29 @@ float KmerGraph::prob(uint j, uint num) {
 float KmerGraph::find_max_path(vector<KmerNodePtr> &maxpath) {
     // finds a max likelihood path
 
-    // need to catch if p not asserted...
+    // check if p set
     assert(p < 1 || assert_msg("p was not set in kmergraph"));
     assert(num_reads > 0 || assert_msg("num_reads was not set in kmergraph"));
-    //p = 1/exp(e_rate*k);
-    //cout << " with parameters n: " << num_reads << " and p: " << p << endl;
     //cout << "Kmer graph has " << nodes.size() << " nodes" << endl;
 
     // need to catch if thesh not set too...
 
     check();
+
+    // also check not all 0 covgs
+    bool not_all_zero = false;
+    for (auto n : nodes)
+    {
+	if (n.second->covg[0]+n.second->covg[1] > 0)
+	{
+	    not_all_zero = true;
+	    break;
+	}
+    }
+    if (not_all_zero == false)
+    {
+	cout << "ALL ZEROES" << endl;
+    }
 
     // create vectors to hold the intermediate values
     vector<float> M(nodes.size(), 0); // max log prob pf paths from pos i to end of graph
@@ -258,28 +271,28 @@ float KmerGraph::find_max_path(vector<KmerNodePtr> &maxpath) {
     for (uint j = nodes.size() - 1; j != 0; --j) {
         max_mean = numeric_limits<float>::lowest();
         max_len = 0; // tie break with longest kmer path
-        //cout << "node " << j-1 << " has " << sorted_nodes[j-1]->outNodes.size() << " outnodes" << endl;
+        //cout << "node " << sorted_nodes[j-1]->id << " has " << sorted_nodes[j-1]->outNodes.size() << " outnodes" << endl;
         for (uint i = 0; i != sorted_nodes[j - 1]->outNodes.size(); ++i) {
             if ((sorted_nodes[j - 1]->outNodes[i]->id == sorted_nodes.back()->id and thresh > max_mean + 0.000001) or
-                (M[sorted_nodes[j - 1]->outNodes[i]->id] / len[sorted_nodes[j - 1]->outNodes[i]->id] >
-                 max_mean + 0.000001) or
-                (max_mean - M[sorted_nodes[j - 1]->outNodes[i]->id] / len[sorted_nodes[j - 1]->outNodes[i]->id] <=
-                 0.000001 and len[sorted_nodes[j - 1]->outNodes[i]->id] > max_len)) {
+                (M[sorted_nodes[j - 1]->outNodes[i]->id] / len[sorted_nodes[j - 1]->outNodes[i]->id] > max_mean + 0.000001) or
+                (max_mean - M[sorted_nodes[j - 1]->outNodes[i]->id] / len[sorted_nodes[j - 1]->outNodes[i]->id] <= 0.000001 and 
+		len[sorted_nodes[j - 1]->outNodes[i]->id] > max_len)) {
                 M[sorted_nodes[j - 1]->id] = prob(sorted_nodes[j - 1]->id) + M[sorted_nodes[j - 1]->outNodes[i]->id];
                 len[sorted_nodes[j - 1]->id] = 1 + len[sorted_nodes[j - 1]->outNodes[i]->id];
                 prev[sorted_nodes[j - 1]->id] = sorted_nodes[j - 1]->outNodes[i]->id;
-                //cout << sorted_nodes[j-1]->id << " path: " << sorted_nodes[j-1]->path << " has prob: " << prob(j-1) << "  M: " << M[sorted_nodes[j - 1]->id] << " len: " << len[sorted_nodes[j - 1]->id] << " prev: " << prev[sorted_nodes[j - 1]->id] << endl;
+                //cout << sorted_nodes[j-1]->id << " has prob: " << prob(sorted_nodes[j-1]->id) << "  M: " << M[sorted_nodes[j - 1]->id];
+                //cout << " len: " << len[sorted_nodes[j - 1]->id] << " prev: " << prev[sorted_nodes[j - 1]->id] << endl;
                 if (sorted_nodes[j - 1]->outNodes[i]->id != sorted_nodes.back()->id) {
                     max_mean = M[sorted_nodes[j - 1]->outNodes[i]->id] / len[sorted_nodes[j - 1]->outNodes[i]->id];
                     max_len = len[sorted_nodes[j - 1]->outNodes[i]->id];
-                    //  cout << " and new max_mean: " << max_mean;
+                    cout << " and new max_mean: " << max_mean;
                 } else {
                     max_mean = thresh;
                 }
                 //cout << endl;
             }
         }
-        //cout << sorted_nodes[j-1]->id << " path: " << sorted_nodes[j-1]->path << "  M: " << M[sorted_nodes[j-1]->id] << " len: " << len[sorted_nodes[j-1]->id] << " prev: " << prev[sorted_nodes[j-1]->id] << endl;
+        //cout << sorted_nodes[j-1]->id << "  M: " << M[sorted_nodes[j-1]->id] << " len: " << len[sorted_nodes[j-1]->id] << " prev: " << prev[sorted_nodes[j-1]->id] << endl;
     }
     // remove the final length added for the null start node
     len[0] -= 1;

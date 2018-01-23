@@ -3,8 +3,8 @@ prg=oxa_aligned_kmeans_k15_orientated.fasta
 
 DATE=`date +%d_%m_%Y`
 
-#bash ../../../header.sh &> test_index.log
-#../../../build/pandora index $prg -w 5 &>> test_index.log
+bash ../../../header.sh &> test_index.log
+../../../build/pandora index $prg -w 5 &>> test_index.log
 bash ../../../header.sh &> test_oxa9_5.15.500.$DATE.log
 ../../../build/pandora map -p $prg -r oxa9_read.fasta -o test_oxa9_5.15.500 -m 500 -e 0.0001 -w 5 --output_kg &>> test_oxa9_5.15.500.$DATE.log
 echo -e "$(head -2 oxa9_read.fasta | tail -n 1)\n$(head -2 test_oxa9_5.15.500*oxa*kmlp.fasta | tail -n 1)" | ~/apps/cortex/scripts/analyse_variants/needleman_wunsch/needleman_wunsch --stdin --zam &> results.txt
