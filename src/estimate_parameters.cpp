@@ -165,10 +165,10 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &prefix, const
     handle.close();
 
     // evaluate error rate
-    if (num_reads > 30 and covg > 30 and mean_covg < covg) {
+    if (num_reads > 30 and covg > 30) {
         mean_covg = find_mean_covg(kmer_covg_dist);
         cout << "found mean kmer covg " << mean_covg << " and mean global covg " << covg << " with avg num reads covering node " << num_reads << endl;
-        if (mean_covg > 0) {
+        if (mean_covg > 0 and mean_covg < covg) {
             cout << now() << "Estimated error rate updated from " << e_rate << " to ";
             e_rate = -log((float) mean_covg / covg) / k;
             cout << e_rate << endl;
