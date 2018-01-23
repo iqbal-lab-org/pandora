@@ -276,8 +276,8 @@ void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
         // add hits
         for (auto read : pnode.second->reads)
         {
-            for (auto mh = read->hits[pnode.second->node_id].begin();
-                 mh != read->hits[pnode.second->node_id].end(); ++mh)
+            for (auto mh = read->hits[pnode.second->prg_id].begin();
+                 mh != read->hits[pnode.second->prg_id].end(); ++mh)
             {
                 //bool added = false;
                 // update the covg in the kmer_prg

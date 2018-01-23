@@ -42,7 +42,10 @@ NodePtr Graph::add_node (const deque<uint16_t>& node_ids, uint32_t read_id)
 	        return c.second;
 	    }
     }
-    //cout << "new node " << next_id << endl;
+    if (next_id%1000==0)
+    {
+        cout << "added node " << next_id << endl;
+    }
     nodes[next_id] = n;
     next_id++;
     return n;

@@ -495,7 +495,8 @@ TEST_F(PangenomeReadTest,replace_node)
     read_o_exp = {0,0,0};
     EXPECT_ITERABLE_EQ(vector<NodePtr>, read_exp, pg.reads[1]->nodes);
     EXPECT_ITERABLE_EQ(vector<bool>, read_o_exp, pg.reads[1]->node_orientations);
-    EXPECT_EQ(pg.reads[1]->hits[7].size(),(uint)1);
+    EXPECT_EQ(pg.reads[1]->hits[7].size(),(uint)0);
+    EXPECT_EQ(pg.reads[1]->hits[4].size(),(uint)1);
 
     //example where node appears twice in read
     n = make_shared<Node>(1, 8, "1_prime");
@@ -524,7 +525,6 @@ TEST_F(PangenomeReadTest,replace_node)
     read_o_exp = {0,0,0};
     EXPECT_ITERABLE_EQ(vector<NodePtr>, read_exp, pg.reads[1]->nodes);
     EXPECT_ITERABLE_EQ(vector<bool>, read_o_exp, pg.reads[1]->node_orientations);
-    EXPECT_EQ(pg.reads[1]->hits[7].size(),(uint)1);
 
 }
 

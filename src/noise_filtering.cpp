@@ -204,21 +204,21 @@ void remove_leaves(pangenome::Graph* pg, debruijn::Graph & dbg, uint16_t covg_th
     while (leaves_exist) {
 
         leaves = dbg.get_leaves(covg_thresh);
-        //cout << "there are " << leaves.size() << " leaves" << endl;
+        cout << "there are " << leaves.size() << " leaves" << endl;
 
         if (leaves.empty())
         {
             leaves_exist = false;
         }
-        //cout << "leaves exist is " << leaves_exist << endl;
+        cout << "leaves exist is " << leaves_exist << endl;
 
         for (auto i : leaves) {
-            /*cout << endl << "looking at leaf " << i << ": ";
+            cout << endl << "looking at leaf " << i << ": ";
             for (const auto j : dbg.nodes[i]->hashed_node_ids)
             {
                 cout << j << " ";
             }
-            cout << endl;*/
+            cout << endl;
 
             // look up the node ids and orientations associated with this node
             hashed_node_ids_to_ids_and_orientations(dbg.nodes[i]->hashed_node_ids, node_ids, node_orients);

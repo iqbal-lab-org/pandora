@@ -199,7 +199,7 @@ void Read::remove_node(vector<NodePtr>::iterator nit)
 
 void Read::replace_node(vector<NodePtr>::iterator n_original, NodePtr n)
 {
-    hits[n->node_id].insert(hits[(*n_original)->node_id].begin(),hits[(*n_original)->node_id].end() );
+    //hits[n->node_id].insert(hits[(*n_original)->node_id].begin(),hits[(*n_original)->node_id].end() );
     auto it = nodes.erase(n_original);
     nodes.insert(it, n);
     //hits.erase((*n_original)->node_id);
