@@ -62,6 +62,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 	} else {
 	    cout << now() << "bad letter - found a non AGCT base in read so skipping read " << name << endl;
 	    sketch.clear();
+	    num_minis_found = 0;
 	    break;
         }
 	
@@ -135,7 +136,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
             vm.clear();
 	}
     }
-    //cout << "num_minis_found " << num_minis_found << " and sketch size " << sketch.size() << endl;
+    //cout << "for read " << name << " num_minis_found " << num_minis_found << " and sketch size " << sketch.size() << endl;
     assert(num_minis_found == sketch.size());
     //cout << now() << "Sketch size " << sketch.size() << " for read " << name << endl;
     return;
