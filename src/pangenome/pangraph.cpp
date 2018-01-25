@@ -14,7 +14,10 @@
 
 using namespace pangenome;
 
-Graph::Graph(): next_id(0) {}
+Graph::Graph(): next_id(0) {
+    nodes.reserve(6000);
+    reads.reserve(200000);
+}
 
 void Graph::clear() {
     reads.clear();

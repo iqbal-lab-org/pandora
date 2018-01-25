@@ -16,7 +16,7 @@
 using namespace debruijn;
 
 Graph::Graph(uint8_t s) : next_id(0), size(s) {
-    nodes.reserve(20000);
+    nodes.reserve(200000);
 };
 
 
