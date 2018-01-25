@@ -1,4 +1,5 @@
 #include <deque>
+#include <limits>
 #include <fstream>
 #include <unordered_set>
 #include <set>
@@ -9,6 +10,8 @@
 #include "de_bruijn/graph.h"
 #include "de_bruijn/node.h"
 #include "utils.h"
+
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace debruijn;
 
@@ -48,6 +51,7 @@ NodePtr Graph::add_node (const deque<uint16_t>& node_ids, uint32_t read_id)
     }
     nodes[next_id] = n;
     next_id++;
+    assert(next_id < numeric_limits<uint32_t>::max()||assert_msg("WARNING, reached max de bruijn graph node size"));
     return n;
 }
 
@@ -62,7 +66,7 @@ void Graph::add_edge (NodePtr from, NodePtr to)
 }
 
 // remove de bruijn node with id given
-void Graph::remove_node(const uint16_t dbg_node_id)
+void Graph::remove_node(const uint32_t dbg_node_id)
 {
     //cout << "remove node " << dbg_node_id << endl;
     auto it = nodes.find(dbg_node_id);
@@ -91,7 +95,7 @@ void Graph::remove_node(const uint16_t dbg_node_id)
 }
 
 // remove read from de bruijn node
-void Graph::remove_read_from_node(const uint32_t read_id, const uint16_t dbg_node_id)
+void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_node_id)
 {
     //cout << "remove read " << (uint)read_id << " from node " << (uint)dbg_node_id << endl;
     auto it = nodes.find(dbg_node_id);
@@ -115,7 +119,7 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint16_t dbg_nod
             } else {
                 // otherwise, remove any outnodes which no longer share a read
                 //cout << "remove outnodes which no longer share a read" << endl;
-                for (unordered_set<uint16_t>::iterator nit = it->second->out_nodes.begin();
+                for (unordered_set<uint32_t>::iterator nit = it->second->out_nodes.begin();
                      nit != it->second->out_nodes.end();)
                 {
                     //cout << "out node " << *nit << endl;
@@ -143,9 +147,9 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint16_t dbg_nod
 }
 
 // get the dbg node ids corresponding to leaves
-unordered_set<uint16_t> Graph::get_leaves(uint16_t covg_thresh)
+unordered_set<uint32_t> Graph::get_leaves(uint16_t covg_thresh)
 {
-    unordered_set<uint16_t> s;
+    unordered_set<uint32_t> s;
     for (auto c : nodes)
     {
         if (c.second->read_ids.size() > covg_thresh) {
@@ -158,12 +162,12 @@ unordered_set<uint16_t> Graph::get_leaves(uint16_t covg_thresh)
 }
 
 // get deques of dbg node ids corresponding to maximal non-branching paths in dbg
-set<deque<uint16_t>> Graph::get_unitigs()
+set<deque<uint32_t>> Graph::get_unitigs()
 {
     //cout << "get unitigs" << endl;
-    set<deque<uint16_t>> s;
+    set<deque<uint32_t>> s;
     vector<bool> seen(nodes.size(), 0);
-    deque<uint16_t> d;
+    deque<uint32_t> d;
 
     for (auto c : nodes)
     {
@@ -190,7 +194,7 @@ set<deque<uint16_t>> Graph::get_unitigs()
 }
 
 // extend a dbg path on either end to a branch point
-void Graph::extend_unitig(deque<uint16_t>& tig)
+void Graph::extend_unitig(deque<uint32_t>& tig)
 {
     //cout << "extend unitig" << endl;
     if (tig.size() == 0)

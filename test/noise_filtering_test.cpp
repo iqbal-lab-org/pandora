@@ -160,7 +160,7 @@ TEST_F(NoiseFilteringTest,dbg_node_ids_to_ids_and_orientations)
     dbg.add_node(d,1);
 
     EXPECT_EQ(dbg.nodes.size(), (uint)5);
-    deque<uint16_t> tig = {0,1,2,4,3};
+    deque<uint32_t> tig = {0,1,2,4,3};
     dbg_node_ids_to_ids_and_orientations(dbg, tig, node_ids, node_orients);
     EXPECT_ITERABLE_EQ(vector<uint16_t>, exp, node_ids);
     EXPECT_ITERABLE_EQ(vector<bool>, exp_o, node_orients);

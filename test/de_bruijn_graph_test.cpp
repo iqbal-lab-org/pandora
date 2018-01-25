@@ -149,10 +149,10 @@ TEST_F(DeBruijnGraphTest,remove_node)
     unordered_multiset<uint32_t> w2({7});
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[0]->read_ids,w1);
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[1]->read_ids,w2);
-    unordered_set<uint16_t> s({1});
-    unordered_set<uint16_t> t({0});
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[0]->out_nodes,s);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[1]->out_nodes,t);
+    unordered_set<uint32_t> s({1});
+    unordered_set<uint32_t> t({0});
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[0]->out_nodes,s);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[1]->out_nodes,t);
 
     // remove a node
     g.remove_node(1);
@@ -191,12 +191,12 @@ TEST_F(DeBruijnGraphTest,remove_read_from_node)
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[0]->read_ids,w1);
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[1]->read_ids,w2);
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[2]->read_ids,w3);
-    unordered_set<uint16_t> s({1});
-    unordered_set<uint16_t> t({0});
-    unordered_set<uint16_t> u;
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[0]->out_nodes,s);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[1]->out_nodes,t);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[2]->out_nodes,u);
+    unordered_set<uint32_t> s({1});
+    unordered_set<uint32_t> t({0});
+    unordered_set<uint32_t> u;
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[0]->out_nodes,s);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[1]->out_nodes,t);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[2]->out_nodes,u);
 
     // remove a read which doesn't exist - nothing should happen
     g.remove_read_from_node(1,0);
@@ -210,9 +210,9 @@ TEST_F(DeBruijnGraphTest,remove_read_from_node)
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[0]->read_ids,w1);
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[1]->read_ids,w2);
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[2]->read_ids,w3);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[0]->out_nodes,s);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[1]->out_nodes,t);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[2]->out_nodes,u);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[0]->out_nodes,s);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[1]->out_nodes,t);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[2]->out_nodes,u);
 
     // remove a read from a node which doesn't exist - nothing should happen
     g.remove_read_from_node(0,3);
@@ -226,9 +226,9 @@ TEST_F(DeBruijnGraphTest,remove_read_from_node)
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[0]->read_ids,w1);
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[1]->read_ids,w2);
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[2]->read_ids,w3);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[0]->out_nodes,s);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[1]->out_nodes,t);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[2]->out_nodes,u);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[0]->out_nodes,s);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[1]->out_nodes,t);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[2]->out_nodes,u);
 
     // remove read from a node where should just change the read id list for node
     g.remove_read_from_node(7,1);
@@ -243,9 +243,9 @@ TEST_F(DeBruijnGraphTest,remove_read_from_node)
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[0]->read_ids,w1);
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[1]->read_ids,w2);
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[2]->read_ids,w3);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[0]->out_nodes,u);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[1]->out_nodes,u);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[2]->out_nodes,u);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[0]->out_nodes,u);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[1]->out_nodes,u);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[2]->out_nodes,u);
 
     // remove read from a node where should result in node being removed
     g.remove_read_from_node(5,2);
@@ -256,8 +256,8 @@ TEST_F(DeBruijnGraphTest,remove_read_from_node)
     EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[1]->hashed_node_ids, v2);
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[0]->read_ids,w1);
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[1]->read_ids,w2);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[0]->out_nodes,u);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[1]->out_nodes,u);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[0]->out_nodes,u);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[1]->out_nodes,u);
 
     // continue removing reads until graph empty
     g.remove_read_from_node(0,0);
@@ -269,15 +269,15 @@ TEST_F(DeBruijnGraphTest,remove_read_from_node)
     w1 = {7};
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[0]->read_ids,w1);
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[1]->read_ids,w2);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[0]->out_nodes,u);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[1]->out_nodes,u);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[0]->out_nodes,u);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[1]->out_nodes,u);
 
     g.remove_read_from_node(4,1);
     EXPECT_EQ(g.nodes.size(), (uint)1);
     EXPECT_EQ(*g.nodes[0], Node(0, v1, 7));
     EXPECT_ITERABLE_EQ(deque<uint16_t>, g.nodes[0]->hashed_node_ids, v1);
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, g.nodes[0]->read_ids,w1);
-    EXPECT_ITERABLE_EQ(unordered_set<uint16_t>, g.nodes[0]->out_nodes,u);
+    EXPECT_ITERABLE_EQ(unordered_set<uint32_t>, g.nodes[0]->out_nodes,u);
 
     g.remove_read_from_node(7,0);
     EXPECT_EQ(g.nodes.size(), (uint)0);
@@ -310,8 +310,8 @@ TEST_F(DeBruijnGraphTest,get_leaves)
     EXPECT_EQ(g.nodes[3]->out_nodes.size(), (uint)1);
     EXPECT_EQ(g.nodes[4]->out_nodes.size(), (uint)0);
 
-    unordered_set<uint16_t> l = g.get_leaves();
-    unordered_set<uint16_t> l_exp = {1, 3, 4};
+    unordered_set<uint32_t> l = g.get_leaves();
+    unordered_set<uint32_t> l_exp = {1, 3, 4};
     for (auto i : l_exp)
     {
         EXPECT_EQ(l.find(i)!=l.end(), true);
@@ -382,8 +382,8 @@ TEST_F(DeBruijnGraphTest, get_leaves2)
     n1 = dbg_exp.add_node(d, 5);
     dbg_exp.add_edge(n2,n1);
 
-    unordered_set<uint16_t> l = dbg_exp.get_leaves();
-    unordered_set<uint16_t> l_exp = {6,7,11};
+    unordered_set<uint32_t> l = dbg_exp.get_leaves();
+    unordered_set<uint32_t> l_exp = {6,7,11};
     for (auto i : l_exp)
     {
         EXPECT_EQ(l.find(i)!=l.end(), true);
@@ -420,11 +420,11 @@ TEST_F(DeBruijnGraphTest,get_unitigs)
     EXPECT_EQ(g.nodes[3]->out_nodes.size(), (uint)1);
     EXPECT_EQ(g.nodes[4]->out_nodes.size(), (uint)0);
 
-    set<deque<uint16_t>> s = g.get_unitigs();
-    deque<uint16_t> d1({1,0,2,3});
-    deque<uint16_t> d2({3,2,0,1});
-    set<deque<uint16_t>> s_exp1({d1});
-    set<deque<uint16_t>> s_exp2({d2});
+    set<deque<uint32_t>> s = g.get_unitigs();
+    deque<uint32_t> d1({1,0,2,3});
+    deque<uint32_t> d2({3,2,0,1});
+    set<deque<uint32_t>> s_exp1({d1});
+    set<deque<uint32_t>> s_exp2({d2});
     d1 = {4};
     s_exp1.insert(d1);
     s_exp2.insert(d1);
@@ -480,32 +480,32 @@ TEST_F(DeBruijnGraphTest,extend_unitig)
     EXPECT_EQ(g.nodes[3]->out_nodes.size(), (uint)1);
     EXPECT_EQ(g.nodes[4]->out_nodes.size(), (uint)0);
 
-    deque<uint16_t> d = {0};
+    deque<uint32_t> d = {0};
     g.extend_unitig(d);
-    deque<uint16_t> d_exp = {1,0,2,3};
-    deque<uint16_t> d_exp1 = {3,2,0,1};
+    deque<uint32_t> d_exp = {1,0,2,3};
+    deque<uint32_t> d_exp1 = {3,2,0,1};
     EXPECT_EQ((d == d_exp or d == d_exp1), true);
-    //EXPECT_ITERABLE_EQ(deque<uint16_t>, d, d_exp);
+    //EXPECT_ITERABLE_EQ(deque<uint32_t>, d, d_exp);
 
     d = {1};
     g.extend_unitig(d);
     EXPECT_EQ((d == d_exp or d == d_exp1), true);
-    //EXPECT_ITERABLE_EQ(deque<uint16_t>, d, d_exp);
+    //EXPECT_ITERABLE_EQ(deque<uint32_t>, d, d_exp);
 
     d = {2};
     g.extend_unitig(d);
     EXPECT_EQ((d == d_exp or d == d_exp1), true);
-    //EXPECT_ITERABLE_EQ(deque<uint16_t>, d, d_exp);
+    //EXPECT_ITERABLE_EQ(deque<uint32_t>, d, d_exp);
 
     d = {3};
     g.extend_unitig(d);
     EXPECT_EQ((d == d_exp or d == d_exp1), true);
-    //EXPECT_ITERABLE_EQ(deque<uint16_t>, d, d_exp);
+    //EXPECT_ITERABLE_EQ(deque<uint32_t>, d, d_exp);
 
     d = {4};
     g.extend_unitig(d);
     d_exp = {4};
-    EXPECT_ITERABLE_EQ(deque<uint16_t>, d, d_exp);
+    EXPECT_ITERABLE_EQ(deque<uint32_t>, d, d_exp);
 
     // and check doesn't break if there is a cycle
     g.nodes.clear();

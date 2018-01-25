@@ -23,6 +23,7 @@ LocalGraph::~LocalGraph() {
 
 void LocalGraph::add_node(const uint32_t &id, const string &seq, const Interval &pos) {
     assert(seq.length() == pos.length);
+    assert(id < numeric_limits<uint32_t>::max()||assert_msg("WARNING, reached max local graph node size"));
     auto it = nodes.find(id);
     if (it == nodes.end()) {
         LocalNodePtr n(make_shared<LocalNode>(seq, pos, id));

@@ -13,23 +13,23 @@
 
 class debruijn::Graph {
 protected:
-    uint16_t next_id;
+    uint32_t next_id;
 public:
     uint8_t size;
-    unordered_map<uint16_t, NodePtr> nodes;
+    unordered_map<uint32_t, NodePtr> nodes;
 
     Graph(uint8_t);
     ~Graph();
 
     NodePtr add_node(const deque<uint16_t>&, uint32_t);
     void add_edge (NodePtr, NodePtr);
-    void remove_node(const uint16_t);
-    void remove_read_from_node(const uint32_t, const uint16_t);
+    void remove_node(const uint32_t);
+    void remove_read_from_node(const uint32_t, const uint32_t);
 
-    unordered_set<uint16_t> get_leaves(uint16_t covg_thresh=1);
-    unordered_set<uint16_t> get_leaf_tips();
-    set<deque<uint16_t>> get_unitigs();
-    void extend_unitig(deque<uint16_t>&);
+    unordered_set<uint32_t> get_leaves(uint16_t covg_thresh=1);
+    unordered_set<uint32_t> get_leaf_tips();
+    set<deque<uint32_t>> get_unitigs();
+    void extend_unitig(deque<uint32_t>&);
 
     bool operator == (const Graph& y) const;
     bool operator != (const Graph& y) const;

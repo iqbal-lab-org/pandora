@@ -81,6 +81,7 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
     }
 
     assert(n->covg == n->reads.size());
+    assert(prg_id < numeric_limits<uint32_t>::max()||assert_msg("WARNING, prg_id reached max pangraph node size"));
 }
 
 // add a node corresponding to an instance of a localPRG found in a sample
@@ -181,6 +182,7 @@ void Graph::split_node_by_reads(const unordered_set<ReadPtr>& reads_along_tig, v
     while (nodes.find(next_id)!=nodes.end())
     {
         next_id++;
+	assert(next_id < numeric_limits<uint32_t>::max()||assert_msg("WARNING, next_id reached max pangraph node size"));
     }
 
     // define new node

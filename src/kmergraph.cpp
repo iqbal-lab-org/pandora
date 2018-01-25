@@ -120,6 +120,7 @@ KmerNodePtr KmerGraph::add_node(const Path &p) {
         k = p.length();
     }
     next_id++;
+    assert(next_id < numeric_limits<uint32_t>::max()||assert_msg("WARNING, reached max kmer graph node size"));
     if (next_id == reserved_size) {
         reserved_size *= 2;
         nodes.reserve(reserved_size);
