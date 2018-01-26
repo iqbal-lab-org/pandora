@@ -105,6 +105,7 @@ void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph & dbg,
                                           vector<uint16_t>& node_ids,
                                           vector<bool>& node_orients)
 {
+    cout << "convert dbg node ids to read ids" << endl;
     node_ids.clear();
     node_orients.clear();
 
@@ -194,6 +195,7 @@ debruijn::Graph construct_debruijn_graph_from_pangraph(uint8_t size, const pange
 void remove_leaves(pangenome::Graph* pg, debruijn::Graph & dbg, uint16_t covg_thresh)
 {
     cout << now() << "Remove leaves of debruijn graph from pangraph" << endl;
+    cout << "Start with " << pg->nodes.size() << " pg.nodes, " << pg->reads.size() << " pg.reads, and " << dbg.nodes.size() << " dbg.nodes" << endl;
     bool leaves_exist = true;
     unordered_set<uint32_t> leaves;
     vector<uint16_t> node_ids;
@@ -267,6 +269,7 @@ void remove_leaves(pangenome::Graph* pg, debruijn::Graph & dbg, uint16_t covg_th
             //cout << "pg is now: " << endl << pg << endl;
         }
     }
+    cout << "There are now " << pg->nodes.size() << " pg.nodes, " << pg->reads.size() << " pg.reads, and " << dbg.nodes.size() << " dbg.nodes" << endl;
 }
 
 void find_reads_along_tig(const debruijn::Graph & dbg,
@@ -326,6 +329,7 @@ void filter_unitigs(pangenome::Graph* pg, debruijn::Graph & dbg, const uint16_t&
     bool all_reads_tig;
 
     set<deque<uint32_t>> unitigs = dbg.get_unitigs();
+    cout << "have " << unitigs.size() << " tigs" << endl;
     for (auto d : unitigs)
     {
         // look up the node ids and orientations associated with this node
