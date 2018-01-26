@@ -289,6 +289,19 @@ TEST_F(NoiseFilteringTest,remove_leaves)
     set<MinimizerHitPtr, pComp> mhs;
     pangenome::Graph *pg;
     pg = new pangenome::Graph();
+
+    // first an example where only one read giving 1 dbg node, want no segfaults
+    pg->add_node(0,"0",0, mhs);
+    pg->add_node(1,"1",0, mhs);
+    pg->add_node(2,"2",0, mhs);
+    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    remove_leaves(pg, dbg);
+    debruijn::Graph dbg_exp(3);
+    EXPECT_EQ(dbg_exp, dbg);
+    pangenome::Graph pg_exp;
+    EXPECT_EQ(pg_exp, *pg);
+
+    // and now a full example
     pg->add_node(0,"0",0, mhs);
     pg->add_node(1,"1",0, mhs);
     pg->add_node(2,"2",0, mhs);
@@ -303,7 +316,6 @@ TEST_F(NoiseFilteringTest,remove_leaves)
     pg->add_node(0,"0",1, mhs);
     pg->add_node(1,"1",1, mhs);
     pg->add_node(2,"2",1, mhs);
-
 
     // starts correct and deviates
     pg->add_node(1,"1",2, mhs);
@@ -335,10 +347,9 @@ TEST_F(NoiseFilteringTest,remove_leaves)
 
     cout << "pg is now: " << endl << *pg << endl;
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    dbg = construct_debruijn_graph_from_pangraph(3,pg);
     remove_leaves(pg, dbg);
 
-    debruijn::Graph dbg_exp(3);
     deque<uint16_t> d = {0,2,4};
     debruijn::NodePtr n1 = dbg_exp.add_node(d, 0);
     d = {2,4,6};
@@ -389,7 +400,6 @@ TEST_F(NoiseFilteringTest,remove_leaves)
 
     EXPECT_EQ(dbg_exp, dbg);
 
-    pangenome::Graph pg_exp;
     pg_exp.add_node(0,"0",0, mhs);
     pg_exp.add_node(1,"1",0, mhs);
     pg_exp.add_node(2,"2",0, mhs);

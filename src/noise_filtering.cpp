@@ -214,7 +214,7 @@ void remove_leaves(pangenome::Graph* pg, debruijn::Graph & dbg, uint16_t covg_th
 
         for (auto i : leaves) {
             cout << endl << "looking at leaf " << i << ": ";
-            for (const auto j : dbg.nodes[i]->hashed_node_ids)
+            for (auto j : dbg.nodes[i]->hashed_node_ids)
             {
                 cout << j << " ";
             }
@@ -222,16 +222,27 @@ void remove_leaves(pangenome::Graph* pg, debruijn::Graph & dbg, uint16_t covg_th
 
             // look up the node ids and orientations associated with this node
             hashed_node_ids_to_ids_and_orientations(dbg.nodes[i]->hashed_node_ids, node_ids, node_orients);
+	    cout << "looked up node ids" << endl;
 
             // remove the last node from corresponding reads
             assert(dbg.nodes[i]->read_ids.size()>0);
             for (auto r : dbg.nodes[i]->read_ids)
             {
+		cout << "remove from read " << r << ": ";
+		for (auto n : pg->reads[r]->nodes)
+		{
+		    cout << n->node_id << " ";
+		}
+		cout << endl;
                 if (pg->reads[r]->nodes.size() == dbg.size)
                 {
+		    cout << "remove read";
                     pg->remove_read(r);
+		    cout << " done" << endl;
                 } else {
+		    cout << "remove from read ";
                     pos = pg->reads[r]->find_position(node_ids, node_orients);
+		    cout << "pos " << pos;
                     assert(pos == 0 or pos + node_ids.size() == pg->reads[r]->nodes.size());
                     if (pos == 0) {
                         node = pg->reads[r]->nodes[0];
@@ -242,9 +253,10 @@ void remove_leaves(pangenome::Graph* pg, debruijn::Graph & dbg, uint16_t covg_th
                         pg->reads[r]->remove_node(--pg->reads[r]->nodes.end());
                         node->remove_read(pg->reads[r]);
                     }
+		    cout << "done" << endl;
                 }
             }
-            if (node->covg == 0)
+            if (node and node->covg == 0)
             {
                 pg->remove_node(node);
             }
@@ -318,12 +330,12 @@ void filter_unitigs(pangenome::Graph* pg, debruijn::Graph & dbg, const uint16_t&
     {
         // look up the node ids and orientations associated with this node
         dbg_node_ids_to_ids_and_orientations(dbg, d, node_ids, node_orients);
-        /*cout << "tig: ";
+        cout << "tig: ";
         for (auto n : node_ids)
         {
             cout << n << " ";
         }
-        cout << endl;*/
+        cout << endl;
 
         // collect the reads covering that tig
         find_reads_along_tig(dbg, d, pg, node_ids, node_orients, reads_along_tig, all_reads_tig);
@@ -332,15 +344,15 @@ void filter_unitigs(pangenome::Graph* pg, debruijn::Graph & dbg, const uint16_t&
         // middle nodes of this tig from the reads
         if (reads_along_tig.size() <= threshold)
         {
-            //cout << "not enough reads, so remove the tig from the reads" << endl;
+            cout << "not enough reads, so remove the tig from the reads" << endl;
             for (auto r : reads_along_tig)
             {
-                /*cout << "read " << r->id << " was ";
+                cout << "read " << r->id << " was ";
                 for (auto n : r->nodes)
                 {
                     cout << n->node_id << " ";
                 }
-                cout << endl;*/
+                cout << endl;
                 pos = r->find_position(node_ids, node_orients);
                 //cout << "remove from " << pos+dbg.size << " to max of this and " << (int)(pos+d.size()-dbg.size+2) << " which is " << pos+max((int)dbg.size,(int)d.size()-dbg.size+2) << "." << endl;
                 for (auto it = r->nodes.begin()+(pos+dbg.size); it != r->nodes.begin()+pos+max((int)dbg.size,(int)d.size()-dbg.size+2); ++it)
@@ -356,12 +368,12 @@ void filter_unitigs(pangenome::Graph* pg, debruijn::Graph & dbg, const uint16_t&
                         r->remove_node(it);
                     }
                 }
-                /*cout << "read " << r->id << " is now ";
+                cout << "read " << r->id << " is now ";
                 for (auto n : r->nodes)
                 {
                     cout << n->node_id << " ";
                 }
-                cout << endl;*/
+                cout << endl;
             }
             // also remove read_ids from each of the corresponding nodes of dbg
             //cout << "now remove read from dbg nodes" << endl;
