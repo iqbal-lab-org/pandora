@@ -16,7 +16,11 @@ using namespace pangenome;
 
 Graph::Graph(): next_id(0) {
     nodes.reserve(6000);
-    reads.reserve(200000);
+}
+
+void Graph::reserve_num_reads(uint32_t& num_reads)
+{
+    reads.reserve(num_reads);
 }
 
 void Graph::clear() {

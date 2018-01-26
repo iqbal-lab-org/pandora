@@ -437,10 +437,12 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
             }
             //cout << now() << "Add read hits" << endl;
             add_read_hits(s, mh, idx);
+	    id++;
         }
         covg = covg / genome_size;
         cout << now() << "Estimated coverage: " << covg << endl;
-        //cout << "Number of reads found: " << id+1 << endl;
+        //cout << "Number of reads found: " << id << endl;
+        pangraph->reserve_num_reads(id);
         cout << now() << "Infer gene orders and add to pangenome::Graph" << endl;
         infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, scale_cluster_size,
                                        min_cluster_size, short_read_length);

@@ -32,6 +32,10 @@ void Seq::initialize(uint32_t i, string n, string p, uint32_t w, uint32_t k)
     id = i;
     name = n;
     seq = p;
+    for (auto c : sketch)
+    {   
+        delete c;
+    }
     sketch.clear();
     minimizer_sketch (w, k);
 }
@@ -61,6 +65,10 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
             kh[1] = hash64(kmer[1], mask);
 	} else {
 	    cout << now() << "bad letter - found a non AGCT base in read so skipping read " << name << endl;
+	    for (auto c : sketch)
+    	    {   
+        	delete c;
+    	    }
 	    sketch.clear();
 	    num_minis_found = 0;
 	    break;
