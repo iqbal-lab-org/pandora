@@ -69,12 +69,10 @@ KmerGraph &KmerGraph::operator=(const KmerGraph &other) {
     k = other.k;
     p = other.p;
     thresh = other.thresh;
-    KmerNodePtr n;
 
     // deep copy the vector of node pointers, excluding edges
     for (const auto &node : other.nodes) {
-        n = make_shared<KmerNode>(*node.second);
-        nodes[node.first] = n;
+        nodes[node.first] = make_shared<KmerNode>(*node.second);
     }
 
     // now need to copy the edges

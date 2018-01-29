@@ -46,14 +46,12 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
     //cout << now() << "Checked cluster was sensible" << endl;
 
     // add new node if it doesn't exist
-    NodePtr n;
     auto it = nodes.find(prg_id);
     if (it == nodes.end()) {
-        n = make_shared<Node>(prg_id, prg_id, prg_name);
         //cout << "add node " << *n << endl;
-        nodes[prg_id] = n;
+        nodes[prg_id] = make_shared<Node>(prg_id, prg_id, prg_name);
+        it = nodes.find(prg_id);
     } else {
-        n = it->second;
         it->second->covg += 1;
         //cout << "node " << *n << " already existed " << endl;
     }
@@ -65,9 +63,9 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
         ReadPtr r = make_shared<Read>(read_id);
         reads[read_id] = r;
 
-        n->reads.insert(r);
+        it->second->reads.insert(r);
         r->add_hits(prg_id, cluster);
-        r->nodes.push_back(n);
+        r->nodes.push_back(it->second);
         if(!cluster.empty())
         {
             r->node_orientations.push_back((*cluster.begin())->strand);
@@ -76,9 +74,9 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
         }
     } else {
         //cout << "read " << read_id  << " already existed " << endl;
-        n->reads.insert(rit->second);
+        it->second->reads.insert(rit->second);
         rit->second->add_hits(prg_id, cluster);
-        rit->second->nodes.push_back(n);
+        rit->second->nodes.push_back(it->second);
         if(!cluster.empty())
         {
             rit->second->node_orientations.push_back((*cluster.begin())->strand);
@@ -87,7 +85,7 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
         }
     }
 
-    assert(n->covg == n->reads.size());
+    assert(it->second->covg == it->second->reads.size());
     assert(prg_id < numeric_limits<uint32_t>::max()||assert_msg("WARNING, prg_id reached max pangraph node size"));
 }
 
