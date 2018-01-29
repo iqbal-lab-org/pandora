@@ -273,7 +273,7 @@ float KmerGraph::find_max_path(vector<KmerNodePtr> &maxpath) {
             if ((sorted_nodes[j - 1]->outNodes[i]->id == sorted_nodes.back()->id and thresh > max_mean + 0.000001) or
                 (M[sorted_nodes[j - 1]->outNodes[i]->id] / len[sorted_nodes[j - 1]->outNodes[i]->id] > max_mean + 0.000001) or
                 (max_mean - M[sorted_nodes[j - 1]->outNodes[i]->id] / len[sorted_nodes[j - 1]->outNodes[i]->id] <= 0.000001 and 
-		len[sorted_nodes[j - 1]->outNodes[i]->id] > max_len)) {
+		        len[sorted_nodes[j - 1]->outNodes[i]->id] > max_len)) {
                 M[sorted_nodes[j - 1]->id] = prob(sorted_nodes[j - 1]->id) + M[sorted_nodes[j - 1]->outNodes[i]->id];
                 len[sorted_nodes[j - 1]->id] = 1 + len[sorted_nodes[j - 1]->outNodes[i]->id];
                 prev[sorted_nodes[j - 1]->id] = sorted_nodes[j - 1]->outNodes[i]->id;
@@ -282,7 +282,7 @@ float KmerGraph::find_max_path(vector<KmerNodePtr> &maxpath) {
                 if (sorted_nodes[j - 1]->outNodes[i]->id != sorted_nodes.back()->id) {
                     max_mean = M[sorted_nodes[j - 1]->outNodes[i]->id] / len[sorted_nodes[j - 1]->outNodes[i]->id];
                     max_len = len[sorted_nodes[j - 1]->outNodes[i]->id];
-                    cout << " and new max_mean: " << max_mean;
+                    //cout << " and new max_mean: " << max_mean;
                 } else {
                     max_mean = thresh;
                 }
