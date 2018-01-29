@@ -22,7 +22,7 @@ void Index::add_record(const uint64_t kmer, const uint32_t prg_id, const Path pa
     {
         auto * newv = new vector<MiniRecord>;
         newv->reserve(20);
-	newv->push_back(MiniRecord(prg_id, path, knode_id, strand));
+	    newv->push_back(MiniRecord(prg_id, path, knode_id, strand));
         minhash.insert(pair<uint64_t, vector<MiniRecord>*>(kmer,newv));
         //cout << "New minhash size: " << minhash.size() << endl; 
     } else {
@@ -81,34 +81,34 @@ void Index::load(const string& prgfile, uint32_t w, uint32_t k)
     ifstream myfile (prgfile + ".k" + to_string(k) + ".w" + to_string(w) + ".idx");
     if (myfile.is_open())
     {
-	while (myfile.good())
-	{
-	    c = myfile.peek();
-	    if (isdigit(c) and first)
-	    {
-		myfile >> size;
-		minhash.reserve(size);
-		first = false;
-		myfile.ignore(1,'\t');
-	    } else if (isdigit(c) and !first) {
-		myfile >> key;
-		myfile.ignore(1,'\t');
-		myfile >> size;
+        while (myfile.good())
+        {
+            c = myfile.peek();
+            if (isdigit(c) and first)
+            {
+                myfile >> size;
+                minhash.reserve(size);
+                first = false;
+                myfile.ignore(1,'\t');
+            } else if (isdigit(c) and !first) {
+                myfile >> key;
+                myfile.ignore(1,'\t');
+                myfile >> size;
                 auto * vmr = new vector<MiniRecord>;
-		vmr->reserve(size);
-		minhash[key] = vmr;
-		myfile.ignore(1,'\t');
-	    } else if (c == EOF) {
-		break;
-	    } else {
-		myfile >> mr;
-	        minhash[key]->push_back(mr);
-		myfile.ignore(1,'\t');
-	    }
-	}
+                vmr->reserve(size);
+                minhash[key] = vmr;
+                myfile.ignore(1,'\t');
+            } else if (c == EOF) {
+                break;
+            } else {
+                myfile >> mr;
+                minhash[key]->push_back(mr);
+                myfile.ignore(1,'\t');
+            }
+        }
     } else {
         cerr << "Unable to open index file " << prgfile << ".idx" << endl;
-	exit(1);
+	    exit(1);
     }
     cout << now() << "Finished loading " << minhash.size() << " entries to index" << endl;
 }
