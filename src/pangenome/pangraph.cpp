@@ -63,26 +63,15 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
         reads[read_id] = make_shared<Read>(read_id);
         rit = reads.find(read_id);
     }
-        it->second->reads.insert(r);
-        r->add_hits(prg_id, cluster);
-        r->nodes.push_back(it->second);
-        if(!cluster.empty())
-        {
-            r->node_orientations.push_back((*cluster.begin())->strand);
-        } else {
-            r->node_orientations.push_back(0);
-        }
+    //cout << "read " << read_id  << " already existed " << endl;
+    it->second->reads.insert(rit->second);
+    rit->second->add_hits(prg_id, cluster);
+    rit->second->nodes.push_back(it->second);
+    if(!cluster.empty())
+    {
+        rit->second->node_orientations.push_back((*cluster.begin())->strand);
     } else {
-        //cout << "read " << read_id  << " already existed " << endl;
-        it->second->reads.insert(rit->second);
-        rit->second->add_hits(prg_id, cluster);
-        rit->second->nodes.push_back(it->second);
-        if(!cluster.empty())
-        {
-            rit->second->node_orientations.push_back((*cluster.begin())->strand);
-        } else {
-            rit->second->node_orientations.push_back(0);
-        }
+        rit->second->node_orientations.push_back(0);
     }
 
     assert(it->second->covg == it->second->reads.size());
