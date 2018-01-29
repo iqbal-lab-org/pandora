@@ -34,12 +34,10 @@ KmerGraph::KmerGraph(const KmerGraph &other) {
     k = other.k;
     p = other.p;
     thresh = other.thresh;
-    KmerNodePtr n;
 
     // create deep copies of the nodes, minus the edges
     for (const auto &node : other.nodes) {
-        n = make_shared<KmerNode>(*node.second);
-        nodes[node.first] = n;
+        nodes[node.first] = make_shared<KmerNode>(*node.second);
     }
 
     // now need to copy the edges
@@ -61,6 +59,7 @@ KmerGraph &KmerGraph::operator=(const KmerGraph &other) {
         delete c.second;
     }*/
     nodes.clear();
+    nodes.reserve(other.nodes.size());
 
     // shallow copy no pointers
     next_id = other.next_id;
@@ -111,8 +110,7 @@ KmerNodePtr KmerGraph::add_node(const Path &p) {
     }
 
     // if we didn't find an existing node
-    KmerNodePtr n = make_shared<KmerNode>(next_id, p);
-    nodes[next_id] = n;
+    nodes[next_id] = make_shared<KmerNode>(next_id, p);
     assert(k == 0 or p.length() == 0 or p.length() == k);
     if (k == 0 and p.length() > 0) {
         k = p.length();
@@ -123,7 +121,7 @@ KmerNodePtr KmerGraph::add_node(const Path &p) {
         reserved_size *= 2;
         nodes.reserve(reserved_size);
     }
-    return n;
+    return nodes[next_id-1];
 }
 
 KmerNodePtr KmerGraph::add_node_with_kh(const Path &p, const uint64_t &kh, const uint8_t &num) {

@@ -11,6 +11,26 @@ using namespace std;
 
 Path::Path(){}
 
+// copy constructor
+Path::Path(const Path &other) {
+    path = other.path;
+    start = other.start;
+    end = other.end;
+}
+
+// assignment operator
+Path &Path::operator=(const Path &other) {
+    // check for self-assignment
+    if (this == &other)
+        return *this;
+
+    path = other.path;
+    start = other.start;
+    end = other.end;
+
+    return *this;
+}
+
 void Path::initialize(const deque<Interval>& q)
 {
   if (!q.empty()) {

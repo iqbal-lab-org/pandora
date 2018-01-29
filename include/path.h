@@ -14,6 +14,9 @@ class Path {
     uint32_t end;
 
     Path();
+    Path(const Path&);
+    Path& operator=(const Path&);
+
     void initialize(const std::deque<Interval>&);
     uint32_t length() const;
     void add_start_interval(const Interval&);

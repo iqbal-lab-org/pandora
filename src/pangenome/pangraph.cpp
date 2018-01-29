@@ -60,9 +60,9 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
     auto rit = reads.find(read_id);
     if (rit == reads.end()) {
         //cout << "new read " << read_id << endl;
-        ReadPtr r = make_shared<Read>(read_id);
-        reads[read_id] = r;
-
+        reads[read_id] = make_shared<Read>(read_id);
+        rit = reads.find(read_id);
+    }
         it->second->reads.insert(r);
         r->add_hits(prg_id, cluster);
         r->nodes.push_back(it->second);
