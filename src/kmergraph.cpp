@@ -113,7 +113,7 @@ KmerNodePtr KmerGraph::add_node(const Path &p) {
     }
 
     // if we didn't find an existing node
-    KmerNodePtr n (make_shared<KmerNode>(next_id, p));
+    KmerNodePtr n = make_shared<KmerNode>(next_id, p);
     nodes[next_id] = n;
     assert(k == 0 or p.length() == 0 or p.length() == k);
     if (k == 0 and p.length() > 0) {

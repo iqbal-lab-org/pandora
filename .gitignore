@@ -50,6 +50,7 @@ test/test_cases/*/*
 *.vcf
 test/test_cases/localPRG_test*
 test/test_cases/vcf3.multisample.fa
+test/test_cases/vcf_test.vcf
 
 # and log.txt
 log.txt

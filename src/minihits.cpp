@@ -41,7 +41,7 @@ MinimizerHits::~MinimizerHits()
 void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniRecord* r)
 {
     //MinimizerHit *mh;
-    MinimizerHitPtr mh (make_shared<MinimizerHit>(i, m, r));
+    MinimizerHitPtr mh = make_shared<MinimizerHit>(i, m, r);
     //set<MinimizerHit*, pComp>::iterator it=hits.find(mh);
     //unordered_set<MinimizerHit*, Hash, pEq>::iterator it=uhits.find(mh);
     //if(it==uhits.end())

@@ -62,7 +62,7 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
     auto rit = reads.find(read_id);
     if (rit == reads.end()) {
         //cout << "new read " << read_id << endl;
-        ReadPtr r(make_shared<Read>(read_id));
+        ReadPtr r = make_shared<Read>(read_id);
         reads[read_id] = r;
 
         n->reads.insert(r);
@@ -112,7 +112,7 @@ void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string
     auto sit = samples.find(sample_name);
     if (sit == samples.end()) {
         //cout << "new sample " << sample_name << endl;
-        SamplePtr s(make_shared<Sample>(sample_name));
+        SamplePtr s = make_shared<Sample>(sample_name);
         s->add_path(prg_id, kmp);
         samples[sample_name] = s;
         n->samples.insert(s);
