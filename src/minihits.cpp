@@ -40,7 +40,8 @@ MinimizerHits::~MinimizerHits()
 
 void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniRecord* r)
 {
-    uhits.insert(make_shared<MinimizerHit>(i, m, r));
+    auto mh = make_shared<MinimizerHit>(i, m, r);
+    uhits.insert(mh);
 }
 
 void MinimizerHits::sort()
