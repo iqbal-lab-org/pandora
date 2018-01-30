@@ -403,7 +403,7 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
 		    }
                     if (illumina == true and short_read_length == std::numeric_limits<uint>::max())
                     {
-			assert(w!=0);
+			            assert(w!=0);
                         short_read_length = s->seq.length() * 2/w;
                     }
                     //cout << now() << "Add read hits" << endl;
@@ -447,6 +447,7 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
         infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, scale_cluster_size,
                                        min_cluster_size, short_read_length);
         cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
+        mh->clear();
         clean_pangraph_with_debruijn_graph(pangraph, 3, 1);
         //pangraph->clean(covg);
         cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;

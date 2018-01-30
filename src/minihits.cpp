@@ -40,19 +40,7 @@ MinimizerHits::~MinimizerHits()
 
 void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniRecord* r)
 {
-    //MinimizerHit *mh;
-    MinimizerHitPtr mh = make_shared<MinimizerHit>(i, m, r);
-    //set<MinimizerHit*, pComp>::iterator it=hits.find(mh);
-    //unordered_set<MinimizerHit*, Hash, pEq>::iterator it=uhits.find(mh);
-    //if(it==uhits.end())
-    //pointer_values_equal<MinimizerHit> eq = { mh };
-    //if (find_if(uhits.begin(), uhits.end(), eq) == uhits.end())
-    //{
-    uhits.insert(mh);
-	//cout << "added hit " << *mh << endl;
-    //} else {
-    //    delete mh;
-    //}
+    uhits.insert(make_shared<MinimizerHit>(i, m, r));
 }
 
 void MinimizerHits::sort()
@@ -60,23 +48,12 @@ void MinimizerHits::sort()
     if (hits.max_size()>uhits.size())
     {
         hits.insert(uhits.begin(), uhits.end());
-        /*for (auto h=uhits.begin(); h!=uhits.end(); ++h)
-	{
-	    auto f = hits.find(*h);
-	    if (f == hits.end())
-	    {
-		hits.insert(*h);
-	    } else {
-		cout << "Minihit " << **h << " was already in the set: " << **f << endl;
-	    }
-	}*/
         assert(hits.size() == uhits.size() || assert_msg("Expected uhits.size()=" << uhits.size() << " to equal hits.size()=" << hits.size()));
         uhits.clear();
     } else {
-	cerr << "Could not create a set big enough for " << uhits.size() << " elements. The max size is " << hits.max_size() << endl;
-	exit (EXIT_FAILURE);
+	    cerr << "Could not create a set big enough for " << uhits.size() << " elements. The max size is " << hits.max_size() << endl;
+	    exit (EXIT_FAILURE);
     }
-    return;
 }
 
 /*std::ostream& operator<< (std::ostream & out, MinimizerHits const& m) {
