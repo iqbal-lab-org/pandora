@@ -328,7 +328,7 @@ void filter_unitigs(pangenome::Graph* pg, debruijn::Graph & dbg, const uint16_t&
     uint pos;
     bool all_reads_tig;
 
-    set<deque<uint32_t>> unitigs = dbg.get_unitigs();
+    unordered_set<deque<uint32_t>> unitigs = dbg.get_unitigs();
     cout << "have " << unitigs.size() << " tigs" << endl;
     for (auto d : unitigs)
     {
@@ -403,7 +403,7 @@ void detangle_pangraph_with_debruijn_graph(pangenome::Graph* pg, debruijn::Graph
     bool all_reads_tig;
     unordered_set<pangenome::ReadPtr> reads_along_tig;
 
-    set<deque<uint32_t>> unitigs = dbg.get_unitigs();
+    unordered_set<deque<uint32_t>> unitigs = dbg.get_unitigs();
     for (auto d : unitigs)
     {
         // look up the node ids and orientations associated with this node

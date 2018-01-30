@@ -35,7 +35,7 @@ Graph::~Graph() {
 
 // add a node corresponding to a cluster of hits against a given localPRG from a read
 void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_t read_id,
-                        const set<MinimizerHitPtr, pComp> &cluster) {
+                     set<MinimizerHitPtr, pComp> &cluster) {
     // check sensible things in new cluster
     // NB if cluster is empty, handle by adding in 0 orientation
     //cout << now() << "Add node" << endl;
@@ -87,6 +87,8 @@ void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string
         nodes[prg_id] = make_shared<Node>(prg_id, prg_id, prg_name);
         nodes[prg_id]->kmer_prg = prg->kmer_prg;
         it = nodes.find(prg_id);
+    } else {
+	it->second->covg += 1;
     }
 
     // add a new sample if it doesn't exist
@@ -94,6 +96,7 @@ void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string
     if (sit == samples.end()) {
         //cout << "new sample " << sample_name << endl;
         samples[sample_name] = make_shared<Sample>(sample_name);
+	sit = samples.find(sample_name);
     }
     //cout << "sample " << sample_name  << " already existed " << endl;
     sit->second->add_path(prg_id, kmp);

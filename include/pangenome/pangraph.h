@@ -31,7 +31,7 @@ public:
     // graph additions/removals
     void reserve_num_reads(uint32_t&);
     void add_node(const uint32_t, const std::string, uint32_t,
-                  const std::set<MinimizerHitPtr, pComp> &); // used by pandora map
+                  std::set<MinimizerHitPtr, pComp> &); // used by pandora map
     void add_node(const uint32_t, const std::string &, const std::string &, const std::vector<KmerNodePtr> &,
                   const LocalPRG *); // used by pandora compare
 

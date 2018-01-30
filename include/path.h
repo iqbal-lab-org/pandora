@@ -14,7 +14,7 @@ class Path {
     uint32_t end;
 
     Path();
-    Path::~Path()
+    ~Path();
     Path(const Path&);
     Path& operator=(const Path&);
 

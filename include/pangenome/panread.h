@@ -16,7 +16,7 @@ public:
     std::unordered_map<uint32_t,std::set<MinimizerHitPtr, pComp_path>> hits; // from node id to cluster of hits against that node in this read
 
     Read(const uint32_t);
-    void add_hits(const uint32_t, const std::set<MinimizerHitPtr, pComp>&);
+    void add_hits(const uint32_t, std::set<MinimizerHitPtr, pComp>&);
 
     uint find_position(const vector<uint16_t>&, const vector<bool>&, const uint16_t min_overlap=1);
 
