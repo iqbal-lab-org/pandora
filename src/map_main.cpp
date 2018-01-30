@@ -217,7 +217,9 @@ int pandora_map(int argc, char *argv[]) {
     }
     idx->clear();
     delete idx;
+    mhs->clear();
     delete mhs;
+    pangraph->clear();
     delete pangraph;
 
     // current date/time based on current system

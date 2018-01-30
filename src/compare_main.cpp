@@ -228,12 +228,12 @@ int pandora_compare(int argc, char* argv[])
     // for each sample, run pandora to get the sample pangraph
     for (map<string,string>::const_iterator sample = samples.begin(); sample!=samples.end(); ++sample)
     {
-	pangraph_sample->clear();
-	mhs->clear();
+	    pangraph_sample->clear();
+	    mhs->clear();
 	
-	// construct the pangraph for this sample
+	    // construct the pangraph for this sample
         cout << now() << "Constructing pangenome::Graph from read file " << sample->second << endl;
-	covg = pangraph_from_read_file(sample->second, mhs, pangraph_sample, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, illumina);
+	    covg = pangraph_from_read_file(sample->second, mhs, pangraph_sample, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, illumina);
     
         cout << now() << "Update LocalPRGs with hits" << endl;
         update_localPRGs_with_hits(pangraph_sample, prgs);
@@ -273,8 +273,11 @@ int pandora_compare(int argc, char* argv[])
     }
     idx->clear();
     delete idx;
+    mhs->clear();
     delete mhs;
+    pangraph->clear();
     delete pangraph;
+    pangraph_sample->clear();
     delete pangraph_sample;
 
     // current date/time based on current system
