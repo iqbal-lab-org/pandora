@@ -11,6 +11,10 @@ using namespace std;
 
 Path::Path(){}
 
+Path::~Path(){
+    path.clear();
+}
+
 // copy constructor
 Path::Path(const Path &other) {
     path = other.path;
@@ -36,7 +40,7 @@ void Path::initialize(const deque<Interval>& q)
   if (!q.empty()) {
     path = q;
     start = q.begin()->start;
-    end = (*--q.end()).end;
+    //end = (*--q.end()).end;
     end = path.back().end;
   }
 }
