@@ -162,38 +162,29 @@ unordered_set<uint32_t> Graph::get_leaves(uint16_t covg_thresh)
 }
 
 // get deques of dbg node ids corresponding to maximal non-branching paths in dbg
-set<deque<uint32_t>> Graph::get_unitigs()
-{
-    cout << "get unitigs for " << nodes.size() << " nodes" << endl;
-    set<deque<uint32_t>> s;
-    vector<bool> seen(nodes.size()+1, 0);
-    deque<uint32_t> d;
+set<deque<uint32_t>> Graph::get_unitigs() {
+    set<deque<uint32_t>> all_tigs;
+    set<uint32_t> seen;
 
-    for (auto c : nodes)
-    {
-        assert(c.second != nullptr);
-        cout << c.first << ": ";
-        if (seen[c.second->id] == 0 and c.second->out_nodes.size() <= 2)
-        {
-            d = {c.second->id};
-            extend_unitig(d);
-            for (auto i : d)
-            {
-                seen[i] = 1;
-            }
-            s.insert(d);
-            for (auto n : d)
-            {
-                cout << *nodes[n] << " ";
-            }
-            cout << endl;
-        } else {
-	        cout << "don't extend" << endl;
-            seen[c.second->id] = 1;
-        }
+    for (auto node_entry : nodes) {
+        const auto &id = node_entry.first;
+        assert(id <= next_id);
+
+        const auto &node_ptr = node_entry.second;
+        assert(node_ptr != nullptr);
+
+        bool node_seen = seen.find(id) != seen.end();
+        bool at_branch = node_ptr->out_nodes.size() > 2;
+        if (node_seen or at_branch)
+            continue;
+
+        deque<uint32_t> tig = {id};
+        extend_unitig(tig);
+        for (auto other_id: tig)
+            seen.insert(other_id);
+        all_tigs.insert(tig);
     }
-    cout << "finished" << endl;
-    return s;
+    return all_tigs;
 }
 
 // extend a dbg path on either end to a branch point
