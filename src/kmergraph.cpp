@@ -541,19 +541,18 @@ void KmerGraph::load(const string &filepath) {
                 ss >> p;
                 ss.clear();
                 //add_node(p);
-                n = make_shared<KmerNode>(id, p);
-                nodes[id] = n;
+                nodes[id] = make_shared<KmerNode>(id, p);
                 next_id++;
                 if (k == 0 and p.length() > 0) {
                     k = p.length();
                 }
-                assert(n->id == id);
+                assert(nodes[id]->id == id);
                 covg = stoi(split(split_line[3], "FC:i:")[0]);
-                n->covg[0] = covg;
+                nodes[id]->covg[0] = covg;
                 covg = stoi(split(split_line[4], "RC:i:")[0]);
-                n->covg[1] = covg;
+                nodes[id]->covg[1] = covg;
                 if (split_line.size() >= 6) {
-                    n->num_AT = stoi(split_line[5]);
+                    nodes[id]->num_AT = stoi(split_line[5]);
                 }
             }
         }

@@ -82,35 +82,23 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
 void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string &sample_name,
                         const vector<KmerNodePtr> &kmp, const LocalPRG *prg) {
     // add new node if it doesn't exist
-    NodePtr n;
     auto it = nodes.find(prg_id);
     if (it == nodes.end()) {
-        n = make_shared<Node>(prg_id, prg_id, prg_name);
-        n->kmer_prg = prg->kmer_prg;
-        //cout << "add node " << *n << endl;
-        nodes[prg_id] = n;
-    } else {
-        n = it->second;
-        it->second->covg += 1;
-        //cout << "node " << *n << " already existed " << endl;
+        nodes[prg_id] = make_shared<Node>(prg_id, prg_id, prg_name);
+        nodes[prg_id]->kmer_prg = prg->kmer_prg;
+        it = nodes.find(prg_id);
     }
 
     // add a new sample if it doesn't exist
     auto sit = samples.find(sample_name);
     if (sit == samples.end()) {
         //cout << "new sample " << sample_name << endl;
-        SamplePtr s = make_shared<Sample>(sample_name);
-        s->add_path(prg_id, kmp);
-        samples[sample_name] = s;
-        n->samples.insert(s);
-        n->add_path(kmp);
-    } else {
-        //cout << "sample " << sample_name  << " already existed " << endl;
-        sit->second->add_path(prg_id, kmp);
-        n->samples.insert(sit->second);
-        n->add_path(kmp);
+        samples[sample_name] = make_shared<Sample>(sample_name);
     }
-
+    //cout << "sample " << sample_name  << " already existed " << endl;
+    sit->second->add_path(prg_id, kmp);
+    it->second->samples.insert(sit->second);
+    it->second->add_path(kmp);
 }
 
 // remove the node n, and all references to it
