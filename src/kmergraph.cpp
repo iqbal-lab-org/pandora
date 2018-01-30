@@ -7,6 +7,7 @@
 #include <cstdio>      /* NULL */
 #include <cstdlib>     /* srand, rand */
 #include <ctime>       /* time */
+#include <cmath>
 #include "utils.h"
 #include "kmernode.h"
 #include "kmergraph.h"
