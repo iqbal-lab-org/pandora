@@ -28,7 +28,7 @@ public:
 
     unordered_set<uint32_t> get_leaves(uint16_t covg_thresh=1);
     unordered_set<uint32_t> get_leaf_tips();
-    unordered_set<deque<uint32_t>>& get_unitigs();
+    set<deque<uint32_t>>& get_unitigs();
     void extend_unitig(deque<uint32_t>&);
 
     bool operator == (const Graph& y) const;

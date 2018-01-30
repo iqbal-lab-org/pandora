@@ -1,6 +1,8 @@
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
+#include <set>
+#include <memory>
 #include <vector>
 #include <fstream>
 #include "utils.h"
@@ -35,7 +37,7 @@ Graph::~Graph() {
 
 // add a node corresponding to a cluster of hits against a given localPRG from a read
 void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_t read_id,
-                     set<MinimizerHitPtr, pComp> &cluster) {
+                     const set<MinimizerHitPtr, pComp> &cluster) {
     // check sensible things in new cluster
     // NB if cluster is empty, handle by adding in 0 orientation
     //cout << now() << "Add node" << endl;

@@ -7,6 +7,7 @@ class KmerNode;
 
 #include <cstring>
 #include <unordered_map>
+#include <memory>
 #include <ostream>
 #include <functional>
 #include <memory>
@@ -31,7 +32,7 @@ public:
     // graph additions/removals
     void reserve_num_reads(uint32_t&);
     void add_node(const uint32_t, const std::string, uint32_t,
-                  std::set<MinimizerHitPtr, pComp> &); // used by pandora map
+                  const std::set<MinimizerHitPtr, pComp> &); // used by pandora map
     void add_node(const uint32_t, const std::string &, const std::string &, const std::vector<KmerNodePtr> &,
                   const LocalPRG *); // used by pandora compare
 

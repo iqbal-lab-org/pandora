@@ -1,6 +1,7 @@
 #include <iostream>
 #include <map>
 #include <unordered_set>
+#include <set>
 #include <vector>
 #include <fstream>
 #include "utils.h"
@@ -328,7 +329,7 @@ void filter_unitigs(pangenome::Graph* pg, debruijn::Graph & dbg, const uint16_t&
     uint pos;
     bool all_reads_tig;
 
-    unordered_set<deque<uint32_t>> unitigs = dbg.get_unitigs();
+    set<deque<uint32_t>> unitigs = dbg.get_unitigs();
     cout << "have " << unitigs.size() << " tigs" << endl;
     for (auto d : unitigs)
     {
@@ -403,7 +404,7 @@ void detangle_pangraph_with_debruijn_graph(pangenome::Graph* pg, debruijn::Graph
     bool all_reads_tig;
     unordered_set<pangenome::ReadPtr> reads_along_tig;
 
-    unordered_set<deque<uint32_t>> unitigs = dbg.get_unitigs();
+    set<deque<uint32_t>> unitigs = dbg.get_unitigs();
     for (auto d : unitigs)
     {
         // look up the node ids and orientations associated with this node

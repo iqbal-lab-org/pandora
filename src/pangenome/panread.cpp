@@ -4,6 +4,8 @@
 #include <cassert>
 #include <climits>
 #include <unordered_set>
+#include <set>
+#include <memory>
 #include "pangenome/panread.h"
 #include "pangenome/pannode.h"
 #include "minihits.h"
@@ -14,7 +16,7 @@ using namespace pangenome;
 
 Read::Read (const uint32_t i): id(i) {}
 
-void Read::add_hits(const uint32_t prg_id, set<MinimizerHitPtr, pComp>& c)
+void Read::add_hits(const uint32_t prg_id, const set<MinimizerHitPtr, pComp>& c)
 {
     hits[prg_id].insert(c.begin(), c.end());
 }
