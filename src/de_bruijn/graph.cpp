@@ -162,15 +162,16 @@ unordered_set<uint32_t> Graph::get_leaves(uint16_t covg_thresh)
 }
 
 // get deques of dbg node ids corresponding to maximal non-branching paths in dbg
-set<deque<uint32_t>>& Graph::get_unitigs()
+set<deque<uint32_t>> Graph::get_unitigs()
 {
     cout << "get unitigs for " << nodes.size() << " nodes" << endl;
     set<deque<uint32_t>> s;
-    vector<bool> seen(nodes.size(), 0);
+    vector<bool> seen(nodes.size()+1, 0);
     deque<uint32_t> d;
 
     for (auto c : nodes)
     {
+        assert(c.second != nullptr);
         cout << c.first << ": ";
         if (seen[c.second->id] == 0 and c.second->out_nodes.size() <= 2)
         {
@@ -187,7 +188,7 @@ set<deque<uint32_t>>& Graph::get_unitigs()
             }
             cout << endl;
         } else {
-	    cout << "don't extend" << endl;
+	        cout << "don't extend" << endl;
             seen[c.second->id] = 1;
         }
     }
