@@ -53,6 +53,7 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
     if (it == nodes.end()) {
         //cout << "add node " << *n << endl;
         n = make_shared<Node>(prg_id, prg_id, prg_name);
+        nodes[prg_id] = n;
         //nodes[prg_id] = make_shared<Node>(prg_id, prg_id, prg_name);
         //it = nodes.find(prg_id);
     } else {
@@ -73,9 +74,9 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
         r = rit->second;
     }
     //cout << "read " << read_id  << " already existed " << endl;
-    n->reads.insert(rit->second);
+    n->reads.insert(r);
     r->add_hits(prg_id, cluster);
-    r->nodes.push_back(it->second);
+    r->nodes.push_back(n);
     if(!cluster.empty())
     {
         r->node_orientations.push_back((*cluster.begin())->strand);
@@ -97,6 +98,7 @@ void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string
         //cout << "add node " << *n << endl;
         n = make_shared<Node>(prg_id, prg_id, prg_name);
         n->kmer_prg = prg->kmer_prg;
+        nodes[prg_id] = n;
         //nodes[prg_id] = make_shared<Node>(prg_id, prg_id, prg_name);
         //it = nodes.find(prg_id);
     } else {
@@ -118,7 +120,7 @@ void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string
     }
     //cout << "sample " << sample_name  << " already existed " << endl;
     s->add_path(prg_id, kmp);
-    n->samples.insert(sit->second);
+    n->samples.insert(s);
     n->add_path(kmp);
 }
 
