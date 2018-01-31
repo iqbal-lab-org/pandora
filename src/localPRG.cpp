@@ -1001,6 +1001,11 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode, const string &prefix, uint w,
     almp.reserve(100);
     float ppath;
 
+    if (pnode->reads.size() == 0){
+        cout << "Node " << pnode->get_name() << " has no reads " << endl;
+        return kmp;
+    }
+
     if (max_path) {
         //cout << "find maxpath" << endl;
         ppath = pnode->kmer_prg.find_max_path(kmp);
