@@ -1,3 +1,6 @@
+.idea
+cmake-build-debug/
+
 # Ignore the build and lib dirs
 build
 ext
@@ -48,9 +51,10 @@ bin/*
 # for now, ignore test_cases subdirs
 test/test_cases/*/*
 *.vcf
+*.fa
+*.matrix
 test/test_cases/localPRG_test*
-test/test_cases/vcf3.multisample.fa
-test/test_cases/vcf_test.vcf
+indextext.k5.w1.idx
 
 # and log.txt
 log.txt
