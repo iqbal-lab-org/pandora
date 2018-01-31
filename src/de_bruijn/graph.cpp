@@ -191,16 +191,15 @@ set<deque<uint32_t>> Graph::get_unitigs() {
 void Graph::extend_unitig(deque<uint32_t>& tig)
 {
     cout << "extend unitig" << endl;
-    if (tig.size() == 0 or nodes[tig.back()]->out_nodes.size() == 0)
-    {
+    bool tig_is_empty = (tig.size() == 0);
+    bool last_node_is_isolated = (nodes[tig.back()]->out_nodes.size() == 0);
+    if (tig_is_empty or last_node_is_isolated)
         return;
-    } else if (tig.size() == 1 and nodes[tig.back()]->out_nodes.size() == 2)
+
+    tig.push_front(*nodes[tig.back()]->out_nodes.begin());
+    if (tig.size() == 1 and nodes[tig.back()]->out_nodes.size() == 2)
     {
-        tig.push_front(*nodes[tig.back()]->out_nodes.begin());
         tig.push_back(*++nodes[tig.back()]->out_nodes.begin());
-    } else if (tig.size() == 1 and nodes[tig.back()]->out_nodes.size() == 1)
-    {
-        tig.push_front(*nodes[tig.back()]->out_nodes.begin());
     }
 
     while (nodes[tig.back()]->out_nodes.size() == 2 and tig.back()!=tig.front())
