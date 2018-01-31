@@ -36,7 +36,8 @@ NodePtr Graph::add_node (const deque<uint16_t>& node_ids, uint32_t read_id)
         cout << i << " ";
     }
     cout << endl;*/
-    NodePtr n (make_shared<Node>(next_id, node_ids, read_id));
+    NodePtr n;
+    n = make_shared<Node>(next_id, node_ids, read_id);
     for (auto c : nodes)
     {
 	    if (*c.second == *n)
