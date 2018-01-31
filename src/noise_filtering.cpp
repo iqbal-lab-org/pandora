@@ -146,6 +146,16 @@ void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph & dbg,
             hashed_pg_node_ids.push_back(rc_num(dbg.nodes.at(dbg_node_ids[i])->hashed_node_ids[0]));
         } else {
             cout << "ERROR" << endl;
+            for (auto n : hashed_pg_node_ids)
+            {
+                cout << n << " ";
+            }
+            cout << " does not overlap with ";
+            for (auto n : dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids)
+            {
+                cout << n << " ";
+            }
+            cout << endl;
         }
 
         //cout << "length is now " << hashed_pg_node_ids.size() << endl;
