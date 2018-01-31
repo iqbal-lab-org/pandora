@@ -765,3 +765,47 @@ TEST_F(NoiseFilteringTest,clean_pangraph_with_debruijn_graph)
     EXPECT_EQ(pg_exp, *pg);
     delete pg;
 }
+
+TEST_F(NoiseFilteringTest, write_pangraph_gfa) {
+    set<MinimizerHitPtr, pComp> mhs;
+    pangenome::Graph *pg;
+    pg = new pangenome::Graph();
+    pg->add_node(0, "0", 0, mhs);
+    pg->add_node(1, "1", 0, mhs);
+    pg->add_node(2, "2", 0, mhs);
+    pg->add_node(3, "3", 0, mhs);
+    pg->add_node(4, "4", 0, mhs);
+    pg->add_node(5, "5", 0, mhs);
+    pg->add_node(0, "0", 0, mhs);
+
+    // overlapping in loop
+    pg->add_node(3, "3", 1, mhs);
+    pg->add_node(4, "4", 1, mhs);
+    pg->add_node(5, "5", 1, mhs);
+    pg->add_node(0, "0", 1, mhs);
+    pg->add_node(1, "1", 1, mhs);
+    pg->add_node(2, "2", 1, mhs);
+
+    // starts correct and deviates
+    pg->add_node(1, "1", 2, mhs);
+    pg->add_node(2, "2", 2, mhs);
+    pg->add_node(3, "3", 2, mhs);
+    pg->add_node(7, "7", 2, mhs);
+
+    // incorrect short
+    pg->add_node(0, "0", 3, mhs);
+    pg->add_node(5, "5", 3, mhs);//6
+    pg->add_node(3, "3", 3, mhs);
+    pg->add_node(4, "4", 3, mhs);
+
+    // deviates in middle
+    pg->add_node(0, "0", 4, mhs);
+    pg->add_node(1, "1", 4, mhs);
+    pg->add_node(2, "2", 4, mhs);
+    pg->add_node(6, "6", 4, mhs);
+    pg->add_node(3, "3", 4, mhs);
+    pg->add_node(4, "4", 4, mhs);
+    pg->add_node(5, "5", 4, mhs);
+
+    write_pangraph_gfa("../test/test_cases/noisefiltering_test.pangraph.gfa", pg);
+}
