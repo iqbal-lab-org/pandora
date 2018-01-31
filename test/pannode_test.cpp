@@ -95,7 +95,7 @@ TEST_F(PangenomeNodeTest,add_path){
     EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[5]->covg[1]);
     EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[6]->covg[1]);
 }
-
+/*
 TEST_F(PangenomeNodeTest,output_samples)
 {
     Node pn1(3,3,"three");
@@ -440,6 +440,7 @@ A-GCT
     string content2( (std::istreambuf_iterator<char>(ifs2) ),(std::istreambuf_iterator<char>()) );
     EXPECT_EQ((fafile1==content2) or (fafile2==content2) or(fafile3==content2) or (fafile4==content2) or (fafile5==content2) or (fafile6==content2), true);
 }
+*/
 
 TEST_F(PangenomeNodeTest,equals){
     Node pn1(3,3,"3");
