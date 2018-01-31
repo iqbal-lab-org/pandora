@@ -28,6 +28,7 @@
 #include "pangenome/pannode.h"
 #include "index.h"
 #include "estimate_parameters.h"
+#include "noise_filtering.h"
 
 using std::set;
 using std::vector;
@@ -187,7 +188,7 @@ int pandora_map(int argc, char *argv[]) {
     uint covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, illumina);
 
     cout << now() << "Writing pangenome::Graph to file " << prefix << ".pangraph.gfa" << endl;
-    //pangraph->write_gfa(prefix + ".pangraph.gfa");
+    write_pangraph_gfa(prefix + ".pangraph.gfa", pangraph);
 
     cout << now() << "Update LocalPRGs with hits" << endl;
     update_localPRGs_with_hits(pangraph, prgs);

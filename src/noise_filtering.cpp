@@ -452,3 +452,35 @@ void clean_pangraph_with_debruijn_graph(pangenome::Graph* pg, const uint16_t siz
 
     detangle_pangraph_with_debruijn_graph(pg,dbg);
 }
+
+void write_pangraph_gfa(const string &filepath, pangenome::Graph* pg) {
+    ofstream handle;
+    handle.open(filepath);
+    handle << "H\tVN:Z:1.0" << endl;
+    for (auto &node : pg->nodes) {
+
+        handle << "S\t" << node.second->get_name() << "\tN\tFC:i:" << node.second->covg << endl;
+    }
+    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(1,pg);
+    for (auto &node : dbg.nodes) {
+        for (auto &other_node : node.second->out_nodes)
+        {
+            handle << "L\t" << pg->nodes[node.second->hashed_node_ids[0]/2]->get_name() << "\t";
+            if (node.second->hashed_node_ids[0]%2 == 0) {
+                handle << "+";
+            } else {
+                handle << "-";
+            }
+            handle << "\t" << pg->nodes[dbg.nodes[other_node]->hashed_node_ids[0]/2]->get_name() << "\t";
+            if (dbg.nodes[other_node]->hashed_node_ids[0]%2 == 0){
+                handle << "+";
+            } else {
+                handle << "-";
+            }
+            handle << "\t0M" << endl;
+                // << "\tRC:i:" << read_intersect << endl;
+            dbg.nodes[other_node]->out_nodes.erase(node.second->id);
+        }
+    }
+}
+
