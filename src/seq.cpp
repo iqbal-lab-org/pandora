@@ -47,7 +47,7 @@ void Seq::minimizer_sketch (const uint32_t w, const uint32_t k)
 
     // initializations
     uint c, i, i_, num_minis_found=0;
-    uint64_t shift1 = 2 * (k - 1), mask = (1ULL<<2*k) - 1, smallest, kmer[2] = {0,0}, kh[2] = {0,0};
+    uint64_t shift1 = 2 * (k - 1), mask = (1ULL<<2*k) - 1, smallest = std::numeric_limits<uint64_t>::max(), kmer[2] = {0,0}, kh[2] = {0,0};
     vector<Minimizer*> vm;
     vm.reserve(w); //can't reserve a deque
     Minimizer* m;
