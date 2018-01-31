@@ -1,5 +1,4 @@
 #include <iostream>
-#include <string>
 #include <fstream>
 #include <cassert>
 #include <climits>
@@ -16,9 +15,8 @@ using namespace pangenome;
 
 Read::Read (const uint32_t i): id(i) {}
 
-void Read::add_hits(const uint32_t prg_id, const set<MinimizerHitPtr, pComp>& c)
-{
-    hits[prg_id].insert(c.begin(), c.end());
+void Read::add_hits(const uint32_t prg_id, const set<MinimizerHitPtr, pComp>& cluster) {
+    hits[prg_id].insert(cluster.begin(), cluster.end());
 }
 
 // find the index i in the nodes and node_orientations vectors such that [i,i+v.size()]
