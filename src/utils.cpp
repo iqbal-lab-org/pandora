@@ -449,7 +449,7 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
                                        min_cluster_size, short_read_length);
         cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
         mh->clear();
-        clean_pangraph_with_debruijn_graph(pangraph, 3, 1);
+        clean_pangraph_with_debruijn_graph(pangraph, 3, 1, illumina);
         //pangraph->clean(covg);
         cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
         delete s;

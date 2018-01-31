@@ -16,5 +16,5 @@ debruijn::Graph construct_debruijn_graph_from_pangraph(uint8_t, const pangenome:
 void remove_leaves(pangenome::Graph*, debruijn::Graph &, uint16_t covg_thresh=1);
 void filter_unitigs(pangenome::Graph*, debruijn::Graph &, const uint16_t&);
 void detangle_pangraph_with_debruijn_graph(pangenome::Graph*, debruijn::Graph &);
-void clean_pangraph_with_debruijn_graph(pangenome::Graph*, const uint16_t, const uint16_t);
+void clean_pangraph_with_debruijn_graph(pangenome::Graph*, const uint16_t, const uint16_t, const bool illumina=false);
 

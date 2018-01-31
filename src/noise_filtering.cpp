@@ -193,10 +193,10 @@ debruijn::Graph construct_debruijn_graph_from_pangraph(uint8_t size, const pange
     return dbg;
 }
 
-void remove_leaves(pangenome::Graph* pg, debruijn::Graph & dbg, uint16_t covg_thresh)
-{
+void remove_leaves(pangenome::Graph *pg, debruijn::Graph &dbg, uint16_t covg_thresh) {
     cout << now() << "Remove leaves of debruijn graph from pangraph" << endl;
-    cout << "Start with " << pg->nodes.size() << " pg.nodes, " << pg->reads.size() << " pg.reads, and " << dbg.nodes.size() << " dbg.nodes" << endl;
+    cout << "Start with " << pg->nodes.size() << " pg.nodes, " << pg->reads.size() << " pg.reads, and "
+         << dbg.nodes.size() << " dbg.nodes" << endl;
     bool leaves_exist = true;
     unordered_set<uint32_t> leaves;
     vector<uint16_t> node_ids;
@@ -209,43 +209,38 @@ void remove_leaves(pangenome::Graph* pg, debruijn::Graph & dbg, uint16_t covg_th
         leaves = dbg.get_leaves(covg_thresh);
         cout << "there are " << leaves.size() << " leaves" << endl;
 
-        if (leaves.empty())
-        {
+        if (leaves.empty()) {
             leaves_exist = false;
         }
         cout << "leaves exist is " << leaves_exist << endl;
 
         for (auto i : leaves) {
             cout << endl << "looking at leaf " << i << ": ";
-            for (auto j : dbg.nodes[i]->hashed_node_ids)
-            {
+            for (auto j : dbg.nodes[i]->hashed_node_ids) {
                 cout << j << " ";
             }
             cout << endl;
 
             // look up the node ids and orientations associated with this node
             hashed_node_ids_to_ids_and_orientations(dbg.nodes[i]->hashed_node_ids, node_ids, node_orients);
-	    cout << "looked up node ids" << endl;
+            cout << "looked up node ids" << endl;
 
             // remove the last node from corresponding reads
-            assert(dbg.nodes[i]->read_ids.size()>0);
-            for (auto r : dbg.nodes[i]->read_ids)
-            {
-		cout << "remove from read " << r << ": ";
-		for (auto n : pg->reads[r]->nodes)
-		{
-		    cout << n->node_id << " ";
-		}
-		cout << endl;
-                if (pg->reads[r]->nodes.size() == dbg.size)
-                {
-		    cout << "remove read";
+            assert(dbg.nodes[i]->read_ids.size() > 0);
+            for (auto r : dbg.nodes[i]->read_ids) {
+                cout << "remove from read " << r << ": ";
+                for (auto n : pg->reads[r]->nodes) {
+                    cout << n->node_id << " ";
+                }
+                cout << endl;
+                if (pg->reads[r]->nodes.size() == dbg.size) {
+                    cout << "remove read";
                     pg->remove_read(r);
-		    cout << " done" << endl;
+                    cout << " done" << endl;
                 } else {
-		    cout << "remove from read ";
+                    cout << "remove from read ";
                     pos = pg->reads[r]->find_position(node_ids, node_orients);
-		    cout << "pos " << pos;
+                    cout << "pos " << pos;
                     assert(pos == 0 or pos + node_ids.size() == pg->reads[r]->nodes.size());
                     if (pos == 0) {
                         node = pg->reads[r]->nodes[0];
@@ -256,11 +251,10 @@ void remove_leaves(pangenome::Graph* pg, debruijn::Graph & dbg, uint16_t covg_th
                         pg->reads[r]->remove_node(--pg->reads[r]->nodes.end());
                         node->remove_read(pg->reads[r]);
                     }
-		    cout << "done" << endl;
+                    cout << "done" << endl;
                 }
             }
-            if (node and node->covg == 0)
-            {
+            if (node and node->covg == 0) {
                 pg->remove_node(node);
             }
 
@@ -270,7 +264,8 @@ void remove_leaves(pangenome::Graph* pg, debruijn::Graph & dbg, uint16_t covg_th
             //cout << "pg is now: " << endl << pg << endl;
         }
     }
-    cout << "There are now " << pg->nodes.size() << " pg.nodes, " << pg->reads.size() << " pg.reads, and " << dbg.nodes.size() << " dbg.nodes" << endl;
+    cout << "There are now " << pg->nodes.size() << " pg.nodes, " << pg->reads.size() << " pg.reads, and "
+         << dbg.nodes.size() << " dbg.nodes" << endl;
 }
 
 void find_reads_along_tig(const debruijn::Graph & dbg,
@@ -445,10 +440,11 @@ void detangle_pangraph_with_debruijn_graph(pangenome::Graph* pg, debruijn::Graph
     }
 }
 
-void clean_pangraph_with_debruijn_graph(pangenome::Graph* pg, const uint16_t size, const uint16_t threshold)
+void clean_pangraph_with_debruijn_graph(pangenome::Graph* pg, const uint16_t size, const uint16_t threshold, const bool illumina)
 {
     debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(size,pg);
-    remove_leaves(pg, dbg, threshold);
+    if (not illumina)
+        remove_leaves(pg, dbg, threshold);
     filter_unitigs(pg, dbg, threshold);
 
     // update dbg now that have removed leaves and some inner nodes
