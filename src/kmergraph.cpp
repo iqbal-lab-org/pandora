@@ -35,10 +35,13 @@ KmerGraph::KmerGraph(const KmerGraph &other) {
     k = other.k;
     p = other.p;
     thresh = other.thresh;
+    KmerNodePtr n;
 
     // create deep copies of the nodes, minus the edges
     for (const auto &node : other.nodes) {
-        nodes[node.first] = make_shared<KmerNode>(*node.second);
+        n = make_shared<KmerNode>(*node.second);
+        nodes[node.first] = n;
+        //nodes[node.first] = make_shared<KmerNode>(*node.second);
     }
 
     // now need to copy the edges
@@ -69,10 +72,13 @@ KmerGraph &KmerGraph::operator=(const KmerGraph &other) {
     k = other.k;
     p = other.p;
     thresh = other.thresh;
+    KmerNodePtr n;
 
     // deep copy the vector of node pointers, excluding edges
     for (const auto &node : other.nodes) {
-        nodes[node.first] = make_shared<KmerNode>(*node.second);
+        n = make_shared<KmerNode>(*node.second);
+        nodes[node.first] = n;
+        //nodes[node.first] = make_shared<KmerNode>(*node.second);
     }
 
     // now need to copy the edges
