@@ -117,7 +117,9 @@ KmerNodePtr KmerGraph::add_node(const Path &p) {
     }
 
     // if we didn't find an existing node
-    nodes[next_id] = make_shared<KmerNode>(next_id, p);
+    KmerNodePtr n (make_shared<KmerNode>(next_id, p));
+    nodes[next_id] = n;
+    //nodes[next_id] = make_shared<KmerNode>(next_id, p);
     assert(k == 0 or p.length() == 0 or p.length() == k);
     if (k == 0 and p.length() > 0) {
         k = p.length();
@@ -128,7 +130,7 @@ KmerNodePtr KmerGraph::add_node(const Path &p) {
         reserved_size *= 2;
         nodes.reserve(reserved_size);
     }
-    return nodes[next_id-1];
+    return n;
 }
 
 KmerNodePtr KmerGraph::add_node_with_kh(const Path &p, const uint64_t &kh, const uint8_t &num) {
@@ -548,18 +550,20 @@ void KmerGraph::load(const string &filepath) {
                 ss >> p;
                 ss.clear();
                 //add_node(p);
-                nodes[id] = make_shared<KmerNode>(id, p);
+                n = make_shared<KmerNode>(id, p);
+                nodes[id] = n;
+                //nodes[id] = make_shared<KmerNode>(id, p);
                 next_id++;
                 if (k == 0 and p.length() > 0) {
                     k = p.length();
                 }
                 assert(nodes[id]->id == id);
                 covg = stoi(split(split_line[3], "FC:i:")[0]);
-                nodes[id]->covg[0] = covg;
+                n->covg[0] = covg;
                 covg = stoi(split(split_line[4], "RC:i:")[0]);
-                nodes[id]->covg[1] = covg;
+                n->covg[1] = covg;
                 if (split_line.size() >= 6) {
-                    nodes[id]->num_AT = stoi(split_line[5]);
+                    n->num_AT = stoi(split_line[5]);
                 }
             }
         }
