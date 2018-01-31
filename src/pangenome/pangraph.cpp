@@ -48,35 +48,42 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
     //cout << now() << "Checked cluster was sensible" << endl;
 
     // add new node if it doesn't exist
+    NodePtr n;
     auto it = nodes.find(prg_id);
     if (it == nodes.end()) {
         //cout << "add node " << *n << endl;
-        nodes[prg_id] = make_shared<Node>(prg_id, prg_id, prg_name);
-        it = nodes.find(prg_id);
+        n = make_shared<Node>(prg_id, prg_id, prg_name);
+        //nodes[prg_id] = make_shared<Node>(prg_id, prg_id, prg_name);
+        //it = nodes.find(prg_id);
     } else {
-        it->second->covg += 1;
+        n = it->second;
+        n->covg += 1;
         //cout << "node " << *n << " already existed " << endl;
     }
 
     // add a new read if it doesn't exist
+    ReadPtr r;
     auto rit = reads.find(read_id);
     if (rit == reads.end()) {
         //cout << "new read " << read_id << endl;
-        reads[read_id] = make_shared<Read>(read_id);
-        rit = reads.find(read_id);
+        r = make_shared<Read>(read_id);
+        reads[read_id] = r;
+        //rit = reads.find(read_id);
+    } else {
+        r = rit->second;
     }
     //cout << "read " << read_id  << " already existed " << endl;
-    it->second->reads.insert(rit->second);
-    rit->second->add_hits(prg_id, cluster);
-    rit->second->nodes.push_back(it->second);
+    n->reads.insert(rit->second);
+    r->add_hits(prg_id, cluster);
+    r->nodes.push_back(it->second);
     if(!cluster.empty())
     {
-        rit->second->node_orientations.push_back((*cluster.begin())->strand);
+        r->node_orientations.push_back((*cluster.begin())->strand);
     } else {
-        rit->second->node_orientations.push_back(0);
+        r->node_orientations.push_back(0);
     }
 
-    assert(it->second->covg == it->second->reads.size());
+    assert(n->covg == n->reads.size());
     assert(prg_id < numeric_limits<uint32_t>::max()||assert_msg("WARNING, prg_id reached max pangraph node size"));
 }
 
@@ -84,26 +91,35 @@ void Graph::add_node(const uint32_t prg_id, const string prg_name, const uint32_
 void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string &sample_name,
                         const vector<KmerNodePtr> &kmp, const LocalPRG *prg) {
     // add new node if it doesn't exist
+    NodePtr n;
     auto it = nodes.find(prg_id);
     if (it == nodes.end()) {
-        nodes[prg_id] = make_shared<Node>(prg_id, prg_id, prg_name);
-        nodes[prg_id]->kmer_prg = prg->kmer_prg;
-        it = nodes.find(prg_id);
+        //cout << "add node " << *n << endl;
+        n = make_shared<Node>(prg_id, prg_id, prg_name);
+        n->kmer_prg = prg->kmer_prg;
+        //nodes[prg_id] = make_shared<Node>(prg_id, prg_id, prg_name);
+        //it = nodes.find(prg_id);
     } else {
-	it->second->covg += 1;
+        n = it->second;
+        n->covg += 1;
+        //cout << "node " << *n << " already existed " << endl;
     }
 
     // add a new sample if it doesn't exist
+    SamplePtr s;
     auto sit = samples.find(sample_name);
     if (sit == samples.end()) {
         //cout << "new sample " << sample_name << endl;
-        samples[sample_name] = make_shared<Sample>(sample_name);
-	sit = samples.find(sample_name);
+        s = make_shared<Sample>(sample_name);
+        samples[sample_name] = s;
+	    //sit = samples.find(sample_name);
+    } else {
+        s = sit->second;
     }
     //cout << "sample " << sample_name  << " already existed " << endl;
-    sit->second->add_path(prg_id, kmp);
-    it->second->samples.insert(sit->second);
-    it->second->add_path(kmp);
+    s->add_path(prg_id, kmp);
+    n->samples.insert(sit->second);
+    n->add_path(kmp);
 }
 
 // remove the node n, and all references to it
