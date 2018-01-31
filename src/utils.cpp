@@ -398,14 +398,12 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
                 if (!read.empty()) // ok we'll allow reads with no name, removed
                 {
                     s->initialize(id, name, read, w, k);
-		    if (!s->sketch.empty())
-		    {
+                    if (!s->sketch.empty()) {
                         covg += s->seq.length();
-		    }
-                    if (illumina == true and short_read_length == std::numeric_limits<uint>::max())
-                    {
-			            assert(w!=0);
-                        short_read_length = s->seq.length() * 2/w;
+                    }
+                    if (illumina == true and short_read_length == std::numeric_limits<uint>::max()) {
+                        assert(w != 0);
+                        short_read_length = s->seq.length() * 2 / w;
                     }
                     //cout << now() << "Add read hits" << endl;
                     add_read_hits(s, mh, idx);
@@ -428,17 +426,15 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
         {
             //cout << now() << "Found read " << name << endl;
             s->initialize(id, name, read, w, k);
-	    if (!s->sketch.empty())
-	    {
+            if (!s->sketch.empty()) {
                 covg += s->seq.length();
-	    }
-            if (illumina == true and short_read_length == std::numeric_limits<uint>::max())
-            {
-                short_read_length = s->seq.length() * 2/w;
+            }
+            if (illumina == true and short_read_length == std::numeric_limits<uint>::max()) {
+                short_read_length = s->seq.length() * 2 / w;
             }
             //cout << now() << "Add read hits" << endl;
             add_read_hits(s, mh, idx);
-	    id++;
+            id++;
         }
         covg = covg / genome_size;
         cout << now() << "Estimated coverage: " << covg << endl;
@@ -449,7 +445,11 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
                                        min_cluster_size, short_read_length);
         cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
         mh->clear();
-        clean_pangraph_with_debruijn_graph(pangraph, 3, 1, illumina);
+        if (illumina) {
+            clean_pangraph_with_debruijn_graph(pangraph, 2, 1, illumina);
+        } else {
+            clean_pangraph_with_debruijn_graph(pangraph, 3, 1, illumina);
+        }
         //pangraph->clean(covg);
         cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
         delete s;
