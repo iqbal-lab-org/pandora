@@ -106,7 +106,6 @@ void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph & dbg,
                                           vector<uint16_t>& node_ids,
                                           vector<bool>& node_orients)
 {
-    cout << "convert dbg node ids to read ids" << endl;
     node_ids.clear();
     node_orients.clear();
 

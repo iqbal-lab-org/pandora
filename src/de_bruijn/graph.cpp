@@ -191,7 +191,6 @@ set<deque<uint32_t>> Graph::get_unitigs() {
 // extend a dbg path on either end to a branch point
 void Graph::extend_unitig(deque<uint32_t>& tig)
 {
-    cout << "extend unitig" << endl;
     bool tig_is_empty = (tig.size() == 0);
     bool last_node_is_isolated = (nodes[tig.back()]->out_nodes.size() == 0);
     if (tig_is_empty or last_node_is_isolated)
@@ -205,12 +204,12 @@ void Graph::extend_unitig(deque<uint32_t>& tig)
 
     while (nodes[tig.back()]->out_nodes.size() == 2 and tig.back()!=tig.front())
     {
-        cout << "tig: ";
+        /*cout << "tig: ";
         for (auto n : tig)
         {
             cout << n << " ";
         }
-        cout << endl;
+        cout << endl;*/
         if (*nodes[tig.back()]->out_nodes.begin() == tig[tig.size()-2])
         {
             tig.push_back(*++nodes[tig.back()]->out_nodes.begin());
@@ -225,12 +224,12 @@ void Graph::extend_unitig(deque<uint32_t>& tig)
     //cout << "tig front " << tig.front() << endl;
     while (nodes[tig.front()]->out_nodes.size() == 2 and tig.back()!=tig.front())
     {
-        cout << "tig: ";
+        /*cout << "tig: ";
         for (auto n : tig)
         {
             cout << n << " ";
         }
-        cout << endl;
+        cout << endl;*/
         if (*nodes[tig.front()]->out_nodes.begin() == tig[1])
         {
             tig.push_front(*++nodes[tig.front()]->out_nodes.begin());
@@ -242,7 +241,6 @@ void Graph::extend_unitig(deque<uint32_t>& tig)
         }
         // else error?
     }
-    cout << "tig extended" << endl;
 }
 
 bool Graph::operator == (const Graph& y) const
