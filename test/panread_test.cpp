@@ -12,16 +12,7 @@
 
 using namespace pangenome;
 
-class PangenomeReadTest : public ::testing::Test {
-protected:
-    virtual void SetUp() {
-    }
-
-    virtual void TearDown() {
-    }
-};
-
-TEST_F(PangenomeReadTest, create) {
+TEST(PangenomeReadTest, create) {
 
     Read pr(3);
     EXPECT_EQ((uint) 3, pr.id);
@@ -38,8 +29,8 @@ TEST(ReadAddHits, AddOneEmptyClusterToHits_ReadHitsSizeOne) {
     uint32_t prg_id = 4;
     read.add_hits(prg_id, cluster);
 
-    auto result = read.hits.size();
-    auto expect = 1;
+    uint result = read.hits.size();
+    uint expect = 1;
     EXPECT_EQ(result, expect);
 }
 
@@ -62,49 +53,40 @@ TEST(ReadAddHits, AddClusterSecondTime_ReadHitsNotChanged) {
     set<MinimizerHitPtr, pComp> cluster;
     uint32_t prg_id = 4;
 
-    // add again and should append read.hits
     Interval interval(0, 5);
     deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
     Path path;
     path.initialize(raw_path);
-    MinimizerHitPtr minimizer_hit(make_shared<MinimizerHit>(4, interval, 0, path, 0, 0));
+    MinimizerHitPtr minimizer_hit(make_shared<MinimizerHit>(read_id, interval, prg_id, path, 0, 0));
 
     cluster.insert(minimizer_hit);
     read.add_hits(prg_id, cluster);
     read.add_hits(prg_id, cluster);
 
-    EXPECT_EQ(1, read.hits[prg_id].size());
+    EXPECT_EQ((uint)1, read.hits[prg_id].size());
 }
 
-
-TEST_F(PangenomeReadTest, add_hits) {
+TEST(ReadAddHits, AddSecondCluster_ReadHitsMapContainsCorrectPrgIds) {
     uint32_t read_id = 1;
     Read read(read_id);
     set<MinimizerHitPtr, pComp> cluster;
+    uint32_t prg_id = 4;
+    read.add_hits(prg_id, cluster);
 
-    read.add_hits(4, cluster);
+    prg_id = 5;
+    Interval interval(0, 5);
+    deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
+    Path path;
+    path.initialize(raw_path);
+    MinimizerHitPtr minimizer_hit(make_shared<MinimizerHit>(read_id, interval, prg_id, path, 0, 0));
+    cluster.insert(minimizer_hit);
+    read.add_hits(prg_id, cluster);
 
-    // add again and should append read.hits
-    Interval i(0, 5);
-    deque<Interval> d = {Interval(7, 8), Interval(10, 14)};
-    Path p;
-    p.initialize(d);
-    MinimizerHitPtr mh(make_shared<MinimizerHit>(4, i, 0, p, 0, 0));
-
-    cluster.insert(mh);
-    read.add_hits(4, cluster);
-    EXPECT_EQ((uint) 1, read.hits.size());
-    EXPECT_EQ((uint) 1, read.hits[4].size());
-
-    // add to new id
-    read.add_hits(5, cluster);
-    EXPECT_EQ((uint) 2, read.hits.size());
-    EXPECT_EQ((uint) 1, read.hits[5].size());
-    EXPECT_EQ((uint) 1, read.hits[4].size());
-
+    auto result = read.hits.find(prg_id) != read.hits.end();
+    EXPECT_TRUE(result);
 }
 
-TEST_F(PangenomeReadTest, find_position) {
+TEST(PangenomeReadTest, find_position) {
     set<MinimizerHitPtr, pComp> mhs;
 
     PGraphTester pg;
@@ -186,7 +168,7 @@ TEST_F(PangenomeReadTest, find_position) {
     EXPECT_EQ(p, (uint) 0);
 }
 
-TEST_F(PangenomeReadTest, remove_node) {
+TEST(PangenomeReadTest, remove_node) {
 
     set<MinimizerHitPtr, pComp> mhs;
 
@@ -300,7 +282,7 @@ TEST_F(PangenomeReadTest, remove_node) {
     EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[2]->node_orientations, exp_read_orientations);
 }
 
-TEST_F(PangenomeReadTest, remove_node_it) {
+TEST(PangenomeReadTest, remove_node_it) {
     set<MinimizerHitPtr, pComp> mhs;
 
     PGraphTester pg;
@@ -414,7 +396,7 @@ TEST_F(PangenomeReadTest, remove_node_it) {
     EXPECT_ITERABLE_EQ(vector<bool>, pg.reads[2]->node_orientations, exp_read_orientations);
 }
 
-TEST_F(PangenomeReadTest, replace_node) {
+TEST(PangenomeReadTest, replace_node) {
     set<MinimizerHitPtr, pComp> mhs;
 
     Graph pg;
@@ -570,7 +552,7 @@ TEST_F(PangenomeReadTest, replace_node) {
 
 }
 
-TEST_F(PangenomeReadTest, equals) {
+TEST(PangenomeReadTest, equals) {
     Read pr1(1);
     Read pr2(2);
     EXPECT_EQ(pr1, pr1);
@@ -579,7 +561,7 @@ TEST_F(PangenomeReadTest, equals) {
     EXPECT_EQ((pr2 == pr1), false);
 }
 
-TEST_F(PangenomeReadTest, nequals) {
+TEST(PangenomeReadTest, nequals) {
     Read pr1(1);
     Read pr2(2);
     EXPECT_NE(pr1, pr2);
@@ -588,7 +570,7 @@ TEST_F(PangenomeReadTest, nequals) {
     EXPECT_EQ((pr2 != pr2), false);
 }
 
-TEST_F(PangenomeReadTest, less) {
+TEST(PangenomeReadTest, less) {
     Read pr1(1);
     Read pr2(2);
     EXPECT_EQ((pr1 < pr1), false);
