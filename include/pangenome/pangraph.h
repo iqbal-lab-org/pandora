@@ -39,12 +39,12 @@ public:
     // graph additions/removals
     void reserve_num_reads(uint32_t &);
 
+    ReadPtr get_read(const uint32_t &read_id);
+
     NodePtr add_coverage(const ReadPtr &read_ptr,
                          const NodeId &node_id,
                          const uint32_t &prg_id,
                          const string &prg_name);
-
-    ReadPtr get_read(const uint32_t &read_id);
 
     void add_node(const uint32_t, const std::string &, uint32_t,
                   const std::set<MinimizerHitPtr, pComp> &); // used by pandora map

@@ -35,6 +35,18 @@ Graph::~Graph() {
     clear();
 }
 
+ReadPtr Graph::get_read(const uint32_t &read_id) {
+    auto it = reads.find(read_id);
+    bool found = it != reads.end();
+    if (not found) {
+        auto read_ptr = make_shared<Read>(read_id);
+        reads[read_id] = read_ptr;
+        return read_ptr;
+    }
+
+    auto read_ptr = it->second;
+    return read_ptr;
+}
 
 NodePtr Graph::add_coverage(const ReadPtr &read_ptr,
                             const NodeId &node_id,
@@ -56,21 +68,6 @@ NodePtr Graph::add_coverage(const ReadPtr &read_ptr,
            or assert_msg("WARNING, prg_id reached max pangraph node size"));
     return node_ptr;
 }
-
-
-ReadPtr Graph::get_read(const uint32_t &read_id) {
-    auto it = reads.find(read_id);
-    bool found = it != reads.end();
-    if (not found) {
-        auto read_ptr = make_shared<Read>(read_id);
-        reads[read_id] = read_ptr;
-        return read_ptr;
-    }
-
-    auto read_ptr = it->second;
-    return read_ptr;
-}
-
 
 void check_correct_hits(const uint32_t prg_id,
                         const uint32_t read_id,
