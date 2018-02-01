@@ -14,116 +14,186 @@
 
 using namespace pangenome;
 
-class PangenomeGraphTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(PangenomeGraphTest, add_node)
-{
-    set<MinimizerHitPtr, pComp> mhs;
-
-    // add node and check it's there
+TEST(PangenomeGraphGetRead, AddRead_PangenomeGraphReadsContainsReadId) {
+    uint32_t read_id = 2;
     PGraphTester pg;
-    pg.add_node(0,"0",1, mhs);
 
-    NodePtr pn = make_shared<Node>(0,0,"0");
-    uint32_t j = 1;
-    EXPECT_EQ(pg.nodes.size(), j);
-    EXPECT_EQ(*pg.nodes[0], *pn);
-    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->name, "0");
-    EXPECT_EQ(pg.nodes[0]->covg, j);
-    EXPECT_EQ(pg.nodes[0]->reads.size(), j);
-    ReadPtr pr = make_shared<Read>(1);
-    EXPECT_EQ(pg.reads.size(), j);
-    EXPECT_EQ(*pg.reads[1], *pr);
-    EXPECT_EQ(pg.reads[1]->hits.size(), j);
-    EXPECT_EQ(pg.reads[1]->hits[0].size(), (uint)0);
+    auto result = pg.reads.find(read_id) == pg.reads.end();
+    EXPECT_TRUE(result);
+    EXPECT_EQ(pg.reads.size(), (uint)0);
 
+    pg.get_read(read_id);
 
-    // add node again with same read
-    pg.add_node(0,"0",1, mhs);
-
-    EXPECT_EQ(pg.nodes.size(), j);
-    EXPECT_EQ(*pg.nodes[0], *pn);
-    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->name, "0");
-    EXPECT_EQ(pg.nodes[0]->covg, (uint)2);
-    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)2);
-    EXPECT_EQ(pg.reads.size(), j);
-    EXPECT_EQ(*pg.reads[1], *pr);
-    EXPECT_EQ(pg.reads[1]->hits.size(), j);
-    EXPECT_EQ(pg.reads[1]->hits[0].size(), (uint)0);
-
-    // add node again with different read
-    pg.add_node(0,"0",2, mhs);
-
-    EXPECT_EQ(pg.nodes.size(), j);
-    EXPECT_EQ(*pg.nodes[0], *pn);
-    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->name, "0");
-    EXPECT_EQ(pg.nodes[0]->covg, (uint)3);
-    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)3);
-    EXPECT_EQ(pg.reads.size(), (uint)2);
-    EXPECT_EQ(*pg.reads[1], *pr);
-    EXPECT_EQ(pg.reads[1]->hits.size(), j);
-    EXPECT_EQ(pg.reads[1]->hits[0].size(), (uint)0);
-    EXPECT_EQ(pg.reads[2]->hits.size(), j);
-    EXPECT_EQ(pg.reads[2]->hits[0].size(), (uint)0);
-
-    // add different node
-    pg.add_node(1,"1",2, mhs);
-    pn = make_shared<Node>(1,1,"1");
-    EXPECT_EQ(pg.nodes.size(), (uint)2);
-    EXPECT_EQ(*pg.nodes[1], *pn);
-    EXPECT_EQ(pg.nodes[1]->node_id, j);
-    EXPECT_EQ(pg.nodes[1]->prg_id, j);
-    EXPECT_EQ(pg.nodes[1]->name, "1");
-    EXPECT_EQ(pg.nodes[1]->covg, j);
-    EXPECT_EQ(pg.nodes[1]->reads.size(), j);
-    EXPECT_EQ(pg.reads.size(), (uint)2);
-    EXPECT_EQ(pg.reads[2]->hits.size(), (uint)2);
-    EXPECT_EQ(pg.reads[2]->hits[1].size(), (uint)0);
-
-    // add a node with hits
-    Path p;
-    deque<Interval> d = {Interval(0,1), Interval(4,7)};
-    p.initialize(d);
-    MinimizerHitPtr mh0 (make_shared<MinimizerHit>(2, Interval(1,5), 2, p, 0, true));
-    mhs.insert(mh0);
-    d = {Interval(0,1), Interval(5,8)};
-    p.initialize(d);
-    MinimizerHitPtr mh1 (make_shared<MinimizerHit>(2, Interval(1,5), 2, p, 0, true));
-    mhs.insert(mh1);
-    pg.add_node(2,"2",2, mhs);
-    pn = make_shared<Node>(2,2,"2");
-    EXPECT_EQ(pg.nodes.size(), (uint)3);
-    EXPECT_EQ(*pg.nodes[2], *pn);
-    EXPECT_EQ(pg.nodes[2]->node_id, (uint)2);
-    EXPECT_EQ(pg.nodes[2]->name, "2");
-    EXPECT_EQ(pg.nodes[2]->covg, j);
-    EXPECT_EQ(pg.nodes[2]->reads.size(), j);
-    EXPECT_EQ(pg.reads.size(), (uint)2);
-    EXPECT_EQ(pg.reads[2]->hits.size(), (uint)3);
-    EXPECT_EQ(pg.reads[2]->hits[2].size(), (uint)2);
-
-    // expect death if some hit doesn't match the prg id expect
-    MinimizerHitPtr mh2 (make_shared<MinimizerHit>(0, Interval(1,5), 0, p, 0, true));
-    mhs.insert(mh2);
-    EXPECT_DEATH(pg.add_node(0,"0",0, mhs), "");
+    result = pg.reads.find(read_id) != pg.reads.end();
+    EXPECT_TRUE(result);
+    EXPECT_EQ(pg.reads.size(), (uint)1);
 }
 
-TEST_F(PangenomeGraphTest, add_node_sample)
+TEST(PangenomeGraphGetRead, AddReadTwice_PangenomeGraphReadsContainsReadId) {
+    uint32_t read_id = 2;
+    PGraphTester pg;
+
+    pg.get_read(read_id);
+    pg.get_read(read_id);
+
+    auto result = pg.reads.find(read_id) != pg.reads.end();
+    EXPECT_TRUE(result);
+    EXPECT_EQ(pg.reads.size(), (uint)1);
+}
+
+TEST(PangenomeGraphAddCoverage, NodeDoesntAlreadyExist_PangenomeGraphNodesContainsNodeId) {
+    PGraphTester pg;
+
+    uint32_t read_id = 2;
+    ReadPtr read_ptr = pg.get_read(read_id);
+
+    set<MinimizerHitPtr, pComp> mhs;
+    uint32_t node_id = 0;
+    uint32_t prg_id = 1;
+
+    EXPECT_EQ(pg.nodes.size(), (uint)0);
+
+    pg.add_coverage(read_ptr, node_id, prg_id, "0");
+
+    auto result = pg.nodes.find(node_id) != pg.nodes.end();
+    EXPECT_TRUE(result);
+
+    result = pg.nodes.find(prg_id) == pg.nodes.end();
+    EXPECT_TRUE(result);
+    EXPECT_EQ(pg.reads.size(), (uint)1);
+}
+
+TEST(PangenomeGraphAddCoverage, NodeDoesntAlreadyExist_PangenomeGraphNodeContainsReadPtr) {
+    PGraphTester pg;
+
+    uint32_t read_id = 2;
+    ReadPtr read_ptr = pg.get_read(read_id);
+
+    set<MinimizerHitPtr, pComp> mhs;
+    uint32_t node_id = 0;
+    uint32_t prg_id = 1;
+
+    NodePtr node_ptr = pg.add_coverage(read_ptr, node_id, prg_id, "0");
+
+    auto result = node_ptr->reads.find(read_ptr) != node_ptr->reads.end();
+    EXPECT_TRUE(result);
+}
+
+TEST(PangenomeGraphAddCoverage, NodeAlreadyExists_PangenomeGraphNodeCoverageIncreases) {
+    PGraphTester pg;
+
+    uint32_t read_id = 2;
+    ReadPtr read_ptr = pg.get_read(read_id);
+
+    set<MinimizerHitPtr, pComp> mhs;
+    uint32_t node_id = 0;
+    uint32_t prg_id = 1;
+
+    EXPECT_EQ(pg.nodes.size(), (uint)0);
+
+    NodePtr node_ptr = pg.add_coverage(read_ptr, node_id, prg_id, "0");
+    uint32_t covg = node_ptr->covg;
+    node_ptr = pg.add_coverage(read_ptr, node_id, prg_id, "0");
+    EXPECT_EQ(node_ptr->covg - covg, (uint)1);
+}
+
+TEST(PangenomeGraphAddCoverage, NodeAlreadyExists_PangenomeGraphNodeReadsContainsReadTwice) {
+    PGraphTester pg;
+
+    uint32_t read_id = 2;
+    ReadPtr read_ptr = pg.get_read(read_id);
+
+    set<MinimizerHitPtr, pComp> mhs;
+    uint32_t node_id = 0;
+    uint32_t prg_id = 1;
+
+    pg.add_coverage(read_ptr, node_id, prg_id, "0");
+    NodePtr node_ptr = pg.add_coverage(read_ptr, node_id, prg_id, "0");
+
+    auto result = node_ptr->reads.count(read_ptr);
+    uint expected = 2;
+    EXPECT_EQ(result, expected);
+}
+
+TEST(PangenomeGraphAddNode, AddClusterWrongReadId_AssertCatches) {
+    uint32_t read_id = 1;
+    uint32_t not_read_id = 7;
+
+    set<MinimizerHitPtr, pComp> cluster;
+    uint32_t prg_id = 4;
+    Interval interval(0, 5);
+    deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
+    Path path;
+    path.initialize(raw_path);
+    MinimizerHitPtr minimizer_hit(make_shared<MinimizerHit>(not_read_id, interval, prg_id, path, 0, 0));
+    cluster.insert(minimizer_hit);
+
+    PGraphTester pg;
+
+    EXPECT_DEATH(pg.add_node(prg_id,"", read_id, cluster),"");
+}
+
+TEST(PangenomeGraphAddNode, AddClusterWrongPrgId_AssertCatches) {
+    uint32_t read_id = 1;
+    Read read(read_id);
+
+    set<MinimizerHitPtr, pComp> cluster;
+    uint32_t prg_id = 4;
+    uint32_t not_prg_id = 7;
+    Interval interval(0, 5);
+    deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
+    Path path;
+    path.initialize(raw_path);
+    MinimizerHitPtr minimizer_hit(make_shared<MinimizerHit>(read_id, interval, not_prg_id, path, 0, 0));
+    cluster.insert(minimizer_hit);
+
+    PGraphTester pg;
+
+    EXPECT_DEATH(pg.add_node(prg_id,"", read_id, cluster),"");
+}
+
+TEST(PangenomeGraphAddNode, AddNode_PangenomeGraphNodesContainsNodeId) {
+    set<MinimizerHitPtr, pComp> mhs;
+    PGraphTester pg;
+    uint32_t node_id = 0;
+    uint32_t read_id = 1;
+    pg.add_node(node_id, "0", read_id, mhs);
+
+    auto result = pg.nodes.find(node_id) != pg.nodes.end();
+    EXPECT_TRUE(result);
+}
+
+TEST(PangenomeGraphAddNode, AddNode_PangenomeGraphNodeHasRightProperties) {
+    set<MinimizerHitPtr, pComp> mhs;
+    PGraphTester pg;
+    uint32_t node_id = 0;
+    uint32_t read_id = 1;
+    pg.add_node(node_id, "0", read_id, mhs);
+
+    NodePtr pn = make_shared<Node>(node_id, node_id, "0");
+    EXPECT_EQ(*pg.nodes[0], *pn);
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint) 0);
+    EXPECT_EQ(pg.nodes[0]->prg_id, (uint) 0);
+    EXPECT_EQ(pg.nodes[0]->name, "0");
+    EXPECT_EQ(pg.nodes[0]->covg, (uint)1);
+    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)1);
+}
+
+TEST(PangenomeGraphAddNode, AddNode_PangenomeGraphReadHasRightProperties) {
+    set<MinimizerHitPtr, pComp> mhs;
+    PGraphTester pg;
+    uint32_t node_id = 0;
+    uint32_t read_id = 1;
+    pg.add_node(node_id, "0", read_id, mhs);
+
+    ReadPtr pr = make_shared<Read>(1);
+    EXPECT_EQ(pg.reads.size(), (uint)1);
+    EXPECT_EQ(*pg.reads[1], *pr);
+    EXPECT_EQ(pg.reads[1]->hits.size(), (uint)1);
+    EXPECT_EQ(pg.reads[1]->hits[0].size(), (uint)0);
+}
+
+TEST(PangenomeGraphTest, add_node_sample)
 {
     // add node and check it's there
     PGraphTester pg;
@@ -216,7 +286,7 @@ TEST_F(PangenomeGraphTest, add_node_sample)
     delete l0;
 }
 
-TEST_F(PangenomeGraphTest, clear)
+TEST(PangenomeGraphTest, clear)
 {
     // read pg
     set<MinimizerHitPtr, pComp> mhs;
@@ -246,7 +316,7 @@ TEST_F(PangenomeGraphTest, clear)
 }
 
 
-TEST_F(PangenomeGraphTest, equals)
+TEST(PangenomeGraphTest, equals)
 {
     set<MinimizerHitPtr, pComp> mhs;
     PGraphTester pg1;
@@ -284,7 +354,7 @@ TEST_F(PangenomeGraphTest, equals)
     EXPECT_EQ(pg1, pg1);
 }
 
-TEST_F(PangenomeGraphTest, not_equals)
+TEST(PangenomeGraphTest, not_equals)
 {
     set<MinimizerHitPtr, pComp> mhs;
     PGraphTester pg1;
@@ -315,7 +385,7 @@ TEST_F(PangenomeGraphTest, not_equals)
     EXPECT_EQ((pg1!=pg1), false);
 }
 
-TEST_F(PangenomeGraphTest, remove_node)
+TEST(PangenomeGraphTest, remove_node)
 {
     set<MinimizerHitPtr, pComp> mhs;
 
@@ -335,7 +405,7 @@ TEST_F(PangenomeGraphTest, remove_node)
     EXPECT_EQ(pg1, pg2);
 }
 
-TEST_F(PangenomeGraphTest, remove_read)
+TEST(PangenomeGraphTest, remove_read)
 {
     set<MinimizerHitPtr, pComp> mhs;
 
@@ -372,7 +442,7 @@ TEST_F(PangenomeGraphTest, remove_read)
     EXPECT_EQ(pg1, pg3);
 }
 
-TEST_F(PangenomeGraphTest, remove_low_covg_nodes)
+TEST(PangenomeGraphTest, remove_low_covg_nodes)
 {
     set<MinimizerHitPtr, pComp> mhs;
 
@@ -441,7 +511,7 @@ TEST_F(PangenomeGraphTest, remove_low_covg_nodes)
     EXPECT_EQ(pg1, pg3);
 }
 
-TEST_F(PangenomeGraphTest, split_node_by_reads)
+TEST(PangenomeGraphTest, split_node_by_reads)
 {
     set<MinimizerHitPtr, pComp> mhs;
 
@@ -546,11 +616,11 @@ TEST_F(PangenomeGraphTest, split_node_by_reads)
 
 }
 
-TEST_F(PangenomeGraphTest, add_hits_to_kmergraph)
+TEST(PangenomeGraphTest, add_hits_to_kmergraph)
 {
 }
 
-TEST_F(PangenomeGraphTest, save_matrix)
+TEST(PangenomeGraphTest, save_matrix)
 {
     // add node and check it's there
     PGraphTester pg;
