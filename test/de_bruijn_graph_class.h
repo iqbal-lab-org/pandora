@@ -5,9 +5,7 @@ class GraphTester : public debruijn::Graph
 {
 public:
     GraphTester(uint8_t i) : Graph(i) {};
-    friend class DeBruijnGraphTest_create_Test;
-    friend class DeBruijnGraphTest_add_node_Test;
-    friend class DeBruijnGraphTest_add_edge_Test;
+    friend class DeBruijnGraphCreate_Initialize_SetsSizeAndNextId_Test;
     friend class DeBruijnGraphTest_remove_node_Test;
     friend class DeBruijnGraphTest_get_leaves_Test;
     friend class DeBruijnGraphTest_get_unitigs_Test;

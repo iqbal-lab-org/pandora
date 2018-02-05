@@ -9,6 +9,7 @@
 #include <cassert>
 #include "de_bruijn/graph.h"
 #include "de_bruijn/node.h"
+#include "noise_filtering.h"
 #include "utils.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
@@ -59,11 +60,37 @@ NodePtr Graph::add_node (const deque<uint16_t>& node_ids, uint32_t read_id)
 // add an undirected edge
 void Graph::add_edge (NodePtr from, NodePtr to)
 {
-    if (from->out_nodes.find(to->id) == from->out_nodes.end())
+    deque<uint16_t> rc_from = rc_hashed_node_ids(from->hashed_node_ids);
+    deque<uint16_t> rc_to = rc_hashed_node_ids(to->hashed_node_ids);
+    bool added_edge = false;
+
+    if (overlap_forwards(from->hashed_node_ids, to->hashed_node_ids)
+            or overlap_forwards(from->hashed_node_ids, rc_to)
+            //or overlap_forwards(rc_from, to->hashed_node_ids)
+            //or overlap_forwards(rc_from, rc_to)
+            )
     {
-        from->out_nodes.insert(to->id);
-        to->out_nodes.insert(from->id);
+        if (from->out_nodes.find(to->id) == from->out_nodes.end())
+        {
+            from->out_nodes.insert(to->id);
+            to->in_nodes.insert(from->id);
+        }
+        added_edge = true;
     }
+    if (overlap_backwards(from->hashed_node_ids, to->hashed_node_ids)
+        or overlap_backwards(from->hashed_node_ids, rc_to)
+        //or overlap_backwards(rc_from, to->hashed_node_ids)
+        //or overlap_backwards(rc_from, rc_to)
+        )
+    {
+        if (from->in_nodes.find(to->id) == from->in_nodes.end())
+        {
+            from->in_nodes.insert(to->id);
+            to->out_nodes.insert(from->id);
+        }
+        added_edge = true;
+    }
+    assert(added_edge or assert_msg("did not add edge from " << *from << " to " << *to));
 }
 
 // remove de bruijn node with id given
@@ -76,18 +103,11 @@ void Graph::remove_node(const uint32_t dbg_node_id)
         // remove this node from lists of out nodes from other graph nodes
         for (auto n : it->second->out_nodes)
         {
-            /*cout << "remove " << dbg_node_id << " from ";
-            for (auto m : nodes[n]->out_nodes)
-            {
-                cout << m << " ";
-            }*/
+            nodes[n]->in_nodes.erase(dbg_node_id);
+        }
+        for (auto n : it->second->in_nodes)
+        {
             nodes[n]->out_nodes.erase(dbg_node_id);
-            /*cout << " to get ";
-            for (auto m : nodes[n]->out_nodes)
-            {
-                cout << m << " ";
-            }
-            cout << endl;*/
         }
 
         // and remove from nodes
@@ -135,8 +155,30 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_nod
                     if (found_read_intersect == false)
                     {
                         //cout << " does not share a read" << endl;
-                        nodes[*nit]->out_nodes.erase(dbg_node_id);
+                        nodes[*nit]->in_nodes.erase(dbg_node_id);
                         nit = it->second->out_nodes.erase(nit);
+                        //cout << "removed" << endl;
+                    } else {
+                        nit++;
+                    }
+                }
+                for (unordered_set<uint32_t>::iterator nit = it->second->in_nodes.begin();
+                     nit != it->second->in_nodes.end();)
+                {
+                    //cout << "out node " << *nit << endl;
+                    found_read_intersect = false;
+                    for (auto r : it->second->read_ids) {
+                        if (nodes[*nit]->read_ids.find(r) != nodes[*nit]->read_ids.end()) {
+                            found_read_intersect = true;
+                            //cout << " shares a read" << endl;
+                            break;
+                        }
+                    }
+                    if (found_read_intersect == false)
+                    {
+                        //cout << " does not share a read" << endl;
+                        nodes[*nit]->out_nodes.erase(dbg_node_id);
+                        nit = it->second->in_nodes.erase(nit);
                         //cout << "removed" << endl;
                     } else {
                         nit++;
@@ -155,7 +197,7 @@ unordered_set<uint32_t> Graph::get_leaves(uint16_t covg_thresh)
     {
         if (c.second->read_ids.size() > covg_thresh) {
             continue;
-        } else if (c.second->out_nodes.size() <= 1) {
+        } else if (c.second->out_nodes.size() + c.second->in_nodes.size() <= 1) {
             s.insert(c.second->id);
         }
     }
@@ -192,55 +234,22 @@ set<deque<uint32_t>> Graph::get_unitigs() {
 void Graph::extend_unitig(deque<uint32_t>& tig)
 {
     bool tig_is_empty = (tig.size() == 0);
-    bool last_node_is_isolated = (nodes[tig.back()]->out_nodes.size() == 0);
-    if (tig_is_empty or last_node_is_isolated)
+    bool node_is_isolated = (tig.size() == 1 and nodes[tig.back()]->out_nodes.size()+nodes[tig.back()]->in_nodes.size() == 0);
+    if (tig_is_empty or node_is_isolated)
         return;
 
-    tig.push_front(*nodes[tig.back()]->out_nodes.begin());
-    if (tig.size() == 1 and nodes[tig.back()]->out_nodes.size() == 2)
+    while (nodes[tig.back()]->out_nodes.size() == 1
+            and (tig.size() == 1 or tig.back()!=tig.front()))
     {
-        tig.push_back(*++nodes[tig.back()]->out_nodes.begin());
+        tig.push_back(*nodes[tig.back()]->out_nodes.begin());
     }
-
-    while (nodes[tig.back()]->out_nodes.size() == 2 and tig.back()!=tig.front())
+    while (nodes[tig.front()]->in_nodes.size() == 1
+           and (tig.size() == 1 or tig.back()!=tig.front()))
     {
-        /*cout << "tig: ";
-        for (auto n : tig)
-        {
-            cout << n << " ";
-        }
-        cout << endl;*/
-        if (*nodes[tig.back()]->out_nodes.begin() == tig[tig.size()-2])
-        {
-            tig.push_back(*++nodes[tig.back()]->out_nodes.begin());
-        } else if (*++nodes[tig.back()]->out_nodes.begin() == tig[tig.size()-2])
-        {
-            tig.push_back(*nodes[tig.back()]->out_nodes.begin());
-        } else {
-            break;
-        }
-        // else error?
+        tig.push_front(*nodes[tig.front()]->in_nodes.begin());
     }
-    //cout << "tig front " << tig.front() << endl;
-    while (nodes[tig.front()]->out_nodes.size() == 2 and tig.back()!=tig.front())
-    {
-        /*cout << "tig: ";
-        for (auto n : tig)
-        {
-            cout << n << " ";
-        }
-        cout << endl;*/
-        if (*nodes[tig.front()]->out_nodes.begin() == tig[1])
-        {
-            tig.push_front(*++nodes[tig.front()]->out_nodes.begin());
-        } else if (*++nodes[tig.front()]->out_nodes.begin() == tig[1])
-        {
-            tig.push_front(*nodes[tig.front()]->out_nodes.begin());
-        } else {
-            break;
-        }
-        // else error?
-    }
+    if (tig.size() > 1 and tig.back() == tig.front())
+        tig.pop_back();
 }
 
 bool Graph::operator == (const Graph& y) const

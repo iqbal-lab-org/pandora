@@ -12,6 +12,7 @@ public:
     std::deque<uint16_t> hashed_node_ids;
     std::unordered_multiset<uint32_t> read_ids;
     std::unordered_set<uint32_t> out_nodes;
+    std::unordered_set<uint32_t> in_nodes;
 
     Node(const uint32_t, const deque<uint16_t>&, const uint32_t);
 
