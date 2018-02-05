@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <set>
 #include <memory>
+#include <utility>
 #include "pangenome/panread.h"
 #include "pangenome/pannode.h"
 #include "minihits.h"
@@ -22,7 +23,9 @@ void Read::add_hits(const uint32_t prg_id, const set<MinimizerHitPtr, pComp>& cl
 // find the index i in the nodes and node_orientations vectors such that [i,i+v.size()]
 // corresponds to these vectors of nodes or some vector overlapping end of read
 // NB will find the first such instance if there is more than one
-uint Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& node_orients, const uint16_t min_overlap)
+
+// find the position range where overlaps node_ids and node_orients in read
+pair<uint,uint> Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& node_orients, const uint16_t min_overlap)
 {
     /*cout << "searching for ";
     for (auto n : node_ids)
@@ -62,7 +65,7 @@ uint Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& n
                 if (search_pos == node_ids.size() - 1 or i + found_pos == nodes.size() - 1) {
                     if (found_pos + 1 >= min_overlap)
                     {
-                        return i;
+                        return make_pair(i,i+found_pos);
                     } else {
                         break;
                     }
@@ -95,7 +98,7 @@ uint Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& n
                 if (search_pos == node_ids.size() - 1 or found_pos == nodes.size() - 1) {
                     if (found_pos + 1 >= min_overlap)
                     {
-                        return 0;
+                        return make_pair(0,found_pos);
                     } else {
                         break;
                     }
@@ -124,7 +127,7 @@ uint Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& n
                 {
                     if (found_pos + 1 >= min_overlap)
                     {
-                        return nodes.size() -1 -i -found_pos;
+                        return make_pair(nodes.size() -1 -i -found_pos,nodes.size() -1 -i);
                     } else {
                         break;
                     }
@@ -163,7 +166,7 @@ uint Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& n
                 {
                     if (found_pos + 1 >= min_overlap)
                     {
-                        return nodes.size() -1 -found_pos;
+                        return make_pair(nodes.size() -1 -found_pos,nodes.size() -1);
                     } else {
                         break;
                     }
@@ -173,7 +176,7 @@ uint Read::find_position(const vector<uint16_t>& node_ids, const vector<bool>& n
             }
         }
     }
-    return std::numeric_limits<uint>::max();
+    return make_pair(std::numeric_limits<uint>::max(),std::numeric_limits<uint>::max()) ;
 }
 
 void Read::remove_node(NodePtr n_original)
@@ -189,12 +192,13 @@ void Read::remove_node(NodePtr n_original)
     }
 }
 
-void Read::remove_node(vector<NodePtr>::iterator nit)
+vector<NodePtr>::iterator Read::remove_node(vector<NodePtr>::iterator nit)
 {
     //(*nit)->covg -= 1;
     uint d = distance(nodes.begin(), nit);
     node_orientations.erase(node_orientations.begin() + d);
-    nodes.erase(nit);
+    nit = nodes.erase(nit);
+    return nit;
 }
 
 void Read::replace_node(vector<NodePtr>::iterator n_original, NodePtr n)
