@@ -2,6 +2,7 @@
 #include <map>
 #include <unordered_set>
 #include <set>
+#include <utility>
 #include <vector>
 #include <fstream>
 #include "utils.h"
@@ -90,16 +91,59 @@ bool overlap_backwards(const deque<uint16_t>& node1, const deque<uint16_t>& node
     return true;
 }
 
-deque<uint16_t> reverse_hashed_node(const deque<uint16_t>& node)
+deque<uint16_t> rc_hashed_node_ids(const deque<uint16_t>& hashed_node_ids)
 {
     deque<uint16_t> d;
-    for (auto i : node)
+    for (auto i : hashed_node_ids)
     {
         d.push_front(rc_num(i));
     }
     return d;
 }
 
+deque<uint16_t> extend_hashed_pg_node_ids_backwards(const debruijn::Graph & dbg,
+                                    const deque<uint32_t>& dbg_node_ids)
+{
+    deque<uint16_t> hashed_pg_node_ids = dbg.nodes.at(dbg_node_ids.at(0))->hashed_node_ids;
+    deque<uint16_t> rev_node;
+
+    for (uint i=1; i<dbg_node_ids.size(); ++i) {
+        rev_node = rc_hashed_node_ids(dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids);
+        if (overlap_backwards(hashed_pg_node_ids, dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids))
+        {
+            hashed_pg_node_ids.push_front(dbg.nodes.at(dbg_node_ids[i])->hashed_node_ids[0]);
+        } else if (overlap_backwards(hashed_pg_node_ids, rev_node))
+        {
+            hashed_pg_node_ids.push_front(rc_num(dbg.nodes.at(dbg_node_ids[i])->hashed_node_ids.back()));
+        } else {
+            hashed_pg_node_ids.clear();
+            break;
+        }
+    }
+    return hashed_pg_node_ids;
+}
+
+deque<uint16_t> extend_hashed_pg_node_ids_forwards(const debruijn::Graph & dbg,
+                                                    const deque<uint32_t>& dbg_node_ids)
+{
+    deque<uint16_t> hashed_pg_node_ids = dbg.nodes.at(dbg_node_ids.at(0))->hashed_node_ids;
+    deque<uint16_t> rev_node;
+
+    for (uint i=1; i<dbg_node_ids.size(); ++i) {
+        rev_node = rc_hashed_node_ids(dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids);
+        if (overlap_forwards(hashed_pg_node_ids, dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids))
+        {
+            hashed_pg_node_ids.push_back(dbg.nodes.at(dbg_node_ids[i])->hashed_node_ids.back());
+        } else if (overlap_forwards(hashed_pg_node_ids, rev_node ))
+        {
+            hashed_pg_node_ids.push_back(rc_num(dbg.nodes.at(dbg_node_ids[i])->hashed_node_ids[0]));
+        } else {
+            hashed_pg_node_ids.clear();
+            break;
+        }
+    }
+    return hashed_pg_node_ids;
+}
 
 void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph & dbg,
                                           const deque<uint32_t>& dbg_node_ids,
@@ -114,52 +158,10 @@ void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph & dbg,
         return;
     }
 
-    deque<uint16_t> hashed_pg_node_ids = dbg.nodes.at(dbg_node_ids.at(0))->hashed_node_ids;
-    deque<uint16_t> rev_node;
-    //cout << "hashed pg length " << hashed_pg_node_ids.size() << endl;
-    for (uint i=1; i<dbg_node_ids.size(); ++i)
-    {
-        /*cout << "hashed dbg is currently ";
-        for (auto j : hashed_pg_node_ids)
-        {
-            cout << j << " ";
-        }
-        cout << endl;
-        cout << "want to add ";
-        for (auto j : dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids)
-        {
-            cout << j << " ";
-        }
-        cout << endl;*/
-        rev_node = reverse_hashed_node(dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids);
-        if (overlap_backwards(hashed_pg_node_ids, dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids))
-        {
-            hashed_pg_node_ids.push_front(dbg.nodes.at(dbg_node_ids[i])->hashed_node_ids[0]);
-        } else if (overlap_backwards(hashed_pg_node_ids, rev_node))
-        {
-            hashed_pg_node_ids.push_front(rc_num(dbg.nodes.at(dbg_node_ids[i])->hashed_node_ids.back()));
-        } else if (overlap_forwards(hashed_pg_node_ids, dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids))
-        {
-            hashed_pg_node_ids.push_back(dbg.nodes.at(dbg_node_ids[i])->hashed_node_ids.back());
-        } else if (overlap_forwards(hashed_pg_node_ids, rev_node ))
-        {
-            hashed_pg_node_ids.push_back(rc_num(dbg.nodes.at(dbg_node_ids[i])->hashed_node_ids[0]));
-        } else {
-            cout << "ERROR" << endl;
-            for (auto n : hashed_pg_node_ids)
-            {
-                cout << n << " ";
-            }
-            cout << " does not overlap with ";
-            for (auto n : dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids)
-            {
-                cout << n << " ";
-            }
-            cout << endl;
-        }
-
-        //cout << "length is now " << hashed_pg_node_ids.size() << endl;
-    }
+    deque<uint16_t> hashed_pg_node_ids = extend_hashed_pg_node_ids_backwards(dbg, dbg_node_ids);
+    if (hashed_pg_node_ids.empty())
+        hashed_pg_node_ids = extend_hashed_pg_node_ids_forwards(dbg, dbg_node_ids);
+    assert(!hashed_pg_node_ids.empty());
     hashed_node_ids_to_ids_and_orientations(hashed_pg_node_ids, node_ids, node_orients);
 }
 
@@ -210,7 +212,7 @@ void remove_leaves(pangenome::Graph *pg, debruijn::Graph &dbg, uint16_t covg_thr
     unordered_set<uint32_t> leaves;
     vector<uint16_t> node_ids;
     vector<bool> node_orients;
-    uint pos;
+    pair<uint,uint> pos;
     pangenome::NodePtr node;
 
     while (leaves_exist) {
@@ -249,13 +251,13 @@ void remove_leaves(pangenome::Graph *pg, debruijn::Graph &dbg, uint16_t covg_thr
                 } else {
                     cout << "remove from read ";
                     pos = pg->reads[r]->find_position(node_ids, node_orients);
-                    cout << "pos " << pos;
-                    assert(pos == 0 or pos + node_ids.size() == pg->reads[r]->nodes.size());
-                    if (pos == 0) {
+                    cout << "pos " << pos.first << " " << pos.second;
+                    assert(pos.first == 0 or pos.first + node_ids.size() == pg->reads[r]->nodes.size());
+                    if (pos.first == 0) {
                         node = pg->reads[r]->nodes[0];
                         pg->reads[r]->remove_node(pg->reads[r]->nodes.begin());
                         node->remove_read(pg->reads[r]);
-                    } else if (pos + node_ids.size() == pg->reads[r]->nodes.size()) {
+                    } else if (pos.first + node_ids.size() == pg->reads[r]->nodes.size()) {
                         node = pg->reads[r]->nodes.back();
                         pg->reads[r]->remove_node(--pg->reads[r]->nodes.end());
                         node->remove_read(pg->reads[r]);
@@ -306,7 +308,7 @@ void find_reads_along_tig(const debruijn::Graph & dbg,
     //cout << "kept reads along tig: ";
     for (unordered_set<pangenome::ReadPtr>::iterator r=reads_along_tig.begin(); r!=reads_along_tig.end();)
     {
-        if ((*r)->nodes.size() > dbg.size and (*r)->find_position(pg_node_ids, pg_node_orients, dbg.size+1) == std::numeric_limits<uint>::max())
+        if ((*r)->nodes.size() > dbg.size and (*r)->find_position(pg_node_ids, pg_node_orients, dbg.size+1).first == std::numeric_limits<uint>::max())
         {
             r = reads_along_tig.erase(r);
             all_reads_along_tig = false;
@@ -316,6 +318,59 @@ void find_reads_along_tig(const debruijn::Graph & dbg,
         }
     }
     //cout << endl;
+}
+
+void remove_middle_nodes_of_tig_from_read(pangenome::Graph* pg,
+                                          debruijn::Graph & dbg,
+                                          pangenome::ReadPtr r,
+                                          const vector<uint16_t>& node_ids,
+                                          const vector<bool>& node_orients)
+{
+    // suppose tig is subset of read
+    // want to remove nodes from position pos (where tig starts in read) + dbg.size()
+    // to position start + tig.size()-dbg.size()
+    // if pos = 0 (ie read does not include start of tig)
+
+    pair<uint,uint> pos = r->find_position(node_ids, node_orients);
+    auto start_shift = pos.first;
+    if (pos.first > 0 or pos.second < r->nodes.size()-1 or node_ids.size()==r->nodes.size())
+        start_shift += max((int)0, (int)pos.second - (int)node_ids.size()) + dbg.size;
+    else {
+        vector<uint16_t> sub_node_ids(node_ids.begin()+dbg.size,node_ids.end());
+        vector<bool> sub_node_orients(node_orients.begin()+dbg.size,node_orients.end());
+        pair<uint,uint> sub_pos = r->find_position(sub_node_ids, sub_node_orients);
+        if (sub_pos.first > 0)
+            start_shift = sub_pos.first;
+    }
+
+
+    auto end_shift = pos.second;
+    cout << "end shift " << end_shift << endl;
+    if (pos.first > 0 or pos.second < r->nodes.size()-1 or node_ids.size()==r->nodes.size()) {
+        end_shift -= dbg.size - 1;
+        cout << "end shift now " << end_shift << endl;
+    } else {
+        vector<uint16_t> sub_node_ids(node_ids.begin(),node_ids.end()-dbg.size);
+        vector<bool> sub_node_orients(node_orients.begin(),node_orients.end()-dbg.size);
+        pair<uint,uint> sub_pos = r->find_position(sub_node_ids, sub_node_orients);
+        if (sub_pos.second < pos.second)
+            end_shift = sub_pos.second + 1;
+            cout << "end shift overwritten as " << end_shift << endl;
+
+    }
+
+    cout << "found tig at pos " << pos.first << "," << pos.second << " in read" << endl;
+    cout << "remove from " << start_shift << " to max of this and " << end_shift <<  "." << endl;
+
+    auto it = r->nodes.begin() + start_shift;
+    for (auto shift = start_shift; shift < end_shift; ++shift)
+    {
+        if (it == r->nodes.end())
+        {
+            break;
+        }
+        it = pg->remove_node_from_read(it, r);
+    }
 }
 
 // Remove the internal nodes of low coverage unitigs e.g.
@@ -330,7 +385,6 @@ void filter_unitigs(pangenome::Graph* pg, debruijn::Graph & dbg, const uint16_t&
     vector<uint16_t> node_ids;
     vector<bool> node_orients;
     unordered_set<pangenome::ReadPtr> reads_along_tig;
-    uint pos;
     bool all_reads_tig;
 
     set<deque<uint32_t>> unitigs = dbg.get_unitigs();
@@ -362,21 +416,7 @@ void filter_unitigs(pangenome::Graph* pg, debruijn::Graph & dbg, const uint16_t&
                     cout << n->node_id << " ";
                 }
                 cout << endl;
-                pos = r->find_position(node_ids, node_orients);
-                //cout << "remove from " << pos+dbg.size << " to max of this and " << (int)(pos+d.size()-dbg.size+2) << " which is " << pos+max((int)dbg.size,(int)d.size()-dbg.size+2) << "." << endl;
-                for (auto it = r->nodes.begin()+(pos+dbg.size); it != r->nodes.begin()+pos+max((int)dbg.size,(int)d.size()-dbg.size+2); ++it)
-                {
-                    if (it == r->nodes.end())
-                    {
-                        break;
-                    }
-                    if ((*it)->reads.size()==1 and (*it)->reads.find(r)!=(*it)->reads.end())
-                    {
-                        pg->remove_node(*it);
-                    } else {
-                        r->remove_node(it);
-                    }
-                }
+                remove_middle_nodes_of_tig_from_read(pg,dbg,r, node_ids, node_orients);
                 cout << "read " << r->id << " is now ";
                 for (auto n : r->nodes)
                 {

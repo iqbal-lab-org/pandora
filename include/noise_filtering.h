@@ -1,3 +1,5 @@
+#ifndef __NOISEFILTERING_H_INCLUDED__   // if noise_filtering.h hasn't been included yet...
+#define __NOISEFILTERING_H_INCLUDED__
 
 #include "pangenome/pangraph.h"
 #include "de_bruijn/graph.h"
@@ -10,7 +12,7 @@ uint16_t rc_num(const uint16_t&);
 void hashed_node_ids_to_ids_and_orientations(const deque<uint16_t>&, std::vector<uint16_t>&, std::vector<bool>&);
 bool overlap_forwards(const deque<uint16_t>&, const deque<uint16_t>&);
 bool overlap_backwards(const deque<uint16_t>&, const deque<uint16_t>&);
-deque<uint16_t> reverse_hashed_node(const deque<uint16_t>&);
+deque<uint16_t> rc_hashed_node_ids(const deque<uint16_t>&);
 void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph&, const deque<uint32_t>&, std::vector<uint16_t>&, std::vector<bool>&);
 debruijn::Graph construct_debruijn_graph_from_pangraph(uint8_t, const pangenome::Graph*);
 void remove_leaves(pangenome::Graph*, debruijn::Graph &, uint16_t covg_thresh=1);
@@ -18,3 +20,4 @@ void filter_unitigs(pangenome::Graph*, debruijn::Graph &, const uint16_t&);
 void detangle_pangraph_with_debruijn_graph(pangenome::Graph*, debruijn::Graph &);
 void clean_pangraph_with_debruijn_graph(pangenome::Graph*, const uint16_t, const uint16_t, const bool illumina=false);
 void write_pangraph_gfa(const string &, pangenome::Graph*);
+#endif
