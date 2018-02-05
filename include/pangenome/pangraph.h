@@ -13,6 +13,7 @@ class KmerNode;
 #include <ostream>
 #include <functional>
 #include <memory>
+#include <vector>
 #include "minihits.h"
 #include "pangenome/ns.cpp"
 
@@ -54,6 +55,8 @@ public:
     std::unordered_map<uint32_t, NodePtr>::iterator remove_node(NodePtr);
 
     void remove_read(const uint32_t);
+
+    std::vector<NodePtr>::iterator remove_node_from_read(std::vector<NodePtr>::iterator, ReadPtr);
 
     void remove_low_covg_nodes(const uint &);
 

@@ -170,6 +170,24 @@ void Graph::remove_read(const uint32_t read_id) {
     reads.erase(read_id);
 }
 
+vector<NodePtr>::iterator Graph::remove_node_from_read(vector<NodePtr>::iterator node_it, ReadPtr read_ptr) {
+
+    NodePtr node_ptr = *node_it;
+
+    // remove node from read
+    node_it = read_ptr->remove_node(node_it);
+
+    // remove read from node
+    auto read_it = node_ptr->reads.find(read_ptr);
+    if (read_it != node_ptr->reads.end())
+        node_ptr->reads.erase(read_it);
+
+    if (node_ptr->reads.size()==0)
+        remove_node(node_ptr);
+
+    return node_it;
+}
+
 // remove the all instances of the pattern of nodes/orienations from graph
 
 // remove nodes with covg <= thresh from graph
@@ -210,7 +228,7 @@ void Graph::split_node_by_reads(const unordered_set<ReadPtr> &reads_along_tig, v
     // switch old node to new node in reads
     vector<NodePtr>::iterator it;
     unordered_multiset<ReadPtr>::iterator rit;
-    uint pos;
+    pair<uint,uint> pos;
     for (auto r : reads_along_tig) {
         // ignore if this node does not contain this read
         rit = nodes[node_id]->reads.find(r);
@@ -220,7 +238,7 @@ void Graph::split_node_by_reads(const unordered_set<ReadPtr> &reads_along_tig, v
 
         //find iterator to the node in the read
         pos = r->find_position(node_ids, node_orients);
-        it = std::find(r->nodes.begin() + pos, r->nodes.end(), nodes[node_id]);
+        it = std::find(r->nodes.begin() + pos.first, r->nodes.end(), nodes[node_id]);
 
         // replace the node in the read
         if (it != r->nodes.end()) {
