@@ -7,6 +7,8 @@
 #include "minihit.h"
 #include <stdint.h>
 #include <iostream>
+#include <utility>
+#include <functional>
 #include <set>
 
 
@@ -113,59 +115,78 @@ TEST(PangenomeReadTest, find_position) {
 
     vector<uint16_t> v = {2, 3, 5};
     vector<bool> b = {0, 0, 0};
-    uint p = pg.reads[0]->find_position(v, b);
-    EXPECT_EQ(p, (uint) 2);
+    pair<uint,uint> p = pg.reads[0]->find_position(v, b);
+    pair<uint,uint> truth = make_pair(2,4);
+
+    EXPECT_EQ(p.first,truth.first);
+    EXPECT_EQ(p.second,truth.second);
 
     // one at the end of the string
     v = {3, 5, 9};
     p = pg.reads[0]->find_position(v, b);
-    EXPECT_EQ(p, (uint) 8);
+    truth = make_pair(8,10);
+    EXPECT_EQ(p.first,truth.first);
+    EXPECT_EQ(p.second,truth.second);
 
     // one in reverse
     v = {0, 5, 3};
     b = {1, 1, 1};
     p = pg.reads[0]->find_position(v, b);
-    EXPECT_EQ(p, (uint) 3);
+    truth = make_pair(3,5);
+    EXPECT_EQ(p.first,truth.first);
+    EXPECT_EQ(p.second,truth.second);
 
     // one overlapping start
     v = {9, 0, 1};
     b = {0, 0, 0};
     p = pg.reads[0]->find_position(v, b);
-    EXPECT_EQ(p, (uint) 0);
-
+    truth = make_pair(0,1);
+    EXPECT_EQ(p.first,truth.first);
+    EXPECT_EQ(p.second,truth.second);
     // one in reverse overlapping start
     v = {1, 0, 9};
     b = {1, 1, 1};
     p = pg.reads[0]->find_position(v, b);
-    EXPECT_EQ(p, (uint) 0);
+    truth = make_pair(0,1);
+    EXPECT_EQ(p.first,truth.first);
+    EXPECT_EQ(p.second,truth.second);
 
     // one overlapping the end
     b = {0, 0, 0};
     v = {5, 9, 9};
     p = pg.reads[0]->find_position(v, b);
-    EXPECT_EQ(p, (uint) 9);
+    truth = make_pair(9,10);
+    EXPECT_EQ(p.first,truth.first);
+    EXPECT_EQ(p.second,truth.second);
 
     // one in reverse overlapping end
     b = {1, 1, 1};
     v = {0, 9, 5};
     p = pg.reads[0]->find_position(v, b);
-    EXPECT_EQ(p, (uint) 9);
+    truth = make_pair(9,10);
+    EXPECT_EQ(p.first,truth.first);
+    EXPECT_EQ(p.second,truth.second);
 
     // one not a match
     b = {0, 0, 0};
     v = {8, 8, 8};
     p = pg.reads[0]->find_position(v, b);
-    EXPECT_EQ(p, std::numeric_limits<uint>::max());
+    truth = make_pair(std::numeric_limits<uint>::max(),std::numeric_limits<uint>::max());
+    EXPECT_EQ(p.first,truth.first);
+    EXPECT_EQ(p.second,truth.second);
 
     // one where orientations mean not a match
     v = {3, 2, 7};
     p = pg.reads[0]->find_position(v, b);
-    EXPECT_EQ(p, std::numeric_limits<uint>::max());
+    EXPECT_EQ(p.first,truth.first);
+    EXPECT_EQ(p.second,truth.second);
 
     // and when is whole read
     v = {0, 1, 2};
     p = pg.reads[1]->find_position(v, b);
-    EXPECT_EQ(p, (uint) 0);
+    truth = make_pair(0,2);
+    EXPECT_EQ(p.first,truth.first);
+    EXPECT_EQ(p.second,truth.second);
 }
 
 TEST(PangenomeReadTest, remove_node) {
