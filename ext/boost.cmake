@@ -14,9 +14,3 @@ ExternalProject_Add_Step(boost extract_tar
         COMMAND tar -xvzf ${CMAKE_CURRENT_BINARY_DIR}/ext/boost_1_65_1.tar.gz -C ${CMAKE_CURRENT_BINARY_DIR}/ext
         DEPENDEES download
         DEPENDERS configure)
-
-# Specify src dir
-ExternalProject_Get_Property(boost source_dir)
-set(Boost_SRC_DIRS ${source_dir} PARENT_SCOPE)
-set(Boost_INCLUDE_DIRS ${source_dir}/boost PARENT_SCOPE)
-

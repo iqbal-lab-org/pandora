@@ -8,23 +8,23 @@ project(${PROJECT_NAME_STR} C CXX)
 #------------------
 find_package(Threads REQUIRED)
 #set( CMAKE_VERBOSE_MAKEFILE on )
-find_package (ZLIB)
+find_package(ZLIB)
 if (NOT ZLIB_FOUND)
-	message (FATAL_ERROR "zlib must be installed before configuration &
+    message(FATAL_ERROR "zlib must be installed before configuration &
 building can proceed")
-endif()
+endif ()
 
 # make sure that we have support for C++11
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-if(COMPILER_SUPPORTS_CXX11)
+if (COMPILER_SUPPORTS_CXX11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(COMPILER_SUPPORTS_CXX0X)
+elseif (COMPILER_SUPPORTS_CXX0X)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
-        message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-endif()
+else ()
+    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+endif ()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pthread -Wextra -O2 -g")
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lz")
@@ -51,14 +51,21 @@ set(COMMON_TEST ${PROJECT_SOURCE_DIR}/test)
 #-------------------
 include(${PROJECT_SOURCE_DIR}/ext/boost.cmake)
 
-include_directories(${COMMON_INCLUDES} ${COMMON_SRC} ${Boost_INCLUDE_DIRS})# ${EXT_PROJECTS_DIR}/FQFeeder/include)
-file(GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp
+include_directories(
+        ${COMMON_INCLUDES}
+        ${COMMON_SRC}
+        #${EXT_PROJECTS_DIR}/FQFeeder/include
+)
+file(GLOB SRC_FILES
+        ${PROJECT_SOURCE_DIR}/src/*.cpp
         ${PROJECT_SOURCE_DIR}/src/*/*.cpp
-        ${Boost_SRC_DIRS}/*/*.cpp)
+        )
+
 #${EXT_PROJECTS_DIR}/FQFeeder/src/FastxParser.cpp) 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 add_dependencies(${PROJECT_NAME} boost)
 target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARY})
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 #set(PROJECT_LIB_NAME ${PROJECT_NAME_STR}_impl)
 
@@ -76,35 +83,42 @@ add_definitions(${MSVC_COMPILER_DEFS})
 enable_testing()
 set(PROJECT_TEST_NAME ${PROJECT_NAME_STR}_test)
 
-include_directories(${GTEST_INCLUDE_DIRS} ${COMMON_INCLUDES} ${COMMON_SRC}
-${COMMON_TEST} ${Boost_INCLUDE_DIRS})# ${EXT_PROJECTS_DIR}/FQFeeder/include)
+include_directories(
+        ${GTEST_INCLUDE_DIRS}
+        ${COMMON_INCLUDES}
+        ${COMMON_SRC}
+        ${COMMON_TEST}
+        # ${EXT_PROJECTS_DIR}/FQFeeder/include
+)
 
-file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/test/*.cpp
+file(GLOB TEST_SRC_FILES
+        ${PROJECT_SOURCE_DIR}/test/*.cpp
         ${COMMON_SRC}/*.cpp
         ${COMMON_SRC}/*/*.cpp
-        ${Boost_SRC_DIRS}/*/*.cpp)
-#${EXT_PROJECTS_DIR}/FQFeeder/src/FastxParser.cpp)
+        ${EXT_PROJECTS_DIR}/FQFeeder/src/FastxParser.cpp
+        )
+
 list(REMOVE_ITEM TEST_SRC_FILES ${COMMON_SRC}/main.cpp)
 add_executable(${PROJECT_TEST_NAME} ${TEST_SRC_FILES})
 add_dependencies(${PROJECT_TEST_NAME} googletest boost)
 
 
-if(NOT WIN32 OR MINGW)
+if (NOT WIN32 OR MINGW)
     target_link_libraries(${PROJECT_TEST_NAME}
-        ${GTEST_LIBS_DIR}/libgtest.a
-        ${GTEST_LIBS_DIR}/libgtest_main.a
-        )
-else()
+            ${GTEST_LIBS_DIR}/libgtest.a
+            ${GTEST_LIBS_DIR}/libgtest_main.a
+            )
+else ()
     target_link_libraries(${PROJECT_TEST_NAME}
-        debug ${GTEST_LIBS_DIR}/DebugLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${CMAKE_FIND_LIBRARY_SUFFIXES}
-        optimized ${GTEST_LIBS_DIR}/ReleaseLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${CMAKE_FIND_LIBRARY_SUFFIXES}
-        )
+            debug ${GTEST_LIBS_DIR}/DebugLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${CMAKE_FIND_LIBRARY_SUFFIXES}
+            optimized ${GTEST_LIBS_DIR}/ReleaseLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${CMAKE_FIND_LIBRARY_SUFFIXES}
+            )
     target_link_libraries(${PROJECT_TEST_NAME}
-        debug ${GTEST_LIBS_DIR}/DebugLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${CMAKE_FIND_LIBRARY_SUFFIXES}
-        optimized ${GTEST_LIBS_DIR}/ReleaseLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${CMAKE_FIND_LIBRARY_SUFFIXES}
-        )
-endif()
+            debug ${GTEST_LIBS_DIR}/DebugLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${CMAKE_FIND_LIBRARY_SUFFIXES}
+            optimized ${GTEST_LIBS_DIR}/ReleaseLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${CMAKE_FIND_LIBRARY_SUFFIXES}
+            )
+endif ()
 
 target_link_libraries(${PROJECT_TEST_NAME} ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARY})
-
+target_include_directories(${PROJECT_TEST_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/include)
 add_test(testAll ${PROJECT_TEST_NAME})

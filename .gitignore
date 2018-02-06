@@ -3,7 +3,6 @@ cmake-build-debug/
 
 # Ignore the build and lib dirs
 build
-ext
 tmp
 
 # Ignore any executables
