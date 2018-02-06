@@ -15,6 +15,17 @@ TEST(DeBruijnGraphCreate, Initialize_SetsSizeAndNextId)
     EXPECT_EQ(g.next_id, (uint)0);
 }
 
+TEST(DeBruijnGraphAddNode,AddNode_NodeHashInIndex) {
+    GraphTester g(3);
+
+    deque<uint16_t> v({4, 6, 8});
+    uint32_t read_id = 0;
+    g.add_node(v, read_id);
+
+    bool found = g.node_hash.find(v) != g.node_hash.end();
+    EXPECT_TRUE(found);
+}
+
 TEST(DeBruijnGraphAddNode,AddNode_NodeIdInIndex) {
     GraphTester g(3);
 

@@ -16,6 +16,7 @@ protected:
     uint32_t next_id;
 public:
     uint8_t size;
+    sequence_of_genes_to_data_map< std::deque<uint16_t>, uint32_t > node_hash ;
     unordered_map<uint32_t, NodePtr> nodes;
 
     Graph(uint8_t);
