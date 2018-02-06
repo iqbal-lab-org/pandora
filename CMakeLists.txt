@@ -23,7 +23,7 @@ if(COMPILER_SUPPORTS_CXX11)
 elseif(COMPILER_SUPPORTS_CXX0X)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 else()
-        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+        message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pthread -Wextra -O2 -g")
@@ -49,11 +49,15 @@ set(COMMON_TEST ${PROJECT_SOURCE_DIR}/test)
 #-------------------
 # Module source
 #-------------------
-include_directories(${COMMON_INCLUDES} ${COMMON_SRC})# ${EXT_PROJECTS_DIR}/FQFeeder/include)
+include(${PROJECT_SOURCE_DIR}/ext/boost.cmake)
+
+include_directories(${COMMON_INCLUDES} ${COMMON_SRC} ${Boost_INCLUDE_DIRS})# ${EXT_PROJECTS_DIR}/FQFeeder/include)
 file(GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp
-        ${PROJECT_SOURCE_DIR}/src/*/*.cpp)
+        ${PROJECT_SOURCE_DIR}/src/*/*.cpp
+        ${Boost_SRC_DIRS}/*/*.cpp)
 #${EXT_PROJECTS_DIR}/FQFeeder/src/FastxParser.cpp) 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
+add_dependencies(${PROJECT_NAME} boost)
 target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARY})
 
 #set(PROJECT_LIB_NAME ${PROJECT_NAME_STR}_impl)
@@ -73,15 +77,16 @@ enable_testing()
 set(PROJECT_TEST_NAME ${PROJECT_NAME_STR}_test)
 
 include_directories(${GTEST_INCLUDE_DIRS} ${COMMON_INCLUDES} ${COMMON_SRC}
-${COMMON_TEST})# ${EXT_PROJECTS_DIR}/FQFeeder/include)
+${COMMON_TEST} ${Boost_INCLUDE_DIRS})# ${EXT_PROJECTS_DIR}/FQFeeder/include)
 
 file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/test/*.cpp
         ${COMMON_SRC}/*.cpp
-        ${COMMON_SRC}/*/*.cpp)
+        ${COMMON_SRC}/*/*.cpp
+        ${Boost_SRC_DIRS}/*/*.cpp)
 #${EXT_PROJECTS_DIR}/FQFeeder/src/FastxParser.cpp)
 list(REMOVE_ITEM TEST_SRC_FILES ${COMMON_SRC}/main.cpp)
 add_executable(${PROJECT_TEST_NAME} ${TEST_SRC_FILES})
-add_dependencies(${PROJECT_TEST_NAME} googletest)
+add_dependencies(${PROJECT_TEST_NAME} googletest boost)
 
 
 if(NOT WIN32 OR MINGW)

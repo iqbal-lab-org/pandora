@@ -7,6 +7,7 @@
 #include <iostream>
 #include <memory>
 #include <cassert>
+#include <boost/functional/hash.hpp>
 #include "de_bruijn/graph.h"
 #include "de_bruijn/node.h"
 #include "noise_filtering.h"
@@ -25,6 +26,26 @@ Graph::~Graph()
 {
     nodes.clear();
 }
+
+template < typename SEQUENCE_OF_GENES > struct seq_hash
+{
+    std::size_t operator() ( const SEQUENCE_OF_GENES& seq ) const
+    {
+        std::size_t hash = 0 ;
+        boost::hash_range( hash, seq.begin(), seq.end() ) ;
+        return hash ;
+    }
+};
+
+template < typename SEQUENCE_OF_GENES, typename T >
+using sequence_to_data_map = std::unordered_map< SEQUENCE_OF_GENES, T, seq_hash<SEQUENCE_OF_GENES> > ;
+
+/*int main()
+{
+    sequence_to_data_map< std::vector<char>, int > hash_table ;
+
+    hash_table[ { 'a', 'b', 'c', 'd', 'e', 'f' } ] = 100 ;
+}*/
 
 // add a node in dbg corresponding to a fixed size deque of pangenome graph
 // node/orientation ids and labelled with the read_ids which cover it
