@@ -95,7 +95,7 @@ file(GLOB TEST_SRC_FILES
         ${PROJECT_SOURCE_DIR}/test/*.cpp
         ${COMMON_SRC}/*.cpp
         ${COMMON_SRC}/*/*.cpp
-        ${EXT_PROJECTS_DIR}/FQFeeder/src/FastxParser.cpp
+        #${EXT_PROJECTS_DIR}/FQFeeder/src/FastxParser.cpp
         )
 
 list(REMOVE_ITEM TEST_SRC_FILES ${COMMON_SRC}/main.cpp)
