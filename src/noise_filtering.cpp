@@ -345,22 +345,16 @@ void remove_middle_nodes_of_tig_from_read(pangenome::Graph* pg,
 
 
     auto end_shift = pos.second;
-    cout << "end shift " << end_shift << endl;
     if (pos.first > 0 or pos.second < r->nodes.size()-1 or node_ids.size()==r->nodes.size()) {
         end_shift -= dbg.size - 1;
-        cout << "end shift now " << end_shift << endl;
     } else {
         vector<uint16_t> sub_node_ids(node_ids.begin(),node_ids.end()-dbg.size);
         vector<bool> sub_node_orients(node_orients.begin(),node_orients.end()-dbg.size);
         pair<uint,uint> sub_pos = r->find_position(sub_node_ids, sub_node_orients);
         if (sub_pos.second < pos.second)
             end_shift = sub_pos.second + 1;
-            cout << "end shift overwritten as " << end_shift << endl;
 
     }
-
-    cout << "found tig at pos " << pos.first << "," << pos.second << " in read" << endl;
-    cout << "remove from " << start_shift << " to max of this and " << end_shift <<  "." << endl;
 
     auto it = r->nodes.begin() + start_shift;
     for (auto shift = start_shift; shift < end_shift; ++shift)
