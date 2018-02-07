@@ -165,7 +165,7 @@ void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph & dbg,
         for (auto n : dbg_node_ids)
         {
             cout << "(";
-            for (auto m : dbg.nodes[n]->hashed_node_ids){
+            for (auto m : dbg.nodes.at(n)->hashed_node_ids){
                 cout << m << " ";
             }
             cout << ") ";
