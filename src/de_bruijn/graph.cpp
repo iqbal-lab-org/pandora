@@ -231,23 +231,40 @@ set<deque<uint32_t>> Graph::get_unitigs() {
 // extend a dbg path on either end to a branch point
 void Graph::extend_unitig(deque<uint32_t>& tig)
 {
+    cout << "extend tig ";
+    for (auto n : tig)
+    {
+	cout << n << " ";
+    }
+    cout << endl;
     bool tig_is_empty = (tig.size() == 0);
     bool node_is_isolated = (tig.size() == 1 and nodes[tig.back()]->out_nodes.size()+nodes[tig.back()]->in_nodes.size() == 0);
     if (tig_is_empty or node_is_isolated)
         return;
 
     while (nodes[tig.back()]->out_nodes.size() == 1
+	    and nodes[tig.back()]->in_nodes.size() == 1
             and (tig.size() == 1 or tig.back()!=tig.front()))
     {
         tig.push_back(*nodes[tig.back()]->out_nodes.begin());
+	cout << ".";
     }
     while (nodes[tig.front()]->in_nodes.size() == 1
+	   and nodes[tig.front()]->out_nodes.size() == 1
            and (tig.size() == 1 or tig.back()!=tig.front()))
     {
         tig.push_front(*nodes[tig.front()]->in_nodes.begin());
+	cout << ",";
     }
+    cout << endl;
     if (tig.size() > 1 and tig.back() == tig.front())
         tig.pop_back();
+    cout << "got tig ";
+    for (auto n : tig)
+    {
+        cout << n << " ";
+    }
+    cout << endl;
 }
 
 bool Graph::operator == (const Graph& y) const
