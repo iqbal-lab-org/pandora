@@ -113,6 +113,50 @@ void Graph::remove_node(const uint32_t dbg_node_id)
     }
 }
 
+// remove unitig from dbg
+/*void Graph::remove_unitig(const deque<uint32_t>& tig)
+{
+    if (tig.size() < size)
+    {
+        return;
+    }
+
+    // first remove nodes
+    unordered_set<uint32_t> read_ids;
+    bool orientation = overlap_forwards(nodes[tig[0]]->hashed_node_ids, nodes[tig[1]]->hashed_node_ids);
+    for (uint i=1; i<nodes.size()-1; ++i)
+    {
+        read_ids.insert(nodes[tig[i]]->read_ids.begin(), nodes[tig[i]]->read_ids.end());
+        orientation *= overlap_forwards(nodes[tig[i]]->hashed_node_ids, nodes[tig[i+1]]->hashed_node_ids);
+        remove_node[tig[i]];
+    }
+
+    // then add nodes and edges back to allow continuity
+    NodePtr last_node = nodes[tig[0]];
+    NodePtr new_node;
+    for (uint i=1; i<size; ++i)
+    {
+        deque<uint16_t> new_tig;
+        for (uint j=i; j<size; ++j) {
+            new_tig.push_back(nodes[tig.front()]->hashed_node_ids[i]);
+        }
+        for (uint j=size-i; j<size; ++j) {
+            if (orientation)
+            {
+                new_tig.push_back(nodes[tig.back()]->hashed_node_ids[i]);
+            } else {
+                new_tig.push_back(rc_hashed_node_ids(nodes[tig.back()]->hashed_node_ids)[i]);
+            }
+        }
+        assert(new_tig.size() == size);
+        for(auto r : read_ids)
+            new_node = add_node(new_tig, r);
+        add_edge(last_node, new_node);
+        last_node = new_node;
+    }
+    add_edge(last_node, nodes[tig.back()]);
+}*/
+
 // remove read from de bruijn node
 void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_node_id)
 {
@@ -215,7 +259,7 @@ set<deque<uint32_t>> Graph::get_unitigs() {
         assert(node_ptr != nullptr);
 
         bool node_seen = seen.find(id) != seen.end();
-        bool at_branch = node_ptr->out_nodes.size() > 2;
+        bool at_branch = (node_ptr->out_nodes.size() > 1) or (node_ptr->in_nodes.size() > 1);
         if (node_seen or at_branch)
             continue;
 
@@ -239,22 +283,24 @@ void Graph::extend_unitig(deque<uint32_t>& tig)
     cout << endl;
     bool tig_is_empty = (tig.size() == 0);
     bool node_is_isolated = (tig.size() == 1 and nodes[tig.back()]->out_nodes.size()+nodes[tig.back()]->in_nodes.size() == 0);
-    if (tig_is_empty or node_is_isolated)
+    if (tig_is_empty or node_is_isolated) {
+        cout << "node is isolated or tig empty" << endl;
         return;
+    }
 
     while (nodes[tig.back()]->out_nodes.size() == 1
-	    and nodes[tig.back()]->in_nodes.size() == 1
-            and (tig.size() == 1 or tig.back()!=tig.front()))
+           and nodes[tig.back()]->in_nodes.size() <= 1
+           and (tig.size() == 1 or tig.back()!=tig.front()))
     {
         tig.push_back(*nodes[tig.back()]->out_nodes.begin());
-	cout << ".";
+	    cout << ".";
     }
     while (nodes[tig.front()]->in_nodes.size() == 1
-	   and nodes[tig.front()]->out_nodes.size() == 1
+           and nodes[tig.front()]->out_nodes.size() <= 1
            and (tig.size() == 1 or tig.back()!=tig.front()))
     {
         tig.push_front(*nodes[tig.front()]->in_nodes.begin());
-	cout << ",";
+	    cout << ",";
     }
     cout << endl;
     if (tig.size() > 1 and tig.back() == tig.front())
