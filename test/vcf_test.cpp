@@ -211,7 +211,7 @@ TEST_F(VCFTest,save){
     uint j = 3;
     EXPECT_EQ(j, vcf.records.size());
 
-    vcf.save("../test/test_cases/vcf_test.vcf");
+    vcf.save("vcf_test.vcf");
 }
 
 TEST_F(VCFTest,load){
@@ -223,7 +223,7 @@ TEST_F(VCFTest,load){
     uint j = 3;
     EXPECT_EQ(j, vcf.records.size());
 
-    vcf1.load("../test/test_cases/vcf_test.vcf");
+    vcf1.load("vcf_test.vcf");
 
     /*for(uint i=0; i!=vcf1.records.size(); ++i)
     {
@@ -241,16 +241,16 @@ TEST_F(VCFTest, filter)
     vcf.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=PH_SNPs;GRAPHTYPE=NESTED");
     vcf.samples.push_back("dummy");
 
-    vcf.save("../test/test_cases/vcf_filter_test.vcf", true, false, false, false, false, false, false);
+    vcf.save("vcf_filter_test.vcf", true, false, false, false, false, false, false);
     vcf1.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
     vcf1.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
-    vcf2.load("../test/test_cases/vcf_filter_test.vcf");
+    vcf2.load("vcf_filter_test.vcf");
     EXPECT_EQ(vcf2 == vcf1, true);
 
-    vcf.save("../test/test_cases/vcf_filter_test.vcf", false, false, false, false, false, true, false);
+    vcf.save("vcf_filter_test.vcf", false, false, false, false, false, true, false);
     vcf3.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
     vcf3.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=SNP;GRAPHTYPE=NESTED");
-    vcf4.load("../test/test_cases/vcf_filter_test.vcf");
+    vcf4.load("vcf_filter_test.vcf");
     EXPECT_EQ(vcf3 == vcf4, true);
 
 }
@@ -265,7 +265,7 @@ TEST_F(VCFTest,write_aligned_fasta){
     EXPECT_EQ(j, vcf.records.size());
 
     vector<LocalNodePtr> lmp;
-    vcf.write_aligned_fasta("../test/test_cases/vcf1.multisample.fa", lmp);
+    vcf.write_aligned_fasta("vcf1.multisample.fa", lmp);
 
     // add just the ref
     LocalNodePtr ln0(make_shared<LocalNode>("A", Interval(0,1), 1));
@@ -280,10 +280,10 @@ TEST_F(VCFTest,write_aligned_fasta){
     lmp.push_back(ln5);
     LocalNodePtr ln3(make_shared<LocalNode>("C", Interval(79,80), 6));
     lmp.push_back(ln3);
-    vcf.write_aligned_fasta("../test/test_cases/vcf2.multisample.fa", lmp);
+    vcf.write_aligned_fasta("vcf2.multisample.fa", lmp);
 
     // now add a sample
     vcf.add_sample_gt("sample1", "chrom1", 46, "T", "TA");
-    vcf.write_aligned_fasta("../test/test_cases/vcf3.multisample.fa", lmp);
+    vcf.write_aligned_fasta("vcf3.multisample.fa", lmp);
 
 }

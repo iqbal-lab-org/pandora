@@ -838,7 +838,7 @@ TEST_F(LocalPRGTest, write_path_to_fasta)
     l3.minimizer_sketch(idx, 1, 3);
 
     vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
-    l3.write_path_to_fasta("../test/test_cases/localPRG_test.maxpath.fa", lmp3, 0.00);
+    l3.write_path_to_fasta("localPRG_test.maxpath.fa", lmp3, 0.00);
     
     delete idx;
 }
@@ -853,7 +853,7 @@ TEST_F(LocalPRGTest, append_path_to_fasta)
     l3.minimizer_sketch(idx, 1, 3);
 
     vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
-    l3.append_path_to_fasta("../test/test_cases/localPRG_test.maxpath.fa", lmp3, 0.00);
+    l3.append_path_to_fasta("localPRG_test.maxpath.fa", lmp3, 0.00);
 
     delete idx;
 }
@@ -868,7 +868,7 @@ TEST_F(LocalPRGTest, write_aligned_path_to_fasta)
     l3.minimizer_sketch(idx, 1, 3);
 
     vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
-    l3.write_aligned_path_to_fasta("../test/test_cases/localPRG_test.alignedpath.fa", lmp3, 0.00);
+    l3.write_aligned_path_to_fasta("localPRG_test.alignedpath.fa", lmp3, 0.00);
 
     delete idx;
 }
@@ -1107,7 +1107,7 @@ TEST_F(LocalPRGTest, moreupdateVCF)
 {
     // load PRGs from file
     vector<LocalPRG*> prgs;
-    read_prg_file(prgs, "../test/test_cases/updatevcf_test.fa");
+    read_prg_file(prgs, "../../test/test_cases/updatevcf_test.fa");
 
     EXPECT_EQ((uint)3, prgs.size());
 
@@ -1118,10 +1118,10 @@ TEST_F(LocalPRGTest, moreupdateVCF)
     prgs[2]->build_vcf(vcf, prgs[2]->prg.top_path());
     vcf.sort_records();
 
-    /*for (uint i=0; i!=prgs[2]->vcf.records.size(); ++i)
-    {
-	cout << prgs[2]->vcf.records[i];
-    }*/
+    //for (uint i=0; i!=prgs[2]->vcf.records.size(); ++i)
+    //{
+	//cout << prgs[2]->vcf.records[i];
+    //}
 
     vector<LocalNodePtr> lmp1 = {prgs[1]->prg.nodes[0], prgs[1]->prg.nodes[11], prgs[1]->prg.nodes[12], prgs[1]->prg.nodes[17], prgs[1]->prg.nodes[65], prgs[1]->prg.nodes[67]};
     //cout << "PRG 1 has " << prgs[1]->prg.nodes.size() << " nodes" << endl;
@@ -1159,5 +1159,5 @@ TEST_F(LocalPRGTest, find_path_and_variants)
     pn3->kmer_prg.num_reads = 6;
     pn3->kmer_prg.set_p(0.0001);
 
-    l3.find_path_and_variants(pn3, "../test/test_cases/localPRG_test", 0, true, false, false, true);
+    l3.find_path_and_variants(pn3, "localPRG_test", 0, true, false, false, true);
 }

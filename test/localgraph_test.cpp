@@ -188,7 +188,7 @@ TEST_F(LocalGraphTest, write_gfa){
     lg2.add_edge(1,3);
     lg2.add_edge(2,3);
 
-    lg2.write_gfa("../test/test_cases/localgraph_test.gfa");
+    lg2.write_gfa("localgraph_test.gfa");
 }
 
 TEST_F(LocalGraphTest, read_gfa){
@@ -202,7 +202,7 @@ TEST_F(LocalGraphTest, read_gfa){
     lg2.add_edge(1,3);
     lg2.add_edge(2,3);
 
-    read_lg2.read_gfa("../test/test_cases/localgraph_test.gfa");
+    read_lg2.read_gfa("localgraph_test.gfa");
     EXPECT_EQ(lg2, read_lg2);
 }
 

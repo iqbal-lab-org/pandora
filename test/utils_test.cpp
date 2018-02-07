@@ -60,12 +60,12 @@ TEST_F(UtilsTest, readPrgFile){
 
     // simple case first, single prg with empty string sequence
     // doesn't get added to prgs 
-    read_prg_file(prgs, "../test/test_cases/prg0.fa");
+    read_prg_file(prgs, "../../test/test_cases/prg0.fa");
     uint32_t j = 0;
     EXPECT_EQ(prgs.size(), j);
  
     // single prg with simple sequence
-    read_prg_file(prgs, "../test/test_cases/prg1.fa");
+    read_prg_file(prgs, "../../test/test_cases/prg1.fa");
     LocalPRG l1(1,"prg1", "AGCT");
     j = 1;
     EXPECT_EQ(prgs.size(), j);
@@ -76,7 +76,7 @@ TEST_F(UtilsTest, readPrgFile){
     EXPECT_EQ(prgs[0]->prg, l1.prg);
 
     // single prg with a variant site
-    read_prg_file(prgs, "../test/test_cases/prg2.fa");
+    read_prg_file(prgs, "../../test/test_cases/prg2.fa");
     LocalPRG l2(2,"prg2", "A 5 GC 6 G 5 T");
     j = 2;
     EXPECT_EQ(prgs.size(), j);
@@ -87,7 +87,7 @@ TEST_F(UtilsTest, readPrgFile){
     EXPECT_EQ(prgs[1]->prg, l2.prg);
 
     // single prg with a nested variant site
-    read_prg_file(prgs, "../test/test_cases/prg3.fa");
+    read_prg_file(prgs, "../../test/test_cases/prg3.fa");
     LocalPRG l3 = LocalPRG(3,"prg3", "A 5 G 7 C 8 T 7  6 G 5 T");
     j = 3;
     EXPECT_EQ(prgs.size(), j);
@@ -100,7 +100,7 @@ TEST_F(UtilsTest, readPrgFile){
     // now a prg input file with all 4 in
     prgs.clear();
     EXPECT_EQ(prgs.size(), j);
-    read_prg_file(prgs, "../test/test_cases/prg0123.fa");
+    read_prg_file(prgs, "../../test/test_cases/prg0123.fa");
     j = 3;
     EXPECT_EQ(prgs.size(), j);
 }
@@ -930,7 +930,7 @@ TEST_F(UtilsTest, pangraphFromReadFile)
     // initialize pangraph;
     pangenome::Graph *pg;
     pg = new pangenome::Graph();
-    pangraph_from_read_file("../test/test_cases/read2.fa", mhs, pg, idx, prgs, 1, 3, 1, 0.1, 1);
+    pangraph_from_read_file("../../test/test_cases/read2.fa", mhs, pg, idx, prgs, 1, 3, 1, 0.1, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
@@ -946,7 +946,7 @@ TEST_F(UtilsTest, pangraphFromReadFile)
 
     pg = new pangenome::Graph();
     mhs->clear();
-    pangraph_from_read_file("../test/test_cases/read2.fq", mhs, pg, idx, prgs, 1, 3, 1, 0.1, 1);
+    pangraph_from_read_file("../../test/test_cases/read2.fq", mhs, pg, idx, prgs, 1, 3, 1, 0.1, 1);
     pg_exp.add_node(1,"1",0, mhs_dummy.hits);
     pg_exp.add_node(2,"2",0, mhs_dummy.hits);
     pg_exp.add_node(3,"3",0, mhs_dummy.hits);

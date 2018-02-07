@@ -483,7 +483,7 @@ TEST(DeBruijnGraphTest, get_leaves2)
     }
 }
 
-TEST(DeBruijnGraphGetUnitigs,OneBubble_TwoTigs)
+TEST(DeBruijnGraphGetUnitigs,OneBubble_ThreeTigs)
 {
     // 0 -> 1 -> 2 ------> 3 -> 4 -> 5 -> 0
     //             \> 6 -/
@@ -524,12 +524,14 @@ TEST(DeBruijnGraphGetUnitigs,OneBubble_TwoTigs)
     g.add_edge(n3, n4);
 
     set<deque<uint32_t>> s = g.get_unitigs();
-    EXPECT_EQ(s.size(), (uint)2);
+    EXPECT_EQ(s.size(), (uint)3);
 
     set<deque<uint32_t>> s_exp;
-    deque<uint32_t> d({0,1,2,3,4});
+    deque<uint32_t> d({0,1,2,3});
     s_exp.insert(d);
-    d = {0,5,6,7,3,4};
+    d = {0,5,6,7,3};
+    s_exp.insert(d);
+    d = {3,4};
     s_exp.insert(d);
 
     EXPECT_ITERABLE_EQ(set<deque<uint32_t>>, s, s_exp);

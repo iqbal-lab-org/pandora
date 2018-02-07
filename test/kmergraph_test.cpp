@@ -916,7 +916,7 @@ TEST_F(KmerGraphTest, save_covg_dist){
     kg.nodes[1]->num_AT = 4;
     kg.nodes[2]->num_AT = 6;
 
-    kg.save_covg_dist("../test/test_cases/kmergraph_test.covg.txt");
+    kg.save_covg_dist("test_cases/kmergraph_test.covg.txt");
 }
 
 TEST_F(KmerGraphTest, save){
@@ -932,7 +932,9 @@ TEST_F(KmerGraphTest, save){
     kg.nodes[0]->covg[1] +=5;
     EXPECT_EQ((uint)0, kg.nodes[0]->num_AT);
 
-    kg.save("../test/test_cases/kmergraph_test.gfa");
+    //kg.save("../test/test_cases/kmergraph_test.gfa");
+    kg.save("kmergraph_test.gfa");
+
 }
 
 TEST_F(KmerGraphTest, load){
@@ -947,7 +949,8 @@ TEST_F(KmerGraphTest, load){
     kg.add_edge(p1,p2);
     kg.nodes[0]->covg[1] +=5;
 
-    read_kg.load("../test/test_cases/kmergraph_test.gfa");
+    //read_kg.load("../test/test_cases/kmergraph_test.gfa");
+    read_kg.load("kmergraph_test.gfa");
     EXPECT_EQ(kg, read_kg);
 }
 

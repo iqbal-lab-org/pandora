@@ -375,7 +375,226 @@ TEST(NoiseFilteringTest,construct_debruijn_graph_from_pangraph)
     delete pg;
 }
 
-TEST(NoiseFilteringTest,remove_leaves)
+TEST(NoiseFilteringRemoveLeaves,OneDBGNode_RemovedFromPanGraph) {
+    set<MinimizerHitPtr, pComp> mhs;
+    pangenome::Graph *pg;
+    pg = new pangenome::Graph();
+
+    // first an example where only one read giving 1 dbg node, want no segfaults
+    pg->add_node(0, "0", 0, mhs);
+    pg->add_node(1, "1", 0, mhs);
+    pg->add_node(2, "2", 0, mhs);
+    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3, pg);
+    remove_leaves(pg, dbg);
+
+    pangenome::Graph pg_exp;
+    EXPECT_EQ(pg_exp, *pg);
+    delete pg;
+}
+
+TEST(NoiseFilteringRemoveLeaves,OneDBGNode_RemovedFromDBGraph) {
+    set<MinimizerHitPtr, pComp> mhs;
+    pangenome::Graph *pg;
+    pg = new pangenome::Graph();
+
+    // first an example where only one read giving 1 dbg node, want no segfaults
+    pg->add_node(0, "0", 0, mhs);
+    pg->add_node(1, "1", 0, mhs);
+    pg->add_node(2, "2", 0, mhs);
+    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3, pg);
+    remove_leaves(pg, dbg);
+    debruijn::Graph dbg_exp(3);
+    EXPECT_EQ(dbg_exp, dbg);
+    delete pg;
+}
+
+TEST(NoiseFilteringRemoveLeaves,OneLoop_NoLeavesRemoved) {
+    set<MinimizerHitPtr, pComp> mhs;
+    pangenome::Graph *pg;
+    pg = new pangenome::Graph();
+
+    pg->add_node(0, "0", 0, mhs);
+    pg->add_node(1, "1", 0, mhs);
+    pg->add_node(2, "2", 0, mhs);
+    pg->add_node(3, "3", 0, mhs);
+    pg->add_node(4, "4", 0, mhs);
+    pg->add_node(5, "5", 0, mhs);
+
+    pg->add_node(3, "3", 1, mhs);
+    pg->add_node(4, "4", 1, mhs);
+    pg->add_node(5, "5", 1, mhs);
+    pg->add_node(0, "0", 1, mhs);
+    pg->add_node(1, "1", 1, mhs);
+    pg->add_node(2, "2", 1, mhs);
+
+    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3, pg);
+    uint pg_size = pg->nodes.size();
+    uint dbg_size = dbg.nodes.size();
+    remove_leaves(pg, dbg);
+
+    EXPECT_EQ(pg->nodes.size(),pg_size);
+    EXPECT_EQ(dbg.nodes.size(),dbg_size);
+
+    delete pg;
+}
+
+TEST(NoiseFilteringRemoveLeaves,OneLoopAndDeviantPath_OneLeafRemoved) {
+    set<MinimizerHitPtr, pComp> mhs;
+    pangenome::Graph *pg;
+    pg = new pangenome::Graph();
+
+    pg->add_node(0, "0", 0, mhs);
+    pg->add_node(1, "1", 0, mhs);
+    pg->add_node(2, "2", 0, mhs);
+    pg->add_node(3, "3", 0, mhs);
+    pg->add_node(4, "4", 0, mhs);
+    pg->add_node(5, "5", 0, mhs);
+
+    pg->add_node(3, "3", 1, mhs);
+    pg->add_node(4, "4", 1, mhs);
+    pg->add_node(5, "5", 1, mhs);
+    pg->add_node(0, "0", 1, mhs);
+    pg->add_node(1, "1", 1, mhs);
+    pg->add_node(2, "2", 1, mhs);
+
+    // starts correct and deviates
+    pg->add_node(1,"1",2, mhs);
+    pg->add_node(2,"2",2, mhs);
+    pg->add_node(3,"3",2, mhs);
+    pg->add_node(7,"7",2, mhs);
+
+    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3, pg);
+    uint pg_size = pg->nodes.size();
+    uint dbg_size = dbg.nodes.size();
+    remove_leaves(pg, dbg);
+
+    EXPECT_EQ(pg->nodes.size(),pg_size - 1);
+    EXPECT_TRUE(pg->nodes.find(7)==pg->nodes.end());
+    EXPECT_EQ(dbg.nodes.size(),dbg_size - 1);
+    EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{4,6,14}])==dbg.nodes.end());
+
+    delete pg;
+}
+
+TEST(NoiseFilteringRemoveLeaves,OneLoopAndIncorrectPath_TwoLeavesRemoved) {
+    set<MinimizerHitPtr, pComp> mhs;
+    pangenome::Graph *pg;
+    pg = new pangenome::Graph();
+
+    pg->add_node(0, "0", 0, mhs);
+    pg->add_node(1, "1", 0, mhs);
+    pg->add_node(2, "2", 0, mhs);
+    pg->add_node(3, "3", 0, mhs);
+    pg->add_node(4, "4", 0, mhs);
+    pg->add_node(5, "5", 0, mhs);
+
+    pg->add_node(3, "3", 1, mhs);
+    pg->add_node(4, "4", 1, mhs);
+    pg->add_node(5, "5", 1, mhs);
+    pg->add_node(0, "0", 1, mhs);
+    pg->add_node(1, "1", 1, mhs);
+    pg->add_node(2, "2", 1, mhs);
+
+    // incorrect short
+    pg->add_node(0,"0",3, mhs);
+    pg->add_node(5,"5",3, mhs);//6
+    pg->add_node(3,"3",3, mhs);
+    pg->add_node(4,"4",3, mhs);
+
+    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3, pg);
+    uint pg_size = pg->nodes.size();
+    uint dbg_size = dbg.nodes.size();
+    remove_leaves(pg, dbg);
+
+    EXPECT_EQ(pg->nodes.size(),pg_size);
+    EXPECT_EQ(dbg.nodes.size(),dbg_size - 2);
+    EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{0,10,6}])==dbg.nodes.end());
+    EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{10,6,8}])==dbg.nodes.end());
+
+    delete pg;
+}
+
+TEST(NoiseFilteringRemoveLeaves,OneLoopAndDeviatesInMiddle_NoLeavesRemoved) {
+    set<MinimizerHitPtr, pComp> mhs;
+    pangenome::Graph *pg;
+    pg = new pangenome::Graph();
+
+    pg->add_node(0, "0", 0, mhs);
+    pg->add_node(1, "1", 0, mhs);
+    pg->add_node(2, "2", 0, mhs);
+    pg->add_node(3, "3", 0, mhs);
+    pg->add_node(4, "4", 0, mhs);
+    pg->add_node(5, "5", 0, mhs);
+
+    pg->add_node(3, "3", 1, mhs);
+    pg->add_node(4, "4", 1, mhs);
+    pg->add_node(5, "5", 1, mhs);
+    pg->add_node(0, "0", 1, mhs);
+    pg->add_node(1, "1", 1, mhs);
+    pg->add_node(2, "2", 1, mhs);
+
+    // deviates in middle
+    pg->add_node(0,"0",4, mhs);
+    pg->add_node(1,"1",4, mhs);
+    pg->add_node(2,"2",4, mhs);
+    pg->add_node(6,"6",4, mhs);
+    pg->add_node(3,"3",4, mhs);
+    pg->add_node(4,"4",4, mhs);
+    pg->add_node(5,"5",4, mhs);
+
+    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3, pg);
+    uint pg_size = pg->nodes.size();
+    uint dbg_size = dbg.nodes.size();
+    remove_leaves(pg, dbg);
+
+    EXPECT_EQ(pg->nodes.size(),pg_size);
+    EXPECT_EQ(dbg.nodes.size(),dbg_size);
+
+    delete pg;
+}
+
+TEST(NoiseFilteringRemoveLeaves,OneLoopAndLongerWrongPath_LeavesRemoved) {
+    set<MinimizerHitPtr, pComp> mhs;
+    pangenome::Graph *pg;
+    pg = new pangenome::Graph();
+
+    pg->add_node(0, "0", 0, mhs);
+    pg->add_node(1, "1", 0, mhs);
+    pg->add_node(2, "2", 0, mhs);
+    pg->add_node(3, "3", 0, mhs);
+    pg->add_node(4, "4", 0, mhs);
+    pg->add_node(5, "5", 0, mhs);
+
+    pg->add_node(3, "3", 1, mhs);
+    pg->add_node(4, "4", 1, mhs);
+    pg->add_node(5, "5", 1, mhs);
+    pg->add_node(0, "0", 1, mhs);
+    pg->add_node(1, "1", 1, mhs);
+    pg->add_node(2, "2", 1, mhs);
+
+    // incorrect longer
+    pg->add_node(6,"6",5, mhs);
+    pg->add_node(1,"1",5, mhs);
+    pg->add_node(1,"1",5, mhs);//2
+    pg->add_node(6,"6",5, mhs);
+    pg->add_node(3,"3",5, mhs);
+
+    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3, pg);
+    uint pg_size = pg->nodes.size();
+    uint dbg_size = dbg.nodes.size();
+    remove_leaves(pg, dbg);
+
+    EXPECT_EQ(pg->nodes.size(),pg_size - 1);
+    EXPECT_TRUE(pg->nodes.find(6)==pg->nodes.end());
+    EXPECT_EQ(dbg.nodes.size(),dbg_size - 3);
+    EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{12,2,2}])==dbg.nodes.end());
+    EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{2,2,12}])==dbg.nodes.end());
+    EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{2,12,6}])==dbg.nodes.end());
+
+    delete pg;
+}
+
+TEST(NoiseFilteringRemoveLeaves,AllTogether_GraphsLookCorrect)
 {
     set<MinimizerHitPtr, pComp> mhs;
     pangenome::Graph *pg;
