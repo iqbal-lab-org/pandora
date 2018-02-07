@@ -172,6 +172,7 @@ void Graph::remove_read(const uint32_t read_id) {
 
 vector<NodePtr>::iterator Graph::remove_node_from_read(vector<NodePtr>::iterator node_it, ReadPtr read_ptr) {
 
+    cout << "remove node " << (*node_it)->node_id << " from read " << read_ptr->id << endl;
     NodePtr node_ptr = *node_it;
 
     // remove node from read

@@ -161,6 +161,17 @@ void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph & dbg,
     deque<uint16_t> hashed_pg_node_ids = extend_hashed_pg_node_ids_backwards(dbg, dbg_node_ids);
     if (hashed_pg_node_ids.empty())
         hashed_pg_node_ids = extend_hashed_pg_node_ids_forwards(dbg, dbg_node_ids);
+    if (hashed_pg_node_ids.empty()){
+        for (auto n : dbg_node_ids)
+        {
+            cout << "(";
+            for (auto m : dbg.nodes[n]->hashed_node_ids){
+                cout << m << " ";
+            }
+            cout << ") ";
+        }
+        cout << endl;
+    }
     assert(!hashed_pg_node_ids.empty());
     hashed_node_ids_to_ids_and_orientations(hashed_pg_node_ids, node_ids, node_orients);
 }
@@ -356,6 +367,7 @@ void remove_middle_nodes_of_tig_from_read(pangenome::Graph* pg,
 
     }
 
+    cout << "remove nodes " << start_shift << " to " << end_shift << endl;
     auto it = r->nodes.begin() + start_shift;
     for (auto shift = start_shift; shift < end_shift; ++shift)
     {
