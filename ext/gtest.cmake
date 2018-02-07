@@ -1,8 +1,18 @@
 include(ExternalProject)
+#ExternalProject_Add(gtest
+#        URL https://github.com/google/googletest/archive/release-1.8.0.zip
+#        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
+#        INSTALL_COMMAND "")
 ExternalProject_Add(gtest
-        URL https://github.com/google/googletest/archive/release-1.8.0.zip
-        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
-        INSTALL_COMMAND "")
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    CMAKE_ARGS -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=DebugLibs
+    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE:PATH=ReleaseLibs
+    -DCMAKE_CXX_FLAGS=${MSVC_COMPILER_DEFS}
+    -Dgtest_force_shared_crt=${GTEST_FORCE_SHARED_CRT}
+    -Dgtest_disable_pthreads=${GTEST_DISABLE_PTHREADS}
+    -DBUILD_GTEST=ON
+    PREFIX "${CMAKE_CURRENT_BINARY_DIR}/gtest"
+    INSTALL_COMMAND "")
 
 # Get GTest source and binary directories from CMake project
 ExternalProject_Get_Property(gtest source_dir binary_dir)
