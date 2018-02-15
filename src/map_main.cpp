@@ -50,7 +50,8 @@ static void show_map_usage() {
               << "\t--method\t\t\tMethod for path inference, can be max likelihood (default), 'min' to maximize\n"
               << "\t\t\t\t\tthe min probability on the path, or 'both' to create outputs with both methods\n"
               << "\t--output_comparison_paths\tSave a fasta file for a random selection of paths through localPRG\n"
-	      << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is shorter with low error rate\n"
+              << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is shorter with low error rate\n"
+              << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
               << std::endl;
 }
 
@@ -66,7 +67,8 @@ int pandora_map(int argc, char *argv[]) {
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000; // default parameters
     int max_diff = 500;
     float e_rate = 0.11;
-    bool output_kg = false, output_vcf = false, max_path = true, min_path = false, output_comparison_paths = false, illumina = false;
+    bool output_kg = false, output_vcf = false, max_path = true, min_path = false;
+    bool output_comparison_paths = false, illumina = false, clean = false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -153,6 +155,8 @@ int pandora_map(int argc, char *argv[]) {
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
+    } else if ((arg == "--clean")) {
+        clean = true;
     }
 
     //then run the programme...
@@ -170,7 +174,8 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\tmax_path\t" << max_path << endl;
     cout << "\tmin_path\t" << min_path << endl;
     cout << "\toutput_comparison_paths\t" << output_comparison_paths << endl;
-    cout << "\tillumina\t" << illumina << endl << endl;
+    cout << "\tillumina\t" << illumina << endl;
+    cout << "\tclean\t" << clean << endl << endl;
 
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
     Index *idx;
@@ -185,7 +190,7 @@ int pandora_map(int argc, char *argv[]) {
     mhs = new MinimizerHits(100 * idx->minhash.size());
     pangenome::Graph *pangraph;
     pangraph = new pangenome::Graph();
-    uint covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, illumina);
+    uint covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, illumina, clean);
 
     cout << now() << "Writing pangenome::Graph to file " << prefix << ".pangraph.gfa" << endl;
     write_pangraph_gfa(prefix + ".pangraph.gfa", pangraph);

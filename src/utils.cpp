@@ -377,7 +377,8 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
                              const vector<LocalPRG *> &prgs, const uint32_t w, const uint32_t k,
                              const int max_diff, const float& e_rate,
                              const uint min_cluster_size, const uint genome_size,
-                             const bool illumina)
+                             const bool illumina,
+                             const bool clean)
 {
     string name, read, line;
     uint64_t covg = 0;
@@ -445,13 +446,13 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
                                        min_cluster_size, short_read_length);
         cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
         mh->clear();
-        if (illumina) {
+        if (illumina and clean) {
             clean_pangraph_with_debruijn_graph(pangraph, 2, 1, illumina);
-        } else {
+            cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
+        } else if (clean){
             clean_pangraph_with_debruijn_graph(pangraph, 3, 1, illumina);
+            cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
         }
-        //pangraph->clean(covg);
-        cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
         delete s;
         myfile.close();
     } else {
