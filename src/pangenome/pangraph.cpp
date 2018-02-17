@@ -86,9 +86,15 @@ void record_read_info(ReadPtr &read_ptr,
                       const NodePtr &node_ptr,
                       const set<MinimizerHitPtr, pComp> &cluster) {
     read_ptr->add_hits(node_ptr->node_id, cluster);
-    read_ptr->nodes.push_back(node_ptr);
     bool orientation = !cluster.empty() and (*cluster.begin())->strand;
-    read_ptr->node_orientations.push_back(orientation);
+    if (read_ptr->nodes.empty() 
+	or node_ptr != read_ptr->nodes.back() 
+	or orientation != read_ptr->node_orientations.back()
+	//or we think there really are 2 copies of gene
+	) {
+	read_ptr->nodes.push_back(node_ptr);
+        read_ptr->node_orientations.push_back(orientation);
+    }
 }
 
 

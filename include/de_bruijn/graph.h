@@ -22,8 +22,8 @@ public:
     Graph(uint8_t);
     ~Graph();
 
-    NodePtr add_node(const deque<uint16_t>&, uint32_t);
-    void add_edge (NodePtr, NodePtr);
+    OrientedNodePtr add_node(const deque<uint16_t>&, uint32_t);
+    void add_edge (OrientedNodePtr, OrientedNodePtr);
     void remove_node(const uint32_t);
     void remove_read_from_node(const uint32_t, const uint32_t);
 

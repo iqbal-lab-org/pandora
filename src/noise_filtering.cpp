@@ -93,11 +93,21 @@ bool overlap_backwards(const deque<uint16_t>& node1, const deque<uint16_t>& node
 
 deque<uint16_t> rc_hashed_node_ids(const deque<uint16_t>& hashed_node_ids)
 {
+    for (auto n : hashed_node_ids)
+    {
+        cout << n << " ";
+    }
     deque<uint16_t> d;
     for (auto i : hashed_node_ids)
     {
         d.push_front(rc_num(i));
     }
+    cout << " is now ";
+    for (auto n : d)
+    {
+        cout << n << " ";
+    }
+    cout << endl;
     return d;
 }
 
@@ -181,7 +191,7 @@ debruijn::Graph construct_debruijn_graph_from_pangraph(uint8_t size, const pange
     cout << now() << "Construct de Bruijn Graph from PanGraph with size " << (uint)size << endl;
     debruijn::Graph dbg(size);
 
-    debruijn::NodePtr prev, current;
+    debruijn::OrientedNodePtr prev, current;
     deque<uint16_t> hashed_ids;
 
     for (auto r : pg->reads)
@@ -192,7 +202,7 @@ debruijn::Graph construct_debruijn_graph_from_pangraph(uint8_t size, const pange
             continue;
         }
 
-        prev = nullptr;
+        prev = make_pair(nullptr,false);
         hashed_ids.clear();
 
         for (uint i=0; i<r.second->nodes.size(); ++i)
@@ -203,7 +213,7 @@ debruijn::Graph construct_debruijn_graph_from_pangraph(uint8_t size, const pange
             if (hashed_ids.size() == size)
             {
                 current = dbg.add_node(hashed_ids, r.first);
-                if (prev != nullptr)
+                if (prev.first != nullptr)
                 {
                     dbg.add_edge(prev, current);
                 }
@@ -262,7 +272,7 @@ void remove_leaves(pangenome::Graph *pg, debruijn::Graph &dbg, uint16_t covg_thr
                 } else {
                     cout << "remove from read ";
                     pos = pg->reads[r]->find_position(node_ids, node_orients);
-                    cout << "pos " << pos.first << " " << pos.second;
+                    cout << " pos " << pos.first << " " << pos.second;
                     assert(pos.first == 0 or pos.first + node_ids.size() == pg->reads[r]->nodes.size());
                     if (pos.first == 0) {
                         node = pg->reads[r]->nodes[0];
@@ -272,6 +282,10 @@ void remove_leaves(pangenome::Graph *pg, debruijn::Graph &dbg, uint16_t covg_thr
                         node = pg->reads[r]->nodes.back();
                         pg->reads[r]->remove_node(--pg->reads[r]->nodes.end());
                         node->remove_read(pg->reads[r]);
+                    }
+		    cout << "read is now " << r << ": ";
+                    for (auto n : pg->reads[r]->nodes) {
+                        cout << n->node_id << " ";
                     }
                     cout << "done" << endl;
                 }
@@ -343,6 +357,7 @@ void remove_middle_nodes_of_tig_from_read(pangenome::Graph* pg,
     // if pos = 0 (ie read does not include start of tig)
 
     pair<uint,uint> pos = r->find_position(node_ids, node_orients);
+    cout << "found pos " << pos.first << " " << pos.second << endl;
     auto start_shift = pos.first;
     if (pos.first > 0 or pos.second < r->nodes.size()-1 or node_ids.size()==r->nodes.size())
         start_shift += max((int)0, (int)pos.second - (int)node_ids.size()) + dbg.size;

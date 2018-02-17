@@ -15,6 +15,7 @@ namespace debruijn
     class Graph;
 
     typedef std::shared_ptr<debruijn::Node> NodePtr;
+    typedef std::pair<debruijn::NodePtr,bool> OrientedNodePtr;
 
     template < typename SEQUENCE_OF_GENES > struct seq_hash
     {

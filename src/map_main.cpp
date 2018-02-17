@@ -152,11 +152,11 @@ int pandora_map(int argc, char *argv[]) {
 	    {
 	        e_rate = 0.001;
 	    }
+	} else if ((arg == "--clean")) {
+            clean = true;
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
-    } else if ((arg == "--clean")) {
-        clean = true;
     }
 
     //then run the programme...

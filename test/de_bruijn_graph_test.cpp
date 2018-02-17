@@ -117,71 +117,79 @@ TEST(DeBruijnGraphAddEdge,AddEdgeNodesOverlapForwards_EdgeAdded) {
 
     deque<uint16_t> v1({4, 6, 8});
     deque<uint16_t> v2({6, 8, 9});
-    NodePtr n1 = g.add_node(v1, 0);
-    NodePtr n2 = g.add_node(v2, 0);
+    OrientedNodePtr n1 = g.add_node(v1, 0);
+    OrientedNodePtr n2 = g.add_node(v2, 0);
     g.add_edge(n1, n2);
 
-    bool found_outnode_n1 = n1->out_nodes.find(n2->id) != n1->out_nodes.end();
-    bool found_innode_n2 = n2->in_nodes.find(n1->id) != n2->in_nodes.end();
-    bool found_innode_n1 = n1->in_nodes.find(n2->id) != n1->in_nodes.end();
-    bool found_outnode_n2 = n2->out_nodes.find(n1->id) != n2->out_nodes.end();
+    bool found_outnode_n1 = n1.first->out_nodes.find(n2.first->id) != n1.first->out_nodes.end();
+    bool found_innode_n2 = n2.first->in_nodes.find(n1.first->id) != n2.first->in_nodes.end();
+    bool found_innode_n1 = n1.first->in_nodes.find(n2.first->id) != n1.first->in_nodes.end();
+    bool found_outnode_n2 = n2.first->out_nodes.find(n1.first->id) != n2.first->out_nodes.end();
     EXPECT_TRUE(found_outnode_n1);
     EXPECT_TRUE(found_innode_n2);
     EXPECT_FALSE(found_innode_n1);
     EXPECT_FALSE(found_outnode_n2);
 }
 
-TEST(DeBruijnGraphAddEdge,AddEdgeNodesOverlapForwards2ndRC_EdgeAdded) {
+TEST(DeBruijnGraphAddEdge,AddEdgeFirstForwardSecondRC_EdgeAdded) {
     GraphTester g(3);
 
     deque<uint16_t> v1({4, 6, 8});
+    deque<uint16_t> v3({6, 8, 9});
     deque<uint16_t> v2({8, 9, 7});
-    NodePtr n1 = g.add_node(v1, 0);
-    NodePtr n2 = g.add_node(v2, 0);
-    g.add_edge(n1, n2);
+    OrientedNodePtr n1 = g.add_node(v1, 0);
+    OrientedNodePtr n2 = g.add_node(v2, 0);
+    OrientedNodePtr n3 = g.add_node(v3, 0);
+    g.add_edge(n1, n3);
 
-    bool found_outnode_n1 = n1->out_nodes.find(n2->id) != n1->out_nodes.end();
-    bool found_innode_n2 = n2->in_nodes.find(n1->id) != n2->in_nodes.end();
-    bool found_innode_n1 = n1->in_nodes.find(n2->id) != n1->in_nodes.end();
-    bool found_outnode_n2 = n2->out_nodes.find(n1->id) != n2->out_nodes.end();
+    bool found_outnode_n1 = n1.first->out_nodes.find(n3.first->id) != n1.first->out_nodes.end();
+    bool found_innode_n3 = n3.first->in_nodes.find(n1.first->id) != n3.first->in_nodes.end();
+    bool found_innode_n1 = n1.first->in_nodes.find(n3.first->id) != n1.first->in_nodes.end();
+    bool found_outnode_n3 = n3.first->out_nodes.find(n1.first->id) != n3.first->out_nodes.end();
     EXPECT_TRUE(found_outnode_n1);
-    EXPECT_TRUE(found_innode_n2);
+    EXPECT_FALSE(found_innode_n3);
     EXPECT_FALSE(found_innode_n1);
-    EXPECT_FALSE(found_outnode_n2);
+    EXPECT_TRUE(found_outnode_n3);
 }
 
-TEST(DeBruijnGraphAddEdge,AddEdgeNodesOverlapBackwards_EdgeAdded) {
-    GraphTester g(3);
-
-    deque<uint16_t> v1({4, 0, 8});
-    deque<uint16_t> v2({0, 8, 9});
-    NodePtr n1 = g.add_node(v1, 0);
-    NodePtr n2 = g.add_node(v2, 0);
-    g.add_edge(n2, n1);
-
-    bool found_outnode_n1 = n1->out_nodes.find(n2->id) != n1->out_nodes.end();
-    bool found_innode_n2 = n2->in_nodes.find(n1->id) != n2->in_nodes.end();
-    bool found_innode_n1 = n1->in_nodes.find(n2->id) != n1->in_nodes.end();
-    bool found_outnode_n2 = n2->out_nodes.find(n1->id) != n2->out_nodes.end();
-    EXPECT_TRUE(found_outnode_n1);
-    EXPECT_TRUE(found_innode_n2);
-    EXPECT_FALSE(found_innode_n1);
-    EXPECT_FALSE(found_outnode_n2);
-}
-
-TEST(DeBruijnGraphAddEdge,AddEdgeNodesOverlapBackwards2ndRC_EdgeAdded) {
+TEST(DeBruijnGraphAddEdge,AddEdgeFirstRCSecondForward_EdgeAdded) {
     GraphTester g(3);
 
     deque<uint16_t> v1({9, 7, 5});
+    deque<uint16_t> v2({4, 6, 8});
+    deque<uint16_t> v3({6, 8, 9});
+    OrientedNodePtr n1 = g.add_node(v1, 0);
+    OrientedNodePtr n2 = g.add_node(v2, 0);
+    OrientedNodePtr n3 = g.add_node(v3, 0);
+    g.add_edge(n2, n3);
+
+    bool found_outnode_n2 = n2.first->out_nodes.find(n3.first->id) != n2.first->out_nodes.end();
+    bool found_innode_n3 = n3.first->in_nodes.find(n2.first->id) != n3.first->in_nodes.end();
+    bool found_innode_n2 = n2.first->in_nodes.find(n3.first->id) != n2.first->in_nodes.end();
+    bool found_outnode_n3 = n3.first->out_nodes.find(n2.first->id) != n3.first->out_nodes.end();
+    EXPECT_FALSE(found_outnode_n2);
+    EXPECT_TRUE(found_innode_n3);
+    EXPECT_TRUE(found_innode_n2);
+    EXPECT_FALSE(found_outnode_n3);
+}
+
+TEST(DeBruijnGraphAddEdge,AddEdgeNodesBothRC_EdgeAdded) {
+    GraphTester g(3);
+
+    deque<uint16_t> v1({4, 6, 8});
     deque<uint16_t> v2({6, 8, 9});
-    NodePtr n1 = g.add_node(v1, 0);
-    NodePtr n2 = g.add_node(v2, 0);
+    deque<uint16_t> v1_({9, 7, 5});
+    deque<uint16_t> v2_({8, 9, 7});
+    OrientedNodePtr n1 = g.add_node(v1, 0);
+    OrientedNodePtr n2 = g.add_node(v2, 0);
+    n1 = g.add_node(v1_, 0);
+    n2 = g.add_node(v2_, 0);
     g.add_edge(n2, n1);
 
-    bool found_outnode_n1 = n1->out_nodes.find(n2->id) != n1->out_nodes.end();
-    bool found_innode_n2 = n2->in_nodes.find(n1->id) != n2->in_nodes.end();
-    bool found_innode_n1 = n1->in_nodes.find(n2->id) != n1->in_nodes.end();
-    bool found_outnode_n2 = n2->out_nodes.find(n1->id) != n2->out_nodes.end();
+    bool found_outnode_n1 = n1.first->out_nodes.find(n2.first->id) != n1.first->out_nodes.end();
+    bool found_innode_n2 = n2.first->in_nodes.find(n1.first->id) != n2.first->in_nodes.end();
+    bool found_innode_n1 = n1.first->in_nodes.find(n2.first->id) != n1.first->in_nodes.end();
+    bool found_outnode_n2 = n2.first->out_nodes.find(n1.first->id) != n2.first->out_nodes.end();
     EXPECT_TRUE(found_outnode_n1);
     EXPECT_TRUE(found_innode_n2);
     EXPECT_FALSE(found_innode_n1);
@@ -193,8 +201,8 @@ TEST(DeBruijnGraphAddEdge,AddEdgeNoOverlap_Death) {
 
     deque<uint16_t> v1({4, 6, 8});
     deque<uint16_t> v2({6, 0, 9});
-    NodePtr n1 = g.add_node(v1, 0);
-    NodePtr n2 = g.add_node(v2, 0);
+    OrientedNodePtr n1 = g.add_node(v1, 0);
+    OrientedNodePtr n2 = g.add_node(v2, 0);
     EXPECT_DEATH(g.add_edge(n1, n2),"");
 }
 
@@ -205,8 +213,8 @@ TEST(DeBruijnGraphTest,remove_node)
     deque<uint16_t> v2({6,8,3});
 
     g.add_node(v1, 0);
-    NodePtr n1 = g.add_node(v1, 7);
-    NodePtr n2 = g.add_node(v2, 7);
+    OrientedNodePtr n1 = g.add_node(v1, 7);
+    OrientedNodePtr n2 = g.add_node(v2, 7);
     g.add_edge(n1, n2);
     
     EXPECT_EQ(g.nodes.size(), (uint)2);
@@ -236,14 +244,14 @@ TEST(DeBruijnGraphAddEdge,AddEdgeTwice_EdgeAddedOnce) {
 
     deque<uint16_t> v1({4, 6, 8});
     deque<uint16_t> v2({6, 8, 9});
-    NodePtr n1 = g.add_node(v1, 0);
-    NodePtr n2 = g.add_node(v2, 0);
+    OrientedNodePtr n1 = g.add_node(v1, 0);
+    OrientedNodePtr n2 = g.add_node(v2, 0);
     g.add_edge(n1, n2);
 
-    EXPECT_EQ(n1->out_nodes.size(), (uint)1);
-    EXPECT_EQ(n2->out_nodes.size(), (uint)0);
-    EXPECT_EQ(n1->in_nodes.size(), (uint)0);
-    EXPECT_EQ(n2->in_nodes.size(), (uint)1);
+    EXPECT_EQ(n1.first->out_nodes.size(), (uint)1);
+    EXPECT_EQ(n2.first->out_nodes.size(), (uint)0);
+    EXPECT_EQ(n1.first->in_nodes.size(), (uint)0);
+    EXPECT_EQ(n2.first->in_nodes.size(), (uint)1);
 }
 
 TEST(DeBruijnGraphTest,remove_read_from_node)
@@ -256,8 +264,8 @@ TEST(DeBruijnGraphTest,remove_read_from_node)
     g.add_node(v1, 0);
     g.add_node(v2, 4);
     g.add_node(v3, 5);
-    NodePtr n1 = g.add_node(v1, 7);
-    NodePtr n2 = g.add_node(v2, 7);
+    OrientedNodePtr n1 = g.add_node(v1, 7);
+    OrientedNodePtr n2 = g.add_node(v2, 7);
     g.add_edge(n1, n2);
 
     EXPECT_EQ(g.nodes.size(), (uint)3);
@@ -394,14 +402,14 @@ TEST(DeBruijnGraphTest,get_leaves)
     deque<uint16_t> v4({8,2,4});
     deque<uint16_t> v5({2,4,3});
 
-    NodePtr n1 = g.add_node(v1, 0);
-    NodePtr n2 = g.add_node(v2, 0);
+    OrientedNodePtr n1 = g.add_node(v1, 0);
+    OrientedNodePtr n2 = g.add_node(v2, 0);
     g.add_edge(n1, n2);
-    NodePtr n3 = g.add_node(v3, 0);
+    OrientedNodePtr n3 = g.add_node(v3, 0);
     g.add_edge(n1, n3);
-    NodePtr n4 = g.add_node(v4, 5);
+    OrientedNodePtr n4 = g.add_node(v4, 5);
     g.add_edge(n3, n4);
-    NodePtr n5 = g.add_node(v5, 5);
+    OrientedNodePtr n5 = g.add_node(v5, 5);
 
     unordered_set<uint32_t> l = g.get_leaves();
     unordered_set<uint32_t> l_exp = {1, 3, 4};
@@ -416,9 +424,9 @@ TEST(DeBruijnGraphTest, get_leaves2)
 {
     Graph dbg_exp(3);
     deque<uint16_t> d = {0,2,4}; //0
-    NodePtr n1 = dbg_exp.add_node(d, 0);
+    OrientedNodePtr n1 = dbg_exp.add_node(d, 0);
     d = {2,4,6};//1
-    NodePtr n2 = dbg_exp.add_node(d, 0);
+    OrientedNodePtr n2 = dbg_exp.add_node(d, 0);
     dbg_exp.add_edge(n1,n2);
     d = {4,6,8};//2
     n1 = dbg_exp.add_node(d, 0);
@@ -499,14 +507,14 @@ TEST(DeBruijnGraphGetUnitigs,OneBubble_ThreeTigs)
     deque<uint16_t> v4({6,8,10});
     deque<uint16_t> v5({8,10,0});
 
-    NodePtr n0 = g.add_node(v1, 0);
-    NodePtr n1 = g.add_node(v2, 0);
+    OrientedNodePtr n0 = g.add_node(v1, 0);
+    OrientedNodePtr n1 = g.add_node(v2, 0);
     g.add_edge(n0, n1);
-    NodePtr n2 = g.add_node(v3, 0);
+    OrientedNodePtr n2 = g.add_node(v3, 0);
     g.add_edge(n1, n2);
-    NodePtr n3 = g.add_node(v4, 0);
+    OrientedNodePtr n3 = g.add_node(v4, 0);
     g.add_edge(n2, n3);
-    NodePtr n4 = g.add_node(v5, 0);
+    OrientedNodePtr n4 = g.add_node(v5, 0);
     g.add_edge(n3, n4);
 
     deque<uint16_t> v6({2,4,12});
@@ -551,14 +559,14 @@ TEST(DeBruijnGraphTest,get_unitigs)
     deque<uint16_t> v4({8,2,3});
     deque<uint16_t> v5({5,9,3});
 
-    NodePtr n0 = g.add_node(v1, 0);
-    NodePtr n1 = g.add_node(v2, 0);
+    OrientedNodePtr n0 = g.add_node(v1, 0);
+    OrientedNodePtr n1 = g.add_node(v2, 0);
     g.add_edge(n0, n1);
-    NodePtr n2 = g.add_node(v3, 0);
+    OrientedNodePtr n2 = g.add_node(v3, 0);
     g.add_edge(n0, n2);
-    NodePtr n3 = g.add_node(v4, 5);
+    OrientedNodePtr n3 = g.add_node(v4, 5);
     g.add_edge(n2, n3);
-    NodePtr n4 = g.add_node(v5, 5);
+    OrientedNodePtr n4 = g.add_node(v5, 5);
 
     EXPECT_EQ(g.nodes.size(), (uint)5);
     EXPECT_EQ(g.nodes[0]->out_nodes.size(), (uint)2);
@@ -597,14 +605,14 @@ TEST(DeBruijnGraphTest,extend_unitig)
     deque<uint16_t> v4({8,2,3});
     deque<uint16_t> v5({5,9,3});
 
-    NodePtr n1 = g.add_node(v1, 0);
-    NodePtr n2 = g.add_node(v2, 0);
+    OrientedNodePtr n1 = g.add_node(v1, 0);
+    OrientedNodePtr n2 = g.add_node(v2, 0);
     g.add_edge(n1, n2);
-    NodePtr n3 = g.add_node(v3, 0);
+    OrientedNodePtr n3 = g.add_node(v3, 0);
     g.add_edge(n1, n3);
-    NodePtr n4 = g.add_node(v4, 5);
+    OrientedNodePtr n4 = g.add_node(v4, 5);
     g.add_edge(n3, n4);
-    NodePtr n5 = g.add_node(v5, 5);
+    OrientedNodePtr n5 = g.add_node(v5, 5);
 
     EXPECT_EQ(g.nodes.size(), (uint)5);
     EXPECT_EQ(g.nodes[0]->out_nodes.size(), (uint)2);
@@ -661,7 +669,7 @@ TEST(DeBruijnGraphTest,extend_unitig)
     g.add_edge(n3, n4);
     n5 = g.add_node(v5, 0);
     g.add_edge(n4, n5);
-    NodePtr n6 = g.add_node(v6, 0);
+    OrientedNodePtr n6 = g.add_node(v6, 0);
     g.add_edge(n5, n6);
     g.add_edge(n6, n1);
 
@@ -700,28 +708,28 @@ TEST(DeBruijnGraphTest,equals)
     deque<uint16_t> v4({8,2,3});
     deque<uint16_t> v5({5,6,8});
 
-    NodePtr n1 = g1.add_node(v1, 0);
-    NodePtr n2 = g1.add_node(v2, 0);
+    OrientedNodePtr n1 = g1.add_node(v1, 0);
+    OrientedNodePtr n2 = g1.add_node(v2, 0);
     g1.add_edge(n1, n2);
-    NodePtr n3 = g1.add_node(v3, 0);
+    OrientedNodePtr n3 = g1.add_node(v3, 0);
     g1.add_edge(n1, n3);
-    NodePtr n4 = g1.add_node(v4, 5);
+    OrientedNodePtr n4 = g1.add_node(v4, 5);
     g1.add_edge(n3, n4);
-    NodePtr n5 = g1.add_node(v5, 5);
+    OrientedNodePtr n5 = g1.add_node(v5, 5);
 
     GraphTester g2(3);
 
-    NodePtr m2 = g2.add_node(v2, 0);
+    OrientedNodePtr m2 = g2.add_node(v2, 0);
     EXPECT_NE(g1, g2);
-    NodePtr m3 = g2.add_node(v3, 0);
+    OrientedNodePtr m3 = g2.add_node(v3, 0);
     EXPECT_NE(g1, g2);
-    NodePtr m5 = g2.add_node(v5, 5);
+    OrientedNodePtr m5 = g2.add_node(v5, 5);
     EXPECT_NE(g1, g2);
-    NodePtr m4 = g2.add_node(v4, 5);
+    OrientedNodePtr m4 = g2.add_node(v4, 5);
     EXPECT_NE(g1, g2);
     g2.add_edge(m3, m4);
     EXPECT_NE(g1, g2);
-    NodePtr m1 = g2.add_node(v1, 0);
+    OrientedNodePtr m1 = g2.add_node(v1, 0);
     EXPECT_NE(g1, g2);
     g2.add_edge(m1, m2);
     EXPECT_NE(g1, g2);
@@ -735,7 +743,7 @@ TEST(DeBruijnGraphTest,equals)
 
     // an extra node does matter
     deque<uint16_t> v6({0,0,3});
-    NodePtr m6 = g2.add_node(v6, 0);
+    OrientedNodePtr m6 = g2.add_node(v6, 0);
     cout << ".";
     EXPECT_NE(g1, g2);
     EXPECT_NE(g2, g1);

@@ -28,16 +28,16 @@ Graph::~Graph()
 
 // add a node in dbg corresponding to a fixed size deque of pangenome graph
 // node/orientation ids and labelled with the read_ids which cover it
-NodePtr Graph::add_node (const deque<uint16_t>& node_ids, uint32_t read_id)
+OrientedNodePtr Graph::add_node (const deque<uint16_t>& node_ids, uint32_t read_id)
 {
     assert(node_ids.size() == size);
 
     if (node_hash.find(node_ids) != node_hash.end()) {
         nodes[node_hash[node_ids]]->read_ids.insert(read_id);
-        return nodes[node_hash[node_ids]];
+        return make_pair(nodes[node_hash[node_ids]],true);
     } else if (node_hash.find(rc_hashed_node_ids(node_ids)) != node_hash.end()) {
         nodes[node_hash[rc_hashed_node_ids(node_ids)]]->read_ids.insert(read_id);
-        return nodes[node_hash[rc_hashed_node_ids(node_ids)]];
+        return make_pair(nodes[node_hash[rc_hashed_node_ids(node_ids)]],false);
     }
 
     NodePtr n;
@@ -52,43 +52,62 @@ NodePtr Graph::add_node (const deque<uint16_t>& node_ids, uint32_t read_id)
 
     next_id++;
     assert(next_id < numeric_limits<uint32_t>::max()||assert_msg("WARNING, reached max de bruijn graph node size"));
-    return n;
+    return make_pair(n,true);
 }
 
-// add an undirected edge
-void Graph::add_edge (NodePtr from, NodePtr to)
+bool edge_is_valid (OrientedNodePtr from, OrientedNodePtr to)
 {
-    deque<uint16_t> rc_from = rc_hashed_node_ids(from->hashed_node_ids);
-    deque<uint16_t> rc_to = rc_hashed_node_ids(to->hashed_node_ids);
-    bool added_edge = false;
+    deque<uint16_t> hashed_node_ids_from = from.first->hashed_node_ids;
+    deque<uint16_t> hashed_node_ids_to = to.first->hashed_node_ids;
+    if (from.second == false) {
+        hashed_node_ids_from = rc_hashed_node_ids(hashed_node_ids_from);
+	cout << "reverse from" << endl;
+    }
 
-    if (overlap_forwards(from->hashed_node_ids, to->hashed_node_ids)
-            or overlap_forwards(from->hashed_node_ids, rc_to)
-            //or overlap_forwards(rc_from, to->hashed_node_ids)
-            //or overlap_forwards(rc_from, rc_to)
-            )
-    {
-        if (from->out_nodes.find(to->id) == from->out_nodes.end())
-        {
-            from->out_nodes.insert(to->id);
-            to->in_nodes.insert(from->id);
-        }
-        added_edge = true;
+    if (to.second == false) {
+        hashed_node_ids_to = rc_hashed_node_ids(hashed_node_ids_to);
+	cout << "reverse to" << endl;
     }
-    if (overlap_backwards(from->hashed_node_ids, to->hashed_node_ids)
-        or overlap_backwards(from->hashed_node_ids, rc_to)
-        //or overlap_backwards(rc_from, to->hashed_node_ids)
-        //or overlap_backwards(rc_from, rc_to)
-        )
+    cout << from.second << to.second << " compare (";
+    for (auto n : hashed_node_ids_from)
     {
-        if (from->in_nodes.find(to->id) == from->in_nodes.end())
-        {
-            from->in_nodes.insert(to->id);
-            to->out_nodes.insert(from->id);
-        }
-        added_edge = true;
+	cout << n << " ";
+    } 
+    cout << ") to (";
+    for (auto n : hashed_node_ids_to)
+    {
+        cout << n << " ";
     }
-    assert(added_edge or assert_msg("did not add edge from " << *from << " to " << *to));
+    cout << ")" << endl;
+
+    return overlap_forwards(hashed_node_ids_from, hashed_node_ids_to);
+}
+
+// add directed edge
+void Graph::add_edge (OrientedNodePtr from, OrientedNodePtr to)
+{
+    assert(edge_is_valid(from,to) or assert_msg("edge from " << *from.first << " to " << *to.first << " is invalid"));
+
+    //uint8_t num_edges_added = 0;
+    if (from.second and from.first->out_nodes.find(to.first->id) == from.first->out_nodes.end())
+    {
+	from.first->out_nodes.insert(to.first->id);
+	//num_edges_added += 1;
+    } else if (!from.second and from.first->in_nodes.find(to.first->id) == from.first->in_nodes.end()){
+	from.first->in_nodes.insert(to.first->id);
+	//num_edges_added += 1;
+    }
+
+    if (to.second and to.first->in_nodes.find(from.first->id) == to.first->in_nodes.end())
+    {
+        to.first->in_nodes.insert(from.first->id);
+        //num_edges_added += 1;
+    } else if (!to.second and to.first->out_nodes.find(from.first->id) == to.first->out_nodes.end()){
+        to.first->out_nodes.insert(from.first->id);
+        //num_edges_added += 1;
+    }
+
+    //assert(num_edges_added == 2 or assert_msg("did not add edge from " << *from << " to " << *to));
 }
 
 // remove de bruijn node with id given
@@ -102,10 +121,12 @@ void Graph::remove_node(const uint32_t dbg_node_id)
         for (auto n : it->second->out_nodes)
         {
             nodes[n]->in_nodes.erase(dbg_node_id);
+	    nodes[n]->out_nodes.erase(dbg_node_id);
         }
         for (auto n : it->second->in_nodes)
         {
             nodes[n]->out_nodes.erase(dbg_node_id);
+	    nodes[n]->in_nodes.erase(dbg_node_id);
         }
 
         // and remove from nodes
@@ -237,6 +258,7 @@ unordered_set<uint32_t> Graph::get_leaves(uint16_t covg_thresh)
     unordered_set<uint32_t> s;
     for (auto c : nodes)
     {
+	cout << "node " << *c.second << " has " << c.second->out_nodes.size() << " + " << c.second->in_nodes.size() << " outnodes" << endl;
         if (c.second->read_ids.size() > covg_thresh) {
             continue;
         } else if (c.second->out_nodes.size() + c.second->in_nodes.size() <= 1) {
@@ -275,16 +297,10 @@ set<deque<uint32_t>> Graph::get_unitigs() {
 // extend a dbg path on either end to a branch point
 void Graph::extend_unitig(deque<uint32_t>& tig)
 {
-    cout << "extend tig ";
-    for (auto n : tig)
-    {
-	cout << n << " ";
-    }
-    cout << endl;
     bool tig_is_empty = (tig.size() == 0);
     bool node_is_isolated = (tig.size() == 1 and nodes[tig.back()]->out_nodes.size()+nodes[tig.back()]->in_nodes.size() == 0);
     if (tig_is_empty or node_is_isolated) {
-        cout << "node is isolated or tig empty" << endl;
+        //cout << "node is isolated or tig empty" << endl;
         return;
     }
 
@@ -293,16 +309,13 @@ void Graph::extend_unitig(deque<uint32_t>& tig)
            and (tig.size() == 1 or tig.back()!=tig.front()))
     {
         tig.push_back(*nodes[tig.back()]->out_nodes.begin());
-	    cout << ".";
     }
     while (nodes[tig.front()]->in_nodes.size() == 1
            and nodes[tig.front()]->out_nodes.size() <= 1
            and (tig.size() == 1 or tig.back()!=tig.front()))
     {
         tig.push_front(*nodes[tig.front()]->in_nodes.begin());
-	    cout << ",";
     }
-    cout << endl;
     if (tig.size() > 1 and tig.back() == tig.front())
         tig.pop_back();
     cout << "got tig ";

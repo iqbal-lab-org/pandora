@@ -312,9 +312,9 @@ TEST(NoiseFilteringTest,construct_debruijn_graph_from_pangraph)
 
     debruijn::Graph dbg_exp(3);
     deque<uint16_t> d = {0,2,4};
-    debruijn::NodePtr n1 = dbg_exp.add_node(d, 0);
+    debruijn::OrientedNodePtr n1 = dbg_exp.add_node(d, 0);
     d = {2,4,6};
-    debruijn::NodePtr n2 = dbg_exp.add_node(d, 0);
+    debruijn::OrientedNodePtr n2 = dbg_exp.add_node(d, 0);
     dbg_exp.add_edge(n1,n2);
     d = {4,6,8};
     n1 = dbg_exp.add_node(d, 0);
@@ -575,7 +575,7 @@ TEST(NoiseFilteringRemoveLeaves,OneLoopAndLongerWrongPath_LeavesRemoved) {
     // incorrect longer
     pg->add_node(6,"6",5, mhs);
     pg->add_node(1,"1",5, mhs);
-    pg->add_node(1,"1",5, mhs);//2
+    pg->add_node(7,"7",5, mhs);//2
     pg->add_node(6,"6",5, mhs);
     pg->add_node(3,"3",5, mhs);
 
@@ -584,12 +584,13 @@ TEST(NoiseFilteringRemoveLeaves,OneLoopAndLongerWrongPath_LeavesRemoved) {
     uint dbg_size = dbg.nodes.size();
     remove_leaves(pg, dbg);
 
-    EXPECT_EQ(pg->nodes.size(),pg_size - 1);
+    EXPECT_EQ(pg->nodes.size(),pg_size - 2);
     EXPECT_TRUE(pg->nodes.find(6)==pg->nodes.end());
+    EXPECT_TRUE(pg->nodes.find(7)==pg->nodes.end());
     EXPECT_EQ(dbg.nodes.size(),dbg_size - 3);
-    EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{12,2,2}])==dbg.nodes.end());
-    EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{2,2,12}])==dbg.nodes.end());
-    EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{2,12,6}])==dbg.nodes.end());
+    EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{12,2,14}])==dbg.nodes.end());
+    EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{2,14,12}])==dbg.nodes.end());
+    EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{14,12,6}])==dbg.nodes.end());
 
     delete pg;
 }
@@ -661,9 +662,9 @@ TEST(NoiseFilteringRemoveLeaves,AllTogether_GraphsLookCorrect)
     remove_leaves(pg, dbg);
 
     deque<uint16_t> d = {0,2,4};
-    debruijn::NodePtr n1 = dbg_exp.add_node(d, 0);
+    debruijn::OrientedNodePtr n1 = dbg_exp.add_node(d, 0);
     d = {2,4,6};
-    debruijn::NodePtr n2 = dbg_exp.add_node(d, 0);
+    debruijn::OrientedNodePtr n2 = dbg_exp.add_node(d, 0);
     dbg_exp.add_edge(n1,n2);
     d = {4,6,8};
     n1 = dbg_exp.add_node(d, 0);
@@ -1419,9 +1420,9 @@ TEST(NoiseFilteringFilterUnitigs,AllTogether_PanGraphIsAsExpected)
 
     debruijn::Graph dbg_exp(3);
     deque<uint16_t> d = {0,2,4};
-    debruijn::NodePtr n1 = dbg_exp.add_node(d, 0);
+    debruijn::OrientedNodePtr n1 = dbg_exp.add_node(d, 0);
     d = {2,4,6};
-    debruijn::NodePtr n2 = dbg_exp.add_node(d, 0);
+    debruijn::OrientedNodePtr n2 = dbg_exp.add_node(d, 0);
     dbg_exp.add_edge(n1,n2);
     d = {4,6,8};
     n1 = dbg_exp.add_node(d, 0);
