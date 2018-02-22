@@ -437,6 +437,7 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
             add_read_hits(s, mh, idx);
             id++;
         }
+        cout << now() << "Added " << id << " reads" << endl;
         covg = covg / genome_size;
         cout << now() << "Estimated coverage: " << covg << endl;
         //cout << "Number of reads found: " << id << endl;
