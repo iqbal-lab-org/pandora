@@ -5,6 +5,7 @@
 #include "path.h"
 #include "kmergraph.h"
 #include "kmernode.h"
+#include "localPRG.h"
 #include <stdint.h>
 #include <iostream>
 #include <cmath>
@@ -920,6 +921,9 @@ TEST_F(KmerGraphTest, save_covg_dist){
 }
 
 TEST_F(KmerGraphTest, save){
+    LocalPRG* l;
+    l = new LocalPRG(1, "test localPRG", "ACGT");
+
     KmerGraph kg;
     deque<Interval> d = {Interval(0,3)};
     Path p1,p2;
@@ -933,8 +937,26 @@ TEST_F(KmerGraphTest, save){
     EXPECT_EQ((uint)0, kg.nodes[0]->num_AT);
 
     //kg.save("../test/test_cases/kmergraph_test.gfa");
-    kg.save("kmergraph_test.gfa");
+    kg.save("kmergraph_test.gfa", l);
 
+    delete l;
+}
+
+TEST_F(KmerGraphTest, save_no_prg){
+    KmerGraph kg;
+    deque<Interval> d = {Interval(0,3)};
+    Path p1,p2;
+    p1.initialize(d);
+    kg.add_node(p1);
+    d = {Interval(1,4)};
+    p2.initialize(d);
+    kg.add_node(p2);
+    kg.add_edge(p1,p2);
+    kg.nodes[0]->covg[1] +=5;
+    EXPECT_EQ((uint)0, kg.nodes[0]->num_AT);
+
+    //kg.save("../test/test_cases/kmergraph_test.gfa");
+    kg.save("kmergraph_test2.gfa");
 }
 
 TEST_F(KmerGraphTest, load){
@@ -950,7 +972,11 @@ TEST_F(KmerGraphTest, load){
     kg.nodes[0]->covg[1] +=5;
 
     //read_kg.load("../test/test_cases/kmergraph_test.gfa");
-    read_kg.load("kmergraph_test.gfa");
+    read_kg.load("kmergraph_test2.gfa");
     EXPECT_EQ(kg, read_kg);
 }
 
+TEST_F(KmerGraphTest, load_prg){
+    KmerGraph read_kg;
+    EXPECT_DEATH(read_kg.load("kmergraph_test.gfa"),"");
+}

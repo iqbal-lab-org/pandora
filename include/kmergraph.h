@@ -51,7 +51,7 @@ class KmerGraph {
     std::vector<std::vector<KmerNodePtr>> get_random_paths(uint);
     float prob_path(const std::vector<KmerNodePtr>&);
     float prob_paths(const std::vector<std::vector<KmerNodePtr>>&);
-    void save (const std::string&);
+    void save (const std::string&, const LocalPRG* = nullptr);
     void load (const std::string&);
     bool operator == (const KmerGraph& y) const;
     friend std::ostream& operator<< (std::ostream & out, KmerGraph const& data);

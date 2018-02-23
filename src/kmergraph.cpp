@@ -517,13 +517,22 @@ uint KmerGraph::min_path_length() {
     return len[0];
 }
 
-void KmerGraph::save(const string &filepath) {
+void KmerGraph::save(const string &filepath, const LocalPRG* localprg) {
     ofstream handle;
     handle.open(filepath);
     handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
     for (auto c : nodes) {
-        handle << "S\t" << c.second->id << "\t" << c.second->path << "\tFC:i:" << c.second->covg[0] << "\t" << "\tRC:i:"
+        handle << "S\t" << c.second->id << "\t";
+
+        if (localprg != nullptr) {
+            handle << localprg->string_along_path(c.second->path);
+        } else {
+            handle << c.second->path;
+        }
+
+        handle << "\tFC:i:" << c.second->covg[0] << "\t" << "\tRC:i:"
                << c.second->covg[1] << endl;//"\t" << (unsigned)nodes[i].second->num_AT << endl;
+
         for (uint32_t j = 0; j < c.second->outNodes.size(); ++j) {
             handle << "L\t" << c.second->id << "\t+\t" << c.second->outNodes[j]->id << "\t+\t0M" << endl;
         }
@@ -547,6 +556,9 @@ void KmerGraph::load(const string &filepath) {
                 assert(split_line.size() >= 4);
                 id = stoi(split_line[1]);
                 ss << split_line[2];
+                char c = ss.peek();
+                assert (isdigit(c) or assert_msg("Cannot read in this sort of kmergraph GFA as it does not label nodes "
+                                                         "with their PRG path"));
                 ss >> p;
                 ss.clear();
                 //add_node(p);
