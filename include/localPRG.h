@@ -60,8 +60,6 @@ class LocalPRG {
     std::vector<KmerNodePtr> find_path_and_variants(PanNodePtr,
                                                     const std::string&,
                                                     uint w=0,
-                                                    bool max_path=true,
-                                                    bool min_path=false,
                                                     bool output_vcf = false,
                                                     bool output_comparison_paths = false,
                                                     bool output_covgs = false) const;

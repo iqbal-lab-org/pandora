@@ -1049,7 +1049,7 @@ void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, co
 }*/
 
 vector<KmerNodePtr>
-LocalPRG::find_path_and_variants(PanNodePtr pnode, const string &prefix, uint w, bool max_path, bool min_path,
+LocalPRG::find_path_and_variants(PanNodePtr pnode, const string &prefix, uint w,
                                  bool output_vcf, bool output_comparison_paths, bool output_covgs) const {
     //cout << "called find path and variants" << endl;
     string new_name = name;
@@ -1067,76 +1067,40 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode, const string &prefix, uint w,
         return kmp;
     }
 
-    if (max_path) {
-        //cout << "find maxpath" << endl;
-        ppath = pnode->kmer_prg.find_max_path(kmp);
-        //cout << "found maxpath" << endl;
-        lmp = localnode_path_from_kmernode_path(kmp, w);
+    //cout << "find maxpath" << endl;
+    ppath = pnode->kmer_prg.find_max_path(kmp);
+    //cout << "found maxpath" << endl;
+    lmp = localnode_path_from_kmernode_path(kmp, w);
 
-        write_path_to_fasta(prefix + "." + new_name + ".kmlp.fasta", lmp, ppath);
+    write_path_to_fasta(prefix + "." + new_name + ".kmlp.fasta", lmp, ppath);
 
-        cout << now() << "LocalPRG ids on max likelihood path for " << name << " : ";
-        for (uint i = 0; i != lmp.size(); ++i) {
-            cout << lmp[i]->id << " ";
-        }
-        cout << endl;
+    cout << now() << "LocalPRG ids on max likelihood path for " << name << " : ";
+    for (uint i = 0; i != lmp.size(); ++i) {
+        cout << lmp[i]->id << " ";
+    }
+    cout << endl;
 
-        if (output_vcf) {
-            VCF vcf;
-            build_vcf(vcf, prg.top_path());
-            add_sample_to_vcf(vcf, prg.top_path(), lmp, "sample");
-            vcf.save(prefix + "." + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
-        }
-        if (output_comparison_paths) {
-            /*cout << "kmlp: ";
-            for (uint i=0; i!=kmp.size(); ++i)
-            {
-            cout << kmp[i]->id << " ";
-            }
-            cout << endl;*/
-            vector<vector<KmerNodePtr>> altkmps = pnode->kmer_prg.get_random_paths(1000);
-            for (uint i = 0; i != altkmps.size(); ++i) {
-                if (altkmps[i] != kmp) {
-                    /*cout << "altkmp: ";
-                            for (uint j=0; j!=altkmps[i].size(); ++j)
-                            {
-                                cout << altkmps[i][j]->id << " ";
-                            }
-                    cout << endl;*/
-                    almp = localnode_path_from_kmernode_path(altkmps[i], w);
-                    append_path_to_fasta(prefix + "." + new_name + ".altpaths.fasta", almp,
-                                         pnode->kmer_prg.prob_path(altkmps[i]));
-                }
+    if (output_vcf) {
+        VCF vcf;
+        build_vcf(vcf, prg.top_path());
+        add_sample_to_vcf(vcf, prg.top_path(), lmp, "sample");
+        vcf.save(prefix + "." + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
+    }
+    if (output_comparison_paths) {
+        vector<vector<KmerNodePtr>> altkmps = pnode->kmer_prg.get_random_paths(1000);
+        for (uint i = 0; i != altkmps.size(); ++i) {
+            if (altkmps[i] != kmp) {
+                almp = localnode_path_from_kmernode_path(altkmps[i], w);
+                append_path_to_fasta(prefix + "." + new_name + ".altpaths.fasta", almp,
+                                     pnode->kmer_prg.prob_path(altkmps[i]));
             }
         }
-        if (output_covgs) {
-            vector<uint> covgs = get_covgs_from_kmernode_paths(lmp, kmp);
-            write_covgs_to_file(prefix + "." + new_name + ".kmlp.covgs", covgs);
-        }
+    }
+    if (output_covgs) {
+        vector<uint> covgs = get_covgs_from_kmernode_paths(lmp, kmp);
+        write_covgs_to_file(prefix + "." + new_name + ".kmlp.covgs", covgs);
     }
 
-    if (min_path) {
-        kmp.clear();
-        lmp.clear();
-
-        ppath = pnode->kmer_prg.find_min_path(kmp);
-        lmp = localnode_path_from_kmernode_path(kmp, w);
-
-        write_path_to_fasta(prefix + "." + new_name + ".kminp.fasta", lmp, ppath);
-
-        cout << "localPRG node ids on min path: ";
-        for (uint i = 0; i != lmp.size(); ++i) {
-            cout << lmp[i]->id << " ";
-        }
-        cout << endl;
-
-        if (output_vcf) {
-            VCF vcf;
-            build_vcf(vcf, prg.top_path());
-            add_sample_to_vcf(vcf, prg.top_path(), lmp, "sample");
-            vcf.save(prefix + "." + new_name + ".kminp.vcf", true, true, true, true, true, true, true);
-        }
-    }
     return kmp;
 }
 

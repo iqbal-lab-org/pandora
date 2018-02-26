@@ -353,54 +353,6 @@ vector<vector<KmerNodePtr>> KmerGraph::find_max_paths(uint num) {
     return paths;
 }
 
-float KmerGraph::find_min_path(vector<KmerNodePtr> &maxpath) {
-    // finds a paths with best minimum probability
-
-    // need to catch if p not asserted...
-
-    if (sorted_nodes.empty()) {
-        sort_topologically();
-        check();
-    }
-
-    // create vectors to hold the intermediate values
-    vector<float> M(sorted_nodes.size(), 0); // min log prob of best path from pos i to end of graph
-    vector<int> len(sorted_nodes.size(), 0); // length of min log path from pos i to end of graph
-    vector<uint> prev(sorted_nodes.size(), sorted_nodes.size() - 1); // prev node along path
-    float best_min;
-    int best_len;
-
-    for (uint j = sorted_nodes.size() - 1; j != 0; --j) {
-        best_min = numeric_limits<float>::lowest();
-        best_len = 0; // tie break with longest kmer path
-        for (uint i = 0; i != sorted_nodes[j - 1]->outNodes.size(); ++i) {
-            if ((sorted_nodes[j - 1]->outNodes[i]->id == sorted_nodes.size() - 1 and thresh > best_min + 0.000001) or
-                (M[sorted_nodes[j - 1]->outNodes[i]->id] > best_min + 0.000001) or
-                (best_min - M[sorted_nodes[j - 1]->outNodes[i]->id] <= 0.000001 and
-                 len[sorted_nodes[j - 1]->outNodes[i]->id] > best_len)) {
-                M[j - 1] = min(prob(j - 1), M[sorted_nodes[j - 1]->outNodes[i]->id]);
-                len[j - 1] = 1 + len[sorted_nodes[j - 1]->outNodes[i]->id];
-                prev[j - 1] = sorted_nodes[j - 1]->outNodes[i]->id;
-                if (sorted_nodes[j - 1]->outNodes[i]->id != sorted_nodes.size() - 1) {
-                    best_min = M[sorted_nodes[j - 1]->outNodes[i]->id];
-                    best_len = len[sorted_nodes[j - 1]->outNodes[i]->id];
-                } else {
-                    best_min = thresh;
-                }
-            }
-        }
-    }
-
-    // extract path
-    uint prev_node = prev[0];
-    while (prev_node < sorted_nodes.size() - 1) {
-        maxpath.push_back(sorted_nodes[prev_node]);
-        prev_node = prev[prev_node];
-    }
-
-    return M[0];
-}
-
 vector<vector<KmerNodePtr>> KmerGraph::get_random_paths(uint num_paths) {
     // find a random path through kmergraph picking ~uniformly from the outnodes at each point
     vector<vector<KmerNodePtr>> rpaths;

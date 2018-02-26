@@ -47,7 +47,6 @@ static void show_map_usage() {
               << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
               << "\t--output_kg\t\t\tSave kmer graphs with fwd and rev coverage annotations for found localPRGs\n"
               << "\t--output_vcf\t\t\tSave a vcf file for each found localPRG\n"
-              << "\t--method\t\t\tMethod for path inference, can be max likelihood (default), 'min' to maximize\n"
               << "\t\t\t\t\tthe min probability on the path, or 'both' to create outputs with both methods\n"
               << "\t--output_comparison_paths\tSave a fasta file for a random selection of paths through localPRG\n"
               << "\t--output_covgs\tSave a file of covgs for each localPRG present, one number per base of fasta file\n"
@@ -68,7 +67,7 @@ int pandora_map(int argc, char *argv[]) {
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000; // default parameters
     int max_diff = 500;
     float e_rate = 0.11;
-    bool output_kg = false, output_vcf = false, max_path = true, min_path = false;
+    bool output_kg = false, output_vcf = false;
     bool output_comparison_paths = false, illumina = false, clean = false;
     bool output_covgs = false;
     for (int i = 1; i < argc; ++i) {
@@ -135,19 +134,6 @@ int pandora_map(int argc, char *argv[]) {
             output_vcf = true;
         } else if ((arg == "--output_covgs")) {
             output_covgs = true;
-        } else if ((arg == "--method")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                string method = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
-                if (method == "min") {
-                    max_path = false;
-                    min_path = true;
-                } else if (method == "both") {
-                    min_path = true;
-                }
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--method option requires one argument." << std::endl;
-                return 1;
-            }
         } else if ((arg == "--output_comparison_paths")) {
             output_comparison_paths = true;
 	} else if ((arg == "--illumina")) {
@@ -175,8 +161,6 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\terror_rate\t" << e_rate << endl;
     cout << "\toutput_kg\t" << output_kg << endl;
     cout << "\toutput_vcf\t" << output_vcf << endl;
-    cout << "\tmax_path\t" << max_path << endl;
-    cout << "\tmin_path\t" << min_path << endl;
     cout << "\toutput_comparison_paths\t" << output_comparison_paths << endl;
     cout << "\tillumina\t" << illumina << endl;
     cout << "\tclean\t" << clean << endl << endl;
@@ -207,7 +191,7 @@ int pandora_map(int argc, char *argv[]) {
 
     cout << now() << "Find PRG paths and write to files:" << endl;
     for (auto c: pangraph->nodes) {
-        prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, max_path, min_path, output_vcf,
+        prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, output_vcf,
                                                        output_comparison_paths, output_covgs);
         if (output_kg) {
 	        c.second->kmer_prg.save(prefix + "." + c.second->get_name() + ".kg.gfa", prgs[c.second->prg_id]);

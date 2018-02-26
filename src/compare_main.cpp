@@ -50,7 +50,6 @@ static void show_compare_usage()
 	      << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
 	      << "\t--output_kg\t\t\tSave kmer graphs with fwd and rev coverage annotations for found localPRGs\n"
 	      << "\t--output_vcf\t\t\tSave a vcf file for each found localPRG\n"
-	      << "\t--method\t\t\tMethod for path inference, can be max likelihood (default), 'min' to maximize\n"
 	      << "\t\t\t\t\tthe min probability on the path, or 'both' to create outputs with both methods\n"
 	      << "\t--output_comparison_paths\tSave a fasta file for a random selection of paths through localPRG\n"
               << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is shorter with low error rate\n"
@@ -98,7 +97,7 @@ int pandora_compare(int argc, char* argv[])
     uint32_t w=14, k=15, min_cluster_size=10, genome_size=5000000; // default parameters
     int max_diff = 500;
     float e_rate = 0.11;
-    bool output_kg=false, output_vcf=false, max_path=true, min_path=false, output_comparison_paths=false, illumina=false;
+    bool output_kg=false, output_vcf=false, output_comparison_paths=false, illumina=false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -161,21 +160,6 @@ int pandora_compare(int argc, char* argv[])
 	    output_kg = true;
 	} else if ((arg == "--output_vcf")) {
             output_vcf = true;
-	} else if ((arg == "--method")) {
-	    if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                string method = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
-		if (method == "min")
-		{
-		    max_path = false;
-		    min_path = true;
-		} else if (method == "both")
-		{
-		    min_path = true;
-		}
-            } else { // Uh-oh, there was no argument to the destination option.
-                  std::cerr << "--method option requires one argument." << std::endl;
-                return 1;
-            }
 	} else if ((arg == "--output_comparison_paths")) {
             output_comparison_paths = true;
 	} else if ((arg == "--illumina")) {
@@ -201,8 +185,6 @@ int pandora_compare(int argc, char* argv[])
     cout << "\terror_rate\t" << e_rate << endl;
     cout << "\toutput_kg\t" << output_kg << endl;
     cout << "\toutput_vcf\t" << output_vcf << endl;
-    cout << "\tmax_path\t" << max_path << endl;
-    cout << "\tmin_path\t" << min_path << endl;
     cout << "\toutput_comparison_paths\t" << output_comparison_paths << endl;
     cout << "\tillumina\t" << illumina << endl << endl;
 
@@ -244,7 +226,7 @@ int pandora_compare(int argc, char* argv[])
         cout << now() << "Find max likelihood PRG paths" << endl;
         for (const auto c: pangraph_sample->nodes)
         {
-	        //kmp = prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, max_path, min_path, output_vcf, output_comparison_paths);
+	        //kmp = prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, output_vcf, output_comparison_paths);
 	        kmp.clear();
 	        c.second->kmer_prg.find_max_path(kmp);
 	        pangraph->add_node(c.second->prg_id, c.second->name, sample->first, kmp, prgs[c.second->prg_id]);
