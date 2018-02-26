@@ -736,6 +736,48 @@ TEST_F(LocalPRGTest, localnode_path_from_kmernode_path)
     delete idx;
 }
 
+TEST_F(LocalPRGTest, get_covgs_from_kmernode_paths)
+{
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+    LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
+
+    Index* idx;
+    idx = new Index();
+
+    KmerHash hash;
+
+    l3.minimizer_sketch(idx, 2, 3);
+    for (auto n : l3.kmer_prg.nodes) {
+        n.second->covg[0]+=1;
+    }
+    vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
+    vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp,2);
+    vector<uint> covgs = l3.get_covgs_from_kmernode_paths(lmp, kmp);
+    vector<uint> covgs_exp = {0,1,1,1};
+    EXPECT_ITERABLE_EQ( vector<uint>,covgs_exp, covgs);
+
+    idx->clear();
+    l4.minimizer_sketch(idx, 1, 3);
+    for (auto n : l4.kmer_prg.nodes) {
+        n.second->covg[0]+=1;
+    }
+    kmp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[1], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[5],l4.kmer_prg.nodes[7], l4.kmer_prg.nodes[9], l4.kmer_prg.nodes[12], l4.kmer_prg.nodes[15], l4.kmer_prg.nodes[18], l4.kmer_prg.nodes[21], l4.kmer_prg.nodes[23], l4.kmer_prg.nodes[25], l4.kmer_prg.nodes[27], l4.kmer_prg.nodes[29]};
+    lmp = l4.localnode_path_from_kmernode_path(kmp, 1);
+    covgs = l3.get_covgs_from_kmernode_paths(lmp, kmp);
+    covgs_exp = {1,2,3,3,3,3,3,3,3,3,3,3,2,1};
+
+    EXPECT_ITERABLE_EQ( vector<uint>,covgs_exp, covgs);
+
+    kmp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[5],l4.kmer_prg.nodes[12], l4.kmer_prg.nodes[15], l4.kmer_prg.nodes[18],l4.kmer_prg.nodes[25]};
+    lmp = l4.localnode_path_from_kmernode_path(kmp, 2);
+    covgs = l3.get_covgs_from_kmernode_paths(lmp, kmp);
+    covgs_exp = {0,1,2,2,1,1,2,3,2,1,1,1,1,0};
+
+    EXPECT_ITERABLE_EQ( vector<uint>,covgs_exp, covgs);
+
+    delete idx;
+}
+
 /*TEST_F(LocalPRGTest, update_covg_with_hit)
 {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");

@@ -609,6 +609,53 @@ LocalPRG::localnode_path_from_kmernode_path(const vector<KmerNodePtr> &kmernode_
     return localnode_path;
 }
 
+vector<uint>
+LocalPRG::get_covgs_from_kmernode_paths(const vector<LocalNodePtr> &localnode_path,
+                                        const vector<KmerNodePtr> &kmernode_path) const {
+
+    //define 0 coverage for each base in localnode path
+    vector<vector<uint>> coverages;
+    for(auto n : localnode_path) {
+        vector<uint> v(n->pos.length,0);
+        coverages.push_back(v);
+    }
+
+    // collect covgs
+    uint j=0, k=0, start=0, end=0;
+    for (auto kmernode_ptr : kmernode_path) {
+        //cout << kmernode_ptr->path << endl;
+
+        if (kmernode_ptr->path.length() == 0)
+            continue;
+
+        while (j<localnode_path.size() and localnode_path[j]->pos.end < kmernode_ptr->path.start) {
+            //cout << localnode_path[j]->pos.end << " < " << kmernode_ptr->path.start << endl;
+            j++;
+            //cout << "j = " << j << endl;
+        }
+        k = j;
+        for (auto interval : kmernode_ptr->path.path) {
+            //cout << "k = " << k << " and " << localnode_path[k]->pos << " ~ " << interval << endl;
+            assert(localnode_path[k]->pos.start <= interval.start
+                   and localnode_path[k]->pos.end >= interval.end);
+            start = interval.start - localnode_path[k]->pos.start;
+            end = min(start + interval.length, localnode_path[k]->pos.end);
+            //cout << "add from " << start << " to " << end << endl;
+            for (uint l = start; l < end; ++l) {
+                coverages[k][l] += kmernode_ptr->covg[0]+kmernode_ptr->covg[1];
+            }
+            k++;
+        }
+    }
+
+    vector<uint> return_coverages;
+    for(auto v : coverages){
+        return_coverages.insert(return_coverages.end(), v.begin(), v.end());
+    }
+
+    return return_coverages;
+}
+
 /*void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
 {
     bool added = false;
