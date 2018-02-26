@@ -778,6 +778,31 @@ TEST_F(LocalPRGTest, get_covgs_from_kmernode_paths)
     delete idx;
 }
 
+
+TEST_F(LocalPRGTest, write_covgs_to_file)
+{
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+
+    Index* idx;
+    idx = new Index();
+
+    KmerHash hash;
+
+    l3.minimizer_sketch(idx, 2, 3);
+    for (auto n : l3.kmer_prg.nodes) {
+        n.second->covg[0]+=1;
+    }
+    vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
+    vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp,2);
+    vector<uint> covgs = l3.get_covgs_from_kmernode_paths(lmp, kmp);
+    vector<uint> covgs_exp = {0,1,1,1};
+    EXPECT_ITERABLE_EQ( vector<uint>,covgs_exp, covgs);
+
+    l3.write_covgs_to_file("localPRG_test.covgs",covgs);
+
+    delete idx;
+}
+
 /*TEST_F(LocalPRGTest, update_covg_with_hit)
 {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");

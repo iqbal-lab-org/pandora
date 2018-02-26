@@ -656,6 +656,20 @@ LocalPRG::get_covgs_from_kmernode_paths(const vector<LocalNodePtr> &localnode_pa
     return return_coverages;
 }
 
+void LocalPRG::write_covgs_to_file(const string &filepath, const vector<uint> & covgs) const {
+    ofstream handle;
+    handle.open(filepath);
+    assert (!handle.fail());
+
+    handle << ">" << name << endl;
+    for (auto i : covgs) {
+        handle << i << " ";
+    }
+    handle << endl;
+
+    handle.close();
+}
+
 /*void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
 {
     bool added = false;
@@ -1036,7 +1050,7 @@ void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, co
 
 vector<KmerNodePtr>
 LocalPRG::find_path_and_variants(PanNodePtr pnode, const string &prefix, uint w, bool max_path, bool min_path,
-                                 bool output_vcf, bool output_comparison_paths) const {
+                                 bool output_vcf, bool output_comparison_paths, bool output_covgs) const {
     //cout << "called find path and variants" << endl;
     string new_name = name;
     std::replace(new_name.begin(), new_name.end(), ' ', '_');
@@ -1094,6 +1108,10 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode, const string &prefix, uint w,
                                          pnode->kmer_prg.prob_path(altkmps[i]));
                 }
             }
+        }
+        if (output_covgs) {
+            vector<uint> covgs = get_covgs_from_kmernode_paths(lmp, kmp);
+            write_covgs_to_file(prefix + "." + new_name + ".kmlp.covgs", covgs);
         }
     }
 

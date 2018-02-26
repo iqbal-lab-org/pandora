@@ -50,6 +50,7 @@ static void show_map_usage() {
               << "\t--method\t\t\tMethod for path inference, can be max likelihood (default), 'min' to maximize\n"
               << "\t\t\t\t\tthe min probability on the path, or 'both' to create outputs with both methods\n"
               << "\t--output_comparison_paths\tSave a fasta file for a random selection of paths through localPRG\n"
+              << "\t--output_covgs\tSave a file of covgs for each localPRG present, one number per base of fasta file\n"
               << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is shorter with low error rate\n"
               << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
               << std::endl;
@@ -69,6 +70,7 @@ int pandora_map(int argc, char *argv[]) {
     float e_rate = 0.11;
     bool output_kg = false, output_vcf = false, max_path = true, min_path = false;
     bool output_comparison_paths = false, illumina = false, clean = false;
+    bool output_covgs = false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -131,6 +133,8 @@ int pandora_map(int argc, char *argv[]) {
             output_kg = true;
         } else if ((arg == "--output_vcf")) {
             output_vcf = true;
+        } else if ((arg == "--output_covgs")) {
+            output_covgs = true;
         } else if ((arg == "--method")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 string method = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
@@ -204,7 +208,7 @@ int pandora_map(int argc, char *argv[]) {
     cout << now() << "Find PRG paths and write to files:" << endl;
     for (auto c: pangraph->nodes) {
         prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, max_path, min_path, output_vcf,
-                                                       output_comparison_paths);
+                                                       output_comparison_paths, output_covgs);
         if (output_kg) {
 	        c.second->kmer_prg.save(prefix + "." + c.second->get_name() + ".kg.gfa", prgs[c.second->prg_id]);
         }
