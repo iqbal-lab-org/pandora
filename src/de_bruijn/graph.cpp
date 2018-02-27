@@ -301,7 +301,7 @@ void Graph::extend_unitig(deque<uint32_t>& tig) {
     bool node_is_isolated = (tig.size() == 1
                              and nodes[tig.back()]->out_nodes.size() + nodes[tig.back()]->in_nodes.size() == 0);
     if (tig_is_empty or node_is_isolated) {
-        cout << "node is isolated or tig empty" << endl;
+        //cout << "node is isolated or tig empty" << endl;
         return;
     }
 
@@ -309,57 +309,63 @@ void Graph::extend_unitig(deque<uint32_t>& tig) {
     bool use_outnodes = true;
     while (can_extend) {
 
-        cout << "tig in progress before b: ";
+        /*cout << "tig in progress before b: ";
         for (auto n : tig) {
             cout << n << " ";
         }
-        cout << endl;
+        cout << endl;*/
 
-        if (use_outnodes)
+        if (use_outnodes)// and find(tig.begin(), tig.end(), *nodes[tig.back()]->out_nodes.begin())!=tig.end())
             tig.push_back(*nodes[tig.back()]->out_nodes.begin());
-        else
+        else //if (find(tig.begin(), tig.end(), *nodes[tig.back()]->in_nodes.begin())!=tig.end())
             tig.push_back(*nodes[tig.back()]->in_nodes.begin());
 
         if (find(nodes[tig.back()]->in_nodes.begin(), nodes[tig.back()]->in_nodes.end(),
-                 *----tig.end()) == nodes[tig.back()]->in_nodes.end()) {
+                 *----tig.end()) != nodes[tig.back()]->in_nodes.end()) {
             can_extend = nodes[tig.back()]->out_nodes.size() == 1
                          and nodes[tig.back()]->in_nodes.size() <= 1
                          and tig.front() != tig.back();
             use_outnodes = true;
+            //cout << "A";
         } else if (find(nodes[tig.back()]->out_nodes.begin(), nodes[tig.back()]->out_nodes.end(),
-                        *----tig.end()) == nodes[tig.back()]->out_nodes.end()) {
+                        *----tig.end()) != nodes[tig.back()]->out_nodes.end()) {
             can_extend = nodes[tig.back()]->in_nodes.size() == 1
                          and nodes[tig.back()]->out_nodes.size() <= 1
                          and tig.front() != tig.back();
             use_outnodes = false;
+            //cout << "B";
         } else {
             can_extend = false;
+            //cout << "C";
         }
 
-        cout << "tig in progress b: ";
+        /*cout << "tig in progress b: ";
         for (auto n : tig) {
             cout << n << " ";
         }
-        cout << endl;
+        cout << endl;*/
     }
 
     if (tig.size() == 1) {
         can_extend = nodes[tig.front()]->in_nodes.size() == 1 and nodes[tig.front()]->out_nodes.size() <= 1;
         use_outnodes = false;
+        //cout << "D";
     } else {
 
         if (find(nodes[tig.front()]->in_nodes.begin(), nodes[tig.front()]->in_nodes.end(),
-                 *++tig.begin()) == nodes[tig.front()]->in_nodes.end()) {
+                 *++tig.begin()) != nodes[tig.front()]->in_nodes.end()) {
             can_extend = nodes[tig.front()]->out_nodes.size() == 1
                          and nodes[tig.front()]->in_nodes.size() <= 1
                          and tig.front() != tig.back();
             use_outnodes = true;
+            //cout << "E";
         } else if (find(nodes[tig.front()]->out_nodes.begin(), nodes[tig.front()]->out_nodes.end(),
-                        *++tig.begin()) == nodes[tig.front()]->out_nodes.end()) {
+                        *++tig.begin()) != nodes[tig.front()]->out_nodes.end()) {
             can_extend = nodes[tig.front()]->in_nodes.size() == 1
                          and nodes[tig.front()]->out_nodes.size() <= 1
                          and tig.front() != tig.back();
             use_outnodes = false;
+            //cout << "F";
         } else {
             can_extend = false;
         }
@@ -367,42 +373,45 @@ void Graph::extend_unitig(deque<uint32_t>& tig) {
 
     while (can_extend)
     {
-        cout << "tig in progress before f: ";
+        /*cout << "tig in progress before f: ";
         for (auto n : tig) {
             cout << n << " ";
         }
-        cout << endl;
+        cout << endl;*/
 
-        if (use_outnodes)
+        if (use_outnodes)// and find(tig.begin(), tig.end(), *nodes[tig.front()]->out_nodes.begin())!=tig.end())
             tig.push_front(*nodes[tig.front()]->out_nodes.begin());
-        else
+        else //if (find(tig.begin(), tig.end(), *nodes[tig.front()]->in_nodes.begin())!=tig.end())
             tig.push_front(*nodes[tig.front()]->in_nodes.begin());
 
         if (find(nodes[tig.front()]->in_nodes.begin(), nodes[tig.front()]->in_nodes.end(),
-                 *++tig.begin()) == nodes[tig.front()]->in_nodes.end()) {
+                 *++tig.begin()) != nodes[tig.front()]->in_nodes.end()) {
             can_extend = nodes[tig.front()]->out_nodes.size() == 1
                          and nodes[tig.front()]->in_nodes.size() <= 1
                          and tig.front() != tig.back();
             use_outnodes = true;
+            //cout << "G";
         } else if (find(nodes[tig.front()]->out_nodes.begin(), nodes[tig.front()]->out_nodes.end(),
-                        *++tig.begin()) == nodes[tig.front()]->out_nodes.end()) {
+                        *++tig.begin()) != nodes[tig.front()]->out_nodes.end()) {
             can_extend = nodes[tig.front()]->in_nodes.size() == 1
                          and nodes[tig.front()]->out_nodes.size() <= 1
                          and tig.front() != tig.back();
             use_outnodes = false;
+            //cout << "H";
         } else {
             can_extend = false;
+            //cout << "I";
         }
         
-        cout << "tig in progress f: ";
+        /*cout << "tig in progress f: ";
         for (auto n : tig)
         {   
             cout << n << " ";
         }
-        cout << endl;
+        cout << endl;*/
     }
 
-    while (tig.size() > 1 and find(tig.begin(), --tig.end(), tig.back()) == tig.end())
+    while (tig.size() > 1 and tig.front() == tig.back())//find(tig.begin(), --tig.end(), tig.back()) == tig.end())
         tig.pop_back();
 
     cout << "got tig of length " << tig.size() << ": ";
@@ -411,7 +420,6 @@ void Graph::extend_unitig(deque<uint32_t>& tig) {
         cout << n << " ";
     }
     cout << endl;
-    cout << "return tig" << endl;
 }
 
 bool Graph::operator == (const Graph& y) const
