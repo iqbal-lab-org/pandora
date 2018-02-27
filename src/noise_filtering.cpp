@@ -320,17 +320,17 @@ void find_reads_along_tig(const debruijn::Graph & dbg,
             reads_along_tig.insert(pg->reads.at(r));
         }
     }
-    /*cout << "candidate reads ";
+    cout << "candidate reads ";
     for (auto r : reads_along_tig)
     {
         cout << r->id << " ";
     }
-    cout << endl;*/
+    cout << endl;
 
     // filter out some which don't really overlap the unitig, keeping those
     // which overlap at least consecutive 2 dbg nodes or only one node
     all_reads_along_tig = true;
-    //cout << "kept reads along tig: ";
+    cout << "kept reads along tig: ";
     for (unordered_set<pangenome::ReadPtr>::iterator r=reads_along_tig.begin(); r!=reads_along_tig.end();)
     {
         if ((*r)->nodes.size() > dbg.size and (*r)->find_position(pg_node_ids, pg_node_orients, dbg.size+1).first == std::numeric_limits<uint>::max())
@@ -338,7 +338,7 @@ void find_reads_along_tig(const debruijn::Graph & dbg,
             r = reads_along_tig.erase(r);
             all_reads_along_tig = false;
         } else {
-            //cout << (*r)->id << " ";
+            cout << (*r)->id << " ";
             ++r;
         }
     }
@@ -454,8 +454,8 @@ void filter_unitigs(pangenome::Graph* pg, debruijn::Graph & dbg, const uint16_t&
                     dbg.remove_read_from_node(r->id, d[i]);
                 }
             }
-        //} else {
-        //    cout << "tig had enough reads" << endl;
+        } else {
+            cout << "tig had enough reads" << endl;
         }
         reads_along_tig.clear();
     }

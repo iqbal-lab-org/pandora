@@ -305,20 +305,81 @@ void Graph::extend_unitig(deque<uint32_t>& tig)
         return;
     }
 
-    while (nodes[tig.back()]->out_nodes.size() == 1
-           and nodes[tig.back()]->in_nodes.size() <= 1
-           and (tig.size() == 1 or tig.back()!=tig.front()))
+    bool can_extend = nodes[tig.back()]->out_nodes.size() == 1 and nodes[tig.back()]->in_nodes.size() <= 1;
+    bool use_outnodes = true;
+    while (can_extend)
     {
-        tig.push_back(*nodes[tig.back()]->out_nodes.begin());
+	if (use_outnodes)
+            tig.push_back(*nodes[tig.back()]->out_nodes.begin());
+	else 
+	    tig.push_back(*nodes[tig.back()]->out_nodes.begin());
+
+	if (find(nodes[tig.back()]->in_nodes.begin(), nodes[tig.back()]->in_nodes.end(), *(tig.end()-2) == nodes[tig.back()]->in_nodes.end())){
+	    can_extend = nodes[tig.back()]->out_nodes.size() == 1
+   				and nodes[tig.back()]->in_nodes.size() <= 1
+           			and (tig.size() == 1 or tig.front()!=tig.back());
+	    use_outnodes = true;
+	} else if (find(nodes[tig.back()]->out_nodes.begin(), nodes[tig.back()]->out_nodes.end(), *(tig.end()-2) == nodes[tig.back()]->out_nodes.end())) {
+	    can_extend = nodes[tig.back()]->in_nodes.size() == 1
+                                and nodes[tig.back()]->out_nodes.size() <= 1
+                                and (tig.size() == 1 or tig.front()!=tig.back());
+	    use_outnodes = false;
+	}
+
+	cout << "tig in progress b: ";
+        for (auto n : tig)
+        {
+            cout << n << " ";
+        }
+        cout << endl;
     }
-    while (nodes[tig.front()]->in_nodes.size() == 1
-           and nodes[tig.front()]->out_nodes.size() <= 1
-           and (tig.size() == 1 or tig.back()!=tig.front()))
+
+    if (tig.size() == 1){
+	can_extend = nodes[tig.front()]->in_nodes.size() == 1 and nodes[tig.front()]->out_nodes.size() <= 1;
+    } else {
+	if (find(nodes[tig.front()]->in_nodes.begin(), nodes[tig.front()]->in_nodes.end(), *(tig.begin()+1) == nodes[tig.front()]->in_nodes.end())){
+            can_extend = nodes[tig.front()]->out_nodes.size() == 1
+                                and nodes[tig.front()]->in_nodes.size() <= 1
+                                and tig.front()!=tig.back();
+            use_outnodes = true;
+        } else if (find(nodes[tig.front()]->out_nodes.begin(), nodes[tig.front()]->out_nodes.end(), *(tig.begin()+1) == nodes[tig.front()]->out_nodes.end())) {
+            can_extend = nodes[tig.front()]->in_nodes.size() == 1
+                                and nodes[tig.front()]->out_nodes.size() <= 1
+                                and (tig.front()!=tig.back());
+            use_outnodes = false;
+        }
+    }
+
+    while (can_extend)
     {
-        tig.push_front(*nodes[tig.front()]->in_nodes.begin());
+        if (use_outnodes)
+            tig.push_front(*nodes[tig.front()]->out_nodes.begin());
+        else
+            tig.push_front(*nodes[tig.front()]->out_nodes.begin());
+
+        if (find(nodes[tig.front()]->in_nodes.begin(), nodes[tig.front()]->in_nodes.end(), *(tig.begin()+1) == nodes[tig.front()]->in_nodes.end())){
+            can_extend = nodes[tig.front()]->out_nodes.size() == 1
+                                and nodes[tig.front()]->in_nodes.size() <= 1
+                                and (tig.size() == 1 or tig.front()!=tig.back());
+            use_outnodes = true;
+        } else if (find(nodes[tig.front()]->out_nodes.begin(), nodes[tig.front()]->out_nodes.end(), *(tig.begin()+1) == nodes[tig.front()]->out_nodes.end())) {
+            can_extend = nodes[tig.front()]->in_nodes.size() == 1
+                                and nodes[tig.front()]->out_nodes.size() <= 1
+                                and (tig.size() == 1 or tig.front()!=tig.back());
+            use_outnodes = false;
+        }
+        
+        cout << "tig in progress f: ";
+        for (auto n : tig)
+        {   
+            cout << n << " ";
+        }
+        cout << endl;
     }
-    if (tig.size() > 1 and tig.back() == tig.front())
+
+    if (tig.size() > 1 and find(tig.begin(), --tig.end(), tig.back()) == tig.end())
         tig.pop_back();
+
     cout << "got tig ";
     for (auto n : tig)
     {
