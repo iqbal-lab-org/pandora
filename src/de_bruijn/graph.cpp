@@ -36,8 +36,9 @@ OrientedNodePtr Graph::add_node (const deque<uint16_t>& node_ids, uint32_t read_
         nodes[node_hash[node_ids]]->read_ids.insert(read_id);
         return make_pair(nodes[node_hash[node_ids]],true);
     } else if (node_hash.find(rc_hashed_node_ids(node_ids)) != node_hash.end()) {
-        nodes[node_hash[rc_hashed_node_ids(node_ids)]]->read_ids.insert(read_id);
-        return make_pair(nodes[node_hash[rc_hashed_node_ids(node_ids)]],false);
+        auto rc = rc_hashed_node_ids(node_ids);
+        nodes[node_hash[rc]]->read_ids.insert(read_id);
+        return make_pair(nodes[node_hash[rc]],false);
     }
 
     NodePtr n;
@@ -61,14 +62,14 @@ bool edge_is_valid (OrientedNodePtr from, OrientedNodePtr to)
     deque<uint16_t> hashed_node_ids_to = to.first->hashed_node_ids;
     if (from.second == false) {
         hashed_node_ids_from = rc_hashed_node_ids(hashed_node_ids_from);
-	cout << "reverse from" << endl;
+	    //cout << "reverse from" << endl;
     }
 
     if (to.second == false) {
         hashed_node_ids_to = rc_hashed_node_ids(hashed_node_ids_to);
-	cout << "reverse to" << endl;
+	    //cout << "reverse to" << endl;
     }
-    cout << from.second << to.second << " compare (";
+    /*cout << from.second << to.second << " compare (";
     for (auto n : hashed_node_ids_from)
     {
 	cout << n << " ";
@@ -78,7 +79,7 @@ bool edge_is_valid (OrientedNodePtr from, OrientedNodePtr to)
     {
         cout << n << " ";
     }
-    cout << ")" << endl;
+    cout << ")" << endl;*/
 
     return overlap_forwards(hashed_node_ids_from, hashed_node_ids_to);
 }
@@ -91,11 +92,11 @@ void Graph::add_edge (OrientedNodePtr from, OrientedNodePtr to)
     //uint8_t num_edges_added = 0;
     if (from.second and from.first->out_nodes.find(to.first->id) == from.first->out_nodes.end())
     {
-	from.first->out_nodes.insert(to.first->id);
-	//num_edges_added += 1;
+	    from.first->out_nodes.insert(to.first->id);
+	    //num_edges_added += 1;
     } else if (!from.second and from.first->in_nodes.find(to.first->id) == from.first->in_nodes.end()){
-	from.first->in_nodes.insert(to.first->id);
-	//num_edges_added += 1;
+	    from.first->in_nodes.insert(to.first->id);
+	    //num_edges_added += 1;
     }
 
     if (to.second and to.first->in_nodes.find(from.first->id) == to.first->in_nodes.end())

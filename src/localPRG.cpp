@@ -1053,9 +1053,9 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
                                  const string &prefix,
                                  const uint w,
                                  const string& vcf_ref,
-                                 const bool output_vcf,
-                                 const bool output_comparison_paths,
-                                 const bool output_covgs) const {
+                                 bool output_vcf,
+                                 bool output_comparison_paths,
+                                 bool output_covgs) const {
     //cout << "called find path and variants" << endl;
     string new_name = name;
     std::replace(new_name.begin(), new_name.end(), ' ', '_');

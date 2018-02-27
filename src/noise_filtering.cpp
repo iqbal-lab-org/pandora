@@ -93,21 +93,21 @@ bool overlap_backwards(const deque<uint16_t>& node1, const deque<uint16_t>& node
 
 deque<uint16_t> rc_hashed_node_ids(const deque<uint16_t>& hashed_node_ids)
 {
-    for (auto n : hashed_node_ids)
+    /*for (auto n : hashed_node_ids)
     {
         cout << n << " ";
-    }
+    }*/
     deque<uint16_t> d;
     for (auto i : hashed_node_ids)
     {
         d.push_front(rc_num(i));
     }
-    cout << " is now ";
+    /*cout << " is now ";
     for (auto n : d)
     {
         cout << n << " ";
     }
-    cout << endl;
+    cout << endl;*/
     return d;
 }
 
