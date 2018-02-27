@@ -59,10 +59,11 @@ class LocalPRG {
     void add_sample_to_vcf(VCF&, const std::vector<LocalNodePtr>&, const std::vector<LocalNodePtr>&, const std::string& sample_name="sample") const;
     std::vector<KmerNodePtr> find_path_and_variants(PanNodePtr,
                                                     const std::string&,
-                                                    uint w=0,
-                                                    bool output_vcf = false,
-                                                    bool output_comparison_paths = false,
-                                                    bool output_covgs = false) const;
+                                                    const uint w,
+                                                    const std::string& vcf_ref,
+                                                    const bool output_vcf = false,
+                                                    const bool output_comparison_paths = false,
+                                                    const bool output_covgs = false) const;
 
   friend std::ostream& operator<< (std::ostream& out, const LocalPRG& data);  
 };

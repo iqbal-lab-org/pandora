@@ -1,4 +1,5 @@
 #include <cstring>
+#include <unordered_map>
 #include <vector>
 #include <iostream>
 //#include <stdlib.h>
@@ -154,6 +155,38 @@ void load_PRG_kmergraphs(vector<LocalPRG *> &prgs, const uint &w, const uint &k,
     for (uint i = 0; i != prgs.size(); ++i) {
         prgs[i]->kmer_prg.load(
                 prefix + "kmer_prgs/" + prgs[i]->name + ".k" + to_string(k) + ".w" + to_string(w) + ".gfa");
+    }
+}
+
+void load_vcf_refs_file(const string &filepath, VCFRefs& vcf_refs) {
+    cout << now() << "Loading VCF refs from file " << filepath << endl;
+
+    string name, read, line;
+
+    ifstream myfile(filepath);
+    if (myfile.is_open()) {
+        while (getline(myfile, line).good()) {
+            if (line.empty() || line[0] == '>') {
+                if (!name.empty() && !read.empty()) {
+                    vcf_refs[name] = read;
+                }
+                name.clear();
+                read.clear();
+                if (!line.empty()) {
+                    name = line.substr(1);
+                }
+            } else {
+                read += line;
+            }
+        }
+        // and last entry
+        if (!name.empty() && !read.empty()) {
+            vcf_refs[name] = read;
+        }
+        myfile.close();
+    } else {
+        cerr << "Unable to open VCF refs file " << filepath << endl;
+        exit(EXIT_FAILURE);
     }
 }
 

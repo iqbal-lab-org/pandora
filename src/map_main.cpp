@@ -47,7 +47,8 @@ static void show_map_usage() {
               << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
               << "\t--output_kg\t\t\tSave kmer graphs with fwd and rev coverage annotations for found localPRGs\n"
               << "\t--output_vcf\t\t\tSave a vcf file for each found localPRG\n"
-              << "\t\t\t\t\tthe min probability on the path, or 'both' to create outputs with both methods\n"
+              << "\t--vcf_refs REF_FASTA\t\tA fasta file with an entry for each LocalPRG giving reference sequence for\n"
+              << "\t\t\t\t\tVCF. Must have a perfect match in the graph and the same name as the graph\n"
               << "\t--output_comparison_paths\tSave a fasta file for a random selection of paths through localPRG\n"
               << "\t--output_covgs\tSave a file of covgs for each localPRG present, one number per base of fasta file\n"
               << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is shorter with low error rate\n"
@@ -63,7 +64,7 @@ int pandora_map(int argc, char *argv[]) {
     }
 
     // otherwise, parse the parameters from the command line
-    string prgfile, readfile, prefix;
+    string prgfile, readfile, prefix, vcf_refs_file;
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000; // default parameters
     int max_diff = 500;
     float e_rate = 0.11;
@@ -120,10 +121,10 @@ int pandora_map(int argc, char *argv[]) {
         } else if ((arg == "-e") || (arg == "--error_rate")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 e_rate = static_cast<float>(atof(argv[++i])); // Increment 'i' so we don't get the argument as the next argv[i].
-		if (e_rate < 0.01)
-		{
-		    illumina = true;
-		}
+		    if (e_rate < 0.01)
+		    {
+		        illumina = true;
+		    }
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--error_rate option requires one argument." << std::endl;
                 return 1;
@@ -132,6 +133,13 @@ int pandora_map(int argc, char *argv[]) {
             output_kg = true;
         } else if ((arg == "--output_vcf")) {
             output_vcf = true;
+        } else if (arg == "--vcf_refs") {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                vcf_refs_file = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--vcf_refs option requires one argument." << std::endl;
+                return 1;
+            }
         } else if ((arg == "--output_covgs")) {
             output_covgs = true;
         } else if ((arg == "--output_comparison_paths")) {
@@ -161,7 +169,9 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\terror_rate\t" << e_rate << endl;
     cout << "\toutput_kg\t" << output_kg << endl;
     cout << "\toutput_vcf\t" << output_vcf << endl;
+    cout << "\tvcf_refs\t" << vcf_refs_file << endl;
     cout << "\toutput_comparison_paths\t" << output_comparison_paths << endl;
+    cout << "\toutput_covgs\t" << output_covgs << endl;
     cout << "\tillumina\t" << illumina << endl;
     cout << "\tclean\t" << clean << endl << endl;
 
@@ -190,8 +200,19 @@ int pandora_map(int argc, char *argv[]) {
     estimate_parameters(pangraph, prefix, k, e_rate, covg);
 
     cout << now() << "Find PRG paths and write to files:" << endl;
+    VCFRefs vcf_refs;
+    string vcf_ref;
+    if (output_vcf and !vcf_refs_file.empty()) {
+        vcf_refs.reserve(prgs.size());
+        load_vcf_refs_file(vcf_refs_file, vcf_refs);
+    }
     for (auto c: pangraph->nodes) {
-        prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, output_vcf,
+        if (output_vcf
+            and !vcf_refs_file.empty()
+            and vcf_refs.find(prgs[c.second->prg_id]->name)!=vcf_refs.end()) {
+            vcf_ref = vcf_refs[prgs[c.second->prg_id]->name];
+        }
+        prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, vcf_ref,output_vcf,
                                                        output_comparison_paths, output_covgs);
         if (output_kg) {
 	        c.second->kmer_prg.save(prefix + "." + c.second->get_name() + ".kg.gfa", prgs[c.second->prg_id]);

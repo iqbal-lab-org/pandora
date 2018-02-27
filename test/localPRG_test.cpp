@@ -1226,5 +1226,5 @@ TEST_F(LocalPRGTest, find_path_and_variants)
     pn3->kmer_prg.num_reads = 6;
     pn3->kmer_prg.set_p(0.0001);
 
-    l3.find_path_and_variants(pn3, "localPRG_test", 0, true, false, true);
+    l3.find_path_and_variants(pn3, "localPRG_test", 0, "", true, false, true);
 }

@@ -4,6 +4,8 @@
 #include <vector>
 #include <set>
 #include <memory>
+#include <cstring>
+#include <unordered_map>
 #include "localPRG.h"
 #include "minihits.h"
 
@@ -12,6 +14,8 @@ struct MinimizerHit;
 class PanNode;
 class LocalPRG;
 class Seq;
+
+typedef unordered_map<std::string, std::string> VCFRefs;
 
 template <typename T>
 struct pointer_values_equal
@@ -43,6 +47,7 @@ float lognchoosek2 (uint32_t, uint32_t, uint32_t);
 //probably should be moved to map_main.cpp
 void read_prg_file(std::vector<LocalPRG*>&, const std::string&);
 void load_PRG_kmergraphs(std::vector<LocalPRG*>&, const uint&, const uint&, const std::string&);
+void load_vcf_refs_file(const std::string&, VCFRefs&);
 //void add_read_hits(uint32_t, const std::string&, const std::string&, MinimizerHits*, Index*, const uint32_t, const uint32_t);
 void add_read_hits(Seq*, MinimizerHits*, Index*);
 void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>,clusterComp>&, const std::vector<LocalPRG*>&,

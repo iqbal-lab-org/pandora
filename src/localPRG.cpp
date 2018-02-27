@@ -1049,17 +1049,23 @@ void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, co
 }*/
 
 vector<KmerNodePtr>
-LocalPRG::find_path_and_variants(PanNodePtr pnode, const string &prefix, uint w,
-                                 bool output_vcf, bool output_comparison_paths, bool output_covgs) const {
+LocalPRG::find_path_and_variants(PanNodePtr pnode,
+                                 const string &prefix,
+                                 const uint w,
+                                 const string& vcf_ref,
+                                 const bool output_vcf,
+                                 const bool output_comparison_paths,
+                                 const bool output_covgs) const {
     //cout << "called find path and variants" << endl;
     string new_name = name;
     std::replace(new_name.begin(), new_name.end(), ' ', '_');
 
     vector<KmerNodePtr> kmp;
     kmp.reserve(800);
-    vector<LocalNodePtr> lmp, almp;
+    vector<LocalNodePtr> lmp, almp, refpath;
     lmp.reserve(100);
     almp.reserve(100);
+    refpath.reserve(100);
     float ppath;
 
     if (pnode->reads.size() == 0){
@@ -1081,9 +1087,25 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode, const string &prefix, uint w,
     cout << endl;
 
     if (output_vcf) {
+
+        if (!vcf_ref.empty()){
+            refpath = prg.nodes_along_string(vcf_ref);
+            if (refpath.empty()) {
+                refpath = prg.nodes_along_string(rev_complement(vcf_ref));
+            }
+            if (refpath.empty()) {
+                cout << now() << "Could not find reference sequence for " << name
+                     << "in the PRG so using the top path" << endl;
+                refpath = prg.top_path();
+            }
+        } else {
+            refpath = prg.top_path();
+        }
+
+
         VCF vcf;
-        build_vcf(vcf, prg.top_path());
-        add_sample_to_vcf(vcf, prg.top_path(), lmp, "sample");
+        build_vcf(vcf, refpath);
+        add_sample_to_vcf(vcf, refpath, lmp, "sample");
         vcf.save(prefix + "." + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
     }
     if (output_comparison_paths) {
