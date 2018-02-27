@@ -2,9 +2,12 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <cassert>
 #include <numeric>
 #include "utils.h"
 #include "pangenome/pangraph.h"
+
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
 
@@ -159,7 +162,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &prefix, const
     cout << now() << "Writing kmer coverage distribution to " << prefix << ".kmer_covgs.txt" << endl;
     ofstream handle;
     handle.open(prefix + ".kmer_covgs.txt");
-    assert (!handle.fail() or assert_msg("Could not open file " << prefix + ".kmer_covgs.txt"));
+    assert(!handle.fail() or assert_msg("Could not open file " << prefix + ".kmer_covgs.txt"));
     for (uint j = 0; j != kmer_covg_dist.size(); ++j) {
         handle << j << "\t" << kmer_covg_dist[j] << endl;
     }
@@ -199,7 +202,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &prefix, const
     // save probability distribution
     cout << now() << "Writing kmer probability distribution to " << prefix << ".kmer_probs.txt" << endl;
     handle.open(prefix + ".kmer_probs.txt");
-    assert (!handle.fail() or assert_msg("Could not open file " << prefix + ".kmer_probs.txt"));
+    assert(!handle.fail() or assert_msg("Could not open file " << prefix + ".kmer_probs.txt"));
     for (int j = 0; (uint) j != kmer_prob_dist.size(); ++j) {
         handle << j - 200 << "\t" << kmer_prob_dist[j] << endl;
     }
