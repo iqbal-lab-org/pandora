@@ -11,6 +11,43 @@
 
 using namespace std;
 
+double fit_mean_covg(const vector<uint> &kmer_covg_dist, const uint8_t zero_thresh) {
+
+    double sum = 0;
+    double total = 0;
+    for (uint i=zero_thresh; i<kmer_covg_dist.size(); ++i){
+        sum += kmer_covg_dist[i]*i;
+        total += kmer_covg_dist[i];
+    }
+
+    if (total == 0)
+        return 0;
+
+    cout << "found mean " << sum / total << endl;
+    return  sum / total;
+}
+
+double fit_variance_covg(const vector<uint>& kmer_covg_dist, double& mean, const uint8_t zero_thresh){
+    double acc = 0;
+    double total = 0;
+    for (uint i=zero_thresh; i<kmer_covg_dist.size(); ++i){
+        acc += (i-mean)*(i-mean)*kmer_covg_dist[i];
+        total += kmer_covg_dist[i];
+    }
+
+    if (total == 0)
+        return 0;
+
+    cout << "found variance " << acc / total << endl;
+    return  acc / total;
+}
+
+void fit_negative_binomial(double& mean, double& variance) {
+    float p = 1-(mean/variance);
+    uint16_t r = mean*(1-p)/p;
+    cout << "p: " << p << " and r: " << r << endl;
+}
+
 uint find_mean_covg(vector<uint> &kmer_covg_dist) {
     // tries to return the position in vector at which the maximum of the second peak occurs
     // expects at least 3 increases of covg to decide we are out of the first peak
@@ -177,6 +214,11 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &prefix, const
             e_rate = -log((float) mean_covg / covg) / k;
             cout << e_rate << endl;
         }
+
+        auto mean = fit_mean_covg(kmer_covg_dist,3);
+        auto var = fit_variance_covg(kmer_covg_dist, mean, 3);
+        fit_negative_binomial(mean, var);
+
     } else {
         cout << now() << "Insufficient coverage to update error rate" << endl;
     }
