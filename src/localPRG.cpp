@@ -659,7 +659,7 @@ LocalPRG::get_covgs_from_kmernode_paths(const vector<LocalNodePtr> &localnode_pa
 void LocalPRG::write_covgs_to_file(const string &filepath, const vector<uint> & covgs) const {
     ofstream handle;
     handle.open(filepath);
-    assert (!handle.fail());
+    assert (!handle.fail() or assert_msg("Could not open file " << filepath));
 
     handle << ">" << name << endl;
     for (auto i : covgs) {
@@ -690,7 +690,7 @@ void LocalPRG::write_covgs_to_file(const string &filepath, const vector<uint> & 
 void LocalPRG::write_path_to_fasta(const string &filepath, const vector<LocalNodePtr> &lmp, const float &ppath) const {
     ofstream handle;
     handle.open(filepath);
-    assert (!handle.fail());
+    assert (!handle.fail() or assert_msg("Could not open file " << filepath));
 
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath << endl;
     for (uint j = 0; j != lmp.size(); ++j) {
@@ -704,7 +704,7 @@ void LocalPRG::write_path_to_fasta(const string &filepath, const vector<LocalNod
 void LocalPRG::append_path_to_fasta(const string &filepath, const vector<LocalNodePtr> &lmp, const float &ppath) const {
     ofstream handle;
     handle.open(filepath, ios::app);
-    assert (!handle.fail());
+    assert (!handle.fail() or assert_msg("Could not open file " << filepath));
 
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath << endl;
     for (uint j = 0; j != lmp.size(); ++j) {
@@ -719,7 +719,7 @@ void LocalPRG::write_aligned_path_to_fasta(const string &filepath, const vector<
                                            const float &ppath) const {
     ofstream handle;
     handle.open(filepath);
-    assert (!handle.fail());
+    assert (!handle.fail() or assert_msg("Could not open file " << filepath));
 
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath << endl;
 
