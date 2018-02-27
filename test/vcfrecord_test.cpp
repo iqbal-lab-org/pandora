@@ -5,18 +5,7 @@
 
 using namespace std;
 
-class VCFRecordTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(VCFRecordTest,create){
+TEST(VCFRecordTest,create){
 
     VCFRecord vr;
     EXPECT_EQ(".", vr.chrom);
@@ -39,7 +28,7 @@ TEST_F(VCFRecordTest,create){
     EXPECT_EQ("SVTYPE=SNP", vr.info);
 }
 
-TEST_F(VCFRecordTest,equals){
+TEST(VCFRecordTest,equals){
     VCFRecord vr;
     EXPECT_EQ(vr, vr);
 
@@ -70,7 +59,7 @@ TEST_F(VCFRecordTest,equals){
 
 }
 
-TEST_F(VCFRecordTest,less_than){
+TEST(VCFRecordTest,less_than){
     VCFRecord vr1("chrom1", 3, "A", "T");
     VCFRecord vr2("chrom2", 3, "A", "T");
     EXPECT_EQ((vr2<vr1), false);

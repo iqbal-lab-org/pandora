@@ -8,18 +8,7 @@
 
 using namespace std;
 
-class VCFTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(VCFTest,add_record){
+TEST(VCFTest,add_record){
 
     VCF vcf;
     uint j = 0;
@@ -54,7 +43,7 @@ TEST_F(VCFTest,add_record){
     EXPECT_EQ(j, vcf.records.size());
 }
 
-TEST_F(VCFTest, add_sample_gt)
+TEST(VCFTest, add_sample_gt)
 {
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");
@@ -84,7 +73,7 @@ TEST_F(VCFTest, add_sample_gt)
     EXPECT_EQ("0", vcf.records[3].samples[0]);
 }
 
-TEST_F(VCFTest, add_sample_ref_alleles)
+TEST(VCFTest, add_sample_ref_alleles)
 {
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");
@@ -122,7 +111,7 @@ TEST_F(VCFTest, add_sample_ref_alleles)
     EXPECT_EQ(".", vcf.records[4].samples[1]);
 }
 
-TEST_F(VCFTest, reorder_add_record_and_sample)
+TEST(VCFTest, reorder_add_record_and_sample)
 {
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");
@@ -151,7 +140,7 @@ TEST_F(VCFTest, reorder_add_record_and_sample)
 }
 
 
-TEST_F(VCFTest,clear){
+TEST(VCFTest,clear){
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
@@ -165,7 +154,7 @@ TEST_F(VCFTest,clear){
     EXPECT_EQ(j, vcf.records.size());
 }
 
-TEST_F(VCFTest,equals){
+TEST(VCFTest,equals){
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
@@ -202,7 +191,7 @@ TEST_F(VCFTest,equals){
     EXPECT_EQ((vcf3==vcf), false);
 }
 
-TEST_F(VCFTest,save){
+TEST(VCFTest,save){
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
@@ -214,7 +203,7 @@ TEST_F(VCFTest,save){
     vcf.save("vcf_test.vcf");
 }
 
-TEST_F(VCFTest,load){
+TEST(VCFTest,load){
     VCF vcf, vcf1;
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
@@ -232,7 +221,7 @@ TEST_F(VCFTest,load){
     EXPECT_EQ(vcf == vcf1, true);
 }
 
-TEST_F(VCFTest, filter)
+TEST(VCFTest, filter)
 {
     VCF vcf, vcf1, vcf2, vcf3, vcf4;
     vcf.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
@@ -255,7 +244,7 @@ TEST_F(VCFTest, filter)
 
 }
 
-TEST_F(VCFTest,write_aligned_fasta){
+TEST(VCFTest,write_aligned_fasta){
     VCF vcf;
     vcf.add_record("chrom1", 1, "A", "G");
     vcf.add_record("chrom1", 3, "T", "TA");
