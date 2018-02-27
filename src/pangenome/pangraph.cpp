@@ -318,13 +318,14 @@ void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
                 //bool added = false;
                 // update the covg in the kmer_prg
                 //cout << "pnode " << pnode.second->prg_id << " knode " << (*mh)->knode_id << " strand " << (*mh)->strand << " updated from " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand];
+                assert(pnode.second->kmer_prg.nodes.find((*mh)->knode_id)!=pnode.second->kmer_prg.nodes.end());
                 pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] += 1;
                 //cout << " to " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] << endl;
                 num_hits[(*mh)->strand] += 1;
             }
         }
-        //cout << now() << "Added " << num_hits[1] << " hits in the forward direction and " << num_hits[0]
-        //     << " hits in the reverse" << endl;
+        cout << now() << "Added " << num_hits[1] << " hits in the forward direction and " << num_hits[0]
+             << " hits in the reverse" << endl;
         pnode.second->kmer_prg.num_reads = pnode.second->covg;
     }
 }
