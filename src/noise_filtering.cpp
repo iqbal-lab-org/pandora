@@ -524,6 +524,7 @@ void clean_pangraph_with_debruijn_graph(pangenome::Graph* pg, const uint16_t siz
 }
 
 void write_pangraph_gfa(const string &filepath, pangenome::Graph* pg) {
+    uint32_t id, other_id;
     ofstream handle;
     handle.open(filepath);
     handle << "H\tVN:Z:1.0" << endl;
@@ -535,13 +536,17 @@ void write_pangraph_gfa(const string &filepath, pangenome::Graph* pg) {
     for (auto &node : dbg.nodes) {
         for (auto &other_node : node.second->out_nodes)
         {
-            handle << "L\t" << pg->nodes[node.second->hashed_node_ids[0]/2]->get_name() << "\t";
+	    id = node.second->hashed_node_ids[0]/2;
+	    assert(pg->nodes.find(id)!=pg->nodes.end());
+            handle << "L\t" << pg->nodes[id]->get_name() << "\t";
             if (node.second->hashed_node_ids[0]%2 == 0) {
                 handle << "+";
             } else {
                 handle << "-";
             }
-            handle << "\t" << pg->nodes[dbg.nodes[other_node]->hashed_node_ids[0]/2]->get_name() << "\t";
+	    other_id = dbg.nodes[other_node]->hashed_node_ids[0]/2;
+	    assert(pg->nodes.find(other_id)!=pg->nodes.end());
+            handle << "\t" << pg->nodes[other_id]->get_name() << "\t";
             if (dbg.nodes[other_node]->hashed_node_ids[0]%2 == 0){
                 handle << "+";
             } else {
