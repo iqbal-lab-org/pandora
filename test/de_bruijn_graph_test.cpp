@@ -736,7 +736,7 @@ TEST(DeBruijnGraphTest,equals)
     g2.add_edge(m1, m3);
 
     // shouldn't matter that nodes and edges added in different order
-    cout << ".";
+    cout << endl << ".";
     EXPECT_EQ(g1, g2);
     EXPECT_EQ(g2, g1);
     cout << ".";
@@ -749,6 +749,9 @@ TEST(DeBruijnGraphTest,equals)
     EXPECT_NE(g2, g1);
     cout << ".";
     g2.remove_node(5);
+    cout << ".";
+    EXPECT_EQ(g1, g2);
+    EXPECT_EQ(g2, g1);
     cout << ".";
 
     // an extra edge does matter

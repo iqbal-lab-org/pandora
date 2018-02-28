@@ -422,6 +422,32 @@ void Graph::extend_unitig(deque<uint32_t>& tig) {
     cout << endl;
 }
 
+bool Graph::found_in_out_nodes(const NodePtr node_ptr_to_search, const NodePtr node_ptr_to_find) const
+{
+    for (const auto i : node_ptr_to_search->out_nodes) {
+        if (*nodes.at(i) == *node_ptr_to_find)
+        {
+            return true;
+        } else {
+            cout << *nodes.at(i) << " != " << *node_ptr_to_find << endl;
+        }
+    }
+    return false;
+}
+
+bool Graph::found_in_in_nodes(const NodePtr node_ptr_to_search, const NodePtr node_ptr_to_find) const
+{
+    for (const auto i : node_ptr_to_search->in_nodes) {
+        if (*nodes.at(i) == *node_ptr_to_find)
+        {
+            return true;
+        } else {
+            cout << *nodes.at(i) << " != " << *node_ptr_to_find << endl;
+        }
+    }
+    return false;
+}
+
 bool Graph::operator == (const Graph& y) const
 {
     // want the graphs to have the same nodes, even if
@@ -433,33 +459,34 @@ bool Graph::operator == (const Graph& y) const
     }
 
     for (const auto t : nodes) {
-        bool out_found, found = false;
+        bool found = false;
         for (const auto s : y.nodes) {
             if (*t.second == *s.second) {
+                //cout << t.first << " " << *t.second << " == " << *s.second << " " << s.first << endl;
+
                 found = true;
 
                 // also check the outnodes are the same
-                if (t.second->out_nodes.size() != s.second->out_nodes.size())
+                if (t.second->out_nodes.size() + t.second->in_nodes.size() != s.second->out_nodes.size()+s.second->in_nodes.size())
                 {
                     cout << "node has different number of outnodes" << endl;
                     return false;
                 }
+
                 for (const auto i : t.second->out_nodes) {
-                    out_found = false;
-                    for (const auto j : s.second->out_nodes) {
-                        if (*nodes.at(i) == *y.nodes.at(j))
-                        {
-                            out_found = true;
-                            break;
-                        }
-                    }
-                    if (out_found == false)
-                    {
-                        cout << "did not find outnode" << endl;
+                    if (not y.found_in_out_nodes(s.second, nodes.at(i))
+                        and not y.found_in_in_nodes(s.second, nodes.at(i))){
+                        cout << "did not find " << i << " in outnode or innodes " << endl;
                         return false;
                     }
                 }
-
+                for (const auto i : t.second->in_nodes) {
+                    if (not y.found_in_out_nodes(s.second, nodes.at(i))
+                        and not y.found_in_in_nodes(s.second, nodes.at(i))){
+                        cout << "did not find " << i << " in outnode or innodes " << endl;
+                        return false;
+                    }
+                }
                 break;
             }
         }
@@ -468,7 +495,9 @@ bool Graph::operator == (const Graph& y) const
             return false;
         }
     }
+
     // nodes can't be equal within a graph so don't need to check vice versa
+    //cout << "found all nodes" << endl;
     return true;
 }
 

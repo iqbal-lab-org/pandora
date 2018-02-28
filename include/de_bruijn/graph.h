@@ -32,6 +32,8 @@ public:
     set<deque<uint32_t>> get_unitigs();
     void extend_unitig(deque<uint32_t>&);
 
+    bool found_in_out_nodes(const NodePtr, const NodePtr) const;
+    bool found_in_in_nodes(const NodePtr, const NodePtr) const;
     bool operator == (const Graph& y) const;
     bool operator != (const Graph& y) const;
 
