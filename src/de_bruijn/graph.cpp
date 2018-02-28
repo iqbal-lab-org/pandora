@@ -43,6 +43,7 @@ OrientedNodePtr Graph::add_node (const deque<uint16_t>& node_ids, uint32_t read_
 
     NodePtr n;
     n = make_shared<Node>(next_id, node_ids, read_id);
+    assert(n!=nullptr);
     nodes[next_id] = n;
     node_hash[node_ids] = next_id;
 
@@ -52,7 +53,7 @@ OrientedNodePtr Graph::add_node (const deque<uint16_t>& node_ids, uint32_t read_
     }
 
     next_id++;
-    assert(next_id < numeric_limits<uint32_t>::max()||assert_msg("WARNING, reached max de bruijn graph node size"));
+    assert(next_id < numeric_limits<uint16_t>::max()||assert_msg("WARNING, reached max de bruijn graph node size"));
     return make_pair(n,true);
 }
 
