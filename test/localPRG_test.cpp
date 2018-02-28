@@ -20,18 +20,7 @@
 
 using namespace std;
 
-class LocalPRGTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(LocalPRGTest, create){
+TEST(LocalPRGTest, create){
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
@@ -55,7 +44,7 @@ TEST_F(LocalPRGTest, create){
     EXPECT_EQ("A 5 G 7 C 8 T 7  6 G 5 T", l3.seq);
 }
 
-TEST_F(LocalPRGTest, isalphaEmptyString){
+TEST(LocalPRGTest, isalphaEmptyString){
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
@@ -71,7 +60,7 @@ TEST_F(LocalPRGTest, isalphaEmptyString){
     EXPECT_EQ(a3, 1) << "isalpha_string thinks the empty string is not alphabetic for l3";
 }
 
-TEST_F(LocalPRGTest, isalphaSpaceString){
+TEST(LocalPRGTest, isalphaSpaceString){
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
@@ -87,7 +76,7 @@ TEST_F(LocalPRGTest, isalphaSpaceString){
     EXPECT_EQ(a3, 0) << "isalpha_string thinks a string  containing a space is alphabetic for l3";
 }
 
-TEST_F(LocalPRGTest, isalphaNumberString){
+TEST(LocalPRGTest, isalphaNumberString){
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
@@ -103,7 +92,7 @@ TEST_F(LocalPRGTest, isalphaNumberString){
     EXPECT_EQ(a3, 0) << "isalpha_string thinks a string  containing a number is alphabetic for l3";
 }
 
-TEST_F(LocalPRGTest, string_along_path){
+TEST(LocalPRGTest, string_along_path){
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
@@ -148,7 +137,7 @@ TEST_F(LocalPRGTest, string_along_path){
     EXPECT_DEATH(l3.string_along_path(p),"");
 }
 
-TEST_F(LocalPRGTest, nodes_along_path)
+TEST(LocalPRGTest, nodes_along_path)
 {
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
@@ -246,7 +235,7 @@ TEST_F(LocalPRGTest, nodes_along_path)
     EXPECT_EQ(j, l3.nodes_along_path(p)[1]->id);
 }
 
-TEST_F(LocalPRGTest, split_by_siteNoSites){
+TEST(LocalPRGTest, split_by_siteNoSites){
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
@@ -265,7 +254,7 @@ TEST_F(LocalPRGTest, split_by_siteNoSites){
     EXPECT_ITERABLE_EQ( vector< Interval >, v1, l1.split_by_site(Interval(1,3)));// << "Failed to split string with middle input Interval";
 }
 
-TEST_F(LocalPRGTest, split_by_siteSite){
+TEST(LocalPRGTest, split_by_siteSite){
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
 
     vector<Interval> v2;
@@ -290,7 +279,7 @@ TEST_F(LocalPRGTest, split_by_siteSite){
     EXPECT_ITERABLE_EQ( vector< Interval >,v2, l2.split_by_site(Interval(5,8)));// << "Failed to split string in mid Interval" << Interval(5,8);
 }
 
-TEST_F(LocalPRGTest, split_by_siteNestedSite){
+TEST(LocalPRGTest, split_by_siteNestedSite){
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
     LocalPRG l4(4,"nested varsite start immediately", " 5 G 7 C 8 T 7  6 G 5 ");
 
@@ -341,7 +330,7 @@ TEST_F(LocalPRGTest, split_by_siteNestedSite){
     
 }
 
-TEST_F(LocalPRGTest, build_graph)
+TEST(LocalPRGTest, build_graph)
 {
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
@@ -386,7 +375,7 @@ TEST_F(LocalPRGTest, build_graph)
     EXPECT_EQ(lg3, l3.prg);
 }
 
-TEST_F(LocalPRGTest, shift){
+TEST(LocalPRGTest, shift){
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
     LocalPRG l3(3,"nested varsite", "AT 5 G 7 C 8 T 7  6 G 5 T");
@@ -463,7 +452,7 @@ TEST_F(LocalPRGTest, shift){
     EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l6.shift(p));
 }
 
-TEST_F(LocalPRGTest, minimizer_sketch){
+TEST(LocalPRGTest, minimizer_sketch){
     // note this is a bad test
     LocalPRG l0(0,"empty", "");
     LocalPRG l1(1,"simple", "AGCT");
@@ -604,7 +593,7 @@ struct MiniPos
 	}
 };
 
-TEST_F(LocalPRGTest, minimizer_sketch_SameAsSeqw1){
+TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw1){
     string st = "ATGGCAATCCGAATCTTCGCGATACTTTTCTCCATTTTTTCTCTTGCCACTTTCGCGCATGCGCAAGAAGGCACGCTAGAACGTTCTGACTGGAGGAAGTTTTTCAGCGAATTTCAAGCCAAAGGCACGATAGTTGTGGCAGACGAACGCCAAGCGGATCGTGCCATGTTGGTTTTTGATCCTGTGCGATCGAAGAAACGCTACTCGCCTGCATCGACATTCAAGATACCTCATACACTTTTTGCACTTGATGCAGGCGCTGTTCGTGATGAGTTCCAGATTTTTCGATGGGACGGCGTTAACAGGGGCTTTGCAGGCCACAATCAAGACCAAGATTTGCGATCAGCAATGCGGAATTCTACTGTTTGGGTGTATGAGCTATTTGCAAAGGAAATTGGTGATGACAAAGCTCGGCGCTATTTGAAGAAAATCGACTATGGCAACGCCGATCCTTCGACAAGTAATGGCGATTACTGTATAGAAGGCAGCCTTGCAATCTCGGCGCAGGAGCAAATTGCATTTCTCAGGAAGCTCTATCGTAACGAGCTGCCCTTTCGGGTAGAACATCAGCGCTTGGTCAAGGATCTCATGATTGTGGAAGCCGGTCGCAACTGGATACTGCGTGCAAAGACGGGCTGGGAAGGCCGTATGGGTTGGTGGGTAGGATGGGTTGAGTGGCCGACTGGCTCCGTATTCTTCGCACTGAATATTGATACGCCAAACAGAATGGATGATCTTTTCAAGAGGGAGGCAATCGTGCGGGCAATCCTT";
 
     Index* idx;
@@ -629,7 +618,7 @@ TEST_F(LocalPRGTest, minimizer_sketch_SameAsSeqw1){
     }
 }
 
-TEST_F(LocalPRGTest, minimizer_sketch_SameAsSeqw5){
+TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw5){
     string st = "ATGGCAATCCGAATCTTCGCGATACTTTTCTCCATTTTTTCTCTTGCCACTTTCGCGCATGCGCAAGAAGGCACGCTAGAACGTTCTGACTGGAGGAAGTTTTTCAGCGAATTTCAAGCCAAAGGCACGATAGTTGTGGCAGACGAACGCCAAGCGGATCGTGCCATGTTGGTTTTTGATCCTGTGCGATCGAAGAAACGCTACTCGCCTGCATCGACATTCAAGATACCTCATACACTTTTTGCACTTGATGCAGGCGCTGTTCGTGATGAGTTCCAGATTTTTCGATGGGACGGCGTTAACAGGGGCTTTGCAGGCCACAATCAAGACCAAGATTTGCGATCAGCAATGCGGAATTCTACTGTTTGGGTGTATGAGCTATTTGCAAAGGAAATTGGTGATGACAAAGCTCGGCGCTATTTGAAGAAAATCGACTATGGCAACGCCGATCCTTCGACAAGTAATGGCGATTACTGTATAGAAGGCAGCCTTGCAATCTCGGCGCAGGAGCAAATTGCATTTCTCAGGAAGCTCTATCGTAACGAGCTGCCCTTTCGGGTAGAACATCAGCGCTTGGTCAAGGATCTCATGATTGTGGAAGCCGGTCGCAACTGGATACTGCGTGCAAAGACGGGCTGGGAAGGCCGTATGGGTTGGTGGGTAGGATGGGTTGAGTGGCCGACTGGCTCCGTATTCTTCGCACTGAATATTGATACGCCAAACAGAATGGATGATCTTTTCAAGAGGGAGGCAATCGTGCGGGCAATCCTT";
 
     Index* idx;
@@ -654,7 +643,7 @@ TEST_F(LocalPRGTest, minimizer_sketch_SameAsSeqw5){
     }
 }
 
-TEST_F(LocalPRGTest, minimizer_sketch_SameAsSeqw10){
+TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw10){
     string st = "ATGGCAATCCGAATCTTCGCGATACTTTTCTCCATTTTTTCTCTTGCCACTTTCGCGCATGCGCAAGAAGGCACGCTAGAACGTTCTGACTGGAGGAAGTTTTTCAGCGAATTTCAAGCCAAAGGCACGATAGTTGTGGCAGACGAACGCCAAGCGGATCGTGCCATGTTGGTTTTTGATCCTGTGCGATCGAAGAAACGCTACTCGCCTGCATCGACATTCAAGATACCTCATACACTTTTTGCACTTGATGCAGGCGCTGTTCGTGATGAGTTCCAGATTTTTCGATGGGACGGCGTTAACAGGGGCTTTGCAGGCCACAATCAAGACCAAGATTTGCGATCAGCAATGCGGAATTCTACTGTTTGGGTGTATGAGCTATTTGCAAAGGAAATTGGTGATGACAAAGCTCGGCGCTATTTGAAGAAAATCGACTATGGCAACGCCGATCCTTCGACAAGTAATGGCGATTACTGTATAGAAGGCAGCCTTGCAATCTCGGCGCAGGAGCAAATTGCATTTCTCAGGAAGCTCTATCGTAACGAGCTGCCCTTTCGGGTAGAACATCAGCGCTTGGTCAAGGATCTCATGATTGTGGAAGCCGGTCGCAACTGGATACTGCGTGCAAAGACGGGCTGGGAAGGCCGTATGGGTTGGTGGGTAGGATGGGTTGAGTGGCCGACTGGCTCCGTATTCTTCGCACTGAATATTGATACGCCAAACAGAATGGATGATCTTTTCAAGAGGGAGGCAATCGTGCGGGCAATCCTT";
 
     Index* idx;
@@ -679,7 +668,7 @@ TEST_F(LocalPRGTest, minimizer_sketch_SameAsSeqw10){
     }
 }
 
-TEST_F(LocalPRGTest, minimizer_sketch_SameAsSeqw15){
+TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw15){
     string st = "ATGGCAATCCGAATCTTCGCGATACTTTTCTCCATTTTTTCTCTTGCCACTTTCGCGCATGCGCAAGAAGGCACGCTAGAACGTTCTGACTGGAGGAAGTTTTTCAGCGAATTTCAAGCCAAAGGCACGATAGTTGTGGCAGACGAACGCCAAGCGGATCGTGCCATGTTGGTTTTTGATCCTGTGCGATCGAAGAAACGCTACTCGCCTGCATCGACATTCAAGATACCTCATACACTTTTTGCACTTGATGCAGGCGCTGTTCGTGATGAGTTCCAGATTTTTCGATGGGACGGCGTTAACAGGGGCTTTGCAGGCCACAATCAAGACCAAGATTTGCGATCAGCAATGCGGAATTCTACTGTTTGGGTGTATGAGCTATTTGCAAAGGAAATTGGTGATGACAAAGCTCGGCGCTATTTGAAGAAAATCGACTATGGCAACGCCGATCCTTCGACAAGTAATGGCGATTACTGTATAGAAGGCAGCCTTGCAATCTCGGCGCAGGAGCAAATTGCATTTCTCAGGAAGCTCTATCGTAACGAGCTGCCCTTTCGGGTAGAACATCAGCGCTTGGTCAAGGATCTCATGATTGTGGAAGCCGGTCGCAACTGGATACTGCGTGCAAAGACGGGCTGGGAAGGCCGTATGGGTTGGTGGGTAGGATGGGTTGAGTGGCCGACTGGCTCCGTATTCTTCGCACTGAATATTGATACGCCAAACAGAATGGATGATCTTTTCAAGAGGGAGGCAATCGTGCGGGCAATCCTT";
 
     Index* idx;
@@ -704,7 +693,7 @@ TEST_F(LocalPRGTest, minimizer_sketch_SameAsSeqw15){
     }
 }
 
-TEST_F(LocalPRGTest, localnode_path_from_kmernode_path)
+TEST(LocalPRGTest, localnode_path_from_kmernode_path)
 {   
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
     LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
@@ -736,7 +725,7 @@ TEST_F(LocalPRGTest, localnode_path_from_kmernode_path)
     delete idx;
 }
 
-TEST_F(LocalPRGTest, get_covgs_from_kmernode_paths)
+TEST(LocalPRGTest, get_covgs_from_kmernode_paths)
 {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
     LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
@@ -779,7 +768,7 @@ TEST_F(LocalPRGTest, get_covgs_from_kmernode_paths)
 }
 
 
-TEST_F(LocalPRGTest, write_covgs_to_file)
+TEST(LocalPRGTest, write_covgs_to_file)
 {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
 
@@ -803,7 +792,7 @@ TEST_F(LocalPRGTest, write_covgs_to_file)
     delete idx;
 }
 
-/*TEST_F(LocalPRGTest, update_covg_with_hit)
+/*TEST(LocalPRGTest, update_covg_with_hit)
 {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
@@ -895,7 +884,7 @@ TEST_F(LocalPRGTest, write_covgs_to_file)
     delete idx;
 }*/
 
-TEST_F(LocalPRGTest, write_path_to_fasta)
+TEST(LocalPRGTest, write_path_to_fasta)
 {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
@@ -910,7 +899,7 @@ TEST_F(LocalPRGTest, write_path_to_fasta)
     delete idx;
 }
 
-TEST_F(LocalPRGTest, append_path_to_fasta)
+TEST(LocalPRGTest, append_path_to_fasta)
 {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
@@ -925,7 +914,7 @@ TEST_F(LocalPRGTest, append_path_to_fasta)
     delete idx;
 }
 
-TEST_F(LocalPRGTest, write_aligned_path_to_fasta)
+TEST(LocalPRGTest, write_aligned_path_to_fasta)
 {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
@@ -940,7 +929,7 @@ TEST_F(LocalPRGTest, write_aligned_path_to_fasta)
     delete idx;
 }
 
-TEST_F(LocalPRGTest, build_vcf)
+TEST(LocalPRGTest, build_vcf)
 {
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
@@ -1084,7 +1073,7 @@ TEST_F(LocalPRGTest, build_vcf)
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[4].info);
 }
 
-TEST_F(LocalPRGTest, add_sample_to_vcf)
+TEST(LocalPRGTest, add_sample_to_vcf)
 {
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
@@ -1170,7 +1159,7 @@ TEST_F(LocalPRGTest, add_sample_to_vcf)
 
 }
 
-TEST_F(LocalPRGTest, moreupdateVCF)
+TEST(LocalPRGTest, moreupdateVCF)
 {
     // load PRGs from file
     vector<LocalPRG*> prgs;
@@ -1204,7 +1193,7 @@ TEST_F(LocalPRGTest, moreupdateVCF)
     prgs[2]->add_sample_to_vcf(vcf, prgs[2]->prg.top_path(), lmp2, "sample");
 }
 
-TEST_F(LocalPRGTest, find_path_and_variants)
+TEST(LocalPRGTest, find_path_and_variants)
 {
 
     Index* idx;

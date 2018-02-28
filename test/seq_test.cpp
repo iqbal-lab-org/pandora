@@ -7,18 +7,7 @@
 
 using namespace std;
 
-class SeqTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(SeqTest, create)
+TEST(SeqTest, create)
 {
     Seq s1(0,"0", "AGCTAATGCGTT", 11, 3);
     EXPECT_EQ((uint)0, s1.id);
@@ -26,7 +15,7 @@ TEST_F(SeqTest, create)
     EXPECT_EQ("AGCTAATGCGTT", s1.seq);
 }
 
-TEST_F(SeqTest, initialize)
+TEST(SeqTest, initialize)
 {
     Seq s1(0,"0", "AGCTAATGCGTT", 11, 3);
     s1.initialize(1,"new", "AGCTAATGCATA", 9, 3);
@@ -35,7 +24,7 @@ TEST_F(SeqTest, initialize)
     EXPECT_EQ("AGCTAATGCATA", s1.seq);
 }
 
-TEST_F(SeqTest,sketchShortReads){
+TEST(SeqTest,sketchShortReads){
     Seq s1(0,"0", "AGCTAATGCGTT", 11, 3);
     Seq s2(0,"0", "AGCTAATGCGTT", 10, 3);
     Seq s3(0,"0", "AGCTAATGCGTT", 9, 3);
@@ -50,7 +39,7 @@ TEST_F(SeqTest,sketchShortReads){
     EXPECT_EQ(s4.sketch.size(),j) << "Have " << s4.sketch.size() << " minimizers when should have 1";
 }
 
-TEST_F(SeqTest,sketchIncludesEveryLetter){
+TEST(SeqTest,sketchIncludesEveryLetter){
     Seq s1(0,"0", "AGCTAATGTGTT", 3, 3);
     Seq s2(0,"0", "AGCTAATGTGTT", 2, 3);
     Seq s3(0,"0", "AGCTAATGTGTT", 1, 3);

@@ -7,18 +7,7 @@
 
 using namespace std;
 
-class PathTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    //     // (right before the destructor).
-  }
-};
-
-TEST_F(PathTest, initialize)
+TEST(PathTest, initialize)
 {
     Path p;
     deque<Interval> d = {Interval(0,1), Interval(3,3), Interval(5,10)};
@@ -30,7 +19,7 @@ TEST_F(PathTest, initialize)
     }
 }
 
-TEST_F(PathTest, length)
+TEST(PathTest, length)
 {
     Path p;
     deque<Interval> d = {Interval(0,0)};
@@ -49,7 +38,7 @@ TEST_F(PathTest, length)
     EXPECT_EQ(j, p.length());
 }
 
-TEST_F(PathTest,add_start_interval)
+TEST(PathTest,add_start_interval)
 {
     deque<Interval> d = {Interval(4,5)};
     Path p;
@@ -60,7 +49,7 @@ TEST_F(PathTest,add_start_interval)
     EXPECT_DEATH(p.add_start_interval(Interval(3,4)), "");
 }
 
-TEST_F(PathTest,add_end_interval)
+TEST(PathTest,add_end_interval)
 {
     deque<Interval> d = {Interval(4,5)};
     Path p;
@@ -71,7 +60,7 @@ TEST_F(PathTest,add_end_interval)
     EXPECT_DEATH(p.add_end_interval(Interval(0,1)), "");
 }
 
-TEST_F(PathTest, subpath)
+TEST(PathTest, subpath)
 {
     deque<Interval> d, d1;
     d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
@@ -116,7 +105,7 @@ TEST_F(PathTest, subpath)
     //EXPECT_DEATH(p.subpath(39,3), "");
 }
 
-TEST_F(PathTest, is_branching)
+TEST(PathTest, is_branching)
 {
     deque<Interval> d, d1;
     d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
@@ -164,7 +153,7 @@ TEST_F(PathTest, is_branching)
     EXPECT_EQ(p1.is_branching(p), false);
 }
 
-TEST_F(PathTest, less_than)
+TEST(PathTest, less_than)
 {
     deque<Interval> d, d1;
     d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
@@ -202,7 +191,7 @@ TEST_F(PathTest, less_than)
     EXPECT_EQ((p1<p), false);
 }
 
-TEST_F(PathTest, equals)
+TEST(PathTest, equals)
 {
     deque<Interval> d, d1;
     d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
@@ -242,7 +231,7 @@ TEST_F(PathTest, equals)
     EXPECT_EQ((p1==p),false);
 }
 
-TEST_F(PathTest, equal_except_null_nodes)
+TEST(PathTest, equal_except_null_nodes)
 {   
     deque<Interval> d, d1, d2;
     d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
@@ -262,7 +251,7 @@ TEST_F(PathTest, equal_except_null_nodes)
     EXPECT_EQ(equal_except_null_nodes(p2,p2), true);
 }
 
-TEST_F(PathTest, write)
+TEST(PathTest, write)
 {
     deque<Interval> d;
     d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
@@ -274,7 +263,7 @@ TEST_F(PathTest, write)
     EXPECT_EQ(out.str(), "4{[1, 3)[4, 5)[6, 6)[9, 40)}"); 
 }
 
-TEST_F(PathTest, read)
+TEST(PathTest, read)
 {
     deque<Interval> d;
     d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};

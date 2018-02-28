@@ -7,18 +7,7 @@
 
 using namespace std;
 
-class KmerNodeTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(KmerNodeTest,create){
+TEST(KmerNodeTest,create){
 
     deque<Interval> d = {Interval(0,4)};
     Path p;
@@ -36,7 +25,7 @@ TEST_F(KmerNodeTest,create){
     EXPECT_EQ(p, kn.path);
 }
 
-TEST_F(KmerNodeTest,equals){
+TEST(KmerNodeTest,equals){
 
     deque<Interval> d = {Interval(0,4)};
     Path p1, p2;

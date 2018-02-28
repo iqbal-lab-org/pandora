@@ -5,18 +5,7 @@
 
 using namespace std;
 
-class IntervalTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    //     // (right before the destructor).
-  }
-};
-
-TEST_F(IntervalTest,create)
+TEST(IntervalTest,create)
 {
     Interval i(0,0);
     uint32_t j = 0;
@@ -38,7 +27,7 @@ TEST_F(IntervalTest,create)
     EXPECT_DEATH(Interval(-1,10),"");
 }
 
-TEST_F(IntervalTest, write)
+TEST(IntervalTest, write)
 {
     Interval i(1,5);
     stringstream out;
@@ -46,7 +35,7 @@ TEST_F(IntervalTest, write)
     EXPECT_EQ(out.str(), "[1, 5)");
 }
 
-TEST_F(IntervalTest, read)
+TEST(IntervalTest, read)
 {
     Interval i(1,5);
     stringstream out;
@@ -56,7 +45,7 @@ TEST_F(IntervalTest, read)
     EXPECT_EQ(i,j);
 }
 
-TEST_F(IntervalTest,equals)
+TEST(IntervalTest,equals)
 {
     Interval i(1,5);
     Interval j(1,5);
@@ -76,7 +65,7 @@ TEST_F(IntervalTest,equals)
     EXPECT_EQ(j,j);
 }
 
-TEST_F(IntervalTest,notequals)
+TEST(IntervalTest,notequals)
 {
     Interval i(1,5);
     Interval j(1,5);
@@ -97,7 +86,7 @@ TEST_F(IntervalTest,notequals)
     EXPECT_NE(j,i);
 }
 
-TEST_F(IntervalTest,lessthan)
+TEST(IntervalTest,lessthan)
 {
     Interval i(1,5);
     Interval j(2,5);

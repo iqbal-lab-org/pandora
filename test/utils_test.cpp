@@ -17,19 +17,7 @@
 
 using namespace std;
 
-class UtilsTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-
-};
-
-TEST_F(UtilsTest, split)
+TEST(UtilsTest, split)
 {
     vector<string> v = {"abc", "def", "ghi"};
     EXPECT_EQ(v, split("abc, def, ghi", ", "));
@@ -37,7 +25,7 @@ TEST_F(UtilsTest, split)
     EXPECT_EQ(v, split(", abc, def, ghi", ", "));    
 }
 
-TEST_F(UtilsTest, revComplement)
+TEST(UtilsTest, revComplement)
 {
     string s = "ACCTGATTGCGTA";
     EXPECT_EQ(s, rev_complement(rev_complement(s)));
@@ -55,7 +43,7 @@ TEST_F(UtilsTest, revComplement)
 
 // don't bother with nchoosek test as will remove function
 
-TEST_F(UtilsTest, readPrgFile){
+TEST(UtilsTest, readPrgFile){
     vector<LocalPRG*> prgs;
 
     // simple case first, single prg with empty string sequence
@@ -105,7 +93,7 @@ TEST_F(UtilsTest, readPrgFile){
     EXPECT_EQ(prgs.size(), j);
 }
 
-TEST_F(UtilsTest, addReadHits){
+TEST(UtilsTest, addReadHits){
     // initialize minihits container
     MinimizerHits *mhs;
     mhs = new MinimizerHits();
@@ -260,7 +248,7 @@ TEST_F(UtilsTest, addReadHits){
     delete s;
 }
 
-TEST_F(UtilsTest, filter_clusters2)
+TEST(UtilsTest, filter_clusters2)
 {
     deque<Interval> d = {Interval(0,10)};
     Path p;
@@ -299,7 +287,7 @@ TEST_F(UtilsTest, filter_clusters2)
 
 }
 
-TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){    
+TEST(UtilsTest, simpleInferLocalPRGOrderForRead){
     // initialize minihits container
     MinimizerHits *mhs;
     mhs = new MinimizerHits();
@@ -454,7 +442,7 @@ TEST_F(UtilsTest, simpleInferLocalPRGOrderForRead){
     delete mhs;
 }
 
-TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
+TEST(UtilsTest, biggerInferLocalPRGOrderForRead){
     // initialize minihits container
     MinimizerHits *mhs;
     mhs = new MinimizerHits();
@@ -708,7 +696,7 @@ TEST_F(UtilsTest, biggerInferLocalPRGOrderForRead){
     delete idx;
 }
 
-TEST_F(UtilsTest, pangraphFromReadFile)
+TEST(UtilsTest, pangraphFromReadFile)
 {
     MinimizerHits* mhs;
     mhs = new MinimizerHits();
@@ -962,7 +950,7 @@ TEST_F(UtilsTest, pangraphFromReadFile)
 }
 
 /*
-TEST_F(UtilsTest, lognChoosek2)
+TEST(UtilsTest, lognChoosek2)
 {
     EXPECT_EQ(0.0, lognchoosek2(0,0,0));
     EXPECT_EQ(0.0, lognchoosek2(1,0,0));

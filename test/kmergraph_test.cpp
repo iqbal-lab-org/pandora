@@ -13,18 +13,7 @@
 
 using namespace std;
 
-class KmerGraphTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(KmerGraphTest, add_node)
+TEST(KmerGraphTest, add_node)
 {
     // add node and check it's there
     KmerGraph kg;
@@ -75,7 +64,7 @@ TEST_F(KmerGraphTest, add_node)
     EXPECT_EQ(j, kg.nodes[1]->id);
 }
 
-TEST_F(KmerGraphTest, add_node_with_kh)
+TEST(KmerGraphTest, add_node_with_kh)
 {
     // add node and check it's there
     KmerGraph kg;
@@ -100,7 +89,7 @@ TEST_F(KmerGraphTest, add_node_with_kh)
     EXPECT_EQ(kh, kg.nodes[0]->khash);
 }
 
-TEST_F(KmerGraphTest, add_edge)
+TEST(KmerGraphTest, add_edge)
 {
     // add edge and check it's there
     KmerGraph kg;
@@ -163,7 +152,7 @@ TEST_F(KmerGraphTest, add_edge)
     EXPECT_EQ(j, kg.nodes[0]->inNodes.size());
 }
 
-TEST_F(KmerGraphTest, clear)
+TEST(KmerGraphTest, clear)
 {
     KmerGraph kg;
     deque<Interval> d = {Interval(0,3)};
@@ -188,7 +177,7 @@ TEST_F(KmerGraphTest, clear)
     EXPECT_EQ(j, kg.nodes.size());
 }
 
-TEST_F(KmerGraphTest, equals)
+TEST(KmerGraphTest, equals)
 {
     KmerGraph kg1, kg2;
     deque<Interval> d = {Interval(0,3)};
@@ -231,7 +220,7 @@ TEST_F(KmerGraphTest, equals)
     EXPECT_EQ((kg2==kg1), false);
 }
 
-TEST_F(KmerGraphTest, copy)
+TEST(KmerGraphTest, copy)
 {
     KmerGraph kg1;
     deque<Interval> d = {Interval(0,3)};
@@ -249,7 +238,7 @@ TEST_F(KmerGraphTest, copy)
     EXPECT_EQ(kg2, kg2);
 }
 
-TEST_F(KmerGraphTest, assign)
+TEST(KmerGraphTest, assign)
 {
     KmerGraph kg1;
     deque<Interval> d = {Interval(0,0)};
@@ -287,7 +276,7 @@ TEST_F(KmerGraphTest, assign)
     EXPECT_EQ(kg2, kg2);
 }
 
-TEST_F(KmerGraphTest, sort_topologically)
+TEST(KmerGraphTest, sort_topologically)
 {
     vector<KmerNodePtr> exp_sorted_nodes;
     KmerNodePtr n;
@@ -362,7 +351,7 @@ TEST_F(KmerGraphTest, sort_topologically)
     }
 }
 
-TEST_F(KmerGraphTest, check)
+TEST(KmerGraphTest, check)
 {
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
@@ -405,7 +394,7 @@ TEST_F(KmerGraphTest, check)
     EXPECT_DEATH(kg.check(),"");
 }
 
-TEST_F(KmerGraphTest, set_p)
+TEST(KmerGraphTest, set_p)
 {
     KmerGraph kg;
     EXPECT_DEATH(kg.set_p(0.4),"");
@@ -416,7 +405,7 @@ TEST_F(KmerGraphTest, set_p)
     EXPECT_EQ(1/exp(1.5)-0.00001 <= kg.p and 1/exp(1.5)+0.00001 >= kg.p, true);
 }
 
-TEST_F(KmerGraphTest,prob)
+TEST(KmerGraphTest,prob)
 {
     KmerGraph kg;
     EXPECT_DEATH(kg.prob(0),"");  // out of range, no nodes have been defined
@@ -455,7 +444,7 @@ TEST_F(KmerGraphTest,prob)
     cout << kg.prob(2,1) << endl;
 }
 
-TEST_F(KmerGraphTest,findMaxPathSimple)
+TEST(KmerGraphTest,findMaxPathSimple)
 {
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
@@ -514,7 +503,7 @@ TEST_F(KmerGraphTest,findMaxPathSimple)
     EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
 }
 
-TEST_F(KmerGraphTest,findMaxPath2Level)
+TEST(KmerGraphTest,findMaxPath2Level)
 {
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
@@ -590,7 +579,7 @@ TEST_F(KmerGraphTest,findMaxPath2Level)
 }
 
 
-TEST_F(KmerGraphTest,find_max_paths_2Level)
+TEST(KmerGraphTest,find_max_paths_2Level)
 {
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
@@ -658,7 +647,7 @@ TEST_F(KmerGraphTest,find_max_paths_2Level)
     EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mps[0]);
 }
 
-TEST_F(KmerGraphTest,random_paths)
+TEST(KmerGraphTest,random_paths)
 {
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
@@ -734,7 +723,7 @@ TEST_F(KmerGraphTest,random_paths)
     }
 }
 
-TEST_F(KmerGraphTest,path_prob)
+TEST(KmerGraphTest,path_prob)
 {
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
@@ -821,7 +810,7 @@ TEST_F(KmerGraphTest,path_prob)
 }
 
 
-TEST_F(KmerGraphTest,path_probs)
+TEST(KmerGraphTest,path_probs)
 {
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
@@ -896,7 +885,7 @@ TEST_F(KmerGraphTest,path_probs)
 
 }
 
-TEST_F(KmerGraphTest, save_covg_dist){
+TEST(KmerGraphTest, save_covg_dist){
     KmerGraph kg;
     deque<Interval> d = {Interval(0,0)};
     Path p,p1,p2;
@@ -920,7 +909,7 @@ TEST_F(KmerGraphTest, save_covg_dist){
     kg.save_covg_dist("test_cases/kmergraph_test.covg.txt");
 }
 
-TEST_F(KmerGraphTest, save){
+TEST(KmerGraphTest, save){
     LocalPRG* l;
     l = new LocalPRG(1, "test localPRG", "ACGT");
 
@@ -942,7 +931,7 @@ TEST_F(KmerGraphTest, save){
     delete l;
 }
 
-TEST_F(KmerGraphTest, save_no_prg){
+TEST(KmerGraphTest, save_no_prg){
     KmerGraph kg;
     deque<Interval> d = {Interval(0,3)};
     Path p1,p2;
@@ -959,7 +948,7 @@ TEST_F(KmerGraphTest, save_no_prg){
     kg.save("kmergraph_test2.gfa");
 }
 
-TEST_F(KmerGraphTest, load){
+TEST(KmerGraphTest, load){
     KmerGraph kg, read_kg;
     deque<Interval> d = {Interval(0,3)};
     Path p1,p2;
@@ -976,7 +965,7 @@ TEST_F(KmerGraphTest, load){
     EXPECT_EQ(kg, read_kg);
 }
 
-TEST_F(KmerGraphTest, load_prg){
+TEST(KmerGraphTest, load_prg){
     KmerGraph read_kg;
     EXPECT_DEATH(read_kg.load("kmergraph_test.gfa"),"");
 }

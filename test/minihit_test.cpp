@@ -11,18 +11,7 @@
 
 using namespace std;
 
-class MinimizerHitTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(MinimizerHitTest,create){
+TEST(MinimizerHitTest,create){
     Minimizer* m;
     KmerHash hash;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
@@ -51,7 +40,7 @@ TEST_F(MinimizerHitTest,create){
     //TEST SECOND CONSTRUCTOR!!
 }
 
-TEST_F(MinimizerHitTest,checkStrand){
+TEST(MinimizerHitTest,checkStrand){
     Minimizer* m;
     KmerHash hash;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
@@ -89,7 +78,7 @@ TEST_F(MinimizerHitTest,checkStrand){
     delete mr;
 }
 
-TEST_F(MinimizerHitTest,equals){
+TEST(MinimizerHitTest,equals){
     Minimizer* m;
     KmerHash hash;
     pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
@@ -116,7 +105,7 @@ TEST_F(MinimizerHitTest,equals){
     delete mr;
 }
 
-TEST_F(MinimizerHitTest,compare){
+TEST(MinimizerHitTest,compare){
     set<MinimizerHit> hits;
     KmerHash hash;
 

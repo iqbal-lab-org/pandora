@@ -12,18 +12,7 @@
 
 using namespace std;
 
-class MinimizerHitsTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(MinimizerHitsTest,add_hit){
+TEST(MinimizerHitsTest,add_hit){
     // tests both add_hit and that sort doesn't break. Doesn't test resut of sort
     MinimizerHits mhits;
     KmerHash hash;
@@ -69,7 +58,7 @@ TEST_F(MinimizerHitsTest,add_hit){
     delete mr;
 }
 
-TEST_F(MinimizerHitsTest, pComp) {
+TEST(MinimizerHitsTest, pComp) {
     MinimizerHits mhits;
     vector<MinimizerHit> expected;
     KmerHash hash;
@@ -116,7 +105,7 @@ TEST_F(MinimizerHitsTest, pComp) {
     delete mr;
 }
 
-TEST_F(MinimizerHitsTest, pComp_path) {
+TEST(MinimizerHitsTest, pComp_path) {
     set<MinimizerHitPtr, pComp_path> mhitspath;
     MinimizerHits mhits;
     deque<MinimizerHit> expected;
@@ -169,7 +158,7 @@ TEST_F(MinimizerHitsTest, pComp_path) {
     delete mr;
 }
 
-TEST_F(MinimizerHitsTest, clusterComp){
+TEST(MinimizerHitsTest, clusterComp){
     set<set<MinimizerHitPtr, pComp>,clusterComp> clusters_of_hits;
     set<MinimizerHitPtr, pComp> current_cluster;
 

@@ -7,16 +7,7 @@
 
 using namespace pangenome;
 
-class PangenomeSampleTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-  }
-};
-
-TEST_F(PangenomeSampleTest,create){
+TEST(PangenomeSampleTest,create){
 
     Sample ps("sample");
     EXPECT_EQ("sample", ps.name);
@@ -28,7 +19,7 @@ TEST_F(PangenomeSampleTest,create){
     EXPECT_EQ((uint)0, ps1->paths.size());
 }
 
-TEST_F(PangenomeSampleTest, add_path)
+TEST(PangenomeSampleTest, add_path)
 {
     Sample ps("sample");
     std::vector<KmerNodePtr> kmp;
@@ -46,7 +37,7 @@ TEST_F(PangenomeSampleTest, add_path)
     EXPECT_EQ((uint)1, ps.paths[3].size());
 }
 
-TEST_F(PangenomeSampleTest,equals){
+TEST(PangenomeSampleTest,equals){
     Sample ps1("1");
     Sample ps2("2");
     EXPECT_EQ(ps1, ps1);
@@ -55,7 +46,7 @@ TEST_F(PangenomeSampleTest,equals){
     EXPECT_EQ((ps2==ps1), false);   
 }
 
-TEST_F(PangenomeSampleTest,nequals){
+TEST(PangenomeSampleTest,nequals){
     Sample ps1("1");
     Sample ps2("2");
     EXPECT_EQ((ps1!=ps1), false);
@@ -64,7 +55,7 @@ TEST_F(PangenomeSampleTest,nequals){
     EXPECT_EQ((ps2!=ps1), true);
 }
 
-TEST_F(PangenomeSampleTest,less){
+TEST(PangenomeSampleTest,less){
     Sample ps1("1");
     Sample ps2("2");
     EXPECT_EQ((ps1<ps1), false);

@@ -13,16 +13,7 @@
 
 using namespace pangenome;
 
-class PangenomeNodeTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-  }
-};
-
-TEST_F(PangenomeNodeTest,create){
+TEST(PangenomeNodeTest,create){
 
     Node pn(4, 3, "3");
     uint32_t j=3;
@@ -34,7 +25,7 @@ TEST_F(PangenomeNodeTest,create){
     EXPECT_EQ((uint)0, pn.samples.size());
 }
 
-TEST_F(PangenomeNodeTest,get_name){
+TEST(PangenomeNodeTest,get_name){
     Node pn1(3,3,"3");
     Node pn2(2,2,"2");
     Node pn3(2,4,"2");
@@ -44,7 +35,7 @@ TEST_F(PangenomeNodeTest,get_name){
     EXPECT_EQ(pn3.get_name(), "2.4");
 }
 
-TEST_F(PangenomeNodeTest,add_path){
+TEST(PangenomeNodeTest,add_path){
     Node pn1(3,3,"3");
     vector<KmerNodePtr> kmp;
     pn1.add_path(kmp);
@@ -96,7 +87,7 @@ TEST_F(PangenomeNodeTest,add_path){
     EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[6]->covg[1]);
 }
 /*
-TEST_F(PangenomeNodeTest,output_samples)
+TEST(PangenomeNodeTest,output_samples)
 {
     Node pn1(3,3,"three");
     vector<KmerNodePtr> kmp;
@@ -300,7 +291,7 @@ A-GCT
     EXPECT_EQ((fafile1==content2) or (fafile2==content2) or(fafile3==content2) or (fafile4==content2) or (fafile5==content2) or (fafile6==content2), true);
 }
 
-TEST_F(PangenomeNodeTest,output_samples2)
+TEST(PangenomeNodeTest,output_samples2)
 {
     Graph pg;
     LocalPRG lp(5, "five", "A 5 G 7 C 8 T 7  6 G 5 T");
@@ -442,7 +433,7 @@ A-GCT
 }
 */
 
-TEST_F(PangenomeNodeTest,equals){
+TEST(PangenomeNodeTest,equals){
     Node pn1(3,3,"3");
     Node pn2(2,2,"2");
     Node pn3(2,2,"2");
@@ -456,7 +447,7 @@ TEST_F(PangenomeNodeTest,equals){
     EXPECT_EQ((pn1==pn3), false);
 }
 
-TEST_F(PangenomeNodeTest,nequals){
+TEST(PangenomeNodeTest,nequals){
     Node pn1(3,3,"3");
     Node pn2(2,2,"2");
     Node pn3(2,2,"2");
@@ -469,7 +460,7 @@ TEST_F(PangenomeNodeTest,nequals){
     EXPECT_EQ((pn2!=pn3), false);
 }
 
-TEST_F(PangenomeNodeTest,less){
+TEST(PangenomeNodeTest,less){
     Node pn1(3,3,"3");
     Node pn2(2,2,"2");
     Node pn3(2,2,"2");

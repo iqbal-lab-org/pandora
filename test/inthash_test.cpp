@@ -12,18 +12,7 @@
 
 using namespace std;
 
-class InthashTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(InthashTest,checkCharToInt){
+TEST(InthashTest,checkCharToInt){
     test_table();
 }
 
@@ -57,7 +46,7 @@ set<string> generate_kmers(vector<string> v, uint32_t k)
     return current_strings;
 }
 
-TEST_F(InthashTest,check1to1){
+TEST(InthashTest,check1to1){
     vector<uint32_t> ks = {3,5};
     KmerHash hash;
     for (vector<uint32_t>::iterator jt = ks.begin(); jt != ks.end(); ++jt)

@@ -7,18 +7,7 @@
 
 using namespace debruijn;
 
-class DeBruijnNodeTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(DeBruijnNodeTest,create)
+TEST(DeBruijnNodeTest,create)
 {
     deque<uint16_t> v({4,6,8});
     unordered_multiset<uint32_t> w({0});
@@ -28,7 +17,7 @@ TEST_F(DeBruijnNodeTest,create)
     EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, n.read_ids, w);
 }
 
-TEST_F(DeBruijnNodeTest,equals)
+TEST(DeBruijnNodeTest,equals)
 {
     deque<uint16_t> v({4,7,8});
     deque<uint16_t> w({4,6,8});

@@ -11,18 +11,7 @@
 
 using namespace std;
 
-class IndexTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(IndexTest,add_record){
+TEST(IndexTest,add_record){
     Index idx;
     KmerHash hash;
     deque<Interval> d = {Interval(3,5), Interval(9,12)};
@@ -50,7 +39,7 @@ TEST_F(IndexTest,add_record){
     EXPECT_EQ(j, idx.minhash[min(kh.first, kh.second)]->size());
 }
 
-TEST_F(IndexTest, clear){
+TEST(IndexTest, clear){
     Index idx;
     KmerHash hash;
     deque<Interval> d = {Interval(3,5), Interval(9,12)};
@@ -67,7 +56,7 @@ TEST_F(IndexTest, clear){
     EXPECT_EQ(j, idx.minhash.size());
 }
 
-TEST_F(IndexTest, save){
+TEST(IndexTest, save){
     Index idx;
     KmerHash hash;
     deque<Interval> d = {Interval(3,5), Interval(9,12)};
@@ -83,7 +72,7 @@ TEST_F(IndexTest, save){
     ASSERT_TRUE(fopen("indextext.k5.w1.idx", "r") != NULL);
 }
 
-TEST_F(IndexTest, load){
+TEST(IndexTest, load){
     Index idx1, idx2;
     KmerHash hash;
     deque<Interval> d = {Interval(3,5), Interval(9,12)};

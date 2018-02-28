@@ -10,18 +10,7 @@
 
 using namespace std;
 
-class LocalGraphTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(LocalGraphTest, add_node)
+TEST(LocalGraphTest, add_node)
 {
     // add node and check it's there
     LocalGraph lg1;
@@ -38,7 +27,7 @@ TEST_F(LocalGraphTest, add_node)
     EXPECT_DEATH(lg1.add_node(1,"AGG", Interval(0,4)), "");
 }
 
-TEST_F(LocalGraphTest, add_edge)
+TEST(LocalGraphTest, add_edge)
 {
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
@@ -55,7 +44,7 @@ TEST_F(LocalGraphTest, add_edge)
     EXPECT_DEATH(lg2.add_edge(0,4),"");
 }
 
-TEST_F(LocalGraphTest, equals)
+TEST(LocalGraphTest, equals)
 {
     LocalGraph lg1;
     lg1.add_node(0,"AGCT", Interval(0,4));
@@ -116,7 +105,7 @@ TEST_F(LocalGraphTest, equals)
     EXPECT_EQ((lg2==lg2r), false);
 }
 
-TEST_F(LocalGraphTest, not_equals)
+TEST(LocalGraphTest, not_equals)
 {
     LocalGraph lg1;
     lg1.add_node(0,"AGCT", Interval(0,4));
@@ -177,7 +166,7 @@ TEST_F(LocalGraphTest, not_equals)
     EXPECT_EQ((lg2!=lg2r), true);
 }
 
-TEST_F(LocalGraphTest, write_gfa){
+TEST(LocalGraphTest, write_gfa){
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
     lg2.add_node(1,"GC", Interval(4,6));
@@ -191,7 +180,7 @@ TEST_F(LocalGraphTest, write_gfa){
     lg2.write_gfa("localgraph_test.gfa");
 }
 
-TEST_F(LocalGraphTest, read_gfa){
+TEST(LocalGraphTest, read_gfa){
     LocalGraph lg2, read_lg2;
     lg2.add_node(0,"A", Interval(0,1));
     lg2.add_node(1,"GC", Interval(4,6));
@@ -206,7 +195,7 @@ TEST_F(LocalGraphTest, read_gfa){
     EXPECT_EQ(lg2, read_lg2);
 }
 
-TEST_F(LocalGraphTest, walk)
+TEST(LocalGraphTest, walk)
 {
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
@@ -296,7 +285,7 @@ TEST_F(LocalGraphTest, walk)
     EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
 }
 
-TEST_F(LocalGraphTest, walk_back)
+TEST(LocalGraphTest, walk_back)
 {
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
@@ -390,7 +379,7 @@ TEST_F(LocalGraphTest, walk_back)
     EXPECT_ITERABLE_EQ(vector<Path>, q1, p1);
 }
 
-TEST_F(LocalGraphTest, nodes_along_string)
+TEST(LocalGraphTest, nodes_along_string)
 {
     LocalGraph lg2, read_lg2;
     lg2.add_node(0,"A", Interval(0,1));
@@ -429,7 +418,7 @@ TEST_F(LocalGraphTest, nodes_along_string)
 
 }
 
-TEST_F(LocalGraphTest, top_path)
+TEST(LocalGraphTest, top_path)
 {
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));
@@ -451,7 +440,7 @@ TEST_F(LocalGraphTest, top_path)
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 }
 
-TEST_F(LocalGraphTest, bottom_path)
+TEST(LocalGraphTest, bottom_path)
 {
     LocalGraph lg2;
     lg2.add_node(0,"A", Interval(0,1));

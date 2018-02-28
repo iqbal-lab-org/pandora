@@ -16,18 +16,7 @@ struct Interval;
 class Path;
 struct Minimizer;
 
-class MinimizerTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(MinimizerTest,create){
+TEST(MinimizerTest,create){
     KmerHash hash;
     pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
     Minimizer m1(kh.first, 0,5, 0);
@@ -59,7 +48,7 @@ TEST_F(MinimizerTest,create){
     EXPECT_DEATH(Minimizer(kh.first, 2,0,0),""); // doesn't generate an interval as 2>0
 }
 
-TEST_F(MinimizerTest,less_than){
+TEST(MinimizerTest,less_than){
     KmerHash hash;
     pair<uint64_t,uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
     Minimizer m1(kh1.first, 0,5,0);
@@ -93,7 +82,7 @@ TEST_F(MinimizerTest,less_than){
     }
 }
 
-TEST_F(MinimizerTest,equals){
+TEST(MinimizerTest,equals){
     KmerHash hash;
     pair<uint64_t,uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
     Minimizer m1(kh1.first, 0,5,0);
@@ -116,7 +105,7 @@ TEST_F(MinimizerTest,equals){
     EXPECT_EQ((m4==m3), false);
 }
 
-/*TEST_F(MinimizerTest,MiniPos){
+/*TEST(MinimizerTest,MiniPos){
     KmerHash hash;
     Minimizer* m1, m2, m3, m4;
     pair<uint64_t,uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
@@ -136,7 +125,7 @@ TEST_F(MinimizerTest,equals){
     delete m4;   
 }*/
 
-TEST_F(MinimizerTest,pMiniComp){
+TEST(MinimizerTest,pMiniComp){
     KmerHash hash;
     Minimizer *m1, *m2, *m3, *m4;
     pair<uint64_t,uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
