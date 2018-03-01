@@ -534,18 +534,20 @@ void write_pangraph_gfa(const string &filepath, pangenome::Graph* pg) {
     }
     debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(1,pg);
     for (auto &node : dbg.nodes) {
+        id = node.second->hashed_node_ids[0]/2;
+        assert(pg->nodes.find(id)!=pg->nodes.end());
         for (auto &other_node : node.second->out_nodes)
         {
-	    id = node.second->hashed_node_ids[0]/2;
-	    assert(pg->nodes.find(id)!=pg->nodes.end());
+            assert(dbg.nodes.find(other_node)!=dbg.nodes.end()
+                   or assert_msg("Could not find node " << other_node << " in dbg"));
+            other_id = dbg.nodes[other_node]->hashed_node_ids[0]/2;
+            assert(pg->nodes.find(other_id)!=pg->nodes.end());
             handle << "L\t" << pg->nodes[id]->get_name() << "\t";
             if (node.second->hashed_node_ids[0]%2 == 0) {
                 handle << "+";
             } else {
                 handle << "-";
             }
-	    other_id = dbg.nodes[other_node]->hashed_node_ids[0]/2;
-	    assert(pg->nodes.find(other_id)!=pg->nodes.end());
             handle << "\t" << pg->nodes[other_id]->get_name() << "\t";
             if (dbg.nodes[other_node]->hashed_node_ids[0]%2 == 0){
                 handle << "+";
