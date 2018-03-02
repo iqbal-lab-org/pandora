@@ -18,7 +18,7 @@ using namespace std;
 
 uint16_t node_plus_orientation_to_num (const uint16_t node_id, const bool orientation)
 {
-    assert(node_id < 32768);
+    assert(node_id < 32767);
     uint16_t r = 2*node_id;
     if (orientation)
     {
@@ -213,7 +213,7 @@ debruijn::Graph construct_debruijn_graph_from_pangraph(uint8_t size, const pange
             if (hashed_ids.size() == size)
             {
                 current = dbg.add_node(hashed_ids, r.first);
-                if (prev.first != nullptr)
+                if (prev.first != nullptr and current.first != nullptr)
                 {
                     dbg.add_edge(prev, current);
                 }
@@ -523,40 +523,43 @@ void clean_pangraph_with_debruijn_graph(pangenome::Graph* pg, const uint16_t siz
     detangle_pangraph_with_debruijn_graph(pg,dbg);
 }
 
-void write_pangraph_gfa(const string &filepath, pangenome::Graph* pg) {
+void write_pangraph_gfa(const string &filepath, const pangenome::Graph* pg) {
     uint32_t id, other_id;
     ofstream handle;
     handle.open(filepath);
     handle << "H\tVN:Z:1.0" << endl;
-    for (auto &node : pg->nodes) {
+    for (const auto &node : pg->nodes) {
 
         handle << "S\t" << node.second->get_name() << "\tN\tFC:i:" << node.second->covg << endl;
     }
     debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(1,pg);
-    for (auto &node : dbg.nodes) {
+    for (const auto &node : dbg.nodes) {
         id = node.second->hashed_node_ids[0]/2;
         assert(pg->nodes.find(id)!=pg->nodes.end());
-        for (auto &other_node : node.second->out_nodes)
+        for (const auto &other_node : node.second->out_nodes)
         {
             assert(dbg.nodes.find(other_node)!=dbg.nodes.end()
-                   or assert_msg("Could not find node " << other_node << " in dbg"));
-            other_id = dbg.nodes[other_node]->hashed_node_ids[0]/2;
+                   or assert_msg("Could not find node " << other_node << " in dbg while searching for the "
+                    << "outnodes of " << id << ". The corresponding hashed node id was "
+                    << node.second->hashed_node_ids[0] << " and this node has " << node.second->out_nodes.size()
+                    << " outnodes"));
+            other_id = dbg.nodes.at(other_node)->hashed_node_ids[0]/2;
             assert(pg->nodes.find(other_id)!=pg->nodes.end());
-            handle << "L\t" << pg->nodes[id]->get_name() << "\t";
+            handle << "L\t" << pg->nodes.at(id)->get_name() << "\t";
             if (node.second->hashed_node_ids[0]%2 == 0) {
                 handle << "+";
             } else {
                 handle << "-";
             }
-            handle << "\t" << pg->nodes[other_id]->get_name() << "\t";
-            if (dbg.nodes[other_node]->hashed_node_ids[0]%2 == 0){
+            handle << "\t" << pg->nodes.at(other_id)->get_name() << "\t";
+            if (dbg.nodes.at(other_node)->hashed_node_ids[0]%2 == 0){
                 handle << "+";
             } else {
                 handle << "-";
             }
             handle << "\t0M" << endl;
                 // << "\tRC:i:" << read_intersect << endl;
-            dbg.nodes[other_node]->out_nodes.erase(node.second->id);
+            dbg.nodes.at(other_node)->out_nodes.erase(node.second->id);
         }
     }
 }
