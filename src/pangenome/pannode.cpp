@@ -53,7 +53,7 @@ void Node::remove_read(ReadPtr r)
     }
 }
 
-string Node::get_name()
+string Node::get_name() const
 {
     if (prg_id != node_id)
     {

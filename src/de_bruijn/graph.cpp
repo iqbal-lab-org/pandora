@@ -88,6 +88,7 @@ bool edge_is_valid (OrientedNodePtr from, OrientedNodePtr to)
 // add directed edge
 void Graph::add_edge (OrientedNodePtr from, OrientedNodePtr to)
 {
+    assert(from.first != nullptr and to.first != nullptr);
     assert(edge_is_valid(from,to) or assert_msg("edge from " << *from.first << " to " << *to.first << " is invalid"));
 
     //uint8_t num_edges_added = 0;
