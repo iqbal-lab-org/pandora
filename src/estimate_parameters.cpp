@@ -44,7 +44,7 @@ double fit_variance_covg(const vector<uint>& kmer_covg_dist, double& mean, const
 
 void fit_negative_binomial(double& mean, double& variance) {
     float p = 1-(mean/variance);
-    uint16_t r = mean*(1-p)/p;
+    float r = (mean*(1-p)/p + variance*(1-p)*(1-p)/p)/2;
     cout << "p: " << p << " and r: " << r << endl;
 }
 
@@ -215,8 +215,8 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &prefix, const
             cout << e_rate << endl;
         }
 
-        auto mean = fit_mean_covg(kmer_covg_dist,3);
-        auto var = fit_variance_covg(kmer_covg_dist, mean, 3);
+        auto mean = fit_mean_covg(kmer_covg_dist,7);
+        auto var = fit_variance_covg(kmer_covg_dist, mean, 7);
         fit_negative_binomial(mean, var);
 
     } else {
