@@ -14,7 +14,7 @@ bool overlap_forwards(const deque<uint16_t>&, const deque<uint16_t>&);
 bool overlap_backwards(const deque<uint16_t>&, const deque<uint16_t>&);
 deque<uint16_t> rc_hashed_node_ids(const deque<uint16_t>&);
 void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph&, const deque<uint32_t>&, std::vector<uint16_t>&, std::vector<bool>&);
-debruijn::Graph construct_debruijn_graph_from_pangraph(uint8_t, const pangenome::Graph*);
+void construct_debruijn_graph_from_pangraph(const pangenome::Graph*, debruijn::Graph&);
 void remove_leaves(pangenome::Graph*, debruijn::Graph &, uint16_t covg_thresh=1);
 void filter_unitigs(pangenome::Graph*, debruijn::Graph &, const uint16_t&);
 void detangle_pangraph_with_debruijn_graph(pangenome::Graph*, debruijn::Graph &);

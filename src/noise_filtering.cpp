@@ -186,23 +186,25 @@ void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph & dbg,
     hashed_node_ids_to_ids_and_orientations(hashed_pg_node_ids, node_ids, node_orients);
 }
 
-debruijn::Graph construct_debruijn_graph_from_pangraph(uint8_t size, const pangenome::Graph* pg)
+void construct_debruijn_graph_from_pangraph(const pangenome::Graph* pg, debruijn::Graph &dbg)
 {
-    cout << now() << "Construct de Bruijn Graph from PanGraph with size " << (uint)size << endl;
-    debruijn::Graph dbg(size);
+    dbg.nodes.clear();
+    dbg.node_hash.clear();
+    cout << "Removed old nodes" << endl;
 
     debruijn::OrientedNodePtr prev, current;
     deque<uint16_t> hashed_ids;
 
     for (auto r : pg->reads)
     {
-        if (r.second->nodes.size() < size)
+        if (r.second->nodes.size() < dbg.size)
         {
             // can't add anything for this read
             continue;
         }
 
         prev = make_pair(nullptr,false);
+	current = make_pair(nullptr,false);
         hashed_ids.clear();
 
         for (uint i=0; i<r.second->nodes.size(); ++i)
@@ -210,7 +212,7 @@ debruijn::Graph construct_debruijn_graph_from_pangraph(uint8_t size, const pange
             hashed_ids.push_back(node_plus_orientation_to_num(r.second->nodes[i]->node_id,
                                                               r.second->node_orientations[i]));
 
-            if (hashed_ids.size() == size)
+            if (hashed_ids.size() == dbg.size)
             {
                 current = dbg.add_node(hashed_ids, r.first);
                 if (prev.first != nullptr and current.first != nullptr)
@@ -222,7 +224,6 @@ debruijn::Graph construct_debruijn_graph_from_pangraph(uint8_t size, const pange
             }
         }
     }
-    return dbg;
 }
 
 void remove_leaves(pangenome::Graph *pg, debruijn::Graph &dbg, uint16_t covg_thresh) {
@@ -512,13 +513,19 @@ void detangle_pangraph_with_debruijn_graph(pangenome::Graph* pg, debruijn::Graph
 
 void clean_pangraph_with_debruijn_graph(pangenome::Graph* pg, const uint16_t size, const uint16_t threshold, const bool illumina)
 {
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(size,pg);
+    cout << now() << "Construct de Bruijn Graph from PanGraph with size " << (uint)size << endl;
+    debruijn::Graph dbg(size);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
+
     if (not illumina)
         remove_leaves(pg, dbg, threshold);
     filter_unitigs(pg, dbg, threshold);
+    cout << "Finished filtering tigs" << endl;
 
     // update dbg now that have removed leaves and some inner nodes
-    dbg = construct_debruijn_graph_from_pangraph(size,pg);
+    cout << "Reconstruct dbg" << endl;
+    construct_debruijn_graph_from_pangraph(pg, dbg);
+    cout << "Now detangle" << endl;
 
     detangle_pangraph_with_debruijn_graph(pg,dbg);
 }
@@ -532,9 +539,10 @@ void write_pangraph_gfa(const string &filepath, const pangenome::Graph* pg) {
 
         handle << "S\t" << node.second->get_name() << "\tN\tFC:i:" << node.second->covg << endl;
     }
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(1,pg);
+    debruijn::Graph dbg(1);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     for (const auto &node : dbg.nodes) {
-        id = node.second->hashed_node_ids[0]/2;
+        id = (uint16_t)(node.second->hashed_node_ids[0] - 1*(node.second->hashed_node_ids[0]%2 == 1))/2;
         assert(pg->nodes.find(id)!=pg->nodes.end());
         for (const auto &other_node : node.second->out_nodes)
         {
@@ -543,7 +551,7 @@ void write_pangraph_gfa(const string &filepath, const pangenome::Graph* pg) {
                     << "outnodes of " << id << ". The corresponding hashed node id was "
                     << node.second->hashed_node_ids[0] << " and this node has " << node.second->out_nodes.size()
                     << " outnodes"));
-            other_id = dbg.nodes.at(other_node)->hashed_node_ids[0]/2;
+            other_id = (uint16_t)(dbg.nodes.at(other_node)->hashed_node_ids[0] - 1*(dbg.nodes.at(other_node)->hashed_node_ids[0]%2 == 1))/2;
             assert(pg->nodes.find(other_id)!=pg->nodes.end());
             handle << "L\t" << pg->nodes.at(id)->get_name() << "\t";
             if (node.second->hashed_node_ids[0]%2 == 0) {

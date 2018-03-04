@@ -308,7 +308,8 @@ TEST(NoiseFilteringTest,construct_debruijn_graph_from_pangraph)
     pg->add_node(6,"6",5, mhs);
     pg->add_node(3,"3",5, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
 
     debruijn::Graph dbg_exp(3);
     deque<uint16_t> d = {0,2,4};
@@ -384,7 +385,8 @@ TEST(NoiseFilteringRemoveLeaves,OneDBGNode_RemovedFromPanGraph) {
     pg->add_node(0, "0", 0, mhs);
     pg->add_node(1, "1", 0, mhs);
     pg->add_node(2, "2", 0, mhs);
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3, pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     remove_leaves(pg, dbg);
 
     pangenome::Graph pg_exp;
@@ -401,7 +403,8 @@ TEST(NoiseFilteringRemoveLeaves,OneDBGNode_RemovedFromDBGraph) {
     pg->add_node(0, "0", 0, mhs);
     pg->add_node(1, "1", 0, mhs);
     pg->add_node(2, "2", 0, mhs);
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3, pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     remove_leaves(pg, dbg);
     debruijn::Graph dbg_exp(3);
     EXPECT_EQ(dbg_exp, dbg);
@@ -427,7 +430,8 @@ TEST(NoiseFilteringRemoveLeaves,OneLoop_NoLeavesRemoved) {
     pg->add_node(1, "1", 1, mhs);
     pg->add_node(2, "2", 1, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3, pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     uint pg_size = pg->nodes.size();
     uint dbg_size = dbg.nodes.size();
     remove_leaves(pg, dbg);
@@ -463,7 +467,8 @@ TEST(NoiseFilteringRemoveLeaves,OneLoopAndDeviantPath_OneLeafRemoved) {
     pg->add_node(3,"3",2, mhs);
     pg->add_node(7,"7",2, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3, pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     uint pg_size = pg->nodes.size();
     uint dbg_size = dbg.nodes.size();
     remove_leaves(pg, dbg);
@@ -501,7 +506,8 @@ TEST(NoiseFilteringRemoveLeaves,OneLoopAndIncorrectPath_TwoLeavesRemoved) {
     pg->add_node(3,"3",3, mhs);
     pg->add_node(4,"4",3, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3, pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     uint pg_size = pg->nodes.size();
     uint dbg_size = dbg.nodes.size();
     remove_leaves(pg, dbg);
@@ -542,7 +548,8 @@ TEST(NoiseFilteringRemoveLeaves,OneLoopAndDeviatesInMiddle_NoLeavesRemoved) {
     pg->add_node(4,"4",4, mhs);
     pg->add_node(5,"5",4, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3, pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     uint pg_size = pg->nodes.size();
     uint dbg_size = dbg.nodes.size();
     remove_leaves(pg, dbg);
@@ -579,7 +586,8 @@ TEST(NoiseFilteringRemoveLeaves,OneLoopAndLongerWrongPath_LeavesRemoved) {
     pg->add_node(6,"6",5, mhs);
     pg->add_node(3,"3",5, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3, pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     uint pg_size = pg->nodes.size();
     uint dbg_size = dbg.nodes.size();
     remove_leaves(pg, dbg);
@@ -605,7 +613,8 @@ TEST(NoiseFilteringRemoveLeaves,AllTogether_GraphsLookCorrect)
     pg->add_node(0,"0",0, mhs);
     pg->add_node(1,"1",0, mhs);
     pg->add_node(2,"2",0, mhs);
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     remove_leaves(pg, dbg);
     debruijn::Graph dbg_exp(3);
     EXPECT_EQ(dbg_exp, dbg);
@@ -658,7 +667,7 @@ TEST(NoiseFilteringRemoveLeaves,AllTogether_GraphsLookCorrect)
 
     cout << "pg is now: " << endl << *pg << endl;
 
-    dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     remove_leaves(pg, dbg);
 
     deque<uint16_t> d = {0,2,4};
@@ -762,7 +771,8 @@ TEST(NoiseFilteringFilterUnitigs,SimpleCaseNothingToDo_ReadsUnchanged)
     pg->add_node(5,"5",1, mhs);
     pg->add_node(0,"0",1, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     filter_unitigs(pg, dbg, 1);
 
     pangenome::Graph *pg_exp;
@@ -820,7 +830,8 @@ TEST(NoiseFilteringFilterUnitigs,SimpleCaseNothingToDoCycle_ReadsUnchanged)
     pg->add_node(0,"0",1, mhs);
     pg->add_node(1,"1",1, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     filter_unitigs(pg, dbg, 1);
 
     pangenome::Graph *pg_exp;
@@ -885,7 +896,8 @@ TEST(NoiseFilteringFilterUnitigs,SimpleCaseNothingToDoCycle_ReadsUnchanged)
     pg->add_node(3,"3",2, mhs);
     pg->add_node(7,"7",2, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     filter_unitigs(pg, dbg, 1);
 
     pangenome::Graph *pg_exp;
@@ -960,7 +972,8 @@ TEST(NoiseFilteringFilterUnitigs,FilterUnitigsReadStartsRightAndDeviates_DbgAlso
     pg->add_node(3,"3",2, mhs);
     pg->add_node(7,"7",2, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     uint num_nodes = dbg.nodes.size();
     filter_unitigs(pg, dbg, 1);
 
@@ -998,7 +1011,8 @@ TEST(NoiseFilteringFilterUnitigs,FilterUnitigsReadStartsRightAndDeviates_DbgAlso
     pg->add_node(3,"3",3, mhs);
     pg->add_node(4,"4",3, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     filter_unitigs(pg, dbg, 1);
 
     bool found = pg->reads.find(3) != pg->reads.end();
@@ -1034,7 +1048,8 @@ TEST(NoiseFilteringFilterUnitigs,FilterUnitigsReadWrong_DbgAlsoPruned)
     pg->add_node(3,"3",3, mhs);
     pg->add_node(4,"4",3, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     uint num_nodes = dbg.nodes.size();
     filter_unitigs(pg, dbg, 1);
 
@@ -1075,7 +1090,8 @@ TEST(NoiseFilteringFilterUnitigs,FilterUnitigsReadDeviatesInMiddle_ReadPruned)
     pg->add_node(4,"4",4, mhs);
     pg->add_node(5,"5",4, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     filter_unitigs(pg, dbg, 1);
 
     pangenome::Graph *pg_exp;
@@ -1141,7 +1157,8 @@ TEST(NoiseFilteringFilterUnitigs,FilterUnitigsReadDeviatesInMiddle_ReadPruned)
     pg->add_node(4,"4",4, mhs);
     pg->add_node(5,"5",4, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     uint num_nodes = dbg.nodes.size();
     filter_unitigs(pg, dbg, 1);
 
@@ -1186,7 +1203,8 @@ TEST(NoiseFilteringFilterUnitigs,FilterUnitigsReadDeviatesLongerInMiddle_ReadPru
     pg->add_node(4,"4",5, mhs);
     pg->add_node(5,"5",5, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     filter_unitigs(pg, dbg, 1);
 
     pangenome::Graph *pg_exp;
@@ -1255,7 +1273,8 @@ TEST(NoiseFilteringFilterUnitigs,FilterUnitigsReadDeviatesLongerInMiddle_ReadPru
     pg->add_node(4,"4",5, mhs);
     pg->add_node(5,"5",5, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     uint num_nodes = dbg.nodes.size();
     filter_unitigs(pg, dbg, 1);
 
@@ -1318,7 +1337,8 @@ TEST(NoiseFilteringFilterUnitigs,AllTogether_PanGraphIsAsExpected)
     pg->add_node(4,"4",5, mhs);
     pg->add_node(5,"5",5, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     filter_unitigs(pg, dbg, 1);
 
     pangenome::Graph pg_exp;
@@ -1415,7 +1435,8 @@ TEST(NoiseFilteringFilterUnitigs,AllTogether_PanGraphIsAsExpected)
     pg->add_node(4,"4",5, mhs);
     pg->add_node(5,"5",5, mhs);
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     filter_unitigs(pg, dbg, 1);
 
     debruijn::Graph dbg_exp(3);
@@ -1513,7 +1534,8 @@ TEST(NoiseFilteringTest,detangle_pangraph_with_debruijn_graph)
 
     cout << "original pg is: " << endl << *pg << endl;
 
-    debruijn::Graph dbg = construct_debruijn_graph_from_pangraph(3,pg);
+    debruijn::Graph dbg(3);
+    construct_debruijn_graph_from_pangraph(pg, dbg);
     detangle_pangraph_with_debruijn_graph(pg, dbg);
 
     pangenome::Graph pg_exp;
