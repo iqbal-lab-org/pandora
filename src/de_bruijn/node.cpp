@@ -4,7 +4,7 @@
 using namespace debruijn;
 
 Node::Node(const uint32_t i, const deque<uint16_t>& n, const uint32_t r) : id(i), hashed_node_ids(n),
-                                                                            read_ids({r}) {}
+                                                                            read_ids({r}), out_nodes({}), in_nodes({}) {}
 
 bool Node::operator == (const Node& y) const
 {
