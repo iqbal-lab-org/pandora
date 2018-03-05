@@ -24,8 +24,8 @@ void VCF::add_record(string c, uint32_t p, string r, string a, string i, string 
     VCFRecord vr(c, p, r, a, i, g);
     if ( find(records.begin(), records.end(), vr) == records.end())
     {
-	records.push_back(vr);
-	records.back().samples.insert(records.back().samples.end(), samples.size(), ".");
+	    records.push_back(vr);
+	    records.back().samples.insert(records.back().samples.end(), samples.size(), ".:.");
     }
     //cout << "added record: " << vr << endl;
 }
@@ -35,11 +35,11 @@ void VCF::add_record(VCFRecord& vr)
     if ( find(records.begin(), records.end(), vr) == records.end())
     {
         records.push_back(vr);
-	    records.back().samples.insert(records.back().samples.end(), samples.size(), ".");
+	    records.back().samples.insert(records.back().samples.end(), samples.size(), ".:.");
     }
 }
 
-void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, const string& r, const string& a)
+void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, const string& r, const string& a, const pair<uint16_t,uint16_t>& covg)
 {
     //cout << "adding gt " << c << " " << p << " " << r << " vs " << name << " " << a << endl;
     if (r == ""  and a == "")
@@ -59,7 +59,7 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
 	    samples.push_back(name);
 	    for (uint i=0; i!=records.size(); ++i)
 	    {
-	        records[i].samples.push_back(".");
+	        records[i].samples.push_back(".:.");
 	    }
 	    sample_index = samples.size() - 1;
     } else {
@@ -71,14 +71,14 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
     vector<VCFRecord>::iterator it = find(records.begin(), records.end(), vr);
     if (it != records.end())
     {
-	    it->samples[sample_index] = "1";
+	    it->samples[sample_index] = "1:" + to_string(covg.first) + "," + to_string(covg.second);
 	    //cout << "found record with this ref and alt" << endl;
 	    for (uint i=0; i!=records.size(); ++i)
         {
 	        if (records[i].pos == p and records[i].alt!=a)
             {
                 //assert(records[i].ref == r or r == "");
-                records[i].samples[sample_index] = ".";
+                records[i].samples[sample_index] = ".:.";
 	        } else if (records[i].pos > p) {
                 break;
             }
@@ -93,12 +93,12 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
 		    //cout << "have ref allele" << endl;
 		    //assert(records[i].ref == r or r == "" ||
                     //assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
-		    records[i].samples[sample_index] = "0";
+		    records[i].samples[sample_index] = "0:" + to_string(covg.first) + "," + to_string(covg.second);
 		    added = true;
 	        } else if (records[i].pos == p and r!=a) {
 		    //cout << "found another alt at the position" << endl;
 		    //assert(records[i].ref == r or r == "" || assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
-                    records[i].samples[sample_index] = ".";
+                    records[i].samples[sample_index] = ".:.";
                 /*} else if (records[i].pos > p) {
 		    break;*/
 	        }
@@ -107,7 +107,7 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
 	    {
 	        //cout << "have very nested allele" << endl;
 	        add_record(c, p, r, a, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
-	        records.back().samples[sample_index] = "1";
+	        records.back().samples[sample_index] = "1:" + to_string(covg.first) + "," + to_string(covg.second);
 	        added = true;
 	        // also check if other samples had ref allele at this pos
 	        for (uint i=0; i!=records.size(); ++i)
@@ -118,7 +118,7 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
 		            {
 			            if (records[i].samples[j] == "0")
 			            {
-			                records.back().samples[j] = "0";
+			                records.back().samples[j] = "0:.";
 			            }
 		            }
 		        }
@@ -142,7 +142,7 @@ void VCF::add_sample_ref_alleles(const string& sample_name, const string& name, 
         samples.push_back(sample_name);
         for (uint i=0; i!=records.size(); ++i)
         {
-            records[i].samples.push_back(".");
+            records[i].samples.push_back(".:.");
         }
         sample_index = samples.size() - 1;
     } else {
@@ -153,7 +153,7 @@ void VCF::add_sample_ref_alleles(const string& sample_name, const string& name, 
     {
         if (pos <= records[i].pos and records[i].pos + records[i].ref.length() <= pos_to and records[i].chrom == name)
 	    {
-	        records[i].samples[sample_index] = "0";
+	        records[i].samples[sample_index] = "0:.";
 	        //cout << "update record " << records[i] << endl;
 	    }
     }

@@ -878,6 +878,7 @@ void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, co
     samplepath.reserve(100);
     samplepath.push_back(sample_path[0]);
     uint ref_i = 1, sample_id = 1, pos = 0, pos_to = 0;
+    pair<uint16_t,uint16_t> sample_covg = make_pair(0,0);
     string ref = "", alt = "";
     bool found_new_site = false;
 
@@ -910,7 +911,7 @@ void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, co
             }
 
             //cout << "add sample gt" << endl;
-            vcf.add_sample_gt(sample_name, name, pos, ref, alt);
+            vcf.add_sample_gt(sample_name, name, pos, ref, alt, sample_covg);
             found_new_site = false;
 
             // prepare for next iteration
