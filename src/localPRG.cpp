@@ -642,7 +642,7 @@ LocalPRG::get_covgs_from_kmernode_paths(const vector<LocalNodePtr> &localnode_pa
             end = min(start + interval.length, localnode_path[k]->pos.end);
             //cout << "add from " << start << " to " << end << endl;
             for (uint l = start; l < end; ++l) {
-                coverages[k][l] += kmernode_ptr->covg[0]+kmernode_ptr->covg[1];
+                coverages[k][l] = max(coverages[k][l], kmernode_ptr->covg[0]+kmernode_ptr->covg[1]);
             }
             k++;
         }
