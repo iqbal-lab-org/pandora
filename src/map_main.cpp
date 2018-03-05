@@ -41,7 +41,7 @@ static void show_map_usage() {
               << "\t-p,--prg_file PRG_FILE\t\tSpecify a fasta-style prg file\n"
               << "\t-r,--read_file READ_FILE\tSpecify a file of reads in fasta format\n"
               << "\t-o,--out_prefix OUT_PREFIX\tSpecify prefix of output\n"
-              << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 14\n"
+              << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, must be <=k, default 14\n"
               << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
               << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 500 (bps)\n"
               << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
@@ -156,6 +156,8 @@ int pandora_map(int argc, char *argv[]) {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
     }
+    
+    assert(w<=k);
 
     //then run the programme...
     cout << "START: " << now() << endl;
