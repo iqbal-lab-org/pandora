@@ -30,7 +30,7 @@ TEST(DeBruijnGraphAddNode, AddNode_NodeHashInIndex) {
 TEST(DeBruijnGraphAddNode, AddNode_NodeIdInIndex) {
     GraphTester g(3);
 
-    std::deque<uint16_t> v({4, 6, 8});
+    std::deque<uint16_t> v = {4, 6, 8};
     uint32_t read_id = 0;
     g.add_node(v, read_id);
 
@@ -41,9 +41,9 @@ TEST(DeBruijnGraphAddNode, AddNode_NodeIdInIndex) {
 TEST(DeBruijnGraphAddNode, AddNode_NodePropertiesCorrect) {
     GraphTester g(3);
 
-    std::deque<uint16_t> v({4, 6, 8});
+    std::deque<uint16_t> v = {4, 6, 8};
     uint32_t read_id = 0;
-    std::unordered_multiset<uint32_t> w({read_id});
+    std::unordered_multiset<uint32_t> w = {read_id};
     g.add_node(v, read_id);
 
     EXPECT_EQ(*g.nodes[0], Node(0, v, 0));
@@ -54,9 +54,9 @@ TEST(DeBruijnGraphAddNode, AddNode_NodePropertiesCorrect) {
 TEST(DeBruijnGraphAddNode, AddNodeTwiceForSameRead_NodeReadsMultisetContainsReadTwice) {
     GraphTester g(3);
 
-    std::deque<uint16_t> v({4, 6, 8});
+    std::deque<uint16_t> v = {4, 6, 8};
     uint32_t read_id = 0;
-    std::unordered_multiset<uint32_t> w({read_id, read_id});
+    std::unordered_multiset<uint32_t> w = {read_id, read_id};
     g.add_node(v, read_id);
     g.add_node(v, read_id);
 
@@ -68,10 +68,10 @@ TEST(DeBruijnGraphAddNode, AddNodeTwiceForSameRead_NodeReadsMultisetContainsRead
 TEST(DeBruijnGraphAddNode, AddNodeTwiceForDifferentRead_NodeReadsMultisetContainsReads) {
     GraphTester g(3);
 
-    std::deque<uint16_t> v({4, 6, 8});
+    std::deque<uint16_t> v = {4, 6, 8};
     uint32_t read_id = 0;
     g.add_node(v, read_id);
-    std::unordered_multiset<uint32_t> w({read_id});
+    std::unordered_multiset<uint32_t> w = {read_id};
     read_id = 7;
     g.add_node(v, read_id);
     w.insert(read_id);
@@ -84,7 +84,7 @@ TEST(DeBruijnGraphAddNode, AddNodeTwiceForDifferentRead_NodeReadsMultisetContain
 TEST(DeBruijnGraphAddNode, AddTwoNodes_SecondNodeInIndex) {
     GraphTester g(3);
 
-    std::deque<uint16_t> v({4, 6, 8});
+    std::deque<uint16_t> v = {4, 6, 8};
     uint32_t read_id = 0;
     g.add_node(v, read_id);
 
@@ -99,14 +99,14 @@ TEST(DeBruijnGraphAddNode, AddTwoNodes_SecondNodeInIndex) {
 TEST(DeBruijnGraphAddNode, AddTwoNodes_SecondNodePropertiesCorrect) {
     GraphTester g(3);
 
-    std::deque<uint16_t> v({4, 6, 8});
+    std::deque<uint16_t> v = {4, 6, 8};
     uint32_t read_id = 0;
     g.add_node(v, read_id);
 
     v = {6, 9, 3};
     read_id = 7;
     g.add_node(v, read_id);
-    std::unordered_multiset<uint32_t> w({read_id});
+    std::unordered_multiset<uint32_t> w = {read_id};
 
     EXPECT_EQ(*g.nodes[1], Node(1, v, 7));
     EXPECT_ITERABLE_EQ(std::deque<uint16_t>, g.nodes[1]->hashed_node_ids, v);
@@ -116,8 +116,8 @@ TEST(DeBruijnGraphAddNode, AddTwoNodes_SecondNodePropertiesCorrect) {
 TEST(DeBruijnGraphAddEdge, AddEdgeNodesOverlapForwards_EdgeAdded) {
     GraphTester g(3);
 
-    std::deque<uint16_t> v1({4, 6, 8});
-    std::deque<uint16_t> v2({6, 8, 9});
+    std::deque<uint16_t> v1 = {4, 6, 8};
+    std::deque<uint16_t> v2 = {6, 8, 9};
     OrientedNodePtr n1 = g.add_node(v1, 0);
     OrientedNodePtr n2 = g.add_node(v2, 0);
     g.add_edge(n1, n2);
@@ -135,9 +135,9 @@ TEST(DeBruijnGraphAddEdge, AddEdgeNodesOverlapForwards_EdgeAdded) {
 TEST(DeBruijnGraphAddEdge, AddEdgeFirstForwardSecondRC_EdgeAdded) {
     GraphTester g(3);
 
-    std::deque<uint16_t> v1({4, 6, 8});
-    std::deque<uint16_t> v3({6, 8, 9});
-    std::deque<uint16_t> v2({8, 9, 7});
+    std::deque<uint16_t> v1 = {4, 6, 8};
+    std::deque<uint16_t> v3 = {6, 8, 9};
+    std::deque<uint16_t> v2 = {8, 9, 7};
     OrientedNodePtr n1 = g.add_node(v1, 0);
     OrientedNodePtr n2 = g.add_node(v2, 0);
     OrientedNodePtr n3 = g.add_node(v3, 0);
@@ -156,9 +156,9 @@ TEST(DeBruijnGraphAddEdge, AddEdgeFirstForwardSecondRC_EdgeAdded) {
 TEST(DeBruijnGraphAddEdge, AddEdgeFirstRCSecondForward_EdgeAdded) {
     GraphTester g(3);
 
-    std::deque<uint16_t> v1({9, 7, 5});
-    std::deque<uint16_t> v2({4, 6, 8});
-    std::deque<uint16_t> v3({6, 8, 9});
+    std::deque<uint16_t> v1 = {9, 7, 5};
+    std::deque<uint16_t> v2 = {4, 6, 8};
+    std::deque<uint16_t> v3 = {6, 8, 9};
     OrientedNodePtr n1 = g.add_node(v1, 0);
     OrientedNodePtr n2 = g.add_node(v2, 0);
     OrientedNodePtr n3 = g.add_node(v3, 0);
@@ -177,10 +177,10 @@ TEST(DeBruijnGraphAddEdge, AddEdgeFirstRCSecondForward_EdgeAdded) {
 TEST(DeBruijnGraphAddEdge, AddEdgeNodesBothRC_EdgeAdded) {
     GraphTester g(3);
 
-    std::deque<uint16_t> v1({4, 6, 8});
-    std::deque<uint16_t> v2({6, 8, 9});
-    std::deque<uint16_t> v1_({9, 7, 5});
-    std::deque<uint16_t> v2_({8, 9, 7});
+    std::deque<uint16_t> v1 = {4, 6, 8};
+    std::deque<uint16_t> v2 = {6, 8, 9};
+    std::deque<uint16_t> v1_ = {9, 7, 5};
+    std::deque<uint16_t> v2_ = {8, 9, 7};
     OrientedNodePtr n1 = g.add_node(v1, 0);
     OrientedNodePtr n2 = g.add_node(v2, 0);
     n1 = g.add_node(v1_, 0);
@@ -200,8 +200,8 @@ TEST(DeBruijnGraphAddEdge, AddEdgeNodesBothRC_EdgeAdded) {
 TEST(DeBruijnGraphAddEdge, AddEdgeNoOverlap_Death) {
     GraphTester g(3);
 
-    std::deque<uint16_t> v1({4, 6, 8});
-    std::deque<uint16_t> v2({6, 0, 9});
+    std::deque<uint16_t> v1 = {4, 6, 8};
+    std::deque<uint16_t> v2 = {6, 0, 9};
     OrientedNodePtr n1 = g.add_node(v1, 0);
     OrientedNodePtr n2 = g.add_node(v2, 0);
     EXPECT_DEATH(g.add_edge(n1, n2), "");
@@ -209,8 +209,8 @@ TEST(DeBruijnGraphAddEdge, AddEdgeNoOverlap_Death) {
 
 TEST(DeBruijnGraphTest, remove_node) {
     GraphTester g(3);
-    std::deque<uint16_t> v1({4, 6, 8});
-    std::deque<uint16_t> v2({6, 8, 3});
+    std::deque<uint16_t> v1 = {4, 6, 8};
+    std::deque<uint16_t> v2 = {6, 8, 3};
 
     g.add_node(v1, 0);
     OrientedNodePtr n1 = g.add_node(v1, 7);
@@ -222,12 +222,12 @@ TEST(DeBruijnGraphTest, remove_node) {
     EXPECT_EQ(*g.nodes[1], Node(1, v2, 7));
     EXPECT_ITERABLE_EQ(std::deque<uint16_t>, g.nodes[0]->hashed_node_ids, v1);
     EXPECT_ITERABLE_EQ(std::deque<uint16_t>, g.nodes[1]->hashed_node_ids, v2);
-    std::unordered_multiset<uint32_t> w1({0, 7});
-    std::unordered_multiset<uint32_t> w2({7});
+    std::unordered_multiset<uint32_t> w1 = {0, 7};
+    std::unordered_multiset<uint32_t> w2 = {7};
     EXPECT_ITERABLE_EQ(std::unordered_multiset<uint32_t>, g.nodes[0]->read_ids, w1);
     EXPECT_ITERABLE_EQ(std::unordered_multiset<uint32_t>, g.nodes[1]->read_ids, w2);
-    std::unordered_set<uint32_t> s({1});
-    std::unordered_set<uint32_t> t({0});
+    std::unordered_set<uint32_t> s = {1};
+    std::unordered_set<uint32_t> t = {0};
     EXPECT_ITERABLE_EQ(std::unordered_set<uint32_t>, g.nodes[0]->out_nodes, s);
     EXPECT_ITERABLE_EQ(std::unordered_set<uint32_t>, g.nodes[1]->in_nodes, t);
 
@@ -243,8 +243,8 @@ TEST(DeBruijnGraphTest, remove_node) {
 TEST(DeBruijnGraphAddEdge, AddEdgeTwice_EdgeAddedOnce) {
     GraphTester g(3);
 
-    std::deque<uint16_t> v1({4, 6, 8});
-    std::deque<uint16_t> v2({6, 8, 9});
+    std::deque<uint16_t> v1 = {4, 6, 8};
+    std::deque<uint16_t> v2 = {6, 8, 9};
     OrientedNodePtr n1 = g.add_node(v1, 0);
     OrientedNodePtr n2 = g.add_node(v2, 0);
     g.add_edge(n1, n2);
@@ -257,9 +257,9 @@ TEST(DeBruijnGraphAddEdge, AddEdgeTwice_EdgeAddedOnce) {
 
 TEST(DeBruijnGraphTest, remove_read_from_node) {
     GraphTester g(3);
-    std::deque<uint16_t> v1({4, 6, 8});
-    std::deque<uint16_t> v2({6, 8, 3});
-    std::deque<uint16_t> v3({1, 2, 3});
+    std::deque<uint16_t> v1 = {4, 6, 8};
+    std::deque<uint16_t> v2 = {6, 8, 3};
+    std::deque<uint16_t> v3 = {1, 2, 3};
 
     g.add_node(v1, 0);
     g.add_node(v2, 4);
@@ -275,14 +275,14 @@ TEST(DeBruijnGraphTest, remove_read_from_node) {
     EXPECT_ITERABLE_EQ(std::deque<uint16_t>, g.nodes[0]->hashed_node_ids, v1);
     EXPECT_ITERABLE_EQ(std::deque<uint16_t>, g.nodes[1]->hashed_node_ids, v2);
     EXPECT_ITERABLE_EQ(std::deque<uint16_t>, g.nodes[2]->hashed_node_ids, v3);
-    std::unordered_multiset<uint32_t> w1({0, 7});
-    std::unordered_multiset<uint32_t> w2({4, 7});
-    std::unordered_multiset<uint32_t> w3({5});
+    std::unordered_multiset<uint32_t> w1 = {0, 7};
+    std::unordered_multiset<uint32_t> w2 = {4, 7};
+    std::unordered_multiset<uint32_t> w3 = {5};
     EXPECT_ITERABLE_EQ(std::unordered_multiset<uint32_t>, g.nodes[0]->read_ids, w1);
     EXPECT_ITERABLE_EQ(std::unordered_multiset<uint32_t>, g.nodes[1]->read_ids, w2);
     EXPECT_ITERABLE_EQ(std::unordered_multiset<uint32_t>, g.nodes[2]->read_ids, w3);
-    std::unordered_set<uint32_t> s({1});
-    std::unordered_set<uint32_t> t({0});
+    std::unordered_set<uint32_t> s = {1};
+    std::unordered_set<uint32_t> t = {0};
     std::unordered_set<uint32_t> u;
     EXPECT_ITERABLE_EQ(std::unordered_set<uint32_t>, g.nodes[0]->out_nodes, s);
     EXPECT_ITERABLE_EQ(std::unordered_set<uint32_t>, g.nodes[0]->in_nodes, u);
@@ -395,11 +395,11 @@ TEST(DeBruijnGraphTest, remove_read_from_node) {
 TEST(DeBruijnGraphTest, get_leaves) {
     GraphTester g(3);
 
-    std::deque<uint16_t> v1({4, 1, 8});
-    std::deque<uint16_t> v2({1, 8, 9});
-    std::deque<uint16_t> v3({1, 8, 2});
-    std::deque<uint16_t> v4({8, 2, 4});
-    std::deque<uint16_t> v5({2, 4, 3});
+    std::deque<uint16_t> v1 = {4, 1, 8};
+    std::deque<uint16_t> v2 = {1, 8, 9};
+    std::deque<uint16_t> v3 = {1, 8, 2};
+    std::deque<uint16_t> v4 = {8, 2, 4};
+    std::deque<uint16_t> v5 = {2, 4, 3};
 
     OrientedNodePtr n1 = g.add_node(v1, 0);
     OrientedNodePtr n2 = g.add_node(v2, 0);
@@ -496,11 +496,11 @@ TEST(DeBruijnGraphGetUnitigs, OneBubble_ThreeTigs) {
 
     GraphTester g(3);
 
-    std::deque<uint16_t> v1({0, 2, 4});
-    std::deque<uint16_t> v2({2, 4, 6});
-    std::deque<uint16_t> v3({4, 6, 8});
-    std::deque<uint16_t> v4({6, 8, 10});
-    std::deque<uint16_t> v5({8, 10, 0});
+    std::deque<uint16_t> v1 = {0, 2, 4};
+    std::deque<uint16_t> v2 = {2, 4, 6};
+    std::deque<uint16_t> v3 = {4, 6, 8};
+    std::deque<uint16_t> v4 = {6, 8, 10};
+    std::deque<uint16_t> v5 = {8, 10, 0};
 
     OrientedNodePtr n0 = g.add_node(v1, 0);
     OrientedNodePtr n1 = g.add_node(v2, 0);
@@ -512,9 +512,9 @@ TEST(DeBruijnGraphGetUnitigs, OneBubble_ThreeTigs) {
     OrientedNodePtr n4 = g.add_node(v5, 0);
     g.add_edge(n3, n4);
 
-    std::deque<uint16_t> v6({2, 4, 12});
-    std::deque<uint16_t> v7({4, 12, 6});
-    std::deque<uint16_t> v8({12, 6, 8});
+    std::deque<uint16_t> v6 = {2, 4, 12};
+    std::deque<uint16_t> v7 = {4, 12, 6};
+    std::deque<uint16_t> v8 = {12, 6, 8};
 
     n0 = g.add_node(v1, 1);
     n1 = g.add_node(v6, 1);
@@ -530,7 +530,7 @@ TEST(DeBruijnGraphGetUnitigs, OneBubble_ThreeTigs) {
     EXPECT_EQ(s.size(), (uint) 3);
 
     std::set<std::deque<uint32_t>> s_exp;
-    std::deque<uint32_t> d({0, 1, 2, 3});
+    std::deque<uint32_t> d = {0, 1, 2, 3};
     s_exp.insert(d);
     d = {0, 5, 6, 7, 3};
     s_exp.insert(d);
@@ -547,11 +547,11 @@ TEST(DeBruijnGraphTest, get_unitigs) {
 
     GraphTester g(3);
 
-    std::deque<uint16_t> v1({4, 6, 8});
-    std::deque<uint16_t> v2({6, 8, 9});
-    std::deque<uint16_t> v3({6, 8, 2});
-    std::deque<uint16_t> v4({8, 2, 3});
-    std::deque<uint16_t> v5({5, 9, 3});
+    std::deque<uint16_t> v1 = {4, 6, 8};
+    std::deque<uint16_t> v2 = {6, 8, 9};
+    std::deque<uint16_t> v3 = {6, 8, 2};
+    std::deque<uint16_t> v4 = {8, 2, 3};
+    std::deque<uint16_t> v5 = {5, 9, 3};
 
     OrientedNodePtr n0 = g.add_node(v1, 0);
     OrientedNodePtr n1 = g.add_node(v2, 0);
@@ -576,9 +576,9 @@ TEST(DeBruijnGraphTest, get_unitigs) {
 
 
     std::set<std::deque<uint32_t>> s = g.get_unitigs();
-    std::deque<uint32_t> d1({0, 2, 3});
-    std::deque<uint32_t> d2({0, 1});
-    std::set<std::deque<uint32_t>> s_exp({d1, d2});
+    std::deque<uint32_t> d1 = {0, 2, 3};
+    std::deque<uint32_t> d2 = {0, 1};
+    std::set<std::deque<uint32_t>> s_exp = {d1, d2};
     d1 = {4};
     s_exp.insert(d1);
     EXPECT_EQ(s.size(), s_exp.size());
@@ -592,11 +592,11 @@ TEST(DeBruijnGraphTest, extend_unitig) {
 
     GraphTester g(3);
 
-    std::deque<uint16_t> v1({4, 6, 8});
-    std::deque<uint16_t> v2({6, 8, 9});
-    std::deque<uint16_t> v3({6, 8, 2});
-    std::deque<uint16_t> v4({8, 2, 3});
-    std::deque<uint16_t> v5({5, 9, 3});
+    std::deque<uint16_t> v1 = {4, 6, 8};
+    std::deque<uint16_t> v2 = {6, 8, 9};
+    std::deque<uint16_t> v3 = {6, 8, 2};
+    std::deque<uint16_t> v4 = {8, 2, 3};
+    std::deque<uint16_t> v5 = {5, 9, 3};
 
     OrientedNodePtr n1 = g.add_node(v1, 0);
     OrientedNodePtr n2 = g.add_node(v2, 0);
@@ -651,7 +651,7 @@ TEST(DeBruijnGraphTest, extend_unitig) {
     v3 = {2, 3, 4};
     v4 = {3, 4, 5};
     v5 = {4, 5, 0};
-    std::deque<uint16_t> v6({5, 0, 1});
+    std::deque<uint16_t> v6 = {5, 0, 1};
 
     n1 = g.add_node(v1, 0);
     n2 = g.add_node(v2, 0);
@@ -690,14 +690,15 @@ TEST(DeBruijnGraphTest, extend_unitig) {
     EXPECT_ITERABLE_EQ(std::deque<uint32_t>, d, d_exp);
 }
 
+
 TEST(DeBruijnGraphTest, equals) {
     GraphTester g1(3);
 
-    std::deque<uint16_t> v1({4, 6, 8});
-    std::deque<uint16_t> v2({6, 8, 9});
-    std::deque<uint16_t> v3({6, 8, 2});
-    std::deque<uint16_t> v4({8, 2, 3});
-    std::deque<uint16_t> v5({5, 6, 8});
+    std::deque<uint16_t> v1 = {4, 6, 8};
+    std::deque<uint16_t> v2 = {6, 8, 9};
+    std::deque<uint16_t> v3 = {6, 8, 2};
+    std::deque<uint16_t> v4 = {8, 2, 3};
+    std::deque<uint16_t> v5 = {5, 6, 8};
 
     OrientedNodePtr n1 = g1.add_node(v1, 0);
     OrientedNodePtr n2 = g1.add_node(v2, 0);
@@ -727,29 +728,22 @@ TEST(DeBruijnGraphTest, equals) {
     g2.add_edge(m1, m3);
 
     // shouldn't matter that nodes and edges added in different order
-    std::cout << std::endl << ".";
     EXPECT_EQ(g1, g2);
     EXPECT_EQ(g2, g1);
-    std::cout << ".";
 
     // an extra node does matter
-    std::deque<uint16_t> v6({0, 0, 3});
+    std::deque<uint16_t> v6 = {0, 0, 3};
     OrientedNodePtr m6 = g2.add_node(v6, 0);
-    std::cout << ".";
+
     EXPECT_NE(g1, g2);
     EXPECT_NE(g2, g1);
-    std::cout << ".";
+
     g2.remove_node(5);
-    std::cout << ".";
     EXPECT_EQ(g1, g2);
     EXPECT_EQ(g2, g1);
-    std::cout << ".";
 
     // an extra edge does matter
-    std::cout << ".";
     g2.add_edge(m5, m3);
-    std::cout << ".";
     EXPECT_NE(g1, g2);
     EXPECT_NE(g2, g1);
-    std::cout << ".";
 }
