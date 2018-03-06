@@ -39,7 +39,7 @@ void VCF::add_record(VCFRecord& vr)
     }
 }
 
-void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, const string& r, const string& a, const pair<uint16_t,uint16_t>& covg)
+void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, const string& r, const string& a, const vector<uint32_t>& covg)
 {
     //cout << "adding gt " << c << " " << p << " " << r << " vs " << name << " " << a << endl;
     if (r == ""  and a == "")
@@ -71,7 +71,12 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
     vector<VCFRecord>::iterator it = find(records.begin(), records.end(), vr);
     if (it != records.end())
     {
-	    it->samples[sample_index] = "1:" + to_string(covg.first) + "," + to_string(covg.second);
+	    it->samples[sample_index] = "1";
+        if(!covg.empty()) {
+            it->samples[sample_index] += ":" + to_string(covg[0]);
+            for (uint n = 1; n < covg.size(); ++n)
+                it->samples[sample_index] += "," + to_string(covg[n]);
+        }
 	    //cout << "found record with this ref and alt" << endl;
 	    for (uint i=0; i!=records.size(); ++i)
         {
@@ -93,7 +98,12 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
 		    //cout << "have ref allele" << endl;
 		    //assert(records[i].ref == r or r == "" ||
                     //assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
-		    records[i].samples[sample_index] = "0:" + to_string(covg.first) + "," + to_string(covg.second);
+		    records[i].samples[sample_index] = "0";
+            if (!covg.empty()) {
+                records[i].samples[sample_index] += ":" + to_string(covg[0]);
+                for (uint n = 1; n < covg.size(); ++n)
+                    records[i].samples[sample_index] += "," + to_string(covg[n]);
+            }
 		    added = true;
 	        } else if (records[i].pos == p and r!=a) {
 		    //cout << "found another alt at the position" << endl;
@@ -107,7 +117,9 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
 	    {
 	        //cout << "have very nested allele" << endl;
 	        add_record(c, p, r, a, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
-	        records.back().samples[sample_index] = "1:" + to_string(covg.first) + "," + to_string(covg.second);
+	        records.back().samples[sample_index] = "1:" + to_string(covg[0]);
+            for (uint n=1; n<covg.size(); ++n)
+                records.back().samples[sample_index] += "," + to_string(covg[n]);
 	        added = true;
 	        // also check if other samples had ref allele at this pos
 	        for (uint i=0; i!=records.size(); ++i)

@@ -4,6 +4,8 @@
 #include <set>
 #include <cassert>
 #include <cmath>
+#include <algorithm>
+#include <numeric>
 #include "minimizer.h"
 #include "localPRG.h"
 #include "inthash.h"
@@ -46,6 +48,14 @@ string LocalPRG::string_along_path(const Path &p) const {
     //cout << "lengths: " << s.length() << ", " << p.length << endl;
     assert(s.length() == p.length() ||
            assert_msg("sequence length " << s.length() << " is not equal to path length " << p.length()));
+    return s;
+}
+
+string LocalPRG::string_along_path(const vector<LocalNodePtr> &p) const {
+    string s;
+    for (auto n : p){
+        s += n->seq;
+    }
     return s;
 }
 
@@ -496,6 +506,31 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
     //kmer_prg.check(num_kmers_added);
 }
 
+vector<KmerNodePtr> LocalPRG::kmernode_path_from_localnode_path(const vector<LocalNodePtr>& localnode_path) const {
+    vector<KmerNodePtr> kmernode_path;
+
+    if (localnode_path.empty())
+        return kmernode_path;
+
+    deque<Interval> d;
+    for (auto n : localnode_path){
+        d.push_back(n->pos);
+    }
+
+    Path local_path;
+    local_path.initialize(d);
+
+    for (auto n : kmer_prg.nodes) {
+        if (n.second->path.end >= local_path.start
+                and n.second->path.start < local_path.end
+                and not local_path.is_branching(n.second->path))
+            kmernode_path.push_back(n.second);
+    }
+
+    return kmernode_path;
+}
+
+
 vector<LocalNodePtr>
 LocalPRG::localnode_path_from_kmernode_path(const vector<KmerNodePtr> &kmernode_path, const uint w) const {
     //cout << now() << "Convert kmernode path to localnode path" << endl;
@@ -610,8 +645,10 @@ LocalPRG::localnode_path_from_kmernode_path(const vector<KmerNodePtr> &kmernode_
 }
 
 vector<uint>
-LocalPRG::get_covgs_from_kmernode_paths(const vector<LocalNodePtr> &localnode_path,
+LocalPRG::get_covgs_along_localnode_path(const vector<LocalNodePtr> &localnode_path,
                                         const vector<KmerNodePtr> &kmernode_path) const {
+    // defines estimated per base coverage for the bases of localnode_path based on the coverages from the
+    // kmernode_path kmers
 
     //define 0 coverage for each base in localnode path
     vector<vector<uint>> coverages;
@@ -654,6 +691,62 @@ LocalPRG::get_covgs_from_kmernode_paths(const vector<LocalNodePtr> &localnode_pa
     }
 
     return return_coverages;
+}
+
+uint32_t sum(const vector<uint32_t>& v)
+{
+    return std::accumulate(v.begin(), v.end(), 0);
+}
+
+uint32_t mean(const vector<uint32_t>& v)
+{
+    if (v.empty())
+        return 0;
+    return std::accumulate(v.begin(), v.end(), 0)/v.size();
+}
+
+uint32_t median(vector<uint32_t>& v)
+{
+    std::sort(v.begin(), v.end());
+    if (v.size() % 2 == 0)
+        return v[v.size()/2];
+    else
+        return (v[v.size()+1/2] + v[v.size()-1/2])/2;
+}
+
+
+
+vector<uint32_t>
+LocalPRG::get_covg_stats_from_kmernode_paths(const vector<LocalNodePtr> &localnode_path,
+                                             const vector<KmerNodePtr> &kmernode_path) const {
+
+    // finds the mean, median and sum kmer coverages for kmers crossing the path
+
+    vector<uint32_t> fwd_covgs, rev_covgs;
+    vector<uint32_t> return_stats(6,0);
+
+    if (localnode_path.empty())
+        return return_stats;
+
+    for (auto n : kmernode_path) {
+        if (n->path.end < localnode_path[0]->pos.start)
+            continue;
+        else if (n->path.start > localnode_path[0]->pos.end)
+            break;
+        else {
+            fwd_covgs.push_back(n->covg[0]);
+            rev_covgs.push_back(n->covg[1]);
+        }
+    }
+
+    return_stats[0] += mean(fwd_covgs);
+    return_stats[1] += median(fwd_covgs);
+    return_stats[2] += sum(fwd_covgs);
+    return_stats[3] += mean(rev_covgs);
+    return_stats[4] += median(rev_covgs);
+    return_stats[5] += sum(rev_covgs);
+
+    return return_stats;
 }
 
 void LocalPRG::write_covgs_to_file(const string &filepath, const vector<uint> & covgs) const {
@@ -857,7 +950,7 @@ void LocalPRG::build_vcf(VCF &vcf, const vector<LocalNodePtr> &ref) const {
     }
 }
 
-void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, const vector<LocalNodePtr> &sample_path,
+void LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, const vector<LocalNodePtr> &sample_path,
                                  const string &sample_name) const {
     /*cout << now() << "Update VCF with sample path" << endl;
     for (uint i=0; i!=sample_path.size(); ++i)
@@ -878,7 +971,7 @@ void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, co
     samplepath.reserve(100);
     samplepath.push_back(sample_path[0]);
     uint ref_i = 1, sample_id = 1, pos = 0, pos_to = 0;
-    pair<uint16_t,uint16_t> sample_covg = make_pair(0,0);
+    vector<uint32_t> sample_covg(6,0);
     string ref = "", alt = "";
     bool found_new_site = false;
 
@@ -909,6 +1002,11 @@ void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, co
                 alt += samplepath[j]->seq;
                 //cout << alt << endl;
             }
+
+            // find ref covgs
+
+            // find alt covgs
+
 
             //cout << "add sample gt" << endl;
             vcf.add_sample_gt(sample_name, name, pos, ref, alt, sample_covg);
@@ -948,105 +1046,139 @@ void LocalPRG::add_sample_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, co
     vcf.add_sample_ref_alleles(sample_name, name, pos, pos_to);
 }
 
-/*void LocalPRG::add_sample_to_vcf(const vector<LocalNodePtr>& lmp)
+// Find the path through the PRG which deviates at pos from the ref path with alt sequence
+vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_path,
+                                        const uint8_t pos,
+                                        const string& ref,
+                                        const string& alt)
 {
-    cout << now() << "Update VCF with sample path" << endl;
-    assert(prg.nodes.size()>0); //otherwise empty nodes -> segfault
+    vector<LocalNodePtr> alt_path, considered_path;
+    deque<vector<LocalNodePtr>> paths_in_progress;
+    uint32_t ref_added = 0, pos_along_ref_path=0;
 
-    vector<LocalNodePtr> toppath;
-    toppath.reserve(100);
-    toppath.push_back(prg.nodes[0]);
+    for (auto n : ref_path) {
+        if (ref_added < pos) {
+            ref_added += n->pos.length;
+            alt_path.push_back(n);
+            pos_along_ref_path++;
+        } else {
+            break;
+        }
+    }
 
-    uint lmp_range_start = 0, lmp_range_end = 0, pos=toppath[0]->pos.length;
-    int level = 0;
-    string ref = "", alt = "";
+    // find the localnodeptr we want to make our way back to
+    while (ref_added < pos + ref.length()) {
+        ref_added += ref_path[pos_along_ref_path]->pos.length;
+        pos_along_ref_path++;
+    }
+    auto ref_node_to_find = ref_path[pos_along_ref_path];
+
+    // find an alt path with the required sequence
+    for (auto m : alt_path.back()->outNodes) {
+        paths_in_progress.push_back({m});
+    }
+    while (!paths_in_progress.empty()) {
+        considered_path = paths_in_progress.front();
+        paths_in_progress.pop_front();
+
+        auto considered_seq = string_along_path(considered_path);
+
+        if (considered_seq == alt) {
+            // check if merge with ref path
+            if (find(considered_path.back()->outNodes.begin(), considered_path.back()->outNodes.end(), ref_node_to_find)
+                != considered_path.back()->outNodes.end()) {
+                alt_path.insert(alt_path.end(), considered_path.begin(), considered_path.end());
+                alt_path.insert(alt_path.end(), ref_path.begin() + pos_along_ref_path, ref_path.end());
+                return alt_path;
+            }
+
+        } else if (considered_seq.length() < alt.length()
+                   and considered_seq == alt.substr(0, considered_seq.length())) {
+            for (auto m : considered_path.back()->outNodes) {
+                paths_in_progress.push_back(considered_path);
+                paths_in_progress.back().push_back(m);
+            }
+        }
+    }
+    assert (true or assert_msg("Should have found an alt path!!"));
+    return alt_path; // this never happens
+}
+
+/*void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const vector<LocalNodePtr> &ref_path, const vector<LocalNodePtr> &sample_path,
+                                    const string &sample_name, const vector<KmerNodePtr> &sample_kmer_path) const {
+    //cout << now() << "Update VCF with sample covgs" << endl;
+
+    assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
+    vcf.sort_records();
+
+    vector<LocalNodePtr> alt_path;
+
+    vector<KmerNodePtr> ref_kmer_path = kmernode_path_from_localnode_path(ref_path);
+
+    vector<uint32_t> ref_fwd_covgs;
+    vector<uint32_t> ref_rev_covgs;
+    vector<uint32_t> alt_fwd_covgs;
+    vector<uint32_t> alt_rev_covgs;
+
+    auto ref_front = 0, ref_back = 0, ref_added = 0;
 
     // if prg has only one node, simple case
-    if(prg.nodes.size() == 1)
+    for (auto record : vcf.records)
     {
-	vcf.samples.push_back("sample");
-    }
-
-    // do until we reach the end of the localPRG
-    while (toppath.back()->outNodes.size() > 0 or toppath.size() > 1)
-    {
-	//cout << "toppath ends with node " << toppath.back()->id << endl;
-        // first update the level we are at
-        if (toppath.back()->outNodes.size() > 1)
+        // find corresponding ref kmers
+        for (auto n : ref_kmer_path)
         {
-            level += 1;
-        } else {
-            level -= 1;
+            if (ref_added < record.pos) {
+                ref_added += min(n->path.start, ref_back) - ref_front;
+                ref_back = n->path.end;
+                ref_front = n->path.start;
+            } else if (record.pos <= ref_added and ref_added < record.pos + record.ref.length()){
+                ref_fwd_covgs.push_back(n->covg[0]);
+                ref_rev_covgs.push_back(n->covg[1]);
+                ref_added += min(n->path.start, ref_back) - ref_front;
+                ref_back = n->path.end;
+                ref_front = n->path.start;
+            } else {
+                break;
+            }
+
         }
-        assert(level >= 0);
-	//cout << "level is " << level << endl;
 
-        // next, if we are at level 0, then we have reached the end of a varsite
-        // so add it to the vcf
-        if (level == 0)
-	{
-	    // first find the range of the maxpath which corresponds to this varsite
-	    assert(toppath.size() > 0 || assert_msg("toppath has size " << toppath.size() << " when it should have entries!"));
-            assert(toppath.back()->outNodes.size() > 0 || assert_msg("node " << toppath.back()->id << " has no outnodes!"));
-            assert(lmp_range_end < lmp.size() || assert_msg("lmp_range_end = " << lmp_range_end << " but lmp.size() = " << lmp.size() << " which should be bigger"));
-
-	    while (lmp[lmp_range_end]->id < toppath.back()->outNodes[0]->id and lmp_range_end < lmp.size()-1)
-            {
-                //cout << "lmp_range_end = " << lmp_range_end << " and alt end id is " << lmp[lmp_range_end]->id << " < " << toppath.back()->outNodes[0]->id << endl;
-                lmp_range_end += 1;
-            }
-
-	    if (((toppath.size() > 0) and (lmp[lmp_range_start]->id != toppath[0]->id)) or // ref allele and var allele don't start at the same node
-		(lmp[lmp_range_end]->id != toppath.back()->outNodes[0]->id)) // ref allele and var allele don't end at the same node
-	    {
-		cout << now() << "ERROR adding sample to VCF - start or end of varsite did not agree" << endl;
-		cout << now() << "Starts : " << lmp[lmp_range_start]->id << " vs " << toppath[0]->id << endl;
-		cout << now() << "Ends : " << lmp[lmp_range_end]->id << " vs " << toppath.back()->outNodes[0]->id << endl;
-		vcf.samples.clear();
-		return;
-	    }
-
-	    // add to vcf
-	    for (uint j=1; j< toppath.size(); ++j)
-	    {
-		ref += toppath[j]->seq;
-	    }
-
-	    for (uint j=lmp_range_start+1; j< lmp_range_end; ++j)
-            {
-                alt += lmp[j]->seq;
-            }
-
-	    vcf.add_sample_gt("sample", name, pos, ref, alt);
-	
-	    // prepare variables for next increment
-	    assert(lmp_range_end+1 <= lmp.size() || assert_msg("lmp_range_end+1 = " << lmp_range_end+1 << " but lmp.size() = " << lmp.size() << " which is bigger"));
-	    for (uint j=1; j < toppath.size(); ++j)
-            {
-                pos += toppath[j]->pos.length;
-            }
-	    pos += lmp[lmp_range_end]->pos.length;
-
-            lmp_range_start = lmp_range_end;
-	    toppath.clear();
-	    ref = "";
-	    alt = "";
-	}
-
-        // finally, extend the toppath, or end
-        if (toppath.size() == 0)
-	{
-	    toppath.push_back(lmp[lmp_range_start]);
-	} else if (toppath.back()->outNodes.size() == 0)
+        // find corresponding alt kmers
+        // if sample has alt path, we have the kmer path for this, but otherwise we will need to work it out
+        vector<string>::iterator sample_it = find(vcf.samples.begin(), vcf.samples.end(), name);
+        assert(sample_it != vcf.samples.end());
+        auto sample_index = distance(vcf.samples.begin(), sample_it);
+        if (record.samples[sample_index].at(0) == '0')
         {
-	    assert(toppath.size() <= 1);
-	    break;
-	} else {
-            toppath.push_back(toppath.back()->outNodes[0]);
-	}
+            // infer alt path from ref
+            alt_path = find_alt_path(ref_path, record.pos, record.ref, record.alt);
+        }
+            // infer alt kmer path
+
+        auto alt_added = 0;
+        auto alt_back = record.pos;
+        for (auto n : alt_kmer_path)
+        {
+            if (n->path.end < record.pos)
+                continue;
+            else if (alt_added >= record.alt.length() and n->path.start > alt_back)
+                break;
+            else {
+                alt_fwd_covgs.push_back(n->covg[0]);
+                alt_rev_covgs.push_back(n->covg[1]);
+                for (auto i : n->path.path)
+                {
+                    if (i.end >= alt_back)
+                    {
+                        alt_added += i.end - max(i.start, alt_back);
+                        alt_back = i.end;
+                    }
+                }
+            }
+        }
     }
 
-    return;
 }*/
 
 vector<KmerNodePtr>
@@ -1106,7 +1238,7 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
 
         VCF vcf;
         build_vcf(vcf, refpath);
-        add_sample_to_vcf(vcf, refpath, lmp, "sample");
+        add_sample_gt_to_vcf(vcf, refpath, lmp, "sample");
         vcf.save(prefix + "." + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
     }
     if (output_comparison_paths) {
@@ -1120,7 +1252,7 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
         }
     }
     if (output_covgs) {
-        vector<uint> covgs = get_covgs_from_kmernode_paths(lmp, kmp);
+        vector<uint> covgs = get_covgs_along_localnode_path(lmp, kmp);
         write_covgs_to_file(prefix + "." + new_name + ".kmlp.covgs", covgs);
     }
 

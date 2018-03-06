@@ -725,7 +725,7 @@ TEST(LocalPRGTest, localnode_path_from_kmernode_path)
     delete idx;
 }
 
-TEST(LocalPRGTest, get_covgs_from_kmernode_paths)
+TEST(LocalPRGTest, get_covgs_along_localnode_path)
 {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
     LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
@@ -741,7 +741,7 @@ TEST(LocalPRGTest, get_covgs_from_kmernode_paths)
     }
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp,2);
-    vector<uint> covgs = l3.get_covgs_from_kmernode_paths(lmp, kmp);
+    vector<uint> covgs = l3.get_covgs_along_localnode_path(lmp, kmp);
     vector<uint> covgs_exp = {0,1,1,1};
     EXPECT_ITERABLE_EQ( vector<uint>,covgs_exp, covgs);
 
@@ -752,15 +752,18 @@ TEST(LocalPRGTest, get_covgs_from_kmernode_paths)
     }
     kmp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[1], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[5],l4.kmer_prg.nodes[7], l4.kmer_prg.nodes[9], l4.kmer_prg.nodes[12], l4.kmer_prg.nodes[15], l4.kmer_prg.nodes[18], l4.kmer_prg.nodes[21], l4.kmer_prg.nodes[23], l4.kmer_prg.nodes[25], l4.kmer_prg.nodes[27], l4.kmer_prg.nodes[29]};
     lmp = l4.localnode_path_from_kmernode_path(kmp, 1);
-    covgs = l3.get_covgs_from_kmernode_paths(lmp, kmp);
-    covgs_exp = {1,2,3,3,3,3,3,3,3,3,3,3,2,1};
+    covgs = l3.get_covgs_along_localnode_path(lmp, kmp);
+    //covgs_exp = {1,2,3,3,3,3,3,3,3,3,3,3,2,1};
+    covgs_exp = {1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 
     EXPECT_ITERABLE_EQ( vector<uint>,covgs_exp, covgs);
 
     kmp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[5],l4.kmer_prg.nodes[12], l4.kmer_prg.nodes[15], l4.kmer_prg.nodes[18],l4.kmer_prg.nodes[25]};
     lmp = l4.localnode_path_from_kmernode_path(kmp, 2);
-    covgs = l3.get_covgs_from_kmernode_paths(lmp, kmp);
-    covgs_exp = {0,1,2,2,1,1,2,3,2,1,1,1,1,0};
+    covgs = l3.get_covgs_along_localnode_path(lmp, kmp);
+    //covgs_exp = {0,1,2,2,1,1,2,3,2,1,1,1,1,0};
+    covgs_exp = {0,1,1,1,1,1,1,1,1,1,1,1,1,0};
+
 
     EXPECT_ITERABLE_EQ( vector<uint>,covgs_exp, covgs);
 
@@ -783,7 +786,7 @@ TEST(LocalPRGTest, write_covgs_to_file)
     }
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp,2);
-    vector<uint> covgs = l3.get_covgs_from_kmernode_paths(lmp, kmp);
+    vector<uint> covgs = l3.get_covgs_along_localnode_path(lmp, kmp);
     vector<uint> covgs_exp = {0,1,1,1};
     EXPECT_ITERABLE_EQ( vector<uint>,covgs_exp, covgs);
 
@@ -1073,7 +1076,7 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[4].info);
 }
 
-TEST(LocalPRGTest, add_sample_to_vcf)
+TEST(LocalPRGTest, add_sample_gt_to_vcf)
 {
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
@@ -1085,77 +1088,77 @@ TEST(LocalPRGTest, add_sample_to_vcf)
 
     vector<LocalNodePtr> lmp1 = {l1.prg.nodes[0]};
     l1.build_vcf(vcf, l1.prg.top_path());
-    l1.add_sample_to_vcf(vcf, l1.prg.top_path(), lmp1, "sample");
+    l1.add_sample_gt_to_vcf(vcf, l1.prg.top_path(), lmp1, "sample");
     uint j = 1;
     EXPECT_EQ(j, vcf.samples.size());
 
     vcf.clear();
     vector<LocalNodePtr> lmp2 = {l2.prg.nodes[0], l2.prg.nodes[2], l2.prg.nodes[3]};
     l2.build_vcf(vcf, l2.prg.top_path());
-    l2.add_sample_to_vcf(vcf, l2.prg.top_path(), lmp2, "sample");
+    l2.add_sample_gt_to_vcf(vcf, l2.prg.top_path(), lmp2, "sample");
     j = 1;
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ("1", vcf.records[0].samples[0]);
+    EXPECT_EQ("1:0,0,0,0,0,0", vcf.records[0].samples[0]);
 
     vcf.clear();
     vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
     l3.build_vcf(vcf, l3.prg.top_path());
     vcf.sort_records();
-    l3.add_sample_to_vcf(vcf, l3.prg.top_path(), lmp3, "sample");
+    l3.add_sample_gt_to_vcf(vcf, l3.prg.top_path(), lmp3, "sample");
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ("1", vcf.records[1].samples[0]);
+    EXPECT_EQ("1:0,0,0,0,0,0", vcf.records[1].samples[0]);
 
     vcf.clear();
     vector<LocalNodePtr> lmp4 = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[5], l4.prg.nodes[6], l4.prg.nodes[8], l4.prg.nodes[9], l4.prg.nodes[10], l4.prg.nodes[12], l4.prg.nodes[13], l4.prg.nodes[15]};
     l4.build_vcf(vcf, l4.prg.top_path());
     vcf.sort_records();
-    l4.add_sample_to_vcf(vcf, l4.prg.top_path(), lmp4, "sample");
+    l4.add_sample_gt_to_vcf(vcf, l4.prg.top_path(), lmp4, "sample");
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ("0", vcf.records[0].samples[0]);
+    EXPECT_EQ("0:.", vcf.records[0].samples[0]);
     EXPECT_EQ(j, vcf.records[1].samples.size());
-    EXPECT_EQ("1", vcf.records[1].samples[0]);
+    EXPECT_EQ("1:0,0,0,0,0,0", vcf.records[1].samples[0]);
     EXPECT_EQ(j, vcf.records[2].samples.size());
-    EXPECT_EQ("1", vcf.records[2].samples[0]);
+    EXPECT_EQ("1:0,0,0,0,0,0", vcf.records[2].samples[0]);
     EXPECT_EQ(j, vcf.records[3].samples.size());
-    EXPECT_EQ("0", vcf.records[3].samples[0]);
+    EXPECT_EQ("0:.", vcf.records[3].samples[0]);
     EXPECT_EQ(j, vcf.records[4].samples.size());
-    EXPECT_EQ("0", vcf.records[4].samples[0]);
+    EXPECT_EQ("0:.", vcf.records[4].samples[0]);
 
     vcf.clear();
     vector<LocalNodePtr> lmp5 = {l5.prg.nodes[0], l5.prg.nodes[1], l5.prg.nodes[10], l5.prg.nodes[11], l5.prg.nodes[13]};
     l5.build_vcf(vcf, l5.prg.top_path());
     vcf.sort_records();
-    l5.add_sample_to_vcf(vcf, l5.prg.top_path(), lmp5, "sample");
+    l5.add_sample_gt_to_vcf(vcf, l5.prg.top_path(), lmp5, "sample");
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ((uint)5, vcf.records.size());
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ(".", vcf.records[0].samples[0]);
+    EXPECT_EQ(".:.", vcf.records[0].samples[0]);
     EXPECT_EQ(j, vcf.records[1].samples.size());
-    EXPECT_EQ(".", vcf.records[1].samples[0]);
+    EXPECT_EQ(".:.", vcf.records[1].samples[0]);
     EXPECT_EQ(j, vcf.records[2].samples.size());
-    EXPECT_EQ(".", vcf.records[2].samples[0]);
+    EXPECT_EQ(".:.", vcf.records[2].samples[0]);
     EXPECT_EQ(j, vcf.records[3].samples.size());
-    EXPECT_EQ("1", vcf.records[3].samples[0]);
+    EXPECT_EQ("1:0,0,0,0,0,0", vcf.records[3].samples[0]);
     EXPECT_EQ(j, vcf.records[4].samples.size());
-    EXPECT_EQ(".", vcf.records[4].samples[0]);
+    EXPECT_EQ(".:.", vcf.records[4].samples[0]);
 
     // add the ref path
-    l5.add_sample_to_vcf(vcf, l5.prg.top_path(), l5.prg.top_path(), "sample2");
+    l5.add_sample_gt_to_vcf(vcf, l5.prg.top_path(), l5.prg.top_path(), "sample2");
     EXPECT_EQ((uint)2, vcf.samples.size());
     EXPECT_EQ((uint)5, vcf.records.size());
     EXPECT_EQ((uint)2, vcf.records[0].samples.size());
-    EXPECT_EQ("0", vcf.records[0].samples[1]);
+    EXPECT_EQ("0:.", vcf.records[0].samples[1]);
     EXPECT_EQ((uint)2, vcf.records[1].samples.size());
-    EXPECT_EQ("0", vcf.records[1].samples[1]);
+    EXPECT_EQ("0:.", vcf.records[1].samples[1]);
     EXPECT_EQ((uint)2, vcf.records[2].samples.size());
-    EXPECT_EQ("0", vcf.records[2].samples[1]);
+    EXPECT_EQ("0:.", vcf.records[2].samples[1]);
     EXPECT_EQ((uint)2, vcf.records[3].samples.size());
-    EXPECT_EQ("0", vcf.records[3].samples[1]);
+    EXPECT_EQ("0:.", vcf.records[3].samples[1]);
     EXPECT_EQ((uint)2, vcf.records[4].samples.size());
-    EXPECT_EQ("0", vcf.records[4].samples[1]);
+    EXPECT_EQ("0:.", vcf.records[4].samples[1]);
 
 }
 
@@ -1181,7 +1184,7 @@ TEST(LocalPRGTest, moreupdateVCF)
 
     vector<LocalNodePtr> lmp1 = {prgs[1]->prg.nodes[0], prgs[1]->prg.nodes[11], prgs[1]->prg.nodes[12], prgs[1]->prg.nodes[17], prgs[1]->prg.nodes[65], prgs[1]->prg.nodes[67]};
     //cout << "PRG 1 has " << prgs[1]->prg.nodes.size() << " nodes" << endl;
-    prgs[1]->add_sample_to_vcf(vcf, prgs[1]->prg.top_path(), lmp1, "sample");
+    prgs[1]->add_sample_gt_to_vcf(vcf, prgs[1]->prg.top_path(), lmp1, "sample");
 
     vector<LocalNodePtr> lmp2 = {prgs[2]->prg.nodes[0], prgs[2]->prg.nodes[1], prgs[2]->prg.nodes[3], prgs[2]->prg.nodes[4], prgs[2]->prg.nodes[6], prgs[2]->prg.nodes[7],
 			       prgs[2]->prg.nodes[9], prgs[2]->prg.nodes[10], prgs[2]->prg.nodes[11], prgs[2]->prg.nodes[13], prgs[2]->prg.nodes[14], prgs[2]->prg.nodes[16],
@@ -1190,7 +1193,7 @@ TEST(LocalPRGTest, moreupdateVCF)
 			       prgs[2]->prg.nodes[130], prgs[2]->prg.nodes[131], prgs[2]->prg.nodes[133], prgs[2]->prg.nodes[135], prgs[2]->prg.nodes[141], 
 			       prgs[2]->prg.nodes[142], prgs[2]->prg.nodes[144], prgs[2]->prg.nodes[145], prgs[2]->prg.nodes[160]};
     //cout << "PRG 2 has " << prgs[2]->prg.nodes.size() << " nodes" << endl;
-    prgs[2]->add_sample_to_vcf(vcf, prgs[2]->prg.top_path(), lmp2, "sample");
+    prgs[2]->add_sample_gt_to_vcf(vcf, prgs[2]->prg.top_path(), lmp2, "sample");
 }
 
 TEST(LocalPRGTest, find_path_and_variants)

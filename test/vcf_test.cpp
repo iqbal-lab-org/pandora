@@ -51,7 +51,7 @@ TEST(VCFTest, add_sample_gt)
     vcf.add_record("chrom1", 79, "C", "G");
     vcf.add_record("chrom1", 79, "C", "A");
 
-    vcf.add_sample_gt("sample", "chrom1", 46, "T", "TA", make_pair(0,22));
+    vcf.add_sample_gt("sample", "chrom1", 46, "T", "TA", {0,22});
     uint j = 1;
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[1].samples.size());
@@ -61,7 +61,7 @@ TEST(VCFTest, add_sample_gt)
     EXPECT_EQ(j, vcf.records[2].samples.size());
     EXPECT_EQ(".:.", vcf.records[2].samples[0]);
 
-    vcf.add_sample_gt("sample", "chrom1", 79, "C", "C", make_pair(30,0));
+    vcf.add_sample_gt("sample", "chrom1", 79, "C", "C", {30,0});
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[1].samples.size());
     EXPECT_EQ("1:0,22", vcf.records[1].samples[0]);
@@ -116,10 +116,10 @@ TEST(VCFTest, reorder_add_record_and_sample)
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
-    vcf.add_sample_gt("sample1", "chrom1", 46, "T", "TA", make_pair(0,29));
+    vcf.add_sample_gt("sample1", "chrom1", 46, "T", "TA", {0,29});
     vcf.add_record("chrom1", 79, "C", "G");
-    vcf.add_sample_gt("sample2", "chrom1", 79, "C", "C", make_pair(44,0));
-    vcf.add_sample_gt("sample1", "chrom1", 79, "C", "A", make_pair(0,32));
+    vcf.add_sample_gt("sample2", "chrom1", 79, "C", "C", {44,0});
+    vcf.add_sample_gt("sample1", "chrom1", 79, "C", "A", {0,32});
     vcf.sort_records();
 
     EXPECT_EQ((uint)2, vcf.samples.size());
@@ -272,7 +272,7 @@ TEST(VCFTest,write_aligned_fasta){
     vcf.write_aligned_fasta("vcf2.multisample.fa", lmp);
 
     // now add a sample
-    vcf.add_sample_gt("sample1", "chrom1", 46, "T", "TA", make_pair(0,21));
+    vcf.add_sample_gt("sample1", "chrom1", 46, "T", "TA", {0,21});
     vcf.write_aligned_fasta("vcf3.multisample.fa", lmp);
 
 }

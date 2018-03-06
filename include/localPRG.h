@@ -39,6 +39,7 @@ class LocalPRG {
     // functions used to create LocalGraph from PRG string, and to sketch graph
     bool isalpha_string(const std::string&) const;
     std::string string_along_path(const Path&) const;
+    std::string string_along_path(const std::vector<LocalNodePtr>&) const;
     std::vector<LocalNodePtr> nodes_along_path(const Path&) const;
     std::vector<Interval> split_by_site(const Interval&) const;	
     std::vector<uint32_t> build_graph(const Interval&, const std::vector<uint32_t>&, uint32_t current_level=0);
@@ -47,8 +48,10 @@ class LocalPRG {
 
     // functions used once hits have been collected against the PRG
     //void update_covg_with_hit(MinimizerHit*);
+    std::vector<KmerNodePtr> kmernode_path_from_localnode_path(const std::vector<LocalNodePtr>&) const;
     std::vector<LocalNodePtr> localnode_path_from_kmernode_path(const std::vector<KmerNodePtr>&, const uint w=0) const;
-    std::vector<uint> get_covgs_from_kmernode_paths(const std::vector<LocalNodePtr> &, const std::vector<KmerNodePtr> &) const;
+    std::vector<uint> get_covgs_along_localnode_path(const std::vector<LocalNodePtr> &, const std::vector<KmerNodePtr> &) const;
+    vector<uint32_t> get_covg_stats_from_kmernode_paths(const std::vector<LocalNodePtr> &, const std::vector<KmerNodePtr> &) const;
     void write_covgs_to_file(const string &, const std::vector<uint> &) const;
     void write_path_to_fasta(const std::string&, const std::vector<LocalNodePtr>&, const float&) const;
     void append_path_to_fasta(const std::string&, const std::vector<LocalNodePtr>&, const float&) const;
@@ -56,7 +59,9 @@ class LocalPRG {
     //void build_vcf();
     void build_vcf(VCF&, const std::vector<LocalNodePtr>&) const;
     //void add_sample_to_vcf(const std::vector<LocalNodePtr>&);
-    void add_sample_to_vcf(VCF&, const std::vector<LocalNodePtr>&, const std::vector<LocalNodePtr>&, const std::string& sample_name="sample") const;
+    void add_sample_gt_to_vcf(VCF&, const std::vector<LocalNodePtr>&, const std::vector<LocalNodePtr>&, const std::string& sample_name="sample") const;
+    std::vector<LocalNodePtr> find_alt_path(const std::vector<LocalNodePtr> &, const uint8_t, const std::string&, const std::string&);
+    void add_sample_covgs_to_vcf(VCF&, const std::vector<LocalNodePtr>&, const std::vector<LocalNodePtr>&, const std::string& sample_name="sample", const std::vector<KmerNodePtr> &sample_kmer_path={}) const;
     std::vector<KmerNodePtr> find_path_and_variants(PanNodePtr,
                                                     const std::string&,
                                                     const uint w,
