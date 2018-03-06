@@ -60,8 +60,9 @@ class LocalPRG {
     void build_vcf(VCF&, const std::vector<LocalNodePtr>&) const;
     //void add_sample_to_vcf(const std::vector<LocalNodePtr>&);
     void add_sample_gt_to_vcf(VCF&, const std::vector<LocalNodePtr>&, const std::vector<LocalNodePtr>&, const std::string& sample_name="sample") const;
-    std::vector<LocalNodePtr> find_alt_path(const std::vector<LocalNodePtr> &, const uint8_t, const std::string&, const std::string&);
-    void add_sample_covgs_to_vcf(VCF&, const std::vector<LocalNodePtr>&, const std::vector<LocalNodePtr>&, const std::string& sample_name="sample", const std::vector<KmerNodePtr> &sample_kmer_path={}) const;
+    std::vector<LocalNodePtr> find_alt_path(const std::vector<LocalNodePtr> &, const uint8_t, const std::string&, const std::string&) const;
+    void append_kmer_covgs_in_range(const std::vector<KmerNodePtr>&, const uint32_t&, const uint32_t&, std::vector<uint32_t>& , std::vector<uint32_t>& ) const;
+    void add_sample_covgs_to_vcf(VCF&, const std::vector<LocalNodePtr>&, const std::vector<KmerNodePtr> &sample_kmer_path, const std::string& sample_name="sample") const;
     std::vector<KmerNodePtr> find_path_and_variants(PanNodePtr,
                                                     const std::string&,
                                                     const uint w,

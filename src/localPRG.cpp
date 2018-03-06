@@ -1050,7 +1050,7 @@ void LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath,
 vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_path,
                                         const uint8_t pos,
                                         const string& ref,
-                                        const string& alt)
+                                        const string& alt) const
 {
     vector<LocalNodePtr> alt_path, considered_path;
     deque<vector<LocalNodePtr>> paths_in_progress;
@@ -1104,8 +1104,34 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
     return alt_path; // this never happens
 }
 
-/*void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const vector<LocalNodePtr> &ref_path, const vector<LocalNodePtr> &sample_path,
-                                    const string &sample_name, const vector<KmerNodePtr> &sample_kmer_path) const {
+void LocalPRG::append_kmer_covgs_in_range(const vector<KmerNodePtr>& kmer_path,
+                                const uint32_t& pos_from,
+                                const uint32_t& pos_to,
+                                vector<uint32_t>& fwd_covgs,
+                                vector<uint32_t>& rev_covgs) const
+{
+    uint32_t front = 0, back = 0, added = 0, k = kmer_path.back()->path.length();
+    for (auto n : kmer_path)
+    {
+        if (added + k < pos_from) {
+            added += min(n->path.start, back) - front;
+            back = n->path.end;
+            front = n->path.start;
+        } else if (pos_from <= added + k and added < pos_to){
+            fwd_covgs.push_back(n->covg[0]);
+            rev_covgs.push_back(n->covg[1]);
+            added += min(n->path.start, back) - front;
+            back = n->path.end;
+            front = n->path.start;
+        } else {
+            break;
+        }
+    }
+}
+void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
+                                       const vector<LocalNodePtr> &ref_path,
+                                       const vector<KmerNodePtr> &sample_kmer_path,
+                                       const string &sample_name) const {
     //cout << now() << "Update VCF with sample covgs" << endl;
 
     assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
@@ -1114,72 +1140,56 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
     vector<LocalNodePtr> alt_path;
 
     vector<KmerNodePtr> ref_kmer_path = kmernode_path_from_localnode_path(ref_path);
+    vector<KmerNodePtr> alt_kmer_path;
 
     vector<uint32_t> ref_fwd_covgs;
     vector<uint32_t> ref_rev_covgs;
     vector<uint32_t> alt_fwd_covgs;
     vector<uint32_t> alt_rev_covgs;
 
-    auto ref_front = 0, ref_back = 0, ref_added = 0;
-
-    // if prg has only one node, simple case
     for (auto record : vcf.records)
     {
         // find corresponding ref kmers
-        for (auto n : ref_kmer_path)
-        {
-            if (ref_added < record.pos) {
-                ref_added += min(n->path.start, ref_back) - ref_front;
-                ref_back = n->path.end;
-                ref_front = n->path.start;
-            } else if (record.pos <= ref_added and ref_added < record.pos + record.ref.length()){
-                ref_fwd_covgs.push_back(n->covg[0]);
-                ref_rev_covgs.push_back(n->covg[1]);
-                ref_added += min(n->path.start, ref_back) - ref_front;
-                ref_back = n->path.end;
-                ref_front = n->path.start;
-            } else {
-                break;
-            }
-
-        }
+        append_kmer_covgs_in_range(ref_kmer_path,
+                                   record.pos,
+                                   record.pos+record.ref.length(),
+                                   ref_fwd_covgs,
+                                   ref_rev_covgs);
 
         // find corresponding alt kmers
         // if sample has alt path, we have the kmer path for this, but otherwise we will need to work it out
-        vector<string>::iterator sample_it = find(vcf.samples.begin(), vcf.samples.end(), name);
+        vector<string>::iterator sample_it = find(vcf.samples.begin(), vcf.samples.end(), sample_name);
         assert(sample_it != vcf.samples.end());
         auto sample_index = distance(vcf.samples.begin(), sample_it);
         if (record.samples[sample_index].at(0) == '0')
         {
-            // infer alt path from ref
             alt_path = find_alt_path(ref_path, record.pos, record.ref, record.alt);
+            alt_kmer_path = kmernode_path_from_localnode_path(alt_path);
+        } else {
+            alt_kmer_path = sample_kmer_path;
         }
-            // infer alt kmer path
 
-        auto alt_added = 0;
-        auto alt_back = record.pos;
-        for (auto n : alt_kmer_path)
-        {
-            if (n->path.end < record.pos)
-                continue;
-            else if (alt_added >= record.alt.length() and n->path.start > alt_back)
-                break;
-            else {
-                alt_fwd_covgs.push_back(n->covg[0]);
-                alt_rev_covgs.push_back(n->covg[1]);
-                for (auto i : n->path.path)
-                {
-                    if (i.end >= alt_back)
-                    {
-                        alt_added += i.end - max(i.start, alt_back);
-                        alt_back = i.end;
-                    }
-                }
-            }
-        }
+        // find alt covgs
+        append_kmer_covgs_in_range(alt_kmer_path,
+                                   record.pos,
+                                   record.pos+record.alt.length(),
+                                   alt_fwd_covgs,
+                                   alt_rev_covgs);
+
+        string covg_info = ":" + to_string(mean(ref_fwd_covgs)) + "," + to_string(mean(ref_rev_covgs))
+                           + "," + to_string(mean(alt_fwd_covgs)) + "," + to_string(mean(alt_rev_covgs))
+                           + to_string(median(ref_fwd_covgs)) + "," + to_string(median(ref_rev_covgs))
+                           + "," + to_string(median(alt_fwd_covgs)) + "," + to_string(median(alt_rev_covgs))
+                           + to_string(sum(ref_fwd_covgs)) + "," + to_string(sum(ref_rev_covgs))
+                           + "," + to_string(sum(alt_fwd_covgs)) + "," + to_string(sum(alt_rev_covgs));
+
+        record.samples[sample_index] += covg_info;
+        record.format += ":REF_MEAN_FWD_COV,REF_MEAN_REV_COVG,ALT_MEAN_FWD_COV,ALT_MEAN_REV_COVG,"
+                "REF_MED_FWD_COVG,REF_MED_REV_COVG,ALT_MED_FWD_COVG,ALT_MED_REV_COVG,"
+                "REF_SUM_FWD_CVG,REF_REV_COVG,ALT_SUM_FWD_CVG,ALT_REV_COVG";
     }
 
-}*/
+}
 
 vector<KmerNodePtr>
 LocalPRG::find_path_and_variants(PanNodePtr pnode,
