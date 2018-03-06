@@ -700,62 +700,6 @@ LocalPRG::get_covgs_along_localnode_path(const vector<LocalNodePtr> &localnode_p
     return return_coverages;
 }
 
-uint32_t sum(const vector<uint32_t>& v)
-{
-    return std::accumulate(v.begin(), v.end(), 0);
-}
-
-uint32_t mean(const vector<uint32_t>& v)
-{
-    if (v.empty())
-        return 0;
-    return std::accumulate(v.begin(), v.end(), 0)/v.size();
-}
-
-uint32_t median(vector<uint32_t>& v)
-{
-    std::sort(v.begin(), v.end());
-    if (v.size() % 2 == 0)
-        return v[v.size()/2];
-    else
-        return (v[v.size()+1/2] + v[v.size()-1/2])/2;
-}
-
-
-
-vector<uint32_t>
-LocalPRG::get_covg_stats_from_kmernode_paths(const vector<LocalNodePtr> &localnode_path,
-                                             const vector<KmerNodePtr> &kmernode_path) const {
-
-    // finds the mean, median and sum kmer coverages for kmers crossing the path
-
-    vector<uint32_t> fwd_covgs, rev_covgs;
-    vector<uint32_t> return_stats(6,0);
-
-    if (localnode_path.empty())
-        return return_stats;
-
-    for (auto n : kmernode_path) {
-        if (n->path.end < localnode_path[0]->pos.start)
-            continue;
-        else if (n->path.start > localnode_path[0]->pos.end)
-            break;
-        else {
-            fwd_covgs.push_back(n->covg[0]);
-            rev_covgs.push_back(n->covg[1]);
-        }
-    }
-
-    return_stats[0] += mean(fwd_covgs);
-    return_stats[1] += median(fwd_covgs);
-    return_stats[2] += sum(fwd_covgs);
-    return_stats[3] += mean(rev_covgs);
-    return_stats[4] += median(rev_covgs);
-    return_stats[5] += sum(rev_covgs);
-
-    return return_stats;
-}
-
 void LocalPRG::write_covgs_to_file(const string &filepath, const vector<uint> & covgs) const {
     ofstream handle;
     handle.open(filepath);
@@ -1074,7 +1018,7 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
     }
 
     // find the localnodeptr we want to make our way back to
-    while (ref_added < pos + ref.length()) {
+    while (ref_added < pos + ref.length() or ref_path[pos_along_ref_path]->pos.length == 0) {
         ref_added += ref_path[pos_along_ref_path]->pos.length;
         pos_along_ref_path++;
     }
@@ -1089,7 +1033,7 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
         paths_in_progress.pop_front();
 
         auto considered_seq = string_along_path(considered_path);
-
+        
         if (considered_seq == alt) {
             // check if merge with ref path
             if (find(considered_path.back()->outNodes.begin(), considered_path.back()->outNodes.end(), ref_node_to_find)
@@ -1097,9 +1041,13 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
                 alt_path.insert(alt_path.end(), considered_path.begin(), considered_path.end());
                 alt_path.insert(alt_path.end(), ref_path.begin() + pos_along_ref_path, ref_path.end());
                 return alt_path;
+            } else {
+                for (auto m : considered_path.back()->outNodes) {
+                    paths_in_progress.push_back(considered_path);
+                    paths_in_progress.back().push_back(m);
+                }
             }
-
-        } else if (considered_seq.length() < alt.length()
+        } else if (considered_seq.length() <= alt.length()
                    and considered_seq == alt.substr(0, considered_seq.length())) {
             for (auto m : considered_path.back()->outNodes) {
                 paths_in_progress.push_back(considered_path);
@@ -1135,6 +1083,28 @@ void LocalPRG::append_kmer_covgs_in_range(const vector<KmerNodePtr>& kmer_path,
         }
     }
 }
+
+uint32_t sum(const vector<uint32_t>& v)
+{
+    return std::accumulate(v.begin(), v.end(), 0);
+}
+
+uint32_t mean(const vector<uint32_t>& v)
+{
+    if (v.empty())
+        return 0;
+    return std::accumulate(v.begin(), v.end(), 0)/v.size();
+}
+
+uint32_t median(vector<uint32_t>& v)
+{
+    std::sort(v.begin(), v.end());
+    if (v.size() % 2 == 0)
+        return v[v.size()/2];
+    else
+        return (v[v.size()+1/2] + v[v.size()-1/2])/2;
+}
+
 void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
                                        const vector<LocalNodePtr> &ref_path,
                                        const vector<KmerNodePtr> &sample_kmer_path,

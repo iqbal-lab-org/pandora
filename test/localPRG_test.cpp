@@ -755,17 +755,10 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path)
 
     l3.minimizer_sketch(idx, 2, 3);
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
-    /*for (auto n : l3.kmer_prg.nodes)
-    {
-        cout << n.first << " " << *n.second << ", ";
-    }
-    cout << endl;*/
+
     vector<KmerNodePtr> kmp = l3.kmernode_path_from_localnode_path(lmp);
     sort(kmp.begin(), kmp.end());
-    /*for (auto n : kmp)
-    {
-        cout << *n << endl;
-    }*/
+
     vector<KmerNodePtr> kmp_exp = {l3.kmer_prg.nodes[0], l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     sort(kmp_exp.begin(), kmp_exp.end());
     EXPECT_ITERABLE_EQ( vector<KmerNodePtr>,kmp_exp, kmp);
@@ -773,17 +766,10 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path)
     idx->clear();
     l4.minimizer_sketch(idx, 3, 3);
     lmp = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6]};
-    /*for (auto n : l4.kmer_prg.nodes)
-    {
-        cout << n.first << " " << *n.second << ", ";
-    }
-    cout << endl;*/
+
     kmp = l4.kmernode_path_from_localnode_path(lmp);
     sort(kmp.begin(), kmp.end());
-    /*for (auto n : kmp)
-    {
-        cout << *n << endl;
-    }*/
+
     kmp_exp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[1], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[7], l4.kmer_prg.nodes[9], l4.kmer_prg.nodes[11], l4.kmer_prg.nodes[13]};
     sort(kmp_exp.begin(), kmp_exp.end());
     EXPECT_ITERABLE_EQ( vector<KmerNodePtr>,kmp_exp, kmp);
@@ -1260,6 +1246,35 @@ TEST(LocalPRGTest, moreupdateVCF)
 			       prgs[2]->prg.nodes[142], prgs[2]->prg.nodes[144], prgs[2]->prg.nodes[145], prgs[2]->prg.nodes[160]};
     //cout << "PRG 2 has " << prgs[2]->prg.nodes.size() << " nodes" << endl;
     prgs[2]->add_sample_gt_to_vcf(vcf, prgs[2]->prg.top_path(), lmp2, "sample");
+}
+
+TEST(LocalPRGTest, find_alt_path)
+{
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+
+    vector<LocalNodePtr> top = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
+    vector<LocalNodePtr> middle = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
+    vector<LocalNodePtr> bottom = {l3.prg.nodes[0], l3.prg.nodes[5], l3.prg.nodes[6]};
+
+    vector<LocalNodePtr> alt_path = l3.find_alt_path(top, 2, "C", "T");
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, middle, alt_path);
+
+    alt_path = l3.find_alt_path(top, 1, "GC", "G");
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, bottom, alt_path);
+
+    alt_path = l3.find_alt_path(middle, 2, "T", "C");
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, top, alt_path);
+
+    alt_path = l3.find_alt_path(top, 1, "GT", "G");
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, bottom, alt_path);
+
+    alt_path = l3.find_alt_path(bottom, 1, "G", "GT");
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, middle, alt_path);
+
+    alt_path = l3.find_alt_path(bottom, 1, "G", "GC");
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, top, alt_path);
+
+
 }
 
 TEST(LocalPRGTest, find_path_and_variants)
