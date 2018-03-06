@@ -1046,11 +1046,12 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
     return alt_path; // this never happens
 }
 
-void LocalPRG::append_kmer_covgs_in_range(const vector<KmerNodePtr>& kmer_path,
-                                const uint32_t& pos_from,
-                                const uint32_t& pos_to,
-                                vector<uint32_t>& fwd_covgs,
-                                vector<uint32_t>& rev_covgs) const
+void LocalPRG::append_kmer_covgs_in_range(const KmerGraph& kg,
+                                          const vector<KmerNodePtr>& kmer_path,
+                                          const uint32_t& pos_from,
+                                          const uint32_t& pos_to,
+                                          vector<uint32_t>& fwd_covgs,
+                                          vector<uint32_t>& rev_covgs) const
 {
     uint32_t front = 0, back = 0, added = 0, k = kmer_path.back()->path.length();
     for (auto n : kmer_path)
@@ -1060,8 +1061,11 @@ void LocalPRG::append_kmer_covgs_in_range(const vector<KmerNodePtr>& kmer_path,
             back = n->path.end;
             front = n->path.start;
         } else if (pos_from <= added + k and added < pos_to){
-            fwd_covgs.push_back(n->covg[0]);
-            rev_covgs.push_back(n->covg[1]);
+            auto it = kg.nodes.find(n->id);
+            if (it != kg.nodes.end()){
+                fwd_covgs.push_back(kg.nodes.at(n->id)->covg[0]);
+                rev_covgs.push_back(kg.nodes.at(n->id)->covg[1]);
+            }
             added += min(n->path.start, back) - front;
             back = n->path.end;
             front = n->path.start;
@@ -1093,6 +1097,7 @@ uint32_t median(vector<uint32_t>& v)
 }
 
 void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
+                                       const KmerGraph& kg,
                                        const vector<LocalNodePtr> &ref_path,
                                        const vector<KmerNodePtr> &sample_kmer_path,
                                        const string &sample_name) const {
@@ -1114,7 +1119,8 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
     for (auto record : vcf.records)
     {
         // find corresponding ref kmers
-        append_kmer_covgs_in_range(ref_kmer_path,
+        append_kmer_covgs_in_range(kg,
+                                   ref_kmer_path,
                                    record.pos,
                                    record.pos+record.ref.length(),
                                    ref_fwd_covgs,
@@ -1134,7 +1140,8 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         }
 
         // find alt covgs
-        append_kmer_covgs_in_range(alt_kmer_path,
+        append_kmer_covgs_in_range(kg,
+                                   alt_kmer_path,
                                    record.pos,
                                    record.pos+record.alt.length(),
                                    alt_fwd_covgs,
@@ -1213,7 +1220,7 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
         VCF vcf;
         build_vcf(vcf, refpath);
         add_sample_gt_to_vcf(vcf, refpath, lmp, "sample");
-        add_sample_covgs_to_vcf(vcf, refpath, kmp, "sample");
+        add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, kmp, "sample");
         vcf.save(prefix + "." + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
     }
     if (output_comparison_paths) {
