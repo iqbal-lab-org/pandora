@@ -49,7 +49,7 @@ class LocalPRG {
     // functions used once hits have been collected against the PRG
     std::vector<KmerNodePtr> kmernode_path_from_localnode_path(const std::vector<LocalNodePtr>&) const;
     std::vector<LocalNodePtr> localnode_path_from_kmernode_path(const std::vector<KmerNodePtr>&, const uint w=0) const;
-    std::vector<uint> get_covgs_along_localnode_path(const std::vector<LocalNodePtr> &, const std::vector<KmerNodePtr> &) const;
+    std::vector<uint> get_covgs_along_localnode_path(const PanNodePtr, const std::vector<LocalNodePtr> &, const std::vector<KmerNodePtr> &) const;
     void write_covgs_to_file(const string &, const std::vector<uint> &) const;
     void write_path_to_fasta(const std::string&, const std::vector<LocalNodePtr>&, const float&) const;
     void append_path_to_fasta(const std::string&, const std::vector<LocalNodePtr>&, const float&) const;

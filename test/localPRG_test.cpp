@@ -788,23 +788,29 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path)
     KmerHash hash;
 
     l3.minimizer_sketch(idx, 2, 3);
-    for (auto n : l3.kmer_prg.nodes) {
-        n.second->covg[0]+=1;
-    }
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp,2);
-    vector<uint> covgs = l3.get_covgs_along_localnode_path(lmp, kmp);
+    shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3,3,"3"));
+    pn3->kmer_prg = l3.kmer_prg;
+    for (auto n : pn3->kmer_prg.nodes)
+    {
+        n.second->covg[0] += 1;
+    }
+    vector<uint> covgs = l3.get_covgs_along_localnode_path(pn3, lmp, kmp);
     vector<uint> covgs_exp = {0,1,1,1};
     EXPECT_ITERABLE_EQ( vector<uint>,covgs_exp, covgs);
 
     idx->clear();
     l4.minimizer_sketch(idx, 1, 3);
-    for (auto n : l4.kmer_prg.nodes) {
-        n.second->covg[0]+=1;
-    }
     kmp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[1], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[5],l4.kmer_prg.nodes[7], l4.kmer_prg.nodes[9], l4.kmer_prg.nodes[12], l4.kmer_prg.nodes[15], l4.kmer_prg.nodes[18], l4.kmer_prg.nodes[21], l4.kmer_prg.nodes[23], l4.kmer_prg.nodes[25], l4.kmer_prg.nodes[27], l4.kmer_prg.nodes[29]};
     lmp = l4.localnode_path_from_kmernode_path(kmp, 1);
-    covgs = l3.get_covgs_along_localnode_path(lmp, kmp);
+    shared_ptr<pangenome::Node> pn4(make_shared<pangenome::Node>(4,4,"4"));
+    pn4->kmer_prg = l4.kmer_prg;
+    for (auto n : pn4->kmer_prg.nodes)
+    {
+        n.second->covg[0] += 1;
+    }
+    covgs = l4.get_covgs_along_localnode_path(pn4, lmp, kmp);
     //covgs_exp = {1,2,3,3,3,3,3,3,3,3,3,3,2,1};
     covgs_exp = {1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 
@@ -812,10 +818,9 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path)
 
     kmp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[5],l4.kmer_prg.nodes[12], l4.kmer_prg.nodes[15], l4.kmer_prg.nodes[18],l4.kmer_prg.nodes[25]};
     lmp = l4.localnode_path_from_kmernode_path(kmp, 2);
-    covgs = l3.get_covgs_along_localnode_path(lmp, kmp);
+    covgs = l4.get_covgs_along_localnode_path(pn4, lmp, kmp);
     //covgs_exp = {0,1,2,2,1,1,2,3,2,1,1,1,1,0};
     covgs_exp = {0,1,1,1,1,1,1,1,1,1,1,1,1,0};
-
 
     EXPECT_ITERABLE_EQ( vector<uint>,covgs_exp, covgs);
 
@@ -833,12 +838,14 @@ TEST(LocalPRGTest, write_covgs_to_file)
     KmerHash hash;
 
     l3.minimizer_sketch(idx, 2, 3);
-    for (auto n : l3.kmer_prg.nodes) {
-        n.second->covg[0]+=1;
-    }
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp,2);
-    vector<uint> covgs = l3.get_covgs_along_localnode_path(lmp, kmp);
+    shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3,3,"3"));
+    pn3->kmer_prg = l3.kmer_prg;
+    for (auto n : pn3->kmer_prg.nodes) {
+        n.second->covg[0]+=1;
+    }
+    vector<uint> covgs = l3.get_covgs_along_localnode_path(pn3, lmp, kmp);
     vector<uint> covgs_exp = {0,1,1,1};
     EXPECT_ITERABLE_EQ( vector<uint>,covgs_exp, covgs);
 
@@ -1182,6 +1189,28 @@ TEST(LocalPRGTest, find_alt_path)
     alt_path = l3.find_alt_path(bottom, 1, "G", "GC");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, top, alt_path);
 }
+
+//void append_kmer_covgs_in_range(const std::vector<KmerNodePtr>&, const uint32_t&, const uint32_t&, std::vector<uint32_t>& , std::vector<uint32_t>& ) const;
+TEST(LocalPRGTest, append_kmer_covgs_in_range)
+{
+    Index* idx;
+    idx = new Index();
+
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+    l3.minimizer_sketch(idx, 1, 3);
+
+    shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3,3,"3"));
+    pn3->kmer_prg = l3.kmer_prg;
+    pn3->kmer_prg.nodes[2]->covg[0] = 4;
+    pn3->kmer_prg.nodes[2]->covg[1] = 3;
+    pn3->kmer_prg.nodes[5]->covg[0] = 4;
+    pn3->kmer_prg.nodes[5]->covg[0] = 5;
+    pn3->kmer_prg.nodes[7]->covg[0] = 2;
+    pn3->kmer_prg.nodes[7]->covg[1] = 3;
+    pn3->kmer_prg.nodes[8]->covg[0] = 4;
+    pn3->kmer_prg.nodes[8]->covg[0] = 6;
+    pn3->kmer_prg.num_reads = 6;
+    pn3->kmer_prg.set_p(0.0001);}
 
 TEST(LocalPRGTest, find_path_and_variants)
 {

@@ -652,8 +652,9 @@ LocalPRG::localnode_path_from_kmernode_path(const vector<KmerNodePtr> &kmernode_
 }
 
 vector<uint>
-LocalPRG::get_covgs_along_localnode_path(const vector<LocalNodePtr> &localnode_path,
-                                        const vector<KmerNodePtr> &kmernode_path) const {
+LocalPRG::get_covgs_along_localnode_path(const PanNodePtr pnode,
+                                         const vector<LocalNodePtr> &localnode_path,
+                                         const vector<KmerNodePtr> &kmernode_path) const {
     // defines estimated per base coverage for the bases of localnode_path based on the coverages from the
     // kmernode_path kmers
 
@@ -686,7 +687,10 @@ LocalPRG::get_covgs_along_localnode_path(const vector<LocalNodePtr> &localnode_p
             end = min(start + interval.length, localnode_path[k]->pos.end);
             //cout << "add from " << start << " to " << end << endl;
             for (uint l = start; l < end; ++l) {
-                coverages[k][l] = max(coverages[k][l], kmernode_ptr->covg[0]+kmernode_ptr->covg[1]);
+                auto it = pnode->kmer_prg.nodes.find(kmernode_ptr->id);
+                if (it != pnode->kmer_prg.nodes.end())
+                    coverages[k][l] = max(coverages[k][l], pnode->kmer_prg.nodes[kmernode_ptr->id]->covg[0]+
+                            pnode->kmer_prg.nodes[kmernode_ptr->id]->covg[1]);
             }
             k++;
         }
@@ -1223,7 +1227,7 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
         }
     }
     if (output_covgs) {
-        vector<uint> covgs = get_covgs_along_localnode_path(lmp, kmp);
+        vector<uint> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
         write_covgs_to_file(prefix + "." + new_name + ".kmlp.covgs", covgs);
     }
 
