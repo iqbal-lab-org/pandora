@@ -137,6 +137,24 @@ TEST(LocalPRGTest, string_along_path){
     EXPECT_DEATH(l3.string_along_path(p),"");
 }
 
+TEST(LocalPRGTest, string_along_localpath){
+    LocalPRG l0(0,"empty", "");
+    LocalPRG l1(1,"simple", "AGCT");
+    LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
+
+    // empty interval
+    vector<LocalNodePtr> p = {l0.prg.nodes[0]};
+    EXPECT_EQ("", l0.string_along_path(p));
+    p = {l1.prg.nodes[0]};
+    EXPECT_EQ("AGCT", l1.string_along_path(p));
+
+    // extract from intervals
+    p = {l2.prg.nodes[0], l2.prg.nodes[1]};
+    EXPECT_EQ("AGC", l2.string_along_path(p));
+    p = {l2.prg.nodes[0], l2.prg.nodes[2], l2.prg.nodes[3]};
+    EXPECT_EQ("AGT", l2.string_along_path(p));
+}
+
 TEST(LocalPRGTest, nodes_along_path)
 {
     LocalPRG l0(0,"empty", "");
@@ -721,6 +739,54 @@ TEST(LocalPRGTest, localnode_path_from_kmernode_path)
     EXPECT_ITERABLE_EQ( vector<LocalNodePtr>,lmp_exp, lmp);
     lmp = l4.localnode_path_from_kmernode_path(kmp, 3);
     EXPECT_ITERABLE_EQ( vector<LocalNodePtr>,lmp_exp, lmp);
+
+    delete idx;
+}
+
+TEST(LocalPRGTest, kmernode_path_from_localnode_path)
+{
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+    LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
+
+    Index* idx;
+    idx = new Index();
+
+    KmerHash hash;
+
+    l3.minimizer_sketch(idx, 2, 3);
+    vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
+    /*for (auto n : l3.kmer_prg.nodes)
+    {
+        cout << n.first << " " << *n.second << ", ";
+    }
+    cout << endl;*/
+    vector<KmerNodePtr> kmp = l3.kmernode_path_from_localnode_path(lmp);
+    sort(kmp.begin(), kmp.end());
+    /*for (auto n : kmp)
+    {
+        cout << *n << endl;
+    }*/
+    vector<KmerNodePtr> kmp_exp = {l3.kmer_prg.nodes[0], l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
+    sort(kmp_exp.begin(), kmp_exp.end());
+    EXPECT_ITERABLE_EQ( vector<KmerNodePtr>,kmp_exp, kmp);
+
+    idx->clear();
+    l4.minimizer_sketch(idx, 3, 3);
+    lmp = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6]};
+    /*for (auto n : l4.kmer_prg.nodes)
+    {
+        cout << n.first << " " << *n.second << ", ";
+    }
+    cout << endl;*/
+    kmp = l4.kmernode_path_from_localnode_path(lmp);
+    sort(kmp.begin(), kmp.end());
+    /*for (auto n : kmp)
+    {
+        cout << *n << endl;
+    }*/
+    kmp_exp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[1], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[7], l4.kmer_prg.nodes[9], l4.kmer_prg.nodes[11], l4.kmer_prg.nodes[13]};
+    sort(kmp_exp.begin(), kmp_exp.end());
+    EXPECT_ITERABLE_EQ( vector<KmerNodePtr>,kmp_exp, kmp);
 
     delete idx;
 }

@@ -521,10 +521,17 @@ vector<KmerNodePtr> LocalPRG::kmernode_path_from_localnode_path(const vector<Loc
     local_path.initialize(d);
 
     for (auto n : kmer_prg.nodes) {
-        if (n.second->path.end >= local_path.start
-                and n.second->path.start < local_path.end
-                and not local_path.is_branching(n.second->path))
-            kmernode_path.push_back(n.second);
+        for (auto interval : local_path.path){
+            if (interval.start > n.second->path.end)
+                break;
+            else if (interval.end < n.second->path.start)
+                continue;
+            else if (not local_path.is_branching(n.second->path)){
+                    //and not n.second->path.is_branching(local_path))
+                kmernode_path.push_back(n.second);
+                break;
+            }
+        }
     }
 
     return kmernode_path;
