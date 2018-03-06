@@ -13,8 +13,8 @@
 class pangenome::Read {
 public:
     const uint32_t id; // corresponding the the read id
-    vector<NodePtr> nodes;
-    vector<bool> node_orientations;
+    std::vector<NodePtr> nodes;
+    std::vector<bool> node_orientations;
 
     std::unordered_map<uint32_t, std::set<MinimizerHitPtr, pComp_path>> hits; // from node id to cluster of hits against that node in this read
 
@@ -22,14 +22,14 @@ public:
 
     void add_hits(const uint32_t, const std::set<MinimizerHitPtr, pComp> &);
 
-    pair<uint,uint> find_position(const vector<uint16_t> &, const vector<bool> &, const uint16_t min_overlap = 1);
+    std::pair<uint,uint> find_position(const std::vector<uint16_t> &, const std::vector<bool> &, const uint16_t min_overlap = 1);
 
     void remove_node(NodePtr);
 
-    vector<NodePtr>::iterator remove_node(vector<NodePtr>::iterator);
+    std::vector<NodePtr>::iterator remove_node(std::vector<NodePtr>::iterator);
 
     // remove nodes
-    void replace_node(vector<NodePtr>::iterator, NodePtr);
+    void replace_node(std::vector<NodePtr>::iterator, NodePtr);
     // replace nodes
 
     bool operator==(const Read &y) const;
