@@ -1009,7 +1009,7 @@ void LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath,
 
 
             //cout << "add sample gt" << endl;
-            vcf.add_sample_gt(sample_name, name, pos, ref, alt, sample_covg);
+            vcf.add_sample_gt(sample_name, name, pos, ref, alt);
             found_new_site = false;
 
             // prepare for next iteration

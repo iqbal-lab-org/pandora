@@ -19,7 +19,7 @@ class VCF {
     ~VCF();
     void add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i=".", std::string g="");
     void add_record(VCFRecord&);
-    void add_sample_gt(const std::string& name, const std::string& c, const uint32_t p, const std::string& r, const std::string& a, const std::vector<uint32_t>& covg={});
+    void add_sample_gt(const std::string& name, const std::string& c, const uint32_t p, const std::string& r, const std::string& a);
     void add_sample_ref_alleles(const std::string&, const std::string&, const uint&, const uint&);
     void clear();
     void sort_records();
