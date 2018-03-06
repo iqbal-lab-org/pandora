@@ -134,7 +134,7 @@ TEST(VCFTest, reorder_add_record_and_sample)
     EXPECT_EQ(".", vcf.records[3].samples[0]);
     EXPECT_EQ(".", vcf.records[0].samples[1]);
     EXPECT_EQ(".", vcf.records[1].samples[1]);
-    EXPECT_EQ(".", vcf.records[2].samples[1]);
+    EXPECT_EQ("0", vcf.records[2].samples[1]);
     EXPECT_EQ("0", vcf.records[3].samples[1]);
 
 }

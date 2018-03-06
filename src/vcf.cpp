@@ -107,6 +107,7 @@ void VCF::add_sample_gt(const string& name, const string& c, const uint32_t p, c
 	    {
 	        //cout << "have very nested allele" << endl;
 	        add_record(c, p, r, a, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
+            records.back().samples[sample_index] = "1";
 	        added = true;
 	        // also check if other samples had ref allele at this pos
 	        for (uint i=0; i!=records.size(); ++i)
