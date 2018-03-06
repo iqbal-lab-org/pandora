@@ -847,98 +847,6 @@ TEST(LocalPRGTest, write_covgs_to_file)
     delete idx;
 }
 
-/*TEST(LocalPRGTest, update_covg_with_hit)
-{
-    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-
-    Index* idx;
-    idx = new Index();
-
-    l3.minimizer_sketch(idx, 1, 3);
-    cout << l3.kmer_prg << endl;
-
-    KmerHash hash;
-    Minimizer* m;
-    pair<uint64_t,uint64_t> kh = hash.kmerhash("AGC", 3);
-    m = new Minimizer(min(kh.first,kh.second), 1,4,1);
-    deque<Interval> d = {Interval(0,1), Interval(4,5), Interval(12, 13)};
-    Path p;
-    p.initialize(d);
-    MiniRecord* mr;
-    mr = new MiniRecord(3,p,0,0);
-    MinimizerHit* mh;
-    mh = new MinimizerHit(1, m, mr);
-
-    l3.update_covg_with_hit(mh);
-    uint j = 1;
-    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[0]);
-    j = 0;
-    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[1]);
-    for (uint i=3; i!=l3.kmer_prg.nodes.size(); ++i)
-    {
-        EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[0]);
-	EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[1]);
-    }
-     
-    l3.update_covg_with_hit(mh);
-    j = 2;
-    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[0]);
-    j = 0;
-    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[1]);
-    for (uint i=3; i!=l3.kmer_prg.nodes.size(); ++i)
-    {
-        EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[0]);
-        EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[1]);
-    }
-
-    delete m;
-    delete mr;
-    delete mh;
-
-    kh = hash.kmerhash("TAT", 3);
-    m = new Minimizer(min(kh.first,kh.second), 1,4,1);
-    d = {Interval(16,16), Interval(23, 26)};
-    p.initialize(d);
-    mr = new MiniRecord(3,p,1,0);
-    mh = new MinimizerHit(1, m, mr);
-
-    cout << *mh << endl;
-    l3.update_covg_with_hit(mh);
-    j = 1;
-    EXPECT_EQ(j, l3.kmer_prg.nodes[10]->covg[1]);
-    j = 2;
-    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[0]);
-    j = 0;
-    EXPECT_EQ(j, l3.kmer_prg.nodes[10]->covg[0]);
-    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[1]);
-    for (uint i=3; i<10; ++i)
-    {
-        EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[0]);
-        EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[1]);
-    }
- 
-    l3.update_covg_with_hit(mh);
-    j = 2;
-    EXPECT_EQ(j, l3.kmer_prg.nodes[10]->covg[1]);
-    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[0]);
-    j = 0;
-    EXPECT_EQ(j, l3.kmer_prg.nodes[10]->covg[0]);
-    EXPECT_EQ(j, l3.kmer_prg.nodes[2]->covg[1]);
-    for (uint i=3; i<10; ++i)
-    {
-        EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[0]);
-        EXPECT_EQ(j, l3.kmer_prg.nodes[i]->covg[1]);
-    }   
-
-    delete m;
-    delete mr;
-    delete mh;
-
-    // could add futher examples for inner kmers?
-
-    delete idx;
-}*/
-
 TEST(LocalPRGTest, write_path_to_fasta)
 {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
@@ -1273,8 +1181,6 @@ TEST(LocalPRGTest, find_alt_path)
 
     alt_path = l3.find_alt_path(bottom, 1, "G", "GC");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, top, alt_path);
-
-
 }
 
 TEST(LocalPRGTest, find_path_and_variants)

@@ -714,23 +714,6 @@ void LocalPRG::write_covgs_to_file(const string &filepath, const vector<uint> & 
     handle.close();
 }
 
-/*void LocalPRG::update_covg_with_hit(MinimizerHit* mh)
-{
-    bool added = false;
-    // update the covg in the kmer_prg
-    for (uint i=0; i!=kmer_prg.nodes.size(); ++i)
-    {
-	if (kmer_prg.nodes[i]->path == mh->prg_path)
-	{
-	    kmer_prg.nodes[i]->covg[mh->strand] += 1;
-	    added = true;
-	    break;
-	}
-    }
-    num_hits[mh->strand] += 1;
-    assert(added == true || assert_msg("could not find kmernode corresponding to " << *mh));
-}*/
-
 void LocalPRG::write_path_to_fasta(const string &filepath, const vector<LocalNodePtr> &lmp, const float &ppath) const {
     ofstream handle;
     handle.open(filepath);
@@ -1033,7 +1016,7 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
         paths_in_progress.pop_front();
 
         auto considered_seq = string_along_path(considered_path);
-        
+
         if (considered_seq == alt) {
             // check if merge with ref path
             if (find(considered_path.back()->outNodes.begin(), considered_path.back()->outNodes.end(), ref_node_to_find)

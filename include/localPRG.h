@@ -47,7 +47,6 @@ class LocalPRG {
     void minimizer_sketch (Index* idx, const uint32_t w, const uint32_t k);
 
     // functions used once hits have been collected against the PRG
-    //void update_covg_with_hit(MinimizerHit*);
     std::vector<KmerNodePtr> kmernode_path_from_localnode_path(const std::vector<LocalNodePtr>&) const;
     std::vector<LocalNodePtr> localnode_path_from_kmernode_path(const std::vector<KmerNodePtr>&, const uint w=0) const;
     std::vector<uint> get_covgs_along_localnode_path(const std::vector<LocalNodePtr> &, const std::vector<KmerNodePtr> &) const;
