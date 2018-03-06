@@ -122,8 +122,11 @@ void Node::output_samples(const LocalPRG* prg, const string& prefix, const uint 
 	    if (count == 0)
 	    {
             prg->add_sample_gt_to_vcf(vcf, lmp, sample_lmp, s->name);
-	    } else {
+            prg->add_sample_covgs_to_vcf(vcf, lmp, p, s->name);
+
+        } else {
 		    prg->add_sample_gt_to_vcf(vcf, lmp, sample_lmp, s->name + to_string(count));
+            prg->add_sample_covgs_to_vcf(vcf, lmp, p, s->name + to_string(count));
 	    }
 	    sample_lmp.clear();
 	    count++;
