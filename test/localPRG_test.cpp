@@ -1252,6 +1252,67 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range)
     EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_rev,rev);
 }
 
+TEST(LocalPRGTest, add_sample_covgs_to_vcf)
+{
+    Index* idx;
+    idx = new Index();
+
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+    l3.minimizer_sketch(idx, 1, 3);
+    l3.kmer_prg.sort_topologically();
+
+    VCF vcf;
+
+    vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
+    l3.build_vcf(vcf, l3.prg.top_path());
+    vcf.sort_records();
+    l3.add_sample_gt_to_vcf(vcf, l3.prg.top_path(), lmp3, "sample");
+    EXPECT_EQ((uint)1, vcf.samples.size());
+    EXPECT_EQ((uint)1, vcf.records[0].samples.size());
+    EXPECT_EQ("GT", vcf.records[0].format);
+    EXPECT_EQ("1", vcf.records[1].samples[0]);
+
+    vector<KmerNodePtr> kmp = l3.kmernode_path_from_localnode_path(lmp3);
+    for (auto n : kmp){
+        cout << n->id << " ";
+    }
+    cout << endl;
+
+    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), kmp, "sample");
+    EXPECT_EQ((uint)1, vcf.samples.size());
+    EXPECT_EQ((uint)1, vcf.records[0].samples.size());
+    EXPECT_EQ("GT:REF_MEAN_FWD_COV,REF_MEAN_REV_COVG,ALT_MEAN_FWD_COV,ALT_MEAN_REV_COVG,"
+                      "REF_MED_FWD_COVG,REF_MED_REV_COVG,ALT_MED_FWD_COVG,ALT_MED_REV_COVG,"
+                      "REF_SUM_FWD_CVG,REF_REV_COVG,ALT_SUM_FWD_CVG,ALT_REV_COVG", vcf.records[0].format);
+    EXPECT_EQ("1:0,0,0,0,0,0,0,0,0,0,0,0", vcf.records[1].samples[0]);
+
+    // ref
+    l3.kmer_prg.nodes[1]->covg[0] = 1;
+    l3.kmer_prg.nodes[1]->covg[1] = 0;
+    l3.kmer_prg.nodes[4]->covg[0] = 1;
+    l3.kmer_prg.nodes[4]->covg[1] = 0;
+    l3.kmer_prg.nodes[7]->covg[0] = 1;
+    l3.kmer_prg.nodes[7]->covg[1] = 0;
+
+    // alt
+    l3.kmer_prg.nodes[2]->covg[0] = 6;
+    l3.kmer_prg.nodes[2]->covg[1] = 8;
+    l3.kmer_prg.nodes[5]->covg[0] = 5;
+    l3.kmer_prg.nodes[5]->covg[1] = 5;
+    l3.kmer_prg.nodes[8]->covg[0] = 4;
+    l3.kmer_prg.nodes[8]->covg[1] = 5;
+
+    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), kmp, "sample");
+    EXPECT_EQ((uint)1, vcf.samples.size());
+    EXPECT_EQ((uint)1, vcf.records[0].samples.size());
+    EXPECT_EQ("GT:REF_MEAN_FWD_COV,REF_MEAN_REV_COVG,ALT_MEAN_FWD_COV,ALT_MEAN_REV_COVG,"
+                      "REF_MED_FWD_COVG,REF_MED_REV_COVG,ALT_MED_FWD_COVG,ALT_MED_REV_COVG,"
+                      "REF_SUM_FWD_CVG,REF_REV_COVG,ALT_SUM_FWD_CVG,ALT_REV_COVG", vcf.records[0].format);
+    EXPECT_EQ("1:1,0,5,6,1,0,5,5,3,0,15,18", vcf.records[1].samples[0]);
+
+    delete idx;
+}
+
 TEST(LocalPRGTest, find_path_and_variants)
 {
 

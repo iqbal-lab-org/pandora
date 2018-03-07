@@ -520,20 +520,21 @@ vector<KmerNodePtr> LocalPRG::kmernode_path_from_localnode_path(const vector<Loc
     Path local_path;
     local_path.initialize(d);
 
-    for (auto n : kmer_prg.nodes) {
+    for (auto n : kmer_prg.sorted_nodes) {
         for (auto interval : local_path.path){
-            if (interval.start > n.second->path.end)
+            if (interval.start > n->path.end)
                 break;
-            else if (interval.end < n.second->path.start)
+            else if (interval.end < n->path.start)
                 continue;
-            else if (not local_path.is_branching(n.second->path)){
+            else if (not local_path.is_branching(n->path)){
                     //and not n.second->path.is_branching(local_path))
-                kmernode_path.push_back(n.second);
+                kmernode_path.push_back(n);
                 break;
             }
         }
     }
 
+    assert(!kmernode_path.empty());
     return kmernode_path;
 }
 
@@ -990,6 +991,7 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
                                         const string& ref,
                                         const string& alt) const
 {
+    cout << now() << "Find alt path for variant " << pos << " " << ref << " " << alt << endl;
     vector<LocalNodePtr> alt_path, considered_path;
     deque<vector<LocalNodePtr>> paths_in_progress;
     uint32_t ref_added = 0, pos_along_ref_path=0;
@@ -1053,7 +1055,7 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph& kg,
                                           vector<uint32_t>& fwd_covgs,
                                           vector<uint32_t>& rev_covgs) const
 {
-    cout << "START" << endl;
+    //cout << "START" << endl;
     uint32_t added = 0, k = 0;
     KmerNodePtr prev = nullptr;
     for (auto n : kmer_path)
@@ -1076,7 +1078,7 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph& kg,
         if (pos_from <= added + k and added < pos_to){
             auto it = kg.nodes.find(n->id);
             if (it != kg.nodes.end()){
-                //cout << "id " << n->id << " " << *kg.nodes.at(n->id) << endl;
+                cout << "id " << n->id << " " << *kg.nodes.at(n->id) << endl;
                 fwd_covgs.push_back(kg.nodes.at(n->id)->covg[0]);
                 rev_covgs.push_back(kg.nodes.at(n->id)->covg[1]);
             }
@@ -1101,11 +1103,17 @@ uint32_t mean(const vector<uint32_t>& v)
 
 uint32_t median(vector<uint32_t>& v)
 {
+    if (v.size() == 0)
+        return 0;
     std::sort(v.begin(), v.end());
-    if (v.size() % 2 == 0)
-        return v[v.size()/2];
-    else
-        return (v[v.size()+1/2] + v[v.size()-1/2])/2;
+    if (v.size() % 2 == 1) {
+        int n = (v.size()+ 1) / 2;
+        return v[n-1];
+    } else {
+        int n1 = (v.size() + 2) / 2;
+        int n2 = (v.size() - 2) / 2;
+        return (v[n1-1] + v[n2-1]) / 2;
+    }
 }
 
 void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
@@ -1113,7 +1121,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
                                        const vector<LocalNodePtr> &ref_path,
                                        const vector<KmerNodePtr> &sample_kmer_path,
                                        const string &sample_name) const {
-    //cout << now() << "Update VCF with sample covgs" << endl;
+    cout << now() << "Update VCF with sample covgs" << endl;
 
     assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
     vcf.sort_records();
@@ -1121,6 +1129,12 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
     vector<LocalNodePtr> alt_path;
 
     vector<KmerNodePtr> ref_kmer_path = kmernode_path_from_localnode_path(ref_path);
+    cout << "ref kmers: ";
+    for (auto n : ref_kmer_path){
+        cout << n->id << " ";
+    }
+    cout << endl;
+
     vector<KmerNodePtr> alt_kmer_path;
 
     vector<uint32_t> ref_fwd_covgs;
@@ -1128,13 +1142,19 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
     vector<uint32_t> alt_fwd_covgs;
     vector<uint32_t> alt_rev_covgs;
 
-    for (auto record : vcf.records)
+    for (auto &record : vcf.records)
     {
+        cout << record << endl;
         // find corresponding ref kmers
+        auto end_pos = record.pos+record.ref.length();
+        if (record.ref == ".")
+            end_pos = record.pos;
+
+        cout << "find ref covgs" << endl;
         append_kmer_covgs_in_range(kg,
                                    ref_kmer_path,
                                    record.pos,
-                                   record.pos+record.ref.length(),
+                                   end_pos,
                                    ref_fwd_covgs,
                                    ref_rev_covgs);
 
@@ -1143,7 +1163,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         vector<string>::iterator sample_it = find(vcf.samples.begin(), vcf.samples.end(), sample_name);
         assert(sample_it != vcf.samples.end());
         auto sample_index = distance(vcf.samples.begin(), sample_it);
-        if (record.samples[sample_index].at(0) == '0')
+        if (record.samples[sample_index].at(0) == '0' or record.samples[sample_index].at(0) == '.')
         {
             alt_path = find_alt_path(ref_path, record.pos, record.ref, record.alt);
             alt_kmer_path = kmernode_path_from_localnode_path(alt_path);
@@ -1152,24 +1172,56 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         }
 
         // find alt covgs
+        cout << "find alt covgs" << endl;
+        end_pos = record.pos+record.alt.length();
+        if (record.alt == ".")
+            end_pos = record.pos;
+
         append_kmer_covgs_in_range(kg,
                                    alt_kmer_path,
                                    record.pos,
-                                   record.pos+record.alt.length(),
+                                   end_pos,
                                    alt_fwd_covgs,
                                    alt_rev_covgs);
 
+        cout << "ref_fwd_covgs = {";
+        for (auto t : ref_fwd_covgs){
+            cout << t << " ";
+        }
+        cout << "}" << endl << "ref_rev_covgs = {";
+        for (auto t : ref_rev_covgs){
+            cout << t << " ";
+        }
+        cout << "}" << endl << "alt_fwd_covgs = {";
+        for (auto t : alt_fwd_covgs){
+            cout << t << " ";
+        }
+        cout << "}" << endl << "alt_rev_covgs = {";
+        for (auto t : alt_rev_covgs){
+            cout << t << " ";
+        }
+        cout << "}" << endl;
+
         string covg_info = ":" + to_string(mean(ref_fwd_covgs)) + "," + to_string(mean(ref_rev_covgs))
                            + "," + to_string(mean(alt_fwd_covgs)) + "," + to_string(mean(alt_rev_covgs))
-                           + to_string(median(ref_fwd_covgs)) + "," + to_string(median(ref_rev_covgs))
+                           + "," + to_string(median(ref_fwd_covgs)) + "," + to_string(median(ref_rev_covgs))
                            + "," + to_string(median(alt_fwd_covgs)) + "," + to_string(median(alt_rev_covgs))
-                           + to_string(sum(ref_fwd_covgs)) + "," + to_string(sum(ref_rev_covgs))
+                           + "," + to_string(sum(ref_fwd_covgs)) + "," + to_string(sum(ref_rev_covgs))
                            + "," + to_string(sum(alt_fwd_covgs)) + "," + to_string(sum(alt_rev_covgs));
 
-        record.samples[sample_index] += covg_info;
-        record.format += ":REF_MEAN_FWD_COV,REF_MEAN_REV_COVG,ALT_MEAN_FWD_COV,ALT_MEAN_REV_COVG,"
+        cout << "sample index: " << sample_index << endl;
+        cout << "covg_info: " << covg_info << endl;
+        cout << record.samples[sample_index] << endl;
+        record.samples[sample_index] = record.samples[sample_index].at(0) + covg_info;
+        cout << record.samples[sample_index] << endl;
+        record.format = "GT:REF_MEAN_FWD_COV,REF_MEAN_REV_COVG,ALT_MEAN_FWD_COV,ALT_MEAN_REV_COVG,"
                 "REF_MED_FWD_COVG,REF_MED_REV_COVG,ALT_MED_FWD_COVG,ALT_MED_REV_COVG,"
                 "REF_SUM_FWD_CVG,REF_REV_COVG,ALT_SUM_FWD_CVG,ALT_REV_COVG";
+
+        ref_fwd_covgs.clear();
+        ref_rev_covgs.clear();
+        alt_fwd_covgs.clear();
+        alt_rev_covgs.clear();
     }
 
 }
