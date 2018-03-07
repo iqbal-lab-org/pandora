@@ -1053,25 +1053,37 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph& kg,
                                           vector<uint32_t>& fwd_covgs,
                                           vector<uint32_t>& rev_covgs) const
 {
-    uint32_t front = 0, back = 0, added = 0, k = kmer_path.back()->path.length();
+    cout << "START" << endl;
+    uint32_t added = 0, k = 0;
+    KmerNodePtr prev = nullptr;
     for (auto n : kmer_path)
     {
-        if (added + k < pos_from) {
-            added += min(n->path.start, back) - front;
-            back = n->path.end;
-            front = n->path.start;
-        } else if (pos_from <= added + k and added < pos_to){
+        if (n->path.length() == 0)
+            continue;
+        else if (prev != nullptr){
+            auto prev_interval_it = prev->path.path.begin();
+            while (prev_interval_it->end < n->path.start){
+                added += prev_interval_it->length;
+                prev_interval_it++;
+            }
+            added += n->path.start - prev_interval_it->start;
+        } else {
+            k = n->path.length();
+        }
+
+        //cout << "pos_from:" << pos_from << " < added + k:" << added + k << " and added: " << added << " < pos_to:" << pos_to << endl;
+
+        if (pos_from <= added + k and added < pos_to){
             auto it = kg.nodes.find(n->id);
             if (it != kg.nodes.end()){
+                //cout << "id " << n->id << " " << *kg.nodes.at(n->id) << endl;
                 fwd_covgs.push_back(kg.nodes.at(n->id)->covg[0]);
                 rev_covgs.push_back(kg.nodes.at(n->id)->covg[1]);
             }
-            added += min(n->path.start, back) - front;
-            back = n->path.end;
-            front = n->path.start;
-        } else {
+        } else if (added > pos_to)
             break;
-        }
+
+        prev = n;
     }
 }
 

@@ -1190,7 +1190,6 @@ TEST(LocalPRGTest, find_alt_path)
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, top, alt_path);
 }
 
-//void append_kmer_covgs_in_range(const std::vector<KmerNodePtr>&, const uint32_t&, const uint32_t&, std::vector<uint32_t>& , std::vector<uint32_t>& ) const;
 TEST(LocalPRGTest, append_kmer_covgs_in_range)
 {
     Index* idx;
@@ -1199,18 +1198,59 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range)
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
     l3.minimizer_sketch(idx, 1, 3);
 
-    shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3,3,"3"));
-    pn3->kmer_prg = l3.kmer_prg;
-    pn3->kmer_prg.nodes[2]->covg[0] = 4;
-    pn3->kmer_prg.nodes[2]->covg[1] = 3;
-    pn3->kmer_prg.nodes[5]->covg[0] = 4;
-    pn3->kmer_prg.nodes[5]->covg[0] = 5;
-    pn3->kmer_prg.nodes[7]->covg[0] = 2;
-    pn3->kmer_prg.nodes[7]->covg[1] = 3;
-    pn3->kmer_prg.nodes[8]->covg[0] = 4;
-    pn3->kmer_prg.nodes[8]->covg[0] = 6;
-    pn3->kmer_prg.num_reads = 6;
-    pn3->kmer_prg.set_p(0.0001);}
+    l3.kmer_prg.nodes[2]->covg[0] = 4;
+    l3.kmer_prg.nodes[2]->covg[1] = 3;
+    l3.kmer_prg.nodes[5]->covg[0] = 4;
+    l3.kmer_prg.nodes[5]->covg[1] = 5;
+    l3.kmer_prg.nodes[7]->covg[0] = 2;
+    l3.kmer_prg.nodes[7]->covg[1] = 3;
+    l3.kmer_prg.nodes[8]->covg[0] = 4;
+    l3.kmer_prg.nodes[8]->covg[1] = 6;
+
+    for (auto n : l3.kmer_prg.nodes)
+    {
+        cout << *n.second;
+    }
+    vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0], l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[5], l3.kmer_prg.nodes[8],
+                               l3.kmer_prg.nodes[10], l3.kmer_prg.nodes[11]};
+    vector<uint32_t> fwd, rev, exp_fwd, exp_rev;
+
+    l3.append_kmer_covgs_in_range(l3.kmer_prg,kmp,0,0,fwd,rev);
+    exp_fwd = {};
+    exp_rev = {};
+    EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_fwd,fwd);
+    EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_rev,rev);
+
+    l3.append_kmer_covgs_in_range(l3.kmer_prg,kmp,0,1,fwd,rev);
+    exp_fwd = {4};
+    exp_rev = {3};
+    EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_fwd,fwd);
+    EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_rev,rev);
+
+    fwd.clear();
+    rev.clear();
+    l3.append_kmer_covgs_in_range(l3.kmer_prg,kmp,0,2,fwd,rev);
+    exp_fwd = {4,4};
+    exp_rev = {3,5};
+    EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_fwd,fwd);
+    EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_rev,rev);
+
+    fwd.clear();
+    rev.clear();
+    l3.append_kmer_covgs_in_range(l3.kmer_prg,kmp,0,3,fwd,rev);
+    exp_fwd = {4,4,4};
+    exp_rev = {3,5,6};
+    EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_fwd,fwd);
+    EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_rev,rev);
+
+    fwd.clear();
+    rev.clear();
+    l3.append_kmer_covgs_in_range(l3.kmer_prg,kmp,1,2,fwd,rev);
+    exp_fwd = {4,4};
+    exp_rev = {3,5};
+    EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_fwd,fwd);
+    EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_rev,rev);
+}
 
 TEST(LocalPRGTest, find_path_and_variants)
 {
