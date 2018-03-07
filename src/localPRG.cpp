@@ -502,8 +502,8 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
     // print, check and return
     assert(num_kmers_added == 0 or kmer_prg.nodes.size() == num_kmers_added ||
            assert_msg("nodes.size(): " << kmer_prg.nodes.size() << " and num minikmers: " << num_kmers_added));
-    //kmer_prg.sort_topologically();
-    //kmer_prg.check(num_kmers_added);
+    kmer_prg.remove_shortcut_edges();
+    kmer_prg.check();
 }
 
 vector<KmerNodePtr> LocalPRG::kmernode_path_from_localnode_path(const vector<LocalNodePtr> &localnode_path) const {
