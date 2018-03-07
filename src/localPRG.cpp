@@ -1284,7 +1284,8 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
         VCF vcf;
         build_vcf(vcf, refpath);
         add_sample_gt_to_vcf(vcf, refpath, lmp, "sample");
-        add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, kmp, "sample");
+        if (output_covgs)
+            add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, kmp, "sample");
         vcf.save(prefix + "." + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
     }
     if (output_comparison_paths) {
