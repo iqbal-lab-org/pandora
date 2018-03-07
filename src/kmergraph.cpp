@@ -50,6 +50,10 @@ KmerGraph::KmerGraph(const KmerGraph &other) {
             add_edge(nodes[c.first], nodes[c.second->outNodes[j]->id]);
         }
     }
+
+    // finally create sorted_nodes
+    sort_topologically();
+
 }
 
 // Assignment operator
@@ -87,6 +91,9 @@ KmerGraph &KmerGraph::operator=(const KmerGraph &other) {
             add_edge(nodes[c.first], nodes[c.second->outNodes[j]->id]);
         }
     }
+
+    // finally create sorted_nodes
+    sort_topologically();
 
     return *this;
 }
@@ -194,6 +201,7 @@ void KmerGraph::check() {
 }
 
 void KmerGraph::sort_topologically() {
+    sorted_nodes.clear();
     sorted_nodes.reserve(nodes.size());
     for (unordered_map<uint32_t, KmerNodePtr>::iterator it = nodes.begin(); it != nodes.end(); ++it) {
         sorted_nodes.push_back(it->second);
