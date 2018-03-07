@@ -2,6 +2,7 @@
 #define __KMERNODE_H_INCLUDED__
 
 class LocalPRG;
+
 class KmerNode;
 
 #include <vector>
@@ -24,20 +25,30 @@ public:
     uint8_t num_AT; // the number of As and Ts in this kmer
 
 
-    KmerNode(uint32_t, const Path&);
-    KmerNode(const KmerNode&);
-    KmerNode& operator=(const KmerNode&);
-    bool operator == (const KmerNode& y) const;
+    KmerNode(uint32_t, const Path &);
 
-  friend std::ostream& operator<< (std::ostream& out, const KmerNode& n);
-  friend class KmerGraph;
-  friend struct condition;
-  friend struct pCompKmerNode;
-  friend class LocalPRG;
-  friend class pangenome::Graph;
-  friend class pangenome::Node;
-  friend int pandora_check_kmergraph(int argc, char *argv[]);
-  friend void estimate_parameters(pangenome::Graph*, const std::string&, const uint32_t, float&, const uint);
+    KmerNode(const KmerNode &);
+
+    KmerNode &operator=(const KmerNode &);
+
+    bool operator==(const KmerNode &y) const;
+
+    friend std::ostream &operator<<(std::ostream &out, const KmerNode &n);
+
+    friend class KmerGraph;
+
+    friend struct condition;
+    friend struct pCompKmerNode;
+
+    friend class LocalPRG;
+
+    friend class pangenome::Graph;
+
+    friend class pangenome::Node;
+
+    friend int pandora_check_kmergraph(int argc, char *argv[]);
+
+    friend void estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint);
 
 };
 

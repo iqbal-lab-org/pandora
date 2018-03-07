@@ -9,6 +9,7 @@
 
 
 class KmerNode;
+
 class LocalPRG;
 
 class pangenome::Node {
@@ -26,18 +27,23 @@ public:
     //Node& operator=(const Node&);
 
     void remove_read(ReadPtr);
-    
+
     std::string get_name() const;
-    void add_path(const std::vector<KmerNodePtr>&);
-    void output_samples(const LocalPRG*, const std::string&, const uint);
 
-    bool operator == (const Node& y) const;
-    bool operator != (const Node& y) const;
-    bool operator < (const Node& y) const;
+    void add_path(const std::vector<KmerNodePtr> &);
 
-    friend std::ostream& operator<< (std::ostream& out, const Node& n);
+    void output_samples(const LocalPRG *, const std::string &, const uint);
+
+    bool operator==(const Node &y) const;
+
+    bool operator!=(const Node &y) const;
+
+    bool operator<(const Node &y) const;
+
+    friend std::ostream &operator<<(std::ostream &out, const Node &n);
 
     friend class pangenome::Graph;
+
     friend class pangenome::Read;
 };
 

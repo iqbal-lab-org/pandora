@@ -7,16 +7,21 @@
 #include "minimizer.h"
 
 class Seq {
-  public:
+public:
     uint32_t id;
     std::string name;
     std::string seq;
-    std::set<Minimizer*, pMiniComp> sketch;
+    std::set<Minimizer *, pMiniComp> sketch;
+
     Seq(uint32_t, std::string, std::string, uint32_t, uint32_t);
+
     ~Seq();
+
     void initialize(uint32_t, std::string, std::string, uint32_t, uint32_t);
-    void minimizer_sketch (const uint32_t w, const uint32_t k);
-  friend std::ostream& operator<< (std::ostream& out, const Seq& data); 
+
+    void minimizer_sketch(const uint32_t w, const uint32_t k);
+
+    friend std::ostream &operator<<(std::ostream &out, const Seq &data);
 };
 
 #endif

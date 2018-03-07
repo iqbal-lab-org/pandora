@@ -5,8 +5,7 @@
 #include <algorithm>
 #include <vector>
 
-struct VCFRecord
-{
+struct VCFRecord {
     //#CHROM POS ID REF ALT QUAL FILTER INFO FORMAT
     std::string chrom;
     uint32_t pos;
@@ -20,12 +19,18 @@ struct VCFRecord
     std::vector<std::string> samples;
 
     VCFRecord(std::string, uint32_t, std::string, std::string, std::string i = ".", std::string g = "");
+
     VCFRecord();
+
     ~VCFRecord();
-    bool operator == (const VCFRecord& y) const;
-    bool operator <  (const VCFRecord& y) const;
-    friend std::ostream& operator<< (std::ostream& out, const VCFRecord& m);
-    friend std::istream& operator>> (std::istream& in, VCFRecord& m);
+
+    bool operator==(const VCFRecord &y) const;
+
+    bool operator<(const VCFRecord &y) const;
+
+    friend std::ostream &operator<<(std::ostream &out, const VCFRecord &m);
+
+    friend std::istream &operator>>(std::istream &in, VCFRecord &m);
 };
 
 #endif

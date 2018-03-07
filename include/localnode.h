@@ -11,13 +11,15 @@
 #include "path.h"
 
 class KmerNode;
+
 class LocalNode;
+
 typedef std::shared_ptr<LocalNode> LocalNodePtr;
 typedef std::shared_ptr<KmerNode> KmerNodePtr;
 
 class LocalNode {
     std::unordered_set<KmerNodePtr> prev_kmer_paths;
-  public:
+public:
     std::string seq;
     Interval pos;
     uint32_t id;
@@ -28,10 +30,14 @@ class LocalNode {
     std::vector<LocalNodePtr> outNodes; // representing edges from this node to the nodes in the vector
 
     LocalNode(std::string, Interval, uint32_t);
-    bool operator == (const LocalNode& y) const;
-  friend std::ostream& operator<< (std::ostream& out, const LocalNode& n);  
-  friend class LocalGraph;
-  friend class LocalPRG;
+
+    bool operator==(const LocalNode &y) const;
+
+    friend std::ostream &operator<<(std::ostream &out, const LocalNode &n);
+
+    friend class LocalGraph;
+
+    friend class LocalPRG;
 };
 
 

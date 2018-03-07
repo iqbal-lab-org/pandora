@@ -22,7 +22,8 @@ public:
 
     void add_hits(const uint32_t, const std::set<MinimizerHitPtr, pComp> &);
 
-    std::pair<uint,uint> find_position(const std::vector<uint16_t> &, const std::vector<bool> &, const uint16_t min_overlap = 1);
+    std::pair<uint, uint>
+    find_position(const std::vector<uint16_t> &, const std::vector<bool> &, const uint16_t min_overlap = 1);
 
     void remove_node(NodePtr);
 

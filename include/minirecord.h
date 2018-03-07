@@ -5,18 +5,23 @@
 #include <algorithm>
 #include "path.h"
 
-struct MiniRecord
-{
+struct MiniRecord {
     uint32_t prg_id;
     Path path;
     uint32_t knode_id;
     bool strand;
+
     MiniRecord();
+
     MiniRecord(const uint32_t, const Path, const uint32_t, const bool);
+
     ~MiniRecord();
-    bool operator == (const MiniRecord& y) const;
-    friend std::ostream& operator<< (std::ostream& out, const MiniRecord& m);
-    friend std::istream& operator>> (std::istream& in, MiniRecord& m);
+
+    bool operator==(const MiniRecord &y) const;
+
+    friend std::ostream &operator<<(std::ostream &out, const MiniRecord &m);
+
+    friend std::istream &operator>>(std::istream &in, MiniRecord &m);
 };
 
 #endif

@@ -14,12 +14,13 @@ public:
     std::unordered_set<uint32_t> out_nodes;
     std::unordered_set<uint32_t> in_nodes;
 
-    Node(const uint32_t, const std::deque<uint16_t>&, const uint32_t);
+    Node(const uint32_t, const std::deque<uint16_t> &, const uint32_t);
 
-    bool operator == (const Node& y) const;
-    bool operator != (const Node& y) const;
+    bool operator==(const Node &y) const;
 
-    friend std::ostream & operator<< (std::ostream &,const Node&);
+    bool operator!=(const Node &y) const;
+
+    friend std::ostream &operator<<(std::ostream &, const Node &);
 };
 
 #endif
