@@ -1165,9 +1165,8 @@ TEST(LocalPRGTest, moreupdateVCF)
     prgs[2]->add_sample_gt_to_vcf(vcf, prgs[2]->prg.top_path(), lmp2, "sample");
 }
 
-TEST(LocalPRGTest, find_alt_path)
-{
-    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT 9 T 10  9 ATG");
+TEST(LocalPRGTest, find_alt_path) {
+    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT 9 T 10  9 ATG");
 
     vector<LocalNodePtr> top = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
     vector<LocalNodePtr> middle = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
@@ -1192,13 +1191,37 @@ TEST(LocalPRGTest, find_alt_path)
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, top, alt_path);
 
     // and now for the one where the alt or ref is "."
-    top = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
-    bottom = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6], l3.prg.nodes[8], l3.prg.nodes[9]};
+    top = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6], l3.prg.nodes[7],
+           l3.prg.nodes[9]};
+    bottom = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6], l3.prg.nodes[8],
+              l3.prg.nodes[9]};
     alt_path = l3.find_alt_path(top, 6, "T", ".");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, bottom, alt_path);
 
     alt_path = l3.find_alt_path(bottom, 6, ".", "T");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, top, alt_path);
+
+    // if the site is at the start and alt is "."
+    LocalPRG l3_(3, "nested varsite", " 5 G 7 C 8 T 7  6  5 TAT 9 T 10  9 ");
+    top = {l3_.prg.nodes[0], l3_.prg.nodes[1], l3_.prg.nodes[2], l3_.prg.nodes[4], l3_.prg.nodes[6]};
+    bottom = {l3_.prg.nodes[0], l3_.prg.nodes[5], l3_.prg.nodes[6]};
+
+    alt_path = l3_.find_alt_path(top, 0, "GC", ".");
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, bottom, alt_path);
+
+    alt_path = l3_.find_alt_path(bottom, 0, ".", "GC");
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, top, alt_path);
+
+    // if the site at the end has ref/alt as "."
+    top = {l3_.prg.nodes[0], l3_.prg.nodes[1], l3_.prg.nodes[2], l3_.prg.nodes[4], l3_.prg.nodes[6], l3_.prg.nodes[7], l3_.prg.nodes[9]};
+    bottom = {l3_.prg.nodes[0], l3_.prg.nodes[1], l3_.prg.nodes[2], l3_.prg.nodes[4], l3_.prg.nodes[6], l3_.prg.nodes[8], l3_.prg.nodes[9]};
+
+    alt_path = l3_.find_alt_path(top, 5, "T", ".");
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, bottom, alt_path);
+
+    alt_path = l3_.find_alt_path(bottom, 5, ".", "T");
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, top, alt_path);
+
 }
 
 TEST(LocalPRGTest, append_kmer_covgs_in_range)

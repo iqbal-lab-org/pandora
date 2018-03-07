@@ -941,12 +941,7 @@ void LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath,
                 alt += samplepath[j]->seq;
                 //cout << alt << endl;
             }
-
-            // find ref covgs
-
-            // find alt covgs
-
-
+            
             //cout << "add sample gt" << endl;
             vcf.add_sample_gt(sample_name, name, pos, ref, alt);
             found_new_site = false;
@@ -1012,10 +1007,10 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
             break;
         }
     }
-    //cout << "pos " << pos << " pos_along_ref_path " << pos_along_ref_path << endl;
+    //cout << "pos " << (uint) pos << " pos_along_ref_path " << pos_along_ref_path << " ref_path.size() " << ref_path.size() << endl;
 
     // find the localnodeptr we want to make our way back to
-    while (pos_along_ref_path<ref_path.size()
+    while (pos_along_ref_path < ref_path.size() - 1
            and (ref_added < pos + working_ref.length() or ref_path[pos_along_ref_path]->pos.length == 0)) {
         ref_added += ref_path[pos_along_ref_path]->pos.length;
         pos_along_ref_path++;
@@ -1024,9 +1019,13 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
     //cout << "trying to find " << *ref_node_to_find;
 
     // find an alt path with the required sequence
+    if (alt_path.empty() and ref_path.size() > 0 and ref_path[0]->pos.length == 0)
+        alt_path.push_back(ref_path[0]);
+    assert(!alt_path.empty());
     for (auto m : alt_path.back()->outNodes) {
         paths_in_progress.push_back({m});
     }
+
     while (!paths_in_progress.empty()) {
         considered_path = paths_in_progress.front();
         paths_in_progress.pop_front();
@@ -1038,7 +1037,7 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
         cout << endl;*/
 
         auto considered_seq = string_along_path(considered_path);
-        //cout << "considered_seq " << considered_seq;
+        //cout << "considered_seq " << considered_seq << endl;
 
         if (considered_seq == working_alt) {
             // check if merge with ref path
