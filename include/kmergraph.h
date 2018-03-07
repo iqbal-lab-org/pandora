@@ -45,6 +45,8 @@ public:
 
     void add_edge(KmerNodePtr, KmerNodePtr);
 
+    void remove_shortcut_edges();
+
     void sort_topologically();
 
     void check();

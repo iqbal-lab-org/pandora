@@ -180,6 +180,55 @@ void KmerGraph::add_edge(KmerNodePtr from, KmerNodePtr to) {
     }
 }
 
+void KmerGraph::remove_shortcut_edges()
+{
+    cout << now() << "Remove 'bad' edges from kmergraph" << endl;
+    Path temp_path;
+    uint num_removed_edges = 0;
+    vector<KmerNodePtr> v = {};
+    deque <vector<KmerNodePtr>> d;
+
+    for (auto n : nodes)
+    {
+        //cout << n.first << endl;
+        for (auto out : n.second->outNodes)
+        {
+            for (vector<KmerNodePtr>::iterator next_out=out->outNodes.begin(); next_out!=out->outNodes.end();)
+            {
+                // if the outnode of an outnode of A is another outnode of A
+                if (find(n.second->outNodes.begin(), n.second->outNodes.end(), *next_out)!=n.second->outNodes.end())
+                {
+                    temp_path = get_union(n.second->path, (*next_out)->path);
+                    //cout << "found the union of " << n.second->path << " and " << (*next_out)->path << endl;
+                    //cout << "check if " << temp_path << " contains " << out->path << endl;
+                    if (out->path.is_subpath(temp_path))
+                    {
+                        //remove it from the outnodes
+                        (*next_out)->inNodes.erase(find((*next_out)->inNodes.begin(), (*next_out)->inNodes.end(), out));
+                        next_out = out->outNodes.erase(next_out);
+                        num_removed_edges += 1;
+                        break;
+                    } else {
+                        next_out++;
+                    }
+                } else {
+                    next_out++;
+                }
+            }
+        }
+    }
+    cout << now() << "Found and removed " << num_removed_edges << " edges from the kmergraph" << endl;
+}
+
+void KmerGraph::sort_topologically() {
+    sorted_nodes.clear();
+    sorted_nodes.reserve(nodes.size());
+    for (unordered_map<uint32_t, KmerNodePtr>::iterator it = nodes.begin(); it != nodes.end(); ++it) {
+        sorted_nodes.push_back(it->second);
+    }
+    sort(sorted_nodes.begin(), sorted_nodes.end(), pCompKmerNode());
+}
+
 void KmerGraph::check() {
     if (sorted_nodes.empty()) {
         sort_topologically();
@@ -198,15 +247,6 @@ void KmerGraph::check() {
                    assert_msg(d->id << " does not occur later in sorted list than " << (*c)->id));
         }
     }
-}
-
-void KmerGraph::sort_topologically() {
-    sorted_nodes.clear();
-    sorted_nodes.reserve(nodes.size());
-    for (unordered_map<uint32_t, KmerNodePtr>::iterator it = nodes.begin(); it != nodes.end(); ++it) {
-        sorted_nodes.push_back(it->second);
-    }
-    sort(sorted_nodes.begin(), sorted_nodes.end(), pCompKmerNode());
 }
 
 void KmerGraph::set_p(const float e_rate) {
