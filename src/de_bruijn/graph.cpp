@@ -16,6 +16,7 @@
 
 using namespace debruijn;
 
+// Define a debruijn graph with s-mers of genes as nodes
 Graph::Graph(uint8_t s) : next_id(0), size(s) {
     nodes.reserve(200000);
 };
@@ -26,7 +27,7 @@ Graph::~Graph()
     nodes.clear();
 }
 
-// add a node in dbg corresponding to a fixed size deque of pangenome graph
+// Add a node in dbg corresponding to a fixed size deque of pangenome graph
 // node/orientation ids and labelled with the read_ids which cover it
 OrientedNodePtr Graph::add_node (const deque<uint16_t>& node_ids, uint32_t read_id)
 {
@@ -57,6 +58,11 @@ OrientedNodePtr Graph::add_node (const deque<uint16_t>& node_ids, uint32_t read_
     return make_pair(n,true);
 }
 
+// An edge is valid if the kmer of node/orientation ids for from
+// overlaps the first k-1 nodes/orientations of to
+// Note that forward and reverse complement kmers are treated as
+// equal, but an edge is only valid if the orientation they were found
+// in in the read allows the overlap
 bool edge_is_valid (OrientedNodePtr from, OrientedNodePtr to)
 {
     deque<uint16_t> hashed_node_ids_from = from.first->hashed_node_ids;
@@ -85,7 +91,7 @@ bool edge_is_valid (OrientedNodePtr from, OrientedNodePtr to)
     return overlap_forwards(hashed_node_ids_from, hashed_node_ids_to);
 }
 
-// add directed edge
+// Add directed edge between from and to
 void Graph::add_edge (OrientedNodePtr from, OrientedNodePtr to)
 {
     assert(from.first != nullptr and to.first != nullptr);
@@ -117,7 +123,7 @@ void Graph::add_edge (OrientedNodePtr from, OrientedNodePtr to)
     //assert(num_edges_added == 2 or assert_msg("did not add edge from " << *from << " to " << *to));
 }
 
-// remove de bruijn node with id given
+// Remove all mentions of de bruijn node with id given from graph
 void Graph::remove_node(const uint32_t dbg_node_id)
 {
     //cout << "remove node " << dbg_node_id << endl;
@@ -185,7 +191,7 @@ void Graph::remove_node(const uint32_t dbg_node_id)
     add_edge(last_node, nodes[tig.back()]);
 }*/
 
-// remove read from de bruijn node
+// Remove all copies of read from de bruijn node
 void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_node_id)
 {
     //cout << "remove read " << (uint)read_id << " from node " << (uint)dbg_node_id << endl;
@@ -259,7 +265,7 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_nod
     }
 }
 
-// get the dbg node ids corresponding to leaves
+// Get the dbg node ids corresponding to leaves
 unordered_set<uint32_t> Graph::get_leaves(uint16_t covg_thresh)
 {
     unordered_set<uint32_t> s;
@@ -275,7 +281,7 @@ unordered_set<uint32_t> Graph::get_leaves(uint16_t covg_thresh)
     return s;
 }
 
-// get deques of dbg node ids corresponding to maximal non-branching paths in dbg
+// Get deques of dbg node ids corresponding to maximal non-branching paths in dbg
 set<deque<uint32_t>> Graph::get_unitigs() {
     set<deque<uint32_t>> all_tigs;
     set<uint32_t> seen;
@@ -301,7 +307,7 @@ set<deque<uint32_t>> Graph::get_unitigs() {
     return all_tigs;
 }
 
-// extend a dbg path on either end to a branch point
+// Extend a dbg path on either end until reaching a branch point
 void Graph::extend_unitig(deque<uint32_t>& tig) {
     bool tig_is_empty = (tig.size() == 0);
     bool node_is_isolated = (tig.size() == 1
@@ -428,6 +434,7 @@ void Graph::extend_unitig(deque<uint32_t>& tig) {
     cout << endl;
 }
 
+// Search the outnodes of node_ptr_to_search for node_ptr_to_find
 bool Graph::found_in_out_nodes(const NodePtr node_ptr_to_search, const NodePtr node_ptr_to_find) const
 {
     for (const auto i : node_ptr_to_search->out_nodes) {
@@ -441,6 +448,7 @@ bool Graph::found_in_out_nodes(const NodePtr node_ptr_to_search, const NodePtr n
     return false;
 }
 
+// Search the innodes of node_ptr_to_search for node_ptr_to_find
 bool Graph::found_in_in_nodes(const NodePtr node_ptr_to_search, const NodePtr node_ptr_to_find) const
 {
     for (const auto i : node_ptr_to_search->in_nodes) {
@@ -454,6 +462,8 @@ bool Graph::found_in_in_nodes(const NodePtr node_ptr_to_search, const NodePtr no
     return false;
 }
 
+// Graphs are equal if they have nodes corresponding to the same kmer
+// of node/orientations, with outnodes and innodes the same
 bool Graph::operator == (const Graph& y) const
 {
     // want the graphs to have the same nodes, even if
