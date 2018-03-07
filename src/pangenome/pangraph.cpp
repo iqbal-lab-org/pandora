@@ -35,6 +35,7 @@ Graph::~Graph() {
     clear();
 }
 
+// Finds or creates a read with id read_id
 ReadPtr Graph::get_read(const uint32_t &read_id) {
     auto it = reads.find(read_id);
     bool found = it != reads.end();
@@ -48,6 +49,9 @@ ReadPtr Graph::get_read(const uint32_t &read_id) {
     return read_ptr;
 }
 
+// Finds or creates a node with id node_id
+// increments the coverage (number of times seen in a read)
+// and records read_id as a read containing this node,
 NodePtr Graph::add_coverage(const ReadPtr &read_ptr,
                             const NodeId &node_id,
                             const uint32_t &prg_id,
@@ -69,6 +73,7 @@ NodePtr Graph::add_coverage(const ReadPtr &read_ptr,
     return node_ptr;
 }
 
+// Checks that all hits in the cluster are from the given prg and read
 void check_correct_hits(const uint32_t prg_id,
                         const uint32_t read_id,
                         const set<MinimizerHitPtr, pComp> &cluster) {
@@ -81,7 +86,10 @@ void check_correct_hits(const uint32_t prg_id,
     }
 }
 
-
+// Add the node to the vector of nodes along read
+// as well as its orientation (unless the previous node along
+// the read was the same node and orientation)
+// Store the hits on the read
 void record_read_info(ReadPtr &read_ptr,
                       const NodePtr &node_ptr,
                       const set<MinimizerHitPtr, pComp> &cluster) {
@@ -92,13 +100,13 @@ void record_read_info(ReadPtr &read_ptr,
 	or orientation != read_ptr->node_orientations.back()
 	//or we think there really are 2 copies of gene
 	) {
-	read_ptr->nodes.push_back(node_ptr);
+	    read_ptr->nodes.push_back(node_ptr);
         read_ptr->node_orientations.push_back(orientation);
     }
 }
 
 
-// add a node corresponding to a cluster of hits against a given localPRG from a read
+// Add a node corresponding to a cluster of hits against a given localPRG from a read
 void Graph::add_node(const uint32_t prg_id,
                      const string &prg_name,
                      const uint32_t read_id,
@@ -113,7 +121,7 @@ void Graph::add_node(const uint32_t prg_id,
     record_read_info(read_ptr, node_ptr, cluster);
 }
 
-// add a node corresponding to an instance of a localPRG found in a sample
+// Add a node corresponding to an instance of a localPRG found in a sample
 void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string &sample_name,
                      const vector<KmerNodePtr> &kmp, const LocalPRG *prg) {
     // add new node if it doesn't exist
@@ -149,7 +157,7 @@ void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string
     n->add_path(kmp);
 }
 
-// remove the node n, and all references to it
+// Remove the node n, and all references to it
 unordered_map<uint32_t, NodePtr>::iterator Graph::remove_node(NodePtr n) {
     //cout << "Remove graph node " << *n << endl;
     // removes all instances of node n and references to it in reads
@@ -164,6 +172,9 @@ unordered_map<uint32_t, NodePtr>::iterator Graph::remove_node(NodePtr n) {
     return it;
 }
 
+// Remove read from each node which contains it
+// and from the graph
+// Remove nodes which no longer have any reads
 void Graph::remove_read(const uint32_t read_id) {
     for (auto n : reads[read_id]->nodes) {
         //cout << "looking at read node " << n->node_id;
@@ -176,6 +187,7 @@ void Graph::remove_read(const uint32_t read_id) {
     reads.erase(read_id);
 }
 
+// Remove a single instance of a node from a read while iterating through the nodes of the read
 vector<NodePtr>::iterator Graph::remove_node_from_read(vector<NodePtr>::iterator node_it, ReadPtr read_ptr) {
 
     cout << "remove node " << (*node_it)->node_id << " from read " << read_ptr->id << endl;
@@ -197,7 +209,7 @@ vector<NodePtr>::iterator Graph::remove_node_from_read(vector<NodePtr>::iterator
 
 // remove the all instances of the pattern of nodes/orienations from graph
 
-// remove nodes with covg <= thresh from graph
+// Remove nodes with covg <= thresh from graph
 void Graph::remove_low_covg_nodes(const uint &thresh) {
     cout << now() << "Remove nodes with covg <= " << thresh << endl;
     for (auto it = nodes.begin(); it != nodes.end();) {
@@ -213,6 +225,8 @@ void Graph::remove_low_covg_nodes(const uint &thresh) {
     cout << now() << "Pangraph now has " << nodes.size() << " nodes" << endl;
 }
 
+// Create a copy of the node with node_id and replace the old copy with
+// the new one in each of the reads in reads_along_tig (by looking for the context of node_id)
 void Graph::split_node_by_reads(const unordered_set<ReadPtr> &reads_along_tig, vector<uint16_t> &node_ids,
                                 const vector<bool> &node_orients, const uint16_t node_id) {
     if (reads_along_tig.empty()) {
@@ -302,6 +316,8 @@ void Graph::split_node_by_reads(const unordered_set<ReadPtr> &reads_along_tig, v
     return reads_on_node_path;
 }*/
 
+// For each node in pangraph, make a copy of the kmergraph and use the hits
+// stored on each read containing the node to add coverage to this graph
 void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
     uint num_hits[2];
     for (auto pnode : nodes) {
@@ -367,6 +383,7 @@ bool Graph::operator!=(const Graph &y) const {
     return !(*this == y);
 }
 
+// Saves a presence/absence/copynumber matrix for each node and each sample
 void Graph::save_matrix(const string &filepath) {
     // write a presence/absence matrix for samples and nodes
     ofstream handle;
