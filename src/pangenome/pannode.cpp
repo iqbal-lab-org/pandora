@@ -9,7 +9,7 @@
 
 using namespace pangenome;
 
-Node::Node (const uint32_t i, const uint32_t j, const string n): prg_id(i), node_id(j), name(n), covg(1) {}
+Node::Node(const uint32_t i, const uint32_t j, const string n) : prg_id(i), node_id(j), name(n), covg(1) {}
 
 /*// copy constructor
 Node::Node(const Node& other)
@@ -41,41 +41,34 @@ Node& Node::operator=(const Node& other)
     return *this;
 }*/
 
-void Node::remove_read(ReadPtr r)
-{
+void Node::remove_read(ReadPtr r) {
     //removes single copy of read
     auto it = find(reads.begin(), reads.end(), r);
-    if (it != reads.end())
-    {
+    if (it != reads.end()) {
         covg -= 1;
         reads.erase(it);
         //it = find(reads.begin(), reads.end(), r);
     }
 }
 
-string Node::get_name() const
-{
-    if (prg_id != node_id)
-    {
-	    return name + "." + to_string(node_id);
+string Node::get_name() const {
+    if (prg_id != node_id) {
+        return name + "." + to_string(node_id);
     } else {
-	    return name;
+        return name;
     }
 }
 
-void Node::add_path(const vector<KmerNodePtr>& kmp)
-{
-    for (uint i=0; i!=kmp.size(); ++i)
-    {
-	    assert(kmer_prg.nodes.find(kmp[i]->id)!=kmer_prg.nodes.end() ||
-                       assert_msg("Must have wrong kmergraph as has different nodes"));
+void Node::add_path(const vector<KmerNodePtr> &kmp) {
+    for (uint i = 0; i != kmp.size(); ++i) {
+        assert(kmer_prg.nodes.find(kmp[i]->id) != kmer_prg.nodes.end() ||
+               assert_msg("Must have wrong kmergraph as has different nodes"));
         kmer_prg.nodes[kmp[i]->id]->covg[0] += 1;
-	    kmer_prg.nodes[kmp[i]->id]->covg[1] += 1;
+        kmer_prg.nodes[kmp[i]->id]->covg[1] += 1;
     }
 }
 
-void Node::output_samples(const LocalPRG* prg, const string& prefix, const uint w)
-{
+void Node::output_samples(const LocalPRG *prg, const string &prefix, const uint w) {
     vector<KmerNodePtr> kmp;
     kmp.reserve(800);
     vector<LocalNodePtr> lmp, sample_lmp;
@@ -100,56 +93,53 @@ void Node::output_samples(const LocalPRG* prg, const string& prefix, const uint 
     prg->build_vcf(vcf, lmp);
     vcf.save(prefix + "." + name + ".multisample.vcf", true, true, true, true, true, true, true);
     uint count = 0;
-    for (auto s : samples)
-    {
-	//cout << "new sample" << endl;
-	count = 0;
-	for (const auto &p : s->paths[prg_id])
-        {
-	    /*cout << s->name << " ";
-	    for (uint i=0; i!=p.size(); ++i)
-	    {
-	        cout << p[i]->id << " ";
-	    }
-	    cout << endl;*/
-	    sample_lmp = prg->localnode_path_from_kmernode_path(p, w);
+    for (auto s : samples) {
+        //cout << "new sample" << endl;
+        count = 0;
+        for (const auto &p : s->paths[prg_id]) {
+            /*cout << s->name << " ";
+            for (uint i=0; i!=p.size(); ++i)
+            {
+                cout << p[i]->id << " ";
+            }
+            cout << endl;*/
+            sample_lmp = prg->localnode_path_from_kmernode_path(p, w);
             /*cout << "sample lmp:" << endl;
             for (uint i=0; i!=sample_lmp.size(); ++i)
             {
                 cout << sample_lmp[i]->id << "->";
             }
             cout << endl;*/
-	    if (count == 0)
-	    {
-            prg->add_sample_gt_to_vcf(vcf, lmp, sample_lmp, s->name);
-            prg->add_sample_covgs_to_vcf(vcf, kmer_prg, lmp, p, s->name);
+            if (count == 0) {
+                prg->add_sample_gt_to_vcf(vcf, lmp, sample_lmp, s->name);
+                prg->add_sample_covgs_to_vcf(vcf, kmer_prg, lmp, p, s->name);
 
-        } else {
-		    prg->add_sample_gt_to_vcf(vcf, lmp, sample_lmp, s->name + to_string(count));
-            prg->add_sample_covgs_to_vcf(vcf, kmer_prg, lmp, p, s->name + to_string(count));
-	    }
-	    sample_lmp.clear();
-	    count++;
-	    //cout << "finished adding sample " << s->name << " path " << count << endl;
-	}
+            } else {
+                prg->add_sample_gt_to_vcf(vcf, lmp, sample_lmp, s->name + to_string(count));
+                prg->add_sample_covgs_to_vcf(vcf, kmer_prg, lmp, p, s->name + to_string(count));
+            }
+            sample_lmp.clear();
+            count++;
+            //cout << "finished adding sample " << s->name << " path " << count << endl;
+        }
     }
     vcf.save(prefix + "." + name + ".multisample.vcf", true, true, true, true, true, true, true);
     vcf.write_aligned_fasta(prefix + "." + name + ".multisample.fa", lmp);
 }
 
-bool Node::operator == (const Node& y) const {
+bool Node::operator==(const Node &y) const {
     return (node_id == y.node_id);
 }
 
-bool Node::operator != (const Node& y) const {
+bool Node::operator!=(const Node &y) const {
     return (node_id != y.node_id);
 }
 
-bool Node::operator < (const Node& y) const {
+bool Node::operator<(const Node &y) const {
     return (node_id < y.node_id);
 }
 
-std::ostream& pangenome::operator<< (std::ostream & out, pangenome::Node const& n) {
+std::ostream &pangenome::operator<<(std::ostream &out, pangenome::Node const &n) {
     out << n.node_id << "," << n.prg_id << " covg: " << n.covg;
-    return out ;
+    return out;
 }

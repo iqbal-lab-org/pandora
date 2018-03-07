@@ -14,12 +14,11 @@ using namespace std;
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-MinimizerHits::MinimizerHits(const uint& num_hits) {
+MinimizerHits::MinimizerHits(const uint &num_hits) {
     uhits.reserve(num_hits);
 }
 
-void MinimizerHits::clear()
-{
+void MinimizerHits::clear() {
     /*for (auto c: hits)
     {
         delete c;
@@ -33,28 +32,26 @@ void MinimizerHits::clear()
     uhits.clear();
 }
 
-MinimizerHits::~MinimizerHits()
-{
+MinimizerHits::~MinimizerHits() {
     clear();
 }
 
-void MinimizerHits::add_hit(const uint32_t i, const Minimizer* m, const MiniRecord* r)
-{
-    MinimizerHitPtr mh (make_shared<MinimizerHit>(i, m, r));
+void MinimizerHits::add_hit(const uint32_t i, const Minimizer *m, const MiniRecord *r) {
+    MinimizerHitPtr mh(make_shared<MinimizerHit>(i, m, r));
     uhits.insert(mh);
     //uhits.insert(make_shared<MinimizerHit>(i, m, r));
 }
 
-void MinimizerHits::sort()
-{
-    if (hits.max_size()>uhits.size())
-    {
+void MinimizerHits::sort() {
+    if (hits.max_size() > uhits.size()) {
         hits.insert(uhits.begin(), uhits.end());
-        assert(hits.size() == uhits.size() || assert_msg("Expected uhits.size()=" << uhits.size() << " to equal hits.size()=" << hits.size()));
+        assert(hits.size() == uhits.size() ||
+               assert_msg("Expected uhits.size()=" << uhits.size() << " to equal hits.size()=" << hits.size()));
         uhits.clear();
     } else {
-	    cerr << "Could not create a set big enough for " << uhits.size() << " elements. The max size is " << hits.max_size() << endl;
-	    exit (EXIT_FAILURE);
+        cerr << "Could not create a set big enough for " << uhits.size() << " elements. The max size is "
+             << hits.max_size() << endl;
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -63,12 +60,12 @@ void MinimizerHits::sort()
     return out ;
 }*/
 
-bool pComp::operator () (const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) {
-        return (*lhs)<(*rhs);
+bool pComp::operator()(const MinimizerHitPtr &lhs, const MinimizerHitPtr &rhs) {
+    return (*lhs) < (*rhs);
 }
 
-bool pEq::operator() (const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) const {
-        return *lhs == *rhs;
+bool pEq::operator()(const MinimizerHitPtr &lhs, const MinimizerHitPtr &rhs) const {
+    return *lhs == *rhs;
 }
 
 /*size_t Hash::operator()(const MinimizerHit* mh) const
@@ -80,18 +77,18 @@ bool pEq::operator() (const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) co
     return hash<string>()(temp);
 }*/
 
-bool pComp_path::operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) {
+bool pComp_path::operator()(const MinimizerHitPtr &lhs, const MinimizerHitPtr &rhs) {
     //want those that match against the same prg_path together
-    if (lhs->prg_path<rhs->prg_path) { return true;}
-    if (rhs->prg_path<lhs->prg_path) { return false;}
+    if (lhs->prg_path < rhs->prg_path) { return true; }
+    if (rhs->prg_path < lhs->prg_path) { return false; }
     //separated into two categories, corresponding to a forward, and a rev-complement hit, note fwd come first
-    if (lhs->strand>rhs->strand) {return true;}
-    if (rhs->strand>lhs->strand) {return false;}
+    if (lhs->strand > rhs->strand) { return true; }
+    if (rhs->strand > lhs->strand) { return false; }
     // finally, make sure that hits from separate reads aren't removed from the set as "=="
-    if (lhs->read_id<rhs->read_id) { return true;}
-    if (rhs->read_id<lhs->read_id) { return false;}
-    if (lhs->read_interval<rhs->read_interval) { return true;}
-    if (rhs->read_interval<lhs->read_interval) { return false;}
+    if (lhs->read_id < rhs->read_id) { return true; }
+    if (rhs->read_id < lhs->read_id) { return false; }
+    if (lhs->read_interval < rhs->read_interval) { return true; }
+    if (rhs->read_interval < lhs->read_interval) { return false; }
     return false;
 }
 

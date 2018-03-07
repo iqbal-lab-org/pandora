@@ -3,11 +3,13 @@
 
 using namespace std;
 
-namespace pangenome
-{
+namespace pangenome {
     class Node;
+
     class Read;
+
     class Sample;
+
     class Graph;
 
     typedef std::shared_ptr<pangenome::Node> NodePtr;

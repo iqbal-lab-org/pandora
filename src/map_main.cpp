@@ -120,11 +120,11 @@ int pandora_map(int argc, char *argv[]) {
             }
         } else if ((arg == "-e") || (arg == "--error_rate")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                e_rate = static_cast<float>(atof(argv[++i])); // Increment 'i' so we don't get the argument as the next argv[i].
-		    if (e_rate < 0.01)
-		    {
-		        illumina = true;
-		    }
+                e_rate = static_cast<float>(atof(
+                        argv[++i])); // Increment 'i' so we don't get the argument as the next argv[i].
+                if (e_rate < 0.01) {
+                    illumina = true;
+                }
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--error_rate option requires one argument." << std::endl;
                 return 1;
@@ -144,20 +144,19 @@ int pandora_map(int argc, char *argv[]) {
             output_covgs = true;
         } else if ((arg == "--output_comparison_paths")) {
             output_comparison_paths = true;
-	} else if ((arg == "--illumina")) {
+        } else if ((arg == "--illumina")) {
             illumina = true;
-	    if (e_rate > 0.05)
-	    {
-	        e_rate = 0.001;
-	    }
-	} else if ((arg == "--clean")) {
+            if (e_rate > 0.05) {
+                e_rate = 0.001;
+            }
+        } else if ((arg == "--clean")) {
             clean = true;
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
     }
-    
-    assert(w<=k);
+
+    assert(w <= k);
 
     //then run the programme...
     cout << "START: " << now() << endl;
@@ -190,7 +189,8 @@ int pandora_map(int argc, char *argv[]) {
     mhs = new MinimizerHits(100 * idx->minhash.size());
     pangenome::Graph *pangraph;
     pangraph = new pangenome::Graph();
-    uint covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, illumina, clean);
+    uint covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size,
+                                        genome_size, illumina, clean);
 
     cout << now() << "Writing pangenome::Graph to file " << prefix << ".pangraph.gfa" << endl;
     write_pangraph_gfa(prefix + ".pangraph.gfa", pangraph);
@@ -211,13 +211,13 @@ int pandora_map(int argc, char *argv[]) {
     for (auto c: pangraph->nodes) {
         if (output_vcf
             and !vcf_refs_file.empty()
-            and vcf_refs.find(prgs[c.second->prg_id]->name)!=vcf_refs.end()) {
+            and vcf_refs.find(prgs[c.second->prg_id]->name) != vcf_refs.end()) {
             vcf_ref = vcf_refs[prgs[c.second->prg_id]->name];
         }
-        prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, vcf_ref,output_vcf,
+        prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, vcf_ref, output_vcf,
                                                        output_comparison_paths, output_covgs);
         if (output_kg) {
-	        c.second->kmer_prg.save(prefix + "." + c.second->get_name() + ".kg.gfa", prgs[c.second->prg_id]);
+            c.second->kmer_prg.save(prefix + "." + c.second->get_name() + ".kg.gfa", prgs[c.second->prg_id]);
         }
         //prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "." + prgs[c.second->id]->name + ".covg.txt");
         //cout << "\t\t" << prefix << "." << prgs[c.second->id]->name << ".gfa" << endl;

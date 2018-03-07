@@ -158,7 +158,7 @@ void load_PRG_kmergraphs(vector<LocalPRG *> &prgs, const uint &w, const uint &k,
     }
 }
 
-void load_vcf_refs_file(const string &filepath, VCFRefs& vcf_refs) {
+void load_vcf_refs_file(const string &filepath, VCFRefs &vcf_refs) {
     cout << now() << "Loading VCF refs from file " << filepath << endl;
 
     string name, read, line;
@@ -212,7 +212,7 @@ void add_read_hits(Seq *s, MinimizerHits *hits, Index *idx) {
 }
 
 void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, const vector<LocalPRG *> &prgs,
-                     const MinimizerHits *minimizer_hits, const int max_diff, const float& scale_cluster_size,
+                     const MinimizerHits *minimizer_hits, const int max_diff, const float &scale_cluster_size,
                      const uint min_cluster_size, const uint short_read_length) {
     cout << now() << "Define clusters of hits from the " << minimizer_hits->hits.size() << " hits" << endl;
 
@@ -231,7 +231,7 @@ void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
             (abs((int) (*mh_current)->read_interval.start - (int) (*mh_previous)->read_interval.start)) > max_diff) {
             // keep clusters which cover at least 3/4 the expected number of minihits
             length_based_threshold = min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
-                                        short_read_length)*scale_cluster_size;
+                                         short_read_length) * scale_cluster_size;
             /*cout << "gene length " << prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()
                  << " short read length: " << short_read_length
                  << " scale cluster size: " << scale_cluster_size
@@ -240,7 +240,7 @@ void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
             if (current_cluster.size() >
                 max(length_based_threshold, min_cluster_size)) {
                 clusters_of_hits.insert(current_cluster);
-	        //cout << "Found cluster of size " << current_cluster.size() << endl;
+                //cout << "Found cluster of size " << current_cluster.size() << endl;
                 /*} else {
                     cout << "rejected hits" << endl;
                     for (set<MinimizerHit*, pComp>::iterator p=current_cluster.begin(); p!=current_cluster.end(); ++p)
@@ -254,17 +254,16 @@ void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
         mh_previous = mh_current;
     }
     length_based_threshold = min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
-                                short_read_length)*scale_cluster_size;
+                                 short_read_length) * scale_cluster_size;
     /*cout << "gene length " << prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()
          << " short read length: " << short_read_length
          << " scale cluster size: " << scale_cluster_size
          << " length based threshold: " << length_based_threshold
          << " min cluster size: " << min_cluster_size << endl;*/
     if (current_cluster.size() >
-        max(length_based_threshold, min_cluster_size))
-    {
+        max(length_based_threshold, min_cluster_size)) {
         clusters_of_hits.insert(current_cluster);
-	    //cout << "Found cluster of size " << current_cluster.size() << endl;
+        //cout << "Found cluster of size " << current_cluster.size() << endl;
         /*} else {
             cout << "rejected hits" << endl;
             for (set<MinimizerHit*, pComp>::iterator p=current_cluster.begin(); p!=current_cluster.end(); ++p)
@@ -321,7 +320,7 @@ void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of
     if (clusters_of_hits.empty()) { return; }
 
     set<set<MinimizerHitPtr, pComp>, clusterComp_size> clusters_by_size(clusters_of_hits.begin(),
-                                                                       clusters_of_hits.end());
+                                                                        clusters_of_hits.end());
 
     auto it = clusters_by_size.begin();
     std::vector<int> read_v(genome_size, 0);
@@ -362,8 +361,9 @@ void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of
     cout << now() << "Now have " << clusters_of_hits.size() << " clusters of hits " << endl;
 }
 
-void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHits *minimizer_hits, pangenome::Graph *pangraph,
-                                    const int max_diff, const uint &genome_size, const float& scale_cluster_size,
+void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHits *minimizer_hits,
+                                    pangenome::Graph *pangraph,
+                                    const int max_diff, const uint &genome_size, const float &scale_cluster_size,
                                     const uint min_cluster_size, const uint short_read_length) {
     // this step infers the gene order for a read and adds this to the pangraph
     // by defining clusters of hits, keeping those which are not noise and
@@ -408,11 +408,10 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
 
 uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenome::Graph *pangraph, Index *idx,
                              const vector<LocalPRG *> &prgs, const uint32_t w, const uint32_t k,
-                             const int max_diff, const float& e_rate,
+                             const int max_diff, const float &e_rate,
                              const uint min_cluster_size, const uint genome_size,
                              const bool illumina,
-                             const bool clean)
-{
+                             const bool clean) {
     string name, read, line;
     uint64_t covg = 0;
     float scale_cluster_size = 0.75 / exp(e_rate * k);
@@ -483,7 +482,7 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
         if (illumina and clean) {
             clean_pangraph_with_debruijn_graph(pangraph, 2, 1, illumina);
             cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
-        } else if (clean){
+        } else if (clean) {
             clean_pangraph_with_debruijn_graph(pangraph, 3, 1, illumina);
             cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
         }

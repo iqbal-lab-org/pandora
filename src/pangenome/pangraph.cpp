@@ -95,12 +95,12 @@ void record_read_info(ReadPtr &read_ptr,
                       const set<MinimizerHitPtr, pComp> &cluster) {
     read_ptr->add_hits(node_ptr->node_id, cluster);
     bool orientation = !cluster.empty() and (*cluster.begin())->strand;
-    if (read_ptr->nodes.empty() 
-	or node_ptr != read_ptr->nodes.back() 
-	or orientation != read_ptr->node_orientations.back()
-	//or we think there really are 2 copies of gene
-	) {
-	    read_ptr->nodes.push_back(node_ptr);
+    if (read_ptr->nodes.empty()
+        or node_ptr != read_ptr->nodes.back()
+        or orientation != read_ptr->node_orientations.back()
+        //or we think there really are 2 copies of gene
+            ) {
+        read_ptr->nodes.push_back(node_ptr);
         read_ptr->node_orientations.push_back(orientation);
     }
 }
@@ -201,7 +201,7 @@ vector<NodePtr>::iterator Graph::remove_node_from_read(vector<NodePtr>::iterator
     if (read_it != node_ptr->reads.end())
         node_ptr->reads.erase(read_it);
 
-    if (node_ptr->reads.size()==0)
+    if (node_ptr->reads.size() == 0)
         remove_node(node_ptr);
 
     return node_it;
@@ -249,7 +249,7 @@ void Graph::split_node_by_reads(const unordered_set<ReadPtr> &reads_along_tig, v
     // switch old node to new node in reads
     vector<NodePtr>::iterator it;
     unordered_multiset<ReadPtr>::iterator rit;
-    pair<uint,uint> pos;
+    pair<uint, uint> pos;
     for (auto r : reads_along_tig) {
         // ignore if this node does not contain this read
         rit = nodes[node_id]->reads.find(r);
@@ -334,7 +334,7 @@ void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
                 //bool added = false;
                 // update the covg in the kmer_prg
                 //cout << "pnode " << pnode.second->prg_id << " knode " << (*mh)->knode_id << " strand " << (*mh)->strand << " updated from " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand];
-                assert(pnode.second->kmer_prg.nodes.find((*mh)->knode_id)!=pnode.second->kmer_prg.nodes.end());
+                assert(pnode.second->kmer_prg.nodes.find((*mh)->knode_id) != pnode.second->kmer_prg.nodes.end());
                 pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] += 1;
                 //cout << " to " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] << endl;
                 num_hits[(*mh)->strand] += 1;
