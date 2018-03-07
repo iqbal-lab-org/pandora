@@ -147,6 +147,39 @@ TEST(PathTest, is_branching) {
     EXPECT_EQ(p1.is_branching(p), false);
 }
 
+TEST(PathTest, is_subpath)
+{
+    deque<Interval> d, d1;
+    d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
+    d1 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 10)};
+    Path p, p1;
+    p.initialize(d);
+    p1.initialize(d1);
+
+    EXPECT_EQ(p1.is_subpath(p), true);
+    EXPECT_EQ(p.is_subpath(p1), false);
+
+    d1 = {Interval(2, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
+    p1.initialize(d1);
+    EXPECT_EQ(p1.is_subpath(p), true);
+    EXPECT_EQ(p.is_subpath(p1), false);
+
+    d1 = {Interval(1, 3), Interval(4, 5), Interval(8, 9), Interval(9, 40)};
+    p1.initialize(d1);
+    EXPECT_EQ(p1.is_subpath(p), false);
+    EXPECT_EQ(p.is_subpath(p1), false);
+
+    d1 = {Interval(4, 5), Interval(6, 6), Interval(9, 20)};
+    p1.initialize(d1);
+    EXPECT_EQ(p1.is_subpath(p), true);
+    EXPECT_EQ(p.is_subpath(p1), false);
+
+    d1 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 41)};
+    p1.initialize(d1);
+    EXPECT_EQ(p1.is_subpath(p), false);
+
+}
+
 TEST(PathTest, less_than) {
     deque<Interval> d, d1;
     d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
@@ -266,4 +299,45 @@ TEST(PathTest, read) {
 
     out >> q;
     EXPECT_EQ(p, q);
+}
+
+TEST(PathTest, get_union)
+{
+    deque<Interval> d1, d2, d;
+    d1 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
+    d2 = {Interval(10, 40), Interval(50, 55)};
+    d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40), Interval(50, 55)};
+    Path p1, p2, q;
+    p1.initialize(d1);
+    p2.initialize(d2);
+    q.initialize(d);
+
+    cout << "get union" << endl;
+    EXPECT_EQ(q, get_union(p1, p2));
+
+    d2 = {Interval(10, 40)};
+    d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
+    p2.initialize(d2);
+    q.initialize(d);
+    cout << "get union" << endl;
+    EXPECT_EQ(q, get_union(p1, p2));
+
+    // branching
+    d2 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(50, 60)};
+    p2.initialize(d2);
+    q.path.clear();
+    cout << "get union" << endl;
+    EXPECT_EQ(q, get_union(p1, p2));
+
+    // non-overlapping
+    d2 = {Interval(50, 60)};
+    p2.initialize(d2);
+    cout << "get union" << endl;
+    EXPECT_EQ(q, get_union(p1, p2));
+
+    // wrong way round
+    d2 = {Interval(0, 0)};
+    p2.initialize(d2);
+    cout << "get union" << endl;
+    EXPECT_DEATH(get_union(p1, p2),"");
 }

@@ -120,6 +120,40 @@ bool Path::is_branching(const Path &y) const // returns true if the two paths br
     return false;
 }
 
+bool Path::is_subpath(const Path& big_path) const
+{
+    if (big_path.length() < length()
+        or big_path.start > start
+        or big_path.end < end
+        or is_branching(big_path))
+    {
+        //cout << "fell at first hurdle " << (big_path.length() < length());
+        //cout << (big_path.start > start) << (big_path.end < end);
+        //cout << (is_branching(big_path)) << endl;
+        return false;
+    }
+
+    uint offset = 0;
+    for (auto big_i : big_path.path)
+    {
+        if (big_i.end >= start)
+        {
+            offset += start - big_i.start;
+            if (offset + length() > big_path.length())
+            {
+                return false;
+            } else if (big_path.subpath(offset, length()) == *this)
+            {
+                return true;
+            }
+            break;
+        }
+        offset += big_i.length;
+    }
+
+    return false;
+}
+
 bool Path::operator<(const Path &y) const {
     std::deque<Interval>::const_iterator it2 = y.path.begin();
     std::deque<Interval>::const_iterator it = path.begin();
@@ -203,4 +237,48 @@ std::istream &operator>>(std::istream &in, Path &p) {
     in.ignore(1, '{');
     p.initialize(d);
     return in;
+}
+
+Path get_union(const Path&x, const Path&y)
+{
+    std::deque<Interval>::const_iterator xit=x.path.begin();
+    std::deque<Interval>::const_iterator yit=y.path.begin();
+
+    Path p;
+    assert (x < y);
+
+    if (x.end < y.start or x.is_branching(y))
+    {
+        return p;
+    } else if (x.path.size() == 0)
+    {
+        return y;
+    }
+
+    while (xit != x.path.end() and yit != y.path.end() and xit->end < yit->start)
+    {
+        if (p.path.size() == 0)
+        {
+            p.initialize({*xit});
+        } else {
+            p.add_end_interval(*xit);
+        }
+        xit++;
+    }
+    if (xit != x.path.end() and yit != y.path.end() and xit->start <= yit->end)
+    {
+        // then we have overlap
+        if (p.path.size() == 0)
+        {
+            p.initialize({Interval(xit->start, max(yit->end, xit->end))});
+        } else {
+            p.add_end_interval(Interval(xit->start, max(yit->end, xit->end)));
+        }
+        while (yit != --y.path.end())
+        {
+            yit++;
+            p.add_end_interval(*yit);
+        }
+    }
+    return p;
 }

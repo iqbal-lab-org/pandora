@@ -24,7 +24,9 @@ public:
 
     Path subpath(const uint32_t, const uint32_t) const;
 
-    bool is_branching(const Path &y) const;
+    bool is_branching(const Path &) const;
+
+    bool is_subpath(const Path &) const;
 
     bool operator<(const Path &y) const;
 
@@ -35,6 +37,8 @@ public:
     friend std::ostream &operator<<(std::ostream &out, const Path &p);
 
     friend std::istream &operator>>(std::istream &in, Path &p);
+
+    friend Path get_union(const Path&, const Path&);
 
     friend bool equal_except_null_nodes(const Path &, const Path &);
 };
