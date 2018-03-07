@@ -1078,7 +1078,7 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph& kg,
         if (pos_from <= added + k and added < pos_to){
             auto it = kg.nodes.find(n->id);
             if (it != kg.nodes.end()){
-                cout << "id " << n->id << " " << *kg.nodes.at(n->id) << endl;
+                //cout << "id " << n->id << " " << *kg.nodes.at(n->id) << endl;
                 fwd_covgs.push_back(kg.nodes.at(n->id)->covg[0]);
                 rev_covgs.push_back(kg.nodes.at(n->id)->covg[1]);
             }
@@ -1129,11 +1129,11 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
     vector<LocalNodePtr> alt_path;
 
     vector<KmerNodePtr> ref_kmer_path = kmernode_path_from_localnode_path(ref_path);
-    cout << "ref kmers: ";
+    /*cout << "ref kmers: ";
     for (auto n : ref_kmer_path){
         cout << n->id << " ";
     }
-    cout << endl;
+    cout << endl;*/
 
     vector<KmerNodePtr> alt_kmer_path;
 
@@ -1144,13 +1144,12 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
 
     for (auto &record : vcf.records)
     {
-        cout << record << endl;
+        //cout << record << endl;
         // find corresponding ref kmers
         auto end_pos = record.pos+record.ref.length();
         if (record.ref == ".")
             end_pos = record.pos;
 
-        cout << "find ref covgs" << endl;
         append_kmer_covgs_in_range(kg,
                                    ref_kmer_path,
                                    record.pos,
@@ -1172,7 +1171,6 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         }
 
         // find alt covgs
-        cout << "find alt covgs" << endl;
         end_pos = record.pos+record.alt.length();
         if (record.alt == ".")
             end_pos = record.pos;
@@ -1184,7 +1182,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
                                    alt_fwd_covgs,
                                    alt_rev_covgs);
 
-        cout << "ref_fwd_covgs = {";
+        /*cout << "ref_fwd_covgs = {";
         for (auto t : ref_fwd_covgs){
             cout << t << " ";
         }
@@ -1200,7 +1198,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         for (auto t : alt_rev_covgs){
             cout << t << " ";
         }
-        cout << "}" << endl;
+        cout << "}" << endl;*/
 
         string covg_info = ":" + to_string(mean(ref_fwd_covgs)) + "," + to_string(mean(ref_rev_covgs))
                            + "," + to_string(mean(alt_fwd_covgs)) + "," + to_string(mean(alt_rev_covgs))
@@ -1209,11 +1207,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
                            + "," + to_string(sum(ref_fwd_covgs)) + "," + to_string(sum(ref_rev_covgs))
                            + "," + to_string(sum(alt_fwd_covgs)) + "," + to_string(sum(alt_rev_covgs));
 
-        cout << "sample index: " << sample_index << endl;
-        cout << "covg_info: " << covg_info << endl;
-        cout << record.samples[sample_index] << endl;
         record.samples[sample_index] = record.samples[sample_index].at(0) + covg_info;
-        cout << record.samples[sample_index] << endl;
         record.format = "GT:REF_MEAN_FWD_COV,REF_MEAN_REV_COVG,ALT_MEAN_FWD_COV,ALT_MEAN_REV_COVG,"
                 "REF_MED_FWD_COVG,REF_MED_REV_COVG,ALT_MED_FWD_COVG,ALT_MED_REV_COVG,"
                 "REF_SUM_FWD_CVG,REF_REV_COVG,ALT_SUM_FWD_CVG,ALT_REV_COVG";
