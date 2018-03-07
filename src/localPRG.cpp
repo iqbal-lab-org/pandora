@@ -983,10 +983,10 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
 
 // Find the path through the PRG which deviates at pos from the ref path with alt sequence
 vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_path,
-                                             const uint8_t pos,
+                                             const uint32_t pos,
                                              const string &ref,
                                              const string &alt) const {
-    cout << now() << "Find alt path for variant " << (uint) pos << " " << ref << " " << alt << endl;
+    cout << now() << "Find alt path for variant " << pos << " " << ref << " " << alt << endl;
     vector<LocalNodePtr> alt_path, considered_path;
     deque<vector<LocalNodePtr>> paths_in_progress;
     uint32_t ref_added = 0, pos_along_ref_path = 0;
@@ -1007,7 +1007,7 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
             break;
         }
     }
-    //cout << "pos " << (uint) pos << " pos_along_ref_path " << pos_along_ref_path << " ref_path.size() " << ref_path.size() << endl;
+    //cout << "pos " << pos << " pos_along_ref_path " << pos_along_ref_path << " ref_path.size() " << ref_path.size() << endl;
 
     // find the localnodeptr we want to make our way back to
     while (pos_along_ref_path < ref_path.size() - 1

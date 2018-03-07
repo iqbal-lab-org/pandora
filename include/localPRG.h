@@ -84,7 +84,7 @@ public:
                               const std::string &sample_name = "sample") const;
 
     std::vector<LocalNodePtr> find_alt_path(const std::vector<LocalNodePtr> &,
-                                            const uint8_t,
+                                            const uint32_t,
                                             const std::string &,
                                             const std::string &) const;
 
