@@ -991,10 +991,17 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
                                         const string& ref,
                                         const string& alt) const
 {
-    cout << now() << "Find alt path for variant " << pos << " " << ref << " " << alt << endl;
+    cout << now() << "Find alt path for variant " << (uint) pos << " " << ref << " " << alt << endl;
     vector<LocalNodePtr> alt_path, considered_path;
     deque<vector<LocalNodePtr>> paths_in_progress;
     uint32_t ref_added = 0, pos_along_ref_path=0;
+
+    string working_alt = alt;
+    if (alt == ".")
+        working_alt = "";
+    string working_ref = ref;
+    if (ref == ".")
+        working_ref = "";
 
     for (auto n : ref_path) {
         if (ref_added < pos) {
@@ -1005,13 +1012,16 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
             break;
         }
     }
+    //cout << "pos " << pos << " pos_along_ref_path " << pos_along_ref_path << endl;
 
     // find the localnodeptr we want to make our way back to
-    while (ref_added < pos + ref.length() or ref_path[pos_along_ref_path]->pos.length == 0) {
+    while (pos_along_ref_path<ref_path.size()
+           and (ref_added < pos + working_ref.length() or ref_path[pos_along_ref_path]->pos.length == 0)) {
         ref_added += ref_path[pos_along_ref_path]->pos.length;
         pos_along_ref_path++;
     }
     auto ref_node_to_find = ref_path[pos_along_ref_path];
+    //cout << "trying to find " << *ref_node_to_find;
 
     // find an alt path with the required sequence
     for (auto m : alt_path.back()->outNodes) {
@@ -1021,9 +1031,16 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
         considered_path = paths_in_progress.front();
         paths_in_progress.pop_front();
 
-        auto considered_seq = string_along_path(considered_path);
+        /*cout << "consider path ";
+        for (const auto t : considered_path){
+            cout << t->pos << " ";
+        }
+        cout << endl;*/
 
-        if (considered_seq == alt) {
+        auto considered_seq = string_along_path(considered_path);
+        //cout << "considered_seq " << considered_seq;
+
+        if (considered_seq == working_alt) {
             // check if merge with ref path
             if (find(considered_path.back()->outNodes.begin(), considered_path.back()->outNodes.end(), ref_node_to_find)
                 != considered_path.back()->outNodes.end()) {
@@ -1036,8 +1053,8 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
                     paths_in_progress.back().push_back(m);
                 }
             }
-        } else if (considered_seq.length() <= alt.length()
-                   and considered_seq == alt.substr(0, considered_seq.length())) {
+        } else if (considered_seq.length() <= working_alt.length()
+                   and considered_seq == working_alt.substr(0, considered_seq.length())) {
             for (auto m : considered_path.back()->outNodes) {
                 paths_in_progress.push_back(considered_path);
                 paths_in_progress.back().push_back(m);

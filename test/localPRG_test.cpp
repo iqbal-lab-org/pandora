@@ -754,6 +754,7 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path)
     KmerHash hash;
 
     l3.minimizer_sketch(idx, 2, 3);
+    l3.kmer_prg.sort_topologically();
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
 
     vector<KmerNodePtr> kmp = l3.kmernode_path_from_localnode_path(lmp);
@@ -765,6 +766,7 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path)
 
     idx->clear();
     l4.minimizer_sketch(idx, 3, 3);
+    l4.kmer_prg.sort_topologically();
     lmp = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6]};
 
     kmp = l4.kmernode_path_from_localnode_path(lmp);
@@ -1165,7 +1167,7 @@ TEST(LocalPRGTest, moreupdateVCF)
 
 TEST(LocalPRGTest, find_alt_path)
 {
-    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT 9 T 10  9 ATG");
 
     vector<LocalNodePtr> top = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
     vector<LocalNodePtr> middle = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
@@ -1187,6 +1189,15 @@ TEST(LocalPRGTest, find_alt_path)
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, middle, alt_path);
 
     alt_path = l3.find_alt_path(bottom, 1, "G", "GC");
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, top, alt_path);
+
+    // and now for the one where the alt or ref is "."
+    top = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+    bottom = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6], l3.prg.nodes[8], l3.prg.nodes[9]};
+    alt_path = l3.find_alt_path(top, 6, "T", ".");
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, bottom, alt_path);
+
+    alt_path = l3.find_alt_path(bottom, 6, ".", "T");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, top, alt_path);
 }
 
