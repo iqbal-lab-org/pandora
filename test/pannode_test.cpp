@@ -13,78 +13,79 @@
 
 using namespace pangenome;
 
-TEST(PangenomeNodeTest,create){
+TEST(PangenomeNodeTest, create) {
 
     Node pn(4, 3, "3");
-    uint32_t j=3;
+    uint32_t j = 3;
     EXPECT_EQ(j, pn.node_id);
-    EXPECT_EQ((uint)4, pn.prg_id);
+    EXPECT_EQ((uint) 4, pn.prg_id);
     EXPECT_EQ("3", pn.name);
-    EXPECT_EQ((uint)1, pn.covg);
-    EXPECT_EQ((uint)0, pn.reads.size());
-    EXPECT_EQ((uint)0, pn.samples.size());
+    EXPECT_EQ((uint) 1, pn.covg);
+    EXPECT_EQ((uint) 0, pn.reads.size());
+    EXPECT_EQ((uint) 0, pn.samples.size());
 }
 
-TEST(PangenomeNodeTest,get_name){
-    Node pn1(3,3,"3");
-    Node pn2(2,2,"2");
-    Node pn3(2,4,"2");
+TEST(PangenomeNodeTest, get_name) {
+    Node pn1(3, 3, "3");
+    Node pn2(2, 2, "2");
+    Node pn3(2, 4, "2");
 
     EXPECT_EQ(pn1.get_name(), "3");
     EXPECT_EQ(pn2.get_name(), "2");
     EXPECT_EQ(pn3.get_name(), "2.4");
 }
 
-TEST(PangenomeNodeTest,add_path){
-    Node pn1(3,3,"3");
+TEST(PangenomeNodeTest, add_path) {
+    Node pn1(3, 3, "3");
     vector<KmerNodePtr> kmp;
     pn1.add_path(kmp);
 
     KmerGraph kg;
-    deque<Interval> d = {Interval(0,0)};
+    deque<Interval> d = {Interval(0, 0)};
     Path p;
     p.initialize(d);
     kg.add_node(p);
-    d = {Interval(0,1), Interval(4,5), Interval(8, 9)};
+    d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
     p.initialize(d);
     kg.add_node(p);
-    d = {Interval(4,5), Interval(8, 9), Interval(16,16), Interval(23,24)};
+    d = {Interval(4, 5), Interval(8, 9), Interval(16, 16), Interval(23, 24)};
     p.initialize(d);
     kg.add_node(p);
-    d = {Interval(0,1), Interval(4,5), Interval(12, 13)};
+    d = {Interval(0, 1), Interval(4, 5), Interval(12, 13)};
     p.initialize(d);
     kg.add_node(p);
-    d = {Interval(4,5), Interval(12, 13), Interval(16,16), Interval(23,24)};
+    d = {Interval(4, 5), Interval(12, 13), Interval(16, 16), Interval(23, 24)};
     p.initialize(d);
     kg.add_node(p);
-    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
+    d = {Interval(0, 1), Interval(19, 20), Interval(23, 24)};
     p.initialize(d);
     kg.add_node(p);
-    d = {Interval(24,24)};
+    d = {Interval(24, 24)};
     p.initialize(d);
     kg.add_node(p);
-    EXPECT_EQ((uint)7, kg.nodes.size());
-    
+    EXPECT_EQ((uint) 7, kg.nodes.size());
+
     pn1.kmer_prg = kg;
-    EXPECT_EQ((uint)7, pn1.kmer_prg.nodes.size());
+    EXPECT_EQ((uint) 7, pn1.kmer_prg.nodes.size());
     pn1.kmer_prg.sort_topologically();
-    EXPECT_EQ((uint)7, pn1.kmer_prg.sorted_nodes.size());
-    kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[3], pn1.kmer_prg.sorted_nodes[4], pn1.kmer_prg.sorted_nodes[6]};
+    EXPECT_EQ((uint) 7, pn1.kmer_prg.sorted_nodes.size());
+    kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[3], pn1.kmer_prg.sorted_nodes[4],
+           pn1.kmer_prg.sorted_nodes[6]};
     pn1.add_path(kmp);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[0]->covg[0]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[1]->covg[0]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[2]->covg[0]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[3]->covg[0]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[4]->covg[0]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[5]->covg[0]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[6]->covg[0]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[0]->covg[1]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[1]->covg[1]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[2]->covg[1]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[3]->covg[1]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[4]->covg[1]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[5]->covg[1]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[6]->covg[1]);
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[0]->covg[0]);
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[1]->covg[0]);
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[2]->covg[0]);
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[3]->covg[0]);
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[4]->covg[0]);
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[5]->covg[0]);
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[6]->covg[0]);
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[0]->covg[1]);
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[1]->covg[1]);
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[2]->covg[1]);
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[3]->covg[1]);
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[4]->covg[1]);
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[5]->covg[1]);
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[6]->covg[1]);
 }
 /*
 TEST(PangenomeNodeTest,output_samples)
@@ -433,44 +434,44 @@ A-GCT
 }
 */
 
-TEST(PangenomeNodeTest,equals){
-    Node pn1(3,3,"3");
-    Node pn2(2,2,"2");
-    Node pn3(2,2,"2");
+TEST(PangenomeNodeTest, equals) {
+    Node pn1(3, 3, "3");
+    Node pn2(2, 2, "2");
+    Node pn3(2, 2, "2");
 
     EXPECT_EQ(pn1, pn1);
     EXPECT_EQ(pn2, pn2);
     EXPECT_EQ(pn3, pn3);
     EXPECT_EQ(pn2, pn3);
     EXPECT_EQ(pn3, pn2);
-    EXPECT_EQ((pn1==pn2), false);
-    EXPECT_EQ((pn1==pn3), false);
+    EXPECT_EQ((pn1 == pn2), false);
+    EXPECT_EQ((pn1 == pn3), false);
 }
 
-TEST(PangenomeNodeTest,nequals){
-    Node pn1(3,3,"3");
-    Node pn2(2,2,"2");
-    Node pn3(2,2,"2");
+TEST(PangenomeNodeTest, nequals) {
+    Node pn1(3, 3, "3");
+    Node pn2(2, 2, "2");
+    Node pn3(2, 2, "2");
 
-    EXPECT_EQ((pn1!=pn2), true);
-    EXPECT_EQ((pn2!=pn1), true);
-    EXPECT_EQ((pn1!=pn1), false);
-    EXPECT_EQ((pn2!=pn2), false);
-    EXPECT_EQ((pn3!=pn3), false);
-    EXPECT_EQ((pn2!=pn3), false);
+    EXPECT_EQ((pn1 != pn2), true);
+    EXPECT_EQ((pn2 != pn1), true);
+    EXPECT_EQ((pn1 != pn1), false);
+    EXPECT_EQ((pn2 != pn2), false);
+    EXPECT_EQ((pn3 != pn3), false);
+    EXPECT_EQ((pn2 != pn3), false);
 }
 
-TEST(PangenomeNodeTest,less){
-    Node pn1(3,3,"3");
-    Node pn2(2,2,"2");
-    Node pn3(2,2,"2");
+TEST(PangenomeNodeTest, less) {
+    Node pn1(3, 3, "3");
+    Node pn2(2, 2, "2");
+    Node pn3(2, 2, "2");
 
-    EXPECT_EQ((pn1<pn1), false);
-    EXPECT_EQ((pn2<pn2), false);
-    EXPECT_EQ((pn3<pn3), false);
-    EXPECT_EQ((pn1<pn3), false);
-    EXPECT_EQ((pn1<pn2), false);
-    EXPECT_EQ((pn2<pn1), true);
-    EXPECT_EQ((pn3<pn1), true);
+    EXPECT_EQ((pn1 < pn1), false);
+    EXPECT_EQ((pn2 < pn2), false);
+    EXPECT_EQ((pn3 < pn3), false);
+    EXPECT_EQ((pn1 < pn3), false);
+    EXPECT_EQ((pn1 < pn2), false);
+    EXPECT_EQ((pn2 < pn1), true);
+    EXPECT_EQ((pn3 < pn1), true);
 
 }

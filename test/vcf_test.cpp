@@ -8,7 +8,7 @@
 
 using namespace std;
 
-TEST(VCFTest,add_record){
+TEST(VCFTest, add_record) {
 
     VCF vcf;
     uint j = 0;
@@ -43,8 +43,7 @@ TEST(VCFTest,add_record){
     EXPECT_EQ(j, vcf.records.size());
 }
 
-TEST(VCFTest, add_sample_gt)
-{
+TEST(VCFTest, add_sample_gt) {
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
@@ -73,8 +72,7 @@ TEST(VCFTest, add_sample_gt)
     EXPECT_EQ("0", vcf.records[3].samples[0]);
 }
 
-TEST(VCFTest, add_sample_ref_alleles)
-{
+TEST(VCFTest, add_sample_ref_alleles) {
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
@@ -83,36 +81,35 @@ TEST(VCFTest, add_sample_ref_alleles)
     vcf.add_record("chrom2", 30, "C", "A");
 
     vcf.add_sample_ref_alleles("sample", "chrom1", 15, 78);
-    EXPECT_EQ((uint)1, vcf.samples.size());
-    EXPECT_EQ((uint)5, vcf.records.size());
-    EXPECT_EQ((uint)1, vcf.records[0].samples.size());
+    EXPECT_EQ((uint) 1, vcf.samples.size());
+    EXPECT_EQ((uint) 5, vcf.records.size());
+    EXPECT_EQ((uint) 1, vcf.records[0].samples.size());
     EXPECT_EQ(".", vcf.records[0].samples[0]);
-    EXPECT_EQ((uint)1, vcf.records[1].samples.size());
+    EXPECT_EQ((uint) 1, vcf.records[1].samples.size());
     EXPECT_EQ("0", vcf.records[1].samples[0]);
-    EXPECT_EQ((uint)1, vcf.records[2].samples.size());
+    EXPECT_EQ((uint) 1, vcf.records[2].samples.size());
     EXPECT_EQ(".", vcf.records[2].samples[0]);
-    EXPECT_EQ((uint)1, vcf.records[3].samples.size());
+    EXPECT_EQ((uint) 1, vcf.records[3].samples.size());
     EXPECT_EQ(".", vcf.records[3].samples[0]);
-    EXPECT_EQ((uint)1, vcf.records[4].samples.size());
+    EXPECT_EQ((uint) 1, vcf.records[4].samples.size());
     EXPECT_EQ(".", vcf.records[4].samples[0]);
 
     vcf.add_sample_ref_alleles("sample2", "chrom1", 5, 46);
-    EXPECT_EQ((uint)2, vcf.samples.size());
-    EXPECT_EQ((uint)5, vcf.records.size());
-    EXPECT_EQ((uint)2, vcf.records[0].samples.size());
+    EXPECT_EQ((uint) 2, vcf.samples.size());
+    EXPECT_EQ((uint) 5, vcf.records.size());
+    EXPECT_EQ((uint) 2, vcf.records[0].samples.size());
     EXPECT_EQ("0", vcf.records[0].samples[1]);
-    EXPECT_EQ((uint)2, vcf.records[1].samples.size());
+    EXPECT_EQ((uint) 2, vcf.records[1].samples.size());
     EXPECT_EQ(".", vcf.records[1].samples[1]);
-    EXPECT_EQ((uint)2, vcf.records[2].samples.size());
+    EXPECT_EQ((uint) 2, vcf.records[2].samples.size());
     EXPECT_EQ(".", vcf.records[2].samples[1]);
-    EXPECT_EQ((uint)2, vcf.records[3].samples.size());
+    EXPECT_EQ((uint) 2, vcf.records[3].samples.size());
     EXPECT_EQ(".", vcf.records[3].samples[1]);
-    EXPECT_EQ((uint)2, vcf.records[4].samples.size());
+    EXPECT_EQ((uint) 2, vcf.records[4].samples.size());
     EXPECT_EQ(".", vcf.records[4].samples[1]);
 }
 
-TEST(VCFTest, reorder_add_record_and_sample)
-{
+TEST(VCFTest, reorder_add_record_and_sample) {
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
@@ -122,12 +119,12 @@ TEST(VCFTest, reorder_add_record_and_sample)
     vcf.add_sample_gt("sample1", "chrom1", 79, "C", "A");
     vcf.sort_records();
 
-    EXPECT_EQ((uint)2, vcf.samples.size());
-    EXPECT_EQ((uint)4, vcf.records.size());
-    EXPECT_EQ((uint)2, vcf.records[0].samples.size());
-    EXPECT_EQ((uint)2, vcf.records[1].samples.size());
-    EXPECT_EQ((uint)2, vcf.records[2].samples.size());
-    EXPECT_EQ((uint)2, vcf.records[3].samples.size());
+    EXPECT_EQ((uint) 2, vcf.samples.size());
+    EXPECT_EQ((uint) 4, vcf.records.size());
+    EXPECT_EQ((uint) 2, vcf.records[0].samples.size());
+    EXPECT_EQ((uint) 2, vcf.records[1].samples.size());
+    EXPECT_EQ((uint) 2, vcf.records[2].samples.size());
+    EXPECT_EQ((uint) 2, vcf.records[3].samples.size());
     EXPECT_EQ(".", vcf.records[0].samples[0]);
     EXPECT_EQ("1", vcf.records[1].samples[0]);
     EXPECT_EQ("1", vcf.records[2].samples[0]);
@@ -140,7 +137,7 @@ TEST(VCFTest, reorder_add_record_and_sample)
 }
 
 
-TEST(VCFTest,clear){
+TEST(VCFTest, clear) {
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
@@ -154,7 +151,7 @@ TEST(VCFTest,clear){
     EXPECT_EQ(j, vcf.records.size());
 }
 
-TEST(VCFTest,equals){
+TEST(VCFTest, equals) {
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
@@ -177,8 +174,8 @@ TEST(VCFTest,equals){
     vcf2.add_record(vr);
     vcf2.add_record("chrom1", 46, "T", "TA");
     EXPECT_EQ(vcf2, vcf2);
-    EXPECT_EQ((vcf==vcf2), false);
-    EXPECT_EQ((vcf2==vcf), false);
+    EXPECT_EQ((vcf == vcf2), false);
+    EXPECT_EQ((vcf2 == vcf), false);
 
     // different length
     VCF vcf3;
@@ -187,11 +184,11 @@ TEST(VCFTest,equals){
     vcf3.add_record("chrom1", 46, "T", "TA");
     vcf3.add_record("chrom1", 30, "G", "CC");
     EXPECT_EQ(vcf3, vcf3);
-    EXPECT_EQ((vcf==vcf3), false);
-    EXPECT_EQ((vcf3==vcf), false);
+    EXPECT_EQ((vcf == vcf3), false);
+    EXPECT_EQ((vcf3 == vcf), false);
 }
 
-TEST(VCFTest,save){
+TEST(VCFTest, save) {
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
@@ -203,7 +200,7 @@ TEST(VCFTest,save){
     vcf.save("vcf_test.vcf");
 }
 
-TEST(VCFTest,load){
+TEST(VCFTest, load) {
     VCF vcf, vcf1;
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
@@ -221,8 +218,7 @@ TEST(VCFTest,load){
     EXPECT_EQ(vcf == vcf1, true);
 }
 
-TEST(VCFTest, filter)
-{
+TEST(VCFTest, filter) {
     VCF vcf, vcf1, vcf2, vcf3, vcf4;
     vcf.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
     vcf.add_record("chrom1", 46, "T", "TA", "SVTYPE=INDEL;GRAPHTYPE=NESTED");
@@ -244,7 +240,7 @@ TEST(VCFTest, filter)
 
 }
 
-TEST(VCFTest,write_aligned_fasta){
+TEST(VCFTest, write_aligned_fasta) {
     VCF vcf;
     vcf.add_record("chrom1", 1, "A", "G");
     vcf.add_record("chrom1", 3, "T", "TA");
@@ -257,17 +253,17 @@ TEST(VCFTest,write_aligned_fasta){
     vcf.write_aligned_fasta("vcf1.multisample.fa", lmp);
 
     // add just the ref
-    LocalNodePtr ln0(make_shared<LocalNode>("A", Interval(0,1), 1));
+    LocalNodePtr ln0(make_shared<LocalNode>("A", Interval(0, 1), 1));
     lmp.push_back(ln0);
-    LocalNodePtr ln1(make_shared<LocalNode>("A", Interval(5,6), 2));
+    LocalNodePtr ln1(make_shared<LocalNode>("A", Interval(5, 6), 2));
     lmp.push_back(ln1);
-    LocalNodePtr ln4(make_shared<LocalNode>("A",  Interval(7,8), 3));
+    LocalNodePtr ln4(make_shared<LocalNode>("A", Interval(7, 8), 3));
     lmp.push_back(ln4);
-    LocalNodePtr ln2(make_shared<LocalNode>("T", Interval(46,47), 4));
+    LocalNodePtr ln2(make_shared<LocalNode>("T", Interval(46, 47), 4));
     lmp.push_back(ln2);
-    LocalNodePtr ln5(make_shared<LocalNode>("A", Interval(50,51), 5));
+    LocalNodePtr ln5(make_shared<LocalNode>("A", Interval(50, 51), 5));
     lmp.push_back(ln5);
-    LocalNodePtr ln3(make_shared<LocalNode>("C", Interval(79,80), 6));
+    LocalNodePtr ln3(make_shared<LocalNode>("C", Interval(79, 80), 6));
     lmp.push_back(ln3);
     vcf.write_aligned_fasta("vcf2.multisample.fa", lmp);
 
