@@ -20,6 +20,8 @@ class KmerGraph {
     uint32_t next_id;
     uint32_t k;
     float p;
+    float nb_p;
+    float nb_r;
     int thresh;
 public:
     uint32_t num_reads;
@@ -53,11 +55,17 @@ public:
 
     void set_p(const float);
 
+    void set_nb(const float&, const float&);
+
+    float nb_prob(uint);
+
     float prob(uint);
 
     float prob(uint, uint);
 
     float find_max_path(std::vector<KmerNodePtr> &);
+
+    float find_nb_max_path(std::vector<KmerNodePtr> &);
 
     std::vector<std::vector<KmerNodePtr>> find_max_paths(uint);
 
@@ -79,7 +87,7 @@ public:
 
     friend std::ostream &operator<<(std::ostream &out, KmerGraph const &data);
 
-    friend void estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint);
+    friend void estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint, const bool);
 
     friend struct condition;
 

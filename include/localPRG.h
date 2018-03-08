@@ -106,7 +106,8 @@ public:
                                                     const std::string &vcf_ref,
                                                     const bool output_vcf = false,
                                                     const bool output_comparison_paths = false,
-                                                    const bool output_covgs = false) const;
+                                                    const bool output_covgs = false,
+                                                    const bool nbin = false) const;
 
     friend std::ostream &operator<<(std::ostream &out, const LocalPRG &data);
 };

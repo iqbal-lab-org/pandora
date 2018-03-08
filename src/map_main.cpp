@@ -53,6 +53,8 @@ static void show_map_usage() {
               << "\t--output_covgs\tSave a file of covgs for each localPRG present, one number per base of fasta file\n"
               << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is shorter with low error rate\n"
               << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
+              << "\t--nbin\t\t\tUse negative binomial model for kmer coverages\n"
+              << "\t--genome_size\tNUM_BP\tEstimated length of genome, used for coverage estimation\n"
               << std::endl;
 }
 
@@ -70,7 +72,7 @@ int pandora_map(int argc, char *argv[]) {
     float e_rate = 0.11;
     bool output_kg = false, output_vcf = false;
     bool output_comparison_paths = false, illumina = false, clean = false;
-    bool output_covgs = false;
+    bool output_covgs = false, nbin = false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -151,6 +153,15 @@ int pandora_map(int argc, char *argv[]) {
             }
         } else if ((arg == "--clean")) {
             clean = true;
+        } else if ((arg == "--nbin")) {
+            nbin = true;
+        } else if ((arg == "--genome_size")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                genome_size = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--genome_size option requires one argument." << std::endl;
+                return 1;
+            }
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -174,7 +185,8 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\toutput_comparison_paths\t" << output_comparison_paths << endl;
     cout << "\toutput_covgs\t" << output_covgs << endl;
     cout << "\tillumina\t" << illumina << endl;
-    cout << "\tclean\t" << clean << endl << endl;
+    cout << "\tclean\t" << clean << endl;
+    cout << "\tnbin\t" << nbin << endl << endl;
 
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
     Index *idx;
@@ -199,7 +211,7 @@ int pandora_map(int argc, char *argv[]) {
     update_localPRGs_with_hits(pangraph, prgs);
 
     cout << now() << "Estimate parameters for kmer graph model" << endl;
-    estimate_parameters(pangraph, prefix, k, e_rate, covg);
+    estimate_parameters(pangraph, prefix, k, e_rate, covg, nbin);
 
     cout << now() << "Find PRG paths and write to files:" << endl;
     VCFRefs vcf_refs;
@@ -215,7 +227,7 @@ int pandora_map(int argc, char *argv[]) {
             vcf_ref = vcf_refs[prgs[c.second->prg_id]->name];
         }
         prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, vcf_ref, output_vcf,
-                                                       output_comparison_paths, output_covgs);
+                                                       output_comparison_paths, output_covgs, nbin);
         if (output_kg) {
             c.second->kmer_prg.save(prefix + "." + c.second->get_name() + ".kg.gfa", prgs[c.second->prg_id]);
         }

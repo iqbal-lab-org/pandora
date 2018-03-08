@@ -42,9 +42,10 @@ double fit_variance_covg(const vector<uint> &kmer_covg_dist, double &mean, const
     return acc / total;
 }
 
-void fit_negative_binomial(double &mean, double &variance) {
-    float p = 1 - (mean / variance);
-    float r = (mean * (1 - p) / p + variance * (1 - p) * (1 - p) / p) / 2;
+void fit_negative_binomial(double &mean, double &variance, float &p, float &r) {
+    assert (mean > 0 and variance > 0);
+    p = mean / variance;
+    r = (mean * p / (1 - p)+ variance * p * p / (1 - p)) / 2;
     cout << "p: " << p << " and r: " << r << endl;
 }
 
@@ -167,7 +168,7 @@ int find_prob_thresh(vector<uint> &kmer_prob_dist) {
 }
 
 void estimate_parameters(pangenome::Graph *pangraph, const string &prefix, const uint32_t k, float &e_rate,
-                         const uint covg) {
+                         const uint covg, const bool nbin) {
     // ignore trivial case
     if (pangraph->nodes.empty()) {
         return;
@@ -180,6 +181,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &prefix, const
     unsigned long num_reads = 0;
     int thresh;
     float p;
+    float nb_p=0, nb_r=0;
 
     // first we estimate error rate
     cout << now() << "Collect kmer coverage distribution" << endl;
@@ -209,7 +211,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &prefix, const
     handle.close();
 
     // evaluate error rate
-    if (num_reads > 30 and covg > 30) {
+    if (not nbin and num_reads > 30 and covg > 30) {
         mean_covg = find_mean_covg(kmer_covg_dist);
         cout << "found mean kmer covg " << mean_covg << " and mean global covg " << covg
              << " with avg num reads covering node " << num_reads << endl;
@@ -218,11 +220,10 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &prefix, const
             e_rate = -log((float) mean_covg / covg) / k;
             cout << e_rate << endl;
         }
-
-        auto mean = fit_mean_covg(kmer_covg_dist, 7);
-        auto var = fit_variance_covg(kmer_covg_dist, mean, 7);
-        fit_negative_binomial(mean, var);
-
+    } else if (nbin and num_reads > 30 and covg > 2) {
+            auto mean = fit_mean_covg(kmer_covg_dist, covg/10);
+            auto var = fit_variance_covg(kmer_covg_dist, mean, covg/10);
+            fit_negative_binomial(mean, var, nb_p, nb_r);
     } else {
         cout << now() << "Insufficient coverage to update error rate" << endl;
     }
@@ -230,11 +231,18 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &prefix, const
     // find probability threshold
     cout << now() << "Collect kmer probability distribution" << endl;
     for (auto &node : pangraph->nodes) {
-        node.second->kmer_prg.set_p(e_rate);
+        if (not nbin)
+            node.second->kmer_prg.set_p(e_rate);
+        else
+            node.second->kmer_prg.set_nb(nb_p, nb_r);
+
         for (uint i = 1;
              i < node.second->kmer_prg.nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
         {
-            p = node.second->kmer_prg.prob(i);
+            if (not nbin)
+                p = node.second->kmer_prg.prob(i);
+            else
+                p = node.second->kmer_prg.nb_prob(i);
             //cout << i << " " << p << " because has covg " << node.second->kmer_prg.nodes[i]->covg[0] << ", " << node.second->kmer_prg.nodes[i]->covg[1] << endl;
             for (int j = 0; j < 200; ++j) {
                 if ((float) j - 200 <= p and (float) j + 1 - 200 > p) {

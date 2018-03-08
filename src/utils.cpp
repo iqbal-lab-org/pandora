@@ -469,15 +469,18 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
             add_read_hits(s, mh, idx);
             id++;
         }
+
         cout << now() << "Added " << id << " reads" << endl;
-        covg = covg / genome_size;
-        cout << now() << "Estimated coverage: " << covg << endl;
-        //cout << "Number of reads found: " << id << endl;
         pangraph->reserve_num_reads(id);
+
         cout << now() << "Infer gene orders and add to pangenome::Graph" << endl;
         infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, scale_cluster_size,
                                        min_cluster_size, short_read_length);
         cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
+
+        covg = covg / genome_size;
+        cout << now() << "Estimated coverage: " << covg << endl;
+
         mh->clear();
         if (illumina and clean) {
             clean_pangraph_with_debruijn_graph(pangraph, 2, 1, illumina);

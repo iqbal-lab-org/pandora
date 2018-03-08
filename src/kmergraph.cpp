@@ -8,6 +8,7 @@
 #include <cstdlib>     /* srand, rand */
 #include <ctime>       /* time */
 #include <cmath>
+#include <boost/math/distributions/negative_binomial.hpp>
 #include "utils.h"
 #include "kmernode.h"
 #include "kmergraph.h"
@@ -24,6 +25,8 @@ KmerGraph::KmerGraph() {
     shortest_path_length = 0;
     k = 0; // nb the kmer size is determined by the first non-null node added
     p = 1;
+    nb_p = 0.015;
+    nb_r = 2;
     thresh = -25;
 }
 
@@ -34,6 +37,8 @@ KmerGraph::KmerGraph(const KmerGraph &other) {
     shortest_path_length = other.shortest_path_length;
     k = other.k;
     p = other.p;
+    nb_p = other.nb_p;
+    nb_r = other.nb_r;
     thresh = other.thresh;
     KmerNodePtr n;
 
@@ -75,6 +80,8 @@ KmerGraph &KmerGraph::operator=(const KmerGraph &other) {
     shortest_path_length = other.shortest_path_length;
     k = other.k;
     p = other.p;
+    nb_p = other.nb_p;
+    nb_r = other.nb_r;
     thresh = other.thresh;
     KmerNodePtr n;
 
@@ -113,6 +120,8 @@ void KmerGraph::clear() {
     shortest_path_length = 0;
     k = 0;
     p = 1;
+    nb_p = 0.015;
+    nb_r = 2;
     thresh = -25;
 }
 
@@ -256,6 +265,24 @@ void KmerGraph::set_p(const float e_rate) {
     //cout << "using p: " << p << endl;
 }
 
+void KmerGraph::set_nb(const float& nb_prob, const float& nb_fail) {
+    if (nb_prob == 0 and nb_fail == 0)
+        return;
+    cout << "set nb" << endl;
+    assert((nb_p > 0 and nb_p < 1) || assert_msg("nb_p " << nb_p << " was not set in kmergraph"));
+    assert(nb_r > 0 || assert_msg("nb_r was not set in kmergraph"));
+    nb_p += nb_prob;
+    nb_r += nb_fail;
+}
+
+float KmerGraph::nb_prob(uint j) {
+    auto k = nodes[j]->covg[0] + nodes[j]->covg[1];
+    cout << "nb_prob(" << nb_r << "," << nb_p << "," << k << ") = ";
+    float ret = log(pdf(boost::math::negative_binomial(nb_r, nb_p), k));
+    cout << ret << endl;
+    return ret;
+}
+
 float KmerGraph::prob(uint j) {
     assert(num_reads != 0);
     return prob(j, num_reads);
@@ -334,6 +361,74 @@ float KmerGraph::find_max_path(vector<KmerNodePtr> &maxpath) {
                 len[sorted_nodes[j - 1]->id] = 1 + len[sorted_nodes[j - 1]->outNodes[i]->id];
                 prev[sorted_nodes[j - 1]->id] = sorted_nodes[j - 1]->outNodes[i]->id;
                 //cout << sorted_nodes[j-1]->id << " has prob: " << prob(sorted_nodes[j-1]->id) << "  M: " << M[sorted_nodes[j - 1]->id];
+                //cout << " len: " << len[sorted_nodes[j - 1]->id] << " prev: " << prev[sorted_nodes[j - 1]->id] << endl;
+                if (sorted_nodes[j - 1]->outNodes[i]->id != sorted_nodes.back()->id) {
+                    max_mean = M[sorted_nodes[j - 1]->outNodes[i]->id] / len[sorted_nodes[j - 1]->outNodes[i]->id];
+                    max_len = len[sorted_nodes[j - 1]->outNodes[i]->id];
+                    //cout << " and new max_mean: " << max_mean;
+                } else {
+                    max_mean = thresh;
+                }
+                //cout << endl;
+            }
+        }
+        //cout << sorted_nodes[j-1]->id << "  M: " << M[sorted_nodes[j-1]->id] << " len: " << len[sorted_nodes[j-1]->id] << " prev: " << prev[sorted_nodes[j-1]->id] << endl;
+    }
+    // remove the final length added for the null start node
+    len[0] -= 1;
+
+    // extract path
+    uint prev_node = prev[sorted_nodes[0]->id];
+    while (prev_node < sorted_nodes.size() - 1) {
+        //cout << prev_node << "->";
+        maxpath.push_back(nodes[prev_node]);
+        prev_node = prev[prev_node];
+    }
+    //cout << endl;
+    //cout << "len[0]: " << len[0] << " maxpath.size(): " << maxpath.size() << " maxpath.back()->id: " << maxpath.back()->id << endl;
+
+    assert(len[0] > 0 || assert_msg("found no path through kmer prg"));
+    return M[0] / len[0];
+}
+
+float KmerGraph::find_nb_max_path(vector<KmerNodePtr> &maxpath) {
+    // finds a max likelihood path
+    check();
+
+    // also check not all 0 covgs
+    bool not_all_zero = false;
+    for (auto n : nodes) {
+        if (n.second->covg[0] + n.second->covg[1] > 0) {
+            not_all_zero = true;
+            break;
+        }
+    }
+    if (not_all_zero == false) {
+        cout << "ALL ZEROES" << endl;
+    }
+
+    // create vectors to hold the intermediate values
+    vector<float> M(nodes.size(), 0); // max log prob pf paths from pos i to end of graph
+    vector<int> len(nodes.size(), 0); // length of max log path from pos i to end of graph
+    vector<uint> prev(nodes.size(), nodes.size() - 1); // prev node along path
+    float max_mean;
+    int max_len;
+
+    for (uint j = nodes.size() - 1; j != 0; --j) {
+        max_mean = numeric_limits<float>::lowest();
+        max_len = 0; // tie break with longest kmer path
+        //cout << "node " << sorted_nodes[j-1]->id << " has " << sorted_nodes[j-1]->outNodes.size() << " outnodes" << endl;
+        for (uint i = 0; i != sorted_nodes[j - 1]->outNodes.size(); ++i) {
+            if ((sorted_nodes[j - 1]->outNodes[i]->id == sorted_nodes.back()->id and thresh > max_mean + 0.000001) or
+                (M[sorted_nodes[j - 1]->outNodes[i]->id] / len[sorted_nodes[j - 1]->outNodes[i]->id] >
+                 max_mean + 0.000001) or
+                (max_mean - M[sorted_nodes[j - 1]->outNodes[i]->id] / len[sorted_nodes[j - 1]->outNodes[i]->id] <=
+                 0.000001 and
+                 len[sorted_nodes[j - 1]->outNodes[i]->id] > max_len)) {
+                M[sorted_nodes[j - 1]->id] = nb_prob(sorted_nodes[j - 1]->id) + M[sorted_nodes[j - 1]->outNodes[i]->id];
+                len[sorted_nodes[j - 1]->id] = 1 + len[sorted_nodes[j - 1]->outNodes[i]->id];
+                prev[sorted_nodes[j - 1]->id] = sorted_nodes[j - 1]->outNodes[i]->id;
+                //cout << sorted_nodes[j-1]->id << " has nb_prob: " << nb_prob(sorted_nodes[j-1]->id) << "  M: " << M[sorted_nodes[j - 1]->id];
                 //cout << " len: " << len[sorted_nodes[j - 1]->id] << " prev: " << prev[sorted_nodes[j - 1]->id] << endl;
                 if (sorted_nodes[j - 1]->outNodes[i]->id != sorted_nodes.back()->id) {
                     max_mean = M[sorted_nodes[j - 1]->outNodes[i]->id] / len[sorted_nodes[j - 1]->outNodes[i]->id];
