@@ -986,7 +986,7 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
                                              const uint32_t pos,
                                              const string &ref,
                                              const string &alt) const {
-    cout << now() << "Find alt path for variant " << pos << " " << ref << " " << alt << endl;
+    //cout << now() << "Find alt path for variant " << pos << " " << ref << " " << alt << endl;
     vector<LocalNodePtr> alt_path, considered_path;
     deque<vector<LocalNodePtr>> paths_in_progress;
     uint32_t ref_added = 0, pos_along_ref_path = 0;

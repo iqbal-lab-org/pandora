@@ -165,7 +165,7 @@ void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph &dbg,
 void construct_debruijn_graph_from_pangraph(const pangenome::Graph *pg, debruijn::Graph &dbg) {
     dbg.nodes.clear();
     dbg.node_hash.clear();
-    cout << "Removed old nodes" << endl;
+    //cout << "Removed old nodes" << endl;
 
     debruijn::OrientedNodePtr prev, current;
     deque<uint16_t> hashed_ids;
