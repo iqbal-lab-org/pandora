@@ -45,6 +45,7 @@ static void show_map_usage() {
               << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
               << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 500 (bps)\n"
               << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
+              << "\t--genome_size\tNUM_BP\tEstimated length of genome, used for coverage estimation\n"
               << "\t--output_kg\t\t\tSave kmer graphs with fwd and rev coverage annotations for found localPRGs\n"
               << "\t--output_vcf\t\t\tSave a vcf file for each found localPRG\n"
               << "\t--vcf_refs REF_FASTA\t\tA fasta file with an entry for each LocalPRG giving reference sequence for\n"
@@ -54,7 +55,6 @@ static void show_map_usage() {
               << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is shorter with low error rate\n"
               << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
               << "\t--nbin\t\t\tUse negative binomial model for kmer coverages\n"
-              << "\t--genome_size\tNUM_BP\tEstimated length of genome, used for coverage estimation\n"
               << std::endl;
 }
 
@@ -68,7 +68,7 @@ int pandora_map(int argc, char *argv[]) {
     // otherwise, parse the parameters from the command line
     string prgfile, readfile, prefix, vcf_refs_file;
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000; // default parameters
-    int max_diff = 500;
+    int max_diff = 250;
     float e_rate = 0.11;
     bool output_kg = false, output_vcf = false;
     bool output_comparison_paths = false, illumina = false, clean = false;
@@ -131,6 +131,13 @@ int pandora_map(int argc, char *argv[]) {
                 std::cerr << "--error_rate option requires one argument." << std::endl;
                 return 1;
             }
+        } else if ((arg == "--genome_size")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                genome_size = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--genome_size option requires one argument." << std::endl;
+                return 1;
+            }
         } else if ((arg == "--output_kg")) {
             output_kg = true;
         } else if ((arg == "--output_vcf")) {
@@ -155,13 +162,6 @@ int pandora_map(int argc, char *argv[]) {
             clean = true;
         } else if ((arg == "--nbin")) {
             nbin = true;
-        } else if ((arg == "--genome_size")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                genome_size = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--genome_size option requires one argument." << std::endl;
-                return 1;
-            }
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
