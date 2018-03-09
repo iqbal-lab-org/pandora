@@ -1290,6 +1290,7 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
     // sanity check
     if (mode(covgs) == 0 and mean(covgs) < 0.5)
     {
+	cout << now() << "Skip LocalPRG " << name << " as mode and mean along max likelihood path are both 0" << endl;
         kmp.clear();
         return kmp;
     }
