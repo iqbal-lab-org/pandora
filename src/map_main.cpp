@@ -216,6 +216,7 @@ int pandora_map(int argc, char *argv[]) {
     cout << now() << "Find PRG paths and write to files:" << endl;
     VCFRefs vcf_refs;
     string vcf_ref;
+    vector<KmerNodePtr> kmp;
     if (output_vcf and !vcf_refs_file.empty()) {
         vcf_refs.reserve(prgs.size());
         load_vcf_refs_file(vcf_refs_file, vcf_refs);
@@ -226,8 +227,14 @@ int pandora_map(int argc, char *argv[]) {
             and vcf_refs.find(prgs[c.second->prg_id]->name) != vcf_refs.end()) {
             vcf_ref = vcf_refs[prgs[c.second->prg_id]->name];
         }
-        prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, vcf_ref, output_vcf,
+        kmp = prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, vcf_ref, output_vcf,
                                                        output_comparison_paths, output_covgs, nbin);
+        if (kmp.empty())
+        {
+            continue;
+            //could also remove the node from pg
+        }
+
         if (output_kg) {
             c.second->kmer_prg.save(prefix + "." + c.second->get_name() + ".kg.gfa", prgs[c.second->prg_id]);
         }

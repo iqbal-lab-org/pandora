@@ -1113,7 +1113,7 @@ uint32_t mean(const vector<uint32_t> &v) {
     return std::accumulate(v.begin(), v.end(), 0) / v.size();
 }
 
-uint32_t median(vector<uint32_t> &v) {
+uint32_t median(vector<uint32_t> v) {
     if (v.size() == 0)
         return 0;
     std::sort(v.begin(), v.end());
@@ -1125,6 +1125,28 @@ uint32_t median(vector<uint32_t> &v) {
         int n2 = (v.size() - 2) / 2;
         return (v[n1 - 1] + v[n2 - 1]) / 2;
     }
+}
+
+uint32_t mode(vector<uint32_t> v) {
+    std::sort(v.begin(), v.end());
+    uint32_t counter = 1;
+    uint32_t max_count = 1;
+    uint32_t most_common = 0;
+    uint32_t last = 0;
+    for (auto n : v){
+        if (n == last)
+            counter++;
+        else {
+            if (counter > max_count)
+            {
+                max_count = counter;
+                most_common = last;
+            }
+            counter = 1;
+        }
+        last = n;
+    }
+    return most_common;
 }
 
 void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
@@ -1261,7 +1283,16 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
     else
         ppath = pnode->kmer_prg.find_nb_max_path(kmp);
     //cout << "found maxpath" << endl;
+
     lmp = localnode_path_from_kmernode_path(kmp, w);
+    vector<uint> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
+
+    // sanity check
+    if (mode(covgs) == 0 and mean(covgs) < 0.5)
+    {
+        kmp.clear();
+        return kmp;
+    }
 
     write_path_to_fasta(prefix + "." + new_name + ".kmlp.fasta", lmp, ppath);
 
@@ -1306,7 +1337,6 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
         }
     }
     if (output_covgs) {
-        vector<uint> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
         write_covgs_to_file(prefix + "." + new_name + ".kmlp.covgs", covgs);
     }
 
