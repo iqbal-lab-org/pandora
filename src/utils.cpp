@@ -212,7 +212,7 @@ void add_read_hits(Seq *s, MinimizerHits *hits, Index *idx) {
 }
 
 void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, const vector<LocalPRG *> &prgs,
-                     const MinimizerHits *minimizer_hits, const int max_diff, const float &scale_cluster_size,
+                     MinimizerHits *minimizer_hits, const int max_diff, const float &scale_cluster_size,
                      const uint min_cluster_size, const uint short_read_length) {
     cout << now() << "Define clusters of hits from the " << minimizer_hits->hits.size() << " hits" << endl;
 

@@ -48,7 +48,7 @@ public:
                          const string &prg_name);
 
     void add_node(const uint32_t, const std::string &, uint32_t,
-                  const std::set<MinimizerHitPtr, pComp> &); // used by pandora map
+                  std::set<MinimizerHitPtr, pComp> &); // used by pandora map
     void add_node(const uint32_t, const std::string &, const std::string &, const std::vector<KmerNodePtr> &,
                   const LocalPRG *); // used by pandora compare
 
@@ -60,7 +60,7 @@ public:
 
     void remove_low_covg_nodes(const uint &);
 
-    void split_node_by_reads(const unordered_set<ReadPtr> &, vector<uint16_t> &, const vector<bool> &, const uint16_t);
+    void split_node_by_reads(unordered_set<ReadPtr> &, vector<uint16_t> &, const vector<bool> &, const uint16_t);
 
     //unordered_set<ReadPtr> find_reads_on_node_path(const std::vector<uint16_t>, const std::vector<bool> );
     void add_hits_to_kmergraphs(const std::vector<LocalPRG *> &);

@@ -61,7 +61,7 @@ void load_vcf_refs_file(const std::string &, VCFRefs &);
 void add_read_hits(Seq *, MinimizerHits *, Index *);
 
 void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &, const std::vector<LocalPRG *> &,
-                     const MinimizerHits *, const int, const float &, const uint, const uint);
+                     MinimizerHits *, const int, const float &, const uint, const uint);
 
 void filter_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &);
 

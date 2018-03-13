@@ -111,7 +111,7 @@ void record_read_info(ReadPtr &read_ptr,
 void Graph::add_node(const uint32_t prg_id,
                      const string &prg_name,
                      const uint32_t read_id,
-                     const set<MinimizerHitPtr, pComp> &cluster) {
+                     set<MinimizerHitPtr, pComp> &cluster) {
     check_correct_hits(prg_id, read_id, cluster);
     auto read_ptr = get_read(read_id);
 
@@ -228,7 +228,7 @@ void Graph::remove_low_covg_nodes(const uint &thresh) {
 
 // Create a copy of the node with node_id and replace the old copy with
 // the new one in each of the reads in reads_along_tig (by looking for the context of node_id)
-void Graph::split_node_by_reads(const unordered_set<ReadPtr> &reads_along_tig, vector<uint16_t> &node_ids,
+void Graph::split_node_by_reads(unordered_set<ReadPtr> &reads_along_tig, vector<uint16_t> &node_ids,
                                 const vector<bool> &node_orients, const uint16_t node_id) {
     if (reads_along_tig.empty()) {
         return;
