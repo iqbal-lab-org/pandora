@@ -714,7 +714,9 @@ void KmerGraph::load(const string &filepath) {
                     from = stoi(split_line[3]);
                     to = stoi(split_line[1]);
                 }
-                add_edge(from, to);
+                assert(nodes.find(from) != nodes.end());
+                assert(nodes.find(to) != nodes.end());
+                add_edge(nodes[from], nodes[to]);
                 //nodes[from]->outNodes.push_back(nodes.at(to));
                 //nodes[to]->inNodes.push_back(nodes.at(from));
             }

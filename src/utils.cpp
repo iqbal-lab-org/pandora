@@ -385,7 +385,7 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
     // to do this consider pairs of clusters in turn
     auto c_previous = clusters_of_hits.begin();
     pangraph->add_node((*(*c_previous).begin())->prg_id, prgs[(*(*c_previous).begin())->prg_id]->name,
-                       (*(*c_previous).begin())->read_id, (*c_previous));
+                       (*(*c_previous).begin())->read_id, *c_previous);
     //cout << "nodes on read " << (*(*c_previous).begin())->read_id << " : "
     //     << prgs[(*(*c_previous).begin())->prg_id]->name;
     for (auto c_current = ++clusters_of_hits.begin();
