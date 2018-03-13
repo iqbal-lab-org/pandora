@@ -78,6 +78,9 @@ bool pEq::operator()(const MinimizerHitPtr &lhs, const MinimizerHitPtr &rhs) con
 }*/
 
 bool pComp_path::operator()(const MinimizerHitPtr &lhs, const MinimizerHitPtr &rhs) {
+    // should be same id
+    if (lhs->prg_id < rhs->prg_id) { return true; }
+    if (rhs->prg_id < lhs->prg_id) { return false; }
     //want those that match against the same prg_path together
     if (lhs->prg_path < rhs->prg_path) { return true; }
     if (rhs->prg_path < lhs->prg_path) { return false; }
