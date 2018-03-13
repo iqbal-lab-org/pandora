@@ -361,6 +361,19 @@ void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of
     cout << now() << "Now have " << clusters_of_hits.size() << " clusters of hits " << endl;
 }
 
+void add_clusters_to_pangraph(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, pangenome::Graph *pangraph, const vector<LocalPRG *> &prgs) {
+    cout << now() << "Add inferred order to PanGraph" << endl;
+    if (clusters_of_hits.empty()) { return; }
+
+    // to do this consider pairs of clusters in turn
+    for (auto cluster : clusters_of_hits) {
+        pangraph->add_node((*cluster.begin())->prg_id,
+                           prgs[(*cluster.begin())->prg_id]->name,
+                           (*cluster.begin())->read_id,
+                           cluster);
+    }
+}
+
 void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHits *minimizer_hits,
                                     pangenome::Graph *pangraph,
                                     const int max_diff, const uint &genome_size, const float &scale_cluster_size,
@@ -379,31 +392,8 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
     filter_clusters(clusters_of_hits);
     //filter_clusters2(clusters_of_hits, genome_size);
 
-    // Add inferred order to pangraph
-    cout << now() << "Add inferred order to PanGraph" << endl;
-    if (clusters_of_hits.empty()) { return; }
-    // to do this consider pairs of clusters in turn
-    auto c_previous = clusters_of_hits.begin();
-    pangraph->add_node((*(*c_previous).begin())->prg_id, prgs[(*(*c_previous).begin())->prg_id]->name,
-                       (*(*c_previous).begin())->read_id, *c_previous);
-    //cout << "nodes on read " << (*(*c_previous).begin())->read_id << " : "
-    //     << prgs[(*(*c_previous).begin())->prg_id]->name;
-    for (auto c_current = ++clusters_of_hits.begin();
-         c_current != clusters_of_hits.end(); ++c_current) {
-        if ((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) {
-            pangraph->add_node((*(*c_current).begin())->prg_id, prgs[(*(*c_current).begin())->prg_id]->name,
-                               (*(*c_current).begin())->read_id, *c_current);
-            c_previous = c_current;
-        } else if ((*(*c_current).begin())->read_id != (*(*c_previous).begin())->read_id) {
-            // if we just started looking at hits for a new read, add the first cluster
-            //cout << endl << "nodes on read " << (*(*c_current).begin())->read_id << " : "
-            //     << prgs[(*(*c_current).begin())->prg_id]->name;
-            pangraph->add_node((*(*c_current).begin())->prg_id, prgs[(*(*c_current).begin())->prg_id]->name,
-                               (*(*c_current).begin())->read_id, *c_current);
-            c_previous = c_current;
-        }
-    }
-    cout << endl;
+    add_clusters_to_pangraph(clusters_of_hits, pangraph, prgs);
+
 }
 
 uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenome::Graph *pangraph, Index *idx,
