@@ -42,6 +42,10 @@ KmerGraph::KmerGraph(const KmerGraph &other) {
     thresh = other.thresh;
     KmerNodePtr n;
 
+    // first we need to deallocate for any nodes already got!
+    nodes.clear();
+    nodes.reserve(other.nodes.size());
+
     // create deep copies of the nodes, minus the edges
     for (const auto &node : other.nodes) {
         n = make_shared<KmerNode>(*node.second);
@@ -52,7 +56,7 @@ KmerGraph::KmerGraph(const KmerGraph &other) {
     // now need to copy the edges
     for (auto c : other.nodes) {
         for (uint j = 0; j < c.second->outNodes.size(); ++j) {
-            add_edge(nodes[c.first], nodes[c.second->outNodes[j]->id]);
+            add_edge(nodes.at(c.first), nodes.at(c.second->outNodes[j]->id));
         }
     }
 
@@ -68,9 +72,6 @@ KmerGraph &KmerGraph::operator=(const KmerGraph &other) {
         return *this;
 
     // first we need to deallocate for any nodes already got!
-    /*for (auto c: nodes) {
-        delete c.second;
-    }*/
     nodes.clear();
     nodes.reserve(other.nodes.size());
 
@@ -89,13 +90,12 @@ KmerGraph &KmerGraph::operator=(const KmerGraph &other) {
     for (const auto &node : other.nodes) {
         n = make_shared<KmerNode>(*node.second);
         nodes[node.first] = n;
-        //nodes[node.first] = make_shared<KmerNode>(*node.second);
     }
 
     // now need to copy the edges
     for (auto c : other.nodes) {
         for (uint j = 0; j < c.second->outNodes.size(); ++j) {
-            add_edge(nodes[c.first], nodes[c.second->outNodes[j]->id]);
+            add_edge(nodes.at(c.first), nodes.at(c.second->outNodes[j]->id));
         }
     }
 
@@ -110,9 +110,6 @@ KmerGraph::~KmerGraph() {
 }
 
 void KmerGraph::clear() {
-    /*for (auto c: nodes) {
-        delete c.second;
-    }*/
     nodes.clear();
     assert(nodes.empty());
     next_id = 0;
@@ -635,15 +632,29 @@ void KmerGraph::save(const string &filepath, const LocalPRG *localprg) {
 }
 
 void KmerGraph::load(const string &filepath) {
+
+    clear();
+
     string line;
     vector<string> split_line;
     stringstream ss;
     uint32_t id, covg, from, to;
     Path p;
-    KmerNodePtr n;
+    uint num_nodes = 0;
 
     ifstream myfile(filepath);
     if (myfile.is_open()) {
+
+        while (getline(myfile, line).good()) {
+            if (line[0] == 'S') {
+                num_nodes += 1;
+            }
+        }
+        myfile.clear();
+        myfile.seekg(0, myfile.beg);
+        nodes.reserve(num_nodes);
+        vector<uint16_t> outnode_counts(num_nodes,0), innode_counts(num_nodes,0);
+
         while (getline(myfile, line).good()) {
             if (line[0] == 'S') {
                 split_line = split(line, "\t");
@@ -656,8 +667,10 @@ void KmerGraph::load(const string &filepath) {
                 ss >> p;
                 ss.clear();
                 //add_node(p);
-                n = make_shared<KmerNode>(id, p);
+                KmerNodePtr n = make_shared<KmerNode>(id, p);
                 nodes[id] = n;
+                outnode_counts[id] = 0;
+                innode_counts[id] = 0;
                 //nodes[id] = make_shared<KmerNode>(id, p);
                 next_id++;
                 if (k == 0 and p.length() > 0) {
@@ -671,10 +684,23 @@ void KmerGraph::load(const string &filepath) {
                 if (split_line.size() >= 6) {
                     n->num_AT = stoi(split_line[5]);
                 }
+            } else if (line[0] == 'L') {
+                split_line = split(line, "\t");
+                assert(split_line.size() >= 5);
+                outnode_counts[stoi(split_line[1])] += 1;
+                innode_counts[stoi(split_line[3])] += 1;
             }
         }
+
+        for (auto n : nodes)
+        {
+            n.second->outNodes.reserve(outnode_counts[n.first]);
+            n.second->inNodes.reserve(innode_counts[n.first]);
+        }
+
         myfile.clear();
         myfile.seekg(0, myfile.beg);
+
         while (getline(myfile, line).good()) {
             if (line[0] == 'L') {
                 split_line = split(line, "\t");
@@ -683,12 +709,14 @@ void KmerGraph::load(const string &filepath) {
                     from = stoi(split_line[1]);
                     to = stoi(split_line[3]);
                 } else {
+                    // never happens
+
                     from = stoi(split_line[3]);
                     to = stoi(split_line[1]);
                 }
                 //add_edge(from, to);
-                nodes[from]->outNodes.push_back(nodes[to]);
-                nodes[to]->inNodes.push_back(nodes[from]);
+                nodes[from]->outNodes.push_back(nodes.at(to));
+                nodes[to]->inNodes.push_back(nodes.at(from));
             }
         }
     } else {
