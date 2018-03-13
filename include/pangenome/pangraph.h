@@ -42,7 +42,7 @@ public:
 
     ReadPtr get_read(const uint32_t &read_id);
 
-    NodePtr add_coverage(const ReadPtr &read_ptr,
+    NodePtr add_coverage(ReadPtr &read_ptr,
                          const NodeId &node_id,
                          const uint32_t &prg_id,
                          const string &prg_name);

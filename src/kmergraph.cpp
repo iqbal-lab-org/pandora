@@ -668,9 +668,9 @@ void KmerGraph::load(const string &filepath) {
                 ss.clear();
                 //add_node(p);
                 KmerNodePtr n = make_shared<KmerNode>(id, p);
+                assert(n!= nullptr);
+                assert(nodes.find(id) == nodes.end());
                 nodes[id] = n;
-                outnode_counts[id] = 0;
-                innode_counts[id] = 0;
                 //nodes[id] = make_shared<KmerNode>(id, p);
                 next_id++;
                 if (k == 0 and p.length() > 0) {
@@ -714,9 +714,9 @@ void KmerGraph::load(const string &filepath) {
                     from = stoi(split_line[3]);
                     to = stoi(split_line[1]);
                 }
-                //add_edge(from, to);
-                nodes[from]->outNodes.push_back(nodes.at(to));
-                nodes[to]->inNodes.push_back(nodes.at(from));
+                add_edge(from, to);
+                //nodes[from]->outNodes.push_back(nodes.at(to));
+                //nodes[to]->inNodes.push_back(nodes.at(from));
             }
         }
     } else {

@@ -16,7 +16,7 @@ using namespace pangenome;
 
 Read::Read(const uint32_t i) : id(i) {}
 
-void Read::add_hits(const uint32_t prg_id, const set<MinimizerHitPtr, pComp> &cluster) {
+void Read::add_hits(const uint32_t prg_id, set<MinimizerHitPtr, pComp> &cluster) {
     hits[prg_id].insert(cluster.begin(), cluster.end());
 }
 

@@ -20,7 +20,7 @@ public:
 
     Read(const uint32_t);
 
-    void add_hits(const uint32_t, const std::set<MinimizerHitPtr, pComp> &);
+    void add_hits(const uint32_t, std::set<MinimizerHitPtr, pComp> &);
 
     std::pair<uint, uint>
     find_position(const std::vector<uint16_t> &, const std::vector<bool> &, const uint16_t min_overlap = 1);

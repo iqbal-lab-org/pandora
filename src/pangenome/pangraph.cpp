@@ -52,7 +52,7 @@ ReadPtr Graph::get_read(const uint32_t &read_id) {
 // Finds or creates a node with id node_id
 // increments the coverage (number of times seen in a read)
 // and records read_id as a read containing this node,
-NodePtr Graph::add_coverage(const ReadPtr &read_ptr,
+NodePtr Graph::add_coverage(ReadPtr &read_ptr,
                             const NodeId &node_id,
                             const uint32_t &prg_id,
                             const string &prg_name) {
@@ -61,6 +61,7 @@ NodePtr Graph::add_coverage(const ReadPtr &read_ptr,
     bool found_node = it != nodes.end();
     if (not found_node) {
         node_ptr = make_shared<Node>(prg_id, node_id, prg_name);
+        assert(node_ptr != nullptr);
         nodes[node_id] = node_ptr;
     } else {
         node_ptr = it->second;
