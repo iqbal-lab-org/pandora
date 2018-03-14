@@ -12,6 +12,7 @@
 #include <cassert>
 #include "minihit.h"
 
+
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
@@ -162,7 +163,7 @@ void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph &dbg,
     hashed_node_ids_to_ids_and_orientations(hashed_pg_node_ids, node_ids, node_orients);
 }
 
-void construct_debruijn_graph_from_pangraph(const pangenome::Graph *pg, debruijn::Graph &dbg) {
+void construct_debruijn_graph(const pangenome::Graph *pg, debruijn::Graph &dbg) {
     dbg.nodes.clear();
     dbg.node_hash.clear();
     //cout << "Removed old nodes" << endl;
@@ -462,7 +463,7 @@ void clean_pangraph_with_debruijn_graph(pangenome::Graph *pg, const uint16_t siz
                                         const bool illumina) {
     cout << now() << "Construct de Bruijn Graph from PanGraph with size " << (uint) size << endl;
     debruijn::Graph dbg(size);
-    construct_debruijn_graph_from_pangraph(pg, dbg);
+    construct_debruijn_graph(pg, dbg);
 
     if (not illumina)
         remove_leaves(pg, dbg, threshold);
@@ -471,53 +472,113 @@ void clean_pangraph_with_debruijn_graph(pangenome::Graph *pg, const uint16_t siz
 
     // update dbg now that have removed leaves and some inner nodes
     cout << "Reconstruct dbg" << endl;
-    construct_debruijn_graph_from_pangraph(pg, dbg);
+    construct_debruijn_graph(pg, dbg);
     cout << "Now detangle" << endl;
 
     detangle_pangraph_with_debruijn_graph(pg, dbg);
 }
 
-void write_pangraph_gfa(const string &filepath, const pangenome::Graph *pg) {
-    uint32_t id, other_id;
-    ofstream handle;
-    handle.open(filepath);
-    handle << "H\tVN:Z:1.0" << endl;
-    for (const auto &node : pg->nodes) {
 
-        handle << "S\t" << node.second->get_name() << "\tN\tFC:i:" << node.second->covg << endl;
-    }
-    debruijn::Graph dbg(1);
-    construct_debruijn_graph_from_pangraph(pg, dbg);
-    for (const auto &node : dbg.nodes) {
-        id = (uint16_t) (node.second->hashed_node_ids[0] - 1 * (node.second->hashed_node_ids[0] % 2 == 1)) / 2;
-        assert(pg->nodes.find(id) != pg->nodes.end());
-        for (const auto &other_node : node.second->out_nodes) {
-            assert(dbg.nodes.find(other_node) != dbg.nodes.end()
-                   or assert_msg("Could not find node " << other_node << " in dbg while searching for the "
-                                                        << "outnodes of " << id
-                                                        << ". The corresponding hashed node id was "
-                                                        << node.second->hashed_node_ids[0] << " and this node has "
-                                                        << node.second->out_nodes.size()
-                                                        << " outnodes"));
-            other_id = (uint16_t) (dbg.nodes.at(other_node)->hashed_node_ids[0] -
-                                   1 * (dbg.nodes.at(other_node)->hashed_node_ids[0] % 2 == 1)) / 2;
-            assert(pg->nodes.find(other_id) != pg->nodes.end());
-            handle << "L\t" << pg->nodes.at(id)->get_name() << "\t";
-            if (node.second->hashed_node_ids[0] % 2 == 0) {
-                handle << "+";
-            } else {
-                handle << "-";
-            }
-            handle << "\t" << pg->nodes.at(other_id)->get_name() << "\t";
-            if (dbg.nodes.at(other_node)->hashed_node_ids[0] % 2 == 0) {
-                handle << "+";
-            } else {
-                handle << "-";
-            }
-            handle << "\t0M" << endl;
-            // << "\tRC:i:" << read_intersect << endl;
-            dbg.nodes.at(other_node)->out_nodes.erase(node.second->id);
+enum NodeDirection {
+    forward,
+    reverse
+};
+
+
+NodeDirection get_pangraph_node_direction(const debruijn::Node &debruijn_node) {
+    bool forward_node = debruijn_node.hashed_node_ids[0] % 2 != 0;
+    if (forward_node)
+        return NodeDirection::forward;
+    else
+        return NodeDirection::reverse;
+}
+
+
+uint32_t get_pangraph_node_id(const debruijn::Node &debruijn_node) {
+    auto direction = get_pangraph_node_direction(debruijn_node);
+    if (direction == NodeDirection::forward)
+        return (uint32_t) (debruijn_node.hashed_node_ids[0] - 1) / 2;
+    else
+        return (uint32_t) debruijn_node.hashed_node_ids[0] / 2;
+}
+
+
+namespace gfa {
+    namespace dump {
+        void header(ofstream &gfa_fhandle) {
+            gfa_fhandle << "H\tVN:Z:1.0" << endl;
+        }
+
+
+        void nodes(const pangenome::Graph *const pangraph, ofstream &gfa_fhandle) {
+            for (const auto &node : pangraph->nodes)
+                gfa_fhandle << "S\t" << node.second->get_name() << "\tN\tFC:i:" << node.second->covg << endl;
+        }
+
+        void edge(const pangenome::Node &first_node,
+                  const NodeDirection &first_node_direction,
+                  const pangenome::Node &second_node,
+                  const NodeDirection &second_node_direction,
+                  ofstream &gfa_fhandle) {
+            gfa_fhandle << "L\t" << first_node.get_name() << "\t";
+            if (first_node_direction == NodeDirection::forward)
+                gfa_fhandle << "-";
+            else
+                gfa_fhandle << "+";
+
+            gfa_fhandle << "\t" << second_node.get_name() << "\t";
+            if (second_node_direction == NodeDirection::forward)
+                gfa_fhandle << "-";
+            else
+                gfa_fhandle << "+";
+
+            gfa_fhandle << "\t0M" << endl;
         }
     }
 }
 
+
+pangenome::Node convert_node_debruijn_pangraph(const debruijn::Node &debruijn_node,
+                                               const pangenome::Graph *const pangraph) {
+    auto node_id = get_pangraph_node_id(debruijn_node);
+    assert(pangraph->nodes.find(node_id) != pangraph->nodes.end());
+
+    auto node_ptr = pangraph->nodes.at(node_id);
+    auto node = *node_ptr;
+    return node;
+}
+
+
+void write_pangraph_gfa(const string &filepath, const pangenome::Graph *const pangraph) {
+    ofstream gfa_fhandle;
+    gfa_fhandle.open(filepath);
+    gfa::dump::header(gfa_fhandle);
+    gfa::dump::nodes(pangraph, gfa_fhandle);
+
+    debruijn::Graph debruijn_graph(1);
+    construct_debruijn_graph(pangraph, debruijn_graph);
+
+    for (const auto &debruijn_node_id_entry : debruijn_graph.nodes) {
+        auto first_debruijn_node = *debruijn_node_id_entry.second;
+
+        auto first_node = convert_node_debruijn_pangraph(first_debruijn_node, pangraph);
+        auto first_node_direction = get_pangraph_node_direction(first_debruijn_node);
+
+        for (const auto &second_debruijn_node_id: first_debruijn_node.out_nodes) {
+            assert(debruijn_graph.nodes.find(second_debruijn_node_id) != debruijn_graph.nodes.end());
+            auto &second_debruijn_node = *debruijn_graph.nodes[second_debruijn_node_id];
+
+            auto second_node = convert_node_debruijn_pangraph(second_debruijn_node, pangraph);
+            auto second_node_direction = get_pangraph_node_direction(second_debruijn_node);
+
+            gfa::dump::edge(first_node, first_node_direction,
+                            second_node, second_node_direction,
+                            gfa_fhandle);
+
+            auto erased = second_debruijn_node.out_nodes.erase(first_debruijn_node.id);
+            if (erased)
+                continue;
+            second_debruijn_node.in_nodes.erase(first_debruijn_node.id);
+        }
+    }
+}
