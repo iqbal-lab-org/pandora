@@ -656,7 +656,7 @@ void KmerGraph::load(const string &filepath) {
         myfile.clear();
         myfile.seekg(0, myfile.beg);
         nodes.reserve(num_nodes);
-        vector<uint16_t> outnode_counts(num_nodes,0), innode_counts(num_nodes,0);
+        vector<uint16_t> outnode_counts(num_nodes+1,0), innode_counts(num_nodes+1,0);
 
         while (getline(myfile, line).good()) {
             if (line[0] == 'S') {
@@ -690,6 +690,8 @@ void KmerGraph::load(const string &filepath) {
             } else if (line[0] == 'L') {
                 split_line = split(line, "\t");
                 assert(split_line.size() >= 5);
+                assert(stoi(split_line[1]) < (int) outnode_counts.size() or assert_msg(stoi(split_line[1]) << ">=" << outnode_counts.size()));
+                assert(stoi(split_line[3]) < (int) innode_counts.size() or assert_msg(stoi(split_line[3]) << ">=" << innode_counts.size()));
                 outnode_counts[stoi(split_line[1])] += 1;
                 innode_counts[stoi(split_line[3])] += 1;
             }
@@ -697,8 +699,10 @@ void KmerGraph::load(const string &filepath) {
 
         for (auto n : nodes)
         {
-            n.second->outNodes.reserve(outnode_counts[n.second->id]+2);
-            n.second->inNodes.reserve(innode_counts[n.second->id]+2);
+            assert(n.second->id < outnode_counts.size() or assert_msg(n.second->id << ">=" << outnode_counts.size()));
+            assert(n.second->id < innode_counts.size() or assert_msg(n.second->id << ">=" << innode_counts.size()));
+            n.second->outNodes.reserve(outnode_counts[n.second->id]);
+            n.second->inNodes.reserve(innode_counts[n.second->id]);
         }
 
         myfile.clear();
