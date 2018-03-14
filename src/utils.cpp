@@ -389,11 +389,11 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
     define_clusters(clusters_of_hits, prgs, minimizer_hits, max_diff, scale_cluster_size,
                     min_cluster_size, short_read_length);
 
+    minimizer_hits->clear();
+
     filter_clusters(clusters_of_hits);
     //filter_clusters2(clusters_of_hits, genome_size);
-
     add_clusters_to_pangraph(clusters_of_hits, pangraph, prgs);
-
 }
 
 uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenome::Graph *pangraph, Index *idx,
@@ -471,7 +471,6 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
         covg = covg / genome_size;
         cout << now() << "Estimated coverage: " << covg << endl;
 
-        mh->clear();
         if (illumina and clean) {
             clean_pangraph_with_debruijn_graph(pangraph, 2, 1, illumina);
             cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;

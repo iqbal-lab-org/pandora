@@ -95,6 +95,7 @@ void check_correct_hits(const uint32_t prg_id,
 void record_read_info(ReadPtr &read_ptr,
                       const NodePtr &node_ptr,
                       set<MinimizerHitPtr, pComp> &cluster) {
+    assert(read_ptr != nullptr);
     read_ptr->add_hits(node_ptr->node_id, cluster);
     bool orientation = !cluster.empty() and (*cluster.begin())->strand;
     if (read_ptr->nodes.empty()

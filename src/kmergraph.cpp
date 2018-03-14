@@ -43,7 +43,7 @@ KmerGraph::KmerGraph(const KmerGraph &other) {
     KmerNodePtr n;
 
     // first we need to deallocate for any nodes already got!
-    nodes.clear();
+    clear();
     nodes.reserve(other.nodes.size());
 
     // create deep copies of the nodes, minus the edges
@@ -72,7 +72,7 @@ KmerGraph &KmerGraph::operator=(const KmerGraph &other) {
         return *this;
 
     // first we need to deallocate for any nodes already got!
-    nodes.clear();
+    clear();
     nodes.reserve(other.nodes.size());
 
     // shallow copy no pointers
@@ -89,6 +89,7 @@ KmerGraph &KmerGraph::operator=(const KmerGraph &other) {
     // deep copy the vector of node pointers, excluding edges
     for (const auto &node : other.nodes) {
         n = make_shared<KmerNode>(*node.second);
+        assert(nodes.find(node.first) == nodes.end());
         nodes[node.first] = n;
     }
 
@@ -112,6 +113,10 @@ KmerGraph::~KmerGraph() {
 void KmerGraph::clear() {
     nodes.clear();
     assert(nodes.empty());
+
+    sorted_nodes.clear();
+    assert(sorted_nodes.empty());
+
     next_id = 0;
     num_reads = 0;
     shortest_path_length = 0;
@@ -169,9 +174,9 @@ void KmerGraph::add_edge(const Path &from, const Path &to) {
     assert(from_it != nodes.end() && to_it != nodes.end());
 
     if (find(from_it->second->outNodes.begin(), from_it->second->outNodes.end(), to_it->second) ==
-        from_it->second->outNodes.end()) {
-        from_it->second->outNodes.push_back(to_it->second);
-        to_it->second->inNodes.push_back(from_it->second);
+            from_it->second->outNodes.end()) {
+        from_it->second->outNodes.emplace_back(to_it->second);
+        to_it->second->inNodes.emplace_back(from_it->second);
         //cout << "added edge from " << (*from_it)->id << " to " << (*to_it)->id << endl;
     }
 }
@@ -180,8 +185,8 @@ void KmerGraph::add_edge(KmerNodePtr from, KmerNodePtr to) {
     assert(from->path < to->path || assert_msg(from->id << " is not less than " << to->id));
 
     if (find(from->outNodes.begin(), from->outNodes.end(), to) == from->outNodes.end()) {
-        from->outNodes.push_back(to);
-        to->inNodes.push_back(from);
+        from->outNodes.emplace_back(to);
+        to->inNodes.emplace_back(from);
         //cout << "added edge from " << from->id << " to " << to->id << endl;
     }
 }

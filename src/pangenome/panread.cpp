@@ -17,7 +17,12 @@ using namespace pangenome;
 Read::Read(const uint32_t i) : id(i) {}
 
 void Read::add_hits(const uint32_t prg_id, set<MinimizerHitPtr, pComp> &cluster) {
+    if (hits.find(prg_id) == hits.end())
+        hits[prg_id] = {};
+
+    auto before_size = hits[prg_id].size();
     hits[prg_id].insert(cluster.begin(), cluster.end());
+    assert(hits[prg_id].size() == before_size + cluster.size());
 }
 
 // find the index i in the nodes and node_orientations vectors such that [i,i+v.size()]
