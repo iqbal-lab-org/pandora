@@ -647,7 +647,10 @@ void KmerGraph::load(const string &filepath) {
 
         while (getline(myfile, line).good()) {
             if (line[0] == 'S') {
-                num_nodes += 1;
+                split_line = split(line, "\t");
+                assert(split_line.size() >= 4);
+                id = stoi(split_line[1]);
+                num_nodes = max(num_nodes,id);
             }
         }
         myfile.clear();
@@ -694,8 +697,8 @@ void KmerGraph::load(const string &filepath) {
 
         for (auto n : nodes)
         {
-            n.second->outNodes.reserve(outnode_counts[n.first]);
-            n.second->inNodes.reserve(innode_counts[n.first]);
+            n.second->outNodes.reserve(outnode_counts[n.second->id]+2);
+            n.second->inNodes.reserve(innode_counts[n.second->id]+2);
         }
 
         myfile.clear();
@@ -710,7 +713,6 @@ void KmerGraph::load(const string &filepath) {
                     to = stoi(split_line[3]);
                 } else {
                     // never happens
-
                     from = stoi(split_line[3]);
                     to = stoi(split_line[1]);
                 }

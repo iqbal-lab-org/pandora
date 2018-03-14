@@ -41,6 +41,7 @@ ReadPtr Graph::get_read(const uint32_t &read_id) {
     bool found = it != reads.end();
     if (not found) {
         auto read_ptr = make_shared<Read>(read_id);
+        assert(read_ptr != nullptr);
         reads[read_id] = read_ptr;
         return read_ptr;
     }
@@ -114,10 +115,12 @@ void Graph::add_node(const uint32_t prg_id,
                      set<MinimizerHitPtr, pComp> &cluster) {
     check_correct_hits(prg_id, read_id, cluster);
     auto read_ptr = get_read(read_id);
+    assert(read_ptr != nullptr);
 
     // add new node if it doesn't exist
     const auto &node_id = prg_id;
     auto node_ptr = add_coverage(read_ptr, node_id, prg_id, prg_name);
+    assert(node_ptr != nullptr);
 
     record_read_info(read_ptr, node_ptr, cluster);
 }

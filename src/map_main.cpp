@@ -168,6 +168,7 @@ int pandora_map(int argc, char *argv[]) {
     }
 
     assert(w <= k);
+    assert(not prgfile.empty());
 
     //then run the programme...
     cout << "START: " << now() << endl;

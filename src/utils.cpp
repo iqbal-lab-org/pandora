@@ -152,9 +152,9 @@ void load_PRG_kmergraphs(vector<LocalPRG *> &prgs, const uint &w, const uint &k,
         prefix += "/";
     }
     //cout << "prefix for kmerprgs dir is " << prefix << endl; 
-    for (uint i = 0; i != prgs.size(); ++i) {
-        prgs[i]->kmer_prg.load(
-                prefix + "kmer_prgs/" + prgs[i]->name + ".k" + to_string(k) + ".w" + to_string(w) + ".gfa");
+    for (auto prg : prgs) {
+        prg->kmer_prg.load(
+                prefix + "kmer_prgs/" + prg->name + ".k" + to_string(k) + ".w" + to_string(w) + ".gfa");
     }
 }
 
