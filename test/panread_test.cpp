@@ -49,7 +49,7 @@ TEST(ReadAddHits, AddOneEmptyClusterToHits_ReadHitsMapContainsCorrectPrgId) {
 }
 
 
-TEST(ReadAddHits, AddClusterSecondTime_ReadHitsNotChanged) {
+TEST(ReadAddHits, AddClusterSecondTime_DeathAndReadHitsNotChanged) {
     uint32_t read_id = 1;
     Read read(read_id);
     set<MinimizerHitPtr, pComp> cluster;
@@ -63,8 +63,7 @@ TEST(ReadAddHits, AddClusterSecondTime_ReadHitsNotChanged) {
 
     cluster.insert(minimizer_hit);
     read.add_hits(prg_id, cluster);
-    read.add_hits(prg_id, cluster);
-
+    EXPECT_DEATH(read.add_hits(prg_id, cluster), "");
     EXPECT_EQ((uint) 1, read.hits[prg_id].size());
 }
 

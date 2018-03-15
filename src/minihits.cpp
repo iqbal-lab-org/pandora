@@ -38,10 +38,7 @@ MinimizerHits::~MinimizerHits() {
 
 void MinimizerHits::add_hit(const uint32_t i, const Minimizer *m, const MiniRecord *r) {
     MinimizerHitPtr mh(make_shared<MinimizerHit>(i, m, r));
-    for (const auto hit : uhits)
-        assert(*hit < *mh or *mh < *hit or assert_msg( *mh << "==" << *hit));
     uhits.insert(mh);
-    //uhits.insert(make_shared<MinimizerHit>(i, m, r));
 }
 
 void MinimizerHits::sort() {
