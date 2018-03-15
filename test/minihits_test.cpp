@@ -16,9 +16,9 @@ TEST(MinimizerHitsTest,add_hit){
     // tests both add_hit and that sort doesn't break. Doesn't test resut of sort
     MinimizerHits mhits;
     KmerHash hash;
-    Minimizer* m;
+    Minimizer m;
     pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
-    m = new Minimizer(min(kh.first,kh.second), 1,6,0);
+    m = Minimizer(min(kh.first,kh.second), 1,6,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
@@ -31,8 +31,7 @@ TEST(MinimizerHitsTest,add_hit){
     mhits.add_hit(2, m, mr);
     EXPECT_EQ((uint)2, mhits.uhits.size());
 
-    delete m;
-    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    m = Minimizer(min(kh.first,kh.second), 0,5,0);
     mhits.add_hit(1, m, mr);
     EXPECT_EQ((uint)3, mhits.uhits.size());
 
@@ -54,7 +53,6 @@ TEST(MinimizerHitsTest,add_hit){
     mhits.sort();
     EXPECT_EQ(j, mhits.hits.size());
 
-    delete m;
     delete mr;
 }
 
@@ -62,9 +60,9 @@ TEST(MinimizerHitsTest, pComp) {
     MinimizerHits mhits;
     vector<MinimizerHit> expected;
     KmerHash hash;
-    Minimizer* m;
+    Minimizer m;
     pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
-    m = new Minimizer(min(kh.first,kh.second), 1,6,0);
+    m = Minimizer(min(kh.first,kh.second), 1,6,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
@@ -75,8 +73,7 @@ TEST(MinimizerHitsTest, pComp) {
     mhits.add_hit(0, m, mr);
     expected.push_back(MinimizerHit(0, m, mr));
 
-    delete m;
-    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    m = Minimizer(min(kh.first,kh.second), 0,5,0);
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
@@ -101,7 +98,6 @@ TEST(MinimizerHitsTest, pComp) {
     }
     EXPECT_EQ(expected[0], **(--mhits.hits.end()));
 
-    delete m;
     delete mr;
 }
 
@@ -110,9 +106,9 @@ TEST(MinimizerHitsTest, pComp_path) {
     MinimizerHits mhits;
     deque<MinimizerHit> expected;
     KmerHash hash;
-    Minimizer* m;
+    Minimizer m;
     pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
-    m = new Minimizer(min(kh.first,kh.second), 1,6,0);
+    m = Minimizer(min(kh.first,kh.second), 1,6,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
@@ -123,8 +119,7 @@ TEST(MinimizerHitsTest, pComp_path) {
     mhits.add_hit(1, m, mr);
     expected.push_back(MinimizerHit(1, m, mr));
 
-    delete m;
-    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    m = Minimizer(min(kh.first,kh.second), 0,5,0);
     mhits.add_hit(2, m, mr);
     expected.push_back(MinimizerHit(2, m, mr));
 
@@ -154,7 +149,6 @@ TEST(MinimizerHitsTest, pComp_path) {
         j++;
     }
 
-    delete m;
     delete mr;
 }
 
@@ -165,9 +159,9 @@ TEST(MinimizerHitsTest, clusterComp){
     vector<MinimizerHitPtr> expected1, expected2;
 
     KmerHash hash;
-    Minimizer* m;
+    Minimizer m;
     pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
-    m = new Minimizer(min(kh.first,kh.second), 1,6,0);
+    m = Minimizer(min(kh.first,kh.second), 1,6,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
@@ -183,8 +177,7 @@ TEST(MinimizerHitsTest, clusterComp){
     clusters_of_hits.insert(current_cluster);
 
     current_cluster.clear();
-    delete m;
-    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    m = Minimizer(min(kh.first,kh.second), 0,5,0);
     mh = make_shared<MinimizerHit>(1, m, mr);
     current_cluster.insert(mh);
     expected2.push_back(mh);
@@ -221,6 +214,5 @@ TEST(MinimizerHitsTest, clusterComp){
         EXPECT_EQ(((*expected2[0] == **it) or (*expected2[1] == **it) or (*expected2[2] == **it)), true);
     }
 
-    delete m;
     delete mr;
 }

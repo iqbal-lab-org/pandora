@@ -197,13 +197,13 @@ void add_read_hits(Seq *s, MinimizerHits *hits, Index *idx) {
     // creates Seq object for the read, then looks up minimizers in the Seq sketch and adds hits to a global MinimizerHits object
     //Seq s(id, name, seq, w, k);
     for (auto it = s->sketch.begin(); it != s->sketch.end(); ++it) {
-        if (idx->minhash.find((*it)->kmer) != idx->minhash.end()) {
-            for (uint j = 0; j != idx->minhash[(*it)->kmer]->size(); ++j) {
-                hits->add_hit(s->id, *it, &(idx->minhash[(*it)->kmer]->operator[](j)));
+        if (idx->minhash.find((*it).kmer) != idx->minhash.end()) {
+            for (uint j = 0; j != idx->minhash[(*it).kmer]->size(); ++j) {
+                hits->add_hit(s->id, *it, &(idx->minhash[(*it).kmer]->operator[](j)));
                 hit_count += 1;
             }
             //} else {
-            //    cout << "did not find minimizer " << (*it)->kmer << " in index" << endl;
+            //    cout << "did not find minimizer " << (*it).kmer << " in index" << endl;
         }
     }
     //hits->sort();

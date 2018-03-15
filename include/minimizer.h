@@ -12,6 +12,7 @@ struct Minimizer {
     Interval pos;
     bool strand;
 
+    Minimizer() {};
     Minimizer(uint64_t, uint32_t, uint32_t, bool);
 
     ~Minimizer();
@@ -21,10 +22,6 @@ struct Minimizer {
     bool operator==(const Minimizer &y) const;
 
     friend std::ostream &operator<<(std::ostream &out, const Minimizer &m);
-};
-
-struct pMiniComp {
-    bool operator()(Minimizer *lhs, Minimizer *rhs);
 };
 
 #endif

@@ -36,7 +36,7 @@ MinimizerHits::~MinimizerHits() {
     clear();
 }
 
-void MinimizerHits::add_hit(const uint32_t i, const Minimizer *m, const MiniRecord *r) {
+void MinimizerHits::add_hit(const uint32_t i, const Minimizer& m, const MiniRecord *r) {
     MinimizerHitPtr mh(make_shared<MinimizerHit>(i, m, r));
     uhits.insert(mh);
 }

@@ -44,8 +44,8 @@ TEST(SeqTest, sketchIncludesEveryLetter) {
     Seq s4(0, "0", "AGCTAATGTGAT", 3, 3);
 
     set<int> pos_inc;
-    for (set<Minimizer *>::iterator it = s4.sketch.begin(); it != s4.sketch.end(); ++it) {
-        for (uint32_t j = (*it)->pos.start; j < (*it)->pos.end; ++j) {
+    for (auto it = s4.sketch.begin(); it != s4.sketch.end(); ++it) {
+        for (uint32_t j = (*it).pos.start; j < (*it).pos.end; ++j) {
             pos_inc.insert(j);
         }
 
@@ -59,8 +59,8 @@ TEST(SeqTest, sketchIncludesEveryLetter) {
     EXPECT_EQ(s3.sketch.size(), j) << "sketch with w=1 has incorrect size " << s3.sketch.size();
 
     pos_inc.clear();
-    for (set<Minimizer *>::iterator it = s2.sketch.begin(); it != s2.sketch.end(); ++it) {
-        for (uint32_t j = (*it)->pos.start; j < (*it)->pos.end; ++j) {
+    for (auto it = s2.sketch.begin(); it != s2.sketch.end(); ++it) {
+        for (uint32_t j = (*it).pos.start; j < (*it).pos.end; ++j) {
             pos_inc.insert(j);
         }
     }
@@ -70,8 +70,8 @@ TEST(SeqTest, sketchIncludesEveryLetter) {
     }
 
     pos_inc.clear();
-    for (set<Minimizer *>::iterator it = s1.sketch.begin(); it != s1.sketch.end(); ++it) {
-        for (uint32_t j = (*it)->pos.start; j < (*it)->pos.end; ++j) {
+    for (auto it = s1.sketch.begin(); it != s1.sketch.end(); ++it) {
+        for (uint32_t j = (*it).pos.start; j < (*it).pos.end; ++j) {
             pos_inc.insert(j);
         }
     }

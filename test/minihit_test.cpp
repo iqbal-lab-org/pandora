@@ -12,10 +12,10 @@
 using namespace std;
 
 TEST(MinimizerHitTest,create){
-    Minimizer* m;
+    Minimizer m;
     KmerHash hash;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
-    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    m = Minimizer(min(kh.first,kh.second), 0,5,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
@@ -32,19 +32,18 @@ TEST(MinimizerHitTest,create){
     EXPECT_EQ(b, mh.strand);
 
     kh = hash.kmerhash("hell", 4);
-    m = new Minimizer(min(kh.first,kh.second),1,5,0);
+    m = Minimizer(min(kh.first,kh.second),1,5,0);
     EXPECT_DEATH(MinimizerHit(1, m, mr), "");
 
-    delete m;
     delete mr;
     //TEST SECOND CONSTRUCTOR!!
 }
 
 TEST(MinimizerHitTest,checkStrand){
-    Minimizer* m;
+    Minimizer m;
     KmerHash hash;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
-    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    m = Minimizer(min(kh.first,kh.second), 0,5,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
@@ -53,36 +52,32 @@ TEST(MinimizerHitTest,checkStrand){
     MinimizerHit mh(1, m, mr);
     EXPECT_EQ(mh.strand, true);
 
-    delete m;
     delete mr;
-    m = new Minimizer(min(kh.first,kh.second), 0,5,1);
+    m = Minimizer(min(kh.first,kh.second), 0,5,1);
     mr = new MiniRecord(0,p,0,1);
     MinimizerHit mh1(1, m, mr);
     EXPECT_EQ(mh1.strand, true);
 
-    delete m;
     delete mr;
-    m = new Minimizer(min(kh.first,kh.second), 0,5,1);
+    m = Minimizer(min(kh.first,kh.second), 0,5,1);
     mr = new MiniRecord(0,p,0,0);
     MinimizerHit mh2(1, m, mr);
     EXPECT_EQ(mh2.strand, false);
- 
-    delete m;
+
     delete mr;
-    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    m = Minimizer(min(kh.first,kh.second), 0,5,0);
     mr = new MiniRecord(0,p,0,1);
     MinimizerHit mh3(1, m, mr);
     EXPECT_EQ(mh3.strand, false);
 
-    delete m;
     delete mr;
 }
 
 TEST(MinimizerHitTest,equals){
-    Minimizer* m;
+    Minimizer m;
     KmerHash hash;
     pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
-    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    m = Minimizer(min(kh.first,kh.second), 0,5,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
@@ -90,8 +85,7 @@ TEST(MinimizerHitTest,equals){
     mr = new MiniRecord(0,p,0,0);
     MinimizerHit mh1(1, m, mr);
 
-    delete m;
-    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    m = Minimizer(min(kh.first,kh.second), 0,5,0);
     d = {Interval(7,9), Interval(11, 14)};
     p.initialize(d);
     delete mr;
@@ -101,7 +95,6 @@ TEST(MinimizerHitTest,equals){
     EXPECT_EQ(mh1, mh1);
     EXPECT_EQ(mh2, mh2);
     EXPECT_EQ((mh1==mh2), false);
-    delete m;
     delete mr;
 }
 
@@ -109,9 +102,9 @@ TEST(MinimizerHitTest,compare){
     set<MinimizerHit> hits;
     KmerHash hash;
 
-    Minimizer* m;
+    Minimizer m;
     pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
-    m = new Minimizer(min(kh.first,kh.second), 1,6,0);
+    m = Minimizer(min(kh.first,kh.second), 1,6,0);
     deque<Interval> d = {Interval(7,8), Interval(10, 14)};
     Path p;
     p.initialize(d);
@@ -121,8 +114,7 @@ TEST(MinimizerHitTest,compare){
 
     MinimizerHit mh2(0, m, mr);
 
-    delete m;
-    m = new Minimizer(min(kh.first,kh.second), 0,5,0);
+    m = Minimizer(min(kh.first,kh.second), 0,5,0);
 
     d = {Interval(6,10), Interval(11, 12)};
     p.initialize(d);
@@ -170,7 +162,6 @@ TEST(MinimizerHitTest,compare){
         j++;
     }
     EXPECT_EQ(expected[0], *(--hits.end()));
-    delete m;
     delete mr;
 }
 

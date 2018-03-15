@@ -11,7 +11,7 @@ using namespace std;
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer* m, const MiniRecord* r): read_id(i), read_interval(m->pos), prg_id(r->prg_id), prg_path(r->path), knode_id(r->knode_id), strand((m->strand == r->strand))
+MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer& m, const MiniRecord* r): read_id(i), read_interval(m.pos), prg_id(r->prg_id), prg_path(r->path), knode_id(r->knode_id), strand((m.strand == r->strand))
 {
     //cout << *m << " + " << *r << " = " << "(" << read_id << ", " << read_interval << ", " << prg_id << ", " << prg_path << ", " << strand << ")" << endl;
     assert(read_interval.length==prg_path.length());

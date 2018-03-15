@@ -15,7 +15,7 @@ struct MinimizerHit {
     uint32_t knode_id;
     bool strand; // forward or reverse complement
 
-    MinimizerHit(const uint32_t i, const Minimizer *m, const MiniRecord *r);
+    MinimizerHit(const uint32_t i, const Minimizer& m, const MiniRecord *r);
 
     MinimizerHit(const uint32_t i, const Interval j, const uint32_t k, const Path p, const uint32_t n,
                  const bool c); // second allowed constructor

@@ -44,10 +44,6 @@ bool Minimizer::operator==(const Minimizer &y) const {
     return true;
 }
 
-bool pMiniComp::operator()(Minimizer *lhs, Minimizer *rhs) {
-    return (*lhs) < (*rhs);
-}
-
 std::ostream &operator<<(std::ostream &out, Minimizer const &m) {
     out << "(" << m.kmer << ", " << m.pos << ", " << m.strand << ")";
     return out;

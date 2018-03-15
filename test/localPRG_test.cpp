@@ -606,8 +606,8 @@ TEST(LocalPRGTest, minimizer_sketch){
 
 struct MiniPos
 {
-  bool operator()(Minimizer* lhs, Minimizer* rhs){
-        return (lhs->pos.start)<(rhs->pos.start);
+  bool operator()(Minimizer lhs, Minimizer rhs){
+        return (lhs.pos.start)<(rhs.pos.start);
 	}
 };
 
@@ -624,14 +624,14 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw1){
     //cout << l.kmer_prg.nodes.size() << " " << s.sketch.size() << endl;
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size()+2);
 
-    set<Minimizer*, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
+    set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
     l.kmer_prg.sort_topologically();
     vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
-    for (set<Minimizer*, MiniPos>::iterator sit = sketch.begin(); sit != sketch.end(); ++sit)
+    for (auto sit = sketch.begin(); sit != sketch.end(); ++sit)
     {
-        EXPECT_EQ((*sit)->pos, (*lit)->path.path[0]);
+        EXPECT_EQ((*sit).pos, (*lit)->path.path[0]);
 	++lit;
     }
 }
@@ -649,14 +649,14 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw5){
     //cout << l.kmer_prg.nodes.size() << " " << s.sketch.size() << endl;
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size()+2);
 
-    set<Minimizer*, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
+    set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
     l.kmer_prg.sort_topologically();
     vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
-    for (set<Minimizer*, MiniPos>::iterator sit = sketch.begin(); sit != sketch.end(); ++sit)
+    for (auto sit = sketch.begin(); sit != sketch.end(); ++sit)
     {
-        EXPECT_EQ((*sit)->pos, (*lit)->path.path[0]);
+        EXPECT_EQ((*sit).pos, (*lit)->path.path[0]);
         ++lit;
     }
 }
@@ -674,14 +674,14 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw10){
     //cout << l.kmer_prg.nodes.size() << " " << s.sketch.size() << endl;
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size()+2);
 
-    set<Minimizer*, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
+    set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
     l.kmer_prg.sort_topologically();
     vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
-    for (set<Minimizer*, MiniPos>::iterator sit = sketch.begin(); sit != sketch.end(); ++sit)
+    for (auto sit = sketch.begin(); sit != sketch.end(); ++sit)
     {
-        EXPECT_EQ((*sit)->pos, (*lit)->path.path[0]);
+        EXPECT_EQ((*sit).pos, (*lit)->path.path[0]);
         ++lit;
     }
 }
@@ -699,14 +699,14 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw15){
     //cout << l.kmer_prg.nodes.size() << " " << s.sketch.size() << endl;
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size()+2);
 
-    set<Minimizer*, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
+    set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
     l.kmer_prg.sort_topologically();
     vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
-    for (set<Minimizer*, MiniPos>::iterator sit = sketch.begin(); sit != sketch.end(); ++sit)
+    for (auto sit = sketch.begin(); sit != sketch.end(); ++sit)
     {
-        EXPECT_EQ((*sit)->pos, (*lit)->path.path[0]);
+        EXPECT_EQ((*sit).pos, (*lit)->path.path[0]);
         ++lit;
     }
 }
