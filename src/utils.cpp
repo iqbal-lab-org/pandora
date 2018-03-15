@@ -458,6 +458,12 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
             //cout << now() << "Add read hits" << endl;
             add_read_hits(s, mh, idx);
             id++;
+
+	    if (mh->uhits.size() > 4 * idx->minhash.size()){
+                cout << now() << "Infer gene orders and add to pangenome::Graph" << endl;
+                infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, scale_cluster_size,
+                                                       min_cluster_size, short_read_length);
+            }
         }
 
         cout << now() << "Added " << id << " reads" << endl;
