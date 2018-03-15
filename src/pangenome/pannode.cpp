@@ -68,29 +68,37 @@ void Node::add_path(const vector<KmerNodePtr> &kmp) {
     }
 }
 
-void Node::output_samples(const LocalPRG *prg, const string &prefix, const uint w) {
+void Node::output_samples(const LocalPRG *prg, const string &prefix, const uint w, const string& vcf_ref) {
     vector<KmerNodePtr> kmp;
     kmp.reserve(800);
-    vector<LocalNodePtr> lmp, sample_lmp;
-    lmp.reserve(100);
+    vector<LocalNodePtr> refpath, sample_lmp;
+    refpath.reserve(100);
     sample_lmp.reserve(100);
 
-    // find best ref
-    kmer_prg.set_p(0.01);
-    kmer_prg.num_reads = covg;
-    //cout << "have " << covg << " samples with this node" << endl;
-    kmer_prg.find_max_path(kmp);
-    lmp = prg->localnode_path_from_kmernode_path(kmp, w);
-    /*cout << "best ref: " << endl;
-    for (uint i=0; i!=lmp.size(); ++i)
-    {
-	cout << lmp[i]->id << "->";
+    // if we passed in a string to be the reference, find the corresponding path
+    if (!vcf_ref.empty()) {
+        refpath = prg->prg.nodes_along_string(vcf_ref);
+        if (refpath.empty()) {
+            refpath = prg->prg.nodes_along_string(rev_complement(vcf_ref));
+        }
+        if (refpath.empty()) {
+            cout << now() << "Could not find reference sequence for " << name
+                 << "in the PRG so using the closest path" << endl;
+            kmer_prg.set_p(0.01);
+            kmer_prg.num_reads = covg;
+            kmer_prg.find_max_path(kmp);
+            refpath = prg->localnode_path_from_kmernode_path(kmp, w);
+        }
+    } else {
+        kmer_prg.set_p(0.01);
+        kmer_prg.num_reads = covg;
+        kmer_prg.find_max_path(kmp);
+        refpath = prg->localnode_path_from_kmernode_path(kmp, w);
     }
-    cout << endl;*/
 
     // create a with respect to this ref
     VCF vcf;
-    prg->build_vcf(vcf, lmp);
+    prg->build_vcf(vcf, refpath);
     vcf.save(prefix + "." + name + ".multisample.vcf", true, true, true, true, true, true, true);
     uint count = 0;
     for (auto s : samples) {
@@ -111,12 +119,12 @@ void Node::output_samples(const LocalPRG *prg, const string &prefix, const uint 
             }
             cout << endl;*/
             if (count == 0) {
-                prg->add_sample_gt_to_vcf(vcf, lmp, sample_lmp, s->name);
-                prg->add_sample_covgs_to_vcf(vcf, kmer_prg, lmp, p, s->name);
+                prg->add_sample_gt_to_vcf(vcf, refpath, sample_lmp, s->name);
+                //prg->add_sample_covgs_to_vcf(vcf, kmer_prg, lmp, p, s->name);
 
             } else {
-                prg->add_sample_gt_to_vcf(vcf, lmp, sample_lmp, s->name + to_string(count));
-                prg->add_sample_covgs_to_vcf(vcf, kmer_prg, lmp, p, s->name + to_string(count));
+                prg->add_sample_gt_to_vcf(vcf, refpath, sample_lmp, s->name + to_string(count));
+                //prg->add_sample_covgs_to_vcf(vcf, kmer_prg, lmp, p, s->name + to_string(count));
             }
             sample_lmp.clear();
             count++;
@@ -124,7 +132,7 @@ void Node::output_samples(const LocalPRG *prg, const string &prefix, const uint 
         }
     }
     vcf.save(prefix + "." + name + ".multisample.vcf", true, true, true, true, true, true, true);
-    vcf.write_aligned_fasta(prefix + "." + name + ".multisample.fa", lmp);
+    vcf.write_aligned_fasta(prefix + "." + name + ".multisample.fa", refpath);
 }
 
 bool Node::operator==(const Node &y) const {

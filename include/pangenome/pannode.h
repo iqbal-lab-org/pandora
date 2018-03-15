@@ -32,7 +32,7 @@ public:
 
     void add_path(const std::vector<KmerNodePtr> &);
 
-    void output_samples(const LocalPRG *, const std::string &, const uint);
+    void output_samples(const LocalPRG *, const std::string &, const uint, const std::string &);
 
     bool operator==(const Node &y) const;
 

@@ -234,8 +234,18 @@ int pandora_compare(int argc, char *argv[]) {
                 c.second->kmer_prg.find_max_path(kmp);
             else
                 c.second->kmer_prg.find_nb_max_path(kmp);
-            pangraph->add_node(c.second->prg_id, c.second->name, sample->first, kmp, prgs[c.second->prg_id]);
+
+            if (!kmp.empty())
+                pangraph->add_node(c.second->prg_id, c.second->name, sample->first, kmp, prgs[c.second->prg_id]);
         }
+    }
+
+    // if we have input the vcf refs, load them
+    VCFRefs vcf_refs;
+    string vcf_ref;
+    if (!vcf_refs_file.empty()) {
+        vcf_refs.reserve(prgs.size());
+        load_vcf_refs_file(vcf_refs_file, vcf_refs);
     }
 
     // for each pannode in graph, find a best reference and output a vcf and aligned fasta of sample paths through it
@@ -244,7 +254,13 @@ int pandora_compare(int argc, char *argv[]) {
     for (auto c: pangraph->nodes) {
         cout << " c.first: " << c.first;
         cout << " prgs[c.first]->name: " << prgs[c.first]->name << endl;
-        c.second->output_samples(prgs[c.first], prefix, w);
+
+        if (!vcf_refs_file.empty()
+            and vcf_refs.find(prgs[c.second->prg_id]->name) != vcf_refs.end()) {
+            vcf_ref = vcf_refs[prgs[c.second->prg_id]->name];
+        }
+
+        c.second->output_samples(prgs[c.first], prefix, w, vcf_ref);
     }
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
