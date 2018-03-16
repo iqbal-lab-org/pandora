@@ -370,7 +370,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
                         idx->add_record(min(kh.first, kh.second), id, kmer_path, kn->id, (kh.first <= kh.second));
                         num_kmers_added += 1;
                         if (!mini_found_in_window) {
-                            kmer_prg.add_edge(kmer_prg.nodes[0]->path, kmer_path);
+                            kmer_prg.add_edge(kmer_prg.nodes[0], kn);
                         }
                         mini_found_in_window = true;
                         current_leaves.push_back(kn);

@@ -43,8 +43,6 @@ public:
 
     KmerNodePtr add_node_with_kh(const Path &, const uint64_t &, const uint8_t &num = 0);
 
-    void add_edge(const Path &, const Path &);
-
     void add_edge(KmerNodePtr, KmerNodePtr);
 
     void remove_shortcut_edges();

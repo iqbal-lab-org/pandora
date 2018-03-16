@@ -94,40 +94,20 @@ TEST(KmerGraphTest, add_edge) {
     deque<Interval> d = {Interval(0, 3)};
     Path p1, p2, p3;
     p1.initialize(d);
-    kg.add_node(p1);
+    auto n1 = kg.add_node(p1);
     d = {Interval(1, 4)};
     p2.initialize(d);
-    kg.add_node(p2);
+    auto n2 = kg.add_node(p2);
     uint j = 2;
     EXPECT_EQ(j, kg.nodes.size());
 
-    // first via path constructor
-    kg.add_edge(p1, p2);
-    j = 1;
-    EXPECT_EQ(j, kg.nodes[0]->outNodes.size());
-    EXPECT_EQ(j, kg.nodes[1]->inNodes.size());
-    j = 0;
-    EXPECT_EQ(j, kg.nodes[1]->outNodes.size());
-    EXPECT_EQ(j, kg.nodes[0]->inNodes.size());
+    kg.add_edge(n1, n2);
+    kg.add_edge(n1, n2);
 
-    // repeat with path constructor, nothing should happen
-    kg.add_edge(p1, p2);
-    j = 1;
-    EXPECT_EQ(j, kg.nodes[0]->outNodes.size());
-    EXPECT_EQ(j, kg.nodes[1]->inNodes.size());
-    j = 0;
-    EXPECT_EQ(j, kg.nodes[1]->outNodes.size());
-    EXPECT_EQ(j, kg.nodes[0]->inNodes.size());
-
-    // expect failure if a node doesn't exist in the graph
     d = {Interval(4, 7)};
     p3.initialize(d);
-    EXPECT_DEATH(kg.add_edge(p1, p3), "");
-    EXPECT_DEATH(kg.add_edge(p3, p2), "");
-
-    // now with kmernode constructor
-    kg.add_node(p3);
-    kg.add_edge(kg.nodes[0], kg.nodes[2]);
+    auto n3 = kg.add_node(p3);
+    kg.add_edge(n1, n3);
     j = 2;
     EXPECT_EQ(j, kg.nodes[0]->outNodes.size());
     j = 1;
@@ -138,7 +118,7 @@ TEST(KmerGraphTest, add_edge) {
     EXPECT_EQ(j, kg.nodes[0]->inNodes.size());
 
     // repeat and nothing should happen
-    kg.add_edge(kg.nodes[0], kg.nodes[2]);
+    kg.add_edge(n1, n3);
     j = 2;
     EXPECT_EQ(j, kg.nodes[0]->outNodes.size());
     j = 1;
@@ -154,11 +134,11 @@ TEST(KmerGraphTest, clear) {
     deque<Interval> d = {Interval(0, 3)};
     Path p1, p2;
     p1.initialize(d);
-    kg.add_node(p1);
+    auto n1 = kg.add_node(p1);
     d = {Interval(1, 4)};
     p2.initialize(d);
-    kg.add_node(p2);
-    kg.add_edge(p1, p2);
+    auto n2 = kg.add_node(p2);
+    kg.add_edge(n1, n2);
     uint j = 2;
     EXPECT_EQ(j, kg.nodes.size());
 
@@ -166,9 +146,9 @@ TEST(KmerGraphTest, clear) {
     j = 0;
     EXPECT_EQ(j, kg.nodes.size());
 
-    kg.add_node(p1);
-    kg.add_node(p2);
-    kg.add_edge(p1, p2);
+    n1 = kg.add_node(p1);
+    n2 = kg.add_node(p2);
+    kg.add_edge(n1, n2);
     j = 2;
     EXPECT_EQ(j, kg.nodes.size());
 }
@@ -178,18 +158,18 @@ TEST(KmerGraphTest, equals) {
     deque<Interval> d = {Interval(0, 3)};
     Path p1, p2, p3;
     p1.initialize(d);
-    kg1.add_node(p1);
-    kg2.add_node(p1);
+    auto n1 = kg1.add_node(p1);
+    auto m1 = kg2.add_node(p1);
     d = {Interval(1, 4)};
     p2.initialize(d);
-    kg1.add_node(p2);
-    kg2.add_node(p2);
-    kg1.add_edge(p1, p2);
-    kg2.add_edge(p1, p2);
+    auto n2 = kg1.add_node(p2);
+    auto m2 = kg2.add_node(p2);
+    kg1.add_edge(n1, n2);
+    kg2.add_edge(m1, m2);
 
     d = {Interval(2, 5)};
     p3.initialize(d);
-    kg2.add_node(p3);
+    auto m3 = kg2.add_node(p3);
 
     // same as themselves, different if different numbers of nodes
     EXPECT_EQ(kg1, kg1);
@@ -197,8 +177,8 @@ TEST(KmerGraphTest, equals) {
     EXPECT_EQ((kg1 == kg2), false);
     EXPECT_EQ((kg2 == kg1), false);
 
-    kg1.add_node(p3);
-    kg2.add_edge(p1, p3);
+    auto n3 = kg1.add_node(p3);
+    kg2.add_edge(m1, m3);
 
     // same as themselves, different if different numbers of edges
     EXPECT_EQ(kg1, kg1);
@@ -206,7 +186,7 @@ TEST(KmerGraphTest, equals) {
     EXPECT_EQ((kg1 == kg2), false);
     EXPECT_EQ((kg2 == kg1), false);
 
-    kg1.add_edge(p2, p3);
+    kg1.add_edge(n2, n3);
 
     // same as themselves, different if edges in different places
     EXPECT_EQ(kg1, kg1);
@@ -220,11 +200,11 @@ TEST(KmerGraphTest, copy) {
     deque<Interval> d = {Interval(0, 3)};
     Path p1, p2, p3;
     p1.initialize(d);
-    kg1.add_node(p1);
+    auto n1 = kg1.add_node(p1);
     d = {Interval(1, 4)};
     p2.initialize(d);
-    kg1.add_node(p2);
-    kg1.add_edge(p1, p2);
+    auto n2 = kg1.add_node(p2);
+    kg1.add_edge(n1, n2);
 
     KmerGraph kg2(kg1);
 
@@ -237,28 +217,28 @@ TEST(KmerGraphTest, assign) {
     deque<Interval> d = {Interval(0, 0)};
     Path p;
     p.initialize(d);
-    kg1.add_node(p);
+    auto n = kg1.add_node(p);
     d = {Interval(0, 3)};
     Path p1, p2, p3;
     p1.initialize(d);
-    kg1.add_node(p1);
+    auto n1 = kg1.add_node(p1);
     d = {Interval(1, 4)};
     p2.initialize(d);
-    kg1.add_node(p2);
-    kg1.add_edge(p1, p2);
+    auto n2 = kg1.add_node(p2);
+    kg1.add_edge(n1, n2);
     d = {Interval(11, 14)};
     p3.initialize(d);
-    kg1.add_node(p3);
-    kg1.add_edge(p1, p3);
+    auto n3 = kg1.add_node(p3);
+    kg1.add_edge(n1, n3);
     d = {Interval(15, 18)};
     p1.initialize(d);
-    kg1.add_node(p1);
-    kg1.add_edge(p2, p1);
+    n1 = kg1.add_node(p1);
+    kg1.add_edge(n2, n1);
     d = {Interval(20, 20)};
     p.initialize(d);
-    kg1.add_node(p);
-    kg1.add_edge(p1, p);
-    kg1.add_edge(p3, p);
+    n = kg1.add_node(p);
+    kg1.add_edge(n1, n);
+    kg1.add_edge(n3, n);
 
     KmerGraph kg2 = kg1;
     cout << "original " << kg1 << endl;
@@ -865,11 +845,11 @@ TEST(KmerGraphTest, save_covg_dist) {
     kg.add_node(p);
     d = {Interval(0, 3)};
     p1.initialize(d);
-    kg.add_node(p1);
+    auto n1 = kg.add_node(p1);
     d = {Interval(1, 4)};
     p2.initialize(d);
-    kg.add_node(p2);
-    kg.add_edge(p1, p2);
+    auto n2 = kg.add_node(p2);
+    kg.add_edge(n1, n2);
     d = {Interval(4, 4)};
     p.initialize(d);
     kg.add_node(p);
@@ -889,11 +869,11 @@ TEST(KmerGraphTest, save) {
     deque<Interval> d = {Interval(0, 3)};
     Path p1, p2;
     p1.initialize(d);
-    kg.add_node(p1);
+    auto n1 = kg.add_node(p1);
     d = {Interval(1, 4)};
     p2.initialize(d);
-    kg.add_node(p2);
-    kg.add_edge(p1, p2);
+    auto n2 = kg.add_node(p2);
+    kg.add_edge(n1, n2);
     kg.nodes[0]->covg[1] += 5;
     EXPECT_EQ((uint) 0, kg.nodes[0]->num_AT);
 
@@ -908,11 +888,11 @@ TEST(KmerGraphTest, save_no_prg) {
     deque<Interval> d = {Interval(0, 3)};
     Path p1, p2;
     p1.initialize(d);
-    kg.add_node(p1);
+    auto n1 = kg.add_node(p1);
     d = {Interval(1, 4)};
     p2.initialize(d);
-    kg.add_node(p2);
-    kg.add_edge(p1, p2);
+    auto n2 = kg.add_node(p2);
+    kg.add_edge(n1, n2);
     kg.nodes[0]->covg[1] += 5;
     EXPECT_EQ((uint) 0, kg.nodes[0]->num_AT);
 
@@ -925,11 +905,11 @@ TEST(KmerGraphTest, load) {
     deque<Interval> d = {Interval(0, 3)};
     Path p1, p2;
     p1.initialize(d);
-    kg.add_node(p1);
+    auto n1 = kg.add_node(p1);
     d = {Interval(1, 4)};
     p2.initialize(d);
-    kg.add_node(p2);
-    kg.add_edge(p1, p2);
+    auto n2 = kg.add_node(p2);
+    kg.add_edge(n1, n2);
     kg.nodes[0]->covg[1] += 5;
 
     //read_kg.load("../test/test_cases/kmergraph_test.gfa");

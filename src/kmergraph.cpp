@@ -163,26 +163,11 @@ condition::condition(const Path &p) : q(p) {};
 
 bool condition::operator()(const pair<uint32_t, KmerNodePtr> &kn) const { return kn.second->path == q; }
 
-void KmerGraph::add_edge(const Path &from, const Path &to) {
-    assert(from < to || assert_msg(from << " is not less than " << to));
-    if (from == to) {
-        return;
-    }
-
-    auto from_it = find_if(nodes.begin(), nodes.end(), condition(from));
-    auto to_it = find_if(nodes.begin(), nodes.end(), condition(to));
-    assert(from_it != nodes.end() && to_it != nodes.end());
-
-    if (find(from_it->second->outNodes.begin(), from_it->second->outNodes.end(), to_it->second) ==
-            from_it->second->outNodes.end()) {
-        from_it->second->outNodes.emplace_back(to_it->second);
-        to_it->second->inNodes.emplace_back(from_it->second);
-        //cout << "added edge from " << (*from_it)->id << " to " << (*to_it)->id << endl;
-    }
-}
-
 void KmerGraph::add_edge(KmerNodePtr from, KmerNodePtr to) {
-    assert(from->path < to->path || assert_msg(from->id << " is not less than " << to->id));
+    assert(nodes.find(from->id)!=nodes.end());
+    assert(nodes.find(to->id)!=nodes.end());
+    assert(from->path < to->path
+           or assert_msg("Cannot add edge from " << from->id << " to " << to->id << " because " << from->path << " is not less than " << to->path));
 
     if (find(from->outNodes.begin(), from->outNodes.end(), to) == from->outNodes.end()) {
         from->outNodes.emplace_back(to);
