@@ -9,7 +9,7 @@ using namespace std;
 
 TEST(PathTest, initialize) {
     Path p;
-    deque<Interval> d = {Interval(0, 1), Interval(3, 3), Interval(5, 10)};
+    vector<Interval> d = {Interval(0, 1), Interval(3, 3), Interval(5, 10)};
     p.initialize(d);
     EXPECT_EQ(p.path.size(), d.size());
     for (uint i = 0; i != d.size(); ++i) {
@@ -19,7 +19,7 @@ TEST(PathTest, initialize) {
 
 TEST(PathTest, length) {
     Path p;
-    deque<Interval> d = {Interval(0, 0)};
+    vector<Interval> d = {Interval(0, 0)};
     p.initialize(d);
     uint j = 0;
     EXPECT_EQ(j, p.length());
@@ -35,28 +35,18 @@ TEST(PathTest, length) {
     EXPECT_EQ(j, p.length());
 }
 
-TEST(PathTest, add_start_interval) {
-    deque<Interval> d = {Interval(4, 5)};
-    Path p;
-    p.initialize(d);
-    p.add_start_interval(Interval(0, 1));
-    d.push_front(Interval(0, 1));
-    EXPECT_ITERABLE_EQ(deque<Interval>, d, p.path);
-    EXPECT_DEATH(p.add_start_interval(Interval(3, 4)), "");
-}
-
 TEST(PathTest, add_end_interval) {
-    deque<Interval> d = {Interval(4, 5)};
+    vector<Interval> d = {Interval(4, 5)};
     Path p;
     p.initialize(d);
     p.add_end_interval(Interval(6, 9));
     d.push_back(Interval(6, 9));
-    EXPECT_ITERABLE_EQ(deque<Interval>, d, p.path);
+    EXPECT_ITERABLE_EQ(vector<Interval>, d, p.path);
     EXPECT_DEATH(p.add_end_interval(Interval(0, 1)), "");
 }
 
 TEST(PathTest, subpath) {
-    deque<Interval> d, d1;
+    vector<Interval> d, d1;
     d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
     Path p, p1;
     p.initialize(d);
@@ -64,34 +54,34 @@ TEST(PathTest, subpath) {
     // regular
     p1 = p.subpath(0, 3);
     d1 = {Interval(1, 3), Interval(4, 5)};
-    EXPECT_ITERABLE_EQ(deque<Interval>, d1, p1.path);
+    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.path);
 
     // handle zero-length interval
     p1 = p.subpath(1, 3);
     d1 = {Interval(2, 3), Interval(4, 5), Interval(6, 6), Interval(9, 10)};
-    EXPECT_ITERABLE_EQ(deque<Interval>, d1, p1.path);
+    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.path);
 
     // start in another interval
     p1 = p.subpath(2, 3);
     d1 = {Interval(4, 5), Interval(6, 6), Interval(9, 11)};
-    EXPECT_ITERABLE_EQ(deque<Interval>, d1, p1.path);
+    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.path);
 
     // all in one interval
     p1 = p.subpath(3, 3);
     d1 = {Interval(6, 6), Interval(9, 12)};
-    EXPECT_ITERABLE_EQ(deque<Interval>, d1, p1.path);
+    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.path);
 
     // all in one interval
     p1 = p.subpath(4, 3);
     d1 = {Interval(10, 13)};
-    EXPECT_ITERABLE_EQ(deque<Interval>, d1, p1.path);
+    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.path);
 
     // and several null nodes at start of path
     d = {Interval(0, 0), Interval(1, 1), Interval(3, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
     p.initialize(d);
     d1 = {Interval(0, 0), Interval(1, 1), Interval(3, 3), Interval(4, 5), Interval(6, 6), Interval(9, 10)};
     p1 = p.subpath(0, 2);
-    EXPECT_ITERABLE_EQ(deque<Interval>, d1, p1.path);
+    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.path);
 
     // can't get subpath from a coordinate not in path
     //EXPECT_DEATH(p.subpath(0,3), "");
@@ -100,7 +90,7 @@ TEST(PathTest, subpath) {
 }
 
 TEST(PathTest, is_branching) {
-    deque<Interval> d, d1;
+    vector<Interval> d, d1;
     d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
     d1 = {Interval(1, 3), Interval(4, 5), Interval(8, 9),
           Interval(9, 40)}; // same number intervals, different intervals
@@ -149,7 +139,7 @@ TEST(PathTest, is_branching) {
 
 TEST(PathTest, is_subpath)
 {
-    deque<Interval> d, d1;
+    vector<Interval> d, d1;
     d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
     d1 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 10)};
     Path p, p1;
@@ -181,7 +171,7 @@ TEST(PathTest, is_subpath)
 }
 
 TEST(PathTest, less_than) {
-    deque<Interval> d, d1;
+    vector<Interval> d, d1;
     d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
     d1 = {Interval(1, 3), Interval(4, 5), Interval(8, 9),
           Interval(9, 40)}; // same number intervals, different intervals
@@ -219,7 +209,7 @@ TEST(PathTest, less_than) {
 }
 
 TEST(PathTest, equals) {
-    deque<Interval> d, d1;
+    vector<Interval> d, d1;
     d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
     d1 = {Interval(1, 3), Interval(4, 5), Interval(8, 9),
           Interval(9, 40)}; // same number intervals, different intervals
@@ -259,7 +249,7 @@ TEST(PathTest, equals) {
 }
 
 TEST(PathTest, equal_except_null_nodes) {
-    deque<Interval> d, d1, d2;
+    vector<Interval> d, d1, d2;
     d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
     d1 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40), Interval(40, 40), Interval(59, 59)};
     d2 = {Interval(0, 0), Interval(1, 1), Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
@@ -278,7 +268,7 @@ TEST(PathTest, equal_except_null_nodes) {
 }
 
 TEST(PathTest, write) {
-    deque<Interval> d;
+    vector<Interval> d;
     d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
     Path p;
     p.initialize(d);
@@ -289,7 +279,7 @@ TEST(PathTest, write) {
 }
 
 TEST(PathTest, read) {
-    deque<Interval> d;
+    vector<Interval> d;
     d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
     Path p, q;
     p.initialize(d);
@@ -303,7 +293,7 @@ TEST(PathTest, read) {
 
 TEST(PathTest, get_union)
 {
-    deque<Interval> d1, d2, d;
+    vector<Interval> d1, d2, d;
     d1 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
     d2 = {Interval(10, 40), Interval(50, 55)};
     d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40), Interval(50, 55)};

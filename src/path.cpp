@@ -1,19 +1,35 @@
 #include <iostream>
 #include <functional>
+#include <cassert>
+#include <vector>
 #include "path.h"
 #include "interval.h"
-#include <cassert>
+
 
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
 
-
 void Path::initialize(const deque<Interval> &q) {
     if (q.empty())
         return;
-    path = q;
+    path.clear();
+    path.reserve(q.size()+5);
+    path.insert(path.end(), q.begin(), q.end());
+}
+
+void Path::initialize(const vector<Interval> &q) {
+    if (q.empty())
+        return;
+    path.clear();
+    path.reserve(q.size()+5);
+    path.insert(path.end(), q.begin(), q.end());
+}
+
+void Path::initialize(const Interval &i) {
+    path.clear();
+    path.push_back(i);
 }
 
 uint32_t Path::get_start() const {
@@ -33,11 +49,6 @@ uint32_t Path::length() const {
     for (const auto &interval: path)
         length += interval.length;
     return length;
-}
-
-void Path::add_start_interval(const Interval &i) {
-    assert (i.start + (uint32_t) i.length <= get_start() || assert_msg(i.start + (uint32_t) i.length << ">" << get_start()));
-    path.push_front(i);
 }
 
 void Path::add_end_interval(const Interval &i) {
@@ -88,7 +99,7 @@ bool Path::is_branching(const Path &y) const // returns true if the two paths br
 
     // otherwise, check it out
     bool overlap = false;
-    deque<Interval>::const_iterator it, it2;
+    vector<Interval>::const_iterator it, it2;
     for (it = path.begin(); it != path.end(); ++it) {
         if (overlap == true) {
             if (it->start != it2->start) {
@@ -162,8 +173,8 @@ bool Path::is_subpath(const Path& big_path) const
 }
 
 bool Path::operator<(const Path &y) const {
-    std::deque<Interval>::const_iterator it2 = y.path.begin();
-    std::deque<Interval>::const_iterator it = path.begin();
+    std::vector<Interval>::const_iterator it2 = y.path.begin();
+    std::vector<Interval>::const_iterator it = path.begin();
     while (it != path.end() and it2 != y.path.end()) {
         if (!(*it == *it2)) //for the first interval which is not the same in both paths
         {
@@ -182,8 +193,8 @@ bool Path::operator<(const Path &y) const {
 
 bool Path::operator==(const Path &y) const {
     if (path.size() != y.path.size()) { return false; }
-    std::deque<Interval>::const_iterator it2 = y.path.begin();
-    for (std::deque<Interval>::const_iterator it = path.begin(); it != path.end();) {
+    std::vector<Interval>::const_iterator it2 = y.path.begin();
+    for (std::vector<Interval>::const_iterator it = path.begin(); it != path.end();) {
         if (!(*it == *it2)) { return false; }
         it++;
         it2++;
@@ -194,8 +205,8 @@ bool Path::operator==(const Path &y) const {
 // tests if the paths are equal except for null nodes at the start or
 // ends of the paths
 bool equal_except_null_nodes(const Path &x, const Path &y) {
-    std::deque<Interval>::const_iterator it2 = y.path.begin();
-    for (std::deque<Interval>::const_iterator it = x.path.begin(); it != x.path.end();) {
+    std::vector<Interval>::const_iterator it2 = y.path.begin();
+    for (std::vector<Interval>::const_iterator it = x.path.begin(); it != x.path.end();) {
         while (it != x.path.end() and it->length == 0) {
             it++;
         }
@@ -226,7 +237,7 @@ bool Path::operator!=(const Path &y) const {
 std::ostream &operator<<(std::ostream &out, Path const &p) {
     uint32_t num_intervals = p.path.size();
     out << num_intervals << "{";
-    for (std::deque<Interval>::const_iterator it = p.path.begin(); it != p.path.end(); ++it) {
+    for (std::vector<Interval>::const_iterator it = p.path.begin(); it != p.path.end(); ++it) {
         out << *it;
     }
     out << "}";
@@ -248,8 +259,8 @@ std::istream &operator>>(std::istream &in, Path &p) {
 
 Path get_union(const Path&x, const Path&y)
 {
-    std::deque<Interval>::const_iterator xit=x.path.begin();
-    std::deque<Interval>::const_iterator yit=y.path.begin();
+    std::vector<Interval>::const_iterator xit=x.path.begin();
+    std::vector<Interval>::const_iterator yit=y.path.begin();
 
     Path p;
     assert (x < y);
@@ -266,7 +277,7 @@ Path get_union(const Path&x, const Path&y)
     {
         if (p.path.size() == 0)
         {
-            p.initialize({*xit});
+            p.initialize(*xit);
         } else {
             p.add_end_interval(*xit);
         }
@@ -277,7 +288,7 @@ Path get_union(const Path&x, const Path&y)
         // then we have overlap
         if (p.path.size() == 0)
         {
-            p.initialize({Interval(xit->start, max(yit->get_end(), xit->get_end()))});
+            p.initialize(Interval(xit->start, max(yit->get_end(), xit->get_end())));
         } else {
             p.add_end_interval(Interval(xit->start, max(yit->get_end(), xit->get_end())));
         }

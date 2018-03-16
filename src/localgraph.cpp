@@ -139,8 +139,7 @@ vector<Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos, cons
 
     //cout << "pos+len: " << pos+len << " nodes.at(node_id)->pos.get_end(): " << nodes.at(node_id)->pos.get_end() << endl;
     if (pos + len <= nodes.at(node_id)->pos.get_end()) {
-        d = {Interval(pos, pos + len)};
-        p.initialize(d);
+        p.initialize(Interval(pos, pos + len));
         //cout << "return path: " << p << endl;
         return_paths.push_back(p);
         //cout << "return_paths size: " << return_paths.size() << endl; 
@@ -158,8 +157,8 @@ vector<Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos, cons
             for (auto &walk_path : walk_paths) {
                 // Note, would have just added start interval to each item in walk_paths, but can't seem to force result of it2 to be non-const
                 //cout << (*it2) << endl;
-                p2.initialize(walk_path.path);
-                p2.add_start_interval(Interval(pos, nodes.at(node_id)->pos.get_end()));
+                p2.initialize(Interval(pos, nodes.at(node_id)->pos.get_end()));
+                p2.path.insert(p2.path.end(), walk_path.path.begin(), walk_path.path.end());
                 //cout << "path: " << p2 << " p2.length: " << p2.length << endl;
                 if (p2.length() == len) {
                     return_paths.push_back(p2);
@@ -183,8 +182,7 @@ vector<Path> LocalGraph::walk_back(const uint32_t &node_id, const uint32_t &pos,
     deque<Interval> d;
 
     if (nodes.at(node_id)->pos.start + len <= pos) {
-        d = {Interval(pos - len, pos)};
-        p.initialize(d);
+        p.initialize(Interval(pos - len, pos));
         //cout << "return path: " << p << endl;
         return_paths.push_back(p);
         return return_paths;

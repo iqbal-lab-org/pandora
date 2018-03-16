@@ -2,6 +2,7 @@
 #define __PATH_H_INCLUDED__
 
 #include <deque>
+#include <vector>
 #include <cstdint> //or <stdint.h>
 #include <iostream>
 #include <functional>
@@ -10,15 +11,15 @@
 
 class Path {
 public:
-    std::deque<Interval> path;
+    std::vector<Interval> path;
 
     void initialize(const std::deque<Interval> &);
+    void initialize(const std::vector<Interval> &);
+    void initialize(const Interval &);
 
     uint32_t get_start() const;
     uint32_t get_end() const;
     uint32_t length() const;
-
-    void add_start_interval(const Interval &);
 
     void add_end_interval(const Interval &);
 
