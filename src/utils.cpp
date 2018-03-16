@@ -435,6 +435,7 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
 
                     if (mh->uhits.size() > 4 * idx->minhash.size()){
                         cout << now() << "Infer gene orders and add to pangenome::Graph" << endl;
+                        pangraph->reserve_num_reads(id);
                         infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size,
                                                        scale_cluster_size, min_cluster_size, short_read_length);
                     }
@@ -465,22 +466,18 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
             //cout << now() << "Add read hits" << endl;
             add_read_hits(s, mh, idx);
             id++;
-
-	    if (mh->uhits.size() > 4 * idx->minhash.size()){
-                cout << now() << "Infer gene orders and add to pangenome::Graph" << endl;
-                infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, scale_cluster_size,
-                                                       min_cluster_size, short_read_length);
-            }
         }
 
-        cout << now() << "Added " << id << " reads" << endl;
-        pangraph->reserve_num_reads(id);
-
         cout << now() << "Infer gene orders and add to pangenome::Graph" << endl;
+        pangraph->reserve_num_reads(id);
         infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, scale_cluster_size,
                                        min_cluster_size, short_read_length);
-        cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
 
+        cout << now() << "Finished with index, so clear " << endl;
+        idx->clear();
+
+        cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
+        cout << now() << "Added " << id << " reads" << endl;
         covg = covg / genome_size;
         cout << now() << "Estimated coverage: " << covg << endl;
 
