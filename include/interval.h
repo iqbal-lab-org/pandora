@@ -6,7 +6,7 @@
 
 struct Interval {
     uint32_t start;
-    uint16_t length;
+    uint32_t length;
     //in pilot, longest prg was 208,562 characters long
 
     Interval(uint32_t= 0, uint32_t= 0);

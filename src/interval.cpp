@@ -1,13 +1,16 @@
 #include <iostream>
+#include <limits>
 #include <cassert>
 #include "interval.h"
+
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
 
 Interval::Interval(uint32_t s, uint32_t e) : start(s) {
     assert(e >= start); // not a real interval ;
-    assert (e - start < std::numeric_limits<uint16_t>::max());
-    length = (uint16_t) (e - start); // intervals need to be exclusive of end point so that empty strings can be represented
+    assert (e - start < std::numeric_limits<uint32_t>::max() or assert_msg("Interval [" << s << "," << e << ") was too long"));
+    length = e - start; // intervals need to be exclusive of end point so that empty strings can be represented
 }
 
 uint32_t Interval::get_end() const {
@@ -26,7 +29,9 @@ istream &operator>>(istream &in, Interval &i) {
     in.ignore(2, ' ');
     in >> end;
     in.ignore(1, ')');
-    i.length = (uint16_t) (end - i.start);
+    assert(end >= i.start);
+    assert (end - i.start < std::numeric_limits<uint32_t>::max() or assert_msg("Interval [" << i.start << "," << end << ") was too long"));
+    i.length = end - i.start;
     return in;
 }
 

@@ -66,7 +66,7 @@ Path Path::subpath(const uint32_t start, const uint32_t len) const {
             ///cout << "added first interval " << p.path.back() << " and added length is now " << added_len << endl;
         } else if (covered_length >= start and added_len <= len) {
             p.add_end_interval(Interval(interval.start, min(interval.get_end(), interval.start + len - added_len)));
-            added_len += min((uint16_t) (len - added_len), interval.length);
+            added_len += min(len - added_len, interval.length);
             //cout << "added interval " << p.path.back() << " and added length is now " << added_len << endl;
         }
         covered_length += interval.length;
