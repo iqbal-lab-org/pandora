@@ -37,11 +37,11 @@ TEST(MinimizerTest,create){
     j = 5;
     EXPECT_EQ(m3.pos.start, j);
 
-    EXPECT_EQ(m1.pos.end, j);
+    EXPECT_EQ(m1.pos.get_end(), j);
     j = 6;
-    EXPECT_EQ(m2.pos.end, j);
+    EXPECT_EQ(m2.pos.get_end(), j);
     j = 10;
-    EXPECT_EQ(m3.pos.end, j);
+    EXPECT_EQ(m3.pos.get_end(), j);
 
     EXPECT_DEATH(Minimizer(kh.first, 0,2,0),""); // interval too short to be valid
     //EXPECT_DEATH(Minimizer(kh.first, 0,8,0),""); // interval too long to be valid
@@ -77,7 +77,7 @@ TEST(MinimizerTest,less_than){
     {
 	EXPECT_EQ(it->kmer, v[i].kmer) << "for i " << i << " kmers do not agree: " << it->kmer << ", " << v[i].kmer;
 	EXPECT_EQ(it->pos.start, v[i].pos.start) << "start positions do not agree: " << it->pos.start << ", " << v[i].pos.start;
-	EXPECT_EQ(it->pos.end, v[i].pos.end) << "end positions do not agree: " << it->pos.end << ", " << v[i].pos.end;
+	EXPECT_EQ(it->pos.get_end(), v[i].pos.get_end()) << "end positions do not agree: " << it->pos.get_end() << ", " << v[i].pos.get_end();
     	++i;
     }
 }

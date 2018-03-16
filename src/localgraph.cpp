@@ -42,8 +42,8 @@ void LocalGraph::add_edge(const uint32_t &from, const uint32_t &to) {
     if ((from_it != nodes.end()) && (to_it != nodes.end())) {
         LocalNodePtr f = (nodes.find(from)->second);
         LocalNodePtr t = (nodes.find(to)->second);
-        assert(f->pos.end <= t->pos.start || assert_msg(
-                f->pos.end << ">" << t->pos.start << " so cannot add edge from node " << *f << " to node " << *t));
+        assert(f->pos.get_end() <= t->pos.start || assert_msg(
+                f->pos.get_end() << ">" << t->pos.start << " so cannot add edge from node " << *f << " to node " << *t));
         f->outNodes.push_back(t);
         //cout << "Added edge (" << f->id << ", " << t->id << ")" << endl;
     }
@@ -128,8 +128,8 @@ void LocalGraph::read_gfa(const string &filepath) {
 vector<Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos, const uint32_t &len) const {
     //cout << "walking graph from node " << node_id << " pos " << pos << " for length " << len << endl;
     // walks from position pos in node node for length len bases
-    assert((nodes.at(node_id)->pos.start <= pos && nodes.at(node_id)->pos.end >= pos) || assert_msg(
-            nodes.at(node_id)->pos.start << "<=" << pos << " and " << nodes.at(node_id)->pos.end << ">="
+    assert((nodes.at(node_id)->pos.start <= pos && nodes.at(node_id)->pos.get_end() >= pos) || assert_msg(
+            nodes.at(node_id)->pos.start << "<=" << pos << " and " << nodes.at(node_id)->pos.get_end() << ">="
                                          << pos)); // if this fails, pos given lies on a different node
     vector<Path> return_paths, walk_paths;
     return_paths.reserve(20);
@@ -137,8 +137,8 @@ vector<Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos, cons
     Path p, p2;
     deque<Interval> d;
 
-    //cout << "pos+len: " << pos+len << " nodes.at(node_id)->pos.end: " << nodes.at(node_id)->pos.end << endl;
-    if (pos + len <= nodes.at(node_id)->pos.end) {
+    //cout << "pos+len: " << pos+len << " nodes.at(node_id)->pos.get_end(): " << nodes.at(node_id)->pos.get_end() << endl;
+    if (pos + len <= nodes.at(node_id)->pos.get_end()) {
         d = {Interval(pos, pos + len)};
         p.initialize(d);
         //cout << "return path: " << p << endl;
@@ -146,7 +146,7 @@ vector<Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos, cons
         //cout << "return_paths size: " << return_paths.size() << endl; 
         return return_paths;
     }
-    uint32_t len_added = min(nodes.at(node_id)->pos.end - pos, len);
+    uint32_t len_added = min(nodes.at(node_id)->pos.get_end() - pos, len);
 
     //cout << "len: " << len << " len_added: " << len_added << endl;
     if (len_added < len) {
@@ -159,7 +159,7 @@ vector<Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos, cons
                 // Note, would have just added start interval to each item in walk_paths, but can't seem to force result of it2 to be non-const
                 //cout << (*it2) << endl;
                 p2.initialize(walk_path.path);
-                p2.add_start_interval(Interval(pos, nodes.at(node_id)->pos.end));
+                p2.add_start_interval(Interval(pos, nodes.at(node_id)->pos.get_end()));
                 //cout << "path: " << p2 << " p2.length: " << p2.length << endl;
                 if (p2.length() == len) {
                     return_paths.push_back(p2);
@@ -173,8 +173,8 @@ vector<Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos, cons
 vector<Path> LocalGraph::walk_back(const uint32_t &node_id, const uint32_t &pos, const uint32_t &len) const {
     //cout << "start walking back from " << pos << " in node " << node_id << " for length " << len << endl;
     // walks from position pos in node back through prg for length len bases
-    assert((nodes.at(node_id)->pos.start <= pos && nodes.at(node_id)->pos.end >= pos) || assert_msg(
-            nodes.at(node_id)->pos.start << "<=" << pos << " and " << nodes.at(node_id)->pos.end << ">="
+    assert((nodes.at(node_id)->pos.start <= pos && nodes.at(node_id)->pos.get_end() >= pos) || assert_msg(
+            nodes.at(node_id)->pos.start << "<=" << pos << " and " << nodes.at(node_id)->pos.get_end() << ">="
                                          << pos)); // if this fails, pos given lies on a different node
     vector<Path> return_paths, walk_paths;
     return_paths.reserve(20);
@@ -198,7 +198,7 @@ vector<Path> LocalGraph::walk_back(const uint32_t &node_id, const uint32_t &pos,
         for (auto it = nodes.begin(); it != nodes.find(node_id); ++it) {
             innode = find(it->second->outNodes.begin(), it->second->outNodes.end(), nodes.at(node_id));
             if (innode != it->second->outNodes.end()) {
-                walk_paths = walk_back(it->second->id, it->second->pos.end, len - len_added);
+                walk_paths = walk_back(it->second->id, it->second->pos.get_end(), len - len_added);
                 for (uint i = 0; i != walk_paths.size(); ++i) {
                     p2.initialize(walk_paths[i].path);
                     p2.add_end_interval(Interval(nodes.at(node_id)->pos.start, pos));

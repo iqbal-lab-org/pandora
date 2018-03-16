@@ -26,8 +26,8 @@ bool Minimizer::operator<(const Minimizer &y) const {
     if (pos.start < y.pos.start) { return true; }
     if (y.pos.start < pos.start) { return false; }
 
-    if (pos.end < y.pos.end) { return true; }
-    if (y.pos.end < pos.end) { return false; }
+    if (pos.length < y.pos.length) { return true; }
+    if (y.pos.length < pos.length) { return false; }
 
     if (strand < y.strand) { return false; }
     if (y.strand < strand) { return true; }

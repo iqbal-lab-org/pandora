@@ -9,14 +9,14 @@ TEST(IntervalTest, create) {
     Interval i(0, 0);
     uint32_t j = 0;
     EXPECT_EQ(i.start, j);
-    EXPECT_EQ(i.end, j);
+    EXPECT_EQ(i.get_end(), j);
     EXPECT_EQ(i.length, j);
 
     i = Interval(1, 9);
     j = 1;
     EXPECT_EQ(i.start, j);
     j = 9;
-    EXPECT_EQ(i.end, j);
+    EXPECT_EQ(i.get_end(), j);
     j = 8;
     EXPECT_EQ(i.length, j);
 

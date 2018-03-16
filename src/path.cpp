@@ -14,8 +14,18 @@ void Path::initialize(const deque<Interval> &q) {
     if (q.empty())
         return;
     path = q;
-    start = q.begin()->start;
-    end = path.back().end;
+}
+
+uint32_t Path::get_start() const {
+    if(path.size() < 1)
+        return 0;
+    return path.front().start;
+}
+
+uint32_t Path::get_end() const {
+    if(path.size() < 1)
+        return 0;
+    return path.back().start + (uint32_t) path.back().length;
 }
 
 uint32_t Path::length() const {
@@ -26,16 +36,14 @@ uint32_t Path::length() const {
 }
 
 void Path::add_start_interval(const Interval &i) {
-    assert (i.end <= path.begin()->start || assert_msg(i.end << ">" << path.begin()->start));
+    assert (i.start + (uint32_t) i.length <= get_start() || assert_msg(i.start + (uint32_t) i.length << ">" << get_start()));
     path.push_front(i);
-    start = i.start;
 }
 
 void Path::add_end_interval(const Interval &i) {
-    assert (i.start >= path.back().end || assert_msg(
-            "tried to add interval starting at " << i.start << " to end of path finishing at " << path.back().end));
+    assert (i.start >= get_end() || assert_msg(
+            "tried to add interval starting at " << i.start << " to end of path finishing at " << get_end()));
     path.push_back(i);
-    end = i.end;
 }
 
 Path Path::subpath(const uint32_t start, const uint32_t len) const {
@@ -52,13 +60,13 @@ Path Path::subpath(const uint32_t start, const uint32_t len) const {
             (covered_length == start and interval.length == 0 and p.path.size() == 0)) {
             assert(added_len == 0);
             d = {Interval(interval.start + start - covered_length,
-                          min(interval.end, interval.start + start - covered_length + len - added_len))};
+                          min(interval.get_end(), interval.start + start - covered_length + len - added_len))};
             p.initialize(d);
             added_len += min(len - added_len, interval.length - start + covered_length);
             ///cout << "added first interval " << p.path.back() << " and added length is now " << added_len << endl;
         } else if (covered_length >= start and added_len <= len) {
-            p.add_end_interval(Interval(interval.start, min(interval.end, interval.start + len - added_len)));
-            added_len += min(len - added_len, interval.length);
+            p.add_end_interval(Interval(interval.start, min(interval.get_end(), interval.start + len - added_len)));
+            added_len += min((uint16_t) (len - added_len), interval.length);
             //cout << "added interval " << p.path.back() << " and added length is now " << added_len << endl;
         }
         covered_length += interval.length;
@@ -73,9 +81,8 @@ Path Path::subpath(const uint32_t start, const uint32_t len) const {
 
 bool Path::is_branching(const Path &y) const // returns true if the two paths branch together or coalesce apart
 {
-
     // simple case, one ends before the other starts -> return false
-    if (end < y.start or y.end < start) {
+    if (get_end() < y.get_start() or y.get_end() < get_start()) {
         return false;
     }
 
@@ -97,12 +104,12 @@ bool Path::is_branching(const Path &y) const // returns true if the two paths br
         } else {
             for (it2 = y.path.begin(); it2 != y.path.end(); ++it2) {
                 //cout << *it << " " << *it2 << endl;
-                if ((it->end > it2->start and it->start < it2->end) or (*it == *it2)) {
+                if ((it->get_end() > it2->start and it->start < it2->get_end()) or (*it == *it2)) {
                     // then the paths overlap
                     overlap = true;
                     //cout << "overlap" << endl;
                     // first query the previous intervals if they exist, to see if they overlap
-                    if (it != path.begin() && it2 != y.path.begin() && (--it)->end != (--it2)->end) {
+                    if (it != path.begin() && it2 != y.path.begin() && (--it)->get_end() != (--it2)->get_end()) {
                         //cout << "coal" << endl;
                         return true; // represent coalescent paths at this point
                     } else {
@@ -123,8 +130,8 @@ bool Path::is_branching(const Path &y) const // returns true if the two paths br
 bool Path::is_subpath(const Path& big_path) const
 {
     if (big_path.length() < length()
-        or big_path.start > start
-        or big_path.end < end
+        or big_path.get_start() > get_start()
+        or big_path.get_end() < get_end()
         or is_branching(big_path))
     {
         //cout << "fell at first hurdle " << (big_path.length() < length());
@@ -136,9 +143,9 @@ bool Path::is_subpath(const Path& big_path) const
     uint offset = 0;
     for (auto big_i : big_path.path)
     {
-        if (big_i.end >= start)
+        if (big_i.get_end() >= get_start())
         {
-            offset += start - big_i.start;
+            offset += get_start() - big_i.start;
             if (offset + length() > big_path.length())
             {
                 return false;
@@ -247,7 +254,7 @@ Path get_union(const Path&x, const Path&y)
     Path p;
     assert (x < y);
 
-    if (x.end < y.start or x.is_branching(y))
+    if (x.get_end() < y.get_start() or x.is_branching(y))
     {
         return p;
     } else if (x.path.size() == 0)
@@ -255,7 +262,7 @@ Path get_union(const Path&x, const Path&y)
         return y;
     }
 
-    while (xit != x.path.end() and yit != y.path.end() and xit->end < yit->start)
+    while (xit != x.path.end() and yit != y.path.end() and xit->get_end() < yit->start)
     {
         if (p.path.size() == 0)
         {
@@ -265,14 +272,14 @@ Path get_union(const Path&x, const Path&y)
         }
         xit++;
     }
-    if (xit != x.path.end() and yit != y.path.end() and xit->start <= yit->end)
+    if (xit != x.path.end() and yit != y.path.end() and xit->start <= yit->get_end())
     {
         // then we have overlap
         if (p.path.size() == 0)
         {
-            p.initialize({Interval(xit->start, max(yit->end, xit->end))});
+            p.initialize({Interval(xit->start, max(yit->get_end(), xit->get_end()))});
         } else {
-            p.add_end_interval(Interval(xit->start, max(yit->end, xit->end)));
+            p.add_end_interval(Interval(xit->start, max(yit->get_end(), xit->get_end())));
         }
         while (yit != --y.path.end())
         {

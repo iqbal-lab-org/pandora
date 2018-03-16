@@ -11,11 +11,11 @@
 class Path {
 public:
     std::deque<Interval> path;
-    uint32_t start;
-    uint32_t end;
 
     void initialize(const std::deque<Interval> &);
 
+    uint32_t get_start() const;
+    uint32_t get_end() const;
     uint32_t length() const;
 
     void add_start_interval(const Interval &);

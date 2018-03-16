@@ -6,10 +6,12 @@
 
 struct Interval {
     uint32_t start;
-    uint32_t end; //in pilot, longest prg was 208,562 characters long
-    uint32_t length;
+    uint16_t length;
+    //in pilot, longest prg was 208,562 characters long
 
     Interval(uint32_t= 0, uint32_t= 0);
+
+    uint32_t get_end() const;
 
     friend std::ostream &operator<<(std::ostream &out, const Interval &i);
 

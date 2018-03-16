@@ -38,8 +38,8 @@ bool LocalPRG::isalpha_string(const string &s) const {
 
 string LocalPRG::string_along_path(const Path &p) const {
     //cout << p << endl;
-    assert(p.start <= seq.length());
-    assert(p.end <= seq.length());
+    assert(p.get_start() <= seq.length());
+    assert(p.get_end() <= seq.length());
     string s;
     for (auto it : p.path) {
         s += seq.substr(it.start, it.length);
@@ -67,13 +67,13 @@ vector<LocalNodePtr> LocalPRG::nodes_along_path(const Path &p) const {
         //cout << "looking at interval " << *it << endl;
         // find the appropriate node of the prg
         for (auto n = prg.nodes.begin(); n != prg.nodes.end(); ++n) {
-            if ((it->end > n->second->pos.start and it->start < n->second->pos.end) or
-                (it->start == n->second->pos.start and it->end == n->second->pos.end) or
+            if ((it->get_end() > n->second->pos.start and it->start < n->second->pos.get_end()) or
+                (it->start == n->second->pos.start and it->get_end() == n->second->pos.get_end()) or
                 (it->start == n->second->pos.start and it->length == 0 and it == --(p.path.end()) and
                  n != prg.nodes.begin())) {
                 v.push_back(n->second);
                 //cout << "found node " << *(n->second) << " so return vector size is now " << v.size() << endl;
-            } else if (it->end < n->second->pos.start) {
+            } else if (it->get_end() < n->second->pos.start) {
                 break;
             } // because the local nodes are labelled in order of occurance in the linear prg string, we don't need to search after this
         }
@@ -91,29 +91,29 @@ vector<Interval> LocalPRG::split_by_site(const Interval &i) const {
     string::size_type k = i.start;
     string d = buff + to_string(next_site) + buff;
     string::size_type j = seq.find(d, k);
-    while (j != string::npos and j + d.size() <= i.end) {
+    while (j != string::npos and j + d.size() <= i.get_end()) {
         v.push_back(Interval(k, j));
         k = j + d.size();
         j = seq.find(d, k);
     }
 
-    if (j != string::npos and j < i.end and j + d.size() > i.end) {
+    if (j != string::npos and j < i.get_end() and j + d.size() > i.get_end()) {
         v.push_back(Interval(k, j));
-    } else if (j != string::npos and j + d.size() == i.end) {
+    } else if (j != string::npos and j + d.size() == i.get_end()) {
         v.push_back(Interval(k, j));
         if (seq.find(buff, j + d.size()) == j + d.size()) {
             v.push_back(Interval(j + d.size(), j + d.size()));
         }
     } else {
-        v.push_back(Interval(k, i.end));
+        v.push_back(Interval(k, i.get_end()));
     }
 
     assert(v[0].start >= i.start);
     for (uint32_t l = 1; l != v.size(); ++l) {
-        assert(v[l - 1].end <= v[l].start || assert_msg(
-                v[l - 1].end << ">" << v[l].start << " giving overlapping intervals  " << v[l - 1] << " and " << v[l]));
+        assert(v[l - 1].get_end() <= v[l].start || assert_msg(
+                v[l - 1].get_end() << ">" << v[l].start << " giving overlapping intervals  " << v[l - 1] << " and " << v[l]));
     }
-    assert(v.back().end <= i.end);
+    assert(v.back().get_end() <= i.get_end());
 
     // then split by var site + 1
     vector<Interval> w;
@@ -122,20 +122,20 @@ vector<Interval> LocalPRG::split_by_site(const Interval &i) const {
     for (uint32_t l = 0; l != v.size(); ++l) {
         k = v[l].start;
         j = seq.find(d, k);
-        while (j != string::npos and j + d.size() <= v[l].end) {
+        while (j != string::npos and j + d.size() <= v[l].get_end()) {
             w.push_back(Interval(k, j));
             k = j + d.size();
             j = seq.find(d, k);
         }
-        if (j != string::npos and j < v[l].end and j + d.size() > v[l].end) {
+        if (j != string::npos and j < v[l].get_end() and j + d.size() > v[l].get_end()) {
             w.push_back(Interval(k, j));
-        } else if (j != string::npos and j + d.size() == v[l].end) {
+        } else if (j != string::npos and j + d.size() == v[l].get_end()) {
             w.push_back(Interval(k, j));
             if (seq.find(buff, j + d.size()) == j + d.size()) {
                 v.push_back(Interval(j + d.size(), j + d.size()));
             }
         } else {
-            w.push_back(Interval(k, v[l].end));
+            w.push_back(Interval(k, v[l].get_end()));
         }
     }
     if (v.size() == w.size() && v.size() == 3) {
@@ -147,18 +147,18 @@ vector<Interval> LocalPRG::split_by_site(const Interval &i) const {
         for (uint32_t l = 0; l != w.size() - 1; ++l) {
             x.push_back(w[l]);
         }
-        x.push_back(Interval(w[w.size() - 2].end, w[w.size() - 2].end));
+        x.push_back(Interval(w[w.size() - 2].get_end(), w[w.size() - 2].get_end()));
         x.push_back(w[w.size() - 1]);
         w = x;
     }
 
     assert(w[0].start >= i.start);
     for (uint32_t l = 1; l != w.size(); ++l) {
-        assert(w[l - 1].end <= w[l].start || assert_msg(
-                w[l - 1].end << ">" << w[l].start << " giving overlapping intervals  " << w[l - 1] << " and " << w[l]
+        assert(w[l - 1].get_end() <= w[l].start || assert_msg(
+                w[l - 1].get_end() << ">" << w[l].start << " giving overlapping intervals  " << w[l - 1] << " and " << w[l]
                              << " when splitting seq :" << seq.substr(i.start, i.length)));
     }
-    assert(w.back().end <= i.end);
+    assert(w.back().get_end() <= i.get_end());
     return w;
 }
 
@@ -247,12 +247,10 @@ vector<Path> LocalPRG::shift(Path p) const {
         short_paths.pop_front();
 
         // if we can extend within the same localnode, do
-        if (p.end < n.back()->pos.end) {
-            p.path.back().end += 1;
-            p.end += 1;
+        if (p.get_end() < n.back()->pos.get_end()) {
             p.path.back().length += 1;
             k_paths.push_back(p);
-        } else if (p.end != (--(prg.nodes.end()))->second->pos.end) {
+        } else if (p.get_end() != (--(prg.nodes.end()))->second->pos.get_end()) {
             for (uint i = 0; i != n.back()->outNodes.size(); ++i) {
                 //exp_num_return_seqs += 1;
                 short_paths.push_back(p);
@@ -272,9 +270,9 @@ vector<Path> LocalPRG::shift(Path p) const {
             n = nodes_along_path(p);
             short_paths.pop_front();
 
-            if (n.back()->pos.end == (--(prg.nodes.end()))->second->pos.end) {
+            if (n.back()->pos.get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
                 return_paths.push_back(p);
-            } else if (n.back()->pos.end == p.end) {
+            } else if (n.back()->pos.get_end() == p.get_end()) {
                 for (uint j = 0; j != n.back()->outNodes.size(); ++j) {
                     if (n.back()->outNodes[j]->pos.length == 0) {
                         short_paths.push_back(p);
@@ -353,8 +351,8 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
                 kh = hash.kmerhash(kmer, k);
                 n = nodes_along_path(kmer_path);
 
-                if (prg.walk(n.back()->id, n.back()->pos.end, w + k - 1).empty()) {
-                    while (kmer_path.end >= n.back()->pos.end and n.back()->outNodes.size() == 1 and
+                if (prg.walk(n.back()->id, n.back()->pos.get_end(), w + k - 1).empty()) {
+                    while (kmer_path.get_end() >= n.back()->pos.get_end() and n.back()->outNodes.size() == 1 and
                            n.back()->outNodes[0]->pos.length == 0) {
                         kmer_path.add_end_interval(n.back()->outNodes[0]->pos);
                         n.push_back(n.back()->outNodes[0]);
@@ -390,7 +388,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
         // find all paths which are this kmernode shifted by one place along the graph
         shift_paths = shift(kn->path);
         if (shift_paths.empty()) {
-            //assert(kn->path.start == 0); not true for a too short test, would be true if all paths long enough to have at least 2 minikmers on...
+            //assert(kn->path.get_start() == 0); not true for a too short test, would be true if all paths long enough to have at least 2 minikmers on...
             end_leaves.push_back(kn);
         }
         for (uint i = 0; i != shift_paths.size(); ++i) {
@@ -413,7 +411,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
                     new_kn = kmer_prg.add_node_with_kh(v.back(), min(kh.first, kh.second), num_AT);
                     idx->add_record(min(kh.first, kh.second), id, v.back(), new_kn->id, (kh.first <= kh.second));
                     kmer_prg.add_edge(kn, new_kn);
-                    if (v.back().end == (--(prg.nodes.end()))->second->pos.end) {
+                    if (v.back().get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
                         end_leaves.push_back(new_kn);
                     } else if (find(current_leaves.begin(), current_leaves.end(), new_kn) == current_leaves.end()) {
                         current_leaves.push_back(new_kn);
@@ -421,7 +419,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
                     num_kmers_added += 1;
                 } else {
                     kmer_prg.add_edge(kn, found->second);
-                    if (v.back().end == (--(prg.nodes.end()))->second->pos.end) {
+                    if (v.back().get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
                         end_leaves.push_back(found->second);
                     } else if (find(current_leaves.begin(), current_leaves.end(), found->second) ==
                                current_leaves.end()) {
@@ -455,7 +453,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
                             }
                             mini_found_in_window = true;
 
-                            if (v.back().end == (--(prg.nodes.end()))->second->pos.end) {
+                            if (v.back().get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
                                 end_leaves.push_back(new_kn);
                             } else if (find(current_leaves.begin(), current_leaves.end(), new_kn) ==
                                        current_leaves.end()) {
@@ -467,7 +465,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
                                 kmer_prg.add_edge(kn, found->second);
                             }
                             mini_found_in_window = true;
-                            if (v.back().end == (--(prg.nodes.end()))->second->pos.end) {
+                            if (v.back().get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
                                 end_leaves.push_back(found->second);
                             } else if (find(current_leaves.begin(), current_leaves.end(), found->second) ==
                                        current_leaves.end()) {
@@ -476,7 +474,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
                         }
                     }
                 }
-            } else if (v.back().end == (--(prg.nodes.end()))->second->pos.end) {
+            } else if (v.back().get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
                 end_leaves.push_back(kn);
             } else {
                 shift_paths = shift(v.back());
@@ -491,7 +489,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
 
     // create a null end node, and for each end leaf add an edge to this terminus
     assert(!end_leaves.empty());
-    d = {Interval((--(prg.nodes.end()))->second->pos.end, (--(prg.nodes.end()))->second->pos.end)};
+    d = {Interval((--(prg.nodes.end()))->second->pos.get_end(), (--(prg.nodes.end()))->second->pos.get_end())};
     kmer_path.initialize(d);
     kn = kmer_prg.add_node(kmer_path);
     num_kmers_added += 1;
@@ -522,9 +520,9 @@ vector<KmerNodePtr> LocalPRG::kmernode_path_from_localnode_path(const vector<Loc
 
     for (auto n : kmer_prg.sorted_nodes) {
         for (auto interval : local_path.path) {
-            if (interval.start > n->path.end)
+            if (interval.start > n->path.get_end())
                 break;
-            else if (interval.end < n->path.start)
+            else if (interval.get_end() < n->path.get_start())
                 continue;
             else if (not local_path.is_branching(n->path)) {
                 //and not n.second->path.is_branching(local_path))
@@ -674,8 +672,8 @@ LocalPRG::get_covgs_along_localnode_path(const PanNodePtr pnode,
         if (kmernode_ptr->path.length() == 0)
             continue;
 
-        while (j < localnode_path.size() and localnode_path[j]->pos.end < kmernode_ptr->path.start) {
-            //cout << localnode_path[j]->pos.end << " < " << kmernode_ptr->path.start << endl;
+        while (j < localnode_path.size() and localnode_path[j]->pos.get_end() < kmernode_ptr->path.get_start()) {
+            //cout << localnode_path[j]->pos.get_end() << " < " << kmernode_ptr->path.get_start() << endl;
             j++;
             //cout << "j = " << j << endl;
         }
@@ -683,9 +681,9 @@ LocalPRG::get_covgs_along_localnode_path(const PanNodePtr pnode,
         for (auto interval : kmernode_ptr->path.path) {
             //cout << "k = " << k << " and " << localnode_path[k]->pos << " ~ " << interval << endl;
             assert(localnode_path[k]->pos.start <= interval.start
-                   and localnode_path[k]->pos.end >= interval.end);
+                   and localnode_path[k]->pos.get_end() >= interval.get_end());
             start = interval.start - localnode_path[k]->pos.start;
-            end = min(start + interval.length, localnode_path[k]->pos.end);
+            end = min(start + interval.length, localnode_path[k]->pos.get_end());
             //cout << "add from " << start << " to " << end << endl;
             for (uint l = start; l < end; ++l) {
                 auto it = pnode->kmer_prg.nodes.find(kmernode_ptr->id);
@@ -1078,11 +1076,11 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
             continue;
         else if (prev != nullptr) {
             auto prev_interval_it = prev->path.path.begin();
-            while (prev_interval_it->end < n->path.start) {
+            while (prev_interval_it->get_end() < n->path.get_start()) {
                 added += prev_interval_it->length;
                 prev_interval_it++;
             }
-            added += n->path.start - prev_interval_it->start;
+            added += n->path.get_start() - prev_interval_it->start;
         } else {
             k = n->path.length();
         }
