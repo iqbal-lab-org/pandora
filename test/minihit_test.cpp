@@ -24,7 +24,7 @@ TEST(MinimizerHitTest,create){
     MinimizerHit mh(1, m, mr);
     uint32_t j(1);
     EXPECT_EQ(j, mh.read_id);
-    EXPECT_EQ(Interval(0,5), mh.read_interval);
+    EXPECT_EQ((uint)0, mh.read_start_position);
     j=0;
     EXPECT_EQ(j, mh.prg_id);
     EXPECT_EQ(p, mh.prg_path);

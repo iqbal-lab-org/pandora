@@ -229,7 +229,7 @@ void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
         if ((*mh_current)->read_id != (*mh_previous)->read_id or
             (*mh_current)->prg_id != (*mh_previous)->prg_id or
             (*mh_current)->strand != (*mh_previous)->strand or
-            (abs((int) (*mh_current)->read_interval.start - (int) (*mh_previous)->read_interval.start)) > max_diff) {
+            (abs((int) (*mh_current)->read_start_position - (int) (*mh_previous)->read_start_position)) > max_diff) {
             // keep clusters which cover at least 3/4 the expected number of minihits
             length_based_threshold = min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
                                          short_read_length) * scale_cluster_size;
@@ -297,8 +297,8 @@ void filter_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
         if (((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) && // if on same read and either
             ((((*(*c_current).begin())->prg_id == (*(*c_previous).begin())->prg_id) && // same prg, different strand
               ((*(*c_current).begin())->strand != (*(*c_previous).begin())->strand)) or // or cluster is contained
-             ((*--(*c_current).end())->read_interval.start <=
-              (*--(*c_previous).end())->read_interval.start))) // i.e. not least one hit outside overlap
+             ((*--(*c_current).end())->read_start_position <=
+              (*--(*c_previous).end())->read_start_position))) // i.e. not least one hit outside overlap
             // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, but could also impose no more than 2k hits in overlap
         {
             if (c_previous->size() >= c_current->size()) {
@@ -325,8 +325,8 @@ void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of
 
     auto it = clusters_by_size.begin();
     std::vector<int> read_v(genome_size, 0);
-    //cout << "fill from " << (*(it->begin()))->read_interval.start << " to " << (*--(it->end()))->read_interval.start << endl;
-    fill(read_v.begin() + (*(it->begin()))->read_interval.start, read_v.begin() + (*--(it->end()))->read_interval.start,
+    //cout << "fill from " << (*(it->begin()))->read_start_position << " to " << (*--(it->end()))->read_start_position << endl;
+    fill(read_v.begin() + (*(it->begin()))->read_start_position, read_v.begin() + (*--(it->end()))->read_start_position,
          1);
     bool contained;
     for (auto it_next = ++clusters_by_size.begin();
@@ -335,14 +335,14 @@ void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of
         if ((*(it_next->begin()))->read_id == (*(it->begin()))->read_id) {
             //check if have any 0s in interval of read_v between first and last
             contained = true;
-            for (uint i = (*(it_next->begin()))->read_interval.start;
-                 i < (*--(it_next->end()))->read_interval.start; ++i) {
+            for (uint i = (*(it_next->begin()))->read_start_position;
+                 i < (*--(it_next->end()))->read_start_position; ++i) {
                 //cout << i << ":" << read_v[i] << "\t";
                 if (read_v[i] == 0) {
                     contained = false;
                     //cout << "found unique element at read position " << i << endl;
-                    //cout << "fill from " << i << " to " << (*--(it_next->end()))->read_interval.start << endl;
-                    fill(read_v.begin() + i, read_v.begin() + (*--(it_next->end()))->read_interval.start, 1);
+                    //cout << "fill from " << i << " to " << (*--(it_next->end()))->read_start_position << endl;
+                    fill(read_v.begin() + i, read_v.begin() + (*--(it_next->end()))->read_start_position, 1);
                     break;
                 }
 

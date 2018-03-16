@@ -9,7 +9,7 @@
 
 struct MinimizerHit {
     uint32_t read_id;
-    Interval read_interval;
+    uint32_t read_start_position;
     uint32_t prg_id;
     Path prg_path;
     uint32_t knode_id;
