@@ -473,9 +473,6 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
         infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, scale_cluster_size,
                                        min_cluster_size, short_read_length);
 
-        cout << now() << "Finished with index, so clear " << endl;
-        idx->clear();
-
         cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
         cout << now() << "Added " << id << " reads" << endl;
         covg = covg / genome_size;

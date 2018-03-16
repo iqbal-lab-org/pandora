@@ -205,6 +205,14 @@ int pandora_map(int argc, char *argv[]) {
     uint covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size,
                                         genome_size, illumina, clean);
 
+    cout << now() << "Finished with index, so clear " << endl;
+    idx->clear();
+    delete idx;
+
+    cout << now() << "Finished with minihits, so clear " << endl;
+    mhs->clear();
+    delete mhs;
+
     cout << now() << "Writing pangenome::Graph to file " << prefix << ".pangraph.gfa" << endl;
     write_pangraph_gfa(prefix + ".pangraph.gfa", pangraph);
 
@@ -252,10 +260,7 @@ int pandora_map(int argc, char *argv[]) {
         //prgs[j]->prg.write_gfa(prefix + "_" + prgs[j]->name + ".gfa");
         delete prgs[j];
     }
-    idx->clear();
-    delete idx;
-    mhs->clear();
-    delete mhs;
+
     pangraph->clear();
     delete pangraph;
 
