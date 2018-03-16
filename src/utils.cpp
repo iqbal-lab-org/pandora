@@ -145,6 +145,7 @@ void read_prg_file(vector<LocalPRG *> &prgs, const string &filepath) {
 }
 
 void load_PRG_kmergraphs(vector<LocalPRG *> &prgs, const uint &w, const uint &k, const string &prgfile) {
+    cout << now() << "Loading kmer_prgs from files " << endl;
     string prefix = "";
     size_t pos = prgfile.find_last_of("/");
     if (pos != std::string::npos) {
@@ -431,6 +432,12 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
                     //cout << now() << "Add read hits" << endl;
                     add_read_hits(s, mh, idx);
                     id++;
+
+                    if (mh->uhits.size() > 4 * idx->minhash.size()){
+                        cout << now() << "Infer gene orders and add to pangenome::Graph" << endl;
+                        infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size,
+                                                       scale_cluster_size, min_cluster_size, short_read_length);
+                    }
                 }
                 name.clear();
                 read.clear();
