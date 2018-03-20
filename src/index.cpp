@@ -21,7 +21,7 @@ void Index::add_record(const uint64_t kmer, const uint32_t prg_id, const Path pa
     if (it == minhash.end()) {
         auto *newv = new vector<MiniRecord>;
         newv->reserve(20);
-        newv->push_back(MiniRecord(prg_id, path, knode_id, strand));
+        newv->emplace_back(MiniRecord(prg_id, path, knode_id, strand));
         minhash.insert(pair<uint64_t, vector<MiniRecord> *>(kmer, newv));
         //cout << "New minhash size: " << minhash.size() << endl; 
     } else {
