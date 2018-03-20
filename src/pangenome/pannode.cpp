@@ -61,8 +61,7 @@ string Node::get_name() const {
 
 void Node::add_path(const vector<KmerNodePtr> &kmp) {
     for (uint i = 0; i != kmp.size(); ++i) {
-        assert(kmer_prg.nodes.find(kmp[i]->id) != kmer_prg.nodes.end() ||
-               assert_msg("Must have wrong kmergraph as has different nodes"));
+        assert(kmp[i]->id < kmer_prg.nodes.size() and kmer_prg.nodes[kmp[i]->id]!=nullptr);
         kmer_prg.nodes[kmp[i]->id]->covg[0] += 1;
         kmer_prg.nodes[kmp[i]->id]->covg[1] += 1;
     }

@@ -17,7 +17,6 @@ class LocalPRG;
 
 class KmerGraph {
     uint reserved_size;
-    uint32_t next_id;
     uint32_t k;
     float p;
     float nb_p;
@@ -26,7 +25,7 @@ class KmerGraph {
 public:
     uint32_t num_reads;
     uint32_t shortest_path_length;
-    std::unordered_map<uint32_t, KmerNodePtr> nodes;
+    std::vector<KmerNodePtr> nodes;
     std::vector<KmerNodePtr> sorted_nodes; // representing ordering of the nodes compatible with dp
 
     KmerGraph();
@@ -109,7 +108,7 @@ struct condition {
 
     condition(const Path &);
 
-    bool operator()(const std::pair<uint32_t, KmerNodePtr> &) const;
+    bool operator()(const KmerNodePtr) const;
 };
 
 struct pCompKmerNode {

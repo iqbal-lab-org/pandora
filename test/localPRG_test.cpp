@@ -796,7 +796,7 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path)
     pn3->kmer_prg = l3.kmer_prg;
     for (auto n : pn3->kmer_prg.nodes)
     {
-        n.second->covg[0] += 1;
+        n->covg[0] += 1;
     }
     vector<uint> covgs = l3.get_covgs_along_localnode_path(pn3, lmp, kmp);
     vector<uint> covgs_exp = {0,1,1,1};
@@ -810,7 +810,7 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path)
     pn4->kmer_prg = l4.kmer_prg;
     for (auto n : pn4->kmer_prg.nodes)
     {
-        n.second->covg[0] += 1;
+        n->covg[0] += 1;
     }
     covgs = l4.get_covgs_along_localnode_path(pn4, lmp, kmp);
     //covgs_exp = {1,2,3,3,3,3,3,3,3,3,3,3,2,1};
@@ -845,7 +845,7 @@ TEST(LocalPRGTest, write_covgs_to_file)
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3,3,"3"));
     pn3->kmer_prg = l3.kmer_prg;
     for (auto n : pn3->kmer_prg.nodes) {
-        n.second->covg[0]+=1;
+        n->covg[0]+=1;
     }
     vector<uint> covgs = l3.get_covgs_along_localnode_path(pn3, lmp, kmp);
     vector<uint> covgs_exp = {0,1,1,1};
@@ -1243,7 +1243,7 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range)
 
     for (auto n : l3.kmer_prg.nodes)
     {
-        cout << *n.second;
+        cout << *n;
     }
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0], l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[5], l3.kmer_prg.nodes[8],
                                l3.kmer_prg.nodes[10], l3.kmer_prg.nodes[11]};

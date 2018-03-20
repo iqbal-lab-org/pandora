@@ -314,7 +314,6 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
     KmerHash hash;
     uint num_kmers_added = 0;
     KmerNodePtr kn, new_kn;
-    unordered_map<uint32_t, KmerNodePtr>::const_iterator found;
     vector<LocalNodePtr> n;
     bool mini_found_in_window;
     size_t num_AT = 0;
@@ -360,7 +359,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
                 }
 
                 if (kh.first == smallest or kh.second == smallest) {
-                    found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(kmer_path));
+                    const auto found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(kmer_path));
                     if (found == kmer_prg.nodes.end()) {
                         // add to index, kmer_prg
                         num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
@@ -405,7 +404,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
             kh = hash.kmerhash(kmer, k);
             if (min(kh.first, kh.second) <= kn->khash) {
                 // found next minimizer
-                found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v.back()));
+                const auto found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v.back()));
                 if (found == kmer_prg.nodes.end()) {
                     num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
                     new_kn = kmer_prg.add_node_with_kh(v.back(), min(kh.first, kh.second), num_AT);
@@ -418,12 +417,12 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
                     }
                     num_kmers_added += 1;
                 } else {
-                    kmer_prg.add_edge(kn, found->second);
+                    kmer_prg.add_edge(kn, *found);
                     if (v.back().get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
-                        end_leaves.push_back(found->second);
-                    } else if (find(current_leaves.begin(), current_leaves.end(), found->second) ==
+                        end_leaves.push_back(*found);
+                    } else if (find(current_leaves.begin(), current_leaves.end(), *found) ==
                                current_leaves.end()) {
-                        current_leaves.push_back(found->second);
+                        current_leaves.push_back(*found);
                     }
                 }
             } else if (v.size() == w) {
@@ -440,7 +439,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
                     kmer = string_along_path(v[j]);
                     kh = hash.kmerhash(kmer, k);
                     if (kh.first == smallest or kh.second == smallest) {
-                        found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v[j]));
+                        const auto found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v[j]));
                         if (found == kmer_prg.nodes.end()) {
                             num_AT = std::count(kmer.begin(), kmer.end(), 'A') +
                                      std::count(kmer.begin(), kmer.end(), 'T');
@@ -462,14 +461,14 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
                             num_kmers_added += 1;
                         } else {
                             if (!mini_found_in_window) {
-                                kmer_prg.add_edge(kn, found->second);
+                                kmer_prg.add_edge(kn, *found);
                             }
                             mini_found_in_window = true;
                             if (v.back().get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
-                                end_leaves.push_back(found->second);
-                            } else if (find(current_leaves.begin(), current_leaves.end(), found->second) ==
+                                end_leaves.push_back(*found);
+                            } else if (find(current_leaves.begin(), current_leaves.end(), *found) ==
                                        current_leaves.end()) {
-                                current_leaves.push_back(found->second);
+                                current_leaves.push_back(*found);
                             }
                         }
                     }
@@ -686,9 +685,8 @@ LocalPRG::get_covgs_along_localnode_path(const PanNodePtr pnode,
             end = min(start + interval.length, localnode_path[k]->pos.get_end());
             //cout << "add from " << start << " to " << end << endl;
             for (uint l = start; l < end; ++l) {
-                auto it = pnode->kmer_prg.nodes.find(kmernode_ptr->id);
-                if (it != pnode->kmer_prg.nodes.end())
-                    coverages[k][l] = max(coverages[k][l], pnode->kmer_prg.nodes[kmernode_ptr->id]->covg[0] +
+                assert(kmernode_ptr->id < pnode->kmer_prg.nodes.size() and pnode->kmer_prg.nodes[kmernode_ptr->id]!=nullptr);
+                coverages[k][l] = max(coverages[k][l], pnode->kmer_prg.nodes[kmernode_ptr->id]->covg[0] +
                                                            pnode->kmer_prg.nodes[kmernode_ptr->id]->covg[1]);
             }
             k++;
@@ -1088,12 +1086,9 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
         //cout << "pos_from:" << pos_from << " < added + k:" << added + k << " and added: " << added << " < pos_to:" << pos_to << endl;
 
         if (pos_from <= added + k and added < pos_to) {
-            auto it = kg.nodes.find(n->id);
-            if (it != kg.nodes.end()) {
-                //cout << "id " << n->id << " " << *kg.nodes.at(n->id) << endl;
-                fwd_covgs.push_back(kg.nodes.at(n->id)->covg[0]);
-                rev_covgs.push_back(kg.nodes.at(n->id)->covg[1]);
-            }
+            assert(n->id < kg.nodes.size() and kg.nodes[n->id]!=nullptr);
+            fwd_covgs.push_back(kg.nodes.at(n->id)->covg[0]);
+            rev_covgs.push_back(kg.nodes.at(n->id)->covg[1]);
         } else if (added > pos_to)
             break;
 
