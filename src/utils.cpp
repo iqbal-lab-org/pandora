@@ -433,7 +433,7 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
                     add_read_hits(s, mh, idx);
                     id++;
 
-                    if (mh->uhits.size() > 4 * idx->minhash.size()){
+                    if (mh->uhits.size() > 90000){
                         cout << now() << "Infer gene orders and add to pangenome::Graph" << endl;
                         pangraph->reserve_num_reads(id);
                         infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size,

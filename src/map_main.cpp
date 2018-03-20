@@ -199,7 +199,7 @@ int pandora_map(int argc, char *argv[]) {
 
     cout << now() << "Constructing pangenome::Graph from read file (this will take a while)" << endl;
     MinimizerHits *mhs;
-    mhs = new MinimizerHits(5 * idx->minhash.size());
+    mhs = new MinimizerHits(100000);
     pangenome::Graph *pangraph;
     pangraph = new pangenome::Graph();
     uint covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size,
