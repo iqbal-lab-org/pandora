@@ -17,6 +17,7 @@ FastaqHandler::FastaqHandler(const string& filepath) : num_reads_parsed(0) {
 void FastaqHandler::get_next(){
     if (!line.empty() and (line[0] == '>' or line[0] == '@')) {
         name = line.substr(1);
+        ++num_reads_parsed;
         read.clear();
     }
 
@@ -24,9 +25,11 @@ void FastaqHandler::get_next(){
         if (line.empty() || line[0] == '>' || line[0] == '@') {
             if (!read.empty()) // ok we'll allow reads with no name, removed
             {
-                ++num_reads_parsed;
                 return;
             }
+            name = line.substr(1);
+            ++num_reads_parsed;
+            read.clear();
         } else if (line[0] == '+') {
             //skip this line and the qual score line
             getline(fastaq_file, line);
@@ -38,12 +41,20 @@ void FastaqHandler::get_next(){
 
 void FastaqHandler::get_id(const uint32_t& id){
     if (id < num_reads_parsed) {
+        num_reads_parsed = 0;
+        name.clear();
+        read.clear();
+        line.clear();
         fastaq_file.clear();
         fastaq_file.seekg(0, fastaq_file.beg);
     }
 
-    while (num_reads_parsed < id)
+    while (num_reads_parsed <= id){
         get_next();
+        int c = fastaq_file.peek();
+        if (c == EOF)
+            break;
+    }
 }
 
 void FastaqHandler::close(){

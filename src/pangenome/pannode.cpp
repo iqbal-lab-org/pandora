@@ -82,10 +82,10 @@ void Node::get_read_overlap_coordinates(vector<vector<uint32_t>>& read_overlap_c
             continue;
 
         auto hit_ptr_iter = read_ptr->hits.at(prg_id).begin();
-        auto start = (*hit_ptr_iter)->prg_path.get_start();
+        auto start = (*hit_ptr_iter)->read_start_position;
 
         hit_ptr_iter = --(read_ptr->hits.at(prg_id).end());
-        auto end = (*hit_ptr_iter)->prg_path.get_end();
+        auto end = (*hit_ptr_iter)->read_start_position + (*hit_ptr_iter)->prg_path.length();
 
         assert(end > start);
         coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->strand};

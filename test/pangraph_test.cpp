@@ -11,6 +11,7 @@
 #include <numeric>
 #include <cassert>
 #include <iostream>
+#include <fstream>
 
 using namespace pangenome;
 
@@ -625,5 +626,67 @@ TEST(PangenomeGraphTest, save_matrix) {
     pg.add_node(1, "one", "sample1", kmp, l0);
     pg.add_node(2, "two", "sample3", kmp, l0);
 
-    pg.save_matrix("../test/test_cases/pangraph_test_save.matrix");
+    pg.save_matrix("../../test/test_cases/pangraph_test_save.matrix");
+}
+
+TEST(PangenomeGraphTest, save_mapped_read_strings) {
+    PGraphTester pg;
+    pangenome::ReadPtr pr;
+    MinimizerHits mhits;
+
+    Minimizer m;
+    deque<Interval> d;
+    Path p;
+    MiniRecord* mr;
+
+    // read1
+    m = Minimizer(0,1,6,0); // kmer, start, end, strand
+    d = {Interval(7,8), Interval(10, 14)};
+    p.initialize(d);
+    mr = new MiniRecord(0,p,0,0);
+    mhits.add_hit(1, m, mr); // read 1
+
+    m = Minimizer(0,0,5,0);
+    d = {Interval(6,10), Interval(11, 12)};
+    p.initialize(d);
+    delete mr;
+    mr = new MiniRecord(0,p,0,0);
+    mhits.add_hit(1, m, mr);
+
+    d = {Interval(6,10), Interval(12, 13)};
+    p.initialize(d);
+    delete mr;
+    mr = new MiniRecord(0,p,0,0);
+    mhits.add_hit(1, m, mr);
+
+    mhits.sort();
+    pg.add_node(0,"zero", 1, mhits.hits);
+    mhits.clear();
+
+    //read 2
+    m = Minimizer(0,2,7,1);
+    d = {Interval(6,10), Interval(11, 12)};
+    p.initialize(d);
+    delete mr;
+    mr = new MiniRecord(0,p,0,0);
+    mhits.add_hit(2, m, mr);
+
+    m = Minimizer(0,5,10,1);
+    d = {Interval(6,10), Interval(12, 13)};
+    p.initialize(d);
+    delete mr;
+    mr = new MiniRecord(0,p,0,0);
+    mhits.add_hit(2, m, mr);
+
+    mhits.sort();
+    delete mr;
+    pg.add_node(0,"zero", 2, mhits.hits);
+
+    pg.save_mapped_read_strings("../../test/test_cases/reads.fa", "save_mapped_read_strings");
+
+    string expected1 = ">read1 0:6 + \nshould\n>read2 2:10 - \nis time \n";
+    string expected2 = ">read2 2:10 - \nis time \n>read1 0:6 + \nshould\n";
+    ifstream ifs("save_mapped_read_strings.zero.reads.fa");
+    string content( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()) );
+    EXPECT_TRUE((content == expected1) or (content == expected2));
 }
