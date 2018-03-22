@@ -1,6 +1,8 @@
 #ifndef __NOISEFILTERING_H_INCLUDED__   // if noise_filtering.h hasn't been included yet...
 #define __NOISEFILTERING_H_INCLUDED__
 
+#include <string>
+#include <cstdint>
 #include "pangenome/pangraph.h"
 #include "de_bruijn/graph.h"
 

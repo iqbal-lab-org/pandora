@@ -5,15 +5,13 @@
 #include <utility>
 #include <vector>
 #include <fstream>
+#include <cassert>
 #include "utils.h"
 #include "pangenome/pangraph.h"
+#include "pangenome/pannode.h"
 #include "pangenome/panread.h"
 #include "de_bruijn/graph.h"
-#include <cassert>
 #include "minihit.h"
-
-
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
 

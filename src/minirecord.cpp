@@ -1,18 +1,14 @@
 #include <cassert>
 #include <functional>
 #include <iostream>
-#include <cstring>
 #include "minirecord.h"
-#include "path.h"
 
 using namespace std;
 
 MiniRecord::MiniRecord() {};
 
 MiniRecord::MiniRecord(const uint32_t p, const Path q, const uint32_t n, const bool c) : prg_id(p), path(q),
-                                                                                         knode_id(n), strand(c) {
-    //path.initialize(q.path);
-};
+                                                                                         knode_id(n), strand(c) {};
 
 MiniRecord::~MiniRecord() {};
 

@@ -1,11 +1,5 @@
-#include <iostream>
-#include <functional>
 #include <cassert>
-#include <vector>
 #include "path.h"
-#include "interval.h"
-
-
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 

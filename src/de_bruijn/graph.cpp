@@ -7,8 +7,8 @@
 #include <iostream>
 #include <memory>
 #include <cassert>
+#include <algorithm>
 #include "de_bruijn/graph.h"
-#include "de_bruijn/node.h"
 #include "noise_filtering.h"
 #include "utils.h"
 

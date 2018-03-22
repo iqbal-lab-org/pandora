@@ -1,9 +1,13 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
+#include <algorithm>
 #include "pangenome/pannode.h"
 #include "pangenome/pansample.h"
+#include "pangenome/panread.h"
+#include "minihit.h"
 #include "utils.h"
+#include "localPRG.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -64,6 +68,28 @@ void Node::add_path(const vector<KmerNodePtr> &kmp) {
         assert(kmp[i]->id < kmer_prg.nodes.size() and kmer_prg.nodes[kmp[i]->id]!=nullptr);
         kmer_prg.nodes[kmp[i]->id]->covg[0] += 1;
         kmer_prg.nodes[kmp[i]->id]->covg[1] += 1;
+    }
+}
+
+void Node::get_read_overlap_coordinates(vector<vector<uint32_t>>& read_overlap_coordinates)
+{
+    read_overlap_coordinates.reserve(reads.size());
+    vector<uint32_t> coordinate;
+
+    for (const auto read_ptr : reads)
+    {
+        if (read_ptr->hits.at(prg_id).size() < 2)
+            continue;
+
+        auto hit_ptr_iter = read_ptr->hits.at(prg_id).begin();
+        auto start = (*hit_ptr_iter)->prg_path.get_start();
+
+        hit_ptr_iter = --(read_ptr->hits.at(prg_id).end());
+        auto end = (*hit_ptr_iter)->prg_path.get_end();
+
+        assert(end > start);
+        coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->strand};
+        read_overlap_coordinates.emplace_back(coordinate);
     }
 }
 

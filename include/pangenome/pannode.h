@@ -2,13 +2,11 @@
 #define __PANNODE_H_INCLUDED__
 
 #include <string>
+#include <cstdint>
 #include <unordered_set>
 #include <vector>
 #include "kmergraph.h"
 #include "pangenome/ns.cpp"
-
-
-class KmerNode;
 
 class LocalPRG;
 
@@ -31,6 +29,8 @@ public:
     std::string get_name() const;
 
     void add_path(const std::vector<KmerNodePtr> &);
+
+    void get_read_overlap_coordinates(std::vector<std::vector<uint32_t>>&);
 
     void output_samples(const LocalPRG *, const std::string &, const uint, const std::string &);
 

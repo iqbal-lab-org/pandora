@@ -1,9 +1,6 @@
 #include <iostream>
-#include <cstring>
-#include <functional>
 #include <cassert>
 #include <cmath>
-#include <stdint.h>
 #include "minimizer.h"
 #include "path.h"
 #include "interval.h"

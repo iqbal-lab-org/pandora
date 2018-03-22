@@ -1,17 +1,15 @@
-#include <iostream>
 #include <sstream>
 #include <fstream>
 #include <cassert>
-#include <vector>
 #include <limits>
 #include <cstdio>      /* NULL */
 #include <cstdlib>     /* srand, rand */
-#include <ctime>       /* time */
 #include <cmath>
 #include <boost/math/distributions/negative_binomial.hpp>
 #include "utils.h"
 #include "kmernode.h"
 #include "kmergraph.h"
+#include "localPRG.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 

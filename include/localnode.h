@@ -1,21 +1,18 @@
 #ifndef __LOCALNODE_H_INCLUDED__   // if localnode.h hasn't been included yet...
 #define __LOCALNODE_H_INCLUDED__
 
-#include <string>
+#include <cstring>
+#include <cstdint>
 #include <vector>
 #include <unordered_set>
 #include <ostream>
-#include <algorithm>
 #include <memory>
 #include "interval.h"
 #include "path.h"
-
-class KmerNode;
+#include "kmernode.h"
 
 class LocalNode;
-
 typedef std::shared_ptr<LocalNode> LocalNodePtr;
-typedef std::shared_ptr<KmerNode> KmerNodePtr;
 
 class LocalNode {
     std::unordered_set<KmerNodePtr> prev_kmer_paths;

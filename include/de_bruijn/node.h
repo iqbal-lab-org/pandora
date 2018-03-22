@@ -1,6 +1,7 @@
 #ifndef __DBNODE_H_INCLUDED__   // if de_bruijn/node.h hasn't been included yet...
 #define __DBNODE_H_INCLUDED__
 
+#include <cstdint>
 #include <deque>
 #include <unordered_set>
 #include <memory>

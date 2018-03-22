@@ -6,6 +6,7 @@
 #include <set>
 #include <memory>
 #include <utility>
+#include <algorithm>
 #include "pangenome/panread.h"
 #include "pangenome/pannode.h"
 #include "minihits.h"

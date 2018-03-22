@@ -9,17 +9,11 @@
  * 4. Change structure so not copying minimzers etc, but use pointers
  */
 #include <iostream>
-#include <ctime>
-#include <cstring>
 #include <vector>
 #include <set>
-#include <tuple>
-#include <functional>
-#include <ctype.h>
-#include <fstream>
 #include <algorithm>
 #include <map>
-#include <assert.h>
+#include <cassert>
 
 #include "utils.h"
 #include "localPRG.h"

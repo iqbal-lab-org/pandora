@@ -2,6 +2,7 @@
 #define __SEQ_H_INCLUDED__
 
 #include <string>
+#include <cstdint>
 #include <set>
 #include <ostream>
 #include "minimizer.h"

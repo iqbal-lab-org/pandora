@@ -2,7 +2,7 @@
 #define __MINIRECORD_H_INCLUDED__
 
 #include <iostream>
-#include <algorithm>
+#include <cstdint>
 #include "path.h"
 
 struct MiniRecord {

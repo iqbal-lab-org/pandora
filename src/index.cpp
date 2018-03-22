@@ -2,6 +2,7 @@
 #include <fstream>
 #include <unordered_map>
 #include <vector>
+#include <algorithm>
 #include "minirecord.h"
 #include "index.h"
 #include "utils.h"

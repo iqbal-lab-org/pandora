@@ -1,9 +1,10 @@
 #ifndef __PANSAMPLE_H_INCLUDED__   // if pansample.h hasn't been included yet...
 #define __PANSAMPLE_H_INCLUDED__
 
+#include <string>
+#include <cstdint>
 #include <vector>
 #include <unordered_map>
-#include <memory>
 #include "pangenome/ns.cpp"
 
 class KmerNode;

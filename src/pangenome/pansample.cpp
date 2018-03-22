@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cassert>
 #include <unordered_set>
+#include <algorithm>
 #include "pangenome/pansample.h"
 #include "pangenome/pannode.h"
 

@@ -1,8 +1,8 @@
 #ifndef __INDEX_H_INCLUDED__   // if index.h hasn't been included yet...
 #define __INDEX_H_INCLUDED__
 
-#include <stdint.h>
-#include <ostream>
+#include <cstring>
+#include <cstdint>
 #include <vector>
 #include <unordered_map>
 #include "minirecord.h"

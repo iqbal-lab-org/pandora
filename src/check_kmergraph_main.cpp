@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include "utils.h"
+#include "localPRG.h"
 
 using namespace std;
 

@@ -1,7 +1,5 @@
 #include <cassert>
-#include <functional>
 #include <iostream>
-#include <cstring>
 #include "vcfrecord.h"
 
 using namespace std;

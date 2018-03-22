@@ -3,9 +3,8 @@
 
 #include <deque>
 #include <vector>
-#include <cstdint> //or <stdint.h>
 #include <iostream>
-#include <functional>
+#include <cstdint>
 #include "interval.h"
 
 

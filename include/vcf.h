@@ -1,10 +1,11 @@
 #ifndef __VCF_H_INCLUDED__   // if vcf.h hasn't been included yet...
 #define __VCF_H_INCLUDED__
 
-#include <stdint.h>
 #include <ostream>
 #include <vector>
 #include <memory>
+#include <string>
+#include <cstdint>
 #include "vcfrecord.h"
 
 class LocalNode;

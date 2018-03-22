@@ -1,6 +1,7 @@
 #ifndef __INTHASH_H_INCLUDED__   // if inthash.h hasn't been included yet...
 #define __INTHASH_H_INCLUDED__
 
+#include <cstring>
 #include <cstdint>
 #include <unordered_map>
 

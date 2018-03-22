@@ -1,7 +1,8 @@
 #ifndef __ESTIMATEPARAMETERS_H_INCLUDED__   // if estimate_parameters.h hasn't been included yet...
 #define __ESTIMATEPARAMETERS_H_INCLUDED__
 
-class LocalPRG;
+#include <cstring>
+#include <cstdint>
 
 uint find_mean_covg(std::vector<uint> &);
 

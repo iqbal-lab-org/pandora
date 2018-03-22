@@ -1,4 +1,3 @@
-#include <iostream>
 #include <limits>
 #include <cassert>
 #include "interval.h"

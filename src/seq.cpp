@@ -1,10 +1,6 @@
 #include <iostream>
-#include <cassert>
-#include <algorithm>
-#include <string>
 #include <vector>
-#include <set>
-#include <stdint.h>
+#include <cassert>
 #include "inthash.h"
 #include "minimizer.h"
 #include "seq.h"

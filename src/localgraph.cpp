@@ -1,8 +1,7 @@
-#include <iostream>
-#include <map>
 #include <fstream>
 #include <cassert>
-#include <vector>
+#include <algorithm>
+#include "localgraph.h"
 #include "utils.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)

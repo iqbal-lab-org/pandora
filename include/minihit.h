@@ -1,9 +1,8 @@
 #ifndef __MINIHIT_H_INCLUDED__   // if minihit.h hasn't been included yet...
 #define __MINIHIT_H_INCLUDED__
 
-#include <functional>
-#include <stdint.h>
 #include <ostream>
+#include <cstdint>
 #include "minimizer.h"
 #include "minirecord.h"
 

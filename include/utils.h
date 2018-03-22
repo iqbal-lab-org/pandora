@@ -4,14 +4,14 @@
 #include <vector>
 #include <set>
 #include <memory>
-#include <cstring>
 #include <unordered_map>
-#include "localPRG.h"
+#include <cstdint>
+#include <string>
+#include <limits>
 #include "minihits.h"
+#include "pangenome/pangraph.h"
 
 class Index;
-
-struct MinimizerHit;
 
 class PanNode;
 
@@ -19,7 +19,7 @@ class LocalPRG;
 
 class Seq;
 
-typedef unordered_map<std::string, std::string> VCFRefs;
+typedef std::unordered_map<std::string, std::string> VCFRefs;
 
 template<typename T>
 struct pointer_values_equal {

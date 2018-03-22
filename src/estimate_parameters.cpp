@@ -4,8 +4,10 @@
 #include <cmath>
 #include <cassert>
 #include <numeric>
+#include <algorithm>
 #include "utils.h"
 #include "pangenome/pangraph.h"
+#include "pangenome/pannode.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 

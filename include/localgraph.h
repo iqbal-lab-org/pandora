@@ -1,12 +1,11 @@
 #ifndef __LOCALGRAPH_H_INCLUDED__   // if localgraph.h hasn't been included yet...
 #define __LOCALGRAPH_H_INCLUDED__
 
-class LocalNode;
-
-#include <cstring>
 #include <map>
 #include <vector>
 #include <iostream>
+#include <cstring>
+#include <cstdint>
 #include "interval.h"
 #include "path.h"
 #include "localnode.h"

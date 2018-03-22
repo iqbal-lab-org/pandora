@@ -1,10 +1,10 @@
 #ifndef __KMERNODE_H_INCLUDED__   // if kmernode.h hasn't been included yet...
 #define __KMERNODE_H_INCLUDED__
 
-class LocalPRG;
-
 class KmerNode;
 
+#include <cstring>
+#include <cstdint>
 #include <vector>
 #include <ostream>
 #include <memory>

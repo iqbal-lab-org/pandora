@@ -3,7 +3,6 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
-#include <cstring>
 #include "minihits.h"
 #include "minihit.h"
 #include "minirecord.h"

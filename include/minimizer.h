@@ -1,10 +1,8 @@
 #ifndef __MINIMIZER_H_INCLUDED__   // if minimizer.h hasn't been included yet...
 #define __MINIMIZER_H_INCLUDED__
 
-#include <string>
-#include <functional>
 #include <ostream>
-#include <stdint.h>
+#include <cstdint>
 #include "interval.h"
 
 struct Minimizer {

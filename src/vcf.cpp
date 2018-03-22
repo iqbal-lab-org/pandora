@@ -4,6 +4,7 @@
 #include <cassert>
 #include <ctime>
 #include <vector>
+#include <algorithm>
 #include "vcfrecord.h"
 #include "vcf.h"
 #include "utils.h"

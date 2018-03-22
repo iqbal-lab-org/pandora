@@ -2,8 +2,9 @@
 #define __VCFRECORD_H_INCLUDED__
 
 #include <iostream>
-#include <algorithm>
 #include <vector>
+#include <string>
+#include <cstdint>
 
 struct VCFRecord {
     //#CHROM POS ID REF ALT QUAL FILTER INFO FORMAT

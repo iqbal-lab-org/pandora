@@ -11,17 +11,15 @@
 
 #include <iostream>
 #include <sstream>
-#include <ctime>
-#include <cstring>
 #include <vector>
 #include <set>
 #include <tuple>
 #include <functional>
-#include <ctype.h>
+#include <cctype>
 #include <fstream>
 #include <algorithm>
 #include <map>
-#include <assert.h>
+#include <cassert>
 
 #include "utils.h"
 #include "localPRG.h"

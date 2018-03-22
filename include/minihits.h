@@ -1,15 +1,13 @@
 #ifndef __MINIHITS_H_INCLUDED__   // if minihits.h hasn't been included yet...
 #define __MINIHITS_H_INCLUDED__
 
-struct MinimizerHit;
-
 #include <set>
 #include <unordered_set>
-#include <cstdint>
 #include <memory>
 #include "minimizer.h"
 #include "minirecord.h"
 
+struct MinimizerHit;
 typedef std::shared_ptr<MinimizerHit> MinimizerHitPtr;
 
 struct pComp {

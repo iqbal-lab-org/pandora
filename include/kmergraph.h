@@ -1,14 +1,10 @@
 #ifndef __KMERGRAPH_H_INCLUDED__   // if kmergraph.h hasn't been included yet...
 #define __KMERGRAPH_H_INCLUDED__
 
-class KmerNode;
-
 class LocalPRG;
 
-#include <cstring>
-#include <map>
+#include <cstdint>
 #include <vector>
-#include <unordered_map>
 #include <iostream>
 #include "path.h"
 #include "kmernode.h"

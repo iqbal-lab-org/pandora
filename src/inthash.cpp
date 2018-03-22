@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include <iostream>
 #include <cassert>
 #include <cmath>

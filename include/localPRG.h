@@ -1,24 +1,18 @@
 #ifndef __LOCALPRG_H_INCLUDED__   // if localPRG.h hasn't been included yet...
 #define __LOCALPRG_H_INCLUDED__
 
-#include <string>
+#include <cstring>
+#include <cstdint>
 #include <vector>
-#include <tuple>
-#include <set>
-#include <ostream>
-#include "minimizer.h"
+#include <iostream>
+#include <memory>
 #include "interval.h"
+#include "index.h"
 #include "localgraph.h"
 #include "path.h"
-#include "index.h"
-#include "minihits.h"
 #include "pangenome/pannode.h"
 #include "kmergraph.h"
 #include "vcf.h"
-
-class LocalNode;
-
-class KmerNode;
 
 typedef std::shared_ptr<pangenome::Node> PanNodePtr;
 

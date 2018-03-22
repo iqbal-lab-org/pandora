@@ -1,6 +1,4 @@
-#include <iostream>
 #include <fstream>
-#include <vector>
 #include <set>
 #include <cassert>
 #include <cmath>
