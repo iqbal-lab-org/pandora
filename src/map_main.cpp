@@ -46,6 +46,7 @@ static void show_map_usage() {
               << "\t\t\t\t\tVCF. Must have a perfect match in the graph and the same name as the graph\n"
               << "\t--output_comparison_paths\tSave a fasta file for a random selection of paths through localPRG\n"
               << "\t--output_covgs\tSave a file of covgs for each localPRG present, one number per base of fasta file\n"
+              << "\t--output_mapped_read_fa\tSave a file for each gene containing read parts which overlapped it\n"
               << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is shorter with low error rate\n"
               << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
               << "\t--nbin\t\t\tUse negative binomial model for kmer coverages\n"
@@ -65,7 +66,8 @@ int pandora_map(int argc, char *argv[]) {
     int max_diff = 250;
     float e_rate = 0.11;
     bool output_kg = false, output_vcf = false;
-    bool output_comparison_paths = false, illumina = false, clean = false;
+    bool output_comparison_paths = false, output_mapped_read_fa = false;
+    bool illumina = false, clean = false;
     bool output_covgs = false, nbin = false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
@@ -152,6 +154,8 @@ int pandora_map(int argc, char *argv[]) {
             if (e_rate > 0.05) {
                 e_rate = 0.001;
             }
+        } else if ((arg == "--output_mapped_read_fa")) {
+            output_mapped_read_fa = true;
         } else if ((arg == "--clean")) {
             clean = true;
         } else if ((arg == "--nbin")) {
@@ -179,6 +183,7 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\tvcf_refs\t" << vcf_refs_file << endl;
     cout << "\toutput_comparison_paths\t" << output_comparison_paths << endl;
     cout << "\toutput_covgs\t" << output_covgs << endl;
+    cout << "\toutput_mapped_read_fa\t" << output_mapped_read_fa << endl;
     cout << "\tillumina\t" << illumina << endl;
     cout << "\tclean\t" << clean << endl;
     cout << "\tnbin\t" << nbin << endl << endl;
@@ -224,27 +229,31 @@ int pandora_map(int argc, char *argv[]) {
         vcf_refs.reserve(prgs.size());
         load_vcf_refs_file(vcf_refs_file, vcf_refs);
     }
-    for (auto c: pangraph->nodes) {
+    for (auto c = pangraph->nodes.begin(); c != pangraph->nodes.end();) {
         if (output_vcf
             and !vcf_refs_file.empty()
-            and vcf_refs.find(prgs[c.second->prg_id]->name) != vcf_refs.end()) {
-            vcf_ref = vcf_refs[prgs[c.second->prg_id]->name];
+            and vcf_refs.find(prgs[c->second->prg_id]->name) != vcf_refs.end()) {
+            vcf_ref = vcf_refs[prgs[c->second->prg_id]->name];
         }
-        kmp = prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, vcf_ref, output_vcf,
+        kmp = prgs[c->second->prg_id]->find_path_and_variants(c->second, prefix, w, vcf_ref, output_vcf,
                                                        output_comparison_paths, output_covgs, nbin);
         if (kmp.empty())
         {
+            c = pangraph->remove_node(c->second);
             continue;
-            //could also remove the node from pg
         }
 
         if (output_kg) {
-            c.second->kmer_prg.save(prefix + "." + c.second->get_name() + ".kg.gfa", prgs[c.second->prg_id]);
+            c->second->kmer_prg.save(prefix + "." + c->second->get_name() + ".kg.gfa", prgs[c->second->prg_id]);
         }
+        ++c;
         //prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "." + prgs[c.second->id]->name + ".covg.txt");
         //cout << "\t\t" << prefix << "." << prgs[c.second->id]->name << ".gfa" << endl;
         //prgs[c.second->id]->prg.write_gfa(prefix + "." + prgs[c.second->id]->name + ".gfa");
     }
+
+    if (output_mapped_read_fa)
+        pangraph->save_mapped_read_strings(readfile, prefix);
 
     //cout << now() << "Writing LocalGraphs to files:" << endl;	
     // for each found localPRG, also write out a gfa 

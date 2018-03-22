@@ -70,7 +70,7 @@ public:
     // graph read/write
     void save_matrix(const std::string &);
 
-    void save_mapped_read_strings(const std::string& read_filepath, const std::string& outprefix);
+    void save_mapped_read_strings(const std::string& read_filepath, const std::string& outprefix, const int buff=0);
 
     friend std::ostream &operator<<(std::ostream &out, const Graph &m);
 

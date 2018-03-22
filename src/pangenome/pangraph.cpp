@@ -417,9 +417,10 @@ void Graph::save_matrix(const string &filepath) {
     }
 }
 
-void Graph::save_mapped_read_strings(const string& readfilepath, const string& outprefix){
+void Graph::save_mapped_read_strings(const string& readfilepath, const string& outprefix, const int32_t buff){
     ofstream outhandle;
     FastaqHandler readfile(readfilepath);
+    uint32_t start, end;
 
     // for each node in pangraph, find overlaps and write to a file
     vector<vector<uint32_t>> read_overlap_coordinates;
@@ -428,15 +429,15 @@ void Graph::save_mapped_read_strings(const string& readfilepath, const string& o
         node_ptr.second->get_read_overlap_coordinates(read_overlap_coordinates);
         outhandle.open(outprefix + "." + node_ptr.second->get_name() + ".reads.fa");
         for (auto coord : read_overlap_coordinates){
-            cout << coord[0] << endl;
             readfile.get_id(coord[0]);
-            cout << readfile.name << " " << readfile.read << endl;
-            outhandle << ">" << readfile.name << " " << coord[1] << ":" << coord[2];
+            start = max((int32_t)coord[1]-buff, 0);
+            end = min(coord[2]+(uint32_t)buff, (uint32_t)readfile.read.length());
+            outhandle << ">" << readfile.name << " " << start << ":" << end;
             if (coord[3] == true)
                 outhandle << " + " << endl;
             else
                 outhandle << " - " << endl;
-            outhandle << readfile.read.substr(coord[1], coord[2] - coord[1]) << endl;
+            outhandle << readfile.read.substr(start, end - start) << endl;
         }
         outhandle.close();
         read_overlap_coordinates.clear();
