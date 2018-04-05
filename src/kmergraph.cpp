@@ -619,7 +619,7 @@ void KmerGraph::load(const string &filepath) {
     string line;
     vector<string> split_line;
     stringstream ss;
-    uint32_t id, covg, from, to;
+    uint32_t id=0, covg, from, to;
     Path p;
     uint num_nodes = 0;
 
