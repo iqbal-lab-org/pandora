@@ -83,14 +83,17 @@ void Node::get_read_overlap_coordinates(vector<vector<uint32_t>>& read_overlap_c
         if (read_ptr->hits.at(prg_id).size() < 2)
             continue;
 
-	set<MinimizerHitPtr, pComp> resorted_hits(read_ptr->hits.at(prg_id).begin(), read_ptr->hits.at(prg_id).end());
-        auto hit_ptr_iter = resorted_hits.begin();
-        auto start = (*hit_ptr_iter)->read_start_position;
+	uint32_t start = numeric_limits<uint32_t>::max();
+	uint32_t end = 0;
+	for (const auto hit_ptr : read_ptr->hits.at(prg_id))
+	{
+	    start = min(start, hit_ptr->read_start_position);
+	    end = max(end, hit_ptr->read_start_position + hit_ptr->prg_path.length()); 
+	}
 
-        hit_ptr_iter = --(resorted_hits.end());
-        auto end = (*hit_ptr_iter)->read_start_position + (*hit_ptr_iter)->prg_path.length();
+	auto hit_ptr_iter = read_ptr->hits.at(prg_id).begin();
 
-        assert(end > start or assert_msg("Error finding the read overlap coordinates for node " << name << " and read " << read_ptr->id << " (the " << read_count << "th on this node)" << endl << "Last hit " << **hit_ptr_iter << " has end " << end << " after first hit start " << start));
+        assert(end > start or assert_msg("Error finding the read overlap coordinates for node " << name << " and read " << read_ptr->id << " (the " << read_count << "th on this node)" << endl << "Found end " << end << " after found start " << start));
         coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->strand};
         read_overlap_coordinates.emplace_back(coordinate);
     }
