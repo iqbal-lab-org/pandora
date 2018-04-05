@@ -653,12 +653,11 @@ void KmerGraph::load(const string &filepath) {
                 //add_node(p);
                 KmerNodePtr n = make_shared<KmerNode>(id, p);
                 assert(n!= nullptr);
-                assert(id == nodes.size());
+                assert(id == nodes.size() or num_nodes - id == nodes.size() or assert_msg("id " << id << " != " << nodes.size() << " nodes.size() for kmergraph "));
                 nodes.push_back(n);
                 if (k == 0 and p.length() > 0) {
                     k = p.length();
                 }
-                assert(nodes[id]->id == id);
                 covg = stoi(split(split_line[3], "FC:i:")[0]);
                 n->covg[0] = covg;
                 covg = stoi(split(split_line[4], "RC:i:")[0]);
@@ -676,8 +675,15 @@ void KmerGraph::load(const string &filepath) {
             }
         }
 
+        if (id == 0) {
+            reverse(nodes.begin(), nodes.end());
+	}
+
+	id = 0;
         for (auto n : nodes)
         {
+	    assert(nodes[id]->id == id);
+	    id++;
             assert(n->id < outnode_counts.size() or assert_msg(n->id << ">=" << outnode_counts.size()));
             assert(n->id < innode_counts.size() or assert_msg(n->id << ">=" << innode_counts.size()));
             n->outNodes.reserve(outnode_counts[n->id]);
