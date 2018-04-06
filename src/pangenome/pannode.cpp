@@ -97,6 +97,9 @@ void Node::get_read_overlap_coordinates(vector<vector<uint32_t>>& read_overlap_c
         coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->strand};
         read_overlap_coordinates.emplace_back(coordinate);
     }
+
+    sort(read_overlap_coordinates.begin(), read_overlap_coordinates.end(),
+         [](const vector<uint32_t>& a, const vector<uint32_t>& b) {return a[0] < b[0];});
 }
 
 void Node::output_samples(const LocalPRG *prg, const string &prefix, const uint w, const string& vcf_ref) {
