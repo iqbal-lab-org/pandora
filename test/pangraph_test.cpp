@@ -684,8 +684,8 @@ TEST(PangenomeGraphTest, save_mapped_read_strings) {
 
     pg.save_mapped_read_strings("../../test/test_cases/reads.fa", "save_mapped_read_strings");
 
-    string expected1 = ">read1 0:6 + \nshould\n>read2 2:10 - \nis time \n";
-    string expected2 = ">read2 2:10 - \nis time \n>read1 0:6 + \nshould\n";
+    string expected1 = ">read1 pandora: 1 0:6 + \nshould\n>read2 pandora: 2 2:10 - \nis time \n";
+    string expected2 = ">read2 pandora: 2 2:10 - \nis time \n>read1 pandora: 1 0:6 + \nshould\n";
     ifstream ifs("save_mapped_read_strings.zero.reads.fa");
     string content( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()) );
     EXPECT_TRUE((content == expected1) or (content == expected2));

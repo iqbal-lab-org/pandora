@@ -45,12 +45,8 @@ void FastaqHandler::skip_next(){
     }
 
     while (getline(fastaq_file, line).good()){
-        if (line.empty() || line[0] == '>' || line[0] == '@') {
-            if (!read.empty())
-            {
-                return;
-            }
-            ++num_reads_parsed;
+        if (line[0] == '>' || line[0] == '@') {
+	    return;
 	}
     }
 }
@@ -65,7 +61,7 @@ void FastaqHandler::get_id(const uint32_t& id){
         fastaq_file.seekg(0, fastaq_file.beg);
     }
 
-    while (id > 0 and num_reads_parsed < id-1) {
+    while (id > 1 and num_reads_parsed < id-2) {
 	skip_next();
         int c = fastaq_file.peek();
         if (c == EOF)

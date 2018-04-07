@@ -427,18 +427,25 @@ void Graph::save_mapped_read_strings(const string& readfilepath, const string& o
     vector<vector<uint32_t>> read_overlap_coordinates;
     for (auto node_ptr : nodes)
     {
-	cout << "Find coordinates for node " << node_ptr.second->name << endl;
+	cout << "Find coordinates for node " << node_ptr.second->name;
         node_ptr.second->get_read_overlap_coordinates(read_overlap_coordinates);
+	cout << "." << endl;
         outhandle.open(outprefix + "." + node_ptr.second->get_name() + ".reads.fa");
         for (auto coord : read_overlap_coordinates){
             readfile.get_id(coord[0]);
-            start = max((int32_t)coord[1]-buff, 0);
+            start = (uint32_t) max((int32_t)coord[1]-buff, 0);
             end = min(coord[2]+(uint32_t)buff, (uint32_t)readfile.read.length());
-            outhandle << ">" << readfile.name << " " << start << ":" << end;
+            outhandle << ">" << readfile.name << " pandora: " << coord[0] << " " << start << ":" << end;
             if (coord[3] == true)
                 outhandle << " + " << endl;
             else
                 outhandle << " - " << endl;
+	    assert(coord[1] < coord[2]);
+	    assert(start <= coord[1]);
+	    assert(start <= readfile.read.length());
+	    assert(coord[2] <= readfile.read.length());
+            assert(end >= coord[2]);
+	    assert(start < end);
             outhandle << readfile.read.substr(start, end - start) << endl;
         }
         outhandle.close();
