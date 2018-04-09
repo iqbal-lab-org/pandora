@@ -79,31 +79,30 @@ void Node::get_read_overlap_coordinates(vector<vector<uint32_t>>& read_overlap_c
     auto read_count = 0;
     for (const auto read_ptr : reads)
     {    
-	read_count++;
+	    read_count++;
         if (read_ptr->hits.at(prg_id).size() < 2)
             continue;
 
-	auto hit_ptr_iter = read_ptr->hits.at(prg_id).begin();
-	uint32_t start = (*hit_ptr_iter)->read_start_position;
-	uint32_t end = 0;
-	for (const auto hit_ptr : read_ptr->hits.at(prg_id))
-	{
-	    start = min(start, hit_ptr->read_start_position);
-	    end = max(end, hit_ptr->read_start_position + hit_ptr->prg_path.length()); 
-	}
+        auto hit_ptr_iter = read_ptr->hits.at(prg_id).begin();
+        uint32_t start = (*hit_ptr_iter)->read_start_position;
+        uint32_t end = 0;
+        for (const auto hit_ptr : read_ptr->hits.at(prg_id))
+        {
+            start = min(start, hit_ptr->read_start_position);
+            end = max(end, hit_ptr->read_start_position + hit_ptr->prg_path.length());
+        }
 
         assert(end > start or assert_msg("Error finding the read overlap coordinates for node " << name << " and read " << read_ptr->id << " (the " << read_count << "th on this node)" << endl << "Found end " << end << " after found start " << start));
         coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->strand};
         read_overlap_coordinates.push_back(coordinate);
     }
-    cout << " " << read_overlap_coordinates.size();
 
     if (read_overlap_coordinates.size() > 0) {
     	sort(read_overlap_coordinates.begin(), read_overlap_coordinates.end(),
 	    [](const vector<uint32_t>& a, const vector<uint32_t>& b) {
-	    for (auto i=0; i<a.size(); ++i){
-		if (a[i]!=b[i]) {return a[i] < b[i];}
-		return false;}});
+	    for (auto i=0; i<min(a.size(),b.size()); ++i) {
+            if (a[i] != b[i]) { return a[i] < b[i]; }}
+            return false;});
     }
     
 }
