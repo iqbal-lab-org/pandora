@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <map>
 #include <cassert>
+#include <boost/filesystem.hpp>
 
 #include "utils.h"
 #include "localPRG.h"
