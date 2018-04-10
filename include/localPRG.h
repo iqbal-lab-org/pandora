@@ -101,7 +101,8 @@ public:
                                                     const bool output_vcf = false,
                                                     const bool output_comparison_paths = false,
                                                     const bool output_covgs = false,
-                                                    const bool nbin = false) const;
+                                                    const bool nbin = false,
+                                                    const uint covg = 1) const;
 
     friend std::ostream &operator<<(std::ostream &out, const LocalPRG &data);
 };

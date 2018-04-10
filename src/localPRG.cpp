@@ -1250,7 +1250,8 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
                                  const bool output_vcf,
                                  const bool output_comparison_paths,
                                  const bool output_covgs,
-                                 const bool nbin) const {
+                                 const bool nbin,
+                                 const uint global_covg) const {
     //cout << "called find path and variants" << endl;
     string new_name = name;
     std::replace(new_name.begin(), new_name.end(), ' ', '_');
@@ -1279,7 +1280,7 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
     vector<uint> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
 
     // sanity check
-    if (mode(covgs) == 0 and mean(covgs) < 0.5)
+    if (global_covg > 5 and mode(covgs) < 3 and mean(covgs) < 1)
     {
 	    cout << now() << "Skip LocalPRG " << name << " as mode and mean along max likelihood path are both 0" << endl;
         kmp.clear();
