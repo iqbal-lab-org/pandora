@@ -1,4 +1,6 @@
 #include <cstring>
+#include <sstream>
+#include <iomanip>
 #include <unordered_map>
 #include <vector>
 #include <iostream>
@@ -44,6 +46,12 @@ void make_dir(const string& dirpath)
     }
 
     assert(boost::filesystem::create_directories(dir) || assert_msg("Failed to make directories " << dir));
+}
+
+string int_to_string(const int number) {
+    stringstream ss;
+    ss << setw(2) << setfill('0') << number;
+    return ss.str();
 }
 
 vector<string> split(const string &query, const string &d) {
@@ -176,7 +184,8 @@ void load_PRG_kmergraphs(vector<LocalPRG *> &prgs, const uint &w, const uint &k,
     for (auto prg : prgs) {
 	    cout << "Load kmergraph for " << prg->name << endl;
         if (prg->id % 4000 == 0){
-            dir = prefix + "kmer_prgs/" + to_string(dir_num);
+            dir = prefix + "kmer_prgs/" + int_to_string(dir_num+1);
+            dir_num++;
             boost::filesystem::path p(dir);
             if (not boost::filesystem::exists(p))
                 dir = prefix + "kmer_prgs";

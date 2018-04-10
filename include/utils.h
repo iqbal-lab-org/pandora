@@ -44,6 +44,8 @@ std::string now();
 
 void make_dir(const std::string&);
 
+std::string int_to_string(const int number);
+
 std::vector<std::string> split(const std::string &, const std::string &);
 
 char complement(char);

@@ -592,24 +592,29 @@ uint KmerGraph::min_path_length() {
 void KmerGraph::save(const string &filepath, const LocalPRG *localprg) {
     ofstream handle;
     handle.open(filepath);
-    handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
-    for (auto c : nodes) {
-        handle << "S\t" << c->id << "\t";
+    if (handle.is_open()) {
+        handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
+        for (auto c : nodes) {
+            handle << "S\t" << c->id << "\t";
 
-        if (localprg != nullptr) {
-            handle << localprg->string_along_path(c->path);
-        } else {
-            handle << c->path;
+            if (localprg != nullptr) {
+                handle << localprg->string_along_path(c->path);
+            } else {
+                handle << c->path;
+            }
+
+            handle << "\tFC:i:" << c->covg[0] << "\t" << "\tRC:i:"
+                   << c->covg[1] << endl;//"\t" << (unsigned)nodes[i].second->num_AT << endl;
+
+            for (uint32_t j = 0; j < c->outNodes.size(); ++j) {
+                handle << "L\t" << c->id << "\t+\t" << c->outNodes[j]->id << "\t+\t0M" << endl;
+            }
         }
-
-        handle << "\tFC:i:" << c->covg[0] << "\t" << "\tRC:i:"
-               << c->covg[1] << endl;//"\t" << (unsigned)nodes[i].second->num_AT << endl;
-
-        for (uint32_t j = 0; j < c->outNodes.size(); ++j) {
-            handle << "L\t" << c->id << "\t+\t" << c->outNodes[j]->id << "\t+\t0M" << endl;
-        }
+        handle.close();
+    } else {
+        cerr << "Unable to open kmergraph file " << filepath << endl;
+        exit(EXIT_FAILURE);
     }
-    handle.close();
 }
 
 void KmerGraph::load(const string &filepath) {
