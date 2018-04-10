@@ -26,11 +26,19 @@ else ()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif ()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pthread -Wextra -DBOOST_SYSTEM_NO_DEPRECATED -O2 -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -DBOOST_SYSTEM_NO_DEPRECATED -O2")
 
 #-------------------
 # Module source
 #-------------------
+set(EXTERNAL_LIBS_DIR
+        ${CMAKE_CURRENT_BINARY_DIR}/lib)
+link_directories(${EXTERNAL_LIBS_DIR})
+
+set(EXTERNAL_INCLUDE_DIR
+        ${CMAKE_CURRENT_BINARY_DIR}/include)
+link_directories(${EXTERNAL_INCLUDE_DIR})
+
 include(${PROJECT_SOURCE_DIR}/ext/boost.cmake)
 
 set(EXTERN_LIBS boost_filesystem boost_system)
@@ -38,6 +46,7 @@ set(EXTERN_LIBS boost_filesystem boost_system)
 include_directories(
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src)
+
 file(GLOB SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/*.cpp
         ${PROJECT_SOURCE_DIR}/src/*/*.cpp)

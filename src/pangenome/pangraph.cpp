@@ -417,7 +417,7 @@ void Graph::save_matrix(const string &filepath) {
     }
 }
 
-void Graph::save_mapped_read_strings(const string& readfilepath, const string& outprefix, const int32_t buff){
+void Graph::save_mapped_read_strings(const string& readfilepath, const string& outdir, const int32_t buff){
     cout << now() << "Save mapped read strings and coordinates" << endl;
     ofstream outhandle;
     FastaqHandler readfile(readfilepath);
@@ -430,7 +430,7 @@ void Graph::save_mapped_read_strings(const string& readfilepath, const string& o
 	cout << "Find coordinates for node " << node_ptr.second->name;
         node_ptr.second->get_read_overlap_coordinates(read_overlap_coordinates);
 	cout << "." << endl;
-        outhandle.open(outprefix + "." + node_ptr.second->get_name() + ".reads.fa");
+        outhandle.open(outdir + "/" + node_ptr.second->get_name() + "/" + node_ptr.second->get_name() + ".reads.fa");
         for (auto coord : read_overlap_coordinates){
             readfile.get_id(coord[0]);
             start = (uint32_t) max((int32_t)coord[1]-buff, 0);

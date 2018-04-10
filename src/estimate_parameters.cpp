@@ -169,7 +169,7 @@ int find_prob_thresh(vector<uint> &kmer_prob_dist) {
     return peak - 200;
 }
 
-void estimate_parameters(pangenome::Graph *pangraph, const string &prefix, const uint32_t k, float &e_rate,
+void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const uint32_t k, float &e_rate,
                          const uint covg, const bool nbin) {
     // ignore trivial case
     if (pangraph->nodes.empty()) {
@@ -203,10 +203,10 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &prefix, const
     num_reads = num_reads / pangraph->nodes.size();
 
     // save coverage distribution
-    cout << now() << "Writing kmer coverage distribution to " << prefix << ".kmer_covgs.txt" << endl;
+    cout << now() << "Writing kmer coverage distribution to " << outdir << "/kmer_covgs.txt" << endl;
     ofstream handle;
-    handle.open(prefix + ".kmer_covgs.txt");
-    assert(!handle.fail() or assert_msg("Could not open file " << prefix + ".kmer_covgs.txt"));
+    handle.open(outdir + "/kmer_covgs.txt");
+    assert(!handle.fail() or assert_msg("Could not open file " << outdir + "/kmer_covgs.txt"));
     for (uint j = 0; j != kmer_covg_dist.size(); ++j) {
         handle << j << "\t" << kmer_covg_dist[j] << endl;
     }
@@ -256,9 +256,9 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &prefix, const
     }
 
     // save probability distribution
-    cout << now() << "Writing kmer probability distribution to " << prefix << ".kmer_probs.txt" << endl;
-    handle.open(prefix + ".kmer_probs.txt");
-    assert(!handle.fail() or assert_msg("Could not open file " << prefix + ".kmer_probs.txt"));
+    cout << now() << "Writing kmer probability distribution to " << outdir << "/kmer_probs.txt" << endl;
+    handle.open(outdir + "/kmer_probs.txt");
+    assert(!handle.fail() or assert_msg("Could not open file " << outdir + "/kmer_probs.txt"));
     for (int j = 0; (uint) j != kmer_prob_dist.size(); ++j) {
         handle << j - 200 << "\t" << kmer_prob_dist[j] << endl;
     }

@@ -1244,7 +1244,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
 
 vector<KmerNodePtr>
 LocalPRG::find_path_and_variants(PanNodePtr pnode,
-                                 const string &prefix,
+                                 const string &outdir,
                                  const uint w,
                                  const string &vcf_ref,
                                  const bool output_vcf,
@@ -1286,7 +1286,7 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
         return kmp;
     }
 
-    write_path_to_fasta(prefix + "." + new_name + ".kmlp.fasta", lmp, ppath);
+    write_path_to_fasta(outdir + "/" + new_name + ".kmlp.fasta", lmp, ppath);
 
     cout << now() << "LocalPRG ids on max likelihood path for " << name << " : ";
     for (uint i = 0; i != lmp.size(); ++i) {
@@ -1316,20 +1316,20 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
         add_sample_gt_to_vcf(vcf, refpath, lmp, "sample");
         if (output_covgs)
             add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, kmp, "sample");
-        vcf.save(prefix + "." + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
+        vcf.save(outdir + "/" + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
     }
     if (output_comparison_paths) {
         vector<vector<KmerNodePtr>> altkmps = pnode->kmer_prg.get_random_paths(1000);
         for (uint i = 0; i != altkmps.size(); ++i) {
             if (altkmps[i] != kmp) {
                 almp = localnode_path_from_kmernode_path(altkmps[i], w);
-                append_path_to_fasta(prefix + "." + new_name + ".altpaths.fasta", almp,
+                append_path_to_fasta(outdir + "/" + new_name + ".altpaths.fasta", almp,
                                      pnode->kmer_prg.prob_path(altkmps[i]));
             }
         }
     }
     if (output_covgs) {
-        write_covgs_to_file(prefix + "." + new_name + ".kmlp.covgs", covgs);
+        write_covgs_to_file(outdir + "/" + new_name + ".kmlp.covgs", covgs);
     }
 
     return kmp;

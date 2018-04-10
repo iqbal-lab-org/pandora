@@ -30,12 +30,12 @@ using std::vector;
 using namespace std;
 
 static void show_map_usage() {
-    std::cerr << "Usage: pandora map -p PRG_FILE -r READ_FILE -o OUT_PREFIX <option(s)>\n"
+    std::cerr << "Usage: pandora map -p PRG_FILE -r READ_FILE -o OUTDIR <option(s)>\n"
               << "Options:\n"
               << "\t-h,--help\t\t\tShow this help message\n"
               << "\t-p,--prg_file PRG_FILE\t\tSpecify a fasta-style prg file\n"
               << "\t-r,--read_file READ_FILE\tSpecify a file of reads in fasta format\n"
-              << "\t-o,--out_prefix OUT_PREFIX\tSpecify prefix of output\n"
+              << "\t-o,--outdir OUTDIR\tSpecify directory of output\n"
               << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, must be <=k, default 14\n"
               << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
               << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 500 (bps)\n"
@@ -62,7 +62,7 @@ int pandora_map(int argc, char *argv[]) {
     }
 
     // otherwise, parse the parameters from the command line
-    string prgfile, readfile, prefix, vcf_refs_file;
+    string prgfile, readfile, outdir=".", vcf_refs_file;
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000; // default parameters
     int max_diff = 250;
     float e_rate = 0.11;
@@ -89,11 +89,11 @@ int pandora_map(int argc, char *argv[]) {
                 std::cerr << "--read_file option requires one argument." << std::endl;
                 return 1;
             }
-        } else if ((arg == "-o") || (arg == "--out_prefix")) {
+        } else if ((arg == "-o") || (arg == "--outdir")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                prefix = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+                outdir = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--out_prefix option requires one argument." << std::endl;
+                std::cerr << "--outdir option requires one argument." << std::endl;
                 return 1;
             }
         } else if (arg == "-w") {
@@ -174,7 +174,7 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\nUsing parameters: " << endl;
     cout << "\tprgfile\t\t" << prgfile << endl;
     cout << "\treadfile\t" << readfile << endl;
-    cout << "\tout_prefix\t" << prefix << endl;
+    cout << "\toutdir\t" << outdir << endl;
     cout << "\tw\t\t" << w << endl;
     cout << "\tk\t\t" << k << endl;
     cout << "\tmax_diff\t" << max_diff << endl;
@@ -213,14 +213,14 @@ int pandora_map(int argc, char *argv[]) {
     mhs->clear();
     delete mhs;
 
-    cout << now() << "Writing pangenome::Graph to file " << prefix << ".pangraph.gfa" << endl;
-    write_pangraph_gfa(prefix + ".pangraph.gfa", pangraph);
+    cout << now() << "Writing pangenome::Graph to file " << outdir << "pandora.pangraph.gfa" << endl;
+    write_pangraph_gfa(outdir + "/pandora.pangraph.gfa", pangraph);
 
     cout << now() << "Update LocalPRGs with hits" << endl;
     update_localPRGs_with_hits(pangraph, prgs);
 
     cout << now() << "Estimate parameters for kmer graph model" << endl;
-    estimate_parameters(pangraph, prefix, k, e_rate, covg, nbin);
+    estimate_parameters(pangraph, outdir, k, e_rate, covg, nbin);
 
     cout << now() << "Find PRG paths and write to files:" << endl;
     VCFRefs vcf_refs;
@@ -236,7 +236,16 @@ int pandora_map(int argc, char *argv[]) {
             and vcf_refs.find(prgs[c->second->prg_id]->name) != vcf_refs.end()) {
             vcf_ref = vcf_refs[prgs[c->second->prg_id]->name];
         }
-        kmp = prgs[c->second->prg_id]->find_path_and_variants(c->second, prefix, w, vcf_ref, output_vcf,
+        string node_outdir = outdir + "/" + c->second->get_name();
+        boost::filesystem::path dir(node_outdir);
+        if(boost::filesystem::create_directories(dir)) {
+            std::cout << "Success" << "\n";
+        } else {
+            std::cout << "Fail" << "\n";
+            exit(1);
+        }
+
+        kmp = prgs[c->second->prg_id]->find_path_and_variants(c->second, node_outdir, w, vcf_ref, output_vcf,
                                                        output_comparison_paths, output_covgs, nbin);
         if (kmp.empty())
         {
@@ -245,30 +254,21 @@ int pandora_map(int argc, char *argv[]) {
         }
 
         if (output_kg) {
-            c->second->kmer_prg.save(prefix + "." + c->second->get_name() + ".kg.gfa", prgs[c->second->prg_id]);
+            c->second->kmer_prg.save(node_outdir + "/" + c->second->get_name() + ".kg.gfa", prgs[c->second->prg_id]);
         }
         ++c;
-        //prgs[c.second->id]->kmer_prg.save_covg_dist(prefix + "." + prgs[c.second->id]->name + ".covg.txt");
-        //cout << "\t\t" << prefix << "." << prgs[c.second->id]->name << ".gfa" << endl;
-        //prgs[c.second->id]->prg.write_gfa(prefix + "." + prgs[c.second->id]->name + ".gfa");
     }
 
     if (output_mapped_read_fa)
-        pangraph->save_mapped_read_strings(readfile, prefix);
+        pangraph->save_mapped_read_strings(readfile, outdir);
 
-    //cout << now() << "Writing LocalGraphs to files:" << endl;	
-    // for each found localPRG, also write out a gfa 
-    // then delete the localPRG object
     for (uint32_t j = 0; j != prgs.size(); ++j) {
-        //cout << "\t\t" << prefix << "_" << prgs[j]->name << ".gfa" << endl;
-        //prgs[j]->prg.write_gfa(prefix + "_" + prgs[j]->name + ".gfa");
         delete prgs[j];
     }
 
     pangraph->clear();
     delete pangraph;
 
-    // current date/time based on current system
     cout << "FINISH: " << now() << endl;
     return 0;
 }

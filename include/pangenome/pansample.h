@@ -28,7 +28,7 @@ public:
 
     bool operator<(const Sample &y) const;
 
-    friend std::ostream &operator<<(std::ostream &out, const Sample &r);
+    friend std::ostream &operator<<(std::ostream &out, const Sample &s);
 };
 
 #endif
