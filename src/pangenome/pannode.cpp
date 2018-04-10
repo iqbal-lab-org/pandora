@@ -100,7 +100,7 @@ void Node::get_read_overlap_coordinates(vector<vector<uint32_t>>& read_overlap_c
     if (read_overlap_coordinates.size() > 0) {
     	sort(read_overlap_coordinates.begin(), read_overlap_coordinates.end(),
 	    [](const vector<uint32_t>& a, const vector<uint32_t>& b) {
-	    for (auto i=0; i<min(a.size(),b.size()); ++i) {
+	    for (uint i=0; i<a.size(); ++i) {
             if (a[i] != b[i]) { return a[i] < b[i]; }}
             return false;});
     }
