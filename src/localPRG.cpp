@@ -1281,11 +1281,12 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
     // sanity check
     if (mode(covgs) == 0 and mean(covgs) < 0.5)
     {
-	cout << now() << "Skip LocalPRG " << name << " as mode and mean along max likelihood path are both 0" << endl;
+	    cout << now() << "Skip LocalPRG " << name << " as mode and mean along max likelihood path are both 0" << endl;
         kmp.clear();
         return kmp;
     }
 
+    make_dir(outdir);
     write_path_to_fasta(outdir + "/" + new_name + ".kmlp.fasta", lmp, ppath);
 
     cout << now() << "LocalPRG ids on max likelihood path for " << name << " : ";

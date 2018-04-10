@@ -682,11 +682,16 @@ TEST(PangenomeGraphTest, save_mapped_read_strings) {
     delete mr;
     pg.add_node(0,"zero", 2, mhits.hits);
 
-    pg.save_mapped_read_strings("../../test/test_cases/reads.fa", "save_mapped_read_strings");
-
     string expected1 = ">read1 pandora: 1 0:6 + \nshould\n>read2 pandora: 2 2:10 - \nis time \n";
     string expected2 = ">read2 pandora: 2 2:10 - \nis time \n>read1 pandora: 1 0:6 + \nshould\n";
-    ifstream ifs("save_mapped_read_strings.zero.reads.fa");
+
+    pg.save_mapped_read_strings("../../test/test_cases/reads.fa", "save_mapped_read_strings");
+    ifstream ifs("save_mapped_read_strings/zero/zero.reads.fa");
     string content( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()) );
     EXPECT_TRUE((content == expected1) or (content == expected2));
+
+    pg.save_mapped_read_strings("../../test/test_cases/reads.fa", ".");
+    ifstream ifs2("zero/zero.reads.fa");
+    string content2( (std::istreambuf_iterator<char>(ifs2) ),(std::istreambuf_iterator<char>()) );
+    EXPECT_TRUE((content2 == expected1) or (content2 == expected2));
 }

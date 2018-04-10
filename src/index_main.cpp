@@ -18,9 +18,14 @@ void index_prgs(vector<LocalPRG *> &prgs, Index *idx, const uint32_t w, const ui
     idx->minhash.reserve(r);
 
     // now fill index
+    auto dir_num = 0;
     for (uint i = 0; i != prgs.size(); ++i) {
+        if (i % 4000 == 0){
+            make_dir("kmer_prgs/" + to_string(dir_num));
+            dir_num++;
+        }
         prgs[i]->minimizer_sketch(idx, w, k);
-        prgs[i]->kmer_prg.save("kmer_prgs/" + prgs[i]->name + ".k" + to_string(k) + ".w" + to_string(w) + ".gfa");
+        prgs[i]->kmer_prg.save("kmer_prgs/" + to_string(dir_num) + "/" + prgs[i]->name + ".k" + to_string(k) + ".w" + to_string(w) + ".gfa");
     }
     cout << now() << "Finished adding " << prgs.size() << " LocalPRGs" << endl;
     cout << now() << "Number of keys in Index: " << idx->minhash.size() << endl;

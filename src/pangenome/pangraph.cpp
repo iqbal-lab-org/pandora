@@ -427,9 +427,10 @@ void Graph::save_mapped_read_strings(const string& readfilepath, const string& o
     vector<vector<uint32_t>> read_overlap_coordinates;
     for (auto node_ptr : nodes)
     {
-	cout << "Find coordinates for node " << node_ptr.second->name;
+	    cout << "Find coordinates for node " << node_ptr.second->name;
         node_ptr.second->get_read_overlap_coordinates(read_overlap_coordinates);
-	cout << "." << endl;
+	    cout << "." << endl;
+        make_dir(outdir + "/" + node_ptr.second->get_name());
         outhandle.open(outdir + "/" + node_ptr.second->get_name() + "/" + node_ptr.second->get_name() + ".reads.fa");
         for (auto coord : read_overlap_coordinates){
             readfile.get_id(coord[0]);

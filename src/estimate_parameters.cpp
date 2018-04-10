@@ -204,6 +204,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const
 
     // save coverage distribution
     cout << now() << "Writing kmer coverage distribution to " << outdir << "/kmer_covgs.txt" << endl;
+    make_dir(outdir);
     ofstream handle;
     handle.open(outdir + "/kmer_covgs.txt");
     assert(!handle.fail() or assert_msg("Could not open file " << outdir + "/kmer_covgs.txt"));

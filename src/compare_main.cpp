@@ -34,13 +34,13 @@ using std::vector;
 using namespace std;
 
 static void show_compare_usage() {
-    std::cerr << "Usage: pandora compare -p PRG_FILE -r READ_INDEX -o OUT_PREFIX <option(s)>\n"
+    std::cerr << "Usage: pandora compare -p PRG_FILE -r READ_INDEX -o OUTDIR <option(s)>\n"
               << "Options:\n"
               << "\t-h,--help\t\t\tShow this help message\n"
               << "\t-p,--prg_file PRG_FILE\t\tSpecify a fasta-style prg file\n"
               << "\t-r,--read_index READ_INDEX\tSpecify a file with a line per sample\n"
               << "\t\t\t\t\tsample_id <tab> filepath to reads in fasta/q format\n"
-              << "\t-o,--out_prefix OUT_PREFIX\tSpecify prefix of output\n"
+              << "\t-o,--outdir OUTDIR\tSpecify directory of output\n"
               << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 14\n"
               << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
               << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 250 (bps)\n"
@@ -85,7 +85,7 @@ int pandora_compare(int argc, char *argv[]) {
     }
 
     // otherwise, parse the parameters from the command line
-    string prgfile, readindex, prefix, vcf_refs_file;
+    string prgfile, readindex, outdir=".", vcf_refs_file;
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000; // default parameters
     int max_diff = 250;
     float e_rate = 0.11;
@@ -109,11 +109,11 @@ int pandora_compare(int argc, char *argv[]) {
                 std::cerr << "--read_index option requires one argument." << std::endl;
                 return 1;
             }
-        } else if ((arg == "-o") || (arg == "--out_prefix")) {
+        } else if ((arg == "-o") || (arg == "--outdir")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                prefix = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+                outdir = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--out_prefix option requires one argument." << std::endl;
+                std::cerr << "--outdir option requires one argument." << std::endl;
                 return 1;
             }
         } else if (arg == "-w") {
@@ -180,7 +180,7 @@ int pandora_compare(int argc, char *argv[]) {
     cout << "\nUsing parameters: " << endl;
     cout << "\tprgfile\t\t" << prgfile << endl;
     cout << "\treadindex\t" << readindex << endl;
-    cout << "\tout_prefix\t" << prefix << endl;
+    cout << "\toutdir\t" << outdir << endl;
     cout << "\tw\t\t" << w << endl;
     cout << "\tk\t\t" << k << endl;
     cout << "\tmax_diff\t" << max_diff << endl;
@@ -189,6 +189,8 @@ int pandora_compare(int argc, char *argv[]) {
     cout << "\tillumina\t" << illumina << endl;
     cout << "\tclean\t" << clean << endl;
     cout << "\tnbin\t" << nbin << endl << endl;
+
+    make_dir(outdir);
 
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
     Index *idx;
@@ -214,6 +216,10 @@ int pandora_compare(int argc, char *argv[]) {
         pangraph_sample->clear();
         mhs->clear();
 
+        // make output dir for this sample
+        string sample_outdir = outdir + "/" + sample->first;
+        make_dir(sample_outdir);
+
         // construct the pangraph for this sample
         cout << now() << "Constructing pangenome::Graph from read file " << sample->second << endl;
         covg = pangraph_from_read_file(sample->second, mhs, pangraph_sample, idx, prgs, w, k, max_diff, e_rate,
@@ -223,7 +229,7 @@ int pandora_compare(int argc, char *argv[]) {
         update_localPRGs_with_hits(pangraph_sample, prgs);
 
         cout << now() << "Estimate parameters for kmer graph model" << endl;
-        estimate_parameters(pangraph_sample, prefix, k, e_rate, covg, nbin);
+        estimate_parameters(pangraph_sample, sample_outdir, k, e_rate, covg, nbin);
 
         cout << now() << "Find max likelihood PRG paths" << endl;
         for (const auto c: pangraph_sample->nodes) {
@@ -248,7 +254,6 @@ int pandora_compare(int argc, char *argv[]) {
 
     // for each pannode in graph, find a best reference and output a vcf and aligned fasta of sample paths through it
     cout << now() << "Multi-sample pangraph has " << pangraph->nodes.size() << " nodes" << endl;
-    cout << "Prefix: " << prefix << endl;
     for (auto c: pangraph->nodes) {
         cout << " c.first: " << c.first;
         cout << " prgs[c.first]->name: " << prgs[c.first]->name << endl;
@@ -258,12 +263,15 @@ int pandora_compare(int argc, char *argv[]) {
             vcf_ref = vcf_refs[prgs[c.second->prg_id]->name];
         }
 
-        c.second->output_samples(prgs[c.first], prefix, w, vcf_ref);
+        string node_outdir = outdir + "/" + c.second->get_name();
+        make_dir(node_outdir);
+
+        c.second->output_samples(prgs[c.first], node_outdir, w, vcf_ref);
     }
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
     cout << now() << "Output matrix" << endl;
-    pangraph->save_matrix(prefix + "multisample.matrix");
+    pangraph->save_matrix(outdir + "multisample.matrix");
 
     // clear up
     cout << now() << "Clear up" << endl;

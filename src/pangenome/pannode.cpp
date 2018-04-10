@@ -107,7 +107,7 @@ void Node::get_read_overlap_coordinates(vector<vector<uint32_t>>& read_overlap_c
     
 }
 
-void Node::output_samples(const LocalPRG *prg, const string &prefix, const uint w, const string& vcf_ref) {
+void Node::output_samples(const LocalPRG *prg, const string &outdir, const uint w, const string& vcf_ref) {
     vector<KmerNodePtr> kmp;
     kmp.reserve(800);
     vector<LocalNodePtr> refpath, sample_lmp;
@@ -138,7 +138,7 @@ void Node::output_samples(const LocalPRG *prg, const string &prefix, const uint 
     // create a with respect to this ref
     VCF vcf;
     prg->build_vcf(vcf, refpath);
-    vcf.save(prefix + "." + name + ".multisample.vcf", true, true, true, true, true, true, true);
+    vcf.save(outdir + "/" + name + ".multisample.vcf", true, true, true, true, true, true, true);
     uint count = 0;
     for (auto s : samples) {
         //cout << "new sample" << endl;
@@ -170,8 +170,8 @@ void Node::output_samples(const LocalPRG *prg, const string &prefix, const uint 
             //cout << "finished adding sample " << s->name << " path " << count << endl;
         }
     }
-    vcf.save(prefix + "." + name + ".multisample.vcf", true, true, true, true, true, true, true);
-    vcf.write_aligned_fasta(prefix + "." + name + ".multisample.fa", refpath);
+    vcf.save(outdir + "/" + name + ".multisample.vcf", true, true, true, true, true, true, true);
+    vcf.write_aligned_fasta(outdir + "/" + name + ".multisample.fa", refpath);
 }
 
 bool Node::operator==(const Node &y) const {

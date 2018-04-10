@@ -10,6 +10,8 @@
 #include <memory>
 #include <ctime>
 #include <algorithm>
+#include <boost/filesystem.hpp>
+
 #include "utils.h"
 #include "seq.h"
 #include "localPRG.h"
@@ -29,6 +31,19 @@ string now() {
     now = time(nullptr);
     dt = ctime(&now);
     return dt.substr(0, dt.length() - 1) + " ";
+}
+
+void make_dir(const string& dirpath)
+{
+    if (dirpath == ".")
+        return;
+
+    const boost::filesystem::path dir(dirpath);
+    if (boost::filesystem::exists(dir)){
+        return;
+    }
+
+    assert(boost::filesystem::create_directories(dir) || assert_msg("Failed to make directories " << dir));
 }
 
 vector<string> split(const string &query, const string &d) {
@@ -154,11 +169,19 @@ void load_PRG_kmergraphs(vector<LocalPRG *> &prgs, const uint &w, const uint &k,
         prefix += prgfile.substr(0, pos);
         prefix += "/";
     }
-    //cout << "prefix for kmerprgs dir is " << prefix << endl; 
+    //cout << "prefix for kmerprgs dir is " << prefix << endl;
+
+    auto dir_num = 0;
+    string dir;
     for (auto prg : prgs) {
-	cout << "Load kmergraph for " << prg->name << endl;
-        prg->kmer_prg.load(
-                prefix + "kmer_prgs/" + prg->name + ".k" + to_string(k) + ".w" + to_string(w) + ".gfa");
+	    cout << "Load kmergraph for " << prg->name << endl;
+        if (prg->id % 4000 == 0){
+            dir = prefix + "kmer_prgs/" + to_string(dir_num);
+            boost::filesystem::path p(dir);
+            if (not boost::filesystem::exists(p))
+                dir = prefix + "kmer_prgs";
+        }
+        prg->kmer_prg.load(dir + "/" + prg->name + ".k" + to_string(k) + ".w" + to_string(w) + ".gfa");
     }
 }
 

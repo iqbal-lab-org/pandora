@@ -14,7 +14,6 @@
 #include <algorithm>
 #include <map>
 #include <cassert>
-#include <boost/filesystem.hpp>
 
 #include "utils.h"
 #include "localPRG.h"
@@ -189,6 +188,8 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\tclean\t" << clean << endl;
     cout << "\tnbin\t" << nbin << endl << endl;
 
+    make_dir(outdir);
+
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
     Index *idx;
     idx = new Index();
@@ -236,14 +237,8 @@ int pandora_map(int argc, char *argv[]) {
             and vcf_refs.find(prgs[c->second->prg_id]->name) != vcf_refs.end()) {
             vcf_ref = vcf_refs[prgs[c->second->prg_id]->name];
         }
+
         string node_outdir = outdir + "/" + c->second->get_name();
-        boost::filesystem::path dir(node_outdir);
-        if(boost::filesystem::create_directories(dir)) {
-            std::cout << "Success" << "\n";
-        } else {
-            std::cout << "Fail" << "\n";
-            exit(1);
-        }
 
         kmp = prgs[c->second->prg_id]->find_path_and_variants(c->second, node_outdir, w, vcf_ref, output_vcf,
                                                        output_comparison_paths, output_covgs, nbin);
