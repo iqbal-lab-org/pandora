@@ -20,9 +20,7 @@ void index_prgs(vector<LocalPRG *> &prgs, Index *idx, const uint32_t w, const ui
     // now fill index
     auto dir_num = 0;
     for (uint i = 0; i != prgs.size(); ++i) {
-        cout << "i:" << i << endl;
         if (i % 4000 == 0){
-            cout << "make dir" << endl;
             make_dir("kmer_prgs/" + int_to_string(dir_num+1));
             dir_num++;
         }
