@@ -1280,9 +1280,12 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
     vector<uint> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
 
     // sanity check
-    if (global_covg > 5 and mode(covgs) < 3 and mean(covgs) < 1)
+    auto mode_covg = mode(covgs);
+    auto mean_covg = mean(covgs);
+    cout << now() << "Found global coverage " << global_covg << " and path mode " << mode_covg << " and mean " << mean_covg << endl;
+    if (global_covg > 5 and mode(covgs) < 3 and mean(covgs) < 3)
     {
-	    cout << now() << "Skip LocalPRG " << name << " as mode and mean along max likelihood path are both 0" << endl;
+	cout << now() << "Skip LocalPRG " << name << " as mode and mean along max likelihood path too low" << endl;
         kmp.clear();
         return kmp;
     }
