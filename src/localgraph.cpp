@@ -259,8 +259,9 @@ vector<LocalNodePtr> LocalGraph::nodes_along_string(const string &query_string) 
                 if (strcasecmp(
                         query_string.substr(0, candidate_string.size() + u[i].back()->outNodes[j]->seq.size()).c_str(),
                         (candidate_string + u[i].back()->outNodes[j]->seq).c_str()) == 0) {
-                    if (candidate_string.size() + u[i].back()->outNodes[j]->seq.size() >= query_string.size()) {
-                        // we have now found the whole of the query_string
+                    if (candidate_string.size() + u[i].back()->outNodes[j]->seq.size() >= query_string.size()
+                            or u[i].back()->outNodes[j]->outNodes.size() == 0) {
+                        // we have now found the whole of the query_string or reached end of graph
                         u[i].push_back(u[i].back()->outNodes[j]);
                         while (!u[i].back()->outNodes.empty() and extended) {
                             extended = false;

@@ -14,6 +14,8 @@ struct FastaqHandler {
     uint32_t num_reads_parsed;
 
     FastaqHandler(const std::string&);
+    ~FastaqHandler();
+    bool eof();
     void get_next();
     void skip_next();
     void get_id(const uint32_t&);

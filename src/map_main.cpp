@@ -9,6 +9,7 @@
  * 4. Change structure so not copying minimzers etc, but use pointers
  */
 #include <iostream>
+#include <cstdlib>
 #include <vector>
 #include <set>
 #include <algorithm>

@@ -1,78 +1,69 @@
 #include <cstring>
+#include <cassert>
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include "localPRG.h"
+#include "utils.h"
 #include "localgraph.h"
 #include "localnode.h"
+#include "fastaq_handler.h"
 
 using namespace std;
 
 int pandora_walk(int argc, char *argv[]) // the "pandora walk" comand
 {
     if (argc != 3) {
-        fprintf(stderr, "Usage: pandora walk <in.gfa> <seq.fa>\n");
+        fprintf(stderr, "Usage: pandora walk <in_prg.fa> [<seq.fa> | --top | --bottom]\n");
         return 1;
     }
 
-    // create graph from gfa
-    LocalGraph lg;
-    lg.read_gfa(argv[1]);
+    // load prgs
+    vector<LocalPRG *> prgs;
+    read_prg_file(prgs, argv[1]);
+
+    vector<LocalNodePtr> npath;
 
     if (strcmp(argv[2], "--top") == 0) {
-        vector<LocalNodePtr> npath = lg.top_path();
-        for (uint j = 0; j != npath.size(); ++j) {
-            cout << "->" << npath[j]->id;
-        }
-        cout << endl;
-        return 0;
-    } else if (strcmp(argv[2], "--bottom") == 0) {
-        vector<LocalNodePtr> npath = lg.bottom_path();
-        for (uint j = 0; j != npath.size(); ++j) {
-            cout << "->" << npath[j]->id;
-        }
-        cout << endl;
-        return 0;
-    }
-
-    // for each read in readfile,  infer node path along sequence
-    vector<LocalNodePtr> npath;
-    string name, read, line;
-
-    ifstream myfile(argv[2]);
-    if (myfile.is_open()) {
-        while (getline(myfile, line).good()) {
-            if (line.empty() || line[0] == '>') {
-                if (!name.empty() && !read.empty()) {
-                    cout << name;
-                    npath = lg.nodes_along_string(read);
-                    for (uint j = 0; j != npath.size(); ++j) {
-                        cout << "->" << npath[j]->id;
-                    }
-                    cout << endl;
-                }
-                name.clear();
-                read.clear();
-                if (!line.empty()) {
-                    name = line.substr(1);
-                }
-            } else {
-                read += line;
-            }
-        }
-        // and last entry
-        if (!name.empty() && !read.empty()) {
-            cout << name;
-            npath = lg.nodes_along_string(read);
+        for (auto prg_ptr : prgs){
+            npath = prg_ptr->prg.top_path();
+            cout << prg_ptr->name << "\t";
             for (uint j = 0; j != npath.size(); ++j) {
                 cout << "->" << npath[j]->id;
             }
             cout << endl;
         }
-        myfile.close();
-    } else {
-        cerr << "Unable to open sequence file " << argv[2] << endl;
-        return 1;
+        return 0;
+    } else if (strcmp(argv[2], "--bottom") == 0) {
+        for (auto prg_ptr : prgs){
+            npath = prg_ptr->prg.bottom_path();
+            cout << prg_ptr->name << "\t";
+            for (uint j = 0; j != npath.size(); ++j) {
+                cout << "->" << npath[j]->id;
+            }
+            cout << endl;
+        }
+        return 0;
     }
+
+    // for each read in readfile,  infer node path along sequence
+    string read_string;
+    FastaqHandler readfile(argv[2]);
+    while(not readfile.eof()) {
+        readfile.get_next();
+        cout << "Try to find gene " << readfile.num_reads_parsed << " " << readfile.name << endl << readfile.read << endl;
+        for (auto prg_ptr : prgs){
+            npath = prg_ptr->prg.nodes_along_string(readfile.read);
+            if (not npath.empty()) {
+                cout << readfile.name << "\t" << prg_ptr->name << "\t";
+                for (uint j = 0; j != npath.size(); ++j) {
+                    cout << "->" << npath[j]->id;
+                }
+                cout << endl;
+            }
+        }
+    }
+
     return 0;
 }
 
