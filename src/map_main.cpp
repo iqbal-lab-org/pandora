@@ -242,7 +242,7 @@ int pandora_map(int argc, char *argv[]) {
         string node_outdir = outdir + "/" + c->second->get_name();
 
         kmp = prgs[c->second->prg_id]->find_path_and_variants(c->second, node_outdir, w, vcf_ref, output_vcf,
-                                                       output_comparison_paths, output_covgs, nbin);
+                                                       output_comparison_paths, output_covgs, nbin, covg);
         if (kmp.empty())
         {
             c = pangraph->remove_node(c->second);
