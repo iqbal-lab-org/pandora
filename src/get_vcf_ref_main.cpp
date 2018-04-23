@@ -25,20 +25,23 @@ int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
     vector<LocalNodePtr> npath;
     string read_string;
     FastaqHandler readfile(argv[2]);
+    bool found;
 
     for (auto prg_ptr : prgs){
+        found = false;
         readfile.get_id(0);
         while(not readfile.eof()) {
             npath = prg_ptr->prg.nodes_along_string(readfile.read);
             if (not npath.empty()) {
                 cout << ">" << prg_ptr->name << endl << readfile.read << endl;
+                found = true;
                 break;
             }
             readfile.get_next();
         }
-        if (not npath.empty()) {
-            cout << ">" << prg_ptr->name << endl << readfile.read << endl;
-        } else {
+
+        if (found == false) {
+            assert(npath.empty());
             npath = prg_ptr->prg.top_path();
             cout << ">" << prg_ptr->name << endl << prg_ptr->string_along_path(npath) << endl;
         }
