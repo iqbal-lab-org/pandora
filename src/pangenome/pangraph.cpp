@@ -7,6 +7,8 @@
 #include <fstream>
 #include <cassert>
 #include <algorithm>
+#include <boost/filesystem.hpp>
+
 #include "utils.h"
 #include "pangenome/pangraph.h"
 #include "pangenome/pannode.h"
@@ -454,6 +456,26 @@ void Graph::save_mapped_read_strings(const string& readfilepath, const string& o
     }
 
     readfile.close();
+}
+
+void Graph::save_kmergraph_coverages(const string &outdir, const string &sample_name){
+    cout << now() << "Save kmergraph coverages for sample " << sample_name << endl;
+    make_dir(outdir + "/coverages");
+    for (auto n : nodes){
+        string node_file = outdir + "/coverages/" + n.second->name + ".csv";
+        if ( !boost::filesystem::exists(node_file))
+        {
+            ofstream handle;
+            handle.open(node_file);
+            assert (!handle.fail() or assert_msg("Could not open file " << node_file));
+            handle << "sample";
+            for (auto m : n.second->kmer_prg.nodes)
+                handle << "\t" << m->id;
+            handle << endl;
+            handle.close();
+        }
+        n.second->kmer_prg.append_coverages_to_file(node_file, sample_name);
+    }
 }
 
 std::ostream &pangenome::operator<<(std::ostream &out, pangenome::Graph const &m) {

@@ -721,6 +721,20 @@ void KmerGraph::load(const string &filepath) {
     }
 }
 
+void KmerGraph::append_coverages_to_file(const string &filepath, const string &sample_name) {
+    ofstream handle;
+    handle.open(filepath, ios::app);
+    assert (!handle.fail() or assert_msg("Could not open file " << filepath));
+
+    handle << sample_name;
+    for (auto c : nodes)
+    {
+        handle << "\t" << c->covg[0] << "," << c->covg[1];
+    }
+    handle << endl;
+    handle.close();
+}
+
 bool KmerGraph::operator==(const KmerGraph &y) const {
     // false if have different numbers of nodes
     if (y.nodes.size() != nodes.size()) {//cout << "different numbers of nodes" << endl; 

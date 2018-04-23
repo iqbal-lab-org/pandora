@@ -12,6 +12,7 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
+#include <boost/filesystem.hpp>
 
 using namespace pangenome;
 
@@ -694,4 +695,67 @@ TEST(PangenomeGraphTest, save_mapped_read_strings) {
     ifstream ifs2("zero/zero.reads.fa");
     string content2( (std::istreambuf_iterator<char>(ifs2) ),(std::istreambuf_iterator<char>()) );
     EXPECT_TRUE((content2 == expected1) or (content2 == expected2));
+}
+
+TEST(PangenomeGraphTest, save_kmergraph_coverages) {
+    boost::filesystem::remove_all("coverages");
+
+    PGraphTester pg;
+    MinimizerHits mhits;
+    pg.add_node(0,"zero", 2, mhits.hits); //node 0
+    pg.add_node(1,"one", 2, mhits.hits);  //node 1
+    EXPECT_EQ((uint)2, pg.nodes.size());
+
+    KmerGraph kg;
+    deque<Interval> d = {Interval(0, 0)};
+    Path p;
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(4, 5), Interval(8, 9), Interval(16, 16), Interval(23, 24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0, 1), Interval(4, 5), Interval(12, 13)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(4, 5), Interval(12, 13), Interval(16, 16), Interval(23, 24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0, 1), Interval(19, 20), Interval(23, 24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(24, 24)};
+    p.initialize(d);
+    kg.add_node(p);
+    EXPECT_EQ((uint)7, kg.nodes.size());
+
+    kg.add_edge(kg.nodes[0], kg.nodes[1]);
+    kg.add_edge(kg.nodes[1], kg.nodes[2]);
+    kg.add_edge(kg.nodes[0], kg.nodes[3]);
+    kg.add_edge(kg.nodes[3], kg.nodes[4]);
+    kg.add_edge(kg.nodes[0], kg.nodes[5]);
+    kg.add_edge(kg.nodes[2], kg.nodes[6]);
+    kg.add_edge(kg.nodes[4], kg.nodes[6]);
+    kg.add_edge(kg.nodes[5], kg.nodes[6]);
+
+    pg.nodes[0]->kmer_prg = kg;
+    pg.nodes[0]->kmer_prg.nodes[1]->covg[0] += 4;
+    pg.nodes[0]->kmer_prg.nodes[2]->covg[0] += 3;
+    pg.nodes[1]->kmer_prg = kg;
+    pg.nodes[1]->kmer_prg.nodes[5]->covg[1] += 5;
+
+    pg.save_kmergraph_coverages(".", "test_sample");
+
+    string expected1 = "sample\t0\t1\t2\t3\t4\t5\t6\ntest_sample\t0,0\t4,0\t3,0\t0,0\t0,0\t0,0\t0,0\n";
+    string expected2 = "sample\t0\t1\t2\t3\t4\t5\t6\ntest_sample\t0,0\t0,0\t0,0\t0,0\t0,0\t0,5\t0,0\n";
+
+    ifstream ifs("coverages/zero.csv");
+    string content( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()) );
+    EXPECT_EQ(content,expected1);
+
+    ifstream ifs2("coverages/one.csv");
+    string content2( (std::istreambuf_iterator<char>(ifs2) ),(std::istreambuf_iterator<char>()) );
+    EXPECT_EQ(content2,expected2);
 }

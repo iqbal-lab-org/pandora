@@ -76,6 +76,8 @@ public:
 
     void load(const std::string &);
 
+    void append_coverages_to_file(const std::string &, const std::string &);
+
     bool operator==(const KmerGraph &y) const;
 
     friend std::ostream &operator<<(std::ostream &out, KmerGraph const &data);

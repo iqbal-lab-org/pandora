@@ -239,8 +239,10 @@ int pandora_compare(int argc, char *argv[]) {
             else
                 c.second->kmer_prg.find_nb_max_path(kmp);
 
-            if (!kmp.empty())
+            if (!kmp.empty()) {
+                pangraph_sample->save_kmergraph_coverages(outdir, c.second->name);
                 pangraph->add_node(c.second->prg_id, c.second->name, sample->first, kmp, prgs[c.second->prg_id]);
+            }
         }
     }
 

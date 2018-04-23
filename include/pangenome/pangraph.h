@@ -72,6 +72,8 @@ public:
 
     void save_mapped_read_strings(const std::string& read_filepath, const std::string& outprefix, const int buff=0);
 
+    void save_kmergraph_coverages(const std::string&, const std::string&);
+
     friend std::ostream &operator<<(std::ostream &out, const Graph &m);
 
 };
