@@ -40,6 +40,7 @@ set(EXTERNAL_INCLUDE_DIR
 link_directories(${EXTERNAL_INCLUDE_DIR})
 
 include(${PROJECT_SOURCE_DIR}/ext/boost.cmake)
+include(${PROJECT_SOURCE_DIR}/ext/gatb.cmake)
 
 set(EXTERN_LIBS boost_filesystem boost_system)
 
@@ -52,11 +53,12 @@ file(GLOB SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/*/*.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-add_dependencies(${PROJECT_NAME} boost)
+add_dependencies(${PROJECT_NAME} boost gatb)
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC
         ${CMAKE_THREAD_LIBS_INIT}
         ${ZLIB_LIBRARY}
-        ${EXTERN_LIBS})
+        ${EXTERN_LIBS}
+        gatbcore)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 enable_testing()

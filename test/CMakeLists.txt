@@ -13,13 +13,17 @@ add_executable(pandora_test
 
 add_dependencies(pandora_test
         gtest
-        boost)
+        boost
+        gatb)
 
 target_link_libraries(pandora_test
         libgmock
         libgtest
         ${ZLIB_LIBRARY}
-        ${EXTERN_LIBS})
+        ${EXTERN_LIBS}
+        gatbcore
+        hdf5
+        hdf5_tools)
 
 target_include_directories(pandora_test PUBLIC
         ${CMAKE_BINARY_DIR}/include
