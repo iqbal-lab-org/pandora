@@ -1,34 +1,30 @@
 include(${PROJECT_SOURCE_DIR}/ext/gtest.cmake)
 
-set(EXTERN_LIBS boost_filesystem boost_system)
-
-file(GLOB TEST_SRC_FILES
+file(GLOB_RECURSE TEST_SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/*.cpp
         ${PROJECT_SOURCE_DIR}/src/*/*.cpp
         ${PROJECT_SOURCE_DIR}/test/*.cpp)
 list(REMOVE_ITEM TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/src/main.cpp)
-
-add_executable(pandora_test
-        ${TEST_SRC_FILES})
+add_executable(pandora_test ${TEST_SRC_FILES})
 
 add_dependencies(pandora_test
         gtest
-        boost
         gatb)
 
 target_link_libraries(pandora_test
         libgmock
         libgtest
-        ${ZLIB_LIBRARY}
-        ${EXTERN_LIBS}
-        gatbcore
-        hdf5
-        hdf5_tools)
+        ${CMAKE_THREAD_LIBS_INIT}
+        ${Boost_FILESYSTEM_LIBRARY}
+        ${Boost_SYSTEM_LIBRARY}
+        ${EXTERNAL_LIBS}
+        ${CMAKE_DL_LIBS}
+        ${ZLIB_LIBRARY})
 
 target_include_directories(pandora_test PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
         ${CMAKE_BINARY_DIR}/include
         ${source_dir}/googletest/include
-        ${source_dir}/googlemock/include
-        ${PROJECT_SOURCE_DIR}/include)
+        ${source_dir}/googlemock/include)
 
 add_test(NAME pandora_test COMMAND pandora_test)
