@@ -170,7 +170,7 @@ int find_prob_thresh(vector<uint> &kmer_prob_dist) {
 }
 
 void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const uint32_t k, float &e_rate,
-                         const uint covg, const bool nbin) {
+                         const uint covg, const bool bin) {
     // ignore trivial case
     if (pangraph->nodes.empty()) {
         return;
@@ -214,7 +214,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const
     handle.close();
 
     // evaluate error rate
-    if (not nbin and num_reads > 30 and covg > 30) {
+    if (bin and num_reads > 30 and covg > 30) {
         mean_covg = find_mean_covg(kmer_covg_dist);
         cout << "found mean kmer covg " << mean_covg << " and mean global covg " << covg
              << " with avg num reads covering node " << num_reads << endl;
@@ -223,7 +223,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const
             e_rate = -log((float) mean_covg / covg) / k;
             cout << e_rate << endl;
         }
-    } else if (nbin and num_reads > 30 and covg > 2) {
+    } else if (not bin and num_reads > 30 and covg > 2) {
             auto mean = fit_mean_covg(kmer_covg_dist, covg/10);
             auto var = fit_variance_covg(kmer_covg_dist, mean, covg/10);
             fit_negative_binomial(mean, var, nb_p, nb_r);
@@ -234,7 +234,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const
     // find probability threshold
     cout << now() << "Collect kmer probability distribution" << endl;
     for (auto &node : pangraph->nodes) {
-        if (not nbin)
+        if (bin)
             node.second->kmer_prg.set_p(e_rate);
         else
             node.second->kmer_prg.set_nb(nb_p, nb_r);
@@ -242,7 +242,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const
         for (uint i = 1;
              i < node.second->kmer_prg.nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
         {
-            if (not nbin)
+            if (bin)
                 p = node.second->kmer_prg.prob(i);
             else
                 p = node.second->kmer_prg.nb_prob(i);

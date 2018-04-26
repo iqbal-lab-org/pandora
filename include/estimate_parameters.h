@@ -8,6 +8,6 @@ uint find_mean_covg(std::vector<uint> &);
 
 int find_prob_thresh(std::vector<uint> &);
 
-void estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint, const bool nbin=false);
+void estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint, const bool bin=false);
 
 #endif

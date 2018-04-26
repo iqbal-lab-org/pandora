@@ -1250,7 +1250,7 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
                                  const bool output_vcf,
                                  const bool output_comparison_paths,
                                  const bool output_covgs,
-                                 const bool nbin,
+                                 const bool bin,
                                  const uint global_covg) const {
     //cout << "called find path and variants" << endl;
     string new_name = name;
@@ -1270,7 +1270,7 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
     }
 
     //cout << "find maxpath" << endl;
-    if (not nbin)
+    if (bin)
         ppath = pnode->kmer_prg.find_max_path(kmp);
     else
         ppath = pnode->kmer_prg.find_nb_max_path(kmp);

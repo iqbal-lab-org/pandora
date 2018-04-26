@@ -50,7 +50,7 @@ static void show_compare_usage() {
               << "\t\t\t\t\tVCF. Must have a perfect match in the graph and the same name as the graph\n"
               << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is shorter with low error rate\n"
               << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
-              << "\t--nbin\t\t\tUse negative binomial model for kmer coverages\n"
+              << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative binomial\n"
               << std::endl;
 }
 
@@ -89,7 +89,7 @@ int pandora_compare(int argc, char *argv[]) {
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000; // default parameters
     int max_diff = 250;
     float e_rate = 0.11;
-    bool illumina = false, clean = false, nbin = false;;
+    bool illumina = false, clean = false, bin = false;;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -168,8 +168,8 @@ int pandora_compare(int argc, char *argv[]) {
             }
         } else if ((arg == "--clean")) {
             clean = true;
-        } else if ((arg == "--nbin")) {
-            nbin = true;
+        } else if ((arg == "--bin")) {
+            bin = true;
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -188,7 +188,7 @@ int pandora_compare(int argc, char *argv[]) {
     cout << "\tvcf_refs\t" << vcf_refs_file << endl;
     cout << "\tillumina\t" << illumina << endl;
     cout << "\tclean\t" << clean << endl;
-    cout << "\tnbin\t" << nbin << endl << endl;
+    cout << "\tbin\t" << bin << endl << endl;
 
     make_dir(outdir);
 
@@ -229,12 +229,12 @@ int pandora_compare(int argc, char *argv[]) {
         update_localPRGs_with_hits(pangraph_sample, prgs);
 
         cout << now() << "Estimate parameters for kmer graph model" << endl;
-        estimate_parameters(pangraph_sample, sample_outdir, k, e_rate, covg, nbin);
+        estimate_parameters(pangraph_sample, sample_outdir, k, e_rate, covg, bin);
 
         cout << now() << "Find max likelihood PRG paths" << endl;
         for (const auto c: pangraph_sample->nodes) {
             kmp.clear();
-            if (not nbin)
+            if (bin)
                 c.second->kmer_prg.find_max_path(kmp);
             else
                 c.second->kmer_prg.find_nb_max_path(kmp);

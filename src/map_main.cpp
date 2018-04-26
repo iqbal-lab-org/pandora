@@ -50,7 +50,7 @@ static void show_map_usage() {
               << "\t--output_mapped_read_fa\tSave a file for each gene containing read parts which overlapped it\n"
               << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is shorter with low error rate\n"
               << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
-              << "\t--nbin\t\t\tUse negative binomial model for kmer coverages\n"
+              << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative binomial\n"
               << std::endl;
 }
 
@@ -69,7 +69,7 @@ int pandora_map(int argc, char *argv[]) {
     bool output_kg = false, output_vcf = false;
     bool output_comparison_paths = false, output_mapped_read_fa = false;
     bool illumina = false, clean = false;
-    bool output_covgs = false, nbin = false;
+    bool output_covgs = false, bin = false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -159,8 +159,8 @@ int pandora_map(int argc, char *argv[]) {
             output_mapped_read_fa = true;
         } else if ((arg == "--clean")) {
             clean = true;
-        } else if ((arg == "--nbin")) {
-            nbin = true;
+        } else if ((arg == "--bin")) {
+            bin = true;
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -187,7 +187,7 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\toutput_mapped_read_fa\t" << output_mapped_read_fa << endl;
     cout << "\tillumina\t" << illumina << endl;
     cout << "\tclean\t" << clean << endl;
-    cout << "\tnbin\t" << nbin << endl << endl;
+    cout << "\tbin\t" << bin << endl << endl;
 
     make_dir(outdir);
 
@@ -222,7 +222,7 @@ int pandora_map(int argc, char *argv[]) {
     update_localPRGs_with_hits(pangraph, prgs);
 
     cout << now() << "Estimate parameters for kmer graph model" << endl;
-    estimate_parameters(pangraph, outdir, k, e_rate, covg, nbin);
+    estimate_parameters(pangraph, outdir, k, e_rate, covg, bin);
 
     cout << now() << "Find PRG paths and write to files:" << endl;
     VCFRefs vcf_refs;
@@ -242,7 +242,7 @@ int pandora_map(int argc, char *argv[]) {
         string node_outdir = outdir + "/" + c->second->get_name();
 
         kmp = prgs[c->second->prg_id]->find_path_and_variants(c->second, node_outdir, w, vcf_ref, output_vcf,
-                                                       output_comparison_paths, output_covgs, nbin, covg);
+                                                       output_comparison_paths, output_covgs, bin, covg);
         if (kmp.empty())
         {
             c = pangraph->remove_node(c->second);
