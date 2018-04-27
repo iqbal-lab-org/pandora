@@ -37,7 +37,7 @@ bool Sample::operator<(const Sample &y) const {
 std::ostream &pangenome::operator<<(std::ostream &out, pangenome::Sample const &s) {
     out << s.name << ":\t";
     for (auto p : s.paths) {
-        for (uint i = 0; i != p.second.size(); ++i) {
+        for (uint32_t i = 0; i != p.second.size(); ++i) {
             out << p.first << "\t";
         }
     }

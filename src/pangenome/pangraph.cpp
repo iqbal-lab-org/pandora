@@ -220,7 +220,7 @@ vector<NodePtr>::iterator Graph::remove_node_from_read(vector<NodePtr>::iterator
 // remove the all instances of the pattern of nodes/orienations from graph
 
 // Remove nodes with covg <= thresh from graph
-void Graph::remove_low_covg_nodes(const uint &thresh) {
+void Graph::remove_low_covg_nodes(const uint32_t &thresh) {
     cout << now() << "Remove nodes with covg <= " << thresh << endl;
     for (auto it = nodes.begin(); it != nodes.end();) {
         //cout << "look at node " << *(it->second) << endl;
@@ -259,7 +259,7 @@ void Graph::split_node_by_reads(unordered_set<ReadPtr> &reads_along_tig, vector<
     // switch old node to new node in reads
     vector<NodePtr>::iterator it;
     unordered_multiset<ReadPtr>::iterator rit;
-    pair<uint,uint> pos;
+    pair<uint32_t, uint32_t> pos;
     for (auto r : reads_along_tig) {
         // ignore if this node does not contain this read
         rit = nodes[node_id]->reads.find(r);
@@ -290,7 +290,7 @@ void Graph::split_node_by_reads(unordered_set<ReadPtr> &reads_along_tig, vector<
     }
 
     // replace node in tig
-    for (uint i = 0; i < node_ids.size(); ++i) {
+    for (uint32_t i = 0; i < node_ids.size(); ++i) {
         if (node_ids[i] == node_id) {
             node_ids[i] = next_id;
             break;
@@ -329,7 +329,7 @@ void Graph::split_node_by_reads(unordered_set<ReadPtr> &reads_along_tig, vector<
 // For each node in pangraph, make a copy of the kmergraph and use the hits
 // stored on each read containing the node to add coverage to this graph
 void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
-    uint num_hits[2];
+    uint32_t num_hits[2];
     for (auto pnode : nodes) {
         // copy kmergraph
         pnode.second->kmer_prg = prgs[pnode.second->prg_id]->kmer_prg;

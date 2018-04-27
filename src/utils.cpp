@@ -101,15 +101,15 @@ float lognchoosek2(uint32_t n, uint32_t k1, uint32_t k2) {
             "Currently the model assumes that the most a given kmer (defined by position) can occur is once per read, i.e. an error somewhere else in the read cannot result in this kmer. If you are getting this message, then you have evidence of violation of this assumption. Either try using a bigger k, or come up with a better model"));
     float total = 0;
 
-    for (uint m = n; m != n - k1 - k2; --m) {
+    for (uint32_t m = n; m != n - k1 - k2; --m) {
         total += log(m);
     }
 
-    for (uint m = 1; m < k1; ++m) {
+    for (uint32_t m = 1; m < k1; ++m) {
         total -= log(m + 1);
     }
 
-    for (uint m = 1; m < k2; ++m) {
+    for (uint32_t m = 1; m < k2; ++m) {
         total -= log(m + 1);
     }
 
@@ -125,7 +125,7 @@ void read_prg_file(vector<LocalPRG *> &prgs, const string &filepath) {
 
     ifstream myfile(filepath);
     if (myfile.is_open()) {
-        uint i = 0;
+        uint32_t i = 0;
         while (getline(myfile, line).good()) {
             if (line.empty() || line[0] == '>') {
                 if (!name.empty() && !read.empty()) {
@@ -169,7 +169,7 @@ void read_prg_file(vector<LocalPRG *> &prgs, const string &filepath) {
     }
 }
 
-void load_PRG_kmergraphs(vector<LocalPRG *> &prgs, const uint &w, const uint &k, const string &prgfile) {
+void load_PRG_kmergraphs(vector<LocalPRG *> &prgs, const uint32_t &w, const uint32_t &k, const string &prgfile) {
     cout << now() << "Loading kmer_prgs from files " << endl;
     string prefix = "";
     size_t pos = prgfile.find_last_of("/");
@@ -234,7 +234,7 @@ void add_read_hits(Seq *s, MinimizerHits *hits, Index *idx) {
     //Seq s(id, name, seq, w, k);
     for (auto it = s->sketch.begin(); it != s->sketch.end(); ++it) {
         if (idx->minhash.find((*it).kmer) != idx->minhash.end()) {
-            for (uint j = 0; j != idx->minhash[(*it).kmer]->size(); ++j) {
+            for (uint32_t j = 0; j != idx->minhash[(*it).kmer]->size(); ++j) {
                 hits->add_hit(s->id, *it, &(idx->minhash[(*it).kmer]->operator[](j)));
                 hit_count += 1;
             }
@@ -249,7 +249,7 @@ void add_read_hits(Seq *s, MinimizerHits *hits, Index *idx) {
 
 void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, const vector<LocalPRG *> &prgs,
                      MinimizerHits *minimizer_hits, const int max_diff, const float &scale_cluster_size,
-                     const uint min_cluster_size, const uint short_read_length) {
+                     const uint32_t min_cluster_size, const uint32_t short_read_length) {
     cout << now() << "Define clusters of hits from the " << minimizer_hits->hits.size() << " hits" << endl;
 
     if (minimizer_hits->hits.empty()) { return; }
@@ -258,7 +258,7 @@ void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
     auto mh_previous = minimizer_hits->hits.begin();
     set<MinimizerHitPtr, pComp> current_cluster;
     current_cluster.insert(*mh_previous);
-    uint length_based_threshold;
+    uint32_t length_based_threshold;
     for (auto mh_current = ++minimizer_hits->hits.begin();
          mh_current != minimizer_hits->hits.end(); ++mh_current) {
         if ((*mh_current)->read_id != (*mh_previous)->read_id or
@@ -350,7 +350,7 @@ void filter_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
     cout << now() << "Now have " << clusters_of_hits.size() << " clusters of hits " << endl;
 }
 
-void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, const uint &genome_size) {
+void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, const uint32_t &genome_size) {
     // Sort clusters by size, and filter out those small clusters which are entirely contained in bigger clusters on reads
     cout << now() << "Filter2 the " << clusters_of_hits.size() << " clusters of hits " << endl;
     if (clusters_of_hits.empty()) { return; }
@@ -370,7 +370,7 @@ void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of
         if ((*(it_next->begin()))->read_id == (*(it->begin()))->read_id) {
             //check if have any 0s in interval of read_v between first and last
             contained = true;
-            for (uint i = (*(it_next->begin()))->read_start_position;
+            for (uint32_t i = (*(it_next->begin()))->read_start_position;
                  i < (*--(it_next->end()))->read_start_position; ++i) {
                 //cout << i << ":" << read_v[i] << "\t";
                 if (read_v[i] == 0) {
@@ -412,8 +412,8 @@ void add_clusters_to_pangraph(set<set<MinimizerHitPtr, pComp>, clusterComp> &clu
 
 void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHits *minimizer_hits,
                                     pangenome::Graph *pangraph,
-                                    const int max_diff, const uint &genome_size, const float &scale_cluster_size,
-                                    const uint min_cluster_size, const uint short_read_length) {
+                                    const int max_diff, const uint32_t &genome_size, const float &scale_cluster_size,
+                                    const uint32_t min_cluster_size, const uint32_t short_read_length) {
     // this step infers the gene order for a read and adds this to the pangraph
     // by defining clusters of hits, keeping those which are not noise and
     // then adding the inferred gene ordering
@@ -432,16 +432,16 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
     add_clusters_to_pangraph(clusters_of_hits, pangraph, prgs);
 }
 
-uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenome::Graph *pangraph, Index *idx,
+uint32_t pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenome::Graph *pangraph, Index *idx,
                              const vector<LocalPRG *> &prgs, const uint32_t w, const uint32_t k,
                              const int max_diff, const float &e_rate,
-                             const uint min_cluster_size, const uint genome_size,
+                             const uint32_t min_cluster_size, const uint32_t genome_size,
                              const bool illumina,
                              const bool clean) {
     string name, read, line;
     uint64_t covg = 0;
     float scale_cluster_size = 0.75 / exp(e_rate * k);
-    uint short_read_length = std::numeric_limits<uint>::max();
+    uint32_t short_read_length = std::numeric_limits<uint32_t>::max();
     Seq *s;
     s = new Seq(0, "null", "", w, k);
     if (s == nullptr) {
@@ -460,7 +460,7 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
                     if (!s->sketch.empty()) {
                         covg += s->seq.length();
                     }
-                    if (illumina == true and short_read_length == std::numeric_limits<uint>::max()) {
+                    if (illumina == true and short_read_length == std::numeric_limits<uint32_t>::max()) {
                         assert(w != 0);
                         short_read_length = s->seq.length() * 2 / w;
                     }
@@ -495,7 +495,7 @@ uint pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenom
             if (!s->sketch.empty()) {
                 covg += s->seq.length();
             }
-            if (illumina == true and short_read_length == std::numeric_limits<uint>::max()) {
+            if (illumina == true and short_read_length == std::numeric_limits<uint32_t>::max()) {
                 short_read_length = s->seq.length() * 2 / w;
             }
             //cout << now() << "Add read hits" << endl;

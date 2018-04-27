@@ -204,7 +204,7 @@ int pandora_map(int argc, char *argv[]) {
     mhs = new MinimizerHits(100000);
     pangenome::Graph *pangraph;
     pangraph = new pangenome::Graph();
-    uint covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size,
+    uint32_t covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size,
                                         genome_size, illumina, clean);
 
     cout << now() << "Finished with index, so clear " << endl;

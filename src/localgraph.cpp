@@ -196,7 +196,7 @@ vector<Path> LocalGraph::walk_back(const uint32_t &node_id, const uint32_t &pos,
             innode = find(it->second->outNodes.begin(), it->second->outNodes.end(), nodes.at(node_id));
             if (innode != it->second->outNodes.end()) {
                 walk_paths = walk_back(it->second->id, it->second->pos.get_end(), len - len_added);
-                for (uint i = 0; i != walk_paths.size(); ++i) {
+                for (uint32_t i = 0; i != walk_paths.size(); ++i) {
                     p2.initialize(walk_paths[i].path);
                     p2.add_end_interval(Interval(nodes.at(node_id)->pos.start, pos));
                     //cout << p2 << endl;
@@ -265,7 +265,7 @@ vector<LocalNodePtr> LocalGraph::nodes_along_string(const string &query_string) 
                         u[i].push_back(u[i].back()->outNodes[j]);
                         while (!u[i].back()->outNodes.empty() and extended) {
                             extended = false;
-                            for (uint n = 0; n != u[i].back()->outNodes.size(); ++n) {
+                            for (uint32_t n = 0; n != u[i].back()->outNodes.size(); ++n) {
                                 if (u[i].back()->outNodes[n]->pos.length == 0) {
                                     u[i].push_back(u[i].back()->outNodes[n]);
                                     extended = true;
@@ -345,7 +345,7 @@ bool LocalGraph::operator!=(const LocalGraph &y) const {
 std::ostream &operator<<(std::ostream &out, LocalGraph const &data) {
     for (const auto c: data.nodes) {
         out << c.second->id << endl;
-        for (uint j = 0; j != c.second->outNodes.size(); ++j) {
+        for (uint32_t j = 0; j != c.second->outNodes.size(); ++j) {
             out << c.second->id << "->" << c.second->outNodes[j]->id << endl;
         }
     }
