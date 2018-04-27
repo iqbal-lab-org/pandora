@@ -36,7 +36,7 @@ struct clusterComp_size {
 
 class MinimizerHits {
 public:
-    MinimizerHits(const uint &num_hits = 30000);
+    MinimizerHits(const uint32_t &num_hits = 30000);
 
     ~MinimizerHits();
 

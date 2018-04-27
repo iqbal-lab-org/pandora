@@ -55,7 +55,7 @@ public:
 
     std::vector<NodePtr>::iterator remove_node_from_read(std::vector<NodePtr>::iterator, ReadPtr);
 
-    void remove_low_covg_nodes(const uint &);
+    void remove_low_covg_nodes(const uint32_t &);
 
     void split_node_by_reads(unordered_set<ReadPtr> &, vector<uint16_t> &, const vector<bool> &, const uint16_t);
 

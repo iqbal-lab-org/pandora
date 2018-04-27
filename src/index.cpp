@@ -50,7 +50,7 @@ void Index::save(const string &prgfile, uint32_t w, uint32_t k) {
 
     for (auto &it : minhash) {
         handle << it.first << "\t" << it.second->size();
-        for (uint j = 0; j != it.second->size(); ++j) {
+        for (uint32_t j = 0; j != it.second->size(); ++j) {
             handle << "\t" << (*(it.second))[j];
         }
         handle << endl;

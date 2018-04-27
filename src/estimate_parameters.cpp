@@ -13,11 +13,11 @@
 
 using namespace std;
 
-double fit_mean_covg(const vector<uint> &kmer_covg_dist, const uint8_t zero_thresh) {
+double fit_mean_covg(const vector<uint32_t> &kmer_covg_dist, const uint8_t zero_thresh) {
 
     double sum = 0;
     double total = 0;
-    for (uint i = zero_thresh; i < kmer_covg_dist.size(); ++i) {
+    for (uint32_t i = zero_thresh; i < kmer_covg_dist.size(); ++i) {
         sum += kmer_covg_dist[i] * i;
         total += kmer_covg_dist[i];
     }
@@ -29,10 +29,10 @@ double fit_mean_covg(const vector<uint> &kmer_covg_dist, const uint8_t zero_thre
     return sum / total;
 }
 
-double fit_variance_covg(const vector<uint> &kmer_covg_dist, double &mean, const uint8_t zero_thresh) {
+double fit_variance_covg(const vector<uint32_t> &kmer_covg_dist, double &mean, const uint8_t zero_thresh) {
     double acc = 0;
     double total = 0;
-    for (uint i = zero_thresh; i < kmer_covg_dist.size(); ++i) {
+    for (uint32_t i = zero_thresh; i < kmer_covg_dist.size(); ++i) {
         acc += (i - mean) * (i - mean) * kmer_covg_dist[i];
         total += kmer_covg_dist[i];
     }
@@ -51,16 +51,16 @@ void fit_negative_binomial(double &mean, double &variance, float &p, float &r) {
     cout << "p: " << p << " and r: " << r << endl;
 }
 
-uint find_mean_covg(vector<uint> &kmer_covg_dist) {
+uint32_t find_mean_covg(vector<uint32_t> &kmer_covg_dist) {
     // tries to return the position in vector at which the maximum of the second peak occurs
     // expects at least 3 increases of covg to decide we are out of the first peak
     // Note that if there are localPRGs which occur twice (or more) we expect the kmer covgs
     // to have an additional smaller peak(s)
     bool first_peak = true;
-    uint max_covg = 0;
-    uint noise_buffer = 0;
+    uint32_t max_covg = 0;
+    uint32_t noise_buffer = 0;
 
-    for (uint i = 1; i != kmer_covg_dist.size(); ++i) {
+    for (uint32_t i = 1; i != kmer_covg_dist.size(); ++i) {
         if (kmer_covg_dist[i] <= kmer_covg_dist[i - 1]) {
             // only interested in where we stop being in a decreasing section
             continue;
@@ -88,7 +88,7 @@ uint find_mean_covg(vector<uint> &kmer_covg_dist) {
     return max_covg;
 }
 
-int find_prob_thresh(vector<uint> &kmer_prob_dist) {
+int find_prob_thresh(vector<uint32_t> &kmer_prob_dist) {
     // finds position at which minimum occurs between two peaks 
     // naive way is to pick window with minimal positive covg
     // sligtly less naive way is to find this minimal value between two peaks more than 10 apart
@@ -138,7 +138,7 @@ int find_prob_thresh(vector<uint> &kmer_prob_dist) {
         // secondly, find single peak and pick a min value closer to 0
         if (first_peak == second_peak) {
             peak = (int) distance(kmer_prob_dist.begin(), max_element(kmer_prob_dist.begin(), kmer_prob_dist.end()));
-            for (uint i = (uint) peak; i != kmer_prob_dist.size(); ++i) {
+            for (uint32_t i = (uint32_t) peak; i != kmer_prob_dist.size(); ++i) {
                 if (kmer_prob_dist[i] > 0 and (kmer_prob_dist[i] < kmer_prob_dist[peak] or kmer_prob_dist[peak] == 0)) {
                     peak = i;
                 }
@@ -170,16 +170,16 @@ int find_prob_thresh(vector<uint> &kmer_prob_dist) {
 }
 
 void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const uint32_t k, float &e_rate,
-                         const uint covg, const bool bin) {
+                         const uint32_t covg, const bool bin) {
     // ignore trivial case
     if (pangraph->nodes.empty()) {
         return;
     }
 
-    vector<uint> kmer_covg_dist(1000, 0); //empty vector of zeroes to represent kmer coverages between 0 and 1000
-    vector<uint> kmer_prob_dist(200, 0); //empty vector of zeroes to represent the
+    vector<uint32_t> kmer_covg_dist(1000, 0); //empty vector of zeroes to represent kmer coverages between 0 and 1000
+    vector<uint32_t> kmer_prob_dist(200, 0); //empty vector of zeroes to represent the
     // distribution of log probs between -200 and 0
-    uint c, mean_covg;
+    uint32_t c, mean_covg;
     unsigned long num_reads = 0;
     int thresh;
     float p;
@@ -189,7 +189,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const
     cout << now() << "Collect kmer coverage distribution" << endl;
     for (auto &node : pangraph->nodes) {
         num_reads += node.second->covg;
-        for (uint i = 1;
+        for (uint32_t i = 1;
              i != node.second->kmer_prg.nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
         {
             c = node.second->kmer_prg.nodes[i]->covg[0] + node.second->kmer_prg.nodes[i]->covg[1];
@@ -208,7 +208,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const
     ofstream handle;
     handle.open(outdir + "/kmer_covgs.txt");
     assert(!handle.fail() or assert_msg("Could not open file " << outdir + "/kmer_covgs.txt"));
-    for (uint j = 0; j != kmer_covg_dist.size(); ++j) {
+    for (uint32_t j = 0; j != kmer_covg_dist.size(); ++j) {
         handle << j << "\t" << kmer_covg_dist[j] << endl;
     }
     handle.close();
@@ -239,7 +239,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const
         else
             node.second->kmer_prg.set_nb(nb_p, nb_r);
 
-        for (uint i = 1;
+        for (uint32_t i = 1;
              i < node.second->kmer_prg.nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
         {
             if (bin)
@@ -260,7 +260,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const
     cout << now() << "Writing kmer probability distribution to " << outdir << "/kmer_probs.txt" << endl;
     handle.open(outdir + "/kmer_probs.txt");
     assert(!handle.fail() or assert_msg("Could not open file " << outdir + "/kmer_probs.txt"));
-    for (int j = 0; (uint) j != kmer_prob_dist.size(); ++j) {
+    for (int j = 0; (uint32_t) j != kmer_prob_dist.size(); ++j) {
         handle << j - 200 << "\t" << kmer_prob_dist[j] << endl;
     }
     handle.close();
@@ -273,7 +273,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const
     ++it;
     // it now represents most negative prob bin with non-zero coverage.
     // if there are enough remaining kmers, estimate thresh, otherwise use a default
-    if (std::accumulate(it, kmer_prob_dist.end(), (uint) 0) > 1000) {
+    if (std::accumulate(it, kmer_prob_dist.end(), (uint32_t) 0) > 1000) {
         thresh = find_prob_thresh(kmer_prob_dist);
         cout << now() << "Estimated threshold for true kmers is " << thresh << endl;
     } else {

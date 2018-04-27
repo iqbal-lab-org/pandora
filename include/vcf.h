@@ -28,13 +28,13 @@ public:
     void add_sample_gt(const std::string &name, const std::string &c, const uint32_t p, const std::string &r,
                        const std::string &a);
 
-    void add_sample_ref_alleles(const std::string &, const std::string &, const uint &, const uint &);
+    void add_sample_ref_alleles(const std::string &, const std::string &, const uint32_t &, const uint32_t &);
 
     void clear();
 
     void sort_records();
 
-    bool pos_in_range(const uint, const uint);
+    bool pos_in_range(const uint32_t , const uint32_t);
 
     void save(const std::string &, bool simple = false, bool complexgraph = false, bool toomanyalts = false,
               bool snp = false, bool indel = false, bool phsnps = false, bool complexvar = false);
