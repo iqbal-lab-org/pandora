@@ -14,7 +14,7 @@ bool Node::operator==(const Node &y) const {
     }
 
     bool match = true;
-    for (uint i = 0; i < hashed_node_ids.size(); ++i) {
+    for (uint32_t i = 0; i < hashed_node_ids.size(); ++i) {
         match = hashed_node_ids[i] == y.hashed_node_ids[i];
         if (!match)
             break;
@@ -23,7 +23,7 @@ bool Node::operator==(const Node &y) const {
         return true;
 
     auto rc = rc_hashed_node_ids(hashed_node_ids);
-    for (uint i = 0; i < hashed_node_ids.size(); ++i) {
+    for (uint32_t i = 0; i < hashed_node_ids.size(); ++i) {
         match = rc[i] == y.hashed_node_ids[i];
         if (!match)
             break;

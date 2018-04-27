@@ -59,7 +59,7 @@ unsigned char seq_nt4_table[256] = {
         4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
 };
 
-uint nt4(char c) {
+uint32_t nt4(char c) {
     return seq_nt4_table[(uint8_t) c];
 }
 

@@ -12,7 +12,7 @@ class LocalPRG;
 
 
 class KmerGraph {
-    uint reserved_size;
+    uint32_t reserved_size;
     uint32_t k;
     float p;
     float nb_p;
@@ -50,23 +50,23 @@ public:
 
     void set_nb(const float&, const float&);
 
-    float nb_prob(uint);
+    float nb_prob(uint32_t);
 
-    float prob(uint);
+    float prob(uint32_t);
 
-    float prob(uint, uint);
+    float prob(uint32_t , uint32_t);
 
     float find_max_path(std::vector<KmerNodePtr> &);
 
     float find_nb_max_path(std::vector<KmerNodePtr> &);
 
-    std::vector<std::vector<KmerNodePtr>> find_max_paths(uint);
+    std::vector<std::vector<KmerNodePtr>> find_max_paths(uint32_t);
 
     void save_covg_dist(const std::string &);
 
-    uint min_path_length();
+    uint32_t min_path_length();
 
-    std::vector<std::vector<KmerNodePtr>> get_random_paths(uint);
+    std::vector<std::vector<KmerNodePtr>> get_random_paths(uint32_t);
 
     float prob_path(const std::vector<KmerNodePtr> &);
 
@@ -82,7 +82,7 @@ public:
 
     friend std::ostream &operator<<(std::ostream &out, KmerGraph const &data);
 
-    friend void estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint, const bool);
+    friend void estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint32_t , const bool);
 
     friend struct condition;
 

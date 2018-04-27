@@ -54,13 +54,13 @@ public:
     std::vector<KmerNodePtr> kmernode_path_from_localnode_path(const std::vector<LocalNodePtr> &) const;
 
     std::vector<LocalNodePtr>
-    localnode_path_from_kmernode_path(const std::vector<KmerNodePtr> &, const uint w = 0) const;
+    localnode_path_from_kmernode_path(const std::vector<KmerNodePtr> &, const uint32_t w = 0) const;
 
-    std::vector<uint> get_covgs_along_localnode_path(const PanNodePtr,
+    std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr,
                                                      const std::vector<LocalNodePtr> &,
                                                      const std::vector<KmerNodePtr> &) const;
 
-    void write_covgs_to_file(const string &, const std::vector<uint> &) const;
+    void write_covgs_to_file(const string &, const std::vector<uint32_t> &) const;
 
     void write_path_to_fasta(const std::string &, const std::vector<LocalNodePtr> &, const float &) const;
 
@@ -96,13 +96,13 @@ public:
 
     std::vector<KmerNodePtr> find_path_and_variants(PanNodePtr,
                                                     const std::string &,
-                                                    const uint w,
+                                                    const uint32_t w,
                                                     const std::string &vcf_ref,
                                                     const bool output_vcf = false,
                                                     const bool output_comparison_paths = false,
                                                     const bool output_covgs = false,
                                                     const bool nbin = false,
-                                                    const uint covg = 1) const;
+                                                    const uint32_t covg = 1) const;
 
     friend std::ostream &operator<<(std::ostream &out, const LocalPRG &data);
 };

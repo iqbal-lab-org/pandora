@@ -48,7 +48,7 @@ public:
 
     friend int pandora_check_kmergraph(int argc, char *argv[]);
 
-    friend void estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint);
+    friend void estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint32_t);
 
 };
 

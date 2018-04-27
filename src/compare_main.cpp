@@ -205,7 +205,7 @@ int pandora_compare(int argc, char *argv[]) {
     pangraph_sample = new pangenome::Graph();
     MinimizerHits *mhs;
     mhs = new MinimizerHits(100 * idx->minhash.size());
-    uint covg;
+    uint32_t covg;
 
     // load read index
     map<string, string> samples = load_read_index(readindex);

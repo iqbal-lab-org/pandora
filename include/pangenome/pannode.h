@@ -32,7 +32,7 @@ public:
 
     void get_read_overlap_coordinates(std::vector<std::vector<uint32_t>>&);
 
-    void output_samples(const LocalPRG *, const std::string &, const uint, const std::string &);
+    void output_samples(const LocalPRG *, const std::string &, const uint32_t , const std::string &);
 
     bool operator==(const Node &y) const;
 

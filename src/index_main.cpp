@@ -11,15 +11,15 @@ void index_prgs(vector<LocalPRG *> &prgs, Index *idx, const uint32_t w, const ui
     cout << now() << "Index PRGs" << endl;
 
     // first reserve an estimated index size
-    uint r = 0;
-    for (uint i = 0; i != prgs.size(); ++i) {
+    uint32_t r = 0;
+    for (uint32_t i = 0; i != prgs.size(); ++i) {
         r += prgs[i]->seq.length();
     }
     idx->minhash.reserve(r);
 
     // now fill index
     auto dir_num = 0;
-    for (uint i = 0; i != prgs.size(); ++i) {
+    for (uint32_t i = 0; i != prgs.size(); ++i) {
         if (i % 4000 == 0){
             make_dir("kmer_prgs/" + int_to_string(dir_num+1));
             dir_num++;
