@@ -31,7 +31,7 @@ void Read::add_hits(const uint32_t prg_id, set<MinimizerHitPtr, pComp> &cluster)
 // NB will find the first such instance if there is more than one
 
 // find the position range where overlaps node_ids and node_orients in read
-pair<uint, uint>
+pair<uint32_t, uint32_t>
 Read::find_position(const vector<uint16_t> &node_ids, const vector<bool> &node_orients, const uint16_t min_overlap) {
     /*cout << "searching for ";
     for (auto n : node_ids)
@@ -47,13 +47,13 @@ Read::find_position(const vector<uint16_t> &node_ids, const vector<bool> &node_o
 
     assert(node_ids.size() == node_orients.size());
     assert(node_ids.size() > 0);
-    uint search_pos = 0;
-    uint found_pos = 0;
+    uint32_t search_pos = 0;
+    uint32_t found_pos = 0;
 
     //cout << "searching forwards for " << node_ids[0] << " " << node_orients[0];
     //cout << " and backwards for " << node_ids.back() << " " << !node_orients.back() << endl;
 
-    for (uint i = 0; i < nodes.size(); ++i) {
+    for (uint32_t i = 0; i < nodes.size(); ++i) {
         //cout << "compare nodes pos " << i << " with node_ids 0" << endl;
         // if first node matches at position i going forwards...
         if (nodes[i]->node_id == node_ids[0] and node_orientations[i] == node_orients[0]) {
@@ -168,14 +168,14 @@ Read::find_position(const vector<uint16_t> &node_ids, const vector<bool> &node_o
             }
         }
     }
-    return make_pair(std::numeric_limits<uint>::max(), std::numeric_limits<uint>::max());
+    return make_pair(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint32_t>::max());
 }
 
 void Read::remove_node(NodePtr n_original) {
     //removes all copies of node
     auto it = find(nodes.begin(), nodes.end(), n_original);
     while (it != nodes.end()) {
-        uint d = distance(nodes.begin(), it);
+        uint32_t d = distance(nodes.begin(), it);
         nodes.erase(it);
         node_orientations.erase(node_orientations.begin() + d);
         it = find(nodes.begin(), nodes.end(), n_original);
@@ -184,7 +184,7 @@ void Read::remove_node(NodePtr n_original) {
 
 vector<NodePtr>::iterator Read::remove_node(vector<NodePtr>::iterator nit) {
     //(*nit)->covg -= 1;
-    uint d = distance(nodes.begin(), nit);
+    uint32_t d = distance(nodes.begin(), nit);
     node_orientations.erase(node_orientations.begin() + d);
     nit = nodes.erase(nit);
     return nit;

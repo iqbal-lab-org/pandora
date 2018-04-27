@@ -64,7 +64,7 @@ string Node::get_name() const {
 }
 
 void Node::add_path(const vector<KmerNodePtr> &kmp) {
-    for (uint i = 0; i != kmp.size(); ++i) {
+    for (uint32_t i = 0; i != kmp.size(); ++i) {
         assert(kmp[i]->id < kmer_prg.nodes.size() and kmer_prg.nodes[kmp[i]->id]!=nullptr);
         kmer_prg.nodes[kmp[i]->id]->covg[0] += 1;
         kmer_prg.nodes[kmp[i]->id]->covg[1] += 1;
@@ -100,14 +100,14 @@ void Node::get_read_overlap_coordinates(vector<vector<uint32_t>>& read_overlap_c
     if (read_overlap_coordinates.size() > 0) {
     	sort(read_overlap_coordinates.begin(), read_overlap_coordinates.end(),
 	    [](const vector<uint32_t>& a, const vector<uint32_t>& b) {
-	    for (uint i=0; i<a.size(); ++i) {
+	    for (uint32_t i=0; i<a.size(); ++i) {
             if (a[i] != b[i]) { return a[i] < b[i]; }}
             return false;});
     }
     
 }
 
-void Node::output_samples(const LocalPRG *prg, const string &outdir, const uint w, const string& vcf_ref) {
+void Node::output_samples(const LocalPRG *prg, const string &outdir, const uint32_t w, const string& vcf_ref) {
     vector<KmerNodePtr> kmp;
     kmp.reserve(800);
     vector<LocalNodePtr> refpath, sample_lmp;
@@ -139,7 +139,7 @@ void Node::output_samples(const LocalPRG *prg, const string &outdir, const uint 
     VCF vcf;
     prg->build_vcf(vcf, refpath);
     vcf.save(outdir + "/" + name + ".multisample.vcf", true, true, true, true, true, true, true);
-    uint count = 0;
+    uint32_t count = 0;
     for (auto s : samples) {
         //cout << "new sample" << endl;
         count = 0;

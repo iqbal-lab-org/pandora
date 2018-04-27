@@ -68,7 +68,7 @@ bool VCFRecord::operator<(const VCFRecord &y) const {
 std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
     out << m.chrom << "\t" << m.pos << "\t" << m.id << "\t" << m.ref << "\t" << m.alt << "\t" << m.qual << "\t"
         << m.filter << "\t" << m.info << "\t" << m.format;
-    for (uint i = 0; i != m.samples.size(); ++i) {
+    for (uint32_t i = 0; i != m.samples.size(); ++i) {
         out << "\t" << m.samples[i];
     }
     out << endl;

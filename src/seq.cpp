@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <cassert>
+#include <zconf.h>
 #include "inthash.h"
 #include "minimizer.h"
 #include "seq.h"
@@ -33,7 +34,7 @@ bool Seq::add_letter_to_get_next_kmer(const char& letter,
                                       uint32_t&  buff,
                                       uint64_t (&kmer)[2],
                                       uint64_t (&kh)[2]){
-    uint c = nt4((uint8_t) letter);
+    uint32_t c = nt4((uint8_t) letter);
     if (c < 4) { // not an ambiguous base
         kmer[0] = (kmer[0] << 2 | c) & mask;           // forward k-mer
         kmer[1] = (kmer[1] >> 2) | (3ULL ^ c) << shift1; // reverse k-mer

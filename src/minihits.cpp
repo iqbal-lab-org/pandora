@@ -13,7 +13,7 @@ using namespace std;
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-MinimizerHits::MinimizerHits(const uint &num_hits) {
+MinimizerHits::MinimizerHits(const uint32_t &num_hits) {
     uhits.reserve(num_hits);
 }
 

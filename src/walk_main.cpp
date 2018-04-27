@@ -28,7 +28,7 @@ int pandora_walk(int argc, char *argv[]) // the "pandora walk" comand
         for (auto prg_ptr : prgs){
             npath = prg_ptr->prg.top_path();
             cout << prg_ptr->name << "\t";
-            for (uint j = 0; j != npath.size(); ++j) {
+            for (uint32_t j = 0; j != npath.size(); ++j) {
                 cout << "->" << npath[j]->id;
             }
             cout << endl;
@@ -38,7 +38,7 @@ int pandora_walk(int argc, char *argv[]) // the "pandora walk" comand
         for (auto prg_ptr : prgs){
             npath = prg_ptr->prg.bottom_path();
             cout << prg_ptr->name << "\t";
-            for (uint j = 0; j != npath.size(); ++j) {
+            for (uint32_t j = 0; j != npath.size(); ++j) {
                 cout << "->" << npath[j]->id;
             }
             cout << endl;
@@ -56,7 +56,7 @@ int pandora_walk(int argc, char *argv[]) // the "pandora walk" comand
             npath = prg_ptr->prg.nodes_along_string(readfile.read);
             if (not npath.empty()) {
                 cout << readfile.name << "\t" << prg_ptr->name << "\t";
-                for (uint j = 0; j != npath.size(); ++j) {
+                for (uint32_t j = 0; j != npath.size(); ++j) {
                     cout << "->" << npath[j]->id;
                 }
                 cout << endl;
