@@ -1,8 +1,9 @@
 #include "gtest/gtest.h"
 #include <gatb/gatb_core.hpp>
 
-TEST(gatb_tmp, create) {
-// We get a handle on a fake bank made of 3 sequences.
+
+TEST(GatbTmp, create) {
+    // We get a handle on a fake bank made of 3 sequences.
     IBank *bank = new BankStrings(
             "ATCGTACGACGCTAGCTAGCA",
             "ACTACGTATCGGTATATATTTTCGATCGATCAG",
