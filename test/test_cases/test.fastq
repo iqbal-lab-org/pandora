@@ -1,8 +1,12 @@
 @read1
-GATCGATC
+GATCGATCTACTCTAC
 +
-********
+********&^%^&%&^
 @read2
-GTTCGTTC
+GTTCGTTCTACTCTAC
 +
-&&&&&&&&
+&&&&&&&&&^%^&%&^
+@read3
+GTTCGTTCTACTCAAC
++
+&&&&&&&&&^%^&%&^
