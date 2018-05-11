@@ -40,7 +40,7 @@ file(GLOB_RECURSE SRC_FILES
         ${PROJECT_SOURCE_DIR}/include/*/*.cpp
         ${PROJECT_SOURCE_DIR}/include/*/*.hpp)
 
-add_executable(${PROJECT_NAME} ${SRC_FILES} src/local_assembly.cpp include/local_assembly.h)
+add_executable(${PROJECT_NAME} ${SRC_FILES})
 add_dependencies(${PROJECT_NAME} gatb)
 target_link_libraries(${PROJECT_NAME}
         ${CMAKE_THREAD_LIBS_INIT}
