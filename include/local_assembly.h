@@ -7,10 +7,12 @@
 #include <gatb/gatb_core.hpp>
 #include <iostream>
 #include <stack>
+#include <unordered_map>
+#include <set>
 
 
 bool kmer_in_graph(const char *kmer, Graph &graph);
-
+std::unordered_map<Node, Node>& DFS(Node &start_node, Graph &graph);
 class DfsNode {
     DfsNode *parent;
     DfsNode *left_child;

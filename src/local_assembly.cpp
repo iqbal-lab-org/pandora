@@ -38,11 +38,44 @@ int graph_size(Graph &graph) {
  *     Endwhile
  *     Return T
  */
-DfsTree DFS(Node start_node) {
-    std::stack<Node> S;
-    S.push(start_node);
+std::unordered_map<Node, Node>& DFS(Node &start_node, Graph &graph) {
+    std::stack<Node> nodes_to_explore;  // S from pseudocode
+    nodes_to_explore.push(start_node);  // s from pseudocode
+    std::unordered_map<Node, Node> parent;
+    DfsTree tree { DfsTree() };
+    std::set<Node> explored;
+    bool u_explored;
 
+    while (!(nodes_to_explore.empty())) {
+        // Take a node u from S
+        Node &current_node { nodes_to_explore.top() };  // u from pseudocode
+        nodes_to_explore.pop();
+        // If Explored[u] = false then
+        u_explored = explored.find(current_node) != explored.end();
+        if (!u_explored) {
+            // Set Explored[u] = true
+            explored.insert(current_node);
+            // If u != s then
+            if (current_node != start_node) {
+                // Add edge (u, parent[u]) to tree T
+                // todo
+            }
+            // For each edge (u,v) incident to u
+            // We get the neighbors of this current node
+            GraphVector<Node> neighbors = graph.successors(current_node);
 
+            // We loop each node.
+            for (int count = 0; count < neighbors.size(); ++count)
+            {
+                Node v = neighbors.at(count);
+                // Add v to the stack S
+                nodes_to_explore.push(v);
+                // Set parent[v] = u
+                parent[v] = current_node;
+            }
+        }
+    }
+    return parent;
 }
 
 

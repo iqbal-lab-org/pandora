@@ -181,3 +181,17 @@ TEST(KmerNotInGraph, create) {
     EXPECT_FALSE(kmer_in_graph(kmer, graph));
 
 }
+
+TEST(DFS, create) {
+    Graph graph = Graph::create(
+            new BankStrings("AATG", NULL),
+            "-kmer-size 3 -abundance-min 1 -verbose 0"
+    );
+    Node start_node {graph.buildNode("AAT")};
+    std::unordered_map<Node, Node> tree = DFS(start_node, graph);
+
+    for (auto kv : tree) {
+        std::cout << graph.toString(kv.first) << " ";
+        std::cout << graph.toString(kv.second) << "\n";
+    }
+}
