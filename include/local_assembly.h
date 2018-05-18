@@ -11,8 +11,8 @@
 #include <set>
 
 
-bool kmer_in_graph(const char *kmer, Graph &graph);
-std::unordered_map<Node, Node>& DFS(Node &start_node, Graph &graph);
+bool get_node(Node &node, Graph &graph, Node &found_node);
+std::unordered_map<std::string, std::string>& DFS(Node &start_node, Graph &graph);
 class DfsNode {
     DfsNode *parent;
     DfsNode *left_child;

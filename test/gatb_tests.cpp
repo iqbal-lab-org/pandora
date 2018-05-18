@@ -157,41 +157,36 @@ TEST(GatbDeBruijnNodeNeighbours, create) {
 }
 
 
-TEST(KmerInGraph, create) {
+TEST(GetNodeFromGraph, create) {
     Graph graph = Graph::create(
-            new BankStrings("AATGC", NULL),
-            "-kmer-size 4 -abundance-min 1 -verbose 0"
+            new BankStrings("AATGTCAGG", NULL),
+            "-kmer-size 5 -abundance-min 1 -verbose 0"
     );
+    const char *kmer = "AATGTCAGG";
+    Node real_node = graph.buildNode(kmer);
+    Node found;
+    EXPECT_TRUE(get_node(real_node, graph, found));
+    // We get the neighbors of this real node and make sure it has the neighbours we expect
+    GraphVector<Node> neighbours = graph.successors(found);
+    EXPECT_EQ(graph.toString(neighbours[0]), "ATGTC");
 
-    const char *kmer = "AATG";
-
-    EXPECT_TRUE(kmer_in_graph(kmer, graph));
-
-
+    // check the negative case also holds. we create a kmer that should not exist in the graph
+    Node fake_node = graph.buildNode("FAKE");
+    Node found2;
+    EXPECT_FALSE(get_node(fake_node, graph, found2));
 }
 
-TEST(KmerNotInGraph, create) {
+TEST(DFSTest, create) {
     Graph graph = Graph::create(
-            new BankStrings("AATGC", NULL),
-            "-kmer-size 4 -abundance-min 1 -verbose 0"
+            new BankStrings("AATGTCAGG", NULL),
+            "-kmer-size 5 -abundance-min 1 -verbose 0"
     );
-
-    const char *kmer = "FAKE";
-
-    EXPECT_FALSE(kmer_in_graph(kmer, graph));
-
-}
-
-TEST(DFS, create) {
-    Graph graph = Graph::create(
-            new BankStrings("AATG", NULL),
-            "-kmer-size 3 -abundance-min 1 -verbose 0"
-    );
-    Node start_node {graph.buildNode("AAT")};
-    std::unordered_map<Node, Node> tree = DFS(start_node, graph);
-
+    const char *kmer = "AATGTCAGG";
+    Node start_node = graph.buildNode(kmer);
+    std::unordered_map<std::string, std::string> tree = DFS(start_node, graph);
+    std::cout << "DFS Tree:\n";
     for (auto kv : tree) {
-        std::cout << graph.toString(kv.first) << " ";
-        std::cout << graph.toString(kv.second) << "\n";
+        std::cout << kv.first << " ";
+        std::cout << kv.second << "\n";
     }
 }

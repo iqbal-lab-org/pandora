@@ -1,15 +1,21 @@
 #include <local_assembly.h>
 
-bool kmer_in_graph(const char *kmer, Graph &graph) {
-    if (!kmer)
-        std::cerr << "Function kmer_in_graph() received a null pointer.\n";
-    // get the first node of the kmer
-    Node node = graph.buildNode(kmer);
 
-    return graph.contains(node);
+bool get_node(Node &node, Graph &graph, Node &found_node) {
+    GraphIterator<Node> it = graph.iterator ();
+    std::string required_kmer = graph.toString(node);
+    for (it.first(); !it.isDone(); it.next())
+    {
+        Node& current = it.item();
+        if (graph.toString(current) == required_kmer) {
+            found_node = current;
+            return true;
+        }
+    }
+    return false;
 }
 
-int graph_size(Graph &graph) {
+u_int64_t graph_size(Graph &graph) {
     // We get an iterator for all nodes of the graph.
     GraphIterator<Node> it = graph.iterator ();
 
@@ -38,12 +44,12 @@ int graph_size(Graph &graph) {
  *     Endwhile
  *     Return T
  */
-std::unordered_map<Node, Node>& DFS(Node &start_node, Graph &graph) {
+std::unordered_map<std::string, std::string>& DFS(Node &start_node, Graph &graph) {
     std::stack<Node> nodes_to_explore;  // S from pseudocode
     nodes_to_explore.push(start_node);  // s from pseudocode
-    std::unordered_map<Node, Node> parent;
+    std::unordered_map<std::string, std::string> parent;
     DfsTree tree { DfsTree() };
-    std::set<Node> explored;
+    std::set<std::string> explored;
     bool u_explored;
 
     while (!(nodes_to_explore.empty())) {
@@ -51,10 +57,10 @@ std::unordered_map<Node, Node>& DFS(Node &start_node, Graph &graph) {
         Node &current_node { nodes_to_explore.top() };  // u from pseudocode
         nodes_to_explore.pop();
         // If Explored[u] = false then
-        u_explored = explored.find(current_node) != explored.end();
+        u_explored = explored.find(graph.toString(current_node)) != explored.end();
         if (!u_explored) {
             // Set Explored[u] = true
-            explored.insert(current_node);
+            explored.insert(graph.toString(current_node));
             // If u != s then
             if (current_node != start_node) {
                 // Add edge (u, parent[u]) to tree T
@@ -67,11 +73,11 @@ std::unordered_map<Node, Node>& DFS(Node &start_node, Graph &graph) {
             // We loop each node.
             for (int count = 0; count < neighbors.size(); ++count)
             {
-                Node v = neighbors.at(count);
+                Node v = neighbors[count];
                 // Add v to the stack S
                 nodes_to_explore.push(v);
                 // Set parent[v] = u
-                parent[v] = current_node;
+                parent[graph.toString(v)] = graph.toString(current_node);
             }
         }
     }
