@@ -11,22 +11,25 @@
 #include <set>
 
 
-bool get_node(Node &node, Graph &graph, Node &found_node);
-std::unordered_map<std::string, std::string>& DFS(Node &start_node, Graph &graph);
+bool get_node(Node &node, Graph &graph);
+std::unordered_map<std::string, GraphVector<Node>>& DFS(Node &start_node, Graph &graph);
+void print_path(std::unordered_map<std::string, GraphVector<Node>> &tree, const std::string start_node, Graph &graph);
+void helper(std::string node, std::string acc, Graph &graph, std::unordered_map<std::string, GraphVector<Node>> &tree);
 class DfsNode {
     DfsNode *parent;
     DfsNode *left_child;
     DfsNode *right_sibling;
 
 public:
-    DfsNode();
+    DfsNode(std::string kmer);
+    std::string sequence;
     DfsNode *const get_parent();
     DfsNode *const get_left_child();
     DfsNode *const get_right_sibling();
     void set_parent(DfsNode *node);
     void set_left_child(DfsNode *node);
     void set_right_sibling(DfsNode *node);
-    bool has_children();
+    bool is_leaf();
     bool is_rightmost_child();
     bool is_root();
 
@@ -34,9 +37,12 @@ public:
 
 
 class DfsTree {
-    DfsNode *root;
+    DfsNode *m_root;
 public:
     DfsTree();
+    DfsTree(DfsNode *root);
+    void set_root(DfsNode *root);
+    DfsNode* get_root();
     // add function to return a list of paths through tree
 };
 #endif //PANDORA_LOCAL_ASSEMBLY_H

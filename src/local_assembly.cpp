@@ -1,14 +1,14 @@
 #include <local_assembly.h>
 
 
-bool get_node(Node &node, Graph &graph, Node &found_node) {
+bool get_node(Node &node, Graph &graph) {
     GraphIterator<Node> it = graph.iterator ();
     std::string required_kmer = graph.toString(node);
     for (it.first(); !it.isDone(); it.next())
     {
         Node& current = it.item();
         if (graph.toString(current) == required_kmer) {
-            found_node = current;
+            node = current;
             return true;
         }
     }
@@ -44,17 +44,20 @@ u_int64_t graph_size(Graph &graph) {
  *     Endwhile
  *     Return T
  */
-std::unordered_map<std::string, std::string>& DFS(Node &start_node, Graph &graph) {
+std::unordered_map<std::string, GraphVector<Node>>& DFS(Node &start_node, Graph &graph) {
     std::stack<Node> nodes_to_explore;  // S from pseudocode
     nodes_to_explore.push(start_node);  // s from pseudocode
-    std::unordered_map<std::string, std::string> parent;
-    DfsTree tree { DfsTree() };
+    static std::unordered_map<std::string, std::string> parent;
+//    DfsNode root_dfs_node = DfsNode(graph.toString(start_node));
+//    static DfsTree tree { DfsTree(&root_dfs_node) };
     std::set<std::string> explored;
     bool u_explored;
+    Node current_node;
+    static std::unordered_map<std::string, GraphVector<Node>> tree;
 
     while (!(nodes_to_explore.empty())) {
         // Take a node u from S
-        Node &current_node { nodes_to_explore.top() };  // u from pseudocode
+        current_node = nodes_to_explore.top();  // u from pseudocode
         nodes_to_explore.pop();
         // If Explored[u] = false then
         u_explored = explored.find(graph.toString(current_node)) != explored.end();
@@ -64,12 +67,16 @@ std::unordered_map<std::string, std::string>& DFS(Node &start_node, Graph &graph
             // If u != s then
             if (current_node != start_node) {
                 // Add edge (u, parent[u]) to tree T
-                // todo
+                if (parent[graph.toString(current_node)] == graph.toString(start_node))
+                    std::cout << "\n" << parent[graph.toString(current_node)];
+                else {
+                    std::cout << parent[graph.toString(current_node)].back();
+                }
             }
             // For each edge (u,v) incident to u
             // We get the neighbors of this current node
             GraphVector<Node> neighbors = graph.successors(current_node);
-
+            tree[graph.toString(current_node)] = neighbors;
             // We loop each node.
             for (int count = 0; count < neighbors.size(); ++count)
             {
@@ -81,14 +88,31 @@ std::unordered_map<std::string, std::string>& DFS(Node &start_node, Graph &graph
             }
         }
     }
-    return parent;
+    std::cout << graph.toString(current_node).back() << "\n";
+    return tree;
 }
 
+void print_path(std::unordered_map<std::string, GraphVector<Node>> &tree, const std::string start_node, Graph &graph) {
+    std::string initial_acc = start_node.substr(0, start_node.size() - 1);
+    helper(start_node, initial_acc, graph, tree);
+}
+void helper(std::string node, std::string acc, Graph &graph, std::unordered_map<std::string, GraphVector<Node>> &tree) {
+    size_t num_children = tree[node].size();
+    if (num_children == 0)
+        std::cout << acc << node.back() << "\n";
+    else {
+        acc += node.back();
+        for (int i = 0; i < num_children; ++i) {
+            helper(graph.toString(tree[node][i]), acc, graph, tree);
+        }
+    }
+}
 
-DfsNode::DfsNode() {
-    DfsNode *parent{nullptr};
+DfsNode::DfsNode(std::string kmer) {
     DfsNode *left_child{nullptr};
+    DfsNode *parent{nullptr};
     DfsNode *right_sibling{nullptr};
+    std::string sequence {kmer};
 }
 DfsNode *const DfsNode::get_parent() {
         return parent;
@@ -108,7 +132,7 @@ void DfsNode::set_left_child(DfsNode *node) {
 void DfsNode::set_right_sibling(DfsNode *node) {
     right_sibling = node;
 }
-bool DfsNode::has_children() {
+bool DfsNode::is_leaf() {
     return left_child != nullptr;
 }
 bool DfsNode::is_rightmost_child() {
@@ -121,5 +145,14 @@ bool DfsNode::is_root() {
 
 
 DfsTree::DfsTree() {
-    DfsNode *root { nullptr };
+    DfsNode *m_root { nullptr };
+}
+DfsTree::DfsTree(DfsNode *root) {
+    DfsNode *m_root { root };
+}
+void DfsTree::set_root(DfsNode *root) {
+    m_root = root;
+}
+DfsNode* DfsTree::get_root() {
+    return m_root;
 }

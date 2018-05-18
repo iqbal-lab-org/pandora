@@ -164,29 +164,36 @@ TEST(GetNodeFromGraph, create) {
     );
     const char *kmer = "AATGTCAGG";
     Node real_node = graph.buildNode(kmer);
-    Node found;
-    EXPECT_TRUE(get_node(real_node, graph, found));
+    EXPECT_TRUE(get_node(real_node, graph));
     // We get the neighbors of this real node and make sure it has the neighbours we expect
-    GraphVector<Node> neighbours = graph.successors(found);
+    GraphVector<Node> neighbours = graph.successors(real_node);
     EXPECT_EQ(graph.toString(neighbours[0]), "ATGTC");
 
     // check the negative case also holds. we create a kmer that should not exist in the graph
     Node fake_node = graph.buildNode("FAKE");
-    Node found2;
-    EXPECT_FALSE(get_node(fake_node, graph, found2));
+    EXPECT_FALSE(get_node(fake_node, graph));
 }
 
 TEST(DFSTest, create) {
     Graph graph = Graph::create(
-            new BankStrings("AATGTCAGG", NULL),
+            new BankStrings("AATGTCAGG", "AATGTAAGG", "AATGTATCGTGATG", NULL),
+//            new BankStrings("AATC", "AATA", "AATG", NULL),
             "-kmer-size 5 -abundance-min 1 -verbose 0"
     );
-    const char *kmer = "AATGTCAGG";
-    Node start_node = graph.buildNode(kmer);
-    std::unordered_map<std::string, std::string> tree = DFS(start_node, graph);
+    Node start_node = graph.buildNode("AATGT");
+    bool node_found = get_node(start_node, graph);
+    assert(node_found);
+
+    std::cout << "Sequence 1: AATGTCAGG\n";
+    std::cout << "Sequence 2: AATGTAAGG\n";
+
+    std::unordered_map<std::string, GraphVector<Node>>& tree = DFS(start_node, graph);
     std::cout << "DFS Tree:\n";
     for (auto kv : tree) {
         std::cout << kv.first << " ";
-        std::cout << kv.second << "\n";
+        std::cout << kv.second.size() << "\n";
     }
+    std::cout << "print_path function output:\n";
+    print_path(tree, "AATGT", graph);
+
 }
