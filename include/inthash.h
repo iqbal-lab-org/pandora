@@ -15,7 +15,6 @@ class KmerHash {
     std::unordered_map<std::string, std::pair<uint64_t, uint64_t>> lookup;
 public:
     std::pair<uint64_t, uint64_t> kmerhash(const std::string &s, const uint32_t k);
-    std::unordered_map<uint64_t, std::string>& get_reverse_lookup(const uint32_t k);
-    };
+};
 
 #endif

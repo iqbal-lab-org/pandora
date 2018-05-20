@@ -2,7 +2,6 @@
 #include <cassert>
 #include <cmath>
 #include <cstring>
-#include <vector>
 #include "inthash.h"
 
 using namespace std;
@@ -163,25 +162,5 @@ pair<uint64_t, uint64_t> KmerHash::kmerhash(const std::string &s, const uint32_t
     return ret;
 }
 
-unordered_map<uint64_t, string>& KmerHash::get_reverse_lookup(const uint32_t k) {
-    cout << "create kmerhash reverse lookup" << endl;
-    static unordered_map<uint64_t, string> ret_lookup;
-
-    int i;
-    unsigned long long x, y;
-    string kmer;
-    pair<uint64_t, uint64_t> kh;
-
-    for (x = 0; x < 1ULL<<(2*k); ++x) {
-        for (i = 0, y = x; i < k; ++i, y >>= 2)
-            kmer += "ACGT"[y&3];
-        cout << kmer << endl;
-        kh = kmerhash(kmer, k);
-        ret_lookup[kh.first] = kmer;
-        kmer = "";
-    }
-    cout << "finished creating lookup" << endl;
-    return ret_lookup;
-}
 
 
