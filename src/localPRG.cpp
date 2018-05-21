@@ -1078,8 +1078,12 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
 
     // start by adding coverage before we get to first kmer
     uint32_t added = 0, k = 0;
+    cout << "first kmer" << kmer_path[1]->path << endl;
     for (auto n : local_path) {
-        if (n->pos.get_end() < kmer_path[1]->path.get_start()){
+        cout << n->pos << " ";
+        if (n->pos.length == 0) {
+            continue;
+        } else if (n->pos.get_end() < kmer_path[1]->path.get_start()){
             added += n->pos.length;
         } else if (n->pos.get_end() >= kmer_path[1]->path.get_start()
                    and n->pos.get_end() <= kmer_path[1]->path.get_start()){
@@ -1087,6 +1091,7 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
         } else {
             break;
         }
+        cout << "added " << added << endl;
     }
 
     KmerNodePtr prev = nullptr;
