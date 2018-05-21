@@ -11,23 +11,21 @@
 
 #include <iostream>
 #include <sstream>
-#include <ctime>
-#include <cstring>
 #include <vector>
 #include <set>
 #include <tuple>
 #include <functional>
-#include <ctype.h>
+#include <cctype>
 #include <fstream>
 #include <algorithm>
 #include <map>
-#include <assert.h>
+#include <cassert>
 
 #include "utils.h"
 #include "localPRG.h"
 #include "localgraph.h"
-#include "pangraph.h"
-#include "pannode.h"
+#include "pangenome/pangraph.h"
+#include "pangenome/pannode.h"
 #include "index.h"
 #include "estimate_parameters.h"
 
@@ -35,42 +33,37 @@ using std::set;
 using std::vector;
 using namespace std;
 
-static void show_compare_usage()
-{
-    std::cerr << "Usage: pandora compare -p PRG_FILE -r READ_INDEX -o OUT_PREFIX <option(s)>\n"
+static void show_compare_usage() {
+    std::cerr << "Usage: pandora compare -p PRG_FILE -r READ_INDEX -o OUTDIR <option(s)>\n"
               << "Options:\n"
               << "\t-h,--help\t\t\tShow this help message\n"
               << "\t-p,--prg_file PRG_FILE\t\tSpecify a fasta-style prg file\n"
-	      << "\t-r,--read_index READ_INDEX\tSpecify a file with a line per sample\n"
-	      << "\t\t\t\t\tsample_id <tab> filepath to reads in fasta/q format\n"
-	      << "\t-o,--out_prefix OUT_PREFIX\tSpecify prefix of output\n"
-	      << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 1\n"
-	      << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
-	      << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 500 (bps)\n"
-	      << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
-	      << "\t--output_kg\t\t\tSave kmer graphs with fwd and rev coverage annotations for found localPRGs\n"
-	      << "\t--output_vcf\t\t\tSave a vcf file for each found localPRG\n"
-	      << "\t--method\t\t\tMethod for path inference, can be max likelihood (default), 'min' to maximize\n"
-	      << "\t\t\t\t\tthe min probability on the path, or 'both' to create outputs with both methods\n"
-	      << "\t--output_comparison_paths\tSave a fasta file for a random selection of paths through localPRG\n"
+              << "\t-r,--read_index READ_INDEX\tSpecify a file with a line per sample\n"
+              << "\t\t\t\t\tsample_id <tab> filepath to reads in fasta/q format\n"
+              << "\t-o,--outdir OUTDIR\tSpecify directory of output\n"
+              << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 14\n"
+              << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
+              << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 250 (bps)\n"
+              << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
+              << "\t--genome_size\tNUM_BP\tEstimated length of genome, used for coverage estimation\n"
+              << "\t--vcf_refs REF_FASTA\t\tA fasta file with an entry for each LocalPRG giving reference sequence for\n"
+              << "\t\t\t\t\tVCF. Must have a perfect match in the graph and the same name as the graph\n"
+              << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is shorter with low error rate\n"
+              << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
+              << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative binomial\n"
               << std::endl;
 }
 
-map<string,string> load_read_index(const string& readindex)
-{
-    map<string,string> samples;
+map<string, string> load_read_index(const string &readindex) {
+    map<string, string> samples;
     string name, reads_path, line;
-    ifstream myfile (readindex);
-    if (myfile.is_open())
-    {
-        while ( getline (myfile,line).good() )
-        {
+    ifstream myfile(readindex);
+    if (myfile.is_open()) {
+        while (getline(myfile, line).good()) {
             istringstream linestream(line);
-            if (std::getline(linestream, name, '\t'))
-            {
+            if (std::getline(linestream, name, '\t')) {
                 linestream >> reads_path;
-                if (samples.find(name) != samples.end())
-                {
+                if (samples.find(name) != samples.end()) {
                     cout << "Warning: non-unique sample ids given! Only the last of these will be kept" << endl;
                 }
                 samples[name] = reads_path;
@@ -84,8 +77,7 @@ map<string,string> load_read_index(const string& readindex)
     return samples;
 }
 
-int pandora_compare(int argc, char* argv[])
-{
+int pandora_compare(int argc, char *argv[]) {
     // if not enough arguments, print usage
     if (argc < 7) {
         show_compare_usage();
@@ -93,11 +85,11 @@ int pandora_compare(int argc, char* argv[])
     }
 
     // otherwise, parse the parameters from the command line
-    string prgfile, readindex, prefix;
-    uint32_t w=1, k=15; // default parameters
-    int max_diff = 500;
+    string prgfile, readindex, outdir=".", vcf_refs_file;
+    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000; // default parameters
+    int max_diff = 250;
     float e_rate = 0.11;
-    bool output_kg=false, output_vcf=false, max_path=true, min_path=false, output_comparison_paths=false;
+    bool illumina = false, clean = false, bin = false;;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -107,72 +99,77 @@ int pandora_compare(int argc, char* argv[])
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 prgfile = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
-                  std::cerr << "--prg_file option requires one argument." << std::endl;
+                std::cerr << "--prg_file option requires one argument." << std::endl;
                 return 1;
             }
-	} else if ((arg == "-r") || (arg == "--read_index")) {
+        } else if ((arg == "-r") || (arg == "--read_index")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 readindex = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
-                  std::cerr << "--read_index option requires one argument." << std::endl;
+                std::cerr << "--read_index option requires one argument." << std::endl;
                 return 1;
             }
-        } else if ((arg == "-o") || (arg == "--out_prefix")) {
+        } else if ((arg == "-o") || (arg == "--outdir")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                prefix = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+                outdir = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
-                  std::cerr << "--out_prefix option requires one argument." << std::endl;
+                std::cerr << "--outdir option requires one argument." << std::endl;
                 return 1;
             }
-	} else if (arg == "-w") {
+        } else if (arg == "-w") {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                w = (unsigned)atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                w = (unsigned) atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
-                  std::cerr << "-w option requires one argument." << std::endl;
+                std::cerr << "-w option requires one argument." << std::endl;
                 return 1;
-            }  
-	} else if (arg == "-k") {
+            }
+        } else if (arg == "-k") {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                k = (unsigned)atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                k = (unsigned) atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
-                  std::cerr << "-k option requires one argument." << std::endl;
+                std::cerr << "-k option requires one argument." << std::endl;
                 return 1;
-            } 
-	} else if ((arg == "-m") || (arg == "--max_diff")) {
+            }
+        } else if ((arg == "-m") || (arg == "--max_diff")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 max_diff = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
-                  std::cerr << "--max_diff option requires one argument." << std::endl;
+                std::cerr << "--max_diff option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "-e") || (arg == "--error_rate")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 e_rate = atof(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                if (e_rate < 0.01) {
+                    illumina = true;
+                }
             } else { // Uh-oh, there was no argument to the destination option.
-                  std::cerr << "--error_rate option requires one argument." << std::endl;
+                std::cerr << "--error_rate option requires one argument." << std::endl;
                 return 1;
             }
-	} else if ((arg == "--output_kg")) {
-	    output_kg = true;
-	} else if ((arg == "--output_vcf")) {
-            output_vcf = true;
-	} else if ((arg == "--method")) {
-	    if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                string method = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
-		if (method == "min")
-		{
-		    max_path = false;
-		    min_path = true;
-		} else if (method == "both")
-		{
-		    min_path = true;
-		}
+        } else if ((arg == "--genome_size")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                genome_size = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
-                  std::cerr << "--method option requires one argument." << std::endl;
+                std::cerr << "--genome_size option requires one argument." << std::endl;
                 return 1;
             }
-	} else if ((arg == "--output_comparison_paths")) {
-            output_comparison_paths = true;
+        } else if (arg == "--vcf_refs") {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                vcf_refs_file = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--vcf_refs option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if ((arg == "--illumina")) {
+            illumina = true;
+            if (e_rate > 0.05) {
+                e_rate = 0.001;
+            }
+        } else if ((arg == "--clean")) {
+            clean = true;
+        } else if ((arg == "--bin")) {
+            bin = true;
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -183,85 +180,113 @@ int pandora_compare(int argc, char* argv[])
     cout << "\nUsing parameters: " << endl;
     cout << "\tprgfile\t\t" << prgfile << endl;
     cout << "\treadindex\t" << readindex << endl;
-    cout << "\tout_prefix\t" << prefix << endl;
+    cout << "\toutdir\t" << outdir << endl;
     cout << "\tw\t\t" << w << endl;
     cout << "\tk\t\t" << k << endl;
     cout << "\tmax_diff\t" << max_diff << endl;
     cout << "\terror_rate\t" << e_rate << endl;
-    cout << "\toutput_kg\t" << output_kg << endl;
-    cout << "\toutput_vcf\t" << output_vcf << endl;
-    cout << "\tmax_path\t" << max_path << endl;
-    cout << "\tmin_path\t" << min_path << endl;
-    cout << "\toutput_comparison_paths\t" << output_comparison_paths << endl << endl;
+    cout << "\tvcf_refs\t" << vcf_refs_file << endl;
+    cout << "\tillumina\t" << illumina << endl;
+    cout << "\tclean\t" << clean << endl;
+    cout << "\tbin\t" << bin << endl << endl;
+
+    make_dir(outdir);
 
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
     Index *idx;
     idx = new Index();
     idx->load(prgfile, w, k);
-    vector<LocalPRG*> prgs;
+    vector<LocalPRG *> prgs;
     read_prg_file(prgs, prgfile);
     load_PRG_kmergraphs(prgs, w, k, prgfile);
 
-    PanGraph *pangraph, *pangraph_sample;
-    pangraph = new PanGraph();
-    pangraph_sample = new PanGraph();
+    pangenome::Graph *pangraph, *pangraph_sample;
+    pangraph = new pangenome::Graph();
+    pangraph_sample = new pangenome::Graph();
     MinimizerHits *mhs;
-    mhs = new MinimizerHits(100*idx->minhash.size());
+    mhs = new MinimizerHits(100 * idx->minhash.size());
+    uint32_t covg;
 
     // load read index
-    map<string,string> samples = load_read_index(readindex);
-    vector<KmerNode*> kmp;
+    map<string, string> samples = load_read_index(readindex);
+    vector<KmerNodePtr> kmp;
 
     // for each sample, run pandora to get the sample pangraph
-    for (map<string,string>::const_iterator sample = samples.begin(); sample!=samples.end(); ++sample)
-    {
-	pangraph_sample->clear();
-	mhs->clear();
-	
-	// construct the pangraph for this sample
-        cout << now() << "Constructing PanGraph from read file " << sample->second << endl;
-        pangraph_from_read_file(sample->second, mhs, pangraph_sample, idx, prgs, w, k, max_diff);
-    
+    for (map<string, string>::const_iterator sample = samples.begin(); sample != samples.end(); ++sample) {
+        pangraph_sample->clear();
+        mhs->clear();
+
+        // make output dir for this sample
+        string sample_outdir = outdir + "/" + sample->first;
+        make_dir(sample_outdir);
+
+        // construct the pangraph for this sample
+        cout << now() << "Constructing pangenome::Graph from read file " << sample->second << endl;
+        covg = pangraph_from_read_file(sample->second, mhs, pangraph_sample, idx, prgs, w, k, max_diff, e_rate,
+                                       min_cluster_size, genome_size, illumina, clean);
+
         cout << now() << "Update LocalPRGs with hits" << endl;
         update_localPRGs_with_hits(pangraph_sample, prgs);
 
         cout << now() << "Estimate parameters for kmer graph model" << endl;
-        estimate_parameters(pangraph_sample, prefix, k, e_rate);
+        estimate_parameters(pangraph_sample, sample_outdir, k, e_rate, covg, bin);
 
         cout << now() << "Find max likelihood PRG paths" << endl;
-        for (const auto c: pangraph_sample->nodes)
-        {
-	    //kmp = prgs[c.second->prg_id]->find_path_and_variants(c.second, prefix, w, max_path, min_path, output_vcf, output_comparison_paths);
-	    kmp.clear();
-	    c.second->kmer_prg.find_max_path(kmp);
-	    pangraph->add_node(c.second->prg_id, c.second->name, sample->first, kmp, prgs[c.second->prg_id]);
+        for (const auto c: pangraph_sample->nodes) {
+            kmp.clear();
+            if (bin)
+                c.second->kmer_prg.find_max_path(kmp);
+            else
+                c.second->kmer_prg.find_nb_max_path(kmp);
+
+            if (!kmp.empty()) {
+                pangraph_sample->save_kmergraph_coverages(outdir, c.second->name);
+                pangraph->add_node(c.second->prg_id, c.second->name, sample->first, kmp, prgs[c.second->prg_id]);
+            }
         }
+    }
+
+    // if we have input the vcf refs, load them
+    VCFRefs vcf_refs;
+    string vcf_ref;
+    if (!vcf_refs_file.empty()) {
+        vcf_refs.reserve(prgs.size());
+        load_vcf_refs_file(vcf_refs_file, vcf_refs);
     }
 
     // for each pannode in graph, find a best reference and output a vcf and aligned fasta of sample paths through it
     cout << now() << "Multi-sample pangraph has " << pangraph->nodes.size() << " nodes" << endl;
-    cout << "Prefix: " << prefix << endl;
-    for (auto c: pangraph->nodes)
-    {
-	cout << " c.first: " << c.first;
+    for (auto c: pangraph->nodes) {
+        cout << " c.first: " << c.first;
         cout << " prgs[c.first]->name: " << prgs[c.first]->name << endl;
-	c.second->output_samples(prgs[c.first], prefix, w);
+
+        if (!vcf_refs_file.empty()
+            and vcf_refs.find(prgs[c.second->prg_id]->name) != vcf_refs.end()) {
+            vcf_ref = vcf_refs[prgs[c.second->prg_id]->name];
+        }
+
+        string node_outdir = outdir + "/" + c.second->get_name();
+        make_dir(node_outdir);
+
+        c.second->output_samples(prgs[c.first], node_outdir, w, vcf_ref);
     }
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
     cout << now() << "Output matrix" << endl;
-    pangraph->save_matrix(prefix + "multisample.matrix");
+    pangraph->save_matrix(outdir + "multisample.matrix");
 
     // clear up
     cout << now() << "Clear up" << endl;
-    for (uint32_t j=0; j!=prgs.size(); ++j)
-    {
-	delete prgs[j];
+    for (uint32_t j = 0; j != prgs.size(); ++j) {
+        delete prgs[j];
     }
     idx->clear();
     delete idx;
+    mhs->clear();
     delete mhs;
+    pangraph->clear();
     delete pangraph;
+    pangraph_sample->clear();
     delete pangraph_sample;
 
     // current date/time based on current system

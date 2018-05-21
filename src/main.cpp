@@ -6,6 +6,8 @@ int pandora_walk(int argc, char *argv[]);
 int pandora_map(int argc, char *argv[]);
 int pandora_compare(int argc, char *argv[]);
 int pandora_check_kmergraph(int argc, char *argv[]);
+int pandora_get_vcf_ref(int argc, char *argv[]);
+
 
 static int usage()
 {
@@ -34,6 +36,7 @@ int main(int argc, char *argv[])
 	else if (strcmp(argv[1], "map") == 0) ret = pandora_map(argc-1, argv+1);
 	else if (strcmp(argv[1], "compare") == 0) ret = pandora_compare(argc-1, argv+1);
 	else if (strcmp(argv[1], "check_kmergraph") == 0) ret = pandora_check_kmergraph(argc-1, argv+1);
+	else if (strcmp(argv[1], "get_vcf_ref") == 0) ret = pandora_get_vcf_ref(argc-1, argv+1);
 	else {
 		fprintf(stderr, "[main] unrecognized command '%s'\n", argv[1]);
 		return 1;

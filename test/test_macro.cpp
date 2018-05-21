@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 //! Using the google test framework, check all elements of two containers
-#define EXPECT_ITERABLE_BASE( PREDICATE, REFTYPE, TARTYPE, ref, target) \
+#define EXPECT_ITERABLE_BASE(PREDICATE, REFTYPE, TARTYPE, ref, target) \
     { \
     const REFTYPE& ref_(ref); \
     const TARTYPE& target_(target); \
@@ -23,13 +23,13 @@
     }
 
 //! Check that all elements of two same-type containers are equal
-#define EXPECT_ITERABLE_EQ( TYPE, ref, target) \
+#define EXPECT_ITERABLE_EQ(TYPE, ref, target) \
     EXPECT_ITERABLE_BASE( EXPECT_EQ, TYPE, TYPE, ref, target )
 
 //! Check that all elements of two different-type containers are equal
-#define EXPECT_ITERABLE_EQ2( REFTYPE, TARTYPE, ref, target) \
+#define EXPECT_ITERABLE_EQ2(REFTYPE, TARTYPE, ref, target) \
     EXPECT_ITERABLE_BASE( EXPECT_EQ, REFTYPE, TARTYPE, ref, target )
 
 //! Check that all elements of two same-type containers of doubles are equal
-#define EXPECT_ITERABLE_DOUBLE_EQ( TYPE, ref, target) \
+#define EXPECT_ITERABLE_DOUBLE_EQ(TYPE, ref, target) \
     EXPECT_ITERABLE_BASE( EXPECT_DOUBLE_EQ, TYPE, TYPE, ref, target )

@@ -6,18 +6,7 @@
 
 using namespace std;
 
-class MiniRecordTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(MiniRecordTest,create){
+TEST(MiniRecordTest,create){
     deque<Interval> v1 = {Interval(0,5)};
     deque<Interval> v2 = {Interval(1,4), Interval(15,17)};
     deque<Interval> v3 = {Interval(1,6)};
@@ -46,7 +35,7 @@ TEST_F(MiniRecordTest,create){
     EXPECT_EQ(p, m4.path);
 }
 
-TEST_F(MiniRecordTest,equals){
+TEST(MiniRecordTest,equals){
     deque<Interval> v1 = {Interval(0,5)};
     deque<Interval> v2 = {Interval(1,4), Interval(15,17)};
     deque<Interval> v3 = {Interval(1,6)};
@@ -72,7 +61,7 @@ TEST_F(MiniRecordTest,equals){
     EXPECT_EQ((m3==m4), false);
 }
 
-TEST_F(MiniRecordTest, write)
+TEST(MiniRecordTest, write)
 {
     deque<Interval> d;
     d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};
@@ -85,7 +74,7 @@ TEST_F(MiniRecordTest, write)
     EXPECT_EQ(out.str(), "(1, 4{[1, 3)[4, 5)[6, 6)[9, 40)}, 0, 0)");
 }
 
-TEST_F(MiniRecordTest, read)
+TEST(MiniRecordTest, read)
 {
     deque<Interval> d;
     d = {Interval(1,3), Interval(4,5), Interval(6,6), Interval(9,40)};

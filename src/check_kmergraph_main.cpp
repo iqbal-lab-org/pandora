@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include "utils.h"
+#include "localPRG.h"
 
 using namespace std;
 
@@ -25,15 +26,15 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
     bool flag = false; // output success/fail rather than the node path
 
     if (strcmp(argv[2], "--top") == 0) {
-        for (uint i = 0; i != prgs.size(); ++i) {
+        for (uint32_t i = 0; i != prgs.size(); ++i) {
             cout << "Top node path along PRG " << prgs[i]->name << ": ";
-            vector<LocalNode *> npath = prgs[i]->prg.top_path();
-            for (uint j = 0; j != npath.size(); ++j) {
+            vector<LocalNodePtr> npath = prgs[i]->prg.top_path();
+            for (uint32_t j = 0; j != npath.size(); ++j) {
                 cout << "->" << npath[j]->id;
             }
             cout << endl;
         }
-        /*vector<KmerNode*> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
+        /*vector<KmerNodePtr> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
         cout << kpath[0]->id;
         for (uint j=1; j != kpath.size(); ++j)
             {
@@ -47,15 +48,15 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
         cout << endl;*/
         return 0;
     } else if (strcmp(argv[2], "--bottom") == 0) {
-        for (uint i = 0; i != prgs.size(); ++i) {
+        for (uint32_t i = 0; i != prgs.size(); ++i) {
             cout << "Bottom node path along PRG " << prgs[i]->name << ": ";
-            vector<LocalNode *> npath = prgs[i]->prg.bottom_path();
-            for (uint j = 0; j != npath.size(); ++j) {
+            vector<LocalNodePtr> npath = prgs[i]->prg.bottom_path();
+            for (uint32_t j = 0; j != npath.size(); ++j) {
                 cout << "->" << npath[j]->id;
             }
             cout << endl;
         }
-        /*vector<KmerNode*> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
+        /*vector<KmerNodePtr> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
         cout << kpath[0]->id;
         for (uint j=1; j != kpath.size(); ++j)
         {
@@ -74,9 +75,9 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
     }
 
     // for each read in readfile,  infer node path along sequence
-    vector<LocalNode *> npath;
+    vector<LocalNodePtr> npath;
     string name, read, line;
-    uint read_num = 0;
+    uint32_t read_num = 0;
 
     ifstream myfile(argv[2]);
     if (myfile.is_open()) {
@@ -110,12 +111,12 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
                             cout << "success!" << endl;
                         }
                     } else {
-                        for (uint j = 0; j != npath.size(); ++j) {
+                        for (uint32_t j = 0; j != npath.size(); ++j) {
                             cout << "->" << *npath[j];
                         }
                         cout << endl;
                     }
-                    /*vector<KmerNode*> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
+                    /*vector<KmerNodePtr> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
 
                     cout << "kmers on path: " << endl;
                             for (uint j=0; j != kpath.size(); ++j)
@@ -184,12 +185,12 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
                     cout << "success!" << endl;
                 }
             } else {
-                for (uint j = 0; j != npath.size(); ++j) {
+                for (uint32_t j = 0; j != npath.size(); ++j) {
                     cout << "->" << *npath[j];
                 }
                 cout << endl;
             }
-            /*vector<KmerNode*> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
+            /*vector<KmerNodePtr> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
 
                 cout << "kmers on path: " << endl;
                 for (uint j=0; j != kpath.size(); ++j)

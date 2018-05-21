@@ -1,5 +1,4 @@
 #include <iostream>
-#include <string>
 #include <algorithm>
 #include "localnode.h"
 #include "interval.h"
@@ -28,7 +27,7 @@ bool LocalNode::operator==(const LocalNode &y) const {
         return false;
     }
     for (uint32_t i = 0; i != outNodes.size(); ++i) {
-        pointer_values_equal<LocalNode> eq = {outNodes[i]};
+        spointer_values_equal<LocalNode> eq = {outNodes[i]};
         if (find_if(y.outNodes.begin(), y.outNodes.end(), eq) ==
             y.outNodes.end()) {//cout << "the out edge points to a different node" << endl;
             return false;

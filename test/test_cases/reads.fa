@@ -1,0 +1,6 @@
+>read0
+to be ignored
+>read1
+should copy the phrase *should*
+>read2
+this time we should get *is time *

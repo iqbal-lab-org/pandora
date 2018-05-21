@@ -1,14 +1,13 @@
 #ifndef __ESTIMATEPARAMETERS_H_INCLUDED__   // if estimate_parameters.h hasn't been included yet...
 #define __ESTIMATEPARAMETERS_H_INCLUDED__
 
-class Pangraph;
+#include <cstring>
+#include <cstdint>
 
-class LocalPRG;
+uint32_t find_mean_covg(std::vector<uint32_t> &);
 
-uint find_mean_covg(std::vector<uint> &);
+int find_prob_thresh(std::vector<uint32_t> &);
 
-int find_prob_thresh(std::vector<uint> &);
-
-void estimate_parameters(PanGraph *, std::string &, uint32_t, float &);
+void estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint32_t, const bool bin=false);
 
 #endif

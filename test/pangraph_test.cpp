@@ -1,1044 +1,761 @@
 #include "gtest/gtest.h"
 #include "test_macro.cpp"
-#include "pangraph.h"
-#include "pannode.h"
-#include "panedge.h"
-#include "panread.h"
-#include "pansample.h"
+#include "pangenome/ns.cpp"
+#include "pangenome_graph_class.h"
+#include "pangenome/pannode.h"
+#include "pangenome/panread.h"
+#include "pangenome/pansample.h"
 #include "minihit.h"
 #include "localPRG.h"
 #include <stdint.h>
 #include <numeric>
 #include <cassert>
 #include <iostream>
+#include <fstream>
+#include <boost/filesystem.hpp>
 
-using namespace std;
+using namespace pangenome;
 
-class PanGraphTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
+TEST(PangenomeGraphGetRead, AddRead_PangenomeGraphReadsContainsReadId) {
+    uint32_t read_id = 2;
+    PGraphTester pg;
 
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
+    auto result = pg.reads.find(read_id) == pg.reads.end();
+    EXPECT_TRUE(result);
+    EXPECT_EQ(pg.reads.size(), (uint) 0);
 
-TEST_F(PanGraphTest, add_node)
-{
-    set<MinimizerHitPtr, pComp> mhs;
+    pg.get_read(read_id);
 
-    // add node and check it's there
-    PanGraph pg;
-    pg.add_node(0,"0",1, mhs);
-
-    PanNode *pn;
-    pn = new PanNode(0,0,"0");
-    uint32_t j = 1;
-    EXPECT_EQ(pg.nodes.size(), j);
-    EXPECT_EQ(*pg.nodes[0], *pn);
-    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->name, "0");
-    EXPECT_EQ(pg.nodes[0]->covg, j);
-    EXPECT_EQ(pg.nodes[0]->reads.size(), j);
-    EXPECT_EQ(pg.nodes[0]->edges.size(), (uint)0);
-    PanRead *pr;
-    pr = new PanRead(1);
-    EXPECT_EQ(pg.reads.size(), j);
-    EXPECT_EQ(*pg.reads[1], *pr);
-    EXPECT_EQ(pg.reads[1]->hits.size(), j);
-    EXPECT_EQ(pg.reads[1]->hits[0].size(), (uint)0);
-    EXPECT_EQ(pg.reads[1]->edges.size(), (uint)0);
-    
-
-    // add node again with same read
-    pg.add_node(0,"0",1, mhs);
-
-    EXPECT_EQ(pg.nodes.size(), j);
-    EXPECT_EQ(*pg.nodes[0], *pn);
-    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->name, "0");
-    EXPECT_EQ(pg.nodes[0]->covg, (uint)2);
-    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)2);
-    EXPECT_EQ(pg.nodes[0]->edges.size(), (uint)0);
-    EXPECT_EQ(pg.reads.size(), j);
-    EXPECT_EQ(*pg.reads[1], *pr);
-    EXPECT_EQ(pg.reads[1]->hits.size(), j);
-    EXPECT_EQ(pg.reads[1]->hits[0].size(), (uint)0);
-    EXPECT_EQ(pg.reads[1]->edges.size(), (uint)0);
-
-    // add node again with different read
-    pg.add_node(0,"0",2, mhs);
-
-    EXPECT_EQ(pg.nodes.size(), j);
-    EXPECT_EQ(*pg.nodes[0], *pn);
-    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->name, "0");
-    EXPECT_EQ(pg.nodes[0]->covg, (uint)3);
-    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)3);
-    EXPECT_EQ(pg.nodes[0]->edges.size(), (uint)0);
-    EXPECT_EQ(pg.reads.size(), (uint)2);
-    EXPECT_EQ(*pg.reads[1], *pr);
-    EXPECT_EQ(pg.reads[1]->hits.size(), j);
-    EXPECT_EQ(pg.reads[1]->hits[0].size(), (uint)0);
-    EXPECT_EQ(pg.reads[1]->edges.size(), (uint)0);
-    EXPECT_EQ(pg.reads[2]->hits.size(), j);
-    EXPECT_EQ(pg.reads[2]->hits[0].size(), (uint)0);
-    EXPECT_EQ(pg.reads[2]->edges.size(), (uint)0);
-
-    delete pn;
-    delete pr;
-
-    // add different node
-    pg.add_node(1,"1",2, mhs);
-    pn = new PanNode(1,1,"1");
-    EXPECT_EQ(pg.nodes.size(), (uint)2);
-    EXPECT_EQ(*pg.nodes[1], *pn);
-    EXPECT_EQ(pg.nodes[1]->node_id, j);
-    EXPECT_EQ(pg.nodes[1]->prg_id, j);
-    EXPECT_EQ(pg.nodes[1]->name, "1");
-    EXPECT_EQ(pg.nodes[1]->covg, j);
-    EXPECT_EQ(pg.nodes[1]->reads.size(), j);
-    EXPECT_EQ(pg.nodes[1]->edges.size(), (uint)0);
-    EXPECT_EQ(pg.reads.size(), (uint)2);
-    EXPECT_EQ(pg.reads[2]->hits.size(), (uint)2);
-    EXPECT_EQ(pg.reads[2]->hits[1].size(), (uint)0);
-    EXPECT_EQ(pg.reads[2]->edges.size(), (uint)0);
-
-    delete pn;
-
-    // add a node with hits
-    Path p;
-    deque<Interval> d = {Interval(0,1), Interval(4,7)};
-    p.initialize(d);
-    MinimizerHitPtr mh0 (make_shared<MinimizerHit>(2, Interval(1,5), 2, p, 0, true));
-    mhs.insert(mh0);
-    d = {Interval(0,1), Interval(5,8)};
-    p.initialize(d);
-    MinimizerHitPtr mh1 (make_shared<MinimizerHit>(2, Interval(1,5), 2, p, 0, true));
-    mhs.insert(mh1);
-    pg.add_node(2,"2",2, mhs);
-    pn = new PanNode(2,2,"2");
-    EXPECT_EQ(pg.nodes.size(), (uint)3);
-    EXPECT_EQ(*pg.nodes[2], *pn);
-    EXPECT_EQ(pg.nodes[2]->node_id, (uint)2);
-    EXPECT_EQ(pg.nodes[2]->name, "2");
-    EXPECT_EQ(pg.nodes[2]->covg, j);
-    EXPECT_EQ(pg.nodes[2]->reads.size(), j);
-    EXPECT_EQ(pg.nodes[2]->edges.size(), (uint)0);
-    EXPECT_EQ(pg.reads.size(), (uint)2);
-    EXPECT_EQ(pg.reads[2]->hits.size(), (uint)3);
-    EXPECT_EQ(pg.reads[2]->hits[2].size(), (uint)2);
-    EXPECT_EQ(pg.reads[2]->edges.size(), (uint)0);
-
-    // expect death if some hit doesn't match the prg id expect
-    MinimizerHitPtr mh2 (make_shared<MinimizerHit>(0, Interval(1,5), 0, p, 0, true));
-    mhs.insert(mh2);
-    EXPECT_DEATH(pg.add_node(0,"0",0, mhs), "");
-    delete pn;
-
+    result = pg.reads.find(read_id) != pg.reads.end();
+    EXPECT_TRUE(result);
+    EXPECT_EQ(pg.reads.size(), (uint) 1);
 }
 
-TEST_F(PanGraphTest, add_node_sample)
-{
-    // add node and check it's there
-    PanGraph pg;
+TEST(PangenomeGraphGetRead, AddReadTwice_PangenomeGraphReadsContainsReadId) {
+    uint32_t read_id = 2;
+    PGraphTester pg;
 
-    LocalPRG* l0;
+    pg.get_read(read_id);
+    pg.get_read(read_id);
+
+    auto result = pg.reads.find(read_id) != pg.reads.end();
+    EXPECT_TRUE(result);
+    EXPECT_EQ(pg.reads.size(), (uint) 1);
+}
+
+TEST(PangenomeGraphAddCoverage, NodeDoesntAlreadyExist_PangenomeGraphNodesContainsNodeId) {
+    PGraphTester pg;
+
+    uint32_t read_id = 2;
+    ReadPtr read_ptr = pg.get_read(read_id);
+
+    set<MinimizerHitPtr, pComp> mhs;
+    uint32_t node_id = 0;
+    uint32_t prg_id = 1;
+
+    EXPECT_EQ(pg.nodes.size(), (uint) 0);
+
+    pg.add_coverage(read_ptr, node_id, prg_id, "0");
+
+    auto result = pg.nodes.find(node_id) != pg.nodes.end();
+    EXPECT_TRUE(result);
+
+    result = pg.nodes.find(prg_id) == pg.nodes.end();
+    EXPECT_TRUE(result);
+    EXPECT_EQ(pg.reads.size(), (uint) 1);
+}
+
+TEST(PangenomeGraphAddCoverage, NodeDoesntAlreadyExist_PangenomeGraphNodeContainsReadPtr) {
+    PGraphTester pg;
+
+    uint32_t read_id = 2;
+    ReadPtr read_ptr = pg.get_read(read_id);
+
+    set<MinimizerHitPtr, pComp> mhs;
+    uint32_t node_id = 0;
+    uint32_t prg_id = 1;
+
+    NodePtr node_ptr = pg.add_coverage(read_ptr, node_id, prg_id, "0");
+
+    auto result = node_ptr->reads.find(read_ptr) != node_ptr->reads.end();
+    EXPECT_TRUE(result);
+}
+
+TEST(PangenomeGraphAddCoverage, NodeAlreadyExists_PangenomeGraphNodeCoverageIncreases) {
+    PGraphTester pg;
+
+    uint32_t read_id = 2;
+    ReadPtr read_ptr = pg.get_read(read_id);
+
+    set<MinimizerHitPtr, pComp> mhs;
+    uint32_t node_id = 0;
+    uint32_t prg_id = 1;
+
+    EXPECT_EQ(pg.nodes.size(), (uint) 0);
+
+    NodePtr node_ptr = pg.add_coverage(read_ptr, node_id, prg_id, "0");
+    uint32_t covg = node_ptr->covg;
+    node_ptr = pg.add_coverage(read_ptr, node_id, prg_id, "0");
+    EXPECT_EQ(node_ptr->covg - covg, (uint) 1);
+}
+
+TEST(PangenomeGraphAddCoverage, NodeAlreadyExists_PangenomeGraphNodeReadsContainsReadTwice) {
+    PGraphTester pg;
+
+    uint32_t read_id = 2;
+    ReadPtr read_ptr = pg.get_read(read_id);
+
+    set<MinimizerHitPtr, pComp> mhs;
+    uint32_t node_id = 0;
+    uint32_t prg_id = 1;
+
+    pg.add_coverage(read_ptr, node_id, prg_id, "0");
+    NodePtr node_ptr = pg.add_coverage(read_ptr, node_id, prg_id, "0");
+
+    auto result = node_ptr->reads.count(read_ptr);
+    uint expected = 2;
+    EXPECT_EQ(result, expected);
+}
+
+TEST(PangenomeGraphAddNode, AddClusterWrongReadId_AssertCatches) {
+    uint32_t read_id = 1;
+    uint32_t not_read_id = 7;
+
+    set<MinimizerHitPtr, pComp> cluster;
+    uint32_t prg_id = 4;
+    Interval interval(0, 5);
+    deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
+    Path path;
+    path.initialize(raw_path);
+    MinimizerHitPtr minimizer_hit(make_shared<MinimizerHit>(not_read_id, interval, prg_id, path, 0, 0));
+    cluster.insert(minimizer_hit);
+
+    PGraphTester pg;
+
+    EXPECT_DEATH(pg.add_node(prg_id, "", read_id, cluster), "");
+}
+
+TEST(PangenomeGraphAddNode, AddClusterWrongPrgId_AssertCatches) {
+    uint32_t read_id = 1;
+    Read read(read_id);
+
+    set<MinimizerHitPtr, pComp> cluster;
+    uint32_t prg_id = 4;
+    uint32_t not_prg_id = 7;
+    Interval interval(0, 5);
+    deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
+    Path path;
+    path.initialize(raw_path);
+    MinimizerHitPtr minimizer_hit(make_shared<MinimizerHit>(read_id, interval, not_prg_id, path, 0, 0));
+    cluster.insert(minimizer_hit);
+
+    PGraphTester pg;
+
+    EXPECT_DEATH(pg.add_node(prg_id, "", read_id, cluster), "");
+}
+
+TEST(PangenomeGraphAddNode, AddNode_PangenomeGraphNodesContainsNodeId) {
+    set<MinimizerHitPtr, pComp> mhs;
+    PGraphTester pg;
+    uint32_t node_id = 0;
+    uint32_t read_id = 1;
+    pg.add_node(node_id, "0", read_id, mhs);
+
+    auto result = pg.nodes.find(node_id) != pg.nodes.end();
+    EXPECT_TRUE(result);
+}
+
+TEST(PangenomeGraphAddNode, AddNode_PangenomeGraphNodeHasRightProperties) {
+    set<MinimizerHitPtr, pComp> mhs;
+    PGraphTester pg;
+    uint32_t node_id = 0;
+    uint32_t read_id = 1;
+    pg.add_node(node_id, "0", read_id, mhs);
+
+    NodePtr pn = make_shared<Node>(node_id, node_id, "0");
+    EXPECT_EQ(*pg.nodes[0], *pn);
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint) 0);
+    EXPECT_EQ(pg.nodes[0]->prg_id, (uint) 0);
+    EXPECT_EQ(pg.nodes[0]->name, "0");
+    EXPECT_EQ(pg.nodes[0]->covg, (uint) 1);
+    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint) 1);
+}
+
+TEST(PangenomeGraphAddNode, AddNode_PangenomeGraphReadHasRightProperties) {
+    set<MinimizerHitPtr, pComp> mhs;
+    PGraphTester pg;
+    uint32_t node_id = 0;
+    uint32_t read_id = 1;
+    pg.add_node(node_id, "0", read_id, mhs);
+
+    ReadPtr pr = make_shared<Read>(1);
+    EXPECT_EQ(pg.reads.size(), (uint) 1);
+    EXPECT_EQ(*pg.reads[1], *pr);
+    EXPECT_EQ(pg.reads[1]->hits.size(), (uint) 1);
+    EXPECT_EQ(pg.reads[1]->hits[0].size(), (uint) 0);
+}
+
+TEST(PangenomeGraphTest, add_node_sample) {
+    // add node and check it's there
+    PGraphTester pg;
+
+    LocalPRG *l0;
     l0 = new LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA");
-    vector<KmerNode*> kmp;
-    
+    vector<KmerNodePtr> kmp;
+
     pg.add_node(0, "zero", "sample", kmp, l0);
 
-    EXPECT_EQ(pg.nodes.size(), (uint)1);
-    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
+    EXPECT_EQ(pg.nodes.size(), (uint) 1);
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint) 0);
+    EXPECT_EQ(pg.nodes[0]->prg_id, (uint) 0);
     EXPECT_EQ(pg.nodes[0]->name, "zero");
-    EXPECT_EQ(pg.nodes[0]->covg, (uint)1);
-    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)0);
-    EXPECT_EQ(pg.nodes[0]->edges.size(), (uint)0);
-    EXPECT_EQ(pg.nodes[0]->samples.size(), (uint)1);
+    EXPECT_EQ(pg.nodes[0]->covg, (uint) 1);
+    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint) 0);
+    EXPECT_EQ(pg.nodes[0]->samples.size(), (uint) 1);
 
-    EXPECT_EQ(pg.samples.size(), (uint)1);
+    EXPECT_EQ(pg.samples.size(), (uint) 1);
     EXPECT_EQ(pg.samples["sample"]->name, "sample");
-    EXPECT_EQ(pg.samples["sample"]->paths.size(), (uint)1);
-    EXPECT_EQ(pg.samples["sample"]->paths[0].size(), (uint)1);
-    EXPECT_EQ(pg.samples["sample"]->edges.size(), (uint)0);
+    EXPECT_EQ(pg.samples["sample"]->paths.size(), (uint) 1);
+    EXPECT_EQ(pg.samples["sample"]->paths[0].size(), (uint) 1);
 
-    EXPECT_EQ(pg.edges.size(), (uint)0);
-    EXPECT_EQ(pg.reads.size(), (uint)0);
+    EXPECT_EQ(pg.reads.size(), (uint) 0);
 
     // add a second time
     pg.add_node(0, "zero", "sample", kmp, l0);
-    EXPECT_EQ(pg.nodes.size(), (uint)1);
-    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
+    EXPECT_EQ(pg.nodes.size(), (uint) 1);
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint) 0);
+    EXPECT_EQ(pg.nodes[0]->prg_id, (uint) 0);
     EXPECT_EQ(pg.nodes[0]->name, "zero");
-    EXPECT_EQ(pg.nodes[0]->covg, (uint)2);
-    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)0);
-    EXPECT_EQ(pg.nodes[0]->edges.size(), (uint)0);
-    EXPECT_EQ(pg.nodes[0]->samples.size(), (uint)1);
+    EXPECT_EQ(pg.nodes[0]->covg, (uint) 2);
+    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint) 0);
+    EXPECT_EQ(pg.nodes[0]->samples.size(), (uint) 1);
 
-    EXPECT_EQ(pg.samples.size(), (uint)1);
+    EXPECT_EQ(pg.samples.size(), (uint) 1);
     EXPECT_EQ(pg.samples["sample"]->name, "sample");
-    EXPECT_EQ(pg.samples["sample"]->paths.size(), (uint)1);
-    EXPECT_EQ(pg.samples["sample"]->paths[0].size(), (uint)2);
-    EXPECT_EQ(pg.samples["sample"]->edges.size(), (uint)0);
+    EXPECT_EQ(pg.samples["sample"]->paths.size(), (uint) 1);
+    EXPECT_EQ(pg.samples["sample"]->paths[0].size(), (uint) 2);
 
-    EXPECT_EQ(pg.edges.size(), (uint)0);
-    EXPECT_EQ(pg.reads.size(), (uint)0);
+    EXPECT_EQ(pg.reads.size(), (uint) 0);
 
     // add a node with a different sample
     pg.add_node(0, "zero", "sample1", kmp, l0);
-    EXPECT_EQ(pg.nodes.size(), (uint)1);
-    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
+    EXPECT_EQ(pg.nodes.size(), (uint) 1);
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint) 0);
+    EXPECT_EQ(pg.nodes[0]->prg_id, (uint) 0);
     EXPECT_EQ(pg.nodes[0]->name, "zero");
-    EXPECT_EQ(pg.nodes[0]->covg, (uint)3);
-    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)0);
-    EXPECT_EQ(pg.nodes[0]->edges.size(), (uint)0);
-    EXPECT_EQ(pg.nodes[0]->samples.size(), (uint)2);
-    
-    EXPECT_EQ(pg.samples.size(), (uint)2);
-    EXPECT_EQ(pg.samples["sample"]->name, "sample");
-    EXPECT_EQ(pg.samples["sample"]->paths.size(), (uint)1);
-    EXPECT_EQ(pg.samples["sample"]->paths[0].size(), (uint)2);
-    EXPECT_EQ(pg.samples["sample"]->edges.size(), (uint)0);
-    EXPECT_EQ(pg.samples["sample1"]->name, "sample1");
-    EXPECT_EQ(pg.samples["sample1"]->paths.size(), (uint)1);
-    EXPECT_EQ(pg.samples["sample1"]->paths[0].size(), (uint)1);
-    EXPECT_EQ(pg.samples["sample1"]->edges.size(), (uint)0);
+    EXPECT_EQ(pg.nodes[0]->covg, (uint) 3);
+    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint) 0);
+    EXPECT_EQ(pg.nodes[0]->samples.size(), (uint) 2);
 
-    EXPECT_EQ(pg.edges.size(), (uint)0);
-    EXPECT_EQ(pg.reads.size(), (uint)0);
-    
+    EXPECT_EQ(pg.samples.size(), (uint) 2);
+    EXPECT_EQ(pg.samples["sample"]->name, "sample");
+    EXPECT_EQ(pg.samples["sample"]->paths.size(), (uint) 1);
+    EXPECT_EQ(pg.samples["sample"]->paths[0].size(), (uint) 2);
+    EXPECT_EQ(pg.samples["sample1"]->name, "sample1");
+    EXPECT_EQ(pg.samples["sample1"]->paths.size(), (uint) 1);
+    EXPECT_EQ(pg.samples["sample1"]->paths[0].size(), (uint) 1);
+
+    EXPECT_EQ(pg.reads.size(), (uint) 0);
+
     // add a node with a different prg
     pg.add_node(1, "one", "sample1", kmp, l0);
-    EXPECT_EQ(pg.nodes.size(), (uint)2);
-    EXPECT_EQ(pg.nodes[0]->node_id, (uint)0);
-    EXPECT_EQ(pg.nodes[0]->prg_id, (uint)0);
+    EXPECT_EQ(pg.nodes.size(), (uint) 2);
+    EXPECT_EQ(pg.nodes[0]->node_id, (uint) 0);
+    EXPECT_EQ(pg.nodes[0]->prg_id, (uint) 0);
     EXPECT_EQ(pg.nodes[0]->name, "zero");
-    EXPECT_EQ(pg.nodes[0]->covg, (uint)3);
-    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint)0);
-    EXPECT_EQ(pg.nodes[0]->edges.size(), (uint)0);
-    EXPECT_EQ(pg.nodes[0]->samples.size(), (uint)2);
-    EXPECT_EQ(pg.nodes[1]->node_id, (uint)1);
-    EXPECT_EQ(pg.nodes[1]->prg_id, (uint)1);
+    EXPECT_EQ(pg.nodes[0]->covg, (uint) 3);
+    EXPECT_EQ(pg.nodes[0]->reads.size(), (uint) 0);
+    EXPECT_EQ(pg.nodes[0]->samples.size(), (uint) 2);
+    EXPECT_EQ(pg.nodes[1]->node_id, (uint) 1);
+    EXPECT_EQ(pg.nodes[1]->prg_id, (uint) 1);
     EXPECT_EQ(pg.nodes[1]->name, "one");
-    EXPECT_EQ(pg.nodes[1]->covg, (uint)1);
-    EXPECT_EQ(pg.nodes[1]->reads.size(), (uint)0);
-    EXPECT_EQ(pg.nodes[1]->edges.size(), (uint)0);
-    EXPECT_EQ(pg.nodes[1]->samples.size(), (uint)1);
-    
-    EXPECT_EQ(pg.samples.size(), (uint)2);
-    EXPECT_EQ(pg.samples["sample"]->name, "sample");
-    EXPECT_EQ(pg.samples["sample"]->paths.size(), (uint)1);
-    EXPECT_EQ(pg.samples["sample"]->paths[0].size(), (uint)2);
-    EXPECT_EQ(pg.samples["sample"]->edges.size(), (uint)0);
-    EXPECT_EQ(pg.samples["sample1"]->name, "sample1");
-    EXPECT_EQ(pg.samples["sample1"]->paths.size(), (uint)2);
-    EXPECT_EQ(pg.samples["sample1"]->paths[0].size(), (uint)1);
-    EXPECT_EQ(pg.samples["sample1"]->paths[1].size(), (uint)1);
-    EXPECT_EQ(pg.samples["sample1"]->edges.size(), (uint)0);
+    EXPECT_EQ(pg.nodes[1]->covg, (uint) 1);
+    EXPECT_EQ(pg.nodes[1]->reads.size(), (uint) 0);
+    EXPECT_EQ(pg.nodes[1]->samples.size(), (uint) 1);
 
-    EXPECT_EQ(pg.edges.size(), (uint)0);
-    EXPECT_EQ(pg.reads.size(), (uint)0);
+    EXPECT_EQ(pg.samples.size(), (uint) 2);
+    EXPECT_EQ(pg.samples["sample"]->name, "sample");
+    EXPECT_EQ(pg.samples["sample"]->paths.size(), (uint) 1);
+    EXPECT_EQ(pg.samples["sample"]->paths[0].size(), (uint) 2);
+    EXPECT_EQ(pg.samples["sample1"]->name, "sample1");
+    EXPECT_EQ(pg.samples["sample1"]->paths.size(), (uint) 2);
+    EXPECT_EQ(pg.samples["sample1"]->paths[0].size(), (uint) 1);
+    EXPECT_EQ(pg.samples["sample1"]->paths[1].size(), (uint) 1);
+
+    EXPECT_EQ(pg.reads.size(), (uint) 0);
 
     delete l0;
 }
 
-
-
-TEST_F(PanGraphTest, add_edge)
-{
+TEST(PangenomeGraphTest, clear) {
+    // read pg
     set<MinimizerHitPtr, pComp> mhs;
-    PanGraph pg;
-    pg.add_node(0,"0",0, mhs);
-    pg.add_node(1,"1",0, mhs);
-    pg.add_edge(0,1,3,0); //++
 
-    PanNode *pn1;
-    pn1 = new PanNode(0,0,"0");
-    PanNode *pn2;
-    pn2 = new PanNode(1,1,"1");
-    PanEdge *pe;
-    pe = new PanEdge(pn1, pn2, 3);
+    PGraphTester pg;
+    pg.add_node(0, "0", 1, mhs);
+    EXPECT_EQ(pg.nodes.size(), (uint) 1);
+    EXPECT_EQ(pg.reads.size(), (uint) 1);
+    EXPECT_EQ(pg.samples.size(), (uint) 0);
+    pg.clear();
+    EXPECT_EQ(pg.nodes.size(), (uint) 0);
+    EXPECT_EQ(pg.reads.size(), (uint) 0);
+    EXPECT_EQ(pg.samples.size(), (uint) 0);
 
-    EXPECT_EQ(*pg.nodes[0], *pn1);
-    EXPECT_EQ(*pg.nodes[1], *pn2);
-    EXPECT_EQ(*pg.edges[0], *pe);
-
-    // expect failure if a node doesn't exist in the graph
-    EXPECT_DEATH(pg.add_edge(0,4,0,0),"");
-    delete pn1;
-    delete pn2;
-    delete pe;
+    // sample pg
+    LocalPRG *l0;
+    l0 = new LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA");
+    vector<KmerNodePtr> kmp;
+    pg.add_node(0, "zero", "sample", kmp, l0);
+    EXPECT_EQ(pg.reads.size(), (uint) 0);
+    EXPECT_EQ(pg.samples.size(), (uint) 1);
+    pg.clear();
+    EXPECT_EQ(pg.nodes.size(), (uint) 0);
+    EXPECT_EQ(pg.reads.size(), (uint) 0);
+    EXPECT_EQ(pg.samples.size(), (uint) 0);
+    delete l0;
 }
 
-TEST_F(PanGraphTest, equals)
-{
-    set<MinimizerHitPtr, pComp> mhs;
-    PanGraph pg1;
-    pg1.add_node(0,"0",0, mhs);
-    pg1.add_node(1,"1",2, mhs);
-    pg1.add_node(1,"1",0, mhs);
-    pg1.add_node(2,"2",2, mhs);
-    pg1.add_edge(0,1,3,0);
-    pg1.add_edge(1,2,3,0);
-  
-    PanGraph pg2;
-    pg2.add_node(1,"1",2, mhs);
-    pg2.add_node(0,"0",0, mhs);
-    pg2.add_edge(0,1,3,0);
-    pg2.add_node(2,"2",2, mhs);
-    pg2.add_node(1,"1",0, mhs);
-    pg2.add_edge(1,2,3,0);
 
-    // adding nodes and edges in different order should make no difference
+TEST(PangenomeGraphTest, equals) {
+    set<MinimizerHitPtr, pComp> mhs;
+    PGraphTester pg1;
+    pg1.add_node(0, "0", 0, mhs);
+    pg1.add_node(1, "1", 2, mhs);
+    pg1.add_node(1, "1", 0, mhs);
+    pg1.add_node(2, "2", 2, mhs);
+
+    PGraphTester pg2;
+    pg2.add_node(1, "1", 2, mhs);
+    pg2.add_node(0, "0", 0, mhs);
+    pg2.add_node(2, "2", 2, mhs);
+    pg2.add_node(1, "1", 0, mhs);
+
+    // adding nodes in different order should make no difference
     EXPECT_EQ(pg1, pg1);
     EXPECT_EQ(pg2, pg2);
     EXPECT_EQ(pg1, pg2);
     EXPECT_EQ(pg2, pg1);
 
-    // adding an extra edge does make a difference
-    pg2.add_edge(0,2,3,0);
+    // should not matter if node_id is different provided prg_id is same
+    pg2.nodes[7] = make_shared<Node>(2, 7, "2");
+    pg2.nodes.erase(2);
+    EXPECT_EQ(pg2, pg2);
+    EXPECT_EQ(pg1, pg2);
+    EXPECT_EQ(pg2, pg1);
+
+    // or one extra node
+    pg2.add_node(3, "3", 0, mhs);
     EXPECT_EQ((pg1 == pg2), false);
     EXPECT_EQ((pg2 == pg1), false);
 
-    // having one fewer edge makes a difference
-    PanGraph pg3;
-    pg3.add_node(1,"1",2, mhs);
-    pg3.add_node(0,"0",0, mhs);
-    pg3.add_node(2,"2",2, mhs);
-    pg3.add_node(1,"1",0, mhs);
-    pg3.add_edge(1,2,3,0);
-    EXPECT_EQ((pg1 == pg3), false);
-    EXPECT_EQ((pg3 == pg1), false);
-
-    // or one extra node
-    pg3.add_edge(0,1,3,0);
-    EXPECT_EQ((pg1 == pg3), true); //adds the missing edge
-    EXPECT_EQ((pg3 == pg1), true); //adds the missing edge
-    pg3.add_node(3,"3",0, mhs);
-    EXPECT_EQ((pg1 == pg3), false);
-    EXPECT_EQ((pg3 == pg1), false);
-
     // should not break when have a cycle in pangraph
-    pg3.add_edge(2,0,3,0);
-    EXPECT_EQ(pg3, pg3);      
-
-    // having edges orientated in a complementary way shouldn't make a difference (A->B == B- -> A-)
-    pg1.add_edge(2,0,0,0);
-    EXPECT_EQ(pg1, pg2);
-    EXPECT_EQ(pg2, pg1);
+    pg1.add_node(0, "0", 0, mhs);
+    EXPECT_EQ(pg1, pg1);
 }
 
-TEST_F(PanGraphTest, not_equals)
-{
+TEST(PangenomeGraphTest, not_equals) {
     set<MinimizerHitPtr, pComp> mhs;
-    PanGraph pg1;
-    pg1.add_node(0,"0",0, mhs);
-    pg1.add_node(1,"1",2, mhs);
-    pg1.add_node(1,"1",0, mhs);
-    pg1.add_node(2,"2",2, mhs);
-    pg1.add_edge(0,1,3,0);
-    pg1.add_edge(1,2,3,0);
+    PGraphTester pg1;
+    pg1.add_node(0, "0", 0, mhs);
+    pg1.add_node(1, "1", 2, mhs);
+    pg1.add_node(1, "1", 0, mhs);
+    pg1.add_node(2, "2", 2, mhs);
 
-    PanGraph pg2;
-    pg2.add_node(1,"1",2, mhs);
-    pg2.add_node(0,"0",0, mhs);
-    pg2.add_edge(0,1,3,0);
-    pg2.add_node(2,"2",2, mhs);
-    pg2.add_node(1,"1",0, mhs);
-    pg2.add_edge(1,2,3,0);
+    PGraphTester pg2;
+    pg2.add_node(1, "1", 2, mhs);
+    pg2.add_node(0, "0", 0, mhs);
+    pg2.add_node(2, "2", 2, mhs);
+    pg2.add_node(1, "1", 0, mhs);
 
-    // adding nodes and edges in different order should make no difference
-    EXPECT_EQ((pg1!=pg1), false);
-    EXPECT_EQ((pg2!=pg2), false);
-    EXPECT_EQ((pg1!=pg2), false);
-    EXPECT_EQ((pg2!=pg1), false);
+    // adding nodes in different order should make no difference
+    EXPECT_EQ((pg1 != pg1), false);
+    EXPECT_EQ((pg2 != pg2), false);
+    EXPECT_EQ((pg1 != pg2), false);
+    EXPECT_EQ((pg2 != pg1), false);
 
-    // adding an extra edge does make a difference
-    pg2.add_edge(0,2,3,0);
+    // or one extra node
+    pg2.add_node(3, "3", 0, mhs);
     EXPECT_EQ((pg1 != pg2), true);
     EXPECT_EQ((pg2 != pg1), true);
 
-    // having one fewer edge makes a difference
-    PanGraph pg3;
-    pg3.add_node(1,"1",2, mhs);
-    pg3.add_node(0,"0",0, mhs);
-    pg3.add_node(2,"2",2, mhs);
-    pg3.add_node(1,"1",0, mhs);
-    pg3.add_edge(1,2,3,0);
-    EXPECT_EQ((pg1 != pg3), true);
-    EXPECT_EQ((pg3 != pg1), true);
-
-    // or one extra node
-    pg3.add_edge(0,1,3,0);
-    EXPECT_EQ((pg1 != pg3), false); //adds the missing edge
-    EXPECT_EQ((pg3 != pg1), false); //adds the missing edge
-    pg3.add_node(3,"3",0, mhs);
-    EXPECT_EQ((pg1 != pg3), true);
-    EXPECT_EQ((pg3 != pg1), true);
-
     // should not break when have a cycle in pangraph
-    pg3.add_edge(2,0,3,0);
-    EXPECT_EQ((pg3!=pg3), false);
-
-    // having edges orientated in a complementary way shouldn't make a difference (A->B == B- -> A-)
-    pg1.add_edge(2,0,0,0);
-    EXPECT_EQ((pg1!=pg2), false);
-    EXPECT_EQ((pg2!=pg1), false);
+    pg1.add_node(0, "0", 0, mhs);
+    EXPECT_EQ((pg1 != pg1), false);
 }
 
-TEST_F(PanGraphTest, remove_edge)
-{
+TEST(PangenomeGraphTest, remove_node) {
     set<MinimizerHitPtr, pComp> mhs;
 
-    PanGraph pg1, pg2;
+    PGraphTester pg1, pg2;
     // read 0: 0->1->2->3
-    pg1.add_node(0,"0",0, mhs);
-    pg1.add_node(1,"1",0, mhs);
-    pg1.add_edge(0,1,3,0);
-    pg1.add_node(2,"2",0, mhs);
-    pg1.add_edge(1,2,3,0);
-    pg1.add_node(3,"3",0, mhs);
-    pg1.add_edge(2,3,3,0);
+    pg1.add_node(0, "0", 0, mhs);
+    pg1.add_node(1, "1", 0, mhs);
+    pg1.add_node(2, "2", 0, mhs);
+    pg1.add_node(3, "3", 0, mhs);
 
-    // read 0: 0->1 2->3
-    pg2.add_node(0,"0",0, mhs);
-    pg2.add_node(1,"1",0, mhs);
-    pg2.add_edge(0,1,3,0);
-    pg2.add_node(2,"2",0, mhs);
-    pg2.add_node(3,"3",0, mhs);
-    pg2.add_edge(2,3,3,0);
-
-    pg1.remove_edge(pg1.edges[1]);
-    EXPECT_EQ(pg1, pg2);
-}
-
-TEST_F(PanGraphTest, remove_node)
-{
-    set<MinimizerHitPtr, pComp> mhs;
-
-    PanGraph pg1, pg2;
-    // read 0: 0->1->2->3
-    pg1.add_node(0,"0",0, mhs);
-    pg1.add_node(1,"1",0, mhs);
-    pg1.add_edge(0,1,3,0);
-    pg1.add_node(2,"2",0, mhs);
-    pg1.add_edge(1,2,3,0);
-    pg1.add_node(3,"3",0, mhs);
-    pg1.add_edge(2,3,3,0);
-
-    // read 0: 0->1 3
-    pg2.add_node(0,"0",0, mhs);
-    pg2.add_node(1,"1",0, mhs);
-    pg2.add_edge(0,1,3,0);
-    pg2.add_node(3,"3",0, mhs);
+    // read 0: 0->1->3
+    pg2.add_node(0, "0", 0, mhs);
+    pg2.add_node(1, "1", 0, mhs);
+    pg2.add_node(3, "3", 0, mhs);
 
     pg1.remove_node(pg1.nodes[2]);
     EXPECT_EQ(pg1, pg2);
 }
 
-TEST_F(PanGraphTest, add_shortcut_edge)
-{
+TEST(PangenomeGraphTest, remove_read) {
     set<MinimizerHitPtr, pComp> mhs;
 
-    PanGraph pg1, pg2;
+    PGraphTester pg1, pg2, pg3;
     // read 0: 0->1->2->3
-    pg1.add_node(0,"0",0, mhs);
-    pg1.add_node(1,"1",0, mhs);
-    pg1.add_edge(0,1,3,0);
-    pg1.add_node(2,"2",0, mhs);
-    pg1.add_edge(1,2,3,0);
-    pg1.add_node(3,"3",0, mhs);
-    pg1.add_edge(2,3,3,0);
+    pg1.add_node(0, "0", 0, mhs);
+    pg1.add_node(1, "1", 0, mhs);
+    pg1.add_node(2, "2", 0, mhs);
+    pg1.add_node(3, "3", 0, mhs);
+
+    // read 1: 4->5->0->5
+    pg1.add_node(4, "4", 1, mhs);
+    pg1.add_node(5, "5", 1, mhs);
+    pg1.add_node(0, "0", 1, mhs);
+    pg1.add_node(5, "5", 1, mhs);
+
+    // read 1: 4->5->0->5
+    pg2.add_node(4, "0", 1, mhs);
+    pg2.add_node(5, "5", 1, mhs);
+    pg2.add_node(0, "0", 1, mhs);
+    pg2.add_node(5, "5", 1, mhs);
+
+    pg1.remove_read(0);
+    EXPECT_EQ(pg1, pg2);
+
+    EXPECT_EQ(pg1.nodes[4]->covg, pg2.nodes[4]->covg);
+    EXPECT_EQ(pg1.nodes[5]->covg, pg2.nodes[5]->covg);
+    EXPECT_EQ(pg1.nodes[0]->covg, pg2.nodes[0]->covg);
+    EXPECT_EQ(pg1.nodes[4]->reads.size(), pg2.nodes[4]->reads.size());
+    EXPECT_EQ(pg1.nodes[5]->reads.size(), pg2.nodes[5]->reads.size());
+    EXPECT_EQ(pg1.nodes[0]->reads.size(), pg2.nodes[0]->reads.size());
+
+    pg1.remove_read(1);
+    EXPECT_EQ(pg1, pg3);
+}
+
+TEST(PangenomeGraphTest, remove_low_covg_nodes) {
+    set<MinimizerHitPtr, pComp> mhs;
+
+    PGraphTester pg1, pg2, pg3;
+    // read 0: 0->1->2->3
+    pg1.add_node(0, "0", 0, mhs);
+    pg1.add_node(1, "1", 0, mhs);
+    pg1.add_node(2, "2", 0, mhs);
+    pg1.add_node(3, "3", 0, mhs);
+    // read 1: -4 -> -3 -> -1
+    pg1.add_node(1, "1", 1, mhs);
+    pg1.add_node(3, "3", 1, mhs);
+    pg1.add_node(4, "4", 1, mhs);
+    // read 2: 0 -> 1 -> 3 -> 4
+    pg1.add_node(0, "0", 2, mhs);
+    pg1.add_node(1, "1", 2, mhs);
+    pg1.add_node(3, "3", 2, mhs);
+    pg1.add_node(4, "4", 2, mhs);
+    // read 3: 0 -> 5
+    pg1.add_node(0, "0", 3, mhs);
+    pg1.add_node(5, "5", 3, mhs);
+    // read 4: 5 -> 1
+    pg1.add_node(5, "5", 4, mhs);
+    pg1.add_node(1, "1", 4, mhs);
 
     // read 0: 0->1->3
-    pg2.add_node(0,"0",0, mhs);
-    pg2.add_node(1,"1",0, mhs);
-    pg2.add_edge(0,1,3,0);
-    pg2.add_node(2,"2",0, mhs);
-    pg2.add_edge(1,2,3,0);
-    pg2.add_node(3,"3",0, mhs);
-    pg2.add_edge(2,3,3,0);
-    pg2.add_edge(1,3,3,0);
-    pg2.edges[1]->covg = 0;
-    pg2.edges[2]->covg = 0;
-
-    vector<PanEdge*>::iterator e1 = pg1.edges.begin()+1;
-    pg1.add_shortcut_edge(e1, pg1.reads[0]);
-    EXPECT_EQ(pg1, pg2);
-}
-
-TEST_F(PanGraphTest, split_node_by_edges)
-{
-    set<MinimizerHitPtr, pComp> mhs;
-
-    PanGraph pg1, pg2;
-    // read 0: 0->1->2->3
-    pg1.add_node(0,"0",0, mhs);
-    pg1.add_node(1,"1",0, mhs);
-    pg1.add_edge(0,1,3,0);
-    pg1.add_node(2,"2",0, mhs);
-    pg1.add_edge(1,2,3,0);
-    pg1.add_node(3,"3",0, mhs);
-    pg1.add_edge(2,3,3,0);
+    pg2.add_node(0, "0", 0, mhs);
+    pg2.add_node(1, "1", 0, mhs);
+    pg2.add_node(3, "3", 0, mhs);
     // read 1: -4 -> -3 -> -1
-    pg1.add_node(4,"4",1, mhs);
-    pg1.add_edge(4,3,0,1);
-    pg1.add_edge(3,1,0,1);
-    pg1.add_node(3,"3",1, mhs);
-    pg1.add_node(1,"1",1, mhs);
+    pg2.add_node(1, "1", 1, mhs);
+    pg2.add_node(3, "3", 1, mhs);
+    pg2.add_node(4, "4", 1, mhs);
     // read 2: 0 -> 1 -> 3 -> 4
-    pg1.add_edge(0,1,3,2);
-    pg1.add_edge(1,3,3,2);
-    pg1.add_edge(3,4,3,2);
-    pg1.add_node(0,"0",2, mhs);
-    pg1.add_node(1,"1",2, mhs);
-    pg1.add_node(3,"3",2, mhs);
-    pg1.add_node(4,"4",2, mhs);
-
-    // read 0: 0->1->2->3 
-    pg2.add_node(0,"0",0, mhs);
-    pg2.add_node(1,"1",0, mhs);
-    pg2.add_edge(0,1,3,0);
-    pg2.add_node(2,"2",0, mhs);
-    pg2.add_edge(1,2,3,0);
-    pg2.add_node(3,"3",0, mhs);
-    pg2.add_edge(2,3,3,0);
-    // read 1: -4 -> -3 -> -5
-    pg2.add_node(4,"4",1, mhs);
-    pg2.add_edge(4,3,0,1);
-    pg2.add_node(5,"5",1, mhs);
-    pg2.add_edge(3,5,0,1);
-    pg2.add_node(3,"3",1, mhs);
-    // read 2: 0 -> 5 -> 3 -> 4
-    pg2.add_edge(0,5,3,2);
-    pg2.add_edge(5,3,3,2);
-    pg2.add_edge(3,4,3,2);
-    pg2.add_node(0,"0",2, mhs);
-    pg2.add_node(5,"5",2, mhs);
-    pg2.add_node(3,"3",2, mhs);
-    pg2.add_node(4,"4",2, mhs); 
-
-    // run split
-    pg1.split_node_by_edges(pg1.nodes[1], pg1.edges[4], pg1.edges[0]);
-    
-    EXPECT_EQ(pg2, pg1);
-    EXPECT_EQ(pg1, pg2);
-}
-
-TEST_F(PanGraphTest, split_nodes_by_reads)
-{
-    set<MinimizerHitPtr, pComp> mhs;
-
-    PanGraph pg1, pg2;
-    // read 0: 0->1->2->3
-    pg1.add_node(0,"0",0, mhs);
-    pg1.add_node(1,"1",0, mhs);
-    pg1.add_edge(0,1,3,0);
-    pg1.add_node(2,"2",0, mhs);
-    pg1.add_edge(1,2,3,0);
-    pg1.add_node(3,"3",0, mhs);
-    pg1.add_edge(2,3,3,0);
-    // read 1: -4 -> -3 -> -1
-    pg1.add_node(4,"4",1, mhs);
-    pg1.add_edge(4,3,0,1);
-    pg1.add_edge(3,1,0,1);
-    pg1.add_node(3,"3",1, mhs);
-    pg1.add_node(1,"1",1, mhs);
-    // read 2: 0 -> 1 -> 3 -> 4
-    pg1.add_edge(0,1,3,2);
-    pg1.add_edge(1,3,3,2);
-    pg1.add_edge(3,4,3,2);
-    pg1.add_node(0,"0",2, mhs);
-    pg1.add_node(1,"1",2, mhs);
-    pg1.add_node(3,"3",2, mhs);
-    pg1.add_node(4,"4",2, mhs);
-
-    // read 0: 0->5->2->3 
-    pg2.add_node(0,"0",0, mhs);
-    pg2.add_node(5,"5",0, mhs);
-    pg2.add_edge(0,5,3,0);
-    pg2.add_node(2,"2",0, mhs);
-    pg2.add_edge(5,2,3,0);
-    pg2.add_node(3,"3",0, mhs);
-    pg2.add_edge(2,3,3,0);
-    // read 1: -4 -> -6 -> -1
-    pg2.add_node(4,"4",1, mhs);
-    pg2.add_node(6,"6",1, mhs);
-    pg2.add_edge(4,6,0,1);
-    pg2.add_node(1,"1",1, mhs);
-    pg2.add_edge(6,1,0,1);
-    // read 2: 0 -> 1 -> 6 -> 4
-    pg2.add_edge(0,1,3,2);
-    pg2.add_edge(1,6,3,2);
-    pg2.add_edge(6,4,3,2);
-    pg2.add_node(0,"0",2, mhs);
-    pg2.add_node(1,"1",2, mhs);
-    pg2.add_node(6,"6",2, mhs);
-    pg2.add_node(4,"4",2, mhs);
-
-    // run split
-    pg1.split_nodes_by_reads(2,0);
-
-    EXPECT_EQ(pg2, pg1);
-    EXPECT_EQ(pg1, pg2);
-
-    // second example, with a 3 way split
-    PanGraph pg3, pg4;
-    // read 0: 0->1->2->3
-    pg3.add_node(0,"0",0, mhs);
-    pg3.add_node(1,"1",0, mhs);
-    pg3.add_edge(0,1,3,0);
-    pg3.add_node(2,"2",0, mhs);
-    pg3.add_edge(1,2,3,0);
-    pg3.add_node(3,"3",0, mhs);
-    pg3.add_edge(2,3,3,0);
-    // read 1: -4 -> -3 -> -1
-    pg3.add_node(4,"4",1, mhs);
-    pg3.add_edge(4,3,0,1);
-    pg3.add_edge(3,1,0,1);
-    pg3.add_node(3,"3",1, mhs);
-    pg3.add_node(1,"1",1, mhs);
-    // read 2: 0 -> 1 -> 3 -> 4
-    pg3.add_edge(0,1,3,2);
-    pg3.add_edge(1,3,3,2);
-    pg3.add_edge(3,4,3,2);
-    pg3.add_node(0,"0",2, mhs);
-    pg3.add_node(1,"1",2, mhs);
-    pg3.add_node(3,"3",2, mhs);
-    pg3.add_node(4,"4",2, mhs); 
-    // read 3: 0 -> 1 -> 5 -> 4
-    pg3.add_node(0,"0",4, mhs);
-    pg3.add_node(1,"1",4, mhs);
-    pg3.add_edge(0,1,3,4);
-    pg3.add_node(5,"5",4, mhs);
-    pg3.add_node(4,"4",4, mhs);
-    pg3.add_edge(1,5,3,4);
-    pg3.add_edge(5,4,3,4);
-
-    // read 0: 0->6->2->3
-    pg4.add_node(0,"0",0, mhs);
-    pg4.add_node(6,"6",0, mhs);
-    pg4.add_edge(0,6,3,0);
-    pg4.add_node(2,"2",0, mhs);
-    pg4.add_edge(6,2,3,0);
-    pg4.add_node(3,"3",0, mhs);
-    pg4.add_edge(2,3,3,0);
-    // read 1: -4 -> -8 -> -7
-    pg4.add_node(4,"4",1, mhs);
-    pg4.add_node(8,"8",1, mhs);
-    pg4.add_edge(4,8,0,1);
-    pg4.add_node(7,"7",1, mhs);
-    pg4.add_edge(8,7,0,1);
-    // read 2: 0 -> 7 -> 8 -> 4
-    pg4.add_edge(0,7,3,2);
-    pg4.add_edge(7,8,3,2);
-    pg4.add_edge(8,4,3,2);
-    pg4.add_node(0,"0",2, mhs);
-    pg4.add_node(7,"7",2, mhs);
-    pg4.add_node(8,"8",2, mhs);
-    pg4.add_node(4,"4",2, mhs);
-    // read 3: 0 -> 1 -> 5 -> 4
-    pg4.add_node(0,"0",4, mhs);
-    pg4.add_node(1,"1",4, mhs);
-    pg4.add_node(5,"5",4, mhs);
-    pg4.add_node(4,"4",4, mhs);
-    pg4.add_edge(0,1,3,4);
-    pg4.add_edge(1,5,3,4);
-    pg4.add_edge(5,4,3,4);
-    
-    // run split
-    pg3.split_nodes_by_reads(2,0);
-
-    EXPECT_EQ(pg4, pg3);
-    EXPECT_EQ(pg3, pg4);
-}
-
-TEST_F(PanGraphTest, read_clean)
-{
-    set<MinimizerHitPtr, pComp> mhs;
-
-    PanGraph pg1, pg2;
-    // read 0: 0->1->2->3
-    pg1.add_node(0,"0",0, mhs);
-    pg1.add_node(1,"1",0, mhs);
-    pg1.add_edge(0,1,3,0);
-    pg1.add_node(2,"2",0, mhs);
-    pg1.add_edge(1,2,3,0);
-    pg1.add_node(3,"3",0, mhs);
-    pg1.add_edge(2,3,3,0);
-    // read 1: -4 -> -3 -> -1
-    pg1.add_node(4,"4",1, mhs);
-    pg1.add_edge(4,3,0,1);
-    pg1.add_edge(3,1,0,1);
-    // read 2: 0 -> 1 -> 3 -> 4
-    pg1.add_edge(0,1,3,2);
-    pg1.add_edge(1,3,3,2);
-    pg1.add_edge(3,4,3,2);
-    // read 3: 0 -> -5
-    pg1.add_node(5,"5",3, mhs);
-    pg1.add_edge(0,5,1,3);
-    // read 4: 5 -> -2
-    pg1.add_edge(5,2,2,4);
-    // read 5: 3 -> 5 -> 3
-    pg1.add_edge(3,5,3,5);
-    pg1.add_edge(5,3,3,5);
-    // read 6: 0 -> 1 -> 4 -> 1
-    pg1.add_edge(0,1,3,6);
-    pg1.add_edge(1,4,3,6);
-    pg1.add_edge(4,1,3,6);
-    // read 7: 0 -> 2 -> 0 -> 4
-    pg1.add_edge(0,2,3,8);
-    pg1.add_edge(2,0,3,8);
-    pg1.add_edge(0,4,3,8);
-    // read 8: 4 -> -3 -> 4 -> 5 -> 1
-    pg1.add_edge(4,3,1,7);
-    pg1.add_edge(3,4,2,7);
-    pg1.add_edge(4,5,3,7);
-    pg1.add_edge(5,1,3,7);
-
-    // read 0: 0->1->3
-    pg2.add_node(0,"0",0, mhs);
-    pg2.add_node(1,"1",0, mhs);
-    pg2.add_edge(0,1,3,0);
-    pg2.add_node(2,"2",0, mhs);
-    pg2.add_node(3,"3",0, mhs);
-    pg2.add_edge(1,3,3,0);
-    pg2.add_edge(1,2,3,0); // with covg 0
-    pg2.edges.back()->covg -= 1;
-    pg2.add_edge(2,3,3,0); // with covg 0
-    pg2.edges.back()->covg -= 1;
-    // read 1: -4 -> -3 -> -1
-    pg2.add_node(4,"4",1, mhs);
-    pg2.add_edge(4,3,0,1);
-    pg2.add_edge(3,1,0,1);
-    // read 2: 0 -> 1 -> 3 -> 4
-    pg2.add_edge(0,1,3,2);
-    pg2.add_edge(1,3,3,2);
-    pg2.add_edge(3,4,3,2);
-    // read 3: 0 -> -5
-    pg2.add_node(5,"5",3, mhs);
-    pg2.add_edge(0,5,1,3);
-    // read 4: 5 -> -2
-    pg2.add_edge(5,2,2,4);    
-    // read 5: 0 -> 5 -> 0
-    pg2.add_edge(3,5,3,5);
-    pg2.edges.back()->covg -= 1;
-    pg2.add_edge(5,3,3,5);
-    pg2.edges.back()->covg -= 1;
-    // read 6: 0 -> 1 -> 4 -> 1
-    pg2.add_edge(0,1,3,6);
-    pg2.add_edge(1,4,3,6);
-    pg2.edges.back()->covg -= 1;
-    pg2.add_edge(4,1,3,6);
-    pg2.edges.back()->covg -= 1;
-    // read 7: 0 -> 2 -> 0 -> 4 -> 5
-    pg2.add_edge(0,2,3,8);
-    pg2.edges.back()->covg -= 1;
-    pg2.add_edge(2,0,3,8);
-    pg2.edges.back()->covg -= 1;
-    pg2.add_edge(0,4,3,8);
-    pg2.edges.back()->covg -= 1;
-    // read 8: 4 -> 3 -> 4 -> 5 -> 1
-    pg2.add_edge(4,3,1,7);
-    pg2.edges.back()->covg -= 1;
-    pg2.add_edge(3,4,2,7);
-    pg2.edges.back()->covg -= 1;
-    pg2.add_edge(4,5,3,7);
-    pg2.edges.back()->covg -= 1;
-    pg2.add_edge(5,1,3,7);
-    pg2.edges.back()->covg -= 1;
-
-    pg1.read_clean(1);
-    EXPECT_EQ(pg1, pg2);
-}
-
-TEST_F(PanGraphTest, remove_low_covg_nodes)
-{
-    set<MinimizerHitPtr, pComp> mhs;
-
-    PanGraph pg1, pg2;
-    // read 0: 0->1->2->3
-    pg1.add_node(0,"0",0, mhs);
-    pg1.add_node(1,"1",0, mhs);
-    pg1.add_edge(0,1,3,0);
-    pg1.add_node(2,"2",0, mhs);
-    pg1.add_edge(1,2,3,0);
-    pg1.add_node(3,"3",0, mhs);
-    pg1.add_edge(2,3,3,0);
-    // read 1: -4 -> -3 -> -1
-    pg1.add_node(4,"4",1, mhs);
-    pg1.add_node(3,"3",1, mhs);
-    pg1.add_node(1,"1",1, mhs);
-    pg1.add_edge(4,3,0,1);
-    pg1.add_edge(3,1,0,1);
-    // read 2: 0 -> 1 -> 3 -> 4
-    pg1.add_node(0,"0",2, mhs);
-    pg1.add_node(1,"1",2, mhs);
-    pg1.add_node(3,"3",2, mhs);
-    pg1.add_node(4,"4",2, mhs);
-    pg1.add_edge(0,1,3,2);
-    pg1.add_edge(1,3,3,2);
-    pg1.add_edge(3,4,3,2);
-    // read 3: 0 -> -5
-    pg1.add_node(0,"0",3, mhs);
-    pg1.add_node(5,"5",3, mhs);
-    pg1.add_edge(0,5,1,3);
-    // read 4: 5 -> -1
-    pg1.add_node(1,"1",4, mhs);
-    pg1.add_node(5,"5",4, mhs);
-    pg1.add_edge(5,1,2,4);
-
-    // read 0: 0->1 3
-    pg2.add_node(0,"0",0, mhs);
-    pg2.add_node(1,"1",0, mhs);
-    pg2.add_edge(0,1,3,0);
-    pg2.add_node(3,"3",0, mhs);
-    // read 1: -4 -> -3 -> -1
-    pg2.add_node(4,"4",1, mhs);
-    pg2.add_edge(4,3,0,1);
-    pg2.add_edge(3,1,0,1);
-    // read 2: 0 -> 1 -> 3 -> 4
-    pg2.add_edge(0,1,3,2);
-    pg2.add_edge(1,3,3,2);
-    pg2.add_edge(3,4,3,2);
-    // read 3: 0 -> -5
-    pg2.add_node(5,"5",3, mhs);
-    pg2.add_edge(0,5,1,3);
-    // read 4: 5 -> -1
-    pg2.add_edge(5,1,2,4);
+    pg2.add_node(0, "0", 2, mhs);
+    pg2.add_node(1, "1", 2, mhs);
+    pg2.add_node(3, "3", 2, mhs);
+    pg2.add_node(4, "4", 2, mhs);
+    // read 3: 0 -> 5
+    pg2.add_node(0, "0", 3, mhs);
+    pg2.add_node(5, "5", 3, mhs);
+    // read 4: 5 -> 1
+    pg2.add_node(5, "5", 4, mhs);
+    pg2.add_node(1, "1", 4, mhs);
 
     pg1.remove_low_covg_nodes(1);
     EXPECT_EQ(pg1, pg2);
-}
-
-TEST_F(PanGraphTest, remove_low_covg_edges)
-{
-    set<MinimizerHitPtr, pComp> mhs;
-
-    PanGraph pg1, pg2;
-    // read 0: 0->1->2->3
-    pg1.add_node(0,"0",0, mhs);
-    pg1.add_node(1,"1",0, mhs);
-    pg1.add_edge(0,1,3,0);
-    pg1.add_node(2,"2",0, mhs);
-    pg1.add_edge(1,2,3,0);
-    pg1.add_node(3,"3",0, mhs);
-    pg1.add_edge(2,3,3,0);
-    // read 1: -4 -> -3 -> -1
-    pg1.add_node(4,"4",1, mhs);
-    pg1.add_edge(4,3,0,1);
-    pg1.add_edge(3,1,0,1);
-    // read 2: 0 -> 1 -> 3 -> 4
-    pg1.add_edge(0,1,3,2);
-    pg1.add_edge(1,3,3,2);
-    pg1.add_edge(3,4,3,2);
-    // read 3: 0 -> -5
-    pg1.add_node(5,"5",3, mhs);
-    pg1.add_edge(0,5,1,3);
-    // read 4: 5 -> -1
-    pg1.add_edge(5,1,2,4);
-
-    // read 0: 0->1 2 3
-    pg2.add_node(0,"0",0, mhs);
-    pg2.add_node(1,"1",0, mhs);
-    pg2.add_edge(0,1,3,0);
-    pg2.add_node(2,"2",0, mhs);
-    pg2.add_node(3,"3",0, mhs);
-    // read 1: -4 -> -3 -> -1
-    pg2.add_node(4,"4",1, mhs);
-    pg2.add_edge(4,3,0,1);
-    pg2.add_edge(3,1,0,1);
-    // read 2: 0 -> 1 -> 3 -> 4
-    pg2.add_edge(0,1,3,2);
-    pg2.add_edge(1,3,3,2);
-    pg2.add_edge(3,4,3,2);
-    // read 3: 0  -5
-    pg2.add_node(5,"5",3, mhs);
-    // read 4: 5  -1
-    
-    pg1.remove_low_covg_edges(1);
-    EXPECT_EQ(pg1, pg2);
-}
-
-TEST_F(PanGraphTest, clean)
-{
-    set<MinimizerHitPtr, pComp> mhs;
-
-    PanGraph pg1, pg2;
-    // read 0: 0->1->2->3
-    pg1.add_node(0,"0",0, mhs);
-    pg1.add_node(1,"1",0, mhs);
-    pg1.add_edge(0,1,3,0);
-    pg1.add_node(2,"2",0, mhs);
-    pg1.add_edge(1,2,3,0);
-    pg1.add_node(3,"3",0, mhs);
-    pg1.add_edge(2,3,3,0);
-    // read 1: -4 -> -3 -> -1
-    pg1.add_node(4,"4",1, mhs);
-    pg1.add_node(3,"3",1, mhs);
-    pg1.add_node(1,"1",1, mhs);
-    pg1.add_edge(4,3,0,1);
-    pg1.add_edge(3,1,0,1);
-    // read 2: 0 -> 1 -> 3 -> 4
-    pg1.add_node(0,"0",2, mhs);
-    pg1.add_node(1,"1",2, mhs);
-    pg1.add_node(3,"3",2, mhs);
-    pg1.add_node(4,"4",2, mhs);
-    pg1.add_edge(0,1,3,2);
-    pg1.add_edge(1,3,3,2);
-    pg1.add_edge(3,4,3,2);
-    // read 3: 0 -> -5
-    pg1.add_node(0,"0",3, mhs);
-    pg1.add_node(5,"5",3, mhs);
-    pg1.add_edge(0,5,1,3);
-    // read 4: 5 -> -1
-    pg1.add_node(1,"1",4, mhs);
-    pg1.add_node(5,"5",4, mhs);
-    pg1.add_edge(5,1,2,4);
-
-    // repeats
-    // read 1: -4 -> -3 -> -1
-    pg1.add_node(4,"4",1, mhs);
-    pg1.add_node(3,"3",1, mhs);
-    pg1.add_node(1,"1",1, mhs);
-    pg1.add_edge(4,3,0,1);
-    pg1.add_edge(3,1,0,1);
-    // read 2: 0 -> 1 -> 3 -> 4
-    pg1.add_node(0,"0",2, mhs);
-    pg1.add_node(1,"1",2, mhs);
-    pg1.add_node(3,"3",2, mhs);
-    pg1.add_node(4,"4",2, mhs);
-    pg1.add_edge(0,1,3,2);
-    pg1.add_edge(1,3,3,2);
-    pg1.add_edge(3,4,3,2);
-    // read 1: -4 -> -3 -> -1
-    pg1.add_node(4,"4",1, mhs);
-    pg1.add_node(3,"3",1, mhs);
-    pg1.add_node(1,"1",1, mhs);
-    pg1.add_edge(4,3,0,1);
-    pg1.add_edge(3,1,0,1);
-    // read 2: 0 -> 1 -> 3 -> 4
-    pg1.add_node(0,"0",2, mhs);
-    pg1.add_node(1,"1",2, mhs);
-    pg1.add_node(3,"3",2, mhs);
-    pg1.add_node(4,"4",2, mhs);
-    pg1.add_edge(0,1,3,2);
-    pg1.add_edge(1,3,3,2);
-    pg1.add_edge(3,4,3,2);
-    // read 1: -4 -> -3 -> -1
-    pg1.add_node(4,"4",1, mhs);
-    pg1.add_node(3,"3",1, mhs);
-    pg1.add_node(1,"1",1, mhs);
-    pg1.add_edge(4,3,0,1);
-    pg1.add_edge(3,1,0,1);
-    // read 2: 0 -> 1 -> 3 -> 4
-    pg1.add_node(0,"0",2, mhs);
-    pg1.add_node(1,"1",2, mhs);
-    pg1.add_node(3,"3",2, mhs);
-    pg1.add_node(4,"4",2, mhs);
-    pg1.add_edge(0,1,3,2);
-    pg1.add_edge(1,3,3,2);
-    pg1.add_edge(3,4,3,2);
-    // read 1: -4 -> -3 -> -1
-    pg1.add_node(4,"4",1, mhs);
-    pg1.add_node(3,"3",1, mhs);
-    pg1.add_node(1,"1",1, mhs);
-    pg1.add_edge(4,3,0,1);
-    pg1.add_edge(3,1,0,1);
-    // read 2: 0 -> 1 -> 3 -> 4
-    pg1.add_node(0,"0",2, mhs);
-    pg1.add_node(1,"1",2, mhs);
-    pg1.add_node(3,"3",2, mhs);
-    pg1.add_node(4,"4",2, mhs);
-    pg1.add_edge(0,1,3,2);
-    pg1.add_edge(1,3,3,2);
-    pg1.add_edge(3,4,3,2);
-    // read 1: -4 -> -3 -> -1
-    pg1.add_node(4,"4",1, mhs);
-    pg1.add_node(3,"3",1, mhs);
-    pg1.add_node(1,"1",1, mhs);
-    pg1.add_edge(4,3,0,1);
-    pg1.add_edge(3,1,0,1);
-    // read 2: 0 -> 1 -> 3 -> 4
-    pg1.add_node(0,"0",2, mhs);
-    pg1.add_node(1,"1",2, mhs);
-    pg1.add_node(3,"3",2, mhs);
-    pg1.add_node(4,"4",2, mhs);
-    pg1.add_edge(0,1,3,2);
-    pg1.add_edge(1,3,3,2);
-    pg1.add_edge(3,4,3,2);
-    // read 1: -4 -> -3 -> -1
-    pg1.add_node(4,"4",1, mhs);
-    pg1.add_node(3,"3",1, mhs);
-    pg1.add_node(1,"1",1, mhs);
-    pg1.add_edge(4,3,0,1);
-    pg1.add_edge(3,1,0,1);
-    // read 2: 0 -> 1 -> 3 -> 4
-    pg1.add_node(0,"0",2, mhs);
-    pg1.add_node(1,"1",2, mhs);
-    pg1.add_node(3,"3",2, mhs);
-    pg1.add_node(4,"4",2, mhs);
-    pg1.add_edge(0,1,3,2);
-    pg1.add_edge(1,3,3,2);
-    pg1.add_edge(3,4,3,2);
 
     // read 0: 0->1->3
-    pg2.add_node(0,"0",0, mhs);
-    pg2.add_node(1,"1",0, mhs);
-    pg2.add_edge(0,1,3,0);
-    pg2.add_node(3,"3",0, mhs);
-    pg2.add_edge(1,3,3,0);
+    pg3.add_node(0, "0", 0, mhs);
+    pg3.add_node(1, "1", 0, mhs);
+    pg3.add_node(3, "3", 0, mhs);
     // read 1: -4 -> -3 -> -1
-    pg2.add_node(4,"4",1, mhs);
-    pg2.add_edge(4,3,0,1);
-    pg2.add_edge(3,1,0,1);
+    pg3.add_node(1, "1", 1, mhs);
+    pg3.add_node(3, "3", 1, mhs);
     // read 2: 0 -> 1 -> 3 -> 4
-    pg2.add_edge(0,1,3,2);
-    pg2.add_edge(1,3,3,2);
-    pg2.add_edge(3,4,3,2);
+    pg3.add_node(0, "0", 2, mhs);
+    pg3.add_node(1, "1", 2, mhs);
+    pg3.add_node(3, "3", 2, mhs);
+    // read 3: 0 -> 5
+    pg3.add_node(0, "0", 3, mhs);
+    // read 4: 5 -> 1
+    pg3.add_node(1, "1", 4, mhs);
 
-    pg1.clean(40);
-    EXPECT_EQ(pg1, pg2);
+    pg1.remove_low_covg_nodes(2);
+    EXPECT_EQ(pg1, pg3);
 }
 
-TEST_F(PanGraphTest, write_gfa)
-{
+TEST(PangenomeGraphTest, split_node_by_reads) {
     set<MinimizerHitPtr, pComp> mhs;
 
-    PanGraph pg2;
-    pg2.add_node(1,"1",2, mhs);
-    pg2.add_node(0,"0",0, mhs);
-    pg2.add_edge(0,1,3,0);
-    pg2.add_node(2,"2",2, mhs);
-    pg2.add_node(1,"1",0, mhs);
-    pg2.add_edge(1,2,3,0);
-    pg2.add_edge(1,2,3,0);
-    pg2.write_gfa("../test/test_cases/pangraph_test_save.gfa");
+    PGraphTester pg1, pg2, pg3;
+    // read 0: 0->1->2->3
+    pg1.add_node(0, "0", 0, mhs);
+    pg1.add_node(1, "1", 0, mhs);
+    pg1.add_node(2, "2", 0, mhs);
+    pg1.add_node(3, "3", 0, mhs);
+
+    // read 1: 4->5->0->5
+    pg1.add_node(4, "4", 1, mhs);
+    pg1.add_node(5, "5", 1, mhs);
+    pg1.add_node(0, "0", 1, mhs);
+    pg1.add_node(5, "5", 1, mhs);
+
+    EXPECT_EQ((uint) 6, pg1.nodes.size());
+    EXPECT_EQ(pg1.nodes[0]->prg_id, (uint) 0);
+    EXPECT_EQ(pg1.nodes[0]->covg, (uint) 2);
+    EXPECT_EQ(pg1.nodes[1]->prg_id, (uint) 1);
+    EXPECT_EQ(pg1.nodes[1]->covg, (uint) 1);
+    EXPECT_EQ(pg1.nodes[2]->prg_id, (uint) 2);
+    EXPECT_EQ(pg1.nodes[2]->covg, (uint) 1);
+    EXPECT_EQ(pg1.nodes[3]->prg_id, (uint) 3);
+    EXPECT_EQ(pg1.nodes[3]->covg, (uint) 1);
+    EXPECT_EQ(pg1.nodes[4]->prg_id, (uint) 4);
+    EXPECT_EQ(pg1.nodes[4]->covg, (uint) 1);
+    EXPECT_EQ(pg1.nodes[5]->prg_id, (uint) 5);
+    EXPECT_EQ(pg1.nodes[5]->covg, (uint) 2);
+
+    // read 0: 0->1->2->3
+    pg2.add_node(0, "0", 0, mhs);
+    pg2.add_node(1, "1", 0, mhs);
+    NodePtr n = make_shared<Node>(2, 7, "2");
+    pg2.nodes[7] = n;
+    pg2.add_node(3, "3", 0, mhs);
+
+    // read 1: 4->5->0->5
+    pg2.add_node(4, "4", 1, mhs);
+    pg2.add_node(5, "5", 1, mhs);
+    pg2.add_node(0, "0", 1, mhs);
+    pg2.add_node(5, "5", 1, mhs);
+
+    unordered_set<ReadPtr> reads = {pg1.reads[0]};
+    vector<uint16_t> node_ids = {1, 2, 3};
+    vector<uint16_t> node_ids_exp = {1, 6, 3};
+    vector<bool> node_orients = {0, 0, 0};
+    pg1.split_node_by_reads(reads, node_ids, node_orients, 2);
+    EXPECT_EQ(pg1, pg2);
+    EXPECT_ITERABLE_EQ(vector<uint16_t>, node_ids_exp, node_ids);
+
+    EXPECT_EQ((uint) 6, pg1.nodes.size());
+    EXPECT_EQ(pg1.nodes[0]->prg_id, (uint) 0);
+    EXPECT_EQ(pg1.nodes[0]->covg, (uint) 2);
+    EXPECT_EQ(pg1.nodes[1]->prg_id, (uint) 1);
+    EXPECT_EQ(pg1.nodes[1]->covg, (uint) 1);
+    EXPECT_EQ(pg1.nodes[6]->prg_id, (uint) 2);
+    EXPECT_EQ(pg1.nodes[6]->covg, (uint) 1);
+    EXPECT_EQ(pg1.nodes[3]->prg_id, (uint) 3);
+    EXPECT_EQ(pg1.nodes[3]->covg, (uint) 1);
+    EXPECT_EQ(pg1.nodes[4]->prg_id, (uint) 4);
+    EXPECT_EQ(pg1.nodes[4]->covg, (uint) 1);
+    EXPECT_EQ(pg1.nodes[5]->prg_id, (uint) 5);
+    EXPECT_EQ(pg1.nodes[5]->covg, (uint) 2);
+
+    // read 0: 0->1->2->3
+    pg3.add_node(0, "0", 0, mhs);
+    pg3.add_node(1, "1", 0, mhs);
+    n = make_shared<Node>(2, 7, "2");
+    pg3.nodes[7] = n;
+    pg3.add_node(3, "3", 0, mhs);
+
+    // read 1: 4->5->0->5
+    pg3.add_node(4, "4", 1, mhs);
+    n = make_shared<Node>(5, 8, "5");
+    pg3.nodes[8] = n;
+    pg3.add_node(0, "0", 1, mhs);
+    pg3.add_node(5, "5", 1, mhs);
+
+    reads = {pg1.reads[1]};
+    node_ids = {5, 0, 5};
+    node_ids_exp = {7, 0, 5};
+    pg1.split_node_by_reads(reads, node_ids, node_orients, 5);
+    EXPECT_EQ(pg1, pg3);
+    EXPECT_ITERABLE_EQ(vector<uint16_t>, node_ids_exp, node_ids);
+
+    EXPECT_EQ((uint) 7, pg1.nodes.size());
+    EXPECT_EQ(pg1.nodes[0]->prg_id, (uint) 0);
+    EXPECT_EQ(pg1.nodes[0]->covg, (uint) 2);
+    EXPECT_EQ(pg1.nodes[1]->prg_id, (uint) 1);
+    EXPECT_EQ(pg1.nodes[1]->covg, (uint) 1);
+    EXPECT_EQ(pg1.nodes[6]->prg_id, (uint) 2);
+    EXPECT_EQ(pg1.nodes[6]->covg, (uint) 1);
+    EXPECT_EQ(pg1.nodes[3]->prg_id, (uint) 3);
+    EXPECT_EQ(pg1.nodes[3]->covg, (uint) 1);
+    EXPECT_EQ(pg1.nodes[4]->prg_id, (uint) 4);
+    EXPECT_EQ(pg1.nodes[4]->covg, (uint) 1);
+    EXPECT_EQ(pg1.nodes[5]->prg_id, (uint) 5);
+    EXPECT_EQ(pg1.nodes[5]->covg, (uint) 1);
+    EXPECT_EQ(pg1.nodes[7]->prg_id, (uint) 5);
+    EXPECT_EQ(pg1.nodes[7]->covg, (uint) 1);
+
 }
 
-TEST_F(PanGraphTest, save_matrix)
-{
-    // add node and check it's there
-    PanGraph pg;
+TEST(PangenomeGraphTest, add_hits_to_kmergraph) {
+}
 
-    LocalPRG* l0;
+TEST(PangenomeGraphTest, save_matrix) {
+    // add node and check it's there
+    PGraphTester pg;
+
+    LocalPRG *l0;
     l0 = new LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA");
-    vector<KmerNode*> kmp;
-   
+    vector<KmerNodePtr> kmp;
+
     pg.add_node(0, "zero", "sample1", kmp, l0);
     pg.add_node(0, "zero", "sample1", kmp, l0);
     pg.add_node(0, "zero", "sample2", kmp, l0);
     pg.add_node(1, "one", "sample1", kmp, l0);
     pg.add_node(2, "two", "sample3", kmp, l0);
-    
-    pg.save_matrix("../test/test_cases/pangraph_test_save.matrix");
+
+    pg.save_matrix("../../test/test_cases/pangraph_test_save.matrix");
+}
+
+TEST(PangenomeGraphTest, save_mapped_read_strings) {
+    PGraphTester pg;
+    pangenome::ReadPtr pr;
+    MinimizerHits mhits;
+
+    Minimizer m;
+    deque<Interval> d;
+    Path p;
+    MiniRecord* mr;
+
+    // read1
+    m = Minimizer(0,1,6,0); // kmer, start, end, strand
+    d = {Interval(7,8), Interval(10, 14)};
+    p.initialize(d);
+    mr = new MiniRecord(0,p,0,0);
+    mhits.add_hit(1, m, mr); // read 1
+
+    m = Minimizer(0,0,5,0);
+    d = {Interval(6,10), Interval(11, 12)};
+    p.initialize(d);
+    delete mr;
+    mr = new MiniRecord(0,p,0,0);
+    mhits.add_hit(1, m, mr);
+
+    d = {Interval(6,10), Interval(12, 13)};
+    p.initialize(d);
+    delete mr;
+    mr = new MiniRecord(0,p,0,0);
+    mhits.add_hit(1, m, mr);
+
+    mhits.sort();
+    pg.add_node(0,"zero", 1, mhits.hits);
+    mhits.clear();
+
+    //read 2
+    m = Minimizer(0,2,7,1);
+    d = {Interval(6,10), Interval(11, 12)};
+    p.initialize(d);
+    delete mr;
+    mr = new MiniRecord(0,p,0,0);
+    mhits.add_hit(2, m, mr);
+
+    m = Minimizer(0,5,10,1);
+    d = {Interval(6,10), Interval(12, 13)};
+    p.initialize(d);
+    delete mr;
+    mr = new MiniRecord(0,p,0,0);
+    mhits.add_hit(2, m, mr);
+
+    mhits.sort();
+    delete mr;
+    pg.add_node(0,"zero", 2, mhits.hits);
+
+    string expected1 = ">read1 pandora: 1 0:6 + \nshould\n>read2 pandora: 2 2:10 - \nis time \n";
+    string expected2 = ">read2 pandora: 2 2:10 - \nis time \n>read1 pandora: 1 0:6 + \nshould\n";
+
+    pg.save_mapped_read_strings("../../test/test_cases/reads.fa", "save_mapped_read_strings");
+    ifstream ifs("save_mapped_read_strings/zero/zero.reads.fa");
+    string content( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()) );
+    EXPECT_TRUE((content == expected1) or (content == expected2));
+
+    pg.save_mapped_read_strings("../../test/test_cases/reads.fa", ".");
+    ifstream ifs2("zero/zero.reads.fa");
+    string content2( (std::istreambuf_iterator<char>(ifs2) ),(std::istreambuf_iterator<char>()) );
+    EXPECT_TRUE((content2 == expected1) or (content2 == expected2));
+}
+
+TEST(PangenomeGraphTest, save_kmergraph_coverages) {
+    boost::filesystem::remove_all("coverages");
+
+    PGraphTester pg;
+    MinimizerHits mhits;
+    pg.add_node(0,"zero", 2, mhits.hits); //node 0
+    pg.add_node(1,"one", 2, mhits.hits);  //node 1
+    EXPECT_EQ((uint)2, pg.nodes.size());
+
+    KmerGraph kg;
+    deque<Interval> d = {Interval(0, 0)};
+    Path p;
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(4, 5), Interval(8, 9), Interval(16, 16), Interval(23, 24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0, 1), Interval(4, 5), Interval(12, 13)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(4, 5), Interval(12, 13), Interval(16, 16), Interval(23, 24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(0, 1), Interval(19, 20), Interval(23, 24)};
+    p.initialize(d);
+    kg.add_node(p);
+    d = {Interval(24, 24)};
+    p.initialize(d);
+    kg.add_node(p);
+    EXPECT_EQ((uint)7, kg.nodes.size());
+
+    kg.add_edge(kg.nodes[0], kg.nodes[1]);
+    kg.add_edge(kg.nodes[1], kg.nodes[2]);
+    kg.add_edge(kg.nodes[0], kg.nodes[3]);
+    kg.add_edge(kg.nodes[3], kg.nodes[4]);
+    kg.add_edge(kg.nodes[0], kg.nodes[5]);
+    kg.add_edge(kg.nodes[2], kg.nodes[6]);
+    kg.add_edge(kg.nodes[4], kg.nodes[6]);
+    kg.add_edge(kg.nodes[5], kg.nodes[6]);
+
+    pg.nodes[0]->kmer_prg = kg;
+    pg.nodes[0]->kmer_prg.nodes[1]->covg[0] += 4;
+    pg.nodes[0]->kmer_prg.nodes[2]->covg[0] += 3;
+    pg.nodes[1]->kmer_prg = kg;
+    pg.nodes[1]->kmer_prg.nodes[5]->covg[1] += 5;
+
+    pg.save_kmergraph_coverages(".", "test_sample");
+
+    string expected1 = "sample\t0\t1\t2\t3\t4\t5\t6\ntest_sample\t0,0\t4,0\t3,0\t0,0\t0,0\t0,0\t0,0\n";
+    string expected2 = "sample\t0\t1\t2\t3\t4\t5\t6\ntest_sample\t0,0\t0,0\t0,0\t0,0\t0,0\t0,5\t0,0\n";
+
+    ifstream ifs("coverages/zero.csv");
+    string content( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()) );
+    EXPECT_EQ(content,expected1);
+
+    ifstream ifs2("coverages/one.csv");
+    string content2( (std::istreambuf_iterator<char>(ifs2) ),(std::istreambuf_iterator<char>()) );
+    EXPECT_EQ(content2,expected2);
 }

@@ -16,18 +16,7 @@ struct Interval;
 class Path;
 struct Minimizer;
 
-class MinimizerTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(MinimizerTest,create){
+TEST(MinimizerTest,create){
     KmerHash hash;
     pair<uint64_t,uint64_t> kh = hash.kmerhash("ACGTA", 5);
     Minimizer m1(kh.first, 0,5, 0);
@@ -48,18 +37,18 @@ TEST_F(MinimizerTest,create){
     j = 5;
     EXPECT_EQ(m3.pos.start, j);
 
-    EXPECT_EQ(m1.pos.end, j);
+    EXPECT_EQ(m1.pos.get_end(), j);
     j = 6;
-    EXPECT_EQ(m2.pos.end, j);
+    EXPECT_EQ(m2.pos.get_end(), j);
     j = 10;
-    EXPECT_EQ(m3.pos.end, j);
+    EXPECT_EQ(m3.pos.get_end(), j);
 
     EXPECT_DEATH(Minimizer(kh.first, 0,2,0),""); // interval too short to be valid
     //EXPECT_DEATH(Minimizer(kh.first, 0,8,0),""); // interval too long to be valid
     EXPECT_DEATH(Minimizer(kh.first, 2,0,0),""); // doesn't generate an interval as 2>0
 }
 
-TEST_F(MinimizerTest,less_than){
+TEST(MinimizerTest,less_than){
     KmerHash hash;
     pair<uint64_t,uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
     Minimizer m1(kh1.first, 0,5,0);
@@ -88,12 +77,12 @@ TEST_F(MinimizerTest,less_than){
     {
 	EXPECT_EQ(it->kmer, v[i].kmer) << "for i " << i << " kmers do not agree: " << it->kmer << ", " << v[i].kmer;
 	EXPECT_EQ(it->pos.start, v[i].pos.start) << "start positions do not agree: " << it->pos.start << ", " << v[i].pos.start;
-	EXPECT_EQ(it->pos.end, v[i].pos.end) << "end positions do not agree: " << it->pos.end << ", " << v[i].pos.end;
+	EXPECT_EQ(it->pos.get_end(), v[i].pos.get_end()) << "end positions do not agree: " << it->pos.get_end() << ", " << v[i].pos.get_end();
     	++i;
     }
 }
 
-TEST_F(MinimizerTest,equals){
+TEST(MinimizerTest,equals){
     KmerHash hash;
     pair<uint64_t,uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
     Minimizer m1(kh1.first, 0,5,0);
@@ -114,51 +103,4 @@ TEST_F(MinimizerTest,equals){
     EXPECT_EQ(m4, m4);
     EXPECT_EQ((m3==m4), false);
     EXPECT_EQ((m4==m3), false);
-}
-
-/*TEST_F(MinimizerTest,MiniPos){
-    KmerHash hash;
-    Minimizer* m1, m2, m3, m4;
-    pair<uint64_t,uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
-    m1 = new Minimizer(kh1.first, 0,5,0);
-    pair<uint64_t,uint64_t> kh2 = hash.kmerhash("ACGTA", 5);
-    m2 = new Minimizer(kh2.first, 0,5,0);
-    m3 = new Minimizer(kh2.first, 1,6,0);
-    m4 = new Minimizer(kh2.first, 1,6,1);
-    
-    EXPECT_EQ(MiniPos(m1, m2), false);
-    EXPECT_EQ(MiniPos(m2, m3), true);
-    EXPECT_EQ(MiniPos(m3, m4), false);
-
-    delete m1;
-    delete m2;
-    delete m3;
-    delete m4;   
-}*/
-
-TEST_F(MinimizerTest,pMiniComp){
-    KmerHash hash;
-    Minimizer *m1, *m2, *m3, *m4;
-    pair<uint64_t,uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
-    m1 = new Minimizer(kh1.first, 0,5,0);
-    pair<uint64_t,uint64_t> kh2 = hash.kmerhash("ACGTA", 5);
-    m2 = new Minimizer(kh2.first, 0,5,0);
-    m3 = new Minimizer(kh2.first, 1,6,0);
-    m4 = new Minimizer(kh2.first, 1,6,1);
-
-    set<Minimizer*, pMiniComp> s = {m1, m2, m3, m4};
-    vector<Minimizer*> v = {m2, m4, m3, m1};
-
-    EXPECT_EQ(v.size(), s.size());
-    uint i=0;
-    for (set<Minimizer*, pMiniComp>::iterator it = s.begin(); it!=s.end(); ++it)
-    {
-        EXPECT_EQ(v[i], *it);
-        i++;
-    }
-    
-    delete m1;
-    delete m2;
-    delete m3; 
-    delete m4;
 }

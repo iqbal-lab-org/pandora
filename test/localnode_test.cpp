@@ -6,18 +6,7 @@
 
 using namespace std;
 
-class LocalNodeTest : public ::testing::Test {
- protected:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-    // Code here will be called immediately after each test
-    // (right before the destructor).
-  }
-};
-
-TEST_F(LocalNodeTest,create){
+TEST(LocalNodeTest,create){
 
     LocalNode ln("ACGTA", Interval(0,5), 0);
 
@@ -28,7 +17,7 @@ TEST_F(LocalNodeTest,create){
     EXPECT_EQ(j, ln.id);
 }
 
-TEST_F(LocalNodeTest,equals){
+TEST(LocalNodeTest,equals){
     LocalNode ln1("ACGTA", Interval(0,5), 0);
     LocalNode ln2("AGCTA", Interval(0,5), 0);
     LocalNode ln3("ACGTA", Interval(0,4), 0);
