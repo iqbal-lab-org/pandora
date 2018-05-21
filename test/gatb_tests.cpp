@@ -3,6 +3,7 @@
 #include <iostream>
 #include <local_assembly.h>
 
+
 const std::string fastqPath = "../../test/test_cases/test.fastq";
 
 TEST(GatbFastq, create) {
@@ -42,15 +43,15 @@ TEST(GatbKmer, create) {
     // we declare a kmer model with kmer sizing 5 letters.
     // note that we want "direct" kmers, not the min(forward,revcomp)
     // default behaviour
-    Kmer<>::ModelDirect model {5};
+    Kmer<>::ModelDirect model{5};
     // we declare an iterator relying on that kmer model
-    Kmer<>::ModelDirect::Iterator it {model};
+    Kmer<>::ModelDirect::Iterator it{model};
 
     // we create a data object representation of the sequence (in ASCII format)
-    Data data ((char*) seq);
+    Data data((char *) seq);
 
     // we configure the iterator with our sequence
-    it.setData (data);
+    it.setData(data);
 
     // and now, we can iterate over the kmers.
     for (it.first(); !it.isDone(); it.next()) {
@@ -80,26 +81,26 @@ TEST(GatbDeBruijnFromFasta, create) {
 
 TEST(GatbDeBruijnIterateNodes, create) {
     try {
-    // we load the graph from the given sequence file. in this example, we
-    // create the graph only with kmers observed at least 1 times in the data
-    // set. we do that using parameter '-abundance-min'.
-    Graph graph = Graph::create(Bank::open(fastqPath), "-kmer-size 5 -verbose 0 -abundance-min %d", 1);
+        // we load the graph from the given sequence file. in this example, we
+        // create the graph only with kmers observed at least 1 times in the data
+        // set. we do that using parameter '-abundance-min'.
+        Graph graph = Graph::create(Bank::open(fastqPath), "-kmer-size 5 -verbose 0 -abundance-min %d", 1);
 
-    // we get an iterator for all nodes of the graph
-    GraphIterator<Node> it = graph.iterator ();
+        // we get an iterator for all nodes of the graph
+        GraphIterator<Node> it = graph.iterator();
 
-    // we loop over each node
-    for (it.first(); !it.isDone(); it.next()) {
-        // the currently iterated node is available with it.item().
-        // here, we use it just to dump an ascii representation of each node.
-        std::cout << graph.toString(it.item()) << "\n";
-    }
+        // we loop over each node
+        for (it.first(); !it.isDone(); it.next()) {
+            // the currently iterated node is available with it.item().
+            // here, we use it just to dump an ascii representation of each node.
+            std::cout << graph.toString(it.item()) << "\n";
+        }
 
-    // Note: Graph::create will take care of 'bank' object and will delete it if nobody
-    // else needs it. i.e no need to call delete on the bank object
+        // Note: Graph::create will take care of 'bank' object and will delete it if nobody
+        // else needs it. i.e no need to call delete on the bank object
     }
     catch (Exception &e) {
-    std::cerr << "EXCEPTION: " << e.getMessage() << "\n";
+        std::cerr << "EXCEPTION: " << e.getMessage() << "\n";
     }
 }
 
@@ -114,13 +115,13 @@ TEST(GatbDeBruijnNodeNeighbours, create) {
         Graph graph = Graph::create(
                 new BankStrings("AATGC", NULL),
                 "-kmer-size 4 -abundance-min 1 -verbose 0"
-                );
+        );
 
         // we get an iterator for all nodes of the graph
         GraphIterator<Node> it = graph.iterator();
 
         // we check that we only have two possible nodes
-        EXPECT_EQ((int)2, it.size());
+        EXPECT_EQ((int) 2, it.size());
 
         // we iterate over the nodes
         for (it.first(); !it.isDone(); it.next()) {
@@ -136,16 +137,16 @@ TEST(GatbDeBruijnNodeNeighbours, create) {
                 GraphVector<Node> neighbours = graph.successors(current);
 
                 // we check that we only got one successor
-                EXPECT_EQ((int)1, neighbours.size());
+                EXPECT_EQ((int) 1, neighbours.size());
 
                 // another way to check the number of successors
-                EXPECT_EQ((int)1, graph.outdegree(current));
+                EXPECT_EQ((int) 1, graph.outdegree(current));
 
                 // check the number of predecessors
-                EXPECT_EQ((int)0, graph.indegree(current));
+                EXPECT_EQ((int) 0, graph.indegree(current));
 
                 // we check that it is the correct neighbour
-                EXPECT_EQ((std::string)"ATGC", graph.toString(neighbours[0]));
+                EXPECT_EQ((std::string) "ATGC", graph.toString(neighbours[0]));
             }
         }
 
@@ -175,9 +176,9 @@ TEST(GetNodeFromGraph, create) {
 }
 
 TEST(DFSTest, create) {
-    const std::string s1 {"AATGTAAGG"};
-    const std::string s2 {"AATGTCAGG"};
-    const std::string s3 {"AATGTTAGG"};
+    const std::string s1{"AATGTAAGG"};
+    const std::string s2{"AATGTCAGG"};
+    const std::string s3{"AATGTTAGG"};
     std::vector<std::string> seqs = {s1, s2, s3};
     Graph graph = Graph::create(
             new BankStrings(seqs),
@@ -188,7 +189,8 @@ TEST(DFSTest, create) {
     bool node_found = get_node(start_node, graph);
     assert(node_found);
 
-    std::unordered_map<std::string, GraphVector<Node>>& tree = DFS(start_node, graph);
+    std::unordered_map<std::string, GraphVector<Node>>
+            &tree = DFS(start_node, graph);
 //    std::cout << "DFS Tree:\n";
 //    for (auto kv : tree) {
 //        std::cout << kv.first << " ";

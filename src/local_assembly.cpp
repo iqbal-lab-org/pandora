@@ -2,11 +2,10 @@
 
 
 bool get_node(Node &node, Graph &graph) {
-    GraphIterator<Node> it = graph.iterator ();
+    GraphIterator<Node> it = graph.iterator();
     std::string required_kmer = graph.toString(node);
-    for (it.first(); !it.isDone(); it.next())
-    {
-        Node& current = it.item();
+    for (it.first(); !it.isDone(); it.next()) {
+        Node &current = it.item();
         if (graph.toString(current) == required_kmer) {
             node = current;
             return true;
@@ -17,7 +16,7 @@ bool get_node(Node &node, Graph &graph) {
 
 u_int64_t graph_size(Graph &graph) {
     // We get an iterator for all nodes of the graph.
-    GraphIterator<Node> it = graph.iterator ();
+    GraphIterator<Node> it = graph.iterator();
 
     // returns the number of nodes in the graph
     return it.size();
@@ -44,7 +43,7 @@ u_int64_t graph_size(Graph &graph) {
  *     Endwhile
  *     Return T
  */
-std::unordered_map<std::string, GraphVector<Node>>& DFS(Node &start_node, Graph &graph) {
+std::unordered_map<std::string, GraphVector<Node>> &DFS(Node &start_node, Graph &graph) {
     std::stack<Node> nodes_to_explore;  // S from pseudocode
     nodes_to_explore.push(start_node);  // s from pseudocode
     static std::unordered_map<std::string, std::string> parent;
@@ -76,8 +75,7 @@ std::unordered_map<std::string, GraphVector<Node>>& DFS(Node &start_node, Graph 
             GraphVector<Node> neighbors = graph.successors(current_node);
             tree[graph.toString(current_node)] = neighbors;
             // We loop each node.
-            for (int count = 0; count < neighbors.size(); ++count)
-            {
+            for (int count = 0; count < neighbors.size(); ++count) {
                 Node v = neighbors[count];
                 // Add v to the stack S
                 nodes_to_explore.push(v);
@@ -95,13 +93,13 @@ void print_path(std::unordered_map<std::string, GraphVector<Node>> &tree, const 
     std::string initial_acc = start_node.substr(0, start_node.size() - 1);
     helper(start_node, initial_acc, graph, tree, result);
 }
+
 void helper(std::string node, std::string acc, Graph &graph, std::unordered_map<std::string, GraphVector<Node>> &tree,
             std::vector<std::string> &result) {
     size_t num_children = tree[node].size();
     if (num_children == 0) {
         result.push_back(acc + node.back());
-    }
-    else {
+    } else {
         acc += node.back();
         for (int i = 0; i < num_children; ++i) {
             helper(graph.toString(tree[node][i]), acc, graph, tree, result);
