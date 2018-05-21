@@ -48,8 +48,6 @@ std::unordered_map<std::string, GraphVector<Node>>& DFS(Node &start_node, Graph 
     std::stack<Node> nodes_to_explore;  // S from pseudocode
     nodes_to_explore.push(start_node);  // s from pseudocode
     static std::unordered_map<std::string, std::string> parent;
-//    DfsNode root_dfs_node = DfsNode(graph.toString(start_node));
-//    static DfsTree tree { DfsTree(&root_dfs_node) };
     std::set<std::string> explored;
     bool u_explored;
     Node current_node;
@@ -109,53 +107,4 @@ void helper(std::string node, std::string acc, Graph &graph, std::unordered_map<
             helper(graph.toString(tree[node][i]), acc, graph, tree, result);
         }
     }
-}
-
-DfsNode::DfsNode(std::string kmer) {
-    DfsNode *left_child{nullptr};
-    DfsNode *parent{nullptr};
-    DfsNode *right_sibling{nullptr};
-    std::string sequence {kmer};
-}
-DfsNode *const DfsNode::get_parent() {
-        return parent;
-}
-DfsNode *const DfsNode::get_left_child() {
-        return left_child;
-}
-DfsNode *const DfsNode::get_right_sibling() {
-        return right_sibling;
-}
-void DfsNode::set_parent(DfsNode *node) {
-    parent = node;
-}
-void DfsNode::set_left_child(DfsNode *node) {
-    left_child = node;
-}
-void DfsNode::set_right_sibling(DfsNode *node) {
-    right_sibling = node;
-}
-bool DfsNode::is_leaf() {
-    return left_child != nullptr;
-}
-bool DfsNode::is_rightmost_child() {
-    return right_sibling == nullptr;
-}
-bool DfsNode::is_root() {
-    return parent == nullptr;
-}
-
-
-
-DfsTree::DfsTree() {
-    DfsNode *m_root { nullptr };
-}
-DfsTree::DfsTree(DfsNode *root) {
-    DfsNode *m_root { root };
-}
-void DfsTree::set_root(DfsNode *root) {
-    m_root = root;
-}
-DfsNode* DfsTree::get_root() {
-    return m_root;
 }
