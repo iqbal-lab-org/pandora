@@ -980,7 +980,7 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
                                              const uint32_t pos,
                                              const string &ref,
                                              const string &alt) const {
-    cout << now() << "Find alt path for PRG " << name << " variant " << pos << " " << ref << " " << alt << endl;
+    //cout << now() << "Find alt path for PRG " << name << " variant " << pos << " " << ref << " " << alt << endl;
     vector<LocalNodePtr> alt_path, considered_path;
     deque<vector<LocalNodePtr>> paths_in_progress;
     uint32_t ref_added = 0, pos_along_ref_path = 0;
@@ -1039,11 +1039,11 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
                 != considered_path.back()->outNodes.end()) {
                 alt_path.insert(alt_path.end(), considered_path.begin(), considered_path.end());
                 alt_path.insert(alt_path.end(), ref_path.begin() + pos_along_ref_path, ref_path.end());
-                cout << "found alt path ";
+                /*cout << "found alt path ";
                 for (const auto t : considered_path){
                     cout << t->pos << " ";
                 }
-                cout << endl;
+                cout << endl;*/
                 return alt_path;
             } else {
                 for (auto m : considered_path.back()->outNodes) {
@@ -1074,13 +1074,13 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
     assert(fwd_covgs.size()==0);
     assert(rev_covgs.size()==0);
     assert(kmer_path.size() > 1);
-    cout << "add kmer coverages from " << pos_from  << " to " << pos_to << endl;
+    //cout << "add kmer coverages from " << pos_from  << " to " << pos_to << endl;
 
     // start by adding coverage before we get to first kmer
     uint32_t added = 0, k = 0;
-    cout << "first kmer" << kmer_path[1]->path << endl;
+    //cout << "first kmer" << kmer_path[1]->path << endl;
     for (auto n : local_path) {
-        cout << n->pos << " ";
+        //cout << n->pos << " ";
         if (n->pos.length == 0) {
             continue;
         } else if (n->pos.get_end() < kmer_path[1]->path.get_start()){
@@ -1092,10 +1092,10 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
         }
     }
 
-    cout << "added " << added << endl;
+    //cout << "added " << added << endl;
     KmerNodePtr prev = nullptr;
     for (auto n : kmer_path) {
-        cout << n->path << " ";
+        //cout << n->path << " ";
         if (n->path.length() == 0)
             continue;
         else if (prev != nullptr) {
@@ -1110,10 +1110,10 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
             //added += k;
         }
 
-        cout << "pos_from:" << pos_from << " < added + k:" << added + k << " and added: " << added << " < pos_to:" << pos_to << endl;
+        //cout << "pos_from:" << pos_from << " < added + k:" << added + k << " and added: " << added << " < pos_to:" << pos_to << endl;
 
         if (pos_from <= added + k and added < pos_to) {
-            cout << " add " << n->path << endl;
+            //cout << " add " << n->path << endl;
             assert(n->id < kg.nodes.size() and kg.nodes[n->id]!=nullptr);
             fwd_covgs.push_back(kg.nodes.at(n->id)->covg[0]);
             rev_covgs.push_back(kg.nodes.at(n->id)->covg[1]);
@@ -1122,7 +1122,7 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
 
         prev = n;
     }
-    cout << endl;
+    //cout << endl;
 }
 
 uint32_t sum(const vector<uint32_t> &v) {
@@ -1184,11 +1184,11 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
     vector<LocalNodePtr> alt_path;
 
     vector<KmerNodePtr> ref_kmer_path = kmernode_path_from_localnode_path(ref_path);
-    cout << "ref path: ";
+    /*cout << "ref path: ";
     for (auto n : ref_kmer_path){
         cout << n->path << " ";
     }
-    cout << endl;
+    cout << endl;*/
 
     vector<KmerNodePtr> alt_kmer_path;
 
@@ -1220,11 +1220,11 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         //if (record.samples[sample_index].at(0) == '0' or record.samples[sample_index].at(0) == '.') {
         alt_path = find_alt_path(ref_path, record.pos, record.ref, record.alt);
         alt_kmer_path = kmernode_path_from_localnode_path(alt_path);
-        cout << "alt kmer path ";
+        /*cout << "alt kmer path ";
         for (auto n : alt_kmer_path) {
             cout << n->path << " ";
         }
-        cout << endl;
+        cout << endl;*/
         //} else {
         //    alt_kmer_path = sample_kmer_path;
         //}
@@ -1242,7 +1242,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
                                    alt_fwd_covgs,
                                    alt_rev_covgs);
 
-        cout << "ref_fwd_covgs = {";
+        /*cout << "ref_fwd_covgs = {";
         for (auto t : ref_fwd_covgs){
             cout << t << " ";
         }
@@ -1258,7 +1258,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         for (auto t : alt_rev_covgs){
             cout << t << " ";
         }
-        cout << "}" << endl;
+        cout << "}" << endl;*/
 
         string covg_info = ":" + to_string(mean(ref_fwd_covgs)) + ":" + to_string(mean(ref_rev_covgs))
                            + ":" + to_string(mean(alt_fwd_covgs)) + ":" + to_string(mean(alt_rev_covgs))

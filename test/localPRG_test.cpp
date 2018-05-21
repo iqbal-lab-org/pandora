@@ -1308,10 +1308,10 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     EXPECT_EQ("1", vcf.records[1].samples[0]);
 
     vector<KmerNodePtr> kmp = l3.kmernode_path_from_localnode_path(lmp3);
-    for (auto n : kmp){
+    /*for (auto n : kmp){
         cout << n->id << " ";
     }
-    cout << endl;
+    cout << endl;*/
 
     l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), kmp, "sample");
     EXPECT_EQ((uint)1, vcf.samples.size());
