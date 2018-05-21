@@ -1070,6 +1070,9 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
                                           vector<uint32_t> &fwd_covgs,
                                           vector<uint32_t> &rev_covgs) const {
     //cout << "START" << endl;
+    assert(fwd_covgs.size()==0);
+    assert(rev_covgs.size()==0);
+    cout << "add kmer coverages from " << pos_from  << " to " << pos_to << endl;
     uint32_t added = 0, k = 0;
     KmerNodePtr prev = nullptr;
     for (auto n : kmer_path) {
@@ -1089,6 +1092,7 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
         //cout << "pos_from:" << pos_from << " < added + k:" << added + k << " and added: " << added << " < pos_to:" << pos_to << endl;
 
         if (pos_from <= added + k and added < pos_to) {
+            cout << n->path << " ";
             assert(n->id < kg.nodes.size() and kg.nodes[n->id]!=nullptr);
             fwd_covgs.push_back(kg.nodes.at(n->id)->covg[0]);
             rev_covgs.push_back(kg.nodes.at(n->id)->covg[1]);
@@ -1097,6 +1101,7 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
 
         prev = n;
     }
+    cout << endl;
 }
 
 uint32_t sum(const vector<uint32_t> &v) {
@@ -1193,11 +1198,11 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         //if (record.samples[sample_index].at(0) == '0' or record.samples[sample_index].at(0) == '.') {
         alt_path = find_alt_path(ref_path, record.pos, record.ref, record.alt);
         alt_kmer_path = kmernode_path_from_localnode_path(alt_path);
-        cout << "found alt kmer path ";
+        /*cout << "found alt kmer path of length " << alt_kmer_path.size();
         for (auto n : alt_kmer_path) {
-            cout << *n << " ";
+            cout << n->path << " ";
         }
-        cout << endl;
+        cout << endl;*/
         //} else {
         //    alt_kmer_path = sample_kmer_path;
         //}
