@@ -13,8 +13,10 @@
 
 bool get_node(Node &node, Graph &graph);
 std::unordered_map<std::string, GraphVector<Node>>& DFS(Node &start_node, Graph &graph);
-void print_path(std::unordered_map<std::string, GraphVector<Node>> &tree, const std::string start_node, Graph &graph);
-void helper(std::string node, std::string acc, Graph &graph, std::unordered_map<std::string, GraphVector<Node>> &tree);
+void print_path(std::unordered_map<std::string, GraphVector<Node>> &tree, const std::string start_node,
+                Graph &graph, std::vector<std::string> &result);
+void helper(std::string node, std::string acc, Graph &graph, std::unordered_map<std::string, GraphVector<Node>> &tree,
+            std::vector<std::string> &result);
 class DfsNode {
     DfsNode *parent;
     DfsNode *left_child;

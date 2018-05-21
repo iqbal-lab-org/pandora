@@ -175,8 +175,11 @@ TEST(GetNodeFromGraph, create) {
 }
 
 TEST(DFSTest, create) {
+    const char *s1 {"AATGTCAGG"};
+    const char *s2 {"AATGTAAGG"};
+    const char *s3 {"AATGTATCGTGATG"};
     Graph graph = Graph::create(
-            new BankStrings("AATGTCAGG", "AATGTAAGG", "AATGTATCGTGATG", NULL),
+            new BankStrings(s1, s2, s3, NULL),
 //            new BankStrings("AATC", "AATA", "AATG", NULL),
             "-kmer-size 5 -abundance-min 1 -verbose 0"
     );
@@ -194,6 +197,10 @@ TEST(DFSTest, create) {
         std::cout << kv.second.size() << "\n";
     }
     std::cout << "print_path function output:\n";
-    print_path(tree, "AATGT", graph);
+    std::vector<std::string> result;
+    print_path(tree, "AATGT", graph, result);
+    for (auto element : result) {
+        std::cout << element << "\n";
+    }
 
 }

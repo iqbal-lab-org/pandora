@@ -92,18 +92,21 @@ std::unordered_map<std::string, GraphVector<Node>>& DFS(Node &start_node, Graph 
     return tree;
 }
 
-void print_path(std::unordered_map<std::string, GraphVector<Node>> &tree, const std::string start_node, Graph &graph) {
+void print_path(std::unordered_map<std::string, GraphVector<Node>> &tree, const std::string start_node,
+                Graph &graph, std::vector<std::string> &result) {
     std::string initial_acc = start_node.substr(0, start_node.size() - 1);
-    helper(start_node, initial_acc, graph, tree);
+    helper(start_node, initial_acc, graph, tree, result);
 }
-void helper(std::string node, std::string acc, Graph &graph, std::unordered_map<std::string, GraphVector<Node>> &tree) {
+void helper(std::string node, std::string acc, Graph &graph, std::unordered_map<std::string, GraphVector<Node>> &tree,
+            std::vector<std::string> &result) {
     size_t num_children = tree[node].size();
-    if (num_children == 0)
-        std::cout << acc << node.back() << "\n";
+    if (num_children == 0) {
+        result.push_back(acc + node.back());
+    }
     else {
         acc += node.back();
         for (int i = 0; i < num_children; ++i) {
-            helper(graph.toString(tree[node][i]), acc, graph, tree);
+            helper(graph.toString(tree[node][i]), acc, graph, tree, result);
         }
     }
 }
