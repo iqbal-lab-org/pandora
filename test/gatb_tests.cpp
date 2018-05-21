@@ -179,9 +179,36 @@ TEST(DFSTest, create) {
     const std::string s2 {"AATGTCAGG"};
     const std::string s3 {"AATGTTAGG"};
     std::vector<std::string> seqs = {s1, s2, s3};
+
     Graph graph = Graph::create(
             new BankStrings(seqs),
-//            new BankStrings("AATC", "AATA", "AATG", NULL),
+            "-kmer-size 5 -abundance-min 1 -verbose 0"
+    );
+
+    Node start_node = graph.buildNode("AATGT");
+    bool node_found = get_node(start_node, graph);
+    assert(node_found);
+
+    std::unordered_map<std::string, GraphVector<Node>>& tree = DFS(start_node, graph);
+
+    std::cout << "print_path function output:\n";
+
+    std::vector<std::string> result;
+    print_path(tree, "AATGT", graph, result);
+    std::sort(result.begin(), result.end());
+
+    for (int i = 0; i < result.size(); ++i) {
+        EXPECT_EQ(result[i], seqs[i]);
+    }
+}
+
+TEST(DFSTestCycle, create) {
+    const std::string s1 {"AATGTAAGG"};
+    const std::string s2 {"AATGTCAGG"};
+    const std::string s3 {"AATGTAATGTAGG"};
+    std::vector<std::string> seqs = {s1, s2, s3};
+    Graph graph = Graph::create(
+            new BankStrings(seqs),
             "-kmer-size 5 -abundance-min 1 -verbose 0"
     );
     Node start_node = graph.buildNode("AATGT");
@@ -189,11 +216,14 @@ TEST(DFSTest, create) {
     assert(node_found);
 
     std::unordered_map<std::string, GraphVector<Node>>& tree = DFS(start_node, graph);
-//    std::cout << "DFS Tree:\n";
-//    for (auto kv : tree) {
-//        std::cout << kv.first << " ";
-//        std::cout << kv.second.size() << "\n";
-//    }
+    std::cout << "DFS Tree:\n";
+    for (auto kv : tree) {
+        std::cout << kv.first << " ";
+        for (int i = 0; i < kv.second.size(); ++i) {
+            std::cout << graph.toString(kv.second[i]) << " ";
+        }
+        std::cout << "\n";
+    }
     std::cout << "print_path function output:\n";
     std::vector<std::string> result;
     print_path(tree, "AATGT", graph, result);
@@ -201,9 +231,7 @@ TEST(DFSTest, create) {
     for (auto &element : result) {
         std::cout << element << "\n";
     }
-    for (int i = 0; i < result.size(); ++i) {
-        EXPECT_EQ(result[i], seqs[i]);
-    }
-
-
+//    for (int i = 0; i < result.size(); ++i) {
+//        EXPECT_EQ(result[i], seqs[i]);
+//    }
 }

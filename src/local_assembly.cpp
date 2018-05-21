@@ -15,14 +15,6 @@ bool get_node(Node &node, Graph &graph) {
     return false;
 }
 
-u_int64_t graph_size(Graph &graph) {
-    // We get an iterator for all nodes of the graph.
-    GraphIterator<Node> it = graph.iterator ();
-
-    // returns the number of nodes in the graph
-    return it.size();
-}
-
 /* Non-recursive implementation of DFS from "Algorithm Design" - Kleinberg and Tardos (First Edition)
  *
  * DFS(s):
