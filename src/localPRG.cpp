@@ -1076,6 +1076,7 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
     uint32_t added = 0, k = 0;
     KmerNodePtr prev = nullptr;
     for (auto n : kmer_path) {
+        cout << n->path << " ";
         if (n->path.length() == 0)
             continue;
         else if (prev != nullptr) {
@@ -1087,12 +1088,13 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
             added += n->path.get_start() - prev_interval_it->start;
         } else {
             k = n->path.length();
+            //added += k;
         }
 
         cout << "pos_from:" << pos_from << " < added + k:" << added + k << " and added: " << added << " < pos_to:" << pos_to << endl;
 
         if (pos_from <= added + k and added < pos_to) {
-            cout << n->path << " ";
+            cout << " add " << n->path << endl;
             assert(n->id < kg.nodes.size() and kg.nodes[n->id]!=nullptr);
             fwd_covgs.push_back(kg.nodes.at(n->id)->covg[0]);
             rev_covgs.push_back(kg.nodes.at(n->id)->covg[1]);
