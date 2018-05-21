@@ -980,7 +980,7 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
                                              const uint32_t pos,
                                              const string &ref,
                                              const string &alt) const {
-    //cout << now() << "Find alt path for variant " << pos << " " << ref << " " << alt << endl;
+    cout << now() << "Find alt path for PRG " << name << " variant " << pos << " " << ref << " " << alt << endl;
     vector<LocalNodePtr> alt_path, considered_path;
     deque<vector<LocalNodePtr>> paths_in_progress;
     uint32_t ref_added = 0, pos_along_ref_path = 0;
@@ -1039,6 +1039,11 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
                 != considered_path.back()->outNodes.end()) {
                 alt_path.insert(alt_path.end(), considered_path.begin(), considered_path.end());
                 alt_path.insert(alt_path.end(), ref_path.begin() + pos_along_ref_path, ref_path.end());
+                cout << "found alt path ";
+                for (const auto t : considered_path){
+                    cout << t->pos << " ";
+                }
+                cout << endl;
                 return alt_path;
             } else {
                 for (auto m : considered_path.back()->outNodes) {
@@ -1185,12 +1190,17 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         vector<string>::iterator sample_it = find(vcf.samples.begin(), vcf.samples.end(), sample_name);
         assert(sample_it != vcf.samples.end());
         auto sample_index = distance(vcf.samples.begin(), sample_it);
-        if (record.samples[sample_index].at(0) == '0' or record.samples[sample_index].at(0) == '.') {
-            alt_path = find_alt_path(ref_path, record.pos, record.ref, record.alt);
-            alt_kmer_path = kmernode_path_from_localnode_path(alt_path);
-        } else {
-            alt_kmer_path = sample_kmer_path;
+        //if (record.samples[sample_index].at(0) == '0' or record.samples[sample_index].at(0) == '.') {
+        alt_path = find_alt_path(ref_path, record.pos, record.ref, record.alt);
+        alt_kmer_path = kmernode_path_from_localnode_path(alt_path);
+        cout << "found alt kmer path ";
+        for (auto n : alt_kmer_path) {
+            cout << *n << " ";
         }
+        cout << endl;
+        //} else {
+        //    alt_kmer_path = sample_kmer_path;
+        //}
 
         // find alt covgs
         end_pos = record.pos + record.alt.length();
@@ -1204,7 +1214,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
                                    alt_fwd_covgs,
                                    alt_rev_covgs);
 
-        /*cout << "ref_fwd_covgs = {";
+        cout << "ref_fwd_covgs = {";
         for (auto t : ref_fwd_covgs){
             cout << t << " ";
         }
@@ -1220,7 +1230,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         for (auto t : alt_rev_covgs){
             cout << t << " ";
         }
-        cout << "}" << endl;*/
+        cout << "}" << endl;
 
         string covg_info = ":" + to_string(mean(ref_fwd_covgs)) + ":" + to_string(mean(ref_rev_covgs))
                            + ":" + to_string(mean(alt_fwd_covgs)) + ":" + to_string(mean(alt_rev_covgs))
