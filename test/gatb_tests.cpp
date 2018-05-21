@@ -175,11 +175,12 @@ TEST(GetNodeFromGraph, create) {
 }
 
 TEST(DFSTest, create) {
-    const char *s1 {"AATGTCAGG"};
-    const char *s2 {"AATGTAAGG"};
-    const char *s3 {"AATGTATCGTGATG"};
+    const std::string s1 {"AATGTAAGG"};
+    const std::string s2 {"AATGTCAGG"};
+    const std::string s3 {"AATGTTAGG"};
+    std::vector<std::string> seqs = {s1, s2, s3};
     Graph graph = Graph::create(
-            new BankStrings(s1, s2, s3, NULL),
+            new BankStrings(seqs),
 //            new BankStrings("AATC", "AATA", "AATG", NULL),
             "-kmer-size 5 -abundance-min 1 -verbose 0"
     );
@@ -187,20 +188,22 @@ TEST(DFSTest, create) {
     bool node_found = get_node(start_node, graph);
     assert(node_found);
 
-    std::cout << "Sequence 1: AATGTCAGG\n";
-    std::cout << "Sequence 2: AATGTAAGG\n";
-
     std::unordered_map<std::string, GraphVector<Node>>& tree = DFS(start_node, graph);
-    std::cout << "DFS Tree:\n";
-    for (auto kv : tree) {
-        std::cout << kv.first << " ";
-        std::cout << kv.second.size() << "\n";
-    }
+//    std::cout << "DFS Tree:\n";
+//    for (auto kv : tree) {
+//        std::cout << kv.first << " ";
+//        std::cout << kv.second.size() << "\n";
+//    }
     std::cout << "print_path function output:\n";
     std::vector<std::string> result;
     print_path(tree, "AATGT", graph, result);
-    for (auto element : result) {
+    std::sort(result.begin(), result.end());
+    for (auto &element : result) {
         std::cout << element << "\n";
     }
+    for (int i = 0; i < result.size(); ++i) {
+        EXPECT_EQ(result[i], seqs[i]);
+    }
+
 
 }

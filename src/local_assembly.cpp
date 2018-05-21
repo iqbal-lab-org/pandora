@@ -65,11 +65,11 @@ std::unordered_map<std::string, GraphVector<Node>>& DFS(Node &start_node, Graph 
             // If u != s then
             if (current_node != start_node) {
                 // Add edge (u, parent[u]) to tree T
-                if (parent[graph.toString(current_node)] == graph.toString(start_node))
-                    std::cout << "\n" << parent[graph.toString(current_node)];
-                else {
-                    std::cout << parent[graph.toString(current_node)].back();
-                }
+//                if (parent[graph.toString(current_node)] == graph.toString(start_node))
+//                    std::cout << "\n" << parent[graph.toString(current_node)];
+//                else {
+//                    std::cout << parent[graph.toString(current_node)].back();
+//                }
             }
             // For each edge (u,v) incident to u
             // We get the neighbors of this current node
@@ -86,7 +86,7 @@ std::unordered_map<std::string, GraphVector<Node>>& DFS(Node &start_node, Graph 
             }
         }
     }
-    std::cout << graph.toString(current_node).back() << "\n";
+//    std::cout << graph.toString(current_node).back() << "\n";
     return tree;
 }
 
