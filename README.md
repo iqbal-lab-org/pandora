@@ -5,7 +5,12 @@ Private Master: [![Build Status](https://travis-ci.com/rmnorris/pandora.svg?toke
 Private Dev: [![Build Status](https://travis-ci.com/rmnorris/pandora.svg?token=mxzxNwUzHrkcpsL2i7zU&branch=dev)](https://travis-ci.com/rmnorris/pandora)
 
 # pandora
-Can infer the pan-genome elements present in a sample and output highly accurate sequences for each element from long noisy reads such as Oxford Nanopore sequence data. 
+Pandora is a tool for pangenome sequence analysis. It has been designed to genotype samples within a panel of pangenome genes starting with either Nanopore or Illumina reads and to output a VCF. To do this it uses population reference graphs (PRG) which have been built for genes of interest. It can do the following:
+
+- For a single nanopore/illumina read dataset, output inferred gene sequences for the pangenome genes which are present.
+- For a single nanopore/illumina read dataset, output a VCF showing the variation found in the pangenome genes which are present.
+- For a collection of read datasets, output a matrix showing inferred number of each gene in each sample genome.
+- For a collection of read datasets, for each pangenome gene found present in a sample, output a VCF showing how samples which contained this gene differed in their gene sequence. 
 
 Warning - this code is still in development.
 
@@ -17,6 +22,9 @@ Requires gcc 4.7 or higher on a Unix OS.
     bash install.sh
     
 ## Usage
+### Population Reference Graphs
+Pandora assumes you have already constructed a fasta-like file of graphs, one entry for each gene/ genome region of interest. 
+
 ### Build index
 Takes a fasta-like file of PRG sequences and constructs an index, and directory of gfa files to be used by pandora map.
 
@@ -29,7 +37,7 @@ Takes a fasta-like file of PRG sequences and constructs an index, and directory 
 The index stores (w,k)-minimizers for each PRG path found. These parameters can be specified, but default to w=1, k=15.
 
 ### Map reads to index
-This takes a fasta of noisy long read sequence data and compares to the index. It infers which of the PRG elements is present, and for those that are present it outputs the inferred sequence.
+This takes a fasta of noisy long read sequence data and compares to the index. It infers which of the PRG genes/elements is present, and for those that are present it outputs the inferred sequence.
 
       Usage: pandora map -p PRG_FILE -r READ_FILE -o OUT_PREFIX <option(s)>
       Options:
