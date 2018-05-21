@@ -9,7 +9,7 @@
 #include <gatb/gatb_core.hpp>
 
 
-bool get_node(Node &node, Graph &graph);
+std::pair<Node, bool> get_node(const std::string &kmer, Graph &graph);
 
 std::unordered_map<std::string, GraphVector<Node>> &DFS(Node &start_node, Graph &graph);
 

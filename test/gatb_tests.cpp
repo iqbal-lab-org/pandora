@@ -163,17 +163,85 @@ TEST(GetNodeFromGraph, create) {
             new BankStrings("AATGTCAGG", NULL),
             "-kmer-size 5 -abundance-min 1 -verbose 0"
     );
-    const char *kmer = "AATGTCAGG";
-    Node real_node = graph.buildNode(kmer);
-    EXPECT_TRUE(get_node(real_node, graph));
+    auto kmer = "AATGT";
+    Node real_node;
+    bool found;
+    std::tie(real_node, found) = get_node(kmer, graph);
+    EXPECT_TRUE(found);
+
     // We get the neighbors of this real node and make sure it has the neighbours we expect
     GraphVector<Node> neighbours = graph.successors(real_node);
     EXPECT_EQ(graph.toString(neighbours[0]), "ATGTC");
-
-    // check the negative case also holds. we create a kmer that should not exist in the graph
-    Node fake_node = graph.buildNode("FAKE");
-    EXPECT_FALSE(get_node(fake_node, graph));
 }
+
+
+TEST(GetNodeFromGraph, GivenGraphAndKmer_KmerFoundInGraph) {
+    Graph graph = Graph::create(
+            new BankStrings("AATGTCAGG", NULL),
+            "-kmer-size 5 -abundance-min 1 -verbose 0"
+    );
+    auto kmer = "AATGT";
+
+    Node node;
+    bool found;
+    std::tie(node, found) = get_node(kmer, graph);
+
+    auto &result = found;
+    EXPECT_TRUE(result);
+}
+
+
+TEST(GetNodeFromGraph, GivenGraphAndMissingKmer_KmerNotFoundInGraph) {
+    Graph graph = Graph::create(
+            new BankStrings("AATGTCAGG", NULL),
+            "-kmer-size 5 -abundance-min 1 -verbose 0"
+    );
+
+    auto kmer = "ACTGT";
+    Node node;
+    bool found;
+    std::tie(node, found) = get_node(kmer, graph);
+
+    auto &result = found;
+    EXPECT_FALSE(found);
+}
+
+
+TEST(GetNodeFromGraph, GivenGraphAndKmer_CorrectNodeReturned) {
+    Graph graph = Graph::create(
+            new BankStrings("AATGTCAGG", NULL),
+            "-kmer-size 5 -abundance-min 1 -verbose 0"
+    );
+    auto kmer = "AATGT";
+
+    Node node;
+    bool found;
+    std::tie(node, found) = get_node(kmer, graph);
+
+    auto result = graph.toString(node);
+    auto &expected = kmer;
+
+    EXPECT_EQ(expected, result);
+}
+
+
+TEST(GetNodeFromGraph, GivenGraphAndMissingKmer_CorrectEmptyNodeReturned) {
+    Graph graph = Graph::create(
+            new BankStrings("AATGTCAGG", NULL),
+            "-kmer-size 5 -abundance-min 1 -verbose 0"
+    );
+    auto kmer = "ACTGT";
+
+    Node node;
+    bool found;
+    std::tie(node, found) = get_node(kmer, graph);
+
+    auto result = node;
+    Node expected = {};
+
+    EXPECT_EQ(expected, result);
+}
+
 
 TEST(DFSTest, create) {
     const std::string s1{"AATGTAAGG"};
@@ -185,9 +253,10 @@ TEST(DFSTest, create) {
 //            new BankStrings("AATC", "AATA", "AATG", NULL),
             "-kmer-size 5 -abundance-min 1 -verbose 0"
     );
-    Node start_node = graph.buildNode("AATGT");
-    bool node_found = get_node(start_node, graph);
-    assert(node_found);
+
+    Node start_node;
+    bool found;
+    std::tie(start_node, found) = get_node("AATGT", graph);
 
     std::unordered_map<std::string, GraphVector<Node>>
             &tree = DFS(start_node, graph);
@@ -206,6 +275,4 @@ TEST(DFSTest, create) {
     for (int i = 0; i < result.size(); ++i) {
         EXPECT_EQ(result[i], seqs[i]);
     }
-
-
 }

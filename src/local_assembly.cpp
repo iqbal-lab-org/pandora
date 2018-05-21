@@ -1,26 +1,24 @@
-#include <local_assembly.h>
+#include "local_assembly.h"
 
 
-bool get_node(Node &node, Graph &graph) {
-    GraphIterator<Node> it = graph.iterator();
-    std::string required_kmer = graph.toString(node);
+std::pair<Node, bool> get_node(const std::string &kmer, Graph &graph) {
+    Node node = {};
+    bool found = false;
+
+    auto it = graph.iterator();
     for (it.first(); !it.isDone(); it.next()) {
-        Node &current = it.item();
-        if (graph.toString(current) == required_kmer) {
+        const auto &current = it.item();
+
+        bool node_found = graph.toString(current) == kmer;
+        if (node_found) {
             node = current;
-            return true;
+            found = true;
+            break;
         }
     }
-    return false;
+    return std::make_pair(node, found);
 }
 
-u_int64_t graph_size(Graph &graph) {
-    // We get an iterator for all nodes of the graph.
-    GraphIterator<Node> it = graph.iterator();
-
-    // returns the number of nodes in the graph
-    return it.size();
-}
 
 /* Non-recursive implementation of DFS from "Algorithm Design" - Kleinberg and Tardos (First Edition)
  *
