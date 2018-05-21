@@ -1245,17 +1245,18 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range)
     {
         cout << *n;
     }
+    vector<LocalNodePtr> lmp = {};
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0], l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[5], l3.kmer_prg.nodes[8],
                                l3.kmer_prg.nodes[10], l3.kmer_prg.nodes[11]};
     vector<uint32_t> fwd, rev, exp_fwd, exp_rev;
 
-    l3.append_kmer_covgs_in_range(l3.kmer_prg,kmp,0,0,fwd,rev);
+    l3.append_kmer_covgs_in_range(l3.kmer_prg,kmp,lmp,0,0,fwd,rev);
     exp_fwd = {};
     exp_rev = {};
     EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_fwd,fwd);
     EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_rev,rev);
 
-    l3.append_kmer_covgs_in_range(l3.kmer_prg,kmp,0,1,fwd,rev);
+    l3.append_kmer_covgs_in_range(l3.kmer_prg,kmp,lmp,0,1,fwd,rev);
     exp_fwd = {4};
     exp_rev = {3};
     EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_fwd,fwd);
@@ -1263,7 +1264,7 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range)
 
     fwd.clear();
     rev.clear();
-    l3.append_kmer_covgs_in_range(l3.kmer_prg,kmp,0,2,fwd,rev);
+    l3.append_kmer_covgs_in_range(l3.kmer_prg,kmp,lmp,0,2,fwd,rev);
     exp_fwd = {4,4};
     exp_rev = {3,5};
     EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_fwd,fwd);
@@ -1271,7 +1272,7 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range)
 
     fwd.clear();
     rev.clear();
-    l3.append_kmer_covgs_in_range(l3.kmer_prg,kmp,0,3,fwd,rev);
+    l3.append_kmer_covgs_in_range(l3.kmer_prg,kmp,lmp,0,3,fwd,rev);
     exp_fwd = {4,4,4};
     exp_rev = {3,5,6};
     EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_fwd,fwd);
@@ -1279,7 +1280,7 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range)
 
     fwd.clear();
     rev.clear();
-    l3.append_kmer_covgs_in_range(l3.kmer_prg,kmp,1,2,fwd,rev);
+    l3.append_kmer_covgs_in_range(l3.kmer_prg,kmp,lmp,1,2,fwd,rev);
     exp_fwd = {4,4};
     exp_rev = {3,5};
     EXPECT_ITERABLE_EQ(vector<uint32_t>,exp_fwd,fwd);

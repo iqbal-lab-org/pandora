@@ -1065,6 +1065,7 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
 
 void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
                                           const vector<KmerNodePtr> &kmer_path,
+                                          const vector<LocalNodePtr> &local_path,
                                           const uint32_t &pos_from,
                                           const uint32_t &pos_to,
                                           vector<uint32_t> &fwd_covgs,
@@ -1072,8 +1073,22 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
     //cout << "START" << endl;
     assert(fwd_covgs.size()==0);
     assert(rev_covgs.size()==0);
+    assert(kmer_path.size() > 1);
     cout << "add kmer coverages from " << pos_from  << " to " << pos_to << endl;
+
+    // start by adding coverage before we get to first kmer
     uint32_t added = 0, k = 0;
+    for (auto n : local_path) {
+        if (n->pos.get_end() < kmer_path[1]->path.get_start()){
+            added += n->pos.length;
+        } else if (n->pos.get_end() >= kmer_path[1]->path.get_start()
+                   and n->pos.get_end() <= kmer_path[1]->path.get_start()){
+            added += n->pos.get_end() - kmer_path[1]->path.get_start();
+        } else {
+            break;
+        }
+    }
+
     KmerNodePtr prev = nullptr;
     for (auto n : kmer_path) {
         cout << n->path << " ";
@@ -1187,6 +1202,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
 
         append_kmer_covgs_in_range(kg,
                                    ref_kmer_path,
+                                   ref_path,
                                    record.pos,
                                    end_pos,
                                    ref_fwd_covgs,
@@ -1216,6 +1232,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
 
         append_kmer_covgs_in_range(kg,
                                    alt_kmer_path,
+                                   alt_path,
                                    record.pos,
                                    end_pos,
                                    alt_fwd_covgs,

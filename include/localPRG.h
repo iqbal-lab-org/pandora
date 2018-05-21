@@ -84,6 +84,7 @@ public:
 
     void append_kmer_covgs_in_range(const KmerGraph &,
                                const std::vector<KmerNodePtr> &,
+                               const std::vector<LocalNodePtr> &,
                                const uint32_t &,
                                const uint32_t &,
                                std::vector<uint32_t> &,
