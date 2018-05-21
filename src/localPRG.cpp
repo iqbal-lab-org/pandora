@@ -1085,9 +1085,9 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
             continue;
         } else if (n->pos.get_end() < kmer_path[1]->path.get_start()){
             added += n->pos.length;
-        } else if (n->pos.get_end() >= kmer_path[1]->path.get_start()
-                   and n->pos.get_end() <= kmer_path[1]->path.get_start()){
+        } else if (n->pos.get_end() >= kmer_path[1]->path.get_start()){
             added += n->pos.get_end() - kmer_path[1]->path.get_start();
+            break;
         } else {
             break;
         }
