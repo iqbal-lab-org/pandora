@@ -9,9 +9,11 @@
 #include <gatb/gatb_core.hpp>
 
 
+using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
+
 std::pair<Node, bool> get_node(const std::string &kmer, Graph &graph);
 
-std::unordered_map<std::string, GraphVector<Node>> &DFS(Node &start_node, Graph &graph);
+DfsTree DFS(const Node &start_node, const Graph &graph);
 
 void print_path(std::unordered_map<std::string, GraphVector<Node>> &tree,
                 const std::string start_node,

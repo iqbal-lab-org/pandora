@@ -258,8 +258,7 @@ TEST(DFSTest, create) {
     bool found;
     std::tie(start_node, found) = get_node("AATGT", graph);
 
-    std::unordered_map<std::string, GraphVector<Node>>
-            &tree = DFS(start_node, graph);
+    auto tree = DFS(start_node, graph);
 //    std::cout << "DFS Tree:\n";
 //    for (auto kv : tree) {
 //        std::cout << kv.first << " ";
