@@ -22,7 +22,6 @@ endif ()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -DBOOST_SYSTEM_NO_DEPRECATED -O2")
 
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib)
-link_directories(${CMAKE_BINARY_DIR}/include)
 
 include(${PROJECT_SOURCE_DIR}/ext/gatb.cmake)
 set(EXTERNAL_LIBS
@@ -31,6 +30,7 @@ set(EXTERNAL_LIBS
         hdf5_tools)
 
 include_directories(
+        ${CMAKE_BINARY_DIR}/include
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src)
 
