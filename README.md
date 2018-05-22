@@ -5,12 +5,27 @@ Private Master: [![Build Status](https://travis-ci.com/rmnorris/pandora.svg?toke
 Private Dev: [![Build Status](https://travis-ci.com/rmnorris/pandora.svg?token=mxzxNwUzHrkcpsL2i7zU&branch=dev)](https://travis-ci.com/rmnorris/pandora)
 
 # pandora
-Pandora is a tool for pangenome sequence analysis. It has been designed to genotype samples within a panel of pangenome genes starting with either Nanopore or Illumina reads and to output a VCF. To do this it uses population reference graphs (PRG) which have been built for genes of interest. It can do the following:
+Pandora is a tool for bacterial genome analysis without using a reference genome,  including genetic variation from SNPs to gene presence/absence across the whole pan-genome. Core ideas are:
+ - new samples look like recombinants (plus mutations) of things seen before
+ - we should be analysing nucleotide-level variation everywhere, not just in core genes
+ - arbitrary reference genomes are unnatural
 
-- For a single nanopore/illumina read dataset, output inferred gene sequences for the pangenome genes which are present.
-- For a single nanopore/illumina read dataset, output a VCF showing the variation found in the pangenome genes which are present.
-- For a collection of read datasets, output a matrix showing inferred number of each gene in each sample genome.
-- For a collection of read datasets, for each pangenome gene found present in a sample, output a VCF showing how samples which contained this gene differed in their gene sequence. 
+
+Pandora works with Illumina or nanopore data, allowing per-sample analysis (sequence inference and SNP/indel/gene-calling) and comparison of multiple samples. To do this it uses population reference graphs (PRG) which have been built for orthologous blocks of interest (e.g. genes and intergenic regions). 
+
+It can do the following for a single sample (read dataset):
+
+- Output inferred gene sequences for the orthologous chunks (eg genes) in the PRG
+- Output a VCF showing the variation found in the pangenome genes which are present, with respect to any reference in the PRG.
+
+For a collection of samples, it can:
+
+- Output a matrix showing inferred copy-number of each gene in each sample genome.
+- Output one VCF per orthologous-chunk, showing how samples which contained this chunk differed in their gene sequence. Variation is shown with respect to the most informative recombinant path in the PRG .
+Soon, in a galaxy not so far away, it will allow
+
+ - discovery of new variation not in the PRG
+
 
 Warning - this code is still in development.
 
