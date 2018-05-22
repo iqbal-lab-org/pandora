@@ -1307,7 +1307,7 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
         return kmp;
     }
 
-    //cout << "find maxpath" << endl;
+    cout << "Find maxpath for " << pnode->get_name() << endl;
     if (bin)
         ppath = pnode->kmer_prg.find_max_path(kmp);
     else
