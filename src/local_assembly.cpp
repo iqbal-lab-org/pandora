@@ -68,13 +68,15 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
     return tree;
 }
 
-void print_path(DfsTree &tree, const std::string start_node,
-                Graph &graph, std::vector<std::string> &result) {
+void print_path(DfsTree &tree,
+                const std::string &start_node,
+                Graph &graph,
+                std::vector<std::string> &result) {
     std::string initial_acc = start_node.substr(0, start_node.size() - 1);
     helper(start_node, initial_acc, graph, tree, result);
 }
 
-void helper(std::string node, std::string acc, Graph &graph, DfsTree &tree,
+void helper(const std::string &node, std::string acc, Graph &graph, DfsTree &tree,
             std::vector<std::string> &result) {
     size_t num_children = tree[node].size();
     if (num_children == 0) {

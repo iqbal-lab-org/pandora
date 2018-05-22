@@ -15,12 +15,12 @@ std::pair<Node, bool> get_node(const std::string &kmer, Graph &graph);
 
 DfsTree DFS(const Node &start_node, const Graph &graph);
 
-void print_path(std::unordered_map<std::string, GraphVector<Node>> &tree,
-                const std::string start_node,
+void print_path(DfsTree &tree,
+                const std::string &start_node,
                 Graph &graph,
                 std::vector<std::string> &result);
 
-void helper(std::string node,
+void helper(const std::string &node,
             std::string acc,
             Graph &graph,
             std::unordered_map<std::string, GraphVector<Node>> &tree,

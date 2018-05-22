@@ -250,7 +250,6 @@ TEST(DFSTest, create) {
     std::vector<std::string> seqs = {s1, s2, s3};
     Graph graph = Graph::create(
             new BankStrings(seqs),
-//            new BankStrings("AATC", "AATA", "AATG", NULL),
             "-kmer-size 5 -abundance-min 1 -verbose 0"
     );
 
@@ -259,11 +258,7 @@ TEST(DFSTest, create) {
     std::tie(start_node, found) = get_node("AATGT", graph);
 
     auto tree = DFS(start_node, graph);
-//    std::cout << "DFS Tree:\n";
-//    for (auto kv : tree) {
-//        std::cout << kv.first << " ";
-//        std::cout << kv.second.size() << "\n";
-//    }
+
     std::cout << "print_path function output:\n";
     std::vector<std::string> result;
     print_path(tree, "AATGT", graph, result);
