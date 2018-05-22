@@ -5,6 +5,7 @@
 
 
 const std::string fastqPath = "../../test/test_cases/test.fastq";
+const int g_kmer_size = 5;
 
 TEST(GatbFastq, create) {
 
@@ -65,7 +66,7 @@ TEST(GatbDeBruijnFromFasta, create) {
         // we load the graph from the given sequence file. in this example, we
         // create the graph only with kmers observed at least 1 times in the data
         // set. we do that using parameter '-abundance-min'.
-        Graph graph = Graph::create(Bank::open(fastqPath), "-kmer-size 5 -verbose 0 -abundance-min %d", 1);
+        Graph graph = Graph::create(Bank::open(fastqPath), "-kmer-size %d -verbose 0 -abundance-min 1", g_kmer_size);
 
         // we dump some information about the graph
         std::cout << graph.getInfo() << "\n";
@@ -84,7 +85,7 @@ TEST(GatbDeBruijnIterateNodes, create) {
         // we load the graph from the given sequence file. in this example, we
         // create the graph only with kmers observed at least 1 times in the data
         // set. we do that using parameter '-abundance-min'.
-        Graph graph = Graph::create(Bank::open(fastqPath), "-kmer-size 5 -verbose 0 -abundance-min %d", 1);
+        Graph graph = Graph::create(Bank::open(fastqPath), "-kmer-size %d -verbose 0 -abundance-min 1", g_kmer_size);
 
         // we get an iterator for all nodes of the graph
         GraphIterator<Node> it = graph.iterator();
@@ -161,7 +162,7 @@ TEST(GatbDeBruijnNodeNeighbours, create) {
 TEST(GetNodeFromGraph, create) {
     Graph graph = Graph::create(
             new BankStrings("AATGTCAGG", NULL),
-            "-kmer-size 5 -abundance-min 1 -verbose 0"
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
     );
     auto kmer = "AATGT";
     Node real_node;
@@ -178,7 +179,7 @@ TEST(GetNodeFromGraph, create) {
 TEST(GetNodeFromGraph, GivenGraphAndKmer_KmerFoundInGraph) {
     Graph graph = Graph::create(
             new BankStrings("AATGTCAGG", NULL),
-            "-kmer-size 5 -abundance-min 1 -verbose 0"
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
     );
     auto kmer = "AATGT";
 
@@ -194,7 +195,7 @@ TEST(GetNodeFromGraph, GivenGraphAndKmer_KmerFoundInGraph) {
 TEST(GetNodeFromGraph, GivenGraphAndMissingKmer_KmerNotFoundInGraph) {
     Graph graph = Graph::create(
             new BankStrings("AATGTCAGG", NULL),
-            "-kmer-size 5 -abundance-min 1 -verbose 0"
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
     );
 
     auto kmer = "ACTGT";
@@ -210,7 +211,7 @@ TEST(GetNodeFromGraph, GivenGraphAndMissingKmer_KmerNotFoundInGraph) {
 TEST(GetNodeFromGraph, GivenGraphAndKmer_CorrectNodeReturned) {
     Graph graph = Graph::create(
             new BankStrings("AATGTCAGG", NULL),
-            "-kmer-size 5 -abundance-min 1 -verbose 0"
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
     );
     auto kmer = "AATGT";
 
@@ -228,7 +229,7 @@ TEST(GetNodeFromGraph, GivenGraphAndKmer_CorrectNodeReturned) {
 TEST(GetNodeFromGraph, GivenGraphAndMissingKmer_CorrectEmptyNodeReturned) {
     Graph graph = Graph::create(
             new BankStrings("AATGTCAGG", NULL),
-            "-kmer-size 5 -abundance-min 1 -verbose 0"
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
     );
     auto kmer = "ACTGT";
 
@@ -251,7 +252,7 @@ TEST(DFSTest, create) {
 
     Graph graph = Graph::create(
             new BankStrings(seqs),
-            "-kmer-size 5 -abundance-min 1 -verbose 0"
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
     );
 
     Node start_node;
@@ -272,15 +273,39 @@ TEST(DFSTest, create) {
 
 
 TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
-    const auto seq = "ATGCAG";
+    const auto seq{"ATGCAG"};
+    const auto start_kmer{"ATGCA"};
+    const auto end_kmer{"TGCAG"};
 
     const Graph graph = Graph::create(
             new BankStrings(seq, NULL),
-            "-kmer-size 5 -abundance-min 1 -verbose 0"
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
             );
 
+    Node start_node;
+    bool found;
+    std::tie(start_node, found) = get_node(start_kmer, graph);
+
+    auto tree = DFS(start_node, graph);
+
+    std::vector<std::string> result;
+    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_EQ(result.at(0), seq);
+}
+
+
+TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
+    const auto seq{"ATGCAGTACA"};
     const auto start_kmer{"ATGCA"};
-    const auto end_kmer{"TGCAG"};
+    const auto end_kmer{"GTACA"};
+
+    const Graph graph = Graph::create(
+            new BankStrings(seq, NULL),
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+            );
+
     Node start_node;
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
