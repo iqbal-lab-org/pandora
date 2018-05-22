@@ -95,26 +95,26 @@ void Graph::add_edge(OrientedNodePtr from, OrientedNodePtr to) {
     //uint8_t num_edges_added = 0;
     if (from.second and from.first->out_nodes.find(to.first->id) == from.first->out_nodes.end()) {
         from.first->out_nodes.insert(to.first->id);
-        cout << "added edge " << from.first->id << " -> " << to.first->id << " so out_nodes.size() == "
-             << from.first->out_nodes.size() << endl;
-        //num_edges_added += 1;
+        //cout << "added edge " << from.first->id << " -> " << to.first->id << " so out_nodes.size() == "
+        //     << from.first->out_nodes.size() << endl;
+        ////num_edges_added += 1;
     } else if (!from.second and from.first->in_nodes.find(to.first->id) == from.first->in_nodes.end()) {
         from.first->in_nodes.insert(to.first->id);
-        cout << "added edge " << from.first->id << " <- " << to.first->id << " so in_nodes.size() == "
-             << from.first->in_nodes.size() << endl;
-        //num_edges_added += 1;
+        //cout << "added edge " << from.first->id << " <- " << to.first->id << " so in_nodes.size() == "
+        //     << from.first->in_nodes.size() << endl;
+        ////num_edges_added += 1;
     }
 
     if (to.second and to.first->in_nodes.find(from.first->id) == to.first->in_nodes.end()) {
         to.first->in_nodes.insert(from.first->id);
-        cout << "added edge " << to.first->id << " <- " << from.first->id << " so in_nodes.size() == "
-             << to.first->in_nodes.size() << endl;
-        //num_edges_added += 1;
+        //cout << "added edge " << to.first->id << " <- " << from.first->id << " so in_nodes.size() == "
+        //     << to.first->in_nodes.size() << endl;
+        ////num_edges_added += 1;
     } else if (!to.second and to.first->out_nodes.find(from.first->id) == to.first->out_nodes.end()) {
         to.first->out_nodes.insert(from.first->id);
-        cout << "added edge " << to.first->id << " -> " << from.first->id << " so out_nodes.size() == "
-             << to.first->out_nodes.size() << endl;
-        //num_edges_added += 1;
+        //cout << "added edge " << to.first->id << " -> " << from.first->id << " so out_nodes.size() == "
+        //     << to.first->out_nodes.size() << endl;
+        ////num_edges_added += 1;
     }
 
     //assert(num_edges_added == 2 or assert_msg("did not add edge from " << *from << " to " << *to));
