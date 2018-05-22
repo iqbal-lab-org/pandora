@@ -260,13 +260,36 @@ TEST(DFSTest, create) {
 
     auto tree = DFS(start_node, graph);
 
-    std::cout << "print_path function output:\n";
-
     std::vector<std::string> result;
-    print_path(tree, "AATGT", graph, result);
+    const auto end_kmer{"AGG"};
+    get_paths_between("AATGT", end_kmer, tree, graph, result);
     std::sort(result.begin(), result.end());
 
     for (int i = 0; i < result.size(); ++i) {
         EXPECT_EQ(result[i], seqs[i]);
     }
+}
+
+
+TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
+    const auto seq = "ATGCAG";
+
+    const Graph graph = Graph::create(
+            new BankStrings(seq, NULL),
+            "-kmer-size 5 -abundance-min 1 -verbose 0"
+            );
+
+    const auto start_kmer{"ATGCA"};
+    const auto end_kmer{"TGCAG"};
+    Node start_node;
+    bool found;
+    std::tie(start_node, found) = get_node(start_kmer, graph);
+
+    auto tree = DFS(start_node, graph);
+
+    std::vector<std::string> result;
+    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_EQ(result.at(0), seq);
 }

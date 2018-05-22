@@ -1,7 +1,7 @@
 #include "local_assembly.h"
 
 
-std::pair<Node, bool> get_node(const std::string &kmer, Graph &graph) {
+std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph) {
     Node node = {};
     bool found = false;
 
@@ -68,16 +68,30 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
     return tree;
 }
 
-void print_path(DfsTree &tree,
-                const std::string &start_node,
-                Graph &graph,
-                std::vector<std::string> &result) {
-    std::string initial_acc = start_node.substr(0, start_node.size() - 1);
-    helper(start_node, initial_acc, graph, tree, result);
+void get_paths_between(const std::string &start_kmer,
+                       const std::string &end_kmer,
+                       DfsTree &tree,
+                       const Graph &graph,
+                       std::vector<std::string> &result) {
+    std::string initial_acc = start_kmer.substr(0, start_kmer.length() - 1);
+    std::vector<std::string> full_paths{};
+
+    helper(start_kmer, initial_acc, graph, tree, full_paths);
+
+    for (auto &path : full_paths) {
+        // find last occurrence of end kmer in current path
+        size_t found = path.rfind(end_kmer);
+
+        if (found == std::string::npos)  // if it wasnt found, skip
+            continue;
+
+        const std::string trimmed_path = path.substr(0, found + end_kmer.length());
+        result.push_back(trimmed_path);
+    }
 }
 
-void helper(const std::string &node, std::string acc, Graph &graph, DfsTree &tree,
-            std::vector<std::string> &result) {
+void helper(const std::string &node, std::string acc, const Graph &graph,
+    DfsTree &tree, std::vector<std::string> &result) {
     size_t num_children = tree[node].size();
     if (num_children == 0) {
         result.push_back(acc + node.back());
