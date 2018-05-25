@@ -8,6 +8,7 @@
 
 #include <gatb/gatb_core.hpp>
 
+const long g_max_length{1000};
 
 using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
 

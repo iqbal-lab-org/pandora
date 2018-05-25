@@ -44,18 +44,18 @@ std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph) {
 DfsTree DFS(const Node &start_node, const Graph &graph) {
     std::stack<Node> nodes_to_explore({start_node});
 
-    std::set<std::string> explored_nodes;
+    std::set<Node> explored_nodes;
     DfsTree tree = {};
 
     while (not nodes_to_explore.empty()) {
         auto current_node = nodes_to_explore.top();
         nodes_to_explore.pop();
 
-        bool previously_explored = explored_nodes.find(graph.toString(current_node)) != explored_nodes.end();
+        bool previously_explored = explored_nodes.find(current_node) != explored_nodes.end();
         if (previously_explored)
             continue;
 
-        explored_nodes.insert(graph.toString(current_node));
+        explored_nodes.insert(current_node);
 
         auto neighbors = graph.successors(current_node);
         tree[graph.toString(current_node)] = neighbors;
@@ -102,3 +102,4 @@ void helper(const std::string &node, std::string acc, const Graph &graph,
         }
     }
 }
+
