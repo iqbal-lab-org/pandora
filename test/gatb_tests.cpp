@@ -415,14 +415,61 @@ TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
         EXPECT_EQ(path.substr(0, g_kmer_size), start_kmer);
         EXPECT_EQ(path.substr(path.length()-g_kmer_size, path.length()), end_kmer);
 
-        if (path.length() == seq1.length()){
-            EXPECT_TRUE(std::find(seqs.begin(), seqs.end(), path) != seqs.end());
-            ++original_seq_found;
+        if (path.length() == seq1.length()) {
+            bool path_in_expected = std::find(seqs.begin(), seqs.end(), path) != seqs.end();
+            if (path_in_expected) {
+                ++original_seq_found;
+            }
         }
     }
     EXPECT_EQ(original_seq_found, seqs.size());
 }
 
+
+TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
+    const std::string seq1{"ATGCAGTACAAGGATAC"};
+    const std::string seq2{"ATGCATTACAATGATAC"};
+    std::vector<std::string> seqs = {seq1, seq2};
+    const auto start_kmer{"ATGCA"};
+    const auto end_kmer{"GATAC"};
+
+    const Graph graph = Graph::create(
+            new BankStrings(seqs),
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+    );
+
+    Node start_node;
+    bool found;
+    std::tie(start_node, found) = get_node(start_kmer, graph);
+
+    auto tree = DFS(start_node, graph);
+
+    std::vector<std::string> result;
+    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+
+    // add other expected paths due to variants
+    const std::vector<std::string> expected_seqs = {
+            seq1, seq2,
+            "ATGCAGTACAATGATAC",
+            "ATGCATTACAAGGATAC"
+    };
+
+    int original_seq_found = 0;
+    for (auto &path: result) {
+//        std::cout << path << "\n";
+        EXPECT_EQ(path.substr(0, g_kmer_size), start_kmer);
+        EXPECT_EQ(path.substr(path.length()-g_kmer_size, path.length()), end_kmer);
+
+        if (path.length() == seq1.length()) {
+            bool path_in_expected = std::find(expected_seqs.begin(), expected_seqs.end(), path) != expected_seqs.end();
+            if (path_in_expected) {
+                ++original_seq_found;
+            }
+        }
+    }
+    EXPECT_EQ(original_seq_found, expected_seqs.size());
+
+}
 //
 //TEST(TestAPI, toStringTesting) {
 //    const std::string s1{"AATGC"};
