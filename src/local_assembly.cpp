@@ -44,27 +44,32 @@ std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph) {
 DfsTree DFS(const Node &start_node, const Graph &graph) {
     std::stack<Node> nodes_to_explore({start_node});
 
-    std::set<Node> explored_nodes;
+    std::set<std::string> explored_nodes;
     DfsTree tree = {};
 
     while (not nodes_to_explore.empty()) {
         auto current_node = nodes_to_explore.top();
         nodes_to_explore.pop();
 
-        bool previously_explored = explored_nodes.find(current_node) != explored_nodes.end();
+        bool previously_explored = explored_nodes.find(graph.toString(current_node)) != explored_nodes.end();
         if (previously_explored)
             continue;
 
-        explored_nodes.insert(current_node);
+        explored_nodes.insert(graph.toString(current_node));
 
-        auto neighbors = graph.successors(current_node);
-        tree[graph.toString(current_node)] = neighbors;
+        auto neighbours = graph.successors(current_node);
+        tree[graph.toString(current_node)] = neighbours;
 
-        for (auto i = 0; i < neighbors.size(); ++i) {
-            Node child = neighbors[i];
+        for (auto i = 0; i < neighbours.size(); ++i) {
+            Node child = neighbours[i];
             nodes_to_explore.push(child);
         }
     }
+
+    for (auto &kv: tree) {
+        std::cout << "Key: " << kv.first << "\t Successors: " << kv.second.size() << "\n";
+    }
+
     return tree;
 }
 
@@ -95,11 +100,10 @@ void helper(const std::string &node, std::string acc, const Graph &graph,
     size_t num_children = tree[node].size();
     if (num_children == 0) {
         result.push_back(acc + node.back());
-    } else {
+    } else if (not acc.length() > g_max_length) {
         acc += node.back();
         for (int i = 0; i < num_children; ++i) {
             helper(graph.toString(tree[node][i]), acc, graph, tree, result);
         }
     }
 }
-

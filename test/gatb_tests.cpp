@@ -5,7 +5,7 @@
 
 
 const std::string fastqPath = "../../test/test_cases/test.fastq";
-const int g_kmer_size = 5;
+
 
 TEST(GatbFastq, create) {
 
@@ -287,7 +287,6 @@ TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-
     std::vector<std::string> result;
     get_paths_between(start_kmer, end_kmer, tree, graph, result);
 
@@ -369,53 +368,53 @@ TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
     EXPECT_EQ(result, seqs);
 }
 
-
-TEST(TestAPI, toStringTesting) {
-    const std::string s1{"AATGC"};
-    std::vector<std::string> seqs {s1};
-
-    Graph graph = Graph::create(
-            new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", 3
-    );
-
-    auto it = graph.iterator();
-    std::cout << "Graph size: " << it.size() << "\n";
-    it.first();
-    std::cout << "Node: " << graph.toString(it.item()) << "\n";
-    std::cout << "Strand: " << it.item().strand << "\n";
-    auto neighbours = graph.successors(it.item());
-    std::cout << graph.toString(it.item()) << " has " << neighbours.size() << " successors.\n";
-    for (int i = 0; i < neighbours.size(); ++i) {
-        std::cout << graph.toString(neighbours[i]) << " " << neighbours[i].strand << " ";
-        auto succ = graph.successors(neighbours[i]);
-        std::cout << succ.size() << " successors";
-        if (neighbours[i].strand == 1) {
-            for (int j = 0; j < succ.size(); ++j) {
-                std::cout << " " << graph.toString(succ[j]) << " " << succ[j].strand;
-                auto x = graph.successors(succ[j]);
-                std::cout << " " << graph.toString(x[0]) << " " << x[0].strand;
-            }
-        }
-        std::cout << "\n";
-    }
-}
-
-TEST(TestAPI, CheckingNodeEquality) {
-    const std::string s1{"AATGC"};
-    std::vector<std::string> seqs {s1};
-
-    Graph graph = Graph::create(
-            new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", 3
-    );
-    auto it = graph.iterator();
-    it.first();
-    Node &real = it.item();
-    Node fake = graph.buildNode("ATT");
-    Node fake2 = graph.buildNode("GAG");
-    bool equal = real == fake;
-    std::cout << "\n" << equal << "\n";
-    std::cout << fake.kmer << " " << real.kmer << " " << fake2.kmer << "\n";
-
-}
+//
+//TEST(TestAPI, toStringTesting) {
+//    const std::string s1{"AATGC"};
+//    std::vector<std::string> seqs {s1};
+//
+//    Graph graph = Graph::create(
+//            new BankStrings(seqs),
+//            "-kmer-size %d -abundance-min 1 -verbose 0", 3
+//    );
+//
+//    auto it = graph.iterator();
+//    std::cout << "Graph size: " << it.size() << "\n";
+//    it.first();
+//    std::cout << "Node: " << graph.toString(it.item()) << "\n";
+//    std::cout << "Strand: " << it.item().strand << "\n";
+//    auto neighbours = graph.successors(it.item());
+//    std::cout << graph.toString(it.item()) << " has " << neighbours.size() << " successors.\n";
+//    for (int i = 0; i < neighbours.size(); ++i) {
+//        std::cout << graph.toString(neighbours[i]) << " " << neighbours[i].strand << " ";
+//        auto succ = graph.successors(neighbours[i]);
+//        std::cout << succ.size() << " successors";
+//        if (neighbours[i].strand == 1) {
+//            for (int j = 0; j < succ.size(); ++j) {
+//                std::cout << " " << graph.toString(succ[j]) << " " << succ[j].strand;
+//                auto x = graph.successors(succ[j]);
+//                std::cout << " " << graph.toString(x[0]) << " " << x[0].strand;
+//            }
+//        }
+//        std::cout << "\n";
+//    }
+//}
+//
+//TEST(TestAPI, CheckingNodeEquality) {
+//    const std::string s1{"AATGC"};
+//    std::vector<std::string> seqs {s1};
+//
+//    Graph graph = Graph::create(
+//            new BankStrings(seqs),
+//            "-kmer-size %d -abundance-min 1 -verbose 0", 3
+//    );
+//    auto it = graph.iterator();
+//    it.first();
+//    Node &real = it.item();
+//    Node fake = graph.buildNode("ATT");
+//    Node fake2 = graph.buildNode("GAG");
+//    bool equal = real == fake;
+//    std::cout << "\n" << equal << "\n";
+//    std::cout << fake.kmer << " " << real.kmer << " " << fake2.kmer << "\n";
+//
+//}
