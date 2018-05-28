@@ -66,9 +66,9 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
         }
     }
 
-    for (auto &kv: tree) {
-        std::cout << "Key: " << kv.first << "\t Successors: " << kv.second.size() << "\n";
-    }
+//    for (auto &kv: tree) {
+//        std::cout << "Key: " << kv.first << "\t Successors: " << kv.second.size() << "\n";
+//    }
 
     return tree;
 }
@@ -100,7 +100,7 @@ void helper(const std::string &node, std::string acc, const Graph &graph,
     size_t num_children = tree[node].size();
     if (num_children == 0) {
         result.push_back(acc + node.back());
-    } else if (not acc.length() > g_max_length) {
+    } else if (acc.length() < g_max_length) {
         acc += node.back();
         for (int i = 0; i < num_children; ++i) {
             helper(graph.toString(tree[node][i]), acc, graph, tree, result);

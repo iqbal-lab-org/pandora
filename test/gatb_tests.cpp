@@ -314,8 +314,17 @@ TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
     std::vector<std::string> result;
     get_paths_between(start_kmer, end_kmer, tree, graph, result);
 
-    EXPECT_EQ(result.size(), 1);
-    EXPECT_EQ(result.at(0), seq);
+    bool original_seq_found = false;
+    // make sure all paths begin and end with correct kmer
+    for (auto &path: result) {
+        EXPECT_EQ(path.substr(0, g_kmer_size), start_kmer);
+        EXPECT_EQ(path.substr(path.length()-g_kmer_size, path.length()), end_kmer);
+
+        if (path == seq)
+            original_seq_found = true;
+    }
+
+    EXPECT_TRUE(original_seq_found);
 }
 
 TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
@@ -344,8 +353,8 @@ TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
 }
 
 TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
-    const auto seq1{"ATGCAGTACAA"};
-    const auto seq2{"ATGCATTACAA"};
+    const std::string seq1{"ATGCAGTACAA"};
+    const std::string seq2{"ATGCATTACAA"};
     std::vector<std::string> seqs = {seq1, seq2};
     const auto start_kmer{"ATGCA"};
     const auto end_kmer{"TACAA"};
@@ -364,8 +373,18 @@ TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
     std::vector<std::string> result;
     get_paths_between(start_kmer, end_kmer, tree, graph, result);
 
-    EXPECT_EQ(result.size(), 2);
-    EXPECT_EQ(result, seqs);
+    int original_seq_found = 0;
+    for (auto &path: result) {
+        EXPECT_EQ(path.substr(0, g_kmer_size), start_kmer);
+        EXPECT_EQ(path.substr(path.length()-g_kmer_size, path.length()), end_kmer);
+
+        if (path.length() == seq1.length()){
+            EXPECT_TRUE(path == seq1 || path == seq2);
+            ++original_seq_found;
+        }
+    }
+    EXPECT_EQ(original_seq_found, 2);
+
 }
 
 //
