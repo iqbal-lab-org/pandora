@@ -244,7 +244,7 @@ TEST(GetNodeFromGraph, GivenGraphAndMissingKmer_CorrectEmptyNodeReturned) {
 }
 
 
-TEST(DFSTest, create) {
+TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
     const std::string s1{"AATGTAAGG"};
     const std::string s2{"AATGTCAGG"};
     const std::string s3{"AATGTTAGG"};
@@ -379,12 +379,48 @@ TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
         EXPECT_EQ(path.substr(path.length()-g_kmer_size, path.length()), end_kmer);
 
         if (path.length() == seq1.length()){
-            EXPECT_TRUE(path == seq1 || path == seq2);
+            EXPECT_TRUE(std::find(seqs.begin(), seqs.end(), path) != seqs.end());
             ++original_seq_found;
         }
     }
-    EXPECT_EQ(original_seq_found, 2);
+    EXPECT_EQ(original_seq_found, seqs.size());
 
+}
+
+
+TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
+    const std::string seq1{"ATGCAGTACAA"};
+    const std::string seq2{"ATGCATTACAA"};
+    const std::string seq3{"ATGCACTACAA"};
+    std::vector<std::string> seqs = {seq1, seq2, seq3};
+    const auto start_kmer{"ATGCA"};
+    const auto end_kmer{"TACAA"};
+
+    const Graph graph = Graph::create(
+            new BankStrings(seqs),
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+    );
+
+    Node start_node;
+    bool found;
+    std::tie(start_node, found) = get_node(start_kmer, graph);
+
+    auto tree = DFS(start_node, graph);
+
+    std::vector<std::string> result;
+    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+
+    int original_seq_found = 0;
+    for (auto &path: result) {
+        EXPECT_EQ(path.substr(0, g_kmer_size), start_kmer);
+        EXPECT_EQ(path.substr(path.length()-g_kmer_size, path.length()), end_kmer);
+
+        if (path.length() == seq1.length()){
+            EXPECT_TRUE(std::find(seqs.begin(), seqs.end(), path) != seqs.end());
+            ++original_seq_found;
+        }
+    }
+    EXPECT_EQ(original_seq_found, seqs.size());
 }
 
 //
