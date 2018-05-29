@@ -456,7 +456,6 @@ TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
 
     int original_seq_found = 0;
     for (auto &path: result) {
-//        std::cout << path << "\n";
         EXPECT_EQ(path.substr(0, g_kmer_size), start_kmer);
         EXPECT_EQ(path.substr(path.length()-g_kmer_size, path.length()), end_kmer);
 
@@ -470,6 +469,48 @@ TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
     EXPECT_EQ(original_seq_found, expected_seqs.size());
 
 }
+
+
+TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKmers) {
+    const std::string seq1{"ATGTG"};
+    const std::string seq2{"TGTGC"};
+    const std::string seq3{"TGCAC"};
+    std::vector<std::string> seqs = {seq1, seq2, seq3};
+    const auto start_kmer{"ATGTG"};
+    const auto end_kmer{"GTGCA"};
+
+    const Graph graph = Graph::create(
+            new BankStrings(seqs),
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+    );
+
+    Node start_node;
+    bool found;
+    std::tie(start_node, found) = get_node(start_kmer, graph);
+
+    auto tree = DFS(start_node, graph);
+
+    std::vector<std::string> result;
+    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+
+    // add other expected paths due to variants
+    const std::vector<std::string> expected_seqs = {"ATGTGCA"};
+
+    int original_seq_found = 0;
+    for (auto &path: result) {
+        EXPECT_EQ(path.substr(0, g_kmer_size), start_kmer);
+        EXPECT_EQ(path.substr(path.length()-g_kmer_size, path.length()), end_kmer);
+        if (path.length() == expected_seqs[0].length()) {
+            bool path_in_expected = std::find(expected_seqs.begin(), expected_seqs.end(), path) != expected_seqs.end();
+            if (path_in_expected) {
+                ++original_seq_found;
+            }
+        }
+    }
+    EXPECT_EQ(original_seq_found, expected_seqs.size());
+
+}
+
 //
 //TEST(TestAPI, toStringTesting) {
 //    const std::string s1{"AATGC"};
