@@ -494,20 +494,10 @@ TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKm
     get_paths_between(start_kmer, end_kmer, tree, graph, result);
 
     // add other expected paths due to variants
-    const std::vector<std::string> expected_seqs = {"ATGTGCA"};
+    const std::string expected_seq = "ATGTGCA";
 
-    int original_seq_found = 0;
-    for (auto &path: result) {
-        EXPECT_EQ(path.substr(0, g_kmer_size), start_kmer);
-        EXPECT_EQ(path.substr(path.length()-g_kmer_size, path.length()), end_kmer);
-        if (path.length() == expected_seqs[0].length()) {
-            bool path_in_expected = std::find(expected_seqs.begin(), expected_seqs.end(), path) != expected_seqs.end();
-            if (path_in_expected) {
-                ++original_seq_found;
-            }
-        }
-    }
-    EXPECT_EQ(original_seq_found, expected_seqs.size());
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_EQ(result.at(0), expected_seq);
 
 }
 
