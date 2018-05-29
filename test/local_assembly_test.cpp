@@ -422,3 +422,18 @@ TEST(hasEndingTest, endingLongerThanQuery_ReturnFalse) {
 //
 //
 //}
+
+TEST(FastaWriter, Prototyping) {
+
+    BankBinary outputBank ("TEST.fa");
+
+    Paths reads = {"ATGATGC", "TGCATGCA"};
+
+    for (auto path: reads) {
+        auto s = Sequence(path);
+        s.setComment(">path");
+        outputBank.insert(s);
+    }
+
+    outputBank.flush();
+}
