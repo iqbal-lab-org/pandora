@@ -398,25 +398,27 @@ TEST(hasEndingTest, endingLongerThanQuery_ReturnFalse) {
 }
 
 
-TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
-    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
-    const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
-    const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
-    const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, ref_sequence.length());
-
-    const Graph graph = Graph::create(
-            Bank::open(reads_filepath),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
-    );
-
-    Node start_node;
-    bool found;
-    std::tie(start_node, found) = get_node(start_kmer, graph);
-    assert(found);
-    auto tree = DFS(start_node, graph);
-
-    Paths result;
-    get_paths_between(start_kmer, end_kmer, tree, graph, result);
 
 
-}
+//TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
+//    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
+//    const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
+//    const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
+//    const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, ref_sequence.length());
+//
+//    const Graph graph = Graph::create(
+//            Bank::open(reads_filepath),
+//            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+//    );
+//
+//    Node start_node;
+//    bool found;
+//    std::tie(start_node, found) = get_node(start_kmer, graph);
+//    assert(found);
+//    auto tree = DFS(start_node, graph);
+//
+//    Paths result;
+//    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+//
+//
+//}
