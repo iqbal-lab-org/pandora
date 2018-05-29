@@ -261,14 +261,12 @@ TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
 
     auto tree = DFS(start_node, graph);
 
-    std::vector<std::string> result;
+    Paths result;
     const auto end_kmer{"AGG"};
     get_paths_between("AATGT", end_kmer, tree, graph, result);
-    std::sort(result.begin(), result.end());
 
-    for (int i = 0; i < result.size(); ++i) {
-        EXPECT_EQ(result[i], seqs[i]);
-    }
+    Paths expected_seqs(seqs.begin(), seqs.end());
+    EXPECT_EQ(result, expected_seqs);
 }
 
 
@@ -287,11 +285,11 @@ TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    std::vector<std::string> result;
+    Paths result;
     get_paths_between(start_kmer, end_kmer, tree, graph, result);
 
     EXPECT_EQ(result.size(), 1);
-    EXPECT_EQ(result.at(0), seq);
+    EXPECT_EQ(*result.begin(), seq);
 }
 
 
@@ -311,7 +309,7 @@ TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
 
     auto tree = DFS(start_node, graph);
 
-    std::vector<std::string> result;
+    Paths result;
     get_paths_between(start_kmer, end_kmer, tree, graph, result);
 
     bool original_seq_found = false;
@@ -345,11 +343,11 @@ TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
 
     auto tree = DFS(start_node, graph);
 
-    std::vector<std::string> result;
+    Paths result;
     get_paths_between(start_kmer, end_kmer, tree, graph, result);
 
     EXPECT_EQ(result.size(), 1);
-    EXPECT_EQ(result.at(0), seq1);
+    EXPECT_EQ(*result.begin(), seq1);
 }
 
 TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
@@ -370,7 +368,7 @@ TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
 
     auto tree = DFS(start_node, graph);
 
-    std::vector<std::string> result;
+    Paths result;
     get_paths_between(start_kmer, end_kmer, tree, graph, result);
 
     int original_seq_found = 0;
@@ -407,7 +405,7 @@ TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
 
     auto tree = DFS(start_node, graph);
 
-    std::vector<std::string> result;
+    Paths result;
     get_paths_between(start_kmer, end_kmer, tree, graph, result);
 
     int original_seq_found = 0;
@@ -444,7 +442,7 @@ TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
 
     auto tree = DFS(start_node, graph);
 
-    std::vector<std::string> result;
+    Paths result;
     get_paths_between(start_kmer, end_kmer, tree, graph, result);
 
     // add other expected paths due to variants
@@ -490,15 +488,66 @@ TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKm
 
     auto tree = DFS(start_node, graph);
 
-    std::vector<std::string> result;
+    Paths result;
     get_paths_between(start_kmer, end_kmer, tree, graph, result);
 
     // add other expected paths due to variants
     const std::string expected_seq = "ATGTGCA";
 
     EXPECT_EQ(result.size(), 1);
-    EXPECT_EQ(result.at(0), expected_seq);
+    EXPECT_EQ(*result.begin(), expected_seq);
 
+}
+
+TEST(DFSTest, SimpleCycle_ReturnPathsOfLengthsUpToMaxPathLengthCycling) {
+    const std::string seq1{"ATATATATA"};
+    const std::string seq2{"TATAT"};
+    std::vector<std::string> seqs = {seq1, seq2};
+    const auto start_kmer{"ATATA"};
+    const auto end_kmer{"TATAT"};
+
+    const Graph graph = Graph::create(
+            new BankStrings(seqs),
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+    );
+
+    Node start_node;
+    bool found;
+    std::tie(start_node, found) = get_node(start_kmer, graph);
+
+    auto tree = DFS(start_node, graph);
+
+    Paths result;
+    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+
+    const std::string min_expected_seq = "ATATAT";
+    const bool is_in = result.find(min_expected_seq) != result.end();
+    EXPECT_TRUE(is_in);
+    EXPECT_EQ(result.size(), g_max_length / 2 - 1);
+}
+
+
+TEST(hasEndingTest, hasEnding_ReturnTrue) {
+    std::string test = "binary";
+    std::string ending = "nary";
+
+    EXPECT_TRUE(has_ending(test, ending));
+}
+
+
+TEST(hasEndingTest, doesNotHaveEnding_ReturnFalse) {
+    std::string test = "tertiary";
+    std::string ending = "nary";
+
+    EXPECT_FALSE(has_ending(test, ending));
+}
+
+
+TEST(hasEndingTest, endingLongerThanQuery_ReturnFalse) {
+    std::string test = "ry";
+    std::string ending = "nary";
+
+    EXPECT_FALSE(has_ending(test, ending));
 }
 
 //

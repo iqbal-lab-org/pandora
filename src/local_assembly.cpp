@@ -77,11 +77,12 @@ void get_paths_between(const std::string &start_kmer,
                        const std::string &end_kmer,
                        DfsTree &tree,
                        const Graph &graph,
-                       std::vector<std::string> &result) {
+                       Paths &result) {
     std::string initial_acc = start_kmer.substr(0, start_kmer.length() - 1);
-    std::vector<std::string> full_paths{};
+    Paths full_paths;
 
-    helper(start_kmer, initial_acc, graph, tree, full_paths);
+    get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree,
+                           full_paths);
 
     for (auto &path : full_paths) {
         // find last occurrence of end kmer in current path
@@ -91,19 +92,39 @@ void get_paths_between(const std::string &start_kmer,
             continue;
 
         const std::string trimmed_path = path.substr(0, found + end_kmer.length());
-        result.push_back(trimmed_path);
+        result.insert(trimmed_path);
     }
 }
 
-void helper(const std::string &node, std::string acc, const Graph &graph,
-    DfsTree &tree, std::vector<std::string> &result) {
-    size_t num_children = tree[node].size();
-    if (num_children == 0) {
-        result.push_back(acc + node.back());
-    } else if (acc.length() < g_max_length) {
-        acc += node.back();
-        for (int i = 0; i < num_children; ++i) {
-            helper(graph.toString(tree[node][i]), acc, graph, tree, result);
+void get_paths_between_util(const std::string &start_kmer, const std::string &end_kmer, std::string acc,
+                            const Graph &graph,
+                            DfsTree &tree, Paths &full_paths) {
+    size_t num_children = tree[start_kmer].size();
+
+    if (num_children == 0 || acc.length() > g_max_length) {
+        full_paths.insert(acc + start_kmer.back());
+    }
+    else {
+        acc += start_kmer.back();
+
+        // makes sure we get all possible cycle repitions up to the maximum length
+        if (has_ending(acc, end_kmer)) {
+            full_paths.insert(acc);
         }
+
+        for (int i = 0; i < num_children; ++i) {
+            get_paths_between_util(graph.toString(tree[start_kmer][i]), end_kmer, acc, graph, tree,
+                                   full_paths);
+
+        }
+    }
+}
+
+
+bool has_ending(std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
     }
 }
