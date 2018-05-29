@@ -3,11 +3,13 @@
 #include <iostream>
 #include "local_assembly.h"
 
+const int g_test_kmer_size = 5;
+
 
 TEST(GetNodeFromGraph, create) {
     Graph graph = Graph::create(
             new BankStrings("AATGTCAGG", NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
     );
     auto kmer = "AATGT";
     Node real_node;
@@ -24,7 +26,7 @@ TEST(GetNodeFromGraph, create) {
 TEST(GetNodeFromGraph, GivenGraphAndKmer_KmerFoundInGraph) {
     Graph graph = Graph::create(
             new BankStrings("AATGTCAGG", NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
     );
     auto kmer = "AATGT";
 
@@ -40,7 +42,7 @@ TEST(GetNodeFromGraph, GivenGraphAndKmer_KmerFoundInGraph) {
 TEST(GetNodeFromGraph, GivenGraphAndMissingKmer_KmerNotFoundInGraph) {
     Graph graph = Graph::create(
             new BankStrings("AATGTCAGG", NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
     );
 
     auto kmer = "ACTGT";
@@ -56,7 +58,7 @@ TEST(GetNodeFromGraph, GivenGraphAndMissingKmer_KmerNotFoundInGraph) {
 TEST(GetNodeFromGraph, GivenGraphAndKmer_CorrectNodeReturned) {
     Graph graph = Graph::create(
             new BankStrings("AATGTCAGG", NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
     );
     auto kmer = "AATGT";
 
@@ -74,7 +76,7 @@ TEST(GetNodeFromGraph, GivenGraphAndKmer_CorrectNodeReturned) {
 TEST(GetNodeFromGraph, GivenGraphAndMissingKmer_CorrectEmptyNodeReturned) {
     Graph graph = Graph::create(
             new BankStrings("AATGTCAGG", NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
     );
     auto kmer = "ACTGT";
 
@@ -97,7 +99,7 @@ TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
 
     Graph graph = Graph::create(
             new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
     );
 
     Node start_node;
@@ -122,7 +124,7 @@ TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
 
     const Graph graph = Graph::create(
             new BankStrings(seq, NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
     );
 
     Node start_node;
@@ -145,7 +147,7 @@ TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
 
     const Graph graph = Graph::create(
             new BankStrings(seq, NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
     );
 
     Node start_node;
@@ -160,8 +162,8 @@ TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
     bool original_seq_found = false;
     // make sure all paths begin and end with correct kmer
     for (auto &path: result) {
-        EXPECT_EQ(path.substr(0, g_kmer_size), start_kmer);
-        EXPECT_EQ(path.substr(path.length() - g_kmer_size, path.length()), end_kmer);
+        EXPECT_EQ(path.substr(0, g_test_kmer_size), start_kmer);
+        EXPECT_EQ(path.substr(path.length() - g_test_kmer_size, path.length()), end_kmer);
 
         if (path == seq)
             original_seq_found = true;
@@ -179,7 +181,7 @@ TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
 
     const Graph graph = Graph::create(
             new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
     );
 
     Node start_node;
@@ -204,7 +206,7 @@ TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
 
     const Graph graph = Graph::create(
             new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
     );
 
     Node start_node;
@@ -218,8 +220,8 @@ TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
 
     int original_seq_found = 0;
     for (auto &path: result) {
-        EXPECT_EQ(path.substr(0, g_kmer_size), start_kmer);
-        EXPECT_EQ(path.substr(path.length() - g_kmer_size, path.length()), end_kmer);
+        EXPECT_EQ(path.substr(0, g_test_kmer_size), start_kmer);
+        EXPECT_EQ(path.substr(path.length() - g_test_kmer_size, path.length()), end_kmer);
 
         if (path.length() == seq1.length()) {
             EXPECT_TRUE(std::find(seqs.begin(), seqs.end(), path) != seqs.end());
@@ -241,7 +243,7 @@ TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
 
     const Graph graph = Graph::create(
             new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
     );
 
     Node start_node;
@@ -255,8 +257,8 @@ TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
 
     int original_seq_found = 0;
     for (auto &path: result) {
-        EXPECT_EQ(path.substr(0, g_kmer_size), start_kmer);
-        EXPECT_EQ(path.substr(path.length() - g_kmer_size, path.length()), end_kmer);
+        EXPECT_EQ(path.substr(0, g_test_kmer_size), start_kmer);
+        EXPECT_EQ(path.substr(path.length() - g_test_kmer_size, path.length()), end_kmer);
 
         if (path.length() == seq1.length()) {
             bool path_in_expected = std::find(seqs.begin(), seqs.end(), path) != seqs.end();
@@ -278,7 +280,7 @@ TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
 
     const Graph graph = Graph::create(
             new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
     );
 
     Node start_node;
@@ -299,8 +301,8 @@ TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
 
     int original_seq_found = 0;
     for (auto &path: result) {
-        EXPECT_EQ(path.substr(0, g_kmer_size), start_kmer);
-        EXPECT_EQ(path.substr(path.length() - g_kmer_size, path.length()), end_kmer);
+        EXPECT_EQ(path.substr(0, g_test_kmer_size), start_kmer);
+        EXPECT_EQ(path.substr(path.length() - g_test_kmer_size, path.length()), end_kmer);
 
         if (path.length() == seq1.length()) {
             bool path_in_expected = std::find(expected_seqs.begin(), expected_seqs.end(), path) != expected_seqs.end();
@@ -324,7 +326,7 @@ TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKm
 
     const Graph graph = Graph::create(
             new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
     );
 
     Node start_node;
@@ -353,7 +355,7 @@ TEST(DFSTest, SimpleCycle_ReturnPathsOfLengthsUpToMaxPathLengthCycling) {
 
     const Graph graph = Graph::create(
             new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
     );
 
     Node start_node;
@@ -393,4 +395,28 @@ TEST(hasEndingTest, endingLongerThanQuery_ReturnFalse) {
     std::string ending = "nary";
 
     EXPECT_FALSE(has_ending(test, ending));
+}
+
+
+TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
+    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
+    const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
+    const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
+    const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, ref_sequence.length());
+
+    const Graph graph = Graph::create(
+            Bank::open(reads_filepath),
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_kmer_size
+    );
+
+    Node start_node;
+    bool found;
+    std::tie(start_node, found) = get_node(start_kmer, graph);
+    assert(found);
+    auto tree = DFS(start_node, graph);
+
+    Paths result;
+    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+
+
 }

@@ -10,7 +10,7 @@
 
 
 const long g_max_length{50};
-const int g_kmer_size = 5;
+const int g_kmer_size = 7;
 
 
 using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
