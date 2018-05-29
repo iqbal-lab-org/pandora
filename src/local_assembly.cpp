@@ -1,6 +1,16 @@
 #include "local_assembly.h"
 
 
+
+bool has_ending(std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
+}
+
+
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph) {
     Node node = {};
     bool found = false;
@@ -65,14 +75,15 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
             nodes_to_explore.push(child);
         }
     }
-
-//    for (auto &kv: tree) {
-//        std::cout << "Key: " << kv.first << "\t Successors: " << kv.second.size() << "\n";
-//    }
-
     return tree;
 }
 
+/* The aim of this function is to take a DFS tree, and return all paths within this tree that start at start_kmer
+ * and end at end_kmer. Allowing for the different combinations in the number of cycles if the path contains any.
+ *
+ * The associated util function is a recursive function that generates a path down to a "leaf" of the tree and
+ * then comes back up to the next unexplored branching point.
+ */
 void get_paths_between(const std::string &start_kmer,
                        const std::string &end_kmer,
                        DfsTree &tree,
@@ -96,15 +107,17 @@ void get_paths_between(const std::string &start_kmer,
     }
 }
 
-void get_paths_between_util(const std::string &start_kmer, const std::string &end_kmer, std::string acc,
+
+void get_paths_between_util(const std::string &start_kmer,
+                            const std::string &end_kmer,
+                            std::string acc,
                             const Graph &graph,
                             DfsTree &tree, Paths &full_paths) {
     size_t num_children = tree[start_kmer].size();
 
     if (num_children == 0 || acc.length() > g_max_length) {
         full_paths.insert(acc + start_kmer.back());
-    }
-    else {
+    } else {
         acc += start_kmer.back();
 
         // makes sure we get all possible cycle repitions up to the maximum length
@@ -117,14 +130,5 @@ void get_paths_between_util(const std::string &start_kmer, const std::string &en
                                    full_paths);
 
         }
-    }
-}
-
-
-bool has_ending(std::string const &fullString, std::string const &ending) {
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-    } else {
-        return false;
     }
 }
