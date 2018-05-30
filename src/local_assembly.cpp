@@ -114,7 +114,7 @@ void get_paths_between_util(const std::string &start_kmer,
                             DfsTree &tree, Paths &full_paths) {
     size_t num_children = tree[start_kmer].size();
 
-    if (num_children == 0 || acc.length() > g_max_length) {
+    if (acc.length() > g_max_length) {
         full_paths.insert(acc + start_kmer.back());
     } else {
         acc += start_kmer.back();
