@@ -1,7 +1,6 @@
 #include "local_assembly.h"
 
 
-
 bool has_ending(std::string const &fullString, std::string const &ending) {
     if (fullString.length() >= ending.length()) {
         return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
@@ -131,4 +130,20 @@ void get_paths_between_util(const std::string &start_kmer,
 
         }
     }
+}
+
+
+void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned long line_width) {
+    const auto header = ">path";
+    std::ofstream out_file(filepath);
+
+    for (auto &path: paths) {
+        out_file << header << "\n";
+
+        for (unsigned long i = 0; i < path.length(); i += line_width) {
+            out_file << path.substr(i, line_width) << "\n";
+        }
+    }
+
+    out_file.close();
 }

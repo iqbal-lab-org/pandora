@@ -2,6 +2,7 @@
 #define PANDORA_LOCAL_ASSEMBLY_H
 
 #include <iostream>
+#include <fstream>
 #include <stack>
 #include <unordered_map>
 #include <unordered_set>
@@ -39,4 +40,8 @@ void get_paths_between_util(const std::string &node,
                             DfsTree &tree,
                             Paths &full_paths);
 
+
+void write_paths_to_fasta(const std::string &filepath,
+                          Paths &paths,
+                          unsigned long line_width = 80);
 #endif //PANDORA_LOCAL_ASSEMBLY_H

@@ -2,6 +2,7 @@
 #include <gatb/gatb_core.hpp>
 #include <iostream>
 #include "local_assembly.h"
+#include <cstdio>
 
 const int g_test_kmer_size = 5;
 
@@ -423,17 +424,57 @@ TEST(hasEndingTest, endingLongerThanQuery_ReturnFalse) {
 //
 //}
 
-TEST(FastaWriter, Prototyping) {
+TEST(FastaWriter, ReadsShorterThanLineWidth_OneReadPerLine) {
+    const auto filepath = "TEST.fa";
+    const auto header = ">path";
+    unsigned long line_width = 90;
 
-    BankBinary outputBank ("TEST.fa");
+    Paths reads = {"ATGATGTTTTTTTTTTCGCATGCAT", "TGCATGCATGCACACACACACACAGCA"};
 
-    Paths reads = {"ATGATGC", "TGCATGCA"};
+    write_paths_to_fasta(filepath, reads, line_width);
 
-    for (auto path: reads) {
-        auto s = Sequence(path);
-        s.setComment(">path");
-        outputBank.insert(s);
+    std::ifstream in_file(filepath);
+
+    std::string line;
+
+    for (auto &read: reads) {
+        std::getline(in_file, line);
+        EXPECT_EQ(line, header);
+
+        for (unsigned long i = 0; i < read.length(); i += line_width) {
+            std::getline(in_file, line);
+            EXPECT_EQ(line, read.substr(i, line_width));
+        }
     }
 
-    outputBank.flush();
+    EXPECT_TRUE(in_file.peek() == std::ifstream::traits_type::eof());
+    EXPECT_TRUE(std::remove(filepath) == 0);
+}
+
+
+TEST(FastaWriter, ReadsLongerThanLineWidth_ReadSpreadEvenlyOnLines) {
+    const auto filepath = "TEST.fa";
+    const auto header = ">path";
+    unsigned long line_width = 10;
+
+    Paths reads = {"ATGATGTTTTTTTTTTCGCATGCAT", "TGCATGCATGCACACACACACACAGCA"};
+
+    write_paths_to_fasta(filepath, reads, line_width);
+
+    std::ifstream in_file(filepath);
+
+    std::string line;
+
+    for (auto &read: reads) {
+        std::getline(in_file, line);
+        EXPECT_EQ(line, header);
+
+        for (unsigned long i = 0; i < read.length(); i += line_width) {
+            std::getline(in_file, line);
+            EXPECT_EQ(line, read.substr(i, line_width));
+        }
+    }
+
+    EXPECT_TRUE(in_file.peek() == std::ifstream::traits_type::eof());
+    EXPECT_TRUE(std::remove(filepath) == 0);
 }
