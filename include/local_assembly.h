@@ -10,8 +10,8 @@
 #include <gatb/gatb_core.hpp>
 
 
-const long g_max_length{50};
-const int g_kmer_size = 9;
+const long g_max_length{30};
+const int g_kmer_size = 7;
 
 
 using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
@@ -38,10 +38,19 @@ void get_paths_between_util(const std::string &node,
                             std::string acc,
                             const Graph &graph,
                             DfsTree &tree,
-                            Paths &full_paths);
+                            Paths &full_paths,
+                            const long max_length=g_max_length);
 
 
 void write_paths_to_fasta(const std::string &filepath,
                           Paths &paths,
                           unsigned long line_width = 80);
+
+
+void local_assembly(const std::string &filepath,
+                    const std::string &start_kmer,
+                    const std::string &end_kmer,
+                    const std::string &out_path,
+                    const int kmer_size=g_kmer_size);
+
 #endif //PANDORA_LOCAL_ASSEMBLY_H

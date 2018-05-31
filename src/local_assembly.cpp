@@ -111,10 +111,12 @@ void get_paths_between_util(const std::string &start_kmer,
                             const std::string &end_kmer,
                             std::string acc,
                             const Graph &graph,
-                            DfsTree &tree, Paths &full_paths) {
+                            DfsTree &tree,
+                            Paths &full_paths,
+                            const long max_length) {
     size_t num_children = tree[start_kmer].size();
 
-    if (acc.length() > g_max_length) {
+    if (acc.length() > max_length) {
         full_paths.insert(acc + start_kmer.back());
     } else {
         acc += start_kmer.back();
@@ -146,4 +148,28 @@ void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned lo
     }
 
     out_file.close();
+}
+
+
+void local_assembly(const std::string &filepath,
+                    const std::string &start_kmer,
+                    const std::string &end_kmer,
+                    const std::string &out_path,
+                    const int kmer_size) {
+
+    const Graph graph = Graph::create(
+            Bank::open(filepath),
+            "-kmer-size %d -abundance-min 1 -verbose 0", kmer_size
+    );
+
+    Node start_node;
+    bool found;
+    std::tie(start_node, found) = get_node(start_kmer, graph);
+    assert(found);
+    auto tree = DFS(start_node, graph);
+
+    Paths result;
+    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+
+    write_paths_to_fasta(out_path, result);
 }
