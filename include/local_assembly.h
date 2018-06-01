@@ -12,10 +12,11 @@
 
 const long g_max_length{30};
 const int g_kmer_size = 7;
+const auto g_path_memory_allocation = 100000;
 
 
 using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
-using Paths = std::unordered_set<std::string>;
+using Paths = std::vector<std::string>;
 
 
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph);
@@ -35,7 +36,7 @@ void get_paths_between(const std::string &start_kmer,
 
 void get_paths_between_util(const std::string &node,
                             const std::string &end_kmer,
-                            std::string acc,
+                            std::string path_accumulator,
                             const Graph &graph,
                             DfsTree &tree,
                             Paths &full_paths,

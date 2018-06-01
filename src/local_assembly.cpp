@@ -102,32 +102,30 @@ void get_paths_between(const std::string &start_kmer,
             continue;
 
         const std::string trimmed_path = path.substr(0, found + end_kmer.length());
-        result.insert(trimmed_path);
+        result.push_back(trimmed_path);
     }
 }
 
 
 void get_paths_between_util(const std::string &start_kmer,
                             const std::string &end_kmer,
-                            std::string acc,
+                            std::string path_accumulator,
                             const Graph &graph,
                             DfsTree &tree,
                             Paths &full_paths,
                             const long max_length) {
     size_t num_children = tree[start_kmer].size();
 
-    if (acc.length() > max_length) {
-        full_paths.insert(acc + start_kmer.back());
-    } else {
-        acc += start_kmer.back();
+    if (path_accumulator.length() <= max_length) {
+        path_accumulator += start_kmer.back();
 
         // makes sure we get all possible cycle repitions up to the maximum length
-        if (has_ending(acc, end_kmer)) {
-            full_paths.insert(acc);
+        if (has_ending(path_accumulator, end_kmer)) {
+            full_paths.push_back(path_accumulator);
         }
 
         for (int i = 0; i < num_children; ++i) {
-            get_paths_between_util(graph.toString(tree[start_kmer][i]), end_kmer, acc, graph, tree,
+            get_paths_between_util(graph.toString(tree[start_kmer][i]), end_kmer, path_accumulator, graph, tree,
                                    full_paths);
 
         }
@@ -169,6 +167,7 @@ void local_assembly(const std::string &filepath,
     auto tree = DFS(start_node, graph);
 
     Paths result;
+    result.reserve(g_path_memory_allocation);
     get_paths_between(start_kmer, end_kmer, tree, graph, result);
 
     write_paths_to_fasta(out_path, result);

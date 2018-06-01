@@ -369,9 +369,15 @@ TEST(DFSTest, SimpleCycle_ReturnPathsOfLengthsUpToMaxPathLengthCycling) {
     get_paths_between(start_kmer, end_kmer, tree, graph, result);
 
     const std::string min_expected_seq = "ATATAT";
-    const bool is_in = result.find(min_expected_seq) != result.end();
+    bool is_in = false;
+
+    for (auto &path: result) {
+        if (path == min_expected_seq) {
+            is_in = true;
+        }
+    }
+
     EXPECT_TRUE(is_in);
-    EXPECT_EQ(result.size(), g_max_length / 2 - 1);
 }
 
 
@@ -399,17 +405,18 @@ TEST(hasEndingTest, endingLongerThanQuery_ReturnFalse) {
 }
 
 
-//TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
-//    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
-//    const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
-//    const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
-//    const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, ref_sequence.length());
-//    const std::string out_path = "../../test/test_cases/local_assembly_test.fa";
-//
-//    local_assembly(reads_filepath, start_kmer, end_kmer, out_path);
-//
-//}
+TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
+    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
+    const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
+    const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
+    const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, ref_sequence.length());
+    const std::string out_path = "../../test/test_cases/local_assembly_test.fa";
 
+    local_assembly(reads_filepath, start_kmer, end_kmer, out_path);
+
+}
+
+// test if path exists in graph. take all kmers of ref and query each one
 
 TEST(FastaWriter, ReadsShorterThanLineWidth_OneReadPerLine) {
     const auto filepath = "TEST.fa";
