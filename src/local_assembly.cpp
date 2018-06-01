@@ -10,6 +10,29 @@ bool has_ending(std::string const &fullString, std::string const &ending) {
 }
 
 
+void get_files(const std::string directory, std::vector<path> &list_of_filepaths) {
+    path dir_path (directory);
+
+    try {
+        if (exists(dir_path)) {
+            if (is_directory(dir_path)) {
+
+                for (directory_entry &filepath : directory_iterator(dir_path)) {
+                    list_of_filepaths.push_back(filepath.path());
+                }
+            }
+        }
+        else {
+            cout << dir_path << " does not exist\n";
+        }
+    }
+
+    catch (const filesystem_error &ex) {
+        cout << ex.what() << '\n';
+    }
+}
+
+
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph) {
     Node node = {};
     bool found = false;

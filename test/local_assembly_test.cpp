@@ -4,6 +4,9 @@
 #include "local_assembly.h"
 #include <cstdio>
 
+
+
+
 const int g_test_kmer_size = 5;
 
 
@@ -405,19 +408,6 @@ TEST(hasEndingTest, endingLongerThanQuery_ReturnFalse) {
 }
 
 
-TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
-    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
-    const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
-    const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
-    const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, ref_sequence.length());
-    const std::string out_path = "../../test/test_cases/local_assembly_test.fa";
-
-    local_assembly(reads_filepath, start_kmer, end_kmer, out_path);
-
-}
-
-// test if path exists in graph. take all kmers of ref and query each one
-
 TEST(FastaWriter, ReadsShorterThanLineWidth_OneReadPerLine) {
     const auto filepath = "TEST.fa";
     const auto header = ">path";
@@ -471,4 +461,25 @@ TEST(FastaWriter, ReadsLongerThanLineWidth_ReadSpreadEvenlyOnLines) {
 
     EXPECT_TRUE(in_file.peek() == std::ifstream::traits_type::eof());
     EXPECT_TRUE(std::remove(filepath) == 0);
+}
+
+
+//TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
+//const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
+//const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
+//const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
+//const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, ref_sequence.length());
+//const std::string out_path = "../../test/test_cases/local_assembly_test.fa";
+//
+//local_assembly(reads_filepath, start_kmer, end_kmer, out_path);
+//
+//}
+
+// test if path exists in graph. take all kmers of ref and query each one
+TEST(LocalAssemblyTest, buildGraphForAllSlices_writeAllPathsToFile) {
+    const std::string file_dir = "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/";
+    std::vector<path> list_of_files;
+
+    get_files(file_dir, list_of_files);
+
 }
