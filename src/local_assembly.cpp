@@ -89,21 +89,9 @@ void get_paths_between(const std::string &start_kmer,
                        const Graph &graph,
                        Paths &result) {
     std::string initial_acc = start_kmer.substr(0, start_kmer.length() - 1);
-    Paths full_paths;
 
     get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree,
-                           full_paths);
-
-    for (auto &path : full_paths) {
-        // find last occurrence of end kmer in current path
-        size_t found = path.rfind(end_kmer);
-
-        if (found == std::string::npos)  // if it wasnt found, skip
-            continue;
-
-        const std::string trimmed_path = path.substr(0, found + end_kmer.length());
-        result.push_back(trimmed_path);
-    }
+                           result);
 }
 
 
