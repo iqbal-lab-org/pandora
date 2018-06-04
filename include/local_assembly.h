@@ -13,7 +13,7 @@
 
 
 const long g_max_length{30};
-const int g_kmer_size = 7;
+const int g_kmer_size = 9;
 const auto g_path_memory_allocation = 100000;
 
 

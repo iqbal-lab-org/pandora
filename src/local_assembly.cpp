@@ -174,12 +174,16 @@ void local_assembly(const std::string &filepath,
     Node start_node;
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
-    assert(found);
-    auto tree = DFS(start_node, graph);
+    if (found) {
+        auto tree = DFS(start_node, graph);
 
-    Paths result;
-    result.reserve(g_path_memory_allocation);
-    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+        Paths result;
+        result.reserve(g_path_memory_allocation);
+        get_paths_between(start_kmer, end_kmer, tree, graph, result);
 
-    write_paths_to_fasta(out_path, result);
+        write_paths_to_fasta(out_path, result);
+    }
+    else {
+        std::cerr << "Start kmer not found in " << filepath << "\n";
+    }
 }

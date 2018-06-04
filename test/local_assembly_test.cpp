@@ -477,9 +477,35 @@ TEST(FastaWriter, ReadsLongerThanLineWidth_ReadSpreadEvenlyOnLines) {
 
 // test if path exists in graph. take all kmers of ref and query each one
 TEST(LocalAssemblyTest, buildGraphForAllSlices_writeAllPathsToFile) {
-    const std::string file_dir = "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/";
-    std::vector<path> list_of_files;
+    const std::string meta_file = "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/ref_seqs_for_slices_padding_10.tsv";
 
-    get_files(file_dir, list_of_files);
+    std::ifstream fin (meta_file);
+    std::string line;
+    std::string filepath;
+    std::string ref_sequence;
 
+    while (std::getline(fin, line)) {
+        std::stringstream ss (line);
+        ss >> filepath >> ref_sequence;
+
+        std::cout << "Processing " << filepath << "\n";
+
+        const long max_length = ref_sequence.length() + 10;
+        const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
+        const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, std::string::npos);
+
+        // clear the stringstream
+        ss.str(std::string());
+
+        std::ostringstream oss;
+        oss << "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/local_assembly_paths";
+        int idx = filepath.rfind('/');
+        oss << filepath.substr(idx, filepath.rfind('.') - idx) << ".fa";
+        std::string out_path = oss.str();
+
+        local_assembly(filepath, start_kmer, end_kmer, out_path);
+
+        // clear the stringstream
+        oss.str(std::string());
+    }
 }
