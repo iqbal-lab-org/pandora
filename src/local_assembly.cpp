@@ -1,34 +1,27 @@
+#include <set>
 #include "local_assembly.h"
 
 
 bool has_ending(std::string const &fullString, std::string const &ending) {
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
-    } else {
+    if (fullString.length() < ending.length())
         return false;
-    }
+    return 0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending);
 }
 
 
-void get_files(const std::string directory, std::vector<path> &list_of_filepaths) {
-    path dir_path (directory);
+void get_files(const std::string &directory, std::vector<path> &list_of_filepaths) {
+    path dir_path(directory);
 
     try {
-        if (exists(dir_path)) {
-            if (is_directory(dir_path)) {
-
-                for (directory_entry &filepath : directory_iterator(dir_path)) {
-                    list_of_filepaths.push_back(filepath.path());
-                }
+        if (exists(dir_path) and is_directory(dir_path)) {
+            for (directory_entry &filepath : directory_iterator(dir_path)) {
+                list_of_filepaths.push_back(filepath.path());
             }
+        } else {
+            std::cout << dir_path << " does not exist\n";
         }
-        else {
-            cout << dir_path << " does not exist\n";
-        }
-    }
-
-    catch (const filesystem_error &ex) {
-        cout << ex.what() << '\n';
+    } catch (const filesystem_error &ex) {
+        std::cout << ex.what() << '\n';
     }
 }
 
@@ -93,7 +86,7 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
         tree[graph.toString(current_node)] = neighbours;
 
         for (auto i = 0; i < neighbours.size(); ++i) {
-            Node child = neighbours[i];
+            auto child = neighbours[i];
             nodes_to_explore.push(child);
         }
     }
@@ -106,15 +99,15 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
  * The associated util function is a recursive function that generates a path down to a "leaf" of the tree and
  * then comes back up to the next unexplored branching point.
  */
-void get_paths_between(const std::string &start_kmer,
-                       const std::string &end_kmer,
-                       DfsTree &tree,
-                       const Graph &graph,
-                       Paths &result) {
+Paths get_paths_between(const std::string &start_kmer,
+                        const std::string &end_kmer,
+                        DfsTree &tree,
+                        const Graph &graph) {
     std::string initial_acc = start_kmer.substr(0, start_kmer.length() - 1);
 
-    get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree,
-                           result);
+    Paths result = {};
+    get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree, result);
+    return result;
 }
 
 
@@ -125,21 +118,27 @@ void get_paths_between_util(const std::string &start_kmer,
                             DfsTree &tree,
                             Paths &full_paths,
                             const long max_length) {
-    size_t num_children = tree[start_kmer].size();
+    auto &child_nodes = tree[start_kmer];
+    size_t num_children = child_nodes.size();
 
-    if (path_accumulator.length() <= max_length) {
-        path_accumulator += start_kmer.back();
+    if (path_accumulator.length() > max_length)
+        return;
 
-        // makes sure we get all possible cycle repitions up to the maximum length
-        if (has_ending(path_accumulator, end_kmer)) {
-            full_paths.push_back(path_accumulator);
-        }
+    path_accumulator.push_back(start_kmer.back());
 
-        for (int i = 0; i < num_children; ++i) {
-            get_paths_between_util(graph.toString(tree[start_kmer][i]), end_kmer, path_accumulator, graph, tree,
-                                   full_paths);
+    // makes sure we get all possible cycle repitions up to the maximum length
+    if (has_ending(path_accumulator, end_kmer)) {
+        full_paths.push_back(path_accumulator);
+    }
 
-        }
+    for (int i = 0; i < num_children; ++i) {
+        auto kmer = graph.toString(child_nodes[i]);
+        get_paths_between_util(kmer,
+                               end_kmer,
+                               path_accumulator,
+                               graph,
+                               tree,
+                               full_paths);
     }
 }
 
@@ -174,16 +173,12 @@ void local_assembly(const std::string &filepath,
     Node start_node;
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
-    if (found) {
-        auto tree = DFS(start_node, graph);
-
-        Paths result;
-        result.reserve(g_path_memory_allocation);
-        get_paths_between(start_kmer, end_kmer, tree, graph, result);
-
-        write_paths_to_fasta(out_path, result);
-    }
-    else {
+    if (not found) {
         std::cerr << "Start kmer not found in " << filepath << "\n";
+        return;
     }
+
+    auto tree = DFS(start_node, graph);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
+    write_paths_to_fasta(out_path, result);
 }

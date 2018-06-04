@@ -112,9 +112,8 @@ TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
 
     auto tree = DFS(start_node, graph);
 
-    Paths result;
     const auto end_kmer{"AGG"};
-    get_paths_between("AATGT", end_kmer, tree, graph, result);
+    auto result = get_paths_between("AATGT", end_kmer, tree, graph);
 
     Paths expected_seqs(seqs.begin(), seqs.end());
     EXPECT_EQ(result, expected_seqs);
@@ -136,8 +135,7 @@ TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    Paths result;
-    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
 
     EXPECT_EQ(result.size(), 1);
     EXPECT_EQ(*result.begin(), seq);
@@ -159,9 +157,7 @@ TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-
-    Paths result;
-    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
 
     bool original_seq_found = false;
     // make sure all paths begin and end with correct kmer
@@ -193,9 +189,7 @@ TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-
-    Paths result;
-    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
 
     EXPECT_EQ(result.size(), 1);
     EXPECT_EQ(*result.begin(), seq1);
@@ -218,9 +212,7 @@ TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-
-    Paths result;
-    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
 
     int original_seq_found = 0;
     for (auto &path: result) {
@@ -255,9 +247,7 @@ TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-
-    Paths result;
-    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
 
     int original_seq_found = 0;
     for (auto &path: result) {
@@ -292,9 +282,7 @@ TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-
-    Paths result;
-    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
 
     // add other expected paths due to variants
     const std::vector<std::string> expected_seqs = {
@@ -338,9 +326,7 @@ TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKm
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-
-    Paths result;
-    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
 
     // add other expected paths due to variants
     const std::string expected_seq = "ATGTGCA";
@@ -367,9 +353,7 @@ TEST(DFSTest, SimpleCycle_ReturnPathsOfLengthsUpToMaxPathLengthCycling) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-
-    Paths result;
-    get_paths_between(start_kmer, end_kmer, tree, graph, result);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
 
     const std::string min_expected_seq = "ATATAT";
     bool is_in = false;
@@ -464,17 +448,18 @@ TEST(FastaWriter, ReadsLongerThanLineWidth_ReadSpreadEvenlyOnLines) {
 }
 
 
-//TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
-//const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
-//const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
-//const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
-//const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, ref_sequence.length());
-//const std::string out_path = "../../test/test_cases/local_assembly_test.fa";
-//
-//local_assembly(reads_filepath, start_kmer, end_kmer, out_path);
-//
-//}
+TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
+    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
+    const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
+    const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
+    const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, ref_sequence.length());
+    const std::string out_path = "../../test/test_cases/local_assembly_test.fa";
+    
+    local_assembly(reads_filepath, start_kmer, end_kmer, out_path);
+}
 
+
+/*
 // test if path exists in graph. take all kmers of ref and query each one
 TEST(LocalAssemblyTest, buildGraphForAllSlices_writeAllPathsToFile) {
     const std::string meta_file = "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/ref_seqs_for_slices_padding_10.tsv";
@@ -509,3 +494,4 @@ TEST(LocalAssemblyTest, buildGraphForAllSlices_writeAllPathsToFile) {
         oss.str(std::string());
     }
 }
+*/
