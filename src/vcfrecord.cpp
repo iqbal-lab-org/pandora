@@ -3,7 +3,6 @@
 #include "vcfrecord.h"
 
 using namespace std;
-//MEAN_FWD_COV,MEAN_REV_COVG,MED_FWD_COVG,MED_REV_COVG,SUM_FWD_CVG,SUM_REV_COVG
 
 VCFRecord::VCFRecord(std::string c, uint32_t p, std::string r, std::string a, std::string i, std::string g) : chrom(c),
                                                                                                               pos(p),

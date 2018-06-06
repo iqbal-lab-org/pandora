@@ -1270,7 +1270,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         record.samples[sample_index] = record.samples[sample_index].at(0) + covg_info;
         record.format = "GT:REF_MEAN_FWD_COVG:REF_MEAN_REV_COVG:ALT_MEAN_FWD_COVG:ALT_MEAN_REV_COVG:"
                 "REF_MED_FWD_COVG:REF_MED_REV_COVG:ALT_MED_FWD_COVG:ALT_MED_REV_COVG:"
-                "REF_SUM_FWD_COVG:REF_SUM_REV_COVG:ALT_SUM_FWD_CVG:ALT_SUM_REV_COVG";
+                "REF_SUM_FWD_COVG:REF_SUM_REV_COVG:ALT_SUM_FWD_COVG:ALT_SUM_REV_COVG";
 
         ref_fwd_covgs.clear();
         ref_rev_covgs.clear();

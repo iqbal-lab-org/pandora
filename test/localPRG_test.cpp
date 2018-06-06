@@ -1318,7 +1318,7 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
     EXPECT_EQ("GT:REF_MEAN_FWD_COVG:REF_MEAN_REV_COVG:ALT_MEAN_FWD_COVG:ALT_MEAN_REV_COVG:"
                       "REF_MED_FWD_COVG:REF_MED_REV_COVG:ALT_MED_FWD_COVG:ALT_MED_REV_COVG:"
-                      "REF_SUM_FWD_COVG:REF_SUM_REV_COVG:ALT_SUM_FWD_CVG:ALT_SUM_REV_COVG",
+                      "REF_SUM_FWD_COVG:REF_SUM_REV_COVG:ALT_SUM_FWD_COVG:ALT_SUM_REV_COVG",
               vcf.records[0].format);
     EXPECT_EQ("1:0:0:0:0:0:0:0:0:0:0:0:0", vcf.records[1].samples[0]);
 
@@ -1343,7 +1343,7 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
     EXPECT_EQ("GT:REF_MEAN_FWD_COVG:REF_MEAN_REV_COVG:ALT_MEAN_FWD_COVG:ALT_MEAN_REV_COVG:"
                       "REF_MED_FWD_COVG:REF_MED_REV_COVG:ALT_MED_FWD_COVG:ALT_MED_REV_COVG:"
-                      "REF_SUM_FWD_COVG:REF_SUM_REV_COVG:ALT_SUM_FWD_CVG:ALT_SUM_REV_COVG",
+                      "REF_SUM_FWD_COVG:REF_SUM_REV_COVG:ALT_SUM_FWD_COVG:ALT_SUM_REV_COVG",
               vcf.records[0].format);
     EXPECT_EQ("1:1:0:5:6:1:0:5:5:3:0:15:18", vcf.records[1].samples[0]);
 
