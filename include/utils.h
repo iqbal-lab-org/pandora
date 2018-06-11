@@ -73,7 +73,7 @@ void filter_clusters2(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &,
 
 void infer_localPRG_order_for_reads(const std::vector<LocalPRG *> &prgs, MinimizerHits *, pangenome::Graph *, const int,
                                     const uint32_t &, const float &, const uint32_t min_cluster_size = 10,
-                                    const uint32_t short_read_length = std::numeric_limits<uint32_t>::max());
+                                    const uint32_t expected_number_kmers_in_short_read_sketch = std::numeric_limits<uint32_t>::max());
 
 uint32_t pangraph_from_read_file(const std::string &, MinimizerHits *, pangenome::Graph *, Index *,
                              const std::vector<LocalPRG *> &,
