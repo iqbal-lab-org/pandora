@@ -468,6 +468,7 @@ uint32_t pangraph_from_read_file(const string &filepath,
                     if (!s->sketch.empty()) {
                         covg += s->seq.length();
                         if (covg > (uint64_t)max_covg*genome_size){
+                            cout << now() << "Stop reading readfile as have reached max coverage" << endl;
                             break;
                         }
                     }
