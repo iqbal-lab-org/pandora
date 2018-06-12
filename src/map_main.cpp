@@ -51,7 +51,7 @@ static void show_map_usage() {
               << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is shorter with low error rate\n"
               << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
               << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative binomial\n"
-              << "\t--max_covg\t\t\tMaximum average coverage from reads to accept"
+              << "\t--max_covg\t\t\tMaximum average coverage from reads to accept\n"
               << std::endl;
 }
 
@@ -64,7 +64,7 @@ int pandora_map(int argc, char *argv[]) {
 
     // otherwise, parse the parameters from the command line
     string prgfile, readfile, outdir=".", vcf_refs_file;
-    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 500; // default parameters
+    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300; // default parameters
     int max_diff = 250;
     float e_rate = 0.11;
     bool output_kg = false, output_vcf = false;
