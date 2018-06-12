@@ -432,12 +432,20 @@ void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHit
     add_clusters_to_pangraph(clusters_of_hits, pangraph, prgs);
 }
 
-uint32_t pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pangenome::Graph *pangraph, Index *idx,
-                             const vector<LocalPRG *> &prgs, const uint32_t w, const uint32_t k,
-                             const int max_diff, const float &e_rate,
-                             const uint32_t min_cluster_size, const uint32_t genome_size,
-                             const bool illumina,
-                             const bool clean) {
+uint32_t pangraph_from_read_file(const string &filepath,
+                                 MinimizerHits *mh,
+                                 pangenome::Graph *pangraph,
+                                 Index *idx,
+                                 const vector<LocalPRG *> &prgs,
+                                 const uint32_t w,
+                                 const uint32_t k,
+                                 const int max_diff,
+                                 const float &e_rate,
+                                 const uint32_t min_cluster_size,
+                                 const uint32_t genome_size,
+                                 const bool illumina,
+                                 const bool clean,
+                                 const uint32_t max_covg) {
     string name, read, line;
     uint64_t covg = 0;
     float fraction_kmers_required_for_cluster = 0.75 / exp(e_rate * k);
@@ -459,6 +467,9 @@ uint32_t pangraph_from_read_file(const string &filepath, MinimizerHits *mh, pang
                     s->initialize(id, name, read, w, k);
                     if (!s->sketch.empty()) {
                         covg += s->seq.length();
+                        if (covg > (uint64_t)max_covg*genome_size){
+                            break;
+                        }
                     }
                     if (illumina == true and expected_number_kmers_in_short_read_sketch == std::numeric_limits<uint32_t>::max()) {
                         assert(w != 0);

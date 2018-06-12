@@ -51,6 +51,7 @@ static void show_map_usage() {
               << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is shorter with low error rate\n"
               << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
               << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative binomial\n"
+              << "\t--max_covg\t\t\tMaximum average coverage from reads to accept"
               << std::endl;
 }
 
@@ -63,7 +64,7 @@ int pandora_map(int argc, char *argv[]) {
 
     // otherwise, parse the parameters from the command line
     string prgfile, readfile, outdir=".", vcf_refs_file;
-    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000; // default parameters
+    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 500; // default parameters
     int max_diff = 250;
     float e_rate = 0.11;
     bool output_kg = false, output_vcf = false;
@@ -161,6 +162,13 @@ int pandora_map(int argc, char *argv[]) {
             clean = true;
         } else if ((arg == "--bin")) {
             bin = true;
+        } else if((arg == "--max_covg")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                max_covg = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--max_covg option requires one argument." << std::endl;
+                return 1;
+            }
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -188,6 +196,7 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\tillumina\t" << illumina << endl;
     cout << "\tclean\t" << clean << endl;
     cout << "\tbin\t" << bin << endl << endl;
+    cout << "\tmax_covg\t" << max_covg << endl;
 
     make_dir(outdir);
 
@@ -205,7 +214,7 @@ int pandora_map(int argc, char *argv[]) {
     pangenome::Graph *pangraph;
     pangraph = new pangenome::Graph();
     uint32_t covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size,
-                                        genome_size, illumina, clean);
+                                        genome_size, illumina, clean, max_covg);
 
     cout << now() << "Finished with index, so clear " << endl;
     idx->clear();

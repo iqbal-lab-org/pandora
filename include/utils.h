@@ -78,7 +78,8 @@ void infer_localPRG_order_for_reads(const std::vector<LocalPRG *> &prgs, Minimiz
 uint32_t pangraph_from_read_file(const std::string &, MinimizerHits *, pangenome::Graph *, Index *,
                              const std::vector<LocalPRG *> &,
                              const uint32_t, const uint32_t, const int, const float &, const uint32_t min_cluster_size = 10,
-                             const uint32_t genome_size = 5000000, const bool illumina = false, const bool clean = false);
+                             const uint32_t genome_size = 5000000, const bool illumina = false, const bool clean = false,
+                             const uint32_t max_covg = 500);
 
 void
 update_localPRGs_with_hits(pangenome::Graph *, const std::vector<LocalPRG *> &);//, const uint32_t, const float&, bool);
