@@ -467,7 +467,7 @@ uint32_t pangraph_from_read_file(const string &filepath,
                     s->initialize(id, name, read, w, k);
                     if (!s->sketch.empty()) {
                         covg += s->seq.length();
-                        if (covg > (uint64_t)max_covg*genome_size){
+                        if (covg/genome_size > max_covg){
                             cout << now() << "Stop reading readfile as have reached max coverage" << endl;
                             break;
                         }
@@ -479,6 +479,10 @@ uint32_t pangraph_from_read_file(const string &filepath,
                     //cout << now() << "Add read hits" << endl;
                     add_read_hits(s, mh, idx);
                     id++;
+                    if (id > 10000000){
+                        cout << now() << "Stop reading readfile as have reached 10,000,000 reads" << endl;
+                        break;
+                    }
 
                     if (mh->uhits.size() > 90000){
                         cout << now() << "Infer gene orders and add to pangenome::Graph" << endl;
