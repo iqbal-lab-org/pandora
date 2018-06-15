@@ -21,6 +21,7 @@
 #include "pangenome/panread.h"
 #include "noise_filtering.h"
 #include "minihit.h"
+#include "fastaq_handler.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -458,90 +459,61 @@ uint32_t pangraph_from_read_file(const string &filepath,
     }
     uint32_t id = 0;
 
-    ifstream myfile(filepath);
-    if (myfile.is_open()) {
-        while (getline(myfile, line).good()) {
-            if (line.empty() || line[0] == '>' || line[0] == '@') {
-                if (!read.empty()) // ok we'll allow reads with no name, removed
-                {
-                    s->initialize(id, name, read, w, k);
-                    if (!s->sketch.empty()) {
-                        covg += s->seq.length();
-                        if (covg/genome_size > max_covg){
-                            cout << now() << "Stop reading readfile as have reached max coverage" << endl;
-                            break;
-                        }
-                    }
-                    if (illumina == true and expected_number_kmers_in_short_read_sketch == std::numeric_limits<uint32_t>::max()) {
-                        assert(w != 0);
-                        expected_number_kmers_in_short_read_sketch = s->seq.length() * 2 / w;
-                    }
-                    //cout << now() << "Add read hits" << endl;
-                    add_read_hits(s, mh, idx);
-                    id++;
-                    if (id > 10000000){
-                        cout << now() << "Stop reading readfile as have reached 10,000,000 reads" << endl;
-                        break;
-                    }
-
-                    if (mh->uhits.size() > 90000){
-                        cout << now() << "Infer gene orders and add to pangenome::Graph" << endl;
-                        pangraph->reserve_num_reads(id);
-                        infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size,
-                                                       fraction_kmers_required_for_cluster, min_cluster_size, expected_number_kmers_in_short_read_sketch);
-                    }
-                }
-                name.clear();
-                read.clear();
-                if (!line.empty()) {
-                    name = line.substr(1);
-                }
-            } else if (line[0] == '+') {
-                //skip this line and the qual score line
-                getline(myfile, line);
-            } else {
-                read += line;
+    FastaqHandler fh(filepath);
+    while (!fh.eof()){
+        fh.get_next();
+        s->initialize(id, fh.name, fh.read, w, k);
+        if (!s->sketch.empty()) {
+            covg += s->seq.length();
+            if (covg/genome_size > max_covg){
+                cout << now() << "Stop reading readfile as have reached max coverage" << endl;
+                break;
             }
-        }
-        // and last entry
-        if (!read.empty()) // allow reads with no name
-        {
-            //cout << now() << "Found read " << name << endl;
-            s->initialize(id, name, read, w, k);
-            if (!s->sketch.empty()) {
-                covg += s->seq.length();
-            }
-            if (illumina == true and expected_number_kmers_in_short_read_sketch == std::numeric_limits<uint32_t>::max()) {
-                expected_number_kmers_in_short_read_sketch = s->seq.length() * 2 / w;
-            }
-            //cout << now() << "Add read hits" << endl;
-            add_read_hits(s, mh, idx);
+        } else {
             id++;
+            continue;
+        }
+        if (illumina == true and expected_number_kmers_in_short_read_sketch == std::numeric_limits<uint32_t>::max()) {
+            assert(w != 0);
+            expected_number_kmers_in_short_read_sketch = s->seq.length() * 2 / w;
+        }
+        //cout << now() << "Add read hits" << endl;
+        add_read_hits(s, mh, idx);
+        id++;
+        if (id > 10000000){
+            cout << now() << "Stop reading readfile as have reached 10,000,000 reads" << endl;
+            break;
         }
 
-        cout << now() << "Infer gene orders and add to pangenome::Graph" << endl;
-        pangraph->reserve_num_reads(id);
-        infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, fraction_kmers_required_for_cluster,
-                                       min_cluster_size, expected_number_kmers_in_short_read_sketch);
-
-        cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
-        cout << now() << "Added " << id << " reads" << endl;
-        covg = covg / genome_size;
-        cout << now() << "Estimated coverage: " << covg << endl;
-
-        if (illumina and clean) {
-            clean_pangraph_with_debruijn_graph(pangraph, 2, 1, illumina);
-            cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
-        } else if (clean) {
-            clean_pangraph_with_debruijn_graph(pangraph, 3, 1, illumina);
-            cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
+        if (mh->uhits.size() > 90000){
+            cout << now() << "Infer gene orders and add to pangenome::Graph" << endl;
+            pangraph->reserve_num_reads(id);
+            infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size,
+                                           fraction_kmers_required_for_cluster, min_cluster_size, expected_number_kmers_in_short_read_sketch);
         }
-        delete s;
-        myfile.close();
-    } else {
-        cerr << "Unable to open read file " << filepath << endl;
-        exit(EXIT_FAILURE);
     }
+    fh.close();
+    delete s;
+    cout << now() << "Found " << id << " reads" << endl;
+
+    cout << now() << "Infer gene orders and add to pangenome::Graph" << endl;
+    pangraph->reserve_num_reads(id);
+    infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, fraction_kmers_required_for_cluster,
+                                   min_cluster_size, expected_number_kmers_in_short_read_sketch);
+
+    cout << now() << "Pangraph has " << pangraph->nodes.size() << " nodes" << endl;
+
+    covg = covg / genome_size;
+    cout << now() << "Estimated coverage: " << covg << endl;
+
+    if (illumina and clean) {
+        clean_pangraph_with_debruijn_graph(pangraph, 2, 1, illumina);
+        cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
+    } else if (clean) {
+        clean_pangraph_with_debruijn_graph(pangraph, 3, 1, illumina);
+        cout << now() << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes" << endl;
+    }
+
     return covg;
 }
 

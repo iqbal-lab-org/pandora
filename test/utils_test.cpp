@@ -685,6 +685,19 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
     delete idx;
 }
 
+/*TEST(UtilsTest, read_all_readfile) {
+
+    MinimizerHits *mhs;
+    mhs = new MinimizerHits();
+    pangenome::Graph *pg;
+    pg = new pangenome::Graph();
+    Index *idx;
+    vector<LocalPRG *> prgs;
+    pangraph_from_read_file("../../test/test_cases/reads.fq.gz", mhs, pg, idx, prgs, 1, 3, 1, 0.1);
+    delete mhs;
+    delete pg;
+}*/
+
 TEST(UtilsTest, pangraphFromReadFile) {
     MinimizerHits *mhs;
     mhs = new MinimizerHits();
