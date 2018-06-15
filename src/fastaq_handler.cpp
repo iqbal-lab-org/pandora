@@ -2,15 +2,30 @@
 #include <cstring>
 #include <iostream>
 //#include <fstream>
+#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/iostreams/copy.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
 #include "fastaq_handler.h"
+#include "utils.h"
 
 using namespace std;
 
-FastaqHandler::FastaqHandler(const string& filepath) : num_reads_parsed(0) {
+FastaqHandler::FastaqHandler(const string& filepath) : gzipped(false), instream(&inbuf), num_reads_parsed(0) {
+    cout << now() << "Open fastaq file " << filepath << endl;
     fastaq_file.open(filepath);
     if (not fastaq_file.is_open()) {
         cerr << "Unable to open fastaq file " << filepath << endl;
         exit(EXIT_FAILURE);
+    }
+    try {
+        if(filepath.substr( filepath.length() - 2 ) == "gz"){
+            inbuf.push(boost::iostreams::gzip_decompressor());
+            gzipped = true;
+        }
+        inbuf.push(fastaq_file);
+    }
+    catch(const boost::iostreams::gzip_error& e) {
+        cerr<< "Problem transfering file contents to boost stream: " << e.what() << '\n';
     }
 }
 
@@ -20,29 +35,31 @@ FastaqHandler::~FastaqHandler(){
 
 bool FastaqHandler::eof()
 {
-    int c = fastaq_file.peek();
+    int c = instream.peek();
     return (c == EOF);
 }
 
 void FastaqHandler::get_next(){
     if (!line.empty() and (line[0] == '>' or line[0] == '@')) {
+        cout << num_reads_parsed << " " << line << endl;
         name = line.substr(1);
         ++num_reads_parsed;
         read.clear();
     }
 
-    while (getline(fastaq_file, line).good()){
+    while (getline(instream, line).good()){
         if (line.empty() || line[0] == '>' || line[0] == '@') {
             if (!read.empty()) // ok we'll allow reads with no name, removed
             {
                 return;
             }
+            cout << num_reads_parsed << " " << line << endl;
             name = line.substr(1);
             ++num_reads_parsed;
             read.clear();
         } else if (line[0] == '+') {
             //skip this line and the qual score line
-            getline(fastaq_file, line);
+            getline(instream, line);
         } else {
             read += line;
         }
@@ -54,7 +71,7 @@ void FastaqHandler::skip_next(){
         ++num_reads_parsed;
     }
 
-    while (getline(fastaq_file, line).good()){
+    while (getline(instream, line).good()){
         if (line[0] == '>' || line[0] == '@') {
 	        return;
 	    }
@@ -69,6 +86,12 @@ void FastaqHandler::get_id(const uint32_t& id){
         line.clear();
         fastaq_file.clear();
         fastaq_file.seekg(0, fastaq_file.beg);
+        inbuf.reset();
+        if(gzipped){
+            inbuf.push(boost::iostreams::gzip_decompressor());
+        }
+        inbuf.push(fastaq_file);
+        instream.clear();
     }
 
     while (id > 1 and num_reads_parsed < id-2) {
@@ -85,6 +108,7 @@ void FastaqHandler::get_id(const uint32_t& id){
 }
 
 void FastaqHandler::close(){
+    cout << now() << "Close fastaq file" << endl;
     fastaq_file.close();
 }
 

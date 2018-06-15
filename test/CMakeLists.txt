@@ -1,6 +1,6 @@
 include(${PROJECT_SOURCE_DIR}/ext/gtest.cmake)
 
-set(EXTERN_LIBS boost_filesystem boost_system)
+set(EXTERN_LIBS boost_filesystem boost_system boost_iostreams)
 
 file(GLOB TEST_SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/*.cpp

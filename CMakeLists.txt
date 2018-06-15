@@ -41,7 +41,7 @@ link_directories(${EXTERNAL_INCLUDE_DIR})
 
 include(${PROJECT_SOURCE_DIR}/ext/boost.cmake)
 
-set(EXTERN_LIBS boost_filesystem boost_system)
+set(EXTERN_LIBS boost_filesystem boost_system boost_iostreams)
 
 include_directories(
         ${PROJECT_SOURCE_DIR}/include

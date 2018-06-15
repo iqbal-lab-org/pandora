@@ -3,11 +3,14 @@
 
 #include <string>
 #include <cstdint>
-//#include <iostream>
 #include <fstream>
+#include <boost/iostreams/filtering_streambuf.hpp>
 
 struct FastaqHandler {
+    bool gzipped;
     std::ifstream fastaq_file;
+    boost::iostreams::filtering_istreambuf inbuf;
+    std::istream instream;
     std::string line;
     std::string name;
     std::string read;
