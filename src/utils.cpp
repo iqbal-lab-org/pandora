@@ -121,53 +121,24 @@ void read_prg_file(vector<LocalPRG *> &prgs, const string &filepath) {
     cout << now() << "Loading PRGs from file " << filepath << endl;
 
     uint32_t id = 0;
-    string name, read, line;
     LocalPRG *s;
 
-    ifstream myfile(filepath);
-    if (myfile.is_open()) {
-        uint32_t i = 0;
-        while (getline(myfile, line).good()) {
-            if (line.empty() || line[0] == '>') {
-                if (!name.empty() && !read.empty()) {
-                    //cout << now() << "Found PRG " << name << endl;
-                    s = new LocalPRG(id, name, read);
-
-                    if (s != nullptr) {
-                        prgs.push_back(s);
-                        id++;
-                    } else {
-                        cerr << "Failed to make LocalPRG for " << name << endl;
-                        exit(1);
-                    }
-                }
-                name.clear();
-                read.clear();
-                if (!line.empty()) {
-                    name = line.substr(1);
-                }
-            } else {
-                read += line;
-            }
-            i++;
+    FastaqHandler fh(filepath);
+    while (!fh.eof()) {
+        fh.get_next();
+        if (fh.name.empty() or fh.read.empty())
+            continue;
+        s = new LocalPRG(id, fh.name, fh.read);
+        if (s != nullptr) {
+            prgs.push_back(s);
+            id++;
+        } else {
+            cerr << "Failed to make LocalPRG for " << fh.name << endl;
+            exit(1);
         }
-        // and last entry
-        if (!name.empty() && !read.empty()) {
-            //cout << now() << "Found PRG " << name << endl;
-            s = new LocalPRG(id, name, read);
-            if (s != nullptr) {
-                prgs.push_back(s);
-            } else {
-                cerr << "Failed to make LocalPRG for " << name << endl;
-                exit(1);
-            }
-        }
-        cout << now() << "Number of LocalPRGs read: " << prgs.size() << endl;
-        myfile.close();
-    } else {
-        cerr << "Unable to open PRG file " << filepath << endl;
-        exit(EXIT_FAILURE);
     }
+    cout << now() << "Number of LocalPRGs read: " << prgs.size() << endl;
+    fh.close();
 }
 
 void load_PRG_kmergraphs(vector<LocalPRG *> &prgs, const uint32_t &w, const uint32_t &k, const string &prgfile) {
@@ -447,7 +418,6 @@ uint32_t pangraph_from_read_file(const string &filepath,
                                  const bool illumina,
                                  const bool clean,
                                  const uint32_t max_covg) {
-    string name, read, line;
     uint64_t covg = 0;
     float fraction_kmers_required_for_cluster = 0.75 / exp(e_rate * k);
     uint32_t expected_number_kmers_in_short_read_sketch = std::numeric_limits<uint32_t>::max();
