@@ -169,33 +169,14 @@ void load_PRG_kmergraphs(vector<LocalPRG *> &prgs, const uint32_t &w, const uint
 void load_vcf_refs_file(const string &filepath, VCFRefs &vcf_refs) {
     cout << now() << "Loading VCF refs from file " << filepath << endl;
 
-    string name, read, line;
-
-    ifstream myfile(filepath);
-    if (myfile.is_open()) {
-        while (getline(myfile, line).good()) {
-            if (line.empty() || line[0] == '>') {
-                if (!name.empty() && !read.empty()) {
-                    vcf_refs[name] = read;
-                }
-                name.clear();
-                read.clear();
-                if (!line.empty()) {
-                    name = line.substr(1);
-                }
-            } else {
-                read += line;
-            }
+    FastaqHandler fh(filepath);
+    while (!fh.eof()) {
+        fh.get_next();
+        if (!fh.name.empty() && !fh.read.empty()) {
+            vcf_refs[fh.name] = fh.read;
         }
-        // and last entry
-        if (!name.empty() && !read.empty()) {
-            vcf_refs[name] = read;
-        }
-        myfile.close();
-    } else {
-        cerr << "Unable to open VCF refs file " << filepath << endl;
-        exit(EXIT_FAILURE);
     }
+    fh.close();
 }
 
 //void add_read_hits(const uint32_t id, const string& name, const string& seq, MinimizerHits* hits, Index* idx, const uint32_t w, const uint32_t k)
