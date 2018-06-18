@@ -16,7 +16,7 @@ struct VCFRecord {
     std::string qual;
     std::string filter;
     std::string info;
-    std::string format;
+    std::vector<std::string> format;
     std::vector<std::string> samples;
 
     VCFRecord(std::string, uint32_t, std::string, std::string, std::string i = ".", std::string g = "");
@@ -24,6 +24,8 @@ struct VCFRecord {
     VCFRecord();
 
     ~VCFRecord();
+
+    void add_formats(std::vector<std::string>);
 
     bool operator==(const VCFRecord &y) const;
 

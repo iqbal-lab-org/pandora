@@ -1,6 +1,7 @@
 #include <cassert>
 #include <iostream>
 #include "vcfrecord.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -12,7 +13,7 @@ VCFRecord::VCFRecord(std::string c, uint32_t p, std::string r, std::string a, st
                                                                                                               qual("."),
                                                                                                               filter("."),
                                                                                                               info(i),
-                                                                                                              format("GT") {
+                                                                                                              format({"GT"}) {
     // fix so no empty strings
     if (ref == "") { ref = "."; }
     if (alt == "") { alt = "."; }
@@ -51,6 +52,13 @@ bool VCFRecord::operator==(const VCFRecord &y) const {
     return true;
 }
 
+void VCFRecord::add_formats(std::vector<std::string> formats) {
+    for (auto s : formats){
+        if (find(format.begin(), format.end(),s) == format.end())
+            format.push_back(s);
+    }
+}
+
 bool VCFRecord::operator<(const VCFRecord &y) const {
     if (chrom < y.chrom) { return true; }
     if (chrom > y.chrom) { return false; }
@@ -66,7 +74,12 @@ bool VCFRecord::operator<(const VCFRecord &y) const {
 
 std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
     out << m.chrom << "\t" << m.pos << "\t" << m.id << "\t" << m.ref << "\t" << m.alt << "\t" << m.qual << "\t"
-        << m.filter << "\t" << m.info << "\t" << m.format;
+        << m.filter << "\t" << m.info << "\t";
+    for (auto s : m.format){
+        out << s;
+        if (s != m.format[m.format.size()-1])
+            out << ":";
+    }
     for (uint32_t i = 0; i != m.samples.size(); ++i) {
         out << "\t" << m.samples[i];
     }
@@ -75,6 +88,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
 }
 
 std::istream &operator>>(std::istream &in, VCFRecord &m) {
+    string format_string;
     in >> m.chrom;
     in.ignore(1, '\t');
     in >> m.pos;
@@ -91,7 +105,8 @@ std::istream &operator>>(std::istream &in, VCFRecord &m) {
     in.ignore(1, '\t');
     in >> m.info;
     in.ignore(1, '\t');
-    in >> m.format;
+    in >> format_string;
+    m.format = split(format_string, ":");
     string token;
     while (in >> token) {
         m.samples.push_back(token);

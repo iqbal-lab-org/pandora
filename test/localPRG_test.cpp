@@ -1291,6 +1291,10 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
 {
     Index* idx;
     idx = new Index();
+    vector<string> short_formats = {"GT"};
+    vector<string> formats = {"GT","REF_MEAN_FWD_COVG","REF_MEAN_REV_COVG","ALT_MEAN_FWD_COVG","ALT_MEAN_REV_COVG",
+                              "REF_MED_FWD_COVG","REF_MED_REV_COVG","ALT_MED_FWD_COVG","ALT_MED_REV_COVG",
+                              "REF_SUM_FWD_COVG","REF_SUM_REV_COVG","ALT_SUM_FWD_COVG","ALT_SUM_REV_COVG"};
 
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
     l3.minimizer_sketch(idx, 1, 3);
@@ -1304,7 +1308,7 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     l3.add_sample_gt_to_vcf(vcf, l3.prg.top_path(), lmp3, "sample");
     EXPECT_EQ((uint)1, vcf.samples.size());
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
-    EXPECT_EQ("GT", vcf.records[0].format);
+    EXPECT_ITERABLE_EQ(vector<string>,short_formats, vcf.records[0].format);
     EXPECT_EQ("1", vcf.records[1].samples[0]);
 
     vector<KmerNodePtr> kmp = l3.kmernode_path_from_localnode_path(lmp3);
@@ -1316,10 +1320,7 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), kmp, "sample");
     EXPECT_EQ((uint)1, vcf.samples.size());
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
-    EXPECT_EQ("GT:REF_MEAN_FWD_COVG:REF_MEAN_REV_COVG:ALT_MEAN_FWD_COVG:ALT_MEAN_REV_COVG:"
-                      "REF_MED_FWD_COVG:REF_MED_REV_COVG:ALT_MED_FWD_COVG:ALT_MED_REV_COVG:"
-                      "REF_SUM_FWD_COVG:REF_SUM_REV_COVG:ALT_SUM_FWD_COVG:ALT_SUM_REV_COVG",
-              vcf.records[0].format);
+    EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);
     EXPECT_EQ("1:0:0:0:0:0:0:0:0:0:0:0:0", vcf.records[1].samples[0]);
 
     // ref
@@ -1341,10 +1342,7 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), kmp, "sample");
     EXPECT_EQ((uint)1, vcf.samples.size());
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
-    EXPECT_EQ("GT:REF_MEAN_FWD_COVG:REF_MEAN_REV_COVG:ALT_MEAN_FWD_COVG:ALT_MEAN_REV_COVG:"
-                      "REF_MED_FWD_COVG:REF_MED_REV_COVG:ALT_MED_FWD_COVG:ALT_MED_REV_COVG:"
-                      "REF_SUM_FWD_COVG:REF_SUM_REV_COVG:ALT_SUM_FWD_COVG:ALT_SUM_REV_COVG",
-              vcf.records[0].format);
+    EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);
     EXPECT_EQ("1:1:0:5:6:1:0:5:5:3:0:15:18", vcf.records[1].samples[0]);
 
     delete idx;
