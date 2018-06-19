@@ -28,6 +28,14 @@ struct VCFRecord {
 
     void add_formats(std::vector<std::string>);
 
+    void likelihood(const uint32_t&, const float&);
+
+    void confidence();
+
+    void swap_ref_and_alt_properties(std::unordered_map<std::string, uint8_t>&);
+
+    void regenotype(const uint8_t);
+
     bool operator==(const VCFRecord &y) const;
 
     bool operator<(const VCFRecord &y) const;
