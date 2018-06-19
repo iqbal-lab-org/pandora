@@ -86,12 +86,13 @@ void FastaqHandler::get_id(const uint32_t& id){
         line.clear();
         fastaq_file.clear();
         fastaq_file.seekg(0, fastaq_file.beg);
-        inbuf.reset();
-        if(gzipped){
+        inbuf.pop();
+        /*if(gzipped){
             inbuf.push(boost::iostreams::gzip_decompressor());
-        }
+        }*/
         inbuf.push(fastaq_file);
         instream.clear();
+        instream.sync();
     }
 
     while (id > 1 and num_reads_parsed < id-2) {
