@@ -71,58 +71,68 @@ float logfactorial(uint32_t n){
 }
 
 void VCFRecord::likelihood(const uint32_t& expected_depth_covg, const float& error_rate) {
-    for (auto sample : samples) {
-        if (sample.find("REF_MEAN_FWD_COVG") != sample.end() and sample.find("REF_MEAN_REV_COVG") != sample.end()
-            and sample.find("REF_MEAN_FWD_COVG") != sample.end() and sample.find("REF_MEAN_REV_COVG") != sample.end()) {
-            auto c1 = sample["REF_MEAN_FWD_COVG"] + sample["REF_MEAN_REV_COVG"];
-            auto c2 = sample["ALT_MEAN_FWD_COVG"] + sample["ALT_MEAN_REV_COVG"];
-            if (c1 > 0)
-                sample["REF_LIKELIHOOD"] = c1 * log(expected_depth_covg) - expected_depth_covg
-                                       - logfactorial(c1) + c2 * log(error_rate);
-            else
-                sample["REF_LIKELIHOOD"] = numeric_limits<float>::lowest();
-            if (c2 > 0)
-                sample["ALT_LIKELIHOOD"] = c2 * log(expected_depth_covg) - expected_depth_covg
-                                       - logfactorial(c2) + c1 * log(error_rate);
-            else
-                sample["REF_LIKELIHOOD"] = numeric_limits<float>::lowest();
+
+    unordered_map<string, float> m;
+    m.reserve(3);
+    if (regt_samples.size() == 0){
+        for (auto sample : samples) {
+            regt_samples.push_back(m);
         }
     }
+
+    for (uint_least16_t i=0; i<samples.size(); ++i) {
+        if (samples[i].find("REF_MEAN_FWD_COVG") != samples[i].end() and samples[i].find("REF_MEAN_REV_COVG") != samples[i].end()
+            and samples[i].find("ALT_MEAN_FWD_COVG") != samples[i].end() and samples[i].find("ALT_MEAN_REV_COVG") != samples[i].end()) {
+            auto c1 = samples[i]["REF_MEAN_FWD_COVG"] + samples[i]["REF_MEAN_REV_COVG"];
+            auto c2 = samples[i]["ALT_MEAN_FWD_COVG"] + samples[i]["ALT_MEAN_REV_COVG"];
+            if (c1 > 0)
+                regt_samples[i]["REF_LIKELIHOOD"] = c1 * log(expected_depth_covg) - expected_depth_covg
+                                       - logfactorial(c1) + c2 * log(error_rate);
+            else
+                regt_samples[i]["REF_LIKELIHOOD"] = numeric_limits<float>::lowest();
+            if (c2 > 0)
+                regt_samples[i]["ALT_LIKELIHOOD"] = c2 * log(expected_depth_covg) - expected_depth_covg
+                                       - logfactorial(c2) + c1 * log(error_rate);
+            else
+                regt_samples[i]["ALT_LIKELIHOOD"] = numeric_limits<float>::lowest();
+        }
+    }
+
+    assert(regt_samples.size()==samples.size() or assert_msg(regt_samples.size()<< "!=" << samples.size()));
     add_formats({"REF_LIKELIHOOD","ALT_LIKELIHOOD"});
 }
 
 void VCFRecord::confidence(){
-    for (auto sample : samples) {
-        if (sample.find("REF_LIKELIHOOD") != sample.end() and sample.find("ALT_LIKELIHOOD") != sample.end()){
-            sample["CONFIDENCE"] = abs(sample["REF_LIKELIHOOD"]-sample["ALT_LIKELIHOOD"]);
-        }
+    for (auto sample : regt_samples) {
+        if (sample.find("REF_LIKELIHOOD") != sample.end() and sample.find("ALT_LIKELIHOOD") != sample.end())
+            sample.emplace("CONFIDENCE",abs(sample["REF_LIKELIHOOD"]-sample["ALT_LIKELIHOOD"]));
     }
     add_formats({"CONFIDENCE"});
 }
 
-void VCFRecord::swap_ref_and_alt_properties(unordered_map<std::string, uint8_t>& sample){
-    swap(sample["REF_MEAN_FWD_COVG"],sample["ALT_MEAN_FWD_COVG"]);
-    swap(sample["REF_MEAN_REV_COVG"],sample["ALT_MEAN_REV_COVG"]);
-    swap(sample["REF_MED_FWD_COVG"],sample["ALT_MED_FWD_COVG"]);
-    swap(sample["REF_MED_REV_COVG"],sample["ALT_MED_REV_COVG"]);
-    swap(sample["REF_SUM_FWD_COVG"],sample["ALT_SUM_FWD_COVG"]);
-    swap(sample["REF_SUM_REV_COVG"],sample["ALT_SUM_REV_COVG"]);
-    swap(sample["REF_LIKELIHOOD"],sample["ALT_LIKELIHOOD"]);
+void VCFRecord::swap_ref_and_alt_properties(uint_least16_t i){
+    swap(samples[i]["REF_MEAN_FWD_COVG"],samples[i]["ALT_MEAN_FWD_COVG"]);
+    swap(samples[i]["REF_MEAN_REV_COVG"],samples[i]["ALT_MEAN_REV_COVG"]);
+    swap(samples[i]["REF_MED_FWD_COVG"],samples[i]["ALT_MED_FWD_COVG"]);
+    swap(samples[i]["REF_MED_REV_COVG"],samples[i]["ALT_MED_REV_COVG"]);
+    swap(samples[i]["REF_SUM_FWD_COVG"],samples[i]["ALT_SUM_FWD_COVG"]);
+    swap(samples[i]["REF_SUM_REV_COVG"],samples[i]["ALT_SUM_REV_COVG"]);
+    swap(regt_samples[i]["REF_LIKELIHOOD"],regt_samples[i]["ALT_LIKELIHOOD"]);
 }
 
 void VCFRecord::regenotype(const uint8_t confidence_threshold){
-    for (auto sample : samples) {
-        if (sample.find("CONFIDENCE") != sample.end()){
-            if (sample["CONFIDENCE"] > confidence_threshold){
-                if (sample["GT"] == 0 and sample["ALT_LIKELIHOOD"] > sample["REF_LIKELIHOOD"]){
-                    sample["GT"] = 1;
-                    swap_ref_and_alt_properties(sample);
-                } else if (sample["GT"] == 1 and sample["ALT_LIKELIHOOD"] < sample["REF_LIKELIHOOD"]){
-                    sample["GT"] = 0;
-                    swap_ref_and_alt_properties(sample);
+    for (uint_least16_t i=0; i<samples.size(); ++i) {
+        if (regt_samples[i].find("CONFIDENCE") != regt_samples[i].end()){
+            if (regt_samples[i]["CONFIDENCE"] > confidence_threshold){
+                if (samples[i]["GT"] == 0 and regt_samples[i]["ALT_LIKELIHOOD"] > regt_samples[i]["REF_LIKELIHOOD"]){
+                    samples[i]["GT"] = 1;
+                    swap_ref_and_alt_properties(i);
+                } else if (samples[i]["GT"] == 1 and regt_samples[i]["ALT_LIKELIHOOD"] < regt_samples[i]["REF_LIKELIHOOD"]){
+                    samples[i]["GT"] = 0;
+                    swap_ref_and_alt_properties(i);
                 }
             } else {
-                sample.erase("GT");
+                samples[i].erase("GT");
             }
         }
     }
@@ -155,11 +165,13 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
             out << ":";
     }
 
-    for(auto s : m.samples){
+    for(uint_least16_t i=0;i<m.samples.size(); ++i){
         out << "\t";
         for (auto f : m.format){
-            if (s.find(f)!=s.end())
-                out << +s[f];
+            if (m.samples[i].find(f)!=m.samples[i].end())
+                out << m.samples.at(i).at(f);
+            else if (m.regt_samples[i].find(f)!=m.regt_samples[i].end())
+                out << m.regt_samples.at(i).at(f);
             else
                 out << ".";
 
@@ -175,7 +187,9 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
 std::istream &operator>>(std::istream &in, VCFRecord &m) {
     string token;
     vector<string> sample_strings;
+    vector<string> float_strings = {"REF_LIKELIHOOD", "ALT_LIKELIHOOD","CONFIDENCE"};
     unordered_map<string, uint8_t> sample_data;
+    unordered_map<string, float> regt_sample_data;
     in >> m.chrom;
     in.ignore(1, '\t');
     in >> m.pos;
@@ -199,9 +213,14 @@ std::istream &operator>>(std::istream &in, VCFRecord &m) {
         sample_strings = split(token, ":");
         assert(sample_strings.size()==m.format.size() or assert_msg("sample data does not fit format"));
         m.samples.push_back(sample_data);
+        m.regt_samples.push_back(regt_sample_data);
         for (uint32_t i=0; i<m.format.size(); ++i){
-            if (sample_strings[i] != ".")
+            if (sample_strings[i] != "."
+                and find(float_strings.begin(),float_strings.end(),m.format[i])==float_strings.end())
                 m.samples.back()[m.format[i]] = stoi(sample_strings[i]);
+            else if (sample_strings[i] != "."
+                     and find(float_strings.begin(),float_strings.end(),m.format[i])!=float_strings.end())
+                m.regt_samples.back()[m.format[i]] = stof(sample_strings[i]);
         }
     }
     return in;

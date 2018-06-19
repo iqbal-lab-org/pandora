@@ -19,6 +19,7 @@ struct VCFRecord {
     std::string info;
     std::vector<std::string> format; //e.g. "GT"
     std::vector<std::unordered_map<std::string, uint8_t>> samples;
+    std::vector<std::unordered_map<std::string, float>> regt_samples;
 
     VCFRecord(std::string, uint32_t, std::string, std::string, std::string i = ".", std::string g = "");
 
@@ -32,7 +33,7 @@ struct VCFRecord {
 
     void confidence();
 
-    void swap_ref_and_alt_properties(std::unordered_map<std::string, uint8_t>&);
+    void swap_ref_and_alt_properties(uint_least16_t);
 
     void regenotype(const uint8_t);
 
