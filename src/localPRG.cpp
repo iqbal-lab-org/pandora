@@ -1294,7 +1294,8 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
                                  const bool output_comparison_paths,
                                  const bool output_covgs,
                                  const bool bin,
-                                 const uint32_t global_covg) const {
+                                 const uint32_t global_covg,
+                                 const bool regenotype) const {
     //cout << "called find path and variants" << endl;
     string new_name = name;
     std::replace(new_name.begin(), new_name.end(), ' ', '_');
@@ -1364,6 +1365,8 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
         add_sample_gt_to_vcf(vcf, refpath, lmp, "sample");
         if (output_covgs)
             add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, kmp, "sample");
+        if (regenotype)
+            vcf.regenotype(global_covg,0.01,30);
         vcf.save(outdir + "/" + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
     }
     if (output_comparison_paths) {

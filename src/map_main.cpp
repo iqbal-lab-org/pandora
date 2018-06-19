@@ -52,6 +52,7 @@ static void show_map_usage() {
               << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
               << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative binomial\n"
               << "\t--max_covg\t\t\tMaximum average coverage from reads to accept\n"
+              << "\t--regenotype\t\t\tAdd extra step to carefully genotype SNP sites\n"
               << std::endl;
 }
 
@@ -71,6 +72,7 @@ int pandora_map(int argc, char *argv[]) {
     bool output_comparison_paths = false, output_mapped_read_fa = false;
     bool illumina = false, clean = false;
     bool output_covgs = false, bin = false;
+    bool regenotype = false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -169,6 +171,8 @@ int pandora_map(int argc, char *argv[]) {
                 std::cerr << "--max_covg option requires one argument." << std::endl;
                 return 1;
             }
+        } else if ((arg == "--regenotype")) {
+            regenotype = true;
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -176,6 +180,8 @@ int pandora_map(int argc, char *argv[]) {
 
     assert(w <= k);
     assert(not prgfile.empty());
+    if (regenotype)
+        output_vcf = true;
 
     //then run the programme...
     cout << "START: " << now() << endl;
@@ -195,8 +201,9 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\toutput_mapped_read_fa\t" << output_mapped_read_fa << endl;
     cout << "\tillumina\t" << illumina << endl;
     cout << "\tclean\t" << clean << endl;
-    cout << "\tbin\t" << bin << endl << endl;
+    cout << "\tbin\t" << bin << endl;
     cout << "\tmax_covg\t" << max_covg << endl;
+    cout << "\tregenotype\t" << regenotype << endl << endl;
 
     make_dir(outdir);
 
@@ -251,7 +258,7 @@ int pandora_map(int argc, char *argv[]) {
         string node_outdir = outdir + "/" + c->second->get_name();
 
         kmp = prgs[c->second->prg_id]->find_path_and_variants(c->second, node_outdir, w, vcf_ref, output_vcf,
-                                                       output_comparison_paths, output_covgs, bin, covg);
+                                                       output_comparison_paths, output_covgs, bin, covg, regenotype);
         if (kmp.empty())
         {
             c = pangraph->remove_node(c->second);

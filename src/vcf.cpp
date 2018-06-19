@@ -156,6 +156,17 @@ bool VCF::pos_in_range(const uint32_t from, const uint32_t to) {
     return false;
 }
 
+void VCF::regenotype(const uint32_t & expected_depth_covg, const float & error_rate, const uint8_t confidence_threshold) {
+    for (auto vr : records){
+        if (vr.ref.length() == 1 and vr.alt.length() == 1)
+        {
+            vr.likelihood(expected_depth_covg,error_rate);
+            vr.confidence();
+            vr.regenotype(confidence_threshold);
+        }
+    }
+}
+
 // NB in the absence of filter flags being set to true, all results are saved. If one or more filter flags for SVTYPE are set, 
 // then only those matching the filter are saved. Similarly for GRAPHTYPE.
 void

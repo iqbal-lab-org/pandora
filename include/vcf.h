@@ -38,6 +38,8 @@ public:
 
     bool pos_in_range(const uint32_t , const uint32_t);
 
+    void regenotype(const uint32_t&, const float&,const uint8_t);
+
     void save(const std::string &, bool simple = false, bool complexgraph = false, bool toomanyalts = false,
               bool snp = false, bool indel = false, bool phsnps = false, bool complexvar = false);
 

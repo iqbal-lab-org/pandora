@@ -103,7 +103,8 @@ public:
                                                     const bool output_comparison_paths = false,
                                                     const bool output_covgs = false,
                                                     const bool bin = false,
-                                                    const uint32_t covg = 1) const;
+                                                    const uint32_t covg = 1,
+                                                    const bool regenotype = false) const;
 
     friend std::ostream &operator<<(std::ostream &out, const LocalPRG &data);
 };
