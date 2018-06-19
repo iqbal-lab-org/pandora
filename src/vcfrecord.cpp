@@ -103,9 +103,10 @@ void VCFRecord::likelihood(const uint32_t& expected_depth_covg, const float& err
 }
 
 void VCFRecord::confidence(){
-    for (auto sample : regt_samples) {
-        if (sample.find("REF_LIKELIHOOD") != sample.end() and sample.find("ALT_LIKELIHOOD") != sample.end())
-            sample.emplace("CONFIDENCE",abs(sample["REF_LIKELIHOOD"]-sample["ALT_LIKELIHOOD"]));
+    for (auto&& sample : regt_samples) {
+        if (sample.find("REF_LIKELIHOOD") != sample.end() and sample.find("ALT_LIKELIHOOD") != sample.end()) {
+            sample["CONFIDENCE"] = abs(sample["REF_LIKELIHOOD"] - sample["ALT_LIKELIHOOD"]);
+        }
     }
     add_formats({"CONFIDENCE"});
 }

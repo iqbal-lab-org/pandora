@@ -161,7 +161,6 @@ TEST(VCFRecordConfidenceTest, adds_confidence_with_info) {
     vr.regt_samples[0]["REF_LIKELIHOOD"] = -1.0;
     vr.regt_samples[0]["ALT_LIKELIHOOD"] = -2.5;
     vr.confidence();
-    cout << vr.regt_samples[0]["CONFIDENCE"] << endl;
     bool found_confidence = vr.regt_samples[0].find("CONFIDENCE") != vr.regt_samples[0].end();
     EXPECT_TRUE(found_confidence);
 }
