@@ -25,6 +25,8 @@ public:
 
     void add_record(VCFRecord &);
 
+    ptrdiff_t get_sample_index(const std::string&);
+
     void add_sample_gt(const std::string &name, const std::string &c, const uint32_t p, const std::string &r,
                        const std::string &a);
 

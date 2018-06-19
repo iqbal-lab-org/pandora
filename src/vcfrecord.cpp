@@ -3,6 +3,8 @@
 #include "vcfrecord.h"
 #include "utils.h"
 
+#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
+
 using namespace std;
 
 VCFRecord::VCFRecord(std::string c, uint32_t p, std::string r, std::string a, std::string i, std::string g) : chrom(c),
@@ -75,20 +77,38 @@ bool VCFRecord::operator<(const VCFRecord &y) const {
 std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
     out << m.chrom << "\t" << m.pos << "\t" << m.id << "\t" << m.ref << "\t" << m.alt << "\t" << m.qual << "\t"
         << m.filter << "\t" << m.info << "\t";
+
+    string last_format;
+    if (!m.format.empty())
+        last_format = m.format[m.format.size()-1];
+
     for (auto s : m.format){
         out << s;
-        if (s != m.format[m.format.size()-1])
+        if (s != last_format)
             out << ":";
     }
-    for (uint32_t i = 0; i != m.samples.size(); ++i) {
-        out << "\t" << m.samples[i];
+
+    for(auto s : m.samples){
+        out << "\t";
+        for (auto f : m.format){
+            if (s.find(f)!=s.end())
+                out << +s[f];
+            else
+                out << ".";
+
+            if (f != last_format)
+                out << ":";
+        }
     }
+
     out << endl;
     return out;
 }
 
 std::istream &operator>>(std::istream &in, VCFRecord &m) {
-    string format_string;
+    string token;
+    vector<string> sample_strings;
+    unordered_map<string, uint8_t> sample_data;
     in >> m.chrom;
     in.ignore(1, '\t');
     in >> m.pos;
@@ -105,11 +125,17 @@ std::istream &operator>>(std::istream &in, VCFRecord &m) {
     in.ignore(1, '\t');
     in >> m.info;
     in.ignore(1, '\t');
-    in >> format_string;
-    m.format = split(format_string, ":");
-    string token;
+    in >> token;
+    m.format = split(token, ":");
+    sample_data.reserve(m.format.size());
     while (in >> token) {
-        m.samples.push_back(token);
+        sample_strings = split(token, ":");
+        assert(sample_strings.size()==m.format.size() or assert_msg("sample data does not fit format"));
+        m.samples.push_back(sample_data);
+        for (uint32_t i=0; i<m.format.size(); ++i){
+            if (sample_strings[i] != ".")
+                m.samples.back()[m.format[i]] = stoi(sample_strings[i]);
+        }
     }
     return in;
 }

@@ -21,18 +21,38 @@ VCF::~VCF() {
 };
 
 void VCF::add_record(string c, uint32_t p, string r, string a, string i, string g) {
+    unordered_map<string,uint8_t> empty_map;
     VCFRecord vr(c, p, r, a, i, g);
     if (find(records.begin(), records.end(), vr) == records.end()) {
         records.push_back(vr);
-        records.back().samples.insert(records.back().samples.end(), samples.size(), ".");
+        records.back().samples.insert(records.back().samples.end(), samples.size(), empty_map);
     }
     //cout << "added record: " << vr << endl;
 }
 
 void VCF::add_record(VCFRecord &vr) {
+    unordered_map<string,uint8_t> empty_map;
     if (find(records.begin(), records.end(), vr) == records.end()) {
         records.push_back(vr);
-        records.back().samples.insert(records.back().samples.end(), samples.size(), ".");
+        records.back().samples.insert(records.back().samples.end(), samples.size(), empty_map);
+    }
+}
+
+ptrdiff_t VCF::get_sample_index(const string& name){
+    unordered_map<string,uint8_t> empty_map;
+
+    // if this sample has not been added before, add a column for it
+    vector<string>::iterator sample_it = find(samples.begin(), samples.end(), name);
+    if (sample_it == samples.end()) {
+        //cout << "this is the first time this sample has been added" << endl;
+        samples.push_back(name);
+        for (uint32_t i = 0; i != records.size(); ++i) {
+            records[i].samples.push_back(empty_map);
+            assert(samples.size() == records[i].samples.size());
+        }
+        return samples.size() - 1;
+    } else {
+        return distance(samples.begin(), sample_it);
     }
 }
 
@@ -44,70 +64,49 @@ void VCF::add_sample_gt(const string &name, const string &c, const uint32_t p, c
 
     //cout << "adding gt " << r << " vs " << a << endl;
 
-    ptrdiff_t sample_index;
-
-    // if this sample has not been added before, add a column for it
-    vector<string>::iterator sample_it = find(samples.begin(), samples.end(), name);
-    if (sample_it == samples.end()) {
-        //cout << "this is the first time this sample has been added" << endl;
-        samples.push_back(name);
-        for (uint32_t i = 0; i != records.size(); ++i) {
-            records[i].samples.push_back(".");
-        }
-        sample_index = samples.size() - 1;
-    } else {
-        sample_index = distance(samples.begin(), sample_it);
-    }
+    ptrdiff_t sample_index = get_sample_index(name);
 
     VCFRecord vr(c, p, r, a);
+    VCFRecord* vrp;
     bool added = false;
     vector<VCFRecord>::iterator it = find(records.begin(), records.end(), vr);
     if (it != records.end()) {
-        it->samples[sample_index] = "1";
         //cout << "found record with this ref and alt" << endl;
-        for (uint32_t i = 0; i != records.size(); ++i) {
-            if (records[i].pos == p and records[i].alt != a) {
-                //assert(records[i].ref == r or r == "");
-                records[i].samples[sample_index] = ".";
-            } else if (records[i].pos > p) {
-                break;
-            }
-        }
+        it->samples[sample_index]["GT"] = 1;
+        vrp = &*it;
     } else {
         //cout << "didn't find a record for pos " << p << " ref " << r << " and alt " << a << endl;
         // either we have the ref allele, an alternative allele for a too nested site, or a mistake
         for (uint32_t i = 0; i != records.size(); ++i) {
             if (records[i].pos == p and r == a and records[i].ref == r) {
                 //cout << "have ref allele" << endl;
-                //assert(records[i].ref == r or r == "" ||
-                //assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
-                records[i].samples[sample_index] = "0";
+                records[i].samples[sample_index]["GT"] = 0;
+                vrp = &records[i];
                 added = true;
-            } else if (records[i].pos == p and r != a) {
-                //cout << "found another alt at the position" << endl;
-                //assert(records[i].ref == r or r == "" || assert_msg("at pos " << records[i].pos << " existing ref is " << records[i].ref << " which is not equal to " << r));
-                records[i].samples[sample_index] = ".";
-                /*} else if (records[i].pos > p) {
-		    break;*/
             }
         }
         if (added == false and r != a) {
-            //cout << "have very nested allele" << endl;
+            //cout << "have new allele not in graph" << endl;
             add_record(c, p, r, a, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
-            records.back().samples[sample_index] = "1";
+            records.back().samples[sample_index]["GT"] = 1;
+            vrp = &records.back();
             added = true;
-            // also check if other samples had ref allele at this pos
-            for (uint32_t i = 0; i != records.size(); ++i) {
-                if (records[i].pos <= p and records[i].pos + records[i].ref.length() > p) {
-                    for (uint32_t j = 0; j != records[i].samples.size(); ++j) {
-                        if (records[i].samples[j] == "0") {
-                            records.back().samples[j] = "0";
-                        }
-                    }
+        }
+        // check not mistake
+        assert(added == true);
+    }
+
+    // update other samples at this site if they have ref allele at this pos
+    for (uint32_t i = 0; i != records.size(); ++i) {
+        if (records[i].pos <= p and records[i].pos + records[i].ref.length() > p) {
+            for (uint32_t j = 0; j != records[i].samples.size(); ++j) {
+                if (records[i].samples[j].find("GT") != records[i].samples[j].end() and records[i].samples[j]["GT"] == 0) {
+                    //cout << "update my record to have ref allele also for sample " << j << endl;
+                    //cout << records[i] << endl;
+                    vrp->samples[j]["GT"] = 0;
                 }
             }
         }
-        assert(added == true);
     }
 
     return;
@@ -115,6 +114,7 @@ void VCF::add_sample_gt(const string &name, const string &c, const uint32_t p, c
 
 void VCF::add_sample_ref_alleles(const string &sample_name, const string &name, const uint32_t &pos, const uint32_t &pos_to) {
     ptrdiff_t sample_index;
+    unordered_map<string,uint8_t> empty_map;
 
     // if this sample has not been added before, add a column for it
     vector<string>::iterator sample_it = find(samples.begin(), samples.end(), sample_name);
@@ -122,7 +122,7 @@ void VCF::add_sample_ref_alleles(const string &sample_name, const string &name, 
         //cout << "this is the first time this sample has been added" << endl;
         samples.push_back(sample_name);
         for (uint32_t i = 0; i != records.size(); ++i) {
-            records[i].samples.push_back(".");
+            records[i].samples.push_back(empty_map);
         }
         sample_index = samples.size() - 1;
     } else {
@@ -131,7 +131,7 @@ void VCF::add_sample_ref_alleles(const string &sample_name, const string &name, 
 
     for (uint32_t i = 0; i != records.size(); ++i) {
         if (pos <= records[i].pos and records[i].pos + records[i].ref.length() <= pos_to and records[i].chrom == name) {
-            records[i].samples[sample_index] = "0";
+            records[i].samples[sample_index]["GT"] = 0;
             //cout << "update record " << records[i] << endl;
         }
     }
@@ -289,14 +289,14 @@ void VCF::write_aligned_fasta(const string &filepath, const vector<LocalNodePtr>
         }
         //cout << "record[" << i << "] " << records[i] << endl;
         for (uint32_t j = 0; j != samples.size(); ++j) {
-            if (records[i].samples[j] == "0" and records[i].pos != (uint32_t) prev_pos and
+            if (records[i].samples[j]["GT"] == 0 and records[i].pos != (uint32_t) prev_pos and
                 pos_in_range(records[i].pos, records[i].pos + records[i].ref.length()) == false) {
                 //cout << j << " add ref allele at site" << endl;
                 seqs[j] += records[i].ref;
                 max_len = max(max_len, (uint32_t) seqs[j].length());
                 ref_len += records[i].ref.length();
                 n++;
-            } else if (records[i].samples[j] == "1") {
+            } else if (records[i].samples[j]["GT"] == 1) {
                 //cout << j << " add alt allele at site" << endl;
                 assert(records[i].pos != (uint32_t) prev_pos);
                 seqs[j] += records[i].alt;

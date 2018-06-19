@@ -1068,7 +1068,7 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf)
     j = 1;
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ("1", vcf.records[0].samples[0]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[0].samples[0]["GT"]);
 
     vcf.clear();
     vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
@@ -1077,7 +1077,7 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf)
     l3.add_sample_gt_to_vcf(vcf, l3.prg.top_path(), lmp3, "sample");
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ("1", vcf.records[1].samples[0]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
 
     vcf.clear();
     vector<LocalNodePtr> lmp4 = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[5], l4.prg.nodes[6], l4.prg.nodes[8], l4.prg.nodes[9], l4.prg.nodes[10], l4.prg.nodes[12], l4.prg.nodes[13], l4.prg.nodes[15]};
@@ -1086,15 +1086,15 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf)
     l4.add_sample_gt_to_vcf(vcf, l4.prg.top_path(), lmp4, "sample");
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ("0", vcf.records[0].samples[0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[0].samples[0]["GT"]);
     EXPECT_EQ(j, vcf.records[1].samples.size());
-    EXPECT_EQ("1", vcf.records[1].samples[0]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
     EXPECT_EQ(j, vcf.records[2].samples.size());
-    EXPECT_EQ("1", vcf.records[2].samples[0]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[2].samples[0]["GT"]);
     EXPECT_EQ(j, vcf.records[3].samples.size());
-    EXPECT_EQ("0", vcf.records[3].samples[0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[0]["GT"]);
     EXPECT_EQ(j, vcf.records[4].samples.size());
-    EXPECT_EQ("0", vcf.records[4].samples[0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[4].samples[0]["GT"]);
 
     vcf.clear();
     vector<LocalNodePtr> lmp5 = {l5.prg.nodes[0], l5.prg.nodes[1], l5.prg.nodes[10], l5.prg.nodes[11], l5.prg.nodes[13]};
@@ -1104,30 +1104,30 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf)
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ((uint)5, vcf.records.size());
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ(".", vcf.records[0].samples[0]);
+    EXPECT_TRUE(vcf.records[0].samples[0].find("GT") == vcf.records[0].samples[0].end());
     EXPECT_EQ(j, vcf.records[1].samples.size());
-    EXPECT_EQ(".", vcf.records[1].samples[0]);
+    EXPECT_TRUE(vcf.records[1].samples[0].find("GT") == vcf.records[1].samples[0].end());
     EXPECT_EQ(j, vcf.records[2].samples.size());
-    EXPECT_EQ(".", vcf.records[2].samples[0]);
+    EXPECT_TRUE(vcf.records[2].samples[0].find("GT") == vcf.records[2].samples[0].end());
     EXPECT_EQ(j, vcf.records[3].samples.size());
-    EXPECT_EQ("1", vcf.records[3].samples[0]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[3].samples[0]["GT"]);
     EXPECT_EQ(j, vcf.records[4].samples.size());
-    EXPECT_EQ(".", vcf.records[4].samples[0]);
+    EXPECT_TRUE(vcf.records[4].samples[0].find("GT") == vcf.records[4].samples[0].end());
 
     // add the ref path
     l5.add_sample_gt_to_vcf(vcf, l5.prg.top_path(), l5.prg.top_path(), "sample2");
     EXPECT_EQ((uint)2, vcf.samples.size());
     EXPECT_EQ((uint)5, vcf.records.size());
     EXPECT_EQ((uint)2, vcf.records[0].samples.size());
-    EXPECT_EQ("0", vcf.records[0].samples[1]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[0].samples[1]["GT"]);
     EXPECT_EQ((uint)2, vcf.records[1].samples.size());
-    EXPECT_EQ("0", vcf.records[1].samples[1]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[1]["GT"]);
     EXPECT_EQ((uint)2, vcf.records[2].samples.size());
-    EXPECT_EQ("0", vcf.records[2].samples[1]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[2].samples[1]["GT"]);
     EXPECT_EQ((uint)2, vcf.records[3].samples.size());
-    EXPECT_EQ("0", vcf.records[3].samples[1]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[1]["GT"]);
     EXPECT_EQ((uint)2, vcf.records[4].samples.size());
-    EXPECT_EQ("0", vcf.records[4].samples[1]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[4].samples[1]["GT"]);
 
 }
 
@@ -1309,7 +1309,7 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     EXPECT_EQ((uint)1, vcf.samples.size());
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>,short_formats, vcf.records[0].format);
-    EXPECT_EQ("1", vcf.records[1].samples[0]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
 
     vector<KmerNodePtr> kmp = l3.kmernode_path_from_localnode_path(lmp3);
     /*for (auto n : kmp){
@@ -1321,7 +1321,19 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     EXPECT_EQ((uint)1, vcf.samples.size());
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);
-    EXPECT_EQ("1:0:0:0:0:0:0:0:0:0:0:0:0", vcf.records[1].samples[0]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_MEAN_FWD_COVG"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_MEAN_REV_COVG"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["ALT_MEAN_FWD_COVG"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["ALT_MEAN_REV_COVG"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_MED_FWD_COVG"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_MED_REV_COVG"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["ALT_MED_FWD_COVG"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["ALT_MED_REV_COVG"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_SUM_FWD_COVG"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_SUM_REV_COVG"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["ALT_SUM_FWD_COVG"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["ALT_SUM_REV_COVG"]);
 
     // ref
     l3.kmer_prg.nodes[1]->covg[0] = 1;
@@ -1343,7 +1355,19 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     EXPECT_EQ((uint)1, vcf.samples.size());
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);
-    EXPECT_EQ("1:1:0:5:6:1:0:5:5:3:0:15:18", vcf.records[1].samples[0]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["REF_MEAN_FWD_COVG"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_MEAN_REV_COVG"]);
+    EXPECT_EQ((uint8_t) 5, vcf.records[1].samples[0]["ALT_MEAN_FWD_COVG"]);
+    EXPECT_EQ((uint8_t) 6, vcf.records[1].samples[0]["ALT_MEAN_REV_COVG"]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["REF_MED_FWD_COVG"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_MED_REV_COVG"]);
+    EXPECT_EQ((uint8_t) 5, vcf.records[1].samples[0]["ALT_MED_FWD_COVG"]);
+    EXPECT_EQ((uint8_t) 5, vcf.records[1].samples[0]["ALT_MED_REV_COVG"]);
+    EXPECT_EQ((uint8_t) 3, vcf.records[1].samples[0]["REF_SUM_FWD_COVG"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_SUM_REV_COVG"]);
+    EXPECT_EQ((uint8_t) 15, vcf.records[1].samples[0]["ALT_SUM_FWD_COVG"]);
+    EXPECT_EQ((uint8_t) 18, vcf.records[1].samples[0]["ALT_SUM_REV_COVG"]);
 
     delete idx;
 }

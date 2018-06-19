@@ -5,19 +5,20 @@
 #include <vector>
 #include <string>
 #include <cstdint>
+#include <unordered_map>
 
 struct VCFRecord {
     //#CHROM POS ID REF ALT QUAL FILTER INFO FORMAT
     std::string chrom;
     uint32_t pos;
-    std::string id;
+    std::string id; // not used
     std::string ref;
     std::string alt;
-    std::string qual;
-    std::string filter;
+    std::string qual; // not used
+    std::string filter; // not used
     std::string info;
-    std::vector<std::string> format;
-    std::vector<std::string> samples;
+    std::vector<std::string> format; //e.g. "GT"
+    std::vector<std::unordered_map<std::string, uint8_t>> samples;
 
     VCFRecord(std::string, uint32_t, std::string, std::string, std::string i = ".", std::string g = "");
 

@@ -54,22 +54,24 @@ TEST(VCFTest, add_sample_gt) {
     uint j = 1;
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[1].samples.size());
-    EXPECT_EQ("1", vcf.records[1].samples[0]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ(".", vcf.records[0].samples[0]);
+    EXPECT_TRUE(vcf.records[0].samples[0].find("GT") == vcf.records[0].samples[0].end());
     EXPECT_EQ(j, vcf.records[2].samples.size());
-    EXPECT_EQ(".", vcf.records[2].samples[0]);
+    EXPECT_TRUE(vcf.records[2].samples[0].find("GT") == vcf.records[2].samples[0].end());
+    EXPECT_EQ(j, vcf.records[3].samples.size());
+    EXPECT_TRUE(vcf.records[3].samples[0].find("GT") == vcf.records[3].samples[0].end());
 
     vcf.add_sample_gt("sample", "chrom1", 79, "C", "C");
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[1].samples.size());
-    EXPECT_EQ("1", vcf.records[1].samples[0]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ(".", vcf.records[0].samples[0]);
+    EXPECT_TRUE(vcf.records[0].samples[0].find("GT") == vcf.records[0].samples[0].end());
     EXPECT_EQ(j, vcf.records[2].samples.size());
-    EXPECT_EQ("0", vcf.records[2].samples[0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[2].samples[0]["GT"]);
     EXPECT_EQ(j, vcf.records[3].samples.size());
-    EXPECT_EQ("0", vcf.records[3].samples[0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[0]["GT"]);
 }
 
 TEST(VCFTest, add_sample_ref_alleles) {
@@ -84,29 +86,29 @@ TEST(VCFTest, add_sample_ref_alleles) {
     EXPECT_EQ((uint) 1, vcf.samples.size());
     EXPECT_EQ((uint) 5, vcf.records.size());
     EXPECT_EQ((uint) 1, vcf.records[0].samples.size());
-    EXPECT_EQ(".", vcf.records[0].samples[0]);
+    EXPECT_TRUE(vcf.records[0].samples[0].find("GT") == vcf.records[0].samples[0].end());
     EXPECT_EQ((uint) 1, vcf.records[1].samples.size());
-    EXPECT_EQ("0", vcf.records[1].samples[0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["GT"]);
     EXPECT_EQ((uint) 1, vcf.records[2].samples.size());
-    EXPECT_EQ(".", vcf.records[2].samples[0]);
+    EXPECT_TRUE(vcf.records[2].samples[0].find("GT") == vcf.records[2].samples[0].end());
     EXPECT_EQ((uint) 1, vcf.records[3].samples.size());
-    EXPECT_EQ(".", vcf.records[3].samples[0]);
+    EXPECT_TRUE(vcf.records[3].samples[0].find("GT") == vcf.records[3].samples[0].end());
     EXPECT_EQ((uint) 1, vcf.records[4].samples.size());
-    EXPECT_EQ(".", vcf.records[4].samples[0]);
+    EXPECT_TRUE(vcf.records[4].samples[0].find("GT") == vcf.records[4].samples[0].end());
 
     vcf.add_sample_ref_alleles("sample2", "chrom1", 5, 46);
     EXPECT_EQ((uint) 2, vcf.samples.size());
     EXPECT_EQ((uint) 5, vcf.records.size());
     EXPECT_EQ((uint) 2, vcf.records[0].samples.size());
-    EXPECT_EQ("0", vcf.records[0].samples[1]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[0].samples[1]["GT"]);
     EXPECT_EQ((uint) 2, vcf.records[1].samples.size());
-    EXPECT_EQ(".", vcf.records[1].samples[1]);
+    EXPECT_TRUE(vcf.records[1].samples[1].find("GT") == vcf.records[1].samples[1].end());
     EXPECT_EQ((uint) 2, vcf.records[2].samples.size());
-    EXPECT_EQ(".", vcf.records[2].samples[1]);
+    EXPECT_TRUE(vcf.records[2].samples[1].find("GT") == vcf.records[2].samples[1].end());
     EXPECT_EQ((uint) 2, vcf.records[3].samples.size());
-    EXPECT_EQ(".", vcf.records[3].samples[1]);
+    EXPECT_TRUE(vcf.records[3].samples[1].find("GT") == vcf.records[3].samples[1].end());
     EXPECT_EQ((uint) 2, vcf.records[4].samples.size());
-    EXPECT_EQ(".", vcf.records[4].samples[1]);
+    EXPECT_TRUE(vcf.records[4].samples[1].find("GT") == vcf.records[4].samples[1].end());
 }
 
 TEST(VCFTest, reorder_add_record_and_sample) {
@@ -117,6 +119,7 @@ TEST(VCFTest, reorder_add_record_and_sample) {
     vcf.add_record("chrom1", 79, "C", "G");
     vcf.add_sample_gt("sample2", "chrom1", 79, "C", "C");
     vcf.add_sample_gt("sample1", "chrom1", 79, "C", "A");
+
     vcf.sort_records();
 
     EXPECT_EQ((uint) 2, vcf.samples.size());
@@ -125,14 +128,14 @@ TEST(VCFTest, reorder_add_record_and_sample) {
     EXPECT_EQ((uint) 2, vcf.records[1].samples.size());
     EXPECT_EQ((uint) 2, vcf.records[2].samples.size());
     EXPECT_EQ((uint) 2, vcf.records[3].samples.size());
-    EXPECT_EQ(".", vcf.records[0].samples[0]);
-    EXPECT_EQ("1", vcf.records[1].samples[0]);
-    EXPECT_EQ("1", vcf.records[2].samples[0]);
-    EXPECT_EQ(".", vcf.records[3].samples[0]);
-    EXPECT_EQ(".", vcf.records[0].samples[1]);
-    EXPECT_EQ(".", vcf.records[1].samples[1]);
-    EXPECT_EQ("0", vcf.records[2].samples[1]);
-    EXPECT_EQ("0", vcf.records[3].samples[1]);
+    EXPECT_TRUE(vcf.records[0].samples[0].find("GT") == vcf.records[0].samples[0].end());
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[2].samples[0]["GT"]);
+    EXPECT_TRUE(vcf.records[3].samples[0].find("GT") == vcf.records[3].samples[0].end());
+    EXPECT_TRUE(vcf.records[0].samples[1].find("GT") == vcf.records[0].samples[1].end());
+    EXPECT_TRUE(vcf.records[1].samples[1].find("GT") == vcf.records[1].samples[1].end());
+    EXPECT_EQ((uint8_t) 0, vcf.records[2].samples[1]["GT"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[1]["GT"]);
 
 }
 

@@ -1260,14 +1260,19 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         }
         cout << "}" << endl;*/
 
-        string covg_info = ":" + to_string(mean(ref_fwd_covgs)) + ":" + to_string(mean(ref_rev_covgs))
-                           + ":" + to_string(mean(alt_fwd_covgs)) + ":" + to_string(mean(alt_rev_covgs))
-                           + ":" + to_string(median(ref_fwd_covgs)) + ":" + to_string(median(ref_rev_covgs))
-                           + ":" + to_string(median(alt_fwd_covgs)) + ":" + to_string(median(alt_rev_covgs))
-                           + ":" + to_string(sum(ref_fwd_covgs)) + ":" + to_string(sum(ref_rev_covgs))
-                           + ":" + to_string(sum(alt_fwd_covgs)) + ":" + to_string(sum(alt_rev_covgs));
+        record.samples[sample_index]["REF_MEAN_FWD_COVG"] = mean(ref_fwd_covgs);
+        record.samples[sample_index]["REF_MEAN_REV_COVG"] = mean(ref_rev_covgs);
+        record.samples[sample_index]["ALT_MEAN_FWD_COVG"] = mean(alt_fwd_covgs);
+        record.samples[sample_index]["ALT_MEAN_REV_COVG"] = mean(alt_rev_covgs);
+        record.samples[sample_index]["REF_MED_FWD_COVG"] = median(ref_fwd_covgs);
+        record.samples[sample_index]["REF_MED_REV_COVG"] = median(ref_rev_covgs);
+        record.samples[sample_index]["ALT_MED_FWD_COVG"] = median(alt_fwd_covgs);
+        record.samples[sample_index]["ALT_MED_REV_COVG"] = median(alt_rev_covgs);
+        record.samples[sample_index]["REF_SUM_FWD_COVG"] = sum(ref_fwd_covgs);
+        record.samples[sample_index]["REF_SUM_REV_COVG"] = sum(ref_rev_covgs);
+        record.samples[sample_index]["ALT_SUM_FWD_COVG"] = sum(alt_fwd_covgs);
+        record.samples[sample_index]["ALT_SUM_REV_COVG"] = sum(alt_rev_covgs);
 
-        record.samples[sample_index] = record.samples[sample_index].at(0) + covg_info;
         record.add_formats({"REF_MEAN_FWD_COVG","REF_MEAN_REV_COVG","ALT_MEAN_FWD_COVG","ALT_MEAN_REV_COVG",
                            "REF_MED_FWD_COVG","REF_MED_REV_COVG","ALT_MED_FWD_COVG","ALT_MED_REV_COVG",
                            "REF_SUM_FWD_COVG","REF_SUM_REV_COVG","ALT_SUM_FWD_COVG","ALT_SUM_REV_COVG"});
