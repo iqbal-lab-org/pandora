@@ -47,14 +47,6 @@ VCFRecord::VCFRecord() : chrom("."), pos(0), id("."), ref("."), alt("."), qual("
 
 VCFRecord::~VCFRecord() {};
 
-bool VCFRecord::operator==(const VCFRecord &y) const {
-    if (chrom != y.chrom) { return false; }
-    if (pos != y.pos) { return false; }
-    if (ref != y.ref) { return false; }
-    if (alt != y.alt) { return false; }
-    return true;
-}
-
 void VCFRecord::add_formats(std::vector<std::string> formats) {
     for (auto s : formats){
         if (find(format.begin(), format.end(),s) == format.end())
@@ -119,6 +111,7 @@ void VCFRecord::regenotype(const uint8_t confidence_threshold){
                     samples[i]["GT"] = 1;
                 } else if (samples[i]["GT"] == 1 and regt_samples[i]["ALT_LIKELIHOOD"] < regt_samples[i]["REF_LIKELIHOOD"]){
                     samples[i]["GT"] = 0;
+                    //swap_ref_and_alt_properties(i);
                 }
             } else {
                 samples[i].erase("GT");
@@ -127,6 +120,18 @@ void VCFRecord::regenotype(const uint8_t confidence_threshold){
             samples[i].erase("GT");
         }
     }
+}
+
+bool VCFRecord::operator==(const VCFRecord &y) const {
+    if (chrom != y.chrom) { return false; }
+    if (pos != y.pos) { return false; }
+    if (ref != y.ref) { return false; }
+    if (alt != y.alt) { return false; }
+    return true;
+}
+
+bool VCFRecord::operator!=(const VCFRecord &y) const {
+    return !(*this==y);
 }
 
 bool VCFRecord::operator<(const VCFRecord &y) const {
@@ -159,12 +164,13 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
     for(uint_least16_t i=0;i<m.samples.size(); ++i){
         out << "\t";
         for (auto f : m.format){
-            if (m.samples[i].find(f)!=m.samples[i].end())
-                out << m.samples.at(i).at(f);
-            else if (m.regt_samples[i].find(f)!=m.regt_samples[i].end())
-                out << m.regt_samples.at(i).at(f);
-            else
+            if (m.samples[i].find(f)!=m.samples[i].end()) {
+                out << +m.samples.at(i).at(f);
+            } else if (m.regt_samples.size() > 0 and m.regt_samples[i].find(f)!=m.regt_samples[i].end()) {
+                out << +m.regt_samples.at(i).at(f);
+            } else {
                 out << ".";
+            }
 
             if (f != last_format)
                 out << ":";

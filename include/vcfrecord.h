@@ -37,6 +37,8 @@ struct VCFRecord {
 
     bool operator==(const VCFRecord &y) const;
 
+    bool operator!=(const VCFRecord &y) const;
+
     bool operator<(const VCFRecord &y) const;
 
     friend std::ostream &operator<<(std::ostream &out, const VCFRecord &m);

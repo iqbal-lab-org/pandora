@@ -35,40 +35,12 @@ VCFRecord& VCF::add_record(VCFRecord &vr) {
     auto record_it = find(records.begin(), records.end(), vr);
     if (record_it == records.end()) {
         records.push_back(vr);
-        records.back().samples.insert(records.back().samples.end(), samples.size(), empty_map);
+        if (samples.size() > vr.samples.size())
+            records.back().samples.insert(records.back().samples.end(), samples.size()-vr.samples.size(), empty_map);
         return records.back();
     }
     return *record_it;
     // handle mismatched sample data?
-}
-
-void VCF::append_vcf(const VCF &other_vcf){
-    auto original_size = records.size();
-    auto num_samples_added = 0;
-
-    vector<uint_least16_t > other_sample_positions;
-    for (const auto sample : other_vcf.samples){
-        auto sample_it = find(samples.begin(), samples.end(), sample);
-        if (sample_it == samples.end()){
-            samples.push_back(sample);
-            other_sample_positions.push_back(samples.size() - 1);
-            num_samples_added += 1;
-        } else {
-            other_sample_positions.push_back(distance(samples.begin(), sample_it));
-        }
-    }
-
-    unordered_map<string,uint8_t> empty_u_map;
-    for (uint_least16_t i=0; i<original_size; ++i){
-        records[i].samples.insert(records[i].samples.end(), num_samples_added, empty_u_map);
-    }
-
-    for (auto record : other_vcf.records){
-        VCFRecord& vr = add_record(record);
-        for(uint_least16_t j=0; j<other_vcf.samples.size(); ++j){
-            vr.samples[other_sample_positions[j]] = record.samples[j];
-        }
-    }
 }
 
 ptrdiff_t VCF::get_sample_index(const string& name){
@@ -175,6 +147,36 @@ void VCF::clear() {
     records.clear();
 }
 
+void VCF::append_vcf(const VCF &other_vcf){
+    auto original_size = records.size();
+    auto num_samples_added = 0;
+
+    vector<uint_least16_t > other_sample_positions;
+    for (const auto sample : other_vcf.samples){
+        auto sample_it = find(samples.begin(), samples.end(), sample);
+        if (sample_it == samples.end()){
+            samples.push_back(sample);
+            other_sample_positions.push_back(samples.size() - 1);
+            num_samples_added += 1;
+        } else {
+            other_sample_positions.push_back(distance(samples.begin(), sample_it));
+        }
+    }
+
+    unordered_map<string,uint8_t> empty_u_map;
+    for (uint_least16_t i=0; i<original_size; ++i){
+        records[i].samples.insert(records[i].samples.end(), num_samples_added, empty_u_map);
+    }
+
+    for (auto record : other_vcf.records){
+        VCFRecord& vr = add_record(record);
+        for(uint_least16_t j=0; j<other_vcf.samples.size(); ++j){
+            vr.samples[other_sample_positions[j]] = record.samples[j];
+            //NB this overwrites old data without checking
+        }
+    }
+}
+
 void VCF::sort_records() {
     sort(records.begin(), records.end());
     return;
@@ -200,11 +202,37 @@ void VCF::regenotype(const uint32_t & expected_depth_covg, const float & error_r
     }
 }
 
+string VCF::header() {
+    // find date
+    time_t t = time(0);
+    char mbstr[10];
+    strftime(mbstr, sizeof(mbstr), "%d/%m/%y", localtime(&t));
+
+    string header;
+    header += "##fileformat=VCFv4.3\n";
+    header += "##fileDate==";
+    header += mbstr;
+    header += "\n##ALT=<ID=SNP,Description=\"SNP\">\n" ;
+    header += "##ALT=<ID=PH_SNPs,Description=\"Phased SNPs\">\n";
+    header += "##ALT=<ID=INDEL,Description=\"Insertion-deletion\">\n";
+    header += "##ALT=<ID=COMPLEX,Description=\"Complex variant, collection of SNPs and indels\">\n";
+    header += "##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of variant\">\n";
+    header += "##ALT=<ID=SIMPLE,Description=\"Graph bubble is simple\">\n";
+    header += "##ALT=<ID=NESTED,Description=\"Variation site was a nested feature in the graph\">\n";
+    header += "##ALT=<ID=TOO_MANY_ALTS,Description=\"Variation site was a multinested feature with too many alts to include all in the VCF\">\n";
+    header += "##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description=\"Type of graph feature\">\n";
+    header += "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT";
+    for (uint32_t i = 0; i != samples.size(); ++i) {
+        header += "\t" + samples[i];
+    }
+    header += "\n";
+    return header;
+}
+
 // NB in the absence of filter flags being set to true, all results are saved. If one or more filter flags for SVTYPE are set, 
 // then only those matching the filter are saved. Similarly for GRAPHTYPE.
-void
-VCF::save(const string &filepath, bool simple, bool complexgraph, bool toomanyalts, bool snp, bool indel, bool phsnps,
-          bool complexvar) {
+void VCF::save(const string &filepath, bool simple, bool complexgraph, bool toomanyalts, bool snp, bool indel,
+               bool phsnps, bool complexvar) {
     /*if (samples.size() == 0)
     {
 	    cout << now() << "Did not save VCF for sample" << endl;
@@ -212,33 +240,11 @@ VCF::save(const string &filepath, bool simple, bool complexgraph, bool toomanyal
     }*/
     cout << now() << "Saving VCF to " << filepath << endl;
 
-    // find date
-    time_t t = time(0);
-    char mbstr[10];
-    strftime(mbstr, sizeof(mbstr), "%d/%m/%y", localtime(&t));
-
     // open and write header
     ofstream handle;
     handle.open(filepath);
 
-    handle << "##fileformat=VCFv4.3" << endl;
-    handle << "##fileDate==" << mbstr << endl;
-    handle << "##ALT=<ID=SNP,Description=\"SNP\">" << endl;
-    handle << "##ALT=<ID=PH_SNPs,Description=\"Phased SNPs\">" << endl;
-    handle << "##ALT=<ID=INDEL,Description=\"Insertion-deletion\">" << endl;
-    handle << "##ALT=<ID=COMPLEX,Description=\"Complex variant, collection of SNPs and indels\">" << endl;
-    handle << "##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of variant\">" << endl;
-    handle << "##ALT=<ID=SIMPLE,Description=\"Graph bubble is simple\">" << endl;
-    handle << "##ALT=<ID=NESTED,Description=\"Variation site was a nested feature in the graph\">" << endl;
-    handle
-            << "##ALT=<ID=TOO_MANY_ALTS,Description=\"Variation site was a multinested feature with too many alts to include all in the VCF\">"
-            << endl;
-    handle << "##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description=\"Type of graph feature\">" << endl;
-    handle << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT";
-    for (uint32_t i = 0; i != samples.size(); ++i) {
-        handle << "\t" << samples[i];
-    }
-    handle << endl;
+    handle << header();
 
     sort_records();
 
@@ -399,4 +405,15 @@ bool VCF::operator==(const VCF &y) const {
         }
     }
     return true;
+}
+
+bool VCF::operator!=(const VCF &y) const {
+    return !(*this==y);
+}
+
+std::ostream &operator<<(std::ostream &out, VCF const &m) {
+    for (auto record : m.records){
+        out << record;
+    }
+    return out;
 }

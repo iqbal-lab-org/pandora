@@ -25,8 +25,6 @@ public:
 
     VCFRecord& add_record(VCFRecord &);
 
-    void append_vcf(const VCF&);
-
     ptrdiff_t get_sample_index(const std::string&);
 
     void add_sample_gt(const std::string &name, const std::string &c, const uint32_t p, const std::string &r,
@@ -36,11 +34,15 @@ public:
 
     void clear();
 
+    void append_vcf(const VCF&);
+
     void sort_records();
 
     bool pos_in_range(const uint32_t , const uint32_t, const std::string&);
 
     void regenotype(const uint32_t&, const float&,const uint8_t);
+
+    std::string header();
 
     void save(const std::string &, bool simple = false, bool complexgraph = false, bool toomanyalts = false,
               bool snp = false, bool indel = false, bool phsnps = false, bool complexvar = false);
@@ -50,6 +52,10 @@ public:
     void write_aligned_fasta(const std::string &, const std::string&, const std::vector<LocalNodePtr> &);
 
     bool operator==(const VCF &y) const;
+
+    bool operator!=(const VCF &y) const;
+
+    friend std::ostream &operator<<(std::ostream &out, const VCF &m);
 };
 
 #endif
