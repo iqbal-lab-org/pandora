@@ -18,8 +18,8 @@ struct VCFRecord {
     std::string filter; // not used
     std::string info;
     std::vector<std::string> format; //e.g. "GT"
-    std::vector<std::unordered_map<std::string, uint8_t>> samples;
-    std::vector<std::unordered_map<std::string, float>> regt_samples;
+    std::vector<std::unordered_map<std::string, uint8_t>> samples;      // should have an entry for each sample in vcf,
+    std::vector<std::unordered_map<std::string, float>> regt_samples;   // in the same order
 
     VCFRecord(std::string, uint32_t, std::string, std::string, std::string i = ".", std::string g = "");
 

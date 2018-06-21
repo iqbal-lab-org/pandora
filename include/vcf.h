@@ -23,7 +23,9 @@ public:
 
     void add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i = ".", std::string g = "");
 
-    void add_record(VCFRecord &);
+    VCFRecord& add_record(VCFRecord &);
+
+    void append_vcf(const VCF&);
 
     ptrdiff_t get_sample_index(const std::string&);
 
@@ -36,7 +38,7 @@ public:
 
     void sort_records();
 
-    bool pos_in_range(const uint32_t , const uint32_t);
+    bool pos_in_range(const uint32_t , const uint32_t, const std::string&);
 
     void regenotype(const uint32_t&, const float&,const uint8_t);
 
@@ -45,7 +47,7 @@ public:
 
     void load(const std::string &);
 
-    void write_aligned_fasta(const std::string &, const std::vector<LocalNodePtr> &);
+    void write_aligned_fasta(const std::string &, const std::string&, const std::vector<LocalNodePtr> &);
 
     bool operator==(const VCF &y) const;
 };

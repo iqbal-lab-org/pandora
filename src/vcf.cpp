@@ -30,11 +30,44 @@ void VCF::add_record(string c, uint32_t p, string r, string a, string i, string 
     //cout << "added record: " << vr << endl;
 }
 
-void VCF::add_record(VCFRecord &vr) {
+VCFRecord& VCF::add_record(VCFRecord &vr) {
     unordered_map<string,uint8_t> empty_map;
-    if (find(records.begin(), records.end(), vr) == records.end()) {
+    auto record_it = find(records.begin(), records.end(), vr);
+    if (record_it == records.end()) {
         records.push_back(vr);
         records.back().samples.insert(records.back().samples.end(), samples.size(), empty_map);
+        return records.back();
+    }
+    return *record_it;
+    // handle mismatched sample data?
+}
+
+void VCF::append_vcf(const VCF &other_vcf){
+    auto original_size = records.size();
+    auto num_samples_added = 0;
+
+    vector<uint_least16_t > other_sample_positions;
+    for (const auto sample : other_vcf.samples){
+        auto sample_it = find(samples.begin(), samples.end(), sample);
+        if (sample_it == samples.end()){
+            samples.push_back(sample);
+            other_sample_positions.push_back(samples.size() - 1);
+            num_samples_added += 1;
+        } else {
+            other_sample_positions.push_back(distance(samples.begin(), sample_it));
+        }
+    }
+
+    unordered_map<string,uint8_t> empty_u_map;
+    for (uint_least16_t i=0; i<original_size; ++i){
+        records[i].samples.insert(records[i].samples.end(), num_samples_added, empty_u_map);
+    }
+
+    for (auto record : other_vcf.records){
+        VCFRecord& vr = add_record(record);
+        for(uint_least16_t j=0; j<other_vcf.samples.size(); ++j){
+            vr.samples[other_sample_positions[j]] = record.samples[j];
+        }
     }
 }
 
@@ -78,7 +111,7 @@ void VCF::add_sample_gt(const string &name, const string &c, const uint32_t p, c
         //cout << "didn't find a record for pos " << p << " ref " << r << " and alt " << a << endl;
         // either we have the ref allele, an alternative allele for a too nested site, or a mistake
         for (uint32_t i = 0; i != records.size(); ++i) {
-            if (records[i].pos == p and r == a and records[i].ref == r) {
+            if (records[i].chrom == c and records[i].pos == p and r == a and records[i].ref == r) {
                 //cout << "have ref allele" << endl;
                 records[i].samples[sample_index]["GT"] = 0;
                 vrp = &records[i];
@@ -98,7 +131,7 @@ void VCF::add_sample_gt(const string &name, const string &c, const uint32_t p, c
 
     // update other samples at this site if they have ref allele at this pos
     for (uint32_t i = 0; i != records.size(); ++i) {
-        if (records[i].pos <= p and records[i].pos + records[i].ref.length() > p) {
+        if (records[i].chrom == c and records[i].pos <= p and records[i].pos + records[i].ref.length() > p) {
             for (uint32_t j = 0; j != records[i].samples.size(); ++j) {
                 if (records[i].samples[j].find("GT") != records[i].samples[j].end() and records[i].samples[j]["GT"] == 0) {
                     //cout << "update my record to have ref allele also for sample " << j << endl;
@@ -112,7 +145,7 @@ void VCF::add_sample_gt(const string &name, const string &c, const uint32_t p, c
     return;
 }
 
-void VCF::add_sample_ref_alleles(const string &sample_name, const string &name, const uint32_t &pos, const uint32_t &pos_to) {
+void VCF::add_sample_ref_alleles(const string &sample_name, const string &chrom, const uint32_t &pos, const uint32_t &pos_to) {
     ptrdiff_t sample_index;
     unordered_map<string,uint8_t> empty_map;
 
@@ -130,7 +163,7 @@ void VCF::add_sample_ref_alleles(const string &sample_name, const string &name, 
     }
 
     for (uint32_t i = 0; i != records.size(); ++i) {
-        if (pos <= records[i].pos and records[i].pos + records[i].ref.length() <= pos_to and records[i].chrom == name) {
+        if (records[i].chrom == chrom and pos <= records[i].pos and records[i].pos + records[i].ref.length() <= pos_to) {
             records[i].samples[sample_index]["GT"] = 0;
             //cout << "update record " << records[i] << endl;
         }
@@ -147,9 +180,9 @@ void VCF::sort_records() {
     return;
 }
 
-bool VCF::pos_in_range(const uint32_t from, const uint32_t to) {
+bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const string& chrom) {
     for (uint32_t i = 0; i != records.size(); ++i) {
-        if (from < records[i].pos and records[i].pos + records[i].ref.length() <= to) {
+        if (chrom == records[i].chrom and from < records[i].pos and records[i].pos + records[i].ref.length() <= to) {
             return true;
         }
     }
@@ -254,7 +287,7 @@ void VCF::load(const string &filepath) {
     return;
 }
 
-void VCF::write_aligned_fasta(const string &filepath, const vector<LocalNodePtr> &lmp) {
+void VCF::write_aligned_fasta(const string &filepath, const string &chrom, const vector<LocalNodePtr> &lmp) {
     cout << now() << "Write aligned fasta to " << filepath << endl;
     sort_records();
 
@@ -276,7 +309,7 @@ void VCF::write_aligned_fasta(const string &filepath, const vector<LocalNodePtr>
     vector<uint32_t> alt_until(samples.size(), 0);
 
     for (uint32_t i = 0; i != records.size(); ++i) {
-        if (records[i].pos != (uint32_t) prev_pos) {
+        if (records[i].chrom == chrom and records[i].pos != (uint32_t) prev_pos) {
             // equalise lengths of sequences
             for (uint32_t j = 0; j != samples.size(); ++j) {
                 if (seqs[j].length() < max_len) {
@@ -287,7 +320,7 @@ void VCF::write_aligned_fasta(const string &filepath, const vector<LocalNodePtr>
             }
 
             // add ref sequence for gaps
-            while (ref_len < records[i].pos and n < lmp.size()) {
+            while (records[i].chrom == chrom and ref_len < records[i].pos and n < lmp.size()) {
                 for (uint32_t j = 0; j != samples.size(); ++j) {
                     if (alt_until[j] < records[i].pos) {
                         //cout << "add ref gap allele to seq " << j << endl;
@@ -300,14 +333,14 @@ void VCF::write_aligned_fasta(const string &filepath, const vector<LocalNodePtr>
         }
         //cout << "record[" << i << "] " << records[i] << endl;
         for (uint32_t j = 0; j != samples.size(); ++j) {
-            if (records[i].samples[j]["GT"] == 0 and records[i].pos != (uint32_t) prev_pos and
-                pos_in_range(records[i].pos, records[i].pos + records[i].ref.length()) == false) {
+            if (records[i].chrom == chrom and records[i].samples[j]["GT"] == 0 and records[i].pos != (uint32_t) prev_pos and
+                pos_in_range(records[i].pos, records[i].pos + records[i].ref.length(),chrom) == false) {
                 //cout << j << " add ref allele at site" << endl;
                 seqs[j] += records[i].ref;
                 max_len = max(max_len, (uint32_t) seqs[j].length());
                 ref_len += records[i].ref.length();
                 n++;
-            } else if (records[i].samples[j]["GT"] == 1) {
+            } else if (records[i].chrom == chrom and records[i].samples[j]["GT"] == 1) {
                 //cout << j << " add alt allele at site" << endl;
                 assert(records[i].pos != (uint32_t) prev_pos);
                 seqs[j] += records[i].alt;
