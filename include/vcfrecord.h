@@ -33,8 +33,6 @@ struct VCFRecord {
 
     void confidence();
 
-    //void swap_ref_and_alt_properties(uint_least16_t);
-
     void regenotype(const uint8_t);
 
     bool operator==(const VCFRecord &y) const;
