@@ -1,11 +1,12 @@
 #include "gtest/gtest.h"
+#include "test_macro.cpp"
 #include "vcfrecord.h"
 #include <stdint.h>
 #include <iostream>
 
 using namespace std;
 
-TEST(VCFRecordTest, create) {
+TEST(VCFRecordTest, create_empty) {
 
     VCFRecord vr;
     EXPECT_EQ(".", vr.chrom);
@@ -16,8 +17,14 @@ TEST(VCFRecordTest, create) {
     EXPECT_EQ(".", vr.qual);
     EXPECT_EQ(".", vr.filter);
     EXPECT_EQ(".", vr.info);
+    EXPECT_EQ((uint)0, vr.format.size());
+    EXPECT_EQ((uint)0, vr.samples.size());
+    EXPECT_EQ((uint)0, vr.regt_samples.size());
+}
 
-    vr = VCFRecord("chrom1", 3, "A", "T");
+TEST(VCFRecordTest, create_with_values) {
+
+    VCFRecord vr("chrom1", 3, "A", "T");
     EXPECT_EQ("chrom1", vr.chrom);
     EXPECT_EQ((uint) 3, vr.pos);
     EXPECT_EQ(".", vr.id);
@@ -26,6 +33,61 @@ TEST(VCFRecordTest, create) {
     EXPECT_EQ(".", vr.qual);
     EXPECT_EQ(".", vr.filter);
     EXPECT_EQ("SVTYPE=SNP", vr.info);
+    EXPECT_EQ((uint)1, vr.format.size());
+    EXPECT_EQ((uint)0, vr.samples.size());
+    EXPECT_EQ((uint)0, vr.regt_samples.size());
+}
+
+TEST(VCFRecordTest, create_from_record) {
+
+    VCFRecord template_vr("chrom1", 3, "A", "T");
+    VCFRecord vr(template_vr);
+    EXPECT_EQ("chrom1", vr.chrom);
+    EXPECT_EQ((uint) 3, vr.pos);
+    EXPECT_EQ(".", vr.id);
+    EXPECT_EQ("A", vr.ref);
+    EXPECT_EQ("T", vr.alt);
+    EXPECT_EQ(".", vr.qual);
+    EXPECT_EQ(".", vr.filter);
+    EXPECT_EQ("SVTYPE=SNP", vr.info);
+    EXPECT_EQ((uint)1, vr.format.size());
+    EXPECT_EQ((uint)0, vr.samples.size());
+    EXPECT_EQ((uint)0, vr.regt_samples.size());
+}
+
+TEST(VCFRecordTest, add_formats_none) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    vector<string> new_formats = {};
+    vr.add_formats(new_formats);
+    vector<string> expected_formats = {"GT"};
+    EXPECT_ITERABLE_EQ(vector<string>,expected_formats, vr.format);
+}
+
+TEST(VCFRecordTest, add_formats_some) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    vector<string> new_formats = {"hi", "there"};
+    vr.add_formats(new_formats);
+    vector<string> expected_formats = {"GT", "hi", "there"};
+    EXPECT_ITERABLE_EQ(vector<string>,expected_formats, vr.format);
+}
+
+TEST(VCFRecordTest, add_formats_some_repeat) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    vector<string> new_formats = {"hi", "there"};
+    vr.add_formats(new_formats);
+    vr.add_formats(new_formats);
+    vector<string> expected_formats = {"GT", "hi", "there"};
+    EXPECT_ITERABLE_EQ(vector<string>,expected_formats, vr.format);
+}
+
+TEST(VCFRecordTest, add_formats_some_overlapping) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    vector<string> new_formats = {"hi", "there"};
+    vr.add_formats(new_formats);
+    new_formats = {"hi", "again"};
+    vr.add_formats(new_formats);
+    vector<string> expected_formats = {"GT", "hi", "there", "again"};
+    EXPECT_ITERABLE_EQ(vector<string>,expected_formats, vr.format);
 }
 
 TEST(VCFRecordLikelihoodTest, does_not_crash_with_no_samples) {
@@ -198,7 +260,7 @@ TEST(VCFRecordConfidenceTest, handles_alt_covg_0) {
     EXPECT_FLOAT_EQ(exp_confidence,vr.regt_samples[0]["CONFIDENCE"]);
 }
 
-TEST(VCFRecordSwapTest, swaps_correctly_all_values_present) {
+/*TEST(VCFRecordSwapTest, swaps_correctly_all_values_present) {
     VCFRecord vr("chrom1", 3, "A", "T");
     unordered_map<string, uint8_t> m;
     vr.samples.push_back(m);
@@ -276,6 +338,125 @@ TEST(VCFRecordSwapTest, swaps_correctly_some_values_present) {
     EXPECT_EQ(vr.regt_samples[0]["ALT_LIKELIHOOD"],12);
     EXPECT_EQ(vr.samples[0]["GT"],14);
     EXPECT_EQ(vr.regt_samples[0]["CONFIDENCE"],15);
+}*/
+
+TEST(VCFRecordRegenotypeTest, correctly_regenotypes) {
+    // sample 0 missing confidence
+    // sample 1 confidence below threshold
+    // sample 2 confidence above threshold, but has correct GT 0 already
+    // sample 3 confidence above threshold, but has correct GT 1 already
+    // sample 4 confidence above threshold, has incorrect GT 0
+    // sample 5 confidence above threshold, has incorrect GT 1
+
+    VCFRecord vr("chrom1", 3, "A", "T");
+    unordered_map<string, uint8_t> m;
+    unordered_map<string, float> rm;
+    for (uint i = 0; i < 6; ++i) {
+        vr.regt_samples.push_back(rm);
+        vr.samples.push_back(m);
+    }
+
+    vr.samples[0]["REF_MEAN_FWD_COVG"] = 0;
+    vr.samples[0]["REF_MEAN_REV_COVG"] = 1;
+    vr.samples[0]["ALT_MEAN_FWD_COVG"] = 2;
+    vr.samples[0]["ALT_MEAN_REV_COVG"] = 3;
+    vr.regt_samples[0]["REF_LIKELIHOOD"] = 4;
+    vr.regt_samples[0]["ALT_LIKELIHOOD"] = 5;
+    vr.samples[0]["GT"] = 1;
+
+    vr.samples[1]["REF_MEAN_FWD_COVG"] = 0;
+    vr.samples[1]["REF_MEAN_REV_COVG"] = 1;
+    vr.samples[1]["ALT_MEAN_FWD_COVG"] = 2;
+    vr.samples[1]["ALT_MEAN_REV_COVG"] = 3;
+    vr.regt_samples[1]["REF_LIKELIHOOD"] = 4;
+    vr.regt_samples[1]["ALT_LIKELIHOOD"] = 5;
+    vr.samples[1]["GT"] = 1;
+    vr.regt_samples[1]["CONFIDENCE"] = 1;
+
+    vr.samples[2]["REF_MEAN_FWD_COVG"] = 0;
+    vr.samples[2]["REF_MEAN_REV_COVG"] = 1;
+    vr.samples[2]["ALT_MEAN_FWD_COVG"] = 2;
+    vr.samples[2]["ALT_MEAN_REV_COVG"] = 3;
+    vr.regt_samples[2]["REF_LIKELIHOOD"] = 6;
+    vr.regt_samples[2]["ALT_LIKELIHOOD"] = 4;
+    vr.samples[2]["GT"] = 0;
+    vr.regt_samples[2]["CONFIDENCE"] = 2;
+
+    vr.samples[3]["REF_MEAN_FWD_COVG"] = 0;
+    vr.samples[3]["REF_MEAN_REV_COVG"] = 1;
+    vr.samples[3]["ALT_MEAN_FWD_COVG"] = 2;
+    vr.samples[3]["ALT_MEAN_REV_COVG"] = 3;
+    vr.regt_samples[3]["REF_LIKELIHOOD"] = 4;
+    vr.regt_samples[3]["ALT_LIKELIHOOD"] = 6;
+    vr.samples[3]["GT"] = 1;
+    vr.regt_samples[3]["CONFIDENCE"] = 2;
+
+    vr.samples[4]["REF_MEAN_FWD_COVG"] = 0;
+    vr.samples[4]["REF_MEAN_REV_COVG"] = 1;
+    vr.samples[4]["ALT_MEAN_FWD_COVG"] = 2;
+    vr.samples[4]["ALT_MEAN_REV_COVG"] = 3;
+    vr.regt_samples[4]["REF_LIKELIHOOD"] = 6;
+    vr.regt_samples[4]["ALT_LIKELIHOOD"] = 4;
+    vr.samples[4]["GT"] = 1;
+    vr.regt_samples[4]["CONFIDENCE"] = 2;
+
+    vr.samples[5]["REF_MEAN_FWD_COVG"] = 0;
+    vr.samples[5]["REF_MEAN_REV_COVG"] = 1;
+    vr.samples[5]["ALT_MEAN_FWD_COVG"] = 2;
+    vr.samples[5]["ALT_MEAN_REV_COVG"] = 3;
+    vr.regt_samples[5]["REF_LIKELIHOOD"] = 4;
+    vr.regt_samples[5]["ALT_LIKELIHOOD"] = 6;
+    vr.samples[5]["GT"] = 0;
+    vr.regt_samples[5]["CONFIDENCE"] = 2;
+
+    vr.regenotype(1);
+    EXPECT_EQ(vr.samples[0]["REF_MEAN_FWD_COVG"],0);
+    EXPECT_EQ(vr.samples[0]["REF_MEAN_REV_COVG"],1);
+    EXPECT_EQ(vr.samples[0]["ALT_MEAN_FWD_COVG"],2);
+    EXPECT_EQ(vr.samples[0]["ALT_MEAN_REV_COVG"],3);
+    EXPECT_EQ(vr.regt_samples[0]["REF_LIKELIHOOD"],4);
+    EXPECT_EQ(vr.regt_samples[0]["ALT_LIKELIHOOD"],5);
+    EXPECT_EQ(vr.samples[0]["GT"],'\0');
+
+    EXPECT_EQ(vr.samples[1]["REF_MEAN_FWD_COVG"],0);
+    EXPECT_EQ(vr.samples[1]["REF_MEAN_REV_COVG"],1);
+    EXPECT_EQ(vr.samples[1]["ALT_MEAN_FWD_COVG"],2);
+    EXPECT_EQ(vr.samples[1]["ALT_MEAN_REV_COVG"],3);
+    EXPECT_EQ(vr.regt_samples[1]["REF_LIKELIHOOD"],4);
+    EXPECT_EQ(vr.regt_samples[1]["ALT_LIKELIHOOD"],5);
+    EXPECT_EQ(vr.samples[1]["GT"],'\0');
+
+    EXPECT_EQ(vr.samples[2]["REF_MEAN_FWD_COVG"],0);
+    EXPECT_EQ(vr.samples[2]["REF_MEAN_REV_COVG"],1);
+    EXPECT_EQ(vr.samples[2]["ALT_MEAN_FWD_COVG"],2);
+    EXPECT_EQ(vr.samples[2]["ALT_MEAN_REV_COVG"],3);
+    EXPECT_EQ(vr.regt_samples[2]["REF_LIKELIHOOD"],6);
+    EXPECT_EQ(vr.regt_samples[2]["ALT_LIKELIHOOD"],4);
+    EXPECT_EQ(vr.samples[2]["GT"],0);
+
+    EXPECT_EQ(vr.samples[3]["REF_MEAN_FWD_COVG"],0);
+    EXPECT_EQ(vr.samples[3]["REF_MEAN_REV_COVG"],1);
+    EXPECT_EQ(vr.samples[3]["ALT_MEAN_FWD_COVG"],2);
+    EXPECT_EQ(vr.samples[3]["ALT_MEAN_REV_COVG"],3);
+    EXPECT_EQ(vr.regt_samples[3]["REF_LIKELIHOOD"],4);
+    EXPECT_EQ(vr.regt_samples[3]["ALT_LIKELIHOOD"],6);
+    EXPECT_EQ(vr.samples[3]["GT"],1);
+
+    EXPECT_EQ(vr.samples[4]["REF_MEAN_FWD_COVG"],0);
+    EXPECT_EQ(vr.samples[4]["REF_MEAN_REV_COVG"],1);
+    EXPECT_EQ(vr.samples[4]["ALT_MEAN_FWD_COVG"],2);
+    EXPECT_EQ(vr.samples[4]["ALT_MEAN_REV_COVG"],3);
+    EXPECT_EQ(vr.regt_samples[4]["REF_LIKELIHOOD"],6);
+    EXPECT_EQ(vr.regt_samples[4]["ALT_LIKELIHOOD"],4);
+    EXPECT_EQ(vr.samples[4]["GT"],0);
+
+    EXPECT_EQ(vr.samples[5]["REF_MEAN_FWD_COVG"],0);
+    EXPECT_EQ(vr.samples[5]["REF_MEAN_REV_COVG"],1);
+    EXPECT_EQ(vr.samples[5]["ALT_MEAN_FWD_COVG"],2);
+    EXPECT_EQ(vr.samples[5]["ALT_MEAN_REV_COVG"],3);
+    EXPECT_EQ(vr.regt_samples[5]["REF_LIKELIHOOD"],4);
+    EXPECT_EQ(vr.regt_samples[5]["ALT_LIKELIHOOD"],6);
+    EXPECT_EQ(vr.samples[5]["GT"],1);
 }
 
 

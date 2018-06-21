@@ -111,7 +111,7 @@ void VCFRecord::confidence(){
     add_formats({"CONFIDENCE"});
 }
 
-void VCFRecord::swap_ref_and_alt_properties(uint_least16_t i){
+/*void VCFRecord::swap_ref_and_alt_properties(uint_least16_t i){
     swap(samples[i]["REF_MEAN_FWD_COVG"],samples[i]["ALT_MEAN_FWD_COVG"]);
     swap(samples[i]["REF_MEAN_REV_COVG"],samples[i]["ALT_MEAN_REV_COVG"]);
     swap(samples[i]["REF_MED_FWD_COVG"],samples[i]["ALT_MED_FWD_COVG"]);
@@ -119,7 +119,7 @@ void VCFRecord::swap_ref_and_alt_properties(uint_least16_t i){
     swap(samples[i]["REF_SUM_FWD_COVG"],samples[i]["ALT_SUM_FWD_COVG"]);
     swap(samples[i]["REF_SUM_REV_COVG"],samples[i]["ALT_SUM_REV_COVG"]);
     swap(regt_samples[i]["REF_LIKELIHOOD"],regt_samples[i]["ALT_LIKELIHOOD"]);
-}
+}*/
 
 void VCFRecord::regenotype(const uint8_t confidence_threshold){
     for (uint_least16_t i=0; i<samples.size(); ++i) {
@@ -127,14 +127,16 @@ void VCFRecord::regenotype(const uint8_t confidence_threshold){
             if (regt_samples[i]["CONFIDENCE"] > confidence_threshold){
                 if (samples[i]["GT"] == 0 and regt_samples[i]["ALT_LIKELIHOOD"] > regt_samples[i]["REF_LIKELIHOOD"]){
                     samples[i]["GT"] = 1;
-                    swap_ref_and_alt_properties(i);
+                    //swap_ref_and_alt_properties(i);
                 } else if (samples[i]["GT"] == 1 and regt_samples[i]["ALT_LIKELIHOOD"] < regt_samples[i]["REF_LIKELIHOOD"]){
                     samples[i]["GT"] = 0;
-                    swap_ref_and_alt_properties(i);
+                    //swap_ref_and_alt_properties(i);
                 }
             } else {
                 samples[i].erase("GT");
             }
+        } else {
+            samples[i].erase("GT");
         }
     }
 }

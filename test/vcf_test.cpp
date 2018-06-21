@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+
 #include "vcf.h"
 #include "vcfrecord.h"
 #include "interval.h"
@@ -253,7 +254,7 @@ TEST(VCFTest, write_aligned_fasta) {
     EXPECT_EQ(j, vcf.records.size());
 
     vector<LocalNodePtr> lmp;
-    vcf.write_aligned_fasta("vcf1.multisample.fa", lmp);
+    vcf.write_aligned_fasta("vcf1.multisample.fa", "chrom1", lmp);
 
     // add just the ref
     LocalNodePtr ln0(make_shared<LocalNode>("A", Interval(0, 1), 1));
@@ -268,10 +269,10 @@ TEST(VCFTest, write_aligned_fasta) {
     lmp.push_back(ln5);
     LocalNodePtr ln3(make_shared<LocalNode>("C", Interval(79, 80), 6));
     lmp.push_back(ln3);
-    vcf.write_aligned_fasta("vcf2.multisample.fa", lmp);
+    vcf.write_aligned_fasta("vcf2.multisample.fa", "chrom1", lmp);
 
     // now add a sample
     vcf.add_sample_gt("sample1", "chrom1", 46, "T", "TA");
-    vcf.write_aligned_fasta("vcf3.multisample.fa", lmp);
+    vcf.write_aligned_fasta("vcf3.multisample.fa", "chrom1", lmp);
 
 }
