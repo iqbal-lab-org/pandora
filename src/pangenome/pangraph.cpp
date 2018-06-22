@@ -347,7 +347,7 @@ void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
                 assert((*mh)->knode_id < pnode.second->kmer_prg.nodes.size() and pnode.second->kmer_prg.nodes[(*mh)->knode_id]!=nullptr);
                 pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] += 1;
                 if (pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] == 1000){
-                    cout << "Adding hit " << **mh << " resulted in high coverage on node " << *pnode.second << endl;
+                    cout << "Adding hit " << **mh << " resulted in high coverage on node " << *pnode.second->kmer_prg.nodes[(*mh)->knode_id] << endl;
                 }
                 //cout << " to " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] << endl;
                 num_hits[(*mh)->strand] += 1;

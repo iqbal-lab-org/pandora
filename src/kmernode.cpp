@@ -35,9 +35,9 @@ KmerNode &KmerNode::operator=(const KmerNode &other) {
 
 std::ostream &operator<<(std::ostream &out, KmerNode const &n) {
     out << n.id << " " << n.path << " " << (unsigned) n.covg[0] << ", " << (unsigned) n.covg[1] << endl;
-    for (uint32_t i = 0; i != n.outNodes.size(); ++i) {
+    /*for (uint32_t i = 0; i != n.outNodes.size(); ++i) {
         out << n.id << " -> " << n.outNodes[i]->id << endl;
-    }
+    }*/
     return out;
 }
 
