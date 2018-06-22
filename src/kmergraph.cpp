@@ -255,12 +255,12 @@ void KmerGraph::set_nb(const float& nb_prob, const float& nb_fail) {
 
 float KmerGraph::nb_prob(uint32_t j) {
     auto k = nodes[j]->covg[0] + nodes[j]->covg[1];
-    cout << "j: " << j << " " << nodes[j]->covg[0] << " + " << nodes[j]->covg[1] << " = "
-         << nodes[j]->covg[0] + nodes[j]->covg[1] << " = " << k << endl;
-    cout << "nb_prob(" << nb_r << "," << nb_p << "," << k << ") = ";
+    //cout << "j: " << j << " " << nodes[j]->covg[0] << " + " << nodes[j]->covg[1] << " = "
+    //     << nodes[j]->covg[0] + nodes[j]->covg[1] << " = " << k << endl;
+    //cout << "nb_prob(" << nb_r << "," << nb_p << "," << k << ") = ";
     float ret = log(pdf(boost::math::negative_binomial(nb_r, nb_p), k));
     ret = max(ret, numeric_limits<float>::lowest()/1000);
-    cout << ret << endl;
+    //cout << ret << endl;
     return ret;
 }
 
