@@ -246,7 +246,7 @@ void KmerGraph::set_p(const float e_rate) {
 void KmerGraph::set_nb(const float& nb_prob, const float& nb_fail) {
     if (nb_prob == 0 and nb_fail == 0)
         return;
-    cout << "set nb" << endl;
+    //qcout << "set nb" << endl;
     assert((nb_p > 0 and nb_p < 1) || assert_msg("nb_p " << nb_p << " was not set in kmergraph"));
     assert(nb_r > 0 || assert_msg("nb_r was not set in kmergraph"));
     nb_p += nb_prob;

@@ -206,6 +206,8 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\tregenotype\t" << regenotype << endl << endl;
 
     make_dir(outdir);
+    if (output_kg)
+        make_dir(outdir + "/kmer_graphs");
 
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
     Index *idx;

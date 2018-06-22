@@ -138,7 +138,6 @@ void read_prg_file(vector<LocalPRG *> &prgs, const string &filepath) {
         }
     }
     cout << now() << "Number of LocalPRGs read: " << prgs.size() << endl;
-    fh.close();
 }
 
 void load_PRG_kmergraphs(vector<LocalPRG *> &prgs, const uint32_t &w, const uint32_t &k, const string &prgfile) {
@@ -176,7 +175,6 @@ void load_vcf_refs_file(const string &filepath, VCFRefs &vcf_refs) {
             vcf_refs[fh.name] = fh.read;
         }
     }
-    fh.close();
 }
 
 //void add_read_hits(const uint32_t id, const string& name, const string& seq, MinimizerHits* hits, Index* idx, const uint32_t w, const uint32_t k)
@@ -443,7 +441,6 @@ uint32_t pangraph_from_read_file(const string &filepath,
                                            fraction_kmers_required_for_cluster, min_cluster_size, expected_number_kmers_in_short_read_sketch);
         }
     }
-    fh.close();
     delete s;
     cout << now() << "Found " << id << " reads" << endl;
 

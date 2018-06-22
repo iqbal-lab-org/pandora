@@ -41,7 +41,7 @@ bool FastaqHandler::eof()
 
 void FastaqHandler::get_next(){
     if (!line.empty() and (line[0] == '>' or line[0] == '@')) {
-        cout << "read name line " << num_reads_parsed << " " << line << endl;
+        //cout << "read name line " << num_reads_parsed << " " << line << endl;
         name = line.substr(1);
         ++num_reads_parsed;
         read.clear();
