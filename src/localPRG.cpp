@@ -1286,16 +1286,18 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
 
 }
 
-vector<KmerNodePtr> LocalPRG::find_consensus_path (Fastaq& output_fq,
-                                                   PanNodePtr pnode,
-                                                   const uint32_t w,
-                                                   const bool bin,
-                                                   const uint32_t global_covg) {
+void LocalPRG::find_consensus_path (Fastaq& output_fq,
+                                    PanNodePtr pnode,
+                                    vector<KmerNodePtr>& kmp,
+                                    vector<LocalNodePtr>& lmp,
+                                    const uint32_t w,
+                                    const bool bin,
+                                    const uint32_t global_covg) {
 
-    vector<KmerNodePtr> kmp;
+    kmp.clear();
     if (pnode->reads.size() == 0) {
         cout << "Node " << pnode->get_name() << " has no reads " << endl;
-        return kmp;
+        return;
     }
     kmp.reserve(800);
 
@@ -1306,7 +1308,7 @@ vector<KmerNodePtr> LocalPRG::find_consensus_path (Fastaq& output_fq,
     else
         ppath = pnode->kmer_prg.find_nb_max_path(kmp);
 
-    vector<LocalNodePtr> lmp;
+    lmp.clear();
     lmp.reserve(100);
     lmp = localnode_path_from_kmernode_path(kmp, w);
 
@@ -1318,14 +1320,43 @@ vector<KmerNodePtr> LocalPRG::find_consensus_path (Fastaq& output_fq,
     {
         cout << now() << "Skip LocalPRG " << name << " as mode and mean along max likelihood path too low" << endl;
         kmp.clear();
-        return kmp;
+        return;
     }
 
     string fq_name = pnode->get_name() + " ";
     string seq = string_along_path(lmp);
     output_fq.add_entry(fq_name,seq, covgs,global_covg);
 
-    return kmp;
+    return;
+}
+
+void LocalPRG::add_variants_to_vcf(VCF& master_vcf,
+                                   const string &vcf_ref,
+                                   const vector<LocalNodePtr>& lmp,
+                                   const string& sample_name) {
+    vector<LocalNodePtr> refpath;
+    refpath.reserve(100);
+
+    if (!vcf_ref.empty()) {
+        refpath = prg.nodes_along_string(vcf_ref);
+        if (refpath.empty()) {
+            refpath = prg.nodes_along_string(rev_complement(vcf_ref));
+        }
+        if (refpath.empty()) {
+            cout << now() << "Could not find reference sequence for " << name
+                 << "in the PRG so using the top path" << endl;
+            refpath = prg.top_path();
+        }
+    } else {
+        refpath = prg.top_path();
+    }
+
+
+    VCF vcf;
+    build_vcf(vcf, refpath);
+    add_sample_gt_to_vcf(vcf, refpath, lmp, sample_name);
+
+    master_vcf.append_vcf(vcf);
 }
 
 vector<KmerNodePtr>

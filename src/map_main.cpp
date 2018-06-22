@@ -241,9 +241,15 @@ int pandora_map(int argc, char *argv[]) {
     estimate_parameters(pangraph, outdir, k, e_rate, covg, bin);
 
     cout << now() << "Find PRG paths and write to files:" << endl;
+
+    Fastaq consensus_fq(true,true);
+    VCF master_vcf;
+
     VCFRefs vcf_refs;
     string vcf_ref;
     vector<KmerNodePtr> kmp;
+    vector<LocalNodePtr> lmp;
+
     if (output_vcf and !vcf_refs_file.empty()) {
         vcf_refs.reserve(prgs.size());
         load_vcf_refs_file(vcf_refs_file, vcf_refs);
@@ -255,10 +261,8 @@ int pandora_map(int argc, char *argv[]) {
             vcf_ref = vcf_refs[prgs[c->second->prg_id]->name];
         }
 
-        string node_outdir = outdir + "/" + c->second->get_name();
-
-        kmp = prgs[c->second->prg_id]->find_path_and_variants(c->second, node_outdir, w, vcf_ref, output_vcf,
-                                                       output_comparison_paths, output_covgs, bin, covg, regenotype);
+        prgs[c->second->prg_id]->find_consensus_path(consensus_fq,c->second,kmp,lmp,w,bin,covg);
+        consensus_fq.save(outdir + "/pandora.consensus.fq");
         if (kmp.empty())
         {
             c = pangraph->remove_node(c->second);
@@ -266,7 +270,17 @@ int pandora_map(int argc, char *argv[]) {
         }
 
         if (output_kg) {
-            c->second->kmer_prg.save(node_outdir + "/" + c->second->get_name() + ".kg.gfa", prgs[c->second->prg_id]);
+            c->second->kmer_prg.save(outdir + "/kmer_graphs/" + c->second->get_name() + ".kg.gfa", prgs[c->second->prg_id]);
+        }
+
+        if (output_vcf) {
+            prgs[c->second->prg_id]->add_variants_to_vcf(master_vcf,vcf_ref,lmp);
+            master_vcf.save(outdir + "/pandora.consensus.vcf" , true, true, true, true, true, true, true);
+        }
+
+        if(regenotype) {
+            master_vcf.regenotype(covg,0.01,30);
+            master_vcf.save(outdir + "/pandora.snps.vcf" , true, true, true, true, false, false, false);
         }
         ++c;
     }
