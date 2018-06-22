@@ -1295,6 +1295,7 @@ void LocalPRG::add_consensus_path_to_fastaq (Fastaq& output_fq,
                                              const uint32_t global_covg) {
 
     kmp.clear();
+    lmp.clear();
     if (pnode->reads.size() == 0) {
         cout << "Node " << pnode->get_name() << " has no reads " << endl;
         return;
@@ -1308,7 +1309,6 @@ void LocalPRG::add_consensus_path_to_fastaq (Fastaq& output_fq,
     else
         ppath = pnode->kmer_prg.find_nb_max_path(kmp);
 
-    lmp.clear();
     lmp.reserve(100);
     lmp = localnode_path_from_kmernode_path(kmp, w);
 
@@ -1324,7 +1324,7 @@ void LocalPRG::add_consensus_path_to_fastaq (Fastaq& output_fq,
     }
 
     string fq_name = pnode->get_name();
-    string header = "log P(data|sequence)=" + to_string(ppath);
+    string header = " log P(data|sequence)=" + to_string(ppath);
     string seq = string_along_path(lmp);
     output_fq.add_entry(fq_name,seq, covgs,global_covg,header);
 
