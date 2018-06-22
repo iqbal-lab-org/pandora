@@ -456,7 +456,8 @@ TEST(VCFRecordTest, ostream_with_sample_not_all_info_in_formats) {
         out >> rr;
         EXPECT_EQ(s, rr);
     }
-    uint8_t ru,u=1;
+    uint8_t u=1;
+    uint ru;
     out >> ru;
     EXPECT_EQ(u, ru);
 }
@@ -477,7 +478,7 @@ TEST(VCFRecordTest, ostream_with_sample_including_all_formats) {
         out >> rr;
         EXPECT_EQ(s, rr);
     }
-    uint8_t ru;
+    uint ru;
     for (auto  s : vu) {
         out >> ru;
         EXPECT_EQ(s, ru);
@@ -501,7 +502,8 @@ TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info) {
         out >> rr;
         EXPECT_EQ(s, rr);
     }
-    uint8_t ru,u=0;
+    uint ru;
+    uint8_t u=0;
     out >> ru;
     EXPECT_EQ(u, ru);
     out >> rr;
@@ -525,7 +527,8 @@ TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info_regt) {
         out >> rr;
         EXPECT_EQ(s, rr);
     }
-    uint8_t ru, u = 0;
+    uint ru;
+    uint8_t u = 0;
     out >> ru;
     EXPECT_EQ(u, ru);
     out.ignore(1,':');

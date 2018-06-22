@@ -43,6 +43,12 @@ VCFRecord& VCF::add_record(VCFRecord &vr) {
     // handle mismatched sample data?
 }
 
+void VCF::add_formats(const vector<string>& v){
+    for(auto record : records){
+        record.add_formats(v);
+    }
+}
+
 ptrdiff_t VCF::get_sample_index(const string& name){
     unordered_map<string,uint8_t> empty_map;
 
@@ -182,9 +188,10 @@ void VCF::sort_records() {
     return;
 }
 
-bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const string& chrom) {
-    for (uint32_t i = 0; i != records.size(); ++i) {
-        if (chrom == records[i].chrom and from < records[i].pos and records[i].pos + records[i].ref.length() <= to) {
+bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const string& chrom) const {
+    // is there a record contained in the range from,to?
+    for (auto record : records) {
+        if (chrom == record.chrom and from < record.pos and record.pos + record.ref.length() <= to) {
             return true;
         }
     }
@@ -192,14 +199,16 @@ bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const string& chr
 }
 
 void VCF::regenotype(const uint32_t & expected_depth_covg, const float & error_rate, const uint8_t confidence_threshold) {
-    for (auto vr : records){
+    for (auto &vr : records){
         if (vr.ref.length() == 1 and vr.alt.length() == 1)
         {
             vr.likelihood(expected_depth_covg,error_rate);
             vr.confidence();
             vr.regenotype(confidence_threshold);
+            cout << vr;
         }
     }
+    add_formats({"REF_LIKELIHOOD", "ALT_LIKELIHOOD", "CONFIDENCE"});
 }
 
 string VCF::header() {

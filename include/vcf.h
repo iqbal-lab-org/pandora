@@ -25,6 +25,8 @@ public:
 
     VCFRecord& add_record(VCFRecord &);
 
+    void add_formats(const std::vector<std::string>&);
+
     ptrdiff_t get_sample_index(const std::string&);
 
     void add_sample_gt(const std::string &name, const std::string &c, const uint32_t p, const std::string &r,
@@ -38,9 +40,9 @@ public:
 
     void sort_records();
 
-    bool pos_in_range(const uint32_t , const uint32_t, const std::string&);
+    bool pos_in_range(const uint32_t , const uint32_t, const std::string&) const;
 
-    void regenotype(const uint32_t&, const float&,const uint8_t);
+    void regenotype(const uint32_t&, const float&, const uint8_t);
 
     std::string header();
 
