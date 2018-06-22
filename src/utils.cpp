@@ -153,7 +153,7 @@ void load_PRG_kmergraphs(vector<LocalPRG *> &prgs, const uint32_t &w, const uint
     auto dir_num = 0;
     string dir;
     for (auto prg : prgs) {
-	    cout << "Load kmergraph for " << prg->name << endl;
+	    //cout << "Load kmergraph for " << prg->name << endl;
         if (prg->id % 4000 == 0){
             dir = prefix + "kmer_prgs/" + int_to_string(dir_num+1);
             dir_num++;

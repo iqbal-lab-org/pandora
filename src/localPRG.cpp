@@ -1359,7 +1359,7 @@ void LocalPRG::add_variants_to_vcf(VCF& master_vcf,
     build_vcf(vcf, refpath);
     add_sample_gt_to_vcf(vcf, refpath, lmp, sample_name);
     add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, kmp, sample_name);
-
+    vcf.sort_records();
     master_vcf.append_vcf(vcf);
 }
 
@@ -1391,7 +1391,7 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
         return kmp;
     }
 
-    cout << "Find maxpath for " << pnode->get_name() << endl;
+    cout << now() << "Find maxpath for " << pnode->get_name() << endl;
     if (bin)
         ppath = pnode->kmer_prg.find_max_path(kmp);
     else

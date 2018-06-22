@@ -53,7 +53,7 @@ void FastaqHandler::get_next(){
             {
                 return;
             }
-            cout << num_reads_parsed << " " << line << endl;
+            //cout << num_reads_parsed << " " << line << endl;
             name = line.substr(1);
             ++num_reads_parsed;
             read.clear();

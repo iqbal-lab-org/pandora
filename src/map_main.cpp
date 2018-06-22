@@ -264,7 +264,7 @@ int pandora_map(int argc, char *argv[]) {
         }
 
         prgs[c->second->prg_id]->add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp, w, bin, covg);
-        consensus_fq.save(outdir + "/pandora.consensus.fq");
+        consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
         if (kmp.empty())
         {
             c = pangraph->remove_node(c->second);
