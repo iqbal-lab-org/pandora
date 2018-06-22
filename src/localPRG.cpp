@@ -8,6 +8,7 @@
 #include "localPRG.h"
 #include "inthash.h"
 #include "utils.h"
+#include "fastaq.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -1283,6 +1284,48 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         alt_rev_covgs.clear();
     }
 
+}
+
+vector<KmerNodePtr> LocalPRG::find_consensus_path (Fastaq& output_fq,
+                                                   PanNodePtr pnode,
+                                                   const uint32_t w,
+                                                   const bool bin,
+                                                   const uint32_t global_covg) {
+
+    vector<KmerNodePtr> kmp;
+    if (pnode->reads.size() == 0) {
+        cout << "Node " << pnode->get_name() << " has no reads " << endl;
+        return kmp;
+    }
+    kmp.reserve(800);
+
+    cout << "Find maxpath for " << pnode->get_name() << endl;
+    float ppath;
+    if (bin)
+        ppath = pnode->kmer_prg.find_max_path(kmp);
+    else
+        ppath = pnode->kmer_prg.find_nb_max_path(kmp);
+
+    vector<LocalNodePtr> lmp;
+    lmp.reserve(100);
+    lmp = localnode_path_from_kmernode_path(kmp, w);
+
+    vector<uint32_t> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
+    auto mode_covg = mode(covgs);
+    auto mean_covg = mean(covgs);
+    cout << now() << "Found global coverage " << global_covg << " and path mode " << mode_covg << " and mean " << mean_covg << endl;
+    if (global_covg > 5 and mode(covgs) < 3 and mean(covgs) < 3)
+    {
+        cout << now() << "Skip LocalPRG " << name << " as mode and mean along max likelihood path too low" << endl;
+        kmp.clear();
+        return kmp;
+    }
+
+    string fq_name = pnode->get_name() + " ";
+    string seq = string_along_path(lmp);
+    output_fq.add_entry(fq_name,seq, covgs,global_covg);
+
+    return kmp;
 }
 
 vector<KmerNodePtr>

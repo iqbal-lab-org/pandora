@@ -13,6 +13,7 @@
 #include "pangenome/pannode.h"
 #include "kmergraph.h"
 #include "vcf.h"
+#include "fastaq.h"
 
 typedef std::shared_ptr<pangenome::Node> PanNodePtr;
 
@@ -95,6 +96,12 @@ public:
                                  const std::vector<KmerNodePtr> &sample_kmer_path,
                                  const std::string &sample_name = "sample") const;
 
+    std::vector<KmerNodePtr> find_consensus_path (Fastaq&,
+                                                  PanNodePtr,
+                                                  const uint32_t w,
+                                                  const bool bin = false,
+                                                  const uint32_t global_covg = 1);
+
     std::vector<KmerNodePtr> find_path_and_variants(PanNodePtr,
                                                     const std::string &,
                                                     const uint32_t w,
@@ -103,7 +110,7 @@ public:
                                                     const bool output_comparison_paths = false,
                                                     const bool output_covgs = false,
                                                     const bool bin = false,
-                                                    const uint32_t covg = 1,
+                                                    const uint32_t global_covg = 1,
                                                     const bool regenotype = false) const;
 
     friend std::ostream &operator<<(std::ostream &out, const LocalPRG &data);
