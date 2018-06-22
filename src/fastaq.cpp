@@ -15,8 +15,16 @@ using namespace std;
 Fastaq::Fastaq(bool gz, bool fq) : gzipped(gz), fastq(fq) {}
 
 char Fastaq::covg_to_score(const uint_least16_t& covg, const uint_least16_t& global_covg){
-    assert(global_covg >= covg);
-    int c = 40*covg/global_covg + 33;
+    if (2*global_covg < covg){
+        cout << "Found a base with a coverage way too high, so giving it a score of 0" << endl;
+        return '!';
+    }
+
+    int c;
+    if (global_covg >= covg)
+        c = 40*covg/global_covg + 33;
+    else
+        c = 40*(2*global_covg - covg)/global_covg + 33;
     char ascii_c = static_cast<char>(c);
     return ascii_c;
 }
@@ -84,7 +92,7 @@ std::ostream &operator<<(std::ostream &out, Fastaq const &data) {
             out << ">";
         out << name;
         if (data.headers.at(name) != "")
-            cout << data.headers.at(name);
+            out << data.headers.at(name);
         out << "\n";
         out << data.sequences.at(name) << "\n";
         if (data.fastq) {
