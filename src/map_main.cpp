@@ -261,7 +261,7 @@ int pandora_map(int argc, char *argv[]) {
             vcf_ref = vcf_refs[prgs[c->second->prg_id]->name];
         }
 
-        prgs[c->second->prg_id]->find_consensus_path(consensus_fq,c->second,kmp,lmp,w,bin,covg);
+        prgs[c->second->prg_id]->add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp, w, bin, covg);
         consensus_fq.save(outdir + "/pandora.consensus.fq");
         if (kmp.empty())
         {
@@ -274,7 +274,7 @@ int pandora_map(int argc, char *argv[]) {
         }
 
         if (output_vcf) {
-            prgs[c->second->prg_id]->add_variants_to_vcf(master_vcf,vcf_ref,lmp);
+            prgs[c->second->prg_id]->add_variants_to_vcf(master_vcf, c->second, vcf_ref, kmp, lmp);
             master_vcf.save(outdir + "/pandora.consensus.vcf" , true, true, true, true, true, true, true);
         }
 
