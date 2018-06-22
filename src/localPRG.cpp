@@ -1286,13 +1286,13 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
 
 }
 
-void LocalPRG::find_consensus_path (Fastaq& output_fq,
-                                    PanNodePtr pnode,
-                                    vector<KmerNodePtr>& kmp,
-                                    vector<LocalNodePtr>& lmp,
-                                    const uint32_t w,
-                                    const bool bin,
-                                    const uint32_t global_covg) {
+void LocalPRG::add_consensus_path_to_fastaq (Fastaq& output_fq,
+                                             PanNodePtr pnode,
+                                             vector<KmerNodePtr>& kmp,
+                                             vector<LocalNodePtr>& lmp,
+                                             const uint32_t w,
+                                             const bool bin,
+                                             const uint32_t global_covg) {
 
     kmp.clear();
     if (pnode->reads.size() == 0) {
@@ -1323,15 +1323,18 @@ void LocalPRG::find_consensus_path (Fastaq& output_fq,
         return;
     }
 
-    string fq_name = pnode->get_name() + " ";
+    string fq_name = pnode->get_name();
+    string header = "log P(data|sequence)=" + to_string(ppath);
     string seq = string_along_path(lmp);
-    output_fq.add_entry(fq_name,seq, covgs,global_covg);
+    output_fq.add_entry(fq_name,seq, covgs,global_covg,header);
 
     return;
 }
 
 void LocalPRG::add_variants_to_vcf(VCF& master_vcf,
+                                   PanNodePtr pnode,
                                    const string &vcf_ref,
+                                   const vector<KmerNodePtr>& kmp,
                                    const vector<LocalNodePtr>& lmp,
                                    const string& sample_name) {
     vector<LocalNodePtr> refpath;
@@ -1355,6 +1358,7 @@ void LocalPRG::add_variants_to_vcf(VCF& master_vcf,
     VCF vcf;
     build_vcf(vcf, refpath);
     add_sample_gt_to_vcf(vcf, refpath, lmp, sample_name);
+    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, kmp, sample_name);
 
     master_vcf.append_vcf(vcf);
 }

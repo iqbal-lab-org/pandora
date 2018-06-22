@@ -96,15 +96,19 @@ public:
                                  const std::vector<KmerNodePtr> &sample_kmer_path,
                                  const std::string &sample_name = "sample") const;
 
-    void find_consensus_path (Fastaq&,
-                              PanNodePtr,
-                              std::vector<KmerNodePtr>&,
-                              std::vector<LocalNodePtr>&,
-                              const uint32_t w,
-                              const bool bin = false,
-                              const uint32_t global_covg = 1);
+    void add_consensus_path_to_fastaq (Fastaq&,
+                                       PanNodePtr,
+                                       std::vector<KmerNodePtr>&,
+                                       std::vector<LocalNodePtr>&,
+                                       const uint32_t w,
+                                       const bool bin = false,
+                                       const uint32_t global_covg = 1);
 
-    void add_variants_to_vcf(VCF&, const std::string&, const std::vector<LocalNodePtr>&,
+    void add_variants_to_vcf(VCF&,
+                             PanNodePtr,
+                             const std::string&,
+                             const std::vector<KmerNodePtr>&,
+                             const std::vector<LocalNodePtr>&,
                              const std::string& sample_name="sample");
 
     std::vector<KmerNodePtr> find_path_and_variants(PanNodePtr,

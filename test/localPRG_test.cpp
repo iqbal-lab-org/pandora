@@ -11,6 +11,7 @@
 #include "index.h"
 #include "inthash.h"
 #include "pangenome/pannode.h"
+#include "pangenome/panread.h"
 #include "utils.h"
 #include "seq.h"
 #include "kmergraph.h"
@@ -906,7 +907,11 @@ TEST(LocalPRGTest, build_vcf)
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-    LocalPRG l4(4, "small real PRG", "ATGACAAAACGAAGTGGAAGTAATACGCGCAGGCGGGCTATCAGTCGCCCTGTTCGTCTGACGGCAGAAGAAGACCAGGAAATCAGAAAAAGGGCTGCTGAATGCGGCAAGACCGTTTC 5 T 6 C 5 GGTTTTTTACGGGCGGCAGCTCTCGGTAAGAAAGTTAA 7 TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG 8 CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA 7 CAGAAAAAACTCTTTATCGACGGCAAGCGTGTCGGGGACAG 9 A 10 G 9 GAGTATGCGGAGGTGCTGAT 11 A 12 C 11 GCTATTACGGAGTATCACCG 13 G 14 T 13 GCCCTGTTATCCAGGCTTATGGCAGATTAG");
+    LocalPRG l4(4, "small real PRG", "ATGACAAAACGAAGTGGAAGTAATACGCGCAGGCGGGCTATCAGTCGCCCTGTTCGTCTGACGGCAGAAGAAGACCAGG"
+            "AAATCAGAAAAAGGGCTGCTGAATGCGGCAAGACCGTTTC 5 T 6 C 5 GGTTTTTTACGGGCGGCAGCTCTCGGTAAGAAAGTTAA 7 TTCACTGACTGA"
+            "TGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG 8 CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA 7 CAGAAA"
+            "AAACTCTTTATCGACGGCAAGCGTGTCGGGGACAG 9 A 10 G 9 GAGTATGCGGAGGTGCTGAT 11 A 12 C 11 GCTATTACGGAGTATCACCG 13"
+            " G 14 T 13 GCCCTGTTATCCAGGCTTATGGCAGATTAG");
 
     VCF vcf;
 
@@ -1013,7 +1018,8 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[4].info);
 
     vcf.clear();
-    lmp = {l4.prg.nodes[0], l4.prg.nodes[2], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6], l4.prg.nodes[8], l4.prg.nodes[9], l4.prg.nodes[10], l4.prg.nodes[12], l4.prg.nodes[14], l4.prg.nodes[15]};
+    lmp = {l4.prg.nodes[0], l4.prg.nodes[2], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6], l4.prg.nodes[8],
+           l4.prg.nodes[9], l4.prg.nodes[10], l4.prg.nodes[12], l4.prg.nodes[14], l4.prg.nodes[15]};
     l4.build_vcf(vcf, lmp);
     vcf.sort_records();
     j = 5;
@@ -1050,8 +1056,13 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf)
     LocalPRG l1(1,"simple", "AGCT");
     LocalPRG l2(2,"varsite", "A 5 GC 6 G 5 T");
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-    LocalPRG l4(4, "small real PRG", "ATGACAAAACGAAGTGGAAGTAATACGCGCAGGCGGGCTATCAGTCGCCCTGTTCGTCTGACGGCAGAAGAAGACCAGGAAATCAGAAAAAGGGCTGCTGAATGCGGCAAGACCGTTTC 5 T 6 C 5 GGTTTTTTACGGGCGGCAGCTCTCGGTAAGAAAGTTAA 7 TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG 8 CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA 7 CAGAAAAAACTCTTTATCGACGGCAAGCGTGTCGGGGACAG 9 A 10 G 9 GAGTATGCGGAGGTGCTGAT 11 A 12 C 11 GCTATTACGGAGTATCACCG 13 G 14 T 13 GCCCTGTTATCCAGGCTTATGGCAGATTAG");
-    LocalPRG l5(5, "another real PRG", " 5 ATGCTTATTGGCTATGT 7  9 ACGCGTA 10 TCGCGTA 10 ACGTGTG 9 TCAACAAATGACCAGAACAC 11 A 12 C 11  8 ACGCGTATCAACAAATGATCAGAACACA 7 GATCTACAACGTAATGCG 6 AAGT 5 ");
+    LocalPRG l4(4, "small real PRG", "ATGACAAAACGAAGTGGAAGTAATACGCGCAGGCGGGCTATCAGTCGCCCTGTTCGTCTGACGGCAGAAGAAGACCAGG"
+            "AAATCAGAAAAAGGGCTGCTGAATGCGGCAAGACCGTTTC 5 T 6 C 5 GGTTTTTTACGGGCGGCAGCTCTCGGTAAGAAAGTTAA 7 TTCACTGACTGA"
+            "TGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG 8 CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA 7 CAGAAA"
+            "AAACTCTTTATCGACGGCAAGCGTGTCGGGGACAG 9 A 10 G 9 GAGTATGCGGAGGTGCTGAT 11 A 12 C 11 GCTATTACGGAGTATCACCG 13"
+            " G 14 T 13 GCCCTGTTATCCAGGCTTATGGCAGATTAG");
+    LocalPRG l5(5, "another real PRG", " 5 ATGCTTATTGGCTATGT 7  9 ACGCGTA 10 TCGCGTA 10 ACGTGTG 9 TCAACAAATGACCAGAACA"
+            "C 11 A 12 C 11  8 ACGCGTATCAACAAATGATCAGAACACA 7 GATCTACAACGTAATGCG 6 AAGT 5 ");
 
     VCF vcf;
 
@@ -1080,7 +1091,9 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf)
     EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
 
     vcf.clear();
-    vector<LocalNodePtr> lmp4 = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[5], l4.prg.nodes[6], l4.prg.nodes[8], l4.prg.nodes[9], l4.prg.nodes[10], l4.prg.nodes[12], l4.prg.nodes[13], l4.prg.nodes[15]};
+    vector<LocalNodePtr> lmp4 = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[5], l4.prg.nodes[6],
+                                 l4.prg.nodes[8], l4.prg.nodes[9], l4.prg.nodes[10], l4.prg.nodes[12], l4.prg.nodes[13],
+                                 l4.prg.nodes[15]};
     l4.build_vcf(vcf, l4.prg.top_path());
     vcf.sort_records();
     l4.add_sample_gt_to_vcf(vcf, l4.prg.top_path(), lmp4, "sample");
@@ -1151,16 +1164,22 @@ TEST(LocalPRGTest, moreupdateVCF)
 	//cout << prgs[2]->vcf.records[i];
     //}
 
-    vector<LocalNodePtr> lmp1 = {prgs[1]->prg.nodes[0], prgs[1]->prg.nodes[11], prgs[1]->prg.nodes[12], prgs[1]->prg.nodes[17], prgs[1]->prg.nodes[65], prgs[1]->prg.nodes[67]};
+    vector<LocalNodePtr> lmp1 = {prgs[1]->prg.nodes[0], prgs[1]->prg.nodes[11], prgs[1]->prg.nodes[12],
+                                 prgs[1]->prg.nodes[17], prgs[1]->prg.nodes[65], prgs[1]->prg.nodes[67]};
     //cout << "PRG 1 has " << prgs[1]->prg.nodes.size() << " nodes" << endl;
     prgs[1]->add_sample_gt_to_vcf(vcf, prgs[1]->prg.top_path(), lmp1, "sample");
 
-    vector<LocalNodePtr> lmp2 = {prgs[2]->prg.nodes[0], prgs[2]->prg.nodes[1], prgs[2]->prg.nodes[3], prgs[2]->prg.nodes[4], prgs[2]->prg.nodes[6], prgs[2]->prg.nodes[7],
-			       prgs[2]->prg.nodes[9], prgs[2]->prg.nodes[10], prgs[2]->prg.nodes[11], prgs[2]->prg.nodes[13], prgs[2]->prg.nodes[14], prgs[2]->prg.nodes[16],
-			       prgs[2]->prg.nodes[17], prgs[2]->prg.nodes[19], prgs[2]->prg.nodes[44], prgs[2]->prg.nodes[45], prgs[2]->prg.nodes[47], prgs[2]->prg.nodes[118],
-			       prgs[2]->prg.nodes[119], prgs[2]->prg.nodes[121], prgs[2]->prg.nodes[123], prgs[2]->prg.nodes[125], prgs[2]->prg.nodes[126], 
-			       prgs[2]->prg.nodes[130], prgs[2]->prg.nodes[131], prgs[2]->prg.nodes[133], prgs[2]->prg.nodes[135], prgs[2]->prg.nodes[141], 
-			       prgs[2]->prg.nodes[142], prgs[2]->prg.nodes[144], prgs[2]->prg.nodes[145], prgs[2]->prg.nodes[160]};
+    vector<LocalNodePtr> lmp2 = {prgs[2]->prg.nodes[0], prgs[2]->prg.nodes[1], prgs[2]->prg.nodes[3],
+                                 prgs[2]->prg.nodes[4], prgs[2]->prg.nodes[6], prgs[2]->prg.nodes[7],
+                                 prgs[2]->prg.nodes[9], prgs[2]->prg.nodes[10], prgs[2]->prg.nodes[11],
+                                 prgs[2]->prg.nodes[13], prgs[2]->prg.nodes[14], prgs[2]->prg.nodes[16],
+                                 prgs[2]->prg.nodes[17], prgs[2]->prg.nodes[19], prgs[2]->prg.nodes[44],
+                                 prgs[2]->prg.nodes[45], prgs[2]->prg.nodes[47], prgs[2]->prg.nodes[118],
+                                 prgs[2]->prg.nodes[119], prgs[2]->prg.nodes[121], prgs[2]->prg.nodes[123],
+                                 prgs[2]->prg.nodes[125], prgs[2]->prg.nodes[126], prgs[2]->prg.nodes[130],
+                                 prgs[2]->prg.nodes[131], prgs[2]->prg.nodes[133], prgs[2]->prg.nodes[135],
+                                 prgs[2]->prg.nodes[141], prgs[2]->prg.nodes[142], prgs[2]->prg.nodes[144],
+                                 prgs[2]->prg.nodes[145], prgs[2]->prg.nodes[160]};
     //cout << "PRG 2 has " << prgs[2]->prg.nodes.size() << " nodes" << endl;
     prgs[2]->add_sample_gt_to_vcf(vcf, prgs[2]->prg.top_path(), lmp2, "sample");
 }
@@ -1213,8 +1232,10 @@ TEST(LocalPRGTest, find_alt_path) {
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, top, alt_path);
 
     // if the site at the end has ref/alt as "."
-    top = {l3_.prg.nodes[0], l3_.prg.nodes[1], l3_.prg.nodes[2], l3_.prg.nodes[4], l3_.prg.nodes[6], l3_.prg.nodes[7], l3_.prg.nodes[9]};
-    bottom = {l3_.prg.nodes[0], l3_.prg.nodes[1], l3_.prg.nodes[2], l3_.prg.nodes[4], l3_.prg.nodes[6], l3_.prg.nodes[8], l3_.prg.nodes[9]};
+    top = {l3_.prg.nodes[0], l3_.prg.nodes[1], l3_.prg.nodes[2], l3_.prg.nodes[4],
+           l3_.prg.nodes[6], l3_.prg.nodes[7], l3_.prg.nodes[9]};
+    bottom = {l3_.prg.nodes[0], l3_.prg.nodes[1], l3_.prg.nodes[2], l3_.prg.nodes[4],
+              l3_.prg.nodes[6], l3_.prg.nodes[8], l3_.prg.nodes[9]};
 
     alt_path = l3_.find_alt_path(top, 5, "T", ".");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, bottom, alt_path);
@@ -1370,6 +1391,91 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     EXPECT_EQ((uint8_t) 18, vcf.records[1].samples[0]["ALT_SUM_REV_COVG"]);
 
     delete idx;
+}
+
+TEST(LocalPRGTest, add_consensus_path_to_fastaq_bin)
+{
+    Index* idx;
+    idx = new Index();
+
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+    l3.minimizer_sketch(idx, 1, 3);
+
+    shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3,3,"three"));
+    pn3->kmer_prg = l3.kmer_prg;
+    pn3->kmer_prg.nodes[2]->covg[0] = 4;
+    pn3->kmer_prg.nodes[2]->covg[1] = 3;
+    pn3->kmer_prg.nodes[5]->covg[0] = 4;
+    pn3->kmer_prg.nodes[5]->covg[0] = 5;
+    pn3->kmer_prg.nodes[7]->covg[0] = 2;
+    pn3->kmer_prg.nodes[7]->covg[1] = 3;
+    pn3->kmer_prg.nodes[8]->covg[0] = 4;
+    pn3->kmer_prg.nodes[8]->covg[0] = 6;
+    pn3->kmer_prg.num_reads = 6;
+    pn3->kmer_prg.set_p(0.0001);
+    shared_ptr<pangenome::Read> pr(make_shared<pangenome::Read>(0));
+    pn3->reads.insert(pr);
+
+    Fastaq fq(false,true);
+    vector<KmerNodePtr> kmp;
+    vector<LocalNodePtr> lmp;
+
+    l3.add_consensus_path_to_fastaq(fq,pn3,kmp,lmp,1,true,8);
+    EXPECT_EQ("AGTTAT", l3.string_along_path(lmp));
+    bool added_to_fq = find(fq.names.begin(), fq.names.end(), "three") != fq.names.end();
+    EXPECT_TRUE(added_to_fq);
+    bool added_to_seqs = fq.sequences.find("three") != fq.sequences.end();
+    EXPECT_TRUE(added_to_seqs);
+    bool added_to_scores = fq.scores.find("three") != fq.scores.end();
+    EXPECT_TRUE(added_to_scores);
+    bool added_to_headers = fq.headers.find("three") != fq.headers.end();
+    EXPECT_TRUE(added_to_headers);
+    EXPECT_EQ("AGTTAT", fq.sequences["three"]);
+    EXPECT_EQ(fq.scores["three"], "DDD\?\?!");
+
+    cout << fq << endl;
+}
+
+TEST(LocalPRGTest, add_consensus_path_to_fastaq_nbin)
+{
+    Index* idx;
+    idx = new Index();
+
+    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+    l3.minimizer_sketch(idx, 1, 3);
+
+    shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3,3,"three"));
+    pn3->kmer_prg = l3.kmer_prg;
+    pn3->kmer_prg.nodes[2]->covg[0] = 4;
+    pn3->kmer_prg.nodes[2]->covg[1] = 3;
+    pn3->kmer_prg.nodes[5]->covg[0] = 4;
+    pn3->kmer_prg.nodes[5]->covg[0] = 5;
+    pn3->kmer_prg.nodes[7]->covg[0] = 2;
+    pn3->kmer_prg.nodes[7]->covg[1] = 3;
+    pn3->kmer_prg.nodes[8]->covg[0] = 4;
+    pn3->kmer_prg.nodes[8]->covg[0] = 6;
+    pn3->kmer_prg.num_reads = 6;
+    pn3->kmer_prg.set_nb(0.05,2.0);
+    shared_ptr<pangenome::Read> pr(make_shared<pangenome::Read>(0));
+    pn3->reads.insert(pr);
+
+    Fastaq fq(false,true);
+    vector<KmerNodePtr> kmp;
+    vector<LocalNodePtr> lmp;
+
+    l3.add_consensus_path_to_fastaq(fq,pn3,kmp,lmp,1,false,8);
+    EXPECT_EQ("AGTTAT", l3.string_along_path(lmp));
+    bool added_to_fq = find(fq.names.begin(), fq.names.end(), "three") != fq.names.end();
+    EXPECT_TRUE(added_to_fq);
+    bool added_to_seqs = fq.sequences.find("three") != fq.sequences.end();
+    EXPECT_TRUE(added_to_seqs);
+    bool added_to_scores = fq.scores.find("three") != fq.scores.end();
+    EXPECT_TRUE(added_to_scores);
+    bool added_to_headers = fq.headers.find("three") != fq.headers.end();
+    EXPECT_TRUE(added_to_headers);
+    EXPECT_EQ("AGTTAT", fq.sequences["three"]);
+    EXPECT_EQ(fq.scores["three"], "DDD\?\?!");
+    cout << fq << endl;
 }
 
 TEST(LocalPRGTest, find_path_and_variants)
