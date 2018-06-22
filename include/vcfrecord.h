@@ -27,7 +27,7 @@ struct VCFRecord {
 
     ~VCFRecord();
 
-    void add_formats(std::vector<std::string>);
+    void add_formats(const std::vector<std::string>&);
 
     void likelihood(const uint32_t&, const float&);
 

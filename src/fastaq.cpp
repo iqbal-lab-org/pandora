@@ -31,12 +31,13 @@ void Fastaq::add_entry(const std::string & name,
     assert(covgs.size() == sequence.length());
     assert(global_covg!=0);
 
-    char score[covgs.size()];
+    char score[covgs.size()+1];
     auto i = 0;
     for (auto covg : covgs){
         score[i] = covg_to_score(covg,global_covg);
         i++;
     }
+    score[covgs.size()] = '\0';
 
     names.push_back(name);
     headers[name] = header;

@@ -3,6 +3,7 @@
 #include "vcfrecord.h"
 #include <stdint.h>
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 

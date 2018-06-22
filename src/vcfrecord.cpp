@@ -1,6 +1,8 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <vector>
+#include <algorithm>
 #include "vcfrecord.h"
 #include "utils.h"
 
@@ -47,8 +49,8 @@ VCFRecord::VCFRecord() : chrom("."), pos(0), id("."), ref("."), alt("."), qual("
 
 VCFRecord::~VCFRecord() {};
 
-void VCFRecord::add_formats(std::vector<std::string> formats) {
-    for (auto s : formats){
+void VCFRecord::add_formats(const vector<string>& formats) {
+    for (const auto s : formats){
         if (find(format.begin(), format.end(),s) == format.end())
             format.push_back(s);
     }
