@@ -171,7 +171,7 @@ void Node::output_samples(const LocalPRG *prg, const string &outdir, const uint3
         }
     }
     vcf.save(outdir + "/" + name + ".multisample.vcf", true, true, true, true, true, true, true);
-    vcf.write_aligned_fasta(outdir + "/" + name + ".multisample.fa", refpath);
+    vcf.write_aligned_fasta(outdir + "/" + name + ".multisample.fa", name, refpath);
 }
 
 bool Node::operator==(const Node &y) const {
