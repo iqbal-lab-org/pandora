@@ -15,7 +15,7 @@ Fastaq::Fastaq(bool gz, bool fq) : gzipped(gz), fastq(fq) {}
 
 char Fastaq::covg_to_score(const uint_least16_t& covg, const uint_least16_t& global_covg){
     assert(global_covg >= covg);
-    int c = 93*covg/global_covg + 33;
+    int c = 40*covg/global_covg + 33;
     char ascii_c = static_cast<char>(c);
     return ascii_c;
 }

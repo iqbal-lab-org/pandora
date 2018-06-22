@@ -10,7 +10,7 @@ TEST(FastaqTest, create_null) {
     EXPECT_FALSE(f1.fastq);
     EXPECT_EQ(f1.names.size(),(uint)0);
     EXPECT_EQ(f1.sequences.size(),(uint)0);
-    EXPECT_EQ(f1.scores.size(), 0);
+    EXPECT_EQ(f1.scores.size(), (uint)0);
 }
 
 TEST(FastaqTest, create_with_args) {
@@ -19,50 +19,50 @@ TEST(FastaqTest, create_with_args) {
     EXPECT_FALSE(f1.fastq);
     EXPECT_EQ(f1.names.size(),(uint)0);
     EXPECT_EQ(f1.sequences.size(),(uint)0);
-    EXPECT_EQ(f1.scores.size(), 0);
+    EXPECT_EQ(f1.scores.size(), (uint)0);
 
     Fastaq f2(false,true);
     EXPECT_FALSE(f2.gzipped);
     EXPECT_TRUE(f2.fastq);
     EXPECT_EQ(f2.names.size(),(uint)0);
     EXPECT_EQ(f2.sequences.size(),(uint)0);
-    EXPECT_EQ(f2.scores.size(), 0);
+    EXPECT_EQ(f2.scores.size(), (uint)0);
 
     Fastaq f3(true,true);
     EXPECT_TRUE(f3.gzipped);
     EXPECT_TRUE(f3.fastq);
     EXPECT_EQ(f3.names.size(),(uint)0);
     EXPECT_EQ(f3.sequences.size(),(uint)0);
-    EXPECT_EQ(f3.scores.size(), 0);
+    EXPECT_EQ(f3.scores.size(), (uint)0);
 }
 
 TEST(FastaqTest, covg_to_score){
     Fastaq f;
     char ascii_range [] = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-    for (uint i=0; i<93; ++i){
-        EXPECT_EQ(f.covg_to_score(i,93),ascii_range[i]);
+    for (uint i=0; i<40; ++i){
+        EXPECT_EQ(f.covg_to_score(i,40),ascii_range[i]);
     }
 }
 
 TEST(FastaqTest, covg_to_score_with_rounding){
     Fastaq f;
     char ascii_range [] = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-    for (uint i=0; i<93; ++i){
-        EXPECT_EQ(f.covg_to_score(3*i,278),ascii_range[i]);
+    for (uint i=0; i<40; ++i){
+        EXPECT_EQ(f.covg_to_score(3*i,119),ascii_range[i]);
     }
 }
 
 TEST(FastaqTest, add_entry_catch_asserts){
     Fastaq f;
-    EXPECT_DEATH(f.add_entry("","ACGT",{0,1,2,3},93),"");
-    EXPECT_DEATH(f.add_entry("dummy","ACGT",{0,1,2},93),"");
-    EXPECT_DEATH(f.add_entry("dummy","ACG",{0,1,2,3},93),"");
+    EXPECT_DEATH(f.add_entry("","ACGT",{0,1,2,3},40),"");
+    EXPECT_DEATH(f.add_entry("dummy","ACGT",{0,1,2},40),"");
+    EXPECT_DEATH(f.add_entry("dummy","ACG",{0,1,2,3},40),"");
     EXPECT_DEATH(f.add_entry("dummy","ACGT",{0,1,2,3},0),"");
 }
 
 TEST(FastaqTest, add_entry_works){
     Fastaq f;
-    f.add_entry("dummy","ACGTA",{2,3,4,5,6},93);
+    f.add_entry("dummy","ACGTA",{2,3,4,5,6},40);
     bool found_name = find(f.names.begin(), f.names.end(), "dummy") != f.names.end();
     EXPECT_TRUE(found_name);
     bool added_seq = f.sequences.find("dummy") != f.sequences.end();
@@ -75,64 +75,64 @@ TEST(FastaqTest, add_entry_works){
 
 TEST(FastaqTest,different_fastaq_equals_false) {
     Fastaq f1(false,true);
-    f1.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 93);
+    f1.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
     Fastaq f2(false,false);
-    f2.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 93);
+    f2.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
     EXPECT_FALSE(f1==f2);
     EXPECT_FALSE(f2==f1);
 }
 
 TEST(FastaqTest,different_gzipped_equals_true) {
     Fastaq f1(true,true);
-    f1.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 93);
+    f1.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
     Fastaq f2(false,true);
-    f2.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 93);
+    f2.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
     EXPECT_TRUE(f1==f2);
     EXPECT_TRUE(f2==f1);
 }
 
 TEST(FastaqTest,different_names_equals_false) {
     Fastaq f1(false,true);
-    f1.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 93);
+    f1.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
     Fastaq f2(false,true);
-    f2.add_entry("dummer", "ACGTA", {2, 3, 4, 5, 6}, 93);
+    f2.add_entry("dummer", "ACGTA", {2, 3, 4, 5, 6}, 40);
     EXPECT_FALSE(f1==f2);
     EXPECT_FALSE(f2==f1);
 }
 
 TEST(FastaqTest,different_num_seqs_equals_false) {
     Fastaq f1(false,true);
-    f1.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 93);
+    f1.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
     Fastaq f2(false,true);
-    f2.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 93);
-    f2.add_entry("dummer", "ACGTA", {2, 3, 4, 5, 6}, 93);
+    f2.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
+    f2.add_entry("dummer", "ACGTA", {2, 3, 4, 5, 6}, 40);
     EXPECT_FALSE(f1==f2);
     EXPECT_FALSE(f2==f1);
 }
 
 TEST(FastaqTest,different_seqs_equals_false) {
     Fastaq f1(false,true);
-    f1.add_entry("dummy", "ACGTT", {2, 3, 4, 5, 6}, 93);
+    f1.add_entry("dummy", "ACGTT", {2, 3, 4, 5, 6}, 40);
     Fastaq f2(false,true);
-    f2.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 93);
+    f2.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
     EXPECT_FALSE(f1==f2);
     EXPECT_FALSE(f2==f1);
 }
 
 TEST(FastaqTest,different_scores_equals_false) {
     Fastaq f1(false,true);
-    f1.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 7}, 93);
+    f1.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 7}, 40);
     Fastaq f2(false,true);
-    f2.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 93);
+    f2.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
     EXPECT_FALSE(f1==f2);
     EXPECT_FALSE(f2==f1);
 }
 
 TEST(FastaqTest,same_equals_false) {
     Fastaq f1(false,true);
-    f1.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 93);
+    f1.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
     Fastaq f2(false,true);
-    f2.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 93);
+    f2.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
     EXPECT_TRUE(f1==f2);
     EXPECT_TRUE(f2==f1);
 }
@@ -140,7 +140,7 @@ TEST(FastaqTest,same_equals_false) {
 
 TEST(FastaqTest, ostream) {
     Fastaq f_out(false,true);
-    f_out.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 93);
+    f_out.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
     cout << f_out << endl;
 }
 
@@ -186,7 +186,7 @@ TEST(FastaqTest, istream_fa) {
 
 TEST(FastaqTest, iostream){
     Fastaq f_out(false,true);
-    f_out.add_entry("dummy","ACGTA",{2,3,4,5,6},93);
+    f_out.add_entry("dummy","ACGTA",{2,3,4,5,6},40);
     Fastaq f_in;
     stringstream out;
     out << f_out;
