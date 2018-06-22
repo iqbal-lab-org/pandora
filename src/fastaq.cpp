@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <cassert>
+#include <cctype>
 #include <unordered_map>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
@@ -21,9 +22,10 @@ char Fastaq::covg_to_score(const uint_least16_t& covg, const uint_least16_t& glo
 }
 
 void Fastaq::add_entry(const std::string & name,
-                  const std::string & sequence,
-                  const std::vector <uint32_t> & covgs,
-                  const uint_least16_t global_covg){
+                       const std::string & sequence,
+                       const std::vector <uint32_t> & covgs,
+                       const uint_least16_t global_covg,
+                       const string header){
 
     assert(name != "");
     assert(covgs.size() == sequence.length());
@@ -37,6 +39,7 @@ void Fastaq::add_entry(const std::string & name,
     }
 
     names.push_back(name);
+    headers[name] = header;
     sequences[name] = sequence;
     scores[name] = score;
 }
@@ -78,7 +81,10 @@ std::ostream &operator<<(std::ostream &out, Fastaq const &data) {
             out << "@";
         else
             out << ">";
-        out << name << "\n";
+        out << name;
+        if (data.headers.at(name) != "")
+            cout << data.headers.at(name);
+        out << "\n";
         out << data.sequences.at(name) << "\n";
         if (data.fastq) {
             out << "+\n";
@@ -89,7 +95,7 @@ std::ostream &operator<<(std::ostream &out, Fastaq const &data) {
 }
 
 std::istream &operator>>(std::istream &in, Fastaq &data) {
-    string name, seq, score;
+    string name, seq, score, header;
     /*in >> name;
     in >> seq;
     data.names.push_back(name);
@@ -97,21 +103,31 @@ std::istream &operator>>(std::istream &in, Fastaq &data) {
 
     char c = in.peek();
     while (c != EOF) {
+
         in.ignore(1, '>');
         in >> name;
-        in >> seq;
         data.names.push_back(name);
+
+        data.headers[name] = "";
+        c = in.peek();
+        while (isspace(c) and c != '\n') {
+            in >> header;
+            data.headers[name] += " " + header;
+            c = in.peek();
+        }
+
+        in >> seq;
         data.sequences[name] = seq;
+
         in.ignore(1, '\n');
         c = in.peek();
-        cout << c << " " << (c == '+') << endl;
         if (c == '+') {
             data.fastq = true;
             in.ignore(1, '+');
             in >> score;
             data.scores[name] = score;
+            c = in.peek();
         }
-        c = in.peek();
     }
 
     return in;

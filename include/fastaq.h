@@ -9,6 +9,7 @@ struct Fastaq {
     bool gzipped;
     bool fastq;
     std::vector<std::string> names;
+    std::unordered_map <std::string, std::string> headers;
     std::unordered_map <std::string, std::string> sequences;
     std::unordered_map <std::string, std::string> scores;
 
@@ -16,7 +17,8 @@ struct Fastaq {
 
     char covg_to_score(const uint_least16_t&, const uint_least16_t&);
 
-    void add_entry(const std::string &, const std::string &,const  std::vector<uint32_t> &, const uint_least16_t);
+    void add_entry(const std::string &, const std::string &,const  std::vector<uint32_t> &,
+                   const uint_least16_t, const std::string header="");
 
     void save(const std::string &);
 

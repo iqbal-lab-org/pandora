@@ -183,6 +183,33 @@ TEST(FastaqTest, istream_fa) {
     EXPECT_EQ(f_in.sequences["dummer"], "GTGGC");
 }
 
+TEST(FastaqTest, istream_fa_with_extra_header) {
+    Fastaq f_in;
+    istringstream is(">dummy with header\nACGTA\n>dummer also with header\nGTGGC");
+    is >> f_in;
+
+    EXPECT_FALSE(f_in.fastq);
+    EXPECT_FALSE(f_in.gzipped);
+    bool found_name = find(f_in.names.begin(), f_in.names.end(), "dummy") != f_in.names.end();
+    EXPECT_TRUE(found_name);
+    bool added_seq = f_in.sequences.find("dummy") != f_in.sequences.end();
+    EXPECT_TRUE(added_seq);
+    EXPECT_EQ(f_in.sequences["dummy"], "ACGTA");
+    bool added_score = f_in.scores.find("dummy") != f_in.scores.end();
+    EXPECT_FALSE(added_score);
+    bool added_header = f_in.headers.find("dummy") != f_in.headers.end();
+    EXPECT_TRUE(added_header);
+    EXPECT_EQ(f_in.headers["dummy"], " with header");
+    found_name = find(f_in.names.begin(), f_in.names.end(), "dummer") != f_in.names.end();
+    EXPECT_TRUE(found_name);
+    added_seq = f_in.sequences.find("dummer") != f_in.sequences.end();
+    EXPECT_TRUE(added_seq);
+    EXPECT_EQ(f_in.sequences["dummer"], "GTGGC");
+    added_header = f_in.headers.find("dummer") != f_in.headers.end();
+    EXPECT_TRUE(added_header);
+    EXPECT_EQ(f_in.headers["dummer"], " also with header");
+}
+
 
 TEST(FastaqTest, iostream){
     Fastaq f_out(false,true);
