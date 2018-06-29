@@ -212,6 +212,7 @@ vector<Path> LocalGraph::walk_back(const uint32_t &node_id, const uint32_t &pos,
 }
 
 LocalNodePtr LocalGraph::get_previous_node(const LocalNodePtr n) const {
+    // returns a previous node if there is one/many
     if (n->id == 0) {
         return nullptr;
     } else {
