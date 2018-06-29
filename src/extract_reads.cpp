@@ -8,6 +8,10 @@
 #include "pangenome/ns.cpp"
 #include "pangenome/pannode.h"
 #include "pangenome/panread.h"
+#include "localPRG.h"
+#include "fastaq_handler.h"
+#include "fastaq.h"
+#include "utils.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -167,5 +171,67 @@ void get_read_overlap_coordinates(PanNodePtr pnode, vector<vector<uint32_t>>& re
                  return false;});
     }
 
+}
+
+void save_read_strings_to_denovo_assemble(const string& readfilepath,
+                                          const string& outdir,
+                                          const PanNodePtr pnode,
+                                          const vector<LocalNodePtr>& lmp,
+                                          const vector<KmerNodePtr>& kmp,
+                                          const uint32_t& threshold,
+                                          const uint32_t& min_length,
+                                          const int32_t buff){
+
+    vector<uint32_t> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
+    vector<Interval> intervals = identify_regions(covgs, threshold, min_length);
+
+    if (intervals.empty())
+        return;
+
+    cout << now() << "Save mapped read strings and coordinates" << endl;
+    make_dir(outdir);
+
+    FastaqHandler readfile(readfilepath);
+    Fastaq fa;
+    uint32_t start, end;
+    vector<vector<uint32_t>> read_overlap_coordinates;
+    vector<LocalNodePtr> sub_lmp;
+
+    for (auto interval : intervals){
+        sub_lmp = find_interval_in_localpath(interval, lmp);
+        get_read_overlap_coordinates(pnode, read_overlap_coordinates, sub_lmp);
+
+        for (auto coord : read_overlap_coordinates) {
+            readfile.get_id(coord[0]);
+            start = (uint32_t) max((int32_t)coord[1]-buff, 0);
+            end = min(coord[2]+(uint32_t)buff, (uint32_t)readfile.read.length());
+
+            assert(coord[1] < coord[2]);
+            assert(start <= coord[1]);
+            assert(start <= readfile.read.length());
+            assert(coord[2] <= readfile.read.length());
+            assert(end >= coord[2]);
+            assert(start < end);
+
+            string header = "pandora: " + to_string(coord[0]) + " " + to_string(start) + ":" + to_string(end);
+            if (coord[3] == true)
+                header += " + ";
+            else
+                header += " - ";
+            string sequence = readfile.read.substr(start, end - start);
+
+            fa.add_entry(readfile.name, sequence, header);
+        }
+        fa.save(outdir + "/" + pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end()) + ".fa");
+
+        read_overlap_coordinates.clear();
+        fa.clear();
+    }
+
+
+
+
+
+    readfile.close();
 }
 

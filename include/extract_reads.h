@@ -19,5 +19,13 @@ std::set<MinimizerHitPtr, pComp_path> hits_along_path(const std::set<MinimizerHi
 
 void get_read_overlap_coordinates(PanNodePtr, std::vector<std::vector<uint32_t>>&, std::vector<LocalNodePtr>&);
 
+void save_read_strings_to_denovo_assemble(const std::string&,
+                                          const std::string&,
+                                          const PanNodePtr,
+                                          const std::vector<LocalNodePtr>&,
+                                          const std::vector<KmerNodePtr>&,
+                                          const uint32_t& threshold = 2,
+                                          const uint32_t& min_length = 5,
+                                          const int32_t buff = 0);
 
 #endif
