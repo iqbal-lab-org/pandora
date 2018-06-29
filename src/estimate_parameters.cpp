@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "pangenome/pangraph.h"
 #include "pangenome/pannode.h"
+#include "estimate_parameters.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
