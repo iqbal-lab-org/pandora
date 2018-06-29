@@ -648,10 +648,9 @@ LocalPRG::localnode_path_from_kmernode_path(const vector<KmerNodePtr> &kmernode_
     return localnode_path;
 }
 
-vector<uint32_t>
-LocalPRG::get_covgs_along_localnode_path(const PanNodePtr pnode,
-                                         const vector<LocalNodePtr> &localnode_path,
-                                         const vector<KmerNodePtr> &kmernode_path) const {
+vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr pnode,
+                                                const vector<LocalNodePtr> &localnode_path,
+                                                const vector<KmerNodePtr> &kmernode_path) {
     // defines estimated per base coverage for the bases of localnode_path based on the coverages from the
     // kmernode_path kmers
 

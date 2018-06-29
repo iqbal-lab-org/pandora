@@ -57,10 +57,6 @@ public:
     std::vector<LocalNodePtr>
     localnode_path_from_kmernode_path(const std::vector<KmerNodePtr> &, const uint32_t w = 0) const;
 
-    std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr,
-                                                     const std::vector<LocalNodePtr> &,
-                                                     const std::vector<KmerNodePtr> &) const;
-
     void write_covgs_to_file(const string &, const std::vector<uint32_t> &) const;
 
     void write_path_to_fasta(const std::string &, const std::vector<LocalNodePtr> &, const float &) const;
@@ -129,5 +125,9 @@ bool operator<(const std::pair<std::vector<LocalNodePtr>, float> &p1,
                const std::pair<std::vector<LocalNodePtr>, float> &p2);
 
 bool operator!=(const std::vector<KmerNodePtr> &lhs, const std::vector<KmerNodePtr> &rhs);
+
+std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr,
+                                                     const std::vector<LocalNodePtr> &,
+                                                     const std::vector<KmerNodePtr> &);
 
 #endif

@@ -799,7 +799,7 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path)
     {
         n->covg[0] += 1;
     }
-    vector<uint> covgs = l3.get_covgs_along_localnode_path(pn3, lmp, kmp);
+    vector<uint> covgs = get_covgs_along_localnode_path(pn3, lmp, kmp);
     vector<uint> covgs_exp = {0,1,1,1};
     EXPECT_ITERABLE_EQ( vector<uint>,covgs_exp, covgs);
 
@@ -813,7 +813,7 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path)
     {
         n->covg[0] += 1;
     }
-    covgs = l4.get_covgs_along_localnode_path(pn4, lmp, kmp);
+    covgs = get_covgs_along_localnode_path(pn4, lmp, kmp);
     //covgs_exp = {1,2,3,3,3,3,3,3,3,3,3,3,2,1};
     covgs_exp = {1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 
@@ -821,7 +821,7 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path)
 
     kmp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[5],l4.kmer_prg.nodes[12], l4.kmer_prg.nodes[15], l4.kmer_prg.nodes[18],l4.kmer_prg.nodes[25]};
     lmp = l4.localnode_path_from_kmernode_path(kmp, 2);
-    covgs = l4.get_covgs_along_localnode_path(pn4, lmp, kmp);
+    covgs = get_covgs_along_localnode_path(pn4, lmp, kmp);
     //covgs_exp = {0,1,2,2,1,1,2,3,2,1,1,1,1,0};
     covgs_exp = {0,1,1,1,1,1,1,1,1,1,1,1,1,0};
 
@@ -848,7 +848,7 @@ TEST(LocalPRGTest, write_covgs_to_file)
     for (auto n : pn3->kmer_prg.nodes) {
         n->covg[0]+=1;
     }
-    vector<uint> covgs = l3.get_covgs_along_localnode_path(pn3, lmp, kmp);
+    vector<uint> covgs = get_covgs_along_localnode_path(pn3, lmp, kmp);
     vector<uint> covgs_exp = {0,1,1,1};
     EXPECT_ITERABLE_EQ( vector<uint>,covgs_exp, covgs);
 
