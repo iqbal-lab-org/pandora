@@ -17,8 +17,12 @@ struct Fastaq {
 
     char covg_to_score(const uint_least16_t&, const uint_least16_t&);
 
-    void add_entry(const std::string &, const std::string &,const  std::vector<uint32_t> &,
+    void add_entry(const std::string &, const std::string &, const std::vector<uint32_t> &,
                    const uint_least16_t, const std::string header="");
+
+    void add_entry(const std::string &, const std::string &, const std::string header="");
+
+    void clear();
 
     void save(const std::string &);
 

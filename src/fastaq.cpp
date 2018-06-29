@@ -53,6 +53,25 @@ void Fastaq::add_entry(const std::string & name,
     scores[name] = score;
 }
 
+void Fastaq::add_entry(const std::string & name,
+                       const std::string & sequence,
+                       const string header){
+
+    assert(name != "");
+
+    names.push_back(name);
+    headers[name] = header;
+    sequences[name] = sequence;
+    scores[name] = {};
+}
+
+void Fastaq::clear() {
+    names.clear();
+    headers.clear();
+    sequences.clear();
+    scores.clear();
+}
+
 void Fastaq::save(const std::string & filepath) {
     ofstream file(filepath, ios_base::out | ios_base::binary | ios_base::trunc);
     boost::iostreams::filtering_streambuf<boost::iostreams::output> out;
