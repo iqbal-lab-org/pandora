@@ -205,7 +205,6 @@ void VCF::regenotype(const uint32_t & expected_depth_covg, const float & error_r
             vr.likelihood(expected_depth_covg,error_rate);
             vr.confidence();
             vr.regenotype(confidence_threshold);
-            cout << vr;
         }
     }
     add_formats({"REF_LIKELIHOOD", "ALT_LIKELIHOOD", "CONFIDENCE"});
