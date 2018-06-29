@@ -1,5 +1,6 @@
 #include <cassert>
 #include <vector>
+#include <set>
 #include "extract_reads.h"
 #include "interval.h"
 #include "path.h"
@@ -14,13 +15,13 @@ using namespace std;
 
 vector<Interval> identify_regions(const vector<uint32_t>& covgs, const uint32_t& threshold, const uint32_t& min_length) {
     // threshold is to be less than or equal to in intervals [ , )
-    cout << "identify regions " << threshold << " " << min_length << endl;
+    //cout << "identify regions " << threshold << " " << min_length << endl;
     uint32_t start = 0, end = 0;
     vector<Interval> regions;
     bool found_start = false;
     for (uint32_t i=0; i<covgs.size(); ++i){
         if (covgs[i] <= threshold and start == 0){
-            cout << "covgs[" << i << "] " << covgs[i] << "<=" << threshold << " threshold" << endl;
+            //cout << "covgs[" << i << "] " << covgs[i] << "<=" << threshold << " threshold" << endl;
             start = i;
             end = 0;
             found_start = true;
@@ -28,7 +29,8 @@ vector<Interval> identify_regions(const vector<uint32_t>& covgs, const uint32_t&
             end = i;
             if (end - start >= min_length) {
                 regions.emplace_back(Interval(start, end));
-                cout << "end - start " << end << "-" << start << " = " << end - start << " >= " << min_length << " min_length" << endl;
+                //cout << "end - start " << end << "-" << start << " = " << end - start << " >= " << min_length
+                // << " min_length" << endl;
             }
             start = 0;
         }
@@ -36,7 +38,8 @@ vector<Interval> identify_regions(const vector<uint32_t>& covgs, const uint32_t&
     if (found_start and end == 0 and covgs.size() - start >= min_length) {
         end = covgs.size();
         regions.emplace_back(Interval(start, end));
-        cout << "end - start " << end << "-" << start << " = " << end - start << " >= " << min_length << " min_length" << endl;
+        //cout << "end - start " << end << "-" << start << " = " << end - start << " >= " << min_length
+        // << " min_length" << endl;
     }
     return regions;
 }
@@ -70,8 +73,8 @@ vector<LocalNodePtr> find_interval_in_localpath(const Interval& interval, const 
             level -=1;
         }
     }
-    cout << "found start node " << +start << " level " << +start_level << ", and end node " << +end
-         << ", with lowest level " << +lowest_level << endl;
+    //cout << "found start node " << +start << " level " << +start_level << ", and end node " << +end
+    //     << ", with lowest level " << +lowest_level << endl;
 
     if (start_level > lowest_level) {
         // Now extend the start of the interval found so starts at lowest_level
@@ -84,7 +87,7 @@ vector<LocalNodePtr> find_interval_in_localpath(const Interval& interval, const 
 
             if (start_level == lowest_level) {
                 start = i-1;
-                cout << "new start " << +start << "at level " << +start_level << endl;
+                //cout << "new start " << +start << "at level " << +start_level << endl;
                 break;
             }
         }
@@ -126,7 +129,8 @@ set<MinimizerHitPtr, pComp_path> hits_along_path(const set<MinimizerHitPtr, pCom
     return subset;
 }
 
-void get_read_overlap_coordinates(PanNodePtr pnode, vector<vector<uint32_t>>& read_overlap_coordinates, vector<LocalNodePtr>& lmp)
+void get_read_overlap_coordinates(PanNodePtr pnode, vector<vector<uint32_t>>& read_overlap_coordinates,
+                                  vector<LocalNodePtr>& lmp)
 {
     read_overlap_coordinates.reserve(pnode->reads.size());
     vector<uint32_t> coordinate;
