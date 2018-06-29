@@ -24,6 +24,7 @@
 #include "index.h"
 #include "estimate_parameters.h"
 #include "noise_filtering.h"
+#include "extract_reads.h"
 
 using std::set;
 using std::vector;
@@ -53,6 +54,7 @@ static void show_map_usage() {
               << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative binomial\n"
               << "\t--max_covg\t\t\tMaximum average coverage from reads to accept\n"
               << "\t--regenotype\t\t\tAdd extra step to carefully genotype SNP sites\n"
+              << "\t--discover\t\t\tAdd denovo discovery\n"
               << std::endl;
 }
 
@@ -72,7 +74,7 @@ int pandora_map(int argc, char *argv[]) {
     bool output_comparison_paths = false, output_mapped_read_fa = false;
     bool illumina = false, clean = false;
     bool output_covgs = false, bin = false;
-    bool regenotype = false;
+    bool regenotype = false, discover_denovo = false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -173,6 +175,8 @@ int pandora_map(int argc, char *argv[]) {
             }
         } else if ((arg == "--regenotype")) {
             regenotype = true;
+        } else if ((arg == "--discover")) {
+            discover_denovo = true;
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -203,7 +207,8 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\tclean\t" << clean << endl;
     cout << "\tbin\t" << bin << endl;
     cout << "\tmax_covg\t" << max_covg << endl;
-    cout << "\tregenotype\t" << regenotype << endl << endl;
+    cout << "\tregenotype\t" << regenotype << endl;
+    cout << "\tdiscover\t" << discover_denovo << endl << endl;
 
     make_dir(outdir);
     if (output_kg)
@@ -251,6 +256,7 @@ int pandora_map(int argc, char *argv[]) {
     string vcf_ref;
     vector<KmerNodePtr> kmp;
     vector<LocalNodePtr> lmp;
+    vector<vector<uint32_t>> read_overlap_coordinates;
 
     if (output_vcf and !vcf_refs_file.empty()) {
         vcf_refs.reserve(prgs.size());
@@ -278,6 +284,10 @@ int pandora_map(int argc, char *argv[]) {
         if (output_vcf) {
             prgs[c->second->prg_id]->add_variants_to_vcf(master_vcf, c->second, vcf_ref, kmp, lmp);
         }
+
+        if (discover_denovo) {
+            save_read_strings_to_denovo_assemble(readfile, outdir + "/denovo", c->second, lmp, kmp);
+        }
         ++c;
     }
     consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
@@ -294,6 +304,9 @@ int pandora_map(int argc, char *argv[]) {
     for (uint32_t j = 0; j != prgs.size(); ++j) {
         delete prgs[j];
     }
+
+    vector<uint32_t> covgs;
+    vector<Interval> t = identify_regions(covgs);
 
     pangraph->clear();
     delete pangraph;
