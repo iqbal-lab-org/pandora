@@ -3,6 +3,10 @@
 #include "extract_reads.h"
 #include "interval.h"
 #include "path.h"
+#include "minihit.h"
+#include "pangenome/ns.cpp"
+#include "pangenome/pannode.h"
+#include "pangenome/panread.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -10,18 +14,29 @@ using namespace std;
 
 vector<Interval> identify_regions(const vector<uint32_t>& covgs, const uint32_t& threshold, const uint32_t& min_length) {
     // threshold is to be less than or equal to in intervals [ , )
+    cout << "identify regions " << threshold << " " << min_length << endl;
     uint32_t start = 0, end = 0;
     vector<Interval> regions;
+    bool found_start = false;
     for (uint32_t i=0; i<covgs.size(); ++i){
         if (covgs[i] <= threshold and start == 0){
+            cout << "covgs[" << i << "] " << covgs[i] << "<=" << threshold << " threshold" << endl;
             start = i;
             end = 0;
-        } else if (c > threshold and end == 0) {
+            found_start = true;
+        } else if (found_start and covgs[i] > threshold and end == 0) {
             end = i;
-            if (end - start >= min_length)
+            if (end - start >= min_length) {
                 regions.emplace_back(Interval(start, end));
+                cout << "end - start " << end << "-" << start << " = " << end - start << " >= " << min_length << " min_length" << endl;
+            }
             start = 0;
         }
+    }
+    if (found_start and end == 0 and covgs.size() - start >= min_length) {
+        end = covgs.size();
+        regions.emplace_back(Interval(start, end));
+        cout << "end - start " << end << "-" << start << " = " << end - start << " >= " << min_length << " min_length" << endl;
     }
     return regions;
 }
@@ -30,7 +45,8 @@ vector<LocalNodePtr> find_interval_in_localpath(const Interval& interval, const 
     uint32_t added = 0;
     uint8_t level=0, start_level=0, lowest_level = 0;
     uint16_t start=0, end=0;
-    for (uint_least16_t i=0; i<lmp.size; ++i){
+    bool found_end = false;
+    for (uint_least16_t i=0; i<lmp.size(); ++i){
         if (added <= interval.start and added + lmp[i]->pos.length >= interval.start) {
             start = i;
             start_level = level;
@@ -40,9 +56,10 @@ vector<LocalNodePtr> find_interval_in_localpath(const Interval& interval, const 
             lowest_level = level;
         }
         if (added <= interval.get_end() and added + lmp[i]->pos.length >= interval.get_end()) {
-            end = i;
+            found_end = true;
         }
-        if (end != nullptr and level == lowest_level){
+        end = i;
+        if (found_end and level == lowest_level){
             break;
         }
         added += lmp[i]->pos.length;
@@ -53,11 +70,13 @@ vector<LocalNodePtr> find_interval_in_localpath(const Interval& interval, const 
             level -=1;
         }
     }
+    cout << "found start node " << +start << " level " << +start_level << ", and end node " << +end
+         << ", with lowest level " << +lowest_level << endl;
 
     if (start_level > lowest_level) {
         // Now extend the start of the interval found so starts at lowest_level
         for (uint_least16_t i=start; i>0; --i) {
-            if (l[i-1]->outNodes.size() > 1) {
+            if (lmp[i-1]->outNodes.size() > 1) {
                 start_level -= 1;
             } else {
                 start_level += 1;
@@ -65,16 +84,17 @@ vector<LocalNodePtr> find_interval_in_localpath(const Interval& interval, const 
 
             if (start_level == lowest_level) {
                 start = i-1;
+                cout << "new start " << +start << "at level " << +start_level << endl;
                 break;
             }
         }
     }
 
-    vector<LocalNodePtr> sub_localpath(lmp.begin()+start, lmp.begin()+end);
+    vector<LocalNodePtr> sub_localpath(lmp.begin()+start, lmp.begin()+end+1);
     return sub_localpath;
 }
 
-set<MinimizerHitPtr, pComp_path>& hits_along_path(const set<MinimizerHitPtr, pComp_path>& read_hits,
+set<MinimizerHitPtr, pComp_path> hits_along_path(const set<MinimizerHitPtr, pComp_path>& read_hits,
                                                   const vector<LocalNodePtr>& lmp){
     set<MinimizerHitPtr, pComp_path> subset;
 
@@ -115,7 +135,7 @@ void get_read_overlap_coordinates(PanNodePtr pnode, vector<vector<uint32_t>>& re
     for (const auto read_ptr : pnode->reads)
     {
         read_count++;
-        auto read_hits_along_path = hits_along_path(read_ptr->hits.at(prg_id), lmp);
+        auto read_hits_along_path = hits_along_path(read_ptr->hits.at(pnode->prg_id), lmp);
         if (read_hits_along_path.size() < 2)
             continue;
 
@@ -144,3 +164,4 @@ void get_read_overlap_coordinates(PanNodePtr pnode, vector<vector<uint32_t>>& re
     }
 
 }
+

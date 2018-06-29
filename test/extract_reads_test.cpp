@@ -3,6 +3,7 @@
 #include "test_macro.cpp"
 #include "extract_reads.h"
 #include "interval.h"
+#include "localPRG.h"
 
 using namespace std;
 
@@ -35,7 +36,7 @@ TEST(ExtractReadsTest, identify_regions_1) {
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
     low_covg_intervals = identify_regions(covgs, 1, 3);
-    expected_intervals = {Interval(10, 12)};
+    expected_intervals = {};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 }
 
@@ -85,11 +86,15 @@ TEST(ExtractReadsTest, identify_regions_3) {
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
     low_covg_intervals = identify_regions(covgs, 3, 5);
+    expected_intervals = {Interval(10,15)};
+    EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
+
+    low_covg_intervals = identify_regions(covgs, 3, 6);
     expected_intervals = {};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 }
 
-TEST(ExtractReadsTest, identify_regions_3) {
+TEST(ExtractReadsTest, identify_regions_4) {
     vector<uint32_t> covgs({5,6,7,5,6,6,4,4,3,5,1,1,2,3,2,4,3});
     auto low_covg_intervals = identify_regions(covgs, 4, 0);
     vector<Interval> expected_intervals = {Interval(6,9),Interval(10,17)};
@@ -145,6 +150,10 @@ TEST(ExtractReadsTest, find_interval_in_localpath_short) {
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
     auto found_path = find_interval_in_localpath(Interval(1,4), lmp);
+    for (auto n : found_path){
+        cout << n->pos << " ";
+    }
+    cout << endl;
 
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4]};
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
@@ -171,7 +180,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_multiple_sites) {
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
-    auto found_path = find_interval_in_localpath(Interval(3,5), lmp);
+    auto found_path = find_interval_in_localpath(Interval(2,5), lmp);
 
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                      l3.prg.nodes[6], l3.prg.nodes[7]};
