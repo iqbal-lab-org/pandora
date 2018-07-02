@@ -40,7 +40,7 @@ bool FastaqHandler::eof()
 }
 
 void FastaqHandler::get_next(){
-    cout << "next ";
+    //cout << "next ";
     if (!line.empty() and (line[0] == '>' or line[0] == '@')) {
         //cout << "read name line " << num_reads_parsed << " " << line << endl;
         name = line.substr(1);
@@ -49,7 +49,11 @@ void FastaqHandler::get_next(){
     }
 
     while (getline(instream, line).good()){
-        if (line.empty() || line[0] == '>' || line[0] == '@') {
+        if (!line.empty() and line[0] == '+') {
+            //skip this line and the qual score line
+            getline(instream, line);
+            //cout << "qual score line ." << line << "." << endl;
+        } else if (line.empty() || line[0] == '>' || line[0] == '@') {
             if (!read.empty() or line.empty()) // ok we'll allow reads with no name, removed
             {
                 return;
@@ -58,35 +62,41 @@ void FastaqHandler::get_next(){
             name = line.substr(1);
             ++num_reads_parsed;
             read.clear();
-        } else if (line[0] == '+') {
-            //skip this line and the qual score line
-            getline(instream, line);
         } else {
+            //cout << "read line ." << line << "." << endl;
             read += line;
         }
     }
 }
 
 void FastaqHandler::skip_next(){
-    cout << "skip ";
+    //cout << "skip ";
     if (!line.empty() and (line[0] == '>' or line[0] == '@')) {
         ++num_reads_parsed;
     }
 
     while (getline(instream, line).good()){
-        if (line[0] == '>' || line[0] == '@') {
+        if (!line.empty() and line[0] == '+') {
+            //skip this line and the qual score line
+            getline(instream, line);
+            //cout << "qual score line ." << line << "." << endl;
+        } else if (!line.empty() and (line[0] == '>' or line[0] == '@')) {
 	        return;
 	    }
     }
 }
 
 void FastaqHandler::get_id(const uint32_t& id){
-    cout << "get id " << id << endl;
+    //cout << "get id " << id << endl;
     if (id < num_reads_parsed) {
+        //cout << "restart buffer as have id " << num_reads_parsed << " and want id " << id << endl;
         num_reads_parsed = 0;
         name.clear();
         read.clear();
         line.clear();
+        assert(name.empty());
+        assert(read.empty());
+        assert(line.empty());
         fastaq_file.clear();
         fastaq_file.seekg(0, fastaq_file.beg);
         inbuf.pop();
