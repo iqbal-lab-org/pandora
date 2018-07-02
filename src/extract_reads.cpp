@@ -201,9 +201,9 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
         sub_lmp = find_interval_in_localpath(interval, lmp);
         get_read_overlap_coordinates(pnode, read_overlap_coordinates, sub_lmp);
 
-        uint8_t j = 0;
+        uint16_t j = 0;
         for (auto coord : read_overlap_coordinates) {
-            cout << "Looking at coordinate j = " << j << " {" << coord[0] << "," << coord[1] << "," << coord[2] << ","
+            cout << "\nLooking at coordinate j = " << +j << " {" << coord[0] << "," << coord[1] << "," << coord[2] << ","
                  << coord[3] << "}" << endl;
             j++;
             readfile.get_id(coord[0]);

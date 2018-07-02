@@ -81,7 +81,7 @@ void FastaqHandler::skip_next(){
 }
 
 void FastaqHandler::get_id(const uint32_t& id){
-    cout << "\nget id " << id << endl;
+    cout << "get id " << id << endl;
     if (id < num_reads_parsed) {
         num_reads_parsed = 0;
         name.clear();
@@ -98,7 +98,7 @@ void FastaqHandler::get_id(const uint32_t& id){
         instream.sync();
     }
 
-    while (id > 1 and num_reads_parsed < id-2) {
+    while (id > 1 and num_reads_parsed < id) {
 	    skip_next();
         if (eof())
             break;
