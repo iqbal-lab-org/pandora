@@ -80,7 +80,7 @@ void FastaqHandler::skip_next(){
             //skip this line and the qual score line
             getline(instream, line);
             //cout << "qual score line ." << line << "." << endl;
-        } else if (!line.empty() and (line[0] == '>' or line[0] == '@')) {
+        } else if (line.empty() or line[0] == '>' or line[0] == '@') {
 	        return;
 	    }
     }
