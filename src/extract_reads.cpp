@@ -136,6 +136,7 @@ set<MinimizerHitPtr, pComp_path> hits_along_path(const set<MinimizerHitPtr, pCom
 void get_read_overlap_coordinates(PanNodePtr pnode, vector<vector<uint32_t>>& read_overlap_coordinates,
                                   vector<LocalNodePtr>& lmp)
 {
+    read_overlap_coordinates.clear();
     read_overlap_coordinates.reserve(pnode->reads.size());
     vector<uint32_t> coordinate;
 
@@ -198,6 +199,7 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
     vector<LocalNodePtr> sub_lmp;
 
     for (auto interval : intervals){
+        cout << "Looking at interval " << interval << endl;
         sub_lmp = find_interval_in_localpath(interval, lmp);
         get_read_overlap_coordinates(pnode, read_overlap_coordinates, sub_lmp);
 
