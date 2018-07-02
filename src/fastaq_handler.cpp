@@ -40,6 +40,7 @@ bool FastaqHandler::eof()
 }
 
 void FastaqHandler::get_next(){
+    cout << "next ";
     if (!line.empty() and (line[0] == '>' or line[0] == '@')) {
         //cout << "read name line " << num_reads_parsed << " " << line << endl;
         name = line.substr(1);
@@ -67,6 +68,7 @@ void FastaqHandler::get_next(){
 }
 
 void FastaqHandler::skip_next(){
+    cout << "skip ";
     if (!line.empty() and (line[0] == '>' or line[0] == '@')) {
         ++num_reads_parsed;
     }
@@ -79,6 +81,7 @@ void FastaqHandler::skip_next(){
 }
 
 void FastaqHandler::get_id(const uint32_t& id){
+    cout << "\nget id " << id << endl;
     if (id < num_reads_parsed) {
         num_reads_parsed = 0;
         name.clear();
