@@ -201,47 +201,50 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
         sub_lmp = find_interval_in_localpath(interval, lmp);
         get_read_overlap_coordinates(pnode, read_overlap_coordinates, sub_lmp);
 
+        auto j = 0;
         for (auto coord : read_overlap_coordinates) {
+            cout << "Looking at coordinate j = " << j << endl;
+            j++;
             readfile.get_id(coord[0]);
             start = (uint32_t) max((int32_t)coord[1]-buff, 0);
             end = min(coord[2]+(uint32_t)buff, (uint32_t)readfile.read.length());
 
-            assert(coord[1] < coord[2] or assert_msg("For read " << readfile.name << " pannode "
+            assert(coord[1] < coord[2] or assert_msg("For read #" << coord[0] << " " << readfile.name << " pannode "
                                                                  << pnode->get_name() << " interval ["
                                                                  << coord[1] << ", " << coord[2]
                                                                  << ") found start " << start
                                                                  << " end " << end
                                                                  << " compared to readlength "
                                                                  << readfile.read.length()));
-            assert(start <= coord[1] or assert_msg("For read " << readfile.name << " pannode "
+            assert(start <= coord[1] or assert_msg("For read #" << coord[0] << " " << readfile.name << " pannode "
                                                                << pnode->get_name() << " interval ["
                                                                << coord[1] << ", " << coord[2]
                                                                << ") found start " << start
                                                                << " end " << end
                                                                << " compared to readlength "
                                                                << readfile.read.length()));
-            assert(start <= readfile.read.length() or assert_msg("For read " << readfile.name << " pannode "
+            assert(start <= readfile.read.length() or assert_msg("For read #" << coord[0] << " " << readfile.name << " pannode "
                                                                              << pnode->get_name() << " interval ["
                                                                              << coord[1] << ", " << coord[2]
                                                                              << ") found start " << start
                                                                              << " end " << end
                                                                              << " compared to readlength "
                                                                              << readfile.read.length()));
-            assert(coord[2] <= readfile.read.length() or assert_msg("For read " << readfile.name << " pannode "
+            assert(coord[2] <= readfile.read.length() or assert_msg("For read #" << coord[0] << " " << readfile.name << " pannode "
                                                                                 << pnode->get_name() << " interval ["
                                                                                 << coord[1] << ", " << coord[2]
                                                                                 << ") found start " << start
                                                                                 << " end " << end
                                                                                 << " compared to readlength "
                                                                                 << readfile.read.length()));
-            assert(end >= coord[2] or assert_msg("For read " << readfile.name << " pannode "
+            assert(end >= coord[2] or assert_msg("For read #" << coord[0] << " " << readfile.name << " pannode "
                                                              << pnode->get_name() << " interval ["
                                                              << coord[1] << ", " << coord[2]
                                                              << ") found start " << start
                                                              << " end " << end
                                                              << " compared to readlength "
                                                              << readfile.read.length()));
-            assert(start < end or assert_msg("For read " << readfile.name << " pannode "
+            assert(start < end or assert_msg("For read #" << coord[0] << " " << readfile.name << " pannode "
                                                          << pnode->get_name() << " interval ["
                                                          << coord[1] << ", " << coord[2]
                                                          << ") found start " << start
