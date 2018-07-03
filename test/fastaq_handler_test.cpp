@@ -67,9 +67,19 @@ TEST(FastaqHandlerTest, get_next) {
     EXPECT_EQ(fh.read, "this time we should get *is time *");
 
     fh.get_next();
-    EXPECT_EQ((uint)3, fh.num_reads_parsed);
-    EXPECT_EQ(fh.name, "read2");
-    EXPECT_EQ(fh.read, "this time we should get *is time *");
+    EXPECT_EQ((uint)4, fh.num_reads_parsed);
+    EXPECT_EQ(fh.name, "read3");
+    EXPECT_EQ(fh.read, "nonsense");
+
+    fh.get_next();
+    EXPECT_EQ((uint)5, fh.num_reads_parsed);
+    EXPECT_EQ(fh.name, "read4");
+    EXPECT_EQ(fh.read, "another junk line");
+
+    fh.get_next();
+    EXPECT_EQ((uint)5, fh.num_reads_parsed);
+    EXPECT_EQ(fh.name, "read4");
+    EXPECT_EQ(fh.read, "another junk line");
 }
 
 TEST(FastaqHandlerTest, get_id_fa) {
@@ -148,6 +158,15 @@ TEST(FastaqHandlerTest, get_id_fq) {
     EXPECT_EQ((uint)3, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read2");
     EXPECT_EQ(fh.read, "this time we should get *is time *");
+
+    fh.get_id(4);
+    EXPECT_EQ((uint)5, fh.num_reads_parsed);
+    EXPECT_EQ(fh.name, "read4");
+
+    fh.get_id(3);
+    EXPECT_EQ((uint)4, fh.num_reads_parsed);
+    EXPECT_EQ(fh.name, "read3");
+
 }
 
 TEST(FastaqHandlerTest, get_id_fagz) {

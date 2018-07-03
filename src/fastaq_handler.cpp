@@ -86,6 +86,46 @@ void FastaqHandler::skip_next(){
     }
 }
 
+void print(ifstream& infile)
+{
+    char file;
+    vector<char>read;
+    int i = 0;
+
+    //Read infile to vector
+    while (!infile.eof())
+    {
+        infile >> file;
+        read.push_back(file);
+    }
+
+    //Print read vector
+    for (i = 0; i < read.size(); i++)
+    {
+        cout << read[i];
+    }
+}
+
+void print(istream& infile)
+{
+    char file;
+    vector<char>read;
+    int i = 0;
+
+    //Read infile to vector
+    while (!infile.eof())
+    {
+        infile >> file;
+        read.push_back(file);
+    }
+
+    //Print read vector
+    for (i = 0; i < read.size(); i++)
+    {
+        cout << read[i];
+    }
+}
+
 void FastaqHandler::get_id(const uint32_t& id){
     //cout << "get id " << id << endl;
     if (id < num_reads_parsed) {
@@ -97,22 +137,27 @@ void FastaqHandler::get_id(const uint32_t& id){
         assert(name.empty());
         assert(read.empty());
         assert(line.empty());
-        fastaq_file.clear();
+
+        instream.ignore(numeric_limits<streamsize>::max());
         fastaq_file.seekg(0, fastaq_file.beg);
-        inbuf.pop();
-        /*if(gzipped){
-            inbuf.push(boost::iostreams::gzip_decompressor());
-        }*/
-        inbuf.push(fastaq_file);
         instream.clear();
-        instream.sync();
+        inbuf.pop();
+        if(gzipped){
+            inbuf.pop();
+            inbuf.push(boost::iostreams::gzip_decompressor());
+        }
+        inbuf.push(fastaq_file);
     }
+
+    cout << "now have name " << name << " read " << read << " num_reads_parsed " << num_reads_parsed << " and line " << line << endl;
 
     while (id > 1 and num_reads_parsed < id) {
 	    skip_next();
         if (eof())
             break;
     }
+
+    cout << "now have name " << name << " read " << read << " num_reads_parsed " << num_reads_parsed << " and line " << line << endl;
 
     while (num_reads_parsed <= id) {
         get_next();
