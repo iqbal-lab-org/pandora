@@ -2,12 +2,13 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <boost/filesystem.hpp>
 #include "utils.h"
 #include "localPRG.h"
 
 using namespace std;
 
-void index_prgs(vector<LocalPRG *> &prgs, Index *idx, const uint32_t w, const uint32_t k) {
+void index_prgs(vector<LocalPRG *> &prgs, Index *idx, const uint32_t w, const uint32_t k, const string& outdir) {
     cout << now() << "Index PRGs" << endl;
 
     // first reserve an estimated index size
@@ -21,11 +22,11 @@ void index_prgs(vector<LocalPRG *> &prgs, Index *idx, const uint32_t w, const ui
     auto dir_num = 0;
     for (uint32_t i = 0; i != prgs.size(); ++i) {
         if (i % 4000 == 0){
-            make_dir("kmer_prgs/" + int_to_string(dir_num+1));
+            make_dir(outdir + "/" + int_to_string(dir_num+1));
             dir_num++;
         }
         prgs[i]->minimizer_sketch(idx, w, k);
-        prgs[i]->kmer_prg.save("kmer_prgs/" + int_to_string(dir_num) + "/" + prgs[i]->name + ".k" + to_string(k) + ".w" + to_string(w) + ".gfa");
+        prgs[i]->kmer_prg.save(outdir + "/" + int_to_string(dir_num) + "/" + prgs[i]->name + ".k" + to_string(k) + ".w" + to_string(w) + ".gfa");
     }
     cout << now() << "Finished adding " << prgs.size() << " LocalPRGs" << endl;
     cout << now() << "Number of keys in Index: " << idx->minhash.size() << endl;
@@ -36,7 +37,7 @@ static void show_index_usage() {
               << "Options:\n"
               << "\t-h,--help\t\t\tShow this help message\n"
               //<< "\t-u, --update\t\tLook for an index and add only PRGs with new names\n"
-              << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 1\n"
+              << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 14\n"
               << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
               << std::endl;
 }
@@ -52,7 +53,7 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
     // otherwise, parse the parameters from the command line
     string prgfile;
     bool update = false;
-    uint32_t w = 1, k = 15; // default parameters
+    uint32_t w = 14, k = 15; // default parameters
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -87,17 +88,18 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
     vector<LocalPRG *> prgs;
     read_prg_file(prgs, prgfile);
 
-    // create output directory for the gfa
-    const int dir_err = system("mkdir -p kmer_prgs");
-    if (-1 == dir_err) {
-        printf("Error creating directory!n");
-        exit(1);
-    }
+    // get output directory for the gfa
+    boost::filesystem::path p(prgfile);
+    boost::filesystem::path dir = p.parent_path();
+    string outdir = dir.string();
+    if (outdir.empty())
+        outdir = ".";
+    outdir += "/kmer_prgs";
 
     // index PRGs
     Index *idx;
     idx = new Index();
-    index_prgs(prgs, idx, w, k);
+    index_prgs(prgs, idx, w, k, outdir);
 
     // save index
     idx->save(prgfile, w, k);
