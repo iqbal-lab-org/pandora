@@ -5,6 +5,9 @@ Private Master: [![Build Status](https://travis-ci.com/rmnorris/pandora.svg?toke
 Private Dev: [![Build Status](https://travis-ci.com/rmnorris/pandora.svg?token=mxzxNwUzHrkcpsL2i7zU&branch=dev)](https://travis-ci.com/rmnorris/pandora)
 
 # pandora
+
+### Note this is in active rapid development at present and not ready for use
+
 Pandora is a tool for bacterial genome analysis without using a reference genome,  including genetic variation from SNPs to gene presence/absence across the whole pan-genome. Core ideas are:
  - new samples look like recombinants (plus mutations) of things seen before
  - we should be analysing nucleotide-level variation everywhere, not just in core genes
