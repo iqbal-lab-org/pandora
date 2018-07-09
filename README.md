@@ -1,8 +1,6 @@
-Public Master: [![Build Status](https://travis-ci.org/rmnorris/pandora.svg?branch=master)](https://travis-ci.org/rmnorris/pandora)
+Public Master: [![Build Status](https://travis-ci.org/rmcolq/pandora.svg?branch=master)](https://travis-ci.org/rmcolq/pandora)
 
-Private Master: [![Build Status](https://travis-ci.com/rmnorris/pandora.svg?token=mxzxNwUzHrkcpsL2i7zU&branch=master)](https://travis-ci.com/rmnorris/pandora)
-
-Private Dev: [![Build Status](https://travis-ci.com/rmnorris/pandora.svg?token=mxzxNwUzHrkcpsL2i7zU&branch=dev)](https://travis-ci.com/rmnorris/pandora)
+Private Dev: [![Build Status](https://travis-ci.com/rmcolq/pandora.svg?token=mxzxNwUzHrkcpsL2i7zU&branch=dev)](https://travis-ci.com/rmcolq/pandora)
 
 # pandora
 
