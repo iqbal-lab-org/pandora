@@ -122,7 +122,7 @@ void read_prg_file(vector<LocalPRG *> &prgs, const string &filepath) {
 
     uint32_t id = 0;
     LocalPRG *s;
-
+    
     FastaqHandler fh(filepath);
     while (!fh.eof()) {
         fh.get_next();
