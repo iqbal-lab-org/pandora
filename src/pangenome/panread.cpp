@@ -32,7 +32,7 @@ void Read::add_hits(const uint32_t prg_id, set<MinimizerHitPtr, pComp> &cluster)
 
 // find the position range where overlaps node_ids and node_orients in read
 pair<uint32_t, uint32_t>
-Read::find_position(const vector<uint16_t> &node_ids, const vector<bool> &node_orients, const uint16_t min_overlap) {
+Read::find_position(const vector<uint_least32_t> &node_ids, const vector<bool> &node_orients, const uint16_t min_overlap) {
     /*cout << "searching for ";
     for (auto n : node_ids)
     {

@@ -15,16 +15,16 @@
 
 using namespace std;
 
-uint16_t node_plus_orientation_to_num(const uint16_t node_id, const bool orientation) {
-    assert(node_id < 32767);
-    uint16_t r = 2 * node_id;
+uint_least32_t node_plus_orientation_to_num(const uint_least32_t node_id, const bool orientation) {
+    assert(node_id < UINT_LEAST32_MAX/2);
+    uint_least32_t r = 2 * node_id;
     if (orientation) {
         r += 1;
     }
     return r;
 }
 
-void num_to_node_plus_orientation(uint16_t &node_id, bool &orientation, const uint16_t num) {
+void num_to_node_plus_orientation(uint_least32_t &node_id, bool &orientation, const uint_least32_t num) {
     if (num % 2 == 1) {
         orientation = true;
         node_id = (num - 1) / 2;
@@ -34,17 +34,17 @@ void num_to_node_plus_orientation(uint16_t &node_id, bool &orientation, const ui
     }
 }
 
-uint16_t rc_num(const uint16_t &num) {
+uint_least32_t rc_num(const uint_least32_t &num) {
     return num + 1 * (num % 2 == 0) - 1 * (num % 2 == 1);
 }
 
-void hashed_node_ids_to_ids_and_orientations(const deque<uint16_t> &hashed_node_ids,
-                                             vector<uint16_t> &node_ids,
+void hashed_node_ids_to_ids_and_orientations(const deque<uint_least32_t> &hashed_node_ids,
+                                             vector<uint_least32_t> &node_ids,
                                              vector<bool> &node_orients) {
     node_ids.clear();
     node_orients.clear();
 
-    uint16_t node_id;
+    uint_least32_t node_id;
     bool orientation;
     for (auto i : hashed_node_ids) {
         num_to_node_plus_orientation(node_id, orientation, i);
@@ -53,7 +53,7 @@ void hashed_node_ids_to_ids_and_orientations(const deque<uint16_t> &hashed_node_
     }
 }
 
-bool overlap_forwards(const deque<uint16_t> &node1, const deque<uint16_t> &node2) {
+bool overlap_forwards(const deque<uint_least32_t> &node1, const deque<uint_least32_t> &node2) {
     // second deque should extend first by 1
     assert(node1.size() >= node2.size());
     uint32_t i = node1.size() - node2.size() + 1;
@@ -68,7 +68,7 @@ bool overlap_forwards(const deque<uint16_t> &node1, const deque<uint16_t> &node2
     return true;
 }
 
-bool overlap_backwards(const deque<uint16_t> &node1, const deque<uint16_t> &node2) {
+bool overlap_backwards(const deque<uint_least32_t> &node1, const deque<uint_least32_t> &node2) {
     for (uint32_t i = 1; i < min(node1.size() + 1, node2.size()); ++i) {
         if (node2[i] != node1[i - 1]) {
             return false;
@@ -77,12 +77,12 @@ bool overlap_backwards(const deque<uint16_t> &node1, const deque<uint16_t> &node
     return true;
 }
 
-deque<uint16_t> rc_hashed_node_ids(const deque<uint16_t> &hashed_node_ids) {
+deque<uint_least32_t> rc_hashed_node_ids(const deque<uint_least32_t> &hashed_node_ids) {
     /*for (auto n : hashed_node_ids)
     {
         cout << n << " ";
     }*/
-    deque<uint16_t> d;
+    deque<uint_least32_t> d;
     for (auto i : hashed_node_ids) {
         d.push_front(rc_num(i));
     }
@@ -95,10 +95,10 @@ deque<uint16_t> rc_hashed_node_ids(const deque<uint16_t> &hashed_node_ids) {
     return d;
 }
 
-deque<uint16_t> extend_hashed_pg_node_ids_backwards(const debruijn::Graph &dbg,
+deque<uint_least32_t> extend_hashed_pg_node_ids_backwards(const debruijn::Graph &dbg,
                                                     const deque<uint32_t> &dbg_node_ids) {
-    deque<uint16_t> hashed_pg_node_ids = dbg.nodes.at(dbg_node_ids.at(0))->hashed_node_ids;
-    deque<uint16_t> rev_node;
+    deque<uint_least32_t> hashed_pg_node_ids = dbg.nodes.at(dbg_node_ids.at(0))->hashed_node_ids;
+    deque<uint_least32_t> rev_node;
 
     for (uint32_t i = 1; i < dbg_node_ids.size(); ++i) {
         rev_node = rc_hashed_node_ids(dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids);
@@ -114,10 +114,10 @@ deque<uint16_t> extend_hashed_pg_node_ids_backwards(const debruijn::Graph &dbg,
     return hashed_pg_node_ids;
 }
 
-deque<uint16_t> extend_hashed_pg_node_ids_forwards(const debruijn::Graph &dbg,
+deque<uint_least32_t> extend_hashed_pg_node_ids_forwards(const debruijn::Graph &dbg,
                                                    const deque<uint32_t> &dbg_node_ids) {
-    deque<uint16_t> hashed_pg_node_ids = dbg.nodes.at(dbg_node_ids.at(0))->hashed_node_ids;
-    deque<uint16_t> rev_node;
+    deque<uint_least32_t> hashed_pg_node_ids = dbg.nodes.at(dbg_node_ids.at(0))->hashed_node_ids;
+    deque<uint_least32_t> rev_node;
 
     for (uint32_t i = 1; i < dbg_node_ids.size(); ++i) {
         rev_node = rc_hashed_node_ids(dbg.nodes.at(dbg_node_ids.at(i))->hashed_node_ids);
@@ -135,7 +135,7 @@ deque<uint16_t> extend_hashed_pg_node_ids_forwards(const debruijn::Graph &dbg,
 
 void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph &dbg,
                                           const deque<uint32_t> &dbg_node_ids,
-                                          vector<uint16_t> &node_ids,
+                                          vector<uint_least32_t> &node_ids,
                                           vector<bool> &node_orients) {
     node_ids.clear();
     node_orients.clear();
@@ -144,7 +144,7 @@ void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph &dbg,
         return;
     }
 
-    deque<uint16_t> hashed_pg_node_ids = extend_hashed_pg_node_ids_backwards(dbg, dbg_node_ids);
+    deque<uint_least32_t> hashed_pg_node_ids = extend_hashed_pg_node_ids_backwards(dbg, dbg_node_ids);
     if (hashed_pg_node_ids.empty())
         hashed_pg_node_ids = extend_hashed_pg_node_ids_forwards(dbg, dbg_node_ids);
     if (hashed_pg_node_ids.empty()) {
@@ -167,7 +167,7 @@ void construct_debruijn_graph(const pangenome::Graph *pg, debruijn::Graph &dbg) 
     //cout << "Removed old nodes" << endl;
 
     debruijn::OrientedNodePtr prev, current;
-    deque<uint16_t> hashed_ids;
+    deque<uint_least32_t> hashed_ids;
 
     for (auto r : pg->reads) {
         if (r.second->nodes.size() < dbg.size) {
@@ -195,13 +195,13 @@ void construct_debruijn_graph(const pangenome::Graph *pg, debruijn::Graph &dbg) 
     }
 }
 
-void remove_leaves(pangenome::Graph *pg, debruijn::Graph &dbg, uint16_t covg_thresh) {
+void remove_leaves(pangenome::Graph *pg, debruijn::Graph &dbg, uint_least32_t covg_thresh) {
     cout << now() << "Remove leaves of debruijn graph from pangraph" << endl;
     cout << "Start with " << pg->nodes.size() << " pg.nodes, " << pg->reads.size() << " pg.reads, and "
          << dbg.nodes.size() << " dbg.nodes" << endl;
     bool leaves_exist = true;
     unordered_set<uint32_t> leaves;
-    vector<uint16_t> node_ids;
+    vector<uint_least32_t> node_ids;
     vector<bool> node_orients;
     pair<uint32_t, uint32_t> pos;
     pangenome::NodePtr node;
@@ -277,7 +277,7 @@ void remove_leaves(pangenome::Graph *pg, debruijn::Graph &dbg, uint16_t covg_thr
 void find_reads_along_tig(const debruijn::Graph &dbg,
                           deque<uint32_t> &dbg_node_ids,
                           const pangenome::Graph *pg,
-                          vector<uint16_t> &pg_node_ids,
+                          vector<uint_least32_t> &pg_node_ids,
                           vector<bool> &pg_node_orients,
                           unordered_set<pangenome::ReadPtr> &reads_along_tig,
                           bool &all_reads_along_tig) {
@@ -313,7 +313,7 @@ void find_reads_along_tig(const debruijn::Graph &dbg,
 void remove_middle_nodes_of_tig_from_read(pangenome::Graph *pg,
                                           debruijn::Graph &dbg,
                                           pangenome::ReadPtr r,
-                                          const vector<uint16_t> &node_ids,
+                                          const vector<uint_least32_t> &node_ids,
                                           const vector<bool> &node_orients) {
     // suppose tig is subset of read
     // want to remove nodes from position pos (where tig starts in read) + dbg.size()
@@ -326,7 +326,7 @@ void remove_middle_nodes_of_tig_from_read(pangenome::Graph *pg,
     if (pos.first > 0 or pos.second < r->nodes.size() - 1 or node_ids.size() == r->nodes.size())
         start_shift += max((int) 0, (int) pos.second - (int) node_ids.size()) + dbg.size;
     else {
-        vector<uint16_t> sub_node_ids(node_ids.begin() + dbg.size, node_ids.end());
+        vector<uint_least32_t> sub_node_ids(node_ids.begin() + dbg.size, node_ids.end());
         vector<bool> sub_node_orients(node_orients.begin() + dbg.size, node_orients.end());
         pair<uint32_t, uint32_t> sub_pos = r->find_position(sub_node_ids, sub_node_orients);
         if (sub_pos.first > 0)
@@ -338,7 +338,7 @@ void remove_middle_nodes_of_tig_from_read(pangenome::Graph *pg,
     if (pos.first > 0 or pos.second < r->nodes.size() - 1 or node_ids.size() == r->nodes.size()) {
         end_shift -= dbg.size - 1;
     } else {
-        vector<uint16_t> sub_node_ids(node_ids.begin(), node_ids.end() - dbg.size);
+        vector<uint_least32_t> sub_node_ids(node_ids.begin(), node_ids.end() - dbg.size);
         vector<bool> sub_node_orients(node_orients.begin(), node_orients.end() - dbg.size);
         pair<uint32_t, uint32_t> sub_pos = r->find_position(sub_node_ids, sub_node_orients);
         if (sub_pos.second < pos.second)
@@ -362,9 +362,9 @@ void remove_middle_nodes_of_tig_from_read(pangenome::Graph *pg,
 // then we would remove the 3 internal kmers from the dbg
 // and node 6 from the pg->
 // If the tig is smaller than k+2 long, currently does nothing
-void filter_unitigs(pangenome::Graph *pg, debruijn::Graph &dbg, const uint16_t &threshold) {
+void filter_unitigs(pangenome::Graph *pg, debruijn::Graph &dbg, const uint_least32_t &threshold) {
     cout << now() << "Filter unitigs using threshold " << threshold << endl;
-    vector<uint16_t> node_ids;
+    vector<uint_least32_t> node_ids;
     vector<bool> node_orients;
     unordered_set<pangenome::ReadPtr> reads_along_tig;
     bool all_reads_tig;
@@ -416,7 +416,7 @@ void filter_unitigs(pangenome::Graph *pg, debruijn::Graph &dbg, const uint16_t &
 
 void detangle_pangraph_with_debruijn_graph(pangenome::Graph *pg, debruijn::Graph &dbg) {
     cout << now() << "Detangle pangraph with debruijn graph" << endl;
-    vector<uint16_t> node_ids;
+    vector<uint_least32_t> node_ids;
     vector<bool> node_orients;
     bool all_reads_tig;
     unordered_set<pangenome::ReadPtr> reads_along_tig;
@@ -457,7 +457,7 @@ void detangle_pangraph_with_debruijn_graph(pangenome::Graph *pg, debruijn::Graph
     }
 }
 
-void clean_pangraph_with_debruijn_graph(pangenome::Graph *pg, const uint16_t size, const uint16_t threshold,
+void clean_pangraph_with_debruijn_graph(pangenome::Graph *pg, const uint_least32_t size, const uint_least32_t threshold,
                                         const bool illumina) {
     cout << now() << "Construct de Bruijn Graph from PanGraph with size " << (uint32_t) size << endl;
     debruijn::Graph dbg(size);

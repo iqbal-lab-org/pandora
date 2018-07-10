@@ -28,7 +28,7 @@ Graph::~Graph() {
 
 // Add a node in dbg corresponding to a fixed size deque of pangenome graph
 // node/orientation ids and labelled with the read_ids which cover it
-OrientedNodePtr Graph::add_node(const deque<uint16_t> &node_ids, uint32_t read_id) {
+OrientedNodePtr Graph::add_node(const deque<uint_least32_t> &node_ids, uint32_t read_id) {
     assert(node_ids.size() == size);
 
     if (node_hash.find(node_ids) != node_hash.end()) {
@@ -51,7 +51,7 @@ OrientedNodePtr Graph::add_node(const deque<uint16_t> &node_ids, uint32_t read_i
     }
 
     next_id++;
-    assert(next_id < numeric_limits<uint16_t>::max() || assert_msg("WARNING, reached max de bruijn graph node size"));
+    assert(next_id < numeric_limits<uint_least32_t>::max() || assert_msg("WARNING, reached max de bruijn graph node size"));
     return make_pair(n, true);
 }
 
@@ -61,8 +61,8 @@ OrientedNodePtr Graph::add_node(const deque<uint16_t> &node_ids, uint32_t read_i
 // equal, but an edge is only valid if the orientation they were found
 // in in the read allows the overlap
 bool edge_is_valid(OrientedNodePtr from, OrientedNodePtr to) {
-    deque<uint16_t> hashed_node_ids_from = from.first->hashed_node_ids;
-    deque<uint16_t> hashed_node_ids_to = to.first->hashed_node_ids;
+    deque<uint_least32_t> hashed_node_ids_from = from.first->hashed_node_ids;
+    deque<uint_least32_t> hashed_node_ids_to = to.first->hashed_node_ids;
     if (from.second == false) {
         hashed_node_ids_from = rc_hashed_node_ids(hashed_node_ids_from);
         //cout << "reverse from" << endl;
@@ -163,7 +163,7 @@ void Graph::remove_node(const uint32_t dbg_node_id) {
     NodePtr new_node;
     for (uint i=1; i<size; ++i)
     {
-        deque<uint16_t> new_tig;
+        deque<uint_least32_t> new_tig;
         for (uint j=i; j<size; ++j) {
             new_tig.push_back(nodes[tig.front()]->hashed_node_ids[i]);
         }
@@ -251,7 +251,7 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_nod
 }
 
 // Get the dbg node ids corresponding to leaves
-unordered_set<uint32_t> Graph::get_leaves(uint16_t covg_thresh) {
+unordered_set<uint32_t> Graph::get_leaves(uint_least32_t covg_thresh) {
     unordered_set<uint32_t> s;
     for (auto c : nodes) {
         cout << "node " << *c.second << " has " << c.second->out_nodes.size() << " + " << c.second->in_nodes.size()

@@ -237,8 +237,8 @@ void Graph::remove_low_covg_nodes(const uint32_t &thresh) {
 
 // Create a copy of the node with node_id and replace the old copy with
 // the new one in each of the reads in reads_along_tig (by looking for the context of node_id)
-void Graph::split_node_by_reads(unordered_set<ReadPtr> &reads_along_tig, vector<uint16_t> &node_ids,
-                                const vector<bool> &node_orients, const uint16_t node_id) {
+void Graph::split_node_by_reads(unordered_set<ReadPtr> &reads_along_tig, vector<uint_least32_t> &node_ids,
+                                const vector<bool> &node_orients, const uint_least32_t node_id) {
     if (reads_along_tig.empty()) {
         return;
     }

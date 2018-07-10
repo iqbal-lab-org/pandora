@@ -550,12 +550,12 @@ TEST(PangenomeGraphTest, split_node_by_reads) {
     pg2.add_node(5, "5", 1, mhs);
 
     unordered_set<ReadPtr> reads = {pg1.reads[0]};
-    vector<uint16_t> node_ids = {1, 2, 3};
-    vector<uint16_t> node_ids_exp = {1, 6, 3};
+    vector<uint_least32_t> node_ids = {1, 2, 3};
+    vector<uint_least32_t> node_ids_exp = {1, 6, 3};
     vector<bool> node_orients = {0, 0, 0};
     pg1.split_node_by_reads(reads, node_ids, node_orients, 2);
     EXPECT_EQ(pg1, pg2);
-    EXPECT_ITERABLE_EQ(vector<uint16_t>, node_ids_exp, node_ids);
+    EXPECT_ITERABLE_EQ(vector<uint_least32_t>, node_ids_exp, node_ids);
 
     EXPECT_EQ((uint) 6, pg1.nodes.size());
     EXPECT_EQ(pg1.nodes[0]->prg_id, (uint) 0);
@@ -590,7 +590,7 @@ TEST(PangenomeGraphTest, split_node_by_reads) {
     node_ids_exp = {7, 0, 5};
     pg1.split_node_by_reads(reads, node_ids, node_orients, 5);
     EXPECT_EQ(pg1, pg3);
-    EXPECT_ITERABLE_EQ(vector<uint16_t>, node_ids_exp, node_ids);
+    EXPECT_ITERABLE_EQ(vector<uint_least32_t>, node_ids_exp, node_ids);
 
     EXPECT_EQ((uint) 7, pg1.nodes.size());
     EXPECT_EQ(pg1.nodes[0]->prg_id, (uint) 0);

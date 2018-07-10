@@ -3,7 +3,7 @@
 
 using namespace debruijn;
 
-Node::Node(const uint32_t i, const deque<uint16_t> &n, const uint32_t r) : id(i), hashed_node_ids(n),
+Node::Node(const uint32_t i, const deque<uint_least32_t> &n, const uint32_t r) : id(i), hashed_node_ids(n),
                                                                            read_ids({r}), out_nodes({}), in_nodes({}) {}
 
 // Nodes are equal if they correspond to the same sequence of oriented pangraph nodes
