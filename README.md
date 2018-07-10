@@ -1,8 +1,6 @@
-Public Master: [![Build Status](https://travis-ci.org/rmnorris/pandora.svg?branch=master)](https://travis-ci.org/rmnorris/pandora)
+Master: [![Build Status](https://travis-ci.org/rmcolq/pandora.svg?branch=master)](https://travis-ci.org/rmcolq/pandora)
 
-Private Master: [![Build Status](https://travis-ci.com/rmnorris/pandora.svg?token=mxzxNwUzHrkcpsL2i7zU&branch=master)](https://travis-ci.com/rmnorris/pandora)
-
-Private Dev: [![Build Status](https://travis-ci.com/rmnorris/pandora.svg?token=mxzxNwUzHrkcpsL2i7zU&branch=dev)](https://travis-ci.com/rmnorris/pandora)
+Dev: [![Build Status](https://travis-ci.com/rmcolq/pandora.svg?token=mxzxNwUzHrkcpsL2i7zU&branch=dev)](https://travis-ci.com/rmcolq/pandora)
 
 # pandora
 
@@ -33,7 +31,18 @@ Soon, in a galaxy not so far away, it will allow
 Warning - this code is still in development.
 
 ## Installation
-Requires gcc 4.7 or higher on a Unix OS.
+Requires a Unix or Mac OS.
+Requires a system installation of `boost_1.62` which can be done as follows:
+
+    wget https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.gz --no-check-certificate
+    tar xzf boost_1_62_0.tar.gz
+    cd boost_1_62_0
+    sudo ./bootstrap.sh --prefix=/usr/local --with-libraries=system,filesystem,iostreams
+    sudo ./b2 install
+    
+For more details look at https://www.boost.org/doc/libs/1_62_0/more/getting_started/unix-variants.html
+
+Download and install `pandora` as follows:
 
     git clone git@github.com:rmnorris/pandora.git
     cd pandora
