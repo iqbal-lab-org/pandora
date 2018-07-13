@@ -160,8 +160,8 @@ void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned lo
 
 
 void local_assembly(const std::string &filepath,
-                    const std::string &start_kmer,
-                    const std::string &end_kmer,
+                    string &start_kmer,
+                    string &end_kmer,
                     const std::string &out_path,
                     const int kmer_size) {
 
@@ -174,8 +174,13 @@ void local_assembly(const std::string &filepath,
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
     if (not found) {
-        std::cerr << "Start kmer not found in " << filepath << "\n";
-        return;
+        start_kmer = reverse_complement(start_kmer);
+        end_kmer = reverse_complement(end_kmer);
+        std::tie(start_node, found) = get_node(start_kmer, graph);
+        if (not found) {
+            std::cerr << "Start kmer not found in " << filepath << "\n";
+            return;
+        }
     }
 
     auto tree = DFS(start_node, graph);
@@ -184,7 +189,7 @@ void local_assembly(const std::string &filepath,
 }
 
 
-std::string reverse_compliment(const std::string forward) {
+std::string reverse_complement(const std::string forward) {
     const auto len = forward.size();
     std::string reverse(len, ' ');
     for (size_t k = 0; k < len; k++) {
