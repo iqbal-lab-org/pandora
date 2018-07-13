@@ -448,15 +448,46 @@ TEST(FastaWriter, ReadsLongerThanLineWidth_ReadSpreadEvenlyOnLines) {
 }
 
 
-TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
-    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
-    const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
-    const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
-    const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, ref_sequence.length());
-    const std::string out_path = "../../test/test_cases/local_assembly_test.fa";
-    
-    local_assembly(reads_filepath, start_kmer, end_kmer, out_path);
+TEST(ReverseCompliment, SingleBase_ReturnCompliment) {
+    const auto seq = "A";
+    const auto expected = "T";
+    auto result = reverse_compliment(seq);
+    EXPECT_EQ(expected, result);
 }
+
+
+TEST(ReverseCompliment, TwoBases_ReturnCompliment) {
+    const auto seq = "AA";
+    const auto expected = "TT";
+    auto result = reverse_compliment(seq);
+    EXPECT_EQ(expected, result);
+}
+
+
+TEST(ReverseCompliment, AllBases_ReturnCompliment) {
+    const auto seq = "ACTGCA";
+    const auto expected = "TGCAGT";
+    auto result = reverse_compliment(seq);
+    EXPECT_EQ(expected, result);
+}
+
+
+TEST(ReverseCompliment, Palindrome_ReturnCompliment) {
+    const auto seq = "ACGT";
+    const auto expected = "ACGT";
+    auto result = reverse_compliment(seq);
+    EXPECT_EQ(expected, result);
+}
+
+//TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
+//    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
+//    const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
+//    const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
+//    const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, ref_sequence.length());
+//    const std::string out_path = "../../test/test_cases/local_assembly_test.fa";
+//
+//    local_assembly(reads_filepath, start_kmer, end_kmer, out_path);
+//}
 
 
 /*

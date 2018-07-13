@@ -58,4 +58,6 @@ void local_assembly(const std::string &filepath,
                     const std::string &out_path,
                     const int kmer_size=g_kmer_size);
 
+std::string reverse_compliment(const std::string forward);
+
 #endif //PANDORA_LOCAL_ASSEMBLY_H

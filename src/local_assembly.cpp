@@ -182,3 +182,16 @@ void local_assembly(const std::string &filepath,
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
     write_paths_to_fasta(out_path, result);
 }
+
+
+std::string reverse_compliment(const std::string forward) {
+    const auto len = forward.size();
+    std::string reverse(len, ' ');
+    for (size_t k = 0; k < len; k++) {
+        char base = forward[k];
+        char magic = base & 2 ? 4 : 21;
+        reverse[len - k - 1] = base ^ magic;
+    }
+    reverse[len] = '\0';
+    return reverse;
+}
