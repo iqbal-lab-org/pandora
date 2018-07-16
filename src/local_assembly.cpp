@@ -119,7 +119,7 @@ void get_paths_between_util(const std::string &start_kmer,
                             Paths &full_paths,
                             const long max_length) {
     auto &child_nodes = tree[start_kmer];
-    size_t num_children = child_nodes.size();
+    auto num_children = child_nodes.size();
 
     if (path_accumulator.length() > max_length)
         return;
@@ -174,8 +174,9 @@ void local_assembly(const std::string &filepath,
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
     if (not found) {
-        start_kmer = reverse_complement(start_kmer);
-        end_kmer = reverse_complement(end_kmer);
+        auto tmp_copy = start_kmer;
+        start_kmer = reverse_complement(end_kmer);
+        end_kmer = reverse_complement(tmp_copy);
         std::tie(start_node, found) = get_node(start_kmer, graph);
         if (not found) {
             std::cerr << "Start kmer not found in " << filepath << "\n";
