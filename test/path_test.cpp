@@ -1,11 +1,13 @@
 #include "gtest/gtest.h"
 #include "test_macro.cpp"
 #include "interval.h"
-#include "path.h"
+#include "prg/path.h"
 #include <stdint.h>
 #include <iostream>
 
+typedef prg::Path Path;
 using namespace std;
+using namespace prg;
 
 TEST(PathTest, initialize) {
     Path p;
@@ -248,24 +250,24 @@ TEST(PathTest, equals) {
     EXPECT_EQ((p1 == p), false);
 }
 
-TEST(PathTest, equal_except_null_nodes) {
-    vector<Interval> d, d1, d2;
-    d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
-    d1 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40), Interval(40, 40), Interval(59, 59)};
-    d2 = {Interval(0, 0), Interval(1, 1), Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
-
-    Path p, p1, p2;
-    p.initialize(d);
-    p1.initialize(d1);
-    p2.initialize(d2);
-
-    EXPECT_EQ(equal_except_null_nodes(p, p), true);
-    EXPECT_EQ(equal_except_null_nodes(p, p1), true);
-    EXPECT_EQ(equal_except_null_nodes(p, p2), true);
-    EXPECT_EQ(equal_except_null_nodes(p1, p1), true);
-    EXPECT_EQ(equal_except_null_nodes(p1, p2), true);
-    EXPECT_EQ(equal_except_null_nodes(p2, p2), true);
-}
+//TEST(PathTest, equal_except_null_nodes) {
+//    vector<Interval> d, d1, d2;
+//    d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
+//    d1 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40), Interval(40, 40), Interval(59, 59)};
+//    d2 = {Interval(0, 0), Interval(1, 1), Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
+//
+//    Path p, p1, p2;
+//    p.initialize(d);
+//    p1.initialize(d1);
+//    p2.initialize(d2);
+//
+//    EXPECT_EQ(equal_except_null_nodes(p, p), true);
+//    EXPECT_EQ(equal_except_null_nodes(p, p1), true);
+//    EXPECT_EQ(equal_except_null_nodes(p, p2), true);
+//    EXPECT_EQ(equal_except_null_nodes(p1, p1), true);
+//    EXPECT_EQ(equal_except_null_nodes(p1, p2), true);
+//    EXPECT_EQ(equal_except_null_nodes(p2, p2), true);
+//}
 
 TEST(PathTest, write) {
     vector<Interval> d;

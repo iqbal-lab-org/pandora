@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "minirecord.h"
-#include "path.h"
+#include "prg/path.h"
 #include <stdint.h>
 #include <iostream>
 

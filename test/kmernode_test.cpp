@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "kmernode.h"
 #include "interval.h"
-#include "path.h"
+#include "prg/path.h"
 #include <stdint.h>
 #include <iostream>
 

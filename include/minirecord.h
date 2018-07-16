@@ -3,7 +3,9 @@
 
 #include <iostream>
 #include <cstdint>
-#include "path.h"
+#include "prg/path.h"
+
+typedef prg::Path Path;
 
 struct MiniRecord {
     uint32_t prg_id;

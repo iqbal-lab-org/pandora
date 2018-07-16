@@ -1,9 +1,10 @@
 #include <cassert>
-#include "path.h"
+#include "prg/path.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
+using namespace prg;
 
 void Path::initialize(const deque<Interval> &q) {
     if (q.empty())
@@ -228,7 +229,7 @@ bool Path::operator!=(const Path &y) const {
     return (!(path == y.path));
 }
 
-std::ostream &operator<<(std::ostream &out, Path const &p) {
+std::ostream &prg::operator<<(std::ostream &out, Path const &p) {
     uint32_t num_intervals = p.path.size();
     out << num_intervals << "{";
     for (std::vector<Interval>::const_iterator it = p.path.begin(); it != p.path.end(); ++it) {
@@ -238,7 +239,7 @@ std::ostream &operator<<(std::ostream &out, Path const &p) {
     return out;
 }
 
-std::istream &operator>>(std::istream &in, Path &p) {
+std::istream &prg::operator>>(std::istream &in, Path &p) {
     uint32_t num_intervals;
     in >> num_intervals;
     deque<Interval> d(num_intervals, Interval());
@@ -251,7 +252,7 @@ std::istream &operator>>(std::istream &in, Path &p) {
     return in;
 }
 
-Path get_union(const Path&x, const Path&y)
+Path prg::get_union(const Path&x, const Path&y)
 {
     std::vector<Interval>::const_iterator xit=x.path.begin();
     std::vector<Interval>::const_iterator yit=y.path.begin();

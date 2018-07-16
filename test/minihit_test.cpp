@@ -3,7 +3,7 @@
 #include "minimizer.h"
 #include "minirecord.h"
 #include "interval.h"
-#include "path.h"
+#include "prg/path.h"
 #include "inthash.h"
 #include <stdint.h>
 #include <iostream>

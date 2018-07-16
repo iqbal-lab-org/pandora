@@ -3,7 +3,6 @@
 #include <set>
 #include "extract_reads.h"
 #include "interval.h"
-#include "path.h"
 #include "minihit.h"
 #include "pangenome/ns.cpp"
 #include "pangenome/pannode.h"
@@ -12,10 +11,13 @@
 #include "fastaq_handler.h"
 #include "fastaq.h"
 #include "utils.h"
+#include "local_assembly.h"
+#include "prg/path.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
+typedef prg::Path Path;
 
 vector<Interval> identify_regions(const vector<uint32_t>& covgs, const uint32_t& threshold, const uint32_t& min_length) {
     // threshold is to be less than or equal to in intervals [ , )
@@ -113,7 +115,7 @@ set<MinimizerHitPtr, pComp_path> hits_along_path(const set<MinimizerHitPtr, pCom
         d.push_back(n->pos);
     }
 
-    Path local_path;
+    prg::Path local_path;
     local_path.initialize(d);
 
     for (auto hit_ptr : read_hits) {
@@ -265,6 +267,13 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
             fa.add_entry(readfile.name, sequence, header);
         }
         fa.save(outdir + "/" + pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end()) + ".fa");
+
+        // get sub_lmp path as string
+//        const auto sub_lmp_as_string {LocalPRG::string_along_path(sub_lmp)};
+        // get start and end kmer from sub_lmp path
+//        auto start_kmer {sub_lmp_as_string.substr(0, g_local_assembly_kmer_size)};
+//        auto end_kmer {sub_lmp_as_string.substr(sub_lmp_as_string.size() - g_local_assembly_kmer_size)};
+        // pass filepath to local assembly
 
         read_overlap_coordinates.clear();
         fa.clear();

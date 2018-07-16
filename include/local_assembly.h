@@ -13,7 +13,7 @@
 
 
 const long g_max_length{30};
-const int g_kmer_size = 9;
+const int g_local_assembly_kmer_size = 9;
 
 
 using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
@@ -56,7 +56,7 @@ void local_assembly(const std::string &filepath,
                     std::string &start_kmer,
                     std::string &end_kmer,
                     const std::string &out_path,
-                    const int kmer_size=g_kmer_size);
+                    const int kmer_size=g_local_assembly_kmer_size);
 
 std::string reverse_complement(const std::string forward);
 

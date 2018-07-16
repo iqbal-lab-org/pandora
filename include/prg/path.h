@@ -6,9 +6,9 @@
 #include <iostream>
 #include <cstdint>
 #include "interval.h"
+#include "prg/ns.cpp"
 
-
-class Path {
+class prg::Path {
 public:
     std::vector<Interval> path;
 
@@ -43,6 +43,6 @@ public:
     friend bool equal_except_null_nodes(const Path &, const Path &);
 };
 
-bool equal_except_null_nodes(const Path &, const Path &);
+bool equal_except_null_nodes(const prg::Path &, const prg::Path &);
 
 #endif

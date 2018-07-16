@@ -8,7 +8,7 @@
 #include "localPRG.h"
 #include "minihit.h"
 #include "minihits.h"
-#include "path.h"
+#include "prg/path.h"
 #include "pangenome/pannode.h"
 #include "pangenome/panread.h"
 
