@@ -160,8 +160,8 @@ void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned lo
 
 
 void local_assembly(const std::string &filepath,
-                    string &start_kmer,
-                    string &end_kmer,
+                    std::string &start_kmer,
+                    std::string &end_kmer,
                     const std::string &out_path,
                     const int kmer_size) {
 
