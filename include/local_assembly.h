@@ -13,7 +13,7 @@
 
 
 const long g_max_length{30};
-const int g_kmer_size = 7;
+const int g_kmer_size = 9;
 
 
 using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
@@ -53,9 +53,11 @@ void write_paths_to_fasta(const std::string &filepath,
 
 
 void local_assembly(const std::string &filepath,
-                    const std::string &start_kmer,
-                    const std::string &end_kmer,
+                    std::string &start_kmer,
+                    std::string &end_kmer,
                     const std::string &out_path,
                     const int kmer_size=g_kmer_size);
+
+std::string reverse_complement(const std::string forward);
 
 #endif //PANDORA_LOCAL_ASSEMBLY_H

@@ -119,7 +119,7 @@ void get_paths_between_util(const std::string &start_kmer,
                             Paths &full_paths,
                             const long max_length) {
     auto &child_nodes = tree[start_kmer];
-    size_t num_children = child_nodes.size();
+    auto num_children = child_nodes.size();
 
     if (path_accumulator.length() > max_length)
         return;
@@ -160,8 +160,8 @@ void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned lo
 
 
 void local_assembly(const std::string &filepath,
-                    const std::string &start_kmer,
-                    const std::string &end_kmer,
+                    std::string &start_kmer,
+                    std::string &end_kmer,
                     const std::string &out_path,
                     const int kmer_size) {
 
@@ -174,11 +174,30 @@ void local_assembly(const std::string &filepath,
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
     if (not found) {
-        std::cerr << "Start kmer not found in " << filepath << "\n";
-        return;
+        auto tmp_copy = start_kmer;
+        start_kmer = reverse_complement(end_kmer);
+        end_kmer = reverse_complement(tmp_copy);
+        std::tie(start_node, found) = get_node(start_kmer, graph);
+        if (not found) {
+            std::cerr << "Start kmer not found in " << filepath << "\n";
+            return;
+        }
     }
 
     auto tree = DFS(start_node, graph);
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
     write_paths_to_fasta(out_path, result);
+}
+
+
+std::string reverse_complement(const std::string forward) {
+    const auto len = forward.size();
+    std::string reverse(len, ' ');
+    for (size_t k = 0; k < len; k++) {
+        char base = forward[k];
+        char magic = base & 2 ? 4 : 21;
+        reverse[len - k - 1] = base ^ magic;
+    }
+    reverse[len] = '\0';
+    return reverse;
 }

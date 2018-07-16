@@ -448,50 +448,81 @@ TEST(FastaWriter, ReadsLongerThanLineWidth_ReadSpreadEvenlyOnLines) {
 }
 
 
-TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
-    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
-    const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
-    const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
-    const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, ref_sequence.length());
-    const std::string out_path = "../../test/test_cases/local_assembly_test.fa";
-    
-    local_assembly(reads_filepath, start_kmer, end_kmer, out_path);
+TEST(ReverseComplement, SingleBase_ReturnCompliment) {
+    const auto seq = "A";
+    const auto expected = "T";
+    auto result = reverse_complement(seq);
+    EXPECT_EQ(expected, result);
 }
 
 
-/*
+TEST(ReverseComplement, TwoBases_ReturnCompliment) {
+    const auto seq = "AA";
+    const auto expected = "TT";
+    auto result = reverse_complement(seq);
+    EXPECT_EQ(expected, result);
+}
+
+
+TEST(ReverseComplement, AllBases_ReturnCompliment) {
+    const auto seq = "ACTGCA";
+    const auto expected = "TGCAGT";
+    auto result = reverse_complement(seq);
+    EXPECT_EQ(expected, result);
+}
+
+
+TEST(ReverseComplement, Palindrome_ReturnCompliment) {
+    const auto seq = "ACGT";
+    const auto expected = "ACGT";
+    auto result = reverse_complement(seq);
+    EXPECT_EQ(expected, result);
+}
+
+//TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
+//    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
+//    const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
+//    const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
+//    const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, ref_sequence.length());
+//    const std::string out_path = "../../test/test_cases/local_assembly_test.fa";
+//
+//    local_assembly(reads_filepath, start_kmer, end_kmer, out_path);
+//}
+
+
+
 // test if path exists in graph. take all kmers of ref and query each one
-TEST(LocalAssemblyTest, buildGraphForAllSlices_writeAllPathsToFile) {
-    const std::string meta_file = "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/ref_seqs_for_slices_padding_10.tsv";
+// TEST(LocalAssemblyTest, buildGraphForAllSlices_writeAllPathsToFile) {
+//     const std::string meta_file = "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/ref_seqs_for_slices_padding_10.tsv";
+//
+//     std::ifstream fin (meta_file);
+//     std::string line;
+//     std::string filepath;
+//     std::string ref_sequence;
+//
+//     while (std::getline(fin, line)) {
+//         std::stringstream ss (line);
+//         ss >> filepath >> ref_sequence;
+//
+//         std::cout << "Processing " << filepath << "\n";
+//
+//         const long max_length = ref_sequence.length() + 10;
+//         auto start_kmer = ref_sequence.substr(0, g_kmer_size);
+//         auto end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, std::string::npos);
+//
+//         // clear the stringstream
+//         ss.str(std::string());
+//
+//         std::ostringstream oss;
+//         oss << "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/local_assembly_paths_covg10";
+//         auto idx = filepath.rfind('/');
+//         oss << filepath.substr(idx, filepath.rfind('.') - idx) << "_K" << g_kmer_size << ".fa";
+//         std::string out_path = oss.str();
+//
+//         local_assembly(filepath, start_kmer, end_kmer, out_path);
+//
+//         // clear the stringstream
+//         oss.str(std::string());
+//     }
+// }
 
-    std::ifstream fin (meta_file);
-    std::string line;
-    std::string filepath;
-    std::string ref_sequence;
-
-    while (std::getline(fin, line)) {
-        std::stringstream ss (line);
-        ss >> filepath >> ref_sequence;
-
-        std::cout << "Processing " << filepath << "\n";
-
-        const long max_length = ref_sequence.length() + 10;
-        const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
-        const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, std::string::npos);
-
-        // clear the stringstream
-        ss.str(std::string());
-
-        std::ostringstream oss;
-        oss << "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/local_assembly_paths";
-        int idx = filepath.rfind('/');
-        oss << filepath.substr(idx, filepath.rfind('.') - idx) << ".fa";
-        std::string out_path = oss.str();
-
-        local_assembly(filepath, start_kmer, end_kmer, out_path);
-
-        // clear the stringstream
-        oss.str(std::string());
-    }
-}
-*/
