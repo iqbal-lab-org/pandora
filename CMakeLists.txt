@@ -46,6 +46,7 @@ add_executable(${PROJECT_NAME} ${SRC_FILES})
 add_dependencies(${PROJECT_NAME} gatb)
 target_link_libraries(${PROJECT_NAME}
         ${CMAKE_THREAD_LIBS_INIT}
+        ${Boost_IOSTREAMS_LIBRARY}
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}
         ${EXTERNAL_LIBS}
