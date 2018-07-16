@@ -53,10 +53,10 @@ void write_paths_to_fasta(const std::string &filepath,
 
 
 void local_assembly(const std::string &filepath,
-                    string &start_kmer,
-                    string &end_kmer,
+                    std::string &start_kmer,
+                    std::string &end_kmer,
                     const std::string &out_path,
-                    const int kmer_size = g_kmer_size);
+                    const int kmer_size=g_kmer_size);
 
 std::string reverse_complement(const std::string forward);
 
