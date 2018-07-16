@@ -50,7 +50,7 @@ string LocalPRG::string_along_path(const Path &p) const {
     return s;
 }
 
-string LocalPRG::string_along_path(const vector<LocalNodePtr> &p) const {
+string LocalPRG::string_along_path(const vector<LocalNodePtr> &p) {
     string s;
     for (auto n : p) {
         s += n->seq;

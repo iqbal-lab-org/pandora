@@ -269,10 +269,10 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
         fa.save(outdir + "/" + pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end()) + ".fa");
 
         // get sub_lmp path as string
-//        const auto sub_lmp_as_string {LocalPRG::string_along_path(sub_lmp)};
+        const auto sub_lmp_as_string {LocalPRG::string_along_path(sub_lmp)};
         // get start and end kmer from sub_lmp path
-//        auto start_kmer {sub_lmp_as_string.substr(0, g_local_assembly_kmer_size)};
-//        auto end_kmer {sub_lmp_as_string.substr(sub_lmp_as_string.size() - g_local_assembly_kmer_size)};
+        auto start_kmer {sub_lmp_as_string.substr(0, g_local_assembly_kmer_size)};
+        auto end_kmer {sub_lmp_as_string.substr(sub_lmp_as_string.size() - g_local_assembly_kmer_size)};
         // pass filepath to local assembly
 
         read_overlap_coordinates.clear();
