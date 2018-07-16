@@ -6,7 +6,7 @@ class LocalPRG;
 #include <cstdint>
 #include <vector>
 #include <iostream>
-#include "path.h"
+#include "prg/path.h"
 #include "kmernode.h"
 #include "pangenome/ns.cpp"
 

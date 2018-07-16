@@ -5,7 +5,7 @@
 #include <algorithm>
 #include "minirecord.h"
 #include "minihit.h"
-#include "path.h"
+#include "prg/path.h"
 
 using namespace std;
 

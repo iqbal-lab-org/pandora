@@ -7,7 +7,7 @@
 #include <cstring>
 #include <cstdint>
 #include "interval.h"
-#include "path.h"
+#include "prg/path.h"
 #include "localnode.h"
 
 class LocalGraph {

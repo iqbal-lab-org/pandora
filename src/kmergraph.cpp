@@ -14,6 +14,7 @@
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
+using namespace prg;
 
 KmerGraph::KmerGraph() {
     nodes.reserve(60000);

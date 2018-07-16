@@ -9,7 +9,7 @@
 #include "interval.h"
 #include "index.h"
 #include "localgraph.h"
-#include "path.h"
+#include "prg/path.h"
 #include "pangenome/pannode.h"
 #include "kmergraph.h"
 #include "vcf.h"

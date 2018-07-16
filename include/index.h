@@ -6,7 +6,7 @@
 #include <vector>
 #include <unordered_map>
 #include "minirecord.h"
-#include "path.h"
+#include "prg/path.h"
 
 class Index {
 public:

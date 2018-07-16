@@ -4,7 +4,7 @@
 #include "localPRG.h"
 #include "pangenome/pangraph.h"
 #include "interval.h"
-#include "path.h"
+#include "prg/path.h"
 #include "minihit.h"
 #include "minihits.h"
 #include "index.h"

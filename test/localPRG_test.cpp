@@ -5,7 +5,7 @@
 #include "minirecord.h"
 #include "minihit.h"
 #include "interval.h"
-#include "path.h"
+#include "prg/path.h"
 #include "localgraph.h"
 #include "localnode.h"
 #include "index.h"

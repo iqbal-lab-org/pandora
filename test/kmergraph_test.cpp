@@ -2,7 +2,7 @@
 #include "test_macro.cpp"
 
 #include "interval.h"
-#include "path.h"
+#include "prg/path.h"
 #include "kmergraph.h"
 #include "kmernode.h"
 #include "localPRG.h"

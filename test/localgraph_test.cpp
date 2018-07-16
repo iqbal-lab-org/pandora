@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "test_macro.cpp"
 #include "interval.h"
-#include "path.h"
+#include "prg/path.h"
 #include "localPRG.h"
 #include "localgraph.h"
 #include "localnode.h"

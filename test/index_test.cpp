@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "minirecord.h"
-#include "path.h"
+#include "prg/path.h"
 #include "index.h"
 #include "interval.h"
 #include "inthash.h"

@@ -1,7 +1,7 @@
 //#include <limits.h>
 #include "gtest/gtest.h"
 #include "minimizer.h"
-#include "path.h"
+#include "prg/path.h"
 #include "interval.h"
 #include "inthash.h"
 #include <set>
