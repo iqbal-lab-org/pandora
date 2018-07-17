@@ -13,7 +13,7 @@ static int usage()
 {
     std::cerr << "\n"
               << "Program: pandora\n"
-	      << "Contact: Rachel Norris <rmnorris@well.ox.ac.uk>\n\n"
+	      << "Contact: Rachel Colquhoun <rmnorris@well.ox.ac.uk>\n\n"
 	      << "Usage:   pandora <command> [options]\n\n"
               << "Command: index         index PRG sequences from FASTA format\n"
 	      << "         walk          outputs a path through the nodes in a GFA corresponding\n"
