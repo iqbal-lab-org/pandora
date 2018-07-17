@@ -3,8 +3,7 @@ OSVersion: bionic
 MirrorURL: http://us.archive.ubuntu.com/ubuntu/
 
 %help
-  A container to hold the assembler canu.
-  Run `singularity exec canu.simg canu`
+  To run: `singularity exec pandora.simg pandora`
 
 %environment
   PATH=/usr/local/bin:$PATH
