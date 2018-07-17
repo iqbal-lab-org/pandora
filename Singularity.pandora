@@ -31,7 +31,7 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     cd ..
 
     #============================================
-    # INSTALL BOOST
+    # INSTALL BOOST 
     #============================================
     wget https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.gz -O - | tar xzf -
     cd boost_1_62_0
