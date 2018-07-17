@@ -31,22 +31,27 @@ Soon, in a galaxy not so far away, it will allow
 Warning - this code is still in development.
 
 ## Installation
-Requires a Unix or Mac OS.
-Requires a system installation of `boost_1.62` which can be done as follows:
+- Requires a Unix or Mac OS.
+- Requires a system install of `zlib`. If this is not already installed, [this](https://geeksww.com/tutorials/libraries/zlib/installation/installing_zlib_on_ubuntu_linux.php) tutorial is helpful.
 
-    wget https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.gz --no-check-certificate
-    tar xzf boost_1_62_0.tar.gz
-    cd boost_1_62_0
-    sudo ./bootstrap.sh --prefix=/usr/local --with-libraries=system,filesystem,iostreams
-    sudo ./b2 install
+- Requires a system installation of `boost` containing the `system`, `filesystem`, and `iostreams` libraries. If not already installed use the following or look at [this](https://www.boost.org/doc/libs/1_62_0/more/getting_started/unix-variants.html) guide.
+
+      wget https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.gz --no-check-certificate
+      tar xzf boost_1_62_0.tar.gz
+      cd boost_1_62_0
+      ./bootstrap.sh [--prefix=/prefix/path] --with-libraries=system,filesystem,iostreams
+      ./b2 install
     
-For more details look at https://www.boost.org/doc/libs/1_62_0/more/getting_started/unix-variants.html
+- Download and install `pandora` as follows:
 
-Download and install `pandora` as follows:
-
-    git clone git@github.com:rmnorris/pandora.git
-    cd pandora
-    bash install.sh
+      git clone https://github.com/rmcolq/pandora.git
+      cd pandora
+      mkdir build
+      cd build
+      cmake [-DCMAKE_PREFIX_PATH=/prefix/path] ..
+      make
+      ctest -VV
+      cd ..
     
 ## Usage
 ### Population Reference Graphs
