@@ -37,7 +37,7 @@ public:
 
     std::string string_along_path(const Path &) const;
 
-    std::string string_along_path(const std::vector<LocalNodePtr> &) const;
+    static std::string string_along_path(const std::vector<LocalNodePtr> &);
 
     std::vector<LocalNodePtr> nodes_along_path(const Path &) const;
 

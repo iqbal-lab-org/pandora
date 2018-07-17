@@ -266,14 +266,20 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
 
             fa.add_entry(readfile.name, sequence, header);
         }
-        fa.save(outdir + "/" + pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end()) + ".fa");
+        const auto filepath = outdir + "/" + pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end()) + ".fa";
+        fa.save(filepath);
 
         // get sub_lmp path as string
-//        const auto sub_lmp_as_string {LocalPRG::string_along_path(sub_lmp)};
+        const auto sub_lmp_as_string {LocalPRG::string_along_path(sub_lmp)};
         // get start and end kmer from sub_lmp path
-//        auto start_kmer {sub_lmp_as_string.substr(0, g_local_assembly_kmer_size)};
-//        auto end_kmer {sub_lmp_as_string.substr(sub_lmp_as_string.size() - g_local_assembly_kmer_size)};
-        // pass filepath to local assembly
+        auto start_kmer {sub_lmp_as_string.substr(0, g_local_assembly_kmer_size)};
+        auto end_kmer {sub_lmp_as_string.substr(sub_lmp_as_string.size() - g_local_assembly_kmer_size)};
+        // create outpath for local assembly file
+        const auto out_path = filepath.substr(0, filepath.rfind('.') - 1) +
+                "local_assembly_K" +
+                std::to_string(g_local_assembly_kmer_size) + ".fa";
+        // run local assembly
+        local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size);
 
         read_overlap_coordinates.clear();
         fa.clear();
