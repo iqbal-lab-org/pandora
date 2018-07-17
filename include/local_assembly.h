@@ -27,9 +27,6 @@ std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph);
 bool has_ending(std::string const &fullString, std::string const &ending);
 
 
-void get_files(const std::string &directory, std::vector<path> &list_of_filepaths);
-
-
 DfsTree DFS(const Node &start_node, const Graph &graph);
 
 
