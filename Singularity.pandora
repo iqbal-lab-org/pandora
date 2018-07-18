@@ -44,7 +44,6 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     #============================================
     git clone -b dev --single-branch https://github.com/rmcolq/pandora.git
     cd pandora
-    git checkout
     mkdir -p build
     cd build
     cmake ..

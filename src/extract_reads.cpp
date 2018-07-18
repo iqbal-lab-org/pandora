@@ -279,7 +279,9 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
                 "local_assembly_K" +
                 std::to_string(g_local_assembly_kmer_size) + ".fa";
         // run local assembly
+        std::cout << now() << " Running local assembly for " << pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end()) << "\n";
         local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size);
+        std::cout << now() << " Finished local assembly for " << pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end()) << "\n";
 
         read_overlap_coordinates.clear();
         fa.clear();

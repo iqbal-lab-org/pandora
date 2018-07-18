@@ -1,4 +1,3 @@
-#include <set>
 #include "local_assembly.h"
 
 
@@ -6,23 +5,6 @@ bool has_ending(std::string const &fullString, std::string const &ending) {
     if (fullString.length() < ending.length())
         return false;
     return 0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending);
-}
-
-
-void get_files(const std::string &directory, std::vector<path> &list_of_filepaths) {
-    path dir_path(directory);
-
-    try {
-        if (exists(dir_path) and is_directory(dir_path)) {
-            for (directory_entry &filepath : directory_iterator(dir_path)) {
-                list_of_filepaths.push_back(filepath.path());
-            }
-        } else {
-            std::cout << dir_path << " does not exist\n";
-        }
-    } catch (const filesystem_error &ex) {
-        std::cout << ex.what() << '\n';
-    }
 }
 
 
