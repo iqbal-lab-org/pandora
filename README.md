@@ -1,6 +1,8 @@
-Master: [![Build Status](https://travis-ci.org/rmcolq/pandora.svg?branch=master)](https://travis-ci.org/rmcolq/pandora)
+[![Build Status](https://travis-ci.org/rmcolq/pandora.svg?branch=master)](https://travis-ci.org/rmcolq/pandora) master
 
-Dev: [![Build Status](https://travis-ci.com/rmcolq/pandora.svg?token=mxzxNwUzHrkcpsL2i7zU&branch=dev)](https://travis-ci.com/rmcolq/pandora)
+[![Build Status](https://travis-ci.com/rmcolq/pandora.svg?token=mxzxNwUzHrkcpsL2i7zU&branch=dev)](https://travis-ci.com/rmcolq/pandora) dev
+
+[![https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/1285)
 
 # pandora
 
@@ -52,6 +54,12 @@ Warning - this code is still in development.
       make
       ctest -VV
       cd ..
+    
+## Singularity Container
+Instead you can download and use the singularity container:
+
+    singularity pull --force --name pandora.simg shub://rmcolq/pandora:pandora
+    singularity exec pandora.simg pandora
     
 ## Usage
 ### Population Reference Graphs
