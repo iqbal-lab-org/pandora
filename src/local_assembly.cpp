@@ -147,6 +147,8 @@ void local_assembly(const std::string &filepath,
                     const std::string &out_path,
                     const int kmer_size) {
 
+    Graph graph;  // have to predefine as actually initialisation is inside try block
+
     // check if filepath exists
     const bool exists {file_exists(filepath)};
     if (not exists) {
@@ -154,10 +156,17 @@ void local_assembly(const std::string &filepath,
         return;
     }
 
-    const Graph graph = Graph::create(
-            Bank::open(filepath),
-            "-kmer-size %d -abundance-min 1 -verbose 0", kmer_size
-    );
+    try {
+        const Graph graph = Graph::create(
+                Bank::open(filepath),
+                "-kmer-size %d -abundance-min 1 -verbose 0", kmer_size
+        );
+    }
+    catch (gatb::core::system::Exception &error){
+        std::cerr << "Couldn't create GATB graph for " << filepath << "\n";
+        std::cerr << error.getMessage() << "\n";
+        return;
+    }
 
     Node start_node;
     bool found;

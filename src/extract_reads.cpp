@@ -275,8 +275,8 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
         auto start_kmer {sub_lmp_as_string.substr(0, g_local_assembly_kmer_size)};
         auto end_kmer {sub_lmp_as_string.substr(sub_lmp_as_string.size() - g_local_assembly_kmer_size)};
         // create outpath for local assembly file
-        const auto out_path = filepath.substr(0, filepath.rfind('.') - 1) +
-                "local_assembly_K" +
+        const auto out_path = filepath.substr(0, filepath.rfind('.')) +
+                "_local_assembly_K" +
                 std::to_string(g_local_assembly_kmer_size) + ".fa";
         // run local assembly
         std::cout << now() << " Running local assembly for " << pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end()) << "\n";

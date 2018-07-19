@@ -502,6 +502,7 @@ TEST(LocalAssemblyTest, passFakeFastqPath_dontRaiseError) {
     local_assembly(filepath, start_kmer, end_kmer, out_path);
 }
 
+
 //TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
 //    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
 //    const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
