@@ -503,13 +503,13 @@ TEST(LocalAssemblyTest, passFakeFastqPath_dontRaiseError) {
 }
 
 
-TEST(LocalAssemblyTest, debug) {
-    const std::string filepath {"../../GC00002476.324-337.fa"};
-    std::string start_kmer {"GCACCGCCA"};
-    std::string end_kmer {"AGCGTCGGC"};
-    const std::string out_path {"../../GC00002476.324-337_local_assembly_test.fa"};
-    local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, 500);
-}
+//TEST(LocalAssemblyTest, debug) {
+//    const std::string filepath {"../../GC00002476.324-337.fa"};
+//    std::string start_kmer {"CGCCGTCGC"};
+//    std::string end_kmer {"AGCGTCGGC"};
+//    const std::string out_path {"../../GC00002476.324-337_local_assembly_test.fa"};
+//    local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, 500);
+//}
 
 //TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
 //    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
