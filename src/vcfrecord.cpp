@@ -99,16 +99,16 @@ void VCFRecord::likelihood(const uint32_t& expected_depth_covg, const float& err
 void VCFRecord::confidence(){
     for (auto&& sample : regt_samples) {
         if (sample.find("REF_LIKELIHOOD") != sample.end() and sample.find("ALT_LIKELIHOOD") != sample.end()) {
-            sample["CONFIDENCE"] = abs(sample["REF_LIKELIHOOD"] - sample["ALT_LIKELIHOOD"]);
+            sample["GT_CONF"] = abs(sample["REF_LIKELIHOOD"] - sample["ALT_LIKELIHOOD"]);
         }
     }
-    add_formats({"CONFIDENCE"});
+    add_formats({"GT_CONF"});
 }
 
 void VCFRecord::regenotype(const uint8_t confidence_threshold){
     for (uint_least16_t i=0; i<samples.size(); ++i) {
-        if (regt_samples[i].find("CONFIDENCE") != regt_samples[i].end()){
-            if (regt_samples[i]["CONFIDENCE"] > confidence_threshold){
+        if (regt_samples[i].find("GT_CONF") != regt_samples[i].end()){
+            if (regt_samples[i]["GT_CONF"] > confidence_threshold){
                 if (samples[i]["GT"] == 0 and regt_samples[i]["ALT_LIKELIHOOD"] > regt_samples[i]["REF_LIKELIHOOD"]){
                     samples[i]["GT"] = 1;
                 } else if (samples[i]["GT"] == 1 and regt_samples[i]["ALT_LIKELIHOOD"] < regt_samples[i]["REF_LIKELIHOOD"]){
@@ -186,7 +186,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
 std::istream &operator>>(std::istream &in, VCFRecord &m) {
     string token;
     vector<string> sample_strings;
-    vector<string> float_strings = {"REF_LIKELIHOOD", "ALT_LIKELIHOOD","CONFIDENCE"};
+    vector<string> float_strings = {"REF_LIKELIHOOD", "ALT_LIKELIHOOD","GT_CONF"};
     unordered_map<string, uint8_t> sample_data;
     unordered_map<string, float> regt_sample_data;
     in >> m.chrom;
