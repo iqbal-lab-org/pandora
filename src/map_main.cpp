@@ -249,7 +249,7 @@ int pandora_map(int argc, char *argv[]) {
 
     cout << now() << "Find PRG paths and write to files:" << endl;
 
-    Fastaq consensus_fq(true,true);
+    Fastaq consensus_fq(true, true);
     VCF master_vcf;
 
     VCFRefs vcf_refs;

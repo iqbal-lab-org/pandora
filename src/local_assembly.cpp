@@ -81,14 +81,12 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
  * The associated util function is a recursive function that generates a path down to a "leaf" of the tree and
  * then comes back up to the next unexplored branching point.
  */
-Paths get_paths_between(const std::string &start_kmer,
-                        const std::string &end_kmer,
-                        DfsTree &tree,
-                        const Graph &graph) {
+Paths get_paths_between(const std::string &start_kmer, const std::string &end_kmer, DfsTree &tree, const Graph &graph,
+                        const unsigned long max_length) {
     std::string initial_acc = start_kmer.substr(0, start_kmer.length() - 1);
 
     Paths result = {};
-    get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree, result);
+    get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree, result, max_length);
     return result;
 }
 
@@ -99,7 +97,7 @@ void get_paths_between_util(const std::string &start_kmer,
                             const Graph &graph,
                             DfsTree &tree,
                             Paths &full_paths,
-                            const long max_length) {
+                            const unsigned long max_length) {
     auto &child_nodes = tree[start_kmer];
     auto num_children = child_nodes.size();
 
@@ -141,16 +139,29 @@ void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned lo
 }
 
 
-void local_assembly(const std::string &filepath,
-                    std::string &start_kmer,
-                    std::string &end_kmer,
-                    const std::string &out_path,
-                    const int kmer_size) {
+void local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer, const std::string &out_path,
+                    const int kmer_size, const unsigned long max_length) {
 
-    const Graph graph = Graph::create(
-            Bank::open(filepath),
-            "-kmer-size %d -abundance-min 1 -verbose 0", kmer_size
-    );
+    Graph graph;  // have to predefine as actually initialisation is inside try block
+
+    // check if filepath exists
+    const bool exists {file_exists(filepath)};
+    if (not exists) {
+        std::cerr << filepath << " does not exist. Skipping local assembly.\n";
+        return;
+    }
+
+    try {
+        graph = Graph::create(
+                Bank::open(filepath),
+                "-kmer-size %d -abundance-min 1 -verbose 0", kmer_size
+        );
+    }
+    catch (gatb::core::system::Exception &error){
+        std::cerr << "Couldn't create GATB graph for " << filepath << "\n";
+        std::cerr << "EXCEPTION: " << error.getMessage() << "\n";
+        return;
+    }
 
     Node start_node;
     bool found;
@@ -167,7 +178,7 @@ void local_assembly(const std::string &filepath,
     }
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_length);
     write_paths_to_fasta(out_path, result);
 }
 
@@ -182,4 +193,10 @@ std::string reverse_complement(const std::string forward) {
     }
     reverse[len] = '\0';
     return reverse;
+}
+
+
+bool file_exists(const std::string& name) {
+    struct stat buffer;
+    return (stat(name.c_str(), &buffer) == 0);
 }

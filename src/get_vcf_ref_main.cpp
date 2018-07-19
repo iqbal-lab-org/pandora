@@ -24,7 +24,7 @@ int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
     read_prg_file(prgs, argv[1]);
 
     // create fasta
-    Fastaq fa(true,false);
+    Fastaq fa(true, false);
 
     if (argc == 2) {
         for (auto prg_ptr : prgs){
