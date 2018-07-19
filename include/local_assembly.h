@@ -7,6 +7,8 @@
 #include <unordered_map>
 
 #include <gatb/gatb_core.hpp>
+#include <sys/stat.h>
+#include <unistd.h>
 
 
 const long g_max_length {30};
@@ -52,5 +54,7 @@ void local_assembly(const std::string &filepath,
                     const int kmer_size=g_local_assembly_kmer_size);
 
 std::string reverse_complement(const std::string forward);
+
+bool file_exists(const std::string& name);
 
 #endif //PANDORA_LOCAL_ASSEMBLY_H

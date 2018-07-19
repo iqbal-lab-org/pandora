@@ -479,6 +479,29 @@ TEST(ReverseComplement, Palindrome_ReturnCompliment) {
     EXPECT_EQ(expected, result);
 }
 
+TEST(FileExists, realFile_returnsTrue) {
+    const std::string filepath {"../../CMakeLists.txt"};
+    const bool exists {file_exists(filepath)};
+
+    EXPECT_TRUE(exists);
+}
+
+TEST(FileExists, fakeFile_returnsFalse) {
+    const std::string filepath {"../../fake.txt"};
+    const bool exists {file_exists(filepath)};
+
+    EXPECT_FALSE(exists);
+}
+
+
+TEST(LocalAssemblyTest, passFakeFastqPath_dontRaiseError) {
+    const std::string filepath {"FAKE.fakeq"};
+    std::string start_kmer {"ATGATGATG"};
+    std::string end_kmer {"ATGATGATG"};
+    const std::string out_path {"../../test/test_cases/fake.fa"};
+    local_assembly(filepath, start_kmer, end_kmer, out_path);
+}
+
 //TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
 //    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
 //    const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
@@ -488,7 +511,6 @@ TEST(ReverseComplement, Palindrome_ReturnCompliment) {
 //
 //    local_assembly(reads_filepath, start_kmer, end_kmer, out_path);
 //}
-
 
 
 // test if path exists in graph. take all kmers of ref and query each one

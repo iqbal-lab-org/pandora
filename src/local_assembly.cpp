@@ -147,6 +147,16 @@ void local_assembly(const std::string &filepath,
                     const std::string &out_path,
                     const int kmer_size) {
 
+    // check if filepath exists
+    const bool exists {file_exists(filepath)};
+    if (not exists) {
+        std::cerr << filepath << " does not exist. Skipping local assembly.\n";
+        return;
+    }
+
+    std::cout << "Filepath exists.\n";
+
+
     const Graph graph = Graph::create(
             Bank::open(filepath),
             "-kmer-size %d -abundance-min 1 -verbose 0", kmer_size
@@ -182,4 +192,10 @@ std::string reverse_complement(const std::string forward) {
     }
     reverse[len] = '\0';
     return reverse;
+}
+
+
+bool file_exists(const std::string& name) {
+    struct stat buffer;
+    return (stat(name.c_str(), &buffer) == 0);
 }
