@@ -113,7 +113,7 @@ TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
     auto tree = DFS(start_node, graph);
 
     const auto end_kmer{"AGG"};
-    auto result = get_paths_between("AATGT", end_kmer, tree, graph);
+    auto result = get_paths_between("AATGT", end_kmer, tree, graph, g_max_length);
 
     Paths expected_seqs(seqs.begin(), seqs.end());
     EXPECT_EQ(result, expected_seqs);
@@ -135,7 +135,7 @@ TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
 
     EXPECT_EQ(result.size(), 1);
     EXPECT_EQ(*result.begin(), seq);
@@ -157,7 +157,7 @@ TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
 
     bool original_seq_found = false;
     // make sure all paths begin and end with correct kmer
@@ -189,7 +189,7 @@ TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
 
     EXPECT_EQ(result.size(), 1);
     EXPECT_EQ(*result.begin(), seq1);
@@ -212,7 +212,7 @@ TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
 
     int original_seq_found = 0;
     for (auto &path: result) {
@@ -247,7 +247,7 @@ TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
 
     int original_seq_found = 0;
     for (auto &path: result) {
@@ -282,7 +282,7 @@ TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
 
     // add other expected paths due to variants
     const std::vector<std::string> expected_seqs = {
@@ -326,7 +326,7 @@ TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKm
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
 
     // add other expected paths due to variants
     const std::string expected_seq = "ATGTGCA";
@@ -353,7 +353,7 @@ TEST(DFSTest, SimpleCycle_ReturnPathsOfLengthsUpToMaxPathLengthCycling) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
 
     const std::string min_expected_seq = "ATATAT";
     bool is_in = false;
@@ -499,9 +499,17 @@ TEST(LocalAssemblyTest, passFakeFastqPath_dontRaiseError) {
     std::string start_kmer {"ATGATGATG"};
     std::string end_kmer {"ATGATGATG"};
     const std::string out_path {"../../test/test_cases/fake.fa"};
-    local_assembly(filepath, start_kmer, end_kmer, out_path);
+    local_assembly(filepath, start_kmer, end_kmer, out_path, 0, 0);
 }
 
+
+TEST(LocalAssemblyTest, debug) {
+    const std::string filepath {"../../GC00002476.324-337.fa"};
+    std::string start_kmer {"GCACCGCCA"};
+    std::string end_kmer {"AGCGTCGGC"};
+    const std::string out_path {"../../GC00002476.324-337_local_assembly_test.fa"};
+    local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, 500);
+}
 
 //TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
 //    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";

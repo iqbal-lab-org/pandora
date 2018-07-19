@@ -27,10 +27,8 @@ bool has_ending(std::string const &fullString, std::string const &ending);
 DfsTree DFS(const Node &start_node, const Graph &graph);
 
 
-Paths get_paths_between(const std::string &start_kmer,
-                       const std::string &end_kmer,
-                       DfsTree &tree,
-                       const Graph &graph);
+Paths get_paths_between(const std::string &start_kmer, const std::string &end_kmer, DfsTree &tree, const Graph &graph,
+                        const unsigned long max_length);
 
 void get_paths_between_util(const std::string &node,
                             const std::string &end_kmer,
@@ -38,7 +36,7 @@ void get_paths_between_util(const std::string &node,
                             const Graph &graph,
                             DfsTree &tree,
                             Paths &full_paths,
-                            const long max_length=g_max_length);
+                            const unsigned long max_length = g_max_length);
 
 
 void write_paths_to_fasta(const std::string &filepath,
@@ -46,11 +44,8 @@ void write_paths_to_fasta(const std::string &filepath,
                           unsigned long line_width = 80);
 
 
-void local_assembly(const std::string &filepath,
-                    std::string &start_kmer,
-                    std::string &end_kmer,
-                    const std::string &out_path,
-                    const int kmer_size=g_local_assembly_kmer_size);
+void local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer, const std::string &out_path,
+                    const int kmer_size, const unsigned long max_length);
 
 std::string reverse_complement(const std::string forward);
 
