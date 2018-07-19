@@ -154,9 +154,6 @@ void local_assembly(const std::string &filepath,
         return;
     }
 
-    std::cout << "Filepath exists.\n";
-
-
     const Graph graph = Graph::create(
             Bank::open(filepath),
             "-kmer-size %d -abundance-min 1 -verbose 0", kmer_size
