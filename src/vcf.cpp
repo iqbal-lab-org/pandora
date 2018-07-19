@@ -207,7 +207,7 @@ void VCF::regenotype(const uint32_t & expected_depth_covg, const float & error_r
             vr.regenotype(confidence_threshold);
         }
     }
-    add_formats({"GT_CONF", "DP", "REF_LIKELIHOOD", "ALT_LIKELIHOOD"});
+    add_formats({"GT_CONF", "REF_LIKELIHOOD", "ALT_LIKELIHOOD"});
 }
 
 string VCF::header() {
