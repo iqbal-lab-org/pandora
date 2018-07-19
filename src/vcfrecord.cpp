@@ -89,11 +89,12 @@ void VCFRecord::likelihood(const uint32_t& expected_depth_covg, const float& err
                                        - logfactorial(c2) + c1 * log(error_rate);
             else
                 regt_samples[i]["ALT_LIKELIHOOD"] = numeric_limits<float>::lowest();
+            regt_samples[i]["DP"] = expected_depth_covg;
         }
     }
 
     assert(regt_samples.size()==samples.size() or assert_msg(regt_samples.size()<< "!=" << samples.size()));
-    add_formats({"REF_LIKELIHOOD","ALT_LIKELIHOOD"});
+    add_formats({"REF_LIKELIHOOD","ALT_LIKELIHOOD", "DP"});
 }
 
 void VCFRecord::confidence(){
