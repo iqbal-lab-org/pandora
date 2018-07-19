@@ -164,7 +164,7 @@ void local_assembly(const std::string &filepath,
     }
     catch (gatb::core::system::Exception &error){
         std::cerr << "Couldn't create GATB graph for " << filepath << "\n";
-        std::cerr << error.getMessage() << "\n";
+        std::cerr << "EXCEPTION: " << error.getMessage() << "\n";
         return;
     }
 
