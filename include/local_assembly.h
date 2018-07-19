@@ -8,7 +8,6 @@
 
 #include <gatb/gatb_core.hpp>
 #include <sys/stat.h>
-#include <unistd.h>
 
 
 const long g_max_length {30};
