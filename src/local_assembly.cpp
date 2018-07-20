@@ -151,6 +151,13 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
         return;
     }
 
+    // make sure the max_length is actually longer than the kmer size
+    if (kmer_size > max_length) {
+        std::cerr << "Kmer size " << std::to_string(kmer_size);
+        std::cerr << " is greater than the maximum path length " << std::to_string(max_length);
+        std::cerr << ". Skipping local assembly for " << filepath << "\n";
+    }
+
     try {
         graph = Graph::create(
                 Bank::open(filepath),
