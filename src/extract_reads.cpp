@@ -272,18 +272,30 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
         // get sub_lmp path as string
         const auto sub_lmp_as_string {LocalPRG::string_along_path(sub_lmp)};
         const unsigned long max_length {sub_lmp_as_string.length() * 2};
-        // get start and end kmer from sub_lmp path
-        auto start_kmer {sub_lmp_as_string.substr(0, g_local_assembly_kmer_size)};
-        auto end_kmer {sub_lmp_as_string.substr(sub_lmp_as_string.size() - g_local_assembly_kmer_size)};
-        // create outpath for local assembly file
-        const auto out_path = filepath.substr(0, filepath.rfind('.')) +
-                "_local_assembly_K" +
-                std::to_string(g_local_assembly_kmer_size) + ".fa";
-        // run local assembly
-        std::cout << now() << " Running local assembly for " << pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end()) << "\n";
-        local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, max_length);
-        std::cout << now() << " Finished local assembly for " << pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end()) << "\n";
 
+        if (g_local_assembly_kmer_size > sub_lmp_as_string.length()) {
+            std::cerr << "Local assembly kmer size " << std::to_string(g_local_assembly_kmer_size);
+            std::cerr << " is greater than the length of the interval string ";
+            std::cerr << std::to_string(sub_lmp_as_string.length()) << ". Skipping local assembly for ";
+            std::cerr << filepath << "\n";
+        }
+        else {
+            // get start and end kmer from sub_lmp path
+            auto start_kmer{sub_lmp_as_string.substr(0, g_local_assembly_kmer_size)};
+            auto end_kmer{sub_lmp_as_string.substr(sub_lmp_as_string.size() - g_local_assembly_kmer_size)};
+            // create outpath for local assembly file
+            const auto out_path = filepath.substr(0, filepath.rfind('.')) +
+                                  "_local_assembly_K" +
+                                  std::to_string(g_local_assembly_kmer_size) + ".fa";
+            // run local assembly
+            std::cout << now() << " Running local assembly for "
+                      << pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end())
+                      << "\n";
+            local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, max_length);
+            std::cout << now() << " Finished local assembly for "
+                      << pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end())
+                      << "\n";
+        }
         read_overlap_coordinates.clear();
         fa.clear();
     }
