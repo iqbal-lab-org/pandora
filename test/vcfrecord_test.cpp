@@ -201,18 +201,18 @@ TEST(VCFRecordConfidenceTest, does_not_run_if_info_missing) {
     unordered_map<string, float> m;
     vr.regt_samples.push_back(m);
     vr.confidence();
-    bool found_confidence = vr.regt_samples[0].find("CONFIDENCE") != vr.regt_samples[0].end();
+    bool found_confidence = vr.regt_samples[0].find("GT_CONF") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_confidence);
 
     vr.regt_samples[0]["REF_LIKELIHOOD"] = -1.0;
     vr.confidence();
-    found_confidence = vr.regt_samples[0].find("CONFIDENCE") != vr.regt_samples[0].end();
+    found_confidence = vr.regt_samples[0].find("GT_CONF") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_confidence);
 
     vr.regt_samples[0]["ALT_LIKELIHOOD"] = -1.0;
     vr.regt_samples[0].erase("REF_LIKELIHOOD");
     vr.confidence();
-    found_confidence = vr.regt_samples[0].find("CONFIDENCE") != vr.regt_samples[0].end();
+    found_confidence = vr.regt_samples[0].find("GT_CONF") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_confidence);
 }
 
@@ -224,7 +224,7 @@ TEST(VCFRecordConfidenceTest, adds_confidence_with_info) {
     vr.regt_samples[0]["REF_LIKELIHOOD"] = -1.0;
     vr.regt_samples[0]["ALT_LIKELIHOOD"] = -2.5;
     vr.confidence();
-    bool found_confidence = vr.regt_samples[0].find("CONFIDENCE") != vr.regt_samples[0].end();
+    bool found_confidence = vr.regt_samples[0].find("GT_CONF") != vr.regt_samples[0].end();
     EXPECT_TRUE(found_confidence);
 }
 
@@ -236,7 +236,7 @@ TEST(VCFRecordConfidenceTest, gets_correct_confidence_simple_case) {
     vr.regt_samples[0]["ALT_LIKELIHOOD"] = 0.0;
     vr.confidence();
     float exp_confidence = 1;
-    EXPECT_FLOAT_EQ(exp_confidence,vr.regt_samples[0]["CONFIDENCE"]);
+    EXPECT_FLOAT_EQ(exp_confidence,vr.regt_samples[0]["GT_CONF"]);
 }
 
 TEST(VCFRecordConfidenceTest, handles_ref_covg_0) {
@@ -247,7 +247,7 @@ TEST(VCFRecordConfidenceTest, handles_ref_covg_0) {
     vr.regt_samples[0]["ALT_LIKELIHOOD"] = -1.5;
     vr.confidence();
     float exp_confidence = -numeric_limits<float>::lowest()-1.5;
-    EXPECT_FLOAT_EQ(exp_confidence,vr.regt_samples[0]["CONFIDENCE"]);
+    EXPECT_FLOAT_EQ(exp_confidence,vr.regt_samples[0]["GT_CONF"]);
 }
 
 TEST(VCFRecordConfidenceTest, handles_alt_covg_0) {
@@ -258,7 +258,7 @@ TEST(VCFRecordConfidenceTest, handles_alt_covg_0) {
     vr.regt_samples[0]["ALT_LIKELIHOOD"] = numeric_limits<float>::lowest();
     vr.confidence();
     float exp_confidence = -numeric_limits<float>::lowest()-1.5;
-    EXPECT_FLOAT_EQ(exp_confidence,vr.regt_samples[0]["CONFIDENCE"]);
+    EXPECT_FLOAT_EQ(exp_confidence,vr.regt_samples[0]["GT_CONF"]);
 }
 
 TEST(VCFRecordRegenotypeTest, correctly_regenotypes) {
@@ -292,7 +292,7 @@ TEST(VCFRecordRegenotypeTest, correctly_regenotypes) {
     vr.regt_samples[1]["REF_LIKELIHOOD"] = 4;
     vr.regt_samples[1]["ALT_LIKELIHOOD"] = 5;
     vr.samples[1]["GT"] = 1;
-    vr.regt_samples[1]["CONFIDENCE"] = 1;
+    vr.regt_samples[1]["GT_CONF"] = 1;
 
     vr.samples[2]["REF_MEAN_FWD_COVG"] = 0;
     vr.samples[2]["REF_MEAN_REV_COVG"] = 1;
@@ -301,7 +301,7 @@ TEST(VCFRecordRegenotypeTest, correctly_regenotypes) {
     vr.regt_samples[2]["REF_LIKELIHOOD"] = 6;
     vr.regt_samples[2]["ALT_LIKELIHOOD"] = 4;
     vr.samples[2]["GT"] = 0;
-    vr.regt_samples[2]["CONFIDENCE"] = 2;
+    vr.regt_samples[2]["GT_CONF"] = 2;
 
     vr.samples[3]["REF_MEAN_FWD_COVG"] = 0;
     vr.samples[3]["REF_MEAN_REV_COVG"] = 1;
@@ -310,7 +310,7 @@ TEST(VCFRecordRegenotypeTest, correctly_regenotypes) {
     vr.regt_samples[3]["REF_LIKELIHOOD"] = 4;
     vr.regt_samples[3]["ALT_LIKELIHOOD"] = 6;
     vr.samples[3]["GT"] = 1;
-    vr.regt_samples[3]["CONFIDENCE"] = 2;
+    vr.regt_samples[3]["GT_CONF"] = 2;
 
     vr.samples[4]["REF_MEAN_FWD_COVG"] = 0;
     vr.samples[4]["REF_MEAN_REV_COVG"] = 1;
@@ -319,7 +319,7 @@ TEST(VCFRecordRegenotypeTest, correctly_regenotypes) {
     vr.regt_samples[4]["REF_LIKELIHOOD"] = 6;
     vr.regt_samples[4]["ALT_LIKELIHOOD"] = 4;
     vr.samples[4]["GT"] = 1;
-    vr.regt_samples[4]["CONFIDENCE"] = 2;
+    vr.regt_samples[4]["GT_CONF"] = 2;
 
     vr.samples[5]["REF_MEAN_FWD_COVG"] = 0;
     vr.samples[5]["REF_MEAN_REV_COVG"] = 1;
@@ -328,7 +328,7 @@ TEST(VCFRecordRegenotypeTest, correctly_regenotypes) {
     vr.regt_samples[5]["REF_LIKELIHOOD"] = 4;
     vr.regt_samples[5]["ALT_LIKELIHOOD"] = 6;
     vr.samples[5]["GT"] = 0;
-    vr.regt_samples[5]["CONFIDENCE"] = 2;
+    vr.regt_samples[5]["GT_CONF"] = 2;
 
     vr.regenotype(1);
     EXPECT_EQ(vr.samples[0]["REF_MEAN_FWD_COVG"],0);
