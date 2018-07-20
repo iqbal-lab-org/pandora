@@ -543,3 +543,47 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
         j++;
     }
 }
+
+
+TEST(ApplyBufferToIntervalTest, buffZero_returnSameInterval) {
+    const Interval interval {2, 2};
+    const int buff {0};
+
+    const auto result {apply_buffer_to_interval(interval, buff)};
+    const Interval expected {2, 2};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ApplyBufferToIntervalTest, intervalStartGreaterThanBuff_returnSameIntervalPlusMinusOne) {
+    const Interval interval {2, 4};
+    const int buff {1};
+
+    const auto result {apply_buffer_to_interval(interval, buff)};
+    const Interval expected {1, 5};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ApplyBufferToIntervalTest, intervalStartLessThanBuff_returnIntervalStartingAtZero) {
+    const Interval interval {2, 4};
+    const int buff {3};
+
+    const auto result {apply_buffer_to_interval(interval, buff)};
+    const Interval expected {0, 7};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(ApplyBufferToIntervalTest, buffEqualsIntervalStart_returnIntervalStartingAtZero) {
+    const Interval interval {2, 4};
+    const int buff {2};
+
+    const auto result {apply_buffer_to_interval(interval, buff)};
+    const Interval expected {0, 6};
+
+    EXPECT_EQ(result, expected);
+}

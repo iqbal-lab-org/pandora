@@ -201,7 +201,9 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
     vector<LocalNodePtr> sub_lmp;
 
     for (auto interval : intervals){
+
         cout << "Looking at interval " << interval << endl;
+
         sub_lmp = find_interval_in_localpath(interval, lmp);
         get_read_overlap_coordinates(pnode, read_overlap_coordinates, sub_lmp);
 
@@ -269,9 +271,12 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
         const auto filepath = outdir + "/" + pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end()) + ".fa";
         fa.save(filepath);
 
+        // subtract/add buff from interval start and end
+        const Interval padded_interval {apply_buffer_to_interval(interval, buff)};
+        const std::vector<LocalNodePtr> padded_sub_lmp {find_interval_in_localpath(padded_interval, lmp)};
         // get sub_lmp path as string
-        const auto sub_lmp_as_string {LocalPRG::string_along_path(sub_lmp)};
-        const unsigned long max_length {sub_lmp_as_string.length() * 2};
+        const auto sub_lmp_as_string {LocalPRG::string_along_path(padded_sub_lmp)};
+        const unsigned long max_length {sub_lmp_as_string.length() + (interval.length * 5)};  // arbitrary at the moment
 
         if (g_local_assembly_kmer_size > sub_lmp_as_string.length()) {
             std::cerr << "Local assembly kmer size " << std::to_string(g_local_assembly_kmer_size);
@@ -307,3 +312,16 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
     readfile.close();
 }
 
+
+Interval apply_buffer_to_interval(const Interval &interval, const int32_t buff) {
+    uint32_t start;
+    if (buff < interval.start) {
+        start = interval.start - buff;
+    }
+    else {  // start_diff <= 0:
+        start = 0;
+    }
+    const uint32_t end {interval.get_end() + buff};
+    Interval padded_interval {start, end};
+    return padded_interval;
+}

@@ -26,6 +26,9 @@ void save_read_strings_to_denovo_assemble(const std::string&,
                                           const std::vector<KmerNodePtr>&,
                                           const uint32_t& threshold = 2,
                                           const uint32_t& min_length = 5,
-                                          const int32_t buff = 0);
+                                          const int32_t buff = 9);
+
+
+Interval apply_buffer_to_interval(const Interval &interval, const int32_t buff);
 
 #endif
