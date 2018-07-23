@@ -202,7 +202,7 @@ void do_graph_clean(Graph &graph, const int num_cores) {
     graph_simplifications._doBulgeRemoval = false;
     graph_simplifications._doECRemoval = false;
 
-    graph_simplifications._tipLen_Topo_kMult = 1; // remove all tips of length <= k * X bp  [default '2.500000']
+    graph_simplifications._tipLen_Topo_kMult = 2.5; // remove all tips of length <= k * X bp  [default '2.500000']
     graph_simplifications._tipLen_RCTC_kMult = 1;  // remove tips that pass coverage criteria, of length <= k * X bp  [default '10.000000']
     graph_simplifications._tipRCTCcutoff = 2; // tip relative coverage coefficient: mean coverage of neighbors >  X * tip coverage default 2.0
     graph_simplifications.simplify();

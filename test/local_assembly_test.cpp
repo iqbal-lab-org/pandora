@@ -495,6 +495,39 @@ TEST(FileExists, fakeFile_returnsFalse) {
 }
 
 
+TEST(GraphCleaning, simpleTip_remove) {
+    const int kmer_size {21};
+    const std::vector<std::string> sequences {
+                    //>works well for k=21; part of genome10K.fasta
+                    "CATCGATGCGAGACGCCTGTCGCGGGGAATTGTGGGGCGGACCACGCTCTGGCTAACGAGCTACCGTTTCCTTTAACCTGCCAGACGGTGACCAGGGCCGTTCGGCGTTGCATCGAGCGGTGTCGCTAGCGCAATGCGCAAGATTTTGACATTTACAAGGCAACATTGCAGCGTCCGATGGTCCGGTGGCCTCCAGATAGTGTCCAGTCGCTCTAACTGTATGGAGACCATAGGCATTTACCTTATTCTCATCGCCACGCCCCAAGATCTTTAGGACCCAGCATTCCTTTAACCACTAACATAACGCGTGTCATCTAGTTCAACAACC",
+                    "TGTCATCTAGTTCAACAACCAAAAAAA", //>that's the tip
+                    "TGTCATCTAGTTCAACAACCGTTATGCCGTCCGACTCTTGCGCTCGGATGTCCGCAATGGGTTATCCCTATGTTCCGGTAATCTCTCATCTACTAAGCGCCCTAAAGGTCGTATGGTTGGAGGGCGGTTACACACCCTTAAGTACCGAACGATAGAGCACCCGTCTAGGAGGGCGTGCAGGGTCTCCCGCTAGCTAATGGTCACGGCCTCTCTGGGAAAGCTGAACAACGGATGATACCCATACTGCCACTCCAGTACCTGGGCCGCGTGTTGTACGCTGTGTATCTTGAGAGCGTTTCCAGCAGATAGAACAGGATCACATGTACATG" //>remaining part
+            };
+    Graph graph = Graph::create(
+            new BankStrings(sequences),
+            "-kmer-size %d -abundance-min 1 -verbose 0", kmer_size
+    );
+    do_graph_clean(graph);
+
+    unsigned int num_non_deleted_nodes {0};
+    unsigned int num_nodes {0};
+
+    GraphIterator<Node> iterNodes = graph.iterator();
+    for (iterNodes.first(); !iterNodes.isDone(); iterNodes.next()) {
+        num_nodes++;
+
+        if (! graph.isNodeDeleted(*iterNodes))
+        {
+            num_non_deleted_nodes++;
+        }
+    }
+
+    EXPECT_EQ(num_nodes, 624);
+    EXPECT_EQ(num_non_deleted_nodes, 617);
+
+}
+
+
 TEST(LocalAssemblyTest, passFakeFastqPath_dontRaiseError) {
     const std::string filepath {"FAKE.fakeq"};
     std::string start_kmer {"ATGATGATG"};
