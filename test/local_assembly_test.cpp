@@ -534,6 +534,7 @@ TEST(LocalAssemblyTest, twoIdenticalReads_onePath) {
     }
 
     EXPECT_EQ(result, expected);
+    remove(out_path.c_str());
 }
 
 TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgOne_twoPaths) {
@@ -565,6 +566,7 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgOne_twoPaths) {
     }
 
     EXPECT_EQ(result, expected);
+    remove(out_path.c_str());
 }
 
 
@@ -597,6 +599,7 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
     }
 
     EXPECT_EQ(result, expected);
+    remove(out_path.c_str());
 }
 
 //TEST(LocalAssemblyTest, debug) {
