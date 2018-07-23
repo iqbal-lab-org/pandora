@@ -45,7 +45,9 @@ void write_paths_to_fasta(const std::string &filepath,
 
 
 void local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer, const std::string &out_path,
-                    const int kmer_size, const unsigned long max_length);
+                    const int kmer_size, const unsigned long max_length, const bool clean_graph=true);
+
+void do_graph_clean(Graph &graph, const int num_cores=1);
 
 std::string reverse_complement(const std::string forward);
 
