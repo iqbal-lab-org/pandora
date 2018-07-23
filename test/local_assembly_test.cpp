@@ -3,6 +3,7 @@
 #include <iostream>
 #include "local_assembly.h"
 #include <cstdio>
+#include <unordered_set>
 
 
 
@@ -499,9 +500,104 @@ TEST(LocalAssemblyTest, passFakeFastqPath_dontRaiseError) {
     std::string start_kmer {"ATGATGATG"};
     std::string end_kmer {"ATGATGATG"};
     const std::string out_path {"../../test/test_cases/fake.fa"};
-    local_assembly(filepath, start_kmer, end_kmer, out_path, 0, 0);
+    const int k {9};
+    const int max_len {30};
+    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len);
 }
 
+
+TEST(LocalAssemblyTest, twoIdenticalReads_onePath) {
+    const std::string filepath {"../../test/test_cases/local_assembly1.fa"};
+    std::string start_kmer {"ATGCGCTGA"};
+    std::string end_kmer {"AGTCGGACT"};
+    const std::string out_path {"../../test/test_cases/local_assembly1_paths.fa"};
+    const int k {9};
+    const int max_len {30};
+    const bool clean {false};
+    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, clean);
+
+    const std::unordered_set<std::string> expected {"ATGCGCTGAGAGTCGGACT"};
+    std::unordered_set<std::string> result;
+
+    // read paths file  back in and store all paths in set
+    std::ifstream fin {out_path};
+    std::string line;
+
+    while (std::getline(fin, line)) {
+        if (line[0] == '>') {
+            line.clear();
+        }
+        else {
+            result.insert(line);
+            line.clear();
+        }
+    }
+
+    EXPECT_EQ(result, expected);
+}
+
+TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgOne_twoPaths) {
+    const std::string filepath {"../../test/test_cases/local_assembly2.fa"};
+    std::string start_kmer {"ATGCGCTGA"};
+    std::string end_kmer {"AGTCGGACT"};
+    const std::string out_path {"../../test/test_cases/local_assembly2_paths.fa"};
+    const int k {9};
+    const int max_len {30};
+    const int min_coverage {1};
+    const bool clean {false};
+    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, clean, min_coverage);
+
+    const std::unordered_set<std::string> expected {"ATGCGCTGATAGTCGGACT", "ATGCGCTGAGAGTCGGACT"};
+    std::unordered_set<std::string> result;
+
+    // read paths file  back in and store all paths in set
+    std::ifstream fin {out_path};
+    std::string line;
+
+    while (std::getline(fin, line)) {
+        if (line[0] == '>') {
+            line.clear();
+        }
+        else {
+            result.insert(line);
+            line.clear();
+        }
+    }
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
+    const std::string filepath {"../../test/test_cases/local_assembly2.fa"};
+    std::string start_kmer {"ATGCGCTGA"};
+    std::string end_kmer {"AGTCGGACT"};
+    const std::string out_path {"../../test/test_cases/local_assembly2_paths.fa"};
+    const int k {9};
+    const int max_len {30};
+    const int min_coverage {2};
+    const bool clean {false};
+    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, clean, min_coverage);
+
+    const std::unordered_set<std::string> expected {"ATGCGCTGAGAGTCGGACT"};
+    std::unordered_set<std::string> result;
+
+    // read paths file  back in and store all paths in set
+    std::ifstream fin {out_path};
+    std::string line;
+
+    while (std::getline(fin, line)) {
+        if (line[0] == '>') {
+            line.clear();
+        }
+        else {
+            result.insert(line);
+            line.clear();
+        }
+    }
+
+    EXPECT_EQ(result, expected);
+}
 
 //TEST(LocalAssemblyTest, debug) {
 //    const std::string filepath {"../../GC00002476.324-337.fa"};

@@ -140,8 +140,9 @@ void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned lo
 }
 
 
-void local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer, const std::string &out_path,
-                    const int kmer_size, const unsigned long max_length, const bool clean_graph) {
+void local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer,
+                    const std::string &out_path, const int kmer_size, const unsigned long max_length,
+                    const bool clean_graph, const unsigned int min_coverage) {
 
     Graph graph;  // have to predefine as actually initialisation is inside try block
 
@@ -162,7 +163,7 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
     try {
         graph = Graph::create(
                 Bank::open(filepath),
-                "-kmer-size %d -abundance-min 1 -verbose 0", kmer_size  //todo: make covg parameter
+                "-kmer-size %d -abundance-min %d -verbose 0", kmer_size, min_coverage
         );
     }
     catch (gatb::core::system::Exception &error){
@@ -201,8 +202,8 @@ void do_graph_clean(Graph &graph, const int num_cores) {
     graph_simplifications._doBulgeRemoval = false;
     graph_simplifications._doECRemoval = false;
 
-    graph_simplifications._tipLen_Topo_kMult = 2.5; // remove all tips of length <= k * X bp  [default '2.500000']
-    graph_simplifications._tipLen_RCTC_kMult = 10;  // remove tips that pass coverage criteria, of length <= k * X bp  [default '10.000000']
+    graph_simplifications._tipLen_Topo_kMult = 1; // remove all tips of length <= k * X bp  [default '2.500000']
+    graph_simplifications._tipLen_RCTC_kMult = 1;  // remove tips that pass coverage criteria, of length <= k * X bp  [default '10.000000']
     graph_simplifications._tipRCTCcutoff = 2; // tip relative coverage coefficient: mean coverage of neighbors >  X * tip coverage default 2.0
     graph_simplifications.simplify();
 }
