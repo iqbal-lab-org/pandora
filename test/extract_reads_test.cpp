@@ -148,7 +148,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_minimal) {
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
-    auto found_path = find_interval_in_localpath(Interval(2,3), lmp);
+    auto found_path = find_interval_in_localpath(Interval(2, 3), lmp, 0);
 
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[2]};
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
@@ -159,7 +159,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_short) {
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
-    auto found_path = find_interval_in_localpath(Interval(1,4), lmp);
+    auto found_path = find_interval_in_localpath(Interval(1, 4), lmp, 0);
 
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4]};
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
@@ -170,12 +170,12 @@ TEST(ExtractReadsTest, find_interval_in_localpath_uneven) {
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
-    auto found_path = find_interval_in_localpath(Interval(2,4), lmp);
+    auto found_path = find_interval_in_localpath(Interval(2, 4), lmp, 0);
 
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4]};
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
 
-    found_path = find_interval_in_localpath(Interval(1,3), lmp);
+    found_path = find_interval_in_localpath(Interval(1, 3), lmp, 0);
 
     exp_path = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4]};
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
@@ -186,7 +186,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_multiple_sites) {
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
-    auto found_path = find_interval_in_localpath(Interval(2,5), lmp);
+    auto found_path = find_interval_in_localpath(Interval(2, 5), lmp, 0);
 
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                      l3.prg.nodes[6], l3.prg.nodes[7]};
@@ -210,7 +210,7 @@ TEST(ExtractReadsTest,hits_along_path) {
     Interval read_interval(1,4);
     bool orientation(true);
     deque<Interval> d = {Interval(7,8), Interval(10, 12)};
-    Path prg_path;
+    prg::Path prg_path;
     prg_path.initialize(d);
 
     // hit not on path
@@ -288,7 +288,7 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
     string pnode_name = "three";
     bool orientation(true);
     deque<Interval> d;
-    Path prg_path;
+    prg::Path prg_path;
     MinimizerHitPtr mh;
 
     PanNodePtr pn= make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);

@@ -669,20 +669,23 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
 //
 //         std::cout << "Processing " << filepath << "\n";
 //
-//         const long max_length = ref_sequence.length() + 10;
-//         auto start_kmer = ref_sequence.substr(0, g_kmer_size);
-//         auto end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, std::string::npos);
+//         const unsigned long max_length = ref_sequence.length() + 30;
+//         auto start_kmer = ref_sequence.substr(0, g_local_assembly_kmer_size);
+//         auto end_kmer = ref_sequence.substr(ref_sequence.length() - g_local_assembly_kmer_size, std::string::npos);
 //
 //         // clear the stringstream
 //         ss.str(std::string());
 //
 //         std::ostringstream oss;
-//         oss << "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/local_assembly_paths_covg10";
+//         oss << "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/local_assembly_paths_covg2";
 //         auto idx = filepath.rfind('/');
-//         oss << filepath.substr(idx, filepath.rfind('.') - idx) << "_K" << g_kmer_size << ".fa";
+//         oss << filepath.substr(idx, filepath.rfind('.') - idx) << "_K" << g_local_assembly_kmer_size << ".fa";
 //         std::string out_path = oss.str();
+//         const bool clean {false};
+//         const int min_coverage {2};
 //
-//         local_assembly(filepath, start_kmer, end_kmer, out_path);
+//         local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, max_length, clean,
+//                        min_coverage);
 //
 //         // clear the stringstream
 //         oss.str(std::string());
