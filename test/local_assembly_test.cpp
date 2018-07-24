@@ -3,6 +3,7 @@
 #include <iostream>
 #include "local_assembly.h"
 #include <cstdio>
+#include <unordered_set>
 
 
 
@@ -494,14 +495,145 @@ TEST(FileExists, fakeFile_returnsFalse) {
 }
 
 
+TEST(GraphCleaning, simpleTip_remove) {
+    const int kmer_size {21};
+    const std::vector<std::string> sequences {
+                    //>works well for k=21; part of genome10K.fasta
+                    "CATCGATGCGAGACGCCTGTCGCGGGGAATTGTGGGGCGGACCACGCTCTGGCTAACGAGCTACCGTTTCCTTTAACCTGCCAGACGGTGACCAGGGCCGTTCGGCGTTGCATCGAGCGGTGTCGCTAGCGCAATGCGCAAGATTTTGACATTTACAAGGCAACATTGCAGCGTCCGATGGTCCGGTGGCCTCCAGATAGTGTCCAGTCGCTCTAACTGTATGGAGACCATAGGCATTTACCTTATTCTCATCGCCACGCCCCAAGATCTTTAGGACCCAGCATTCCTTTAACCACTAACATAACGCGTGTCATCTAGTTCAACAACC",
+                    "TGTCATCTAGTTCAACAACCAAAAAAA", //>that's the tip
+                    "TGTCATCTAGTTCAACAACCGTTATGCCGTCCGACTCTTGCGCTCGGATGTCCGCAATGGGTTATCCCTATGTTCCGGTAATCTCTCATCTACTAAGCGCCCTAAAGGTCGTATGGTTGGAGGGCGGTTACACACCCTTAAGTACCGAACGATAGAGCACCCGTCTAGGAGGGCGTGCAGGGTCTCCCGCTAGCTAATGGTCACGGCCTCTCTGGGAAAGCTGAACAACGGATGATACCCATACTGCCACTCCAGTACCTGGGCCGCGTGTTGTACGCTGTGTATCTTGAGAGCGTTTCCAGCAGATAGAACAGGATCACATGTACATG" //>remaining part
+            };
+    Graph graph = Graph::create(
+            new BankStrings(sequences),
+            "-kmer-size %d -abundance-min 1 -verbose 0", kmer_size
+    );
+    do_graph_clean(graph);
+
+    unsigned int num_non_deleted_nodes {0};
+    unsigned int num_nodes {0};
+
+    GraphIterator<Node> iterNodes = graph.iterator();
+    for (iterNodes.first(); !iterNodes.isDone(); iterNodes.next()) {
+        num_nodes++;
+
+        if (! graph.isNodeDeleted(*iterNodes))
+        {
+            num_non_deleted_nodes++;
+        }
+    }
+
+    EXPECT_EQ(num_nodes, 624);
+    EXPECT_EQ(num_non_deleted_nodes, 617);
+
+}
+
+
 TEST(LocalAssemblyTest, passFakeFastqPath_dontRaiseError) {
     const std::string filepath {"FAKE.fakeq"};
     std::string start_kmer {"ATGATGATG"};
     std::string end_kmer {"ATGATGATG"};
     const std::string out_path {"../../test/test_cases/fake.fa"};
-    local_assembly(filepath, start_kmer, end_kmer, out_path, 0, 0);
+    const int k {9};
+    const int max_len {30};
+    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len);
 }
 
+
+TEST(LocalAssemblyTest, twoIdenticalReads_onePath) {
+    const std::string filepath {"../../test/test_cases/local_assembly1.fa"};
+    std::string start_kmer {"ATGCGCTGA"};
+    std::string end_kmer {"AGTCGGACT"};
+    const std::string out_path {"../../test/test_cases/local_assembly1_paths.fa"};
+    const int k {9};
+    const int max_len {30};
+    const bool clean {false};
+    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, clean);
+
+    const std::unordered_set<std::string> expected {"ATGCGCTGAGAGTCGGACT"};
+    std::unordered_set<std::string> result;
+
+    // read paths file  back in and store all paths in set
+    std::ifstream fin {out_path};
+    std::string line;
+
+    while (std::getline(fin, line)) {
+        if (line[0] == '>') {
+            line.clear();
+        }
+        else {
+            result.insert(line);
+            line.clear();
+        }
+    }
+
+    EXPECT_EQ(result, expected);
+    remove(out_path.c_str());
+}
+
+TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgOne_twoPaths) {
+    const std::string filepath {"../../test/test_cases/local_assembly2.fa"};
+    std::string start_kmer {"ATGCGCTGA"};
+    std::string end_kmer {"AGTCGGACT"};
+    const std::string out_path {"../../test/test_cases/local_assembly2_paths.fa"};
+    const int k {9};
+    const int max_len {30};
+    const int min_coverage {1};
+    const bool clean {false};
+    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, clean, min_coverage);
+
+    const std::unordered_set<std::string> expected {"ATGCGCTGATAGTCGGACT", "ATGCGCTGAGAGTCGGACT"};
+    std::unordered_set<std::string> result;
+
+    // read paths file  back in and store all paths in set
+    std::ifstream fin {out_path};
+    std::string line;
+
+    while (std::getline(fin, line)) {
+        if (line[0] == '>') {
+            line.clear();
+        }
+        else {
+            result.insert(line);
+            line.clear();
+        }
+    }
+
+    EXPECT_EQ(result, expected);
+    remove(out_path.c_str());
+}
+
+
+TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
+    const std::string filepath {"../../test/test_cases/local_assembly2.fa"};
+    std::string start_kmer {"ATGCGCTGA"};
+    std::string end_kmer {"AGTCGGACT"};
+    const std::string out_path {"../../test/test_cases/local_assembly2_paths.fa"};
+    const int k {9};
+    const int max_len {30};
+    const int min_coverage {2};
+    const bool clean {false};
+    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, clean, min_coverage);
+
+    const std::unordered_set<std::string> expected {"ATGCGCTGAGAGTCGGACT"};
+    std::unordered_set<std::string> result;
+
+    // read paths file  back in and store all paths in set
+    std::ifstream fin {out_path};
+    std::string line;
+
+    while (std::getline(fin, line)) {
+        if (line[0] == '>') {
+            line.clear();
+        }
+        else {
+            result.insert(line);
+            line.clear();
+        }
+    }
+
+    EXPECT_EQ(result, expected);
+    remove(out_path.c_str());
+}
 
 //TEST(LocalAssemblyTest, debug) {
 //    const std::string filepath {"../../GC00002476.324-337.fa"};
@@ -537,20 +669,23 @@ TEST(LocalAssemblyTest, passFakeFastqPath_dontRaiseError) {
 //
 //         std::cout << "Processing " << filepath << "\n";
 //
-//         const long max_length = ref_sequence.length() + 10;
-//         auto start_kmer = ref_sequence.substr(0, g_kmer_size);
-//         auto end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, std::string::npos);
+//         const unsigned long max_length = ref_sequence.length() + 30;
+//         auto start_kmer = ref_sequence.substr(0, g_local_assembly_kmer_size);
+//         auto end_kmer = ref_sequence.substr(ref_sequence.length() - g_local_assembly_kmer_size, std::string::npos);
 //
 //         // clear the stringstream
 //         ss.str(std::string());
 //
 //         std::ostringstream oss;
-//         oss << "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/local_assembly_paths_covg10";
+//         oss << "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/local_assembly_paths_covg2";
 //         auto idx = filepath.rfind('/');
-//         oss << filepath.substr(idx, filepath.rfind('.') - idx) << "_K" << g_kmer_size << ".fa";
+//         oss << filepath.substr(idx, filepath.rfind('.') - idx) << "_K" << g_local_assembly_kmer_size << ".fa";
 //         std::string out_path = oss.str();
+//         const bool clean {false};
+//         const int min_coverage {2};
 //
-//         local_assembly(filepath, start_kmer, end_kmer, out_path);
+//         local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, max_length, clean,
+//                        min_coverage);
 //
 //         // clear the stringstream
 //         oss.str(std::string());

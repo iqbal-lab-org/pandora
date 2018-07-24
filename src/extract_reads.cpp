@@ -11,7 +11,6 @@
 #include "fastaq_handler.h"
 #include "fastaq.h"
 #include "utils.h"
-#include "local_assembly.h"
 #include "prg/path.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
@@ -50,7 +49,11 @@ vector<Interval> identify_regions(const vector<uint32_t>& covgs, const uint32_t&
     return regions;
 }
 
-vector<LocalNodePtr> find_interval_in_localpath(const Interval& interval, const vector<LocalNodePtr>& lmp) {
+vector<LocalNodePtr>
+find_interval_in_localpath(const Interval &original_interval, const vector<LocalNodePtr> &lmp, const unsigned int &buff) {
+
+    const auto interval {apply_buffer_to_interval(original_interval, buff)};
+
     uint32_t added = 0;
     uint8_t level=0, start_level=0, lowest_level = 0;
     uint16_t start=0, end=0;
@@ -181,9 +184,10 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
                                           const PanNodePtr pnode,
                                           const vector<LocalNodePtr>& lmp,
                                           const vector<KmerNodePtr>& kmp,
+                                          const unsigned int &buff,
                                           const uint32_t& threshold,
-                                          const uint32_t& min_length,
-                                          const int32_t buff){
+                                          const uint32_t& min_length
+                                          ){
 
     vector<uint32_t> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
     vector<Interval> intervals = identify_regions(covgs, threshold, min_length);
@@ -201,8 +205,10 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
     vector<LocalNodePtr> sub_lmp;
 
     for (auto interval : intervals){
+
         cout << "Looking at interval " << interval << endl;
-        sub_lmp = find_interval_in_localpath(interval, lmp);
+
+        sub_lmp = find_interval_in_localpath(interval, lmp, buff);
         get_read_overlap_coordinates(pnode, read_overlap_coordinates, sub_lmp);
 
         uint16_t j = 0;
@@ -211,7 +217,7 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
                  << coord[3] << "}" << endl;
             j++;
             readfile.get_id(coord[0]);
-            start = (uint32_t) max((int32_t)coord[1]-buff, 0);
+            start = (uint32_t) std::max((int32_t)coord[1]-(int32_t)buff, 0);
             end = min(coord[2]+(uint32_t)buff, (uint32_t)readfile.read.length());
 
             assert(coord[1] < coord[2] or assert_msg("For read #" << coord[0] << " " << readfile.name << " pannode "
@@ -271,19 +277,31 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
 
         // get sub_lmp path as string
         const auto sub_lmp_as_string {LocalPRG::string_along_path(sub_lmp)};
-        const unsigned long max_length {sub_lmp_as_string.length() * 2};
-        // get start and end kmer from sub_lmp path
-        auto start_kmer {sub_lmp_as_string.substr(0, g_local_assembly_kmer_size)};
-        auto end_kmer {sub_lmp_as_string.substr(sub_lmp_as_string.size() - g_local_assembly_kmer_size)};
-        // create outpath for local assembly file
-        const auto out_path = filepath.substr(0, filepath.rfind('.')) +
-                "_local_assembly_K" +
-                std::to_string(g_local_assembly_kmer_size) + ".fa";
-        // run local assembly
-        std::cout << now() << " Running local assembly for " << pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end()) << "\n";
-        local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, max_length);
-        std::cout << now() << " Finished local assembly for " << pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end()) << "\n";
+        const unsigned long max_length {sub_lmp_as_string.length() + (interval.length * 5)};  // arbitrary at the moment
 
+        if (g_local_assembly_kmer_size > sub_lmp_as_string.length()) {
+            std::cerr << "Local assembly kmer size " << std::to_string(g_local_assembly_kmer_size);
+            std::cerr << " is greater than the length of the interval string ";
+            std::cerr << std::to_string(sub_lmp_as_string.length()) << ". Skipping local assembly for ";
+            std::cerr << filepath << "\n";
+        }
+        else {
+            // get start and end kmer from sub_lmp path
+            auto start_kmer{sub_lmp_as_string.substr(0, g_local_assembly_kmer_size)};
+            auto end_kmer{sub_lmp_as_string.substr(sub_lmp_as_string.size() - g_local_assembly_kmer_size)};
+            // create outpath for local assembly file
+            const auto out_path = filepath.substr(0, filepath.rfind('.')) +
+                                  "_local_assembly_K" +
+                                  std::to_string(g_local_assembly_kmer_size) + ".fa";
+            // run local assembly
+            std::cout << now() << " Running local assembly for "
+                      << pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end())
+                      << "\n";
+            local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, max_length);
+            std::cout << now() << " Finished local assembly for "
+                      << pnode->get_name() + "." + to_string(interval.start) + "-" + to_string(interval.get_end())
+                      << "\n";
+        }
         read_overlap_coordinates.clear();
         fa.clear();
     }
@@ -295,3 +313,16 @@ void save_read_strings_to_denovo_assemble(const string& readfilepath,
     readfile.close();
 }
 
+
+Interval apply_buffer_to_interval(const Interval &interval, const int32_t &buff) {
+    uint32_t start;
+    if (buff < interval.start) {
+        start = interval.start - buff;
+    }
+    else {  // start_diff <= 0:
+        start = 0;
+    }
+    const uint32_t end {interval.get_end() + buff};
+    Interval padded_interval {start, end};
+    return padded_interval;
+}

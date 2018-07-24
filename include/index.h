@@ -16,7 +16,7 @@ public:
 
     ~Index();
 
-    void add_record(const uint64_t, const uint32_t, const Path, const uint32_t, const bool);
+    void add_record(const uint64_t, const uint32_t, const prg::Path, const uint32_t, const bool);
 
     void save(const std::string &prgfile, uint32_t w, uint32_t k);
 

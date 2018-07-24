@@ -35,11 +35,11 @@ public:
     // functions used to create LocalGraph from PRG string, and to sketch graph
     bool isalpha_string(const std::string &) const;
 
-    std::string string_along_path(const Path &) const;
+    std::string string_along_path(const prg::Path &) const;
 
     static std::string string_along_path(const std::vector<LocalNodePtr> &);
 
-    std::vector<LocalNodePtr> nodes_along_path(const Path &) const;
+    std::vector<LocalNodePtr> nodes_along_path(const prg::Path &) const;
 
     std::vector<Interval> split_by_site(const Interval &) const;
 
@@ -47,7 +47,7 @@ public:
                                       const std::vector<uint32_t> &,
                                       uint32_t current_level = 0);
 
-    std::vector<Path> shift(Path) const;
+    std::vector<prg::Path> shift(prg::Path) const;
 
     void minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k);
 

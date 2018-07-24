@@ -1,4 +1,5 @@
 #include "local_assembly.h"
+#include <gatb/debruijn/impl/Simplifications.hpp>
 
 
 bool has_ending(std::string const &fullString, std::string const &ending) {
@@ -139,8 +140,9 @@ void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned lo
 }
 
 
-void local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer, const std::string &out_path,
-                    const int kmer_size, const unsigned long max_length) {
+void local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer,
+                    const std::string &out_path, const int kmer_size, const unsigned long max_length,
+                    const bool clean_graph, const unsigned int min_coverage) {
 
     Graph graph;  // have to predefine as actually initialisation is inside try block
 
@@ -151,16 +153,27 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
         return;
     }
 
+    // make sure the max_length is actually longer than the kmer size
+    if (kmer_size > max_length) {
+        std::cerr << "Kmer size " << std::to_string(kmer_size);
+        std::cerr << " is greater than the maximum path length " << std::to_string(max_length);
+        std::cerr << ". Skipping local assembly for " << filepath << "\n";
+    }
+
     try {
         graph = Graph::create(
                 Bank::open(filepath),
-                "-kmer-size %d -abundance-min 1 -verbose 0", kmer_size
+                "-kmer-size %d -abundance-min %d -verbose 0", kmer_size, min_coverage
         );
     }
     catch (gatb::core::system::Exception &error){
         std::cerr << "Couldn't create GATB graph for " << filepath << "\n";
         std::cerr << "EXCEPTION: " << error.getMessage() << "\n";
         return;
+    }
+
+    if (clean_graph) {
+        do_graph_clean(graph);
     }
 
     Node start_node;
@@ -180,6 +193,19 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
     auto tree = DFS(start_node, graph);
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_length);
     write_paths_to_fasta(out_path, result);
+}
+
+
+void do_graph_clean(Graph &graph, const int num_cores) {
+    Simplifications<Graph, Node, Edge> graph_simplifications(graph, num_cores);
+    graph_simplifications._doTipRemoval = true;
+    graph_simplifications._doBulgeRemoval = false;
+    graph_simplifications._doECRemoval = false;
+
+    graph_simplifications._tipLen_Topo_kMult = 2; // remove all tips of length <= k * X bp  [default '2.500000'] set to 0 to turn off
+    graph_simplifications._tipLen_RCTC_kMult = 0;  // remove tips that pass coverage criteria, of length <= k * X bp  [default '10.000000'] set to 0 to turn off
+    graph_simplifications._tipRCTCcutoff = 2; // tip relative coverage coefficient: mean coverage of neighbors >  X * tip coverage default 2.0
+    graph_simplifications.simplify();
 }
 
 

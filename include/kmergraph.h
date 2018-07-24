@@ -34,9 +34,9 @@ public:
 
     void clear();
 
-    KmerNodePtr add_node(const Path &);
+    KmerNodePtr add_node(const prg::Path &);
 
-    KmerNodePtr add_node_with_kh(const Path &, const uint64_t &, const uint8_t &num = 0);
+    KmerNodePtr add_node_with_kh(const prg::Path &, const uint64_t &, const uint8_t &num = 0);
 
     void add_edge(KmerNodePtr, KmerNodePtr);
 
@@ -102,9 +102,9 @@ public:
 };
 
 struct condition {
-    Path q;
+    prg::Path q;
 
-    condition(const Path &);
+    condition(const prg::Path &);
 
     bool operator()(const KmerNodePtr) const;
 };
