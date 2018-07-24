@@ -150,7 +150,7 @@ bool VCFRecord::operator<(const VCFRecord &y) const {
 
 
 std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
-    out << m.chrom << "\t" << m.pos-1 << "\t" << m.id << "\t" << m.ref << "\t" << m.alt << "\t" << m.qual << "\t"
+    out << m.chrom << "\t" << m.pos+1 << "\t" << m.id << "\t" << m.ref << "\t" << m.alt << "\t" << m.qual << "\t"
         << m.filter << "\t" << m.info << "\t";
 
     string last_format;
@@ -191,7 +191,8 @@ std::istream &operator>>(std::istream &in, VCFRecord &m) {
     unordered_map<string, float> regt_sample_data;
     in >> m.chrom;
     in.ignore(1, '\t');
-    in >> m.pos+1;
+    in >> m.pos;
+    m.pos -= 1;
     in.ignore(1, '\t');
     in >> m.id;
     in.ignore(1, '\t');

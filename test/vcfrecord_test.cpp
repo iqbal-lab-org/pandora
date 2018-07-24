@@ -433,7 +433,7 @@ TEST(VCFRecordTest, less_than) {
 
 TEST(VCFRecordTest, ostream) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    vector<string> v = {"chrom1","3",".","A","T",".",".","SVTYPE=SNP","GT"};
+    vector<string> v = {"chrom1","4",".","A","T",".",".","SVTYPE=SNP","GT"};
     stringstream out;
     out << vr;
     string rr;
@@ -449,7 +449,7 @@ TEST(VCFRecordTest, ostream_with_sample_not_all_info_in_formats) {
     m["GT"] = 1;
     m["pringle"] = 2;
     vr.samples.push_back(m);
-    vector<string> v = {"chrom1","3",".","A","T",".",".","SVTYPE=SNP","GT"};
+    vector<string> v = {"chrom1","4",".","A","T",".",".","SVTYPE=SNP","GT"};
     stringstream out;
     out << vr;
     string rr;
@@ -470,7 +470,7 @@ TEST(VCFRecordTest, ostream_with_sample_including_all_formats) {
     m["pringle"] = 2;
     vr.samples.push_back(m);
     vr.add_formats({"pringle"});
-    vector<string> v = {"chrom1","3",".","A","T",".",".","SVTYPE=SNP","GT:pringle"};
+    vector<string> v = {"chrom1","4",".","A","T",".",".","SVTYPE=SNP","GT:pringle"};
     vector<uint8_t> vu = {0,2};
     stringstream out;
     out << vr;
@@ -494,7 +494,7 @@ TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info) {
     m["GT"] = 0;
     vr.samples.push_back(m);
     vr.add_formats({"pringle"});
-    vector<string> v = {"chrom1","3",".","A","T",".",".","SVTYPE=SNP","GT:pringle"};
+    vector<string> v = {"chrom1","4",".","A","T",".",".","SVTYPE=SNP","GT:pringle"};
     vector<uint8_t> vu = {0};
     stringstream out;
     out << vr;
@@ -520,7 +520,7 @@ TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info_regt) {
     n["pringle"] = 0.1;
     vr.regt_samples.push_back(n);
     vr.add_formats({"pringle"});
-    vector<string> v = {"chrom1","3",".","A","T",".",".","SVTYPE=SNP","GT:pringle"};
+    vector<string> v = {"chrom1","4",".","A","T",".",".","SVTYPE=SNP","GT:pringle"};
     stringstream out;
     out << vr;
     string rr;
