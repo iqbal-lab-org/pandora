@@ -5,6 +5,8 @@ project(${PROJECT_NAME_STR} C CXX)
 
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
+
+set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.62.0 COMPONENTS system filesystem iostreams REQUIRED)
 
 # C++11 required
