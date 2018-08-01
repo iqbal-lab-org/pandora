@@ -19,6 +19,7 @@ class KmerGraph {
     float nb_r;
     int thresh;
 public:
+    uint32_t exp_depth_covg;
     uint32_t num_reads;
     uint32_t shortest_path_length;
     std::vector<KmerNodePtr> nodes;
@@ -45,6 +46,8 @@ public:
     void sort_topologically();
 
     void check();
+
+    void set_exp_depth_covg(const uint32_t);
 
     void set_p(const float);
 

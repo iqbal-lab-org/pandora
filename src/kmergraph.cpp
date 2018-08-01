@@ -26,6 +26,7 @@ KmerGraph::KmerGraph() {
     nb_p = 0.015;
     nb_r = 2;
     thresh = -25;
+    exp_depth_covg = 0;
 }
 
 // copy constructor
@@ -37,6 +38,7 @@ KmerGraph::KmerGraph(const KmerGraph &other) {
     nb_p = other.nb_p;
     nb_r = other.nb_r;
     thresh = other.thresh;
+    exp_depth_covg = other.exp_depth_covg;
     KmerNodePtr n;
 
     // first we need to deallocate for any nodes already got!
@@ -80,6 +82,7 @@ KmerGraph &KmerGraph::operator=(const KmerGraph &other) {
     nb_p = other.nb_p;
     nb_r = other.nb_r;
     thresh = other.thresh;
+    exp_depth_covg = other.exp_depth_covg;
     KmerNodePtr n;
 
     // create deep copies of the nodes, minus the edges
@@ -120,6 +123,7 @@ void KmerGraph::clear() {
     nb_p = 0.015;
     nb_r = 2;
     thresh = -25;
+    exp_depth_covg = 0;
 }
 
 KmerNodePtr KmerGraph::add_node(const Path &p) {
@@ -235,6 +239,11 @@ void KmerGraph::check() {
                    assert_msg(d->id << " does not occur later in sorted list than " << (*c)->id));
         }
     }
+}
+
+void KmerGraph::set_exp_depth_covg(const uint32_t edp) {
+    assert(edp > 0);
+    exp_depth_covg = edp;
 }
 
 void KmerGraph::set_p(const float e_rate) {
