@@ -7,7 +7,13 @@
 #include <unordered_map>
 
 #include <gatb/gatb_core.hpp>
+#include <gatb/debruijn/impl/Simplifications.hpp>
 #include <sys/stat.h>
+
+
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
 
 
 const long g_max_length {30};
@@ -16,6 +22,7 @@ const int g_local_assembly_kmer_size {9};
 
 using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
 using Paths = std::vector<std::string>;
+namespace logging = boost::log;
 
 
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph);
@@ -45,8 +52,8 @@ void write_paths_to_fasta(const std::string &filepath,
 
 
 void local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer,
-                    const std::string &out_path, const int kmer_size, const unsigned long max_length,
-                    const bool clean_graph=false, const unsigned int min_coverage=2);
+                    const std::string &out_path, const unsigned int kmer_size, const unsigned long max_length,
+                    const bool clean_graph = false, const unsigned int min_coverage = 2);
 
 void do_graph_clean(Graph &graph, const int num_cores=1);
 

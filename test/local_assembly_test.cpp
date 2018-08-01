@@ -6,9 +6,8 @@
 #include <unordered_set>
 
 
-
-
 const int g_test_kmer_size = 5;
+const auto log_level{logging::trivial::info};
 
 
 TEST(GetNodeFromGraph, create) {
@@ -97,6 +96,8 @@ TEST(GetNodeFromGraph, GivenGraphAndMissingKmer_CorrectEmptyNodeReturned) {
 
 
 TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
+    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+
     const std::string s1{"AATGTAAGG"};
     const std::string s2{"AATGTCAGG"};
     const std::string s3{"AATGTTAGG"};
@@ -122,6 +123,8 @@ TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
 
 
 TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
+    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+
     const auto seq{"ATGCAG"};
     const auto start_kmer{"ATGCA"};
     const auto end_kmer{"TGCAG"};
@@ -144,6 +147,8 @@ TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
 
 
 TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
+    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+
     const auto seq{"ATGCAGTACA"};
     const auto start_kmer{"ATGCA"};
     const auto end_kmer{"GTACA"};
@@ -174,6 +179,8 @@ TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
 }
 
 TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
+    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+
     const auto seq1{"ATGCAG"};
     const auto seq2{"ATGCAG"};
     std::vector<std::string> seqs = {seq1, seq2};
@@ -197,6 +204,8 @@ TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
 }
 
 TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
+    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+
     const std::string seq1{"ATGCAGTACAA"};
     const std::string seq2{"ATGCATTACAA"};
     std::vector<std::string> seqs = {seq1, seq2};
@@ -231,6 +240,8 @@ TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
 
 
 TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
+    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+
     const std::string seq1{"ATGCAGTACAA"};
     const std::string seq2{"ATGCATTACAA"};
     const std::string seq3{"ATGCACTACAA"};
@@ -267,6 +278,8 @@ TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
 
 
 TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
+    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+
     const std::string seq1{"ATGCAGTACAAGGATAC"};
     const std::string seq2{"ATGCATTACAATGATAC"};
     std::vector<std::string> seqs = {seq1, seq2};
@@ -310,6 +323,8 @@ TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
 
 
 TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKmers) {
+    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+
     const std::string seq1{"ATGTG"};
     const std::string seq2{"TGTGC"};
     const std::string seq3{"TGCAC"};
@@ -338,6 +353,8 @@ TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKm
 }
 
 TEST(DFSTest, SimpleCycle_ReturnPathsOfLengthsUpToMaxPathLengthCycling) {
+    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+
     const std::string seq1{"ATATATATA"};
     const std::string seq2{"TATAT"};
     std::vector<std::string> seqs = {seq1, seq2};
@@ -394,6 +411,8 @@ TEST(hasEndingTest, endingLongerThanQuery_ReturnFalse) {
 
 
 TEST(FastaWriter, ReadsShorterThanLineWidth_OneReadPerLine) {
+    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+
     const auto filepath = "TEST.fa";
     const auto header = ">path";
     unsigned long line_width = 90;
@@ -422,6 +441,8 @@ TEST(FastaWriter, ReadsShorterThanLineWidth_OneReadPerLine) {
 
 
 TEST(FastaWriter, ReadsLongerThanLineWidth_ReadSpreadEvenlyOnLines) {
+    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+
     const auto filepath = "TEST.fa";
     const auto header = ">path";
     unsigned long line_width = 10;
@@ -656,7 +677,7 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
 
 // test if path exists in graph. take all kmers of ref and query each one
 // TEST(LocalAssemblyTest, buildGraphForAllSlices_writeAllPathsToFile) {
-//     const std::string meta_file = "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/ref_seqs_for_slices_padding_10.tsv";
+//     const std::string meta_file = "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/subsample_30x/ref_seqs_for_slices_padding_10.tsv";
 //
 //     std::ifstream fin (meta_file);
 //     std::string line;
@@ -677,12 +698,12 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
 //         ss.str(std::string());
 //
 //         std::ostringstream oss;
-//         oss << "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/local_assembly_paths_covg2";
+//         oss << "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/subsample_30x/local_assembly_paths_covg1";
 //         auto idx = filepath.rfind('/');
 //         oss << filepath.substr(idx, filepath.rfind('.') - idx) << "_K" << g_local_assembly_kmer_size << ".fa";
 //         std::string out_path = oss.str();
-//         const bool clean {false};
-//         const int min_coverage {2};
+//         const bool clean {false}   ;
+//         const int min_coverage {1};
 //
 //         local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, max_length, clean,
 //                        min_coverage);
