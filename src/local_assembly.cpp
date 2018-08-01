@@ -158,14 +158,7 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
     const auto log_level{logging::trivial::info};
     logging::core::get()->set_filter(logging::trivial::severity >= log_level);
 
-
-//    BOOST_LOG_TRIVIAL(trace) << "A trace severity message";
     BOOST_LOG_TRIVIAL(debug) << "Running local assembly for " << filepath;
-//    BOOST_LOG_TRIVIAL(info) << "An informational severity message";
-//    BOOST_LOG_TRIVIAL(warning) << "A warning severity message";
-//    BOOST_LOG_TRIVIAL(error) << "An error severity message";
-//    BOOST_LOG_TRIVIAL(fatal) << "A fatal severity message";
-
 
     Graph graph;  // have to predefine as actually initialisation is inside try block
 
