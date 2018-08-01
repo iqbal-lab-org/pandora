@@ -2,8 +2,9 @@
 
 
 bool has_ending(std::string const &fullString, std::string const &ending) {
-    if (fullString.length() < ending.length())
+    if (fullString.length() < ending.length()) {
         return false;
+    }
     return 0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending);
 }
 
@@ -59,8 +60,9 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
         nodes_to_explore.pop();
 
         bool previously_explored = explored_nodes.find(graph.toString(current_node)) != explored_nodes.end();
-        if (previously_explored)
+        if (previously_explored) {
             continue;
+        }
 
         explored_nodes.insert(graph.toString(current_node));
 
@@ -102,8 +104,9 @@ void get_paths_between_util(const std::string &start_kmer,
     auto &child_nodes = tree[start_kmer];
     auto num_children = child_nodes.size();
 
-    if (path_accumulator.length() > max_length)
+    if (path_accumulator.length() > max_length) {
         return;
+    }
 
     path_accumulator.push_back(start_kmer.back());
 
@@ -141,10 +144,10 @@ void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned lo
 
 
 void local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer,
-                    const std::string &out_path, const int kmer_size, const unsigned long max_length,
+                    const std::string &out_path, const unsigned int kmer_size, const unsigned long max_length,
                     const bool clean_graph, const unsigned int min_coverage) {
 
-    const auto log_level {logging::trivial::info};
+    const auto log_level{logging::trivial::info};
     logging::core::get()->set_filter(logging::trivial::severity >= log_level);
 
 
@@ -159,7 +162,7 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
     Graph graph;  // have to predefine as actually initialisation is inside try block
 
     // check if filepath exists
-    const bool exists {file_exists(filepath)};
+    const bool exists{file_exists(filepath)};
     if (not exists) {
         BOOST_LOG_TRIVIAL(error) << filepath << " does not exist. Skipping local assembly.\n";
         return;
@@ -168,11 +171,11 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
     // make sure the max_length is actually longer than the kmer size
     if (kmer_size > max_length) {
         BOOST_LOG_TRIVIAL(warning) << "Kmer size "
-    << std::to_string(kmer_size)
-    << " is greater than the maximum path length "
-    << std::to_string(max_length)
-    << ". Skipping local assembly for "
-    << filepath << "\n";
+                                   << std::to_string(kmer_size)
+                                   << " is greater than the maximum path length "
+                                   << std::to_string(max_length)
+                                   << ". Skipping local assembly for "
+                                   << filepath << "\n";
     }
 
     try {
@@ -181,7 +184,7 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
                 "-kmer-size %d -abundance-min %d -verbose 0", kmer_size, min_coverage
         );
     }
-    catch (gatb::core::system::Exception &error){
+    catch (gatb::core::system::Exception &error) {
         std::cerr << "Couldn't create GATB graph for " << filepath << "\n";
         std::cerr << "EXCEPTION: " << error.getMessage() << "\n";
         return;
@@ -237,7 +240,7 @@ std::string reverse_complement(const std::string forward) {
 }
 
 
-bool file_exists(const std::string& name) {
+bool file_exists(const std::string &name) {
     struct stat buffer;
     return (stat(name.c_str(), &buffer) == 0);
 }

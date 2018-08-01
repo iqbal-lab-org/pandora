@@ -52,8 +52,8 @@ void write_paths_to_fasta(const std::string &filepath,
 
 
 void local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer,
-                    const std::string &out_path, const int kmer_size, const unsigned long max_length,
-                    const bool clean_graph=false, const unsigned int min_coverage=2);
+                    const std::string &out_path, const unsigned int kmer_size, const unsigned long max_length,
+                    const bool clean_graph = false, const unsigned int min_coverage = 2);
 
 void do_graph_clean(Graph &graph, const int num_cores=1);
 
