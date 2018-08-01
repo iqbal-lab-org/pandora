@@ -36,12 +36,12 @@ Warning - this code is still in development.
 - Requires a Unix or Mac OS.
 - Requires a system install of `zlib`. If this is not already installed, [this](https://geeksww.com/tutorials/libraries/zlib/installation/installing_zlib_on_ubuntu_linux.php) tutorial is helpful.
 
-- Requires a system installation of `boost` containing the `system`, `filesystem`, and `iostreams` libraries. If not already installed use the following or look at [this](https://www.boost.org/doc/libs/1_62_0/more/getting_started/unix-variants.html) guide.
+- Requires a system installation of `boost` containing the `system`, `filesystem`, `log` (which also depends on `thread` and `date_time`) and `iostreams` libraries. If not already installed use the following or look at [this](https://www.boost.org/doc/libs/1_62_0/more/getting_started/unix-variants.html) guide.
 
       wget https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.gz --no-check-certificate
       tar xzf boost_1_62_0.tar.gz
       cd boost_1_62_0
-      ./bootstrap.sh [--prefix=/prefix/path] --with-libraries=system,filesystem,iostreams
+      ./bootstrap.sh [--prefix=/prefix/path] --with-libraries=system,filesystem,iostreams,log,thread,date_time
       ./b2 install
     
 - Download and install `pandora` as follows:
