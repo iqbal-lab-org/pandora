@@ -50,6 +50,7 @@ std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph) {
  *     Return T
  */
 DfsTree DFS(const Node &start_node, const Graph &graph) {
+    BOOST_LOG_TRIVIAL(debug) << "Starting DFS...";
     std::stack<Node> nodes_to_explore({start_node});
 
     std::set<std::string> explored_nodes;
@@ -69,11 +70,12 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
         auto neighbours = graph.successors(current_node);
         tree[graph.toString(current_node)] = neighbours;
 
-        for (auto i = 0; i < neighbours.size(); ++i) {
+        for (unsigned int i = 0; i < neighbours.size(); ++i) {
             auto child = neighbours[i];
             nodes_to_explore.push(child);
         }
     }
+    BOOST_LOG_TRIVIAL(debug) << "DFS finished.";
     return tree;
 }
 
@@ -85,10 +87,13 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
  */
 Paths get_paths_between(const std::string &start_kmer, const std::string &end_kmer, DfsTree &tree, const Graph &graph,
                         const unsigned long max_length) {
+    BOOST_LOG_TRIVIAL(debug) << "Enumerating all paths in DFS between " << start_kmer << " and " << end_kmer;
     std::string initial_acc = start_kmer.substr(0, start_kmer.length() - 1);
 
     Paths result = {};
     get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree, result, max_length);
+    BOOST_LOG_TRIVIAL(debug) << "Path enumeration complete. There were " << std::to_string(result.size())
+                             << "paths found.";
     return result;
 }
 
@@ -100,11 +105,12 @@ void get_paths_between_util(const std::string &start_kmer,
                             DfsTree &tree,
                             Paths &full_paths,
                             const unsigned long max_length) {
-    BOOST_LOG_TRIVIAL(info) << "I am in get_paths_between_util";
     auto &child_nodes = tree[start_kmer];
     auto num_children = child_nodes.size();
 
     if (path_accumulator.length() > max_length) {
+        BOOST_LOG_TRIVIAL(debug) << "Path accumulator has reached max. length of " << std::to_string(max_length)
+                                 << ". Abandoning this path: \n" << path_accumulator;
         return;
     }
 
@@ -113,9 +119,10 @@ void get_paths_between_util(const std::string &start_kmer,
     // makes sure we get all possible cycle repitions up to the maximum length
     if (has_ending(path_accumulator, end_kmer)) {
         full_paths.push_back(path_accumulator);
+        BOOST_LOG_TRIVIAL(trace) << path_accumulator << " added to vector of paths.";
     }
 
-    for (int i = 0; i < num_children; ++i) {
+    for (unsigned int i = 0; i < num_children; ++i) {
         auto kmer = graph.toString(child_nodes[i]);
         get_paths_between_util(kmer,
                                end_kmer,
@@ -140,6 +147,7 @@ void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned lo
     }
 
     out_file.close();
+    BOOST_LOG_TRIVIAL(info) << "Local assembly paths written to " << filepath;
 }
 
 
@@ -152,7 +160,7 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
 
 
 //    BOOST_LOG_TRIVIAL(trace) << "A trace severity message";
-//    BOOST_LOG_TRIVIAL(debug) << "A debug severity message";
+    BOOST_LOG_TRIVIAL(debug) << "Running local assembly for " << filepath;
 //    BOOST_LOG_TRIVIAL(info) << "An informational severity message";
 //    BOOST_LOG_TRIVIAL(warning) << "A warning severity message";
 //    BOOST_LOG_TRIVIAL(error) << "An error severity message";
@@ -164,7 +172,7 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
     // check if filepath exists
     const bool exists{file_exists(filepath)};
     if (not exists) {
-        BOOST_LOG_TRIVIAL(error) << filepath << " does not exist. Skipping local assembly.\n";
+        BOOST_LOG_TRIVIAL(warning) << filepath << " does not exist. Skipping local assembly.";
         return;
     }
 
@@ -175,22 +183,22 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
                                    << " is greater than the maximum path length "
                                    << std::to_string(max_length)
                                    << ". Skipping local assembly for "
-                                   << filepath << "\n";
+                                   << filepath;
     }
 
     try {
-        graph = Graph::create(
-                Bank::open(filepath),
-                "-kmer-size %d -abundance-min %d -verbose 0", kmer_size, min_coverage
+        graph = Graph::create(Bank::open(filepath),
+                              "-kmer-size %d -abundance-min %d -verbose 0", kmer_size, min_coverage
         );
     }
     catch (gatb::core::system::Exception &error) {
-        std::cerr << "Couldn't create GATB graph for " << filepath << "\n";
-        std::cerr << "EXCEPTION: " << error.getMessage() << "\n";
+        BOOST_LOG_TRIVIAL(warning) << "Couldn't create GATB graph for " << filepath << "\n\tEXCEPTION: "
+                                   << error.getMessage();
         return;
     }
 
     if (clean_graph) {
+        BOOST_LOG_TRIVIAL(debug) << "Cleaning graph for " << filepath;
         do_graph_clean(graph);
     }
 
@@ -198,12 +206,15 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
     if (not found) {
+        BOOST_LOG_TRIVIAL(debug) << "Start node " << graph.toString(start_node)
+                                 << " not found in 'forward' orientation. Trying 'reverse'...";
         auto tmp_copy = start_kmer;
         start_kmer = reverse_complement(end_kmer);
         end_kmer = reverse_complement(tmp_copy);
         std::tie(start_node, found) = get_node(start_kmer, graph);
         if (not found) {
-            std::cerr << "Start kmer not found in " << filepath << "\n";
+            BOOST_LOG_TRIVIAL(warning) << "Start kmer not found in either orientation. Skipping local assembly for "
+                                       << filepath;
             return;
         }
     }
