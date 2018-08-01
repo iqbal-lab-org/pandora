@@ -1,5 +1,4 @@
 #include "local_assembly.h"
-#include <gatb/debruijn/impl/Simplifications.hpp>
 
 
 bool has_ending(std::string const &fullString, std::string const &ending) {
@@ -99,6 +98,7 @@ void get_paths_between_util(const std::string &start_kmer,
                             DfsTree &tree,
                             Paths &full_paths,
                             const unsigned long max_length) {
+    BOOST_LOG_TRIVIAL(info) << "I am in get_paths_between_util";
     auto &child_nodes = tree[start_kmer];
     auto num_children = child_nodes.size();
 
@@ -144,20 +144,35 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
                     const std::string &out_path, const int kmer_size, const unsigned long max_length,
                     const bool clean_graph, const unsigned int min_coverage) {
 
+    const auto log_level {logging::trivial::info};
+    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+
+
+//    BOOST_LOG_TRIVIAL(trace) << "A trace severity message";
+//    BOOST_LOG_TRIVIAL(debug) << "A debug severity message";
+//    BOOST_LOG_TRIVIAL(info) << "An informational severity message";
+//    BOOST_LOG_TRIVIAL(warning) << "A warning severity message";
+//    BOOST_LOG_TRIVIAL(error) << "An error severity message";
+//    BOOST_LOG_TRIVIAL(fatal) << "A fatal severity message";
+
+
     Graph graph;  // have to predefine as actually initialisation is inside try block
 
     // check if filepath exists
     const bool exists {file_exists(filepath)};
     if (not exists) {
-        std::cerr << filepath << " does not exist. Skipping local assembly.\n";
+        BOOST_LOG_TRIVIAL(error) << filepath << " does not exist. Skipping local assembly.\n";
         return;
     }
 
     // make sure the max_length is actually longer than the kmer size
     if (kmer_size > max_length) {
-        std::cerr << "Kmer size " << std::to_string(kmer_size);
-        std::cerr << " is greater than the maximum path length " << std::to_string(max_length);
-        std::cerr << ". Skipping local assembly for " << filepath << "\n";
+        BOOST_LOG_TRIVIAL(warning) << "Kmer size "
+    << std::to_string(kmer_size)
+    << " is greater than the maximum path length "
+    << std::to_string(max_length)
+    << ". Skipping local assembly for "
+    << filepath << "\n";
     }
 
     try {

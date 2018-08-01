@@ -656,7 +656,7 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
 
 // test if path exists in graph. take all kmers of ref and query each one
 // TEST(LocalAssemblyTest, buildGraphForAllSlices_writeAllPathsToFile) {
-//     const std::string meta_file = "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/ref_seqs_for_slices_padding_10.tsv";
+//     const std::string meta_file = "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/subsample_30x/ref_seqs_for_slices_padding_10.tsv";
 //
 //     std::ifstream fin (meta_file);
 //     std::string line;
@@ -677,12 +677,12 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
 //         ss.str(std::string());
 //
 //         std::ostringstream oss;
-//         oss << "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/local_assembly_paths_covg2";
+//         oss << "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/subsample_30x/local_assembly_paths_covg1";
 //         auto idx = filepath.rfind('/');
 //         oss << filepath.substr(idx, filepath.rfind('.') - idx) << "_K" << g_local_assembly_kmer_size << ".fa";
 //         std::string out_path = oss.str();
-//         const bool clean {false};
-//         const int min_coverage {2};
+//         const bool clean {false}   ;
+//         const int min_coverage {1};
 //
 //         local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, max_length, clean,
 //                        min_coverage);

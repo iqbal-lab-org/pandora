@@ -18,6 +18,8 @@ target_link_libraries(pandora_test
         ${Boost_IOSTREAMS_LIBRARY}
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}
+        ${Boost_LOG_LIBRARY}
+        ${Boost_THREAD_LIBRARY}
         ${EXTERNAL_LIBS}
         ${CMAKE_DL_LIBS}
         ${ZLIB_LIBRARY})

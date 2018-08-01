@@ -7,7 +7,7 @@ find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
 
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.62.0 COMPONENTS system filesystem iostreams REQUIRED)
+find_package(Boost 1.62.0 COMPONENTS system filesystem iostreams log thread date_time REQUIRED)
 
 # C++11 required
 include(CheckCXXCompilerFlag)
@@ -51,6 +51,8 @@ target_link_libraries(${PROJECT_NAME}
         ${Boost_IOSTREAMS_LIBRARY}
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}
+        ${Boost_LOG_LIBRARY}
+        ${Boost_THREAD_LIBRARY}
         ${EXTERNAL_LIBS}
         ${CMAKE_DL_LIBS}
         ${ZLIB_LIBRARY})
