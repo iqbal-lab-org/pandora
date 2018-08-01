@@ -1443,7 +1443,7 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
         if (output_covgs)
             add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, kmp, "sample");
         if (regenotype)
-            vcf.regenotype(global_covg,0.01,30);
+            vcf.regenotype(global_covg,0.01,pnode->kmer_prg.exp_depth_covg);
         vcf.save(outdir + "/" + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
     }
     if (output_comparison_paths) {
