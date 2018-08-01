@@ -538,4 +538,32 @@ TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info_regt) {
     EXPECT_EQ(f,rf);
 }
 
+TEST(VCFRecordTest, ostream_with_zero_pos) {
+    VCFRecord vr("chrom1", 0, "A", "T");
+    unordered_map<string, uint8_t> m;
+    m["GT"] = 0;
+    vr.samples.push_back(m);
+    unordered_map<string, float> n;
+    n["pringle"] = 0.1;
+    vr.regt_samples.push_back(n);
+    vr.add_formats({"pringle"});
+    vector<string> v = {"chrom1","1",".","A","T",".",".","SVTYPE=SNP","GT:pringle"};
+    stringstream out;
+    out << vr;
+    string rr;
+    for (auto  s : v) {
+        out >> rr;
+        EXPECT_EQ(s, rr);
+    }
+    uint ru;
+    uint8_t u = 0;
+    out >> ru;
+    EXPECT_EQ(u, ru);
+    out.ignore(1,':');
+    float rf=0.0,f=0.1;
+    out >> rf;
+    EXPECT_EQ(f,rf);
+}
+
+
 
