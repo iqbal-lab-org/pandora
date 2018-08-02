@@ -60,7 +60,7 @@ int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
     }
 
     string prg_file(argv[1]);
-    fa.save(prg_file + ".vcf_ref.fa");
+    fa.save(prg_file + ".vcf_ref.fa.gz");
 
     return 0;
 }
