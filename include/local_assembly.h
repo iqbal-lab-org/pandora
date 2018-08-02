@@ -15,15 +15,13 @@
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
 
-
-const long g_max_length {30};
-const int g_local_assembly_kmer_size {9};
-
-
 using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
 using Paths = std::vector<std::string>;
 namespace logging = boost::log;
 
+const long g_max_length {30};
+const int g_local_assembly_kmer_size {9};
+const auto g_log_level{logging::trivial::debug};
 
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph);
 

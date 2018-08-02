@@ -7,7 +7,7 @@
 
 
 const int g_test_kmer_size = 5;
-const auto log_level{logging::trivial::info};
+const auto test_log_level{logging::trivial::info};
 
 
 TEST(GetNodeFromGraph, create) {
@@ -96,7 +96,7 @@ TEST(GetNodeFromGraph, GivenGraphAndMissingKmer_CorrectEmptyNodeReturned) {
 
 
 TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
-    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+    logging::core::get()->set_filter(logging::trivial::severity >= test_log_level);
 
     const std::string s1{"AATGTAAGG"};
     const std::string s2{"AATGTCAGG"};
@@ -123,7 +123,7 @@ TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
 
 
 TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
-    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+    logging::core::get()->set_filter(logging::trivial::severity >= test_log_level);
 
     const auto seq{"ATGCAG"};
     const auto start_kmer{"ATGCA"};
@@ -147,7 +147,7 @@ TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
 
 
 TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
-    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+    logging::core::get()->set_filter(logging::trivial::severity >= test_log_level);
 
     const auto seq{"ATGCAGTACA"};
     const auto start_kmer{"ATGCA"};
@@ -179,7 +179,7 @@ TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
 }
 
 TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
-    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+    logging::core::get()->set_filter(logging::trivial::severity >= test_log_level);
 
     const auto seq1{"ATGCAG"};
     const auto seq2{"ATGCAG"};
@@ -204,7 +204,7 @@ TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
 }
 
 TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
-    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+    logging::core::get()->set_filter(logging::trivial::severity >= test_log_level);
 
     const std::string seq1{"ATGCAGTACAA"};
     const std::string seq2{"ATGCATTACAA"};
@@ -240,7 +240,7 @@ TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
 
 
 TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
-    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+    logging::core::get()->set_filter(logging::trivial::severity >= test_log_level);
 
     const std::string seq1{"ATGCAGTACAA"};
     const std::string seq2{"ATGCATTACAA"};
@@ -278,7 +278,7 @@ TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
 
 
 TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
-    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+    logging::core::get()->set_filter(logging::trivial::severity >= test_log_level);
 
     const std::string seq1{"ATGCAGTACAAGGATAC"};
     const std::string seq2{"ATGCATTACAATGATAC"};
@@ -323,7 +323,7 @@ TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
 
 
 TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKmers) {
-    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+    logging::core::get()->set_filter(logging::trivial::severity >= test_log_level);
 
     const std::string seq1{"ATGTG"};
     const std::string seq2{"TGTGC"};
@@ -353,7 +353,7 @@ TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKm
 }
 
 TEST(DFSTest, SimpleCycle_ReturnPathsOfLengthsUpToMaxPathLengthCycling) {
-    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+    logging::core::get()->set_filter(logging::trivial::severity >= test_log_level);
 
     const std::string seq1{"ATATATATA"};
     const std::string seq2{"TATAT"};
@@ -411,7 +411,7 @@ TEST(hasEndingTest, endingLongerThanQuery_ReturnFalse) {
 
 
 TEST(FastaWriter, ReadsShorterThanLineWidth_OneReadPerLine) {
-    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+    logging::core::get()->set_filter(logging::trivial::severity >= test_log_level);
 
     const auto filepath = "TEST.fa";
     const auto header = ">path";
@@ -441,7 +441,7 @@ TEST(FastaWriter, ReadsShorterThanLineWidth_OneReadPerLine) {
 
 
 TEST(FastaWriter, ReadsLongerThanLineWidth_ReadSpreadEvenlyOnLines) {
-    logging::core::get()->set_filter(logging::trivial::severity >= log_level);
+    logging::core::get()->set_filter(logging::trivial::severity >= test_log_level);
 
     const auto filepath = "TEST.fa";
     const auto header = ">path";
