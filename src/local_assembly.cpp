@@ -124,12 +124,7 @@ void get_paths_between_util(const std::string &start_kmer,
 
     for (unsigned int i = 0; i < num_children; ++i) {
         auto kmer = graph.toString(child_nodes[i]);
-        get_paths_between_util(kmer,
-                               end_kmer,
-                               path_accumulator,
-                               graph,
-                               tree,
-                               full_paths);
+        get_paths_between_util(kmer, end_kmer, path_accumulator, graph, tree, full_paths, max_path_length);
     }
 }
 
@@ -159,10 +154,10 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
 
     BOOST_LOG_TRIVIAL(debug) << "Running local assembly for " << filepath;
     BOOST_LOG_TRIVIAL(info) << "Parameters for local assembly: \n" << "Start kmer: " << start_kmer << "\nEnd kmer: "
-                             << end_kmer << "\nkmer size: " << std::to_string(kmer_size) << "\nmax path length: "
-                             << std::to_string(max_path_length)
-                             << "\nClean graph: " << std::to_string(clean_graph) << "\nMin. coverage: "
-                             << std::to_string(min_coverage) << "\n";
+                            << end_kmer << "\nkmer size: " << std::to_string(kmer_size) << "\nmax path length: "
+                            << std::to_string(max_path_length)
+                            << "\nClean graph: " << std::to_string(clean_graph) << "\nMin. coverage: "
+                            << std::to_string(min_coverage) << "\n";
 
     Graph graph;  // have to predefine as actually initialisation is inside try block
 
