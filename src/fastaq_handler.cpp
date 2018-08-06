@@ -12,7 +12,7 @@ using namespace std;
 
 FastaqHandler::FastaqHandler(const string &filepath) : gzipped(false), instream(&inbuf), num_reads_parsed(0) {
     // level for boost logging
-    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
+//    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
     cout << now() << "Open fastaq file " << filepath << endl;
     fastaq_file.open(filepath);

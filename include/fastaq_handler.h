@@ -10,7 +10,6 @@
 #include <boost/log/expressions.hpp>
 
 namespace logging = boost::log;
-const auto g_log_level{logging::trivial::debug};
 
 struct FastaqHandler {
     bool gzipped;
