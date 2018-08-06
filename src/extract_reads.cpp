@@ -295,7 +295,11 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
         // get sub_lmp path as string
         const auto sub_lmp_as_string{LocalPRG::string_along_path(sub_lmp)};
         BOOST_LOG_TRIVIAL(debug) << "sub_lmp for interval is " << sub_lmp_as_string;
-        const unsigned long max_length{sub_lmp_as_string.length() + (interval.length * 5)};  // arbitrary at the moment
+        const unsigned long max_path_length{
+                sub_lmp_as_string.length() + (interval.length * 5)};  // arbitrary at the moment
+        BOOST_LOG_TRIVIAL(debug) << "Max path length is calculated as " << std::to_string(sub_lmp_as_string.length())
+                                 << " + (" << std::to_string(interval.length) << " * 5) = "
+                                 << std::to_string(max_path_length) << "\n";
 
         if (g_local_assembly_kmer_size > sub_lmp_as_string.length()) {
             BOOST_LOG_TRIVIAL(warning) << "Local assembly kmer size " << std::to_string(g_local_assembly_kmer_size)
@@ -317,7 +321,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
                                        to_string(interval.get_end())
                                     << "\n";
 
-            local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, max_length);
+            local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, max_path_length);
 
             BOOST_LOG_TRIVIAL(info) << now() << " Finished local assembly for "
                                     << pnode->get_name() + "." + to_string(interval.start) + "-" +

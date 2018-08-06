@@ -33,7 +33,7 @@ DfsTree DFS(const Node &start_node, const Graph &graph);
 
 
 Paths get_paths_between(const std::string &start_kmer, const std::string &end_kmer, DfsTree &tree, const Graph &graph,
-                        const unsigned long max_length);
+                        const unsigned long max_path_length);
 
 void get_paths_between_util(const std::string &node,
                             const std::string &end_kmer,
@@ -41,7 +41,7 @@ void get_paths_between_util(const std::string &node,
                             const Graph &graph,
                             DfsTree &tree,
                             Paths &full_paths,
-                            const unsigned long max_length = g_max_length);
+                            const unsigned long max_path_length = g_max_length);
 
 
 void write_paths_to_fasta(const std::string &filepath,
@@ -50,7 +50,7 @@ void write_paths_to_fasta(const std::string &filepath,
 
 
 void local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer,
-                    const std::string &out_path, const unsigned int kmer_size, const unsigned long max_length,
+                    const std::string &out_path, const unsigned int kmer_size, const unsigned long max_path_length,
                     const bool clean_graph = false, const unsigned int min_coverage = 2);
 
 void do_graph_clean(Graph &graph, const int num_cores=1);

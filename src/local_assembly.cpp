@@ -86,14 +86,14 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
  * then comes back up to the next unexplored branching point.
  */
 Paths get_paths_between(const std::string &start_kmer, const std::string &end_kmer, DfsTree &tree, const Graph &graph,
-                        const unsigned long max_length) {
+                        const unsigned long max_path_length) {
     BOOST_LOG_TRIVIAL(debug) << "Enumerating all paths in DFS between " << start_kmer << " and " << end_kmer;
     std::string initial_acc = start_kmer.substr(0, start_kmer.length() - 1);
 
     Paths result = {};
-    get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree, result, max_length);
+    get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree, result, max_path_length);
     BOOST_LOG_TRIVIAL(debug) << "Path enumeration complete. There were " << std::to_string(result.size())
-                             << "paths found.";
+                             << " paths found.";
     return result;
 }
 
@@ -104,12 +104,12 @@ void get_paths_between_util(const std::string &start_kmer,
                             const Graph &graph,
                             DfsTree &tree,
                             Paths &full_paths,
-                            const unsigned long max_length) {
+                            const unsigned long max_path_length) {
     auto &child_nodes = tree[start_kmer];
     auto num_children = child_nodes.size();
 
-    if (path_accumulator.length() > max_length) {
-        BOOST_LOG_TRIVIAL(debug) << "Path accumulator has reached max. length of " << std::to_string(max_length)
+    if (path_accumulator.length() > max_path_length) {
+        BOOST_LOG_TRIVIAL(debug) << "Path accumulator has reached max. length of " << std::to_string(max_path_length)
                                  << ". Abandoning this path: \n" << path_accumulator;
         return;
     }
@@ -152,12 +152,17 @@ void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned lo
 
 
 void local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer,
-                    const std::string &out_path, const unsigned int kmer_size, const unsigned long max_length,
+                    const std::string &out_path, const unsigned int kmer_size, const unsigned long max_path_length,
                     const bool clean_graph, const unsigned int min_coverage) {
 
     logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
     BOOST_LOG_TRIVIAL(debug) << "Running local assembly for " << filepath;
+    BOOST_LOG_TRIVIAL(debug) << "Parameters for local assembly: \n" << "Start kmer: " << start_kmer << "\nEnd kmer: "
+                             << end_kmer << "\nkmer size: " << std::to_string(kmer_size) << "\nmax path length: "
+                             << std::to_string(max_path_length)
+                             << "\nClean graph: " << std::to_string(clean_graph) << "\nMin. coverage: "
+                             << std::to_string(min_coverage) << "\n";
 
     Graph graph;  // have to predefine as actually initialisation is inside try block
 
@@ -168,12 +173,12 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
         return;
     }
 
-    // make sure the max_length is actually longer than the kmer size
-    if (kmer_size > max_length) {
+    // make sure the max_path_length is actually longer than the kmer size
+    if (kmer_size > max_path_length) {
         BOOST_LOG_TRIVIAL(warning) << "Kmer size "
                                    << std::to_string(kmer_size)
                                    << " is greater than the maximum path length "
-                                   << std::to_string(max_length)
+                                   << std::to_string(max_path_length)
                                    << ". Skipping local assembly for "
                                    << filepath;
     }
@@ -212,7 +217,7 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
     }
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_length);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_path_length);
     write_paths_to_fasta(out_path, result);
 }
 
