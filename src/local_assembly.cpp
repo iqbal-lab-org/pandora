@@ -110,7 +110,8 @@ void get_paths_between_util(const std::string &start_kmer,
 
     if (path_accumulator.length() > max_path_length) {
         BOOST_LOG_TRIVIAL(debug) << "Path accumulator has reached max. length of " << std::to_string(max_path_length)
-                                 << ". Abandoning this path: \n" << path_accumulator;
+                                 << ". Abandoning this path.";
+        BOOST_LOG_TRIVIAL(trace) << path_accumulator;
         return;
     }
 
