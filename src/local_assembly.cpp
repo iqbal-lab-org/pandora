@@ -158,7 +158,7 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
     logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
     BOOST_LOG_TRIVIAL(debug) << "Running local assembly for " << filepath;
-    BOOST_LOG_TRIVIAL(debug) << "Parameters for local assembly: \n" << "Start kmer: " << start_kmer << "\nEnd kmer: "
+    BOOST_LOG_TRIVIAL(info) << "Parameters for local assembly: \n" << "Start kmer: " << start_kmer << "\nEnd kmer: "
                              << end_kmer << "\nkmer size: " << std::to_string(kmer_size) << "\nmax path length: "
                              << std::to_string(max_path_length)
                              << "\nClean graph: " << std::to_string(clean_graph) << "\nMin. coverage: "
