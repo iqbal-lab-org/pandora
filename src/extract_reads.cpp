@@ -51,10 +51,9 @@ identify_regions(const vector<uint32_t> &covgs, const uint32_t &threshold, const
 }
 
 vector<LocalNodePtr>
-find_interval_in_localpath(const Interval &original_interval, const vector<LocalNodePtr> &lmp,
+find_interval_in_localpath(const Interval &interval, const vector<LocalNodePtr> &lmp,
                            const unsigned int &buff) {
 
-    const auto interval{apply_buffer_to_interval(original_interval, buff)};
 
     uint32_t added = 0;
     uint8_t level = 0, start_level = 0, lowest_level = 0;
@@ -98,9 +97,21 @@ find_interval_in_localpath(const Interval &original_interval, const vector<Local
 
             if (start_level == lowest_level) {
                 start = i - 1;
-                //cout << "new start " << +start << "at level " << +start_level << endl;
                 break;
             }
+        }
+    }
+
+    if (buff > 0) {
+        auto start_buffer_added{lmp[start]->pos.length};
+        auto end_buffer_added{lmp[end - 1]->pos.length};
+        while (start > 0 and start_buffer_added < buff) {
+            start -= 1;
+            start_buffer_added += lmp[start]->pos.length;
+        }
+        while (end < lmp.size() and end_buffer_added < buff) {
+            end += 1;
+            end_buffer_added += lmp[end - 1]->pos.length;
         }
     }
 
