@@ -14,6 +14,7 @@
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
+#include <boost/filesystem/path.hpp>
 
 using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
 using Paths = std::vector<std::string>;
@@ -58,5 +59,7 @@ void do_graph_clean(Graph &graph, const int num_cores=1);
 std::string reverse_complement(const std::string forward);
 
 bool file_exists(const std::string& name);
+
+void remove_graph_file(const std::string &filepath="");
 
 #endif //PANDORA_LOCAL_ASSEMBLY_H

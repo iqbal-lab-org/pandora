@@ -190,6 +190,8 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
         return;
     }
 
+    BOOST_LOG_TRIVIAL(info) << graph._storage;
+
     if (clean_graph) {
         BOOST_LOG_TRIVIAL(debug) << "Cleaning graph for " << filepath;
         do_graph_clean(graph);
@@ -208,6 +210,7 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
         if (not found) {
             BOOST_LOG_TRIVIAL(warning) << "Start kmer not found in either orientation. Skipping local assembly for "
                                        << filepath;
+            remove_graph_file(filepath);
             return;
         }
     }
@@ -215,6 +218,23 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
     auto tree = DFS(start_node, graph);
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_path_length);
     write_paths_to_fasta(out_path, result);
+
+    // remove h5 file that GATB has written to file for this graph
+    remove_graph_file(filepath);
+}
+
+
+void remove_graph_file(const std::string &filepath) {
+    std::string h5_path;
+    if (filepath.empty()) {
+        h5_path = "dummy.h5";
+    }
+    else {
+        boost::filesystem::path p{filepath};
+        h5_path = p.stem().string() + ".h5";
+    }
+    BOOST_LOG_TRIVIAL(info) << "Removing graph h5 file: " << h5_path;
+    remove(h5_path.c_str());
 }
 
 
