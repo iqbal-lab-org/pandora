@@ -104,14 +104,14 @@ find_interval_in_localpath(const Interval &interval, const vector<LocalNodePtr> 
 
     if (buff > 0) {
         auto start_buffer_added{lmp[start]->pos.length};
-        auto end_buffer_added{lmp[end - 1]->pos.length};
+        auto end_buffer_added{lmp[end]->pos.length};
         while (start > 0 and start_buffer_added < buff) {
             start -= 1;
             start_buffer_added += lmp[start]->pos.length;
         }
         while (end < lmp.size() and end_buffer_added < buff) {
             end += 1;
-            end_buffer_added += lmp[end - 1]->pos.length;
+            end_buffer_added += lmp[end]->pos.length;
         }
     }
 
