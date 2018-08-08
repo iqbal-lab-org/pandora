@@ -85,6 +85,18 @@ find_interval_in_localpath(const Interval &interval, const vector<LocalNodePtr> 
     }
     //cout << "found start node " << +start << " level " << +start_level << ", and end node " << +end
     //     << ", with lowest level " << +lowest_level << endl;
+    if (buff > 0) {
+        auto start_buffer_added{lmp[start]->pos.length};
+        auto end_buffer_added{lmp[end]->pos.length};
+        while (start > 0 and start_buffer_added < buff) {
+            start -= 1;
+            start_buffer_added += lmp[start]->pos.length;
+        }
+        while (end < lmp.size() and end_buffer_added < buff) {
+            end += 1;
+            end_buffer_added += lmp[end]->pos.length;
+        }
+    }
 
     if (start_level > lowest_level) {
         // Now extend the start of the interval found so starts at lowest_level
@@ -99,19 +111,6 @@ find_interval_in_localpath(const Interval &interval, const vector<LocalNodePtr> 
                 start = i - 1;
                 break;
             }
-        }
-    }
-
-    if (buff > 0) {
-        auto start_buffer_added{lmp[start]->pos.length};
-        auto end_buffer_added{lmp[end]->pos.length};
-        while (start > 0 and start_buffer_added < buff) {
-            start -= 1;
-            start_buffer_added += lmp[start]->pos.length;
-        }
-        while (end < lmp.size() and end_buffer_added < buff) {
-            end += 1;
-            end_buffer_added += lmp[end]->pos.length;
         }
     }
 
