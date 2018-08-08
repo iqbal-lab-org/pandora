@@ -113,6 +113,9 @@ find_interval_in_localpath(const Interval &interval, const vector<LocalNodePtr> 
             }
         }
     }
+    BOOST_LOG_TRIVIAL(debug) << "lmp size = " << std::to_string(lmp.size());
+    BOOST_LOG_TRIVIAL(debug) << "Interval start = " << std::to_string(start);
+    BOOST_LOG_TRIVIAL(debug) << "Interval end = " << std::to_string(end);
 
     vector<LocalNodePtr> sub_localpath(lmp.begin() + start, lmp.begin() + end + 1);
     return sub_localpath;
