@@ -305,8 +305,11 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
         // get sub_lmp path as string
         const auto sub_lmp_as_string{LocalPRG::string_along_path(sub_lmp)};
         BOOST_LOG_TRIVIAL(debug) << "sub_lmp for interval is " << sub_lmp_as_string;
+
         const unsigned long max_path_length{
                 sub_lmp_as_string.length() + (interval.length * 5)};  // arbitrary at the moment
+
+
         BOOST_LOG_TRIVIAL(debug) << "Max path length is calculated as " << std::to_string(sub_lmp_as_string.length())
                                  << " + (" << std::to_string(interval.length) << " * 5) = "
                                  << std::to_string(max_path_length) << "\n";
@@ -325,18 +328,25 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
             const auto out_path = filepath.substr(0, filepath.rfind('.')) +
                                   "_local_assembly_K" +
                                   std::to_string(g_local_assembly_kmer_size) + ".fa";
-            // run local assembly
-            BOOST_LOG_TRIVIAL(info) << now() << " Running local assembly for "
-                                    << pnode->get_name() + "." + to_string(interval.start) + "-" +
-                                       to_string(interval.get_end())
-                                    << "\n";
 
-            local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, max_path_length);
+            const auto len_threshold{150};
+            if (max_path_length < len_threshold) {
+                // run local assembly
+                BOOST_LOG_TRIVIAL(info) << now() << " Running local assembly for "
+                                        << pnode->get_name() + "." + to_string(interval.start) + "-" +
+                                           to_string(interval.get_end())
+                                        << "\n";
 
-            BOOST_LOG_TRIVIAL(info) << now() << " Finished local assembly for "
-                                    << pnode->get_name() + "." + to_string(interval.start) + "-" +
-                                       to_string(interval.get_end())
-                                    << "\n";
+                local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, max_path_length);
+
+                BOOST_LOG_TRIVIAL(info) << now() << " Finished local assembly for "
+                                        << pnode->get_name() + "." + to_string(interval.start) + "-" +
+                                           to_string(interval.get_end())
+                                        << "\n";
+            } else {
+                BOOST_LOG_TRIVIAL(debug) << "Max path length " << std::to_string(max_path_length) << " is greater than "
+                                         << std::to_string(len_threshold) << ". Skipping local assembly.";
+            }
         }
         read_overlap_coordinates.clear();
         fa.clear();
