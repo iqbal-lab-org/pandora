@@ -27,7 +27,7 @@ void save_read_strings_to_denovo_assemble(const std::string&,
                                           const PanNodePtr,
                                           const std::vector<LocalNodePtr>&,
                                           const std::vector<KmerNodePtr>&,
-                                          const unsigned int &buff=g_local_assembly_kmer_size,
+                                          const unsigned int &buff=0,
                                           const uint32_t& threshold = 2,
                                           const uint32_t& min_length = 5
                                           );

@@ -115,7 +115,7 @@ find_interval_in_localpath(const Interval &interval, const vector<LocalNodePtr> 
     }
     BOOST_LOG_TRIVIAL(debug) << "lmp size = " << std::to_string(lmp.size());
     BOOST_LOG_TRIVIAL(debug) << "Interval start = " << std::to_string(start);
-    BOOST_LOG_TRIVIAL(debug) << "Interval end = " << std::to_string(end);
+    BOOST_LOG_TRIVIAL(debug) << "Interval end    = " << std::to_string(end);
 
     vector<LocalNodePtr> sub_localpath(lmp.begin() + start, lmp.begin() + end + 1);
     return sub_localpath;
@@ -310,7 +310,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
         BOOST_LOG_TRIVIAL(debug) << "sub_lmp for interval is " << sub_lmp_as_string;
 
         const unsigned long max_path_length{
-                sub_lmp_as_string.length() + (interval.length * 5)};  // arbitrary at the moment
+                sub_lmp_as_string.length() + (interval.length * 2)};  // arbitrary at the moment
 
 
         BOOST_LOG_TRIVIAL(debug) << "Max path length is calculated as " << std::to_string(sub_lmp_as_string.length())
