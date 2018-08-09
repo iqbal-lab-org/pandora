@@ -72,7 +72,7 @@ find_interval_in_localpath(const Interval &interval, const vector<LocalNodePtr> 
             found_end = true;
         }
         end = i;
-        if (found_end and level == lowest_level) {
+        if (found_end){// and level == lowest_level) {
             break;
         }
         added += lmp[i]->pos.length;
@@ -98,7 +98,7 @@ find_interval_in_localpath(const Interval &interval, const vector<LocalNodePtr> 
         }
     }
 
-    if (start_level > lowest_level) {
+    /*if (start_level > lowest_level) {
         // Now extend the start of the interval found so starts at lowest_level
         for (uint_least16_t i = start; i > 0; --i) {
             if (lmp[i - 1]->outNodes.size() > 1) {
@@ -112,7 +112,7 @@ find_interval_in_localpath(const Interval &interval, const vector<LocalNodePtr> 
                 break;
             }
         }
-    }
+    }*/
     BOOST_LOG_TRIVIAL(debug) << "lmp size = " << std::to_string(lmp.size());
     BOOST_LOG_TRIVIAL(debug) << "Interval start = " << std::to_string(start);
     BOOST_LOG_TRIVIAL(debug) << "Interval end    = " << std::to_string(end);

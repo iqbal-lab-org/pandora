@@ -165,7 +165,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_short) {
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
 }
 
-TEST(ExtractReadsTest, find_interval_in_localpath_uneven) {
+/*TEST(ExtractReadsTest, find_interval_in_localpath_uneven) {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
@@ -179,9 +179,9 @@ TEST(ExtractReadsTest, find_interval_in_localpath_uneven) {
 
     exp_path = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4]};
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
-}
+}*/
 
-TEST(ExtractReadsTest, find_interval_in_localpath_multiple_sites) {
+/*TEST(ExtractReadsTest, find_interval_in_localpath_multiple_sites) {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
@@ -191,7 +191,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_multiple_sites) {
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                      l3.prg.nodes[6], l3.prg.nodes[7]};
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
-}
+}*/
 
 TEST(ExtractReadsTest,hits_along_path) {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
