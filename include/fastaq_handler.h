@@ -5,6 +5,11 @@
 #include <cstdint>
 #include <fstream>
 #include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+
+namespace logging = boost::log;
 
 struct FastaqHandler {
     bool gzipped;
