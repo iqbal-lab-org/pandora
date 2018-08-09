@@ -190,7 +190,6 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
         return;
     }
 
-    BOOST_LOG_TRIVIAL(info) << graph._storage;
 
     if (clean_graph) {
         BOOST_LOG_TRIVIAL(debug) << "Cleaning graph for " << filepath;
@@ -201,7 +200,7 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
     if (not found) {
-        BOOST_LOG_TRIVIAL(debug) << "Start node " << graph.toString(start_node)
+        BOOST_LOG_TRIVIAL(debug) << "Start node " << start_kmer
                                  << " not found in 'forward' orientation. Trying 'reverse'...";
         auto tmp_copy = start_kmer;
         start_kmer = reverse_complement(end_kmer);
