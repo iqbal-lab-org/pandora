@@ -547,6 +547,120 @@ TEST(VCFTest, regenotype) {
 
 }
 
+TEST(VCFTest, regenotype_with_all_sites) {
+    // not a snp site
+    // missing count data
+    // not confident
+    // confident and have right gt
+    // confident and have wrong gt
+    // one sample needs regenotyping and the other doesn't
+    VCF vcf;
+
+    vcf.add_record("chrom2", 79, "CC", "GC");
+
+    vcf.add_sample_gt("sample","chrom1", 2, "T", "TA");
+    vcf.add_sample_gt("sample","chrom1", 5, "AC", "GC");
+    vcf.add_sample_gt("sample","chrom1", 79, "CC", "AC");
+    vcf.add_sample_gt("sample","chrom2", 20, "AC", "GC");
+    vcf.add_sample_gt("sample","chrom2", 79, "CC", "CC");
+    vcf.add_sample_gt("sample","chrom2", 80, "AC", "CC");
+
+    vcf.add_sample_gt("asample","chrom1", 2, "T", "TA");
+    vcf.add_sample_gt("asample","chrom1", 5, "AC", "AC");
+    vcf.add_sample_gt("asample","chrom1", 79, "CC", "AC");
+    vcf.add_sample_gt("asample","chrom2", 20, "AC", "GC");
+    vcf.add_sample_gt("asample","chrom2", 79, "CC", "CC");
+    vcf.add_sample_gt("asample","chrom2", 80, "AC", "AC");
+
+    vcf.sort_records();
+
+    // record 0, not a snp site
+    vcf.records[0].samples[0]["REF_MEAN_FWD_COVG"] = 0;
+    vcf.records[0].samples[0]["REF_MEAN_REV_COVG"] = 1;
+    vcf.records[0].samples[0]["ALT_MEAN_FWD_COVG"] = 10;
+    vcf.records[0].samples[0]["ALT_MEAN_REV_COVG"] = 20;
+    vcf.records[0].samples[1]["REF_MEAN_FWD_COVG"] = 1;
+    vcf.records[0].samples[1]["REF_MEAN_REV_COVG"] = 2;
+    vcf.records[0].samples[1]["ALT_MEAN_FWD_COVG"] = 15;
+    vcf.records[0].samples[1]["ALT_MEAN_REV_COVG"] = 24;
+
+    // record 1, different genotypes but both correct
+    vcf.records[1].samples[0]["REF_MEAN_FWD_COVG"] = 0;
+    vcf.records[1].samples[0]["REF_MEAN_REV_COVG"] = 1;
+    vcf.records[1].samples[0]["ALT_MEAN_FWD_COVG"] = 10;
+    vcf.records[1].samples[0]["ALT_MEAN_REV_COVG"] = 20;
+    vcf.records[1].samples[1]["REF_MEAN_FWD_COVG"] = 10;
+    vcf.records[1].samples[1]["REF_MEAN_REV_COVG"] = 21;
+    vcf.records[1].samples[1]["ALT_MEAN_FWD_COVG"] = 1;
+    vcf.records[1].samples[1]["ALT_MEAN_REV_COVG"] = 2;
+
+    // record 2, same genotypes first correct
+    vcf.records[2].samples[0]["REF_MEAN_FWD_COVG"] = 0;
+    vcf.records[2].samples[0]["REF_MEAN_REV_COVG"] = 1;
+    vcf.records[2].samples[0]["ALT_MEAN_FWD_COVG"] = 10;
+    vcf.records[2].samples[0]["ALT_MEAN_REV_COVG"] = 20;
+    vcf.records[2].samples[1]["REF_MEAN_FWD_COVG"] = 10;
+    vcf.records[2].samples[1]["REF_MEAN_REV_COVG"] = 21;
+    vcf.records[2].samples[1]["ALT_MEAN_FWD_COVG"] = 1;
+    vcf.records[2].samples[1]["ALT_MEAN_REV_COVG"] = 2;
+
+    // record 3, same genotypes both wrong
+    vcf.records[3].samples[0]["REF_MEAN_FWD_COVG"] = 20;
+    vcf.records[3].samples[0]["REF_MEAN_REV_COVG"] = 21;
+    vcf.records[3].samples[0]["ALT_MEAN_FWD_COVG"] = 1;
+    vcf.records[3].samples[0]["ALT_MEAN_REV_COVG"] = 2;
+    vcf.records[3].samples[1]["REF_MEAN_FWD_COVG"] = 10;
+    vcf.records[3].samples[1]["REF_MEAN_REV_COVG"] = 21;
+    vcf.records[3].samples[1]["ALT_MEAN_FWD_COVG"] = 1;
+    vcf.records[3].samples[1]["ALT_MEAN_REV_COVG"] = 2;
+
+    // record 4, missing count data for first sample
+    vcf.records[4].samples[0]["REF_MEAN_FWD_COVG"] = 0;
+    vcf.records[4].samples[0]["ALT_MEAN_FWD_COVG"] = 10;
+    vcf.records[4].samples[0]["ALT_MEAN_REV_COVG"] = 20;
+    vcf.records[4].samples[1]["REF_MEAN_FWD_COVG"] = 10;
+    vcf.records[4].samples[1]["REF_MEAN_REV_COVG"] = 21;
+    vcf.records[4].samples[1]["ALT_MEAN_FWD_COVG"] = 1;
+    vcf.records[4].samples[1]["ALT_MEAN_REV_COVG"] = 2;
+
+    // record 5, not confident for second sample
+    vcf.records[5].samples[0]["REF_MEAN_FWD_COVG"] = 0;
+    vcf.records[5].samples[0]["REF_MEAN_REV_COVG"] = 1;
+    vcf.records[5].samples[0]["ALT_MEAN_FWD_COVG"] = 10;
+    vcf.records[5].samples[0]["ALT_MEAN_REV_COVG"] = 20;
+    vcf.records[5].samples[1]["REF_MEAN_FWD_COVG"] = 2;
+    vcf.records[5].samples[1]["REF_MEAN_REV_COVG"] = 4;
+    vcf.records[5].samples[1]["ALT_MEAN_FWD_COVG"] = 1;
+    vcf.records[5].samples[1]["ALT_MEAN_REV_COVG"] = 2;
+
+    cout << vcf << endl;
+
+    bool snps_only = false;
+    vcf.regenotype(30,0.01,30,snps_only);
+
+    cout << vcf << endl;
+
+    EXPECT_EQ((uint8_t)1,vcf.records[0].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t)1,vcf.records[0].samples[1]["GT"]);
+    bool found_confidence = vcf.records[0].samples[0].find("CONFIDENCE") != vcf.records[0].samples[0].end();
+    EXPECT_FALSE(found_confidence);
+    found_confidence = vcf.records[0].samples[1].find("CONFIDENCE") != vcf.records[0].samples[1].end();
+    EXPECT_FALSE(found_confidence);
+    EXPECT_EQ((uint8_t)1,vcf.records[1].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t)0,vcf.records[1].samples[1]["GT"]);
+    EXPECT_EQ((uint8_t)1,vcf.records[2].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t)0,vcf.records[2].samples[1]["GT"]);
+    EXPECT_EQ((uint8_t)0,vcf.records[3].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t)0,vcf.records[3].samples[1]["GT"]);
+    EXPECT_EQ((uint8_t)0,vcf.records[4].samples[1]["GT"]);
+    EXPECT_EQ((uint8_t)1,vcf.records[5].samples[0]["GT"]);
+    bool found_gt = vcf.records[4].samples[0].find("GT") != vcf.records[4].samples[0].end();
+    EXPECT_FALSE(found_gt);
+    found_gt = vcf.records[5].samples[1].find("GT") != vcf.records[5].samples[1].end();
+    EXPECT_FALSE(found_gt);
+
+}
+
 
 TEST(VCFTest, equals) {
     VCF vcf;

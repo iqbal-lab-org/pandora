@@ -42,7 +42,7 @@ public:
 
     bool pos_in_range(const uint32_t , const uint32_t, const std::string&) const;
 
-    void regenotype(const uint32_t&, const float&, const uint8_t);
+    void regenotype(const uint32_t&, const float&, const uint8_t, bool snps_only=true);
 
     std::string header();
 

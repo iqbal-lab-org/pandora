@@ -291,11 +291,11 @@ int pandora_map(int argc, char *argv[]) {
         ++c;
     }
     consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
-    master_vcf.save(outdir + "/pandora.consensus.vcf" , true, true, true, true, true, true, true);
+    master_vcf.save(outdir + "/pandora_consensus.vcf" , true, true, true, true, true, true, true);
 
     if(regenotype) {
         master_vcf.regenotype(covg,0.01,30);
-        master_vcf.save(outdir + "/pandora.snps.vcf" , true, true, true, true, false, false, false);
+        master_vcf.save(outdir + "/pandora_regenotyped.vcf" , true, true, true, true, false, false, false);
     }
 
     if (output_mapped_read_fa)

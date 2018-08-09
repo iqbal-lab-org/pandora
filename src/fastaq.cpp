@@ -73,6 +73,11 @@ void Fastaq::clear() {
 }
 
 void Fastaq::save(const std::string & filepath) {
+    if(filepath.length() > 2 and filepath.substr( filepath.length() - 2 ) == "gz" and gzipped == false){
+        gzipped = true;
+    } else if (filepath.length() > 2 and filepath.substr( filepath.length() - 2 ) != "gz" and gzipped == true){
+        gzipped = false;
+    }
     ofstream file(filepath, ios_base::out | ios_base::binary | ios_base::trunc);
     boost::iostreams::filtering_streambuf<boost::iostreams::output> out;
     if (gzipped)
