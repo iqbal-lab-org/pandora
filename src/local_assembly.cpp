@@ -223,6 +223,112 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
 }
 
 
+void local_assembly(const std::string &filepath, std::unordered_set<std::string> &start_kmers,
+                    std::unordered_set<std::string> &end_kmers,
+                    const std::string &out_path, const unsigned int kmer_size, const unsigned long max_path_length,
+                    const bool clean_graph, const unsigned int min_coverage) {
+    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
+
+    BOOST_LOG_TRIVIAL(debug) << "Running local assembly for " << filepath;
+    BOOST_LOG_TRIVIAL(info) << "Parameters for local assembly: ";
+    BOOST_LOG_TRIVIAL(info) << "Start kmers: ";
+    for (auto kmer: start_kmers) {
+        BOOST_LOG_TRIVIAL(info) << kmer;
+    }
+    BOOST_LOG_TRIVIAL(info) << "End kmers: ";
+    for (auto kmer: end_kmers) {
+        BOOST_LOG_TRIVIAL(info) << kmer;
+    }
+    BOOST_LOG_TRIVIAL(info) << "kmer size: " << std::to_string(kmer_size) << "\nmax path length: "
+                            << std::to_string(max_path_length)
+                            << "\nClean graph: " << std::to_string(clean_graph) << "\nMin. coverage: "
+                            << std::to_string(min_coverage) << "\n";
+
+    Graph graph;  // have to predefine as actually initialisation is inside try block
+
+    // check if filepath exists
+    const bool exists{file_exists(filepath)};
+    if (not exists) {
+        BOOST_LOG_TRIVIAL(warning) << filepath << " does not exist. Skipping local assembly.";
+        return;
+    }
+
+    // make sure the max_path_length is actually longer than the kmer size
+    if (kmer_size > max_path_length) {
+        BOOST_LOG_TRIVIAL(warning) << "Kmer size "
+                                   << std::to_string(kmer_size)
+                                   << " is greater than the maximum path length "
+                                   << std::to_string(max_path_length)
+                                   << ". Skipping local assembly for "
+                                   << filepath;
+    }
+
+    try {
+        graph = Graph::create(Bank::open(filepath),
+                              "-kmer-size %d -abundance-min %d -verbose 0", kmer_size, min_coverage
+        );
+    }
+    catch (gatb::core::system::Exception &error) {
+        BOOST_LOG_TRIVIAL(warning) << "Couldn't create GATB graph for " << filepath << "\n\tEXCEPTION: "
+                                   << error.getMessage();
+        return;
+    }
+
+
+    if (clean_graph) {
+        BOOST_LOG_TRIVIAL(debug) << "Cleaning graph for " << filepath;
+        do_graph_clean(graph);
+    }
+
+    Node start_node;
+    Node end_node;
+    bool start_found{false};
+    bool end_found{false};
+    for (const auto &s_kmer: start_kmers) {
+        std::tie(start_node, start_found) = get_node(s_kmer, graph);
+
+        for (const auto &e_kmer: end_kmers) {
+            if (start_found) {
+                std::tie(end_node, end_found) = get_node(e_kmer, graph);
+                if (end_found) {
+                    BOOST_LOG_TRIVIAL(info) << "Using start k-mer " << graph.toString(start_node) << " and end k-mer "
+                                            << graph.toString(end_node);
+                    goto dfs;
+                } else {  // didnt find end kmer
+                    continue;
+                }
+            } else {  // didnt find start kmer
+                const auto revcomp_start{reverse_complement(e_kmer)};
+                const auto revcomp_end{reverse_complement(s_kmer)};
+                std::tie(start_node, start_found) = get_node(revcomp_start, graph);
+                std::tie(end_node, end_found) = get_node(revcomp_end, graph);
+                if (not start_found and not end_found) {
+                    break;  // move to next start kmer
+                } else {
+                    BOOST_LOG_TRIVIAL(info) << "Using start k-mer " << graph.toString(start_node) << " and end k-mer "
+                                            << graph.toString(end_node);
+                    goto dfs;
+                }
+            }
+
+        }
+    }
+    BOOST_LOG_TRIVIAL(warning) << "Could not find any combination of start and end k-mers. Skipping local assembly.";
+    return;
+
+    dfs:
+    const auto start_kmer{graph.toString(start_node)};
+    const auto end_kmer{graph.toString(end_node)};
+
+    auto tree = DFS(start_node, graph);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_path_length);
+    write_paths_to_fasta(out_path, result);
+
+    // remove h5 file that GATB has written to file for this graph
+    remove_graph_file(filepath);
+}
+
+
 void remove_graph_file(const std::string &filepath) {
     std::string h5_path;
     if (filepath.empty()) {
@@ -268,15 +374,15 @@ bool file_exists(const std::string &name) {
 }
 
 
-std::unordered_set<std::string> generate_start_kmers(const std::string &sequence, const unsigned int k, unsigned int n) {
+std::unordered_set<std::string>
+generate_start_kmers(const std::string &sequence, const unsigned int k, unsigned int n) {
     const auto L{sequence.length()};
     if (k > L) {
         BOOST_LOG_TRIVIAL(error) << "Cannot generate kmers when K " << std::to_string(k)
                                  << " is greater than the length of the sequence " << std::to_string(L);
         std::unordered_set<std::string> empty;
         return empty;
-    }
-    else if (k + (n - 1) > L) {  // more combinations are requested than is possible
+    } else if (k + (n - 1) > L) {  // more combinations are requested than is possible
         n = L - k + 1;  // make n the largest value it can take on
     }
 
@@ -296,8 +402,7 @@ std::unordered_set<std::string> generate_end_kmers(const std::string &sequence, 
                                  << " is greater than the length of the sequence " << std::to_string(L);
         std::unordered_set<std::string> empty;
         return empty;
-    }
-    else if (k + (n - 1) > L) {  // more combinations are requested than is possible
+    } else if (k + (n - 1) > L) {  // more combinations are requested than is possible
         n = L - k + 1;  // make n the largest value it can take on
     }
     std::unordered_set<std::string> kmers;
