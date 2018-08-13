@@ -5,6 +5,7 @@
 #include <fstream>
 #include <stack>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <gatb/gatb_core.hpp>
 #include <gatb/debruijn/impl/Simplifications.hpp>
@@ -21,7 +22,7 @@ using Paths = std::vector<std::string>;
 namespace logging = boost::log;
 
 const long g_max_length {30};
-const int g_local_assembly_kmer_size {11};
+const int g_local_assembly_kmer_size {9};
 const auto g_log_level{logging::trivial::debug};
 
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph);
@@ -61,5 +62,9 @@ std::string reverse_complement(const std::string forward);
 bool file_exists(const std::string& name);
 
 void remove_graph_file(const std::string &filepath="");
+
+std::unordered_set<std::string> generate_start_kmers(const std::string &sequence, const unsigned int k, unsigned int n);
+
+std::unordered_set<std::string> generate_end_kmers(const std::string &sequence, const unsigned int k, unsigned int n);
 
 #endif //PANDORA_LOCAL_ASSEMBLY_H

@@ -563,6 +563,150 @@ TEST(GraphCleaning, simpleTip_remove) {
 }
 
 
+TEST(GenerateStartKmers, GenerateOneKmer_ReturnFirstKCharacters) {
+    const std::string sequence{"ACGTGCGATGCAT"};
+    const auto k{4};
+    const auto n{1};
+
+    const auto result{generate_start_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateStartKmers, GenerateTwoKmers_ReturnFirstTwoKmers) {
+    const std::string sequence{"ACGTGCGATGCAT"};
+    const auto k{4};
+    const auto n{2};
+
+    const auto result{generate_start_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT", "CGTG"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateStartKmers, GenerateMaxPossibleNumKmers_ReturnWholeSeqAsKmers) {
+    const std::string sequence{"ACGTGCGA"};
+    const auto k{4};
+    const auto n{5};
+
+    const auto result{generate_start_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateStartKmers, GenerateTooManyKmers_ReturnWholeSeqAsKmers) {
+    const std::string sequence{"ACGTGCGA"};
+    const auto k{4};
+    const auto n{20};
+
+    const auto result{generate_start_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateStartKmers, SequenceHasRepeatKmers_ReturnOnlyUniqueKmers) {
+    const std::string sequence{"ACGTACGT"};
+    const auto k{4};
+    const auto n{20};
+
+    const auto result{generate_start_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT", "CGTA", "GTAC", "TACG"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateStartKmers, GenerateNoKmers_ReturnEmptySet) {
+    const std::string sequence{"ACGTACGT"};
+    const auto k{4};
+    const auto n{0};
+
+    const auto result{generate_start_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected;
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateEndKmers, GenerateOneKmer_ReturnLastKCharacters) {
+    const std::string sequence{"ACGTGCGATGCAT"};
+    const auto k{4};
+    const auto n{1};
+
+    const auto result{generate_end_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"GCAT"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateEndKmers, GenerateTwoKmers_ReturnLastTwoKmers) {
+    const std::string sequence{"ACGTGCGATGCAT"};
+    const auto k{4};
+    const auto n{2};
+
+    const auto result{generate_end_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"GCAT", "TGCA"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateEndKmers, GenerateMaxPossibleNumKmers_ReturnWholeSeqAsKmers) {
+    const std::string sequence{"ACGTGCGA"};
+    const auto k{4};
+    const auto n{5};
+
+    const auto result{generate_end_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateEndKmers, GenerateTooManyKmers_ReturnWholeSeqAsKmers) {
+    const std::string sequence{"ACGTGCGA"};
+    const auto k{4};
+    const auto n{20};
+
+    const auto result{generate_end_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateEndKmers, SequenceHasRepeatKmers_ReturnOnlyUniqueKmers) {
+    const std::string sequence{"ACGTACGT"};
+    const auto k{4};
+    const auto n{20};
+
+    const auto result{generate_end_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT", "CGTA", "GTAC", "TACG"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateEndKmers, GenerateNoKmers_ReturnEmptySet) {
+    const std::string sequence{"ACGTACGT"};
+    const auto k{4};
+    const auto n{0};
+
+    const auto result{generate_end_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected;
+
+    EXPECT_EQ(result, expected);
+}
+
+
 TEST(LocalAssemblyTest, passFakeFastqPath_dontRaiseError) {
     const std::string filepath {"FAKE.fakeq"};
     std::string start_kmer {"ATGATGATG"};

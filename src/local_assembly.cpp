@@ -227,8 +227,7 @@ void remove_graph_file(const std::string &filepath) {
     std::string h5_path;
     if (filepath.empty()) {
         h5_path = "dummy.h5";
-    }
-    else {
+    } else {
         boost::filesystem::path p{filepath};
         h5_path = p.stem().string() + ".h5";
     }
@@ -266,4 +265,46 @@ std::string reverse_complement(const std::string forward) {
 bool file_exists(const std::string &name) {
     struct stat buffer;
     return (stat(name.c_str(), &buffer) == 0);
+}
+
+
+std::unordered_set<std::string> generate_start_kmers(const std::string &sequence, const unsigned int k, unsigned int n) {
+    const auto L{sequence.length()};
+    if (k > L) {
+        BOOST_LOG_TRIVIAL(error) << "Cannot generate kmers when K " << std::to_string(k)
+                                 << " is greater than the length of the sequence " << std::to_string(L);
+        std::unordered_set<std::string> empty;
+        return empty;
+    }
+    else if (k + (n - 1) > L) {  // more combinations are requested than is possible
+        n = L - k + 1;  // make n the largest value it can take on
+    }
+
+    std::unordered_set<std::string> kmers;
+
+    for (unsigned int i = 0; i < n; i++) {
+        const auto kmer{sequence.substr(i, k)};
+        kmers.insert(kmer);
+    }
+    return kmers;
+}
+
+std::unordered_set<std::string> generate_end_kmers(const std::string &sequence, const unsigned int k, unsigned int n) {
+    const auto L{sequence.length()};
+    if (k > L) {
+        BOOST_LOG_TRIVIAL(error) << "Cannot generate kmers when K " << std::to_string(k)
+                                 << " is greater than the length of the sequence " << std::to_string(L);
+        std::unordered_set<std::string> empty;
+        return empty;
+    }
+    else if (k + (n - 1) > L) {  // more combinations are requested than is possible
+        n = L - k + 1;  // make n the largest value it can take on
+    }
+    std::unordered_set<std::string> kmers;
+
+    for (unsigned int i = 0; i < n; i++) {
+        const auto kmer{sequence.substr(L - k - i, k)};
+        kmers.insert(kmer);
+    }
+    return kmers;
 }

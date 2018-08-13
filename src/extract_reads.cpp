@@ -72,7 +72,7 @@ find_interval_in_localpath(const Interval &interval, const vector<LocalNodePtr> 
             found_end = true;
         }
         end = i;
-        if (found_end){// and level == lowest_level) {
+        if (found_end) {// and level == lowest_level) {
             break;
         }
         added += lmp[i]->pos.length;
@@ -317,8 +317,11 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
                                  << " + (" << std::to_string(interval.length) << " * 5) = "
                                  << std::to_string(max_path_length) << "\n";
 
-        if (g_local_assembly_kmer_size > sub_lmp_as_string.length()) {
+        const unsigned int num_kmers_to_try{5};
+
+        if (g_local_assembly_kmer_size + num_kmers_to_try > sub_lmp_as_string.length()) {
             BOOST_LOG_TRIVIAL(warning) << "Local assembly kmer size " << std::to_string(g_local_assembly_kmer_size)
+                                       << " plus number of k-mers to try " << std::to_string(num_kmers_to_try)
                                        << " is greater than the length of the interval string "
                                        << std::to_string(sub_lmp_as_string.length())
                                        << ". Skipping local assembly for "
