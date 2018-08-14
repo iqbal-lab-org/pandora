@@ -288,6 +288,11 @@ void local_assembly(const std::string &filepath, std::unordered_set<std::string>
         std::tie(start_node, start_found) = get_node(s_kmer, graph);
 
         for (const auto &e_kmer: end_kmers) {
+            // make sure end kmer doesnt exist in the set of start kmers
+            if (start_kmers.find(e_kmer) != start_kmers.end()) {
+                continue;
+            }
+
             if (start_found) {
                 std::tie(end_node, end_found) = get_node(e_kmer, graph);
                 if (end_found) {

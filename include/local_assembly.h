@@ -22,7 +22,7 @@ using Paths = std::vector<std::string>;
 namespace logging = boost::log;
 
 const long g_max_length{30};
-const int g_local_assembly_kmer_size{9};
+const int g_local_assembly_kmer_size{11};
 const auto g_log_level{logging::trivial::debug};
 
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph);
