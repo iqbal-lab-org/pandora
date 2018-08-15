@@ -307,12 +307,14 @@ void local_assembly(const std::string &filepath, std::unordered_set<std::string>
                 const auto revcomp_end{reverse_complement(s_kmer)};
                 std::tie(start_node, start_found) = get_node(revcomp_start, graph);
                 std::tie(end_node, end_found) = get_node(revcomp_end, graph);
-                if (not start_found and not end_found) {
-                    break;  // move to next start kmer
-                } else {
+                if (start_found and end_found) {
+                    BOOST_LOG_TRIVIAL(info) << "Found start and end k-mers on reverse inspection.";
                     BOOST_LOG_TRIVIAL(info) << "Using start k-mer " << graph.toString(start_node) << " and end k-mer "
                                             << graph.toString(end_node);
                     goto dfs;
+
+                } else {
+                    break;  // move to next start kmer
                 }
             }
 
