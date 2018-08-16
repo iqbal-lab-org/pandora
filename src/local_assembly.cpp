@@ -53,7 +53,7 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
     BOOST_LOG_TRIVIAL(debug) << "Starting DFS...";
     std::stack<Node> nodes_to_explore({start_node});
 
-    std::set<std::string> explored_nodes;
+    std::unordered_set<std::string> explored_nodes;
     DfsTree tree = {};
 
     while (not nodes_to_explore.empty()) {
