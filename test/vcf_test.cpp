@@ -434,7 +434,7 @@ TEST(VCFTest, pos_in_range) {
 
 }
 
-TEST(VCFTest, regenotype) {
+TEST(VCFTest, genotype) {
     // not a snp site
     // missing count data
     // not confident
@@ -522,7 +522,7 @@ TEST(VCFTest, regenotype) {
 
     cout << vcf << endl;
 
-    vcf.regenotype(30,0.01,30);
+    vcf.genotype(30,0.01,30);
 
     cout << vcf << endl;
 
@@ -547,7 +547,7 @@ TEST(VCFTest, regenotype) {
 
 }
 
-TEST(VCFTest, regenotype_with_all_sites) {
+TEST(VCFTest, genotype_with_all_sites) {
     // not a snp site
     // missing count data
     // not confident
@@ -636,7 +636,7 @@ TEST(VCFTest, regenotype_with_all_sites) {
     cout << vcf << endl;
 
     bool snps_only = false;
-    vcf.regenotype(30,0.01,30,snps_only);
+    vcf.genotype(30,0.01,30,snps_only);
 
     cout << vcf << endl;
 

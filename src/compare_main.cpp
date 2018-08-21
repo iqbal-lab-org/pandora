@@ -53,7 +53,7 @@ static void show_compare_usage() {
               << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
               << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative binomial\n"
               << "\t--max_covg\t\t\tMaximum average coverage from reads to accept\n"
-              << "\t--regenotype\t\t\tAdd extra step to carefully genotype sites\n"
+              << "\t--genotype\t\t\tAdd extra step to carefully genotype sites\n"
               << std::endl;
 }
 
@@ -92,7 +92,7 @@ int pandora_compare(int argc, char *argv[]) {
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300; // default parameters
     int max_diff = 250;
     float e_rate = 0.11;
-    bool illumina = false, clean = false, bin = false, regenotype = false;
+    bool illumina = false, clean = false, bin = false, genotype = false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -180,8 +180,8 @@ int pandora_compare(int argc, char *argv[]) {
                 std::cerr << "--max_covg option requires one argument." << std::endl;
                 return 1;
             }
-        } else if ((arg == "--regenotype")) {
-            regenotype = true;
+        } else if ((arg == "--genotype")) {
+            genotype = true;
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -307,9 +307,9 @@ int pandora_compare(int argc, char *argv[]) {
 
         c.second->output_samples(prgs[c.first], node_outdir, w, vcf_ref);
     }
-    if(regenotype) {
-        master_vcf.regenotype(covg,0.01,30,false);
-        master_vcf.save(outdir + "/pandora_regenotyped.vcf" , true, true, true, true, false, false, false);
+    if(genotype) {
+        master_vcf.genotype(covg,0.01,30,false);
+        master_vcf.save(outdir + "/pandora_genotyped.vcf" , true, true, true, true, false, false, false);
     }
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample

@@ -105,7 +105,7 @@ void VCFRecord::confidence(){
     add_formats({"GT_CONF"});
 }
 
-void VCFRecord::regenotype(const uint8_t confidence_threshold){
+void VCFRecord::genotype(const uint8_t confidence_threshold){
     for (uint_least16_t i=0; i<samples.size(); ++i) {
         if (regt_samples[i].find("GT_CONF") != regt_samples[i].end()){
             if (regt_samples[i]["GT_CONF"] > confidence_threshold){

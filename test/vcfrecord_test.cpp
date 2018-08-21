@@ -261,7 +261,7 @@ TEST(VCFRecordConfidenceTest, handles_alt_covg_0) {
     EXPECT_FLOAT_EQ(exp_confidence,vr.regt_samples[0]["GT_CONF"]);
 }
 
-TEST(VCFRecordRegenotypeTest, correctly_regenotypes) {
+TEST(VCFRecordRegenotypeTest, correctly_genotypes) {
     // sample 0 missing confidence
     // sample 1 confidence below threshold
     // sample 2 confidence above threshold, but has correct GT 0 already
@@ -330,7 +330,7 @@ TEST(VCFRecordRegenotypeTest, correctly_regenotypes) {
     vr.samples[5]["GT"] = 0;
     vr.regt_samples[5]["GT_CONF"] = 2;
 
-    vr.regenotype(1);
+    vr.genotype(1);
     EXPECT_EQ(vr.samples[0]["REF_MEAN_FWD_COVG"],0);
     EXPECT_EQ(vr.samples[0]["REF_MEAN_REV_COVG"],1);
     EXPECT_EQ(vr.samples[0]["ALT_MEAN_FWD_COVG"],2);
