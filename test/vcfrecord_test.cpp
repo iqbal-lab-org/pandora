@@ -175,7 +175,7 @@ TEST(VCFRecordLikelihoodTest, handles_ref_covg_0) {
     vr.samples[0]["ALT_MEAN_FWD_COVG"] = 2;
     vr.samples[0]["ALT_MEAN_REV_COVG"] = 2;
     vr.likelihood(1, 0.01);
-    float exp_likelihood = numeric_limits<float>::lowest();
+    float exp_likelihood = -1 + 4 * log(0.01);
     EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["REF_LIKELIHOOD"]);
     exp_likelihood = -1-log(4)-log(3)-log(2);
     EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["ALT_LIKELIHOOD"]);
@@ -190,7 +190,7 @@ TEST(VCFRecordLikelihoodTest, handles_alt_covg_0) {
     vr.samples[0]["ALT_MEAN_FWD_COVG"] = 0;
     vr.samples[0]["ALT_MEAN_REV_COVG"] = 0;
     vr.likelihood(1, 0.01);
-    float exp_likelihood = numeric_limits<float>::lowest();
+    float exp_likelihood = -1 + 2 * log(0.01);
     EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["ALT_LIKELIHOOD"]);
     exp_likelihood = -1-log(2);
     EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["REF_LIKELIHOOD"]);
