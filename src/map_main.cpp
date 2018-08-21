@@ -53,7 +53,7 @@ static void show_map_usage() {
               << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
               << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative binomial\n"
               << "\t--max_covg\t\t\tMaximum average coverage from reads to accept\n"
-              << "\t--regenotype\t\t\tAdd extra step to carefully genotype SNP sites\n"
+              << "\t--regenotype\t\t\tAdd extra step to carefully genotype sites\n"
               << "\t--discover\t\t\tAdd denovo discovery\n"
               << std::endl;
 }
@@ -227,8 +227,8 @@ int pandora_map(int argc, char *argv[]) {
     mhs = new MinimizerHits(100000);
     pangenome::Graph *pangraph;
     pangraph = new pangenome::Graph();
-    uint32_t covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size,
-                                        genome_size, illumina, clean, max_covg);
+    uint32_t covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate,
+                                            min_cluster_size, genome_size, illumina, clean, max_covg);
 
     cout << now() << "Finished with index, so clear " << endl;
     idx->clear();
@@ -294,7 +294,7 @@ int pandora_map(int argc, char *argv[]) {
     master_vcf.save(outdir + "/pandora_consensus.vcf" , true, true, true, true, true, true, true);
 
     if(regenotype) {
-        master_vcf.regenotype(covg,0.01,30);
+        master_vcf.regenotype(covg,0.01,30,false);
         master_vcf.save(outdir + "/pandora_regenotyped.vcf" , true, true, true, true, false, false, false);
     }
 
@@ -304,9 +304,6 @@ int pandora_map(int argc, char *argv[]) {
     for (uint32_t j = 0; j != prgs.size(); ++j) {
         delete prgs[j];
     }
-
-    vector<uint32_t> covgs;
-    vector<Interval> t = identify_regions(covgs);
 
     pangraph->clear();
     delete pangraph;
