@@ -54,10 +54,10 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
     std::stack<Node> nodes_to_explore({start_node});
 
     std::unordered_set<std::string> explored_nodes;
-    DfsTree tree = {};
+    DfsTree tree;
 
     while (not nodes_to_explore.empty()) {
-        auto current_node = nodes_to_explore.top();
+        auto &current_node = nodes_to_explore.top();
         nodes_to_explore.pop();
 
         bool previously_explored = explored_nodes.find(graph.toString(current_node)) != explored_nodes.end();
