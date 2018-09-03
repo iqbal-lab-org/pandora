@@ -871,3 +871,46 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
 //     }
 // }
 
+TEST(QueryAbundance, oneKmer_ReturnOne) {
+    Graph graph = Graph::create(
+            new BankStrings("AATGT", NULL),
+            "-kmer-size 5 -abundance-min 1 -verbose 0"
+    );
+    auto kmer = "AATGT";
+    auto node {graph.buildNode(kmer)};
+    const auto covg {graph.queryAbundance(node)};
+
+    // We get the neighbors of this real node and make sure it has the neighbours we expect
+    EXPECT_EQ(covg, 1);
+    remove_graph_file();
+}
+
+
+TEST(QueryAbundance, twoKmers_ReturnTwo) {
+    Graph graph = Graph::create(
+            new BankStrings("AATGTAATGT", NULL),
+            "-kmer-size 5 -abundance-min 1 -verbose 0"
+    );
+    auto kmer = "AATGT";
+    auto node {graph.buildNode(kmer)};
+    const auto covg {graph.queryAbundance(node)};
+
+    // We get the neighbors of this real node and make sure it has the neighbours we expect
+    EXPECT_EQ(covg, 2);
+    remove_graph_file();
+}
+
+
+TEST(QueryAbundance, fakeKmer_ReturnZero) {
+    Graph graph = Graph::create(
+            new BankStrings("AATGT", NULL),
+            "-kmer-size 5 -abundance-min 1 -verbose 0"
+    );
+    auto kmer = "CCCCC";
+    auto node {graph.buildNode(kmer)};
+    const auto covg {graph.queryAbundance(node)};
+
+    // We get the neighbors of this real node and make sure it has the neighbours we expect
+    EXPECT_EQ(covg, 0);
+    remove_graph_file();
+}
