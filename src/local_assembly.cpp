@@ -105,6 +105,12 @@ void get_paths_between_util(const std::string &start_kmer,
                             DfsTree &tree,
                             Paths &full_paths,
                             const unsigned long max_path_length) {
+    // gather information on kmer coverages
+    auto start_node {graph.buildNode(start_kmer.c_str())};
+    const auto coverage {graph.queryAbundance(start_node)};
+    BOOST_LOG_TRIVIAL(debug) << coverage;
+
+
     auto &child_nodes = tree[start_kmer];
     auto num_children = child_nodes.size();
 
