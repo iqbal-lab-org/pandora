@@ -198,13 +198,13 @@ bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const string& chr
     return false;
 }
 
-void VCF::regenotype(const uint32_t & expected_depth_covg, const float & error_rate, const uint8_t confidence_threshold, bool snps_only) {
+void VCF::genotype(const uint32_t & expected_depth_covg, const float & error_rate, const uint8_t confidence_threshold, bool snps_only) {
     for (auto &vr : records){
         if (not snps_only or (vr.ref.length() == 1 and vr.alt.length() == 1))
         {
             vr.likelihood(expected_depth_covg,error_rate);
             vr.confidence();
-            vr.regenotype(confidence_threshold);
+            vr.genotype(confidence_threshold);
         }
     }
     add_formats({"GT_CONF", "REF_LIKELIHOOD", "ALT_LIKELIHOOD"});

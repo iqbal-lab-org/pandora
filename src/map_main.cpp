@@ -53,7 +53,7 @@ static void show_map_usage() {
               << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
               << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative binomial\n"
               << "\t--max_covg\t\t\tMaximum average coverage from reads to accept\n"
-              << "\t--regenotype\t\t\tAdd extra step to carefully genotype SNP sites\n"
+              << "\t--genotype\t\t\tAdd extra step to carefully genotype sites\n"
               << "\t--discover\t\t\tAdd denovo discovery\n"
               << std::endl;
 }
@@ -74,7 +74,7 @@ int pandora_map(int argc, char *argv[]) {
     bool output_comparison_paths = false, output_mapped_read_fa = false;
     bool illumina = false, clean = false;
     bool output_covgs = false, bin = false;
-    bool regenotype = false, discover_denovo = false;
+    bool genotype = false, discover_denovo = false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -173,8 +173,8 @@ int pandora_map(int argc, char *argv[]) {
                 std::cerr << "--max_covg option requires one argument." << std::endl;
                 return 1;
             }
-        } else if ((arg == "--regenotype")) {
-            regenotype = true;
+        } else if ((arg == "--genotype")) {
+            genotype = true;
         } else if ((arg == "--discover")) {
             discover_denovo = true;
         } else {
@@ -184,7 +184,7 @@ int pandora_map(int argc, char *argv[]) {
 
     assert(w <= k);
     assert(not prgfile.empty());
-    if (regenotype)
+    if (genotype)
         output_vcf = true;
 
     //then run the programme...
@@ -207,7 +207,7 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\tclean\t" << clean << endl;
     cout << "\tbin\t" << bin << endl;
     cout << "\tmax_covg\t" << max_covg << endl;
-    cout << "\tregenotype\t" << regenotype << endl;
+    cout << "\tgenotype\t" << genotype << endl;
     cout << "\tdiscover\t" << discover_denovo << endl << endl;
 
     make_dir(outdir);
@@ -227,8 +227,8 @@ int pandora_map(int argc, char *argv[]) {
     mhs = new MinimizerHits(100000);
     pangenome::Graph *pangraph;
     pangraph = new pangenome::Graph();
-    uint32_t covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size,
-                                        genome_size, illumina, clean, max_covg);
+    uint32_t covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate,
+                                            min_cluster_size, genome_size, illumina, clean, max_covg);
 
     cout << now() << "Finished with index, so clear " << endl;
     idx->clear();
@@ -293,9 +293,9 @@ int pandora_map(int argc, char *argv[]) {
     consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
     master_vcf.save(outdir + "/pandora_consensus.vcf" , true, true, true, true, true, true, true);
 
-    if(regenotype) {
-        master_vcf.regenotype(covg,0.01,30);
-        master_vcf.save(outdir + "/pandora_regenotyped.vcf" , true, true, true, true, false, false, false);
+    if(genotype) {
+        master_vcf.genotype(covg,0.01,30,false);
+        master_vcf.save(outdir + "/pandora_genotyped.vcf" , true, true, true, true, false, false, false);
     }
 
     if (output_mapped_read_fa)
@@ -304,9 +304,6 @@ int pandora_map(int argc, char *argv[]) {
     for (uint32_t j = 0; j != prgs.size(); ++j) {
         delete prgs[j];
     }
-
-    vector<uint32_t> covgs;
-    vector<Interval> t = identify_regions(covgs);
 
     pangraph->clear();
     delete pangraph;

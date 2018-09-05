@@ -68,6 +68,7 @@ void VCFRecord::likelihood(const uint32_t& expected_depth_covg, const float& err
 
     unordered_map<string, float> m;
     m.reserve(3);
+    //float p_non_zero = 1 - exp(-expected_depth_covg);
     if (regt_samples.size() == 0){
         for (auto sample : samples) {
             regt_samples.push_back(m);
@@ -83,12 +84,12 @@ void VCFRecord::likelihood(const uint32_t& expected_depth_covg, const float& err
                 regt_samples[i]["REF_LIKELIHOOD"] = c1 * log(expected_depth_covg) - expected_depth_covg
                                        - logfactorial(c1) + c2 * log(error_rate);
             else
-                regt_samples[i]["REF_LIKELIHOOD"] = numeric_limits<float>::lowest();
+                regt_samples[i]["REF_LIKELIHOOD"] = c2 * log(error_rate) - expected_depth_covg;
             if (c2 > 0)
                 regt_samples[i]["ALT_LIKELIHOOD"] = c2 * log(expected_depth_covg) - expected_depth_covg
                                        - logfactorial(c2) + c1 * log(error_rate);
             else
-                regt_samples[i]["ALT_LIKELIHOOD"] = numeric_limits<float>::lowest();
+                regt_samples[i]["ALT_LIKELIHOOD"] = c1 * log(error_rate) - expected_depth_covg;
         }
     }
 
@@ -105,7 +106,7 @@ void VCFRecord::confidence(){
     add_formats({"GT_CONF"});
 }
 
-void VCFRecord::regenotype(const uint8_t confidence_threshold){
+void VCFRecord::genotype(const uint8_t confidence_threshold){
     for (uint_least16_t i=0; i<samples.size(); ++i) {
         if (regt_samples[i].find("GT_CONF") != regt_samples[i].end()){
             if (regt_samples[i]["GT_CONF"] > confidence_threshold){
