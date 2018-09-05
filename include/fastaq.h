@@ -30,6 +30,8 @@ struct Fastaq {
 
     bool operator!=(const Fastaq &y) const;
 
+    double calculate_coverage(const unsigned long &ref_length) const;
+
     friend std::ostream &operator<<(std::ostream &out, const Fastaq &m);
 
     friend std::istream &operator>>(std::istream &in, Fastaq &m);

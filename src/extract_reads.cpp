@@ -300,6 +300,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
 
             fa.add_entry(readfile.name, sequence, header);
         }
+
         const auto filepath = outdir + "/" + pnode->get_name() + "." + to_string(interval.start) + "-" +
                               to_string(interval.get_end()) + ".fa";
         fa.save(filepath);
@@ -308,6 +309,10 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
         // get sub_lmp path as string
         const auto sub_lmp_as_string{LocalPRG::string_along_path(sub_lmp)};
         BOOST_LOG_TRIVIAL(debug) << "sub_lmp for interval is " << sub_lmp_as_string;
+
+        // calculate coverage for the slice
+        const auto slice_coverage{fa.calculate_coverage(sub_lmp_as_string.length())};
+        BOOST_LOG_TRIVIAL(info) << "Coverage for slice is " << std::to_string(slice_coverage);
 
         const auto len_threshold{150};
         const unsigned int num_kmers_to_try{5};

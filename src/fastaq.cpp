@@ -88,6 +88,15 @@ void Fastaq::save(const std::string & filepath) {
     outf << *this;
 }
 
+double Fastaq::calculate_coverage(const unsigned long &ref_length) const {
+    unsigned long total_bases{0};
+
+    for (auto kv: this->sequences) {
+        total_bases += kv.second.length();
+    }
+    return total_bases / static_cast<double>(ref_length);
+}
+
 bool Fastaq::operator==(const Fastaq &y) const {
     if (fastq != y.fastq) { return false;}
     if (names.size() != y.names.size()) { return false;}

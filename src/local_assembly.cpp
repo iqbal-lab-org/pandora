@@ -108,7 +108,7 @@ void get_paths_between_util(const std::string &start_kmer,
     // gather information on kmer coverages
     auto start_node {graph.buildNode(start_kmer.c_str())};
     const auto coverage {graph.queryAbundance(start_node)};
-    BOOST_LOG_TRIVIAL(debug) << coverage;
+    BOOST_LOG_TRIVIAL(debug) << coverage << "\t" << path_accumulator;
 
 
     auto &child_nodes = tree[start_kmer];
@@ -126,6 +126,7 @@ void get_paths_between_util(const std::string &start_kmer,
     // makes sure we get all possible cycle repitions up to the maximum length
     if (has_ending(path_accumulator, end_kmer)) {
         full_paths.push_back(path_accumulator);
+        BOOST_LOG_TRIVIAL(debug) << "Path added to results.";
         BOOST_LOG_TRIVIAL(trace) << path_accumulator << " added to vector of paths.";
     }
 
