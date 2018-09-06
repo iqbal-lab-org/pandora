@@ -153,6 +153,28 @@ void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned lo
     BOOST_LOG_TRIVIAL(info) << "Local assembly paths written to " << filepath;
 }
 
+double median(std::vector<int> v) {
+    if (v.size() == 0)
+        return 0;
+    std::sort(v.begin(), v.end());
+    if (v.size() % 2 == 1) {
+        int n = (v.size() + 1) / 2;
+        return v[n - 1];
+    } else {
+        int n1 = (v.size() + 2) / 2;
+        int n2 = (v.size() - 2) / 2;
+        return (v[n1 - 1] + v[n2 - 1]) / 2.0;
+    }
+}
+
+
+double mean(std::vector<int> v) {
+    double sum{0};
+    for (auto x: v) {
+        sum += x;
+    }
+    return sum / v.size();
+}
 
 void local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer,
                     const std::string &out_path, const unsigned int kmer_size, const unsigned long max_path_length,

@@ -88,6 +88,13 @@ void Fastaq::save(const std::string & filepath) {
     outf << *this;
 }
 
+
+// returns coverage as just the number of reads in the fastaq
+double Fastaq::calculate_coverage() const {
+    return sequences.size();
+}
+
+// calculates coverage as number of bases / length of a given reference
 double Fastaq::calculate_coverage(const unsigned long &ref_length) const {
     unsigned long total_bases{0};
 
