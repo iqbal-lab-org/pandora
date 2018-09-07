@@ -311,7 +311,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
         BOOST_LOG_TRIVIAL(debug) << "sub_lmp for interval is " << sub_lmp_as_string;
 
         // calculate coverage for the slice
-        const auto slice_coverage{fa.calculate_coverage(sub_lmp_as_string.length())};
+        const auto slice_coverage{fa.calculate_coverage()};
         BOOST_LOG_TRIVIAL(info) << "Coverage for slice is " << std::to_string(slice_coverage);
 
         const auto len_threshold{150};
@@ -348,7 +348,8 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
                                         << pnode->get_name() + "." + to_string(interval.start) + "-" +
                                            to_string(interval.get_end()) << "\n";
 
-                local_assembly(filepath, start_kmers, end_kmers, out_path, g_local_assembly_kmer_size, max_path_length);
+                local_assembly(filepath, start_kmers, end_kmers, out_path, g_local_assembly_kmer_size, max_path_length,
+                               slice_coverage);
 
                 BOOST_LOG_TRIVIAL(info) << " Finished local assembly for "
                                         << pnode->get_name() + "." + to_string(interval.start) + "-" +

@@ -85,30 +85,40 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
  * The associated util function is a recursive function that generates a path down to a "leaf" of the tree and
  * then comes back up to the next unexplored branching point.
  */
-Paths get_paths_between(const std::string &start_kmer, const std::string &end_kmer, DfsTree &tree, const Graph &graph,
-                        const unsigned long max_path_length) {
+Paths get_paths_between(const std::string &start_kmer, const std::string &end_kmer,
+                        std::unordered_map<string, GraphVector<Node>> &tree, const Graph &graph,
+                        const unsigned long max_path_length, const double &expected_coverage) {
     BOOST_LOG_TRIVIAL(debug) << "Enumerating all paths in DFS between " << start_kmer << " and " << end_kmer;
     std::string initial_acc = start_kmer.substr(0, start_kmer.length() - 1);
 
     Paths result = {};
-    get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree, result, max_path_length);
+    get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree,
+                           result, max_path_length, expected_coverage);
     BOOST_LOG_TRIVIAL(debug) << "Path enumeration complete. There were " << std::to_string(result.size())
                              << " paths found.";
     return result;
 }
 
 
-void get_paths_between_util(const std::string &start_kmer,
-                            const std::string &end_kmer,
-                            std::string path_accumulator,
-                            const Graph &graph,
-                            DfsTree &tree,
-                            Paths &full_paths,
-                            const unsigned long max_path_length) {
+void get_paths_between_util(const std::string &start_kmer, const std::string &end_kmer, std::string path_accumulator,
+                            const Graph &graph, std::unordered_map<string, GraphVector<Node>> &tree, Paths &full_paths,
+                            const unsigned long &max_path_length, const double &expected_coverage,
+                            unsigned int kmers_below_threshold) {
     // gather information on kmer coverages
-    auto start_node {graph.buildNode(start_kmer.c_str())};
-    const auto coverage {graph.queryAbundance(start_node)};
-    BOOST_LOG_TRIVIAL(debug) << coverage << "\t" << path_accumulator;
+    auto start_node{graph.buildNode(start_kmer.c_str())};
+    const auto coverage{graph.queryAbundance(start_node)};
+
+    // do coverage check
+    // if there are k k-mers with coverage <= expected_covg * 0.2 kmers stop recursing for this path
+    if (coverage < expected_coverage * COVG_SCALING_FACTOR) {
+        kmers_below_threshold++;
+        if (kmers_below_threshold >= start_kmer.length()) {
+            BOOST_LOG_TRIVIAL(debug) << "Path has " << std::to_string(kmers_below_threshold)
+                                     << " k-mers with less than " << std::to_string(expected_coverage) << " * "
+                                     << std::to_string(COVG_SCALING_FACTOR) << " coverage. Abandoning path.";
+            return;
+        }
+    }
 
 
     auto &child_nodes = tree[start_kmer];
@@ -132,7 +142,8 @@ void get_paths_between_util(const std::string &start_kmer,
 
     for (unsigned int i = 0; i < num_children; ++i) {
         auto kmer = graph.toString(child_nodes[i]);
-        get_paths_between_util(kmer, end_kmer, path_accumulator, graph, tree, full_paths, max_path_length);
+        get_paths_between_util(kmer, end_kmer, path_accumulator, graph, tree,
+                               full_paths, max_path_length, expected_coverage, kmers_below_threshold);
     }
 }
 
@@ -153,41 +164,43 @@ void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned lo
     BOOST_LOG_TRIVIAL(info) << "Local assembly paths written to " << filepath;
 }
 
-double median(std::vector<int> v) {
-    if (v.size() == 0)
-        return 0;
-    std::sort(v.begin(), v.end());
-    if (v.size() % 2 == 1) {
-        int n = (v.size() + 1) / 2;
-        return v[n - 1];
-    } else {
-        int n1 = (v.size() + 2) / 2;
-        int n2 = (v.size() - 2) / 2;
-        return (v[n1 - 1] + v[n2 - 1]) / 2.0;
-    }
-}
+//double median(std::vector<int> v) {
+//    if (v.size() == 0) {
+//        return 0;
+//    }
+//    std::sort(v.begin(), v.end());
+//    if (v.size() % 2 == 1) {
+//        int n = (v.size() + 1) / 2;
+//        return v[n - 1];
+//    } else {
+//        int n1 = (v.size() + 2) / 2;
+//        int n2 = (v.size() - 2) / 2;
+//        return (v[n1 - 1] + v[n2 - 1]) / 2.0;
+//    }
+//}
+//
+//
+//double mean(std::vector<int> v) {
+//    double sum{0};
+//    for (auto x: v) {
+//        sum += x;
+//    }
+//    return sum / v.size();
+//}
 
-
-double mean(std::vector<int> v) {
-    double sum{0};
-    for (auto x: v) {
-        sum += x;
-    }
-    return sum / v.size();
-}
-
-void local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer,
-                    const std::string &out_path, const unsigned int kmer_size, const unsigned long max_path_length,
-                    const bool clean_graph, const unsigned int min_coverage) {
+void
+local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer, const std::string &out_path,
+               const unsigned int kmer_size, const unsigned long max_path_length, const double &expected_coverage,
+               const bool clean_graph, const unsigned int min_coverage) {
 
     logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
     BOOST_LOG_TRIVIAL(debug) << "Running local assembly for " << filepath;
-    BOOST_LOG_TRIVIAL(info) << "Parameters for local assembly: \n" << "Start kmer: " << start_kmer << "\nEnd kmer: "
-                            << end_kmer << "\nkmer size: " << std::to_string(kmer_size) << "\nmax path length: "
-                            << std::to_string(max_path_length)
-                            << "\nClean graph: " << std::to_string(clean_graph) << "\nMin. coverage: "
-                            << std::to_string(min_coverage) << "\n";
+    BOOST_LOG_TRIVIAL(debug) << "Parameters for local assembly: \n" << "Start kmer: " << start_kmer << "\nEnd kmer: "
+                             << end_kmer << "\nkmer size: " << std::to_string(kmer_size) << "\nmax path length: "
+                             << std::to_string(max_path_length)
+                             << "\nClean graph: " << std::to_string(clean_graph) << "\nMin. coverage: "
+                             << std::to_string(min_coverage) << "\n";
 
     Graph graph;  // have to predefine as actually initialisation is inside try block
 
@@ -244,7 +257,7 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
     }
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_path_length);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_path_length, expected_coverage);
     write_paths_to_fasta(out_path, result);
 
     // remove h5 file that GATB has written to file for this graph
@@ -253,25 +266,25 @@ void local_assembly(const std::string &filepath, std::string &start_kmer, std::s
 
 
 void local_assembly(const std::string &filepath, std::unordered_set<std::string> &start_kmers,
-                    std::unordered_set<std::string> &end_kmers,
-                    const std::string &out_path, const unsigned int kmer_size, const unsigned long max_path_length,
+                    std::unordered_set<std::string> &end_kmers, const std::string &out_path,
+                    const unsigned int kmer_size, const unsigned long max_path_length, const double &expected_coverage,
                     const bool clean_graph, const unsigned int min_coverage) {
     logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
     BOOST_LOG_TRIVIAL(debug) << "Running local assembly for " << filepath;
-    BOOST_LOG_TRIVIAL(info) << "Parameters for local assembly: ";
-    BOOST_LOG_TRIVIAL(info) << "Start kmers: ";
+    BOOST_LOG_TRIVIAL(debug) << "Parameters for local assembly: ";
+    BOOST_LOG_TRIVIAL(debug) << "Start kmers: ";
     for (auto kmer: start_kmers) {
-        BOOST_LOG_TRIVIAL(info) << kmer;
+        BOOST_LOG_TRIVIAL(debug) << kmer;
     }
-    BOOST_LOG_TRIVIAL(info) << "End kmers: ";
+    BOOST_LOG_TRIVIAL(debug) << "End kmers: ";
     for (auto kmer: end_kmers) {
-        BOOST_LOG_TRIVIAL(info) << kmer;
+        BOOST_LOG_TRIVIAL(debug) << kmer;
     }
-    BOOST_LOG_TRIVIAL(info) << "kmer size: " << std::to_string(kmer_size) << "\nmax path length: "
-                            << std::to_string(max_path_length)
-                            << "\nClean graph: " << std::to_string(clean_graph) << "\nMin. coverage: "
-                            << std::to_string(min_coverage) << "\n";
+    BOOST_LOG_TRIVIAL(debug) << "kmer size: " << std::to_string(kmer_size) << "\nmax path length: "
+                             << std::to_string(max_path_length)
+                             << "\nClean graph: " << std::to_string(clean_graph) << "\nMin. coverage: "
+                             << std::to_string(min_coverage) << "\n";
 
     Graph graph;  // have to predefine as actually initialisation is inside try block
 
@@ -357,7 +370,7 @@ void local_assembly(const std::string &filepath, std::unordered_set<std::string>
     const auto end_kmer{graph.toString(end_node)};
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_path_length);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_path_length, expected_coverage);
     write_paths_to_fasta(out_path, result);
 
     // remove h5 file that GATB has written to file for this graph

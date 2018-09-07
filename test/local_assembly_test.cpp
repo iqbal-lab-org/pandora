@@ -726,7 +726,7 @@ TEST(LocalAssemblyTest, twoIdenticalReads_onePath) {
     const int k {9};
     const int max_len {30};
     const bool clean {false};
-    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, clean);
+    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, 1, clean);
 
     const std::unordered_set<std::string> expected {"ATGCGCTGAGAGTCGGACT"};
     std::unordered_set<std::string> result;
@@ -758,7 +758,7 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgOne_twoPaths) {
     const int max_len {30};
     const int min_coverage {1};
     const bool clean {false};
-    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, clean, min_coverage);
+    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, 1, clean, min_coverage);
 
     const std::unordered_set<std::string> expected {"ATGCGCTGATAGTCGGACT", "ATGCGCTGAGAGTCGGACT"};
     std::unordered_set<std::string> result;
@@ -791,7 +791,7 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
     const int max_len {30};
     const int min_coverage {2};
     const bool clean {false};
-    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, clean, min_coverage);
+    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, 1, clean, min_coverage);
 
     const std::unordered_set<std::string> expected {"ATGCGCTGAGAGTCGGACT"};
     std::unordered_set<std::string> result;
