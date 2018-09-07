@@ -814,13 +814,13 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
     remove(out_path.c_str());
 }
 
-TEST(LocalAssemblyTest, debug) {
-    const std::string filepath {"../../test/test_cases/GC00000008_17.2568-2577.fa"};
-    std::string start_kmer = "CGGGCGGACGC";
-    std::string end_kmer = "CAGCGCAGGAC";
-    const std::string out_path {"../../test/test_cases/GC00000008_17.2568-2577_local_assembly_test.fa"};
-    local_assembly(filepath, start_kmer, end_kmer, out_path, 11, 150);
-}
+//TEST(LocalAssemblyTest, debug) {
+//    const std::string filepath {"../../test/test_cases/GC00000008_17.2568-2577.fa"};
+//    std::string start_kmer = "CGGGCGGACGC";
+//    std::string end_kmer = "CAGCGCAGGAC";
+//    const std::string out_path {"../../test/test_cases/GC00000008_17.2568-2577_local_assembly_test.fa"};
+//    local_assembly(filepath, start_kmer, end_kmer, out_path, 11, 150, 49);
+//}
 
 //TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
 //    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
