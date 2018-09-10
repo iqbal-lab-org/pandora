@@ -238,22 +238,10 @@ TEST(FastaqTest, calculateCoverage_roundCalculation) {
     f.add_entry("dummyyy", "ACGTA", {2, 3, 4, 5, 6}, 40);
     const auto ref_length{5};
 
-    const auto result{f.calculate_coverage(ref_length)};
-    const double expected{2};
+    const auto result{f.calculate_kmer_coverage(ref_length, 3)};
+    const double expected{1.6460905349794237};
 
-    EXPECT_EQ(result, expected);
-}
-
-TEST(FastaqTest, calculateCoverage_fractionalCalculation) {
-    Fastaq f(false,true);
-    f.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
-    f.add_entry("dummyyy", "ACGTA", {2, 3, 4, 5, 6}, 40);
-    const auto ref_length{4};
-
-    const auto result{f.calculate_coverage(ref_length)};
-    const double expected{2.5};
-
-    EXPECT_EQ(result, expected);
+    EXPECT_DOUBLE_EQ(result, expected);
 }
 
 TEST(FastaqTest, calculateCoverage_numberOfEntries) {

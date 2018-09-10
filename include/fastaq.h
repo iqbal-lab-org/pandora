@@ -9,18 +9,18 @@ struct Fastaq {
     bool gzipped;
     bool fastq;
     std::vector<std::string> names;
-    std::unordered_map <std::string, std::string> headers;
-    std::unordered_map <std::string, std::string> sequences;
-    std::unordered_map <std::string, std::string> scores;
+    std::unordered_map<std::string, std::string> headers;
+    std::unordered_map<std::string, std::string> sequences;
+    std::unordered_map<std::string, std::string> scores;
 
-    Fastaq(bool gz=false, bool fq=false);
+    Fastaq(bool gz = false, bool fq = false);
 
-    char covg_to_score(const uint_least16_t&, const uint_least16_t&);
+    char covg_to_score(const uint_least16_t &, const uint_least16_t &);
 
     void add_entry(const std::string &, const std::string &, const std::vector<uint32_t> &,
-                   const uint_least16_t, const std::string header="");
+                   const uint_least16_t, const std::string header = "");
 
-    void add_entry(const std::string &, const std::string &, const std::string header="");
+    void add_entry(const std::string &, const std::string &, const std::string header = "");
 
     void clear();
 
@@ -32,7 +32,8 @@ struct Fastaq {
 
     double calculate_coverage() const;
 
-    double calculate_coverage(const unsigned long &ref_length) const;
+    double
+    calculate_kmer_coverage(const unsigned long &ref_length, const unsigned int k, const double &error_rate = 0.1) const;
 
     friend std::ostream &operator<<(std::ostream &out, const Fastaq &m);
 

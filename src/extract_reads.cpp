@@ -311,7 +311,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
         BOOST_LOG_TRIVIAL(debug) << "sub_lmp for interval is " << sub_lmp_as_string;
 
         // calculate coverage for the slice
-        const auto slice_coverage{fa.calculate_coverage()};
+        const auto slice_coverage{fa.calculate_kmer_coverage(sub_lmp_as_string.length(), g_local_assembly_kmer_size)};
         BOOST_LOG_TRIVIAL(info) << "Coverage for slice is " << std::to_string(slice_coverage);
 
         const auto len_threshold{150};
