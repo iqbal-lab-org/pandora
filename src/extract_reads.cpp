@@ -315,7 +315,6 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
         BOOST_LOG_TRIVIAL(info) << "Coverage for slice is " << std::to_string(slice_coverage);
 
         const auto len_threshold{150};
-        const unsigned int num_kmers_to_try{5};
         const unsigned long max_path_length{sub_lmp_as_string.length() + (interval.length * 2)};
         BOOST_LOG_TRIVIAL(debug) << "Max path length is calculated as " << std::to_string(sub_lmp_as_string.length())
                                  << " + (" << std::to_string(interval.length) << " * 5) = "
@@ -325,9 +324,9 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
             BOOST_LOG_TRIVIAL(debug) << "Max path length " << std::to_string(max_path_length) << " is greater than "
                                      << std::to_string(len_threshold) << ". Skipping local assembly.";
         } else {
-            if (g_local_assembly_kmer_size + num_kmers_to_try > sub_lmp_as_string.length()) {
+            if (g_local_assembly_kmer_size + KMERS_TO_TRY > sub_lmp_as_string.length()) {
                 BOOST_LOG_TRIVIAL(warning) << "Local assembly kmer size " << std::to_string(g_local_assembly_kmer_size)
-                                           << " plus number of k-mers to try " << std::to_string(num_kmers_to_try)
+                                           << " plus number of k-mers to try " << std::to_string(KMERS_TO_TRY)
                                            << " is greater than the length of the interval string "
                                            << std::to_string(sub_lmp_as_string.length())
                                            << ". Skipping local assembly for "
@@ -340,8 +339,8 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
 
 
                 // get start and end kmer from sub_lmp path
-                auto start_kmers{generate_start_kmers(sub_lmp_as_string, g_local_assembly_kmer_size, num_kmers_to_try)};
-                auto end_kmers{generate_end_kmers(sub_lmp_as_string, g_local_assembly_kmer_size, num_kmers_to_try)};
+                auto start_kmers{generate_start_kmers(sub_lmp_as_string, g_local_assembly_kmer_size, KMERS_TO_TRY)};
+                auto end_kmers{generate_end_kmers(sub_lmp_as_string, g_local_assembly_kmer_size, KMERS_TO_TRY)};
 
                 // run local assembly
                 BOOST_LOG_TRIVIAL(info) << now() << " Running local assembly for "

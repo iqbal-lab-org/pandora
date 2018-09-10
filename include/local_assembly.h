@@ -25,6 +25,7 @@ const long g_max_length{30};
 const int g_local_assembly_kmer_size{11};
 const auto g_log_level{logging::trivial::debug};
 const float COVG_SCALING_FACTOR{0.2};
+const unsigned int KMERS_TO_TRY{10};
 
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph);
 
