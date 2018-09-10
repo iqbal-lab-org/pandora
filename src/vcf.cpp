@@ -170,7 +170,7 @@ void VCF::append_vcf(const VCF &other_vcf){
         }
     }
 
-    cout << "for all existing records, add null entries for the " << num_samples_added << " new samples" << endl;
+    cout << "for all existing " << original_size << " records, add null entries for the " << num_samples_added << " new samples" << endl;
     unordered_map<string,uint8_t> empty_u_map;
     for (uint_least64_t i=0; i<original_size; ++i){
         records[i].samples.insert(records[i].samples.end(), num_samples_added, empty_u_map);
