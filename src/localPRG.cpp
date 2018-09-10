@@ -886,12 +886,12 @@ void LocalPRG::build_vcf(VCF &vcf, const vector<LocalNodePtr> &ref) const {
 void
 LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, const vector<LocalNodePtr> &sample_path,
                                const string &sample_name) const {
-    /*cout << now() << "Update VCF with sample path" << endl;
+    cout << now() << "Update VCF with sample path" << endl;
     for (uint i=0; i!=sample_path.size(); ++i)
     {
 	cout << *sample_path[i] << " ";
     }
-    cout << endl;*/
+    cout << endl;
     assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
 
     // if prg has only one node, simple case
@@ -921,23 +921,23 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
         } else if (found_new_site) {
             // refpath back == samplepath back
             // add ref allele from previous site to this one
-            //cout << "update with ref alleles from " << pos << " to " << pos_to << endl;
+            cout << "update with ref alleles from " << pos << " to " << pos_to << endl;
             vcf.add_sample_ref_alleles(sample_name, name, pos, pos_to);
             pos = pos_to;
 
             // add new site to vcf
-            //cout << "find ref seq" << endl;
+            cout << "find ref seq" << endl;
             for (uint32_t j = 1; j < refpath.size() - 1; ++j) {
                 ref += refpath[j]->seq;
                 //cout << ref << endl;
             }
-            //cout << "find alt seq" << endl;
+            cout << "find alt seq" << endl;
             for (uint32_t j = 1; j < samplepath.size() - 1; ++j) {
                 alt += samplepath[j]->seq;
-                //cout << alt << endl;
+                cout << alt << endl;
             }
 
-            //cout << "add sample gt" << endl;
+            cout << "add sample gt" << endl;
             vcf.add_sample_gt(sample_name, name, pos, ref, alt);
             found_new_site = false;
 
@@ -958,7 +958,7 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
             }
             pos_to = pos;
         } else {
-            //cout << pos_to << endl;
+            cout << pos_to << endl;
             refpath.erase(refpath.begin(), refpath.end() - 1);
             if (refpath.back()->id != prg.nodes.size() - 1) {
                 ref = "";
