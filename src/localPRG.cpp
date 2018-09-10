@@ -1358,7 +1358,9 @@ void LocalPRG::add_variants_to_vcf(VCF& master_vcf,
     build_vcf(vcf, refpath);
     add_sample_gt_to_vcf(vcf, refpath, lmp, sample_name);
     add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, kmp, sample_name);
+    cout << "sort records" << endl;
     vcf.sort_records();
+    cout << "append to master vcf" << endl;
     master_vcf.append_vcf(vcf);
 }
 
