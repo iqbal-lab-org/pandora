@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include <iostream>
+#include <cmath>
 
 struct Fastaq {
     bool gzipped;
