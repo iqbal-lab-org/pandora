@@ -157,6 +157,7 @@ void VCF::append_vcf(const VCF &other_vcf){
     auto original_size = records.size();
     auto num_samples_added = 0;
 
+    cout << "find which samples are new of the " << other_vcf.samples.size() << " samples" << endl;
     vector<uint_least16_t > other_sample_positions;
     for (const auto sample : other_vcf.samples){
         auto sample_it = find(samples.begin(), samples.end(), sample);
@@ -169,14 +170,18 @@ void VCF::append_vcf(const VCF &other_vcf){
         }
     }
 
+    cout << "for all existing records, add null entries for the " << num_samples_added << " new samples" << endl;
     unordered_map<string,uint8_t> empty_u_map;
     for (uint_least16_t i=0; i<original_size; ++i){
+        cout << i << endl;
         records[i].samples.insert(records[i].samples.end(), num_samples_added, empty_u_map);
     }
 
+    cout << "add the " << other_vcf.records.size() << " records" << endl;
     for (auto record : other_vcf.records){
         VCFRecord& vr = add_record(record);
         for(uint_least16_t j=0; j<other_vcf.samples.size(); ++j){
+            cout << j << endl;
             vr.samples[other_sample_positions[j]] = record.samples[j];
             //NB this overwrites old data without checking
         }
