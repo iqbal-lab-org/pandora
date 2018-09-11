@@ -901,10 +901,10 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
 
     vector<LocalNodePtr> refpath, samplepath;
     refpath.reserve(100);
-    assert(rpath.size() > 0)
+    assert(rpath.size() > 0);
     refpath.push_back(rpath[0]);
     samplepath.reserve(100);
-    assert(sample_path.size() > 0)
+    assert(sample_path.size() > 0);
     samplepath.push_back(sample_path[0]);
     uint32_t ref_i = 1, sample_id = 1, pos = 0, pos_to = 0;
     vector<uint32_t> sample_covg(6, 0);
