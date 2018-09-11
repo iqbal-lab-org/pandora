@@ -932,13 +932,13 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
         cout << endl;
         if (refpath.back()->id < samplepath.back()->id) {
             cout << "ONE" << endl;
-            assert(rpath.size() > ref_i - 1);
+            assert(rpath.size() > ref_i);
             refpath.push_back(rpath[ref_i]);
             found_new_site = true;
             ref_i++;
         } else if (samplepath.back()->id < refpath.back()->id) {
             cout << "TWO" << endl;
-            assert(sample_path.size() > sample_id - 1);
+            assert(sample_path.size() > sample_id);
             samplepath.push_back(sample_path[sample_id]);
             found_new_site = true;
             sample_id++;
@@ -977,11 +977,11 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
                 alt = "";
                 assert(refpath.size() > 0);
                 pos += refpath.back()->pos.length;
-                assert(rpath.size() > ref_i - 1);
+                assert(rpath.size() > ref_i);
                 refpath.push_back(rpath[ref_i]);
                 ref_i++;
                 samplepath.erase(samplepath.begin(), samplepath.end() - 1);
-                assert(sample_path.size() > sample_id - 1);
+                assert(sample_path.size() > sample_id);
                 samplepath.push_back(sample_path[sample_id]);
                 sample_id++;
             }
@@ -995,11 +995,11 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
                 alt = "";
                 assert(refpath.size() > 0);
                 pos_to += refpath.back()->pos.length;
-                assert(rpath.size() > ref_i - 1);
+                assert(rpath.size() > ref_i);
                 refpath.push_back(rpath[ref_i]);
                 ref_i++;
                 samplepath.erase(samplepath.begin(), samplepath.end() - 1);
-                assert(sample_path.size() > sample_id - 1);
+                assert(sample_path.size() > sample_id);
                 samplepath.push_back(sample_path[sample_id]);
                 sample_id++;
             }
@@ -1044,7 +1044,7 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
         ref_added += ref_path[pos_along_ref_path]->pos.length;
         pos_along_ref_path++;
     }
-    assert(pos_along_ref_path < ref_path.size() - 1);
+    assert(pos_along_ref_path < ref_path.size());
     auto ref_node_to_find = ref_path[pos_along_ref_path];
     //cout << "trying to find " << *ref_node_to_find;
 
