@@ -912,6 +912,7 @@ TEST(LocalPRGTest, build_vcf)
             "TGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG 8 CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA 7 CAGAAA"
             "AAACTCTTTATCGACGGCAAGCGTGTCGGGGACAG 9 A 10 G 9 GAGTATGCGGAGGTGCTGAT 11 A 12 C 11 GCTATTACGGAGTATCACCG 13"
             " G 14 T 13 GCCCTGTTATCCAGGCTTATGGCAGATTAG");
+    LocalPRG l5(5,"another real PRG", "ATGACAAAGGTTACACCGT 5 C 6 T 5 TGACGTGCTACGCCTGTCAGGCCTATTCGACTCCTGCAAT 7 G 8 A 7 TATTGAATTTGCATAGTTTT 9 G 10 A 9 TAGGTCGA 11 G 12 A 11 TAAGGCGTTCACGCCGCATCCGGCGTGAACAAA 13 G 14 T 13 TACTCTTTTT 15  17  19 C 20 T 19 GCACAATCCAA 18 CGCACAAACCAA 17  16  21 CGCACAATCCAA 22  23 CGT 24 CGC 23 ACAAACCA 25 A 26 T 25  21 TATGTGCAAATTATTACTTTTTCCAGAAATCATCGAAAACGG 15 ");
 
     VCF vcf;
 
@@ -1049,6 +1050,10 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ("T", vcf.records[4].ref);
     EXPECT_EQ("G", vcf.records[4].alt);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[4].info);
+
+    vcf.clear();
+    l5.build_vcf(vcf, l5.prg.top_path());
+    vcf.sort_records();
 }
 
 TEST(LocalPRGTest, add_sample_gt_to_vcf)
@@ -1332,13 +1337,7 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     EXPECT_ITERABLE_EQ(vector<string>,short_formats, vcf.records[0].format);
     EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
 
-    vector<KmerNodePtr> kmp = l3.kmernode_path_from_localnode_path(lmp3);
-    /*for (auto n : kmp){
-        cout << n->id << " ";
-    }
-    cout << endl;*/
-
-    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), kmp, "sample");
+    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), "sample");
     EXPECT_EQ((uint)1, vcf.samples.size());
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);
@@ -1372,7 +1371,7 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     l3.kmer_prg.nodes[8]->covg[0] = 4;
     l3.kmer_prg.nodes[8]->covg[1] = 5;
 
-    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), kmp, "sample");
+    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), "sample");
     EXPECT_EQ((uint)1, vcf.samples.size());
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);

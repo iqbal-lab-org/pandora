@@ -886,10 +886,16 @@ void LocalPRG::build_vcf(VCF &vcf, const vector<LocalNodePtr> &ref) const {
 void
 LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, const vector<LocalNodePtr> &sample_path,
                                const string &sample_name) const {
-    /*cout << now() << "Update VCF with sample path" << endl;
-    for (uint i=0; i!=sample_path.size(); ++i)
+    cout << now() << "Update VCF with sample path" << endl;
+    /*for (uint i=0; i!=sample_path.size(); ++i)
     {
 	cout << *sample_path[i] << " ";
+    }
+    cout << endl;
+    cout << now() << "Using ref path" << endl;
+    for (uint i=0; i!=rpath.size(); ++i)
+    {
+        cout << *rpath[i] << " ";
     }
     cout << endl;*/
     assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
@@ -901,8 +907,10 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
 
     vector<LocalNodePtr> refpath, samplepath;
     refpath.reserve(100);
+    assert(rpath.size() > 0);
     refpath.push_back(rpath[0]);
     samplepath.reserve(100);
+    assert(sample_path.size() > 0);
     samplepath.push_back(sample_path[0]);
     uint32_t ref_i = 1, sample_id = 1, pos = 0, pos_to = 0;
     vector<uint32_t> sample_covg(6, 0);
@@ -911,10 +919,12 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
 
     while (!refpath.back()->outNodes.empty() or refpath.size() > 1) {
         if (refpath.back()->id < samplepath.back()->id) {
+            assert(rpath.size() > ref_i);
             refpath.push_back(rpath[ref_i]);
             found_new_site = true;
             ref_i++;
         } else if (samplepath.back()->id < refpath.back()->id) {
+            assert(sample_path.size() > sample_id);
             samplepath.push_back(sample_path[sample_id]);
             found_new_site = true;
             sample_id++;
@@ -949,10 +959,13 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
             if (refpath.back()->id != prg.nodes.size() - 1) {
                 ref = "";
                 alt = "";
+                assert(refpath.size() > 0);
                 pos += refpath.back()->pos.length;
+                assert(rpath.size() > ref_i);
                 refpath.push_back(rpath[ref_i]);
                 ref_i++;
                 samplepath.erase(samplepath.begin(), samplepath.end() - 1);
+                assert(sample_path.size() > sample_id);
                 samplepath.push_back(sample_path[sample_id]);
                 sample_id++;
             }
@@ -963,16 +976,21 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
             if (refpath.back()->id != prg.nodes.size() - 1) {
                 ref = "";
                 alt = "";
+                assert(refpath.size() > 0);
                 pos_to += refpath.back()->pos.length;
+                assert(rpath.size() > ref_i);
                 refpath.push_back(rpath[ref_i]);
                 ref_i++;
                 samplepath.erase(samplepath.begin(), samplepath.end() - 1);
+                assert(sample_path.size() > sample_id);
                 samplepath.push_back(sample_path[sample_id]);
                 sample_id++;
             }
         }
     }
+    //cout << "add last ref alleles" << endl;
     vcf.add_sample_ref_alleles(sample_name, name, pos, pos_to);
+    //cout << "done" << endl;
 }
 
 // Find the path through the PRG which deviates at pos from the ref path with alt sequence
@@ -1009,6 +1027,7 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
         ref_added += ref_path[pos_along_ref_path]->pos.length;
         pos_along_ref_path++;
     }
+    assert(pos_along_ref_path < ref_path.size());
     auto ref_node_to_find = ref_path[pos_along_ref_path];
     //cout << "trying to find " << *ref_node_to_find;
 
@@ -1174,7 +1193,6 @@ uint32_t mode(vector<uint32_t> v) {
 void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
                                        const KmerGraph &kg,
                                        const vector<LocalNodePtr> &ref_path,
-                                       const vector<KmerNodePtr> &sample_kmer_path,
                                        const string &sample_name) const {
     cout << now() << "Update VCF with sample covgs" << endl;
 
@@ -1340,9 +1358,9 @@ void LocalPRG::add_variants_to_vcf(VCF& master_vcf,
     refpath.reserve(100);
 
     if (!vcf_ref.empty()) {
-        refpath = prg.nodes_along_string(vcf_ref);
+        refpath = prg.nodes_along_string(vcf_ref, true);
         if (refpath.empty()) {
-            refpath = prg.nodes_along_string(rev_complement(vcf_ref));
+            refpath = prg.nodes_along_string(rev_complement(vcf_ref), true);
         }
         if (refpath.empty()) {
             cout << now() << "Could not find reference sequence for " << name
@@ -1356,9 +1374,14 @@ void LocalPRG::add_variants_to_vcf(VCF& master_vcf,
 
     VCF vcf;
     build_vcf(vcf, refpath);
+    //cout << "add sample gts" << endl;
     add_sample_gt_to_vcf(vcf, refpath, lmp, sample_name);
-    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, kmp, sample_name);
+    //cout << "add sample covgs" << endl;
+    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, sample_name);
+    vcf.save("temp.vcf" , true, true, true, true, true, true, true);
+    //cout << "sort records" << endl;
     vcf.sort_records();
+    //cout << "append to master vcf" << endl;
     master_vcf.append_vcf(vcf);
 }
 
@@ -1423,9 +1446,9 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
     if (output_vcf) {
 
         if (!vcf_ref.empty()) {
-            refpath = prg.nodes_along_string(vcf_ref);
+            refpath = prg.nodes_along_string(vcf_ref, true);
             if (refpath.empty()) {
-                refpath = prg.nodes_along_string(rev_complement(vcf_ref));
+                refpath = prg.nodes_along_string(rev_complement(vcf_ref), true);
             }
             if (refpath.empty()) {
                 cout << now() << "Could not find reference sequence for " << name
@@ -1441,7 +1464,7 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
         build_vcf(vcf, refpath);
         add_sample_gt_to_vcf(vcf, refpath, lmp, "sample");
         if (output_covgs)
-            add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, kmp, "sample");
+            add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, "sample");
         if (genotype)
             vcf.genotype(global_covg,0.01,pnode->kmer_prg.exp_depth_covg);
         vcf.save(outdir + "/" + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
