@@ -91,7 +91,7 @@ void FastaqHandler::skip_next() {
 void print(ifstream &infile) {
     char file;
     vector<char> read;
-    int i = 0;
+    uint i = 0;
 
     //Read infile to vector
     while (!infile.eof()) {

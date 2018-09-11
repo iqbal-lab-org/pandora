@@ -1193,7 +1193,6 @@ uint32_t mode(vector<uint32_t> v) {
 void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
                                        const KmerGraph &kg,
                                        const vector<LocalNodePtr> &ref_path,
-                                       const vector<KmerNodePtr> &sample_kmer_path,
                                        const string &sample_name) const {
     cout << now() << "Update VCF with sample covgs" << endl;
 
@@ -1378,7 +1377,7 @@ void LocalPRG::add_variants_to_vcf(VCF& master_vcf,
     //cout << "add sample gts" << endl;
     add_sample_gt_to_vcf(vcf, refpath, lmp, sample_name);
     //cout << "add sample covgs" << endl;
-    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, kmp, sample_name);
+    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, sample_name);
     vcf.save("temp.vcf" , true, true, true, true, true, true, true);
     //cout << "sort records" << endl;
     vcf.sort_records();
@@ -1465,7 +1464,7 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
         build_vcf(vcf, refpath);
         add_sample_gt_to_vcf(vcf, refpath, lmp, "sample");
         if (output_covgs)
-            add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, kmp, "sample");
+            add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, "sample");
         if (genotype)
             vcf.genotype(global_covg,0.01,pnode->kmer_prg.exp_depth_covg);
         vcf.save(outdir + "/" + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);

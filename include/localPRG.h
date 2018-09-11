@@ -89,7 +89,6 @@ public:
 
     void add_sample_covgs_to_vcf(VCF &, const KmerGraph &,
                                  const std::vector<LocalNodePtr> &,
-                                 const std::vector<KmerNodePtr> &sample_kmer_path,
                                  const std::string &sample_name = "sample") const;
 
     void add_consensus_path_to_fastaq (Fastaq&,

@@ -1337,13 +1337,7 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     EXPECT_ITERABLE_EQ(vector<string>,short_formats, vcf.records[0].format);
     EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
 
-    vector<KmerNodePtr> kmp = l3.kmernode_path_from_localnode_path(lmp3);
-    /*for (auto n : kmp){
-        cout << n->id << " ";
-    }
-    cout << endl;*/
-
-    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), kmp, "sample");
+    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), "sample");
     EXPECT_EQ((uint)1, vcf.samples.size());
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);
@@ -1377,7 +1371,7 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     l3.kmer_prg.nodes[8]->covg[0] = 4;
     l3.kmer_prg.nodes[8]->covg[1] = 5;
 
-    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), kmp, "sample");
+    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), "sample");
     EXPECT_EQ((uint)1, vcf.samples.size());
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);
