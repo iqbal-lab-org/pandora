@@ -892,6 +892,12 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
 	cout << *sample_path[i] << " ";
     }
     cout << endl;
+    cout << now() << "Using ref path" << endl;
+    for (uint i=0; i!=rpath.size(); ++i)
+    {
+        cout << *rpath[i] << " ";
+    }
+    cout << endl;
     assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
 
     // if prg has only one node, simple case
@@ -912,17 +918,32 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
     bool found_new_site = false;
 
     while (!refpath.back()->outNodes.empty() or refpath.size() > 1) {
+        cout << "samplepath:" << endl;
+        for (uint i=0; i!=samplepath.size(); ++i)
+        {
+            cout << *samplepath[i] << " ";
+        }
+        cout << endl;
+        cout << "refpath:" << endl;
+        for (uint i=0; i!=refpath.size(); ++i)
+        {
+            cout << *refpath[i] << " ";
+        }
+        cout << endl;
         if (refpath.back()->id < samplepath.back()->id) {
+            cout << "ONE" << endl;
             assert(rpath.size() > ref_i - 1);
             refpath.push_back(rpath[ref_i]);
             found_new_site = true;
             ref_i++;
         } else if (samplepath.back()->id < refpath.back()->id) {
+            cout << "TWO" << endl;
             assert(sample_path.size() > sample_id - 1);
             samplepath.push_back(sample_path[sample_id]);
             found_new_site = true;
             sample_id++;
         } else if (found_new_site) {
+            cout << "THREE" << endl;
             // refpath back == samplepath back
             // add ref allele from previous site to this one
             cout << "update with ref alleles from " << pos << " to " << pos_to << endl;
@@ -966,6 +987,7 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
             }
             pos_to = pos;
         } else {
+            cout << "FOUR" << endl;
             cout << pos_to << endl;
             refpath.erase(refpath.begin(), refpath.end() - 1);
             if (refpath.back()->id != prg.nodes.size() - 1) {
@@ -983,7 +1005,9 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
             }
         }
     }
+    cout << "add last ref alleles" << endl;
     vcf.add_sample_ref_alleles(sample_name, name, pos, pos_to);
+    cout << "done" << endl;
 }
 
 // Find the path through the PRG which deviates at pos from the ref path with alt sequence
@@ -1020,6 +1044,7 @@ vector<LocalNodePtr> LocalPRG::find_alt_path(const vector<LocalNodePtr> &ref_pat
         ref_added += ref_path[pos_along_ref_path]->pos.length;
         pos_along_ref_path++;
     }
+    assert(pos_along_ref_path < ref_path.size() - 1);
     auto ref_node_to_find = ref_path[pos_along_ref_path];
     //cout << "trying to find " << *ref_node_to_find;
 
