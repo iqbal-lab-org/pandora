@@ -258,7 +258,10 @@ local_assembly(const std::string &filepath, std::string &start_kmer, std::string
 
     auto tree = DFS(start_node, graph);
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_path_length, expected_coverage);
-    write_paths_to_fasta(out_path, result);
+
+    if (not result.empty()) {
+        write_paths_to_fasta(out_path, result);
+    }
 
     // remove h5 file that GATB has written to file for this graph
     remove_graph_file(filepath);
@@ -363,6 +366,7 @@ void local_assembly(const std::string &filepath, std::unordered_set<std::string>
         }
     }
     BOOST_LOG_TRIVIAL(warning) << "Could not find any combination of start and end k-mers. Skipping local assembly.";
+    remove_graph_file(filepath);
     return;
 
     dfs:
@@ -371,7 +375,10 @@ void local_assembly(const std::string &filepath, std::unordered_set<std::string>
 
     auto tree = DFS(start_node, graph);
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_path_length, expected_coverage);
-    write_paths_to_fasta(out_path, result);
+
+    if (not result.empty()) {
+        write_paths_to_fasta(out_path, result);
+    }
 
     // remove h5 file that GATB has written to file for this graph
     remove_graph_file(filepath);
