@@ -901,8 +901,10 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
 
     vector<LocalNodePtr> refpath, samplepath;
     refpath.reserve(100);
+    assert(rpath.size() > 0)
     refpath.push_back(rpath[0]);
     samplepath.reserve(100);
+    assert(sample_path.size() > 0)
     samplepath.push_back(sample_path[0]);
     uint32_t ref_i = 1, sample_id = 1, pos = 0, pos_to = 0;
     vector<uint32_t> sample_covg(6, 0);
@@ -911,10 +913,12 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
 
     while (!refpath.back()->outNodes.empty() or refpath.size() > 1) {
         if (refpath.back()->id < samplepath.back()->id) {
+            assert(rpath.size() > ref_i - 1);
             refpath.push_back(rpath[ref_i]);
             found_new_site = true;
             ref_i++;
         } else if (samplepath.back()->id < refpath.back()->id) {
+            assert(sample_path.size() > sample_id - 1);
             samplepath.push_back(sample_path[sample_id]);
             found_new_site = true;
             sample_id++;
@@ -947,12 +951,16 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
             }
             refpath.erase(refpath.begin(), refpath.end() - 1);
             if (refpath.back()->id != prg.nodes.size() - 1) {
+                cout << "reinitialize" << endl;
                 ref = "";
                 alt = "";
+                assert(refpath.size() > 0);
                 pos += refpath.back()->pos.length;
+                assert(rpath.size() > ref_i - 1);
                 refpath.push_back(rpath[ref_i]);
                 ref_i++;
                 samplepath.erase(samplepath.begin(), samplepath.end() - 1);
+                assert(sample_path.size() > sample_id - 1);
                 samplepath.push_back(sample_path[sample_id]);
                 sample_id++;
             }
@@ -963,10 +971,13 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
             if (refpath.back()->id != prg.nodes.size() - 1) {
                 ref = "";
                 alt = "";
+                assert(refpath.size() > 0);
                 pos_to += refpath.back()->pos.length;
+                assert(rpath.size() > ref_i - 1);
                 refpath.push_back(rpath[ref_i]);
                 ref_i++;
                 samplepath.erase(samplepath.begin(), samplepath.end() - 1);
+                assert(sample_path.size() > sample_id - 1);
                 samplepath.push_back(sample_path[sample_id]);
                 sample_id++;
             }
