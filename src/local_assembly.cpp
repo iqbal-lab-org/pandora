@@ -385,6 +385,23 @@ void local_assembly(const std::string &filepath, std::unordered_set<std::string>
 }
 
 
+void local_assembly(const std::vector<std::string> &sequences, std::string &start_kmer, std::string &end_kmer,
+                    const std::string &out_path,
+                    const unsigned int kmer_size, const unsigned long max_path_length,
+                    const double &expected_coverage,
+                    const bool clean_graph, const unsigned int min_coverage) {
+
+}
+
+void local_assembly(const std::vector<std::string> &sequences, std::unordered_set<std::string> &start_kmers,
+                    std::unordered_set<std::string> &end_kmers, const std::string &out_path,
+                    const unsigned int kmer_size, const unsigned long max_path_length,
+                    const double &expected_coverage, const bool clean_graph,
+                    const unsigned int min_coverage) {
+
+}
+
+
 void remove_graph_file(const std::string &filepath) {
     std::string h5_path;
     if (filepath.empty()) {
