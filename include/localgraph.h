@@ -32,7 +32,7 @@ public:
 
     LocalNodePtr get_previous_node(const LocalNodePtr) const;
 
-    std::vector<LocalNodePtr> nodes_along_string(const std::string &) const;
+    std::vector<LocalNodePtr> nodes_along_string(const std::string &, bool end_to_end=false) const;
 
     std::vector<LocalNodePtr> top_path() const;
 

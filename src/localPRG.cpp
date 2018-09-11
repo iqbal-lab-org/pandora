@@ -1376,9 +1376,9 @@ void LocalPRG::add_variants_to_vcf(VCF& master_vcf,
     refpath.reserve(100);
 
     if (!vcf_ref.empty()) {
-        refpath = prg.nodes_along_string(vcf_ref);
+        refpath = prg.nodes_along_string(vcf_ref, true);
         if (refpath.empty()) {
-            refpath = prg.nodes_along_string(rev_complement(vcf_ref));
+            refpath = prg.nodes_along_string(rev_complement(vcf_ref), true);
         }
         if (refpath.empty()) {
             cout << now() << "Could not find reference sequence for " << name
@@ -1464,9 +1464,9 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
     if (output_vcf) {
 
         if (!vcf_ref.empty()) {
-            refpath = prg.nodes_along_string(vcf_ref);
+            refpath = prg.nodes_along_string(vcf_ref, true);
             if (refpath.empty()) {
-                refpath = prg.nodes_along_string(rev_complement(vcf_ref));
+                refpath = prg.nodes_along_string(rev_complement(vcf_ref), true);
             }
             if (refpath.empty()) {
                 cout << now() << "Could not find reference sequence for " << name
