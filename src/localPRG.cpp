@@ -944,7 +944,7 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const vector<LocalNodePtr> &rpath, cons
             //cout << "find alt seq" << endl;
             for (uint32_t j = 1; j < samplepath.size() - 1; ++j) {
                 alt += samplepath[j]->seq;
-                cout << alt << endl;
+                //cout << alt << endl;
             }
 
             //cout << "add sample gt" << endl;
@@ -1375,14 +1375,14 @@ void LocalPRG::add_variants_to_vcf(VCF& master_vcf,
 
     VCF vcf;
     build_vcf(vcf, refpath);
-    cout << "add sample gts" << endl;
+    //cout << "add sample gts" << endl;
     add_sample_gt_to_vcf(vcf, refpath, lmp, sample_name);
-    cout << "add sample covgs" << endl;
+    //cout << "add sample covgs" << endl;
     add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, kmp, sample_name);
     vcf.save("temp.vcf" , true, true, true, true, true, true, true);
-    cout << "sort records" << endl;
+    //cout << "sort records" << endl;
     vcf.sort_records();
-    cout << "append to master vcf" << endl;
+    //cout << "append to master vcf" << endl;
     master_vcf.append_vcf(vcf);
 }
 

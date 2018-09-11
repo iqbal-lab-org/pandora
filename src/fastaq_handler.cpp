@@ -125,7 +125,7 @@ void print(istream &infile) {
 void FastaqHandler::get_id(const uint32_t &id) {
     //cout << "get id " << id << endl;
     if (id < num_reads_parsed) {
-        cout << "restart buffer as have id " << num_reads_parsed << " and want id " << id << endl;
+        //cout << "restart buffer as have id " << num_reads_parsed << " and want id " << id << endl;
         num_reads_parsed = 0;
         name.clear();
         read.clear();
