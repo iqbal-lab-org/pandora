@@ -288,8 +288,6 @@ int pandora_map(int argc, char *argv[]) {
         if (discover_denovo) {
             save_read_strings_to_denovo_assemble(readfile, outdir + "/denovo", c->second, lmp, kmp);
         }
-        consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
-        master_vcf.save(outdir + "/pandora_consensus.vcf" , true, true, true, true, true, true, true);
         ++c;
     }
     consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
