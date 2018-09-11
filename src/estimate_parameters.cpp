@@ -234,6 +234,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const
     } else {
         cout << now() << "Insufficient coverage to update error rate" << endl;
         exp_depth_covg = fit_mean_covg(kmer_covg_dist, covg/10);
+        exp_depth_covg = max(exp_depth_covg,(uint)1);
     }
 
     // find probability threshold

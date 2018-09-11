@@ -42,7 +42,7 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     #============================================
     # INSTALL PANDORA
     #============================================
-    git clone -b dev --single-branch https://github.com/rmcolq/pandora.git
+    git clone -b dev_debug_hanging --single-branch https://github.com/rmcolq/pandora.git
     cd pandora
     mkdir -p build
     cd build
