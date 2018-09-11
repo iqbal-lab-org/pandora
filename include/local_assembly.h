@@ -51,11 +51,24 @@ void write_paths_to_fasta(const std::string &filepath,
                           unsigned long line_width = 80);
 
 
-void local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer, const std::string &out_path,
-                    const unsigned int kmer_size, const unsigned long max_path_length, const double &expected_coverage = 1,
-                    const bool clean_graph = false, const unsigned int min_coverage = 2);
+void
+local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer, const std::string &out_path,
+               const unsigned int kmer_size, const unsigned long max_path_length, const double &expected_coverage = 1,
+               const bool clean_graph = false, const unsigned int min_coverage = 2);
 
 void local_assembly(const std::string &filepath, std::unordered_set<std::string> &start_kmers,
+                    std::unordered_set<std::string> &end_kmers, const std::string &out_path,
+                    const unsigned int kmer_size, const unsigned long max_path_length,
+                    const double &expected_coverage = 1, const bool clean_graph = false,
+                    const unsigned int min_coverage = 2);
+
+void local_assembly(const std::vector<std::string> &sequences, std::string &start_kmer, std::string &end_kmer,
+                    const std::string &out_path,
+                    const unsigned int kmer_size, const unsigned long max_path_length,
+                    const double &expected_coverage = 1,
+                    const bool clean_graph = false, const unsigned int min_coverage = 2);
+
+void local_assembly(const std::vector<std::string> &sequences, std::unordered_set<std::string> &start_kmers,
                     std::unordered_set<std::string> &end_kmers, const std::string &out_path,
                     const unsigned int kmer_size, const unsigned long max_path_length,
                     const double &expected_coverage = 1, const bool clean_graph = false,

@@ -303,8 +303,8 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
 
         const auto filepath = outdir + "/" + pnode->get_name() + "." + to_string(interval.start) + "-" +
                               to_string(interval.get_end()) + ".fa";
-        fa.save(filepath);
-        BOOST_LOG_TRIVIAL(debug) << "Graph slice for local assembly saved as " << filepath;
+//        fa.save(filepath);
+//        BOOST_LOG_TRIVIAL(debug) << "Graph slice for local assembly saved as " << filepath;
 
         // get sub_lmp path as string
         const auto sub_lmp_as_string{LocalPRG::string_along_path(sub_lmp)};
@@ -347,7 +347,14 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
                                         << pnode->get_name() + "." + to_string(interval.start) + "-" +
                                            to_string(interval.get_end()) << "\n";
 
-                local_assembly(filepath, start_kmers, end_kmers, out_path, g_local_assembly_kmer_size, max_path_length,
+                // extract the sequences from the slice fastaq
+                // TODO: get Robyn to look at this and suggest more memory efficient solution. pointers?
+                std::vector<std::string> sequences;
+                for (auto &kv: fa.sequences) {
+                    sequences.push_back(kv.second);
+                }
+
+                local_assembly(sequences, start_kmers, end_kmers, out_path, g_local_assembly_kmer_size, max_path_length,
                                slice_coverage);
 
                 BOOST_LOG_TRIVIAL(info) << " Finished local assembly for "
