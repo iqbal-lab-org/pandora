@@ -54,6 +54,7 @@ static void show_map_usage() {
               << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative binomial\n"
               << "\t--max_covg\t\t\tMaximum average coverage from reads to accept\n"
               << "\t--genotype\t\t\tAdd extra step to carefully genotype sites\n"
+              << "\t--snps_only\t\t\tWhen genotyping, include only snp sites\n"
               << "\t--discover\t\t\tAdd denovo discovery\n"
               << std::endl;
 }
@@ -74,7 +75,7 @@ int pandora_map(int argc, char *argv[]) {
     bool output_comparison_paths = false, output_mapped_read_fa = false;
     bool illumina = false, clean = false;
     bool output_covgs = false, bin = false;
-    bool genotype = false, discover_denovo = false;
+    bool genotype = false, snps_only = false, discover_denovo = false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -175,6 +176,8 @@ int pandora_map(int argc, char *argv[]) {
             }
         } else if ((arg == "--genotype")) {
             genotype = true;
+        } else if ((arg == "--snps_only")) {
+            snps_only = true;
         } else if ((arg == "--discover")) {
             discover_denovo = true;
         } else {
@@ -184,6 +187,8 @@ int pandora_map(int argc, char *argv[]) {
 
     assert(w <= k);
     assert(not prgfile.empty());
+    if (snps_only)
+        genotype = true;
     if (genotype)
         output_vcf = true;
 
@@ -208,6 +213,7 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\tbin\t" << bin << endl;
     cout << "\tmax_covg\t" << max_covg << endl;
     cout << "\tgenotype\t" << genotype << endl;
+    cout << "\tsnps_only\t" << snps_only << endl;
     cout << "\tdiscover\t" << discover_denovo << endl << endl;
 
     make_dir(outdir);
@@ -294,7 +300,7 @@ int pandora_map(int argc, char *argv[]) {
     master_vcf.save(outdir + "/pandora_consensus.vcf" , true, true, true, true, true, true, true);
 
     if(genotype) {
-        master_vcf.genotype(covg,0.01,30,false);
+        master_vcf.genotype(covg,0.01,30,snps_only);
         master_vcf.save(outdir + "/pandora_genotyped.vcf" , true, true, true, true, false, false, false);
     }
 
