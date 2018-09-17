@@ -229,6 +229,8 @@ local_assembly(const std::string &filepath, std::string &start_kmer, std::string
     catch (gatb::core::system::Exception &error) {
         BOOST_LOG_TRIVIAL(warning) << "Couldn't create GATB graph for " << filepath << "\n\tEXCEPTION: "
                                    << error.getMessage();
+        // remove h5 file that GATB has written to file for this graph
+        remove_graph_file(filepath);
         return;
     }
 
@@ -316,6 +318,8 @@ void local_assembly(const std::string &filepath, std::unordered_set<std::string>
     catch (gatb::core::system::Exception &error) {
         BOOST_LOG_TRIVIAL(warning) << "Couldn't create GATB graph for " << filepath << "\n\tEXCEPTION: "
                                    << error.getMessage();
+        // remove h5 file that GATB has written to file for this graph
+        remove_graph_file(filepath);
         return;
     }
 
@@ -390,6 +394,75 @@ void local_assembly(const std::vector<std::string> &sequences, std::string &star
                     const unsigned int kmer_size, const unsigned long max_path_length,
                     const double &expected_coverage,
                     const bool clean_graph, const unsigned int min_coverage) {
+    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
+
+    BOOST_LOG_TRIVIAL(debug) << "Parameters for local assembly: \n" << "Start kmer: " << start_kmer << "\nEnd kmer: "
+                             << end_kmer << "\nkmer size: " << std::to_string(kmer_size) << "\nmax path length: "
+                             << std::to_string(max_path_length)
+                             << "\nClean graph: " << std::to_string(clean_graph) << "\nMin. coverage: "
+                             << std::to_string(min_coverage) << "\n";
+
+    if (sequences.empty()) {
+        BOOST_LOG_TRIVIAL(warning) << "Sequences vector to assemble is empty. Skipping local assembly.";
+        return;
+    }
+
+    Graph graph;  // have to predefine as actually initialisation is inside try block
+
+    // make sure the max_path_length is actually longer than the kmer size
+    if (kmer_size > max_path_length) {
+        BOOST_LOG_TRIVIAL(warning) << "Kmer size "
+                                   << std::to_string(kmer_size)
+                                   << " is greater than the maximum path length "
+                                   << std::to_string(max_path_length)
+                                   << ". Skipping local assembly...";
+    }
+
+    try {
+        graph = Graph::create(
+                new BankStrings(sequences),
+                "-kmer-size %d -abundance-min %d -verbose 0", kmer_size, min_coverage);
+    }
+    catch (gatb::core::system::Exception &error) {
+        BOOST_LOG_TRIVIAL(warning) << "Couldn't create GATB graph." << "\n\tEXCEPTION: "
+                                   << error.getMessage();
+        // remove h5 file that GATB has written to file for this graph
+        remove_graph_file();
+        return;
+    }
+
+
+    if (clean_graph) {
+        BOOST_LOG_TRIVIAL(debug) << "Cleaning graph.";
+        do_graph_clean(graph);
+    }
+
+    Node start_node;
+    bool found;
+    std::tie(start_node, found) = get_node(start_kmer, graph);
+    if (not found) {
+        BOOST_LOG_TRIVIAL(debug) << "Start node " << start_kmer
+                                 << " not found in 'forward' orientation. Trying 'reverse'...";
+        auto tmp_copy = start_kmer;
+        start_kmer = reverse_complement(end_kmer);
+        end_kmer = reverse_complement(tmp_copy);
+        std::tie(start_node, found) = get_node(start_kmer, graph);
+        if (not found) {
+            BOOST_LOG_TRIVIAL(warning) << "Start kmer not found in either orientation. Skipping local assembly.";
+            remove_graph_file();
+            return;
+        }
+    }
+
+    auto tree = DFS(start_node, graph);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_path_length, expected_coverage);
+
+    if (not result.empty()) {
+        write_paths_to_fasta(out_path, result);
+    }
+
+    // remove h5 file that GATB has written to file for this graph
+    remove_graph_file();
 
 }
 
@@ -398,7 +471,7 @@ void local_assembly(const std::vector<std::string> &sequences, std::unordered_se
                     const unsigned int kmer_size, const unsigned long max_path_length,
                     const double &expected_coverage, const bool clean_graph,
                     const unsigned int min_coverage) {
-
+    // TODO: implement based on other local assemblies
 }
 
 
