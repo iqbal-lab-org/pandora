@@ -13,13 +13,13 @@ struct VCFRecord {
     uint32_t pos;
     std::string id; // not used
     std::string ref;
-    std::string alt;
+    std::vector<std::string> alt;
     std::string qual; // not used
     std::string filter; // not used
     std::string info;
     std::vector<std::string> format; //e.g. "GT"
-    std::vector<std::unordered_map<std::string, uint8_t>> samples;      // should have an entry for each sample in vcf,
-    std::vector<std::unordered_map<std::string, float>> regt_samples;   // in the same order
+    std::vector<std::unordered_map<std::string, std::vector<uint8_t>>> samples;      // should have an entry for each sample in vcf,
+    std::vector<std::unordered_map<std::string, std::vector<float>>> regt_samples;   // in the same order
 
     VCFRecord(std::string, uint32_t, std::string, std::string, std::string i = ".", std::string g = "");
 

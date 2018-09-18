@@ -14,7 +14,7 @@ TEST(VCFRecordTest, create_empty) {
     EXPECT_EQ((uint) 0, vr.pos);
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ(".", vr.ref);
-    EXPECT_EQ(".", vr.alt);
+    EXPECT_EQ((uint)0, vr.alt.size());
     EXPECT_EQ(".", vr.qual);
     EXPECT_EQ(".", vr.filter);
     EXPECT_EQ(".", vr.info);
@@ -30,7 +30,7 @@ TEST(VCFRecordTest, create_with_values) {
     EXPECT_EQ((uint) 3, vr.pos);
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ("A", vr.ref);
-    EXPECT_EQ("T", vr.alt);
+    EXPECT_EQ("T", vr.alt[0]);
     EXPECT_EQ(".", vr.qual);
     EXPECT_EQ(".", vr.filter);
     EXPECT_EQ("SVTYPE=SNP", vr.info);
@@ -47,7 +47,7 @@ TEST(VCFRecordTest, create_from_record) {
     EXPECT_EQ((uint) 3, vr.pos);
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ("A", vr.ref);
-    EXPECT_EQ("T", vr.alt);
+    EXPECT_EQ("T", vr.alt[0]);
     EXPECT_EQ(".", vr.qual);
     EXPECT_EQ(".", vr.filter);
     EXPECT_EQ("SVTYPE=SNP", vr.info);
@@ -98,131 +98,113 @@ TEST(VCFRecordLikelihoodTest, does_not_crash_with_no_samples) {
 
 TEST(VCFRecordLikelihoodTest, does_not_run_if_info_missing) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, uint8_t> m;
-    m["nothing"] = 0;
+    unordered_map<string, vector<uint8_t>> m;
+    m["nothing"] = {0};
     vr.samples.push_back(m);
     vr.likelihood(1,0.01);
-    bool found_likelihood = vr.regt_samples[0].find("REF_LIKELIHOOD") != vr.regt_samples[0].end();
+    bool found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_likelihood);
 
-    vr.samples[0]["GT"] = 1;
+    vr.samples[0]["GT"] = {1};
     vr.likelihood(1,0.01);
-    found_likelihood = vr.regt_samples[0].find("REF_LIKELIHOOD") != vr.regt_samples[0].end();
+    found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_likelihood);
 
-    vr.samples[0]["REF_MEAN_FWD_COVG"] = 1;
-    vr.samples[0]["REF_MEAN_REV_COVG"] = 1;
-    vr.samples[0]["ALT_MEAN_FWD_COVG"] = 1;
+    vr.samples[0]["MEAN_FWD_COVG"] = {1,1};
+    vr.samples[0]["MEAN_REV_COVG"] = {1};
     vr.likelihood(1,0.01);
-    found_likelihood = vr.regt_samples[0].find("REF_LIKELIHOOD") != vr.regt_samples[0].end();
+    found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_likelihood);
 
-    vr.samples[0].erase("ALT_MEAN_FWD_COVG");
-    vr.samples[0]["ALT_MEAN_REV_COVG"] = 1;
+    vr.samples[0].erase("MEAN_FWD_COVG");
+    vr.samples[0]["MEAN_REV_COVG"]= {1,1};
     vr.likelihood(1,0.01);
-    found_likelihood = vr.regt_samples[0].find("REF_LIKELIHOOD") != vr.regt_samples[0].end();
+    found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_likelihood);
 
-    vr.samples[0].erase("REF_MEAN_FWD_COVG");
-    vr.samples[0]["ALT_MEAN_FWD_COVG"] = 1;
+    vr.samples[0]["MEAN_FWD_COVG"] = {1};
     vr.likelihood(1,0.01);
-    found_likelihood = vr.regt_samples[0].find("REF_LIKELIHOOD") != vr.regt_samples[0].end();
+    found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_likelihood);
 
-    vr.samples[0].erase("REF_MEAN_REV_COVG");
-    vr.samples[0]["REF_MEAN_FWD_COVG"] = 1;
+    vr.samples[0]["MEAN_FWD_COVG"] = {1,1};
+    vr.samples[0].erase("MEAN_REV_COVG");
     vr.likelihood(1,0.01);
-    found_likelihood = vr.regt_samples[0].find("REF_LIKELIHOOD") != vr.regt_samples[0].end();
+    found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_likelihood);
 }
 
 TEST(VCFRecordLikelihoodTest, adds_likelihood_with_info) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, uint8_t> m;
+    unordered_map<string, vector<uint8_t>> m;
     vr.samples.push_back(m);
-    vr.samples[0]["REF_MEAN_FWD_COVG"] = 1;
-    vr.samples[0]["REF_MEAN_REV_COVG"] = 1;
-    vr.samples[0]["ALT_MEAN_FWD_COVG"] = 2;
-    vr.samples[0]["ALT_MEAN_REV_COVG"] = 2;
+    vr.samples[0]["MEAN_FWD_COVG"] = {1,2};
+    vr.samples[0]["MEAN_REV_COVG"] = {1,2};
     vr.likelihood(1, 0.01);
-    bool found_likelihood = vr.regt_samples[0].find("REF_LIKELIHOOD") != vr.regt_samples[0].end();
+    bool found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_TRUE(found_likelihood);
-    found_likelihood = vr.regt_samples[0].find("ALT_LIKELIHOOD") != vr.regt_samples[0].end();
+    found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_TRUE(found_likelihood);
 }
 
 TEST(VCFRecordLikelihoodTest, gets_correct_likelihood_simple_case) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, uint8_t> m;
+    unordered_map<string, vector<uint8_t>> m;
     vr.samples.push_back(m);
-    vr.samples[0]["REF_MEAN_FWD_COVG"] = 1;
-    vr.samples[0]["REF_MEAN_REV_COVG"] = 1;
-    vr.samples[0]["ALT_MEAN_FWD_COVG"] = 2;
-    vr.samples[0]["ALT_MEAN_REV_COVG"] = 2;
+    vr.samples[0]["MEAN_FWD_COVG"] = {1,2};
+    vr.samples[0]["MEAN_REV_COVG"] = {1,2};
     vr.likelihood(1, 0.01);
     float exp_likelihood = -1-log(2) + 4*log(0.01);
-    EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["REF_LIKELIHOOD"]);
+    EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["LIKELIHOOD"][0]);
     exp_likelihood = -1-log(4)-log(3)-log(2)+2*log(0.01);
-    EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["ALT_LIKELIHOOD"]);
+    EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["LIKELIHOOD"][1]);
 }
 
 TEST(VCFRecordLikelihoodTest, handles_ref_covg_0) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, uint8_t> m;
+    unordered_map<string, vector<uint8_t>> m;
     vr.samples.push_back(m);
-    vr.samples[0]["REF_MEAN_FWD_COVG"] = 0;
-    vr.samples[0]["REF_MEAN_REV_COVG"] = 0;
-    vr.samples[0]["ALT_MEAN_FWD_COVG"] = 2;
-    vr.samples[0]["ALT_MEAN_REV_COVG"] = 2;
+    vr.samples[0]["MEAN_FWD_COVG"] = {0,2};
+    vr.samples[0]["MEAN_REV_COVG"] = {0,2};
     vr.likelihood(1, 0.01);
     float exp_likelihood = -1 + 4 * log(0.01);
-    EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["REF_LIKELIHOOD"]);
+    EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["LIKELIHOOD"][0]);
     exp_likelihood = -1-log(4)-log(3)-log(2);
-    EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["ALT_LIKELIHOOD"]);
+    EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["LIKELIHOOD"][1]);
 }
 
 TEST(VCFRecordLikelihoodTest, handles_alt_covg_0) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, uint8_t> m;
+    unordered_map<string, vector<uint8_t>> m;
     vr.samples.push_back(m);
-    vr.samples[0]["REF_MEAN_FWD_COVG"] = 1;
-    vr.samples[0]["REF_MEAN_REV_COVG"] = 1;
-    vr.samples[0]["ALT_MEAN_FWD_COVG"] = 0;
-    vr.samples[0]["ALT_MEAN_REV_COVG"] = 0;
+    vr.samples[0]["MEAN_FWD_COVG"] = {1,0};
+    vr.samples[0]["MEAN_REV_COVG"] = {1,0};
     vr.likelihood(1, 0.01);
     float exp_likelihood = -1 + 2 * log(0.01);
-    EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["ALT_LIKELIHOOD"]);
+    EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["LIKELIHOOD"][1]);
     exp_likelihood = -1-log(2);
-    EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["REF_LIKELIHOOD"]);
+    EXPECT_FLOAT_EQ(exp_likelihood,vr.regt_samples[0]["LIKELIHOOD"][0]);
 }
 
 TEST(VCFRecordConfidenceTest, does_not_run_if_info_missing) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, float> m;
+    unordered_map<string, vector<float>> m;
     vr.regt_samples.push_back(m);
+    cout << "." << endl;
+
     vr.confidence();
     bool found_confidence = vr.regt_samples[0].find("GT_CONF") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_confidence);
-
-    vr.regt_samples[0]["REF_LIKELIHOOD"] = -1.0;
-    vr.confidence();
-    found_confidence = vr.regt_samples[0].find("GT_CONF") != vr.regt_samples[0].end();
-    EXPECT_FALSE(found_confidence);
-
-    vr.regt_samples[0]["ALT_LIKELIHOOD"] = -1.0;
-    vr.regt_samples[0].erase("REF_LIKELIHOOD");
-    vr.confidence();
-    found_confidence = vr.regt_samples[0].find("GT_CONF") != vr.regt_samples[0].end();
-    EXPECT_FALSE(found_confidence);
+    vr.regt_samples[0]["LIKELIHOOD"] = {-1.0};
+    EXPECT_DEATH(vr.confidence(),"");
 }
 
 TEST(VCFRecordConfidenceTest, adds_confidence_with_info) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, float> m;
+    unordered_map<string, vector<float>> m;
     m.reserve(3);
     vr.regt_samples.push_back(m);
-    vr.regt_samples[0]["REF_LIKELIHOOD"] = -1.0;
-    vr.regt_samples[0]["ALT_LIKELIHOOD"] = -2.5;
+    vr.regt_samples[0]["LIKELIHOOD"] = {-1.0, -2.5};
     vr.confidence();
     bool found_confidence = vr.regt_samples[0].find("GT_CONF") != vr.regt_samples[0].end();
     EXPECT_TRUE(found_confidence);
@@ -230,35 +212,32 @@ TEST(VCFRecordConfidenceTest, adds_confidence_with_info) {
 
 TEST(VCFRecordConfidenceTest, gets_correct_confidence_simple_case) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, float> m;
+    unordered_map<string, vector<float>> m;
     vr.regt_samples.push_back(m);
-    vr.regt_samples[0]["REF_LIKELIHOOD"] = -1.0;
-    vr.regt_samples[0]["ALT_LIKELIHOOD"] = 0.0;
+    vr.regt_samples[0]["LIKELIHOOD"] = {-1.0, 0.0};
     vr.confidence();
     float exp_confidence = 1;
-    EXPECT_FLOAT_EQ(exp_confidence,vr.regt_samples[0]["GT_CONF"]);
+    EXPECT_FLOAT_EQ(exp_confidence,vr.regt_samples[0]["GT_CONF"][0]);
 }
 
 TEST(VCFRecordConfidenceTest, handles_ref_covg_0) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, float> m;
+    unordered_map<string, vector<float>> m;
     vr.regt_samples.push_back(m);
-    vr.regt_samples[0]["REF_LIKELIHOOD"] = numeric_limits<float>::lowest();
-    vr.regt_samples[0]["ALT_LIKELIHOOD"] = -1.5;
+    vr.regt_samples[0]["LIKELIHOOD"]= {numeric_limits<float>::lowest(), -1.5};
     vr.confidence();
     float exp_confidence = -numeric_limits<float>::lowest()-1.5;
-    EXPECT_FLOAT_EQ(exp_confidence,vr.regt_samples[0]["GT_CONF"]);
+    EXPECT_FLOAT_EQ(exp_confidence,vr.regt_samples[0]["GT_CONF"][0]);
 }
 
 TEST(VCFRecordConfidenceTest, handles_alt_covg_0) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, float> m;
+    unordered_map<string, vector<float>> m;
     vr.regt_samples.push_back(m);
-    vr.regt_samples[0]["REF_LIKELIHOOD"] = -1.5;
-    vr.regt_samples[0]["ALT_LIKELIHOOD"] = numeric_limits<float>::lowest();
+    vr.regt_samples[0]["LIKELIHOOD"] = {-1.5, numeric_limits<float>::lowest()};
     vr.confidence();
     float exp_confidence = -numeric_limits<float>::lowest()-1.5;
-    EXPECT_FLOAT_EQ(exp_confidence,vr.regt_samples[0]["GT_CONF"]);
+    EXPECT_FLOAT_EQ(exp_confidence,vr.regt_samples[0]["GT_CONF"][0]);
 }
 
 TEST(VCFRecordRegenotypeTest, correctly_genotypes) {
@@ -270,114 +249,96 @@ TEST(VCFRecordRegenotypeTest, correctly_genotypes) {
     // sample 5 confidence above threshold, has incorrect GT 1
 
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, uint8_t> m;
-    unordered_map<string, float> rm;
+    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<float>> rm;
     for (uint i = 0; i < 6; ++i) {
         vr.regt_samples.push_back(rm);
         vr.samples.push_back(m);
     }
 
-    vr.samples[0]["REF_MEAN_FWD_COVG"] = 0;
-    vr.samples[0]["REF_MEAN_REV_COVG"] = 1;
-    vr.samples[0]["ALT_MEAN_FWD_COVG"] = 2;
-    vr.samples[0]["ALT_MEAN_REV_COVG"] = 3;
-    vr.regt_samples[0]["REF_LIKELIHOOD"] = 4;
-    vr.regt_samples[0]["ALT_LIKELIHOOD"] = 5;
-    vr.samples[0]["GT"] = 1;
+    vr.samples[0]["MEAN_FWD_COVG"] = {0,2};
+    vr.samples[0]["MEAN_REV_COVG"] = {1,3};
+    vr.regt_samples[0]["LIKELIHOOD"] = {4,5};
+    vr.samples[0]["GT"] = {1};
 
-    vr.samples[1]["REF_MEAN_FWD_COVG"] = 0;
-    vr.samples[1]["REF_MEAN_REV_COVG"] = 1;
-    vr.samples[1]["ALT_MEAN_FWD_COVG"] = 2;
-    vr.samples[1]["ALT_MEAN_REV_COVG"] = 3;
-    vr.regt_samples[1]["REF_LIKELIHOOD"] = 4;
-    vr.regt_samples[1]["ALT_LIKELIHOOD"] = 5;
-    vr.samples[1]["GT"] = 1;
-    vr.regt_samples[1]["GT_CONF"] = 1;
+    vr.samples[1]["MEAN_FWD_COVG"] = {0,2};
+    vr.samples[1]["MEAN_REV_COVG"] = {1,3};
+    vr.regt_samples[1]["LIKELIHOOD"] = {4,5};
+    vr.samples[1]["GT"] = {1};
+    vr.regt_samples[1]["GT_CONF"] = {1};
 
-    vr.samples[2]["REF_MEAN_FWD_COVG"] = 0;
-    vr.samples[2]["REF_MEAN_REV_COVG"] = 1;
-    vr.samples[2]["ALT_MEAN_FWD_COVG"] = 2;
-    vr.samples[2]["ALT_MEAN_REV_COVG"] = 3;
-    vr.regt_samples[2]["REF_LIKELIHOOD"] = 6;
-    vr.regt_samples[2]["ALT_LIKELIHOOD"] = 4;
-    vr.samples[2]["GT"] = 0;
-    vr.regt_samples[2]["GT_CONF"] = 2;
+    vr.samples[2]["MEAN_FWD_COVG"] = {0,2};
+    vr.samples[2]["MEAN_REV_COVG"] = {1,3};
+    vr.regt_samples[2]["LIKELIHOOD"] = {6,4};
+    vr.samples[2]["GT"] = {0};
+    vr.regt_samples[2]["GT_CONF"] = {2};
 
-    vr.samples[3]["REF_MEAN_FWD_COVG"] = 0;
-    vr.samples[3]["REF_MEAN_REV_COVG"] = 1;
-    vr.samples[3]["ALT_MEAN_FWD_COVG"] = 2;
-    vr.samples[3]["ALT_MEAN_REV_COVG"] = 3;
-    vr.regt_samples[3]["REF_LIKELIHOOD"] = 4;
-    vr.regt_samples[3]["ALT_LIKELIHOOD"] = 6;
-    vr.samples[3]["GT"] = 1;
-    vr.regt_samples[3]["GT_CONF"] = 2;
+    vr.samples[3]["MEAN_FWD_COVG"] = {0,2};
+    vr.samples[3]["MEAN_REV_COVG"] = {1,3};
+    vr.regt_samples[3]["LIKELIHOOD"] = {4,6};
+    vr.samples[3]["GT"] = {1};
+    vr.regt_samples[3]["GT_CONF"] = {2};
 
-    vr.samples[4]["REF_MEAN_FWD_COVG"] = 0;
-    vr.samples[4]["REF_MEAN_REV_COVG"] = 1;
-    vr.samples[4]["ALT_MEAN_FWD_COVG"] = 2;
-    vr.samples[4]["ALT_MEAN_REV_COVG"] = 3;
-    vr.regt_samples[4]["REF_LIKELIHOOD"] = 6;
-    vr.regt_samples[4]["ALT_LIKELIHOOD"] = 4;
-    vr.samples[4]["GT"] = 1;
-    vr.regt_samples[4]["GT_CONF"] = 2;
+    vr.samples[4]["MEAN_FWD_COVG"] = {0,2};
+    vr.samples[4]["MEAN_REV_COVG"] = {1,3};
+    vr.regt_samples[4]["LIKELIHOOD"] = {6,4};
+    vr.samples[4]["GT"] = {1};
+    vr.regt_samples[4]["GT_CONF"] = {2};
 
-    vr.samples[5]["REF_MEAN_FWD_COVG"] = 0;
-    vr.samples[5]["REF_MEAN_REV_COVG"] = 1;
-    vr.samples[5]["ALT_MEAN_FWD_COVG"] = 2;
-    vr.samples[5]["ALT_MEAN_REV_COVG"] = 3;
-    vr.regt_samples[5]["REF_LIKELIHOOD"] = 4;
-    vr.regt_samples[5]["ALT_LIKELIHOOD"] = 6;
-    vr.samples[5]["GT"] = 0;
-    vr.regt_samples[5]["GT_CONF"] = 2;
+    vr.samples[5]["MEAN_FWD_COVG"] = {0,2};
+    vr.samples[5]["MEAN_REV_COVG"] = {1,3};
+    vr.regt_samples[5]["LIKELIHOOD"] = {4,6};
+    vr.samples[5]["GT"] = {0};
+    vr.regt_samples[5]["GT_CONF"] = {2};
 
     vr.genotype(1);
-    EXPECT_EQ(vr.samples[0]["REF_MEAN_FWD_COVG"],0);
-    EXPECT_EQ(vr.samples[0]["REF_MEAN_REV_COVG"],1);
-    EXPECT_EQ(vr.samples[0]["ALT_MEAN_FWD_COVG"],2);
-    EXPECT_EQ(vr.samples[0]["ALT_MEAN_REV_COVG"],3);
-    EXPECT_EQ(vr.regt_samples[0]["REF_LIKELIHOOD"],4);
-    EXPECT_EQ(vr.regt_samples[0]["ALT_LIKELIHOOD"],5);
-    EXPECT_EQ(vr.samples[0]["GT"],'\0');
+    EXPECT_EQ(vr.samples[0]["MEAN_FWD_COVG"][0],0);
+    EXPECT_EQ(vr.samples[0]["MEAN_REV_COVG"][0],1);
+    EXPECT_EQ(vr.samples[0]["MEAN_FWD_COVG"][1],2);
+    EXPECT_EQ(vr.samples[0]["MEAN_REV_COVG"][1],3);
+    EXPECT_EQ(vr.regt_samples[0]["LIKELIHOOD"][0],4);
+    EXPECT_EQ(vr.regt_samples[0]["LIKELIHOOD"][1],5);
+    EXPECT_EQ(vr.samples[0]["GT"].size(),0);
 
-    EXPECT_EQ(vr.samples[1]["REF_MEAN_FWD_COVG"],0);
-    EXPECT_EQ(vr.samples[1]["REF_MEAN_REV_COVG"],1);
-    EXPECT_EQ(vr.samples[1]["ALT_MEAN_FWD_COVG"],2);
-    EXPECT_EQ(vr.samples[1]["ALT_MEAN_REV_COVG"],3);
-    EXPECT_EQ(vr.regt_samples[1]["REF_LIKELIHOOD"],4);
-    EXPECT_EQ(vr.regt_samples[1]["ALT_LIKELIHOOD"],5);
-    EXPECT_EQ(vr.samples[1]["GT"],'\0');
+    EXPECT_EQ(vr.samples[1]["MEAN_FWD_COVG"][0],0);
+    EXPECT_EQ(vr.samples[1]["MEAN_REV_COVG"][0],1);
+    EXPECT_EQ(vr.samples[1]["MEAN_FWD_COVG"][1],2);
+    EXPECT_EQ(vr.samples[1]["MEAN_REV_COVG"][1],3);
+    EXPECT_EQ(vr.regt_samples[1]["LIKELIHOOD"][0],4);
+    EXPECT_EQ(vr.regt_samples[1]["LIKELIHOOD"][1],5);
+    EXPECT_EQ(vr.samples[1]["GT"].size(),0);
 
-    EXPECT_EQ(vr.samples[2]["REF_MEAN_FWD_COVG"],0);
-    EXPECT_EQ(vr.samples[2]["REF_MEAN_REV_COVG"],1);
-    EXPECT_EQ(vr.samples[2]["ALT_MEAN_FWD_COVG"],2);
-    EXPECT_EQ(vr.samples[2]["ALT_MEAN_REV_COVG"],3);
-    EXPECT_EQ(vr.regt_samples[2]["REF_LIKELIHOOD"],6);
-    EXPECT_EQ(vr.regt_samples[2]["ALT_LIKELIHOOD"],4);
-    EXPECT_EQ(vr.samples[2]["GT"],0);
+    EXPECT_EQ(vr.samples[2]["MEAN_FWD_COVG"][0],0);
+    EXPECT_EQ(vr.samples[2]["MEAN_REV_COVG"][0],1);
+    EXPECT_EQ(vr.samples[2]["MEAN_FWD_COVG"][1],2);
+    EXPECT_EQ(vr.samples[2]["MEAN_REV_COVG"][1],3);
+    EXPECT_EQ(vr.regt_samples[2]["LIKELIHOOD"][0],6);
+    EXPECT_EQ(vr.regt_samples[2]["LIKELIHOOD"][1],4);
+    EXPECT_EQ(vr.samples[2]["GT"][0],0);
 
-    EXPECT_EQ(vr.samples[3]["REF_MEAN_FWD_COVG"],0);
-    EXPECT_EQ(vr.samples[3]["REF_MEAN_REV_COVG"],1);
-    EXPECT_EQ(vr.samples[3]["ALT_MEAN_FWD_COVG"],2);
-    EXPECT_EQ(vr.samples[3]["ALT_MEAN_REV_COVG"],3);
-    EXPECT_EQ(vr.regt_samples[3]["REF_LIKELIHOOD"],4);
-    EXPECT_EQ(vr.regt_samples[3]["ALT_LIKELIHOOD"],6);
-    EXPECT_EQ(vr.samples[3]["GT"],1);
+    EXPECT_EQ(vr.samples[3]["MEAN_FWD_COVG"][0],0);
+    EXPECT_EQ(vr.samples[3]["MEAN_REV_COVG"][0],1);
+    EXPECT_EQ(vr.samples[3]["MEAN_FWD_COVG"][1],2);
+    EXPECT_EQ(vr.samples[3]["MEAN_REV_COVG"][1],3);
+    EXPECT_EQ(vr.regt_samples[3]["LIKELIHOOD"][0],4);
+    EXPECT_EQ(vr.regt_samples[3]["LIKELIHOOD"][1],6);
+    EXPECT_EQ(vr.samples[3]["GT"][0],1);
 
-    EXPECT_EQ(vr.samples[4]["REF_MEAN_FWD_COVG"],0);
-    EXPECT_EQ(vr.samples[4]["REF_MEAN_REV_COVG"],1);
-    EXPECT_EQ(vr.samples[4]["ALT_MEAN_FWD_COVG"],2);
-    EXPECT_EQ(vr.samples[4]["ALT_MEAN_REV_COVG"],3);
-    EXPECT_EQ(vr.regt_samples[4]["REF_LIKELIHOOD"],6);
-    EXPECT_EQ(vr.regt_samples[4]["ALT_LIKELIHOOD"],4);
-    EXPECT_EQ(vr.samples[4]["GT"],0);
+    EXPECT_EQ(vr.samples[4]["MEAN_FWD_COVG"][0],0);
+    EXPECT_EQ(vr.samples[4]["MEAN_REV_COVG"][0],1);
+    EXPECT_EQ(vr.samples[4]["MEAN_FWD_COVG"][1],2);
+    EXPECT_EQ(vr.samples[4]["MEAN_REV_COVG"][1],3);
+    EXPECT_EQ(vr.regt_samples[4]["LIKELIHOOD"][0],6);
+    EXPECT_EQ(vr.regt_samples[4]["LIKELIHOOD"][1],4);
+    EXPECT_EQ(vr.samples[4]["GT"][0],0);
 
-    EXPECT_EQ(vr.samples[5]["REF_MEAN_FWD_COVG"],0);
-    EXPECT_EQ(vr.samples[5]["REF_MEAN_REV_COVG"],1);
-    EXPECT_EQ(vr.samples[5]["ALT_MEAN_FWD_COVG"],2);
-    EXPECT_EQ(vr.samples[5]["ALT_MEAN_REV_COVG"],3);
-    EXPECT_EQ(vr.regt_samples[5]["REF_LIKELIHOOD"],4);
-    EXPECT_EQ(vr.regt_samples[5]["ALT_LIKELIHOOD"],6);
-    EXPECT_EQ(vr.samples[5]["GT"],1);
+    EXPECT_EQ(vr.samples[5]["MEAN_FWD_COVG"][0],0);
+    EXPECT_EQ(vr.samples[5]["MEAN_REV_COVG"][0],1);
+    EXPECT_EQ(vr.samples[5]["MEAN_FWD_COVG"][1],2);
+    EXPECT_EQ(vr.samples[5]["MEAN_REV_COVG"][1],3);
+    EXPECT_EQ(vr.regt_samples[5]["LIKELIHOOD"][0],4);
+    EXPECT_EQ(vr.regt_samples[5]["LIKELIHOOD"][1],6);
+    EXPECT_EQ(vr.samples[5]["GT"][0],1);
 }
 
 
@@ -445,9 +406,9 @@ TEST(VCFRecordTest, ostream) {
 
 TEST(VCFRecordTest, ostream_with_sample_not_all_info_in_formats) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, uint8_t> m;
-    m["GT"] = 1;
-    m["pringle"] = 2;
+    unordered_map<string, vector<uint8_t>> m;
+    m["GT"] = {1};
+    m["pringle"] = {2};
     vr.samples.push_back(m);
     vector<string> v = {"chrom1","4",".","A","T",".",".","SVTYPE=SNP","GT"};
     stringstream out;
@@ -465,9 +426,9 @@ TEST(VCFRecordTest, ostream_with_sample_not_all_info_in_formats) {
 
 TEST(VCFRecordTest, ostream_with_sample_including_all_formats) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, uint8_t> m;
-    m["GT"] = 0;
-    m["pringle"] = 2;
+    unordered_map<string, vector<uint8_t>> m;
+    m["GT"] = {0};
+    m["pringle"] = {2};
     vr.samples.push_back(m);
     vr.add_formats({"pringle"});
     vector<string> v = {"chrom1","4",".","A","T",".",".","SVTYPE=SNP","GT:pringle"};
@@ -490,8 +451,8 @@ TEST(VCFRecordTest, ostream_with_sample_including_all_formats) {
 
 TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, uint8_t> m;
-    m["GT"] = 0;
+    unordered_map<string, vector<uint8_t>> m;
+    m["GT"] = {0};
     vr.samples.push_back(m);
     vr.add_formats({"pringle"});
     vector<string> v = {"chrom1","4",".","A","T",".",".","SVTYPE=SNP","GT:pringle"};
@@ -513,11 +474,11 @@ TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info) {
 
 TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info_regt) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, uint8_t> m;
-    m["GT"] = 0;
+    unordered_map<string, vector<uint8_t>> m;
+    m["GT"] = {0};
     vr.samples.push_back(m);
-    unordered_map<string, float> n;
-    n["pringle"] = 0.1;
+    unordered_map<string, vector<float>> n;
+    n["pringle"] = {0.1};
     vr.regt_samples.push_back(n);
     vr.add_formats({"pringle"});
     vector<string> v = {"chrom1","4",".","A","T",".",".","SVTYPE=SNP","GT:pringle"};
@@ -540,11 +501,11 @@ TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info_regt) {
 
 TEST(VCFRecordTest, ostream_with_zero_pos) {
     VCFRecord vr("chrom1", 0, "A", "T");
-    unordered_map<string, uint8_t> m;
-    m["GT"] = 0;
+    unordered_map<string, vector<uint8_t>> m;
+    m["GT"] = {0};
     vr.samples.push_back(m);
-    unordered_map<string, float> n;
-    n["pringle"] = 0.1;
+    unordered_map<string, vector<float>> n;
+    n["pringle"] = {0.1};
     vr.regt_samples.push_back(n);
     vr.add_formats({"pringle"});
     vector<string> v = {"chrom1","1",".","A","T",".",".","SVTYPE=SNP","GT:pringle"};

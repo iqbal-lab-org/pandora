@@ -1235,65 +1235,51 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         vector<string>::iterator sample_it = find(vcf.samples.begin(), vcf.samples.end(), sample_name);
         assert(sample_it != vcf.samples.end());
         auto sample_index = distance(vcf.samples.begin(), sample_it);
-        //if (record.samples[sample_index].at(0) == '0' or record.samples[sample_index].at(0) == '.') {
-        alt_path = find_alt_path(ref_path, record.pos, record.ref, record.alt);
-        alt_kmer_path = kmernode_path_from_localnode_path(alt_path);
-        /*cout << "alt kmer path ";
-        for (auto n : alt_kmer_path) {
-            cout << n->path << " ";
-        }
-        cout << endl;*/
-        //} else {
-        //    alt_kmer_path = sample_kmer_path;
-        //}
 
-        // find alt covgs
-        end_pos = record.pos + record.alt.length();
-        if (record.alt == ".")
-            end_pos = record.pos;
+        record.samples[sample_index]["MEAN_FWD_COVG"] = {};
+        record.samples[sample_index]["MEAN_REV_COVG"] = {};
+        record.samples[sample_index]["MED_FWD_COVG"] = {};
+        record.samples[sample_index]["MED_REV_COVG"] = {};
+        record.samples[sample_index]["SUM_FWD_COVG"] = {};
+        record.samples[sample_index]["SUM_REV_COVG"] = {};
 
-        append_kmer_covgs_in_range(kg,
-                                   alt_kmer_path,
-                                   alt_path,
-                                   record.pos,
-                                   end_pos,
-                                   alt_fwd_covgs,
-                                   alt_rev_covgs);
+        record.samples[sample_index]["MEAN_FWD_COVG"].push_back(mean(ref_fwd_covgs));
+        record.samples[sample_index]["MEAN_REV_COVG"].push_back(mean(ref_rev_covgs));
+        record.samples[sample_index]["MED_FWD_COVG"].push_back(median(ref_fwd_covgs));
+        record.samples[sample_index]["MED_REV_COVG"].push_back(median(ref_rev_covgs));
+        record.samples[sample_index]["SUM_FWD_COVG"].push_back(sum(ref_fwd_covgs));
+        record.samples[sample_index]["SUM_REV_COVG"].push_back(sum(ref_rev_covgs));
 
-        /*cout << "ref_fwd_covgs = {";
-        for (auto t : ref_fwd_covgs){
-            cout << t << " ";
-        }
-        cout << "}" << endl << "ref_rev_covgs = {";
-        for (auto t : ref_rev_covgs){
-            cout << t << " ";
-        }
-        cout << "}" << endl << "alt_fwd_covgs = {";
-        for (auto t : alt_fwd_covgs){
-            cout << t << " ";
-        }
-        cout << "}" << endl << "alt_rev_covgs = {";
-        for (auto t : alt_rev_covgs){
-            cout << t << " ";
-        }
-        cout << "}" << endl;*/
+        for (auto alt_allele : record.alt) {
+            alt_path = find_alt_path(ref_path, record.pos, record.ref, alt_allele);
+            alt_kmer_path = kmernode_path_from_localnode_path(alt_path);
 
-        record.samples[sample_index]["REF_MEAN_FWD_COVG"] = mean(ref_fwd_covgs);
-        record.samples[sample_index]["REF_MEAN_REV_COVG"] = mean(ref_rev_covgs);
-        record.samples[sample_index]["ALT_MEAN_FWD_COVG"] = mean(alt_fwd_covgs);
-        record.samples[sample_index]["ALT_MEAN_REV_COVG"] = mean(alt_rev_covgs);
-        record.samples[sample_index]["REF_MED_FWD_COVG"] = median(ref_fwd_covgs);
-        record.samples[sample_index]["REF_MED_REV_COVG"] = median(ref_rev_covgs);
-        record.samples[sample_index]["ALT_MED_FWD_COVG"] = median(alt_fwd_covgs);
-        record.samples[sample_index]["ALT_MED_REV_COVG"] = median(alt_rev_covgs);
-        record.samples[sample_index]["REF_SUM_FWD_COVG"] = sum(ref_fwd_covgs);
-        record.samples[sample_index]["REF_SUM_REV_COVG"] = sum(ref_rev_covgs);
-        record.samples[sample_index]["ALT_SUM_FWD_COVG"] = sum(alt_fwd_covgs);
-        record.samples[sample_index]["ALT_SUM_REV_COVG"] = sum(alt_rev_covgs);
+            // find alt covgs
+            end_pos = record.pos + alt_allele.length();
+            if (alt_allele == ".")
+                end_pos = record.pos;
 
-        record.add_formats({"REF_MEAN_FWD_COVG","REF_MEAN_REV_COVG","ALT_MEAN_FWD_COVG","ALT_MEAN_REV_COVG",
-                           "REF_MED_FWD_COVG","REF_MED_REV_COVG","ALT_MED_FWD_COVG","ALT_MED_REV_COVG",
-                           "REF_SUM_FWD_COVG","REF_SUM_REV_COVG","ALT_SUM_FWD_COVG","ALT_SUM_REV_COVG"});
+            append_kmer_covgs_in_range(kg,
+                                       alt_kmer_path,
+                                       alt_path,
+                                       record.pos,
+                                       end_pos,
+                                       alt_fwd_covgs,
+                                       alt_rev_covgs);
+
+            record.samples[sample_index]["MEAN_FWD_COVG"].push_back(mean(alt_fwd_covgs));
+            record.samples[sample_index]["MEAN_REV_COVG"].push_back(mean(alt_rev_covgs));
+            record.samples[sample_index]["MED_FWD_COVG"].push_back(median(alt_fwd_covgs));
+            record.samples[sample_index]["MED_REV_COVG"].push_back(median(alt_rev_covgs));
+            record.samples[sample_index]["SUM_FWD_COVG"].push_back(sum(alt_fwd_covgs));
+            record.samples[sample_index]["SUM_REV_COVG"].push_back(sum(alt_rev_covgs));
+            alt_fwd_covgs.clear();
+            alt_rev_covgs.clear();
+        }
+
+        record.add_formats({"MEAN_FWD_COVG","MEAN_REV_COVG",
+                           "MED_FWD_COVG","MED_REV_COVG",
+                           "SUM_FWD_COVG","SUM_REV_COVG"});
 
         ref_fwd_covgs.clear();
         ref_rev_covgs.clear();
