@@ -51,8 +51,6 @@ public:
 
     void load(const std::string &);
 
-    //void write_aligned_fasta(const std::string &, const std::string&, const std::vector<LocalNodePtr> &);
-
     bool operator==(const VCF &y) const;
 
     bool operator!=(const VCF &y) const;

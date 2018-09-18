@@ -725,7 +725,7 @@ TEST(VCFTest, load) {
     EXPECT_EQ(vcf == vcf1, true);
 }
 
-/*TEST(VCFTest, filter) {
+TEST(VCFTest, filter) {
     VCF vcf, vcf1, vcf2, vcf3, vcf4;
     vcf.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
     vcf.add_record("chrom1", 46, "T", "TA", "SVTYPE=INDEL;GRAPHTYPE=NESTED");
@@ -744,39 +744,4 @@ TEST(VCFTest, load) {
     vcf3.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=SNP;GRAPHTYPE=NESTED");
     vcf4.load("vcf_filter_test.vcf");
     EXPECT_EQ(vcf3 == vcf4, true);
-
 }
-
-TEST(VCFTest, write_aligned_fasta) {
-    VCF vcf;
-    vcf.add_record("chrom1", 1, "A", "G");
-    vcf.add_record("chrom1", 3, "T", "TA");
-    VCFRecord vr = VCFRecord("chrom1", 5, "C", "G");
-    vcf.add_record(vr);
-    uint j = 3;
-    EXPECT_EQ(j, vcf.records.size());
-
-    vector<LocalNodePtr> lmp;
-    vcf.write_aligned_fasta("vcf1.multisample.fa", "chrom1", lmp);
-
-    // add just the ref
-    LocalNodePtr ln0(make_shared<LocalNode>("A", Interval(0, 1), 1));
-    lmp.push_back(ln0);
-    LocalNodePtr ln1(make_shared<LocalNode>("A", Interval(5, 6), 2));
-    lmp.push_back(ln1);
-    LocalNodePtr ln4(make_shared<LocalNode>("A", Interval(7, 8), 3));
-    lmp.push_back(ln4);
-    LocalNodePtr ln2(make_shared<LocalNode>("T", Interval(46, 47), 4));
-    lmp.push_back(ln2);
-    LocalNodePtr ln5(make_shared<LocalNode>("A", Interval(50, 51), 5));
-    lmp.push_back(ln5);
-    LocalNodePtr ln3(make_shared<LocalNode>("C", Interval(79, 80), 6));
-    lmp.push_back(ln3);
-    vcf.write_aligned_fasta("vcf2.multisample.fa", "chrom1", lmp);
-
-    // now add a sample
-    vcf.add_sample_gt("sample1", "chrom1", 46, "T", "TA");
-    cout << vcf << endl;
-    vcf.write_aligned_fasta("vcf3.multisample.fa", "chrom1", lmp);
-
-}*/
