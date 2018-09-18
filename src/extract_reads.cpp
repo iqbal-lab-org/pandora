@@ -314,7 +314,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
         const auto slice_coverage{fa.calculate_kmer_coverage(sub_lmp_as_string.length(), g_local_assembly_kmer_size)};
         BOOST_LOG_TRIVIAL(info) << "Coverage for slice is " << std::to_string(slice_coverage);
 
-        const auto len_threshold{150};
+        const auto len_threshold{300};
         const unsigned long max_path_length{sub_lmp_as_string.length() + (interval.length * 2)};
         BOOST_LOG_TRIVIAL(debug) << "Max path length is calculated as " << std::to_string(sub_lmp_as_string.length())
                                  << " + (" << std::to_string(interval.length) << " * 5) = "
