@@ -471,7 +471,6 @@ void local_assembly(const std::vector<std::string> &sequences, std::unordered_se
                     const unsigned int kmer_size, const unsigned long max_path_length,
                     const double &expected_coverage, const bool clean_graph,
                     const unsigned int min_coverage) {
-    // TODO: implement based on other local assemblies
     logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
     BOOST_LOG_TRIVIAL(debug) << "Parameters for local assembly: ";

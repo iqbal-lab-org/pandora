@@ -814,6 +814,37 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
     remove(out_path.c_str());
 }
 
+TEST(LocalAssemblyTestUsingSequenceVector, twoIdenticalReads_onePath) {
+    const std::vector<std::string> sequences {"ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT"};
+    std::string start_kmer {"ATGCGCTGA"};
+    std::string end_kmer {"AGTCGGACT"};
+    const std::string out_path {"../../test/test_cases/local_assembly1_paths.fa"};
+    const int k {9};
+    const int max_len {30};
+    const bool clean {false};
+    local_assembly(sequences, start_kmer, end_kmer, out_path, k, max_len, 1, clean);
+
+    const std::unordered_set<std::string> expected {"ATGCGCTGAGAGTCGGACT"};
+    std::unordered_set<std::string> result;
+
+    // read paths file  back in and store all paths in set
+    std::ifstream fin {out_path};
+    std::string line;
+
+    while (std::getline(fin, line)) {
+        if (line[0] == '>') {
+            line.clear();
+        }
+        else {
+            result.insert(line);
+            line.clear();
+        }
+    }
+
+    EXPECT_EQ(result, expected);
+    remove(out_path.c_str());
+}
+
 //TEST(LocalAssemblyTest, debug) {
 //    const std::string filepath {"../../test/test_cases/GC00000008_17.2568-2577.fa"};
 //    std::string start_kmer = "CGGGCGGACGC";
