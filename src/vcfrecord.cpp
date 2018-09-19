@@ -101,13 +101,13 @@ void VCFRecord::likelihood(const uint32_t& expected_depth_covg, const float& err
             and samples[i]["MEAN_FWD_COVG"].size() >= 2) {
 
             vector<uint16_t> covgs = {};
-            for (auto j=0; j<samples[i]["MEAN_FWD_COVG"].size(); ++j) {
+            for (uint j=0; j<samples[i]["MEAN_FWD_COVG"].size(); ++j) {
                 covgs.push_back(samples[i]["MEAN_FWD_COVG"][j] + samples[i]["MEAN_REV_COVG"][j]);
             }
 
             vector<float> likelihoods = {};
             float likelihood = 0;
-            for (auto j=0; j<covgs.size(); ++j) {
+            for (uint j=0; j<covgs.size(); ++j) {
                 auto other_covg = accumulate(covgs.begin(),covgs.end(),0) - covgs[j];
                 if (covgs[j] > 0)
                     likelihood = covgs[j] * log(expected_depth_covg) - expected_depth_covg
@@ -222,13 +222,15 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
         out << "\t";
         for (auto f : m.format){
             string buffer = "";
-            if (m.samples[i].find(f)!=m.samples[i].end()) {
+            if (m.samples[i].find(f)!=m.samples[i].end() and m.samples[i].at(f).size() > 0) {
                 for (const auto a : m.samples.at(i).at(f)) {
                     out << buffer << +a;
                     buffer = ",";
                 }
 
-            } else if (m.regt_samples.size() > 0 and m.regt_samples[i].find(f)!=m.regt_samples[i].end()) {
+            } else if (m.regt_samples.size() > 0
+                       and m.regt_samples[i].find(f)!=m.regt_samples[i].end()
+                       and m.regt_samples[i].at(f).size() > 0) {
                 for (const auto a : m.regt_samples.at(i).at(f)) {
                     out << buffer << +a;
                     buffer = ",";

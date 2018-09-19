@@ -407,6 +407,77 @@ TEST(VCFTest, sort_records) {
     EXPECT_EQ("G", vcf.records[5].alt[0]);
 }
 
+/*TEST(VCFTest, merge_multi_allelic) {
+    VCF vcf;
+    // no gt
+    vcf.add_record("chrom1", 5, "A", "G");
+    vcf.add_record("chrom1", 5, "A", "C");
+    // gt
+    vcf.add_record("chrom1", 46, "CTT", "A");
+    vcf.add_record("chrom1", 46, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 46, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 46, "CTT", "A");
+    // likelihoods too
+    vcf.add_record("chrom1", 76, "CTT", "A");
+    vcf.add_record("chrom1", 76, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 76, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 76, "CTT", "A");
+    unordered_map<string, vector<float>> dummy;
+    vcf.records[4].regt_samples.push_back(dummy);
+    vcf.records[5].regt_samples.push_back(dummy);
+    vcf.records[4].regt_samples[0]["LIKELIHOOD"] = {-50,-3};
+    vcf.records[5].regt_samples[0]["LIKELIHOOD"] = {-50,-16};
+    vcf.records[4].regt_samples[0]["GT_CONF"] = {47};
+    vcf.records[5].regt_samples[0]["GT_CONF"] = {56};
+    // incompatible
+    vcf.add_record("chrom1", 85, "A", "G");
+    vcf.add_record("chrom1", 85, "T", "C");
+
+    cout << vcf << endl;
+    vcf.merge_multi_allelic();
+    cout << vcf << endl;
+
+    cout << "0" << endl;
+    EXPECT_EQ((uint) 5, vcf.records.size());
+    EXPECT_EQ((uint)5, vcf.records[0].pos);
+    EXPECT_EQ((uint)2, vcf.records[0].alt.size());
+    EXPECT_EQ((uint)1, vcf.records[0].samples.size());
+    EXPECT_EQ((uint)0, vcf.records[0].samples[0].size());
+
+    cout << "0" << endl;
+    EXPECT_EQ((uint)46, vcf.records[1].pos);
+    EXPECT_EQ((uint)2, vcf.records[1].alt.size());
+    EXPECT_EQ((uint)1, vcf.records[1].samples.size());
+    bool found_gt = vcf.records[1].samples[0].find("GT") != vcf.records[1].samples[0].end();
+    EXPECT_TRUE(found_gt);
+    EXPECT_EQ((uint)0, vcf.records[1].samples[0]["GT"].size());
+
+    cout << "0" << endl;
+    EXPECT_EQ((uint)76, vcf.records[2].pos);
+    EXPECT_EQ((uint)2, vcf.records[2].alt.size());
+    EXPECT_EQ((uint)1, vcf.records[2].samples.size());
+    found_gt = vcf.records[2].samples[0].find("GT") != vcf.records[2].samples[0].end();
+    EXPECT_TRUE(found_gt);
+    EXPECT_EQ((uint)1, vcf.records[2].samples[0]["GT"][0]);
+    EXPECT_EQ((uint)2, vcf.records[2].regt_samples[0].size());
+    bool found = vcf.records[2].regt_samples[0].find("LIKELIHOOD") != vcf.records[2].regt_samples[0].end();
+    EXPECT_TRUE(found);
+    EXPECT_EQ((uint)3, vcf.records[2].regt_samples[0]["LIKELIHOOD"].size());
+    EXPECT_EQ(-50.0, vcf.records[2].regt_samples[0]["LIKELIHOOD"][0]);
+    EXPECT_EQ(-3.0, vcf.records[2].regt_samples[0]["LIKELIHOOD"][1]);
+    EXPECT_EQ(-16.0, vcf.records[2].regt_samples[0]["LIKELIHOOD"][2]);
+    found = vcf.records[2].regt_samples[0].find("GT_CONF") != vcf.records[2].regt_samples[0].end();
+    EXPECT_TRUE(found);
+    EXPECT_EQ((uint)1, vcf.records[2].regt_samples[0]["GT_CONF"].size());
+    EXPECT_EQ(13.0, vcf.records[2].regt_samples[0]["GT_CONF"][0]);
+
+    cout << "0" << endl;
+    EXPECT_EQ((uint)85, vcf.records[3].pos);
+    EXPECT_EQ((uint)1, vcf.records[3].alt.size());
+    EXPECT_EQ((uint)85, vcf.records[4].pos);
+    EXPECT_EQ((uint)1, vcf.records[4].alt.size());
+}*/
+
 TEST(VCFTest, pos_in_range) {
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");
@@ -655,6 +726,68 @@ TEST(VCFTest, genotype_with_all_sites) {
 
 }
 
+TEST(VCFTest, make_gt_compatible) {
+    VCF vcf;
+    // no gt
+    vcf.add_record("chrom1", 5, "A", "G");
+    vcf.add_record("chrom1", 5, "A", "C");
+    // gt incompatible no likelihoods
+    vcf.add_record("chrom1", 46, "CTT", "A");
+    vcf.add_record("chrom1", 46, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 46, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 46, "CTT", "A");
+    // gt incompatible, likelihoods too both alts
+    vcf.add_record("chrom1", 76, "CTT", "A");
+    vcf.add_record("chrom1", 76, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 76, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 76, "CTT", "A");
+    unordered_map<string, vector<float>> dummy;
+    vcf.records[4].regt_samples.push_back(dummy);
+    vcf.records[5].regt_samples.push_back(dummy);
+    vcf.records[4].regt_samples[0]["LIKELIHOOD"] = {-50, -3};
+    vcf.records[5].regt_samples[0]["LIKELIHOOD"] = {-50, -16};
+    vcf.records[4].regt_samples[0]["GT_CONF"] = {47};
+    vcf.records[5].regt_samples[0]["GT_CONF"] = {56};
+    // gt incompatible one ref, ref correct
+    vcf.add_record("chrom1", 85, "A", "G");
+    vcf.add_record("chrom1", 85, "A", "C");
+    vcf.add_sample_gt("sample", "chrom1", 85, "A", "A");
+    vcf.records[6].samples[0]["GT"] = {1};
+    vcf.records[6].regt_samples.push_back(dummy);
+    vcf.records[7].regt_samples.push_back(dummy);
+    vcf.records[6].regt_samples[0]["LIKELIHOOD"] = {-5, -30};
+    vcf.records[7].regt_samples[0]["LIKELIHOOD"] = {-5, -16};
+    vcf.records[6].regt_samples[0]["GT_CONF"] = {47};
+    vcf.records[7].regt_samples[0]["GT_CONF"] = {56};
+    // gt incompatible one ref, ref wrong
+    vcf.add_record("chrom1", 95, "A", "G");
+    vcf.add_record("chrom1", 95, "A", "C");
+    vcf.add_sample_gt("sample", "chrom1", 95, "A", "A");
+    vcf.records[8].samples[0]["GT"] = {1};
+    vcf.records[8].regt_samples.push_back(dummy);
+    vcf.records[9].regt_samples.push_back(dummy);
+    vcf.records[8].regt_samples[0]["LIKELIHOOD"] = {-50, -3};
+    vcf.records[9].regt_samples[0]["LIKELIHOOD"] = {-50, -60};
+    vcf.records[8].regt_samples[0]["GT_CONF"] = {47};
+    vcf.records[9].regt_samples[0]["GT_CONF"] = {10};
+
+    cout << vcf << endl;
+    vcf.make_gt_compatible();
+    cout << vcf << endl;
+
+    bool found_gt = vcf.records[0].samples[0].find("GT") != vcf.records[0].samples[0].end();
+    EXPECT_FALSE(found_gt);
+    found_gt = vcf.records[1].samples[0].find("GT") != vcf.records[1].samples[0].end();
+    EXPECT_FALSE(found_gt);
+    EXPECT_EQ((uint)0, vcf.records[2].samples[0]["GT"].size());
+    EXPECT_EQ((uint)0, vcf.records[3].samples[0]["GT"].size());
+    EXPECT_EQ((uint8_t)1,vcf.records[4].samples[0]["GT"][0]);
+    EXPECT_EQ((uint)0, vcf.records[5].samples[0]["GT"].size());
+    EXPECT_EQ((uint8_t)0,vcf.records[6].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t)0,vcf.records[7].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t)1,vcf.records[8].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t)0,vcf.records[9].samples[0]["GT"].size());
+}
 
 TEST(VCFTest, equals) {
     VCF vcf;

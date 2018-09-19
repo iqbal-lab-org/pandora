@@ -56,6 +56,33 @@ TEST(VCFRecordTest, create_from_record) {
     EXPECT_EQ((uint)0, vr.regt_samples.size());
 }
 
+TEST(VCFRecordTest, create_from_record_with_samples) {
+
+    VCFRecord template_vr("chrom1", 3, "A", "T");
+    unordered_map<string,vector<uint8_t>> empty_map;
+    template_vr.samples.push_back(empty_map);
+    template_vr.samples[0]["GT"] = {0};
+    template_vr.samples.push_back(empty_map);
+    template_vr.samples[1]["GT"] = {1};
+    unordered_map<string,vector<float>> empty_map2;
+    template_vr.regt_samples.push_back(empty_map2);
+    template_vr.regt_samples[0]["GT_CONF"] = {4.0};
+    template_vr.regt_samples.push_back(empty_map2);
+    template_vr.regt_samples[1]["GT_CONF"] = {6.3};
+    VCFRecord vr(template_vr);
+    EXPECT_EQ("chrom1", vr.chrom);
+    EXPECT_EQ((uint) 3, vr.pos);
+    EXPECT_EQ(".", vr.id);
+    EXPECT_EQ("A", vr.ref);
+    EXPECT_EQ("T", vr.alt[0]);
+    EXPECT_EQ(".", vr.qual);
+    EXPECT_EQ(".", vr.filter);
+    EXPECT_EQ("SVTYPE=SNP", vr.info);
+    EXPECT_EQ((uint)1, vr.format.size());
+    EXPECT_EQ((uint)2, vr.samples.size());
+    EXPECT_EQ((uint)2, vr.regt_samples.size());
+}
+
 TEST(VCFRecordTest, clear_simple) {
     VCFRecord vr("chrom1", 3, "A", "T");
     vr.clear();
