@@ -195,7 +195,7 @@ void VCF::sort_records() {
     return;
 }
 
-void merge_sample_key (unordered_map<string, vector<uint8_t>>& first,
+/*void merge_sample_key (unordered_map<string, vector<uint8_t>>& first,
                        const unordered_map<string, vector<uint8_t>>& second,
                        const string& key){
     if (first.empty() or second.empty() or first.find(key) == first.end())
@@ -314,7 +314,7 @@ void VCF::merge_multi_allelic() {
     }
     sort_records();
     clean();
-}
+}*/
 
 bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const string& chrom) const {
     // is there a record contained in the range from,to?
@@ -336,9 +336,10 @@ void VCF::genotype(const uint32_t & expected_depth_covg, const float & error_rat
         }
     }
     add_formats({"GT_CONF", "LIKELIHOOD"});
+    make_gt_compatible();
 }
 
-void VCF::clean(){
+/*void VCF::clean(){
     VCFRecord dummy;
     for (auto record_it = records.begin(); record_it!= records.end();){
         if (*record_it == dummy)
@@ -346,7 +347,7 @@ void VCF::clean(){
         else
             record_it++;
     }
-}
+}*/
 
 void VCF::make_gt_compatible(){
     for (auto &record : records){
