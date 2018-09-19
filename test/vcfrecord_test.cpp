@@ -56,6 +56,70 @@ TEST(VCFRecordTest, create_from_record) {
     EXPECT_EQ((uint)0, vr.regt_samples.size());
 }
 
+TEST(VCFRecordTest, clear_simple) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    vr.clear();
+    EXPECT_EQ(".", vr.chrom);
+    EXPECT_EQ((uint) 0, vr.pos);
+    EXPECT_EQ(".", vr.id);
+    EXPECT_EQ(".", vr.ref);
+    EXPECT_EQ((uint)0, vr.alt.size());
+    EXPECT_EQ(".", vr.qual);
+    EXPECT_EQ(".", vr.filter);
+    EXPECT_EQ(".", vr.info);
+    EXPECT_EQ((uint)0, vr.format.size());
+    EXPECT_EQ((uint)0, vr.samples.size());
+    EXPECT_EQ((uint)0, vr.regt_samples.size());
+}
+
+TEST(VCFRecordTest, clear_with_samples) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    unordered_map<string,vector<uint8_t>> empty_map;
+    vr.samples.push_back(empty_map);
+    vr.samples[0]["GT"] = {0};
+    vr.samples.push_back(empty_map);
+    vr.samples[1]["GT"] = {1};
+    vr.clear();
+    EXPECT_EQ(".", vr.chrom);
+    EXPECT_EQ((uint) 0, vr.pos);
+    EXPECT_EQ(".", vr.id);
+    EXPECT_EQ(".", vr.ref);
+    EXPECT_EQ((uint)0, vr.alt.size());
+    EXPECT_EQ(".", vr.qual);
+    EXPECT_EQ(".", vr.filter);
+    EXPECT_EQ(".", vr.info);
+    EXPECT_EQ((uint)0, vr.format.size());
+    EXPECT_EQ((uint)2, vr.samples.size());
+    EXPECT_EQ((uint)0, vr.regt_samples.size());
+}
+
+TEST(VCFRecordTest, clear_with_sample_confs) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    unordered_map<string,vector<uint8_t>> empty_map;
+    vr.samples.push_back(empty_map);
+    vr.samples[0]["GT"] = {0};
+    vr.samples.push_back(empty_map);
+    vr.samples[1]["GT"] = {1};
+    unordered_map<string,vector<float>> empty_map_f;
+    vr.regt_samples.push_back(empty_map_f);
+    vr.regt_samples[0]["LIKELIHOOD"] = {0,4,5};
+    vr.regt_samples.push_back(empty_map_f);
+    vr.regt_samples[1]["LIKELIHOOD"] = {1,2};
+    vr.add_formats({"GT","LIKELIHOOD"});
+    vr.clear();
+    EXPECT_EQ(".", vr.chrom);
+    EXPECT_EQ((uint) 0, vr.pos);
+    EXPECT_EQ(".", vr.id);
+    EXPECT_EQ(".", vr.ref);
+    EXPECT_EQ((uint)0, vr.alt.size());
+    EXPECT_EQ(".", vr.qual);
+    EXPECT_EQ(".", vr.filter);
+    EXPECT_EQ(".", vr.info);
+    EXPECT_EQ((uint)0, vr.format.size());
+    EXPECT_EQ((uint)2, vr.samples.size());
+    EXPECT_EQ((uint)2, vr.regt_samples.size());
+}
+
 TEST(VCFRecordTest, add_formats_none) {
     VCFRecord vr("chrom1", 3, "A", "T");
     vector<string> new_formats = {};
