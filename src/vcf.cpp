@@ -195,6 +195,87 @@ void VCF::sort_records() {
     return;
 }
 
+void VCF::merge_multi_allelic() {
+    if (records.empty())
+        return;
+
+    VCFRecord& prev_vr = records[0];
+    for (auto record : records) {
+        assert(record.samples.size() != prev_vr.samples.size());
+        if (record == prev_vr)
+            continue;
+        else if (prev_vr.chrom == record.chrom
+                 and prev_vr.pos == record.pos
+                 and prev_vr.ref == record.ref) {
+
+            // merge alts
+            uint8_t prev_alt_size = prev_vr.alt.size();
+            for (auto a : record.alt)
+                prev_vr.alt.push_back(a);
+
+            // merge count/likelihood data
+            for (uint i = 0; i<record.samples.size(); ++i) {
+                auto keys = {"MEAN_FWD_COVG", "MEAN_REV_COVG",
+                             "MED_FWD_COVG", "MED_REV_COVG",
+                             "SUM_FWD_COVG", "SUM_REV_COVG",
+                             "LIKELIHOOD"};
+                for (auto key : keys) {
+                    if (record.samples[i].find(key) != record.samples[i].end()
+                        and prev_vr.samples[i].find(key) != prev_vr.samples[i].end()
+                        and record.samples[i][key][0] == prev_vr.samples[i][key][0]) {
+                        bool first = true;
+                        for (auto a : record.samples[i][key]) {
+                            if (!first)
+                                prev_vr.samples[i][key].push_back(a);
+                            first = false;
+                        }
+                    } else if (prev_vr.samples[i].find(key) != prev_vr.samples[i].end()) {
+                        prev_vr.samples[i][key].clear();
+                    } else if (!record.regt_samples.empty()
+                               and record.regt_samples[i].find(key) != record.regt_samples[i].end()
+                               and prev_vr.regt_samples[i].find(key) != prev_vr.regt_samples[i].end()
+                               and record.regt_samples[i][key][0] == prev_vr.regt_samples[i][key][0]) {
+                        bool first = true;
+                        for (auto a : record.regt_samples[i][key]) {
+                            if (!first)
+                                prev_vr.regt_samples[i][key].push_back(a);
+                            first = false;
+                        }
+                    } else if (!record.regt_samples.empty()
+                               and prev_vr.regt_samples[i].find(key) != prev_vr.regt_samples[i].end()) {
+                        prev_vr.regt_samples[i][key].clear();
+                    }
+                }
+
+                //merge GT
+                if (record.samples[i]["GT"].empty())
+                    continue;
+                else if (prev_vr.samples[i]["GT"].empty() and record.samples[i]["GT"][0] == 0)
+                    prev_vr.samples[i]["GT"] = {0};
+                else if (prev_vr.samples[i]["GT"].empty() and record.samples[i]["GT"][0] > (uint8_t)0){
+                    uint8_t new_allele = record.samples[i]["GT"][0] + prev_alt_size;
+                    prev_vr.samples[i]["GT"] = {new_allele};
+                } else if (prev_vr.samples[i]["GT"][0] == 0 and record.samples[i]["GT"][0] == 0)
+                    continue;
+                else {
+                    //conflict, try to resolve with likelihoods
+                    if (!prev_vr.regt_samples.empty()
+                        and prev_vr.regt_samples[i].find("LIKELIHOOD")!= prev_vr.regt_samples[i].end()){
+                        prev_vr.confidence();
+                        prev_vr.genotype(5);
+                    } else {
+                        prev_vr.samples[i]["GT"].clear();
+                    }
+                }
+                //delete record
+                record.clear();
+            }
+        } else {
+            prev_vr = record;
+        }
+    }
+}
+
 bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const string& chrom) const {
     // is there a record contained in the range from,to?
     for (auto record : records) {
@@ -215,6 +296,49 @@ void VCF::genotype(const uint32_t & expected_depth_covg, const float & error_rat
         }
     }
     add_formats({"GT_CONF", "LIKELIHOOD"});
+}
+
+void VCF::clean(){
+    VCFRecord dummy;
+    for (auto record_it = records.begin(); record_it!= records.end();){
+        if (*record_it == dummy)
+            record_it = records.erase(record_it);
+        else
+            record_it++;
+    }
+}
+
+void VCF::make_gt_compatible(){
+    for (auto record : records){
+        for (uint i=0; i<record.samples.size(); ++i){
+            for (auto other_record : records){
+                if (other_record.pos < record.pos)
+                    continue;
+                else if (other_record.pos > record.pos + record.ref.length())
+                    break;
+                else if (other_record.pos <= record.pos + record.ref.length()
+                         and record.samples[i].find("GT")!=record.samples[i].end()
+                         and other_record.samples[i].find("GT")!=other_record.samples[i].end()
+                         and record.samples[i]["GT"].size()>0
+                         and other_record.samples[i]["GT"].size()>0
+                         and record.samples[i]["GT"][0] > 0
+                         and other_record.samples[i]["GT"][0] > 0) {
+                    if (record.regt_samples.size() > 0 and other_record.regt_samples.size() > 0
+                        and record.regt_samples[i].find("LIKELIHOOD")!=record.regt_samples[i].end()
+                        and other_record.regt_samples[i].find("LIKELIHOOD")!=other_record.regt_samples[i].end()){
+                        if (record.regt_samples[i]["LIKELIHOOD"][record.samples[i]["GT"][0]] >
+                                other_record.regt_samples[i]["LIKELIHOOD"][other_record.samples[i]["GT"][0]])
+                            other_record.samples[i]["GT"].clear();
+                        else
+                            record.samples[i]["GT"].clear();
+                    } else {
+                        other_record.samples[i]["GT"].clear();
+                        record.samples[i]["GT"].clear();
+                    }
+                }
+            }
+        }
+    }
 }
 
 string VCF::header() {

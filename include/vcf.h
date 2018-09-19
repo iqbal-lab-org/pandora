@@ -40,9 +40,15 @@ public:
 
     void sort_records();
 
+    void merge_multi_allelic();
+
     bool pos_in_range(const uint32_t , const uint32_t, const std::string&) const;
 
     void genotype(const uint32_t&, const float&, const uint8_t, bool snps_only=true);
+
+    void clean();
+
+    void make_gt_compatible();
 
     std::string header();
 

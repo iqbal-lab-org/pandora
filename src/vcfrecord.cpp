@@ -48,10 +48,25 @@ VCFRecord::VCFRecord(std::string c, uint32_t p, std::string r, std::string a, st
     }
 };
 
-VCFRecord::VCFRecord() : chrom("."), pos(0), id("."), ref("."), qual("."), filter("."), info(".") {
-};
+VCFRecord::VCFRecord() : chrom("."), pos(0), id("."), ref("."), qual("."), filter("."), info(".") {};
 
 VCFRecord::~VCFRecord() {};
+
+void VCFRecord::clear() {
+    chrom = ".";
+    pos = 0;
+    id = ".";
+    ref = ".";
+    alt.clear();
+    qual = ".";
+    filter = ".";
+    info = ".";
+    format.clear();
+    for (auto s : samples)
+        s.clear();
+    for (auto r : regt_samples)
+        r.clear();
+}
 
 void VCFRecord::add_formats(const vector<string>& formats) {
     for (const auto s : formats){
