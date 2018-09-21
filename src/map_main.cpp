@@ -301,7 +301,10 @@ int pandora_map(int argc, char *argv[]) {
 
     if(genotype) {
         master_vcf.genotype(covg,0.01,30,snps_only);
-        master_vcf.save(outdir + "/pandora_genotyped.vcf" , true, true, true, true, false, false, false);
+        if (snps_only)
+            master_vcf.save(outdir + "/pandora_genotyped.vcf" , true, true, true, true, false, false, false);
+        else
+            master_vcf.save(outdir + "/pandora_genotyped.vcf" , true, true, true, true, true, true, true);
     }
 
     if (output_mapped_read_fa)
