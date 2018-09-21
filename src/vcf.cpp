@@ -339,7 +339,7 @@ void VCF::genotype(const uint32_t & expected_depth_covg, const float & error_rat
     make_gt_compatible();
 }
 
-/*void VCF::clean(){
+void VCF::clean(){
     VCFRecord dummy;
     for (auto record_it = records.begin(); record_it!= records.end();){
         if (*record_it == dummy)
@@ -347,7 +347,7 @@ void VCF::genotype(const uint32_t & expected_depth_covg, const float & error_rat
         else
             record_it++;
     }
-}*/
+}
 
 void VCF::make_gt_compatible(){
     for (auto &record : records){

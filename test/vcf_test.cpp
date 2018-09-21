@@ -726,6 +726,29 @@ TEST(VCFTest, genotype_with_all_sites) {
 
 }
 
+TEST(VCFTest, clean) {
+    VCF vcf;
+
+    VCFRecord dummy;
+    vcf.add_record(dummy);
+    vcf.add_record("chrom1", 79, "C", "G");
+    vcf.add_sample_gt("sample", "chrom1", 2, "T", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 5, "A", "G");
+    vcf.add_sample_gt("sample", "chrom1", 79, "C", "A");
+    vcf.records[2].clear();
+    EXPECT_EQ((uint)5, vcf.records.size());
+
+    vcf.clean();
+    EXPECT_EQ((uint)3, vcf.records.size());
+    EXPECT_EQ((uint)79, vcf.records[0].pos);
+    EXPECT_EQ((uint)1, vcf.records[0].alt.size());
+    EXPECT_EQ("G", vcf.records[0].alt[0]);
+    EXPECT_EQ((uint)5, vcf.records[1].pos);
+    EXPECT_EQ((uint)79, vcf.records[2].pos);
+    EXPECT_EQ((uint)1, vcf.records[2].alt.size());
+    EXPECT_EQ("A", vcf.records[2].alt[0]);
+}
+
 TEST(VCFTest, make_gt_compatible) {
     VCF vcf;
     // no gt

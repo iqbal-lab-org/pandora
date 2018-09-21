@@ -46,7 +46,7 @@ public:
 
     void genotype(const uint32_t&, const float&, const uint8_t, bool snps_only=true);
 
-    //void clean();
+    void clean();
 
     void make_gt_compatible();
 
