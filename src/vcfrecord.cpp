@@ -123,7 +123,6 @@ void VCFRecord::clear_sample(uint32_t i) {
     if (all_cleared) {
         clear();
     }
-    cout << *this << endl;
 }
 
 void VCFRecord::add_formats(const vector<string>& formats) {

@@ -304,13 +304,14 @@ void VCF::merge_multi_allelic() {
         if (record != prev_vr
             and prev_vr.chrom == record.chrom
             and prev_vr.pos == record.pos
-            and prev_vr.ref == record.ref) {
+            and prev_vr.ref == record.ref
+            and prev_vr.ref != "."
+            and prev_vr.ref != "") {
 
             // merge alts
             uint8_t prev_alt_size = prev_vr.alt.size();
             for (auto a : record.alt)
                 prev_vr.alt.push_back(a);
-            cout << prev_vr << endl;
 
             // merge count/likelihood data
             if (record.samples.size() == 0){
