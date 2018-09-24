@@ -116,7 +116,7 @@ TEST(VCFRecordTest, clear_with_samples) {
     EXPECT_EQ(".", vr.filter);
     EXPECT_EQ(".", vr.info);
     EXPECT_EQ((uint)0, vr.format.size());
-    EXPECT_EQ((uint)2, vr.samples.size());
+    EXPECT_EQ((uint)0, vr.samples.size());
     EXPECT_EQ((uint)0, vr.regt_samples.size());
 }
 
@@ -143,8 +143,58 @@ TEST(VCFRecordTest, clear_with_sample_confs) {
     EXPECT_EQ(".", vr.filter);
     EXPECT_EQ(".", vr.info);
     EXPECT_EQ((uint)0, vr.format.size());
+    EXPECT_EQ((uint)0, vr.samples.size());
+    EXPECT_EQ((uint)0, vr.regt_samples.size());
+}
+
+TEST(VCFRecordTest, clear_sample) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    unordered_map<string,vector<uint8_t>> empty_map;
+    vr.samples.push_back(empty_map);
+    vr.samples[0]["GT"] = {0};
+    vr.samples.push_back(empty_map);
+    vr.samples[1]["GT"] = {1};
+
+    // index out of range, nothin happens
+    vr.clear_sample(3);
+    EXPECT_EQ((uint)3, vr.pos);
+    EXPECT_EQ("A", vr.ref);
+    EXPECT_EQ((uint)1, vr.alt.size());
+    EXPECT_EQ("T", vr.alt[0]);
     EXPECT_EQ((uint)2, vr.samples.size());
-    EXPECT_EQ((uint)2, vr.regt_samples.size());
+    EXPECT_EQ((uint)1, vr.samples[0].size());
+    EXPECT_EQ((uint)1, vr.samples[1].size());
+    EXPECT_EQ((uint)0, vr.regt_samples.size());
+
+    // index in range
+    vr.clear_sample(1);
+    EXPECT_EQ((uint)3, vr.pos);
+    EXPECT_EQ("A", vr.ref);
+    EXPECT_EQ((uint)1, vr.alt.size());
+    EXPECT_EQ("T", vr.alt[0]);
+    EXPECT_EQ((uint)2, vr.samples.size());
+    EXPECT_EQ((uint)1, vr.samples[0].size());
+    EXPECT_EQ((uint)0, vr.samples[1].size());
+    EXPECT_EQ((uint)0, vr.regt_samples.size());
+
+    // index in range, nothing to do
+    vr.clear_sample(1);
+    EXPECT_EQ((uint)3, vr.pos);
+    EXPECT_EQ("A", vr.ref);
+    EXPECT_EQ((uint)1, vr.alt.size());
+    EXPECT_EQ("T", vr.alt[0]);
+    EXPECT_EQ((uint)2, vr.samples.size());
+    EXPECT_EQ((uint)1, vr.samples[0].size());
+    EXPECT_EQ((uint)0, vr.samples[1].size());
+    EXPECT_EQ((uint)0, vr.regt_samples.size());
+
+    // index in range, last sample
+    vr.clear_sample(0);
+    EXPECT_EQ((uint)0, vr.pos);
+    EXPECT_EQ(".", vr.ref);
+    EXPECT_EQ((uint)0, vr.alt.size());
+    EXPECT_EQ((uint)0, vr.samples.size());
+    EXPECT_EQ((uint)0, vr.regt_samples.size());
 }
 
 TEST(VCFRecordTest, add_formats_none) {
@@ -311,6 +361,17 @@ TEST(VCFRecordConfidenceTest, gets_correct_confidence_simple_case) {
     EXPECT_FLOAT_EQ(exp_confidence,vr.regt_samples[0]["GT_CONF"][0]);
 }
 
+TEST(VCFRecordConfidenceTest, gets_correct_confidence_two_alts) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    vr.alt.push_back("C");
+    unordered_map<string, vector<float>> m;
+    vr.regt_samples.push_back(m);
+    vr.regt_samples[0]["LIKELIHOOD"] = {-14.0, -6.0, -3.0};
+    vr.confidence();
+    float exp_confidence = 3;
+    EXPECT_FLOAT_EQ(exp_confidence, vr.regt_samples[0]["GT_CONF"][0]);
+}
+
 TEST(VCFRecordConfidenceTest, handles_ref_covg_0) {
     VCFRecord vr("chrom1", 3, "A", "T");
     unordered_map<string, vector<float>> m;
@@ -389,7 +450,7 @@ TEST(VCFRecordRegenotypeTest, correctly_genotypes) {
     EXPECT_EQ(vr.samples[0]["MEAN_REV_COVG"][1],3);
     EXPECT_EQ(vr.regt_samples[0]["LIKELIHOOD"][0],4);
     EXPECT_EQ(vr.regt_samples[0]["LIKELIHOOD"][1],5);
-    EXPECT_EQ(vr.samples[0]["GT"].size(),0);
+    EXPECT_EQ(vr.samples[0]["GT"].size(),(uint)0);
 
     EXPECT_EQ(vr.samples[1]["MEAN_FWD_COVG"][0],0);
     EXPECT_EQ(vr.samples[1]["MEAN_REV_COVG"][0],1);
@@ -397,7 +458,7 @@ TEST(VCFRecordRegenotypeTest, correctly_genotypes) {
     EXPECT_EQ(vr.samples[1]["MEAN_REV_COVG"][1],3);
     EXPECT_EQ(vr.regt_samples[1]["LIKELIHOOD"][0],4);
     EXPECT_EQ(vr.regt_samples[1]["LIKELIHOOD"][1],5);
-    EXPECT_EQ(vr.samples[1]["GT"].size(),0);
+    EXPECT_EQ(vr.samples[1]["GT"].size(),(uint)0);
 
     EXPECT_EQ(vr.samples[2]["MEAN_FWD_COVG"][0],0);
     EXPECT_EQ(vr.samples[2]["MEAN_REV_COVG"][0],1);

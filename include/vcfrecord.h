@@ -25,9 +25,15 @@ struct VCFRecord {
 
     VCFRecord();
 
+    VCFRecord(const VCFRecord &);
+
+    VCFRecord &operator=(const VCFRecord &);
+
     ~VCFRecord();
 
     void clear();
+
+    void clear_sample(uint32_t);
 
     void add_formats(const std::vector<std::string>&);
 

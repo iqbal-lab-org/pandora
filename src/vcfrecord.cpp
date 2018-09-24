@@ -18,7 +18,7 @@ VCFRecord::VCFRecord(std::string c, uint32_t p, std::string r, std::string a, st
                                                                                                               qual("."),
                                                                                                               filter("."),
                                                                                                               info(i),
-                                                                                                              format({"GT"}) {
+                                                                                                              format({"GT"}){
     if (a == "")
         alt.push_back(".");
     else
@@ -50,6 +50,41 @@ VCFRecord::VCFRecord(std::string c, uint32_t p, std::string r, std::string a, st
 
 VCFRecord::VCFRecord() : chrom("."), pos(0), id("."), ref("."), qual("."), filter("."), info(".") {};
 
+VCFRecord::VCFRecord(const VCFRecord& other)
+{
+    chrom = other.chrom;
+    pos = other.pos;
+    id = other.id;
+    ref = other.ref;
+    alt = other.alt;
+    qual = other.qual;
+    filter = other.filter;
+    info = other.info;
+    format = other.format;
+    samples = other.samples;
+    regt_samples = other.regt_samples;
+}
+
+VCFRecord &VCFRecord::operator=(const VCFRecord &other) {
+    // check for self-assignment
+    if (this == &other)
+        return *this;
+
+    chrom = other.chrom;
+    pos = other.pos;
+    id = other.id;
+    ref = other.ref;
+    alt = other.alt;
+    qual = other.qual;
+    filter = other.filter;
+    info = other.info;
+    format = other.format;
+    samples = other.samples;
+    regt_samples = other.regt_samples;
+
+    return *this;
+}
+
 VCFRecord::~VCFRecord() {};
 
 void VCFRecord::clear() {
@@ -64,8 +99,36 @@ void VCFRecord::clear() {
     format.clear();
     for (auto s : samples)
         s.clear();
+    samples.clear();
     for (auto r : regt_samples)
         r.clear();
+    regt_samples.clear();
+}
+
+void VCFRecord::clear_sample(uint32_t i) {
+    cout << "clear sample " << i << endl;
+    if (samples.size() > i) {
+        cout << "have more than i samples" << endl;
+        samples[i].clear();
+    }
+
+    if (regt_samples.size() > i) {
+        cout << "have more than i regt" << endl;
+        regt_samples[i].clear();
+    }
+    cout << "are all cleared" << endl;
+    bool all_cleared(true);
+    for (const auto s : samples){
+        if (!s.empty()) {
+            all_cleared = false;
+            break;
+        }
+    }
+    if (all_cleared) {
+        cout << "yes, so clear record" << endl;
+        clear();
+    }
+    cout << *this << endl;
 }
 
 void VCFRecord::add_formats(const vector<string>& formats) {
@@ -133,7 +196,7 @@ void VCFRecord::confidence(){
                 if (max_lik == 0 or likelihood > max_lik){
                     max_lik2 = max_lik;
                     max_lik = likelihood;
-                } else if (max_lik2 == 0) {
+                } else if (max_lik2 == 0 or likelihood > max_lik2){
                     max_lik2 = likelihood;
                 }
             }
@@ -228,7 +291,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
                     buffer = ",";
                 }
 
-            } else if (m.regt_samples.size() > 0
+            } else if (m.regt_samples.size() > i
                        and m.regt_samples[i].find(f)!=m.regt_samples[i].end()
                        and m.regt_samples[i].at(f).size() > 0) {
                 for (const auto a : m.regt_samples.at(i).at(f)) {

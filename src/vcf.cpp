@@ -32,9 +32,11 @@ void VCF::add_record(string c, uint32_t p, string r, string a, string i, string 
 }
 
 VCFRecord& VCF::add_record(VCFRecord &vr) {
+    cout << "add record " << vr << endl;
     unordered_map<string,vector<uint8_t>> empty_map;
     auto record_it = find(records.begin(), records.end(), vr);
     if (record_it == records.end()) {
+        cout << "make it a new record" << endl;
         records.push_back(vr);
         if (samples.size() > vr.samples.size())
             records.back().samples.insert(records.back().samples.end(), samples.size()-vr.samples.size(), empty_map);
@@ -195,127 +197,6 @@ void VCF::sort_records() {
     return;
 }
 
-/*void merge_sample_key (unordered_map<string, vector<uint8_t>>& first,
-                       const unordered_map<string, vector<uint8_t>>& second,
-                       const string& key){
-    if (first.empty() or second.empty() or first.find(key) == first.end())
-        return;
-    else if (first.find(key) != first.end() and second.find(key) == second.end())
-        first.erase(key);
-    else if (first[key][0] == second.at(key).at(0)) {
-        bool ref = true;
-        for (const auto val : second.at(key)){
-            if (!ref)
-                first[key].push_back(val);
-            ref = false;
-        }
-    } else
-        first.erase(key);
-}
-
-void merge_regt_sample_key (unordered_map<string, vector<float>>& first,
-                            const unordered_map<string, vector<float>>& second,
-                            const string& key){
-    if (first.empty() or second.empty() or first.find(key) == first.end())
-        return;
-    else if (first.find(key) != first.end() and second.find(key) == second.end())
-        first.erase(key);
-    else if (first[key][0] == second.at(key).at(0)) {
-        bool ref = true;
-        for (const auto val : second.at(key)){
-            if (!ref)
-                first[key].push_back(val);
-            ref = false;
-        }
-    } else
-        first.erase(key);
-}
-
-bool merge_gt(VCFRecord& first, const VCFRecord& second, const uint16_t i, const uint8_t prev_alt_size){
-    if (first.samples.size() < i or second.samples.size() < i)
-        return true;
-    else if (second.samples[i].find("GT") == second.samples[i].end()
-             or second.samples[i].at("GT").empty() )
-        return true;
-    else if (first.samples[i].find("GT") == first.samples[i].end()
-             or first.samples[i]["GT"].empty()) {
-        if (second.samples[i].at("GT")[0] == 0)
-            first.samples[i]["GT"] = {0};
-        else {
-            uint8_t new_allele = second.samples[i].at("GT")[0] + prev_alt_size;
-            first.samples[i]["GT"] = {new_allele};
-        }
-    } else if (first.samples[i]["GT"][0] != 0 or second.samples[i].at("GT")[0] != 0) {
-        //conflict, try to resolve with likelihoods
-        if (!first.regt_samples.empty()
-            and first.regt_samples[i].find("LIKELIHOOD")!= first.regt_samples[i].end()){
-            first.confidence();
-            first.genotype(5);
-        } else {
-            first.samples[i]["GT"].clear();
-            return false;
-        }
-    }
-    return true;
-}
-
-
-void VCF::merge_multi_allelic() {
-    if (records.empty())
-        return;
-
-    VCFRecord& prev_ref = records[0];
-    VCFRecord prev_vr(prev_ref);
-    for (auto record : records) {
-        cout << "looking at" << endl;
-        cout << record << endl;
-        cout << prev_vr << endl;
-        cout << "..." << endl;
-        //assert(record.samples.size() != prev_vr.samples.size() || assert_msg(record.samples.size() << " != " << prev_vr.samples.size()));
-        if (record == prev_vr)
-            continue;
-        else if (prev_vr.chrom == record.chrom
-                 and prev_vr.pos == record.pos
-                 and prev_vr.ref == record.ref) {
-
-            // merge alts
-            uint8_t prev_alt_size = prev_vr.alt.size();
-            for (auto a : record.alt)
-                prev_vr.alt.push_back(a);
-
-            // merge count/likelihood data
-            for (uint i = 0; i < record.samples.size(); ++i) {
-                auto keys = {"MEAN_FWD_COVG", "MEAN_REV_COVG",
-                             "MED_FWD_COVG", "MED_REV_COVG",
-                             "SUM_FWD_COVG", "SUM_REV_COVG",
-                             "LIKELIHOOD"};
-                for (auto key : keys) {
-                    merge_sample_key(prev_vr.samples[i], record.samples[i], key);
-                    merge_regt_sample_key(prev_vr.regt_samples[i], record.regt_samples[i], key);
-                }
-
-                //merge GT
-                if (merge_gt(prev_vr, record, i, prev_alt_size)) {
-                    records.push_back(prev_vr);
-                    prev_ref.clear();
-                    prev_ref = records.back();
-                    record.clear();
-                    continue;
-                } else {
-                    prev_vr = prev_ref;
-                    continue;
-                }
-            }
-        }
-        prev_ref = record;
-        prev_vr = prev_ref;
-
-        cout << "after round" << *this << endl;
-    }
-    sort_records();
-    clean();
-}*/
-
 bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const string& chrom) const {
     // is there a record contained in the range from,to?
     for (auto record : records) {
@@ -349,9 +230,130 @@ void VCF::clean(){
     }
 }
 
+void merge_sample_key (unordered_map<string, vector<uint8_t>>& first,
+                       const unordered_map<string, vector<uint8_t>>& second,
+                       const string& key){
+    if (first.empty() or second.empty() or first.find(key) == first.end() or first[key].empty()){
+        return;
+    } else if (first.find(key) != first.end() and (second.find(key) == second.end() or second.at(key).empty())) {
+        first.erase(key);
+    } else if (first[key][0] == second.at(key).at(0)) {
+        bool ref = true;
+        for (const auto val : second.at(key)){
+            if (!ref)
+                first[key].push_back(val);
+            ref = false;
+        }
+    } else
+        first.erase(key);
+}
+
+void merge_regt_sample_key (unordered_map<string, vector<float>>& first,
+                            const unordered_map<string, vector<float>>& second,
+                            const string& key){
+    if (first.empty() or second.empty() or first.find(key) == first.end() or first[key].empty()) {
+        return;
+    } else if (first.find(key) != first.end() and (second.find(key) == second.end() or second.at(key).empty())) {
+        first.erase(key);
+    } else if (first[key][0] == second.at(key).at(0)) {
+        bool ref = true;
+        for (const auto val : second.at(key)){
+            if (!ref)
+                first[key].push_back(val);
+            ref = false;
+        }
+    } else
+        first.erase(key);
+}
+
+void merge_gt(VCFRecord& first, const VCFRecord& second, const uint16_t i, const uint8_t prev_alt_size) {
+    if (first.samples.size() < i or second.samples.size() < i) {
+        return;
+    } else if (second.samples[i].find("GT") == second.samples[i].end()
+               or second.samples[i].at("GT").empty()) {
+        return;
+    } else if (first.samples[i].find("GT") == first.samples[i].end()
+             or first.samples[i]["GT"].empty()) {
+        if (second.samples[i].at("GT")[0] == 0) {
+            first.samples[i]["GT"] = {0};
+        } else {
+            uint8_t new_allele = second.samples[i].at("GT")[0] + prev_alt_size;
+            first.samples[i]["GT"] = {new_allele};
+        }
+    } else if (first.samples[i]["GT"][0] != 0 or second.samples[i].at("GT")[0] != 0) {
+        //conflict, try to resolve with likelihoods
+        if (first.regt_samples.size() > i
+            and first.regt_samples[i].find("LIKELIHOOD")!= first.regt_samples[i].end()){
+            first.confidence();
+            first.genotype(5);
+        } else {
+            first.samples[i]["GT"] = {};
+        }
+    }
+}
+
+
+void VCF::merge_multi_allelic() {
+    if (records.empty())
+        return;
+
+    uint32_t prev_pos = 0;
+    VCFRecord prev_vr(records[prev_pos]);
+    for (uint32_t current_pos=1; current_pos < records.size(); ++current_pos){
+        const auto record = records[current_pos];
+
+        //assert(record.samples.size() != prev_vr.samples.size() || assert_msg(record.samples.size() << " != " << prev_vr.samples.size()));
+        if (record != prev_vr
+            and prev_vr.chrom == record.chrom
+            and prev_vr.pos == record.pos
+            and prev_vr.ref == record.ref) {
+
+            // merge alts
+            uint8_t prev_alt_size = prev_vr.alt.size();
+            for (auto a : record.alt)
+                prev_vr.alt.push_back(a);
+            cout << prev_vr << endl;
+
+            // merge count/likelihood data
+            if (record.samples.size() == 0){
+                records[current_pos].clear();
+                records[prev_pos].clear();
+                records.push_back(prev_vr);
+                prev_pos = records.size() - 1;
+                prev_vr = records[prev_pos];
+            }
+            for (uint i = 0; i < record.samples.size(); ++i) {
+                auto keys = {"MEAN_FWD_COVG", "MEAN_REV_COVG",
+                             "MED_FWD_COVG", "MED_REV_COVG",
+                             "SUM_FWD_COVG", "SUM_REV_COVG"};
+                for (auto key : keys) {
+                    merge_sample_key(prev_vr.samples[i], record.samples[i], key);
+                }
+                keys = {"LIKELIHOOD"};
+                if (!prev_vr.regt_samples.empty() and !record.regt_samples.empty()){
+                    for (auto key : keys)
+                        merge_regt_sample_key(prev_vr.regt_samples[i], record.regt_samples[i], key);
+                }
+
+                //merge GT
+                merge_gt(prev_vr, record, i, prev_alt_size);
+                records[current_pos].clear_sample(i);
+                records[prev_pos].clear_sample(i);
+                records.push_back(prev_vr);
+                prev_pos = records.size() - 1;
+                prev_vr = records[prev_pos];
+            }
+        } else if (record != prev_vr) {
+            prev_pos = current_pos;
+            prev_vr = records[prev_pos];
+        }
+    }
+    sort_records();
+    clean();
+}
+
 void VCF::make_gt_compatible(){
     for (auto &record : records){
-        cout << record << endl;
         for (uint i=0; i<record.samples.size(); ++i){
             bool found_record = false;
             for (auto &other_record : records){
@@ -372,7 +374,6 @@ void VCF::make_gt_compatible(){
                     else if (record.regt_samples.size() > 0 and other_record.regt_samples.size() > 0
                         and record.regt_samples[i].find("LIKELIHOOD")!=record.regt_samples[i].end()
                         and other_record.regt_samples[i].find("LIKELIHOOD")!=other_record.regt_samples[i].end()){
-                        cout << record.regt_samples[i]["LIKELIHOOD"][record.samples[i]["GT"][0]] << " " << other_record.regt_samples[i]["LIKELIHOOD"][other_record.samples[i]["GT"][0]] << endl;
                         if (record.regt_samples[i]["LIKELIHOOD"][record.samples[i]["GT"][0]] >
                                 other_record.regt_samples[i]["LIKELIHOOD"][other_record.samples[i]["GT"][0]]) {
                             if (record.samples[i]["GT"][0] == 0)
