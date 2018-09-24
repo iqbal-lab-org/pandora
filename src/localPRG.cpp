@@ -1319,7 +1319,7 @@ void LocalPRG::add_consensus_path_to_fastaq (Fastaq& output_fq,
     auto mode_covg = mode(covgs);
     auto mean_covg = mean(covgs);
     cout << now() << "Found global coverage " << global_covg << " and path mode " << mode_covg << " and mean " << mean_covg << endl;
-    if (global_covg > 5 and (6*mean(covgs) < global_covg or mean(covgs) > 3*global_covg or (mode(covgs) < 3 and mean(covgs) < 3)))
+    if (global_covg > 5 and (6*mean(covgs) < global_covg or mean(covgs) > global_covg or (mode(covgs) < 3 and mean(covgs) < 3)))
     {
         cout << now() << "Skip LocalPRG " << name << " as mode and mean along max likelihood path too low" << endl;
         kmp.clear();
@@ -1413,7 +1413,7 @@ LocalPRG::find_path_and_variants(PanNodePtr pnode,
     auto mode_covg = mode(covgs);
     auto mean_covg = mean(covgs);
     cout << now() << "Found global coverage " << global_covg << " and path mode " << mode_covg << " and mean " << mean_covg << endl;
-    if (global_covg > 5 and mode(covgs) < 3 and mean(covgs) < 3)
+    if (global_covg > 5 and (6*mean(covgs) < global_covg or mean(covgs) > global_covg or (mode(covgs) < 3 and mean(covgs) < 3)))
     {
 	    cout << now() << "Skip LocalPRG " << name << " as mode and mean along max likelihood path too low" << endl;
         kmp.clear();
