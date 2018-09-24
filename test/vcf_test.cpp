@@ -709,14 +709,12 @@ TEST(VCFTest, merge_multi_allelic) {
     vcf.merge_multi_allelic();
     cout << vcf << endl;
 
-    cout << "0" << endl;
     EXPECT_EQ((uint) 5, vcf.records.size());
     EXPECT_EQ((uint)5, vcf.records[0].pos);
     EXPECT_EQ((uint)2, vcf.records[0].alt.size());
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
     EXPECT_EQ((uint)0, vcf.records[0].samples[0].size());
 
-    cout << "0" << endl;
     EXPECT_EQ((uint)46, vcf.records[1].pos);
     EXPECT_EQ((uint)2, vcf.records[1].alt.size());
     EXPECT_EQ((uint)1, vcf.records[1].samples.size());
@@ -724,7 +722,6 @@ TEST(VCFTest, merge_multi_allelic) {
     EXPECT_TRUE(found_gt);
     EXPECT_EQ((uint)0, vcf.records[1].samples[0]["GT"].size());
 
-    cout << "0" << endl;
     EXPECT_EQ((uint)76, vcf.records[2].pos);
     EXPECT_EQ((uint)2, vcf.records[2].alt.size());
     EXPECT_EQ((uint)1, vcf.records[2].samples.size());
@@ -743,7 +740,6 @@ TEST(VCFTest, merge_multi_allelic) {
     EXPECT_EQ((uint)1, vcf.records[2].regt_samples[0]["GT_CONF"].size());
     EXPECT_EQ(13.0, vcf.records[2].regt_samples[0]["GT_CONF"][0]);
 
-    cout << "0" << endl;
     EXPECT_EQ((uint)85, vcf.records[3].pos);
     EXPECT_EQ((uint)1, vcf.records[3].alt.size());
     EXPECT_EQ((uint)85, vcf.records[4].pos);
@@ -875,10 +871,6 @@ TEST(VCFTest, load) {
     vcf1.load("vcf_test.vcf");
     cout << vcf1 << endl;
 
-    /*for(uint i=0; i!=vcf1.records.size(); ++i)
-    {
-        cout << vcf1.records[i];
-    }*/
     EXPECT_EQ(vcf == vcf1, true);
 }
 

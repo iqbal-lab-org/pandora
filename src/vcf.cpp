@@ -32,11 +32,9 @@ void VCF::add_record(string c, uint32_t p, string r, string a, string i, string 
 }
 
 VCFRecord& VCF::add_record(VCFRecord &vr) {
-    cout << "add record " << vr << endl;
     unordered_map<string,vector<uint8_t>> empty_map;
     auto record_it = find(records.begin(), records.end(), vr);
     if (record_it == records.end()) {
-        cout << "make it a new record" << endl;
         records.push_back(vr);
         if (samples.size() > vr.samples.size())
             records.back().samples.insert(records.back().samples.end(), samples.size()-vr.samples.size(), empty_map);

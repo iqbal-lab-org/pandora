@@ -106,17 +106,13 @@ void VCFRecord::clear() {
 }
 
 void VCFRecord::clear_sample(uint32_t i) {
-    cout << "clear sample " << i << endl;
     if (samples.size() > i) {
-        cout << "have more than i samples" << endl;
         samples[i].clear();
     }
 
     if (regt_samples.size() > i) {
-        cout << "have more than i regt" << endl;
         regt_samples[i].clear();
     }
-    cout << "are all cleared" << endl;
     bool all_cleared(true);
     for (const auto s : samples){
         if (!s.empty()) {
@@ -125,7 +121,6 @@ void VCFRecord::clear_sample(uint32_t i) {
         }
     }
     if (all_cleared) {
-        cout << "yes, so clear record" << endl;
         clear();
     }
     cout << *this << endl;
