@@ -46,7 +46,7 @@ public:
 
     void clean();
 
-    void merge_multi_allelic();
+    void merge_multi_allelic(uint32_t max_allele_length=10);
 
     void make_gt_compatible();
 

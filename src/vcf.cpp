@@ -291,28 +291,41 @@ void merge_gt(VCFRecord& first, const VCFRecord& second, const uint16_t i, const
 }
 
 
-void VCF::merge_multi_allelic() {
+void VCF::merge_multi_allelic(uint32_t max_allele_length) {
     if (records.empty())
         return;
 
     uint32_t prev_pos = 0;
     VCFRecord prev_vr(records[prev_pos]);
-    for (uint32_t current_pos=1; current_pos < records.size(); ++current_pos){
+    auto vcf_size = records.size();
+    auto reserve_size = vcf_size*1.05;
+    records.reserve(reserve_size);
+    for (uint32_t current_pos=1; current_pos < vcf_size; ++current_pos){
         const auto record = records[current_pos];
+        cout << "comparing record " << current_pos << "/" << vcf_size << " to record " << prev_pos << endl;
 
-        //assert(record.samples.size() != prev_vr.samples.size() || assert_msg(record.samples.size() << " != " << prev_vr.samples.size()));
         if (record != prev_vr
             and prev_vr.chrom == record.chrom
             and prev_vr.pos == record.pos
             and prev_vr.ref == record.ref
             and prev_vr.ref != "."
             and prev_vr.ref != ""
-            and prev_vr.ref.length() < 10) {
+            and prev_vr.ref.length() <= max_allele_length
+            and prev_vr.alt[0].length() <= max_allele_length) {
 
             // merge alts
             uint8_t prev_alt_size = prev_vr.alt.size();
-            for (auto a : record.alt)
+            bool short_enough = true;
+            for (auto a : record.alt) {
+                if (a.length() > max_allele_length)
+                    short_enough = false;
                 prev_vr.alt.push_back(a);
+            }
+            if (!short_enough){
+                prev_pos = current_pos;
+                prev_vr = records[prev_pos];
+                continue;
+            }
 
             // merge count/likelihood data
             if (record.samples.size() == 0){
