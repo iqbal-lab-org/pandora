@@ -291,7 +291,7 @@ void merge_gt(VCFRecord& first, const VCFRecord& second, const uint16_t i, const
 }
 
 
-void VCF::merge_multi_allelic() {
+void VCF::merge_multi_allelic(uint32_t max_allele_length) {
     if (records.empty())
         return;
 
@@ -305,13 +305,24 @@ void VCF::merge_multi_allelic() {
         if (record != prev_vr
             and prev_vr.chrom == record.chrom
             and prev_vr.pos == record.pos
-            and prev_vr.ref == record.ref) {
+            and prev_vr.ref == record.ref
+            and prev_vr.ref.length() <= max_allele_length
+            and prev_vr.alt[0].length() <= max_allele_length) {
 
             // merge alts
             uint8_t prev_alt_size = prev_vr.alt.size();
-            for (auto a : record.alt)
+            bool short_enough = true;
+            for (auto a : record.alt) {
+                if (a.length() > max_allele_length)
+                    short_enough = false;
                 prev_vr.alt.push_back(a);
-            cout << prev_vr << endl;
+            }
+            if (!short_enough){
+                prev_pos = current_pos;
+                prev_vr = records[prev_pos];
+                continue;
+            }
+
 
             // merge count/likelihood data
             if (record.samples.size() == 0){
