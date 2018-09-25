@@ -306,7 +306,8 @@ void VCF::merge_multi_allelic() {
             and prev_vr.pos == record.pos
             and prev_vr.ref == record.ref
             and prev_vr.ref != "."
-            and prev_vr.ref != "") {
+            and prev_vr.ref != ""
+            and prev_vr.ref.length() < 10) {
 
             // merge alts
             uint8_t prev_alt_size = prev_vr.alt.size();
