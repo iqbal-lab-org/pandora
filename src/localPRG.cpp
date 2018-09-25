@@ -1235,6 +1235,8 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         vector<string>::iterator sample_it = find(vcf.samples.begin(), vcf.samples.end(), sample_name);
         assert(sample_it != vcf.samples.end());
         auto sample_index = distance(vcf.samples.begin(), sample_it);
+        assert(sample_index != vcf.samples.end());
+        assert(record.samples.size() > sample_index);
 
         record.samples[sample_index]["MEAN_FWD_COVG"] = {};
         record.samples[sample_index]["MEAN_REV_COVG"] = {};
