@@ -497,8 +497,6 @@ TEST(VCFTest, genotype) {
     vcf.records[5].samples[1]["MEAN_FWD_COVG"] = {2,1};
     vcf.records[5].samples[1]["MEAN_REV_COVG"] = {4,2};
 
-    cout << vcf << endl;
-
     vcf.genotype(30,0.01,30);
 
     cout << vcf << endl;
@@ -618,8 +616,6 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[5].samples[1]["MEAN_FWD_COVG"].push_back(1);
     vcf.records[5].samples[1]["MEAN_REV_COVG"].push_back(2);
 
-    cout << vcf << endl;
-
     bool snps_only = false;
     vcf.genotype(30,0.01,30,snps_only);
 
@@ -705,7 +701,6 @@ TEST(VCFTest, merge_multi_allelic) {
     vcf.add_record("chrom1", 85, "A", "G");
     vcf.add_record("chrom1", 85, "T", "C");
 
-    cout << vcf << endl;
     vcf.merge_multi_allelic();
     cout << vcf << endl;
 
@@ -791,7 +786,6 @@ TEST(VCFTest, make_gt_compatible) {
     vcf.records[8].regt_samples[0]["GT_CONF"] = {47};
     vcf.records[9].regt_samples[0]["GT_CONF"] = {10};
 
-    cout << vcf << endl;
     vcf.make_gt_compatible();
     cout << vcf << endl;
 

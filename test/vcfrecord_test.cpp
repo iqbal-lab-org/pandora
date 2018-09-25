@@ -331,7 +331,6 @@ TEST(VCFRecordConfidenceTest, does_not_run_if_info_missing) {
     VCFRecord vr("chrom1", 3, "A", "T");
     unordered_map<string, vector<float>> m;
     vr.regt_samples.push_back(m);
-    cout << "." << endl;
 
     vr.confidence();
     bool found_confidence = vr.regt_samples[0].find("GT_CONF") != vr.regt_samples[0].end();
