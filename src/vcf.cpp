@@ -297,10 +297,11 @@ void VCF::merge_multi_allelic() {
 
     uint32_t prev_pos = 0;
     VCFRecord prev_vr(records[prev_pos]);
-    for (uint32_t current_pos=1; current_pos < records.size(); ++current_pos){
+    auto vcf_size = records.size();
+    for (uint32_t current_pos=1; current_pos < vcf_size; ++current_pos){
         const auto record = records[current_pos];
+        cout << "comparing record " << current_pos << "/" << vcf_size << " to record " << prev_pos << endl;
 
-        //assert(record.samples.size() != prev_vr.samples.size() || assert_msg(record.samples.size() << " != " << prev_vr.samples.size()));
         if (record != prev_vr
             and prev_vr.chrom == record.chrom
             and prev_vr.pos == record.pos
