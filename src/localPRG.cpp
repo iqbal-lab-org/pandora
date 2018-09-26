@@ -1370,6 +1370,7 @@ void LocalPRG::add_variants_to_vcf(VCF& master_vcf,
     //cout << "sort records" << endl;
     //vcf.sort_records();
     //cout << "append to master vcf" << endl;
+    vcf.merge_multi_allelic();
     master_vcf.append_vcf(vcf);
 }
 
