@@ -302,7 +302,7 @@ void VCF::merge_multi_allelic(uint32_t max_allele_length) {
     records.reserve(reserve_size);
     for (uint32_t current_pos=1; current_pos < vcf_size; ++current_pos){
         const auto record = records[current_pos];
-        cout << "comparing record " << current_pos << "/" << vcf_size << " to record " << prev_pos << endl;
+        //cout << "comparing record " << current_pos << "/" << vcf_size << " to record " << prev_pos << endl;
 
         if (record != prev_vr
             and prev_vr.chrom == record.chrom
