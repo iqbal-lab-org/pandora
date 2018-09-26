@@ -361,8 +361,8 @@ void VCF::merge_multi_allelic(uint32_t max_allele_length) {
             prev_vr = records[prev_pos];
         }
     }
-    sort_records();
     clean();
+    sort_records();
 }
 
 void VCF::make_gt_compatible(){
