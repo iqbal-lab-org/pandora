@@ -300,7 +300,6 @@ int pandora_map(int argc, char *argv[]) {
     master_vcf.save(outdir + "/pandora_consensus.vcf" , true, true, true, true, true, true, true);
 
     if(genotype) {
-        master_vcf.merge_multi_allelic();
         master_vcf.genotype(covg,0.01,30,snps_only);
         if (snps_only)
             master_vcf.save(outdir + "/pandora_genotyped.vcf" , true, true, true, true, false, false, false);

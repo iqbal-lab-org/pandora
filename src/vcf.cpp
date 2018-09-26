@@ -302,7 +302,7 @@ void VCF::merge_multi_allelic(uint32_t max_allele_length) {
     records.reserve(reserve_size);
     for (uint32_t current_pos=1; current_pos < vcf_size; ++current_pos){
         const auto record = records[current_pos];
-        cout << "comparing record " << current_pos << "/" << vcf_size << " to record " << prev_pos << endl;
+        //cout << "comparing record " << current_pos << "/" << vcf_size << " to record " << prev_pos << endl;
 
         if (record != prev_vr
             and prev_vr.chrom == record.chrom
@@ -361,8 +361,8 @@ void VCF::merge_multi_allelic(uint32_t max_allele_length) {
             prev_vr = records[prev_pos];
         }
     }
-    sort_records();
     clean();
+    sort_records();
 }
 
 void VCF::make_gt_compatible(){
@@ -372,7 +372,9 @@ void VCF::make_gt_compatible(){
             for (auto &other_record : records){
                 if (record == other_record)
                     found_record = true;
-                else if (other_record.pos > record.pos + record.ref.length()){
+                else if (!found_record and other_record.chrom != record.chrom)
+                    continue;
+                else if (other_record.chrom != record.chrom or other_record.pos > record.pos + record.ref.length()){
                     break;
                 } else if (found_record
                            and other_record.pos <= record.pos + record.ref.length()
