@@ -213,12 +213,10 @@ local_assembly(const std::string &filepath, std::string &start_kmer, std::string
 
     // make sure the max_path_length is actually longer than the kmer size
     if (kmer_size > max_path_length) {
-        BOOST_LOG_TRIVIAL(warning) << "Kmer size "
-                                   << std::to_string(kmer_size)
-                                   << " is greater than the maximum path length "
-                                   << std::to_string(max_path_length)
-                                   << ". Skipping local assembly for "
-                                   << filepath;
+        BOOST_LOG_TRIVIAL(warning) << "Kmer size " << std::to_string(kmer_size)
+                                   << " is greater than the maximum path length " << std::to_string(max_path_length)
+                                   << ". Skipping local assembly.";
+        return;
     }
 
     try {
@@ -302,12 +300,10 @@ void local_assembly(const std::string &filepath, std::unordered_set<std::string>
 
     // make sure the max_path_length is actually longer than the kmer size
     if (kmer_size > max_path_length) {
-        BOOST_LOG_TRIVIAL(warning) << "Kmer size "
-                                   << std::to_string(kmer_size)
-                                   << " is greater than the maximum path length "
-                                   << std::to_string(max_path_length)
-                                   << ". Skipping local assembly for "
-                                   << filepath;
+        BOOST_LOG_TRIVIAL(warning) << "Kmer size " << std::to_string(kmer_size)
+                                   << " is greater than the maximum path length " << std::to_string(max_path_length)
+                                   << ". Skipping local assembly.";
+        return;
     }
 
     try {
@@ -411,11 +407,10 @@ void local_assembly(const std::vector<std::string> &sequences, std::string &star
 
     // make sure the max_path_length is actually longer than the kmer size
     if (kmer_size > max_path_length) {
-        BOOST_LOG_TRIVIAL(warning) << "Kmer size "
-                                   << std::to_string(kmer_size)
-                                   << " is greater than the maximum path length "
-                                   << std::to_string(max_path_length)
-                                   << ". Skipping local assembly...";
+        BOOST_LOG_TRIVIAL(warning) << "Kmer size " << std::to_string(kmer_size)
+                                   << " is greater than the maximum path length " << std::to_string(max_path_length)
+                                   << ". Skipping local assembly.";
+        return;
     }
 
     try {
@@ -496,11 +491,10 @@ void local_assembly(const std::vector<std::string> &sequences, std::unordered_se
 
     // make sure the max_path_length is actually longer than the kmer size
     if (kmer_size > max_path_length) {
-        BOOST_LOG_TRIVIAL(warning) << "Kmer size "
-                                   << std::to_string(kmer_size)
-                                   << " is greater than the maximum path length "
-                                   << std::to_string(max_path_length)
+        BOOST_LOG_TRIVIAL(warning) << "Kmer size " << std::to_string(kmer_size)
+                                   << " is greater than the maximum path length " << std::to_string(max_path_length)
                                    << ". Skipping local assembly.";
+        return;
     }
 
     try {
