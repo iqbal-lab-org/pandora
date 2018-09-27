@@ -44,14 +44,18 @@ public:
 
     void genotype(const uint32_t&, const float&, const uint8_t, bool snps_only=true);
 
+    void clean();
+
+    void merge_multi_allelic(uint32_t max_allele_length=10);
+
+    void make_gt_compatible();
+
     std::string header();
 
     void save(const std::string &, bool simple = false, bool complexgraph = false, bool toomanyalts = false,
               bool snp = false, bool indel = false, bool phsnps = false, bool complexvar = false);
 
     void load(const std::string &);
-
-    void write_aligned_fasta(const std::string &, const std::string&, const std::vector<LocalNodePtr> &);
 
     bool operator==(const VCF &y) const;
 

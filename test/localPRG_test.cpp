@@ -912,6 +912,7 @@ TEST(LocalPRGTest, build_vcf)
             "TGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG 8 CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA 7 CAGAAA"
             "AAACTCTTTATCGACGGCAAGCGTGTCGGGGACAG 9 A 10 G 9 GAGTATGCGGAGGTGCTGAT 11 A 12 C 11 GCTATTACGGAGTATCACCG 13"
             " G 14 T 13 GCCCTGTTATCCAGGCTTATGGCAGATTAG");
+    LocalPRG l5(5,"another real PRG", "ATGACAAAGGTTACACCGT 5 C 6 T 5 TGACGTGCTACGCCTGTCAGGCCTATTCGACTCCTGCAAT 7 G 8 A 7 TATTGAATTTGCATAGTTTT 9 G 10 A 9 TAGGTCGA 11 G 12 A 11 TAAGGCGTTCACGCCGCATCCGGCGTGAACAAA 13 G 14 T 13 TACTCTTTTT 15  17  19 C 20 T 19 GCACAATCCAA 18 CGCACAAACCAA 17  16  21 CGCACAATCCAA 22  23 CGT 24 CGC 23 ACAAACCA 25 A 26 T 25  21 TATGTGCAAATTATTACTTTTTCCAGAAATCATCGAAAACGG 15 ");
 
     VCF vcf;
 
@@ -927,7 +928,7 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ("varsite", vcf.records[0].chrom);
     EXPECT_EQ((uint)1, vcf.records[0].pos);
     EXPECT_EQ("GC", vcf.records[0].ref);
-    EXPECT_EQ("G", vcf.records[0].alt);
+    EXPECT_EQ("G", vcf.records[0].alt[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.records[0].info);
 
     vcf.clear();
@@ -938,7 +939,7 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ("varsite", vcf.records[0].chrom);
     EXPECT_EQ((uint)1, vcf.records[0].pos);
     EXPECT_EQ("G", vcf.records[0].ref);
-    EXPECT_EQ("GC", vcf.records[0].alt);
+    EXPECT_EQ("GC", vcf.records[0].alt[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.records[0].info);
 
     vcf.clear();
@@ -949,11 +950,11 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ("nested varsite", vcf.records[0].chrom);
     EXPECT_EQ((uint)1, vcf.records[0].pos);
     EXPECT_EQ("GC", vcf.records[0].ref);
-    EXPECT_EQ("G", vcf.records[0].alt);
+    EXPECT_EQ("G", vcf.records[0].alt[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=NESTED", vcf.records[0].info);
     EXPECT_EQ((uint)2, vcf.records[1].pos);
     EXPECT_EQ("C", vcf.records[1].ref);
-    EXPECT_EQ("T", vcf.records[1].alt);
+    EXPECT_EQ("T", vcf.records[1].alt[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=NESTED", vcf.records[1].info);
 
     vcf.clear();
@@ -964,11 +965,11 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ("nested varsite", vcf.records[0].chrom);
     EXPECT_EQ((uint)1, vcf.records[0].pos);
     EXPECT_EQ("GT", vcf.records[0].ref);
-    EXPECT_EQ("G", vcf.records[0].alt);
+    EXPECT_EQ("G", vcf.records[0].alt[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=NESTED", vcf.records[0].info);
     EXPECT_EQ((uint)2, vcf.records[1].pos);
     EXPECT_EQ("T", vcf.records[1].ref);
-    EXPECT_EQ("C", vcf.records[1].alt);
+    EXPECT_EQ("C", vcf.records[1].alt[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=NESTED", vcf.records[1].info);
 
     vcf.clear();
@@ -979,11 +980,11 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ("nested varsite", vcf.records[0].chrom);
     EXPECT_EQ((uint)1, vcf.records[0].pos);
     EXPECT_EQ("G", vcf.records[0].ref);
-    EXPECT_EQ("GC", vcf.records[0].alt);
+    EXPECT_EQ("GC", vcf.records[0].alt[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.records[0].info);
     EXPECT_EQ((uint)1, vcf.records[1].pos);
     EXPECT_EQ("G", vcf.records[1].ref);
-    EXPECT_EQ("GT", vcf.records[1].alt);
+    EXPECT_EQ("GT", vcf.records[1].alt[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.records[1].info);
 
     vcf.clear();
@@ -994,27 +995,27 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ("small real PRG", vcf.records[0].chrom);
     EXPECT_EQ((uint)119, vcf.records[0].pos);
     EXPECT_EQ("T", vcf.records[0].ref);
-    EXPECT_EQ("C", vcf.records[0].alt);
+    EXPECT_EQ("C", vcf.records[0].alt[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[0].info);
 
     EXPECT_EQ((uint)158, vcf.records[1].pos);
     EXPECT_EQ("TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG", vcf.records[1].ref);
-    EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA", vcf.records[1].alt);
+    EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA", vcf.records[1].alt[0]);
     EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE", vcf.records[1].info);
 
     EXPECT_EQ((uint)251, vcf.records[2].pos);
     EXPECT_EQ("A", vcf.records[2].ref);
-    EXPECT_EQ("G", vcf.records[2].alt);
+    EXPECT_EQ("G", vcf.records[2].alt[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[2].info);
 
     EXPECT_EQ((uint)272, vcf.records[3].pos);
     EXPECT_EQ("A", vcf.records[3].ref);
-    EXPECT_EQ("C", vcf.records[3].alt);
+    EXPECT_EQ("C", vcf.records[3].alt[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[3].info);
 
     EXPECT_EQ((uint)293, vcf.records[4].pos);
     EXPECT_EQ("G", vcf.records[4].ref);
-    EXPECT_EQ("T", vcf.records[4].alt);
+    EXPECT_EQ("T", vcf.records[4].alt[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[4].info);
 
     vcf.clear();
@@ -1027,28 +1028,32 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ("small real PRG", vcf.records[0].chrom);
     EXPECT_EQ((uint)119, vcf.records[0].pos);
     EXPECT_EQ("C", vcf.records[0].ref);
-    EXPECT_EQ("T", vcf.records[0].alt);
+    EXPECT_EQ("T", vcf.records[0].alt[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[0].info);
 
     EXPECT_EQ((uint)158, vcf.records[1].pos);
     EXPECT_EQ("TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG", vcf.records[1].ref);
-    EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA", vcf.records[1].alt);
+    EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA", vcf.records[1].alt[0]);
     EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE", vcf.records[1].info);
 
     EXPECT_EQ((uint)251, vcf.records[2].pos);
     EXPECT_EQ("G", vcf.records[2].ref);
-    EXPECT_EQ("A", vcf.records[2].alt);
+    EXPECT_EQ("A", vcf.records[2].alt[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[2].info);
 
     EXPECT_EQ((uint)272, vcf.records[3].pos);
     EXPECT_EQ("A", vcf.records[3].ref);
-    EXPECT_EQ("C", vcf.records[3].alt);
+    EXPECT_EQ("C", vcf.records[3].alt[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[3].info);
 
     EXPECT_EQ((uint)293, vcf.records[4].pos);
     EXPECT_EQ("T", vcf.records[4].ref);
-    EXPECT_EQ("G", vcf.records[4].alt);
+    EXPECT_EQ("G", vcf.records[4].alt[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[4].info);
+
+    vcf.clear();
+    l5.build_vcf(vcf, l5.prg.top_path());
+    vcf.sort_records();
 }
 
 TEST(LocalPRGTest, add_sample_gt_to_vcf)
@@ -1079,7 +1084,7 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf)
     j = 1;
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[0].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[0].samples[0]["GT"][0]);
 
     vcf.clear();
     vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
@@ -1088,7 +1093,7 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf)
     l3.add_sample_gt_to_vcf(vcf, l3.prg.top_path(), lmp3, "sample");
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
 
     vcf.clear();
     vector<LocalNodePtr> lmp4 = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[5], l4.prg.nodes[6],
@@ -1099,15 +1104,15 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf)
     l4.add_sample_gt_to_vcf(vcf, l4.prg.top_path(), lmp4, "sample");
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[0].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[0].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[1].samples.size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[2].samples.size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[2].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[2].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[3].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[4].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[4].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[4].samples[0]["GT"][0]);
 
     vcf.clear();
     vector<LocalNodePtr> lmp5 = {l5.prg.nodes[0], l5.prg.nodes[1], l5.prg.nodes[10], l5.prg.nodes[11], l5.prg.nodes[13]};
@@ -1123,7 +1128,7 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf)
     EXPECT_EQ(j, vcf.records[2].samples.size());
     EXPECT_TRUE(vcf.records[2].samples[0].find("GT") == vcf.records[2].samples[0].end());
     EXPECT_EQ(j, vcf.records[3].samples.size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[3].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[3].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[4].samples.size());
     EXPECT_TRUE(vcf.records[4].samples[0].find("GT") == vcf.records[4].samples[0].end());
 
@@ -1132,15 +1137,15 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf)
     EXPECT_EQ((uint)2, vcf.samples.size());
     EXPECT_EQ((uint)5, vcf.records.size());
     EXPECT_EQ((uint)2, vcf.records[0].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[0].samples[1]["GT"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[0].samples[1]["GT"][0]);
     EXPECT_EQ((uint)2, vcf.records[1].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[1]["GT"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[1]["GT"][0]);
     EXPECT_EQ((uint)2, vcf.records[2].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[2].samples[1]["GT"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[2].samples[1]["GT"][0]);
     EXPECT_EQ((uint)2, vcf.records[3].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[1]["GT"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[1]["GT"][0]);
     EXPECT_EQ((uint)2, vcf.records[4].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[4].samples[1]["GT"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[4].samples[1]["GT"][0]);
 
 }
 
@@ -1313,9 +1318,9 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     Index* idx;
     idx = new Index();
     vector<string> short_formats = {"GT"};
-    vector<string> formats = {"GT","REF_MEAN_FWD_COVG","REF_MEAN_REV_COVG","ALT_MEAN_FWD_COVG","ALT_MEAN_REV_COVG",
-                              "REF_MED_FWD_COVG","REF_MED_REV_COVG","ALT_MED_FWD_COVG","ALT_MED_REV_COVG",
-                              "REF_SUM_FWD_COVG","REF_SUM_REV_COVG","ALT_SUM_FWD_COVG","ALT_SUM_REV_COVG"};
+    vector<string> formats = {"GT","MEAN_FWD_COVG","MEAN_REV_COVG",
+                              "MED_FWD_COVG","MED_REV_COVG",
+                              "SUM_FWD_COVG","SUM_REV_COVG"};
 
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
     l3.minimizer_sketch(idx, 1, 3);
@@ -1330,31 +1335,25 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     EXPECT_EQ((uint)1, vcf.samples.size());
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>,short_formats, vcf.records[0].format);
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
 
-    vector<KmerNodePtr> kmp = l3.kmernode_path_from_localnode_path(lmp3);
-    /*for (auto n : kmp){
-        cout << n->id << " ";
-    }
-    cout << endl;*/
-
-    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), kmp, "sample");
+    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), "sample");
     EXPECT_EQ((uint)1, vcf.samples.size());
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_MEAN_FWD_COVG"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_MEAN_REV_COVG"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["ALT_MEAN_FWD_COVG"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["ALT_MEAN_REV_COVG"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_MED_FWD_COVG"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_MED_REV_COVG"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["ALT_MED_FWD_COVG"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["ALT_MED_REV_COVG"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_SUM_FWD_COVG"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_SUM_REV_COVG"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["ALT_SUM_FWD_COVG"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["ALT_SUM_REV_COVG"]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MEAN_FWD_COVG"][0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MEAN_REV_COVG"][0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MEAN_FWD_COVG"][1]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MEAN_REV_COVG"][1]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MED_FWD_COVG"][0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MED_REV_COVG"][0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MED_FWD_COVG"][1]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MED_REV_COVG"][1]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["SUM_FWD_COVG"][0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["SUM_REV_COVG"][0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["SUM_FWD_COVG"][1]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["SUM_REV_COVG"][1]);
 
     // ref
     l3.kmer_prg.nodes[1]->covg[0] = 1;
@@ -1372,23 +1371,23 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
     l3.kmer_prg.nodes[8]->covg[0] = 4;
     l3.kmer_prg.nodes[8]->covg[1] = 5;
 
-    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), kmp, "sample");
+    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), "sample");
     EXPECT_EQ((uint)1, vcf.samples.size());
     EXPECT_EQ((uint)1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["REF_MEAN_FWD_COVG"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_MEAN_REV_COVG"]);
-    EXPECT_EQ((uint8_t) 5, vcf.records[1].samples[0]["ALT_MEAN_FWD_COVG"]);
-    EXPECT_EQ((uint8_t) 6, vcf.records[1].samples[0]["ALT_MEAN_REV_COVG"]);
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["REF_MED_FWD_COVG"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_MED_REV_COVG"]);
-    EXPECT_EQ((uint8_t) 5, vcf.records[1].samples[0]["ALT_MED_FWD_COVG"]);
-    EXPECT_EQ((uint8_t) 5, vcf.records[1].samples[0]["ALT_MED_REV_COVG"]);
-    EXPECT_EQ((uint8_t) 3, vcf.records[1].samples[0]["REF_SUM_FWD_COVG"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["REF_SUM_REV_COVG"]);
-    EXPECT_EQ((uint8_t) 15, vcf.records[1].samples[0]["ALT_SUM_FWD_COVG"]);
-    EXPECT_EQ((uint8_t) 18, vcf.records[1].samples[0]["ALT_SUM_REV_COVG"]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["MEAN_FWD_COVG"][0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MEAN_REV_COVG"][0]);
+    EXPECT_EQ((uint8_t) 5, vcf.records[1].samples[0]["MEAN_FWD_COVG"][1]);
+    EXPECT_EQ((uint8_t) 6, vcf.records[1].samples[0]["MEAN_REV_COVG"][1]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["MED_FWD_COVG"][0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MED_REV_COVG"][0]);
+    EXPECT_EQ((uint8_t) 5, vcf.records[1].samples[0]["MED_FWD_COVG"][1]);
+    EXPECT_EQ((uint8_t) 5, vcf.records[1].samples[0]["MED_REV_COVG"][1]);
+    EXPECT_EQ((uint8_t) 3, vcf.records[1].samples[0]["SUM_FWD_COVG"][0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["SUM_REV_COVG"][0]);
+    EXPECT_EQ((uint8_t) 15, vcf.records[1].samples[0]["SUM_FWD_COVG"][1]);
+    EXPECT_EQ((uint8_t) 18, vcf.records[1].samples[0]["SUM_REV_COVG"][1]);
 
     delete idx;
 }

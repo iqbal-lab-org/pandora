@@ -84,7 +84,7 @@ TEST(VCFTest, add_sample_gt) {
     uint j = 1;
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[1].samples.size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[0].samples.size());
     EXPECT_TRUE(vcf.records[0].samples[0].find("GT") == vcf.records[0].samples[0].end());
     EXPECT_EQ(j, vcf.records[2].samples.size());
@@ -95,13 +95,13 @@ TEST(VCFTest, add_sample_gt) {
     vcf.add_sample_gt("sample", "chrom1", 79, "C", "C");
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[1].samples.size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[0].samples.size());
     EXPECT_TRUE(vcf.records[0].samples[0].find("GT") == vcf.records[0].samples[0].end());
     EXPECT_EQ(j, vcf.records[2].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[2].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[2].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[3].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[0]["GT"][0]);
 }
 
 TEST(VCFTest, add_sample_ref_alleles) {
@@ -118,7 +118,7 @@ TEST(VCFTest, add_sample_ref_alleles) {
     EXPECT_EQ((uint) 1, vcf.records[0].samples.size());
     EXPECT_TRUE(vcf.records[0].samples[0].find("GT") == vcf.records[0].samples[0].end());
     EXPECT_EQ((uint) 1, vcf.records[1].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["GT"][0]);
     EXPECT_EQ((uint) 1, vcf.records[2].samples.size());
     EXPECT_TRUE(vcf.records[2].samples[0].find("GT") == vcf.records[2].samples[0].end());
     EXPECT_EQ((uint) 1, vcf.records[3].samples.size());
@@ -130,7 +130,7 @@ TEST(VCFTest, add_sample_ref_alleles) {
     EXPECT_EQ((uint) 2, vcf.samples.size());
     EXPECT_EQ((uint) 5, vcf.records.size());
     EXPECT_EQ((uint) 2, vcf.records[0].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[0].samples[1]["GT"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[0].samples[1]["GT"][0]);
     EXPECT_EQ((uint) 2, vcf.records[1].samples.size());
     EXPECT_TRUE(vcf.records[1].samples[1].find("GT") == vcf.records[1].samples[1].end());
     EXPECT_EQ((uint) 2, vcf.records[2].samples.size());
@@ -159,13 +159,13 @@ TEST(VCFTest, reorder_add_record_and_sample) {
     EXPECT_EQ((uint) 2, vcf.records[2].samples.size());
     EXPECT_EQ((uint) 2, vcf.records[3].samples.size());
     EXPECT_TRUE(vcf.records[0].samples[0].find("GT") == vcf.records[0].samples[0].end());
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"]);
-    EXPECT_EQ((uint8_t) 1, vcf.records[2].samples[0]["GT"]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t) 1, vcf.records[2].samples[0]["GT"][0]);
     EXPECT_TRUE(vcf.records[3].samples[0].find("GT") == vcf.records[3].samples[0].end());
     EXPECT_TRUE(vcf.records[0].samples[1].find("GT") == vcf.records[0].samples[1].end());
     EXPECT_TRUE(vcf.records[1].samples[1].find("GT") == vcf.records[1].samples[1].end());
-    EXPECT_EQ((uint8_t) 0, vcf.records[2].samples[1]["GT"]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[1]["GT"]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[2].samples[1]["GT"][0]);
+    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[1]["GT"][0]);
 
 }
 
@@ -206,9 +206,9 @@ TEST(VCFTest, append_vcf_simple_case) {
         EXPECT_EQ(vcf.records[i].chrom, "chrom2");
     }
     EXPECT_EQ((uint)5,vcf.records[4].pos);
-    EXPECT_EQ("TA", vcf.records[5].alt);
+    EXPECT_EQ("TA", vcf.records[5].alt[0]);
     EXPECT_EQ((uint)79,vcf.records[6].pos);
-    EXPECT_EQ("A", vcf.records[7].alt);
+    EXPECT_EQ("A", vcf.records[7].alt[0]);
 }
 
 TEST(VCFTest, append_vcf_some_duplicate_records) {
@@ -257,7 +257,7 @@ TEST(VCFTest, append_vcf_one_sample) {
     EXPECT_EQ((uint)1, vcf.records[5].samples.size());
     bool found_gt = vcf.records[2].samples[0].find("GT") != vcf.records[2].samples[0].end();
     EXPECT_TRUE(found_gt);
-    EXPECT_EQ((uint)1, vcf.records[2].samples[0]["GT"]);
+    EXPECT_EQ((uint)1, vcf.records[2].samples[0]["GT"][0]);
     found_gt = vcf.records[0].samples[0].find("GT") != vcf.records[0].samples[0].end();
     EXPECT_FALSE(found_gt);
     found_gt = vcf.records[1].samples[0].find("GT") != vcf.records[1].samples[0].end();
@@ -291,7 +291,7 @@ TEST(VCFTest, append_vcf_one_sample_in_new_vcf) {
     EXPECT_EQ((uint)1, vcf.records[5].samples.size());
     bool found_gt = vcf.records[4].samples[0].find("GT") != vcf.records[4].samples[0].end();
     EXPECT_TRUE(found_gt);
-    EXPECT_EQ((uint)1, vcf.records[4].samples[0]["GT"]);
+    EXPECT_EQ((uint)1, vcf.records[4].samples[0]["GT"][0]);
     found_gt = vcf.records[0].samples[0].find("GT") != vcf.records[0].samples[0].end();
     EXPECT_FALSE(found_gt);
     found_gt = vcf.records[1].samples[0].find("GT") != vcf.records[1].samples[0].end();
@@ -326,7 +326,7 @@ TEST(VCFTest, append_vcf_shared_sample) {
     EXPECT_EQ((uint)1, vcf.records[5].samples.size());
     bool found_gt = vcf.records[1].samples[0].find("GT") != vcf.records[1].samples[0].end();
     EXPECT_TRUE(found_gt);
-    EXPECT_EQ((uint)1, vcf.records[1].samples[0]["GT"]);
+    EXPECT_EQ((uint)1, vcf.records[1].samples[0]["GT"][0]);
     found_gt = vcf.records[0].samples[0].find("GT") != vcf.records[0].samples[0].end();
     EXPECT_FALSE(found_gt);
     found_gt = vcf.records[4].samples[0].find("GT") != vcf.records[4].samples[0].end();
@@ -367,13 +367,13 @@ TEST(VCFTest, append_vcf_shared_samples_different_order) {
 
     bool found_gt = vcf.records[1].samples[0].find("GT") != vcf.records[1].samples[0].end();
     EXPECT_TRUE(found_gt);
-    EXPECT_EQ((uint)1, vcf.records[1].samples[0]["GT"]);
+    EXPECT_EQ((uint)1, vcf.records[1].samples[0]["GT"][0]);
     found_gt = vcf.records[1].samples[1].find("GT") != vcf.records[1].samples[1].end();
     EXPECT_TRUE(found_gt);
-    EXPECT_EQ((uint)0, vcf.records[1].samples[1]["GT"]);
+    EXPECT_EQ((uint)0, vcf.records[1].samples[1]["GT"][0]);
     found_gt = vcf.records[3].samples[1].find("GT") != vcf.records[3].samples[1].end();
     EXPECT_TRUE(found_gt);
-    EXPECT_EQ((uint)1, vcf.records[3].samples[1]["GT"]);
+    EXPECT_EQ((uint)1, vcf.records[3].samples[1]["GT"][0]);
 
 }
 
@@ -403,8 +403,8 @@ TEST(VCFTest, sort_records) {
     EXPECT_EQ((uint)79, vcf.records[2].pos);
     EXPECT_EQ((uint)79, vcf.records[3].pos);
     EXPECT_EQ((uint)79, vcf.records[5].pos);
-    EXPECT_EQ("G", vcf.records[3].alt);
-    EXPECT_EQ("G", vcf.records[5].alt);
+    EXPECT_EQ("G", vcf.records[3].alt[0]);
+    EXPECT_EQ("G", vcf.records[5].alt[0]);
 }
 
 TEST(VCFTest, pos_in_range) {
@@ -462,89 +462,72 @@ TEST(VCFTest, genotype) {
     vcf.sort_records();
 
     // record 0, not a snp site
-    vcf.records[0].samples[0]["REF_MEAN_FWD_COVG"] = 0;
-    vcf.records[0].samples[0]["REF_MEAN_REV_COVG"] = 1;
-    vcf.records[0].samples[0]["ALT_MEAN_FWD_COVG"] = 10;
-    vcf.records[0].samples[0]["ALT_MEAN_REV_COVG"] = 20;
-    vcf.records[0].samples[1]["REF_MEAN_FWD_COVG"] = 1;
-    vcf.records[0].samples[1]["REF_MEAN_REV_COVG"] = 2;
-    vcf.records[0].samples[1]["ALT_MEAN_FWD_COVG"] = 15;
-    vcf.records[0].samples[1]["ALT_MEAN_REV_COVG"] = 24;
+    vcf.records[0].samples[0]["MEAN_FWD_COVG"] = {0,10};
+    vcf.records[0].samples[0]["MEAN_REV_COVG"] = {1,20};
+    vcf.records[0].samples[1]["MEAN_FWD_COVG"] = {1,15};
+    vcf.records[0].samples[1]["MEAN_REV_COVG"] = {2,24};
 
     // record 1, different genotypes but both correct
-    vcf.records[1].samples[0]["REF_MEAN_FWD_COVG"] = 0;
-    vcf.records[1].samples[0]["REF_MEAN_REV_COVG"] = 1;
-    vcf.records[1].samples[0]["ALT_MEAN_FWD_COVG"] = 10;
-    vcf.records[1].samples[0]["ALT_MEAN_REV_COVG"] = 20;
-    vcf.records[1].samples[1]["REF_MEAN_FWD_COVG"] = 10;
-    vcf.records[1].samples[1]["REF_MEAN_REV_COVG"] = 21;
-    vcf.records[1].samples[1]["ALT_MEAN_FWD_COVG"] = 1;
-    vcf.records[1].samples[1]["ALT_MEAN_REV_COVG"] = 2;
+    vcf.records[1].samples[0]["MEAN_FWD_COVG"] = {0,10};
+    vcf.records[1].samples[0]["MEAN_REV_COVG"] = {1,20};
+    vcf.records[1].samples[1]["MEAN_FWD_COVG"] = {10,1};
+    vcf.records[1].samples[1]["MEAN_REV_COVG"] = {21,2};
 
     // record 2, same genotypes first correct
-    vcf.records[2].samples[0]["REF_MEAN_FWD_COVG"] = 0;
-    vcf.records[2].samples[0]["REF_MEAN_REV_COVG"] = 1;
-    vcf.records[2].samples[0]["ALT_MEAN_FWD_COVG"] = 10;
-    vcf.records[2].samples[0]["ALT_MEAN_REV_COVG"] = 20;
-    vcf.records[2].samples[1]["REF_MEAN_FWD_COVG"] = 10;
-    vcf.records[2].samples[1]["REF_MEAN_REV_COVG"] = 21;
-    vcf.records[2].samples[1]["ALT_MEAN_FWD_COVG"] = 1;
-    vcf.records[2].samples[1]["ALT_MEAN_REV_COVG"] = 2;
+    vcf.records[2].samples[0]["MEAN_FWD_COVG"] = {0,10};
+    vcf.records[2].samples[0]["MEAN_REV_COVG"] = {1,20};
+    vcf.records[2].samples[1]["MEAN_FWD_COVG"] = {10,1};
+    vcf.records[2].samples[1]["MEAN_REV_COVG"] = {21,2};
 
     // record 3, same genotypes both wrong
-    vcf.records[3].samples[0]["REF_MEAN_FWD_COVG"] = 20;
-    vcf.records[3].samples[0]["REF_MEAN_REV_COVG"] = 21;
-    vcf.records[3].samples[0]["ALT_MEAN_FWD_COVG"] = 1;
-    vcf.records[3].samples[0]["ALT_MEAN_REV_COVG"] = 2;
-    vcf.records[3].samples[1]["REF_MEAN_FWD_COVG"] = 10;
-    vcf.records[3].samples[1]["REF_MEAN_REV_COVG"] = 21;
-    vcf.records[3].samples[1]["ALT_MEAN_FWD_COVG"] = 1;
-    vcf.records[3].samples[1]["ALT_MEAN_REV_COVG"] = 2;
+    vcf.records[3].samples[0]["MEAN_FWD_COVG"] = {20,1};
+    vcf.records[3].samples[0]["MEAN_REV_COVG"] = {21,2};
+    vcf.records[3].samples[1]["MEAN_FWD_COVG"] = {10,1};
+    vcf.records[3].samples[1]["MEAN_REV_COVG"] = {21,2};
 
     // record 4, missing count data for first sample
-    vcf.records[4].samples[0]["REF_MEAN_FWD_COVG"] = 0;
-    vcf.records[4].samples[0]["ALT_MEAN_FWD_COVG"] = 10;
-    vcf.records[4].samples[0]["ALT_MEAN_REV_COVG"] = 20;
-    vcf.records[4].samples[1]["REF_MEAN_FWD_COVG"] = 10;
-    vcf.records[4].samples[1]["REF_MEAN_REV_COVG"] = 21;
-    vcf.records[4].samples[1]["ALT_MEAN_FWD_COVG"] = 1;
-    vcf.records[4].samples[1]["ALT_MEAN_REV_COVG"] = 2;
+    vcf.records[4].samples[0]["MEAN_FWD_COVG"] = {0,10};
+    vcf.records[4].samples[0]["MEAN_REV_COVG"] = {20};
+    vcf.records[4].samples[1]["MEAN_FWD_COVG"] = {10,1};
+    vcf.records[4].samples[1]["MEAN_REV_COVG"] = {21,2};
 
     // record 5, not confident for second sample
-    vcf.records[5].samples[0]["REF_MEAN_FWD_COVG"] = 0;
-    vcf.records[5].samples[0]["REF_MEAN_REV_COVG"] = 1;
-    vcf.records[5].samples[0]["ALT_MEAN_FWD_COVG"] = 10;
-    vcf.records[5].samples[0]["ALT_MEAN_REV_COVG"] = 20;
-    vcf.records[5].samples[1]["REF_MEAN_FWD_COVG"] = 2;
-    vcf.records[5].samples[1]["REF_MEAN_REV_COVG"] = 4;
-    vcf.records[5].samples[1]["ALT_MEAN_FWD_COVG"] = 1;
-    vcf.records[5].samples[1]["ALT_MEAN_REV_COVG"] = 2;
-
-    cout << vcf << endl;
+    vcf.records[5].samples[0]["MEAN_FWD_COVG"] = {0,10};
+    vcf.records[5].samples[0]["MEAN_REV_COVG"] = {1,20};
+    vcf.records[5].samples[1]["MEAN_FWD_COVG"] = {2,1};
+    vcf.records[5].samples[1]["MEAN_REV_COVG"] = {4,2};
 
     vcf.genotype(30,0.01,30);
 
     cout << vcf << endl;
 
-    EXPECT_EQ((uint8_t)1,vcf.records[0].samples[0]["GT"]);
-    EXPECT_EQ((uint8_t)1,vcf.records[0].samples[1]["GT"]);
-    bool found_confidence = vcf.records[0].samples[0].find("CONFIDENCE") != vcf.records[0].samples[0].end();
+    // not genotyped first record
+    EXPECT_EQ((uint8_t)1,vcf.records[0].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t)1,vcf.records[0].samples[1]["GT"][0]);
+    bool found_confidence = !vcf.records[0].regt_samples.empty();
     EXPECT_FALSE(found_confidence);
-    found_confidence = vcf.records[0].samples[1].find("CONFIDENCE") != vcf.records[0].samples[1].end();
-    EXPECT_FALSE(found_confidence);
-    EXPECT_EQ((uint8_t)1,vcf.records[1].samples[0]["GT"]);
-    EXPECT_EQ((uint8_t)0,vcf.records[1].samples[1]["GT"]);
-    EXPECT_EQ((uint8_t)1,vcf.records[2].samples[0]["GT"]);
-    EXPECT_EQ((uint8_t)0,vcf.records[2].samples[1]["GT"]);
-    EXPECT_EQ((uint8_t)0,vcf.records[3].samples[0]["GT"]);
-    EXPECT_EQ((uint8_t)0,vcf.records[3].samples[1]["GT"]);
-    EXPECT_EQ((uint8_t)0,vcf.records[4].samples[1]["GT"]);
-    EXPECT_EQ((uint8_t)1,vcf.records[5].samples[0]["GT"]);
-    bool found_gt = vcf.records[4].samples[0].find("GT") != vcf.records[4].samples[0].end();
-    EXPECT_FALSE(found_gt);
-    found_gt = vcf.records[5].samples[1].find("GT") != vcf.records[5].samples[1].end();
-    EXPECT_FALSE(found_gt);
-
+    // both correct
+    EXPECT_EQ((uint)2, vcf.records[1].samples.size());
+    bool found_gt = vcf.records[1].samples[0].find("GT") != vcf.records[1].samples[0].end();
+    EXPECT_TRUE(found_gt);
+    found_gt = vcf.records[1].samples[1].find("GT") != vcf.records[1].samples[1].end();
+    EXPECT_TRUE(found_gt);
+    EXPECT_EQ((uint)1, vcf.records[1].samples[0]["GT"].size());
+    EXPECT_EQ((uint)1, vcf.records[1].samples[1]["GT"].size());
+    EXPECT_EQ((uint8_t)1,vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t)0,vcf.records[1].samples[1]["GT"][0]);
+    // first correct
+    EXPECT_EQ((uint8_t)1,vcf.records[2].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t)0,vcf.records[2].samples[1]["GT"][0]);
+    // both wrong
+    EXPECT_EQ((uint8_t)0,vcf.records[3].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t)0,vcf.records[3].samples[1]["GT"][0]);
+    // first missing data
+    EXPECT_EQ((uint)0, vcf.records[4].samples[0]["GT"].size());
+    EXPECT_EQ((uint8_t)0,vcf.records[4].samples[1]["GT"][0]);
+    // second not confident
+    EXPECT_EQ((uint8_t)1,vcf.records[5].samples[0]["GT"][0]);
+    EXPECT_EQ((uint)0, vcf.records[5].samples[1]["GT"].size());
 }
 
 TEST(VCFTest, genotype_with_all_sites) {
@@ -575,92 +558,250 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.sort_records();
 
     // record 0, not a snp site
-    vcf.records[0].samples[0]["REF_MEAN_FWD_COVG"] = 0;
-    vcf.records[0].samples[0]["REF_MEAN_REV_COVG"] = 1;
-    vcf.records[0].samples[0]["ALT_MEAN_FWD_COVG"] = 10;
-    vcf.records[0].samples[0]["ALT_MEAN_REV_COVG"] = 20;
-    vcf.records[0].samples[1]["REF_MEAN_FWD_COVG"] = 1;
-    vcf.records[0].samples[1]["REF_MEAN_REV_COVG"] = 2;
-    vcf.records[0].samples[1]["ALT_MEAN_FWD_COVG"] = 15;
-    vcf.records[0].samples[1]["ALT_MEAN_REV_COVG"] = 24;
+    vcf.records[0].samples[0]["MEAN_FWD_COVG"].push_back(0);
+    vcf.records[0].samples[0]["MEAN_REV_COVG"].push_back(1);
+    vcf.records[0].samples[0]["MEAN_FWD_COVG"].push_back(10);
+    vcf.records[0].samples[0]["MEAN_REV_COVG"].push_back(20);
+    vcf.records[0].samples[1]["MEAN_FWD_COVG"].push_back(1);
+    vcf.records[0].samples[1]["MEAN_REV_COVG"].push_back(2);
+    vcf.records[0].samples[1]["MEAN_FWD_COVG"].push_back(15);
+    vcf.records[0].samples[1]["MEAN_REV_COVG"].push_back(24);
 
     // record 1, different genotypes but both correct
-    vcf.records[1].samples[0]["REF_MEAN_FWD_COVG"] = 0;
-    vcf.records[1].samples[0]["REF_MEAN_REV_COVG"] = 1;
-    vcf.records[1].samples[0]["ALT_MEAN_FWD_COVG"] = 10;
-    vcf.records[1].samples[0]["ALT_MEAN_REV_COVG"] = 20;
-    vcf.records[1].samples[1]["REF_MEAN_FWD_COVG"] = 10;
-    vcf.records[1].samples[1]["REF_MEAN_REV_COVG"] = 21;
-    vcf.records[1].samples[1]["ALT_MEAN_FWD_COVG"] = 1;
-    vcf.records[1].samples[1]["ALT_MEAN_REV_COVG"] = 2;
+    vcf.records[1].samples[0]["MEAN_FWD_COVG"].push_back(0);
+    vcf.records[1].samples[0]["MEAN_REV_COVG"].push_back(1);
+    vcf.records[1].samples[0]["MEAN_FWD_COVG"].push_back(10);
+    vcf.records[1].samples[0]["MEAN_REV_COVG"].push_back(20);
+    vcf.records[1].samples[1]["MEAN_FWD_COVG"].push_back(10);
+    vcf.records[1].samples[1]["MEAN_REV_COVG"].push_back(21);
+    vcf.records[1].samples[1]["MEAN_FWD_COVG"].push_back(1);
+    vcf.records[1].samples[1]["MEAN_REV_COVG"].push_back(2);
 
     // record 2, same genotypes first correct
-    vcf.records[2].samples[0]["REF_MEAN_FWD_COVG"] = 0;
-    vcf.records[2].samples[0]["REF_MEAN_REV_COVG"] = 1;
-    vcf.records[2].samples[0]["ALT_MEAN_FWD_COVG"] = 10;
-    vcf.records[2].samples[0]["ALT_MEAN_REV_COVG"] = 20;
-    vcf.records[2].samples[1]["REF_MEAN_FWD_COVG"] = 10;
-    vcf.records[2].samples[1]["REF_MEAN_REV_COVG"] = 21;
-    vcf.records[2].samples[1]["ALT_MEAN_FWD_COVG"] = 1;
-    vcf.records[2].samples[1]["ALT_MEAN_REV_COVG"] = 2;
+    vcf.records[2].samples[0]["MEAN_FWD_COVG"].push_back(0);
+    vcf.records[2].samples[0]["MEAN_REV_COVG"].push_back(1);
+    vcf.records[2].samples[0]["MEAN_FWD_COVG"].push_back(10);
+    vcf.records[2].samples[0]["MEAN_REV_COVG"].push_back(20);
+    vcf.records[2].samples[1]["MEAN_FWD_COVG"].push_back(10);
+    vcf.records[2].samples[1]["MEAN_REV_COVG"].push_back(21);
+    vcf.records[2].samples[1]["MEAN_FWD_COVG"].push_back(1);
+    vcf.records[2].samples[1]["MEAN_REV_COVG"].push_back(2);
 
     // record 3, same genotypes both wrong
-    vcf.records[3].samples[0]["REF_MEAN_FWD_COVG"] = 20;
-    vcf.records[3].samples[0]["REF_MEAN_REV_COVG"] = 21;
-    vcf.records[3].samples[0]["ALT_MEAN_FWD_COVG"] = 1;
-    vcf.records[3].samples[0]["ALT_MEAN_REV_COVG"] = 2;
-    vcf.records[3].samples[1]["REF_MEAN_FWD_COVG"] = 10;
-    vcf.records[3].samples[1]["REF_MEAN_REV_COVG"] = 21;
-    vcf.records[3].samples[1]["ALT_MEAN_FWD_COVG"] = 1;
-    vcf.records[3].samples[1]["ALT_MEAN_REV_COVG"] = 2;
+    vcf.records[3].samples[0]["MEAN_FWD_COVG"].push_back(20);
+    vcf.records[3].samples[0]["MEAN_REV_COVG"].push_back(21);
+    vcf.records[3].samples[0]["MEAN_FWD_COVG"].push_back(1);
+    vcf.records[3].samples[0]["MEAN_REV_COVG"].push_back(2);
+    vcf.records[3].samples[1]["MEAN_FWD_COVG"].push_back(10);
+    vcf.records[3].samples[1]["MEAN_REV_COVG"].push_back(21);
+    vcf.records[3].samples[1]["MEAN_FWD_COVG"].push_back(1);
+    vcf.records[3].samples[1]["MEAN_REV_COVG"].push_back(2);
 
     // record 4, missing count data for first sample
-    vcf.records[4].samples[0]["REF_MEAN_FWD_COVG"] = 0;
-    vcf.records[4].samples[0]["ALT_MEAN_FWD_COVG"] = 10;
-    vcf.records[4].samples[0]["ALT_MEAN_REV_COVG"] = 20;
-    vcf.records[4].samples[1]["REF_MEAN_FWD_COVG"] = 10;
-    vcf.records[4].samples[1]["REF_MEAN_REV_COVG"] = 21;
-    vcf.records[4].samples[1]["ALT_MEAN_FWD_COVG"] = 1;
-    vcf.records[4].samples[1]["ALT_MEAN_REV_COVG"] = 2;
+    vcf.records[4].samples[0]["MEAN_FWD_COVG"].push_back(0);
+    vcf.records[4].samples[0]["MEAN_FWD_COVG"].push_back(10);
+    vcf.records[4].samples[0]["MEAN_REV_COVG"].push_back(20);
+    vcf.records[4].samples[1]["MEAN_FWD_COVG"].push_back(10);
+    vcf.records[4].samples[1]["MEAN_REV_COVG"].push_back(21);
+    vcf.records[4].samples[1]["MEAN_FWD_COVG"].push_back(1);
+    vcf.records[4].samples[1]["MEAN_REV_COVG"].push_back(2);
 
     // record 5, not confident for second sample
-    vcf.records[5].samples[0]["REF_MEAN_FWD_COVG"] = 0;
-    vcf.records[5].samples[0]["REF_MEAN_REV_COVG"] = 1;
-    vcf.records[5].samples[0]["ALT_MEAN_FWD_COVG"] = 10;
-    vcf.records[5].samples[0]["ALT_MEAN_REV_COVG"] = 20;
-    vcf.records[5].samples[1]["REF_MEAN_FWD_COVG"] = 2;
-    vcf.records[5].samples[1]["REF_MEAN_REV_COVG"] = 4;
-    vcf.records[5].samples[1]["ALT_MEAN_FWD_COVG"] = 1;
-    vcf.records[5].samples[1]["ALT_MEAN_REV_COVG"] = 2;
-
-    cout << vcf << endl;
+    vcf.records[5].samples[0]["MEAN_FWD_COVG"].push_back(0);
+    vcf.records[5].samples[0]["MEAN_REV_COVG"].push_back(1);
+    vcf.records[5].samples[0]["MEAN_FWD_COVG"].push_back(10);
+    vcf.records[5].samples[0]["MEAN_REV_COVG"].push_back(20);
+    vcf.records[5].samples[1]["MEAN_FWD_COVG"].push_back(2);
+    vcf.records[5].samples[1]["MEAN_REV_COVG"].push_back(4);
+    vcf.records[5].samples[1]["MEAN_FWD_COVG"].push_back(1);
+    vcf.records[5].samples[1]["MEAN_REV_COVG"].push_back(2);
 
     bool snps_only = false;
     vcf.genotype(30,0.01,30,snps_only);
 
     cout << vcf << endl;
 
-    EXPECT_EQ((uint8_t)1,vcf.records[0].samples[0]["GT"]);
-    EXPECT_EQ((uint8_t)1,vcf.records[0].samples[1]["GT"]);
-    bool found_confidence = vcf.records[0].samples[0].find("CONFIDENCE") != vcf.records[0].samples[0].end();
-    EXPECT_FALSE(found_confidence);
-    found_confidence = vcf.records[0].samples[1].find("CONFIDENCE") != vcf.records[0].samples[1].end();
-    EXPECT_FALSE(found_confidence);
-    EXPECT_EQ((uint8_t)1,vcf.records[1].samples[0]["GT"]);
-    EXPECT_EQ((uint8_t)0,vcf.records[1].samples[1]["GT"]);
-    EXPECT_EQ((uint8_t)1,vcf.records[2].samples[0]["GT"]);
-    EXPECT_EQ((uint8_t)0,vcf.records[2].samples[1]["GT"]);
-    EXPECT_EQ((uint8_t)0,vcf.records[3].samples[0]["GT"]);
-    EXPECT_EQ((uint8_t)0,vcf.records[3].samples[1]["GT"]);
-    EXPECT_EQ((uint8_t)0,vcf.records[4].samples[1]["GT"]);
-    EXPECT_EQ((uint8_t)1,vcf.records[5].samples[0]["GT"]);
-    bool found_gt = vcf.records[4].samples[0].find("GT") != vcf.records[4].samples[0].end();
-    EXPECT_FALSE(found_gt);
-    found_gt = vcf.records[5].samples[1].find("GT") != vcf.records[5].samples[1].end();
-    EXPECT_FALSE(found_gt);
+    // first record now genotyped
+    EXPECT_EQ((uint8_t)1,vcf.records[0].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t)1,vcf.records[0].samples[1]["GT"][0]);
+    bool found_confidence = !vcf.records[0].regt_samples.empty();
+    EXPECT_TRUE(found_confidence);
+    // both correct
+    EXPECT_EQ((uint)2, vcf.records[1].samples.size());
+    bool found_gt = vcf.records[1].samples[0].find("GT") != vcf.records[1].samples[0].end();
+    EXPECT_TRUE(found_gt);
+    found_gt = vcf.records[1].samples[1].find("GT") != vcf.records[1].samples[1].end();
+    EXPECT_TRUE(found_gt);
+    EXPECT_EQ((uint)1, vcf.records[1].samples[0]["GT"].size());
+    EXPECT_EQ((uint)1, vcf.records[1].samples[1]["GT"].size());
+    EXPECT_EQ((uint8_t)1,vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t)0,vcf.records[1].samples[1]["GT"][0]);
+    // first correct
+    EXPECT_EQ((uint8_t)1,vcf.records[2].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t)0,vcf.records[2].samples[1]["GT"][0]);
+    // both wrong
+    EXPECT_EQ((uint8_t)0,vcf.records[3].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t)0,vcf.records[3].samples[1]["GT"][0]);
+    // first missing data
+    EXPECT_EQ((uint)0, vcf.records[4].samples[0]["GT"].size());
+    EXPECT_EQ((uint8_t)0,vcf.records[4].samples[1]["GT"][0]);
+    // second not confident
+    EXPECT_EQ((uint8_t)1,vcf.records[5].samples[0]["GT"][0]);
+    EXPECT_EQ((uint)0, vcf.records[5].samples[1]["GT"].size());
 
 }
 
+TEST(VCFTest, clean) {
+    VCF vcf;
+
+    VCFRecord dummy;
+    vcf.add_record(dummy);
+    vcf.add_record("chrom1", 79, "C", "G");
+    vcf.add_sample_gt("sample", "chrom1", 2, "T", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 5, "A", "G");
+    vcf.add_sample_gt("sample", "chrom1", 79, "C", "A");
+    vcf.records[2].clear();
+    EXPECT_EQ((uint)5, vcf.records.size());
+
+    vcf.clean();
+    EXPECT_EQ((uint)3, vcf.records.size());
+    EXPECT_EQ((uint)79, vcf.records[0].pos);
+    EXPECT_EQ((uint)1, vcf.records[0].alt.size());
+    EXPECT_EQ("G", vcf.records[0].alt[0]);
+    EXPECT_EQ((uint)5, vcf.records[1].pos);
+    EXPECT_EQ((uint)79, vcf.records[2].pos);
+    EXPECT_EQ((uint)1, vcf.records[2].alt.size());
+    EXPECT_EQ("A", vcf.records[2].alt[0]);
+}
+
+TEST(VCFTest, merge_multi_allelic) {
+    VCF vcf;
+    vcf.add_formats({"GT", "LIKELIHOOD", "GT_CONF"});
+    // no gt
+    vcf.add_record("chrom1", 5, "A", "G");
+    vcf.add_record("chrom1", 5, "A", "C");
+    // gt
+    vcf.add_record("chrom1", 46, "CTT", "A");
+    vcf.add_record("chrom1", 46, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 46, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 46, "CTT", "A");
+    // likelihoods too
+    vcf.add_record("chrom1", 76, "CTT", "A");
+    vcf.add_record("chrom1", 76, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 76, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 76, "CTT", "A");
+    unordered_map<string, vector<float>> dummy;
+    vcf.records[4].regt_samples.push_back(dummy);
+    vcf.records[5].regt_samples.push_back(dummy);
+    vcf.records[4].regt_samples[0]["LIKELIHOOD"] = {-50,-3};
+    vcf.records[5].regt_samples[0]["LIKELIHOOD"] = {-50,-16};
+    vcf.records[4].regt_samples[0]["GT_CONF"] = {47};
+    vcf.records[5].regt_samples[0]["GT_CONF"] = {56};
+    // incompatible
+    vcf.add_record("chrom1", 85, "A", "G");
+    vcf.add_record("chrom1", 85, "T", "C");
+
+    vcf.merge_multi_allelic();
+    cout << vcf << endl;
+
+    EXPECT_EQ((uint) 5, vcf.records.size());
+    EXPECT_EQ((uint)5, vcf.records[0].pos);
+    EXPECT_EQ((uint)2, vcf.records[0].alt.size());
+    EXPECT_EQ((uint)1, vcf.records[0].samples.size());
+    EXPECT_EQ((uint)0, vcf.records[0].samples[0].size());
+
+    EXPECT_EQ((uint)46, vcf.records[1].pos);
+    EXPECT_EQ((uint)2, vcf.records[1].alt.size());
+    EXPECT_EQ((uint)1, vcf.records[1].samples.size());
+    bool found_gt = vcf.records[1].samples[0].find("GT") != vcf.records[1].samples[0].end();
+    EXPECT_TRUE(found_gt);
+    EXPECT_EQ((uint)0, vcf.records[1].samples[0]["GT"].size());
+
+    EXPECT_EQ((uint)76, vcf.records[2].pos);
+    EXPECT_EQ((uint)2, vcf.records[2].alt.size());
+    EXPECT_EQ((uint)1, vcf.records[2].samples.size());
+    found_gt = vcf.records[2].samples[0].find("GT") != vcf.records[2].samples[0].end();
+    EXPECT_TRUE(found_gt);
+    EXPECT_EQ((uint)1, vcf.records[2].samples[0]["GT"][0]);
+    EXPECT_EQ((uint)2, vcf.records[2].regt_samples[0].size());
+    bool found = vcf.records[2].regt_samples[0].find("LIKELIHOOD") != vcf.records[2].regt_samples[0].end();
+    EXPECT_TRUE(found);
+    EXPECT_EQ((uint)3, vcf.records[2].regt_samples[0]["LIKELIHOOD"].size());
+    EXPECT_EQ(-50.0, vcf.records[2].regt_samples[0]["LIKELIHOOD"][0]);
+    EXPECT_EQ(-3.0, vcf.records[2].regt_samples[0]["LIKELIHOOD"][1]);
+    EXPECT_EQ(-16.0, vcf.records[2].regt_samples[0]["LIKELIHOOD"][2]);
+    found = vcf.records[2].regt_samples[0].find("GT_CONF") != vcf.records[2].regt_samples[0].end();
+    EXPECT_TRUE(found);
+    EXPECT_EQ((uint)1, vcf.records[2].regt_samples[0]["GT_CONF"].size());
+    EXPECT_EQ(13.0, vcf.records[2].regt_samples[0]["GT_CONF"][0]);
+
+    EXPECT_EQ((uint)85, vcf.records[3].pos);
+    EXPECT_EQ((uint)1, vcf.records[3].alt.size());
+    EXPECT_EQ((uint)85, vcf.records[4].pos);
+    EXPECT_EQ((uint)1, vcf.records[4].alt.size());
+}
+
+TEST(VCFTest, make_gt_compatible) {
+    VCF vcf;
+    // no gt
+    vcf.add_record("chrom1", 5, "A", "G");
+    vcf.add_record("chrom1", 5, "A", "C");
+    // gt incompatible no likelihoods
+    vcf.add_record("chrom1", 46, "CTT", "A");
+    vcf.add_record("chrom1", 46, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 46, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 46, "CTT", "A");
+    // gt incompatible, likelihoods too both alts
+    vcf.add_record("chrom1", 76, "CTT", "A");
+    vcf.add_record("chrom1", 76, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 76, "CTT", "TA");
+    vcf.add_sample_gt("sample", "chrom1", 76, "CTT", "A");
+    unordered_map<string, vector<float>> dummy;
+    vcf.records[4].regt_samples.push_back(dummy);
+    vcf.records[5].regt_samples.push_back(dummy);
+    vcf.records[4].regt_samples[0]["LIKELIHOOD"] = {-50, -3};
+    vcf.records[5].regt_samples[0]["LIKELIHOOD"] = {-50, -16};
+    vcf.records[4].regt_samples[0]["GT_CONF"] = {47};
+    vcf.records[5].regt_samples[0]["GT_CONF"] = {56};
+    // gt incompatible one ref, ref correct
+    vcf.add_record("chrom1", 85, "A", "G");
+    vcf.add_record("chrom1", 85, "A", "C");
+    vcf.add_sample_gt("sample", "chrom1", 85, "A", "A");
+    vcf.records[6].samples[0]["GT"] = {1};
+    vcf.records[6].regt_samples.push_back(dummy);
+    vcf.records[7].regt_samples.push_back(dummy);
+    vcf.records[6].regt_samples[0]["LIKELIHOOD"] = {-5, -30};
+    vcf.records[7].regt_samples[0]["LIKELIHOOD"] = {-5, -16};
+    vcf.records[6].regt_samples[0]["GT_CONF"] = {47};
+    vcf.records[7].regt_samples[0]["GT_CONF"] = {56};
+    // gt incompatible one ref, ref wrong
+    vcf.add_record("chrom1", 95, "A", "G");
+    vcf.add_record("chrom1", 95, "A", "C");
+    vcf.add_sample_gt("sample", "chrom1", 95, "A", "A");
+    vcf.records[8].samples[0]["GT"] = {1};
+    vcf.records[8].regt_samples.push_back(dummy);
+    vcf.records[9].regt_samples.push_back(dummy);
+    vcf.records[8].regt_samples[0]["LIKELIHOOD"] = {-50, -3};
+    vcf.records[9].regt_samples[0]["LIKELIHOOD"] = {-50, -60};
+    vcf.records[8].regt_samples[0]["GT_CONF"] = {47};
+    vcf.records[9].regt_samples[0]["GT_CONF"] = {10};
+
+    vcf.make_gt_compatible();
+    cout << vcf << endl;
+
+    bool found_gt = vcf.records[0].samples[0].find("GT") != vcf.records[0].samples[0].end();
+    EXPECT_FALSE(found_gt);
+    found_gt = vcf.records[1].samples[0].find("GT") != vcf.records[1].samples[0].end();
+    EXPECT_FALSE(found_gt);
+    EXPECT_EQ((uint)0, vcf.records[2].samples[0]["GT"].size());
+    EXPECT_EQ((uint)0, vcf.records[3].samples[0]["GT"].size());
+    EXPECT_EQ((uint8_t)1,vcf.records[4].samples[0]["GT"][0]);
+    EXPECT_EQ((uint)0, vcf.records[5].samples[0]["GT"].size());
+    EXPECT_EQ((uint8_t)0,vcf.records[6].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t)0,vcf.records[7].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t)1,vcf.records[8].samples[0]["GT"][0]);
+    EXPECT_EQ((uint8_t)0,vcf.records[9].samples[0]["GT"].size());
+}
 
 TEST(VCFTest, equals) {
     VCF vcf;
@@ -720,12 +861,10 @@ TEST(VCFTest, load) {
     uint j = 3;
     EXPECT_EQ(j, vcf.records.size());
 
+    cout << vcf << endl;
     vcf1.load("vcf_test.vcf");
+    cout << vcf1 << endl;
 
-    /*for(uint i=0; i!=vcf1.records.size(); ++i)
-    {
-        cout << vcf1.records[i];
-    }*/
     EXPECT_EQ(vcf == vcf1, true);
 }
 
@@ -748,38 +887,4 @@ TEST(VCFTest, filter) {
     vcf3.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=SNP;GRAPHTYPE=NESTED");
     vcf4.load("vcf_filter_test.vcf");
     EXPECT_EQ(vcf3 == vcf4, true);
-
-}
-
-TEST(VCFTest, write_aligned_fasta) {
-    VCF vcf;
-    vcf.add_record("chrom1", 1, "A", "G");
-    vcf.add_record("chrom1", 3, "T", "TA");
-    VCFRecord vr = VCFRecord("chrom1", 5, "C", "G");
-    vcf.add_record(vr);
-    uint j = 3;
-    EXPECT_EQ(j, vcf.records.size());
-
-    vector<LocalNodePtr> lmp;
-    vcf.write_aligned_fasta("vcf1.multisample.fa", "chrom1", lmp);
-
-    // add just the ref
-    LocalNodePtr ln0(make_shared<LocalNode>("A", Interval(0, 1), 1));
-    lmp.push_back(ln0);
-    LocalNodePtr ln1(make_shared<LocalNode>("A", Interval(5, 6), 2));
-    lmp.push_back(ln1);
-    LocalNodePtr ln4(make_shared<LocalNode>("A", Interval(7, 8), 3));
-    lmp.push_back(ln4);
-    LocalNodePtr ln2(make_shared<LocalNode>("T", Interval(46, 47), 4));
-    lmp.push_back(ln2);
-    LocalNodePtr ln5(make_shared<LocalNode>("A", Interval(50, 51), 5));
-    lmp.push_back(ln5);
-    LocalNodePtr ln3(make_shared<LocalNode>("C", Interval(79, 80), 6));
-    lmp.push_back(ln3);
-    vcf.write_aligned_fasta("vcf2.multisample.fa", "chrom1", lmp);
-
-    // now add a sample
-    vcf.add_sample_gt("sample1", "chrom1", 46, "T", "TA");
-    vcf.write_aligned_fasta("vcf3.multisample.fa", "chrom1", lmp);
-
 }

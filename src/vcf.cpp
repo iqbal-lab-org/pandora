@@ -3,6 +3,7 @@
 #include <sstream>
 #include <cassert>
 #include <ctime>
+#include <numeric>
 #include <vector>
 #include <algorithm>
 #include "vcfrecord.h"
@@ -21,7 +22,7 @@ VCF::~VCF() {
 };
 
 void VCF::add_record(string c, uint32_t p, string r, string a, string i, string g) {
-    unordered_map<string,uint8_t> empty_map;
+    unordered_map<string,vector<uint8_t>> empty_map;
     VCFRecord vr(c, p, r, a, i, g);
     if (find(records.begin(), records.end(), vr) == records.end()) {
         records.push_back(vr);
@@ -31,7 +32,7 @@ void VCF::add_record(string c, uint32_t p, string r, string a, string i, string 
 }
 
 VCFRecord& VCF::add_record(VCFRecord &vr) {
-    unordered_map<string,uint8_t> empty_map;
+    unordered_map<string,vector<uint8_t>> empty_map;
     auto record_it = find(records.begin(), records.end(), vr);
     if (record_it == records.end()) {
         records.push_back(vr);
@@ -50,7 +51,7 @@ void VCF::add_formats(const vector<string>& v){
 }
 
 ptrdiff_t VCF::get_sample_index(const string& name){
-    unordered_map<string,uint8_t> empty_map;
+    unordered_map<string,vector<uint8_t>> empty_map;
 
     // if this sample has not been added before, add a column for it
     vector<string>::iterator sample_it = find(samples.begin(), samples.end(), name);
@@ -83,7 +84,7 @@ void VCF::add_sample_gt(const string &name, const string &c, const uint32_t p, c
     vector<VCFRecord>::iterator it = find(records.begin(), records.end(), vr);
     if (it != records.end()) {
         //cout << "found record with this ref and alt" << endl;
-        it->samples[sample_index]["GT"] = 1;
+        it->samples[sample_index]["GT"] = {1};
         vrp = &*it;
     } else {
         //cout << "didn't find a record for pos " << p << " ref " << r << " and alt " << a << endl;
@@ -91,7 +92,7 @@ void VCF::add_sample_gt(const string &name, const string &c, const uint32_t p, c
         for (uint32_t i = 0; i != records.size(); ++i) {
             if (records[i].chrom == c and records[i].pos == p and r == a and records[i].ref == r) {
                 //cout << "have ref allele" << endl;
-                records[i].samples[sample_index]["GT"] = 0;
+                records[i].samples[sample_index]["GT"] = {0};
                 vrp = &records[i];
                 added = true;
             }
@@ -99,7 +100,7 @@ void VCF::add_sample_gt(const string &name, const string &c, const uint32_t p, c
         if (added == false and r != a) {
             //cout << "have new allele not in graph" << endl;
             add_record(c, p, r, a, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
-            records.back().samples[sample_index]["GT"] = 1;
+            records.back().samples[sample_index]["GT"] = {1};
             vrp = &records.back();
             added = true;
         }
@@ -111,10 +112,12 @@ void VCF::add_sample_gt(const string &name, const string &c, const uint32_t p, c
     for (uint32_t i = 0; i != records.size(); ++i) {
         if (records[i].chrom == c and records[i].pos <= p and records[i].pos + records[i].ref.length() > p) {
             for (uint32_t j = 0; j != records[i].samples.size(); ++j) {
-                if (records[i].samples[j].find("GT") != records[i].samples[j].end() and records[i].samples[j]["GT"] == 0) {
+                if (records[i].samples[j].find("GT") != records[i].samples[j].end()
+                    and !records[i].samples[j]["GT"].empty()
+                    and records[i].samples[j]["GT"][0] == 0) {
                     //cout << "update my record to have ref allele also for sample " << j << endl;
                     //cout << records[i] << endl;
-                    vrp->samples[j]["GT"] = 0;
+                    vrp->samples[j]["GT"] = {0};
                 }
             }
         }
@@ -125,7 +128,7 @@ void VCF::add_sample_gt(const string &name, const string &c, const uint32_t p, c
 
 void VCF::add_sample_ref_alleles(const string &sample_name, const string &chrom, const uint32_t &pos, const uint32_t &pos_to) {
     ptrdiff_t sample_index;
-    unordered_map<string,uint8_t> empty_map;
+    unordered_map<string,vector<uint8_t>> empty_map;
 
     // if this sample has not been added before, add a column for it
     vector<string>::iterator sample_it = find(samples.begin(), samples.end(), sample_name);
@@ -142,7 +145,7 @@ void VCF::add_sample_ref_alleles(const string &sample_name, const string &chrom,
 
     for (uint32_t i = 0; i != records.size(); ++i) {
         if (records[i].chrom == chrom and pos <= records[i].pos and records[i].pos + records[i].ref.length() <= pos_to) {
-            records[i].samples[sample_index]["GT"] = 0;
+            records[i].samples[sample_index]["GT"] = {0};
             //cout << "update record " << records[i] << endl;
         }
     }
@@ -157,6 +160,7 @@ void VCF::append_vcf(const VCF &other_vcf){
     auto original_size = records.size();
     auto num_samples_added = 0;
 
+    //cout << "find which samples are new of the " << other_vcf.samples.size() << " samples" << endl;
     vector<uint_least16_t > other_sample_positions;
     for (const auto sample : other_vcf.samples){
         auto sample_it = find(samples.begin(), samples.end(), sample);
@@ -169,11 +173,14 @@ void VCF::append_vcf(const VCF &other_vcf){
         }
     }
 
-    unordered_map<string,uint8_t> empty_u_map;
-    for (uint_least16_t i=0; i<original_size; ++i){
+    //cout << "for all existing " << original_size << " records, add null entries for the " << num_samples_added << " new samples" << endl;
+    unordered_map<string,vector<uint8_t>> empty_u_map;
+    assert(original_size < numeric_limits<uint_least64_t>::max() || assert_msg("VCF size has got too big to use the append feature"));
+    for (uint_least64_t i=0; i<original_size; ++i){
         records[i].samples.insert(records[i].samples.end(), num_samples_added, empty_u_map);
     }
 
+    //cout << "add the " << other_vcf.records.size() << " records" << endl;
     for (auto record : other_vcf.records){
         VCFRecord& vr = add_record(record);
         for(uint_least16_t j=0; j<other_vcf.samples.size(); ++j){
@@ -200,14 +207,208 @@ bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const string& chr
 
 void VCF::genotype(const uint32_t & expected_depth_covg, const float & error_rate, const uint8_t confidence_threshold, bool snps_only) {
     for (auto &vr : records){
-        if (not snps_only or (vr.ref.length() == 1 and vr.alt.length() == 1))
+        if (not snps_only or (vr.ref.length() == 1 and !vr.alt.empty() and vr.alt[0].length() == 1))
         {
             vr.likelihood(expected_depth_covg,error_rate);
             vr.confidence();
             vr.genotype(confidence_threshold);
         }
     }
-    add_formats({"GT_CONF", "REF_LIKELIHOOD", "ALT_LIKELIHOOD"});
+    add_formats({"GT_CONF", "LIKELIHOOD"});
+    make_gt_compatible();
+}
+
+void VCF::clean(){
+    VCFRecord dummy;
+    for (auto record_it = records.begin(); record_it!= records.end();){
+        if (*record_it == dummy)
+            record_it = records.erase(record_it);
+        else
+            record_it++;
+    }
+}
+
+void merge_sample_key (unordered_map<string, vector<uint8_t>>& first,
+                       const unordered_map<string, vector<uint8_t>>& second,
+                       const string& key){
+    if (first.empty() or second.empty() or first.find(key) == first.end() or first[key].empty()){
+        return;
+    } else if (first.find(key) != first.end() and (second.find(key) == second.end() or second.at(key).empty())) {
+        first.erase(key);
+    } else if (first[key][0] == second.at(key).at(0)) {
+        bool ref = true;
+        for (const auto val : second.at(key)){
+            if (!ref)
+                first[key].push_back(val);
+            ref = false;
+        }
+    } else
+        first.erase(key);
+}
+
+void merge_regt_sample_key (unordered_map<string, vector<float>>& first,
+                            const unordered_map<string, vector<float>>& second,
+                            const string& key){
+    if (first.empty() or second.empty() or first.find(key) == first.end() or first[key].empty()) {
+        return;
+    } else if (first.find(key) != first.end() and (second.find(key) == second.end() or second.at(key).empty())) {
+        first.erase(key);
+    } else if (first[key][0] == second.at(key).at(0)) {
+        bool ref = true;
+        for (const auto val : second.at(key)){
+            if (!ref)
+                first[key].push_back(val);
+            ref = false;
+        }
+    } else
+        first.erase(key);
+}
+
+void merge_gt(VCFRecord& first, const VCFRecord& second, const uint16_t i, const uint8_t prev_alt_size) {
+    if (first.samples.size() < i or second.samples.size() < i) {
+        return;
+    } else if (second.samples[i].find("GT") == second.samples[i].end()
+               or second.samples[i].at("GT").empty()) {
+        return;
+    } else if (first.samples[i].find("GT") == first.samples[i].end()
+             or first.samples[i]["GT"].empty()) {
+        if (second.samples[i].at("GT")[0] == 0) {
+            first.samples[i]["GT"] = {0};
+        } else {
+            uint8_t new_allele = second.samples[i].at("GT")[0] + prev_alt_size;
+            first.samples[i]["GT"] = {new_allele};
+        }
+    } else if (first.samples[i]["GT"][0] != 0 or second.samples[i].at("GT")[0] != 0) {
+        //conflict, try to resolve with likelihoods
+        if (first.regt_samples.size() > i
+            and first.regt_samples[i].find("LIKELIHOOD")!= first.regt_samples[i].end()){
+            first.confidence();
+            first.genotype(5);
+        } else {
+            first.samples[i]["GT"] = {};
+        }
+    }
+}
+
+
+void VCF::merge_multi_allelic(uint32_t max_allele_length) {
+    if (records.empty())
+        return;
+
+    uint32_t prev_pos = 0;
+    VCFRecord prev_vr(records[prev_pos]);
+    auto vcf_size = records.size();
+    auto reserve_size = vcf_size*1.05;
+    records.reserve(reserve_size);
+    for (uint32_t current_pos=1; current_pos < vcf_size; ++current_pos){
+        const auto record = records[current_pos];
+        //cout << "comparing record " << current_pos << "/" << vcf_size << " to record " << prev_pos << endl;
+
+        if (record != prev_vr
+            and prev_vr.chrom == record.chrom
+            and prev_vr.pos == record.pos
+            and prev_vr.ref == record.ref
+            and prev_vr.ref != "."
+            and prev_vr.ref != ""
+            and prev_vr.ref.length() <= max_allele_length
+            and prev_vr.alt[0].length() <= max_allele_length) {
+
+            // merge alts
+            uint8_t prev_alt_size = prev_vr.alt.size();
+            bool short_enough = true;
+            for (auto a : record.alt) {
+                if (a.length() > max_allele_length)
+                    short_enough = false;
+                prev_vr.alt.push_back(a);
+            }
+            if (!short_enough){
+                prev_pos = current_pos;
+                prev_vr = records[prev_pos];
+                continue;
+            }
+
+            // merge count/likelihood data
+            if (record.samples.size() == 0){
+                records[current_pos].clear();
+                records[prev_pos].clear();
+                records.push_back(prev_vr);
+                prev_pos = records.size() - 1;
+                prev_vr = records[prev_pos];
+            }
+            for (uint i = 0; i < record.samples.size(); ++i) {
+                auto keys = {"MEAN_FWD_COVG", "MEAN_REV_COVG",
+                             "MED_FWD_COVG", "MED_REV_COVG",
+                             "SUM_FWD_COVG", "SUM_REV_COVG"};
+                for (auto key : keys) {
+                    merge_sample_key(prev_vr.samples[i], record.samples[i], key);
+                }
+                keys = {"LIKELIHOOD"};
+                if (!prev_vr.regt_samples.empty() and !record.regt_samples.empty()){
+                    for (auto key : keys)
+                        merge_regt_sample_key(prev_vr.regt_samples[i], record.regt_samples[i], key);
+                }
+
+                //merge GT
+                merge_gt(prev_vr, record, i, prev_alt_size);
+                records[current_pos].clear_sample(i);
+                records[prev_pos].clear_sample(i);
+                records.push_back(prev_vr);
+                prev_pos = records.size() - 1;
+                prev_vr = records[prev_pos];
+            }
+        } else if (record != prev_vr) {
+            prev_pos = current_pos;
+            prev_vr = records[prev_pos];
+        }
+    }
+    clean();
+    sort_records();
+}
+
+void VCF::make_gt_compatible(){
+    for (auto &record : records){
+        for (uint i=0; i<record.samples.size(); ++i){
+            bool found_record = false;
+            for (auto &other_record : records){
+                if (record == other_record)
+                    found_record = true;
+                else if (!found_record and other_record.chrom != record.chrom)
+                    continue;
+                else if (other_record.chrom != record.chrom or other_record.pos > record.pos + record.ref.length()){
+                    break;
+                } else if (found_record
+                           and other_record.pos <= record.pos + record.ref.length()
+                           and record.samples[i].find("GT")!=record.samples[i].end()
+                           and other_record.samples[i].find("GT")!=other_record.samples[i].end()
+                           and record.samples[i]["GT"].size()>0
+                           and other_record.samples[i]["GT"].size()>0){
+                           //and record.samples[i]["GT"][0] > 0
+                           //and other_record.samples[i]["GT"][0] > 0) {
+                    if (record.samples[i]["GT"][0] == 0 and other_record.samples[i]["GT"][0] == 0)
+                        continue;
+                    else if (record.regt_samples.size() > 0 and other_record.regt_samples.size() > 0
+                        and record.regt_samples[i].find("LIKELIHOOD")!=record.regt_samples[i].end()
+                        and other_record.regt_samples[i].find("LIKELIHOOD")!=other_record.regt_samples[i].end()){
+                        if (record.regt_samples[i]["LIKELIHOOD"][record.samples[i]["GT"][0]] >
+                                other_record.regt_samples[i]["LIKELIHOOD"][other_record.samples[i]["GT"][0]]) {
+                            if (record.samples[i]["GT"][0] == 0)
+                                other_record.samples[i]["GT"] = {0};
+                            else
+                                other_record.samples[i]["GT"] = {};
+                        } else {
+                            if (other_record.samples[i]["GT"][0] == 0)
+                                record.samples[i]["GT"] = {0};
+                            else
+                                record.samples[i]["GT"] = {};
+                        }
+                    } else {
+                        other_record.samples[i] = {};
+                        record.samples[i] = {};
+                    }
+                }
+            }
+        }
+    }
 }
 
 string VCF::header() {
@@ -299,110 +500,6 @@ void VCF::load(const string &filepath) {
     }
     cout << now() << "Finished loading " << added << " entries to VCF, which now has size " << records.size() << endl;
     return;
-}
-
-void VCF::write_aligned_fasta(const string &filepath, const string &chrom, const vector<LocalNodePtr> &lmp) {
-    cout << now() << "Write aligned fasta to " << filepath << endl;
-    sort_records();
-
-    if (lmp.empty() or samples.empty()) {
-        return;
-    }
-
-    /*cout << "lmp:" << endl;
-    for (uint i=0; i!= lmp.size(); ++i)
-    {
-	cout << *lmp[i] << endl;
-    }*/
-
-    int prev_pos = -1;
-    uint32_t max_len = 0;
-    uint32_t n = 0; // position in lmp
-    uint32_t ref_len = 0;
-    vector<string> seqs(samples.size(), "");
-    vector<uint32_t> alt_until(samples.size(), 0);
-
-    for (uint32_t i = 0; i != records.size(); ++i) {
-        if (records[i].chrom == chrom and records[i].pos != (uint32_t) prev_pos) {
-            // equalise lengths of sequences
-            for (uint32_t j = 0; j != samples.size(); ++j) {
-                if (seqs[j].length() < max_len) {
-                    //cout << "equalise length of seq " << j << endl;
-                    string s(max_len - seqs[j].length(), '-'); // s == "------"
-                    seqs[j] += s;
-                }
-            }
-
-            // add ref sequence for gaps
-            while (records[i].chrom == chrom and ref_len < records[i].pos and n < lmp.size()) {
-                for (uint32_t j = 0; j != samples.size(); ++j) {
-                    if (alt_until[j] < records[i].pos) {
-                        //cout << "add ref gap allele to seq " << j << endl;
-                        seqs[j] += lmp[n]->seq;
-                    }
-                }
-                ref_len += lmp[n]->seq.length();
-                n++;
-            }
-        }
-        //cout << "record[" << i << "] " << records[i] << endl;
-        for (uint32_t j = 0; j != samples.size(); ++j) {
-            if (records[i].chrom == chrom and records[i].samples[j]["GT"] == 0 and records[i].pos != (uint32_t) prev_pos and
-                pos_in_range(records[i].pos, records[i].pos + records[i].ref.length(),chrom) == false) {
-                //cout << j << " add ref allele at site" << endl;
-                seqs[j] += records[i].ref;
-                max_len = max(max_len, (uint32_t) seqs[j].length());
-                ref_len += records[i].ref.length();
-                n++;
-            } else if (records[i].chrom == chrom and records[i].samples[j]["GT"] == 1) {
-                //cout << j << " add alt allele at site" << endl;
-                assert(records[i].pos != (uint32_t) prev_pos);
-                seqs[j] += records[i].alt;
-                max_len = max(max_len, (uint32_t) seqs[j].length());
-                alt_until[j] = records[i].pos + records[i].ref.length();
-            }
-        }
-    }
-
-    // equalise lengths of sequences
-    for (uint32_t j = 0; j != samples.size(); ++j) {
-        if (seqs[j].length() < max_len) {
-            //cout << "equalise length of seq " << j << endl;
-            string s(max_len - seqs[j].length(), '-'); // s == "------"
-            seqs[j] += s;
-        }
-    }
-
-    // add ref sequence for end gaps
-    while (n < lmp.size()) {
-        for (uint32_t j = 0; j != samples.size(); ++j) {
-            if (alt_until[j] <= ref_len) {
-                //cout << "add ref gap allele to seq " << j << endl;
-                seqs[j] += lmp[n]->seq;
-                //} else {
-                //	cout << "alt_until[j] > ref_len" << alt_until[j]  << " " << ref_len << endl;
-            }
-        }
-        ref_len += lmp[n]->seq.length();
-        n++;
-    }
-    /*cout << "seqs now are " << endl;
-    for (uint j=0; j!=samples.size(); ++j)
-    {
-	cout << j << " " << seqs[j] << endl;
-    }*/
-
-    ofstream handle;
-    handle.open(filepath);
-    assert (!handle.fail());
-
-    for (uint32_t j = 0; j != samples.size(); ++j) {
-        handle << ">" << samples[j] << endl;
-        handle << seqs[j] << endl;
-    }
-    handle.close();
-    return;
-
 }
 
 bool VCF::operator==(const VCF &y) const {
