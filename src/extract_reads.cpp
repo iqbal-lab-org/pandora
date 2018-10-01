@@ -354,7 +354,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
                 }
 
 //                local_assembly(sequences, start_kmers, end_kmers, out_path, g_local_assembly_kmer_size, max_path_length,
-                slice_coverage);
+//                slice_coverage);
 
                 BOOST_LOG_TRIVIAL(info) << " Finished local assembly for "
                                         << pnode->get_name() + "." + to_string(interval.start) + "-" +
