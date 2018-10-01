@@ -158,7 +158,7 @@ void get_read_overlap_coordinates(PanNodePtr pnode, vector<vector<uint32_t>> &re
                                   vector<LocalNodePtr> &lmp) {
     read_overlap_coordinates.clear();
     read_overlap_coordinates.reserve(pnode->reads.size());
-    vector<uint32_t> coordinate;
+    vector <uint32_t> coordinate;
 
     auto read_count = 0;
     for (const auto read_ptr : pnode->reads) {
@@ -189,7 +189,7 @@ void get_read_overlap_coordinates(PanNodePtr pnode, vector<vector<uint32_t>> &re
 
     if (read_overlap_coordinates.size() > 0) {
         sort(read_overlap_coordinates.begin(), read_overlap_coordinates.end(),
-             [](const vector<uint32_t> &a, const vector<uint32_t> &b) {
+             [](const vector <uint32_t> &a, const vector <uint32_t> &b) {
                  for (uint32_t i = 0; i < a.size(); ++i) {
                      if (a[i] != b[i]) { return a[i] < b[i]; }
                  }
@@ -212,8 +212,8 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
     // level for boost logging
     logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
-    vector<uint32_t> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
-    vector<Interval> intervals = identify_regions(covgs, threshold, min_length);
+    vector <uint32_t> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
+    vector <Interval> intervals = identify_regions(covgs, threshold, min_length);
 
     if (intervals.empty()) {
         return;
@@ -225,8 +225,8 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
     FastaqHandler readfile(readfilepath);
     Fastaq fa;
     uint32_t start, end;
-    vector<vector<uint32_t>> read_overlap_coordinates;
-    vector<LocalNodePtr> sub_lmp;
+    vector <vector<uint32_t>> read_overlap_coordinates;
+    vector <LocalNodePtr> sub_lmp;
 
     for (auto interval : intervals) {
 
@@ -237,9 +237,8 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
 
         uint16_t j = 0;
         for (auto coord : read_overlap_coordinates) {
-            cout << "\nLooking at coordinate j = " << +j << " {" << coord[0] << "," << coord[1] << "," << coord[2]
-                 << ","
-                 << coord[3] << "}" << endl;
+            BOOST_LOG_TRIVIAL(debug) << "\nLooking at coordinate j = " << +j << " {" << coord[0] << "," << coord[1]
+                                     << "," << coord[2] << "," << coord[3] << "}";
             j++;
             readfile.get_id(coord[0]);
             start = (uint32_t) std::max((int32_t) coord[1] - (int32_t) buff, 0);
@@ -303,7 +302,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
 
         const auto filepath = outdir + "/" + pnode->get_name() + "." + to_string(interval.start) + "-" +
                               to_string(interval.get_end()) + ".fa";
-//        fa.save(filepath);
+        fa.save(filepath);
 //        BOOST_LOG_TRIVIAL(debug) << "Graph slice for local assembly saved as " << filepath;
 
         // get sub_lmp path as string
@@ -354,8 +353,8 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
                     sequences.push_back(kv.second);
                 }
 
-                local_assembly(sequences, start_kmers, end_kmers, out_path, g_local_assembly_kmer_size, max_path_length,
-                               slice_coverage);
+//                local_assembly(sequences, start_kmers, end_kmers, out_path, g_local_assembly_kmer_size, max_path_length,
+                slice_coverage);
 
                 BOOST_LOG_TRIVIAL(info) << " Finished local assembly for "
                                         << pnode->get_name() + "." + to_string(interval.start) + "-" +
