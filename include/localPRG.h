@@ -30,7 +30,7 @@ public:
     //VCF vcf;
     std::vector<uint32_t> num_hits;
 
-    LocalPRG(uint32_t, std::string, std::string);
+    LocalPRG(uint32_t, const std::string &, const std::string &);
 
     // functions used to create LocalGraph from PRG string, and to sketch graph
     bool isalpha_string(const std::string &) const;
