@@ -303,7 +303,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
         const auto filepath = outdir + "/" + pnode->get_name() + "." + to_string(interval.start) + "-" +
                               to_string(interval.get_end()) + ".fa";
         fa.save(filepath);
-//        BOOST_LOG_TRIVIAL(debug) << "Graph slice for local assembly saved as " << filepath;
+        BOOST_LOG_TRIVIAL(debug) << "Graph slice for local assembly saved as " << filepath;
 
         // get sub_lmp path as string
         const auto sub_lmp_as_string{LocalPRG::string_along_path(sub_lmp)};
@@ -353,8 +353,8 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
                     sequences.push_back(kv.second);
                 }
 
-//                local_assembly(sequences, start_kmers, end_kmers, out_path, g_local_assembly_kmer_size, max_path_length,
-//                slice_coverage);
+                local_assembly(sequences, start_kmers, end_kmers, out_path, g_local_assembly_kmer_size, max_path_length,
+                slice_coverage);
 
                 BOOST_LOG_TRIVIAL(info) << " Finished local assembly for "
                                         << pnode->get_name() + "." + to_string(interval.start) + "-" +
