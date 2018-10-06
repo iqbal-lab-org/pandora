@@ -185,17 +185,6 @@ void get_read_overlap_coordinates(PanNodePtr pnode, set<uint32_t> &read_overlap_
         coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->strand};
         read_overlap_coordinates.insert(coordinate);
     }
-
-    if (not read_overlap_coordinates.empty()) {
-        sort(read_overlap_coordinates.begin(), read_overlap_coordinates.end(),
-             [](const vector <uint32_t> &a, const vector <uint32_t> &b) {
-                 for (uint32_t i = 0; i < a.size(); ++i) {
-                     if (a[i] != b[i]) { return a[i] < b[i]; }
-                 }
-                 return false;
-             });
-    }
-
 }
 
 void save_read_strings_to_denovo_assemble(const string &readfilepath,
