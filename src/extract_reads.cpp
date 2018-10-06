@@ -224,7 +224,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
         get_read_overlap_coordinates(pnode, read_overlap_coordinates, sub_lmp);
 
         uint16_t j = 0;
-        for (auto coord : read_overlap_coordinates) {
+        for (const auto &coord : read_overlap_coordinates) {
             BOOST_LOG_TRIVIAL(debug) << "\nLooking at coordinate j = " << +j << " {" << coord[0] << "," << coord[1]
                                      << "," << coord[2] << "," << coord[3] << "}";
             j++;
