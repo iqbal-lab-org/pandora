@@ -157,7 +157,7 @@ set<MinimizerHitPtr, pComp_path> hits_along_path(const set<MinimizerHitPtr, pCom
 void get_read_overlap_coordinates(PanNodePtr pnode, set<uint32_t> &read_overlap_coordinates,
                                   vector<LocalNodePtr> &lmp) {
     read_overlap_coordinates.clear();
-    vector <uint32_t> coordinate;
+    std::vector <uint32_t> coordinate;
 
     auto read_count = 0;
     for (const auto read_ptr : pnode->reads) {
