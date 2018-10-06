@@ -20,7 +20,7 @@ find_interval_in_localpath(const Interval &, const vector<LocalNodePtr> &, const
 std::set<MinimizerHitPtr, pComp_path> hits_along_path(const std::set<MinimizerHitPtr, pComp_path>&,
                                                        const std::vector<LocalNodePtr>&);
 
-void get_read_overlap_coordinates(PanNodePtr, std::vector<std::vector<uint32_t>>&, std::vector<LocalNodePtr>&);
+void get_read_overlap_coordinates(PanNodePtr, set<uint32_t> &, std::vector<LocalNodePtr> &);
 
 void save_read_strings_to_denovo_assemble(const std::string&,
                                           const std::string&,

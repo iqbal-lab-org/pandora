@@ -154,7 +154,7 @@ set<MinimizerHitPtr, pComp_path> hits_along_path(const set<MinimizerHitPtr, pCom
     return subset;
 }
 
-void get_read_overlap_coordinates(PanNodePtr pnode, vector<vector<uint32_t>> &read_overlap_coordinates,
+void get_read_overlap_coordinates(PanNodePtr pnode, set<uint32_t> &read_overlap_coordinates,
                                   vector<LocalNodePtr> &lmp) {
     read_overlap_coordinates.clear();
     read_overlap_coordinates.reserve(pnode->reads.size());
@@ -184,7 +184,7 @@ void get_read_overlap_coordinates(PanNodePtr pnode, vector<vector<uint32_t>> &re
                                                                                  << "Found end " << end
                                                                                  << " after found start " << start));
         coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->strand};
-        read_overlap_coordinates.push_back(coordinate);
+        read_overlap_coordinates.insert(coordinate);
     }
 
     if (read_overlap_coordinates.size() > 0) {
@@ -225,8 +225,8 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
     FastaqHandler readfile(readfilepath);
     Fastaq fa;
     uint32_t start, end;
-    vector <vector<uint32_t>> read_overlap_coordinates;
-    vector <LocalNodePtr> sub_lmp;
+    std::set <std::vector<uint32_t>> read_overlap_coordinates;
+    std::vector <LocalNodePtr> sub_lmp;
 
     for (auto interval : intervals) {
 
