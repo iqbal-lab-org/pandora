@@ -157,7 +157,6 @@ set<MinimizerHitPtr, pComp_path> hits_along_path(const set<MinimizerHitPtr, pCom
 void get_read_overlap_coordinates(PanNodePtr pnode, set<uint32_t> &read_overlap_coordinates,
                                   vector<LocalNodePtr> &lmp) {
     read_overlap_coordinates.clear();
-    read_overlap_coordinates.reserve(pnode->reads.size());
     vector <uint32_t> coordinate;
 
     auto read_count = 0;
@@ -187,7 +186,7 @@ void get_read_overlap_coordinates(PanNodePtr pnode, set<uint32_t> &read_overlap_
         read_overlap_coordinates.insert(coordinate);
     }
 
-    if (read_overlap_coordinates.size() > 0) {
+    if (not read_overlap_coordinates.empty()) {
         sort(read_overlap_coordinates.begin(), read_overlap_coordinates.end(),
              [](const vector <uint32_t> &a, const vector <uint32_t> &b) {
                  for (uint32_t i = 0; i < a.size(); ++i) {
