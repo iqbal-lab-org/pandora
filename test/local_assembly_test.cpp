@@ -563,6 +563,150 @@ TEST(GraphCleaning, simpleTip_remove) {
 }
 
 
+TEST(GenerateStartKmers, GenerateOneKmer_ReturnFirstKCharacters) {
+    const std::string sequence{"ACGTGCGATGCAT"};
+    const auto k{4};
+    const auto n{1};
+
+    const auto result{generate_start_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateStartKmers, GenerateTwoKmers_ReturnFirstTwoKmers) {
+    const std::string sequence{"ACGTGCGATGCAT"};
+    const auto k{4};
+    const auto n{2};
+
+    const auto result{generate_start_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT", "CGTG"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateStartKmers, GenerateMaxPossibleNumKmers_ReturnWholeSeqAsKmers) {
+    const std::string sequence{"ACGTGCGA"};
+    const auto k{4};
+    const auto n{5};
+
+    const auto result{generate_start_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateStartKmers, GenerateTooManyKmers_ReturnWholeSeqAsKmers) {
+    const std::string sequence{"ACGTGCGA"};
+    const auto k{4};
+    const auto n{20};
+
+    const auto result{generate_start_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateStartKmers, SequenceHasRepeatKmers_ReturnOnlyUniqueKmers) {
+    const std::string sequence{"ACGTACGT"};
+    const auto k{4};
+    const auto n{20};
+
+    const auto result{generate_start_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT", "CGTA", "GTAC", "TACG"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateStartKmers, GenerateNoKmers_ReturnEmptySet) {
+    const std::string sequence{"ACGTACGT"};
+    const auto k{4};
+    const auto n{0};
+
+    const auto result{generate_start_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected;
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateEndKmers, GenerateOneKmer_ReturnLastKCharacters) {
+    const std::string sequence{"ACGTGCGATGCAT"};
+    const auto k{4};
+    const auto n{1};
+
+    const auto result{generate_end_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"GCAT"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateEndKmers, GenerateTwoKmers_ReturnLastTwoKmers) {
+    const std::string sequence{"ACGTGCGATGCAT"};
+    const auto k{4};
+    const auto n{2};
+
+    const auto result{generate_end_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"GCAT", "TGCA"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateEndKmers, GenerateMaxPossibleNumKmers_ReturnWholeSeqAsKmers) {
+    const std::string sequence{"ACGTGCGA"};
+    const auto k{4};
+    const auto n{5};
+
+    const auto result{generate_end_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateEndKmers, GenerateTooManyKmers_ReturnWholeSeqAsKmers) {
+    const std::string sequence{"ACGTGCGA"};
+    const auto k{4};
+    const auto n{20};
+
+    const auto result{generate_end_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateEndKmers, SequenceHasRepeatKmers_ReturnOnlyUniqueKmers) {
+    const std::string sequence{"ACGTACGT"};
+    const auto k{4};
+    const auto n{20};
+
+    const auto result{generate_end_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected{"ACGT", "CGTA", "GTAC", "TACG"};
+
+    EXPECT_EQ(result, expected);
+}
+
+
+TEST(GenerateEndKmers, GenerateNoKmers_ReturnEmptySet) {
+    const std::string sequence{"ACGTACGT"};
+    const auto k{4};
+    const auto n{0};
+
+    const auto result{generate_end_kmers(sequence, k, n)};
+    const std::unordered_set<std::string> expected;
+
+    EXPECT_EQ(result, expected);
+}
+
+
 TEST(LocalAssemblyTest, passFakeFastqPath_dontRaiseError) {
     const std::string filepath {"FAKE.fakeq"};
     std::string start_kmer {"ATGATGATG"};
@@ -582,7 +726,7 @@ TEST(LocalAssemblyTest, twoIdenticalReads_onePath) {
     const int k {9};
     const int max_len {30};
     const bool clean {false};
-    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, clean);
+    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, 1, clean);
 
     const std::unordered_set<std::string> expected {"ATGCGCTGAGAGTCGGACT"};
     std::unordered_set<std::string> result;
@@ -614,7 +758,7 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgOne_twoPaths) {
     const int max_len {30};
     const int min_coverage {1};
     const bool clean {false};
-    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, clean, min_coverage);
+    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, 1, clean, min_coverage);
 
     const std::unordered_set<std::string> expected {"ATGCGCTGATAGTCGGACT", "ATGCGCTGAGAGTCGGACT"};
     std::unordered_set<std::string> result;
@@ -647,7 +791,38 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
     const int max_len {30};
     const int min_coverage {2};
     const bool clean {false};
-    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, clean, min_coverage);
+    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, 1, clean, min_coverage);
+
+    const std::unordered_set<std::string> expected {"ATGCGCTGAGAGTCGGACT"};
+    std::unordered_set<std::string> result;
+
+    // read paths file  back in and store all paths in set
+    std::ifstream fin {out_path};
+    std::string line;
+
+    while (std::getline(fin, line)) {
+        if (line[0] == '>') {
+            line.clear();
+        }
+        else {
+            result.insert(line);
+            line.clear();
+        }
+    }
+
+    EXPECT_EQ(result, expected);
+    remove(out_path.c_str());
+}
+
+TEST(LocalAssemblyTestUsingSequenceVector, twoIdenticalReads_onePath) {
+    const std::vector<std::string> sequences {"ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT"};
+    std::string start_kmer {"ATGCGCTGA"};
+    std::string end_kmer {"AGTCGGACT"};
+    const std::string out_path {"../../test/test_cases/local_assembly1_paths.fa"};
+    const int k {9};
+    const int max_len {30};
+    const bool clean {false};
+    local_assembly(sequences, start_kmer, end_kmer, out_path, k, max_len, 1, clean);
 
     const std::unordered_set<std::string> expected {"ATGCGCTGAGAGTCGGACT"};
     std::unordered_set<std::string> result;
@@ -671,11 +846,11 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
 }
 
 //TEST(LocalAssemblyTest, debug) {
-//    const std::string filepath {"../../GC00002476.324-337.fa"};
-//    std::string start_kmer {"CGCCGTCGC"};
-//    std::string end_kmer {"AGCGTCGGC"};
-//    const std::string out_path {"../../GC00002476.324-337_local_assembly_test.fa"};
-//    local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, 500);
+//    const std::string filepath {"../../test/test_cases/GC00000008_17.2568-2577.fa"};
+//    std::string start_kmer = "CGGGCGGACGC";
+//    std::string end_kmer = "CAGCGCAGGAC";
+//    const std::string out_path {"../../test/test_cases/GC00000008_17.2568-2577_local_assembly_test.fa"};
+//    local_assembly(filepath, start_kmer, end_kmer, out_path, 11, 150, 49);
 //}
 
 //TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
@@ -727,3 +902,46 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
 //     }
 // }
 
+TEST(QueryAbundance, oneKmer_ReturnOne) {
+    Graph graph = Graph::create(
+            new BankStrings("AATGT", NULL),
+            "-kmer-size 5 -abundance-min 1 -verbose 0"
+    );
+    auto kmer = "AATGT";
+    auto node {graph.buildNode(kmer)};
+    const auto covg {graph.queryAbundance(node)};
+
+    // We get the neighbors of this real node and make sure it has the neighbours we expect
+    EXPECT_EQ(covg, 1);
+    remove_graph_file();
+}
+
+
+TEST(QueryAbundance, twoKmers_ReturnTwo) {
+    Graph graph = Graph::create(
+            new BankStrings("AATGTAATGT", NULL),
+            "-kmer-size 5 -abundance-min 1 -verbose 0"
+    );
+    auto kmer = "AATGT";
+    auto node {graph.buildNode(kmer)};
+    const auto covg {graph.queryAbundance(node)};
+
+    // We get the neighbors of this real node and make sure it has the neighbours we expect
+    EXPECT_EQ(covg, 2);
+    remove_graph_file();
+}
+
+
+TEST(QueryAbundance, fakeKmer_ReturnZero) {
+    Graph graph = Graph::create(
+            new BankStrings("AATGT", NULL),
+            "-kmer-size 5 -abundance-min 1 -verbose 0"
+    );
+    auto kmer = "CCCCC";
+    auto node {graph.buildNode(kmer)};
+    const auto covg {graph.queryAbundance(node)};
+
+    // We get the neighbors of this real node and make sure it has the neighbours we expect
+    EXPECT_EQ(covg, 0);
+    remove_graph_file();
+}

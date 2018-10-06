@@ -72,7 +72,7 @@ find_interval_in_localpath(const Interval &interval, const vector<LocalNodePtr> 
             found_end = true;
         }
         end = i;
-        if (found_end){// and level == lowest_level) {
+        if (found_end) {// and level == lowest_level) {
             break;
         }
         added += lmp[i]->pos.length;
@@ -158,7 +158,7 @@ void get_read_overlap_coordinates(PanNodePtr pnode, vector<vector<uint32_t>> &re
                                   vector<LocalNodePtr> &lmp) {
     read_overlap_coordinates.clear();
     read_overlap_coordinates.reserve(pnode->reads.size());
-    vector<uint32_t> coordinate;
+    vector <uint32_t> coordinate;
 
     auto read_count = 0;
     for (const auto read_ptr : pnode->reads) {
@@ -189,7 +189,7 @@ void get_read_overlap_coordinates(PanNodePtr pnode, vector<vector<uint32_t>> &re
 
     if (read_overlap_coordinates.size() > 0) {
         sort(read_overlap_coordinates.begin(), read_overlap_coordinates.end(),
-             [](const vector<uint32_t> &a, const vector<uint32_t> &b) {
+             [](const vector <uint32_t> &a, const vector <uint32_t> &b) {
                  for (uint32_t i = 0; i < a.size(); ++i) {
                      if (a[i] != b[i]) { return a[i] < b[i]; }
                  }
@@ -212,8 +212,8 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
     // level for boost logging
     logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
-    vector<uint32_t> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
-    vector<Interval> intervals = identify_regions(covgs, threshold, min_length);
+    vector <uint32_t> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
+    vector <Interval> intervals = identify_regions(covgs, threshold, min_length);
 
     if (intervals.empty()) {
         return;
@@ -225,8 +225,8 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
     FastaqHandler readfile(readfilepath);
     Fastaq fa;
     uint32_t start, end;
-    vector<vector<uint32_t>> read_overlap_coordinates;
-    vector<LocalNodePtr> sub_lmp;
+    vector <vector<uint32_t>> read_overlap_coordinates;
+    vector <LocalNodePtr> sub_lmp;
 
     for (auto interval : intervals) {
 
@@ -237,9 +237,8 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
 
         uint16_t j = 0;
         for (auto coord : read_overlap_coordinates) {
-            cout << "\nLooking at coordinate j = " << +j << " {" << coord[0] << "," << coord[1] << "," << coord[2]
-                 << ","
-                 << coord[3] << "}" << endl;
+            BOOST_LOG_TRIVIAL(debug) << "\nLooking at coordinate j = " << +j << " {" << coord[0] << "," << coord[1]
+                                     << "," << coord[2] << "," << coord[3] << "}";
             j++;
             readfile.get_id(coord[0]);
             start = (uint32_t) std::max((int32_t) coord[1] - (int32_t) buff, 0);
@@ -300,6 +299,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
 
             fa.add_entry(readfile.name, sequence, header);
         }
+
         const auto filepath = outdir + "/" + pnode->get_name() + "." + to_string(interval.start) + "-" +
                               to_string(interval.get_end()) + ".fa";
         fa.save(filepath);
@@ -309,46 +309,56 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
         const auto sub_lmp_as_string{LocalPRG::string_along_path(sub_lmp)};
         BOOST_LOG_TRIVIAL(debug) << "sub_lmp for interval is " << sub_lmp_as_string;
 
-        const unsigned long max_path_length{
-                sub_lmp_as_string.length() + (interval.length * 2)};  // arbitrary at the moment
+        // calculate coverage for the slice
+        const auto slice_coverage{fa.calculate_kmer_coverage(sub_lmp_as_string.length(), g_local_assembly_kmer_size)};
+        BOOST_LOG_TRIVIAL(info) << "Coverage for slice is " << std::to_string(slice_coverage);
 
-
+        const auto len_threshold{300};
+        const unsigned long max_path_length{sub_lmp_as_string.length() + (interval.length * 2)};
         BOOST_LOG_TRIVIAL(debug) << "Max path length is calculated as " << std::to_string(sub_lmp_as_string.length())
                                  << " + (" << std::to_string(interval.length) << " * 5) = "
                                  << std::to_string(max_path_length) << "\n";
 
-        if (g_local_assembly_kmer_size > sub_lmp_as_string.length()) {
-            BOOST_LOG_TRIVIAL(warning) << "Local assembly kmer size " << std::to_string(g_local_assembly_kmer_size)
-                                       << " is greater than the length of the interval string "
-                                       << std::to_string(sub_lmp_as_string.length())
-                                       << ". Skipping local assembly for "
-                                       << filepath << "\n";
+        if (max_path_length > len_threshold) {
+            BOOST_LOG_TRIVIAL(debug) << "Max path length " << std::to_string(max_path_length) << " is greater than "
+                                     << std::to_string(len_threshold) << ". Skipping local assembly.";
         } else {
-            // get start and end kmer from sub_lmp path
-            auto start_kmer{sub_lmp_as_string.substr(0, g_local_assembly_kmer_size)};
-            auto end_kmer{sub_lmp_as_string.substr(sub_lmp_as_string.size() - g_local_assembly_kmer_size)};
-            // create outpath for local assembly file
-            const auto out_path = filepath.substr(0, filepath.rfind('.')) +
-                                  "_local_assembly_K" +
-                                  std::to_string(g_local_assembly_kmer_size) + ".fa";
+            if (g_local_assembly_kmer_size + KMERS_TO_TRY > sub_lmp_as_string.length()) {
+                BOOST_LOG_TRIVIAL(warning) << "Local assembly kmer size " << std::to_string(g_local_assembly_kmer_size)
+                                           << " plus number of k-mers to try " << std::to_string(KMERS_TO_TRY)
+                                           << " is greater than the length of the interval string "
+                                           << std::to_string(sub_lmp_as_string.length())
+                                           << ". Skipping local assembly for "
+                                           << filepath << "\n";
+            } else {
+                // create outpath for local assembly file
+                const auto out_path = filepath.substr(0, filepath.rfind('.')) +
+                                      "_local_assembly_K" +
+                                      std::to_string(g_local_assembly_kmer_size) + ".fa";
 
-            const auto len_threshold{150};
-            if (max_path_length < len_threshold) {
+
+                // get start and end kmer from sub_lmp path
+                auto start_kmers{generate_start_kmers(sub_lmp_as_string, g_local_assembly_kmer_size, KMERS_TO_TRY)};
+                auto end_kmers{generate_end_kmers(sub_lmp_as_string, g_local_assembly_kmer_size, KMERS_TO_TRY)};
+
                 // run local assembly
                 BOOST_LOG_TRIVIAL(info) << now() << " Running local assembly for "
                                         << pnode->get_name() + "." + to_string(interval.start) + "-" +
-                                           to_string(interval.get_end())
-                                        << "\n";
+                                           to_string(interval.get_end()) << "\n";
 
-                local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, max_path_length);
+                // extract the sequences from the slice fastaq
+                // TODO: get Robyn to look at this and suggest more memory efficient solution. pointers?
+                std::vector<std::string> sequences;
+                for (auto &kv: fa.sequences) {
+                    sequences.push_back(kv.second);
+                }
 
-                BOOST_LOG_TRIVIAL(info) << now() << " Finished local assembly for "
+                local_assembly(sequences, start_kmers, end_kmers, out_path, g_local_assembly_kmer_size, max_path_length,
+                slice_coverage);
+
+                BOOST_LOG_TRIVIAL(info) << " Finished local assembly for "
                                         << pnode->get_name() + "." + to_string(interval.start) + "-" +
-                                           to_string(interval.get_end())
-                                        << "\n";
-            } else {
-                BOOST_LOG_TRIVIAL(debug) << "Max path length " << std::to_string(max_path_length) << " is greater than "
-                                         << std::to_string(len_threshold) << ". Skipping local assembly.";
+                                           to_string(interval.get_end()) << "\n";
             }
         }
         read_overlap_coordinates.clear();
