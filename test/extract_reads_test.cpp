@@ -837,13 +837,6 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
 
     get_read_overlap_coordinates(pn, overlaps, lmp);
 
-    for (const auto &coord: overlaps) {
-        for (const auto &c: coord) {
-            std::cout << c << " ";
-        }
-        std::cout << "\n";
-    }
-
     EXPECT_ITERABLE_EQ(std::set<std::vector<uint32_t>>, expected_overlaps, overlaps);
 }
 
