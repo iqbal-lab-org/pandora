@@ -534,7 +534,6 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
 
     get_read_overlap_coordinates(pn, overlaps, lmp);
 
-
     EXPECT_ITERABLE_EQ(std::set<std::vector<uint32_t>>, expected_overlaps, overlaps);
 }
 
