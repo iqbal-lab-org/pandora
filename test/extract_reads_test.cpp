@@ -529,19 +529,13 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
                                 };
     // A G C T CGG  TAT
 
-    vector<vector<uint32_t>> overlaps;
-    vector<vector<uint32_t>> expected_overlaps = {{0, 3, 9, 1}, {1, 7, 13, 1}, {2, 5, 13, 1}, {3, 6, 10, 1}};
+    std::set<vector<uint32_t>> overlaps;
+    std::set<vector<uint32_t>> expected_overlaps = {{0, 3, 9, 1}, {1, 7, 13, 1}, {2, 5, 13, 1}, {3, 6, 10, 1}};
 
     get_read_overlap_coordinates(pn, overlaps, lmp);
 
-    EXPECT_EQ(expected_overlaps.size(), overlaps.size());
 
-    uint j = 0;
-    for (auto coord : overlaps)
-    {
-        EXPECT_ITERABLE_EQ(vector<uint32_t>, expected_overlaps[j], coord);
-        j++;
-    }
+    EXPECT_ITERABLE_EQ(std::set<std::vector<uint32_t>>, expected_overlaps, overlaps);
 }
 
 
@@ -839,26 +833,19 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     };
     // A G C T CGG  TAT
 
-    vector<vector<uint32_t>> overlaps;
-    vector<vector<uint32_t>> expected_overlaps = {{0, 3, 9, 1}, {1, 7, 13, 1}, {2, 5, 13, 1}, {3, 6, 10, 1}};
+    std::set<vector<uint32_t>> overlaps;
+    std::set<vector<uint32_t>> expected_overlaps = {{0, 3, 9, 1}, {1, 7, 13, 1}, {2, 5, 13, 1}, {3, 6, 10, 1}};
 
     get_read_overlap_coordinates(pn, overlaps, lmp);
 
-    for (auto &coord: overlaps) {
-        for (auto &c: coord) {
+    for (const auto &coord: overlaps) {
+        for (const auto &c: coord) {
             std::cout << c << " ";
         }
         std::cout << "\n";
     }
 
-    EXPECT_EQ(expected_overlaps.size(), overlaps.size());
-
-    uint j = 0;
-    for (auto coord : overlaps)
-    {
-        EXPECT_ITERABLE_EQ(vector<uint32_t>, expected_overlaps[j], coord);
-        j++;
-    }
+    EXPECT_ITERABLE_EQ(std::set<std::vector<uint32_t>>, expected_overlaps, overlaps);
 }
 
 

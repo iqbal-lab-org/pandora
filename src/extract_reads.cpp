@@ -154,13 +154,13 @@ set<MinimizerHitPtr, pComp_path> hits_along_path(const set<MinimizerHitPtr, pCom
     return subset;
 }
 
-void get_read_overlap_coordinates(PanNodePtr pnode, set<uint32_t> &read_overlap_coordinates,
+void get_read_overlap_coordinates(PanNodePtr pnode, std::set<std::vector<uint32_t>> &read_overlap_coordinates,
                                   vector<LocalNodePtr> &lmp) {
     read_overlap_coordinates.clear();
-    std::vector <uint32_t> coordinate;
+    std::vector<uint32_t> coordinate;
 
     auto read_count = 0;
-    for (const auto read_ptr : pnode->reads) {
+    for (const auto &read_ptr : pnode->reads) {
         read_count++;
         auto read_hits_along_path = hits_along_path(read_ptr->hits.at(pnode->prg_id), lmp);
         if (read_hits_along_path.size() < 2) {
@@ -170,7 +170,7 @@ void get_read_overlap_coordinates(PanNodePtr pnode, set<uint32_t> &read_overlap_
         auto hit_ptr_iter = read_hits_along_path.begin();
         uint32_t start = (*hit_ptr_iter)->read_start_position;
         uint32_t end = 0;
-        for (const auto hit_ptr : read_hits_along_path) {
+        for (const auto &hit_ptr : read_hits_along_path) {
             start = min(start, hit_ptr->read_start_position);
             end = max(end, hit_ptr->read_start_position + hit_ptr->prg_path.length());
         }
@@ -200,8 +200,8 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
     // level for boost logging
     logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
-    vector <uint32_t> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
-    vector <Interval> intervals = identify_regions(covgs, threshold, min_length);
+    vector<uint32_t> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
+    vector<Interval> intervals = identify_regions(covgs, threshold, min_length);
 
     if (intervals.empty()) {
         return;
@@ -213,8 +213,8 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
     FastaqHandler readfile(readfilepath);
     Fastaq fa;
     uint32_t start, end;
-    std::set <std::vector<uint32_t>> read_overlap_coordinates;
-    std::vector <LocalNodePtr> sub_lmp;
+    std::set<std::vector<uint32_t>> read_overlap_coordinates;
+    std::vector<LocalNodePtr> sub_lmp;
 
     for (auto interval : intervals) {
 
@@ -342,7 +342,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
                 }
 
                 local_assembly(sequences, start_kmers, end_kmers, out_path, g_local_assembly_kmer_size, max_path_length,
-                slice_coverage);
+                               slice_coverage);
 
                 BOOST_LOG_TRIVIAL(info) << " Finished local assembly for "
                                         << pnode->get_name() + "." + to_string(interval.start) + "-" +
