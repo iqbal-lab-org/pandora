@@ -293,9 +293,9 @@ set<deque<uint32_t>> Graph::get_unitigs() {
 
 // Extend a dbg path on either end until reaching a branch point
 void Graph::extend_unitig(deque<uint32_t> &tig) {
-    bool tig_is_empty = (tig.size() == 0);
+    bool tig_is_empty = (tig.empty());
     bool node_is_isolated = (tig.size() == 1
-                             and nodes[tig.back()]->out_nodes.size() + nodes[tig.back()]->in_nodes.size() == 0);
+                             and (nodes[tig.back()]->out_nodes.size() + nodes[tig.back()]->in_nodes.size()) == 0);
     if (tig_is_empty or node_is_isolated) {
         //cout << "node is isolated or tig empty" << endl;
         return;

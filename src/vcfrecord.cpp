@@ -145,7 +145,7 @@ void VCFRecord::likelihood(const uint32_t& expected_depth_covg, const float& err
     m.reserve(2);
 
     //float p_non_zero = 1 - exp(-expected_depth_covg);
-    if (regt_samples.size() == 0){
+    if (regt_samples.empty()){
         for (auto sample : samples) {
             regt_samples.push_back(m);
         }
@@ -253,7 +253,7 @@ bool VCFRecord::operator<(const VCFRecord &y) const {
 std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
     out << m.chrom << "\t" << m.pos+1 << "\t" << m.id << "\t" << m.ref << "\t";
 
-    if (m.alt.size() == 0) {
+    if (m.alt.empty()) {
         out << ".";
     } else {
         string buffer = "";
@@ -279,7 +279,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
         out << "\t";
         for (auto f : m.format){
             string buffer = "";
-            if (m.samples[i].find(f)!=m.samples[i].end() and m.samples[i].at(f).size() > 0) {
+            if (m.samples[i].find(f) != m.samples[i].end() and not m.samples[i].at(f).empty()) {
                 for (const auto a : m.samples.at(i).at(f)) {
                     out << buffer << +a;
                     buffer = ",";
@@ -287,7 +287,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
 
             } else if (m.regt_samples.size() > i
                        and m.regt_samples[i].find(f)!=m.regt_samples[i].end()
-                       and m.regt_samples[i].at(f).size() > 0) {
+                       and not m.regt_samples[i].at(f).empty()) {
                 for (const auto a : m.regt_samples.at(i).at(f)) {
                     out << buffer << +a;
                     buffer = ",";

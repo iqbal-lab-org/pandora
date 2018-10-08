@@ -585,7 +585,7 @@ uint32_t KmerGraph::min_path_length() {
         return shortest_path_length;
     }
 
-    if (sorted_nodes.size() == 0) {
+    if (sorted_nodes.empty()) {
         sort_topologically();
         check();
     }
