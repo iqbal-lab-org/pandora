@@ -3,6 +3,7 @@
 #include <iostream>
 #include "minirecord.h"
 
+
 using namespace std;
 
 MiniRecord::MiniRecord() {};

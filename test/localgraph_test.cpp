@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <iostream>
 
+
 using namespace std;
 
 TEST(LocalGraphTest, add_node) {

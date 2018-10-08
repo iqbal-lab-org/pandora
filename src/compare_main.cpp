@@ -30,6 +30,7 @@
 #include "noise_filtering.h"
 #include "estimate_parameters.h"
 
+
 using std::set;
 using std::vector;
 using namespace std;
@@ -88,7 +89,7 @@ int pandora_compare(int argc, char *argv[]) {
     }
 
     // otherwise, parse the parameters from the command line
-    string prgfile, readindex, outdir=".", vcf_refs_file;
+    string prgfile, readindex, outdir = ".", vcf_refs_file;
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300; // default parameters
     int max_diff = 250;
     float e_rate = 0.11;
@@ -173,7 +174,7 @@ int pandora_compare(int argc, char *argv[]) {
             clean = true;
         } else if ((arg == "--bin")) {
             bin = true;
-        } else if((arg == "--max_covg")) {
+        } else if ((arg == "--max_covg")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 max_covg = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
@@ -272,8 +273,7 @@ int pandora_compare(int argc, char *argv[]) {
             }
 
             prgs[c->second->prg_id]->add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp, w, bin, covg);
-            if (kmp.empty())
-            {
+            if (kmp.empty()) {
                 c = pangraph_sample->remove_node(c->second);
                 continue;
             }
@@ -307,9 +307,9 @@ int pandora_compare(int argc, char *argv[]) {
 
         c.second->output_samples(prgs[c.first], node_outdir, w, vcf_ref);
     }
-    if(genotype) {
-        master_vcf.genotype(covg,0.01,30,false);
-        master_vcf.save(outdir + "/pandora_genotyped.vcf" , true, true, true, true, false, false, false);
+    if (genotype) {
+        master_vcf.genotype(covg, 0.01, 30, false);
+        master_vcf.save(outdir + "/pandora_genotyped.vcf", true, true, true, true, false, false, false);
     }
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cmath>
 
+
 struct Fastaq {
     bool gzipped;
     bool fastq;
@@ -34,7 +35,8 @@ struct Fastaq {
     double calculate_coverage() const;
 
     double
-    calculate_kmer_coverage(const unsigned long &ref_length, const unsigned int k, const double &error_rate = 0.1) const;
+    calculate_kmer_coverage(const unsigned long &ref_length, const unsigned int k,
+                            const double &error_rate = 0.1) const;
 
     friend std::ostream &operator<<(std::ostream &out, const Fastaq &m);
 

@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <unordered_map>
 
+
 struct VCFRecord {
     //#CHROM POS ID REF ALT QUAL FILTER INFO FORMAT
     std::string chrom;
@@ -35,9 +36,9 @@ struct VCFRecord {
 
     void clear_sample(uint32_t);
 
-    void add_formats(const std::vector<std::string>&);
+    void add_formats(const std::vector<std::string> &);
 
-    void likelihood(const uint32_t&, const float&);
+    void likelihood(const uint32_t &, const float &);
 
     void confidence();
 

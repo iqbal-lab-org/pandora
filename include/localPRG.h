@@ -15,6 +15,7 @@
 #include "vcf.h"
 #include "fastaq.h"
 
+
 typedef std::shared_ptr<pangenome::Node> PanNodePtr;
 
 class LocalPRG {
@@ -80,31 +81,31 @@ public:
                                             const std::string &) const;
 
     void append_kmer_covgs_in_range(const KmerGraph &,
-                               const std::vector<KmerNodePtr> &,
-                               const std::vector<LocalNodePtr> &,
-                               const uint32_t &,
-                               const uint32_t &,
-                               std::vector<uint32_t> &,
-                               std::vector<uint32_t> &) const;
+                                    const std::vector<KmerNodePtr> &,
+                                    const std::vector<LocalNodePtr> &,
+                                    const uint32_t &,
+                                    const uint32_t &,
+                                    std::vector<uint32_t> &,
+                                    std::vector<uint32_t> &) const;
 
     void add_sample_covgs_to_vcf(VCF &, const KmerGraph &,
                                  const std::vector<LocalNodePtr> &,
                                  const std::string &sample_name = "sample") const;
 
-    void add_consensus_path_to_fastaq (Fastaq&,
-                                       PanNodePtr,
-                                       std::vector<KmerNodePtr>&,
-                                       std::vector<LocalNodePtr>&,
-                                       const uint32_t w,
-                                       const bool bin = false,
-                                       const uint32_t global_covg = 1);
+    void add_consensus_path_to_fastaq(Fastaq &,
+                                      PanNodePtr,
+                                      std::vector<KmerNodePtr> &,
+                                      std::vector<LocalNodePtr> &,
+                                      const uint32_t w,
+                                      const bool bin = false,
+                                      const uint32_t global_covg = 1);
 
-    void add_variants_to_vcf(VCF&,
+    void add_variants_to_vcf(VCF &,
                              PanNodePtr,
-                             const std::string&,
-                             const std::vector<KmerNodePtr>&,
-                             const std::vector<LocalNodePtr>&,
-                             const std::string& sample_name="sample");
+                             const std::string &,
+                             const std::vector<KmerNodePtr> &,
+                             const std::vector<LocalNodePtr> &,
+                             const std::string &sample_name = "sample");
 
     std::vector<KmerNodePtr> find_path_and_variants(PanNodePtr,
                                                     const std::string &,

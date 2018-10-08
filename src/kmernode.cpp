@@ -2,6 +2,7 @@
 #include "kmernode.h"
 #include "utils.h" // for pointer_values_equal
 
+
 using namespace std;
 
 KmerNode::KmerNode(uint32_t i, const Path &p) : id(i), path(p), covg({0, 0}),

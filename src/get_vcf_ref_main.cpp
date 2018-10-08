@@ -10,6 +10,7 @@
 #include "fastaq_handler.h"
 #include "fastaq.h"
 
+
 using namespace std;
 
 int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
@@ -27,7 +28,7 @@ int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
     Fastaq fa(true, false);
 
     if (argc == 2) {
-        for (const auto &prg_ptr: prgs){
+        for (const auto &prg_ptr: prgs) {
             vector<LocalNodePtr> npath;
             npath = prg_ptr->prg.top_path();
             fa.add_entry(prg_ptr->name, prg_ptr->string_along_path(npath));

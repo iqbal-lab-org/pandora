@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <iostream>
 
+
 using namespace pangenome;
 
 TEST(PangenomeSampleTest, create) {

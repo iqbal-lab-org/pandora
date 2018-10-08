@@ -6,6 +6,7 @@
 #include "pangenome/pannode.h"
 #include "minihit.h"
 
+
 using namespace std;
 
 TEST(NoiseFilteringTest, node_plus_orientation_to_num) {

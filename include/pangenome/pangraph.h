@@ -15,6 +15,7 @@ class KmerNode;
 #include "minihits.h"
 #include "pangenome/ns.cpp"
 
+
 using KmerNodePtr = std::shared_ptr<KmerNode>;
 using ReadId = uint32_t;
 using NodeId = uint32_t;
@@ -71,9 +72,9 @@ public:
     // graph read/write
     void save_matrix(const std::string &);
 
-    void save_mapped_read_strings(const std::string& read_filepath, const std::string& outprefix, const int buff=0);
+    void save_mapped_read_strings(const std::string &read_filepath, const std::string &outprefix, const int buff = 0);
 
-    void save_kmergraph_coverages(const std::string&, const std::string&);
+    void save_kmergraph_coverages(const std::string &, const std::string &);
 
     friend std::ostream &operator<<(std::ostream &out, const Graph &m);
 

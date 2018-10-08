@@ -9,6 +9,7 @@
 #include "utils.h"
 #include "localPRG.h"
 
+
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace pangenome;
@@ -65,49 +66,52 @@ string Node::get_name() const {
 
 void Node::add_path(const vector<KmerNodePtr> &kmp) {
     for (uint32_t i = 0; i != kmp.size(); ++i) {
-        assert(kmp[i]->id < kmer_prg.nodes.size() and kmer_prg.nodes[kmp[i]->id]!=nullptr);
+        assert(kmp[i]->id < kmer_prg.nodes.size() and kmer_prg.nodes[kmp[i]->id] != nullptr);
         kmer_prg.nodes[kmp[i]->id]->covg[0] += 1;
         kmer_prg.nodes[kmp[i]->id]->covg[1] += 1;
     }
 }
 
-void Node::get_read_overlap_coordinates(vector<vector<uint32_t>>& read_overlap_coordinates)
-{
+void Node::get_read_overlap_coordinates(vector<vector<uint32_t>> &read_overlap_coordinates) {
     read_overlap_coordinates.reserve(reads.size());
     vector<uint32_t> coordinate;
 
     auto read_count = 0;
-    for (const auto read_ptr : reads)
-    {    
-	    read_count++;
+    for (const auto read_ptr : reads) {
+        read_count++;
         if (read_ptr->hits.at(prg_id).size() < 2)
             continue;
 
         auto hit_ptr_iter = read_ptr->hits.at(prg_id).begin();
         uint32_t start = (*hit_ptr_iter)->read_start_position;
         uint32_t end = 0;
-        for (const auto hit_ptr : read_ptr->hits.at(prg_id))
-        {
+        for (const auto hit_ptr : read_ptr->hits.at(prg_id)) {
             start = min(start, hit_ptr->read_start_position);
             end = max(end, hit_ptr->read_start_position + hit_ptr->prg_path.length());
         }
 
-        assert(end > start or assert_msg("Error finding the read overlap coordinates for node " << name << " and read " << read_ptr->id << " (the " << read_count << "th on this node)" << endl << "Found end " << end << " after found start " << start));
+        assert(end > start or assert_msg(
+                "Error finding the read overlap coordinates for node " << name << " and read " << read_ptr->id
+                                                                       << " (the " << read_count << "th on this node)"
+                                                                       << endl << "Found end " << end
+                                                                       << " after found start " << start));
         coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->strand};
         read_overlap_coordinates.push_back(coordinate);
     }
 
     if (not read_overlap_coordinates.empty()) {
-    	sort(read_overlap_coordinates.begin(), read_overlap_coordinates.end(),
-	    [](const vector<uint32_t>& a, const vector<uint32_t>& b) {
-	    for (uint32_t i=0; i<a.size(); ++i) {
-            if (a[i] != b[i]) { return a[i] < b[i]; }}
-            return false;});
+        sort(read_overlap_coordinates.begin(), read_overlap_coordinates.end(),
+             [](const vector<uint32_t> &a, const vector<uint32_t> &b) {
+                 for (uint32_t i = 0; i < a.size(); ++i) {
+                     if (a[i] != b[i]) { return a[i] < b[i]; }
+                 }
+                 return false;
+             });
     }
-    
+
 }
 
-void Node::output_samples(const LocalPRG *prg, const string &outdir, const uint32_t w, const string& vcf_ref) {
+void Node::output_samples(const LocalPRG *prg, const string &outdir, const uint32_t w, const string &vcf_ref) {
     vector<KmerNodePtr> kmp;
     kmp.reserve(800);
     vector<LocalNodePtr> refpath, sample_lmp;

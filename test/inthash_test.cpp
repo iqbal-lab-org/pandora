@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <iostream>
 
+
 using namespace std;
 
 TEST(InthashTest, checkCharToInt) {

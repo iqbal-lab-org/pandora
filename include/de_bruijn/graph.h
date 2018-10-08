@@ -11,6 +11,7 @@
 #include "de_bruijn/ns.cpp"
 #include "de_bruijn/node.h"
 
+
 class debruijn::Graph {
 protected:
     uint32_t next_id;

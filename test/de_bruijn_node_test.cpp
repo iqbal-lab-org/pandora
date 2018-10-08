@@ -5,6 +5,7 @@
 #include <deque>
 #include <unordered_set>
 
+
 using namespace debruijn;
 
 TEST(DeBruijnNodeTest, create) {
