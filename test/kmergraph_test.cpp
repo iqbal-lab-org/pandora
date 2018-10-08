@@ -308,7 +308,7 @@ TEST(KmerGraphTest, sort_topologically) {
     vector<KmerNodePtr>::iterator it;
     uint i = 0;
     for (vector<KmerNodePtr>::iterator c = kg.sorted_nodes.begin(); c != kg.sorted_nodes.end(); ++c) {
-        for (auto d: (*c)->outNodes) {
+        for (const auto &d: (*c)->outNodes) {
             it = c + 1;
             while ((*it)->path != d->path and it != kg.sorted_nodes.end()) {
                 it++;

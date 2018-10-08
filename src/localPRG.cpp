@@ -41,7 +41,7 @@ std::string LocalPRG::string_along_path(const Path &p) const {
     assert(p.get_start() <= seq.length());
     assert(p.get_end() <= seq.length());
     std::string s;
-    for (auto it : p.path) {
+    for (const auto &it : p.path) {
         s += seq.substr(it.start, it.length);
         //std::cout << s << std::endl;
     }
@@ -535,7 +535,7 @@ LocalPRG::kmernode_path_from_localnode_path(const std::vector<LocalNodePtr> &loc
     local_path.initialize(d);
 
     for (const auto &n: kmer_prg.sorted_nodes) {
-        for (auto interval : local_path.path) {
+        for (const auto &interval : local_path.path) {
             if (interval.start > n->path.get_end())
                 break;
             else if (interval.get_end() < n->path.get_start())
@@ -694,7 +694,7 @@ std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr pnode,
             //std::cout << "j = " << j << std::endl;
         }
         k = j;
-        for (auto interval : kmernode_ptr->path.path) {
+        for (const auto &interval : kmernode_ptr->path.path) {
             //std::cout << "k = " << k << " and " << localnode_path[k]->pos << " ~ " << interval << std::endl;
             assert(localnode_path[k]->pos.start <= interval.start
                    and localnode_path[k]->pos.get_end() >= interval.get_end());
@@ -712,7 +712,7 @@ std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr pnode,
     }
 
     std::vector<uint32_t> return_coverages;
-    for (auto v : coverages) {
+    for (const auto &v : coverages) {
         return_coverages.insert(return_coverages.end(), v.begin(), v.end());
     }
 
@@ -725,7 +725,7 @@ void LocalPRG::write_covgs_to_file(const std::string &filepath, const std::vecto
     assert (!handle.fail() or assert_msg("Could not open file " << filepath));
 
     handle << ">" << name << std::endl;
-    for (auto i : covgs) {
+    for (const auto &i : covgs) {
         handle << i << " ";
     }
     handle << std::endl;
@@ -775,7 +775,7 @@ void LocalPRG::write_aligned_path_to_fasta(const std::string &filepath,
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath << std::endl;
 
     uint32_t i = 0;
-    for (auto c : prg.nodes) {
+    for (const auto &c : prg.nodes) {
         if (c.second == lmp[i]) {
             handle << lmp[i]->seq;
             i++;
@@ -1204,7 +1204,7 @@ uint32_t mode(std::vector<uint32_t> v) {
     uint32_t max_count = 1;
     uint32_t most_common = 0;
     uint32_t last = 0;
-    for (auto n : v) {
+    for (const auto &n : v) {
         if (n == last)
             counter++;
         else {
@@ -1232,7 +1232,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
 
     std::vector<KmerNodePtr> ref_kmer_path = kmernode_path_from_localnode_path(ref_path);
     /*std::cout << "ref path: ";
-    for (auto n : ref_kmer_path){
+    for (const auto &n : ref_kmer_path){
         std::cout << n->path << " ";
     }
     std::cout << std::endl;*/

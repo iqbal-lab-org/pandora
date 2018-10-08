@@ -549,7 +549,7 @@ TEST(VCFRecordTest, ostream) {
     stringstream out;
     out << vr;
     string rr;
-    for (auto  s : v) {
+    for (const auto & s : v) {
         out >> rr;
         EXPECT_EQ(s, rr);
     }
@@ -565,7 +565,7 @@ TEST(VCFRecordTest, ostream_with_sample_not_all_info_in_formats) {
     stringstream out;
     out << vr;
     string rr;
-    for (auto  s : v) {
+    for (const auto & s : v) {
         out >> rr;
         EXPECT_EQ(s, rr);
     }
@@ -587,12 +587,12 @@ TEST(VCFRecordTest, ostream_with_sample_including_all_formats) {
     stringstream out;
     out << vr;
     string rr;
-    for (auto  s : v) {
+    for (const auto & s : v) {
         out >> rr;
         EXPECT_EQ(s, rr);
     }
     uint ru;
-    for (auto  s : vu) {
+    for (const auto & s : vu) {
         out >> ru;
         EXPECT_EQ(s, ru);
         out.ignore(1, ':');
@@ -611,7 +611,7 @@ TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info) {
     stringstream out;
     out << vr;
     string rr;
-    for (auto  s : v) {
+    for (const auto & s : v) {
         out >> rr;
         EXPECT_EQ(s, rr);
     }
@@ -636,7 +636,7 @@ TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info_regt) {
     stringstream out;
     out << vr;
     string rr;
-    for (auto  s : v) {
+    for (const auto & s : v) {
         out >> rr;
         EXPECT_EQ(s, rr);
     }
@@ -663,7 +663,7 @@ TEST(VCFRecordTest, ostream_with_zero_pos) {
     stringstream out;
     out << vr;
     string rr;
-    for (auto  s : v) {
+    for (const auto & s : v) {
         out >> rr;
         EXPECT_EQ(s, rr);
     }

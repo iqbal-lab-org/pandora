@@ -34,12 +34,12 @@ void Read::add_hits(const uint32_t prg_id, set<MinimizerHitPtr, pComp> &cluster)
 pair<uint32_t, uint32_t>
 Read::find_position(const vector<uint_least32_t> &node_ids, const vector<bool> &node_orients, const uint16_t min_overlap) {
     /*cout << "searching for ";
-    for (auto n : node_ids)
+    for (const auto &n : node_ids)
     {
         cout << n << " ";
     }
     cout << " in ";
-    for (auto n : nodes)
+    for (const auto &n : nodes)
     {
         cout << n->node_id << " ";
     }

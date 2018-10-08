@@ -293,7 +293,7 @@ int pandora_compare(int argc, char *argv[]) {
 
     // for each pannode in graph, find a best reference and output a vcf and aligned fasta of sample paths through it
     cout << now() << "Multi-sample pangraph has " << pangraph->nodes.size() << " nodes" << endl;
-    for (auto c: pangraph->nodes) {
+    for (const auto &c: pangraph->nodes) {
         cout << " c.first: " << c.first;
         cout << " prgs[c.first]->name: " << prgs[c.first]->name << endl;
 

@@ -42,7 +42,7 @@ void Fastaq::add_entry(const std::string &name,
 
     char score[covgs.size() + 1];
     auto i = 0;
-    for (auto covg : covgs) {
+    for (const auto &covg: covgs) {
         score[i] = covg_to_score(covg, global_covg);
         i++;
     }
@@ -107,14 +107,14 @@ Fastaq::calculate_kmer_coverage(const unsigned long &ref_length, const unsigned 
 bool Fastaq::operator==(const Fastaq &y) const {
     if (fastq != y.fastq) { return false; }
     if (names.size() != y.names.size()) { return false; }
-    for (auto name : names) {
+    for (const auto &name: names) {
         if (find(y.names.begin(), y.names.end(), name) == y.names.end()) { return false; }
         if (y.sequences.find(name) == y.sequences.end()) { return false; }
         if (y.sequences.at(name) != sequences.at(name)) { return false; }
         if (fastq and y.scores.find(name) == y.scores.end()) { return false; }
         if (y.scores.at(name) != scores.at(name)) { return false; }
     }
-    for (auto name : y.names) {
+    for (const auto &name: y.names) {
         if (find(names.begin(), names.end(), name) == names.end()) { return false; }
     }
     return true;

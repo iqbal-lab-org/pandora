@@ -140,7 +140,7 @@ void Node::output_samples(const LocalPRG *prg, const string &outdir, const uint3
     prg->build_vcf(vcf, refpath);
     vcf.save(outdir + "/" + name + ".multisample.vcf", true, true, true, true, true, true, true);
     uint32_t count = 0;
-    for (auto s : samples) {
+    for (const auto &s : samples) {
         //cout << "new sample" << endl;
         count = 0;
         for (const auto &p : s->paths[prg_id]) {

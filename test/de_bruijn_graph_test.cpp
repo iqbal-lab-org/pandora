@@ -412,7 +412,7 @@ TEST(DeBruijnGraphTest, get_leaves) {
 
     std::unordered_set<uint32_t> l = g.get_leaves();
     std::unordered_set<uint32_t> l_exp = {1, 3, 4};
-    for (auto i : l_exp) {
+    for (const auto &i : l_exp) {
         EXPECT_EQ(l.find(i) != l.end(), true);
     }
     //EXPECT_ITERABLE_EQ(std::unordered_set<uint_least32_t>, l, l_exp);
@@ -482,7 +482,7 @@ TEST(DeBruijnGraphTest, get_leaves2) {
 
     std::unordered_set<uint32_t> l = dbg_exp.get_leaves();
     std::unordered_set<uint32_t> l_exp = {6, 7, 11};
-    for (auto i : l_exp) {
+    for (const auto &i : l_exp) {
         EXPECT_EQ(l.find(i) != l.end(), true);
     }
 }
@@ -682,7 +682,7 @@ TEST(DeBruijnGraphTest, extend_unitig) {
 
     d = {1};
     g.extend_unitig(d);
-    for (auto n : d) {
+    for (const auto &n : d) {
         std::cout << n << " ";
     }
     std::cout << std::endl;

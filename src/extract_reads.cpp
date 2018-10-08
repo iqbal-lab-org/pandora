@@ -130,15 +130,15 @@ set<MinimizerHitPtr, pComp_path> hits_along_path(const set<MinimizerHitPtr, pCom
     }
 
     deque<Interval> d;
-    for (auto n : lmp) {
+    for (const auto &n : lmp) {
         d.push_back(n->pos);
     }
 
     prg::Path local_path;
     local_path.initialize(d);
 
-    for (auto hit_ptr : read_hits) {
-        for (auto interval : local_path.path) {
+    for (const auto &hit_ptr : read_hits) {
+        for (const auto &interval : local_path.path) {
             if (interval.start > hit_ptr->prg_path.get_end()) {
                 break;
             } else if (interval.get_end() < hit_ptr->prg_path.get_start()) {
@@ -216,7 +216,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
     std::set<std::vector<uint32_t>> read_overlap_coordinates;
     std::vector<LocalNodePtr> sub_lmp;
 
-    for (auto interval : intervals) {
+    for (const auto &interval : intervals) {
 
         BOOST_LOG_TRIVIAL(debug) << "Looking at interval: " << interval;
 
@@ -337,7 +337,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
                 // extract the sequences from the slice fastaq
                 // TODO: get Robyn to look at this and suggest more memory efficient solution. pointers?
                 std::vector<std::string> sequences;
-                for (auto &kv: fa.sequences) {
+                for (const auto &kv: fa.sequences) {
                     sequences.push_back(kv.second);
                 }
 

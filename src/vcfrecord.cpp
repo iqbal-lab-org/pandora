@@ -146,7 +146,7 @@ void VCFRecord::likelihood(const uint32_t& expected_depth_covg, const float& err
 
     //float p_non_zero = 1 - exp(-expected_depth_covg);
     if (regt_samples.empty()){
-        for (auto sample : samples) {
+        for (const auto &sample : samples) {
             regt_samples.push_back(m);
         }
     }
@@ -186,7 +186,7 @@ void VCFRecord::confidence(){
         if (sample.find("LIKELIHOOD") != sample.end()) {
             assert(sample["LIKELIHOOD"].size() > 1);
             float max_lik = 0, max_lik2 = 0;
-            for (auto likelihood : sample["LIKELIHOOD"]) {
+            for (const auto &likelihood : sample["LIKELIHOOD"]) {
                 if (max_lik == 0 or likelihood > max_lik){
                     max_lik2 = max_lik;
                     max_lik = likelihood;
@@ -206,7 +206,7 @@ void VCFRecord::genotype(const uint8_t confidence_threshold){
             if (regt_samples[i]["GT_CONF"][0] > confidence_threshold){
                 uint8_t allele = 0;
                 float max_likelihood = 0;
-                for (auto likelihood : regt_samples[i]["LIKELIHOOD"]) {
+                for (const auto &likelihood : regt_samples[i]["LIKELIHOOD"]) {
                     if (max_likelihood == 0 or likelihood > max_likelihood) {
                         samples[i]["GT"] = {allele};
                         max_likelihood = likelihood;
@@ -227,7 +227,7 @@ bool VCFRecord::operator==(const VCFRecord &y) const {
     if (pos != y.pos) { return false; }
     if (ref != y.ref) { return false; }
     if (alt.size() != y.alt.size()) {return false;}
-    for (auto a : alt) {
+    for (const auto &a : alt) {
         if (find(y.alt.begin(), y.alt.end(), a) == y.alt.end()) {return false;}
     }
     return true;
@@ -257,7 +257,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
         out << ".";
     } else {
         string buffer = "";
-        for (auto a : m.alt){
+        for (const auto &a : m.alt){
             out << buffer << a;
             buffer = ",";
         }
@@ -269,7 +269,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
     if (!m.format.empty())
         last_format = m.format[m.format.size()-1];
 
-    for (auto s : m.format){
+    for (const auto &s : m.format){
         out << s;
         if (s != last_format)
             out << ":";
@@ -277,7 +277,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
 
     for(uint_least16_t i=0;i<m.samples.size(); ++i){
         out << "\t";
-        for (auto f : m.format){
+        for (const auto &f : m.format){
             string buffer = "";
             if (m.samples[i].find(f) != m.samples[i].end() and not m.samples[i].at(f).empty()) {
                 for (const auto a : m.samples.at(i).at(f)) {

@@ -795,7 +795,7 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path)
     vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp,2);
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3,3,"3"));
     pn3->kmer_prg = l3.kmer_prg;
-    for (auto n : pn3->kmer_prg.nodes)
+    for (const auto &n : pn3->kmer_prg.nodes)
     {
         n->covg[0] += 1;
     }
@@ -809,7 +809,7 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path)
     lmp = l4.localnode_path_from_kmernode_path(kmp, 1);
     shared_ptr<pangenome::Node> pn4(make_shared<pangenome::Node>(4,4,"4"));
     pn4->kmer_prg = l4.kmer_prg;
-    for (auto n : pn4->kmer_prg.nodes)
+    for (const auto &n : pn4->kmer_prg.nodes)
     {
         n->covg[0] += 1;
     }
@@ -845,7 +845,7 @@ TEST(LocalPRGTest, write_covgs_to_file)
     vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp,2);
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3,3,"3"));
     pn3->kmer_prg = l3.kmer_prg;
-    for (auto n : pn3->kmer_prg.nodes) {
+    for (const auto &n : pn3->kmer_prg.nodes) {
         n->covg[0]+=1;
     }
     vector<uint> covgs = get_covgs_along_localnode_path(pn3, lmp, kmp);
@@ -1267,7 +1267,7 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range)
     l3.kmer_prg.nodes[8]->covg[0] = 4;
     l3.kmer_prg.nodes[8]->covg[1] = 6;
 
-    for (auto n : l3.kmer_prg.nodes)
+    for (const auto &n : l3.kmer_prg.nodes)
     {
         cout << *n;
     }

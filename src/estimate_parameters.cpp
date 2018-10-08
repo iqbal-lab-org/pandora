@@ -188,7 +188,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const
 
     // first we estimate error rate
     cout << now() << "Collect kmer coverage distribution" << endl;
-    for (auto &node : pangraph->nodes) {
+    for (const auto &node : pangraph->nodes) {
         num_reads += node.second->covg;
         for (uint32_t i = 1;
              i != node.second->kmer_prg.nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
@@ -239,7 +239,7 @@ void estimate_parameters(pangenome::Graph *pangraph, const string &outdir, const
 
     // find probability threshold
     cout << now() << "Collect kmer probability distribution" << endl;
-    for (auto &node : pangraph->nodes) {
+    for (const auto &node : pangraph->nodes) {
         node.second->kmer_prg.set_exp_depth_covg(exp_depth_covg);
         if (bin)
             node.second->kmer_prg.set_p(e_rate);

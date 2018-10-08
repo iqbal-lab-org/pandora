@@ -148,7 +148,7 @@ TEST(PangenomeNodeTest,get_read_overlap_coordinates){
     vector<vector<uint32_t>> read_overlap_coordinates;
     pn.get_read_overlap_coordinates(read_overlap_coordinates);
     vector<vector<uint32_t>> expected_read_overlap_coordinates = {{1,0,6,1}, {2,2,10,0}};
-    for (auto coord : read_overlap_coordinates)
+    for (const auto &coord : read_overlap_coordinates)
     {
         if (coord[0] == 1) {
             EXPECT_ITERABLE_EQ(vector<uint32_t>, expected_read_overlap_coordinates[0], coord);

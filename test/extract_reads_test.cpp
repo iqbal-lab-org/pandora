@@ -200,7 +200,7 @@ TEST(ExtractReadsTest,hits_along_path) {
                                 l3.prg.nodes[6], l3.prg.nodes[7]//, l3.prg.nodes[9]
                                 };
     // A G C T CGG  TAT
-    for (auto n : lmp){
+    for (const auto &n : lmp){
         cout << n->pos << " ";
     }
     cout << endl;

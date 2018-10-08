@@ -53,7 +53,7 @@ KmerGraph::KmerGraph(const KmerGraph &other) {
     }
 
     // now need to copy the edges
-    for (auto node : other.nodes) {
+    for (const auto &node : other.nodes) {
         for (uint32_t j = 0; j < node->outNodes.size(); ++j) {
             add_edge(nodes.at(node->id), nodes.at(node->outNodes[j]->id));
         }
@@ -93,7 +93,7 @@ KmerGraph &KmerGraph::operator=(const KmerGraph &other) {
     }
 
     // now need to copy the edges
-    for (auto node : other.nodes) {
+    for (const auto &node : other.nodes) {
         for (uint32_t j = 0; j < node->outNodes.size(); ++j) {
             add_edge(nodes.at(node->id), nodes.at(node->outNodes[j]->id));
         }
@@ -127,7 +127,7 @@ void KmerGraph::clear() {
 }
 
 KmerNodePtr KmerGraph::add_node(const Path &p) {
-    for (auto c : nodes) {
+    for (const auto &c : nodes) {
         if (c->path == p) {
             return c;
         }
@@ -182,10 +182,10 @@ void KmerGraph::remove_shortcut_edges()
     vector<KmerNodePtr> v = {};
     deque <vector<KmerNodePtr>> d;
 
-    for (auto n : nodes)
+    for (const auto &n : nodes)
     {
         //cout << n.first << endl;
-        for (auto out : n->outNodes)
+        for (const auto &out : n->outNodes)
         {
             for (vector<KmerNodePtr>::iterator next_out=out->outNodes.begin(); next_out!=out->outNodes.end();)
             {
@@ -233,7 +233,7 @@ void KmerGraph::check() {
         assert(!(*c)->outNodes.empty() or (*c) == sorted_nodes.back() || assert_msg(
                 "node" << **c << " has outNodes size " << (*c)->outNodes.size() << " and isn't equal to back node "
                        << *sorted_nodes.back()));
-        for (auto d: (*c)->outNodes) {
+        for (const auto &d: (*c)->outNodes) {
             assert((*c)->path < d->path || assert_msg((*c)->path << " is not less than " << d->path));
             assert(find(c, sorted_nodes.end(), d) != sorted_nodes.end() ||
                    assert_msg(d->id << " does not occur later in sorted list than " << (*c)->id));
@@ -320,7 +320,7 @@ float KmerGraph::find_max_path(vector<KmerNodePtr> &maxpath) {
 
     // also check not all 0 covgs
     bool not_all_zero = false;
-    for (auto n : nodes) {
+    for (const auto &n : nodes) {
         if (n->covg[0] + n->covg[1] > 0) {
             not_all_zero = true;
             break;
@@ -388,7 +388,7 @@ float KmerGraph::find_nb_max_path(vector<KmerNodePtr> &maxpath) {
 
     // also check not all 0 covgs
     bool not_all_zero = false;
-    for (auto n : nodes) {
+    for (const auto &n : nodes) {
         if (n->covg[0] + n->covg[1] > 0) {
             not_all_zero = true;
             break;
@@ -573,7 +573,7 @@ void KmerGraph::save_covg_dist(const string &filepath) {
     ofstream handle;
     handle.open(filepath);
 
-    for (auto c : nodes) {
+    for (const auto &c : nodes) {
         handle << c->covg[0] << "," << c->covg[1] << "," << (unsigned) c->num_AT << " ";
     }
     handle.close();
@@ -607,7 +607,7 @@ void KmerGraph::save(const string &filepath, const LocalPRG *localprg) {
     handle.open(filepath);
     if (handle.is_open()) {
         handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << endl;
-        for (auto c : nodes) {
+        for (const auto &c : nodes) {
             handle << "S\t" << c->id << "\t";
 
             if (localprg != nullptr) {
@@ -698,7 +698,7 @@ void KmerGraph::load(const string &filepath) {
 	}
 
 	id = 0;
-        for (auto n : nodes)
+        for (const auto &n : nodes)
         {
 	    assert(nodes[id]->id == id);
 	    id++;
@@ -740,7 +740,7 @@ void KmerGraph::append_coverages_to_file(const string &filepath, const string &s
     assert (!handle.fail() or assert_msg("Could not open file " << filepath));
 
     handle << sample_name;
-    for (auto c : nodes)
+    for (const auto &c : nodes)
     {
         handle << "\t" << c->covg[0] << "," << c->covg[1];
     }
@@ -755,7 +755,7 @@ bool KmerGraph::operator==(const KmerGraph &y) const {
     }
 
     // false if have different nodes
-    for (auto c : nodes) {
+    for (const auto &c : nodes) {
         // if node not equal to a node in y, then false
         auto found = find_if(y.nodes.begin(), y.nodes.end(), condition(c->path));
         if (found == y.nodes.end()) {
