@@ -165,7 +165,7 @@ void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned lo
 }
 
 //double median(std::vector<int> v) {
-//    if (v.size() == 0) {
+//    if (v.empty()) {
 //        return 0;
 //    }
 //    std::sort(v.begin(), v.end());
