@@ -101,7 +101,7 @@ double
 Fastaq::calculate_kmer_coverage(const unsigned long &ref_length, const unsigned int k, const double &error_rate) const {
     const auto D{this->calculate_coverage()};
 
-    return (D * (ref_length - k + 1)) / (ref_length * pow(1-error_rate, k));
+    return (D * (ref_length - k + 1)) / (ref_length * pow(1 - error_rate, k));
 }
 
 bool Fastaq::operator==(const Fastaq &y) const {

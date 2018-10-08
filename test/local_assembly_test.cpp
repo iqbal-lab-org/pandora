@@ -515,43 +515,42 @@ TEST(ReverseComplement, Palindrome_ReturnCompliment) {
 }
 
 TEST(FileExists, realFile_returnsTrue) {
-    const std::string filepath {"../../CMakeLists.txt"};
-    const bool exists {file_exists(filepath)};
+    const std::string filepath{"../../CMakeLists.txt"};
+    const bool exists{file_exists(filepath)};
 
     EXPECT_TRUE(exists);
 }
 
 TEST(FileExists, fakeFile_returnsFalse) {
-    const std::string filepath {"../../fake.txt"};
-    const bool exists {file_exists(filepath)};
+    const std::string filepath{"../../fake.txt"};
+    const bool exists{file_exists(filepath)};
 
     EXPECT_FALSE(exists);
 }
 
 
 TEST(GraphCleaning, simpleTip_remove) {
-    const int kmer_size {21};
-    const std::vector<std::string> sequences {
-                    //>works well for k=21; part of genome10K.fasta
-                    "CATCGATGCGAGACGCCTGTCGCGGGGAATTGTGGGGCGGACCACGCTCTGGCTAACGAGCTACCGTTTCCTTTAACCTGCCAGACGGTGACCAGGGCCGTTCGGCGTTGCATCGAGCGGTGTCGCTAGCGCAATGCGCAAGATTTTGACATTTACAAGGCAACATTGCAGCGTCCGATGGTCCGGTGGCCTCCAGATAGTGTCCAGTCGCTCTAACTGTATGGAGACCATAGGCATTTACCTTATTCTCATCGCCACGCCCCAAGATCTTTAGGACCCAGCATTCCTTTAACCACTAACATAACGCGTGTCATCTAGTTCAACAACC",
-                    "TGTCATCTAGTTCAACAACCAAAAAAA", //>that's the tip
-                    "TGTCATCTAGTTCAACAACCGTTATGCCGTCCGACTCTTGCGCTCGGATGTCCGCAATGGGTTATCCCTATGTTCCGGTAATCTCTCATCTACTAAGCGCCCTAAAGGTCGTATGGTTGGAGGGCGGTTACACACCCTTAAGTACCGAACGATAGAGCACCCGTCTAGGAGGGCGTGCAGGGTCTCCCGCTAGCTAATGGTCACGGCCTCTCTGGGAAAGCTGAACAACGGATGATACCCATACTGCCACTCCAGTACCTGGGCCGCGTGTTGTACGCTGTGTATCTTGAGAGCGTTTCCAGCAGATAGAACAGGATCACATGTACATG" //>remaining part
-            };
+    const int kmer_size{21};
+    const std::vector<std::string> sequences{
+            //>works well for k=21; part of genome10K.fasta
+            "CATCGATGCGAGACGCCTGTCGCGGGGAATTGTGGGGCGGACCACGCTCTGGCTAACGAGCTACCGTTTCCTTTAACCTGCCAGACGGTGACCAGGGCCGTTCGGCGTTGCATCGAGCGGTGTCGCTAGCGCAATGCGCAAGATTTTGACATTTACAAGGCAACATTGCAGCGTCCGATGGTCCGGTGGCCTCCAGATAGTGTCCAGTCGCTCTAACTGTATGGAGACCATAGGCATTTACCTTATTCTCATCGCCACGCCCCAAGATCTTTAGGACCCAGCATTCCTTTAACCACTAACATAACGCGTGTCATCTAGTTCAACAACC",
+            "TGTCATCTAGTTCAACAACCAAAAAAA", //>that's the tip
+            "TGTCATCTAGTTCAACAACCGTTATGCCGTCCGACTCTTGCGCTCGGATGTCCGCAATGGGTTATCCCTATGTTCCGGTAATCTCTCATCTACTAAGCGCCCTAAAGGTCGTATGGTTGGAGGGCGGTTACACACCCTTAAGTACCGAACGATAGAGCACCCGTCTAGGAGGGCGTGCAGGGTCTCCCGCTAGCTAATGGTCACGGCCTCTCTGGGAAAGCTGAACAACGGATGATACCCATACTGCCACTCCAGTACCTGGGCCGCGTGTTGTACGCTGTGTATCTTGAGAGCGTTTCCAGCAGATAGAACAGGATCACATGTACATG" //>remaining part
+    };
     Graph graph = Graph::create(
             new BankStrings(sequences),
             "-kmer-size %d -abundance-min 1 -verbose 0", kmer_size
     );
     do_graph_clean(graph);
 
-    unsigned int num_non_deleted_nodes {0};
-    unsigned int num_nodes {0};
+    unsigned int num_non_deleted_nodes{0};
+    unsigned int num_nodes{0};
 
     GraphIterator<Node> iterNodes = graph.iterator();
     for (iterNodes.first(); !iterNodes.isDone(); iterNodes.next()) {
         num_nodes++;
 
-        if (! graph.isNodeDeleted(*iterNodes))
-        {
+        if (!graph.isNodeDeleted(*iterNodes)) {
             num_non_deleted_nodes++;
         }
     }
@@ -708,38 +707,37 @@ TEST(GenerateEndKmers, GenerateNoKmers_ReturnEmptySet) {
 
 
 TEST(LocalAssemblyTest, passFakeFastqPath_dontRaiseError) {
-    const std::string filepath {"FAKE.fakeq"};
-    std::string start_kmer {"ATGATGATG"};
-    std::string end_kmer {"ATGATGATG"};
-    const std::string out_path {"../../test/test_cases/fake.fa"};
-    const int k {9};
-    const int max_len {30};
+    const std::string filepath{"FAKE.fakeq"};
+    std::string start_kmer{"ATGATGATG"};
+    std::string end_kmer{"ATGATGATG"};
+    const std::string out_path{"../../test/test_cases/fake.fa"};
+    const int k{9};
+    const int max_len{30};
     local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len);
 }
 
 
 TEST(LocalAssemblyTest, twoIdenticalReads_onePath) {
-    const std::string filepath {"../../test/test_cases/local_assembly1.fa"};
-    std::string start_kmer {"ATGCGCTGA"};
-    std::string end_kmer {"AGTCGGACT"};
-    const std::string out_path {"../../test/test_cases/local_assembly1_paths.fa"};
-    const int k {9};
-    const int max_len {30};
-    const bool clean {false};
+    const std::string filepath{"../../test/test_cases/local_assembly1.fa"};
+    std::string start_kmer{"ATGCGCTGA"};
+    std::string end_kmer{"AGTCGGACT"};
+    const std::string out_path{"../../test/test_cases/local_assembly1_paths.fa"};
+    const int k{9};
+    const int max_len{30};
+    const bool clean{false};
     local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, 1, clean);
 
-    const std::unordered_set<std::string> expected {"ATGCGCTGAGAGTCGGACT"};
+    const std::unordered_set<std::string> expected{"ATGCGCTGAGAGTCGGACT"};
     std::unordered_set<std::string> result;
 
     // read paths file  back in and store all paths in set
-    std::ifstream fin {out_path};
+    std::ifstream fin{out_path};
     std::string line;
 
     while (std::getline(fin, line)) {
         if (line[0] == '>') {
             line.clear();
-        }
-        else {
+        } else {
             result.insert(line);
             line.clear();
         }
@@ -750,28 +748,27 @@ TEST(LocalAssemblyTest, twoIdenticalReads_onePath) {
 }
 
 TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgOne_twoPaths) {
-    const std::string filepath {"../../test/test_cases/local_assembly2.fa"};
-    std::string start_kmer {"ATGCGCTGA"};
-    std::string end_kmer {"AGTCGGACT"};
-    const std::string out_path {"../../test/test_cases/local_assembly2_paths.fa"};
-    const int k {9};
-    const int max_len {30};
-    const int min_coverage {1};
-    const bool clean {false};
+    const std::string filepath{"../../test/test_cases/local_assembly2.fa"};
+    std::string start_kmer{"ATGCGCTGA"};
+    std::string end_kmer{"AGTCGGACT"};
+    const std::string out_path{"../../test/test_cases/local_assembly2_paths.fa"};
+    const int k{9};
+    const int max_len{30};
+    const int min_coverage{1};
+    const bool clean{false};
     local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, 1, clean, min_coverage);
 
-    const std::unordered_set<std::string> expected {"ATGCGCTGATAGTCGGACT", "ATGCGCTGAGAGTCGGACT"};
+    const std::unordered_set<std::string> expected{"ATGCGCTGATAGTCGGACT", "ATGCGCTGAGAGTCGGACT"};
     std::unordered_set<std::string> result;
 
     // read paths file  back in and store all paths in set
-    std::ifstream fin {out_path};
+    std::ifstream fin{out_path};
     std::string line;
 
     while (std::getline(fin, line)) {
         if (line[0] == '>') {
             line.clear();
-        }
-        else {
+        } else {
             result.insert(line);
             line.clear();
         }
@@ -783,28 +780,27 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgOne_twoPaths) {
 
 
 TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
-    const std::string filepath {"../../test/test_cases/local_assembly2.fa"};
-    std::string start_kmer {"ATGCGCTGA"};
-    std::string end_kmer {"AGTCGGACT"};
-    const std::string out_path {"../../test/test_cases/local_assembly2_paths.fa"};
-    const int k {9};
-    const int max_len {30};
-    const int min_coverage {2};
-    const bool clean {false};
+    const std::string filepath{"../../test/test_cases/local_assembly2.fa"};
+    std::string start_kmer{"ATGCGCTGA"};
+    std::string end_kmer{"AGTCGGACT"};
+    const std::string out_path{"../../test/test_cases/local_assembly2_paths.fa"};
+    const int k{9};
+    const int max_len{30};
+    const int min_coverage{2};
+    const bool clean{false};
     local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, 1, clean, min_coverage);
 
-    const std::unordered_set<std::string> expected {"ATGCGCTGAGAGTCGGACT"};
+    const std::unordered_set<std::string> expected{"ATGCGCTGAGAGTCGGACT"};
     std::unordered_set<std::string> result;
 
     // read paths file  back in and store all paths in set
-    std::ifstream fin {out_path};
+    std::ifstream fin{out_path};
     std::string line;
 
     while (std::getline(fin, line)) {
         if (line[0] == '>') {
             line.clear();
-        }
-        else {
+        } else {
             result.insert(line);
             line.clear();
         }
@@ -815,27 +811,26 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
 }
 
 TEST(LocalAssemblyTestUsingSequenceVector, twoIdenticalReads_onePath) {
-    const std::vector<std::string> sequences {"ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT"};
-    std::string start_kmer {"ATGCGCTGA"};
-    std::string end_kmer {"AGTCGGACT"};
-    const std::string out_path {"../../test/test_cases/local_assembly1_paths.fa"};
-    const int k {9};
-    const int max_len {30};
-    const bool clean {false};
+    const std::vector<std::string> sequences{"ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT"};
+    std::string start_kmer{"ATGCGCTGA"};
+    std::string end_kmer{"AGTCGGACT"};
+    const std::string out_path{"../../test/test_cases/local_assembly1_paths.fa"};
+    const int k{9};
+    const int max_len{30};
+    const bool clean{false};
     local_assembly(sequences, start_kmer, end_kmer, out_path, k, max_len, 1, clean);
 
-    const std::unordered_set<std::string> expected {"ATGCGCTGAGAGTCGGACT"};
+    const std::unordered_set<std::string> expected{"ATGCGCTGAGAGTCGGACT"};
     std::unordered_set<std::string> result;
 
     // read paths file  back in and store all paths in set
-    std::ifstream fin {out_path};
+    std::ifstream fin{out_path};
     std::string line;
 
     while (std::getline(fin, line)) {
         if (line[0] == '>') {
             line.clear();
-        }
-        else {
+        } else {
             result.insert(line);
             line.clear();
         }
@@ -908,8 +903,8 @@ TEST(QueryAbundance, oneKmer_ReturnOne) {
             "-kmer-size 5 -abundance-min 1 -verbose 0"
     );
     auto kmer = "AATGT";
-    auto node {graph.buildNode(kmer)};
-    const auto covg {graph.queryAbundance(node)};
+    auto node{graph.buildNode(kmer)};
+    const auto covg{graph.queryAbundance(node)};
 
     // We get the neighbors of this real node and make sure it has the neighbours we expect
     EXPECT_EQ(covg, 1);
@@ -923,8 +918,8 @@ TEST(QueryAbundance, twoKmers_ReturnTwo) {
             "-kmer-size 5 -abundance-min 1 -verbose 0"
     );
     auto kmer = "AATGT";
-    auto node {graph.buildNode(kmer)};
-    const auto covg {graph.queryAbundance(node)};
+    auto node{graph.buildNode(kmer)};
+    const auto covg{graph.queryAbundance(node)};
 
     // We get the neighbors of this real node and make sure it has the neighbours we expect
     EXPECT_EQ(covg, 2);
@@ -938,8 +933,8 @@ TEST(QueryAbundance, fakeKmer_ReturnZero) {
             "-kmer-size 5 -abundance-min 1 -verbose 0"
     );
     auto kmer = "CCCCC";
-    auto node {graph.buildNode(kmer)};
-    const auto covg {graph.queryAbundance(node)};
+    auto node{graph.buildNode(kmer)};
+    const auto covg{graph.queryAbundance(node)};
 
     // We get the neighbors of this real node and make sure it has the neighbours we expect
     EXPECT_EQ(covg, 0);

@@ -7,6 +7,7 @@
 #include "seq.h"
 #include "utils.h"
 
+
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using std::vector;
@@ -28,12 +29,12 @@ void Seq::initialize(uint32_t i, string n, string p, uint32_t w, uint32_t k) {
     minimizer_sketch(w, k);
 }
 
-bool Seq::add_letter_to_get_next_kmer(const char& letter,
-                                      const uint64_t& shift1,
-                                      const uint64_t& mask,
-                                      uint32_t&  buff,
+bool Seq::add_letter_to_get_next_kmer(const char &letter,
+                                      const uint64_t &shift1,
+                                      const uint64_t &mask,
+                                      uint32_t &buff,
                                       uint64_t (&kmer)[2],
-                                      uint64_t (&kh)[2]){
+                                      uint64_t (&kh)[2]) {
     uint32_t c = nt4((uint8_t) letter);
     if (c < 4) { // not an ambiguous base
         kmer[0] = (kmer[0] << 2 | c) & mask;           // forward k-mer
@@ -49,7 +50,7 @@ bool Seq::add_letter_to_get_next_kmer(const char& letter,
     }
 }
 
-uint64_t find_smallest_kmer_value(const vector<Minimizer>& window, uint & pos_of_smallest){
+uint64_t find_smallest_kmer_value(const vector<Minimizer> &window, uint &pos_of_smallest) {
     uint64_t smallest = std::numeric_limits<uint64_t>::max();
     uint i = 0;
     for (const auto minimizer : window) {
@@ -62,7 +63,7 @@ uint64_t find_smallest_kmer_value(const vector<Minimizer>& window, uint & pos_of
     return smallest;
 }
 
-void Seq::add_minimizing_kmers_to_sketch(const vector<Minimizer>& window, const uint64_t& smallest){
+void Seq::add_minimizing_kmers_to_sketch(const vector<Minimizer> &window, const uint64_t &smallest) {
     for (const auto minimizer : window) {
         if (minimizer.kmer == smallest) {
             sketch.insert(minimizer);
@@ -71,14 +72,14 @@ void Seq::add_minimizing_kmers_to_sketch(const vector<Minimizer>& window, const 
     }
 }
 
-void Seq::minimize_window(vector<Minimizer>& window, uint64_t& smallest) {
+void Seq::minimize_window(vector<Minimizer> &window, uint64_t &smallest) {
     uint pos_of_smallest;
     smallest = find_smallest_kmer_value(window, pos_of_smallest);
     add_minimizing_kmers_to_sketch(window, smallest);
     window.erase(window.begin(), window.begin() + pos_of_smallest + 1);
 }
 
-void Seq::add_new_smallest_minimizer(vector<Minimizer>& window, uint64_t& smallest) {
+void Seq::add_new_smallest_minimizer(vector<Minimizer> &window, uint64_t &smallest) {
     sketch.insert(window.back());
     smallest = window.back().kmer;
     window.clear();
@@ -109,7 +110,7 @@ void Seq::minimizer_sketch(const uint32_t w, const uint32_t k) {
         if (window.size() == w) {
             minimize_window(window, smallest);
         } else if (buff >= w + k and window.back().kmer <= smallest) {
-            add_new_smallest_minimizer(window,smallest);
+            add_new_smallest_minimizer(window, smallest);
         }
         assert(window.size() < w ||
                assert_msg("we can't have added a smallest kmer correctly as window still has size " << window.size()));

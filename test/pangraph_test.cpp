@@ -14,6 +14,7 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 
+
 using namespace pangenome;
 
 TEST(PangenomeGraphGetRead, AddRead_PangenomeGraphReadsContainsReadId) {
@@ -638,62 +639,62 @@ TEST(PangenomeGraphTest, save_mapped_read_strings) {
     Minimizer m;
     deque<Interval> d;
     Path p;
-    MiniRecord* mr;
+    MiniRecord *mr;
 
     // read1
-    m = Minimizer(0,1,6,0); // kmer, start, end, strand
-    d = {Interval(7,8), Interval(10, 14)};
+    m = Minimizer(0, 1, 6, 0); // kmer, start, end, strand
+    d = {Interval(7, 8), Interval(10, 14)};
     p.initialize(d);
-    mr = new MiniRecord(0,p,0,0);
+    mr = new MiniRecord(0, p, 0, 0);
     mhits.add_hit(1, m, mr); // read 1
 
-    m = Minimizer(0,0,5,0);
-    d = {Interval(6,10), Interval(11, 12)};
+    m = Minimizer(0, 0, 5, 0);
+    d = {Interval(6, 10), Interval(11, 12)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0,0);
+    mr = new MiniRecord(0, p, 0, 0);
     mhits.add_hit(1, m, mr);
 
-    d = {Interval(6,10), Interval(12, 13)};
+    d = {Interval(6, 10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0,0);
+    mr = new MiniRecord(0, p, 0, 0);
     mhits.add_hit(1, m, mr);
 
     mhits.sort();
-    pg.add_node(0,"zero", 1, mhits.hits);
+    pg.add_node(0, "zero", 1, mhits.hits);
     mhits.clear();
 
     //read 2
-    m = Minimizer(0,2,7,1);
-    d = {Interval(6,10), Interval(11, 12)};
+    m = Minimizer(0, 2, 7, 1);
+    d = {Interval(6, 10), Interval(11, 12)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0,0);
+    mr = new MiniRecord(0, p, 0, 0);
     mhits.add_hit(2, m, mr);
 
-    m = Minimizer(0,5,10,1);
-    d = {Interval(6,10), Interval(12, 13)};
+    m = Minimizer(0, 5, 10, 1);
+    d = {Interval(6, 10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0,0);
+    mr = new MiniRecord(0, p, 0, 0);
     mhits.add_hit(2, m, mr);
 
     mhits.sort();
     delete mr;
-    pg.add_node(0,"zero", 2, mhits.hits);
+    pg.add_node(0, "zero", 2, mhits.hits);
 
     string expected1 = ">read1 pandora: 1 0:6 + \nshould\n>read2 pandora: 2 2:10 - \nis time \n";
     string expected2 = ">read2 pandora: 2 2:10 - \nis time \n>read1 pandora: 1 0:6 + \nshould\n";
 
     pg.save_mapped_read_strings("../../test/test_cases/reads.fa", "save_mapped_read_strings");
     ifstream ifs("save_mapped_read_strings/zero/zero.reads.fa");
-    string content( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()) );
+    string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
     EXPECT_TRUE((content == expected1) or (content == expected2));
 
     pg.save_mapped_read_strings("../../test/test_cases/reads.fa", ".");
     ifstream ifs2("zero/zero.reads.fa");
-    string content2( (std::istreambuf_iterator<char>(ifs2) ),(std::istreambuf_iterator<char>()) );
+    string content2((std::istreambuf_iterator<char>(ifs2)), (std::istreambuf_iterator<char>()));
     EXPECT_TRUE((content2 == expected1) or (content2 == expected2));
 }
 
@@ -702,9 +703,9 @@ TEST(PangenomeGraphTest, save_kmergraph_coverages) {
 
     PGraphTester pg;
     MinimizerHits mhits;
-    pg.add_node(0,"zero", 2, mhits.hits); //node 0
-    pg.add_node(1,"one", 2, mhits.hits);  //node 1
-    EXPECT_EQ((uint)2, pg.nodes.size());
+    pg.add_node(0, "zero", 2, mhits.hits); //node 0
+    pg.add_node(1, "one", 2, mhits.hits);  //node 1
+    EXPECT_EQ((uint) 2, pg.nodes.size());
 
     KmerGraph kg;
     deque<Interval> d = {Interval(0, 0)};
@@ -729,7 +730,7 @@ TEST(PangenomeGraphTest, save_kmergraph_coverages) {
     d = {Interval(24, 24)};
     p.initialize(d);
     kg.add_node(p);
-    EXPECT_EQ((uint)7, kg.nodes.size());
+    EXPECT_EQ((uint) 7, kg.nodes.size());
 
     kg.add_edge(kg.nodes[0], kg.nodes[1]);
     kg.add_edge(kg.nodes[1], kg.nodes[2]);
@@ -752,10 +753,10 @@ TEST(PangenomeGraphTest, save_kmergraph_coverages) {
     string expected2 = "sample\t0\t1\t2\t3\t4\t5\t6\ntest_sample\t0,0\t0,0\t0,0\t0,0\t0,0\t0,5\t0,0\n";
 
     ifstream ifs("coverages/zero.csv");
-    string content( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()) );
-    EXPECT_EQ(content,expected1);
+    string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
+    EXPECT_EQ(content, expected1);
 
     ifstream ifs2("coverages/one.csv");
-    string content2( (std::istreambuf_iterator<char>(ifs2) ),(std::istreambuf_iterator<char>()) );
-    EXPECT_EQ(content2,expected2);
+    string content2((std::istreambuf_iterator<char>(ifs2)), (std::istreambuf_iterator<char>()));
+    EXPECT_EQ(content2, expected2);
 }

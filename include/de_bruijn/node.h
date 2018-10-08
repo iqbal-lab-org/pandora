@@ -7,6 +7,7 @@
 #include <memory>
 #include "de_bruijn/ns.cpp"
 
+
 class debruijn::Node {
 public:
     uint32_t id;

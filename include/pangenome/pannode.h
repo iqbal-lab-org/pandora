@@ -8,6 +8,7 @@
 #include "kmergraph.h"
 #include "pangenome/ns.cpp"
 
+
 class LocalPRG;
 
 class pangenome::Node {
@@ -30,9 +31,9 @@ public:
 
     void add_path(const std::vector<KmerNodePtr> &);
 
-    void get_read_overlap_coordinates(std::vector<std::vector<uint32_t>>&);
+    void get_read_overlap_coordinates(std::vector<std::vector<uint32_t>> &);
 
-    void output_samples(const LocalPRG *, const std::string &, const uint32_t , const std::string &);
+    void output_samples(const LocalPRG *, const std::string &, const uint32_t, const std::string &);
 
     bool operator==(const Node &y) const;
 

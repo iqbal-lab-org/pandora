@@ -12,6 +12,7 @@
 #include "noise_filtering.h"
 #include "utils.h"
 
+
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace debruijn;
@@ -51,7 +52,8 @@ OrientedNodePtr Graph::add_node(const deque<uint_least32_t> &node_ids, uint32_t 
     }
 
     next_id++;
-    assert(next_id < numeric_limits<uint_least32_t>::max() || assert_msg("WARNING, reached max de bruijn graph node size"));
+    assert(next_id < numeric_limits<uint_least32_t>::max() ||
+           assert_msg("WARNING, reached max de bruijn graph node size"));
     return make_pair(n, true);
 }
 

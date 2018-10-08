@@ -9,6 +9,7 @@
 #include "minihits.h"
 #include "pangenome/ns.cpp"
 
+
 class pangenome::Read {
 public:
     const uint32_t id; // corresponding the the read id

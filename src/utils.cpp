@@ -23,6 +23,7 @@
 #include "minihit.h"
 #include "fastaq_handler.h"
 
+
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
@@ -36,13 +37,12 @@ string now() {
     return dt.substr(0, dt.length() - 1) + " ";
 }
 
-void make_dir(const string& dirpath)
-{
+void make_dir(const string &dirpath) {
     if (dirpath == ".")
         return;
 
     const boost::filesystem::path dir(dirpath);
-    if (boost::filesystem::exists(dir)){
+    if (boost::filesystem::exists(dir)) {
         return;
     }
 
@@ -122,7 +122,7 @@ void read_prg_file(vector<LocalPRG *> &prgs, const string &filepath) {
 
     uint32_t id = 0;
     LocalPRG *s;
-    
+
     FastaqHandler fh(filepath);
     while (!fh.eof()) {
         fh.get_next();
@@ -153,9 +153,9 @@ void load_PRG_kmergraphs(vector<LocalPRG *> &prgs, const uint32_t &w, const uint
     auto dir_num = 0;
     string dir;
     for (const auto &prg: prgs) {
-	    //cout << "Load kmergraph for " << prg->name << endl;
-        if (prg->id % 4000 == 0){
-            dir = prefix + "kmer_prgs/" + int_to_string(dir_num+1);
+        //cout << "Load kmergraph for " << prg->name << endl;
+        if (prg->id % 4000 == 0) {
+            dir = prefix + "kmer_prgs/" + int_to_string(dir_num + 1);
             dir_num++;
             boost::filesystem::path p(dir);
             if (not boost::filesystem::exists(p))
@@ -199,7 +199,8 @@ void add_read_hits(Seq *s, MinimizerHits *hits, Index *idx) {
 }
 
 void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, const vector<LocalPRG *> &prgs,
-                     MinimizerHits *minimizer_hits, const int max_diff, const float &fraction_kmers_required_for_cluster,
+                     MinimizerHits *minimizer_hits, const int max_diff,
+                     const float &fraction_kmers_required_for_cluster,
                      const uint32_t min_cluster_size, const uint32_t expected_number_kmers_in_short_read_sketch) {
     cout << now() << "Define clusters of hits from the " << minimizer_hits->hits.size() << " hits" << endl;
 
@@ -218,7 +219,8 @@ void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_
             (abs((int) (*mh_current)->read_start_position - (int) (*mh_previous)->read_start_position)) > max_diff) {
             // keep clusters which cover at least 3/4 the expected number of minihits
             length_based_threshold = min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
-                                         expected_number_kmers_in_short_read_sketch) * fraction_kmers_required_for_cluster;
+                                         expected_number_kmers_in_short_read_sketch) *
+                                     fraction_kmers_required_for_cluster;
             /*cout << "gene length " << prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()
                  << " short read length: " << expected_number_kmers_in_short_read_sketch
                  << " scale cluster size: " << fraction_kmers_required_for_cluster
@@ -348,7 +350,9 @@ void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of
     cout << now() << "Now have " << clusters_of_hits.size() << " clusters of hits " << endl;
 }
 
-void add_clusters_to_pangraph(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, pangenome::Graph *pangraph, const vector<LocalPRG *> &prgs) {
+void
+add_clusters_to_pangraph(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, pangenome::Graph *pangraph,
+                         const vector<LocalPRG *> &prgs) {
     cout << now() << "Add inferred order to PanGraph" << endl;
     if (clusters_of_hits.empty()) { return; }
 
@@ -363,8 +367,10 @@ void add_clusters_to_pangraph(set<set<MinimizerHitPtr, pComp>, clusterComp> &clu
 
 void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHits *minimizer_hits,
                                     pangenome::Graph *pangraph,
-                                    const int max_diff, const uint32_t &genome_size, const float &fraction_kmers_required_for_cluster,
-                                    const uint32_t min_cluster_size, const uint32_t expected_number_kmers_in_short_read_sketch) {
+                                    const int max_diff, const uint32_t &genome_size,
+                                    const float &fraction_kmers_required_for_cluster,
+                                    const uint32_t min_cluster_size,
+                                    const uint32_t expected_number_kmers_in_short_read_sketch) {
     // this step infers the gene order for a read and adds this to the pangraph
     // by defining clusters of hits, keeping those which are not noise and
     // then adding the inferred gene ordering
@@ -409,12 +415,12 @@ uint32_t pangraph_from_read_file(const string &filepath,
     uint32_t id = 0;
 
     FastaqHandler fh(filepath);
-    while (!fh.eof()){
+    while (!fh.eof()) {
         fh.get_next();
         s->initialize(id, fh.name, fh.read, w, k);
         if (!s->sketch.empty()) {
             covg += s->seq.length();
-            if (covg/genome_size > max_covg){
+            if (covg / genome_size > max_covg) {
                 cout << now() << "Stop reading readfile as have reached max coverage" << endl;
                 break;
             }
@@ -429,16 +435,17 @@ uint32_t pangraph_from_read_file(const string &filepath,
         //cout << now() << "Add read hits" << endl;
         add_read_hits(s, mh, idx);
         id++;
-        if (id > 10000000){
+        if (id > 10000000) {
             cout << now() << "Stop reading readfile as have reached 10,000,000 reads" << endl;
             break;
         }
 
-        if (mh->uhits.size() > 90000){
+        if (mh->uhits.size() > 90000) {
             cout << now() << "Infer gene orders and add to pangenome::Graph" << endl;
             pangraph->reserve_num_reads(id);
             infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size,
-                                           fraction_kmers_required_for_cluster, min_cluster_size, expected_number_kmers_in_short_read_sketch);
+                                           fraction_kmers_required_for_cluster, min_cluster_size,
+                                           expected_number_kmers_in_short_read_sketch);
         }
     }
     delete s;

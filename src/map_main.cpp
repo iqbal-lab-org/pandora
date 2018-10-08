@@ -26,6 +26,7 @@
 #include "noise_filtering.h"
 #include "extract_reads.h"
 
+
 using std::set;
 using std::vector;
 using namespace std;
@@ -67,7 +68,7 @@ int pandora_map(int argc, char *argv[]) {
     }
 
     // otherwise, parse the parameters from the command line
-    string prgfile, readfile, outdir=".", vcf_refs_file;
+    string prgfile, readfile, outdir = ".", vcf_refs_file;
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300; // default parameters
     int max_diff = 250;
     float e_rate = 0.11;
@@ -167,7 +168,7 @@ int pandora_map(int argc, char *argv[]) {
             clean = true;
         } else if ((arg == "--bin")) {
             bin = true;
-        } else if((arg == "--max_covg")) {
+        } else if ((arg == "--max_covg")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 max_covg = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
@@ -277,14 +278,14 @@ int pandora_map(int argc, char *argv[]) {
 
         prgs[c->second->prg_id]->add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp, w, bin, covg);
 
-        if (kmp.empty())
-        {
+        if (kmp.empty()) {
             c = pangraph->remove_node(c->second);
             continue;
         }
 
         if (output_kg) {
-            c->second->kmer_prg.save(outdir + "/kmer_graphs/" + c->second->get_name() + ".kg.gfa", prgs[c->second->prg_id]);
+            c->second->kmer_prg.save(outdir + "/kmer_graphs/" + c->second->get_name() + ".kg.gfa",
+                                     prgs[c->second->prg_id]);
         }
 
         if (output_vcf) {
@@ -297,14 +298,14 @@ int pandora_map(int argc, char *argv[]) {
         ++c;
     }
     consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
-    master_vcf.save(outdir + "/pandora_consensus.vcf" , true, true, true, true, true, true, true);
+    master_vcf.save(outdir + "/pandora_consensus.vcf", true, true, true, true, true, true, true);
 
-    if(genotype) {
-        master_vcf.genotype(covg,0.01,30,snps_only);
+    if (genotype) {
+        master_vcf.genotype(covg, 0.01, 30, snps_only);
         if (snps_only)
-            master_vcf.save(outdir + "/pandora_genotyped.vcf" , true, true, true, true, false, false, false);
+            master_vcf.save(outdir + "/pandora_genotyped.vcf", true, true, true, true, false, false, false);
         else
-            master_vcf.save(outdir + "/pandora_genotyped.vcf" , true, true, true, true, true, true, true);
+            master_vcf.save(outdir + "/pandora_genotyped.vcf", true, true, true, true, true, true, true);
     }
 
     if (output_mapped_read_fa)

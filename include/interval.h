@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iostream>
 
+
 struct Interval {
     uint32_t start;
     uint32_t length;

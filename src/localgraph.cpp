@@ -4,6 +4,7 @@
 #include "localgraph.h"
 #include "utils.h"
 
+
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
@@ -42,7 +43,8 @@ void LocalGraph::add_edge(const uint32_t &from, const uint32_t &to) {
         LocalNodePtr f = (nodes.find(from)->second);
         LocalNodePtr t = (nodes.find(to)->second);
         assert(f->pos.get_end() <= t->pos.start || assert_msg(
-                f->pos.get_end() << ">" << t->pos.start << " so cannot add edge from node " << *f << " to node " << *t));
+                f->pos.get_end() << ">" << t->pos.start << " so cannot add edge from node " << *f << " to node "
+                                 << *t));
         f->outNodes.push_back(t);
         //cout << "Added edge (" << f->id << ", " << t->id << ")" << endl;
     }
@@ -230,7 +232,7 @@ LocalNodePtr LocalGraph::get_previous_node(const LocalNodePtr n) const {
 
 vector<LocalNodePtr> LocalGraph::nodes_along_string(const string &query_string, bool end_to_end) const {
     // Note expects the query string to start at the start of the PRG - can change this later
-    vector<vector<LocalNodePtr>> u, v,w;   // u <=> v -> w
+    vector<vector<LocalNodePtr>> u, v, w;   // u <=> v -> w
     // ie reject paths in u, or extend and add to v
     // then set u=v and continue
     // final output w, which is filtered and a path returned
@@ -264,9 +266,10 @@ vector<LocalNodePtr> LocalGraph::nodes_along_string(const string &query_string, 
                 auto comp_length = min(query_string.size(), comp_string.size());
                 if (strcasecmp(
                         query_string.substr(0, comp_length).c_str(),
-                        comp_string.substr(0,comp_length).c_str()) == 0) {
-                    if ((!end_to_end and candidate_string.size() + p.back()->outNodes[j]->seq.size() >= query_string.size())
-                            or p.back()->outNodes[j]->outNodes.empty()) {
+                        comp_string.substr(0, comp_length).c_str()) == 0) {
+                    if ((!end_to_end and
+                         candidate_string.size() + p.back()->outNodes[j]->seq.size() >= query_string.size())
+                        or p.back()->outNodes[j]->outNodes.empty()) {
                         // we have now found the whole of the query_string or reached end of graph
                         auto p_copy = p;
                         p_copy.push_back(p_copy.back()->outNodes[j]);
@@ -293,19 +296,19 @@ vector<LocalNodePtr> LocalGraph::nodes_along_string(const string &query_string, 
         v.clear();
     }
 
-    if (w.empty()){
+    if (w.empty()) {
         // found no successful path, so return an empty vector
         return npath;
     } else {
         // find the most exact match, the one which covers all sequence with minimal extra to end of graph, or longest
         auto longest_length = 0;
         vector<LocalNodePtr> longest_path;
-        for (const auto &p : w){
+        for (const auto &p : w) {
             candidate_string = "";
             for (const auto &s : p) {
                 candidate_string += s->seq;
             }
-            if (strcasecmp(query_string.c_str(), candidate_string.c_str()) == 0){
+            if (strcasecmp(query_string.c_str(), candidate_string.c_str()) == 0) {
                 return p;
             } else if (candidate_string.size() > longest_length) {
                 longest_path = p;

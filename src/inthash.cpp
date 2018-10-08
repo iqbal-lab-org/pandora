@@ -4,6 +4,7 @@
 #include <cstring>
 #include "inthash.h"
 
+
 using namespace std;
 
 /* Taken from Heng Li minimap https://github.com/lh3/minimap/blob/master/sketch.c

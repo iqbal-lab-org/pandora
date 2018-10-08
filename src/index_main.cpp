@@ -6,9 +6,10 @@
 #include "utils.h"
 #include "localPRG.h"
 
+
 using namespace std;
 
-void index_prgs(vector<LocalPRG *> &prgs, Index *idx, const uint32_t w, const uint32_t k, const string& outdir) {
+void index_prgs(vector<LocalPRG *> &prgs, Index *idx, const uint32_t w, const uint32_t k, const string &outdir) {
     cout << now() << "Index PRGs" << endl;
 
     // first reserve an estimated index size
@@ -21,12 +22,14 @@ void index_prgs(vector<LocalPRG *> &prgs, Index *idx, const uint32_t w, const ui
     // now fill index
     auto dir_num = 0;
     for (uint32_t i = 0; i != prgs.size(); ++i) {
-        if (i % 4000 == 0){
-            make_dir(outdir + "/" + int_to_string(dir_num+1));
+        if (i % 4000 == 0) {
+            make_dir(outdir + "/" + int_to_string(dir_num + 1));
             dir_num++;
         }
         prgs[i]->minimizer_sketch(idx, w, k);
-        prgs[i]->kmer_prg.save(outdir + "/" + int_to_string(dir_num) + "/" + prgs[i]->name + ".k" + to_string(k) + ".w" + to_string(w) + ".gfa");
+        prgs[i]->kmer_prg.save(
+                outdir + "/" + int_to_string(dir_num) + "/" + prgs[i]->name + ".k" + to_string(k) + ".w" +
+                to_string(w) + ".gfa");
     }
     cout << now() << "Finished adding " << prgs.size() << " LocalPRGs" << endl;
     cout << now() << "Number of keys in Index: " << idx->minhash.size() << endl;

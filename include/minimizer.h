@@ -5,12 +5,14 @@
 #include <cstdint>
 #include "interval.h"
 
+
 struct Minimizer {
     uint64_t kmer;
     Interval pos;
     bool strand;
 
     Minimizer() {};
+
     Minimizer(uint64_t, uint32_t, uint32_t, bool);
 
     ~Minimizer();

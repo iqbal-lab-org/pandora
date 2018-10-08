@@ -7,6 +7,7 @@
 #include "vcfrecord.h"
 #include "utils.h"
 
+
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
@@ -18,7 +19,7 @@ VCFRecord::VCFRecord(std::string c, uint32_t p, std::string r, std::string a, st
                                                                                                               qual("."),
                                                                                                               filter("."),
                                                                                                               info(i),
-                                                                                                              format({"GT"}){
+                                                                                                              format({"GT"}) {
     if (a == "")
         alt.push_back(".");
     else
@@ -50,8 +51,7 @@ VCFRecord::VCFRecord(std::string c, uint32_t p, std::string r, std::string a, st
 
 VCFRecord::VCFRecord() : chrom("."), pos(0), id("."), ref("."), qual("."), filter("."), info(".") {};
 
-VCFRecord::VCFRecord(const VCFRecord& other)
-{
+VCFRecord::VCFRecord(const VCFRecord &other) {
     chrom = other.chrom;
     pos = other.pos;
     id = other.id;
@@ -114,7 +114,7 @@ void VCFRecord::clear_sample(uint32_t i) {
         regt_samples[i].clear();
     }
     bool all_cleared(true);
-    for (const auto s : samples){
+    for (const auto s : samples) {
         if (!s.empty()) {
             all_cleared = false;
             break;
@@ -125,50 +125,50 @@ void VCFRecord::clear_sample(uint32_t i) {
     }
 }
 
-void VCFRecord::add_formats(const vector<string>& formats) {
-    for (const auto s : formats){
-        if (find(format.begin(), format.end(),s) == format.end())
+void VCFRecord::add_formats(const vector<string> &formats) {
+    for (const auto s : formats) {
+        if (find(format.begin(), format.end(), s) == format.end())
             format.push_back(s);
     }
 }
 
-float logfactorial(uint32_t n){
+float logfactorial(uint32_t n) {
     float ret = 0;
-    for (uint32_t i=1; i<=n; ++i){
+    for (uint32_t i = 1; i <= n; ++i) {
         ret += log(i);
     }
     return ret;
 }
 
-void VCFRecord::likelihood(const uint32_t& expected_depth_covg, const float& error_rate) {
+void VCFRecord::likelihood(const uint32_t &expected_depth_covg, const float &error_rate) {
     unordered_map<string, vector<float>> m;
     m.reserve(2);
 
     //float p_non_zero = 1 - exp(-expected_depth_covg);
-    if (regt_samples.empty()){
+    if (regt_samples.empty()) {
         for (const auto &sample : samples) {
             regt_samples.push_back(m);
         }
     }
 
-    for (uint_least16_t i=0; i<samples.size(); ++i) {
+    for (uint_least16_t i = 0; i < samples.size(); ++i) {
         if (samples[i].find("MEAN_FWD_COVG") != samples[i].end()
             and samples[i].find("MEAN_REV_COVG") != samples[i].end()
             and samples[i]["MEAN_FWD_COVG"].size() == samples[i]["MEAN_REV_COVG"].size()
             and samples[i]["MEAN_FWD_COVG"].size() >= 2) {
 
             vector<uint16_t> covgs = {};
-            for (uint j=0; j<samples[i]["MEAN_FWD_COVG"].size(); ++j) {
+            for (uint j = 0; j < samples[i]["MEAN_FWD_COVG"].size(); ++j) {
                 covgs.push_back(samples[i]["MEAN_FWD_COVG"][j] + samples[i]["MEAN_REV_COVG"][j]);
             }
 
             vector<float> likelihoods = {};
             float likelihood = 0;
-            for (uint j=0; j<covgs.size(); ++j) {
-                auto other_covg = accumulate(covgs.begin(),covgs.end(),0) - covgs[j];
+            for (uint j = 0; j < covgs.size(); ++j) {
+                auto other_covg = accumulate(covgs.begin(), covgs.end(), 0) - covgs[j];
                 if (covgs[j] > 0)
                     likelihood = covgs[j] * log(expected_depth_covg) - expected_depth_covg
-                                      - logfactorial(covgs[j]) + other_covg * log(error_rate);
+                                 - logfactorial(covgs[j]) + other_covg * log(error_rate);
                 else
                     likelihood = other_covg * log(error_rate) - expected_depth_covg;
                 likelihoods.push_back(likelihood);
@@ -177,20 +177,20 @@ void VCFRecord::likelihood(const uint32_t& expected_depth_covg, const float& err
         }
     }
 
-    assert(regt_samples.size()==samples.size() or assert_msg(regt_samples.size()<< "!=" << samples.size()));
+    assert(regt_samples.size() == samples.size() or assert_msg(regt_samples.size() << "!=" << samples.size()));
     add_formats({"LIKELIHOOD"});
 }
 
-void VCFRecord::confidence(){
-    for (auto&& sample : regt_samples) {
+void VCFRecord::confidence() {
+    for (auto &&sample : regt_samples) {
         if (sample.find("LIKELIHOOD") != sample.end()) {
             assert(sample["LIKELIHOOD"].size() > 1);
             float max_lik = 0, max_lik2 = 0;
             for (const auto &likelihood : sample["LIKELIHOOD"]) {
-                if (max_lik == 0 or likelihood > max_lik){
+                if (max_lik == 0 or likelihood > max_lik) {
                     max_lik2 = max_lik;
                     max_lik = likelihood;
-                } else if (max_lik2 == 0 or likelihood > max_lik2){
+                } else if (max_lik2 == 0 or likelihood > max_lik2) {
                     max_lik2 = likelihood;
                 }
             }
@@ -200,10 +200,10 @@ void VCFRecord::confidence(){
     add_formats({"GT_CONF"});
 }
 
-void VCFRecord::genotype(const uint8_t confidence_threshold){
-    for (uint_least16_t i=0; i<samples.size(); ++i) {
-        if (regt_samples[i].find("GT_CONF") != regt_samples[i].end()){
-            if (regt_samples[i]["GT_CONF"][0] > confidence_threshold){
+void VCFRecord::genotype(const uint8_t confidence_threshold) {
+    for (uint_least16_t i = 0; i < samples.size(); ++i) {
+        if (regt_samples[i].find("GT_CONF") != regt_samples[i].end()) {
+            if (regt_samples[i]["GT_CONF"][0] > confidence_threshold) {
                 uint8_t allele = 0;
                 float max_likelihood = 0;
                 for (const auto &likelihood : regt_samples[i]["LIKELIHOOD"]) {
@@ -226,15 +226,15 @@ bool VCFRecord::operator==(const VCFRecord &y) const {
     if (chrom != y.chrom) { return false; }
     if (pos != y.pos) { return false; }
     if (ref != y.ref) { return false; }
-    if (alt.size() != y.alt.size()) {return false;}
+    if (alt.size() != y.alt.size()) { return false; }
     for (const auto &a : alt) {
-        if (find(y.alt.begin(), y.alt.end(), a) == y.alt.end()) {return false;}
+        if (find(y.alt.begin(), y.alt.end(), a) == y.alt.end()) { return false; }
     }
     return true;
 }
 
 bool VCFRecord::operator!=(const VCFRecord &y) const {
-    return !(*this==y);
+    return !(*this == y);
 }
 
 bool VCFRecord::operator<(const VCFRecord &y) const {
@@ -251,13 +251,13 @@ bool VCFRecord::operator<(const VCFRecord &y) const {
 
 
 std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
-    out << m.chrom << "\t" << m.pos+1 << "\t" << m.id << "\t" << m.ref << "\t";
+    out << m.chrom << "\t" << m.pos + 1 << "\t" << m.id << "\t" << m.ref << "\t";
 
     if (m.alt.empty()) {
         out << ".";
     } else {
         string buffer = "";
-        for (const auto &a : m.alt){
+        for (const auto &a : m.alt) {
             out << buffer << a;
             buffer = ",";
         }
@@ -267,17 +267,17 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
 
     string last_format;
     if (!m.format.empty())
-        last_format = m.format[m.format.size()-1];
+        last_format = m.format[m.format.size() - 1];
 
-    for (const auto &s : m.format){
+    for (const auto &s : m.format) {
         out << s;
         if (s != last_format)
             out << ":";
     }
 
-    for(uint_least16_t i=0;i<m.samples.size(); ++i){
+    for (uint_least16_t i = 0; i < m.samples.size(); ++i) {
         out << "\t";
-        for (const auto &f : m.format){
+        for (const auto &f : m.format) {
             string buffer = "";
             if (m.samples[i].find(f) != m.samples[i].end() and not m.samples[i].at(f).empty()) {
                 for (const auto a : m.samples.at(i).at(f)) {
@@ -286,7 +286,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
                 }
 
             } else if (m.regt_samples.size() > i
-                       and m.regt_samples[i].find(f)!=m.regt_samples[i].end()
+                       and m.regt_samples[i].find(f) != m.regt_samples[i].end()
                        and not m.regt_samples[i].at(f).empty()) {
                 for (const auto a : m.regt_samples.at(i).at(f)) {
                     out << buffer << +a;
@@ -306,7 +306,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
 }
 
 std::istream &operator>>(std::istream &in, VCFRecord &m) {
-    string token,alt_s;
+    string token, alt_s;
     vector<string> sample_strings, sample_substrings;
     vector<string> float_strings = {"LIKELIHOOD", "GT_CONF"};
     unordered_map<string, vector<uint8_t>> sample_data;
@@ -341,18 +341,18 @@ std::istream &operator>>(std::istream &in, VCFRecord &m) {
     sample_data.reserve(m.format.size());
     while (in >> token) {
         sample_strings = split(token, ":");
-        assert(sample_strings.size()==m.format.size() or assert_msg("sample data does not fit format"));
+        assert(sample_strings.size() == m.format.size() or assert_msg("sample data does not fit format"));
         m.samples.push_back(sample_data);
         m.regt_samples.push_back(regt_sample_data);
-        for (uint32_t i=0; i<m.format.size(); ++i){
+        for (uint32_t i = 0; i < m.format.size(); ++i) {
             if (sample_strings[i] != "."
-                and find(float_strings.begin(),float_strings.end(),m.format[i])==float_strings.end()) {
-                sample_substrings = split(sample_strings[i],",");
+                and find(float_strings.begin(), float_strings.end(), m.format[i]) == float_strings.end()) {
+                sample_substrings = split(sample_strings[i], ",");
                 for (const auto s : sample_substrings)
                     m.samples.back()[m.format[i]].push_back(stoi(s));
             } else if (sample_strings[i] != "."
-                     and find(float_strings.begin(),float_strings.end(),m.format[i])!=float_strings.end()) {
-                sample_substrings = split(sample_strings[i],",");
+                       and find(float_strings.begin(), float_strings.end(), m.format[i]) != float_strings.end()) {
+                sample_substrings = split(sample_strings[i], ",");
                 for (const auto s : sample_substrings)
                     m.regt_samples.back()[m.format[i]].push_back(stof(s));
             }

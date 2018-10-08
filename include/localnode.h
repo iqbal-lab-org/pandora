@@ -11,7 +11,9 @@
 #include "prg/path.h"
 #include "kmernode.h"
 
+
 class LocalNode;
+
 typedef std::shared_ptr<LocalNode> LocalNodePtr;
 
 class LocalNode {

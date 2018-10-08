@@ -10,6 +10,7 @@
 #include "pangenome/ns.cpp"
 #include "local_assembly.h"
 
+
 typedef std::shared_ptr<pangenome::Node> PanNodePtr;
 
 std::vector<Interval>

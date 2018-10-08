@@ -9,6 +9,7 @@
 #include "minimizer.h"
 #include "utils.h" // for pointer_values_equal
 
+
 using namespace std;
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
@@ -35,7 +36,7 @@ MinimizerHits::~MinimizerHits() {
     clear();
 }
 
-void MinimizerHits::add_hit(const uint32_t i, const Minimizer& m, const MiniRecord *r) {
+void MinimizerHits::add_hit(const uint32_t i, const Minimizer &m, const MiniRecord *r) {
     MinimizerHitPtr mh(make_shared<MinimizerHit>(i, m, r));
     uhits.insert(mh);
 }

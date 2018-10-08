@@ -8,6 +8,7 @@
 #include "fastaq_handler.h"
 #include "utils.h"
 
+
 using namespace std;
 
 FastaqHandler::FastaqHandler(const string &filepath) : gzipped(false), instream(&inbuf), num_reads_parsed(0) {

@@ -8,16 +8,21 @@
 #include "interval.h"
 #include "prg/ns.cpp"
 
+
 class prg::Path {
 public:
     std::vector<Interval> path;
 
     void initialize(const std::deque<Interval> &);
+
     void initialize(const std::vector<Interval> &);
+
     void initialize(const Interval &);
 
     uint32_t get_start() const;
+
     uint32_t get_end() const;
+
     uint32_t length() const;
 
     void add_end_interval(const Interval &);
@@ -38,7 +43,7 @@ public:
 
     friend std::istream &operator>>(std::istream &in, Path &p);
 
-    friend Path get_union(const Path&, const Path&);
+    friend Path get_union(const Path &, const Path &);
 
     friend bool equal_except_null_nodes(const Path &, const Path &);
 };

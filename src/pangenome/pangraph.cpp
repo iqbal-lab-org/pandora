@@ -18,6 +18,7 @@
 #include "minihit.h"
 #include "fastaq_handler.h"
 
+
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace pangenome;
@@ -104,11 +105,11 @@ void record_read_info(ReadPtr &read_ptr,
     read_ptr->add_hits(node_ptr->node_id, cluster);
     bool orientation = !cluster.empty() and (*cluster.begin())->strand;
     if (read_ptr->nodes.empty()
-	or node_ptr != read_ptr->nodes.back()
-	or orientation != read_ptr->node_orientations.back()
-	//or we think there really are 2 copies of gene
-	) {
-	    read_ptr->nodes.push_back(node_ptr);
+        or node_ptr != read_ptr->nodes.back()
+        or orientation != read_ptr->node_orientations.back()
+        //or we think there really are 2 copies of gene
+            ) {
+        read_ptr->nodes.push_back(node_ptr);
         read_ptr->node_orientations.push_back(orientation);
     }
 }
@@ -211,7 +212,7 @@ vector<NodePtr>::iterator Graph::remove_node_from_read(vector<NodePtr>::iterator
     if (read_it != node_ptr->reads.end())
         node_ptr->reads.erase(read_it);
 
-    if (node_ptr->reads.size()==0)
+    if (node_ptr->reads.size() == 0)
         remove_node(node_ptr);
 
     return node_it;
@@ -344,10 +345,12 @@ void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
                 //bool added = false;
                 // update the covg in the kmer_prg
                 //cout << "pnode " << pnode.second->prg_id << " knode " << (*mh)->knode_id << " strand " << (*mh)->strand << " updated from " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand];
-                assert((*mh)->knode_id < pnode.second->kmer_prg.nodes.size() and pnode.second->kmer_prg.nodes[(*mh)->knode_id]!=nullptr);
+                assert((*mh)->knode_id < pnode.second->kmer_prg.nodes.size() and
+                       pnode.second->kmer_prg.nodes[(*mh)->knode_id] != nullptr);
                 pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] += 1;
-                if (pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] == 1000){
-                    cout << "Adding hit " << **mh << " resulted in high coverage on node " << *pnode.second->kmer_prg.nodes[(*mh)->knode_id] << endl;
+                if (pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] == 1000) {
+                    cout << "Adding hit " << **mh << " resulted in high coverage on node "
+                         << *pnode.second->kmer_prg.nodes[(*mh)->knode_id] << endl;
                 }
                 //cout << " to " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] << endl;
                 num_hits[(*mh)->strand] += 1;
@@ -422,7 +425,7 @@ void Graph::save_matrix(const string &filepath) {
     }
 }
 
-void Graph::save_mapped_read_strings(const string& readfilepath, const string& outdir, const int32_t buff){
+void Graph::save_mapped_read_strings(const string &readfilepath, const string &outdir, const int32_t buff) {
     cout << now() << "Save mapped read strings and coordinates" << endl;
     ofstream outhandle;
     FastaqHandler readfile(readfilepath);
@@ -430,28 +433,27 @@ void Graph::save_mapped_read_strings(const string& readfilepath, const string& o
 
     // for each node in pangraph, find overlaps and write to a file
     vector<vector<uint32_t>> read_overlap_coordinates;
-    for (const auto &node_ptr : nodes)
-    {
-	    cout << "Find coordinates for node " << node_ptr.second->name;
+    for (const auto &node_ptr : nodes) {
+        cout << "Find coordinates for node " << node_ptr.second->name;
         node_ptr.second->get_read_overlap_coordinates(read_overlap_coordinates);
-	    cout << "." << endl;
+        cout << "." << endl;
         make_dir(outdir + "/" + node_ptr.second->get_name());
         outhandle.open(outdir + "/" + node_ptr.second->get_name() + "/" + node_ptr.second->get_name() + ".reads.fa");
-        for (const auto &coord : read_overlap_coordinates){
+        for (const auto &coord : read_overlap_coordinates) {
             readfile.get_id(coord[0]);
-            start = (uint32_t) max((int32_t)coord[1]-buff, 0);
-            end = min(coord[2]+(uint32_t)buff, (uint32_t)readfile.read.length());
+            start = (uint32_t) max((int32_t) coord[1] - buff, 0);
+            end = min(coord[2] + (uint32_t) buff, (uint32_t) readfile.read.length());
             outhandle << ">" << readfile.name << " pandora: " << coord[0] << " " << start << ":" << end;
             if (coord[3] == true)
                 outhandle << " + " << endl;
             else
                 outhandle << " - " << endl;
-	    assert(coord[1] < coord[2]);
-	    assert(start <= coord[1]);
-	    assert(start <= readfile.read.length());
-	    assert(coord[2] <= readfile.read.length());
+            assert(coord[1] < coord[2]);
+            assert(start <= coord[1]);
+            assert(start <= readfile.read.length());
+            assert(coord[2] <= readfile.read.length());
             assert(end >= coord[2]);
-	    assert(start < end);
+            assert(start < end);
             outhandle << readfile.read.substr(start, end - start) << endl;
         }
         outhandle.close();
@@ -461,13 +463,12 @@ void Graph::save_mapped_read_strings(const string& readfilepath, const string& o
     readfile.close();
 }
 
-void Graph::save_kmergraph_coverages(const string &outdir, const string &sample_name){
+void Graph::save_kmergraph_coverages(const string &outdir, const string &sample_name) {
     cout << now() << "Save kmergraph coverages for sample " << sample_name << endl;
     make_dir(outdir + "/coverages");
-    for (const auto &n : nodes){
+    for (const auto &n : nodes) {
         string node_file = outdir + "/coverages/" + n.second->name + ".csv";
-        if ( !boost::filesystem::exists(node_file))
-        {
+        if (!boost::filesystem::exists(node_file)) {
             ofstream handle;
             handle.open(node_file);
             assert (!handle.fail() or assert_msg("Could not open file " << node_file));

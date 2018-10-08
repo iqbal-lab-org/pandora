@@ -11,6 +11,7 @@
 #include "minihits.h"
 #include "pangenome/pangraph.h"
 
+
 class Index;
 
 class PanNode;
@@ -42,7 +43,7 @@ struct spointer_values_equal {
 // utility functions
 std::string now();
 
-void make_dir(const std::string&);
+void make_dir(const std::string &);
 
 std::string int_to_string(const int number);
 
@@ -65,7 +66,7 @@ void load_vcf_refs_file(const std::string &, VCFRefs &);
 void add_read_hits(Seq *, MinimizerHits *, Index *);
 
 void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &, const std::vector<LocalPRG *> &,
-                     MinimizerHits *, const int, const float &, const uint32_t , const uint32_t);
+                     MinimizerHits *, const int, const float &, const uint32_t, const uint32_t);
 
 void filter_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &);
 
@@ -76,10 +77,12 @@ void infer_localPRG_order_for_reads(const std::vector<LocalPRG *> &prgs, Minimiz
                                     const uint32_t expected_number_kmers_in_short_read_sketch = std::numeric_limits<uint32_t>::max());
 
 uint32_t pangraph_from_read_file(const std::string &, MinimizerHits *, pangenome::Graph *, Index *,
-                             const std::vector<LocalPRG *> &,
-                             const uint32_t, const uint32_t, const int, const float &, const uint32_t min_cluster_size = 10,
-                             const uint32_t genome_size = 5000000, const bool illumina = false, const bool clean = false,
-                             const uint32_t max_covg = 300);
+                                 const std::vector<LocalPRG *> &,
+                                 const uint32_t, const uint32_t, const int, const float &,
+                                 const uint32_t min_cluster_size = 10,
+                                 const uint32_t genome_size = 5000000, const bool illumina = false,
+                                 const bool clean = false,
+                                 const uint32_t max_covg = 300);
 
 void
 update_localPRGs_with_hits(pangenome::Graph *, const std::vector<LocalPRG *> &);//, const uint32_t, const float&, bool);

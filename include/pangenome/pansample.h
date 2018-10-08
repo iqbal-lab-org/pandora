@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include "pangenome/ns.cpp"
 
+
 class KmerNode;
 
 typedef std::shared_ptr<KmerNode> KmerNodePtr;

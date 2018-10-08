@@ -8,6 +8,7 @@
 #include "minirecord.h"
 #include "prg/path.h"
 
+
 class Index {
 public:
     std::unordered_map<uint64_t, std::vector<MiniRecord> *> minhash;

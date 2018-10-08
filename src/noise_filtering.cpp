@@ -13,10 +13,11 @@
 #include "de_bruijn/graph.h"
 #include "minihit.h"
 
+
 using namespace std;
 
 uint_least32_t node_plus_orientation_to_num(const uint_least32_t node_id, const bool orientation) {
-    assert(node_id < UINT_LEAST32_MAX/2);
+    assert(node_id < UINT_LEAST32_MAX / 2);
     uint_least32_t r = 2 * node_id;
     if (orientation) {
         r += 1;
@@ -96,7 +97,7 @@ deque<uint_least32_t> rc_hashed_node_ids(const deque<uint_least32_t> &hashed_nod
 }
 
 deque<uint_least32_t> extend_hashed_pg_node_ids_backwards(const debruijn::Graph &dbg,
-                                                    const deque<uint32_t> &dbg_node_ids) {
+                                                          const deque<uint32_t> &dbg_node_ids) {
     deque<uint_least32_t> hashed_pg_node_ids = dbg.nodes.at(dbg_node_ids.at(0))->hashed_node_ids;
     deque<uint_least32_t> rev_node;
 
@@ -115,7 +116,7 @@ deque<uint_least32_t> extend_hashed_pg_node_ids_backwards(const debruijn::Graph 
 }
 
 deque<uint_least32_t> extend_hashed_pg_node_ids_forwards(const debruijn::Graph &dbg,
-                                                   const deque<uint32_t> &dbg_node_ids) {
+                                                         const deque<uint32_t> &dbg_node_ids) {
     deque<uint_least32_t> hashed_pg_node_ids = dbg.nodes.at(dbg_node_ids.at(0))->hashed_node_ids;
     deque<uint_least32_t> rev_node;
 
@@ -299,7 +300,8 @@ void find_reads_along_tig(const debruijn::Graph &dbg,
     cout << "kept reads along tig: ";
     for (unordered_set<pangenome::ReadPtr>::iterator r = reads_along_tig.begin(); r != reads_along_tig.end();) {
         if ((*r)->nodes.size() > dbg.size and
-            (*r)->find_position(pg_node_ids, pg_node_orients, dbg.size + 1).first == std::numeric_limits<uint32_t>::max()) {
+            (*r)->find_position(pg_node_ids, pg_node_orients, dbg.size + 1).first ==
+            std::numeric_limits<uint32_t>::max()) {
             r = reads_along_tig.erase(r);
             all_reads_along_tig = false;
         } else {

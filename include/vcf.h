@@ -8,6 +8,7 @@
 #include <cstdint>
 #include "vcfrecord.h"
 
+
 class LocalNode;
 
 typedef std::shared_ptr<LocalNode> LocalNodePtr;
@@ -23,11 +24,11 @@ public:
 
     void add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i = ".", std::string g = "");
 
-    VCFRecord& add_record(VCFRecord &);
+    VCFRecord &add_record(VCFRecord &);
 
-    void add_formats(const std::vector<std::string>&);
+    void add_formats(const std::vector<std::string> &);
 
-    ptrdiff_t get_sample_index(const std::string&);
+    ptrdiff_t get_sample_index(const std::string &);
 
     void add_sample_gt(const std::string &name, const std::string &c, const uint32_t p, const std::string &r,
                        const std::string &a);
@@ -36,17 +37,17 @@ public:
 
     void clear();
 
-    void append_vcf(const VCF&);
+    void append_vcf(const VCF &);
 
     void sort_records();
 
-    bool pos_in_range(const uint32_t , const uint32_t, const std::string&) const;
+    bool pos_in_range(const uint32_t, const uint32_t, const std::string &) const;
 
-    void genotype(const uint32_t&, const float&, const uint8_t, bool snps_only=true);
+    void genotype(const uint32_t &, const float &, const uint8_t, bool snps_only = true);
 
     void clean();
 
-    void merge_multi_allelic(uint32_t max_allele_length=10);
+    void merge_multi_allelic(uint32_t max_allele_length = 10);
 
     void make_gt_compatible();
 

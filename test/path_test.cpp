@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <iostream>
 
+
 typedef prg::Path Path;
 using namespace std;
 using namespace prg;
@@ -139,8 +140,7 @@ TEST(PathTest, is_branching) {
     EXPECT_EQ(p1.is_branching(p), false);
 }
 
-TEST(PathTest, is_subpath)
-{
+TEST(PathTest, is_subpath) {
     vector<Interval> d, d1;
     d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
     d1 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 10)};
@@ -293,8 +293,7 @@ TEST(PathTest, read) {
     EXPECT_EQ(p, q);
 }
 
-TEST(PathTest, get_union)
-{
+TEST(PathTest, get_union) {
     vector<Interval> d1, d2, d;
     d1 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
     d2 = {Interval(10, 40), Interval(50, 55)};
@@ -326,5 +325,5 @@ TEST(PathTest, get_union)
     // wrong way round
     d2 = {Interval(0, 0)};
     p2.initialize(d2);
-    EXPECT_DEATH(get_union(p1, p2),"");
+    EXPECT_DEATH(get_union(p1, p2), "");
 }

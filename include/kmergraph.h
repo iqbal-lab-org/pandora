@@ -51,13 +51,13 @@ public:
 
     void set_p(const float);
 
-    void set_nb(const float&, const float&);
+    void set_nb(const float &, const float &);
 
     float nb_prob(uint32_t);
 
     float prob(uint32_t);
 
-    float prob(uint32_t , uint32_t);
+    float prob(uint32_t, uint32_t);
 
     float find_max_path(std::vector<KmerNodePtr> &);
 
@@ -85,7 +85,8 @@ public:
 
     friend std::ostream &operator<<(std::ostream &out, KmerGraph const &data);
 
-    friend void estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint32_t , const bool);
+    friend void
+    estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint32_t, const bool);
 
     friend struct condition;
 

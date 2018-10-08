@@ -5,6 +5,7 @@
 #include "prg/path.h"
 #include "interval.h"
 
+
 using namespace std;
 
 Minimizer::Minimizer(uint64_t s, uint32_t a, uint32_t b, bool c) : kmer(s), pos(Interval(a, b)), strand(c) {
