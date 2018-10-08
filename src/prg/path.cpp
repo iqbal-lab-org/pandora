@@ -147,7 +147,7 @@ bool Path::is_subpath(const Path& big_path) const
     }
 
     uint32_t offset = 0;
-    for (auto big_i : big_path.path)
+    for (const auto &big_i : big_path.path)
     {
         if (big_i.get_end() >= get_start())
         {

@@ -152,7 +152,7 @@ void load_PRG_kmergraphs(vector<LocalPRG *> &prgs, const uint32_t &w, const uint
 
     auto dir_num = 0;
     string dir;
-    for (auto prg : prgs) {
+    for (const auto &prg: prgs) {
 	    //cout << "Load kmergraph for " << prg->name << endl;
         if (prg->id % 4000 == 0){
             dir = prefix + "kmer_prgs/" + int_to_string(dir_num+1);
@@ -353,7 +353,7 @@ void add_clusters_to_pangraph(set<set<MinimizerHitPtr, pComp>, clusterComp> &clu
     if (clusters_of_hits.empty()) { return; }
 
     // to do this consider pairs of clusters in turn
-    for (auto cluster : clusters_of_hits) {
+    for (auto cluster: clusters_of_hits) {
         pangraph->add_node((*cluster.begin())->prg_id,
                            prgs[(*cluster.begin())->prg_id]->name,
                            (*cluster.begin())->read_id,

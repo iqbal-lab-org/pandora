@@ -73,12 +73,12 @@ bool edge_is_valid(OrientedNodePtr from, OrientedNodePtr to) {
         //cout << "reverse to" << endl;
     }
     /*cout << from.second << to.second << " compare (";
-    for (auto n : hashed_node_ids_from)
+    for (const auto &n : hashed_node_ids_from)
     {
 	cout << n << " ";
     } 
     cout << ") to (";
-    for (auto n : hashed_node_ids_to)
+    for (const auto &n : hashed_node_ids_to)
     {
         cout << n << " ";
     }
@@ -126,11 +126,11 @@ void Graph::remove_node(const uint32_t dbg_node_id) {
     auto it = nodes.find(dbg_node_id);
     if (it != nodes.end()) {
         // remove this node from lists of out nodes from other graph nodes
-        for (auto n : it->second->out_nodes) {
+        for (const auto &n : it->second->out_nodes) {
             nodes[n]->in_nodes.erase(dbg_node_id);
             nodes[n]->out_nodes.erase(dbg_node_id);
         }
-        for (auto n : it->second->in_nodes) {
+        for (const auto &n : it->second->in_nodes) {
             nodes[n]->out_nodes.erase(dbg_node_id);
             nodes[n]->in_nodes.erase(dbg_node_id);
         }
@@ -209,7 +209,7 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_nod
                      nit != it->second->out_nodes.end();) {
                     //cout << "out node " << *nit << endl;
                     found_read_intersect = false;
-                    for (auto r : it->second->read_ids) {
+                    for (const auto &r : it->second->read_ids) {
                         if (nodes[*nit]->read_ids.find(r) != nodes[*nit]->read_ids.end()) {
                             found_read_intersect = true;
                             //cout << " shares a read" << endl;
@@ -229,7 +229,7 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_nod
                      nit != it->second->in_nodes.end();) {
                     //cout << "out node " << *nit << endl;
                     found_read_intersect = false;
-                    for (auto r : it->second->read_ids) {
+                    for (const auto &r : it->second->read_ids) {
                         if (nodes[*nit]->read_ids.find(r) != nodes[*nit]->read_ids.end()) {
                             found_read_intersect = true;
                             //cout << " shares a read" << endl;
@@ -253,7 +253,7 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_nod
 // Get the dbg node ids corresponding to leaves
 unordered_set<uint32_t> Graph::get_leaves(uint_least32_t covg_thresh) {
     unordered_set<uint32_t> s;
-    for (auto c : nodes) {
+    for (const auto &c : nodes) {
         cout << "node " << *c.second << " has " << c.second->out_nodes.size() << " + " << c.second->in_nodes.size()
              << " outnodes" << endl;
         if (c.second->read_ids.size() > covg_thresh) {
@@ -270,7 +270,7 @@ set<deque<uint32_t>> Graph::get_unitigs() {
     set<deque<uint32_t>> all_tigs;
     set<uint32_t> seen;
 
-    for (auto node_entry : nodes) {
+    for (const auto &node_entry : nodes) {
         const auto &id = node_entry.first;
         assert(id <= next_id);
 
@@ -284,7 +284,7 @@ set<deque<uint32_t>> Graph::get_unitigs() {
 
         deque<uint32_t> tig = {id};
         extend_unitig(tig);
-        for (auto other_id: tig)
+        for (const auto &other_id: tig)
             seen.insert(other_id);
         all_tigs.insert(tig);
     }
@@ -306,7 +306,7 @@ void Graph::extend_unitig(deque<uint32_t> &tig) {
     while (can_extend) {
 
         /*cout << "tig in progress before b: ";
-        for (auto n : tig) {
+        for (const auto &n : tig) {
             cout << n << " ";
         }
         cout << endl;*/
@@ -336,7 +336,7 @@ void Graph::extend_unitig(deque<uint32_t> &tig) {
         }
 
         /*cout << "tig in progress b: ";
-        for (auto n : tig) {
+        for (const auto &n : tig) {
             cout << n << " ";
         }
         cout << endl;*/
@@ -369,7 +369,7 @@ void Graph::extend_unitig(deque<uint32_t> &tig) {
 
     while (can_extend) {
         /*cout << "tig in progress before f: ";
-        for (auto n : tig) {
+        for (const auto &n : tig) {
             cout << n << " ";
         }
         cout << endl;*/
@@ -399,7 +399,7 @@ void Graph::extend_unitig(deque<uint32_t> &tig) {
         }
 
         /*cout << "tig in progress f: ";
-        for (auto n : tig)
+        for (const auto &n : tig)
         {   
             cout << n << " ";
         }
@@ -410,7 +410,7 @@ void Graph::extend_unitig(deque<uint32_t> &tig) {
         tig.pop_back();
 
     cout << "got tig of length " << tig.size() << ": ";
-    for (auto n : tig) {
+    for (const auto &n : tig) {
         cout << n << " ";
     }
     cout << endl;

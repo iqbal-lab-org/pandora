@@ -197,7 +197,7 @@ void VCF::sort_records() {
 
 bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const string& chrom) const {
     // is there a record contained in the range from,to?
-    for (auto record : records) {
+    for (const auto &record : records) {
         if (chrom == record.chrom and from < record.pos and record.pos + record.ref.length() <= to) {
             return true;
         }
@@ -316,7 +316,7 @@ void VCF::merge_multi_allelic(uint32_t max_allele_length) {
             // merge alts
             uint8_t prev_alt_size = prev_vr.alt.size();
             bool short_enough = true;
-            for (auto a : record.alt) {
+            for (const auto &a : record.alt) {
                 if (a.length() > max_allele_length)
                     short_enough = false;
                 prev_vr.alt.push_back(a);
@@ -339,12 +339,12 @@ void VCF::merge_multi_allelic(uint32_t max_allele_length) {
                 auto keys = {"MEAN_FWD_COVG", "MEAN_REV_COVG",
                              "MED_FWD_COVG", "MED_REV_COVG",
                              "SUM_FWD_COVG", "SUM_REV_COVG"};
-                for (auto key : keys) {
+                for (const auto &key: keys) {
                     merge_sample_key(prev_vr.samples[i], record.samples[i], key);
                 }
                 keys = {"LIKELIHOOD"};
                 if (!prev_vr.regt_samples.empty() and !record.regt_samples.empty()){
-                    for (auto key : keys)
+                    for (const auto &key: keys)
                         merge_regt_sample_key(prev_vr.regt_samples[i], record.regt_samples[i], key);
                 }
 
@@ -517,7 +517,7 @@ bool VCF::operator!=(const VCF &y) const {
 }
 
 std::ostream &operator<<(std::ostream &out, VCF const &m) {
-    for (auto record : m.records){
+    for (const auto &record : m.records){
         out << record;
     }
     return out;

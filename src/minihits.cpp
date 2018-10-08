@@ -18,13 +18,13 @@ MinimizerHits::MinimizerHits(const uint32_t &num_hits) {
 }
 
 void MinimizerHits::clear() {
-    /*for (auto c: hits)
+    /*for (const auto &c: hits)
     {
         delete c;
     }*/
     hits.clear();
 
-    /*for (auto c: uhits)
+    /*for (const auto &c: uhits)
     {   
         delete c;
     }*/

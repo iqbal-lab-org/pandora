@@ -182,7 +182,7 @@ void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned lo
 //
 //double mean(std::vector<int> v) {
 //    double sum{0};
-//    for (auto x: v) {
+//    for (const auto &x: v) {
 //        sum += x;
 //    }
 //    return sum / v.size();
@@ -277,11 +277,11 @@ void local_assembly(const std::string &filepath, std::unordered_set<std::string>
     BOOST_LOG_TRIVIAL(debug) << "Running local assembly for " << filepath;
     BOOST_LOG_TRIVIAL(debug) << "Parameters for local assembly: ";
     BOOST_LOG_TRIVIAL(debug) << "Start kmers: ";
-    for (auto kmer: start_kmers) {
+    for (const auto &kmer: start_kmers) {
         BOOST_LOG_TRIVIAL(debug) << kmer;
     }
     BOOST_LOG_TRIVIAL(debug) << "End kmers: ";
-    for (auto kmer: end_kmers) {
+    for (const auto &kmer: end_kmers) {
         BOOST_LOG_TRIVIAL(debug) << kmer;
     }
     BOOST_LOG_TRIVIAL(debug) << "kmer size: " << std::to_string(kmer_size) << "\nmax path length: "
@@ -470,11 +470,11 @@ void local_assembly(const std::vector<std::string> &sequences, std::unordered_se
 
     BOOST_LOG_TRIVIAL(debug) << "Parameters for local assembly: ";
     BOOST_LOG_TRIVIAL(debug) << "Start kmers: ";
-    for (auto kmer: start_kmers) {
+    for (const auto &kmer: start_kmers) {
         BOOST_LOG_TRIVIAL(debug) << kmer;
     }
     BOOST_LOG_TRIVIAL(debug) << "End kmers: ";
-    for (auto kmer: end_kmers) {
+    for (const auto &kmer: end_kmers) {
         BOOST_LOG_TRIVIAL(debug) << kmer;
     }
     BOOST_LOG_TRIVIAL(debug) << "kmer size: " << std::to_string(kmer_size) << "\nmax path length: "

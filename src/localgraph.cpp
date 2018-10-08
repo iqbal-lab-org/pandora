@@ -14,7 +14,7 @@ LocalGraph::LocalGraph() {
 }
 
 LocalGraph::~LocalGraph() {
-    /*for (auto c: nodes) {
+    /*for (const auto &c: nodes) {
         delete c.second;
     }*/
     nodes.clear();
@@ -216,7 +216,7 @@ LocalNodePtr LocalGraph::get_previous_node(const LocalNodePtr n) const {
     if (n->id == 0) {
         return nullptr;
     } else {
-        for (auto c : nodes) {
+        for (const auto &c : nodes) {
             if (find(c.second->outNodes.begin(), c.second->outNodes.end(), n) != c.second->outNodes.end()) {
                 return c.second;
             } else if (c.first > n->id) {
@@ -251,7 +251,7 @@ vector<LocalNodePtr> LocalGraph::nodes_along_string(const string &query_string, 
     u = {{nodes.at(0)}};
 
     while (!u.empty()) {
-        for (auto p : u) {
+        for (const auto &p : u) {
             candidate_string = "";
             for (const auto s : p) {
                 candidate_string += s->seq;
@@ -272,7 +272,7 @@ vector<LocalNodePtr> LocalGraph::nodes_along_string(const string &query_string, 
                         p_copy.push_back(p_copy.back()->outNodes[j]);
                         while (!p_copy.back()->outNodes.empty() and extended) {
                             extended = false;
-                            for (auto n : p_copy.back()->outNodes) {
+                            for (const auto &n : p_copy.back()->outNodes) {
                                 if (n->pos.length == 0) {
                                     p_copy.push_back(n);
                                     extended = true;
@@ -300,9 +300,9 @@ vector<LocalNodePtr> LocalGraph::nodes_along_string(const string &query_string, 
         // find the most exact match, the one which covers all sequence with minimal extra to end of graph, or longest
         auto longest_length = 0;
         vector<LocalNodePtr> longest_path;
-        for (auto p : w){
+        for (const auto &p : w){
             candidate_string = "";
-            for (auto s : p) {
+            for (const auto &s : p) {
                 candidate_string += s->seq;
             }
             if (strcasecmp(query_string.c_str(), candidate_string.c_str()) == 0){
