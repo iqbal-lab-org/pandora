@@ -322,7 +322,7 @@ vector<LocalNodePtr> LocalGraph::top_path() const {
     assert(!nodes.empty()); //otherwise empty nodes -> segfault
 
     npath.push_back(nodes.at(0));
-    while (npath.back()->outNodes.size() > 0) {
+    while (not npath.back()->outNodes.empty()) {
         npath.push_back(npath.back()->outNodes[0]);
     }
 

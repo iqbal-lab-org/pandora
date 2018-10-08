@@ -97,7 +97,7 @@ void Node::get_read_overlap_coordinates(vector<vector<uint32_t>>& read_overlap_c
         read_overlap_coordinates.push_back(coordinate);
     }
 
-    if (read_overlap_coordinates.size() > 0) {
+    if (not read_overlap_coordinates.empty()) {
     	sort(read_overlap_coordinates.begin(), read_overlap_coordinates.end(),
 	    [](const vector<uint32_t>& a, const vector<uint32_t>& b) {
 	    for (uint32_t i=0; i<a.size(); ++i) {

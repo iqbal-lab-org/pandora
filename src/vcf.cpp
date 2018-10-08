@@ -386,7 +386,7 @@ void VCF::make_gt_compatible(){
                            //and other_record.samples[i]["GT"][0] > 0) {
                     if (record.samples[i]["GT"][0] == 0 and other_record.samples[i]["GT"][0] == 0)
                         continue;
-                    else if (record.regt_samples.size() > 0 and other_record.regt_samples.size() > 0
+                    else if (not record.regt_samples.empty() and not other_record.regt_samples.empty()
                         and record.regt_samples[i].find("LIKELIHOOD")!=record.regt_samples[i].end()
                         and other_record.regt_samples[i].find("LIKELIHOOD")!=other_record.regt_samples[i].end()){
                         if (record.regt_samples[i]["LIKELIHOOD"][record.samples[i]["GT"][0]] >

@@ -46,7 +46,7 @@ Read::find_position(const vector<uint_least32_t> &node_ids, const vector<bool> &
     cout << endl;*/
 
     assert(node_ids.size() == node_orients.size());
-    assert(node_ids.size() > 0);
+    assert(not node_ids.empty());
     uint32_t search_pos = 0;
     uint32_t found_pos = 0;
 

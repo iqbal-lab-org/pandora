@@ -279,7 +279,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
         out << "\t";
         for (auto f : m.format){
             string buffer = "";
-            if (m.samples[i].find(f)!=m.samples[i].end() and m.samples[i].at(f).size() > 0) {
+            if (m.samples[i].find(f) != m.samples[i].end() and not m.samples[i].at(f).empty()) {
                 for (const auto a : m.samples.at(i).at(f)) {
                     out << buffer << +a;
                     buffer = ",";
@@ -287,7 +287,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
 
             } else if (m.regt_samples.size() > i
                        and m.regt_samples[i].find(f)!=m.regt_samples[i].end()
-                       and m.regt_samples[i].at(f).size() > 0) {
+                       and not m.regt_samples[i].at(f).empty()) {
                 for (const auto a : m.regt_samples.at(i).at(f)) {
                     out << buffer << +a;
                     buffer = ",";

@@ -228,7 +228,7 @@ void remove_leaves(pangenome::Graph *pg, debruijn::Graph &dbg, uint_least32_t co
             cout << "looked up node ids" << endl;
 
             // remove the last node from corresponding reads
-            assert(dbg.nodes[i]->read_ids.size() > 0);
+            assert(not dbg.nodes[i]->read_ids.empty());
             for (auto r : dbg.nodes[i]->read_ids) {
                 cout << "remove from read " << r << ": ";
                 for (auto n : pg->reads[r]->nodes) {
