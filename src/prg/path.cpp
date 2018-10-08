@@ -62,8 +62,8 @@ Path Path::subpath(const uint32_t start, const uint32_t len) const {
     uint32_t covered_length = 0;
     uint32_t added_len = 0;
     for (const auto &interval: path) {
-        if ((covered_length <= start and covered_length + interval.length > start and p.path.size() == 0) or
-            (covered_length == start and interval.length == 0 and p.path.size() == 0)) {
+        if ((covered_length <= start and covered_length + interval.length > start and p.path.empty()) or
+            (covered_length == start and interval.length == 0 and p.path.empty())) {
             assert(added_len == 0);
             d = {Interval(interval.start + start - covered_length,
                           min(interval.get_end(), interval.start + start - covered_length + len - added_len))};
@@ -263,14 +263,14 @@ Path prg::get_union(const Path&x, const Path&y)
     if (x.get_end() < y.get_start() or x.is_branching(y))
     {
         return p;
-    } else if (x.path.size() == 0)
+    } else if (x.path.empty())
     {
         return y;
     }
 
     while (xit != x.path.end() and yit != y.path.end() and xit->get_end() < yit->start)
     {
-        if (p.path.size() == 0)
+        if (p.path.empty())
         {
             p.initialize(*xit);
         } else {
@@ -281,7 +281,7 @@ Path prg::get_union(const Path&x, const Path&y)
     if (xit != x.path.end() and yit != y.path.end() and xit->start <= yit->get_end())
     {
         // then we have overlap
-        if (p.path.size() == 0)
+        if (p.path.empty())
         {
             p.initialize(Interval(xit->start, max(yit->get_end(), xit->get_end())));
         } else {

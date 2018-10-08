@@ -328,7 +328,7 @@ void VCF::merge_multi_allelic(uint32_t max_allele_length) {
             }
 
             // merge count/likelihood data
-            if (record.samples.size() == 0){
+            if (record.samples.empty()){
                 records[current_pos].clear();
                 records[prev_pos].clear();
                 records.push_back(prev_vr);
@@ -442,7 +442,7 @@ string VCF::header() {
 // then only those matching the filter are saved. Similarly for GRAPHTYPE.
 void VCF::save(const string &filepath, bool simple, bool complexgraph, bool toomanyalts, bool snp, bool indel,
                bool phsnps, bool complexvar) {
-    /*if (samples.size() == 0)
+    /*if (samples.empty())
     {
 	    cout << now() << "Did not save VCF for sample" << endl;
 	    return;

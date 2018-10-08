@@ -266,7 +266,7 @@ vector<LocalNodePtr> LocalGraph::nodes_along_string(const string &query_string, 
                         query_string.substr(0, comp_length).c_str(),
                         comp_string.substr(0,comp_length).c_str()) == 0) {
                     if ((!end_to_end and candidate_string.size() + p.back()->outNodes[j]->seq.size() >= query_string.size())
-                            or p.back()->outNodes[j]->outNodes.size() == 0) {
+                            or p.back()->outNodes[j]->outNodes.empty()) {
                         // we have now found the whole of the query_string or reached end of graph
                         auto p_copy = p;
                         p_copy.push_back(p_copy.back()->outNodes[j]);
