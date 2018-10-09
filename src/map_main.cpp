@@ -263,7 +263,7 @@ int pandora_map(int argc, char *argv[]) {
     string vcf_ref;
     vector<KmerNodePtr> kmp;
     vector<LocalNodePtr> lmp;
-    vector<vector<uint32_t>> read_overlap_coordinates;
+    std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> pangraph_coordinate_pairs;
 
     if (output_vcf and !vcf_refs_file.empty()) {
         vcf_refs.reserve(prgs.size());
@@ -293,7 +293,7 @@ int pandora_map(int argc, char *argv[]) {
         }
 
         if (discover_denovo) {
-            save_read_strings_to_denovo_assemble(readfile, outdir + "/denovo", c->second, lmp, kmp);
+            add_pnode_coordinate_pairs(pangraph_coordinate_pairs, c->second, lmp, kmp);
         }
         ++c;
     }

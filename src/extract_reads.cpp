@@ -1,6 +1,7 @@
 #include <cassert>
 #include <vector>
 #include <set>
+#include <utility>
 #include "extract_reads.h"
 #include "interval.h"
 #include "minihit.h"
@@ -17,6 +18,7 @@
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
+using std::make_pair;
 typedef prg::Path Path;
 
 vector<Interval>
@@ -162,8 +164,14 @@ void get_read_overlap_coordinates(PanNodePtr pnode, std::set<std::vector<uint32_
 
     auto read_count = 0;
     for (const auto &read_ptr : pnode->reads) {
+        //cout << "read " << read_ptr->id << endl;
         read_count++;
+        //cout << "has " << read_ptr->hits.size() << " hit entries and for prg " << pnode->prg_id << " there are " << read_ptr->hits.at(pnode->prg_id).size() << " hits" << endl;
+        //cout << "lmp: ";
+        /*for (const auto& l : lmp)
+            cout << *l << endl;*/
         auto read_hits_along_path = hits_along_path(read_ptr->hits.at(pnode->prg_id), lmp);
+        //cout << "num hits along path: " << read_hits_along_path.size() << endl;
         if (read_hits_along_path.size() < 2) {
             continue;
         }
@@ -185,6 +193,53 @@ void get_read_overlap_coordinates(PanNodePtr pnode, std::set<std::vector<uint32_
                                                                                  << " after found start " << start));
         coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->strand};
         read_overlap_coordinates.insert(coordinate);
+    }
+}
+
+void add_pnode_coordinate_pairs(vector<pair<ReadCoordinate, GeneIntervalInfo>>& pangraph_coordinate_pairs,
+                                const PanNodePtr pnode,
+                                const vector<LocalNodePtr> &lmp,
+                                const vector<KmerNodePtr> &kmp,
+                                const unsigned int &buff,
+                                const uint32_t &threshold,
+                                const uint32_t &min_length)
+{
+    // level for boost logging
+    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
+
+    vector<uint32_t> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
+    for (const auto &c : covgs)
+        cout << c << " ";
+    cout << endl;
+    vector<Interval> intervals = identify_regions(covgs, threshold, min_length);
+    for (const auto &c : intervals)
+        cout << c << " ";
+    cout << endl;
+
+    if (intervals.empty()) {
+        return;
+    }
+
+    std::set<ReadCoordinate> read_overlap_coordinates;
+    std::vector<LocalNodePtr> sub_lmp;
+
+    for (auto interval : intervals) {
+
+        BOOST_LOG_TRIVIAL(debug) << "Looking at interval: " << interval;
+
+        sub_lmp = find_interval_in_localpath(interval, lmp, buff);
+        get_read_overlap_coordinates(pnode, read_overlap_coordinates, sub_lmp);
+
+        const auto sub_lmp_as_string{LocalPRG::string_along_path(sub_lmp)};
+        BOOST_LOG_TRIVIAL(debug) << "sub_lmp for interval is " << sub_lmp_as_string;
+
+        GeneIntervalInfo interval_info(pnode,interval,sub_lmp_as_string);
+        for (const auto &read_coordinate : read_overlap_coordinates){
+            for (const auto &r : read_coordinate)
+                cout << r << " ";
+            cout << endl;
+            pangraph_coordinate_pairs.emplace_back(make_pair(read_coordinate, interval_info));
+        }
     }
 }
 

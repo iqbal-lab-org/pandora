@@ -9,9 +9,11 @@
 #include "minihits.h"
 #include "pangenome/ns.cpp"
 #include "local_assembly.h"
+#include "gene_interval_info.h"
 
 
 typedef std::shared_ptr<pangenome::Node> PanNodePtr;
+typedef std::vector<uint32_t> ReadCoordinate;
 
 std::vector<Interval>
 identify_regions(const std::vector<uint32_t> &, const uint32_t &threshold = 0, const uint32_t &min_length = 0);
@@ -23,6 +25,14 @@ std::set<MinimizerHitPtr, pComp_path> hits_along_path(const std::set<MinimizerHi
                                                       const std::vector<LocalNodePtr> &);
 
 void get_read_overlap_coordinates(PanNodePtr, std::set<std::vector<uint32_t>> &, std::vector<LocalNodePtr> &);
+
+void add_pnode_coordinate_pairs(std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>>&,
+                                const PanNodePtr ,
+                                const vector<LocalNodePtr> &,
+                                const vector<KmerNodePtr> &,
+                                const unsigned int &buff = 0,
+                                const uint32_t &threshold = 2,
+                                const uint32_t &min_length = 5);
 
 void save_read_strings_to_denovo_assemble(const std::string &,
                                           const std::string &,
