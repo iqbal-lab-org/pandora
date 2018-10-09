@@ -1,6 +1,7 @@
 #include <cassert>
 #include <vector>
 #include <set>
+#include <utility>
 #include "extract_reads.h"
 #include "interval.h"
 #include "minihit.h"
@@ -17,6 +18,7 @@
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
+using std::make_pair;
 typedef prg::Path Path;
 
 vector<Interval>
@@ -155,18 +157,13 @@ set<MinimizerHitPtr, pComp_path> hits_along_path(const set<MinimizerHitPtr, pCom
     return subset;
 }
 
-void get_read_overlap_coordinates(PanNodePtr pnode, std::set<std::vector<uint32_t>> &read_overlap_coordinates,
-                                  vector<LocalNodePtr> &lmp) {
-    read_overlap_coordinates.clear();
-    std::vector<uint32_t> coordinate;
-
-    auto read_count = 0;
-    for (const auto &read_ptr : pnode->reads) {
-        read_count++;
-        auto read_hits_along_path = hits_along_path(read_ptr->hits.at(pnode->prg_id), lmp);
-        if (read_hits_along_path.size() < 2) {
+std::set<ReadCoordinate> get_read_overlap_coordinates(const PanNodePtr &pnode,
+                                                      const std::vector<LocalNodePtr> &local_node_path) {
+    std::set<ReadCoordinate> read_overlap_coordinates = {};
+    for (const auto &read_ptr: pnode->reads) {
+        auto read_hits_along_path = hits_along_path(read_ptr->hits.at(pnode->prg_id), local_node_path);
+        if (read_hits_along_path.size() < 2)
             continue;
-        }
 
         auto hit_ptr_iter = read_hits_along_path.begin();
         uint32_t start = (*hit_ptr_iter)->read_start_position;
@@ -175,19 +172,101 @@ void get_read_overlap_coordinates(PanNodePtr pnode, std::set<std::vector<uint32_
             start = min(start, hit_ptr->read_start_position);
             end = max(end, hit_ptr->read_start_position + hit_ptr->prg_path.length());
         }
+        assert(end > start);
 
-        assert(end > start or
-               assert_msg("Error finding the read overlap coordinates for node " << pnode->name << " and read "
-                                                                                 << read_ptr->id << " (the "
-                                                                                 << read_count << "th on this node)"
-                                                                                 << endl
-                                                                                 << "Found end " << end
-                                                                                 << " after found start " << start));
-        coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->strand};
+        ReadCoordinate coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->strand};
         read_overlap_coordinates.insert(coordinate);
+    }
+    return read_overlap_coordinates;
+}
+
+void add_pnode_coordinate_pairs(std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
+                                const PanNodePtr &pnode,
+                                const std::vector<LocalNodePtr> &local_node_path,
+                                const std::vector<KmerNodePtr> &kmer_node_path,
+                                const uint32_t &padding_size,
+                                const uint32_t &low_coverage_threshold,
+                                const uint32_t &interval_min_length) {
+    auto covgs = get_covgs_along_localnode_path(pnode, local_node_path, kmer_node_path);
+    auto intervals = identify_regions(covgs, low_coverage_threshold, interval_min_length);
+    if (intervals.empty())
+        return;
+
+    for (const auto &interval: intervals) {
+        BOOST_LOG_TRIVIAL(debug) << "Looking at interval: " << interval;
+
+        auto sub_local_node_path = find_interval_in_localpath(interval, local_node_path, padding_size);
+        auto read_overlap_coordinates = get_read_overlap_coordinates(pnode, sub_local_node_path);
+
+        GeneIntervalInfo interval_info{
+                pnode,
+                interval,
+                LocalPRG::string_along_path(sub_local_node_path)
+        };
+        for (const auto &read_coordinate: read_overlap_coordinates)
+            pangraph_coordinate_pairs.insert(std::make_pair(read_coordinate, interval_info));
     }
 }
 
+bool ReadCoordinate::operator<(const ReadCoordinate &y) const {
+    if (this->id < y.id)
+        return true;
+    if (this->id > y.id)
+        return false;
+
+    if (this->start < y.start)
+        return true;
+    if (this->start > y.start)
+        return false;
+
+    if (this->end < y.end)
+        return true;
+    if (this->end > y.end)
+        return false;
+
+    if (this->strand and not y.strand)
+        return true;
+    if (y.strand and not this->strand)
+        return false;
+
+    return false;
+}
+
+bool ReadCoordinate::operator==(const ReadCoordinate &y) const {
+    return (
+            (this->id == y.id)
+            and (this->start == y.start)
+            and (this->end == y.end)
+            and (this->strand == y.strand)
+    );
+}
+
+using ReadPileup = std::vector<std::string>;
+
+std::map<GeneIntervalInfo, ReadPileup>
+collect_read_pileups(const std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
+                     const std::string &readfilepath,
+                     const uint32_t &padding_size) {
+    FastaqHandler readfile(readfilepath);
+
+    std::map<GeneIntervalInfo, ReadPileup> pileup = {};
+
+    for (const auto &pangraph_coordinate: pangraph_coordinate_pairs) {
+        const auto &read_coordinate = pangraph_coordinate.first;
+        const auto &interval_info = pangraph_coordinate.second;
+
+        readfile.get_id(read_coordinate.id);
+        uint32_t start = padding_size > read_coordinate.start ? 0 : read_coordinate.start - padding_size;
+        uint32_t end = std::min(read_coordinate.end + padding_size,
+                                (uint32_t) readfile.read.length());
+
+        auto sequence = readfile.read.substr(start, end - start);
+        pileup[interval_info].emplace_back(sequence);
+    }
+    return pileup;
+}
+
+/*
 void save_read_strings_to_denovo_assemble(const string &readfilepath,
                                           const string &outdir,
                                           const PanNodePtr pnode,
@@ -214,7 +293,6 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
     FastaqHandler readfile(readfilepath);
     Fastaq fa;
     uint32_t start, end;
-    std::set<std::vector<uint32_t>> read_overlap_coordinates;
     std::vector<LocalNodePtr> sub_lmp;
 
     for (const auto &interval : intervals) {
@@ -222,7 +300,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
         BOOST_LOG_TRIVIAL(debug) << "Looking at interval: " << interval;
 
         sub_lmp = find_interval_in_localpath(interval, lmp, buff);
-        get_read_overlap_coordinates(pnode, read_overlap_coordinates, sub_lmp);
+        auto read_overlap_coordinates = get_read_overlap_coordinates(pnode, sub_lmp);
 
         uint16_t j = 0;
         for (const auto &coord : read_overlap_coordinates) {
@@ -356,7 +434,7 @@ void save_read_strings_to_denovo_assemble(const string &readfilepath,
 
     readfile.close();
 }
-
+*/
 
 Interval apply_buffer_to_interval(const Interval &interval, const int32_t &buff) {
     uint32_t start;

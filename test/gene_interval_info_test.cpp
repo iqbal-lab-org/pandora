@@ -8,7 +8,7 @@ TEST(GeneIntervalInfoTest,create){
     auto name = "dummy";
     auto pn_ptr = make_shared<pangenome::Node>(prg_id, node_id, name);
 
-    GeneIntervalInfo gi(pn_ptr, Interval(0,6), "hello");
+    GeneIntervalInfo gi{pn_ptr, Interval(0,6), "hello"};
 
     EXPECT_EQ(gi.pnode, pn_ptr);
     EXPECT_EQ(gi.interval, Interval(0,6));
@@ -34,12 +34,12 @@ TEST(GeneIntervalInfoTest,less_than){
     prg_id = 4;
     auto pn4_ptr = make_shared<pangenome::Node>(prg_id, node_id, name);
 
-    GeneIntervalInfo gi1(pn1_ptr, Interval(1,6), "hello");
-    GeneIntervalInfo gi2(pn1_ptr, Interval(1,9), "hello");
-    GeneIntervalInfo gi3(pn1_ptr, Interval(0,9), "hello");
-    GeneIntervalInfo gi4(pn2_ptr, Interval(1,6), "hello");
-    GeneIntervalInfo gi5(pn3_ptr, Interval(1,6), "hello");
-    GeneIntervalInfo gi6(pn4_ptr, Interval(1,6), "hello");
+    GeneIntervalInfo gi1{pn1_ptr, Interval(1,6), "hello"};
+    GeneIntervalInfo gi2{pn1_ptr, Interval(1,9), "hello"};
+    GeneIntervalInfo gi3{pn1_ptr, Interval(0,9), "hello"};
+    GeneIntervalInfo gi4{pn2_ptr, Interval(1,6), "hello"};
+    GeneIntervalInfo gi5{pn3_ptr, Interval(1,6), "hello"};
+    GeneIntervalInfo gi6{pn4_ptr, Interval(1,6), "hello"};
     
     EXPECT_TRUE(gi1<gi2);
     EXPECT_TRUE(gi3<gi1);
@@ -76,12 +76,12 @@ TEST(GeneIntervalInfoTest,equals){
     prg_id = 4;
     auto pn4_ptr = make_shared<pangenome::Node>(prg_id, node_id, name);
 
-    GeneIntervalInfo gi1(pn1_ptr, Interval(1,6), "hello");
-    GeneIntervalInfo gi2(pn1_ptr, Interval(1,9), "hello");
-    GeneIntervalInfo gi3(pn1_ptr, Interval(0,9), "hello");
-    GeneIntervalInfo gi4(pn2_ptr, Interval(1,6), "hello");
-    GeneIntervalInfo gi5(pn3_ptr, Interval(1,6), "hello");
-    GeneIntervalInfo gi6(pn4_ptr, Interval(1,6), "hello");
+    GeneIntervalInfo gi1{pn1_ptr, Interval(1,6), "hello"};
+    GeneIntervalInfo gi2{pn1_ptr, Interval(1,9), "hello"};
+    GeneIntervalInfo gi3{pn1_ptr, Interval(0,9), "hello"};
+    GeneIntervalInfo gi4{pn2_ptr, Interval(1,6), "hello"};
+    GeneIntervalInfo gi5{pn3_ptr, Interval(1,6), "hello"};
+    GeneIntervalInfo gi6{pn4_ptr, Interval(1,6), "hello"};
 
     cout << "defined gii" << endl;
 

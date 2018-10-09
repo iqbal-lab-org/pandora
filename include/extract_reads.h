@@ -9,9 +9,21 @@
 #include "minihits.h"
 #include "pangenome/ns.cpp"
 #include "local_assembly.h"
+#include "gene_interval_info.h"
 
 
-typedef std::shared_ptr<pangenome::Node> PanNodePtr;
+using PanNodePtr = std::shared_ptr<pangenome::Node>;
+
+struct ReadCoordinate {
+    uint32_t id;
+    uint32_t start;
+    uint32_t end;
+    bool strand;
+
+    bool operator<(const ReadCoordinate &y) const;
+
+    bool operator==(const ReadCoordinate &y) const;
+};
 
 std::vector<Interval>
 identify_regions(const std::vector<uint32_t> &, const uint32_t &threshold = 0, const uint32_t &min_length = 0);
@@ -22,7 +34,16 @@ find_interval_in_localpath(const Interval &, const vector<LocalNodePtr> &, const
 std::set<MinimizerHitPtr, pComp_path> hits_along_path(const std::set<MinimizerHitPtr, pComp_path> &,
                                                       const std::vector<LocalNodePtr> &);
 
-void get_read_overlap_coordinates(PanNodePtr, std::set<std::vector<uint32_t>> &, std::vector<LocalNodePtr> &);
+std::set<ReadCoordinate> get_read_overlap_coordinates(const PanNodePtr &,
+                                                      const std::vector<LocalNodePtr> &);
+
+void add_pnode_coordinate_pairs(set<pair<ReadCoordinate, GeneIntervalInfo>> &,
+                                const PanNodePtr &,
+                                const vector<LocalNodePtr> &,
+                                const vector<KmerNodePtr> &,
+                                const uint32_t &padding_size = 0,
+                                const uint32_t &low_coverage_threshold = 2,
+                                const uint32_t &interval_min_length = 5);
 
 void save_read_strings_to_denovo_assemble(const std::string &,
                                           const std::string &,

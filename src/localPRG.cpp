@@ -672,6 +672,9 @@ std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr pnode,
                                                      const std::vector<KmerNodePtr> &kmernode_path) {
     // defines estimated per base coverage for the bases of localnode_path based on the coverages from the
     // kmernode_path kmers
+    // NB the kmernode_path may be a vector of pointers to nodes in the localPRG copy of the kmergraph,
+    // and it is the copy of the kmergraph in the pangraph pnode which stores coverages, which is why we
+    // need both
 
     //define 0 coverage for each base in localnode path
     std::vector<std::vector<uint32_t>> coverages;
