@@ -1,4 +1,4 @@
-#include "local_assembly.h"
+#include "denovo_discovery/local_assembly.h"
 
 
 bool has_ending(std::string const &fullString, std::string const &ending) {

@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "gene_interval_info.h"
+#include "denovo_discovery/gene_interval_info.h"
 #include "pangenome/pannode.h"
 
 TEST(GeneIntervalInfoTest,create){

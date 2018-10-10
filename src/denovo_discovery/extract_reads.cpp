@@ -2,7 +2,7 @@
 #include <vector>
 #include <set>
 #include <utility>
-#include "extract_reads.h"
+#include "denovo_discovery/extract_reads.h"
 #include "interval.h"
 #include "minihit.h"
 #include "pangenome/ns.cpp"
@@ -180,13 +180,14 @@ std::set<ReadCoordinate> get_read_overlap_coordinates(const PanNodePtr &pnode,
     return read_overlap_coordinates;
 }
 
-void add_pnode_coordinate_pairs(std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
-                                const PanNodePtr &pnode,
-                                const std::vector<LocalNodePtr> &local_node_path,
-                                const std::vector<KmerNodePtr> &kmer_node_path,
-                                const uint32_t &padding_size,
-                                const uint32_t &low_coverage_threshold,
-                                const uint32_t &interval_min_length) {
+void denovo_discovery::add_pnode_coordinate_pairs(
+        std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
+        const PanNodePtr &pnode,
+        const std::vector<LocalNodePtr> &local_node_path,
+        const std::vector<KmerNodePtr> &kmer_node_path,
+        const uint32_t &padding_size,
+        const uint32_t &low_coverage_threshold,
+        const uint32_t &interval_min_length) {
     auto covgs = get_covgs_along_localnode_path(pnode, local_node_path, kmer_node_path);
     auto intervals = identify_regions(covgs, low_coverage_threshold, interval_min_length);
     if (intervals.empty())
@@ -241,10 +242,8 @@ bool ReadCoordinate::operator==(const ReadCoordinate &y) const {
     );
 }
 
-using ReadPileup = std::vector<std::string>;
-
 std::map<GeneIntervalInfo, ReadPileup>
-collect_read_pileups(const std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
+collect_read_pileups(const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
                      const std::string &readfilepath,
                      const uint32_t &padding_size) {
     FastaqHandler readfile(readfilepath);
@@ -265,6 +264,7 @@ collect_read_pileups(const std::vector<std::pair<ReadCoordinate, GeneIntervalInf
     }
     return pileup;
 }
+
 
 /*
 void save_read_strings_to_denovo_assemble(const string &readfilepath,

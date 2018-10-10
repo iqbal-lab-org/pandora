@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include <gatb/gatb_core.hpp>
 #include <iostream>
-#include "local_assembly.h"
+#include "denovo_discovery/local_assembly.h"
 #include <cstdio>
 #include <unordered_set>
 

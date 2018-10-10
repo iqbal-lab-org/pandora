@@ -24,12 +24,15 @@
 #include "index.h"
 #include "estimate_parameters.h"
 #include "noise_filtering.h"
-#include "extract_reads.h"
+
+#include "denovo_discovery/extract_reads.h"
+#include "denovo_discovery/denovo_discovery.h"
 
 
 using std::set;
 using std::vector;
 using namespace std;
+namespace fs = boost::filesystem;
 
 static void show_map_usage() {
     std::cerr << "Usage: pandora map -p PRG_FILE -r READ_FILE -o OUTDIR <option(s)>\n"
@@ -293,7 +296,7 @@ int pandora_map(int argc, char *argv[]) {
         }
 
         if (discover_denovo) {
-            add_pnode_coordinate_pairs(pangraph_coordinate_pairs, c->second, lmp, kmp);
+            denovo_discovery::add_pnode_coordinate_pairs(pangraph_coordinate_pairs, c->second, lmp, kmp);
         }
         ++c;
     }
@@ -306,6 +309,12 @@ int pandora_map(int argc, char *argv[]) {
             master_vcf.save(outdir + "/pandora_genotyped.vcf", true, true, true, true, false, false, false);
         else
             master_vcf.save(outdir + "/pandora_genotyped.vcf", true, true, true, true, true, true, true);
+    }
+
+    if (discover_denovo) {
+        denovo_discovery::find_candidates(pangraph_coordinate_pairs,
+                                          readfile,
+                                          fs::path(outdir));
     }
 
     if (output_mapped_read_fa)

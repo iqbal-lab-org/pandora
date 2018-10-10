@@ -2,8 +2,8 @@
 #include <memory>
 #include <set>
 #include "gtest/gtest.h"
-#include "test_macro.cpp"
-#include "extract_reads.h"
+#include "../test_macro.cpp"
+#include "denovo_discovery/extract_reads.h"
 #include "interval.h"
 #include "localPRG.h"
 #include "minihit.h"
@@ -982,7 +982,7 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
 
     auto buff = 0, covg_thresh = 1, min_length = 1;
     std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs;
-    add_pnode_coordinate_pairs(pairs, pn, lmp, kmp, buff, covg_thresh, min_length);
+    denovo_discovery::add_pnode_coordinate_pairs(pairs, pn, lmp, kmp, buff, covg_thresh, min_length);
 
     /*
     std::set<vector<uint32_t>> expected_overlaps = {{0, 3, 9,  1},

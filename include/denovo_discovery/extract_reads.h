@@ -8,7 +8,7 @@
 #include "localnode.h"
 #include "minihits.h"
 #include "pangenome/ns.cpp"
-#include "local_assembly.h"
+#include "denovo_discovery/local_assembly.h"
 #include "gene_interval_info.h"
 
 
@@ -37,13 +37,22 @@ std::set<MinimizerHitPtr, pComp_path> hits_along_path(const std::set<MinimizerHi
 std::set<ReadCoordinate> get_read_overlap_coordinates(const PanNodePtr &,
                                                       const std::vector<LocalNodePtr> &);
 
-void add_pnode_coordinate_pairs(set<pair<ReadCoordinate, GeneIntervalInfo>> &,
-                                const PanNodePtr &,
-                                const vector<LocalNodePtr> &,
-                                const vector<KmerNodePtr> &,
-                                const uint32_t &padding_size = 0,
-                                const uint32_t &low_coverage_threshold = 2,
-                                const uint32_t &interval_min_length = 5);
+namespace denovo_discovery {
+    void add_pnode_coordinate_pairs(std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &,
+                                    const PanNodePtr &,
+                                    const std::vector<LocalNodePtr> &,
+                                    const std::vector<KmerNodePtr> &,
+                                    const uint32_t &padding_size = 0,
+                                    const uint32_t &low_coverage_threshold = 2,
+                                    const uint32_t &interval_min_length = 5);
+}
+
+using ReadPileup = std::vector<std::string>;
+
+std::map<GeneIntervalInfo, ReadPileup>
+collect_read_pileups(const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &,
+                     const std::string &,
+                     const uint32_t &padding_size = 0);
 
 void save_read_strings_to_denovo_assemble(const std::string &,
                                           const std::string &,
