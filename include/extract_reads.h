@@ -21,7 +21,7 @@ identify_regions(const std::vector<uint32_t> &, const uint32_t &threshold = 0, c
 vector<LocalNodePtr>
 find_interval_in_localpath(const Interval &, const vector<LocalNodePtr> &, const unsigned int &buff);
 
-std::set<MinimizerHitPtr, pComp_path> hits_along_path(const std::set<MinimizerHitPtr, pComp_path> &,
+std::set<MinimizerHitPtr, pComp_path> hits_inside_path(const std::set<MinimizerHitPtr, pComp_path> &,
                                                       const std::vector<LocalNodePtr> &);
 
 void get_read_overlap_coordinates(PanNodePtr, std::set<std::vector<uint32_t>> &, std::vector<LocalNodePtr> &);

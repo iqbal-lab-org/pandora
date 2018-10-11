@@ -124,7 +124,7 @@ find_interval_in_localpath(const Interval &interval, const vector<LocalNodePtr> 
     return sub_localpath;
 }
 
-set<MinimizerHitPtr, pComp_path> hits_along_path(const set<MinimizerHitPtr, pComp_path> &read_hits,
+set<MinimizerHitPtr, pComp_path> hits_inside_path(const set<MinimizerHitPtr, pComp_path> &read_hits,
                                                  const vector<LocalNodePtr> &lmp) {
     set<MinimizerHitPtr, pComp_path> subset;
 
@@ -170,16 +170,16 @@ void get_read_overlap_coordinates(PanNodePtr pnode, std::set<std::vector<uint32_
         //cout << "lmp: ";
         /*for (const auto& l : lmp)
             cout << *l << endl;*/
-        auto read_hits_along_path = hits_along_path(read_ptr->hits.at(pnode->prg_id), lmp);
-        //cout << "num hits along path: " << read_hits_along_path.size() << endl;
-        if (read_hits_along_path.size() < 2) {
+        auto read_hits_inside_path = hits_inside_path(read_ptr->hits.at(pnode->prg_id), lmp);
+        //cout << "num hits along path: " << read_hits_inside_path.size() << endl;
+        if (read_hits_inside_path.size() < 2) {
             continue;
         }
 
-        auto hit_ptr_iter = read_hits_along_path.begin();
+        auto hit_ptr_iter = read_hits_inside_path.begin();
         uint32_t start = (*hit_ptr_iter)->read_start_position;
         uint32_t end = 0;
-        for (const auto &hit_ptr : read_hits_along_path) {
+        for (const auto &hit_ptr : read_hits_inside_path) {
             start = min(start, hit_ptr->read_start_position);
             end = max(end, hit_ptr->read_start_position + hit_ptr->prg_path.length());
         }

@@ -194,7 +194,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_short) {
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
 }*/
 
-TEST(ExtractReadsTest, hits_along_path) {
+TEST(ExtractReadsTest, hits_inside_path) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
     vector<LocalNodePtr> lmp = {//l3.prg.nodes[0],
             l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
@@ -266,14 +266,13 @@ TEST(ExtractReadsTest, hits_along_path) {
 
     // hit against different prg
     // hit different orientation
-    set<MinimizerHitPtr, pComp_path> found_subset = hits_along_path(hits, lmp);
+    set<MinimizerHitPtr, pComp_path> found_subset = hits_inside_path(hits, lmp);
     EXPECT_EQ(expected_subset.size(), found_subset.size());
     auto jt = found_subset.begin();
     for (auto it = expected_subset.begin(); it != expected_subset.end() and jt != found_subset.end(); ++it) {
         EXPECT_EQ(**jt, **it);
         ++jt;
     }
-
 }
 
 TEST(ExtractReadsTest, get_read_overlap_coordinates) {
