@@ -777,6 +777,7 @@ TEST(LocalPRGTest, localnode_path_from_kmernode_path) {
 TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
     LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
+    LocalPRG l5(5, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
 
     Index *idx;
     idx = new Index();
@@ -806,6 +807,23 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
     kmp_exp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[1], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[7],
                l4.kmer_prg.nodes[9], l4.kmer_prg.nodes[11], l4.kmer_prg.nodes[13]};
     sort(kmp_exp.begin(), kmp_exp.end());
+    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, kmp_exp, kmp);
+
+    // case where we don't have start and end point in localpath, so need to consider whether kmer overlaps
+    idx->clear();
+    l5.minimizer_sketch(idx, 2, 3);
+    l5.kmer_prg.sort_topologically();
+    lmp = {l5.prg.nodes[1], l5.prg.nodes[2], l5.prg.nodes[4], l5.prg.nodes[6], l5.prg.nodes[7]};
+
+    kmp = l5.kmernode_path_from_localnode_path(lmp);
+    sort(kmp.begin(), kmp.end());
+
+    cout << l5.kmer_prg << endl;
+
+    kmp_exp = {l5.kmer_prg.nodes[1], l5.kmer_prg.nodes[2], l5.kmer_prg.nodes[6], l5.kmer_prg.nodes[8],
+               l5.kmer_prg.nodes[10], l5.kmer_prg.nodes[12], l5.kmer_prg.nodes[13]};
+    sort(kmp_exp.begin(), kmp_exp.end());
+
     EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, kmp_exp, kmp);
 
     delete idx;

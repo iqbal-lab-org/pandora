@@ -519,6 +519,12 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
     kmer_prg.check();
 }
 
+bool intervals_overlap (const Interval& first, const Interval& second){
+    return ((first == second)
+            or (second.length == 0 and (first.start == second.start or first.get_end() == second. get_end()))
+            or (first.start < second.get_end() and first.get_end() > second.start));
+}
+
 std::vector<KmerNodePtr>
 LocalPRG::kmernode_path_from_localnode_path(const std::vector<LocalNodePtr> &localnode_path) const {
     std::vector<KmerNodePtr> kmernode_path;
@@ -540,7 +546,8 @@ LocalPRG::kmernode_path_from_localnode_path(const std::vector<LocalNodePtr> &loc
                 break;
             else if (interval.get_end() < n->path.get_start())
                 continue;
-            else if (not local_path.is_branching(n->path)) {
+            else if ((intervals_overlap(interval, n->path.path[0]) or intervals_overlap(interval, n->path.path.back()))
+                     and not local_path.is_branching(n->path)) {
                 //and not n.second->path.is_branching(local_path))
                 kmernode_path.push_back(n);
                 break;
