@@ -2,8 +2,8 @@
 #include <memory>
 #include <set>
 #include "gtest/gtest.h"
-#include "test_macro.cpp"
-#include "extract_reads.h"
+#include "../test_macro.cpp"
+#include "denovo_discovery/extract_reads.h"
 #include "interval.h"
 #include "localPRG.h"
 #include "minihit.h"
@@ -527,16 +527,14 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
             l3.prg.nodes[6], l3.prg.nodes[7]//, l3.prg.nodes[9]
     };
     // A G C T CGG  TAT
-
-    std::set<vector<uint32_t>> overlaps;
-    std::set<vector<uint32_t>> expected_overlaps = {{0, 3, 9,  1},
+    std::set<ReadCoordinate> expected_overlaps = {{0, 3, 9,  1},
                                                     {1, 7, 13, 1},
                                                     {2, 5, 13, 1},
                                                     {3, 6, 10, 1}};
 
-    get_read_overlap_coordinates(pn, overlaps, lmp);
+    auto overlaps = get_read_overlap_coordinates(pn, lmp);
 
-    EXPECT_ITERABLE_EQ(std::set<std::vector<uint32_t>>, expected_overlaps, overlaps);
+    EXPECT_ITERABLE_EQ(std::set<ReadCoordinate>, expected_overlaps, overlaps);
 }
 
 
@@ -834,15 +832,14 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     };
     // A G C T CGG  TAT
 
-    std::set<vector<uint32_t>> overlaps;
-    std::set<vector<uint32_t>> expected_overlaps = {{0, 3, 9,  1},
+    std::set<ReadCoordinate> expected_overlaps = {{0, 3, 9,  1},
                                                     {1, 7, 13, 1},
                                                     {2, 5, 13, 1},
                                                     {3, 6, 10, 1}};
 
-    get_read_overlap_coordinates(pn, overlaps, lmp);
+    auto overlaps = get_read_overlap_coordinates(pn, lmp);
 
-    EXPECT_ITERABLE_EQ(std::set<std::vector<uint32_t>>, expected_overlaps, overlaps);
+    EXPECT_ITERABLE_EQ(std::set<ReadCoordinate>, expected_overlaps, overlaps);
 }
 
 
@@ -983,16 +980,17 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
     hits.clear();
 
     auto buff = 0, covg_thresh = 1, min_length = 1;
-    vector<pair<ReadCoordinate, GeneIntervalInfo>> pairs;
-    add_pnode_coordinate_pairs(pairs, pn, lmp, kmp, buff, covg_thresh, min_length);
 
-    /*std::set<vector<uint32_t>> overlaps;
+    std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs;
+    denovo_discovery::add_pnode_coordinate_pairs(pairs, pn, lmp, kmp, buff, covg_thresh, min_length);
+
+    /*
     std::set<vector<uint32_t>> expected_overlaps = {{0, 3, 9,  1},
                                                     {1, 7, 13, 1},
                                                     {2, 5, 13, 1},
                                                     {3, 6, 10, 1}};
 
-    get_read_overlap_coordinates(pn, overlaps, lmp);
+    auto overlaps = get_read_overlap_coordinates(pn, lmp);
 
     EXPECT_ITERABLE_EQ(std::set<std::vector<uint32_t>>, expected_overlaps, overlaps);*/
 }

@@ -6,14 +6,13 @@
 #include "pangenome/pannode.h"
 #include "interval.h"
 
+
 typedef std::shared_ptr<pangenome::Node> PanNodePtr;
 
 struct GeneIntervalInfo {
     PanNodePtr pnode;
     Interval interval;
     std::string seq;
-
-    GeneIntervalInfo(const PanNodePtr, const Interval&, const std::string&);
 
     bool operator<(const GeneIntervalInfo &y) const;
 

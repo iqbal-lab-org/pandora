@@ -20,7 +20,9 @@
 
 using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
 using Paths = std::vector<std::string>;
+
 namespace logging = boost::log;
+namespace fs = boost::filesystem;
 
 const long g_max_length{30};
 const int g_local_assembly_kmer_size{11};
@@ -47,32 +49,18 @@ void get_paths_between_util(const std::string &node, const std::string &end_kmer
                             unsigned int kmers_below_threshold = 0);
 
 
-void write_paths_to_fasta(const std::string &filepath,
-                          Paths &paths,
+void write_paths_to_fasta(const boost::filesystem::path &filepath,
+                          const Paths &paths,
                           unsigned long line_width = 80);
 
-
-void
-local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer, const std::string &out_path,
-               const unsigned int kmer_size, const unsigned long max_path_length, const double &expected_coverage = 1,
-               const bool clean_graph = false, const unsigned int min_coverage = 2);
-
-void local_assembly(const std::string &filepath, std::unordered_set<std::string> &start_kmers,
-                    std::unordered_set<std::string> &end_kmers, const std::string &out_path,
-                    const unsigned int kmer_size, const unsigned long max_path_length,
-                    const double &expected_coverage = 1, const bool clean_graph = false,
-                    const unsigned int min_coverage = 2);
-
-void local_assembly(const std::vector<std::string> &sequences, std::string &start_kmer, std::string &end_kmer,
-                    const std::string &out_path,
-                    const unsigned int kmer_size, const unsigned long max_path_length,
+void local_assembly(const std::vector<std::string> &sequences,
+                    std::unordered_set<std::string> &start_kmers,
+                    std::unordered_set<std::string> &end_kmers,
+                    const fs::path &out_path,
+                    const unsigned int kmer_size,
+                    const unsigned long max_path_length,
                     const double &expected_coverage = 1,
-                    const bool clean_graph = false, const unsigned int min_coverage = 2);
-
-void local_assembly(const std::vector<std::string> &sequences, std::unordered_set<std::string> &start_kmers,
-                    std::unordered_set<std::string> &end_kmers, const std::string &out_path,
-                    const unsigned int kmer_size, const unsigned long max_path_length,
-                    const double &expected_coverage = 1, const bool clean_graph = false,
+                    const bool clean_graph = false,
                     const unsigned int min_coverage = 2);
 
 void do_graph_clean(Graph &graph, const int num_cores = 1);
