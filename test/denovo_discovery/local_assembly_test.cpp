@@ -705,29 +705,21 @@ TEST(GenerateEndKmers, GenerateNoKmers_ReturnEmptySet) {
     EXPECT_EQ(result, expected);
 }
 
-
-TEST(LocalAssemblyTest, passFakeFastqPath_dontRaiseError) {
-    const std::string filepath{"FAKE.fakeq"};
-    std::string start_kmer{"ATGATGATG"};
-    std::string end_kmer{"ATGATGATG"};
-    const std::string out_path{"../../test/test_cases/fake.fa"};
-    const int k{9};
-    const int max_len{30};
-    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len);
-}
-
-
 TEST(LocalAssemblyTest, twoIdenticalReads_onePath) {
-    const std::string filepath{"../../test/test_cases/local_assembly1.fa"};
-    std::string start_kmer{"ATGCGCTGA"};
-    std::string end_kmer{"AGTCGGACT"};
+    std::unordered_set<std::string> start_kmers = {"ATGCGCTGA"};
+    std::unordered_set<std::string> end_kmers = {"AGTCGGACT"};
     const std::string out_path{"../../test/test_cases/local_assembly1_paths.fa"};
     const int k{9};
     const int max_len{30};
     const bool clean{false};
-    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, 1, clean);
+    std::vector<std::string> sequences = {
+            "ATGCGCTGAGAGTCGGACT",
+            "ATGCGCTGAGAGTCGGACT"
+    };
 
-    const std::unordered_set<std::string> expected{"ATGCGCTGAGAGTCGGACT"};
+    local_assembly(sequences, start_kmers, end_kmers, out_path, k, max_len, clean);
+
+    const std::unordered_set<std::string> expected = {"ATGCGCTGAGAGTCGGACT"};
     std::unordered_set<std::string> result;
 
     // read paths file  back in and store all paths in set
@@ -748,15 +740,28 @@ TEST(LocalAssemblyTest, twoIdenticalReads_onePath) {
 }
 
 TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgOne_twoPaths) {
-    const std::string filepath{"../../test/test_cases/local_assembly2.fa"};
-    std::string start_kmer{"ATGCGCTGA"};
-    std::string end_kmer{"AGTCGGACT"};
+    std::unordered_set<std::string> start_kmers{"ATGCGCTGA"};
+    std::unordered_set<std::string> end_kmers{"AGTCGGACT"};
     const std::string out_path{"../../test/test_cases/local_assembly2_paths.fa"};
     const int k{9};
     const int max_len{30};
     const int min_coverage{1};
     const bool clean{false};
-    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, 1, clean, min_coverage);
+    std::vector<std::string> sequences = {
+            "ATGCGCTGAGAGTCGGACT",
+            "ATGCGCTGAGAGTCGGACT",
+            "ATGCGCTGATAGTCGGACT"
+    };
+
+    local_assembly(sequences,
+                   start_kmers,
+                   end_kmers,
+                   out_path,
+                   k,
+                   max_len,
+                   1,
+                   clean,
+                   min_coverage);
 
     const std::unordered_set<std::string> expected{"ATGCGCTGATAGTCGGACT", "ATGCGCTGAGAGTCGGACT"};
     std::unordered_set<std::string> result;
@@ -780,45 +785,20 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgOne_twoPaths) {
 
 
 TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
-    const std::string filepath{"../../test/test_cases/local_assembly2.fa"};
-    std::string start_kmer{"ATGCGCTGA"};
-    std::string end_kmer{"AGTCGGACT"};
+    std::unordered_set<std::string> start_kmers{"ATGCGCTGA"};
+    std::unordered_set<std::string> end_kmers{"AGTCGGACT"};
     const std::string out_path{"../../test/test_cases/local_assembly2_paths.fa"};
     const int k{9};
     const int max_len{30};
     const int min_coverage{2};
     const bool clean{false};
-    local_assembly(filepath, start_kmer, end_kmer, out_path, k, max_len, 1, clean, min_coverage);
+    std::vector<std::string> sequences = {
+            "ATGCGCTGAGAGTCGGACT",
+            "ATGCGCTGAGAGTCGGACT",
+            "ATGCGCTGATAGTCGGACT"
+    };
 
-    const std::unordered_set<std::string> expected{"ATGCGCTGAGAGTCGGACT"};
-    std::unordered_set<std::string> result;
-
-    // read paths file  back in and store all paths in set
-    std::ifstream fin{out_path};
-    std::string line;
-
-    while (std::getline(fin, line)) {
-        if (line[0] == '>') {
-            line.clear();
-        } else {
-            result.insert(line);
-            line.clear();
-        }
-    }
-
-    EXPECT_EQ(result, expected);
-    remove(out_path.c_str());
-}
-
-TEST(LocalAssemblyTestUsingSequenceVector, twoIdenticalReads_onePath) {
-    const std::vector<std::string> sequences{"ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT"};
-    std::string start_kmer{"ATGCGCTGA"};
-    std::string end_kmer{"AGTCGGACT"};
-    const std::string out_path{"../../test/test_cases/local_assembly1_paths.fa"};
-    const int k{9};
-    const int max_len{30};
-    const bool clean{false};
-    local_assembly(sequences, start_kmer, end_kmer, out_path, k, max_len, 1, clean);
+    local_assembly(sequences, start_kmers, end_kmers, out_path, k, max_len, 1, clean, min_coverage);
 
     const std::unordered_set<std::string> expected{"ATGCGCTGAGAGTCGGACT"};
     std::unordered_set<std::string> result;

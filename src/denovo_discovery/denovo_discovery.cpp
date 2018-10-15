@@ -1,5 +1,7 @@
 #include <boost/filesystem/operations.hpp>
+
 #include "denovo_discovery/denovo_discovery.h"
+#include "denovo_discovery/local_assembly.h"
 
 
 fs::path get_discovered_paths_fname(const GeneIntervalInfo &info,
@@ -43,13 +45,11 @@ void denovo_discovery::find_candidates(
         auto fname = get_discovered_paths_fname(info, local_assembly_kmer_size);
         auto discovered_paths_fpath = output_directory / fname;
 
-        /*
         local_assembly(sequences,
                        start_kmers,
                        end_kmers,
                        discovered_paths_fpath,
                        local_assembly_kmer_size,
                        max_path_length);
-        */
     }
 }
