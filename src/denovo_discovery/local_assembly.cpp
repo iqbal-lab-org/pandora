@@ -1,4 +1,5 @@
-#include "local_assembly.h"
+#include <boost/filesystem/path.hpp>
+#include "denovo_discovery/local_assembly.h"
 
 
 bool has_ending(std::string const &fullString, std::string const &ending) {
@@ -148,11 +149,13 @@ void get_paths_between_util(const std::string &start_kmer, const std::string &en
 }
 
 
-void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned long line_width) {
+void write_paths_to_fasta(const boost::filesystem::path &filepath,
+                          const Paths &paths,
+                          unsigned long line_width) {
     const auto header = ">path";
-    std::ofstream out_file(filepath);
+    std::ofstream out_file(filepath.string());
 
-    for (auto &path: paths) {
+    for (const auto &path: paths) {
         out_file << header << "\n";
 
         for (unsigned long i = 0; i < path.length(); i += line_width) {
@@ -164,307 +167,14 @@ void write_paths_to_fasta(const std::string &filepath, Paths &paths, unsigned lo
     BOOST_LOG_TRIVIAL(info) << "Local assembly paths written to " << filepath;
 }
 
-//double median(std::vector<int> v) {
-//    if (v.empty()) {
-//        return 0;
-//    }
-//    std::sort(v.begin(), v.end());
-//    if (v.size() % 2 == 1) {
-//        int n = (v.size() + 1) / 2;
-//        return v[n - 1];
-//    } else {
-//        int n1 = (v.size() + 2) / 2;
-//        int n2 = (v.size() - 2) / 2;
-//        return (v[n1 - 1] + v[n2 - 1]) / 2.0;
-//    }
-//}
-//
-//
-//double mean(std::vector<int> v) {
-//    double sum{0};
-//    for (const auto &x: v) {
-//        sum += x;
-//    }
-//    return sum / v.size();
-//}
-
-void
-local_assembly(const std::string &filepath, std::string &start_kmer, std::string &end_kmer, const std::string &out_path,
-               const unsigned int kmer_size, const unsigned long max_path_length, const double &expected_coverage,
-               const bool clean_graph, const unsigned int min_coverage) {
-
-    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
-
-    BOOST_LOG_TRIVIAL(debug) << "Running local assembly for " << filepath;
-    BOOST_LOG_TRIVIAL(debug) << "Parameters for local assembly: \n" << "Start kmer: " << start_kmer << "\nEnd kmer: "
-                             << end_kmer << "\nkmer size: " << std::to_string(kmer_size) << "\nmax path length: "
-                             << std::to_string(max_path_length)
-                             << "\nClean graph: " << std::to_string(clean_graph) << "\nMin. coverage: "
-                             << std::to_string(min_coverage) << "\n";
-
-    Graph graph;  // have to predefine as actually initialisation is inside try block
-
-    // check if filepath exists
-    const bool exists{file_exists(filepath)};
-    if (not exists) {
-        BOOST_LOG_TRIVIAL(warning) << filepath << " does not exist. Skipping local assembly.";
-        return;
-    }
-
-    // make sure the max_path_length is actually longer than the kmer size
-    if (kmer_size > max_path_length) {
-        BOOST_LOG_TRIVIAL(warning) << "Kmer size " << std::to_string(kmer_size)
-                                   << " is greater than the maximum path length " << std::to_string(max_path_length)
-                                   << ". Skipping local assembly.";
-        return;
-    }
-
-    try {
-        graph = Graph::create(Bank::open(filepath),
-                              "-kmer-size %d -abundance-min %d -verbose 0", kmer_size, min_coverage
-        );
-    }
-    catch (gatb::core::system::Exception &error) {
-        BOOST_LOG_TRIVIAL(warning) << "Couldn't create GATB graph for " << filepath << "\n\tEXCEPTION: "
-                                   << error.getMessage();
-        // remove h5 file that GATB has written to file for this graph
-        remove_graph_file(filepath);
-        return;
-    }
-
-
-    if (clean_graph) {
-        BOOST_LOG_TRIVIAL(debug) << "Cleaning graph for " << filepath;
-        do_graph_clean(graph);
-    }
-
-    Node start_node;
-    bool found;
-    std::tie(start_node, found) = get_node(start_kmer, graph);
-    if (not found) {
-        BOOST_LOG_TRIVIAL(debug) << "Start node " << start_kmer
-                                 << " not found in 'forward' orientation. Trying 'reverse'...";
-        auto tmp_copy = start_kmer;
-        start_kmer = reverse_complement(end_kmer);
-        end_kmer = reverse_complement(tmp_copy);
-        std::tie(start_node, found) = get_node(start_kmer, graph);
-        if (not found) {
-            BOOST_LOG_TRIVIAL(warning) << "Start kmer not found in either orientation. Skipping local assembly for "
-                                       << filepath;
-            remove_graph_file(filepath);
-            return;
-        }
-    }
-
-    auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_path_length, expected_coverage);
-
-    if (not result.empty()) {
-        write_paths_to_fasta(out_path, result);
-    }
-
-    // remove h5 file that GATB has written to file for this graph
-    remove_graph_file(filepath);
-}
-
-
-void local_assembly(const std::string &filepath, std::unordered_set<std::string> &start_kmers,
-                    std::unordered_set<std::string> &end_kmers, const std::string &out_path,
-                    const unsigned int kmer_size, const unsigned long max_path_length, const double &expected_coverage,
-                    const bool clean_graph, const unsigned int min_coverage) {
-    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
-
-    BOOST_LOG_TRIVIAL(debug) << "Running local assembly for " << filepath;
-    BOOST_LOG_TRIVIAL(debug) << "Parameters for local assembly: ";
-    BOOST_LOG_TRIVIAL(debug) << "Start kmers: ";
-    for (const auto &kmer: start_kmers) {
-        BOOST_LOG_TRIVIAL(debug) << kmer;
-    }
-    BOOST_LOG_TRIVIAL(debug) << "End kmers: ";
-    for (const auto &kmer: end_kmers) {
-        BOOST_LOG_TRIVIAL(debug) << kmer;
-    }
-    BOOST_LOG_TRIVIAL(debug) << "kmer size: " << std::to_string(kmer_size) << "\nmax path length: "
-                             << std::to_string(max_path_length)
-                             << "\nClean graph: " << std::to_string(clean_graph) << "\nMin. coverage: "
-                             << std::to_string(min_coverage) << "\n";
-
-    Graph graph;  // have to predefine as actually initialisation is inside try block
-
-    // check if filepath exists
-    const bool exists{file_exists(filepath)};
-    if (not exists) {
-        BOOST_LOG_TRIVIAL(warning) << filepath << " does not exist. Skipping local assembly.";
-        return;
-    }
-
-    // make sure the max_path_length is actually longer than the kmer size
-    if (kmer_size > max_path_length) {
-        BOOST_LOG_TRIVIAL(warning) << "Kmer size " << std::to_string(kmer_size)
-                                   << " is greater than the maximum path length " << std::to_string(max_path_length)
-                                   << ". Skipping local assembly.";
-        return;
-    }
-
-    try {
-        graph = Graph::create(Bank::open(filepath),
-                              "-kmer-size %d -abundance-min %d -verbose 0", kmer_size, min_coverage
-        );
-    }
-    catch (gatb::core::system::Exception &error) {
-        BOOST_LOG_TRIVIAL(warning) << "Couldn't create GATB graph for " << filepath << "\n\tEXCEPTION: "
-                                   << error.getMessage();
-        // remove h5 file that GATB has written to file for this graph
-        remove_graph_file(filepath);
-        return;
-    }
-
-
-    if (clean_graph) {
-        BOOST_LOG_TRIVIAL(debug) << "Cleaning graph for " << filepath;
-        do_graph_clean(graph);
-    }
-
-    Node start_node;
-    Node end_node;
-    bool start_found{false};
-    bool end_found{false};
-    for (const auto &s_kmer: start_kmers) {
-        std::tie(start_node, start_found) = get_node(s_kmer, graph);
-
-        for (const auto &e_kmer: end_kmers) {
-            // make sure end kmer doesnt exist in the set of start kmers
-            if (start_kmers.find(e_kmer) != start_kmers.end()) {
-                continue;
-            }
-
-            if (start_found) {
-                std::tie(end_node, end_found) = get_node(e_kmer, graph);
-                if (end_found) {
-                    BOOST_LOG_TRIVIAL(info) << "Using start k-mer " << graph.toString(start_node) << " and end k-mer "
-                                            << graph.toString(end_node);
-                    goto dfs;
-                } else {  // didnt find end kmer
-                    continue;
-                }
-            } else {  // didnt find start kmer
-                const auto revcomp_start{reverse_complement(e_kmer)};
-                const auto revcomp_end{reverse_complement(s_kmer)};
-                std::tie(start_node, start_found) = get_node(revcomp_start, graph);
-                std::tie(end_node, end_found) = get_node(revcomp_end, graph);
-                if (start_found and end_found) {
-                    BOOST_LOG_TRIVIAL(info) << "Found start and end k-mers on reverse inspection.";
-                    BOOST_LOG_TRIVIAL(info) << "Using start k-mer " << graph.toString(start_node) << " and end k-mer "
-                                            << graph.toString(end_node);
-                    goto dfs;
-
-                } else {
-                    break;  // move to next start kmer
-                }
-            }
-
-        }
-    }
-    BOOST_LOG_TRIVIAL(warning) << "Could not find any combination of start and end k-mers. Skipping local assembly.";
-    remove_graph_file(filepath);
-    return;
-
-    dfs:
-    const auto start_kmer{graph.toString(start_node)};
-    const auto end_kmer{graph.toString(end_node)};
-
-    auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_path_length, expected_coverage);
-
-    if (not result.empty()) {
-        write_paths_to_fasta(out_path, result);
-    }
-
-    // remove h5 file that GATB has written to file for this graph
-    remove_graph_file(filepath);
-}
-
-
-void local_assembly(const std::vector<std::string> &sequences, std::string &start_kmer, std::string &end_kmer,
-                    const std::string &out_path,
-                    const unsigned int kmer_size, const unsigned long max_path_length,
+void local_assembly(const std::vector<std::string> &sequences,
+                    std::unordered_set<std::string> &start_kmers,
+                    std::unordered_set<std::string> &end_kmers,
+                    const fs::path &out_path,
+                    const unsigned int kmer_size,
+                    const unsigned long max_path_length,
                     const double &expected_coverage,
-                    const bool clean_graph, const unsigned int min_coverage) {
-    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
-
-    BOOST_LOG_TRIVIAL(debug) << "Parameters for local assembly: \n" << "Start kmer: " << start_kmer << "\nEnd kmer: "
-                             << end_kmer << "\nkmer size: " << std::to_string(kmer_size) << "\nmax path length: "
-                             << std::to_string(max_path_length)
-                             << "\nClean graph: " << std::to_string(clean_graph) << "\nMin. coverage: "
-                             << std::to_string(min_coverage) << "\n";
-
-    if (sequences.empty()) {
-        BOOST_LOG_TRIVIAL(warning) << "Sequences vector to assemble is empty. Skipping local assembly.";
-        return;
-    }
-
-    Graph graph;  // have to predefine as actually initialisation is inside try block
-
-    // make sure the max_path_length is actually longer than the kmer size
-    if (kmer_size > max_path_length) {
-        BOOST_LOG_TRIVIAL(warning) << "Kmer size " << std::to_string(kmer_size)
-                                   << " is greater than the maximum path length " << std::to_string(max_path_length)
-                                   << ". Skipping local assembly.";
-        return;
-    }
-
-    try {
-        graph = Graph::create(
-                new BankStrings(sequences),
-                "-kmer-size %d -abundance-min %d -verbose 0", kmer_size, min_coverage);
-    }
-    catch (gatb::core::system::Exception &error) {
-        BOOST_LOG_TRIVIAL(warning) << "Couldn't create GATB graph." << "\n\tEXCEPTION: "
-                                   << error.getMessage();
-        // remove h5 file that GATB has written to file for this graph
-        remove_graph_file();
-        return;
-    }
-
-
-    if (clean_graph) {
-        BOOST_LOG_TRIVIAL(debug) << "Cleaning graph.";
-        do_graph_clean(graph);
-    }
-
-    Node start_node;
-    bool found;
-    std::tie(start_node, found) = get_node(start_kmer, graph);
-    if (not found) {
-        BOOST_LOG_TRIVIAL(debug) << "Start node " << start_kmer
-                                 << " not found in 'forward' orientation. Trying 'reverse'...";
-        auto tmp_copy = start_kmer;
-        start_kmer = reverse_complement(end_kmer);
-        end_kmer = reverse_complement(tmp_copy);
-        std::tie(start_node, found) = get_node(start_kmer, graph);
-        if (not found) {
-            BOOST_LOG_TRIVIAL(warning) << "Start kmer not found in either orientation. Skipping local assembly.";
-            remove_graph_file();
-            return;
-        }
-    }
-
-    auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_path_length, expected_coverage);
-
-    if (not result.empty()) {
-        write_paths_to_fasta(out_path, result);
-    }
-
-    // remove h5 file that GATB has written to file for this graph
-    remove_graph_file();
-
-}
-
-void local_assembly(const std::vector<std::string> &sequences, std::unordered_set<std::string> &start_kmers,
-                    std::unordered_set<std::string> &end_kmers, const std::string &out_path,
-                    const unsigned int kmer_size, const unsigned long max_path_length,
-                    const double &expected_coverage, const bool clean_graph,
+                    const bool clean_graph,
                     const unsigned int min_coverage) {
     logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
@@ -534,7 +244,13 @@ void local_assembly(const std::vector<std::string> &sequences, std::unordered_se
                     BOOST_LOG_TRIVIAL(info) << "Using start k-mer " << graph.toString(start_node) << " and end k-mer "
                                             << graph.toString(end_node);
                     goto dfs;
-                } else {  // didnt find end kmer
+                } else {  // didnt find end kmer in forward orientation - check reverse
+                    const auto revcomp_end{reverse_complement(e_kmer)};
+                    std::tie(end_node, end_found) = get_node(revcomp_end, graph);
+                    if (end_found) {
+                        end_node = graph.buildNode(e_kmer.c_str());
+                        goto dfs;
+                    }
                     continue;
                 }
             } else {  // didnt find start kmer
@@ -548,6 +264,13 @@ void local_assembly(const std::vector<std::string> &sequences, std::unordered_se
                                             << graph.toString(end_node);
                     goto dfs;
 
+                } else if (start_found) {  // didnt find end kmer in reverse orientation - check forward
+                    std::tie(end_node, end_found) = get_node(e_kmer, graph);
+                    if (end_found) {
+                        end_node = graph.buildNode(e_kmer.c_str());
+                        goto dfs;
+                    }
+                    break;
                 } else {
                     break;  // move to next start kmer
                 }
