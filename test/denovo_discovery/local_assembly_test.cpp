@@ -10,7 +10,7 @@ const int g_test_kmer_size = 5;
 const auto test_log_level{logging::trivial::info};
 
 
-TEST(GetNodeFromGraph, create) {
+TEST(GetNodeFromGraph, LowestKmerOfNode_KmerFoundInGraphAndNeighbour) {
     Graph graph = Graph::create(
             new BankStrings("AATGTCAGG", NULL),
             "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
@@ -24,50 +24,22 @@ TEST(GetNodeFromGraph, create) {
     // We get the neighbors of this real node and make sure it has the neighbours we expect
     GraphVector<Node> neighbours = graph.successors(real_node);
     EXPECT_EQ(graph.toString(neighbours[0]), "ATGTC");
+
+    auto result = graph.toString(real_node);
+    auto &expected = kmer;
+
+    EXPECT_EQ(expected, result);
     remove_graph_file();
+
 }
 
 
-TEST(GetNodeFromGraph, GivenGraphAndKmer_KmerFoundInGraph) {
+TEST(GetNodeFromGraph, HighestKmerOfNode_KmerFoundInGraph) {
     Graph graph = Graph::create(
             new BankStrings("AATGTCAGG", NULL),
             "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
     );
-    auto kmer = "AATGT";
-
-    Node node;
-    bool found;
-    std::tie(node, found) = get_node(kmer, graph);
-
-    auto &result = found;
-    EXPECT_TRUE(result);
-    remove_graph_file();
-}
-
-
-TEST(GetNodeFromGraph, GivenGraphAndMissingKmer_KmerNotFoundInGraph) {
-    Graph graph = Graph::create(
-            new BankStrings("AATGTCAGG", NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
-
-    auto kmer = "ACTGT";
-    Node node;
-    bool found;
-    std::tie(node, found) = get_node(kmer, graph);
-
-    auto &result = found;
-    EXPECT_FALSE(found);
-    remove_graph_file();
-}
-
-
-TEST(GetNodeFromGraph, GivenGraphAndKmer_CorrectNodeReturned) {
-    Graph graph = Graph::create(
-            new BankStrings("AATGTCAGG", NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
-    auto kmer = "AATGT";
+    auto kmer = "ACATT";
 
     Node node;
     bool found;
@@ -81,7 +53,97 @@ TEST(GetNodeFromGraph, GivenGraphAndKmer_CorrectNodeReturned) {
 }
 
 
-TEST(GetNodeFromGraph, GivenGraphAndMissingKmer_CorrectEmptyNodeReturned) {
+TEST(GetNodeFromGraph, HighestKmerOfNode_KmerFoundInGraphAndNeighbour) {
+    Graph graph = Graph::create(
+            new BankStrings("TCGTTGTCACT", NULL),
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
+    );
+
+    const auto kmer{"TCGTT"};
+
+    Node node;
+    bool found;
+    std::tie(node, found) = get_node(kmer, graph);
+
+    EXPECT_TRUE(found);
+
+    const auto result = graph.toString(node);
+    const auto &expected = kmer;
+
+    EXPECT_EQ(expected, result);
+
+    const auto expected_neighbour{"CGTTG"};
+
+    GraphVector<Node> neighbours = graph.successors(node);
+    const auto result_neighbour{graph.toString(neighbours[0])};
+
+    EXPECT_EQ(result_neighbour, expected_neighbour);
+
+    remove_graph_file();
+}
+
+
+TEST(GetNodeFromGraph, LowestKmerOfStartNode_KmerFoundInGraphButNotNeighbourOfStart) {
+    Graph graph = Graph::create(
+            new BankStrings("TCGTTGTCACT", NULL),
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
+    );
+
+    const auto kmer{"AACGA"};
+
+    Node node;
+    bool found;
+    std::tie(node, found) = get_node(kmer, graph);
+
+    EXPECT_TRUE(found);
+
+    const auto result = graph.toString(node);
+    const auto &expected = kmer;
+
+    EXPECT_EQ(expected, result);
+
+    const auto expected_neighbour{"CGTTG"};
+
+    GraphVector<Node> neighbours = graph.successors(node);
+    const auto result_neighbour{graph.toString(neighbours[0])};
+
+    EXPECT_NE(result_neighbour, expected_neighbour);  // NE = not equal
+
+    remove_graph_file();
+}
+
+
+TEST(GetNodeFromGraph, RevcompKmerOfInitialSeq_KmerFoundInGraphAndCorrectNeighbourFound) {
+    Graph graph = Graph::create(
+            new BankStrings("TCGTTGTCACT", NULL),
+            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
+    );
+
+    const auto kmer{"TGACA"};
+
+    Node node;
+    bool found;
+    std::tie(node, found) = get_node(kmer, graph);
+
+    EXPECT_TRUE(found);
+
+    const auto result = graph.toString(node);
+    const auto &expected = kmer;
+
+    EXPECT_EQ(expected, result);
+
+    const auto expected_neighbour{"GACAA"};
+
+    GraphVector<Node> neighbours = graph.successors(node);
+    const auto result_neighbour{graph.toString(neighbours[0])};
+
+    EXPECT_EQ(result_neighbour, expected_neighbour);
+
+    remove_graph_file();
+}
+
+
+TEST(GetNodeFromGraph, NonExistentKmer_NotFoundInGraphAndNodeEmpty) {
     Graph graph = Graph::create(
             new BankStrings("AATGTCAGG", NULL),
             "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size

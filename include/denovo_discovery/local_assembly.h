@@ -65,7 +65,7 @@ void local_assembly(const std::vector<std::string> &sequences,
 
 void do_graph_clean(Graph &graph, const int num_cores = 1);
 
-std::string reverse_complement(const std::string forward);
+std::string reverse_complement(const std::string &forward);
 
 bool file_exists(const std::string &name);
 

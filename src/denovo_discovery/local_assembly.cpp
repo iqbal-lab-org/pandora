@@ -11,21 +11,30 @@ bool has_ending(std::string const &fullString, std::string const &ending) {
 
 
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph) {
-    Node node = {};
-    bool found = false;
+
+    const auto query_node{graph.buildNode(kmer.c_str())};
+
+    Node node;
+    bool node_found{false};
 
     auto it = graph.iterator();
     for (it.first(); !it.isDone(); it.next()) {
-        const auto &current = it.item();
+        const auto &current_node{it.item()};
 
-        bool node_found = graph.toString(current) == kmer;
+        // compare the kmer values for nodes - does not take strand into account
+        node_found = (current_node == query_node);
         if (node_found) {
-            node = current;
-            found = true;
+            // now test whether the strands are the same
+            if (graph.toString(current_node) != kmer) {
+                node = graph.reverse(current_node);
+            }
+            else {
+                node = current_node;
+            }
             break;
         }
     }
-    return std::make_pair(node, found);
+    return std::make_pair(node, node_found);
 }
 
 
@@ -227,10 +236,16 @@ void local_assembly(const std::vector<std::string> &sequences,
 
     Node start_node;
     Node end_node;
+    std::string start_kmer, end_kmer;
+
     bool start_found{false};
     bool end_found{false};
     for (const auto &s_kmer: start_kmers) {
         std::tie(start_node, start_found) = get_node(s_kmer, graph);
+
+        if (not start_found) {
+            continue;
+        }
 
         for (const auto &e_kmer: end_kmers) {
             // make sure end kmer doesnt exist in the set of start kmers
@@ -238,44 +253,15 @@ void local_assembly(const std::vector<std::string> &sequences,
                 continue;
             }
 
-            if (start_found) {
-                std::tie(end_node, end_found) = get_node(e_kmer, graph);
-                if (end_found) {
-                    BOOST_LOG_TRIVIAL(info) << "Using start k-mer " << graph.toString(start_node) << " and end k-mer "
-                                            << graph.toString(end_node);
-                    goto dfs;
-                } else {  // didnt find end kmer in forward orientation - check reverse
-                    const auto revcomp_end{reverse_complement(e_kmer)};
-                    std::tie(end_node, end_found) = get_node(revcomp_end, graph);
-                    if (end_found) {
-                        end_node = graph.buildNode(e_kmer.c_str());
-                        goto dfs;
-                    }
-                    continue;
-                }
-            } else {  // didnt find start kmer
-                const auto revcomp_start{reverse_complement(e_kmer)};
-                const auto revcomp_end{reverse_complement(s_kmer)};
-                std::tie(start_node, start_found) = get_node(revcomp_start, graph);
-                std::tie(end_node, end_found) = get_node(revcomp_end, graph);
-                if (start_found and end_found) {
-                    BOOST_LOG_TRIVIAL(info) << "Found start and end k-mers on reverse inspection.";
-                    BOOST_LOG_TRIVIAL(info) << "Using start k-mer " << graph.toString(start_node) << " and end k-mer "
-                                            << graph.toString(end_node);
-                    goto dfs;
+            std::tie(end_node, end_found) = get_node(e_kmer, graph);
 
-                } else if (start_found) {  // didnt find end kmer in reverse orientation - check forward
-                    std::tie(end_node, end_found) = get_node(e_kmer, graph);
-                    if (end_found) {
-                        end_node = graph.buildNode(e_kmer.c_str());
-                        goto dfs;
-                    }
-                    break;
-                } else {
-                    break;  // move to next start kmer
-                }
+            if (end_found) {
+                start_kmer = s_kmer;
+                end_kmer = e_kmer;
+                BOOST_LOG_TRIVIAL(info) << "Using start k-mer " << start_kmer << " and end k-mer " << end_kmer;
+
+                goto dfs;
             }
-
         }
     }
     BOOST_LOG_TRIVIAL(warning) << "Could not find any combination of start and end k-mers. Skipping local assembly.";
@@ -283,8 +269,6 @@ void local_assembly(const std::vector<std::string> &sequences,
     return;
 
     dfs:
-    const auto start_kmer{graph.toString(start_node)};
-    const auto end_kmer{graph.toString(end_node)};
 
     auto tree = DFS(start_node, graph);
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_path_length, expected_coverage);
@@ -324,7 +308,7 @@ void do_graph_clean(Graph &graph, const int num_cores) {
 }
 
 
-std::string reverse_complement(const std::string forward) {
+std::string reverse_complement(const std::string &forward) {
     const auto len = forward.size();
     std::string reverse(len, ' ');
     for (size_t k = 0; k < len; k++) {
