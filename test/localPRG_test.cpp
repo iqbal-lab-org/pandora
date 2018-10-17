@@ -1516,27 +1516,3 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_nbin) {
     EXPECT_EQ(fq.scores["three"], "DDD\?\?!");
     cout << fq << endl;
 }
-
-TEST(LocalPRGTest, find_path_and_variants) {
-
-    Index *idx;
-    idx = new Index();
-
-    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-    l3.minimizer_sketch(idx, 1, 3);
-
-    shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3, 3, "3"));
-    pn3->kmer_prg = l3.kmer_prg;
-    pn3->kmer_prg.nodes[2]->covg[0] = 4;
-    pn3->kmer_prg.nodes[2]->covg[1] = 3;
-    pn3->kmer_prg.nodes[5]->covg[0] = 4;
-    pn3->kmer_prg.nodes[5]->covg[0] = 5;
-    pn3->kmer_prg.nodes[7]->covg[0] = 2;
-    pn3->kmer_prg.nodes[7]->covg[1] = 3;
-    pn3->kmer_prg.nodes[8]->covg[0] = 4;
-    pn3->kmer_prg.nodes[8]->covg[0] = 6;
-    pn3->kmer_prg.num_reads = 6;
-    pn3->kmer_prg.set_p(0.0001);
-
-    l3.find_path_and_variants(pn3, "localPRG_test", 0, "", true, false, true);
-}
