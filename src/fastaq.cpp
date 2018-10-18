@@ -91,19 +91,6 @@ void Fastaq::save(const std::string &filepath) {
 }
 
 
-// returns coverage as just the number of reads in the fastaq
-double Fastaq::calculate_coverage() const {
-    return sequences.size();
-}
-
-// calculates coverage as number of bases / length of a given reference
-double
-Fastaq::calculate_kmer_coverage(const unsigned long &ref_length, const unsigned int k, const double &error_rate) const {
-    const auto D{this->calculate_coverage()};
-
-    return (D * (ref_length - k + 1)) / (ref_length * pow(1 - error_rate, k));
-}
-
 bool Fastaq::operator==(const Fastaq &y) const {
     if (fastq != y.fastq) { return false; }
     if (names.size() != y.names.size()) { return false; }
