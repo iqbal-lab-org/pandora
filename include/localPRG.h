@@ -109,16 +109,6 @@ public:
                              const std::vector<LocalNodePtr> &,
                              const std::string &sample_name = "sample");
 
-    std::vector<KmerNodePtr> find_path_and_variants(PanNodePtr,
-                                                    const boost::filesystem::path &,
-                                                    const uint32_t w,
-                                                    const std::string &vcf_ref,
-                                                    const bool output_vcf = false,
-                                                    const bool output_comparison_paths = false,
-                                                    const bool output_covgs = false,
-                                                    const bool bin = false,
-                                                    const uint32_t global_covg = 1,
-                                                    const bool regenotype = false) const;
 
     friend std::ostream &operator<<(std::ostream &out, const LocalPRG &data);
 };
