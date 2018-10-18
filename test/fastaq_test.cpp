@@ -53,6 +53,66 @@ TEST(FastaqTest, covg_to_score_with_rounding) {
     }
 }
 
+TEST(AltCovgToScore, CovgZero_ReturnFirstPrintableAscii) {
+    Fastaq f;
+    const uint_least16_t covg{0};
+
+    const auto result{f.alt_covg_to_score(covg)};
+    const char expected{'!'};
+
+    EXPECT_EQ(result, expected);
+}
+
+TEST(AltCovgToScore, CovgFive_ReturnSixthPrintableAscii) {
+    Fastaq f;
+    const uint_least16_t covg{5};
+
+    const auto result{f.alt_covg_to_score(covg)};
+    const char expected{'&'};
+
+    EXPECT_EQ(result, expected);
+}
+
+TEST(AltCovgToScore, CovgNinetyThree_ReturnLastPrintableAscii) {
+    Fastaq f;
+    const uint_least16_t covg{93};
+
+    const auto result{f.alt_covg_to_score(covg)};
+    const char expected{'~'};
+
+    EXPECT_EQ(result, expected);
+}
+
+TEST(AltCovgToScore, CovgNinetyFour_ReturnLastPrintableAscii) {
+    Fastaq f;
+    const uint_least16_t covg{94};
+
+    const auto result{f.alt_covg_to_score(covg)};
+    const char expected{'~'};
+
+    EXPECT_EQ(result, expected);
+}
+
+TEST(AltCovgToScore, CovgNinetyTwo_ReturnSecondLastPrintableAscii) {
+    Fastaq f;
+    const uint_least16_t covg{92};
+
+    const auto result{f.alt_covg_to_score(covg)};
+    const char expected{'}'};
+
+    EXPECT_EQ(result, expected);
+}
+
+TEST(AltCovgToScore, CrazyHighCovg_ReturnLastPrintableAscii) {
+    Fastaq f;
+    const uint_least16_t covg{920};
+
+    const auto result{f.alt_covg_to_score(covg)};
+    const char expected{'~'};
+
+    EXPECT_EQ(result, expected);
+}
+
 TEST(FastaqTest, add_entry_catch_asserts) {
     Fastaq f;
     EXPECT_DEATH(f.add_entry("", "ACGT", {0, 1, 2, 3}, 40), "");

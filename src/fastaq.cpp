@@ -30,6 +30,22 @@ char Fastaq::covg_to_score(const uint_least16_t &covg, const uint_least16_t &glo
     return ascii_c;
 }
 
+
+char Fastaq::alt_covg_to_score(const uint_least16_t &covg) {
+    // use ASCII chars 33 - 126 as these are the printable ones
+    const uint_least16_t max{126 - 33};
+    uint_least16_t ascii_val;
+
+    if (covg > max) {  // coverage is outside the range of printable ASCIIs
+        ascii_val = 126;
+    }
+    else {
+        ascii_val = covg + 33;
+    }
+    return static_cast<char>(ascii_val);
+}
+
+
 void Fastaq::add_entry(const std::string &name,
                        const std::string &sequence,
                        const std::vector<uint32_t> &covgs,
@@ -43,7 +59,8 @@ void Fastaq::add_entry(const std::string &name,
     char score[covgs.size() + 1];
     auto i = 0;
     for (const auto &covg: covgs) {
-        score[i] = covg_to_score(covg, global_covg);
+//        score[i] = covg_to_score(covg, global_covg);
+        score[i] = alt_covg_to_score(covg);
         i++;
     }
     score[covgs.size()] = '\0';
