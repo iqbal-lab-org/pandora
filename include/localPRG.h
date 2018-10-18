@@ -14,9 +14,11 @@
 #include "kmergraph.h"
 #include "vcf.h"
 #include "fastaq.h"
+#include <boost/filesystem.hpp>
 
 
-typedef std::shared_ptr<pangenome::Node> PanNodePtr;
+using PanNodePtr = std::shared_ptr<pangenome::Node>;
+namespace fs = boost::filesystem;
 
 class LocalPRG {
     uint32_t next_id;
@@ -58,13 +60,13 @@ public:
     std::vector<LocalNodePtr>
     localnode_path_from_kmernode_path(const std::vector<KmerNodePtr> &, const uint32_t w = 0) const;
 
-    void write_covgs_to_file(const string &, const std::vector<uint32_t> &) const;
+    void write_covgs_to_file(const boost::filesystem::path &, const std::vector<uint32_t> &) const;
 
-    void write_path_to_fasta(const std::string &, const std::vector<LocalNodePtr> &, const float &) const;
+    void write_path_to_fasta(const boost::filesystem::path &, const std::vector<LocalNodePtr> &, const float &) const;
 
-    void append_path_to_fasta(const std::string &, const std::vector<LocalNodePtr> &, const float &) const;
+    void append_path_to_fasta(const boost::filesystem::path &, const std::vector<LocalNodePtr> &, const float &) const;
 
-    void write_aligned_path_to_fasta(const std::string &,
+    void write_aligned_path_to_fasta(const boost::filesystem::path &,
                                      const std::vector<LocalNodePtr> &,
                                      const float &) const;
 
@@ -108,7 +110,7 @@ public:
                              const std::string &sample_name = "sample");
 
     std::vector<KmerNodePtr> find_path_and_variants(PanNodePtr,
-                                                    const std::string &,
+                                                    const boost::filesystem::path &,
                                                     const uint32_t w,
                                                     const std::string &vcf_ref,
                                                     const bool output_vcf = false,

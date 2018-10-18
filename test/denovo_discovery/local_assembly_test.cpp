@@ -7,7 +7,7 @@
 
 
 const int g_test_kmer_size = 5;
-const auto test_log_level{logging::trivial::info};
+const auto test_log_level{logging::trivial::warning};
 
 
 TEST(GetNodeFromGraph, LowestKmerOfNode_KmerFoundInGraphAndNeighbour) {

@@ -729,10 +729,10 @@ std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr pnode,
     return return_coverages;
 }
 
-void LocalPRG::write_covgs_to_file(const std::string &filepath, const std::vector<uint32_t> &covgs) const {
+void LocalPRG::write_covgs_to_file(const boost::filesystem::path &filepath, const std::vector<uint32_t> &covgs) const {
     ofstream handle;
-    handle.open(filepath);
-    assert (!handle.fail() or assert_msg("Could not open file " << filepath));
+    handle.open(filepath.string());
+    assert (!handle.fail() or assert_msg("Could not open file " << filepath.string()));
 
     handle << ">" << name << std::endl;
     for (const auto &i : covgs) {
@@ -743,12 +743,12 @@ void LocalPRG::write_covgs_to_file(const std::string &filepath, const std::vecto
     handle.close();
 }
 
-void LocalPRG::write_path_to_fasta(const std::string &filepath,
+void LocalPRG::write_path_to_fasta(const boost::filesystem::path &filepath,
                                    const std::vector<LocalNodePtr> &lmp,
                                    const float &ppath) const {
     ofstream handle;
-    handle.open(filepath);
-    assert (!handle.fail() or assert_msg("Could not open file " << filepath));
+    handle.open(filepath.string());
+    assert (!handle.fail() or assert_msg("Could not open file " << filepath.string()));
 
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath << std::endl;
     for (uint32_t j = 0; j != lmp.size(); ++j) {
@@ -759,12 +759,12 @@ void LocalPRG::write_path_to_fasta(const std::string &filepath,
     handle.close();
 }
 
-void LocalPRG::append_path_to_fasta(const std::string &filepath,
+void LocalPRG::append_path_to_fasta(const boost::filesystem::path &filepath,
                                     const std::vector<LocalNodePtr> &lmp,
                                     const float &ppath) const {
     ofstream handle;
-    handle.open(filepath, ios::app);
-    assert (!handle.fail() or assert_msg("Could not open file " << filepath));
+    handle.open(filepath.string(), ios::app);
+    assert (!handle.fail() or assert_msg("Could not open file " << filepath.string()));
 
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath << std::endl;
     for (uint32_t j = 0; j != lmp.size(); ++j) {
@@ -775,12 +775,12 @@ void LocalPRG::append_path_to_fasta(const std::string &filepath,
     handle.close();
 }
 
-void LocalPRG::write_aligned_path_to_fasta(const std::string &filepath,
+void LocalPRG::write_aligned_path_to_fasta(const boost::filesystem::path &filepath,
                                            const std::vector<LocalNodePtr> &lmp,
                                            const float &ppath) const {
     ofstream handle;
-    handle.open(filepath);
-    assert (!handle.fail() or assert_msg("Could not open file " << filepath));
+    handle.open(filepath.string());
+    assert (!handle.fail() or assert_msg("Could not open file " << filepath.string()));
 
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath << std::endl;
 
@@ -1412,7 +1412,7 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf,
 }
 
 std::vector<KmerNodePtr> LocalPRG::find_path_and_variants(PanNodePtr pnode,
-                                                          const std::string &outdir,
+                                                          const boost::filesystem::path &outdir,
                                                           const uint32_t w,
                                                           const std::string &vcf_ref,
                                                           const bool output_vcf,
@@ -1461,8 +1461,11 @@ std::vector<KmerNodePtr> LocalPRG::find_path_and_variants(PanNodePtr pnode,
         return kmp;
     }
 
-    make_dir(outdir);
-    write_path_to_fasta(outdir + "/" + new_name + ".kmlp.fasta", lmp, ppath);
+    if (not fs::exists(outdir))
+        assert(fs::create_directories(outdir) || assert_msg("Failed to make directories " << outdir.string()));
+
+    const fs::path fasta_outpath = outdir / (new_name + ".kmlp.fasta");
+    write_path_to_fasta(fasta_outpath, lmp, ppath);
 
     std::cout << now() << "LocalPRG ids on max likelihood path for " << name << " : ";
     for (uint32_t i = 0; i != lmp.size(); ++i) {
@@ -1494,20 +1497,21 @@ std::vector<KmerNodePtr> LocalPRG::find_path_and_variants(PanNodePtr pnode,
             add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, "sample");
         if (genotype)
             vcf.genotype(global_covg, 0.01, pnode->kmer_prg.exp_depth_covg);
-        vcf.save(outdir + "/" + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
+        vcf.save(outdir.string() + "/" + new_name + ".kmlp.vcf", true, true, true, true, true, true, true);
     }
     if (output_comparison_paths) {
         std::vector<std::vector<KmerNodePtr>> altkmps = pnode->kmer_prg.get_random_paths(1000);
         for (uint32_t i = 0; i != altkmps.size(); ++i) {
             if (altkmps[i] != kmp) {
                 almp = localnode_path_from_kmernode_path(altkmps[i], w);
-                append_path_to_fasta(outdir + "/" + new_name + ".altpaths.fasta", almp,
-                                     pnode->kmer_prg.prob_path(altkmps[i]));
+                const fs::path altpaths_outpath = outdir / (new_name + ".altpaths.fasta");
+                append_path_to_fasta(altpaths_outpath, almp, pnode->kmer_prg.prob_path(altkmps[i]));
             }
         }
     }
     if (output_covgs) {
-        write_covgs_to_file(outdir + "/" + new_name + ".kmlp.covgs", covgs);
+        const fs::path covgs_outpath = outdir / (new_name + ".kmlp.covgs");
+        write_covgs_to_file(covgs_outpath, covgs);
     }
 
     return kmp;
