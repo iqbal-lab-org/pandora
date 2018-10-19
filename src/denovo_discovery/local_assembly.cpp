@@ -326,7 +326,7 @@ bool file_exists(const std::string &name) {
     return (stat(name.c_str(), &buffer) == 0);
 }
 
-
+//todo: make start and end kmers a vector or similar. i.e would prefer to keep ordering of kmers
 std::unordered_set<std::string>
 generate_start_kmers(const std::string &sequence, const unsigned int k, unsigned int n) {
     const auto L{sequence.length()};
