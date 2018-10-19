@@ -15,12 +15,8 @@ fs::path get_discovered_paths_fname(const GeneIntervalInfo &info,
 
 void denovo_discovery::find_candidates(
         const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
-        const std::string &readfilepath,
-        const fs::path &output_directory,
-        const uint32_t &local_assembly_kmer_size,
-        const uint32_t &kmer_attempts_count,
-        const uint32_t &max_path_length,
-        const uint32_t &padding_size) {
+        const std::string &readfilepath, const fs::path &output_directory, const uint32_t &local_assembly_kmer_size,
+        const uint32_t &kmer_attempts_count, const uint32_t &padding_size) {
 
     if (not fs::exists(output_directory))
         fs::create_directories(output_directory);
@@ -44,6 +40,29 @@ void denovo_discovery::find_candidates(
 
         auto fname = get_discovered_paths_fname(info, local_assembly_kmer_size);
         auto discovered_paths_fpath = output_directory / fname;
+
+        //todo: revisit expected maximum path length with zam
+        const uint32_t expected_max_path_len = interval_sequence.length() * 2;
+        const uint32_t max_path_length = (expected_max_path_len > g_max_length ) ? g_max_length : expected_max_path_len;
+
+        //todo: add expected coverage calculation
+        // calculate coverage for the slice
+        //const auto slice_coverage{fa.calculate_kmer_coverage(sub_lmp_as_string.length(), g_local_assembly_kmer_size)};
+        /*This is how I was doing kmer coverage before
+         * // returns coverage as just the number of reads in the fastaq
+double Fastaq::calculate_coverage() const {
+    return sequences.size();
+}
+
+// calculates coverage as number of bases / length of a given reference
+double
+Fastaq::calculate_kmer_coverage(const unsigned long &ref_length, const unsigned int k, const double &error_rate) const {
+    const auto D{this->calculate_coverage()};
+
+    return (D * (ref_length - k + 1)) / (ref_length * pow(1-error_rate, k));
+}
+         *
+         */
 
         local_assembly(sequences,
                        start_kmers,
