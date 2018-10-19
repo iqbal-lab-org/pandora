@@ -64,7 +64,7 @@ void Fastaq::add_entry(const std::string &name,
 
     char score[covgs.size() + 1];
     auto i = 0;
-    const bool alt_covg_conversion{true};
+    const bool alt_covg_conversion{false};
     for (const auto &covg: covgs) {
         score[i] = covg_to_score(covg, global_covg, alt_covg_conversion);
         i++;
