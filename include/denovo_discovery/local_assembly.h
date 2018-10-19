@@ -24,11 +24,11 @@ using Paths = std::vector<std::string>;
 namespace logging = boost::log;
 namespace fs = boost::filesystem;
 
-const uint32_t g_max_length{1000};
+const uint32_t g_max_length{300};
 const uint32_t g_local_assembly_kmer_size{11};
 const auto g_log_level{logging::trivial::debug};
 const float COVG_SCALING_FACTOR{0.2};
-const uint32_t KMERS_TO_TRY{10};
+const uint32_t g_kmer_attempts_count{10};
 
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph);
 

@@ -12,7 +12,7 @@ namespace denovo_discovery {
                          const std::string &readfilepath,
                          const fs::path &output_directory,
                          const uint32_t &local_assembly_kmer_size = g_local_assembly_kmer_size,
-                         const uint32_t &kmer_attempts_count = KMERS_TO_TRY,
+                         const uint32_t &kmer_attempts_count = g_kmer_attempts_count,
                          const uint32_t &max_path_length = g_max_length,
                          const uint32_t &padding_size = 0);
 }
