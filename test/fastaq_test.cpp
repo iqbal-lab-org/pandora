@@ -53,6 +53,16 @@ TEST(FastaqTest, covg_to_score_with_rounding) {
     }
 }
 
+TEST(AltCovgToScore, CovgToScoreWithAltTrue_ReturnAltCovgToScoreResult) {
+    Fastaq f;
+    const uint_least16_t covg{0};
+
+    const auto result{f.covg_to_score(covg, 0, true)};
+    const char expected{'!'};
+
+    EXPECT_EQ(result, expected);
+}
+
 TEST(AltCovgToScore, CovgZero_ReturnFirstPrintableAscii) {
     Fastaq f;
     const uint_least16_t covg{0};

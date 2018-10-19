@@ -17,7 +17,7 @@ struct Fastaq {
 
     Fastaq(bool gz = false, bool fq = false);
 
-    char covg_to_score(const uint_least16_t &, const uint_least16_t &);
+    char covg_to_score(const uint_least16_t &, const uint_least16_t &, const bool &alt = false);
 
     char alt_covg_to_score(const uint_least16_t &covg);
 

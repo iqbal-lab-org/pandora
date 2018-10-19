@@ -14,7 +14,13 @@ using namespace std;
 
 Fastaq::Fastaq(bool gz, bool fq) : gzipped(gz), fastq(fq) {}
 
-char Fastaq::covg_to_score(const uint_least16_t &covg, const uint_least16_t &global_covg) {
+char Fastaq::covg_to_score(const uint_least16_t &covg, const uint_least16_t &global_covg, const bool &alt) {
+    // this alternate conversion maps coverage ASCII of value up to 93 and then anything over this is just mapped to
+    // the ASCII value for 93
+    if (alt) {
+        return Fastaq::alt_covg_to_score(covg);
+    }
+    // Rachel's original (and default) coverage to ASCII conversion function
     if (2 * global_covg < covg) {
         cout << "Found a base with a coverage way too high, so giving it a score of 0" << endl;
         return '!';
@@ -58,9 +64,9 @@ void Fastaq::add_entry(const std::string &name,
 
     char score[covgs.size() + 1];
     auto i = 0;
+    const bool alt_covg_conversion{true};
     for (const auto &covg: covgs) {
-//        score[i] = covg_to_score(covg, global_covg);
-        score[i] = alt_covg_to_score(covg);
+        score[i] = covg_to_score(covg, global_covg, alt_covg_conversion);
         i++;
     }
     score[covgs.size()] = '\0';
