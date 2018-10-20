@@ -1,6 +1,9 @@
 #ifndef PANDORA_DENOVO_DISCOVERY_H
 #define PANDORA_DENOVO_DISCOVERY_H
 
+#include <stdexcept>
+#include <boost/filesystem/operations.hpp>
+
 #include "denovo_discovery/gene_interval_info.h"
 #include "denovo_discovery/extract_reads.h"
 #include "denovo_discovery/local_assembly.h"

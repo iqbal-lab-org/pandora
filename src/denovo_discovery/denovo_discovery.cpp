@@ -1,8 +1,5 @@
-#include <boost/filesystem/operations.hpp>
-#include <stdexcept>
-
 #include "denovo_discovery/denovo_discovery.h"
-#include "denovo_discovery/local_assembly.h"
+
 
 
 fs::path get_discovered_paths_fname(const GeneIntervalInfo &info,
@@ -48,31 +45,11 @@ void denovo_discovery::find_candidates(
         const uint32_t expected_max_path_len = interval_sequence.length() * 2;
         const uint32_t max_path_length = (expected_max_path_len > g_max_length) ? g_max_length : expected_max_path_len;
 
-        //todo: add expected coverage calculation
-        // calculate coverage for the slice
-        //const auto slice_coverage{fa.calculate_kmer_coverage(sub_lmp_as_string.length(), g_local_assembly_kmer_size)};
-        /*This is how I was doing kmer coverage before
-         * // returns coverage as just the number of reads in the fastaq
-double Fastaq::calculate_coverage() const {
-    return sequences.size();
-}
-
-// calculates coverage as number of bases / length of a given reference
-double
-Fastaq::calculate_kmer_coverage(const unsigned long &ref_length, const unsigned int k, const double &error_rate) const {
-    const auto D{this->calculate_coverage()};
-
-    return (D * (ref_length - k + 1)) / (ref_length * pow(1-error_rate, k));
-}
-
-
-         *
-         */
         const uint32_t read_covg = sequences.size();
         const uint32_t ref_length = interval_sequence.length();
         const double expected_kmer_covg = denovo_discovery::calculate_kmer_coverage(read_covg, ref_length,
-                                                                                  local_assembly_kmer_size,
-                                                                                  error_rate);
+                                                                                    local_assembly_kmer_size,
+                                                                                    error_rate);
 
         local_assembly(sequences,
                        start_kmers,
@@ -89,15 +66,13 @@ denovo_discovery::calculate_kmer_coverage(const uint32_t &read_covg, const uint3
                                           const double &error_rate) {
     if (ref_length == 0) {
         throw std::invalid_argument("ref_length should be greater than 0.");
-    }
-    else if (k == 0) {
+    } else if (k == 0) {
         throw std::invalid_argument("K should be greater than 0.");
-    }
-    else if (error_rate < 0) {
+    } else if (error_rate < 0) {
         throw std::invalid_argument("error_rate should not be a negative value.");
     }
 
     const auto numerator = read_covg * (ref_length - k + 1) * std::pow(1 - error_rate, k);
-    const auto denominator = ref_length ;
+    const auto denominator = ref_length;
     return numerator / denominator;
 }

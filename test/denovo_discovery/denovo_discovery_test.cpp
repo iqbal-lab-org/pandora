@@ -27,7 +27,7 @@ TEST(ExpectedKmerCoverage, IncreasingErrorRates_DecreasingExpectedCovg) {
 }
 
 
-TEST(ExpectedKmerCoverage, ZeroReadCovg_ReturnZero){
+TEST(ExpectedKmerCoverage, ZeroReadCovg_ReturnZero) {
     const uint32_t read_covg{0};
     const uint32_t ref_length{500};
     const uint32_t k{11};
@@ -40,7 +40,7 @@ TEST(ExpectedKmerCoverage, ZeroReadCovg_ReturnZero){
 }
 
 
-TEST(ExpectedKmerCoverage, ZeroRefLength_ThrowException){
+TEST(ExpectedKmerCoverage, ZeroRefLength_ThrowException) {
     const uint32_t read_covg{50};
     const uint32_t ref_length{0};
     const uint32_t k{11};
@@ -52,16 +52,16 @@ TEST(ExpectedKmerCoverage, ZeroRefLength_ThrowException){
         const auto result{denovo_discovery::calculate_kmer_coverage(read_covg, ref_length, k, error_rate)};
         FAIL() << "Expected std::invalid_argument. Instead, got result: " << std::to_string(result);
     }
-    catch(std::invalid_argument const & err) {
+    catch (std::invalid_argument const &err) {
         EXPECT_EQ(err.what(), expected_msg);
     }
-    catch(...) {
+    catch (...) {
         FAIL() << "Expected std::invalid_argument";
     }
 }
 
 
-TEST(ExpectedKmerCoverage, ZeroK_ThrowException){
+TEST(ExpectedKmerCoverage, ZeroK_ThrowException) {
     const uint32_t read_covg{50};
     const uint32_t ref_length{500};
     const uint32_t k{0};
@@ -73,10 +73,10 @@ TEST(ExpectedKmerCoverage, ZeroK_ThrowException){
         const auto result{denovo_discovery::calculate_kmer_coverage(read_covg, ref_length, k, error_rate)};
         FAIL() << "Expected std::invalid_argument. Instead, got result: " << std::to_string(result);
     }
-    catch(std::invalid_argument const & err) {
+    catch (std::invalid_argument const &err) {
         EXPECT_EQ(err.what(), expected_msg);
     }
-    catch(...) {
+    catch (...) {
         FAIL() << "Expected std::invalid_argument";
     }
 }
