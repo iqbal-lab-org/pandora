@@ -1,4 +1,5 @@
 #include <boost/filesystem/operations.hpp>
+#include <stdexcept>
 
 #include "denovo_discovery/denovo_discovery.h"
 #include "denovo_discovery/local_assembly.h"
@@ -67,9 +68,9 @@ Fastaq::calculate_kmer_coverage(const unsigned long &ref_length, const unsigned 
 
          *
          */
-        const auto read_covg = sequences.size();
-        const auto ref_length = interval_sequence.length();
-        const auto expected_kmer_covg = denovo_discovery::calculate_kmer_coverage(read_covg, ref_length,
+        const uint32_t read_covg = sequences.size();
+        const uint32_t ref_length = interval_sequence.length();
+        const double expected_kmer_covg = denovo_discovery::calculate_kmer_coverage(read_covg, ref_length,
                                                                                   local_assembly_kmer_size,
                                                                                   error_rate);
 
@@ -86,7 +87,17 @@ Fastaq::calculate_kmer_coverage(const unsigned long &ref_length, const unsigned 
 double
 denovo_discovery::calculate_kmer_coverage(const uint32_t &read_covg, const uint32_t &ref_length, const uint32_t k,
                                           const double &error_rate) {
-    const auto numerator = read_covg * (ref_length - k + 1);
-    const auto denominator = ref_length * std::pow(1 - error_rate, k);
+    if (ref_length == 0) {
+        throw std::invalid_argument("ref_length should be greater than 0.");
+    }
+    else if (k == 0) {
+        throw std::invalid_argument("K should be greater than 0.");
+    }
+    else if (error_rate < 0) {
+        throw std::invalid_argument("error_rate should not be a negative value.");
+    }
+
+    const auto numerator = read_covg * (ref_length - k + 1) * std::pow(1 - error_rate, k);
+    const auto denominator = ref_length ;
     return numerator / denominator;
 }
