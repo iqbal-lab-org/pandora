@@ -112,19 +112,20 @@ Paths get_paths_between(const std::string &start_kmer, const std::string &end_km
 
 void get_paths_between_util(const std::string &start_kmer, const std::string &end_kmer, std::string path_accumulator,
                             const Graph &graph, std::unordered_map<string, GraphVector<Node>> &tree, Paths &full_paths,
-                            const unsigned long &max_path_length, const double &expected_coverage,
+                            const unsigned long &max_path_length, const double &expected_kmer_covg,
                             unsigned int kmers_below_threshold) {
     // gather information on kmer coverages
     auto start_node{graph.buildNode(start_kmer.c_str())};
-    const auto coverage{graph.queryAbundance(start_node)};
+    const auto kmer_coverage{graph.queryAbundance(start_node)};
 
     // do coverage check
-    // if there are k k-mers with coverage <= expected_covg * 0.2 kmers stop recursing for this path
-    if (coverage < expected_coverage * COVG_SCALING_FACTOR) {
+    // if there are k k-mers with coverage <= expected_covg * coverage scaling factor - stop recursing for this path
+    //todo: revisit this scaling with zam
+    if (kmer_coverage < (expected_kmer_covg * COVG_SCALING_FACTOR)) {
         kmers_below_threshold++;
         if (kmers_below_threshold >= start_kmer.length()) {
             BOOST_LOG_TRIVIAL(debug) << "Path has " << std::to_string(kmers_below_threshold)
-                                     << " k-mers with less than " << std::to_string(expected_coverage) << " * "
+                                     << " k-mers with less than " << std::to_string(expected_kmer_covg) << " * "
                                      << std::to_string(COVG_SCALING_FACTOR) << " coverage. Abandoning path.";
             return;
         }
@@ -153,7 +154,7 @@ void get_paths_between_util(const std::string &start_kmer, const std::string &en
     for (unsigned int i = 0; i < num_children; ++i) {
         auto kmer = graph.toString(child_nodes[i]);
         get_paths_between_util(kmer, end_kmer, path_accumulator, graph, tree,
-                               full_paths, max_path_length, expected_coverage, kmers_below_threshold);
+                               full_paths, max_path_length, expected_kmer_covg, kmers_below_threshold);
     }
 }
 

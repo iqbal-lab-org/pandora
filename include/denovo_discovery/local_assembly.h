@@ -45,7 +45,7 @@ Paths get_paths_between(const std::string &start_kmer, const std::string &end_km
 
 void get_paths_between_util(const std::string &node, const std::string &end_kmer, std::string path_accumulator,
                             const Graph &graph, std::unordered_map<string, GraphVector<Node>> &tree, Paths &full_paths,
-                            const unsigned long &max_path_length = g_max_length, const double &expected_coverage = 1,
+                            const unsigned long &max_path_length = g_max_length, const double &expected_kmer_covg = 1,
                             unsigned int kmers_below_threshold = 0);
 
 
