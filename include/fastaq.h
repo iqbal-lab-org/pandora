@@ -17,7 +17,9 @@ struct Fastaq {
 
     Fastaq(bool gz = false, bool fq = false);
 
-    char covg_to_score(const uint_least16_t &, const uint_least16_t &);
+    char covg_to_score(const uint_least16_t &, const uint_least16_t &, const bool &alt = false);
+
+    char alt_covg_to_score(const uint_least16_t &covg);
 
     void add_entry(const std::string &, const std::string &, const std::vector<uint32_t> &,
                    const uint_least16_t, const std::string header = "");
@@ -31,12 +33,6 @@ struct Fastaq {
     bool operator==(const Fastaq &y) const;
 
     bool operator!=(const Fastaq &y) const;
-
-    double calculate_coverage() const;
-
-    double
-    calculate_kmer_coverage(const unsigned long &ref_length, const unsigned int k,
-                            const double &error_rate = 0.1) const;
 
     friend std::ostream &operator<<(std::ostream &out, const Fastaq &m);
 

@@ -53,6 +53,76 @@ TEST(FastaqTest, covg_to_score_with_rounding) {
     }
 }
 
+TEST(AltCovgToScore, CovgToScoreWithAltTrue_ReturnAltCovgToScoreResult) {
+    Fastaq f;
+    const uint_least16_t covg{0};
+
+    const auto result{f.covg_to_score(covg, 0, true)};
+    const char expected{'!'};
+
+    EXPECT_EQ(result, expected);
+}
+
+TEST(AltCovgToScore, CovgZero_ReturnFirstPrintableAscii) {
+    Fastaq f;
+    const uint_least16_t covg{0};
+
+    const auto result{f.alt_covg_to_score(covg)};
+    const char expected{'!'};
+
+    EXPECT_EQ(result, expected);
+}
+
+TEST(AltCovgToScore, CovgFive_ReturnSixthPrintableAscii) {
+    Fastaq f;
+    const uint_least16_t covg{5};
+
+    const auto result{f.alt_covg_to_score(covg)};
+    const char expected{'&'};
+
+    EXPECT_EQ(result, expected);
+}
+
+TEST(AltCovgToScore, CovgNinetyThree_ReturnLastPrintableAscii) {
+    Fastaq f;
+    const uint_least16_t covg{93};
+
+    const auto result{f.alt_covg_to_score(covg)};
+    const char expected{'~'};
+
+    EXPECT_EQ(result, expected);
+}
+
+TEST(AltCovgToScore, CovgNinetyFour_ReturnLastPrintableAscii) {
+    Fastaq f;
+    const uint_least16_t covg{94};
+
+    const auto result{f.alt_covg_to_score(covg)};
+    const char expected{'~'};
+
+    EXPECT_EQ(result, expected);
+}
+
+TEST(AltCovgToScore, CovgNinetyTwo_ReturnSecondLastPrintableAscii) {
+    Fastaq f;
+    const uint_least16_t covg{92};
+
+    const auto result{f.alt_covg_to_score(covg)};
+    const char expected{'}'};
+
+    EXPECT_EQ(result, expected);
+}
+
+TEST(AltCovgToScore, CrazyHighCovg_ReturnLastPrintableAscii) {
+    Fastaq f;
+    const uint_least16_t covg{920};
+
+    const auto result{f.alt_covg_to_score(covg)};
+    const char expected{'~'};
+
+    EXPECT_EQ(result, expected);
+}
+
 TEST(FastaqTest, add_entry_catch_asserts) {
     Fastaq f;
     EXPECT_DEATH(f.add_entry("", "ACGT", {0, 1, 2, 3}, 40), "");
@@ -230,29 +300,5 @@ TEST(FastaqTest, iostream) {
     bool added_score = f_in.scores.find("dummy") != f_in.scores.end();
     EXPECT_TRUE(added_score);
     EXPECT_EQ(f_in.scores["dummy"], "#$%&'");
-}
-
-
-TEST(FastaqTest, calculateCoverage_roundCalculation) {
-    Fastaq f(false, true);
-    f.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
-    f.add_entry("dummyyy", "ACGTA", {2, 3, 4, 5, 6}, 40);
-    const auto ref_length{5};
-
-    const auto result{f.calculate_kmer_coverage(ref_length, 3)};
-    const double expected{1.6460905349794237};
-
-    EXPECT_DOUBLE_EQ(result, expected);
-}
-
-TEST(FastaqTest, calculateCoverage_numberOfEntries) {
-    Fastaq f(false, true);
-    f.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
-    f.add_entry("dummyyy", "ACGTA", {2, 3, 4, 5, 6}, 40);
-
-    const auto result{f.calculate_coverage()};
-    const double expected{2};
-
-    EXPECT_EQ(result, expected);
 }
 

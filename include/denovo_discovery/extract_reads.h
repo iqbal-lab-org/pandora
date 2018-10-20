@@ -52,7 +52,7 @@ using ReadPileup = std::vector<std::string>;
 
 std::map<GeneIntervalInfo, ReadPileup>
 collect_read_pileups(const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &,
-                     const std::string &,
+                     const boost::filesystem::path &,
                      const uint32_t &padding_size = 0);
 
 void add_pnode_coordinate_pairs(std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>>&,

@@ -729,10 +729,10 @@ std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr pnode,
     return return_coverages;
 }
 
-void LocalPRG::write_covgs_to_file(const std::string &filepath, const std::vector<uint32_t> &covgs) const {
+void LocalPRG::write_covgs_to_file(const boost::filesystem::path &filepath, const std::vector<uint32_t> &covgs) const {
     ofstream handle;
-    handle.open(filepath);
-    assert (!handle.fail() or assert_msg("Could not open file " << filepath));
+    handle.open(filepath.string());
+    assert (!handle.fail() or assert_msg("Could not open file " << filepath.string()));
 
     handle << ">" << name << std::endl;
     for (const auto &i : covgs) {
@@ -743,12 +743,12 @@ void LocalPRG::write_covgs_to_file(const std::string &filepath, const std::vecto
     handle.close();
 }
 
-void LocalPRG::write_path_to_fasta(const std::string &filepath,
+void LocalPRG::write_path_to_fasta(const boost::filesystem::path &filepath,
                                    const std::vector<LocalNodePtr> &lmp,
                                    const float &ppath) const {
     ofstream handle;
-    handle.open(filepath);
-    assert (!handle.fail() or assert_msg("Could not open file " << filepath));
+    handle.open(filepath.string());
+    assert (!handle.fail() or assert_msg("Could not open file " << filepath.string()));
 
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath << std::endl;
     for (uint32_t j = 0; j != lmp.size(); ++j) {
@@ -759,12 +759,12 @@ void LocalPRG::write_path_to_fasta(const std::string &filepath,
     handle.close();
 }
 
-void LocalPRG::append_path_to_fasta(const std::string &filepath,
+void LocalPRG::append_path_to_fasta(const boost::filesystem::path &filepath,
                                     const std::vector<LocalNodePtr> &lmp,
                                     const float &ppath) const {
     ofstream handle;
-    handle.open(filepath, ios::app);
-    assert (!handle.fail() or assert_msg("Could not open file " << filepath));
+    handle.open(filepath.string(), ios::app);
+    assert (!handle.fail() or assert_msg("Could not open file " << filepath.string()));
 
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath << std::endl;
     for (uint32_t j = 0; j != lmp.size(); ++j) {
@@ -775,12 +775,12 @@ void LocalPRG::append_path_to_fasta(const std::string &filepath,
     handle.close();
 }
 
-void LocalPRG::write_aligned_path_to_fasta(const std::string &filepath,
+void LocalPRG::write_aligned_path_to_fasta(const boost::filesystem::path &filepath,
                                            const std::vector<LocalNodePtr> &lmp,
                                            const float &ppath) const {
     ofstream handle;
-    handle.open(filepath);
-    assert (!handle.fail() or assert_msg("Could not open file " << filepath));
+    handle.open(filepath.string());
+    assert (!handle.fail() or assert_msg("Could not open file " << filepath.string()));
 
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath << std::endl;
 
@@ -1410,6 +1410,7 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf,
     vcf.merge_multi_allelic();
     master_vcf.append_vcf(vcf);
 }
+
 
 bool operator!=(const std::vector<KmerNodePtr> &lhs, const std::vector<KmerNodePtr> &rhs) {
     if (lhs.size() != rhs.size()) {

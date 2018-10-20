@@ -14,7 +14,13 @@ using namespace std;
 
 Fastaq::Fastaq(bool gz, bool fq) : gzipped(gz), fastq(fq) {}
 
-char Fastaq::covg_to_score(const uint_least16_t &covg, const uint_least16_t &global_covg) {
+char Fastaq::covg_to_score(const uint_least16_t &covg, const uint_least16_t &global_covg, const bool &alt) {
+    // this alternate conversion maps coverage ASCII of value up to 93 and then anything over this is just mapped to
+    // the ASCII value for 93
+    if (alt) {
+        return Fastaq::alt_covg_to_score(covg);
+    }
+    // Rachel's original (and default) coverage to ASCII conversion function
     if (2 * global_covg < covg) {
         cout << "Found a base with a coverage way too high, so giving it a score of 0" << endl;
         return '!';
@@ -30,6 +36,22 @@ char Fastaq::covg_to_score(const uint_least16_t &covg, const uint_least16_t &glo
     return ascii_c;
 }
 
+
+char Fastaq::alt_covg_to_score(const uint_least16_t &covg) {
+    // use ASCII chars 33 - 126 as these are the printable ones
+    const uint_least16_t max{126 - 33};
+    uint_least16_t ascii_val;
+
+    if (covg > max) {  // coverage is outside the range of printable ASCIIs
+        ascii_val = 126;
+    }
+    else {
+        ascii_val = covg + 33;
+    }
+    return static_cast<char>(ascii_val);
+}
+
+
 void Fastaq::add_entry(const std::string &name,
                        const std::string &sequence,
                        const std::vector<uint32_t> &covgs,
@@ -42,8 +64,9 @@ void Fastaq::add_entry(const std::string &name,
 
     char score[covgs.size() + 1];
     auto i = 0;
+    const bool alt_covg_conversion{false};
     for (const auto &covg: covgs) {
-        score[i] = covg_to_score(covg, global_covg);
+        score[i] = covg_to_score(covg, global_covg, alt_covg_conversion);
         i++;
     }
     score[covgs.size()] = '\0';
@@ -90,19 +113,6 @@ void Fastaq::save(const std::string &filepath) {
     outf << *this;
 }
 
-
-// returns coverage as just the number of reads in the fastaq
-double Fastaq::calculate_coverage() const {
-    return sequences.size();
-}
-
-// calculates coverage as number of bases / length of a given reference
-double
-Fastaq::calculate_kmer_coverage(const unsigned long &ref_length, const unsigned int k, const double &error_rate) const {
-    const auto D{this->calculate_coverage()};
-
-    return (D * (ref_length - k + 1)) / (ref_length * pow(1 - error_rate, k));
-}
 
 bool Fastaq::operator==(const Fastaq &y) const {
     if (fastq != y.fastq) { return false; }

@@ -6,8 +6,9 @@
 #include <unordered_set>
 
 
-const int g_test_kmer_size = 5;
-const auto test_log_level{logging::trivial::info};
+const uint32_t g_test_kmer_size = 5;
+const uint32_t g_test_max_path = 50;
+const auto test_log_level{logging::trivial::warning};
 
 
 TEST(GetNodeFromGraph, LowestKmerOfNode_KmerFoundInGraphAndNeighbour) {
@@ -182,7 +183,7 @@ TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
     auto tree = DFS(start_node, graph);
 
     const auto end_kmer{"AGG"};
-    auto result = get_paths_between("AATGT", end_kmer, tree, graph, g_max_length);
+    auto result = get_paths_between("AATGT", end_kmer, tree, graph, g_test_max_path);
 
     Paths expected_seqs(seqs.begin(), seqs.end());
     EXPECT_EQ(result, expected_seqs);
@@ -207,7 +208,7 @@ TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     EXPECT_EQ(result.size(), 1);
     EXPECT_EQ(*result.begin(), seq);
@@ -232,7 +233,7 @@ TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     bool original_seq_found = false;
     // make sure all paths begin and end with correct kmer
@@ -267,7 +268,7 @@ TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     EXPECT_EQ(result.size(), 1);
     EXPECT_EQ(*result.begin(), seq1);
@@ -293,7 +294,7 @@ TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     int original_seq_found = 0;
     for (auto &path: result) {
@@ -330,7 +331,7 @@ TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     int original_seq_found = 0;
     for (auto &path: result) {
@@ -368,7 +369,7 @@ TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     // add other expected paths due to variants
     const std::vector<std::string> expected_seqs = {
@@ -415,7 +416,7 @@ TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKm
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     // add other expected paths due to variants
     const std::string expected_seq = "ATGTGCA";
@@ -445,7 +446,7 @@ TEST(DFSTest, SimpleCycle_ReturnPathsOfLengthsUpToMaxPathLengthCycling) {
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
     auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_max_length);
+    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     const std::string min_expected_seq = "ATATAT";
     bool is_in = false;

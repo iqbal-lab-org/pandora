@@ -1,7 +1,5 @@
-#include <boost/filesystem/operations.hpp>
-
 #include "denovo_discovery/denovo_discovery.h"
-#include "denovo_discovery/local_assembly.h"
+
 
 
 fs::path get_discovered_paths_fname(const GeneIntervalInfo &info,
@@ -15,15 +13,13 @@ fs::path get_discovered_paths_fname(const GeneIntervalInfo &info,
 
 void denovo_discovery::find_candidates(
         const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
-        const std::string &readfilepath,
-        const fs::path &output_directory,
-        const uint32_t &local_assembly_kmer_size,
-        const uint32_t &kmer_attempts_count,
-        const uint32_t &max_path_length,
-        const uint32_t &padding_size) {
+        const std::string &readfilepath, const fs::path &output_directory,
+        const double &error_rate, const uint32_t &local_assembly_kmer_size,
+        const uint32_t &kmer_attempts_count, const uint32_t &padding_size) {
 
-    if (not fs::exists(output_directory))
+    if (not fs::exists(output_directory)) {
         fs::create_directories(output_directory);
+    }
 
     auto pileups = collect_read_pileups(pangraph_coordinate_pairs, readfilepath);
     for (const auto &pileup: pileups) {
@@ -45,11 +41,38 @@ void denovo_discovery::find_candidates(
         auto fname = get_discovered_paths_fname(info, local_assembly_kmer_size);
         auto discovered_paths_fpath = output_directory / fname;
 
+        //todo: revisit expected maximum path length with zam
+        const uint32_t expected_max_path_len = interval_sequence.length() * 2;
+        const uint32_t max_path_length = (expected_max_path_len > g_max_length) ? g_max_length : expected_max_path_len;
+
+        const uint32_t read_covg = sequences.size();
+        const uint32_t ref_length = interval_sequence.length();
+        const double expected_kmer_covg = denovo_discovery::calculate_kmer_coverage(read_covg, ref_length,
+                                                                                    local_assembly_kmer_size,
+                                                                                    error_rate);
+
         local_assembly(sequences,
                        start_kmers,
                        end_kmers,
                        discovered_paths_fpath,
                        local_assembly_kmer_size,
-                       max_path_length);
+                       max_path_length,
+                       expected_kmer_covg);
     }
+}
+
+double
+denovo_discovery::calculate_kmer_coverage(const uint32_t &read_covg, const uint32_t &ref_length, const uint32_t k,
+                                          const double &error_rate) {
+    if (ref_length == 0) {
+        throw std::invalid_argument("ref_length should be greater than 0.");
+    } else if (k == 0) {
+        throw std::invalid_argument("K should be greater than 0.");
+    } else if (error_rate < 0) {
+        throw std::invalid_argument("error_rate should not be a negative value.");
+    }
+
+    const auto numerator = read_covg * (ref_length - k + 1) * std::pow(1 - error_rate, k);
+    const auto denominator = ref_length;
+    return numerator / denominator;
 }

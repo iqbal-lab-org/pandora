@@ -245,9 +245,9 @@ bool ReadCoordinate::operator==(const ReadCoordinate &y) const {
 
 std::map<GeneIntervalInfo, ReadPileup>
 collect_read_pileups(const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
-                     const std::string &readfilepath,
+                     const boost::filesystem::path &readfilepath,
                      const uint32_t &padding_size) {
-    FastaqHandler readfile(readfilepath);
+    FastaqHandler readfile(readfilepath.string());
 
     std::map<GeneIntervalInfo, ReadPileup> pileup = {};
 

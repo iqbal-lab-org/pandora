@@ -24,11 +24,11 @@ using Paths = std::vector<std::string>;
 namespace logging = boost::log;
 namespace fs = boost::filesystem;
 
-const long g_max_length{30};
-const int g_local_assembly_kmer_size{11};
+const uint32_t g_max_length{300};
+const uint32_t g_local_assembly_kmer_size{11};
 const auto g_log_level{logging::trivial::debug};
 const float COVG_SCALING_FACTOR{0.2};
-const unsigned int KMERS_TO_TRY{10};
+const uint32_t g_kmer_attempts_count{10};
 
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph);
 
@@ -45,7 +45,7 @@ Paths get_paths_between(const std::string &start_kmer, const std::string &end_km
 
 void get_paths_between_util(const std::string &node, const std::string &end_kmer, std::string path_accumulator,
                             const Graph &graph, std::unordered_map<string, GraphVector<Node>> &tree, Paths &full_paths,
-                            const unsigned long &max_path_length = g_max_length, const double &expected_coverage = 1,
+                            const unsigned long &max_path_length = g_max_length, const double &expected_kmer_covg = 1,
                             unsigned int kmers_below_threshold = 0);
 
 
