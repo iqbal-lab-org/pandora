@@ -16,12 +16,13 @@ void denovo_discovery::find_candidates(
         const std::string &readfilepath, const fs::path &output_directory,
         const double &error_rate, const uint32_t &local_assembly_kmer_size,
         const uint32_t &kmer_attempts_count, const uint32_t &padding_size) {
+    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
     if (not fs::exists(output_directory)) {
         fs::create_directories(output_directory);
     }
 
-    auto pileups = collect_read_pileups(pangraph_coordinate_pairs, readfilepath);
+    auto pileups = denovo_discovery::collect_read_pileups(pangraph_coordinate_pairs, readfilepath, padding_size);
     for (const auto &pileup: pileups) {
         auto &sequences = pileup.second;
         auto &info = pileup.first;
@@ -50,6 +51,15 @@ void denovo_discovery::find_candidates(
         const double expected_kmer_covg = denovo_discovery::calculate_kmer_coverage(read_covg, ref_length,
                                                                                     local_assembly_kmer_size,
                                                                                     error_rate);
+
+        BOOST_LOG_TRIVIAL(debug) << "Running local assembly for: " << info.pnode->get_name();
+        BOOST_LOG_TRIVIAL(debug) << "Read coverage is: " << read_covg;
+        BOOST_LOG_TRIVIAL(debug) << "Interval sequence is: " << interval_sequence;
+        BOOST_LOG_TRIVIAL(debug) << "Some slice sequences: ";
+        for (int i = 0; i < 10; i++) {
+            std::cout << sequences[i] << "\n";
+        }
+
 
         local_assembly(sequences,
                        start_kmers,

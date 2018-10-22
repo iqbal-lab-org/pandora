@@ -186,7 +186,6 @@ void local_assembly(const std::vector<std::string> &sequences,
                     const double &expected_coverage,
                     const bool clean_graph,
                     const unsigned int min_coverage) {
-    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
     BOOST_LOG_TRIVIAL(debug) << "Parameters for local assembly: ";
     BOOST_LOG_TRIVIAL(debug) << "Start kmers: ";
@@ -247,6 +246,8 @@ void local_assembly(const std::vector<std::string> &sequences,
         if (not start_found) {
             continue;
         }
+
+        BOOST_LOG_TRIVIAL(debug) << "Found start kmer: " << graph.toString(start_node);
 
         for (const auto &e_kmer: end_kmers) {
             // make sure end kmer doesnt exist in the set of start kmers

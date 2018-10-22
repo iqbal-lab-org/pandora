@@ -315,7 +315,7 @@ int pandora_map(int argc, char *argv[]) {
         denovo_discovery::find_candidates(pangraph_coordinate_pairs,
                                           readfile,
                                           fs::path(outdir),
-                                          e_rate);
+                                          e_rate, g_local_assembly_kmer_size, g_kmer_attempts_count, 11);
     }
 
     if (output_mapped_read_fa)

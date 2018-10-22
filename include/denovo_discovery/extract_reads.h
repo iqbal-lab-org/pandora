@@ -38,6 +38,9 @@ std::set<MinimizerHitPtr, pComp_path> hits_inside_path(const std::set<MinimizerH
 std::set<ReadCoordinate> get_read_overlap_coordinates(const PanNodePtr &,
                                                       const std::vector<LocalNodePtr> &);
 
+
+using ReadPileup = std::vector<std::string>;
+
 namespace denovo_discovery {
     void add_pnode_coordinate_pairs(std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &,
                                     const PanNodePtr &,
@@ -46,13 +49,15 @@ namespace denovo_discovery {
                                     const uint32_t &padding_size = 0,
                                     const uint32_t &low_coverage_threshold = 2,
                                     const uint32_t &interval_min_length = 5);
+
+    std::map<GeneIntervalInfo, ReadPileup>
+    collect_read_pileups(const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &,
+                         const boost::filesystem::path &,
+                         const uint32_t &padding_size = 0);
 }
 
-using ReadPileup = std::vector<std::string>;
 
-std::map<GeneIntervalInfo, ReadPileup>
-collect_read_pileups(const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &,
-                     const boost::filesystem::path &,
-                     const uint32_t &padding_size = 0);
+
+
 
 #endif
