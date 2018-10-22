@@ -265,15 +265,3 @@ collect_read_pileups(const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>>
     }
     return pileup;
 }
-
-Interval apply_buffer_to_interval(const Interval &interval, const int32_t &buff) {
-    uint32_t start;
-    if (buff < interval.start) {
-        start = interval.start - buff;
-    } else {  // start_diff <= 0:
-        start = 0;
-    }
-    const uint32_t end{interval.get_end() + buff};
-    Interval padded_interval{start, end};
-    return padded_interval;
-}
