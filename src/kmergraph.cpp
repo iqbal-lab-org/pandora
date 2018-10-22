@@ -599,7 +599,7 @@ uint32_t KmerGraph::min_path_length() {
     return len[0];
 }
 
-void KmerGraph::save(const string &filepath, const LocalPRG *localprg) {
+void KmerGraph::save(const string &filepath, const shared_ptr<LocalPRG> localprg) {
     ofstream handle;
     handle.open(filepath);
     if (handle.is_open()) {

@@ -111,7 +111,8 @@ void Node::get_read_overlap_coordinates(vector<vector<uint32_t>> &read_overlap_c
 
 }
 
-void Node::output_samples(const LocalPRG *prg, const string &outdir, const uint32_t w, const string &vcf_ref) {
+void Node::output_samples(const std::shared_ptr<LocalPRG> &prg, const string &outdir, const uint32_t w,
+                          const string &vcf_ref) {
     vector<KmerNodePtr> kmp;
     kmp.reserve(800);
     vector<LocalNodePtr> refpath, sample_lmp;

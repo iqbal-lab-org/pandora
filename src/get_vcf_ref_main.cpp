@@ -21,7 +21,7 @@ int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
     }
 
     // load prgs
-    vector<LocalPRG *> prgs;
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
     read_prg_file(prgs, argv[1]);
 
     // create fasta

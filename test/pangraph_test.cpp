@@ -200,8 +200,7 @@ TEST(PangenomeGraphTest, add_node_sample) {
     // add node and check it's there
     PGraphTester pg;
 
-    LocalPRG *l0;
-    l0 = new LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA");
+    auto l0 = std::make_shared<LocalPRG>(LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA"));
     vector<KmerNodePtr> kmp;
 
     pg.add_node(0, "zero", "sample", kmp, l0);
@@ -284,8 +283,6 @@ TEST(PangenomeGraphTest, add_node_sample) {
     EXPECT_EQ(pg.samples["sample1"]->paths[1].size(), (uint) 1);
 
     EXPECT_EQ(pg.reads.size(), (uint) 0);
-
-    delete l0;
 }
 
 TEST(PangenomeGraphTest, clear) {
@@ -303,8 +300,7 @@ TEST(PangenomeGraphTest, clear) {
     EXPECT_EQ(pg.samples.size(), (uint) 0);
 
     // sample pg
-    LocalPRG *l0;
-    l0 = new LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA");
+    auto l0 = std::make_shared<LocalPRG>(LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA"));
     vector<KmerNodePtr> kmp;
     pg.add_node(0, "zero", "sample", kmp, l0);
     EXPECT_EQ(pg.reads.size(), (uint) 0);
@@ -313,7 +309,6 @@ TEST(PangenomeGraphTest, clear) {
     EXPECT_EQ(pg.nodes.size(), (uint) 0);
     EXPECT_EQ(pg.reads.size(), (uint) 0);
     EXPECT_EQ(pg.samples.size(), (uint) 0);
-    delete l0;
 }
 
 
@@ -618,8 +613,7 @@ TEST(PangenomeGraphTest, save_matrix) {
     // add node and check it's there
     PGraphTester pg;
 
-    LocalPRG *l0;
-    l0 = new LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA");
+    auto l0 = std::make_shared<LocalPRG>(LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA"));
     vector<KmerNodePtr> kmp;
 
     pg.add_node(0, "zero", "sample1", kmp, l0);

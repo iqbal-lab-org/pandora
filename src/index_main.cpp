@@ -9,7 +9,8 @@
 
 using namespace std;
 
-void index_prgs(vector<LocalPRG *> &prgs, Index *idx, const uint32_t w, const uint32_t k, const string &outdir) {
+void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs, Index *idx, const uint32_t w, const uint32_t k,
+                const string &outdir) {
     cout << now() << "Index PRGs" << endl;
 
     // first reserve an estimated index size
@@ -88,7 +89,7 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
 
 
     // load PRGs from file
-    vector<LocalPRG *> prgs;
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
     read_prg_file(prgs, prgfile);
 
     // get output directory for the gfa
