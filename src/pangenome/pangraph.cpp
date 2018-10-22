@@ -134,7 +134,7 @@ void Graph::add_node(const uint32_t prg_id,
 
 // Add a node corresponding to an instance of a localPRG found in a sample
 void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string &sample_name,
-                     const vector<KmerNodePtr> &kmp, const LocalPRG *prg) {
+                     const vector<KmerNodePtr> &kmp, const std::shared_ptr<LocalPRG> &prg) {
     // add new node if it doesn't exist
     NodePtr n;
     auto it = nodes.find(prg_id);
@@ -329,7 +329,7 @@ void Graph::split_node_by_reads(unordered_set<ReadPtr> &reads_along_tig, vector<
 
 // For each node in pangraph, make a copy of the kmergraph and use the hits
 // stored on each read containing the node to add coverage to this graph
-void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
+void Graph::add_hits_to_kmergraphs(const std::vector<std::shared_ptr<LocalPRG>> &prgs) {
     uint32_t num_hits[2];
     for (const auto &pnode : nodes) {
         // copy kmergraph

@@ -48,7 +48,7 @@ public:
     void add_node(const uint32_t, const std::string &, uint32_t,
                   std::set<MinimizerHitPtr, pComp> &); // used by pandora map
     void add_node(const uint32_t, const std::string &, const std::string &, const std::vector<KmerNodePtr> &,
-                  const LocalPRG *); // used by pandora compare
+                  const std::shared_ptr<LocalPRG> &); // used by pandora compare
 
     std::unordered_map<uint32_t, NodePtr>::iterator remove_node(NodePtr);
 
@@ -62,7 +62,7 @@ public:
                              const uint_least32_t);
 
     //unordered_set<ReadPtr> find_reads_on_node_path(const std::vector<uint16_t>, const std::vector<bool> );
-    void add_hits_to_kmergraphs(const std::vector<LocalPRG *> &);
+    void add_hits_to_kmergraphs(const std::vector<std::shared_ptr<LocalPRG>> &);
 
     // graph comparison
     bool operator==(const Graph &y) const;

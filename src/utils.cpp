@@ -117,18 +117,18 @@ float lognchoosek2(uint32_t n, uint32_t k1, uint32_t k2) {
     return total;
 }
 
-void read_prg_file(vector<LocalPRG *> &prgs, const string &filepath) {
+void read_prg_file(std::vector<std::shared_ptr<LocalPRG>> &prgs,
+                   const std::string &filepath) {
     cout << now() << "Loading PRGs from file " << filepath << endl;
 
     uint32_t id = 0;
-    LocalPRG *s;
 
     FastaqHandler fh(filepath);
     while (!fh.eof()) {
         fh.get_next();
         if (fh.name.empty() or fh.read.empty())
             continue;
-        s = new LocalPRG(id, fh.name, fh.read);
+        auto s = std::make_shared<LocalPRG>(LocalPRG(id, fh.name, fh.read));
         if (s != nullptr) {
             prgs.push_back(s);
             id++;
@@ -140,7 +140,8 @@ void read_prg_file(vector<LocalPRG *> &prgs, const string &filepath) {
     cout << now() << "Number of LocalPRGs read: " << prgs.size() << endl;
 }
 
-void load_PRG_kmergraphs(vector<LocalPRG *> &prgs, const uint32_t &w, const uint32_t &k, const string &prgfile) {
+void load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>> &prgs, const uint32_t &w, const uint32_t &k,
+                         const string &prgfile) {
     cout << now() << "Loading kmer_prgs from files " << endl;
     string prefix = "";
     size_t pos = prgfile.find_last_of("/");
@@ -198,7 +199,8 @@ void add_read_hits(Seq *s, MinimizerHits *hits, Index *idx) {
     //     << hits->hits.size() + hits->uhits.size() << endl;
 }
 
-void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, const vector<LocalPRG *> &prgs,
+void define_clusters(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits,
+                     const std::vector<std::shared_ptr<LocalPRG>> &prgs,
                      MinimizerHits *minimizer_hits, const int max_diff,
                      const float &fraction_kmers_required_for_cluster,
                      const uint32_t min_cluster_size, const uint32_t expected_number_kmers_in_short_read_sketch) {
@@ -352,7 +354,7 @@ void filter_clusters2(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of
 
 void
 add_clusters_to_pangraph(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits, pangenome::Graph *pangraph,
-                         const vector<LocalPRG *> &prgs) {
+                         const std::vector<std::shared_ptr<LocalPRG>> &prgs) {
     cout << now() << "Add inferred order to PanGraph" << endl;
     if (clusters_of_hits.empty()) { return; }
 
@@ -365,7 +367,7 @@ add_clusters_to_pangraph(set<set<MinimizerHitPtr, pComp>, clusterComp> &clusters
     }
 }
 
-void infer_localPRG_order_for_reads(const vector<LocalPRG *> &prgs, MinimizerHits *minimizer_hits,
+void infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>> &prgs, MinimizerHits *minimizer_hits,
                                     pangenome::Graph *pangraph,
                                     const int max_diff, const uint32_t &genome_size,
                                     const float &fraction_kmers_required_for_cluster,
@@ -393,7 +395,7 @@ uint32_t pangraph_from_read_file(const string &filepath,
                                  MinimizerHits *mh,
                                  pangenome::Graph *pangraph,
                                  Index *idx,
-                                 const vector<LocalPRG *> &prgs,
+                                 const std::vector<std::shared_ptr<LocalPRG>> &prgs,
                                  const uint32_t w,
                                  const uint32_t k,
                                  const int max_diff,
@@ -473,7 +475,7 @@ uint32_t pangraph_from_read_file(const string &filepath,
 }
 
 void update_localPRGs_with_hits(pangenome::Graph *pangraph,
-                                const vector<LocalPRG *> &prgs) //, const uint32_t k, const float& e_rate, bool output_p_dist)
+                                const std::vector<std::shared_ptr<LocalPRG>> &prgs) //, const uint32_t k, const float& e_rate, bool output_p_dist)
 {
     pangraph->add_hits_to_kmergraphs(prgs);
 }

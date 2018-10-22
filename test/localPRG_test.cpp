@@ -1197,7 +1197,7 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf) {
 
 TEST(LocalPRGTest, moreupdateVCF) {
     // load PRGs from file
-    vector<LocalPRG *> prgs;
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
     read_prg_file(prgs, "../../test/test_cases/updatevcf_test.fa");
 
     EXPECT_EQ((uint) 3, prgs.size());

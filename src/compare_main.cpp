@@ -207,7 +207,7 @@ int pandora_compare(int argc, char *argv[]) {
     Index *idx;
     idx = new Index();
     idx->load(prgfile, w, k);
-    vector<LocalPRG *> prgs;
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
     read_prg_file(prgs, prgfile);
     load_PRG_kmergraphs(prgs, w, k, prgfile);
 
@@ -318,9 +318,6 @@ int pandora_compare(int argc, char *argv[]) {
 
     // clear up
     cout << now() << "Clear up" << endl;
-    for (uint32_t j = 0; j != prgs.size(); ++j) {
-        delete prgs[j];
-    }
     idx->clear();
     delete idx;
     mhs->clear();

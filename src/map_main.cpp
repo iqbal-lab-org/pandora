@@ -228,7 +228,7 @@ int pandora_map(int argc, char *argv[]) {
     Index *idx;
     idx = new Index();
     idx->load(prgfile, w, k);
-    vector<LocalPRG *> prgs;
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
     read_prg_file(prgs, prgfile);
     load_PRG_kmergraphs(prgs, w, k, prgfile);
 
@@ -320,10 +320,6 @@ int pandora_map(int argc, char *argv[]) {
 
     if (output_mapped_read_fa)
         pangraph->save_mapped_read_strings(readfile, outdir);
-
-    for (uint32_t j = 0; j != prgs.size(); ++j) {
-        delete prgs[j];
-    }
 
     pangraph->clear();
     delete pangraph;

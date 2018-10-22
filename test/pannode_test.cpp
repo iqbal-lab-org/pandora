@@ -260,8 +260,7 @@ TEST(PangenomeNodeTest,output_samples)
 
     pn1.covg = 3;
 
-    LocalPRG* l3;
-    l3 = new LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+    auto l3 = std::make_shared<LocalPRG>(LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T"));
 
     // clear the kmergraph and vectors to check that the shared pointers have really been kept valid
     // within pg!
