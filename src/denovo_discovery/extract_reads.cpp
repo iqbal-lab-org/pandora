@@ -56,71 +56,32 @@ identify_regions(const vector<uint32_t> &covgs, const uint32_t &threshold, const
 vector<LocalNodePtr>
 find_interval_in_localpath(const Interval &interval, const vector<LocalNodePtr> &lmp,
                            const unsigned int &buff) {
-
-
     uint32_t added = 0;
-    uint8_t level = 0, start_level = 0, lowest_level = 0;
     uint16_t start = 0, end = 0;
     bool found_end = false;
     for (uint_least16_t i = 0; i < lmp.size(); ++i) {
-        if (added <= interval.start and added + lmp[i]->pos.length >= interval.start) {
+        if (added + buff <= interval.start and added + buff+ lmp[i]->pos.length >= interval.start) {
             start = i;
-            start_level = level;
-            lowest_level = level;
         }
-        if (start_level > 0 and level < start_level) {
-            lowest_level = level;
-        }
-        if (added <= interval.get_end() and added + lmp[i]->pos.length >= interval.get_end()) {
+        if (added <= interval.get_end() + buff and added + lmp[i]->pos.length >= interval.get_end() + buff) {
             found_end = true;
         }
         end = i;
-        if (found_end) {// and level == lowest_level) {
+        if (found_end) {
             break;
         }
         added += lmp[i]->pos.length;
-
-        if (lmp[i]->outNodes.size() > 1) {
-            level += 1;
-        } else {
-            level -= 1;
-        }
     }
-    //cout << "found start node " << +start << " level " << +start_level << ", and end node " << +end
-    //     << ", with lowest level " << +lowest_level << endl;
-    if (buff > 0) {
-        auto start_buffer_added{lmp[start]->pos.length};
-        auto end_buffer_added{lmp[end]->pos.length};
-        while (start > 0 and start_buffer_added < buff) {
-            start -= 1;
-            start_buffer_added += lmp[start]->pos.length;
-        }
-        while (end < lmp.size() and end_buffer_added < buff) {
-            end += 1;
-            end_buffer_added += lmp[end]->pos.length;
-        }
-    }
-
-    /*if (start_level > lowest_level) {
-        // Now extend the start of the interval found so starts at lowest_level
-        for (uint_least16_t i = start; i > 0; --i) {
-            if (lmp[i - 1]->outNodes.size() > 1) {
-                start_level -= 1;
-            } else {
-                start_level += 1;
-            }
-
-            if (start_level == lowest_level) {
-                start = i - 1;
-                break;
-            }
-        }
-    }*/
-    BOOST_LOG_TRIVIAL(debug) << "lmp size = " << std::to_string(lmp.size());
-    BOOST_LOG_TRIVIAL(debug) << "Interval start = " << std::to_string(start);
-    BOOST_LOG_TRIVIAL(debug) << "Interval end    = " << std::to_string(end);
 
     vector<LocalNodePtr> sub_localpath(lmp.begin() + start, lmp.begin() + end + 1);
+    BOOST_LOG_TRIVIAL(debug) << "Interval" << interval << " along path ";
+    for (const auto &l : lmp)
+        BOOST_LOG_TRIVIAL(debug) << *l << " ";
+    BOOST_LOG_TRIVIAL(debug) << endl;
+    BOOST_LOG_TRIVIAL(debug) << "(plus buffer " << +buff << ") corresponds to sub path ";
+    for (const auto &l : sub_localpath)
+        BOOST_LOG_TRIVIAL(debug) << *l << " ";
+    BOOST_LOG_TRIVIAL(debug) << endl;
     return sub_localpath;
 }
 
@@ -159,11 +120,16 @@ set<MinimizerHitPtr, pComp_path> hits_inside_path(const set<MinimizerHitPtr, pCo
 
 
 std::set<ReadCoordinate> get_read_overlap_coordinates(const PanNodePtr &pnode,
-                                                      const std::vector<LocalNodePtr> &local_node_path) {
+                                                      const std::vector<LocalNodePtr> &local_node_path,
+                                                      const uint32_t& min_number_hits) {
     std::set<ReadCoordinate> read_overlap_coordinates = {};
+    cout << "read ids " << endl;
+    for (const auto &r : pnode->reads)
+        cout << r->id << endl;
     for (const auto &read_ptr: pnode->reads) {
         auto read_hits_inside_path = hits_inside_path(read_ptr->hits.at(pnode->prg_id), local_node_path);
-        if (read_hits_inside_path.size() < 2)
+        cout << "read_hits_inside_path size " << read_hits_inside_path.size() << endl;
+        if (read_hits_inside_path.size() < min_number_hits)
             continue;
 
         auto hit_ptr_iter = read_hits_inside_path.begin();
@@ -188,17 +154,24 @@ void denovo_discovery::add_pnode_coordinate_pairs(
         const std::vector<KmerNodePtr> &kmer_node_path,
         const uint32_t &padding_size,
         const uint32_t &low_coverage_threshold,
-        const uint32_t &interval_min_length) {
+        const uint32_t &interval_min_length,
+        const uint32_t& min_number_hits) {
     auto covgs = get_covgs_along_localnode_path(pnode, local_node_path, kmer_node_path);
     auto intervals = identify_regions(covgs, low_coverage_threshold, interval_min_length);
     if (intervals.empty())
         return;
 
+    cout << "there are " << intervals.size() << " intervals" << endl;
     for (const auto &interval: intervals) {
         BOOST_LOG_TRIVIAL(debug) << "Looking at interval: " << interval;
 
         auto sub_local_node_path = find_interval_in_localpath(interval, local_node_path, padding_size);
-        auto read_overlap_coordinates = get_read_overlap_coordinates(pnode, sub_local_node_path);
+        cout << "sub local node path ";
+        for (const auto &l : sub_local_node_path)
+            cout << *l;
+        cout << endl;
+        auto read_overlap_coordinates = get_read_overlap_coordinates(pnode, sub_local_node_path, min_number_hits);
+        cout << "there are " << read_overlap_coordinates.size() << " read_overlap_coordinates" << endl;
 
         GeneIntervalInfo interval_info{
                 pnode,
@@ -241,6 +214,11 @@ bool ReadCoordinate::operator==(const ReadCoordinate &y) const {
             and (this->end == y.end)
             and (this->strand == y.strand)
     );
+}
+
+std::ostream &operator<<(std::ostream &out, ReadCoordinate const &y) {
+    out << "{" << y.id << ", " << y.start << ", " << y.end << ", " << y.strand << "}";
+    return out;
 }
 
 std::map<GeneIntervalInfo, ReadPileup>

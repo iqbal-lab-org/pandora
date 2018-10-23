@@ -24,19 +24,22 @@ struct ReadCoordinate {
     bool operator<(const ReadCoordinate &y) const;
 
     bool operator==(const ReadCoordinate &y) const;
+
+    friend std::ostream &operator<<(std::ostream &, ReadCoordinate const &);
 };
 
 std::vector<Interval>
 identify_regions(const std::vector<uint32_t> &, const uint32_t &threshold = 0, const uint32_t &min_length = 0);
 
 vector<LocalNodePtr>
-find_interval_in_localpath(const Interval &, const vector<LocalNodePtr> &, const unsigned int &buff);
+find_interval_in_localpath(const Interval &, const vector<LocalNodePtr> &, const unsigned int &);
 
 std::set<MinimizerHitPtr, pComp_path> hits_inside_path(const std::set<MinimizerHitPtr, pComp_path> &,
                                                       const std::vector<LocalNodePtr> &);
 
 std::set<ReadCoordinate> get_read_overlap_coordinates(const PanNodePtr &,
-                                                      const std::vector<LocalNodePtr> &);
+                                                      const std::vector<LocalNodePtr> &,
+                                                      const uint32_t& min_number_hits = 2);
 
 namespace denovo_discovery {
     void add_pnode_coordinate_pairs(std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &,
@@ -45,7 +48,8 @@ namespace denovo_discovery {
                                     const std::vector<KmerNodePtr> &,
                                     const uint32_t &padding_size = 0,
                                     const uint32_t &low_coverage_threshold = 2,
-                                    const uint32_t &interval_min_length = 5);
+                                    const uint32_t &interval_min_length = 5,
+                                    const uint32_t& min_number_hits = 2);
 }
 
 using ReadPileup = std::vector<std::string>;

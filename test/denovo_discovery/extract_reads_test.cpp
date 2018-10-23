@@ -17,6 +17,7 @@ typedef std::shared_ptr<pangenome::Node> PanNodePtr;
 typedef std::shared_ptr<pangenome::Read> PanReadPtr;
 
 using namespace std;
+using std::make_pair;
 
 TEST(ExtractReadsTest, identify_regions_null) {
     vector<uint32_t> covgs;
@@ -155,6 +156,29 @@ TEST(ExtractReadsTest, find_interval_in_localpath_minimal) {
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
 }
 
+TEST(ExtractReadsTest, find_interval_in_localpath_minimal_with_padding1) {
+    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+    vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+    // A G C T CGG  TAT
+    auto found_path = find_interval_in_localpath(Interval(2, 3), lmp, 1);
+
+    vector<LocalNodePtr> exp_path = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4]};
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
+}
+
+TEST(ExtractReadsTest, find_interval_in_localpath_minimal_with_padding2) {
+    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+    vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+    // A G C T CGG  TAT
+    auto found_path = find_interval_in_localpath(Interval(2, 3), lmp, 2);
+
+    vector<LocalNodePtr> exp_path = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+                                     l3.prg.nodes[6]};
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
+}
+
 TEST(ExtractReadsTest, find_interval_in_localpath_short) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
@@ -166,33 +190,64 @@ TEST(ExtractReadsTest, find_interval_in_localpath_short) {
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
 }
 
-/*TEST(ExtractReadsTest, find_interval_in_localpath_uneven) {
-    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding1) {
+    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
-    auto found_path = find_interval_in_localpath(Interval(2, 4), lmp, 0);
+    auto found_path = find_interval_in_localpath(Interval(1, 4), lmp, 1);
 
-    vector<LocalNodePtr> exp_path = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4]};
+    vector<LocalNodePtr> exp_path = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+                                     l3.prg.nodes[6]};
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
+}
 
-    found_path = find_interval_in_localpath(Interval(1, 3), lmp, 0);
+TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding2) {
+    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+    vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+    // A G C T CGG  TAT
+    auto found_path = find_interval_in_localpath(Interval(1, 4), lmp, 2);
 
-    exp_path = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4]};
+    vector<LocalNodePtr> exp_path = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+                                     l3.prg.nodes[6]};
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
-}*/
+}
 
-/*TEST(ExtractReadsTest, find_interval_in_localpath_multiple_sites) {
+TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding3) {
+    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+    vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+    // A G C T CGG  TAT
+    auto found_path = find_interval_in_localpath(Interval(1, 4), lmp, 3);
+
+    vector<LocalNodePtr> exp_path = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+                                     l3.prg.nodes[6]};
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
+}
+
+TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding4) {
+    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+    vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+    // A G C T CGG  TAT
+    auto found_path = find_interval_in_localpath(Interval(1, 4), lmp, 4);
+
+    vector<LocalNodePtr> exp_path = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+                                     l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
+}
+
+TEST(ExtractReadsTest, find_interval_in_localpath_multiple_sites) {
     LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
     auto found_path = find_interval_in_localpath(Interval(2, 5), lmp, 0);
 
-    vector<LocalNodePtr> exp_path = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                     l3.prg.nodes[6], l3.prg.nodes[7]};
+    vector<LocalNodePtr> exp_path = {l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
-}*/
+}
 
 TEST(ExtractReadsTest, hits_inside_path) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
@@ -845,12 +900,10 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
 
 TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
     //
-    //  Read 0 has prg 3 sequence in interval (2,12] only
-    //  Read 1 has prg 3 sequence in interval (6,16] as well as noise
-    //  Read 2 has prg 3 sequence in interval (4,20] stretched out
-    //  Read 3 has prg 3 sequence in interval (4,14] but is missing bits
-    //  Read 4 doesn't have prg 3 sequence - on all hits are noise
-    //  Read 5 is a duplicate of Read 0
+    //  Read 0 has both intervals
+    //  Read 1 has first interval
+    //  Read 2 has second interval
+    //  Read 3 has both intervals, but only sparse hits which do not meet threshold
     //
 
     uint32_t pnode_id = 3, prg_id = 3, read_id = 0, knode_id = 0;
@@ -864,6 +917,7 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
     idx = new Index();
     auto w = 1, k = 3;
     l3.minimizer_sketch(idx, w, k);
+    delete idx;
 
     // define localpath and kmerpath
     // corresponds to sequence (A) G C T CGG  (TAT)
@@ -871,16 +925,16 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
             l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
             l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]
     };
-    //for (const auto &l : lmp)
-    //    cout << *l << endl;
+    for (const auto &l : lmp)
+        cout << *l << endl;
 
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0],
             l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[4], l3.kmer_prg.nodes[8],
             l3.kmer_prg.nodes[13], l3.kmer_prg.nodes[15], l3.kmer_prg.nodes[17],
             l3.kmer_prg.nodes[19], l3.kmer_prg.nodes[20], l3.kmer_prg.nodes[21]
     };
-    //for (const auto &n : kmp)
-    //    cout << *n;
+    for (const auto &n : kmp)
+        cout << *n;
 
     PanNodePtr pn = make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);
     pn->kmer_prg = l3.kmer_prg;
@@ -925,7 +979,7 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
     hits.clear();
 
     // READ 1
-    //covers first low covg site in interval [6,12]
+    //covers first low covg site in interval [6,10]
     read_id = 1;
     pr = make_shared<pangenome::Read>(read_id);
 
@@ -943,7 +997,7 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
     hits.clear();
 
     // READ 2
-    // covers second site in interval [15,22]
+    // covers second site in interval [16,22]
     read_id = 2;
     pr = make_shared<pangenome::Read>(read_id);
 
@@ -979,18 +1033,257 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
     pn->reads.insert(pr);
     hits.clear();
 
-    auto buff = 0, covg_thresh = 1, min_length = 1;
+    auto buff = 1, covg_thresh = 1, min_length = 1, min_num_hits = 2;
 
     std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs;
-    denovo_discovery::add_pnode_coordinate_pairs(pairs, pn, lmp, kmp, buff, covg_thresh, min_length);
+    denovo_discovery::add_pnode_coordinate_pairs(pairs, pn, lmp, kmp, buff, covg_thresh, min_length, min_num_hits);
 
-    /*
-    std::set<vector<uint32_t>> expected_overlaps = {{0, 3, 9,  1},
-                                                    {1, 7, 13, 1},
-                                                    {2, 5, 13, 1},
-                                                    {3, 6, 10, 1}};
+    for (const auto &p : pairs)
+        cout << p.first << ", " << p.second << endl;
 
-    auto overlaps = get_read_overlap_coordinates(pn, lmp);
+    GeneIntervalInfo interval_info1{pn, Interval(1,3), "AGCT"};
+    GeneIntervalInfo interval_info2{pn, Interval(6,7), "CGGTAT"};
+    ReadCoordinate read_coord1{0,2,6,true};
+    ReadCoordinate read_coord2{0,6,12,true};
+    ReadCoordinate read_coord3{1,6,10,true};
+    ReadCoordinate read_coord4{2,16,22,true};
 
-    EXPECT_ITERABLE_EQ(std::set<std::vector<uint32_t>>, expected_overlaps, overlaps);*/
+    std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> expected_coords = {std::make_pair(read_coord1,interval_info1),
+                                                                             std::make_pair(read_coord2,interval_info2),
+                                                                             std::make_pair(read_coord3,interval_info1),
+                                                                             std::make_pair(read_coord4,interval_info2)};
+    EXPECT_EQ(expected_coords.size(),pairs.size());
+    uint count = 0;
+    for (const auto & p : pairs){
+        if (expected_coords.size() <= count)
+            break;
+        EXPECT_EQ(p.first,expected_coords[count].first);
+        EXPECT_EQ(p.second,expected_coords[count].second);
+        count++;
+    }
+}
+
+TEST(ExtractReadsTest, add_pnode_coordinate_pairs_fewer_hits_needed) {
+    //
+    //  Read 0 has first interval
+    //  Read 1 has second interval
+    //  Read 2 has both intervals, but only sparse hits (meets lower threshold)
+    //  Read 3 has both intervals
+    //
+
+    uint32_t pnode_id = 3, prg_id = 3, read_id = 0, knode_id = 0;
+    string pnode_name = "three";
+    bool orientation(true);
+    MinimizerHitPtr mh;
+
+    // define localPRG
+    LocalPRG l3(prg_id, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+    Index *idx;
+    idx = new Index();
+    auto w = 1, k = 3;
+    l3.minimizer_sketch(idx, w, k);
+    delete idx;
+
+    // define localpath and kmerpath
+    // corresponds to sequence (A) G C T CGG  (TAT)
+    vector<LocalNodePtr> lmp = {l3.prg.nodes[0],
+                                l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]
+    };
+    for (const auto &l : lmp)
+        cout << *l << endl;
+
+    vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0],
+                               l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[4], l3.kmer_prg.nodes[8],
+                               l3.kmer_prg.nodes[13], l3.kmer_prg.nodes[15], l3.kmer_prg.nodes[17],
+                               l3.kmer_prg.nodes[19], l3.kmer_prg.nodes[20], l3.kmer_prg.nodes[21]
+    };
+    for (const auto &n : kmp)
+        cout << *n;
+
+    PanNodePtr pn = make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);
+    pn->kmer_prg = l3.kmer_prg;
+
+    pn->kmer_prg.nodes[0]->covg[0] += 10;
+    pn->kmer_prg.nodes[1]->covg[0] += 1;
+    pn->kmer_prg.nodes[4]->covg[0] += 1;
+    pn->kmer_prg.nodes[8]->covg[0] += 1;
+    pn->kmer_prg.nodes[13]->covg[0] += 10;
+    pn->kmer_prg.nodes[15]->covg[0] += 1;
+    pn->kmer_prg.nodes[17]->covg[0] += 1;
+    pn->kmer_prg.nodes[19]->covg[0] += 1;
+    pn->kmer_prg.nodes[20]->covg[0] += 10;
+    pn->kmer_prg.nodes[21]->covg[0] += 10;
+
+    //cout << pn->kmer_prg << endl;
+
+    set<MinimizerHitPtr, pComp> hits;
+
+    // READ 0
+    //covers first low covg site in interval [6,10]
+    read_id = 0;
+    PanReadPtr pr = make_shared<pangenome::Read>(read_id);
+
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[1]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[4]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[13]->path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pn->reads.insert(pr);
+    hits.clear();
+
+    // READ 1
+    // covers second site in interval [16,22]
+    read_id = 1;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, pn->kmer_prg.nodes[13]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(16, 19), prg_id, pn->kmer_prg.nodes[15]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, pn->kmer_prg.nodes[17]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(18, 21), prg_id, pn->kmer_prg.nodes[19]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(19, 22), prg_id, pn->kmer_prg.nodes[20]->path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pn->reads.insert(pr);
+    hits.clear();
+
+    // READ 2
+    // has sparse hits
+    read_id = 2;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, pn->kmer_prg.nodes[4]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pn->reads.insert(pr);
+    hits.clear();
+
+    // READ 3
+    // covers whole path in interval 2,12
+    read_id = 3;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, pn->kmer_prg.nodes[1]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, pn->kmer_prg.nodes[4]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, pn->kmer_prg.nodes[13]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[15]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[17]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[20]->path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pn->reads.insert(pr);
+    hits.clear();
+
+    auto buff = 1, covg_thresh = 1, min_length = 1, min_num_hits = 1;
+
+    std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs;
+    denovo_discovery::add_pnode_coordinate_pairs(pairs, pn, lmp, kmp, buff, covg_thresh, min_length, min_num_hits);
+
+    for (const auto &p : pairs)
+        cout << p.first << ", " << p.second << endl;
+
+    GeneIntervalInfo interval_info1{pn, Interval(1,3), "AGCT"};
+    GeneIntervalInfo interval_info2{pn, Interval(6,7), "CGGTAT"};
+
+    ReadCoordinate read_coord1{0,6,10,true};
+    ReadCoordinate read_coord2{1,16,22,true};
+    ReadCoordinate read_coord3{2,3,6,true};
+    ReadCoordinate read_coord4{2,8,11,true};
+    ReadCoordinate read_coord5{3,2,6,true};
+    ReadCoordinate read_coord6{3,6,12,true};
+
+    std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> expected_coords = {std::make_pair(read_coord1,interval_info1),
+                                                                                std::make_pair(read_coord2,interval_info2),
+                                                                                std::make_pair(read_coord3,interval_info1),
+                                                                                std::make_pair(read_coord4,interval_info2),
+                                                                                std::make_pair(read_coord5,interval_info1),
+                                                                                std::make_pair(read_coord6,interval_info2)};
+    EXPECT_EQ(expected_coords.size(),pairs.size());
+    uint count = 0;
+    for (const auto & p : pairs){
+        if (expected_coords.size() <= count)
+            break;
+        EXPECT_EQ(p.first,expected_coords[count].first);
+        EXPECT_EQ(p.second,expected_coords[count].second);
+        count++;
+    }
+}
+
+
+TEST(ExtractReadsTest, ordering_of_coordinate_pairs) {
+    uint32_t pnode_id = 3, prg_id = 3, read_id = 0;
+    string pnode_name = "three";
+
+    PanNodePtr pn = make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);
+
+    GeneIntervalInfo interval_info1{pn, Interval(1,3), "AGCT"};
+    GeneIntervalInfo interval_info2{pn, Interval(6,7), "CGGTAT"};
+    GeneIntervalInfo interval_info3{pn, Interval(6,9), "CGGTAT"};
+
+    ReadCoordinate read_coord1{0,6,10,true};
+    ReadCoordinate read_coord2{1,16,22,true};
+    ReadCoordinate read_coord3{2,3,6,true};
+    ReadCoordinate read_coord4{2,8,11,true};
+    ReadCoordinate read_coord5{3,2,6,true};
+    ReadCoordinate read_coord6{3,6,12,true};
+    ReadCoordinate read_coord7{3,2,6,false};
+    ReadCoordinate read_coord8{3,6,12,false};
+
+    std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> insert_order_pairs = {
+            std::make_pair(read_coord1,interval_info1),
+            std::make_pair(read_coord8,interval_info1),
+            std::make_pair(read_coord4,interval_info1),
+            std::make_pair(read_coord5,interval_info1),
+            std::make_pair(read_coord7,interval_info1),
+            std::make_pair(read_coord6,interval_info1),
+            std::make_pair(read_coord2,interval_info1),
+            std::make_pair(read_coord3,interval_info1),
+            std::make_pair(read_coord7,interval_info3),
+            std::make_pair(read_coord6,interval_info3),
+            std::make_pair(read_coord7,interval_info2),
+            std::make_pair(read_coord7,interval_info2),
+            std::make_pair(read_coord6,interval_info2),
+            std::make_pair(read_coord7,interval_info2),};
+
+    std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs(insert_order_pairs.begin(),insert_order_pairs.end());
+
+    vector<uint> exp_order = {0,6,7,2,3,4,10,8,5,12,9,1};
+    EXPECT_EQ(exp_order.size(),pairs.size());
+    uint count = 0;
+    for (const auto & p : pairs){
+        cout << count << endl;
+        if (exp_order.size() <= count)
+            break;
+        cout << p.first << " " << p.second << endl;
+        cout << insert_order_pairs[exp_order[count]].first << " " << insert_order_pairs[exp_order[count]].second << endl;
+        EXPECT_EQ(p.first,insert_order_pairs[exp_order[count]].first);
+        EXPECT_EQ(p.second,insert_order_pairs[exp_order[count]].second);
+        count++;
+    }
 }

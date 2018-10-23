@@ -4,18 +4,10 @@
 
 
 bool GeneIntervalInfo::operator<(const GeneIntervalInfo &y) const {
-    cout << "check if pnodes defined" << endl;
     if (!pnode and !y.pnode) { return false; }
-
-    cout << "check if one is defined" << endl;
     if (pnode and !y.pnode) { return false; }
-    cout << "again" << endl;
-    if (y.pnode and !pnode) {
-        cout << "pnode not defined" << endl;
-        return true;
-    }
+    if (y.pnode and !pnode) { return true; }
 
-    cout << "continue checking" << endl;
     if (pnode->prg_id < y.pnode->prg_id) { return true; }
     if (y.pnode->prg_id < pnode->prg_id) { return false; }
 
