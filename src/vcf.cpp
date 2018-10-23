@@ -165,7 +165,7 @@ void VCF::append_vcf(const VCF &other_vcf) {
 
     //cout << "find which samples are new of the " << other_vcf.samples.size() << " samples" << endl;
     vector<uint_least16_t> other_sample_positions;
-    for (const auto sample : other_vcf.samples) {
+    for (const auto &sample : other_vcf.samples) {
         auto sample_it = find(samples.begin(), samples.end(), sample);
         if (sample_it == samples.end()) {
             samples.push_back(sample);
@@ -241,7 +241,7 @@ void merge_sample_key(unordered_map<string, vector<uint8_t>> &first,
         first.erase(key);
     } else if (first[key][0] == second.at(key).at(0)) {
         bool ref = true;
-        for (const auto val : second.at(key)) {
+        for (const auto &val : second.at(key)) {
             if (!ref)
                 first[key].push_back(val);
             ref = false;
@@ -259,7 +259,7 @@ void merge_regt_sample_key(unordered_map<string, vector<float>> &first,
         first.erase(key);
     } else if (first[key][0] == second.at(key).at(0)) {
         bool ref = true;
-        for (const auto val : second.at(key)) {
+        for (const auto &val : second.at(key)) {
             if (!ref)
                 first[key].push_back(val);
             ref = false;

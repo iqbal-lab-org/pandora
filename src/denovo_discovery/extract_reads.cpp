@@ -164,6 +164,7 @@ void denovo_discovery::add_pnode_coordinate_pairs(
     cout << "there are " << intervals.size() << " intervals" << endl;
     for (const auto &interval: intervals) {
         BOOST_LOG_TRIVIAL(debug) << "Looking at interval: " << interval;
+        BOOST_LOG_TRIVIAL(debug) << "For gene: " << pnode->get_name();
 
         auto sub_local_node_path = find_interval_in_localpath(interval, local_node_path, padding_size);
         cout << "sub local node path ";
@@ -222,7 +223,7 @@ std::ostream &operator<<(std::ostream &out, ReadCoordinate const &y) {
 }
 
 std::map<GeneIntervalInfo, ReadPileup>
-collect_read_pileups(const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
+denovo_discovery::collect_read_pileups(const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
                      const boost::filesystem::path &readfilepath,
                      const uint32_t &padding_size) {
     FastaqHandler readfile(readfilepath.string());

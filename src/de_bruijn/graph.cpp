@@ -420,7 +420,7 @@ void Graph::extend_unitig(deque<uint32_t> &tig) {
 
 // Search the outnodes of node_ptr_to_search for node_ptr_to_find
 bool Graph::found_in_out_nodes(const NodePtr node_ptr_to_search, const NodePtr node_ptr_to_find) const {
-    for (const auto i : node_ptr_to_search->out_nodes) {
+    for (const auto &i : node_ptr_to_search->out_nodes) {
         if (*nodes.at(i) == *node_ptr_to_find) {
             return true;
         } else {
@@ -432,7 +432,7 @@ bool Graph::found_in_out_nodes(const NodePtr node_ptr_to_search, const NodePtr n
 
 // Search the innodes of node_ptr_to_search for node_ptr_to_find
 bool Graph::found_in_in_nodes(const NodePtr node_ptr_to_search, const NodePtr node_ptr_to_find) const {
-    for (const auto i : node_ptr_to_search->in_nodes) {
+    for (const auto &i : node_ptr_to_search->in_nodes) {
         if (*nodes.at(i) == *node_ptr_to_find) {
             return true;
         } else {
@@ -452,9 +452,9 @@ bool Graph::operator==(const Graph &y) const {
         return false;
     }
 
-    for (const auto t : nodes) {
+    for (const auto &t : nodes) {
         bool found = false;
-        for (const auto s : y.nodes) {
+        for (const auto &s : y.nodes) {
             if (*t.second == *s.second) {
                 //cout << t.first << " " << *t.second << " == " << *s.second << " " << s.first << endl;
 
@@ -467,14 +467,14 @@ bool Graph::operator==(const Graph &y) const {
                     return false;
                 }
 
-                for (const auto i : t.second->out_nodes) {
+                for (const auto &i : t.second->out_nodes) {
                     if (not y.found_in_out_nodes(s.second, nodes.at(i))
                         and not y.found_in_in_nodes(s.second, nodes.at(i))) {
                         cout << "did not find " << i << " in outnode or innodes " << endl;
                         return false;
                     }
                 }
-                for (const auto i : t.second->in_nodes) {
+                for (const auto &i : t.second->in_nodes) {
                     if (not y.found_in_out_nodes(s.second, nodes.at(i))
                         and not y.found_in_in_nodes(s.second, nodes.at(i))) {
                         cout << "did not find " << i << " in outnode or innodes " << endl;
