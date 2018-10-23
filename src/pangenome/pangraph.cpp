@@ -306,9 +306,9 @@ void Graph::split_node_by_reads(unordered_set<ReadPtr> &reads_along_tig, vector<
     unordered_set<ReadPtr> reads_on_node_path;
 
     // collect all reads on nodes
-    for (const auto i : node_path_ids)
+    for (const auto &i : node_path_ids)
     {
-        for (const auto r : nodes[n]->reads)
+        for (const auto &r : nodes[n]->reads)
         {
             reads_on_node_path.insert(r);
         }
@@ -374,7 +374,7 @@ bool Graph::operator==(const Graph &y) const {
     }*/
 
     // false if have different nodes
-    for (const auto c: nodes) {
+    for (const auto &c: nodes) {
         // if node id doesn't exist
         auto it = find_if(y.nodes.begin(), y.nodes.end(), same_prg_id(c.second));
         if (it == y.nodes.end()) {
@@ -382,7 +382,7 @@ bool Graph::operator==(const Graph &y) const {
             return false;
         }
     }
-    for (const auto c: y.nodes) {
+    for (const auto &c: y.nodes) {
         // if node id doesn't exist
         auto it = find_if(nodes.begin(), nodes.end(), same_prg_id(c.second));
         if (it == nodes.end()) {
