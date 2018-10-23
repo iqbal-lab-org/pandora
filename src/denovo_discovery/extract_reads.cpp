@@ -217,6 +217,10 @@ bool ReadCoordinate::operator==(const ReadCoordinate &y) const {
     );
 }
 
+bool ReadCoordinate::operator!=(const ReadCoordinate &y) const {
+    return (!(*this==y));
+}
+
 std::ostream &operator<<(std::ostream &out, ReadCoordinate const &y) {
     out << "{" << y.id << ", " << y.start << ", " << y.end << ", " << y.strand << "}";
     return out;
@@ -230,17 +234,22 @@ denovo_discovery::collect_read_pileups(const std::set<std::pair<ReadCoordinate, 
 
     std::map<GeneIntervalInfo, ReadPileup> pileup = {};
 
+    uint32_t last_id = 0;
     for (const auto &pangraph_coordinate: pangraph_coordinate_pairs) {
         const auto &read_coordinate = pangraph_coordinate.first;
         const auto &interval_info = pangraph_coordinate.second;
 
+        assert (last_id <= read_coordinate.id);
         readfile.get_id(read_coordinate.id);
         uint32_t start = padding_size > read_coordinate.start ? 0 : read_coordinate.start - padding_size;
         uint32_t end = std::min(read_coordinate.end + padding_size,
                                 (uint32_t) readfile.read.length());
 
         auto sequence = readfile.read.substr(start, end - start);
+        if (!read_coordinate.strand)
+            sequence = rev_complement(sequence);
         pileup[interval_info].emplace_back(sequence);
+        last_id = read_coordinate.id;
     }
     return pileup;
 }

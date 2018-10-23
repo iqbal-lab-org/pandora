@@ -25,6 +25,8 @@ struct ReadCoordinate {
 
     bool operator==(const ReadCoordinate &y) const;
 
+    bool operator!=(const ReadCoordinate &y) const;
+
     friend std::ostream &operator<<(std::ostream &, ReadCoordinate const &);
 };
 

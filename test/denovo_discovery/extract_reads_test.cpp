@@ -1235,6 +1235,115 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs_fewer_hits_needed) {
     }
 }
 
+TEST(ExtractReadsTest, read_coordinate_ordering) {
+    ReadCoordinate read_coord1{0,6,10,true};
+    ReadCoordinate read_coord2{1,16,22,true};
+    ReadCoordinate read_coord3{2,3,6,true};
+    ReadCoordinate read_coord4{2,8,11,true};
+    ReadCoordinate read_coord5{3,2,6,true};
+    ReadCoordinate read_coord6{3,6,12,true};
+    ReadCoordinate read_coord7{3,2,6,false};
+    ReadCoordinate read_coord8{3,6,12,false};
+
+    set<ReadCoordinate> read_coords = {read_coord8,read_coord7,read_coord6,read_coord5,read_coord4,
+                                       read_coord3,read_coord2,read_coord1};
+    vector<ReadCoordinate> exp_read_coords = {read_coord1,read_coord2,read_coord3,read_coord4,read_coord5,
+                                       read_coord7,read_coord6,read_coord8};
+
+    EXPECT_EQ(read_coords.size(),exp_read_coords.size());
+    uint count = 0;
+    for (const auto & r : read_coords){
+        if (exp_read_coords.size() <= count)
+            break;
+        EXPECT_EQ(r,exp_read_coords[count]);
+        count++;
+    }
+}
+
+TEST(ExtractReadsTest, read_coordinate_equals) {
+    ReadCoordinate read_coord1{0,6,10,true};
+    ReadCoordinate read_coord2{1,16,22,true};
+    ReadCoordinate read_coord3{2,3,6,true};
+    ReadCoordinate read_coord4{2,8,11,true};
+    ReadCoordinate read_coord5{3,2,6,true};
+    ReadCoordinate read_coord6{3,6,12,true};
+    ReadCoordinate read_coord7{3,2,6,false};
+    ReadCoordinate read_coord8{3,6,12,false};
+
+    EXPECT_EQ(read_coord1, read_coord1);
+    EXPECT_EQ(read_coord2, read_coord2);
+    EXPECT_EQ(read_coord3, read_coord3);
+    EXPECT_EQ(read_coord4, read_coord4);
+    EXPECT_EQ(read_coord5, read_coord5);
+    EXPECT_EQ(read_coord6, read_coord6);
+    EXPECT_EQ(read_coord7, read_coord7);
+    EXPECT_EQ(read_coord8, read_coord8);
+
+    EXPECT_NE(read_coord1, read_coord2);
+    EXPECT_NE(read_coord1, read_coord3);
+    EXPECT_NE(read_coord1, read_coord4);
+    EXPECT_NE(read_coord1, read_coord5);
+    EXPECT_NE(read_coord1, read_coord6);
+    EXPECT_NE(read_coord1, read_coord7);
+    EXPECT_NE(read_coord1, read_coord8);
+
+    EXPECT_NE(read_coord2, read_coord1);
+    EXPECT_NE(read_coord2, read_coord3);
+    EXPECT_NE(read_coord2, read_coord4);
+    EXPECT_NE(read_coord2, read_coord5);
+    EXPECT_NE(read_coord2, read_coord6);
+    EXPECT_NE(read_coord2, read_coord7);
+    EXPECT_NE(read_coord2, read_coord8);
+
+    EXPECT_NE(read_coord3, read_coord2);
+    EXPECT_NE(read_coord3, read_coord1);
+    EXPECT_NE(read_coord3, read_coord4);
+    EXPECT_NE(read_coord3, read_coord5);
+    EXPECT_NE(read_coord3, read_coord6);
+    EXPECT_NE(read_coord3, read_coord7);
+    EXPECT_NE(read_coord3, read_coord8);
+
+    EXPECT_NE(read_coord4, read_coord2);
+    EXPECT_NE(read_coord4, read_coord3);
+    EXPECT_NE(read_coord4, read_coord1);
+    EXPECT_NE(read_coord4, read_coord5);
+    EXPECT_NE(read_coord4, read_coord6);
+    EXPECT_NE(read_coord4, read_coord7);
+    EXPECT_NE(read_coord4, read_coord8);
+
+    EXPECT_NE(read_coord5, read_coord2);
+    EXPECT_NE(read_coord5, read_coord3);
+    EXPECT_NE(read_coord5, read_coord4);
+    EXPECT_NE(read_coord5, read_coord1);
+    EXPECT_NE(read_coord5, read_coord6);
+    EXPECT_NE(read_coord5, read_coord7);
+    EXPECT_NE(read_coord5, read_coord8);
+
+    EXPECT_NE(read_coord6, read_coord2);
+    EXPECT_NE(read_coord6, read_coord3);
+    EXPECT_NE(read_coord6, read_coord4);
+    EXPECT_NE(read_coord6, read_coord5);
+    EXPECT_NE(read_coord6, read_coord1);
+    EXPECT_NE(read_coord6, read_coord7);
+    EXPECT_NE(read_coord6, read_coord8);
+
+    EXPECT_NE(read_coord7, read_coord2);
+    EXPECT_NE(read_coord7, read_coord3);
+    EXPECT_NE(read_coord7, read_coord4);
+    EXPECT_NE(read_coord7, read_coord5);
+    EXPECT_NE(read_coord7, read_coord6);
+    EXPECT_NE(read_coord7, read_coord1);
+    EXPECT_NE(read_coord7, read_coord8);
+
+    EXPECT_NE(read_coord8, read_coord2);
+    EXPECT_NE(read_coord8, read_coord3);
+    EXPECT_NE(read_coord8, read_coord4);
+    EXPECT_NE(read_coord8, read_coord5);
+    EXPECT_NE(read_coord8, read_coord6);
+    EXPECT_NE(read_coord8, read_coord7);
+    EXPECT_NE(read_coord8, read_coord1);
+}
+
 
 TEST(ExtractReadsTest, ordering_of_coordinate_pairs) {
     uint32_t pnode_id = 3, prg_id = 3, read_id = 0;
@@ -1286,4 +1395,56 @@ TEST(ExtractReadsTest, ordering_of_coordinate_pairs) {
         EXPECT_EQ(p.second,insert_order_pairs[exp_order[count]].second);
         count++;
     }
+}
+
+TEST(ExtractReadsTest, collect_read_pileups) {
+    uint32_t pnode_id = 3, prg_id = 3, read_id = 0;
+    string pnode_name = "three";
+
+    PanNodePtr pn = make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);
+
+    GeneIntervalInfo interval_info1{pn, Interval(1,3), "AGCT"};
+    GeneIntervalInfo interval_info2{pn, Interval(6,7), "CGGTAT"};
+    GeneIntervalInfo interval_info3{pn, Interval(6,9), "CGGTAT"};
+
+    ReadCoordinate read_coord1{0,6,10,true}; //GCTA
+    ReadCoordinate read_coord2{1,16,22,true}; //CGGTAT
+    ReadCoordinate read_coord3{2,3,6,true}; //GTT
+    ReadCoordinate read_coord4{2,8,11,true}; //TGT
+    ReadCoordinate read_coord5{3,2,6,true}; //TCAC
+    ReadCoordinate read_coord6{3,6,12,true}; //CTTAAC
+    ReadCoordinate read_coord7{3,2,6,false}; //GTGA
+    ReadCoordinate read_coord8{3,6,12,false}; //GTTAAG
+
+    std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> insert_order_pairs = {
+            std::make_pair(read_coord1,interval_info1),
+            std::make_pair(read_coord8,interval_info1),
+            std::make_pair(read_coord4,interval_info1),
+            std::make_pair(read_coord5,interval_info1),
+            std::make_pair(read_coord7,interval_info1),
+            std::make_pair(read_coord6,interval_info1),
+            std::make_pair(read_coord2,interval_info1),
+            std::make_pair(read_coord3,interval_info1),
+            std::make_pair(read_coord7,interval_info3),
+            std::make_pair(read_coord6,interval_info3),
+            std::make_pair(read_coord7,interval_info2),
+            std::make_pair(read_coord7,interval_info2),
+            std::make_pair(read_coord6,interval_info2),
+            std::make_pair(read_coord7,interval_info2),};
+
+    std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs(insert_order_pairs.begin(),insert_order_pairs.end());
+
+    boost::filesystem::path fpath("../../test/test_cases/reads_for_pileups.fa");
+    auto padding_size = 0;
+    auto pileups = denovo_discovery::collect_read_pileups(pairs, fpath, padding_size);
+
+    std::map<GeneIntervalInfo, ReadPileup> exp_pileups;
+    exp_pileups[interval_info1] = {"GCTA","CGGTAT","GTT","TGT","TCAC","GTGA","CTTAAC","GTTAAG"};
+    exp_pileups[interval_info2] = {"GTGA", "CTTAAC"};
+    exp_pileups[interval_info3] = {"GTGA", "CTTAAC"};
+
+    EXPECT_ITERABLE_EQ(ReadPileup, exp_pileups[interval_info1], pileups[interval_info1]);
+    EXPECT_ITERABLE_EQ(ReadPileup, exp_pileups[interval_info2], pileups[interval_info2]);
+    EXPECT_ITERABLE_EQ(ReadPileup, exp_pileups[interval_info3], pileups[interval_info3]);
+
 }
