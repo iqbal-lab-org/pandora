@@ -13,16 +13,15 @@ fs::path get_discovered_paths_fname(const GeneIntervalInfo &info,
 
 void denovo_discovery::find_candidates(
         const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
-        const std::string &readfilepath, const fs::path &output_directory,
-        const double &error_rate, const uint32_t &local_assembly_kmer_size,
-        const uint32_t &kmer_attempts_count, const uint32_t &padding_size) {
+        const std::string &readfilepath, const fs::path &output_directory, const double &error_rate,
+        const uint32_t &local_assembly_kmer_size, const uint32_t &kmer_attempts_count) {
     logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
     if (not fs::exists(output_directory)) {
         fs::create_directories(output_directory);
     }
 
-    auto pileups = denovo_discovery::collect_read_pileups(pangraph_coordinate_pairs, readfilepath, padding_size);
+    auto pileups = denovo_discovery::collect_read_pileups(pangraph_coordinate_pairs, readfilepath);
     for (const auto &pileup: pileups) {
         auto &sequences = pileup.second;
         auto &info = pileup.first;
@@ -72,7 +71,7 @@ void denovo_discovery::find_candidates(
 }
 
 double
-denovo_discovery::calculate_kmer_coverage(const uint32_t &read_covg, const uint32_t &ref_length, const uint32_t k,
+denovo_discovery::calculate_kmer_coverage(const uint32_t &read_covg, const uint32_t &ref_length, const uint32_t &k,
                                           const double &error_rate) {
     if (ref_length == 0) {
         throw std::invalid_argument("ref_length should be greater than 0.");
