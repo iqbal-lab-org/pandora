@@ -54,8 +54,9 @@ identify_regions(const vector<uint32_t> &covgs, const uint32_t &threshold, const
 }
 
 vector<LocalNodePtr>
-find_interval_in_localpath(const Interval &interval, const vector<LocalNodePtr> &lmp,
-                           const unsigned int &buff) {
+find_interval_in_localpath(const Interval &interval,
+                           const vector<LocalNodePtr> &lmp,
+                           const uint32_t &buff) {
     uint32_t added = 0;
     uint16_t start = 0, end = 0;
     bool found_end = false;
@@ -123,12 +124,12 @@ std::set<ReadCoordinate> get_read_overlap_coordinates(const PanNodePtr &pnode,
                                                       const std::vector<LocalNodePtr> &local_node_path,
                                                       const uint32_t& min_number_hits) {
     std::set<ReadCoordinate> read_overlap_coordinates = {};
-    cout << "read ids " << endl;
+    BOOST_LOG_TRIVIAL(debug) << "read ids covering pannode to consider " << endl;
     for (const auto &r : pnode->reads)
-        cout << r->id << endl;
+        BOOST_LOG_TRIVIAL(debug) << r->id << endl;
     for (const auto &read_ptr: pnode->reads) {
         auto read_hits_inside_path = hits_inside_path(read_ptr->hits.at(pnode->prg_id), local_node_path);
-        cout << "read_hits_inside_path size " << read_hits_inside_path.size() << endl;
+        BOOST_LOG_TRIVIAL(debug) << "read_hits_inside_path size " << read_hits_inside_path.size() << endl;
         if (read_hits_inside_path.size() < min_number_hits)
             continue;
 
@@ -161,18 +162,17 @@ void denovo_discovery::add_pnode_coordinate_pairs(
     if (intervals.empty())
         return;
 
-    cout << "there are " << intervals.size() << " intervals" << endl;
+    BOOST_LOG_TRIVIAL(debug) << "there are " << intervals.size() << " intervals" << endl;
     for (const auto &interval: intervals) {
         BOOST_LOG_TRIVIAL(debug) << "Looking at interval: " << interval;
         BOOST_LOG_TRIVIAL(debug) << "For gene: " << pnode->get_name();
 
         auto sub_local_node_path = find_interval_in_localpath(interval, local_node_path, padding_size);
-        cout << "sub local node path ";
+        BOOST_LOG_TRIVIAL(debug) << "sub local node path ";
         for (const auto &l : sub_local_node_path)
-            cout << *l;
-        cout << endl;
+            BOOST_LOG_TRIVIAL(debug) << *l;
         auto read_overlap_coordinates = get_read_overlap_coordinates(pnode, sub_local_node_path, min_number_hits);
-        cout << "there are " << read_overlap_coordinates.size() << " read_overlap_coordinates" << endl;
+        BOOST_LOG_TRIVIAL(debug) << "there are " << read_overlap_coordinates.size() << " read_overlap_coordinates" << endl;
 
         GeneIntervalInfo interval_info{
                 pnode,

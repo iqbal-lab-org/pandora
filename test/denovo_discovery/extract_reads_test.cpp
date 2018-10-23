@@ -256,10 +256,6 @@ TEST(ExtractReadsTest, hits_inside_path) {
             l3.prg.nodes[6], l3.prg.nodes[7]//, l3.prg.nodes[9]
     };
     // A G C T CGG  TAT
-    for (const auto &n : lmp) {
-        cout << n->pos << " ";
-    }
-    cout << endl;
 
     set<MinimizerHitPtr, pComp_path> hits, expected_subset;
     uint32_t read_id = 0, prg_id = 3, knode_id = 0;
@@ -925,16 +921,12 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
             l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
             l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]
     };
-    for (const auto &l : lmp)
-        cout << *l << endl;
 
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0],
             l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[4], l3.kmer_prg.nodes[8],
             l3.kmer_prg.nodes[13], l3.kmer_prg.nodes[15], l3.kmer_prg.nodes[17],
             l3.kmer_prg.nodes[19], l3.kmer_prg.nodes[20], l3.kmer_prg.nodes[21]
     };
-    for (const auto &n : kmp)
-        cout << *n;
 
     PanNodePtr pn = make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);
     pn->kmer_prg = l3.kmer_prg;
@@ -949,8 +941,6 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
     pn->kmer_prg.nodes[19]->covg[0] += 1;
     pn->kmer_prg.nodes[20]->covg[0] += 10;
     pn->kmer_prg.nodes[21]->covg[0] += 10;
-
-    //cout << pn->kmer_prg << endl;
 
     PanReadPtr pr = make_shared<pangenome::Read>(read_id);
     set<MinimizerHitPtr, pComp> hits;
@@ -1038,9 +1028,6 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
     std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs;
     denovo_discovery::add_pnode_coordinate_pairs(pairs, pn, lmp, kmp, buff, covg_thresh, min_length, min_num_hits);
 
-    for (const auto &p : pairs)
-        cout << p.first << ", " << p.second << endl;
-
     GeneIntervalInfo interval_info1{pn, Interval(1,3), "AGCT"};
     GeneIntervalInfo interval_info2{pn, Interval(6,7), "CGGTAT"};
     ReadCoordinate read_coord1{0,2,6,true};
@@ -1090,16 +1077,12 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs_fewer_hits_needed) {
                                 l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]
     };
-    for (const auto &l : lmp)
-        cout << *l << endl;
 
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0],
                                l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[4], l3.kmer_prg.nodes[8],
                                l3.kmer_prg.nodes[13], l3.kmer_prg.nodes[15], l3.kmer_prg.nodes[17],
                                l3.kmer_prg.nodes[19], l3.kmer_prg.nodes[20], l3.kmer_prg.nodes[21]
     };
-    for (const auto &n : kmp)
-        cout << *n;
 
     PanNodePtr pn = make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);
     pn->kmer_prg = l3.kmer_prg;
@@ -1114,8 +1097,6 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs_fewer_hits_needed) {
     pn->kmer_prg.nodes[19]->covg[0] += 1;
     pn->kmer_prg.nodes[20]->covg[0] += 10;
     pn->kmer_prg.nodes[21]->covg[0] += 10;
-
-    //cout << pn->kmer_prg << endl;
 
     set<MinimizerHitPtr, pComp> hits;
 
@@ -1204,9 +1185,6 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs_fewer_hits_needed) {
 
     std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs;
     denovo_discovery::add_pnode_coordinate_pairs(pairs, pn, lmp, kmp, buff, covg_thresh, min_length, min_num_hits);
-
-    for (const auto &p : pairs)
-        cout << p.first << ", " << p.second << endl;
 
     GeneIntervalInfo interval_info1{pn, Interval(1,3), "AGCT"};
     GeneIntervalInfo interval_info2{pn, Interval(6,7), "CGGTAT"};
@@ -1386,11 +1364,8 @@ TEST(ExtractReadsTest, ordering_of_coordinate_pairs) {
     EXPECT_EQ(exp_order.size(),pairs.size());
     uint count = 0;
     for (const auto & p : pairs){
-        cout << count << endl;
         if (exp_order.size() <= count)
             break;
-        cout << p.first << " " << p.second << endl;
-        cout << insert_order_pairs[exp_order[count]].first << " " << insert_order_pairs[exp_order[count]].second << endl;
         EXPECT_EQ(p.first,insert_order_pairs[exp_order[count]].first);
         EXPECT_EQ(p.second,insert_order_pairs[exp_order[count]].second);
         count++;

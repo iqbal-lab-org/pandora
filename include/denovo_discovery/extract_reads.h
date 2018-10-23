@@ -34,7 +34,7 @@ std::vector<Interval>
 identify_regions(const std::vector<uint32_t> &, const uint32_t &threshold = 0, const uint32_t &min_length = 0);
 
 vector<LocalNodePtr>
-find_interval_in_localpath(const Interval &, const vector<LocalNodePtr> &, const unsigned int &);
+find_interval_in_localpath(const Interval &, const vector<LocalNodePtr> &, const uint32_t &);
 
 std::set<MinimizerHitPtr, pComp_path> hits_inside_path(const std::set<MinimizerHitPtr, pComp_path> &,
                                                       const std::vector<LocalNodePtr> &);
