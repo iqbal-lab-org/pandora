@@ -248,6 +248,13 @@ int pandora_map(int argc, char *argv[]) {
     mhs->clear();
     delete mhs;
 
+    if (pangraph->nodes.empty()){
+        cout << "Found non of the LocalPRGs in the reads." << endl;
+        cout << "FINISH: " << now() << endl;
+        delete pangraph;
+        return 0;
+    }
+
     cout << now() << "Writing pangenome::Graph to file " << outdir << "pandora.pangraph.gfa" << endl;
     write_pangraph_gfa(outdir + "/pandora.pangraph.gfa", pangraph);
 
@@ -272,6 +279,7 @@ int pandora_map(int argc, char *argv[]) {
         vcf_refs.reserve(prgs.size());
         load_vcf_refs_file(vcf_refs_file, vcf_refs);
     }
+
     for (auto c = pangraph->nodes.begin(); c != pangraph->nodes.end();) {
         if (output_vcf
             and !vcf_refs_file.empty()
@@ -302,6 +310,14 @@ int pandora_map(int argc, char *argv[]) {
     }
     consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
     master_vcf.save(outdir + "/pandora_consensus.vcf", true, true, true, true, true, true, true);
+
+    if (pangraph->nodes.empty()){
+        cout << "All nodes which were found have been removed during cleaning. Is your genome_size accurate?"
+             << " Genome size is assumed to be " << genome_size << " and can be updated with --genome_size" << endl
+             << "FINISH: " << now() << endl;
+        delete pangraph;
+        return 0;
+    }
 
     if (genotype) {
         master_vcf.genotype(covg, 0.01, 30, snps_only);

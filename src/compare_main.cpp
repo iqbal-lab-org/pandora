@@ -259,6 +259,10 @@ int pandora_compare(int argc, char *argv[]) {
         cout << now() << "Writing pangenome::Graph to file " << sample_outdir << "/pandora.pangraph.gfa" << endl;
         write_pangraph_gfa(sample_outdir + "/pandora.pangraph.gfa", pangraph_sample);
 
+        if (pangraph_sample->nodes.empty()){
+            cout << "WARNING: Found no LocalPRGs in the reads for sample " << sample->first << endl;
+        }
+
         cout << now() << "Update LocalPRGs with hits" << endl;
         update_localPRGs_with_hits(pangraph_sample, prgs);
 
@@ -266,6 +270,7 @@ int pandora_compare(int argc, char *argv[]) {
         estimate_parameters(pangraph_sample, sample_outdir, k, e_rate, covg, bin);
 
         cout << now() << "Find max likelihood PRG paths" << endl;
+        auto sample_pangraph_size = pangraph_sample->nodes.size();
         for (auto c = pangraph_sample->nodes.begin(); c != pangraph_sample->nodes.end();) {
             if (!vcf_refs_file.empty()) {
                 assert(vcf_refs.find(prgs[c->second->prg_id]->name) != vcf_refs.end());
@@ -289,6 +294,11 @@ int pandora_compare(int argc, char *argv[]) {
         consensus_fq.clear();
         //master_vcf.save(sample_outdir + "/pandora_consensus.vcf" , true, true, true, true, true, true, true);
         //master_vcf.clear();
+        if (pangraph_sample->nodes.empty() and sample_pangraph_size > 0){
+            cout << "WARNING: All LocalPRGs found were removed for sample " << sample->first
+                 << ". Is your genome_size accurate? Genome size is assumed to be " << genome_size
+                 << " and can be updated with --genome_size" << endl;
+        }
     }
 
     // for each pannode in graph, find a best reference and output a vcf and aligned fasta of sample paths through it
@@ -326,6 +336,12 @@ int pandora_compare(int argc, char *argv[]) {
     delete pangraph;
     pangraph_sample->clear();
     delete pangraph_sample;
+
+    if (pangraph->nodes.empty()){
+        cout << "No LocalPRGs found to compare samples on. "
+             << "Is your genome_size accurate? Genome size is assumed to be "
+             << genome_size << " and can be updated with --genome_size" << endl;
+    }
 
     // current date/time based on current system
     cout << "FINISH: " << now() << endl;
