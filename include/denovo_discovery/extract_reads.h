@@ -59,7 +59,7 @@ namespace denovo_discovery {
     std::map<GeneIntervalInfo, ReadPileup>
     collect_read_pileups(const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &,
                          const boost::filesystem::path &,
-                         const uint32_t &padding_size = g_local_assembly_kmer_size);
+                         const uint32_t &padding_size = g_local_assembly_kmer_size * 2);
 }
 
 

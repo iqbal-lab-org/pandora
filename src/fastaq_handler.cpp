@@ -124,9 +124,10 @@ void print(istream &infile) {
 }
 
 void FastaqHandler::get_id(const uint32_t &id) {
-    //cout << "get id " << id << endl;
-    if (id < num_reads_parsed) {
-        //cout << "restart buffer as have id " << num_reads_parsed << " and want id " << id << endl;
+    const uint32_t one_based_id = id + 1;
+    if (one_based_id < num_reads_parsed) {
+        BOOST_LOG_TRIVIAL(warning) << "restart buffer as have id " << num_reads_parsed << " and want id "
+                                   << one_based_id << " (" << id << ") with 0-based indexing.";
         num_reads_parsed = 0;
         name.clear();
         read.clear();
@@ -146,9 +147,6 @@ void FastaqHandler::get_id(const uint32_t &id) {
         inbuf.push(fastaq_file);
     }
 
-    BOOST_LOG_TRIVIAL(trace) << "now have name " << name << " read " << read << " num_reads_parsed " << num_reads_parsed
-                             << " and line " << line << endl;
-
     while (id > 1 and num_reads_parsed < id) {
         skip_next();
         if (eof()) {
@@ -156,17 +154,12 @@ void FastaqHandler::get_id(const uint32_t &id) {
         }
     }
 
-    BOOST_LOG_TRIVIAL(trace) << "now have name " << name << " read " << read << " num_reads_parsed " << num_reads_parsed
-                             << " and line " << line << endl;
-
     while (num_reads_parsed <= id) {
         get_next();
         if (eof()) {
             break;
         }
     }
-    BOOST_LOG_TRIVIAL(trace) << "now have name " << name << " read " << read << " num_reads_parsed " << num_reads_parsed
-                             << " and line " << line << endl;
 }
 
 void FastaqHandler::close() {
