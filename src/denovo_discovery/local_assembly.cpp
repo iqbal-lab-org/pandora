@@ -38,27 +38,7 @@ std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph) {
 }
 
 
-/* Non-recursive implementation of DFS from "Algorithm Design" - Kleinberg and Tardos (First Edition)
- *
- * DFS(s):
- *     Initialise S to be a stack with one element s
- *     Initialise parent to be an array
- *     Initialise dfs tree T
- *     While S is not empty
- *         Take a node u from S
- *         If Explored[u] = false then
- *             Set Explored[u] = true
- *             If u != s then
- *                 Add edge (u, parent[u]) to tree T
- *             Endif
- *             For each edge (u,v) incident to u
- *                 Add v to the stack S
- *                 Set parent[v] = u
- *             Endfor
- *         Endif
- *     Endwhile
- *     Return T
- */
+// Non-recursive implementation of DFS from "Algorithm Design" - Kleinberg and Tardos (First Edition)
 DfsTree DFS(const Node &start_node, const Graph &graph) {
     BOOST_LOG_TRIVIAL(debug) << "Starting DFS...";
     std::stack<Node> nodes_to_explore({start_node});
@@ -98,7 +78,7 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
 Paths get_paths_between(const std::string &start_kmer, const std::string &end_kmer,
                         std::unordered_map<string, GraphVector<Node>> &tree, const Graph &graph,
                         const unsigned long max_path_length, const double &expected_coverage) {
-    BOOST_LOG_TRIVIAL(debug) << "Enumerating all paths in DFS between " << start_kmer << " and " << end_kmer;
+    BOOST_LOG_TRIVIAL(debug) << "Enumerating all paths in DFS tree between " << start_kmer << " and " << end_kmer;
     std::string initial_acc = start_kmer.substr(0, start_kmer.length() - 1);
 
     Paths result = {};
@@ -120,25 +100,18 @@ void get_paths_between_util(const std::string &start_kmer, const std::string &en
 
     // do coverage check
     // if there are k k-mers with coverage <= expected_covg * coverage scaling factor - stop recursing for this path
-    //todo: revisit this scaling with zam
+    // todo: revisit this scaling with zam
     if (kmer_coverage < (expected_kmer_covg * COVG_SCALING_FACTOR)) {
         kmers_below_threshold++;
         if (kmers_below_threshold >= start_kmer.length()) {
-            BOOST_LOG_TRIVIAL(debug) << "Path has " << std::to_string(kmers_below_threshold)
-                                     << " k-mers with less than " << std::to_string(expected_kmer_covg) << " * "
-                                     << std::to_string(COVG_SCALING_FACTOR) << " coverage. Abandoning path.";
             return;
         }
     }
-
 
     auto &child_nodes = tree[start_kmer];
     auto num_children = child_nodes.size();
 
     if (path_accumulator.length() > max_path_length) {
-        BOOST_LOG_TRIVIAL(debug) << "Path accumulator has reached max. length of " << std::to_string(max_path_length)
-                                 << ". Abandoning this path.";
-        BOOST_LOG_TRIVIAL(trace) << path_accumulator;
         return;
     }
 
@@ -147,8 +120,6 @@ void get_paths_between_util(const std::string &start_kmer, const std::string &en
     // makes sure we get all possible cycle repitions up to the maximum length
     if (has_ending(path_accumulator, end_kmer)) {
         full_paths.push_back(path_accumulator);
-        BOOST_LOG_TRIVIAL(debug) << "Path added to results.";
-        BOOST_LOG_TRIVIAL(trace) << path_accumulator << " added to vector of paths.";
     }
 
     for (unsigned int i = 0; i < num_children; ++i) {
@@ -174,7 +145,7 @@ void write_paths_to_fasta(const boost::filesystem::path &filepath,
     }
 
     out_file.close();
-    BOOST_LOG_TRIVIAL(info) << "Local assembly paths written to " << filepath;
+    BOOST_LOG_TRIVIAL(debug) << "Local assembly paths written to " << filepath;
 }
 
 void local_assembly(const std::vector<std::string> &sequences,
@@ -186,21 +157,6 @@ void local_assembly(const std::vector<std::string> &sequences,
                     const double &expected_coverage,
                     const bool clean_graph,
                     const unsigned int min_coverage) {
-
-    BOOST_LOG_TRIVIAL(debug) << "Parameters for local assembly: ";
-    BOOST_LOG_TRIVIAL(debug) << "Start kmers: ";
-    for (const auto &kmer: start_kmers) {
-        BOOST_LOG_TRIVIAL(debug) << kmer;
-    }
-    BOOST_LOG_TRIVIAL(debug) << "End kmers: ";
-    for (const auto &kmer: end_kmers) {
-        BOOST_LOG_TRIVIAL(debug) << kmer;
-    }
-    BOOST_LOG_TRIVIAL(debug) << "kmer size: " << std::to_string(kmer_size) << "\nmax path length: "
-                             << std::to_string(max_path_length)
-                             << "\nClean graph: " << std::to_string(clean_graph) << "\nMin. coverage: "
-                             << std::to_string(min_coverage) << "\n";
-
     if (sequences.empty()) {
         BOOST_LOG_TRIVIAL(warning) << "Sequences vector to assemble is empty. Skipping local assembly.";
         return;
@@ -230,7 +186,6 @@ void local_assembly(const std::vector<std::string> &sequences,
     }
 
     if (clean_graph) {
-        BOOST_LOG_TRIVIAL(debug) << "Cleaning graph.";
         do_graph_clean(graph);
     }
 
@@ -257,8 +212,6 @@ void local_assembly(const std::vector<std::string> &sequences,
             if (end_found) {
                 start_kmer = s_kmer;
                 end_kmer = e_kmer;
-                BOOST_LOG_TRIVIAL(info) << "Using start k-mer " << start_kmer << " and end k-mer " << end_kmer;
-
                 goto dfs;
             }
         }
@@ -281,16 +234,9 @@ void local_assembly(const std::vector<std::string> &sequences,
 }
 
 
-void remove_graph_file(const std::string &filepath) {
-    std::string h5_path;
-    if (filepath.empty()) {
-        h5_path = "dummy.h5";
-    } else {
-        boost::filesystem::path p{filepath};
-        h5_path = p.stem().string() + ".h5";
-    }
-    BOOST_LOG_TRIVIAL(info) << "Removing graph h5 file: " << h5_path;
-    remove(h5_path.c_str());
+void remove_graph_file() {
+    const fs::path p{"dummy.h5"};
+    fs::remove(p);
 }
 
 

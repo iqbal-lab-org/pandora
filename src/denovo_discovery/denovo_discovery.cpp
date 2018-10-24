@@ -1,7 +1,6 @@
 #include "denovo_discovery/denovo_discovery.h"
 
 
-
 fs::path get_discovered_paths_fname(const GeneIntervalInfo &info,
                                     const uint32_t &local_assembly_kmer_size) {
     return fs::path(
@@ -51,9 +50,8 @@ void denovo_discovery::find_candidates(
                                                                                     local_assembly_kmer_size,
                                                                                     error_rate);
 
-        BOOST_LOG_TRIVIAL(debug) << "Running local assembly for: " << info.pnode->get_name();
-        BOOST_LOG_TRIVIAL(debug) << "Read coverage is: " << read_covg;
-        BOOST_LOG_TRIVIAL(debug) << "Interval sequence is: " << interval_sequence;
+        BOOST_LOG_TRIVIAL(debug) << "Running local assembly for: " << info.pnode->get_name() << " - interval ["
+                                 << info.interval.start << ", " << info.interval.get_end() << "]";
 
         local_assembly(sequences,
                        start_kmers,

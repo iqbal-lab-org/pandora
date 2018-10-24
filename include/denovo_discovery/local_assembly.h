@@ -15,7 +15,7 @@
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
-#include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
 
 
 using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
@@ -69,7 +69,7 @@ std::string reverse_complement(const std::string &forward);
 
 bool file_exists(const std::string &name);
 
-void remove_graph_file(const std::string &filepath = "");
+void remove_graph_file();
 
 std::unordered_set<std::string> generate_start_kmers(const std::string &sequence, const unsigned int k, unsigned int n);
 

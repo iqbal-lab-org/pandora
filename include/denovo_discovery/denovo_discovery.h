@@ -2,7 +2,7 @@
 #define PANDORA_DENOVO_DISCOVERY_H
 
 #include <stdexcept>
-#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem.hpp>
 
 #include "denovo_discovery/gene_interval_info.h"
 #include "denovo_discovery/extract_reads.h"
