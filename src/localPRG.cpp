@@ -1204,7 +1204,7 @@ uint32_t median(std::vector<uint32_t> v) {
     } else {
         int n1 = (v.size() + 2) / 2;
         int n2 = (v.size() - 2) / 2;
-        return (v[n1 - 1] + v[n2 - 1]) / 2;
+            return (v[n1 - 1] + v[n2 - 1]) / 2;
     }
 }
 

@@ -246,9 +246,6 @@ void local_assembly(const std::vector<std::string> &sequences,
         if (not start_found) {
             continue;
         }
-
-        BOOST_LOG_TRIVIAL(debug) << "Found start kmer: " << graph.toString(start_node);
-
         for (const auto &e_kmer: end_kmers) {
             // make sure end kmer doesnt exist in the set of start kmers
             if (start_kmers.find(e_kmer) != start_kmers.end()) {
