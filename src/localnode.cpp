@@ -4,6 +4,7 @@
 #include "interval.h"
 #include "utils.h" // for pointer_values_equal
 
+
 using namespace std;
 
 LocalNode::LocalNode(string s, Interval p, uint32_t i) : seq(s), pos(p), id(i), covg(p.length), sketch_next(pos.start),

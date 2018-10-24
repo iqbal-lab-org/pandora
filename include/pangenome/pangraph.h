@@ -15,6 +15,7 @@ class KmerNode;
 #include "minihits.h"
 #include "pangenome/ns.cpp"
 
+
 using KmerNodePtr = std::shared_ptr<KmerNode>;
 using ReadId = uint32_t;
 using NodeId = uint32_t;
@@ -47,7 +48,7 @@ public:
     void add_node(const uint32_t, const std::string &, uint32_t,
                   std::set<MinimizerHitPtr, pComp> &); // used by pandora map
     void add_node(const uint32_t, const std::string &, const std::string &, const std::vector<KmerNodePtr> &,
-                  const LocalPRG *); // used by pandora compare
+                  const std::shared_ptr<LocalPRG> &); // used by pandora compare
 
     std::unordered_map<uint32_t, NodePtr>::iterator remove_node(NodePtr);
 
@@ -57,10 +58,11 @@ public:
 
     void remove_low_covg_nodes(const uint32_t &);
 
-    void split_node_by_reads(unordered_set<ReadPtr> &, vector<uint16_t> &, const vector<bool> &, const uint16_t);
+    void split_node_by_reads(unordered_set<ReadPtr> &, vector<uint_least32_t> &, const vector<bool> &,
+                             const uint_least32_t);
 
     //unordered_set<ReadPtr> find_reads_on_node_path(const std::vector<uint16_t>, const std::vector<bool> );
-    void add_hits_to_kmergraphs(const std::vector<LocalPRG *> &);
+    void add_hits_to_kmergraphs(const std::vector<std::shared_ptr<LocalPRG>> &);
 
     // graph comparison
     bool operator==(const Graph &y) const;
@@ -70,9 +72,9 @@ public:
     // graph read/write
     void save_matrix(const std::string &);
 
-    void save_mapped_read_strings(const std::string& read_filepath, const std::string& outprefix, const int buff=0);
+    void save_mapped_read_strings(const std::string &read_filepath, const std::string &outprefix, const int buff = 0);
 
-    void save_kmergraph_coverages(const std::string&, const std::string&);
+    void save_kmergraph_coverages(const std::string &, const std::string &);
 
     friend std::ostream &operator<<(std::ostream &out, const Graph &m);
 

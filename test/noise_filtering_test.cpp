@@ -6,33 +6,34 @@
 #include "pangenome/pannode.h"
 #include "minihit.h"
 
+
 using namespace std;
 
 TEST(NoiseFilteringTest, node_plus_orientation_to_num) {
-    EXPECT_EQ((uint16_t) 0, node_plus_orientation_to_num(0, false));
-    EXPECT_EQ((uint16_t) 1, node_plus_orientation_to_num(0, true));
-    EXPECT_EQ((uint16_t) 2, node_plus_orientation_to_num(1, false));
-    EXPECT_EQ((uint16_t) 3, node_plus_orientation_to_num(1, true));
+    EXPECT_EQ((uint_least32_t) 0, node_plus_orientation_to_num(0, false));
+    EXPECT_EQ((uint_least32_t) 1, node_plus_orientation_to_num(0, true));
+    EXPECT_EQ((uint_least32_t) 2, node_plus_orientation_to_num(1, false));
+    EXPECT_EQ((uint_least32_t) 3, node_plus_orientation_to_num(1, true));
 }
 
 TEST(NoiseFilteringTest, num_to_node_plus_orientation) {
-    uint16_t node_id;
+    uint_least32_t node_id;
     bool node_orientation;
 
     num_to_node_plus_orientation(node_id, node_orientation, 0);
-    EXPECT_EQ((uint16_t) 0, node_id);
+    EXPECT_EQ((uint_least32_t) 0, node_id);
     EXPECT_EQ(node_orientation, false);
 
     num_to_node_plus_orientation(node_id, node_orientation, 1);
-    EXPECT_EQ((uint16_t) 0, node_id);
+    EXPECT_EQ((uint_least32_t) 0, node_id);
     EXPECT_EQ(node_orientation, true);
 
     num_to_node_plus_orientation(node_id, node_orientation, 2);
-    EXPECT_EQ((uint16_t) 1, node_id);
+    EXPECT_EQ((uint_least32_t) 1, node_id);
     EXPECT_EQ(node_orientation, false);
 
     num_to_node_plus_orientation(node_id, node_orientation, 3);
-    EXPECT_EQ((uint16_t) 1, node_id);
+    EXPECT_EQ((uint_least32_t) 1, node_id);
     EXPECT_EQ(node_orientation, true);
 }
 
@@ -46,20 +47,20 @@ TEST(NoiseFilteringTest, rc_num) {
 }
 
 TEST(NoiseFilteringTest, hashed_node_ids_to_ids_and_orientations) {
-    std::deque<uint16_t> d = {3, 1, 2, 0};
-    vector<uint16_t> v;
-    vector<uint16_t> v_exp = {1, 0, 1, 0};
+    std::deque<uint_least32_t> d = {3, 1, 2, 0};
+    vector<uint_least32_t> v;
+    vector<uint_least32_t> v_exp = {1, 0, 1, 0};
     vector<bool> b;
     vector<bool> b_exp = {true, true, false, false};
 
     hashed_node_ids_to_ids_and_orientations(d, v, b);
-    EXPECT_ITERABLE_EQ(vector<uint16_t>, v_exp, v);
+    EXPECT_ITERABLE_EQ(vector<uint_least32_t>, v_exp, v);
     EXPECT_ITERABLE_EQ(vector<bool>, b_exp, b);
 }
 
 TEST(NoiseFilteringOverlapForwards, SimpleCase_True) {
-    std::deque<uint16_t> d1 = {0, 1, 2};
-    std::deque<uint16_t> d2 = {1, 2, 3};
+    std::deque<uint_least32_t> d1 = {0, 1, 2};
+    std::deque<uint_least32_t> d2 = {1, 2, 3};
     bool result = overlap_forwards(d1, d2);
     EXPECT_TRUE(result);
     result = overlap_forwards(d2, d1);
@@ -67,35 +68,35 @@ TEST(NoiseFilteringOverlapForwards, SimpleCase_True) {
 }
 
 TEST(NoiseFilteringOverlapForwards, SimpleCase_False) {
-    std::deque<uint16_t> d1 = {0, 1, 2};
-    std::deque<uint16_t> d2 = {1, 2, 3};
+    std::deque<uint_least32_t> d1 = {0, 1, 2};
+    std::deque<uint_least32_t> d2 = {1, 2, 3};
     bool result = overlap_forwards(d2, d1);
     EXPECT_FALSE(result);
 }
 
 TEST(NoiseFilteringOverlapForwards, FirstLongerThanSecond_True) {
-    std::deque<uint16_t> d1 = {0, 4, 6, 2, 5, 4, 0, 1, 2};
-    std::deque<uint16_t> d2 = {1, 2, 3};
+    std::deque<uint_least32_t> d1 = {0, 4, 6, 2, 5, 4, 0, 1, 2};
+    std::deque<uint_least32_t> d2 = {1, 2, 3};
     bool result = overlap_forwards(d1, d2);
     EXPECT_TRUE(result);
 }
 
 TEST(NoiseFilteringOverlapForwards, OverlapShiftedMoreThanOne_False) {
-    std::deque<uint16_t> d1 = {0, 4, 6, 2, 5, 4, 0, 1, 2};
-    std::deque<uint16_t> d2 = {1, 2, 3, 4};
+    std::deque<uint_least32_t> d1 = {0, 4, 6, 2, 5, 4, 0, 1, 2};
+    std::deque<uint_least32_t> d2 = {1, 2, 3, 4};
     bool result = overlap_forwards(d1, d2);
     EXPECT_FALSE(result);
 }
 
 TEST(NoiseFilteringOverlapForwards, SecondLongerThanFirst_Death) {
-    std::deque<uint16_t> d1 = {0, 4, 6, 2, 5, 4, 0, 1, 2};
-    std::deque<uint16_t> d2 = {0, 4, 6, 2, 5, 4, 0, 1, 2, 3};
+    std::deque<uint_least32_t> d1 = {0, 4, 6, 2, 5, 4, 0, 1, 2};
+    std::deque<uint_least32_t> d2 = {0, 4, 6, 2, 5, 4, 0, 1, 2, 3};
     EXPECT_DEATH(overlap_forwards(d1, d2), "");
 }
 
 TEST(NoiseFilteringTest, overlap_backwards) {
-    std::deque<uint16_t> d1 = {0, 1, 2};
-    std::deque<uint16_t> d2 = {1, 2, 3};
+    std::deque<uint_least32_t> d1 = {0, 1, 2};
+    std::deque<uint_least32_t> d2 = {1, 2, 3};
     EXPECT_EQ(overlap_backwards(d2, d1), true);
     EXPECT_EQ(overlap_backwards(d1, d2), false);
     EXPECT_EQ(overlap_backwards(d1, d1), false);
@@ -120,17 +121,17 @@ TEST(NoiseFilteringTest, overlap_backwards) {
 }
 
 TEST(NoiseFilteringTest, rc_hashed_node_ids) {
-    std::deque<uint16_t> d1 = {0, 1, 2, 5, 9, 10, 46, 322, 6779};
-    std::deque<uint16_t> d2 = {6778, 323, 47, 11, 8, 4, 3, 0, 1};
-    EXPECT_ITERABLE_EQ(std::deque<uint16_t>, d1, rc_hashed_node_ids(d2));
-    EXPECT_ITERABLE_EQ(std::deque<uint16_t>, d2, rc_hashed_node_ids(d1));
+    std::deque<uint_least32_t> d1 = {0, 1, 2, 5, 9, 10, 46, 322, 6779};
+    std::deque<uint_least32_t> d2 = {6778, 323, 47, 11, 8, 4, 3, 0, 1};
+    EXPECT_ITERABLE_EQ(std::deque<uint_least32_t>, d1, rc_hashed_node_ids(d2));
+    EXPECT_ITERABLE_EQ(std::deque<uint_least32_t>, d2, rc_hashed_node_ids(d1));
 }
 
 TEST(NoiseFilteringDbgNodeIdsToIdsAndOrientations, AllNodesOverlapForward_ConvertCorrectly) {
     uint32_t read_id = 0;
 
     debruijn::Graph dbg(3);
-    std::deque<uint16_t> d = {0, 2, 6};
+    std::deque<uint_least32_t> d = {0, 2, 6};
     dbg.add_node(d, read_id);
     d = {2, 6, 11};
     dbg.add_node(d, read_id);
@@ -144,13 +145,13 @@ TEST(NoiseFilteringDbgNodeIdsToIdsAndOrientations, AllNodesOverlapForward_Conver
     dbg.add_node(d, read_id);
 
     std::deque<uint32_t> tig = {0, 1, 2, 3, 4, 5};
-    vector<uint16_t> node_ids;
+    vector<uint_least32_t> node_ids;
     vector<bool> node_orients;
     dbg_node_ids_to_ids_and_orientations(dbg, tig, node_ids, node_orients);
 
-    vector<uint16_t> exp = {0, 1, 3, 5, 6, 99, 30, 3};
+    vector<uint_least32_t> exp = {0, 1, 3, 5, 6, 99, 30, 3};
     vector<bool> exp_o = {0, 0, 0, 1, 0, 0, 0, 0};
-    EXPECT_ITERABLE_EQ(vector<uint16_t>, exp, node_ids);
+    EXPECT_ITERABLE_EQ(vector<uint_least32_t>, exp, node_ids);
     EXPECT_ITERABLE_EQ(vector<bool>, exp_o, node_orients);
 }
 
@@ -158,7 +159,7 @@ TEST(NoiseFilteringDbgNodeIdsToIdsAndOrientations, AllNodesOverlapBackward_Conve
     uint32_t read_id = 0;
 
     debruijn::Graph dbg(3);
-    std::deque<uint16_t> d = {0, 2, 6};
+    std::deque<uint_least32_t> d = {0, 2, 6};
     dbg.add_node(d, read_id);
     d = {2, 6, 11};
     dbg.add_node(d, read_id);
@@ -172,13 +173,13 @@ TEST(NoiseFilteringDbgNodeIdsToIdsAndOrientations, AllNodesOverlapBackward_Conve
     dbg.add_node(d, read_id);
 
     std::deque<uint32_t> tig = {5, 4, 3, 2, 1, 0};
-    vector<uint16_t> node_ids;
+    vector<uint_least32_t> node_ids;
     vector<bool> node_orients;
     dbg_node_ids_to_ids_and_orientations(dbg, tig, node_ids, node_orients);
 
-    vector<uint16_t> exp = {0, 1, 3, 5, 6, 99, 30, 3};
+    vector<uint_least32_t> exp = {0, 1, 3, 5, 6, 99, 30, 3};
     vector<bool> exp_o = {0, 0, 0, 1, 0, 0, 0, 0};
-    EXPECT_ITERABLE_EQ(vector<uint16_t>, exp, node_ids);
+    EXPECT_ITERABLE_EQ(vector<uint_least32_t>, exp, node_ids);
     EXPECT_ITERABLE_EQ(vector<bool>, exp_o, node_orients);
 }
 
@@ -189,7 +190,7 @@ TEST(NoiseFilteringDbgNodeIdsToIdsAndOrientations, OverlapForwardsSomeReverseCom
     // read 0 0->1->3->5->6
     //        0  0  0  1  0
     uint32_t read_id = 0;
-    std::deque<uint16_t> d = {0, 2, 6};
+    std::deque<uint_least32_t> d = {0, 2, 6};
     dbg.add_node(d, read_id);
     d = {2, 6, 11};
     dbg.add_node(d, read_id);
@@ -209,13 +210,13 @@ TEST(NoiseFilteringDbgNodeIdsToIdsAndOrientations, OverlapForwardsSomeReverseCom
     dbg.add_node(d, read_id);
 
     std::deque<uint32_t> tig = {0, 1, 2, 5, 4, 3};
-    vector<uint16_t> node_ids;
+    vector<uint_least32_t> node_ids;
     vector<bool> node_orients;
     dbg_node_ids_to_ids_and_orientations(dbg, tig, node_ids, node_orients);
 
-    vector<uint16_t> exp = {0, 1, 3, 5, 6, 99, 30, 3};
+    vector<uint_least32_t> exp = {0, 1, 3, 5, 6, 99, 30, 3};
     vector<bool> exp_o = {0, 0, 0, 1, 0, 0, 1, 1};
-    EXPECT_ITERABLE_EQ(vector<uint16_t>, exp, node_ids);
+    EXPECT_ITERABLE_EQ(vector<uint_least32_t>, exp, node_ids);
     EXPECT_ITERABLE_EQ(vector<bool>, exp_o, node_orients);
 }
 
@@ -226,7 +227,7 @@ TEST(NoiseFilteringDbgNodeIdsToIdsAndOrientations, OverlapBackwardsSomeReverseCo
     // read 0 0->1->3->5->6
     //        0  0  0  1  0
     uint32_t read_id = 0;
-    std::deque<uint16_t> d = {0, 2, 6};
+    std::deque<uint_least32_t> d = {0, 2, 6};
     dbg.add_node(d, read_id);
     d = {2, 6, 11};
     dbg.add_node(d, read_id);
@@ -246,13 +247,13 @@ TEST(NoiseFilteringDbgNodeIdsToIdsAndOrientations, OverlapBackwardsSomeReverseCo
     dbg.add_node(d, read_id);
 
     std::deque<uint32_t> tig = {3, 4, 5, 2, 1, 0};
-    vector<uint16_t> node_ids;
+    vector<uint_least32_t> node_ids;
     vector<bool> node_orients;
     dbg_node_ids_to_ids_and_orientations(dbg, tig, node_ids, node_orients);
 
-    vector<uint16_t> exp = {3, 30, 99, 6, 5, 3, 1, 0};
+    vector<uint_least32_t> exp = {3, 30, 99, 6, 5, 3, 1, 0};
     vector<bool> exp_o = {0, 0, 1, 1, 0, 1, 1, 1};
-    EXPECT_ITERABLE_EQ(vector<uint16_t>, exp, node_ids);
+    EXPECT_ITERABLE_EQ(vector<uint_least32_t>, exp, node_ids);
     EXPECT_ITERABLE_EQ(vector<bool>, exp_o, node_orients);
 }
 
@@ -307,7 +308,7 @@ TEST(NoiseFilteringTest, construct_debruijn_graph) {
     construct_debruijn_graph(pg, dbg);
 
     debruijn::Graph dbg_exp(3);
-    std::deque<uint16_t> d = {0, 2, 4};
+    std::deque<uint_least32_t> d = {0, 2, 4};
     debruijn::OrientedNodePtr n1 = dbg_exp.add_node(d, 0);
     d = {2, 4, 6};
     debruijn::OrientedNodePtr n2 = dbg_exp.add_node(d, 0);
@@ -664,7 +665,7 @@ TEST(NoiseFilteringRemoveLeaves, AllTogether_GraphsLookCorrect) {
     construct_debruijn_graph(pg, dbg);
     remove_leaves(pg, dbg);
 
-    std::deque<uint16_t> d = {0, 2, 4};
+    std::deque<uint_least32_t> d = {0, 2, 4};
     debruijn::OrientedNodePtr n1 = dbg_exp.add_node(d, 0);
     d = {2, 4, 6};
     debruijn::OrientedNodePtr n2 = dbg_exp.add_node(d, 0);
@@ -1423,7 +1424,7 @@ TEST(NoiseFilteringFilterUnitigs, AllTogether_PanGraphIsAsExpected) {
     filter_unitigs(pg, dbg, 1);
 
     debruijn::Graph dbg_exp(3);
-    std::deque<uint16_t> d = {0,2,4};
+    std::deque<uint_least32_t> d = {0,2,4};
     debruijn::OrientedNodePtr n1 = dbg_exp.add_node(d, 0);
     d = {2,4,6};
     debruijn::OrientedNodePtr n2 = dbg_exp.add_node(d, 0);

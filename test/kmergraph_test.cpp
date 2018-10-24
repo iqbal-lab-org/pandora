@@ -2,7 +2,7 @@
 #include "test_macro.cpp"
 
 #include "interval.h"
-#include "path.h"
+#include "prg/path.h"
 #include "kmergraph.h"
 #include "kmernode.h"
 #include "localPRG.h"
@@ -308,7 +308,7 @@ TEST(KmerGraphTest, sort_topologically) {
     vector<KmerNodePtr>::iterator it;
     uint i = 0;
     for (vector<KmerNodePtr>::iterator c = kg.sorted_nodes.begin(); c != kg.sorted_nodes.end(); ++c) {
-        for (auto d: (*c)->outNodes) {
+        for (const auto &d: (*c)->outNodes) {
             it = c + 1;
             while ((*it)->path != d->path and it != kg.sorted_nodes.end()) {
                 it++;
@@ -862,8 +862,7 @@ TEST(KmerGraphTest, save_covg_dist) {
 }
 
 TEST(KmerGraphTest, save) {
-    LocalPRG *l;
-    l = new LocalPRG(1, "test localPRG", "ACGT");
+    auto l = std::make_shared<LocalPRG>(LocalPRG(1, "test localPRG", "ACGT"));
 
     KmerGraph kg;
     deque<Interval> d = {Interval(0, 3)};
@@ -879,8 +878,6 @@ TEST(KmerGraphTest, save) {
 
     //kg.save("../test/test_cases/kmergraph_test.gfa");
     kg.save("kmergraph_test.gfa", l);
-
-    delete l;
 }
 
 TEST(KmerGraphTest, save_no_prg) {

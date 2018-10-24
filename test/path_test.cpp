@@ -1,11 +1,14 @@
 #include "gtest/gtest.h"
 #include "test_macro.cpp"
 #include "interval.h"
-#include "path.h"
+#include "prg/path.h"
 #include <stdint.h>
 #include <iostream>
 
+
+typedef prg::Path Path;
 using namespace std;
+using namespace prg;
 
 TEST(PathTest, initialize) {
     Path p;
@@ -137,8 +140,7 @@ TEST(PathTest, is_branching) {
     EXPECT_EQ(p1.is_branching(p), false);
 }
 
-TEST(PathTest, is_subpath)
-{
+TEST(PathTest, is_subpath) {
     vector<Interval> d, d1;
     d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
     d1 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 10)};
@@ -248,24 +250,24 @@ TEST(PathTest, equals) {
     EXPECT_EQ((p1 == p), false);
 }
 
-TEST(PathTest, equal_except_null_nodes) {
-    vector<Interval> d, d1, d2;
-    d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
-    d1 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40), Interval(40, 40), Interval(59, 59)};
-    d2 = {Interval(0, 0), Interval(1, 1), Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
-
-    Path p, p1, p2;
-    p.initialize(d);
-    p1.initialize(d1);
-    p2.initialize(d2);
-
-    EXPECT_EQ(equal_except_null_nodes(p, p), true);
-    EXPECT_EQ(equal_except_null_nodes(p, p1), true);
-    EXPECT_EQ(equal_except_null_nodes(p, p2), true);
-    EXPECT_EQ(equal_except_null_nodes(p1, p1), true);
-    EXPECT_EQ(equal_except_null_nodes(p1, p2), true);
-    EXPECT_EQ(equal_except_null_nodes(p2, p2), true);
-}
+//TEST(PathTest, equal_except_null_nodes) {
+//    vector<Interval> d, d1, d2;
+//    d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
+//    d1 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40), Interval(40, 40), Interval(59, 59)};
+//    d2 = {Interval(0, 0), Interval(1, 1), Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
+//
+//    Path p, p1, p2;
+//    p.initialize(d);
+//    p1.initialize(d1);
+//    p2.initialize(d2);
+//
+//    EXPECT_EQ(equal_except_null_nodes(p, p), true);
+//    EXPECT_EQ(equal_except_null_nodes(p, p1), true);
+//    EXPECT_EQ(equal_except_null_nodes(p, p2), true);
+//    EXPECT_EQ(equal_except_null_nodes(p1, p1), true);
+//    EXPECT_EQ(equal_except_null_nodes(p1, p2), true);
+//    EXPECT_EQ(equal_except_null_nodes(p2, p2), true);
+//}
 
 TEST(PathTest, write) {
     vector<Interval> d;
@@ -291,8 +293,7 @@ TEST(PathTest, read) {
     EXPECT_EQ(p, q);
 }
 
-TEST(PathTest, get_union)
-{
+TEST(PathTest, get_union) {
     vector<Interval> d1, d2, d;
     d1 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
     d2 = {Interval(10, 40), Interval(50, 55)};
@@ -324,5 +325,5 @@ TEST(PathTest, get_union)
     // wrong way round
     d2 = {Interval(0, 0)};
     p2.initialize(d2);
-    EXPECT_DEATH(get_union(p1, p2),"");
+    EXPECT_DEATH(get_union(p1, p2), "");
 }

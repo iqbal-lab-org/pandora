@@ -63,3 +63,6 @@ EcoliK12_pandora*
 
 #internal scripts
 scripts/*
+
+# local directory - michael
+vm-build/

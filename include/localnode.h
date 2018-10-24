@@ -8,10 +8,12 @@
 #include <ostream>
 #include <memory>
 #include "interval.h"
-#include "path.h"
+#include "prg/path.h"
 #include "kmernode.h"
 
+
 class LocalNode;
+
 typedef std::shared_ptr<LocalNode> LocalNodePtr;
 
 class LocalNode {

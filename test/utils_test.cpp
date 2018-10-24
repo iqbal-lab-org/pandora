@@ -4,7 +4,7 @@
 #include "localPRG.h"
 #include "pangenome/pangraph.h"
 #include "interval.h"
-#include "path.h"
+#include "prg/path.h"
 #include "minihit.h"
 #include "minihits.h"
 #include "index.h"
@@ -14,6 +14,7 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+
 
 using namespace std;
 
@@ -42,7 +43,7 @@ TEST(UtilsTest, revComplement) {
 // don't bother with nchoosek test as will remove function
 
 TEST(UtilsTest, readPrgFile) {
-    vector<LocalPRG *> prgs;
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
 
     // simple case first, single prg with empty string sequence
     // doesn't get added to prgs 
@@ -283,11 +284,9 @@ TEST(UtilsTest, simpleInferLocalPRGOrderForRead) {
     KmerHash hash;
 
     // initialize a prgs object
-    vector<LocalPRG *> prgs;
-    LocalPRG *lp1;
-    LocalPRG *lp3;
-    lp1 = new LocalPRG(1, "1", "");
-    lp3 = new LocalPRG(0, "0", "");
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
+    auto lp1 = std::make_shared<LocalPRG>(LocalPRG(1, "1", ""));
+    auto lp3 = std::make_shared<LocalPRG>(LocalPRG(0, "0", ""));
     prgs.push_back(lp3);
     prgs.push_back(lp1);
 
@@ -426,8 +425,6 @@ TEST(UtilsTest, simpleInferLocalPRGOrderForRead) {
     idx->clear();
     delete idx;
     delete pg;
-    delete lp1;
-    delete lp3;
     delete mhs;
 }
 
@@ -438,15 +435,12 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
     KmerHash hash;
 
     // initialize a prgs object
-    vector<LocalPRG *> prgs;
-    LocalPRG *lp1;
-    LocalPRG *lp2;
-    LocalPRG *lp3;
-    LocalPRG *lp4;
-    lp1 = new LocalPRG(1, "1", "");
-    lp3 = new LocalPRG(3, "3", "");
-    lp4 = new LocalPRG(0, "", "");
-    lp2 = new LocalPRG(2, "2", "");
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
+
+    auto lp1 = std::make_shared<LocalPRG>(LocalPRG(1, "1", ""));
+    auto lp3 = std::make_shared<LocalPRG>(LocalPRG(3, "3", ""));
+    auto lp4 = std::make_shared<LocalPRG>(LocalPRG(0, "", ""));
+    auto lp2 = std::make_shared<LocalPRG>(LocalPRG(2, "2", ""));
     prgs.push_back(lp4);
     prgs.push_back(lp1);
     prgs.push_back(lp2);
@@ -676,10 +670,6 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
 
     EXPECT_EQ(pg_exp, *pg);
     delete pg;
-    delete lp1;
-    delete lp2;
-    delete lp3;
-    delete lp4;
     delete mhs;
     idx->clear();
     delete idx;
@@ -692,7 +682,7 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
     pangenome::Graph *pg;
     pg = new pangenome::Graph();
     Index *idx;
-    vector<LocalPRG *> prgs;
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
     pangraph_from_read_file("../../test/test_cases/reads.fq.gz", mhs, pg, idx, prgs, 1, 3, 1, 0.1);
     delete mhs;
     delete pg;
@@ -704,15 +694,11 @@ TEST(UtilsTest, pangraphFromReadFile) {
     KmerHash hash;
 
     // initialize a prgs object
-    vector<LocalPRG *> prgs;
-    LocalPRG *lp1;
-    LocalPRG *lp2;
-    LocalPRG *lp3;
-    LocalPRG *lp4;
-    lp1 = new LocalPRG(1, "1", "");
-    lp3 = new LocalPRG(3, "3", "");
-    lp4 = new LocalPRG(0, "0", "");
-    lp2 = new LocalPRG(2, "2", "");
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
+    auto lp1 = std::make_shared<LocalPRG>(LocalPRG(1, "1", ""));
+    auto lp3 = std::make_shared<LocalPRG>(LocalPRG(3, "3", ""));
+    auto lp4 = std::make_shared<LocalPRG>(LocalPRG(0, "0", ""));
+    auto lp2 = std::make_shared<LocalPRG>(LocalPRG(2, "2", ""));
     prgs.push_back(lp4);
     prgs.push_back(lp1);
     prgs.push_back(lp2);
@@ -942,10 +928,6 @@ TEST(UtilsTest, pangraphFromReadFile) {
     pg_exp.add_node(0, "0", 0, mhs_dummy.hits);
 
     delete mhs;
-    delete lp1;
-    delete lp2;
-    delete lp3;
-    delete lp4;
     idx->clear();
     delete idx;
 }

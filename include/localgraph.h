@@ -7,8 +7,9 @@
 #include <cstring>
 #include <cstdint>
 #include "interval.h"
-#include "path.h"
+#include "prg/path.h"
 #include "localnode.h"
+
 
 class LocalGraph {
 public:
@@ -26,13 +27,13 @@ public:
 
     void read_gfa(const std::string &);
 
-    std::vector<Path> walk(const uint32_t &, const uint32_t &, const uint32_t &) const;
+    std::vector<prg::Path> walk(const uint32_t &, const uint32_t &, const uint32_t &) const;
 
-    std::vector<Path> walk_back(const uint32_t &, const uint32_t &, const uint32_t &) const;
+    std::vector<prg::Path> walk_back(const uint32_t &, const uint32_t &, const uint32_t &) const;
 
     LocalNodePtr get_previous_node(const LocalNodePtr) const;
 
-    std::vector<LocalNodePtr> nodes_along_string(const std::string &) const;
+    std::vector<LocalNodePtr> nodes_along_string(const std::string &, bool end_to_end = false) const;
 
     std::vector<LocalNodePtr> top_path() const;
 

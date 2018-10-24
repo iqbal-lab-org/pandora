@@ -18,6 +18,7 @@
 #include "minihit.h"
 #include "fastaq_handler.h"
 
+
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace pangenome;
@@ -104,11 +105,11 @@ void record_read_info(ReadPtr &read_ptr,
     read_ptr->add_hits(node_ptr->node_id, cluster);
     bool orientation = !cluster.empty() and (*cluster.begin())->strand;
     if (read_ptr->nodes.empty()
-	or node_ptr != read_ptr->nodes.back()
-	or orientation != read_ptr->node_orientations.back()
-	//or we think there really are 2 copies of gene
-	) {
-	    read_ptr->nodes.push_back(node_ptr);
+        or node_ptr != read_ptr->nodes.back()
+        or orientation != read_ptr->node_orientations.back()
+        //or we think there really are 2 copies of gene
+            ) {
+        read_ptr->nodes.push_back(node_ptr);
         read_ptr->node_orientations.push_back(orientation);
     }
 }
@@ -133,7 +134,7 @@ void Graph::add_node(const uint32_t prg_id,
 
 // Add a node corresponding to an instance of a localPRG found in a sample
 void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string &sample_name,
-                     const vector<KmerNodePtr> &kmp, const LocalPRG *prg) {
+                     const vector<KmerNodePtr> &kmp, const std::shared_ptr<LocalPRG> &prg) {
     // add new node if it doesn't exist
     NodePtr n;
     auto it = nodes.find(prg_id);
@@ -171,7 +172,7 @@ void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string
 unordered_map<uint32_t, NodePtr>::iterator Graph::remove_node(NodePtr n) {
     //cout << "Remove graph node " << *n << endl;
     // removes all instances of node n and references to it in reads
-    for (auto r : n->reads) {
+    for (const auto &r : n->reads) {
         r->remove_node(n);
     }
 
@@ -186,7 +187,7 @@ unordered_map<uint32_t, NodePtr>::iterator Graph::remove_node(NodePtr n) {
 // and from the graph
 // Remove nodes which no longer have any reads
 void Graph::remove_read(const uint32_t read_id) {
-    for (auto n : reads[read_id]->nodes) {
+    for (const auto &n : reads[read_id]->nodes) {
         //cout << "looking at read node " << n->node_id;
         n->covg -= 1;
         n->reads.erase(reads[read_id]);
@@ -211,7 +212,7 @@ vector<NodePtr>::iterator Graph::remove_node_from_read(vector<NodePtr>::iterator
     if (read_it != node_ptr->reads.end())
         node_ptr->reads.erase(read_it);
 
-    if (node_ptr->reads.size()==0)
+    if (node_ptr->reads.size() == 0)
         remove_node(node_ptr);
 
     return node_it;
@@ -237,8 +238,8 @@ void Graph::remove_low_covg_nodes(const uint32_t &thresh) {
 
 // Create a copy of the node with node_id and replace the old copy with
 // the new one in each of the reads in reads_along_tig (by looking for the context of node_id)
-void Graph::split_node_by_reads(unordered_set<ReadPtr> &reads_along_tig, vector<uint16_t> &node_ids,
-                                const vector<bool> &node_orients, const uint16_t node_id) {
+void Graph::split_node_by_reads(unordered_set<ReadPtr> &reads_along_tig, vector<uint_least32_t> &node_ids,
+                                const vector<bool> &node_orients, const uint_least32_t node_id) {
     if (reads_along_tig.empty()) {
         return;
     }
@@ -260,7 +261,7 @@ void Graph::split_node_by_reads(unordered_set<ReadPtr> &reads_along_tig, vector<
     vector<NodePtr>::iterator it;
     unordered_multiset<ReadPtr>::iterator rit;
     pair<uint32_t, uint32_t> pos;
-    for (auto r : reads_along_tig) {
+    for (const auto &r : reads_along_tig) {
         // ignore if this node does not contain this read
         rit = nodes[node_id]->reads.find(r);
         if (rit == nodes[node_id]->reads.end()) {
@@ -305,9 +306,9 @@ void Graph::split_node_by_reads(unordered_set<ReadPtr> &reads_along_tig, vector<
     unordered_set<ReadPtr> reads_on_node_path;
 
     // collect all reads on nodes
-    for (const auto i : node_path_ids)
+    for (const auto &i : node_path_ids)
     {
-        for (const auto r : nodes[n]->reads)
+        for (const auto &r : nodes[n]->reads)
         {
             reads_on_node_path.insert(r);
         }
@@ -328,9 +329,9 @@ void Graph::split_node_by_reads(unordered_set<ReadPtr> &reads_along_tig, vector<
 
 // For each node in pangraph, make a copy of the kmergraph and use the hits
 // stored on each read containing the node to add coverage to this graph
-void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
+void Graph::add_hits_to_kmergraphs(const std::vector<std::shared_ptr<LocalPRG>> &prgs) {
     uint32_t num_hits[2];
-    for (auto pnode : nodes) {
+    for (const auto &pnode : nodes) {
         // copy kmergraph
         pnode.second->kmer_prg = prgs[pnode.second->prg_id]->kmer_prg;
         assert(pnode.second->kmer_prg == prgs[pnode.second->prg_id]->kmer_prg);
@@ -338,16 +339,18 @@ void Graph::add_hits_to_kmergraphs(const vector<LocalPRG *> &prgs) {
         num_hits[1] = 0;
 
         // add hits
-        for (auto read : pnode.second->reads) {
+        for (const auto &read : pnode.second->reads) {
             for (auto mh = read->hits[pnode.second->prg_id].begin();
                  mh != read->hits[pnode.second->prg_id].end(); ++mh) {
                 //bool added = false;
                 // update the covg in the kmer_prg
                 //cout << "pnode " << pnode.second->prg_id << " knode " << (*mh)->knode_id << " strand " << (*mh)->strand << " updated from " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand];
-                assert((*mh)->knode_id < pnode.second->kmer_prg.nodes.size() and pnode.second->kmer_prg.nodes[(*mh)->knode_id]!=nullptr);
+                assert((*mh)->knode_id < pnode.second->kmer_prg.nodes.size() and
+                       pnode.second->kmer_prg.nodes[(*mh)->knode_id] != nullptr);
                 pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] += 1;
-                if (pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] == 1000){
-                    cout << "Adding hit " << **mh << " resulted in high coverage on node " << *pnode.second->kmer_prg.nodes[(*mh)->knode_id] << endl;
+                if (pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] == 1000) {
+                    cout << "Adding hit " << **mh << " resulted in high coverage on node "
+                         << *pnode.second->kmer_prg.nodes[(*mh)->knode_id] << endl;
                 }
                 //cout << " to " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] << endl;
                 num_hits[(*mh)->strand] += 1;
@@ -371,7 +374,7 @@ bool Graph::operator==(const Graph &y) const {
     }*/
 
     // false if have different nodes
-    for (const auto c: nodes) {
+    for (const auto &c: nodes) {
         // if node id doesn't exist
         auto it = find_if(y.nodes.begin(), y.nodes.end(), same_prg_id(c.second));
         if (it == y.nodes.end()) {
@@ -379,7 +382,7 @@ bool Graph::operator==(const Graph &y) const {
             return false;
         }
     }
-    for (const auto c: y.nodes) {
+    for (const auto &c: y.nodes) {
         // if node id doesn't exist
         auto it = find_if(nodes.begin(), nodes.end(), same_prg_id(c.second));
         if (it == nodes.end()) {
@@ -403,15 +406,15 @@ void Graph::save_matrix(const string &filepath) {
     handle.open(filepath);
 
     // save header line with sample names
-    for (auto s : samples) {
+    for (const auto &s : samples) {
         handle << "\t" << s.second->name;
     }
     handle << endl;
 
     // for each node, save number of each sample
-    for (auto n : nodes) {
+    for (const auto &n : nodes) {
         handle << n.second->name;
-        for (auto s : samples) {
+        for (const auto &s : samples) {
             if (s.second->paths.find(n.second->node_id) == s.second->paths.end()) {
                 handle << "\t0";
             } else {
@@ -422,7 +425,7 @@ void Graph::save_matrix(const string &filepath) {
     }
 }
 
-void Graph::save_mapped_read_strings(const string& readfilepath, const string& outdir, const int32_t buff){
+void Graph::save_mapped_read_strings(const string &readfilepath, const string &outdir, const int32_t buff) {
     cout << now() << "Save mapped read strings and coordinates" << endl;
     ofstream outhandle;
     FastaqHandler readfile(readfilepath);
@@ -430,28 +433,27 @@ void Graph::save_mapped_read_strings(const string& readfilepath, const string& o
 
     // for each node in pangraph, find overlaps and write to a file
     vector<vector<uint32_t>> read_overlap_coordinates;
-    for (auto node_ptr : nodes)
-    {
-	    cout << "Find coordinates for node " << node_ptr.second->name;
+    for (const auto &node_ptr : nodes) {
+        cout << "Find coordinates for node " << node_ptr.second->name;
         node_ptr.second->get_read_overlap_coordinates(read_overlap_coordinates);
-	    cout << "." << endl;
+        cout << "." << endl;
         make_dir(outdir + "/" + node_ptr.second->get_name());
         outhandle.open(outdir + "/" + node_ptr.second->get_name() + "/" + node_ptr.second->get_name() + ".reads.fa");
-        for (auto coord : read_overlap_coordinates){
+        for (const auto &coord : read_overlap_coordinates) {
             readfile.get_id(coord[0]);
-            start = (uint32_t) max((int32_t)coord[1]-buff, 0);
-            end = min(coord[2]+(uint32_t)buff, (uint32_t)readfile.read.length());
+            start = (uint32_t) max((int32_t) coord[1] - buff, 0);
+            end = min(coord[2] + (uint32_t) buff, (uint32_t) readfile.read.length());
             outhandle << ">" << readfile.name << " pandora: " << coord[0] << " " << start << ":" << end;
             if (coord[3] == true)
                 outhandle << " + " << endl;
             else
                 outhandle << " - " << endl;
-	    assert(coord[1] < coord[2]);
-	    assert(start <= coord[1]);
-	    assert(start <= readfile.read.length());
-	    assert(coord[2] <= readfile.read.length());
+            assert(coord[1] < coord[2]);
+            assert(start <= coord[1]);
+            assert(start <= readfile.read.length());
+            assert(coord[2] <= readfile.read.length());
             assert(end >= coord[2]);
-	    assert(start < end);
+            assert(start < end);
             outhandle << readfile.read.substr(start, end - start) << endl;
         }
         outhandle.close();
@@ -461,18 +463,17 @@ void Graph::save_mapped_read_strings(const string& readfilepath, const string& o
     readfile.close();
 }
 
-void Graph::save_kmergraph_coverages(const string &outdir, const string &sample_name){
+void Graph::save_kmergraph_coverages(const string &outdir, const string &sample_name) {
     cout << now() << "Save kmergraph coverages for sample " << sample_name << endl;
     make_dir(outdir + "/coverages");
-    for (auto n : nodes){
+    for (const auto &n : nodes) {
         string node_file = outdir + "/coverages/" + n.second->name + ".csv";
-        if ( !boost::filesystem::exists(node_file))
-        {
+        if (!boost::filesystem::exists(node_file)) {
             ofstream handle;
             handle.open(node_file);
             assert (!handle.fail() or assert_msg("Could not open file " << node_file));
             handle << "sample";
-            for (auto m : n.second->kmer_prg.nodes)
+            for (const auto &m : n.second->kmer_prg.nodes)
                 handle << "\t" << m->id;
             handle << endl;
             handle.close();

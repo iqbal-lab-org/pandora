@@ -1,6 +1,7 @@
 #include "de_bruijn/graph.h"
 #include "de_bruijn/ns.cpp"
 
+
 class GraphTester : public debruijn::Graph {
 public:
     GraphTester(uint8_t i) : Graph(i) {};

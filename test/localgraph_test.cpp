@@ -1,12 +1,13 @@
 #include "gtest/gtest.h"
 #include "test_macro.cpp"
 #include "interval.h"
-#include "path.h"
+#include "prg/path.h"
 #include "localPRG.h"
 #include "localgraph.h"
 #include "localnode.h"
 #include <stdint.h>
 #include <iostream>
+
 
 using namespace std;
 
@@ -396,6 +397,11 @@ TEST(LocalGraphTest, nodes_along_string) {
     v = lg2.nodes_along_string("AGC");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
+    v_exp = {lg2.nodes[0], lg2.nodes[1], lg2.nodes[3]};
+    v = lg2.nodes_along_string("AGC", true);
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
+
+    v_exp = {lg2.nodes[0], lg2.nodes[1]};
     v = lg2.nodes_along_string("AgC");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
@@ -407,6 +413,25 @@ TEST(LocalGraphTest, nodes_along_string) {
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
     v_exp = {};
     v = lg1.nodes_along_string("AGTTCGTAGACCAACGCGGT");
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
+
+    // check where have a substring equal to a whole string
+    LocalGraph lg3;
+    lg3.add_node(0, "A", Interval(0, 1));
+    lg3.add_node(1, "GC", Interval(4, 6));
+    lg3.add_node(2, "G", Interval(7, 8));
+    lg3.add_node(3, "C", Interval(13, 14));
+    lg3.add_edge(0, 1);
+    lg3.add_edge(0, 2);
+    lg3.add_edge(1, 3);
+    lg3.add_edge(2, 3);
+
+    v_exp = {lg3.nodes[0], lg3.nodes[1]};
+    v = lg3.nodes_along_string("AGC");
+    EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
+
+    v_exp = {lg3.nodes[0], lg3.nodes[2], lg3.nodes[3]};
+    v = lg3.nodes_along_string("AGC", true);
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
 }

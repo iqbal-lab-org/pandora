@@ -4,23 +4,27 @@
 #include <vector>
 #include <unordered_map>
 #include <iostream>
+#include <cmath>
+
 
 struct Fastaq {
     bool gzipped;
     bool fastq;
     std::vector<std::string> names;
-    std::unordered_map <std::string, std::string> headers;
-    std::unordered_map <std::string, std::string> sequences;
-    std::unordered_map <std::string, std::string> scores;
+    std::unordered_map<std::string, std::string> headers;
+    std::unordered_map<std::string, std::string> sequences;
+    std::unordered_map<std::string, std::string> scores;
 
-    Fastaq(bool gz=false, bool fq=false);
+    Fastaq(bool gz = false, bool fq = false);
 
-    char covg_to_score(const uint_least16_t&, const uint_least16_t&);
+    char covg_to_score(const uint_least16_t &, const uint_least16_t &, const bool &alt = false);
+
+    char alt_covg_to_score(const uint_least16_t &covg);
 
     void add_entry(const std::string &, const std::string &, const std::vector<uint32_t> &,
-                   const uint_least16_t, const std::string header="");
+                   const uint_least16_t, const std::string header = "");
 
-    void add_entry(const std::string &, const std::string &, const std::string header="");
+    void add_entry(const std::string &, const std::string &, const std::string header = "");
 
     void clear();
 

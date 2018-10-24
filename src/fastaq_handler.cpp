@@ -8,9 +8,13 @@
 #include "fastaq_handler.h"
 #include "utils.h"
 
+
 using namespace std;
 
-FastaqHandler::FastaqHandler(const string& filepath) : gzipped(false), instream(&inbuf), num_reads_parsed(0) {
+FastaqHandler::FastaqHandler(const string &filepath) : gzipped(false), instream(&inbuf), num_reads_parsed(0) {
+    // level for boost logging
+//    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
+
     cout << now() << "Open fastaq file " << filepath << endl;
     fastaq_file.open(filepath);
     if (not fastaq_file.is_open()) {
@@ -18,28 +22,27 @@ FastaqHandler::FastaqHandler(const string& filepath) : gzipped(false), instream(
         exit(EXIT_FAILURE);
     }
     try {
-        if(filepath.substr( filepath.length() - 2 ) == "gz"){
+        if (filepath.substr(filepath.length() - 2) == "gz") {
             inbuf.push(boost::iostreams::gzip_decompressor());
             gzipped = true;
         }
         inbuf.push(fastaq_file);
     }
-    catch(const boost::iostreams::gzip_error& e) {
-        cerr<< "Problem transfering file contents to boost stream: " << e.what() << '\n';
+    catch (const boost::iostreams::gzip_error &e) {
+        cerr << "Problem transfering file contents to boost stream: " << e.what() << '\n';
     }
 }
 
-FastaqHandler::~FastaqHandler(){
+FastaqHandler::~FastaqHandler() {
     close();
 }
 
-bool FastaqHandler::eof()
-{
+bool FastaqHandler::eof() {
     int c = instream.peek();
     return (c == EOF);
 }
 
-void FastaqHandler::get_next(){
+void FastaqHandler::get_next() {
     //cout << "next ";
     if (!line.empty() and (line[0] == '>' or line[0] == '@')) {
         //cout << "read name line " << num_reads_parsed << " " << line << endl;
@@ -48,7 +51,7 @@ void FastaqHandler::get_next(){
         read.clear();
     }
 
-    while (getline(instream, line).good()){
+    while (getline(instream, line).good()) {
         if (!line.empty() and line[0] == '+') {
             //skip this line and the qual score line
             getline(instream, line);
@@ -69,67 +72,62 @@ void FastaqHandler::get_next(){
     }
 }
 
-void FastaqHandler::skip_next(){
+void FastaqHandler::skip_next() {
     //cout << "skip ";
     if (!line.empty() and (line[0] == '>' or line[0] == '@')) {
         ++num_reads_parsed;
     }
 
-    while (getline(instream, line).good()){
+    while (getline(instream, line).good()) {
         if (!line.empty() and line[0] == '+') {
             //skip this line and the qual score line
             getline(instream, line);
             //cout << "qual score line ." << line << "." << endl;
         } else if (line.empty() or line[0] == '>' or line[0] == '@') {
-	        return;
-	    }
+            return;
+        }
     }
 }
 
-void print(ifstream& infile)
-{
+void print(ifstream &infile) {
     char file;
-    vector<char>read;
-    int i = 0;
+    vector<char> read;
+    uint i = 0;
 
     //Read infile to vector
-    while (!infile.eof())
-    {
+    while (!infile.eof()) {
         infile >> file;
         read.push_back(file);
     }
 
     //Print read vector
-    for (i = 0; i < read.size(); i++)
-    {
+    for (i = 0; i < read.size(); i++) {
         cout << read[i];
     }
 }
 
-void print(istream& infile)
-{
+void print(istream &infile) {
     char file;
-    vector<char>read;
+    vector<char> read;
     int i = 0;
 
     //Read infile to vector
-    while (!infile.eof())
-    {
+    while (!infile.eof()) {
         infile >> file;
         read.push_back(file);
     }
 
     //Print read vector
-    for (i = 0; i < read.size(); i++)
-    {
+    for (i = 0; i < read.size(); i++) {
         cout << read[i];
     }
 }
 
-void FastaqHandler::get_id(const uint32_t& id){
-    //cout << "get id " << id << endl;
-    if (id < num_reads_parsed) {
-        cout << "restart buffer as have id " << num_reads_parsed << " and want id " << id << endl;
+void FastaqHandler::get_id(const uint32_t &id) {
+    const uint32_t one_based_id = id + 1;
+    if (one_based_id < num_reads_parsed) {
+        BOOST_LOG_TRIVIAL(warning) << "restart buffer as have id " << num_reads_parsed << " and want id "
+                                   << one_based_id << " (" << id << ") with 0-based indexing.";
         num_reads_parsed = 0;
         name.clear();
         read.clear();
@@ -142,32 +140,29 @@ void FastaqHandler::get_id(const uint32_t& id){
         fastaq_file.seekg(0, fastaq_file.beg);
         instream.clear();
         inbuf.pop();
-        if(gzipped){
+        if (gzipped) {
             inbuf.pop();
             inbuf.push(boost::iostreams::gzip_decompressor());
         }
         inbuf.push(fastaq_file);
     }
 
-    cout << "now have name " << name << " read " << read << " num_reads_parsed " << num_reads_parsed << " and line " << line << endl;
-
     while (id > 1 and num_reads_parsed < id) {
-	    skip_next();
-        if (eof())
+        skip_next();
+        if (eof()) {
             break;
+        }
     }
-
-    cout << "now have name " << name << " read " << read << " num_reads_parsed " << num_reads_parsed << " and line " << line << endl;
 
     while (num_reads_parsed <= id) {
         get_next();
-        if (eof())
+        if (eof()) {
             break;
+        }
     }
-    cout << "now have name " << name << " read " << read << " num_reads_parsed " << num_reads_parsed << " and line " << line << endl;
 }
 
-void FastaqHandler::close(){
+void FastaqHandler::close() {
     cout << now() << "Close fastaq file" << endl;
     fastaq_file.close();
 }

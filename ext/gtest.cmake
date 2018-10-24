@@ -5,6 +5,7 @@ include(ExternalProject)
 #        INSTALL_COMMAND "")
 ExternalProject_Add(gtest
     GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG 2fe3bd9
     CMAKE_ARGS -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=DebugLibs
     -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE:PATH=ReleaseLibs
     -DCMAKE_CXX_FLAGS=${MSVC_COMPILER_DEFS}

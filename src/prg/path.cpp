@@ -1,15 +1,17 @@
 #include <cassert>
-#include "path.h"
+#include "prg/path.h"
+
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace std;
+using namespace prg;
 
 void Path::initialize(const deque<Interval> &q) {
     if (q.empty())
         return;
     path.clear();
-    path.reserve(q.size()+5);
+    path.reserve(q.size() + 5);
     path.insert(path.end(), q.begin(), q.end());
 }
 
@@ -17,7 +19,7 @@ void Path::initialize(const vector<Interval> &q) {
     if (q.empty())
         return;
     path.clear();
-    path.reserve(q.size()+5);
+    path.reserve(q.size() + 5);
     path.insert(path.end(), q.begin(), q.end());
 }
 
@@ -27,13 +29,13 @@ void Path::initialize(const Interval &i) {
 }
 
 uint32_t Path::get_start() const {
-    if(path.size() < 1)
+    if (path.size() < 1)
         return 0;
     return path.front().start;
 }
 
 uint32_t Path::get_end() const {
-    if(path.size() < 1)
+    if (path.size() < 1)
         return 0;
     return path.back().start + (uint32_t) path.back().length;
 }
@@ -61,8 +63,8 @@ Path Path::subpath(const uint32_t start, const uint32_t len) const {
     uint32_t covered_length = 0;
     uint32_t added_len = 0;
     for (const auto &interval: path) {
-        if ((covered_length <= start and covered_length + interval.length > start and p.path.size() == 0) or
-            (covered_length == start and interval.length == 0 and p.path.size() == 0)) {
+        if ((covered_length <= start and covered_length + interval.length > start and p.path.empty()) or
+            (covered_length == start and interval.length == 0 and p.path.empty())) {
             assert(added_len == 0);
             d = {Interval(interval.start + start - covered_length,
                           min(interval.get_end(), interval.start + start - covered_length + len - added_len))};
@@ -132,13 +134,11 @@ bool Path::is_branching(const Path &y) const // returns true if the two paths br
     return false;
 }
 
-bool Path::is_subpath(const Path& big_path) const
-{
+bool Path::is_subpath(const Path &big_path) const {
     if (big_path.length() < length()
         or big_path.get_start() > get_start()
         or big_path.get_end() < get_end()
-        or is_branching(big_path))
-    {
+        or is_branching(big_path)) {
         //cout << "fell at first hurdle " << (big_path.length() < length());
         //cout << (big_path.start > start) << (big_path.end < end);
         //cout << (is_branching(big_path)) << endl;
@@ -146,16 +146,12 @@ bool Path::is_subpath(const Path& big_path) const
     }
 
     uint32_t offset = 0;
-    for (auto big_i : big_path.path)
-    {
-        if (big_i.get_end() >= get_start())
-        {
+    for (const auto &big_i : big_path.path) {
+        if (big_i.get_end() >= get_start()) {
             offset += get_start() - big_i.start;
-            if (offset + length() > big_path.length())
-            {
+            if (offset + length() > big_path.length()) {
                 return false;
-            } else if (big_path.subpath(offset, length()) == *this)
-            {
+            } else if (big_path.subpath(offset, length()) == *this) {
                 return true;
             }
             break;
@@ -228,7 +224,7 @@ bool Path::operator!=(const Path &y) const {
     return (!(path == y.path));
 }
 
-std::ostream &operator<<(std::ostream &out, Path const &p) {
+std::ostream &prg::operator<<(std::ostream &out, Path const &p) {
     uint32_t num_intervals = p.path.size();
     out << num_intervals << "{";
     for (std::vector<Interval>::const_iterator it = p.path.begin(); it != p.path.end(); ++it) {
@@ -238,7 +234,7 @@ std::ostream &operator<<(std::ostream &out, Path const &p) {
     return out;
 }
 
-std::istream &operator>>(std::istream &in, Path &p) {
+std::istream &prg::operator>>(std::istream &in, Path &p) {
     uint32_t num_intervals;
     in >> num_intervals;
     deque<Interval> d(num_intervals, Interval());
@@ -251,43 +247,35 @@ std::istream &operator>>(std::istream &in, Path &p) {
     return in;
 }
 
-Path get_union(const Path&x, const Path&y)
-{
-    std::vector<Interval>::const_iterator xit=x.path.begin();
-    std::vector<Interval>::const_iterator yit=y.path.begin();
+Path prg::get_union(const Path &x, const Path &y) {
+    std::vector<Interval>::const_iterator xit = x.path.begin();
+    std::vector<Interval>::const_iterator yit = y.path.begin();
 
     Path p;
     assert (x < y);
 
-    if (x.get_end() < y.get_start() or x.is_branching(y))
-    {
+    if (x.get_end() < y.get_start() or x.is_branching(y)) {
         return p;
-    } else if (x.path.size() == 0)
-    {
+    } else if (x.path.empty()) {
         return y;
     }
 
-    while (xit != x.path.end() and yit != y.path.end() and xit->get_end() < yit->start)
-    {
-        if (p.path.size() == 0)
-        {
+    while (xit != x.path.end() and yit != y.path.end() and xit->get_end() < yit->start) {
+        if (p.path.empty()) {
             p.initialize(*xit);
         } else {
             p.add_end_interval(*xit);
         }
         xit++;
     }
-    if (xit != x.path.end() and yit != y.path.end() and xit->start <= yit->get_end())
-    {
+    if (xit != x.path.end() and yit != y.path.end() and xit->start <= yit->get_end()) {
         // then we have overlap
-        if (p.path.size() == 0)
-        {
+        if (p.path.empty()) {
             p.initialize(Interval(xit->start, max(yit->get_end(), xit->get_end())));
         } else {
             p.add_end_interval(Interval(xit->start, max(yit->get_end(), xit->get_end())));
         }
-        while (yit != --y.path.end())
-        {
+        while (yit != --y.path.end()) {
             yit++;
             p.add_end_interval(*yit);
         }

@@ -2,8 +2,9 @@
 #include <cassert>
 #include <cmath>
 #include "minimizer.h"
-#include "path.h"
+#include "prg/path.h"
 #include "interval.h"
+
 
 using namespace std;
 

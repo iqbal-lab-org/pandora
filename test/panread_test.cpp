@@ -112,7 +112,7 @@ TEST(PangenomeReadTest, find_position) {
 
     pg.reads[0]->node_orientations[6] = 1;
 
-    vector<uint16_t> v = {2, 3, 5};
+    vector<uint_least32_t> v = {2, 3, 5};
     vector<bool> b = {0, 0, 0};
     pair<uint, uint> p = pg.reads[0]->find_position(v, b);
     pair<uint, uint> truth = make_pair(2, 4);

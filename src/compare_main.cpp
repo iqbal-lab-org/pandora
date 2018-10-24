@@ -27,7 +27,9 @@
 #include "pangenome/pangraph.h"
 #include "pangenome/pannode.h"
 #include "index.h"
+#include "noise_filtering.h"
 #include "estimate_parameters.h"
+
 
 using std::set;
 using std::vector;
@@ -51,6 +53,8 @@ static void show_compare_usage() {
               << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is shorter with low error rate\n"
               << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
               << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative binomial\n"
+              << "\t--max_covg\t\t\tMaximum average coverage from reads to accept\n"
+              << "\t--genotype\t\t\tAdd extra step to carefully genotype sites\n"
               << std::endl;
 }
 
@@ -85,11 +89,11 @@ int pandora_compare(int argc, char *argv[]) {
     }
 
     // otherwise, parse the parameters from the command line
-    string prgfile, readindex, outdir=".", vcf_refs_file;
-    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000; // default parameters
+    string prgfile, readindex, outdir = ".", vcf_refs_file;
+    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300; // default parameters
     int max_diff = 250;
     float e_rate = 0.11;
-    bool illumina = false, clean = false, bin = false;;
+    bool illumina = false, clean = false, bin = false, genotype = false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -170,6 +174,15 @@ int pandora_compare(int argc, char *argv[]) {
             clean = true;
         } else if ((arg == "--bin")) {
             bin = true;
+        } else if ((arg == "--max_covg")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                max_covg = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--max_covg option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if ((arg == "--genotype")) {
+            genotype = true;
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -190,26 +203,40 @@ int pandora_compare(int argc, char *argv[]) {
     cout << "\tclean\t" << clean << endl;
     cout << "\tbin\t" << bin << endl << endl;
 
-    make_dir(outdir);
-
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
     Index *idx;
     idx = new Index();
     idx->load(prgfile, w, k);
-    vector<LocalPRG *> prgs;
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
     read_prg_file(prgs, prgfile);
     load_PRG_kmergraphs(prgs, w, k, prgfile);
+
+    // load read index
+    cout << now() << "Loading read index file " << readindex << endl;
+    map<string, string> samples = load_read_index(readindex);
 
     pangenome::Graph *pangraph, *pangraph_sample;
     pangraph = new pangenome::Graph();
     pangraph_sample = new pangenome::Graph();
+
     MinimizerHits *mhs;
-    mhs = new MinimizerHits(100 * idx->minhash.size());
+    mhs = new MinimizerHits(100000);
     uint32_t covg;
 
-    // load read index
-    map<string, string> samples = load_read_index(readindex);
+    Fastaq consensus_fq(true, true);
+    VCF master_vcf;
+
     vector<KmerNodePtr> kmp;
+    vector<LocalNodePtr> lmp;
+    vector<vector<uint32_t>> read_overlap_coordinates;
+
+    // load vcf refs
+    VCFRefs vcf_refs;
+    string vcf_ref;
+    if (!vcf_refs_file.empty()) {
+        vcf_refs.reserve(prgs.size());
+        load_vcf_refs_file(vcf_refs_file, vcf_refs);
+    }
 
     // for each sample, run pandora to get the sample pangraph
     for (map<string, string>::const_iterator sample = samples.begin(); sample != samples.end(); ++sample) {
@@ -218,12 +245,23 @@ int pandora_compare(int argc, char *argv[]) {
 
         // make output dir for this sample
         string sample_outdir = outdir + "/" + sample->first;
-        make_dir(sample_outdir);
+        make_dir(sample_outdir + "/kmer_prgs");
 
         // construct the pangraph for this sample
-        cout << now() << "Constructing pangenome::Graph from read file " << sample->second << endl;
+        cout << now() << "Constructing pangenome::Graph from read file " << sample->second
+             << " (this will take a while)" << endl;
         covg = pangraph_from_read_file(sample->second, mhs, pangraph_sample, idx, prgs, w, k, max_diff, e_rate,
-                                       min_cluster_size, genome_size, illumina, clean);
+                                       min_cluster_size, genome_size, illumina, clean, max_covg);
+
+        cout << now() << "Finished with minihits, so clear " << endl;
+        mhs->clear();
+
+        cout << now() << "Writing pangenome::Graph to file " << sample_outdir << "/pandora.pangraph.gfa" << endl;
+        write_pangraph_gfa(sample_outdir + "/pandora.pangraph.gfa", pangraph_sample);
+
+        if (pangraph_sample->nodes.empty()){
+            cout << "WARNING: Found no LocalPRGs in the reads for sample " << sample->first << endl;
+        }
 
         cout << now() << "Update LocalPRGs with hits" << endl;
         update_localPRGs_with_hits(pangraph_sample, prgs);
@@ -232,31 +270,40 @@ int pandora_compare(int argc, char *argv[]) {
         estimate_parameters(pangraph_sample, sample_outdir, k, e_rate, covg, bin);
 
         cout << now() << "Find max likelihood PRG paths" << endl;
-        for (const auto c: pangraph_sample->nodes) {
-            kmp.clear();
-            if (bin)
-                c.second->kmer_prg.find_max_path(kmp);
-            else
-                c.second->kmer_prg.find_nb_max_path(kmp);
-
-            if (!kmp.empty()) {
-                pangraph_sample->save_kmergraph_coverages(outdir, c.second->name);
-                pangraph->add_node(c.second->prg_id, c.second->name, sample->first, kmp, prgs[c.second->prg_id]);
+        auto sample_pangraph_size = pangraph_sample->nodes.size();
+        for (auto c = pangraph_sample->nodes.begin(); c != pangraph_sample->nodes.end();) {
+            if (!vcf_refs_file.empty()) {
+                assert(vcf_refs.find(prgs[c->second->prg_id]->name) != vcf_refs.end());
+                vcf_ref = vcf_refs[prgs[c->second->prg_id]->name];
             }
-        }
-    }
 
-    // if we have input the vcf refs, load them
-    VCFRefs vcf_refs;
-    string vcf_ref;
-    if (!vcf_refs_file.empty()) {
-        vcf_refs.reserve(prgs.size());
-        load_vcf_refs_file(vcf_refs_file, vcf_refs);
+            prgs[c->second->prg_id]->add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp, w, bin, covg);
+            if (kmp.empty()) {
+                c = pangraph_sample->remove_node(c->second);
+                continue;
+            }
+
+            prgs[c->second->prg_id]->add_variants_to_vcf(master_vcf, c->second, vcf_ref, kmp, lmp);
+
+            pangraph_sample->save_kmergraph_coverages(outdir, c->second->name);
+            pangraph->add_node(c->second->prg_id, c->second->name, sample->first, kmp, prgs[c->second->prg_id]);
+
+            ++c;
+        }
+        consensus_fq.save(sample_outdir + "/pandora.consensus.fq.gz");
+        consensus_fq.clear();
+        //master_vcf.save(sample_outdir + "/pandora_consensus.vcf" , true, true, true, true, true, true, true);
+        //master_vcf.clear();
+        if (pangraph_sample->nodes.empty() and sample_pangraph_size > 0){
+            cout << "WARNING: All LocalPRGs found were removed for sample " << sample->first
+                 << ". Is your genome_size accurate? Genome size is assumed to be " << genome_size
+                 << " and can be updated with --genome_size" << endl;
+        }
     }
 
     // for each pannode in graph, find a best reference and output a vcf and aligned fasta of sample paths through it
     cout << now() << "Multi-sample pangraph has " << pangraph->nodes.size() << " nodes" << endl;
-    for (auto c: pangraph->nodes) {
+    for (const auto &c: pangraph->nodes) {
         cout << " c.first: " << c.first;
         cout << " prgs[c.first]->name: " << prgs[c.first]->name << endl;
 
@@ -270,6 +317,10 @@ int pandora_compare(int argc, char *argv[]) {
 
         c.second->output_samples(prgs[c.first], node_outdir, w, vcf_ref);
     }
+    if (genotype) {
+        master_vcf.genotype(covg, 0.01, 30, false);
+        master_vcf.save(outdir + "/pandora_genotyped.vcf", true, true, true, true, false, false, false);
+    }
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
     cout << now() << "Output matrix" << endl;
@@ -277,9 +328,6 @@ int pandora_compare(int argc, char *argv[]) {
 
     // clear up
     cout << now() << "Clear up" << endl;
-    for (uint32_t j = 0; j != prgs.size(); ++j) {
-        delete prgs[j];
-    }
     idx->clear();
     delete idx;
     mhs->clear();
@@ -288,6 +336,12 @@ int pandora_compare(int argc, char *argv[]) {
     delete pangraph;
     pangraph_sample->clear();
     delete pangraph_sample;
+
+    if (pangraph->nodes.empty()){
+        cout << "No LocalPRGs found to compare samples on. "
+             << "Is your genome_size accurate? Genome size is assumed to be "
+             << genome_size << " and can be updated with --genome_size" << endl;
+    }
 
     // current date/time based on current system
     cout << "FINISH: " << now() << endl;

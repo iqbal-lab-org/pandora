@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <unordered_map>
 
+
 uint32_t nt4(char);
 
 uint64_t hash64(uint64_t key, const uint64_t &mask);

@@ -1,6 +1,8 @@
-Public Master: [![Build Status](https://travis-ci.org/rmcolq/pandora.svg?branch=master)](https://travis-ci.org/rmcolq/pandora)
+[![Build Status](https://travis-ci.org/rmcolq/pandora.svg?branch=master)](https://travis-ci.org/rmcolq/pandora) master
 
-Private Dev: [![Build Status](https://travis-ci.com/rmcolq/pandora.svg?token=mxzxNwUzHrkcpsL2i7zU&branch=dev)](https://travis-ci.com/rmcolq/pandora)
+[![Build Status](https://travis-ci.com/rmcolq/pandora.svg?token=mxzxNwUzHrkcpsL2i7zU&branch=dev)](https://travis-ci.com/rmcolq/pandora) dev
+
+[![https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/1285)
 
 # pandora
 
@@ -31,11 +33,33 @@ Soon, in a galaxy not so far away, it will allow
 Warning - this code is still in development.
 
 ## Installation
-Requires gcc 4.7 or higher on a Unix OS.
+- Requires a Unix or Mac OS.
+- Requires a system install of `zlib`. If this is not already installed, [this](https://geeksww.com/tutorials/libraries/zlib/installation/installing_zlib_on_ubuntu_linux.php) tutorial is helpful.
 
-    git clone git@github.com:rmnorris/pandora.git
-    cd pandora
-    bash install.sh
+- Requires a system installation of `boost` containing the `system`, `filesystem`, `log` (which also depends on `thread` and `date_time`) and `iostreams` libraries. If not already installed use the following or look at [this](https://www.boost.org/doc/libs/1_62_0/more/getting_started/unix-variants.html) guide.
+
+      wget https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.gz --no-check-certificate
+      tar xzf boost_1_62_0.tar.gz
+      cd boost_1_62_0
+      ./bootstrap.sh [--prefix=/prefix/path] --with-libraries=system,filesystem,iostreams,log,thread,date_time
+      ./b2 install
+    
+- Download and install `pandora` as follows:
+
+      git clone https://github.com/rmcolq/pandora.git
+      cd pandora
+      mkdir build
+      cd build
+      cmake [-DCMAKE_PREFIX_PATH=/prefix/path] ..
+      make
+      ctest -VV
+      cd ..
+    
+## Singularity Container
+Instead you can download and use the singularity container:
+
+    singularity pull --force --name pandora.simg shub://rmcolq/pandora:pandora
+    singularity exec pandora.simg pandora
     
 ## Usage
 ### Population Reference Graphs

@@ -24,11 +24,15 @@
 #include "index.h"
 #include "estimate_parameters.h"
 #include "noise_filtering.h"
-#include "extract_reads.h"
+
+#include "denovo_discovery/extract_reads.h"
+#include "denovo_discovery/denovo_discovery.h"
+
 
 using std::set;
 using std::vector;
 using namespace std;
+namespace fs = boost::filesystem;
 
 static void show_map_usage() {
     std::cerr << "Usage: pandora map -p PRG_FILE -r READ_FILE -o OUTDIR <option(s)>\n"
@@ -53,7 +57,8 @@ static void show_map_usage() {
               << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
               << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative binomial\n"
               << "\t--max_covg\t\t\tMaximum average coverage from reads to accept\n"
-              << "\t--regenotype\t\t\tAdd extra step to carefully genotype SNP sites\n"
+              << "\t--genotype\t\t\tAdd extra step to carefully genotype sites\n"
+              << "\t--snps_only\t\t\tWhen genotyping, include only snp sites\n"
               << "\t--discover\t\t\tAdd denovo discovery\n"
               << std::endl;
 }
@@ -66,7 +71,7 @@ int pandora_map(int argc, char *argv[]) {
     }
 
     // otherwise, parse the parameters from the command line
-    string prgfile, readfile, outdir=".", vcf_refs_file;
+    string prgfile, readfile, outdir = ".", vcf_refs_file;
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300; // default parameters
     int max_diff = 250;
     float e_rate = 0.11;
@@ -74,7 +79,7 @@ int pandora_map(int argc, char *argv[]) {
     bool output_comparison_paths = false, output_mapped_read_fa = false;
     bool illumina = false, clean = false;
     bool output_covgs = false, bin = false;
-    bool regenotype = false, discover_denovo = false;
+    bool genotype = false, snps_only = false, discover_denovo = false;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -166,15 +171,17 @@ int pandora_map(int argc, char *argv[]) {
             clean = true;
         } else if ((arg == "--bin")) {
             bin = true;
-        } else if((arg == "--max_covg")) {
+        } else if ((arg == "--max_covg")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 max_covg = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--max_covg option requires one argument." << std::endl;
                 return 1;
             }
-        } else if ((arg == "--regenotype")) {
-            regenotype = true;
+        } else if ((arg == "--genotype")) {
+            genotype = true;
+        } else if ((arg == "--snps_only")) {
+            snps_only = true;
         } else if ((arg == "--discover")) {
             discover_denovo = true;
         } else {
@@ -184,7 +191,9 @@ int pandora_map(int argc, char *argv[]) {
 
     assert(w <= k);
     assert(not prgfile.empty());
-    if (regenotype)
+    if (snps_only)
+        genotype = true;
+    if (genotype)
         output_vcf = true;
 
     //then run the programme...
@@ -207,7 +216,8 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\tclean\t" << clean << endl;
     cout << "\tbin\t" << bin << endl;
     cout << "\tmax_covg\t" << max_covg << endl;
-    cout << "\tregenotype\t" << regenotype << endl;
+    cout << "\tgenotype\t" << genotype << endl;
+    cout << "\tsnps_only\t" << snps_only << endl;
     cout << "\tdiscover\t" << discover_denovo << endl << endl;
 
     make_dir(outdir);
@@ -218,7 +228,7 @@ int pandora_map(int argc, char *argv[]) {
     Index *idx;
     idx = new Index();
     idx->load(prgfile, w, k);
-    vector<LocalPRG *> prgs;
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
     read_prg_file(prgs, prgfile);
     load_PRG_kmergraphs(prgs, w, k, prgfile);
 
@@ -227,8 +237,8 @@ int pandora_map(int argc, char *argv[]) {
     mhs = new MinimizerHits(100000);
     pangenome::Graph *pangraph;
     pangraph = new pangenome::Graph();
-    uint32_t covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate, min_cluster_size,
-                                        genome_size, illumina, clean, max_covg);
+    uint32_t covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate,
+                                            min_cluster_size, genome_size, illumina, clean, max_covg);
 
     cout << now() << "Finished with index, so clear " << endl;
     idx->clear();
@@ -237,6 +247,13 @@ int pandora_map(int argc, char *argv[]) {
     cout << now() << "Finished with minihits, so clear " << endl;
     mhs->clear();
     delete mhs;
+
+    if (pangraph->nodes.empty()){
+        cout << "Found non of the LocalPRGs in the reads." << endl;
+        cout << "FINISH: " << now() << endl;
+        delete pangraph;
+        return 0;
+    }
 
     cout << now() << "Writing pangenome::Graph to file " << outdir << "pandora.pangraph.gfa" << endl;
     write_pangraph_gfa(outdir + "/pandora.pangraph.gfa", pangraph);
@@ -249,19 +266,20 @@ int pandora_map(int argc, char *argv[]) {
 
     cout << now() << "Find PRG paths and write to files:" << endl;
 
-    Fastaq consensus_fq(true,true);
+    Fastaq consensus_fq(true, true);
     VCF master_vcf;
 
     VCFRefs vcf_refs;
     string vcf_ref;
     vector<KmerNodePtr> kmp;
     vector<LocalNodePtr> lmp;
-    vector<vector<uint32_t>> read_overlap_coordinates;
+    std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pangraph_coordinate_pairs;
 
     if (output_vcf and !vcf_refs_file.empty()) {
         vcf_refs.reserve(prgs.size());
         load_vcf_refs_file(vcf_refs_file, vcf_refs);
     }
+
     for (auto c = pangraph->nodes.begin(); c != pangraph->nodes.end();) {
         if (output_vcf
             and !vcf_refs_file.empty()
@@ -271,14 +289,14 @@ int pandora_map(int argc, char *argv[]) {
 
         prgs[c->second->prg_id]->add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp, w, bin, covg);
 
-        if (kmp.empty())
-        {
+        if (kmp.empty()) {
             c = pangraph->remove_node(c->second);
             continue;
         }
 
         if (output_kg) {
-            c->second->kmer_prg.save(outdir + "/kmer_graphs/" + c->second->get_name() + ".kg.gfa", prgs[c->second->prg_id]);
+            c->second->kmer_prg.save(outdir + "/kmer_graphs/" + c->second->get_name() + ".kg.gfa",
+                                     prgs[c->second->prg_id]);
         }
 
         if (output_vcf) {
@@ -286,27 +304,38 @@ int pandora_map(int argc, char *argv[]) {
         }
 
         if (discover_denovo) {
-            save_read_strings_to_denovo_assemble(readfile, outdir + "/denovo", c->second, lmp, kmp);
+            denovo_discovery::add_pnode_coordinate_pairs(pangraph_coordinate_pairs, c->second, lmp, kmp);
         }
         ++c;
     }
     consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
-    master_vcf.save(outdir + "/pandora.consensus.vcf" , true, true, true, true, true, true, true);
+    master_vcf.save(outdir + "/pandora_consensus.vcf", true, true, true, true, true, true, true);
 
-    if(regenotype) {
-        master_vcf.regenotype(covg,0.01,30);
-        master_vcf.save(outdir + "/pandora.snps.vcf" , true, true, true, true, false, false, false);
+    if (pangraph->nodes.empty()){
+        cout << "All nodes which were found have been removed during cleaning. Is your genome_size accurate?"
+             << " Genome size is assumed to be " << genome_size << " and can be updated with --genome_size" << endl
+             << "FINISH: " << now() << endl;
+        delete pangraph;
+        return 0;
+    }
+
+    if (genotype) {
+        master_vcf.genotype(covg, 0.01, 30, snps_only);
+        if (snps_only)
+            master_vcf.save(outdir + "/pandora_genotyped.vcf", true, true, true, true, false, false, false);
+        else
+            master_vcf.save(outdir + "/pandora_genotyped.vcf", true, true, true, true, true, true, true);
+    }
+
+    if (discover_denovo) {
+        denovo_discovery::find_candidates(pangraph_coordinate_pairs,
+                                          readfile,
+                                          fs::path(outdir),
+                                          e_rate, g_local_assembly_kmer_size, g_kmer_attempts_count);
     }
 
     if (output_mapped_read_fa)
         pangraph->save_mapped_read_strings(readfile, outdir);
-
-    for (uint32_t j = 0; j != prgs.size(); ++j) {
-        delete prgs[j];
-    }
-
-    vector<uint32_t> covgs;
-    vector<Interval> t = identify_regions(covgs);
 
     pangraph->clear();
     delete pangraph;

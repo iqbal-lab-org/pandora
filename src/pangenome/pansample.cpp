@@ -7,6 +7,7 @@
 #include "pangenome/pansample.h"
 #include "pangenome/pannode.h"
 
+
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace pangenome;
@@ -36,7 +37,7 @@ bool Sample::operator<(const Sample &y) const {
 
 std::ostream &pangenome::operator<<(std::ostream &out, pangenome::Sample const &s) {
     out << s.name << ":\t";
-    for (auto p : s.paths) {
+    for (const auto &p : s.paths) {
         for (uint32_t i = 0; i != p.second.size(); ++i) {
             out << p.first << "\t";
         }

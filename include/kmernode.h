@@ -8,10 +8,12 @@ class KmerNode;
 #include <vector>
 #include <ostream>
 #include <memory>
-#include "path.h"
+#include "prg/path.h"
 #include "pangenome/ns.cpp"
 
+
 typedef std::shared_ptr<KmerNode> KmerNodePtr;
+typedef prg::Path Path;
 
 class KmerNode {
 

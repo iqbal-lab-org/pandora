@@ -9,6 +9,7 @@
 #include "minihit.h"
 #include "localPRG.h"
 
+
 using namespace pangenome;
 
 TEST(PangenomeNodeTest, create) {
@@ -86,7 +87,7 @@ TEST(PangenomeNodeTest, add_path) {
     EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[6]->covg[1]);
 }
 
-TEST(PangenomeNodeTest,get_read_overlap_coordinates){
+TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
     Node pn(3, 3, "3");
     pangenome::ReadPtr pr;
     MinimizerHits mhits;
@@ -94,52 +95,52 @@ TEST(PangenomeNodeTest,get_read_overlap_coordinates){
     Minimizer m;
     deque<Interval> d;
     Path p;
-    MiniRecord* mr;
+    MiniRecord *mr;
 
     // read1
-    m = Minimizer(0,1,6,0); // kmer, start, end, strand
-    d = {Interval(7,8), Interval(10, 14)};
+    m = Minimizer(0, 1, 6, 0); // kmer, start, end, strand
+    d = {Interval(7, 8), Interval(10, 14)};
     p.initialize(d);
-    mr = new MiniRecord(0,p,0,0);
+    mr = new MiniRecord(0, p, 0, 0);
     mhits.add_hit(1, m, mr); // read 1
 
-    m = Minimizer(0,0,5,0);
-    d = {Interval(6,10), Interval(11, 12)};
+    m = Minimizer(0, 0, 5, 0);
+    d = {Interval(6, 10), Interval(11, 12)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0,0);
+    mr = new MiniRecord(0, p, 0, 0);
     mhits.add_hit(1, m, mr);
 
-    d = {Interval(6,10), Interval(12, 13)};
+    d = {Interval(6, 10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0,0);
+    mr = new MiniRecord(0, p, 0, 0);
     mhits.add_hit(1, m, mr);
 
     mhits.sort();
     pr = make_shared<pangenome::Read>(1);
-    pr->add_hits(3,mhits.hits);
+    pr->add_hits(3, mhits.hits);
     pn.reads.insert(pr);
     mhits.clear();
 
     //read 2
-    m = Minimizer(0,2,7,1);
-    d = {Interval(6,10), Interval(11, 12)};
+    m = Minimizer(0, 2, 7, 1);
+    d = {Interval(6, 10), Interval(11, 12)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0,0);
+    mr = new MiniRecord(0, p, 0, 0);
     mhits.add_hit(2, m, mr);
 
-    m = Minimizer(0,5,10,1);
-    d = {Interval(6,10), Interval(12, 13)};
+    m = Minimizer(0, 5, 10, 1);
+    d = {Interval(6, 10), Interval(12, 13)};
     p.initialize(d);
     delete mr;
-    mr = new MiniRecord(0,p,0,0);
+    mr = new MiniRecord(0, p, 0, 0);
     mhits.add_hit(2, m, mr);
 
     mhits.sort();
     pr = make_shared<pangenome::Read>(2);
-    pr->add_hits(3,mhits.hits);
+    pr->add_hits(3, mhits.hits);
     pn.reads.insert(pr);
     mhits.clear();
 
@@ -147,9 +148,9 @@ TEST(PangenomeNodeTest,get_read_overlap_coordinates){
 
     vector<vector<uint32_t>> read_overlap_coordinates;
     pn.get_read_overlap_coordinates(read_overlap_coordinates);
-    vector<vector<uint32_t>> expected_read_overlap_coordinates = {{1,0,6,1}, {2,2,10,0}};
-    for (auto coord : read_overlap_coordinates)
-    {
+    vector<vector<uint32_t>> expected_read_overlap_coordinates = {{1, 0, 6,  1},
+                                                                  {2, 2, 10, 0}};
+    for (const auto &coord : read_overlap_coordinates) {
         if (coord[0] == 1) {
             EXPECT_ITERABLE_EQ(vector<uint32_t>, expected_read_overlap_coordinates[0], coord);
         } else {
@@ -259,8 +260,7 @@ TEST(PangenomeNodeTest,output_samples)
 
     pn1.covg = 3;
 
-    LocalPRG* l3;
-    l3 = new LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
+    auto l3 = std::make_shared<LocalPRG>(LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T"));
 
     // clear the kmergraph and vectors to check that the shared pointers have really been kept valid
     // within pg!

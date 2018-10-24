@@ -6,7 +6,7 @@ class LocalPRG;
 #include <cstdint>
 #include <vector>
 #include <iostream>
-#include "path.h"
+#include "prg/path.h"
 #include "kmernode.h"
 #include "pangenome/ns.cpp"
 
@@ -19,6 +19,7 @@ class KmerGraph {
     float nb_r;
     int thresh;
 public:
+    uint32_t exp_depth_covg;
     uint32_t num_reads;
     uint32_t shortest_path_length;
     std::vector<KmerNodePtr> nodes;
@@ -34,9 +35,9 @@ public:
 
     void clear();
 
-    KmerNodePtr add_node(const Path &);
+    KmerNodePtr add_node(const prg::Path &);
 
-    KmerNodePtr add_node_with_kh(const Path &, const uint64_t &, const uint8_t &num = 0);
+    KmerNodePtr add_node_with_kh(const prg::Path &, const uint64_t &, const uint8_t &num = 0);
 
     void add_edge(KmerNodePtr, KmerNodePtr);
 
@@ -46,15 +47,17 @@ public:
 
     void check();
 
+    void set_exp_depth_covg(const uint32_t);
+
     void set_p(const float);
 
-    void set_nb(const float&, const float&);
+    void set_nb(const float &, const float &);
 
     float nb_prob(uint32_t);
 
     float prob(uint32_t);
 
-    float prob(uint32_t , uint32_t);
+    float prob(uint32_t, uint32_t);
 
     float find_max_path(std::vector<KmerNodePtr> &);
 
@@ -72,7 +75,7 @@ public:
 
     float prob_paths(const std::vector<std::vector<KmerNodePtr>> &);
 
-    void save(const std::string &, const LocalPRG * = nullptr);
+    void save(const std::string &, const shared_ptr<LocalPRG> = nullptr);
 
     void load(const std::string &);
 
@@ -82,7 +85,8 @@ public:
 
     friend std::ostream &operator<<(std::ostream &out, KmerGraph const &data);
 
-    friend void estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint32_t , const bool);
+    friend void
+    estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint32_t, const bool);
 
     friend struct condition;
 
@@ -102,9 +106,9 @@ public:
 };
 
 struct condition {
-    Path q;
+    prg::Path q;
 
-    condition(const Path &);
+    condition(const prg::Path &);
 
     bool operator()(const KmerNodePtr) const;
 };

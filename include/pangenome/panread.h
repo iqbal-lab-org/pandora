@@ -9,6 +9,7 @@
 #include "minihits.h"
 #include "pangenome/ns.cpp"
 
+
 class pangenome::Read {
 public:
     const uint32_t id; // corresponding the the read id
@@ -22,7 +23,7 @@ public:
     void add_hits(const uint32_t, std::set<MinimizerHitPtr, pComp> &);
 
     std::pair<uint32_t, uint32_t>
-    find_position(const std::vector<uint16_t> &, const std::vector<bool> &, const uint16_t min_overlap = 1);
+    find_position(const std::vector<uint_least32_t> &, const std::vector<bool> &, const uint16_t min_overlap = 1);
 
     void remove_node(NodePtr);
 
