@@ -54,11 +54,6 @@ void denovo_discovery::find_candidates(
         BOOST_LOG_TRIVIAL(debug) << "Running local assembly for: " << info.pnode->get_name();
         BOOST_LOG_TRIVIAL(debug) << "Read coverage is: " << read_covg;
         BOOST_LOG_TRIVIAL(debug) << "Interval sequence is: " << interval_sequence;
-        BOOST_LOG_TRIVIAL(debug) << "Some slice sequences: ";
-        for (int i = 0; i < 10; i++) {
-            std::cout << sequences[i] << "\n";
-        }
-
 
         local_assembly(sequences,
                        start_kmers,
