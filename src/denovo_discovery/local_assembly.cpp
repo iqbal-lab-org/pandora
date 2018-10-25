@@ -77,7 +77,7 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
  */
 Paths get_paths_between(const std::string &start_kmer, const std::string &end_kmer,
                         std::unordered_map<string, GraphVector<Node>> &tree, const Graph &graph,
-                        const unsigned long max_path_length, const double &expected_coverage) {
+                        const uint32_t &max_path_length, const double &expected_coverage) {
     BOOST_LOG_TRIVIAL(debug) << "Enumerating all paths in DFS tree between " << start_kmer << " and " << end_kmer;
     std::string initial_acc = start_kmer.substr(0, start_kmer.length() - 1);
 
@@ -92,8 +92,8 @@ Paths get_paths_between(const std::string &start_kmer, const std::string &end_km
 
 void get_paths_between_util(const std::string &start_kmer, const std::string &end_kmer, std::string path_accumulator,
                             const Graph &graph, std::unordered_map<string, GraphVector<Node>> &tree, Paths &full_paths,
-                            const unsigned long &max_path_length, const double &expected_kmer_covg,
-                            unsigned int kmers_below_threshold) {
+                            const uint32_t &max_path_length, const double &expected_kmer_covg,
+                            uint32_t kmers_below_threshold) {
     // gather information on kmer coverages
     auto start_node{graph.buildNode(start_kmer.c_str())};
     const auto kmer_coverage{graph.queryAbundance(start_node)};
@@ -132,14 +132,14 @@ void get_paths_between_util(const std::string &start_kmer, const std::string &en
 
 void write_paths_to_fasta(const boost::filesystem::path &filepath,
                           const Paths &paths,
-                          unsigned long line_width) {
+                          const uint32_t &line_width) {
     const auto header = ">path";
-    std::ofstream out_file(filepath.string());
+    fs::ofstream out_file(filepath.string());
 
     for (const auto &path: paths) {
         out_file << header << "\n";
 
-        for (unsigned long i = 0; i < path.length(); i += line_width) {
+        for (uint32_t i = 0; i < path.length(); i += line_width) {
             out_file << path.substr(i, line_width) << "\n";
         }
     }
@@ -149,14 +149,14 @@ void write_paths_to_fasta(const boost::filesystem::path &filepath,
 }
 
 void local_assembly(const std::vector<std::string> &sequences,
-                    std::unordered_set<std::string> &start_kmers,
-                    std::unordered_set<std::string> &end_kmers,
+                    const std::vector<std::string> &start_kmers,
+                    const std::vector<std::string> &end_kmers,
                     const fs::path &out_path,
-                    const unsigned int kmer_size,
-                    const unsigned long max_path_length,
+                    const uint32_t &kmer_size,
+                    const uint32_t &max_path_length,
                     const double &expected_coverage,
-                    const bool clean_graph,
-                    const unsigned int min_coverage) {
+                    const bool &clean_graph,
+                    const uint32_t &min_coverage) {
     if (sequences.empty()) {
         BOOST_LOG_TRIVIAL(warning) << "Sequences vector to assemble is empty. Skipping local assembly.";
         return;
@@ -203,7 +203,7 @@ void local_assembly(const std::vector<std::string> &sequences,
         }
         for (const auto &e_kmer: end_kmers) {
             // make sure end kmer doesnt exist in the set of start kmers
-            if (start_kmers.find(e_kmer) != start_kmers.end()) {
+            if (std::find(start_kmers.begin(), start_kmers.end(), e_kmer) != start_kmers.end()) {
                 continue;
             }
 
@@ -240,7 +240,7 @@ void remove_graph_file() {
 }
 
 
-void do_graph_clean(Graph &graph, const int num_cores) {
+void do_graph_clean(Graph &graph, const uint16_t &num_cores) {
     Simplifications<Graph, Node, Edge> graph_simplifications(graph, num_cores);
     graph_simplifications._doTipRemoval = true;
     graph_simplifications._doBulgeRemoval = false;
@@ -266,48 +266,41 @@ std::string reverse_complement(const std::string &forward) {
 }
 
 
-bool file_exists(const std::string &name) {
-    struct stat buffer;
-    return (stat(name.c_str(), &buffer) == 0);
-}
-
-//todo: make start and end kmers a vector or similar. i.e would prefer to keep ordering of kmers
-std::unordered_set<std::string>
-generate_start_kmers(const std::string &sequence, const unsigned int k, unsigned int n) {
+std::vector<std::string> generate_start_kmers(const std::string &sequence, const uint32_t &k, uint32_t n) {
     const auto L{sequence.length()};
     if (k > L) {
         BOOST_LOG_TRIVIAL(error) << "Cannot generate kmers when K " << std::to_string(k)
                                  << " is greater than the length of the sequence " << std::to_string(L);
-        std::unordered_set<std::string> empty;
+        std::vector<std::string> empty;
         return empty;
     } else if (k + (n - 1) > L) {  // more combinations are requested than is possible
         n = L - k + 1;  // make n the largest value it can take on
     }
 
-    std::unordered_set<std::string> kmers;
+    std::vector<std::string> kmers;
 
-    for (unsigned int i = 0; i < n; i++) {
+    for (uint32_t i = 0; i < n; i++) {
         const auto kmer{sequence.substr(i, k)};
-        kmers.insert(kmer);
+        kmers.push_back(kmer);
     }
     return kmers;
 }
 
-std::unordered_set<std::string> generate_end_kmers(const std::string &sequence, const unsigned int k, unsigned int n) {
+std::vector<std::string> generate_end_kmers(const std::string &sequence, const uint32_t &k, uint32_t n) {
     const auto L{sequence.length()};
     if (k > L) {
         BOOST_LOG_TRIVIAL(error) << "Cannot generate kmers when K " << std::to_string(k)
                                  << " is greater than the length of the sequence " << std::to_string(L);
-        std::unordered_set<std::string> empty;
+        std::vector<std::string> empty;
         return empty;
     } else if (k + (n - 1) > L) {  // more combinations are requested than is possible
         n = L - k + 1;  // make n the largest value it can take on
     }
-    std::unordered_set<std::string> kmers;
+    std::vector<std::string> kmers;
 
-    for (unsigned int i = 0; i < n; i++) {
+    for (uint32_t i = 0; i < n; i++) {
         const auto kmer{sequence.substr(L - k - i, k)};
-        kmers.insert(kmer);
+        kmers.push_back(kmer);
     }
     return kmers;
 }

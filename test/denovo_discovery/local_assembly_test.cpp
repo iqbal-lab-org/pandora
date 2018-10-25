@@ -496,15 +496,15 @@ TEST(FastaWriter, ReadsShorterThanLineWidth_OneReadPerLine) {
 
 
 TEST(FastaWriter, ReadsLongerThanLineWidth_ReadSpreadEvenlyOnLines) {
-    const auto filepath = "TEST.fa";
-    const auto header = ">path";
-    unsigned long line_width = 10;
+    const fs::path filepath{"TEST.fa"};
+    const auto header{">path"};
+    uint32_t line_width{10};
 
     Paths reads = {"ATGATGTTTTTTTTTTCGCATGCAT", "TGCATGCATGCACACACACACACAGCA"};
 
     write_paths_to_fasta(filepath, reads, line_width);
 
-    std::ifstream in_file(filepath);
+    fs::ifstream in_file(filepath);
 
     std::string line;
 
@@ -518,8 +518,8 @@ TEST(FastaWriter, ReadsLongerThanLineWidth_ReadSpreadEvenlyOnLines) {
         }
     }
 
-    EXPECT_TRUE(in_file.peek() == std::ifstream::traits_type::eof());
-    EXPECT_TRUE(std::remove(filepath) == 0);
+    EXPECT_TRUE(in_file.peek() == fs::ifstream::traits_type::eof());
+    EXPECT_TRUE(fs::remove(filepath));
 }
 
 
@@ -552,20 +552,6 @@ TEST(ReverseComplement, Palindrome_ReturnCompliment) {
     const auto expected = "ACGT";
     auto result = reverse_complement(seq);
     EXPECT_EQ(expected, result);
-}
-
-TEST(FileExists, realFile_returnsTrue) {
-    const std::string filepath{"../../CMakeLists.txt"};
-    const bool exists{file_exists(filepath)};
-
-    EXPECT_TRUE(exists);
-}
-
-TEST(FileExists, fakeFile_returnsFalse) {
-    const std::string filepath{"../../fake.txt"};
-    const bool exists{file_exists(filepath)};
-
-    EXPECT_FALSE(exists);
 }
 
 
@@ -608,7 +594,7 @@ TEST(GenerateStartKmers, GenerateOneKmer_ReturnFirstKCharacters) {
     const auto n{1};
 
     const auto result{generate_start_kmers(sequence, k, n)};
-    const std::unordered_set<std::string> expected{"ACGT"};
+    const std::vector<std::string> expected{"ACGT"};
 
     EXPECT_EQ(result, expected);
 }
@@ -620,7 +606,7 @@ TEST(GenerateStartKmers, GenerateTwoKmers_ReturnFirstTwoKmers) {
     const auto n{2};
 
     const auto result{generate_start_kmers(sequence, k, n)};
-    const std::unordered_set<std::string> expected{"ACGT", "CGTG"};
+    const std::vector<std::string> expected{"ACGT", "CGTG"};
 
     EXPECT_EQ(result, expected);
 }
@@ -632,7 +618,7 @@ TEST(GenerateStartKmers, GenerateMaxPossibleNumKmers_ReturnWholeSeqAsKmers) {
     const auto n{5};
 
     const auto result{generate_start_kmers(sequence, k, n)};
-    const std::unordered_set<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
+    const std::vector<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
 
     EXPECT_EQ(result, expected);
 }
@@ -644,19 +630,7 @@ TEST(GenerateStartKmers, GenerateTooManyKmers_ReturnWholeSeqAsKmers) {
     const auto n{20};
 
     const auto result{generate_start_kmers(sequence, k, n)};
-    const std::unordered_set<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
-
-    EXPECT_EQ(result, expected);
-}
-
-
-TEST(GenerateStartKmers, SequenceHasRepeatKmers_ReturnOnlyUniqueKmers) {
-    const std::string sequence{"ACGTACGT"};
-    const auto k{4};
-    const auto n{20};
-
-    const auto result{generate_start_kmers(sequence, k, n)};
-    const std::unordered_set<std::string> expected{"ACGT", "CGTA", "GTAC", "TACG"};
+    const std::vector<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
 
     EXPECT_EQ(result, expected);
 }
@@ -668,7 +642,7 @@ TEST(GenerateStartKmers, GenerateNoKmers_ReturnEmptySet) {
     const auto n{0};
 
     const auto result{generate_start_kmers(sequence, k, n)};
-    const std::unordered_set<std::string> expected;
+    const std::vector<std::string> expected;
 
     EXPECT_EQ(result, expected);
 }
@@ -680,7 +654,7 @@ TEST(GenerateEndKmers, GenerateOneKmer_ReturnLastKCharacters) {
     const auto n{1};
 
     const auto result{generate_end_kmers(sequence, k, n)};
-    const std::unordered_set<std::string> expected{"GCAT"};
+    const std::vector<std::string> expected{"GCAT"};
 
     EXPECT_EQ(result, expected);
 }
@@ -692,7 +666,7 @@ TEST(GenerateEndKmers, GenerateTwoKmers_ReturnLastTwoKmers) {
     const auto n{2};
 
     const auto result{generate_end_kmers(sequence, k, n)};
-    const std::unordered_set<std::string> expected{"GCAT", "TGCA"};
+    const std::vector<std::string> expected{"GCAT", "TGCA"};
 
     EXPECT_EQ(result, expected);
 }
@@ -704,7 +678,7 @@ TEST(GenerateEndKmers, GenerateMaxPossibleNumKmers_ReturnWholeSeqAsKmers) {
     const auto n{5};
 
     const auto result{generate_end_kmers(sequence, k, n)};
-    const std::unordered_set<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
+    const std::vector<std::string> expected{"GCGA", "TGCG", "GTGC", "CGTG", "ACGT"};
 
     EXPECT_EQ(result, expected);
 }
@@ -716,7 +690,7 @@ TEST(GenerateEndKmers, GenerateTooManyKmers_ReturnWholeSeqAsKmers) {
     const auto n{20};
 
     const auto result{generate_end_kmers(sequence, k, n)};
-    const std::unordered_set<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
+    const std::vector<std::string> expected{"GCGA", "TGCG", "GTGC", "CGTG", "ACGT"};
 
     EXPECT_EQ(result, expected);
 }
@@ -728,7 +702,7 @@ TEST(GenerateEndKmers, SequenceHasRepeatKmers_ReturnOnlyUniqueKmers) {
     const auto n{20};
 
     const auto result{generate_end_kmers(sequence, k, n)};
-    const std::unordered_set<std::string> expected{"ACGT", "CGTA", "GTAC", "TACG"};
+    const std::vector<std::string> expected{"ACGT", "TACG", "GTAC", "CGTA", "ACGT"};
 
     EXPECT_EQ(result, expected);
 }
@@ -740,15 +714,15 @@ TEST(GenerateEndKmers, GenerateNoKmers_ReturnEmptySet) {
     const auto n{0};
 
     const auto result{generate_end_kmers(sequence, k, n)};
-    const std::unordered_set<std::string> expected;
+    const std::vector<std::string> expected;
 
     EXPECT_EQ(result, expected);
 }
 
 TEST(LocalAssemblyTest, twoIdenticalReads_onePath) {
-    std::unordered_set<std::string> start_kmers = {"ATGCGCTGA"};
-    std::unordered_set<std::string> end_kmers = {"AGTCGGACT"};
-    const std::string out_path{"../../test/test_cases/local_assembly1_paths.fa"};
+    std::vector<std::string> start_kmers = {"ATGCGCTGA"};
+    std::vector<std::string> end_kmers = {"AGTCGGACT"};
+    const fs::path out_path{"../../test/test_cases/local_assembly1_paths.fa"};
     const int k{9};
     const int max_len{30};
     const bool clean{false};
@@ -763,7 +737,7 @@ TEST(LocalAssemblyTest, twoIdenticalReads_onePath) {
     std::unordered_set<std::string> result;
 
     // read paths file  back in and store all paths in set
-    std::ifstream fin{out_path};
+    fs::ifstream fin{out_path.string()};
     std::string line;
 
     while (std::getline(fin, line)) {
@@ -776,12 +750,12 @@ TEST(LocalAssemblyTest, twoIdenticalReads_onePath) {
     }
 
     EXPECT_EQ(result, expected);
-    remove(out_path.c_str());
+    fs::remove(out_path);
 }
 
 TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgOne_twoPaths) {
-    std::unordered_set<std::string> start_kmers{"ATGCGCTGA"};
-    std::unordered_set<std::string> end_kmers{"AGTCGGACT"};
+    std::vector<std::string> start_kmers{"ATGCGCTGA"};
+    std::vector<std::string> end_kmers{"AGTCGGACT"};
     const std::string out_path{"../../test/test_cases/local_assembly2_paths.fa"};
     const int k{9};
     const int max_len{30};
@@ -807,7 +781,7 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgOne_twoPaths) {
     std::unordered_set<std::string> result;
 
     // read paths file  back in and store all paths in set
-    std::ifstream fin{out_path};
+    fs::ifstream fin{out_path};
     std::string line;
 
     while (std::getline(fin, line)) {
@@ -820,14 +794,14 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgOne_twoPaths) {
     }
 
     EXPECT_EQ(result, expected);
-    remove(out_path.c_str());
+    fs::remove(out_path);
 }
 
 
 TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
-    std::unordered_set<std::string> start_kmers{"ATGCGCTGA"};
-    std::unordered_set<std::string> end_kmers{"AGTCGGACT"};
-    const std::string out_path{"../../test/test_cases/local_assembly2_paths.fa"};
+    std::vector<std::string> start_kmers{"ATGCGCTGA"};
+    std::vector<std::string> end_kmers{"AGTCGGACT"};
+    const fs::path out_path{"../../test/test_cases/local_assembly2_paths.fa"};
     const int k{9};
     const int max_len{30};
     const int min_coverage{2};
@@ -844,7 +818,7 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
     std::unordered_set<std::string> result;
 
     // read paths file  back in and store all paths in set
-    std::ifstream fin{out_path};
+    fs::ifstream fin{out_path};
     std::string line;
 
     while (std::getline(fin, line)) {
@@ -857,7 +831,7 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
     }
 
     EXPECT_EQ(result, expected);
-    remove(out_path.c_str());
+    fs::remove(out_path);
 }
 
 //TEST(LocalAssemblyTest, debug) {
