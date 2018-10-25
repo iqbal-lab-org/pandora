@@ -27,8 +27,7 @@ std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph) {
             // now test whether the strands are the same
             if (graph.toString(current_node) != kmer) {
                 node = graph.reverse(current_node);
-            }
-            else {
+            } else {
                 node = current_node;
             }
             break;
@@ -158,19 +157,20 @@ void local_assembly(const std::vector<std::string> &sequences,
                     const bool &clean_graph,
                     const uint32_t &min_coverage) {
     if (sequences.empty()) {
-        BOOST_LOG_TRIVIAL(warning) << "Sequences vector to assemble is empty. Skipping local assembly.";
+        BOOST_LOG_TRIVIAL(debug) << "Sequences vector to assemble is empty. Skipping local assembly for "
+                                 << out_path.string();
         return;
     }
-
-    Graph graph;  // have to predefine as actually initialisation is inside try block
 
     // make sure the max_path_length is actually longer than the kmer size
     if (kmer_size > max_path_length) {
-        BOOST_LOG_TRIVIAL(warning) << "Kmer size " << std::to_string(kmer_size)
-                                   << " is greater than the maximum path length " << std::to_string(max_path_length)
-                                   << ". Skipping local assembly.";
+        BOOST_LOG_TRIVIAL(debug) << "Kmer size " << std::to_string(kmer_size)
+                                 << " is greater than the maximum path length " << std::to_string(max_path_length)
+                                 << ". Skipping local assembly for " << out_path.string();
         return;
     }
+
+    Graph graph;  // have to predefine as actual initialisation is inside try block
 
     try {
         graph = Graph::create(
@@ -178,9 +178,7 @@ void local_assembly(const std::vector<std::string> &sequences,
                 "-kmer-size %d -abundance-min %d -verbose 0", kmer_size, min_coverage);
     }
     catch (gatb::core::system::Exception &error) {
-        BOOST_LOG_TRIVIAL(warning) << "Couldn't create GATB graph." << "\n\tEXCEPTION: "
-                                   << error.getMessage();
-        // remove h5 file that GATB has written to file for this graph
+        BOOST_LOG_TRIVIAL(debug) << "Couldn't create GATB graph." << "\n\tEXCEPTION: " << error.getMessage();
         remove_graph_file();
         return;
     }
@@ -189,12 +187,10 @@ void local_assembly(const std::vector<std::string> &sequences,
         do_graph_clean(graph);
     }
 
-    Node start_node;
-    Node end_node;
-    std::string start_kmer, end_kmer;
-
+    Node start_node, end_node;
     bool start_found{false};
     bool end_found{false};
+
     for (const auto &s_kmer: start_kmers) {
         std::tie(start_node, start_found) = get_node(s_kmer, graph);
 
@@ -210,26 +206,19 @@ void local_assembly(const std::vector<std::string> &sequences,
             std::tie(end_node, end_found) = get_node(e_kmer, graph);
 
             if (end_found) {
-                start_kmer = s_kmer;
-                end_kmer = e_kmer;
-                goto dfs;
+                auto tree = DFS(start_node, graph);
+                auto result = get_paths_between(s_kmer, e_kmer, tree, graph, max_path_length, expected_coverage);
+
+                if (not result.empty()) {
+                    write_paths_to_fasta(out_path, result);
+                }
+                remove_graph_file();
+                return;
             }
         }
     }
-    BOOST_LOG_TRIVIAL(warning) << "Could not find any combination of start and end k-mers. Skipping local assembly.";
-    remove_graph_file();
-    return;
-
-    dfs:
-
-    auto tree = DFS(start_node, graph);
-    auto result = get_paths_between(start_kmer, end_kmer, tree, graph, max_path_length, expected_coverage);
-
-    if (not result.empty()) {
-        write_paths_to_fasta(out_path, result);
-    }
-
-    // remove h5 file that GATB has written to file for this graph
+    BOOST_LOG_TRIVIAL(debug) << "Could not find any combination of start and end k-mers. Skipping local assembly for "
+                             << out_path.string();
     remove_graph_file();
 }
 
