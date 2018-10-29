@@ -68,16 +68,15 @@ std::vector<LocalNodePtr> LocalPRG::nodes_along_path(const Path &p) const {
 
     for (auto it = p.path.begin(); it != p.path.end(); ++it) {
         const auto &interval = *it;
-        uint32_t interval_end = it->get_end();
 
         // find the appropriate node of the prg
         for (auto n = prg.nodes.begin(); n != prg.nodes.end(); ++n) {
-            auto node_ptr = n->second;
-            uint32_t node_start = node_ptr->pos.start;
-            uint32_t node_end = node_ptr->pos.get_end();
+            auto local_node = (LocalNode) *(n->second);
+            uint32_t node_start = local_node.pos.start;
+            uint32_t node_end = local_node.pos.end;
 
-            bool is_overlapping_node = interval_end > node_start and interval.start < node_end;
-            bool is_equal_node = interval.start == node_start and interval_end == node_end;
+            bool is_overlapping_node = interval.end > node_start and interval.start < node_end;
+            bool is_equal_node = interval.start == node_start and interval.end == node_end;
             bool is_null_node = (
                     interval.start == node_start
                     and interval.length == 0
@@ -87,7 +86,7 @@ std::vector<LocalNodePtr> LocalPRG::nodes_along_path(const Path &p) const {
 
             if (is_overlapping_node or is_equal_node or is_null_node) {
                 path_nodes.push_back(n->second);
-            } else if (interval_end < node_start) {
+            } else if (interval.end < node_start) {
                 // local nodes are labelled in order of occurance in the linear prg string, no need to search further
                 break;
             }

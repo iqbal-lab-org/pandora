@@ -226,10 +226,9 @@ bool Path::operator!=(const Path &y) const {
 }
 
 std::ostream &prg::operator<<(std::ostream &out, Path const &p) {
-    uint32_t num_intervals = p.path.size();
-    out << num_intervals << "{";
-    for (auto it = p.path.begin(); it != p.path.end(); ++it) {
-        out << *it;
+    out << p.path.size() << "{";
+    for (const auto &interval: p.path) {
+        out << interval;
     }
     out << "}";
     return out;

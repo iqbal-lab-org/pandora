@@ -6,15 +6,16 @@
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 
-Interval::Interval(uint32_t s, uint32_t e) : start(s) {
-    assert(e >= start); // not a real interval ;
-    assert (e - start < std::numeric_limits<uint32_t>::max() or
-            assert_msg("Interval [" << s << "," << e << ") was too long"));
-    length = e - start; // intervals need to be exclusive of end point so that empty strings can be represented
+Interval::Interval(uint32_t s, uint32_t e) : start(s), end(e) {
+    assert(this->end >= this->start);
+    assert(this->end - this->start <= std::numeric_limits<uint32_t>::max());
+
+    // intervals must be end exclusive so that empty strings can be represented
+    this->length = this->end - this->start;
 }
 
 uint32_t Interval::get_end() const {
-    return start + (uint32_t) length;
+    return start + length;
 }
 
 std::ostream &operator<<(std::ostream &out, Interval const &i) {
@@ -27,12 +28,10 @@ std::istream &operator>>(std::istream &in, Interval &i) {
     in.ignore(1, '[');
     in >> i.start;
     in.ignore(2, ' ');
-    in >> end;
+    in >> i.end;
     in.ignore(1, ')');
-    assert(end >= i.start);
-    assert (end - i.start < std::numeric_limits<uint32_t>::max() or
-            assert_msg("Interval [" << i.start << "," << end << ") was too long"));
-    i.length = end - i.start;
+
+    i.length = i.end - i.start;
     return in;
 }
 
