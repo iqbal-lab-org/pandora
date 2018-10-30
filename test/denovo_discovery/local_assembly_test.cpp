@@ -234,8 +234,9 @@ TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
         EXPECT_EQ(path.substr(0, g_test_kmer_size), start_kmer);
         EXPECT_EQ(path.substr(path.length() - g_test_kmer_size, path.length()), end_kmer);
 
-        if (path == seq)
+        if (path == seq) {
             original_seq_found = true;
+        }
     }
 
     EXPECT_TRUE(original_seq_found);
@@ -725,13 +726,12 @@ TEST(LocalAssemblyTest, twoIdenticalReads_onePath) {
     const fs::path out_path{"../../test/test_cases/local_assembly1_paths.fa"};
     const int k{9};
     const int max_len{30};
-    const bool clean{false};
     std::vector<std::string> sequences = {
             "ATGCGCTGAGAGTCGGACT",
             "ATGCGCTGAGAGTCGGACT"
     };
 
-    local_assembly(sequences, start_kmers, end_kmers, out_path, k, max_len, clean);
+    local_assembly(sequences, start_kmers, end_kmers, out_path, k, 1, max_len);
 
     const std::unordered_set<std::string> expected = {"ATGCGCTGAGAGTCGGACT"};
     std::unordered_set<std::string> result;
@@ -772,8 +772,8 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgOne_twoPaths) {
                    end_kmers,
                    out_path,
                    k,
-                   max_len,
                    1,
+                   max_len,
                    clean,
                    min_coverage);
 
@@ -812,7 +812,8 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
             "ATGCGCTGATAGTCGGACT"
     };
 
-    local_assembly(sequences, start_kmers, end_kmers, out_path, k, max_len, 1, clean, min_coverage);
+    local_assembly(sequences, start_kmers, end_kmers, out_path, k, 1,
+                   max_len, clean, min_coverage);
 
     const std::unordered_set<std::string> expected{"ATGCGCTGAGAGTCGGACT"};
     std::unordered_set<std::string> result;
@@ -834,62 +835,6 @@ TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
     fs::remove(out_path);
 }
 
-//TEST(LocalAssemblyTest, debug) {
-//    const std::string filepath {"../../test/test_cases/GC00000008_17.2568-2577.fa"};
-//    std::string start_kmer = "CGGGCGGACGC";
-//    std::string end_kmer = "CAGCGCAGGAC";
-//    const std::string out_path {"../../test/test_cases/GC00000008_17.2568-2577_local_assembly_test.fa"};
-//    local_assembly(filepath, start_kmer, end_kmer, out_path, 11, 150, 49);
-//}
-
-//TEST(LocalAssemblyTest, buildGraphFromRealReads_ExpectRefPathInResults) {
-//    const std::string ref_sequence = "TCCTCAAGCACCAGGTACGC";
-//    const std::string reads_filepath = "../../test/test_cases/loman_k12_merged_pass.mm2.sorted_1196-1216.fastq";
-//    const std::string start_kmer = ref_sequence.substr(0, g_kmer_size);
-//    const std::string end_kmer = ref_sequence.substr(ref_sequence.length() - g_kmer_size, ref_sequence.length());
-//    const std::string out_path = "../../test/test_cases/local_assembly_test.fa";
-//
-//    local_assembly(reads_filepath, start_kmer, end_kmer, out_path);
-//}
-
-
-// test if path exists in graph. take all kmers of ref and query each one
-// TEST(LocalAssemblyTest, buildGraphForAllSlices_writeAllPathsToFile) {
-//     const std::string meta_file = "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/subsample_30x/ref_seqs_for_slices_padding_10.tsv";
-//
-//     std::ifstream fin (meta_file);
-//     std::string line;
-//     std::string filepath;
-//     std::string ref_sequence;
-//
-//     while (std::getline(fin, line)) {
-//         std::stringstream ss (line);
-//         ss >> filepath >> ref_sequence;
-//
-//         std::cout << "Processing " << filepath << "\n";
-//
-//         const unsigned long max_length = ref_sequence.length() + 30;
-//         auto start_kmer = ref_sequence.substr(0, g_local_assembly_kmer_size);
-//         auto end_kmer = ref_sequence.substr(ref_sequence.length() - g_local_assembly_kmer_size, std::string::npos);
-//
-//         // clear the stringstream
-//         ss.str(std::string());
-//
-//         std::ostringstream oss;
-//         oss << "/Users/mbhall88/Projects/Pandora_variation/slice_fastq_files/padding_10/subsample_30x/local_assembly_paths_covg1";
-//         auto idx = filepath.rfind('/');
-//         oss << filepath.substr(idx, filepath.rfind('.') - idx) << "_K" << g_local_assembly_kmer_size << ".fa";
-//         std::string out_path = oss.str();
-//         const bool clean {false}   ;
-//         const int min_coverage {1};
-//
-//         local_assembly(filepath, start_kmer, end_kmer, out_path, g_local_assembly_kmer_size, max_length, clean,
-//                        min_coverage);
-//
-//         // clear the stringstream
-//         oss.str(std::string());
-//     }
-// }
 
 TEST(QueryAbundance, oneKmer_ReturnOne) {
     Graph graph = Graph::create(

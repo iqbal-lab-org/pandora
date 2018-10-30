@@ -24,10 +24,10 @@ using Paths = std::vector<std::string>;
 namespace logging = boost::log;
 namespace fs = boost::filesystem;
 
-const uint32_t g_max_length{500};
+const uint32_t g_max_length{50};
 const uint32_t g_local_assembly_kmer_size{11};
 const auto g_log_level{logging::trivial::debug};
-const float COVG_SCALING_FACTOR{0.2};
+const float g_covg_scaling_factor{0.1};
 const uint32_t g_kmer_attempts_count{10};
 
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph);
@@ -53,15 +53,10 @@ void write_paths_to_fasta(const boost::filesystem::path &filepath,
                           const Paths &paths,
                           const uint32_t &line_width = 80);
 
-void local_assembly(const std::vector<std::string> &sequences,
-                    const std::vector<std::string> &start_kmers,
-                    const std::vector<std::string> &end_kmers,
-                    const fs::path &out_path,
-                    const uint32_t &kmer_size,
-                    const uint32_t &max_path_length,
-                    const double &expected_coverage = 1,
-                    const bool &clean_graph = false,
-                    const uint32_t &min_coverage = 2);
+void local_assembly(const std::vector<std::string> &sequences, const std::vector<std::string> &start_kmers,
+                    const std::vector<std::string> &end_kmers, const fs::path &out_path, const uint32_t &kmer_size,
+                    const double &expected_coverage = 1, const uint32_t &max_path_length = g_max_length,
+                    const bool &clean_graph = false, const uint32_t &min_coverage = 2);
 
 void do_graph_clean(Graph &graph, const uint16_t &num_cores = 1);
 

@@ -100,7 +100,7 @@ void get_paths_between_util(const std::string &start_kmer, const std::string &en
     // do coverage check
     // if there are k k-mers with coverage <= expected_covg * coverage scaling factor - stop recursing for this path
     // todo: revisit this scaling with zam
-    if (kmer_coverage < (expected_kmer_covg * COVG_SCALING_FACTOR)) {
+    if (kmer_coverage < (expected_kmer_covg * g_covg_scaling_factor)) {
         kmers_below_threshold++;
         if (kmers_below_threshold >= start_kmer.length()) {
             return;
@@ -147,14 +147,9 @@ void write_paths_to_fasta(const boost::filesystem::path &filepath,
     BOOST_LOG_TRIVIAL(debug) << "Local assembly paths written to " << filepath;
 }
 
-void local_assembly(const std::vector<std::string> &sequences,
-                    const std::vector<std::string> &start_kmers,
-                    const std::vector<std::string> &end_kmers,
-                    const fs::path &out_path,
-                    const uint32_t &kmer_size,
-                    const uint32_t &max_path_length,
-                    const double &expected_coverage,
-                    const bool &clean_graph,
+void local_assembly(const std::vector<std::string> &sequences, const std::vector<std::string> &start_kmers,
+                    const std::vector<std::string> &end_kmers, const fs::path &out_path, const uint32_t &kmer_size,
+                    const double &expected_coverage, const uint32_t &max_path_length, const bool &clean_graph,
                     const uint32_t &min_coverage) {
     if (sequences.empty()) {
         BOOST_LOG_TRIVIAL(debug) << "Sequences vector to assemble is empty. Skipping local assembly for "
