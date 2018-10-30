@@ -218,7 +218,7 @@ bool Read::operator<(const Read &y) const {
 std::ostream &pangenome::operator<<(std::ostream &out, const pangenome::Read &r) {
     out << r.id << "\t";
 
-    for (const auto i : r.nodes) {
+    for (const auto &i : r.nodes) {
         out << *i << " ";
     }
     out << endl;

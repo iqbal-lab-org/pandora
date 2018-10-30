@@ -135,7 +135,7 @@ bool Fastaq::operator!=(const Fastaq &y) const {
 }
 
 std::ostream &operator<<(std::ostream &out, Fastaq const &data) {
-    for (const auto name : data.names) {
+    for (const auto &name : data.names) {
         if (data.fastq) {
             out << "@";
         } else {

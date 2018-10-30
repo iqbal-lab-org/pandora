@@ -779,7 +779,7 @@ bool pCompKmerNode::operator()(KmerNodePtr lhs, KmerNodePtr rhs) {
 }
 
 std::ostream &operator<<(std::ostream &out, KmerGraph const &data) {
-    for (const auto c: data.nodes) {
+    for (const auto &c: data.nodes) {
         out << *(c);
     }
     return out;

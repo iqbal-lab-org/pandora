@@ -53,7 +53,7 @@ bool Seq::add_letter_to_get_next_kmer(const char &letter,
 uint64_t find_smallest_kmer_value(const vector<Minimizer> &window, uint &pos_of_smallest) {
     uint64_t smallest = std::numeric_limits<uint64_t>::max();
     uint i = 0;
-    for (const auto minimizer : window) {
+    for (const auto &minimizer : window) {
         if (minimizer.kmer <= smallest) {
             smallest = minimizer.kmer;
             pos_of_smallest = i;
@@ -64,7 +64,7 @@ uint64_t find_smallest_kmer_value(const vector<Minimizer> &window, uint &pos_of_
 }
 
 void Seq::add_minimizing_kmers_to_sketch(const vector<Minimizer> &window, const uint64_t &smallest) {
-    for (const auto minimizer : window) {
+    for (const auto &minimizer : window) {
         if (minimizer.kmer == smallest) {
             sketch.insert(minimizer);
             //num_minis_found += 1;
