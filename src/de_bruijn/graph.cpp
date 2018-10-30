@@ -8,6 +8,9 @@
 #include <memory>
 #include <cassert>
 #include <algorithm>
+
+#include <boost/log/trivial.hpp>
+
 #include "de_bruijn/graph.h"
 #include "noise_filtering.h"
 #include "utils.h"
@@ -48,7 +51,7 @@ OrientedNodePtr Graph::add_node(const deque<uint_least32_t> &node_ids, uint32_t 
     node_hash[node_ids] = next_id;
 
     if (next_id % 1000 == 0) {
-        cout << "added node " << next_id << endl;
+        BOOST_LOG_TRIVIAL(debug) << "added node " << next_id;
     }
 
     next_id++;
@@ -256,8 +259,9 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_nod
 unordered_set<uint32_t> Graph::get_leaves(uint_least32_t covg_thresh) {
     unordered_set<uint32_t> s;
     for (const auto &c : nodes) {
-        cout << "node " << *c.second << " has " << c.second->out_nodes.size() << " + " << c.second->in_nodes.size()
-             << " outnodes" << endl;
+        BOOST_LOG_TRIVIAL(debug) << "node " << *c.second
+                                 << " has " << c.second->out_nodes.size() << " + " << c.second->in_nodes.size()
+                                 << " outnodes";
         if (c.second->read_ids.size() > covg_thresh) {
             continue;
         } else if (c.second->out_nodes.size() + c.second->in_nodes.size() <= 1) {
@@ -411,11 +415,11 @@ void Graph::extend_unitig(deque<uint32_t> &tig) {
     while (tig.size() > 1 and tig.front() == tig.back())//find(tig.begin(), --tig.end(), tig.back()) == tig.end())
         tig.pop_back();
 
-    cout << "got tig of length " << tig.size() << ": ";
-    for (const auto &n : tig) {
-        cout << n << " ";
-    }
-    cout << endl;
+    std::stringstream tig_ss;
+    for (const auto &n : tig)
+        tig_ss << n << " ";
+    BOOST_LOG_TRIVIAL(debug) << "got tig of length " << tig.size() << ": "
+                             << tig_ss.str();
 }
 
 // Search the outnodes of node_ptr_to_search for node_ptr_to_find
@@ -448,7 +452,7 @@ bool Graph::operator==(const Graph &y) const {
     // want the graphs to have the same nodes, even if
     // the ids given them is different.
     if (nodes.size() != y.nodes.size()) {
-        cout << "different num nodes" << endl;
+        BOOST_LOG_TRIVIAL(debug) << "different num nodes";
         return false;
     }
 
@@ -463,21 +467,21 @@ bool Graph::operator==(const Graph &y) const {
                 // also check the outnodes are the same
                 if (t.second->out_nodes.size() + t.second->in_nodes.size() !=
                     s.second->out_nodes.size() + s.second->in_nodes.size()) {
-                    cout << "node has different number of outnodes" << endl;
+                    BOOST_LOG_TRIVIAL(debug) << "node has different number of outnodes";
                     return false;
                 }
 
                 for (const auto &i : t.second->out_nodes) {
                     if (not y.found_in_out_nodes(s.second, nodes.at(i))
                         and not y.found_in_in_nodes(s.second, nodes.at(i))) {
-                        cout << "did not find " << i << " in outnode or innodes " << endl;
+                        BOOST_LOG_TRIVIAL(debug) << "did not find " << i << " in outnode or innodes";
                         return false;
                     }
                 }
                 for (const auto &i : t.second->in_nodes) {
                     if (not y.found_in_out_nodes(s.second, nodes.at(i))
                         and not y.found_in_in_nodes(s.second, nodes.at(i))) {
-                        cout << "did not find " << i << " in outnode or innodes " << endl;
+                        BOOST_LOG_TRIVIAL(debug) << "did not find " << i << " in outnode or innodes";
                         return false;
                     }
                 }
@@ -485,7 +489,7 @@ bool Graph::operator==(const Graph &y) const {
             }
         }
         if (!found) {
-            cout << "did not find node " << t.first << " " << *t.second << endl;
+            BOOST_LOG_TRIVIAL(debug) << "did not find node " << t.first << " " << *t.second;
             return false;
         }
     }

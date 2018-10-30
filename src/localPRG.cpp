@@ -4,6 +4,9 @@
 #include <cmath>
 #include <algorithm>
 #include <numeric>
+
+#include <boost/log/trivial.hpp>
+
 #include "minimizer.h"
 #include "localPRG.h"
 #include "inthash.h"
@@ -1389,7 +1392,7 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf,
             refpath = prg.nodes_along_string(rev_complement(vcf_ref), true);
         }
         if (refpath.empty()) {
-            std::cout << now() << "Could not find reference sequence for " << name
+            BOOST_LOG_TRIVIAL(warning) << "Could not find reference sequence for " << name
                       << "in the PRG so using the top path" << std::endl;
             refpath = prg.top_path();
         }

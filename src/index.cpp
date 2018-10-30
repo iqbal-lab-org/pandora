@@ -3,6 +3,9 @@
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
+
+#include <boost/log/trivial.hpp>
+
 #include "minirecord.h"
 #include "index.h"
 #include "utils.h"
@@ -43,7 +46,7 @@ void Index::clear() {
 }
 
 void Index::save(const string &prgfile, uint32_t w, uint32_t k) {
-    cout << now() << "Saving index" << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Saving index";
     ofstream handle;
     handle.open(prgfile + ".k" + to_string(k) + ".w" + to_string(w) + ".idx");
 
@@ -58,12 +61,12 @@ void Index::save(const string &prgfile, uint32_t w, uint32_t k) {
 
     }
     handle.close();
-    cout << now() << "Finished saving " << minhash.size() << " entries to file" << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Finished saving " << minhash.size() << " entries to file";
 }
 
 void Index::load(const string &prgfile, uint32_t w, uint32_t k) {
-    cout << now() << "Loading index" << endl;
-    cout << now() << "File is " << prgfile << ".k" << to_string(k) << ".w" << to_string(w) << ".idx" << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Loading index";
+    BOOST_LOG_TRIVIAL(debug) << "File is " << prgfile << ".k" << to_string(k) << ".w" << to_string(w) << ".idx";
     //string line;
     //vector<string> vstring;
     uint32_t key;
@@ -102,7 +105,7 @@ void Index::load(const string &prgfile, uint32_t w, uint32_t k) {
         cerr << "Unable to open index file " << prgfile << ".idx" << endl;
         exit(1);
     }
-    cout << now() << "Finished loading " << minhash.size() << " entries to index" << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Finished loading " << minhash.size() << " entries to index";
 }
 	    
 

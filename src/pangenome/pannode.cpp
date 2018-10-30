@@ -2,6 +2,7 @@
 #include <fstream>
 #include <cassert>
 #include <algorithm>
+#include <boost/log/trivial.hpp>
 #include "pangenome/pannode.h"
 #include "pangenome/pansample.h"
 #include "pangenome/panread.h"
@@ -126,8 +127,9 @@ void Node::output_samples(const std::shared_ptr<LocalPRG> &prg, const string &ou
             refpath = prg->prg.nodes_along_string(rev_complement(vcf_ref));
         }
         if (refpath.empty()) {
-            cout << now() << "Could not find reference sequence for " << name
-                 << "in the PRG so using the closest path" << endl;
+            BOOST_LOG_TRIVIAL(warning) << "Could not find reference sequence for "
+                                       << name
+                                       << "in the PRG so using the closest path";
             kmer_prg.set_p(0.01);
             kmer_prg.num_reads = covg;
             kmer_prg.find_max_path(kmp);

@@ -3,6 +3,9 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+
+#include <boost/log/trivial.hpp>
+
 #include "utils.h"
 #include "localPRG.h"
 
@@ -100,16 +103,16 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
                             npath = prgs[read_num]->prg.nodes_along_string(rev_complement(read));
                         }
                     } else {
-                        cout << "Different numbers of PRGs and reads, exiting" << endl;
+                        BOOST_LOG_TRIVIAL(error) << "Different numbers of PRGs and reads, exiting";
                         break;
                     }
                     if (flag) {
                         if (npath.empty() and read.size() < 300) {
-                            cout << "short fail!" << endl;
+                            BOOST_LOG_TRIVIAL(error) << "short fail!";
                         } else if (npath.empty() and read.size() >= 300) {
-                            cout << "long fail!" << endl;
+                            BOOST_LOG_TRIVIAL(error) << "long fail!";
                         } else {
-                            cout << "success!" << endl;
+                            BOOST_LOG_TRIVIAL(debug) << "success!";
                         }
                     } else {
                         for (uint32_t j = 0; j != npath.size(); ++j) {
@@ -179,11 +182,11 @@ int pandora_check_kmergraph(int argc, char *argv[]) // the "pandora check_kmergr
             }
             if (flag) {
                 if (npath.empty() and read.size() < 300) {
-                    cout << "short fail!" << endl;
+                    BOOST_LOG_TRIVIAL(error) << "short fail!";
                 } else if (npath.empty() and read.size() >= 300) {
-                    cout << "long fail!" << endl;
+                    BOOST_LOG_TRIVIAL(error) << "long fail!";
                 } else {
-                    cout << "success!" << endl;
+                    BOOST_LOG_TRIVIAL(debug) << "success!";
                 }
             } else {
                 for (uint32_t j = 0; j != npath.size(); ++j) {

@@ -3,8 +3,11 @@
 #include <cassert>
 #include <cctype>
 #include <unordered_map>
+
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
+#include <boost/log/trivial.hpp>
+
 #include "fastaq.h"
 
 
@@ -22,7 +25,7 @@ char Fastaq::covg_to_score(const uint_least16_t &covg, const uint_least16_t &glo
     }
     // Rachel's original (and default) coverage to ASCII conversion function
     if (2 * global_covg < covg) {
-        cout << "Found a base with a coverage way too high, so giving it a score of 0" << endl;
+        BOOST_LOG_TRIVIAL(warning) << "Found a base with a coverage way too high, so giving it a score of 0";
         return '!';
     }
 

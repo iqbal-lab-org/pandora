@@ -2,6 +2,9 @@
 #include <vector>
 #include <cassert>
 #include <zconf.h>
+
+#include <boost/log/trivial.hpp>
+
 #include "inthash.h"
 #include "minimizer.h"
 #include "seq.h"
@@ -44,7 +47,7 @@ bool Seq::add_letter_to_get_next_kmer(const char &letter,
         buff++;
         return true;
     } else {
-        cout << now() << "bad letter - found a non AGCT base in read so skipping read " << name << endl;
+        BOOST_LOG_TRIVIAL(warning) << now() << "bad letter - found a non AGCT base in read so skipping read " << name << endl;
         sketch.clear();
         return false;
     }

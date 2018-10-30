@@ -5,7 +5,10 @@
 #include <cstdio>      /* NULL */
 #include <cstdlib>     /* srand, rand */
 #include <cmath>
+
 #include <boost/math/distributions/negative_binomial.hpp>
+#include <boost/log/trivial.hpp>
+
 #include "utils.h"
 #include "kmernode.h"
 #include "kmergraph.h"
@@ -178,7 +181,7 @@ void KmerGraph::add_edge(KmerNodePtr from, KmerNodePtr to) {
 }
 
 void KmerGraph::remove_shortcut_edges() {
-    cout << now() << "Remove 'bad' edges from kmergraph" << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Remove 'bad' edges from kmergraph";
     Path temp_path;
     uint32_t num_removed_edges = 0;
     vector<KmerNodePtr> v = {};
@@ -208,7 +211,7 @@ void KmerGraph::remove_shortcut_edges() {
             }
         }
     }
-    cout << now() << "Found and removed " << num_removed_edges << " edges from the kmergraph" << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Found and removed " << num_removed_edges << " edges from the kmergraph";
 }
 
 void KmerGraph::sort_topologically() {
@@ -324,7 +327,7 @@ float KmerGraph::find_max_path(vector<KmerNodePtr> &maxpath) {
         }
     }
     if (!not_all_zero) {
-        cout << "ALL ZEROES" << endl;
+        BOOST_LOG_TRIVIAL(debug) << "ALL ZEROES";
     }
 
     // create vectors to hold the intermediate values
@@ -392,7 +395,7 @@ float KmerGraph::find_nb_max_path(vector<KmerNodePtr> &maxpath) {
         }
     }
     if (!not_all_zero) {
-        cout << "ALL ZEROES" << endl;
+        BOOST_LOG_TRIVIAL(debug) << "ALL ZEROES";
     }
 
     // create vectors to hold the intermediate values
