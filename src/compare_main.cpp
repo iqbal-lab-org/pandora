@@ -324,7 +324,7 @@ int pandora_compare(int argc, char *argv[]) {
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
     cout << now() << "Output matrix" << endl;
-    pangraph->save_matrix(outdir + "multisample.matrix");
+    pangraph->save_matrix(outdir + "/multisample.matrix");
 
     // clear up
     cout << now() << "Clear up" << endl;
