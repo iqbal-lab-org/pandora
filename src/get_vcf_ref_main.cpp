@@ -45,7 +45,7 @@ int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
             while (not readfile.eof()) {
                 npath = prg_ptr->prg.nodes_along_string(readfile.read);
                 if (not npath.empty()) {
-                    cout << ">" << prg_ptr->name << endl << readfile.read << endl;
+                    BOOST_LOG_TRIVIAL(debug) << ">" << prg_ptr->name << endl << readfile.read;
                     found = true;
                     break;
                 }

@@ -201,7 +201,7 @@ void Graph::remove_read(const uint32_t read_id) {
 // Remove a single instance of a node from a read while iterating through the nodes of the read
 vector<NodePtr>::iterator Graph::remove_node_from_read(vector<NodePtr>::iterator node_it, ReadPtr read_ptr) {
 
-    cout << "remove node " << (*node_it)->node_id << " from read " << read_ptr->id << endl;
+    BOOST_LOG_TRIVIAL(debug) << "remove node " << (*node_it)->node_id << " from read " << read_ptr->id;
     NodePtr node_ptr = *node_it;
 
     // remove node from read
@@ -222,7 +222,7 @@ vector<NodePtr>::iterator Graph::remove_node_from_read(vector<NodePtr>::iterator
 
 // Remove nodes with covg <= thresh from graph
 void Graph::remove_low_covg_nodes(const uint32_t &thresh) {
-    cout << now() << "Remove nodes with covg <= " << thresh << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Remove nodes with covg <= " << thresh << endl;
     for (auto it = nodes.begin(); it != nodes.end();) {
         //cout << "look at node " << *(it->second) << endl;
         if (it->second->covg <= thresh) {
@@ -233,7 +233,7 @@ void Graph::remove_low_covg_nodes(const uint32_t &thresh) {
             ++it;
         }
     }
-    cout << now() << "Pangraph now has " << nodes.size() << " nodes" << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Pangraph now has " << nodes.size() << " nodes";
 }
 
 // Create a copy of the node with node_id and replace the old copy with
@@ -349,15 +349,17 @@ void Graph::add_hits_to_kmergraphs(const std::vector<std::shared_ptr<LocalPRG>> 
                        pnode.second->kmer_prg.nodes[(*mh)->knode_id] != nullptr);
                 pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] += 1;
                 if (pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] == 1000) {
-                    cout << "Adding hit " << **mh << " resulted in high coverage on node "
-                         << *pnode.second->kmer_prg.nodes[(*mh)->knode_id] << endl;
+                    BOOST_LOG_TRIVIAL(debug) << "Adding hit " << **mh
+                                             << " resulted in high coverage on node "
+                                             << *pnode.second->kmer_prg.nodes[(*mh)->knode_id];
                 }
                 //cout << " to " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] << endl;
                 num_hits[(*mh)->strand] += 1;
             }
         }
-        cout << now() << "Added " << num_hits[1] << " hits in the forward direction and " << num_hits[0]
-             << " hits in the reverse" << endl;
+        BOOST_LOG_TRIVIAL(debug) << "Added " << num_hits[1] << " hits in the forward direction and "
+                                 << num_hits[0]
+                                 << " hits in the reverse";
         pnode.second->kmer_prg.num_reads = pnode.second->covg;
     }
 }
@@ -378,7 +380,7 @@ bool Graph::operator==(const Graph &y) const {
         // if node id doesn't exist
         auto it = find_if(y.nodes.begin(), y.nodes.end(), same_prg_id(c.second));
         if (it == y.nodes.end()) {
-            cout << "can't find node " << c.first << endl;
+            BOOST_LOG_TRIVIAL(warning) << "can't find node " << c.first;
             return false;
         }
     }
@@ -386,7 +388,7 @@ bool Graph::operator==(const Graph &y) const {
         // if node id doesn't exist
         auto it = find_if(nodes.begin(), nodes.end(), same_prg_id(c.second));
         if (it == nodes.end()) {
-            cout << "can't find node " << c.first << endl;
+            BOOST_LOG_TRIVIAL(debug) << "can't find node " << c.first;
             return false;
         }
     }
@@ -426,7 +428,7 @@ void Graph::save_matrix(const string &filepath) {
 }
 
 void Graph::save_mapped_read_strings(const string &readfilepath, const string &outdir, const int32_t buff) {
-    cout << now() << "Save mapped read strings and coordinates" << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Save mapped read strings and coordinates";
     ofstream outhandle;
     FastaqHandler readfile(readfilepath);
     uint32_t start, end;
@@ -464,7 +466,7 @@ void Graph::save_mapped_read_strings(const string &readfilepath, const string &o
 }
 
 void Graph::save_kmergraph_coverages(const string &outdir, const string &sample_name) {
-    cout << now() << "Save kmergraph coverages for sample " << sample_name << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Save kmergraph coverages for sample " << sample_name;
     make_dir(outdir + "/coverages");
     for (const auto &n : nodes) {
         string node_file = outdir + "/coverages/" + n.second->name + ".csv";

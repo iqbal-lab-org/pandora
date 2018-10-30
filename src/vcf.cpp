@@ -6,6 +6,9 @@
 #include <numeric>
 #include <vector>
 #include <algorithm>
+
+#include <boost/log/trivial.hpp>
+
 #include "vcfrecord.h"
 #include "vcf.h"
 #include "utils.h"
@@ -452,7 +455,7 @@ void VCF::save(const string &filepath, bool simple, bool complexgraph, bool toom
 	    cout << now() << "Did not save VCF for sample" << endl;
 	    return;
     }*/
-    cout << now() << "Saving VCF to " << filepath << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Saving VCF to " << filepath;
 
     // open and write header
     ofstream handle;
@@ -476,12 +479,12 @@ void VCF::save(const string &filepath, bool simple, bool complexgraph, bool toom
         }
     }
     handle.close();
-    cout << now() << "Finished saving " << records.size() << " entries to file" << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Finished saving " << records.size() << " entries to file";
     return;
 }
 
 void VCF::load(const string &filepath) {
-    cout << now() << "Loading VCF from " << filepath << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Loading VCF from " << filepath;
     VCFRecord vr;
     string line;
     stringstream ss;
@@ -503,7 +506,7 @@ void VCF::load(const string &filepath) {
         cerr << "Unable to open VCF file " << filepath << endl;
         exit(1);
     }
-    cout << now() << "Finished loading " << added << " entries to VCF, which now has size " << records.size() << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Finished loading " << added << " entries to VCF, which now has size " << records.size();
     return;
 }
 

@@ -2,7 +2,10 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+
 #include <boost/filesystem.hpp>
+#include <boost/log/trivial.hpp>
+
 #include "utils.h"
 #include "localPRG.h"
 
@@ -11,7 +14,7 @@ using namespace std;
 
 void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs, Index *idx, const uint32_t w, const uint32_t k,
                 const string &outdir) {
-    cout << now() << "Index PRGs" << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
 
     // first reserve an estimated index size
     uint32_t r = 0;
@@ -32,8 +35,8 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs, Index *idx, const 
                 outdir + "/" + int_to_string(dir_num) + "/" + prgs[i]->name + ".k" + to_string(k) + ".w" +
                 to_string(w) + ".gfa");
     }
-    cout << now() << "Finished adding " << prgs.size() << " LocalPRGs" << endl;
-    cout << now() << "Number of keys in Index: " << idx->minhash.size() << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Finished adding " << prgs.size() << " LocalPRGs";
+    BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << idx->minhash.size();
 }
 
 static void show_index_usage() {
@@ -81,7 +84,7 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
             }
         } else if (prgfile.empty()) {
             prgfile = argv[i]; // Increment 'i' so we don't get the argument as the next argv[i].
-            cout << "prgfile: " << prgfile << endl;
+            BOOST_LOG_TRIVIAL(debug) << "prgfile: " << prgfile;
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }

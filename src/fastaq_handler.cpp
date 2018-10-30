@@ -15,7 +15,7 @@ FastaqHandler::FastaqHandler(const string &filepath) : gzipped(false), instream(
     // level for boost logging
 //    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
-    cout << now() << "Open fastaq file " << filepath << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Open fastaq file" << filepath;
     fastaq_file.open(filepath);
     if (not fastaq_file.is_open()) {
         cerr << "Unable to open fastaq file " << filepath << endl;
@@ -163,7 +163,7 @@ void FastaqHandler::get_id(const uint32_t &id) {
 }
 
 void FastaqHandler::close() {
-    cout << now() << "Close fastaq file" << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Close fastaq file";
     fastaq_file.close();
 }
 
