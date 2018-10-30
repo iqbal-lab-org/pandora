@@ -40,10 +40,6 @@ void denovo_discovery::find_candidates(
         auto fname = get_discovered_paths_fname(info, local_assembly_kmer_size);
         auto discovered_paths_fpath = output_directory / fname;
 
-        //todo: revisit expected maximum path length with zam
-        const uint32_t expected_max_path_len = interval_sequence.length() * 2;
-        const uint32_t max_path_length = (expected_max_path_len > g_max_length) ? g_max_length : expected_max_path_len;
-
         const uint32_t read_covg = sequences.size();
         const uint32_t ref_length = interval_sequence.length();
         const double expected_kmer_covg = denovo_discovery::calculate_kmer_coverage(read_covg, ref_length,
@@ -53,12 +49,7 @@ void denovo_discovery::find_candidates(
         BOOST_LOG_TRIVIAL(debug) << "Running local assembly for: " << info.pnode->get_name() << " - interval ["
                                  << info.interval.start << ", " << info.interval.get_end() << "]";
 
-        local_assembly(sequences,
-                       start_kmers,
-                       end_kmers,
-                       discovered_paths_fpath,
-                       local_assembly_kmer_size,
-                       max_path_length,
+        local_assembly(sequences, start_kmers, end_kmers, discovered_paths_fpath, local_assembly_kmer_size,
                        expected_kmer_covg);
     }
 }
