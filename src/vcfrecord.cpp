@@ -114,7 +114,7 @@ void VCFRecord::clear_sample(uint32_t i) {
         regt_samples[i].clear();
     }
     bool all_cleared(true);
-    for (const auto s : samples) {
+    for (const auto &s : samples) {
         if (!s.empty()) {
             all_cleared = false;
             break;
@@ -126,7 +126,7 @@ void VCFRecord::clear_sample(uint32_t i) {
 }
 
 void VCFRecord::add_formats(const vector<string> &formats) {
-    for (const auto s : formats) {
+    for (const auto &s : formats) {
         if (find(format.begin(), format.end(), s) == format.end())
             format.push_back(s);
     }
@@ -280,7 +280,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
         for (const auto &f : m.format) {
             string buffer = "";
             if (m.samples[i].find(f) != m.samples[i].end() and not m.samples[i].at(f).empty()) {
-                for (const auto a : m.samples.at(i).at(f)) {
+                for (const auto &a : m.samples.at(i).at(f)) {
                     out << buffer << +a;
                     buffer = ",";
                 }
@@ -288,7 +288,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
             } else if (m.regt_samples.size() > i
                        and m.regt_samples[i].find(f) != m.regt_samples[i].end()
                        and not m.regt_samples[i].at(f).empty()) {
-                for (const auto a : m.regt_samples.at(i).at(f)) {
+                for (const auto &a : m.regt_samples.at(i).at(f)) {
                     out << buffer << +a;
                     buffer = ",";
                 }
@@ -348,12 +348,12 @@ std::istream &operator>>(std::istream &in, VCFRecord &m) {
             if (sample_strings[i] != "."
                 and find(float_strings.begin(), float_strings.end(), m.format[i]) == float_strings.end()) {
                 sample_substrings = split(sample_strings[i], ",");
-                for (const auto s : sample_substrings)
+                for (const auto &s : sample_substrings)
                     m.samples.back()[m.format[i]].push_back(stoi(s));
             } else if (sample_strings[i] != "."
                        and find(float_strings.begin(), float_strings.end(), m.format[i]) != float_strings.end()) {
                 sample_substrings = split(sample_strings[i], ",");
-                for (const auto s : sample_substrings)
+                for (const auto &s : sample_substrings)
                     m.regt_samples.back()[m.format[i]].push_back(stof(s));
             }
         }

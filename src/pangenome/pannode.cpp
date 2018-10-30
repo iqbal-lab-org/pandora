@@ -77,7 +77,7 @@ void Node::get_read_overlap_coordinates(vector<vector<uint32_t>> &read_overlap_c
     vector<uint32_t> coordinate;
 
     auto read_count = 0;
-    for (const auto read_ptr : reads) {
+    for (const auto &read_ptr : reads) {
         read_count++;
         if (read_ptr->hits.at(prg_id).size() < 2)
             continue;
@@ -85,7 +85,7 @@ void Node::get_read_overlap_coordinates(vector<vector<uint32_t>> &read_overlap_c
         auto hit_ptr_iter = read_ptr->hits.at(prg_id).begin();
         uint32_t start = (*hit_ptr_iter)->read_start_position;
         uint32_t end = 0;
-        for (const auto hit_ptr : read_ptr->hits.at(prg_id)) {
+        for (const auto &hit_ptr : read_ptr->hits.at(prg_id)) {
             start = min(start, hit_ptr->read_start_position);
             end = max(end, hit_ptr->read_start_position + hit_ptr->prg_path.length());
         }

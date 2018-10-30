@@ -255,7 +255,7 @@ vector<LocalNodePtr> LocalGraph::nodes_along_string(const string &query_string, 
     while (!u.empty()) {
         for (const auto &p : u) {
             candidate_string = "";
-            for (const auto s : p) {
+            for (const auto &s : p) {
                 candidate_string += s->seq;
             }
 
@@ -352,7 +352,7 @@ bool LocalGraph::operator==(const LocalGraph &y) const {
     }
 
     // false if have different nodes
-    for (const auto c: nodes) {
+    for (const auto &c: nodes) {
         // if node id doesn't exist 
         auto it = y.nodes.find(c.first);
         if (it == y.nodes.end()) {//cout << "node id doesn't exist" << endl;
@@ -373,7 +373,7 @@ bool LocalGraph::operator!=(const LocalGraph &y) const {
 }
 
 std::ostream &operator<<(std::ostream &out, LocalGraph const &data) {
-    for (const auto c: data.nodes) {
+    for (const auto &c: data.nodes) {
         out << c.second->id << endl;
         for (uint32_t j = 0; j != c.second->outNodes.size(); ++j) {
             out << c.second->id << "->" << c.second->outNodes[j]->id << endl;

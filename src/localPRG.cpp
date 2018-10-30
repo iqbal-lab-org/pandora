@@ -1084,7 +1084,7 @@ std::vector<LocalNodePtr> LocalPRG::find_alt_path(const std::vector<LocalNodePtr
         paths_in_progress.pop_front();
 
         /*std::cout << "consider path ";
-        for (const auto t : considered_path){
+        for (const auto &t : considered_path){
             std::cout << t->pos << " ";
         }
         std::cout << std::endl;*/
@@ -1099,7 +1099,7 @@ std::vector<LocalNodePtr> LocalPRG::find_alt_path(const std::vector<LocalNodePtr
                 alt_path.insert(alt_path.end(), considered_path.begin(), considered_path.end());
                 alt_path.insert(alt_path.end(), ref_path.begin() + pos_along_ref_path, ref_path.end());
                 /*std::cout << "found alt path ";
-                for (const auto t : considered_path){
+                for (const auto &t : considered_path){
                     std::cout << t->pos << " ";
                 }
                 std::cout << std::endl;*/
