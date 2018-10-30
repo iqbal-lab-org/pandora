@@ -98,7 +98,7 @@ void VCF::add_sample_gt(const string &name, const string &c, const uint32_t p, c
                 added = true;
             }
         }
-        if (added == false and r != a) {
+        if (!added and r != a) {
             //cout << "have new allele not in graph" << endl;
             add_record(c, p, r, a, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
             records.back().samples[sample_index]["GT"] = {1};
@@ -106,7 +106,7 @@ void VCF::add_sample_gt(const string &name, const string &c, const uint32_t p, c
             added = true;
         }
         // check not mistake
-        assert(added == true);
+        assert(added);
     }
 
     // update other samples at this site if they have ref allele at this pos
@@ -463,15 +463,15 @@ void VCF::save(const string &filepath, bool simple, bool complexgraph, bool toom
     sort_records();
 
     for (uint32_t i = 0; i != records.size(); ++i) {
-        if (((simple == false and complexgraph == false) or
-             (simple == true and records[i].info.find("GRAPHTYPE=SIMPLE") != std::string::npos) or
-             (complexgraph == true and records[i].info.find("GRAPHTYPE=NESTED") != std::string::npos) or
-             (toomanyalts == true and records[i].info.find("GRAPHTYPE=TOO_MANY_ALTS") != std::string::npos)) and
-            ((snp == false and indel == false and phsnps == false and complexvar == false) or
-             (snp == true and records[i].info.find("SVTYPE=SNP") != std::string::npos) or
-             (indel == true and records[i].info.find("SVTYPE=INDEL") != std::string::npos) or
-             (phsnps == true and records[i].info.find("SVTYPE=PH_SNPs") != std::string::npos) or
-             (complexvar == true and records[i].info.find("SVTYPE=COMPLEX") != std::string::npos))) {
+        if (((!simple and !complexgraph) or
+             (simple and records[i].info.find("GRAPHTYPE=SIMPLE") != std::string::npos) or
+             (complexgraph and records[i].info.find("GRAPHTYPE=NESTED") != std::string::npos) or
+             (toomanyalts and records[i].info.find("GRAPHTYPE=TOO_MANY_ALTS") != std::string::npos)) and
+            ((!snp and !indel and !phsnps and !complexvar) or
+             (snp and records[i].info.find("SVTYPE=SNP") != std::string::npos) or
+             (indel and records[i].info.find("SVTYPE=INDEL") != std::string::npos) or
+             (phsnps and records[i].info.find("SVTYPE=PH_SNPs") != std::string::npos) or
+             (complexvar and records[i].info.find("SVTYPE=COMPLEX") != std::string::npos))) {
             handle << records[i];
         }
     }

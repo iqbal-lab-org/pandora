@@ -65,12 +65,12 @@ OrientedNodePtr Graph::add_node(const deque<uint_least32_t> &node_ids, uint32_t 
 bool edge_is_valid(OrientedNodePtr from, OrientedNodePtr to) {
     deque<uint_least32_t> hashed_node_ids_from = from.first->hashed_node_ids;
     deque<uint_least32_t> hashed_node_ids_to = to.first->hashed_node_ids;
-    if (from.second == false) {
+    if (!from.second) {
         hashed_node_ids_from = rc_hashed_node_ids(hashed_node_ids_from);
         //cout << "reverse from" << endl;
     }
 
-    if (to.second == false) {
+    if (!to.second) {
         hashed_node_ids_to = rc_hashed_node_ids(hashed_node_ids_to);
         //cout << "reverse to" << endl;
     }
@@ -218,7 +218,7 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_nod
                             break;
                         }
                     }
-                    if (found_read_intersect == false) {
+                    if (!found_read_intersect) {
                         //cout << " does not share a read" << endl;
                         nodes[*nit]->in_nodes.erase(dbg_node_id);
                         nit = it->second->out_nodes.erase(nit);
@@ -238,7 +238,7 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_nod
                             break;
                         }
                     }
-                    if (found_read_intersect == false) {
+                    if (!found_read_intersect) {
                         //cout << " does not share a read" << endl;
                         nodes[*nit]->out_nodes.erase(dbg_node_id);
                         nit = it->second->in_nodes.erase(nit);
@@ -484,7 +484,7 @@ bool Graph::operator==(const Graph &y) const {
                 break;
             }
         }
-        if (found == false) {
+        if (!found) {
             cout << "did not find node " << t.first << " " << *t.second << endl;
             return false;
         }

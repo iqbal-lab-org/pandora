@@ -444,7 +444,7 @@ void Graph::save_mapped_read_strings(const string &readfilepath, const string &o
             start = (uint32_t) max((int32_t) coord[1] - buff, 0);
             end = min(coord[2] + (uint32_t) buff, (uint32_t) readfile.read.length());
             outhandle << ">" << readfile.name << " pandora: " << coord[0] << " " << start << ":" << end;
-            if (coord[3] == true)
+            if (coord[3])
                 outhandle << " + " << endl;
             else
                 outhandle << " - " << endl;

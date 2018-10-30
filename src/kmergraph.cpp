@@ -323,7 +323,7 @@ float KmerGraph::find_max_path(vector<KmerNodePtr> &maxpath) {
             break;
         }
     }
-    if (not_all_zero == false) {
+    if (!not_all_zero) {
         cout << "ALL ZEROES" << endl;
     }
 
@@ -391,7 +391,7 @@ float KmerGraph::find_nb_max_path(vector<KmerNodePtr> &maxpath) {
             break;
         }
     }
-    if (not_all_zero == false) {
+    if (!not_all_zero) {
         cout << "ALL ZEROES" << endl;
     }
 

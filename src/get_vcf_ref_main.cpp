@@ -52,7 +52,7 @@ int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
                 readfile.get_next();
             }
 
-            if (found == false) {
+            if (!found) {
                 assert(npath.empty());
                 npath = prg_ptr->prg.top_path();
                 fa.add_entry(prg_ptr->name, prg_ptr->string_along_path(npath));
