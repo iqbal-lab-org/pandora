@@ -430,7 +430,7 @@ uint32_t pangraph_from_read_file(const string &filepath,
             id++;
             continue;
         }
-        if (illumina == true and expected_number_kmers_in_short_read_sketch == std::numeric_limits<uint32_t>::max()) {
+        if (illumina and expected_number_kmers_in_short_read_sketch == std::numeric_limits<uint32_t>::max()) {
             assert(w != 0);
             expected_number_kmers_in_short_read_sketch = s->seq.length() * 2 / w;
         }

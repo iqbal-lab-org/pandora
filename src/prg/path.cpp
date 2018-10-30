@@ -97,7 +97,7 @@ bool Path::is_branching(const Path &y) const // returns true if the two paths br
     bool overlap = false;
     vector<Interval>::const_iterator it, it2;
     for (it = path.begin(); it != path.end(); ++it) {
-        if (overlap == true) {
+        if (overlap) {
             if (it->start != it2->start) {
                 // had paths which overlapped and now don't
                 //cout << "branch" << endl;

@@ -97,9 +97,9 @@ void Fastaq::clear() {
 }
 
 void Fastaq::save(const std::string &filepath) {
-    if (filepath.length() > 2 and filepath.substr(filepath.length() - 2) == "gz" and gzipped == false) {
+    if (filepath.length() > 2 and filepath.substr(filepath.length() - 2) == "gz" and !gzipped) {
         gzipped = true;
-    } else if (filepath.length() > 2 and filepath.substr(filepath.length() - 2) != "gz" and gzipped == true) {
+    } else if (filepath.length() > 2 and filepath.substr(filepath.length() - 2) != "gz" and gzipped) {
         gzipped = false;
     }
     ofstream file(filepath, ios_base::out | ios_base::binary | ios_base::trunc);
