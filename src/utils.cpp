@@ -37,18 +37,6 @@ string now() {
     return dt.substr(0, dt.length() - 1) + " ";
 }
 
-void make_dir(const string &dirpath) {
-    if (dirpath == ".")
-        return;
-
-    const boost::filesystem::path dir(dirpath);
-    if (boost::filesystem::exists(dir)) {
-        return;
-    }
-
-    assert(boost::filesystem::create_directories(dir) || assert_msg("Failed to make directories " << dir));
-}
-
 string int_to_string(const int number) {
     stringstream ss;
     ss << setw(2) << setfill('0') << number;

@@ -36,7 +36,7 @@ void denovo_discovery::find_candidates(
                                    local_assembly_kmer_size,
                                    kmer_attempts_count)
         };
-
+        // todo: create directory to put paths into i.e denovo/
         auto fname = get_discovered_paths_fname(info, local_assembly_kmer_size);
         auto discovered_paths_fpath = output_directory / fname;
 

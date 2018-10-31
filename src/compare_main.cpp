@@ -245,7 +245,7 @@ int pandora_compare(int argc, char *argv[]) {
 
         // make output dir for this sample
         string sample_outdir = outdir + "/" + sample->first;
-        make_dir(sample_outdir + "/kmer_prgs");
+        fs::create_directories(sample_outdir + "/kmer_prgs");
 
         // construct the pangraph for this sample
         cout << now() << "Constructing pangenome::Graph from read file " << sample->second
@@ -313,7 +313,7 @@ int pandora_compare(int argc, char *argv[]) {
         }
 
         string node_outdir = outdir + "/" + c.second->get_name();
-        make_dir(node_outdir);
+        fs::create_directories(node_outdir);
 
         c.second->output_samples(prgs[c.first], node_outdir, w, vcf_ref);
     }

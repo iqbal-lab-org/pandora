@@ -27,7 +27,7 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs, Index *idx, const 
     auto dir_num = 0;
     for (uint32_t i = 0; i != prgs.size(); ++i) {
         if (i % 4000 == 0) {
-            make_dir(outdir + "/" + int_to_string(dir_num + 1));
+            fs::create_directories(outdir + "/" + int_to_string(dir_num + 1));
             dir_num++;
         }
         prgs[i]->minimizer_sketch(idx, w, k);
