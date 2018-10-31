@@ -29,6 +29,7 @@ const uint32_t g_local_assembly_kmer_size{11};
 const auto g_log_level{logging::trivial::debug};
 const float g_covg_scaling_factor{0.1};
 const uint32_t g_kmer_attempts_count{10};
+const uint32_t g_max_num_paths{500};
 
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph);
 
