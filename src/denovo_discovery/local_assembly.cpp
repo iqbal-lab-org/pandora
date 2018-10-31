@@ -99,7 +99,6 @@ void get_paths_between_util(const std::string &start_kmer, const std::string &en
 
     // do coverage check
     // if there are k k-mers with coverage <= expected_covg * coverage scaling factor - stop recursing for this path
-    // todo: revisit this scaling with zam
     if (kmer_coverage < (expected_kmer_covg * g_covg_scaling_factor)) {
         kmers_below_threshold++;
         if (kmers_below_threshold >= start_kmer.length()) {
@@ -119,6 +118,13 @@ void get_paths_between_util(const std::string &start_kmer, const std::string &en
     // makes sure we get all possible cycle repitions up to the maximum length
     if (has_ending(path_accumulator, end_kmer)) {
         full_paths.push_back(path_accumulator);
+        // prevent the number of paths going above a fixed number
+        if (full_paths.size() > g_max_num_paths) {
+            BOOST_LOG_TRIVIAL(debug) << "Too many paths found " << std::to_string(full_paths.size())
+                                     << ". Skipping slice.";
+            full_paths.clear();
+            return;
+        }
     }
 
     for (unsigned int i = 0; i < num_children; ++i) {
@@ -204,15 +210,8 @@ void local_assembly(const std::vector<std::string> &sequences, const std::vector
                 auto tree = DFS(start_node, graph);
                 auto result = get_paths_between(s_kmer, e_kmer, tree, graph, max_path_length, expected_coverage);
 
-                if (not result.empty() and result.size() < g_max_num_paths) {
+                if (not result.empty()) {
                     write_paths_to_fasta(out_path, result);
-                } else {
-                    if (result.empty()) {
-                        BOOST_LOG_TRIVIAL(debug) << "No paths found.";
-                    } else if (result.size() >= g_max_num_paths) {
-                        BOOST_LOG_TRIVIAL(debug) << "Too many paths found " << std::to_string(result.size())
-                                                 << ". Skipping slice.";
-                    }
                 }
 
                 remove_graph_file();
