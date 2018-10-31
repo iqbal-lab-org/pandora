@@ -204,9 +204,19 @@ void local_assembly(const std::vector<std::string> &sequences, const std::vector
                 auto tree = DFS(start_node, graph);
                 auto result = get_paths_between(s_kmer, e_kmer, tree, graph, max_path_length, expected_coverage);
 
-                if (not result.empty()) {
+                if (not result.empty() and result.size() < g_max_num_paths) {
                     write_paths_to_fasta(out_path, result);
+                } else {
+                    if (result.empty()) {
+                        BOOST_LOG_TRIVIAL(debug) << "No paths found.";
+                    }
+                    else if (result.size() >= g_max_num_paths)
+                    {
+                        BOOST_LOG_TRIVIAL(debug) << "Too many paths found " << std::to_string(result.size())
+                                                 << ". Skipping slice.";
+                    }
                 }
+
                 remove_graph_file();
                 return;
             }
