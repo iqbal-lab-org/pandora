@@ -3,6 +3,9 @@
 
 #include <cstring>
 #include <cstdint>
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
 
 
 uint32_t find_mean_covg(std::vector<uint32_t> &);

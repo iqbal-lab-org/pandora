@@ -439,7 +439,7 @@ void Graph::save_mapped_read_strings(const string &readfilepath, const string &o
         cout << "Find coordinates for node " << node_ptr.second->name;
         node_ptr.second->get_read_overlap_coordinates(read_overlap_coordinates);
         cout << "." << endl;
-        make_dir(outdir + "/" + node_ptr.second->get_name());
+        fs::create_directories(outdir + "/" + node_ptr.second->get_name());
         outhandle.open(outdir + "/" + node_ptr.second->get_name() + "/" + node_ptr.second->get_name() + ".reads.fa");
         for (const auto &coord : read_overlap_coordinates) {
             readfile.get_id(coord[0]);
@@ -467,7 +467,7 @@ void Graph::save_mapped_read_strings(const string &readfilepath, const string &o
 
 void Graph::save_kmergraph_coverages(const string &outdir, const string &sample_name) {
     BOOST_LOG_TRIVIAL(debug) << "Save kmergraph coverages for sample " << sample_name;
-    make_dir(outdir + "/coverages");
+    fs::create_directories(outdir + "/coverages");
     for (const auto &n : nodes) {
         string node_file = outdir + "/coverages/" + n.second->name + ".csv";
         if (!boost::filesystem::exists(node_file)) {

@@ -220,9 +220,9 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\tsnps_only\t" << snps_only << endl;
     cout << "\tdiscover\t" << discover_denovo << endl << endl;
 
-    make_dir(outdir);
+    fs::create_directories(outdir);
     if (output_kg)
-        make_dir(outdir + "/kmer_graphs");
+        fs::create_directories(outdir + "/kmer_graphs");
 
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
     Index *idx;
