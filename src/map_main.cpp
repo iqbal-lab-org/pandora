@@ -225,9 +225,8 @@ int pandora_map(int argc, char *argv[]) {
         fs::create_directories(outdir + "/kmer_graphs");
 
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
-    Index *idx;
-    idx = new Index();
-    idx->load(prgfile, w, k);
+    auto index = std::make_shared<Index>();
+    index->load(prgfile, w, k);
     std::vector<std::shared_ptr<LocalPRG>> prgs;
     read_prg_file(prgs, prgfile);
     load_PRG_kmergraphs(prgs, w, k, prgfile);
@@ -237,12 +236,11 @@ int pandora_map(int argc, char *argv[]) {
     mhs = new MinimizerHits(100000);
     pangenome::Graph *pangraph;
     pangraph = new pangenome::Graph();
-    uint32_t covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate,
+    uint32_t covg = pangraph_from_read_file(readfile, mhs, pangraph, index, prgs, w, k, max_diff, e_rate,
                                             min_cluster_size, genome_size, illumina, clean, max_covg);
 
     cout << now() << "Finished with index, so clear " << endl;
-    idx->clear();
-    delete idx;
+    index->clear();
 
     cout << now() << "Finished with minihits, so clear " << endl;
     mhs->clear();

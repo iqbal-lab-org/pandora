@@ -63,7 +63,7 @@ load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>> &, const uint32_t &, 
 void load_vcf_refs_file(const std::string &, VCFRefs &);
 
 //void add_read_hits(uint32_t, const std::string&, const std::string&, MinimizerHits*, Index*, const uint32_t, const uint32_t);
-void add_read_hits(Seq *, MinimizerHits *, Index *);
+void add_read_hits(Seq *, MinimizerHits *, std::shared_ptr<Index>);
 
 void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &,
                      const std::vector<std::shared_ptr<LocalPRG>> &,
@@ -79,7 +79,7 @@ infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>> &prg
                                const uint32_t &, const float &, const uint32_t min_cluster_size = 10,
                                const uint32_t expected_number_kmers_in_short_read_sketch = std::numeric_limits<uint32_t>::max());
 
-uint32_t pangraph_from_read_file(const std::string &, MinimizerHits *, pangenome::Graph *, Index *,
+uint32_t pangraph_from_read_file(const std::string &, MinimizerHits *, pangenome::Graph *, std::shared_ptr<Index>,
                                  const std::vector<std::shared_ptr<LocalPRG>> &,
                                  const uint32_t, const uint32_t, const int, const float &,
                                  const uint32_t min_cluster_size = 10,

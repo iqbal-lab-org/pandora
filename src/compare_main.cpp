@@ -205,9 +205,8 @@ int pandora_compare(int argc, char *argv[]) {
     std::cout << "\tbin\t" << bin << std::endl << std::endl;
 
     std::cout << now() << "Loading Index and LocalPRGs from file" << std::endl;
-    Index *idx;
-    idx = new Index();
-    idx->load(prgfile, w, k);
+    auto index = std::make_shared<Index>();
+    index->load(prgfile, w, k);
     std::vector<std::shared_ptr<LocalPRG>> prgs;
     read_prg_file(prgs, prgfile);
     load_PRG_kmergraphs(prgs, w, k, prgfile);
@@ -251,7 +250,7 @@ int pandora_compare(int argc, char *argv[]) {
         // construct the pangraph for this sample
         std::cout << now() << "Constructing pangenome::Graph from read file " << sample->second
                   << " (this will take a while)" << std::endl;
-        covg = pangraph_from_read_file(sample->second, mhs, pangraph_sample, idx, prgs, w, k, max_diff, e_rate,
+        covg = pangraph_from_read_file(sample->second, mhs, pangraph_sample, index, prgs, w, k, max_diff, e_rate,
                                        min_cluster_size, genome_size, illumina, clean, max_covg);
 
         std::cout << now() << "Finished with minihits, so clear " << std::endl;
@@ -330,8 +329,7 @@ int pandora_compare(int argc, char *argv[]) {
 
     // clear up
     std::cout << now() << "Clear up" << std::endl;
-    idx->clear();
-    delete idx;
+    index->clear();
     mhs->clear();
     delete mhs;
     pangraph->clear();

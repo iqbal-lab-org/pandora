@@ -166,15 +166,15 @@ void load_vcf_refs_file(const std::string &filepath, VCFRefs &vcf_refs) {
 }
 
 //void add_read_hits(const uint32_t id, const string& name, const string& seq, MinimizerHits* hits, Index* idx, const uint32_t w, const uint32_t k)
-void add_read_hits(Seq *s, MinimizerHits *hits, Index *idx) {
+void add_read_hits(Seq *s, MinimizerHits *hits, std::shared_ptr<Index> index) {
     //cout << now() << "Search for hits for read " << s->name << " which has sketch size " << s->sketch.size() << " against index of size " << idx->minhash.size() << endl;
     uint32_t hit_count = 0;
     // creates Seq object for the read, then looks up minimizers in the Seq sketch and adds hits to a global MinimizerHits object
     //Seq s(id, name, seq, w, k);
     for (auto it = s->sketch.begin(); it != s->sketch.end(); ++it) {
-        if (idx->minhash.find((*it).kmer) != idx->minhash.end()) {
-            for (uint32_t j = 0; j != idx->minhash[(*it).kmer]->size(); ++j) {
-                hits->add_hit(s->id, *it, &(idx->minhash[(*it).kmer]->operator[](j)));
+        if (index->minhash.find((*it).kmer) != index->minhash.end()) {
+            for (uint32_t j = 0; j != index->minhash[(*it).kmer]->size(); ++j) {
+                hits->add_hit(s->id, *it, &(index->minhash[(*it).kmer]->operator[](j)));
                 hit_count += 1;
             }
             //} else {
@@ -383,7 +383,7 @@ void infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>>
 uint32_t pangraph_from_read_file(const std::string &filepath,
                                  MinimizerHits *mh,
                                  pangenome::Graph *pangraph,
-                                 Index *idx,
+                                 std::shared_ptr<Index> index,
                                  const std::vector<std::shared_ptr<LocalPRG>> &prgs,
                                  const uint32_t w,
                                  const uint32_t k,
@@ -424,7 +424,7 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
             expected_number_kmers_in_short_read_sketch = s->seq.length() * 2 / w;
         }
         //cout << now() << "Add read hits" << endl;
-        add_read_hits(s, mh, idx);
+        add_read_hits(s, mh, index);
         id++;
         if (id > 10000000) {
             BOOST_LOG_TRIVIAL(debug) << "Stop reading readfile as have reached 10,000,000 reads";

@@ -909,11 +909,9 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
 
     // define localPRG
     LocalPRG l3(prg_id, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
     auto w = 1, k = 3;
-    l3.minimizer_sketch(idx, w, k);
-    delete idx;
+    l3.minimizer_sketch(index, w, k);
 
     // define localpath and kmerpath
     // corresponds to sequence (A) G C T CGG  (TAT)
@@ -1080,11 +1078,9 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs_fewer_hits_needed) {
 
     // define localPRG
     LocalPRG l3(prg_id, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
     auto w = 1, k = 3;
-    l3.minimizer_sketch(idx, w, k);
-    delete idx;
+    l3.minimizer_sketch(index, w, k);
 
     // define localpath and kmerpath
     // corresponds to sequence (A) G C T CGG  (TAT)

@@ -312,7 +312,7 @@ std::vector<Path> LocalPRG::shift(Path p) const {
     return return_paths;
 }
 
-void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) {
+void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, const uint32_t k) {
     std::cout << now() << "Sketch PRG " << name << " which has " << prg.nodes.size() << " nodes" << std::endl;
 
     // clean up after any previous runs
@@ -383,7 +383,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
                         // add to index, kmer_prg
                         num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
                         kn = kmer_prg.add_node_with_kh(kmer_path, std::min(kh.first, kh.second), num_AT);
-                        idx->add_record(std::min(kh.first, kh.second), id, kmer_path, kn->id, (kh.first <= kh.second));
+                        index->add_record(std::min(kh.first, kh.second), id, kmer_path, kn->id, (kh.first <= kh.second));
                         num_kmers_added += 1;
                         if (!mini_found_in_window) {
                             kmer_prg.add_edge(kmer_prg.nodes[0], kn);
@@ -427,7 +427,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
                 if (found == kmer_prg.nodes.end()) {
                     num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
                     new_kn = kmer_prg.add_node_with_kh(v.back(), std::min(kh.first, kh.second), num_AT);
-                    idx->add_record(std::min(kh.first, kh.second), id, v.back(), new_kn->id, (kh.first <= kh.second));
+                    index->add_record(std::min(kh.first, kh.second), id, v.back(), new_kn->id, (kh.first <= kh.second));
                     kmer_prg.add_edge(kn, new_kn);
                     if (v.back().get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
                         end_leaves.push_back(new_kn);
@@ -463,7 +463,7 @@ void LocalPRG::minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k) 
                             num_AT = std::count(kmer.begin(), kmer.end(), 'A') +
                                      std::count(kmer.begin(), kmer.end(), 'T');
                             new_kn = kmer_prg.add_node_with_kh(v[j], std::min(kh.first, kh.second), num_AT);
-                            idx->add_record(std::min(kh.first, kh.second), id, v[j], new_kn->id,
+                            index->add_record(std::min(kh.first, kh.second), id, v[j], new_kn->id,
                                             (kh.first <= kh.second));
 
                             // if there is more than one mini in the window, edge should go to the first, and from the first to the second
