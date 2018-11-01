@@ -8,6 +8,7 @@
 #include "denovo_discovery/extract_reads.h"
 #include "denovo_discovery/local_assembly.h"
 
+
 namespace fs = boost::filesystem;
 
 namespace denovo_discovery {

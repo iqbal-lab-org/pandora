@@ -209,9 +209,7 @@ void local_assembly(const std::vector<std::string> &sequences, const std::vector
                 } else {
                     if (result.empty()) {
                         BOOST_LOG_TRIVIAL(debug) << "No paths found.";
-                    }
-                    else if (result.size() >= g_max_num_paths)
-                    {
+                    } else if (result.size() >= g_max_num_paths) {
                         BOOST_LOG_TRIVIAL(debug) << "Too many paths found " << std::to_string(result.size())
                                                  << ". Skipping slice.";
                     }

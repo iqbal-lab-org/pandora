@@ -17,7 +17,7 @@
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-using namespace std;
+
 using std::make_pair;
 typedef prg::Path Path;
 
@@ -61,7 +61,7 @@ find_interval_in_localpath(const Interval &interval,
     uint16_t start = 0, end = 0;
     bool found_end = false;
     for (uint_least16_t i = 0; i < lmp.size(); ++i) {
-        if (added + buff <= interval.start and added + buff+ lmp[i]->pos.length >= interval.start) {
+        if (added + buff <= interval.start and added + buff + lmp[i]->pos.length >= interval.start) {
             start = i;
         }
         if (added <= interval.get_end() + buff and added + lmp[i]->pos.length >= interval.get_end() + buff) {
@@ -87,7 +87,7 @@ find_interval_in_localpath(const Interval &interval,
 }
 
 set<MinimizerHitPtr, pComp_path> hits_inside_path(const set<MinimizerHitPtr, pComp_path> &read_hits,
-                                                 const vector<LocalNodePtr> &lmp) {
+                                                  const vector<LocalNodePtr> &lmp) {
     set<MinimizerHitPtr, pComp_path> subset;
 
     if (lmp.empty()) {
@@ -122,7 +122,7 @@ set<MinimizerHitPtr, pComp_path> hits_inside_path(const set<MinimizerHitPtr, pCo
 
 std::set<ReadCoordinate> get_read_overlap_coordinates(const PanNodePtr &pnode,
                                                       const std::vector<LocalNodePtr> &local_node_path,
-                                                      const uint32_t& min_number_hits) {
+                                                      const uint32_t &min_number_hits) {
     std::set<ReadCoordinate> read_overlap_coordinates = {};
     BOOST_LOG_TRIVIAL(debug) << "read ids covering pannode to consider " << endl;
     for (const auto &r : pnode->reads)
@@ -156,7 +156,7 @@ void denovo_discovery::add_pnode_coordinate_pairs(
         const uint32_t &padding_size,
         const uint32_t &low_coverage_threshold,
         const uint32_t &interval_min_length,
-        const uint32_t& min_number_hits) {
+        const uint32_t &min_number_hits) {
     auto covgs = get_covgs_along_localnode_path(pnode, local_node_path, kmer_node_path);
     auto intervals = identify_regions(covgs, low_coverage_threshold, interval_min_length);
     if (intervals.empty())
@@ -172,7 +172,8 @@ void denovo_discovery::add_pnode_coordinate_pairs(
         for (const auto &l : sub_local_node_path)
             BOOST_LOG_TRIVIAL(debug) << *l;
         auto read_overlap_coordinates = get_read_overlap_coordinates(pnode, sub_local_node_path, min_number_hits);
-        BOOST_LOG_TRIVIAL(debug) << "there are " << read_overlap_coordinates.size() << " read_overlap_coordinates" << endl;
+        BOOST_LOG_TRIVIAL(debug) << "there are " << read_overlap_coordinates.size() << " read_overlap_coordinates"
+                                 << endl;
 
         GeneIntervalInfo interval_info{
                 pnode,
@@ -218,7 +219,7 @@ bool ReadCoordinate::operator==(const ReadCoordinate &y) const {
 }
 
 bool ReadCoordinate::operator!=(const ReadCoordinate &y) const {
-    return (!(*this==y));
+    return (!(*this == y));
 }
 
 std::ostream &operator<<(std::ostream &out, ReadCoordinate const &y) {
@@ -227,9 +228,10 @@ std::ostream &operator<<(std::ostream &out, ReadCoordinate const &y) {
 }
 
 std::map<GeneIntervalInfo, ReadPileup>
-denovo_discovery::collect_read_pileups(const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
-                     const boost::filesystem::path &readfilepath,
-                     const uint32_t &padding_size) {
+denovo_discovery::collect_read_pileups(
+        const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
+        const boost::filesystem::path &readfilepath,
+        const uint32_t &padding_size) {
     FastaqHandler readfile(readfilepath.string());
 
     std::map<GeneIntervalInfo, ReadPileup> pileup = {};

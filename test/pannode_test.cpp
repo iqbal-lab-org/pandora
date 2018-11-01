@@ -36,11 +36,11 @@ TEST(PangenomeNodeTest, get_name) {
 
 TEST(PangenomeNodeTest, add_path) {
     Node pn1(3, 3, "3");
-    vector<KmerNodePtr> kmp;
+    std::vector<KmerNodePtr> kmp;
     pn1.add_path(kmp);
 
     KmerGraph kg;
-    deque<Interval> d = {Interval(0, 0)};
+    std::deque<Interval> d = {Interval(0, 0)};
     Path p;
     p.initialize(d);
     kg.add_node(p);
@@ -93,7 +93,7 @@ TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
     MinimizerHits mhits;
 
     Minimizer m;
-    deque<Interval> d;
+    std::deque<Interval> d;
     Path p;
     MiniRecord *mr;
 
@@ -118,7 +118,7 @@ TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
     mhits.add_hit(1, m, mr);
 
     mhits.sort();
-    pr = make_shared<pangenome::Read>(1);
+    pr = std::make_shared<pangenome::Read>(1);
     pr->add_hits(3, mhits.hits);
     pn.reads.insert(pr);
     mhits.clear();
@@ -139,22 +139,22 @@ TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
     mhits.add_hit(2, m, mr);
 
     mhits.sort();
-    pr = make_shared<pangenome::Read>(2);
+    pr = std::make_shared<pangenome::Read>(2);
     pr->add_hits(3, mhits.hits);
     pn.reads.insert(pr);
     mhits.clear();
 
     delete mr;
 
-    vector<vector<uint32_t>> read_overlap_coordinates;
+    std::vector<std::vector<uint32_t>> read_overlap_coordinates;
     pn.get_read_overlap_coordinates(read_overlap_coordinates);
-    vector<vector<uint32_t>> expected_read_overlap_coordinates = {{1, 0, 6,  1},
-                                                                  {2, 2, 10, 0}};
+    std::vector<std::vector<uint32_t>> expected_read_overlap_coordinates = {{1, 0, 6,  1},
+                                                                            {2, 2, 10, 0}};
     for (const auto &coord : read_overlap_coordinates) {
         if (coord[0] == 1) {
-            EXPECT_ITERABLE_EQ(vector<uint32_t>, expected_read_overlap_coordinates[0], coord);
+            EXPECT_ITERABLE_EQ(std::vector<uint32_t>, expected_read_overlap_coordinates[0], coord);
         } else {
-            EXPECT_ITERABLE_EQ(vector<uint32_t>, expected_read_overlap_coordinates[1], coord);
+            EXPECT_ITERABLE_EQ(std::vector<uint32_t>, expected_read_overlap_coordinates[1], coord);
         }
     }
 }

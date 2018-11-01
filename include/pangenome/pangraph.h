@@ -43,7 +43,7 @@ public:
     NodePtr add_coverage(ReadPtr &read_ptr,
                          const NodeId &node_id,
                          const uint32_t &prg_id,
-                         const string &prg_name);
+                         const std::string &prg_name);
 
     void add_node(const uint32_t, const std::string &, uint32_t,
                   std::set<MinimizerHitPtr, pComp> &); // used by pandora map
@@ -58,7 +58,7 @@ public:
 
     void remove_low_covg_nodes(const uint32_t &);
 
-    void split_node_by_reads(unordered_set<ReadPtr> &, vector<uint_least32_t> &, const vector<bool> &,
+    void split_node_by_reads(std::unordered_set<ReadPtr> &, std::vector<uint_least32_t> &, const std::vector<bool> &,
                              const uint_least32_t);
 
     //unordered_set<ReadPtr> find_reads_on_node_path(const std::vector<uint16_t>, const std::vector<bool> );

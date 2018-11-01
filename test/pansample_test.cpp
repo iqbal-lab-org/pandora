@@ -15,7 +15,7 @@ TEST(PangenomeSampleTest, create) {
     EXPECT_EQ((uint) 0, ps.paths.size());
 
     // do the same creating a pointer
-    SamplePtr ps1(make_shared<Sample>("sample"));
+    SamplePtr ps1(std::make_shared<Sample>("sample"));
     EXPECT_EQ("sample", ps1->name);
     EXPECT_EQ((uint) 0, ps1->paths.size());
 }

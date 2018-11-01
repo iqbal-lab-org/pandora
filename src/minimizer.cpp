@@ -6,8 +6,6 @@
 #include "interval.h"
 
 
-using namespace std;
-
 Minimizer::Minimizer(uint64_t s, uint32_t a, uint32_t b, bool c) : kmer(s), pos(Interval(a, b)), strand(c) {
     assert(s <= pow(4, pos.length)); // used to check kmer length same as interval length.
     // Can't any more but at least know if s is too big for a kmer of interval size to have generated it.

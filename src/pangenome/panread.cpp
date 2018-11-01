@@ -18,7 +18,7 @@ using namespace pangenome;
 
 Read::Read(const uint32_t i) : id(i) {}
 
-void Read::add_hits(const uint32_t prg_id, set<MinimizerHitPtr, pComp> &cluster) {
+void Read::add_hits(const uint32_t prg_id, std::set<MinimizerHitPtr, pComp> &cluster) {
     if (hits.find(prg_id) == hits.end())
         hits[prg_id] = {};
 
@@ -32,8 +32,8 @@ void Read::add_hits(const uint32_t prg_id, set<MinimizerHitPtr, pComp> &cluster)
 // NB will find the first such instance if there is more than one
 
 // find the position range where overlaps node_ids and node_orients in read
-pair<uint32_t, uint32_t>
-Read::find_position(const vector<uint_least32_t> &node_ids, const vector<bool> &node_orients,
+std::pair<uint32_t, uint32_t>
+Read::find_position(const std::vector<uint_least32_t> &node_ids, const std::vector<bool> &node_orients,
                     const uint16_t min_overlap) {
     /*cout << "searching for ";
     for (const auto &n : node_ids)
@@ -70,7 +70,7 @@ Read::find_position(const vector<uint_least32_t> &node_ids, const vector<bool> &
                 //cout << "fwd " << search_pos << " " << i + found_pos << endl;
                 if (search_pos == node_ids.size() - 1 or i + found_pos == nodes.size() - 1) {
                     if (found_pos + 1 >= min_overlap) {
-                        return make_pair(i, i + found_pos);
+                        return std::make_pair(i, i + found_pos);
                     } else {
                         break;
                     }
@@ -101,7 +101,7 @@ Read::find_position(const vector<uint_least32_t> &node_ids, const vector<bool> &
                 //cout << "fwd " << search_pos << " " << found_pos << endl;
                 if (search_pos == node_ids.size() - 1 or found_pos == nodes.size() - 1) {
                     if (found_pos + 1 >= min_overlap) {
-                        return make_pair(0, found_pos);
+                        return std::make_pair(0, found_pos);
                     } else {
                         break;
                     }
@@ -126,7 +126,7 @@ Read::find_position(const vector<uint_least32_t> &node_ids, const vector<bool> &
                 //cout << "bwd " << search_pos << " " << nodes.size() -1 -i -found_pos << endl;
                 if (search_pos == node_ids.size() - 1 or i + 1 + found_pos == nodes.size()) {
                     if (found_pos + 1 >= min_overlap) {
-                        return make_pair(nodes.size() - 1 - i - found_pos, nodes.size() - 1 - i);
+                        return std::make_pair(nodes.size() - 1 - i - found_pos, nodes.size() - 1 - i);
                     } else {
                         break;
                     }
@@ -160,7 +160,7 @@ Read::find_position(const vector<uint_least32_t> &node_ids, const vector<bool> &
                 //cout << "bwd " << search_pos << " " << found_pos << endl;
                 if (search_pos == node_ids.size() - 1 or i + 1 + found_pos == nodes.size()) {
                     if (found_pos + 1 >= min_overlap) {
-                        return make_pair(nodes.size() - 1 - found_pos, nodes.size() - 1);
+                        return std::make_pair(nodes.size() - 1 - found_pos, nodes.size() - 1);
                     } else {
                         break;
                     }
@@ -170,7 +170,7 @@ Read::find_position(const vector<uint_least32_t> &node_ids, const vector<bool> &
             }
         }
     }
-    return make_pair(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint32_t>::max());
+    return std::make_pair(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint32_t>::max());
 }
 
 void Read::remove_node(NodePtr n_original) {
@@ -184,7 +184,7 @@ void Read::remove_node(NodePtr n_original) {
     }
 }
 
-vector<NodePtr>::iterator Read::remove_node(vector<NodePtr>::iterator nit) {
+std::vector<NodePtr>::iterator Read::remove_node(std::vector<NodePtr>::iterator nit) {
     //(*nit)->covg -= 1;
     uint32_t d = distance(nodes.begin(), nit);
     node_orientations.erase(node_orientations.begin() + d);
@@ -192,7 +192,7 @@ vector<NodePtr>::iterator Read::remove_node(vector<NodePtr>::iterator nit) {
     return nit;
 }
 
-void Read::replace_node(vector<NodePtr>::iterator n_original, NodePtr n) {
+void Read::replace_node(std::vector<NodePtr>::iterator n_original, NodePtr n) {
     //hits[n->node_id].insert(hits[(*n_original)->node_id].begin(),hits[(*n_original)->node_id].end() );
     auto it = nodes.erase(n_original);
     nodes.insert(it, n);
@@ -221,7 +221,7 @@ std::ostream &pangenome::operator<<(std::ostream &out, const pangenome::Read &r)
     for (const auto &i : r.nodes) {
         out << *i << " ";
     }
-    out << endl;
+    out << std::endl;
     return out;
 }
 

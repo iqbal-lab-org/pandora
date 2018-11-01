@@ -50,7 +50,7 @@ TEST(PangenomeGraphAddCoverage, NodeDoesntAlreadyExist_PangenomeGraphNodesContai
     uint32_t read_id = 2;
     ReadPtr read_ptr = pg.get_read(read_id);
 
-    set<MinimizerHitPtr, pComp> mhs;
+    std::set<MinimizerHitPtr, pComp> mhs;
     uint32_t node_id = 0;
     uint32_t prg_id = 1;
 
@@ -72,7 +72,7 @@ TEST(PangenomeGraphAddCoverage, NodeDoesntAlreadyExist_PangenomeGraphNodeContain
     uint32_t read_id = 2;
     ReadPtr read_ptr = pg.get_read(read_id);
 
-    set<MinimizerHitPtr, pComp> mhs;
+    std::set<MinimizerHitPtr, pComp> mhs;
     uint32_t node_id = 0;
     uint32_t prg_id = 1;
 
@@ -88,7 +88,7 @@ TEST(PangenomeGraphAddCoverage, NodeAlreadyExists_PangenomeGraphNodeCoverageIncr
     uint32_t read_id = 2;
     ReadPtr read_ptr = pg.get_read(read_id);
 
-    set<MinimizerHitPtr, pComp> mhs;
+    std::set<MinimizerHitPtr, pComp> mhs;
     uint32_t node_id = 0;
     uint32_t prg_id = 1;
 
@@ -106,7 +106,7 @@ TEST(PangenomeGraphAddCoverage, NodeAlreadyExists_PangenomeGraphNodeReadsContain
     uint32_t read_id = 2;
     ReadPtr read_ptr = pg.get_read(read_id);
 
-    set<MinimizerHitPtr, pComp> mhs;
+    std::set<MinimizerHitPtr, pComp> mhs;
     uint32_t node_id = 0;
     uint32_t prg_id = 1;
 
@@ -122,13 +122,13 @@ TEST(PangenomeGraphAddNode, AddClusterWrongReadId_AssertCatches) {
     uint32_t read_id = 1;
     uint32_t not_read_id = 7;
 
-    set<MinimizerHitPtr, pComp> cluster;
+    std::set<MinimizerHitPtr, pComp> cluster;
     uint32_t prg_id = 4;
     Interval interval(0, 5);
-    deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
+    std::deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
     Path path;
     path.initialize(raw_path);
-    MinimizerHitPtr minimizer_hit(make_shared<MinimizerHit>(not_read_id, interval, prg_id, path, 0, 0));
+    MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(not_read_id, interval, prg_id, path, 0, 0));
     cluster.insert(minimizer_hit);
 
     PGraphTester pg;
@@ -140,14 +140,14 @@ TEST(PangenomeGraphAddNode, AddClusterWrongPrgId_AssertCatches) {
     uint32_t read_id = 1;
     Read read(read_id);
 
-    set<MinimizerHitPtr, pComp> cluster;
+    std::set<MinimizerHitPtr, pComp> cluster;
     uint32_t prg_id = 4;
     uint32_t not_prg_id = 7;
     Interval interval(0, 5);
-    deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
+    std::deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
     Path path;
     path.initialize(raw_path);
-    MinimizerHitPtr minimizer_hit(make_shared<MinimizerHit>(read_id, interval, not_prg_id, path, 0, 0));
+    MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(read_id, interval, not_prg_id, path, 0, 0));
     cluster.insert(minimizer_hit);
 
     PGraphTester pg;
@@ -156,7 +156,7 @@ TEST(PangenomeGraphAddNode, AddClusterWrongPrgId_AssertCatches) {
 }
 
 TEST(PangenomeGraphAddNode, AddNode_PangenomeGraphNodesContainsNodeId) {
-    set<MinimizerHitPtr, pComp> mhs;
+    std::set<MinimizerHitPtr, pComp> mhs;
     PGraphTester pg;
     uint32_t node_id = 0;
     uint32_t read_id = 1;
@@ -167,13 +167,13 @@ TEST(PangenomeGraphAddNode, AddNode_PangenomeGraphNodesContainsNodeId) {
 }
 
 TEST(PangenomeGraphAddNode, AddNode_PangenomeGraphNodeHasRightProperties) {
-    set<MinimizerHitPtr, pComp> mhs;
+    std::set<MinimizerHitPtr, pComp> mhs;
     PGraphTester pg;
     uint32_t node_id = 0;
     uint32_t read_id = 1;
     pg.add_node(node_id, "0", read_id, mhs);
 
-    NodePtr pn = make_shared<Node>(node_id, node_id, "0");
+    NodePtr pn = std::make_shared<Node>(node_id, node_id, "0");
     EXPECT_EQ(*pg.nodes[0], *pn);
     EXPECT_EQ(pg.nodes[0]->node_id, (uint) 0);
     EXPECT_EQ(pg.nodes[0]->prg_id, (uint) 0);
@@ -183,13 +183,13 @@ TEST(PangenomeGraphAddNode, AddNode_PangenomeGraphNodeHasRightProperties) {
 }
 
 TEST(PangenomeGraphAddNode, AddNode_PangenomeGraphReadHasRightProperties) {
-    set<MinimizerHitPtr, pComp> mhs;
+    std::set<MinimizerHitPtr, pComp> mhs;
     PGraphTester pg;
     uint32_t node_id = 0;
     uint32_t read_id = 1;
     pg.add_node(node_id, "0", read_id, mhs);
 
-    ReadPtr pr = make_shared<Read>(1);
+    ReadPtr pr = std::make_shared<Read>(1);
     EXPECT_EQ(pg.reads.size(), (uint) 1);
     EXPECT_EQ(*pg.reads[1], *pr);
     EXPECT_EQ(pg.reads[1]->hits.size(), (uint) 1);
@@ -201,7 +201,7 @@ TEST(PangenomeGraphTest, add_node_sample) {
     PGraphTester pg;
 
     auto l0 = std::make_shared<LocalPRG>(LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA"));
-    vector<KmerNodePtr> kmp;
+    std::vector<KmerNodePtr> kmp;
 
     pg.add_node(0, "zero", "sample", kmp, l0);
 
@@ -287,7 +287,7 @@ TEST(PangenomeGraphTest, add_node_sample) {
 
 TEST(PangenomeGraphTest, clear) {
     // read pg
-    set<MinimizerHitPtr, pComp> mhs;
+    std::set<MinimizerHitPtr, pComp> mhs;
 
     PGraphTester pg;
     pg.add_node(0, "0", 1, mhs);
@@ -301,7 +301,7 @@ TEST(PangenomeGraphTest, clear) {
 
     // sample pg
     auto l0 = std::make_shared<LocalPRG>(LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA"));
-    vector<KmerNodePtr> kmp;
+    std::vector<KmerNodePtr> kmp;
     pg.add_node(0, "zero", "sample", kmp, l0);
     EXPECT_EQ(pg.reads.size(), (uint) 0);
     EXPECT_EQ(pg.samples.size(), (uint) 1);
@@ -313,7 +313,7 @@ TEST(PangenomeGraphTest, clear) {
 
 
 TEST(PangenomeGraphTest, equals) {
-    set<MinimizerHitPtr, pComp> mhs;
+    std::set<MinimizerHitPtr, pComp> mhs;
     PGraphTester pg1;
     pg1.add_node(0, "0", 0, mhs);
     pg1.add_node(1, "1", 2, mhs);
@@ -333,7 +333,7 @@ TEST(PangenomeGraphTest, equals) {
     EXPECT_EQ(pg2, pg1);
 
     // should not matter if node_id is different provided prg_id is same
-    pg2.nodes[7] = make_shared<Node>(2, 7, "2");
+    pg2.nodes[7] = std::make_shared<Node>(2, 7, "2");
     pg2.nodes.erase(2);
     EXPECT_EQ(pg2, pg2);
     EXPECT_EQ(pg1, pg2);
@@ -350,7 +350,7 @@ TEST(PangenomeGraphTest, equals) {
 }
 
 TEST(PangenomeGraphTest, not_equals) {
-    set<MinimizerHitPtr, pComp> mhs;
+    std::set<MinimizerHitPtr, pComp> mhs;
     PGraphTester pg1;
     pg1.add_node(0, "0", 0, mhs);
     pg1.add_node(1, "1", 2, mhs);
@@ -380,7 +380,7 @@ TEST(PangenomeGraphTest, not_equals) {
 }
 
 TEST(PangenomeGraphTest, remove_node) {
-    set<MinimizerHitPtr, pComp> mhs;
+    std::set<MinimizerHitPtr, pComp> mhs;
 
     PGraphTester pg1, pg2;
     // read 0: 0->1->2->3
@@ -399,7 +399,7 @@ TEST(PangenomeGraphTest, remove_node) {
 }
 
 TEST(PangenomeGraphTest, remove_read) {
-    set<MinimizerHitPtr, pComp> mhs;
+    std::set<MinimizerHitPtr, pComp> mhs;
 
     PGraphTester pg1, pg2, pg3;
     // read 0: 0->1->2->3
@@ -435,7 +435,7 @@ TEST(PangenomeGraphTest, remove_read) {
 }
 
 TEST(PangenomeGraphTest, remove_low_covg_nodes) {
-    set<MinimizerHitPtr, pComp> mhs;
+    std::set<MinimizerHitPtr, pComp> mhs;
 
     PGraphTester pg1, pg2, pg3;
     // read 0: 0->1->2->3
@@ -503,7 +503,7 @@ TEST(PangenomeGraphTest, remove_low_covg_nodes) {
 }
 
 TEST(PangenomeGraphTest, split_node_by_reads) {
-    set<MinimizerHitPtr, pComp> mhs;
+    std::set<MinimizerHitPtr, pComp> mhs;
 
     PGraphTester pg1, pg2, pg3;
     // read 0: 0->1->2->3
@@ -535,7 +535,7 @@ TEST(PangenomeGraphTest, split_node_by_reads) {
     // read 0: 0->1->2->3
     pg2.add_node(0, "0", 0, mhs);
     pg2.add_node(1, "1", 0, mhs);
-    NodePtr n = make_shared<Node>(2, 7, "2");
+    NodePtr n = std::make_shared<Node>(2, 7, "2");
     pg2.nodes[7] = n;
     pg2.add_node(3, "3", 0, mhs);
 
@@ -545,13 +545,13 @@ TEST(PangenomeGraphTest, split_node_by_reads) {
     pg2.add_node(0, "0", 1, mhs);
     pg2.add_node(5, "5", 1, mhs);
 
-    unordered_set<ReadPtr> reads = {pg1.reads[0]};
-    vector<uint_least32_t> node_ids = {1, 2, 3};
-    vector<uint_least32_t> node_ids_exp = {1, 6, 3};
-    vector<bool> node_orients = {0, 0, 0};
+    std::unordered_set<ReadPtr> reads = {pg1.reads[0]};
+    std::vector<uint_least32_t> node_ids = {1, 2, 3};
+    std::vector<uint_least32_t> node_ids_exp = {1, 6, 3};
+    std::vector<bool> node_orients = {0, 0, 0};
     pg1.split_node_by_reads(reads, node_ids, node_orients, 2);
     EXPECT_EQ(pg1, pg2);
-    EXPECT_ITERABLE_EQ(vector<uint_least32_t>, node_ids_exp, node_ids);
+    EXPECT_ITERABLE_EQ(std::vector<uint_least32_t>, node_ids_exp, node_ids);
 
     EXPECT_EQ((uint) 6, pg1.nodes.size());
     EXPECT_EQ(pg1.nodes[0]->prg_id, (uint) 0);
@@ -570,13 +570,13 @@ TEST(PangenomeGraphTest, split_node_by_reads) {
     // read 0: 0->1->2->3
     pg3.add_node(0, "0", 0, mhs);
     pg3.add_node(1, "1", 0, mhs);
-    n = make_shared<Node>(2, 7, "2");
+    n = std::make_shared<Node>(2, 7, "2");
     pg3.nodes[7] = n;
     pg3.add_node(3, "3", 0, mhs);
 
     // read 1: 4->5->0->5
     pg3.add_node(4, "4", 1, mhs);
-    n = make_shared<Node>(5, 8, "5");
+    n = std::make_shared<Node>(5, 8, "5");
     pg3.nodes[8] = n;
     pg3.add_node(0, "0", 1, mhs);
     pg3.add_node(5, "5", 1, mhs);
@@ -586,7 +586,7 @@ TEST(PangenomeGraphTest, split_node_by_reads) {
     node_ids_exp = {7, 0, 5};
     pg1.split_node_by_reads(reads, node_ids, node_orients, 5);
     EXPECT_EQ(pg1, pg3);
-    EXPECT_ITERABLE_EQ(vector<uint_least32_t>, node_ids_exp, node_ids);
+    EXPECT_ITERABLE_EQ(std::vector<uint_least32_t>, node_ids_exp, node_ids);
 
     EXPECT_EQ((uint) 7, pg1.nodes.size());
     EXPECT_EQ(pg1.nodes[0]->prg_id, (uint) 0);
@@ -614,7 +614,7 @@ TEST(PangenomeGraphTest, save_matrix) {
     PGraphTester pg;
 
     auto l0 = std::make_shared<LocalPRG>(LocalPRG(0, "zero", "AGCTGCTAGCTTCGGACGCACA"));
-    vector<KmerNodePtr> kmp;
+    std::vector<KmerNodePtr> kmp;
 
     pg.add_node(0, "zero", "sample1", kmp, l0);
     pg.add_node(0, "zero", "sample1", kmp, l0);
@@ -631,7 +631,7 @@ TEST(PangenomeGraphTest, save_mapped_read_strings) {
     MinimizerHits mhits;
 
     Minimizer m;
-    deque<Interval> d;
+    std::deque<Interval> d;
     Path p;
     MiniRecord *mr;
 
@@ -678,17 +678,17 @@ TEST(PangenomeGraphTest, save_mapped_read_strings) {
     delete mr;
     pg.add_node(0, "zero", 2, mhits.hits);
 
-    string expected1 = ">read1 pandora: 1 0:6 + \nshould\n>read2 pandora: 2 2:10 - \nis time \n";
-    string expected2 = ">read2 pandora: 2 2:10 - \nis time \n>read1 pandora: 1 0:6 + \nshould\n";
+    std::string expected1 = ">read1 pandora: 1 0:6 + \nshould\n>read2 pandora: 2 2:10 - \nis time \n";
+    std::string expected2 = ">read2 pandora: 2 2:10 - \nis time \n>read1 pandora: 1 0:6 + \nshould\n";
 
     pg.save_mapped_read_strings("../../test/test_cases/reads.fa", "save_mapped_read_strings");
-    ifstream ifs("save_mapped_read_strings/zero/zero.reads.fa");
-    string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
+    std::ifstream ifs("save_mapped_read_strings/zero/zero.reads.fa");
+    std::string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
     EXPECT_TRUE((content == expected1) or (content == expected2));
 
     pg.save_mapped_read_strings("../../test/test_cases/reads.fa", ".");
-    ifstream ifs2("zero/zero.reads.fa");
-    string content2((std::istreambuf_iterator<char>(ifs2)), (std::istreambuf_iterator<char>()));
+    std::ifstream ifs2("zero/zero.reads.fa");
+    std::string content2((std::istreambuf_iterator<char>(ifs2)), (std::istreambuf_iterator<char>()));
     EXPECT_TRUE((content2 == expected1) or (content2 == expected2));
 }
 
@@ -702,7 +702,7 @@ TEST(PangenomeGraphTest, save_kmergraph_coverages) {
     EXPECT_EQ((uint) 2, pg.nodes.size());
 
     KmerGraph kg;
-    deque<Interval> d = {Interval(0, 0)};
+    std::deque<Interval> d = {Interval(0, 0)};
     Path p;
     p.initialize(d);
     kg.add_node(p);
@@ -743,14 +743,14 @@ TEST(PangenomeGraphTest, save_kmergraph_coverages) {
 
     pg.save_kmergraph_coverages(".", "test_sample");
 
-    string expected1 = "sample\t0\t1\t2\t3\t4\t5\t6\ntest_sample\t0,0\t4,0\t3,0\t0,0\t0,0\t0,0\t0,0\n";
-    string expected2 = "sample\t0\t1\t2\t3\t4\t5\t6\ntest_sample\t0,0\t0,0\t0,0\t0,0\t0,0\t0,5\t0,0\n";
+    std::string expected1 = "sample\t0\t1\t2\t3\t4\t5\t6\ntest_sample\t0,0\t4,0\t3,0\t0,0\t0,0\t0,0\t0,0\n";
+    std::string expected2 = "sample\t0\t1\t2\t3\t4\t5\t6\ntest_sample\t0,0\t0,0\t0,0\t0,0\t0,0\t0,5\t0,0\n";
 
-    ifstream ifs("coverages/zero.csv");
-    string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
+    std::ifstream ifs("coverages/zero.csv");
+    std::string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
     EXPECT_EQ(content, expected1);
 
-    ifstream ifs2("coverages/one.csv");
-    string content2((std::istreambuf_iterator<char>(ifs2)), (std::istreambuf_iterator<char>()));
+    std::ifstream ifs2("coverages/one.csv");
+    std::string content2((std::istreambuf_iterator<char>(ifs2)), (std::istreambuf_iterator<char>()));
     EXPECT_EQ(content2, expected2);
 }

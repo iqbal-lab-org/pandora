@@ -9,17 +9,15 @@
 #include "utils.h"
 
 
-using namespace std;
-
-FastaqHandler::FastaqHandler(const string &filepath) : gzipped(false), instream(&inbuf), num_reads_parsed(0) {
+FastaqHandler::FastaqHandler(const std::string &filepath) : gzipped(false), instream(&inbuf), num_reads_parsed(0) {
     // level for boost logging
 //    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
     BOOST_LOG_TRIVIAL(debug) << "Open fastaq file" << filepath;
     fastaq_file.open(filepath);
     if (not fastaq_file.is_open()) {
-        cerr << "Unable to open fastaq file " << filepath << endl;
-        exit(EXIT_FAILURE);
+        std::cerr << "Unable to open fastaq file " << filepath << std::endl;
+        std::exit(EXIT_FAILURE);
     }
     try {
         if (filepath.substr(filepath.length() - 2) == "gz") {
@@ -29,7 +27,7 @@ FastaqHandler::FastaqHandler(const string &filepath) : gzipped(false), instream(
         inbuf.push(fastaq_file);
     }
     catch (const boost::iostreams::gzip_error &e) {
-        cerr << "Problem transfering file contents to boost stream: " << e.what() << '\n';
+        std::cerr << "Problem transfering file contents to boost stream: " << e.what() << '\n';
     }
 }
 
@@ -89,9 +87,9 @@ void FastaqHandler::skip_next() {
     }
 }
 
-void print(ifstream &infile) {
+void print(std::ifstream &infile) {
     char file;
-    vector<char> read;
+    std::vector<char> read;
     uint i = 0;
 
     //Read infile to vector
@@ -102,13 +100,13 @@ void print(ifstream &infile) {
 
     //Print read vector
     for (i = 0; i < read.size(); i++) {
-        cout << read[i];
+        std::cout << read[i];
     }
 }
 
-void print(istream &infile) {
+void print(std::istream &infile) {
     char file;
-    vector<char> read;
+    std::vector<char> read;
     int i = 0;
 
     //Read infile to vector
@@ -119,7 +117,7 @@ void print(istream &infile) {
 
     //Print read vector
     for (i = 0; i < read.size(); i++) {
-        cout << read[i];
+        std::cout << read[i];
     }
 }
 
@@ -136,7 +134,7 @@ void FastaqHandler::get_id(const uint32_t &id) {
         assert(read.empty());
         assert(line.empty());
 
-        instream.ignore(numeric_limits<streamsize>::max());
+        instream.ignore(std::numeric_limits<std::streamsize>::max());
         fastaq_file.seekg(0, fastaq_file.beg);
         instream.clear();
         inbuf.pop();

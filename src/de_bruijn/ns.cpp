@@ -7,8 +7,6 @@
 #include <boost/functional/hash.hpp>
 
 
-using namespace std;
-
 namespace debruijn {
     class Node;
 

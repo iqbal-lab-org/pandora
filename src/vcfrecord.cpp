@@ -10,7 +10,6 @@
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-using namespace std;
 
 VCFRecord::VCFRecord(std::string c, uint32_t p, std::string r, std::string a, std::string i, std::string g) : chrom(c),
                                                                                                               pos(p),
@@ -125,7 +124,7 @@ void VCFRecord::clear_sample(uint32_t i) {
     }
 }
 
-void VCFRecord::add_formats(const vector<string> &formats) {
+void VCFRecord::add_formats(const std::vector<std::string> &formats) {
     for (const auto &s : formats) {
         if (find(format.begin(), format.end(), s) == format.end())
             format.push_back(s);
@@ -141,7 +140,7 @@ float logfactorial(uint32_t n) {
 }
 
 void VCFRecord::likelihood(const uint32_t &expected_depth_covg, const float &error_rate) {
-    unordered_map<string, vector<float>> m;
+    std::unordered_map<std::string, std::vector<float>> m;
     m.reserve(2);
 
     //float p_non_zero = 1 - exp(-expected_depth_covg);
@@ -157,12 +156,12 @@ void VCFRecord::likelihood(const uint32_t &expected_depth_covg, const float &err
             and samples[i]["MEAN_FWD_COVG"].size() == samples[i]["MEAN_REV_COVG"].size()
             and samples[i]["MEAN_FWD_COVG"].size() >= 2) {
 
-            vector<uint16_t> covgs = {};
+            std::vector<uint16_t> covgs = {};
             for (uint j = 0; j < samples[i]["MEAN_FWD_COVG"].size(); ++j) {
                 covgs.push_back(samples[i]["MEAN_FWD_COVG"][j] + samples[i]["MEAN_REV_COVG"][j]);
             }
 
-            vector<float> likelihoods = {};
+            std::vector<float> likelihoods = {};
             float likelihood = 0;
             for (uint j = 0; j < covgs.size(); ++j) {
                 auto other_covg = accumulate(covgs.begin(), covgs.end(), 0) - covgs[j];
@@ -182,7 +181,7 @@ void VCFRecord::likelihood(const uint32_t &expected_depth_covg, const float &err
 }
 
 void VCFRecord::confidence() {
-    for (auto &&sample : regt_samples) {
+    for (auto &sample : regt_samples) {
         if (sample.find("LIKELIHOOD") != sample.end()) {
             assert(sample["LIKELIHOOD"].size() > 1);
             float max_lik = 0, max_lik2 = 0;
@@ -194,7 +193,7 @@ void VCFRecord::confidence() {
                     max_lik2 = likelihood;
                 }
             }
-            sample["GT_CONF"] = {abs(max_lik - max_lik2)};
+            sample["GT_CONF"] = {std::abs(max_lik - max_lik2)};
         }
     }
     add_formats({"GT_CONF"});
@@ -256,7 +255,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
     if (m.alt.empty()) {
         out << ".";
     } else {
-        string buffer = "";
+        std::string buffer = "";
         for (const auto &a : m.alt) {
             out << buffer << a;
             buffer = ",";
@@ -265,7 +264,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
     out << "\t" << m.qual << "\t"
         << m.filter << "\t" << m.info << "\t";
 
-    string last_format;
+    std::string last_format;
     if (!m.format.empty())
         last_format = m.format[m.format.size() - 1];
 
@@ -278,7 +277,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
     for (uint_least16_t i = 0; i < m.samples.size(); ++i) {
         out << "\t";
         for (const auto &f : m.format) {
-            string buffer = "";
+            std::string buffer = "";
             if (m.samples[i].find(f) != m.samples[i].end() and not m.samples[i].at(f).empty()) {
                 for (const auto &a : m.samples.at(i).at(f)) {
                     out << buffer << +a;
@@ -301,16 +300,16 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
         }
     }
 
-    out << endl;
+    out << std::endl;
     return out;
 }
 
 std::istream &operator>>(std::istream &in, VCFRecord &m) {
-    string token, alt_s;
-    vector<string> sample_strings, sample_substrings;
-    vector<string> float_strings = {"LIKELIHOOD", "GT_CONF"};
-    unordered_map<string, vector<uint8_t>> sample_data;
-    unordered_map<string, vector<float>> regt_sample_data;
+    std::string token, alt_s;
+    std::vector<std::string> sample_strings, sample_substrings;
+    std::vector<std::string> float_strings = {"LIKELIHOOD", "GT_CONF"};
+    std::unordered_map<std::string, std::vector<uint8_t>> sample_data;
+    std::unordered_map<std::string, std::vector<float>> regt_sample_data;
     m.alt.clear();
     in >> m.chrom;
     in.ignore(1, '\t');

@@ -31,7 +31,7 @@
 
 using std::set;
 using std::vector;
-using namespace std;
+
 namespace fs = boost::filesystem;
 
 static void show_map_usage() {
@@ -248,7 +248,7 @@ int pandora_map(int argc, char *argv[]) {
     mhs->clear();
     delete mhs;
 
-    if (pangraph->nodes.empty()){
+    if (pangraph->nodes.empty()) {
         cout << "Found non of the LocalPRGs in the reads." << endl;
         cout << "FINISH: " << now() << endl;
         delete pangraph;
@@ -311,7 +311,7 @@ int pandora_map(int argc, char *argv[]) {
     consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
     master_vcf.save(outdir + "/pandora_consensus.vcf", true, true, true, true, true, true, true);
 
-    if (pangraph->nodes.empty()){
+    if (pangraph->nodes.empty()) {
         cout << "All nodes which were found have been removed during cleaning. Is your genome_size accurate?"
              << " Genome size is assumed to be " << genome_size << " and can be updated with --genome_size" << endl
              << "FINISH: " << now() << endl;

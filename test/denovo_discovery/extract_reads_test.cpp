@@ -239,7 +239,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding4) {
 }
 
 TEST(ExtractReadsTest, find_interval_in_localpath_multiple_sites) {
-    LocalPRG l3(3,"nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
@@ -579,9 +579,9 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
     };
     // A G C T CGG  TAT
     std::set<ReadCoordinate> expected_overlaps = {{0, 3, 9,  1},
-                                                    {1, 7, 13, 1},
-                                                    {2, 5, 13, 1},
-                                                    {3, 6, 10, 1}};
+                                                  {1, 7, 13, 1},
+                                                  {2, 5, 13, 1},
+                                                  {3, 6, 10, 1}};
 
     auto overlaps = get_read_overlap_coordinates(pn, lmp);
 
@@ -884,9 +884,9 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     // A G C T CGG  TAT
 
     std::set<ReadCoordinate> expected_overlaps = {{0, 3, 9,  1},
-                                                    {1, 7, 13, 1},
-                                                    {2, 5, 13, 1},
-                                                    {3, 6, 10, 1}};
+                                                  {1, 7, 13, 1},
+                                                  {2, 5, 13, 1},
+                                                  {3, 6, 10, 1}};
 
     auto overlaps = get_read_overlap_coordinates(pn, lmp);
 
@@ -918,14 +918,14 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
     // define localpath and kmerpath
     // corresponds to sequence (A) G C T CGG  (TAT)
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0],
-            l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-            l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]
+                                l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]
     };
 
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0],
-            l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[4], l3.kmer_prg.nodes[8],
-            l3.kmer_prg.nodes[13], l3.kmer_prg.nodes[15], l3.kmer_prg.nodes[17],
-            l3.kmer_prg.nodes[19], l3.kmer_prg.nodes[20], l3.kmer_prg.nodes[21]
+                               l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[4], l3.kmer_prg.nodes[8],
+                               l3.kmer_prg.nodes[13], l3.kmer_prg.nodes[15], l3.kmer_prg.nodes[17],
+                               l3.kmer_prg.nodes[19], l3.kmer_prg.nodes[20], l3.kmer_prg.nodes[21]
     };
 
     PanNodePtr pn = make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);
@@ -953,15 +953,20 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
     hits.insert(mh);
     mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, pn->kmer_prg.nodes[13]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[15]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[15]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[17]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[17]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[20]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[20]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -975,11 +980,14 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
 
     mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[1]->path, knode_id, orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[4]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[4]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[8]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[13]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -992,15 +1000,20 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
     pr = make_shared<pangenome::Read>(read_id);
 
     // hits overlapping edges of path
-    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, pn->kmer_prg.nodes[13]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(16, 19), prg_id, pn->kmer_prg.nodes[15]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(16, 19), prg_id, pn->kmer_prg.nodes[15]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, pn->kmer_prg.nodes[17]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, pn->kmer_prg.nodes[17]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(18, 21), prg_id, pn->kmer_prg.nodes[19]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(18, 21), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(19, 22), prg_id, pn->kmer_prg.nodes[20]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(19, 22), prg_id, pn->kmer_prg.nodes[20]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -1016,7 +1029,8 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
     hits.insert(mh);
     mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -1028,24 +1042,25 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
     std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs;
     denovo_discovery::add_pnode_coordinate_pairs(pairs, pn, lmp, kmp, buff, covg_thresh, min_length, min_num_hits);
 
-    GeneIntervalInfo interval_info1{pn, Interval(1,3), "AGCT"};
-    GeneIntervalInfo interval_info2{pn, Interval(6,7), "CGGTAT"};
-    ReadCoordinate read_coord1{0,2,6,true};
-    ReadCoordinate read_coord2{0,6,12,true};
-    ReadCoordinate read_coord3{1,6,10,true};
-    ReadCoordinate read_coord4{2,16,22,true};
+    GeneIntervalInfo interval_info1{pn, Interval(1, 3), "AGCT"};
+    GeneIntervalInfo interval_info2{pn, Interval(6, 7), "CGGTAT"};
+    ReadCoordinate read_coord1{0, 2, 6, true};
+    ReadCoordinate read_coord2{0, 6, 12, true};
+    ReadCoordinate read_coord3{1, 6, 10, true};
+    ReadCoordinate read_coord4{2, 16, 22, true};
 
-    std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> expected_coords = {std::make_pair(read_coord1,interval_info1),
-                                                                             std::make_pair(read_coord2,interval_info2),
-                                                                             std::make_pair(read_coord3,interval_info1),
-                                                                             std::make_pair(read_coord4,interval_info2)};
-    EXPECT_EQ(expected_coords.size(),pairs.size());
+    std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> expected_coords = {
+            std::make_pair(read_coord1, interval_info1),
+            std::make_pair(read_coord2, interval_info2),
+            std::make_pair(read_coord3, interval_info1),
+            std::make_pair(read_coord4, interval_info2)};
+    EXPECT_EQ(expected_coords.size(), pairs.size());
     uint count = 0;
-    for (const auto & p : pairs){
+    for (const auto &p : pairs) {
         if (expected_coords.size() <= count)
             break;
-        EXPECT_EQ(p.first,expected_coords[count].first);
-        EXPECT_EQ(p.second,expected_coords[count].second);
+        EXPECT_EQ(p.first, expected_coords[count].first);
+        EXPECT_EQ(p.second, expected_coords[count].second);
         count++;
     }
 }
@@ -1107,11 +1122,14 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs_fewer_hits_needed) {
 
     mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[1]->path, knode_id, orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[4]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[4]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[8]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[13]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -1124,15 +1142,20 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs_fewer_hits_needed) {
     pr = make_shared<pangenome::Read>(read_id);
 
     // hits overlapping edges of path
-    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, pn->kmer_prg.nodes[13]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(16, 19), prg_id, pn->kmer_prg.nodes[15]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(16, 19), prg_id, pn->kmer_prg.nodes[15]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, pn->kmer_prg.nodes[17]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, pn->kmer_prg.nodes[17]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(18, 21), prg_id, pn->kmer_prg.nodes[19]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(18, 21), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(19, 22), prg_id, pn->kmer_prg.nodes[20]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(19, 22), prg_id, pn->kmer_prg.nodes[20]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -1148,7 +1171,8 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs_fewer_hits_needed) {
     hits.insert(mh);
     mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -1166,15 +1190,20 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs_fewer_hits_needed) {
     hits.insert(mh);
     mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, pn->kmer_prg.nodes[13]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[15]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[15]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[17]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[17]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[20]->path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[20]->path, knode_id,
+                                   orientation);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -1186,67 +1215,68 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs_fewer_hits_needed) {
     std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs;
     denovo_discovery::add_pnode_coordinate_pairs(pairs, pn, lmp, kmp, buff, covg_thresh, min_length, min_num_hits);
 
-    GeneIntervalInfo interval_info1{pn, Interval(1,3), "AGCT"};
-    GeneIntervalInfo interval_info2{pn, Interval(6,7), "CGGTAT"};
+    GeneIntervalInfo interval_info1{pn, Interval(1, 3), "AGCT"};
+    GeneIntervalInfo interval_info2{pn, Interval(6, 7), "CGGTAT"};
 
-    ReadCoordinate read_coord1{0,6,10,true};
-    ReadCoordinate read_coord2{1,16,22,true};
-    ReadCoordinate read_coord3{2,3,6,true};
-    ReadCoordinate read_coord4{2,8,11,true};
-    ReadCoordinate read_coord5{3,2,6,true};
-    ReadCoordinate read_coord6{3,6,12,true};
+    ReadCoordinate read_coord1{0, 6, 10, true};
+    ReadCoordinate read_coord2{1, 16, 22, true};
+    ReadCoordinate read_coord3{2, 3, 6, true};
+    ReadCoordinate read_coord4{2, 8, 11, true};
+    ReadCoordinate read_coord5{3, 2, 6, true};
+    ReadCoordinate read_coord6{3, 6, 12, true};
 
-    std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> expected_coords = {std::make_pair(read_coord1,interval_info1),
-                                                                                std::make_pair(read_coord2,interval_info2),
-                                                                                std::make_pair(read_coord3,interval_info1),
-                                                                                std::make_pair(read_coord4,interval_info2),
-                                                                                std::make_pair(read_coord5,interval_info1),
-                                                                                std::make_pair(read_coord6,interval_info2)};
-    EXPECT_EQ(expected_coords.size(),pairs.size());
+    std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> expected_coords = {
+            std::make_pair(read_coord1, interval_info1),
+            std::make_pair(read_coord2, interval_info2),
+            std::make_pair(read_coord3, interval_info1),
+            std::make_pair(read_coord4, interval_info2),
+            std::make_pair(read_coord5, interval_info1),
+            std::make_pair(read_coord6, interval_info2)};
+    EXPECT_EQ(expected_coords.size(), pairs.size());
     uint count = 0;
-    for (const auto & p : pairs){
+    for (const auto &p : pairs) {
         if (expected_coords.size() <= count)
             break;
-        EXPECT_EQ(p.first,expected_coords[count].first);
-        EXPECT_EQ(p.second,expected_coords[count].second);
+        EXPECT_EQ(p.first, expected_coords[count].first);
+        EXPECT_EQ(p.second, expected_coords[count].second);
         count++;
     }
 }
 
 TEST(ExtractReadsTest, read_coordinate_ordering) {
-    ReadCoordinate read_coord1{0,6,10,true};
-    ReadCoordinate read_coord2{1,16,22,true};
-    ReadCoordinate read_coord3{2,3,6,true};
-    ReadCoordinate read_coord4{2,8,11,true};
-    ReadCoordinate read_coord5{3,2,6,true};
-    ReadCoordinate read_coord6{3,6,12,true};
-    ReadCoordinate read_coord7{3,2,6,false};
-    ReadCoordinate read_coord8{3,6,12,false};
+    ReadCoordinate read_coord1{0, 6, 10, true};
+    ReadCoordinate read_coord2{1, 16, 22, true};
+    ReadCoordinate read_coord3{2, 3, 6, true};
+    ReadCoordinate read_coord4{2, 8, 11, true};
+    ReadCoordinate read_coord5{3, 2, 6, true};
+    ReadCoordinate read_coord6{3, 6, 12, true};
+    ReadCoordinate read_coord7{3, 2, 6, false};
+    ReadCoordinate read_coord8{3, 6, 12, false};
 
-    set<ReadCoordinate> read_coords = {read_coord8,read_coord7,read_coord6,read_coord5,read_coord4,
-                                       read_coord3,read_coord2,read_coord1};
-    vector<ReadCoordinate> exp_read_coords = {read_coord1,read_coord2,read_coord3,read_coord4,read_coord5,
-                                       read_coord7,read_coord6,read_coord8};
+    set<ReadCoordinate> read_coords = {read_coord8, read_coord7, read_coord6, read_coord5, read_coord4,
+                                       read_coord3, read_coord2, read_coord1};
+    vector<ReadCoordinate> exp_read_coords = {read_coord1, read_coord2, read_coord3, read_coord4, read_coord5,
+                                              read_coord7, read_coord6, read_coord8};
 
-    EXPECT_EQ(read_coords.size(),exp_read_coords.size());
+    EXPECT_EQ(read_coords.size(), exp_read_coords.size());
     uint count = 0;
-    for (const auto & r : read_coords){
+    for (const auto &r : read_coords) {
         if (exp_read_coords.size() <= count)
             break;
-        EXPECT_EQ(r,exp_read_coords[count]);
+        EXPECT_EQ(r, exp_read_coords[count]);
         count++;
     }
 }
 
 TEST(ExtractReadsTest, read_coordinate_equals) {
-    ReadCoordinate read_coord1{0,6,10,true};
-    ReadCoordinate read_coord2{1,16,22,true};
-    ReadCoordinate read_coord3{2,3,6,true};
-    ReadCoordinate read_coord4{2,8,11,true};
-    ReadCoordinate read_coord5{3,2,6,true};
-    ReadCoordinate read_coord6{3,6,12,true};
-    ReadCoordinate read_coord7{3,2,6,false};
-    ReadCoordinate read_coord8{3,6,12,false};
+    ReadCoordinate read_coord1{0, 6, 10, true};
+    ReadCoordinate read_coord2{1, 16, 22, true};
+    ReadCoordinate read_coord3{2, 3, 6, true};
+    ReadCoordinate read_coord4{2, 8, 11, true};
+    ReadCoordinate read_coord5{3, 2, 6, true};
+    ReadCoordinate read_coord6{3, 6, 12, true};
+    ReadCoordinate read_coord7{3, 2, 6, false};
+    ReadCoordinate read_coord8{3, 6, 12, false};
 
     EXPECT_EQ(read_coord1, read_coord1);
     EXPECT_EQ(read_coord2, read_coord2);
@@ -1329,45 +1359,45 @@ TEST(ExtractReadsTest, ordering_of_coordinate_pairs) {
 
     PanNodePtr pn = make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);
 
-    GeneIntervalInfo interval_info1{pn, Interval(1,3), "AGCT"};
-    GeneIntervalInfo interval_info2{pn, Interval(6,7), "CGGTAT"};
-    GeneIntervalInfo interval_info3{pn, Interval(6,9), "CGGTAT"};
+    GeneIntervalInfo interval_info1{pn, Interval(1, 3), "AGCT"};
+    GeneIntervalInfo interval_info2{pn, Interval(6, 7), "CGGTAT"};
+    GeneIntervalInfo interval_info3{pn, Interval(6, 9), "CGGTAT"};
 
-    ReadCoordinate read_coord1{0,6,10,true};
-    ReadCoordinate read_coord2{1,16,22,true};
-    ReadCoordinate read_coord3{2,3,6,true};
-    ReadCoordinate read_coord4{2,8,11,true};
-    ReadCoordinate read_coord5{3,2,6,true};
-    ReadCoordinate read_coord6{3,6,12,true};
-    ReadCoordinate read_coord7{3,2,6,false};
-    ReadCoordinate read_coord8{3,6,12,false};
+    ReadCoordinate read_coord1{0, 6, 10, true};
+    ReadCoordinate read_coord2{1, 16, 22, true};
+    ReadCoordinate read_coord3{2, 3, 6, true};
+    ReadCoordinate read_coord4{2, 8, 11, true};
+    ReadCoordinate read_coord5{3, 2, 6, true};
+    ReadCoordinate read_coord6{3, 6, 12, true};
+    ReadCoordinate read_coord7{3, 2, 6, false};
+    ReadCoordinate read_coord8{3, 6, 12, false};
 
     std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> insert_order_pairs = {
-            std::make_pair(read_coord1,interval_info1),
-            std::make_pair(read_coord8,interval_info1),
-            std::make_pair(read_coord4,interval_info1),
-            std::make_pair(read_coord5,interval_info1),
-            std::make_pair(read_coord7,interval_info1),
-            std::make_pair(read_coord6,interval_info1),
-            std::make_pair(read_coord2,interval_info1),
-            std::make_pair(read_coord3,interval_info1),
-            std::make_pair(read_coord7,interval_info3),
-            std::make_pair(read_coord6,interval_info3),
-            std::make_pair(read_coord7,interval_info2),
-            std::make_pair(read_coord7,interval_info2),
-            std::make_pair(read_coord6,interval_info2),
-            std::make_pair(read_coord7,interval_info2),};
+            std::make_pair(read_coord1, interval_info1),
+            std::make_pair(read_coord8, interval_info1),
+            std::make_pair(read_coord4, interval_info1),
+            std::make_pair(read_coord5, interval_info1),
+            std::make_pair(read_coord7, interval_info1),
+            std::make_pair(read_coord6, interval_info1),
+            std::make_pair(read_coord2, interval_info1),
+            std::make_pair(read_coord3, interval_info1),
+            std::make_pair(read_coord7, interval_info3),
+            std::make_pair(read_coord6, interval_info3),
+            std::make_pair(read_coord7, interval_info2),
+            std::make_pair(read_coord7, interval_info2),
+            std::make_pair(read_coord6, interval_info2),
+            std::make_pair(read_coord7, interval_info2),};
 
-    std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs(insert_order_pairs.begin(),insert_order_pairs.end());
+    std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs(insert_order_pairs.begin(), insert_order_pairs.end());
 
-    vector<uint> exp_order = {0,6,7,2,3,4,10,8,5,12,9,1};
-    EXPECT_EQ(exp_order.size(),pairs.size());
+    vector<uint> exp_order = {0, 6, 7, 2, 3, 4, 10, 8, 5, 12, 9, 1};
+    EXPECT_EQ(exp_order.size(), pairs.size());
     uint count = 0;
-    for (const auto & p : pairs){
+    for (const auto &p : pairs) {
         if (exp_order.size() <= count)
             break;
-        EXPECT_EQ(p.first,insert_order_pairs[exp_order[count]].first);
-        EXPECT_EQ(p.second,insert_order_pairs[exp_order[count]].second);
+        EXPECT_EQ(p.first, insert_order_pairs[exp_order[count]].first);
+        EXPECT_EQ(p.second, insert_order_pairs[exp_order[count]].second);
         count++;
     }
 }
@@ -1378,43 +1408,43 @@ TEST(ExtractReadsTest, collect_read_pileups) {
 
     PanNodePtr pn = make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);
 
-    GeneIntervalInfo interval_info1{pn, Interval(1,3), "AGCT"};
-    GeneIntervalInfo interval_info2{pn, Interval(6,7), "CGGTAT"};
-    GeneIntervalInfo interval_info3{pn, Interval(6,9), "CGGTAT"};
+    GeneIntervalInfo interval_info1{pn, Interval(1, 3), "AGCT"};
+    GeneIntervalInfo interval_info2{pn, Interval(6, 7), "CGGTAT"};
+    GeneIntervalInfo interval_info3{pn, Interval(6, 9), "CGGTAT"};
 
-    ReadCoordinate read_coord1{0,6,10,true}; //GCTA
-    ReadCoordinate read_coord2{1,16,22,true}; //CGGTAT
-    ReadCoordinate read_coord3{2,3,6,true}; //GTT
-    ReadCoordinate read_coord4{2,8,11,true}; //TGT
-    ReadCoordinate read_coord5{3,2,6,true}; //TCAC
-    ReadCoordinate read_coord6{3,6,12,true}; //CTTAAC
-    ReadCoordinate read_coord7{3,2,6,false}; //GTGA
-    ReadCoordinate read_coord8{3,6,12,false}; //GTTAAG
+    ReadCoordinate read_coord1{0, 6, 10, true}; //GCTA
+    ReadCoordinate read_coord2{1, 16, 22, true}; //CGGTAT
+    ReadCoordinate read_coord3{2, 3, 6, true}; //GTT
+    ReadCoordinate read_coord4{2, 8, 11, true}; //TGT
+    ReadCoordinate read_coord5{3, 2, 6, true}; //TCAC
+    ReadCoordinate read_coord6{3, 6, 12, true}; //CTTAAC
+    ReadCoordinate read_coord7{3, 2, 6, false}; //GTGA
+    ReadCoordinate read_coord8{3, 6, 12, false}; //GTTAAG
 
     std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> insert_order_pairs = {
-            std::make_pair(read_coord1,interval_info1),
-            std::make_pair(read_coord8,interval_info1),
-            std::make_pair(read_coord4,interval_info1),
-            std::make_pair(read_coord5,interval_info1),
-            std::make_pair(read_coord7,interval_info1),
-            std::make_pair(read_coord6,interval_info1),
-            std::make_pair(read_coord2,interval_info1),
-            std::make_pair(read_coord3,interval_info1),
-            std::make_pair(read_coord7,interval_info3),
-            std::make_pair(read_coord6,interval_info3),
-            std::make_pair(read_coord7,interval_info2),
-            std::make_pair(read_coord7,interval_info2),
-            std::make_pair(read_coord6,interval_info2),
-            std::make_pair(read_coord7,interval_info2),};
+            std::make_pair(read_coord1, interval_info1),
+            std::make_pair(read_coord8, interval_info1),
+            std::make_pair(read_coord4, interval_info1),
+            std::make_pair(read_coord5, interval_info1),
+            std::make_pair(read_coord7, interval_info1),
+            std::make_pair(read_coord6, interval_info1),
+            std::make_pair(read_coord2, interval_info1),
+            std::make_pair(read_coord3, interval_info1),
+            std::make_pair(read_coord7, interval_info3),
+            std::make_pair(read_coord6, interval_info3),
+            std::make_pair(read_coord7, interval_info2),
+            std::make_pair(read_coord7, interval_info2),
+            std::make_pair(read_coord6, interval_info2),
+            std::make_pair(read_coord7, interval_info2),};
 
-    std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs(insert_order_pairs.begin(),insert_order_pairs.end());
+    std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs(insert_order_pairs.begin(), insert_order_pairs.end());
 
     boost::filesystem::path fpath("../../test/test_cases/reads_for_pileups.fa");
     auto padding_size = 0;
     auto pileups = denovo_discovery::collect_read_pileups(pairs, fpath, padding_size);
 
     std::map<GeneIntervalInfo, ReadPileup> exp_pileups;
-    exp_pileups[interval_info1] = {"GCTA","CGGTAT","GTT","TGT","TCAC","GTGA","CTTAAC","GTTAAG"};
+    exp_pileups[interval_info1] = {"GCTA", "CGGTAT", "GTT", "TGT", "TCAC", "GTGA", "CTTAAC", "GTTAAG"};
     exp_pileups[interval_info2] = {"GTGA", "CTTAAC"};
     exp_pileups[interval_info3] = {"GTGA", "CTTAAC"};
 

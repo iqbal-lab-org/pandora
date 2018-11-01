@@ -14,9 +14,9 @@
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using std::vector;
-using namespace std;
 
-Seq::Seq(uint32_t i, string n, string p, uint32_t w, uint32_t k) : id(i), name(n), seq(p) {
+
+Seq::Seq(uint32_t i, std::string n, std::string p, uint32_t w, uint32_t k) : id(i), name(n), seq(p) {
     minimizer_sketch(w, k);
 }
 
@@ -24,7 +24,7 @@ Seq::~Seq() {
     sketch.clear();
 }
 
-void Seq::initialize(uint32_t i, string n, string p, uint32_t w, uint32_t k) {
+void Seq::initialize(uint32_t i, std::string n, std::string p, uint32_t w, uint32_t k) {
     id = i;
     name = n;
     seq = p;
@@ -47,7 +47,8 @@ bool Seq::add_letter_to_get_next_kmer(const char &letter,
         buff++;
         return true;
     } else {
-        BOOST_LOG_TRIVIAL(warning) << now() << "bad letter - found a non AGCT base in read so skipping read " << name << endl;
+        BOOST_LOG_TRIVIAL(warning) << now() << "bad letter - found a non AGCT base in read so skipping read " << name
+                                   << std::endl;
         sketch.clear();
         return false;
     }
@@ -107,7 +108,7 @@ void Seq::minimizer_sketch(const uint32_t w, const uint32_t k) {
             return;
 
         if (buff >= k) {
-            window.push_back(Minimizer(min(kh[0], kh[1]), buff - k, buff, (kh[0] <= kh[1])));
+            window.push_back(Minimizer(std::min(kh[0], kh[1]), buff - k, buff, (kh[0] <= kh[1])));
         }
 
         if (window.size() == w) {
@@ -119,7 +120,6 @@ void Seq::minimizer_sketch(const uint32_t w, const uint32_t k) {
                assert_msg("we can't have added a smallest kmer correctly as window still has size " << window.size()));
     }
     //cout << now() << "Sketch size " << sketch.size() << " for read " << name << endl;
-    return;
 }
 
 std::ostream &operator<<(std::ostream &out, Seq const &data) {

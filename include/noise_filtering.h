@@ -15,17 +15,18 @@ void num_to_node_plus_orientation(uint_least32_t &, bool &, const uint_least32_t
 
 uint_least32_t rc_num(const uint_least32_t &);
 
-void hashed_node_ids_to_ids_and_orientations(const deque<uint_least32_t> &, std::vector<uint_least32_t> &,
+void hashed_node_ids_to_ids_and_orientations(const std::deque<uint_least32_t> &, std::vector<uint_least32_t> &,
                                              std::vector<bool> &);
 
-bool overlap_forwards(const deque<uint_least32_t> &, const deque<uint_least32_t> &);
+bool overlap_forwards(const std::deque<uint_least32_t> &, const std::deque<uint_least32_t> &);
 
-bool overlap_backwards(const deque<uint_least32_t> &, const deque<uint_least32_t> &);
+bool overlap_backwards(const std::deque<uint_least32_t> &, const std::deque<uint_least32_t> &);
 
-deque<uint_least32_t> rc_hashed_node_ids(const deque<uint_least32_t> &);
+std::deque<uint_least32_t> rc_hashed_node_ids(const std::deque<uint_least32_t> &);
 
 void
-dbg_node_ids_to_ids_and_orientations(const debruijn::Graph &, const deque<uint32_t> &, std::vector<uint_least32_t> &,
+dbg_node_ids_to_ids_and_orientations(const debruijn::Graph &, const std::deque<uint32_t> &,
+                                     std::vector<uint_least32_t> &,
                                      std::vector<bool> &);
 
 void construct_debruijn_graph(const pangenome::Graph *pg, debruijn::Graph &dbg);
@@ -40,6 +41,6 @@ void
 clean_pangraph_with_debruijn_graph(pangenome::Graph *, const uint_least32_t, const uint_least32_t,
                                    const bool illumina = false);
 
-void write_pangraph_gfa(const string &, const pangenome::Graph *);
+void write_pangraph_gfa(const std::string &, const pangenome::Graph *);
 
 #endif
