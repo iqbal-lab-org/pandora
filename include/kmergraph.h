@@ -86,7 +86,8 @@ public:
     friend std::ostream &operator<<(std::ostream &out, KmerGraph const &data);
 
     friend void
-    estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint32_t, const bool);
+    estimate_parameters(std::shared_ptr<pangenome::Graph>, const std::string &, const uint32_t, float &, const uint32_t,
+                        const bool);
 
     friend struct condition;
 

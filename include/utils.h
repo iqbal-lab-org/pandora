@@ -75,12 +75,12 @@ void filter_clusters2(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &,
 
 void
 infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>> &prgs, std::shared_ptr<MinimizerHits>,
-                               pangenome::Graph *,
+                               std::shared_ptr<pangenome::Graph>,
                                const int,
                                const uint32_t &, const float &, const uint32_t min_cluster_size = 10,
                                const uint32_t expected_number_kmers_in_short_read_sketch = std::numeric_limits<uint32_t>::max());
 
-uint32_t pangraph_from_read_file(const std::string &, std::shared_ptr<MinimizerHits>, pangenome::Graph *,
+uint32_t pangraph_from_read_file(const std::string &, std::shared_ptr<MinimizerHits>, std::shared_ptr<pangenome::Graph>,
                                  std::shared_ptr<Index>,
                                  const std::vector<std::shared_ptr<LocalPRG>> &,
                                  const uint32_t, const uint32_t, const int, const float &,
@@ -90,7 +90,7 @@ uint32_t pangraph_from_read_file(const std::string &, std::shared_ptr<MinimizerH
                                  const uint32_t max_covg = 300);
 
 void
-update_localPRGs_with_hits(pangenome::Graph *,
+update_localPRGs_with_hits(std::shared_ptr<pangenome::Graph>,
                            const std::vector<std::shared_ptr<LocalPRG>> &);//, const uint32_t, const float&, bool);
 void infer_most_likely_prg_path_for_pannode(const std::vector<std::shared_ptr<LocalPRG>> &, PanNode *, uint32_t, float);
 

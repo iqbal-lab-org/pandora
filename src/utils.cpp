@@ -343,7 +343,7 @@ void filter_clusters2(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &c
 
 void
 add_clusters_to_pangraph(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits,
-                         pangenome::Graph *pangraph,
+                         std::shared_ptr<pangenome::Graph> pangraph,
                          const std::vector<std::shared_ptr<LocalPRG>> &prgs) {
     BOOST_LOG_TRIVIAL(debug) << "Add inferred order to PanGraph";
     if (clusters_of_hits.empty()) { return; }
@@ -359,7 +359,7 @@ add_clusters_to_pangraph(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp>
 
 void infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>> &prgs,
                                     std::shared_ptr<MinimizerHits> minimizer_hits,
-                                    pangenome::Graph *pangraph,
+                                    std::shared_ptr<pangenome::Graph> pangraph,
                                     const int max_diff, const uint32_t &genome_size,
                                     const float &fraction_kmers_required_for_cluster,
                                     const uint32_t min_cluster_size,
@@ -384,7 +384,7 @@ void infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>>
 
 uint32_t pangraph_from_read_file(const std::string &filepath,
                                  std::shared_ptr<MinimizerHits> minimizer_hits,
-                                 pangenome::Graph *pangraph,
+                                 std::shared_ptr<pangenome::Graph> pangraph,
                                  std::shared_ptr<Index> index,
                                  const std::vector<std::shared_ptr<LocalPRG>> &prgs,
                                  const uint32_t w,
@@ -465,7 +465,7 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
     return covg;
 }
 
-void update_localPRGs_with_hits(pangenome::Graph *pangraph,
+void update_localPRGs_with_hits(std::shared_ptr<pangenome::Graph> pangraph,
                                 const std::vector<std::shared_ptr<LocalPRG>> &prgs) //, const uint32_t k, const float& e_rate, bool output_p_dist)
 {
     pangraph->add_hits_to_kmergraphs(prgs);

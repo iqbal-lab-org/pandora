@@ -401,9 +401,8 @@ TEST(UtilsTest, simpleInferLocalPRGOrderForRead) {
     //add_read_hits(0, "read1", "AGTTAAGTACG", mhs, index, 1, 3);
 
     // initialize pangraph;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
-    infer_localPRG_order_for_reads(prgs, minimizer_hits, pg, 1, 100, 0.1, 1);
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
+    infer_localPRG_order_for_reads(prgs, minimizer_hits, pangraph, 1, 100, 0.1, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 then 1)
     pangenome::Graph pg_exp;
@@ -412,10 +411,8 @@ TEST(UtilsTest, simpleInferLocalPRGOrderForRead) {
     pg_exp.add_node(0, "0", 0, mhs_dummy.hits);
     //pg_exp.add_edge(0,1,3,0);
 
-    EXPECT_EQ(pg_exp, *pg);
+    EXPECT_EQ(pg_exp, *pangraph);
     index->clear();
-    
-    delete pg;
 }
 
 TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
@@ -640,9 +637,8 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
     //add_read_hits(0, "read2", "AGTTATGCTAGCTACTTACGGTA", mhs, index, 1, 3);
 
     // initialize pangraph;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
-    infer_localPRG_order_for_reads(prgs, minimizer_hits, pg, 1, 100, 0.1, 1);
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
+    infer_localPRG_order_for_reads(prgs, minimizer_hits, pangraph, 1, 100, 0.1, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
@@ -656,8 +652,7 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
     //pg_exp.add_edge(0,2,3,0);
     //pg_exp.add_edge(2,1,3,0);
 
-    EXPECT_EQ(pg_exp, *pg);
-    delete pg;
+    EXPECT_EQ(pg_exp, *pangraph);
     index->clear();
     
 }
@@ -888,9 +883,8 @@ TEST(UtilsTest, pangraphFromReadFile) {
     lp2->kmer_prg.add_edge(v[24], v[25]);
 
     // initialize pangraph;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
-    pangraph_from_read_file("../../test/test_cases/read2.fa", minimizer_hits, pg, index, prgs, 1, 3, 1, 0.1, 1);
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
+    pangraph_from_read_file("../../test/test_cases/read2.fa", minimizer_hits, pangraph, index, prgs, 1, 3, 1, 0.1, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
@@ -901,12 +895,11 @@ TEST(UtilsTest, pangraphFromReadFile) {
     pg_exp.add_node(3, "3", 0, mhs_dummy.hits);
     pg_exp.add_node(0, "0", 0, mhs_dummy.hits);
 
-    EXPECT_EQ(pg_exp, *pg);
-    delete pg;
+    EXPECT_EQ(pg_exp, *pangraph);
 
-    pg = new pangenome::Graph();
+    pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
     minimizer_hits->clear();
-    pangraph_from_read_file("../../test/test_cases/read2.fq", minimizer_hits, pg, index, prgs, 1, 3, 1, 0.1, 1);
+    pangraph_from_read_file("../../test/test_cases/read2.fq", minimizer_hits, pangraph, index, prgs, 1, 3, 1, 0.1, 1);
     pg_exp.add_node(1, "1", 0, mhs_dummy.hits);
     pg_exp.add_node(2, "2", 0, mhs_dummy.hits);
     pg_exp.add_node(3, "3", 0, mhs_dummy.hits);

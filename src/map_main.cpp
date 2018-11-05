@@ -233,8 +233,7 @@ int pandora_map(int argc, char *argv[]) {
 
     cout << now() << "Constructing pangenome::Graph from read file (this will take a while)" << endl;
     auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits(100000));
-    pangenome::Graph *pangraph;
-    pangraph = new pangenome::Graph();
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
     uint32_t covg = pangraph_from_read_file(readfile, minimizer_hits, pangraph, index, prgs, w, k, max_diff, e_rate,
                                             min_cluster_size, genome_size, illumina, clean, max_covg);
 
@@ -247,7 +246,6 @@ int pandora_map(int argc, char *argv[]) {
     if (pangraph->nodes.empty()) {
         cout << "Found non of the LocalPRGs in the reads." << endl;
         cout << "FINISH: " << now() << endl;
-        delete pangraph;
         return 0;
     }
 
@@ -311,7 +309,6 @@ int pandora_map(int argc, char *argv[]) {
         cout << "All nodes which were found have been removed during cleaning. Is your genome_size accurate?"
              << " Genome size is assumed to be " << genome_size << " and can be updated with --genome_size" << endl
              << "FINISH: " << now() << endl;
-        delete pangraph;
         return 0;
     }
 
@@ -334,7 +331,6 @@ int pandora_map(int argc, char *argv[]) {
         pangraph->save_mapped_read_strings(readfile, outdir);
 
     pangraph->clear();
-    delete pangraph;
 
     cout << "FINISH: " << now() << endl;
     return 0;

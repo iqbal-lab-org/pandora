@@ -215,9 +215,8 @@ int pandora_compare(int argc, char *argv[]) {
     std::cout << now() << "Loading read index file " << readindex << std::endl;
     auto samples = load_read_index(readindex);
 
-    pangenome::Graph *pangraph, *pangraph_sample;
-    pangraph = new pangenome::Graph();
-    pangraph_sample = new pangenome::Graph();
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
+    auto pangraph_sample = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits(100000));
     uint32_t covg;
@@ -331,9 +330,7 @@ int pandora_compare(int argc, char *argv[]) {
     index->clear();
     minimizer_hits->clear();
     pangraph->clear();
-    delete pangraph;
     pangraph_sample->clear();
-    delete pangraph_sample;
 
     if (pangraph->nodes.empty()) {
         std::cout << "No LocalPRGs found to compare samples on. "

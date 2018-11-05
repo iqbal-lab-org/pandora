@@ -171,7 +171,10 @@ int find_prob_thresh(std::vector<uint32_t> &kmer_prob_dist) {
     return peak - 200;
 }
 
-void estimate_parameters(pangenome::Graph *pangraph, const std::string &outdir, const uint32_t k, float &e_rate,
+void estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
+                         const std::string &outdir,
+                         const uint32_t k,
+                         float &e_rate,
                          const uint32_t covg, const bool bin) {
     // ignore trivial case
     if (pangraph->nodes.empty()) {
