@@ -166,15 +166,17 @@ void load_vcf_refs_file(const std::string &filepath, VCFRefs &vcf_refs) {
 }
 
 //void add_read_hits(const uint32_t id, const string& name, const string& seq, MinimizerHits* hits, Index* idx, const uint32_t w, const uint32_t k)
-void add_read_hits(Seq *s, std::shared_ptr<MinimizerHits> minimizer_hits, std::shared_ptr<Index> index) {
+void add_read_hits(std::shared_ptr<Seq> sequence,
+                   std::shared_ptr<MinimizerHits> minimizer_hits,
+                   std::shared_ptr<Index> index) {
     //cout << now() << "Search for hits for read " << s->name << " which has sketch size " << s->sketch.size() << " against index of size " << idx->minhash.size() << endl;
     uint32_t hit_count = 0;
     // creates Seq object for the read, then looks up minimizers in the Seq sketch and adds hits to a global MinimizerHits object
     //Seq s(id, name, seq, w, k);
-    for (auto it = s->sketch.begin(); it != s->sketch.end(); ++it) {
+    for (auto it = sequence->sketch.begin(); it != sequence->sketch.end(); ++it) {
         if (index->minhash.find((*it).kmer) != index->minhash.end()) {
             for (uint32_t j = 0; j != index->minhash[(*it).kmer]->size(); ++j) {
-                minimizer_hits->add_hit(s->id, *it, &(index->minhash[(*it).kmer]->operator[](j)));
+                minimizer_hits->add_hit(sequence->id, *it, &(index->minhash[(*it).kmer]->operator[](j)));
                 hit_count += 1;
             }
             //} else {
@@ -399,20 +401,15 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
     uint64_t covg = 0;
     float fraction_kmers_required_for_cluster = 0.75 / exp(e_rate * k);
     uint32_t expected_number_kmers_in_short_read_sketch = std::numeric_limits<uint32_t>::max();
-    Seq *s;
-    s = new Seq(0, "null", "", w, k);
-    if (s == nullptr) {
-        std::cerr << "Failed to create new Seq, something must be dying " << std::endl;
-        exit(EXIT_FAILURE);
-    }
+    auto sequence = std::make_shared<Seq>(Seq(0, "null", "", w, k));
     uint32_t id = 0;
 
     FastaqHandler fh(filepath);
     while (!fh.eof()) {
         fh.get_next();
-        s->initialize(id, fh.name, fh.read, w, k);
-        if (!s->sketch.empty()) {
-            covg += s->seq.length();
+        sequence->initialize(id, fh.name, fh.read, w, k);
+        if (!sequence->sketch.empty()) {
+            covg += sequence->seq.length();
             if (covg / genome_size > max_covg) {
                 BOOST_LOG_TRIVIAL(warning) << "Stop reading readfile as have reached max coverage";
                 break;
@@ -423,10 +420,10 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
         }
         if (illumina and expected_number_kmers_in_short_read_sketch == std::numeric_limits<uint32_t>::max()) {
             assert(w != 0);
-            expected_number_kmers_in_short_read_sketch = s->seq.length() * 2 / w;
+            expected_number_kmers_in_short_read_sketch = sequence->seq.length() * 2 / w;
         }
         //cout << now() << "Add read hits" << endl;
-        add_read_hits(s, minimizer_hits, index);
+        add_read_hits(sequence, minimizer_hits, index);
         id++;
         if (id > 10000000) {
             BOOST_LOG_TRIVIAL(debug) << "Stop reading readfile as have reached 10,000,000 reads";
@@ -441,7 +438,6 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
                                            expected_number_kmers_in_short_read_sketch);
         }
     }
-    delete s;
     BOOST_LOG_TRIVIAL(debug) << "Found " << id << " reads";
 
     BOOST_LOG_TRIVIAL(debug) << "Infer gene orders and add to pangenome::Graph";

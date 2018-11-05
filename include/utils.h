@@ -63,7 +63,7 @@ load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>> &, const uint32_t &, 
 void load_vcf_refs_file(const std::string &, VCFRefs &);
 
 //void add_read_hits(uint32_t, const std::string&, const std::string&, MinimizerHits*, Index*, const uint32_t, const uint32_t);
-void add_read_hits(Seq *, std::shared_ptr<MinimizerHits>, std::shared_ptr<Index>);
+void add_read_hits(std::shared_ptr<Seq>, std::shared_ptr<MinimizerHits>, std::shared_ptr<Index>);
 
 void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &,
                      const std::vector<std::shared_ptr<LocalPRG>> &,

@@ -154,8 +154,7 @@ TEST(UtilsTest, addReadHits) {
     MinimizerHitPtr m11(make_shared<MinimizerHit>(0, Interval(1, 4), 3, p, 0, 1));
     expected4.hits.insert(m11);
 
-    Seq *s;
-    s = new Seq(0, "read1", "AGC", 1, 3);
+    auto s = std::make_shared<Seq>(Seq(0, "read1", "AGC", 1, 3));
     add_read_hits(s, minimizer_hits, index);
     minimizer_hits->sort();
     EXPECT_EQ(expected1.hits.size(), minimizer_hits->hits.size());
@@ -166,11 +165,11 @@ TEST(UtilsTest, addReadHits) {
     }
 
     // if take w=2 as sketch of read AGTT should miss AGT, which occurs twice in PRG and contain GTT
-    delete s;
+
     minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     uint32_t j = 0;
     EXPECT_EQ(j, minimizer_hits->hits.size());
-    s = new Seq(0, "read2", "AGTT", 2, 3);
+    s = std::make_shared<Seq>(Seq(0, "read2", "AGTT", 2, 3));
     add_read_hits(s, minimizer_hits, index);
     minimizer_hits->sort();
     EXPECT_EQ(expected4.hits.size(), minimizer_hits->hits.size());
@@ -182,10 +181,10 @@ TEST(UtilsTest, addReadHits) {
 
     // but for w=1, only add one more hit, for GTT
     expected3.hits.insert(m11);
-    delete s;
+
     minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     EXPECT_EQ(j, minimizer_hits->hits.size());
-    s = new Seq(0, "read2", "AGTT", 1, 3);
+    s = std::make_shared<Seq>(Seq(0, "read2", "AGTT", 1, 3));
     add_read_hits(s, minimizer_hits, index);
     minimizer_hits->sort();
     EXPECT_EQ(expected3.hits.size(), minimizer_hits->hits.size());
@@ -196,32 +195,30 @@ TEST(UtilsTest, addReadHits) {
     }
 
     // now back to w = 1, add expected2 to expected1 as will get hits against both AGC and GCT
-    delete s;
     minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     j = 0;
     EXPECT_EQ(j, minimizer_hits->hits.size());
-    s = new Seq(0, "read3", "AGCT", 1, 3);
+    s = std::make_shared<Seq>(Seq(0, "read3", "AGCT", 1, 3));
     add_read_hits(s, minimizer_hits, index);
     minimizer_hits->sort();
     expected1.hits.insert(expected2.hits.begin(), expected2.hits.end());
     EXPECT_EQ(expected1.hits.size(), minimizer_hits->hits.size());
     it2 = expected1.hits.begin();
-    for (set<MinimizerHitPtr, pComp>::const_iterator it = minimizer_hits->hits.begin(); it != minimizer_hits->hits.end(); ++it) {
+    for (auto it = minimizer_hits->hits.begin(); it != minimizer_hits->hits.end(); ++it) {
         EXPECT_EQ(**it2, **it);
         it2++;
     }
 
     // same for w = 2, add expected2 to expected1 as will get hits against both because AGC and GCT are joint minimums
-    delete s;
     minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     j = 0;
     EXPECT_EQ(j, minimizer_hits->hits.size());
-    s = new Seq(0, "read3", "AGCT", 2, 3);
+    s = std::make_shared<Seq>(Seq(0, "read3", "AGCT", 2, 3));
     add_read_hits(s, minimizer_hits, index);
     minimizer_hits->sort();
     EXPECT_EQ(expected1.hits.size(), minimizer_hits->hits.size());
     it2 = expected1.hits.begin();
-    for (set<MinimizerHitPtr, pComp>::const_iterator it = minimizer_hits->hits.begin(); it != minimizer_hits->hits.end(); ++it) {
+    for (auto it = minimizer_hits->hits.begin(); it != minimizer_hits->hits.end(); ++it) {
         EXPECT_EQ(**it2, **it);
         it2++;
     }
@@ -231,8 +228,6 @@ TEST(UtilsTest, addReadHits) {
     expected3.hits.clear();
     expected4.hits.clear();
     index->clear();
-
-    delete s;
 }
 
 TEST(UtilsTest, filter_clusters2) {
@@ -394,10 +389,8 @@ TEST(UtilsTest, simpleInferLocalPRGOrderForRead) {
     lp3->kmer_prg.add_edge(v[12], v[13]);
 
     // add read hits to mhs
-    Seq *s;
-    s = new Seq(0, "read1", "AGTTAAGTACG", 1, 3);
+    auto s = std::make_shared<Seq>(Seq(0, "read1", "AGTTAAGTACG", 1, 3));
     add_read_hits(s, minimizer_hits, index);
-    delete s;
     //add_read_hits(0, "read1", "AGTTAAGTACG", mhs, index, 1, 3);
 
     // initialize pangraph;
@@ -630,10 +623,8 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
     lp2->kmer_prg.add_edge(v[24], v[25]);
 
     // add read hits to mhs
-    Seq *s;
-    s = new Seq(0, "read2", "AGTTATGCTAGCTACTTACGGTA", 1, 3);
+    auto s = std::make_shared<Seq>(Seq(0, "read2", "AGTTATGCTAGCTACTTACGGTA", 1, 3));
     add_read_hits(s, minimizer_hits, index);
-    delete s;
     //add_read_hits(0, "read2", "AGTTATGCTAGCTACTTACGGTA", mhs, index, 1, 3);
 
     // initialize pangraph;
@@ -654,7 +645,6 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
 
     EXPECT_EQ(pg_exp, *pangraph);
     index->clear();
-    
 }
 
 /*TEST(UtilsTest, read_all_readfile) {
