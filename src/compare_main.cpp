@@ -219,8 +219,7 @@ int pandora_compare(int argc, char *argv[]) {
     pangraph = new pangenome::Graph();
     pangraph_sample = new pangenome::Graph();
 
-    MinimizerHits *mhs;
-    mhs = new MinimizerHits(100000);
+    auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits(100000));
     uint32_t covg;
 
     Fastaq consensus_fq(true, true);
@@ -241,7 +240,7 @@ int pandora_compare(int argc, char *argv[]) {
     // for each sample, run pandora to get the sample pangraph
     for (auto sample = samples.begin(); sample != samples.end(); ++sample) {
         pangraph_sample->clear();
-        mhs->clear();
+        minimizer_hits->clear();
 
         // make output dir for this sample
         auto sample_outdir = outdir + "/" + sample->first;
@@ -250,11 +249,11 @@ int pandora_compare(int argc, char *argv[]) {
         // construct the pangraph for this sample
         std::cout << now() << "Constructing pangenome::Graph from read file " << sample->second
                   << " (this will take a while)" << std::endl;
-        covg = pangraph_from_read_file(sample->second, mhs, pangraph_sample, index, prgs, w, k, max_diff, e_rate,
+        covg = pangraph_from_read_file(sample->second, minimizer_hits, pangraph_sample, index, prgs, w, k, max_diff, e_rate,
                                        min_cluster_size, genome_size, illumina, clean, max_covg);
 
         std::cout << now() << "Finished with minihits, so clear " << std::endl;
-        mhs->clear();
+        minimizer_hits->clear();
 
         std::cout << now() << "Writing pangenome::Graph to file " << sample_outdir << "/pandora.pangraph.gfa"
                   << std::endl;
@@ -330,8 +329,7 @@ int pandora_compare(int argc, char *argv[]) {
     // clear up
     std::cout << now() << "Clear up" << std::endl;
     index->clear();
-    mhs->clear();
-    delete mhs;
+    minimizer_hits->clear();
     pangraph->clear();
     delete pangraph;
     pangraph_sample->clear();

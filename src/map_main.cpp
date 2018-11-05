@@ -232,19 +232,17 @@ int pandora_map(int argc, char *argv[]) {
     load_PRG_kmergraphs(prgs, w, k, prgfile);
 
     cout << now() << "Constructing pangenome::Graph from read file (this will take a while)" << endl;
-    MinimizerHits *mhs;
-    mhs = new MinimizerHits(100000);
+    auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits(100000));
     pangenome::Graph *pangraph;
     pangraph = new pangenome::Graph();
-    uint32_t covg = pangraph_from_read_file(readfile, mhs, pangraph, index, prgs, w, k, max_diff, e_rate,
+    uint32_t covg = pangraph_from_read_file(readfile, minimizer_hits, pangraph, index, prgs, w, k, max_diff, e_rate,
                                             min_cluster_size, genome_size, illumina, clean, max_covg);
 
     cout << now() << "Finished with index, so clear " << endl;
     index->clear();
 
     cout << now() << "Finished with minihits, so clear " << endl;
-    mhs->clear();
-    delete mhs;
+    minimizer_hits->clear();
 
     if (pangraph->nodes.empty()) {
         cout << "Found non of the LocalPRGs in the reads." << endl;

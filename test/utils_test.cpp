@@ -94,8 +94,7 @@ TEST(UtilsTest, readPrgFile) {
 
 TEST(UtilsTest, addReadHits) {
     // initialize minihits container
-    MinimizerHits *mhs;
-    mhs = new MinimizerHits();
+    auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     MinimizerHits expected1;
     MinimizerHits expected2;
     MinimizerHits expected3;
@@ -157,76 +156,72 @@ TEST(UtilsTest, addReadHits) {
 
     Seq *s;
     s = new Seq(0, "read1", "AGC", 1, 3);
-    add_read_hits(s, mhs, index);
-    mhs->sort();
-    EXPECT_EQ(expected1.hits.size(), mhs->hits.size());
+    add_read_hits(s, minimizer_hits, index);
+    minimizer_hits->sort();
+    EXPECT_EQ(expected1.hits.size(), minimizer_hits->hits.size());
     set<MinimizerHitPtr, pComp>::const_iterator it2 = expected1.hits.begin();
-    for (set<MinimizerHitPtr, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it) {
+    for (set<MinimizerHitPtr, pComp>::const_iterator it = minimizer_hits->hits.begin(); it != minimizer_hits->hits.end(); ++it) {
         EXPECT_EQ(**it2, **it);
         it2++;
     }
 
     // if take w=2 as sketch of read AGTT should miss AGT, which occurs twice in PRG and contain GTT
-    delete mhs;
     delete s;
-    mhs = new MinimizerHits();
+    minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     uint32_t j = 0;
-    EXPECT_EQ(j, mhs->hits.size());
+    EXPECT_EQ(j, minimizer_hits->hits.size());
     s = new Seq(0, "read2", "AGTT", 2, 3);
-    add_read_hits(s, mhs, index);
-    mhs->sort();
-    EXPECT_EQ(expected4.hits.size(), mhs->hits.size());
+    add_read_hits(s, minimizer_hits, index);
+    minimizer_hits->sort();
+    EXPECT_EQ(expected4.hits.size(), minimizer_hits->hits.size());
     it2 = expected4.hits.begin();
-    for (set<MinimizerHitPtr, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it) {
+    for (set<MinimizerHitPtr, pComp>::const_iterator it = minimizer_hits->hits.begin(); it != minimizer_hits->hits.end(); ++it) {
         EXPECT_EQ(**it2, **it);
         it2++;
     }
 
     // but for w=1, only add one more hit, for GTT
     expected3.hits.insert(m11);
-    delete mhs;
     delete s;
-    mhs = new MinimizerHits();
-    EXPECT_EQ(j, mhs->hits.size());
+    minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
+    EXPECT_EQ(j, minimizer_hits->hits.size());
     s = new Seq(0, "read2", "AGTT", 1, 3);
-    add_read_hits(s, mhs, index);
-    mhs->sort();
-    EXPECT_EQ(expected3.hits.size(), mhs->hits.size());
+    add_read_hits(s, minimizer_hits, index);
+    minimizer_hits->sort();
+    EXPECT_EQ(expected3.hits.size(), minimizer_hits->hits.size());
     it2 = expected3.hits.begin();
-    for (set<MinimizerHitPtr, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it) {
+    for (set<MinimizerHitPtr, pComp>::const_iterator it = minimizer_hits->hits.begin(); it != minimizer_hits->hits.end(); ++it) {
         EXPECT_EQ(**it2, **it);
         it2++;
     }
 
     // now back to w = 1, add expected2 to expected1 as will get hits against both AGC and GCT
-    delete mhs;
     delete s;
-    mhs = new MinimizerHits();
+    minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     j = 0;
-    EXPECT_EQ(j, mhs->hits.size());
+    EXPECT_EQ(j, minimizer_hits->hits.size());
     s = new Seq(0, "read3", "AGCT", 1, 3);
-    add_read_hits(s, mhs, index);
-    mhs->sort();
+    add_read_hits(s, minimizer_hits, index);
+    minimizer_hits->sort();
     expected1.hits.insert(expected2.hits.begin(), expected2.hits.end());
-    EXPECT_EQ(expected1.hits.size(), mhs->hits.size());
+    EXPECT_EQ(expected1.hits.size(), minimizer_hits->hits.size());
     it2 = expected1.hits.begin();
-    for (set<MinimizerHitPtr, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it) {
+    for (set<MinimizerHitPtr, pComp>::const_iterator it = minimizer_hits->hits.begin(); it != minimizer_hits->hits.end(); ++it) {
         EXPECT_EQ(**it2, **it);
         it2++;
     }
 
     // same for w = 2, add expected2 to expected1 as will get hits against both because AGC and GCT are joint minimums
-    delete mhs;
     delete s;
-    mhs = new MinimizerHits();
+    minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     j = 0;
-    EXPECT_EQ(j, mhs->hits.size());
+    EXPECT_EQ(j, minimizer_hits->hits.size());
     s = new Seq(0, "read3", "AGCT", 2, 3);
-    add_read_hits(s, mhs, index);
-    mhs->sort();
-    EXPECT_EQ(expected1.hits.size(), mhs->hits.size());
+    add_read_hits(s, minimizer_hits, index);
+    minimizer_hits->sort();
+    EXPECT_EQ(expected1.hits.size(), minimizer_hits->hits.size());
     it2 = expected1.hits.begin();
-    for (set<MinimizerHitPtr, pComp>::const_iterator it = mhs->hits.begin(); it != mhs->hits.end(); ++it) {
+    for (set<MinimizerHitPtr, pComp>::const_iterator it = minimizer_hits->hits.begin(); it != minimizer_hits->hits.end(); ++it) {
         EXPECT_EQ(**it2, **it);
         it2++;
     }
@@ -236,8 +231,7 @@ TEST(UtilsTest, addReadHits) {
     expected3.hits.clear();
     expected4.hits.clear();
     index->clear();
-    
-    delete mhs;
+
     delete s;
 }
 
@@ -278,8 +272,7 @@ TEST(UtilsTest, filter_clusters2) {
 
 TEST(UtilsTest, simpleInferLocalPRGOrderForRead) {
     // initialize minihits container
-    MinimizerHits *mhs;
-    mhs = new MinimizerHits();
+    auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     KmerHash hash;
 
     // initialize a prgs object
@@ -403,14 +396,14 @@ TEST(UtilsTest, simpleInferLocalPRGOrderForRead) {
     // add read hits to mhs
     Seq *s;
     s = new Seq(0, "read1", "AGTTAAGTACG", 1, 3);
-    add_read_hits(s, mhs, index);
+    add_read_hits(s, minimizer_hits, index);
     delete s;
     //add_read_hits(0, "read1", "AGTTAAGTACG", mhs, index, 1, 3);
 
     // initialize pangraph;
     pangenome::Graph *pg;
     pg = new pangenome::Graph();
-    infer_localPRG_order_for_reads(prgs, mhs, pg, 1, 100, 0.1, 1);
+    infer_localPRG_order_for_reads(prgs, minimizer_hits, pg, 1, 100, 0.1, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 then 1)
     pangenome::Graph pg_exp;
@@ -423,13 +416,11 @@ TEST(UtilsTest, simpleInferLocalPRGOrderForRead) {
     index->clear();
     
     delete pg;
-    delete mhs;
 }
 
 TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
     // initialize minihits container
-    MinimizerHits *mhs;
-    mhs = new MinimizerHits();
+    auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     KmerHash hash;
 
     // initialize a prgs object
@@ -644,14 +635,14 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
     // add read hits to mhs
     Seq *s;
     s = new Seq(0, "read2", "AGTTATGCTAGCTACTTACGGTA", 1, 3);
-    add_read_hits(s, mhs, index);
+    add_read_hits(s, minimizer_hits, index);
     delete s;
     //add_read_hits(0, "read2", "AGTTATGCTAGCTACTTACGGTA", mhs, index, 1, 3);
 
     // initialize pangraph;
     pangenome::Graph *pg;
     pg = new pangenome::Graph();
-    infer_localPRG_order_for_reads(prgs, mhs, pg, 1, 100, 0.1, 1);
+    infer_localPRG_order_for_reads(prgs, minimizer_hits, pg, 1, 100, 0.1, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
@@ -667,7 +658,6 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
 
     EXPECT_EQ(pg_exp, *pg);
     delete pg;
-    delete mhs;
     index->clear();
     
 }
@@ -686,8 +676,7 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
 }*/
 
 TEST(UtilsTest, pangraphFromReadFile) {
-    MinimizerHits *mhs;
-    mhs = new MinimizerHits();
+    auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     KmerHash hash;
 
     // initialize a prgs object
@@ -901,7 +890,7 @@ TEST(UtilsTest, pangraphFromReadFile) {
     // initialize pangraph;
     pangenome::Graph *pg;
     pg = new pangenome::Graph();
-    pangraph_from_read_file("../../test/test_cases/read2.fa", mhs, pg, index, prgs, 1, 3, 1, 0.1, 1);
+    pangraph_from_read_file("../../test/test_cases/read2.fa", minimizer_hits, pg, index, prgs, 1, 3, 1, 0.1, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
@@ -916,16 +905,14 @@ TEST(UtilsTest, pangraphFromReadFile) {
     delete pg;
 
     pg = new pangenome::Graph();
-    mhs->clear();
-    pangraph_from_read_file("../../test/test_cases/read2.fq", mhs, pg, index, prgs, 1, 3, 1, 0.1, 1);
+    minimizer_hits->clear();
+    pangraph_from_read_file("../../test/test_cases/read2.fq", minimizer_hits, pg, index, prgs, 1, 3, 1, 0.1, 1);
     pg_exp.add_node(1, "1", 0, mhs_dummy.hits);
     pg_exp.add_node(2, "2", 0, mhs_dummy.hits);
     pg_exp.add_node(3, "3", 0, mhs_dummy.hits);
     pg_exp.add_node(0, "0", 0, mhs_dummy.hits);
 
-    delete mhs;
     index->clear();
-    
 }
 
 /*

@@ -166,7 +166,7 @@ void load_vcf_refs_file(const std::string &filepath, VCFRefs &vcf_refs) {
 }
 
 //void add_read_hits(const uint32_t id, const string& name, const string& seq, MinimizerHits* hits, Index* idx, const uint32_t w, const uint32_t k)
-void add_read_hits(Seq *s, MinimizerHits *hits, std::shared_ptr<Index> index) {
+void add_read_hits(Seq *s, std::shared_ptr<MinimizerHits> minimizer_hits, std::shared_ptr<Index> index) {
     //cout << now() << "Search for hits for read " << s->name << " which has sketch size " << s->sketch.size() << " against index of size " << idx->minhash.size() << endl;
     uint32_t hit_count = 0;
     // creates Seq object for the read, then looks up minimizers in the Seq sketch and adds hits to a global MinimizerHits object
@@ -174,7 +174,7 @@ void add_read_hits(Seq *s, MinimizerHits *hits, std::shared_ptr<Index> index) {
     for (auto it = s->sketch.begin(); it != s->sketch.end(); ++it) {
         if (index->minhash.find((*it).kmer) != index->minhash.end()) {
             for (uint32_t j = 0; j != index->minhash[(*it).kmer]->size(); ++j) {
-                hits->add_hit(s->id, *it, &(index->minhash[(*it).kmer]->operator[](j)));
+                minimizer_hits->add_hit(s->id, *it, &(index->minhash[(*it).kmer]->operator[](j)));
                 hit_count += 1;
             }
             //} else {
@@ -188,7 +188,8 @@ void add_read_hits(Seq *s, MinimizerHits *hits, std::shared_ptr<Index> index) {
 
 void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits,
                      const std::vector<std::shared_ptr<LocalPRG>> &prgs,
-                     MinimizerHits *minimizer_hits, const int max_diff,
+                     std::shared_ptr<MinimizerHits> minimizer_hits,
+                     const int max_diff,
                      const float &fraction_kmers_required_for_cluster,
                      const uint32_t min_cluster_size, const uint32_t expected_number_kmers_in_short_read_sketch) {
     BOOST_LOG_TRIVIAL(debug) << "Define clusters of hits from the " << minimizer_hits->hits.size() << " hits";
@@ -356,7 +357,8 @@ add_clusters_to_pangraph(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp>
     }
 }
 
-void infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>> &prgs, MinimizerHits *minimizer_hits,
+void infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>> &prgs,
+                                    std::shared_ptr<MinimizerHits> minimizer_hits,
                                     pangenome::Graph *pangraph,
                                     const int max_diff, const uint32_t &genome_size,
                                     const float &fraction_kmers_required_for_cluster,
@@ -381,7 +383,7 @@ void infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>>
 }
 
 uint32_t pangraph_from_read_file(const std::string &filepath,
-                                 MinimizerHits *mh,
+                                 std::shared_ptr<MinimizerHits> minimizer_hits,
                                  pangenome::Graph *pangraph,
                                  std::shared_ptr<Index> index,
                                  const std::vector<std::shared_ptr<LocalPRG>> &prgs,
@@ -424,17 +426,17 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
             expected_number_kmers_in_short_read_sketch = s->seq.length() * 2 / w;
         }
         //cout << now() << "Add read hits" << endl;
-        add_read_hits(s, mh, index);
+        add_read_hits(s, minimizer_hits, index);
         id++;
         if (id > 10000000) {
             BOOST_LOG_TRIVIAL(debug) << "Stop reading readfile as have reached 10,000,000 reads";
             break;
         }
 
-        if (mh->uhits.size() > 90000) {
+        if (minimizer_hits->uhits.size() > 90000) {
             BOOST_LOG_TRIVIAL(debug) << "Infer gene orders and add to pangenome::Graph";
             pangraph->reserve_num_reads(id);
-            infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size,
+            infer_localPRG_order_for_reads(prgs, minimizer_hits, pangraph, max_diff, genome_size,
                                            fraction_kmers_required_for_cluster, min_cluster_size,
                                            expected_number_kmers_in_short_read_sketch);
         }
@@ -444,7 +446,7 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
 
     BOOST_LOG_TRIVIAL(debug) << "Infer gene orders and add to pangenome::Graph";
     pangraph->reserve_num_reads(id);
-    infer_localPRG_order_for_reads(prgs, mh, pangraph, max_diff, genome_size, fraction_kmers_required_for_cluster,
+    infer_localPRG_order_for_reads(prgs, minimizer_hits, pangraph, max_diff, genome_size, fraction_kmers_required_for_cluster,
                                    min_cluster_size, expected_number_kmers_in_short_read_sketch);
 
     BOOST_LOG_TRIVIAL(debug) << "Pangraph has " << pangraph->nodes.size() << " nodes";
