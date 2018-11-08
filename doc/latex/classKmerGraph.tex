@@ -1,0 +1,143 @@
+\hypertarget{classKmerGraph}{}\section{Kmer\+Graph Class Reference}
+\label{classKmerGraph}\index{Kmer\+Graph@{Kmer\+Graph}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classKmerGraph_af67c4691c4b2fb36e884c4b92457e285}\label{classKmerGraph_af67c4691c4b2fb36e884c4b92457e285}} 
+{\bfseries Kmer\+Graph} (const \hyperlink{classKmerGraph}{Kmer\+Graph} \&)
+\item 
+\mbox{\Hypertarget{classKmerGraph_a96ca7d2a4b907c02154197e1e473a520}\label{classKmerGraph_a96ca7d2a4b907c02154197e1e473a520}} 
+\hyperlink{classKmerGraph}{Kmer\+Graph} \& {\bfseries operator=} (const \hyperlink{classKmerGraph}{Kmer\+Graph} \&)
+\item 
+\mbox{\Hypertarget{classKmerGraph_a0361de8df9c1d5352926f868c0304a03}\label{classKmerGraph_a0361de8df9c1d5352926f868c0304a03}} 
+void {\bfseries clear} ()
+\item 
+\mbox{\Hypertarget{classKmerGraph_abf362d653e5ce7c26f38805e12c74598}\label{classKmerGraph_abf362d653e5ce7c26f38805e12c74598}} 
+Kmer\+Node\+Ptr {\bfseries add\+\_\+node} (const prg\+::\+Path \&)
+\item 
+\mbox{\Hypertarget{classKmerGraph_a8eb18d952abad108c4c8ac3351686c15}\label{classKmerGraph_a8eb18d952abad108c4c8ac3351686c15}} 
+Kmer\+Node\+Ptr {\bfseries add\+\_\+node\+\_\+with\+\_\+kh} (const prg\+::\+Path \&, const uint64\+\_\+t \&, const uint8\+\_\+t \&num=0)
+\item 
+\mbox{\Hypertarget{classKmerGraph_ae31a2fc24abbdaad8f53f9cd2dcee326}\label{classKmerGraph_ae31a2fc24abbdaad8f53f9cd2dcee326}} 
+void {\bfseries add\+\_\+edge} (Kmer\+Node\+Ptr, Kmer\+Node\+Ptr)
+\item 
+\mbox{\Hypertarget{classKmerGraph_ae9669839acdd1a7b7a27bd13c1a37fad}\label{classKmerGraph_ae9669839acdd1a7b7a27bd13c1a37fad}} 
+void {\bfseries remove\+\_\+shortcut\+\_\+edges} ()
+\item 
+\mbox{\Hypertarget{classKmerGraph_a05db79db14d871a9c63a20ef079f2cb4}\label{classKmerGraph_a05db79db14d871a9c63a20ef079f2cb4}} 
+void {\bfseries sort\+\_\+topologically} ()
+\item 
+\mbox{\Hypertarget{classKmerGraph_a30bfd9da5440b318790b440f5e7da886}\label{classKmerGraph_a30bfd9da5440b318790b440f5e7da886}} 
+void {\bfseries check} ()
+\item 
+\mbox{\Hypertarget{classKmerGraph_a4049a0d9e38244d96d9f59988ae416ba}\label{classKmerGraph_a4049a0d9e38244d96d9f59988ae416ba}} 
+void {\bfseries set\+\_\+exp\+\_\+depth\+\_\+covg} (const uint32\+\_\+t)
+\item 
+\mbox{\Hypertarget{classKmerGraph_a2a5e7227b0ae1f9ef92ddb5a2b2050d0}\label{classKmerGraph_a2a5e7227b0ae1f9ef92ddb5a2b2050d0}} 
+void {\bfseries set\+\_\+p} (const float)
+\item 
+\mbox{\Hypertarget{classKmerGraph_af4c963babbce09829a20d8e96bfa8459}\label{classKmerGraph_af4c963babbce09829a20d8e96bfa8459}} 
+void {\bfseries set\+\_\+nb} (const float \&, const float \&)
+\item 
+\mbox{\Hypertarget{classKmerGraph_a4e9c97f44d6e95ac7d0c1450b08d36f7}\label{classKmerGraph_a4e9c97f44d6e95ac7d0c1450b08d36f7}} 
+float {\bfseries nb\+\_\+prob} (uint32\+\_\+t)
+\item 
+\mbox{\Hypertarget{classKmerGraph_aa55bd194e4cd31171926733a6177b140}\label{classKmerGraph_aa55bd194e4cd31171926733a6177b140}} 
+float {\bfseries prob} (uint32\+\_\+t)
+\item 
+\mbox{\Hypertarget{classKmerGraph_a4989eaddd30f1a876d87b3ea12d64dfa}\label{classKmerGraph_a4989eaddd30f1a876d87b3ea12d64dfa}} 
+float {\bfseries prob} (uint32\+\_\+t, uint32\+\_\+t)
+\item 
+\mbox{\Hypertarget{classKmerGraph_ad1223d274d5c2f49d48444d23fa5c983}\label{classKmerGraph_ad1223d274d5c2f49d48444d23fa5c983}} 
+float {\bfseries find\+\_\+max\+\_\+path} (std\+::vector$<$ Kmer\+Node\+Ptr $>$ \&)
+\item 
+\mbox{\Hypertarget{classKmerGraph_a5c4464b2ed6fb79172d5b31a8f7113c4}\label{classKmerGraph_a5c4464b2ed6fb79172d5b31a8f7113c4}} 
+float {\bfseries find\+\_\+nb\+\_\+max\+\_\+path} (std\+::vector$<$ Kmer\+Node\+Ptr $>$ \&)
+\item 
+\mbox{\Hypertarget{classKmerGraph_acce921a71fef4cb61d63bf5b05ea0b8f}\label{classKmerGraph_acce921a71fef4cb61d63bf5b05ea0b8f}} 
+std\+::vector$<$ std\+::vector$<$ Kmer\+Node\+Ptr $>$ $>$ {\bfseries find\+\_\+max\+\_\+paths} (uint32\+\_\+t)
+\item 
+\mbox{\Hypertarget{classKmerGraph_ab5c89f1d5b06517b3c4f2ee38e9de734}\label{classKmerGraph_ab5c89f1d5b06517b3c4f2ee38e9de734}} 
+void {\bfseries save\+\_\+covg\+\_\+dist} (const std\+::string \&)
+\item 
+\mbox{\Hypertarget{classKmerGraph_ac8f04bea0c4b151bbc86f4de52b1147a}\label{classKmerGraph_ac8f04bea0c4b151bbc86f4de52b1147a}} 
+uint32\+\_\+t {\bfseries min\+\_\+path\+\_\+length} ()
+\item 
+\mbox{\Hypertarget{classKmerGraph_ab20fd8007c42be2b8eb92d7f8446b6dc}\label{classKmerGraph_ab20fd8007c42be2b8eb92d7f8446b6dc}} 
+std\+::vector$<$ std\+::vector$<$ Kmer\+Node\+Ptr $>$ $>$ {\bfseries get\+\_\+random\+\_\+paths} (uint32\+\_\+t)
+\item 
+\mbox{\Hypertarget{classKmerGraph_a319355ec332b55ec6e5ffe718a0ebefc}\label{classKmerGraph_a319355ec332b55ec6e5ffe718a0ebefc}} 
+float {\bfseries prob\+\_\+path} (const std\+::vector$<$ Kmer\+Node\+Ptr $>$ \&)
+\item 
+\mbox{\Hypertarget{classKmerGraph_a08e9aaeca1fb902717e2bd3e48b2028a}\label{classKmerGraph_a08e9aaeca1fb902717e2bd3e48b2028a}} 
+float {\bfseries prob\+\_\+paths} (const std\+::vector$<$ std\+::vector$<$ Kmer\+Node\+Ptr $>$$>$ \&)
+\item 
+\mbox{\Hypertarget{classKmerGraph_a0c36969c87eb866b12db0e655a7a9a1e}\label{classKmerGraph_a0c36969c87eb866b12db0e655a7a9a1e}} 
+void {\bfseries save} (const std\+::string \&, const std\+::shared\+\_\+ptr$<$ \hyperlink{classLocalPRG}{Local\+P\+RG} $>$=nullptr)
+\item 
+\mbox{\Hypertarget{classKmerGraph_aa9ebfab7df0503b67dce10e8e5930147}\label{classKmerGraph_aa9ebfab7df0503b67dce10e8e5930147}} 
+void {\bfseries load} (const std\+::string \&)
+\item 
+\mbox{\Hypertarget{classKmerGraph_acd3b14e61faac74b509f8cd4cac0d868}\label{classKmerGraph_acd3b14e61faac74b509f8cd4cac0d868}} 
+void {\bfseries append\+\_\+coverages\+\_\+to\+\_\+file} (const std\+::string \&, const std\+::string \&)
+\item 
+\mbox{\Hypertarget{classKmerGraph_a9e754ef52cb324b4b57f282c8a969c6f}\label{classKmerGraph_a9e754ef52cb324b4b57f282c8a969c6f}} 
+bool {\bfseries operator==} (const \hyperlink{classKmerGraph}{Kmer\+Graph} \&y) const
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classKmerGraph_a915de8efc420f7a6232417e7fa05c757}\label{classKmerGraph_a915de8efc420f7a6232417e7fa05c757}} 
+uint32\+\_\+t {\bfseries exp\+\_\+depth\+\_\+covg}
+\item 
+\mbox{\Hypertarget{classKmerGraph_a1507551fda3370e4cd035867490cb630}\label{classKmerGraph_a1507551fda3370e4cd035867490cb630}} 
+uint32\+\_\+t {\bfseries num\+\_\+reads}
+\item 
+\mbox{\Hypertarget{classKmerGraph_a796a7736406528a56da4b0c20ba462be}\label{classKmerGraph_a796a7736406528a56da4b0c20ba462be}} 
+uint32\+\_\+t {\bfseries shortest\+\_\+path\+\_\+length}
+\item 
+\mbox{\Hypertarget{classKmerGraph_a70a7b81838a6166366d5c9619933be43}\label{classKmerGraph_a70a7b81838a6166366d5c9619933be43}} 
+std\+::vector$<$ Kmer\+Node\+Ptr $>$ {\bfseries nodes}
+\item 
+\mbox{\Hypertarget{classKmerGraph_af727fcd1fdb67ee1a4253fb6fa930743}\label{classKmerGraph_af727fcd1fdb67ee1a4253fb6fa930743}} 
+std\+::vector$<$ Kmer\+Node\+Ptr $>$ {\bfseries sorted\+\_\+nodes}
+\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classKmerGraph_ab27a87abadfae7a133147398c76b360e}\label{classKmerGraph_ab27a87abadfae7a133147398c76b360e}} 
+struct {\bfseries condition}
+\item 
+\mbox{\Hypertarget{classKmerGraph_adeaf601190c324a285c2940a74aeb9e1}\label{classKmerGraph_adeaf601190c324a285c2940a74aeb9e1}} 
+class {\bfseries Kmer\+Graph\+Test\+\_\+set\+\_\+p\+\_\+\+Test}
+\item 
+\mbox{\Hypertarget{classKmerGraph_ad9f28c71a60091bf27674340221a66b3}\label{classKmerGraph_ad9f28c71a60091bf27674340221a66b3}} 
+class {\bfseries Kmer\+Graph\+Test\+\_\+prob\+\_\+\+Test}
+\item 
+\mbox{\Hypertarget{classKmerGraph_aa702f3df461a039bce047bb79072046c}\label{classKmerGraph_aa702f3df461a039bce047bb79072046c}} 
+class {\bfseries Kmer\+Graph\+Test\+\_\+find\+Max\+Path\+Simple\+\_\+\+Test}
+\item 
+\mbox{\Hypertarget{classKmerGraph_a5916f681128b36ad4e8bb1e4c80633df}\label{classKmerGraph_a5916f681128b36ad4e8bb1e4c80633df}} 
+class {\bfseries Kmer\+Graph\+Test\+\_\+find\+Max\+Path2\+Level\+\_\+\+Test}
+\item 
+\mbox{\Hypertarget{classKmerGraph_ac2b466ba7568647d892409fef299735d}\label{classKmerGraph_ac2b466ba7568647d892409fef299735d}} 
+class {\bfseries Kmer\+Graph\+Test\+\_\+find\+\_\+max\+\_\+paths\+\_\+2\+Level\+\_\+\+Test}
+\item 
+\mbox{\Hypertarget{classKmerGraph_a37a30756770bc16926628dbc9da996ab}\label{classKmerGraph_a37a30756770bc16926628dbc9da996ab}} 
+class {\bfseries Kmer\+Graph\+Test\+\_\+path\+\_\+prob\+\_\+\+Test}
+\item 
+\mbox{\Hypertarget{classKmerGraph_a381146f303da371b53919653c7b11793}\label{classKmerGraph_a381146f303da371b53919653c7b11793}} 
+class {\bfseries Kmer\+Graph\+Test\+\_\+path\+\_\+probs\+\_\+\+Test}
+\item 
+\mbox{\Hypertarget{classKmerGraph_abe10212267df925d60d7f580d389d0cc}\label{classKmerGraph_abe10212267df925d60d7f580d389d0cc}} 
+std\+::ostream \& {\bfseries operator$<$$<$} (std\+::ostream \&out, \hyperlink{classKmerGraph}{Kmer\+Graph} const \&data)
+\item 
+\mbox{\Hypertarget{classKmerGraph_adef570b8b569c564dfe5e5a6a085014b}\label{classKmerGraph_adef570b8b569c564dfe5e5a6a085014b}} 
+void {\bfseries estimate\+\_\+parameters} (std\+::shared\+\_\+ptr$<$ pangenome\+::\+Graph $>$, const std\+::string \&, const uint32\+\_\+t, float \&, const uint32\+\_\+t, const bool)
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/kmergraph.\+h\item 
+src/kmergraph.\+cpp\end{DoxyCompactItemize}

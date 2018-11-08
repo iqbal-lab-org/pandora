@@ -1,0 +1,59 @@
+\hypertarget{classLocalGraph}{}\section{Local\+Graph Class Reference}
+\label{classLocalGraph}\index{Local\+Graph@{Local\+Graph}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classLocalGraph_a1fbbb66429c6c1b7adcfef5cbf73a488}\label{classLocalGraph_a1fbbb66429c6c1b7adcfef5cbf73a488}} 
+void {\bfseries add\+\_\+node} (const uint32\+\_\+t \&id, const std\+::string \&seq, const \hyperlink{structInterval}{Interval} \&pos)
+\item 
+\mbox{\Hypertarget{classLocalGraph_a9cdd85a9f81a4346b606f2a0f23ab0a2}\label{classLocalGraph_a9cdd85a9f81a4346b606f2a0f23ab0a2}} 
+void {\bfseries add\+\_\+edge} (const uint32\+\_\+t \&, const uint32\+\_\+t \&)
+\item 
+\mbox{\Hypertarget{classLocalGraph_a0f9f895c24cb2b71dc5da7816c4e55af}\label{classLocalGraph_a0f9f895c24cb2b71dc5da7816c4e55af}} 
+void {\bfseries write\+\_\+gfa} (const std\+::string \&) const
+\item 
+\mbox{\Hypertarget{classLocalGraph_a1ad3d6e1b1da65555e922e5a9dd472ff}\label{classLocalGraph_a1ad3d6e1b1da65555e922e5a9dd472ff}} 
+void {\bfseries read\+\_\+gfa} (const std\+::string \&)
+\item 
+\mbox{\Hypertarget{classLocalGraph_aa3a85a696ad54760d30a849053fa21dc}\label{classLocalGraph_aa3a85a696ad54760d30a849053fa21dc}} 
+std\+::vector$<$ prg\+::\+Path $>$ {\bfseries walk} (const uint32\+\_\+t \&, const uint32\+\_\+t \&, const uint32\+\_\+t \&) const
+\item 
+\mbox{\Hypertarget{classLocalGraph_aabb55905f4041942bc7e60c7fed87f99}\label{classLocalGraph_aabb55905f4041942bc7e60c7fed87f99}} 
+std\+::vector$<$ prg\+::\+Path $>$ {\bfseries walk\+\_\+back} (const uint32\+\_\+t \&, const uint32\+\_\+t \&, const uint32\+\_\+t \&) const
+\item 
+\mbox{\Hypertarget{classLocalGraph_ab50f8489497bdf56da35b8c45e1e4d75}\label{classLocalGraph_ab50f8489497bdf56da35b8c45e1e4d75}} 
+Local\+Node\+Ptr {\bfseries get\+\_\+previous\+\_\+node} (const Local\+Node\+Ptr) const
+\item 
+\mbox{\Hypertarget{classLocalGraph_ab899c2564f5ec23df75a2e765ff3845d}\label{classLocalGraph_ab899c2564f5ec23df75a2e765ff3845d}} 
+std\+::vector$<$ Local\+Node\+Ptr $>$ {\bfseries nodes\+\_\+along\+\_\+string} (const std\+::string \&, bool end\+\_\+to\+\_\+end=false) const
+\item 
+\mbox{\Hypertarget{classLocalGraph_affbf0f0c43ca2054d3cafe54abd5fc3a}\label{classLocalGraph_affbf0f0c43ca2054d3cafe54abd5fc3a}} 
+std\+::vector$<$ Local\+Node\+Ptr $>$ {\bfseries top\+\_\+path} () const
+\item 
+\mbox{\Hypertarget{classLocalGraph_aa6f340e9ba3d1e1c5a5f4d8635e3706f}\label{classLocalGraph_aa6f340e9ba3d1e1c5a5f4d8635e3706f}} 
+std\+::vector$<$ Local\+Node\+Ptr $>$ {\bfseries bottom\+\_\+path} () const
+\item 
+\mbox{\Hypertarget{classLocalGraph_adf78bee0c7af3dcea640d747901866c2}\label{classLocalGraph_adf78bee0c7af3dcea640d747901866c2}} 
+bool {\bfseries operator==} (const \hyperlink{classLocalGraph}{Local\+Graph} \&y) const
+\item 
+\mbox{\Hypertarget{classLocalGraph_a9ef745bda5fce51c1879359cf000e7ca}\label{classLocalGraph_a9ef745bda5fce51c1879359cf000e7ca}} 
+bool {\bfseries operator!=} (const \hyperlink{classLocalGraph}{Local\+Graph} \&y) const
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classLocalGraph_afac7b416a2f2b850db3f1c2390129c88}\label{classLocalGraph_afac7b416a2f2b850db3f1c2390129c88}} 
+std\+::map$<$ uint32\+\_\+t, Local\+Node\+Ptr $>$ {\bfseries nodes}
+\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classLocalGraph_ada689217eeede954a86a7dde967da3a4}\label{classLocalGraph_ada689217eeede954a86a7dde967da3a4}} 
+std\+::ostream \& {\bfseries operator$<$$<$} (std\+::ostream \&out, \hyperlink{classLocalGraph}{Local\+Graph} const \&data)
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/localgraph.\+h\item 
+src/localgraph.\+cpp\end{DoxyCompactItemize}

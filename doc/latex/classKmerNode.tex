@@ -1,0 +1,77 @@
+\hypertarget{classKmerNode}{}\section{Kmer\+Node Class Reference}
+\label{classKmerNode}\index{Kmer\+Node@{Kmer\+Node}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classKmerNode_a38883c14c1c6bfffc357fb273934c009}\label{classKmerNode_a38883c14c1c6bfffc357fb273934c009}} 
+{\bfseries Kmer\+Node} (uint32\+\_\+t, const Path \&)
+\item 
+\mbox{\Hypertarget{classKmerNode_a5cc56ae17814f76240ed526cc17437c3}\label{classKmerNode_a5cc56ae17814f76240ed526cc17437c3}} 
+{\bfseries Kmer\+Node} (const \hyperlink{classKmerNode}{Kmer\+Node} \&)
+\item 
+\mbox{\Hypertarget{classKmerNode_a3212f4d9906976461986d0e920ac3830}\label{classKmerNode_a3212f4d9906976461986d0e920ac3830}} 
+\hyperlink{classKmerNode}{Kmer\+Node} \& {\bfseries operator=} (const \hyperlink{classKmerNode}{Kmer\+Node} \&)
+\item 
+\mbox{\Hypertarget{classKmerNode_ab7f918bd3410f5d2f2bb4d8c0530df0f}\label{classKmerNode_ab7f918bd3410f5d2f2bb4d8c0530df0f}} 
+bool {\bfseries operator==} (const \hyperlink{classKmerNode}{Kmer\+Node} \&y) const
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classKmerNode_a6803750cbbfc585789c2bf7ca5a3983c}\label{classKmerNode_a6803750cbbfc585789c2bf7ca5a3983c}} 
+uint32\+\_\+t {\bfseries id}
+\item 
+\mbox{\Hypertarget{classKmerNode_ae1eca64526c5d953d747c1cfec36d1d1}\label{classKmerNode_ae1eca64526c5d953d747c1cfec36d1d1}} 
+Path {\bfseries path}
+\item 
+\mbox{\Hypertarget{classKmerNode_a387fae3534ffb286a08e01d7a4c55860}\label{classKmerNode_a387fae3534ffb286a08e01d7a4c55860}} 
+std\+::vector$<$ Kmer\+Node\+Ptr $>$ {\bfseries out\+Nodes}
+\item 
+\mbox{\Hypertarget{classKmerNode_afedd1f37b1a6a505db0bf8c35cc5bb2d}\label{classKmerNode_afedd1f37b1a6a505db0bf8c35cc5bb2d}} 
+std\+::vector$<$ Kmer\+Node\+Ptr $>$ {\bfseries in\+Nodes}
+\item 
+\mbox{\Hypertarget{classKmerNode_a318e7a8b463dd4dc32a1ce0596fde4b2}\label{classKmerNode_a318e7a8b463dd4dc32a1ce0596fde4b2}} 
+std\+::vector$<$ uint32\+\_\+t $>$ {\bfseries covg}
+\item 
+\mbox{\Hypertarget{classKmerNode_a1249f454401dd6748834f3b621a8e58c}\label{classKmerNode_a1249f454401dd6748834f3b621a8e58c}} 
+uint64\+\_\+t {\bfseries khash}
+\item 
+\mbox{\Hypertarget{classKmerNode_a8b93c5f2fd1b524462bf83074e3e0915}\label{classKmerNode_a8b93c5f2fd1b524462bf83074e3e0915}} 
+uint8\+\_\+t {\bfseries num\+\_\+\+AT}
+\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classKmerNode_ad2a6e04a3dd7a2a1dd34b4bfaf5e1c08}\label{classKmerNode_ad2a6e04a3dd7a2a1dd34b4bfaf5e1c08}} 
+class {\bfseries Kmer\+Graph}
+\item 
+\mbox{\Hypertarget{classKmerNode_ab27a87abadfae7a133147398c76b360e}\label{classKmerNode_ab27a87abadfae7a133147398c76b360e}} 
+struct {\bfseries condition}
+\item 
+\mbox{\Hypertarget{classKmerNode_ae1131d7732276a4a67ac1ee3dece65b9}\label{classKmerNode_ae1131d7732276a4a67ac1ee3dece65b9}} 
+struct {\bfseries p\+Comp\+Kmer\+Node}
+\item 
+\mbox{\Hypertarget{classKmerNode_a99a72d107e31f7e3824a18ff7af2fbc5}\label{classKmerNode_a99a72d107e31f7e3824a18ff7af2fbc5}} 
+class {\bfseries Local\+P\+RG}
+\item 
+\mbox{\Hypertarget{classKmerNode_a76d982a83e79ef4ca90325cebf712a72}\label{classKmerNode_a76d982a83e79ef4ca90325cebf712a72}} 
+class {\bfseries pangenome\+::\+Graph}
+\item 
+\mbox{\Hypertarget{classKmerNode_a192924a654cf94123b9475a18c1f415c}\label{classKmerNode_a192924a654cf94123b9475a18c1f415c}} 
+class {\bfseries pangenome\+::\+Node}
+\item 
+\mbox{\Hypertarget{classKmerNode_afaa5f1e3847e51ca39dca22a7c962978}\label{classKmerNode_afaa5f1e3847e51ca39dca22a7c962978}} 
+std\+::ostream \& {\bfseries operator$<$$<$} (std\+::ostream \&out, const \hyperlink{classKmerNode}{Kmer\+Node} \&n)
+\item 
+\mbox{\Hypertarget{classKmerNode_a258eb984857712d7250ac6a109cb7f49}\label{classKmerNode_a258eb984857712d7250ac6a109cb7f49}} 
+int {\bfseries pandora\+\_\+check\+\_\+kmergraph} (int argc, char $\ast$argv\mbox{[}$\,$\mbox{]})
+\item 
+\mbox{\Hypertarget{classKmerNode_ae11754c9f5044475e2bc98ef99221d59}\label{classKmerNode_ae11754c9f5044475e2bc98ef99221d59}} 
+void {\bfseries estimate\+\_\+parameters} (pangenome\+::\+Graph $\ast$, const std\+::string \&, const uint32\+\_\+t, float \&, const uint32\+\_\+t)
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/kmernode.\+h\item 
+src/kmernode.\+cpp\end{DoxyCompactItemize}

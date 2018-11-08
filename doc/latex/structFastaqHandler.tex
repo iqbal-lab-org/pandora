@@ -1,0 +1,56 @@
+\hypertarget{structFastaqHandler}{}\section{Fastaq\+Handler Struct Reference}
+\label{structFastaqHandler}\index{Fastaq\+Handler@{Fastaq\+Handler}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structFastaqHandler_afd44d688f206d1497b2227b76e5a909a}\label{structFastaqHandler_afd44d688f206d1497b2227b76e5a909a}} 
+{\bfseries Fastaq\+Handler} (const std\+::string \&)
+\item 
+\mbox{\Hypertarget{structFastaqHandler_ab01e7ae2660aa05fb074eaf9a6157e07}\label{structFastaqHandler_ab01e7ae2660aa05fb074eaf9a6157e07}} 
+bool {\bfseries eof} ()
+\item 
+\mbox{\Hypertarget{structFastaqHandler_a840c42aaf62d3a1c98c8bec4b06304aa}\label{structFastaqHandler_a840c42aaf62d3a1c98c8bec4b06304aa}} 
+void {\bfseries get\+\_\+next} ()
+\item 
+\mbox{\Hypertarget{structFastaqHandler_a8e542a130cab24e699f1c3ee384ca4f7}\label{structFastaqHandler_a8e542a130cab24e699f1c3ee384ca4f7}} 
+void {\bfseries skip\+\_\+next} ()
+\item 
+\mbox{\Hypertarget{structFastaqHandler_a7641712493aa5f0165d10eb85cdc1502}\label{structFastaqHandler_a7641712493aa5f0165d10eb85cdc1502}} 
+void {\bfseries get\+\_\+id} (const uint32\+\_\+t \&)
+\item 
+\mbox{\Hypertarget{structFastaqHandler_a30de9d99aa75f02f93f6abbe648e8f40}\label{structFastaqHandler_a30de9d99aa75f02f93f6abbe648e8f40}} 
+void {\bfseries close} ()
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structFastaqHandler_a8d8eadde1c5671a01dd773394fcb599c}\label{structFastaqHandler_a8d8eadde1c5671a01dd773394fcb599c}} 
+bool {\bfseries gzipped}
+\item 
+\mbox{\Hypertarget{structFastaqHandler_ac7e538c0a6ee0c0a7f6891befff7f4f5}\label{structFastaqHandler_ac7e538c0a6ee0c0a7f6891befff7f4f5}} 
+std\+::ifstream {\bfseries fastaq\+\_\+file}
+\item 
+\mbox{\Hypertarget{structFastaqHandler_ad2bcbd160e5eb33fc715ca8115fdae49}\label{structFastaqHandler_ad2bcbd160e5eb33fc715ca8115fdae49}} 
+boost\+::iostreams\+::filtering\+\_\+istreambuf {\bfseries inbuf}
+\item 
+\mbox{\Hypertarget{structFastaqHandler_aec0d9c02bdcb2c8e8ec53a0d619d5bfb}\label{structFastaqHandler_aec0d9c02bdcb2c8e8ec53a0d619d5bfb}} 
+std\+::istream {\bfseries instream}
+\item 
+\mbox{\Hypertarget{structFastaqHandler_a92aebfc73c1d2718b043dc8fbaa25911}\label{structFastaqHandler_a92aebfc73c1d2718b043dc8fbaa25911}} 
+std\+::string {\bfseries line}
+\item 
+\mbox{\Hypertarget{structFastaqHandler_aa5285b4e6cd34c0b882919d1d83dab92}\label{structFastaqHandler_aa5285b4e6cd34c0b882919d1d83dab92}} 
+std\+::string {\bfseries name}
+\item 
+\mbox{\Hypertarget{structFastaqHandler_a1430346cf566b06cd8449931cb8ecdb9}\label{structFastaqHandler_a1430346cf566b06cd8449931cb8ecdb9}} 
+std\+::string {\bfseries read}
+\item 
+\mbox{\Hypertarget{structFastaqHandler_a06c2eaf692a00c4a6b8b5e96953d5865}\label{structFastaqHandler_a06c2eaf692a00c4a6b8b5e96953d5865}} 
+uint32\+\_\+t {\bfseries num\+\_\+reads\+\_\+parsed}
+\end{DoxyCompactItemize}
+
+
+The documentation for this struct was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/fastaq\+\_\+handler.\+h\item 
+src/fastaq\+\_\+handler.\+cpp\end{DoxyCompactItemize}

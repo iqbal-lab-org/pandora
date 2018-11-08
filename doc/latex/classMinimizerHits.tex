@@ -1,0 +1,38 @@
+\hypertarget{classMinimizerHits}{}\section{Minimizer\+Hits Class Reference}
+\label{classMinimizerHits}\index{Minimizer\+Hits@{Minimizer\+Hits}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classMinimizerHits_a7eb7b8fc345f22900966dd3063f672f0}\label{classMinimizerHits_a7eb7b8fc345f22900966dd3063f672f0}} 
+{\bfseries Minimizer\+Hits} (const uint32\+\_\+t \&num\+\_\+hits=30000)
+\item 
+\mbox{\Hypertarget{classMinimizerHits_ac37a6dea43f610d2c2f938979128b7ad}\label{classMinimizerHits_ac37a6dea43f610d2c2f938979128b7ad}} 
+void {\bfseries clear} ()
+\item 
+\mbox{\Hypertarget{classMinimizerHits_a086b03a37004125711335a4f1f4bb250}\label{classMinimizerHits_a086b03a37004125711335a4f1f4bb250}} 
+void {\bfseries add\+\_\+hit} (const uint32\+\_\+t i, const \hyperlink{structMinimizer}{Minimizer} \&m, const \hyperlink{structMiniRecord}{Mini\+Record} $\ast$r)
+\item 
+\mbox{\Hypertarget{classMinimizerHits_a258cf9fca5922ced1d278e88650502db}\label{classMinimizerHits_a258cf9fca5922ced1d278e88650502db}} 
+void {\bfseries sort} ()
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classMinimizerHits_a496389f6989e628b660448644bc1728a}\label{classMinimizerHits_a496389f6989e628b660448644bc1728a}} 
+std\+::unordered\+\_\+set$<$ Minimizer\+Hit\+Ptr $>$ {\bfseries uhits}
+\item 
+\mbox{\Hypertarget{classMinimizerHits_aa3724c783e03e19c37851e458f36f205}\label{classMinimizerHits_aa3724c783e03e19c37851e458f36f205}} 
+std\+::set$<$ Minimizer\+Hit\+Ptr, \hyperlink{structpComp}{p\+Comp} $>$ {\bfseries hits}
+\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classMinimizerHits_a909db7b6fd1771335ed163db5d65d583}\label{classMinimizerHits_a909db7b6fd1771335ed163db5d65d583}} 
+std\+::ostream \& {\bfseries operator$<$$<$} (std\+::ostream \&out, const \hyperlink{classMinimizerHits}{Minimizer\+Hits} \&m)
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/minihits.\+h\item 
+src/minihits.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,92 @@
+\hypertarget{structVCFRecord}{}\section{V\+C\+F\+Record Struct Reference}
+\label{structVCFRecord}\index{V\+C\+F\+Record@{V\+C\+F\+Record}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structVCFRecord_ae5fb81c0b593d1e21b046e336b5ce51a}\label{structVCFRecord_ae5fb81c0b593d1e21b046e336b5ce51a}} 
+{\bfseries V\+C\+F\+Record} (std\+::string, uint32\+\_\+t, std\+::string, std\+::string, std\+::string i=\char`\"{}.\char`\"{}, std\+::string g=\char`\"{}\char`\"{})
+\item 
+\mbox{\Hypertarget{structVCFRecord_af3f3230f9ecc1c99c5e543fb72e6f787}\label{structVCFRecord_af3f3230f9ecc1c99c5e543fb72e6f787}} 
+{\bfseries V\+C\+F\+Record} (const \hyperlink{structVCFRecord}{V\+C\+F\+Record} \&)
+\item 
+\mbox{\Hypertarget{structVCFRecord_a84cd091176e34ef977ed1b54f2710c83}\label{structVCFRecord_a84cd091176e34ef977ed1b54f2710c83}} 
+\hyperlink{structVCFRecord}{V\+C\+F\+Record} \& {\bfseries operator=} (const \hyperlink{structVCFRecord}{V\+C\+F\+Record} \&)
+\item 
+\mbox{\Hypertarget{structVCFRecord_a30453a7d38b7b95de34ae5d0c829ceca}\label{structVCFRecord_a30453a7d38b7b95de34ae5d0c829ceca}} 
+void {\bfseries clear} ()
+\item 
+\mbox{\Hypertarget{structVCFRecord_a320f11b04c13945685257623b1998bec}\label{structVCFRecord_a320f11b04c13945685257623b1998bec}} 
+void {\bfseries clear\+\_\+sample} (uint32\+\_\+t)
+\item 
+\mbox{\Hypertarget{structVCFRecord_af4975a1462b648fac35ec293f74f4709}\label{structVCFRecord_af4975a1462b648fac35ec293f74f4709}} 
+void {\bfseries add\+\_\+formats} (const std\+::vector$<$ std\+::string $>$ \&)
+\item 
+\mbox{\Hypertarget{structVCFRecord_aa8d663da339a028347efa387fcd0180c}\label{structVCFRecord_aa8d663da339a028347efa387fcd0180c}} 
+void {\bfseries likelihood} (const uint32\+\_\+t \&, const float \&)
+\item 
+\mbox{\Hypertarget{structVCFRecord_aae4066c90ccaa1512826159efebc1524}\label{structVCFRecord_aae4066c90ccaa1512826159efebc1524}} 
+void {\bfseries confidence} ()
+\item 
+\mbox{\Hypertarget{structVCFRecord_a87f07cb0e91691bc4b97d962a2938f81}\label{structVCFRecord_a87f07cb0e91691bc4b97d962a2938f81}} 
+void {\bfseries genotype} (const uint8\+\_\+t)
+\item 
+\mbox{\Hypertarget{structVCFRecord_a2118c8363d1879b7fba3ebe999664bb6}\label{structVCFRecord_a2118c8363d1879b7fba3ebe999664bb6}} 
+bool {\bfseries operator==} (const \hyperlink{structVCFRecord}{V\+C\+F\+Record} \&y) const
+\item 
+\mbox{\Hypertarget{structVCFRecord_acd81c197de30dce551e663fd69d79263}\label{structVCFRecord_acd81c197de30dce551e663fd69d79263}} 
+bool {\bfseries operator!=} (const \hyperlink{structVCFRecord}{V\+C\+F\+Record} \&y) const
+\item 
+\mbox{\Hypertarget{structVCFRecord_a8368290aa1815ef6ea71881691a17440}\label{structVCFRecord_a8368290aa1815ef6ea71881691a17440}} 
+bool {\bfseries operator$<$} (const \hyperlink{structVCFRecord}{V\+C\+F\+Record} \&y) const
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structVCFRecord_a87e885f47dc0da6dc4fdb4075c9d466e}\label{structVCFRecord_a87e885f47dc0da6dc4fdb4075c9d466e}} 
+std\+::string {\bfseries chrom}
+\item 
+\mbox{\Hypertarget{structVCFRecord_a41ac8eac6775ce7afe405f046912a5b0}\label{structVCFRecord_a41ac8eac6775ce7afe405f046912a5b0}} 
+uint32\+\_\+t {\bfseries pos}
+\item 
+\mbox{\Hypertarget{structVCFRecord_a56e46ffd2d833a84b599878b01812289}\label{structVCFRecord_a56e46ffd2d833a84b599878b01812289}} 
+std\+::string {\bfseries id}
+\item 
+\mbox{\Hypertarget{structVCFRecord_ab4136d5f6754eb70022230fba89eb4f2}\label{structVCFRecord_ab4136d5f6754eb70022230fba89eb4f2}} 
+std\+::string {\bfseries ref}
+\item 
+\mbox{\Hypertarget{structVCFRecord_a3d608f0c7886d1dd1610a8e9b09e22c6}\label{structVCFRecord_a3d608f0c7886d1dd1610a8e9b09e22c6}} 
+std\+::vector$<$ std\+::string $>$ {\bfseries alt}
+\item 
+\mbox{\Hypertarget{structVCFRecord_a687c908f41401cc70a1021fbc4544ebd}\label{structVCFRecord_a687c908f41401cc70a1021fbc4544ebd}} 
+std\+::string {\bfseries qual}
+\item 
+\mbox{\Hypertarget{structVCFRecord_af85743e9a6e36f61a3ca3e6b97aca54a}\label{structVCFRecord_af85743e9a6e36f61a3ca3e6b97aca54a}} 
+std\+::string {\bfseries filter}
+\item 
+\mbox{\Hypertarget{structVCFRecord_a48a47329fc5a33844260cb0b10785d1c}\label{structVCFRecord_a48a47329fc5a33844260cb0b10785d1c}} 
+std\+::string {\bfseries info}
+\item 
+\mbox{\Hypertarget{structVCFRecord_a751a843dc16b746713fe03539ec901bb}\label{structVCFRecord_a751a843dc16b746713fe03539ec901bb}} 
+std\+::vector$<$ std\+::string $>$ {\bfseries format}
+\item 
+\mbox{\Hypertarget{structVCFRecord_a4dc33f496f4bfd9882ae21ce9ad5b428}\label{structVCFRecord_a4dc33f496f4bfd9882ae21ce9ad5b428}} 
+std\+::vector$<$ std\+::unordered\+\_\+map$<$ std\+::string, std\+::vector$<$ uint8\+\_\+t $>$ $>$ $>$ {\bfseries samples}
+\item 
+\mbox{\Hypertarget{structVCFRecord_a382c0585ecc43021ca65c023076c8070}\label{structVCFRecord_a382c0585ecc43021ca65c023076c8070}} 
+std\+::vector$<$ std\+::unordered\+\_\+map$<$ std\+::string, std\+::vector$<$ float $>$ $>$ $>$ {\bfseries regt\+\_\+samples}
+\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structVCFRecord_adebe668cf2281b4b9c10e50032adedba}\label{structVCFRecord_adebe668cf2281b4b9c10e50032adedba}} 
+std\+::ostream \& {\bfseries operator$<$$<$} (std\+::ostream \&out, const \hyperlink{structVCFRecord}{V\+C\+F\+Record} \&m)
+\item 
+\mbox{\Hypertarget{structVCFRecord_a446bcf6252d8ff2d3e2e0823114ff821}\label{structVCFRecord_a446bcf6252d8ff2d3e2e0823114ff821}} 
+std\+::istream \& {\bfseries operator$>$$>$} (std\+::istream \&in, \hyperlink{structVCFRecord}{V\+C\+F\+Record} \&m)
+\end{DoxyCompactItemize}
+
+
+The documentation for this struct was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/vcfrecord.\+h\item 
+src/vcfrecord.\+cpp\end{DoxyCompactItemize}
