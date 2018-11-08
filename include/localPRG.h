@@ -52,6 +52,8 @@ public:
 
     std::vector<prg::Path> shift(prg::Path) const;
 
+    std::vector<prg::Path> get_extended_paths(const prg::Path &) const;
+
     void minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, const uint32_t k);
 
     // functions used once hits have been collected against the PRG

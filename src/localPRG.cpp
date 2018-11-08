@@ -247,54 +247,30 @@ std::vector<uint32_t> LocalPRG::build_graph(const Interval &i,
     return end_ids;
 }
 
-std::vector<Path> LocalPRG::shift(Path p) const {
+std::vector<Path> LocalPRG::shift(Path path) const {
     // returns all paths of the same length which have been shifted by one position along prg graph
-    Path q;
-    q = p.subpath(1, p.length() - 1);
-    std::vector<LocalNodePtr> n;
-    std::vector<Path> return_paths;
-    std::deque<Path> short_paths = {q};
-    std::vector<Path> k_paths;
-    bool non_terminus;
-    //uint exp_num_return_seqs = 0;
-
-    // first find extensions of the path
-    while (!short_paths.empty()) {
-        p = short_paths.front();
-        n = nodes_along_path(p);
-        short_paths.pop_front();
-
-        // if we can extend within the same localnode, do
-        if (p.get_end() < n.back()->pos.get_end()) {
-            p.path.back().length += 1;
-            k_paths.push_back(p);
-        } else if (p.get_end() != (--(prg.nodes.end()))->second->pos.get_end()) {
-            for (uint32_t i = 0; i != n.back()->outNodes.size(); ++i) {
-                //exp_num_return_seqs += 1;
-                short_paths.push_back(p);
-                short_paths.back().add_end_interval(
-                        Interval(n.back()->outNodes[i]->pos.start, n.back()->outNodes[i]->pos.start));
-            }
-        }
-    }
+    Path truncated_path = path.subpath(1, path.length() - 1);
+    auto extended_paths = get_extended_paths(truncated_path);
 
     // now check if by adding null nodes we reach the end of the prg
-    for (uint32_t i = 0; i != k_paths.size(); ++i) {
-        short_paths = {k_paths[i]};
-        non_terminus = false; // assume there all extensions are terminal i.e. reach end or prg
+    std::vector<Path> shifted_paths = {};
+    for (const auto &p: extended_paths) {
+        std::deque<Path> short_paths = {p};
+        bool non_terminus = false; // assume there all extensions are terminal i.e. reach end or prg
 
         while (!short_paths.empty()) {
-            p = short_paths.front();
-            n = nodes_along_path(p);
+            auto short_path = short_paths.front();
+            auto nodes = nodes_along_path(short_path);
             short_paths.pop_front();
 
-            if (n.back()->pos.get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
-                return_paths.push_back(p);
-            } else if (n.back()->pos.get_end() == p.get_end()) {
-                for (uint32_t j = 0; j != n.back()->outNodes.size(); ++j) {
-                    if (n.back()->outNodes[j]->pos.length == 0) {
-                        short_paths.push_back(p);
-                        short_paths.back().add_end_interval(n.back()->outNodes[j]->pos);
+            if (nodes.back()->pos.get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
+                shifted_paths.push_back(short_path);
+            } else if (nodes.back()->pos.get_end() == short_path.get_end()) {
+                for (const auto &outnode_ptr: nodes.back()->outNodes) {
+                    const auto &outnode = *outnode_ptr;
+                    if (outnode.pos.length == 0) {
+                        short_paths.push_back(short_path);
+                        short_paths.back().add_end_interval(outnode.pos);
                     } else {
                         non_terminus = true;
                     }
@@ -304,11 +280,38 @@ std::vector<Path> LocalPRG::shift(Path p) const {
             }
         }
         if (non_terminus) {
-            return_paths.push_back(k_paths[i]);
+            shifted_paths.push_back(p);
         }
     }
 
-    return return_paths;
+    return shifted_paths;
+}
+
+std::vector<Path> LocalPRG::get_extended_paths(const Path &path) const {
+    std::deque<Path> short_paths = {path};
+    std::vector<Path> k_paths = {};
+
+    // first find extensions of the path
+    while (!short_paths.empty()) {
+        auto short_path = short_paths.front();
+        auto path_nodes = nodes_along_path(short_path);
+        short_paths.pop_front();
+
+        // if we can extend within the same localnode, do
+        if (short_path.get_end() < path_nodes.back()->pos.get_end()) {
+            short_path.path.back().length += 1;
+            k_paths.push_back(short_path);
+        } else if (short_path.get_end() != (--(prg.nodes.end()))->second->pos.get_end()) {
+            for (const auto &out_node_ptr: path_nodes.back()->outNodes) {
+                auto out_node = *out_node_ptr;
+                short_paths.push_back(short_path);
+
+                auto extension_interval = Interval(out_node.pos.start, out_node.pos.start);
+                short_paths.back().add_end_interval(extension_interval);
+            }
+        }
+    }
+    return k_paths;
 }
 
 void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, const uint32_t k) {
