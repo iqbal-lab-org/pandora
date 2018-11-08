@@ -1,5 +1,6 @@
 .idea
 cmake-build-debug/
+doc/html
 
 # Ignore the build and lib dirs
 build
