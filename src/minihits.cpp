@@ -10,8 +10,6 @@
 #include "utils.h" // for pointer_values_equal
 
 
-using namespace std;
-
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 MinimizerHits::MinimizerHits(const uint32_t &num_hits) {
@@ -37,7 +35,7 @@ MinimizerHits::~MinimizerHits() {
 }
 
 void MinimizerHits::add_hit(const uint32_t i, const Minimizer &m, const MiniRecord *r) {
-    MinimizerHitPtr mh(make_shared<MinimizerHit>(i, m, r));
+    MinimizerHitPtr mh(std::make_shared<MinimizerHit>(i, m, r));
     uhits.insert(mh);
 }
 
@@ -48,9 +46,9 @@ void MinimizerHits::sort() {
                assert_msg("Expected uhits.size()=" << uhits.size() << " to equal hits.size()=" << hits.size()));
         uhits.clear();
     } else {
-        cerr << "Could not create a set big enough for " << uhits.size() << " elements. The max size is "
-             << hits.max_size() << endl;
-        exit(EXIT_FAILURE);
+        std::cerr << "Could not create a set big enough for " << uhits.size() << " elements. The max size is "
+                  << hits.max_size() << std::endl;
+        std::exit(EXIT_FAILURE);
     }
 }
 
@@ -94,7 +92,7 @@ bool pComp_path::operator()(const MinimizerHitPtr &lhs, const MinimizerHitPtr &r
     return false;
 }
 
-bool clusterComp::operator()(set<MinimizerHitPtr, pComp> lhs, set<MinimizerHitPtr, pComp> rhs) {
+bool clusterComp::operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<MinimizerHitPtr, pComp> rhs) {
     if ((*lhs.begin())->read_id < (*rhs.begin())->read_id) { return true; }
     if ((*rhs.begin())->read_id < (*lhs.begin())->read_id) { return false; }
     if ((*lhs.begin())->read_start_position < (*rhs.begin())->read_start_position) { return true; }
@@ -110,7 +108,7 @@ bool clusterComp::operator()(set<MinimizerHitPtr, pComp> lhs, set<MinimizerHitPt
     return false;
 }
 
-bool clusterComp_size::operator()(set<MinimizerHitPtr, pComp> lhs, set<MinimizerHitPtr, pComp> rhs) {
+bool clusterComp_size::operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<MinimizerHitPtr, pComp> rhs) {
     if ((*lhs.begin())->read_id < (*rhs.begin())->read_id) { return true; }
     if ((*rhs.begin())->read_id < (*lhs.begin())->read_id) { return false; }
     if (lhs.size() > rhs.size()) { return true; }

@@ -5,7 +5,6 @@
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-using namespace std;
 
 Interval::Interval(uint32_t s, uint32_t e) : start(s) {
     assert(e >= start); // not a real interval ;
@@ -18,12 +17,12 @@ uint32_t Interval::get_end() const {
     return start + (uint32_t) length;
 }
 
-ostream &operator<<(ostream &out, Interval const &i) {
+std::ostream &operator<<(std::ostream &out, Interval const &i) {
     out << "[" << i.start << ", " << i.get_end() << ")";
     return out;
 }
 
-istream &operator>>(istream &in, Interval &i) {
+std::istream &operator>>(std::istream &in, Interval &i) {
     uint32_t end;
     in.ignore(1, '[');
     in >> i.start;

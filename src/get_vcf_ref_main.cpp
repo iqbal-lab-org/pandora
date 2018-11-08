@@ -11,8 +11,6 @@
 #include "fastaq.h"
 
 
-using namespace std;
-
 int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
 {
     if (argc != 3 and argc != 2) {
@@ -29,13 +27,13 @@ int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
 
     if (argc == 2) {
         for (const auto &prg_ptr: prgs) {
-            vector<LocalNodePtr> npath;
+            std::vector<LocalNodePtr> npath;
             npath = prg_ptr->prg.top_path();
             fa.add_entry(prg_ptr->name, prg_ptr->string_along_path(npath));
         }
     } else {
-        vector<LocalNodePtr> npath;
-        string read_string;
+        std::vector<LocalNodePtr> npath;
+        std::string read_string;
         FastaqHandler readfile(argv[2]);
         bool found;
 
@@ -45,7 +43,7 @@ int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
             while (not readfile.eof()) {
                 npath = prg_ptr->prg.nodes_along_string(readfile.read);
                 if (not npath.empty()) {
-                    BOOST_LOG_TRIVIAL(debug) << ">" << prg_ptr->name << endl << readfile.read;
+                    BOOST_LOG_TRIVIAL(debug) << ">" << prg_ptr->name << std::endl << readfile.read;
                     found = true;
                     break;
                 }
@@ -60,7 +58,7 @@ int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
         }
     }
 
-    string prg_file(argv[1]);
+    std::string prg_file(argv[1]);
     fa.save(prg_file + ".vcf_ref.fa.gz");
 
     return 0;

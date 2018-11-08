@@ -13,7 +13,6 @@
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-using namespace std;
 
 Fastaq::Fastaq(bool gz, bool fq) : gzipped(gz), fastq(fq) {}
 
@@ -47,8 +46,7 @@ char Fastaq::alt_covg_to_score(const uint_least16_t &covg) {
 
     if (covg > max) {  // coverage is outside the range of printable ASCIIs
         ascii_val = 126;
-    }
-    else {
+    } else {
         ascii_val = covg + 33;
     }
     return static_cast<char>(ascii_val);
@@ -59,7 +57,7 @@ void Fastaq::add_entry(const std::string &name,
                        const std::string &sequence,
                        const std::vector<uint32_t> &covgs,
                        const uint_least16_t global_covg,
-                       const string header) {
+                       const std::string header) {
 
     assert(name != "");
     assert(covgs.size() == sequence.length());
@@ -82,7 +80,7 @@ void Fastaq::add_entry(const std::string &name,
 
 void Fastaq::add_entry(const std::string &name,
                        const std::string &sequence,
-                       const string header) {
+                       const std::string header) {
 
     assert(name != "");
 
@@ -105,7 +103,7 @@ void Fastaq::save(const std::string &filepath) {
     } else if (filepath.length() > 2 and filepath.substr(filepath.length() - 2) != "gz" and gzipped) {
         gzipped = false;
     }
-    ofstream file(filepath, ios_base::out | ios_base::binary | ios_base::trunc);
+    std::ofstream file(filepath, std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
     boost::iostreams::filtering_streambuf<boost::iostreams::output> out;
     if (gzipped) {
         out.push(boost::iostreams::gzip_compressor());
@@ -159,7 +157,7 @@ std::ostream &operator<<(std::ostream &out, Fastaq const &data) {
 }
 
 std::istream &operator>>(std::istream &in, Fastaq &data) {
-    string name, seq, score, header;
+    std::string name, seq, score, header;
     /*in >> name;
     in >> seq;
     data.names.push_back(name);

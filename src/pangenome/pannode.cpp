@@ -15,7 +15,7 @@
 
 using namespace pangenome;
 
-Node::Node(const uint32_t i, const uint32_t j, const string n) : prg_id(i), node_id(j), name(n), covg(1) {}
+Node::Node(const uint32_t i, const uint32_t j, const std::string n) : prg_id(i), node_id(j), name(n), covg(1) {}
 
 /*// copy constructor
 Node::Node(const Node& other)
@@ -57,15 +57,15 @@ void Node::remove_read(ReadPtr r) {
     }
 }
 
-string Node::get_name() const {
+std::string Node::get_name() const {
     if (prg_id != node_id) {
-        return name + "." + to_string(node_id);
+        return name + "." + std::to_string(node_id);
     } else {
         return name;
     }
 }
 
-void Node::add_path(const vector<KmerNodePtr> &kmp) {
+void Node::add_path(const std::vector<KmerNodePtr> &kmp) {
     for (uint32_t i = 0; i != kmp.size(); ++i) {
         assert(kmp[i]->id < kmer_prg.nodes.size() and kmer_prg.nodes[kmp[i]->id] != nullptr);
         kmer_prg.nodes[kmp[i]->id]->covg[0] += 1;
@@ -73,9 +73,9 @@ void Node::add_path(const vector<KmerNodePtr> &kmp) {
     }
 }
 
-void Node::get_read_overlap_coordinates(vector<vector<uint32_t>> &read_overlap_coordinates) {
+void Node::get_read_overlap_coordinates(std::vector<std::vector<uint32_t>> &read_overlap_coordinates) {
     read_overlap_coordinates.reserve(reads.size());
-    vector<uint32_t> coordinate;
+    std::vector<uint32_t> coordinate;
 
     auto read_count = 0;
     for (const auto &read_ptr : reads) {
@@ -87,14 +87,14 @@ void Node::get_read_overlap_coordinates(vector<vector<uint32_t>> &read_overlap_c
         uint32_t start = (*hit_ptr_iter)->read_start_position;
         uint32_t end = 0;
         for (const auto &hit_ptr : read_ptr->hits.at(prg_id)) {
-            start = min(start, hit_ptr->read_start_position);
-            end = max(end, hit_ptr->read_start_position + hit_ptr->prg_path.length());
+            start = std::min(start, hit_ptr->read_start_position);
+            end = std::max(end, hit_ptr->read_start_position + hit_ptr->prg_path.length());
         }
 
         assert(end > start or assert_msg(
                 "Error finding the read overlap coordinates for node " << name << " and read " << read_ptr->id
                                                                        << " (the " << read_count << "th on this node)"
-                                                                       << endl << "Found end " << end
+                                                                       << std::endl << "Found end " << end
                                                                        << " after found start " << start));
         coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->strand};
         read_overlap_coordinates.push_back(coordinate);
@@ -102,7 +102,7 @@ void Node::get_read_overlap_coordinates(vector<vector<uint32_t>> &read_overlap_c
 
     if (not read_overlap_coordinates.empty()) {
         sort(read_overlap_coordinates.begin(), read_overlap_coordinates.end(),
-             [](const vector<uint32_t> &a, const vector<uint32_t> &b) {
+             [](const std::vector<uint32_t> &a, const std::vector<uint32_t> &b) {
                  for (uint32_t i = 0; i < a.size(); ++i) {
                      if (a[i] != b[i]) { return a[i] < b[i]; }
                  }
@@ -112,11 +112,11 @@ void Node::get_read_overlap_coordinates(vector<vector<uint32_t>> &read_overlap_c
 
 }
 
-void Node::output_samples(const std::shared_ptr<LocalPRG> &prg, const string &outdir, const uint32_t w,
-                          const string &vcf_ref) {
-    vector<KmerNodePtr> kmp;
+void Node::output_samples(const std::shared_ptr<LocalPRG> &prg, const std::string &outdir, const uint32_t w,
+                          const std::string &vcf_ref) {
+    std::vector<KmerNodePtr> kmp;
     kmp.reserve(800);
-    vector<LocalNodePtr> refpath, sample_lmp;
+    std::vector<LocalNodePtr> refpath, sample_lmp;
     refpath.reserve(100);
     sample_lmp.reserve(100);
 
@@ -169,7 +169,7 @@ void Node::output_samples(const std::shared_ptr<LocalPRG> &prg, const string &ou
                 //prg->add_sample_covgs_to_vcf(vcf, kmer_prg, lmp, p, s->name);
 
             } else {
-                prg->add_sample_gt_to_vcf(vcf, refpath, sample_lmp, s->name + to_string(count));
+                prg->add_sample_gt_to_vcf(vcf, refpath, sample_lmp, s->name + std::to_string(count));
                 //prg->add_sample_covgs_to_vcf(vcf, kmer_prg, lmp, p, s->name + to_string(count));
             }
             sample_lmp.clear();

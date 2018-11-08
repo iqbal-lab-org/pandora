@@ -1,0 +1,83 @@
+\hypertarget{classVCF}{}\section{V\+CF Class Reference}
+\label{classVCF}\index{V\+CF@{V\+CF}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classVCF_a84fc6c1a477d10f747d0facb0096d194}\label{classVCF_a84fc6c1a477d10f747d0facb0096d194}} 
+void {\bfseries add\+\_\+record} (std\+::string c, uint32\+\_\+t p, std\+::string r, std\+::string a, std\+::string i=\char`\"{}.\char`\"{}, std\+::string g=\char`\"{}\char`\"{})
+\item 
+\mbox{\Hypertarget{classVCF_a57edaedcef6bfffb4ee1ae9f82b2f282}\label{classVCF_a57edaedcef6bfffb4ee1ae9f82b2f282}} 
+\hyperlink{structVCFRecord}{V\+C\+F\+Record} \& {\bfseries add\+\_\+record} (\hyperlink{structVCFRecord}{V\+C\+F\+Record} \&)
+\item 
+\mbox{\Hypertarget{classVCF_a150ea8b5fd1312540d2845746ed21159}\label{classVCF_a150ea8b5fd1312540d2845746ed21159}} 
+void {\bfseries add\+\_\+formats} (const std\+::vector$<$ std\+::string $>$ \&)
+\item 
+\mbox{\Hypertarget{classVCF_a0890d71a1603151c9092db244864bf5f}\label{classVCF_a0890d71a1603151c9092db244864bf5f}} 
+ptrdiff\+\_\+t {\bfseries get\+\_\+sample\+\_\+index} (const std\+::string \&)
+\item 
+\mbox{\Hypertarget{classVCF_aaabe5597d48f4cca5da9f259d252eb5a}\label{classVCF_aaabe5597d48f4cca5da9f259d252eb5a}} 
+void {\bfseries add\+\_\+sample\+\_\+gt} (const std\+::string \&name, const std\+::string \&c, const uint32\+\_\+t p, const std\+::string \&r, const std\+::string \&a)
+\item 
+\mbox{\Hypertarget{classVCF_ab17bda29f53e402d65e07e7f30cbc7d6}\label{classVCF_ab17bda29f53e402d65e07e7f30cbc7d6}} 
+void {\bfseries add\+\_\+sample\+\_\+ref\+\_\+alleles} (const std\+::string \&, const std\+::string \&, const uint32\+\_\+t \&, const uint32\+\_\+t \&)
+\item 
+\mbox{\Hypertarget{classVCF_acc69ff06098d92e28bfc7433aca9370d}\label{classVCF_acc69ff06098d92e28bfc7433aca9370d}} 
+void {\bfseries clear} ()
+\item 
+\mbox{\Hypertarget{classVCF_a508cf00e71166cad0e00350082f32982}\label{classVCF_a508cf00e71166cad0e00350082f32982}} 
+void {\bfseries append\+\_\+vcf} (const \hyperlink{classVCF}{V\+CF} \&)
+\item 
+\mbox{\Hypertarget{classVCF_a1d357c818e4a6de958350985ca85f19a}\label{classVCF_a1d357c818e4a6de958350985ca85f19a}} 
+void {\bfseries sort\+\_\+records} ()
+\item 
+\mbox{\Hypertarget{classVCF_a533bba4aca3713e4459b2175071a5539}\label{classVCF_a533bba4aca3713e4459b2175071a5539}} 
+bool {\bfseries pos\+\_\+in\+\_\+range} (const uint32\+\_\+t, const uint32\+\_\+t, const std\+::string \&) const
+\item 
+\mbox{\Hypertarget{classVCF_a225a043c79990aba1f13a299eb346445}\label{classVCF_a225a043c79990aba1f13a299eb346445}} 
+void {\bfseries genotype} (const uint32\+\_\+t \&, const float \&, const uint8\+\_\+t, bool snps\+\_\+only=true)
+\item 
+\mbox{\Hypertarget{classVCF_a908fce1dfb9d0eef4f956430dda8b232}\label{classVCF_a908fce1dfb9d0eef4f956430dda8b232}} 
+void {\bfseries clean} ()
+\item 
+\mbox{\Hypertarget{classVCF_ab83cca445adf503d609d0a30d6456358}\label{classVCF_ab83cca445adf503d609d0a30d6456358}} 
+void {\bfseries merge\+\_\+multi\+\_\+allelic} (uint32\+\_\+t max\+\_\+allele\+\_\+length=10000)
+\item 
+\mbox{\Hypertarget{classVCF_ac0a8bd5b103f7837616b1c7a8269950c}\label{classVCF_ac0a8bd5b103f7837616b1c7a8269950c}} 
+void {\bfseries make\+\_\+gt\+\_\+compatible} ()
+\item 
+\mbox{\Hypertarget{classVCF_a14a2d3805017bceee9eff41e39bf98a5}\label{classVCF_a14a2d3805017bceee9eff41e39bf98a5}} 
+std\+::string {\bfseries header} ()
+\item 
+\mbox{\Hypertarget{classVCF_a2ccca210cdfd1f8a667abaa569161cb5}\label{classVCF_a2ccca210cdfd1f8a667abaa569161cb5}} 
+void {\bfseries save} (const std\+::string \&, bool simple=false, bool complexgraph=false, bool toomanyalts=false, bool snp=false, bool indel=false, bool phsnps=false, bool complexvar=false)
+\item 
+\mbox{\Hypertarget{classVCF_a9fd1ea9c320328019fababacc7ccc2ca}\label{classVCF_a9fd1ea9c320328019fababacc7ccc2ca}} 
+void {\bfseries load} (const std\+::string \&)
+\item 
+\mbox{\Hypertarget{classVCF_a32b580e2e2e22abddce35d916a865eb6}\label{classVCF_a32b580e2e2e22abddce35d916a865eb6}} 
+bool {\bfseries operator==} (const \hyperlink{classVCF}{V\+CF} \&y) const
+\item 
+\mbox{\Hypertarget{classVCF_a7abcb6100aeb61c9a305b11df90880e7}\label{classVCF_a7abcb6100aeb61c9a305b11df90880e7}} 
+bool {\bfseries operator!=} (const \hyperlink{classVCF}{V\+CF} \&y) const
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classVCF_ab8f80911b0f85d25cf5db5c9ae3a9fde}\label{classVCF_ab8f80911b0f85d25cf5db5c9ae3a9fde}} 
+std\+::vector$<$ \hyperlink{structVCFRecord}{V\+C\+F\+Record} $>$ {\bfseries records}
+\item 
+\mbox{\Hypertarget{classVCF_a919f0d1cd538ec4a52fc4c45a7db0148}\label{classVCF_a919f0d1cd538ec4a52fc4c45a7db0148}} 
+std\+::vector$<$ std\+::string $>$ {\bfseries samples}
+\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classVCF_a5aee2ddd11bc238dc603ec57bebf9cbb}\label{classVCF_a5aee2ddd11bc238dc603ec57bebf9cbb}} 
+std\+::ostream \& {\bfseries operator$<$$<$} (std\+::ostream \&out, const \hyperlink{classVCF}{V\+CF} \&m)
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/vcf.\+h\item 
+src/vcf.\+cpp\end{DoxyCompactItemize}

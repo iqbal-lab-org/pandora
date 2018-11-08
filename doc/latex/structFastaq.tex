@@ -1,0 +1,68 @@
+\hypertarget{structFastaq}{}\section{Fastaq Struct Reference}
+\label{structFastaq}\index{Fastaq@{Fastaq}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structFastaq_a3a424145cf661307f00fba0bfada5b8f}\label{structFastaq_a3a424145cf661307f00fba0bfada5b8f}} 
+{\bfseries Fastaq} (bool gz=false, bool fq=false)
+\item 
+\mbox{\Hypertarget{structFastaq_a466ab55b144567b875986f15c3a998f6}\label{structFastaq_a466ab55b144567b875986f15c3a998f6}} 
+char {\bfseries covg\+\_\+to\+\_\+score} (const uint\+\_\+least16\+\_\+t \&, const uint\+\_\+least16\+\_\+t \&, const bool \&alt=false)
+\item 
+\mbox{\Hypertarget{structFastaq_a3df41a3171653dfc9260151aa2bbf9b7}\label{structFastaq_a3df41a3171653dfc9260151aa2bbf9b7}} 
+char {\bfseries alt\+\_\+covg\+\_\+to\+\_\+score} (const uint\+\_\+least16\+\_\+t \&covg)
+\item 
+\mbox{\Hypertarget{structFastaq_ab14499ba7cb45c27c531368f4b7f0ca9}\label{structFastaq_ab14499ba7cb45c27c531368f4b7f0ca9}} 
+void {\bfseries add\+\_\+entry} (const std\+::string \&, const std\+::string \&, const std\+::vector$<$ uint32\+\_\+t $>$ \&, const uint\+\_\+least16\+\_\+t, const std\+::string header=\char`\"{}\char`\"{})
+\item 
+\mbox{\Hypertarget{structFastaq_a155e3ee2b32697bd5083300c1436db56}\label{structFastaq_a155e3ee2b32697bd5083300c1436db56}} 
+void {\bfseries add\+\_\+entry} (const std\+::string \&, const std\+::string \&, const std\+::string header=\char`\"{}\char`\"{})
+\item 
+\mbox{\Hypertarget{structFastaq_a1aef648a3cc1012bc927bd28ed776e91}\label{structFastaq_a1aef648a3cc1012bc927bd28ed776e91}} 
+void {\bfseries clear} ()
+\item 
+\mbox{\Hypertarget{structFastaq_a39795fec87cadd6590d3c296eba45705}\label{structFastaq_a39795fec87cadd6590d3c296eba45705}} 
+void {\bfseries save} (const std\+::string \&)
+\item 
+\mbox{\Hypertarget{structFastaq_a0ec35af76f2ea691abf0da4c39ad6cc6}\label{structFastaq_a0ec35af76f2ea691abf0da4c39ad6cc6}} 
+bool {\bfseries operator==} (const \hyperlink{structFastaq}{Fastaq} \&y) const
+\item 
+\mbox{\Hypertarget{structFastaq_a6c9894ba5ff6633943d3c536fd396dc5}\label{structFastaq_a6c9894ba5ff6633943d3c536fd396dc5}} 
+bool {\bfseries operator!=} (const \hyperlink{structFastaq}{Fastaq} \&y) const
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structFastaq_a41d1b440eb1cb89a1bc9721f497dcb78}\label{structFastaq_a41d1b440eb1cb89a1bc9721f497dcb78}} 
+bool {\bfseries gzipped}
+\item 
+\mbox{\Hypertarget{structFastaq_a44430f2d830b35d1edd83b409208bccf}\label{structFastaq_a44430f2d830b35d1edd83b409208bccf}} 
+bool {\bfseries fastq}
+\item 
+\mbox{\Hypertarget{structFastaq_adf4bbf9aabe5dff1e5ed9b8bd717faf2}\label{structFastaq_adf4bbf9aabe5dff1e5ed9b8bd717faf2}} 
+std\+::vector$<$ std\+::string $>$ {\bfseries names}
+\item 
+\mbox{\Hypertarget{structFastaq_a52402e57271fbb1ee7f1ea6c30fb6a31}\label{structFastaq_a52402e57271fbb1ee7f1ea6c30fb6a31}} 
+std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ {\bfseries headers}
+\item 
+\mbox{\Hypertarget{structFastaq_a83d3a7fb517a3a76470ed8eaf59e9f80}\label{structFastaq_a83d3a7fb517a3a76470ed8eaf59e9f80}} 
+std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ {\bfseries sequences}
+\item 
+\mbox{\Hypertarget{structFastaq_a71a65b12d640fd48600852110d8fe196}\label{structFastaq_a71a65b12d640fd48600852110d8fe196}} 
+std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ {\bfseries scores}
+\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structFastaq_a2f9246ec341d86d3a27dde5f5aa885a1}\label{structFastaq_a2f9246ec341d86d3a27dde5f5aa885a1}} 
+std\+::ostream \& {\bfseries operator$<$$<$} (std\+::ostream \&out, const \hyperlink{structFastaq}{Fastaq} \&m)
+\item 
+\mbox{\Hypertarget{structFastaq_a37c71a2ddfbe122539a741241ec3a2b9}\label{structFastaq_a37c71a2ddfbe122539a741241ec3a2b9}} 
+std\+::istream \& {\bfseries operator$>$$>$} (std\+::istream \&in, \hyperlink{structFastaq}{Fastaq} \&m)
+\end{DoxyCompactItemize}
+
+
+The documentation for this struct was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/fastaq.\+h\item 
+src/fastaq.\+cpp\end{DoxyCompactItemize}

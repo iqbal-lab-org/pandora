@@ -374,21 +374,21 @@ TEST(VCFRecordConfidenceTest, gets_correct_confidence_two_alts) {
 
 TEST(VCFRecordConfidenceTest, handles_ref_covg_0) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<float>> m;
+    std::unordered_map<std::string, std::vector<float>> m;
     vr.regt_samples.push_back(m);
-    vr.regt_samples[0]["LIKELIHOOD"] = {numeric_limits<float>::lowest(), -1.5};
+    vr.regt_samples[0]["LIKELIHOOD"] = {std::numeric_limits<float>::lowest(), -1.5};
     vr.confidence();
-    float exp_confidence = -numeric_limits<float>::lowest() - 1.5;
+    float exp_confidence = -std::numeric_limits<float>::lowest() - 1.5;
     EXPECT_FLOAT_EQ(exp_confidence, vr.regt_samples[0]["GT_CONF"][0]);
 }
 
 TEST(VCFRecordConfidenceTest, handles_alt_covg_0) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<float>> m;
+    std::unordered_map<std::string, std::vector<float>> m;
     vr.regt_samples.push_back(m);
-    vr.regt_samples[0]["LIKELIHOOD"] = {-1.5, numeric_limits<float>::lowest()};
+    vr.regt_samples[0]["LIKELIHOOD"] = {-1.5, std::numeric_limits<float>::lowest()};
     vr.confidence();
-    float exp_confidence = -numeric_limits<float>::lowest() - 1.5;
+    float exp_confidence = -std::numeric_limits<float>::lowest() - 1.5;
     EXPECT_FLOAT_EQ(exp_confidence, vr.regt_samples[0]["GT_CONF"][0]);
 }
 

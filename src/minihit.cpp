@@ -8,8 +8,6 @@
 #include "prg/path.h"
 
 
-using namespace std;
-
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer &m, const MiniRecord *r) : read_id(i), read_start_position(

@@ -12,9 +12,9 @@
 
 using namespace pangenome;
 
-Sample::Sample(const string &s) : name(s) {}
+Sample::Sample(const std::string &s) : name(s) {}
 
-void Sample::add_path(const uint32_t node_id, const vector<KmerNodePtr> &c) {
+void Sample::add_path(const uint32_t node_id, const std::vector<KmerNodePtr> &c) {
     if (paths.find(node_id) == paths.end()) {
         paths[node_id] = {c};
     } else {

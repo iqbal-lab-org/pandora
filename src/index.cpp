@@ -11,8 +11,6 @@
 #include "utils.h"
 
 
-using namespace std;
-
 Index::Index() = default;;
 
 Index::~Index() {
@@ -24,10 +22,10 @@ void Index::add_record(const uint64_t kmer, const uint32_t prg_id, const Path pa
     //cout << "Add kmer " << kmer << " id, path, strand " << prg_id << ", " << path << ", " << strand << endl;
     auto it = minhash.find(kmer);
     if (it == minhash.end()) {
-        auto *newv = new vector<MiniRecord>;
+        auto *newv = new std::vector<MiniRecord>;
         newv->reserve(20);
         newv->emplace_back(MiniRecord(prg_id, path, knode_id, strand));
-        minhash.insert(pair<uint64_t, vector<MiniRecord> *>(kmer, newv));
+        minhash.insert(std::pair<uint64_t, std::vector<MiniRecord> *>(kmer, newv));
         //cout << "New minhash size: " << minhash.size() << endl; 
     } else {
         MiniRecord mr(prg_id, path, knode_id, strand);
@@ -45,28 +43,29 @@ void Index::clear() {
     }
 }
 
-void Index::save(const string &prgfile, uint32_t w, uint32_t k) {
+void Index::save(const std::string &prgfile, uint32_t w, uint32_t k) {
     BOOST_LOG_TRIVIAL(debug) << "Saving index";
-    ofstream handle;
-    handle.open(prgfile + ".k" + to_string(k) + ".w" + to_string(w) + ".idx");
+    std::ofstream handle;
+    handle.open(prgfile + ".k" + std::to_string(k) + ".w" + std::to_string(w) + ".idx");
 
-    handle << minhash.size() << endl;
+    handle << minhash.size() << std::endl;
 
     for (auto &it : minhash) {
         handle << it.first << "\t" << it.second->size();
         for (uint32_t j = 0; j != it.second->size(); ++j) {
             handle << "\t" << (*(it.second))[j];
         }
-        handle << endl;
+        handle << std::endl;
 
     }
     handle.close();
     BOOST_LOG_TRIVIAL(debug) << "Finished saving " << minhash.size() << " entries to file";
 }
 
-void Index::load(const string &prgfile, uint32_t w, uint32_t k) {
+void Index::load(const std::string &prgfile, uint32_t w, uint32_t k) {
     BOOST_LOG_TRIVIAL(debug) << "Loading index";
-    BOOST_LOG_TRIVIAL(debug) << "File is " << prgfile << ".k" << to_string(k) << ".w" << to_string(w) << ".idx";
+    BOOST_LOG_TRIVIAL(debug) << "File is " << prgfile << ".k" << std::to_string(k) << ".w" << std::to_string(w)
+                             << ".idx";
     //string line;
     //vector<string> vstring;
     uint32_t key;
@@ -76,7 +75,7 @@ void Index::load(const string &prgfile, uint32_t w, uint32_t k) {
     bool first = true;
     //vector<MiniRecord> vmr;
 
-    ifstream myfile(prgfile + ".k" + to_string(k) + ".w" + to_string(w) + ".idx");
+    std::ifstream myfile(prgfile + ".k" + std::to_string(k) + ".w" + std::to_string(w) + ".idx");
     if (myfile.is_open()) {
         while (myfile.good()) {
             c = myfile.peek();
@@ -89,7 +88,7 @@ void Index::load(const string &prgfile, uint32_t w, uint32_t k) {
                 myfile >> key;
                 myfile.ignore(1, '\t');
                 myfile >> size;
-                auto *vmr = new vector<MiniRecord>;
+                auto *vmr = new std::vector<MiniRecord>;
                 vmr->reserve(size);
                 minhash[key] = vmr;
                 myfile.ignore(1, '\t');
@@ -102,7 +101,7 @@ void Index::load(const string &prgfile, uint32_t w, uint32_t k) {
             }
         }
     } else {
-        cerr << "Unable to open index file " << prgfile << ".idx" << endl;
+        std::cerr << "Unable to open index file " << prgfile << ".idx" << std::endl;
         exit(1);
     }
     BOOST_LOG_TRIVIAL(debug) << "Finished loading " << minhash.size() << " entries to index";

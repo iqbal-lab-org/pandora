@@ -10,10 +10,11 @@
 #include "localPRG.h"
 
 
-using namespace std;
-
-void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs, Index *idx, const uint32_t w, const uint32_t k,
-                const string &outdir) {
+void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs,
+                std::shared_ptr<Index> &index,
+                const uint32_t w,
+                const uint32_t k,
+                const std::string &outdir) {
     BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
 
     // first reserve an estimated index size
@@ -21,7 +22,7 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs, Index *idx, const 
     for (uint32_t i = 0; i != prgs.size(); ++i) {
         r += prgs[i]->seq.length();
     }
-    idx->minhash.reserve(r);
+    index->minhash.reserve(r);
 
     // now fill index
     auto dir_num = 0;
@@ -30,13 +31,13 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs, Index *idx, const 
             fs::create_directories(outdir + "/" + int_to_string(dir_num + 1));
             dir_num++;
         }
-        prgs[i]->minimizer_sketch(idx, w, k);
+        prgs[i]->minimizer_sketch(index, w, k);
         prgs[i]->kmer_prg.save(
-                outdir + "/" + int_to_string(dir_num) + "/" + prgs[i]->name + ".k" + to_string(k) + ".w" +
-                to_string(w) + ".gfa");
+                outdir + "/" + int_to_string(dir_num) + "/" + prgs[i]->name + ".k" + std::to_string(k) + ".w" +
+                std::to_string(w) + ".gfa");
     }
     BOOST_LOG_TRIVIAL(debug) << "Finished adding " << prgs.size() << " LocalPRGs";
-    BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << idx->minhash.size();
+    BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << index->minhash.size();
 }
 
 static void show_index_usage() {
@@ -58,11 +59,11 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
     }
 
     // otherwise, parse the parameters from the command line
-    string prgfile;
+    std::string prgfile;
     bool update = false;
     uint32_t w = 14, k = 15; // default parameters
     for (int i = 1; i < argc; ++i) {
-        string arg = argv[i];
+        std::string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
             show_index_usage();
             return 0;
@@ -86,7 +87,7 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
             prgfile = argv[i]; // Increment 'i' so we don't get the argument as the next argv[i].
             BOOST_LOG_TRIVIAL(debug) << "prgfile: " << prgfile;
         } else {
-            cerr << argv[i] << " could not be attributed to any parameter" << endl;
+            std::cerr << argv[i] << " could not be attributed to any parameter" << std::endl;
         }
     }
 
@@ -98,18 +99,17 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
     // get output directory for the gfa
     boost::filesystem::path p(prgfile);
     boost::filesystem::path dir = p.parent_path();
-    string outdir = dir.string();
+    std::string outdir = dir.string();
     if (outdir.empty())
         outdir = ".";
     outdir += "/kmer_prgs";
 
     // index PRGs
-    Index *idx;
-    idx = new Index();
-    index_prgs(prgs, idx, w, k, outdir);
+    auto index = std::make_shared<Index>();
+    index_prgs(prgs, index, w, k, outdir);
 
     // save index
-    idx->save(prgfile, w, k);
+    index->save(prgfile, w, k);
 
     return 0;
 }

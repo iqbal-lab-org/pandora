@@ -32,7 +32,7 @@ Graph::~Graph() {
 
 // Add a node in dbg corresponding to a fixed size deque of pangenome graph
 // node/orientation ids and labelled with the read_ids which cover it
-OrientedNodePtr Graph::add_node(const deque<uint_least32_t> &node_ids, uint32_t read_id) {
+OrientedNodePtr Graph::add_node(const std::deque<uint_least32_t> &node_ids, uint32_t read_id) {
     assert(node_ids.size() == size);
 
     if (node_hash.find(node_ids) != node_hash.end()) {
@@ -45,7 +45,7 @@ OrientedNodePtr Graph::add_node(const deque<uint_least32_t> &node_ids, uint32_t 
     }
 
     NodePtr n;
-    n = make_shared<Node>(next_id, node_ids, read_id);
+    n = std::make_shared<Node>(next_id, node_ids, read_id);
     assert(n != nullptr);
     nodes[next_id] = n;
     node_hash[node_ids] = next_id;
@@ -55,7 +55,7 @@ OrientedNodePtr Graph::add_node(const deque<uint_least32_t> &node_ids, uint32_t 
     }
 
     next_id++;
-    assert(next_id < numeric_limits<uint_least32_t>::max() ||
+    assert(next_id < std::numeric_limits<uint_least32_t>::max() ||
            assert_msg("WARNING, reached max de bruijn graph node size"));
     return make_pair(n, true);
 }
@@ -66,8 +66,8 @@ OrientedNodePtr Graph::add_node(const deque<uint_least32_t> &node_ids, uint32_t 
 // equal, but an edge is only valid if the orientation they were found
 // in in the read allows the overlap
 bool edge_is_valid(OrientedNodePtr from, OrientedNodePtr to) {
-    deque<uint_least32_t> hashed_node_ids_from = from.first->hashed_node_ids;
-    deque<uint_least32_t> hashed_node_ids_to = to.first->hashed_node_ids;
+    std::deque<uint_least32_t> hashed_node_ids_from = from.first->hashed_node_ids;
+    std::deque<uint_least32_t> hashed_node_ids_to = to.first->hashed_node_ids;
     if (!from.second) {
         hashed_node_ids_from = rc_hashed_node_ids(hashed_node_ids_from);
         //cout << "reverse from" << endl;
@@ -210,7 +210,7 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_nod
             } else {
                 // otherwise, remove any outnodes which no longer share a read
                 //cout << "remove outnodes which no longer share a read" << endl;
-                for (unordered_set<uint32_t>::iterator nit = it->second->out_nodes.begin();
+                for (std::unordered_set<uint32_t>::iterator nit = it->second->out_nodes.begin();
                      nit != it->second->out_nodes.end();) {
                     //cout << "out node " << *nit << endl;
                     found_read_intersect = false;
@@ -230,7 +230,7 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_nod
                         nit++;
                     }
                 }
-                for (unordered_set<uint32_t>::iterator nit = it->second->in_nodes.begin();
+                for (std::unordered_set<uint32_t>::iterator nit = it->second->in_nodes.begin();
                      nit != it->second->in_nodes.end();) {
                     //cout << "out node " << *nit << endl;
                     found_read_intersect = false;
@@ -256,8 +256,8 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_nod
 }
 
 // Get the dbg node ids corresponding to leaves
-unordered_set<uint32_t> Graph::get_leaves(uint_least32_t covg_thresh) {
-    unordered_set<uint32_t> s;
+std::unordered_set<uint32_t> Graph::get_leaves(uint_least32_t covg_thresh) {
+    std::unordered_set<uint32_t> s;
     for (const auto &c : nodes) {
         BOOST_LOG_TRIVIAL(debug) << "node " << *c.second
                                  << " has " << c.second->out_nodes.size() << " + " << c.second->in_nodes.size()
@@ -272,9 +272,9 @@ unordered_set<uint32_t> Graph::get_leaves(uint_least32_t covg_thresh) {
 }
 
 // Get deques of dbg node ids corresponding to maximal non-branching paths in dbg
-set<deque<uint32_t>> Graph::get_unitigs() {
-    set<deque<uint32_t>> all_tigs;
-    set<uint32_t> seen;
+std::set<std::deque<uint32_t>> Graph::get_unitigs() {
+    std::set<std::deque<uint32_t>> all_tigs;
+    std::set<uint32_t> seen;
 
     for (const auto &node_entry : nodes) {
         const auto &id = node_entry.first;
@@ -288,7 +288,7 @@ set<deque<uint32_t>> Graph::get_unitigs() {
         if (node_seen or at_branch)
             continue;
 
-        deque<uint32_t> tig = {id};
+        std::deque<uint32_t> tig = {id};
         extend_unitig(tig);
         for (const auto &other_id: tig)
             seen.insert(other_id);
@@ -298,7 +298,7 @@ set<deque<uint32_t>> Graph::get_unitigs() {
 }
 
 // Extend a dbg path on either end until reaching a branch point
-void Graph::extend_unitig(deque<uint32_t> &tig) {
+void Graph::extend_unitig(std::deque<uint32_t> &tig) {
     bool tig_is_empty = (tig.empty());
     bool node_is_isolated = (tig.size() == 1
                              and (nodes[tig.back()]->out_nodes.size() + nodes[tig.back()]->in_nodes.size()) == 0);
@@ -322,15 +322,15 @@ void Graph::extend_unitig(deque<uint32_t> &tig) {
         else //if (find(tig.begin(), tig.end(), *nodes[tig.back()]->in_nodes.begin())!=tig.end())
             tig.push_back(*nodes[tig.back()]->in_nodes.begin());
 
-        if (find(nodes[tig.back()]->in_nodes.begin(), nodes[tig.back()]->in_nodes.end(),
-                 *-- --tig.end()) != nodes[tig.back()]->in_nodes.end()) {
+        if (std::find(nodes[tig.back()]->in_nodes.begin(), nodes[tig.back()]->in_nodes.end(),
+                      *-- --tig.end()) != nodes[tig.back()]->in_nodes.end()) {
             can_extend = nodes[tig.back()]->out_nodes.size() == 1
                          and nodes[tig.back()]->in_nodes.size() <= 1
                          and tig.front() != tig.back();
             use_outnodes = true;
             //cout << "A";
-        } else if (find(nodes[tig.back()]->out_nodes.begin(), nodes[tig.back()]->out_nodes.end(),
-                        *-- --tig.end()) != nodes[tig.back()]->out_nodes.end()) {
+        } else if (std::find(nodes[tig.back()]->out_nodes.begin(), nodes[tig.back()]->out_nodes.end(),
+                             *-- --tig.end()) != nodes[tig.back()]->out_nodes.end()) {
             can_extend = nodes[tig.back()]->in_nodes.size() == 1
                          and nodes[tig.back()]->out_nodes.size() <= 1
                          and tig.front() != tig.back();
@@ -354,15 +354,15 @@ void Graph::extend_unitig(deque<uint32_t> &tig) {
         //cout << "D";
     } else {
 
-        if (find(nodes[tig.front()]->in_nodes.begin(), nodes[tig.front()]->in_nodes.end(),
-                 *++tig.begin()) != nodes[tig.front()]->in_nodes.end()) {
+        if (std::find(nodes[tig.front()]->in_nodes.begin(), nodes[tig.front()]->in_nodes.end(),
+                      *++tig.begin()) != nodes[tig.front()]->in_nodes.end()) {
             can_extend = nodes[tig.front()]->out_nodes.size() == 1
                          and nodes[tig.front()]->in_nodes.size() <= 1
                          and tig.front() != tig.back();
             use_outnodes = true;
             //cout << "E";
-        } else if (find(nodes[tig.front()]->out_nodes.begin(), nodes[tig.front()]->out_nodes.end(),
-                        *++tig.begin()) != nodes[tig.front()]->out_nodes.end()) {
+        } else if (std::find(nodes[tig.front()]->out_nodes.begin(), nodes[tig.front()]->out_nodes.end(),
+                             *++tig.begin()) != nodes[tig.front()]->out_nodes.end()) {
             can_extend = nodes[tig.front()]->in_nodes.size() == 1
                          and nodes[tig.front()]->out_nodes.size() <= 1
                          and tig.front() != tig.back();
@@ -385,15 +385,15 @@ void Graph::extend_unitig(deque<uint32_t> &tig) {
         else //if (find(tig.begin(), tig.end(), *nodes[tig.front()]->in_nodes.begin())!=tig.end())
             tig.push_front(*nodes[tig.front()]->in_nodes.begin());
 
-        if (find(nodes[tig.front()]->in_nodes.begin(), nodes[tig.front()]->in_nodes.end(),
-                 *++tig.begin()) != nodes[tig.front()]->in_nodes.end()) {
+        if (std::find(nodes[tig.front()]->in_nodes.begin(), nodes[tig.front()]->in_nodes.end(),
+                      *++tig.begin()) != nodes[tig.front()]->in_nodes.end()) {
             can_extend = nodes[tig.front()]->out_nodes.size() == 1
                          and nodes[tig.front()]->in_nodes.size() <= 1
                          and tig.front() != tig.back();
             use_outnodes = true;
             //cout << "G";
-        } else if (find(nodes[tig.front()]->out_nodes.begin(), nodes[tig.front()]->out_nodes.end(),
-                        *++tig.begin()) != nodes[tig.front()]->out_nodes.end()) {
+        } else if (std::find(nodes[tig.front()]->out_nodes.begin(), nodes[tig.front()]->out_nodes.end(),
+                             *++tig.begin()) != nodes[tig.front()]->out_nodes.end()) {
             can_extend = nodes[tig.front()]->in_nodes.size() == 1
                          and nodes[tig.front()]->out_nodes.size() <= 1
                          and tig.front() != tig.back();
@@ -428,7 +428,7 @@ bool Graph::found_in_out_nodes(const NodePtr node_ptr_to_search, const NodePtr n
         if (*nodes.at(i) == *node_ptr_to_find) {
             return true;
         } else {
-            cout << *nodes.at(i) << " != " << *node_ptr_to_find << endl;
+            std::cout << *nodes.at(i) << " != " << *node_ptr_to_find << std::endl;
         }
     }
     return false;
@@ -440,7 +440,7 @@ bool Graph::found_in_in_nodes(const NodePtr node_ptr_to_search, const NodePtr no
         if (*nodes.at(i) == *node_ptr_to_find) {
             return true;
         } else {
-            cout << *nodes.at(i) << " != " << *node_ptr_to_find << endl;
+            std::cout << *nodes.at(i) << " != " << *node_ptr_to_find << std::endl;
         }
     }
     return false;
@@ -506,9 +506,9 @@ bool Graph::operator!=(const Graph &y) const {
 namespace debruijn {
     std::ostream &operator<<(std::ostream &out, const Graph &m) {
         for (const auto &n : m.nodes) {
-            out << n.first << ": " << *(n.second) << endl;
+            out << n.first << ": " << *(n.second) << std::endl;
             for (const auto &o : n.second->out_nodes) {
-                out << n.first << " -> " << o << endl;
+                out << n.first << " -> " << o << std::endl;
             }
         }
         return out;

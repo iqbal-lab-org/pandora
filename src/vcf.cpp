@@ -17,7 +17,6 @@
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-using namespace std;
 
 VCF::VCF() {};
 
@@ -25,8 +24,8 @@ VCF::~VCF() {
     clear();
 };
 
-void VCF::add_record(string c, uint32_t p, string r, string a, string i, string g) {
-    unordered_map<string, vector<uint8_t>> empty_map;
+void VCF::add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i, std::string g) {
+    std::unordered_map<std::string, std::vector<uint8_t>> empty_map;
     VCFRecord vr(c, p, r, a, i, g);
     if (find(records.begin(), records.end(), vr) == records.end()) {
         records.push_back(vr);
@@ -36,7 +35,7 @@ void VCF::add_record(string c, uint32_t p, string r, string a, string i, string 
 }
 
 VCFRecord &VCF::add_record(VCFRecord &vr) {
-    unordered_map<string, vector<uint8_t>> empty_map;
+    std::unordered_map<std::string, std::vector<uint8_t>> empty_map;
     auto record_it = find(records.begin(), records.end(), vr);
     if (record_it == records.end()) {
         records.push_back(vr);
@@ -48,17 +47,17 @@ VCFRecord &VCF::add_record(VCFRecord &vr) {
     // handle mismatched sample data?
 }
 
-void VCF::add_formats(const vector<string> &v) {
+void VCF::add_formats(const std::vector<std::string> &v) {
     for (auto record : records) {
         record.add_formats(v);
     }
 }
 
-ptrdiff_t VCF::get_sample_index(const string &name) {
-    unordered_map<string, vector<uint8_t>> empty_map;
+ptrdiff_t VCF::get_sample_index(const std::string &name) {
+    std::unordered_map<std::string, std::vector<uint8_t>> empty_map;
 
     // if this sample has not been added before, add a column for it
-    vector<string>::iterator sample_it = find(samples.begin(), samples.end(), name);
+    auto sample_it = find(samples.begin(), samples.end(), name);
     if (sample_it == samples.end()) {
         //cout << "this is the first time this sample has been added" << endl;
         samples.push_back(name);
@@ -72,7 +71,8 @@ ptrdiff_t VCF::get_sample_index(const string &name) {
     }
 }
 
-void VCF::add_sample_gt(const string &name, const string &c, const uint32_t p, const string &r, const string &a) {
+void VCF::add_sample_gt(const std::string &name, const std::string &c, const uint32_t p, const std::string &r,
+                        const std::string &a) {
     //cout << "adding gt " << c << " " << p << " " << r << " vs " << name << " " << a << endl;
     if (r == "" and a == "") {
         return;
@@ -85,7 +85,7 @@ void VCF::add_sample_gt(const string &name, const string &c, const uint32_t p, c
     VCFRecord vr(c, p, r, a);
     VCFRecord *vrp;
     bool added = false;
-    vector<VCFRecord>::iterator it = find(records.begin(), records.end(), vr);
+    auto it = find(records.begin(), records.end(), vr);
     if (it != records.end()) {
         //cout << "found record with this ref and alt" << endl;
         it->samples[sample_index]["GT"] = {1};
@@ -126,17 +126,15 @@ void VCF::add_sample_gt(const string &name, const string &c, const uint32_t p, c
             }
         }
     }
-
-    return;
 }
 
-void VCF::add_sample_ref_alleles(const string &sample_name, const string &chrom, const uint32_t &pos,
+void VCF::add_sample_ref_alleles(const std::string &sample_name, const std::string &chrom, const uint32_t &pos,
                                  const uint32_t &pos_to) {
     ptrdiff_t sample_index;
-    unordered_map<string, vector<uint8_t>> empty_map;
+    std::unordered_map<std::string, std::vector<uint8_t>> empty_map;
 
     // if this sample has not been added before, add a column for it
-    vector<string>::iterator sample_it = find(samples.begin(), samples.end(), sample_name);
+    auto sample_it = find(samples.begin(), samples.end(), sample_name);
     if (sample_it == samples.end()) {
         //cout << "this is the first time this sample has been added" << endl;
         samples.push_back(sample_name);
@@ -155,7 +153,6 @@ void VCF::add_sample_ref_alleles(const string &sample_name, const string &chrom,
             //cout << "update record " << records[i] << endl;
         }
     }
-    return;
 }
 
 void VCF::clear() {
@@ -167,7 +164,7 @@ void VCF::append_vcf(const VCF &other_vcf) {
     auto num_samples_added = 0;
 
     //cout << "find which samples are new of the " << other_vcf.samples.size() << " samples" << endl;
-    vector<uint_least16_t> other_sample_positions;
+    std::vector<uint_least16_t> other_sample_positions;
     for (const auto &sample : other_vcf.samples) {
         auto sample_it = find(samples.begin(), samples.end(), sample);
         if (sample_it == samples.end()) {
@@ -180,8 +177,8 @@ void VCF::append_vcf(const VCF &other_vcf) {
     }
 
     //cout << "for all existing " << original_size << " records, add null entries for the " << num_samples_added << " new samples" << endl;
-    unordered_map<string, vector<uint8_t>> empty_u_map;
-    assert(original_size < numeric_limits<uint_least64_t>::max() ||
+    std::unordered_map<std::string, std::vector<uint8_t>> empty_u_map;
+    assert(original_size < std::numeric_limits<uint_least64_t>::max() ||
            assert_msg("VCF size has got too big to use the append feature"));
     for (uint_least64_t i = 0; i < original_size; ++i) {
         records[i].samples.insert(records[i].samples.end(), num_samples_added, empty_u_map);
@@ -199,10 +196,9 @@ void VCF::append_vcf(const VCF &other_vcf) {
 
 void VCF::sort_records() {
     sort(records.begin(), records.end());
-    return;
 }
 
-bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const string &chrom) const {
+bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const std::string &chrom) const {
     // is there a record contained in the range from,to?
     for (const auto &record : records) {
         if (chrom == record.chrom and from < record.pos and record.pos + record.ref.length() <= to) {
@@ -235,9 +231,9 @@ void VCF::clean() {
     }
 }
 
-void merge_sample_key(unordered_map<string, vector<uint8_t>> &first,
-                      const unordered_map<string, vector<uint8_t>> &second,
-                      const string &key) {
+void merge_sample_key(std::unordered_map<std::string, std::vector<uint8_t>> &first,
+                      const std::unordered_map<std::string, std::vector<uint8_t>> &second,
+                      const std::string &key) {
     if (first.empty() or second.empty() or first.find(key) == first.end() or first[key].empty()) {
         return;
     } else if (first.find(key) != first.end() and (second.find(key) == second.end() or second.at(key).empty())) {
@@ -253,9 +249,9 @@ void merge_sample_key(unordered_map<string, vector<uint8_t>> &first,
         first.erase(key);
 }
 
-void merge_regt_sample_key(unordered_map<string, vector<float>> &first,
-                           const unordered_map<string, vector<float>> &second,
-                           const string &key) {
+void merge_regt_sample_key(std::unordered_map<std::string, std::vector<float>> &first,
+                           const std::unordered_map<std::string, std::vector<float>> &second,
+                           const std::string &key) {
     if (first.empty() or second.empty() or first.find(key) == first.end() or first[key].empty()) {
         return;
     } else if (first.find(key) != first.end() and (second.find(key) == second.end() or second.at(key).empty())) {
@@ -419,13 +415,13 @@ void VCF::make_gt_compatible() {
     }
 }
 
-string VCF::header() {
+std::string VCF::header() {
     // find date
     time_t t = time(0);
     char mbstr[10];
     strftime(mbstr, sizeof(mbstr), "%d/%m/%y", localtime(&t));
 
-    string header;
+    std::string header;
     header += "##fileformat=VCFv4.3\n";
     header += "##fileDate==";
     header += mbstr;
@@ -448,7 +444,7 @@ string VCF::header() {
 
 // NB in the absence of filter flags being set to true, all results are saved. If one or more filter flags for SVTYPE are set, 
 // then only those matching the filter are saved. Similarly for GRAPHTYPE.
-void VCF::save(const string &filepath, bool simple, bool complexgraph, bool toomanyalts, bool snp, bool indel,
+void VCF::save(const std::string &filepath, bool simple, bool complexgraph, bool toomanyalts, bool snp, bool indel,
                bool phsnps, bool complexvar) {
     /*if (samples.empty())
     {
@@ -458,7 +454,7 @@ void VCF::save(const string &filepath, bool simple, bool complexgraph, bool toom
     BOOST_LOG_TRIVIAL(debug) << "Saving VCF to " << filepath;
 
     // open and write header
-    ofstream handle;
+    std::ofstream handle;
     handle.open(filepath);
 
     handle << header();
@@ -480,18 +476,17 @@ void VCF::save(const string &filepath, bool simple, bool complexgraph, bool toom
     }
     handle.close();
     BOOST_LOG_TRIVIAL(debug) << "Finished saving " << records.size() << " entries to file";
-    return;
 }
 
-void VCF::load(const string &filepath) {
+void VCF::load(const std::string &filepath) {
     BOOST_LOG_TRIVIAL(debug) << "Loading VCF from " << filepath;
     VCFRecord vr;
-    string line;
-    stringstream ss;
+    std::string line;
+    std::stringstream ss;
     uint32_t added = 0;
     // NB this doesn't currently clear records first. Do we want to?
 
-    ifstream myfile(filepath);
+    std::ifstream myfile(filepath);
     if (myfile.is_open()) {
         while (getline(myfile, line).good()) {
             if (line[0] != '#') {
@@ -503,11 +498,11 @@ void VCF::load(const string &filepath) {
             }
         }
     } else {
-        cerr << "Unable to open VCF file " << filepath << endl;
-        exit(1);
+        std::cerr << "Unable to open VCF file " << filepath << std::endl;
+        std::exit(1);
     }
-    BOOST_LOG_TRIVIAL(debug) << "Finished loading " << added << " entries to VCF, which now has size " << records.size();
-    return;
+    BOOST_LOG_TRIVIAL(debug) << "Finished loading " << added << " entries to VCF, which now has size "
+                             << records.size();
 }
 
 bool VCF::operator==(const VCF &y) const {

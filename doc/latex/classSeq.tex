@@ -1,0 +1,53 @@
+\hypertarget{classSeq}{}\section{Seq Class Reference}
+\label{classSeq}\index{Seq@{Seq}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classSeq_a3a0b4b1578f2dd9fd369bad28a2f81df}\label{classSeq_a3a0b4b1578f2dd9fd369bad28a2f81df}} 
+{\bfseries Seq} (uint32\+\_\+t, std\+::string, std\+::string, uint32\+\_\+t, uint32\+\_\+t)
+\item 
+\mbox{\Hypertarget{classSeq_a6cc4fcb51f6c8df1c01b577c7b4dab13}\label{classSeq_a6cc4fcb51f6c8df1c01b577c7b4dab13}} 
+void {\bfseries initialize} (uint32\+\_\+t, std\+::string, std\+::string, uint32\+\_\+t, uint32\+\_\+t)
+\item 
+\mbox{\Hypertarget{classSeq_a63222414c30166df6a600d1026f7b9be}\label{classSeq_a63222414c30166df6a600d1026f7b9be}} 
+bool {\bfseries add\+\_\+letter\+\_\+to\+\_\+get\+\_\+next\+\_\+kmer} (const char \&, const uint64\+\_\+t \&, const uint64\+\_\+t \&, uint32\+\_\+t \&, uint64\+\_\+t(\&)\mbox{[}2\mbox{]}, uint64\+\_\+t(\&)\mbox{[}2\mbox{]})
+\item 
+\mbox{\Hypertarget{classSeq_abd7c9d3b5d760d8faabbb00fa52b2a56}\label{classSeq_abd7c9d3b5d760d8faabbb00fa52b2a56}} 
+void {\bfseries add\+\_\+minimizing\+\_\+kmers\+\_\+to\+\_\+sketch} (const std\+::vector$<$ \hyperlink{structMinimizer}{Minimizer} $>$ \&, const uint64\+\_\+t \&)
+\item 
+\mbox{\Hypertarget{classSeq_a35c3c8d99777c39df5343603b87a7e54}\label{classSeq_a35c3c8d99777c39df5343603b87a7e54}} 
+void {\bfseries minimize\+\_\+window} (std\+::vector$<$ \hyperlink{structMinimizer}{Minimizer} $>$ \&, uint64\+\_\+t \&)
+\item 
+\mbox{\Hypertarget{classSeq_a3c90f2abd6ab7bcd1dcb788a3423a388}\label{classSeq_a3c90f2abd6ab7bcd1dcb788a3423a388}} 
+void {\bfseries add\+\_\+new\+\_\+smallest\+\_\+minimizer} (std\+::vector$<$ \hyperlink{structMinimizer}{Minimizer} $>$ \&, uint64\+\_\+t \&)
+\item 
+\mbox{\Hypertarget{classSeq_a00227ec5e397a525f727be95aa4c6b3e}\label{classSeq_a00227ec5e397a525f727be95aa4c6b3e}} 
+void {\bfseries minimizer\+\_\+sketch} (const uint32\+\_\+t w, const uint32\+\_\+t k)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classSeq_a92ca613f18683745cfdc9c0e41b19c75}\label{classSeq_a92ca613f18683745cfdc9c0e41b19c75}} 
+uint32\+\_\+t {\bfseries id}
+\item 
+\mbox{\Hypertarget{classSeq_ac609fcce0f7b2460dccb093b2c5c11b8}\label{classSeq_ac609fcce0f7b2460dccb093b2c5c11b8}} 
+std\+::string {\bfseries name}
+\item 
+\mbox{\Hypertarget{classSeq_af6aa27e38a75f7294882d86883246d00}\label{classSeq_af6aa27e38a75f7294882d86883246d00}} 
+std\+::string {\bfseries seq}
+\item 
+\mbox{\Hypertarget{classSeq_a0ec0bde4a1631fd67eeede750f8a8c05}\label{classSeq_a0ec0bde4a1631fd67eeede750f8a8c05}} 
+std\+::set$<$ \hyperlink{structMinimizer}{Minimizer} $>$ {\bfseries sketch}
+\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classSeq_a09c523f7cdc8313b2b2ac1dac4cbf1d4}\label{classSeq_a09c523f7cdc8313b2b2ac1dac4cbf1d4}} 
+std\+::ostream \& {\bfseries operator$<$$<$} (std\+::ostream \&out, const \hyperlink{classSeq}{Seq} \&data)
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/seq.\+h\item 
+src/seq.\+cpp\end{DoxyCompactItemize}

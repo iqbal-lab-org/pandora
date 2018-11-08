@@ -46,7 +46,7 @@ ReadPtr Graph::get_read(const uint32_t &read_id) {
     auto it = reads.find(read_id);
     bool found = it != reads.end();
     if (not found) {
-        auto read_ptr = make_shared<Read>(read_id);
+        auto read_ptr = std::make_shared<Read>(read_id);
         assert(read_ptr != nullptr);
         reads[read_id] = read_ptr;
         return read_ptr;
@@ -62,12 +62,12 @@ ReadPtr Graph::get_read(const uint32_t &read_id) {
 NodePtr Graph::add_coverage(ReadPtr &read_ptr,
                             const NodeId &node_id,
                             const uint32_t &prg_id,
-                            const string &prg_name) {
+                            const std::string &prg_name) {
     NodePtr node_ptr;
     auto it = nodes.find(node_id);
     bool found_node = it != nodes.end();
     if (not found_node) {
-        node_ptr = make_shared<Node>(prg_id, node_id, prg_name);
+        node_ptr = std::make_shared<Node>(prg_id, node_id, prg_name);
         assert(node_ptr != nullptr);
         nodes[node_id] = node_ptr;
     } else {
@@ -76,7 +76,7 @@ NodePtr Graph::add_coverage(ReadPtr &read_ptr,
     }
     node_ptr->reads.insert(read_ptr);
     assert(node_ptr->covg == node_ptr->reads.size());
-    assert(node_id < numeric_limits<uint32_t>::max()
+    assert(node_id < std::numeric_limits<uint32_t>::max()
            or assert_msg("WARNING, prg_id reached max pangraph node size"));
     return node_ptr;
 }
@@ -84,7 +84,7 @@ NodePtr Graph::add_coverage(ReadPtr &read_ptr,
 // Checks that all hits in the cluster are from the given prg and read
 void check_correct_hits(const uint32_t prg_id,
                         const uint32_t read_id,
-                        const set<MinimizerHitPtr, pComp> &cluster) {
+                        const std::set<MinimizerHitPtr, pComp> &cluster) {
     for (const auto &hit_ptr : cluster) {
         bool hits_correspond_to_correct_read = read_id == hit_ptr->read_id;
         assert(hits_correspond_to_correct_read);
@@ -100,7 +100,7 @@ void check_correct_hits(const uint32_t prg_id,
 // Store the hits on the read
 void record_read_info(ReadPtr &read_ptr,
                       const NodePtr &node_ptr,
-                      set<MinimizerHitPtr, pComp> &cluster) {
+                      std::set<MinimizerHitPtr, pComp> &cluster) {
     assert(read_ptr != nullptr);
     read_ptr->add_hits(node_ptr->node_id, cluster);
     bool orientation = !cluster.empty() and (*cluster.begin())->strand;
@@ -117,9 +117,9 @@ void record_read_info(ReadPtr &read_ptr,
 
 // Add a node corresponding to a cluster of hits against a given localPRG from a read
 void Graph::add_node(const uint32_t prg_id,
-                     const string &prg_name,
+                     const std::string &prg_name,
                      const uint32_t read_id,
-                     set<MinimizerHitPtr, pComp> &cluster) {
+                     std::set<MinimizerHitPtr, pComp> &cluster) {
     check_correct_hits(prg_id, read_id, cluster);
     auto read_ptr = get_read(read_id);
     assert(read_ptr != nullptr);
@@ -133,14 +133,14 @@ void Graph::add_node(const uint32_t prg_id,
 }
 
 // Add a node corresponding to an instance of a localPRG found in a sample
-void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string &sample_name,
-                     const vector<KmerNodePtr> &kmp, const std::shared_ptr<LocalPRG> &prg) {
+void Graph::add_node(const uint32_t prg_id, const std::string &prg_name, const std::string &sample_name,
+                     const std::vector<KmerNodePtr> &kmp, const std::shared_ptr<LocalPRG> &prg) {
     // add new node if it doesn't exist
     NodePtr n;
     auto it = nodes.find(prg_id);
     if (it == nodes.end()) {
         //cout << "add node " << *n << endl;
-        n = make_shared<Node>(prg_id, prg_id, prg_name);
+        n = std::make_shared<Node>(prg_id, prg_id, prg_name);
         n->kmer_prg = prg->kmer_prg;
         nodes[prg_id] = n;
         //nodes[prg_id] = make_shared<Node>(prg_id, prg_id, prg_name);
@@ -156,7 +156,7 @@ void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string
     auto sit = samples.find(sample_name);
     if (sit == samples.end()) {
         //cout << "new sample " << sample_name << endl;
-        s = make_shared<Sample>(sample_name);
+        s = std::make_shared<Sample>(sample_name);
         samples[sample_name] = s;
         //sit = samples.find(sample_name);
     } else {
@@ -169,7 +169,7 @@ void Graph::add_node(const uint32_t prg_id, const string &prg_name, const string
 }
 
 // Remove the node n, and all references to it
-unordered_map<uint32_t, NodePtr>::iterator Graph::remove_node(NodePtr n) {
+std::unordered_map<uint32_t, NodePtr>::iterator Graph::remove_node(NodePtr n) {
     //cout << "Remove graph node " << *n << endl;
     // removes all instances of node n and references to it in reads
     for (const auto &r : n->reads) {
@@ -199,7 +199,7 @@ void Graph::remove_read(const uint32_t read_id) {
 }
 
 // Remove a single instance of a node from a read while iterating through the nodes of the read
-vector<NodePtr>::iterator Graph::remove_node_from_read(vector<NodePtr>::iterator node_it, ReadPtr read_ptr) {
+std::vector<NodePtr>::iterator Graph::remove_node_from_read(std::vector<NodePtr>::iterator node_it, ReadPtr read_ptr) {
 
     BOOST_LOG_TRIVIAL(debug) << "remove node " << (*node_it)->node_id << " from read " << read_ptr->id;
     NodePtr node_ptr = *node_it;
@@ -222,7 +222,7 @@ vector<NodePtr>::iterator Graph::remove_node_from_read(vector<NodePtr>::iterator
 
 // Remove nodes with covg <= thresh from graph
 void Graph::remove_low_covg_nodes(const uint32_t &thresh) {
-    BOOST_LOG_TRIVIAL(debug) << "Remove nodes with covg <= " << thresh << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Remove nodes with covg <= " << thresh << std::endl;
     for (auto it = nodes.begin(); it != nodes.end();) {
         //cout << "look at node " << *(it->second) << endl;
         if (it->second->covg <= thresh) {
@@ -238,8 +238,8 @@ void Graph::remove_low_covg_nodes(const uint32_t &thresh) {
 
 // Create a copy of the node with node_id and replace the old copy with
 // the new one in each of the reads in reads_along_tig (by looking for the context of node_id)
-void Graph::split_node_by_reads(unordered_set<ReadPtr> &reads_along_tig, vector<uint_least32_t> &node_ids,
-                                const vector<bool> &node_orients, const uint_least32_t node_id) {
+void Graph::split_node_by_reads(std::unordered_set<ReadPtr> &reads_along_tig, std::vector<uint_least32_t> &node_ids,
+                                const std::vector<bool> &node_orients, const uint_least32_t node_id) {
     if (reads_along_tig.empty()) {
         return;
     }
@@ -248,19 +248,19 @@ void Graph::split_node_by_reads(unordered_set<ReadPtr> &reads_along_tig, vector<
     // (in the context of node_ids) with a new node
     while (nodes.find(next_id) != nodes.end()) {
         next_id++;
-        assert(next_id < numeric_limits<uint32_t>::max() ||
+        assert(next_id < std::numeric_limits<uint32_t>::max() ||
                assert_msg("WARNING, next_id reached max pangraph node size"));
     }
 
     // define new node
-    NodePtr n = make_shared<Node>(nodes[node_id]->prg_id, next_id, nodes[node_id]->name);
+    NodePtr n = std::make_shared<Node>(nodes[node_id]->prg_id, next_id, nodes[node_id]->name);
     n->covg -= 1;
     nodes[next_id] = n;
 
     // switch old node to new node in reads
-    vector<NodePtr>::iterator it;
-    unordered_multiset<ReadPtr>::iterator rit;
-    pair<uint32_t, uint32_t> pos;
+    std::vector<NodePtr>::iterator it;
+    std::unordered_multiset<ReadPtr>::iterator rit;
+    std::pair<uint32_t, uint32_t> pos;
     for (const auto &r : reads_along_tig) {
         // ignore if this node does not contain this read
         rit = nodes[node_id]->reads.find(r);
@@ -366,7 +366,7 @@ void Graph::add_hits_to_kmergraphs(const std::vector<std::shared_ptr<LocalPRG>> 
 
 same_prg_id::same_prg_id(const NodePtr &p) : q(p->prg_id) {};
 
-bool same_prg_id::operator()(const pair<uint32_t, NodePtr> &n) const { return (n.second->prg_id == q); }
+bool same_prg_id::operator()(const std::pair<uint32_t, NodePtr> &n) const { return (n.second->prg_id == q); }
 
 bool Graph::operator==(const Graph &y) const {
     // false if have different numbers of nodes
@@ -402,16 +402,16 @@ bool Graph::operator!=(const Graph &y) const {
 }
 
 // Saves a presence/absence/copynumber matrix for each node and each sample
-void Graph::save_matrix(const string &filepath) {
+void Graph::save_matrix(const std::string &filepath) {
     // write a presence/absence matrix for samples and nodes
-    ofstream handle;
+    std::ofstream handle;
     handle.open(filepath);
 
     // save header line with sample names
     for (const auto &s : samples) {
         handle << "\t" << s.second->name;
     }
-    handle << endl;
+    handle << std::endl;
 
     // for each node, save number of each sample
     for (const auto &n : nodes) {
@@ -423,40 +423,41 @@ void Graph::save_matrix(const string &filepath) {
                 handle << "\t" << s.second->paths[n.second->node_id].size();
             }
         }
-        handle << endl;
+        handle << std::endl;
     }
 }
 
-void Graph::save_mapped_read_strings(const string &readfilepath, const string &outdir, const int32_t buff) {
+void Graph::save_mapped_read_strings(const std::string &readfilepath, const std::string &outdir, const int32_t buff) {
     BOOST_LOG_TRIVIAL(debug) << "Save mapped read strings and coordinates";
-    ofstream outhandle;
+    std::ofstream outhandle;
     FastaqHandler readfile(readfilepath);
     uint32_t start, end;
 
     // for each node in pangraph, find overlaps and write to a file
-    vector<vector<uint32_t>> read_overlap_coordinates;
+    std::vector<std::vector<uint32_t>> read_overlap_coordinates;
     for (const auto &node_ptr : nodes) {
-        cout << "Find coordinates for node " << node_ptr.second->name;
+        std::cout << "Find coordinates for node " << node_ptr.second->name;
         node_ptr.second->get_read_overlap_coordinates(read_overlap_coordinates);
-        cout << "." << endl;
+        std::cout << "." << std::endl;
+
         fs::create_directories(outdir + "/" + node_ptr.second->get_name());
         outhandle.open(outdir + "/" + node_ptr.second->get_name() + "/" + node_ptr.second->get_name() + ".reads.fa");
         for (const auto &coord : read_overlap_coordinates) {
             readfile.get_id(coord[0]);
-            start = (uint32_t) max((int32_t) coord[1] - buff, 0);
-            end = min(coord[2] + (uint32_t) buff, (uint32_t) readfile.read.length());
+            start = (uint32_t) std::max((int32_t) coord[1] - buff, 0);
+            end = std::min(coord[2] + (uint32_t) buff, (uint32_t) readfile.read.length());
             outhandle << ">" << readfile.name << " pandora: " << coord[0] << " " << start << ":" << end;
             if (coord[3])
-                outhandle << " + " << endl;
+                outhandle << " + " << std::endl;
             else
-                outhandle << " - " << endl;
+                outhandle << " - " << std::endl;
             assert(coord[1] < coord[2]);
             assert(start <= coord[1]);
             assert(start <= readfile.read.length());
             assert(coord[2] <= readfile.read.length());
             assert(end >= coord[2]);
             assert(start < end);
-            outhandle << readfile.read.substr(start, end - start) << endl;
+            outhandle << readfile.read.substr(start, end - start) << std::endl;
         }
         outhandle.close();
         read_overlap_coordinates.clear();
@@ -465,32 +466,32 @@ void Graph::save_mapped_read_strings(const string &readfilepath, const string &o
     readfile.close();
 }
 
-void Graph::save_kmergraph_coverages(const string &outdir, const string &sample_name) {
+void Graph::save_kmergraph_coverages(const std::string &outdir, const std::string &sample_name) {
     BOOST_LOG_TRIVIAL(debug) << "Save kmergraph coverages for sample " << sample_name;
     fs::create_directories(outdir + "/coverages");
     for (const auto &n : nodes) {
-        string node_file = outdir + "/coverages/" + n.second->name + ".csv";
+        std::string node_file = outdir + "/coverages/" + n.second->name + ".csv";
         if (!boost::filesystem::exists(node_file)) {
-            ofstream handle;
+            std::ofstream handle;
             handle.open(node_file);
             assert (!handle.fail() or assert_msg("Could not open file " << node_file));
             handle << "sample";
             for (const auto &m : n.second->kmer_prg.nodes)
                 handle << "\t" << m->id;
-            handle << endl;
+            handle << std::endl;
             handle.close();
         }
         n.second->kmer_prg.append_coverages_to_file(node_file, sample_name);
     }
 }
 
-std::ostream &pangenome::operator<<(std::ostream &out, pangenome::Graph const &m) {
+std::ostream &pangenome::operator<<(std::ostream &out, const pangenome::Graph &m) {
     //cout << "printing pangraph" << endl;
     /*for (const auto &n : m.nodes) {
         cout << n.second->prg_id << endl;
     }*/
     for (const auto &n : m.reads) {
-        cout << *(n.second) << endl;
+        std::cout << *(n.second) << std::endl;
     }
 
     return out;

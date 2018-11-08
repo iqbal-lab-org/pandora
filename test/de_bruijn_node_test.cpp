@@ -9,18 +9,18 @@
 using namespace debruijn;
 
 TEST(DeBruijnNodeTest, create) {
-    deque<uint_least32_t> v({4, 6, 8});
-    unordered_multiset<uint32_t> w({0});
+    std::deque<uint_least32_t> v({4, 6, 8});
+    std::unordered_multiset<uint32_t> w({0});
     Node n(2, v, 0);
     EXPECT_EQ(n.id, (uint) 2);
-    EXPECT_ITERABLE_EQ(deque<uint_least32_t>, n.hashed_node_ids, v);
-    EXPECT_ITERABLE_EQ(unordered_multiset<uint32_t>, n.read_ids, w);
+    EXPECT_ITERABLE_EQ(std::deque<uint_least32_t>, n.hashed_node_ids, v);
+    EXPECT_ITERABLE_EQ(std::unordered_multiset<uint32_t>, n.read_ids, w);
 }
 
 TEST(DeBruijnNodeTest, equals) {
-    deque<uint_least32_t> v({4, 7, 8});
-    deque<uint_least32_t> w({4, 6, 8});
-    deque<uint_least32_t> y({9, 6, 5});
+    std::deque<uint_least32_t> v({4, 7, 8});
+    std::deque<uint_least32_t> w({4, 6, 8});
+    std::deque<uint_least32_t> y({9, 6, 5});
 
     Node n1(2, v, 0);
     Node n2(2, v, 5);

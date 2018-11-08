@@ -75,7 +75,7 @@ public:
 
     float prob_paths(const std::vector<std::vector<KmerNodePtr>> &);
 
-    void save(const std::string &, const shared_ptr<LocalPRG> = nullptr);
+    void save(const std::string &, const std::shared_ptr<LocalPRG> = nullptr);
 
     void load(const std::string &);
 
@@ -86,7 +86,8 @@ public:
     friend std::ostream &operator<<(std::ostream &out, KmerGraph const &data);
 
     friend void
-    estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint32_t, const bool);
+    estimate_parameters(std::shared_ptr<pangenome::Graph>, const std::string &, const uint32_t, float &, const uint32_t,
+                        const bool);
 
     friend struct condition;
 

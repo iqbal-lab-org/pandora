@@ -18,13 +18,13 @@ protected:
 public:
     uint8_t size;
     sequence_of_genes_to_data_map <std::deque<uint_least32_t>, uint32_t> node_hash;
-    unordered_map<uint32_t, NodePtr> nodes;
+    std::unordered_map<uint32_t, NodePtr> nodes;
 
     Graph(uint8_t);
 
     ~Graph();
 
-    OrientedNodePtr add_node(const deque<uint_least32_t> &, uint32_t);
+    OrientedNodePtr add_node(const std::deque<uint_least32_t> &, uint32_t);
 
     void add_edge(OrientedNodePtr, OrientedNodePtr);
 
@@ -32,13 +32,13 @@ public:
 
     void remove_read_from_node(const uint32_t, const uint32_t);
 
-    unordered_set<uint32_t> get_leaves(uint_least32_t covg_thresh = 1);
+    std::unordered_set<uint32_t> get_leaves(uint_least32_t covg_thresh = 1);
 
-    unordered_set<uint32_t> get_leaf_tips();
+    std::unordered_set<uint32_t> get_leaf_tips();
 
-    set<deque<uint32_t>> get_unitigs();
+    std::set<std::deque<uint32_t>> get_unitigs();
 
-    void extend_unitig(deque<uint32_t> &);
+    void extend_unitig(std::deque<uint32_t> &);
 
     bool found_in_out_nodes(const NodePtr, const NodePtr) const;
 

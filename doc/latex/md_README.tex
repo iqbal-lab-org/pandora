@@ -1,0 +1,112 @@
+\href{https://travis-ci.org/rmcolq/pandora}{\tt } master
+
+\href{https://travis-ci.com/rmcolq/pandora}{\tt } dev
+
+\href{https://singularity-hub.org/collections/1285}{\tt }
+
+\section*{pandora}
+
+\subsubsection*{Note this is in active rapid development at present and not ready for reliable use}
+
+Pandora is a tool for bacterial genome analysis without using a reference genome, including genetic variation from S\+N\+Ps to gene presence/absence across the whole pan-\/genome. Core ideas are\+:
+\begin{DoxyItemize}
+\item new samples look like recombinants (plus mutations) of things seen before
+\item we should be analysing nucleotide-\/level variation everywhere, not just in core genes
+\item arbitrary reference genomes are unnatural
+\end{DoxyItemize}
+
+Pandora works with Illumina or nanopore data, allowing per-\/sample analysis (sequence inference and S\+N\+P/indel/gene-\/calling) and comparison of multiple samples. To do this it uses population reference graphs (P\+RG) which have been built for orthologous blocks of interest (e.\+g. genes and intergenic regions). See \href{https://github.com/rmcolq/make_prg}{\tt https\+://github.\+com/rmcolq/make\+\_\+prg} for a pipeline which can construct these P\+R\+Gs from a set of aligned sequence files.
+
+It can do the following for a single sample (read dataset)\+:
+
+
+\begin{DoxyItemize}
+\item Output inferred gene sequences for the orthologous chunks (eg genes) in the P\+RG
+\item Output a V\+CF showing the variation found in the pangenome genes which are present, with respect to any reference in the P\+RG.
+\end{DoxyItemize}
+
+For a collection of samples, it can\+:
+
+
+\begin{DoxyItemize}
+\item Output a matrix showing inferred copy-\/number of each gene in each sample genome.
+\item Output one V\+CF per orthologous-\/chunk, showing how samples which contained this chunk differed in their gene sequence. Variation is shown with respect to the most informative recombinant path in the P\+RG . Soon, in a galaxy not so far away, it will allow
+\begin{DoxyItemize}
+\item discovery of new variation not in the P\+RG
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+Warning -\/ this code is still in development.
+
+\subsection*{Installation}
+
+
+\begin{DoxyItemize}
+\item Requires a Unix or Mac OS.
+\item Requires a system install of {\ttfamily zlib}. If this is not already installed, \href{https://geeksww.com/tutorials/libraries/zlib/installation/installing_zlib_on_ubuntu_linux.php}{\tt this} tutorial is helpful.
+\item Requires a system installation of {\ttfamily boost} containing the {\ttfamily system}, {\ttfamily filesystem}, {\ttfamily log} (which also depends on {\ttfamily thread} and {\ttfamily date\+\_\+time}) and {\ttfamily iostreams} libraries. If not already installed use the following or look at \href{https://www.boost.org/doc/libs/1_62_0/more/getting_started/unix-variants.html}{\tt this} guide. \begin{DoxyVerb}wget https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.gz --no-check-certificate
+tar xzf boost_1_62_0.tar.gz
+cd boost_1_62_0
+./bootstrap.sh [--prefix=/prefix/path] --with-libraries=system,filesystem,iostreams,log,thread,date_time
+./b2 install
+\end{DoxyVerb}
+
+\item Download and install {\ttfamily pandora} as follows\+: \begin{DoxyVerb}git clone https://github.com/rmcolq/pandora.git
+cd pandora
+mkdir build
+cd build
+cmake [-DCMAKE_PREFIX_PATH=/prefix/path] ..
+make
+ctest -VV
+cd ..
+\end{DoxyVerb}
+
+\end{DoxyItemize}
+
+\subsection*{Singularity Container}
+
+Instead you can download and use the singularity container\+: \begin{DoxyVerb}singularity pull --force --name pandora.simg shub://rmcolq/pandora:pandora
+singularity exec pandora.simg pandora
+\end{DoxyVerb}
+
+
+\subsection*{Usage}
+
+\subsubsection*{Population Reference Graphs}
+
+Pandora assumes you have already constructed a fasta-\/like file of graphs, one entry for each gene/ genome region of interest.
+
+\subsubsection*{Build index}
+
+Takes a fasta-\/like file of P\+RG sequences and constructs an index, and directory of gfa files to be used by pandora map. \begin{DoxyVerb}  Usage: pandora index [options] <prgs.fa>
+  Options:
+    -h,--help           Show this help message
+    -w W                Window size for (w,k)-minimizers, default 14
+    -k K                K-mer size for (w,k)-minimizers, default 15
+\end{DoxyVerb}
+
+
+The index stores (w,k)-\/minimizers for each P\+RG path found. These parameters can be specified, but default to w=1, k=15.
+
+\subsubsection*{Map reads to index}
+
+This takes a fasta of noisy long read sequence data and compares to the index. It infers which of the P\+RG genes/elements is present, and for those that are present it outputs the inferred sequence. \begin{DoxyVerb}  Usage: pandora map -p PRG_FILE -r READ_FILE -o OUTDIR <option(s)>
+  Options:
+   -h,--help             Show this help message
+   -p,--prg_file PRG_FILE    Specify a fasta-style prg file
+   -r,--read_file READ_FILE  Specify a file of reads in fasta format
+   -o,--outdir OUTDIR            Specify directory of output
+   -w W              Window size for (w,k)-minimizers, must be <=k, default 14
+   -k K              K-mer size for (w,k)-minimizers, default 15
+   -m,--max_diff INT         Maximum distance between consecutive hits within a cluster, default 500 (bps)
+   -e,--error_rate FLOAT     Estimated error rate for reads, default 0.11
+   --genome_size NUM_BP          Estimated length of genome, used for coverage estimation
+   --output_kg           Save kmer graphs with fwd and rev coverage annotations for found localPRGs
+   --output_vcf          Save a vcf file for each found localPRG
+   --vcf_refs REF_FASTA      A fasta file with an entry for each LocalPRG giving reference sequence for
+                                 VCF. Must have a perfect match in the graph and the same name as the graph
+   --illumina            Data is from illumina rather than nanopore, so is shorter with low error rate
+   --bin             Use binomial model for kmer coverages, default is negative binomial
+   --max_covg            Maximum average coverage from reads to accept
+   --regenotype          Add extra step to carefully genotype SNP sites\end{DoxyVerb}
+ 

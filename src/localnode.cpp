@@ -5,10 +5,9 @@
 #include "utils.h" // for pointer_values_equal
 
 
-using namespace std;
-
-LocalNode::LocalNode(string s, Interval p, uint32_t i) : seq(s), pos(p), id(i), covg(p.length), sketch_next(pos.start),
-                                                         skip(false) {}
+LocalNode::LocalNode(std::string s, Interval p, uint32_t i) : seq(s), pos(p), id(i), covg(p.length),
+                                                              sketch_next(pos.start),
+                                                              skip(false) {}
 
 std::ostream &operator<<(std::ostream &out, LocalNode const &n) {
     out << "(" << n.id << " " << n.pos << " " << n.seq << ")";

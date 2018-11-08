@@ -1,0 +1,119 @@
+\hypertarget{classLocalPRG}{}\section{Local\+P\+RG Class Reference}
+\label{classLocalPRG}\index{Local\+P\+RG@{Local\+P\+RG}}
+
+
+Collaboration diagram for Local\+P\+RG\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=230pt]{classLocalPRG__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classLocalPRG_a1729caff2615403d128a1eef7315e628}\label{classLocalPRG_a1729caff2615403d128a1eef7315e628}} 
+{\bfseries Local\+P\+RG} (uint32\+\_\+t, const std\+::string \&, const std\+::string \&)
+\item 
+\mbox{\Hypertarget{classLocalPRG_a66967eea834a60152a06d7fa86e6acf4}\label{classLocalPRG_a66967eea834a60152a06d7fa86e6acf4}} 
+bool {\bfseries isalpha\+\_\+string} (const std\+::string \&) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_a8041fa9e8e7778df63717ae6f42e2a2d}\label{classLocalPRG_a8041fa9e8e7778df63717ae6f42e2a2d}} 
+std\+::string {\bfseries string\+\_\+along\+\_\+path} (const prg\+::\+Path \&) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_ad32899108525a9513bccfd28dc88bb55}\label{classLocalPRG_ad32899108525a9513bccfd28dc88bb55}} 
+std\+::vector$<$ Local\+Node\+Ptr $>$ {\bfseries nodes\+\_\+along\+\_\+path} (const prg\+::\+Path \&) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_a8754af497c7dfa032180aab230409915}\label{classLocalPRG_a8754af497c7dfa032180aab230409915}} 
+std\+::vector$<$ \hyperlink{structInterval}{Interval} $>$ {\bfseries split\+\_\+by\+\_\+site} (const \hyperlink{structInterval}{Interval} \&) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_a3b66546b0da44781f6b5c0dd1c25642d}\label{classLocalPRG_a3b66546b0da44781f6b5c0dd1c25642d}} 
+std\+::vector$<$ uint32\+\_\+t $>$ {\bfseries build\+\_\+graph} (const \hyperlink{structInterval}{Interval} \&, const std\+::vector$<$ uint32\+\_\+t $>$ \&, uint32\+\_\+t current\+\_\+level=0)
+\item 
+\mbox{\Hypertarget{classLocalPRG_a3474c581e00373d41ec304ee3886b1c6}\label{classLocalPRG_a3474c581e00373d41ec304ee3886b1c6}} 
+std\+::vector$<$ prg\+::\+Path $>$ {\bfseries shift} (prg\+::\+Path) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_a9873a8f72a0bea283e6f399078b08f60}\label{classLocalPRG_a9873a8f72a0bea283e6f399078b08f60}} 
+void {\bfseries minimizer\+\_\+sketch} (std\+::shared\+\_\+ptr$<$ \hyperlink{classIndex}{Index} $>$ index, const uint32\+\_\+t w, const uint32\+\_\+t k)
+\item 
+\mbox{\Hypertarget{classLocalPRG_a73008cf730eb3c8f4ebb15850a056430}\label{classLocalPRG_a73008cf730eb3c8f4ebb15850a056430}} 
+std\+::vector$<$ Kmer\+Node\+Ptr $>$ {\bfseries kmernode\+\_\+path\+\_\+from\+\_\+localnode\+\_\+path} (const std\+::vector$<$ Local\+Node\+Ptr $>$ \&) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_a28119980b89df2c53712298451289f00}\label{classLocalPRG_a28119980b89df2c53712298451289f00}} 
+std\+::vector$<$ Local\+Node\+Ptr $>$ {\bfseries localnode\+\_\+path\+\_\+from\+\_\+kmernode\+\_\+path} (const std\+::vector$<$ Kmer\+Node\+Ptr $>$ \&, const uint32\+\_\+t w=0) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_a1869125941195fc0546e972281931839}\label{classLocalPRG_a1869125941195fc0546e972281931839}} 
+void {\bfseries write\+\_\+covgs\+\_\+to\+\_\+file} (const boost\+::filesystem\+::path \&, const std\+::vector$<$ uint32\+\_\+t $>$ \&) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_a02cfae8a258d05fb0f0883702a61d027}\label{classLocalPRG_a02cfae8a258d05fb0f0883702a61d027}} 
+void {\bfseries write\+\_\+path\+\_\+to\+\_\+fasta} (const boost\+::filesystem\+::path \&, const std\+::vector$<$ Local\+Node\+Ptr $>$ \&, const float \&) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_ad53a06335e970239bae28ea38a06193f}\label{classLocalPRG_ad53a06335e970239bae28ea38a06193f}} 
+void {\bfseries append\+\_\+path\+\_\+to\+\_\+fasta} (const boost\+::filesystem\+::path \&, const std\+::vector$<$ Local\+Node\+Ptr $>$ \&, const float \&) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_aae75df1603fddd25ff06f4fdab369fec}\label{classLocalPRG_aae75df1603fddd25ff06f4fdab369fec}} 
+void {\bfseries write\+\_\+aligned\+\_\+path\+\_\+to\+\_\+fasta} (const boost\+::filesystem\+::path \&, const std\+::vector$<$ Local\+Node\+Ptr $>$ \&, const float \&) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_ac4f8dfb2555af538ac2b89a7b414788f}\label{classLocalPRG_ac4f8dfb2555af538ac2b89a7b414788f}} 
+void {\bfseries build\+\_\+vcf} (\hyperlink{classVCF}{V\+CF} \&, const std\+::vector$<$ Local\+Node\+Ptr $>$ \&) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_a989f2128badfd99b3600d99b21dfa9e6}\label{classLocalPRG_a989f2128badfd99b3600d99b21dfa9e6}} 
+void {\bfseries add\+\_\+sample\+\_\+gt\+\_\+to\+\_\+vcf} (\hyperlink{classVCF}{V\+CF} \&, const std\+::vector$<$ Local\+Node\+Ptr $>$ \&, const std\+::vector$<$ Local\+Node\+Ptr $>$ \&, const std\+::string \&sample\+\_\+name=\char`\"{}sample\char`\"{}) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_a5f3dbbd8e8c5d7571847957ff401e83b}\label{classLocalPRG_a5f3dbbd8e8c5d7571847957ff401e83b}} 
+std\+::vector$<$ Local\+Node\+Ptr $>$ {\bfseries find\+\_\+alt\+\_\+path} (const std\+::vector$<$ Local\+Node\+Ptr $>$ \&, const uint32\+\_\+t, const std\+::string \&, const std\+::string \&) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_ad9f3b252cdbb7d23fb36543917c0bc0a}\label{classLocalPRG_ad9f3b252cdbb7d23fb36543917c0bc0a}} 
+void {\bfseries append\+\_\+kmer\+\_\+covgs\+\_\+in\+\_\+range} (const \hyperlink{classKmerGraph}{Kmer\+Graph} \&, const std\+::vector$<$ Kmer\+Node\+Ptr $>$ \&, const std\+::vector$<$ Local\+Node\+Ptr $>$ \&, const uint32\+\_\+t \&, const uint32\+\_\+t \&, std\+::vector$<$ uint32\+\_\+t $>$ \&, std\+::vector$<$ uint32\+\_\+t $>$ \&) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_ab38532465665803109701ca3166b67c8}\label{classLocalPRG_ab38532465665803109701ca3166b67c8}} 
+void {\bfseries add\+\_\+sample\+\_\+covgs\+\_\+to\+\_\+vcf} (\hyperlink{classVCF}{V\+CF} \&, const \hyperlink{classKmerGraph}{Kmer\+Graph} \&, const std\+::vector$<$ Local\+Node\+Ptr $>$ \&, const std\+::string \&sample\+\_\+name=\char`\"{}sample\char`\"{}) const
+\item 
+\mbox{\Hypertarget{classLocalPRG_a6cf906c1307763026cf185f07d8eace7}\label{classLocalPRG_a6cf906c1307763026cf185f07d8eace7}} 
+void {\bfseries add\+\_\+consensus\+\_\+path\+\_\+to\+\_\+fastaq} (\hyperlink{structFastaq}{Fastaq} \&, Pan\+Node\+Ptr, std\+::vector$<$ Kmer\+Node\+Ptr $>$ \&, std\+::vector$<$ Local\+Node\+Ptr $>$ \&, const uint32\+\_\+t w, const bool bin=false, const uint32\+\_\+t global\+\_\+covg=1)
+\item 
+\mbox{\Hypertarget{classLocalPRG_a0f1b2f176fc2c36bd05f7caca3c8127e}\label{classLocalPRG_a0f1b2f176fc2c36bd05f7caca3c8127e}} 
+void {\bfseries add\+\_\+variants\+\_\+to\+\_\+vcf} (\hyperlink{classVCF}{V\+CF} \&, Pan\+Node\+Ptr, const std\+::string \&, const std\+::vector$<$ Kmer\+Node\+Ptr $>$ \&, const std\+::vector$<$ Local\+Node\+Ptr $>$ \&, const std\+::string \&sample\+\_\+name=\char`\"{}sample\char`\"{})
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classLocalPRG_a44590a1c176f93c150cc8137a98f52c7}\label{classLocalPRG_a44590a1c176f93c150cc8137a98f52c7}} 
+static std\+::string {\bfseries string\+\_\+along\+\_\+path} (const std\+::vector$<$ Local\+Node\+Ptr $>$ \&)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classLocalPRG_abf9e601dc3d00bb4e574da95324cbc15}\label{classLocalPRG_abf9e601dc3d00bb4e574da95324cbc15}} 
+uint32\+\_\+t {\bfseries next\+\_\+site}
+\item 
+\mbox{\Hypertarget{classLocalPRG_ae0b0928141665bf209eba94cb46972a2}\label{classLocalPRG_ae0b0928141665bf209eba94cb46972a2}} 
+uint32\+\_\+t {\bfseries id}
+\item 
+\mbox{\Hypertarget{classLocalPRG_a101b866a36a0721ad6985c0442f9ac10}\label{classLocalPRG_a101b866a36a0721ad6985c0442f9ac10}} 
+std\+::string {\bfseries name}
+\item 
+\mbox{\Hypertarget{classLocalPRG_a1a32007bf210ecb5b06e135aca50a372}\label{classLocalPRG_a1a32007bf210ecb5b06e135aca50a372}} 
+std\+::string {\bfseries seq}
+\item 
+\mbox{\Hypertarget{classLocalPRG_a0c3ca6e8a8568a7bb2d8f5860d29aa45}\label{classLocalPRG_a0c3ca6e8a8568a7bb2d8f5860d29aa45}} 
+\hyperlink{classLocalGraph}{Local\+Graph} {\bfseries prg}
+\item 
+\mbox{\Hypertarget{classLocalPRG_aef3aece10be2745d990a37913011f5a9}\label{classLocalPRG_aef3aece10be2745d990a37913011f5a9}} 
+\hyperlink{classKmerGraph}{Kmer\+Graph} {\bfseries kmer\+\_\+prg}
+\item 
+\mbox{\Hypertarget{classLocalPRG_a276b54851100a10b334306856bfb230d}\label{classLocalPRG_a276b54851100a10b334306856bfb230d}} 
+std\+::vector$<$ uint32\+\_\+t $>$ {\bfseries num\+\_\+hits}
+\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classLocalPRG_a8f0ba3182680e495c26f00482617b684}\label{classLocalPRG_a8f0ba3182680e495c26f00482617b684}} 
+std\+::ostream \& {\bfseries operator$<$$<$} (std\+::ostream \&out, const \hyperlink{classLocalPRG}{Local\+P\+RG} \&data)
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/local\+P\+R\+G.\+h\item 
+src/local\+P\+R\+G.\+cpp\end{DoxyCompactItemize}

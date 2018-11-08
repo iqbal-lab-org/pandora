@@ -4,8 +4,6 @@
 #include "minirecord.h"
 
 
-using namespace std;
-
 MiniRecord::MiniRecord() {};
 
 MiniRecord::MiniRecord(const uint32_t p, const Path q, const uint32_t n, const bool c) : prg_id(p), path(q),

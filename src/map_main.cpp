@@ -31,7 +31,7 @@
 
 using std::set;
 using std::vector;
-using namespace std;
+
 namespace fs = boost::filesystem;
 
 static void show_map_usage() {
@@ -225,33 +225,27 @@ int pandora_map(int argc, char *argv[]) {
         fs::create_directories(outdir + "/kmer_graphs");
 
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
-    Index *idx;
-    idx = new Index();
-    idx->load(prgfile, w, k);
+    auto index = std::make_shared<Index>();
+    index->load(prgfile, w, k);
     std::vector<std::shared_ptr<LocalPRG>> prgs;
     read_prg_file(prgs, prgfile);
     load_PRG_kmergraphs(prgs, w, k, prgfile);
 
     cout << now() << "Constructing pangenome::Graph from read file (this will take a while)" << endl;
-    MinimizerHits *mhs;
-    mhs = new MinimizerHits(100000);
-    pangenome::Graph *pangraph;
-    pangraph = new pangenome::Graph();
-    uint32_t covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate,
+    auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits(100000));
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
+    uint32_t covg = pangraph_from_read_file(readfile, minimizer_hits, pangraph, index, prgs, w, k, max_diff, e_rate,
                                             min_cluster_size, genome_size, illumina, clean, max_covg);
 
     cout << now() << "Finished with index, so clear " << endl;
-    idx->clear();
-    delete idx;
+    index->clear();
 
     cout << now() << "Finished with minihits, so clear " << endl;
-    mhs->clear();
-    delete mhs;
+    minimizer_hits->clear();
 
-    if (pangraph->nodes.empty()){
+    if (pangraph->nodes.empty()) {
         cout << "Found non of the LocalPRGs in the reads." << endl;
         cout << "FINISH: " << now() << endl;
-        delete pangraph;
         return 0;
     }
 
@@ -311,11 +305,10 @@ int pandora_map(int argc, char *argv[]) {
     consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
     master_vcf.save(outdir + "/pandora_consensus.vcf", true, true, true, true, true, true, true);
 
-    if (pangraph->nodes.empty()){
+    if (pangraph->nodes.empty()) {
         cout << "All nodes which were found have been removed during cleaning. Is your genome_size accurate?"
              << " Genome size is assumed to be " << genome_size << " and can be updated with --genome_size" << endl
              << "FINISH: " << now() << endl;
-        delete pangraph;
         return 0;
     }
 
@@ -338,7 +331,6 @@ int pandora_map(int argc, char *argv[]) {
         pangraph->save_mapped_read_strings(readfile, outdir);
 
     pangraph->clear();
-    delete pangraph;
 
     cout << "FINISH: " << now() << endl;
     return 0;

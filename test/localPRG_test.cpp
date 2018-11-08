@@ -515,129 +515,126 @@ TEST(LocalPRGTest, minimizer_sketch) {
     LocalPRG l5(5, "one with lots of null at start and end, and a long stretch in between",
                 " 5  7  9  11 AGTTCTGAAACATTGCGCGTGAGATCTCTG 12 T 11  10 A 9  8 C 7  6 G 5 ");
 
-    Index *idx;
-    idx = new Index();
-
+    auto index = std::make_shared<Index>();
     KmerHash hash;
 
-    l0.minimizer_sketch(idx, 1, 3);
+    l0.minimizer_sketch(index, 1, 3);
     uint32_t j = 0;
-    EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, index->minhash.size());
 
-    l1.minimizer_sketch(idx, 2, 3);
+    l1.minimizer_sketch(index, 2, 3);
     j = 1;
-    EXPECT_EQ(j, idx->minhash.size());
-    l1.minimizer_sketch(idx, 1, 3);
-    EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, index->minhash.size());
+    l1.minimizer_sketch(index, 1, 3);
+    EXPECT_EQ(j, index->minhash.size());
     j = 2;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("AGC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
 
-    idx->clear();
-    l2.minimizer_sketch(idx, 2, 3);
+    index->clear();
+    l2.minimizer_sketch(index, 2, 3);
     j = 1;
-    EXPECT_EQ(j, idx->minhash.size());
-    l2.minimizer_sketch(idx, 1, 3);
+    EXPECT_EQ(j, index->minhash.size());
+    l2.minimizer_sketch(index, 1, 3);
     j = 2;
-    EXPECT_EQ(j, idx->minhash.size());
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash.size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 1;
     kh = hash.kmerhash("AGT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
 
-    idx->clear();
-    l3.minimizer_sketch(idx, 2, 3);
+    index->clear();
+    l3.minimizer_sketch(index, 2, 3);
     j = 2;
-    EXPECT_EQ(j, idx->minhash.size());
-    l3.minimizer_sketch(idx, 1, 3);
+    EXPECT_EQ(j, index->minhash.size());
+    l3.minimizer_sketch(index, 1, 3);
     j = 3;
-    EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, index->minhash.size());
     j = 2;
     kh = hash.kmerhash("AGC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size()); //AGC
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size()); //AGC
     kh = hash.kmerhash("AGT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size()); //AGTx2
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size()); //AGTx2
     j = 1;
     kh = hash.kmerhash("GTT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
 
-    idx->clear();
-    l4.minimizer_sketch(idx, 1, 3);
+    index->clear();
+    l4.minimizer_sketch(index, 1, 3);
     j = 16;
-    EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, index->minhash.size());
     j = 5;
     kh = hash.kmerhash("TCA", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 4;
     kh = hash.kmerhash("CTA", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 3;
     kh = hash.kmerhash("ACT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("CAA", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("AAG", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("TCT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("AGC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 2;
     kh = hash.kmerhash("TTC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("CAC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("CTC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 1;
     kh = hash.kmerhash("CAT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("ATT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("GTC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("GTT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("TGT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("CTG", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
 
-    idx->clear();
-    l4.minimizer_sketch(idx, 3, 3);
+    index->clear();
+    l4.minimizer_sketch(index, 3, 3);
     j = 10;
-    EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, index->minhash.size());
     j = 4;
     kh = hash.kmerhash("CTA", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 3;
     kh = hash.kmerhash("CTT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 2;
     kh = hash.kmerhash("CAC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 1;
     kh = hash.kmerhash("ATT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("ACT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("TCA", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("AAC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("GTC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("GAG", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("CTG", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
 
-    idx->clear();
-    l5.minimizer_sketch(idx, 4, 5);
-    EXPECT_EQ((idx->minhash.size() > 2), true);
+    index->clear();
+    l5.minimizer_sketch(index, 4, 5);
+    EXPECT_EQ((index->minhash.size() > 2), true);
 
-    idx->clear();
-    delete idx;
+    index->clear();
 }
 
 struct MiniPos {
@@ -647,19 +644,18 @@ struct MiniPos {
 };
 
 TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw1) {
-    string st = "ATGGCAATCCGAATCTTCGCGATACTTTTCTCCATTTTTTCTCTTGCCACTTTCGCGCATGCGCAAGAAGGCACGCTAGAACGTTCTGACTGGAGGAAGTTTTTCAGCGAATTTCAAGCCAAAGGCACGATAGTTGTGGCAGACGAACGCCAAGCGGATCGTGCCATGTTGGTTTTTGATCCTGTGCGATCGAAGAAACGCTACTCGCCTGCATCGACATTCAAGATACCTCATACACTTTTTGCACTTGATGCAGGCGCTGTTCGTGATGAGTTCCAGATTTTTCGATGGGACGGCGTTAACAGGGGCTTTGCAGGCCACAATCAAGACCAAGATTTGCGATCAGCAATGCGGAATTCTACTGTTTGGGTGTATGAGCTATTTGCAAAGGAAATTGGTGATGACAAAGCTCGGCGCTATTTGAAGAAAATCGACTATGGCAACGCCGATCCTTCGACAAGTAATGGCGATTACTGTATAGAAGGCAGCCTTGCAATCTCGGCGCAGGAGCAAATTGCATTTCTCAGGAAGCTCTATCGTAACGAGCTGCCCTTTCGGGTAGAACATCAGCGCTTGGTCAAGGATCTCATGATTGTGGAAGCCGGTCGCAACTGGATACTGCGTGCAAAGACGGGCTGGGAAGGCCGTATGGGTTGGTGGGTAGGATGGGTTGAGTGGCCGACTGGCTCCGTATTCTTCGCACTGAATATTGATACGCCAAACAGAATGGATGATCTTTTCAAGAGGGAGGCAATCGTGCGGGCAATCCTT";
+    std::string st = "ATGGCAATCCGAATCTTCGCGATACTTTTCTCCATTTTTTCTCTTGCCACTTTCGCGCATGCGCAAGAAGGCACGCTAGAACGTTCTGACTGGAGGAAGTTTTTCAGCGAATTTCAAGCCAAAGGCACGATAGTTGTGGCAGACGAACGCCAAGCGGATCGTGCCATGTTGGTTTTTGATCCTGTGCGATCGAAGAAACGCTACTCGCCTGCATCGACATTCAAGATACCTCATACACTTTTTGCACTTGATGCAGGCGCTGTTCGTGATGAGTTCCAGATTTTTCGATGGGACGGCGTTAACAGGGGCTTTGCAGGCCACAATCAAGACCAAGATTTGCGATCAGCAATGCGGAATTCTACTGTTTGGGTGTATGAGCTATTTGCAAAGGAAATTGGTGATGACAAAGCTCGGCGCTATTTGAAGAAAATCGACTATGGCAACGCCGATCCTTCGACAAGTAATGGCGATTACTGTATAGAAGGCAGCCTTGCAATCTCGGCGCAGGAGCAAATTGCATTTCTCAGGAAGCTCTATCGTAACGAGCTGCCCTTTCGGGTAGAACATCAGCGCTTGGTCAAGGATCTCATGATTGTGGAAGCCGGTCGCAACTGGATACTGCGTGCAAAGACGGGCTGGGAAGGCCGTATGGGTTGGTGGGTAGGATGGGTTGAGTGGCCGACTGGCTCCGTATTCTTCGCACTGAATATTGATACGCCAAACAGAATGGATGATCTTTTCAAGAGGGAGGCAATCGTGCGGGCAATCCTT";
 
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
     LocalPRG l(0, "prg", st);
-    l.minimizer_sketch(idx, 1, 15);
+    l.minimizer_sketch(index, 1, 15);
 
     Seq s = Seq(0, "read", st, 1, 15);
 
     //cout << l.kmer_prg.nodes.size() << " " << s.sketch.size() << endl;
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
-    set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
+    std::set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
     l.kmer_prg.sort_topologically();
     vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
@@ -673,10 +669,9 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw1) {
 TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw5) {
     string st = "ATGGCAATCCGAATCTTCGCGATACTTTTCTCCATTTTTTCTCTTGCCACTTTCGCGCATGCGCAAGAAGGCACGCTAGAACGTTCTGACTGGAGGAAGTTTTTCAGCGAATTTCAAGCCAAAGGCACGATAGTTGTGGCAGACGAACGCCAAGCGGATCGTGCCATGTTGGTTTTTGATCCTGTGCGATCGAAGAAACGCTACTCGCCTGCATCGACATTCAAGATACCTCATACACTTTTTGCACTTGATGCAGGCGCTGTTCGTGATGAGTTCCAGATTTTTCGATGGGACGGCGTTAACAGGGGCTTTGCAGGCCACAATCAAGACCAAGATTTGCGATCAGCAATGCGGAATTCTACTGTTTGGGTGTATGAGCTATTTGCAAAGGAAATTGGTGATGACAAAGCTCGGCGCTATTTGAAGAAAATCGACTATGGCAACGCCGATCCTTCGACAAGTAATGGCGATTACTGTATAGAAGGCAGCCTTGCAATCTCGGCGCAGGAGCAAATTGCATTTCTCAGGAAGCTCTATCGTAACGAGCTGCCCTTTCGGGTAGAACATCAGCGCTTGGTCAAGGATCTCATGATTGTGGAAGCCGGTCGCAACTGGATACTGCGTGCAAAGACGGGCTGGGAAGGCCGTATGGGTTGGTGGGTAGGATGGGTTGAGTGGCCGACTGGCTCCGTATTCTTCGCACTGAATATTGATACGCCAAACAGAATGGATGATCTTTTCAAGAGGGAGGCAATCGTGCGGGCAATCCTT";
 
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
     LocalPRG l(0, "prg", st);
-    l.minimizer_sketch(idx, 5, 15);
+    l.minimizer_sketch(index, 5, 15);
 
     Seq s = Seq(0, "read", st, 5, 15);
 
@@ -697,10 +692,9 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw5) {
 TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw10) {
     string st = "ATGGCAATCCGAATCTTCGCGATACTTTTCTCCATTTTTTCTCTTGCCACTTTCGCGCATGCGCAAGAAGGCACGCTAGAACGTTCTGACTGGAGGAAGTTTTTCAGCGAATTTCAAGCCAAAGGCACGATAGTTGTGGCAGACGAACGCCAAGCGGATCGTGCCATGTTGGTTTTTGATCCTGTGCGATCGAAGAAACGCTACTCGCCTGCATCGACATTCAAGATACCTCATACACTTTTTGCACTTGATGCAGGCGCTGTTCGTGATGAGTTCCAGATTTTTCGATGGGACGGCGTTAACAGGGGCTTTGCAGGCCACAATCAAGACCAAGATTTGCGATCAGCAATGCGGAATTCTACTGTTTGGGTGTATGAGCTATTTGCAAAGGAAATTGGTGATGACAAAGCTCGGCGCTATTTGAAGAAAATCGACTATGGCAACGCCGATCCTTCGACAAGTAATGGCGATTACTGTATAGAAGGCAGCCTTGCAATCTCGGCGCAGGAGCAAATTGCATTTCTCAGGAAGCTCTATCGTAACGAGCTGCCCTTTCGGGTAGAACATCAGCGCTTGGTCAAGGATCTCATGATTGTGGAAGCCGGTCGCAACTGGATACTGCGTGCAAAGACGGGCTGGGAAGGCCGTATGGGTTGGTGGGTAGGATGGGTTGAGTGGCCGACTGGCTCCGTATTCTTCGCACTGAATATTGATACGCCAAACAGAATGGATGATCTTTTCAAGAGGGAGGCAATCGTGCGGGCAATCCTT";
 
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
     LocalPRG l(0, "prg", st);
-    l.minimizer_sketch(idx, 10, 15);
+    l.minimizer_sketch(index, 10, 15);
 
     Seq s = Seq(0, "read", st, 10, 15);
 
@@ -721,10 +715,9 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw10) {
 TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw15) {
     string st = "ATGGCAATCCGAATCTTCGCGATACTTTTCTCCATTTTTTCTCTTGCCACTTTCGCGCATGCGCAAGAAGGCACGCTAGAACGTTCTGACTGGAGGAAGTTTTTCAGCGAATTTCAAGCCAAAGGCACGATAGTTGTGGCAGACGAACGCCAAGCGGATCGTGCCATGTTGGTTTTTGATCCTGTGCGATCGAAGAAACGCTACTCGCCTGCATCGACATTCAAGATACCTCATACACTTTTTGCACTTGATGCAGGCGCTGTTCGTGATGAGTTCCAGATTTTTCGATGGGACGGCGTTAACAGGGGCTTTGCAGGCCACAATCAAGACCAAGATTTGCGATCAGCAATGCGGAATTCTACTGTTTGGGTGTATGAGCTATTTGCAAAGGAAATTGGTGATGACAAAGCTCGGCGCTATTTGAAGAAAATCGACTATGGCAACGCCGATCCTTCGACAAGTAATGGCGATTACTGTATAGAAGGCAGCCTTGCAATCTCGGCGCAGGAGCAAATTGCATTTCTCAGGAAGCTCTATCGTAACGAGCTGCCCTTTCGGGTAGAACATCAGCGCTTGGTCAAGGATCTCATGATTGTGGAAGCCGGTCGCAACTGGATACTGCGTGCAAAGACGGGCTGGGAAGGCCGTATGGGTTGGTGGGTAGGATGGGTTGAGTGGCCGACTGGCTCCGTATTCTTCGCACTGAATATTGATACGCCAAACAGAATGGATGATCTTTTCAAGAGGGAGGCAATCGTGCGGGCAATCCTT";
 
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
     LocalPRG l(0, "prg", st);
-    l.minimizer_sketch(idx, 15, 15);
+    l.minimizer_sketch(index, 15, 15);
 
     Seq s = Seq(0, "read", st, 15, 15);
 
@@ -746,12 +739,11 @@ TEST(LocalPRGTest, localnode_path_from_kmernode_path) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
     LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
 
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
 
     KmerHash hash;
 
-    l3.minimizer_sketch(idx, 2, 3);
+    l3.minimizer_sketch(index, 2, 3);
     //vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0], l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp);
@@ -761,8 +753,8 @@ TEST(LocalPRGTest, localnode_path_from_kmernode_path) {
     lmp = l3.localnode_path_from_kmernode_path(kmp, 2);
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, lmp_exp, lmp);
 
-    idx->clear();
-    l4.minimizer_sketch(idx, 3, 3);
+    index->clear();
+    l4.minimizer_sketch(index, 3, 3);
     //kmp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[1], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[7], l4.kmer_prg.nodes[9], l4.kmer_prg.nodes[11], l4.kmer_prg.nodes[13]};
     kmp = {l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[7]};
     lmp = l4.localnode_path_from_kmernode_path(kmp, 2);
@@ -770,8 +762,6 @@ TEST(LocalPRGTest, localnode_path_from_kmernode_path) {
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, lmp_exp, lmp);
     lmp = l4.localnode_path_from_kmernode_path(kmp, 3);
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, lmp_exp, lmp);
-
-    delete idx;
 }
 
 TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
@@ -779,12 +769,10 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
     LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
     LocalPRG l5(5, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
 
-    Index *idx;
-    idx = new Index();
-
+    auto index = std::make_shared<Index>();
     KmerHash hash;
 
-    l3.minimizer_sketch(idx, 2, 3);
+    l3.minimizer_sketch(index, 2, 3);
     l3.kmer_prg.sort_topologically();
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
 
@@ -796,8 +784,8 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
     sort(kmp_exp.begin(), kmp_exp.end());
     EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, kmp_exp, kmp);
 
-    idx->clear();
-    l4.minimizer_sketch(idx, 3, 3);
+    index->clear();
+    l4.minimizer_sketch(index, 3, 3);
     l4.kmer_prg.sort_topologically();
     lmp = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6]};
 
@@ -810,8 +798,8 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
     EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, kmp_exp, kmp);
 
     // case where we don't have start and end point in localpath, so need to consider whether kmer overlaps
-    idx->clear();
-    l5.minimizer_sketch(idx, 2, 3);
+    index->clear();
+    l5.minimizer_sketch(index, 2, 3);
     l5.kmer_prg.sort_topologically();
     lmp = {l5.prg.nodes[1], l5.prg.nodes[2], l5.prg.nodes[4], l5.prg.nodes[6], l5.prg.nodes[7]};
 
@@ -825,20 +813,16 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
     sort(kmp_exp.begin(), kmp_exp.end());
 
     EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, kmp_exp, kmp);
-
-    delete idx;
 }
 
 TEST(LocalPRGTest, get_covgs_along_localnode_path) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
     LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
 
-    Index *idx;
-    idx = new Index();
-
+    auto index = std::make_shared<Index>();
     KmerHash hash;
 
-    l3.minimizer_sketch(idx, 2, 3);
+    l3.minimizer_sketch(index, 2, 3);
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp, 2);
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3, 3, "3"));
@@ -850,8 +834,8 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path) {
     vector<uint> covgs_exp = {0, 1, 1, 1};
     EXPECT_ITERABLE_EQ(vector<uint>, covgs_exp, covgs);
 
-    idx->clear();
-    l4.minimizer_sketch(idx, 1, 3);
+    index->clear();
+    l4.minimizer_sketch(index, 1, 3);
     kmp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[1], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[5], l4.kmer_prg.nodes[7],
            l4.kmer_prg.nodes[9], l4.kmer_prg.nodes[12], l4.kmer_prg.nodes[15], l4.kmer_prg.nodes[18],
            l4.kmer_prg.nodes[21], l4.kmer_prg.nodes[23], l4.kmer_prg.nodes[25], l4.kmer_prg.nodes[27],
@@ -876,20 +860,16 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path) {
     covgs_exp = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0};
 
     EXPECT_ITERABLE_EQ(vector<uint>, covgs_exp, covgs);
-
-    delete idx;
 }
 
 
 TEST(LocalPRGTest, write_covgs_to_file) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
 
-    Index *idx;
-    idx = new Index();
-
+    auto index = std::make_shared<Index>();
     KmerHash hash;
 
-    l3.minimizer_sketch(idx, 2, 3);
+    l3.minimizer_sketch(index, 2, 3);
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp, 2);
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3, 3, "3"));
@@ -902,50 +882,40 @@ TEST(LocalPRGTest, write_covgs_to_file) {
     EXPECT_ITERABLE_EQ(vector<uint>, covgs_exp, covgs);
 
     l3.write_covgs_to_file("localPRG_test.covgs", covgs);
-
-    delete idx;
 }
 
 TEST(LocalPRGTest, write_path_to_fasta) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
-    Index *idx;
-    idx = new Index();
-
-    l3.minimizer_sketch(idx, 1, 3);
+    auto index = std::make_shared<Index>();
+    l3.minimizer_sketch(index, 1, 3);
 
     vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
     l3.write_path_to_fasta("localPRG_test.maxpath.fa", lmp3, 0.00);
-
-    delete idx;
 }
 
 TEST(LocalPRGTest, append_path_to_fasta) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
-    Index *idx;
-    idx = new Index();
-
-    l3.minimizer_sketch(idx, 1, 3);
+    auto index = std::make_shared<Index>();
+    l3.minimizer_sketch(index, 1, 3);
 
     vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
     l3.append_path_to_fasta("localPRG_test.maxpath.fa", lmp3, 0.00);
 
-    delete idx;
+
 }
 
 TEST(LocalPRGTest, write_aligned_path_to_fasta) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
-    Index *idx;
-    idx = new Index();
-
-    l3.minimizer_sketch(idx, 1, 3);
+    auto index = std::make_shared<Index>();
+    l3.minimizer_sketch(index, 1, 3);
 
     vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
     l3.write_aligned_path_to_fasta("localPRG_test.alignedpath.fa", lmp3, 0.00);
 
-    delete idx;
+
 }
 
 TEST(LocalPRGTest, build_vcf) {
@@ -1296,11 +1266,9 @@ TEST(LocalPRGTest, find_alt_path) {
 }
 
 TEST(LocalPRGTest, append_kmer_covgs_in_range) {
-    Index *idx;
-    idx = new Index();
-
+    auto index = std::make_shared<Index>();
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-    l3.minimizer_sketch(idx, 1, 3);
+    l3.minimizer_sketch(index, 1, 3);
 
     l3.kmer_prg.nodes[2]->covg[0] = 4;
     l3.kmer_prg.nodes[2]->covg[1] = 3;
@@ -1357,15 +1325,14 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range) {
 }
 
 TEST(LocalPRGTest, add_sample_covgs_to_vcf) {
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
     vector<string> short_formats = {"GT"};
     vector<string> formats = {"GT", "MEAN_FWD_COVG", "MEAN_REV_COVG",
                               "MED_FWD_COVG", "MED_REV_COVG",
                               "SUM_FWD_COVG", "SUM_REV_COVG"};
 
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-    l3.minimizer_sketch(idx, 1, 3);
+    l3.minimizer_sketch(index, 1, 3);
     l3.kmer_prg.sort_topologically();
 
     VCF vcf;
@@ -1430,16 +1397,13 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf) {
     EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["SUM_REV_COVG"][0]);
     EXPECT_EQ((uint8_t) 15, vcf.records[1].samples[0]["SUM_FWD_COVG"][1]);
     EXPECT_EQ((uint8_t) 18, vcf.records[1].samples[0]["SUM_REV_COVG"][1]);
-
-    delete idx;
 }
 
 TEST(LocalPRGTest, add_consensus_path_to_fastaq_bin) {
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
 
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-    l3.minimizer_sketch(idx, 1, 3);
+    l3.minimizer_sketch(index, 1, 3);
 
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3, 3, "three"));
     pn3->kmer_prg = l3.kmer_prg;
@@ -1477,11 +1441,10 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_bin) {
 }
 
 TEST(LocalPRGTest, add_consensus_path_to_fastaq_nbin) {
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
 
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-    l3.minimizer_sketch(idx, 1, 3);
+    l3.minimizer_sketch(index, 1, 3);
 
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3, 3, "three"));
     pn3->kmer_prg = l3.kmer_prg;
