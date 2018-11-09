@@ -122,15 +122,15 @@ void get_paths_between_util(const std::string &start_kmer, const std::string &en
         }
     }
 
-    auto &child_nodes = tree[start_kmer];
-    auto num_children = child_nodes.size();
-
     path_accumulator.push_back(start_kmer.back());
 
     // makes sure we get all possible cycle repitions up to the maximum length
     if (has_ending(path_accumulator, end_kmer)) {
         full_paths.push_back(path_accumulator);
     }
+
+    auto &child_nodes = tree[start_kmer];
+    auto num_children = child_nodes.size();
 
     for (unsigned int i = 0; i < num_children; ++i) {
         auto kmer = graph.toString(child_nodes[i]);
