@@ -81,8 +81,21 @@ Paths get_paths_between(const std::string &start_kmer, const std::string &end_km
     std::string initial_acc = start_kmer.substr(0, start_kmer.length() - 1);
 
     Paths result = {};
-    get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree,
-                           result, max_path_length, expected_coverage);
+    uint8_t i{1};
+
+    do {
+        // todo: would it be quicket to set result to equal {}?
+        result.clear();
+        float covg_scaling_factor = i * g_covg_scaling_factor;
+        if (covg_scaling_factor > 1.0) {
+            BOOST_LOG_TRIVIAL(debug) << "Abandoning local assembly for slice as too many paths.";
+            break;
+        }
+        get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree, result, max_path_length,
+                               expected_coverage, covg_scaling_factor);
+        i++;
+    } while (result.size() > g_max_num_paths);
+
     BOOST_LOG_TRIVIAL(debug) << "Path enumeration complete. There were " << std::to_string(result.size())
                              << " paths found.";
     return result;
@@ -92,26 +105,21 @@ Paths get_paths_between(const std::string &start_kmer, const std::string &end_km
 void get_paths_between_util(const std::string &start_kmer, const std::string &end_kmer, std::string path_accumulator,
                             const Graph &graph, std::unordered_map<string, GraphVector<Node>> &tree, Paths &full_paths,
                             const uint32_t &max_path_length, const double &expected_kmer_covg,
-                            uint32_t kmers_below_threshold) {
+                            const float &covg_scaling_factor, uint32_t kmers_below_threshold) {
+    if (path_accumulator.length() > max_path_length or full_paths.size() > g_max_num_paths) {
+        return;
+    }
     // gather information on kmer coverages
     auto start_node{graph.buildNode(start_kmer.c_str())};
     const auto kmer_coverage{graph.queryAbundance(start_node)};
 
     // do coverage check
     // if there are k k-mers with coverage <= expected_covg * coverage scaling factor - stop recursing for this path
-    // todo: revisit this scaling with zam
     if (kmer_coverage < (expected_kmer_covg * g_covg_scaling_factor)) {
         kmers_below_threshold++;
         if (kmers_below_threshold >= start_kmer.length()) {
             return;
         }
-    }
-
-    auto &child_nodes = tree[start_kmer];
-    auto num_children = child_nodes.size();
-
-    if (path_accumulator.length() > max_path_length) {
-        return;
     }
 
     path_accumulator.push_back(start_kmer.back());
@@ -121,10 +129,13 @@ void get_paths_between_util(const std::string &start_kmer, const std::string &en
         full_paths.push_back(path_accumulator);
     }
 
+    auto &child_nodes = tree[start_kmer];
+    auto num_children = child_nodes.size();
+
     for (unsigned int i = 0; i < num_children; ++i) {
         auto kmer = graph.toString(child_nodes[i]);
-        get_paths_between_util(kmer, end_kmer, path_accumulator, graph, tree,
-                               full_paths, max_path_length, expected_kmer_covg, kmers_below_threshold);
+        get_paths_between_util(kmer, end_kmer, path_accumulator, graph, tree, full_paths, max_path_length,
+                               expected_kmer_covg, covg_scaling_factor, kmers_below_threshold);
     }
 }
 
@@ -204,15 +215,8 @@ void local_assembly(const std::vector<std::string> &sequences, const std::vector
                 auto tree = DFS(start_node, graph);
                 auto result = get_paths_between(s_kmer, e_kmer, tree, graph, max_path_length, expected_coverage);
 
-                if (not result.empty() and result.size() < g_max_num_paths) {
+                if (not result.empty()) {
                     write_paths_to_fasta(out_path, result);
-                } else {
-                    if (result.empty()) {
-                        BOOST_LOG_TRIVIAL(debug) << "No paths found.";
-                    } else if (result.size() >= g_max_num_paths) {
-                        BOOST_LOG_TRIVIAL(debug) << "Too many paths found " << std::to_string(result.size())
-                                                 << ". Skipping slice.";
-                    }
                 }
 
                 remove_graph_file();

@@ -4,6 +4,7 @@
 #include "denovo_discovery/local_assembly.h"
 #include <cstdio>
 #include <unordered_set>
+#include <algorithm>
 
 
 const uint32_t g_test_kmer_size = 5;
@@ -339,11 +340,11 @@ TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
 
 
 TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
-    const std::string seq1{"ATGCAGTACAAGGATAC"};
-    const std::string seq2{"ATGCATTACAATGATAC"};
+    const std::string seq1{"TTGGTCATCCCATTATG"};
+    const std::string seq2{"TTGGTGATCCCGTTATG"};
     std::vector<std::string> seqs = {seq1, seq2};
-    const auto start_kmer{"ATGCA"};
-    const auto end_kmer{"GATAC"};
+    const auto start_kmer{"TTGGT"};
+    const auto end_kmer{"TTATG"};
 
     const Graph graph = Graph::create(
             new BankStrings(seqs),
@@ -358,25 +359,16 @@ TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     // add other expected paths due to variants
-    const std::vector<std::string> expected_seqs = {
+    std::vector<std::string> expected_seqs = {
             seq1, seq2,
-            "ATGCAGTACAATGATAC",
-            "ATGCATTACAAGGATAC"
+            "TTGGTGATCCCATTATG",
+            "TTGGTCATCCCGTTATG"
     };
 
-    int original_seq_found = 0;
-    for (auto &path: result) {
-        EXPECT_EQ(path.substr(0, g_test_kmer_size), start_kmer);
-        EXPECT_EQ(path.substr(path.length() - g_test_kmer_size, path.length()), end_kmer);
+    std::sort(result.begin(), result.end());
+    std::sort(expected_seqs.begin(), expected_seqs.end());
 
-        if (path.length() == seq1.length()) {
-            bool path_in_expected = std::find(expected_seqs.begin(), expected_seqs.end(), path) != expected_seqs.end();
-            if (path_in_expected) {
-                ++original_seq_found;
-            }
-        }
-    }
-    EXPECT_EQ(original_seq_found, expected_seqs.size());
+    EXPECT_EQ(result, expected_seqs);
     remove_graph_file();
 
 }

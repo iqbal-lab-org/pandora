@@ -29,7 +29,7 @@ const uint32_t g_local_assembly_kmer_size{11};
 const auto g_log_level{logging::trivial::debug};
 const float g_covg_scaling_factor{0.1};
 const uint32_t g_kmer_attempts_count{10};
-const uint32_t g_max_num_paths{500};
+const uint32_t g_max_num_paths{100};
 
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph);
 
@@ -46,8 +46,8 @@ Paths get_paths_between(const std::string &start_kmer, const std::string &end_km
 
 void get_paths_between_util(const std::string &node, const std::string &end_kmer, std::string path_accumulator,
                             const Graph &graph, std::unordered_map<string, GraphVector<Node>> &tree, Paths &full_paths,
-                            const uint32_t &max_path_length = g_max_length, const double &expected_kmer_covg = 1,
-                            uint32_t kmers_below_threshold = 0);
+                            const uint32_t &max_path_length, const double &expected_kmer_covg,
+                            const float &covg_scaling_factor = g_max_num_paths, uint32_t kmers_below_threshold = 0);
 
 
 void write_paths_to_fasta(const boost::filesystem::path &filepath,
