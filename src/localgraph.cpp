@@ -1,6 +1,9 @@
 #include <fstream>
 #include <cassert>
 #include <algorithm>
+
+#include <boost/log/trivial.hpp>
+
 #include "localgraph.h"
 #include "utils.h"
 
@@ -292,6 +295,9 @@ std::vector<LocalNodePtr> LocalGraph::nodes_along_string(const std::string &quer
             }
         }
         u = v;
+        // sanity check, we don't care enough about finding the path to have exploding vectors
+        if (u.size() > 10000)
+            u.erase(u.begin()+10000,u.end());
         v.clear();
     }
 
@@ -299,6 +305,7 @@ std::vector<LocalNodePtr> LocalGraph::nodes_along_string(const std::string &quer
         // found no successful path, so return an empty vector
         return npath;
     } else {
+        BOOST_LOG_TRIVIAL(debug) << "have " << w.size() << "candidates";
         // find the most exact match, the one which covers all sequence with minimal extra to end of graph, or longest
         auto longest_length = 0;
         std::vector<LocalNodePtr> longest_path;

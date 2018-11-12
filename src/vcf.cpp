@@ -210,6 +210,7 @@ bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const std::string
 
 void VCF::genotype(const uint32_t &expected_depth_covg, const float &error_rate, const uint8_t confidence_threshold,
                    bool snps_only) {
+    BOOST_LOG_TRIVIAL(info) << now() << "Genotype VCF";
     for (auto &vr : records) {
         if (not snps_only or (vr.ref.length() == 1 and !vr.alt.empty() and vr.alt[0].length() == 1)) {
             vr.likelihood(expected_depth_covg, error_rate);
@@ -218,6 +219,7 @@ void VCF::genotype(const uint32_t &expected_depth_covg, const float &error_rate,
         }
     }
     add_formats({"GT_CONF", "LIKELIHOOD"});
+    BOOST_LOG_TRIVIAL(info) << now() << "Make all genotypes compatible";
     make_gt_compatible();
 }
 
@@ -369,7 +371,10 @@ void VCF::merge_multi_allelic(uint32_t max_allele_length) {
 }
 
 void VCF::make_gt_compatible() {
+    uint record_count=0;
     for (auto &record : records) {
+        record_count++;
+        uint other_record_count=0;
         for (uint i = 0; i < record.samples.size(); ++i) {
             bool found_record = false;
             for (auto &other_record : records) {
@@ -378,6 +383,7 @@ void VCF::make_gt_compatible() {
                 else if (!found_record and other_record.chrom != record.chrom)
                     continue;
                 else if (other_record.chrom != record.chrom or other_record.pos > record.pos + record.ref.length()) {
+                    BOOST_LOG_TRIVIAL(debug) << now () << "compared record " << record_count << " with " << other_record_count << " other records";
                     break;
                 } else if (found_record
                            and other_record.pos <= record.pos + record.ref.length()
@@ -385,6 +391,7 @@ void VCF::make_gt_compatible() {
                            and other_record.samples[i].find("GT") != other_record.samples[i].end()
                            and record.samples[i]["GT"].size() > 0
                            and other_record.samples[i]["GT"].size() > 0) {
+                    other_record_count++;
                     //and record.samples[i]["GT"][0] > 0
                     //and other_record.samples[i]["GT"][0] > 0) {
                     if (record.samples[i]["GT"][0] == 0 and other_record.samples[i]["GT"][0] == 0)

@@ -102,6 +102,8 @@ public:
                                       const bool bin = false,
                                       const uint32_t global_covg = 1);
 
+    bool vcf_ref_is_good(const std::string &);
+
     void add_variants_to_vcf(VCF &,
                              PanNodePtr,
                              const std::string &,
