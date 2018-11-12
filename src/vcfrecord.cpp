@@ -224,6 +224,16 @@ void VCFRecord::genotype(const uint8_t confidence_threshold) {
     }
 }
 
+bool VCFRecord::contains_dot_allele() const {
+    if (ref == "." or ref == "")
+        return true;
+    for (const auto &a : alt){
+        if (a == "." or a == "")
+            return true;
+    }
+    return false;
+}
+
 bool VCFRecord::operator==(const VCFRecord &y) const {
     if (chrom != y.chrom) { return false; }
     if (pos != y.pos) { return false; }

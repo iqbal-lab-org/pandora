@@ -44,6 +44,8 @@ struct VCFRecord {
 
     void genotype(const uint8_t);
 
+    bool contains_dot_allele() const;
+
     bool operator==(const VCFRecord &y) const;
 
     bool operator!=(const VCFRecord &y) const;
