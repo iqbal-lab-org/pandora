@@ -461,36 +461,37 @@ TEST(hasEndingTest, endingLongerThanQuery_ReturnFalse) {
 
 
 TEST(FastaWriter, ReadsShorterThanLineWidth_OneReadPerLine) {
-    const auto filepath = "TEST.fa";
-    const auto header = ">path";
+    const fs::path filepath = "TEST.fa";
     unsigned long line_width = 90;
 
     Paths reads = {"ATGATGTTTTTTTTTTCGCATGCAT", "TGCATGCATGCACACACACACACAGCA"};
 
     write_paths_to_fasta(filepath, reads, line_width);
 
-    std::ifstream in_file(filepath);
+    fs::ifstream in_file(filepath);
 
     std::string line;
 
+    uint32_t path_counter = 1;
     for (auto &read: reads) {
         std::getline(in_file, line);
+        const std::string header = ">" + filepath.stem().string() + "_path" + std::to_string(path_counter);
         EXPECT_EQ(line, header);
 
         for (unsigned long i = 0; i < read.length(); i += line_width) {
             std::getline(in_file, line);
             EXPECT_EQ(line, read.substr(i, line_width));
         }
+        path_counter++;
     }
 
     EXPECT_TRUE(in_file.peek() == std::ifstream::traits_type::eof());
-    EXPECT_TRUE(std::remove(filepath) == 0);
+    EXPECT_TRUE(fs::remove(filepath));
 }
 
 
 TEST(FastaWriter, ReadsLongerThanLineWidth_ReadSpreadEvenlyOnLines) {
     const fs::path filepath{"TEST.fa"};
-    const auto header{">path"};
     uint32_t line_width{10};
 
     Paths reads = {"ATGATGTTTTTTTTTTCGCATGCAT", "TGCATGCATGCACACACACACACAGCA"};
@@ -501,14 +502,17 @@ TEST(FastaWriter, ReadsLongerThanLineWidth_ReadSpreadEvenlyOnLines) {
 
     std::string line;
 
+    uint32_t path_counter = 1;
     for (auto &read: reads) {
         std::getline(in_file, line);
+        const std::string header = ">" + filepath.stem().string() + "_path" + std::to_string(path_counter);
         EXPECT_EQ(line, header);
 
         for (unsigned long i = 0; i < read.length(); i += line_width) {
             std::getline(in_file, line);
             EXPECT_EQ(line, read.substr(i, line_width));
         }
+        path_counter++;
     }
 
     EXPECT_TRUE(in_file.peek() == fs::ifstream::traits_type::eof());

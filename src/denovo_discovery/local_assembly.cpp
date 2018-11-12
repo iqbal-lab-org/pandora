@@ -143,15 +143,17 @@ void get_paths_between_util(const std::string &start_kmer, const std::string &en
 void write_paths_to_fasta(const boost::filesystem::path &filepath,
                           const Paths &paths,
                           const uint32_t &line_width) {
-    const auto header = ">path";
+    const std::string header = ">" + filepath.stem().string();
     fs::ofstream out_file(filepath.string());
 
+    uint32_t path_counter = 1;
     for (const auto &path: paths) {
-        out_file << header << "\n";
+        out_file << header << "_path" << std::to_string(path_counter) << "\n";
 
         for (uint32_t i = 0; i < path.length(); i += line_width) {
             out_file << path.substr(i, line_width) << "\n";
         }
+        path_counter ++;
     }
 
     out_file.close();
