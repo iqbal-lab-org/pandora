@@ -811,6 +811,57 @@ TEST(VCFTest, merge_multi_allelic) {
     EXPECT_EQ((uint) 1, vcf.records[4].alt.size());
 }
 
+TEST(VCFTest, correct_dot_alleles) {
+    VCF vcf;
+    // at start
+    vcf.add_sample_gt("sample", "chrom1", 0, ".", "TA");
+    vcf.add_sample_gt("sample", "chrom2", 0, "T", ".");
+    // in middle
+    vcf.add_sample_gt("sample", "chrom1", 35, ".", "A");
+    vcf.add_sample_gt("sample", "chrom2", 35, "TA", ".");
+    // multiple alts
+    vcf.add_sample_gt("sample", "chrom1", 44, "TA", "T");
+    vcf.add_sample_gt("sample", "chrom1", 44, "TA", ".");
+    vcf.add_sample_gt("sample", "chrom2", 44, ".", "T");
+    vcf.add_sample_gt("sample", "chrom2", 44, ".", "TA");
+
+    string vcf_ref = "TATATGTGTC"
+            "GCGACACTGC"
+            "ATGCATGCAT"
+            "AGTCCTAAAG"
+            "TCCTTAAACG"
+            "TTTATAGTCG";
+
+    vcf.correct_dot_alleles(vcf_ref, "chrom1");
+    vcf.correct_dot_alleles(vcf_ref, "chrom2");
+
+    EXPECT_EQ(vcf.records[0].ref, "T");
+    EXPECT_EQ(vcf.records[1].ref, "C");
+    EXPECT_EQ(vcf.records[2].ref, "TTA");
+    EXPECT_EQ(vcf.records[3].ref, "TA");
+    EXPECT_EQ(vcf.records[4].ref, "TA");
+    EXPECT_EQ(vcf.records[5].ref, "CTA");
+    EXPECT_EQ(vcf.records[6].ref, "T");
+    EXPECT_EQ(vcf.records[7].ref, "T");
+
+    EXPECT_EQ(vcf.records[0].alt.size(), 1);
+    EXPECT_EQ(vcf.records[0].alt[0], "TAT");
+    EXPECT_EQ(vcf.records[1].alt.size(), 1);
+    EXPECT_EQ(vcf.records[1].alt[0], "CA");
+    EXPECT_EQ(vcf.records[2].alt.size(), 1);
+    EXPECT_EQ(vcf.records[2].alt[0], "T");
+    EXPECT_EQ(vcf.records[3].alt.size(), 1);
+    EXPECT_EQ(vcf.records[3].alt[0], "T");
+    EXPECT_EQ(vcf.records[4].alt.size(), 1);
+    EXPECT_EQ(vcf.records[4].alt[0], "A");
+    EXPECT_EQ(vcf.records[5].alt.size(), 1);
+    EXPECT_EQ(vcf.records[5].alt[0], "C");
+    EXPECT_EQ(vcf.records[6].alt.size(), 1);
+    EXPECT_EQ(vcf.records[6].alt[0], "TT");
+    EXPECT_EQ(vcf.records[7].alt.size(), 1);
+    EXPECT_EQ(vcf.records[7].alt[0], "TTA");
+}
+
 TEST(VCFTest, make_gt_compatible) {
     VCF vcf;
     // no gt

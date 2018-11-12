@@ -138,6 +138,11 @@ void Node::construct_multisample_vcf(VCF &master_vcf, const std::vector<LocalNod
         }
     }
     vcf.merge_multi_allelic();
+    BOOST_LOG_TRIVIAL(debug) << "After merging alleles:\n" << vcf;
+    std::cout << "After merging alleles:\n" << vcf << std::endl;
+    vcf.correct_dot_alleles(prg->string_along_path(vcf_reference_path), prg->name);
+    std::cout << "After fixing dot alleles:\n" << vcf << std::endl;
+    BOOST_LOG_TRIVIAL(debug) << "After fixing dot alleles:\n" << vcf;
     master_vcf.append_vcf(vcf);
 }
 

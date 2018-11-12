@@ -811,6 +811,7 @@ void LocalPRG::build_vcf(VCF &vcf, const std::vector<LocalNodePtr> &ref) const {
     std::vector<LocalNodePtr> bottompath;
     bottompath.reserve(100);
     uint32_t ref_i = 0;
+    auto ref_length = string_along_path(ref).length();
 
     std::deque<std::vector<LocalNodePtr>> paths;
 
@@ -902,6 +903,7 @@ void LocalPRG::build_vcf(VCF &vcf, const std::vector<LocalNodePtr> &ref) const {
             }
 
             // add sites to vcf
+            assert(pos + ref_seq.length() <= ref_length);
             for (auto &alt : alts) {
                 for (auto &j : alt) {
                     alt_seq += j->seq;
@@ -1433,6 +1435,7 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf,
     //vcf.sort_records();
     //std::cout << "append to master vcf" << std::endl;
     vcf.merge_multi_allelic();
+    vcf.correct_dot_alleles(string_along_path(reference_path), name);
     master_vcf.append_vcf(vcf);
 }
 

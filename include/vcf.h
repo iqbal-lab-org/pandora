@@ -49,6 +49,8 @@ public:
 
     void merge_multi_allelic(uint32_t max_allele_length = 10000);
 
+    void correct_dot_alleles(const std::string &, const std::string &);
+
     void make_gt_compatible();
 
     std::string header();

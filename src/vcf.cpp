@@ -369,6 +369,56 @@ void VCF::merge_multi_allelic(uint32_t max_allele_length) {
     sort_records();
 }
 
+void VCF::correct_dot_alleles(const std::string &vcf_ref, const std::string &chrom) {
+    //NB need to merge multiallelic before
+    //NB cannot add covgs after
+    auto vcf_size = records.size();
+    for (auto &record : records) {
+        if (record.chrom != chrom)
+            continue;
+        assert(vcf_ref.length() >= record.pos || assert_msg("vcf_ref.length() = " << vcf_ref.length() << "!>= record.pos "
+                                                                                 << record.pos << "\n" << record << "\n"
+                                                                                 << vcf_ref));
+        bool add_prev_letter = record.contains_dot_allele();
+
+        if (add_prev_letter and record.pos > 0) {
+            BOOST_LOG_TRIVIAL(debug) << record.pos;
+            auto prev_letter = vcf_ref[record.pos - 1];
+            BOOST_LOG_TRIVIAL(debug) << prev_letter;
+            if (record.ref == "" or record.ref == ".")
+                record.ref = prev_letter;
+            else
+                record.ref = prev_letter + record.ref;
+                record.pos -= 1;
+            for (auto &a : record.alt){
+                if(a == "" or a == ".")
+                    a = prev_letter;
+                else
+                    a = prev_letter + a;
+            }
+
+
+        } else if (add_prev_letter and record.pos + record.ref.length() + 1 < vcf_ref.length()) {
+            auto next_letter = vcf_ref[record.pos + record.ref.length()];
+            if (record.ref == "" or record.ref == ".") {
+                next_letter = vcf_ref[record.pos];
+                record.ref = next_letter;
+            } else
+                record.ref = record.ref + next_letter;
+            for (auto &a : record.alt)
+                if(a == "" or a == ".")
+                    a = next_letter;
+                else
+                    a = a + next_letter;
+        } else if (add_prev_letter) {
+            record.clear();
+        }
+    }
+    clean();
+    assert(records.size() <= vcf_size);
+    sort_records();
+}
+
 void VCF::make_gt_compatible() {
     uint record_count=0;
     for (auto &record : records) {
@@ -468,6 +518,9 @@ void VCF::save(const std::string &filepath, bool simple, bool complexgraph, bool
     sort_records();
 
     for (uint32_t i = 0; i != records.size(); ++i) {
+        if (records[i].contains_dot_allele())
+            continue;
+
         if (((!simple and !complexgraph) or
              (simple and records[i].info.find("GRAPHTYPE=SIMPLE") != std::string::npos) or
              (complexgraph and records[i].info.find("GRAPHTYPE=NESTED") != std::string::npos) or
