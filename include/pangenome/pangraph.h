@@ -61,8 +61,11 @@ public:
     void split_node_by_reads(std::unordered_set<ReadPtr> &, std::vector<uint_least32_t> &, const std::vector<bool> &,
                              const uint_least32_t);
 
+    void setup_kmergraphs(const std::vector<std::shared_ptr<LocalPRG>> &prgs,
+                          const uint64_t &total_number_samples = 1);
+
     //unordered_set<ReadPtr> find_reads_on_node_path(const std::vector<uint16_t>, const std::vector<bool> );
-    void add_hits_to_kmergraphs(const std::vector<std::shared_ptr<LocalPRG>> &);
+    void add_hits_to_kmergraphs(const std::vector<std::shared_ptr<LocalPRG>> &, const uint32_t &sample_id = 0);
 
     // graph comparison
     bool operator==(const Graph &y) const;
@@ -73,8 +76,6 @@ public:
     void save_matrix(const std::string &);
 
     void save_mapped_read_strings(const std::string &read_filepath, const std::string &outprefix, const int buff = 0);
-
-    void save_kmergraph_coverages(const std::string &, const std::string &);
 
     friend std::ostream &operator<<(std::ostream &out, const Graph &m);
 

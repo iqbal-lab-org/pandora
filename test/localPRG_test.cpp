@@ -828,9 +828,9 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path) {
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3, 3, "3"));
     pn3->kmer_prg = l3.kmer_prg;
     for (const auto &n : pn3->kmer_prg.nodes) {
-        n->covg[0] += 1;
+        n->increment_covg(0, 0);
     }
-    vector<uint> covgs = get_covgs_along_localnode_path(pn3, lmp, kmp);
+    vector<uint> covgs = get_covgs_along_localnode_path(pn3, lmp, kmp, 0);
     vector<uint> covgs_exp = {0, 1, 1, 1};
     EXPECT_ITERABLE_EQ(vector<uint>, covgs_exp, covgs);
 
@@ -844,9 +844,9 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path) {
     shared_ptr<pangenome::Node> pn4(make_shared<pangenome::Node>(4, 4, "4"));
     pn4->kmer_prg = l4.kmer_prg;
     for (const auto &n : pn4->kmer_prg.nodes) {
-        n->covg[0] += 1;
+        n->increment_covg(0, 0);
     }
-    covgs = get_covgs_along_localnode_path(pn4, lmp, kmp);
+    covgs = get_covgs_along_localnode_path(pn4, lmp, kmp, 0);
     //covgs_exp = {1,2,3,3,3,3,3,3,3,3,3,3,2,1};
     covgs_exp = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
@@ -855,7 +855,7 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path) {
     kmp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[5], l4.kmer_prg.nodes[12],
            l4.kmer_prg.nodes[15], l4.kmer_prg.nodes[18], l4.kmer_prg.nodes[25]};
     lmp = l4.localnode_path_from_kmernode_path(kmp, 2);
-    covgs = get_covgs_along_localnode_path(pn4, lmp, kmp);
+    covgs = get_covgs_along_localnode_path(pn4, lmp, kmp, 0);
     //covgs_exp = {0,1,2,2,1,1,2,3,2,1,1,1,1,0};
     covgs_exp = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0};
 
@@ -875,9 +875,9 @@ TEST(LocalPRGTest, write_covgs_to_file) {
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3, 3, "3"));
     pn3->kmer_prg = l3.kmer_prg;
     for (const auto &n : pn3->kmer_prg.nodes) {
-        n->covg[0] += 1;
+        n->increment_covg(0, 0);
     }
-    vector<uint> covgs = get_covgs_along_localnode_path(pn3, lmp, kmp);
+    vector<uint> covgs = get_covgs_along_localnode_path(pn3, lmp, kmp, 0);
     vector<uint> covgs_exp = {0, 1, 1, 1};
     EXPECT_ITERABLE_EQ(vector<uint>, covgs_exp, covgs);
 
@@ -1270,30 +1270,33 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
     l3.minimizer_sketch(index, 1, 3);
 
-    l3.kmer_prg.nodes[2]->covg[0] = 4;
-    l3.kmer_prg.nodes[2]->covg[1] = 3;
-    l3.kmer_prg.nodes[5]->covg[0] = 4;
-    l3.kmer_prg.nodes[5]->covg[1] = 5;
-    l3.kmer_prg.nodes[7]->covg[0] = 2;
-    l3.kmer_prg.nodes[7]->covg[1] = 3;
-    l3.kmer_prg.nodes[8]->covg[0] = 4;
-    l3.kmer_prg.nodes[8]->covg[1] = 6;
+    l3.kmer_prg.nodes[2]->set_covg(4, 0, 0);
+    l3.kmer_prg.nodes[2]->set_covg(3, 1, 0);
+    l3.kmer_prg.nodes[5]->set_covg(4, 0, 0);
+    l3.kmer_prg.nodes[5]->set_covg(5, 1, 0);
+    l3.kmer_prg.nodes[7]->set_covg(2, 0, 0);
+    l3.kmer_prg.nodes[7]->set_covg(3, 1, 0);
+    l3.kmer_prg.nodes[8]->set_covg(4, 0, 0);
+    l3.kmer_prg.nodes[8]->set_covg(6, 1, 0);
 
-    for (const auto &n : l3.kmer_prg.nodes) {
-        cout << *n;
-    }
     vector<LocalNodePtr> lmp = {};
-    vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0], l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[5], l3.kmer_prg.nodes[8],
-                               l3.kmer_prg.nodes[10], l3.kmer_prg.nodes[11]};
+    vector<KmerNodePtr> kmp = {
+            l3.kmer_prg.nodes[0],
+            l3.kmer_prg.nodes[2],
+            l3.kmer_prg.nodes[5],
+            l3.kmer_prg.nodes[8],
+            l3.kmer_prg.nodes[10],
+            l3.kmer_prg.nodes[11]
+    };
     vector<uint32_t> fwd, rev, exp_fwd, exp_rev;
 
-    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 0, fwd, rev);
-    exp_fwd = {};
-    exp_rev = {};
-    EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
-    EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_rev, rev);
+    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 0,
+                                  fwd, rev, 0);
+    EXPECT_TRUE(fwd.empty());
+    EXPECT_TRUE(rev.empty());
 
-    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 1, fwd, rev);
+    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 1,
+                                  fwd, rev, 0);
     exp_fwd = {4};
     exp_rev = {3};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
@@ -1301,7 +1304,8 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range) {
 
     fwd.clear();
     rev.clear();
-    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 2, fwd, rev);
+    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 2,
+                                  fwd, rev, 0);
     exp_fwd = {4, 4};
     exp_rev = {3, 5};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
@@ -1309,7 +1313,8 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range) {
 
     fwd.clear();
     rev.clear();
-    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 3, fwd, rev);
+    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 3,
+                                  fwd, rev, 0);
     exp_fwd = {4, 4, 4};
     exp_rev = {3, 5, 6};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
@@ -1317,7 +1322,8 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range) {
 
     fwd.clear();
     rev.clear();
-    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 1, 2, fwd, rev);
+    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 1, 2,
+                                  fwd, rev, 0);
     exp_fwd = {4, 4};
     exp_rev = {3, 5};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
@@ -1346,7 +1352,7 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf) {
     EXPECT_ITERABLE_EQ(vector<string>, short_formats, vcf.records[0].format);
     EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
 
-    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), "sample");
+    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), "sample", 0);
     EXPECT_EQ((uint) 1, vcf.samples.size());
     EXPECT_EQ((uint) 1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);
@@ -1365,22 +1371,22 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf) {
     EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["SUM_REV_COVG"][1]);
 
     // ref
-    l3.kmer_prg.nodes[1]->covg[0] = 1;
-    l3.kmer_prg.nodes[1]->covg[1] = 0;
-    l3.kmer_prg.nodes[4]->covg[0] = 1;
-    l3.kmer_prg.nodes[4]->covg[1] = 0;
-    l3.kmer_prg.nodes[7]->covg[0] = 1;
-    l3.kmer_prg.nodes[7]->covg[1] = 0;
+    l3.kmer_prg.nodes[1]->set_covg(1, 0, 0);
+    l3.kmer_prg.nodes[1]->set_covg(0, 1, 0);
+    l3.kmer_prg.nodes[4]->set_covg(1, 0, 0);
+    l3.kmer_prg.nodes[4]->set_covg(0, 1, 0);
+    l3.kmer_prg.nodes[7]->set_covg(1, 0, 0);
+    l3.kmer_prg.nodes[7]->set_covg(0, 1, 0);
 
     // alt
-    l3.kmer_prg.nodes[2]->covg[0] = 6;
-    l3.kmer_prg.nodes[2]->covg[1] = 8;
-    l3.kmer_prg.nodes[5]->covg[0] = 5;
-    l3.kmer_prg.nodes[5]->covg[1] = 5;
-    l3.kmer_prg.nodes[8]->covg[0] = 4;
-    l3.kmer_prg.nodes[8]->covg[1] = 5;
+    l3.kmer_prg.nodes[2]->set_covg(6, 0, 0);
+    l3.kmer_prg.nodes[2]->set_covg(8, 1, 0);
+    l3.kmer_prg.nodes[5]->set_covg(5, 0, 0);
+    l3.kmer_prg.nodes[5]->set_covg(5, 1, 0);
+    l3.kmer_prg.nodes[8]->set_covg(4, 0, 0);
+    l3.kmer_prg.nodes[8]->set_covg(5, 1, 0);
 
-    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), "sample");
+    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), "sample", 0);
     EXPECT_EQ((uint) 1, vcf.samples.size());
     EXPECT_EQ((uint) 1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);
@@ -1407,14 +1413,15 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_bin) {
 
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3, 3, "three"));
     pn3->kmer_prg = l3.kmer_prg;
-    pn3->kmer_prg.nodes[2]->covg[0] = 4;
-    pn3->kmer_prg.nodes[2]->covg[1] = 3;
-    pn3->kmer_prg.nodes[5]->covg[0] = 4;
-    pn3->kmer_prg.nodes[5]->covg[0] = 5;
-    pn3->kmer_prg.nodes[7]->covg[0] = 2;
-    pn3->kmer_prg.nodes[7]->covg[1] = 3;
-    pn3->kmer_prg.nodes[8]->covg[0] = 4;
-    pn3->kmer_prg.nodes[8]->covg[0] = 6;
+    pn3->kmer_prg.nodes[2]->set_covg(4, 0, 0);
+    pn3->kmer_prg.nodes[2]->set_covg(3, 1, 0);
+    pn3->kmer_prg.nodes[5]->set_covg(4, 0, 0);
+    pn3->kmer_prg.nodes[5]->set_covg(5, 0, 0);
+    pn3->kmer_prg.nodes[7]->set_covg(2, 0, 0);
+    pn3->kmer_prg.nodes[7]->set_covg(3, 1, 0);
+    pn3->kmer_prg.nodes[8]->set_covg(4, 0, 0);
+    pn3->kmer_prg.nodes[8]->set_covg(6, 0, 0);
+
     pn3->kmer_prg.num_reads = 6;
     pn3->kmer_prg.set_p(0.0001);
     shared_ptr<pangenome::Read> pr(make_shared<pangenome::Read>(0));
@@ -1424,7 +1431,7 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_bin) {
     vector<KmerNodePtr> kmp;
     vector<LocalNodePtr> lmp;
 
-    l3.add_consensus_path_to_fastaq(fq, pn3, kmp, lmp, 1, true, 8);
+    l3.add_consensus_path_to_fastaq(fq, pn3, kmp, lmp, 1, true, 8, 0);
     EXPECT_EQ("AGTTAT", l3.string_along_path(lmp));
     bool added_to_fq = find(fq.names.begin(), fq.names.end(), "three") != fq.names.end();
     EXPECT_TRUE(added_to_fq);
@@ -1448,14 +1455,14 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_nbin) {
 
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3, 3, "three"));
     pn3->kmer_prg = l3.kmer_prg;
-    pn3->kmer_prg.nodes[2]->covg[0] = 4;
-    pn3->kmer_prg.nodes[2]->covg[1] = 3;
-    pn3->kmer_prg.nodes[5]->covg[0] = 4;
-    pn3->kmer_prg.nodes[5]->covg[0] = 5;
-    pn3->kmer_prg.nodes[7]->covg[0] = 2;
-    pn3->kmer_prg.nodes[7]->covg[1] = 3;
-    pn3->kmer_prg.nodes[8]->covg[0] = 4;
-    pn3->kmer_prg.nodes[8]->covg[0] = 6;
+    pn3->kmer_prg.nodes[2]->set_covg(4, 0, 0);
+    pn3->kmer_prg.nodes[2]->set_covg(3, 1, 0);
+    // l3.kmer_prg.nodes[5]->set_covg(4, 0, 0);
+    pn3->kmer_prg.nodes[5]->set_covg(5, 0, 0);
+    pn3->kmer_prg.nodes[7]->set_covg(2, 0, 0);
+    pn3->kmer_prg.nodes[7]->set_covg(3, 1, 0);
+    // l3.kmer_prg.nodes[8]->set_covg(4, 0, 0);
+    pn3->kmer_prg.nodes[8]->set_covg(6, 0, 0);
     pn3->kmer_prg.num_reads = 6;
     pn3->kmer_prg.set_nb(0.05, 2.0);
     shared_ptr<pangenome::Read> pr(make_shared<pangenome::Read>(0));
@@ -1465,7 +1472,16 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_nbin) {
     vector<KmerNodePtr> kmp;
     vector<LocalNodePtr> lmp;
 
-    l3.add_consensus_path_to_fastaq(fq, pn3, kmp, lmp, 1, false, 8);
+    l3.add_consensus_path_to_fastaq(fq, pn3, kmp, lmp, 1, false, 8, 0);
+
+    EXPECT_NE(kmp.size(), 0);
+    std::vector<uint32_t> expected = {2, 5, 8, 10};
+    std::vector<uint32_t> result = {};
+    for (const auto &kmer_node_ptr: kmp)
+        result.push_back(kmer_node_ptr->id);
+
+    EXPECT_ITERABLE_EQ(std::vector<uint32_t>, expected , result);
+
     EXPECT_EQ("AGTTAT", l3.string_along_path(lmp));
     bool added_to_fq = find(fq.names.begin(), fq.names.end(), "three") != fq.names.end();
     EXPECT_TRUE(added_to_fq);

@@ -460,10 +460,3 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
 
     return covg;
 }
-
-void update_localPRGs_with_hits(std::shared_ptr<pangenome::Graph> pangraph,
-                                const std::vector<std::shared_ptr<LocalPRG>> &prgs) //, const uint32_t k, const float& e_rate, bool output_p_dist)
-{
-    pangraph->add_hits_to_kmergraphs(prgs);
-}
-

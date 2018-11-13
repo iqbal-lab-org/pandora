@@ -165,7 +165,9 @@ void Graph::add_node(const uint32_t prg_id, const std::string &prg_name, const s
     //cout << "sample " << sample_name  << " already existed " << endl;
     s->add_path(prg_id, kmp);
     n->samples.insert(s);
-    n->add_path(kmp);
+
+    uint32_t sample_id = 0;
+    n->add_path(kmp, sample_id);
 }
 
 // Remove the node n, and all references to it
@@ -327,40 +329,56 @@ void Graph::split_node_by_reads(std::unordered_set<ReadPtr> &reads_along_tig, st
     return reads_on_node_path;
 }*/
 
+
+void Graph::setup_kmergraphs(const std::vector<std::shared_ptr<LocalPRG>> &prgs,
+                             const uint64_t &total_number_samples) {
+    for (const auto &node_entries: this->nodes) {
+        Node &pangraph_node = *node_entries.second;
+
+        if (not pangraph_node.kmer_prg.nodes.empty())
+            continue;
+
+        pangraph_node.kmer_prg = prgs[pangraph_node.prg_id]->kmer_prg;
+        pangraph_node.kmer_prg.setup_coverages(total_number_samples);
+    }
+}
+
 // For each node in pangraph, make a copy of the kmergraph and use the hits
 // stored on each read containing the node to add coverage to this graph
-void Graph::add_hits_to_kmergraphs(const std::vector<std::shared_ptr<LocalPRG>> &prgs) {
-    uint32_t num_hits[2];
-    for (const auto &pnode : nodes) {
-        // copy kmergraph
-        pnode.second->kmer_prg = prgs[pnode.second->prg_id]->kmer_prg;
-        assert(pnode.second->kmer_prg == prgs[pnode.second->prg_id]->kmer_prg);
-        num_hits[0] = 0;
-        num_hits[1] = 0;
+void Graph::add_hits_to_kmergraphs(const std::vector<std::shared_ptr<LocalPRG>> &prgs,
+                                   const uint32_t &sample_id) {
+    for (const auto &node_entries: nodes) {
+        Node &pangraph_node = *node_entries.second;
+        assert(not pangraph_node.kmer_prg.nodes.empty());
+
+        uint32_t num_hits[2] = {0, 0};
 
         // add hits
-        for (const auto &read : pnode.second->reads) {
-            for (auto mh = read->hits[pnode.second->prg_id].begin();
-                 mh != read->hits[pnode.second->prg_id].end(); ++mh) {
-                //bool added = false;
-                // update the covg in the kmer_prg
-                //cout << "pnode " << pnode.second->prg_id << " knode " << (*mh)->knode_id << " strand " << (*mh)->strand << " updated from " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand];
-                assert((*mh)->knode_id < pnode.second->kmer_prg.nodes.size() and
-                       pnode.second->kmer_prg.nodes[(*mh)->knode_id] != nullptr);
-                pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] += 1;
-                if (pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] == 1000) {
-                    BOOST_LOG_TRIVIAL(debug) << "Adding hit " << **mh
+        for (const auto &read_ptr: pangraph_node.reads) {
+            const Read &read = *read_ptr;
+
+            for (const auto &minimizer_hit_ptr: read.hits.at(pangraph_node.prg_id)) {
+                const auto &minimizer_hit = *minimizer_hit_ptr;
+
+                assert(minimizer_hit.knode_id < pangraph_node.kmer_prg.nodes.size());
+                assert(pangraph_node.kmer_prg.nodes[minimizer_hit.knode_id] != nullptr);
+
+                auto &kmer_node = *pangraph_node.kmer_prg.nodes[minimizer_hit.knode_id];
+                kmer_node.increment_covg(minimizer_hit.strand, sample_id);
+
+                if (pangraph_node.kmer_prg.nodes[minimizer_hit.knode_id]->get_covg(minimizer_hit.strand, sample_id) == 1000) {
+                    BOOST_LOG_TRIVIAL(debug) << "Adding hit " << minimizer_hit
                                              << " resulted in high coverage on node "
-                                             << *pnode.second->kmer_prg.nodes[(*mh)->knode_id];
+                                             << *pangraph_node.kmer_prg.nodes[minimizer_hit.knode_id];
                 }
-                //cout << " to " << pnode.second->kmer_prg.nodes[(*mh)->knode_id]->covg[(*mh)->strand] << endl;
-                num_hits[(*mh)->strand] += 1;
+                num_hits[minimizer_hit.strand] += 1;
             }
         }
+
         BOOST_LOG_TRIVIAL(debug) << "Added " << num_hits[1] << " hits in the forward direction and "
                                  << num_hits[0]
                                  << " hits in the reverse";
-        pnode.second->kmer_prg.num_reads = pnode.second->covg;
+        pangraph_node.kmer_prg.num_reads = pangraph_node.covg;
     }
 }
 
@@ -463,25 +481,6 @@ void Graph::save_mapped_read_strings(const std::string &readfilepath, const std:
     }
 
     readfile.close();
-}
-
-void Graph::save_kmergraph_coverages(const std::string &outdir, const std::string &sample_name) {
-    BOOST_LOG_TRIVIAL(debug) << "Save kmergraph coverages for sample " << sample_name;
-    fs::create_directories(outdir + "/coverages");
-    for (const auto &n : nodes) {
-        std::string node_file = outdir + "/coverages/" + n.second->name + ".csv";
-        if (!boost::filesystem::exists(node_file)) {
-            std::ofstream handle;
-            handle.open(node_file);
-            assert (!handle.fail() or assert_msg("Could not open file " << node_file));
-            handle << "sample";
-            for (const auto &m : n.second->kmer_prg.nodes)
-                handle << "\t" << m->id;
-            handle << std::endl;
-            handle.close();
-        }
-        n.second->kmer_prg.append_coverages_to_file(node_file, sample_name);
-    }
 }
 
 std::ostream &pangenome::operator<<(std::ostream &out, const pangenome::Graph &m) {

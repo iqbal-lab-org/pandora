@@ -175,7 +175,9 @@ void estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
                          const std::string &outdir,
                          const uint32_t k,
                          float &e_rate,
-                         const uint32_t covg, const bool bin) {
+                         const uint32_t covg,
+                         const bool bin,
+                         const uint32_t &sample_id) {
     // ignore trivial case
     if (pangraph->nodes.empty()) {
         return;
@@ -198,7 +200,7 @@ void estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
         for (uint32_t i = 1;
              i != node.second->kmer_prg.nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
         {
-            c = node.second->kmer_prg.nodes[i]->covg[0] + node.second->kmer_prg.nodes[i]->covg[1];
+            c = node.second->kmer_prg.nodes[i]->get_covg(0, sample_id) + node.second->kmer_prg.nodes[i]->get_covg(1, sample_id);
             if (c < 1000) {
                 kmer_covg_dist[c] += 1;
             }
@@ -255,9 +257,9 @@ void estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
              i < node.second->kmer_prg.nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
         {
             if (bin)
-                p = node.second->kmer_prg.prob(i);
+                p = node.second->kmer_prg.prob(i, sample_id);
             else
-                p = node.second->kmer_prg.nb_prob(i);
+                p = node.second->kmer_prg.nb_prob(i, sample_id);
             //cout << i << " " << p << " because has covg " << node.second->kmer_prg.nodes[i]->covg[0] << ", " << node.second->kmer_prg.nodes[i]->covg[1] << endl;
             for (int j = 0; j < 200; ++j) {
                 if ((float) j - 200 <= p and (float) j + 1 - 200 > p) {

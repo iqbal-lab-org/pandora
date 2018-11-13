@@ -929,16 +929,21 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
     PanNodePtr pn = make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);
     pn->kmer_prg = l3.kmer_prg;
 
-    pn->kmer_prg.nodes[0]->covg[0] += 10;
-    pn->kmer_prg.nodes[1]->covg[0] += 1;
-    pn->kmer_prg.nodes[4]->covg[0] += 1;
-    pn->kmer_prg.nodes[8]->covg[0] += 1;
-    pn->kmer_prg.nodes[13]->covg[0] += 10;
-    pn->kmer_prg.nodes[15]->covg[0] += 1;
-    pn->kmer_prg.nodes[17]->covg[0] += 1;
-    pn->kmer_prg.nodes[19]->covg[0] += 1;
-    pn->kmer_prg.nodes[20]->covg[0] += 10;
-    pn->kmer_prg.nodes[21]->covg[0] += 10;
+    bool strand = 0;
+    uint32_t sample_id = 0;
+
+    pn->kmer_prg.setup_coverages(1);
+
+    pn->kmer_prg.nodes[0]->set_covg(10, strand, sample_id);
+    pn->kmer_prg.nodes[1]->set_covg(1, strand, sample_id);
+    pn->kmer_prg.nodes[4]->set_covg(1, strand, sample_id);
+    pn->kmer_prg.nodes[8]->set_covg(1, strand, sample_id);
+    pn->kmer_prg.nodes[13]->set_covg(10, strand, sample_id);
+    pn->kmer_prg.nodes[15]->set_covg(1, strand, sample_id);
+    pn->kmer_prg.nodes[17]->set_covg(1, strand, sample_id);
+    pn->kmer_prg.nodes[19]->set_covg(1, strand, sample_id);
+    pn->kmer_prg.nodes[20]->set_covg(10, strand, sample_id);
+    pn->kmer_prg.nodes[21]->set_covg(10, strand, sample_id);
 
     PanReadPtr pr = make_shared<pangenome::Read>(read_id);
     set<MinimizerHitPtr, pComp> hits;
@@ -1098,16 +1103,20 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs_fewer_hits_needed) {
     PanNodePtr pn = make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);
     pn->kmer_prg = l3.kmer_prg;
 
-    pn->kmer_prg.nodes[0]->covg[0] += 10;
-    pn->kmer_prg.nodes[1]->covg[0] += 1;
-    pn->kmer_prg.nodes[4]->covg[0] += 1;
-    pn->kmer_prg.nodes[8]->covg[0] += 1;
-    pn->kmer_prg.nodes[13]->covg[0] += 10;
-    pn->kmer_prg.nodes[15]->covg[0] += 1;
-    pn->kmer_prg.nodes[17]->covg[0] += 1;
-    pn->kmer_prg.nodes[19]->covg[0] += 1;
-    pn->kmer_prg.nodes[20]->covg[0] += 10;
-    pn->kmer_prg.nodes[21]->covg[0] += 10;
+    uint32_t strand = 0;
+    uint32_t sample_id = 0;
+    pn->kmer_prg.setup_coverages(1);
+
+    pn->kmer_prg.nodes[0]->set_covg(10, strand, sample_id);
+    pn->kmer_prg.nodes[1]->set_covg(1, strand, sample_id);
+    pn->kmer_prg.nodes[4]->set_covg(1, strand, sample_id);
+    pn->kmer_prg.nodes[8]->set_covg(1, strand, sample_id);
+    pn->kmer_prg.nodes[13]->set_covg(10, strand, sample_id);
+    pn->kmer_prg.nodes[15]->set_covg(1, strand, sample_id);
+    pn->kmer_prg.nodes[17]->set_covg(1, strand, sample_id);
+    pn->kmer_prg.nodes[19]->set_covg(1, strand, sample_id);
+    pn->kmer_prg.nodes[20]->set_covg(10, strand, sample_id);
+    pn->kmer_prg.nodes[21]->set_covg(10, strand, sample_id);
 
     set<MinimizerHitPtr, pComp> hits;
 

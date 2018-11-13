@@ -37,7 +37,7 @@ TEST(PangenomeNodeTest, get_name) {
 TEST(PangenomeNodeTest, add_path) {
     Node pn1(3, 3, "3");
     std::vector<KmerNodePtr> kmp;
-    pn1.add_path(kmp);
+    pn1.add_path(kmp, 0);
 
     KmerGraph kg;
     std::deque<Interval> d = {Interval(0, 0)};
@@ -70,21 +70,21 @@ TEST(PangenomeNodeTest, add_path) {
     EXPECT_EQ((uint) 7, pn1.kmer_prg.sorted_nodes.size());
     kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[3], pn1.kmer_prg.sorted_nodes[4],
            pn1.kmer_prg.sorted_nodes[6]};
-    pn1.add_path(kmp);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[0]->covg[0]);
-    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[1]->covg[0]);
-    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[2]->covg[0]);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[3]->covg[0]);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[4]->covg[0]);
-    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[5]->covg[0]);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[6]->covg[0]);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[0]->covg[1]);
-    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[1]->covg[1]);
-    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[2]->covg[1]);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[3]->covg[1]);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[4]->covg[1]);
-    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[5]->covg[1]);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[6]->covg[1]);
+    pn1.add_path(kmp, 0);
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[0]->get_covg(0, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[1]->get_covg(0, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[2]->get_covg(0, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[3]->get_covg(0, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[4]->get_covg(0, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[5]->get_covg(0, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[6]->get_covg(0, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[0]->get_covg(1, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[1]->get_covg(1, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[2]->get_covg(1, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[3]->get_covg(1, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[4]->get_covg(1, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[5]->get_covg(1, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[6]->get_covg(1, 0));
 }
 
 TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
@@ -210,20 +210,20 @@ TEST(PangenomeNodeTest,output_samples)
     pn1.add_path(kmp);
     pn1.add_path(kmp);
 
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[0]->covg[0]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[1]->covg[0]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[2]->covg[0]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[3]->covg[0]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[4]->covg[0]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[5]->covg[0]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[6]->covg[0]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[0]->covg[1]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[1]->covg[1]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[2]->covg[1]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[3]->covg[1]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[4]->covg[1]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[5]->covg[1]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[6]->covg[1]);
+    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[0]->get_covg(0, 0));
+    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[1]->get_covg(0, 0));
+    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[2]->get_covg(0, 0));
+    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[3]->get_covg(0, 0));
+    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[4]->get_covg(0, 0));
+    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[5]->get_covg(0, 0));
+    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[6]->get_covg(0, 0));
+    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[0]->get_covg(1, 0));
+    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[1]->get_covg(1, 0));
+    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[2]->get_covg(1, 0));
+    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[3]->get_covg(1, 0));
+    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[4]->get_covg(1, 0));
+    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[5]->get_covg(1, 0));
+    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[6]->get_covg(1, 0));
 
     // define 3 samples, one with ref path and 2 with alts
     SamplePtr ps1(make_shared<Sample>("sample1"));
@@ -243,20 +243,20 @@ TEST(PangenomeNodeTest,output_samples)
     pn1.samples.insert(ps3);
     pn1.add_path(kmp);
 
-    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[0]->covg[0]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[1]->covg[0]);
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[2]->covg[0]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[3]->covg[0]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[4]->covg[0]);
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[5]->covg[0]);
-    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[6]->covg[0]);
-    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[0]->covg[1]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[1]->covg[1]);
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[2]->covg[1]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[3]->covg[1]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[4]->covg[1]);
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[5]->covg[1]);
-    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[6]->covg[1]);
+    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[0]->get_covg(0, 0));
+    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[1]->get_covg(0, 0));
+    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[2]->get_covg(0, 0));
+    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[3]->get_covg(0, 0));
+    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[4]->get_covg(0, 0));
+    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[5]->get_covg(0, 0));
+    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[6]->get_covg(0, 0));
+    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[0]->get_covg(1, 0));
+    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[1]->get_covg(1, 0));
+    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[2]->get_covg(1, 0));
+    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[3]->get_covg(1, 0));
+    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[4]->get_covg(1, 0));
+    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[5]->get_covg(1, 0));
+    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[6]->get_covg(1, 0));
 
     pn1.covg = 3;
 

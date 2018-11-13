@@ -17,11 +17,11 @@ TEST(KmerNodeTest, create) {
 
     uint j = 0;
     EXPECT_EQ(j, kn.id);
-    j = 2;
-    EXPECT_EQ(j, kn.covg.size());
+    j = 1;
+    EXPECT_EQ(j, kn.covg_new.size());
     j = 0;
-    EXPECT_EQ(j, kn.covg[0]);
-    EXPECT_EQ(j, kn.covg[0]);
+    EXPECT_EQ(j, kn.get_covg(0, 0));
+    EXPECT_EQ(j, kn.get_covg(0, 0));
     EXPECT_EQ(j, kn.num_AT);
     EXPECT_EQ(p, kn.path);
 }
@@ -55,7 +55,7 @@ TEST(KmerNodeTest, equals) {
 
     // covg doesn't affect whether equal
     KmerNode kn5(0, p1);
-    kn5.covg[0] = 6;
+    kn5.set_covg(6, 0, 0);
     EXPECT_EQ(kn5, kn5);
     EXPECT_EQ(kn1, kn5);
     EXPECT_EQ(kn5, kn1);

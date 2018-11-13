@@ -89,9 +89,7 @@ uint32_t pangraph_from_read_file(const std::string &, std::shared_ptr<MinimizerH
                                  const bool clean = false,
                                  const uint32_t max_covg = 300);
 
-void
-update_localPRGs_with_hits(std::shared_ptr<pangenome::Graph>,
-                           const std::vector<std::shared_ptr<LocalPRG>> &);//, const uint32_t, const float&, bool);
+//, const uint32_t, const float&, bool);
 void infer_most_likely_prg_path_for_pannode(const std::vector<std::shared_ptr<LocalPRG>> &, PanNode *, uint32_t, float);
 
 #endif
