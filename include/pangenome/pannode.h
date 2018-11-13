@@ -29,7 +29,7 @@ public:
 
     std::string get_name() const;
 
-    void add_path(const std::vector<KmerNodePtr> &);
+    void add_path(const std::vector<KmerNodePtr> &, const uint32_t &sample_id);
 
     void get_read_overlap_coordinates(std::vector<std::vector<uint32_t>> &);
 

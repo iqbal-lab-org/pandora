@@ -253,10 +253,12 @@ int pandora_map(int argc, char *argv[]) {
     write_pangraph_gfa(outdir + "/pandora.pangraph.gfa", pangraph);
 
     cout << now() << "Update LocalPRGs with hits" << endl;
-    update_localPRGs_with_hits(pangraph, prgs);
+    uint32_t sample_id = 0;
+    pangraph->setup_kmergraphs(prgs);
+    pangraph->add_hits_to_kmergraphs(prgs);
 
     cout << now() << "Estimate parameters for kmer graph model" << endl;
-    estimate_parameters(pangraph, outdir, k, e_rate, covg, bin);
+    estimate_parameters(pangraph, outdir, k, e_rate, covg, bin, sample_id);
 
     cout << now() << "Find PRG paths and write to files:" << endl;
 

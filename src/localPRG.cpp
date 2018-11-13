@@ -383,7 +383,8 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
                         // add to index, kmer_prg
                         num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
                         kn = kmer_prg.add_node_with_kh(kmer_path, std::min(kh.first, kh.second), num_AT);
-                        index->add_record(std::min(kh.first, kh.second), id, kmer_path, kn->id, (kh.first <= kh.second));
+                        index->add_record(std::min(kh.first, kh.second), id, kmer_path, kn->id,
+                                          (kh.first <= kh.second));
                         num_kmers_added += 1;
                         if (!mini_found_in_window) {
                             kmer_prg.add_edge(kmer_prg.nodes[0], kn);
@@ -464,7 +465,7 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
                                      std::count(kmer.begin(), kmer.end(), 'T');
                             new_kn = kmer_prg.add_node_with_kh(v[j], std::min(kh.first, kh.second), num_AT);
                             index->add_record(std::min(kh.first, kh.second), id, v[j], new_kn->id,
-                                            (kh.first <= kh.second));
+                                              (kh.first <= kh.second));
 
                             // if there is more than one mini in the window, edge should go to the first, and from the first to the second
                             if (!mini_found_in_window) {
@@ -680,7 +681,8 @@ LocalPRG::localnode_path_from_kmernode_path(const std::vector<KmerNodePtr> &kmer
 
 std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr pnode,
                                                      const std::vector<LocalNodePtr> &localnode_path,
-                                                     const std::vector<KmerNodePtr> &kmernode_path) {
+                                                     const std::vector<KmerNodePtr> &kmernode_path,
+                                                     const uint32_t &sample_id) {
     // defines estimated per base coverage for the bases of localnode_path based on the coverages from the
     // kmernode_path kmers
     // NB the kmernode_path may be a vector of pointers to nodes in the localPRG copy of the kmergraph,
@@ -718,8 +720,8 @@ std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr pnode,
             for (uint32_t l = start; l < end; ++l) {
                 assert(kmernode_ptr->id < pnode->kmer_prg.nodes.size() and
                        pnode->kmer_prg.nodes[kmernode_ptr->id] != nullptr);
-                coverages[k][l] = std::max(coverages[k][l], pnode->kmer_prg.nodes[kmernode_ptr->id]->covg[0] +
-                                                            pnode->kmer_prg.nodes[kmernode_ptr->id]->covg[1]);
+                coverages[k][l] = std::max(coverages[k][l], pnode->kmer_prg.nodes[kmernode_ptr->id]->get_covg(0, sample_id) +
+                                                            pnode->kmer_prg.nodes[kmernode_ptr->id]->get_covg(1, sample_id));
             }
             k++;
         }
@@ -1132,7 +1134,8 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
                                           const uint32_t &pos_from,
                                           const uint32_t &pos_to,
                                           std::vector<uint32_t> &fwd_covgs,
-                                          std::vector<uint32_t> &rev_covgs) const {
+                                          std::vector<uint32_t> &rev_covgs,
+                                          const uint32_t &sample_id) const {
     //std::cout << "START" << std::endl;
     assert(fwd_covgs.empty());
     assert(rev_covgs.empty());
@@ -1178,14 +1181,13 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg,
         if (pos_from <= added + k and added < pos_to) {
             //std::cout << " add " << n->path << std::endl;
             assert(n->id < kg.nodes.size() and kg.nodes[n->id] != nullptr);
-            fwd_covgs.push_back(kg.nodes.at(n->id)->covg[0]);
-            rev_covgs.push_back(kg.nodes.at(n->id)->covg[1]);
+            fwd_covgs.push_back(kg.nodes.at(n->id)->get_covg(0, sample_id));
+            rev_covgs.push_back(kg.nodes.at(n->id)->get_covg(1, sample_id));
         } else if (added > pos_to)
             break;
 
         prev = n;
     }
-    //std::cout << std::endl;
 }
 
 uint32_t sum(const std::vector<uint32_t> &v) {
@@ -1233,10 +1235,10 @@ uint32_t mode(std::vector<uint32_t> v) {
     return most_common;
 }
 
-void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
-                                       const KmerGraph &kg,
+void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg,
                                        const std::vector<LocalNodePtr> &ref_path,
-                                       const std::string &sample_name) const {
+                                       const std::string &sample_name,
+                                       const uint32_t &sample_id) const {
     std::cout << now() << "Update VCF with sample covgs" << std::endl;
 
     assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
@@ -1265,13 +1267,8 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
         if (record.ref == ".")
             end_pos = record.pos;
 
-        append_kmer_covgs_in_range(kg,
-                                   ref_kmer_path,
-                                   ref_path,
-                                   record.pos,
-                                   end_pos,
-                                   ref_fwd_covgs,
-                                   ref_rev_covgs);
+        append_kmer_covgs_in_range(kg, ref_kmer_path, ref_path, record.pos, end_pos,
+                                   ref_fwd_covgs, ref_rev_covgs, sample_id);
 
         // find corresponding alt kmers
         // if sample has alt path, we have the kmer path for this, but otherwise we will need to work it out
@@ -1304,13 +1301,8 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf,
             if (alt_allele == ".")
                 end_pos = record.pos;
 
-            append_kmer_covgs_in_range(kg,
-                                       alt_kmer_path,
-                                       alt_path,
-                                       record.pos,
-                                       end_pos,
-                                       alt_fwd_covgs,
-                                       alt_rev_covgs);
+            append_kmer_covgs_in_range(kg, alt_kmer_path, alt_path, record.pos, end_pos,
+                                       alt_fwd_covgs, alt_rev_covgs, sample_id);
 
             record.samples[sample_index]["MEAN_FWD_COVG"].push_back(mean(alt_fwd_covgs));
             record.samples[sample_index]["MEAN_REV_COVG"].push_back(mean(alt_rev_covgs));
@@ -1340,30 +1332,31 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq,
                                             std::vector<LocalNodePtr> &lmp,
                                             const uint32_t w,
                                             const bool bin,
-                                            const uint32_t global_covg) {
+                                            const uint32_t global_covg,
+                                            const uint32_t &sample_id) {
     kmp.clear();
     lmp.clear();
     if (pnode->reads.empty()) {
-        std::cout << "Node " << pnode->get_name() << " has no reads " << std::endl;
+        BOOST_LOG_TRIVIAL(warning) << "Node " << pnode->get_name() << " has no reads";
         return;
     }
     kmp.reserve(800);
 
-    std::cout << now() << "Find maxpath for " << pnode->get_name() << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Find maxpath for " << pnode->get_name();
     float ppath;
     if (bin)
-        ppath = pnode->kmer_prg.find_max_path(kmp);
+        ppath = pnode->kmer_prg.find_max_path(kmp, sample_id);
     else
-        ppath = pnode->kmer_prg.find_nb_max_path(kmp);
+        ppath = pnode->kmer_prg.find_nb_max_path(kmp, sample_id);
 
     lmp.reserve(100);
     lmp = localnode_path_from_kmernode_path(kmp, w);
 
-    std::vector<uint32_t> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp);
+    std::vector<uint32_t> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp, sample_id);
     auto mode_covg = mode(covgs);
     auto mean_covg = mean(covgs);
-    std::cout << now() << "Found global coverage " << global_covg << " and path mode " << mode_covg << " and mean "
-              << mean_covg << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Found global coverage " << global_covg << " and path mode " << mode_covg << " and mean "
+              << mean_covg;
     if (global_covg > 5 and
         (6 * mean(covgs) < global_covg or mean(covgs) > global_covg or (mode(covgs) < 3 and mean(covgs) < 3))) {
         std::cout << now() << "Skip LocalPRG " << name << " as mode and mean along max likelihood path too low"
@@ -1378,22 +1371,22 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq,
     output_fq.add_entry(fq_name, seq, covgs, global_covg, header);
 }
 
-bool LocalPRG::vcf_ref_is_good(const std::string &vcf_ref){
-    if (vcf_ref.length() < 30){
+bool LocalPRG::vcf_ref_is_good(const std::string &vcf_ref) {
+    if (vcf_ref.length() < 30) {
         BOOST_LOG_TRIVIAL(warning) << "Input vcf_ref path was too short to be the ref for PRG " << name;
         return false;
     }
 
-    auto refpath {prg.nodes_along_string(vcf_ref, true)};
+    auto refpath{prg.nodes_along_string(vcf_ref, true)};
     if (refpath.empty()) {
         refpath = prg.nodes_along_string(rev_complement(vcf_ref), true);
     }
-    if (refpath.empty()){
+    if (refpath.empty()) {
         BOOST_LOG_TRIVIAL(warning) << "Input vcf_ref was not a path in PRG " << name;
         return false;
     }
 
-    if (refpath[0]->pos.length > 0 or refpath.back()->pos.length > 0){
+    if (refpath[0]->pos.length > 0 or refpath.back()->pos.length > 0) {
         BOOST_LOG_TRIVIAL(warning) << "Input vcf_ref path did not start/end at the beginning/end of PRG " << name;
         return false;
     }
@@ -1406,6 +1399,7 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf,
                                    const std::string &vcf_ref,
                                    const std::vector<KmerNodePtr> &kmp,
                                    const std::vector<LocalNodePtr> &lmp,
+                                   const uint32_t &sample_id,
                                    const std::string &sample_name) {
     std::vector<LocalNodePtr> refpath;
     refpath.reserve(100);
@@ -1429,7 +1423,7 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf,
     //std::cout << "add sample gts" << std::endl;
     add_sample_gt_to_vcf(vcf, refpath, lmp, sample_name);
     //std::cout << "add sample covgs" << std::endl;
-    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, sample_name);
+    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, sample_name, sample_id);
     //vcf.save("temp.vcf" , true, true, true, true, true, true, true);
     //std::cout << "sort records" << std::endl;
     //vcf.sort_records();

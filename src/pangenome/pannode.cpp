@@ -65,11 +65,11 @@ std::string Node::get_name() const {
     }
 }
 
-void Node::add_path(const std::vector<KmerNodePtr> &kmp) {
+void Node::add_path(const std::vector<KmerNodePtr> &kmp, const uint32_t &sample_id) {
     for (uint32_t i = 0; i != kmp.size(); ++i) {
         assert(kmp[i]->id < kmer_prg.nodes.size() and kmer_prg.nodes[kmp[i]->id] != nullptr);
-        kmer_prg.nodes[kmp[i]->id]->covg[0] += 1;
-        kmer_prg.nodes[kmp[i]->id]->covg[1] += 1;
+        kmer_prg.nodes[kmp[i]->id]->increment_covg(0, sample_id);
+        kmer_prg.nodes[kmp[i]->id]->increment_covg(1, sample_id);
     }
 }
 
@@ -112,8 +112,10 @@ void Node::get_read_overlap_coordinates(std::vector<std::vector<uint32_t>> &read
 
 }
 
-void Node::output_samples(const std::shared_ptr<LocalPRG> &prg, const std::string &outdir, const uint32_t w,
+void Node::output_samples(const std::shared_ptr<LocalPRG> &prg,
+                          const std::string &outdir, const uint32_t w,
                           const std::string &vcf_ref) {
+    uint32_t sample_id = 0;
     std::vector<KmerNodePtr> kmp;
     kmp.reserve(800);
     std::vector<LocalNodePtr> refpath, sample_lmp;
@@ -132,13 +134,13 @@ void Node::output_samples(const std::shared_ptr<LocalPRG> &prg, const std::strin
                                        << "in the PRG so using the closest path";
             kmer_prg.set_p(0.01);
             kmer_prg.num_reads = covg;
-            kmer_prg.find_max_path(kmp);
+            kmer_prg.find_max_path(kmp, sample_id);
             refpath = prg->localnode_path_from_kmernode_path(kmp, w);
         }
     } else {
         kmer_prg.set_p(0.01);
         kmer_prg.num_reads = covg;
-        kmer_prg.find_max_path(kmp);
+        kmer_prg.find_max_path(kmp, sample_id);
         refpath = prg->localnode_path_from_kmernode_path(kmp, w);
     }
 

@@ -157,7 +157,8 @@ void denovo_discovery::add_pnode_coordinate_pairs(
         const uint32_t &low_coverage_threshold,
         const uint32_t &interval_min_length,
         const uint32_t &min_number_hits) {
-    auto covgs = get_covgs_along_localnode_path(pnode, local_node_path, kmer_node_path);
+    uint32_t sample_id = 0;
+    auto covgs = get_covgs_along_localnode_path(pnode, local_node_path, kmer_node_path, sample_id);
     auto intervals = identify_regions(covgs, low_coverage_threshold, interval_min_length);
     if (intervals.empty())
         return;
