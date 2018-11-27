@@ -26,6 +26,33 @@ TEST(KmerNodeTest, create) {
     EXPECT_EQ(p, kn.path);
 }
 
+TEST(KmerNodeTest, assign) {
+
+    deque<Interval> d = {Interval(0, 4)};
+    Path p;
+    p.initialize(d);
+    KmerNode kn(0, p);
+    kn.increment_covg(0,0);
+    kn.increment_covg(1,0);
+    kn.increment_covg(1,0);
+
+    EXPECT_EQ((uint)0, kn.id);
+    EXPECT_EQ((uint)1, kn.covg_new.size());
+    EXPECT_EQ((uint)1, kn.get_covg(0, 0));
+    EXPECT_EQ((uint)2, kn.get_covg(1, 0));
+    EXPECT_EQ((uint)0, kn.num_AT);
+    EXPECT_EQ(p, kn.path);
+
+    KmerNode kn_prime = kn;
+
+    EXPECT_EQ((uint)0, kn_prime.id);
+    EXPECT_EQ((uint)1, kn_prime.covg_new.size());
+    EXPECT_EQ((uint)1, kn_prime.get_covg(0, 0));
+    EXPECT_EQ((uint)2, kn_prime.get_covg(1, 0));
+    EXPECT_EQ((uint)0, kn_prime.num_AT);
+    EXPECT_EQ(p, kn.path);
+}
+
 TEST(KmerNodeTest, equals) {
 
     deque<Interval> d = {Interval(0, 4)};

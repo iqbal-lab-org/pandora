@@ -159,351 +159,433 @@ TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
     }
 }
 
-/*
-TEST(PangenomeNodeTest,output_samples)
+TEST(PangenomeNodeTest,construct_multisample_vcf_single_prg)
 {
-    Node pn1(3,3,"three");
-    vector<KmerNodePtr> kmp;
+    uint32_t prg_id = 3, w=1, k=3;
+    std::string prg_name = "nested varsite";
+    LocalPRG local_prg(prg_id, prg_name , "A 5 G 7 C 8 T 8 CT 7  6 G 5 T");
 
-    KmerGraph kg;
-    deque<Interval> d = {Interval(0,0)};
-    Path p; 
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0,1), Interval(4,5), Interval(8, 9)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4,5), Interval(8, 9), Interval(16,16), Interval(23,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0,1), Interval(4,5), Interval(12, 13)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4,5), Interval(12, 13), Interval(16,16), Interval(23,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(24,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    kg.sort_topologically();
-    kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[1]);
-    kg.add_edge(kg.sorted_nodes[1],kg.sorted_nodes[4]);
-    kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[2]);
-    kg.add_edge(kg.sorted_nodes[2],kg.sorted_nodes[5]);
-    kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[3]);
-    kg.add_edge(kg.sorted_nodes[3],kg.sorted_nodes[6]);
-    kg.add_edge(kg.sorted_nodes[4],kg.sorted_nodes[6]);
-    kg.add_edge(kg.sorted_nodes[5],kg.sorted_nodes[6]);
+    auto index = std::make_shared<Index>();
+    local_prg.minimizer_sketch(index, w, k);
+    auto prg_ptr = std::make_shared<LocalPRG>(local_prg);
+    auto &kg = local_prg.kmer_prg;
 
-    EXPECT_EQ((uint)7, kg.nodes.size());
+    Graph pangraph;
 
-    pn1.kmer_prg = kg;
-    pn1.kmer_prg.sort_topologically();
-    EXPECT_EQ((uint)7, pn1.kmer_prg.nodes.size());
-    EXPECT_EQ((uint)7, pn1.kmer_prg.sorted_nodes.size());
+    //sample1
+    std::string sample_name = "sample1";
+    std::vector<KmerNodePtr> sample_kmer_path = {kg.nodes[0], kg.nodes[2], kg.nodes[6], kg.nodes[9]};
+    pangraph.add_node(prg_id, prg_name, sample_name, 0, prg_ptr, sample_kmer_path);
 
-    // want this path to be the ref, so add first a couple of times so it is weighted
-    kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[2], pn1.kmer_prg.sorted_nodes[5], pn1.kmer_prg.sorted_nodes[6]};
-    pn1.add_path(kmp);
-    pn1.add_path(kmp);
+    //sample2 identical to sample1
+    sample_name = "sample2";
+    sample_kmer_path = {kg.nodes[0], kg.nodes[2], kg.nodes[6], kg.nodes[9]};
+    pangraph.add_node(prg_id, prg_name, sample_name, 1, prg_ptr, sample_kmer_path);
 
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[0]->get_covg(0, 0));
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[1]->get_covg(0, 0));
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[2]->get_covg(0, 0));
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[3]->get_covg(0, 0));
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[4]->get_covg(0, 0));
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[5]->get_covg(0, 0));
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[6]->get_covg(0, 0));
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[0]->get_covg(1, 0));
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[1]->get_covg(1, 0));
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[2]->get_covg(1, 0));
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[3]->get_covg(1, 0));
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[4]->get_covg(1, 0));
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[5]->get_covg(1, 0));
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[6]->get_covg(1, 0));
+    //sample3 with top path
+    sample_name = "sample3";
+    sample_kmer_path = {kg.nodes[0], kg.nodes[1], kg.nodes[5], kg.nodes[9]};
+    pangraph.add_node(prg_id, prg_name, sample_name, 2, prg_ptr, sample_kmer_path);
 
-    // define 3 samples, one with ref path and 2 with alts
-    SamplePtr ps1(make_shared<Sample>("sample1"));
-    ps1->paths[3] = {kmp};
-    pn1.samples.insert(ps1);
-    pn1.add_path(kmp);
+    //sample4 with bottom path
+    sample_name = "sample4";
+    sample_kmer_path = {kg.nodes[0], kg.nodes[4], kg.nodes[9]};
+    pangraph.add_node(prg_id, prg_name, sample_name, 3, prg_ptr, sample_kmer_path);
 
-    kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[1], pn1.kmer_prg.sorted_nodes[4], pn1.kmer_prg.sorted_nodes[6]};
-    SamplePtr ps2(make_shared<Sample>("sample2"));
-    ps2->paths[3] = {kmp};
-    pn1.samples.insert(ps2);
-    pn1.add_path(kmp);
+    LocalPRG dummy(0,"null","");
+    auto dummy_prg_ptr = std::make_shared<LocalPRG>(dummy);
+    pangraph.setup_kmergraphs({dummy_prg_ptr, dummy_prg_ptr, dummy_prg_ptr, prg_ptr}, 4);
 
-    kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[3], pn1.kmer_prg.sorted_nodes[6]};
-    SamplePtr ps3(make_shared<Sample>("sample3"));
-    ps3->paths[3] = {kmp};
-    pn1.samples.insert(ps3);
-    pn1.add_path(kmp);
+    VCF master_vcf;
+    std::vector<LocalNodePtr> vcf_reference_path = {local_prg.prg.nodes[0], local_prg.prg.nodes[1], local_prg.prg.nodes[3], local_prg.prg.nodes[5], local_prg.prg.nodes[7]};
+    auto &pannode = *pangraph.nodes[prg_id];
+    pannode.construct_multisample_vcf(master_vcf, vcf_reference_path, prg_ptr, w);
 
-    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[0]->get_covg(0, 0));
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[1]->get_covg(0, 0));
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[2]->get_covg(0, 0));
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[3]->get_covg(0, 0));
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[4]->get_covg(0, 0));
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[5]->get_covg(0, 0));
-    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[6]->get_covg(0, 0));
-    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[0]->get_covg(1, 0));
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[1]->get_covg(1, 0));
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[2]->get_covg(1, 0));
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[3]->get_covg(1, 0));
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[4]->get_covg(1, 0));
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[5]->get_covg(1, 0));
-    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[6]->get_covg(1, 0));
+    EXPECT_EQ((uint)2, master_vcf.records.size());
+    EXPECT_EQ((uint)4, master_vcf.samples.size());
 
-    pn1.covg = 3;
+    //NB samples order changes to get index of each sample so can compare
+    //samples 1 and 2 are ref, sample 3 is top path and sample 4 is bottom path
+    auto iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample1");
+    auto sample1_index = std::distance(master_vcf.samples.begin(), iter);
+    iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample2");
+    auto sample2_index = std::distance(master_vcf.samples.begin(), iter);
+    iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample3");
+    auto sample3_index = std::distance(master_vcf.samples.begin(), iter);
+    iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample4");
+    auto sample4_index = std::distance(master_vcf.samples.begin(), iter);
+    std::vector<uint8_t> alt_gt = {1};
+    std::vector<uint8_t> ref_gt = {0};
+    std::vector<uint8_t> no_covg2 = {0,0};
+    std::vector<uint8_t> no_covg3 = {0,0,0};
 
-    auto l3 = std::make_shared<LocalPRG>(LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T"));
+    EXPECT_EQ((uint)1, master_vcf.records[0].pos);
+    EXPECT_EQ("GT", master_vcf.records[0].ref);
+    EXPECT_EQ((uint)1, master_vcf.records[0].alt.size());
+    EXPECT_EQ("G", master_vcf.records[0].alt[0]);
+    EXPECT_EQ((uint)4, master_vcf.records[0].samples.size());
+    EXPECT_FALSE(master_vcf.records[0].samples[sample4_index].find("GT") == master_vcf.records[0].samples[sample4_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[0].samples[sample3_index].find("GT") == master_vcf.records[0].samples[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0].samples[sample2_index].find("GT") == master_vcf.records[0].samples[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0].samples[sample1_index].find("GT") == master_vcf.records[0].samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample4_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample1_index]["GT"], ref_gt);
+    std::vector<std::string> formats = {"MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG",
+                              "SUM_FWD_COVG", "SUM_REV_COVG"};
+    for (const auto format : formats){
+        EXPECT_FALSE(master_vcf.records[0].samples[sample1_index].find(format) == master_vcf.records[0].samples[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[0].samples[sample2_index].find(format) == master_vcf.records[0].samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[0].samples[sample3_index].find(format) == master_vcf.records[0].samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[0].samples[sample4_index].find(format) == master_vcf.records[0].samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample1_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample2_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample3_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample4_index][format], no_covg2);
+    }
 
-    // clear the kmergraph and vectors to check that the shared pointers have really been kept valid
-    // within pg!
-    kg.clear();
-    kmp.clear();
 
-    pn1.output_samples(l3,"../test/test_cases/updatevcf_pannode",0);
+    EXPECT_EQ((uint)2, master_vcf.records[1].pos);
+    EXPECT_EQ("T", master_vcf.records[1].ref);
+    EXPECT_EQ((uint)2, master_vcf.records[1].alt.size());
+    EXPECT_EQ("C", master_vcf.records[1].alt[0]);
+    EXPECT_EQ("CT", master_vcf.records[1].alt[1]);
+    EXPECT_EQ((uint)4, master_vcf.records[0].samples.size());
+    EXPECT_TRUE(master_vcf.records[1].samples[sample4_index].find("GT") == master_vcf.records[1].samples[sample4_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1].samples[sample3_index].find("GT") == master_vcf.records[1].samples[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1].samples[sample2_index].find("GT") == master_vcf.records[1].samples[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1].samples[sample1_index].find("GT") == master_vcf.records[1].samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample3_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample1_index]["GT"], ref_gt);
 
-    delete l3;
-
-    // now check is as expect
-    // find date
-    time_t t = time(0);
-    char mbstr[10];
-    strftime(mbstr, sizeof(mbstr), "%d/%m/%y", localtime(&t));
-    string dat(mbstr);
-
-    string vcffile = R"(##fileformat=VCFv4.3
-##fileDate==)" + dat + R"(
-##ALT=<ID=SNP,Description="SNP">
-##ALT=<ID=PH_SNPs,Description="Phased SNPs">
-##ALT=<ID=INDEL,Description="Insertion-deletion">
-##ALT=<ID=COMPLEX,Description="Complex variant, collection of SNPs and indels">
-##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of variant">
-##ALT=<ID=SIMPLE,Description="Graph bubble is simple">
-##ALT=<ID=NESTED,Description="Variation site was a nested feature in the graph">
-##ALT=<ID=TOO_MANY_ALTS,Description="Variation site was a multinested feature with too many alts to include all in the VCF">
-##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description="Type of graph feature">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample3	sample2	sample1
-nested varsite	1	.	GT	G	.	.	SVTYPE=INDEL;GRAPHTYPE=NESTED	GT	1	.	0
-nested varsite	2	.	T	C	.	.	SVTYPE=SNP;GRAPHTYPE=NESTED	GT	.	1	0
-)";
-    string vcffile2 = R"(##fileformat=VCFv4.3
-##fileDate==)" + dat + R"(
-##ALT=<ID=SNP,Description="SNP">
-##ALT=<ID=PH_SNPs,Description="Phased SNPs">
-##ALT=<ID=INDEL,Description="Insertion-deletion">
-##ALT=<ID=COMPLEX,Description="Complex variant, collection of SNPs and indels">
-##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of variant">
-##ALT=<ID=SIMPLE,Description="Graph bubble is simple">
-##ALT=<ID=NESTED,Description="Variation site was a nested feature in the graph">
-##ALT=<ID=TOO_MANY_ALTS,Description="Variation site was a multinested feature with too many alts to include all in the VCF">
-##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description="Type of graph feature">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample2	sample3	sample1
-nested varsite	1	.	GT	G	.	.	SVTYPE=INDEL;GRAPHTYPE=NESTED	GT	.	1	0
-nested varsite	2	.	T	C	.	.	SVTYPE=SNP;GRAPHTYPE=NESTED	GT	1	.	0
-)";
-
-    ifstream ifs("../test/test_cases/updatevcf_pannode.three.multisample.vcf");
-    string content( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()) );
-    //EXPECT_EQ(vcffile,content);
-    //EXPECT_EQ(vcffile2,content);
-    EXPECT_EQ((vcffile==content) or (vcffile2==content), true);
-
-    string fafile1 = R"(>sample3
-AG--T
->sample1
-A-GTT
->sample2
-A-GCT
-)";
-    string fafile2 = R"(>sample3
-AG--T
->sample2
-A-GCT
->sample1
-A-GTT
-)";
-    string fafile3 = R"(>sample2
-A-GCT
->sample3
-AG--T
->sample1
-A-GTT
-)";
-    string fafile4 = R"(>sample2
-A-GCT
->sample1
-A-GTT
->sample3
-AG--T
-)";
-    string fafile5 = R"(>sample1
-A-GTT
->sample2
-A-GCT
->sample3
-AG--T
-)";
-    string fafile6 = R"(>sample1
-A-GTT
->sample3
-AG--T
->sample2
-A-GCT
-)";
-
-    ifstream ifs2("../test/test_cases/updatevcf_pannode.three.multisample.fa");
-    string content2( (std::istreambuf_iterator<char>(ifs2) ),(std::istreambuf_iterator<char>()) );
-    EXPECT_EQ((fafile1==content2) or (fafile2==content2) or(fafile3==content2) or (fafile4==content2) or (fafile5==content2) or (fafile6==content2), true);
+    for (const auto format : formats){
+        EXPECT_FALSE(master_vcf.records[1].samples[sample1_index].find(format) == master_vcf.records[1].samples[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[1].samples[sample2_index].find(format) == master_vcf.records[1].samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[1].samples[sample3_index].find(format) == master_vcf.records[1].samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[1].samples[sample4_index].find(format) == master_vcf.records[1].samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample1_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample2_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample3_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample4_index][format], no_covg3);
+    }
 }
 
-TEST(PangenomeNodeTest,output_samples2)
+TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
 {
-    Graph pg;
-    LocalPRG lp(5, "five", "A 5 G 7 C 8 T 7  6 G 5 T");
+    uint32_t prg_id1 = 3, w=1, k=3;
+    std::string prg_name1 = "nested varsite";
+    LocalPRG local_prg1(prg_id1, prg_name1 , "A 5 G 7 C 8 T 8 CT 7  6 G 5 T");
+    uint32_t prg_id2 = 5;
+    std::string prg_name2 = "modified";
+    LocalPRG local_prg2(prg_id2, prg_name2 , "A 5 G 7 G 8 A 8 GA 7  6 G 5 T");
 
-    vector<KmerNodePtr> kmp;
+    auto index = std::make_shared<Index>();
+    local_prg1.minimizer_sketch(index, w, k);
+    auto prg_ptr1 = std::make_shared<LocalPRG>(local_prg1);
+    auto &kg1 = local_prg1.kmer_prg;
+    local_prg2.minimizer_sketch(index, w, k);
+    auto prg_ptr2 = std::make_shared<LocalPRG>(local_prg2);
+    auto &kg2 = local_prg2.kmer_prg;
 
-    KmerGraph kg;
-    deque<Interval> d = {Interval(0,0)};
-    Path p;
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0,1), Interval(4,5), Interval(8, 9)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4,5), Interval(8, 9), Interval(16,16), Interval(23,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0,1), Interval(4,5), Interval(12, 13)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4,5), Interval(12, 13), Interval(16,16), Interval(23,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(24,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    kg.sort_topologically();
-    kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[1]);
-    kg.add_edge(kg.sorted_nodes[1],kg.sorted_nodes[4]);
-    kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[2]);
-    kg.add_edge(kg.sorted_nodes[2],kg.sorted_nodes[5]);
-    kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[3]);
-    kg.add_edge(kg.sorted_nodes[3],kg.sorted_nodes[6]);
-    kg.add_edge(kg.sorted_nodes[4],kg.sorted_nodes[6]);
-    kg.add_edge(kg.sorted_nodes[5],kg.sorted_nodes[6]);
+    Graph pangraph;
 
-    EXPECT_EQ((uint)7, kg.nodes.size());
+    //sample1
+    std::string sample_name = "sample1";
+    std::vector<KmerNodePtr> sample_kmer_path = {kg1.nodes[0], kg1.nodes[2], kg1.nodes[6], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 0, prg_ptr1, sample_kmer_path);
+    sample_kmer_path = {kg2.nodes[0], kg2.nodes[1], kg2.nodes[5], kg2.nodes[9]};
+    pangraph.add_node(prg_id2, prg_name2, sample_name, 0, prg_ptr2, sample_kmer_path);
 
-    lp.kmer_prg = kg;
-    lp.kmer_prg.sort_topologically();
-    EXPECT_EQ((uint)7, lp.kmer_prg.nodes.size());
-    EXPECT_EQ((uint)7, lp.kmer_prg.sorted_nodes.size());
+    //sample2 identical to sample1 in prg1, no prg2
+    sample_name = "sample2";
+    sample_kmer_path = {kg1.nodes[0], kg1.nodes[2], kg1.nodes[6], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 1, prg_ptr1, sample_kmer_path);
 
-    kmp = {lp.kmer_prg.sorted_nodes[0], lp.kmer_prg.sorted_nodes[2], lp.kmer_prg.sorted_nodes[5], lp.kmer_prg.sorted_nodes[6]};
-    //pg.add_node(5, "five", "sample0", kmp, &lp);
-    pg.add_node(5, "five", "sample1", kmp, &lp);
+    //sample3 with top path
+    sample_name = "sample3";
+    sample_kmer_path = {kg1.nodes[0], kg1.nodes[1], kg1.nodes[5], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 2, prg_ptr1, sample_kmer_path);
+    sample_kmer_path = {kg2.nodes[0], kg2.nodes[4], kg2.nodes[9]};
+    pangraph.add_node(prg_id2, prg_name2, sample_name, 2, prg_ptr2, sample_kmer_path);
 
-    kmp = {lp.kmer_prg.sorted_nodes[0], lp.kmer_prg.sorted_nodes[1], lp.kmer_prg.sorted_nodes[4], lp.kmer_prg.sorted_nodes[6]};
-    pg.add_node(5, "five", "sample2", kmp, &lp);
+    //sample4 with bottom path
+    sample_name = "sample4";
+    sample_kmer_path = {kg1.nodes[0], kg1.nodes[4], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 3, prg_ptr1, sample_kmer_path);
+    sample_kmer_path = {kg2.nodes[0], kg2.nodes[3], kg2.nodes[7], kg2.nodes[8], kg2.nodes[9]};
+    pangraph.add_node(prg_id2, prg_name2, sample_name, 3, prg_ptr2, sample_kmer_path);
 
-    kmp = {lp.kmer_prg.sorted_nodes[0], lp.kmer_prg.sorted_nodes[3], lp.kmer_prg.sorted_nodes[6]};
-    pg.add_node(5, "five", "sample3", kmp, &lp);
+    LocalPRG dummy(0,"null","");
+    auto dummy_prg_ptr = std::make_shared<LocalPRG>(dummy);
+    pangraph.setup_kmergraphs({dummy_prg_ptr, dummy_prg_ptr, dummy_prg_ptr, prg_ptr1, dummy_prg_ptr, prg_ptr2}, 4);
 
-    // clear the kmergraph and vectors to check that the shared pointers have really been kept valid
-    // within pg!
-    kg.clear();
-    kmp.clear();
+    VCF master_vcf;
+    std::vector<LocalNodePtr> vcf_reference_path1 = {local_prg1.prg.nodes[0], local_prg1.prg.nodes[1], local_prg1.prg.nodes[3], local_prg1.prg.nodes[5], local_prg1.prg.nodes[7]};
+    std::vector<LocalNodePtr> vcf_reference_path2 = {local_prg2.prg.nodes[0], local_prg2.prg.nodes[1], local_prg2.prg.nodes[3], local_prg2.prg.nodes[5], local_prg2.prg.nodes[7]};
 
-    pg.nodes[5]->output_samples(&lp,"../test/test_cases/updatevcf_pannode2",0);
+    auto &pannode1 = *pangraph.nodes[prg_id1];
+    pannode1.construct_multisample_vcf(master_vcf, vcf_reference_path1, prg_ptr1, w);
+    auto &pannode2 = *pangraph.nodes[prg_id2];
+    pannode2.construct_multisample_vcf(master_vcf, vcf_reference_path2, prg_ptr2, w);
+    std::cout << master_vcf.header() << std::endl;
+    std::cout << master_vcf << std::endl;
 
-    // now check is as expect
-    // find date
-    time_t t = time(0);
-    char mbstr[10];
-    strftime(mbstr, sizeof(mbstr), "%d/%m/%y", localtime(&t));
-    string dat(mbstr);
+    EXPECT_EQ((uint)4, master_vcf.records.size());
+    EXPECT_EQ((uint)4, master_vcf.samples.size());
 
-    string vcffile = R"(##fileformat=VCFv4.3
-##fileDate==)" + dat + R"(
-##ALT=<ID=SNP,Description="SNP">
-##ALT=<ID=PH_SNPs,Description="Phased SNPs">
-##ALT=<ID=INDEL,Description="Insertion-deletion">
-##ALT=<ID=COMPLEX,Description="Complex variant, collection of SNPs and indels">
-##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of variant">
-##ALT=<ID=SIMPLE,Description="Graph bubble is simple">
-##ALT=<ID=NESTED,Description="Variation site was a nested feature in the graph">
-##ALT=<ID=TOO_MANY_ALTS,Description="Variation site was a multinested feature with too many alts to include all in the VCF">
-##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description="Type of graph feature">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample3	sample2	sample1
-five	1	.	GC	G	.	.	SVTYPE=INDEL;GRAPHTYPE=NESTED	GT	1	0	.
-five	2	.	C	T	.	.	SVTYPE=SNP;GRAPHTYPE=NESTED	GT	.	0	1
-)";
+    //NB samples order changes to get index of each sample so can compare
+    //samples 1 and 2 are ref, sample 3 is top path and sample 4 is bottom path
+    auto iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample1");
+    auto sample1_index = std::distance(master_vcf.samples.begin(), iter);
+    iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample2");
+    auto sample2_index = std::distance(master_vcf.samples.begin(), iter);
+    iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample3");
+    auto sample3_index = std::distance(master_vcf.samples.begin(), iter);
+    iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample4");
+    auto sample4_index = std::distance(master_vcf.samples.begin(), iter);
+    std::vector<uint8_t> alt_gt = {1};
+    std::vector<uint8_t> ref_gt = {0};
+    std::vector<uint8_t> alt2_gt = {2};
+    std::vector<uint8_t> no_covg2 = {0,0};
+    std::vector<uint8_t> no_covg3 = {0,0,0};
 
-    ifstream ifs("../test/test_cases/updatevcf_pannode2.five.multisample.vcf");
-    string content( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()) );
-    EXPECT_EQ(vcffile,content);
-    //EXPECT_EQ(vcffile2,content);
-    //EXPECT_EQ((vcffile==content) or (vcffile2==content), true);
+    EXPECT_EQ((uint)1, master_vcf.records[0].pos);
+    EXPECT_EQ("GT", master_vcf.records[0].ref);
+    EXPECT_EQ((uint)1, master_vcf.records[0].alt.size());
+    EXPECT_EQ("G", master_vcf.records[0].alt[0]);
+    EXPECT_EQ((uint)4, master_vcf.records[0].samples.size());
+    EXPECT_FALSE(master_vcf.records[0].samples[sample4_index].find("GT") == master_vcf.records[0].samples[sample4_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[0].samples[sample3_index].find("GT") == master_vcf.records[0].samples[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0].samples[sample2_index].find("GT") == master_vcf.records[0].samples[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0].samples[sample1_index].find("GT") == master_vcf.records[0].samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample4_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample1_index]["GT"], ref_gt);
+    std::vector<std::string> formats = {"MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG",
+                                        "SUM_FWD_COVG", "SUM_REV_COVG"};
+    for (const auto format : formats){
+        std::cout << format << std::endl;
+        EXPECT_FALSE(master_vcf.records[0].samples[sample1_index].find(format) == master_vcf.records[0].samples[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[0].samples[sample2_index].find(format) == master_vcf.records[0].samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[0].samples[sample3_index].find(format) == master_vcf.records[0].samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[0].samples[sample4_index].find(format) == master_vcf.records[0].samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample1_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample2_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample3_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample4_index][format], no_covg2);
+    }
 
-    string fafile1 = R"(>sample3
-AG--T
->sample1
-A-GTT
->sample2
-A-GCT
-)";
-    string fafile2 = R"(>sample3
-AG--T
->sample2
-A-GCT
->sample1
-A-GTT
-)";
-    string fafile3 = R"(>sample2
-A-GCT
->sample3
-AG--T
->sample1
-A-GTT
-)";
-    string fafile4 = R"(>sample2
-A-GCT
->sample1
-A-GTT
->sample3
-AG--T
-)";
-    string fafile5 = R"(>sample1
-A-GTT
->sample2
-A-GCT
->sample3
-AG--T
-)";
-    string fafile6 = R"(>sample1
-A-GTT
->sample3
-AG--T
->sample2
-A-GCT
-)";
 
-    ifstream ifs2("../test/test_cases/updatevcf_pannode2.five.multisample.fa");
-    string content2( (std::istreambuf_iterator<char>(ifs2) ),(std::istreambuf_iterator<char>()) );
-    EXPECT_EQ((fafile1==content2) or (fafile2==content2) or(fafile3==content2) or (fafile4==content2) or (fafile5==content2) or (fafile6==content2), true);
+    EXPECT_EQ((uint)2, master_vcf.records[1].pos);
+    EXPECT_EQ("T", master_vcf.records[1].ref);
+    EXPECT_EQ((uint)2, master_vcf.records[1].alt.size());
+    EXPECT_EQ("C", master_vcf.records[1].alt[0]);
+    EXPECT_EQ("CT", master_vcf.records[1].alt[1]);
+    EXPECT_EQ((uint)4, master_vcf.records[1].samples.size());
+    EXPECT_TRUE(master_vcf.records[1].samples[sample4_index].find("GT") == master_vcf.records[1].samples[sample4_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1].samples[sample3_index].find("GT") == master_vcf.records[1].samples[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1].samples[sample2_index].find("GT") == master_vcf.records[1].samples[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1].samples[sample1_index].find("GT") == master_vcf.records[1].samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample3_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample1_index]["GT"], ref_gt);
+
+    for (const auto format : formats){
+        std::cout << format << std::endl;
+        EXPECT_FALSE(master_vcf.records[1].samples[sample1_index].find(format) == master_vcf.records[1].samples[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[1].samples[sample2_index].find(format) == master_vcf.records[1].samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[1].samples[sample3_index].find(format) == master_vcf.records[1].samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[1].samples[sample4_index].find(format) == master_vcf.records[1].samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample1_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample2_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample3_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample4_index][format], no_covg3);
+    }
+
+    EXPECT_EQ((uint)1, master_vcf.records[2].pos);
+    EXPECT_EQ("GA", master_vcf.records[2].ref);
+    EXPECT_EQ((uint)1, master_vcf.records[2].alt.size());
+    EXPECT_EQ("G", master_vcf.records[2].alt[0]);
+    EXPECT_EQ((uint)4, master_vcf.records[2].samples.size());
+    EXPECT_TRUE(master_vcf.records[2].samples[sample4_index].find("GT") == master_vcf.records[2].samples[sample4_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[2].samples[sample3_index].find("GT") == master_vcf.records[2].samples[sample3_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[2].samples[sample2_index].find("GT") == master_vcf.records[2].samples[sample2_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[2].samples[sample1_index].find("GT") == master_vcf.records[2].samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[2].samples[sample3_index]["GT"], alt_gt);
+
+    for (const auto format : formats){
+        std::cout << format << std::endl;
+        EXPECT_FALSE(master_vcf.records[2].samples[sample1_index].find(format) == master_vcf.records[2].samples[sample1_index].end());
+        EXPECT_TRUE(master_vcf.records[2].samples[sample2_index].find(format) == master_vcf.records[2].samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[2].samples[sample3_index].find(format) == master_vcf.records[2].samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[2].samples[sample4_index].find(format) == master_vcf.records[2].samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[2].samples[sample1_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[2].samples[sample3_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[2].samples[sample4_index][format], no_covg2);
+    }
+
+
+    EXPECT_EQ((uint)2, master_vcf.records[3].pos);
+    EXPECT_EQ("A", master_vcf.records[3].ref);
+    EXPECT_EQ((uint)2, master_vcf.records[3].alt.size());
+    EXPECT_EQ("G", master_vcf.records[3].alt[0]);
+    EXPECT_EQ("GA", master_vcf.records[3].alt[1]);
+    EXPECT_EQ((uint)4, master_vcf.records[3].samples.size());
+    EXPECT_FALSE(master_vcf.records[3].samples[sample4_index].find("GT") == master_vcf.records[3].samples[sample4_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[3].samples[sample3_index].find("GT") == master_vcf.records[3].samples[sample3_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[3].samples[sample2_index].find("GT") == master_vcf.records[3].samples[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[3].samples[sample1_index].find("GT") == master_vcf.records[3].samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[3].samples[sample1_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[3].samples[sample4_index]["GT"], alt2_gt);
+
+    for (const auto format : formats){
+        std::cout << format << std::endl;
+        EXPECT_FALSE(master_vcf.records[3].samples[sample1_index].find(format) == master_vcf.records[3].samples[sample1_index].end());
+        EXPECT_TRUE(master_vcf.records[3].samples[sample2_index].find(format) == master_vcf.records[3].samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[3].samples[sample3_index].find(format) == master_vcf.records[3].samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[3].samples[sample4_index].find(format) == master_vcf.records[3].samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[3].samples[sample1_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[3].samples[sample3_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[3].samples[sample4_index][format], no_covg3);
+    }
 }
-*/
+
+TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg_with_covgs)
+{
+    uint32_t prg_id1 = 3, w=1, k=3;
+    std::string prg_name1 = "nested varsite";
+    LocalPRG local_prg1(prg_id1, prg_name1 , "A 5 G 7 C 8 T 8 CT 7  6 G 5 T");
+    uint32_t prg_id2 = 5;
+    std::string prg_name2 = "modified";
+    LocalPRG local_prg2(prg_id2, prg_name2 , "A 5 G 7 G 8 A 8 GA 7  6 G 5 T");
+
+    auto index = std::make_shared<Index>();
+    local_prg1.minimizer_sketch(index, w, k);
+    auto prg_ptr1 = std::make_shared<LocalPRG>(local_prg1);
+    auto &kg1 = local_prg1.kmer_prg;
+    local_prg2.minimizer_sketch(index, w, k);
+    auto prg_ptr2 = std::make_shared<LocalPRG>(local_prg2);
+    auto &kg2 = local_prg2.kmer_prg;
+
+    Graph pangraph;
+
+    //sample1
+    std::string sample_name = "sample1";
+    std::vector<KmerNodePtr> sample_kmer_path = {kg1.nodes[0], kg1.nodes[2], kg1.nodes[6], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 0, prg_ptr1, sample_kmer_path);
+    sample_kmer_path = {kg2.nodes[0], kg2.nodes[1], kg2.nodes[5], kg2.nodes[9]};
+    pangraph.add_node(prg_id2, prg_name2, sample_name, 0, prg_ptr2, sample_kmer_path);
+
+    LocalPRG dummy(0,"null","");
+    auto dummy_prg_ptr = std::make_shared<LocalPRG>(dummy);
+    pangraph.setup_kmergraphs({dummy_prg_ptr, dummy_prg_ptr, dummy_prg_ptr, prg_ptr1, dummy_prg_ptr, prg_ptr2}, 4);
+
+    auto &pannode1 = *pangraph.nodes[prg_id1];
+    auto &pannode2 = *pangraph.nodes[prg_id2];
+
+    pannode1.kmer_prg.nodes[0]->set_covg(4, 0, 0);
+    pannode1.kmer_prg.nodes[2]->set_covg(4, 0, 0);
+    pannode1.kmer_prg.nodes[6]->set_covg(4, 0, 0);
+    pannode1.kmer_prg.nodes[9]->set_covg(4, 0, 0);
+    pannode2.kmer_prg.nodes[0]->set_covg(4, 0, 0);
+    pannode2.kmer_prg.nodes[1]->set_covg(4, 0, 0);
+    pannode2.kmer_prg.nodes[5]->set_covg(4, 0, 0);
+    pannode2.kmer_prg.nodes[9]->set_covg(4, 0, 0);
+
+    //sample2 identical to sample1 in prg1, no prg2
+    sample_name = "sample2";
+    sample_kmer_path = {kg1.nodes[0], kg1.nodes[2], kg1.nodes[6], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 1, prg_ptr1, sample_kmer_path);
+    pannode1.kmer_prg.nodes[0]->set_covg(10, 0, 1);
+    pannode1.kmer_prg.nodes[2]->set_covg(10, 0, 1);
+    pannode1.kmer_prg.nodes[6]->set_covg(10, 0, 1);
+    pannode1.kmer_prg.nodes[9]->set_covg(10, 0, 1);
+
+    //sample3 with top path
+    sample_name = "sample3";
+    sample_kmer_path = {kg1.nodes[0], kg1.nodes[1], kg1.nodes[5], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 2, prg_ptr1, sample_kmer_path);
+    sample_kmer_path = {kg2.nodes[0], kg2.nodes[4], kg2.nodes[9]};
+    pangraph.add_node(prg_id2, prg_name2, sample_name, 2, prg_ptr2, sample_kmer_path);
+    pannode1.kmer_prg.nodes[0]->set_covg(2, 0, 2);
+    pannode1.kmer_prg.nodes[1]->set_covg(2, 0, 2);
+    pannode1.kmer_prg.nodes[5]->set_covg(2, 0, 2);
+    pannode1.kmer_prg.nodes[9]->set_covg(2, 0, 2);
+    pannode2.kmer_prg.nodes[0]->set_covg(2, 0, 2);
+    pannode2.kmer_prg.nodes[4]->set_covg(2, 0, 2);
+    pannode2.kmer_prg.nodes[9]->set_covg(2, 0, 2);
+
+    //sample4 with bottom path
+    sample_name = "sample4";
+    sample_kmer_path = {kg1.nodes[0], kg1.nodes[4], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 3, prg_ptr1, sample_kmer_path);
+    sample_kmer_path = {kg2.nodes[0], kg2.nodes[3], kg2.nodes[7], kg2.nodes[8], kg2.nodes[9]};
+    pangraph.add_node(prg_id2, prg_name2, sample_name, 3, prg_ptr2, sample_kmer_path);
+    pannode1.kmer_prg.nodes[0]->set_covg(5, 0, 3);
+    pannode1.kmer_prg.nodes[4]->set_covg(5, 0, 3);
+    pannode1.kmer_prg.nodes[9]->set_covg(5, 0, 3);
+    pannode2.kmer_prg.nodes[0]->set_covg(5, 0, 3);
+    pannode2.kmer_prg.nodes[3]->set_covg(5, 0, 3);
+    pannode2.kmer_prg.nodes[7]->set_covg(5, 0, 3);
+    pannode2.kmer_prg.nodes[8]->set_covg(5, 0, 3);
+    pannode2.kmer_prg.nodes[9]->set_covg(5, 0, 3);
+
+    std::cout << "added samples" << std::endl;
+
+    VCF master_vcf;
+    std::vector<LocalNodePtr> vcf_reference_path1 = {local_prg1.prg.nodes[0], local_prg1.prg.nodes[1], local_prg1.prg.nodes[3], local_prg1.prg.nodes[5], local_prg1.prg.nodes[7]};
+    std::vector<LocalNodePtr> vcf_reference_path2 = {local_prg2.prg.nodes[0], local_prg2.prg.nodes[1], local_prg2.prg.nodes[3], local_prg2.prg.nodes[5], local_prg2.prg.nodes[7]};
+
+    pannode1.construct_multisample_vcf(master_vcf, vcf_reference_path1, prg_ptr1, w);
+    pannode2.construct_multisample_vcf(master_vcf, vcf_reference_path2, prg_ptr2, w);
+
+    std::cout << master_vcf.header() << std::endl;
+    std::cout << master_vcf << std::endl;
+
+    EXPECT_EQ((uint)4, master_vcf.records.size());
+    EXPECT_EQ((uint)4, master_vcf.samples.size());
+
+    //NB samples order changes to get index of each sample so can compare
+    //samples 1 and 2 are ref, sample 3 is top path and sample 4 is bottom path
+    auto sample1_index = master_vcf.get_sample_index("sample1");
+    auto sample2_index = master_vcf.get_sample_index("sample2");
+    auto sample3_index = master_vcf.get_sample_index("sample3");
+    auto sample4_index = master_vcf.get_sample_index("sample4");
+    std::vector<uint8_t> covgs_40 = {4,0};
+    std::vector<uint8_t> covgs_100 = {10,0};
+    std::vector<uint8_t> covgs_02 = {0,2};
+    std::vector<uint8_t> covgs_05 = {0,5};
+    std::vector<uint8_t> covgs_00 = {0,0};
+    std::vector<uint8_t> covgs_400 = {4,0,0};
+    std::vector<uint8_t> covgs_040 = {0,4,0};
+    std::vector<uint8_t> covgs_1000 = {10,0,0};
+    std::vector<uint8_t> covgs_020 = {0,2,0};
+    std::vector<uint8_t> covgs_005 = {0,0,5};
+    std::vector<uint8_t> covgs_000 = {0,0,0};
+
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample4_index]["MEAN_FWD_COVG"], covgs_05);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample2_index]["MEAN_FWD_COVG"], covgs_100);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample1_index]["MEAN_FWD_COVG"], covgs_40);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample4_index]["MEAN_REV_COVG"], covgs_00);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample2_index]["MEAN_REV_COVG"], covgs_00);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[0].samples[sample1_index]["MEAN_REV_COVG"], covgs_00);
+
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample3_index]["MEAN_FWD_COVG"], covgs_020);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample2_index]["MEAN_FWD_COVG"], covgs_1000);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample1_index]["MEAN_FWD_COVG"], covgs_400);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample4_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample2_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[1].samples[sample1_index]["MEAN_REV_COVG"], covgs_000);
+
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[2].samples[sample3_index]["MEAN_FWD_COVG"], covgs_02);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[2].samples[sample3_index]["MEAN_REV_COVG"], covgs_00);
+
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[3].samples[sample1_index]["MEAN_FWD_COVG"], covgs_040);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[3].samples[sample4_index]["MEAN_FWD_COVG"], covgs_005);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[3].samples[sample1_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, master_vcf.records[3].samples[sample4_index]["MEAN_REV_COVG"], covgs_000);
+}
 
 TEST(PangenomeNodeTest, equals) {
     Node pn1(3, 3, "3");

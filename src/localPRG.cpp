@@ -313,7 +313,7 @@ std::vector<Path> LocalPRG::shift(Path p) const {
 }
 
 void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, const uint32_t k) {
-    std::cout << now() << "Sketch PRG " << name << " which has " << prg.nodes.size() << " nodes" << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Sketch PRG " << name << " which has " << prg.nodes.size() << " nodes";
 
     // clean up after any previous runs
     // although note we can't clear the index because it is also added to by other LocalPRGs
@@ -567,7 +567,7 @@ LocalPRG::kmernode_path_from_localnode_path(const std::vector<LocalNodePtr> &loc
 
 std::vector<LocalNodePtr>
 LocalPRG::localnode_path_from_kmernode_path(const std::vector<KmerNodePtr> &kmernode_path, const uint32_t w) const {
-    //std::cout << now() << "Convert kmernode path to localnode path" << std::endl;
+    BOOST_LOG_TRIVIAL(debug) << "Convert kmernode path to localnode path";
     std::vector<LocalNodePtr> localnode_path, kmernode, walk_path;
     std::vector<Path> walk_paths;
     for (uint32_t i = 0; i != kmernode_path.size(); ++i) {
@@ -720,8 +720,9 @@ std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr pnode,
             for (uint32_t l = start; l < end; ++l) {
                 assert(kmernode_ptr->id < pnode->kmer_prg.nodes.size() and
                        pnode->kmer_prg.nodes[kmernode_ptr->id] != nullptr);
-                coverages[k][l] = std::max(coverages[k][l], pnode->kmer_prg.nodes[kmernode_ptr->id]->get_covg(0, sample_id) +
-                                                            pnode->kmer_prg.nodes[kmernode_ptr->id]->get_covg(1, sample_id));
+                coverages[k][l] = std::max(coverages[k][l],
+                                           pnode->kmer_prg.nodes[kmernode_ptr->id]->get_covg(0, sample_id) +
+                                           pnode->kmer_prg.nodes[kmernode_ptr->id]->get_covg(1, sample_id));
             }
             k++;
         }
@@ -806,7 +807,7 @@ void LocalPRG::write_aligned_path_to_fasta(const boost::filesystem::path &filepa
 }
 
 void LocalPRG::build_vcf(VCF &vcf, const std::vector<LocalNodePtr> &ref) const {
-    std::cout << now() << "Build VCF for prg " << name << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Build VCF for prg " << name;
     assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
 
     std::vector<LocalNodePtr> varpath;
@@ -931,7 +932,7 @@ LocalPRG::add_sample_gt_to_vcf(VCF &vcf,
                                const std::vector<LocalNodePtr> &rpath,
                                const std::vector<LocalNodePtr> &sample_path,
                                const std::string &sample_name) const {
-    std::cout << now() << "Update VCF with sample path" << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Update VCF with sample path";
     /*for (uint i=0; i!=sample_path.size(); ++i)
     {
 	std::cout << *sample_path[i] << " ";
@@ -1195,12 +1196,20 @@ uint32_t sum(const std::vector<uint32_t> &v) {
 }
 
 uint32_t mean(const std::vector<uint32_t> &v) {
+    /*std::string s;
+    for (const auto &i : v)
+        s += int_to_string(i) + " ";
+    BOOST_LOG_TRIVIAL(debug) << "mean of " << s;*/
     if (v.empty())
         return 0;
     return std::accumulate(v.begin(), v.end(), 0) / v.size();
 }
 
 uint32_t median(std::vector<uint32_t> v) {
+    /*std::string s;
+    for (const auto &i : v)
+        s += int_to_string(i) + " ";
+    BOOST_LOG_TRIVIAL(debug) << "median of " << s;*/
     if (v.empty())
         return 0;
     std::sort(v.begin(), v.end());
@@ -1208,14 +1217,18 @@ uint32_t median(std::vector<uint32_t> v) {
         int n = (v.size() + 1) / 2;
         return v[n - 1];
     } else {
-        int n1 = (v.size() + 2) / 2;
-        int n2 = (v.size() - 2) / 2;
-        return (v[n1 - 1] + v[n2 - 1]) / 2;
+        int n1 = (v.size() + 1) / 2;
+        int n2 = (v.size() - 1) / 2;
+        return (v[n1] + v[n2]) / 2;
     }
 }
 
 uint32_t mode(std::vector<uint32_t> v) {
     std::sort(v.begin(), v.end());
+    /*std::string s;
+    for (const auto &i : v)
+        s += int_to_string(i) + " ";
+    BOOST_LOG_TRIVIAL(debug) << "mode of " << s;*/
     uint32_t counter = 1;
     uint32_t max_count = 1;
     uint32_t most_common = 0;
@@ -1239,7 +1252,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg,
                                        const std::vector<LocalNodePtr> &ref_path,
                                        const std::string &sample_name,
                                        const uint32_t &sample_id) const {
-    std::cout << now() << "Update VCF with sample covgs" << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Update VCF with sample covgs";
 
     assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
     vcf.sort_records();
@@ -1356,11 +1369,10 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq,
     auto mode_covg = mode(covgs);
     auto mean_covg = mean(covgs);
     BOOST_LOG_TRIVIAL(info) << "Found global coverage " << global_covg << " and path mode " << mode_covg << " and mean "
-              << mean_covg;
-    if (global_covg > 5 and
+                            << mean_covg;
+    if (global_covg > 20 and
         (6 * mean(covgs) < global_covg or mean(covgs) > global_covg or (mode(covgs) < 3 and mean(covgs) < 3))) {
-        std::cout << now() << "Skip LocalPRG " << name << " as mode and mean along max likelihood path too low"
-                  << std::endl;
+        BOOST_LOG_TRIVIAL(info) << "Skip LocalPRG " << name << " as mode and mean along max likelihood path too low";
         kmp.clear();
         return;
     }
@@ -1371,27 +1383,33 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq,
     output_fq.add_entry(fq_name, seq, covgs, global_covg, header);
 }
 
-bool LocalPRG::vcf_ref_is_good(const std::string &vcf_ref) {
-    if (vcf_ref.length() < 30) {
+std::vector<LocalNodePtr> LocalPRG::get_valid_vcf_reference(const std::string &vcf_reference_sequence) const {
+    std::vector<LocalNodePtr> reference_path = {};
+    if (vcf_reference_sequence.length() < 30) {
         BOOST_LOG_TRIVIAL(warning) << "Input vcf_ref path was too short to be the ref for PRG " << name;
-        return false;
+        return reference_path;
     }
 
-    auto refpath{prg.nodes_along_string(vcf_ref, true)};
-    if (refpath.empty()) {
-        refpath = prg.nodes_along_string(rev_complement(vcf_ref), true);
-    }
-    if (refpath.empty()) {
-        BOOST_LOG_TRIVIAL(warning) << "Input vcf_ref was not a path in PRG " << name;
-        return false;
+    reference_path = this->prg.nodes_along_string(vcf_reference_sequence);
+    if (reference_path.empty()) {
+        reference_path = this->prg.nodes_along_string(rev_complement(vcf_reference_sequence));
     }
 
-    if (refpath[0]->pos.length > 0 or refpath.back()->pos.length > 0) {
-        BOOST_LOG_TRIVIAL(warning) << "Input vcf_ref path did not start/end at the beginning/end of PRG " << name;
-        return false;
-    }
+    if (reference_path.empty())
+        return reference_path;
 
-    return true;
+    bool not_starting_at_prg_start = reference_path.front()->pos.start != 0;
+
+    LocalNode last_prg_node = *(*(prg.nodes.rbegin())).second;
+    auto final_prg_coordinate = last_prg_node.pos.get_end();
+    bool not_ending_at_prg_end = reference_path.back()->pos.get_end() != final_prg_coordinate;
+
+    if (not_starting_at_prg_start or not_ending_at_prg_end) {
+        BOOST_LOG_TRIVIAL(warning) << "Input vcf_ref path did not start/end at the beginning/end of PRG "
+                                   << name;
+        reference_path.clear();
+    }
+    return reference_path;
 }
 
 void LocalPRG::add_variants_to_vcf(VCF &master_vcf,
@@ -1401,29 +1419,19 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf,
                                    const std::vector<LocalNodePtr> &lmp,
                                    const uint32_t &sample_id,
                                    const std::string &sample_name) {
-    std::vector<LocalNodePtr> refpath;
-    refpath.reserve(100);
-
-    if (vcf_ref_is_good(vcf_ref)) {
-        refpath = prg.nodes_along_string(vcf_ref, true);
-        if (refpath.empty()) {
-            refpath = prg.nodes_along_string(rev_complement(vcf_ref), true);
-        }
-        if (refpath.empty()) {
-            BOOST_LOG_TRIVIAL(warning) << "Could not find reference sequence for " << name
-                                       << "in the PRG so using the top path" << std::endl;
-            refpath = prg.top_path();
-        }
-    } else {
-        refpath = prg.top_path();
+    auto reference_path = get_valid_vcf_reference(vcf_ref);
+    if (reference_path.empty()) {
+        BOOST_LOG_TRIVIAL(warning) << "Could not find reference sequence for " << name
+                                   << "in the PRG so using the top path";
+        reference_path = prg.top_path();
     }
 
     VCF vcf;
-    build_vcf(vcf, refpath);
+    build_vcf(vcf, reference_path);
     //std::cout << "add sample gts" << std::endl;
-    add_sample_gt_to_vcf(vcf, refpath, lmp, sample_name);
+    add_sample_gt_to_vcf(vcf, reference_path, lmp, sample_name);
     //std::cout << "add sample covgs" << std::endl;
-    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, refpath, sample_name, sample_id);
+    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, reference_path, sample_name, sample_id);
     //vcf.save("temp.vcf" , true, true, true, true, true, true, true);
     //std::cout << "sort records" << std::endl;
     //vcf.sort_records();

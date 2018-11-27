@@ -225,19 +225,10 @@ int pandora_compare(int argc, char *argv[]) {
     auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits(100000));
 
     Fastaq consensus_fq(true, true);
-    VCF master_vcf;
 
     vector<KmerNodePtr> kmp;
     vector<LocalNodePtr> lmp;
     vector<vector<uint32_t>> read_overlap_coordinates;
-
-    // load vcf refs
-    VCFRefs vcf_refs;
-    std::string vcf_ref;
-    if (!vcf_refs_file.empty()) {
-        vcf_refs.reserve(prgs.size());
-        load_vcf_refs_file(vcf_refs_file, vcf_refs);
-    }
 
     // for each sample, run pandora to get the sample pangraph
     uint32_t last_covg = 0;
@@ -251,7 +242,7 @@ int pandora_compare(int argc, char *argv[]) {
 
         // make output dir for this sample
         auto sample_outdir = outdir + "/" + sample_name;
-        fs::create_directories(sample_outdir + "/kmer_prgs");
+        fs::create_directories(sample_outdir);
 
         // construct the pangraph for this sample
         BOOST_LOG_TRIVIAL(info) << "Constructing pangenome::Graph from read file "
@@ -267,8 +258,8 @@ int pandora_compare(int argc, char *argv[]) {
         BOOST_LOG_TRIVIAL(info) << "Finished with minihits, so clear ";
         minimizer_hits->clear();
 
-        std::cout << now() << "Writing pangenome::Graph to file " << sample_outdir << "/pandora.pangraph.gfa"
-                  << std::endl;
+        BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file "
+                                << sample_outdir << "/pandora.pangraph.gfa";
         write_pangraph_gfa(sample_outdir + "/pandora.pangraph.gfa", pangraph_sample);
 
         if (pangraph_sample->nodes.empty()) {
@@ -276,42 +267,36 @@ int pandora_compare(int argc, char *argv[]) {
         }
 
         BOOST_LOG_TRIVIAL(info) << "Update LocalPRGs with hits";
-        pangraph_sample->setup_kmergraphs(prgs, samples.size());
-        pangraph_sample->add_hits_to_kmergraphs(prgs, sample_id);
+        pangraph_sample->setup_kmergraphs(prgs, 1);
+        pangraph_sample->add_hits_to_kmergraphs(prgs, 0);
 
-        std::cout << now() << "Estimate parameters for kmer graph model" << std::endl;
-        estimate_parameters(pangraph_sample, sample_outdir, k, e_rate, covg, bin, sample_id);
+        BOOST_LOG_TRIVIAL(info) << "Estimate parameters for kmer graph model";
+        estimate_parameters(pangraph_sample, sample_outdir, k, e_rate, covg, bin, 0);
 
-        std::cout << now() << "Find max likelihood PRG paths" << std::endl;
+        BOOST_LOG_TRIVIAL(info) << "Find max likelihood PRG paths";
         auto sample_pangraph_size = pangraph_sample->nodes.size();
         for (auto c = pangraph_sample->nodes.begin(); c != pangraph_sample->nodes.end();) {
             LocalPRG local_prg = *prgs[c->second->prg_id];
-            if (!vcf_refs_file.empty()) {
-                assert(vcf_refs.find(local_prg.name) != vcf_refs.end());
-                vcf_ref = vcf_refs[local_prg.name];
-            }
-
             local_prg.add_consensus_path_to_fastaq(consensus_fq,
                                                    c->second,
                                                    kmp, lmp, w,
-                                                   bin, covg,
-                                                   sample_id);
+                                                   bin, covg, 0);
 
             if (kmp.empty()) {
                 c = pangraph_sample->remove_node(c->second);
                 continue;
             }
-
-            local_prg.add_variants_to_vcf(master_vcf, c->second, vcf_ref, kmp, lmp, sample_id,
-                                          sample_name);
-            pangraph->add_node(c->second->prg_id, c->second->name, sample_name, kmp, prgs[c->second->prg_id]);
+            pangraph->add_node(c->second->prg_id, c->second->name, sample_name, sample_id,
+                               prgs[c->second->prg_id], kmp);
 
             ++c;
         }
+
+        pangraph->setup_kmergraphs(prgs, samples.size());
+        pangraph->copy_coverages_to_kmergraphs(*pangraph_sample, sample_id);
+
         consensus_fq.save(sample_outdir + "/pandora.consensus.fq.gz");
         consensus_fq.clear();
-        //master_vcf.save(sample_outdir + "/pandora_consensus.vcf" , true, true, true, true, true, true, true);
-        //master_vcf.clear();
         if (pangraph_sample->nodes.empty() and sample_pangraph_size > 0) {
             std::cout << "WARNING: All LocalPRGs found were removed for sample " << sample_name
                       << ". Is your genome_size accurate? Genome size is assumed to be " << genome_size
@@ -321,48 +306,57 @@ int pandora_compare(int argc, char *argv[]) {
         sample_id++;
     }
 
-    // for each pannode in graph, find a best reference and output a vcf and aligned fasta of sample paths through it
+    // for each pannode in graph, find a best reference
+    // and output a vcf and aligned fasta of sample paths through it
     BOOST_LOG_TRIVIAL(info) << "Multi-sample pangraph has "
                             << pangraph->nodes.size() << " nodes";
 
+    // load vcf refs
+    VCFRefs vcf_refs;
+    std::string vcf_ref;
+    if (!vcf_refs_file.empty()) {
+        vcf_refs.reserve(prgs.size());
+        load_vcf_refs_file(vcf_refs_file, vcf_refs);
+    }
+
+    VCF master_vcf;
+
     for (const auto &pangraph_node_entry: pangraph->nodes) {
+        BOOST_LOG_TRIVIAL(debug) << "Consider next node";
         const auto &node_id = pangraph_node_entry.first;
         pangenome::Node &pangraph_node = *pangraph_node_entry.second;
 
-        std::cout << " c.first: " << node_id;
-        std::cout << " prgs[c.first]->name: " << prgs[node_id]->name << std::endl;
+        const auto &prg_id = pangraph_node.prg_id;
+        assert(prgs.size() > prg_id);
+        const auto& prg_ptr = prgs[prg_id];
 
-        if (!vcf_refs_file.empty()
-            and vcf_refs.find(prgs[pangraph_node.prg_id]->name) != vcf_refs.end()) {
-            vcf_ref = vcf_refs[prgs[pangraph_node.prg_id]->name];
-        }
+        const auto vcf_reference_path = pangraph->infer_node_vcf_reference_path(pangraph_node, prg_ptr, w, vcf_refs);
+        BOOST_LOG_TRIVIAL(debug) << " c.first: " << node_id << " prgs[c.first]->name: " << prg_ptr->name;
 
-        auto node_outdir = outdir + "/" + pangraph_node.get_name();
-        fs::create_directories(node_outdir);
-
-        pangraph_node.output_samples(prgs[node_id], node_outdir, w, vcf_ref);
+        pangraph_node.construct_multisample_vcf(master_vcf, vcf_reference_path, prg_ptr, w);
     }
+    master_vcf.save(outdir + "/pandora_multisample_consensus.vcf", true, true, true, true, true, true, true);
+
     if (genotype) {
         master_vcf.genotype(last_covg, 0.01, 30, false);
-        master_vcf.save(outdir + "/pandora_genotyped.vcf", true, true, true, true, false, false, false);
+        master_vcf.save(outdir + "/pandora_multisample_genotyped.vcf", true, true, true, true, true, true, true);
     }
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
-    std::cout << now() << "Output matrix" << std::endl;
-    pangraph->save_matrix(outdir + "/multisample.matrix");
-
-    // clear up
-    std::cout << now() << "Clear up" << std::endl;
-    index->clear();
-    minimizer_hits->clear();
-    pangraph->clear();
-    pangraph_sample->clear();
+    BOOST_LOG_TRIVIAL(info) << "Output matrix";
+    pangraph->save_matrix(outdir + "/pandora_multisample.matrix");
 
     if (pangraph->nodes.empty()) {
         std::cout << "No LocalPRGs found to compare samples on. "
                   << "Is your genome_size accurate? Genome size is assumed to be "
                   << genome_size << " and can be updated with --genome_size" << std::endl;
     }
+
+    // clear up
+    index->clear();
+    minimizer_hits->clear();
+    pangraph->clear();
+    pangraph_sample->clear();
 
     // current date/time based on current system
     std::cout << "FINISH: " << now() << std::endl;

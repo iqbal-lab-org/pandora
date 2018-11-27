@@ -97,8 +97,7 @@ public:
                                       const bool,
                                       const uint32_t,
                                       const uint32_t &sample_id = 0);
-
-    bool vcf_ref_is_good(const std::string &);
+    std::vector<LocalNodePtr> get_valid_vcf_reference(const std::string &) const;
 
     void add_variants_to_vcf(VCF &, PanNodePtr, const std::string &, const std::vector<KmerNodePtr> &,
                              const std::vector<LocalNodePtr> &,

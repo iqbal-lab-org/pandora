@@ -34,17 +34,27 @@ void VCF::add_record(std::string c, uint32_t p, std::string r, std::string a, st
     //cout << "added record: " << vr << endl;
 }
 
-VCFRecord &VCF::add_record(VCFRecord &vr) {
+
+
+VCFRecord &VCF::add_record(VCFRecord &vr, const std::vector<std::string> &sample_names) {
+    assert(vr.samples.size() == sample_names.size() or sample_names.size() == 0);
+
     std::unordered_map<std::string, std::vector<uint8_t>> empty_map;
     auto record_it = find(records.begin(), records.end(), vr);
     if (record_it == records.end()) {
         records.push_back(vr);
-        if (samples.size() > vr.samples.size())
-            records.back().samples.insert(records.back().samples.end(), samples.size() - vr.samples.size(), empty_map);
-        return records.back();
+        records.back().samples.clear();
+        records.back().samples.insert(records.back().samples.end(), samples.size(), empty_map);
+        record_it = --records.end();
     }
+
+    for (uint32_t i=0; i < sample_names.size(); ++i){
+        auto &name = sample_names[i];
+        ptrdiff_t sample_index = get_sample_index(name);
+        record_it->samples[sample_index] = vr.samples[i];
+    }
+
     return *record_it;
-    // handle mismatched sample data?
 }
 
 void VCF::add_formats(const std::vector<std::string> &v) {
@@ -130,21 +140,8 @@ void VCF::add_sample_gt(const std::string &name, const std::string &c, const uin
 
 void VCF::add_sample_ref_alleles(const std::string &sample_name, const std::string &chrom, const uint32_t &pos,
                                  const uint32_t &pos_to) {
-    ptrdiff_t sample_index;
-    std::unordered_map<std::string, std::vector<uint8_t>> empty_map;
 
-    // if this sample has not been added before, add a column for it
-    auto sample_it = find(samples.begin(), samples.end(), sample_name);
-    if (sample_it == samples.end()) {
-        //cout << "this is the first time this sample has been added" << endl;
-        samples.push_back(sample_name);
-        for (uint32_t i = 0; i != records.size(); ++i) {
-            records[i].samples.push_back(empty_map);
-        }
-        sample_index = samples.size() - 1;
-    } else {
-        sample_index = distance(samples.begin(), sample_it);
-    }
+    ptrdiff_t sample_index = get_sample_index(sample_name);
 
     for (uint32_t i = 0; i != records.size(); ++i) {
         if (records[i].chrom == chrom and pos <= records[i].pos and
@@ -163,7 +160,7 @@ void VCF::append_vcf(const VCF &other_vcf) {
     auto original_size = records.size();
     auto num_samples_added = 0;
 
-    //cout << "find which samples are new of the " << other_vcf.samples.size() << " samples" << endl;
+    BOOST_LOG_TRIVIAL(debug) << "find which samples are new of the " << other_vcf.samples.size() << " samples";
     std::vector<uint_least16_t> other_sample_positions;
     for (const auto &sample : other_vcf.samples) {
         auto sample_it = find(samples.begin(), samples.end(), sample);
@@ -176,7 +173,8 @@ void VCF::append_vcf(const VCF &other_vcf) {
         }
     }
 
-    //cout << "for all existing " << original_size << " records, add null entries for the " << num_samples_added << " new samples" << endl;
+    BOOST_LOG_TRIVIAL(debug) << "for all existing " << original_size << " records, add null entries for the "
+                             << num_samples_added << " new samples";
     std::unordered_map<std::string, std::vector<uint8_t>> empty_u_map;
     assert(original_size < std::numeric_limits<uint_least64_t>::max() ||
            assert_msg("VCF size has got too big to use the append feature"));
@@ -184,9 +182,9 @@ void VCF::append_vcf(const VCF &other_vcf) {
         records[i].samples.insert(records[i].samples.end(), num_samples_added, empty_u_map);
     }
 
-    //cout << "add the " << other_vcf.records.size() << " records" << endl;
+    BOOST_LOG_TRIVIAL(debug) << "add the " << other_vcf.records.size() << " records";
     for (auto record : other_vcf.records) {
-        VCFRecord &vr = add_record(record);
+        VCFRecord &vr = add_record(record, other_vcf.samples);
         for (uint_least16_t j = 0; j < other_vcf.samples.size(); ++j) {
             vr.samples[other_sample_positions[j]] = record.samples[j];
             //NB this overwrites old data without checking
@@ -297,16 +295,16 @@ void merge_gt(VCFRecord &first, const VCFRecord &second, const uint16_t i, const
 
 
 void VCF::merge_multi_allelic(uint32_t max_allele_length) {
-    if (records.empty())
+    if (records.size() < 2)
         return;
 
     uint32_t prev_pos = 0;
-    VCFRecord prev_vr(records[prev_pos]);
+    VCFRecord prev_vr(records.at(prev_pos));
     auto vcf_size = records.size();
     auto reserve_size = vcf_size * 1.05;
     records.reserve(reserve_size);
     for (uint32_t current_pos = 1; current_pos < vcf_size; ++current_pos) {
-        const auto record = records[current_pos];
+        const auto record = records.at(current_pos);
         //cout << "comparing record " << current_pos << "/" << vcf_size << " to record " << prev_pos << endl;
 
         if (record != prev_vr
@@ -328,17 +326,17 @@ void VCF::merge_multi_allelic(uint32_t max_allele_length) {
             }
             if (!short_enough) {
                 prev_pos = current_pos;
-                prev_vr = records[prev_pos];
+                prev_vr = records.at(prev_pos);
                 continue;
             }
 
             // merge count/likelihood data
             if (record.samples.empty()) {
-                records[current_pos].clear();
-                records[prev_pos].clear();
+                records.at(current_pos).clear();
+                records.at(prev_pos).clear();
                 records.push_back(prev_vr);
                 prev_pos = records.size() - 1;
-                prev_vr = records[prev_pos];
+                prev_vr = records.at(prev_pos);
             }
             for (uint i = 0; i < record.samples.size(); ++i) {
                 auto keys = {"MEAN_FWD_COVG", "MEAN_REV_COVG",
@@ -347,7 +345,7 @@ void VCF::merge_multi_allelic(uint32_t max_allele_length) {
                 for (const auto &key: keys) {
                     merge_sample_key(prev_vr.samples[i], record.samples[i], key);
                 }
-                keys = {"LIKELIHOOD"};
+                keys = {"LIKELIHOOD", "GT_CONF"};
                 if (!prev_vr.regt_samples.empty() and !record.regt_samples.empty()) {
                     for (const auto &key: keys)
                         merge_regt_sample_key(prev_vr.regt_samples[i], record.regt_samples[i], key);
@@ -355,18 +353,19 @@ void VCF::merge_multi_allelic(uint32_t max_allele_length) {
 
                 //merge GT
                 merge_gt(prev_vr, record, i, prev_alt_size);
-                records[current_pos].clear_sample(i);
-                records[prev_pos].clear_sample(i);
-                records.push_back(prev_vr);
-                prev_pos = records.size() - 1;
-                prev_vr = records[prev_pos];
+                records.at(current_pos).clear_sample(i);
+                records.at(prev_pos).clear_sample(i);
             }
+            records.push_back(prev_vr);
+            prev_pos = records.size() - 1;
+            prev_vr = records.at(prev_pos);
         } else if (record != prev_vr) {
             prev_pos = current_pos;
-            prev_vr = records[prev_pos];
+            prev_vr = records.at(prev_pos);
         }
     }
     clean();
+    assert(records.size() <= vcf_size);
     sort_records();
 }
 
@@ -491,6 +490,7 @@ void VCF::load(const std::string &filepath) {
     std::string line;
     std::stringstream ss;
     uint32_t added = 0;
+    std::vector<std::string> sample_names = {};
     // NB this doesn't currently clear records first. Do we want to?
 
     std::ifstream myfile(filepath);
@@ -500,8 +500,11 @@ void VCF::load(const std::string &filepath) {
                 ss << line;
                 ss >> vr;
                 ss.clear();
-                add_record(vr);
+                add_record(vr, sample_names);
                 added += 1;
+            } else if (line[1] != '#'){
+                auto sample_string = line.replace(0,45, "");
+                sample_names = split(sample_string, "\t");
             }
         }
     } else {

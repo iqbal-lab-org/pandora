@@ -47,8 +47,7 @@ bool Seq::add_letter_to_get_next_kmer(const char &letter,
         buff++;
         return true;
     } else {
-        BOOST_LOG_TRIVIAL(warning) << now() << "bad letter - found a non AGCT base in read so skipping read " << name
-                                   << std::endl;
+        BOOST_LOG_TRIVIAL(debug) << now() << "bad letter - found a non AGCT base in read so skipping read " << name;
         sketch.clear();
         return false;
     }

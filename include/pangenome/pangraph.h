@@ -12,7 +12,9 @@ class KmerNode;
 #include <unordered_map>
 #include <ostream>
 #include <vector>
+
 #include "minihits.h"
+#include "localPRG.h"
 #include "pangenome/ns.cpp"
 
 
@@ -38,7 +40,13 @@ public:
     // graph additions/removals
     void reserve_num_reads(uint32_t &);
 
-    ReadPtr get_read(const uint32_t &read_id);
+    ReadPtr get_read(const uint32_t &);
+
+    NodePtr get_node(const NodeId &,
+                     const uint32_t &,
+                     const std::string &);
+
+    SamplePtr get_sample(const std::string &, const uint32_t &);
 
     NodePtr add_coverage(ReadPtr &read_ptr,
                          const NodeId &node_id,
@@ -47,8 +55,8 @@ public:
 
     void add_node(const uint32_t, const std::string &, uint32_t,
                   std::set<MinimizerHitPtr, pComp> &); // used by pandora map
-    void add_node(const uint32_t, const std::string &, const std::string &, const std::vector<KmerNodePtr> &,
-                  const std::shared_ptr<LocalPRG> &); // used by pandora compare
+    void add_node(const uint32_t, const std::string &, const std::string &, const uint32_t &sample_id,
+                      const std::shared_ptr<LocalPRG> &, const std::vector<KmerNodePtr> &); // used by pandora compare
 
     std::unordered_map<uint32_t, NodePtr>::iterator remove_node(NodePtr);
 
@@ -66,6 +74,15 @@ public:
 
     //unordered_set<ReadPtr> find_reads_on_node_path(const std::vector<uint16_t>, const std::vector<bool> );
     void add_hits_to_kmergraphs(const std::vector<std::shared_ptr<LocalPRG>> &, const uint32_t &sample_id = 0);
+
+    void copy_coverages_to_kmergraphs(const Graph &, const uint32_t &);
+
+    std::vector<LocalNodePtr>
+    infer_node_vcf_reference_path(const Node &, const std::shared_ptr<LocalPRG> &, const uint32_t &,
+                                  const std::unordered_map<std::string, std::string> &);
+
+    std::vector<LocalNodePtr>
+    get_node_closest_vcf_reference(const Node &, const uint32_t &, const LocalPRG &);
 
     // graph comparison
     bool operator==(const Graph &y) const;

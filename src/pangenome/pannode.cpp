@@ -112,74 +112,33 @@ void Node::get_read_overlap_coordinates(std::vector<std::vector<uint32_t>> &read
 
 }
 
-void Node::output_samples(const std::shared_ptr<LocalPRG> &prg,
-                          const std::string &outdir, const uint32_t w,
-                          const std::string &vcf_ref) {
-    uint32_t sample_id = 0;
-    std::vector<KmerNodePtr> kmp;
-    kmp.reserve(800);
-    std::vector<LocalNodePtr> refpath, sample_lmp;
-    refpath.reserve(100);
-    sample_lmp.reserve(100);
-
-    // if we passed in a string to be the reference, find the corresponding path
-    if (!vcf_ref.empty()) {
-        refpath = prg->prg.nodes_along_string(vcf_ref);
-        if (refpath.empty()) {
-            refpath = prg->prg.nodes_along_string(rev_complement(vcf_ref));
-        }
-        if (refpath.empty()) {
-            BOOST_LOG_TRIVIAL(warning) << "Could not find reference sequence for "
-                                       << name
-                                       << "in the PRG so using the closest path";
-            kmer_prg.set_p(0.01);
-            kmer_prg.num_reads = covg;
-            kmer_prg.find_max_path(kmp, sample_id);
-            refpath = prg->localnode_path_from_kmernode_path(kmp, w);
-        }
-    } else {
-        kmer_prg.set_p(0.01);
-        kmer_prg.num_reads = covg;
-        kmer_prg.find_max_path(kmp, sample_id);
-        refpath = prg->localnode_path_from_kmernode_path(kmp, w);
-    }
-
-    // create a with respect to this ref
+void Node::construct_multisample_vcf(VCF &master_vcf, const std::vector<LocalNodePtr> &vcf_reference_path,
+                                     const std::shared_ptr<LocalPRG> &prg, const uint32_t w) {
+    // create a vcf with respect to this ref
     VCF vcf;
-    prg->build_vcf(vcf, refpath);
-    vcf.save(outdir + "/" + name + ".multisample.vcf", true, true, true, true, true, true, true);
-    uint32_t count = 0;
-    for (const auto &s : samples) {
-        //cout << "new sample" << endl;
-        count = 0;
-        for (const auto &p : s->paths[prg_id]) {
-            /*cout << s->name << " ";
-            for (uint i=0; i!=p.size(); ++i)
-            {
-                cout << p[i]->id << " ";
-            }
-            cout << endl;*/
-            sample_lmp = prg->localnode_path_from_kmernode_path(p, w);
-            /*cout << "sample lmp:" << endl;
-            for (uint i=0; i!=sample_lmp.size(); ++i)
-            {
-                cout << sample_lmp[i]->id << "->";
-            }
-            cout << endl;*/
-            if (count == 0) {
-                prg->add_sample_gt_to_vcf(vcf, refpath, sample_lmp, s->name);
-                //prg->add_sample_covgs_to_vcf(vcf, kmer_prg, lmp, p, s->name);
+    prg->build_vcf(vcf, vcf_reference_path);
 
+    BOOST_LOG_TRIVIAL(debug) << "Initial build:\n" << vcf;
+
+    for (const auto &sample: samples) {
+        uint32_t count = 0;
+        for (const auto &sample_kmer_path : sample->paths[prg_id]) {
+            const auto sample_local_path = prg->localnode_path_from_kmernode_path(sample_kmer_path, w);
+            if (count == 0) {
+                prg->add_sample_gt_to_vcf(vcf, vcf_reference_path, sample_local_path, sample->name);
+                BOOST_LOG_TRIVIAL(debug) << "With sample added:\n" << vcf;
+                prg->add_sample_covgs_to_vcf(vcf, kmer_prg, vcf_reference_path, sample->name, sample->sample_id);
+                BOOST_LOG_TRIVIAL(debug) << "With sample coverages added:\n" << vcf;
             } else {
-                prg->add_sample_gt_to_vcf(vcf, refpath, sample_lmp, s->name + std::to_string(count));
-                //prg->add_sample_covgs_to_vcf(vcf, kmer_prg, lmp, p, s->name + to_string(count));
+                auto path_specific_sample_name = sample->name + std::to_string(count);
+                prg->add_sample_gt_to_vcf(vcf, vcf_reference_path, sample_local_path, path_specific_sample_name);
+                prg->add_sample_covgs_to_vcf(vcf, kmer_prg, vcf_reference_path, path_specific_sample_name, sample->sample_id);
             }
-            sample_lmp.clear();
             count++;
-            //cout << "finished adding sample " << s->name << " path " << count << endl;
         }
     }
-    vcf.save(outdir + "/" + name + ".multisample.vcf", true, true, true, true, true, true, true);
+    vcf.merge_multi_allelic();
+    master_vcf.append_vcf(vcf);
 }
 
 bool Node::operator==(const Node &y) const {

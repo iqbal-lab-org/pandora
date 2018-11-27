@@ -10,18 +10,18 @@ using namespace pangenome;
 
 TEST(PangenomeSampleTest, create) {
 
-    Sample ps("sample");
+    Sample ps("sample", 0);
     EXPECT_EQ("sample", ps.name);
     EXPECT_EQ((uint) 0, ps.paths.size());
 
     // do the same creating a pointer
-    SamplePtr ps1(std::make_shared<Sample>("sample"));
+    SamplePtr ps1(std::make_shared<Sample>("sample", 0));
     EXPECT_EQ("sample", ps1->name);
     EXPECT_EQ((uint) 0, ps1->paths.size());
 }
 
 TEST(PangenomeSampleTest, add_path) {
-    Sample ps("sample");
+    Sample ps("sample", 0);
     std::vector<KmerNodePtr> kmp;
     ps.add_path(2, kmp);
     EXPECT_EQ((uint) 1, ps.paths.size());
@@ -38,8 +38,8 @@ TEST(PangenomeSampleTest, add_path) {
 }
 
 TEST(PangenomeSampleTest, equals) {
-    Sample ps1("1");
-    Sample ps2("2");
+    Sample ps1("1", 0);
+    Sample ps2("2", 0);
     EXPECT_EQ(ps1, ps1);
     EXPECT_EQ(ps2, ps2);
     EXPECT_EQ((ps1 == ps2), false);
@@ -47,8 +47,8 @@ TEST(PangenomeSampleTest, equals) {
 }
 
 TEST(PangenomeSampleTest, nequals) {
-    Sample ps1("1");
-    Sample ps2("2");
+    Sample ps1("1", 0);
+    Sample ps2("2", 0);
     EXPECT_EQ((ps1 != ps1), false);
     EXPECT_EQ((ps2 != ps2), false);
     EXPECT_EQ((ps1 != ps2), true);
@@ -56,8 +56,8 @@ TEST(PangenomeSampleTest, nequals) {
 }
 
 TEST(PangenomeSampleTest, less) {
-    Sample ps1("1");
-    Sample ps2("2");
+    Sample ps1("1", 0);
+    Sample ps2("2", 0);
     EXPECT_EQ((ps1 < ps1), false);
     EXPECT_EQ((ps2 < ps2), false);
     EXPECT_EQ((ps1 < ps2), true);

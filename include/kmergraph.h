@@ -47,6 +47,8 @@ public:
 
     void check();
 
+    void discover_k();
+
     void set_exp_depth_covg(const uint32_t);
 
     void set_p(const float);
@@ -58,6 +60,8 @@ public:
     float prob(uint32_t, const uint32_t &sample_id);
 
     float prob(const uint32_t &, const uint32_t &, const uint32_t &sample_id);
+
+    bool coverage_is_zeroes(const uint32_t&);
 
     float find_max_path(std::vector<KmerNodePtr> &, const uint32_t &);
 

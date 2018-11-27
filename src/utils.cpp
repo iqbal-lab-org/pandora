@@ -154,7 +154,7 @@ void load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>> &prgs, const uin
 }
 
 void load_vcf_refs_file(const std::string &filepath, VCFRefs &vcf_refs) {
-    BOOST_LOG_TRIVIAL(debug) << "Loading VCF refs from file " << filepath;
+    BOOST_LOG_TRIVIAL(info) << "Loading VCF refs from file " << filepath;
 
     FastaqHandler fh(filepath);
     while (!fh.eof()) {

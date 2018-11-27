@@ -4,6 +4,9 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
+
+#include <boost/log/trivial.hpp>
+
 #include "vcfrecord.h"
 #include "utils.h"
 
@@ -106,11 +109,11 @@ void VCFRecord::clear() {
 
 void VCFRecord::clear_sample(uint32_t i) {
     if (samples.size() > i) {
-        samples[i].clear();
+        samples.at(i).clear();
     }
 
     if (regt_samples.size() > i) {
-        regt_samples[i].clear();
+        regt_samples.at(i).clear();
     }
     bool all_cleared(true);
     for (const auto &s : samples) {
