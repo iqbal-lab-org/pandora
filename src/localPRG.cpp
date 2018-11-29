@@ -155,10 +155,9 @@ std::vector<Interval> LocalPRG::split_by_site(const Interval &i) const {
         }
     }
     if (v.size() == w.size() && v.size() == 3) {
-        std::cout << "There was something dodgy with var site " << next_site << ": found no separated alternates.";
-        std::cout
-                << " I'm going to assume for now that this is as a result of straggly ends of sequences which don't align nicely,";
-        std::cout << " but you should check this. To handle, add an empty interval alternate." << std::endl;
+        BOOST_LOG_TRIVIAL(warning) << "There was something dodgy with var site " << next_site << ": found no separated "
+                    "alternates. I'm going to assume for now that this is as a result of straggly ends of sequences "
+                    "which don't align nicely, but you should check this. To handle, add an empty interval alternate.";
         std::vector<Interval> x;
         for (uint32_t l = 0; l != w.size() - 1; ++l) {
             x.push_back(w[l]);
@@ -204,24 +203,21 @@ std::vector<uint32_t> LocalPRG::build_graph(const Interval &i,
         // split by next var site
         std::vector<Interval> v = split_by_site(i); // should have length at least 4
         if (v.size() < (uint32_t) 4) {
-            std::cerr << "In conversion from linear localPRG string to graph, splitting the string by the next var site"
-                      << std::endl;
-            std::cerr << "resulted in the wrong number of intervals. Perhaps ordering of numbers in GFA is irregular?!"
-                      << std::endl;
-            std::cerr << "Size of partition based on site " << next_site << " is " << v.size() << std::endl;
+            BOOST_LOG_TRIVIAL(warning) << "In conversion from linear localPRG string to graph, splitting the string by "
+                        "the next var site resulted in the wrong number of intervals. Please check that site numbers "
+                        "are flanked by a space on either side. Or perhaps ordering of numbers in GFA is irregular?!"
+                        "Size of partition based on site " << next_site << " is " << v.size();
             std::exit(-1);
         }
         next_site += 2;
         // add first interval (should be alpha)
         s = seq.substr(v[0].start, v[0].length);
         if (!(isalpha_string(s))) {
-            std::cerr << "In conversion from linear localPRG string to graph, splitting the string by the next var site"
-                      << std::endl;
-            std::cerr
-                    << "resulted in the first interval being non alphabetic. Perhaps ordering of numbers in GFA is irregular?!"
-                    << std::endl;
-            std::cerr << "After splitting by site " << next_site << " do not have alphabetic sequence before var site: "
-                      << v[0] << std::endl;
+            BOOST_LOG_TRIVIAL(warning) << "In conversion from linear localPRG string to graph, splitting the string by "
+                        "the next var site resulted in the first interval being non alphabetic. Please check that site "
+                        "numbers are flanked by a space on either side. Or perhaps ordering of numbers in GFA is "
+                        "irregular?! After splitting by site " << next_site << " do not have alphabetic sequence before "
+                        "var site: " << v[0];
             std::exit(-1);
         }
         prg.add_node(next_id, s, v[0]);
