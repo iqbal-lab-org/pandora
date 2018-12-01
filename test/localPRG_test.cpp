@@ -652,7 +652,6 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw1) {
 
     Seq s = Seq(0, "read", st, 1, 15);
 
-    //cout << l.kmer_prg.nodes.size() << " " << s.sketch.size() << endl;
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
     std::set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
@@ -675,7 +674,6 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw5) {
 
     Seq s = Seq(0, "read", st, 5, 15);
 
-    //cout << l.kmer_prg.nodes.size() << " " << s.sketch.size() << endl;
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
     set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
@@ -698,7 +696,6 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw10) {
 
     Seq s = Seq(0, "read", st, 10, 15);
 
-    //cout << l.kmer_prg.nodes.size() << " " << s.sketch.size() << endl;
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
     set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
@@ -721,7 +718,6 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw15) {
 
     Seq s = Seq(0, "read", st, 15, 15);
 
-    //cout << l.kmer_prg.nodes.size() << " " << s.sketch.size() << endl;
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
     set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
@@ -805,8 +801,6 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
 
     kmp = l5.kmernode_path_from_localnode_path(lmp);
     sort(kmp.begin(), kmp.end());
-
-    cout << l5.kmer_prg << endl;
 
     kmp_exp = {l5.kmer_prg.nodes[1], l5.kmer_prg.nodes[2], l5.kmer_prg.nodes[6], l5.kmer_prg.nodes[8],
                l5.kmer_prg.nodes[10], l5.kmer_prg.nodes[12], l5.kmer_prg.nodes[13]};
@@ -1190,14 +1184,8 @@ TEST(LocalPRGTest, moreupdateVCF) {
     prgs[2]->build_vcf(vcf, prgs[2]->prg.top_path());
     vcf.sort_records();
 
-    //for (uint i=0; i!=prgs[2]->vcf.records.size(); ++i)
-    //{
-    //cout << prgs[2]->vcf.records[i];
-    //}
-
     vector<LocalNodePtr> lmp1 = {prgs[1]->prg.nodes[0], prgs[1]->prg.nodes[11], prgs[1]->prg.nodes[12],
                                  prgs[1]->prg.nodes[17], prgs[1]->prg.nodes[65], prgs[1]->prg.nodes[67]};
-    //cout << "PRG 1 has " << prgs[1]->prg.nodes.size() << " nodes" << endl;
     prgs[1]->add_sample_gt_to_vcf(vcf, prgs[1]->prg.top_path(), lmp1, "sample");
 
     vector<LocalNodePtr> lmp2 = {prgs[2]->prg.nodes[0], prgs[2]->prg.nodes[1], prgs[2]->prg.nodes[3],
@@ -1211,7 +1199,6 @@ TEST(LocalPRGTest, moreupdateVCF) {
                                  prgs[2]->prg.nodes[131], prgs[2]->prg.nodes[133], prgs[2]->prg.nodes[135],
                                  prgs[2]->prg.nodes[141], prgs[2]->prg.nodes[142], prgs[2]->prg.nodes[144],
                                  prgs[2]->prg.nodes[145], prgs[2]->prg.nodes[160]};
-    //cout << "PRG 2 has " << prgs[2]->prg.nodes.size() << " nodes" << endl;
     prgs[2]->add_sample_gt_to_vcf(vcf, prgs[2]->prg.top_path(), lmp2, "sample");
 }
 
@@ -1455,7 +1442,6 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_bin) {
     EXPECT_EQ("AGTTAT", fq.sequences["three"]);
     EXPECT_EQ(fq.scores["three"], "DDD\?\?!");
 
-    cout << fq << endl;
 }
 
 TEST(LocalPRGTest, add_consensus_path_to_fastaq_nbin) {
@@ -1478,8 +1464,6 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_nbin) {
     pn3->kmer_prg.set_nb(0.05, 2.0);
     shared_ptr<pangenome::Read> pr(make_shared<pangenome::Read>(0));
     pn3->reads.insert(pr);
-    for (const auto &node : pn3->kmer_prg.nodes)
-        cout << *node << endl;
 
     Fastaq fq(false, true);
     vector<KmerNodePtr> kmp;
