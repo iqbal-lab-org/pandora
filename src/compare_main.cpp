@@ -94,7 +94,7 @@ int pandora_compare(int argc, char *argv[]) {
     }
 
     // otherwise, parse the parameters from the command line
-    std::string prgfile, read_index_fpath, outdir = ".", vcf_refs_file;
+    std::string prgfile, read_index_fpath, outdir = "pandora", vcf_refs_file;
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300; // default parameters
     int max_diff = 250;
     float e_rate = 0.11;
