@@ -320,6 +320,7 @@ int pandora_compare(int argc, char *argv[]) {
     }
 
     VCF master_vcf;
+    Fastaq vcf_ref_fa(true, false);
 
     for (const auto &pangraph_node_entry: pangraph->nodes) {
         BOOST_LOG_TRIVIAL(debug) << "Consider next node";
@@ -331,11 +332,13 @@ int pandora_compare(int argc, char *argv[]) {
         const auto& prg_ptr = prgs[prg_id];
 
         const auto vcf_reference_path = pangraph->infer_node_vcf_reference_path(pangraph_node, prg_ptr, w, vcf_refs);
+        vcf_ref_fa.add_entry(prg_ptr->name, prg_ptr->string_along_path(vcf_reference_path), "");
         BOOST_LOG_TRIVIAL(debug) << " c.first: " << node_id << " prgs[c.first]->name: " << prg_ptr->name;
 
         pangraph_node.construct_multisample_vcf(master_vcf, vcf_reference_path, prg_ptr, w);
     }
     master_vcf.save(outdir + "/pandora_multisample_consensus.vcf", true, true, true, true, true, true, true);
+    vcf_ref_fa.save(outdir + "/pandora_multisample.vcf_ref.fa");
 
     if (genotype) {
         master_vcf.genotype(last_covg, 0.01, 30, false);
