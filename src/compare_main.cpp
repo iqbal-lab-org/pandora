@@ -341,7 +341,7 @@ int pandora_compare(int argc, char *argv[]) {
     vcf_ref_fa.save(outdir + "/pandora_multisample.vcf_ref.fa");
 
     if (genotype) {
-        master_vcf.genotype(last_covg, 0.01, 30, false);
+        master_vcf.genotype(last_covg, 0.01, 1, false);
         master_vcf.save(outdir + "/pandora_multisample_genotyped.vcf", true, true, true, true, true, true, true);
     }
 
