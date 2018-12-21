@@ -1420,8 +1420,8 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf,
     auto reference_path = get_valid_vcf_reference(vcf_ref);
     if (reference_path.empty()) {
         BOOST_LOG_TRIVIAL(warning) << "Could not find reference sequence for " << name
-                                   << "in the PRG so using the top path";
-        reference_path = prg.top_path();
+                                   << "in the PRG so using the consensus path";
+        reference_path = lmp;
     }
 
     VCF vcf;
