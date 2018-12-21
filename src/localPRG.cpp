@@ -1368,8 +1368,17 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq,
     auto mean_covg = mean(covgs);
     BOOST_LOG_TRIVIAL(info) << "Found global coverage " << global_covg << " and path mode " << mode_covg << " and mean "
                             << mean_covg;
-    if (global_covg > 20 and
-        (6 * mean(covgs) < global_covg or mean(covgs) > global_covg or (mode(covgs) < 3 and mean(covgs) < 3))) {
+    if (global_covg > 20 and 20 * mean(covgs) < global_covg ){
+        BOOST_LOG_TRIVIAL(info) << "Skip LocalPRG " << name << " mean along max likelihood path too low";
+        kmp.clear();
+        return;
+    }
+    if (global_covg > 20 and mean(covgs) > 10*global_covg) {
+        BOOST_LOG_TRIVIAL(info) << "Skip LocalPRG " << name << " as mean along max likelihood path too high";
+        kmp.clear();
+        return;
+    }
+    if (global_covg > 20 and mode(covgs) < 3 and mean(covgs) < 3) {
         BOOST_LOG_TRIVIAL(info) << "Skip LocalPRG " << name << " as mode and mean along max likelihood path too low";
         kmp.clear();
         return;
