@@ -26,6 +26,8 @@ public:
 
     VCFRecord &add_record(VCFRecord &, const std::vector<std::string> &sample_names);
 
+    void add_samples(const std::vector<std::string>);
+
     void add_formats(const std::vector<std::string> &);
 
     ptrdiff_t get_sample_index(const std::string &);

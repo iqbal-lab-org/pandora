@@ -320,6 +320,10 @@ int pandora_compare(int argc, char *argv[]) {
     }
 
     VCF master_vcf;
+    std::vector<std::string> sample_names = {};
+    for (const auto & sample : samples)
+        sample_names.push_back(sample.first);
+    master_vcf.add_samples(sample_names);
     Fastaq vcf_ref_fa(true, false);
 
     for (const auto &pangraph_node_entry: pangraph->nodes) {

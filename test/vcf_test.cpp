@@ -78,6 +78,36 @@ TEST(VCFTest, add_record_by_record_returned_by_reference) {
     EXPECT_EQ(ref_vr.pos, (uint) 79);
 }
 
+TEST(VCFTest, add_samples_empty) {
+    VCF vcf;
+    std::vector<std::string> samples;
+    vcf.add_samples(samples);
+    EXPECT_EQ(vcf.samples.size(), (uint)0);
+    EXPECT_EQ(vcf.records.size(), (uint)0);
+}
+
+TEST(VCFTest, add_samples_simple) {
+    VCF vcf;
+    std::vector<std::string> samples = {"hello", "there", "people"};
+    vcf.add_samples(samples);
+    EXPECT_ITERABLE_EQ(std::vector<std::string>, samples, vcf.samples);
+    EXPECT_EQ(vcf.records.size(), (uint)0);
+}
+
+TEST(VCFTest, add_samples_with_record) {
+    VCF vcf;
+    vcf.add_sample_gt("sample", "chrom1", 5, "A", "G");
+
+    std::vector<std::string> samples = {"hello", "there", "people"};
+    vcf.add_samples(samples);
+
+    std::vector<std::string> exp_samples = {"sample", "hello", "there", "people"};
+
+    EXPECT_ITERABLE_EQ(std::vector<std::string>, exp_samples, vcf.samples);
+    EXPECT_EQ(vcf.records.size(), (uint)1);
+    EXPECT_EQ(vcf.records[0].samples.size(), exp_samples.size());
+}
+
 TEST(VCFTest, add_sample_gt) {
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");

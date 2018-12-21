@@ -57,6 +57,13 @@ VCFRecord &VCF::add_record(VCFRecord &vr, const std::vector<std::string> &sample
     return *record_it;
 }
 
+void VCF::add_samples(const std::vector<std::string> sample_names) {
+    for (uint32_t i=0; i < sample_names.size(); ++i){
+        auto &name = sample_names[i];
+        ptrdiff_t sample_index = get_sample_index(name);
+    }
+}
+
 void VCF::add_formats(const std::vector<std::string> &v) {
     for (auto record : records) {
         record.add_formats(v);
