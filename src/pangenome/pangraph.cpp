@@ -439,15 +439,18 @@ Graph::get_node_closest_vcf_reference(const Node &node, const uint32_t &w, const
     }
 
     kmer_graph.discover_k();
-    kmer_graph.set_p(0.01);
     kmer_graph.num_reads = node.covg;
 
     std::vector<KmerNodePtr> kmer_path;
-    kmer_graph.find_max_path(kmer_path, 0);
-
-    auto reference_path = prg.localnode_path_from_kmernode_path(kmer_path, w);
-    BOOST_LOG_TRIVIAL(debug) << "Found reference path to return";
-    return reference_path;
+    kmer_graph.find_lin_max_path(kmer_path, 0);
+    if (!kmer_path.empty()) {
+        auto reference_path = prg.localnode_path_from_kmernode_path(kmer_path, w);
+        BOOST_LOG_TRIVIAL(debug) << "Found reference path to return";
+        return reference_path;
+    } else {
+        BOOST_LOG_TRIVIAL(debug) << "Could not infer reference path, so use top path";
+        return prg.prg.top_path();
+    }
 }
 
 same_prg_id::same_prg_id(const NodePtr &p) : q(p->prg_id) {};

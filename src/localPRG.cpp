@@ -566,6 +566,8 @@ std::vector<LocalNodePtr>
 LocalPRG::localnode_path_from_kmernode_path(const std::vector<KmerNodePtr> &kmernode_path, const uint32_t w) const {
     BOOST_LOG_TRIVIAL(debug) << "Convert kmernode path to localnode path";
     std::vector<LocalNodePtr> localnode_path, kmernode, walk_path;
+    if (kmernode_path.empty())
+        return localnode_path;
     std::vector<Path> walk_paths;
     for (uint32_t i = 0; i != kmernode_path.size(); ++i) {
         if (i != 0 and kmernode_path[i]->path.length() == 0) // only have null paths at beginning and end
