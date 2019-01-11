@@ -1552,3 +1552,16 @@ TEST(LocalPRGTest, get_valid_vcf_reference_invalid) {
     EXPECT_TRUE(test_prg.get_valid_vcf_reference(ends_a_node_early).empty());
 
 }
+
+TEST(LocalPRGTest, random_path) {
+    LocalPRG test_prg(3, "long_enough", "AGTATA 5 GCC 7 CCC 8 TATG 7  6 GGACCAG 6  5 TATTTACG");
+    std::set<std::string> random_paths;
+    while (random_paths.size() < 4) {
+        random_paths.insert(test_prg.random_path());
+    }
+    std::set<std::string> exp_random_paths = {"AGTATAGCCCCCTATTTACG",
+                                              "AGTATAGCCTATGTATTTACG",
+                                              "AGTATAGGACCAGTATTTACG",
+                                              "AGTATATATTTACG"};
+    EXPECT_ITERABLE_EQ(std::set<std::string>, exp_random_paths, random_paths);
+}

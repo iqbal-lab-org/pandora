@@ -4,6 +4,7 @@
 #include <cmath>
 #include <algorithm>
 #include <numeric>
+#include <cstdlib>
 
 #include <boost/log/trivial.hpp>
 
@@ -1446,6 +1447,16 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf,
     vcf.merge_multi_allelic();
     vcf.correct_dot_alleles(string_along_path(reference_path), name);
     master_vcf.append_vcf(vcf);
+}
+
+std::string LocalPRG::random_path(){
+    std::vector<LocalNodePtr> npath;
+    npath.push_back(prg.nodes.at(0));
+    while (not npath.back()->outNodes.empty()) {
+        uint32_t random_number = rand() % npath.back()->outNodes.size();
+        npath.push_back(npath.back()->outNodes[random_number]);
+    }
+    return string_along_path(npath);
 }
 
 

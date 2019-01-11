@@ -105,6 +105,8 @@ public:
                              const std::string &sample_name = "sample"
     );
 
+    std::string random_path();
+
 
     friend std::ostream &operator<<(std::ostream &out, const LocalPRG &data);
 };
