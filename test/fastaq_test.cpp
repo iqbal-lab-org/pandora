@@ -128,7 +128,7 @@ TEST(FastaqTest, add_entry_catch_asserts) {
     EXPECT_DEATH(f.add_entry("", "ACGT", {0, 1, 2, 3}, 40), "");
     EXPECT_DEATH(f.add_entry("dummy", "ACGT", {0, 1, 2}, 40), "");
     EXPECT_DEATH(f.add_entry("dummy", "ACG", {0, 1, 2, 3}, 40), "");
-    EXPECT_DEATH(f.add_entry("dummy", "ACGT", {0, 1, 2, 3}, 0), "");
+    //EXPECT_DEATH(f.add_entry("dummy", "ACGT", {0, 1, 2, 3}, 0), "");
 }
 
 TEST(FastaqTest, add_entry_works) {

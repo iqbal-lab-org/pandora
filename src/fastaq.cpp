@@ -61,13 +61,16 @@ void Fastaq::add_entry(const std::string &name,
 
     assert(name != "");
     assert(covgs.size() == sequence.length());
-    assert(global_covg != 0);
+    auto mod_global_covg = global_covg;
+    if (global_covg < 1) {
+        mod_global_covg = 1;
+    }
 
     char score[covgs.size() + 1];
     auto i = 0;
     const bool alt_covg_conversion{false};
     for (const auto &covg: covgs) {
-        score[i] = covg_to_score(covg, global_covg, alt_covg_conversion);
+        score[i] = covg_to_score(covg, mod_global_covg, alt_covg_conversion);
         i++;
     }
     score[covgs.size()] = '\0';

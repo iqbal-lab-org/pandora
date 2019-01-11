@@ -35,7 +35,7 @@ using std::vector;
 namespace fs = boost::filesystem;
 
 static void show_map_usage() {
-    std::cerr << "Usage: pandora map -p PRG_FILE -r READ_FILE -o OUTDIR <option(s)>\n"
+    std::cerr << "Usage: pandora map -p PRG_FILE -r READ_FILE <option(s)>\n"
               << "Options:\n"
               << "\t-h,--help\t\t\tShow this help message\n"
               << "\t-p,--prg_file PRG_FILE\t\tSpecify a fasta-style prg file\n"
@@ -65,7 +65,8 @@ static void show_map_usage() {
 
 int pandora_map(int argc, char *argv[]) {
     // if not enough arguments, print usage
-    if (argc < 7) {
+    if (argc < 5) {
+        std::cerr << "only provided " << argc << "arguments" << std::endl;
         show_map_usage();
         return 1;
     }
@@ -249,7 +250,7 @@ int pandora_map(int argc, char *argv[]) {
         return 0;
     }
 
-    cout << now() << "Writing pangenome::Graph to file " << outdir << "pandora.pangraph.gfa" << endl;
+    cout << now() << "Writing pangenome::Graph to file " << outdir << "/pandora.pangraph.gfa" << endl;
     write_pangraph_gfa(outdir + "/pandora.pangraph.gfa", pangraph);
 
     cout << now() << "Update LocalPRGs with hits" << endl;
@@ -305,7 +306,8 @@ int pandora_map(int argc, char *argv[]) {
         ++c;
     }
     consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
-    master_vcf.save(outdir + "/pandora_consensus.vcf", true, true, true, true, true, true, true);
+    if (output_vcf)
+        master_vcf.save(outdir + "/pandora_consensus.vcf", true, true, true, true, true, true, true);
 
     if (pangraph->nodes.empty()) {
         cout << "All nodes which were found have been removed during cleaning. Is your genome_size accurate?"

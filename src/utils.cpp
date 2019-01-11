@@ -450,6 +450,7 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
     covg = covg / genome_size;
     BOOST_LOG_TRIVIAL(debug) << "Estimated coverage: " << covg;
 
+
     if (illumina and clean) {
         clean_pangraph_with_debruijn_graph(pangraph, 2, 1, illumina);
         BOOST_LOG_TRIVIAL(debug) << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes";
