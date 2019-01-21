@@ -53,6 +53,7 @@ int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
 
             if (!found) {
                 assert(npath.empty());
+                BOOST_LOG_TRIVIAL(debug) << "Use top path as ref for " << prg_ptr->name;
                 npath = prg_ptr->prg.top_path();
                 fa.add_entry(prg_ptr->name, prg_ptr->string_along_path(npath));
             }
