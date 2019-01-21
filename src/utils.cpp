@@ -213,22 +213,20 @@ void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &cl
             length_based_threshold = std::min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
                                               expected_number_kmers_in_short_read_sketch) *
                                      fraction_kmers_required_for_cluster;
-            /*cout << "gene length " << prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()
-                 << " short read length: " << expected_number_kmers_in_short_read_sketch
-                 << " scale cluster size: " << fraction_kmers_required_for_cluster
-                 << " length based threshold: " << length_based_threshold
-                 << " min cluster size: " << min_cluster_size << endl;*/
+            BOOST_LOG_TRIVIAL(debug) << "Length based cluster threshold min("
+                                     << prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length() << ", "
+                                     << expected_number_kmers_in_short_read_sketch << ") * "
+                                     << fraction_kmers_required_for_cluster << " = " << length_based_threshold;
+
             if (current_cluster.size() >
                 std::max(length_based_threshold, min_cluster_size)) {
                 clusters_of_hits.insert(current_cluster);
                 //cout << "Found cluster of size " << current_cluster.size() << endl;
-                /*} else {
-                    cout << "rejected hits" << endl;
-                    for (set<MinimizerHit*, pComp>::iterator p=current_cluster.begin(); p!=current_cluster.end(); ++p)
-                    {
-                        cout << **p << endl;
-                    }*/
-            }
+                } else {
+                BOOST_LOG_TRIVIAL(debug) << "Rejected cluster of size "
+                                         << current_cluster.size() << " < max("
+                                         << length_based_threshold << ", " << min_cluster_size << ")";
+                }
             current_cluster.clear();
         }
         current_cluster.insert(*mh_current);
@@ -236,22 +234,18 @@ void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &cl
     }
     length_based_threshold = std::min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
                                       expected_number_kmers_in_short_read_sketch) * fraction_kmers_required_for_cluster;
-    /*cout << "gene length " << prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length()
-         << " short read length: " << expected_number_kmers_in_short_read_sketch
-         << " scale cluster size: " << fraction_kmers_required_for_cluster
-         << " length based threshold: " << length_based_threshold
-         << " min cluster size: " << min_cluster_size << endl;*/
+    BOOST_LOG_TRIVIAL(debug) << "Length based cluster threshold min("
+                             << prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length() << ", "
+                             << expected_number_kmers_in_short_read_sketch << ") * "
+                             << fraction_kmers_required_for_cluster << " = " << length_based_threshold;
     if (current_cluster.size() >
         std::max(length_based_threshold, min_cluster_size)) {
         clusters_of_hits.insert(current_cluster);
-        //cout << "Found cluster of size " << current_cluster.size() << endl;
-        /*} else {
-            cout << "rejected hits" << endl;
-            for (set<MinimizerHit*, pComp>::iterator p=current_cluster.begin(); p!=current_cluster.end(); ++p)
-            {
-                cout << **p << endl;
-            }*/
-    }
+        } else {
+            BOOST_LOG_TRIVIAL(debug) << "Rejected cluster of size "
+                                     << current_cluster.size() << " < max("
+                                     << length_based_threshold << ", " << min_cluster_size << ")";
+        }
 
     BOOST_LOG_TRIVIAL(debug) << "Found " << clusters_of_hits.size() << " clusters of hits";
 }
