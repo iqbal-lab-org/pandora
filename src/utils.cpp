@@ -209,7 +209,7 @@ void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &cl
             (*mh_current)->prg_id != (*mh_previous)->prg_id or
             (*mh_current)->strand != (*mh_previous)->strand or
             (abs((int) (*mh_current)->read_start_position - (int) (*mh_previous)->read_start_position)) > max_diff) {
-            // keep clusters which cover at least 3/4 the expected number of minihits
+            // keep clusters which cover at least 1/2 the expected number of minihits
             length_based_threshold = std::min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
                                               expected_number_kmers_in_short_read_sketch) *
                                      fraction_kmers_required_for_cluster;
@@ -393,7 +393,7 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
                                  const bool clean,
                                  const uint32_t max_covg) {
     uint64_t covg = 0;
-    float fraction_kmers_required_for_cluster = 0.75 / exp(e_rate * k);
+    float fraction_kmers_required_for_cluster = 0.5 / exp(e_rate * k);
     uint32_t expected_number_kmers_in_short_read_sketch = std::numeric_limits<uint32_t>::max();
     auto sequence = std::make_shared<Seq>(Seq(0, "null", "", w, k));
     uint32_t id = 0;
