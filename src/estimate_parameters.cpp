@@ -236,8 +236,21 @@ void estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     } else if (not bin and num_reads > 30 and covg > 2) {
         auto mean = fit_mean_covg(kmer_covg_dist, covg / 10);
         auto var = fit_variance_covg(kmer_covg_dist, mean, covg / 10);
-        fit_negative_binomial(mean, var, nb_p, nb_r);
-        exp_depth_covg = mean;
+        if (mean > var) {
+            auto zero_thresh = 2;
+            mean = fit_mean_covg(kmer_covg_dist, zero_thresh);
+            var = fit_variance_covg(kmer_covg_dist, mean, zero_thresh);
+            if (mean > var) {
+                std::cout << now() << "Could not update error rate" << std::endl;
+                exp_depth_covg = mean;
+            } else {
+                fit_negative_binomial(mean, var, nb_p, nb_r);
+                exp_depth_covg = mean;
+            }
+        } else {
+            fit_negative_binomial(mean, var, nb_p, nb_r);
+            exp_depth_covg = mean;
+        }
     } else {
         std::cout << now() << "Insufficient coverage to update error rate" << std::endl;
         exp_depth_covg = fit_mean_covg(kmer_covg_dist, covg / 10);
