@@ -60,6 +60,7 @@ static void show_map_usage() {
               << "\t--genotype\t\t\tAdd extra step to carefully genotype sites\n"
               << "\t--snps_only\t\t\tWhen genotyping, include only snp sites\n"
               << "\t--discover\t\t\tAdd denovo discovery\n"
+              << "\t--log_level\t\t\tdebug,[info],warning,error\n"
               << std::endl;
 }
 
@@ -72,7 +73,7 @@ int pandora_map(int argc, char *argv[]) {
     }
 
     // otherwise, parse the parameters from the command line
-    string prgfile, readfile, outdir = "pandora", vcf_refs_file;
+    string prgfile, readfile, outdir = "pandora", vcf_refs_file, log_level="info";
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300; // default parameters
     int max_diff = 250;
     float e_rate = 0.11;
@@ -185,6 +186,13 @@ int pandora_map(int argc, char *argv[]) {
             snps_only = true;
         } else if ((arg == "--discover")) {
             discover_denovo = true;
+        } else if ((arg == "--log_level")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                log_level = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--log_level option requires one argument." << std::endl;
+                return 1;
+            }
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -219,7 +227,13 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\tmax_covg\t" << max_covg << endl;
     cout << "\tgenotype\t" << genotype << endl;
     cout << "\tsnps_only\t" << snps_only << endl;
-    cout << "\tdiscover\t" << discover_denovo << endl << endl;
+    cout << "\tdiscover\t" << discover_denovo << endl;
+    cout << "\tlog_level\t" << log_level << endl << endl;
+
+    auto g_log_level{boost::log::trivial::info};
+    if (log_level == "debug")
+        g_log_level = boost::log::trivial::debug;
+    boost::log::core::get()->set_filter(boost::log::trivial::severity >= g_log_level);
 
     fs::create_directories(outdir);
     if (output_kg)

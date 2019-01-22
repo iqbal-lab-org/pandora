@@ -21,6 +21,7 @@
 #include <map>
 #include <cassert>
 #include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
 
 #include "utils.h"
 #include "localPRG.h"
@@ -56,6 +57,7 @@ static void show_compare_usage() {
               << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative binomial\n"
               << "\t--max_covg\t\t\tMaximum average coverage from reads to accept\n"
               << "\t--genotype\t\t\tAdd extra step to carefully genotype sites\n"
+              << "\t--log_level\t\t\tdebug,[info],warning,error\n"
               << std::endl;
 }
 
@@ -94,7 +96,7 @@ int pandora_compare(int argc, char *argv[]) {
     }
 
     // otherwise, parse the parameters from the command line
-    std::string prgfile, read_index_fpath, outdir = "pandora", vcf_refs_file;
+    std::string prgfile, read_index_fpath, outdir = "pandora", vcf_refs_file, log_level="info";
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300; // default parameters
     int max_diff = 250;
     float e_rate = 0.11;
@@ -188,6 +190,13 @@ int pandora_compare(int argc, char *argv[]) {
             }
         } else if ((arg == "--genotype")) {
             genotype = true;
+        } else if ((arg == "--log_level")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                log_level = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--log_level option requires one argument." << std::endl;
+                return 1;
+            }
         } else {
             std::cerr << argv[i] << " could not be attributed to any parameter" << std::endl;
         }
@@ -207,6 +216,12 @@ int pandora_compare(int argc, char *argv[]) {
     std::cout << "\tillumina\t" << illumina << std::endl;
     std::cout << "\tclean\t" << clean << std::endl;
     std::cout << "\tbin\t" << bin << std::endl << std::endl;
+    std::cout << "\tlog_level\t" << log_level << std::endl << std::endl;
+
+    auto g_log_level{boost::log::trivial::info};
+    if (log_level == "debug")
+        g_log_level = boost::log::trivial::debug;
+    boost::log::core::get()->set_filter(boost::log::trivial::severity >= g_log_level);
 
     std::cout << now() << "Loading Index and LocalPRGs from file" << std::endl;
     auto index = std::make_shared<Index>();

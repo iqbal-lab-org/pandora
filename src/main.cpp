@@ -1,7 +1,6 @@
 #include <iostream>
 #include <cstring>
 
-
 int pandora_index(int argc, char *argv[]);
 
 int pandora_walk(int argc, char *argv[]);

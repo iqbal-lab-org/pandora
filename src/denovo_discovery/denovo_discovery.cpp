@@ -14,7 +14,6 @@ void denovo_discovery::find_candidates(
         const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
         const std::string &readfilepath, const fs::path &output_directory, const double &error_rate,
         const uint32_t &local_assembly_kmer_size, const uint32_t &kmer_attempts_count) {
-    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
     if (not fs::exists(output_directory)) {
         fs::create_directories(output_directory);
