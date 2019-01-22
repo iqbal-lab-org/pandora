@@ -13,7 +13,8 @@ uint32_t find_mean_covg(std::vector<uint32_t> &);
 
 int find_prob_thresh(std::vector<uint32_t> &);
 
-void estimate_parameters(std::shared_ptr<pangenome::Graph>, const std::string &, const uint32_t, float &, const uint32_t,
-                         const bool bin, const uint32_t &sample_id);
+void estimate_parameters(std::shared_ptr<pangenome::Graph>, const std::string &, const uint32_t, float &,
+                         const uint32_t,
+                         bool &bin, const uint32_t &sample_id);
 
 #endif

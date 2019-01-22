@@ -176,7 +176,7 @@ void estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
                          const uint32_t k,
                          float &e_rate,
                          const uint32_t covg,
-                         const bool bin,
+                         bool &bin,
                          const uint32_t &sample_id) {
     // ignore trivial case
     if (pangraph->nodes.empty()) {
@@ -223,7 +223,16 @@ void estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
 
     // evaluate error rate
     uint32_t exp_depth_covg;
-    if (bin and num_reads > 30 and covg > 30) {
+    auto mean = fit_mean_covg(kmer_covg_dist, covg / 10);
+    auto var = fit_variance_covg(kmer_covg_dist, mean, covg / 10);
+    if (mean > var) {
+        auto zero_thresh = 2;
+        mean = fit_mean_covg(kmer_covg_dist, zero_thresh);
+        var = fit_variance_covg(kmer_covg_dist, mean, zero_thresh);
+    }
+    if (   (bin and num_reads > 30 and covg > 30)
+        or (not bin and abs(var - mean) < 2 and mean > 10 and num_reads > 30 and covg > 2) ){
+        bin = true;
         mean_covg = find_mean_covg(kmer_covg_dist);
         exp_depth_covg = mean_covg;
         std::cout << "found mean kmer covg " << mean_covg << " and mean global covg " << covg
@@ -233,24 +242,9 @@ void estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
             e_rate = -log((float) mean_covg / covg) / k;
             std::cout << e_rate << std::endl;
         }
-    } else if (not bin and num_reads > 30 and covg > 2) {
-        auto mean = fit_mean_covg(kmer_covg_dist, covg / 10);
-        auto var = fit_variance_covg(kmer_covg_dist, mean, covg / 10);
-        if (mean > var) {
-            auto zero_thresh = 2;
-            mean = fit_mean_covg(kmer_covg_dist, zero_thresh);
-            var = fit_variance_covg(kmer_covg_dist, mean, zero_thresh);
-            if (mean > var) {
-                std::cout << now() << "Could not update error rate" << std::endl;
-                exp_depth_covg = mean;
-            } else {
-                fit_negative_binomial(mean, var, nb_p, nb_r);
-                exp_depth_covg = mean;
-            }
-        } else {
-            fit_negative_binomial(mean, var, nb_p, nb_r);
-            exp_depth_covg = mean;
-        }
+    } else if (not bin and num_reads > 30 and covg > 2 and mean < var) {
+        fit_negative_binomial(mean, var, nb_p, nb_r);
+        exp_depth_covg = mean;
     } else {
         std::cout << now() << "Insufficient coverage to update error rate" << std::endl;
         exp_depth_covg = fit_mean_covg(kmer_covg_dist, covg / 10);

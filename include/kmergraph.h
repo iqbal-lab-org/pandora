@@ -95,7 +95,7 @@ public:
 
     friend void
     estimate_parameters(std::shared_ptr<pangenome::Graph>, const std::string &, const uint32_t, float &, const uint32_t,
-                            const bool, const uint32_t &sample_id);
+                        bool &, const uint32_t &sample_id);
 
     friend struct condition;
 
