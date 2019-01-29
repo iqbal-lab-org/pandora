@@ -14,6 +14,7 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     apt-add-repository universe
     apt update
     apt install -y git wget build-essential cmake
+    apt-get install -y man time
     export LC_ALL=C.UTF-8
     export LANG=C.UTF-8
     echo 'export LC_ALL=C.UTF-8' >> $SINGULARITY_ENVIRONMENT
