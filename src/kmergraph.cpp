@@ -288,7 +288,6 @@ float KmerGraph::nb_prob(uint32_t j, const uint32_t &sample_id) {
 float KmerGraph::lin_prob(uint32_t j, const uint32_t &sample_id) {
     assert(num_reads != 0);
     auto k = nodes[j]->get_covg(0, sample_id) + nodes[j]->get_covg(1, sample_id);
-    std::cout << "log(" << k << "/" << num_reads << ")" << std::endl;
     return log(float(k)/num_reads);
 }
 
@@ -342,7 +341,6 @@ bool KmerGraph::coverage_is_zeroes(const uint32_t& sample_id){
     if (all_zero) {
         BOOST_LOG_TRIVIAL(debug) << "ALL ZEROES in kmer graph coverages";
     }
-    std::cout << "all zero is " << all_zero << std::endl;
     return all_zero;
 }
 
@@ -469,10 +467,6 @@ float KmerGraph::find_lin_max_path(std::vector<KmerNodePtr> &maxpath, const uint
     if (coverages_all_zero)
         return std::numeric_limits<float>::lowest();
 
-    for (const auto &n : nodes){
-        std::cout << n->id << " " << lin_prob(n->id, sample_id) << std::endl;
-    }
-
     // create vectors to hold the intermediate values
     std::vector<float> M(nodes.size(), 0); // max log prob pf paths from pos i to end of graph
     std::vector<int> len(nodes.size(), 0); // length of max log path from pos i to end of graph
@@ -511,6 +505,10 @@ float KmerGraph::find_lin_max_path(std::vector<KmerNodePtr> &maxpath, const uint
     while (prev_node < sorted_nodes.size() - 1) {
         maxpath.push_back(nodes[prev_node]);
         prev_node = prev[prev_node];
+        if (max_path.size() > 1000000){
+            BOOST_LOG_TRIVIAL(warning) << "I think I've found an infinite loop - is something wrong with this kmergraph?";
+            exit(1);
+        }
     }
 
     assert(len[0] > 0 || assert_msg("found no path through kmer prg"));
