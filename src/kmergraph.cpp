@@ -505,7 +505,7 @@ float KmerGraph::find_lin_max_path(std::vector<KmerNodePtr> &maxpath, const uint
     while (prev_node < sorted_nodes.size() - 1) {
         maxpath.push_back(nodes[prev_node]);
         prev_node = prev[prev_node];
-        if (max_path.size() > 1000000){
+        if (maxpath.size() > 1000000){
             BOOST_LOG_TRIVIAL(warning) << "I think I've found an infinite loop - is something wrong with this kmergraph?";
             exit(1);
         }
