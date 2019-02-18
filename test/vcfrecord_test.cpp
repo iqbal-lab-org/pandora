@@ -235,7 +235,7 @@ TEST(VCFRecordTest, add_formats_some_overlapping) {
 
 TEST(VCFRecordLikelihoodTest, does_not_crash_with_no_samples) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    EXPECT_NO_FATAL_FAILURE(vr.likelihood(1, 0.01));
+    EXPECT_NO_FATAL_FAILURE(vr.likelihood(1, 0.01, 0));
 }
 
 TEST(VCFRecordLikelihoodTest, does_not_run_if_info_missing) {
@@ -243,35 +243,35 @@ TEST(VCFRecordLikelihoodTest, does_not_run_if_info_missing) {
     unordered_map<string, vector<uint8_t>> m;
     m["nothing"] = {0};
     vr.samples.push_back(m);
-    vr.likelihood(1, 0.01);
+    vr.likelihood(1, 0.01, 0);
     bool found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_likelihood);
 
     vr.samples[0]["GT"] = {1};
-    vr.likelihood(1, 0.01);
+    vr.likelihood(1, 0.01, 0);
     found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_likelihood);
 
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 1};
     vr.samples[0]["MEAN_REV_COVG"] = {1};
-    vr.likelihood(1, 0.01);
+    vr.likelihood(1, 0.01, 0);
     found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_likelihood);
 
     vr.samples[0].erase("MEAN_FWD_COVG");
     vr.samples[0]["MEAN_REV_COVG"] = {1, 1};
-    vr.likelihood(1, 0.01);
+    vr.likelihood(1, 0.01, 0);
     found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_likelihood);
 
     vr.samples[0]["MEAN_FWD_COVG"] = {1};
-    vr.likelihood(1, 0.01);
+    vr.likelihood(1, 0.01, 0);
     found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_likelihood);
 
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 1};
     vr.samples[0].erase("MEAN_REV_COVG");
-    vr.likelihood(1, 0.01);
+    vr.likelihood(1, 0.01, 0);
     found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_likelihood);
 }
@@ -282,7 +282,7 @@ TEST(VCFRecordLikelihoodTest, adds_likelihood_with_info) {
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 2};
-    vr.likelihood(1, 0.01);
+    vr.likelihood(1, 0.01, 0);
     bool found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_TRUE(found_likelihood);
     found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
@@ -295,7 +295,7 @@ TEST(VCFRecordLikelihoodTest, gets_correct_likelihood_simple_case) {
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 2};
-    vr.likelihood(1, 0.01);
+    vr.likelihood(1, 0.01, 0);
     float exp_likelihood = -1 - log(2) + 4 * log(0.01);
     EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][0]);
     exp_likelihood = -1 - log(4) - log(3) - log(2) + 2 * log(0.01);
@@ -308,7 +308,7 @@ TEST(VCFRecordLikelihoodTest, handles_ref_covg_0) {
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {0, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {0, 2};
-    vr.likelihood(1, 0.01);
+    vr.likelihood(1, 0.01, 0);
     float exp_likelihood = -1 + 4 * log(0.01);
     EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][0]);
     exp_likelihood = -1 - log(4) - log(3) - log(2);
@@ -321,7 +321,7 @@ TEST(VCFRecordLikelihoodTest, handles_alt_covg_0) {
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 0};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 0};
-    vr.likelihood(1, 0.01);
+    vr.likelihood(1, 0.01, 0);
     float exp_likelihood = -1 + 2 * log(0.01);
     EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][1]);
     exp_likelihood = -1 - log(2);

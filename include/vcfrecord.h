@@ -38,7 +38,7 @@ struct VCFRecord {
 
     void add_formats(const std::vector<std::string> &);
 
-    void likelihood(const uint32_t &, const float &);
+    void likelihood(const uint32_t &, const float &, const uint32_t &min_covg);
 
     void confidence();
 

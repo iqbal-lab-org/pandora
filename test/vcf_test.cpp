@@ -596,7 +596,7 @@ TEST(VCFTest, genotype) {
     vcf.records[5].samples[1]["MEAN_FWD_COVG"] = {2, 1};
     vcf.records[5].samples[1]["MEAN_REV_COVG"] = {4, 2};
 
-    vcf.genotype(30, 0.01, 30);
+    vcf.genotype(30, 0.01, 30, 0, 1, true);
 
     cout << vcf << endl;
 
@@ -605,6 +605,7 @@ TEST(VCFTest, genotype) {
     EXPECT_EQ((uint8_t) 1, vcf.records[0].samples[1]["GT"][0]);
     bool found_confidence = !vcf.records[0].regt_samples.empty();
     EXPECT_FALSE(found_confidence);
+
     // both correct
     EXPECT_EQ((uint) 2, vcf.records[1].samples.size());
     bool found_gt = vcf.records[1].samples[0].find("GT") != vcf.records[1].samples[0].end();
@@ -716,7 +717,7 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[5].samples[1]["MEAN_REV_COVG"].push_back(2);
 
     bool snps_only = false;
-    vcf.genotype(30, 0.01, 30, snps_only);
+    vcf.genotype(30, 0.01, 30, 0, 1, snps_only);
 
     cout << vcf << endl;
 

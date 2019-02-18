@@ -142,7 +142,7 @@ float logfactorial(uint32_t n) {
     return ret;
 }
 
-void VCFRecord::likelihood(const uint32_t &expected_depth_covg, const float &error_rate) {
+void VCFRecord::likelihood(const uint32_t &expected_depth_covg, const float &error_rate, const uint32_t &min_covg) {
     std::unordered_map<std::string, std::vector<float>> m;
     m.reserve(2);
 
@@ -161,7 +161,11 @@ void VCFRecord::likelihood(const uint32_t &expected_depth_covg, const float &err
 
             std::vector<uint16_t> covgs = {};
             for (uint j = 0; j < samples[i]["MEAN_FWD_COVG"].size(); ++j) {
-                covgs.push_back(samples[i]["MEAN_FWD_COVG"][j] + samples[i]["MEAN_REV_COVG"][j]);
+                auto total_covg = samples[i]["MEAN_FWD_COVG"][j] + samples[i]["MEAN_REV_COVG"][j];
+                if (total_covg >= min_covg)
+                    covgs.push_back(total_covg);
+                else
+                    covgs.push_back(0);
             }
 
             std::vector<float> likelihoods = {};
