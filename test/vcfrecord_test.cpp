@@ -410,9 +410,10 @@ TEST(VCFRecordConfidenceTest, gets_correct_confidence_min_total) {
     vr.samples[0]["MEAN_FWD_COVG"] = {0,0,1};
     vr.samples[0]["MEAN_REV_COVG"] = {0,0,1};
     vr.confidence(3,0);
-    EXPECT_TRUE(vr.regt_samples[0].find("GT_CONF") == vr.regt_samples[0].end());
+    float exp_confidence = 0;
+    EXPECT_FLOAT_EQ(exp_confidence, vr.regt_samples[0]["GT_CONF"][0]);
     vr.confidence(2,0);
-    float exp_confidence = 3;
+    exp_confidence = 3;
     EXPECT_FLOAT_EQ(exp_confidence, vr.regt_samples[0]["GT_CONF"][0]);
 }
 
@@ -427,9 +428,10 @@ TEST(VCFRecordConfidenceTest, gets_correct_confidence_min_diff) {
     vr.samples[0]["MEAN_FWD_COVG"] = {0,2,4};
     vr.samples[0]["MEAN_REV_COVG"] = {0,0,1};
     vr.confidence(0,4);
-    EXPECT_TRUE(vr.regt_samples[0].find("GT_CONF") == vr.regt_samples[0].end());
+    float exp_confidence = 0;
+    EXPECT_FLOAT_EQ(exp_confidence, vr.regt_samples[0]["GT_CONF"][0]);
     vr.confidence(0,3);
-    float exp_confidence = 3;
+    exp_confidence = 3;
     EXPECT_FLOAT_EQ(exp_confidence, vr.regt_samples[0]["GT_CONF"][0]);
 }
 

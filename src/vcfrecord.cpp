@@ -217,6 +217,8 @@ void VCFRecord::confidence(const uint32_t &min_total_covg, const uint32_t &min_d
             bool enough_difference_in_covg = (std::abs(max_covg-next_covg) >= min_diff_covg);
             if (enough_total_covg and enough_difference_in_covg)
                 sample["GT_CONF"] = {std::abs(max_lik - max_lik2)};
+            else
+                sample["GT_CONF"] = {0};
         }
     }
     add_formats({"GT_CONF"});
