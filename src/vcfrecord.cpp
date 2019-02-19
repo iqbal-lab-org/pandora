@@ -161,7 +161,7 @@ void VCFRecord::likelihood(const uint32_t &expected_depth_covg, const float &err
 
             std::vector<uint16_t> covgs = {};
             for (uint j = 0; j < samples[i]["MEAN_FWD_COVG"].size(); ++j) {
-                auto total_covg = samples[i]["MEAN_FWD_COVG"][j] + samples[i]["MEAN_REV_COVG"][j];
+                uint32_t total_covg = samples[i]["MEAN_FWD_COVG"][j] + samples[i]["MEAN_REV_COVG"][j];
                 if (total_covg >= min_covg)
                     covgs.push_back(total_covg);
                 else
@@ -187,20 +187,36 @@ void VCFRecord::likelihood(const uint32_t &expected_depth_covg, const float &err
     add_formats({"LIKELIHOOD"});
 }
 
-void VCFRecord::confidence() {
-    for (auto &sample : regt_samples) {
+void VCFRecord::confidence(const uint32_t &min_total_covg, const uint32_t &min_diff_covg) {
+    for (uint i=0; i < regt_samples.size(); ++i) {
+        auto& sample = regt_samples[i];
         if (sample.find("LIKELIHOOD") != sample.end()) {
             assert(sample["LIKELIHOOD"].size() > 1);
             float max_lik = 0, max_lik2 = 0;
-            for (const auto &likelihood : sample["LIKELIHOOD"]) {
+            uint32_t max_coord = 0, max_coord2 = 0;
+            for (uint j=0; j < sample["LIKELIHOOD"].size(); ++j ){
+                const auto & likelihood = sample["LIKELIHOOD"][j];
                 if (max_lik == 0 or likelihood > max_lik) {
+                    max_coord2 = max_coord;
+                    max_coord = j;
                     max_lik2 = max_lik;
                     max_lik = likelihood;
                 } else if (max_lik2 == 0 or likelihood > max_lik2) {
                     max_lik2 = likelihood;
+                    max_coord2 = j;
                 }
             }
-            sample["GT_CONF"] = {std::abs(max_lik - max_lik2)};
+
+            assert(samples.size() > i);
+            assert(samples[i].find("MEAN_FWD_COVG")!=samples[i].end());
+            assert(samples[i]["MEAN_FWD_COVG"].size() > max_coord);
+
+            const auto & max_covg = samples[i]["MEAN_FWD_COVG"][max_coord]+samples[i]["MEAN_REV_COVG"][max_coord];
+            const auto & next_covg = samples[i]["MEAN_FWD_COVG"][max_coord2]+samples[i]["MEAN_REV_COVG"][max_coord2];
+            bool enough_total_covg = (max_covg + next_covg >= min_total_covg);
+            bool enough_difference_in_covg = (std::abs(max_covg-next_covg) >= min_diff_covg);
+            if (enough_total_covg and enough_difference_in_covg)
+                sample["GT_CONF"] = {std::abs(max_lik - max_lik2)};
         }
     }
     add_formats({"GT_CONF"});

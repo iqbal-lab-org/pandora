@@ -302,6 +302,20 @@ TEST(VCFRecordLikelihoodTest, gets_correct_likelihood_simple_case) {
     EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][1]);
 }
 
+TEST(VCFRecordLikelihoodTest, gets_correct_likelihood_with_min_covg_threshold) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    unordered_map<string, vector<uint8_t>> m;
+    vr.samples.push_back(m);
+    vr.samples[0]["MEAN_FWD_COVG"] = {1, 2};
+    vr.samples[0]["MEAN_REV_COVG"] = {1, 2};
+    vr.likelihood(1, 0.01, 3);
+
+    float exp_likelihood = 4 * log(0.01) - 1;
+    EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][0]);
+    exp_likelihood = - 1 - log(4) - log(3) - log(2);
+    EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][1]);
+}
+
 TEST(VCFRecordLikelihoodTest, handles_ref_covg_0) {
     VCFRecord vr("chrom1", 3, "A", "T");
     unordered_map<string, vector<uint8_t>> m;
@@ -343,9 +357,14 @@ TEST(VCFRecordConfidenceTest, does_not_run_if_info_missing) {
 TEST(VCFRecordConfidenceTest, adds_confidence_with_info) {
     VCFRecord vr("chrom1", 3, "A", "T");
     unordered_map<string, vector<float>> m;
+    unordered_map<string, vector<uint8_t>> m2;
     m.reserve(3);
+    m2.reserve(3);
     vr.regt_samples.push_back(m);
     vr.regt_samples[0]["LIKELIHOOD"] = {-1.0, -2.5};
+    vr.samples.push_back(m2);
+    vr.samples[0]["MEAN_FWD_COVG"] = {0,0};
+    vr.samples[0]["MEAN_REV_COVG"] = {0,0};
     vr.confidence();
     bool found_confidence = vr.regt_samples[0].find("GT_CONF") != vr.regt_samples[0].end();
     EXPECT_TRUE(found_confidence);
@@ -354,8 +373,12 @@ TEST(VCFRecordConfidenceTest, adds_confidence_with_info) {
 TEST(VCFRecordConfidenceTest, gets_correct_confidence_simple_case) {
     VCFRecord vr("chrom1", 3, "A", "T");
     unordered_map<string, vector<float>> m;
+    unordered_map<string, vector<uint8_t>> m2;
     vr.regt_samples.push_back(m);
     vr.regt_samples[0]["LIKELIHOOD"] = {-1.0, 0.0};
+    vr.samples.push_back(m2);
+    vr.samples[0]["MEAN_FWD_COVG"] = {0,0};
+    vr.samples[0]["MEAN_REV_COVG"] = {0,0};
     vr.confidence();
     float exp_confidence = 1;
     EXPECT_FLOAT_EQ(exp_confidence, vr.regt_samples[0]["GT_CONF"][0]);
@@ -365,9 +388,47 @@ TEST(VCFRecordConfidenceTest, gets_correct_confidence_two_alts) {
     VCFRecord vr("chrom1", 3, "A", "T");
     vr.alt.push_back("C");
     unordered_map<string, vector<float>> m;
+    unordered_map<string, vector<uint8_t>> m2;
     vr.regt_samples.push_back(m);
     vr.regt_samples[0]["LIKELIHOOD"] = {-14.0, -6.0, -3.0};
+    vr.samples.push_back(m2);
+    vr.samples[0]["MEAN_FWD_COVG"] = {0,0,0};
+    vr.samples[0]["MEAN_REV_COVG"] = {0,0,0};
     vr.confidence();
+    float exp_confidence = 3;
+    EXPECT_FLOAT_EQ(exp_confidence, vr.regt_samples[0]["GT_CONF"][0]);
+}
+
+TEST(VCFRecordConfidenceTest, gets_correct_confidence_min_total) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    vr.alt.push_back("C");
+    unordered_map<string, vector<float>> m;
+    unordered_map<string, vector<uint8_t>> m2;
+    vr.regt_samples.push_back(m);
+    vr.regt_samples[0]["LIKELIHOOD"] = {-14.0, -6.0, -3.0};
+    vr.samples.push_back(m2);
+    vr.samples[0]["MEAN_FWD_COVG"] = {0,0,1};
+    vr.samples[0]["MEAN_REV_COVG"] = {0,0,1};
+    vr.confidence(3,0);
+    EXPECT_TRUE(vr.regt_samples[0].find("GT_CONF") == vr.regt_samples[0].end());
+    vr.confidence(2,0);
+    float exp_confidence = 3;
+    EXPECT_FLOAT_EQ(exp_confidence, vr.regt_samples[0]["GT_CONF"][0]);
+}
+
+TEST(VCFRecordConfidenceTest, gets_correct_confidence_min_diff) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    vr.alt.push_back("C");
+    unordered_map<string, vector<float>> m;
+    unordered_map<string, vector<uint8_t>> m2;
+    vr.regt_samples.push_back(m);
+    vr.regt_samples[0]["LIKELIHOOD"] = {-14.0, -6.0, -3.0};
+    vr.samples.push_back(m2);
+    vr.samples[0]["MEAN_FWD_COVG"] = {0,2,4};
+    vr.samples[0]["MEAN_REV_COVG"] = {0,0,1};
+    vr.confidence(0,4);
+    EXPECT_TRUE(vr.regt_samples[0].find("GT_CONF") == vr.regt_samples[0].end());
+    vr.confidence(0,3);
     float exp_confidence = 3;
     EXPECT_FLOAT_EQ(exp_confidence, vr.regt_samples[0]["GT_CONF"][0]);
 }
@@ -375,8 +436,12 @@ TEST(VCFRecordConfidenceTest, gets_correct_confidence_two_alts) {
 TEST(VCFRecordConfidenceTest, handles_ref_covg_0) {
     VCFRecord vr("chrom1", 3, "A", "T");
     std::unordered_map<std::string, std::vector<float>> m;
+    unordered_map<string, vector<uint8_t>> m2;
     vr.regt_samples.push_back(m);
     vr.regt_samples[0]["LIKELIHOOD"] = {std::numeric_limits<float>::lowest(), -1.5};
+    vr.samples.push_back(m2);
+    vr.samples[0]["MEAN_FWD_COVG"] = {0,0};
+    vr.samples[0]["MEAN_REV_COVG"] = {0,0};
     vr.confidence();
     float exp_confidence = -std::numeric_limits<float>::lowest() - 1.5;
     EXPECT_FLOAT_EQ(exp_confidence, vr.regt_samples[0]["GT_CONF"][0]);
@@ -385,8 +450,12 @@ TEST(VCFRecordConfidenceTest, handles_ref_covg_0) {
 TEST(VCFRecordConfidenceTest, handles_alt_covg_0) {
     VCFRecord vr("chrom1", 3, "A", "T");
     std::unordered_map<std::string, std::vector<float>> m;
+    unordered_map<string, vector<uint8_t>> m2;
     vr.regt_samples.push_back(m);
     vr.regt_samples[0]["LIKELIHOOD"] = {-1.5, std::numeric_limits<float>::lowest()};
+    vr.samples.push_back(m2);
+    vr.samples[0]["MEAN_FWD_COVG"] = {0,0};
+    vr.samples[0]["MEAN_REV_COVG"] = {0,0};
     vr.confidence();
     float exp_confidence = -std::numeric_limits<float>::lowest() - 1.5;
     EXPECT_FLOAT_EQ(exp_confidence, vr.regt_samples[0]["GT_CONF"][0]);

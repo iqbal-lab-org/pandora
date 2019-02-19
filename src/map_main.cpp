@@ -74,10 +74,11 @@ int pandora_map(int argc, char *argv[]) {
 
     // otherwise, parse the parameters from the command line
     string prgfile, readfile, outdir = "pandora", vcf_refs_file, log_level="info";
-    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300, min_covg_gt = 0; // default parameters
+    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300,
+            min_allele_covg_gt = 0, min_total_covg_gt = 0, min_diff_covg_gt = 0; // default parameters
     uint8_t confidence_threshold = 1;
     int max_diff = 250;
-    float e_rate = 0.11, min_fraction_covg_gt = 1;
+    float e_rate = 0.11, min_allele_fraction_covg_gt = 1;
     bool output_kg = false, output_vcf = false;
     bool output_comparison_paths = false, output_mapped_read_fa = false;
     bool illumina = false, clean = false;
@@ -181,18 +182,32 @@ int pandora_map(int argc, char *argv[]) {
                 std::cerr << "--max_covg option requires one argument." << std::endl;
                 return 1;
             }
-        } else if ((arg == "--min_covg_gt")) {
+        } else if ((arg == "--min_allele_covg_gt")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                min_covg_gt = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                min_allele_covg_gt = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--min_covg_gt option requires one argument." << std::endl;
+                std::cerr << "--min_allele_covg_gt option requires one argument." << std::endl;
                 return 1;
             }
-        } else if ((arg == "--min_fraction_covg_gt")) {
+        } else if ((arg == "--min_total_covg_gt")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                min_fraction_covg_gt = static_cast<float>(atof(argv[++i])); // Increment 'i' so we don't get the argument as the next argv[i].
+                min_total_covg_gt = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--min_fraction_covg_gt option requires one argument." << std::endl;
+                std::cerr << "--min_total_covg_gt option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if ((arg == "--min_diff_covg_gt")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                min_diff_covg_gt = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--min_diff_covg_gt option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if ((arg == "--min_allele_fraction_covg_gt")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                min_allele_fraction_covg_gt = static_cast<float>(atof(argv[++i])); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--min_allele_fraction_covg_gt option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "--confidence_threshold")) {
@@ -353,7 +368,8 @@ int pandora_map(int argc, char *argv[]) {
     }
 
     if (genotype) {
-        master_vcf.genotype(covg, 0.01, confidence_threshold, min_covg_gt, min_fraction_covg_gt, snps_only);
+        master_vcf.genotype(covg, 0.01, confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
+                            min_total_covg_gt, min_diff_covg_gt, snps_only);
         if (snps_only)
             master_vcf.save(outdir + "/pandora_genotyped.vcf", true, true, true, true, false, false, false);
         else

@@ -45,8 +45,9 @@ public:
 
     bool pos_in_range(const uint32_t, const uint32_t, const std::string &) const;
 
-    void genotype(const uint32_t &, const float &, const uint8_t, const uint32_t &min_covg, const float &min_fraction_covg,
-                      bool snps_only);
+    void genotype(const uint32_t &, const float &, const uint8_t, const uint32_t &min_allele_covg,
+                      const float &min_fraction_allele_covg, const uint32_t &min_site_total_covg,
+                      const uint32_t &min_site_diff_covg, bool snps_only);
 
     void clean();
 

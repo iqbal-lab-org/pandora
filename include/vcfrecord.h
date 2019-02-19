@@ -40,7 +40,7 @@ struct VCFRecord {
 
     void likelihood(const uint32_t &, const float &, const uint32_t &min_covg);
 
-    void confidence();
+    void confidence(const uint32_t &min_total_covg=0, const uint32_t &min_diff_covg=0);
 
     void genotype(const uint8_t);
 

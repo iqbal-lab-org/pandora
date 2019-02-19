@@ -596,7 +596,7 @@ TEST(VCFTest, genotype) {
     vcf.records[5].samples[1]["MEAN_FWD_COVG"] = {2, 1};
     vcf.records[5].samples[1]["MEAN_REV_COVG"] = {4, 2};
 
-    vcf.genotype(30, 0.01, 30, 0, 1, true);
+    vcf.genotype(30, 0.01, 30, 0, 1, 0, 0, true);
 
     cout << vcf << endl;
 
@@ -717,7 +717,7 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[5].samples[1]["MEAN_REV_COVG"].push_back(2);
 
     bool snps_only = false;
-    vcf.genotype(30, 0.01, 30, 0, 1, snps_only);
+    vcf.genotype(30, 0.01, 30, 0, 1, 0, 0, snps_only);
 
     cout << vcf << endl;
 
@@ -798,6 +798,10 @@ TEST(VCFTest, merge_multi_allelic) {
     vcf.records[5].regt_samples[0]["LIKELIHOOD"] = {-50, -16};
     vcf.records[4].regt_samples[0]["GT_CONF"] = {47};
     vcf.records[5].regt_samples[0]["GT_CONF"] = {56};
+    vcf.records[4].samples[0]["MEAN_FWD_COVG"] = {2, 30};
+    vcf.records[5].samples[0]["MEAN_FWD_COVG"] = {2, 30};
+    vcf.records[4].samples[0]["MEAN_REV_COVG"] = {2, 30};
+    vcf.records[5].samples[0]["MEAN_REV_COVG"] = {2, 30};
     // incompatible
     vcf.add_record("chrom1", 85, "A", "G");
     vcf.add_record("chrom1", 85, "T", "C");
