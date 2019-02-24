@@ -195,12 +195,14 @@ void KmerGraph::remove_shortcut_edges() {
                 // if the outnode of an outnode of A is another outnode of A
                 if (find(n->outNodes.begin(), n->outNodes.end(), *next_out) != n->outNodes.end()) {
                     temp_path = get_union(n->path, (*next_out)->path);
-                    //cout << "found the union of " << n->path << " and " << (*next_out)->path << endl;
-                    //cout << "check if " << temp_path << " contains " << out->path << endl;
+
                     if (out->path.is_subpath(temp_path)) {
                         //remove it from the outnodes
+                        BOOST_LOG_TRIVIAL(debug) << "found the union of " << n->path << " and " << (*next_out)->path;
+                        BOOST_LOG_TRIVIAL(debug) << "result " << temp_path << " contains " << out->path;
                         (*next_out)->inNodes.erase(find((*next_out)->inNodes.begin(), (*next_out)->inNodes.end(), out));
                         next_out = out->outNodes.erase(next_out);
+                        BOOST_LOG_TRIVIAL(debug) << "next out is now " << (*next_out)->path;
                         num_removed_edges += 1;
                         break;
                     } else {

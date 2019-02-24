@@ -331,7 +331,6 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
     uint32_t num_kmers_added = 0;
     KmerNodePtr kn, new_kn;
     std::vector<LocalNodePtr> n;
-    bool mini_found_in_window;
     size_t num_AT = 0;
 
     // create a null start node in the kmer graph
@@ -350,7 +349,6 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
     for (uint32_t i = 0; i != walk_paths.size(); ++i) {
         // find minimizer for this path 
         smallest = std::numeric_limits<uint64_t>::max();
-        mini_found_in_window = false;
         for (uint32_t j = 0; j != w; j++) {
             kmer_path = walk_paths[i].subpath(j, k);
             if (!kmer_path.path.empty()) {
@@ -361,6 +359,7 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
         }
         for (uint32_t j = 0; j != w; j++) {
             kmer_path = walk_paths[i].subpath(j, k);
+            auto old_kn = kmer_prg.nodes[0];
             if (!kmer_path.path.empty()) {
                 kmer = string_along_path(kmer_path);
                 kh = hash.kmerhash(kmer, k);
@@ -383,10 +382,8 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
                         index->add_record(std::min(kh.first, kh.second), id, kmer_path, kn->id,
                                           (kh.first <= kh.second));
                         num_kmers_added += 1;
-                        if (!mini_found_in_window) {
-                            kmer_prg.add_edge(kmer_prg.nodes[0], kn);
-                        }
-                        mini_found_in_window = true;
+                        kmer_prg.add_edge(old_kn, kn);
+                        old_kn = kn;
                         current_leaves.push_back(kn);
                     }
                 }
@@ -445,7 +442,7 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
             } else if (v.size() == w) {
                 // the old minimizer has dropped out the window, minimizer the w new kmers
                 smallest = std::numeric_limits<uint64_t>::max();
-                mini_found_in_window = false;
+                auto old_kn = kn;
                 for (uint32_t j = 0; j != w; j++) {
                     kmer = string_along_path(v[j]);
                     kh = hash.kmerhash(kmer, k);
@@ -465,10 +462,8 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
                                               (kh.first <= kh.second));
 
                             // if there is more than one mini in the window, edge should go to the first, and from the first to the second
-                            if (!mini_found_in_window) {
-                                kmer_prg.add_edge(kn, new_kn);
-                            }
-                            mini_found_in_window = true;
+                            kmer_prg.add_edge(old_kn, new_kn);
+                            old_kn = new_kn;
 
                             if (v.back().get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
                                 end_leaves.push_back(new_kn);
@@ -478,10 +473,9 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
                             }
                             num_kmers_added += 1;
                         } else {
-                            if (!mini_found_in_window) {
-                                kmer_prg.add_edge(kn, *found);
-                            }
-                            mini_found_in_window = true;
+                            kmer_prg.add_edge(old_kn, *found);
+                            old_kn = *found;
+
                             if (v.back().get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
                                 end_leaves.push_back(*found);
                             } else if (find(current_leaves.begin(), current_leaves.end(), *found) ==
