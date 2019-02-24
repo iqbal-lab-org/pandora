@@ -92,6 +92,51 @@ TEST(UtilsTest, readPrgFile) {
     EXPECT_EQ(prgs.size(), j);
 }
 
+TEST(UtilsTest, readPrgFile_with_offset) {
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
+
+    // simple case first, single prg with empty string sequence
+    // doesn't get added to prgs
+    read_prg_file(prgs, "../../test/test_cases/prg0.fa", 1);
+    EXPECT_EQ(prgs.size(), (uint)0);
+
+    // single prg with simple sequence
+    read_prg_file(prgs, "../../test/test_cases/prg1.fa", 1);
+    LocalPRG l1(1, "prg1", "AGCT");
+    EXPECT_EQ(prgs.size(), (uint)1);
+    EXPECT_EQ(prgs[0]->id, (uint)1);
+    EXPECT_EQ(prgs[0]->name, "prg1");
+    EXPECT_EQ(prgs[0]->seq, "AGCT");
+    EXPECT_EQ(prgs[0]->prg, l1.prg);
+
+    // single prg with a variant site
+    read_prg_file(prgs, "../../test/test_cases/prg2.fa", 3);
+    LocalPRG l2(2, "prg2", "A 5 GC 6 G 5 T");
+    EXPECT_EQ(prgs.size(), (uint)2);
+    EXPECT_EQ(prgs[1]->id, (uint)3);
+    EXPECT_EQ(prgs[1]->name, "prg2");
+    EXPECT_EQ(prgs[1]->seq, "A 5 GC 6 G 5 T");
+    EXPECT_EQ(prgs[1]->prg, l2.prg);
+
+    // single prg with a nested variant site
+    read_prg_file(prgs, "../../test/test_cases/prg3.fa", 40);
+    LocalPRG l3 = LocalPRG(3, "prg3", "A 5 G 7 C 8 T 7  6 G 5 T");
+    EXPECT_EQ(prgs.size(), (uint)3);
+    EXPECT_EQ(prgs[2]->id, (uint)40);
+    EXPECT_EQ(prgs[2]->name, "prg3");
+    EXPECT_EQ(prgs[2]->seq, "A 5 G 7 C 8 T 7  6 G 5 T");
+    EXPECT_EQ(prgs[2]->prg, l3.prg);
+
+    // now a prg input file with all 4 in
+    prgs.clear();
+    EXPECT_EQ(prgs.size(), (uint)0);
+    read_prg_file(prgs, "../../test/test_cases/prg0123.fa", 6);
+    EXPECT_EQ(prgs.size(), (uint)3);
+    EXPECT_EQ(prgs[0]->id, (uint)6);
+    EXPECT_EQ(prgs[1]->id, (uint)7);
+    EXPECT_EQ(prgs[2]->id, (uint)8);
+}
+
 TEST(UtilsTest, addReadHits) {
     // initialize minihits container
     auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());

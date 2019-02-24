@@ -9,7 +9,7 @@
 #include <string>
 #include <limits>
 #include "minihits.h"
-#include "pangenome/pangraph.h"
+#include "pangenome/ns.cpp"
 
 
 class Index;
@@ -55,7 +55,7 @@ float lognchoosek2(uint32_t, uint32_t, uint32_t);
 
 //probably should be moved to map_main.cpp
 void read_prg_file(std::vector<std::shared_ptr<LocalPRG>> &,
-                   const std::string &);
+                   const std::string &, uint32_t id=0);
 
 void
 load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>> &, const uint32_t &, const uint32_t &, const std::string &);

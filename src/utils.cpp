@@ -105,10 +105,8 @@ float lognchoosek2(uint32_t n, uint32_t k1, uint32_t k2) {
 }
 
 void read_prg_file(std::vector<std::shared_ptr<LocalPRG>> &prgs,
-                   const std::string &filepath) {
+                   const std::string &filepath, uint32_t id) {
     BOOST_LOG_TRIVIAL(debug) << "Loading PRGs from file " << filepath;
-
-    uint32_t id = 0;
 
     FastaqHandler fh(filepath);
     while (!fh.eof()) {

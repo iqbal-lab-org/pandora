@@ -8,10 +8,10 @@
 
 #include "minirecord.h"
 #include "index.h"
-#include "utils.h"
+#include "localPRG.h"
 
 
-Index::Index() = default;;
+Index::Index() = default;
 
 Index::~Index() {
     clear();
@@ -44,9 +44,14 @@ void Index::clear() {
 }
 
 void Index::save(const std::string &prgfile, uint32_t w, uint32_t k) {
-    BOOST_LOG_TRIVIAL(debug) << "Saving index";
+    auto filename = prgfile + ".k" + std::to_string(k) + ".w" + std::to_string(w) + ".idx";
+    save(filename);
+}
+
+void Index::save(const std::string &indexfile) {
+    BOOST_LOG_TRIVIAL(debug) << "Saving index to " << indexfile;
     std::ofstream handle;
-    handle.open(prgfile + ".k" + std::to_string(k) + ".w" + std::to_string(w) + ".idx");
+    handle.open(indexfile);
 
     handle << minhash.size() << std::endl;
 
@@ -63,25 +68,26 @@ void Index::save(const std::string &prgfile, uint32_t w, uint32_t k) {
 }
 
 void Index::load(const std::string &prgfile, uint32_t w, uint32_t k) {
+    auto filename = prgfile + ".k" + std::to_string(k) + ".w" + std::to_string(w) + ".idx";
+    load(filename);
+}
+
+void Index::load(const std::string &indexfile) {
     BOOST_LOG_TRIVIAL(debug) << "Loading index";
-    BOOST_LOG_TRIVIAL(debug) << "File is " << prgfile << ".k" << std::to_string(k) << ".w" << std::to_string(w)
-                             << ".idx";
-    //string line;
-    //vector<string> vstring;
+    BOOST_LOG_TRIVIAL(debug) << "File is " << indexfile;
     uint32_t key;
     size_t size;
     int c;
     MiniRecord mr;
     bool first = true;
-    //vector<MiniRecord> vmr;
 
-    std::ifstream myfile(prgfile + ".k" + std::to_string(k) + ".w" + std::to_string(w) + ".idx");
+    std::ifstream myfile(indexfile);
     if (myfile.is_open()) {
         while (myfile.good()) {
             c = myfile.peek();
             if (isdigit(c) and first) {
                 myfile >> size;
-                minhash.reserve(size);
+                minhash.reserve(minhash.size() + size);
                 first = false;
                 myfile.ignore(1, '\t');
             } else if (isdigit(c) and !first) {
@@ -89,8 +95,13 @@ void Index::load(const std::string &prgfile, uint32_t w, uint32_t k) {
                 myfile.ignore(1, '\t');
                 myfile >> size;
                 auto *vmr = new std::vector<MiniRecord>;
-                vmr->reserve(size);
-                minhash[key] = vmr;
+                if (minhash.find(key) != minhash.end()) {
+                    vmr = minhash[key];
+                    vmr->reserve(vmr->size() + size);
+                } else {
+                    vmr->reserve(size);
+                    minhash[key] = vmr;
+                }
                 myfile.ignore(1, '\t');
             } else if (c == EOF) {
                 break;
@@ -101,10 +112,71 @@ void Index::load(const std::string &prgfile, uint32_t w, uint32_t k) {
             }
         }
     } else {
-        std::cerr << "Unable to open index file " << prgfile << ".idx" << std::endl;
+        BOOST_LOG_TRIVIAL(warning) << "Unable to open index file " << indexfile << ". Does it exist? Have you run pandora index?";
+
         exit(1);
     }
-    BOOST_LOG_TRIVIAL(debug) << "Finished loading " << minhash.size() << " entries to index";
+    BOOST_LOG_TRIVIAL(debug) << "Finished loading file. Index now contains " << minhash.size() << " entries";
+}
+
+bool Index::operator==(const Index &other) const {
+    if (this->minhash.size() != other.minhash.size()){ return false; }
+
+    for (const auto &kmer : this->minhash){
+        const auto it = other.minhash.find(kmer.first);
+        if (it == other.minhash.end()) {return false;}
+        const auto& qvecp = it->second;
+        for (const auto &record : *this->minhash.at(kmer.first)){
+            if (std::find(qvecp->begin(), qvecp->end(), record) == qvecp->end()) {return false;}
+        }
+    }
+
+    for (const auto &kmer : other.minhash){
+        const auto it = this->minhash.find(kmer.first);
+        if (it == this->minhash.end()) {return false;}
+        const auto& qvecp = it->second;
+        for (const auto &record : *other.minhash.at(kmer.first)){
+            if (std::find(qvecp->begin(), qvecp->end(), record) == qvecp->end()) {return false;}
+        }
+    }
+    return true;
+}
+
+bool Index::operator!=(const Index &other) const {
+    return !(*this==other);
+}
+
+
+void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs,
+                std::shared_ptr<Index> &index,
+                const uint32_t w,
+                const uint32_t k,
+                const std::string &outdir) {
+    BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
+    if (prgs.size() == 0)
+        return;
+
+    // first reserve an estimated index size
+    uint32_t r = 0;
+    for (uint32_t i = 0; i != prgs.size(); ++i) {
+        r += prgs[i]->seq.length();
+    }
+    index->minhash.reserve(r);
+
+    // now fill index
+    auto dir_num = prgs[0]->id % 4000;
+    for (uint32_t i = 0; i != prgs.size(); ++i) {
+        if (i==0 or prgs[i]->id % 4000 == 0) {
+            fs::create_directories(outdir + "/" + int_to_string(dir_num + 1));
+            dir_num++;
+        }
+        prgs[i]->minimizer_sketch(index, w, k);
+        prgs[i]->kmer_prg.save(
+                outdir + "/" + int_to_string(dir_num) + "/" + prgs[i]->name + ".k" + std::to_string(k) + ".w" +
+                std::to_string(w) + ".gfa");
+    }
+    BOOST_LOG_TRIVIAL(debug) << "Finished adding " << prgs.size() << " LocalPRGs";
+    BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << index->minhash.size();
 }
 	    
 

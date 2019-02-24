@@ -4,6 +4,7 @@
 #include "index.h"
 #include "interval.h"
 #include "inthash.h"
+#include "utils.h"
 #include <vector>
 #include <stdint.h>
 #include <iostream>
@@ -92,4 +93,82 @@ TEST(IndexTest, load) {
     EXPECT_EQ(idx1.minhash[min(kh1.first, kh1.second)]->at(0), idx2.minhash[min(kh1.first, kh1.second)]->at(0));
     EXPECT_EQ(idx1.minhash[min(kh1.first, kh1.second)]->at(1), idx2.minhash[min(kh1.first, kh1.second)]->at(1));
     EXPECT_EQ(idx1.minhash[min(kh2.first, kh2.second)]->at(0), idx2.minhash[min(kh2.first, kh2.second)]->at(0));
+}
+
+TEST(IndexTest, equals) {
+    Index idx1, idx2;
+    KmerHash hash;
+    deque<Interval> d = {Interval(3, 5), Interval(9, 12)};
+    Path p;
+    p.initialize(d);
+    pair<uint64_t, uint64_t> kh1 = hash.kmerhash("ACGTA", 5);
+    idx1.add_record(min(kh1.first, kh1.second), 1, p, 0, 0);
+    pair<uint64_t, uint64_t> kh2 = hash.kmerhash("ACTGA", 5);
+    idx1.add_record(min(kh2.first, kh2.second), 2, p, 0, 0);
+    idx1.add_record(min(kh1.first, kh1.second), 4, p, 0, 0);
+
+    idx2.load("indextext", 1, 5);
+    EXPECT_EQ(idx1, idx2);
+    EXPECT_EQ(idx2, idx1);
+}
+
+TEST(IndexTest, equals_fails) {
+    Index idx1, idx2;
+    KmerHash hash;
+    deque<Interval> d = {Interval(3, 5), Interval(9, 12)};
+    Path p;
+    p.initialize(d);
+    pair<uint64_t, uint64_t> kh1 = hash.kmerhash("ACGTA", 5);
+    //idx1.add_record(min(kh1.first, kh1.second), 1, p, 0, 0);
+    pair<uint64_t, uint64_t> kh2 = hash.kmerhash("ACTGA", 5);
+    idx1.add_record(min(kh2.first, kh2.second), 2, p, 0, 0);
+    //idx1.add_record(min(kh1.first, kh1.second), 4, p, 0, 0);
+
+    idx2.load("indextext", 1, 5);
+    EXPECT_NE(idx1, idx2);
+    EXPECT_NE(idx2, idx1);
+
+    idx1.add_record(min(kh1.first, kh1.second), 1, p, 0, 0);
+    EXPECT_NE(idx1, idx2);
+    EXPECT_NE(idx2, idx1);
+
+    idx1.add_record(min(kh1.first, kh1.second), 3, p, 0, 0);
+    EXPECT_NE(idx1, idx2);
+    EXPECT_NE(idx2, idx1);
+}
+
+TEST(IndexTest, merging_indexes) {
+    uint32_t w=2,k=3;
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
+    auto index = std::make_shared<Index>();
+    auto outdir = "../../test/test_cases/kgs/";
+
+    read_prg_file(prgs, "../../test/test_cases/prg1.fa", 1);
+    index_prgs(prgs, index, w, k, outdir);
+    index->save("../../test/test_cases/prg1.fa.idx");
+
+    prgs.clear();
+    index->clear();
+    read_prg_file(prgs, "../../test/test_cases/prg2.fa", 2);
+    index_prgs(prgs, index, w, k, outdir);
+    index->save("../../test/test_cases/prg2.fa.idx");
+
+
+    prgs.clear();
+    index->clear();
+    read_prg_file(prgs, "../../test/test_cases/prg3.fa", 3);
+    index_prgs(prgs, index, w, k, outdir);
+    index->save("../../test/test_cases/prg3.fa.idx");
+
+    //merge
+    auto index_merged = std::make_shared<Index>();
+    index_merged->load("../../test/test_cases/prg1.fa.idx");
+    index_merged->load("../../test/test_cases/prg2.fa.idx");
+    index_merged->load("../../test/test_cases/prg3.fa.idx");
+
+    // now an index from all 4 in
+    prgs.clear();
+    auto index_all = std::make_shared<Index>();
+    read_prg_file(prgs, "../../test/test_cases/prg0123.fa");
+    index_prgs(prgs, index_all, w, k, outdir);
 }

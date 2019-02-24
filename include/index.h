@@ -5,8 +5,10 @@
 #include <cstdint>
 #include <vector>
 #include <unordered_map>
+#include <memory>
 #include "minirecord.h"
 #include "prg/path.h"
+#include "utils.h"
 
 
 class Index {
@@ -21,9 +23,22 @@ public:
 
     void save(const std::string &prgfile, uint32_t w, uint32_t k);
 
+    void save(const std::string &indexfile);
+
     void load(const std::string &prgfile, uint32_t w, uint32_t k);
 
+    void load(const std::string &indexfile);
+
     void clear();
+
+    bool operator==(const Index &other) const;
+
+    bool operator!=(const Index &other) const;
 };
 
+void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &,
+                std::shared_ptr<Index> &,
+                const uint32_t,
+                const uint32_t,
+                const std::string &);
 #endif

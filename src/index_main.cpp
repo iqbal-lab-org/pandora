@@ -5,40 +5,10 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
 
 #include "utils.h"
 #include "localPRG.h"
-
-
-void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs,
-                std::shared_ptr<Index> &index,
-                const uint32_t w,
-                const uint32_t k,
-                const std::string &outdir) {
-    BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
-
-    // first reserve an estimated index size
-    uint32_t r = 0;
-    for (uint32_t i = 0; i != prgs.size(); ++i) {
-        r += prgs[i]->seq.length();
-    }
-    index->minhash.reserve(r);
-
-    // now fill index
-    auto dir_num = 0;
-    for (uint32_t i = 0; i != prgs.size(); ++i) {
-        if (i % 4000 == 0) {
-            fs::create_directories(outdir + "/" + int_to_string(dir_num + 1));
-            dir_num++;
-        }
-        prgs[i]->minimizer_sketch(index, w, k);
-        prgs[i]->kmer_prg.save(
-                outdir + "/" + int_to_string(dir_num) + "/" + prgs[i]->name + ".k" + std::to_string(k) + ".w" +
-                std::to_string(w) + ".gfa");
-    }
-    BOOST_LOG_TRIVIAL(debug) << "Finished adding " << prgs.size() << " LocalPRGs";
-    BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << index->minhash.size();
-}
 
 static void show_index_usage() {
     std::cerr << "Usage: pandora index [options] <prgs.fa>\n"
@@ -47,6 +17,9 @@ static void show_index_usage() {
               //<< "\t-u, --update\t\tLook for an index and add only PRGs with new names\n"
               << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 14\n"
               << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
+              << "\t--offset\t\t\t\tOffset for PRG ids, default 0\n"
+              << "\t--outfile\t\t\t\tFilename for index\n"
+              << "\t--log_level\t\t\tdebug,[info],warning,error\n"
               << std::endl;
 }
 
@@ -59,9 +32,9 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
     }
 
     // otherwise, parse the parameters from the command line
-    std::string prgfile;
+    std::string prgfile, index_outfile = "", log_level="info";
     bool update = false;
-    uint32_t w = 14, k = 15; // default parameters
+    uint32_t w = 14, k = 15, id=0; // default parameters
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -83,18 +56,43 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
                 std::cerr << "-k option requires one argument." << std::endl;
                 return 1;
             }
+        } else if (arg == "--offset") {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                id = (unsigned) atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--offset option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if (arg == "--outfile") {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                index_outfile = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--outfile option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if ((arg == "--log_level")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                log_level = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--log_level option requires one argument." << std::endl;
+                return 1;
+            }
         } else if (prgfile.empty()) {
-            prgfile = argv[i]; // Increment 'i' so we don't get the argument as the next argv[i].
+            prgfile = argv[i];
             BOOST_LOG_TRIVIAL(debug) << "prgfile: " << prgfile;
         } else {
             std::cerr << argv[i] << " could not be attributed to any parameter" << std::endl;
         }
     }
 
+    auto g_log_level{boost::log::trivial::info};
+    if (log_level == "debug")
+        g_log_level = boost::log::trivial::debug;
+    boost::log::core::get()->set_filter(boost::log::trivial::severity >= g_log_level);
 
     // load PRGs from file
     std::vector<std::shared_ptr<LocalPRG>> prgs;
-    read_prg_file(prgs, prgfile);
+    read_prg_file(prgs, prgfile, id);
 
     // get output directory for the gfa
     boost::filesystem::path p(prgfile);
@@ -109,7 +107,12 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
     index_prgs(prgs, index, w, k, outdir);
 
     // save index
-    index->save(prgfile, w, k);
+    if (index_outfile != "")
+        index->save(index_outfile);
+    else if (id > 0)
+        index->save(prgfile+"."+std::to_string(id), w, k);
+    else
+        index->save(prgfile, w, k);
 
     return 0;
 }

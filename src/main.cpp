@@ -15,6 +15,8 @@ int pandora_get_vcf_ref(int argc, char *argv[]);
 
 int pandora_random_path(int argc, char *argv[]);
 
+int pandora_merge_index(int argc, char *argv[]);
+
 
 static int usage() {
     std::cerr << "\n"
@@ -23,11 +25,12 @@ static int usage() {
               << "Usage:   pandora <command> [options]\n\n"
               << "Command: index         index PRG sequences from FASTA format\n"
               << "         map           identify PRG ordering and sequence from reads for a single sample\n"
-              << "	       compare	     identify and compare the PRG ordering and sequences for a set of samples\n"
+              << "         compare	     identify and compare the PRG ordering and sequences for a set of samples\n"
               << "         walk          outputs a path through the nodes in a GFA corresponding\n"
               << "                       to input sequence, provided it exists\n"
               << "         random_path   outputs a fasta of random paths through the PRGs\n"
               << "         get_vcf_ref   outputs a fasta suitable for use as the VCF reference using input sequences\n"
+              << "         merge_index   allows multiple indexes to be merged (no compatibility check)\n"
               << "\n"
               << "Note: To map reads against PRG sequences, you need to first index the\n"
               << "      PRGs with pandora index\n"
@@ -45,6 +48,7 @@ int main(int argc, char *argv[]) {
     else if (strcmp(argv[1], "check_kmergraph") == 0) ret = pandora_check_kmergraph(argc - 1, argv + 1);
     else if (strcmp(argv[1], "get_vcf_ref") == 0) ret = pandora_get_vcf_ref(argc - 1, argv + 1);
     else if (strcmp(argv[1], "random_path") == 0) ret = pandora_random_path(argc - 1, argv + 1);
+    else if (strcmp(argv[1], "merge_index") == 0) ret = pandora_merge_index(argc - 1, argv + 1);
     else {
         fprintf(stderr, "[main] unrecognized command '%s'\n", argv[1]);
         return 1;
