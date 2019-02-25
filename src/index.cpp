@@ -164,7 +164,7 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs,
     index->minhash.reserve(r);
 
     // now fill index
-    auto dir_num = prgs[0]->id % 4000;
+    auto dir_num = int(prgs[0]->id/4000);
     for (uint32_t i = 0; i != prgs.size(); ++i) {
         if (i==0 or prgs[i]->id % 4000 == 0) {
             fs::create_directories(outdir + "/" + int_to_string(dir_num + 1));
