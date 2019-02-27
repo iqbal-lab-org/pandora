@@ -161,7 +161,7 @@ TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
 
 TEST(PangenomeNodeTest,construct_multisample_vcf_single_prg)
 {
-    uint32_t prg_id = 3, w=1, k=3;
+    uint32_t prg_id = 3, w=1, k=3, min_kmer_covg=0;
     std::string prg_name = "nested varsite";
     LocalPRG local_prg(prg_id, prg_name , "A 5 G 7 C 8 T 8 CT 7  6 G 5 T");
 
@@ -199,7 +199,7 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_single_prg)
     VCF master_vcf;
     std::vector<LocalNodePtr> vcf_reference_path = {local_prg.prg.nodes[0], local_prg.prg.nodes[1], local_prg.prg.nodes[3], local_prg.prg.nodes[5], local_prg.prg.nodes[7]};
     auto &pannode = *pangraph.nodes[prg_id];
-    pannode.construct_multisample_vcf(master_vcf, vcf_reference_path, prg_ptr, w);
+    pannode.construct_multisample_vcf(master_vcf, vcf_reference_path, prg_ptr, w, min_kmer_covg);
 
     EXPECT_EQ((uint)2, master_vcf.records.size());
     EXPECT_EQ((uint)4, master_vcf.samples.size());
@@ -273,7 +273,7 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_single_prg)
 
 TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
 {
-    uint32_t prg_id1 = 3, w=1, k=3;
+    uint32_t prg_id1 = 3, w=1, k=3, min_kmer_covg=0;
     std::string prg_name1 = "nested varsite";
     LocalPRG local_prg1(prg_id1, prg_name1 , "A 5 G 7 C 8 T 8 CT 7  6 G 5 T");
     uint32_t prg_id2 = 5;
@@ -325,9 +325,9 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
     std::vector<LocalNodePtr> vcf_reference_path2 = {local_prg2.prg.nodes[0], local_prg2.prg.nodes[1], local_prg2.prg.nodes[3], local_prg2.prg.nodes[5], local_prg2.prg.nodes[7]};
 
     auto &pannode1 = *pangraph.nodes[prg_id1];
-    pannode1.construct_multisample_vcf(master_vcf, vcf_reference_path1, prg_ptr1, w);
+    pannode1.construct_multisample_vcf(master_vcf, vcf_reference_path1, prg_ptr1, w, min_kmer_covg);
     auto &pannode2 = *pangraph.nodes[prg_id2];
-    pannode2.construct_multisample_vcf(master_vcf, vcf_reference_path2, prg_ptr2, w);
+    pannode2.construct_multisample_vcf(master_vcf, vcf_reference_path2, prg_ptr2, w, min_kmer_covg);
     std::cout << master_vcf.header() << std::endl;
     std::cout << master_vcf << std::endl;
 
@@ -453,7 +453,7 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
 
 TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg_with_covgs)
 {
-    uint32_t prg_id1 = 3, w=1, k=3;
+    uint32_t prg_id1 = 3, w=1, k=3, min_kmer_covg=0;
     std::string prg_name1 = "nested varsite";
     LocalPRG local_prg1(prg_id1, prg_name1 , "A 5 G 7 C 8 T 8 CT 7  6 G 5 T");
     uint32_t prg_id2 = 5;
@@ -537,8 +537,8 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg_with_covgs)
     std::vector<LocalNodePtr> vcf_reference_path1 = {local_prg1.prg.nodes[0], local_prg1.prg.nodes[1], local_prg1.prg.nodes[3], local_prg1.prg.nodes[5], local_prg1.prg.nodes[7]};
     std::vector<LocalNodePtr> vcf_reference_path2 = {local_prg2.prg.nodes[0], local_prg2.prg.nodes[1], local_prg2.prg.nodes[3], local_prg2.prg.nodes[5], local_prg2.prg.nodes[7]};
 
-    pannode1.construct_multisample_vcf(master_vcf, vcf_reference_path1, prg_ptr1, w);
-    pannode2.construct_multisample_vcf(master_vcf, vcf_reference_path2, prg_ptr2, w);
+    pannode1.construct_multisample_vcf(master_vcf, vcf_reference_path1, prg_ptr1, w, min_kmer_covg);
+    pannode2.construct_multisample_vcf(master_vcf, vcf_reference_path2, prg_ptr2, w, min_kmer_covg);
 
     std::cout << master_vcf.header() << std::endl;
     std::cout << master_vcf << std::endl;

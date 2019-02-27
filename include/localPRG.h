@@ -87,7 +87,8 @@ public:
                                     std::vector<uint32_t> &, std::vector<uint32_t> &, const uint32_t &sample_id) const;
 
     void add_sample_covgs_to_vcf(VCF &, const KmerGraph &, const std::vector<LocalNodePtr> &,
-                                 const std::string &sample_name, const uint32_t &sample_id) const;
+                                     const uint32_t &min_kmer_covg, const std::string &sample_name="sample",
+                                     const uint32_t &sample_id=0) const;
 
     void add_consensus_path_to_fastaq(Fastaq &,
                                       PanNodePtr,
@@ -100,10 +101,8 @@ public:
     std::vector<LocalNodePtr> get_valid_vcf_reference(const std::string &) const;
 
     void add_variants_to_vcf(VCF &, PanNodePtr, const std::string &, const std::vector<KmerNodePtr> &,
-                             const std::vector<LocalNodePtr> &,
-                             const uint32_t &sample_id = 0,
-                             const std::string &sample_name = "sample"
-    );
+                                 const std::vector<LocalNodePtr> &, const uint32_t &min_kmer_covg,
+                                 const uint32_t &sample_id=0, const std::string &sample_name="sample");
 
     std::string random_path();
 

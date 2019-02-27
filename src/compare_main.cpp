@@ -98,7 +98,7 @@ int pandora_compare(int argc, char *argv[]) {
     // otherwise, parse the parameters from the command line
     std::string prgfile, read_index_fpath, outdir = "pandora", vcf_refs_file, log_level="info";
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300, min_allele_covg_gt = 0,
-            min_total_covg_gt = 0, min_diff_covg_gt = 0; // default parameters
+            min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0; // default parameters
     uint8_t confidence_threshold = 1;
     int max_diff = 250;
     float e_rate = 0.11, min_allele_fraction_covg_gt = 1;
@@ -391,7 +391,7 @@ int pandora_compare(int argc, char *argv[]) {
         vcf_ref_fa.add_entry(prg_ptr->name, prg_ptr->string_along_path(vcf_reference_path), "");
         BOOST_LOG_TRIVIAL(debug) << " c.first: " << node_id << " prgs[c.first]->name: " << prg_ptr->name;
 
-        pangraph_node.construct_multisample_vcf(master_vcf, vcf_reference_path, prg_ptr, w);
+        pangraph_node.construct_multisample_vcf(master_vcf, vcf_reference_path, prg_ptr, w, min_kmer_covg);
     }
     master_vcf.save(outdir + "/pandora_multisample_consensus.vcf", true, true, true, true, true, true, true);
     vcf_ref_fa.save(outdir + "/pandora_multisample.vcf_ref.fa");

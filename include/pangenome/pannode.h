@@ -35,9 +35,8 @@ public:
 
     void get_read_overlap_coordinates(std::vector<std::vector<uint32_t>> &);
 
-    void construct_multisample_vcf(VCF &master_vcf, const std::vector<LocalNodePtr> &,
-                                   const std::shared_ptr<LocalPRG> &,
-                                   const uint32_t);
+    void construct_multisample_vcf(VCF &master_vcf, const std::vector<LocalNodePtr> &, const std::shared_ptr<LocalPRG> &,
+                                       const uint32_t, const uint32_t &min_kmer_covg);
 
     bool operator==(const Node &y) const;
 

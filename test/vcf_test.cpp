@@ -559,42 +559,56 @@ TEST(VCFTest, genotype) {
     vcf.add_sample_gt("asample", "chrom2", 80, "A", "A");
 
     vcf.sort_records();
+    std::vector<float> f = {1.0, 1.0};
 
     // record 0, not a snp site
     vcf.records[0].samples[0]["MEAN_FWD_COVG"] = {0, 10};
     vcf.records[0].samples[0]["MEAN_REV_COVG"] = {1, 20};
     vcf.records[0].samples[1]["MEAN_FWD_COVG"] = {1, 15};
     vcf.records[0].samples[1]["MEAN_REV_COVG"] = {2, 24};
+    vcf.records[0].set_format(0,"GAPS", f);
+    vcf.records[0].set_format(1,"GAPS", f);
+
 
     // record 1, different genotypes but both correct
     vcf.records[1].samples[0]["MEAN_FWD_COVG"] = {0, 10};
     vcf.records[1].samples[0]["MEAN_REV_COVG"] = {1, 20};
     vcf.records[1].samples[1]["MEAN_FWD_COVG"] = {10, 1};
     vcf.records[1].samples[1]["MEAN_REV_COVG"] = {21, 2};
+    vcf.records[1].set_format(0,"GAPS", f);
+    vcf.records[1].set_format(1,"GAPS", f);
 
     // record 2, same genotypes first correct
     vcf.records[2].samples[0]["MEAN_FWD_COVG"] = {0, 10};
     vcf.records[2].samples[0]["MEAN_REV_COVG"] = {1, 20};
     vcf.records[2].samples[1]["MEAN_FWD_COVG"] = {10, 1};
     vcf.records[2].samples[1]["MEAN_REV_COVG"] = {21, 2};
+    vcf.records[2].set_format(0,"GAPS", f);
+    vcf.records[2].set_format(1,"GAPS", f);
 
     // record 3, same genotypes both wrong
     vcf.records[3].samples[0]["MEAN_FWD_COVG"] = {20, 1};
     vcf.records[3].samples[0]["MEAN_REV_COVG"] = {21, 2};
     vcf.records[3].samples[1]["MEAN_FWD_COVG"] = {10, 1};
     vcf.records[3].samples[1]["MEAN_REV_COVG"] = {21, 2};
+    vcf.records[3].set_format(0,"GAPS", f);
+    vcf.records[3].set_format(1,"GAPS", f);
 
     // record 4, missing count data for first sample
     vcf.records[4].samples[0]["MEAN_FWD_COVG"] = {0, 10};
     vcf.records[4].samples[0]["MEAN_REV_COVG"] = {20};
     vcf.records[4].samples[1]["MEAN_FWD_COVG"] = {10, 1};
     vcf.records[4].samples[1]["MEAN_REV_COVG"] = {21, 2};
+    vcf.records[4].set_format(0,"GAPS", f);
+    vcf.records[4].set_format(1,"GAPS", f);
 
     // record 5, not confident for second sample
     vcf.records[5].samples[0]["MEAN_FWD_COVG"] = {0, 10};
     vcf.records[5].samples[0]["MEAN_REV_COVG"] = {1, 20};
     vcf.records[5].samples[1]["MEAN_FWD_COVG"] = {2, 1};
     vcf.records[5].samples[1]["MEAN_REV_COVG"] = {4, 2};
+    vcf.records[5].set_format(0,"GAPS", f);
+    vcf.records[5].set_format(1,"GAPS", f);
 
     vcf.genotype(30, 0.01, 30, 0, 1, 0, 0, true);
 
@@ -603,7 +617,9 @@ TEST(VCFTest, genotype) {
     // not genotyped first record
     EXPECT_EQ((uint8_t) 1, vcf.records[0].samples[0]["GT"][0]);
     EXPECT_EQ((uint8_t) 1, vcf.records[0].samples[1]["GT"][0]);
-    bool found_confidence = !vcf.records[0].regt_samples.empty();
+    bool found_confidence = vcf.records[0].regt_samples[0].find("GT_CONF")!=vcf.records[0].regt_samples[0].end();
+    EXPECT_FALSE(found_confidence);
+    found_confidence = vcf.records[0].regt_samples[1].find("GT_CONF")!=vcf.records[0].regt_samples[1].end();
     EXPECT_FALSE(found_confidence);
 
     // both correct
@@ -656,6 +672,7 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.add_sample_gt("asample", "chrom2", 80, "AC", "AC");
 
     vcf.sort_records();
+    std::vector<float> f = {1.0, 1.0};
 
     // record 0, not a snp site
     vcf.records[0].samples[0]["MEAN_FWD_COVG"].push_back(0);
@@ -666,6 +683,8 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[0].samples[1]["MEAN_REV_COVG"].push_back(2);
     vcf.records[0].samples[1]["MEAN_FWD_COVG"].push_back(15);
     vcf.records[0].samples[1]["MEAN_REV_COVG"].push_back(24);
+    vcf.records[0].set_format(0,"GAPS", f);
+    vcf.records[0].set_format(1,"GAPS", f);
 
     // record 1, different genotypes but both correct
     vcf.records[1].samples[0]["MEAN_FWD_COVG"].push_back(0);
@@ -676,6 +695,8 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[1].samples[1]["MEAN_REV_COVG"].push_back(21);
     vcf.records[1].samples[1]["MEAN_FWD_COVG"].push_back(1);
     vcf.records[1].samples[1]["MEAN_REV_COVG"].push_back(2);
+    vcf.records[1].set_format(0,"GAPS", f);
+    vcf.records[1].set_format(1,"GAPS", f);
 
     // record 2, same genotypes first correct
     vcf.records[2].samples[0]["MEAN_FWD_COVG"].push_back(0);
@@ -686,6 +707,8 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[2].samples[1]["MEAN_REV_COVG"].push_back(21);
     vcf.records[2].samples[1]["MEAN_FWD_COVG"].push_back(1);
     vcf.records[2].samples[1]["MEAN_REV_COVG"].push_back(2);
+    vcf.records[2].set_format(0,"GAPS", f);
+    vcf.records[2].set_format(1,"GAPS", f);
 
     // record 3, same genotypes both wrong
     vcf.records[3].samples[0]["MEAN_FWD_COVG"].push_back(20);
@@ -696,6 +719,8 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[3].samples[1]["MEAN_REV_COVG"].push_back(21);
     vcf.records[3].samples[1]["MEAN_FWD_COVG"].push_back(1);
     vcf.records[3].samples[1]["MEAN_REV_COVG"].push_back(2);
+    vcf.records[3].set_format(0,"GAPS", f);
+    vcf.records[3].set_format(1,"GAPS", f);
 
     // record 4, missing count data for first sample
     vcf.records[4].samples[0]["MEAN_FWD_COVG"].push_back(0);
@@ -705,6 +730,8 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[4].samples[1]["MEAN_REV_COVG"].push_back(21);
     vcf.records[4].samples[1]["MEAN_FWD_COVG"].push_back(1);
     vcf.records[4].samples[1]["MEAN_REV_COVG"].push_back(2);
+    vcf.records[4].set_format(0,"GAPS", f);
+    vcf.records[4].set_format(1,"GAPS", f);
 
     // record 5, not confident for second sample
     vcf.records[5].samples[0]["MEAN_FWD_COVG"].push_back(0);
@@ -715,6 +742,8 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[5].samples[1]["MEAN_REV_COVG"].push_back(4);
     vcf.records[5].samples[1]["MEAN_FWD_COVG"].push_back(1);
     vcf.records[5].samples[1]["MEAN_REV_COVG"].push_back(2);
+    vcf.records[5].set_format(0,"GAPS", f);
+    vcf.records[5].set_format(1,"GAPS", f);
 
     bool snps_only = false;
     vcf.genotype(30, 0.01, 30, 0, 1, 0, 0, snps_only);
@@ -724,7 +753,9 @@ TEST(VCFTest, genotype_with_all_sites) {
     // first record now genotyped
     EXPECT_EQ((uint8_t) 1, vcf.records[0].samples[0]["GT"][0]);
     EXPECT_EQ((uint8_t) 1, vcf.records[0].samples[1]["GT"][0]);
-    bool found_confidence = !vcf.records[0].regt_samples.empty();
+    bool found_confidence = vcf.records[0].regt_samples[0].find("GT_CONF")!=vcf.records[0].regt_samples[0].end();
+    EXPECT_TRUE(found_confidence);
+    found_confidence = vcf.records[0].regt_samples[1].find("GT_CONF")!=vcf.records[0].regt_samples[1].end();
     EXPECT_TRUE(found_confidence);
     // both correct
     EXPECT_EQ((uint) 2, vcf.records[1].samples.size());

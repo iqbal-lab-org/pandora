@@ -1329,11 +1329,12 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range) {
 }
 
 TEST(LocalPRGTest, add_sample_covgs_to_vcf) {
+    uint32_t min_kmer_covgs = 0;
     auto index = std::make_shared<Index>();
     vector<string> short_formats = {"GT"};
     vector<string> formats = {"GT", "MEAN_FWD_COVG", "MEAN_REV_COVG",
                               "MED_FWD_COVG", "MED_REV_COVG",
-                              "SUM_FWD_COVG", "SUM_REV_COVG"};
+                              "SUM_FWD_COVG", "SUM_REV_COVG", "GAPS"};
 
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
     l3.minimizer_sketch(index, 1, 3);
@@ -1350,7 +1351,8 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf) {
     EXPECT_ITERABLE_EQ(vector<string>, short_formats, vcf.records[0].format);
     EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
 
-    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), "sample", 0);
+    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), min_kmer_covgs, "sample",
+                               0);
     EXPECT_EQ((uint) 1, vcf.samples.size());
     EXPECT_EQ((uint) 1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);
@@ -1384,7 +1386,8 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf) {
     l3.kmer_prg.nodes[8]->set_covg(4, 0, 0);
     l3.kmer_prg.nodes[8]->set_covg(5, 1, 0);
 
-    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), "sample", 0);
+    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), min_kmer_covgs, "sample",
+                               0);
     EXPECT_EQ((uint) 1, vcf.samples.size());
     EXPECT_EQ((uint) 1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);

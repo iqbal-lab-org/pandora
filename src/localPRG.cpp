@@ -1243,9 +1243,30 @@ uint32_t mode(std::vector<uint32_t> v) {
     return most_common;
 }
 
-void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg,
-                                       const std::vector<LocalNodePtr> &ref_path,
-                                       const std::string &sample_name,
+float gaps(std::vector<uint32_t> v, const uint32_t& min_covg) {
+    if (v.empty())
+        return 0;
+    uint32_t gap = 0;
+    for (const auto &n : v) {
+        if (n < min_covg)
+            gap++;
+    }
+    return float(gap)/v.size();
+}
+
+float gaps(std::vector<uint32_t> v1, std::vector<uint32_t> v2, const uint32_t& min_kmer_covg) {
+    if (v1.empty() or v2.size()!=v1.size())
+        return 0;
+    uint32_t gap = 0;
+    for (uint i=0; i<v1.size(); ++i) {
+        if (v1[i]+v2[i] < min_kmer_covg)
+            gap++;
+    }
+    return float(gap)/v1.size();
+}
+
+void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg, const std::vector<LocalNodePtr> &ref_path,
+                                       const uint32_t &min_kmer_covg, const std::string &sample_name,
                                        const uint32_t &sample_id) const {
     BOOST_LOG_TRIVIAL(info) << "Update VCF with sample covgs";
 
@@ -1255,11 +1276,11 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg,
     std::vector<LocalNodePtr> alt_path;
 
     std::vector<KmerNodePtr> ref_kmer_path = kmernode_path_from_localnode_path(ref_path);
-    /*std::cout << "ref path: ";
+    std::cout << "ref path: ";
     for (const auto &n : ref_kmer_path){
         std::cout << n->path << " ";
     }
-    std::cout << std::endl;*/
+    std::cout << std::endl;
 
     std::vector<KmerNodePtr> alt_kmer_path;
 
@@ -1269,7 +1290,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg,
     std::vector<uint32_t> alt_rev_covgs;
 
     for (auto &record : vcf.records) {
-        //std::cout << record << std::endl;
+        std::cout << record << std::endl;
         // find corresponding ref kmers
         auto end_pos = record.pos + record.ref.length();
         if (record.ref == ".")
@@ -1286,19 +1307,14 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg,
         assert((uint) sample_index != vcf.samples.size());
         assert(record.samples.size() > (uint) sample_index);
 
-        record.samples[sample_index]["MEAN_FWD_COVG"] = {};
-        record.samples[sample_index]["MEAN_REV_COVG"] = {};
-        record.samples[sample_index]["MED_FWD_COVG"] = {};
-        record.samples[sample_index]["MED_REV_COVG"] = {};
-        record.samples[sample_index]["SUM_FWD_COVG"] = {};
-        record.samples[sample_index]["SUM_REV_COVG"] = {};
+        record.set_format(sample_index, "MEAN_FWD_COVG", mean(ref_fwd_covgs));
+        record.set_format(sample_index, "MEAN_REV_COVG", mean(ref_rev_covgs));
+        record.set_format(sample_index, "MED_FWD_COVG", median(ref_fwd_covgs));
+        record.set_format(sample_index, "MED_REV_COVG", median(ref_rev_covgs));
+        record.set_format(sample_index, "SUM_FWD_COVG", sum(ref_fwd_covgs));
+        record.set_format(sample_index, "SUM_REV_COVG", sum(ref_rev_covgs));
+        record.set_format(sample_index, "GAPS", gaps(ref_fwd_covgs, ref_rev_covgs, min_kmer_covg));
 
-        record.samples[sample_index]["MEAN_FWD_COVG"].push_back(mean(ref_fwd_covgs));
-        record.samples[sample_index]["MEAN_REV_COVG"].push_back(mean(ref_rev_covgs));
-        record.samples[sample_index]["MED_FWD_COVG"].push_back(median(ref_fwd_covgs));
-        record.samples[sample_index]["MED_REV_COVG"].push_back(median(ref_rev_covgs));
-        record.samples[sample_index]["SUM_FWD_COVG"].push_back(sum(ref_fwd_covgs));
-        record.samples[sample_index]["SUM_REV_COVG"].push_back(sum(ref_rev_covgs));
 
         for (const auto &alt_allele : record.alt) {
             alt_path = find_alt_path(ref_path, record.pos, record.ref, alt_allele);
@@ -1312,19 +1328,16 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg,
             append_kmer_covgs_in_range(kg, alt_kmer_path, alt_path, record.pos, end_pos,
                                        alt_fwd_covgs, alt_rev_covgs, sample_id);
 
-            record.samples[sample_index]["MEAN_FWD_COVG"].push_back(mean(alt_fwd_covgs));
-            record.samples[sample_index]["MEAN_REV_COVG"].push_back(mean(alt_rev_covgs));
-            record.samples[sample_index]["MED_FWD_COVG"].push_back(median(alt_fwd_covgs));
-            record.samples[sample_index]["MED_REV_COVG"].push_back(median(alt_rev_covgs));
-            record.samples[sample_index]["SUM_FWD_COVG"].push_back(sum(alt_fwd_covgs));
-            record.samples[sample_index]["SUM_REV_COVG"].push_back(sum(alt_rev_covgs));
+            record.append_format(sample_index, "MEAN_FWD_COVG", mean(alt_fwd_covgs));
+            record.append_format(sample_index, "MEAN_REV_COVG", mean(alt_rev_covgs));
+            record.append_format(sample_index, "MED_FWD_COVG", median(alt_fwd_covgs));
+            record.append_format(sample_index, "MED_REV_COVG", median(alt_rev_covgs));
+            record.append_format(sample_index, "SUM_FWD_COVG", sum(alt_fwd_covgs));
+            record.append_format(sample_index, "SUM_REV_COVG", sum(alt_rev_covgs));
+            record.append_format(sample_index, "GAPS", gaps(alt_fwd_covgs, alt_rev_covgs, min_kmer_covg));
             alt_fwd_covgs.clear();
             alt_rev_covgs.clear();
         }
-
-        record.add_formats({"MEAN_FWD_COVG", "MEAN_REV_COVG",
-                            "MED_FWD_COVG", "MED_REV_COVG",
-                            "SUM_FWD_COVG", "SUM_REV_COVG"});
 
         ref_fwd_covgs.clear();
         ref_rev_covgs.clear();
@@ -1416,12 +1429,9 @@ std::vector<LocalNodePtr> LocalPRG::get_valid_vcf_reference(const std::string &v
     return reference_path;
 }
 
-void LocalPRG::add_variants_to_vcf(VCF &master_vcf,
-                                   PanNodePtr pnode,
-                                   const std::string &vcf_ref,
-                                   const std::vector<KmerNodePtr> &kmp,
-                                   const std::vector<LocalNodePtr> &lmp,
-                                   const uint32_t &sample_id,
+void LocalPRG::add_variants_to_vcf(VCF &master_vcf, PanNodePtr pnode, const std::string &vcf_ref,
+                                   const std::vector<KmerNodePtr> &kmp, const std::vector<LocalNodePtr> &lmp,
+                                   const uint32_t &min_kmer_covg, const uint32_t &sample_id,
                                    const std::string &sample_name) {
     auto reference_path = get_valid_vcf_reference(vcf_ref);
     if (reference_path.empty()) {
@@ -1432,14 +1442,9 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf,
 
     VCF vcf;
     build_vcf(vcf, reference_path);
-    //std::cout << "add sample gts" << std::endl;
     add_sample_gt_to_vcf(vcf, reference_path, lmp, sample_name);
-    //std::cout << "add sample covgs" << std::endl;
-    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, reference_path, sample_name, sample_id);
-    //vcf.save("temp.vcf" , true, true, true, true, true, true, true);
-    //std::cout << "sort records" << std::endl;
-    //vcf.sort_records();
-    //std::cout << "append to master vcf" << std::endl;
+    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, reference_path, min_kmer_covg, sample_name,
+                            sample_id);
     vcf.merge_multi_allelic();
     vcf.correct_dot_alleles(string_along_path(reference_path), name);
     master_vcf.append_vcf(vcf);

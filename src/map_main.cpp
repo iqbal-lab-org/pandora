@@ -75,7 +75,7 @@ int pandora_map(int argc, char *argv[]) {
     // otherwise, parse the parameters from the command line
     string prgfile, readfile, outdir = "pandora", vcf_refs_file, log_level="info";
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300,
-            min_allele_covg_gt = 0, min_total_covg_gt = 0, min_diff_covg_gt = 0; // default parameters
+            min_allele_covg_gt = 0, min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0; // default parameters
     uint8_t confidence_threshold = 1;
     int max_diff = 250;
     float e_rate = 0.11, min_allele_fraction_covg_gt = 1;
@@ -348,7 +348,7 @@ int pandora_map(int argc, char *argv[]) {
         }
 
         if (output_vcf) {
-            prgs[c->second->prg_id]->add_variants_to_vcf(master_vcf, c->second, vcf_ref, kmp, lmp);
+            prgs[c->second->prg_id]->add_variants_to_vcf(master_vcf, c->second, vcf_ref, kmp, lmp, min_kmer_covg);
         }
 
         if (discover_denovo) {

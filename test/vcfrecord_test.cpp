@@ -233,6 +233,113 @@ TEST(VCFRecordTest, add_formats_some_overlapping) {
     EXPECT_ITERABLE_EQ(vector<string>, expected_formats, vr.format);
 }
 
+TEST(VCFRecordTest, add_format_death_no_samples) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    uint8_t v = 20;
+    EXPECT_DEATH(vr.set_format(0, "hello", v), "");
+    float w = 20.0;
+    EXPECT_DEATH(vr.set_format(0, "hello", w), "");
+}
+
+TEST(VCFRecordTest, add_format_death_too_big) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    uint32_t v = 300;
+    unordered_map<string, vector<uint8_t>> m;
+    vr.samples.push_back(m);
+    EXPECT_DEATH(vr.set_format(0, "hello", v), "");
+}
+
+TEST(VCFRecordTest, add_format_new_uint) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    unordered_map<string, vector<uint8_t>> m;
+    vr.samples.push_back(m);
+    uint8_t v = 20;
+    vr.set_format(0, "hello", v);
+    EXPECT_EQ(vr.samples.size(), 1);
+    EXPECT_TRUE(vr.samples[0].find("hello")!=vr.samples[0].end());
+    std::vector<uint8_t> exp_v = {v};
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, vr.samples[0]["hello"], exp_v);
+    std::vector<std::string> exp_f = {"GT", "hello"};
+    EXPECT_ITERABLE_EQ(std::vector<std::string>, vr.format, exp_f);
+}
+
+TEST(VCFRecordTest, add_format_old_uint_overwritten) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    unordered_map<string, vector<uint8_t>> m;
+    m["hello"] = {10};
+    vr.samples.push_back(m);
+    uint8_t v = 20;
+    vr.set_format(0, "hello", v);
+    EXPECT_EQ(vr.samples.size(), 1);
+    EXPECT_TRUE(vr.samples[0].find("hello")!=vr.samples[0].end());
+    std::vector<uint8_t> exp_v = {v};
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, vr.samples[0]["hello"], exp_v);
+    std::vector<std::string> exp_f = {"GT", "hello"};
+    EXPECT_ITERABLE_EQ(std::vector<std::string>, vr.format, exp_f);
+}
+
+TEST(VCFRecordTest, add_format_new_float) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    unordered_map<string, vector<uint8_t>> m;
+    vr.samples.push_back(m);
+    float v = 20.0;
+    vr.set_format(0, "hello", v);
+    EXPECT_EQ(vr.regt_samples.size(), 1);
+    EXPECT_TRUE(vr.regt_samples[0].find("hello")!=vr.regt_samples[0].end());
+    std::vector<float> exp_v = {v};
+    EXPECT_ITERABLE_EQ(std::vector<float>, vr.regt_samples[0]["hello"], exp_v);
+    std::vector<std::string> exp_f = {"GT", "hello"};
+    EXPECT_ITERABLE_EQ(std::vector<std::string>, vr.format, exp_f);
+}
+
+TEST(VCFRecordTest, add_format_old_float_overwritten) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    unordered_map<string, vector<float>> m;
+    m["hello"] = {};
+    m["hello"].push_back(10.0);
+    vr.regt_samples.push_back(m);
+    float v = 20.0;
+    vr.set_format(0, "hello", v);
+    EXPECT_EQ(vr.regt_samples.size(), 1);
+    EXPECT_TRUE(vr.regt_samples[0].find("hello")!=vr.regt_samples[0].end());
+    std::vector<float> exp_v = {v};
+    EXPECT_ITERABLE_EQ(std::vector<float>, vr.regt_samples[0]["hello"], exp_v);
+    std::vector<std::string> exp_f = {"GT", "hello"};
+    EXPECT_ITERABLE_EQ(std::vector<std::string>, vr.format, exp_f);
+}
+
+TEST(VCFRecordTest, append_format_old_uint) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    unordered_map<string, vector<uint8_t>> m;
+    vr.samples.push_back(m);
+    uint8_t v = 10;
+    vr.set_format(0, "hello", v);
+    v = 20;
+    vr.append_format(0, "hello", v);
+    EXPECT_EQ(vr.samples.size(), 1);
+    EXPECT_TRUE(vr.samples[0].find("hello")!=vr.samples[0].end());
+    std::vector<uint8_t> exp_v = {10, 20};
+    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, vr.samples[0]["hello"], exp_v);
+    std::vector<std::string> exp_f = {"GT", "hello"};
+    EXPECT_ITERABLE_EQ(std::vector<std::string>, vr.format, exp_f);
+}
+
+TEST(VCFRecordTest, append_format_old_float) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    unordered_map<string, vector<float>> m;
+    vr.regt_samples.push_back(m);
+    float v = 10.0;
+    vr.set_format(0, "hello", v);
+    v = 20.0;
+    vr.append_format(0, "hello", v);
+    EXPECT_EQ(vr.regt_samples.size(), 1);
+    EXPECT_TRUE(vr.regt_samples[0].find("hello")!=vr.regt_samples[0].end());
+    std::vector<float> exp_v = {10.0, 20.0};
+    EXPECT_ITERABLE_EQ(std::vector<float>, vr.regt_samples[0]["hello"], exp_v);
+    std::vector<std::string> exp_f = {"GT", "hello"};
+    EXPECT_ITERABLE_EQ(std::vector<std::string>, vr.format, exp_f);
+}
+
 TEST(VCFRecordLikelihoodTest, does_not_crash_with_no_samples) {
     VCFRecord vr("chrom1", 3, "A", "T");
     EXPECT_NO_FATAL_FAILURE(vr.likelihood(1, 0.01, 0));
@@ -243,6 +350,8 @@ TEST(VCFRecordLikelihoodTest, does_not_run_if_info_missing) {
     unordered_map<string, vector<uint8_t>> m;
     m["nothing"] = {0};
     vr.samples.push_back(m);
+    std::vector<float> f = {1.0, 1.0};
+    vr.set_format(0,"GAPS", f);
     vr.likelihood(1, 0.01, 0);
     bool found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_FALSE(found_likelihood);
@@ -282,6 +391,8 @@ TEST(VCFRecordLikelihoodTest, adds_likelihood_with_info) {
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 2};
+    std::vector<float> f = {1.0, 1.0};
+    vr.set_format(0,"GAPS", f);
     vr.likelihood(1, 0.01, 0);
     bool found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
     EXPECT_TRUE(found_likelihood);
@@ -295,6 +406,8 @@ TEST(VCFRecordLikelihoodTest, gets_correct_likelihood_simple_case) {
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 2};
+    std::vector<float> f = {1.0, 1.0};
+    vr.set_format(0,"GAPS", f);
     vr.likelihood(1, 0.01, 0);
     float exp_likelihood = -1 - log(2) + 4 * log(0.01);
     EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][0]);
@@ -308,6 +421,8 @@ TEST(VCFRecordLikelihoodTest, gets_correct_likelihood_with_min_covg_threshold) {
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 2};
+    std::vector<float> f = {1.0, 1.0};
+    vr.set_format(0,"GAPS", f);
     vr.likelihood(1, 0.01, 3);
 
     float exp_likelihood = 4 * log(0.01) - 1;
@@ -322,6 +437,8 @@ TEST(VCFRecordLikelihoodTest, handles_ref_covg_0) {
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {0, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {0, 2};
+    std::vector<float> f = {1.0, 1.0};
+    vr.set_format(0,"GAPS", f);
     vr.likelihood(1, 0.01, 0);
     float exp_likelihood = -1 + 4 * log(0.01);
     EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][0]);
@@ -335,6 +452,8 @@ TEST(VCFRecordLikelihoodTest, handles_alt_covg_0) {
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 0};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 0};
+    std::vector<float> f = {1.0, 1.0};
+    vr.set_format(0,"GAPS", f);
     vr.likelihood(1, 0.01, 0);
     float exp_likelihood = -1 + 2 * log(0.01);
     EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][1]);

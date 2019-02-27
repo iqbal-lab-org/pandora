@@ -134,6 +134,93 @@ void VCFRecord::add_formats(const std::vector<std::string> &formats) {
     }
 }
 
+void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const std::vector<uint8_t>& val){
+    std::cout << "set format " << sample_id << " " << format << " " << val.size() << std::endl;
+    assert(samples.size() > sample_id);
+    samples[sample_id][format] = val;
+    add_formats({format});
+}
+
+void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const std::vector<float>& val){
+    std::cout << "set format " << sample_id << " " << format << " " << val.size() << std::endl;
+    std::unordered_map<std::string, std::vector<float>> m;
+    for (uint i=regt_samples.size(); i<samples.size(); ++i) {
+        regt_samples.push_back(m);
+    }
+    assert(regt_samples.size() > sample_id);
+    regt_samples[sample_id][format] = val;
+    add_formats({format});
+}
+
+void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const uint8_t& val){
+    std::vector<uint8_t> v = {};
+    v.emplace_back(val);
+    set_format(sample_id, format, v);
+}
+
+void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const uint32_t& val){
+    assert(val < std::numeric_limits<uint8_t>::max());
+    uint8_t v = val;
+    set_format(sample_id, format, v);
+}
+
+void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const float& val){
+    std::vector<float> v = {};
+    v.emplace_back(val);
+    set_format(sample_id, format, v);
+}
+
+void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const uint8_t& val){
+    std::cout << "append format " << sample_id << " " << format << " " << +val << std::endl;
+    assert(samples.size() > sample_id);
+    if (samples[sample_id].find(format)!=samples[sample_id].end()){
+        samples[sample_id][format].push_back(val);
+    } else {
+        set_format(sample_id, format, val);
+    }
+}
+
+void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const uint32_t& val){
+    std::cout << "append format " << sample_id << " " << format << " " << val << std::endl;
+    assert(val < std::numeric_limits<uint8_t>::max());
+    uint8_t v = val;
+    append_format(sample_id, format, v);
+}
+
+void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const float& val){
+    std::cout << "append format " << sample_id << " " << format << " " << val << std::endl;
+    std::unordered_map<std::string, std::vector<float>> m;
+    if (regt_samples.empty()) {
+        for (const auto &sample : samples) {
+            regt_samples.push_back(m);
+        }
+    }
+    assert(regt_samples.size() > sample_id);
+    if (regt_samples[sample_id].find(format)!=regt_samples[sample_id].end()){
+        regt_samples[sample_id][format].push_back(val);
+    } else {
+        set_format(sample_id, format, val);
+    }
+}
+
+std::vector<uint8_t>& VCFRecord::get_format_u(const uint32_t& sample_id, const std::string& format){
+    if (samples.size() > sample_id and samples[sample_id].find(format)!=samples[sample_id].end()){
+        return samples[sample_id][format];
+    } else {
+        std::vector<uint8_t> null;
+        return null;
+    }
+}
+
+std::vector<float>& VCFRecord::get_format_f(const uint32_t& sample_id, const std::string& format){
+    if (regt_samples.size() > sample_id and regt_samples[sample_id].find(format)!=regt_samples[sample_id].end()){
+        return regt_samples[sample_id][format];
+    } else {
+        std::vector<float> null;
+        return null;
+    }
+}
+
 float logfactorial(uint32_t n) {
     float ret = 0;
     for (uint32_t i = 1; i <= n; ++i) {
@@ -154,21 +241,20 @@ void VCFRecord::likelihood(const uint32_t &expected_depth_covg, const float &err
     }
 
     for (uint_least16_t i = 0; i < samples.size(); ++i) {
-        if (samples[i].find("MEAN_FWD_COVG") != samples[i].end()
-            and samples[i].find("MEAN_REV_COVG") != samples[i].end()
-            and samples[i]["MEAN_FWD_COVG"].size() == samples[i]["MEAN_REV_COVG"].size()
-            and samples[i]["MEAN_FWD_COVG"].size() >= 2) {
+        const auto &fwd_covgs = get_format_u(i,"MEAN_FWD_COVG");
+        const auto &rev_covgs = get_format_u(i,"MEAN_REV_COVG");
+        const auto &gaps = get_format_f(i,"GAPS");
+        if (!fwd_covgs.empty() and fwd_covgs.size() == rev_covgs.size() and fwd_covgs.size() == gaps.size()){
 
             std::vector<uint16_t> covgs = {};
-            for (uint j = 0; j < samples[i]["MEAN_FWD_COVG"].size(); ++j) {
-                uint32_t total_covg = samples[i]["MEAN_FWD_COVG"][j] + samples[i]["MEAN_REV_COVG"][j];
+            for (uint j = 0; j < fwd_covgs.size(); ++j) {
+                uint32_t total_covg = fwd_covgs[j] + rev_covgs[j];
                 if (total_covg >= min_covg)
                     covgs.push_back(total_covg);
                 else
                     covgs.push_back(0);
             }
 
-            std::vector<float> likelihoods = {};
             float likelihood = 0;
             for (uint j = 0; j < covgs.size(); ++j) {
                 auto other_covg = accumulate(covgs.begin(), covgs.end(), 0) - covgs[j];
@@ -177,14 +263,12 @@ void VCFRecord::likelihood(const uint32_t &expected_depth_covg, const float &err
                                  - logfactorial(covgs[j]) + other_covg * log(error_rate);
                 else
                     likelihood = other_covg * log(error_rate) - expected_depth_covg;
-                likelihoods.push_back(likelihood);
+                append_format(i,"LIKELIHOOD",likelihood);
             }
-            regt_samples[i]["LIKELIHOOD"] = likelihoods;
         }
     }
 
     assert(regt_samples.size() == samples.size() or assert_msg(regt_samples.size() << "!=" << samples.size()));
-    add_formats({"LIKELIHOOD"});
 }
 
 void VCFRecord::confidence(const uint32_t &min_total_covg, const uint32_t &min_diff_covg) {

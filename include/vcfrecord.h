@@ -38,6 +38,26 @@ struct VCFRecord {
 
     void add_formats(const std::vector<std::string> &);
 
+    void set_format(const uint32_t&, const std::string&, const std::vector<uint8_t>&);
+
+    void set_format(const uint32_t&, const std::string&, const std::vector<float>&);
+
+    void set_format(const uint32_t&, const std::string&, const uint8_t&);
+
+    void set_format(const uint32_t&, const std::string&, const uint32_t&);
+
+    void set_format(const uint32_t&, const std::string&, const float&);
+
+    void append_format(const uint32_t&, const std::string&, const uint8_t&);
+
+    void append_format(const uint32_t&, const std::string&, const uint32_t&);
+
+    void append_format(const uint32_t&, const std::string&, const float&);
+
+    std::vector<uint8_t>& get_format_u(const uint32_t&, const std::string&);
+
+    std::vector<float>& get_format_f(const uint32_t&, const std::string&);
+
     void likelihood(const uint32_t &, const float &, const uint32_t &min_covg);
 
     void confidence(const uint32_t &min_total_covg=0, const uint32_t &min_diff_covg=0);

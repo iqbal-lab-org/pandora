@@ -113,7 +113,8 @@ void Node::get_read_overlap_coordinates(std::vector<std::vector<uint32_t>> &read
 }
 
 void Node::construct_multisample_vcf(VCF &master_vcf, const std::vector<LocalNodePtr> &vcf_reference_path,
-                                     const std::shared_ptr<LocalPRG> &prg, const uint32_t w) {
+                                     const std::shared_ptr<LocalPRG> &prg, const uint32_t w,
+                                     const uint32_t &min_kmer_covg) {
     // create a vcf with respect to this ref
     VCF vcf;
     prg->build_vcf(vcf, vcf_reference_path);
@@ -127,12 +128,15 @@ void Node::construct_multisample_vcf(VCF &master_vcf, const std::vector<LocalNod
             if (count == 0) {
                 prg->add_sample_gt_to_vcf(vcf, vcf_reference_path, sample_local_path, sample->name);
                 BOOST_LOG_TRIVIAL(debug) << "With sample added:\n" << vcf;
-                prg->add_sample_covgs_to_vcf(vcf, kmer_prg, vcf_reference_path, sample->name, sample->sample_id);
+                prg->add_sample_covgs_to_vcf(vcf, kmer_prg, vcf_reference_path, min_kmer_covg, sample->name,
+                                             sample->sample_id);
                 BOOST_LOG_TRIVIAL(debug) << "With sample coverages added:\n" << vcf;
             } else {
                 auto path_specific_sample_name = sample->name + std::to_string(count);
                 prg->add_sample_gt_to_vcf(vcf, vcf_reference_path, sample_local_path, path_specific_sample_name);
-                prg->add_sample_covgs_to_vcf(vcf, kmer_prg, vcf_reference_path, path_specific_sample_name, sample->sample_id);
+                prg->add_sample_covgs_to_vcf(vcf, kmer_prg, vcf_reference_path, min_kmer_covg,
+                                             path_specific_sample_name,
+                                             sample->sample_id);
             }
             count++;
         }
