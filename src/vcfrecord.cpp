@@ -142,6 +142,7 @@ void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format,
 
 void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const std::vector<float>& val){
     std::unordered_map<std::string, std::vector<float>> m;
+    m.reserve(3);
     for (uint i=regt_samples.size(); i<samples.size(); ++i) {
         regt_samples.push_back(m);
     }
@@ -185,6 +186,7 @@ void VCFRecord::append_format(const uint32_t& sample_id, const std::string& form
 
 void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const float& val){
     std::unordered_map<std::string, std::vector<float>> m;
+    m.reserve(3);
     if (regt_samples.empty()) {
         for (const auto &sample : samples) {
             regt_samples.push_back(m);
@@ -199,21 +201,25 @@ void VCFRecord::append_format(const uint32_t& sample_id, const std::string& form
 }
 
 std::vector<uint8_t>& VCFRecord::get_format_u(const uint32_t& sample_id, const std::string& format){
-    if (samples.size() > sample_id and samples[sample_id].find(format)!=samples[sample_id].end()){
-        return samples[sample_id][format];
-    } else {
-        std::vector<uint8_t> null;
+    std::vector<uint8_t> null;
+    bool sample_exists = samples.size() > sample_id;
+    if (!sample_exists)
         return null;
-    }
+    bool found_key_in_sample = samples[sample_id].find(format)!=samples[sample_id].end();
+    if (!found_key_in_sample)
+        return null;
+    return samples[sample_id][format];
 }
 
 std::vector<float>& VCFRecord::get_format_f(const uint32_t& sample_id, const std::string& format){
-    if (regt_samples.size() > sample_id and regt_samples[sample_id].find(format)!=regt_samples[sample_id].end()){
-        return regt_samples[sample_id][format];
-    } else {
-        std::vector<float> null;
+    std::vector<float> null;
+    bool sample_exists = regt_samples.size() > sample_id;
+    if (!sample_exists)
         return null;
-    }
+    bool found_key_in_sample = regt_samples[sample_id].find(format)!=regt_samples[sample_id].end();
+    if (!found_key_in_sample)
+        return null;
+    return regt_samples[sample_id][format];
 }
 
 float logfactorial(uint32_t n) {
@@ -225,16 +231,6 @@ float logfactorial(uint32_t n) {
 }
 
 void VCFRecord::likelihood(const uint32_t &expected_depth_covg, const float &error_rate, const uint32_t &min_covg) {
-    std::unordered_map<std::string, std::vector<float>> m;
-    m.reserve(2);
-
-    //float p_non_zero = 1 - exp(-expected_depth_covg);
-    if (regt_samples.empty()) {
-        for (const auto &sample : samples) {
-            regt_samples.push_back(m);
-        }
-    }
-
     for (uint_least16_t i = 0; i < samples.size(); ++i) {
         const auto &fwd_covgs = get_format_u(i,"MEAN_FWD_COVG");
         const auto &rev_covgs = get_format_u(i,"MEAN_REV_COVG");
@@ -256,14 +252,14 @@ void VCFRecord::likelihood(const uint32_t &expected_depth_covg, const float &err
                 if (covgs[j] > 0) {
                     likelihood = covgs[j] * log(expected_depth_covg) - expected_depth_covg
                                  - logfactorial(covgs[j]) + other_covg * log(error_rate);
-                    std::cout << "likelihood before gaps " << likelihood << " gaps = " << gaps[j] << std::endl;
+                    //std::cout << "likelihood before gaps " << likelihood << " gaps = " << gaps[j] << std::endl;
                     likelihood += (1 - gaps[j]) * log(1 - exp(-(float)expected_depth_covg)) - expected_depth_covg * gaps[j];
-                    std::cout << "likelihood after gaps " << likelihood << std::endl;
+                    //std::cout << "likelihood after gaps " << likelihood << std::endl;
                 } else {
                     likelihood = other_covg * log(error_rate) - expected_depth_covg;
-                    std::cout << "likelihood before gaps " << likelihood << " gaps = " << gaps[j] << std::endl;
+                    //std::cout << "likelihood before gaps " << likelihood << " gaps = " << gaps[j] << std::endl;
                     likelihood += (1 - gaps[j]) * log(1 - exp(-(float)expected_depth_covg)) - expected_depth_covg * gaps[j];
-                    std::cout << "likelihood after gaps " << likelihood << std::endl;
+                    //std::cout << "likelihood after gaps " << likelihood << std::endl;
                 }
                 append_format(i,"LIKELIHOOD",likelihood);
             }

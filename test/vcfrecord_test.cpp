@@ -340,6 +340,48 @@ TEST(VCFRecordTest, append_format_old_float) {
     EXPECT_ITERABLE_EQ(std::vector<std::string>, vr.format, exp_f);
 }
 
+TEST(VCFRecordTest, get_format_float) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    unordered_map<string, vector<float>> m;
+    m.reserve(3);
+    vr.regt_samples.push_back(m);
+    float v = 10.0;
+    vr.set_format(0, "hello", v);
+
+    auto res = vr.get_format_f(1,"hello");
+    EXPECT_EQ(res.size(), 0);
+    EXPECT_TRUE(res.empty());
+
+    res = vr.get_format_f(0,"help");
+    EXPECT_EQ(res.size(), 0);
+    EXPECT_TRUE(res.empty());
+
+    res = vr.get_format_f(0,"hello");
+    EXPECT_EQ(res.size(), 1);
+    EXPECT_FALSE(res.empty());
+}
+
+TEST(VCFRecordTest, get_format_uint) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    unordered_map<string, vector<uint8_t>> m;
+    m.reserve(3);
+    vr.samples.push_back(m);
+    uint8_t v = 10;
+    vr.set_format(0, "hello", v);
+
+    auto res = vr.get_format_u(1,"hello");
+    EXPECT_EQ(res.size(), 0);
+    EXPECT_TRUE(res.empty());
+
+    res = vr.get_format_u(0,"help");
+    EXPECT_EQ(res.size(), 0);
+    EXPECT_TRUE(res.empty());
+
+    res = vr.get_format_u(0,"hello");
+    EXPECT_EQ(res.size(), 1);
+    EXPECT_FALSE(res.empty());
+}
+
 TEST(VCFRecordLikelihoodTest, does_not_crash_with_no_samples) {
     VCFRecord vr("chrom1", 3, "A", "T");
     EXPECT_NO_FATAL_FAILURE(vr.likelihood(1, 0.01, 0));
@@ -350,38 +392,39 @@ TEST(VCFRecordLikelihoodTest, does_not_run_if_info_missing) {
     unordered_map<string, vector<uint8_t>> m;
     m["nothing"] = {0};
     vr.samples.push_back(m);
+    assert(vr.samples.size() > 0);
     std::vector<float> f = {0.0, 0.0};
     vr.set_format(0,"GAPS", f);
     vr.likelihood(1, 0.01, 0);
-    bool found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
+    bool found_likelihood = !vr.get_format_f(0, "LIKELIHOOD").empty();
     EXPECT_FALSE(found_likelihood);
 
     vr.samples[0]["GT"] = {1};
     vr.likelihood(1, 0.01, 0);
-    found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
+    found_likelihood = !vr.get_format_f(0, "LIKELIHOOD").empty();
     EXPECT_FALSE(found_likelihood);
 
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 1};
     vr.samples[0]["MEAN_REV_COVG"] = {1};
     vr.likelihood(1, 0.01, 0);
-    found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
+    found_likelihood = !vr.get_format_f(0, "LIKELIHOOD").empty();
     EXPECT_FALSE(found_likelihood);
 
     vr.samples[0].erase("MEAN_FWD_COVG");
     vr.samples[0]["MEAN_REV_COVG"] = {1, 1};
     vr.likelihood(1, 0.01, 0);
-    found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
+    found_likelihood = !vr.get_format_f(0, "LIKELIHOOD").empty();
     EXPECT_FALSE(found_likelihood);
 
     vr.samples[0]["MEAN_FWD_COVG"] = {1};
     vr.likelihood(1, 0.01, 0);
-    found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
+    found_likelihood = !vr.get_format_f(0, "LIKELIHOOD").empty();
     EXPECT_FALSE(found_likelihood);
 
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 1};
     vr.samples[0].erase("MEAN_REV_COVG");
     vr.likelihood(1, 0.01, 0);
-    found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
+    found_likelihood = !vr.get_format_f(0, "LIKELIHOOD").empty();
     EXPECT_FALSE(found_likelihood);
 }
 
@@ -394,9 +437,7 @@ TEST(VCFRecordLikelihoodTest, adds_likelihood_with_info) {
     std::vector<float> f = {0.0, 0.0};
     vr.set_format(0,"GAPS", f);
     vr.likelihood(1, 0.01, 0);
-    bool found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
-    EXPECT_TRUE(found_likelihood);
-    found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
+    bool found_likelihood = !vr.get_format_f(0, "LIKELIHOOD").empty();
     EXPECT_TRUE(found_likelihood);
 }
 
@@ -480,11 +521,11 @@ TEST(VCFRecordConfidenceTest, does_not_run_if_info_missing) {
     VCFRecord vr("chrom1", 3, "A", "T");
     unordered_map<string, vector<float>> m;
     vr.regt_samples.push_back(m);
-
     vr.confidence();
-    bool found_confidence = vr.regt_samples[0].find("GT_CONF") != vr.regt_samples[0].end();
+    bool found_confidence = !vr.get_format_f(0,"GT_CONF").empty();
     EXPECT_FALSE(found_confidence);
-    vr.regt_samples[0]["LIKELIHOOD"] = {-1.0};
+    std::vector<float> f = {-1.0};
+    vr.set_format(0,"LIKELIHOOD", f);
     EXPECT_DEATH(vr.confidence(), "");
 }
 
@@ -500,7 +541,7 @@ TEST(VCFRecordConfidenceTest, adds_confidence_with_info) {
     vr.samples[0]["MEAN_FWD_COVG"] = {0,0};
     vr.samples[0]["MEAN_REV_COVG"] = {0,0};
     vr.confidence();
-    bool found_confidence = vr.regt_samples[0].find("GT_CONF") != vr.regt_samples[0].end();
+    bool found_confidence = !vr.get_format_f(0,"GT_CONF").empty();
     EXPECT_TRUE(found_confidence);
 }
 
