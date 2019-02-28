@@ -54,9 +54,9 @@ struct VCFRecord {
 
     void append_format(const uint32_t&, const std::string&, const float&);
 
-    std::vector<uint8_t>& get_format_u(const uint32_t&, const std::string&);
+    std::vector<uint8_t> get_format_u(const uint32_t&, const std::string&);
 
-    std::vector<float>& get_format_f(const uint32_t&, const std::string&);
+    std::vector<float> get_format_f(const uint32_t&, const std::string&);
 
     void likelihood(const uint32_t &, const float &, const uint32_t &min_covg);
 

@@ -200,7 +200,7 @@ void VCFRecord::append_format(const uint32_t& sample_id, const std::string& form
     }
 }
 
-std::vector<uint8_t>& VCFRecord::get_format_u(const uint32_t& sample_id, const std::string& format){
+std::vector<uint8_t> VCFRecord::get_format_u(const uint32_t& sample_id, const std::string& format){
     std::vector<uint8_t> empty_return;
     bool sample_exists = samples.size() > sample_id;
     if (!sample_exists)
@@ -211,7 +211,7 @@ std::vector<uint8_t>& VCFRecord::get_format_u(const uint32_t& sample_id, const s
     return samples[sample_id][format];
 }
 
-std::vector<float>& VCFRecord::get_format_f(const uint32_t& sample_id, const std::string& format){
+std::vector<float> VCFRecord::get_format_f(const uint32_t& sample_id, const std::string& format){
     std::vector<float> empty_return;
     bool sample_exists = regt_samples.size() > sample_id;
     if (!sample_exists)
