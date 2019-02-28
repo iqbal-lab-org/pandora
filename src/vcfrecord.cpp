@@ -201,24 +201,24 @@ void VCFRecord::append_format(const uint32_t& sample_id, const std::string& form
 }
 
 std::vector<uint8_t>& VCFRecord::get_format_u(const uint32_t& sample_id, const std::string& format){
-    std::vector<uint8_t> null;
+    std::vector<uint8_t> empty_return;
     bool sample_exists = samples.size() > sample_id;
     if (!sample_exists)
-        return null;
+        return empty_return;
     bool found_key_in_sample = samples[sample_id].find(format)!=samples[sample_id].end();
     if (!found_key_in_sample)
-        return null;
+        return empty_return;
     return samples[sample_id][format];
 }
 
 std::vector<float>& VCFRecord::get_format_f(const uint32_t& sample_id, const std::string& format){
-    std::vector<float> null;
+    std::vector<float> empty_return;
     bool sample_exists = regt_samples.size() > sample_id;
     if (!sample_exists)
-        return null;
+        return empty_return;
     bool found_key_in_sample = regt_samples[sample_id].find(format)!=regt_samples[sample_id].end();
     if (!found_key_in_sample)
-        return null;
+        return empty_return;
     return regt_samples[sample_id][format];
 }
 
