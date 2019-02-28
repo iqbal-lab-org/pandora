@@ -171,16 +171,18 @@ int find_prob_thresh(std::vector<uint32_t> &kmer_prob_dist) {
     return peak - 200;
 }
 
-void estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
+uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
                          const std::string &outdir,
                          const uint32_t k,
                          float &e_rate,
                          const uint32_t covg,
                          bool &bin,
                          const uint32_t &sample_id) {
+    uint32_t exp_depth_covg = covg;
+
     // ignore trivial case
     if (pangraph->nodes.empty()) {
-        return;
+        return exp_depth_covg;
     }
 
     std::vector<uint32_t> kmer_covg_dist(1000,
@@ -222,7 +224,6 @@ void estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     handle.close();
 
     // evaluate error rate
-    uint32_t exp_depth_covg;
     auto mean = fit_mean_covg(kmer_covg_dist, covg / 10);
     auto var = fit_variance_covg(kmer_covg_dist, mean, covg / 10);
     if (mean > var) {
@@ -308,4 +309,5 @@ void estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     for (auto &node : pangraph->nodes) {
         node.second->kmer_prg.thresh = thresh;
     }
+    return exp_depth_covg;
 }

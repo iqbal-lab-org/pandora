@@ -323,7 +323,9 @@ int pandora_compare(int argc, char *argv[]) {
         pangraph_sample->add_hits_to_kmergraphs(prgs, 0);
 
         BOOST_LOG_TRIVIAL(info) << "Estimate parameters for kmer graph model";
-        estimate_parameters(pangraph_sample, sample_outdir, k, e_rate, covg, bin, 0);
+        auto exp_depth_covg = estimate_parameters(pangraph_sample, sample_outdir, k, e_rate, covg, bin, 0);
+        if (min_kmer_covg == 0)
+            min_kmer_covg = exp_depth_covg/10;
 
         BOOST_LOG_TRIVIAL(info) << "Find max likelihood PRG paths";
         auto sample_pangraph_size = pangraph_sample->nodes.size();

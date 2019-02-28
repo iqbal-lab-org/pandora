@@ -310,7 +310,9 @@ int pandora_map(int argc, char *argv[]) {
     pangraph->add_hits_to_kmergraphs(prgs);
 
     cout << now() << "Estimate parameters for kmer graph model" << endl;
-    estimate_parameters(pangraph, outdir, k, e_rate, covg, bin, sample_id);
+    auto exp_depth_covg = estimate_parameters(pangraph, outdir, k, e_rate, covg, bin, sample_id);
+    if (min_kmer_covg == 0)
+        min_kmer_covg = exp_depth_covg/10;
 
     cout << now() << "Find PRG paths and write to files:" << endl;
 

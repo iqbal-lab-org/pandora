@@ -93,7 +93,7 @@ public:
 
     friend std::ostream &operator<<(std::ostream &out, KmerGraph const &data);
 
-    friend void
+    friend uint32_t
     estimate_parameters(std::shared_ptr<pangenome::Graph>, const std::string &, const uint32_t, float &, const uint32_t,
                         bool &, const uint32_t &sample_id);
 
