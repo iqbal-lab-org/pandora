@@ -559,7 +559,7 @@ TEST(VCFTest, genotype) {
     vcf.add_sample_gt("asample", "chrom2", 80, "A", "A");
 
     vcf.sort_records();
-    std::vector<float> f = {1.0, 1.0};
+    std::vector<float> f = {0.0, 0.0};
 
     // record 0, not a snp site
     vcf.records[0].samples[0]["MEAN_FWD_COVG"] = {0, 10};
@@ -672,7 +672,7 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.add_sample_gt("asample", "chrom2", 80, "AC", "AC");
 
     vcf.sort_records();
-    std::vector<float> f = {1.0, 1.0};
+    std::vector<float> f = {0.0, 0.0};
 
     // record 0, not a snp site
     vcf.records[0].samples[0]["MEAN_FWD_COVG"].push_back(0);

@@ -350,7 +350,7 @@ TEST(VCFRecordLikelihoodTest, does_not_run_if_info_missing) {
     unordered_map<string, vector<uint8_t>> m;
     m["nothing"] = {0};
     vr.samples.push_back(m);
-    std::vector<float> f = {1.0, 1.0};
+    std::vector<float> f = {0.0, 0.0};
     vr.set_format(0,"GAPS", f);
     vr.likelihood(1, 0.01, 0);
     bool found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
@@ -391,7 +391,7 @@ TEST(VCFRecordLikelihoodTest, adds_likelihood_with_info) {
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 2};
-    std::vector<float> f = {1.0, 1.0};
+    std::vector<float> f = {0.0, 0.0};
     vr.set_format(0,"GAPS", f);
     vr.likelihood(1, 0.01, 0);
     bool found_likelihood = vr.regt_samples[0].find("LIKELIHOOD") != vr.regt_samples[0].end();
@@ -406,12 +406,12 @@ TEST(VCFRecordLikelihoodTest, gets_correct_likelihood_simple_case) {
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 2};
-    std::vector<float> f = {1.0, 1.0};
+    std::vector<float> f = {0.0, 0.0};
     vr.set_format(0,"GAPS", f);
     vr.likelihood(1, 0.01, 0);
-    float exp_likelihood = -1 - log(2) + 4 * log(0.01);
+    float exp_likelihood = -1 - log(2) + 4 * log(0.01) + log(1-exp(-(float(1))));
     EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][0]);
-    exp_likelihood = -1 - log(4) - log(3) - log(2) + 2 * log(0.01);
+    exp_likelihood = -1 - log(4) - log(3) - log(2) + 2 * log(0.01) + log(1-exp(-(float(1))));
     EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][1]);
 }
 
@@ -421,13 +421,13 @@ TEST(VCFRecordLikelihoodTest, gets_correct_likelihood_with_min_covg_threshold) {
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 2};
-    std::vector<float> f = {1.0, 1.0};
+    std::vector<float> f = {0.0, 0.0};
     vr.set_format(0,"GAPS", f);
     vr.likelihood(1, 0.01, 3);
 
-    float exp_likelihood = 4 * log(0.01) - 1;
+    float exp_likelihood = 4 * log(0.01) - 1 + log(1-exp(-(float(1))));
     EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][0]);
-    exp_likelihood = - 1 - log(4) - log(3) - log(2);
+    exp_likelihood = - 1 - log(4) - log(3) - log(2) + log(1-exp(-(float(1))));
     EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][1]);
 }
 
@@ -437,12 +437,12 @@ TEST(VCFRecordLikelihoodTest, handles_ref_covg_0) {
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {0, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {0, 2};
-    std::vector<float> f = {1.0, 1.0};
+    std::vector<float> f = {0.0, 0.0};
     vr.set_format(0,"GAPS", f);
     vr.likelihood(1, 0.01, 0);
-    float exp_likelihood = -1 + 4 * log(0.01);
+    float exp_likelihood = -1 + 4 * log(0.01) + log(1-exp(-(float(1))));
     EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][0]);
-    exp_likelihood = -1 - log(4) - log(3) - log(2);
+    exp_likelihood = -1 - log(4) - log(3) - log(2) + log(1-exp(-(float(1))));
     EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][1]);
 }
 
@@ -452,13 +452,28 @@ TEST(VCFRecordLikelihoodTest, handles_alt_covg_0) {
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 0};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 0};
-    std::vector<float> f = {1.0, 1.0};
+    std::vector<float> f = {0.0, 0.0};
     vr.set_format(0,"GAPS", f);
     vr.likelihood(1, 0.01, 0);
-    float exp_likelihood = -1 + 2 * log(0.01);
+    float exp_likelihood = -1 + 2 * log(0.01) + log(1-exp(-(float(1))));
     EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][1]);
-    exp_likelihood = -1 - log(2);
+    exp_likelihood = -1 - log(2) + log(1-exp(-(float(1))));
     EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][0]);
+}
+
+TEST(VCFRecordLikelihoodTest, gets_correct_likelihood_gaps) {
+    VCFRecord vr("chrom1", 3, "A", "T");
+    unordered_map<string, vector<uint8_t>> m;
+    vr.samples.push_back(m);
+    vr.samples[0]["MEAN_FWD_COVG"] = {1, 2};
+    vr.samples[0]["MEAN_REV_COVG"] = {1, 2};
+    std::vector<float> f = {0.5, 0.8};
+    vr.set_format(0,"GAPS", f);
+    vr.likelihood(1, 0.01, 0);
+    float exp_likelihood = -1 - log(2) + 4 * log(0.01) + 0.5*log(1-exp(-(float(1)))) - 0.5;
+    EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][0]);
+    exp_likelihood = -1 - log(4) - log(3) - log(2) + 2 * log(0.01) + 0.2*log(1-exp(-(float(1)))) - 0.8;
+    EXPECT_FLOAT_EQ(exp_likelihood, vr.regt_samples[0]["LIKELIHOOD"][1]);
 }
 
 TEST(VCFRecordConfidenceTest, does_not_run_if_info_missing) {

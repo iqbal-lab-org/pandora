@@ -135,14 +135,12 @@ void VCFRecord::add_formats(const std::vector<std::string> &formats) {
 }
 
 void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const std::vector<uint8_t>& val){
-    std::cout << "set format " << sample_id << " " << format << " " << val.size() << std::endl;
     assert(samples.size() > sample_id);
     samples[sample_id][format] = val;
     add_formats({format});
 }
 
 void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const std::vector<float>& val){
-    std::cout << "set format " << sample_id << " " << format << " " << val.size() << std::endl;
     std::unordered_map<std::string, std::vector<float>> m;
     for (uint i=regt_samples.size(); i<samples.size(); ++i) {
         regt_samples.push_back(m);
@@ -171,7 +169,6 @@ void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format,
 }
 
 void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const uint8_t& val){
-    std::cout << "append format " << sample_id << " " << format << " " << +val << std::endl;
     assert(samples.size() > sample_id);
     if (samples[sample_id].find(format)!=samples[sample_id].end()){
         samples[sample_id][format].push_back(val);
@@ -181,14 +178,12 @@ void VCFRecord::append_format(const uint32_t& sample_id, const std::string& form
 }
 
 void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const uint32_t& val){
-    std::cout << "append format " << sample_id << " " << format << " " << val << std::endl;
     assert(val < std::numeric_limits<uint8_t>::max());
     uint8_t v = val;
     append_format(sample_id, format, v);
 }
 
 void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const float& val){
-    std::cout << "append format " << sample_id << " " << format << " " << val << std::endl;
     std::unordered_map<std::string, std::vector<float>> m;
     if (regt_samples.empty()) {
         for (const auto &sample : samples) {
@@ -258,11 +253,18 @@ void VCFRecord::likelihood(const uint32_t &expected_depth_covg, const float &err
             float likelihood = 0;
             for (uint j = 0; j < covgs.size(); ++j) {
                 auto other_covg = accumulate(covgs.begin(), covgs.end(), 0) - covgs[j];
-                if (covgs[j] > 0)
+                if (covgs[j] > 0) {
                     likelihood = covgs[j] * log(expected_depth_covg) - expected_depth_covg
                                  - logfactorial(covgs[j]) + other_covg * log(error_rate);
-                else
+                    std::cout << "likelihood before gaps " << likelihood << " gaps = " << gaps[j] << std::endl;
+                    likelihood += (1 - gaps[j]) * log(1 - exp(-(float)expected_depth_covg)) - expected_depth_covg * gaps[j];
+                    std::cout << "likelihood after gaps " << likelihood << std::endl;
+                } else {
                     likelihood = other_covg * log(error_rate) - expected_depth_covg;
+                    std::cout << "likelihood before gaps " << likelihood << " gaps = " << gaps[j] << std::endl;
+                    likelihood += (1 - gaps[j]) * log(1 - exp(-(float)expected_depth_covg)) - expected_depth_covg * gaps[j];
+                    std::cout << "likelihood after gaps " << likelihood << std::endl;
+                }
                 append_format(i,"LIKELIHOOD",likelihood);
             }
         }
