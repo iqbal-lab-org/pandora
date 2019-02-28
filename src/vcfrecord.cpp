@@ -158,9 +158,15 @@ void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format,
 }
 
 void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const uint32_t& val){
-    assert(val < std::numeric_limits<uint16_t>::max());
-    uint16_t v = val;
-    set_format(sample_id, format, v);
+    if (val >= std::numeric_limits<uint16_t>::max()){
+        BOOST_LOG_TRIVIAL(debug) << now() << "Value too large for sample id " << sample_id << " format " << format
+                                 << " value " << val;
+        uint16_t v = std::numeric_limits<uint16_t>::max() - 1;
+        set_format(sample_id, format, v);
+    } else {
+        uint16_t v = val;
+        set_format(sample_id, format, v);
+    }
 }
 
 void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const float& val){
@@ -179,9 +185,15 @@ void VCFRecord::append_format(const uint32_t& sample_id, const std::string& form
 }
 
 void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const uint32_t& val){
-    assert(val < std::numeric_limits<uint16_t>::max());
-    uint16_t v = val;
-    append_format(sample_id, format, v);
+    if (val >= std::numeric_limits<uint16_t>::max()){
+        BOOST_LOG_TRIVIAL(debug) << now() << "Value too large for sample id " << sample_id << " format " << format
+                                 << " value " << val;
+        uint16_t v = std::numeric_limits<uint16_t>::max() - 1;
+        append_format(sample_id, format, v);
+    } else {
+        uint16_t v = val;
+        append_format(sample_id, format, v);
+    }
 }
 
 void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const float& val){

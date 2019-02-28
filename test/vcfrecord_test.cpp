@@ -241,12 +241,13 @@ TEST(VCFRecordTest, add_format_death_no_samples) {
     EXPECT_DEATH(vr.set_format(0, "hello", w), "");
 }
 
-TEST(VCFRecordTest, add_format_death_too_big) {
+TEST(VCFRecordTest, add_format_cap_too_big) {
     VCFRecord vr("chrom1", 3, "A", "T");
     uint32_t v = 60000000;
     unordered_map<string, vector<uint16_t>> m;
     vr.samples.push_back(m);
-    EXPECT_DEATH(vr.set_format(0, "hello", v), "");
+    vr.set_format(0, "hello", v);
+    EXPECT_EQ(vr.get_format_u(0, "hello")[0], std::numeric_limits<uint16_t>::max() - 1);
 }
 
 TEST(VCFRecordTest, add_format_new_uint) {
