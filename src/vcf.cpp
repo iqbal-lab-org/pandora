@@ -25,7 +25,7 @@ VCF::~VCF() {
 };
 
 void VCF::add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i, std::string g) {
-    std::unordered_map<std::string, std::vector<uint8_t>> empty_map;
+    std::unordered_map<std::string, std::vector<uint16_t>> empty_map;
     VCFRecord vr(c, p, r, a, i, g);
     if (find(records.begin(), records.end(), vr) == records.end()) {
         records.push_back(vr);
@@ -39,7 +39,7 @@ void VCF::add_record(std::string c, uint32_t p, std::string r, std::string a, st
 VCFRecord &VCF::add_record(VCFRecord &vr, const std::vector<std::string> &sample_names) {
     assert(vr.samples.size() == sample_names.size() or sample_names.size() == 0);
 
-    std::unordered_map<std::string, std::vector<uint8_t>> empty_map;
+    std::unordered_map<std::string, std::vector<uint16_t>> empty_map;
     auto record_it = find(records.begin(), records.end(), vr);
     if (record_it == records.end()) {
         records.push_back(vr);
@@ -71,7 +71,7 @@ void VCF::add_formats(const std::vector<std::string> &v) {
 }
 
 ptrdiff_t VCF::get_sample_index(const std::string &name) {
-    std::unordered_map<std::string, std::vector<uint8_t>> empty_map;
+    std::unordered_map<std::string, std::vector<uint16_t>> empty_map;
 
     // if this sample has not been added before, add a column for it
     auto sample_it = find(samples.begin(), samples.end(), name);
@@ -182,7 +182,7 @@ void VCF::append_vcf(const VCF &other_vcf) {
 
     BOOST_LOG_TRIVIAL(debug) << "for all existing " << original_size << " records, add null entries for the "
                              << num_samples_added << " new samples";
-    std::unordered_map<std::string, std::vector<uint8_t>> empty_u_map;
+    std::unordered_map<std::string, std::vector<uint16_t>> empty_u_map;
     assert(original_size < std::numeric_limits<uint_least64_t>::max() ||
            assert_msg("VCF size has got too big to use the append feature"));
     for (uint_least64_t i = 0; i < original_size; ++i) {
@@ -213,7 +213,7 @@ bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const std::string
     return false;
 }
 
-void VCF::genotype(const uint32_t &expected_depth_covg, const float &error_rate, const uint8_t confidence_threshold,
+void VCF::genotype(const uint32_t &expected_depth_covg, const float &error_rate, const uint16_t confidence_threshold,
                    const uint32_t &min_allele_covg, const float &min_fraction_allele_covg,
                    const uint32_t &min_site_total_covg, const uint32_t &min_site_diff_covg, bool snps_only) {
     BOOST_LOG_TRIVIAL(info) << now() << "Genotype VCF";
@@ -239,8 +239,8 @@ void VCF::clean() {
     }
 }
 
-void merge_sample_key(std::unordered_map<std::string, std::vector<uint8_t>> &first,
-                      const std::unordered_map<std::string, std::vector<uint8_t>> &second,
+void merge_sample_key(std::unordered_map<std::string, std::vector<uint16_t>> &first,
+                      const std::unordered_map<std::string, std::vector<uint16_t>> &second,
                       const std::string &key) {
     if (first.empty() or second.empty() or first.find(key) == first.end() or first[key].empty()) {
         return;
@@ -275,7 +275,7 @@ void merge_regt_sample_key(std::unordered_map<std::string, std::vector<float>> &
         first.erase(key);
 }
 
-void merge_gt(VCFRecord &first, const VCFRecord &second, const uint16_t i, const uint8_t prev_alt_size) {
+void merge_gt(VCFRecord &first, const VCFRecord &second, const uint16_t i, const uint16_t prev_alt_size) {
     if (first.samples.size() < i or second.samples.size() < i) {
         return;
     } else if (second.samples[i].find("GT") == second.samples[i].end()
@@ -286,7 +286,7 @@ void merge_gt(VCFRecord &first, const VCFRecord &second, const uint16_t i, const
         if (second.samples[i].at("GT")[0] == 0) {
             first.samples[i]["GT"] = {0};
         } else {
-            uint8_t new_allele = second.samples[i].at("GT")[0] + prev_alt_size;
+            uint16_t new_allele = second.samples[i].at("GT")[0] + prev_alt_size;
             first.samples[i]["GT"] = {new_allele};
         }
     } else if (first.samples[i]["GT"][0] != 0 or second.samples[i].at("GT")[0] != 0) {
@@ -325,7 +325,7 @@ void VCF::merge_multi_allelic(uint32_t max_allele_length) {
             and prev_vr.alt[0].length() <= max_allele_length) {
 
             // merge alts
-            uint8_t prev_alt_size = prev_vr.alt.size();
+            uint16_t prev_alt_size = prev_vr.alt.size();
             bool short_enough = true;
             for (const auto &a : record.alt) {
                 if (a.length() > max_allele_length)

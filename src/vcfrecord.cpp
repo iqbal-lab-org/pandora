@@ -134,7 +134,7 @@ void VCFRecord::add_formats(const std::vector<std::string> &formats) {
     }
 }
 
-void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const std::vector<uint8_t>& val){
+void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const std::vector<uint16_t>& val){
     assert(samples.size() > sample_id);
     samples[sample_id][format] = val;
     add_formats({format});
@@ -151,15 +151,15 @@ void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format,
     add_formats({format});
 }
 
-void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const uint8_t& val){
-    std::vector<uint8_t> v = {};
+void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const uint16_t& val){
+    std::vector<uint16_t> v = {};
     v.emplace_back(val);
     set_format(sample_id, format, v);
 }
 
 void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const uint32_t& val){
-    assert(val < std::numeric_limits<uint8_t>::max());
-    uint8_t v = val;
+    assert(val < std::numeric_limits<uint16_t>::max());
+    uint16_t v = val;
     set_format(sample_id, format, v);
 }
 
@@ -169,7 +169,7 @@ void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format,
     set_format(sample_id, format, v);
 }
 
-void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const uint8_t& val){
+void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const uint16_t& val){
     assert(samples.size() > sample_id);
     if (samples[sample_id].find(format)!=samples[sample_id].end()){
         samples[sample_id][format].push_back(val);
@@ -179,8 +179,8 @@ void VCFRecord::append_format(const uint32_t& sample_id, const std::string& form
 }
 
 void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const uint32_t& val){
-    assert(val < std::numeric_limits<uint8_t>::max());
-    uint8_t v = val;
+    assert(val < std::numeric_limits<uint16_t>::max());
+    uint16_t v = val;
     append_format(sample_id, format, v);
 }
 
@@ -200,8 +200,8 @@ void VCFRecord::append_format(const uint32_t& sample_id, const std::string& form
     }
 }
 
-std::vector<uint8_t> VCFRecord::get_format_u(const uint32_t& sample_id, const std::string& format){
-    std::vector<uint8_t> empty_return;
+std::vector<uint16_t> VCFRecord::get_format_u(const uint32_t& sample_id, const std::string& format){
+    std::vector<uint16_t> empty_return;
     bool sample_exists = samples.size() > sample_id;
     if (!sample_exists)
         return empty_return;
@@ -306,11 +306,11 @@ void VCFRecord::confidence(const uint32_t &min_total_covg, const uint32_t &min_d
     add_formats({"GT_CONF"});
 }
 
-void VCFRecord::genotype(const uint8_t confidence_threshold) {
+void VCFRecord::genotype(const uint16_t confidence_threshold) {
     for (uint_least16_t i = 0; i < samples.size(); ++i) {
         if (regt_samples[i].find("GT_CONF") != regt_samples[i].end()) {
             if (regt_samples[i]["GT_CONF"][0] > confidence_threshold) {
-                uint8_t allele = 0;
+                uint16_t allele = 0;
                 float max_likelihood = 0;
                 for (const auto &likelihood : regt_samples[i]["LIKELIHOOD"]) {
                     if (max_likelihood == 0 or likelihood > max_likelihood) {
@@ -425,7 +425,7 @@ std::istream &operator>>(std::istream &in, VCFRecord &m) {
     std::string token, alt_s;
     std::vector<std::string> sample_strings, sample_substrings;
     std::vector<std::string> float_strings = {"LIKELIHOOD", "GT_CONF"};
-    std::unordered_map<std::string, std::vector<uint8_t>> sample_data;
+    std::unordered_map<std::string, std::vector<uint16_t>> sample_data;
     std::unordered_map<std::string, std::vector<float>> regt_sample_data;
     m.alt.clear();
     in >> m.chrom;

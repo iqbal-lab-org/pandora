@@ -60,7 +60,7 @@ TEST(VCFRecordTest, create_from_record) {
 TEST(VCFRecordTest, create_from_record_with_samples) {
 
     VCFRecord template_vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> empty_map;
+    unordered_map<string, vector<uint16_t>> empty_map;
     template_vr.samples.push_back(empty_map);
     template_vr.samples[0]["GT"] = {0};
     template_vr.samples.push_back(empty_map);
@@ -102,7 +102,7 @@ TEST(VCFRecordTest, clear_simple) {
 
 TEST(VCFRecordTest, clear_with_samples) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> empty_map;
+    unordered_map<string, vector<uint16_t>> empty_map;
     vr.samples.push_back(empty_map);
     vr.samples[0]["GT"] = {0};
     vr.samples.push_back(empty_map);
@@ -123,7 +123,7 @@ TEST(VCFRecordTest, clear_with_samples) {
 
 TEST(VCFRecordTest, clear_with_sample_confs) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> empty_map;
+    unordered_map<string, vector<uint16_t>> empty_map;
     vr.samples.push_back(empty_map);
     vr.samples[0]["GT"] = {0};
     vr.samples.push_back(empty_map);
@@ -150,7 +150,7 @@ TEST(VCFRecordTest, clear_with_sample_confs) {
 
 TEST(VCFRecordTest, clear_sample) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> empty_map;
+    unordered_map<string, vector<uint16_t>> empty_map;
     vr.samples.push_back(empty_map);
     vr.samples[0]["GT"] = {0};
     vr.samples.push_back(empty_map);
@@ -235,7 +235,7 @@ TEST(VCFRecordTest, add_formats_some_overlapping) {
 
 TEST(VCFRecordTest, add_format_death_no_samples) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    uint8_t v = 20;
+    uint16_t v = 20;
     EXPECT_DEATH(vr.set_format(0, "hello", v), "");
     float w = 20.0;
     EXPECT_DEATH(vr.set_format(0, "hello", w), "");
@@ -243,44 +243,44 @@ TEST(VCFRecordTest, add_format_death_no_samples) {
 
 TEST(VCFRecordTest, add_format_death_too_big) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    uint32_t v = 300;
-    unordered_map<string, vector<uint8_t>> m;
+    uint32_t v = 60000000;
+    unordered_map<string, vector<uint16_t>> m;
     vr.samples.push_back(m);
     EXPECT_DEATH(vr.set_format(0, "hello", v), "");
 }
 
 TEST(VCFRecordTest, add_format_new_uint) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     vr.samples.push_back(m);
-    uint8_t v = 20;
+    uint16_t v = 20;
     vr.set_format(0, "hello", v);
     EXPECT_EQ(vr.samples.size(), 1);
     EXPECT_TRUE(vr.samples[0].find("hello")!=vr.samples[0].end());
-    std::vector<uint8_t> exp_v = {v};
-    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, vr.samples[0]["hello"], exp_v);
+    std::vector<uint16_t> exp_v = {v};
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, vr.samples[0]["hello"], exp_v);
     std::vector<std::string> exp_f = {"GT", "hello"};
     EXPECT_ITERABLE_EQ(std::vector<std::string>, vr.format, exp_f);
 }
 
 TEST(VCFRecordTest, add_format_old_uint_overwritten) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     m["hello"] = {10};
     vr.samples.push_back(m);
-    uint8_t v = 20;
+    uint16_t v = 20;
     vr.set_format(0, "hello", v);
     EXPECT_EQ(vr.samples.size(), 1);
     EXPECT_TRUE(vr.samples[0].find("hello")!=vr.samples[0].end());
-    std::vector<uint8_t> exp_v = {v};
-    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, vr.samples[0]["hello"], exp_v);
+    std::vector<uint16_t> exp_v = {v};
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, vr.samples[0]["hello"], exp_v);
     std::vector<std::string> exp_f = {"GT", "hello"};
     EXPECT_ITERABLE_EQ(std::vector<std::string>, vr.format, exp_f);
 }
 
 TEST(VCFRecordTest, add_format_new_float) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     vr.samples.push_back(m);
     float v = 20.0;
     vr.set_format(0, "hello", v);
@@ -310,16 +310,16 @@ TEST(VCFRecordTest, add_format_old_float_overwritten) {
 
 TEST(VCFRecordTest, append_format_old_uint) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     vr.samples.push_back(m);
-    uint8_t v = 10;
+    uint16_t v = 10;
     vr.set_format(0, "hello", v);
     v = 20;
     vr.append_format(0, "hello", v);
     EXPECT_EQ(vr.samples.size(), 1);
     EXPECT_TRUE(vr.samples[0].find("hello")!=vr.samples[0].end());
-    std::vector<uint8_t> exp_v = {10, 20};
-    EXPECT_ITERABLE_EQ(std::vector<uint8_t>, vr.samples[0]["hello"], exp_v);
+    std::vector<uint16_t> exp_v = {10, 20};
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, vr.samples[0]["hello"], exp_v);
     std::vector<std::string> exp_f = {"GT", "hello"};
     EXPECT_ITERABLE_EQ(std::vector<std::string>, vr.format, exp_f);
 }
@@ -363,10 +363,10 @@ TEST(VCFRecordTest, get_format_float) {
 
 TEST(VCFRecordTest, get_format_uint) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     m.reserve(3);
     vr.samples.push_back(m);
-    uint8_t v = 10;
+    uint16_t v = 10;
     vr.set_format(0, "hello", v);
 
     auto res = vr.get_format_u(1,"hello");
@@ -389,7 +389,7 @@ TEST(VCFRecordLikelihoodTest, does_not_crash_with_no_samples) {
 
 TEST(VCFRecordLikelihoodTest, does_not_run_if_info_missing) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     m["nothing"] = {0};
     vr.samples.push_back(m);
     assert(vr.samples.size() > 0);
@@ -430,7 +430,7 @@ TEST(VCFRecordLikelihoodTest, does_not_run_if_info_missing) {
 
 TEST(VCFRecordLikelihoodTest, adds_likelihood_with_info) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 2};
@@ -443,7 +443,7 @@ TEST(VCFRecordLikelihoodTest, adds_likelihood_with_info) {
 
 TEST(VCFRecordLikelihoodTest, gets_correct_likelihood_simple_case) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 2};
@@ -458,7 +458,7 @@ TEST(VCFRecordLikelihoodTest, gets_correct_likelihood_simple_case) {
 
 TEST(VCFRecordLikelihoodTest, gets_correct_likelihood_with_min_covg_threshold) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 2};
@@ -474,7 +474,7 @@ TEST(VCFRecordLikelihoodTest, gets_correct_likelihood_with_min_covg_threshold) {
 
 TEST(VCFRecordLikelihoodTest, handles_ref_covg_0) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {0, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {0, 2};
@@ -489,7 +489,7 @@ TEST(VCFRecordLikelihoodTest, handles_ref_covg_0) {
 
 TEST(VCFRecordLikelihoodTest, handles_alt_covg_0) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 0};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 0};
@@ -504,7 +504,7 @@ TEST(VCFRecordLikelihoodTest, handles_alt_covg_0) {
 
 TEST(VCFRecordLikelihoodTest, gets_correct_likelihood_gaps) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     vr.samples.push_back(m);
     vr.samples[0]["MEAN_FWD_COVG"] = {1, 2};
     vr.samples[0]["MEAN_REV_COVG"] = {1, 2};
@@ -532,7 +532,7 @@ TEST(VCFRecordConfidenceTest, does_not_run_if_info_missing) {
 TEST(VCFRecordConfidenceTest, adds_confidence_with_info) {
     VCFRecord vr("chrom1", 3, "A", "T");
     unordered_map<string, vector<float>> m;
-    unordered_map<string, vector<uint8_t>> m2;
+    unordered_map<string, vector<uint16_t>> m2;
     m.reserve(3);
     m2.reserve(3);
     vr.regt_samples.push_back(m);
@@ -548,7 +548,7 @@ TEST(VCFRecordConfidenceTest, adds_confidence_with_info) {
 TEST(VCFRecordConfidenceTest, gets_correct_confidence_simple_case) {
     VCFRecord vr("chrom1", 3, "A", "T");
     unordered_map<string, vector<float>> m;
-    unordered_map<string, vector<uint8_t>> m2;
+    unordered_map<string, vector<uint16_t>> m2;
     vr.regt_samples.push_back(m);
     vr.regt_samples[0]["LIKELIHOOD"] = {-1.0, 0.0};
     vr.samples.push_back(m2);
@@ -563,7 +563,7 @@ TEST(VCFRecordConfidenceTest, gets_correct_confidence_two_alts) {
     VCFRecord vr("chrom1", 3, "A", "T");
     vr.alt.push_back("C");
     unordered_map<string, vector<float>> m;
-    unordered_map<string, vector<uint8_t>> m2;
+    unordered_map<string, vector<uint16_t>> m2;
     vr.regt_samples.push_back(m);
     vr.regt_samples[0]["LIKELIHOOD"] = {-14.0, -6.0, -3.0};
     vr.samples.push_back(m2);
@@ -578,7 +578,7 @@ TEST(VCFRecordConfidenceTest, gets_correct_confidence_min_total) {
     VCFRecord vr("chrom1", 3, "A", "T");
     vr.alt.push_back("C");
     unordered_map<string, vector<float>> m;
-    unordered_map<string, vector<uint8_t>> m2;
+    unordered_map<string, vector<uint16_t>> m2;
     vr.regt_samples.push_back(m);
     vr.regt_samples[0]["LIKELIHOOD"] = {-14.0, -6.0, -3.0};
     vr.samples.push_back(m2);
@@ -596,7 +596,7 @@ TEST(VCFRecordConfidenceTest, gets_correct_confidence_min_diff) {
     VCFRecord vr("chrom1", 3, "A", "T");
     vr.alt.push_back("C");
     unordered_map<string, vector<float>> m;
-    unordered_map<string, vector<uint8_t>> m2;
+    unordered_map<string, vector<uint16_t>> m2;
     vr.regt_samples.push_back(m);
     vr.regt_samples[0]["LIKELIHOOD"] = {-14.0, -6.0, -3.0};
     vr.samples.push_back(m2);
@@ -613,7 +613,7 @@ TEST(VCFRecordConfidenceTest, gets_correct_confidence_min_diff) {
 TEST(VCFRecordConfidenceTest, handles_ref_covg_0) {
     VCFRecord vr("chrom1", 3, "A", "T");
     std::unordered_map<std::string, std::vector<float>> m;
-    unordered_map<string, vector<uint8_t>> m2;
+    unordered_map<string, vector<uint16_t>> m2;
     vr.regt_samples.push_back(m);
     vr.regt_samples[0]["LIKELIHOOD"] = {std::numeric_limits<float>::lowest(), -1.5};
     vr.samples.push_back(m2);
@@ -627,7 +627,7 @@ TEST(VCFRecordConfidenceTest, handles_ref_covg_0) {
 TEST(VCFRecordConfidenceTest, handles_alt_covg_0) {
     VCFRecord vr("chrom1", 3, "A", "T");
     std::unordered_map<std::string, std::vector<float>> m;
-    unordered_map<string, vector<uint8_t>> m2;
+    unordered_map<string, vector<uint16_t>> m2;
     vr.regt_samples.push_back(m);
     vr.regt_samples[0]["LIKELIHOOD"] = {-1.5, std::numeric_limits<float>::lowest()};
     vr.samples.push_back(m2);
@@ -647,7 +647,7 @@ TEST(VCFRecordRegenotypeTest, correctly_genotypes) {
     // sample 5 confidence above threshold, has incorrect GT 1
 
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     unordered_map<string, vector<float>> rm;
     for (uint i = 0; i < 6; ++i) {
         vr.regt_samples.push_back(rm);
@@ -804,7 +804,7 @@ TEST(VCFRecordTest, ostream) {
 
 TEST(VCFRecordTest, ostream_with_sample_not_all_info_in_formats) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     m["GT"] = {1};
     m["pringle"] = {2};
     vr.samples.push_back(m);
@@ -816,7 +816,7 @@ TEST(VCFRecordTest, ostream_with_sample_not_all_info_in_formats) {
         out >> rr;
         EXPECT_EQ(s, rr);
     }
-    uint8_t u = 1;
+    uint16_t u = 1;
     uint ru;
     out >> ru;
     EXPECT_EQ(u, ru);
@@ -824,13 +824,13 @@ TEST(VCFRecordTest, ostream_with_sample_not_all_info_in_formats) {
 
 TEST(VCFRecordTest, ostream_with_sample_including_all_formats) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     m["GT"] = {0};
     m["pringle"] = {2};
     vr.samples.push_back(m);
     vr.add_formats({"pringle"});
     vector<string> v = {"chrom1", "4", ".", "A", "T", ".", ".", "SVTYPE=SNP", "GT:pringle"};
-    vector<uint8_t> vu = {0, 2};
+    vector<uint16_t> vu = {0, 2};
     stringstream out;
     out << vr;
     string rr;
@@ -849,12 +849,12 @@ TEST(VCFRecordTest, ostream_with_sample_including_all_formats) {
 
 TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     m["GT"] = {0};
     vr.samples.push_back(m);
     vr.add_formats({"pringle"});
     vector<string> v = {"chrom1", "4", ".", "A", "T", ".", ".", "SVTYPE=SNP", "GT:pringle"};
-    vector<uint8_t> vu = {0};
+    vector<uint16_t> vu = {0};
     stringstream out;
     out << vr;
     string rr;
@@ -863,7 +863,7 @@ TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info) {
         EXPECT_EQ(s, rr);
     }
     uint ru;
-    uint8_t u = 0;
+    uint16_t u = 0;
     out >> ru;
     EXPECT_EQ(u, ru);
     out >> rr;
@@ -872,7 +872,7 @@ TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info) {
 
 TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info_regt) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     m["GT"] = {0};
     vr.samples.push_back(m);
     unordered_map<string, vector<float>> n;
@@ -888,7 +888,7 @@ TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info_regt) {
         EXPECT_EQ(s, rr);
     }
     uint ru;
-    uint8_t u = 0;
+    uint16_t u = 0;
     out >> ru;
     EXPECT_EQ(u, ru);
     out.ignore(1, ':');
@@ -899,7 +899,7 @@ TEST(VCFRecordTest, ostream_with_sample_more_formats_than_info_regt) {
 
 TEST(VCFRecordTest, ostream_with_zero_pos) {
     VCFRecord vr("chrom1", 0, "A", "T");
-    unordered_map<string, vector<uint8_t>> m;
+    unordered_map<string, vector<uint16_t>> m;
     m["GT"] = {0};
     vr.samples.push_back(m);
     unordered_map<string, vector<float>> n;
@@ -915,7 +915,7 @@ TEST(VCFRecordTest, ostream_with_zero_pos) {
         EXPECT_EQ(s, rr);
     }
     uint ru;
-    uint8_t u = 0;
+    uint16_t u = 0;
     out >> ru;
     EXPECT_EQ(u, ru);
     out.ignore(1, ':');

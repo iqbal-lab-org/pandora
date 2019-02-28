@@ -19,7 +19,7 @@ struct VCFRecord {
     std::string filter; // not used
     std::string info;
     std::vector<std::string> format; //e.g. "GT"
-    std::vector<std::unordered_map<std::string, std::vector<uint8_t>>> samples;      // should have an entry for each sample in vcf,
+    std::vector<std::unordered_map<std::string, std::vector<uint16_t>>> samples;      // should have an entry for each sample in vcf,
     std::vector<std::unordered_map<std::string, std::vector<float>>> regt_samples;   // in the same order
 
     VCFRecord(std::string, uint32_t, std::string, std::string, std::string i = ".", std::string g = "");
@@ -38,23 +38,23 @@ struct VCFRecord {
 
     void add_formats(const std::vector<std::string> &);
 
-    void set_format(const uint32_t&, const std::string&, const std::vector<uint8_t>&);
+    void set_format(const uint32_t&, const std::string&, const std::vector<uint16_t>&);
 
     void set_format(const uint32_t&, const std::string&, const std::vector<float>&);
 
-    void set_format(const uint32_t&, const std::string&, const uint8_t&);
+    void set_format(const uint32_t&, const std::string&, const uint16_t&);
 
     void set_format(const uint32_t&, const std::string&, const uint32_t&);
 
     void set_format(const uint32_t&, const std::string&, const float&);
 
-    void append_format(const uint32_t&, const std::string&, const uint8_t&);
+    void append_format(const uint32_t&, const std::string&, const uint16_t&);
 
     void append_format(const uint32_t&, const std::string&, const uint32_t&);
 
     void append_format(const uint32_t&, const std::string&, const float&);
 
-    std::vector<uint8_t> get_format_u(const uint32_t&, const std::string&);
+    std::vector<uint16_t> get_format_u(const uint32_t&, const std::string&);
 
     std::vector<float> get_format_f(const uint32_t&, const std::string&);
 
@@ -62,7 +62,7 @@ struct VCFRecord {
 
     void confidence(const uint32_t &min_total_covg=0, const uint32_t &min_diff_covg=0);
 
-    void genotype(const uint8_t);
+    void genotype(const uint16_t);
 
     bool contains_dot_allele() const;
 
