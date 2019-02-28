@@ -76,9 +76,9 @@ int pandora_map(int argc, char *argv[]) {
     string prgfile, readfile, outdir = "pandora", vcf_refs_file, log_level="info";
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300,
             min_allele_covg_gt = 0, min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0; // default parameters
-    uint8_t confidence_threshold = 1;
+    uint16_t confidence_threshold = 1;
     int max_diff = 250;
-    float e_rate = 0.11, min_allele_fraction_covg_gt = 1;
+    float e_rate = 0.11, min_allele_fraction_covg_gt = 0;
     bool output_kg = false, output_vcf = false;
     bool output_comparison_paths = false, output_mapped_read_fa = false;
     bool illumina = false, clean = false;

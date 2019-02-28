@@ -99,9 +99,9 @@ int pandora_compare(int argc, char *argv[]) {
     std::string prgfile, read_index_fpath, outdir = "pandora", vcf_refs_file, log_level="info";
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300, min_allele_covg_gt = 0,
             min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0; // default parameters
-    uint8_t confidence_threshold = 1;
+    uint16_t confidence_threshold = 1;
     int max_diff = 250;
-    float e_rate = 0.11, min_allele_fraction_covg_gt = 1;
+    float e_rate = 0.11, min_allele_fraction_covg_gt = 0;
     bool illumina = false, clean = false, bin = false, genotype = false;
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
