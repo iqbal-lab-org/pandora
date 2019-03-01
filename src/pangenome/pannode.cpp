@@ -118,6 +118,7 @@ void Node::construct_multisample_vcf(VCF &master_vcf, const std::vector<LocalNod
     // create a vcf with respect to this ref
     VCF vcf;
     prg->build_vcf(vcf, vcf_reference_path);
+    vcf.add_samples(master_vcf.samples);
 
     BOOST_LOG_TRIVIAL(debug) << "Initial build:\n" << vcf;
 
