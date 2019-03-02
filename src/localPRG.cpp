@@ -1345,6 +1345,8 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg, const std:
         alt_rev_covgs.clear();
     }
 
+    vcf.add_formats({"MEAN_FWD_COVG","MEAN_REV_COVG","MED_FWD_COVG","MED_REV_COVG","SUM_FWD_COVG","SUM_REV_COVG","GAPS"});
+
 }
 
 void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq,

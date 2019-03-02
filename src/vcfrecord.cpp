@@ -436,7 +436,7 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
 std::istream &operator>>(std::istream &in, VCFRecord &m) {
     std::string token, alt_s;
     std::vector<std::string> sample_strings, sample_substrings;
-    std::vector<std::string> float_strings = {"LIKELIHOOD", "GT_CONF"};
+    std::vector<std::string> float_strings = {"LIKELIHOOD", "GT_CONF", "GAPS"};
     std::unordered_map<std::string, std::vector<uint16_t>> sample_data;
     std::unordered_map<std::string, std::vector<float>> regt_sample_data;
     m.alt.clear();

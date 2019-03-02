@@ -65,7 +65,7 @@ void VCF::add_samples(const std::vector<std::string> sample_names) {
 }
 
 void VCF::add_formats(const std::vector<std::string> &v) {
-    for (auto record : records) {
+    for (auto &record : records) {
         record.add_formats(v);
     }
 }
@@ -353,7 +353,7 @@ void VCF::merge_multi_allelic(uint32_t max_allele_length) {
                 for (const auto &key: keys) {
                     merge_sample_key(prev_vr.samples[i], record.samples[i], key);
                 }
-                keys = {"LIKELIHOOD", "GT_CONF"};
+                keys = {"LIKELIHOOD", "GT_CONF", "GAPS"};
                 if (!prev_vr.regt_samples.empty() and !record.regt_samples.empty()) {
                     for (const auto &key: keys)
                         merge_regt_sample_key(prev_vr.regt_samples[i], record.regt_samples[i], key);

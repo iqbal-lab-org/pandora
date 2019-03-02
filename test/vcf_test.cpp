@@ -806,9 +806,25 @@ TEST(VCFTest, clean) {
     EXPECT_EQ("A", vcf.records[2].alt[0]);
 }
 
+TEST(VCFTest, add_formats) {
+    VCF vcf;
+    std::vector<std::string> formats = {"GT", "LIKELIHOOD", "GT_CONF", "MEAN_FWD_COVG", "MEAN_REV_COVG", "GAPS"};
+
+    vcf.add_record("chrom1", 5, "A", "G");
+    vcf.add_sample_gt("sample", "chrom1", 46, "CTT", "TA");
+
+    vcf.add_formats(formats);
+    cout << vcf << endl;
+
+    for (const auto& record: vcf.records){
+        for (const auto &f: formats){
+            EXPECT_TRUE(std::find(record.format.begin(), record.format.end(), f)!=record.format.end());
+        }
+    }
+}
+
 TEST(VCFTest, merge_multi_allelic) {
     VCF vcf;
-    vcf.add_formats({"GT", "LIKELIHOOD", "GT_CONF"});
     // no gt
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 5, "A", "C");
@@ -833,11 +849,15 @@ TEST(VCFTest, merge_multi_allelic) {
     vcf.records[5].samples[0]["MEAN_FWD_COVG"] = {2, 30};
     vcf.records[4].samples[0]["MEAN_REV_COVG"] = {2, 30};
     vcf.records[5].samples[0]["MEAN_REV_COVG"] = {2, 30};
+    vcf.records[4].regt_samples[0]["GAPS"] = {4, 0};
+    vcf.records[5].regt_samples[0]["GAPS"] = {4, 1};
     // incompatible
     vcf.add_record("chrom1", 85, "A", "G");
     vcf.add_record("chrom1", 85, "T", "C");
 
     vcf.merge_multi_allelic();
+    std::vector<std::string> formats = {"GT", "LIKELIHOOD", "GT_CONF", "MEAN_FWD_COVG", "MEAN_REV_COVG", "GAPS"};
+    vcf.add_formats(formats);
     cout << vcf << endl;
 
     EXPECT_EQ((uint) 5, vcf.records.size());
@@ -859,13 +879,17 @@ TEST(VCFTest, merge_multi_allelic) {
     found_gt = vcf.records[2].samples[0].find("GT") != vcf.records[2].samples[0].end();
     EXPECT_TRUE(found_gt);
     EXPECT_EQ((uint) 1, vcf.records[2].samples[0]["GT"][0]);
-    EXPECT_EQ((uint) 2, vcf.records[2].regt_samples[0].size());
+    EXPECT_EQ((uint) 3, vcf.records[2].regt_samples[0].size());
     bool found = vcf.records[2].regt_samples[0].find("LIKELIHOOD") != vcf.records[2].regt_samples[0].end();
     EXPECT_TRUE(found);
     EXPECT_EQ((uint) 3, vcf.records[2].regt_samples[0]["LIKELIHOOD"].size());
     EXPECT_EQ(-50.0, vcf.records[2].regt_samples[0]["LIKELIHOOD"][0]);
     EXPECT_EQ(-3.0, vcf.records[2].regt_samples[0]["LIKELIHOOD"][1]);
     EXPECT_EQ(-16.0, vcf.records[2].regt_samples[0]["LIKELIHOOD"][2]);
+    EXPECT_EQ((uint) 3, vcf.records[2].regt_samples[0]["GAPS"].size());
+    EXPECT_EQ(4, vcf.records[2].regt_samples[0]["GAPS"][0]);
+    EXPECT_EQ(0, vcf.records[2].regt_samples[0]["GAPS"][1]);
+    EXPECT_EQ(1, vcf.records[2].regt_samples[0]["GAPS"][2]);
     found = vcf.records[2].regt_samples[0].find("GT_CONF") != vcf.records[2].regt_samples[0].end();
     EXPECT_TRUE(found);
     EXPECT_EQ((uint) 1, vcf.records[2].regt_samples[0]["GT_CONF"].size());
