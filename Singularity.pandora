@@ -51,5 +51,3 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     make
     ctest -VV
     echo "export PATH=$(pwd):$PATH" >> $SINGULARITY_ENVIRONMENT
-
-
