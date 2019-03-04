@@ -78,7 +78,7 @@ int pandora_map(int argc, char *argv[]) {
             min_allele_covg_gt = 0, min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0; // default parameters
     uint16_t confidence_threshold = 1;
     int max_diff = 250;
-    float e_rate = 0.11, min_allele_fraction_covg_gt = 0;
+    float e_rate = 0.11, min_allele_fraction_covg_gt = 0, genotyping_error_rate=0.01;
     bool output_kg = false, output_vcf = false;
     bool output_comparison_paths = false, output_mapped_read_fa = false;
     bool illumina = false, clean = false;
@@ -208,6 +208,13 @@ int pandora_map(int argc, char *argv[]) {
                 min_allele_fraction_covg_gt = static_cast<float>(atof(argv[++i])); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--min_allele_fraction_covg_gt option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if ((arg == "--genotyping_error_rate")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                genotyping_error_rate = static_cast<float>(atof(argv[++i])); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--genotyping_error_rate option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "--confidence_threshold")) {
@@ -371,7 +378,7 @@ int pandora_map(int argc, char *argv[]) {
 
     if (genotype) {
         std::vector<uint32_t> exp_depth_covgs = {exp_depth_covg};
-        master_vcf.genotype(exp_depth_covgs, 0.01, confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
+        master_vcf.genotype(exp_depth_covgs, genotyping_error_rate, confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
                             min_total_covg_gt, min_diff_covg_gt, snps_only);
         if (snps_only)
             master_vcf.save(outdir + "/pandora_genotyped.vcf", true, true, true, true, false, false, false);

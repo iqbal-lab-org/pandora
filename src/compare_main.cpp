@@ -101,7 +101,7 @@ int pandora_compare(int argc, char *argv[]) {
             min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0; // default parameters
     uint16_t confidence_threshold = 1;
     int max_diff = 250;
-    float e_rate = 0.11, min_allele_fraction_covg_gt = 0;
+    float e_rate = 0.11, min_allele_fraction_covg_gt = 0, genotyping_error_rate=0.01;
     bool illumina = false, clean = false, bin = false, genotype = false;
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -216,6 +216,13 @@ int pandora_compare(int argc, char *argv[]) {
                 min_allele_fraction_covg_gt = static_cast<float>(atof(argv[++i])); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--min_allele_fraction_covg_gt option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if ((arg == "--genotyping_error_rate")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                genotyping_error_rate = static_cast<float>(atof(argv[++i])); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--genotyping_error_rate option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "--confidence_threshold")) {
@@ -399,7 +406,7 @@ int pandora_compare(int argc, char *argv[]) {
     vcf_ref_fa.save(outdir + "/pandora_multisample.vcf_ref.fa");
 
     if (genotype) {
-        master_vcf.genotype(exp_depth_covgs, 0.01, confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
+        master_vcf.genotype(exp_depth_covgs, genotyping_error_rate, confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
                             min_total_covg_gt, min_diff_covg_gt, false);
         master_vcf.save(outdir + "/pandora_multisample_genotyped.vcf", true, true, true, true, true, true, true);
     }
