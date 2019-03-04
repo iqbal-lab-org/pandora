@@ -370,7 +370,8 @@ int pandora_map(int argc, char *argv[]) {
     }
 
     if (genotype) {
-        master_vcf.genotype(covg, 0.01, confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
+        std::vector<uint32_t> exp_depth_covgs = {exp_depth_covg};
+        master_vcf.genotype(exp_depth_covgs, 0.01, confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
                             min_total_covg_gt, min_diff_covg_gt, snps_only);
         if (snps_only)
             master_vcf.save(outdir + "/pandora_genotyped.vcf", true, true, true, true, false, false, false);

@@ -242,8 +242,12 @@ float logfactorial(uint32_t n) {
     return ret;
 }
 
-void VCFRecord::likelihood(const uint32_t &expected_depth_covg, const float &error_rate, const uint32_t &min_covg) {
+void VCFRecord::likelihood(const std::vector<uint32_t> &expected_depth_covg_v, const float &error_rate,
+                           const uint32_t &min_allele_covg, const float &min_fraction_allele_covg) {
     for (uint_least16_t i = 0; i < samples.size(); ++i) {
+        assert(i < expected_depth_covg_v.size());
+        const auto &expected_depth_covg = expected_depth_covg_v[i];
+        const uint32_t min_covg = std::max(min_allele_covg, uint(min_fraction_allele_covg*expected_depth_covg));
         const auto &fwd_covgs = get_format_u(i,"MEAN_FWD_COVG");
         const auto &rev_covgs = get_format_u(i,"MEAN_REV_COVG");
         const auto &gaps = get_format_f(i,"GAPS");

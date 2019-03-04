@@ -213,13 +213,14 @@ bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const std::string
     return false;
 }
 
-void VCF::genotype(const uint32_t &expected_depth_covg, const float &error_rate, const uint16_t confidence_threshold,
+void VCF::genotype(const std::vector<uint32_t> &expected_depth_covg, const float &error_rate,
+                   const uint16_t confidence_threshold,
                    const uint32_t &min_allele_covg, const float &min_fraction_allele_covg,
                    const uint32_t &min_site_total_covg, const uint32_t &min_site_diff_covg, bool snps_only) {
     BOOST_LOG_TRIVIAL(info) << now() << "Genotype VCF";
     for (auto &vr : records) {
         if (not snps_only or (vr.ref.length() == 1 and !vr.alt.empty() and vr.alt[0].length() == 1)) {
-            vr.likelihood(expected_depth_covg, error_rate, std::max(min_allele_covg, uint(min_fraction_allele_covg*expected_depth_covg)));
+            vr.likelihood(expected_depth_covg, error_rate, min_allele_covg, min_fraction_allele_covg);
             vr.confidence(min_site_total_covg, min_site_diff_covg);
             vr.genotype(confidence_threshold);
         }

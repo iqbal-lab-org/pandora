@@ -610,7 +610,7 @@ TEST(VCFTest, genotype) {
     vcf.records[5].set_format(0,"GAPS", f);
     vcf.records[5].set_format(1,"GAPS", f);
 
-    vcf.genotype(30, 0.01, 30, 0, 1, 0, 0, true);
+    vcf.genotype({30, 30}, 0.01, 30, 0, 1, 0, 0, true);
 
     cout << vcf << endl;
 
@@ -746,7 +746,7 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[5].set_format(1,"GAPS", f);
 
     bool snps_only = false;
-    vcf.genotype(30, 0.01, 30, 0, 1, 0, 0, snps_only);
+    vcf.genotype({30, 30}, 0.01, 30, 0, 1, 0, 0, snps_only);
 
     cout << vcf << endl;
 

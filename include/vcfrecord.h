@@ -58,7 +58,7 @@ struct VCFRecord {
 
     std::vector<float> get_format_f(const uint32_t&, const std::string&);
 
-    void likelihood(const uint32_t &, const float &, const uint32_t &min_covg);
+    void likelihood(const std::vector<uint32_t> &, const float &, const uint32_t &, const float &min_fraction_allele_covg=0);
 
     void confidence(const uint32_t &min_total_covg=0, const uint32_t &min_diff_covg=0);
 

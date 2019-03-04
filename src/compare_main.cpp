@@ -283,7 +283,7 @@ int pandora_compare(int argc, char *argv[]) {
     vector<vector<uint32_t>> read_overlap_coordinates;
 
     // for each sample, run pandora to get the sample pangraph
-    uint32_t last_covg = 0;
+    std::vector<uint32_t> exp_depth_covgs;
     uint32_t sample_id = 0;
     for (const auto &sample: samples) {
         pangraph_sample->clear();
@@ -306,7 +306,6 @@ int pandora_compare(int argc, char *argv[]) {
                                                 index, prgs, w, k,
                                                 max_diff, e_rate,
                                                 min_cluster_size, genome_size, illumina, clean, max_covg);
-        last_covg = covg;
         BOOST_LOG_TRIVIAL(info) << "Finished with minihits, so clear ";
         minimizer_hits->clear();
 
@@ -324,6 +323,7 @@ int pandora_compare(int argc, char *argv[]) {
 
         BOOST_LOG_TRIVIAL(info) << "Estimate parameters for kmer graph model";
         auto exp_depth_covg = estimate_parameters(pangraph_sample, sample_outdir, k, e_rate, covg, bin, 0);
+        exp_depth_covgs.push_back(exp_depth_covg);
         if (min_kmer_covg == 0)
             min_kmer_covg = exp_depth_covg/10;
 
@@ -399,7 +399,7 @@ int pandora_compare(int argc, char *argv[]) {
     vcf_ref_fa.save(outdir + "/pandora_multisample.vcf_ref.fa");
 
     if (genotype) {
-        master_vcf.genotype(last_covg, 0.01, confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
+        master_vcf.genotype(exp_depth_covgs, 0.01, confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
                             min_total_covg_gt, min_diff_covg_gt, false);
         master_vcf.save(outdir + "/pandora_multisample_genotyped.vcf", true, true, true, true, true, true, true);
     }
