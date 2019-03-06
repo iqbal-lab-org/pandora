@@ -35,9 +35,11 @@ void denovo_discovery::find_candidates(
                                    local_assembly_kmer_size,
                                    kmer_attempts_count)
         };
-        // todo: create directory to put paths into i.e denovo/
+
         auto fname = get_discovered_paths_fname(info, local_assembly_kmer_size);
-        auto discovered_paths_fpath = output_directory / fname;
+        const auto denovo_paths_dir = output_directory / "denovo_paths";
+        fs::create_directories(denovo_paths_dir);
+        auto discovered_paths_fpath = denovo_paths_dir / fname;
 
         const uint32_t read_covg = sequences.size();
         const uint32_t ref_length = interval_sequence.length();
