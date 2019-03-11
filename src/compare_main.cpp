@@ -150,6 +150,13 @@ int pandora_compare(int argc, char *argv[]) {
                 std::cerr << "--max_diff option requires one argument." << std::endl;
                 return 1;
             }
+        } else if ((arg == "-c") || (arg == "--min_cluster_size")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                min_cluster_size = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--min_cluster_size option requires one argument." << std::endl;
+                return 1;
+            }
         } else if ((arg == "-e") || (arg == "--error_rate")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 e_rate = atof(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
@@ -176,9 +183,6 @@ int pandora_compare(int argc, char *argv[]) {
             }
         } else if ((arg == "--illumina")) {
             illumina = true;
-            if (e_rate > 0.05) {
-                e_rate = 0.001;
-            }
         } else if ((arg == "--clean")) {
             clean = true;
         } else if ((arg == "--bin")) {
@@ -244,6 +248,15 @@ int pandora_compare(int argc, char *argv[]) {
         } else {
             std::cerr << argv[i] << " could not be attributed to any parameter" << std::endl;
         }
+    }
+
+    assert(w <= k);
+    assert(not prgfile.empty());
+    if (illumina and e_rate > 0.1) {
+        e_rate = 0.001;
+    }
+    if (illumina and max_diff > 200) {
+        max_diff = 2*k + 1;
     }
 
     //then run the programme...
