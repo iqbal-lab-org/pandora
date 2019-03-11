@@ -346,6 +346,10 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
 
     // find first w,k minimizers
     walk_paths = prg.walk(prg.nodes.begin()->second->id, 0, w + k - 1);
+    if (walk_paths.empty()){
+        return; // also trivially not true
+    }
+
     for (uint32_t i = 0; i != walk_paths.size(); ++i) {
         // find minimizer for this path 
         smallest = std::numeric_limits<uint64_t>::max();

@@ -514,6 +514,7 @@ TEST(LocalPRGTest, minimizer_sketch) {
     LocalPRG l4(4, "much more complex", "TCATTC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AGCTG");
     LocalPRG l5(5, "one with lots of null at start and end, and a long stretch in between",
                 " 5  7  9  11 AGTTCTGAAACATTGCGCGTGAGATCTCTG 12 T 11  10 A 9  8 C 7  6 G 5 ");
+    LocalPRG l6(2, "too short for w and k", "A 5 GC 6 G 5 T");
 
     auto index = std::make_shared<Index>();
     KmerHash hash;
@@ -633,6 +634,10 @@ TEST(LocalPRGTest, minimizer_sketch) {
     index->clear();
     l5.minimizer_sketch(index, 4, 5);
     EXPECT_EQ((index->minhash.size() > 2), true);
+
+    index->clear();
+    l6.minimizer_sketch(index, 2, 4);
+    EXPECT_EQ((uint)0, index->minhash.size());
 
     index->clear();
 }
