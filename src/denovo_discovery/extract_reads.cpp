@@ -24,14 +24,13 @@ typedef prg::Path Path;
 std::vector<Interval>
 identify_regions(const std::vector<uint32_t> &covgs, const uint32_t &threshold, const uint32_t &min_length) {
     // threshold is to be less than or equal to in intervals [ , )
-    //cout << "identify regions " << threshold << " " << min_length << endl;
     const auto padding = 21;
     uint32_t start = 0, end = 0;
     std::vector<Interval> regions;
     bool found_start = false;
+
     for (uint32_t i = 0; i < covgs.size(); ++i) {
         if (covgs[i] <= threshold and start == 0) {
-            //cout << "covgs[" << i << "] " << covgs[i] << "<=" << threshold << " threshold" << endl;
             start = i;
             end = 0;
             found_start = true;
@@ -40,9 +39,6 @@ identify_regions(const std::vector<uint32_t> &covgs, const uint32_t &threshold, 
             if (end - start >= min_length) {
                 const auto interval_start = (start <= padding) ? 0 : start - padding;
                 regions.emplace_back(Interval(interval_start, end + padding));
-//                regions.emplace_back(Interval(start, end));
-                //cout << "end - start " << end << "-" << start << " = " << end - start << " >= " << min_length
-                // << " min_length" << endl;
             }
             start = 0;
         }
@@ -50,8 +46,6 @@ identify_regions(const std::vector<uint32_t> &covgs, const uint32_t &threshold, 
     if (found_start and end == 0 and covgs.size() - start >= min_length) {
         end = covgs.size();
         regions.emplace_back(Interval(start, end));
-        //cout << "end - start " << end << "-" << start << " = " << end - start << " >= " << min_length
-        // << " min_length" << endl;
     }
     return regions;
 }
@@ -105,7 +99,6 @@ find_interval_in_localpath(const Interval &interval,
     return sub_localpath;
 }
 
-// fixme replace lmp with a prg::Path - that would correspond to a smaller interval sequence
 std::set<MinimizerHitPtr, pComp_path>
 hits_inside_path(const std::set<MinimizerHitPtr, pComp_path> &read_hits, const prg::Path &local_path) {
     std::set<MinimizerHitPtr, pComp_path> subset;
@@ -114,14 +107,6 @@ hits_inside_path(const std::set<MinimizerHitPtr, pComp_path> &read_hits, const p
         return subset;
     }
 
-//    deque<Interval> d;
-//    for (const auto &n : lmp) {
-//        d.push_back(n->pos);
-//    }
-//
-//    prg::Path lpath;
-//    lpath.initialize(d);
-    // WIP fixme maybe try padding each interval in local_path to give more space for hits to fall within
     for (const auto &hit_ptr : read_hits) {
         for (const auto &interval : local_path.path) {
             if (interval.start > hit_ptr->prg_path.get_end()) {
@@ -129,13 +114,11 @@ hits_inside_path(const std::set<MinimizerHitPtr, pComp_path> &read_hits, const p
             } else if (interval.get_end() < hit_ptr->prg_path.get_start()) {
                 continue;
             } else if (hit_ptr->prg_path.is_subpath(local_path)) {
-                //and not n.second->path.is_branching(local_path))
                 subset.insert(hit_ptr);
                 break;
             }
         }
     }
-    // fixme another for loop to filter out hits that are far way from the others - try this on top of first solution with prg::Path
 
     return subset;
 }
@@ -157,8 +140,8 @@ get_read_overlap_coordinates(const PanNodePtr &pnode, const prg::Path &local_pat
         uint32_t start = (*hit_ptr_iter)->read_start_position;
         uint32_t end = 0;
         for (const auto &hit_ptr : read_hits_inside_path) {
-            start = min(start, hit_ptr->read_start_position);
-            end = max(end, hit_ptr->read_start_position + hit_ptr->prg_path.length());
+            start = std::min(start, hit_ptr->read_start_position);
+            end = std::max(end, hit_ptr->read_start_position + hit_ptr->prg_path.length());
         }
         assert(end > start);
 
@@ -188,13 +171,8 @@ void denovo_discovery::add_pnode_coordinate_pairs(std::vector<std::shared_ptr<Lo
         BOOST_LOG_TRIVIAL(debug) << "Looking at interval: " << interval;
         BOOST_LOG_TRIVIAL(debug) << "For gene: " << pnode->get_name();
 
-        // fixme update find_interval function to return a prg::Path
         auto local_path = find_interval_in_localpath(interval, local_node_path, padding_size);
-        BOOST_LOG_TRIVIAL(debug) << "sub local node path ";
-//        for (const auto &l : sub_local_node_path)
-//            BOOST_LOG_TRIVIAL(debug) << *l;
 
-        // WIP
         auto read_overlap_coordinates = get_read_overlap_coordinates(pnode, local_path,
                                                                      min_number_hits);
         BOOST_LOG_TRIVIAL(debug) << "there are " << read_overlap_coordinates.size() << " read_overlap_coordinates";
