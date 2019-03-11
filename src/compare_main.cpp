@@ -273,6 +273,8 @@ int pandora_compare(int argc, char *argv[]) {
     std::cout << "\tillumina\t" << illumina << std::endl;
     std::cout << "\tclean\t" << clean << std::endl;
     std::cout << "\tbin\t" << bin << std::endl << std::endl;
+    std::cout << "\tmax_covg\t" << max_covg << std::endl;
+    std::cout << "\tgenotype\t" << genotype << std::endl;
     std::cout << "\tlog_level\t" << log_level << std::endl << std::endl;
 
     auto g_log_level{boost::log::trivial::info};
