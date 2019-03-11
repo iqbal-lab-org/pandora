@@ -317,7 +317,7 @@ TEST(ExtractReadsTest, hits_inside_path) {
 
     // hit against different prg
     // hit different orientation
-    set<MinimizerHitPtr, pComp_path> found_subset = hits_inside_path(hits, lmp);
+    set<MinimizerHitPtr, pComp_path> found_subset = hits_inside_path(hits, <#initializer#>);
     EXPECT_EQ(expected_subset.size(), found_subset.size());
     auto jt = found_subset.begin();
     for (auto it = expected_subset.begin(); it != expected_subset.end() and jt != found_subset.end(); ++it) {
@@ -583,7 +583,7 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
                                                   {2, 5, 13, 1},
                                                   {3, 6, 10, 1}};
 
-    auto overlaps = get_read_overlap_coordinates(pn, lmp);
+    auto overlaps = get_read_overlap_coordinates(pn, <#initializer#>, <#initializer#>);
 
     EXPECT_ITERABLE_EQ(std::set<ReadCoordinate>, expected_overlaps, overlaps);
 }
@@ -888,7 +888,7 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
                                                   {2, 5, 13, 1},
                                                   {3, 6, 10, 1}};
 
-    auto overlaps = get_read_overlap_coordinates(pn, lmp);
+    auto overlaps = get_read_overlap_coordinates(pn, <#initializer#>, <#initializer#>);
 
     EXPECT_ITERABLE_EQ(std::set<ReadCoordinate>, expected_overlaps, overlaps);
 }

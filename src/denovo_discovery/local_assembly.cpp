@@ -84,7 +84,6 @@ Paths get_paths_between(const std::string &start_kmer, const std::string &end_km
     uint8_t i{1};
 
     do {
-        // todo: would it be quicket to set result to equal {}?
         result.clear();
         float covg_scaling_factor = i * g_covg_scaling_factor;
         if (covg_scaling_factor > 1.0) {

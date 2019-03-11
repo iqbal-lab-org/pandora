@@ -24,7 +24,7 @@ using Paths = std::vector<std::string>;
 namespace logging = boost::log;
 namespace fs = boost::filesystem;
 
-const uint32_t g_max_length{50};
+const uint32_t g_max_length{70};
 const uint32_t g_local_assembly_kmer_size{11};
 const float g_covg_scaling_factor{0.1};
 const uint32_t g_kmer_attempts_count{10};

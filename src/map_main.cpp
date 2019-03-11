@@ -374,7 +374,7 @@ int pandora_map(int argc, char *argv[]) {
         }
 
         if (discover_denovo) {
-            denovo_discovery::add_pnode_coordinate_pairs(pangraph_coordinate_pairs, c->second, lmp, kmp);
+            denovo_discovery::add_pnode_coordinate_pairs(prgs, pangraph_coordinate_pairs, c->second, lmp, kmp);
         }
         ++c;
     }
