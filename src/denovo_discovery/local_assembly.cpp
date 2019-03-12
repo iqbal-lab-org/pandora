@@ -75,67 +75,126 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
  * then comes back up to the next unexplored branching point.
  */
 Paths get_paths_between(const std::string &start_kmer, const std::string &end_kmer,
-                        std::unordered_map<string, GraphVector<Node>> &tree, const Graph &graph,
-                        const uint32_t &max_path_length, const double &expected_coverage) {
-    BOOST_LOG_TRIVIAL(debug) << "Enumerating all paths in DFS tree between " << start_kmer << " and " << end_kmer;
-    std::string initial_acc = start_kmer.substr(0, start_kmer.length() - 1);
+                        std::unordered_map<string, GraphVector < Node>>
 
-    Paths result = {};
-    uint8_t i{1};
+&tree,
+const Graph &graph,
+const uint32_t &max_path_length,
+const double &expected_coverage
+) {
+BOOST_LOG_TRIVIAL(debug)
 
-    do {
-        result.clear();
-        float covg_scaling_factor = i * g_covg_scaling_factor;
-        if (covg_scaling_factor > 1.0) {
-            BOOST_LOG_TRIVIAL(debug) << "Abandoning local assembly for slice as too many paths.";
-            break;
-        }
-        get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree, result, max_path_length,
-                               expected_coverage, covg_scaling_factor);
-        i++;
-    } while (result.size() > g_max_num_paths);
+<< "Enumerating all paths in DFS tree between " << start_kmer << " and " <<
+end_kmer;
+std::string initial_acc = start_kmer.substr(0, start_kmer.length() - 1);
 
-    BOOST_LOG_TRIVIAL(debug) << "Path enumeration complete. There were " << std::to_string(result.size())
-                             << " paths found.";
-    return result;
+Paths result = {};
+uint8_t i{1};
+
+do {
+result.
+
+clear();
+
+float covg_scaling_factor = i * g_covg_scaling_factor;
+if (covg_scaling_factor > 1.0) {
+BOOST_LOG_TRIVIAL(debug)
+
+<< "Abandoning local assembly for slice as too many paths.";
+break;
+}
+get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree, result, max_path_length,
+        expected_coverage, covg_scaling_factor
+);
+i++;
+} while (result.
+
+size()
+
+> g_max_num_paths);
+
+BOOST_LOG_TRIVIAL(debug)
+
+<< "Path enumeration complete. There were " <<
+std::to_string(result
+.
+
+size()
+
+)
+<< " paths found.";
+return
+result;
 }
 
 
 void get_paths_between_util(const std::string &start_kmer, const std::string &end_kmer, std::string path_accumulator,
-                            const Graph &graph, std::unordered_map<string, GraphVector<Node>> &tree, Paths &full_paths,
-                            const uint32_t &max_path_length, const double &expected_kmer_covg,
-                            const float &covg_scaling_factor, uint32_t kmers_below_threshold) {
-    if (path_accumulator.length() > max_path_length or full_paths.size() > g_max_num_paths) {
-        return;
-    }
-    // gather information on kmer coverages
-    auto start_node{graph.buildNode(start_kmer.c_str())};
-    const auto kmer_coverage{graph.queryAbundance(start_node)};
+                            const Graph &graph, std::unordered_map<string, GraphVector < Node>>
 
-    // do coverage check
-    // if there are k k-mers with coverage <= expected_covg * coverage scaling factor - stop recursing for this path
-    if (kmer_coverage < (expected_kmer_covg * g_covg_scaling_factor)) {
-        kmers_below_threshold++;
-        if (kmers_below_threshold >= start_kmer.length()) {
-            return;
-        }
-    }
+&tree,
+Paths &full_paths,
+const uint32_t &max_path_length,
+const double &expected_kmer_covg,
+const float &covg_scaling_factor, uint32_t
+kmers_below_threshold) {
+if (path_accumulator.
 
-    path_accumulator.push_back(start_kmer.back());
+length()
 
-    // makes sure we get all possible cycle repitions up to the maximum length
-    if (has_ending(path_accumulator, end_kmer)) {
-        full_paths.push_back(path_accumulator);
-    }
+> max_path_length or full_paths.
 
-    auto &child_nodes = tree[start_kmer];
-    auto num_children = child_nodes.size();
+size()
 
-    for (unsigned int i = 0; i < num_children; ++i) {
-        auto kmer = graph.toString(child_nodes[i]);
-        get_paths_between_util(kmer, end_kmer, path_accumulator, graph, tree, full_paths, max_path_length,
-                               expected_kmer_covg, covg_scaling_factor, kmers_below_threshold);
-    }
+> g_max_num_paths) {
+return;
+}
+// gather information on kmer coverages
+auto start_node{graph.buildNode(start_kmer.c_str())};
+const auto kmer_coverage{graph.queryAbundance(start_node)};
+
+// do coverage check
+// if there are k k-mers with coverage <= expected_covg * coverage scaling factor - stop recursing for this path
+if (kmer_coverage < (
+expected_kmer_covg *g_covg_scaling_factor
+)) {
+kmers_below_threshold++;
+if (kmers_below_threshold >= start_kmer.
+
+length()
+
+) {
+return;
+}
+}
+
+path_accumulator.
+push_back(start_kmer
+.
+
+back()
+
+);
+
+// makes sure we get all possible cycle repitions up to the maximum length
+if (
+has_ending(path_accumulator, end_kmer
+)) {
+full_paths.
+push_back(path_accumulator);
+}
+
+auto &child_nodes = tree[start_kmer];
+auto num_children = child_nodes.size();
+
+for (
+unsigned int i = 0;
+i<num_children;
+++i) {
+auto kmer = graph.toString(child_nodes[i]);
+get_paths_between_util(kmer, end_kmer, path_accumulator, graph, tree, full_paths, max_path_length,
+        expected_kmer_covg, covg_scaling_factor, kmers_below_threshold
+);
+}
 }
 
 
@@ -145,22 +204,23 @@ void write_paths_to_fasta(const boost::filesystem::path &filepath,
     const std::string header = ">" + filepath.stem().string();
     fs::ofstream out_file(filepath.string());
 
-    uint32_t path_counter = 1;
+    uint32_t
+    path_counter = 1;
     for (const auto &path: paths) {
         out_file << header << "_path" << std::to_string(path_counter) << "\n";
 
         for (uint32_t i = 0; i < path.length(); i += line_width) {
             out_file << path.substr(i, line_width) << "\n";
         }
-        path_counter ++;
+        path_counter++;
     }
 
     out_file.close();
     BOOST_LOG_TRIVIAL(debug) << "Local assembly paths written to " << filepath;
 }
 
-void local_assembly(const std::vector<std::string> &sequences, const std::vector<std::string> &start_kmers,
-                    const std::vector<std::string> &end_kmers, const fs::path &out_path, const uint32_t &kmer_size,
+void local_assembly(const std::vector<std::string> &sequences, const std::string &slice_sequence, const std::string &flank_left,
+                    const std::string &flank_right, const fs::path &out_path, const uint32_t &kmer_size,
                     const double &expected_coverage, const uint32_t &max_path_length, const bool &clean_graph,
                     const uint32_t &min_coverage) {
     if (sequences.empty()) {
@@ -197,14 +257,21 @@ void local_assembly(const std::vector<std::string> &sequences, const std::vector
     Node start_node, end_node;
     bool start_found{false};
     bool end_found{false};
+    auto start_kmers{generate_start_kmers(slice_sequence, kmer_size, g_kmer_attempts_count)};
+    auto end_kmers{generate_end_kmers(slice_sequence, kmer_size, g_kmer_attempts_count)};
 
-    for (const auto &s_kmer: start_kmers) {
+
+    for (auto start_idx = 0; start_idx < start_kmers.size(); start_idx++) {
+        const auto &s_kmer = start_kmers[start_idx];
+        BOOST_LOG_TRIVIAL(debug) << "Looking at start kmer: " << s_kmer;
         std::tie(start_node, start_found) = get_node(s_kmer, graph);
 
         if (not start_found) {
             continue;
         }
-        for (const auto &e_kmer: end_kmers) {
+        for (auto end_idx = 0; end_idx < end_kmers.size(); end_idx++) {
+            const auto &e_kmer = end_kmers[end_idx];
+            BOOST_LOG_TRIVIAL(debug) << "Looking at end kmer: " << e_kmer;
             // make sure end kmer doesnt exist in the set of start kmers
             if (std::find(start_kmers.begin(), start_kmers.end(), e_kmer) != start_kmers.end()) {
                 continue;
@@ -215,8 +282,14 @@ void local_assembly(const std::vector<std::string> &sequences, const std::vector
             if (end_found) {
                 auto tree = DFS(start_node, graph);
                 auto result = get_paths_between(s_kmer, e_kmer, tree, graph, max_path_length, expected_coverage);
-
                 if (not result.empty()) {
+                    // add flank to each sequence
+                    for (auto i = 0; i < result.size(); i++) {
+                        const auto start_kmer_offset = slice_sequence.substr(0, start_idx);
+                        const auto end_kmer_offset = slice_sequence.substr(slice_sequence.length() - end_idx);
+                        std::string full_path = flank_left + start_kmer_offset + result[i] + end_kmer_offset + flank_right;
+                        result[i] = full_path;
+                    }
                     write_paths_to_fasta(out_path, result);
                 }
 
@@ -238,7 +311,7 @@ void remove_graph_file() {
 
 
 void do_graph_clean(Graph &graph, const uint16_t &num_cores) {
-    Simplifications<Graph, Node, Edge> graph_simplifications(graph, num_cores);
+    Simplifications <Graph, Node, Edge> graph_simplifications(graph, num_cores);
     graph_simplifications._doTipRemoval = true;
     graph_simplifications._doBulgeRemoval = false;
     graph_simplifications._doECRemoval = false;

@@ -30,10 +30,16 @@ struct ReadCoordinate {
     friend std::ostream &operator<<(std::ostream &, ReadCoordinate const &);
 };
 
+struct PathComponents {
+    prg::Path flank_left;
+    prg::Path slice;
+    prg::Path flank_right;
+};
+
 std::vector<Interval>
 identify_regions(const std::vector<uint32_t> &, const uint32_t &threshold = 0, const uint32_t &min_length = 0);
 
-prg::Path
+PathComponents
 find_interval_in_localpath(const Interval &, const vector<LocalNodePtr> &, const uint32_t &);
 
 std::set<MinimizerHitPtr, pComp_path>

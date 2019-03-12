@@ -340,7 +340,7 @@ int pandora_map(int argc, char *argv[]) {
     VCF master_vcf;
 
     VCFRefs vcf_refs;
-    string vcf_ref;
+    std::string vcf_ref;
     vector<KmerNodePtr> kmp;
     vector<LocalNodePtr> lmp;
     std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pangraph_coordinate_pairs;
@@ -403,7 +403,7 @@ int pandora_map(int argc, char *argv[]) {
         denovo_discovery::find_candidates(pangraph_coordinate_pairs,
                                           readfile,
                                           fs::path(outdir),
-                                          e_rate, g_local_assembly_kmer_size, g_kmer_attempts_count);
+                                          e_rate, g_local_assembly_kmer_size);
     }
 
     if (output_mapped_read_fa)

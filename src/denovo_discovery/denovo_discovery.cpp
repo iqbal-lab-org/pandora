@@ -5,7 +5,7 @@ fs::path get_discovered_paths_fname(const GeneIntervalInfo &info,
                                     const uint32_t &local_assembly_kmer_size) {
     return fs::path(
             info.pnode->get_name() + "."
-            + std::to_string(info.interval.start) + "-" + to_string(info.interval.get_end())
+            + std::to_string(info.interval.start) + "-" + std::to_string(info.interval.get_end())
             + "_local_assembly_K" + std::to_string(local_assembly_kmer_size)
             + ".fa");
 }
@@ -13,7 +13,7 @@ fs::path get_discovered_paths_fname(const GeneIntervalInfo &info,
 void denovo_discovery::find_candidates(
         const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
         const std::string &readfilepath, const fs::path &output_directory, const double &error_rate,
-        const uint32_t &local_assembly_kmer_size, const uint32_t &kmer_attempts_count) {
+        const uint32_t &local_assembly_kmer_size) {
 
     if (not fs::exists(output_directory)) {
         fs::create_directories(output_directory);
@@ -24,17 +24,6 @@ void denovo_discovery::find_candidates(
         auto &sequences = pileup.second;
         auto &info = pileup.first;
         auto &interval_sequence = info.seq;
-
-        auto start_kmers{
-                generate_start_kmers(interval_sequence,
-                                     local_assembly_kmer_size,
-                                     kmer_attempts_count)
-        };
-        auto end_kmers{
-                generate_end_kmers(interval_sequence,
-                                   local_assembly_kmer_size,
-                                   kmer_attempts_count)
-        };
 
         auto fname = get_discovered_paths_fname(info, local_assembly_kmer_size);
         const auto denovo_paths_dir = output_directory / "denovo_paths";
@@ -50,7 +39,7 @@ void denovo_discovery::find_candidates(
         BOOST_LOG_TRIVIAL(debug) << "Running local assembly for: " << info.pnode->get_name() << " - interval ["
                                  << info.interval.start << ", " << info.interval.get_end() << "]";
 
-        local_assembly(sequences, start_kmers, end_kmers, discovered_paths_fpath, local_assembly_kmer_size,
+        local_assembly(sequences, interval_sequence, info.flank_seq_left, info.flank_seq_right, discovered_paths_fpath, local_assembly_kmer_size,
                        expected_kmer_covg);
     }
 }

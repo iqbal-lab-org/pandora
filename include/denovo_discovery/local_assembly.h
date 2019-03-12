@@ -18,7 +18,7 @@
 #include <boost/filesystem.hpp>
 
 
-using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
+using DfsTree = std::unordered_map<std::string, GraphVector < Node>>;
 using Paths = std::vector<std::string>;
 
 namespace logging = boost::log;
@@ -40,21 +40,32 @@ DfsTree DFS(const Node &start_node, const Graph &graph);
 
 
 Paths get_paths_between(const std::string &start_kmer, const std::string &end_kmer,
-                        std::unordered_map<string, GraphVector<Node>> &tree, const Graph &graph,
-                        const uint32_t &max_path_length, const double &expected_coverage = 1);
+                        std::unordered_map<string, GraphVector < Node>>
+
+&tree,
+const Graph &graph,
+const uint32_t &max_path_length,
+const double &expected_coverage = 1
+);
 
 void get_paths_between_util(const std::string &node, const std::string &end_kmer, std::string path_accumulator,
-                            const Graph &graph, std::unordered_map<string, GraphVector<Node>> &tree, Paths &full_paths,
-                            const uint32_t &max_path_length, const double &expected_kmer_covg,
-                            const float &covg_scaling_factor = g_max_num_paths, uint32_t kmers_below_threshold = 0);
+                            const Graph &graph, std::unordered_map<string, GraphVector < Node>>
+
+&tree,
+Paths &full_paths,
+const uint32_t &max_path_length,
+const double &expected_kmer_covg,
+const float &covg_scaling_factor = g_max_num_paths, uint32_t
+kmers_below_threshold = 0
+);
 
 
 void write_paths_to_fasta(const boost::filesystem::path &filepath,
                           const Paths &paths,
                           const uint32_t &line_width = 80);
 
-void local_assembly(const std::vector<std::string> &sequences, const std::vector<std::string> &start_kmers,
-                    const std::vector<std::string> &end_kmers, const fs::path &out_path, const uint32_t &kmer_size,
+void local_assembly(const std::vector<std::string> &sequences, const std::string &slice_sequence, const std::string &flank_left,
+                    const std::string &flank_right, const fs::path &out_path, const uint32_t &kmer_size,
                     const double &expected_coverage = 1, const uint32_t &max_path_length = g_max_length,
                     const bool &clean_graph = false, const uint32_t &min_coverage = 2);
 

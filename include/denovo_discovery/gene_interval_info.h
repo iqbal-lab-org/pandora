@@ -13,6 +13,8 @@ struct GeneIntervalInfo {
     PanNodePtr pnode;
     Interval interval;
     std::string seq;
+    std::string flank_seq_left;
+    std::string flank_seq_right;
 
     bool operator<(const GeneIntervalInfo &y) const;
 

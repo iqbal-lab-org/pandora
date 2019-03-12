@@ -25,7 +25,8 @@ std::vector<Interval>
 identify_regions(const std::vector<uint32_t> &covgs, const uint32_t &threshold, const uint32_t &min_length) {
     // threshold is to be less than or equal to in intervals [ , )
     const auto padding = 21;
-    uint32_t start = 0, end = 0;
+    uint32_t
+    start = 0, end = 0;
     std::vector<Interval> regions;
     bool found_start = false;
 
@@ -50,14 +51,18 @@ identify_regions(const std::vector<uint32_t> &covgs, const uint32_t &threshold, 
     return regions;
 }
 
-prg::Path
+
+PathComponents
 find_interval_in_localpath(const Interval &interval,
                            const std::vector<LocalNodePtr> &lmp,
                            const uint32_t &buff) {
-    uint32_t start = 0, end = 0;
+    uint32_t
+    start = 0, end = 0;
     bool found_start = false;
-    uint32_t total = 0;
-    std::vector<Interval> sub_localpath_intervals;
+    bool found_end = false;
+    uint32_t
+    total = 0;
+    std::vector<Interval> slice_intervals, flank_left, flank_right;
 
     for (uint_least16_t i = 0; i < lmp.size(); ++i) {
         const auto len = lmp[i]->pos.length;
@@ -67,36 +72,59 @@ find_interval_in_localpath(const Interval &interval,
         const auto interval_end = interval.get_end();
 
         if (interval.start > total) {  // still haven't reached our interval start
+            flank_left.emplace_back(lmp[i]->pos);
             continue;
         }
         if (not found_start and interval.start <= total) {  // we have found the local node in which interval starts
             start = lmp_end - (total - interval.start);
             found_start = true;
-            if (interval_end > total) {
-                sub_localpath_intervals.emplace_back(Interval(start, lmp_end - start));
+
+            flank_left.emplace_back(Interval(lmp[i]->pos.start, start));
+
+            if (interval_end > total) {  // interval does not end in this node, add from start to end of node
+                slice_intervals.emplace_back(Interval(start, lmp_end));
                 continue;
             }
         }
-        if (interval_end <= total) {  // we have found the local node in which our interval ends
+        if (not found_end and interval_end <= total) {  // we have found the local node in which our interval ends
             end = lmp_end - (total - interval_end);
-            sub_localpath_intervals.emplace_back(Interval(start, end));
-            break;
+            if (interval_end != total) {
+                flank_right.emplace_back(Interval(end, lmp_end));
+            }
+            slice_intervals.emplace_back(Interval(start, end));
+            found_end = true;
+            continue;
         }
 
-        if (interval.start < total and interval_end > total) {  // we have found a local node which falls in the middle of our interval range
-            sub_localpath_intervals.emplace_back(Interval(start, len));
+        if (interval.start < total and
+            interval_end > total) {  // we have found a local node which falls in the middle of our interval range
+            slice_intervals.emplace_back(Interval(start, start + len));
+        }
+
+        if (found_end and interval_end < total) {
+            flank_right.emplace_back(lmp[i]->pos);
         }
     }
 
     prg::Path sub_localpath;
-    sub_localpath.initialize(sub_localpath_intervals);
+    sub_localpath.initialize(slice_intervals);
+    prg::Path path_left;
+    path_left.initialize(flank_left);
+    prg::Path path_right;
+    path_right.initialize(flank_right);
 
-    BOOST_LOG_TRIVIAL(debug) << "For interval " << interval.start << ", " << interval.get_end() << " got sub_localpath: ";
+    BOOST_LOG_TRIVIAL(debug) << "For interval " << interval.start << ", " << interval.get_end()
+                             << " got sub_localpath: ";
     for (auto &x : sub_localpath.path) {
         BOOST_LOG_TRIVIAL(debug) << x.start << ", " << x.get_end();
     }
 
-    return sub_localpath;
+    PathComponents path_components;
+    path_components.flank_left = path_left;
+    path_components.flank_right = path_right;
+    path_components.slice = sub_localpath;
+
+    return path_components;
 }
 
 std::set<MinimizerHitPtr, pComp_path>
@@ -133,12 +161,15 @@ get_read_overlap_coordinates(const PanNodePtr &pnode, const prg::Path &local_pat
     for (const auto &read_ptr: pnode->reads) {
         auto read_hits_inside_path = hits_inside_path(read_ptr->hits.at(pnode->prg_id), local_path);
         BOOST_LOG_TRIVIAL(debug) << "read_hits_inside_path size " << read_hits_inside_path.size();
-        if (read_hits_inside_path.size() < min_number_hits)
+        if (read_hits_inside_path.size() < min_number_hits) {
             continue;
+        }
 
         auto hit_ptr_iter = read_hits_inside_path.begin();
-        uint32_t start = (*hit_ptr_iter)->read_start_position;
-        uint32_t end = 0;
+        uint32_t
+        start = (*hit_ptr_iter)->read_start_position;
+        uint32_t
+        end = 0;
         for (const auto &hit_ptr : read_hits_inside_path) {
             start = std::min(start, hit_ptr->read_start_position);
             end = std::max(end, hit_ptr->read_start_position + hit_ptr->prg_path.length());
@@ -152,61 +183,74 @@ get_read_overlap_coordinates(const PanNodePtr &pnode, const prg::Path &local_pat
 }
 
 void denovo_discovery::add_pnode_coordinate_pairs(std::vector<std::shared_ptr<LocalPRG>> &prgs,
-        std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
-        const PanNodePtr &pnode,
-        const std::vector<LocalNodePtr> &local_node_path,
-        const std::vector<KmerNodePtr> &kmer_node_path,
-        const uint32_t &padding_size,
-        const uint32_t &low_coverage_threshold,
-        const uint32_t &interval_min_length,
-        const uint32_t &min_number_hits) {
-    uint32_t sample_id = 0;
+                                                  std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
+                                                  const PanNodePtr &pnode,
+                                                  const std::vector<LocalNodePtr> &local_node_path,
+                                                  const std::vector<KmerNodePtr> &kmer_node_path,
+                                                  const uint32_t &padding_size,
+                                                  const uint32_t &low_coverage_threshold,
+                                                  const uint32_t &interval_min_length,
+                                                  const uint32_t &min_number_hits) {
+    uint32_t
+    sample_id = 0;
     auto covgs = get_covgs_along_localnode_path(pnode, local_node_path, kmer_node_path, sample_id);
     auto intervals = identify_regions(covgs, low_coverage_threshold, interval_min_length);
-    if (intervals.empty())
+    if (intervals.empty()) {
         return;
+    }
 
     BOOST_LOG_TRIVIAL(debug) << "there are " << intervals.size() << " intervals";
     for (const auto &interval: intervals) {
         BOOST_LOG_TRIVIAL(debug) << "Looking at interval: " << interval;
         BOOST_LOG_TRIVIAL(debug) << "For gene: " << pnode->get_name();
 
-        auto local_path = find_interval_in_localpath(interval, local_node_path, padding_size);
+        const auto path_components = find_interval_in_localpath(interval, local_node_path, padding_size);
 
-        auto read_overlap_coordinates = get_read_overlap_coordinates(pnode, local_path,
+        auto read_overlap_coordinates = get_read_overlap_coordinates(pnode, path_components.slice,
                                                                      min_number_hits);
         BOOST_LOG_TRIVIAL(debug) << "there are " << read_overlap_coordinates.size() << " read_overlap_coordinates";
 
         GeneIntervalInfo interval_info{
                 pnode,
                 interval,
-                prgs[pnode->prg_id]->string_along_path(local_path)
+                prgs[pnode->prg_id]->string_along_path(path_components.slice),
+                prgs[pnode->prg_id]->string_along_path(path_components.flank_left),
+                prgs[pnode->prg_id]->string_along_path(path_components.flank_right),
         };
-        for (const auto &read_coordinate: read_overlap_coordinates)
+        for (const auto &read_coordinate: read_overlap_coordinates) {
             pangraph_coordinate_pairs.insert(std::make_pair(read_coordinate, interval_info));
+        }
     }
 }
 
 bool ReadCoordinate::operator<(const ReadCoordinate &y) const {
-    if (this->id < y.id)
+    if (this->id < y.id) {
         return true;
-    if (this->id > y.id)
+    }
+    if (this->id > y.id) {
         return false;
+    }
 
-    if (this->start < y.start)
+    if (this->start < y.start) {
         return true;
-    if (this->start > y.start)
+    }
+    if (this->start > y.start) {
         return false;
+    }
 
-    if (this->end < y.end)
+    if (this->end < y.end) {
         return true;
-    if (this->end > y.end)
+    }
+    if (this->end > y.end) {
         return false;
+    }
 
-    if (this->strand and not y.strand)
+    if (this->strand and not y.strand) {
         return true;
-    if (y.strand and not this->strand)
+    }
+    if (y.strand and not this->strand) {
         return false;
+    }
 
     return false;
 }
@@ -238,20 +282,24 @@ denovo_discovery::collect_read_pileups(
 
     std::map<GeneIntervalInfo, ReadPileup> pileup = {};
 
-    uint32_t last_id = 0;
+    uint32_t
+    last_id = 0;
     for (const auto &pangraph_coordinate: pangraph_coordinate_pairs) {
         const auto &read_coordinate = pangraph_coordinate.first;
         const auto &interval_info = pangraph_coordinate.second;
 
         assert (last_id <= read_coordinate.id);
         readfile.get_id(read_coordinate.id);
-        uint32_t start = padding_size > read_coordinate.start ? 0 : read_coordinate.start - padding_size;
-        uint32_t end = std::min(read_coordinate.end + padding_size,
-                                (uint32_t) readfile.read.length());
+        uint32_t
+        start = padding_size > read_coordinate.start ? 0 : read_coordinate.start - padding_size;
+        uint32_t
+        end = std::min(read_coordinate.end + padding_size,
+                       (uint32_t) readfile.read.length());
 
         auto sequence = readfile.read.substr(start, end - start);
-        if (!read_coordinate.strand)
+        if (!read_coordinate.strand) {
             sequence = rev_complement(sequence);
+        }
         pileup[interval_info].emplace_back(sequence);
         last_id = read_coordinate.id;
     }
