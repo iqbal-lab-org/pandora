@@ -40,7 +40,7 @@ void denovo_discovery::find_candidates(
                                  << info.interval.start << ", " << info.interval.get_end() << "]";
 
         local_assembly(sequences, interval_sequence, info.flank_seq_left, info.flank_seq_right, discovered_paths_fpath, local_assembly_kmer_size,
-                       expected_kmer_covg);
+                       expected_kmer_covg, interval_sequence.length() * 2);
     }
 }
 
