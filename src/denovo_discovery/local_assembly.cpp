@@ -257,8 +257,8 @@ void local_assembly(const std::vector<std::string> &sequences, const std::string
     Node start_node, end_node;
     bool start_found{false};
     bool end_found{false};
-    auto start_kmers{generate_start_kmers(slice_sequence, kmer_size, g_kmer_attempts_count)};
-    auto end_kmers{generate_end_kmers(slice_sequence, kmer_size, g_kmer_attempts_count)};
+    auto start_kmers{generate_start_kmers(slice_sequence, kmer_size)};
+    auto end_kmers{generate_end_kmers(slice_sequence, kmer_size)};
 
 
     for (auto start_idx = 0; start_idx < start_kmers.size(); start_idx++) {
@@ -336,39 +336,39 @@ std::string reverse_complement(const std::string &forward) {
 }
 
 
-std::vector<std::string> generate_start_kmers(const std::string &sequence, const uint32_t &k, uint32_t n) {
+std::vector<std::string> generate_start_kmers(const std::string &sequence, const uint32_t &k, uint32_t num_to_generate) {
     const auto L{sequence.length()};
     if (k > L) {
         BOOST_LOG_TRIVIAL(error) << "Cannot generate kmers when K " << std::to_string(k)
                                  << " is greater than the length of the sequence " << std::to_string(L);
         std::vector<std::string> empty;
         return empty;
-    } else if (k + (n - 1) > L) {  // more combinations are requested than is possible
-        n = L - k + 1;  // make n the largest value it can take on
+    } else if (k + (num_to_generate - 1) > L) {  // more combinations are requested than is possible
+        num_to_generate = L - k + 1;  // make n the largest value it can take on
     }
 
     std::vector<std::string> kmers;
 
-    for (uint32_t i = 0; i < n; i++) {
+    for (uint32_t i = 0; i < num_to_generate; i++) {
         const auto kmer{sequence.substr(i, k)};
         kmers.push_back(kmer);
     }
     return kmers;
 }
 
-std::vector<std::string> generate_end_kmers(const std::string &sequence, const uint32_t &k, uint32_t n) {
+std::vector<std::string> generate_end_kmers(const std::string &sequence, const uint32_t &k, uint32_t num_to_generate) {
     const auto L{sequence.length()};
     if (k > L) {
         BOOST_LOG_TRIVIAL(error) << "Cannot generate kmers when K " << std::to_string(k)
                                  << " is greater than the length of the sequence " << std::to_string(L);
         std::vector<std::string> empty;
         return empty;
-    } else if (k + (n - 1) > L) {  // more combinations are requested than is possible
-        n = L - k + 1;  // make n the largest value it can take on
+    } else if (k + (num_to_generate - 1) > L) {  // more combinations are requested than is possible
+        num_to_generate = L - k + 1;  // make n the largest value it can take on
     }
     std::vector<std::string> kmers;
 
-    for (uint32_t i = 0; i < n; i++) {
+    for (uint32_t i = 0; i < num_to_generate; i++) {
         const auto kmer{sequence.substr(L - k - i, k)};
         kmers.push_back(kmer);
     }

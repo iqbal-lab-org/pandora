@@ -25,7 +25,6 @@ namespace fs = boost::filesystem;
 const uint32_t g_max_length{70};
 const uint32_t g_local_assembly_kmer_size{11};
 const float g_covg_scaling_factor{0.1};
-const uint32_t g_kmer_attempts_count{10};
 const uint32_t g_max_num_paths{100};
 
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph);
@@ -73,8 +72,12 @@ std::string reverse_complement(const std::string &forward);
 
 void remove_graph_file();
 
-std::vector<std::string> generate_start_kmers(const std::string &sequence, const uint32_t &k, uint32_t n);
+std::vector<std::string> generate_start_kmers(const std::string &sequence,
+                                              const uint32_t &k,
+                                              uint32_t num_to_generate = g_local_assembly_kmer_size);
 
-std::vector<std::string> generate_end_kmers(const std::string &sequence, const uint32_t &k, uint32_t n);
+std::vector<std::string> generate_end_kmers(const std::string &sequence,
+                                            const uint32_t &k,
+                                            uint32_t num_to_generate = g_local_assembly_kmer_size);
 
 #endif //PANDORA_LOCAL_ASSEMBLY_H
