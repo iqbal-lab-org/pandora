@@ -60,6 +60,7 @@ static void show_map_usage() {
               << "\t--genotype\t\t\tAdd extra step to carefully genotype sites\n"
               << "\t--snps_only\t\t\tWhen genotyping, include only snp sites\n"
               << "\t--discover\t\t\tAdd denovo discovery\n"
+              << "\t--denovo_kmer_size\t\t\tKmer size to use for denovo discovery\n"
               << "\t--log_level\t\t\tdebug,[info],warning,error\n"
               << std::endl;
 }
@@ -77,6 +78,7 @@ int pandora_map(int argc, char *argv[]) {
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300,
             min_allele_covg_gt = 0, min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0; // default parameters
     uint16_t confidence_threshold = 1;
+    uint_least16_t denovo_kmer_size{11};
     int max_diff = 250;
     float e_rate = 0.11, min_allele_fraction_covg_gt = 0, genotyping_error_rate=0.01;
     bool output_kg = false, output_vcf = false;
@@ -231,6 +233,13 @@ int pandora_map(int argc, char *argv[]) {
                 std::cerr << "--confidence_threshold option requires one argument." << std::endl;
                 return 1;
             }
+        } else if ((arg == "--denovo_kmer_size")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                denovo_kmer_size = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--denovo_kmer_size option requires one argument." << std::endl;
+                return 1;
+            }
         } else if ((arg == "--genotype")) {
             genotype = true;
         } else if ((arg == "--snps_only")) {
@@ -285,6 +294,7 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\tgenotype\t" << genotype << endl;
     cout << "\tsnps_only\t" << snps_only << endl;
     cout << "\tdiscover\t" << discover_denovo << endl;
+    cout << "\tdenovo_kmer_size\t" << denovo_kmer_size << endl;
     cout << "\tlog_level\t" << log_level << endl << endl;
 
     auto g_log_level{boost::log::trivial::info};
@@ -374,7 +384,8 @@ int pandora_map(int argc, char *argv[]) {
         }
 
         if (discover_denovo) {
-            denovo_discovery::add_pnode_coordinate_pairs(prgs, pangraph_coordinate_pairs, c->second, lmp, kmp);
+            const auto padding_size{denovo_kmer_size * (uint_least16_t)2};
+            denovo_discovery::add_pnode_coordinate_pairs(prgs, pangraph_coordinate_pairs, c->second, lmp, kmp, padding_size);
         }
         ++c;
     }
@@ -403,7 +414,8 @@ int pandora_map(int argc, char *argv[]) {
         denovo_discovery::find_candidates(pangraph_coordinate_pairs,
                                           readfile,
                                           fs::path(outdir),
-                                          e_rate);
+                                          e_rate,
+                                          denovo_kmer_size);
     }
 
     if (output_mapped_read_fa)

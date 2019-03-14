@@ -1,7 +1,6 @@
 #include <boost/filesystem/path.hpp>
 #include "denovo_discovery/local_assembly.h"
 
-
 bool has_ending(std::string const &fullString, std::string const &ending) {
     if (fullString.length() < ending.length()) {
         return false;
@@ -9,15 +8,13 @@ bool has_ending(std::string const &fullString, std::string const &ending) {
     return 0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending);
 }
 
-
 std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph) {
-
     const auto query_node{graph.buildNode(kmer.c_str())};
 
     Node node;
     bool node_found{false};
+    auto it{graph.iterator()};
 
-    auto it = graph.iterator();
     for (it.first(); !it.isDone(); it.next()) {
         const auto &current_node{it.item()};
 
@@ -36,7 +33,6 @@ std::pair<Node, bool> get_node(const std::string &kmer, const Graph &graph) {
     return std::make_pair(node, node_found);
 }
 
-
 // Non-recursive implementation of DFS from "Algorithm Design" - Kleinberg and Tardos (First Edition)
 DfsTree DFS(const Node &start_node, const Graph &graph) {
     BOOST_LOG_TRIVIAL(debug) << "Starting DFS...";
@@ -46,21 +42,21 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
     DfsTree tree;
 
     while (not nodes_to_explore.empty()) {
-        auto &current_node = nodes_to_explore.top();
+        auto &current_node{nodes_to_explore.top()};
         nodes_to_explore.pop();
 
-        bool previously_explored = explored_nodes.find(graph.toString(current_node)) != explored_nodes.end();
+        bool previously_explored{explored_nodes.find(graph.toString(current_node)) != explored_nodes.end()};
         if (previously_explored) {
             continue;
         }
 
         explored_nodes.insert(graph.toString(current_node));
 
-        auto neighbours = graph.successors(current_node);
+        auto neighbours{graph.successors(current_node)};
         tree[graph.toString(current_node)] = neighbours;
 
         for (unsigned int i = 0; i < neighbours.size(); ++i) {
-            auto child = neighbours[i];
+            auto child{neighbours[i]};
             nodes_to_explore.push(child);
         }
     }
@@ -74,138 +70,93 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
  * The associated util function is a recursive function that generates a path down to a "leaf" of the tree and
  * then comes back up to the next unexplored branching point.
  */
-Paths get_paths_between(const std::string &start_kmer, const std::string &end_kmer,
-                        std::unordered_map<string, GraphVector < Node>>
+Paths get_paths_between(const std::string &start_kmer,
+                        const std::string &end_kmer,
+                        std::unordered_map<string, GraphVector<Node>> &tree,
+                        const Graph &graph,
+                        const uint32_t &max_path_length,
+                        const double &expected_coverage) {
+    BOOST_LOG_TRIVIAL(debug) << "Enumerating all paths in DFS tree between " << start_kmer << " and " << end_kmer;
+    std::string initial_acc{start_kmer.substr(0, start_kmer.length() - 1)};
 
-&tree,
-const Graph &graph,
-const uint32_t &max_path_length,
-const double &expected_coverage
-) {
-BOOST_LOG_TRIVIAL(debug)
+    Paths result;
+    uint8_t i{1};
 
-<< "Enumerating all paths in DFS tree between " << start_kmer << " and " <<
-end_kmer;
-std::string initial_acc = start_kmer.substr(0, start_kmer.length() - 1);
+    do {
+        result.clear();
 
-Paths result = {};
-uint8_t i{1};
+        float covg_scaling_factor{i * g_covg_scaling_factor};
+        if (covg_scaling_factor > 1.0) {
+            BOOST_LOG_TRIVIAL(debug) << "Abandoning local assembly for slice as too many paths.";
+            break;
+        }
+        get_paths_between_util(start_kmer,
+                               end_kmer,
+                               initial_acc,
+                               graph,
+                               tree,
+                               result,
+                               max_path_length,
+                               expected_coverage,
+                               covg_scaling_factor);
+        i++;
+    } while (result.size() > g_max_num_paths);
 
-do {
-result.
-
-clear();
-
-float covg_scaling_factor = i * g_covg_scaling_factor;
-if (covg_scaling_factor > 1.0) {
-BOOST_LOG_TRIVIAL(debug)
-
-<< "Abandoning local assembly for slice as too many paths.";
-break;
-}
-get_paths_between_util(start_kmer, end_kmer, initial_acc, graph, tree, result, max_path_length,
-        expected_coverage, covg_scaling_factor
-);
-i++;
-} while (result.
-
-size()
-
-> g_max_num_paths);
-
-BOOST_LOG_TRIVIAL(debug)
-
-<< "Path enumeration complete. There were " <<
-std::to_string(result
-.
-
-size()
-
-)
-<< " paths found.";
-return
-result;
+    BOOST_LOG_TRIVIAL(debug) << "Path enumeration complete. There were " << std::to_string(result.size())
+                             << " paths found.";
+    return result;
 }
 
+void get_paths_between_util(const std::string &start_kmer,
+                            const std::string &end_kmer,
+                            std::string path_accumulator,
+                            const Graph &graph,
+                            std::unordered_map<string, GraphVector<Node>> &tree,
+                            Paths &full_paths,
+                            const uint32_t &max_path_length,
+                            const double &expected_kmer_covg,
+                            const float &covg_scaling_factor,
+                            uint32_t kmers_below_threshold) {
+    if (path_accumulator.length() > max_path_length or full_paths.size() > g_max_num_paths) {
+        return;
+    }
+    // gather information on kmer coverages
+    auto start_node{graph.buildNode(start_kmer.c_str())};
+    const auto kmer_coverage{graph.queryAbundance(start_node)};
 
-void get_paths_between_util(const std::string &start_kmer, const std::string &end_kmer, std::string path_accumulator,
-                            const Graph &graph, std::unordered_map<string, GraphVector < Node>>
+    // do coverage check
+    // if there are k k-mers with coverage <= expected_covg * coverage scaling factor - stop recursing for this path
+    if (kmer_coverage < (expected_kmer_covg * g_covg_scaling_factor)) {
+        kmers_below_threshold++;
+        if (kmers_below_threshold >= start_kmer.length()) {
+            return;
+        }
+    }
 
-&tree,
-Paths &full_paths,
-const uint32_t &max_path_length,
-const double &expected_kmer_covg,
-const float &covg_scaling_factor, uint32_t
-kmers_below_threshold) {
-if (path_accumulator.
+    path_accumulator.push_back(start_kmer.back());
 
-length()
+    // makes sure we get all possible cycle repitions up to the maximum length
+    if (has_ending(path_accumulator, end_kmer)) {
+        full_paths.push_back(path_accumulator);
+    }
 
-> max_path_length or full_paths.
+    auto &child_nodes{tree[start_kmer]};
+    auto num_children{child_nodes.size()};
 
-size()
-
-> g_max_num_paths) {
-return;
+    for (unsigned int i = 0; i < num_children; ++i) {
+        auto kmer{graph.toString(child_nodes[i])};
+        get_paths_between_util(kmer, end_kmer, path_accumulator, graph, tree, full_paths, max_path_length,
+                               expected_kmer_covg, covg_scaling_factor, kmers_below_threshold);
+    }
 }
-// gather information on kmer coverages
-auto start_node{graph.buildNode(start_kmer.c_str())};
-const auto kmer_coverage{graph.queryAbundance(start_node)};
-
-// do coverage check
-// if there are k k-mers with coverage <= expected_covg * coverage scaling factor - stop recursing for this path
-if (kmer_coverage < (
-expected_kmer_covg *g_covg_scaling_factor
-)) {
-kmers_below_threshold++;
-if (kmers_below_threshold >= start_kmer.
-
-length()
-
-) {
-return;
-}
-}
-
-path_accumulator.
-push_back(start_kmer
-.
-
-back()
-
-);
-
-// makes sure we get all possible cycle repitions up to the maximum length
-if (
-has_ending(path_accumulator, end_kmer
-)) {
-full_paths.
-push_back(path_accumulator);
-}
-
-auto &child_nodes = tree[start_kmer];
-auto num_children = child_nodes.size();
-
-for (
-unsigned int i = 0;
-i<num_children;
-++i) {
-auto kmer = graph.toString(child_nodes[i]);
-get_paths_between_util(kmer, end_kmer, path_accumulator, graph, tree, full_paths, max_path_length,
-        expected_kmer_covg, covg_scaling_factor, kmers_below_threshold
-);
-}
-}
-
 
 void write_paths_to_fasta(const boost::filesystem::path &filepath,
                           const Paths &paths,
                           const uint32_t &line_width) {
-    const std::string header = ">" + filepath.stem().string();
+    const std::string header{">" + filepath.stem().string()};
     fs::ofstream out_file(filepath.string());
 
-    uint32_t
-    path_counter = 1;
+    uint32_t path_counter{1};
     for (const auto &path: paths) {
         out_file << header << "_path" << std::to_string(path_counter) << "\n";
 
@@ -219,10 +170,10 @@ void write_paths_to_fasta(const boost::filesystem::path &filepath,
     BOOST_LOG_TRIVIAL(debug) << "Local assembly paths written to " << filepath;
 }
 
-void local_assembly(const std::vector<std::string> &sequences, const std::string &slice_sequence, const std::string &flank_left,
-                    const std::string &flank_right, const fs::path &out_path, const uint32_t &kmer_size,
-                    const double &expected_coverage, const uint32_t &max_path_length, const bool &clean_graph,
-                    const uint32_t &min_coverage) {
+void local_assembly(const std::vector<std::string> &sequences, const std::string &slice_sequence,
+                    const std::string &flank_left, const std::string &flank_right, const fs::path &out_path,
+                    const uint32_t &kmer_size, const uint32_t &max_path_length, const double &expected_coverage,
+                    const bool &clean_graph, const uint32_t &min_coverage) {
     if (sequences.empty()) {
         BOOST_LOG_TRIVIAL(debug) << "Sequences vector to assemble is empty. Skipping local assembly for "
                                  << out_path.string();
@@ -257,20 +208,19 @@ void local_assembly(const std::vector<std::string> &sequences, const std::string
     Node start_node, end_node;
     bool start_found{false};
     bool end_found{false};
-    auto start_kmers{generate_start_kmers(slice_sequence, kmer_size)};
-    auto end_kmers{generate_end_kmers(slice_sequence, kmer_size)};
+    auto start_kmers{generate_start_kmers(slice_sequence, kmer_size, kmer_size)};
+    auto end_kmers{generate_end_kmers(slice_sequence, kmer_size, kmer_size)};
 
-
-    for (auto start_idx = 0; start_idx < start_kmers.size(); start_idx++) {
-        const auto &s_kmer = start_kmers[start_idx];
+    for (uint_least16_t start_idx = 0; start_idx < start_kmers.size(); start_idx++) {
+        const auto &s_kmer{start_kmers[start_idx]};
         BOOST_LOG_TRIVIAL(debug) << "Looking at start kmer: " << s_kmer;
         std::tie(start_node, start_found) = get_node(s_kmer, graph);
 
         if (not start_found) {
             continue;
         }
-        for (auto end_idx = 0; end_idx < end_kmers.size(); end_idx++) {
-            const auto &e_kmer = end_kmers[end_idx];
+        for (uint_least16_t end_idx = 0; end_idx < end_kmers.size(); end_idx++) {
+            const auto &e_kmer{end_kmers[end_idx]};
             BOOST_LOG_TRIVIAL(debug) << "Looking at end kmer: " << e_kmer;
             // make sure end kmer doesnt exist in the set of start kmers
             if (std::find(start_kmers.begin(), start_kmers.end(), e_kmer) != start_kmers.end()) {
@@ -280,14 +230,14 @@ void local_assembly(const std::vector<std::string> &sequences, const std::string
             std::tie(end_node, end_found) = get_node(e_kmer, graph);
 
             if (end_found) {
-                auto tree = DFS(start_node, graph);
-                auto result = get_paths_between(s_kmer, e_kmer, tree, graph, max_path_length, expected_coverage);
+                auto tree{DFS(start_node, graph)};
+                auto result{get_paths_between(s_kmer, e_kmer, tree, graph, max_path_length, expected_coverage)};
                 if (not result.empty()) {
                     // add flank to each sequence
-                    for (auto i = 0; i < result.size(); i++) {
-                        const auto start_kmer_offset = slice_sequence.substr(0, start_idx);
-                        const auto end_kmer_offset = slice_sequence.substr(slice_sequence.length() - end_idx);
-                        std::string full_path = flank_left + start_kmer_offset + result[i] + end_kmer_offset + flank_right;
+                    for (uint_least16_t i = 0; i < result.size(); i++) {
+                        const auto start_kmer_offset{slice_sequence.substr(0, start_idx)};
+                        const auto end_kmer_offset{slice_sequence.substr(slice_sequence.length() - end_idx)};
+                        const auto full_path{flank_left + start_kmer_offset + result[i] + end_kmer_offset + flank_right};
                         result[i] = full_path;
                     }
                     write_paths_to_fasta(out_path, result);
@@ -303,40 +253,41 @@ void local_assembly(const std::vector<std::string> &sequences, const std::string
     remove_graph_file();
 }
 
-
 void remove_graph_file() {
     const fs::path p{"dummy.h5"};
     fs::remove(p);
 }
 
-
 void do_graph_clean(Graph &graph, const uint16_t &num_cores) {
-    Simplifications <Graph, Node, Edge> graph_simplifications(graph, num_cores);
+    Simplifications<Graph, Node, Edge> graph_simplifications(graph, num_cores);
     graph_simplifications._doTipRemoval = true;
     graph_simplifications._doBulgeRemoval = false;
     graph_simplifications._doECRemoval = false;
 
-    graph_simplifications._tipLen_Topo_kMult = 2; // remove all tips of length <= k * X bp  [default '2.500000'] set to 0 to turn off
-    graph_simplifications._tipLen_RCTC_kMult = 0;  // remove tips that pass coverage criteria, of length <= k * X bp  [default '10.000000'] set to 0 to turn off
-    graph_simplifications._tipRCTCcutoff = 2; // tip relative coverage coefficient: mean coverage of neighbors >  X * tip coverage default 2.0
+    graph_simplifications._tipLen_Topo_kMult =
+            2; // remove all tips of length <= k * X bp  [default '2.500000'] set to 0 to turn off
+    graph_simplifications._tipLen_RCTC_kMult =
+            0;  // remove tips that pass coverage criteria, of length <= k * X bp  [default '10.000000'] set to 0 to turn off
+    graph_simplifications._tipRCTCcutoff =
+            2; // tip relative coverage coefficient: mean coverage of neighbors >  X * tip coverage default 2.0
     graph_simplifications.simplify();
 }
 
-
 std::string reverse_complement(const std::string &forward) {
-    const auto len = forward.size();
+    const auto len{forward.size()};
     std::string reverse(len, ' ');
     for (size_t k = 0; k < len; k++) {
-        char base = forward[k];
-        char magic = base & 2 ? 4 : 21;
+        const char base{forward[k]};
+        const char magic = base & 2 ? 4 : 21;
         reverse[len - k - 1] = base ^ magic;
     }
     reverse[len] = '\0';
     return reverse;
 }
 
-
-std::vector<std::string> generate_start_kmers(const std::string &sequence, const uint32_t &k, uint32_t num_to_generate) {
+std::vector<std::string> generate_start_kmers(const std::string &sequence,
+                                              const uint32_t &k,
+                                              uint32_t num_to_generate) {
     const auto L{sequence.length()};
     if (k > L) {
         BOOST_LOG_TRIVIAL(error) << "Cannot generate kmers when K " << std::to_string(k)
@@ -344,14 +295,13 @@ std::vector<std::string> generate_start_kmers(const std::string &sequence, const
         std::vector<std::string> empty;
         return empty;
     } else if (k + (num_to_generate - 1) > L) {  // more combinations are requested than is possible
-        num_to_generate = L - k + 1;  // make n the largest value it can take on
+        num_to_generate = L - k + 1;  // make num_to_generate the largest value it can take on
     }
 
     std::vector<std::string> kmers;
 
     for (uint32_t i = 0; i < num_to_generate; i++) {
-        const auto kmer{sequence.substr(i, k)};
-        kmers.push_back(kmer);
+        kmers.emplace_back(sequence.substr(i, k));
     }
     return kmers;
 }
@@ -369,8 +319,7 @@ std::vector<std::string> generate_end_kmers(const std::string &sequence, const u
     std::vector<std::string> kmers;
 
     for (uint32_t i = 0; i < num_to_generate; i++) {
-        const auto kmer{sequence.substr(L - k - i, k)};
-        kmers.push_back(kmer);
+        kmers.emplace_back(sequence.substr(L - k - i, k));
     }
     return kmers;
 }

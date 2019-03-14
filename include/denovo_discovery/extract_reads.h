@@ -36,10 +36,11 @@ struct PathComponents {
 };
 
 std::vector<Interval>
-identify_regions(const std::vector<uint32_t> &, const uint32_t &threshold = 0, const uint32_t &min_length = 0);
+identify_regions(const std::vector<uint32_t> &covgs, const uint32_t &threshold, const uint32_t &min_length,
+                 const uint_least16_t &padding = 0);
 
 PathComponents
-find_interval_in_localpath(const Interval &, const vector<LocalNodePtr> &, const uint32_t &);
+find_interval_in_localpath(const Interval &interval, const std::vector<LocalNodePtr> &lmp);
 
 std::set<MinimizerHitPtr, pComp_path>
 hits_inside_path(const std::set<MinimizerHitPtr, pComp_path> &read_hits, const prg::Path &local_path);
@@ -51,19 +52,17 @@ using ReadPileup = std::vector<std::string>;
 
 namespace denovo_discovery {
 void add_pnode_coordinate_pairs(std::vector<std::shared_ptr<LocalPRG>> &prgs,
-                                std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &,
-                                const PanNodePtr &,
-                                const std::vector<LocalNodePtr> &,
-                                const std::vector<KmerNodePtr> &,
-                                const uint32_t &padding_size = 0,
+                                std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &pangraph_coordinate_pairs,
+                                const PanNodePtr &pnode,
+                                const std::vector<LocalNodePtr> &local_node_path,
+                                const std::vector<KmerNodePtr> &kmer_node_path,
+                                const uint_least16_t &padding_size = 0,
                                 const uint32_t &low_coverage_threshold = 2,
                                 const uint32_t &interval_min_length = 5,
                                 const uint32_t &min_number_hits = 2);
 
 std::map<GeneIntervalInfo, ReadPileup>
-collect_read_pileups(const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &,
-                     const boost::filesystem::path &,
-                     const uint32_t &padding_size = g_local_assembly_kmer_size * 2);
+collect_read_pileups(const std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> &, const boost::filesystem::path &);
 }
 
 #endif

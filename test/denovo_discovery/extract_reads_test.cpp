@@ -21,126 +21,126 @@ using std::make_pair;
 
 TEST(ExtractReadsTest, identify_regions_null) {
     vector<uint32_t> covgs;
-    auto low_covg_intervals = identify_regions(covgs, 0);
+    auto low_covg_intervals = identify_regions(covgs, 0, <#initializer#>, <#initializer#>);
     vector<Interval> expected_intervals;
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 2);
+    low_covg_intervals = identify_regions(covgs, 2, <#initializer#>, <#initializer#>);
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 }
 
 TEST(ExtractReadsTest, identify_regions_1) {
     vector<uint32_t> covgs({5, 6, 7, 5, 6, 6, 4, 4, 3, 5, 1, 1, 2, 3, 2, 4, 3});
-    auto low_covg_intervals = identify_regions(covgs, 0, 0);
+    auto low_covg_intervals = identify_regions(covgs, 0, 0, <#initializer#>);
     vector<Interval> expected_intervals;
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 1, 0);
+    low_covg_intervals = identify_regions(covgs, 1, 0, <#initializer#>);
     expected_intervals = {Interval(10, 12)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 1, 1);
+    low_covg_intervals = identify_regions(covgs, 1, 1, <#initializer#>);
     expected_intervals = {Interval(10, 12)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 1, 2);
+    low_covg_intervals = identify_regions(covgs, 1, 2, <#initializer#>);
     expected_intervals = {Interval(10, 12)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 1, 3);
+    low_covg_intervals = identify_regions(covgs, 1, 3, <#initializer#>);
     expected_intervals = {};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 }
 
 TEST(ExtractReadsTest, identify_regions_2) {
     vector<uint32_t> covgs({5, 6, 7, 5, 6, 6, 4, 4, 3, 5, 1, 1, 2, 3, 2, 4, 3});
-    auto low_covg_intervals = identify_regions(covgs, 2, 0);
+    auto low_covg_intervals = identify_regions(covgs, 2, 0, <#initializer#>);
     vector<Interval> expected_intervals = {Interval(10, 13), Interval(14, 15)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 2, 1);
+    low_covg_intervals = identify_regions(covgs, 2, 1, <#initializer#>);
     expected_intervals = {Interval(10, 13), Interval(14, 15)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 2, 2);
+    low_covg_intervals = identify_regions(covgs, 2, 2, <#initializer#>);
     expected_intervals = {Interval(10, 13)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 2, 3);
+    low_covg_intervals = identify_regions(covgs, 2, 3, <#initializer#>);
     expected_intervals = {Interval(10, 13)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 2, 4);
+    low_covg_intervals = identify_regions(covgs, 2, 4, <#initializer#>);
     expected_intervals = {};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 }
 
 TEST(ExtractReadsTest, identify_regions_3) {
     vector<uint32_t> covgs({5, 6, 7, 5, 6, 6, 4, 4, 3, 5, 1, 1, 2, 3, 2, 4, 3});
-    auto low_covg_intervals = identify_regions(covgs, 3, 0);
+    auto low_covg_intervals = identify_regions(covgs, 3, 0, <#initializer#>);
     vector<Interval> expected_intervals = {Interval(8, 9), Interval(10, 15), Interval(16, 17)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 3, 1);
+    low_covg_intervals = identify_regions(covgs, 3, 1, <#initializer#>);
     expected_intervals = {Interval(8, 9), Interval(10, 15), Interval(16, 17)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 3, 2);
+    low_covg_intervals = identify_regions(covgs, 3, 2, <#initializer#>);
     expected_intervals = {Interval(10, 15)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 3, 3);
+    low_covg_intervals = identify_regions(covgs, 3, 3, <#initializer#>);
     expected_intervals = {Interval(10, 15)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 3, 4);
+    low_covg_intervals = identify_regions(covgs, 3, 4, <#initializer#>);
     expected_intervals = {Interval(10, 15)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 3, 5);
+    low_covg_intervals = identify_regions(covgs, 3, 5, <#initializer#>);
     expected_intervals = {Interval(10, 15)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 3, 6);
+    low_covg_intervals = identify_regions(covgs, 3, 6, <#initializer#>);
     expected_intervals = {};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 }
 
 TEST(ExtractReadsTest, identify_regions_4) {
     vector<uint32_t> covgs({5, 6, 7, 5, 6, 6, 4, 4, 3, 5, 1, 1, 2, 3, 2, 4, 3});
-    auto low_covg_intervals = identify_regions(covgs, 4, 0);
+    auto low_covg_intervals = identify_regions(covgs, 4, 0, <#initializer#>);
     vector<Interval> expected_intervals = {Interval(6, 9), Interval(10, 17)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 4, 1);
+    low_covg_intervals = identify_regions(covgs, 4, 1, <#initializer#>);
     expected_intervals = {Interval(6, 9), Interval(10, 17)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 4, 2);
+    low_covg_intervals = identify_regions(covgs, 4, 2, <#initializer#>);
     expected_intervals = {Interval(6, 9), Interval(10, 17)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 4, 3);
+    low_covg_intervals = identify_regions(covgs, 4, 3, <#initializer#>);
     expected_intervals = {Interval(6, 9), Interval(10, 17)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 4, 4);
+    low_covg_intervals = identify_regions(covgs, 4, 4, <#initializer#>);
     expected_intervals = {Interval(10, 17)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 4, 5);
+    low_covg_intervals = identify_regions(covgs, 4, 5, <#initializer#>);
     expected_intervals = {Interval(10, 17)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 4, 6);
+    low_covg_intervals = identify_regions(covgs, 4, 6, <#initializer#>);
     expected_intervals = {Interval(10, 17)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 4, 7);
+    low_covg_intervals = identify_regions(covgs, 4, 7, <#initializer#>);
     expected_intervals = {Interval(10, 17)};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 
-    low_covg_intervals = identify_regions(covgs, 4, 8);
+    low_covg_intervals = identify_regions(covgs, 4, 8, <#initializer#>);
     expected_intervals = {};
     EXPECT_ITERABLE_EQ(vector<Interval>, expected_intervals, low_covg_intervals);
 }
@@ -150,7 +150,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_minimal) {
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
-    auto found_path = find_interval_in_localpath(Interval(2, 3), lmp, 0);
+    auto found_path = find_interval_in_localpath(Interval(2, 3), lmp);
 
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[2]};
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
@@ -161,7 +161,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_minimal_with_padding1) {
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
-    auto found_path = find_interval_in_localpath(Interval(2, 3), lmp, 1);
+    auto found_path = find_interval_in_localpath(Interval(2, 3), lmp);
 
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4]};
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
@@ -172,7 +172,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_minimal_with_padding2) {
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
-    auto found_path = find_interval_in_localpath(Interval(2, 3), lmp, 2);
+    auto found_path = find_interval_in_localpath(Interval(2, 3), lmp);
 
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                      l3.prg.nodes[6]};
@@ -184,7 +184,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_short) {
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
-    auto found_path = find_interval_in_localpath(Interval(1, 4), lmp, 0);
+    auto found_path = find_interval_in_localpath(Interval(1, 4), lmp);
 
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4]};
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
@@ -195,7 +195,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding1) {
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
-    auto found_path = find_interval_in_localpath(Interval(1, 4), lmp, 1);
+    auto found_path = find_interval_in_localpath(Interval(1, 4), lmp);
 
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                      l3.prg.nodes[6]};
@@ -207,7 +207,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding2) {
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
-    auto found_path = find_interval_in_localpath(Interval(1, 4), lmp, 2);
+    auto found_path = find_interval_in_localpath(Interval(1, 4), lmp);
 
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                      l3.prg.nodes[6]};
@@ -219,7 +219,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding3) {
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
-    auto found_path = find_interval_in_localpath(Interval(1, 4), lmp, 3);
+    auto found_path = find_interval_in_localpath(Interval(1, 4), lmp);
 
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                      l3.prg.nodes[6]};
@@ -231,7 +231,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding4) {
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
-    auto found_path = find_interval_in_localpath(Interval(1, 4), lmp, 4);
+    auto found_path = find_interval_in_localpath(Interval(1, 4), lmp);
 
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                      l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
@@ -243,7 +243,7 @@ TEST(ExtractReadsTest, find_interval_in_localpath_multiple_sites) {
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
                                 l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
     // A G C T CGG  TAT
-    auto found_path = find_interval_in_localpath(Interval(2, 5), lmp, 0);
+    auto found_path = find_interval_in_localpath(Interval(2, 5), lmp);
 
     vector<LocalNodePtr> exp_path = {l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, exp_path, found_path);
@@ -1446,7 +1446,7 @@ TEST(ExtractReadsTest, collect_read_pileups) {
 
     boost::filesystem::path fpath("../../test/test_cases/reads_for_pileups.fa");
     auto padding_size = 0;
-    auto pileups = denovo_discovery::collect_read_pileups(pairs, fpath, padding_size);
+    auto pileups = denovo_discovery::collect_read_pileups(pairs, fpath);
 
     std::map<GeneIntervalInfo, ReadPileup> exp_pileups;
     exp_pileups[interval_info1] = {"GCTA", "CGGTAT", "GTT", "TGT", "TCAC", "GTGA", "CTTAAC", "GTTAAG"};
