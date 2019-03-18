@@ -113,10 +113,14 @@ void Index::load(const std::string &indexfile) {
         }
     } else {
         BOOST_LOG_TRIVIAL(warning) << "Unable to open index file " << indexfile << ". Does it exist? Have you run pandora index?";
-
         exit(1);
     }
-    BOOST_LOG_TRIVIAL(debug) << "Finished loading file. Index now contains " << minhash.size() << " entries";
+
+    if (minhash.size() <= 1){
+        BOOST_LOG_TRIVIAL(debug) << "Was this file empty?! Index now contains a trivial " << minhash.size() << " entries";
+    } else {
+        BOOST_LOG_TRIVIAL(debug) << "Finished loading file. Index now contains " << minhash.size() << " entries";
+    }
 }
 
 bool Index::operator==(const Index &other) const {
