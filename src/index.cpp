@@ -75,7 +75,7 @@ void Index::load(const std::string &prgfile, uint32_t w, uint32_t k) {
 void Index::load(const std::string &indexfile) {
     BOOST_LOG_TRIVIAL(debug) << "Loading index";
     BOOST_LOG_TRIVIAL(debug) << "File is " << indexfile;
-    uint32_t key;
+    uint64_t key;
     size_t size;
     int c;
     MiniRecord mr;
