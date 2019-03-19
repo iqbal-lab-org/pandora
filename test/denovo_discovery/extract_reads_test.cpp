@@ -145,118 +145,130 @@ TEST(ExtractReadsTest, identify_regions_4) {
     EXPECT_ITERABLE_EQ(std::vector<Interval>, expected_intervals, low_covg_intervals);
 }
 
-TEST(ExtractReadsTest, find_interval_in_localpath_minimal) {
-    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
-    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
-    // A G C T CGG  TAT
-    const auto found_components{find_interval_in_localpath(Interval(2, 3), lmp)};
-    const auto found_slice{l3.string_along_path(found_components.slice)};
-    const auto exp_slice{l3.prg.nodes[2]->seq};
+TEST(FindIntervalInLocalPathTest, emptyInterval_returnEmptyResult) {
+    const Interval interval;
+    LocalPRG local_prg{0, "test", "A"};
+    const std::vector<LocalNodePtr> local_node_max_likelihood_path{local_prg.prg.nodes[0]};
 
-    EXPECT_EQ(exp_slice, found_slice);
+    const auto actual {find_interval_in_localpath(interval, local_node_max_likelihood_path)};
+    const PathComponents expected;
+
+    // fixme: need to implement == operator on PathComponents struct
+    EXPECT_EQ(actual, expected);
 }
 
-TEST(ExtractReadsTest, find_interval_in_localpath_minimal_with_padding1) {
-    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
-    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
-    // A G C T CGG  TAT
-    const auto found_components{find_interval_in_localpath(Interval(2, 3), lmp)};
-    const auto found_slice{l3.string_along_path(found_components.slice)};
-    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4]})};
-
-    EXPECT_EQ(exp_slice, found_slice);
-}
-
-TEST(ExtractReadsTest, find_interval_in_localpath_minimal_with_padding2) {
-    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
-    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
-    // A G C T CGG  TAT
-    const auto found_components{find_interval_in_localpath(Interval(2, 3), lmp)};
-    const auto found_slice{l3.string_along_path(found_components.slice)};
-    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                     l3.prg.nodes[6]})};
-
-    EXPECT_EQ(exp_slice, found_slice);
-}
-
-TEST(ExtractReadsTest, find_interval_in_localpath_short) {
-    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
-    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
-    // A G C T CGG  TAT
-    const auto found_components{find_interval_in_localpath(Interval(1, 4), lmp)};
-    const auto found_slice{l3.string_along_path(found_components.slice)};
-    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4]})};
-
-    EXPECT_EQ(exp_slice, found_slice);
-}
-
-TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding1) {
-    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
-    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
-    // A G C T CGG  TAT
-    const auto found_components{find_interval_in_localpath(Interval(1, 4), lmp)};
-    const auto found_slice{l3.string_along_path(found_components.slice)};
-    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                     l3.prg.nodes[6]})};
-
-    EXPECT_EQ(exp_slice, found_slice);
-}
-
-TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding2) {
-    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
-    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
-    // A G C T CGG  TAT
-    const auto found_components{find_interval_in_localpath(Interval(1, 4), lmp)};
-    const auto found_slice{l3.string_along_path(found_components.slice)};
-    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                     l3.prg.nodes[6]})};
-
-    EXPECT_EQ(exp_slice, found_slice);
-}
-
-TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding3) {
-    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
-    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
-    // A G C T CGG  TAT
-    const auto found_components{find_interval_in_localpath(Interval(1, 4), lmp)};
-    const auto found_slice{l3.string_along_path(found_components.slice)};
-    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                     l3.prg.nodes[6]})};
-
-    EXPECT_EQ(exp_slice, found_slice);
-}
-
-TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding4) {
-    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
-    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
-    // A G C T CGG  TAT
-    const auto found_components{find_interval_in_localpath(Interval(1, 4), lmp)};
-    const auto found_slice{l3.string_along_path(found_components.slice)};
-    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                     l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]})};
-
-    EXPECT_EQ(exp_slice, found_slice);
-}
-
-TEST(ExtractReadsTest, find_interval_in_localpath_multiple_sites) {
-    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
-    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
-    // A G C T CGG  TAT
-    const auto found_components{find_interval_in_localpath(Interval(2, 5), lmp)};
-    const auto found_slice{l3.string_along_path(found_components.slice)};
-    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]})};
-
-    EXPECT_EQ(exp_slice, found_slice);
-}
+//TEST(FindIntervalInLocalPathTest, find_interval_in_localpath_minimal) {
+//    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+//    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+//    // A G C T CGG  TAT
+//    const auto found_components{find_interval_in_localpath(Interval(2, 3), lmp)};
+//    const auto found_slice{l3.string_along_path(found_components.slice)};
+//    const auto exp_slice{l3.prg.nodes[2]->seq};
+//
+//    EXPECT_EQ(exp_slice, found_slice);
+//}
+//
+//TEST(ExtractReadsTest, find_interval_in_localpath_minimal_with_padding1) {
+//    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+//    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+//    // A G C T CGG  TAT
+//    const auto found_components{find_interval_in_localpath(Interval(2, 3), lmp)};
+//    const auto found_slice{l3.string_along_path(found_components.slice)};
+//    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4]})};
+//
+//    EXPECT_EQ(exp_slice, found_slice);
+//}
+//
+//TEST(ExtractReadsTest, find_interval_in_localpath_minimal_with_padding2) {
+//    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+//    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+//    // A G C T CGG  TAT
+//    const auto found_components{find_interval_in_localpath(Interval(2, 3), lmp)};
+//    const auto found_slice{l3.string_along_path(found_components.slice)};
+//    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                     l3.prg.nodes[6]})};
+//
+//    EXPECT_EQ(exp_slice, found_slice);
+//}
+//
+//TEST(ExtractReadsTest, find_interval_in_localpath_short) {
+//    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+//    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+//    // A G C T CGG  TAT
+//    const auto found_components{find_interval_in_localpath(Interval(1, 4), lmp)};
+//    const auto found_slice{l3.string_along_path(found_components.slice)};
+//    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4]})};
+//
+//    EXPECT_EQ(exp_slice, found_slice);
+//}
+//
+//TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding1) {
+//    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+//    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+//    // A G C T CGG  TAT
+//    const auto found_components{find_interval_in_localpath(Interval(1, 4), lmp)};
+//    const auto found_slice{l3.string_along_path(found_components.slice)};
+//    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                     l3.prg.nodes[6]})};
+//
+//    EXPECT_EQ(exp_slice, found_slice);
+//}
+//
+//TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding2) {
+//    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+//    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+//    // A G C T CGG  TAT
+//    const auto found_components{find_interval_in_localpath(Interval(1, 4), lmp)};
+//    const auto found_slice{l3.string_along_path(found_components.slice)};
+//    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                     l3.prg.nodes[6]})};
+//
+//    EXPECT_EQ(exp_slice, found_slice);
+//}
+//
+//TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding3) {
+//    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+//    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+//    // A G C T CGG  TAT
+//    const auto found_components{find_interval_in_localpath(Interval(1, 4), lmp)};
+//    const auto found_slice{l3.string_along_path(found_components.slice)};
+//    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                     l3.prg.nodes[6]})};
+//
+//    EXPECT_EQ(exp_slice, found_slice);
+//}
+//
+//TEST(ExtractReadsTest, find_interval_in_localpath_short_with_padding4) {
+//    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+//    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+//    // A G C T CGG  TAT
+//    const auto found_components{find_interval_in_localpath(Interval(1, 4), lmp)};
+//    const auto found_slice{l3.string_along_path(found_components.slice)};
+//    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                     l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]})};
+//
+//    EXPECT_EQ(exp_slice, found_slice);
+//}
+//
+//TEST(ExtractReadsTest, find_interval_in_localpath_multiple_sites) {
+//    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+//    const std::vector<LocalNodePtr> lmp{l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]};
+//    // A G C T CGG  TAT
+//    const auto found_components{find_interval_in_localpath(Interval(2, 5), lmp)};
+//    const auto found_slice{l3.string_along_path(found_components.slice)};
+//    const auto exp_slice{LocalPRG::string_along_path({l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]})};
+//
+//    EXPECT_EQ(exp_slice, found_slice);
+//}
 
 TEST(ExtractReadsTest, hits_inside_path) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
