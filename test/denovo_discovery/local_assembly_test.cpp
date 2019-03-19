@@ -183,7 +183,7 @@ TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
     const auto end_kmer{"AGG"};
     auto result = get_paths_between("AATGT", end_kmer, tree, graph, g_test_max_path);
 
-    Paths expected_seqs(seqs.begin(), seqs.end());
+    DenovoPaths expected_seqs(seqs.begin(), seqs.end());
     EXPECT_EQ(result, expected_seqs);
     remove_graph_file();
 }
@@ -436,27 +436,27 @@ TEST(DFSTest, SimpleCycle_ReturnPathsOfLengthsUpToMaxPathLengthCycling) {
 }
 
 
-TEST(hasEndingTest, hasEnding_ReturnTrue) {
+TEST(endsWithTest, endsWith_ReturnTrue) {
     std::string test = "binary";
     std::string ending = "nary";
 
-    EXPECT_TRUE(has_ending(test, ending));
+    EXPECT_TRUE(ends_with(test, ending));
 }
 
 
-TEST(hasEndingTest, doesNotHaveEnding_ReturnFalse) {
+TEST(endsWithTest, doesNotHaveEnding_ReturnFalse) {
     std::string test = "tertiary";
     std::string ending = "nary";
 
-    EXPECT_FALSE(has_ending(test, ending));
+    EXPECT_FALSE(ends_with(test, ending));
 }
 
 
-TEST(hasEndingTest, endingLongerThanQuery_ReturnFalse) {
+TEST(endsWithTest, endingLongerThanQuery_ReturnFalse) {
     std::string test = "ry";
     std::string ending = "nary";
 
-    EXPECT_FALSE(has_ending(test, ending));
+    EXPECT_FALSE(ends_with(test, ending));
 }
 
 
@@ -464,7 +464,7 @@ TEST(FastaWriter, ReadsShorterThanLineWidth_OneReadPerLine) {
     const fs::path filepath = "TEST.fa";
     unsigned long line_width = 90;
 
-    Paths reads = {"ATGATGTTTTTTTTTTCGCATGCAT", "TGCATGCATGCACACACACACACAGCA"};
+    DenovoPaths reads = {"ATGATGTTTTTTTTTTCGCATGCAT", "TGCATGCATGCACACACACACACAGCA"};
 
     write_paths_to_fasta(filepath, reads, line_width);
 
@@ -494,7 +494,7 @@ TEST(FastaWriter, ReadsLongerThanLineWidth_ReadSpreadEvenlyOnLines) {
     const fs::path filepath{"TEST.fa"};
     uint32_t line_width{10};
 
-    Paths reads = {"ATGATGTTTTTTTTTTCGCATGCAT", "TGCATGCATGCACACACACACACAGCA"};
+    DenovoPaths reads = {"ATGATGTTTTTTTTTTCGCATGCAT", "TGCATGCATGCACACACACACACAGCA"};
 
     write_paths_to_fasta(filepath, reads, line_width);
 

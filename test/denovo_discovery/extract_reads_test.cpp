@@ -329,7 +329,7 @@ TEST(ExtractReadsTest, hits_inside_path) {
     for (const auto &node : lmp) {
         local_path.add_end_interval(node->pos);
     }
-    std::set<MinimizerHitPtr, pComp_path> found_subset{hits_inside_path(hits, local_path)};
+    std::set<MinimizerHitPtr, pComp_path> found_subset{ find_hits_inside_path(hits, local_path)};
     EXPECT_EQ(expected_subset.size(), found_subset.size());
     auto jt = found_subset.begin();
     for (auto it = expected_subset.begin(); it != expected_subset.end() and jt != found_subset.end(); ++it) {
@@ -1064,7 +1064,7 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
     std::vector<std::shared_ptr<LocalPRG>> prgs;
     prgs.emplace_back(std::make_shared<LocalPRG>(l3));
     std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs;
-    denovo_discovery::add_pnode_coordinate_pairs(prgs, pairs, pn, lmp, kmp, buff, covg_thresh, min_length, min_num_hits);
+    denovo_discovery::add_pnode_coordinate_pairs(prgs, pairs, pn, lmp, kmp, buff, covg_thresh, min_length);
 
     GeneIntervalInfo interval_info1{pn, Interval(1, 3), "AGCT"};
     GeneIntervalInfo interval_info2{pn, Interval(6, 7), "CGGTAT"};
@@ -1241,7 +1241,7 @@ TEST(ExtractReadsTest, add_pnode_coordinate_pairs_fewer_hits_needed) {
     std::vector<std::shared_ptr<LocalPRG>> prgs;
     prgs.emplace_back(std::make_shared<LocalPRG>(l3));
     std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs;
-    denovo_discovery::add_pnode_coordinate_pairs(prgs, pairs, pn, lmp, kmp, buff, covg_thresh, min_length, min_num_hits);
+    denovo_discovery::add_pnode_coordinate_pairs(prgs, pairs, pn, lmp, kmp, buff, covg_thresh, min_length);
 
     GeneIntervalInfo interval_info1{pn, Interval(1, 3), "AGCT"};
     GeneIntervalInfo interval_info2{pn, Interval(6, 7), "CGGTAT"};
