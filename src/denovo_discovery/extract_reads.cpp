@@ -52,6 +52,10 @@ identify_regions(const std::vector<uint32_t> &covg_at_each_position, const uint3
 
 PathComponents
 find_interval_in_localpath(const Interval &interval, const std::vector<LocalNodePtr> &local_node_max_likelihood_path) {
+    if (interval.empty()) {
+        return PathComponents();
+    }
+
     uint32_t start { 0 };
     uint32_t end { 0 };
     bool found_start { false };
@@ -65,17 +69,22 @@ find_interval_in_localpath(const Interval &interval, const std::vector<LocalNode
         start = current_node->pos.start;
         const auto current_node_end { current_node->pos.get_end() };
 
-        const auto havent_reached_interval_start { interval.start > total_bases_traversed };
+        const auto havent_reached_interval_start { interval.start >= total_bases_traversed };
         if (havent_reached_interval_start) {
             flank_left_intervals.emplace_back(current_node->pos);
             continue;
         }
 
-        const auto found_node_interval_starts_in { (not found_start and interval.start <= total_bases_traversed) };
+        const auto found_node_interval_starts_in { (not found_start and interval.start < total_bases_traversed) };
         if (found_node_interval_starts_in) {
             start = current_node_end - (total_bases_traversed - interval.start);
             found_start = true;
-            flank_left_intervals.emplace_back(Interval(current_node->pos.start, start));
+
+            const auto interval_starts_after_start_of_current_node {
+                    interval.start > (total_bases_traversed - current_node->pos.length) };
+            if (interval_starts_after_start_of_current_node) {
+                flank_left_intervals.emplace_back(Interval(current_node->pos.start, start));
+            }
 
             const auto interval_doesnt_end_in_this_node { interval_end > total_bases_traversed };
             if (interval_doesnt_end_in_this_node) {
@@ -88,7 +97,8 @@ find_interval_in_localpath(const Interval &interval, const std::vector<LocalNode
         if (found_node_interval_ends_in) {
             end = current_node_end - (total_bases_traversed - interval_end);
 
-            if (interval_end != total_bases_traversed) {
+            const auto interval_ends_before_end_of_current_node { interval_end < total_bases_traversed };
+            if (interval_ends_before_end_of_current_node) {
                 flank_right_intervals.emplace_back(Interval(end, current_node_end));
             }
             intervals_found.emplace_back(Interval(start, end));
