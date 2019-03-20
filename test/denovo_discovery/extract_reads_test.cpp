@@ -980,363 +980,363 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
 }
 
 
-TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
-    //
-    //  Read 0 has both intervals
-    //  Read 1 has first interval
-    //  Read 2 has second interval
-    //  Read 3 has both intervals, but only sparse hits which do not meet threshold
-    //
+//TEST(ExtractReadsTest, add_pnode_coordinate_pairs) {
+//    //
+//    //  Read 0 has both intervals
+//    //  Read 1 has first interval
+//    //  Read 2 has second interval
+//    //  Read 3 has both intervals, but only sparse hits which do not meet threshold
+//    //
+//
+//    uint32_t pnode_id = 3, prg_id = 3, read_id = 0, knode_id = 0;
+//    string pnode_name = "three";
+//    bool orientation(true);
+//    MinimizerHitPtr mh;
+//
+//    // define localPRG
+//    LocalPRG l3(prg_id, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+//    auto index = std::make_shared<Index>();
+//    auto w = 1, k = 3;
+//    l3.minimizer_sketch(index, w, k);
+//
+//    // define localpath and kmerpath
+//    // corresponds to sequence (A) G C T CGG  (TAT)
+//    vector<LocalNodePtr> lmp = {l3.prg.nodes[0],
+//                                l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]
+//    };
+//
+//    vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0],
+//                               l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[4], l3.kmer_prg.nodes[8],
+//                               l3.kmer_prg.nodes[13], l3.kmer_prg.nodes[15], l3.kmer_prg.nodes[17],
+//                               l3.kmer_prg.nodes[19], l3.kmer_prg.nodes[20], l3.kmer_prg.nodes[21]
+//    };
+//
+//    PanNodePtr pn = make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);
+//    pn->kmer_prg = l3.kmer_prg;
+//
+//    bool strand = 0;
+//    uint32_t sample_id = 0;
+//
+//    pn->kmer_prg.setup_coverages(1);
+//
+//    pn->kmer_prg.nodes[0]->set_covg(10, strand, sample_id);
+//    pn->kmer_prg.nodes[1]->set_covg(1, strand, sample_id);
+//    pn->kmer_prg.nodes[4]->set_covg(1, strand, sample_id);
+//    pn->kmer_prg.nodes[8]->set_covg(1, strand, sample_id);
+//    pn->kmer_prg.nodes[13]->set_covg(10, strand, sample_id);
+//    pn->kmer_prg.nodes[15]->set_covg(1, strand, sample_id);
+//    pn->kmer_prg.nodes[17]->set_covg(1, strand, sample_id);
+//    pn->kmer_prg.nodes[19]->set_covg(1, strand, sample_id);
+//    pn->kmer_prg.nodes[20]->set_covg(10, strand, sample_id);
+//    pn->kmer_prg.nodes[21]->set_covg(10, strand, sample_id);
+//
+//    PanReadPtr pr = make_shared<pangenome::Read>(read_id);
+//    set<MinimizerHitPtr, pComp> hits;
+//
+//    // READ 0
+//    // covers whole path in interval 2,12
+//    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, pn->kmer_prg.nodes[1]->path, knode_id, orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, pn->kmer_prg.nodes[4]->path, knode_id, orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[15]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[17]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[20]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//
+//    pr->add_hits(prg_id, hits);
+//    pn->reads.insert(pr);
+//    hits.clear();
+//
+//    // READ 1
+//    //covers first low covg site in interval [6,10]
+//    read_id = 1;
+//    pr = make_shared<pangenome::Read>(read_id);
+//
+//    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[1]->path, knode_id, orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[4]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[8]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//
+//    pr->add_hits(prg_id, hits);
+//    pn->reads.insert(pr);
+//    hits.clear();
+//
+//    // READ 2
+//    // covers second site in interval [16,22]
+//    read_id = 2;
+//    pr = make_shared<pangenome::Read>(read_id);
+//
+//    // hits overlapping edges of path
+//    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(16, 19), prg_id, pn->kmer_prg.nodes[15]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, pn->kmer_prg.nodes[17]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(18, 21), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(19, 22), prg_id, pn->kmer_prg.nodes[20]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//
+//    pr->add_hits(prg_id, hits);
+//    pn->reads.insert(pr);
+//    hits.clear();
+//
+//    // READ 3
+//    // has sparse hits
+//    read_id = 3;
+//    pr = make_shared<pangenome::Read>(read_id);
+//
+//    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, pn->kmer_prg.nodes[4]->path, knode_id, orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//
+//    pr->add_hits(prg_id, hits);
+//    pn->reads.insert(pr);
+//    hits.clear();
+//
+//    auto buff = 1, covg_thresh = 1, min_length = 1, min_num_hits = 2;
+//
+//    std::vector<std::shared_ptr<LocalPRG>> prgs;
+//    prgs.emplace_back(std::make_shared<LocalPRG>(l3));
+//    std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs;
+//    denovo_discovery::add_pnode_coordinate_pairs(prgs, pairs, pn, lmp, kmp, buff, covg_thresh, min_length);
+//
+//    GeneIntervalInfo interval_info1{pn, Interval(1, 3), "AGCT"};
+//    GeneIntervalInfo interval_info2{pn, Interval(6, 7), "CGGTAT"};
+//    ReadCoordinate read_coord1{0, 2, 6, true};
+//    ReadCoordinate read_coord2{0, 6, 12, true};
+//    ReadCoordinate read_coord3{1, 6, 10, true};
+//    ReadCoordinate read_coord4{2, 16, 22, true};
+//
+//    std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> expected_coords = {
+//            std::make_pair(read_coord1, interval_info1),
+//            std::make_pair(read_coord2, interval_info2),
+//            std::make_pair(read_coord3, interval_info1),
+//            std::make_pair(read_coord4, interval_info2)};
+//    EXPECT_EQ(expected_coords.size(), pairs.size());
+//    uint count = 0;
+//    for (const auto &p : pairs) {
+//        if (expected_coords.size() <= count)
+//            break;
+//        EXPECT_EQ(p.first, expected_coords[count].first);
+//        EXPECT_EQ(p.second, expected_coords[count].second);
+//        count++;
+//    }
+//}
 
-    uint32_t pnode_id = 3, prg_id = 3, read_id = 0, knode_id = 0;
-    string pnode_name = "three";
-    bool orientation(true);
-    MinimizerHitPtr mh;
-
-    // define localPRG
-    LocalPRG l3(prg_id, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
-    auto index = std::make_shared<Index>();
-    auto w = 1, k = 3;
-    l3.minimizer_sketch(index, w, k);
-
-    // define localpath and kmerpath
-    // corresponds to sequence (A) G C T CGG  (TAT)
-    vector<LocalNodePtr> lmp = {l3.prg.nodes[0],
-                                l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]
-    };
-
-    vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0],
-                               l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[4], l3.kmer_prg.nodes[8],
-                               l3.kmer_prg.nodes[13], l3.kmer_prg.nodes[15], l3.kmer_prg.nodes[17],
-                               l3.kmer_prg.nodes[19], l3.kmer_prg.nodes[20], l3.kmer_prg.nodes[21]
-    };
-
-    PanNodePtr pn = make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);
-    pn->kmer_prg = l3.kmer_prg;
-
-    bool strand = 0;
-    uint32_t sample_id = 0;
-
-    pn->kmer_prg.setup_coverages(1);
-
-    pn->kmer_prg.nodes[0]->set_covg(10, strand, sample_id);
-    pn->kmer_prg.nodes[1]->set_covg(1, strand, sample_id);
-    pn->kmer_prg.nodes[4]->set_covg(1, strand, sample_id);
-    pn->kmer_prg.nodes[8]->set_covg(1, strand, sample_id);
-    pn->kmer_prg.nodes[13]->set_covg(10, strand, sample_id);
-    pn->kmer_prg.nodes[15]->set_covg(1, strand, sample_id);
-    pn->kmer_prg.nodes[17]->set_covg(1, strand, sample_id);
-    pn->kmer_prg.nodes[19]->set_covg(1, strand, sample_id);
-    pn->kmer_prg.nodes[20]->set_covg(10, strand, sample_id);
-    pn->kmer_prg.nodes[21]->set_covg(10, strand, sample_id);
-
-    PanReadPtr pr = make_shared<pangenome::Read>(read_id);
-    set<MinimizerHitPtr, pComp> hits;
-
-    // READ 0
-    // covers whole path in interval 2,12
-    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, pn->kmer_prg.nodes[1]->path, knode_id, orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, pn->kmer_prg.nodes[4]->path, knode_id, orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[15]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[17]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[20]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-
-    pr->add_hits(prg_id, hits);
-    pn->reads.insert(pr);
-    hits.clear();
-
-    // READ 1
-    //covers first low covg site in interval [6,10]
-    read_id = 1;
-    pr = make_shared<pangenome::Read>(read_id);
-
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[1]->path, knode_id, orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[4]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[8]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-
-    pr->add_hits(prg_id, hits);
-    pn->reads.insert(pr);
-    hits.clear();
-
-    // READ 2
-    // covers second site in interval [16,22]
-    read_id = 2;
-    pr = make_shared<pangenome::Read>(read_id);
-
-    // hits overlapping edges of path
-    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(16, 19), prg_id, pn->kmer_prg.nodes[15]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, pn->kmer_prg.nodes[17]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(18, 21), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(19, 22), prg_id, pn->kmer_prg.nodes[20]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-
-    pr->add_hits(prg_id, hits);
-    pn->reads.insert(pr);
-    hits.clear();
-
-    // READ 3
-    // has sparse hits
-    read_id = 3;
-    pr = make_shared<pangenome::Read>(read_id);
-
-    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, pn->kmer_prg.nodes[4]->path, knode_id, orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-
-    pr->add_hits(prg_id, hits);
-    pn->reads.insert(pr);
-    hits.clear();
-
-    auto buff = 1, covg_thresh = 1, min_length = 1, min_num_hits = 2;
-
-    std::vector<std::shared_ptr<LocalPRG>> prgs;
-    prgs.emplace_back(std::make_shared<LocalPRG>(l3));
-    std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs;
-    denovo_discovery::add_pnode_coordinate_pairs(prgs, pairs, pn, lmp, kmp, buff, covg_thresh, min_length);
-
-    GeneIntervalInfo interval_info1{pn, Interval(1, 3), "AGCT"};
-    GeneIntervalInfo interval_info2{pn, Interval(6, 7), "CGGTAT"};
-    ReadCoordinate read_coord1{0, 2, 6, true};
-    ReadCoordinate read_coord2{0, 6, 12, true};
-    ReadCoordinate read_coord3{1, 6, 10, true};
-    ReadCoordinate read_coord4{2, 16, 22, true};
-
-    std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> expected_coords = {
-            std::make_pair(read_coord1, interval_info1),
-            std::make_pair(read_coord2, interval_info2),
-            std::make_pair(read_coord3, interval_info1),
-            std::make_pair(read_coord4, interval_info2)};
-    EXPECT_EQ(expected_coords.size(), pairs.size());
-    uint count = 0;
-    for (const auto &p : pairs) {
-        if (expected_coords.size() <= count)
-            break;
-        EXPECT_EQ(p.first, expected_coords[count].first);
-        EXPECT_EQ(p.second, expected_coords[count].second);
-        count++;
-    }
-}
-
-TEST(ExtractReadsTest, add_pnode_coordinate_pairs_fewer_hits_needed) {
-    //
-    //  Read 0 has first interval
-    //  Read 1 has second interval
-    //  Read 2 has both intervals, but only sparse hits (meets lower threshold)
-    //  Read 3 has both intervals
-    //
-
-    uint32_t pnode_id = 3, prg_id = 3, read_id = 0, knode_id = 0;
-    string pnode_name = "three";
-    bool orientation(true);
-    MinimizerHitPtr mh;
-
-    // define localPRG
-    LocalPRG l3(prg_id, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
-    auto index = std::make_shared<Index>();
-    auto w = 1, k = 3;
-    l3.minimizer_sketch(index, w, k);
-
-    // define localpath and kmerpath
-    // corresponds to sequence (A) G C T CGG  (TAT)
-    vector<LocalNodePtr> lmp = {l3.prg.nodes[0],
-                                l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
-                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]
-    };
-
-    vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0],
-                               l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[4], l3.kmer_prg.nodes[8],
-                               l3.kmer_prg.nodes[13], l3.kmer_prg.nodes[15], l3.kmer_prg.nodes[17],
-                               l3.kmer_prg.nodes[19], l3.kmer_prg.nodes[20], l3.kmer_prg.nodes[21]
-    };
-
-    PanNodePtr pn = make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);
-    pn->kmer_prg = l3.kmer_prg;
-
-    uint32_t strand = 0;
-    uint32_t sample_id = 0;
-    pn->kmer_prg.setup_coverages(1);
-
-    pn->kmer_prg.nodes[0]->set_covg(10, strand, sample_id);
-    pn->kmer_prg.nodes[1]->set_covg(1, strand, sample_id);
-    pn->kmer_prg.nodes[4]->set_covg(1, strand, sample_id);
-    pn->kmer_prg.nodes[8]->set_covg(1, strand, sample_id);
-    pn->kmer_prg.nodes[13]->set_covg(10, strand, sample_id);
-    pn->kmer_prg.nodes[15]->set_covg(1, strand, sample_id);
-    pn->kmer_prg.nodes[17]->set_covg(1, strand, sample_id);
-    pn->kmer_prg.nodes[19]->set_covg(1, strand, sample_id);
-    pn->kmer_prg.nodes[20]->set_covg(10, strand, sample_id);
-    pn->kmer_prg.nodes[21]->set_covg(10, strand, sample_id);
-
-    set<MinimizerHitPtr, pComp> hits;
-
-    // READ 0
-    //covers first low covg site in interval [6,10]
-    read_id = 0;
-    PanReadPtr pr = make_shared<pangenome::Read>(read_id);
-
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[1]->path, knode_id, orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[4]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[8]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-
-    pr->add_hits(prg_id, hits);
-    pn->reads.insert(pr);
-    hits.clear();
-
-    // READ 1
-    // covers second site in interval [16,22]
-    read_id = 1;
-    pr = make_shared<pangenome::Read>(read_id);
-
-    // hits overlapping edges of path
-    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(16, 19), prg_id, pn->kmer_prg.nodes[15]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, pn->kmer_prg.nodes[17]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(18, 21), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(19, 22), prg_id, pn->kmer_prg.nodes[20]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-
-    pr->add_hits(prg_id, hits);
-    pn->reads.insert(pr);
-    hits.clear();
-
-    // READ 2
-    // has sparse hits
-    read_id = 2;
-    pr = make_shared<pangenome::Read>(read_id);
-
-    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, pn->kmer_prg.nodes[4]->path, knode_id, orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-
-    pr->add_hits(prg_id, hits);
-    pn->reads.insert(pr);
-    hits.clear();
-
-    // READ 3
-    // covers whole path in interval 2,12
-    read_id = 3;
-    pr = make_shared<pangenome::Read>(read_id);
-
-    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, pn->kmer_prg.nodes[1]->path, knode_id, orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, pn->kmer_prg.nodes[4]->path, knode_id, orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[15]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[17]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[20]->path, knode_id,
-                                   orientation);
-    hits.insert(mh);
-
-    pr->add_hits(prg_id, hits);
-    pn->reads.insert(pr);
-    hits.clear();
-
-    auto buff = 1, covg_thresh = 1, min_length = 1, min_num_hits = 1;
-
-    std::vector<std::shared_ptr<LocalPRG>> prgs;
-    prgs.emplace_back(std::make_shared<LocalPRG>(l3));
-    std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs;
-    denovo_discovery::add_pnode_coordinate_pairs(prgs, pairs, pn, lmp, kmp, buff, covg_thresh, min_length);
-
-    GeneIntervalInfo interval_info1{pn, Interval(1, 3), "AGCT"};
-    GeneIntervalInfo interval_info2{pn, Interval(6, 7), "CGGTAT"};
-
-    ReadCoordinate read_coord1{0, 6, 10, true};
-    ReadCoordinate read_coord2{1, 16, 22, true};
-    ReadCoordinate read_coord3{2, 3, 6, true};
-    ReadCoordinate read_coord4{2, 8, 11, true};
-    ReadCoordinate read_coord5{3, 2, 6, true};
-    ReadCoordinate read_coord6{3, 6, 12, true};
-
-    std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> expected_coords = {
-            std::make_pair(read_coord1, interval_info1),
-            std::make_pair(read_coord2, interval_info2),
-            std::make_pair(read_coord3, interval_info1),
-            std::make_pair(read_coord4, interval_info2),
-            std::make_pair(read_coord5, interval_info1),
-            std::make_pair(read_coord6, interval_info2)};
-    EXPECT_EQ(expected_coords.size(), pairs.size());
-    uint count = 0;
-    for (const auto &p : pairs) {
-        if (expected_coords.size() <= count)
-            break;
-        EXPECT_EQ(p.first, expected_coords[count].first);
-        EXPECT_EQ(p.second, expected_coords[count].second);
-        count++;
-    }
-}
+//TEST(ExtractReadsTest, add_pnode_coordinate_pairs_fewer_hits_needed) {
+//    //
+//    //  Read 0 has first interval
+//    //  Read 1 has second interval
+//    //  Read 2 has both intervals, but only sparse hits (meets lower threshold)
+//    //  Read 3 has both intervals
+//    //
+//
+//    uint32_t pnode_id = 3, prg_id = 3, read_id = 0, knode_id = 0;
+//    string pnode_name = "three";
+//    bool orientation(true);
+//    MinimizerHitPtr mh;
+//
+//    // define localPRG
+//    LocalPRG l3(prg_id, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+//    auto index = std::make_shared<Index>();
+//    auto w = 1, k = 3;
+//    l3.minimizer_sketch(index, w, k);
+//
+//    // define localpath and kmerpath
+//    // corresponds to sequence (A) G C T CGG  (TAT)
+//    vector<LocalNodePtr> lmp = {l3.prg.nodes[0],
+//                                l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4],
+//                                l3.prg.nodes[6], l3.prg.nodes[7], l3.prg.nodes[9]
+//    };
+//
+//    vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0],
+//                               l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[4], l3.kmer_prg.nodes[8],
+//                               l3.kmer_prg.nodes[13], l3.kmer_prg.nodes[15], l3.kmer_prg.nodes[17],
+//                               l3.kmer_prg.nodes[19], l3.kmer_prg.nodes[20], l3.kmer_prg.nodes[21]
+//    };
+//
+//    PanNodePtr pn = make_shared<pangenome::Node>(pnode_id, prg_id, pnode_name);
+//    pn->kmer_prg = l3.kmer_prg;
+//
+//    uint32_t strand = 0;
+//    uint32_t sample_id = 0;
+//    pn->kmer_prg.setup_coverages(1);
+//
+//    pn->kmer_prg.nodes[0]->set_covg(10, strand, sample_id);
+//    pn->kmer_prg.nodes[1]->set_covg(1, strand, sample_id);
+//    pn->kmer_prg.nodes[4]->set_covg(1, strand, sample_id);
+//    pn->kmer_prg.nodes[8]->set_covg(1, strand, sample_id);
+//    pn->kmer_prg.nodes[13]->set_covg(10, strand, sample_id);
+//    pn->kmer_prg.nodes[15]->set_covg(1, strand, sample_id);
+//    pn->kmer_prg.nodes[17]->set_covg(1, strand, sample_id);
+//    pn->kmer_prg.nodes[19]->set_covg(1, strand, sample_id);
+//    pn->kmer_prg.nodes[20]->set_covg(10, strand, sample_id);
+//    pn->kmer_prg.nodes[21]->set_covg(10, strand, sample_id);
+//
+//    set<MinimizerHitPtr, pComp> hits;
+//
+//    // READ 0
+//    //covers first low covg site in interval [6,10]
+//    read_id = 0;
+//    PanReadPtr pr = make_shared<pangenome::Read>(read_id);
+//
+//    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[1]->path, knode_id, orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[4]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[8]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//
+//    pr->add_hits(prg_id, hits);
+//    pn->reads.insert(pr);
+//    hits.clear();
+//
+//    // READ 1
+//    // covers second site in interval [16,22]
+//    read_id = 1;
+//    pr = make_shared<pangenome::Read>(read_id);
+//
+//    // hits overlapping edges of path
+//    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(16, 19), prg_id, pn->kmer_prg.nodes[15]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, pn->kmer_prg.nodes[17]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(18, 21), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(19, 22), prg_id, pn->kmer_prg.nodes[20]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//
+//    pr->add_hits(prg_id, hits);
+//    pn->reads.insert(pr);
+//    hits.clear();
+//
+//    // READ 2
+//    // has sparse hits
+//    read_id = 2;
+//    pr = make_shared<pangenome::Read>(read_id);
+//
+//    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, pn->kmer_prg.nodes[4]->path, knode_id, orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//
+//    pr->add_hits(prg_id, hits);
+//    pn->reads.insert(pr);
+//    hits.clear();
+//
+//    // READ 3
+//    // covers whole path in interval 2,12
+//    read_id = 3;
+//    pr = make_shared<pangenome::Read>(read_id);
+//
+//    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, pn->kmer_prg.nodes[1]->path, knode_id, orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, pn->kmer_prg.nodes[4]->path, knode_id, orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, pn->kmer_prg.nodes[8]->path, knode_id, orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, pn->kmer_prg.nodes[13]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, pn->kmer_prg.nodes[15]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, pn->kmer_prg.nodes[17]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, pn->kmer_prg.nodes[19]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, pn->kmer_prg.nodes[20]->path, knode_id,
+//                                   orientation);
+//    hits.insert(mh);
+//
+//    pr->add_hits(prg_id, hits);
+//    pn->reads.insert(pr);
+//    hits.clear();
+//
+//    auto buff = 1, covg_thresh = 1, min_length = 1, min_num_hits = 1;
+//
+//    std::vector<std::shared_ptr<LocalPRG>> prgs;
+//    prgs.emplace_back(std::make_shared<LocalPRG>(l3));
+//    std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pairs;
+//    denovo_discovery::add_pnode_coordinate_pairs(prgs, pairs, pn, lmp, kmp, buff, covg_thresh, min_length);
+//
+//    GeneIntervalInfo interval_info1{pn, Interval(1, 3), "AGCT"};
+//    GeneIntervalInfo interval_info2{pn, Interval(6, 7), "CGGTAT"};
+//
+//    ReadCoordinate read_coord1{0, 6, 10, true};
+//    ReadCoordinate read_coord2{1, 16, 22, true};
+//    ReadCoordinate read_coord3{2, 3, 6, true};
+//    ReadCoordinate read_coord4{2, 8, 11, true};
+//    ReadCoordinate read_coord5{3, 2, 6, true};
+//    ReadCoordinate read_coord6{3, 6, 12, true};
+//
+//    std::vector<std::pair<ReadCoordinate, GeneIntervalInfo>> expected_coords = {
+//            std::make_pair(read_coord1, interval_info1),
+//            std::make_pair(read_coord2, interval_info2),
+//            std::make_pair(read_coord3, interval_info1),
+//            std::make_pair(read_coord4, interval_info2),
+//            std::make_pair(read_coord5, interval_info1),
+//            std::make_pair(read_coord6, interval_info2)};
+//    EXPECT_EQ(expected_coords.size(), pairs.size());
+//    uint count = 0;
+//    for (const auto &p : pairs) {
+//        if (expected_coords.size() <= count)
+//            break;
+//        EXPECT_EQ(p.first, expected_coords[count].first);
+//        EXPECT_EQ(p.second, expected_coords[count].second);
+//        count++;
+//    }
+//}
 
 TEST(ExtractReadsTest, read_coordinate_ordering) {
     ReadCoordinate read_coord1{0, 6, 10, true};

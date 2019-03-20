@@ -4,8 +4,6 @@
 #include "interval.h"
 
 
-using namespace std;
-
 TEST(IntervalTest, create) {
     Interval i(0, 0);
     uint32_t j = 0;
@@ -29,14 +27,14 @@ TEST(IntervalTest, create) {
 
 TEST(IntervalTest, write) {
     Interval i(1, 5);
-    stringstream out;
+    std::stringstream out;
     out << i;
     EXPECT_EQ(out.str(), "[1, 5)");
 }
 
 TEST(IntervalTest, read) {
     Interval i(1, 5);
-    stringstream out;
+    std::stringstream out;
     out << i;
     Interval j;
     out >> j;
@@ -104,4 +102,16 @@ TEST(IntervalTest, lessthan) {
     EXPECT_EQ((l < k), false);
     EXPECT_EQ((i < l), false);
     EXPECT_EQ((j < l), false);
+}
+
+TEST(intervalEmptyTest, emptyIntervalReturnsTrue) {
+    const Interval empty_interval{};
+
+    EXPECT_TRUE(empty_interval.empty());
+}
+
+TEST(intervalEmptyTest, nonEmptyIntervalReturnsFalse) {
+    const Interval non_empty_interval{1, 4};
+
+    EXPECT_FALSE(non_empty_interval.empty());
 }

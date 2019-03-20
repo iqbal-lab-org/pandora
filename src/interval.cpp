@@ -51,3 +51,7 @@ bool Interval::operator<(const Interval &y) const {
     if (length > y.length) { return false; }
     return false;
 }
+
+bool Interval::empty() const {
+    return length == 0;
+}
