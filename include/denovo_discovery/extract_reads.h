@@ -33,6 +33,14 @@ struct PathComponents {
     prg::Path flank_left;
     prg::Path slice;
     prg::Path flank_right;
+
+    PathComponents();
+
+    PathComponents(prg::Path flank_left, prg::Path slice, prg::Path flank_right);
+
+    bool operator==(const PathComponents &other) const;
+
+    bool operator!=(const PathComponents &other) const;
 };
 
 std::vector<Interval>

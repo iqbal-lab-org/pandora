@@ -116,10 +116,7 @@ find_interval_in_localpath(const Interval &interval, const std::vector<LocalNode
     prg::Path right_flank_path;
     right_flank_path.initialize(flank_right_intervals);
 
-    PathComponents found_components;
-    found_components.flank_left = left_flank_path;
-    found_components.flank_right = right_flank_path;
-    found_components.slice = interval_as_path;
+    PathComponents found_components { left_flank_path, interval_as_path, right_flank_path };
 
     return found_components;
 }
@@ -299,4 +296,20 @@ std::map<GeneIntervalInfo, ReadPileup> denovo_discovery::collect_read_pileups(
         last_id = read_coordinate.id;
     }
     return pileup;
+}
+
+PathComponents::PathComponents() {}
+
+PathComponents::PathComponents(prg::Path flank_left, prg::Path slice, prg::Path flank_right) : flank_left(flank_left),
+                                                                                               slice(slice),
+                                                                                               flank_right(
+                                                                                                       flank_right) {}
+
+bool PathComponents::operator==(const PathComponents &other) const {
+    return (flank_left == other.flank_left and flank_right == other.flank_right and slice == other.slice);
+
+}
+
+bool PathComponents::operator!=(const PathComponents &other) const {
+    return (!(*this == other));
 }

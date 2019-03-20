@@ -13,12 +13,68 @@
 #include "pangenome/panread.h"
 
 
-typedef std::shared_ptr<pangenome::Node> PanNodePtr;
-typedef std::shared_ptr<pangenome::Read> PanReadPtr;
-
+using PanNodePtr =  std::shared_ptr<pangenome::Node>;
+using PanReadPtr = std::shared_ptr<pangenome::Read>;
 using std::make_pair;
 
-TEST(ExtractReadsTest, identify_regions_null) {
+
+TEST(PathComponentsEqivalenceOperatorTest, twoEqualPathComponents_returnTrue) {
+    prg::Path flank_left;
+    flank_left.initialize(Interval(0, 2));
+    prg::Path slice;
+    slice.initialize(Interval(3, 6));
+    prg::Path flank_right;
+    flank_right.initialize(Interval(7, 8));
+    const PathComponents x {flank_left, slice, flank_right};
+    const PathComponents y {flank_left, slice, flank_right};
+
+    EXPECT_TRUE(x == y);
+}
+
+TEST(PathComponentsEqivalenceOperatorTest, twoDifferentPathComponents_returnFalse) {
+    prg::Path flank_left_x;
+    flank_left_x.initialize(Interval(0, 1));
+    prg::Path flank_left_y;
+    flank_left_x.initialize(Interval(0, 2));
+    prg::Path slice;
+    slice.initialize(Interval(3, 6));
+    prg::Path flank_right;
+    flank_right.initialize(Interval(7, 8));
+    const PathComponents x {flank_left_x, slice, flank_right};
+    const PathComponents y {flank_left_y, slice, flank_right};
+
+    EXPECT_FALSE(x == y);
+}
+
+TEST(PathComponentsNonEqivalenceOperatorTest, twoEqualPathComponents_returnFalse) {
+    prg::Path flank_left;
+    flank_left.initialize(Interval(0, 2));
+    prg::Path slice;
+    slice.initialize(Interval(3, 6));
+    prg::Path flank_right;
+    flank_right.initialize(Interval(7, 8));
+    const PathComponents x {flank_left, slice, flank_right};
+    const PathComponents y {flank_left, slice, flank_right};
+
+    EXPECT_FALSE(x != y);
+}
+
+TEST(PathComponentsNonEqivalenceOperatorTest, twoDifferentPathComponents_returnTrue) {
+    prg::Path flank_left_x;
+    flank_left_x.initialize(Interval(0, 1));
+    prg::Path flank_left_y;
+    flank_left_x.initialize(Interval(0, 2));
+    prg::Path slice;
+    slice.initialize(Interval(3, 6));
+    prg::Path flank_right;
+    flank_right.initialize(Interval(7, 8));
+    const PathComponents x {flank_left_x, slice, flank_right};
+    const PathComponents y {flank_left_y, slice, flank_right};
+
+    EXPECT_TRUE(x != y);
+}
+
+TEST(IdentifyRegionsTest, identify_regions_null) {
     const auto min_len{5};
     const std::vector<uint32_t> covgs;
     auto low_covg_intervals{identify_regions(covgs, 0, min_len)};
@@ -29,7 +85,7 @@ TEST(ExtractReadsTest, identify_regions_null) {
     EXPECT_ITERABLE_EQ(std::vector<Interval>, expected_intervals, low_covg_intervals);
 }
 
-TEST(ExtractReadsTest, identify_regions_1) {
+TEST(IdentifyRegionsTest, identify_regions_1) {
     const std::vector<uint32_t> covgs({5, 6, 7, 5, 6, 6, 4, 4, 3, 5, 1, 1, 2, 3, 2, 4, 3});
     auto low_covg_intervals{identify_regions(covgs, 0, 0)};
     std::vector<Interval> expected_intervals;
@@ -52,7 +108,7 @@ TEST(ExtractReadsTest, identify_regions_1) {
     EXPECT_ITERABLE_EQ(std::vector<Interval>, expected_intervals, low_covg_intervals);
 }
 
-TEST(ExtractReadsTest, identify_regions_2) {
+TEST(IdentifyRegionsTest, identify_regions_2) {
     std::vector<uint32_t> covgs({5, 6, 7, 5, 6, 6, 4, 4, 3, 5, 1, 1, 2, 3, 2, 4, 3});
     auto low_covg_intervals{identify_regions(covgs, 2, 0)};
     std::vector<Interval> expected_intervals{Interval(10, 13), Interval(14, 15)};
@@ -75,7 +131,7 @@ TEST(ExtractReadsTest, identify_regions_2) {
     EXPECT_ITERABLE_EQ(std::vector<Interval>, expected_intervals, low_covg_intervals);
 }
 
-TEST(ExtractReadsTest, identify_regions_3) {
+TEST(IdentifyRegionsTest, identify_regions_3) {
     const std::vector<uint32_t> covgs({5, 6, 7, 5, 6, 6, 4, 4, 3, 5, 1, 1, 2, 3, 2, 4, 3});
     auto low_covg_intervals{identify_regions(covgs, 3, 0)};
     std::vector<Interval> expected_intervals{Interval(8, 9), Interval(10, 15), Interval(16, 17)};
@@ -106,7 +162,7 @@ TEST(ExtractReadsTest, identify_regions_3) {
     EXPECT_ITERABLE_EQ(std::vector<Interval>, expected_intervals, low_covg_intervals);
 }
 
-TEST(ExtractReadsTest, identify_regions_4) {
+TEST(IdentifyRegionsTest, identify_regions_4) {
     const std::vector<uint32_t> covgs({5, 6, 7, 5, 6, 6, 4, 4, 3, 5, 1, 1, 2, 3, 2, 4, 3});
     auto low_covg_intervals{identify_regions(covgs, 4, 0)};
     std::vector<Interval> expected_intervals{Interval(6, 9), Interval(10, 17)};
@@ -146,14 +202,13 @@ TEST(ExtractReadsTest, identify_regions_4) {
 }
 
 TEST(FindIntervalInLocalPathTest, emptyInterval_returnEmptyResult) {
-    const Interval interval;
+    const Interval interval; // fixme: need to implement an empty function on Interval
     LocalPRG local_prg{0, "test", "A"};
     const std::vector<LocalNodePtr> local_node_max_likelihood_path{local_prg.prg.nodes[0]};
 
     const auto actual {find_interval_in_localpath(interval, local_node_max_likelihood_path)};
     const PathComponents expected;
 
-    // fixme: need to implement == operator on PathComponents struct
     EXPECT_EQ(actual, expected);
 }
 
