@@ -68,8 +68,9 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
  * The associated util function is a recursive function that generates a path down to a "leaf" of the tree and
  * then comes back up to the next unexplored branching point.
  */
-DenovoPaths get_paths_between(const std::string &start_kmer, const std::string &end_kmer, DfsTree &tree, const Graph &graph,
-                        const uint32_t &max_path_length, const double &expected_coverage) {
+DenovoPaths
+get_paths_between(const std::string &start_kmer, const std::string &end_kmer, DfsTree &tree, const Graph &graph,
+                  const uint32_t &max_path_length, const double &expected_coverage) {
     BOOST_LOG_TRIVIAL(debug) << "Enumerating all paths in DFS tree between " << start_kmer << " and " << end_kmer;
     std::string path_accumulator { start_kmer.substr(0, start_kmer.length() - 1) };
     DenovoPaths paths_between_queries;
@@ -131,7 +132,8 @@ void build_paths_between(const std::string &start_kmer, const std::string &end_k
     }
 }
 
-void write_paths_to_fasta(const boost::filesystem::path &filepath, const DenovoPaths &paths, const uint32_t &line_width) {
+void
+write_paths_to_fasta(const boost::filesystem::path &filepath, const DenovoPaths &paths, const uint32_t &line_width) {
     const std::string header { ">" + filepath.stem().string() };
     fs::ofstream out_file(filepath);
 
@@ -262,6 +264,7 @@ std::string reverse_complement(const std::string &forward) {
     return reverse;
 }
 
+// todo: the generate kmers functions have a lot of overlapping code - refactor
 std::vector<std::string>
 generate_start_kmers(const std::string &sequence, const uint16_t &k, uint32_t num_to_generate) {
     const auto seq_len { sequence.length() };
@@ -282,11 +285,21 @@ generate_start_kmers(const std::string &sequence, const uint16_t &k, uint32_t nu
     return start_kmers;
 }
 
-std::vector<std::string> generate_end_kmers(const std::string &sequence, const uint16_t &k, uint32_t num_to_generate) {
-    std::string reverse_sequence;
-    for (const auto &base : sequence) {
-        reverse_sequence.insert(0, &base);
-    }
+std::vector<std::string> generate_end_kmers(const std::string &sequence, const uint32_t &k, uint32_t num_to_generate) {
+    const auto seq_len { sequence.length() };
+    const auto more_combinations_requested_than_possible { k + (num_to_generate - 1) > seq_len };
 
-    return generate_start_kmers(reverse_sequence, k, num_to_generate);
+    if (k > seq_len) {
+        std::vector<std::string> empty;
+        return empty;
+    } else if (more_combinations_requested_than_possible) {
+        num_to_generate = seq_len - k + 1;
+    }
+    std::vector<std::string> end_kmers;
+
+    for (uint32_t i = 0; i < num_to_generate; i++) {
+        end_kmers.emplace_back(sequence.substr(seq_len - k - i, k));
+    }
+    return end_kmers;
 }
+

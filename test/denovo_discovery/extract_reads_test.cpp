@@ -13,7 +13,7 @@
 #include "pangenome/panread.h"
 
 
-using PanNodePtr =  std::shared_ptr<pangenome::Node>;
+using PanNodePtr = std::shared_ptr<pangenome::Node>;
 using PanReadPtr = std::shared_ptr<pangenome::Read>;
 using std::make_pair;
 

@@ -360,34 +360,34 @@ int pandora_map(int argc, char *argv[]) {
         load_vcf_refs_file(vcf_refs_file, vcf_refs);
     }
 
-    for (auto c = pangraph->nodes.begin(); c != pangraph->nodes.end();) {
+    for (auto current_pan_node = pangraph->nodes.begin(); current_pan_node != pangraph->nodes.end();) {
         if (output_vcf
             and !vcf_refs_file.empty()
-            and vcf_refs.find(prgs[c->second->prg_id]->name) != vcf_refs.end()) {
-            vcf_ref = vcf_refs[prgs[c->second->prg_id]->name];
+            and vcf_refs.find(prgs[current_pan_node->second->prg_id]->name) != vcf_refs.end()) {
+            vcf_ref = vcf_refs[prgs[current_pan_node->second->prg_id]->name];
         }
 
-        prgs[c->second->prg_id]->add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp, w, bin, covg);
+        prgs[current_pan_node->second->prg_id]->add_consensus_path_to_fastaq(consensus_fq, current_pan_node->second, kmp, lmp, w, bin, covg);
 
         if (kmp.empty()) {
-            c = pangraph->remove_node(c->second);
+            current_pan_node = pangraph->remove_node(current_pan_node->second);
             continue;
         }
 
         if (output_kg) {
-            c->second->kmer_prg.save(outdir + "/kmer_graphs/" + c->second->get_name() + ".kg.gfa",
-                                     prgs[c->second->prg_id]);
+            current_pan_node->second->kmer_prg.save(outdir + "/kmer_graphs/" + current_pan_node->second->get_name() + ".kg.gfa",
+                                     prgs[current_pan_node->second->prg_id]);
         }
 
         if (output_vcf) {
-            prgs[c->second->prg_id]->add_variants_to_vcf(master_vcf, c->second, vcf_ref, kmp, lmp, min_kmer_covg);
+            prgs[current_pan_node->second->prg_id]->add_variants_to_vcf(master_vcf, current_pan_node->second, vcf_ref, kmp, lmp, min_kmer_covg);
         }
 
         if (discover_denovo) {
             const auto padding_size{denovo_kmer_size * (uint_least16_t)2};
-            denovo_discovery::add_pnode_coordinate_pairs(prgs, pangraph_coordinate_pairs, c->second, lmp, kmp, padding_size);
+            denovo_discovery::add_pnode_coordinate_pairs(prgs, pangraph_coordinate_pairs, current_pan_node->second, lmp, kmp, padding_size);
         }
-        ++c;
+        ++current_pan_node;
     }
     consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
     if (output_vcf)

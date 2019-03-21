@@ -59,6 +59,6 @@ void remove_graph_file();
 
 std::vector<std::string> generate_start_kmers(const std::string &sequence, const uint16_t &k, uint32_t num_to_generate);
 
-std::vector<std::string> generate_end_kmers(const std::string &sequence, const uint16_t &k, uint32_t num_to_generate);
+std::vector<std::string> generate_end_kmers(const std::string &sequence, const uint32_t &k, uint32_t num_to_generate);
 
 #endif //PANDORA_LOCAL_ASSEMBLY_H

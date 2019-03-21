@@ -14,10 +14,6 @@ denovo_discovery::find_candidates(const std::set<std::pair<ReadCoordinate, GeneI
                                   const std::string &reads_filepath, const fs::path &output_directory,
                                   const double &error_rate, const uint32_t &local_assembly_kmer_size) {
 
-    if (not fs::exists(output_directory)) {
-        fs::create_directories(output_directory);
-    }
-
     const auto pileups { denovo_discovery::collect_read_pileups(candidate_coordinates, reads_filepath) };
     for (const auto &pileup : pileups) {
         const auto &sequences { pileup.second };

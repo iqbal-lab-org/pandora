@@ -302,7 +302,7 @@ std::map<GeneIntervalInfo, ReadPileup> denovo_discovery::collect_read_pileups(
             sequence = rev_complement(sequence);
         }
 
-        pileup[interval_info].emplace_back(sequence);
+        pileup[interval_info].push_back(sequence);
         last_id = read_coordinate.id;
     }
     return pileup;

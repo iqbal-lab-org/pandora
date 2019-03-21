@@ -12,10 +12,8 @@ const uint32_t g_test_max_path = 50;
 
 
 TEST(GetNodeFromGraph, LowestKmerOfNode_KmerFoundInGraphAndNeighbour) {
-    Graph graph = Graph::create(
-            new BankStrings("AATGTCAGG", NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
+    Graph graph = Graph::create(new BankStrings("AATGTCAGG", NULL), "-kmer-size %d -abundance-min 1 -verbose 0",
+                                g_test_kmer_size);
     auto kmer = "AATGT";
     Node real_node;
     bool found;
@@ -36,10 +34,8 @@ TEST(GetNodeFromGraph, LowestKmerOfNode_KmerFoundInGraphAndNeighbour) {
 
 
 TEST(GetNodeFromGraph, HighestKmerOfNode_KmerFoundInGraph) {
-    Graph graph = Graph::create(
-            new BankStrings("AATGTCAGG", NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
+    Graph graph = Graph::create(new BankStrings("AATGTCAGG", NULL), "-kmer-size %d -abundance-min 1 -verbose 0",
+                                g_test_kmer_size);
     auto kmer = "ACATT";
 
     Node node;
@@ -55,12 +51,10 @@ TEST(GetNodeFromGraph, HighestKmerOfNode_KmerFoundInGraph) {
 
 
 TEST(GetNodeFromGraph, HighestKmerOfNode_KmerFoundInGraphAndNeighbour) {
-    Graph graph = Graph::create(
-            new BankStrings("TCGTTGTCACT", NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
+    Graph graph = Graph::create(new BankStrings("TCGTTGTCACT", NULL), "-kmer-size %d -abundance-min 1 -verbose 0",
+                                g_test_kmer_size);
 
-    const auto kmer{"TCGTT"};
+    const auto kmer { "TCGTT" };
 
     Node node;
     bool found;
@@ -73,10 +67,10 @@ TEST(GetNodeFromGraph, HighestKmerOfNode_KmerFoundInGraphAndNeighbour) {
 
     EXPECT_EQ(expected, result);
 
-    const auto expected_neighbour{"CGTTG"};
+    const auto expected_neighbour { "CGTTG" };
 
     GraphVector<Node> neighbours = graph.successors(node);
-    const auto result_neighbour{graph.toString(neighbours[0])};
+    const auto result_neighbour { graph.toString(neighbours[0]) };
 
     EXPECT_EQ(result_neighbour, expected_neighbour);
 
@@ -85,12 +79,10 @@ TEST(GetNodeFromGraph, HighestKmerOfNode_KmerFoundInGraphAndNeighbour) {
 
 
 TEST(GetNodeFromGraph, LowestKmerOfStartNode_KmerFoundInGraphButNotNeighbourOfStart) {
-    Graph graph = Graph::create(
-            new BankStrings("TCGTTGTCACT", NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
+    Graph graph = Graph::create(new BankStrings("TCGTTGTCACT", NULL), "-kmer-size %d -abundance-min 1 -verbose 0",
+                                g_test_kmer_size);
 
-    const auto kmer{"AACGA"};
+    const auto kmer { "AACGA" };
 
     Node node;
     bool found;
@@ -103,10 +95,10 @@ TEST(GetNodeFromGraph, LowestKmerOfStartNode_KmerFoundInGraphButNotNeighbourOfSt
 
     EXPECT_EQ(expected, result);
 
-    const auto expected_neighbour{"CGTTG"};
+    const auto expected_neighbour { "CGTTG" };
 
     GraphVector<Node> neighbours = graph.successors(node);
-    const auto result_neighbour{graph.toString(neighbours[0])};
+    const auto result_neighbour { graph.toString(neighbours[0]) };
 
     EXPECT_NE(result_neighbour, expected_neighbour);  // NE = not equal
 
@@ -115,12 +107,10 @@ TEST(GetNodeFromGraph, LowestKmerOfStartNode_KmerFoundInGraphButNotNeighbourOfSt
 
 
 TEST(GetNodeFromGraph, RevcompKmerOfInitialSeq_KmerFoundInGraphAndCorrectNeighbourFound) {
-    Graph graph = Graph::create(
-            new BankStrings("TCGTTGTCACT", NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
+    Graph graph = Graph::create(new BankStrings("TCGTTGTCACT", NULL), "-kmer-size %d -abundance-min 1 -verbose 0",
+                                g_test_kmer_size);
 
-    const auto kmer{"TGACA"};
+    const auto kmer { "TGACA" };
 
     Node node;
     bool found;
@@ -133,10 +123,10 @@ TEST(GetNodeFromGraph, RevcompKmerOfInitialSeq_KmerFoundInGraphAndCorrectNeighbo
 
     EXPECT_EQ(expected, result);
 
-    const auto expected_neighbour{"GACAA"};
+    const auto expected_neighbour { "GACAA" };
 
     GraphVector<Node> neighbours = graph.successors(node);
-    const auto result_neighbour{graph.toString(neighbours[0])};
+    const auto result_neighbour { graph.toString(neighbours[0]) };
 
     EXPECT_EQ(result_neighbour, expected_neighbour);
 
@@ -145,10 +135,8 @@ TEST(GetNodeFromGraph, RevcompKmerOfInitialSeq_KmerFoundInGraphAndCorrectNeighbo
 
 
 TEST(GetNodeFromGraph, NonExistentKmer_NotFoundInGraphAndNodeEmpty) {
-    Graph graph = Graph::create(
-            new BankStrings("AATGTCAGG", NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
+    Graph graph = Graph::create(new BankStrings("AATGTCAGG", NULL), "-kmer-size %d -abundance-min 1 -verbose 0",
+                                g_test_kmer_size);
     auto kmer = "ACTGT";
 
     Node node;
@@ -164,15 +152,12 @@ TEST(GetNodeFromGraph, NonExistentKmer_NotFoundInGraphAndNodeEmpty) {
 
 
 TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
-    const std::string s1{"AATGTAAGG"};
-    const std::string s2{"AATGTCAGG"};
-    const std::string s3{"AATGTTAGG"};
-    std::vector<std::string> seqs = {s1, s2, s3};
+    const std::string s1 { "AATGTAAGG" };
+    const std::string s2 { "AATGTCAGG" };
+    const std::string s3 { "AATGTTAGG" };
+    std::vector<std::string> seqs = { s1, s2, s3 };
 
-    Graph graph = Graph::create(
-            new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
+    Graph graph = Graph::create(new BankStrings(seqs), "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size);
 
     Node start_node;
     bool found;
@@ -180,7 +165,7 @@ TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
 
     auto tree = DFS(start_node, graph);
 
-    const auto end_kmer{"AGG"};
+    const auto end_kmer { "AGG" };
     auto result = get_paths_between("AATGT", end_kmer, tree, graph, g_test_max_path);
 
     DenovoPaths expected_seqs(seqs.begin(), seqs.end());
@@ -190,14 +175,12 @@ TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
 
 
 TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
-    const auto seq{"ATGCAG"};
-    const auto start_kmer{"ATGCA"};
-    const auto end_kmer{"TGCAG"};
+    const auto seq { "ATGCAG" };
+    const auto start_kmer { "ATGCA" };
+    const auto end_kmer { "TGCAG" };
 
-    const Graph graph = Graph::create(
-            new BankStrings(seq, NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
+    const Graph graph = Graph::create(new BankStrings(seq, NULL), "-kmer-size %d -abundance-min 1 -verbose 0",
+                                      g_test_kmer_size);
 
     Node start_node;
     bool found;
@@ -213,14 +196,12 @@ TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
 
 
 TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
-    const auto seq{"ATGCAGTACA"};
-    const auto start_kmer{"ATGCA"};
-    const auto end_kmer{"GTACA"};
+    const auto seq { "ATGCAGTACA" };
+    const auto start_kmer { "ATGCA" };
+    const auto end_kmer { "GTACA" };
 
-    const Graph graph = Graph::create(
-            new BankStrings(seq, NULL),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
+    const Graph graph = Graph::create(new BankStrings(seq, NULL), "-kmer-size %d -abundance-min 1 -verbose 0",
+                                      g_test_kmer_size);
 
     Node start_node;
     bool found;
@@ -245,16 +226,14 @@ TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
 }
 
 TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
-    const auto seq1{"ATGCAG"};
-    const auto seq2{"ATGCAG"};
-    std::vector<std::string> seqs = {seq1, seq2};
-    const auto start_kmer{"ATGCA"};
-    const auto end_kmer{"TGCAG"};
+    const auto seq1 { "ATGCAG" };
+    const auto seq2 { "ATGCAG" };
+    std::vector<std::string> seqs = { seq1, seq2 };
+    const auto start_kmer { "ATGCA" };
+    const auto end_kmer { "TGCAG" };
 
-    const Graph graph = Graph::create(
-            new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
+    const Graph graph = Graph::create(new BankStrings(seqs), "-kmer-size %d -abundance-min 1 -verbose 0",
+                                      g_test_kmer_size);
 
     Node start_node;
     bool found;
@@ -269,16 +248,14 @@ TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
 }
 
 TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
-    const std::string seq1{"ATGCAGTACAA"};
-    const std::string seq2{"ATGCATTACAA"};
-    std::vector<std::string> seqs = {seq1, seq2};
-    const auto start_kmer{"ATGCA"};
-    const auto end_kmer{"TACAA"};
+    const std::string seq1 { "ATGCAGTACAA" };
+    const std::string seq2 { "ATGCATTACAA" };
+    std::vector<std::string> seqs = { seq1, seq2 };
+    const auto start_kmer { "ATGCA" };
+    const auto end_kmer { "TACAA" };
 
-    const Graph graph = Graph::create(
-            new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
+    const Graph graph = Graph::create(new BankStrings(seqs), "-kmer-size %d -abundance-min 1 -verbose 0",
+                                      g_test_kmer_size);
 
     Node start_node;
     bool found;
@@ -303,17 +280,15 @@ TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
 
 
 TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
-    const std::string seq1{"ATGCAGTACAA"};
-    const std::string seq2{"ATGCATTACAA"};
-    const std::string seq3{"ATGCACTACAA"};
-    std::vector<std::string> seqs = {seq1, seq2, seq3};
-    const auto start_kmer{"ATGCA"};
-    const auto end_kmer{"TACAA"};
+    const std::string seq1 { "ATGCAGTACAA" };
+    const std::string seq2 { "ATGCATTACAA" };
+    const std::string seq3 { "ATGCACTACAA" };
+    std::vector<std::string> seqs = { seq1, seq2, seq3 };
+    const auto start_kmer { "ATGCA" };
+    const auto end_kmer { "TACAA" };
 
-    const Graph graph = Graph::create(
-            new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
+    const Graph graph = Graph::create(new BankStrings(seqs), "-kmer-size %d -abundance-min 1 -verbose 0",
+                                      g_test_kmer_size);
 
     Node start_node;
     bool found;
@@ -340,16 +315,14 @@ TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
 
 
 TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
-    const std::string seq1{"TTGGTCATCCCATTATG"};
-    const std::string seq2{"TTGGTGATCCCGTTATG"};
-    std::vector<std::string> seqs = {seq1, seq2};
-    const auto start_kmer{"TTGGT"};
-    const auto end_kmer{"TTATG"};
+    const std::string seq1 { "TTGGTCATCCCATTATG" };
+    const std::string seq2 { "TTGGTGATCCCGTTATG" };
+    std::vector<std::string> seqs = { seq1, seq2 };
+    const auto start_kmer { "TTGGT" };
+    const auto end_kmer { "TTATG" };
 
-    const Graph graph = Graph::create(
-            new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
+    const Graph graph = Graph::create(new BankStrings(seqs), "-kmer-size %d -abundance-min 1 -verbose 0",
+                                      g_test_kmer_size);
 
     Node start_node;
     bool found;
@@ -359,11 +332,7 @@ TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     // add other expected paths due to variants
-    std::vector<std::string> expected_seqs = {
-            seq1, seq2,
-            "TTGGTGATCCCATTATG",
-            "TTGGTCATCCCGTTATG"
-    };
+    std::vector<std::string> expected_seqs = { seq1, seq2, "TTGGTGATCCCATTATG", "TTGGTCATCCCGTTATG" };
 
     std::sort(result.begin(), result.end());
     std::sort(expected_seqs.begin(), expected_seqs.end());
@@ -375,17 +344,15 @@ TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
 
 
 TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKmers) {
-    const std::string seq1{"ATGTG"};
-    const std::string seq2{"TGTGC"};
-    const std::string seq3{"TGCAC"};
-    std::vector<std::string> seqs = {seq1, seq2, seq3};
-    const auto start_kmer{"ATGTG"};
-    const auto end_kmer{"GTGCA"};
+    const std::string seq1 { "ATGTG" };
+    const std::string seq2 { "TGTGC" };
+    const std::string seq3 { "TGCAC" };
+    std::vector<std::string> seqs = { seq1, seq2, seq3 };
+    const auto start_kmer { "ATGTG" };
+    const auto end_kmer { "GTGCA" };
 
-    const Graph graph = Graph::create(
-            new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
+    const Graph graph = Graph::create(new BankStrings(seqs), "-kmer-size %d -abundance-min 1 -verbose 0",
+                                      g_test_kmer_size);
 
     Node start_node;
     bool found;
@@ -404,16 +371,14 @@ TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKm
 }
 
 TEST(DFSTest, SimpleCycle_ReturnPathsOfLengthsUpToMaxPathLengthCycling) {
-    const std::string seq1{"ATATATATA"};
-    const std::string seq2{"TATAT"};
-    std::vector<std::string> seqs = {seq1, seq2};
-    const auto start_kmer{"ATATA"};
-    const auto end_kmer{"TATAT"};
+    const std::string seq1 { "ATATATATA" };
+    const std::string seq2 { "TATAT" };
+    std::vector<std::string> seqs = { seq1, seq2 };
+    const auto start_kmer { "ATATA" };
+    const auto end_kmer { "TATAT" };
 
-    const Graph graph = Graph::create(
-            new BankStrings(seqs),
-            "-kmer-size %d -abundance-min 1 -verbose 0", g_test_kmer_size
-    );
+    const Graph graph = Graph::create(new BankStrings(seqs), "-kmer-size %d -abundance-min 1 -verbose 0",
+                                      g_test_kmer_size);
 
     Node start_node;
     bool found;
@@ -464,7 +429,7 @@ TEST(FastaWriter, ReadsShorterThanLineWidth_OneReadPerLine) {
     const fs::path filepath = "TEST.fa";
     unsigned long line_width = 90;
 
-    DenovoPaths reads = {"ATGATGTTTTTTTTTTCGCATGCAT", "TGCATGCATGCACACACACACACAGCA"};
+    DenovoPaths reads = { "ATGATGTTTTTTTTTTCGCATGCAT", "TGCATGCATGCACACACACACACAGCA" };
 
     write_paths_to_fasta(filepath, reads, line_width);
 
@@ -491,10 +456,10 @@ TEST(FastaWriter, ReadsShorterThanLineWidth_OneReadPerLine) {
 
 
 TEST(FastaWriter, ReadsLongerThanLineWidth_ReadSpreadEvenlyOnLines) {
-    const fs::path filepath{"TEST.fa"};
-    uint32_t line_width{10};
+    const fs::path filepath { "TEST.fa" };
+    uint32_t line_width { 10 };
 
-    DenovoPaths reads = {"ATGATGTTTTTTTTTTCGCATGCAT", "TGCATGCATGCACACACACACACAGCA"};
+    DenovoPaths reads = { "ATGATGTTTTTTTTTTCGCATGCAT", "TGCATGCATGCACACACACACACAGCA" };
 
     write_paths_to_fasta(filepath, reads, line_width);
 
@@ -553,21 +518,18 @@ TEST(ReverseComplement, Palindrome_ReturnCompliment) {
 
 
 TEST(GraphCleaning, simpleTip_remove) {
-    const int kmer_size{21};
-    const std::vector<std::string> sequences{
+    const int kmer_size { 21 };
+    const std::vector<std::string> sequences {
             //>works well for k=21; part of genome10K.fasta
             "CATCGATGCGAGACGCCTGTCGCGGGGAATTGTGGGGCGGACCACGCTCTGGCTAACGAGCTACCGTTTCCTTTAACCTGCCAGACGGTGACCAGGGCCGTTCGGCGTTGCATCGAGCGGTGTCGCTAGCGCAATGCGCAAGATTTTGACATTTACAAGGCAACATTGCAGCGTCCGATGGTCCGGTGGCCTCCAGATAGTGTCCAGTCGCTCTAACTGTATGGAGACCATAGGCATTTACCTTATTCTCATCGCCACGCCCCAAGATCTTTAGGACCCAGCATTCCTTTAACCACTAACATAACGCGTGTCATCTAGTTCAACAACC",
             "TGTCATCTAGTTCAACAACCAAAAAAA", //>that's the tip
             "TGTCATCTAGTTCAACAACCGTTATGCCGTCCGACTCTTGCGCTCGGATGTCCGCAATGGGTTATCCCTATGTTCCGGTAATCTCTCATCTACTAAGCGCCCTAAAGGTCGTATGGTTGGAGGGCGGTTACACACCCTTAAGTACCGAACGATAGAGCACCCGTCTAGGAGGGCGTGCAGGGTCTCCCGCTAGCTAATGGTCACGGCCTCTCTGGGAAAGCTGAACAACGGATGATACCCATACTGCCACTCCAGTACCTGGGCCGCGTGTTGTACGCTGTGTATCTTGAGAGCGTTTCCAGCAGATAGAACAGGATCACATGTACATG" //>remaining part
     };
-    Graph graph = Graph::create(
-            new BankStrings(sequences),
-            "-kmer-size %d -abundance-min 1 -verbose 0", kmer_size
-    );
+    Graph graph = Graph::create(new BankStrings(sequences), "-kmer-size %d -abundance-min 1 -verbose 0", kmer_size);
     do_graph_clean(graph);
 
-    unsigned int num_non_deleted_nodes{0};
-    unsigned int num_nodes{0};
+    unsigned int num_non_deleted_nodes { 0 };
+    unsigned int num_nodes { 0 };
 
     GraphIterator<Node> iterNodes = graph.iterator();
     for (iterNodes.first(); !iterNodes.isDone(); iterNodes.next()) {
@@ -586,245 +548,235 @@ TEST(GraphCleaning, simpleTip_remove) {
 
 
 TEST(GenerateStartKmers, GenerateOneKmer_ReturnFirstKCharacters) {
-    const std::string sequence{"ACGTGCGATGCAT"};
-    const auto k{4};
-    const auto n{1};
+    const std::string sequence { "ACGTGCGATGCAT" };
+    const auto k { 4 };
+    const auto n { 1 };
 
-    const auto result{generate_start_kmers(sequence, k, n)};
-    const std::vector<std::string> expected{"ACGT"};
+    const auto result { generate_start_kmers(sequence, k, n) };
+    const std::vector<std::string> expected { "ACGT" };
 
     EXPECT_EQ(result, expected);
 }
 
 
 TEST(GenerateStartKmers, GenerateTwoKmers_ReturnFirstTwoKmers) {
-    const std::string sequence{"ACGTGCGATGCAT"};
-    const auto k{4};
-    const auto n{2};
+    const std::string sequence { "ACGTGCGATGCAT" };
+    const auto k { 4 };
+    const auto n { 2 };
 
-    const auto result{generate_start_kmers(sequence, k, n)};
-    const std::vector<std::string> expected{"ACGT", "CGTG"};
+    const auto result { generate_start_kmers(sequence, k, n) };
+    const std::vector<std::string> expected { "ACGT", "CGTG" };
 
     EXPECT_EQ(result, expected);
 }
 
 
 TEST(GenerateStartKmers, GenerateMaxPossibleNumKmers_ReturnWholeSeqAsKmers) {
-    const std::string sequence{"ACGTGCGA"};
-    const auto k{4};
-    const auto n{5};
+    const std::string sequence { "ACGTGCGA" };
+    const auto k { 4 };
+    const auto n { 5 };
 
-    const auto result{generate_start_kmers(sequence, k, n)};
-    const std::vector<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
+    const auto result { generate_start_kmers(sequence, k, n) };
+    const std::vector<std::string> expected { "ACGT", "CGTG", "GTGC", "TGCG", "GCGA" };
 
     EXPECT_EQ(result, expected);
 }
 
 
 TEST(GenerateStartKmers, GenerateTooManyKmers_ReturnWholeSeqAsKmers) {
-    const std::string sequence{"ACGTGCGA"};
-    const auto k{4};
-    const auto n{20};
+    const std::string sequence { "ACGTGCGA" };
+    const auto k { 4 };
+    const auto n { 20 };
 
-    const auto result{generate_start_kmers(sequence, k, n)};
-    const std::vector<std::string> expected{"ACGT", "CGTG", "GTGC", "TGCG", "GCGA"};
+    const auto result { generate_start_kmers(sequence, k, n) };
+    const std::vector<std::string> expected { "ACGT", "CGTG", "GTGC", "TGCG", "GCGA" };
 
     EXPECT_EQ(result, expected);
 }
 
 
 TEST(GenerateStartKmers, GenerateNoKmers_ReturnEmptySet) {
-    const std::string sequence{"ACGTACGT"};
-    const auto k{4};
-    const auto n{0};
+    const std::string sequence { "ACGTACGT" };
+    const auto k { 4 };
+    const auto n { 0 };
 
-    const auto result{generate_start_kmers(sequence, k, n)};
+    const auto result { generate_start_kmers(sequence, k, n) };
     const std::vector<std::string> expected;
 
     EXPECT_EQ(result, expected);
 }
 
 
-TEST(GenerateEndKmers, GenerateOneKmer_ReturnLastKCharacters) {
-    const std::string sequence{"ACGTGCGATGCAT"};
-    const auto k{4};
-    const auto n{1};
+TEST(GenerateEndKmers, GenerateOneKmerReturnLastKCharacters) {
+    const std::string sequence { "ACGTGCGATGCAT" };
+    const auto k { 4 };
+    const auto n { 1 };
 
-    const auto result{generate_end_kmers(sequence, k, n)};
-    const std::vector<std::string> expected{"GCAT"};
+    const auto actual { generate_end_kmers(sequence, k, n) };
+    const std::vector<std::string> expected { "GCAT" };
 
-    EXPECT_EQ(result, expected);
+    EXPECT_EQ(expected, actual);
 }
 
 
 TEST(GenerateEndKmers, GenerateTwoKmers_ReturnLastTwoKmers) {
-    const std::string sequence{"ACGTGCGATGCAT"};
-    const auto k{4};
-    const auto n{2};
+    const std::string sequence { "ACGTGCGATGCAT" };
+    const auto k { 4 };
+    const auto n { 2 };
 
-    const auto result{generate_end_kmers(sequence, k, n)};
-    const std::vector<std::string> expected{"GCAT", "TGCA"};
+    const auto result { generate_end_kmers(sequence, k, n) };
+    const std::vector<std::string> expected { "GCAT", "TGCA" };
 
     EXPECT_EQ(result, expected);
 }
 
 
 TEST(GenerateEndKmers, GenerateMaxPossibleNumKmers_ReturnWholeSeqAsKmers) {
-    const std::string sequence{"ACGTGCGA"};
-    const auto k{4};
-    const auto n{5};
+    const std::string sequence { "ACGTGCGA" };
+    const auto k { 4 };
+    const auto n { 5 };
 
-    const auto result{generate_end_kmers(sequence, k, n)};
-    const std::vector<std::string> expected{"GCGA", "TGCG", "GTGC", "CGTG", "ACGT"};
+    const auto result { generate_end_kmers(sequence, k, n) };
+    const std::vector<std::string> expected { "GCGA", "TGCG", "GTGC", "CGTG", "ACGT" };
 
     EXPECT_EQ(result, expected);
 }
 
 
 TEST(GenerateEndKmers, GenerateTooManyKmers_ReturnWholeSeqAsKmers) {
-    const std::string sequence{"ACGTGCGA"};
-    const auto k{4};
-    const auto n{20};
+    const std::string sequence { "ACGTGCGA" };
+    const auto k { 4 };
+    const auto n { 20 };
 
-    const auto result{generate_end_kmers(sequence, k, n)};
-    const std::vector<std::string> expected{"GCGA", "TGCG", "GTGC", "CGTG", "ACGT"};
+    const auto result { generate_end_kmers(sequence, k, n) };
+    const std::vector<std::string> expected { "GCGA", "TGCG", "GTGC", "CGTG", "ACGT" };
 
     EXPECT_EQ(result, expected);
 }
 
 
 TEST(GenerateEndKmers, SequenceHasRepeatKmers_ReturnOnlyUniqueKmers) {
-    const std::string sequence{"ACGTACGT"};
-    const auto k{4};
-    const auto n{20};
+    const std::string sequence { "ACGTACGT" };
+    const auto k { 4 };
+    const auto n { 20 };
 
-    const auto result{generate_end_kmers(sequence, k, n)};
-    const std::vector<std::string> expected{"ACGT", "TACG", "GTAC", "CGTA", "ACGT"};
+    const auto result { generate_end_kmers(sequence, k, n) };
+    const std::vector<std::string> expected { "ACGT", "TACG", "GTAC", "CGTA", "ACGT" };
 
     EXPECT_EQ(result, expected);
 }
 
 
 TEST(GenerateEndKmers, GenerateNoKmers_ReturnEmptySet) {
-    const std::string sequence{"ACGTACGT"};
-    const auto k{4};
-    const auto n{0};
+    const std::string sequence { "ACGTACGT" };
+    const auto k { 4 };
+    const auto n { 0 };
 
-    const auto result{generate_end_kmers(sequence, k, n)};
+    const auto result { generate_end_kmers(sequence, k, n) };
     const std::vector<std::string> expected;
 
     EXPECT_EQ(result, expected);
 }
 
-TEST(LocalAssemblyTest, twoIdenticalReads_onePath) {
-    const fs::path out_path{"../../test/test_cases/local_assembly1_paths.fa"};
-    const int k{9};
-    const int max_len{30};
-    const std::vector<std::string> sequences{
-        "ATGCGCTGAGAGTCGGACT",
-        "ATGCGCTGAGAGTCGGACT"
-    };
+TEST(LocalAssemblyTest, twoIdenticalReadsReturnOnePath) {
+    const fs::path out_path { "../../test/test_cases/local_assembly1_paths.fa" };
+    const int k { 9 };
+    const int max_len { 30 };
+    const std::vector<std::string> sequences { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT" };
 
-    local_assembly(sequences, "ATGCGCTGAGAGTCGGACT", "", "", out_path, k, 1, max_len);
+    local_assembly(sequences, "ATGCGCTGAGAGTCGGACT", "", "", out_path, k, max_len);
 
-    const std::unordered_set<std::string> expected{"ATGCGCTGAGAGTCGGACT"};
-    std::unordered_set<std::string> result;
+    const std::unordered_set<std::string> expected { "ATGCGCTGAGAGTCGGACT" };
+    std::unordered_set<std::string> actual;
 
     // read paths file  back in and store all paths in set
-    fs::ifstream fin{out_path.string()};
+    fs::ifstream fin { out_path.string() };
     std::string line;
 
     while (std::getline(fin, line)) {
         if (line[0] == '>') {
             line.clear();
         } else {
-            result.insert(line);
+            actual.insert(line);
             line.clear();
         }
     }
 
-    EXPECT_EQ(result, expected);
+    EXPECT_EQ(actual, expected);
     fs::remove(out_path);
 }
 
-TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgOne_twoPaths) {
-    const fs::path out_path{"../../test/test_cases/local_assembly2_paths.fa"};
-    const auto k{9};
-    const auto max_len{30};
-    const auto min_coverage{1};
-    const bool clean{false};
-    const std::vector<std::string> sequences{
-            "ATGCGCTGAGAGTCGGACT",
-            "ATGCGCTGAGAGTCGGACT",
-            "ATGCGCTGATAGTCGGACT"
-    };
+TEST(LocalAssemblyTest, twoIdenticalOneUniqueReadsMinCovgOneReturnsTwoPaths) {
+    const fs::path out_path { "../../test/test_cases/local_assembly2_paths.fa" };
+    const auto k { 9 };
+    const auto max_len { 30 };
+    const auto min_coverage { 1 };
+    const auto expected_coverage { 1 };
+    const bool clean { false };
+    const std::vector<std::string> sequences { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT", "ATGCGCTGATAGTCGGACT" };
 
-    local_assembly(sequences, "ATGCGCTGAGAGTCGGACT", "", "", out_path, k, 1, max_len, clean, min_coverage);
+    local_assembly(sequences, "ATGCGCTGAGAGTCGGACT", "", "", out_path, k, max_len, expected_coverage, clean,
+                   min_coverage);
 
-    const std::unordered_set<std::string> expected{"ATGCGCTGATAGTCGGACT", "ATGCGCTGAGAGTCGGACT"};
-    std::unordered_set<std::string> result;
+    const std::unordered_set<std::string> expected { "ATGCGCTGATAGTCGGACT", "ATGCGCTGAGAGTCGGACT" };
+    std::unordered_set<std::string> actual;
 
     // read paths file  back in and store all paths in set
-    fs::ifstream fin{out_path};
+    fs::ifstream fin { out_path };
     std::string line;
 
     while (std::getline(fin, line)) {
         if (line[0] == '>') {
             line.clear();
         } else {
-            result.insert(line);
+            actual.insert(line);
             line.clear();
         }
     }
 
-    EXPECT_EQ(result, expected);
+    EXPECT_EQ(actual, expected);
     fs::remove(out_path);
 }
 
 
-TEST(LocalAssemblyTest, twoIdenticalOneSoloReadsMinCovgTwo_onePath) {
-    const fs::path out_path{"../../test/test_cases/local_assembly2_paths.fa"};
-    const auto k{9};
-    const auto max_len{30};
-    const auto min_coverage{2};
-    const bool clean{false};
-    const std::vector<std::string> sequences{
-            "ATGCGCTGAGAGTCGGACT",
-            "ATGCGCTGAGAGTCGGACT",
-            "ATGCGCTGATAGTCGGACT"
-    };
+TEST(LocalAssemblyTest, twoIdenticalOneUniqueReadsMinCovgTwoReturnsOnePath) {
+    const fs::path out_path { "../../test/test_cases/local_assembly2_paths.fa" };
+    const auto k { 9 };
+    const auto max_len { 30 };
+    const auto min_coverage { 2 };
+    const auto expected_coverage { 1 };
+    const bool clean { false };
+    const std::vector<std::string> sequences { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT", "ATGCGCTGATAGTCGGACT" };
 
-    local_assembly(sequences, "ATGCGCTGAGAGTCGGACT", "", "", out_path, k, 1, max_len, clean, min_coverage);
+    local_assembly(sequences, "ATGCGCTGAGAGTCGGACT", "", "", out_path, k, max_len, expected_coverage, clean,
+                   min_coverage);
 
-    const std::unordered_set<std::string> expected{"ATGCGCTGAGAGTCGGACT"};
-    std::unordered_set<std::string> result;
+    const std::unordered_set<std::string> expected { "ATGCGCTGAGAGTCGGACT" };
+    std::unordered_set<std::string> actual;
 
     // read paths file  back in and store all paths in set
-    fs::ifstream fin{out_path};
+    fs::ifstream fin { out_path };
     std::string line;
 
     while (std::getline(fin, line)) {
         if (line[0] == '>') {
             line.clear();
         } else {
-            result.insert(line);
+            actual.insert(line);
             line.clear();
         }
     }
 
-    EXPECT_EQ(result, expected);
+    EXPECT_EQ(actual, expected);
     fs::remove(out_path);
 }
 
 
 TEST(QueryAbundance, oneKmer_ReturnOne) {
-    Graph graph = Graph::create(
-            new BankStrings("AATGT", NULL),
-            "-kmer-size 5 -abundance-min 1 -verbose 0"
-    );
+    Graph graph = Graph::create(new BankStrings("AATGT", NULL), "-kmer-size 5 -abundance-min 1 -verbose 0");
     auto kmer = "AATGT";
-    auto node{graph.buildNode(kmer)};
-    const auto covg{graph.queryAbundance(node)};
+    auto node { graph.buildNode(kmer) };
+    const auto covg { graph.queryAbundance(node) };
 
     // We get the neighbors of this real node and make sure it has the neighbours we expect
     EXPECT_EQ(covg, 1);
@@ -833,13 +785,10 @@ TEST(QueryAbundance, oneKmer_ReturnOne) {
 
 
 TEST(QueryAbundance, twoKmers_ReturnTwo) {
-    Graph graph = Graph::create(
-            new BankStrings("AATGTAATGT", NULL),
-            "-kmer-size 5 -abundance-min 1 -verbose 0"
-    );
+    Graph graph = Graph::create(new BankStrings("AATGTAATGT", NULL), "-kmer-size 5 -abundance-min 1 -verbose 0");
     auto kmer = "AATGT";
-    auto node{graph.buildNode(kmer)};
-    const auto covg{graph.queryAbundance(node)};
+    auto node { graph.buildNode(kmer) };
+    const auto covg { graph.queryAbundance(node) };
 
     // We get the neighbors of this real node and make sure it has the neighbours we expect
     EXPECT_EQ(covg, 2);
@@ -848,13 +797,10 @@ TEST(QueryAbundance, twoKmers_ReturnTwo) {
 
 
 TEST(QueryAbundance, fakeKmer_ReturnZero) {
-    Graph graph = Graph::create(
-            new BankStrings("AATGT", NULL),
-            "-kmer-size 5 -abundance-min 1 -verbose 0"
-    );
+    Graph graph = Graph::create(new BankStrings("AATGT", NULL), "-kmer-size 5 -abundance-min 1 -verbose 0");
     auto kmer = "CCCCC";
-    auto node{graph.buildNode(kmer)};
-    const auto covg{graph.queryAbundance(node)};
+    auto node { graph.buildNode(kmer) };
+    const auto covg { graph.queryAbundance(node) };
 
     // We get the neighbors of this real node and make sure it has the neighbours we expect
     EXPECT_EQ(covg, 0);
