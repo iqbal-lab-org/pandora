@@ -10,9 +10,10 @@
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer &m, const MiniRecord *r) : read_id(i), read_start_position(
-        m.pos.start), prg_id(r->prg_id), prg_path(r->path), knode_id(r->knode_id), strand((m.strand == r->strand)) {
-    //cout << *m << " + " << *r << " = " << "(" << read_id << ", " << read_start_position << ", " << prg_id << ", " << prg_path << ", " << strand << ")" << endl;
+
+MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer &m, const MiniRecord *r)
+        : read_id(i), read_start_position(m.pos.start), prg_id(r->prg_id), prg_path(r->path), kmer_node_id(r->knode_id),
+          is_forward((m.strand == r->strand)) {
     assert(m.pos.length == prg_path.length());
     assert(read_id < std::numeric_limits<uint32_t>::max() ||
            assert_msg("Variable sizes too small to handle this number of reads"));
@@ -20,20 +21,25 @@ MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer &m, const MiniRecor
            assert_msg("Variable sizes too small to handle this number of prgs"));
 };
 
-MinimizerHit::MinimizerHit(const uint32_t i, const Interval j, const uint32_t k, const prg::Path p, const uint32_t n,
-                           const bool c) : read_id(i), read_start_position(j.start), prg_id(k), knode_id(n), strand(c) {
-    prg_path.initialize(p.path);
-    assert(j.length == prg_path.length());
+
+MinimizerHit::MinimizerHit(const uint32_t read_id, const Interval read_interval, const uint32_t prg_id,
+                           const prg::Path prg_path, const uint32_t kmer_node_id, const bool is_forward)
+        : read_id(read_id), read_start_position(read_interval.start), prg_id(prg_id), kmer_node_id(kmer_node_id),
+          is_forward(is_forward) {
+    this->prg_path.initialize(prg_path.path);
+    assert(read_interval.length == this->prg_path.length());
 };
+
 
 bool MinimizerHit::operator==(const MinimizerHit &y) const {
     if (read_id != y.read_id) { return false; }
     if (!(read_start_position == y.read_start_position)) { return false; }
     if (prg_id != y.prg_id) { return false; }
     if (!(prg_path == y.prg_path)) { return false; }
-    if (strand != y.strand) { return false; }
+    if (is_forward != y.is_forward) { return false; }
     return true;
 }
+
 
 bool MinimizerHit::operator<(const MinimizerHit &y) const {
     // first by the read they map too - should all be the same
@@ -45,8 +51,8 @@ bool MinimizerHit::operator<(const MinimizerHit &y) const {
     if (y.prg_id < prg_id) { return false; }
 
     // then by direction NB this bias is in favour of the forward direction
-    if (strand < y.strand) { return false; }
-    if (y.strand < strand) { return true; }
+    if (is_forward < y.is_forward) { return false; }
+    if (y.is_forward < is_forward) { return true; }
 
     // then by position on query string
     if (read_start_position < y.read_start_position) { return true; }
@@ -59,9 +65,10 @@ bool MinimizerHit::operator<(const MinimizerHit &y) const {
     return false;
 }
 
+
 std::ostream &operator<<(std::ostream &out, MinimizerHit const &m) {
     out << "(" << m.read_id << ", " << m.read_start_position << ", " << m.prg_id << ", " << m.prg_path << ", "
-        << m.strand << ", " << m.knode_id << ")";
+        << m.is_forward << ", " << m.kmer_node_id << ")";
     return out;
 }
 

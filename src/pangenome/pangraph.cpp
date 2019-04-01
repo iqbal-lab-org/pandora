@@ -110,7 +110,7 @@ void record_read_info(ReadPtr &read_ptr,
                       std::set<MinimizerHitPtr, pComp> &cluster) {
     assert(read_ptr != nullptr);
     read_ptr->add_hits(node_ptr->node_id, cluster);
-    bool orientation = !cluster.empty() and (*cluster.begin())->strand;
+    bool orientation = !cluster.empty() and (*cluster.begin())->is_forward;
     if (read_ptr->nodes.empty()
         or node_ptr != read_ptr->nodes.back()
         or orientation != read_ptr->node_orientations.back()
@@ -359,19 +359,19 @@ void pangenome::Graph::add_hits_to_kmergraphs(const std::vector<std::shared_ptr<
             for (const auto &minimizer_hit_ptr: read.hits.at(pangraph_node.prg_id)) {
                 const auto &minimizer_hit = *minimizer_hit_ptr;
 
-                assert(minimizer_hit.knode_id < pangraph_node.kmer_prg.nodes.size());
-                assert(pangraph_node.kmer_prg.nodes[minimizer_hit.knode_id] != nullptr);
+                assert(minimizer_hit.kmer_node_id < pangraph_node.kmer_prg.nodes.size());
+                assert(pangraph_node.kmer_prg.nodes[minimizer_hit.kmer_node_id] != nullptr);
 
-                auto &kmer_node = *pangraph_node.kmer_prg.nodes[minimizer_hit.knode_id];
-                kmer_node.increment_covg(minimizer_hit.strand, sample_id);
+                auto &kmer_node = *pangraph_node.kmer_prg.nodes[minimizer_hit.kmer_node_id];
+                kmer_node.increment_covg(minimizer_hit.is_forward, sample_id);
 
-                if (pangraph_node.kmer_prg.nodes[minimizer_hit.knode_id]->get_covg(minimizer_hit.strand, sample_id) ==
+                if (pangraph_node.kmer_prg.nodes[minimizer_hit.kmer_node_id]->get_covg(minimizer_hit.is_forward, sample_id) ==
                     1000) {
                     BOOST_LOG_TRIVIAL(debug) << "Adding hit " << minimizer_hit
                                              << " resulted in high coverage on node "
-                                             << *pangraph_node.kmer_prg.nodes[minimizer_hit.knode_id];
+                                             << *pangraph_node.kmer_prg.nodes[minimizer_hit.kmer_node_id];
                 }
-                num_hits[minimizer_hit.strand] += 1;
+                num_hits[minimizer_hit.is_forward] += 1;
             }
         }
 

@@ -469,83 +469,168 @@ TEST(FindIntervalInLocalPathTest, intervalSpanningPastEndOfPrgReturnsUpToEndOfPr
 }
 
 
-TEST(ExtractReadsTest, hits_inside_path) {
-    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
-    const std::vector<LocalNodePtr> lmp {//l3.prg.nodes[0],
-            l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6], l3.prg.nodes[7]//, l3.prg.nodes[9]
-    };
-    // A G C T CGG  TAT
-    std::set<MinimizerHitPtr, pComp_path> hits, expected_subset;
-    uint32_t read_id = 0, prg_id = 3, knode_id = 0;
-    const Interval read_interval(1, 4);
-    const bool orientation(true);
-    std::deque<Interval> d { Interval(7, 8), Interval(10, 12) };
-    prg::Path prg_path;
-    prg_path.initialize(d);
-
-    // hit not on path
-    MinimizerHitPtr mh(make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, orientation));
-    hits.insert(mh);
-
-    // hits branching from path
-    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
-    prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, orientation);
-    hits.insert(mh);
-    d = { Interval(29, 30), Interval(31, 33) };
-    prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, orientation);
-    hits.insert(mh);
-
-    // hits overlapping edges of path
-    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
-    prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, orientation);
-    hits.insert(mh);
-    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
-    prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, orientation);
-    hits.insert(mh);
-    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
-    prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, orientation);
-    hits.insert(mh);
-
-    // hits on path
-    d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
-    prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, orientation);
-    hits.insert(mh);
-    expected_subset.insert(mh);
-    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
-    prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, orientation);
-    hits.insert(mh);
-    expected_subset.insert(mh);
-    d = { Interval(16, 17), Interval(27, 29) };
-    prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, orientation);
-    hits.insert(mh);
-    expected_subset.insert(mh);
-    d = { Interval(27, 30) };
-    prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, orientation);
-    hits.insert(mh);
-    expected_subset.insert(mh);
-
-    // hit against different prg
-    // hit different orientation
+TEST(FindHitsInsidePathTest, emptyPathReturnsEmpty) {
+    std::set<MinimizerHitPtr, pComp_path> hits;
     prg::Path local_path;
-    for (const auto &node : lmp) {
+
+    const auto actual { find_hits_inside_path(hits, local_path) };
+    const std::set<MinimizerHitPtr, pComp_path> expected;
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(FindHitsInsidePathTest, hitNotOnPathReturnEmpty) {
+    LocalPRG local_prg(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+    const std::vector<LocalNodePtr> local_max_likelihood_path { local_prg.prg.nodes[1], local_prg.prg.nodes[2],
+                                                                local_prg.prg.nodes[4], local_prg.prg.nodes[6],
+                                                                local_prg.prg.nodes[7] };  // A G C T CGG  TAT
+    const uint32_t read_id { 0 };
+    const uint32_t prg_id { 3 };
+    const uint32_t knode_id { 0 };
+    const Interval read_interval { 1, 4 };
+    const bool is_forward { true };
+    std::deque<Interval> intervals { Interval(7, 8), Interval(10, 12) };
+    prg::Path prg_path;
+    prg_path.initialize(intervals);
+
+    std::set<MinimizerHitPtr, pComp_path> read_hits;
+    MinimizerHitPtr minimizer_hit {
+            std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    read_hits.insert(minimizer_hit);
+    prg::Path local_path;
+    for (const auto &node : local_max_likelihood_path) {
         local_path.add_end_interval(node->pos);
     }
-    std::set<MinimizerHitPtr, pComp_path> found_subset { find_hits_inside_path(hits, local_path) };
-    EXPECT_EQ(expected_subset.size(), found_subset.size());
-    auto jt = found_subset.begin();
-    for (auto it = expected_subset.begin(); it != expected_subset.end() and jt != found_subset.end(); ++it) {
-        EXPECT_EQ(**jt, **it);
-        ++jt;
+    std::set<MinimizerHitPtr, pComp_path> actual { find_hits_inside_path(read_hits, local_path) };
+    std::set<MinimizerHitPtr, pComp_path> expected;
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(FindHitsInsidePathTest, hitsBranchingFromPathReturnEmpty) {
+    LocalPRG local_prg(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+    const std::vector<LocalNodePtr> local_max_likelihood_path { local_prg.prg.nodes[1], local_prg.prg.nodes[2],
+                                                                local_prg.prg.nodes[4], local_prg.prg.nodes[6],
+                                                                local_prg.prg.nodes[7] };  // A G C T CGG  TAT
+    const uint32_t read_id { 0 };
+    const uint32_t prg_id { 3 };
+    const uint32_t knode_id { 0 };
+    const Interval read_interval { 1, 4 };
+    const bool is_forward { true };
+    std::deque<Interval> intervals { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg::Path prg_path;
+    prg_path.initialize(intervals);
+
+    std::set<MinimizerHitPtr, pComp_path> read_hits;
+    MinimizerHitPtr minimizer_hit {
+            std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    read_hits.insert(minimizer_hit);
+
+    intervals = { Interval(29, 30), Interval(31, 33) };
+    prg_path.initialize(intervals);
+    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    read_hits.insert(minimizer_hit);
+
+    prg::Path local_path;
+    for (const auto &node : local_max_likelihood_path) {
+        local_path.add_end_interval(node->pos);
     }
+    std::set<MinimizerHitPtr, pComp_path> actual { find_hits_inside_path(read_hits, local_path) };
+    std::set<MinimizerHitPtr, pComp_path> expected;
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(FindHitsInsidePathTest, hitsOverlappingEdgesOfPathReturnEmpty) {
+    LocalPRG local_prg(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+    const std::vector<LocalNodePtr> local_max_likelihood_path { local_prg.prg.nodes[1], local_prg.prg.nodes[2],
+                                                                local_prg.prg.nodes[4], local_prg.prg.nodes[6],
+                                                                local_prg.prg.nodes[7] };  // A G C T CGG  TAT
+    const uint32_t read_id { 0 };
+    const uint32_t prg_id { 3 };
+    const uint32_t knode_id { 0 };
+    const Interval read_interval { 1, 4 };
+    const bool is_forward { true };
+    std::deque<Interval> intervals { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg::Path prg_path;
+    prg_path.initialize(intervals);
+
+    std::set<MinimizerHitPtr, pComp_path> read_hits;
+    MinimizerHitPtr minimizer_hit {
+            std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    read_hits.insert(minimizer_hit);
+
+    intervals = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(intervals);
+    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    read_hits.insert(minimizer_hit);
+
+    intervals = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(intervals);
+    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    read_hits.insert(minimizer_hit);
+
+    prg::Path local_path;
+    for (const auto &node : local_max_likelihood_path) {
+        local_path.add_end_interval(node->pos);
+    }
+    std::set<MinimizerHitPtr, pComp_path> actual { find_hits_inside_path(read_hits, local_path) };
+    std::set<MinimizerHitPtr, pComp_path> expected;
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(FindHitsInsidePathTest, hitsOnPathReturnCorrectHits) {
+    LocalPRG local_prg(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+    const std::vector<LocalNodePtr> local_max_likelihood_path { local_prg.prg.nodes[1], local_prg.prg.nodes[2],
+                                                                local_prg.prg.nodes[4], local_prg.prg.nodes[6],
+                                                                local_prg.prg.nodes[7] };  // A G C T CGG  TAT
+    const uint32_t read_id { 0 };
+    const uint32_t prg_id { 3 };
+    const uint32_t knode_id { 0 };
+    const Interval read_interval { 1, 4 };
+    const bool is_forward { true };
+    std::set<MinimizerHitPtr, pComp_path> expected;
+
+    std::deque<Interval> intervals { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
+    prg::Path prg_path;
+    prg_path.initialize(intervals);
+
+    std::set<MinimizerHitPtr, pComp_path> read_hits;
+    MinimizerHitPtr minimizer_hit {
+            std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    read_hits.insert(minimizer_hit);
+    expected.insert(minimizer_hit);
+
+    intervals = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(intervals);
+    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    read_hits.insert(minimizer_hit);
+    expected.insert(minimizer_hit);
+
+    intervals = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(intervals);
+    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    read_hits.insert(minimizer_hit);
+    expected.insert(minimizer_hit);
+
+    intervals = { Interval(27, 30) };
+    prg_path.initialize(intervals);
+    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    read_hits.insert(minimizer_hit);
+    expected.insert(minimizer_hit);
+
+    prg::Path local_path;
+    for (const auto &node : local_max_likelihood_path) {
+        local_path.add_end_interval(node->pos);
+    }
+    std::set<MinimizerHitPtr, pComp_path> actual { find_hits_inside_path(read_hits, local_path) };
+
+    EXPECT_EQ(actual, expected);
 }
 
 

@@ -96,7 +96,7 @@ void pangenome::Node::get_read_overlap_coordinates(std::vector<std::vector<uint3
                                                                        << " (the " << read_count << "th on this node)"
                                                                        << std::endl << "Found end " << end
                                                                        << " after found start " << start));
-        coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->strand};
+        coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->is_forward};
         read_overlap_coordinates.push_back(coordinate);
     }
 
@@ -188,7 +188,7 @@ pangenome::Node::get_read_overlap_coordinates(const prg::Path &local_path, const
 
         assert(end > start);
 
-        read_overlap_coordinates.emplace(current_read->id, start, end, (*read_hits_iter)->strand);
+        read_overlap_coordinates.emplace(current_read->id, start, end, (*read_hits_iter)->is_forward);
     }
     return read_overlap_coordinates;
 }

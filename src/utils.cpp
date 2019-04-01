@@ -205,7 +205,7 @@ void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &cl
          mh_current != minimizer_hits->hits.end(); ++mh_current) {
         if ((*mh_current)->read_id != (*mh_previous)->read_id or
             (*mh_current)->prg_id != (*mh_previous)->prg_id or
-            (*mh_current)->strand != (*mh_previous)->strand or
+            (*mh_current)->is_forward != (*mh_previous)->is_forward or
             (abs((int) (*mh_current)->read_start_position - (int) (*mh_previous)->read_start_position)) > max_diff) {
             // keep clusters which cover at least 1/2 the expected number of minihits
             length_based_threshold = std::min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
@@ -268,7 +268,7 @@ void filter_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &cl
         }*/
         if (((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) && // if on same read and either
             ((((*(*c_current).begin())->prg_id == (*(*c_previous).begin())->prg_id) && // same prg, different strand
-              ((*(*c_current).begin())->strand != (*(*c_previous).begin())->strand)) or // or cluster is contained
+              ((*(*c_current).begin())->is_forward != (*(*c_previous).begin())->is_forward)) or // or cluster is contained
              ((*--(*c_current).end())->read_start_position <=
               (*--(*c_previous).end())->read_start_position))) // i.e. not least one hit outside overlap
             // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, but could also impose no more than 2k hits in overlap
