@@ -20,7 +20,7 @@ MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer &m, const MiniRecor
            assert_msg("Variable sizes too small to handle this number of prgs"));
 };
 
-MinimizerHit::MinimizerHit(const uint32_t i, const Interval j, const uint32_t k, const Path p, const uint32_t n,
+MinimizerHit::MinimizerHit(const uint32_t i, const Interval j, const uint32_t k, const prg::Path p, const uint32_t n,
                            const bool c) : read_id(i), read_start_position(j.start), prg_id(k), knode_id(n), strand(c) {
     prg_path.initialize(p.path);
     assert(j.length == prg_path.length());

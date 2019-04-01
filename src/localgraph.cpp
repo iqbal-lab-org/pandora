@@ -128,16 +128,16 @@ void LocalGraph::read_gfa(const std::string &filepath) {
     }
 }
 
-std::vector<Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos, const uint32_t &len) const {
+std::vector<prg::Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos, const uint32_t &len) const {
     //cout << "walking graph from node " << node_id << " pos " << pos << " for length " << len << endl;
     // walks from position pos in node node for length len bases
     assert((nodes.at(node_id)->pos.start <= pos && nodes.at(node_id)->pos.get_end() >= pos) || assert_msg(
             nodes.at(node_id)->pos.start << "<=" << pos << " and " << nodes.at(node_id)->pos.get_end() << ">="
                                          << pos)); // if this fails, pos given lies on a different node
-    std::vector<Path> return_paths, walk_paths;
+    std::vector<prg::Path> return_paths, walk_paths;
     return_paths.reserve(20);
     walk_paths.reserve(20);
-    Path p, p2;
+    prg::Path p, p2;
     std::deque<Interval> d;
 
     //cout << "pos+len: " << pos+len << " nodes.at(node_id)->pos.get_end(): " << nodes.at(node_id)->pos.get_end() << endl;
@@ -172,16 +172,16 @@ std::vector<Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos,
     return return_paths;
 }
 
-std::vector<Path> LocalGraph::walk_back(const uint32_t &node_id, const uint32_t &pos, const uint32_t &len) const {
+std::vector<prg::Path> LocalGraph::walk_back(const uint32_t &node_id, const uint32_t &pos, const uint32_t &len) const {
     //cout << "start walking back from " << pos << " in node " << node_id << " for length " << len << endl;
     // walks from position pos in node back through prg for length len bases
     assert((nodes.at(node_id)->pos.start <= pos && nodes.at(node_id)->pos.get_end() >= pos) || assert_msg(
             nodes.at(node_id)->pos.start << "<=" << pos << " and " << nodes.at(node_id)->pos.get_end() << ">="
                                          << pos)); // if this fails, pos given lies on a different node
-    std::vector<Path> return_paths, walk_paths;
+    std::vector<prg::Path> return_paths, walk_paths;
     return_paths.reserve(20);
     walk_paths.reserve(20);
-    Path p, p2;
+    prg::Path p, p2;
     std::deque<Interval> d;
 
     if (nodes.at(node_id)->pos.start + len <= pos) {

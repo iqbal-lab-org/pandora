@@ -163,7 +163,7 @@ TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
     bool found;
     std::tie(start_node, found) = get_node("AATGT", graph);
 
-    auto tree = DFS(start_node, graph);
+    auto tree = depth_first_search_from(start_node, graph);
 
     const auto end_kmer { "AGG" };
     auto result = get_paths_between("AATGT", end_kmer, tree, graph, g_test_max_path);
@@ -174,7 +174,7 @@ TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
 }
 
 
-TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
+TEST(DepthFirstSearchFromTest, SimpleGraphTwoNodesReturnSeqPassedIn) {
     const auto seq { "ATGCAG" };
     const auto start_kmer { "ATGCA" };
     const auto end_kmer { "TGCAG" };
@@ -186,7 +186,7 @@ TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
-    auto tree = DFS(start_node, graph);
+    auto tree = depth_first_search_from(start_node, graph);
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     EXPECT_EQ(result.size(), 1);
@@ -195,7 +195,7 @@ TEST(DFSTest, SimpleGraphTwoNodes_ReturnSeqPassedIn) {
 }
 
 
-TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
+TEST(DepthFirstSearchFromTest, SimpleGraphSixNodesReturnSeqPassedIn) {
     const auto seq { "ATGCAGTACA" };
     const auto start_kmer { "ATGCA" };
     const auto end_kmer { "GTACA" };
@@ -207,7 +207,7 @@ TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
-    auto tree = DFS(start_node, graph);
+    auto tree = depth_first_search_from(start_node, graph);
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     bool original_seq_found = false;
@@ -225,7 +225,8 @@ TEST(DFSTest, SimpleGraphSixNodes_ReturnSeqPassedIn) {
     remove_graph_file();
 }
 
-TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
+
+TEST(DepthFirstSearchFromTest, TwoReadsSameSequenceReturnOneSequence) {
     const auto seq1 { "ATGCAG" };
     const auto seq2 { "ATGCAG" };
     std::vector<std::string> seqs = { seq1, seq2 };
@@ -239,7 +240,7 @@ TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
-    auto tree = DFS(start_node, graph);
+    auto tree = depth_first_search_from(start_node, graph);
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     EXPECT_EQ(result.size(), 1);
@@ -247,7 +248,8 @@ TEST(DFSTest, TwoReadsSameSequence_ReturnOneSequence) {
     remove_graph_file();
 }
 
-TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
+
+TEST(DepthFirstSearchFromTest, TwoReadsOneVariantReturnOriginalTwoSequences) {
     const std::string seq1 { "ATGCAGTACAA" };
     const std::string seq2 { "ATGCATTACAA" };
     std::vector<std::string> seqs = { seq1, seq2 };
@@ -261,7 +263,7 @@ TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
-    auto tree = DFS(start_node, graph);
+    auto tree = depth_first_search_from(start_node, graph);
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     int original_seq_found = 0;
@@ -279,7 +281,7 @@ TEST(DFSTest, TwoReadsOneVariant_ReturnOriginalTwoSequences) {
 }
 
 
-TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
+TEST(DepthFirstSearchFromTest, ThreeReadsTwoVariantsReturnOriginalSequences) {
     const std::string seq1 { "ATGCAGTACAA" };
     const std::string seq2 { "ATGCATTACAA" };
     const std::string seq3 { "ATGCACTACAA" };
@@ -294,7 +296,7 @@ TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
-    auto tree = DFS(start_node, graph);
+    auto tree = depth_first_search_from(start_node, graph);
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     int original_seq_found = 0;
@@ -314,7 +316,7 @@ TEST(DFSTest, ThreeReadsTwoVariants_ReturnOriginalSequences) {
 }
 
 
-TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
+TEST(DepthFirstSearchFromTest, TwoReadsTwoVariantsReturnOriginalTwoSequencesPlusTwoMosaics) {
     const std::string seq1 { "TTGGTCATCCCATTATG" };
     const std::string seq2 { "TTGGTGATCCCGTTATG" };
     std::vector<std::string> seqs = { seq1, seq2 };
@@ -328,7 +330,7 @@ TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
-    auto tree = DFS(start_node, graph);
+    auto tree = depth_first_search_from(start_node, graph);
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     // add other expected paths due to variants
@@ -343,7 +345,7 @@ TEST(DFSTest, TwoReadsTwoVariants_ReturnOriginalTwoSequencesPlusTwoMosaics) {
 }
 
 
-TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKmers) {
+TEST(DepthFirstSearchFromTest, ThreeReadsOneReverseComplimentReturnPathsForStrandOfStartAndEndKmers) {
     const std::string seq1 { "ATGTG" };
     const std::string seq2 { "TGTGC" };
     const std::string seq3 { "TGCAC" };
@@ -358,7 +360,7 @@ TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKm
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
-    auto tree = DFS(start_node, graph);
+    auto tree = depth_first_search_from(start_node, graph);
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     // add other expected paths due to variants
@@ -370,7 +372,8 @@ TEST(DFSTest, ThreeReadsOneReverseCompliment_ReturnPathsForStrandOfStartAndEndKm
 
 }
 
-TEST(DFSTest, SimpleCycle_ReturnPathsOfLengthsUpToMaxPathLengthCycling) {
+
+TEST(DepthFirstSearchFromTest, SimpleCycleReturnPathsOfLengthsUpToMaxPathLengthCycling) {
     const std::string seq1 { "ATATATATA" };
     const std::string seq2 { "TATAT" };
     std::vector<std::string> seqs = { seq1, seq2 };
@@ -384,7 +387,7 @@ TEST(DFSTest, SimpleCycle_ReturnPathsOfLengthsUpToMaxPathLengthCycling) {
     bool found;
     std::tie(start_node, found) = get_node(start_kmer, graph);
 
-    auto tree = DFS(start_node, graph);
+    auto tree = depth_first_search_from(start_node, graph);
     auto result = get_paths_between(start_kmer, end_kmer, tree, graph, g_test_max_path);
 
     const std::string min_expected_seq = "ATATAT";
@@ -401,91 +404,34 @@ TEST(DFSTest, SimpleCycle_ReturnPathsOfLengthsUpToMaxPathLengthCycling) {
 }
 
 
-TEST(endsWithTest, endsWith_ReturnTrue) {
+TEST(StringEndsWithTest, endsWithReturnTrue) {
     std::string test = "binary";
     std::string ending = "nary";
 
-    EXPECT_TRUE(ends_with(test, ending));
+    EXPECT_TRUE(string_ends_with(test, ending));
 }
 
 
-TEST(endsWithTest, doesNotHaveEnding_ReturnFalse) {
+TEST(StringEndsWithTest, doesNotHaveEndingReturnFalse) {
     std::string test = "tertiary";
     std::string ending = "nary";
 
-    EXPECT_FALSE(ends_with(test, ending));
+    EXPECT_FALSE(string_ends_with(test, ending));
 }
 
 
-TEST(endsWithTest, endingLongerThanQuery_ReturnFalse) {
+TEST(StringEndsWithTest, endingLongerThanQueryReturnFalse) {
     std::string test = "ry";
     std::string ending = "nary";
 
-    EXPECT_FALSE(ends_with(test, ending));
+    EXPECT_FALSE(string_ends_with(test, ending));
 }
 
 
-TEST(FastaWriter, ReadsShorterThanLineWidth_OneReadPerLine) {
-    const fs::path filepath = "TEST.fa";
-    unsigned long line_width = 90;
-
-    DenovoPaths reads = { "ATGATGTTTTTTTTTTCGCATGCAT", "TGCATGCATGCACACACACACACAGCA" };
-
-    write_paths_to_fasta(filepath, reads, line_width);
-
-    fs::ifstream in_file(filepath);
-
-    std::string line;
-
-    uint32_t path_counter = 1;
-    for (auto &read: reads) {
-        std::getline(in_file, line);
-        const std::string header = ">" + filepath.stem().string() + "_path" + std::to_string(path_counter);
-        EXPECT_EQ(line, header);
-
-        for (unsigned long i = 0; i < read.length(); i += line_width) {
-            std::getline(in_file, line);
-            EXPECT_EQ(line, read.substr(i, line_width));
-        }
-        path_counter++;
-    }
-
-    EXPECT_TRUE(in_file.peek() == std::ifstream::traits_type::eof());
-    EXPECT_TRUE(fs::remove(filepath));
-}
 
 
-TEST(FastaWriter, ReadsLongerThanLineWidth_ReadSpreadEvenlyOnLines) {
-    const fs::path filepath { "TEST.fa" };
-    uint32_t line_width { 10 };
 
-    DenovoPaths reads = { "ATGATGTTTTTTTTTTCGCATGCAT", "TGCATGCATGCACACACACACACAGCA" };
-
-    write_paths_to_fasta(filepath, reads, line_width);
-
-    fs::ifstream in_file(filepath);
-
-    std::string line;
-
-    uint32_t path_counter = 1;
-    for (auto &read: reads) {
-        std::getline(in_file, line);
-        const std::string header = ">" + filepath.stem().string() + "_path" + std::to_string(path_counter);
-        EXPECT_EQ(line, header);
-
-        for (unsigned long i = 0; i < read.length(); i += line_width) {
-            std::getline(in_file, line);
-            EXPECT_EQ(line, read.substr(i, line_width));
-        }
-        path_counter++;
-    }
-
-    EXPECT_TRUE(in_file.peek() == fs::ifstream::traits_type::eof());
-    EXPECT_TRUE(fs::remove(filepath));
-}
-
-
-TEST(ReverseComplement, SingleBase_ReturnCompliment) {
+TEST(ReverseComplementTest, SingleBaseReturnCompliment) {
     const auto seq = "A";
     const auto expected = "T";
     auto result = reverse_complement(seq);
@@ -493,7 +439,7 @@ TEST(ReverseComplement, SingleBase_ReturnCompliment) {
 }
 
 
-TEST(ReverseComplement, TwoBases_ReturnCompliment) {
+TEST(ReverseComplementTest, TwoBasesReturnCompliment) {
     const auto seq = "AA";
     const auto expected = "TT";
     auto result = reverse_complement(seq);
@@ -501,7 +447,7 @@ TEST(ReverseComplement, TwoBases_ReturnCompliment) {
 }
 
 
-TEST(ReverseComplement, AllBases_ReturnCompliment) {
+TEST(ReverseComplementTest, AllBasesReturnCompliment) {
     const auto seq = "ACTGCA";
     const auto expected = "TGCAGT";
     auto result = reverse_complement(seq);
@@ -509,7 +455,7 @@ TEST(ReverseComplement, AllBases_ReturnCompliment) {
 }
 
 
-TEST(ReverseComplement, Palindrome_ReturnCompliment) {
+TEST(ReverseComplementTest, PalindromeReturnCompliment) {
     const auto seq = "ACGT";
     const auto expected = "ACGT";
     auto result = reverse_complement(seq);
@@ -517,7 +463,7 @@ TEST(ReverseComplement, Palindrome_ReturnCompliment) {
 }
 
 
-TEST(GraphCleaning, simpleTip_remove) {
+TEST(GraphCleaningTest, simpleTipRemove) {
     const int kmer_size { 21 };
     const std::vector<std::string> sequences {
             //>works well for k=21; part of genome10K.fasta
@@ -547,7 +493,7 @@ TEST(GraphCleaning, simpleTip_remove) {
 }
 
 
-TEST(GenerateStartKmers, GenerateOneKmer_ReturnFirstKCharacters) {
+TEST(GenerateStartKmersTest, GenerateOneKmerReturnFirstKCharacters) {
     const std::string sequence { "ACGTGCGATGCAT" };
     const auto k { 4 };
     const auto n { 1 };
@@ -559,7 +505,7 @@ TEST(GenerateStartKmers, GenerateOneKmer_ReturnFirstKCharacters) {
 }
 
 
-TEST(GenerateStartKmers, GenerateTwoKmers_ReturnFirstTwoKmers) {
+TEST(GenerateStartKmersTest, GenerateTwoKmersReturnFirstTwoKmers) {
     const std::string sequence { "ACGTGCGATGCAT" };
     const auto k { 4 };
     const auto n { 2 };
@@ -571,7 +517,7 @@ TEST(GenerateStartKmers, GenerateTwoKmers_ReturnFirstTwoKmers) {
 }
 
 
-TEST(GenerateStartKmers, GenerateMaxPossibleNumKmers_ReturnWholeSeqAsKmers) {
+TEST(GenerateStartKmersTest, GenerateMaxPossibleNumKmersReturnWholeSeqAsKmers) {
     const std::string sequence { "ACGTGCGA" };
     const auto k { 4 };
     const auto n { 5 };
@@ -583,7 +529,7 @@ TEST(GenerateStartKmers, GenerateMaxPossibleNumKmers_ReturnWholeSeqAsKmers) {
 }
 
 
-TEST(GenerateStartKmers, GenerateTooManyKmers_ReturnWholeSeqAsKmers) {
+TEST(GenerateStartKmersTest, GenerateTooManyKmersReturnWholeSeqAsKmers) {
     const std::string sequence { "ACGTGCGA" };
     const auto k { 4 };
     const auto n { 20 };
@@ -595,7 +541,7 @@ TEST(GenerateStartKmers, GenerateTooManyKmers_ReturnWholeSeqAsKmers) {
 }
 
 
-TEST(GenerateStartKmers, GenerateNoKmers_ReturnEmptySet) {
+TEST(GenerateStartKmersTest, GenerateNoKmersReturnEmptySet) {
     const std::string sequence { "ACGTACGT" };
     const auto k { 4 };
     const auto n { 0 };
@@ -607,7 +553,7 @@ TEST(GenerateStartKmers, GenerateNoKmers_ReturnEmptySet) {
 }
 
 
-TEST(GenerateEndKmers, GenerateOneKmerReturnLastKCharacters) {
+TEST(GenerateEndKmersTest, GenerateOneKmerReturnLastKCharacters) {
     const std::string sequence { "ACGTGCGATGCAT" };
     const auto k { 4 };
     const auto n { 1 };
@@ -619,7 +565,7 @@ TEST(GenerateEndKmers, GenerateOneKmerReturnLastKCharacters) {
 }
 
 
-TEST(GenerateEndKmers, GenerateTwoKmers_ReturnLastTwoKmers) {
+TEST(GenerateEndKmersTest, GenerateTwoKmersReturnLastTwoKmers) {
     const std::string sequence { "ACGTGCGATGCAT" };
     const auto k { 4 };
     const auto n { 2 };
@@ -631,7 +577,7 @@ TEST(GenerateEndKmers, GenerateTwoKmers_ReturnLastTwoKmers) {
 }
 
 
-TEST(GenerateEndKmers, GenerateMaxPossibleNumKmers_ReturnWholeSeqAsKmers) {
+TEST(GenerateEndKmersTest, GenerateMaxPossibleNumKmersReturnWholeSeqAsKmers) {
     const std::string sequence { "ACGTGCGA" };
     const auto k { 4 };
     const auto n { 5 };
@@ -643,7 +589,7 @@ TEST(GenerateEndKmers, GenerateMaxPossibleNumKmers_ReturnWholeSeqAsKmers) {
 }
 
 
-TEST(GenerateEndKmers, GenerateTooManyKmers_ReturnWholeSeqAsKmers) {
+TEST(GenerateEndKmersTest, GenerateTooManyKmersReturnWholeSeqAsKmers) {
     const std::string sequence { "ACGTGCGA" };
     const auto k { 4 };
     const auto n { 20 };
@@ -655,7 +601,7 @@ TEST(GenerateEndKmers, GenerateTooManyKmers_ReturnWholeSeqAsKmers) {
 }
 
 
-TEST(GenerateEndKmers, SequenceHasRepeatKmers_ReturnOnlyUniqueKmers) {
+TEST(GenerateEndKmersTest, SequenceHasRepeatKmersReturnOnlyUniqueKmers) {
     const std::string sequence { "ACGTACGT" };
     const auto k { 4 };
     const auto n { 20 };
@@ -667,7 +613,7 @@ TEST(GenerateEndKmers, SequenceHasRepeatKmers_ReturnOnlyUniqueKmers) {
 }
 
 
-TEST(GenerateEndKmers, GenerateNoKmers_ReturnEmptySet) {
+TEST(GenerateEndKmersTest, GenerateNoKmersReturnEmptySet) {
     const std::string sequence { "ACGTACGT" };
     const auto k { 4 };
     const auto n { 0 };
@@ -676,99 +622,6 @@ TEST(GenerateEndKmers, GenerateNoKmers_ReturnEmptySet) {
     const std::vector<std::string> expected;
 
     EXPECT_EQ(result, expected);
-}
-
-TEST(LocalAssemblyTest, twoIdenticalReadsReturnOnePath) {
-    const fs::path out_path { "../../test/test_cases/local_assembly1_paths.fa" };
-    const int k { 9 };
-    const int max_len { 30 };
-    const std::vector<std::string> sequences { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT" };
-
-    local_assembly(sequences, "ATGCGCTGAGAGTCGGACT", "", "", out_path, k, max_len);
-
-    const std::unordered_set<std::string> expected { "ATGCGCTGAGAGTCGGACT" };
-    std::unordered_set<std::string> actual;
-
-    // read paths file  back in and store all paths in set
-    fs::ifstream fin { out_path.string() };
-    std::string line;
-
-    while (std::getline(fin, line)) {
-        if (line[0] == '>') {
-            line.clear();
-        } else {
-            actual.insert(line);
-            line.clear();
-        }
-    }
-
-    EXPECT_EQ(actual, expected);
-    fs::remove(out_path);
-}
-
-TEST(LocalAssemblyTest, twoIdenticalOneUniqueReadsMinCovgOneReturnsTwoPaths) {
-    const fs::path out_path { "../../test/test_cases/local_assembly2_paths.fa" };
-    const auto k { 9 };
-    const auto max_len { 30 };
-    const auto min_coverage { 1 };
-    const auto expected_coverage { 1 };
-    const bool clean { false };
-    const std::vector<std::string> sequences { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT", "ATGCGCTGATAGTCGGACT" };
-
-    local_assembly(sequences, "ATGCGCTGAGAGTCGGACT", "", "", out_path, k, max_len, expected_coverage, clean,
-                   min_coverage);
-
-    const std::unordered_set<std::string> expected { "ATGCGCTGATAGTCGGACT", "ATGCGCTGAGAGTCGGACT" };
-    std::unordered_set<std::string> actual;
-
-    // read paths file  back in and store all paths in set
-    fs::ifstream fin { out_path };
-    std::string line;
-
-    while (std::getline(fin, line)) {
-        if (line[0] == '>') {
-            line.clear();
-        } else {
-            actual.insert(line);
-            line.clear();
-        }
-    }
-
-    EXPECT_EQ(actual, expected);
-    fs::remove(out_path);
-}
-
-
-TEST(LocalAssemblyTest, twoIdenticalOneUniqueReadsMinCovgTwoReturnsOnePath) {
-    const fs::path out_path { "../../test/test_cases/local_assembly2_paths.fa" };
-    const auto k { 9 };
-    const auto max_len { 30 };
-    const auto min_coverage { 2 };
-    const auto expected_coverage { 1 };
-    const bool clean { false };
-    const std::vector<std::string> sequences { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT", "ATGCGCTGATAGTCGGACT" };
-
-    local_assembly(sequences, "ATGCGCTGAGAGTCGGACT", "", "", out_path, k, max_len, expected_coverage, clean,
-                   min_coverage);
-
-    const std::unordered_set<std::string> expected { "ATGCGCTGAGAGTCGGACT" };
-    std::unordered_set<std::string> actual;
-
-    // read paths file  back in and store all paths in set
-    fs::ifstream fin { out_path };
-    std::string line;
-
-    while (std::getline(fin, line)) {
-        if (line[0] == '>') {
-            line.clear();
-        } else {
-            actual.insert(line);
-            line.clear();
-        }
-    }
-
-    EXPECT_EQ(actual, expected);
-    fs::remove(out_path);
 }
 
 

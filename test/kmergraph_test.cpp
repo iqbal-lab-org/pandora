@@ -19,7 +19,7 @@ TEST(KmerGraphTest, add_node) {
     uint32_t sample_id = 0;
 
     deque<Interval> d = {Interval(0, 3)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     kg.add_node(p);
     uint j = 1;
@@ -70,7 +70,7 @@ TEST(KmerGraphTest, add_node_with_kh) {
     uint32_t sample_id = 0;
 
     deque<Interval> d = {Interval(0, 3)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     uint64_t kh = 469;
     kg.add_node_with_kh(p, kh);
@@ -94,7 +94,7 @@ TEST(KmerGraphTest, add_edge) {
     KmerGraph kg;
 
     deque<Interval> d = {Interval(0, 3)};
-    Path p1, p2, p3;
+    prg::Path p1, p2, p3;
     p1.initialize(d);
     auto n1 = kg.add_node(p1);
     d = {Interval(1, 4)};
@@ -134,7 +134,7 @@ TEST(KmerGraphTest, add_edge) {
 TEST(KmerGraphTest, clear) {
     KmerGraph kg;
     deque<Interval> d = {Interval(0, 3)};
-    Path p1, p2;
+    prg::Path p1, p2;
     p1.initialize(d);
     auto n1 = kg.add_node(p1);
     d = {Interval(1, 4)};
@@ -158,7 +158,7 @@ TEST(KmerGraphTest, clear) {
 TEST(KmerGraphTest, equals) {
     KmerGraph kg1, kg2;
     deque<Interval> d = {Interval(0, 3)};
-    Path p1, p2, p3;
+    prg::Path p1, p2, p3;
     p1.initialize(d);
     auto n1 = kg1.add_node(p1);
     auto m1 = kg2.add_node(p1);
@@ -200,7 +200,7 @@ TEST(KmerGraphTest, equals) {
 TEST(KmerGraphTest, copy) {
     KmerGraph kg1;
     deque<Interval> d = {Interval(0, 3)};
-    Path p1, p2, p3;
+    prg::Path p1, p2, p3;
     p1.initialize(d);
     auto n1 = kg1.add_node(p1);
     d = {Interval(1, 4)};
@@ -216,12 +216,12 @@ TEST(KmerGraphTest, copy) {
 
 TEST(KmerGraphTest, assign) {
     KmerGraph kg1;
-    deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    std::deque<Interval> d = {Interval(0, 0)};
+    prg::Path p;
     p.initialize(d);
     auto n = kg1.add_node(p);
     d = {Interval(0, 3)};
-    Path p1, p2, p3;
+    prg::Path p1, p2, p3;
     p1.initialize(d);
     auto n1 = kg1.add_node(p1);
     d = {Interval(1, 4)};
@@ -243,9 +243,6 @@ TEST(KmerGraphTest, assign) {
     kg1.add_edge(n3, n);
 
     KmerGraph kg2 = kg1;
-    cout << "original " << kg1 << endl;
-
-    cout << "copy " << kg2 << endl;
 
     EXPECT_EQ(kg1, kg1);
     EXPECT_EQ(kg2, kg2);
@@ -256,8 +253,8 @@ TEST(KmerGraphTest, sort_topologically) {
     KmerNodePtr n;
 
     KmerGraph kg;
-    deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    std::deque<Interval> d = {Interval(0, 0)};
+    prg::Path p;
     p.initialize(d);
     n = kg.add_node(p);
     exp_sorted_nodes.push_back(n);
@@ -286,11 +283,6 @@ TEST(KmerGraphTest, sort_topologically) {
     n = kg.add_node(p);
     exp_sorted_nodes.push_back(n);
 
-    /*for (uint i=0; i!=kg.nodes.size(); ++i)
-    {
-        cout << *kg.nodes[i] << endl;
-    }*/
-
     kg.add_edge(kg.nodes[0], kg.nodes[1]);
     kg.add_edge(kg.nodes[0], kg.nodes[2]);
     kg.add_edge(kg.nodes[0], kg.nodes[3]);
@@ -301,10 +293,6 @@ TEST(KmerGraphTest, sort_topologically) {
     kg.add_edge(kg.nodes[5], kg.nodes[6]);
 
     kg.sort_topologically();
-    /*for (uint i=0; i!=kg.sorted_nodes.size(); ++i)
-    {
-	cout << *kg.sorted_nodes[i] << endl;
-    }*/
 
     // for each node, outnodes are further along vector
     vector<KmerNodePtr>::iterator it;
@@ -324,8 +312,8 @@ TEST(KmerGraphTest, sort_topologically) {
 
 TEST(KmerGraphTest, check) {
     KmerGraph kg;
-    deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    std::deque<Interval> d = {Interval(0, 0)};
+    prg::Path p;
     p.initialize(d);
     kg.add_node(p);
     d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
@@ -392,8 +380,8 @@ TEST(KmerGraphTest, prob) {
     KmerGraph kg;
     EXPECT_DEATH(kg.prob(0, sample_id), "");  // out of range, no nodes have been defined
 
-    deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    std::deque<Interval> d = {Interval(0, 0)};
+    prg::Path p;
     p.initialize(d);
     kg.add_node(p);
 
@@ -415,21 +403,17 @@ TEST(KmerGraphTest, prob) {
     kg.add_node(p);
 
     EXPECT_EQ(kg.nodes.size(), (uint) 3);
-    cout << kg.prob(1, sample_id) << endl;
-    cout << kg.prob(2, sample_id) << endl;
     //EXPECT_EQ(0, prob(1));
 
     EXPECT_EQ(kg.prob(1, sample_id), kg.prob(1, sample_id));
     EXPECT_EQ(kg.prob(2, sample_id), kg.prob(2, sample_id));
 
-    cout << kg.prob(1, sample_id) << endl;
-    cout << kg.prob(2, sample_id) << endl;
 }
 
 TEST(KmerGraphTest, findMaxPathSimple) {
     KmerGraph kg;
-    deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    std::deque<Interval> d = {Interval(0, 0)};
+    prg::Path p;
     p.initialize(d);
     kg.add_node(p);
     d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
@@ -489,8 +473,8 @@ TEST(KmerGraphTest, findMaxPathSimple) {
 
 TEST(KmerGraphTest, findMaxPath2Level) {
     KmerGraph kg;
-    deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    std::deque<Interval> d = {Interval(0, 0)};
+    prg::Path p;
     p.initialize(d);
     kg.add_node(p);
     d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
@@ -546,7 +530,7 @@ TEST(KmerGraphTest, findMaxPath2Level) {
     kg.num_reads = 5;
     kg.k = 3;
 
-    vector<KmerNodePtr> mp;
+    std::vector<KmerNodePtr> mp;
     kg.set_p(0.01);
     kg.find_max_path(mp, sample_id);
     vector<KmerNodePtr> exp_order = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7]};
@@ -636,8 +620,8 @@ TEST(KmerGraphTest, find_max_paths_2Level) {
 
 TEST(KmerGraphTest, random_paths) {
     KmerGraph kg;
-    deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    std::deque<Interval> d = {Interval(0, 0)};
+    prg::Path p;
     p.initialize(d);
     kg.add_node(p);
     d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
@@ -689,9 +673,7 @@ TEST(KmerGraphTest, random_paths) {
 
     rps = kg.get_random_paths(10);
     for (uint i = 0; i != rps.size(); ++i) {
-        //cout << "new path of length " << rps.size() << ": ";
         for (uint j = 0; j != rps[i].size(); ++j) {
-            //cout << rps[i][j]->id << "->";
             if (rps[i][j]->id == 1) {
                 EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order1, rps[i]);
             } else if (rps[i][j]->id == 4) {
@@ -700,14 +682,13 @@ TEST(KmerGraphTest, random_paths) {
                 EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order3, rps[i]);
             }
         }
-        //cout << endl;
     }
 }
 
 TEST(KmerGraphTest, path_prob) {
     KmerGraph kg;
-    deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    std::deque<Interval> d = {Interval(0, 0)};
+    prg::Path p;
     p.initialize(d);
     kg.add_node(p);
     d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
@@ -763,7 +744,7 @@ TEST(KmerGraphTest, path_prob) {
     kg.num_reads = 5;
     kg.k = 3;
 
-    vector<KmerNodePtr> mp;
+    std::vector<KmerNodePtr> mp;
     kg.set_p(0.01);
     float mp_p = kg.find_max_path(mp, sample_id);
     vector<KmerNodePtr> exp_order = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7], kg.nodes[9]};
@@ -857,17 +838,15 @@ TEST(KmerGraphTest, path_probs) {
     for (uint i = 0; i != exp_nodes.size(); ++i) {
         exp_p += kg.prob(exp_nodes[i]->id, 5);
     }
-    cout << exp_p << "/5 = ";
     exp_p /= 5;
-    cout << exp_p << endl;
     EXPECT_EQ(kg.prob_paths(mps), exp_p);
 }
  */
 
 TEST(KmerGraphTest, save_covg_dist) {
     KmerGraph kg;
-    deque<Interval> d = {Interval(0, 0)};
-    Path p, p1, p2;
+    std::deque<Interval> d = {Interval(0, 0)};
+    prg::Path p, p1, p2;
     p.initialize(d);
     kg.add_node(p);
     d = {Interval(0, 3)};
@@ -894,7 +873,7 @@ TEST(KmerGraphTest, save) {
 
     KmerGraph kg;
     deque<Interval> d = {Interval(0, 3)};
-    Path p1, p2;
+    prg::Path p1, p2;
     p1.initialize(d);
     auto n1 = kg.add_node(p1);
     d = {Interval(1, 4)};
@@ -912,7 +891,7 @@ TEST(KmerGraphTest, save) {
 TEST(KmerGraphTest, save_no_prg) {
     KmerGraph kg;
     deque<Interval> d = {Interval(0, 3)};
-    Path p1, p2;
+    prg::Path p1, p2;
     p1.initialize(d);
     auto n1 = kg.add_node(p1);
     d = {Interval(1, 4)};
@@ -930,7 +909,7 @@ TEST(KmerGraphTest, save_no_prg) {
 TEST(KmerGraphTest, load) {
     KmerGraph kg, read_kg;
     deque<Interval> d = {Interval(0, 3)};
-    Path p1, p2;
+    prg::Path p1, p2;
     p1.initialize(d);
     auto n1 = kg.add_node(p1);
     d = {Interval(1, 4)};

@@ -130,7 +130,7 @@ void KmerGraph::clear() {
     exp_depth_covg = 0;
 }
 
-KmerNodePtr KmerGraph::add_node(const Path &p) {
+KmerNodePtr KmerGraph::add_node(const prg::Path &p) {
     for (const auto &c : nodes) {
         if (c->path == p) {
             return c;
@@ -154,7 +154,7 @@ KmerNodePtr KmerGraph::add_node(const Path &p) {
     return n;
 }
 
-KmerNodePtr KmerGraph::add_node_with_kh(const Path &p, const uint64_t &kh, const uint8_t &num) {
+KmerNodePtr KmerGraph::add_node_with_kh(const prg::Path &p, const uint64_t &kh, const uint8_t &num) {
     KmerNodePtr n = add_node(p);
     n->khash = kh;
     n->num_AT = num;
@@ -162,7 +162,7 @@ KmerNodePtr KmerGraph::add_node_with_kh(const Path &p, const uint64_t &kh, const
     return n;
 }
 
-condition::condition(const Path &p) : q(p) {};
+condition::condition(const prg::Path &p) : q(p) {};
 
 bool condition::operator()(const KmerNodePtr kn) const { return kn->path == q; }
 
@@ -183,7 +183,7 @@ void KmerGraph::add_edge(KmerNodePtr from, KmerNodePtr to) {
 
 void KmerGraph::remove_shortcut_edges() {
     BOOST_LOG_TRIVIAL(debug) << "Remove 'bad' edges from kmergraph";
-    Path temp_path;
+    prg::Path temp_path;
     uint32_t num_removed_edges = 0;
     std::vector<KmerNodePtr> v = {};
     std::deque<std::vector<KmerNodePtr>> d;
@@ -721,7 +721,7 @@ void KmerGraph::load(const std::string &filepath) {
     std::vector<std::string> split_line;
     std::stringstream ss;
     uint32_t id = 0, covg, from, to;
-    Path p;
+    prg::Path p;
     uint32_t num_nodes = 0;
 
     std::ifstream myfile(filepath);

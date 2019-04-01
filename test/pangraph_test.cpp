@@ -126,7 +126,7 @@ TEST(PangenomeGraphAddNode, AddClusterWrongReadId_AssertCatches) {
     uint32_t prg_id = 4;
     Interval interval(0, 5);
     std::deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
-    Path path;
+    prg::Path path;
     path.initialize(raw_path);
     MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(not_read_id, interval, prg_id, path, 0, 0));
     cluster.insert(minimizer_hit);
@@ -145,7 +145,7 @@ TEST(PangenomeGraphAddNode, AddClusterWrongPrgId_AssertCatches) {
     uint32_t not_prg_id = 7;
     Interval interval(0, 5);
     std::deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
-    Path path;
+    prg::Path path;
     path.initialize(raw_path);
     MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(read_id, interval, not_prg_id, path, 0, 0));
     cluster.insert(minimizer_hit);
@@ -173,8 +173,8 @@ TEST(PangenomeGraphAddNode, AddNode_PangenomeGraphNodeHasRightProperties) {
     uint32_t read_id = 1;
     pg.add_node(node_id, "0", read_id, mhs);
 
-    NodePtr pn = std::make_shared<Node>(node_id, node_id, "0");
-    EXPECT_EQ(*pg.nodes[0], *pn);
+    NodePtr pan_node = std::make_shared<pangenome::Node>(node_id, node_id, "0");
+    EXPECT_EQ(*pg.nodes[0], *pan_node);
     EXPECT_EQ(pg.nodes[0]->node_id, (uint) 0);
     EXPECT_EQ(pg.nodes[0]->prg_id, (uint) 0);
     EXPECT_EQ(pg.nodes[0]->name, "0");
@@ -333,7 +333,7 @@ TEST(PangenomeGraphTest, equals) {
     EXPECT_EQ(pg2, pg1);
 
     // should not matter if node_id is different provided prg_id is same
-    pg2.nodes[7] = std::make_shared<Node>(2, 7, "2");
+    pg2.nodes[7] = std::make_shared<pangenome::Node>(2, 7, "2");
     pg2.nodes.erase(2);
     EXPECT_EQ(pg2, pg2);
     EXPECT_EQ(pg1, pg2);
@@ -535,7 +535,7 @@ TEST(PangenomeGraphTest, split_node_by_reads) {
     // read 0: 0->1->2->3
     pg2.add_node(0, "0", 0, mhs);
     pg2.add_node(1, "1", 0, mhs);
-    NodePtr n = std::make_shared<Node>(2, 7, "2");
+    NodePtr n = std::make_shared<pangenome::Node>(2, 7, "2");
     pg2.nodes[7] = n;
     pg2.add_node(3, "3", 0, mhs);
 
@@ -570,13 +570,13 @@ TEST(PangenomeGraphTest, split_node_by_reads) {
     // read 0: 0->1->2->3
     pg3.add_node(0, "0", 0, mhs);
     pg3.add_node(1, "1", 0, mhs);
-    n = std::make_shared<Node>(2, 7, "2");
+    n = std::make_shared<pangenome::Node>(2, 7, "2");
     pg3.nodes[7] = n;
     pg3.add_node(3, "3", 0, mhs);
 
     // read 1: 4->5->0->5
     pg3.add_node(4, "4", 1, mhs);
-    n = std::make_shared<Node>(5, 8, "5");
+    n = std::make_shared<pangenome::Node>(5, 8, "5");
     pg3.nodes[8] = n;
     pg3.add_node(0, "0", 1, mhs);
     pg3.add_node(5, "5", 1, mhs);
@@ -632,7 +632,7 @@ TEST(PangenomeGraphTest, save_mapped_read_strings) {
 
     Minimizer m;
     std::deque<Interval> d;
-    Path p;
+    prg::Path p;
     MiniRecord *mr;
 
     // read1
@@ -700,7 +700,7 @@ TEST(PangenomeGraphTest, get_node_closest_vcf_reference_no_paths) {
     l3.minimizer_sketch(index, w, k);
     auto prg_ptr = std::make_shared<LocalPRG>(l3);
 
-    Graph pangraph;
+    pangenome::Graph pangraph;
     std::string sample_name = "null_test_sample";
     std::vector<KmerNodePtr> sample_kmer_path = {};
 
@@ -717,7 +717,7 @@ TEST(PangenomeGraphTest, get_node_closest_vcf_reference_one_path) {
     l3.minimizer_sketch(index, w, k);
     auto prg_ptr = std::make_shared<LocalPRG>(l3);
 
-    Graph pangraph;
+    pangenome::Graph pangraph;
     std::string sample_name = "single_test_sample";
 
     auto &kg = l3.kmer_prg;
@@ -740,7 +740,7 @@ TEST(PangenomeGraphTest, get_node_closest_vcf_reference_three_paths) {
     l3.minimizer_sketch(index, w, k);
     auto prg_ptr = std::make_shared<LocalPRG>(l3);
 
-    Graph pangraph;
+    pangenome::Graph pangraph;
     auto &kg = l3.kmer_prg;
 
     std::string sample_name = "test_sample1";
@@ -770,7 +770,7 @@ TEST(PangenomeGraphTest, copy_coverages_to_kmergraphs){
     l3.minimizer_sketch(index, w, k);
     auto prg_ptr = std::make_shared<LocalPRG>(l3);
 
-    Graph ref_pangraph;
+    pangenome::Graph ref_pangraph;
     auto sample_id = 0;
     std::vector<KmerNodePtr> empty = {};
     ref_pangraph.add_node(prg_id, prg_name, sample_name, sample_id, prg_ptr, empty);
@@ -784,7 +784,7 @@ TEST(PangenomeGraphTest, copy_coverages_to_kmergraphs){
     kg.nodes[5]->set_covg(2, 1, sample_id);
     kg.nodes[6]->set_covg(5, 0, sample_id);
 
-    Graph pangraph;
+    pangenome::Graph pangraph;
     sample_id = 3;
     pangraph.add_node(prg_id, prg_name, sample_name, sample_id, prg_ptr, empty);
 
@@ -826,7 +826,7 @@ TEST(PangenomeGraphTest, infer_node_vcf_reference_path_no_file_strings)
     prg_strings.push_back("TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
     prg_strings.push_back("A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
 
-    Graph pangraph;
+    pangenome::Graph pangraph;
     std::vector<KmerNodePtr> empty;
     auto index = std::make_shared<Index>();
     uint32_t prg_id = 0, sample_id = 0, w = 1, k = 3;
@@ -860,7 +860,7 @@ TEST(PangenomeGraphTest, infer_node_vcf_reference_path_with_file_strings)
     vcf_ref_strings["prg2"] = "ATGCCGGTAATTAAAGTACGTGAAAAGAAACTGGCTCGCGAAAACGCACGCCGCACTCGTCTGTAC"; //invalid, is not a path through prg
     vcf_ref_strings["prg3"] = "AATTTTTTTGGGGTTGGTTTTAAAGGGGGTTTTTTTTTTTTCCGCCGCCGCCGTATAAAAATTTTTT"; //valid
 
-    Graph pangraph;
+    pangenome::Graph pangraph;
     std::vector<KmerNodePtr> empty;
     auto index = std::make_shared<Index>();
     uint32_t prg_id = 0, sample_id = 0, w = 1, k = 3;

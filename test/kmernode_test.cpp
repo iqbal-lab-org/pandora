@@ -6,12 +6,11 @@
 #include <iostream>
 
 
-using namespace std;
 
 TEST(KmerNodeTest, create) {
 
-    deque<Interval> d = {Interval(0, 4)};
-    Path p;
+    std::deque<Interval> d = {Interval(0, 4)};
+    prg::Path p;
     p.initialize(d);
     KmerNode kn(0, p);
 
@@ -28,8 +27,8 @@ TEST(KmerNodeTest, create) {
 
 TEST(KmerNodeTest, assign) {
 
-    deque<Interval> d = {Interval(0, 4)};
-    Path p;
+    std::deque<Interval> d = {Interval(0, 4)};
+    prg::Path p;
     p.initialize(d);
     KmerNode kn(0, p);
     kn.increment_covg(0,0);
@@ -55,8 +54,8 @@ TEST(KmerNodeTest, assign) {
 
 TEST(KmerNodeTest, equals) {
 
-    deque<Interval> d = {Interval(0, 4)};
-    Path p1, p2;
+    std::deque<Interval> d = {Interval(0, 4)};
+    prg::Path p1, p2;
     p1.initialize(d);
     d = {Interval(2, 6)};
     p2.initialize(d);

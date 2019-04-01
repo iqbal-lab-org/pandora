@@ -149,7 +149,7 @@ TEST(UtilsTest, addReadHits) {
     KmerHash hash;
     auto index = std::make_shared<Index>();
     deque<Interval> d = {Interval(0, 3)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     pair<uint64_t, uint64_t> kh = hash.kmerhash("AGC", 3);
     index->add_record(min(kh.first, kh.second), 1, p, 0, (kh.first < kh.second));
@@ -277,7 +277,7 @@ TEST(UtilsTest, addReadHits) {
 
 TEST(UtilsTest, filter_clusters2) {
     deque<Interval> d = {Interval(0, 10)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
 
     set<MinimizerHitPtr, pComp> s;
@@ -329,7 +329,7 @@ TEST(UtilsTest, simpleInferLocalPRGOrderForRead) {
     KmerNodePtr kn;
 
     deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     kn = lp1->kmer_prg.add_node(p);
     v.push_back(kn);
@@ -477,7 +477,7 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
     KmerNodePtr kn;
 
     deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     kn = lp1->kmer_prg.add_node(p);
     v.push_back(kn);
@@ -727,7 +727,7 @@ TEST(UtilsTest, pangraphFromReadFile) {
     KmerNodePtr kn;
 
     deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     kn = lp1->kmer_prg.add_node(p);
     v.push_back(kn);

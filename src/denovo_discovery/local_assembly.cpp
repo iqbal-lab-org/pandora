@@ -1,12 +1,14 @@
 #include <boost/filesystem/path.hpp>
 #include "denovo_discovery/local_assembly.h"
 
-bool ends_with(std::string const &query, std::string const &ending) {
+
+bool string_ends_with(std::string const &query, std::string const &ending) {
     if (query.length() < ending.length()) {
         return false;
     }
     return 0 == query.compare(query.length() - ending.length(), ending.length(), ending);
 }
+
 
 std::pair<Node, bool> get_node(const std::string &query_kmer, const Graph &graph) {
     const auto query_node { graph.buildNode(query_kmer.c_str()) };
@@ -33,8 +35,9 @@ std::pair<Node, bool> get_node(const std::string &query_kmer, const Graph &graph
     return std::make_pair(requested_node, node_found);
 }
 
+
 // Non-recursive implementation of DFS from "Algorithm Design" - Kleinberg and Tardos (First Edition)
-DfsTree DFS(const Node &start_node, const Graph &graph) {
+DfsTree depth_first_search_from(const Node &start_node, const Graph &graph) {
     BOOST_LOG_TRIVIAL(debug) << "Starting DFS...";
     std::stack<Node> nodes_to_explore({ start_node });
 
@@ -61,6 +64,7 @@ DfsTree DFS(const Node &start_node, const Graph &graph) {
     BOOST_LOG_TRIVIAL(debug) << "DFS finished.";
     return tree_of_nodes_visited;
 }
+
 
 /* The aim of this function is to take a DFS tree, and return all paths within this tree that start at start_kmer
  * and end at end_kmer. Allowing for the different combinations in the number of cycles if the path contains any.
@@ -94,6 +98,7 @@ get_paths_between(const std::string &start_kmer, const std::string &end_kmer, Df
     return paths_between_queries;
 }
 
+
 void build_paths_between(const std::string &start_kmer, const std::string &end_kmer, std::string path_accumulator,
                          const Graph &graph, std::unordered_map<string, GraphVector<Node>> &tree,
                          DenovoPaths &paths_between_queries, const uint32_t &max_path_length,
@@ -116,9 +121,9 @@ void build_paths_between(const std::string &start_kmer, const std::string &end_k
 
     path_accumulator.push_back(start_kmer.back());
 
-    if (ends_with(path_accumulator, end_kmer)) {
+    if (string_ends_with(path_accumulator, end_kmer) and path_accumulator.length() > end_kmer.length()) {
         paths_between_queries.push_back(path_accumulator);
-        // we dont return here so as to make sure we get all possible cycle repitions up to the maximum length
+        // we dont return here so as to make sure we get all possible cycle repetitions up to the maximum length
     }
 
     auto &children_of_start_node { tree[start_kmer] };
@@ -131,6 +136,7 @@ void build_paths_between(const std::string &start_kmer, const std::string &end_k
                             num_kmers_below_threshold);
     }
 }
+
 
 void
 write_paths_to_fasta(const boost::filesystem::path &filepath, const DenovoPaths &paths, const uint32_t &line_width) {
@@ -151,91 +157,12 @@ write_paths_to_fasta(const boost::filesystem::path &filepath, const DenovoPaths 
     BOOST_LOG_TRIVIAL(debug) << "Local assembly paths written to " << filepath;
 }
 
-void local_assembly(const std::vector<std::string> &sequences, const std::string &slice_sequence,
-                    const std::string &flank_left, const std::string &flank_right, const fs::path &out_path,
-                    const uint32_t &kmer_size, const uint32_t &max_path_length, const double &expected_coverage,
-                    const bool &clean_graph, const uint32_t &min_coverage) {
-    if (sequences.empty()) {
-        BOOST_LOG_TRIVIAL(debug) << "No sequences to assemble. Skipping local assembly.";
-        return;
-    }
-
-    if (kmer_size > max_path_length) {
-        BOOST_LOG_TRIVIAL(debug) << "Kmer size " << kmer_size << " is greater than the maximum path length "
-                                 << max_path_length << ". Skipping local assembly.";
-        return;
-    }
-
-    Graph graph;
-
-    try {
-        graph = Graph::create(new BankStrings(sequences), "-kmer-size %d -abundance-min %d -verbose 0", kmer_size,
-                              min_coverage);
-    } catch (gatb::core::system::Exception &error) {
-        BOOST_LOG_TRIVIAL(debug) << "Couldn't create GATB graph." << "\n\tEXCEPTION: " << error.getMessage();
-        remove_graph_file();
-        return;
-    }
-
-    if (clean_graph) {
-        do_graph_clean(graph);
-    }
-
-    Node start_node, end_node;
-    bool start_found { false };
-    bool end_found { false };
-    const auto start_kmers { generate_start_kmers(slice_sequence, kmer_size, kmer_size) };
-    const auto end_kmers { generate_end_kmers(slice_sequence, kmer_size, kmer_size) };
-
-    for (uint_least16_t start_idx = 0; start_idx < start_kmers.size(); start_idx++) {
-        const auto &current_start_kmer { start_kmers[start_idx] };
-        std::tie(start_node, start_found) = get_node(current_start_kmer, graph);
-
-        if (not start_found) {
-            continue;
-        }
-
-        for (uint_least16_t end_idx = 0; end_idx < end_kmers.size(); end_idx++) {
-            const auto &current_end_kmer { end_kmers[end_idx] };
-            const auto end_kmer_in_start_kmers {
-                    std::find(start_kmers.begin(), start_kmers.end(), current_end_kmer) != start_kmers.end() };
-
-            if (end_kmer_in_start_kmers) {
-                continue;
-            }
-
-            std::tie(end_node, end_found) = get_node(current_end_kmer, graph);
-
-            if (end_found) {
-                auto tree_of_nodes_visited_during_dfs { DFS(start_node, graph) };
-                auto paths_between_queries {
-                        get_paths_between(current_start_kmer, current_end_kmer, tree_of_nodes_visited_during_dfs, graph,
-                                          max_path_length, expected_coverage) };
-                if (not paths_between_queries.empty()) {
-                    // add flank to each sequence
-                    for (auto &current_path : paths_between_queries) {
-                        const auto start_kmer_offset { slice_sequence.substr(0, start_idx) };
-                        const auto end_kmer_offset { slice_sequence.substr(slice_sequence.length() - end_idx) };
-                        current_path = std::string(flank_left).append(start_kmer_offset).append(current_path)
-                                                              .append(end_kmer_offset).append(flank_right);
-                    }
-                    write_paths_to_fasta(out_path, paths_between_queries);
-                }
-
-                remove_graph_file();
-                return;
-            }
-        }
-    }
-    BOOST_LOG_TRIVIAL(debug) << "Could not find any combination of start and end k-mers. Skipping local assembly for "
-                             << out_path.string();
-    remove_graph_file();
-}
 
 void remove_graph_file() {
     const fs::path p { "dummy.h5" };
     fs::remove(p);
 }
+
 
 void do_graph_clean(Graph &graph, const uint16_t &num_cores) {
     Simplifications<Graph, Node, Edge> graph_simplifications(graph, num_cores);
@@ -252,6 +179,7 @@ void do_graph_clean(Graph &graph, const uint16_t &num_cores) {
     graph_simplifications.simplify();
 }
 
+
 std::string reverse_complement(const std::string &forward) {
     const auto len { forward.size() };
     std::string reverse(len, ' ');
@@ -263,6 +191,7 @@ std::string reverse_complement(const std::string &forward) {
     reverse[len] = '\0';
     return reverse;
 }
+
 
 // todo: the generate kmers functions have a lot of overlapping code - refactor
 std::vector<std::string>
@@ -284,6 +213,7 @@ generate_start_kmers(const std::string &sequence, const uint16_t &k, uint32_t nu
     }
     return start_kmers;
 }
+
 
 std::vector<std::string> generate_end_kmers(const std::string &sequence, const uint32_t &k, uint32_t num_to_generate) {
     const auto seq_len { sequence.length() };

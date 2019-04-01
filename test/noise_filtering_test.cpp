@@ -639,8 +639,6 @@ TEST(NoiseFilteringRemoveLeaves, AllTogether_GraphsLookCorrect) {
     pangraph->add_node(6, "6", 5, mhs);
     pangraph->add_node(3, "3", 5, mhs);
 
-    cout << "pg is now: " << endl << *pangraph << endl;
-
     construct_debruijn_graph(pangraph, dbg);
     remove_leaves(pangraph, dbg);
 
@@ -1486,8 +1484,6 @@ TEST(NoiseFilteringTest, detangle_pangraph_with_debruijn_graph) {
     pangraph->add_node(3, "3", 4, mhs);
     pangraph->add_node(4, "4", 4, mhs);
     pangraph->add_node(5, "5", 4, mhs);
-
-    cout << "original pg is: " << endl << *pangraph << endl;
 
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);

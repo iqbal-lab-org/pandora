@@ -57,7 +57,7 @@ TEST(ReadAddHits, AddClusterSecondTime_DeathAndReadHitsNotChanged) {
 
     Interval interval(0, 5);
     std::deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
-    Path path;
+    prg::Path path;
     path.initialize(raw_path);
     MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(read_id, interval, prg_id, path, 0, 0));
 
@@ -77,7 +77,7 @@ TEST(ReadAddHits, AddSecondCluster_ReadHitsMapContainsCorrectPrgIds) {
     prg_id = 5;
     Interval interval(0, 5);
     std::deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
-    Path path;
+    prg::Path path;
     path.initialize(raw_path);
     MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(read_id, interval, prg_id, path, 0, 0));
     cluster.insert(minimizer_hit);
@@ -262,7 +262,7 @@ TEST(PangenomeReadTest, remove_node) {
     // example where have actual hit
     Interval i(0, 5);
     std::deque<Interval> d = {Interval(7, 8), Interval(10, 14)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     MinimizerHitPtr mh(std::make_shared<MinimizerHit>(4, i, 0, p, 0, 0));
     std::set<MinimizerHitPtr, pComp> c;
@@ -376,7 +376,7 @@ TEST(PangenomeReadTest, remove_node_it) {
     // example where have actual hit
     Interval i(0, 5);
     std::deque<Interval> d = {Interval(7, 8), Interval(10, 14)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     MinimizerHitPtr mh(std::make_shared<MinimizerHit>(4, i, 0, p, 0, 0));
     std::set<MinimizerHitPtr, pComp> c;
@@ -419,7 +419,7 @@ TEST(PangenomeReadTest, remove_node_it) {
 TEST(PangenomeReadTest, replace_node) {
     std::set<MinimizerHitPtr, pComp> mhs;
 
-    Graph pg;
+    pangenome::Graph pg;
     // read 0: 0->1->2->3->1
     pg.add_node(0, "0", 0, mhs);
     pg.add_node(1, "1", 0, mhs);
@@ -456,7 +456,7 @@ TEST(PangenomeReadTest, replace_node) {
     EXPECT_ITERABLE_EQ(std::vector<bool>, read_o_exp, pg.reads[1]->node_orientations);
 
     // example with a node replacing an old node which only appears in one read
-    NodePtr n = std::make_shared<Node>(2, 5, "2_prime");
+    NodePtr n = std::make_shared<pangenome::Node>(2, 5, "2_prime");
     pg.nodes[5] = n;
     auto it = pg.reads[0]->nodes.begin() + 2;
     pg.reads[0]->replace_node(it, n);
@@ -480,7 +480,7 @@ TEST(PangenomeReadTest, replace_node) {
     EXPECT_ITERABLE_EQ(std::vector<bool>, read_o_exp, pg.reads[1]->node_orientations);
 
     // example where old node appears in more than one read
-    n = std::make_shared<Node>(3, 6, "3_prime");
+    n = std::make_shared<pangenome::Node>(3, 6, "3_prime");
     pg.nodes[6] = n;
     it = pg.reads[1]->nodes.begin() + 1;
     pg.reads[1]->replace_node(it, n);
@@ -507,7 +507,7 @@ TEST(PangenomeReadTest, replace_node) {
     // example where move actual hits
     Interval i(0, 5);
     std::deque<Interval> d = {Interval(7, 8), Interval(10, 14)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     MinimizerHitPtr mh(std::make_shared<MinimizerHit>(4, i, 0, p, 0, 0));
     std::set<MinimizerHitPtr, pComp> c;
@@ -515,7 +515,7 @@ TEST(PangenomeReadTest, replace_node) {
     pg.reads[1]->add_hits(4, c);
     EXPECT_EQ(pg.reads[1]->hits[4].size(), (uint) 1);
 
-    n = std::make_shared<Node>(4, 7, "4_prime");
+    n = std::make_shared<pangenome::Node>(4, 7, "4_prime");
     pg.nodes[7] = n;
     it = pg.reads[1]->nodes.begin();
     pg.reads[1]->replace_node(it, n);
@@ -543,7 +543,7 @@ TEST(PangenomeReadTest, replace_node) {
     EXPECT_EQ(pg.reads[1]->hits[4].size(), (uint) 1);
 
     //example where node appears twice in read
-    n = std::make_shared<Node>(1, 8, "1_prime");
+    n = std::make_shared<pangenome::Node>(1, 8, "1_prime");
     pg.nodes[8] = n;
     it = pg.reads[0]->nodes.begin() + 4;
     pg.reads[0]->replace_node(it, n);

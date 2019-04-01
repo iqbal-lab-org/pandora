@@ -17,7 +17,7 @@ TEST(IndexTest, add_record) {
     Index idx;
     KmerHash hash;
     deque<Interval> d = {Interval(3, 5), Interval(9, 12)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
     idx.add_record(min(kh.first, kh.second), 1, p, 0, 0);
@@ -45,7 +45,7 @@ TEST(IndexTest, clear) {
     Index idx;
     KmerHash hash;
     deque<Interval> d = {Interval(3, 5), Interval(9, 12)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
     idx.add_record(min(kh.first, kh.second), 1, p, 0, 0);
@@ -62,7 +62,7 @@ TEST(IndexTest, save) {
     Index idx;
     KmerHash hash;
     deque<Interval> d = {Interval(3, 5), Interval(9, 12)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
     idx.add_record(min(kh.first, kh.second), 1, p, 0, 0);
@@ -78,7 +78,7 @@ TEST(IndexTest, load) {
     Index idx1, idx2;
     KmerHash hash;
     deque<Interval> d = {Interval(3, 5), Interval(9, 12)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     pair<uint64_t, uint64_t> kh1 = hash.kmerhash("ACGTA", 5);
     idx1.add_record(min(kh1.first, kh1.second), 1, p, 0, 0);
@@ -99,7 +99,7 @@ TEST(IndexTest, equals) {
     Index idx1, idx2;
     KmerHash hash;
     deque<Interval> d = {Interval(3, 5), Interval(9, 12)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     pair<uint64_t, uint64_t> kh1 = hash.kmerhash("ACGTA", 5);
     idx1.add_record(min(kh1.first, kh1.second), 1, p, 0, 0);
@@ -116,7 +116,7 @@ TEST(IndexTest, equals_fails) {
     Index idx1, idx2;
     KmerHash hash;
     deque<Interval> d = {Interval(3, 5), Interval(9, 12)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     pair<uint64_t, uint64_t> kh1 = hash.kmerhash("ACGTA", 5);
     //idx1.add_record(min(kh1.first, kh1.second), 1, p, 0, 0);

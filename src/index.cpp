@@ -17,7 +17,7 @@ Index::~Index() {
     clear();
 };
 
-void Index::add_record(const uint64_t kmer, const uint32_t prg_id, const Path path, const uint32_t knode_id,
+void Index::add_record(const uint64_t kmer, const uint32_t prg_id, const prg::Path path, const uint32_t knode_id,
                        const bool strand) {
     //cout << "Add kmer " << kmer << " id, path, strand " << prg_id << ", " << path << ", " << strand << endl;
     auto it = minhash.find(kmer);

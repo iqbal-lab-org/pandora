@@ -9,9 +9,13 @@
 #include "localPRG.h"
 #include "pangenome/ns.cpp"
 #include "vcf.h"
+#include "denovo_discovery/denovo_utils.h"
 
 
 class LocalPRG;
+struct ReadCoordinate;
+using PanReadPtr = std::shared_ptr<pangenome::Read>;
+
 
 class pangenome::Node {
 public:
@@ -35,8 +39,12 @@ public:
 
     void get_read_overlap_coordinates(std::vector<std::vector<uint32_t>> &);
 
-    void construct_multisample_vcf(VCF &master_vcf, const std::vector<LocalNodePtr> &, const std::shared_ptr<LocalPRG> &,
-                                       const uint32_t, const uint32_t &min_kmer_covg);
+    std::set<ReadCoordinate>
+    get_read_overlap_coordinates(const prg::Path &local_path, const uint32_t &min_number_hits = 2);
+
+    void
+    construct_multisample_vcf(VCF &master_vcf, const std::vector<LocalNodePtr> &, const std::shared_ptr<LocalPRG> &,
+                              const uint32_t, const uint32_t &min_kmer_covg);
 
     bool operator==(const Node &y) const;
 
@@ -46,9 +54,12 @@ public:
 
     friend std::ostream &operator<<(std::ostream &out, const Node &n);
 
+
     friend class pangenome::Graph;
+
 
     friend class pangenome::Read;
 };
+
 
 #endif

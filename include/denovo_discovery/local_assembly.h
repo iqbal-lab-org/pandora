@@ -16,6 +16,7 @@
 #include <boost/log/expressions.hpp>
 #include <boost/filesystem.hpp>
 
+
 namespace logging = boost::log;
 namespace fs = boost::filesystem;
 
@@ -24,11 +25,11 @@ constexpr auto MAX_NUMBER_CANDIDATE_PATHS { 50 };
 
 std::pair<Node, bool> get_node(const std::string &query_kmer, const Graph &graph);
 
-bool ends_with(std::string const &query, std::string const &ending);
+bool string_ends_with(std::string const &query, std::string const &ending);
 
 using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
 
-DfsTree DFS(const Node &start_node, const Graph &graph);
+DfsTree depth_first_search_from(const Node &start_node, const Graph &graph);
 
 using DenovoPaths = std::vector<std::string>;
 
@@ -45,11 +46,6 @@ void build_paths_between(const std::string &start_kmer, const std::string &end_k
 
 void write_paths_to_fasta(const boost::filesystem::path &filepath, const DenovoPaths &paths,
                           const uint32_t &line_width = 80);
-
-void local_assembly(const std::vector<std::string> &sequences, const std::string &slice_sequence,
-                    const std::string &flank_left, const std::string &flank_right, const fs::path &out_path,
-                    const uint32_t &kmer_size, const uint32_t &max_path_length, const double &expected_coverage = 1,
-                    const bool &clean_graph = false, const uint32_t &min_coverage = 2);
 
 void do_graph_clean(Graph &graph, const uint16_t &num_cores = 1);
 

@@ -212,7 +212,6 @@ TEST(FastaqTest, same_equals_false) {
 TEST(FastaqTest, ostream) {
     Fastaq f_out(false, true);
     f_out.add_entry("dummy", "ACGTA", {2, 3, 4, 5, 6}, 40);
-    cout << f_out << endl;
 }
 
 TEST(FastaqTest, istream_fq) {
