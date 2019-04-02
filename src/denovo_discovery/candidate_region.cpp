@@ -141,7 +141,7 @@ void CandidateRegion::generate_read_pileup(const fs::path &reads_filepath) {
         std::string sequence_in_read_overlapping_region {
                 readfile.read.substr(read_coordinate.start, end_pos_of_region_in_read - read_coordinate.start) };
 
-        if (!read_coordinate.strand) {
+        if (!read_coordinate.is_forward) {
             sequence_in_read_overlapping_region = reverse_complement(sequence_in_read_overlapping_region);
         }
         this->pileup.push_back(sequence_in_read_overlapping_region);

@@ -29,9 +29,9 @@ struct ReadCoordinate {
     uint32_t id;
     uint32_t start;
     uint32_t end;
-    bool strand;
+    bool is_forward;
 
-    ReadCoordinate(uint32_t id, uint32_t start, uint32_t end, bool strand);
+    ReadCoordinate(uint32_t id, uint32_t start, uint32_t end, bool is_forward);
 
     bool operator<(const ReadCoordinate &y) const;
 

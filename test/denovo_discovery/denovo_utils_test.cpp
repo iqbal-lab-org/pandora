@@ -634,29 +634,75 @@ TEST(FindHitsInsidePathTest, hitsOnPathReturnCorrectHits) {
 }
 
 
-TEST(ExtractReadsTest, read_coordinate_ordering) {
-    ReadCoordinate read_coord1 { 0, 6, 10, true };
-    ReadCoordinate read_coord2 { 1, 16, 22, true };
-    ReadCoordinate read_coord3 { 2, 3, 6, true };
-    ReadCoordinate read_coord4 { 2, 8, 11, true };
-    ReadCoordinate read_coord5 { 3, 2, 6, true };
-    ReadCoordinate read_coord6 { 3, 6, 12, true };
-    ReadCoordinate read_coord7 { 3, 2, 6, false };
-    ReadCoordinate read_coord8 { 3, 6, 12, false };
+TEST(ReadCoordinateLessThanOperatorTest, idLessThanRHSReturnTrue) {
+    ReadCoordinate lhs { 0, 6, 10, true };
+    ReadCoordinate rhs { 1, 16, 22, true };
 
-    set<ReadCoordinate> read_coords = { read_coord8, read_coord7, read_coord6, read_coord5, read_coord4, read_coord3,
-                                        read_coord2, read_coord1 };
-    vector<ReadCoordinate> exp_read_coords = { read_coord1, read_coord2, read_coord3, read_coord4, read_coord5,
-                                               read_coord7, read_coord6, read_coord8 };
+    EXPECT_TRUE(lhs < rhs);
+}
 
-    EXPECT_EQ(read_coords.size(), exp_read_coords.size());
-    uint count = 0;
-    for (const auto &r : read_coords) {
-        if (exp_read_coords.size() <= count)
-            break;
-        EXPECT_EQ(r, exp_read_coords[count]);
-        count++;
-    }
+
+TEST(ReadCoordinateLessThanOperatorTest, idGreaterThanRHSReturnFalse) {
+    ReadCoordinate lhs { 2, 6, 10, true };
+    ReadCoordinate rhs { 1, 16, 22, true };
+
+    EXPECT_FALSE(lhs < rhs);
+}
+
+
+TEST(ReadCoordinateLessThanOperatorTest, idEqualStartLessThanRHSReturnTrue) {
+    ReadCoordinate lhs { 1, 6, 10, true };
+    ReadCoordinate rhs { 1, 16, 22, true };
+
+    EXPECT_TRUE(lhs < rhs);
+}
+
+
+TEST(ReadCoordinateLessThanOperatorTest, idEqualStartGreaterThanRHSReturnFalse) {
+    ReadCoordinate lhs { 1, 26, 10, true };
+    ReadCoordinate rhs { 1, 16, 22, true };
+
+    EXPECT_FALSE(lhs < rhs);
+}
+
+
+TEST(ReadCoordinateLessThanOperatorTest, idEqualStartEqualEndLessThanRHSReturnTrue) {
+    ReadCoordinate lhs { 1, 6, 10, true };
+    ReadCoordinate rhs { 1, 6, 22, true };
+
+    EXPECT_TRUE(lhs < rhs);
+}
+
+
+TEST(ReadCoordinateLessThanOperatorTest, idEqualStartEqualEndGreaterThanRHSReturnFalse) {
+    ReadCoordinate lhs { 1, 6, 10, true };
+    ReadCoordinate rhs { 1, 6, 2, true };
+
+    EXPECT_FALSE(lhs < rhs);
+}
+
+
+TEST(ReadCoordinateLessThanOperatorTest, idEqualStartEqualEndEqualStrandLessThanRHSReturnTrue) {
+    ReadCoordinate lhs { 1, 6, 10, true };
+    ReadCoordinate rhs { 1, 6, 10, false };
+
+    EXPECT_TRUE(lhs < rhs);
+}
+
+
+TEST(ReadCoordinateLessThanOperatorTest, idEqualStartEqualEndEqualStrandGreaterThanRHSReturnFalse) {
+    ReadCoordinate lhs { 1, 6, 10, false };
+    ReadCoordinate rhs { 1, 6, 10, true };
+
+    EXPECT_FALSE(lhs < rhs);
+}
+
+
+TEST(ReadCoordinateLessThanOperatorTest, lhsEqualsRHSReturnFalse) {
+    ReadCoordinate lhs { 1, 6, 10, false };
+    ReadCoordinate rhs { 1, 6, 10, false };
+
+    EXPECT_FALSE(lhs < rhs);
 }
 
 

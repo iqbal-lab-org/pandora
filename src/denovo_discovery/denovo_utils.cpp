@@ -115,8 +115,8 @@ find_hits_inside_path(const std::set<MinimizerHitPtr, pComp_path> &read_hits, co
 }
 
 
-ReadCoordinate::ReadCoordinate(uint32_t id, uint32_t start, uint32_t end, bool strand)
-        : id(id), start(start), end(end), strand(strand) {}
+ReadCoordinate::ReadCoordinate(uint32_t id, uint32_t start, uint32_t end, bool is_forward)
+        : id(id), start(start), end(end), is_forward(is_forward) {}
 
 
 bool ReadCoordinate::operator<(const ReadCoordinate &y) const {
@@ -141,10 +141,10 @@ bool ReadCoordinate::operator<(const ReadCoordinate &y) const {
         return false;
     }
 
-    if (this->strand and not y.strand) {
+    if (this->is_forward and not y.is_forward) {
         return true;
     }
-    if (y.strand and not this->strand) {
+    if (y.is_forward and not this->is_forward) {
         return false;
     }
 
@@ -153,7 +153,7 @@ bool ReadCoordinate::operator<(const ReadCoordinate &y) const {
 
 
 bool ReadCoordinate::operator==(const ReadCoordinate &y) const {
-    return ((this->id == y.id) and (this->start == y.start) and (this->end == y.end) and (this->strand == y.strand));
+    return ((this->id == y.id) and (this->start == y.start) and (this->end == y.end) and (this->is_forward == y.is_forward));
 }
 
 
@@ -164,12 +164,12 @@ bool ReadCoordinate::operator!=(const ReadCoordinate &y) const {
 
 size_t std::hash<ReadCoordinate>::operator()(const ReadCoordinate &coordinate) const {
     return hash<int>()(coordinate.start) ^ hash<int>()(coordinate.id) ^ hash<int>()(coordinate.end) ^
-           hash<bool>()(coordinate.strand);
+           hash<bool>()(coordinate.is_forward);
 }
 
 
 std::ostream &operator<<(std::ostream &out, ReadCoordinate const &y) {
-    out << "{" << y.id << ", " << y.start << ", " << y.end << ", " << y.strand << "}";
+    out << "{" << y.id << ", " << y.start << ", " << y.end << ", " << y.is_forward << "}";
     return out;
 }
 
