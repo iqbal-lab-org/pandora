@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <set>
 #include "gtest/gtest.h"
 #include "../test_macro.cpp"
@@ -706,7 +707,7 @@ TEST(ReadCoordinateLessThanOperatorTest, lhsEqualsRHSReturnFalse) {
 }
 
 
-TEST(ExtractReadsTest, read_coordinate_equals) {
+TEST(ReadCoordinateEqualityOperatorTest, variousEqualityAndNonEqualityTests) {
     ReadCoordinate read_coord1 { 0, 6, 10, true };
     ReadCoordinate read_coord2 { 1, 16, 22, true };
     ReadCoordinate read_coord3 { 2, 3, 6, true };
@@ -788,4 +789,37 @@ TEST(ExtractReadsTest, read_coordinate_equals) {
     EXPECT_NE(read_coord8, read_coord6);
     EXPECT_NE(read_coord8, read_coord7);
     EXPECT_NE(read_coord8, read_coord1);
+}
+
+
+TEST(ReadCoordinateInsertionOperatorTest, basicObjectReturnsStringAsExpectedFromStringstream) {
+    ReadCoordinate read_coord { 0, 6, 10, true };
+    std::stringstream out;
+
+    out << read_coord;
+
+    const auto actual { out.str() };
+    const std::string expected { "{0, 6, 10, 1}" };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(ReadCoordinateHashTest, queryNotInUnorderedSet) {
+    std::unordered_set<ReadCoordinate> myset {{ 0, 6, 10, true }};
+    ReadCoordinate query { 1, 6, 10, true };
+
+    const bool query_in_myset { myset.find(query) != myset.end() };
+
+    EXPECT_FALSE(query_in_myset);
+}
+
+
+TEST(ReadCoordinateHashTest, queryInUnorderedSet) {
+    std::unordered_set<ReadCoordinate> myset {{ 1, 6, 10, true }};
+    ReadCoordinate query { 1, 6, 10, true };
+
+    const bool query_in_myset { myset.find(query) != myset.end() };
+
+    EXPECT_TRUE(query_in_myset);
 }
