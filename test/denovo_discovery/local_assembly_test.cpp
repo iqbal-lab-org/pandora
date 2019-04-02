@@ -428,9 +428,6 @@ TEST(StringEndsWithTest, endingLongerThanQueryReturnFalse) {
 }
 
 
-
-
-
 TEST(ReverseComplementTest, SingleBaseReturnCompliment) {
     const auto seq = "A";
     const auto expected = "T";

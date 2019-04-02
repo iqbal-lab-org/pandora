@@ -138,26 +138,6 @@ void build_paths_between(const std::string &start_kmer, const std::string &end_k
 }
 
 
-void
-write_paths_to_fasta(const boost::filesystem::path &filepath, const DenovoPaths &paths, const uint32_t &line_width) {
-    const std::string header { ">" + filepath.stem().string() };
-    fs::ofstream out_file(filepath);
-
-    uint_least16_t path_counter { 1 };
-    for (const auto &path : paths) {
-        out_file << header << "_path" << std::to_string(path_counter) << "\n";
-
-        for (uint_least16_t i = 0; i < path.length(); i += line_width) {
-            out_file << path.substr(i, line_width) << "\n";
-        }
-        path_counter++;
-    }
-
-    out_file.close();
-    BOOST_LOG_TRIVIAL(debug) << "Local assembly paths written to " << filepath;
-}
-
-
 void remove_graph_file() {
     const fs::path p { "dummy.h5" };
     fs::remove(p);

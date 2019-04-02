@@ -44,9 +44,6 @@ void build_paths_between(const std::string &start_kmer, const std::string &end_k
                          const float &required_percent_of_expected_covg = COVG_SCALING_FACTOR,
                          uint32_t num_kmers_below_threshold = 0);
 
-void write_paths_to_fasta(const boost::filesystem::path &filepath, const DenovoPaths &paths,
-                          const uint32_t &line_width = 80);
-
 void do_graph_clean(Graph &graph, const uint16_t &num_cores = 1);
 
 std::string reverse_complement(const std::string &forward);
