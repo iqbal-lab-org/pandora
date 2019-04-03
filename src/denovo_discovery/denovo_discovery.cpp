@@ -22,19 +22,21 @@ void DenovoDiscovery::find_paths_through_candidate_region(CandidateRegion &candi
         return;
     }
 
-    Graph graph;
+    LocalAssemblyGraph graph;
 
     try {
-        graph = Graph::create(new BankStrings(candidate_region.pileup), "-kmer-size %d -abundance-min %d -verbose 0",
-                              kmer_size, min_covg_for_node_in_assembly_graph);
+        Graph gatb_graph = LocalAssemblyGraph::create(new BankStrings(candidate_region.pileup),
+                                                      "-kmer-size %d -abundance-min %d -verbose 0", kmer_size,
+                                                      min_covg_for_node_in_assembly_graph);
+        if (clean_assembly_graph) {
+            clean(gatb_graph);
+        }
+        graph = gatb_graph;
+
     } catch (gatb::core::system::Exception &error) {
         BOOST_LOG_TRIVIAL(debug) << "Couldn't create GATB graph." << "\n\tEXCEPTION: " << error.getMessage();
         remove_graph_file();
         return;
-    }
-
-    if (clean_assembly_graph) {
-        do_graph_clean(graph);
     }
 
     Node start_node, end_node;
@@ -45,7 +47,7 @@ void DenovoDiscovery::find_paths_through_candidate_region(CandidateRegion &candi
 
     for (uint_least16_t start_idx = 0; start_idx < start_kmers.size(); start_idx++) {
         const auto &current_start_kmer { start_kmers[start_idx] };
-        std::tie(start_node, start_found) = get_node(current_start_kmer, graph);
+        std::tie(start_node, start_found) = graph.get_node(current_start_kmer);
 
         if (not start_found) {
             continue;
@@ -54,13 +56,13 @@ void DenovoDiscovery::find_paths_through_candidate_region(CandidateRegion &candi
         for (uint_least16_t end_idx = 0; end_idx < end_kmers.size(); end_idx++) {
             const auto &current_end_kmer { end_kmers[end_idx] };
 
-            std::tie(end_node, end_found) = get_node(current_end_kmer, graph);
+            std::tie(end_node, end_found) = graph.get_node(current_end_kmer);
 
             if (end_found) {
-                auto tree_of_nodes_visited_during_dfs { depth_first_search_from(start_node, graph) };
+                auto tree_of_nodes_visited_during_dfs { graph.depth_first_search_from(start_node) };
                 auto denovo_paths {
-                        get_paths_between(current_start_kmer, current_end_kmer, tree_of_nodes_visited_during_dfs, graph,
-                                          max_path_length, expected_kmer_covg) };
+                        graph.get_paths_between(current_start_kmer, current_end_kmer, tree_of_nodes_visited_during_dfs,
+                                                max_path_length, expected_kmer_covg) };
                 candidate_region.denovo_paths.insert(candidate_region.denovo_paths.begin(), denovo_paths.begin(),
                                                      denovo_paths.end());
                 if (not candidate_region.denovo_paths.empty()) {

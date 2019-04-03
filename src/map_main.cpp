@@ -387,7 +387,7 @@ int pandora_map(int argc, char *argv[]) {
         }
 
         if (discover_denovo) {
-            const TmpPanNode pangraph_node_components{pangraph_node, prgs[pangraph_node->prg_id], kmp, lmp};
+            const TmpPanNode pangraph_node_components {pangraph_node, prgs[pangraph_node->prg_id], kmp, lmp};
             auto candidate_regions_for_pan_node { find_candidate_regions_for_pan_node(pangraph_node_components, denovo_kmer_size * 2) };
             candidate_regions.insert(candidate_regions_for_pan_node.begin(), candidate_regions_for_pan_node.end());
         }

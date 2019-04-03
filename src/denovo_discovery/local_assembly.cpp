@@ -1,5 +1,24 @@
-#include <boost/filesystem/path.hpp>
 #include "denovo_discovery/local_assembly.h"
+
+
+LocalAssemblyGraph LocalAssemblyGraph::operator=(const Graph &graph) {
+    if (this != &graph) {
+        _kmerSize = graph._kmerSize;
+        _storageMode = graph._storageMode;
+        _name = graph._name;
+        _info = graph._info;
+        _bloomKind = graph._bloomKind;
+        _debloomKind = graph._debloomKind;
+        _debloomImpl = graph._debloomImpl;
+        _branchingKind = graph._branchingKind;
+        _state = graph._state;
+
+        setStorage(graph._storage);
+
+        if (graph._variant) { *((GraphDataVariant *) _variant) = *((GraphDataVariant *) graph._variant); }
+    }
+    return *this;
+}
 
 
 bool string_ends_with(std::string const &query, std::string const &ending) {
@@ -10,11 +29,11 @@ bool string_ends_with(std::string const &query, std::string const &ending) {
 }
 
 
-std::pair<Node, bool> get_node(const std::string &query_kmer, const Graph &graph) {
-    const auto query_node { graph.buildNode(query_kmer.c_str()) };
+std::pair<Node, bool> LocalAssemblyGraph::get_node(const std::string &query_kmer) {
+    const auto query_node { buildNode(query_kmer.c_str()) };
     Node requested_node;
     bool node_found { false };
-    auto nodes_in_graph { graph.iterator() };
+    auto nodes_in_graph { iterator() };
 
     for (nodes_in_graph.first(); !nodes_in_graph.isDone(); nodes_in_graph.next()) {
         const auto &current_node { nodes_in_graph.item() };
@@ -24,8 +43,8 @@ std::pair<Node, bool> get_node(const std::string &query_kmer, const Graph &graph
         if (node_found) {
             // now test whether the strands are the same
             // todo make if_strand_same function
-            if (graph.toString(current_node) != query_kmer) {
-                requested_node = graph.reverse(current_node);
+            if (toString(current_node) != query_kmer) {
+                requested_node = reverse(current_node);
             } else {
                 requested_node = current_node;
             }
@@ -37,7 +56,7 @@ std::pair<Node, bool> get_node(const std::string &query_kmer, const Graph &graph
 
 
 // Non-recursive implementation of DFS from "Algorithm Design" - Kleinberg and Tardos (First Edition)
-DfsTree depth_first_search_from(const Node &start_node, const Graph &graph) {
+DfsTree LocalAssemblyGraph::depth_first_search_from(const Node &start_node) {
     BOOST_LOG_TRIVIAL(debug) << "Starting DFS...";
     std::stack<Node> nodes_to_explore({ start_node });
 
@@ -48,14 +67,14 @@ DfsTree depth_first_search_from(const Node &start_node, const Graph &graph) {
         auto &current_node { nodes_to_explore.top() };
         nodes_to_explore.pop();
 
-        bool previously_explored { explored_nodes.find(graph.toString(current_node)) != explored_nodes.end() };
+        bool previously_explored { explored_nodes.find(toString(current_node)) != explored_nodes.end() };
         if (previously_explored) {
             continue;
         }
 
-        explored_nodes.insert(graph.toString(current_node));
-        auto children_of_current_node { graph.successors(current_node) };
-        tree_of_nodes_visited[graph.toString(current_node)] = children_of_current_node;
+        explored_nodes.insert(toString(current_node));
+        auto children_of_current_node { successors(current_node) };
+        tree_of_nodes_visited[toString(current_node)] = children_of_current_node;
 
         for (unsigned int i = 0; i < children_of_current_node.size(); ++i) {
             nodes_to_explore.push(children_of_current_node[i]);
@@ -73,8 +92,8 @@ DfsTree depth_first_search_from(const Node &start_node, const Graph &graph) {
  * then comes back up to the next unexplored branching point.
  */
 DenovoPaths
-get_paths_between(const std::string &start_kmer, const std::string &end_kmer, DfsTree &tree, const Graph &graph,
-                  const uint32_t &max_path_length, const double &expected_coverage) {
+LocalAssemblyGraph::get_paths_between(const std::string &start_kmer, const std::string &end_kmer, DfsTree &tree,
+                                      const uint32_t &max_path_length, const double &expected_coverage) {
     BOOST_LOG_TRIVIAL(debug) << "Enumerating all paths in DFS tree between " << start_kmer << " and " << end_kmer;
     std::string path_accumulator { start_kmer.substr(0, start_kmer.length() - 1) };
     DenovoPaths paths_between_queries;
@@ -88,7 +107,7 @@ get_paths_between(const std::string &start_kmer, const std::string &end_kmer, Df
             BOOST_LOG_TRIVIAL(debug) << "Abandoning local assembly for slice as too many paths.";
             break;
         }
-        build_paths_between(start_kmer, end_kmer, path_accumulator, graph, tree, paths_between_queries, max_path_length,
+        build_paths_between(start_kmer, end_kmer, path_accumulator, tree, paths_between_queries, max_path_length,
                             expected_coverage, required_percent_of_expected_covg);
         retries++;
     } while (paths_between_queries.size() > MAX_NUMBER_CANDIDATE_PATHS);
@@ -99,17 +118,19 @@ get_paths_between(const std::string &start_kmer, const std::string &end_kmer, Df
 }
 
 
-void build_paths_between(const std::string &start_kmer, const std::string &end_kmer, std::string path_accumulator,
-                         const Graph &graph, std::unordered_map<string, GraphVector<Node>> &tree,
-                         DenovoPaths &paths_between_queries, const uint32_t &max_path_length,
-                         const double &expected_kmer_covg, const float &required_percent_of_expected_covg,
-                         uint32_t num_kmers_below_threshold) {
+void LocalAssemblyGraph::build_paths_between(const std::string &start_kmer, const std::string &end_kmer,
+                                             std::string path_accumulator,
+                                             std::unordered_map<string, GraphVector<Node>> &tree,
+                                             DenovoPaths &paths_between_queries, const uint32_t &max_path_length,
+                                             const double &expected_kmer_covg,
+                                             const float &required_percent_of_expected_covg,
+                                             uint32_t num_kmers_below_threshold) {
     if (path_accumulator.length() > max_path_length or paths_between_queries.size() > MAX_NUMBER_CANDIDATE_PATHS) {
         return;
     }
 
-    auto start_node { graph.buildNode(start_kmer.c_str()) };
-    const auto kmer_coverage { graph.queryAbundance(start_node) };
+    auto start_node { buildNode(start_kmer.c_str()) };
+    const auto kmer_coverage { queryAbundance(start_node) };
     const auto max_num_kmers_allowed_below_covg_threshold { start_kmer.length() };
 
     if (kmer_coverage < (expected_kmer_covg * COVG_SCALING_FACTOR)) {
@@ -130,10 +151,9 @@ void build_paths_between(const std::string &start_kmer, const std::string &end_k
     const auto num_children { children_of_start_node.size() };
 
     for (unsigned int i = 0; i < num_children; ++i) {
-        const auto next_start_kmer { graph.toString(children_of_start_node[i]) };
-        build_paths_between(next_start_kmer, end_kmer, path_accumulator, graph, tree, paths_between_queries,
-                            max_path_length, expected_kmer_covg, required_percent_of_expected_covg,
-                            num_kmers_below_threshold);
+        const auto next_start_kmer { toString(children_of_start_node[i]) };
+        build_paths_between(next_start_kmer, end_kmer, path_accumulator, tree, paths_between_queries, max_path_length,
+                            expected_kmer_covg, required_percent_of_expected_covg, num_kmers_below_threshold);
     }
 }
 
@@ -144,7 +164,7 @@ void remove_graph_file() {
 }
 
 
-void do_graph_clean(Graph &graph, const uint16_t &num_cores) {
+void clean(Graph &graph, const uint16_t &num_cores) {
     Simplifications<Graph, Node, Edge> graph_simplifications(graph, num_cores);
     graph_simplifications._doTipRemoval = true;
     graph_simplifications._doBulgeRemoval = false;
