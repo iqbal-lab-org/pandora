@@ -37,13 +37,12 @@ std::pair<Node, bool> LocalAssemblyGraph::get_node(const std::string &query_kmer
 
     for (nodes_in_graph.first(); !nodes_in_graph.isDone(); nodes_in_graph.next()) {
         const auto &current_node { nodes_in_graph.item() };
-
-        // does not take strand into account
         node_found = (current_node == query_node);
+
         if (node_found) {
-            // now test whether the strands are the same
-            // todo make if_strand_same function
-            if (toString(current_node) != query_kmer) {
+            const bool strands_are_opposite { toString(current_node) != query_kmer };
+
+            if (strands_are_opposite) {
                 requested_node = reverse(current_node);
             } else {
                 requested_node = current_node;

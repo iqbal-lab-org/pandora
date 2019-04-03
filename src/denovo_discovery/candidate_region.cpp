@@ -85,7 +85,6 @@ CandidateRegions find_candidate_regions_for_pan_node(const TmpPanNode &pangraph_
         const auto interval_path_components { find_interval_and_flanks_in_localpath(candidate_region.get_interval(),
                                                                                     local_node_max_likelihood_path) };
 
-        // todo get_read_overlap_coordinates should be moved out of this function
         candidate_region.read_coordinates = pangraph_node->get_read_overlap_coordinates(interval_path_components.slice);
 
         BOOST_LOG_TRIVIAL(debug) << "there are " << candidate_region.read_coordinates.size()
