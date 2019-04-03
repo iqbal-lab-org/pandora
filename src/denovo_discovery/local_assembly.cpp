@@ -133,7 +133,7 @@ void LocalAssemblyGraph::build_paths_between(const std::string &start_kmer, cons
     const auto kmer_coverage { queryAbundance(start_node) };
     const auto max_num_kmers_allowed_below_covg_threshold { start_kmer.length() };
 
-    if (kmer_coverage < (expected_kmer_covg * COVG_SCALING_FACTOR)) {
+    if (kmer_coverage < (expected_kmer_covg * required_percent_of_expected_covg)) {
         num_kmers_below_threshold++;
         if (num_kmers_below_threshold >= max_num_kmers_allowed_below_covg_threshold) {
             return;
