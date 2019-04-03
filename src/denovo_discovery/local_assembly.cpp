@@ -57,9 +57,9 @@ std::pair<Node, bool> LocalAssemblyGraph::get_node(const std::string &query_kmer
 // Non-recursive implementation of DFS from "Algorithm Design" - Kleinberg and Tardos (First Edition)
 DfsTree LocalAssemblyGraph::depth_first_search_from(const Node &start_node) {
     BOOST_LOG_TRIVIAL(debug) << "Starting DFS...";
-    std::stack<Node> nodes_to_explore({ start_node });
+    std::stack <Node> nodes_to_explore({ start_node });
 
-    std::unordered_set<std::string> explored_nodes;
+    std::unordered_set <std::string> explored_nodes;
     DfsTree tree_of_nodes_visited;
 
     while (not nodes_to_explore.empty()) {
@@ -119,7 +119,7 @@ LocalAssemblyGraph::get_paths_between(const std::string &start_kmer, const std::
 
 void LocalAssemblyGraph::build_paths_between(const std::string &start_kmer, const std::string &end_kmer,
                                              std::string path_accumulator,
-                                             std::unordered_map<string, GraphVector<Node>> &tree,
+                                             std::unordered_map <string, GraphVector<Node>> &tree,
                                              DenovoPaths &paths_between_queries, const uint32_t &max_path_length,
                                              const double &expected_kmer_covg,
                                              const float &required_percent_of_expected_covg,
@@ -164,7 +164,7 @@ void remove_graph_file() {
 
 
 void clean(Graph &graph, const uint16_t &num_cores) {
-    Simplifications<Graph, Node, Edge> graph_simplifications(graph, num_cores);
+    Simplifications <Graph, Node, Edge> graph_simplifications(graph, num_cores);
     graph_simplifications._doTipRemoval = true;
     graph_simplifications._doBulgeRemoval = false;
     graph_simplifications._doECRemoval = false;
@@ -192,43 +192,48 @@ std::string reverse_complement(const std::string &forward) {
 }
 
 
-// todo: the generate kmers functions have a lot of overlapping code - refactor
-std::vector<std::string>
+std::vector <std::string>
 generate_start_kmers(const std::string &sequence, const uint16_t &k, uint32_t num_to_generate) {
     const auto seq_len { sequence.length() };
     const auto more_combinations_requested_than_possible { k + (num_to_generate - 1) > seq_len };
 
-    if (k > seq_len) {
-        std::vector<std::string> empty;
-        return empty;
-    } else if (more_combinations_requested_than_possible) {
+    if (more_combinations_requested_than_possible) {
         num_to_generate = seq_len - k + 1;
     }
 
-    std::vector<std::string> start_kmers;
+    const auto generate_kmers_from { sequence.substr(0, num_to_generate + (k - 1)) };
 
-    for (uint32_t i = 0; i < num_to_generate; i++) {
-        start_kmers.emplace_back(sequence.substr(i, k));
-    }
-    return start_kmers;
+    return all_kmers_in(generate_kmers_from, k);
 }
 
 
-std::vector<std::string> generate_end_kmers(const std::string &sequence, const uint32_t &k, uint32_t num_to_generate) {
+std::vector <std::string> generate_end_kmers(const std::string &sequence, const uint32_t &k, uint32_t num_to_generate) {
     const auto seq_len { sequence.length() };
     const auto more_combinations_requested_than_possible { k + (num_to_generate - 1) > seq_len };
 
-    if (k > seq_len) {
-        std::vector<std::string> empty;
-        return empty;
-    } else if (more_combinations_requested_than_possible) {
+    if (more_combinations_requested_than_possible) {
         num_to_generate = seq_len - k + 1;
     }
-    std::vector<std::string> end_kmers;
 
-    for (uint32_t i = 0; i < num_to_generate; i++) {
-        end_kmers.emplace_back(sequence.substr(seq_len - k - i, k));
-    }
+    const auto generate_kmers_from { sequence.substr(seq_len - (num_to_generate + (k - 1))) };
+    auto end_kmers { all_kmers_in(generate_kmers_from, k) };
+
+    std::reverse(end_kmers.begin(), end_kmers.end());
+
     return end_kmers;
 }
 
+
+std::vector <std::string> all_kmers_in(const std::string &query, const uint_least8_t k_size) {
+    std::vector <std::string> kmers;
+
+    if (k_size > query.length()) {
+        return kmers;
+    }
+
+    for (size_t i = 0; i < query.length() - (k_size - 1); i++) {
+        kmers.emplace_back(query.substr(i, k_size));
+    }
+
+    return kmers;
+}

@@ -59,4 +59,6 @@ std::vector<std::string> generate_start_kmers(const std::string &sequence, const
 
 std::vector<std::string> generate_end_kmers(const std::string &sequence, const uint32_t &k, uint32_t num_to_generate);
 
+std::vector<std::string> all_kmers_in(const std::string &query, const uint_least8_t k_size);
+
 #endif //PANDORA_LOCAL_ASSEMBLY_H

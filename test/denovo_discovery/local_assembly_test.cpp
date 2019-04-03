@@ -719,3 +719,47 @@ TEST(QueryAbundance, fakeKmer_ReturnZero) {
     EXPECT_EQ(covg, 0);
     remove_graph_file();
 }
+
+
+TEST(AllKmersInTest, emptyQueryReturnsEmpty) {
+    const std::string query { "" };
+    const auto k_size { 3 };
+
+    const auto actual { all_kmers_in(query, k_size) };
+    const std::vector<std::string> expected;
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(AllKmersInTest, queryShorterThanKsizeReturnsEmpty) {
+    const std::string query { "q" };
+    const auto k_size { 3 };
+
+    const auto actual { all_kmers_in(query, k_size) };
+    const std::vector<std::string> expected;
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(AllKmersInTest, querySameLengthAsKsizeReturnsQuery) {
+    const std::string query { "q" };
+    const auto k_size { 1 };
+
+    const auto actual { all_kmers_in(query, k_size) };
+    const std::vector<std::string> expected { "q" };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(AllKmersInTest, queryLongerThanKsizeReturnsAllKmers) {
+    const std::string query { "every" };
+    const auto k_size { 3 };
+
+    const auto actual { all_kmers_in(query, k_size) };
+    const std::vector<std::string> expected { "eve", "ver", "ery" };
+
+    EXPECT_EQ(actual, expected);
+}
