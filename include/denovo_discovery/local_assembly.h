@@ -28,7 +28,7 @@ constexpr auto MAX_NUMBER_CANDIDATE_PATHS { 50 };
 
 class LocalAssemblyGraph : public Graph {
 public:
-    LocalAssemblyGraph operator=(const Graph &graph);
+    LocalAssemblyGraph& operator=(const Graph &graph);
 
     std::pair<Node, bool> get_node(const std::string &query_kmer);
 

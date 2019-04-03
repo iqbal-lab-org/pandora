@@ -153,7 +153,8 @@ bool ReadCoordinate::operator<(const ReadCoordinate &y) const {
 
 
 bool ReadCoordinate::operator==(const ReadCoordinate &y) const {
-    return ((this->id == y.id) and (this->start == y.start) and (this->end == y.end) and (this->is_forward == y.is_forward));
+    return ((this->id == y.id) and (this->start == y.start) and (this->end == y.end) and
+            (this->is_forward == y.is_forward));
 }
 
 
@@ -174,11 +175,11 @@ std::ostream &operator<<(std::ostream &out, ReadCoordinate const &y) {
 }
 
 
-PathComponents::PathComponents() {}
+PathComponents::PathComponents() = default;
 
 
 PathComponents::PathComponents(prg::Path flank_left, prg::Path slice, prg::Path flank_right)
-        : flank_left(flank_left), slice(slice), flank_right(flank_right) {}
+        : flank_left(std::move(flank_left)), slice(std::move(slice)), flank_right(std::move(flank_right)) {}
 
 
 bool PathComponents::operator==(const PathComponents &other) const {

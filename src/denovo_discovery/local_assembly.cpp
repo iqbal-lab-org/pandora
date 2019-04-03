@@ -1,7 +1,7 @@
 #include "denovo_discovery/local_assembly.h"
 
 
-LocalAssemblyGraph LocalAssemblyGraph::operator=(const Graph &graph) {
+LocalAssemblyGraph& LocalAssemblyGraph::operator=(const Graph &graph) {
     if (this != &graph) {
         _kmerSize = graph._kmerSize;
         _storageMode = graph._storageMode;
