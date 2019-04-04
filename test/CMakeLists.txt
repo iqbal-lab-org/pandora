@@ -7,6 +7,8 @@ file(GLOB_RECURSE TEST_SRC_FILES
 list(REMOVE_ITEM TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/src/main.cpp)
 add_executable(pandora_test ${TEST_SRC_FILES})
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+
 add_dependencies(pandora_test
         gtest
         gatb)
