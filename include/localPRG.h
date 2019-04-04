@@ -52,7 +52,7 @@ public:
 
     std::vector<prg::Path> shift(prg::Path) const;
 
-    void minimizer_sketch(Index *idx, const uint32_t w, const uint32_t k);
+    void minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, const uint32_t k);
 
     // functions used once hits have been collected against the PRG
     std::vector<KmerNodePtr> kmernode_path_from_localnode_path(const std::vector<LocalNodePtr> &) const;
@@ -82,32 +82,29 @@ public:
                                             const std::string &,
                                             const std::string &) const;
 
-    void append_kmer_covgs_in_range(const KmerGraph &,
-                                    const std::vector<KmerNodePtr> &,
-                                    const std::vector<LocalNodePtr> &,
-                                    const uint32_t &,
-                                    const uint32_t &,
-                                    std::vector<uint32_t> &,
-                                    std::vector<uint32_t> &) const;
+    void append_kmer_covgs_in_range(const KmerGraph &, const std::vector<KmerNodePtr> &,
+                                    const std::vector<LocalNodePtr> &, const uint32_t &, const uint32_t &,
+                                    std::vector<uint32_t> &, std::vector<uint32_t> &, const uint32_t &sample_id) const;
 
-    void add_sample_covgs_to_vcf(VCF &, const KmerGraph &,
-                                 const std::vector<LocalNodePtr> &,
-                                 const std::string &sample_name = "sample") const;
+    void add_sample_covgs_to_vcf(VCF &, const KmerGraph &, const std::vector<LocalNodePtr> &,
+                                     const uint32_t &min_kmer_covg, const std::string &sample_name="sample",
+                                     const uint32_t &sample_id=0) const;
 
     void add_consensus_path_to_fastaq(Fastaq &,
                                       PanNodePtr,
                                       std::vector<KmerNodePtr> &,
                                       std::vector<LocalNodePtr> &,
-                                      const uint32_t w,
-                                      const bool bin = false,
-                                      const uint32_t global_covg = 1);
+                                      const uint32_t,
+                                      const bool,
+                                      const uint32_t,
+                                      const uint32_t &sample_id = 0);
+    std::vector<LocalNodePtr> get_valid_vcf_reference(const std::string &) const;
 
-    void add_variants_to_vcf(VCF &,
-                             PanNodePtr,
-                             const std::string &,
-                             const std::vector<KmerNodePtr> &,
-                             const std::vector<LocalNodePtr> &,
-                             const std::string &sample_name = "sample");
+    void add_variants_to_vcf(VCF &, PanNodePtr, const std::string &, const std::vector<KmerNodePtr> &,
+                                 const std::vector<LocalNodePtr> &, const uint32_t &min_kmer_covg,
+                                 const uint32_t &sample_id=0, const std::string &sample_name="sample");
+
+    std::string random_path();
 
 
     friend std::ostream &operator<<(std::ostream &out, const LocalPRG &data);
@@ -118,8 +115,8 @@ bool operator<(const std::pair<std::vector<LocalNodePtr>, float> &p1,
 
 bool operator!=(const std::vector<KmerNodePtr> &lhs, const std::vector<KmerNodePtr> &rhs);
 
-std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr,
-                                                     const std::vector<LocalNodePtr> &,
-                                                     const std::vector<KmerNodePtr> &);
+std::vector<uint32_t>
+get_covgs_along_localnode_path(const PanNodePtr, const std::vector<LocalNodePtr> &, const std::vector<KmerNodePtr> &,
+                               const uint32_t &sample_id);
 
 #endif

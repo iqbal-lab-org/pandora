@@ -47,23 +47,31 @@ public:
 
     void check();
 
+    void discover_k();
+
     void set_exp_depth_covg(const uint32_t);
 
     void set_p(const float);
 
     void set_nb(const float &, const float &);
 
-    float nb_prob(uint32_t);
+    float nb_prob(uint32_t, const uint32_t &sample_id);
 
-    float prob(uint32_t);
+    float lin_prob(uint32_t, const uint32_t &sample_id);
 
-    float prob(uint32_t, uint32_t);
+    float prob(uint32_t, const uint32_t &sample_id);
 
-    float find_max_path(std::vector<KmerNodePtr> &);
+    float prob(const uint32_t &, const uint32_t &, const uint32_t &sample_id);
 
-    float find_nb_max_path(std::vector<KmerNodePtr> &);
+    bool coverage_is_zeroes(const uint32_t&);
 
-    std::vector<std::vector<KmerNodePtr>> find_max_paths(uint32_t);
+    float find_max_path(std::vector<KmerNodePtr> &, const uint32_t &);
+
+    float find_nb_max_path(std::vector<KmerNodePtr> &, const uint32_t &sample_id);
+
+    float find_lin_max_path(std::vector<KmerNodePtr> &, const uint32_t &sample_id);
+
+    std::vector<std::vector<KmerNodePtr>> find_max_paths(uint32_t, const uint32_t &sample_id);
 
     void save_covg_dist(const std::string &);
 
@@ -71,22 +79,23 @@ public:
 
     std::vector<std::vector<KmerNodePtr>> get_random_paths(uint32_t);
 
-    float prob_path(const std::vector<KmerNodePtr> &);
+    float prob_path(const std::vector<KmerNodePtr> &, const uint32_t &sample_id);
 
     float prob_paths(const std::vector<std::vector<KmerNodePtr>> &);
 
-    void save(const std::string &, const shared_ptr<LocalPRG> = nullptr);
+    void save(const std::string &, const std::shared_ptr<LocalPRG> = nullptr);
 
     void load(const std::string &);
 
-    void append_coverages_to_file(const std::string &, const std::string &);
-
     bool operator==(const KmerGraph &y) const;
+
+    void setup_coverages(const uint32_t &);
 
     friend std::ostream &operator<<(std::ostream &out, KmerGraph const &data);
 
-    friend void
-    estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint32_t, const bool);
+    friend uint32_t
+    estimate_parameters(std::shared_ptr<pangenome::Graph>, const std::string &, const uint32_t, float &, const uint32_t,
+                        bool &, const uint32_t &sample_id);
 
     friend struct condition;
 

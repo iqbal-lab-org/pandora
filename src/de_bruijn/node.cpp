@@ -4,13 +4,13 @@
 
 using namespace debruijn;
 
-Node::Node(const uint32_t i, const deque<uint_least32_t> &n, const uint32_t r) : id(i), hashed_node_ids(n),
-                                                                                 read_ids({r}), out_nodes({}),
-                                                                                 in_nodes({}) {}
+debruijn::Node::Node(const uint32_t i, const std::deque<uint_least32_t> &n, const uint32_t r) : id(i), hashed_node_ids(n),
+                                                                                      read_ids({r}), out_nodes({}),
+                                                                                      in_nodes({}) {}
 
 // Nodes are equal if they correspond to the same sequence of oriented pangraph nodes
 // either in the forward or reverse complement direction
-bool Node::operator==(const Node &y) const {
+bool debruijn::Node::operator==(const Node &y) const {
     if (y.hashed_node_ids.size() != hashed_node_ids.size()) {
         return false;
     }
@@ -33,13 +33,13 @@ bool Node::operator==(const Node &y) const {
     return match;
 }
 
-bool Node::operator!=(const Node &y) const {
+bool debruijn::Node::operator!=(const Node &y) const {
     return !(*this == y);
 }
 
 namespace debruijn {
     std::ostream &operator<<(std::ostream &out, const Node &m) {
-        string sep = "";
+        std::string sep = "";
         out << "(";
         for (const auto &n : m.hashed_node_ids) {
             out << sep << n;

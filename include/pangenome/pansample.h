@@ -15,11 +15,12 @@ typedef std::shared_ptr<KmerNode> KmerNodePtr;
 class pangenome::Sample {
 public:
     const std::string name; // first column in index of read files
-    vector<NodePtr> nodes;
-    vector<bool> node_orientations;
+    const uint32_t sample_id;
+    std::vector<NodePtr> nodes;
+    std::vector<bool> node_orientations;
     std::unordered_map<uint32_t, std::vector<std::vector<KmerNodePtr>>> paths; // from prg id (or unique id) to kmernnode path(s) through each node
 
-    Sample(const std::string &);
+    Sample(const std::string &, const uint32_t &id);
 
     void add_path(const uint32_t, const std::vector<KmerNodePtr> &);
 

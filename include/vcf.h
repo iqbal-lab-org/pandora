@@ -24,7 +24,9 @@ public:
 
     void add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i = ".", std::string g = "");
 
-    VCFRecord &add_record(VCFRecord &);
+    VCFRecord &add_record(VCFRecord &, const std::vector<std::string> &sample_names);
+
+    void add_samples(const std::vector<std::string>);
 
     void add_formats(const std::vector<std::string> &);
 
@@ -43,11 +45,15 @@ public:
 
     bool pos_in_range(const uint32_t, const uint32_t, const std::string &) const;
 
-    void genotype(const uint32_t &, const float &, const uint8_t, bool snps_only = true);
+    void genotype(const std::vector<uint32_t> &, const float &, const uint16_t, const uint32_t &min_allele_covg,
+                  const float &min_fraction_allele_covg, const uint32_t &min_site_total_covg,
+                  const uint32_t &min_site_diff_covg, bool snps_only);
 
     void clean();
 
     void merge_multi_allelic(uint32_t max_allele_length = 10000);
+
+    void correct_dot_alleles(const std::string &, const std::string &);
 
     void make_gt_compatible();
 

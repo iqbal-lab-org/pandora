@@ -25,17 +25,17 @@
 #include "estimate_parameters.h"
 #include "noise_filtering.h"
 
-#include "denovo_discovery/extract_reads.h"
+#include "denovo_discovery/denovo_utils.h"
 #include "denovo_discovery/denovo_discovery.h"
 
 
 using std::set;
 using std::vector;
-using namespace std;
+
 namespace fs = boost::filesystem;
 
 static void show_map_usage() {
-    std::cerr << "Usage: pandora map -p PRG_FILE -r READ_FILE -o OUTDIR <option(s)>\n"
+    std::cerr << "Usage: pandora map -p PRG_FILE -r READ_FILE <option(s)>\n"
               << "Options:\n"
               << "\t-h,--help\t\t\tShow this help message\n"
               << "\t-p,--prg_file PRG_FILE\t\tSpecify a fasta-style prg file\n"
@@ -60,21 +60,27 @@ static void show_map_usage() {
               << "\t--genotype\t\t\tAdd extra step to carefully genotype sites\n"
               << "\t--snps_only\t\t\tWhen genotyping, include only snp sites\n"
               << "\t--discover\t\t\tAdd denovo discovery\n"
+              << "\t--denovo_kmer_size\t\t\tKmer size to use for denovo discovery\n"
+              << "\t--log_level\t\t\tdebug,[info],warning,error\n"
               << std::endl;
 }
 
 int pandora_map(int argc, char *argv[]) {
     // if not enough arguments, print usage
-    if (argc < 7) {
+    if (argc < 5) {
+        std::cerr << "only provided " << argc << "arguments" << std::endl;
         show_map_usage();
         return 1;
     }
 
     // otherwise, parse the parameters from the command line
-    string prgfile, readfile, outdir = ".", vcf_refs_file;
-    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300; // default parameters
+    string prgfile, reads_filepath, outdir = "pandora", vcf_refs_file, log_level="info";
+    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300,
+            min_allele_covg_gt = 0, min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0; // default parameters
+    uint16_t confidence_threshold = 1;
+    uint_least8_t denovo_kmer_size{11};
     int max_diff = 250;
-    float e_rate = 0.11;
+    float e_rate = 0.11, min_allele_fraction_covg_gt = 0, genotyping_error_rate=0.01;
     bool output_kg = false, output_vcf = false;
     bool output_comparison_paths = false, output_mapped_read_fa = false;
     bool illumina = false, clean = false;
@@ -94,7 +100,7 @@ int pandora_map(int argc, char *argv[]) {
             }
         } else if ((arg == "-r") || (arg == "--read_file")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                readfile = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+                reads_filepath = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--read_file option requires one argument." << std::endl;
                 return 1;
@@ -125,6 +131,13 @@ int pandora_map(int argc, char *argv[]) {
                 max_diff = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--max_diff option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if ((arg == "-c") || (arg == "--min_cluster_size")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                min_cluster_size = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--min_cluster_size option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "-e") || (arg == "--error_rate")) {
@@ -178,12 +191,68 @@ int pandora_map(int argc, char *argv[]) {
                 std::cerr << "--max_covg option requires one argument." << std::endl;
                 return 1;
             }
+        } else if ((arg == "--min_allele_covg_gt")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                min_allele_covg_gt = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--min_allele_covg_gt option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if ((arg == "--min_total_covg_gt")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                min_total_covg_gt = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--min_total_covg_gt option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if ((arg == "--min_diff_covg_gt")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                min_diff_covg_gt = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--min_diff_covg_gt option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if ((arg == "--min_allele_fraction_covg_gt")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                min_allele_fraction_covg_gt = static_cast<float>(atof(argv[++i])); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--min_allele_fraction_covg_gt option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if ((arg == "--genotyping_error_rate")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                genotyping_error_rate = static_cast<float>(atof(argv[++i])); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--genotyping_error_rate option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if ((arg == "--confidence_threshold")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                confidence_threshold = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--confidence_threshold option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if ((arg == "--denovo_kmer_size")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                denovo_kmer_size = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--denovo_kmer_size option requires one argument." << std::endl;
+                return 1;
+            }
         } else if ((arg == "--genotype")) {
             genotype = true;
         } else if ((arg == "--snps_only")) {
             snps_only = true;
         } else if ((arg == "--discover")) {
             discover_denovo = true;
+        } else if ((arg == "--log_level")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                log_level = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--log_level option requires one argument." << std::endl;
+                return 1;
+            }
         } else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
@@ -195,12 +264,18 @@ int pandora_map(int argc, char *argv[]) {
         genotype = true;
     if (genotype)
         output_vcf = true;
+    if (illumina and e_rate > 0.1) {
+        e_rate = 0.001;
+    }
+    if (illumina and max_diff > 200) {
+        max_diff = 2*k + 1;
+    }
 
     //then run the programme...
     cout << "START: " << now() << endl;
     cout << "\nUsing parameters: " << endl;
     cout << "\tprgfile\t\t" << prgfile << endl;
-    cout << "\treadfile\t" << readfile << endl;
+    cout << "\treadfile\t" << reads_filepath << endl;
     cout << "\toutdir\t" << outdir << endl;
     cout << "\tw\t\t" << w << endl;
     cout << "\tk\t\t" << k << endl;
@@ -218,109 +293,121 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\tmax_covg\t" << max_covg << endl;
     cout << "\tgenotype\t" << genotype << endl;
     cout << "\tsnps_only\t" << snps_only << endl;
-    cout << "\tdiscover\t" << discover_denovo << endl << endl;
+    cout << "\tdiscover\t" << discover_denovo << endl;
+    cout << "\tdenovo_kmer_size\t" << denovo_kmer_size << endl;
+    cout << "\tlog_level\t" << log_level << endl << endl;
 
-    make_dir(outdir);
+    auto g_log_level{boost::log::trivial::info};
+    if (log_level == "debug")
+        g_log_level = boost::log::trivial::debug;
+    boost::log::core::get()->set_filter(boost::log::trivial::severity >= g_log_level);
+
+    fs::create_directories(outdir);
     if (output_kg)
-        make_dir(outdir + "/kmer_graphs");
+        fs::create_directories(outdir + "/kmer_graphs");
 
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
-    Index *idx;
-    idx = new Index();
-    idx->load(prgfile, w, k);
+    auto index = std::make_shared<Index>();
+    index->load(prgfile, w, k);
     std::vector<std::shared_ptr<LocalPRG>> prgs;
     read_prg_file(prgs, prgfile);
     load_PRG_kmergraphs(prgs, w, k, prgfile);
 
     cout << now() << "Constructing pangenome::Graph from read file (this will take a while)" << endl;
-    MinimizerHits *mhs;
-    mhs = new MinimizerHits(100000);
-    pangenome::Graph *pangraph;
-    pangraph = new pangenome::Graph();
-    uint32_t covg = pangraph_from_read_file(readfile, mhs, pangraph, idx, prgs, w, k, max_diff, e_rate,
+    auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits(100000));
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
+    uint32_t covg = pangraph_from_read_file(reads_filepath, minimizer_hits, pangraph, index, prgs, w, k, max_diff, e_rate,
                                             min_cluster_size, genome_size, illumina, clean, max_covg);
 
     cout << now() << "Finished with index, so clear " << endl;
-    idx->clear();
-    delete idx;
+    index->clear();
 
     cout << now() << "Finished with minihits, so clear " << endl;
-    mhs->clear();
-    delete mhs;
+    minimizer_hits->clear();
 
-    if (pangraph->nodes.empty()){
+    if (pangraph->nodes.empty()) {
         cout << "Found non of the LocalPRGs in the reads." << endl;
         cout << "FINISH: " << now() << endl;
-        delete pangraph;
         return 0;
     }
 
-    cout << now() << "Writing pangenome::Graph to file " << outdir << "pandora.pangraph.gfa" << endl;
+    cout << now() << "Writing pangenome::Graph to file " << outdir << "/pandora.pangraph.gfa" << endl;
     write_pangraph_gfa(outdir + "/pandora.pangraph.gfa", pangraph);
 
     cout << now() << "Update LocalPRGs with hits" << endl;
-    update_localPRGs_with_hits(pangraph, prgs);
+    uint32_t sample_id = 0;
+    pangraph->setup_kmergraphs(prgs);
+    pangraph->add_hits_to_kmergraphs(prgs);
 
     cout << now() << "Estimate parameters for kmer graph model" << endl;
-    estimate_parameters(pangraph, outdir, k, e_rate, covg, bin);
+    auto exp_depth_covg = estimate_parameters(pangraph, outdir, k, e_rate, covg, bin, sample_id);
+    if (min_kmer_covg == 0)
+        min_kmer_covg = exp_depth_covg/10;
 
-    cout << now() << "Find PRG paths and write to files:" << endl;
+    std::cout << now() << "Find PRG paths and write to files:" << std::endl;
 
     Fastaq consensus_fq(true, true);
     VCF master_vcf;
 
     VCFRefs vcf_refs;
-    string vcf_ref;
-    vector<KmerNodePtr> kmp;
-    vector<LocalNodePtr> lmp;
-    std::set<std::pair<ReadCoordinate, GeneIntervalInfo>> pangraph_coordinate_pairs;
+    std::string vcf_ref;
+    std::vector<KmerNodePtr> kmp;
+    std::vector<LocalNodePtr> lmp;
+
+    CandidateRegions candidate_regions;
 
     if (output_vcf and !vcf_refs_file.empty()) {
         vcf_refs.reserve(prgs.size());
         load_vcf_refs_file(vcf_refs_file, vcf_refs);
     }
 
-    for (auto c = pangraph->nodes.begin(); c != pangraph->nodes.end();) {
+    for (auto pan_id_to_node_mapping = pangraph->nodes.begin(); pan_id_to_node_mapping != pangraph->nodes.end();) {
+        const auto &pangraph_node { pan_id_to_node_mapping->second };
+
         if (output_vcf
             and !vcf_refs_file.empty()
-            and vcf_refs.find(prgs[c->second->prg_id]->name) != vcf_refs.end()) {
-            vcf_ref = vcf_refs[prgs[c->second->prg_id]->name];
+            and vcf_refs.find(prgs[pangraph_node->prg_id]->name) != vcf_refs.end()) {
+            vcf_ref = vcf_refs[prgs[pangraph_node->prg_id]->name];
         }
 
-        prgs[c->second->prg_id]->add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp, w, bin, covg);
+        prgs[pangraph_node->prg_id]->add_consensus_path_to_fastaq(consensus_fq, pangraph_node, kmp, lmp, w, bin, covg);
 
         if (kmp.empty()) {
-            c = pangraph->remove_node(c->second);
+            pan_id_to_node_mapping = pangraph->remove_node(pangraph_node);
             continue;
         }
 
         if (output_kg) {
-            c->second->kmer_prg.save(outdir + "/kmer_graphs/" + c->second->get_name() + ".kg.gfa",
-                                     prgs[c->second->prg_id]);
+            pangraph_node->kmer_prg.save(outdir + "/kmer_graphs/" + pangraph_node->get_name() + ".kg.gfa",
+                                     prgs[pangraph_node->prg_id]);
         }
 
         if (output_vcf) {
-            prgs[c->second->prg_id]->add_variants_to_vcf(master_vcf, c->second, vcf_ref, kmp, lmp);
+            prgs[pangraph_node->prg_id]->add_variants_to_vcf(master_vcf, pangraph_node, vcf_ref, kmp, lmp, min_kmer_covg);
         }
 
         if (discover_denovo) {
-            denovo_discovery::add_pnode_coordinate_pairs(pangraph_coordinate_pairs, c->second, lmp, kmp);
+            const TmpPanNode pangraph_node_components {pangraph_node, prgs[pangraph_node->prg_id], kmp, lmp};
+            auto candidate_regions_for_pan_node { find_candidate_regions_for_pan_node(pangraph_node_components, denovo_kmer_size * 2) };
+            candidate_regions.insert(candidate_regions_for_pan_node.begin(), candidate_regions_for_pan_node.end());
         }
-        ++c;
+        ++pan_id_to_node_mapping;
     }
     consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
-    master_vcf.save(outdir + "/pandora_consensus.vcf", true, true, true, true, true, true, true);
+    if (output_vcf)
+        master_vcf.save(outdir + "/pandora_consensus.vcf", true, true, true, true, true, true, true);
 
-    if (pangraph->nodes.empty()){
-        cout << "All nodes which were found have been removed during cleaning. Is your genome_size accurate?"
-             << " Genome size is assumed to be " << genome_size << " and can be updated with --genome_size" << endl
-             << "FINISH: " << now() << endl;
-        delete pangraph;
+    if (pangraph->nodes.empty()) {
+        std::cout << "All nodes which were found have been removed during cleaning. Is your genome_size accurate?"
+             << " Genome size is assumed to be " << genome_size << " and can be updated with --genome_size" << std::endl
+             << "FINISH: " << now() << std::endl;
         return 0;
     }
 
     if (genotype) {
-        master_vcf.genotype(covg, 0.01, 30, snps_only);
+        std::vector<uint32_t> exp_depth_covgs = {exp_depth_covg};
+        master_vcf.genotype(exp_depth_covgs, genotyping_error_rate, confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
+                            min_total_covg_gt, min_diff_covg_gt, snps_only);
         if (snps_only)
             master_vcf.save(outdir + "/pandora_genotyped.vcf", true, true, true, true, false, false, false);
         else
@@ -328,19 +415,23 @@ int pandora_map(int argc, char *argv[]) {
     }
 
     if (discover_denovo) {
-        denovo_discovery::find_candidates(pangraph_coordinate_pairs,
-                                          readfile,
-                                          fs::path(outdir),
-                                          e_rate, g_local_assembly_kmer_size, g_kmer_attempts_count);
+        DenovoDiscovery denovo { denovo_kmer_size, e_rate };
+        const fs::path denovo_output_directory {fs::path(outdir) / "denovo_paths"};
+
+        for (auto &element : candidate_regions) {
+            auto &candidate_region {element.second};
+            candidate_region.generate_read_pileup(reads_filepath);
+            denovo.find_paths_through_candidate_region(candidate_region);
+            candidate_region.write_denovo_paths_to_file(denovo_output_directory);
+        }
     }
 
     if (output_mapped_read_fa)
-        pangraph->save_mapped_read_strings(readfile, outdir);
+        pangraph->save_mapped_read_strings(reads_filepath, outdir);
 
     pangraph->clear();
-    delete pangraph;
 
-    cout << "FINISH: " << now() << endl;
+    std::cout << "FINISH: " << now() << "\n";
     return 0;
 }
 

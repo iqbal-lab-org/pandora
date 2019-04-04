@@ -102,7 +102,7 @@ TEST(LocalPRGTest, string_along_path) {
 
     // empty interval
     deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     EXPECT_EQ("", l0.string_along_path(p));
     EXPECT_EQ("", l1.string_along_path(p));
@@ -165,7 +165,7 @@ TEST(LocalPRGTest, nodes_along_path) {
 
     // empty interval expects no nodes along
     deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     vector<LocalNodePtr> v;
 
@@ -437,23 +437,23 @@ TEST(LocalPRGTest, shift) {
     LocalPRG l6(6, "one representing a possible deletion at end", "GATCTCTAG 5 TTATG 6  5 ");
 
     deque<Interval> d = {Interval(0, 3)};
-    Path p, q;
+    prg::Path p, q;
     p.initialize(d);
     d = {Interval(1, 4)};
     q.initialize(d);
-    vector<Path> v_exp = {q};
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l1.shift(p));
+    vector<prg::Path> v_exp = {q};
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l1.shift(p));
     v_exp.clear();
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l1.shift(q)); // there are no shifts over end of prg
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l1.shift(q)); // there are no shifts over end of prg
 
     d = {Interval(0, 1), Interval(4, 6)};
     p.initialize(d);
     d = {Interval(4, 6), Interval(13, 14)};
     q.initialize(d);
     v_exp = {q};
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l2.shift(p));
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l2.shift(p));
     v_exp.clear();
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l2.shift(q));
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l2.shift(q));
 
     v_exp.clear();
     d = {Interval(0, 2)};
@@ -464,7 +464,7 @@ TEST(LocalPRGTest, shift) {
     d = {Interval(1, 2), Interval(20, 21)};
     q.initialize(d);
     v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l3.shift(p));
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l3.shift(p));
 
     v_exp.clear();
     d = {Interval(1, 2), Interval(5, 6)};
@@ -475,7 +475,7 @@ TEST(LocalPRGTest, shift) {
     d = {Interval(5, 6), Interval(13, 14)};
     q.initialize(d);
     v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l3.shift(p));
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l3.shift(p));
 
     v_exp.clear();
     d = {Interval(0, 0), Interval(3, 3), Interval(6, 6), Interval(9, 9), Interval(13, 18)};
@@ -483,7 +483,7 @@ TEST(LocalPRGTest, shift) {
     d = {Interval(14, 19)};
     q.initialize(d);
     v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l5.shift(p));
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l5.shift(p));
 
     v_exp.clear();
     d = {Interval(3, 8)};
@@ -494,7 +494,7 @@ TEST(LocalPRGTest, shift) {
     d = {Interval(4, 9)};
     q.initialize(d);
     v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l6.shift(p));
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l6.shift(p));
 
     v_exp.clear();
     d = {Interval(4, 9)};
@@ -502,7 +502,7 @@ TEST(LocalPRGTest, shift) {
     d = {Interval(5, 9), Interval(12, 13)};
     q.initialize(d);
     v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l6.shift(p));
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l6.shift(p));
 }
 
 TEST(LocalPRGTest, minimizer_sketch) {
@@ -514,130 +514,132 @@ TEST(LocalPRGTest, minimizer_sketch) {
     LocalPRG l4(4, "much more complex", "TCATTC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AGCTG");
     LocalPRG l5(5, "one with lots of null at start and end, and a long stretch in between",
                 " 5  7  9  11 AGTTCTGAAACATTGCGCGTGAGATCTCTG 12 T 11  10 A 9  8 C 7  6 G 5 ");
+    LocalPRG l6(2, "too short for w and k", "A 5 GC 6 G 5 T");
 
-    Index *idx;
-    idx = new Index();
-
+    auto index = std::make_shared<Index>();
     KmerHash hash;
 
-    l0.minimizer_sketch(idx, 1, 3);
+    l0.minimizer_sketch(index, 1, 3);
     uint32_t j = 0;
-    EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, index->minhash.size());
 
-    l1.minimizer_sketch(idx, 2, 3);
+    l1.minimizer_sketch(index, 2, 3);
     j = 1;
-    EXPECT_EQ(j, idx->minhash.size());
-    l1.minimizer_sketch(idx, 1, 3);
-    EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, index->minhash.size());
+    l1.minimizer_sketch(index, 1, 3);
+    EXPECT_EQ(j, index->minhash.size());
     j = 2;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("AGC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
 
-    idx->clear();
-    l2.minimizer_sketch(idx, 2, 3);
+    index->clear();
+    l2.minimizer_sketch(index, 2, 3);
     j = 1;
-    EXPECT_EQ(j, idx->minhash.size());
-    l2.minimizer_sketch(idx, 1, 3);
+    EXPECT_EQ(j, index->minhash.size());
+    l2.minimizer_sketch(index, 1, 3);
     j = 2;
-    EXPECT_EQ(j, idx->minhash.size());
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash.size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 1;
     kh = hash.kmerhash("AGT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
 
-    idx->clear();
-    l3.minimizer_sketch(idx, 2, 3);
+    index->clear();
+    l3.minimizer_sketch(index, 2, 3);
     j = 2;
-    EXPECT_EQ(j, idx->minhash.size());
-    l3.minimizer_sketch(idx, 1, 3);
+    EXPECT_EQ(j, index->minhash.size());
+    l3.minimizer_sketch(index, 1, 3);
     j = 3;
-    EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, index->minhash.size());
     j = 2;
     kh = hash.kmerhash("AGC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size()); //AGC
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size()); //AGC
     kh = hash.kmerhash("AGT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size()); //AGTx2
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size()); //AGTx2
     j = 1;
     kh = hash.kmerhash("GTT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
 
-    idx->clear();
-    l4.minimizer_sketch(idx, 1, 3);
+    index->clear();
+    l4.minimizer_sketch(index, 1, 3);
     j = 16;
-    EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, index->minhash.size());
     j = 5;
     kh = hash.kmerhash("TCA", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 4;
     kh = hash.kmerhash("CTA", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 3;
     kh = hash.kmerhash("ACT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("CAA", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("AAG", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("TCT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("AGC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 2;
     kh = hash.kmerhash("TTC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("CAC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("CTC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 1;
     kh = hash.kmerhash("CAT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("ATT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("GTC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("GTT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("TGT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("CTG", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
 
-    idx->clear();
-    l4.minimizer_sketch(idx, 3, 3);
+    index->clear();
+    l4.minimizer_sketch(index, 3, 3);
     j = 10;
-    EXPECT_EQ(j, idx->minhash.size());
+    EXPECT_EQ(j, index->minhash.size());
     j = 4;
     kh = hash.kmerhash("CTA", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 3;
     kh = hash.kmerhash("CTT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 2;
     kh = hash.kmerhash("CAC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     j = 1;
     kh = hash.kmerhash("ATT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("ACT", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("TCA", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("AAC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("GTC", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("GAG", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
     kh = hash.kmerhash("CTG", 3);
-    EXPECT_EQ(j, idx->minhash[min(kh.first, kh.second)]->size());
+    EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
 
-    idx->clear();
-    l5.minimizer_sketch(idx, 4, 5);
-    EXPECT_EQ((idx->minhash.size() > 2), true);
+    index->clear();
+    l5.minimizer_sketch(index, 4, 5);
+    EXPECT_EQ((index->minhash.size() > 2), true);
 
-    idx->clear();
-    delete idx;
+    index->clear();
+    l6.minimizer_sketch(index, 2, 4);
+    EXPECT_EQ((uint)0, index->minhash.size());
+
+    index->clear();
 }
 
 struct MiniPos {
@@ -647,19 +649,17 @@ struct MiniPos {
 };
 
 TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw1) {
-    string st = "ATGGCAATCCGAATCTTCGCGATACTTTTCTCCATTTTTTCTCTTGCCACTTTCGCGCATGCGCAAGAAGGCACGCTAGAACGTTCTGACTGGAGGAAGTTTTTCAGCGAATTTCAAGCCAAAGGCACGATAGTTGTGGCAGACGAACGCCAAGCGGATCGTGCCATGTTGGTTTTTGATCCTGTGCGATCGAAGAAACGCTACTCGCCTGCATCGACATTCAAGATACCTCATACACTTTTTGCACTTGATGCAGGCGCTGTTCGTGATGAGTTCCAGATTTTTCGATGGGACGGCGTTAACAGGGGCTTTGCAGGCCACAATCAAGACCAAGATTTGCGATCAGCAATGCGGAATTCTACTGTTTGGGTGTATGAGCTATTTGCAAAGGAAATTGGTGATGACAAAGCTCGGCGCTATTTGAAGAAAATCGACTATGGCAACGCCGATCCTTCGACAAGTAATGGCGATTACTGTATAGAAGGCAGCCTTGCAATCTCGGCGCAGGAGCAAATTGCATTTCTCAGGAAGCTCTATCGTAACGAGCTGCCCTTTCGGGTAGAACATCAGCGCTTGGTCAAGGATCTCATGATTGTGGAAGCCGGTCGCAACTGGATACTGCGTGCAAAGACGGGCTGGGAAGGCCGTATGGGTTGGTGGGTAGGATGGGTTGAGTGGCCGACTGGCTCCGTATTCTTCGCACTGAATATTGATACGCCAAACAGAATGGATGATCTTTTCAAGAGGGAGGCAATCGTGCGGGCAATCCTT";
+    std::string st = "ATGGCAATCCGAATCTTCGCGATACTTTTCTCCATTTTTTCTCTTGCCACTTTCGCGCATGCGCAAGAAGGCACGCTAGAACGTTCTGACTGGAGGAAGTTTTTCAGCGAATTTCAAGCCAAAGGCACGATAGTTGTGGCAGACGAACGCCAAGCGGATCGTGCCATGTTGGTTTTTGATCCTGTGCGATCGAAGAAACGCTACTCGCCTGCATCGACATTCAAGATACCTCATACACTTTTTGCACTTGATGCAGGCGCTGTTCGTGATGAGTTCCAGATTTTTCGATGGGACGGCGTTAACAGGGGCTTTGCAGGCCACAATCAAGACCAAGATTTGCGATCAGCAATGCGGAATTCTACTGTTTGGGTGTATGAGCTATTTGCAAAGGAAATTGGTGATGACAAAGCTCGGCGCTATTTGAAGAAAATCGACTATGGCAACGCCGATCCTTCGACAAGTAATGGCGATTACTGTATAGAAGGCAGCCTTGCAATCTCGGCGCAGGAGCAAATTGCATTTCTCAGGAAGCTCTATCGTAACGAGCTGCCCTTTCGGGTAGAACATCAGCGCTTGGTCAAGGATCTCATGATTGTGGAAGCCGGTCGCAACTGGATACTGCGTGCAAAGACGGGCTGGGAAGGCCGTATGGGTTGGTGGGTAGGATGGGTTGAGTGGCCGACTGGCTCCGTATTCTTCGCACTGAATATTGATACGCCAAACAGAATGGATGATCTTTTCAAGAGGGAGGCAATCGTGCGGGCAATCCTT";
 
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
     LocalPRG l(0, "prg", st);
-    l.minimizer_sketch(idx, 1, 15);
+    l.minimizer_sketch(index, 1, 15);
 
     Seq s = Seq(0, "read", st, 1, 15);
 
-    //cout << l.kmer_prg.nodes.size() << " " << s.sketch.size() << endl;
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
-    set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
+    std::set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
     l.kmer_prg.sort_topologically();
     vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
@@ -673,14 +673,12 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw1) {
 TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw5) {
     string st = "ATGGCAATCCGAATCTTCGCGATACTTTTCTCCATTTTTTCTCTTGCCACTTTCGCGCATGCGCAAGAAGGCACGCTAGAACGTTCTGACTGGAGGAAGTTTTTCAGCGAATTTCAAGCCAAAGGCACGATAGTTGTGGCAGACGAACGCCAAGCGGATCGTGCCATGTTGGTTTTTGATCCTGTGCGATCGAAGAAACGCTACTCGCCTGCATCGACATTCAAGATACCTCATACACTTTTTGCACTTGATGCAGGCGCTGTTCGTGATGAGTTCCAGATTTTTCGATGGGACGGCGTTAACAGGGGCTTTGCAGGCCACAATCAAGACCAAGATTTGCGATCAGCAATGCGGAATTCTACTGTTTGGGTGTATGAGCTATTTGCAAAGGAAATTGGTGATGACAAAGCTCGGCGCTATTTGAAGAAAATCGACTATGGCAACGCCGATCCTTCGACAAGTAATGGCGATTACTGTATAGAAGGCAGCCTTGCAATCTCGGCGCAGGAGCAAATTGCATTTCTCAGGAAGCTCTATCGTAACGAGCTGCCCTTTCGGGTAGAACATCAGCGCTTGGTCAAGGATCTCATGATTGTGGAAGCCGGTCGCAACTGGATACTGCGTGCAAAGACGGGCTGGGAAGGCCGTATGGGTTGGTGGGTAGGATGGGTTGAGTGGCCGACTGGCTCCGTATTCTTCGCACTGAATATTGATACGCCAAACAGAATGGATGATCTTTTCAAGAGGGAGGCAATCGTGCGGGCAATCCTT";
 
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
     LocalPRG l(0, "prg", st);
-    l.minimizer_sketch(idx, 5, 15);
+    l.minimizer_sketch(index, 5, 15);
 
     Seq s = Seq(0, "read", st, 5, 15);
 
-    //cout << l.kmer_prg.nodes.size() << " " << s.sketch.size() << endl;
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
     set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
@@ -697,14 +695,12 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw5) {
 TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw10) {
     string st = "ATGGCAATCCGAATCTTCGCGATACTTTTCTCCATTTTTTCTCTTGCCACTTTCGCGCATGCGCAAGAAGGCACGCTAGAACGTTCTGACTGGAGGAAGTTTTTCAGCGAATTTCAAGCCAAAGGCACGATAGTTGTGGCAGACGAACGCCAAGCGGATCGTGCCATGTTGGTTTTTGATCCTGTGCGATCGAAGAAACGCTACTCGCCTGCATCGACATTCAAGATACCTCATACACTTTTTGCACTTGATGCAGGCGCTGTTCGTGATGAGTTCCAGATTTTTCGATGGGACGGCGTTAACAGGGGCTTTGCAGGCCACAATCAAGACCAAGATTTGCGATCAGCAATGCGGAATTCTACTGTTTGGGTGTATGAGCTATTTGCAAAGGAAATTGGTGATGACAAAGCTCGGCGCTATTTGAAGAAAATCGACTATGGCAACGCCGATCCTTCGACAAGTAATGGCGATTACTGTATAGAAGGCAGCCTTGCAATCTCGGCGCAGGAGCAAATTGCATTTCTCAGGAAGCTCTATCGTAACGAGCTGCCCTTTCGGGTAGAACATCAGCGCTTGGTCAAGGATCTCATGATTGTGGAAGCCGGTCGCAACTGGATACTGCGTGCAAAGACGGGCTGGGAAGGCCGTATGGGTTGGTGGGTAGGATGGGTTGAGTGGCCGACTGGCTCCGTATTCTTCGCACTGAATATTGATACGCCAAACAGAATGGATGATCTTTTCAAGAGGGAGGCAATCGTGCGGGCAATCCTT";
 
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
     LocalPRG l(0, "prg", st);
-    l.minimizer_sketch(idx, 10, 15);
+    l.minimizer_sketch(index, 10, 15);
 
     Seq s = Seq(0, "read", st, 10, 15);
 
-    //cout << l.kmer_prg.nodes.size() << " " << s.sketch.size() << endl;
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
     set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
@@ -721,14 +717,12 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw10) {
 TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw15) {
     string st = "ATGGCAATCCGAATCTTCGCGATACTTTTCTCCATTTTTTCTCTTGCCACTTTCGCGCATGCGCAAGAAGGCACGCTAGAACGTTCTGACTGGAGGAAGTTTTTCAGCGAATTTCAAGCCAAAGGCACGATAGTTGTGGCAGACGAACGCCAAGCGGATCGTGCCATGTTGGTTTTTGATCCTGTGCGATCGAAGAAACGCTACTCGCCTGCATCGACATTCAAGATACCTCATACACTTTTTGCACTTGATGCAGGCGCTGTTCGTGATGAGTTCCAGATTTTTCGATGGGACGGCGTTAACAGGGGCTTTGCAGGCCACAATCAAGACCAAGATTTGCGATCAGCAATGCGGAATTCTACTGTTTGGGTGTATGAGCTATTTGCAAAGGAAATTGGTGATGACAAAGCTCGGCGCTATTTGAAGAAAATCGACTATGGCAACGCCGATCCTTCGACAAGTAATGGCGATTACTGTATAGAAGGCAGCCTTGCAATCTCGGCGCAGGAGCAAATTGCATTTCTCAGGAAGCTCTATCGTAACGAGCTGCCCTTTCGGGTAGAACATCAGCGCTTGGTCAAGGATCTCATGATTGTGGAAGCCGGTCGCAACTGGATACTGCGTGCAAAGACGGGCTGGGAAGGCCGTATGGGTTGGTGGGTAGGATGGGTTGAGTGGCCGACTGGCTCCGTATTCTTCGCACTGAATATTGATACGCCAAACAGAATGGATGATCTTTTCAAGAGGGAGGCAATCGTGCGGGCAATCCTT";
 
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
     LocalPRG l(0, "prg", st);
-    l.minimizer_sketch(idx, 15, 15);
+    l.minimizer_sketch(index, 15, 15);
 
     Seq s = Seq(0, "read", st, 15, 15);
 
-    //cout << l.kmer_prg.nodes.size() << " " << s.sketch.size() << endl;
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
     set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
@@ -746,12 +740,11 @@ TEST(LocalPRGTest, localnode_path_from_kmernode_path) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
     LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
 
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
 
     KmerHash hash;
 
-    l3.minimizer_sketch(idx, 2, 3);
+    l3.minimizer_sketch(index, 2, 3);
     //vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0], l3.kmer_prg.nodes[1], l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp);
@@ -761,8 +754,8 @@ TEST(LocalPRGTest, localnode_path_from_kmernode_path) {
     lmp = l3.localnode_path_from_kmernode_path(kmp, 2);
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, lmp_exp, lmp);
 
-    idx->clear();
-    l4.minimizer_sketch(idx, 3, 3);
+    index->clear();
+    l4.minimizer_sketch(index, 3, 3);
     //kmp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[1], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[7], l4.kmer_prg.nodes[9], l4.kmer_prg.nodes[11], l4.kmer_prg.nodes[13]};
     kmp = {l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[7]};
     lmp = l4.localnode_path_from_kmernode_path(kmp, 2);
@@ -770,8 +763,6 @@ TEST(LocalPRGTest, localnode_path_from_kmernode_path) {
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, lmp_exp, lmp);
     lmp = l4.localnode_path_from_kmernode_path(kmp, 3);
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, lmp_exp, lmp);
-
-    delete idx;
 }
 
 TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
@@ -779,12 +770,10 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
     LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
     LocalPRG l5(5, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
 
-    Index *idx;
-    idx = new Index();
-
+    auto index = std::make_shared<Index>();
     KmerHash hash;
 
-    l3.minimizer_sketch(idx, 2, 3);
+    l3.minimizer_sketch(index, 2, 3);
     l3.kmer_prg.sort_topologically();
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
 
@@ -796,8 +785,8 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
     sort(kmp_exp.begin(), kmp_exp.end());
     EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, kmp_exp, kmp);
 
-    idx->clear();
-    l4.minimizer_sketch(idx, 3, 3);
+    index->clear();
+    l4.minimizer_sketch(index, 3, 3);
     l4.kmer_prg.sort_topologically();
     lmp = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6]};
 
@@ -810,48 +799,60 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
     EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, kmp_exp, kmp);
 
     // case where we don't have start and end point in localpath, so need to consider whether kmer overlaps
-    idx->clear();
-    l5.minimizer_sketch(idx, 2, 3);
+    index->clear();
+    l5.minimizer_sketch(index, 2, 3);
     l5.kmer_prg.sort_topologically();
     lmp = {l5.prg.nodes[1], l5.prg.nodes[2], l5.prg.nodes[4], l5.prg.nodes[6], l5.prg.nodes[7]};
 
     kmp = l5.kmernode_path_from_localnode_path(lmp);
     sort(kmp.begin(), kmp.end());
 
-    cout << l5.kmer_prg << endl;
-
     kmp_exp = {l5.kmer_prg.nodes[1], l5.kmer_prg.nodes[2], l5.kmer_prg.nodes[6], l5.kmer_prg.nodes[8],
                l5.kmer_prg.nodes[10], l5.kmer_prg.nodes[12], l5.kmer_prg.nodes[13]};
     sort(kmp_exp.begin(), kmp_exp.end());
 
     EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, kmp_exp, kmp);
-
-    delete idx;
 }
 
-TEST(LocalPRGTest, get_covgs_along_localnode_path) {
+
+TEST(GetCovgsAlongLocalnodePathTest, emptyPanNodeReturnsEmpty) {
+    const auto prg_id { 3 };
+    LocalPRG local_prg { prg_id, "test", "" };
+    const std::vector<LocalNodePtr> local_node_max_likelihood_path;
+    const std::vector<KmerNodePtr> kmer_node_max_likelihood_path;
+
+    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(0, prg_id, "test") };
+    pangraph_node->kmer_prg = local_prg.kmer_prg;
+
+    const auto actual {
+            get_covgs_along_localnode_path(pangraph_node, local_node_max_likelihood_path, kmer_node_max_likelihood_path,
+                                           0) };
+    const std::vector<uint32_t> expected;
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(GetCovgsAlongLocalnodePathTest, get_covgs_along_localnode_path) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
     LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
 
-    Index *idx;
-    idx = new Index();
-
+    auto index = std::make_shared<Index>();
     KmerHash hash;
 
-    l3.minimizer_sketch(idx, 2, 3);
+    l3.minimizer_sketch(index, 2, 3);
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp, 2);
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3, 3, "3"));
     pn3->kmer_prg = l3.kmer_prg;
     for (const auto &n : pn3->kmer_prg.nodes) {
-        n->covg[0] += 1;
+        n->increment_covg(0, 0);
     }
-    vector<uint> covgs = get_covgs_along_localnode_path(pn3, lmp, kmp);
+    vector<uint> covgs = get_covgs_along_localnode_path(pn3, lmp, kmp, 0);
     vector<uint> covgs_exp = {0, 1, 1, 1};
     EXPECT_ITERABLE_EQ(vector<uint>, covgs_exp, covgs);
 
-    idx->clear();
-    l4.minimizer_sketch(idx, 1, 3);
+    index->clear();
+    l4.minimizer_sketch(index, 1, 3);
     kmp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[1], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[5], l4.kmer_prg.nodes[7],
            l4.kmer_prg.nodes[9], l4.kmer_prg.nodes[12], l4.kmer_prg.nodes[15], l4.kmer_prg.nodes[18],
            l4.kmer_prg.nodes[21], l4.kmer_prg.nodes[23], l4.kmer_prg.nodes[25], l4.kmer_prg.nodes[27],
@@ -860,9 +861,9 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path) {
     shared_ptr<pangenome::Node> pn4(make_shared<pangenome::Node>(4, 4, "4"));
     pn4->kmer_prg = l4.kmer_prg;
     for (const auto &n : pn4->kmer_prg.nodes) {
-        n->covg[0] += 1;
+        n->increment_covg(0, 0);
     }
-    covgs = get_covgs_along_localnode_path(pn4, lmp, kmp);
+    covgs = get_covgs_along_localnode_path(pn4, lmp, kmp, 0);
     //covgs_exp = {1,2,3,3,3,3,3,3,3,3,3,3,2,1};
     covgs_exp = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
@@ -871,81 +872,67 @@ TEST(LocalPRGTest, get_covgs_along_localnode_path) {
     kmp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[3], l4.kmer_prg.nodes[5], l4.kmer_prg.nodes[12],
            l4.kmer_prg.nodes[15], l4.kmer_prg.nodes[18], l4.kmer_prg.nodes[25]};
     lmp = l4.localnode_path_from_kmernode_path(kmp, 2);
-    covgs = get_covgs_along_localnode_path(pn4, lmp, kmp);
+    covgs = get_covgs_along_localnode_path(pn4, lmp, kmp, 0);
     //covgs_exp = {0,1,2,2,1,1,2,3,2,1,1,1,1,0};
     covgs_exp = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0};
 
     EXPECT_ITERABLE_EQ(vector<uint>, covgs_exp, covgs);
-
-    delete idx;
 }
 
 
 TEST(LocalPRGTest, write_covgs_to_file) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
 
-    Index *idx;
-    idx = new Index();
-
+    auto index = std::make_shared<Index>();
     KmerHash hash;
 
-    l3.minimizer_sketch(idx, 2, 3);
+    l3.minimizer_sketch(index, 2, 3);
     vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<LocalNodePtr> lmp = l3.localnode_path_from_kmernode_path(kmp, 2);
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3, 3, "3"));
     pn3->kmer_prg = l3.kmer_prg;
     for (const auto &n : pn3->kmer_prg.nodes) {
-        n->covg[0] += 1;
+        n->increment_covg(0, 0);
     }
-    vector<uint> covgs = get_covgs_along_localnode_path(pn3, lmp, kmp);
+    vector<uint> covgs = get_covgs_along_localnode_path(pn3, lmp, kmp, 0);
     vector<uint> covgs_exp = {0, 1, 1, 1};
     EXPECT_ITERABLE_EQ(vector<uint>, covgs_exp, covgs);
 
     l3.write_covgs_to_file("localPRG_test.covgs", covgs);
-
-    delete idx;
 }
 
 TEST(LocalPRGTest, write_path_to_fasta) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
-    Index *idx;
-    idx = new Index();
-
-    l3.minimizer_sketch(idx, 1, 3);
+    auto index = std::make_shared<Index>();
+    l3.minimizer_sketch(index, 1, 3);
 
     vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
     l3.write_path_to_fasta("localPRG_test.maxpath.fa", lmp3, 0.00);
-
-    delete idx;
 }
 
 TEST(LocalPRGTest, append_path_to_fasta) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
-    Index *idx;
-    idx = new Index();
-
-    l3.minimizer_sketch(idx, 1, 3);
+    auto index = std::make_shared<Index>();
+    l3.minimizer_sketch(index, 1, 3);
 
     vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
     l3.append_path_to_fasta("localPRG_test.maxpath.fa", lmp3, 0.00);
 
-    delete idx;
+
 }
 
 TEST(LocalPRGTest, write_aligned_path_to_fasta) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
-    Index *idx;
-    idx = new Index();
-
-    l3.minimizer_sketch(idx, 1, 3);
+    auto index = std::make_shared<Index>();
+    l3.minimizer_sketch(index, 1, 3);
 
     vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
     l3.write_aligned_path_to_fasta("localPRG_test.alignedpath.fa", lmp3, 0.00);
 
-    delete idx;
+
 }
 
 TEST(LocalPRGTest, build_vcf) {
@@ -1102,6 +1089,17 @@ TEST(LocalPRGTest, build_vcf) {
     vcf.sort_records();
 }
 
+TEST(LocalPRGTest, build_vcf_real) {
+    LocalPRG l1(1, "GC00000008_13", "ATGAAATTAAAAATAGTT 5 G 6 A 5 CGGTGGTTGTAACTGGTTTGTTAGCTGCGAACGTAGC 7 ACACGCT 8 ACACGCC 8 GCACGCT 7 GCCGAAGTC 9 T 10 G 9 ATAACAAGGATGGTAATAAACT 11 C 12 A 11 GACCTTTATGGCAAGGTTACCGCTCTACGTTATTTTACTGATGATAAGCGTGA 13 C 14 A 13 GATGGTGATAAAA 15 C 16 T 16 A 15 TTATGCCCGTCTCGGCTTTAAAGGAGAAACG 17 CAAATCAATGATCAAATGA 19 C 20 T 19 TGGTTTTGGTCACTGGGAATATGATTTTAAAGGCTATAACGATGAAGCCAACGG 21 C 22 T 21 TCGCGCG 23 AC 24 GC 24 GT 23 AACAAGACCCGTCT 25 G 26 A 25 GCCTATGC 27 T 28 A 27 GGTTTAAAAATTAGTGAATTTGGCTCTCTGGACTATGG 29 C 30 T 29 CGTAACTACGGTGTCGGCTATGACATTGGTTCATGGAC 31 CT 32 CG 32 TG 31 ATATGTTGCCAGAATTTGGTGGCGATACCTGGAGTCAGAAAGATGTCTTCATGACATACCGTAC 33 C 34 T 34 A 33 ACCGGTGT 35 G 36 A 35 GCAACCTATCGCAACTACGATTTCTT 37 C 38 T 37 GGCTTAATTGAAGG 39 T 40 G 39 CTGAACTTTGCCGCGCAATATCAAGGCAAAAATGAACG 41 C 42 T 41 ACTGACAA 43 TGGT 44 CAGT 44 TGGC 43 CATCTTTATGGTGCTGACTA 45  47 C 48 T 47 ACGCGTGCCAA 49 C 50 T 49  46 CACGCGCGCCAAC 45 GGTGACGGTTTCGGTATCTCCTCAACTTATGTTTATGATGGCTTTGGTATCGG 51 TGCGGTA 52 AGCGGTG 52 TGCGGTG 51 TATACCAAATCCGATCGGACAA 53 ATGCA 54 TTGCA 54 ATGCG 53 CAGGAAAGAGCCGCTGCTAATCCTCTCAATGCCTCCGGTAAGAATGCAGAACTGTGGGC 55 C 56 T 55 ACAGGTATAAA 57 G 58 A 57 TATGATGCCAACAACAT 59 C 60 T 59 TACTTTGCAGCTAATTACGCTGAAACATTAAACATGACCACCTATGG 61 C 62 G 61 GATGGTTATAT 63 CTCT 64 CTCG 64 TTCT 63 AACAAAGCACAAAGTTTTGAAGT 65 AGTGACA 66 AGTGGCA 66 GGTGGCG 65 CAATATCAATTCGACTTCGGCTTGC 67 GCCCA 68 ACCCC 68 GCCCC 67 TCACTCGCTTACCTGAAATCGAAAGGCA 69 T 70 G 69 AGATCTGGGCCGCTACGGCGA 71  73 C 74 T 73 CAGGACATGATTGAGTATATCGACGTTGGTGCGACGTATTTCTTCAACAAAAATATGTCGACCTATGTTGATTATAAAATCAACCTGATTGATGAAAGCGACTTTACCCGTGCCGTAGATATTCGCAC 75 CGATAACATCGTCGC 77 AACGGGT 78 AACGGGC 78 TACGGGC 78 AACGGGA 77 ATTACCTATCAGTTC 76 GGCTTTGTTGAATAAATCGAACTTTTGC 75  72 AGTTAACGGCATCAACAATGATCCACTTGCCCAAATGCAGTACTGGACTGCAGTAAGAAATATAATTGATGACACTAATGAAGTGACCATTGAATTATCTTATAACCTGGCAATCACAAATATCGATACCAGCGATGAACATCTTGTAGAAGTAAGCGAGAATTCCGAAGGAAATCATATAAAAGACAATGACTCAATGTCTATTCGTTATAGATCAAAATATTATTCCAGAGAGTACGCTTTAATAGAAGAAGAAACAATATTTTCTGACGCAGAACTAAAAGCCATTCTGCCTATGCATCGCATGTACGGGGTTGGTGACTATAAGTCAAATTCCTCTTCTCTACCCTCACACTCGGGGCTAAAGGACCCAACGGGCACACCCGTCTGTTATTATATTCATAATGAGGATAAACCTTCCTTAGGTTTTGGTCCAATATCCAATAATTGGTTAAGCCAATCCTTTACAACAGAGTTA 71  18  18 CAAATCAATG 79 T 80 A 79 TCAAATG 81 CTTG 82 ATTA 82 ATTG 81 GTTTTGGTCAC 83 T 84 A 83 GGGAATATGATTTTAAAGGCTATAACGATGAAGCCAAC 85 GGCTCGC 86 GGCTCGT 86 TGCTCGC 86 GGTTCGC 85 GCGGCAA 87  89 CAATCTC 90 GAATCTC 89  88 GAATCTCTTATTGAGT 87  17 ");
+
+    VCF vcf;
+    auto ref_path = l1.prg.top_path();
+    l1.build_vcf(vcf, ref_path);
+    auto ref_seq = l1.string_along_path(ref_path);
+
+    vcf.correct_dot_alleles(ref_seq, "GC00000008_13");
+}
+
 TEST(LocalPRGTest, add_sample_gt_to_vcf) {
     LocalPRG l1(1, "simple", "AGCT");
     LocalPRG l2(2, "varsite", "A 5 GC 6 G 5 T");
@@ -1129,7 +1127,7 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf) {
     j = 1;
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[0].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[0].samples[0]["GT"][0]);
 
     vcf.clear();
     vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
@@ -1138,7 +1136,7 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf) {
     l3.add_sample_gt_to_vcf(vcf, l3.prg.top_path(), lmp3, "sample");
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[1].samples[0]["GT"][0]);
 
     vcf.clear();
     vector<LocalNodePtr> lmp4 = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[5], l4.prg.nodes[6],
@@ -1149,15 +1147,15 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf) {
     l4.add_sample_gt_to_vcf(vcf, l4.prg.top_path(), lmp4, "sample");
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[0].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[0].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[0].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[1].samples.size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[1].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[2].samples.size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[2].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[2].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[3].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[3].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[4].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[4].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[4].samples[0]["GT"][0]);
 
     vcf.clear();
     vector<LocalNodePtr> lmp5 = {l5.prg.nodes[0], l5.prg.nodes[1], l5.prg.nodes[10], l5.prg.nodes[11],
@@ -1174,7 +1172,7 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf) {
     EXPECT_EQ(j, vcf.records[2].samples.size());
     EXPECT_TRUE(vcf.records[2].samples[0].find("GT") == vcf.records[2].samples[0].end());
     EXPECT_EQ(j, vcf.records[3].samples.size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[3].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[3].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[4].samples.size());
     EXPECT_TRUE(vcf.records[4].samples[0].find("GT") == vcf.records[4].samples[0].end());
 
@@ -1183,15 +1181,15 @@ TEST(LocalPRGTest, add_sample_gt_to_vcf) {
     EXPECT_EQ((uint) 2, vcf.samples.size());
     EXPECT_EQ((uint) 5, vcf.records.size());
     EXPECT_EQ((uint) 2, vcf.records[0].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[0].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[0].samples[1]["GT"][0]);
     EXPECT_EQ((uint) 2, vcf.records[1].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[1]["GT"][0]);
     EXPECT_EQ((uint) 2, vcf.records[2].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[2].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[2].samples[1]["GT"][0]);
     EXPECT_EQ((uint) 2, vcf.records[3].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[3].samples[1]["GT"][0]);
     EXPECT_EQ((uint) 2, vcf.records[4].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[4].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[4].samples[1]["GT"][0]);
 
 }
 
@@ -1209,14 +1207,8 @@ TEST(LocalPRGTest, moreupdateVCF) {
     prgs[2]->build_vcf(vcf, prgs[2]->prg.top_path());
     vcf.sort_records();
 
-    //for (uint i=0; i!=prgs[2]->vcf.records.size(); ++i)
-    //{
-    //cout << prgs[2]->vcf.records[i];
-    //}
-
     vector<LocalNodePtr> lmp1 = {prgs[1]->prg.nodes[0], prgs[1]->prg.nodes[11], prgs[1]->prg.nodes[12],
                                  prgs[1]->prg.nodes[17], prgs[1]->prg.nodes[65], prgs[1]->prg.nodes[67]};
-    //cout << "PRG 1 has " << prgs[1]->prg.nodes.size() << " nodes" << endl;
     prgs[1]->add_sample_gt_to_vcf(vcf, prgs[1]->prg.top_path(), lmp1, "sample");
 
     vector<LocalNodePtr> lmp2 = {prgs[2]->prg.nodes[0], prgs[2]->prg.nodes[1], prgs[2]->prg.nodes[3],
@@ -1230,7 +1222,6 @@ TEST(LocalPRGTest, moreupdateVCF) {
                                  prgs[2]->prg.nodes[131], prgs[2]->prg.nodes[133], prgs[2]->prg.nodes[135],
                                  prgs[2]->prg.nodes[141], prgs[2]->prg.nodes[142], prgs[2]->prg.nodes[144],
                                  prgs[2]->prg.nodes[145], prgs[2]->prg.nodes[160]};
-    //cout << "PRG 2 has " << prgs[2]->prg.nodes.size() << " nodes" << endl;
     prgs[2]->add_sample_gt_to_vcf(vcf, prgs[2]->prg.top_path(), lmp2, "sample");
 }
 
@@ -1296,36 +1287,37 @@ TEST(LocalPRGTest, find_alt_path) {
 }
 
 TEST(LocalPRGTest, append_kmer_covgs_in_range) {
-    Index *idx;
-    idx = new Index();
-
+    auto index = std::make_shared<Index>();
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-    l3.minimizer_sketch(idx, 1, 3);
+    l3.minimizer_sketch(index, 1, 3);
 
-    l3.kmer_prg.nodes[2]->covg[0] = 4;
-    l3.kmer_prg.nodes[2]->covg[1] = 3;
-    l3.kmer_prg.nodes[5]->covg[0] = 4;
-    l3.kmer_prg.nodes[5]->covg[1] = 5;
-    l3.kmer_prg.nodes[7]->covg[0] = 2;
-    l3.kmer_prg.nodes[7]->covg[1] = 3;
-    l3.kmer_prg.nodes[8]->covg[0] = 4;
-    l3.kmer_prg.nodes[8]->covg[1] = 6;
+    l3.kmer_prg.nodes[2]->set_covg(4, 0, 0);
+    l3.kmer_prg.nodes[2]->set_covg(3, 1, 0);
+    l3.kmer_prg.nodes[5]->set_covg(4, 0, 0);
+    l3.kmer_prg.nodes[5]->set_covg(5, 1, 0);
+    l3.kmer_prg.nodes[7]->set_covg(2, 0, 0);
+    l3.kmer_prg.nodes[7]->set_covg(3, 1, 0);
+    l3.kmer_prg.nodes[8]->set_covg(4, 0, 0);
+    l3.kmer_prg.nodes[8]->set_covg(6, 1, 0);
 
-    for (const auto &n : l3.kmer_prg.nodes) {
-        cout << *n;
-    }
     vector<LocalNodePtr> lmp = {};
-    vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0], l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[5], l3.kmer_prg.nodes[8],
-                               l3.kmer_prg.nodes[10], l3.kmer_prg.nodes[11]};
+    vector<KmerNodePtr> kmp = {
+            l3.kmer_prg.nodes[0],
+            l3.kmer_prg.nodes[2],
+            l3.kmer_prg.nodes[5],
+            l3.kmer_prg.nodes[8],
+            l3.kmer_prg.nodes[10],
+            l3.kmer_prg.nodes[11]
+    };
     vector<uint32_t> fwd, rev, exp_fwd, exp_rev;
 
-    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 0, fwd, rev);
-    exp_fwd = {};
-    exp_rev = {};
-    EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
-    EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_rev, rev);
+    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 0,
+                                  fwd, rev, 0);
+    EXPECT_TRUE(fwd.empty());
+    EXPECT_TRUE(rev.empty());
 
-    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 1, fwd, rev);
+    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 1,
+                                  fwd, rev, 0);
     exp_fwd = {4};
     exp_rev = {3};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
@@ -1333,7 +1325,8 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range) {
 
     fwd.clear();
     rev.clear();
-    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 2, fwd, rev);
+    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 2,
+                                  fwd, rev, 0);
     exp_fwd = {4, 4};
     exp_rev = {3, 5};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
@@ -1341,7 +1334,8 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range) {
 
     fwd.clear();
     rev.clear();
-    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 3, fwd, rev);
+    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 0, 3,
+                                  fwd, rev, 0);
     exp_fwd = {4, 4, 4};
     exp_rev = {3, 5, 6};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
@@ -1349,7 +1343,8 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range) {
 
     fwd.clear();
     rev.clear();
-    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 1, 2, fwd, rev);
+    l3.append_kmer_covgs_in_range(l3.kmer_prg, kmp, lmp, 1, 2,
+                                  fwd, rev, 0);
     exp_fwd = {4, 4};
     exp_rev = {3, 5};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
@@ -1357,15 +1352,15 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range) {
 }
 
 TEST(LocalPRGTest, add_sample_covgs_to_vcf) {
-    Index *idx;
-    idx = new Index();
+    uint32_t min_kmer_covgs = 0;
+    auto index = std::make_shared<Index>();
     vector<string> short_formats = {"GT"};
     vector<string> formats = {"GT", "MEAN_FWD_COVG", "MEAN_REV_COVG",
                               "MED_FWD_COVG", "MED_REV_COVG",
-                              "SUM_FWD_COVG", "SUM_REV_COVG"};
+                              "SUM_FWD_COVG", "SUM_REV_COVG", "GAPS"};
 
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-    l3.minimizer_sketch(idx, 1, 3);
+    l3.minimizer_sketch(index, 1, 3);
     l3.kmer_prg.sort_topologically();
 
     VCF vcf;
@@ -1377,80 +1372,80 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf) {
     EXPECT_EQ((uint) 1, vcf.samples.size());
     EXPECT_EQ((uint) 1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>, short_formats, vcf.records[0].format);
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[1].samples[0]["GT"][0]);
 
-    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), "sample");
+    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), min_kmer_covgs, "sample",
+                               0);
     EXPECT_EQ((uint) 1, vcf.samples.size());
     EXPECT_EQ((uint) 1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MEAN_FWD_COVG"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MEAN_REV_COVG"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MEAN_FWD_COVG"][1]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MEAN_REV_COVG"][1]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MED_FWD_COVG"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MED_REV_COVG"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MED_FWD_COVG"][1]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MED_REV_COVG"][1]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["SUM_FWD_COVG"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["SUM_REV_COVG"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["SUM_FWD_COVG"][1]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["SUM_REV_COVG"][1]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["MEAN_FWD_COVG"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["MEAN_REV_COVG"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["MEAN_FWD_COVG"][1]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["MEAN_REV_COVG"][1]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["MED_FWD_COVG"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["MED_REV_COVG"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["MED_FWD_COVG"][1]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["MED_REV_COVG"][1]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["SUM_FWD_COVG"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["SUM_REV_COVG"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["SUM_FWD_COVG"][1]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["SUM_REV_COVG"][1]);
 
     // ref
-    l3.kmer_prg.nodes[1]->covg[0] = 1;
-    l3.kmer_prg.nodes[1]->covg[1] = 0;
-    l3.kmer_prg.nodes[4]->covg[0] = 1;
-    l3.kmer_prg.nodes[4]->covg[1] = 0;
-    l3.kmer_prg.nodes[7]->covg[0] = 1;
-    l3.kmer_prg.nodes[7]->covg[1] = 0;
+    l3.kmer_prg.nodes[1]->set_covg(1, 0, 0);
+    l3.kmer_prg.nodes[1]->set_covg(0, 1, 0);
+    l3.kmer_prg.nodes[4]->set_covg(1, 0, 0);
+    l3.kmer_prg.nodes[4]->set_covg(0, 1, 0);
+    l3.kmer_prg.nodes[7]->set_covg(1, 0, 0);
+    l3.kmer_prg.nodes[7]->set_covg(0, 1, 0);
 
     // alt
-    l3.kmer_prg.nodes[2]->covg[0] = 6;
-    l3.kmer_prg.nodes[2]->covg[1] = 8;
-    l3.kmer_prg.nodes[5]->covg[0] = 5;
-    l3.kmer_prg.nodes[5]->covg[1] = 5;
-    l3.kmer_prg.nodes[8]->covg[0] = 4;
-    l3.kmer_prg.nodes[8]->covg[1] = 5;
+    l3.kmer_prg.nodes[2]->set_covg(6, 0, 0);
+    l3.kmer_prg.nodes[2]->set_covg(8, 1, 0);
+    l3.kmer_prg.nodes[5]->set_covg(5, 0, 0);
+    l3.kmer_prg.nodes[5]->set_covg(5, 1, 0);
+    l3.kmer_prg.nodes[8]->set_covg(4, 0, 0);
+    l3.kmer_prg.nodes[8]->set_covg(5, 1, 0);
 
-    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), "sample");
+    l3.add_sample_covgs_to_vcf(vcf, l3.kmer_prg, l3.prg.top_path(), min_kmer_covgs, "sample",
+                               0);
     EXPECT_EQ((uint) 1, vcf.samples.size());
     EXPECT_EQ((uint) 1, vcf.records[0].samples.size());
     EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.records[0].format);
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["MEAN_FWD_COVG"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MEAN_REV_COVG"][0]);
-    EXPECT_EQ((uint8_t) 5, vcf.records[1].samples[0]["MEAN_FWD_COVG"][1]);
-    EXPECT_EQ((uint8_t) 6, vcf.records[1].samples[0]["MEAN_REV_COVG"][1]);
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["MED_FWD_COVG"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["MED_REV_COVG"][0]);
-    EXPECT_EQ((uint8_t) 5, vcf.records[1].samples[0]["MED_FWD_COVG"][1]);
-    EXPECT_EQ((uint8_t) 5, vcf.records[1].samples[0]["MED_REV_COVG"][1]);
-    EXPECT_EQ((uint8_t) 3, vcf.records[1].samples[0]["SUM_FWD_COVG"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["SUM_REV_COVG"][0]);
-    EXPECT_EQ((uint8_t) 15, vcf.records[1].samples[0]["SUM_FWD_COVG"][1]);
-    EXPECT_EQ((uint8_t) 18, vcf.records[1].samples[0]["SUM_REV_COVG"][1]);
-
-    delete idx;
+    EXPECT_EQ((uint16_t) 1, vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[1].samples[0]["MEAN_FWD_COVG"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["MEAN_REV_COVG"][0]);
+    EXPECT_EQ((uint16_t) 5, vcf.records[1].samples[0]["MEAN_FWD_COVG"][1]);
+    EXPECT_EQ((uint16_t) 6, vcf.records[1].samples[0]["MEAN_REV_COVG"][1]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[1].samples[0]["MED_FWD_COVG"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["MED_REV_COVG"][0]);
+    EXPECT_EQ((uint16_t) 5, vcf.records[1].samples[0]["MED_FWD_COVG"][1]);
+    EXPECT_EQ((uint16_t) 5, vcf.records[1].samples[0]["MED_REV_COVG"][1]);
+    EXPECT_EQ((uint16_t) 3, vcf.records[1].samples[0]["SUM_FWD_COVG"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["SUM_REV_COVG"][0]);
+    EXPECT_EQ((uint16_t) 15, vcf.records[1].samples[0]["SUM_FWD_COVG"][1]);
+    EXPECT_EQ((uint16_t) 18, vcf.records[1].samples[0]["SUM_REV_COVG"][1]);
 }
 
 TEST(LocalPRGTest, add_consensus_path_to_fastaq_bin) {
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
 
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-    l3.minimizer_sketch(idx, 1, 3);
+    l3.minimizer_sketch(index, 1, 3);
 
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3, 3, "three"));
     pn3->kmer_prg = l3.kmer_prg;
-    pn3->kmer_prg.nodes[2]->covg[0] = 4;
-    pn3->kmer_prg.nodes[2]->covg[1] = 3;
-    pn3->kmer_prg.nodes[5]->covg[0] = 4;
-    pn3->kmer_prg.nodes[5]->covg[0] = 5;
-    pn3->kmer_prg.nodes[7]->covg[0] = 2;
-    pn3->kmer_prg.nodes[7]->covg[1] = 3;
-    pn3->kmer_prg.nodes[8]->covg[0] = 4;
-    pn3->kmer_prg.nodes[8]->covg[0] = 6;
+    pn3->kmer_prg.nodes[2]->set_covg(4, 0, 0);
+    pn3->kmer_prg.nodes[2]->set_covg(3, 1, 0);
+    pn3->kmer_prg.nodes[5]->set_covg(4, 0, 0);
+    pn3->kmer_prg.nodes[5]->set_covg(5, 0, 0);
+    pn3->kmer_prg.nodes[7]->set_covg(2, 0, 0);
+    pn3->kmer_prg.nodes[7]->set_covg(3, 1, 0);
+    pn3->kmer_prg.nodes[8]->set_covg(4, 0, 0);
+    pn3->kmer_prg.nodes[8]->set_covg(6, 0, 0);
+
     pn3->kmer_prg.num_reads = 6;
     pn3->kmer_prg.set_p(0.0001);
     shared_ptr<pangenome::Read> pr(make_shared<pangenome::Read>(0));
@@ -1460,7 +1455,7 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_bin) {
     vector<KmerNodePtr> kmp;
     vector<LocalNodePtr> lmp;
 
-    l3.add_consensus_path_to_fastaq(fq, pn3, kmp, lmp, 1, true, 8);
+    l3.add_consensus_path_to_fastaq(fq, pn3, kmp, lmp, 1, true, 8, 0);
     EXPECT_EQ("AGTTAT", l3.string_along_path(lmp));
     bool added_to_fq = find(fq.names.begin(), fq.names.end(), "three") != fq.names.end();
     EXPECT_TRUE(added_to_fq);
@@ -1473,26 +1468,24 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_bin) {
     EXPECT_EQ("AGTTAT", fq.sequences["three"]);
     EXPECT_EQ(fq.scores["three"], "DDD\?\?!");
 
-    cout << fq << endl;
 }
 
 TEST(LocalPRGTest, add_consensus_path_to_fastaq_nbin) {
-    Index *idx;
-    idx = new Index();
+    auto index = std::make_shared<Index>();
 
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-    l3.minimizer_sketch(idx, 1, 3);
+    l3.minimizer_sketch(index, 1, 3);
 
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(3, 3, "three"));
     pn3->kmer_prg = l3.kmer_prg;
-    pn3->kmer_prg.nodes[2]->covg[0] = 4;
-    pn3->kmer_prg.nodes[2]->covg[1] = 3;
-    pn3->kmer_prg.nodes[5]->covg[0] = 4;
-    pn3->kmer_prg.nodes[5]->covg[0] = 5;
-    pn3->kmer_prg.nodes[7]->covg[0] = 2;
-    pn3->kmer_prg.nodes[7]->covg[1] = 3;
-    pn3->kmer_prg.nodes[8]->covg[0] = 4;
-    pn3->kmer_prg.nodes[8]->covg[0] = 6;
+    pn3->kmer_prg.nodes[2]->set_covg(4, 0, 0);
+    pn3->kmer_prg.nodes[2]->set_covg(3, 1, 0);
+    // l3.kmer_prg.nodes[5]->set_covg(4, 0, 0);
+    pn3->kmer_prg.nodes[5]->set_covg(5, 0, 0);
+    pn3->kmer_prg.nodes[7]->set_covg(2, 0, 0);
+    pn3->kmer_prg.nodes[7]->set_covg(3, 1, 0);
+    // l3.kmer_prg.nodes[8]->set_covg(4, 0, 0);
+    pn3->kmer_prg.nodes[8]->set_covg(6, 0, 0);
     pn3->kmer_prg.num_reads = 6;
     pn3->kmer_prg.set_nb(0.05, 2.0);
     shared_ptr<pangenome::Read> pr(make_shared<pangenome::Read>(0));
@@ -1502,7 +1495,16 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_nbin) {
     vector<KmerNodePtr> kmp;
     vector<LocalNodePtr> lmp;
 
-    l3.add_consensus_path_to_fastaq(fq, pn3, kmp, lmp, 1, false, 8);
+    l3.add_consensus_path_to_fastaq(fq, pn3, kmp, lmp, 1, false, 8, 0);
+
+    EXPECT_NE(kmp.size(), 0);
+    std::vector<uint32_t> expected = {2, 5, 8, 10};
+    std::vector<uint32_t> result = {};
+    for (const auto &kmer_node_ptr: kmp)
+        result.push_back(kmer_node_ptr->id);
+
+    EXPECT_ITERABLE_EQ(std::vector<uint32_t>, expected , result);
+
     EXPECT_EQ("AGTTAT", l3.string_along_path(lmp));
     bool added_to_fq = find(fq.names.begin(), fq.names.end(), "three") != fq.names.end();
     EXPECT_TRUE(added_to_fq);
@@ -1514,5 +1516,78 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_nbin) {
     EXPECT_TRUE(added_to_headers);
     EXPECT_EQ("AGTTAT", fq.sequences["three"]);
     EXPECT_EQ(fq.scores["three"], "DDD\?\?!");
-    cout << fq << endl;
+}
+
+TEST(LocalPRGTest, get_valid_vcf_reference_real_example) {
+    auto index = std::make_shared<Index>(Index());
+
+    LocalPRG l(3, "GC00003042", " 5  7  9 ATGTTAGTTAGTAAAAGCAACGGATTTAACGCTAGCGCA 11 G 12 T 11 TTTTGGGTAGTGGAAGTTATAATGAAAATAAATCTTCTAAACAC 10 ATGTTAATTAATAAAAGCAACGGATTTAACGCTAGCGCAGTTTGGGGTAGTGGAAGTTATAATGAAAATAAATCTTCTAAACAC 10  9 ATGGAGCTACTAGCTCATAGTATT 13 T 14 G 13 TAAAATTAATTTGTAAGGAAGCTGCATCAGAGACGTATCGCGGTGCTCTTGAAA 15 CTTTACAAAAAATGAT 16 TTTTACAAAAAATAAT 16 CTTTACAAAAAATGAC 15 GTCTGAATGTATATATCA 17 AGAAGGCAACGCC 18 TGAAGGCAACGCC 17  8  19 ATGTTAGTTAGTAAAAACAACGAATTTAACACTAGCTCATTTATAGATAGTGGAAATTGTAATGAAAGAAAATCTTCTGAATCC 20  19 ATGGAGCTACTAGCTTATAGTATTATAAATTTAATTTGTAAGAAAGCTGCCTCAGGGACGTATCGCGGTGCTCTTGAAACTTTACAAAAAATGATGTCTGAATGTATATATCATGAAGGCAACGCC 8 ATGTTAGTTAGTAAAAGCAACGAAATTAACACTAGCACATTTATAAATAGTGGAA 21 A 22 G 21 TTGTAATGAAAGAAAATCTTCTAAATCCATGGAGTTACTAGCTTATAGTATTATAAAATTAATTTGTAAAGAAGCTGCCTCAGGGACGTATAACGGTGCTCTTGAAATTTTACAAAAAATGATGTCTGAATGTAAATATCATGAAGGCAATGCT 7 TTTGTCATTATGGGAG 23  25 CT 26 TT 26 CC 25 GGAGAACAATTAAAACGTATTAAATATGA 27 AGTTGGTGAAAATAACTTAAAGGTATTCAACGT 29 A 30 G 29 CACTTTAATAATAATCACGAGTTAGTTAGTTC 28 TGCTAATGAAAATAAATTAAAAGTATACAACGTACACTTTGATAATAATCAAGAGTTAGTTGCTGA 27 TGGTGAGCCTGACGTA 31  33 ATATGTTTAAGCAAGCAGGTCTGGGAAAATCTTCTCATTAAACTAAAGCTGGAAAA 35 C 36 T 35 AATGAAAATGTGTTTTCTGAAACTAAAAAATTATCGAATAAAAATAATG 37 CCGATCAGTTTTTTGAATGCGCTAA 39 AAGAAATGAA 40 GAGAAATGAA 39  38 ACGATCAGTTTTTTGAATGCGCTAAAAGAAATGAACAGAACCTTTTGATAATA 38 CCGATCAGTTTTTT 37  34 GTATTTTTAAAAAAACGGTGTGGGAAGACCTTCTCGTTAAAC 33  32 ATATGTTTAAGCAAGCAGGTCTGGGAAAATCTTCTCATTAAACTAAAGCTGGAAAACAATGAAAATGTGTTTTCTGAAACTAAAAAATTATCGAATAAAAATAATGACGATCAGTTTTTTGAATGCGCTAAAAGAAATGAACAGAACCTTTTCGATAATATAAGAAAAAGTGATTTTCATGTTGGTTTACTTAAGCCAAGTAGTACGCGTAGTGTTATTTTAGAAACGCCGCCAAATGTCTGTATGGAATCACGTAATTCATATGAAAAAAA 41 A 42 TAGA 41  31  24 CTGGGGAACAATTAAAACGTATTAAATATGATGTTGATGAAAATAACTTAAAGGTATTCAACGTACACTTTGATAATAATGAAGTGTTAGTTACTGATGGTGAGCCTGACGTAGTATGTTTAAGCAAGCAGGTCTGGGAAAATCTTCTCATTAAATTAAAACCGGAGATCAAGGAAAATGTGGCTTCTGAAGTTCATAAATCAGCGAATAAAGGTGAGATTGAGCAATTAGTTGAATGGTCTAAAAGAAATGAACAAACCCTTTTCGATAAT 43 A 44 G 43 TAATAAAAAGTGATTTTCATGTTGGTTCACTTAAGCCAGGTAGTATGAATGGTGTTATTTTAGAAATGCCACCAAATGTCTGTATGGAACCACGTAATTCATATGAAAACAAAATAGATGAGGTTTCATCTTTGTCAGAGTCAGAGGAACACCCCATAGATATTCAAAAAATAACAGATGCGTTTGTGAAGGAGTTCAAGGGGATATTATTTGATAAAAATGGAAG 45 A 46 G 45 TCTTCAGAGCTTCTGTTTAATTTTTATGAATGTTGCTATACGTTTTTACCAAGAGCGCAGCCTCAAGATAAAATCGATAGCTATAATTCAGCACTGCAAGCTTTTTCCATCTTTTGTTCATCTACGTTGACACATAATAATGTAGGCTTTGATTTCAAATTATTTCCAGAAGTCAAGCTGTCTGGAGAACATCTTGAAACGGTATTCAAATACAAAAATGGCGATGATGTCCGGGAGATAGCCAAAATTAACATTACTCTCCAAAAAGAAGAGGGTGGCTTATATAATCTACGTGGATTGGATTTTAAGGGATGCTTCTTTTCTGGACAGAACTTCAGTAACTATGATATTCAATATGTGAACTGGGGAATGTCATTGTTTGATGTTGATACTCCGTGTATTTTTAATACGCCTGCTAACCATGAGAGTTATGAAAAATCATTAAAACCTGTAAGCGAAAACGGTTTAAATGGAGTCTTATCTGATCGTAATAAAAAAATAAAAATGATCACGGGTGTGGCACCATTCGATGATATTTTATTTATGGATGATGACTTTGATGATAACTCCCCTGAGGATGCTCCCATTGAGAATAGTCCTGTTGTGAATAGTCCTCTTGTA 24 CTGGAAAACAA 23  6  47 ATGTTAGTTAGTAAAAGCAACGAAATTAACACTAGCACATTTATAAATAGTGGAA 49 G 50 A 49 TTGTAATGAAAGAAAATC 51 T 52 C 51 TCTAAATCCATGGAGTTACTAGCTTATAGTATTATAAAATTAATTTGTAAAGAAGCTGCCTCAGGGACGTATAACGGTGCTCTTGAAATTTTACAAAAAATGATGTCTGAATGTAAA 53 T 54 C 53 ATCATGAAGGCAATGC 55 T 56 C 55 TTTGTCATTATGGGAGCCGGAGAACAATTAAAACGTATTAAATATGATGCTAATGAAAATAAATTAAAAGTATACAACGTACACTTTGATAATAATCAAGAGTTAGTTGCTGATGGTGAGCCTGACGTAGTATTTTTAAAAAAAACGGTGTGGGAAGA 57 CCTTCTCG 58 TCTTCTCA 57  48 GTGTGGGAAGACCTTCTCG 47 TTAAACTAAAGCTGGAGAACAAAGAAAATGCGGTTTCTGAAA 59 TTAACC 60 CTGACA 59 TGTCATCTAATAAAAATAATGTTGATCAGTTTATTGAATGCGCTAAGAGAAATGAACAGACCCTATTCGGCAATATAAGAAAAAGTGATTTTCA 61 T 62 C 61 GTTGCTTCACTTCAGCCAGGTAGAACGCGTAGTGTTATTTCAGAAACGCCGCCAAATGACTGTATGGAATCACATAATTTATATGAAAACCACACAGATA 63 C 64 A 63 GGTTTCAACTGTAACTAAAAATTCTCAGCAAGTTAAAGGTCACTATGG 65 A 66 G 65 GATAAGTTGAAAGAAATGCAGTT 67 G 68 T 67 TTCCTCAACCAGATGAGCAATGCACTTCAACAGGATTCATCTTTGTTAGAGTCAAAGGAACACACCATAGATATTCAAGAAAAAACGAATAAGTTTGTGCAGCATTTTCAGCGGGTATTATTTGATAAAAATGGAAGGTCATCAGAGTTTCTACTTAATTTTTATGAGTGTTGCTATAAGTTTTTACCAAGAGCGCAGCCTCAAGATAAAATCGATAGCTATAATTCAGCACTGCAAGCTTTTTCCATCTTTTGTTCATCTACGTTGA 69 C 70 T 69 ACATAATAATGTAGGGTTTAATTTCAAATTATTTCCAGAAGTCAAG 71 C 72 T 71 TGTCTGGAGGAGAGCTTGAAACGGTATTCAAATACAAAAATGG 73 T 74 C 73 AATTTTGTCTGGGAGATAGCCAGAATTAAAATT 75 A 76 G 75 CTCTCCCAAAAGAAGAGGGT 77 G 78 A 77 GTTTATATAATTTACGTGGATTGGATTTTAAGGGATGCTTCTTTTCTGGACAGAACTTCAGTAACTATGATATTCAATATGTGAACTGGGGAACGTCATTGTTTGAT 79  81 CTTGATACTCCA 82 CTTGATACTCCG 81 TGTATTTTTAATGCGCCTGCTTACAACAAGAGTAATGAAAAATCATTA 83 G 84 A 83 AACGCGTCAGCGAAAACGGTTTAAGTGGAGTCTTGTCTGATCGTAATAA 85 A 86 T 85  80 GTTGATACTCCGTGTATTTTTAATGTGCCTGATGACAATAAGAGTTATGATAAATTATTAAAATCCGTCAGCGAAAATGGTTTAAATGGAGTCTTGACTGATCGTAATAAT 79 AAAATAAAACTAATCACGGG 87 T 88 C 87 GTGGCACCATTCGATG 89 ATATTTTATT 90 GTATTTCATC 89 TATGGATGATGACTTTGATGATA 91  93 ACTCCCCTGATGATGG 94 GTTCTTCTGAGGATGA 93 TCCCGTTGAGAATAGTCCTGTTGTGAATAGTCCCCTTGTA 92 GTTCCTCTGAGGAAAATTCCCCTGAGGATAGTCCCATTGAGAATCGTCCCCTTGTA 91  6  95  97 ATGGAATCACGTAATTCATATGAAAACAAAATAGATGAGATTTCATCTTTGTCAGAGTCAAAGGAACACCCCATAGATATTCAAGAAAAAAAAGATG 99 CGTTT 100 TGTTT 99  98  98 ATGGAATCACGTAATTCATATGAAAACAAAATAGATGAGATTTCATCTTTGTCAGAGTTAAAGGAACACCCCATAGATATTCAAGAAAAAAAAGATGCGTTT 98 ATGGAATCACGTAATTCATATAAAAACAAAATAGATGAGATTTCATCTTTGTCAGAGTCAAAGGAACACCCCATAGATATTCAAGAAAAAAAAGATGCGTTT 97 GTGAATGAGTTCAAGGGGGTATTATTTGATAA 101 AAATAC 102 GAATAC 102 AAATAT 101  96  103 ATGTTAGTTAGTAAAAACAACGAATTTAACACTAGCTCATTTATAGATAGTGGAAATTGTAATGAAAGAAAATCTTCTGAATCCATGGAGCTACTAGCTTATAGTATTATAAATTTAATTTGTAAGAAAGCTGCCTCAGGGACGTATCGCGGTGCTCTTGAAACTTTACAAAAAATG 104  103 ATGTCTGAATGTATATATCA 105 T 106 A 105 GAAGGCAACGCCTTTGTCATTATGGGAG 107 T 108 C 107 TGGAGAACAATTAAAACGTATTAAATATGAAGTTGGTGAAAATAACTTAAAGGTATTCAACGTACACTTTAATAATAATCACGAGTTAGTTAGTTCTGGTGAGCCTGACGTAATATGTTTAAGCAAGCAGGTCTGGGAAAATCTTCTCATTAAACTAAAGCTGGAAAACAATGAAAATGTGTTTTCTGAAACTAAAAAATTATCGAATAAAAATAATG 109 A 110 C 109 CGATCAGTTTTTTGAATGCGCTAAAAGAAATGAACAGAACCTTTTCGATAATATAAGAAAAAGTGATTTTCATGTTGGTTTACTTAAGCCAAGTAGTACGCGTAGTGTTATTTTAGAAACGCCGCCAAATGTCTGTATGGAATCACGTAATTCATATGAAAACAAAATAGATGAGATTTCATCTTTGTCAGAGTCAAAGGAACACCCCATAGATATTCAAGAAAAAAAAGATGCGTTTGTGAATGAGTTCAAGGGGGTATTATTTGATAAAAATAC 96 ATGTTAGTTAGTAAAAGCAACGAAATTAACACTAGCACATTTATAAATAGTGGAAGTTGTAATGAAAGAAAATCTTCTAAATCCATGGAGTTACTAGCTTATAGTATTATAAAATTAATTTGTAAGGAAGCTGCCTCAGGGACGTATAACGGTGCTCTTGAAATTTTACAAAAAATGATGTCTGAATGTAAATATCATGAAAGCAATGCTTTTGTCATTATGGGAGCCGGAGAACAATTAAAACGTATTAAATATGATGTTAATGAAGATAAATTAAAAGTATACAACGTACACTTTGATAATAATCAAGAGTTAGTTGCTGATGGTGAGCCTGACGTAGTATTTTTAAAAAAAACGGTGTGGGAAGACCTTCTCGTTAAACTAAAGCTGGAGAACAAAGAAAATGCGGTTTCTGAAGTTCATAAATCAGCGAATAAAGGTGAGGTCGAGCAATTAGTTGAATGTTCTGAAAGAAATGAAAAGAGGCTTCTTGATAATATAAATAAAAACACTACTATCTATAATATTTACAACAACCAACGAGCAACAAACATTACTACATCTGTATCTGAACCACCTGCACAAGGTAAAAGTAATGATGTAGATAAATTAAAACAAACGCAGTTTATCAACGCTAGTCAATTTGATATTAATGAGCTTCAGCAGAGTTCTGCTTTTTTAGCGTCAAAATATCACACCATAGATATTCAAGAAAAAACAGATGCGTTTGTGAAGAAGTTCAAGGGGATATTATTTGATAAAAATGG 95 AAGGTCTTCAGAGCTTCT 111 G 112 T 111 TTTAATTTTTATGAGTGTTGCTATAAGTTTTTACCAAGAGC 113  115 T 116 G 115 CAGCCTCAAGATAAAAT 117 CGAT 118 TGAA 117  114 TCAGCCACAAGATAAAATCGAT 113 AGCTATAATTCAGCACTGCAAGCTTTTTCCAT 119 TTTTTGTTCATCTACGTTGACACATAATAATATAGGCTTTGATTTCAAATTATTTCCT 120 CTTTCGTTCATCTACTTTGAATAATAATGATGTAGGGTTTAATTTCAAATTATTCCCA 119 GAAGTCAAGCTGTCTGGA 121 G 122 A 121 AACATCTTGAAACGGTATTCAAATACAAAAATGGCGATGATGTCCGGGAGATAGCCAAAATTAACATTACTCTCCAAAAAGAAGAGGGTGGTTTATATAATTTACGTGGATTGGATTTTAAGGG 123 GT 124 AT 124 GG 123 GCTTCTTTTCTGGACAGAACTTCAGTA 125 A 126 T 125 CTATGATATTCAATATGTGAACTGGGGAACGTCATTGTTTGAT 127 GTTGATAC 128 CTTGATAC 128 GTTGATAT 127 TCCGTGTATTTTTAATGCGCCTGCTTACAACAAGAGTAATGAAAAATCATTA 129 AAACCTGTG 130 GAACGCGTC 129 AGCGAAAACGGTTTAAGTGGAGT 131 ATTGA 132 CTTGT 132 CTTGA 131 CTGATCGTAATAATAAAATAAAACTCATCACGGGCGTGGCACCATTCGATGATATTTTATTTATGGATGATGACTTTGATGATAGTTC 133 CTCTGAGGATG 134 CTCTGAGGATA 134 TTCTGAGGATG 133 ATCCCGTTGAGAATAGTCCTGTTGTGACTAGTCCC 135 G 136 C 135 TTGTATCAAGTTCTAAAAGCAGTTTTCAA 6  137  139  140 ATGTTAGTTAGTAAAAGCAACGAACTTAACACTAGCGCATTTTTTGCTAGCAGGAATTATAATGGAAACAATTCTTCCAACCCCATGGAGCTACTAGCTCATAGCATTATAAAATTAATTTGTAAGGAAGCTGCCTCAGCGACGTATTGCGGTGCTCTTGAAACTTTACAAAAAATGATGTCTGAATGTATATATCAAGAAGGCAACGCCTTTGTCATTATGGGAGCTGGAGAACAATTAAAACGTATTAAATATGATGTTGATGAAAATAACTTAAAGGTATTCAACGTACACTTTGATAATAATGAAGTGTTAGTTACTGATGGTGAGCCTGACGTAGTATGTTTAAGCAAGCAGGTCTGGGAAAATCTTCTCATTAAATTAAAACCGGAGATTAAAGAAAATGTGTTTTCTGAAAATAACAAATTATCGAGAGAAAATAATGTTGATCAGTATGTTCAATCCGCTAAAAGAAATGAACAGGCCCTTTTCGATAATATAATAAAAAGTGATTTTCATGTTGCTTCACTTCAGCCAGGTAGAACACGTAGTGTTATTTCAGAAACGCCGCCAAATGACTGTATGGAAGCACGTAATTCATATGAAAACCAAATAGATGAGATTTCATCT 139 TTGTCAGAGTCAAAGGAACACCCCATAGATATTCAAGAAAAAA 141 A 142 C 141 AGATGCGTTTGTGAATGAGTTCA 143 A 144 G 143  138 ATGTTAGTTAGTAAAAG 145 C 146 A 145 AACGGATTTAACGCTAGCGCAGTTTTGGGTAGTGGAAGTTATAATGAAAATAAATCTTCTAAACACATGGAGCTACTAGCTCATAGTATTTTAAAATTAATTTGTAAG 147 G 148 A 147 AAGCTGCATCAGAGACGTATCGCGGTGCTCTTGAAACTTTACAAAAAATGATGTCTGAATGT 149 A 150 G 149 TATATCAAGAAGGCAACGCCTTTGTCATTATGGGAGCTGGAGAACAATTAAAACGTATTAAATATGAAGTTGGTGAAAATAACTTAAAGGTATTCAACGTACACTTTAATAATAATCACGAGTTAGTTAGTTCTGGTGAGCCTGACGTAATATGTTTAAGCAAGCAGGTCTGGGAAAATCTTCTCATTAAACTAAAGCTGGAAAACAATGAAAATGTGTTTTCTGAAACTAAAAAA 151 T 152 C 151 TATCGAATAAAAATAATGCCGATCAGTTTTTTGAATGCGCTAA 153 GAGAAATGAACAGACCCTA 154 AAGAAATGAACAGAACCTT 153 TTCGATAATATAAGAAAAAGTGATTTTCATGTTGGTT 155 CACTTAAGCCAG 156 TACTTAAGCCAA 155 GTAGTACGCGTAGTGTTATTTTAGAAACGCCGCCAAATGTCTGTATGGAATCACGTAATTCATATGAAAACAAAATAGATGAGATTTCATCTTTGTCAGAGTCAAAGGAACACCCCATAGATATTCAAGAAAAAA 157 CAGATGCATTTGTGAAGAAGTTCAA 158 AAGATGCGTTTGTGAATGAGTTCAA 157  138 GTGAATGAGTTCAA 138 ATGTTAGTTAGTAAAAGCAACGGATTTAACGCTAGCGCAGTTTTGGGTAGTGGAAGTTATAATGAAAATAAATCTTCTAAACACATGGAGCTACTAGCTCATAGTATTGTAAAATTAATTTGTAAGGAAGCTGCATCAGAGACGTATCGCGGTGCTCTTGAAATTTTACAAAAAATAATGTCTGAATGTATATATCATGAAGGCAACGCCTTTGTCATTATGGGAGCTGGAGAACAATTAAAACGTATTAAATATGATGTTGATGAAAATAACTTAAAGGTATTCAACGTACACTTTGATAATAATGAAGTGTTAGTTACTGATGGTGAGCCTGACGTAGTATGTTTAAGCAAGCAGGTCTGGGAAAATCTTCTCATTAAATTAAAACCGGAGATCAAGGAAAATGCGGCTTCTGAAGTTCATAAATCAGCGAATAAAGGTGAGATTGAGCAATTAGTTGAATGCTCTAAAAGAAATGAACAGACCCTTTTCGATAATATAAGAAAAAGTGATTTTCATGTTGGTTCACTTAAGCCAGGTAGTATGAATAGTGTTATTTTAGAAATGCCACCAAATGTCTGTATGGAACCACGTAATCCATATGAAAACAAAATAGATGAGGTTTCATCTTTGTCAGAGCCAAAGGAACACACCATAGATATTCAAGAAAAAACAGATGCGTTTGTGAATGAGTTCAA 137 GGGGATATTATTTGAT 159 AAAAATGG 160 AAAAATAC 160 CAAAATGG 160 AAAAATAG 159 AAGGTCTTCAGAGTTTCT 161  163 AC 164 GT 163 TTAATTTTTATGAATGTTGCTAT 165 GA 166 GT 166 AA 165  162 ATTTAATTTTTATGAGTGTTGCTATAA 161 GTTTTTACCAAGAGC 167 GCAGCCTCAGGATAAAAT 169 CGAA 170 TGAA 169  168 TCAGCCTCAAGATAAAATCGAT 167 AGCTATAATTCAGCACTGCAAGCTTT 171 CTCCATC 172 TTCCATT 172 TTCCATC 171 TTTTGTTCATCTACGTTGA 173  175 T 176 C 175 ACATAATAATATAGGCTTTG 174 CACATAATGGTGTAGGGTTTA 173 ATTTCAAATTATTTCC 177 AGAAGTCAAACTGTGTGGGG 179 AAA 180 GAA 180 AAC 179  178  181 AGAAGTCAAGCTGTCTGGAGAAC 182 TGAAGTCAAACTGTCTGGAGAAC 181  177 ATCTTGAAACGGTATTCAAATA 183 T 184 C 183 AAAAATGGCGATGATGTCCGGGAGATAGCCAAAATTAACATT 185  187 A 188 G 187 CTCTCCAAAAAGAAGAGGATGGTTTATATAATTTAG 186 ATCCTACCAAAAGGAGAGGGTGATTTATATAATTTGG 186 ACTCTCCAAAAAGAAGA 189 GGGTGGATTATATAATCTAC 190  191 A 192 G 191 GGTGGTTTATATAATTTAC 189  185 GTGGATTGGATTTTAAGGG 193 A 194 G 193 TGCTTCTTTTCTGGACAGAACTTCAGTAACTATGATATTCAATATGTGAACTGGGG 195 A 196 T 195 ACGTCATTGTTTGAT 197  199 CTTGATACTCCG 200 GTTGATACTCCG 200 CTTGATACTCCA 199 TGTATTTTTAATGCGCCTGCTTACAACAAGAGTAATG 201  203 A 204 G 203 AAAATCATTAAAACCTGTG 202 AAAAATCATTAGAACGCGTC 201  198 GTTGATACTCCGTGTATTTTTAATACGCCTGCTAACCATGAGAGTTATGAAAAATCATTAAAACCTGTA 197 AGCGAAAACGGTTTAA 205  207 GTGGAGTC 208 GTGGAGTA 207 TTGACTGATCGTAATAATAAAATAAAACTCATCACGGGC 206  209 ATGGAGTCTTA 210 GTGGAGTCTTG 209 TCTGATCGTAATAAAAAAATAAAA 211 ATGATCACGGGT 212 CTAATCACGGGT 211  205 GTGGCACCATTCGATGATATTTTATTTATGGATGATGACTTTGATGATA 213 GTTCCTCTGAGGATGATCCCG 214 ACTCCCCTGAGGATG 215 CTCCCA 216 GTCCCG 215  213 TTGAGAATAGTCCTGTTGTGA 217 CTAGTCCCGTTGTATCAAGTTCTAAAAGCAGTTTTCAA 218 ATAGTCCCCTTGTA 217  6 ATGTTAGTTAGTAAAAG 219 TAATGGCCATAACGTTAATACAGTTTTGGGTAGTAGAAGTTGTAATGAAAACAATTCTTCCAACCCCATGGG 220 CAACGGATTTAACGCTAGCGCAGTTTTGGGTAGTGGAAGTTATAATGAAAATAAATCTTCTAAACACATGGA 219 GCTACTAGCTCATAGTATT 221 G 222 T 221 TAAAATTAATTTGTAAGGAAGCTGCATCAGAGACGTATCGCGGTGCTCTTGAAACTTTACAAAAAATGATGTCTGAATGTATATATCA 223 T 224 A 223 GAAGGCAACGCCTTTGTCATTATGGGA 225 TCTGGAGTG 226 GCTGGAGAA 226 TCTGGAGAG 225 CAATTAAAACGTATTAAATATGATGTTGATGAAAATAACTTAAAAGTATTCAACGTATACTTTGATAATAATGAAGAGTTAGTTACTGATGGTGAGCCTGACGTAGTATGTTTAAGCAAGCAGGTCTGGGAAGATCTTCTCATTAAACTAAAGCTGGAGAACAAAGAAAATGCGGTTTCTGAAACTGACCTGTCATCGAATGAAAATAATGTTGATCATTTTTTTCAATCCGCTAAGAGAGATGAACAGACCCTATTCGGCAATATAAGAAAAAGTGAGTTTCATGTTGATTCATTAAAGCCAGGTAGTACGCGTAGTGTTATTTTAGAAACGCAACCAAATGTCTCTATGGAACCACATAATTTATATGACAACCAAATAGATAAGGTTTCACCTGTAACTAAAAACTCTCAGCAAGTTAAAGGCCACTATGGAGATAAATTGAAAGAAATGCAGATGTTCCTTAACCAGATGAGCAATGCACTTCAACAGGCTCCATCTTTGTCAGAGTCAAAGGAACACACCATAGATATTCAAAAAATAACGGATGCCTTTGTGAAGGAGTTCCGGGGGATATTATTTGATAAAAATGGAAATTCATCAGAACGTTTATTCAATTTTTATGAGTGCTGCTATATATTTTTACCAAGAGCGCAGCCTCAAGATAAAATCGAAAGCTATAATTCAGCGCTGCAAGCTTTTTCCATCTTCCGTTCATCTACTTTGAATAATAATGATGTAGGGTTTAATTTCAAATTATTCCCAGAAGTCAAGCTGTCTGGTGAAAATCTTGAAACGGTATTCAAATACAAAAAAGGAAGTTTTGTCCGGGAGATAGCCAGAATTAACATTACTCTCCAAAAAGAAGAGGATGGTTTATATAATTTAGGTGGATTGGATTTTAAGGGATGCTTCTTTTCTGGACAGAACTTCAGTAACTATGATATTCAATATGTGAACTGGGGAACGTCATTGTTTGATCTTGATACTCCGTGTATTTTTAATGCGCCTGCTTACAACAAGAGTAATGAAAAATCATTAAAACCTGTGAGCGAAAACGGTTTAAGTGGAGTCTTGACTGATCGTAATAATAAAATAAAACTCATCACGGGCGTGGCACCATTCGATGATATTTTATTTATGGATGATGACTTTGATGATAGTTCCTCTGAGGATGATCCCGTTGAGAATAGTCCTGTTGTGACTAGTCCCGTTGTATCAAGTTCTAAAAGCAGTTTTCAA 5 ");
+    string bad = "ATGTTAGTTAGTAAAAGCAACGGATTTAACGCTAGCGCAGTTTTGGGTAGTGGAAGTTATAATGAAAATAAATCTTCTAAACACATGGAGCTACTAGCTCATAGTATTTTAAAATTAATTTGTAAGGAAGCTGCATCAGAGACGTATCGCGGTGCTCTTGAAACTTTACAAAAAATGATGTCTGAATGTATATATCAAGAAGGCAACGCCTTTGTCATTATGGGAGCTGGAGAACAATTAAAACGTATTAAATATGAAGTTGGTGAAAATAACTTAAAGGTATTCAACGTACACTTTAATAATAATCACGAGTTAGTTAGTTCTGGTGAGCCTGACGTAATATGTTTAAGCAAGCAGGTCTGGGAAAATCTTCTCATTAAACTAAAGCTGGAAAACAATGAAAATGTGTTTTCTGAAACTAAAAAATTATCGAATAAAAATAATGCCGATCAGTTTTTTGAATGCGCTAAAAGAAATGAA";
+    EXPECT_TRUE(l.get_valid_vcf_reference(bad).empty());
+}
+
+TEST(LocalPRGTest, get_valid_vcf_reference_valid_simple) {
+    LocalPRG test_prg(3, "long_enough", "AGTATA 5 GCC 7 CCC 8 TATG 7  6 GGAGCG 5 TATTTACGTTCGAGGTCCAGACGCTCTA");
+    std::string valid1 = "AGTATAGCCCCCTATTTACGTTCGAGGTCCAGACGCTCTA";
+    std::string valid2 = "AGTATAGCCTATGTATTTACGTTCGAGGTCCAGACGCTCTA";
+    std::string valid3 = "AGTATAGGAGCGTATTTACGTTCGAGGTCCAGACGCTCTA";
+    std::vector<LocalNodePtr> exp_nodes1 = {test_prg.prg.nodes[0], test_prg.prg.nodes[1], test_prg.prg.nodes[2],
+                                            test_prg.prg.nodes[4], test_prg.prg.nodes[6]};
+    std::vector<LocalNodePtr> exp_nodes2 = {test_prg.prg.nodes[0], test_prg.prg.nodes[1], test_prg.prg.nodes[3],
+                                            test_prg.prg.nodes[4], test_prg.prg.nodes[6]};
+    std::vector<LocalNodePtr> exp_nodes3 = {test_prg.prg.nodes[0], test_prg.prg.nodes[5], test_prg.prg.nodes[6]};
+
+    auto result1 = test_prg.get_valid_vcf_reference(valid1);
+    EXPECT_ITERABLE_EQ(std::vector<LocalNodePtr>, exp_nodes1, result1);
+    EXPECT_ITERABLE_EQ(std::vector<LocalNodePtr>, exp_nodes2, test_prg.get_valid_vcf_reference(valid2));
+    EXPECT_ITERABLE_EQ(std::vector<LocalNodePtr>, exp_nodes3, test_prg.get_valid_vcf_reference(valid3));
+}
+
+TEST(LocalPRGTest, get_valid_vcf_reference_valid_rev) {
+    LocalPRG test_prg(3, "long_enough", "AGTATA 5 GCC 7 CCC 8 TATG 7  6 GGAGCG 5 TATTTACGTTCGAGGTCCAGACGCTCTA");
+    std::string valid1 = rev_complement("AGTATAGCCCCCTATTTACGTTCGAGGTCCAGACGCTCTA");
+    std::string valid2 = rev_complement("AGTATAGCCTATGTATTTACGTTCGAGGTCCAGACGCTCTA");
+    std::string valid3 = rev_complement("AGTATAGGAGCGTATTTACGTTCGAGGTCCAGACGCTCTA");
+    std::vector<LocalNodePtr> exp_nodes1 = {test_prg.prg.nodes[0], test_prg.prg.nodes[1], test_prg.prg.nodes[2],
+                                            test_prg.prg.nodes[4], test_prg.prg.nodes[6]};
+    std::vector<LocalNodePtr> exp_nodes2 = {test_prg.prg.nodes[0], test_prg.prg.nodes[1], test_prg.prg.nodes[3],
+                                            test_prg.prg.nodes[4], test_prg.prg.nodes[6]};
+    std::vector<LocalNodePtr> exp_nodes3 = {test_prg.prg.nodes[0], test_prg.prg.nodes[5], test_prg.prg.nodes[6]};
+
+    EXPECT_ITERABLE_EQ(std::vector<LocalNodePtr>, exp_nodes1, test_prg.get_valid_vcf_reference(valid1));
+    EXPECT_ITERABLE_EQ(std::vector<LocalNodePtr>, exp_nodes2, test_prg.get_valid_vcf_reference(valid2));
+    EXPECT_ITERABLE_EQ(std::vector<LocalNodePtr>, exp_nodes3, test_prg.get_valid_vcf_reference(valid3));
+}
+
+TEST(LocalPRGTest, get_valid_vcf_reference_invalid) {
+    LocalPRG test_prg(3, "long_enough", "AGTATA 5 GCC 7 CCC 8 TATG 7  6 GGAGCGTCGAGGTCCAGTCGAGGTCCAG 6  5 TATTTACGTTCGAGGTCCAGACG");
+    std::string null = "";
+    std::string snp_away_from_graph = "AGTATAGCCCCCTAGTTACGTTCGAGGTCCAGACG";
+    std::string too_short = "AGTATATATTTACGTTCGAGGTCCAGACG";
+    std::string starts_late = "TATAGCCCCCTATTTACGTTCGAGGTCCAGACG";
+    std::string ends_less_than_a_node_early = "AGTATAGCCCCCTATTTACGTTCGAGGTCCAGAC";
+    std::string ends_a_node_early = "AGTATAGGAGCGTCGAGGTCCAGTCGAGGTCCAG";
+
+    EXPECT_TRUE(test_prg.get_valid_vcf_reference(null).empty());
+    EXPECT_TRUE(test_prg.get_valid_vcf_reference(snp_away_from_graph).empty());
+    EXPECT_TRUE(test_prg.get_valid_vcf_reference(too_short).empty());
+    EXPECT_TRUE(test_prg.get_valid_vcf_reference(starts_late).empty());
+    std::vector<LocalNodePtr> exp_nodes1 = {test_prg.prg.nodes[0], test_prg.prg.nodes[1], test_prg.prg.nodes[2],
+                                            test_prg.prg.nodes[4], test_prg.prg.nodes[7]};
+    EXPECT_ITERABLE_EQ(std::vector<LocalNodePtr>, exp_nodes1, test_prg.get_valid_vcf_reference(ends_less_than_a_node_early));
+    EXPECT_TRUE(test_prg.get_valid_vcf_reference(ends_a_node_early).empty());
+
+}
+
+TEST(LocalPRGTest, random_path) {
+    LocalPRG test_prg(3, "long_enough", "AGTATA 5 GCC 7 CCC 8 TATG 7  6 GGACCAG 6  5 TATTTACG");
+    std::set<std::string> random_paths;
+    while (random_paths.size() < 4) {
+        random_paths.insert(test_prg.random_path());
+    }
+    std::set<std::string> exp_random_paths = {"AGTATAGCCCCCTATTTACG",
+                                              "AGTATAGCCTATGTATTTACG",
+                                              "AGTATAGGACCAGTATTTACG",
+                                              "AGTATATATTTACG"};
+    EXPECT_ITERABLE_EQ(std::set<std::string>, exp_random_paths, random_paths);
 }

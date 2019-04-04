@@ -3,14 +3,16 @@
 #include <cassert>
 #include <cctype>
 #include <unordered_map>
+
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
+#include <boost/log/trivial.hpp>
+
 #include "fastaq.h"
 
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-using namespace std;
 
 Fastaq::Fastaq(bool gz, bool fq) : gzipped(gz), fastq(fq) {}
 
@@ -22,7 +24,7 @@ char Fastaq::covg_to_score(const uint_least16_t &covg, const uint_least16_t &glo
     }
     // Rachel's original (and default) coverage to ASCII conversion function
     if (2 * global_covg < covg) {
-        cout << "Found a base with a coverage way too high, so giving it a score of 0" << endl;
+        BOOST_LOG_TRIVIAL(debug) << "Found a base with a coverage way too high, so giving it a score of 0";
         return '!';
     }
 
@@ -44,8 +46,7 @@ char Fastaq::alt_covg_to_score(const uint_least16_t &covg) {
 
     if (covg > max) {  // coverage is outside the range of printable ASCIIs
         ascii_val = 126;
-    }
-    else {
+    } else {
         ascii_val = covg + 33;
     }
     return static_cast<char>(ascii_val);
@@ -56,17 +57,20 @@ void Fastaq::add_entry(const std::string &name,
                        const std::string &sequence,
                        const std::vector<uint32_t> &covgs,
                        const uint_least16_t global_covg,
-                       const string header) {
+                       const std::string header) {
 
     assert(name != "");
     assert(covgs.size() == sequence.length());
-    assert(global_covg != 0);
+    auto mod_global_covg = global_covg;
+    if (global_covg < 1) {
+        mod_global_covg = 1;
+    }
 
     char score[covgs.size() + 1];
     auto i = 0;
     const bool alt_covg_conversion{false};
     for (const auto &covg: covgs) {
-        score[i] = covg_to_score(covg, global_covg, alt_covg_conversion);
+        score[i] = covg_to_score(covg, mod_global_covg, alt_covg_conversion);
         i++;
     }
     score[covgs.size()] = '\0';
@@ -79,7 +83,7 @@ void Fastaq::add_entry(const std::string &name,
 
 void Fastaq::add_entry(const std::string &name,
                        const std::string &sequence,
-                       const string header) {
+                       const std::string header) {
 
     assert(name != "");
 
@@ -97,12 +101,12 @@ void Fastaq::clear() {
 }
 
 void Fastaq::save(const std::string &filepath) {
-    if (filepath.length() > 2 and filepath.substr(filepath.length() - 2) == "gz" and gzipped == false) {
+    if (filepath.length() > 2 and filepath.substr(filepath.length() - 2) == "gz" and !gzipped) {
         gzipped = true;
-    } else if (filepath.length() > 2 and filepath.substr(filepath.length() - 2) != "gz" and gzipped == true) {
+    } else if (filepath.length() > 2 and filepath.substr(filepath.length() - 2) != "gz" and gzipped) {
         gzipped = false;
     }
-    ofstream file(filepath, ios_base::out | ios_base::binary | ios_base::trunc);
+    std::ofstream file(filepath, std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
     boost::iostreams::filtering_streambuf<boost::iostreams::output> out;
     if (gzipped) {
         out.push(boost::iostreams::gzip_compressor());
@@ -135,7 +139,7 @@ bool Fastaq::operator!=(const Fastaq &y) const {
 }
 
 std::ostream &operator<<(std::ostream &out, Fastaq const &data) {
-    for (const auto name : data.names) {
+    for (const auto &name : data.names) {
         if (data.fastq) {
             out << "@";
         } else {
@@ -156,7 +160,7 @@ std::ostream &operator<<(std::ostream &out, Fastaq const &data) {
 }
 
 std::istream &operator>>(std::istream &in, Fastaq &data) {
-    string name, seq, score, header;
+    std::string name, seq, score, header;
     /*in >> name;
     in >> seq;
     data.names.push_back(name);

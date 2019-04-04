@@ -2,6 +2,9 @@
 #include <vector>
 #include <cassert>
 #include <zconf.h>
+
+#include <boost/log/trivial.hpp>
+
 #include "inthash.h"
 #include "minimizer.h"
 #include "seq.h"
@@ -11,9 +14,9 @@
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using std::vector;
-using namespace std;
 
-Seq::Seq(uint32_t i, string n, string p, uint32_t w, uint32_t k) : id(i), name(n), seq(p) {
+
+Seq::Seq(uint32_t i, std::string n, std::string p, uint32_t w, uint32_t k) : id(i), name(n), seq(p) {
     minimizer_sketch(w, k);
 }
 
@@ -21,7 +24,7 @@ Seq::~Seq() {
     sketch.clear();
 }
 
-void Seq::initialize(uint32_t i, string n, string p, uint32_t w, uint32_t k) {
+void Seq::initialize(uint32_t i, std::string n, std::string p, uint32_t w, uint32_t k) {
     id = i;
     name = n;
     seq = p;
@@ -44,7 +47,7 @@ bool Seq::add_letter_to_get_next_kmer(const char &letter,
         buff++;
         return true;
     } else {
-        cout << now() << "bad letter - found a non AGCT base in read so skipping read " << name << endl;
+        BOOST_LOG_TRIVIAL(debug) << now() << "bad letter - found a non AGCT base in read so skipping read " << name;
         sketch.clear();
         return false;
     }
@@ -53,7 +56,7 @@ bool Seq::add_letter_to_get_next_kmer(const char &letter,
 uint64_t find_smallest_kmer_value(const vector<Minimizer> &window, uint &pos_of_smallest) {
     uint64_t smallest = std::numeric_limits<uint64_t>::max();
     uint i = 0;
-    for (const auto minimizer : window) {
+    for (const auto &minimizer : window) {
         if (minimizer.kmer <= smallest) {
             smallest = minimizer.kmer;
             pos_of_smallest = i;
@@ -64,7 +67,7 @@ uint64_t find_smallest_kmer_value(const vector<Minimizer> &window, uint &pos_of_
 }
 
 void Seq::add_minimizing_kmers_to_sketch(const vector<Minimizer> &window, const uint64_t &smallest) {
-    for (const auto minimizer : window) {
+    for (const auto &minimizer : window) {
         if (minimizer.kmer == smallest) {
             sketch.insert(minimizer);
             //num_minis_found += 1;
@@ -104,7 +107,7 @@ void Seq::minimizer_sketch(const uint32_t w, const uint32_t k) {
             return;
 
         if (buff >= k) {
-            window.push_back(Minimizer(min(kh[0], kh[1]), buff - k, buff, (kh[0] <= kh[1])));
+            window.push_back(Minimizer(std::min(kh[0], kh[1]), buff - k, buff, (kh[0] <= kh[1])));
         }
 
         if (window.size() == w) {
@@ -116,7 +119,6 @@ void Seq::minimizer_sketch(const uint32_t w, const uint32_t k) {
                assert_msg("we can't have added a smallest kmer correctly as window still has size " << window.size()));
     }
     //cout << now() << "Sketch size " << sketch.size() << " for read " << name << endl;
-    return;
 }
 
 std::ostream &operator<<(std::ostream &out, Seq const &data) {

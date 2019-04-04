@@ -13,7 +13,8 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     apt install -y software-properties-common
     apt-add-repository universe
     apt update
-    apt install -y git wget build-essential cmake
+    apt install -y git wget build-essential cmake seqtk
+    apt-get install -y man time
     export LC_ALL=C.UTF-8
     export LANG=C.UTF-8
     echo 'export LC_ALL=C.UTF-8' >> $SINGULARITY_ENVIRONMENT
@@ -50,5 +51,3 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     make
     ctest -VV
     echo "export PATH=$(pwd):$PATH" >> $SINGULARITY_ENVIRONMENT
-
-

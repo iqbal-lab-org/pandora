@@ -6,15 +6,21 @@
 #include <unordered_set>
 #include <vector>
 #include "kmergraph.h"
+#include "localPRG.h"
 #include "pangenome/ns.cpp"
+#include "vcf.h"
+#include "denovo_discovery/denovo_utils.h"
 
 
 class LocalPRG;
+struct ReadCoordinate;
+using PanReadPtr = std::shared_ptr<pangenome::Read>;
+
 
 class pangenome::Node {
 public:
     std::unordered_multiset<ReadPtr> reads;
-    std::unordered_set<SamplePtr> samples;
+    std::vector<SamplePtr> samples;
     const uint32_t prg_id; // corresponding the the LocalPRG id
     const uint32_t node_id; // unique node id, so can have multiple copies of a localPRG in graph
     const std::string name;
@@ -29,11 +35,16 @@ public:
 
     std::string get_name() const;
 
-    void add_path(const std::vector<KmerNodePtr> &);
+    void add_path(const std::vector<KmerNodePtr> &, const uint32_t &sample_id);
 
     void get_read_overlap_coordinates(std::vector<std::vector<uint32_t>> &);
 
-    void output_samples(const std::shared_ptr<LocalPRG> &, const std::string &, const uint32_t, const std::string &);
+    std::set<ReadCoordinate>
+    get_read_overlap_coordinates(const prg::Path &local_path, const uint32_t &min_number_hits = 2);
+
+    void
+    construct_multisample_vcf(VCF &master_vcf, const std::vector<LocalNodePtr> &, const std::shared_ptr<LocalPRG> &,
+                              const uint32_t, const uint32_t &min_kmer_covg);
 
     bool operator==(const Node &y) const;
 
@@ -43,9 +54,12 @@ public:
 
     friend std::ostream &operator<<(std::ostream &out, const Node &n);
 
+
     friend class pangenome::Graph;
+
 
     friend class pangenome::Read;
 };
+
 
 #endif

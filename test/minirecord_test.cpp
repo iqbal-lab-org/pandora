@@ -13,7 +13,7 @@ TEST(MiniRecordTest, create) {
     deque<Interval> v3 = {Interval(1, 6)};
     deque<Interval> v4 = {Interval(0, 3), Interval(16, 18)};
 
-    Path p;
+    prg::Path p;
     p.initialize(v1);
     MiniRecord m1(1, p, 0, 0);
     uint32_t j = 1;
@@ -42,7 +42,7 @@ TEST(MiniRecordTest, equals) {
     deque<Interval> v3 = {Interval(1, 6)};
     deque<Interval> v4 = {Interval(0, 3), Interval(16, 18)};
 
-    Path p;
+    prg::Path p;
     p.initialize(v1);
     MiniRecord m1(1, p, 0, 0);
     p.initialize(v2);
@@ -65,7 +65,7 @@ TEST(MiniRecordTest, equals) {
 TEST(MiniRecordTest, write) {
     deque<Interval> d;
     d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     MiniRecord mr(1, p, 0, 0);
 
@@ -77,7 +77,7 @@ TEST(MiniRecordTest, write) {
 TEST(MiniRecordTest, read) {
     deque<Interval> d;
     d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     MiniRecord mr1(1, p, 0, 0), mr2;
 

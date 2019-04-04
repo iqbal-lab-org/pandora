@@ -2,8 +2,6 @@
 #include <memory>
 
 
-using namespace std;
-
 namespace pangenome {
     class Node;
 

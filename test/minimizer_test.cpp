@@ -62,7 +62,6 @@ TEST(MinimizerTest, less_than) {
     pair<uint64_t, uint64_t> kh3 = hash.kmerhash("ACGTG", 5);
     Minimizer m5(kh3.first, 0, 5, 0);
 
-    //cout << kh1 << " " << kh2 << " " << kh3 << endl;
     set<Minimizer> s;
     s.insert(m1);
     s.insert(m2);

@@ -10,8 +10,6 @@
 #include "utils.h" // for pointer_values_equal
 
 
-using namespace std;
-
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 MinimizerHits::MinimizerHits(const uint32_t &num_hits) {
@@ -37,7 +35,7 @@ MinimizerHits::~MinimizerHits() {
 }
 
 void MinimizerHits::add_hit(const uint32_t i, const Minimizer &m, const MiniRecord *r) {
-    MinimizerHitPtr mh(make_shared<MinimizerHit>(i, m, r));
+    MinimizerHitPtr mh(std::make_shared<MinimizerHit>(i, m, r));
     uhits.insert(mh);
 }
 
@@ -48,9 +46,9 @@ void MinimizerHits::sort() {
                assert_msg("Expected uhits.size()=" << uhits.size() << " to equal hits.size()=" << hits.size()));
         uhits.clear();
     } else {
-        cerr << "Could not create a set big enough for " << uhits.size() << " elements. The max size is "
-             << hits.max_size() << endl;
-        exit(EXIT_FAILURE);
+        std::cerr << "Could not create a set big enough for " << uhits.size() << " elements. The max size is "
+                  << hits.max_size() << std::endl;
+        std::exit(EXIT_FAILURE);
     }
 }
 
@@ -84,8 +82,8 @@ bool pComp_path::operator()(const MinimizerHitPtr &lhs, const MinimizerHitPtr &r
     if (lhs->prg_path < rhs->prg_path) { return true; }
     if (rhs->prg_path < lhs->prg_path) { return false; }
     //separated into two categories, corresponding to a forward, and a rev-complement hit, note fwd come first
-    if (lhs->strand > rhs->strand) { return true; }
-    if (rhs->strand > lhs->strand) { return false; }
+    if (lhs->is_forward > rhs->is_forward) { return true; }
+    if (rhs->is_forward > lhs->is_forward) { return false; }
     // finally, make sure that hits from separate reads aren't removed from the set as "=="
     if (lhs->read_id < rhs->read_id) { return true; }
     if (rhs->read_id < lhs->read_id) { return false; }
@@ -94,7 +92,7 @@ bool pComp_path::operator()(const MinimizerHitPtr &lhs, const MinimizerHitPtr &r
     return false;
 }
 
-bool clusterComp::operator()(set<MinimizerHitPtr, pComp> lhs, set<MinimizerHitPtr, pComp> rhs) {
+bool clusterComp::operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<MinimizerHitPtr, pComp> rhs) {
     if ((*lhs.begin())->read_id < (*rhs.begin())->read_id) { return true; }
     if ((*rhs.begin())->read_id < (*lhs.begin())->read_id) { return false; }
     if ((*lhs.begin())->read_start_position < (*rhs.begin())->read_start_position) { return true; }
@@ -105,12 +103,12 @@ bool clusterComp::operator()(set<MinimizerHitPtr, pComp> lhs, set<MinimizerHitPt
     if ((*rhs.begin())->prg_id < (*lhs.begin())->prg_id) { return false; }
     if ((*lhs.begin())->prg_path < (*rhs.begin())->prg_path) { return true; }
     if ((*rhs.begin())->prg_path < (*lhs.begin())->prg_path) { return false; }
-    if ((*lhs.begin())->strand < (*rhs.begin())->strand) { return true; }
-    if ((*rhs.begin())->strand < (*lhs.begin())->strand) { return false; }
+    if ((*lhs.begin())->is_forward < (*rhs.begin())->is_forward) { return true; }
+    if ((*rhs.begin())->is_forward < (*lhs.begin())->is_forward) { return false; }
     return false;
 }
 
-bool clusterComp_size::operator()(set<MinimizerHitPtr, pComp> lhs, set<MinimizerHitPtr, pComp> rhs) {
+bool clusterComp_size::operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<MinimizerHitPtr, pComp> rhs) {
     if ((*lhs.begin())->read_id < (*rhs.begin())->read_id) { return true; }
     if ((*rhs.begin())->read_id < (*lhs.begin())->read_id) { return false; }
     if (lhs.size() > rhs.size()) { return true; }
@@ -121,7 +119,7 @@ bool clusterComp_size::operator()(set<MinimizerHitPtr, pComp> lhs, set<Minimizer
     if ((*rhs.begin())->prg_id < (*lhs.begin())->prg_id) { return false; }
     if ((*lhs.begin())->prg_path < (*rhs.begin())->prg_path) { return true; }
     if ((*rhs.begin())->prg_path < (*lhs.begin())->prg_path) { return false; }
-    if ((*lhs.begin())->strand < (*rhs.begin())->strand) { return true; }
-    if ((*rhs.begin())->strand < (*lhs.begin())->strand) { return false; }
+    if ((*lhs.begin())->is_forward < (*rhs.begin())->is_forward) { return true; }
+    if ((*rhs.begin())->is_forward < (*lhs.begin())->is_forward) { return false; }
     return false;
 }

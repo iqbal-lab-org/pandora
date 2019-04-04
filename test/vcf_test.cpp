@@ -46,14 +46,16 @@ TEST(VCFTest, add_two_records_and_a_repeat_with_values) {
 TEST(VCFTest, add_record_by_record) {
     VCF vcf;
     VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
-    vcf.add_record(vr);
+    std::vector<std::string> empty = {};
+    vcf.add_record(vr, empty);
     EXPECT_EQ((uint) 1, vcf.records.size());
 }
 
 TEST(VCFTest, add_record_by_record_and_values) {
     VCF vcf;
     VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
-    vcf.add_record(vr);
+    std::vector<std::string> empty = {};
+    vcf.add_record(vr, empty);
     vcf.add_record("chrom1", 79, "C", "G");
     EXPECT_EQ((uint) 1, vcf.records.size());
 }
@@ -62,16 +64,48 @@ TEST(VCFTest, add_record_by_values_and_record) {
     VCF vcf;
     vcf.add_record("chrom1", 79, "C", "G");
     VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
-    vcf.add_record(vr);
+    std::vector<std::string> empty = {};
+    vcf.add_record(vr, empty);
     EXPECT_EQ((uint) 1, vcf.records.size());
 }
 
 TEST(VCFTest, add_record_by_record_returned_by_reference) {
     VCF vcf;
     VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
-    VCFRecord &ref_vr = vcf.add_record(vr);
+    std::vector<std::string> empty = {};
+    VCFRecord &ref_vr = vcf.add_record(vr, empty);
     EXPECT_EQ(ref_vr.chrom, "chrom1");
     EXPECT_EQ(ref_vr.pos, (uint) 79);
+}
+
+TEST(VCFTest, add_samples_empty) {
+    VCF vcf;
+    std::vector<std::string> samples;
+    vcf.add_samples(samples);
+    EXPECT_EQ(vcf.samples.size(), (uint)0);
+    EXPECT_EQ(vcf.records.size(), (uint)0);
+}
+
+TEST(VCFTest, add_samples_simple) {
+    VCF vcf;
+    std::vector<std::string> samples = {"hello", "there", "people"};
+    vcf.add_samples(samples);
+    EXPECT_ITERABLE_EQ(std::vector<std::string>, samples, vcf.samples);
+    EXPECT_EQ(vcf.records.size(), (uint)0);
+}
+
+TEST(VCFTest, add_samples_with_record) {
+    VCF vcf;
+    vcf.add_sample_gt("sample", "chrom1", 5, "A", "G");
+
+    std::vector<std::string> samples = {"hello", "there", "people"};
+    vcf.add_samples(samples);
+
+    std::vector<std::string> exp_samples = {"sample", "hello", "there", "people"};
+
+    EXPECT_ITERABLE_EQ(std::vector<std::string>, exp_samples, vcf.samples);
+    EXPECT_EQ(vcf.records.size(), (uint)1);
+    EXPECT_EQ(vcf.records[0].samples.size(), exp_samples.size());
 }
 
 TEST(VCFTest, add_sample_gt) {
@@ -85,7 +119,7 @@ TEST(VCFTest, add_sample_gt) {
     uint j = 1;
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[1].samples.size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[1].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[0].samples.size());
     EXPECT_TRUE(vcf.records[0].samples[0].find("GT") == vcf.records[0].samples[0].end());
     EXPECT_EQ(j, vcf.records[2].samples.size());
@@ -96,13 +130,60 @@ TEST(VCFTest, add_sample_gt) {
     vcf.add_sample_gt("sample", "chrom1", 79, "C", "C");
     EXPECT_EQ(j, vcf.samples.size());
     EXPECT_EQ(j, vcf.records[1].samples.size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[1].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[0].samples.size());
     EXPECT_TRUE(vcf.records[0].samples[0].find("GT") == vcf.records[0].samples[0].end());
     EXPECT_EQ(j, vcf.records[2].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[2].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[2].samples[0]["GT"][0]);
     EXPECT_EQ(j, vcf.records[3].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[3].samples[0]["GT"][0]);
+}
+
+TEST(VCFTest, add_record_by_record_with_existing_sample) {
+    VCF vcf;
+    vcf.add_sample_gt("sample", "chrom1", 46, "T", "TA");
+    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
+    std::vector<std::string> empty = {};
+    VCFRecord &ref_vr = vcf.add_record(vr, empty);
+    EXPECT_EQ(ref_vr.chrom, "chrom1");
+    EXPECT_EQ(ref_vr.pos, (uint) 79);
+    EXPECT_EQ(ref_vr.samples.size(), (uint) 1);
+}
+
+TEST(VCFTest, add_record_by_record_with_same_existing_sample) {
+    VCF vcf;
+    vcf.add_sample_gt("sample", "chrom1", 46, "T", "TA");
+    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
+    std::unordered_map<std::string, std::vector<uint16_t>> empty_map;
+    vr.samples.emplace_back(empty_map);
+    vr.samples[0]["GT"] = {1};
+    std::vector<std::string> samples = {"sample"};
+    VCFRecord &ref_vr = vcf.add_record(vr, samples);
+    EXPECT_EQ(ref_vr.chrom, "chrom1");
+    EXPECT_EQ(ref_vr.pos, (uint) 79);
+    EXPECT_EQ(ref_vr.samples.size(), (uint) 1);
+    EXPECT_ITERABLE_EQ(vector<std::string>, samples, vcf.samples);
+    EXPECT_FALSE(ref_vr.samples[0].find("GT") == ref_vr.samples[0].end());
+    EXPECT_EQ(ref_vr.samples[0]["GT"][0], (uint16_t)1);
+}
+
+TEST(VCFTest, add_record_by_record_with_different_existing_sample) {
+    VCF vcf;
+    vcf.add_sample_gt("sample", "chrom1", 46, "T", "TA");
+    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
+    std::unordered_map<std::string, std::vector<uint16_t>> empty_map;
+    vr.samples.emplace_back(empty_map);
+    vr.samples[0]["GT"] = {1};
+    std::vector<std::string> samples = {"sample1"};
+    VCFRecord &ref_vr = vcf.add_record(vr, samples);
+    EXPECT_EQ(ref_vr.chrom, "chrom1");
+    EXPECT_EQ(ref_vr.pos, (uint) 79);
+    EXPECT_EQ(ref_vr.samples.size(), (uint) 2);
+    std::vector<std::string> exp_samples = {"sample", "sample1"};
+    EXPECT_ITERABLE_EQ(vector<std::string>, exp_samples, vcf.samples);
+    EXPECT_TRUE(ref_vr.samples[0].find("GT") == ref_vr.samples[0].end());
+    EXPECT_FALSE(ref_vr.samples[1].find("GT") == ref_vr.samples[0].end());
+    EXPECT_EQ(ref_vr.samples[1]["GT"][0], (uint16_t)1);
 }
 
 TEST(VCFTest, add_sample_ref_alleles) {
@@ -119,7 +200,7 @@ TEST(VCFTest, add_sample_ref_alleles) {
     EXPECT_EQ((uint) 1, vcf.records[0].samples.size());
     EXPECT_TRUE(vcf.records[0].samples[0].find("GT") == vcf.records[0].samples[0].end());
     EXPECT_EQ((uint) 1, vcf.records[1].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[0]["GT"][0]);
     EXPECT_EQ((uint) 1, vcf.records[2].samples.size());
     EXPECT_TRUE(vcf.records[2].samples[0].find("GT") == vcf.records[2].samples[0].end());
     EXPECT_EQ((uint) 1, vcf.records[3].samples.size());
@@ -131,7 +212,7 @@ TEST(VCFTest, add_sample_ref_alleles) {
     EXPECT_EQ((uint) 2, vcf.samples.size());
     EXPECT_EQ((uint) 5, vcf.records.size());
     EXPECT_EQ((uint) 2, vcf.records[0].samples.size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[0].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[0].samples[1]["GT"][0]);
     EXPECT_EQ((uint) 2, vcf.records[1].samples.size());
     EXPECT_TRUE(vcf.records[1].samples[1].find("GT") == vcf.records[1].samples[1].end());
     EXPECT_EQ((uint) 2, vcf.records[2].samples.size());
@@ -160,13 +241,13 @@ TEST(VCFTest, reorder_add_record_and_sample) {
     EXPECT_EQ((uint) 2, vcf.records[2].samples.size());
     EXPECT_EQ((uint) 2, vcf.records[3].samples.size());
     EXPECT_TRUE(vcf.records[0].samples[0].find("GT") == vcf.records[0].samples[0].end());
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
-    EXPECT_EQ((uint8_t) 1, vcf.records[2].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[2].samples[0]["GT"][0]);
     EXPECT_TRUE(vcf.records[3].samples[0].find("GT") == vcf.records[3].samples[0].end());
     EXPECT_TRUE(vcf.records[0].samples[1].find("GT") == vcf.records[0].samples[1].end());
     EXPECT_TRUE(vcf.records[1].samples[1].find("GT") == vcf.records[1].samples[1].end());
-    EXPECT_EQ((uint8_t) 0, vcf.records[2].samples[1]["GT"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[2].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[3].samples[1]["GT"][0]);
 
 }
 
@@ -176,7 +257,8 @@ TEST(VCFTest, clear) {
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
     VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
-    vcf.add_record(vr);
+    std::vector<std::string> empty = {};
+    vcf.add_record(vr, empty);
     uint j = 3;
     EXPECT_EQ(j, vcf.records.size());
 
@@ -363,19 +445,35 @@ TEST(VCFTest, append_vcf_shared_samples_different_order) {
     vector<string> v = {"sample", "sample1"};
     EXPECT_ITERABLE_EQ(vector<string>, v, vcf.samples);
     EXPECT_EQ((uint) 2, vcf.records[0].samples.size());
+    EXPECT_EQ((uint) 2, vcf.records[1].samples.size());
+    EXPECT_EQ((uint) 2, vcf.records[2].samples.size());
+    EXPECT_EQ((uint) 2, vcf.records[3].samples.size());
+    EXPECT_EQ((uint) 2, vcf.records[4].samples.size());
     EXPECT_EQ((uint) 2, vcf.records[5].samples.size());
 
+    vector<uint16_t> alt_gt = {1};
+    vector<uint16_t> ref_gt = {0};
 
-    bool found_gt = vcf.records[1].samples[0].find("GT") != vcf.records[1].samples[0].end();
-    EXPECT_TRUE(found_gt);
-    EXPECT_EQ((uint) 1, vcf.records[1].samples[0]["GT"][0]);
-    found_gt = vcf.records[1].samples[1].find("GT") != vcf.records[1].samples[1].end();
-    EXPECT_TRUE(found_gt);
-    EXPECT_EQ((uint) 0, vcf.records[1].samples[1]["GT"][0]);
-    found_gt = vcf.records[3].samples[1].find("GT") != vcf.records[3].samples[1].end();
-    EXPECT_TRUE(found_gt);
-    EXPECT_EQ((uint) 1, vcf.records[3].samples[1]["GT"][0]);
+    EXPECT_FALSE(vcf.records[0].samples[0].find("GT") != vcf.records[0].samples[0].end());
+    EXPECT_FALSE(vcf.records[0].samples[1].find("GT") != vcf.records[0].samples[1].end());
 
+    EXPECT_TRUE(vcf.records[1].samples[0].find("GT") != vcf.records[1].samples[0].end());
+    EXPECT_TRUE(vcf.records[1].samples[1].find("GT") != vcf.records[1].samples[1].end());
+    EXPECT_ITERABLE_EQ(vector<uint16_t>, vcf.records[1].samples[0]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(vector<uint16_t>, vcf.records[1].samples[1]["GT"], ref_gt);
+
+    EXPECT_FALSE(vcf.records[2].samples[0].find("GT") != vcf.records[2].samples[0].end());
+    EXPECT_FALSE(vcf.records[2].samples[1].find("GT") != vcf.records[2].samples[1].end());
+
+    EXPECT_FALSE(vcf.records[3].samples[0].find("GT") != vcf.records[3].samples[0].end());
+    EXPECT_TRUE(vcf.records[3].samples[1].find("GT") != vcf.records[3].samples[1].end());
+    EXPECT_ITERABLE_EQ(vector<uint16_t>, vcf.records[3].samples[1]["GT"], alt_gt);
+
+    EXPECT_FALSE(vcf.records[4].samples[0].find("GT") != vcf.records[4].samples[0].end());
+    EXPECT_FALSE(vcf.records[4].samples[1].find("GT") != vcf.records[4].samples[1].end());
+
+    EXPECT_FALSE(vcf.records[5].samples[0].find("GT") != vcf.records[5].samples[0].end());
+    EXPECT_FALSE(vcf.records[5].samples[1].find("GT") != vcf.records[5].samples[1].end());
 }
 
 TEST(VCFTest, sort_records) {
@@ -461,52 +559,67 @@ TEST(VCFTest, genotype) {
     vcf.add_sample_gt("asample", "chrom2", 80, "A", "A");
 
     vcf.sort_records();
+    std::vector<float> f = {0.0, 0.0};
 
     // record 0, not a snp site
     vcf.records[0].samples[0]["MEAN_FWD_COVG"] = {0, 10};
     vcf.records[0].samples[0]["MEAN_REV_COVG"] = {1, 20};
     vcf.records[0].samples[1]["MEAN_FWD_COVG"] = {1, 15};
     vcf.records[0].samples[1]["MEAN_REV_COVG"] = {2, 24};
+    vcf.records[0].set_format(0,"GAPS", f);
+    vcf.records[0].set_format(1,"GAPS", f);
+
 
     // record 1, different genotypes but both correct
     vcf.records[1].samples[0]["MEAN_FWD_COVG"] = {0, 10};
     vcf.records[1].samples[0]["MEAN_REV_COVG"] = {1, 20};
     vcf.records[1].samples[1]["MEAN_FWD_COVG"] = {10, 1};
     vcf.records[1].samples[1]["MEAN_REV_COVG"] = {21, 2};
+    vcf.records[1].set_format(0,"GAPS", f);
+    vcf.records[1].set_format(1,"GAPS", f);
 
     // record 2, same genotypes first correct
     vcf.records[2].samples[0]["MEAN_FWD_COVG"] = {0, 10};
     vcf.records[2].samples[0]["MEAN_REV_COVG"] = {1, 20};
     vcf.records[2].samples[1]["MEAN_FWD_COVG"] = {10, 1};
     vcf.records[2].samples[1]["MEAN_REV_COVG"] = {21, 2};
+    vcf.records[2].set_format(0,"GAPS", f);
+    vcf.records[2].set_format(1,"GAPS", f);
 
     // record 3, same genotypes both wrong
     vcf.records[3].samples[0]["MEAN_FWD_COVG"] = {20, 1};
     vcf.records[3].samples[0]["MEAN_REV_COVG"] = {21, 2};
     vcf.records[3].samples[1]["MEAN_FWD_COVG"] = {10, 1};
     vcf.records[3].samples[1]["MEAN_REV_COVG"] = {21, 2};
+    vcf.records[3].set_format(0,"GAPS", f);
+    vcf.records[3].set_format(1,"GAPS", f);
 
     // record 4, missing count data for first sample
     vcf.records[4].samples[0]["MEAN_FWD_COVG"] = {0, 10};
     vcf.records[4].samples[0]["MEAN_REV_COVG"] = {20};
     vcf.records[4].samples[1]["MEAN_FWD_COVG"] = {10, 1};
     vcf.records[4].samples[1]["MEAN_REV_COVG"] = {21, 2};
+    vcf.records[4].set_format(0,"GAPS", f);
+    vcf.records[4].set_format(1,"GAPS", f);
 
     // record 5, not confident for second sample
     vcf.records[5].samples[0]["MEAN_FWD_COVG"] = {0, 10};
     vcf.records[5].samples[0]["MEAN_REV_COVG"] = {1, 20};
     vcf.records[5].samples[1]["MEAN_FWD_COVG"] = {2, 1};
     vcf.records[5].samples[1]["MEAN_REV_COVG"] = {4, 2};
+    vcf.records[5].set_format(0,"GAPS", f);
+    vcf.records[5].set_format(1,"GAPS", f);
 
-    vcf.genotype(30, 0.01, 30);
-
-    cout << vcf << endl;
+    vcf.genotype({30, 30}, 0.01, 30, 0, 1, 0, 0, true);
 
     // not genotyped first record
-    EXPECT_EQ((uint8_t) 1, vcf.records[0].samples[0]["GT"][0]);
-    EXPECT_EQ((uint8_t) 1, vcf.records[0].samples[1]["GT"][0]);
-    bool found_confidence = !vcf.records[0].regt_samples.empty();
+    EXPECT_EQ((uint16_t) 1, vcf.records[0].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[0].samples[1]["GT"][0]);
+    bool found_confidence = vcf.records[0].regt_samples[0].find("GT_CONF")!=vcf.records[0].regt_samples[0].end();
     EXPECT_FALSE(found_confidence);
+    found_confidence = vcf.records[0].regt_samples[1].find("GT_CONF")!=vcf.records[0].regt_samples[1].end();
+    EXPECT_FALSE(found_confidence);
+
     // both correct
     EXPECT_EQ((uint) 2, vcf.records[1].samples.size());
     bool found_gt = vcf.records[1].samples[0].find("GT") != vcf.records[1].samples[0].end();
@@ -515,19 +628,19 @@ TEST(VCFTest, genotype) {
     EXPECT_TRUE(found_gt);
     EXPECT_EQ((uint) 1, vcf.records[1].samples[0]["GT"].size());
     EXPECT_EQ((uint) 1, vcf.records[1].samples[1]["GT"].size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[1]["GT"][0]);
     // first correct
-    EXPECT_EQ((uint8_t) 1, vcf.records[2].samples[0]["GT"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[2].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[2].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[2].samples[1]["GT"][0]);
     // both wrong
-    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[0]["GT"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[3].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[3].samples[1]["GT"][0]);
     // first missing data
     EXPECT_EQ((uint) 0, vcf.records[4].samples[0]["GT"].size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[4].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[4].samples[1]["GT"][0]);
     // second not confident
-    EXPECT_EQ((uint8_t) 1, vcf.records[5].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[5].samples[0]["GT"][0]);
     EXPECT_EQ((uint) 0, vcf.records[5].samples[1]["GT"].size());
 }
 
@@ -557,6 +670,7 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.add_sample_gt("asample", "chrom2", 80, "AC", "AC");
 
     vcf.sort_records();
+    std::vector<float> f = {0.0, 0.0};
 
     // record 0, not a snp site
     vcf.records[0].samples[0]["MEAN_FWD_COVG"].push_back(0);
@@ -567,6 +681,8 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[0].samples[1]["MEAN_REV_COVG"].push_back(2);
     vcf.records[0].samples[1]["MEAN_FWD_COVG"].push_back(15);
     vcf.records[0].samples[1]["MEAN_REV_COVG"].push_back(24);
+    vcf.records[0].set_format(0,"GAPS", f);
+    vcf.records[0].set_format(1,"GAPS", f);
 
     // record 1, different genotypes but both correct
     vcf.records[1].samples[0]["MEAN_FWD_COVG"].push_back(0);
@@ -577,6 +693,8 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[1].samples[1]["MEAN_REV_COVG"].push_back(21);
     vcf.records[1].samples[1]["MEAN_FWD_COVG"].push_back(1);
     vcf.records[1].samples[1]["MEAN_REV_COVG"].push_back(2);
+    vcf.records[1].set_format(0,"GAPS", f);
+    vcf.records[1].set_format(1,"GAPS", f);
 
     // record 2, same genotypes first correct
     vcf.records[2].samples[0]["MEAN_FWD_COVG"].push_back(0);
@@ -587,6 +705,8 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[2].samples[1]["MEAN_REV_COVG"].push_back(21);
     vcf.records[2].samples[1]["MEAN_FWD_COVG"].push_back(1);
     vcf.records[2].samples[1]["MEAN_REV_COVG"].push_back(2);
+    vcf.records[2].set_format(0,"GAPS", f);
+    vcf.records[2].set_format(1,"GAPS", f);
 
     // record 3, same genotypes both wrong
     vcf.records[3].samples[0]["MEAN_FWD_COVG"].push_back(20);
@@ -597,6 +717,8 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[3].samples[1]["MEAN_REV_COVG"].push_back(21);
     vcf.records[3].samples[1]["MEAN_FWD_COVG"].push_back(1);
     vcf.records[3].samples[1]["MEAN_REV_COVG"].push_back(2);
+    vcf.records[3].set_format(0,"GAPS", f);
+    vcf.records[3].set_format(1,"GAPS", f);
 
     // record 4, missing count data for first sample
     vcf.records[4].samples[0]["MEAN_FWD_COVG"].push_back(0);
@@ -606,6 +728,8 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[4].samples[1]["MEAN_REV_COVG"].push_back(21);
     vcf.records[4].samples[1]["MEAN_FWD_COVG"].push_back(1);
     vcf.records[4].samples[1]["MEAN_REV_COVG"].push_back(2);
+    vcf.records[4].set_format(0,"GAPS", f);
+    vcf.records[4].set_format(1,"GAPS", f);
 
     // record 5, not confident for second sample
     vcf.records[5].samples[0]["MEAN_FWD_COVG"].push_back(0);
@@ -616,16 +740,18 @@ TEST(VCFTest, genotype_with_all_sites) {
     vcf.records[5].samples[1]["MEAN_REV_COVG"].push_back(4);
     vcf.records[5].samples[1]["MEAN_FWD_COVG"].push_back(1);
     vcf.records[5].samples[1]["MEAN_REV_COVG"].push_back(2);
+    vcf.records[5].set_format(0,"GAPS", f);
+    vcf.records[5].set_format(1,"GAPS", f);
 
     bool snps_only = false;
-    vcf.genotype(30, 0.01, 30, snps_only);
-
-    cout << vcf << endl;
+    vcf.genotype({30, 30}, 0.01, 30, 0, 1, 0, 0, snps_only);
 
     // first record now genotyped
-    EXPECT_EQ((uint8_t) 1, vcf.records[0].samples[0]["GT"][0]);
-    EXPECT_EQ((uint8_t) 1, vcf.records[0].samples[1]["GT"][0]);
-    bool found_confidence = !vcf.records[0].regt_samples.empty();
+    EXPECT_EQ((uint16_t) 1, vcf.records[0].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[0].samples[1]["GT"][0]);
+    bool found_confidence = vcf.records[0].regt_samples[0].find("GT_CONF")!=vcf.records[0].regt_samples[0].end();
+    EXPECT_TRUE(found_confidence);
+    found_confidence = vcf.records[0].regt_samples[1].find("GT_CONF")!=vcf.records[0].regt_samples[1].end();
     EXPECT_TRUE(found_confidence);
     // both correct
     EXPECT_EQ((uint) 2, vcf.records[1].samples.size());
@@ -635,19 +761,19 @@ TEST(VCFTest, genotype_with_all_sites) {
     EXPECT_TRUE(found_gt);
     EXPECT_EQ((uint) 1, vcf.records[1].samples[0]["GT"].size());
     EXPECT_EQ((uint) 1, vcf.records[1].samples[1]["GT"].size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[1].samples[0]["GT"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[1].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[1].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[1].samples[1]["GT"][0]);
     // first correct
-    EXPECT_EQ((uint8_t) 1, vcf.records[2].samples[0]["GT"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[2].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[2].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[2].samples[1]["GT"][0]);
     // both wrong
-    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[0]["GT"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[3].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[3].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[3].samples[1]["GT"][0]);
     // first missing data
     EXPECT_EQ((uint) 0, vcf.records[4].samples[0]["GT"].size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[4].samples[1]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[4].samples[1]["GT"][0]);
     // second not confident
-    EXPECT_EQ((uint8_t) 1, vcf.records[5].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[5].samples[0]["GT"][0]);
     EXPECT_EQ((uint) 0, vcf.records[5].samples[1]["GT"].size());
 
 }
@@ -656,7 +782,8 @@ TEST(VCFTest, clean) {
     VCF vcf;
 
     VCFRecord dummy;
-    vcf.add_record(dummy);
+    std::vector<std::string> empty = {};
+    vcf.add_record(dummy, empty);
     vcf.add_record("chrom1", 79, "C", "G");
     vcf.add_sample_gt("sample", "chrom1", 2, "T", "TA");
     vcf.add_sample_gt("sample", "chrom1", 5, "A", "G");
@@ -675,9 +802,24 @@ TEST(VCFTest, clean) {
     EXPECT_EQ("A", vcf.records[2].alt[0]);
 }
 
+TEST(VCFTest, add_formats) {
+    VCF vcf;
+    std::vector<std::string> formats = {"GT", "LIKELIHOOD", "GT_CONF", "MEAN_FWD_COVG", "MEAN_REV_COVG", "GAPS"};
+
+    vcf.add_record("chrom1", 5, "A", "G");
+    vcf.add_sample_gt("sample", "chrom1", 46, "CTT", "TA");
+
+    vcf.add_formats(formats);
+
+    for (const auto& record: vcf.records){
+        for (const auto &f: formats){
+            EXPECT_TRUE(std::find(record.format.begin(), record.format.end(), f)!=record.format.end());
+        }
+    }
+}
+
 TEST(VCFTest, merge_multi_allelic) {
     VCF vcf;
-    vcf.add_formats({"GT", "LIKELIHOOD", "GT_CONF"});
     // no gt
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 5, "A", "C");
@@ -698,12 +840,19 @@ TEST(VCFTest, merge_multi_allelic) {
     vcf.records[5].regt_samples[0]["LIKELIHOOD"] = {-50, -16};
     vcf.records[4].regt_samples[0]["GT_CONF"] = {47};
     vcf.records[5].regt_samples[0]["GT_CONF"] = {56};
+    vcf.records[4].samples[0]["MEAN_FWD_COVG"] = {2, 30};
+    vcf.records[5].samples[0]["MEAN_FWD_COVG"] = {2, 30};
+    vcf.records[4].samples[0]["MEAN_REV_COVG"] = {2, 30};
+    vcf.records[5].samples[0]["MEAN_REV_COVG"] = {2, 30};
+    vcf.records[4].regt_samples[0]["GAPS"] = {4, 0};
+    vcf.records[5].regt_samples[0]["GAPS"] = {4, 1};
     // incompatible
     vcf.add_record("chrom1", 85, "A", "G");
     vcf.add_record("chrom1", 85, "T", "C");
 
     vcf.merge_multi_allelic();
-    cout << vcf << endl;
+    std::vector<std::string> formats = {"GT", "LIKELIHOOD", "GT_CONF", "MEAN_FWD_COVG", "MEAN_REV_COVG", "GAPS"};
+    vcf.add_formats(formats);
 
     EXPECT_EQ((uint) 5, vcf.records.size());
     EXPECT_EQ((uint) 5, vcf.records[0].pos);
@@ -724,13 +873,17 @@ TEST(VCFTest, merge_multi_allelic) {
     found_gt = vcf.records[2].samples[0].find("GT") != vcf.records[2].samples[0].end();
     EXPECT_TRUE(found_gt);
     EXPECT_EQ((uint) 1, vcf.records[2].samples[0]["GT"][0]);
-    EXPECT_EQ((uint) 2, vcf.records[2].regt_samples[0].size());
+    EXPECT_EQ((uint) 3, vcf.records[2].regt_samples[0].size());
     bool found = vcf.records[2].regt_samples[0].find("LIKELIHOOD") != vcf.records[2].regt_samples[0].end();
     EXPECT_TRUE(found);
     EXPECT_EQ((uint) 3, vcf.records[2].regt_samples[0]["LIKELIHOOD"].size());
     EXPECT_EQ(-50.0, vcf.records[2].regt_samples[0]["LIKELIHOOD"][0]);
     EXPECT_EQ(-3.0, vcf.records[2].regt_samples[0]["LIKELIHOOD"][1]);
     EXPECT_EQ(-16.0, vcf.records[2].regt_samples[0]["LIKELIHOOD"][2]);
+    EXPECT_EQ((uint) 3, vcf.records[2].regt_samples[0]["GAPS"].size());
+    EXPECT_EQ(4, vcf.records[2].regt_samples[0]["GAPS"][0]);
+    EXPECT_EQ(0, vcf.records[2].regt_samples[0]["GAPS"][1]);
+    EXPECT_EQ(1, vcf.records[2].regt_samples[0]["GAPS"][2]);
     found = vcf.records[2].regt_samples[0].find("GT_CONF") != vcf.records[2].regt_samples[0].end();
     EXPECT_TRUE(found);
     EXPECT_EQ((uint) 1, vcf.records[2].regt_samples[0]["GT_CONF"].size());
@@ -740,6 +893,57 @@ TEST(VCFTest, merge_multi_allelic) {
     EXPECT_EQ((uint) 1, vcf.records[3].alt.size());
     EXPECT_EQ((uint) 85, vcf.records[4].pos);
     EXPECT_EQ((uint) 1, vcf.records[4].alt.size());
+}
+
+TEST(VCFTest, correct_dot_alleles) {
+    VCF vcf;
+    // at start
+    vcf.add_sample_gt("sample", "chrom1", 0, ".", "TA");
+    vcf.add_sample_gt("sample", "chrom2", 0, "T", ".");
+    // in middle
+    vcf.add_sample_gt("sample", "chrom1", 35, ".", "A");
+    vcf.add_sample_gt("sample", "chrom2", 35, "TA", ".");
+    // multiple alts
+    vcf.add_sample_gt("sample", "chrom1", 44, "TA", "T");
+    vcf.add_sample_gt("sample", "chrom1", 44, "TA", ".");
+    vcf.add_sample_gt("sample", "chrom2", 44, ".", "T");
+    vcf.add_sample_gt("sample", "chrom2", 44, ".", "TA");
+
+    string vcf_ref = "TATATGTGTC"
+            "GCGACACTGC"
+            "ATGCATGCAT"
+            "AGTCCTAAAG"
+            "TCCTTAAACG"
+            "TTTATAGTCG";
+
+    vcf.correct_dot_alleles(vcf_ref, "chrom1");
+    vcf.correct_dot_alleles(vcf_ref, "chrom2");
+
+    EXPECT_EQ(vcf.records[0].ref, "T");
+    EXPECT_EQ(vcf.records[1].ref, "C");
+    EXPECT_EQ(vcf.records[2].ref, "TTA");
+    EXPECT_EQ(vcf.records[3].ref, "TA");
+    EXPECT_EQ(vcf.records[4].ref, "TA");
+    EXPECT_EQ(vcf.records[5].ref, "CTA");
+    EXPECT_EQ(vcf.records[6].ref, "T");
+    EXPECT_EQ(vcf.records[7].ref, "T");
+
+    EXPECT_EQ(vcf.records[0].alt.size(), 1);
+    EXPECT_EQ(vcf.records[0].alt[0], "TAT");
+    EXPECT_EQ(vcf.records[1].alt.size(), 1);
+    EXPECT_EQ(vcf.records[1].alt[0], "CA");
+    EXPECT_EQ(vcf.records[2].alt.size(), 1);
+    EXPECT_EQ(vcf.records[2].alt[0], "T");
+    EXPECT_EQ(vcf.records[3].alt.size(), 1);
+    EXPECT_EQ(vcf.records[3].alt[0], "T");
+    EXPECT_EQ(vcf.records[4].alt.size(), 1);
+    EXPECT_EQ(vcf.records[4].alt[0], "A");
+    EXPECT_EQ(vcf.records[5].alt.size(), 1);
+    EXPECT_EQ(vcf.records[5].alt[0], "C");
+    EXPECT_EQ(vcf.records[6].alt.size(), 1);
+    EXPECT_EQ(vcf.records[6].alt[0], "TT");
+    EXPECT_EQ(vcf.records[7].alt.size(), 1);
+    EXPECT_EQ(vcf.records[7].alt[0], "TTA");
 }
 
 TEST(VCFTest, make_gt_compatible) {
@@ -788,7 +992,6 @@ TEST(VCFTest, make_gt_compatible) {
     vcf.records[9].regt_samples[0]["GT_CONF"] = {10};
 
     vcf.make_gt_compatible();
-    cout << vcf << endl;
 
     bool found_gt = vcf.records[0].samples[0].find("GT") != vcf.records[0].samples[0].end();
     EXPECT_FALSE(found_gt);
@@ -796,12 +999,12 @@ TEST(VCFTest, make_gt_compatible) {
     EXPECT_FALSE(found_gt);
     EXPECT_EQ((uint) 0, vcf.records[2].samples[0]["GT"].size());
     EXPECT_EQ((uint) 0, vcf.records[3].samples[0]["GT"].size());
-    EXPECT_EQ((uint8_t) 1, vcf.records[4].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[4].samples[0]["GT"][0]);
     EXPECT_EQ((uint) 0, vcf.records[5].samples[0]["GT"].size());
-    EXPECT_EQ((uint8_t) 0, vcf.records[6].samples[0]["GT"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[7].samples[0]["GT"][0]);
-    EXPECT_EQ((uint8_t) 1, vcf.records[8].samples[0]["GT"][0]);
-    EXPECT_EQ((uint8_t) 0, vcf.records[9].samples[0]["GT"].size());
+    EXPECT_EQ((uint16_t) 0, vcf.records[6].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[7].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 1, vcf.records[8].samples[0]["GT"][0]);
+    EXPECT_EQ((uint16_t) 0, vcf.records[9].samples[0]["GT"].size());
 }
 
 TEST(VCFTest, equals) {
@@ -809,13 +1012,14 @@ TEST(VCFTest, equals) {
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
     VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
-    vcf.add_record(vr);
+    std::vector<std::string> empty = {};
+    vcf.add_record(vr, empty);
     EXPECT_EQ(vcf, vcf);
 
     // different order
     VCF vcf1;
     vcf1.add_record("chrom1", 5, "A", "G");
-    vcf1.add_record(vr);
+    vcf1.add_record(vr, empty);
     vcf1.add_record("chrom1", 46, "T", "TA");
     EXPECT_EQ(vcf1, vcf1);
     EXPECT_EQ(vcf, vcf1);
@@ -824,7 +1028,7 @@ TEST(VCFTest, equals) {
     // same length, one different
     VCF vcf2;
     vcf2.add_record("chrom1", 10, "A", "G");
-    vcf2.add_record(vr);
+    vcf2.add_record(vr, empty);
     vcf2.add_record("chrom1", 46, "T", "TA");
     EXPECT_EQ(vcf2, vcf2);
     EXPECT_EQ((vcf == vcf2), false);
@@ -833,7 +1037,7 @@ TEST(VCFTest, equals) {
     // different length
     VCF vcf3;
     vcf3.add_record("chrom1", 5, "A", "G");
-    vcf3.add_record(vr);
+    vcf3.add_record(vr, empty);
     vcf3.add_record("chrom1", 46, "T", "TA");
     vcf3.add_record("chrom1", 30, "G", "CC");
     EXPECT_EQ(vcf3, vcf3);
@@ -846,7 +1050,8 @@ TEST(VCFTest, save) {
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
     VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
-    vcf.add_record(vr);
+    std::vector<std::string> empty = {};
+    vcf.add_record(vr, empty);
     uint j = 3;
     EXPECT_EQ(j, vcf.records.size());
 
@@ -858,13 +1063,12 @@ TEST(VCFTest, load) {
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
     VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
-    vcf.add_record(vr);
+    std::vector<std::string> empty = {};
+    vcf.add_record(vr, empty);
     uint j = 3;
     EXPECT_EQ(j, vcf.records.size());
 
-    cout << vcf << endl;
     vcf1.load("vcf_test.vcf");
-    cout << vcf1 << endl;
 
     EXPECT_EQ(vcf == vcf1, true);
 }
@@ -875,9 +1079,8 @@ TEST(VCFTest, filter) {
     vcf.add_record("chrom1", 46, "T", "TA", "SVTYPE=INDEL;GRAPHTYPE=NESTED");
     vcf.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
     vcf.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=PH_SNPs;GRAPHTYPE=NESTED");
-    vcf.samples.push_back("dummy");
-
     vcf.save("vcf_filter_test.vcf", true, false, false, false, false, false, false);
+
     vcf1.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
     vcf1.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
     vcf2.load("vcf_filter_test.vcf");

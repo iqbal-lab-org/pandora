@@ -14,20 +14,20 @@ using namespace pangenome;
 
 TEST(PangenomeNodeTest, create) {
 
-    Node pn(4, 3, "3");
+    pangenome::Node pan_node(4, 3, "3");
     uint32_t j = 3;
-    EXPECT_EQ(j, pn.node_id);
-    EXPECT_EQ((uint) 4, pn.prg_id);
-    EXPECT_EQ("3", pn.name);
-    EXPECT_EQ((uint) 1, pn.covg);
-    EXPECT_EQ((uint) 0, pn.reads.size());
-    EXPECT_EQ((uint) 0, pn.samples.size());
+    EXPECT_EQ(j, pan_node.node_id);
+    EXPECT_EQ((uint) 4, pan_node.prg_id);
+    EXPECT_EQ("3", pan_node.name);
+    EXPECT_EQ((uint) 1, pan_node.covg);
+    EXPECT_EQ((uint) 0, pan_node.reads.size());
+    EXPECT_EQ((uint) 0, pan_node.samples.size());
 }
 
 TEST(PangenomeNodeTest, get_name) {
-    Node pn1(3, 3, "3");
-    Node pn2(2, 2, "2");
-    Node pn3(2, 4, "2");
+    pangenome::Node pn1(3, 3, "3");
+    pangenome::Node pn2(2, 2, "2");
+    pangenome::Node pn3(2, 4, "2");
 
     EXPECT_EQ(pn1.get_name(), "3");
     EXPECT_EQ(pn2.get_name(), "2");
@@ -35,13 +35,13 @@ TEST(PangenomeNodeTest, get_name) {
 }
 
 TEST(PangenomeNodeTest, add_path) {
-    Node pn1(3, 3, "3");
-    vector<KmerNodePtr> kmp;
-    pn1.add_path(kmp);
+    pangenome::Node pn1(3, 3, "3");
+    std::vector<KmerNodePtr> kmp;
+    pn1.add_path(kmp, 0);
 
     KmerGraph kg;
-    deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    std::deque<Interval> d = {Interval(0, 0)};
+    prg::Path p;
     p.initialize(d);
     kg.add_node(p);
     d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
@@ -70,31 +70,31 @@ TEST(PangenomeNodeTest, add_path) {
     EXPECT_EQ((uint) 7, pn1.kmer_prg.sorted_nodes.size());
     kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[3], pn1.kmer_prg.sorted_nodes[4],
            pn1.kmer_prg.sorted_nodes[6]};
-    pn1.add_path(kmp);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[0]->covg[0]);
-    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[1]->covg[0]);
-    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[2]->covg[0]);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[3]->covg[0]);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[4]->covg[0]);
-    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[5]->covg[0]);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[6]->covg[0]);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[0]->covg[1]);
-    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[1]->covg[1]);
-    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[2]->covg[1]);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[3]->covg[1]);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[4]->covg[1]);
-    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[5]->covg[1]);
-    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[6]->covg[1]);
+    pn1.add_path(kmp, 0);
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[0]->get_covg(0, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[1]->get_covg(0, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[2]->get_covg(0, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[3]->get_covg(0, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[4]->get_covg(0, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[5]->get_covg(0, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[6]->get_covg(0, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[0]->get_covg(1, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[1]->get_covg(1, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[2]->get_covg(1, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[3]->get_covg(1, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[4]->get_covg(1, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg.sorted_nodes[5]->get_covg(1, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg.sorted_nodes[6]->get_covg(1, 0));
 }
 
 TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
-    Node pn(3, 3, "3");
+    pangenome::Node pan_node(3, 3, "3");
     pangenome::ReadPtr pr;
     MinimizerHits mhits;
 
     Minimizer m;
-    deque<Interval> d;
-    Path p;
+    std::deque<Interval> d;
+    prg::Path p;
     MiniRecord *mr;
 
     // read1
@@ -118,9 +118,9 @@ TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
     mhits.add_hit(1, m, mr);
 
     mhits.sort();
-    pr = make_shared<pangenome::Read>(1);
+    pr = std::make_shared<pangenome::Read>(1);
     pr->add_hits(3, mhits.hits);
-    pn.reads.insert(pr);
+    pan_node.reads.insert(pr);
     mhits.clear();
 
     //read 2
@@ -139,376 +139,447 @@ TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
     mhits.add_hit(2, m, mr);
 
     mhits.sort();
-    pr = make_shared<pangenome::Read>(2);
+    pr = std::make_shared<pangenome::Read>(2);
     pr->add_hits(3, mhits.hits);
-    pn.reads.insert(pr);
+    pan_node.reads.insert(pr);
     mhits.clear();
 
     delete mr;
 
-    vector<vector<uint32_t>> read_overlap_coordinates;
-    pn.get_read_overlap_coordinates(read_overlap_coordinates);
-    vector<vector<uint32_t>> expected_read_overlap_coordinates = {{1, 0, 6,  1},
-                                                                  {2, 2, 10, 0}};
+    std::vector<std::vector<uint32_t>> read_overlap_coordinates;
+    pan_node.get_read_overlap_coordinates(read_overlap_coordinates);
+    std::vector<std::vector<uint32_t>> expected_read_overlap_coordinates = {{1, 0, 6,  1},
+                                                                            {2, 2, 10, 0}};
     for (const auto &coord : read_overlap_coordinates) {
         if (coord[0] == 1) {
-            EXPECT_ITERABLE_EQ(vector<uint32_t>, expected_read_overlap_coordinates[0], coord);
+            EXPECT_ITERABLE_EQ(std::vector<uint32_t>, expected_read_overlap_coordinates[0], coord);
         } else {
-            EXPECT_ITERABLE_EQ(vector<uint32_t>, expected_read_overlap_coordinates[1], coord);
+            EXPECT_ITERABLE_EQ(std::vector<uint32_t>, expected_read_overlap_coordinates[1], coord);
         }
     }
 }
 
-/*
-TEST(PangenomeNodeTest,output_samples)
+TEST(PangenomeNodeTest,construct_multisample_vcf_single_prg)
 {
-    Node pn1(3,3,"three");
-    vector<KmerNodePtr> kmp;
+    uint32_t prg_id = 3, w=1, k=3, min_kmer_covg=0;
+    std::string prg_name = "nested varsite";
+    LocalPRG local_prg(prg_id, prg_name , "A 5 G 7 C 8 T 8 CT 7  6 G 5 T");
 
-    KmerGraph kg;
-    deque<Interval> d = {Interval(0,0)};
-    Path p; 
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0,1), Interval(4,5), Interval(8, 9)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4,5), Interval(8, 9), Interval(16,16), Interval(23,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0,1), Interval(4,5), Interval(12, 13)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4,5), Interval(12, 13), Interval(16,16), Interval(23,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(24,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    kg.sort_topologically();
-    kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[1]);
-    kg.add_edge(kg.sorted_nodes[1],kg.sorted_nodes[4]);
-    kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[2]);
-    kg.add_edge(kg.sorted_nodes[2],kg.sorted_nodes[5]);
-    kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[3]);
-    kg.add_edge(kg.sorted_nodes[3],kg.sorted_nodes[6]);
-    kg.add_edge(kg.sorted_nodes[4],kg.sorted_nodes[6]);
-    kg.add_edge(kg.sorted_nodes[5],kg.sorted_nodes[6]);
+    auto index = std::make_shared<Index>();
+    local_prg.minimizer_sketch(index, w, k);
+    auto prg_ptr = std::make_shared<LocalPRG>(local_prg);
+    auto &kg = local_prg.kmer_prg;
 
-    EXPECT_EQ((uint)7, kg.nodes.size());
+    pangenome::Graph pangraph;
 
-    pn1.kmer_prg = kg;
-    pn1.kmer_prg.sort_topologically();
-    EXPECT_EQ((uint)7, pn1.kmer_prg.nodes.size());
-    EXPECT_EQ((uint)7, pn1.kmer_prg.sorted_nodes.size());
+    //sample1
+    std::string sample_name = "sample1";
+    std::vector<KmerNodePtr> sample_kmer_path = {kg.nodes[0], kg.nodes[2], kg.nodes[6], kg.nodes[9]};
+    pangraph.add_node(prg_id, prg_name, sample_name, 0, prg_ptr, sample_kmer_path);
 
-    // want this path to be the ref, so add first a couple of times so it is weighted
-    kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[2], pn1.kmer_prg.sorted_nodes[5], pn1.kmer_prg.sorted_nodes[6]};
-    pn1.add_path(kmp);
-    pn1.add_path(kmp);
+    //sample2 identical to sample1
+    sample_name = "sample2";
+    sample_kmer_path = {kg.nodes[0], kg.nodes[2], kg.nodes[6], kg.nodes[9]};
+    pangraph.add_node(prg_id, prg_name, sample_name, 1, prg_ptr, sample_kmer_path);
 
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[0]->covg[0]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[1]->covg[0]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[2]->covg[0]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[3]->covg[0]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[4]->covg[0]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[5]->covg[0]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[6]->covg[0]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[0]->covg[1]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[1]->covg[1]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[2]->covg[1]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[3]->covg[1]);
-    EXPECT_EQ((uint)0, pn1.kmer_prg.sorted_nodes[4]->covg[1]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[5]->covg[1]);
-    EXPECT_EQ((uint)2, pn1.kmer_prg.sorted_nodes[6]->covg[1]);
+    //sample3 with top path
+    sample_name = "sample3";
+    sample_kmer_path = {kg.nodes[0], kg.nodes[1], kg.nodes[5], kg.nodes[9]};
+    pangraph.add_node(prg_id, prg_name, sample_name, 2, prg_ptr, sample_kmer_path);
 
-    // define 3 samples, one with ref path and 2 with alts
-    SamplePtr ps1(make_shared<Sample>("sample1"));
-    ps1->paths[3] = {kmp};
-    pn1.samples.insert(ps1);
-    pn1.add_path(kmp);
+    //sample4 with bottom path
+    sample_name = "sample4";
+    sample_kmer_path = {kg.nodes[0], kg.nodes[4], kg.nodes[9]};
+    pangraph.add_node(prg_id, prg_name, sample_name, 3, prg_ptr, sample_kmer_path);
 
-    kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[1], pn1.kmer_prg.sorted_nodes[4], pn1.kmer_prg.sorted_nodes[6]};
-    SamplePtr ps2(make_shared<Sample>("sample2"));
-    ps2->paths[3] = {kmp};
-    pn1.samples.insert(ps2);
-    pn1.add_path(kmp);
+    LocalPRG dummy(0,"null","");
+    auto dummy_prg_ptr = std::make_shared<LocalPRG>(dummy);
+    pangraph.setup_kmergraphs({dummy_prg_ptr, dummy_prg_ptr, dummy_prg_ptr, prg_ptr}, 4);
 
-    kmp = {pn1.kmer_prg.sorted_nodes[0], pn1.kmer_prg.sorted_nodes[3], pn1.kmer_prg.sorted_nodes[6]};
-    SamplePtr ps3(make_shared<Sample>("sample3"));
-    ps3->paths[3] = {kmp};
-    pn1.samples.insert(ps3);
-    pn1.add_path(kmp);
+    VCF master_vcf;
+    std::vector<LocalNodePtr> vcf_reference_path = {local_prg.prg.nodes[0], local_prg.prg.nodes[1], local_prg.prg.nodes[3], local_prg.prg.nodes[5], local_prg.prg.nodes[7]};
+    auto &pannode = *pangraph.nodes[prg_id];
+    pannode.construct_multisample_vcf(master_vcf, vcf_reference_path, prg_ptr, w, min_kmer_covg);
 
-    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[0]->covg[0]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[1]->covg[0]);
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[2]->covg[0]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[3]->covg[0]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[4]->covg[0]);
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[5]->covg[0]);
-    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[6]->covg[0]);
-    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[0]->covg[1]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[1]->covg[1]);
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[2]->covg[1]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[3]->covg[1]);
-    EXPECT_EQ((uint)1, pn1.kmer_prg.sorted_nodes[4]->covg[1]);
-    EXPECT_EQ((uint)3, pn1.kmer_prg.sorted_nodes[5]->covg[1]);
-    EXPECT_EQ((uint)5, pn1.kmer_prg.sorted_nodes[6]->covg[1]);
+    EXPECT_EQ((uint)2, master_vcf.records.size());
+    EXPECT_EQ((uint)4, master_vcf.samples.size());
 
-    pn1.covg = 3;
+    //NB samples order changes to get index of each sample so can compare
+    //samples 1 and 2 are ref, sample 3 is top path and sample 4 is bottom path
+    auto iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample1");
+    auto sample1_index = std::distance(master_vcf.samples.begin(), iter);
+    iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample2");
+    auto sample2_index = std::distance(master_vcf.samples.begin(), iter);
+    iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample3");
+    auto sample3_index = std::distance(master_vcf.samples.begin(), iter);
+    iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample4");
+    auto sample4_index = std::distance(master_vcf.samples.begin(), iter);
+    std::vector<uint16_t> alt_gt = {1};
+    std::vector<uint16_t> ref_gt = {0};
+    std::vector<uint16_t> no_covg2 = {0,0};
+    std::vector<uint16_t> no_covg3 = {0,0,0};
 
-    auto l3 = std::make_shared<LocalPRG>(LocalPRG(3,"nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T"));
+    EXPECT_EQ((uint)1, master_vcf.records[0].pos);
+    EXPECT_EQ("GT", master_vcf.records[0].ref);
+    EXPECT_EQ((uint)1, master_vcf.records[0].alt.size());
+    EXPECT_EQ("G", master_vcf.records[0].alt[0]);
+    EXPECT_EQ((uint)4, master_vcf.records[0].samples.size());
+    EXPECT_FALSE(master_vcf.records[0].samples[sample4_index].find("GT") == master_vcf.records[0].samples[sample4_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[0].samples[sample3_index].find("GT") == master_vcf.records[0].samples[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0].samples[sample2_index].find("GT") == master_vcf.records[0].samples[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0].samples[sample1_index].find("GT") == master_vcf.records[0].samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample4_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample1_index]["GT"], ref_gt);
+    std::vector<std::string> formats = {"MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG",
+                              "SUM_FWD_COVG", "SUM_REV_COVG"};
+    for (const auto format : formats){
+        EXPECT_FALSE(master_vcf.records[0].samples[sample1_index].find(format) == master_vcf.records[0].samples[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[0].samples[sample2_index].find(format) == master_vcf.records[0].samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[0].samples[sample3_index].find(format) == master_vcf.records[0].samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[0].samples[sample4_index].find(format) == master_vcf.records[0].samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample1_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample2_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample3_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample4_index][format], no_covg2);
+    }
 
-    // clear the kmergraph and vectors to check that the shared pointers have really been kept valid
-    // within pg!
-    kg.clear();
-    kmp.clear();
 
-    pn1.output_samples(l3,"../test/test_cases/updatevcf_pannode",0);
+    EXPECT_EQ((uint)2, master_vcf.records[1].pos);
+    EXPECT_EQ("T", master_vcf.records[1].ref);
+    EXPECT_EQ((uint)2, master_vcf.records[1].alt.size());
+    EXPECT_EQ("C", master_vcf.records[1].alt[0]);
+    EXPECT_EQ("CT", master_vcf.records[1].alt[1]);
+    EXPECT_EQ((uint)4, master_vcf.records[0].samples.size());
+    EXPECT_TRUE(master_vcf.records[1].samples[sample4_index].find("GT") == master_vcf.records[1].samples[sample4_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1].samples[sample3_index].find("GT") == master_vcf.records[1].samples[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1].samples[sample2_index].find("GT") == master_vcf.records[1].samples[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1].samples[sample1_index].find("GT") == master_vcf.records[1].samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample3_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample1_index]["GT"], ref_gt);
 
-    delete l3;
-
-    // now check is as expect
-    // find date
-    time_t t = time(0);
-    char mbstr[10];
-    strftime(mbstr, sizeof(mbstr), "%d/%m/%y", localtime(&t));
-    string dat(mbstr);
-
-    string vcffile = R"(##fileformat=VCFv4.3
-##fileDate==)" + dat + R"(
-##ALT=<ID=SNP,Description="SNP">
-##ALT=<ID=PH_SNPs,Description="Phased SNPs">
-##ALT=<ID=INDEL,Description="Insertion-deletion">
-##ALT=<ID=COMPLEX,Description="Complex variant, collection of SNPs and indels">
-##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of variant">
-##ALT=<ID=SIMPLE,Description="Graph bubble is simple">
-##ALT=<ID=NESTED,Description="Variation site was a nested feature in the graph">
-##ALT=<ID=TOO_MANY_ALTS,Description="Variation site was a multinested feature with too many alts to include all in the VCF">
-##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description="Type of graph feature">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample3	sample2	sample1
-nested varsite	1	.	GT	G	.	.	SVTYPE=INDEL;GRAPHTYPE=NESTED	GT	1	.	0
-nested varsite	2	.	T	C	.	.	SVTYPE=SNP;GRAPHTYPE=NESTED	GT	.	1	0
-)";
-    string vcffile2 = R"(##fileformat=VCFv4.3
-##fileDate==)" + dat + R"(
-##ALT=<ID=SNP,Description="SNP">
-##ALT=<ID=PH_SNPs,Description="Phased SNPs">
-##ALT=<ID=INDEL,Description="Insertion-deletion">
-##ALT=<ID=COMPLEX,Description="Complex variant, collection of SNPs and indels">
-##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of variant">
-##ALT=<ID=SIMPLE,Description="Graph bubble is simple">
-##ALT=<ID=NESTED,Description="Variation site was a nested feature in the graph">
-##ALT=<ID=TOO_MANY_ALTS,Description="Variation site was a multinested feature with too many alts to include all in the VCF">
-##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description="Type of graph feature">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample2	sample3	sample1
-nested varsite	1	.	GT	G	.	.	SVTYPE=INDEL;GRAPHTYPE=NESTED	GT	.	1	0
-nested varsite	2	.	T	C	.	.	SVTYPE=SNP;GRAPHTYPE=NESTED	GT	1	.	0
-)";
-
-    ifstream ifs("../test/test_cases/updatevcf_pannode.three.multisample.vcf");
-    string content( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()) );
-    //EXPECT_EQ(vcffile,content);
-    //EXPECT_EQ(vcffile2,content);
-    EXPECT_EQ((vcffile==content) or (vcffile2==content), true);
-
-    string fafile1 = R"(>sample3
-AG--T
->sample1
-A-GTT
->sample2
-A-GCT
-)";
-    string fafile2 = R"(>sample3
-AG--T
->sample2
-A-GCT
->sample1
-A-GTT
-)";
-    string fafile3 = R"(>sample2
-A-GCT
->sample3
-AG--T
->sample1
-A-GTT
-)";
-    string fafile4 = R"(>sample2
-A-GCT
->sample1
-A-GTT
->sample3
-AG--T
-)";
-    string fafile5 = R"(>sample1
-A-GTT
->sample2
-A-GCT
->sample3
-AG--T
-)";
-    string fafile6 = R"(>sample1
-A-GTT
->sample3
-AG--T
->sample2
-A-GCT
-)";
-
-    ifstream ifs2("../test/test_cases/updatevcf_pannode.three.multisample.fa");
-    string content2( (std::istreambuf_iterator<char>(ifs2) ),(std::istreambuf_iterator<char>()) );
-    EXPECT_EQ((fafile1==content2) or (fafile2==content2) or(fafile3==content2) or (fafile4==content2) or (fafile5==content2) or (fafile6==content2), true);
+    for (const auto format : formats){
+        EXPECT_FALSE(master_vcf.records[1].samples[sample1_index].find(format) == master_vcf.records[1].samples[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[1].samples[sample2_index].find(format) == master_vcf.records[1].samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[1].samples[sample3_index].find(format) == master_vcf.records[1].samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[1].samples[sample4_index].find(format) == master_vcf.records[1].samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample1_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample2_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample3_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample4_index][format], no_covg3);
+    }
 }
 
-TEST(PangenomeNodeTest,output_samples2)
+TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
 {
-    Graph pg;
-    LocalPRG lp(5, "five", "A 5 G 7 C 8 T 7  6 G 5 T");
+    uint32_t prg_id1 = 3, w=1, k=3, min_kmer_covg=0;
+    std::string prg_name1 = "nested varsite";
+    LocalPRG local_prg1(prg_id1, prg_name1 , "A 5 G 7 C 8 T 8 CT 7  6 G 5 T");
+    uint32_t prg_id2 = 5;
+    std::string prg_name2 = "modified";
+    LocalPRG local_prg2(prg_id2, prg_name2 , "A 5 G 7 G 8 A 8 GA 7  6 G 5 T");
 
-    vector<KmerNodePtr> kmp;
+    auto index = std::make_shared<Index>();
+    local_prg1.minimizer_sketch(index, w, k);
+    auto prg_ptr1 = std::make_shared<LocalPRG>(local_prg1);
+    auto &kg1 = local_prg1.kmer_prg;
+    local_prg2.minimizer_sketch(index, w, k);
+    auto prg_ptr2 = std::make_shared<LocalPRG>(local_prg2);
+    auto &kg2 = local_prg2.kmer_prg;
 
-    KmerGraph kg;
-    deque<Interval> d = {Interval(0,0)};
-    Path p;
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0,1), Interval(4,5), Interval(8, 9)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4,5), Interval(8, 9), Interval(16,16), Interval(23,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0,1), Interval(4,5), Interval(12, 13)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4,5), Interval(12, 13), Interval(16,16), Interval(23,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0,1), Interval(19,20), Interval(23,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(24,24)};
-    p.initialize(d);
-    kg.add_node(p);
-    kg.sort_topologically();
-    kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[1]);
-    kg.add_edge(kg.sorted_nodes[1],kg.sorted_nodes[4]);
-    kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[2]);
-    kg.add_edge(kg.sorted_nodes[2],kg.sorted_nodes[5]);
-    kg.add_edge(kg.sorted_nodes[0],kg.sorted_nodes[3]);
-    kg.add_edge(kg.sorted_nodes[3],kg.sorted_nodes[6]);
-    kg.add_edge(kg.sorted_nodes[4],kg.sorted_nodes[6]);
-    kg.add_edge(kg.sorted_nodes[5],kg.sorted_nodes[6]);
+    pangenome::Graph pangraph;
 
-    EXPECT_EQ((uint)7, kg.nodes.size());
+    //sample1
+    std::string sample_name = "sample1";
+    std::vector<KmerNodePtr> sample_kmer_path = {kg1.nodes[0], kg1.nodes[2], kg1.nodes[6], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 0, prg_ptr1, sample_kmer_path);
+    sample_kmer_path = {kg2.nodes[0], kg2.nodes[1], kg2.nodes[5], kg2.nodes[9]};
+    pangraph.add_node(prg_id2, prg_name2, sample_name, 0, prg_ptr2, sample_kmer_path);
 
-    lp.kmer_prg = kg;
-    lp.kmer_prg.sort_topologically();
-    EXPECT_EQ((uint)7, lp.kmer_prg.nodes.size());
-    EXPECT_EQ((uint)7, lp.kmer_prg.sorted_nodes.size());
+    //sample2 identical to sample1 in prg1, no prg2
+    sample_name = "sample2";
+    sample_kmer_path = {kg1.nodes[0], kg1.nodes[2], kg1.nodes[6], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 1, prg_ptr1, sample_kmer_path);
 
-    kmp = {lp.kmer_prg.sorted_nodes[0], lp.kmer_prg.sorted_nodes[2], lp.kmer_prg.sorted_nodes[5], lp.kmer_prg.sorted_nodes[6]};
-    //pg.add_node(5, "five", "sample0", kmp, &lp);
-    pg.add_node(5, "five", "sample1", kmp, &lp);
+    //sample3 with top path
+    sample_name = "sample3";
+    sample_kmer_path = {kg1.nodes[0], kg1.nodes[1], kg1.nodes[5], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 2, prg_ptr1, sample_kmer_path);
+    sample_kmer_path = {kg2.nodes[0], kg2.nodes[4], kg2.nodes[9]};
+    pangraph.add_node(prg_id2, prg_name2, sample_name, 2, prg_ptr2, sample_kmer_path);
 
-    kmp = {lp.kmer_prg.sorted_nodes[0], lp.kmer_prg.sorted_nodes[1], lp.kmer_prg.sorted_nodes[4], lp.kmer_prg.sorted_nodes[6]};
-    pg.add_node(5, "five", "sample2", kmp, &lp);
+    //sample4 with bottom path
+    sample_name = "sample4";
+    sample_kmer_path = {kg1.nodes[0], kg1.nodes[4], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 3, prg_ptr1, sample_kmer_path);
+    sample_kmer_path = {kg2.nodes[0], kg2.nodes[3], kg2.nodes[7], kg2.nodes[8], kg2.nodes[9]};
+    pangraph.add_node(prg_id2, prg_name2, sample_name, 3, prg_ptr2, sample_kmer_path);
 
-    kmp = {lp.kmer_prg.sorted_nodes[0], lp.kmer_prg.sorted_nodes[3], lp.kmer_prg.sorted_nodes[6]};
-    pg.add_node(5, "five", "sample3", kmp, &lp);
+    LocalPRG dummy(0,"null","");
+    auto dummy_prg_ptr = std::make_shared<LocalPRG>(dummy);
+    pangraph.setup_kmergraphs({dummy_prg_ptr, dummy_prg_ptr, dummy_prg_ptr, prg_ptr1, dummy_prg_ptr, prg_ptr2}, 4);
 
-    // clear the kmergraph and vectors to check that the shared pointers have really been kept valid
-    // within pg!
-    kg.clear();
-    kmp.clear();
+    VCF master_vcf;
+    std::vector<LocalNodePtr> vcf_reference_path1 = {local_prg1.prg.nodes[0], local_prg1.prg.nodes[1], local_prg1.prg.nodes[3], local_prg1.prg.nodes[5], local_prg1.prg.nodes[7]};
+    std::vector<LocalNodePtr> vcf_reference_path2 = {local_prg2.prg.nodes[0], local_prg2.prg.nodes[1], local_prg2.prg.nodes[3], local_prg2.prg.nodes[5], local_prg2.prg.nodes[7]};
 
-    pg.nodes[5]->output_samples(&lp,"../test/test_cases/updatevcf_pannode2",0);
+    auto &pannode1 = *pangraph.nodes[prg_id1];
+    pannode1.construct_multisample_vcf(master_vcf, vcf_reference_path1, prg_ptr1, w, min_kmer_covg);
+    auto &pannode2 = *pangraph.nodes[prg_id2];
+    pannode2.construct_multisample_vcf(master_vcf, vcf_reference_path2, prg_ptr2, w, min_kmer_covg);
 
-    // now check is as expect
-    // find date
-    time_t t = time(0);
-    char mbstr[10];
-    strftime(mbstr, sizeof(mbstr), "%d/%m/%y", localtime(&t));
-    string dat(mbstr);
+    EXPECT_EQ((uint)4, master_vcf.records.size());
+    EXPECT_EQ((uint)4, master_vcf.samples.size());
 
-    string vcffile = R"(##fileformat=VCFv4.3
-##fileDate==)" + dat + R"(
-##ALT=<ID=SNP,Description="SNP">
-##ALT=<ID=PH_SNPs,Description="Phased SNPs">
-##ALT=<ID=INDEL,Description="Insertion-deletion">
-##ALT=<ID=COMPLEX,Description="Complex variant, collection of SNPs and indels">
-##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of variant">
-##ALT=<ID=SIMPLE,Description="Graph bubble is simple">
-##ALT=<ID=NESTED,Description="Variation site was a nested feature in the graph">
-##ALT=<ID=TOO_MANY_ALTS,Description="Variation site was a multinested feature with too many alts to include all in the VCF">
-##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description="Type of graph feature">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample3	sample2	sample1
-five	1	.	GC	G	.	.	SVTYPE=INDEL;GRAPHTYPE=NESTED	GT	1	0	.
-five	2	.	C	T	.	.	SVTYPE=SNP;GRAPHTYPE=NESTED	GT	.	0	1
-)";
+    //NB samples order changes to get index of each sample so can compare
+    //samples 1 and 2 are ref, sample 3 is top path and sample 4 is bottom path
+    auto iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample1");
+    auto sample1_index = std::distance(master_vcf.samples.begin(), iter);
+    iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample2");
+    auto sample2_index = std::distance(master_vcf.samples.begin(), iter);
+    iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample3");
+    auto sample3_index = std::distance(master_vcf.samples.begin(), iter);
+    iter = std::find(master_vcf.samples.begin(), master_vcf.samples.end(), "sample4");
+    auto sample4_index = std::distance(master_vcf.samples.begin(), iter);
+    std::vector<uint16_t> alt_gt = {1};
+    std::vector<uint16_t> ref_gt = {0};
+    std::vector<uint16_t> alt2_gt = {2};
+    std::vector<uint16_t> no_covg2 = {0,0};
+    std::vector<uint16_t> no_covg3 = {0,0,0};
 
-    ifstream ifs("../test/test_cases/updatevcf_pannode2.five.multisample.vcf");
-    string content( (std::istreambuf_iterator<char>(ifs) ),(std::istreambuf_iterator<char>()) );
-    EXPECT_EQ(vcffile,content);
-    //EXPECT_EQ(vcffile2,content);
-    //EXPECT_EQ((vcffile==content) or (vcffile2==content), true);
+    EXPECT_EQ((uint)1, master_vcf.records[0].pos);
+    EXPECT_EQ("GT", master_vcf.records[0].ref);
+    EXPECT_EQ((uint)1, master_vcf.records[0].alt.size());
+    EXPECT_EQ("G", master_vcf.records[0].alt[0]);
+    EXPECT_EQ((uint)4, master_vcf.records[0].samples.size());
+    EXPECT_FALSE(master_vcf.records[0].samples[sample4_index].find("GT") == master_vcf.records[0].samples[sample4_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[0].samples[sample3_index].find("GT") == master_vcf.records[0].samples[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0].samples[sample2_index].find("GT") == master_vcf.records[0].samples[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0].samples[sample1_index].find("GT") == master_vcf.records[0].samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample4_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample1_index]["GT"], ref_gt);
+    std::vector<std::string> formats = {"MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG",
+                                        "SUM_FWD_COVG", "SUM_REV_COVG"};
+    for (const auto format : formats){
+        EXPECT_FALSE(master_vcf.records[0].samples[sample1_index].find(format) == master_vcf.records[0].samples[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[0].samples[sample2_index].find(format) == master_vcf.records[0].samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[0].samples[sample3_index].find(format) == master_vcf.records[0].samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[0].samples[sample4_index].find(format) == master_vcf.records[0].samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample1_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample2_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample3_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample4_index][format], no_covg2);
+    }
 
-    string fafile1 = R"(>sample3
-AG--T
->sample1
-A-GTT
->sample2
-A-GCT
-)";
-    string fafile2 = R"(>sample3
-AG--T
->sample2
-A-GCT
->sample1
-A-GTT
-)";
-    string fafile3 = R"(>sample2
-A-GCT
->sample3
-AG--T
->sample1
-A-GTT
-)";
-    string fafile4 = R"(>sample2
-A-GCT
->sample1
-A-GTT
->sample3
-AG--T
-)";
-    string fafile5 = R"(>sample1
-A-GTT
->sample2
-A-GCT
->sample3
-AG--T
-)";
-    string fafile6 = R"(>sample1
-A-GTT
->sample3
-AG--T
->sample2
-A-GCT
-)";
 
-    ifstream ifs2("../test/test_cases/updatevcf_pannode2.five.multisample.fa");
-    string content2( (std::istreambuf_iterator<char>(ifs2) ),(std::istreambuf_iterator<char>()) );
-    EXPECT_EQ((fafile1==content2) or (fafile2==content2) or(fafile3==content2) or (fafile4==content2) or (fafile5==content2) or (fafile6==content2), true);
+    EXPECT_EQ((uint)2, master_vcf.records[1].pos);
+    EXPECT_EQ("T", master_vcf.records[1].ref);
+    EXPECT_EQ((uint)2, master_vcf.records[1].alt.size());
+    EXPECT_EQ("C", master_vcf.records[1].alt[0]);
+    EXPECT_EQ("CT", master_vcf.records[1].alt[1]);
+    EXPECT_EQ((uint)4, master_vcf.records[1].samples.size());
+    EXPECT_TRUE(master_vcf.records[1].samples[sample4_index].find("GT") == master_vcf.records[1].samples[sample4_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1].samples[sample3_index].find("GT") == master_vcf.records[1].samples[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1].samples[sample2_index].find("GT") == master_vcf.records[1].samples[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1].samples[sample1_index].find("GT") == master_vcf.records[1].samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample3_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample1_index]["GT"], ref_gt);
+
+    for (const auto format : formats){
+        EXPECT_FALSE(master_vcf.records[1].samples[sample1_index].find(format) == master_vcf.records[1].samples[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[1].samples[sample2_index].find(format) == master_vcf.records[1].samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[1].samples[sample3_index].find(format) == master_vcf.records[1].samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[1].samples[sample4_index].find(format) == master_vcf.records[1].samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample1_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample2_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample3_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample4_index][format], no_covg3);
+    }
+
+    EXPECT_EQ((uint)1, master_vcf.records[2].pos);
+    EXPECT_EQ("GA", master_vcf.records[2].ref);
+    EXPECT_EQ((uint)1, master_vcf.records[2].alt.size());
+    EXPECT_EQ("G", master_vcf.records[2].alt[0]);
+    EXPECT_EQ((uint)4, master_vcf.records[2].samples.size());
+    EXPECT_TRUE(master_vcf.records[2].samples[sample4_index].find("GT") == master_vcf.records[2].samples[sample4_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[2].samples[sample3_index].find("GT") == master_vcf.records[2].samples[sample3_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[2].samples[sample2_index].find("GT") == master_vcf.records[2].samples[sample2_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[2].samples[sample1_index].find("GT") == master_vcf.records[2].samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2].samples[sample3_index]["GT"], alt_gt);
+
+    for (const auto format : formats){
+        EXPECT_FALSE(master_vcf.records[2].samples[sample1_index].find(format) == master_vcf.records[2].samples[sample1_index].end());
+        EXPECT_TRUE(master_vcf.records[2].samples[sample2_index].find(format) == master_vcf.records[2].samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[2].samples[sample3_index].find(format) == master_vcf.records[2].samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[2].samples[sample4_index].find(format) == master_vcf.records[2].samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2].samples[sample1_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2].samples[sample3_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2].samples[sample4_index][format], no_covg2);
+    }
+
+
+    EXPECT_EQ((uint)2, master_vcf.records[3].pos);
+    EXPECT_EQ("A", master_vcf.records[3].ref);
+    EXPECT_EQ((uint)2, master_vcf.records[3].alt.size());
+    EXPECT_EQ("G", master_vcf.records[3].alt[0]);
+    EXPECT_EQ("GA", master_vcf.records[3].alt[1]);
+    EXPECT_EQ((uint)4, master_vcf.records[3].samples.size());
+    EXPECT_FALSE(master_vcf.records[3].samples[sample4_index].find("GT") == master_vcf.records[3].samples[sample4_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[3].samples[sample3_index].find("GT") == master_vcf.records[3].samples[sample3_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[3].samples[sample2_index].find("GT") == master_vcf.records[3].samples[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[3].samples[sample1_index].find("GT") == master_vcf.records[3].samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample1_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample4_index]["GT"], alt2_gt);
+
+    for (const auto format : formats){
+        EXPECT_FALSE(master_vcf.records[3].samples[sample1_index].find(format) == master_vcf.records[3].samples[sample1_index].end());
+        EXPECT_TRUE(master_vcf.records[3].samples[sample2_index].find(format) == master_vcf.records[3].samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[3].samples[sample3_index].find(format) == master_vcf.records[3].samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[3].samples[sample4_index].find(format) == master_vcf.records[3].samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample1_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample3_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample4_index][format], no_covg3);
+    }
 }
-*/
+
+TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg_with_covgs)
+{
+    uint32_t prg_id1 = 3, w=1, k=3, min_kmer_covg=0;
+    std::string prg_name1 = "nested varsite";
+    LocalPRG local_prg1(prg_id1, prg_name1 , "A 5 G 7 C 8 T 8 CT 7  6 G 5 T");
+    uint32_t prg_id2 = 5;
+    std::string prg_name2 = "modified";
+    LocalPRG local_prg2(prg_id2, prg_name2 , "A 5 G 7 G 8 A 8 GA 7  6 G 5 T");
+
+    auto index = std::make_shared<Index>();
+    local_prg1.minimizer_sketch(index, w, k);
+    auto prg_ptr1 = std::make_shared<LocalPRG>(local_prg1);
+    auto &kg1 = local_prg1.kmer_prg;
+    local_prg2.minimizer_sketch(index, w, k);
+    auto prg_ptr2 = std::make_shared<LocalPRG>(local_prg2);
+    auto &kg2 = local_prg2.kmer_prg;
+
+    pangenome::Graph pangraph;
+
+    //sample1
+    std::string sample_name = "sample1";
+    std::vector<KmerNodePtr> sample_kmer_path = {kg1.nodes[0], kg1.nodes[2], kg1.nodes[6], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 0, prg_ptr1, sample_kmer_path);
+    sample_kmer_path = {kg2.nodes[0], kg2.nodes[1], kg2.nodes[5], kg2.nodes[9]};
+    pangraph.add_node(prg_id2, prg_name2, sample_name, 0, prg_ptr2, sample_kmer_path);
+
+    LocalPRG dummy(0,"null","");
+    auto dummy_prg_ptr = std::make_shared<LocalPRG>(dummy);
+    pangraph.setup_kmergraphs({dummy_prg_ptr, dummy_prg_ptr, dummy_prg_ptr, prg_ptr1, dummy_prg_ptr, prg_ptr2}, 4);
+
+    auto &pannode1 = *pangraph.nodes[prg_id1];
+    auto &pannode2 = *pangraph.nodes[prg_id2];
+
+    pannode1.kmer_prg.nodes[0]->set_covg(4, 0, 0);
+    pannode1.kmer_prg.nodes[2]->set_covg(4, 0, 0);
+    pannode1.kmer_prg.nodes[6]->set_covg(4, 0, 0);
+    pannode1.kmer_prg.nodes[9]->set_covg(4, 0, 0);
+    pannode2.kmer_prg.nodes[0]->set_covg(4, 0, 0);
+    pannode2.kmer_prg.nodes[1]->set_covg(4, 0, 0);
+    pannode2.kmer_prg.nodes[5]->set_covg(4, 0, 0);
+    pannode2.kmer_prg.nodes[9]->set_covg(4, 0, 0);
+
+    //sample2 identical to sample1 in prg1, no prg2
+    sample_name = "sample2";
+    sample_kmer_path = {kg1.nodes[0], kg1.nodes[2], kg1.nodes[6], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 1, prg_ptr1, sample_kmer_path);
+    pannode1.kmer_prg.nodes[0]->set_covg(10, 0, 1);
+    pannode1.kmer_prg.nodes[2]->set_covg(10, 0, 1);
+    pannode1.kmer_prg.nodes[6]->set_covg(10, 0, 1);
+    pannode1.kmer_prg.nodes[9]->set_covg(10, 0, 1);
+
+    //sample3 with top path
+    sample_name = "sample3";
+    sample_kmer_path = {kg1.nodes[0], kg1.nodes[1], kg1.nodes[5], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 2, prg_ptr1, sample_kmer_path);
+    sample_kmer_path = {kg2.nodes[0], kg2.nodes[4], kg2.nodes[9]};
+    pangraph.add_node(prg_id2, prg_name2, sample_name, 2, prg_ptr2, sample_kmer_path);
+    pannode1.kmer_prg.nodes[0]->set_covg(2, 0, 2);
+    pannode1.kmer_prg.nodes[1]->set_covg(2, 0, 2);
+    pannode1.kmer_prg.nodes[5]->set_covg(2, 0, 2);
+    pannode1.kmer_prg.nodes[9]->set_covg(2, 0, 2);
+    pannode2.kmer_prg.nodes[0]->set_covg(2, 0, 2);
+    pannode2.kmer_prg.nodes[4]->set_covg(2, 0, 2);
+    pannode2.kmer_prg.nodes[9]->set_covg(2, 0, 2);
+
+    //sample4 with bottom path
+    sample_name = "sample4";
+    sample_kmer_path = {kg1.nodes[0], kg1.nodes[4], kg1.nodes[9]};
+    pangraph.add_node(prg_id1, prg_name1, sample_name, 3, prg_ptr1, sample_kmer_path);
+    sample_kmer_path = {kg2.nodes[0], kg2.nodes[3], kg2.nodes[7], kg2.nodes[8], kg2.nodes[9]};
+    pangraph.add_node(prg_id2, prg_name2, sample_name, 3, prg_ptr2, sample_kmer_path);
+    pannode1.kmer_prg.nodes[0]->set_covg(5, 0, 3);
+    pannode1.kmer_prg.nodes[4]->set_covg(5, 0, 3);
+    pannode1.kmer_prg.nodes[9]->set_covg(5, 0, 3);
+    pannode2.kmer_prg.nodes[0]->set_covg(5, 0, 3);
+    pannode2.kmer_prg.nodes[3]->set_covg(5, 0, 3);
+    pannode2.kmer_prg.nodes[7]->set_covg(5, 0, 3);
+    pannode2.kmer_prg.nodes[8]->set_covg(5, 0, 3);
+    pannode2.kmer_prg.nodes[9]->set_covg(5, 0, 3);
+
+    VCF master_vcf;
+    std::vector<LocalNodePtr> vcf_reference_path1 = {local_prg1.prg.nodes[0], local_prg1.prg.nodes[1], local_prg1.prg.nodes[3], local_prg1.prg.nodes[5], local_prg1.prg.nodes[7]};
+    std::vector<LocalNodePtr> vcf_reference_path2 = {local_prg2.prg.nodes[0], local_prg2.prg.nodes[1], local_prg2.prg.nodes[3], local_prg2.prg.nodes[5], local_prg2.prg.nodes[7]};
+
+    pannode1.construct_multisample_vcf(master_vcf, vcf_reference_path1, prg_ptr1, w, min_kmer_covg);
+    pannode2.construct_multisample_vcf(master_vcf, vcf_reference_path2, prg_ptr2, w, min_kmer_covg);
+
+    EXPECT_EQ((uint)4, master_vcf.records.size());
+    EXPECT_EQ((uint)4, master_vcf.samples.size());
+
+    //NB samples order changes to get index of each sample so can compare
+    //samples 1 and 2 are ref, sample 3 is top path and sample 4 is bottom path
+    auto sample1_index = master_vcf.get_sample_index("sample1");
+    auto sample2_index = master_vcf.get_sample_index("sample2");
+    auto sample3_index = master_vcf.get_sample_index("sample3");
+    auto sample4_index = master_vcf.get_sample_index("sample4");
+    std::vector<uint16_t> covgs_40 = {4,0};
+    std::vector<uint16_t> covgs_100 = {10,0};
+    std::vector<uint16_t> covgs_02 = {0,2};
+    std::vector<uint16_t> covgs_05 = {0,5};
+    std::vector<uint16_t> covgs_00 = {0,0};
+    std::vector<uint16_t> covgs_400 = {4,0,0};
+    std::vector<uint16_t> covgs_040 = {0,4,0};
+    std::vector<uint16_t> covgs_1000 = {10,0,0};
+    std::vector<uint16_t> covgs_020 = {0,2,0};
+    std::vector<uint16_t> covgs_005 = {0,0,5};
+    std::vector<uint16_t> covgs_000 = {0,0,0};
+
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample4_index]["MEAN_FWD_COVG"], covgs_05);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample2_index]["MEAN_FWD_COVG"], covgs_100);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample1_index]["MEAN_FWD_COVG"], covgs_40);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample4_index]["MEAN_REV_COVG"], covgs_00);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample2_index]["MEAN_REV_COVG"], covgs_00);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample1_index]["MEAN_REV_COVG"], covgs_00);
+
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample3_index]["MEAN_FWD_COVG"], covgs_020);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample2_index]["MEAN_FWD_COVG"], covgs_1000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample1_index]["MEAN_FWD_COVG"], covgs_400);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample4_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample2_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample1_index]["MEAN_REV_COVG"], covgs_000);
+
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2].samples[sample3_index]["MEAN_FWD_COVG"], covgs_02);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2].samples[sample3_index]["MEAN_REV_COVG"], covgs_00);
+
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample1_index]["MEAN_FWD_COVG"], covgs_040);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample4_index]["MEAN_FWD_COVG"], covgs_005);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample1_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample4_index]["MEAN_REV_COVG"], covgs_000);
+}
 
 TEST(PangenomeNodeTest, equals) {
-    Node pn1(3, 3, "3");
-    Node pn2(2, 2, "2");
-    Node pn3(2, 2, "2");
+    pangenome::Node pn1(3, 3, "3");
+    pangenome::Node pn2(2, 2, "2");
+    pangenome::Node pn3(2, 2, "2");
 
     EXPECT_EQ(pn1, pn1);
     EXPECT_EQ(pn2, pn2);
@@ -520,9 +591,9 @@ TEST(PangenomeNodeTest, equals) {
 }
 
 TEST(PangenomeNodeTest, nequals) {
-    Node pn1(3, 3, "3");
-    Node pn2(2, 2, "2");
-    Node pn3(2, 2, "2");
+    pangenome::Node pn1(3, 3, "3");
+    pangenome::Node pn2(2, 2, "2");
+    pangenome::Node pn3(2, 2, "2");
 
     EXPECT_EQ((pn1 != pn2), true);
     EXPECT_EQ((pn2 != pn1), true);
@@ -533,9 +604,9 @@ TEST(PangenomeNodeTest, nequals) {
 }
 
 TEST(PangenomeNodeTest, less) {
-    Node pn1(3, 3, "3");
-    Node pn2(2, 2, "2");
-    Node pn3(2, 2, "2");
+    pangenome::Node pn1(3, 3, "3");
+    pangenome::Node pn2(2, 2, "2");
+    pangenome::Node pn3(2, 2, "2");
 
     EXPECT_EQ((pn1 < pn1), false);
     EXPECT_EQ((pn2 < pn2), false);
@@ -545,4 +616,576 @@ TEST(PangenomeNodeTest, less) {
     EXPECT_EQ((pn2 < pn1), true);
     EXPECT_EQ((pn3 < pn1), true);
 
+}
+
+TEST(ExtractReadsTest, get_read_overlap_coordinates) {
+    //
+    //  Read 0 has prg 3 sequence in interval (2,12] only
+    //  Read 1 has prg 3 sequence in interval (6,16] as well as noise
+    //  Read 2 has prg 3 sequence in interval (4,20] stretched out
+    //  Read 3 has prg 3 sequence in interval (4,14] but is missing bits
+    //  Read 4 doesn't have prg 3 sequence - on all hits are noise
+    //
+    uint32_t pan_node_id = 3, prg_id = 3, read_id = 0, knode_id = 0;
+    string pan_node_name = "three";
+    bool orientation(true);
+    deque<Interval> d;
+    prg::Path prg_path;
+    MinimizerHitPtr mh;
+
+    PanNodePtr pan_node = make_shared<pangenome::Node>(pan_node_id, prg_id, pan_node_name);
+    PanReadPtr pr = make_shared<pangenome::Read>(read_id);
+
+    set<MinimizerHitPtr, pComp> hits;
+
+
+    // READ 0
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(27, 30) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 1
+    read_id = 1;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(12, 15), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(11, 14), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(27, 30) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(31, 33) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(78, 81) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 2
+    read_id = 2;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(27, 30) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(31, 33) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(78, 81) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 3
+    read_id = 3;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 4
+    read_id = 4;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(31, 33) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(78, 81) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // RUN GET_READ_OVERLAPS
+    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+    const std::vector<LocalNodePtr> lmp {//l3.prg.nodes[0],
+            l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6], l3.prg.nodes[7]//, l3.prg.nodes[9]
+    };
+    // A G C T CGG  TAT
+    const std::set<ReadCoordinate> expected_overlaps {{ 0, 3, 9,  1 },
+                                                      { 1, 7, 13, 1 },
+                                                      { 2, 5, 13, 1 },
+                                                      { 3, 6, 10, 1 }};
+
+    prg::Path local_path;
+    for (const auto &node : lmp) {
+        local_path.add_end_interval(node->pos);
+    }
+    const auto overlaps { pan_node->get_read_overlap_coordinates(local_path) };
+
+    EXPECT_ITERABLE_EQ(std::set<ReadCoordinate>, expected_overlaps, overlaps);
+}
+
+
+TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
+    //
+    //  Read 0 has prg 3 sequence in interval (2,12] only
+    //  Read 1 has prg 3 sequence in interval (6,16] as well as noise
+    //  Read 2 has prg 3 sequence in interval (4,20] stretched out
+    //  Read 3 has prg 3 sequence in interval (4,14] but is missing bits
+    //  Read 4 doesn't have prg 3 sequence - on all hits are noise
+    //  Read 5 is a duplicate of Read 0
+    //
+    uint32_t pan_node_id = 3, prg_id = 3, read_id = 0, knode_id = 0;
+    string pan_node_name = "three";
+    bool orientation(true);
+    deque<Interval> d;
+    prg::Path prg_path;
+    MinimizerHitPtr mh;
+
+    PanNodePtr pan_node = make_shared<pangenome::Node>(pan_node_id, prg_id, pan_node_name);
+    PanReadPtr pr = make_shared<pangenome::Read>(read_id);
+
+    set<MinimizerHitPtr, pComp> hits;
+
+
+    // READ 0
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(27, 30) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 1
+    read_id = 1;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(12, 15), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(11, 14), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(27, 30) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(31, 33) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(78, 81) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 2
+    read_id = 2;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(27, 30) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(31, 33) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(78, 81) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 3
+    read_id = 3;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 4
+    read_id = 4;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(31, 33) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(78, 81) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 5
+    read_id = 0;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(27, 30) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // RUN GET_READ_OVERLAPS
+    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+    const std::vector<LocalNodePtr> lmp {//l3.prg.nodes[0],
+            l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6], l3.prg.nodes[7]//, l3.prg.nodes[9]
+    };
+    // A G C T CGG  TAT
+    const std::set<ReadCoordinate> expected_overlaps {{ 0, 3, 9,  1 },
+                                                      { 1, 7, 13, 1 },
+                                                      { 2, 5, 13, 1 },
+                                                      { 3, 6, 10, 1 }};
+
+    prg::Path local_path;
+    for (const auto &node : lmp) {
+        local_path.add_end_interval(node->pos);
+    }
+    const auto overlaps { pan_node->get_read_overlap_coordinates(local_path) };
+
+    EXPECT_ITERABLE_EQ(std::set<ReadCoordinate>, expected_overlaps, overlaps);
 }

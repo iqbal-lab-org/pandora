@@ -6,17 +6,15 @@
 #include "prg/path.h"
 
 
-typedef prg::Path Path;
-
 struct MiniRecord {
     uint32_t prg_id;
-    Path path;
+    prg::Path path;
     uint32_t knode_id;
     bool strand;
 
     MiniRecord();
 
-    MiniRecord(const uint32_t, const Path, const uint32_t, const bool);
+    MiniRecord(const uint32_t, const prg::Path, const uint32_t, const bool);
 
     ~MiniRecord();
 

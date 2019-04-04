@@ -55,9 +55,6 @@ TEST(InthashTest, check1to1) {
         for (set<string>::iterator it = kmers.begin(); it != kmers.end(); ++it) {
             kh = hash.kmerhash(*it, k);
             EXPECT_EQ((kh.first < pow(4, k)), true);
-            if (find(khs.begin(), khs.end(), kh.first) != khs.end()) {
-                cout << *it << ": " << kh.first << " == " << *find(khs.begin(), khs.end(), kh.first) << endl;
-            }
             EXPECT_EQ((find(khs.begin(), khs.end(), kh.first) == khs.end()), true);
             khs.push_back(kh.first); // so each kmerhash value is first in one
 

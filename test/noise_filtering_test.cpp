@@ -259,53 +259,53 @@ TEST(NoiseFilteringDbgNodeIdsToIdsAndOrientations, OverlapBackwardsSomeReverseCo
 
 TEST(NoiseFilteringTest, construct_debruijn_graph) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
-    pg->add_node(3, "3", 0, mhs);
-    pg->add_node(4, "4", 0, mhs);
-    pg->add_node(5, "5", 0, mhs);
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
+
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_node(3, "3", 0, mhs);
+    pangraph->add_node(4, "4", 0, mhs);
+    pangraph->add_node(5, "5", 0, mhs);
 
     // overlaps to create loop
-    pg->add_node(3, "3", 1, mhs);
-    pg->add_node(4, "4", 1, mhs);
-    pg->add_node(5, "5", 1, mhs);
-    pg->add_node(0, "0", 1, mhs);
-    pg->add_node(1, "1", 1, mhs);
-    pg->add_node(2, "2", 1, mhs);
+    pangraph->add_node(3, "3", 1, mhs);
+    pangraph->add_node(4, "4", 1, mhs);
+    pangraph->add_node(5, "5", 1, mhs);
+    pangraph->add_node(0, "0", 1, mhs);
+    pangraph->add_node(1, "1", 1, mhs);
+    pangraph->add_node(2, "2", 1, mhs);
 
     // starts correct and deviates
-    pg->add_node(1, "1", 2, mhs);
-    pg->add_node(2, "2", 2, mhs);
-    pg->add_node(3, "3", 2, mhs);
-    pg->add_node(7, "7", 2, mhs);
+    pangraph->add_node(1, "1", 2, mhs);
+    pangraph->add_node(2, "2", 2, mhs);
+    pangraph->add_node(3, "3", 2, mhs);
+    pangraph->add_node(7, "7", 2, mhs);
 
     // all disjoint, short
-    pg->add_node(0, "0", 3, mhs);
-    pg->add_node(6, "6", 3, mhs);
-    pg->add_node(3, "3", 3, mhs);
-    pg->add_node(4, "4", 3, mhs);
+    pangraph->add_node(0, "0", 3, mhs);
+    pangraph->add_node(6, "6", 3, mhs);
+    pangraph->add_node(3, "3", 3, mhs);
+    pangraph->add_node(4, "4", 3, mhs);
 
     // deviates in middle
-    pg->add_node(0, "0", 4, mhs);
-    pg->add_node(1, "1", 4, mhs);
-    pg->add_node(2, "2", 4, mhs);
-    pg->add_node(6, "6", 4, mhs);
-    pg->add_node(3, "3", 4, mhs);
-    pg->add_node(4, "4", 4, mhs);
-    pg->add_node(5, "5", 4, mhs);
+    pangraph->add_node(0, "0", 4, mhs);
+    pangraph->add_node(1, "1", 4, mhs);
+    pangraph->add_node(2, "2", 4, mhs);
+    pangraph->add_node(6, "6", 4, mhs);
+    pangraph->add_node(3, "3", 4, mhs);
+    pangraph->add_node(4, "4", 4, mhs);
+    pangraph->add_node(5, "5", 4, mhs);
 
     // all disjoint, long
-    pg->add_node(6, "6", 5, mhs);
-    pg->add_node(1, "1", 5, mhs);
-    pg->add_node(2, "2", 5, mhs);
-    pg->add_node(6, "6", 5, mhs);
-    pg->add_node(3, "3", 5, mhs);
+    pangraph->add_node(6, "6", 5, mhs);
+    pangraph->add_node(1, "1", 5, mhs);
+    pangraph->add_node(2, "2", 5, mhs);
+    pangraph->add_node(6, "6", 5, mhs);
+    pangraph->add_node(3, "3", 5, mhs);
 
     debruijn::Graph dbg(3);
-    construct_debruijn_graph(pg, dbg);
+    construct_debruijn_graph(pangraph, dbg);
 
     debruijn::Graph dbg_exp(3);
     std::deque<uint_least32_t> d = {0, 2, 4};
@@ -369,301 +369,278 @@ TEST(NoiseFilteringTest, construct_debruijn_graph) {
     dbg_exp.add_edge(n2, n1);
 
     EXPECT_EQ(dbg_exp, dbg);
-    delete pg;
 }
 
 TEST(NoiseFilteringRemoveLeaves, OneDBGNode_RemovedFromPanGraph) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     // first an example where only one read giving 1 dbg node, want no segfaults
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
     debruijn::Graph dbg(3);
-    construct_debruijn_graph(pg, dbg);
-    remove_leaves(pg, dbg);
+    construct_debruijn_graph(pangraph, dbg);
+    remove_leaves(pangraph, dbg);
 
     pangenome::Graph pg_exp;
-    EXPECT_EQ(pg_exp, *pg);
-    delete pg;
+    EXPECT_EQ(pg_exp, *pangraph);
 }
 
 TEST(NoiseFilteringRemoveLeaves, OneDBGNode_RemovedFromDBGraph) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     // first an example where only one read giving 1 dbg node, want no segfaults
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
     debruijn::Graph dbg(3);
-    construct_debruijn_graph(pg, dbg);
-    remove_leaves(pg, dbg);
+    construct_debruijn_graph(pangraph, dbg);
+    remove_leaves(pangraph, dbg);
     debruijn::Graph dbg_exp(3);
     EXPECT_EQ(dbg_exp, dbg);
-    delete pg;
 }
 
 TEST(NoiseFilteringRemoveLeaves, OneLoop_NoLeavesRemoved) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
-    pg->add_node(3, "3", 0, mhs);
-    pg->add_node(4, "4", 0, mhs);
-    pg->add_node(5, "5", 0, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_node(3, "3", 0, mhs);
+    pangraph->add_node(4, "4", 0, mhs);
+    pangraph->add_node(5, "5", 0, mhs);
 
-    pg->add_node(3, "3", 1, mhs);
-    pg->add_node(4, "4", 1, mhs);
-    pg->add_node(5, "5", 1, mhs);
-    pg->add_node(0, "0", 1, mhs);
-    pg->add_node(1, "1", 1, mhs);
-    pg->add_node(2, "2", 1, mhs);
+    pangraph->add_node(3, "3", 1, mhs);
+    pangraph->add_node(4, "4", 1, mhs);
+    pangraph->add_node(5, "5", 1, mhs);
+    pangraph->add_node(0, "0", 1, mhs);
+    pangraph->add_node(1, "1", 1, mhs);
+    pangraph->add_node(2, "2", 1, mhs);
 
     debruijn::Graph dbg(3);
-    construct_debruijn_graph(pg, dbg);
-    uint pg_size = pg->nodes.size();
+    construct_debruijn_graph(pangraph, dbg);
+    uint pg_size = pangraph->nodes.size();
     uint dbg_size = dbg.nodes.size();
-    remove_leaves(pg, dbg);
+    remove_leaves(pangraph, dbg);
 
-    EXPECT_EQ(pg->nodes.size(), pg_size);
+    EXPECT_EQ(pangraph->nodes.size(), pg_size);
     EXPECT_EQ(dbg.nodes.size(), dbg_size);
-
-    delete pg;
 }
 
 TEST(NoiseFilteringRemoveLeaves, OneLoopAndDeviantPath_OneLeafRemoved) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
-    pg->add_node(3, "3", 0, mhs);
-    pg->add_node(4, "4", 0, mhs);
-    pg->add_node(5, "5", 0, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_node(3, "3", 0, mhs);
+    pangraph->add_node(4, "4", 0, mhs);
+    pangraph->add_node(5, "5", 0, mhs);
 
-    pg->add_node(3, "3", 1, mhs);
-    pg->add_node(4, "4", 1, mhs);
-    pg->add_node(5, "5", 1, mhs);
-    pg->add_node(0, "0", 1, mhs);
-    pg->add_node(1, "1", 1, mhs);
-    pg->add_node(2, "2", 1, mhs);
+    pangraph->add_node(3, "3", 1, mhs);
+    pangraph->add_node(4, "4", 1, mhs);
+    pangraph->add_node(5, "5", 1, mhs);
+    pangraph->add_node(0, "0", 1, mhs);
+    pangraph->add_node(1, "1", 1, mhs);
+    pangraph->add_node(2, "2", 1, mhs);
 
     // starts correct and deviates
-    pg->add_node(1, "1", 2, mhs);
-    pg->add_node(2, "2", 2, mhs);
-    pg->add_node(3, "3", 2, mhs);
-    pg->add_node(7, "7", 2, mhs);
+    pangraph->add_node(1, "1", 2, mhs);
+    pangraph->add_node(2, "2", 2, mhs);
+    pangraph->add_node(3, "3", 2, mhs);
+    pangraph->add_node(7, "7", 2, mhs);
 
     debruijn::Graph dbg(3);
-    construct_debruijn_graph(pg, dbg);
-    uint pg_size = pg->nodes.size();
+    construct_debruijn_graph(pangraph, dbg);
+    uint pg_size = pangraph->nodes.size();
     uint dbg_size = dbg.nodes.size();
-    remove_leaves(pg, dbg);
+    remove_leaves(pangraph, dbg);
 
-    EXPECT_EQ(pg->nodes.size(), pg_size - 1);
-    EXPECT_TRUE(pg->nodes.find(7) == pg->nodes.end());
+    EXPECT_EQ(pangraph->nodes.size(), pg_size - 1);
+    EXPECT_TRUE(pangraph->nodes.find(7) == pangraph->nodes.end());
     EXPECT_EQ(dbg.nodes.size(), dbg_size - 1);
     EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{4, 6, 14}]) == dbg.nodes.end());
-
-    delete pg;
 }
 
 TEST(NoiseFilteringRemoveLeaves, OneLoopAndIncorrectPath_TwoLeavesRemoved) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
-    pg->add_node(3, "3", 0, mhs);
-    pg->add_node(4, "4", 0, mhs);
-    pg->add_node(5, "5", 0, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_node(3, "3", 0, mhs);
+    pangraph->add_node(4, "4", 0, mhs);
+    pangraph->add_node(5, "5", 0, mhs);
 
-    pg->add_node(3, "3", 1, mhs);
-    pg->add_node(4, "4", 1, mhs);
-    pg->add_node(5, "5", 1, mhs);
-    pg->add_node(0, "0", 1, mhs);
-    pg->add_node(1, "1", 1, mhs);
-    pg->add_node(2, "2", 1, mhs);
+    pangraph->add_node(3, "3", 1, mhs);
+    pangraph->add_node(4, "4", 1, mhs);
+    pangraph->add_node(5, "5", 1, mhs);
+    pangraph->add_node(0, "0", 1, mhs);
+    pangraph->add_node(1, "1", 1, mhs);
+    pangraph->add_node(2, "2", 1, mhs);
 
     // incorrect short
-    pg->add_node(0, "0", 3, mhs);
-    pg->add_node(5, "5", 3, mhs);//6
-    pg->add_node(3, "3", 3, mhs);
-    pg->add_node(4, "4", 3, mhs);
+    pangraph->add_node(0, "0", 3, mhs);
+    pangraph->add_node(5, "5", 3, mhs);//6
+    pangraph->add_node(3, "3", 3, mhs);
+    pangraph->add_node(4, "4", 3, mhs);
 
     debruijn::Graph dbg(3);
-    construct_debruijn_graph(pg, dbg);
-    uint pg_size = pg->nodes.size();
+    construct_debruijn_graph(pangraph, dbg);
+    uint pg_size = pangraph->nodes.size();
     uint dbg_size = dbg.nodes.size();
-    remove_leaves(pg, dbg);
+    remove_leaves(pangraph, dbg);
 
-    EXPECT_EQ(pg->nodes.size(), pg_size);
+    EXPECT_EQ(pangraph->nodes.size(), pg_size);
     EXPECT_EQ(dbg.nodes.size(), dbg_size - 2);
     EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{0, 10, 6}]) == dbg.nodes.end());
     EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{10, 6, 8}]) == dbg.nodes.end());
-
-    delete pg;
 }
 
 TEST(NoiseFilteringRemoveLeaves, OneLoopAndDeviatesInMiddle_NoLeavesRemoved) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
-    pg->add_node(3, "3", 0, mhs);
-    pg->add_node(4, "4", 0, mhs);
-    pg->add_node(5, "5", 0, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_node(3, "3", 0, mhs);
+    pangraph->add_node(4, "4", 0, mhs);
+    pangraph->add_node(5, "5", 0, mhs);
 
-    pg->add_node(3, "3", 1, mhs);
-    pg->add_node(4, "4", 1, mhs);
-    pg->add_node(5, "5", 1, mhs);
-    pg->add_node(0, "0", 1, mhs);
-    pg->add_node(1, "1", 1, mhs);
-    pg->add_node(2, "2", 1, mhs);
+    pangraph->add_node(3, "3", 1, mhs);
+    pangraph->add_node(4, "4", 1, mhs);
+    pangraph->add_node(5, "5", 1, mhs);
+    pangraph->add_node(0, "0", 1, mhs);
+    pangraph->add_node(1, "1", 1, mhs);
+    pangraph->add_node(2, "2", 1, mhs);
 
     // deviates in middle
-    pg->add_node(0, "0", 4, mhs);
-    pg->add_node(1, "1", 4, mhs);
-    pg->add_node(2, "2", 4, mhs);
-    pg->add_node(6, "6", 4, mhs);
-    pg->add_node(3, "3", 4, mhs);
-    pg->add_node(4, "4", 4, mhs);
-    pg->add_node(5, "5", 4, mhs);
+    pangraph->add_node(0, "0", 4, mhs);
+    pangraph->add_node(1, "1", 4, mhs);
+    pangraph->add_node(2, "2", 4, mhs);
+    pangraph->add_node(6, "6", 4, mhs);
+    pangraph->add_node(3, "3", 4, mhs);
+    pangraph->add_node(4, "4", 4, mhs);
+    pangraph->add_node(5, "5", 4, mhs);
 
     debruijn::Graph dbg(3);
-    construct_debruijn_graph(pg, dbg);
-    uint pg_size = pg->nodes.size();
+    construct_debruijn_graph(pangraph, dbg);
+    uint pg_size = pangraph->nodes.size();
     uint dbg_size = dbg.nodes.size();
-    remove_leaves(pg, dbg);
+    remove_leaves(pangraph, dbg);
 
-    EXPECT_EQ(pg->nodes.size(), pg_size);
+    EXPECT_EQ(pangraph->nodes.size(), pg_size);
     EXPECT_EQ(dbg.nodes.size(), dbg_size);
-
-    delete pg;
 }
 
 TEST(NoiseFilteringRemoveLeaves, OneLoopAndLongerWrongPath_LeavesRemoved) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
-    pg->add_node(3, "3", 0, mhs);
-    pg->add_node(4, "4", 0, mhs);
-    pg->add_node(5, "5", 0, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_node(3, "3", 0, mhs);
+    pangraph->add_node(4, "4", 0, mhs);
+    pangraph->add_node(5, "5", 0, mhs);
 
-    pg->add_node(3, "3", 1, mhs);
-    pg->add_node(4, "4", 1, mhs);
-    pg->add_node(5, "5", 1, mhs);
-    pg->add_node(0, "0", 1, mhs);
-    pg->add_node(1, "1", 1, mhs);
-    pg->add_node(2, "2", 1, mhs);
+    pangraph->add_node(3, "3", 1, mhs);
+    pangraph->add_node(4, "4", 1, mhs);
+    pangraph->add_node(5, "5", 1, mhs);
+    pangraph->add_node(0, "0", 1, mhs);
+    pangraph->add_node(1, "1", 1, mhs);
+    pangraph->add_node(2, "2", 1, mhs);
 
     // incorrect longer
-    pg->add_node(6, "6", 5, mhs);
-    pg->add_node(1, "1", 5, mhs);
-    pg->add_node(7, "7", 5, mhs);//2
-    pg->add_node(6, "6", 5, mhs);
-    pg->add_node(3, "3", 5, mhs);
+    pangraph->add_node(6, "6", 5, mhs);
+    pangraph->add_node(1, "1", 5, mhs);
+    pangraph->add_node(7, "7", 5, mhs);//2
+    pangraph->add_node(6, "6", 5, mhs);
+    pangraph->add_node(3, "3", 5, mhs);
 
     debruijn::Graph dbg(3);
-    construct_debruijn_graph(pg, dbg);
-    uint pg_size = pg->nodes.size();
+    construct_debruijn_graph(pangraph, dbg);
+    uint pg_size = pangraph->nodes.size();
     uint dbg_size = dbg.nodes.size();
-    remove_leaves(pg, dbg);
+    remove_leaves(pangraph, dbg);
 
-    EXPECT_EQ(pg->nodes.size(), pg_size - 2);
-    EXPECT_TRUE(pg->nodes.find(6) == pg->nodes.end());
-    EXPECT_TRUE(pg->nodes.find(7) == pg->nodes.end());
+    EXPECT_EQ(pangraph->nodes.size(), pg_size - 2);
+    EXPECT_TRUE(pangraph->nodes.find(6) == pangraph->nodes.end());
+    EXPECT_TRUE(pangraph->nodes.find(7) == pangraph->nodes.end());
     EXPECT_EQ(dbg.nodes.size(), dbg_size - 3);
     EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{12, 2, 14}]) == dbg.nodes.end());
     EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{2, 14, 12}]) == dbg.nodes.end());
     EXPECT_TRUE(dbg.nodes.find(dbg.node_hash[{14, 12, 6}]) == dbg.nodes.end());
-
-    delete pg;
 }
 
 TEST(NoiseFilteringRemoveLeaves, AllTogether_GraphsLookCorrect) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     // first an example where only one read giving 1 dbg node, want no segfaults
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
     debruijn::Graph dbg(3);
-    construct_debruijn_graph(pg, dbg);
-    remove_leaves(pg, dbg);
+    construct_debruijn_graph(pangraph, dbg);
+    remove_leaves(pangraph, dbg);
     debruijn::Graph dbg_exp(3);
     EXPECT_EQ(dbg_exp, dbg);
     pangenome::Graph pg_exp;
-    EXPECT_EQ(pg_exp, *pg);
+    EXPECT_EQ(pg_exp, *pangraph);
 
     // and now a full example
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
-    pg->add_node(3, "3", 0, mhs);
-    pg->add_node(4, "4", 0, mhs);
-    pg->add_node(5, "5", 0, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_node(3, "3", 0, mhs);
+    pangraph->add_node(4, "4", 0, mhs);
+    pangraph->add_node(5, "5", 0, mhs);
 
     // overlapping in loop
-    pg->add_node(3, "3", 1, mhs);
-    pg->add_node(4, "4", 1, mhs);
-    pg->add_node(5, "5", 1, mhs);
-    pg->add_node(0, "0", 1, mhs);
-    pg->add_node(1, "1", 1, mhs);
-    pg->add_node(2, "2", 1, mhs);
+    pangraph->add_node(3, "3", 1, mhs);
+    pangraph->add_node(4, "4", 1, mhs);
+    pangraph->add_node(5, "5", 1, mhs);
+    pangraph->add_node(0, "0", 1, mhs);
+    pangraph->add_node(1, "1", 1, mhs);
+    pangraph->add_node(2, "2", 1, mhs);
 
     // starts correct and deviates
-    pg->add_node(1, "1", 2, mhs);
-    pg->add_node(2, "2", 2, mhs);
-    pg->add_node(3, "3", 2, mhs);
-    pg->add_node(7, "7", 2, mhs);
+    pangraph->add_node(1, "1", 2, mhs);
+    pangraph->add_node(2, "2", 2, mhs);
+    pangraph->add_node(3, "3", 2, mhs);
+    pangraph->add_node(7, "7", 2, mhs);
 
     // incorrect short
-    pg->add_node(0, "0", 3, mhs);
-    pg->add_node(5, "5", 3, mhs);//6
-    pg->add_node(3, "3", 3, mhs);
-    pg->add_node(4, "4", 3, mhs);
+    pangraph->add_node(0, "0", 3, mhs);
+    pangraph->add_node(5, "5", 3, mhs);//6
+    pangraph->add_node(3, "3", 3, mhs);
+    pangraph->add_node(4, "4", 3, mhs);
 
     // deviates in middle
-    pg->add_node(0, "0", 4, mhs);
-    pg->add_node(1, "1", 4, mhs);
-    pg->add_node(2, "2", 4, mhs);
-    pg->add_node(6, "6", 4, mhs);
-    pg->add_node(3, "3", 4, mhs);
-    pg->add_node(4, "4", 4, mhs);
-    pg->add_node(5, "5", 4, mhs);
+    pangraph->add_node(0, "0", 4, mhs);
+    pangraph->add_node(1, "1", 4, mhs);
+    pangraph->add_node(2, "2", 4, mhs);
+    pangraph->add_node(6, "6", 4, mhs);
+    pangraph->add_node(3, "3", 4, mhs);
+    pangraph->add_node(4, "4", 4, mhs);
+    pangraph->add_node(5, "5", 4, mhs);
 
     // incorrect longer
-    pg->add_node(6, "6", 5, mhs);
-    pg->add_node(1, "1", 5, mhs);
-    pg->add_node(1, "1", 5, mhs);//2
-    pg->add_node(6, "6", 5, mhs);
-    pg->add_node(3, "3", 5, mhs);
+    pangraph->add_node(6, "6", 5, mhs);
+    pangraph->add_node(1, "1", 5, mhs);
+    pangraph->add_node(1, "1", 5, mhs);//2
+    pangraph->add_node(6, "6", 5, mhs);
+    pangraph->add_node(3, "3", 5, mhs);
 
-    cout << "pg is now: " << endl << *pg << endl;
-
-    construct_debruijn_graph(pg, dbg);
-    remove_leaves(pg, dbg);
+    construct_debruijn_graph(pangraph, dbg);
+    remove_leaves(pangraph, dbg);
 
     std::deque<uint_least32_t> d = {0, 2, 4};
     debruijn::OrientedNodePtr n1 = dbg_exp.add_node(d, 0);
@@ -741,33 +718,32 @@ TEST(NoiseFilteringRemoveLeaves, AllTogether_GraphsLookCorrect) {
     pg_exp.add_node(4, "4", 4, mhs);
     pg_exp.add_node(5, "5", 4, mhs);
 
-    EXPECT_EQ(pg_exp, *pg);
-    delete pg;
+    EXPECT_EQ(pg_exp, *pangraph);
 }
 
 TEST(NoiseFilteringFilterUnitigs, SimpleCaseNothingToDo_ReadsUnchanged) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
-    pg->add_node(3, "3", 0, mhs);
-    pg->add_node(4, "4", 0, mhs);
-    pg->add_node(5, "5", 0, mhs);
-    pg->add_node(0, "0", 0, mhs);
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pg->add_node(0, "0", 1, mhs);
-    pg->add_node(1, "1", 1, mhs);
-    pg->add_node(2, "2", 1, mhs);
-    pg->add_node(3, "3", 1, mhs);
-    pg->add_node(4, "4", 1, mhs);
-    pg->add_node(5, "5", 1, mhs);
-    pg->add_node(0, "0", 1, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_node(3, "3", 0, mhs);
+    pangraph->add_node(4, "4", 0, mhs);
+    pangraph->add_node(5, "5", 0, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+
+    pangraph->add_node(0, "0", 1, mhs);
+    pangraph->add_node(1, "1", 1, mhs);
+    pangraph->add_node(2, "2", 1, mhs);
+    pangraph->add_node(3, "3", 1, mhs);
+    pangraph->add_node(4, "4", 1, mhs);
+    pangraph->add_node(5, "5", 1, mhs);
+    pangraph->add_node(0, "0", 1, mhs);
 
     debruijn::Graph dbg(3);
-    construct_debruijn_graph(pg, dbg);
-    filter_unitigs(pg, dbg, 1);
+    construct_debruijn_graph(pangraph, dbg);
+    filter_unitigs(pangraph, dbg, 1);
 
     pangenome::Graph *pg_exp;
     pg_exp = new pangenome::Graph();
@@ -788,42 +764,41 @@ TEST(NoiseFilteringFilterUnitigs, SimpleCaseNothingToDo_ReadsUnchanged) {
     pg_exp->add_node(0, "0", 1, mhs);
 
     // check contents of read 0 are correct
-    EXPECT_EQ(pg_exp->reads[0]->nodes.size(), pg->reads[0]->nodes.size());
-    for (uint i = 0; i < min(pg->reads[0]->nodes.size(), pg_exp->reads[0]->nodes.size()); ++i) {
-        EXPECT_EQ(*pg->reads[0]->nodes[i], *pg_exp->reads[0]->nodes[i]);
+    EXPECT_EQ(pg_exp->reads[0]->nodes.size(), pangraph->reads[0]->nodes.size());
+    for (uint i = 0; i < min(pangraph->reads[0]->nodes.size(), pg_exp->reads[0]->nodes.size()); ++i) {
+        EXPECT_EQ(*pangraph->reads[0]->nodes[i], *pg_exp->reads[0]->nodes[i]);
     }
     // check contents of read 1 are correct
-    EXPECT_EQ(pg_exp->reads[1]->nodes.size(), pg->reads[1]->nodes.size());
-    for (uint i = 0; i < min(pg->reads[1]->nodes.size(), pg_exp->reads[1]->nodes.size()); ++i) {
-        EXPECT_EQ(*pg->reads[1]->nodes[i], *pg_exp->reads[1]->nodes[i]);
+    EXPECT_EQ(pg_exp->reads[1]->nodes.size(), pangraph->reads[1]->nodes.size());
+    for (uint i = 0; i < min(pangraph->reads[1]->nodes.size(), pg_exp->reads[1]->nodes.size()); ++i) {
+        EXPECT_EQ(*pangraph->reads[1]->nodes[i], *pg_exp->reads[1]->nodes[i]);
     }
 
-    delete pg;
     delete pg_exp;
 }
 
 TEST(NoiseFilteringFilterUnitigs, SimpleCaseNothingToDoCycle_ReadsUnchanged) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
-    pg->add_node(3, "3", 0, mhs);
-    pg->add_node(4, "4", 0, mhs);
-    pg->add_node(5, "5", 0, mhs);
-    pg->add_node(0, "0", 0, mhs);
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pg->add_node(2, "2", 1, mhs);
-    pg->add_node(3, "3", 1, mhs);
-    pg->add_node(4, "4", 1, mhs);
-    pg->add_node(5, "5", 1, mhs);
-    pg->add_node(0, "0", 1, mhs);
-    pg->add_node(1, "1", 1, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_node(3, "3", 0, mhs);
+    pangraph->add_node(4, "4", 0, mhs);
+    pangraph->add_node(5, "5", 0, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+
+    pangraph->add_node(2, "2", 1, mhs);
+    pangraph->add_node(3, "3", 1, mhs);
+    pangraph->add_node(4, "4", 1, mhs);
+    pangraph->add_node(5, "5", 1, mhs);
+    pangraph->add_node(0, "0", 1, mhs);
+    pangraph->add_node(1, "1", 1, mhs);
 
     debruijn::Graph dbg(3);
-    construct_debruijn_graph(pg, dbg);
-    filter_unitigs(pg, dbg, 1);
+    construct_debruijn_graph(pangraph, dbg);
+    filter_unitigs(pangraph, dbg, 1);
 
     pangenome::Graph *pg_exp;
     pg_exp = new pangenome::Graph();
@@ -844,17 +819,16 @@ TEST(NoiseFilteringFilterUnitigs, SimpleCaseNothingToDoCycle_ReadsUnchanged) {
 
 
     // check contents of read 0 are correct
-    EXPECT_EQ(pg_exp->reads[0]->nodes.size(), pg->reads[0]->nodes.size());
-    for (uint i = 0; i < min(pg->reads[0]->nodes.size(), pg_exp->reads[0]->nodes.size()); ++i) {
-        EXPECT_EQ(*pg->reads[0]->nodes[i], *pg_exp->reads[0]->nodes[i]);
+    EXPECT_EQ(pg_exp->reads[0]->nodes.size(), pangraph->reads[0]->nodes.size());
+    for (uint i = 0; i < min(pangraph->reads[0]->nodes.size(), pg_exp->reads[0]->nodes.size()); ++i) {
+        EXPECT_EQ(*pangraph->reads[0]->nodes[i], *pg_exp->reads[0]->nodes[i]);
     }
     // check contents of read 1 are correct
-    EXPECT_EQ(pg_exp->reads[1]->nodes.size(), pg->reads[1]->nodes.size());
-    for (uint i = 0; i < min(pg->reads[1]->nodes.size(), pg_exp->reads[1]->nodes.size()); ++i) {
-        EXPECT_EQ(*pg->reads[1]->nodes[i], *pg_exp->reads[1]->nodes[i]);
+    EXPECT_EQ(pg_exp->reads[1]->nodes.size(), pangraph->reads[1]->nodes.size());
+    for (uint i = 0; i < min(pangraph->reads[1]->nodes.size(), pg_exp->reads[1]->nodes.size()); ++i) {
+        EXPECT_EQ(*pangraph->reads[1]->nodes[i], *pg_exp->reads[1]->nodes[i]);
     }
 
-    delete pg;
     delete pg_exp;
 }
 
@@ -1053,34 +1027,34 @@ TEST(NoiseFilteringFilterUnitigs,FilterUnitigsReadWrong_DbgAlsoPruned)
 
 TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesInMiddle_ReadPruned) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
-    pg->add_node(3, "3", 0, mhs);
-    pg->add_node(4, "4", 0, mhs);
-    pg->add_node(5, "5", 0, mhs);
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pg->add_node(0, "0", 1, mhs);
-    pg->add_node(1, "1", 1, mhs);
-    pg->add_node(2, "2", 1, mhs);
-    pg->add_node(3, "3", 1, mhs);
-    pg->add_node(4, "4", 1, mhs);
-    pg->add_node(5, "5", 1, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_node(3, "3", 0, mhs);
+    pangraph->add_node(4, "4", 0, mhs);
+    pangraph->add_node(5, "5", 0, mhs);
+
+    pangraph->add_node(0, "0", 1, mhs);
+    pangraph->add_node(1, "1", 1, mhs);
+    pangraph->add_node(2, "2", 1, mhs);
+    pangraph->add_node(3, "3", 1, mhs);
+    pangraph->add_node(4, "4", 1, mhs);
+    pangraph->add_node(5, "5", 1, mhs);
 
     // deviates in middle
-    pg->add_node(0, "0", 4, mhs);
-    pg->add_node(1, "1", 4, mhs);
-    pg->add_node(2, "2", 4, mhs);
-    pg->add_node(6, "6", 4, mhs);
-    pg->add_node(3, "3", 4, mhs);
-    pg->add_node(4, "4", 4, mhs);
-    pg->add_node(5, "5", 4, mhs);
+    pangraph->add_node(0, "0", 4, mhs);
+    pangraph->add_node(1, "1", 4, mhs);
+    pangraph->add_node(2, "2", 4, mhs);
+    pangraph->add_node(6, "6", 4, mhs);
+    pangraph->add_node(3, "3", 4, mhs);
+    pangraph->add_node(4, "4", 4, mhs);
+    pangraph->add_node(5, "5", 4, mhs);
 
     debruijn::Graph dbg(3);
-    construct_debruijn_graph(pg, dbg);
-    filter_unitigs(pg, dbg, 1);
+    construct_debruijn_graph(pangraph, dbg);
+    filter_unitigs(pangraph, dbg, 1);
 
     pangenome::Graph *pg_exp;
     pg_exp = new pangenome::Graph();
@@ -1106,11 +1080,10 @@ TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesInMiddle_ReadPruned) 
     pg_exp->add_node(5, "5", 4, mhs);
 
     // check contents of read 4 are correct
-    EXPECT_EQ(pg_exp->reads[4]->nodes.size(), pg->reads[4]->nodes.size());
-    for (uint i = 0; i < min(pg->reads[4]->nodes.size(), pg_exp->reads[4]->nodes.size()); ++i) {
-        EXPECT_EQ(*pg->reads[4]->nodes[i], *pg_exp->reads[4]->nodes[i]);
+    EXPECT_EQ(pg_exp->reads[4]->nodes.size(), pangraph->reads[4]->nodes.size());
+    for (uint i = 0; i < min(pangraph->reads[4]->nodes.size(), pg_exp->reads[4]->nodes.size()); ++i) {
+        EXPECT_EQ(*pangraph->reads[4]->nodes[i], *pg_exp->reads[4]->nodes[i]);
     }
-    delete pg;
     delete pg_exp;
 }
 
@@ -1162,36 +1135,36 @@ TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesInMiddle_ReadPruned) 
 
 TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesLongerInMiddle_ReadPruned) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
-    pg->add_node(3, "3", 0, mhs);
-    pg->add_node(4, "4", 0, mhs);
-    pg->add_node(5, "5", 0, mhs);
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pg->add_node(0, "0", 1, mhs);
-    pg->add_node(1, "1", 1, mhs);
-    pg->add_node(2, "2", 1, mhs);
-    pg->add_node(3, "3", 1, mhs);
-    pg->add_node(4, "4", 1, mhs);
-    pg->add_node(5, "5", 1, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_node(3, "3", 0, mhs);
+    pangraph->add_node(4, "4", 0, mhs);
+    pangraph->add_node(5, "5", 0, mhs);
+
+    pangraph->add_node(0, "0", 1, mhs);
+    pangraph->add_node(1, "1", 1, mhs);
+    pangraph->add_node(2, "2", 1, mhs);
+    pangraph->add_node(3, "3", 1, mhs);
+    pangraph->add_node(4, "4", 1, mhs);
+    pangraph->add_node(5, "5", 1, mhs);
 
     // deviates in middle longer
-    pg->add_node(0, "0", 5, mhs);
-    pg->add_node(1, "1", 5, mhs);
-    pg->add_node(2, "2", 5, mhs);
-    pg->add_node(9, "9", 5, mhs);
-    pg->add_node(10, "10", 5, mhs);
-    pg->add_node(11, "11", 5, mhs);
-    pg->add_node(3, "3", 5, mhs);
-    pg->add_node(4, "4", 5, mhs);
-    pg->add_node(5, "5", 5, mhs);
+    pangraph->add_node(0, "0", 5, mhs);
+    pangraph->add_node(1, "1", 5, mhs);
+    pangraph->add_node(2, "2", 5, mhs);
+    pangraph->add_node(9, "9", 5, mhs);
+    pangraph->add_node(10, "10", 5, mhs);
+    pangraph->add_node(11, "11", 5, mhs);
+    pangraph->add_node(3, "3", 5, mhs);
+    pangraph->add_node(4, "4", 5, mhs);
+    pangraph->add_node(5, "5", 5, mhs);
 
     debruijn::Graph dbg(3);
-    construct_debruijn_graph(pg, dbg);
-    filter_unitigs(pg, dbg, 1);
+    construct_debruijn_graph(pangraph, dbg);
+    filter_unitigs(pangraph, dbg, 1);
 
     pangenome::Graph *pg_exp;
     pg_exp = new pangenome::Graph();
@@ -1217,12 +1190,11 @@ TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesLongerInMiddle_ReadPr
     pg_exp->add_node(5, "5", 5, mhs);
 
     // check contents of read 4 are correct
-    EXPECT_EQ(pg_exp->reads[5]->nodes.size(), pg->reads[5]->nodes.size());
-    for (uint i = 0; i < min(pg->reads[5]->nodes.size(), pg_exp->reads[5]->nodes.size()); ++i) {
-        EXPECT_EQ(*pg->reads[5]->nodes[i], *pg_exp->reads[5]->nodes[i]);
+    EXPECT_EQ(pg_exp->reads[5]->nodes.size(), pangraph->reads[5]->nodes.size());
+    for (uint i = 0; i < min(pangraph->reads[5]->nodes.size(), pg_exp->reads[5]->nodes.size()); ++i) {
+        EXPECT_EQ(*pangraph->reads[5]->nodes[i], *pg_exp->reads[5]->nodes[i]);
     }
 
-    delete pg;
     delete pg_exp;
 }
 
@@ -1280,50 +1252,50 @@ TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesLongerInMiddle_ReadPr
 
 TEST(NoiseFilteringFilterUnitigs, AllTogether_PanGraphIsAsExpected) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
-    pg->add_node(3, "3", 0, mhs);
-    pg->add_node(4, "4", 0, mhs);
-    pg->add_node(5, "5", 0, mhs);
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
+
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_node(3, "3", 0, mhs);
+    pangraph->add_node(4, "4", 0, mhs);
+    pangraph->add_node(5, "5", 0, mhs);
 
     // starts correct and deviates
-    pg->add_node(1, "1", 2, mhs);
-    pg->add_node(2, "2", 2, mhs);
-    pg->add_node(3, "3", 2, mhs);
-    pg->add_node(7, "7", 2, mhs);
+    pangraph->add_node(1, "1", 2, mhs);
+    pangraph->add_node(2, "2", 2, mhs);
+    pangraph->add_node(3, "3", 2, mhs);
+    pangraph->add_node(7, "7", 2, mhs);
 
     // incorrect short
-    pg->add_node(0, "0", 3, mhs);
-    pg->add_node(5, "5", 3, mhs);//6
-    pg->add_node(3, "3", 3, mhs);
-    pg->add_node(4, "4", 3, mhs);
+    pangraph->add_node(0, "0", 3, mhs);
+    pangraph->add_node(5, "5", 3, mhs);//6
+    pangraph->add_node(3, "3", 3, mhs);
+    pangraph->add_node(4, "4", 3, mhs);
 
     // deviates in middle
-    pg->add_node(0, "0", 4, mhs);
-    pg->add_node(1, "1", 4, mhs);
-    pg->add_node(2, "2", 4, mhs);
-    pg->add_node(6, "6", 4, mhs);
-    pg->add_node(3, "3", 4, mhs);
-    pg->add_node(4, "4", 4, mhs);
-    pg->add_node(5, "5", 4, mhs);
+    pangraph->add_node(0, "0", 4, mhs);
+    pangraph->add_node(1, "1", 4, mhs);
+    pangraph->add_node(2, "2", 4, mhs);
+    pangraph->add_node(6, "6", 4, mhs);
+    pangraph->add_node(3, "3", 4, mhs);
+    pangraph->add_node(4, "4", 4, mhs);
+    pangraph->add_node(5, "5", 4, mhs);
 
     // deviates in middle longer
-    pg->add_node(0, "0", 5, mhs);
-    pg->add_node(1, "1", 5, mhs);
-    pg->add_node(2, "2", 5, mhs);
-    pg->add_node(9, "9", 5, mhs);
-    pg->add_node(10, "10", 5, mhs);
-    pg->add_node(11, "11", 5, mhs);
-    pg->add_node(3, "3", 5, mhs);
-    pg->add_node(4, "4", 5, mhs);
-    pg->add_node(5, "5", 5, mhs);
+    pangraph->add_node(0, "0", 5, mhs);
+    pangraph->add_node(1, "1", 5, mhs);
+    pangraph->add_node(2, "2", 5, mhs);
+    pangraph->add_node(9, "9", 5, mhs);
+    pangraph->add_node(10, "10", 5, mhs);
+    pangraph->add_node(11, "11", 5, mhs);
+    pangraph->add_node(3, "3", 5, mhs);
+    pangraph->add_node(4, "4", 5, mhs);
+    pangraph->add_node(5, "5", 5, mhs);
 
     debruijn::Graph dbg(3);
-    construct_debruijn_graph(pg, dbg);
-    filter_unitigs(pg, dbg, 1);
+    construct_debruijn_graph(pangraph, dbg);
+    filter_unitigs(pangraph, dbg, 1);
 
     pangenome::Graph pg_exp;
     pg_exp.add_node(0, "0", 0, mhs);
@@ -1362,8 +1334,7 @@ TEST(NoiseFilteringFilterUnitigs, AllTogether_PanGraphIsAsExpected) {
     pg_exp.add_node(4, "4", 5, mhs);
     pg_exp.add_node(5, "5", 5, mhs);
 
-    EXPECT_EQ(pg_exp, *pg);
-    delete pg;
+    EXPECT_EQ(pg_exp, *pangraph);
 }
 
 /*TEST(NoiseFilteringFilterUnitigs,AllTogether_DbgIsAsExpected)
@@ -1475,50 +1446,47 @@ TEST(NoiseFilteringFilterUnitigs, AllTogether_PanGraphIsAsExpected) {
 
 TEST(NoiseFilteringTest, detangle_pangraph_with_debruijn_graph) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
-    pg->add_node(3, "3", 0, mhs);
-    pg->add_node(4, "4", 0, mhs);
-    pg->add_node(5, "5", 0, mhs);
-    pg->add_node(0, "0", 0, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_node(3, "3", 0, mhs);
+    pangraph->add_node(4, "4", 0, mhs);
+    pangraph->add_node(5, "5", 0, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
 
     // overlapping in loop
-    pg->add_node(3, "3", 1, mhs);
-    pg->add_node(4, "4", 1, mhs);
-    pg->add_node(5, "5", 1, mhs);
-    pg->add_node(0, "0", 1, mhs);
-    pg->add_node(1, "1", 1, mhs);
-    pg->add_node(2, "2", 1, mhs);
+    pangraph->add_node(3, "3", 1, mhs);
+    pangraph->add_node(4, "4", 1, mhs);
+    pangraph->add_node(5, "5", 1, mhs);
+    pangraph->add_node(0, "0", 1, mhs);
+    pangraph->add_node(1, "1", 1, mhs);
+    pangraph->add_node(2, "2", 1, mhs);
 
     // starts correct and deviates
-    pg->add_node(1, "1", 2, mhs);
-    pg->add_node(2, "2", 2, mhs);
-    pg->add_node(3, "3", 2, mhs);
-    pg->add_node(7, "7", 2, mhs);
+    pangraph->add_node(1, "1", 2, mhs);
+    pangraph->add_node(2, "2", 2, mhs);
+    pangraph->add_node(3, "3", 2, mhs);
+    pangraph->add_node(7, "7", 2, mhs);
 
     // incorrect short
-    pg->add_node(0, "0", 3, mhs);
-    pg->add_node(5, "5", 3, mhs);//6
-    pg->add_node(3, "3", 3, mhs);
-    pg->add_node(4, "4", 3, mhs);
+    pangraph->add_node(0, "0", 3, mhs);
+    pangraph->add_node(5, "5", 3, mhs);//6
+    pangraph->add_node(3, "3", 3, mhs);
+    pangraph->add_node(4, "4", 3, mhs);
 
     // deviates in middle
-    pg->add_node(0, "0", 4, mhs);
-    pg->add_node(1, "1", 4, mhs);
-    pg->add_node(2, "2", 4, mhs);
-    pg->add_node(6, "6", 4, mhs);
-    pg->add_node(3, "3", 4, mhs);
-    pg->add_node(4, "4", 4, mhs);
-    pg->add_node(5, "5", 4, mhs);
-
-    cout << "original pg is: " << endl << *pg << endl;
+    pangraph->add_node(0, "0", 4, mhs);
+    pangraph->add_node(1, "1", 4, mhs);
+    pangraph->add_node(2, "2", 4, mhs);
+    pangraph->add_node(6, "6", 4, mhs);
+    pangraph->add_node(3, "3", 4, mhs);
+    pangraph->add_node(4, "4", 4, mhs);
+    pangraph->add_node(5, "5", 4, mhs);
 
     debruijn::Graph dbg(3);
-    construct_debruijn_graph(pg, dbg);
+    construct_debruijn_graph(pangraph, dbg);
     //detangle_pangraph_with_debruijn_graph(pg, dbg);
 
     pangenome::Graph pg_exp;
@@ -1596,40 +1564,39 @@ TEST(NoiseFilteringTest, detangle_pangraph_with_debruijn_graph) {
                 pg_exp.nodes[17], pg_exp.nodes[18], pg_exp.nodes[19]};
 
     //EXPECT_EQ(pg_exp, *pg);
-    delete pg;
 }
 
 TEST(NoiseFilteringTest, clean_pangraph_with_debruijn_graph) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
-    pg->add_node(3, "3", 0, mhs);
-    pg->add_node(4, "4", 0, mhs);
-    pg->add_node(5, "5", 0, mhs);
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
+
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_node(3, "3", 0, mhs);
+    pangraph->add_node(4, "4", 0, mhs);
+    pangraph->add_node(5, "5", 0, mhs);
 
     // starts correct and deviates
-    pg->add_node(1, "1", 2, mhs);
-    pg->add_node(2, "2", 2, mhs);
-    pg->add_node(3, "3", 2, mhs);
-    pg->add_node(7, "7", 2, mhs);
+    pangraph->add_node(1, "1", 2, mhs);
+    pangraph->add_node(2, "2", 2, mhs);
+    pangraph->add_node(3, "3", 2, mhs);
+    pangraph->add_node(7, "7", 2, mhs);
 
     // incorrect short
-    pg->add_node(0, "0", 3, mhs);
-    pg->add_node(5, "5", 3, mhs);//6
-    pg->add_node(3, "3", 3, mhs);
-    pg->add_node(4, "4", 3, mhs);
+    pangraph->add_node(0, "0", 3, mhs);
+    pangraph->add_node(5, "5", 3, mhs);//6
+    pangraph->add_node(3, "3", 3, mhs);
+    pangraph->add_node(4, "4", 3, mhs);
 
     // deviates in middle
-    pg->add_node(0, "0", 4, mhs);
-    pg->add_node(1, "1", 4, mhs);
-    pg->add_node(2, "2", 4, mhs);
-    pg->add_node(6, "6", 4, mhs);
-    pg->add_node(3, "3", 4, mhs);
-    pg->add_node(4, "4", 4, mhs);
-    pg->add_node(5, "5", 4, mhs);
+    pangraph->add_node(0, "0", 4, mhs);
+    pangraph->add_node(1, "1", 4, mhs);
+    pangraph->add_node(2, "2", 4, mhs);
+    pangraph->add_node(6, "6", 4, mhs);
+    pangraph->add_node(3, "3", 4, mhs);
+    pangraph->add_node(4, "4", 4, mhs);
+    pangraph->add_node(5, "5", 4, mhs);
 
     //clean_pangraph_with_debruijn_graph(pg, 3, 1);
 
@@ -1655,49 +1622,48 @@ TEST(NoiseFilteringTest, clean_pangraph_with_debruijn_graph) {
     pg_exp.add_node(5, "5", 4, mhs);
 
     //EXPECT_EQ(pg_exp, *pg);
-    delete pg;
 }
 
 TEST(NoiseFilteringTest, write_pangraph_gfa) {
     set<MinimizerHitPtr, pComp> mhs;
-    pangenome::Graph *pg;
-    pg = new pangenome::Graph();
-    pg->add_node(0, "0", 0, mhs);
-    pg->add_node(1, "1", 0, mhs);
-    pg->add_node(2, "2", 0, mhs);
-    pg->add_node(3, "3", 0, mhs);
-    pg->add_node(4, "4", 0, mhs);
-    pg->add_node(5, "5", 0, mhs);
-    pg->add_node(0, "0", 0, mhs);
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
+    
+    pangraph->add_node(0, "0", 0, mhs);
+    pangraph->add_node(1, "1", 0, mhs);
+    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_node(3, "3", 0, mhs);
+    pangraph->add_node(4, "4", 0, mhs);
+    pangraph->add_node(5, "5", 0, mhs);
+    pangraph->add_node(0, "0", 0, mhs);
 
     // overlapping in loop
-    pg->add_node(3, "3", 1, mhs);
-    pg->add_node(4, "4", 1, mhs);
-    pg->add_node(5, "5", 1, mhs);
-    pg->add_node(0, "0", 1, mhs);
-    pg->add_node(1, "1", 1, mhs);
-    pg->add_node(2, "2", 1, mhs);
+    pangraph->add_node(3, "3", 1, mhs);
+    pangraph->add_node(4, "4", 1, mhs);
+    pangraph->add_node(5, "5", 1, mhs);
+    pangraph->add_node(0, "0", 1, mhs);
+    pangraph->add_node(1, "1", 1, mhs);
+    pangraph->add_node(2, "2", 1, mhs);
 
     // starts correct and deviates
-    pg->add_node(1, "1", 2, mhs);
-    pg->add_node(2, "2", 2, mhs);
-    pg->add_node(3, "3", 2, mhs);
-    pg->add_node(7, "7", 2, mhs);
+    pangraph->add_node(1, "1", 2, mhs);
+    pangraph->add_node(2, "2", 2, mhs);
+    pangraph->add_node(3, "3", 2, mhs);
+    pangraph->add_node(7, "7", 2, mhs);
 
     // incorrect short
-    pg->add_node(0, "0", 3, mhs);
-    pg->add_node(5, "5", 3, mhs);//6
-    pg->add_node(3, "3", 3, mhs);
-    pg->add_node(4, "4", 3, mhs);
+    pangraph->add_node(0, "0", 3, mhs);
+    pangraph->add_node(5, "5", 3, mhs);//6
+    pangraph->add_node(3, "3", 3, mhs);
+    pangraph->add_node(4, "4", 3, mhs);
 
     // deviates in middle
-    pg->add_node(0, "0", 4, mhs);
-    pg->add_node(1, "1", 4, mhs);
-    pg->add_node(2, "2", 4, mhs);
-    pg->add_node(6, "6", 4, mhs);
-    pg->add_node(3, "3", 4, mhs);
-    pg->add_node(4, "4", 4, mhs);
-    pg->add_node(5, "5", 4, mhs);
+    pangraph->add_node(0, "0", 4, mhs);
+    pangraph->add_node(1, "1", 4, mhs);
+    pangraph->add_node(2, "2", 4, mhs);
+    pangraph->add_node(6, "6", 4, mhs);
+    pangraph->add_node(3, "3", 4, mhs);
+    pangraph->add_node(4, "4", 4, mhs);
+    pangraph->add_node(5, "5", 4, mhs);
 
-    write_pangraph_gfa("../test/test_cases/noisefiltering_test.pangraph.gfa", pg);
+    write_pangraph_gfa("../test/test_cases/noisefiltering_test.pangraph.gfa", pangraph);
 }
