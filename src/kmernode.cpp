@@ -7,7 +7,7 @@
 #include "utils.h"
 
 
-KmerNode::KmerNode(uint32_t i, const Path &p) : id(i), path(p),
+KmerNode::KmerNode(uint32_t i, const prg::Path &p) : id(i), path(p),
                                                 khash(std::numeric_limits<uint64_t>::max()), num_AT(0) {
     this->covg_new = {{0, 0}};
 }

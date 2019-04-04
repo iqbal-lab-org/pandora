@@ -14,20 +14,20 @@ using namespace pangenome;
 
 TEST(PangenomeNodeTest, create) {
 
-    Node pn(4, 3, "3");
+    pangenome::Node pan_node(4, 3, "3");
     uint32_t j = 3;
-    EXPECT_EQ(j, pn.node_id);
-    EXPECT_EQ((uint) 4, pn.prg_id);
-    EXPECT_EQ("3", pn.name);
-    EXPECT_EQ((uint) 1, pn.covg);
-    EXPECT_EQ((uint) 0, pn.reads.size());
-    EXPECT_EQ((uint) 0, pn.samples.size());
+    EXPECT_EQ(j, pan_node.node_id);
+    EXPECT_EQ((uint) 4, pan_node.prg_id);
+    EXPECT_EQ("3", pan_node.name);
+    EXPECT_EQ((uint) 1, pan_node.covg);
+    EXPECT_EQ((uint) 0, pan_node.reads.size());
+    EXPECT_EQ((uint) 0, pan_node.samples.size());
 }
 
 TEST(PangenomeNodeTest, get_name) {
-    Node pn1(3, 3, "3");
-    Node pn2(2, 2, "2");
-    Node pn3(2, 4, "2");
+    pangenome::Node pn1(3, 3, "3");
+    pangenome::Node pn2(2, 2, "2");
+    pangenome::Node pn3(2, 4, "2");
 
     EXPECT_EQ(pn1.get_name(), "3");
     EXPECT_EQ(pn2.get_name(), "2");
@@ -35,13 +35,13 @@ TEST(PangenomeNodeTest, get_name) {
 }
 
 TEST(PangenomeNodeTest, add_path) {
-    Node pn1(3, 3, "3");
+    pangenome::Node pn1(3, 3, "3");
     std::vector<KmerNodePtr> kmp;
     pn1.add_path(kmp, 0);
 
     KmerGraph kg;
     std::deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     kg.add_node(p);
     d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
@@ -88,13 +88,13 @@ TEST(PangenomeNodeTest, add_path) {
 }
 
 TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
-    Node pn(3, 3, "3");
+    pangenome::Node pan_node(3, 3, "3");
     pangenome::ReadPtr pr;
     MinimizerHits mhits;
 
     Minimizer m;
     std::deque<Interval> d;
-    Path p;
+    prg::Path p;
     MiniRecord *mr;
 
     // read1
@@ -120,7 +120,7 @@ TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
     mhits.sort();
     pr = std::make_shared<pangenome::Read>(1);
     pr->add_hits(3, mhits.hits);
-    pn.reads.insert(pr);
+    pan_node.reads.insert(pr);
     mhits.clear();
 
     //read 2
@@ -141,13 +141,13 @@ TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
     mhits.sort();
     pr = std::make_shared<pangenome::Read>(2);
     pr->add_hits(3, mhits.hits);
-    pn.reads.insert(pr);
+    pan_node.reads.insert(pr);
     mhits.clear();
 
     delete mr;
 
     std::vector<std::vector<uint32_t>> read_overlap_coordinates;
-    pn.get_read_overlap_coordinates(read_overlap_coordinates);
+    pan_node.get_read_overlap_coordinates(read_overlap_coordinates);
     std::vector<std::vector<uint32_t>> expected_read_overlap_coordinates = {{1, 0, 6,  1},
                                                                             {2, 2, 10, 0}};
     for (const auto &coord : read_overlap_coordinates) {
@@ -170,7 +170,7 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_single_prg)
     auto prg_ptr = std::make_shared<LocalPRG>(local_prg);
     auto &kg = local_prg.kmer_prg;
 
-    Graph pangraph;
+    pangenome::Graph pangraph;
 
     //sample1
     std::string sample_name = "sample1";
@@ -288,7 +288,7 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
     auto prg_ptr2 = std::make_shared<LocalPRG>(local_prg2);
     auto &kg2 = local_prg2.kmer_prg;
 
-    Graph pangraph;
+    pangenome::Graph pangraph;
 
     //sample1
     std::string sample_name = "sample1";
@@ -328,8 +328,6 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
     pannode1.construct_multisample_vcf(master_vcf, vcf_reference_path1, prg_ptr1, w, min_kmer_covg);
     auto &pannode2 = *pangraph.nodes[prg_id2];
     pannode2.construct_multisample_vcf(master_vcf, vcf_reference_path2, prg_ptr2, w, min_kmer_covg);
-    std::cout << master_vcf.header() << std::endl;
-    std::cout << master_vcf << std::endl;
 
     EXPECT_EQ((uint)4, master_vcf.records.size());
     EXPECT_EQ((uint)4, master_vcf.samples.size());
@@ -365,7 +363,6 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
     std::vector<std::string> formats = {"MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG",
                                         "SUM_FWD_COVG", "SUM_REV_COVG"};
     for (const auto format : formats){
-        std::cout << format << std::endl;
         EXPECT_FALSE(master_vcf.records[0].samples[sample1_index].find(format) == master_vcf.records[0].samples[sample1_index].end());
         EXPECT_FALSE(master_vcf.records[0].samples[sample2_index].find(format) == master_vcf.records[0].samples[sample2_index].end());
         EXPECT_FALSE(master_vcf.records[0].samples[sample3_index].find(format) == master_vcf.records[0].samples[sample3_index].end());
@@ -392,7 +389,6 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
     EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample1_index]["GT"], ref_gt);
 
     for (const auto format : formats){
-        std::cout << format << std::endl;
         EXPECT_FALSE(master_vcf.records[1].samples[sample1_index].find(format) == master_vcf.records[1].samples[sample1_index].end());
         EXPECT_FALSE(master_vcf.records[1].samples[sample2_index].find(format) == master_vcf.records[1].samples[sample2_index].end());
         EXPECT_FALSE(master_vcf.records[1].samples[sample3_index].find(format) == master_vcf.records[1].samples[sample3_index].end());
@@ -415,7 +411,6 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
     EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2].samples[sample3_index]["GT"], alt_gt);
 
     for (const auto format : formats){
-        std::cout << format << std::endl;
         EXPECT_FALSE(master_vcf.records[2].samples[sample1_index].find(format) == master_vcf.records[2].samples[sample1_index].end());
         EXPECT_TRUE(master_vcf.records[2].samples[sample2_index].find(format) == master_vcf.records[2].samples[sample2_index].end());
         EXPECT_FALSE(master_vcf.records[2].samples[sample3_index].find(format) == master_vcf.records[2].samples[sample3_index].end());
@@ -440,7 +435,6 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
     EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample4_index]["GT"], alt2_gt);
 
     for (const auto format : formats){
-        std::cout << format << std::endl;
         EXPECT_FALSE(master_vcf.records[3].samples[sample1_index].find(format) == master_vcf.records[3].samples[sample1_index].end());
         EXPECT_TRUE(master_vcf.records[3].samples[sample2_index].find(format) == master_vcf.records[3].samples[sample2_index].end());
         EXPECT_FALSE(master_vcf.records[3].samples[sample3_index].find(format) == master_vcf.records[3].samples[sample3_index].end());
@@ -468,7 +462,7 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg_with_covgs)
     auto prg_ptr2 = std::make_shared<LocalPRG>(local_prg2);
     auto &kg2 = local_prg2.kmer_prg;
 
-    Graph pangraph;
+    pangenome::Graph pangraph;
 
     //sample1
     std::string sample_name = "sample1";
@@ -531,17 +525,12 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg_with_covgs)
     pannode2.kmer_prg.nodes[8]->set_covg(5, 0, 3);
     pannode2.kmer_prg.nodes[9]->set_covg(5, 0, 3);
 
-    std::cout << "added samples" << std::endl;
-
     VCF master_vcf;
     std::vector<LocalNodePtr> vcf_reference_path1 = {local_prg1.prg.nodes[0], local_prg1.prg.nodes[1], local_prg1.prg.nodes[3], local_prg1.prg.nodes[5], local_prg1.prg.nodes[7]};
     std::vector<LocalNodePtr> vcf_reference_path2 = {local_prg2.prg.nodes[0], local_prg2.prg.nodes[1], local_prg2.prg.nodes[3], local_prg2.prg.nodes[5], local_prg2.prg.nodes[7]};
 
     pannode1.construct_multisample_vcf(master_vcf, vcf_reference_path1, prg_ptr1, w, min_kmer_covg);
     pannode2.construct_multisample_vcf(master_vcf, vcf_reference_path2, prg_ptr2, w, min_kmer_covg);
-
-    std::cout << master_vcf.header() << std::endl;
-    std::cout << master_vcf << std::endl;
 
     EXPECT_EQ((uint)4, master_vcf.records.size());
     EXPECT_EQ((uint)4, master_vcf.samples.size());
@@ -588,9 +577,9 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg_with_covgs)
 }
 
 TEST(PangenomeNodeTest, equals) {
-    Node pn1(3, 3, "3");
-    Node pn2(2, 2, "2");
-    Node pn3(2, 2, "2");
+    pangenome::Node pn1(3, 3, "3");
+    pangenome::Node pn2(2, 2, "2");
+    pangenome::Node pn3(2, 2, "2");
 
     EXPECT_EQ(pn1, pn1);
     EXPECT_EQ(pn2, pn2);
@@ -602,9 +591,9 @@ TEST(PangenomeNodeTest, equals) {
 }
 
 TEST(PangenomeNodeTest, nequals) {
-    Node pn1(3, 3, "3");
-    Node pn2(2, 2, "2");
-    Node pn3(2, 2, "2");
+    pangenome::Node pn1(3, 3, "3");
+    pangenome::Node pn2(2, 2, "2");
+    pangenome::Node pn3(2, 2, "2");
 
     EXPECT_EQ((pn1 != pn2), true);
     EXPECT_EQ((pn2 != pn1), true);
@@ -615,9 +604,9 @@ TEST(PangenomeNodeTest, nequals) {
 }
 
 TEST(PangenomeNodeTest, less) {
-    Node pn1(3, 3, "3");
-    Node pn2(2, 2, "2");
-    Node pn3(2, 2, "2");
+    pangenome::Node pn1(3, 3, "3");
+    pangenome::Node pn2(2, 2, "2");
+    pangenome::Node pn3(2, 2, "2");
 
     EXPECT_EQ((pn1 < pn1), false);
     EXPECT_EQ((pn2 < pn2), false);
@@ -627,4 +616,576 @@ TEST(PangenomeNodeTest, less) {
     EXPECT_EQ((pn2 < pn1), true);
     EXPECT_EQ((pn3 < pn1), true);
 
+}
+
+TEST(ExtractReadsTest, get_read_overlap_coordinates) {
+    //
+    //  Read 0 has prg 3 sequence in interval (2,12] only
+    //  Read 1 has prg 3 sequence in interval (6,16] as well as noise
+    //  Read 2 has prg 3 sequence in interval (4,20] stretched out
+    //  Read 3 has prg 3 sequence in interval (4,14] but is missing bits
+    //  Read 4 doesn't have prg 3 sequence - on all hits are noise
+    //
+    uint32_t pan_node_id = 3, prg_id = 3, read_id = 0, knode_id = 0;
+    string pan_node_name = "three";
+    bool orientation(true);
+    deque<Interval> d;
+    prg::Path prg_path;
+    MinimizerHitPtr mh;
+
+    PanNodePtr pan_node = make_shared<pangenome::Node>(pan_node_id, prg_id, pan_node_name);
+    PanReadPtr pr = make_shared<pangenome::Read>(read_id);
+
+    set<MinimizerHitPtr, pComp> hits;
+
+
+    // READ 0
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(27, 30) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 1
+    read_id = 1;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(12, 15), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(11, 14), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(27, 30) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(31, 33) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(78, 81) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 2
+    read_id = 2;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(27, 30) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(31, 33) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(78, 81) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 3
+    read_id = 3;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 4
+    read_id = 4;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(31, 33) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(78, 81) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // RUN GET_READ_OVERLAPS
+    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+    const std::vector<LocalNodePtr> lmp {//l3.prg.nodes[0],
+            l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6], l3.prg.nodes[7]//, l3.prg.nodes[9]
+    };
+    // A G C T CGG  TAT
+    const std::set<ReadCoordinate> expected_overlaps {{ 0, 3, 9,  1 },
+                                                      { 1, 7, 13, 1 },
+                                                      { 2, 5, 13, 1 },
+                                                      { 3, 6, 10, 1 }};
+
+    prg::Path local_path;
+    for (const auto &node : lmp) {
+        local_path.add_end_interval(node->pos);
+    }
+    const auto overlaps { pan_node->get_read_overlap_coordinates(local_path) };
+
+    EXPECT_ITERABLE_EQ(std::set<ReadCoordinate>, expected_overlaps, overlaps);
+}
+
+
+TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
+    //
+    //  Read 0 has prg 3 sequence in interval (2,12] only
+    //  Read 1 has prg 3 sequence in interval (6,16] as well as noise
+    //  Read 2 has prg 3 sequence in interval (4,20] stretched out
+    //  Read 3 has prg 3 sequence in interval (4,14] but is missing bits
+    //  Read 4 doesn't have prg 3 sequence - on all hits are noise
+    //  Read 5 is a duplicate of Read 0
+    //
+    uint32_t pan_node_id = 3, prg_id = 3, read_id = 0, knode_id = 0;
+    string pan_node_name = "three";
+    bool orientation(true);
+    deque<Interval> d;
+    prg::Path prg_path;
+    MinimizerHitPtr mh;
+
+    PanNodePtr pan_node = make_shared<pangenome::Node>(pan_node_id, prg_id, pan_node_name);
+    PanReadPtr pr = make_shared<pangenome::Read>(read_id);
+
+    set<MinimizerHitPtr, pComp> hits;
+
+
+    // READ 0
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(27, 30) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 1
+    read_id = 1;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(12, 15), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(11, 14), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(27, 30) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(31, 33) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(78, 81) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 2
+    read_id = 2;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(27, 30) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(31, 33) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(78, 81) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 3
+    read_id = 3;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 4
+    read_id = 4;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // noise
+    d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(31, 33) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(78, 81) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // READ 5
+    read_id = 0;
+    pr = make_shared<pangenome::Read>(read_id);
+
+    // hits overlapping edges of path
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    // hits on path
+    d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(16, 17), Interval(27, 29) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+    d = { Interval(27, 30) };
+    prg_path.initialize(d);
+    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    hits.insert(mh);
+
+    pr->add_hits(prg_id, hits);
+    pan_node->reads.insert(pr);
+    hits.clear();
+
+    // RUN GET_READ_OVERLAPS
+    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
+    const std::vector<LocalNodePtr> lmp {//l3.prg.nodes[0],
+            l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6], l3.prg.nodes[7]//, l3.prg.nodes[9]
+    };
+    // A G C T CGG  TAT
+    const std::set<ReadCoordinate> expected_overlaps {{ 0, 3, 9,  1 },
+                                                      { 1, 7, 13, 1 },
+                                                      { 2, 5, 13, 1 },
+                                                      { 3, 6, 10, 1 }};
+
+    prg::Path local_path;
+    for (const auto &node : lmp) {
+        local_path.add_end_interval(node->pos);
+    }
+    const auto overlaps { pan_node->get_read_overlap_coordinates(local_path) };
+
+    EXPECT_ITERABLE_EQ(std::set<ReadCoordinate>, expected_overlaps, overlaps);
 }

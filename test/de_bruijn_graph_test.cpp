@@ -682,10 +682,6 @@ TEST(DeBruijnGraphTest, extend_unitig) {
 
     d = {1};
     g.extend_unitig(d);
-    for (const auto &n : d) {
-        std::cout << n << " ";
-    }
-    std::cout << std::endl;
     d_exp = {1, 2, 3, 4, 5, 0};
     EXPECT_ITERABLE_EQ(std::deque<uint32_t>, d, d_exp);
 }

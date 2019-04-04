@@ -12,18 +12,20 @@ struct MinimizerHit {
     uint32_t read_start_position;
     uint32_t prg_id;
     prg::Path prg_path;
-    uint32_t knode_id;
-    bool strand; // forward or reverse complement
+    uint32_t kmer_node_id;
+    bool is_forward;
 
     MinimizerHit(const uint32_t i, const Minimizer &m, const MiniRecord *r);
 
-    MinimizerHit(const uint32_t i, const Interval j, const uint32_t k, const prg::Path p, const uint32_t n,
-                 const bool c); // second allowed constructor
+    MinimizerHit(const uint32_t read_id, const Interval read_interval, const uint32_t prg_id, const prg::Path prg_path,
+                 const uint32_t kmer_node_id, const bool is_forward);
+
     bool operator<(const MinimizerHit &y) const;
 
     bool operator==(const MinimizerHit &y) const;
 
     friend std::ostream &operator<<(std::ostream &out, const MinimizerHit &m);
 };
+
 
 #endif

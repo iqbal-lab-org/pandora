@@ -82,8 +82,8 @@ bool pComp_path::operator()(const MinimizerHitPtr &lhs, const MinimizerHitPtr &r
     if (lhs->prg_path < rhs->prg_path) { return true; }
     if (rhs->prg_path < lhs->prg_path) { return false; }
     //separated into two categories, corresponding to a forward, and a rev-complement hit, note fwd come first
-    if (lhs->strand > rhs->strand) { return true; }
-    if (rhs->strand > lhs->strand) { return false; }
+    if (lhs->is_forward > rhs->is_forward) { return true; }
+    if (rhs->is_forward > lhs->is_forward) { return false; }
     // finally, make sure that hits from separate reads aren't removed from the set as "=="
     if (lhs->read_id < rhs->read_id) { return true; }
     if (rhs->read_id < lhs->read_id) { return false; }
@@ -103,8 +103,8 @@ bool clusterComp::operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<Mini
     if ((*rhs.begin())->prg_id < (*lhs.begin())->prg_id) { return false; }
     if ((*lhs.begin())->prg_path < (*rhs.begin())->prg_path) { return true; }
     if ((*rhs.begin())->prg_path < (*lhs.begin())->prg_path) { return false; }
-    if ((*lhs.begin())->strand < (*rhs.begin())->strand) { return true; }
-    if ((*rhs.begin())->strand < (*lhs.begin())->strand) { return false; }
+    if ((*lhs.begin())->is_forward < (*rhs.begin())->is_forward) { return true; }
+    if ((*rhs.begin())->is_forward < (*lhs.begin())->is_forward) { return false; }
     return false;
 }
 
@@ -119,7 +119,7 @@ bool clusterComp_size::operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set
     if ((*rhs.begin())->prg_id < (*lhs.begin())->prg_id) { return false; }
     if ((*lhs.begin())->prg_path < (*rhs.begin())->prg_path) { return true; }
     if ((*rhs.begin())->prg_path < (*lhs.begin())->prg_path) { return false; }
-    if ((*lhs.begin())->strand < (*rhs.begin())->strand) { return true; }
-    if ((*rhs.begin())->strand < (*lhs.begin())->strand) { return false; }
+    if ((*lhs.begin())->is_forward < (*rhs.begin())->is_forward) { return true; }
+    if ((*rhs.begin())->is_forward < (*lhs.begin())->is_forward) { return false; }
     return false;
 }

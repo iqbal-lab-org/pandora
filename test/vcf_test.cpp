@@ -612,8 +612,6 @@ TEST(VCFTest, genotype) {
 
     vcf.genotype({30, 30}, 0.01, 30, 0, 1, 0, 0, true);
 
-    cout << vcf << endl;
-
     // not genotyped first record
     EXPECT_EQ((uint16_t) 1, vcf.records[0].samples[0]["GT"][0]);
     EXPECT_EQ((uint16_t) 1, vcf.records[0].samples[1]["GT"][0]);
@@ -748,8 +746,6 @@ TEST(VCFTest, genotype_with_all_sites) {
     bool snps_only = false;
     vcf.genotype({30, 30}, 0.01, 30, 0, 1, 0, 0, snps_only);
 
-    cout << vcf << endl;
-
     // first record now genotyped
     EXPECT_EQ((uint16_t) 1, vcf.records[0].samples[0]["GT"][0]);
     EXPECT_EQ((uint16_t) 1, vcf.records[0].samples[1]["GT"][0]);
@@ -814,7 +810,6 @@ TEST(VCFTest, add_formats) {
     vcf.add_sample_gt("sample", "chrom1", 46, "CTT", "TA");
 
     vcf.add_formats(formats);
-    cout << vcf << endl;
 
     for (const auto& record: vcf.records){
         for (const auto &f: formats){
@@ -858,7 +853,6 @@ TEST(VCFTest, merge_multi_allelic) {
     vcf.merge_multi_allelic();
     std::vector<std::string> formats = {"GT", "LIKELIHOOD", "GT_CONF", "MEAN_FWD_COVG", "MEAN_REV_COVG", "GAPS"};
     vcf.add_formats(formats);
-    cout << vcf << endl;
 
     EXPECT_EQ((uint) 5, vcf.records.size());
     EXPECT_EQ((uint) 5, vcf.records[0].pos);
@@ -998,7 +992,6 @@ TEST(VCFTest, make_gt_compatible) {
     vcf.records[9].regt_samples[0]["GT_CONF"] = {10};
 
     vcf.make_gt_compatible();
-    cout << vcf << endl;
 
     bool found_gt = vcf.records[0].samples[0].find("GT") != vcf.records[0].samples[0].end();
     EXPECT_FALSE(found_gt);
@@ -1075,9 +1068,7 @@ TEST(VCFTest, load) {
     uint j = 3;
     EXPECT_EQ(j, vcf.records.size());
 
-    cout << vcf << endl;
     vcf1.load("vcf_test.vcf");
-    cout << vcf1 << endl;
 
     EXPECT_EQ(vcf == vcf1, true);
 }

@@ -102,7 +102,7 @@ TEST(LocalPRGTest, string_along_path) {
 
     // empty interval
     deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     EXPECT_EQ("", l0.string_along_path(p));
     EXPECT_EQ("", l1.string_along_path(p));
@@ -165,7 +165,7 @@ TEST(LocalPRGTest, nodes_along_path) {
 
     // empty interval expects no nodes along
     deque<Interval> d = {Interval(0, 0)};
-    Path p;
+    prg::Path p;
     p.initialize(d);
     vector<LocalNodePtr> v;
 
@@ -437,23 +437,23 @@ TEST(LocalPRGTest, shift) {
     LocalPRG l6(6, "one representing a possible deletion at end", "GATCTCTAG 5 TTATG 6  5 ");
 
     deque<Interval> d = {Interval(0, 3)};
-    Path p, q;
+    prg::Path p, q;
     p.initialize(d);
     d = {Interval(1, 4)};
     q.initialize(d);
-    vector<Path> v_exp = {q};
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l1.shift(p));
+    vector<prg::Path> v_exp = {q};
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l1.shift(p));
     v_exp.clear();
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l1.shift(q)); // there are no shifts over end of prg
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l1.shift(q)); // there are no shifts over end of prg
 
     d = {Interval(0, 1), Interval(4, 6)};
     p.initialize(d);
     d = {Interval(4, 6), Interval(13, 14)};
     q.initialize(d);
     v_exp = {q};
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l2.shift(p));
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l2.shift(p));
     v_exp.clear();
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l2.shift(q));
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l2.shift(q));
 
     v_exp.clear();
     d = {Interval(0, 2)};
@@ -464,7 +464,7 @@ TEST(LocalPRGTest, shift) {
     d = {Interval(1, 2), Interval(20, 21)};
     q.initialize(d);
     v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l3.shift(p));
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l3.shift(p));
 
     v_exp.clear();
     d = {Interval(1, 2), Interval(5, 6)};
@@ -475,7 +475,7 @@ TEST(LocalPRGTest, shift) {
     d = {Interval(5, 6), Interval(13, 14)};
     q.initialize(d);
     v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l3.shift(p));
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l3.shift(p));
 
     v_exp.clear();
     d = {Interval(0, 0), Interval(3, 3), Interval(6, 6), Interval(9, 9), Interval(13, 18)};
@@ -483,7 +483,7 @@ TEST(LocalPRGTest, shift) {
     d = {Interval(14, 19)};
     q.initialize(d);
     v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l5.shift(p));
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l5.shift(p));
 
     v_exp.clear();
     d = {Interval(3, 8)};
@@ -494,7 +494,7 @@ TEST(LocalPRGTest, shift) {
     d = {Interval(4, 9)};
     q.initialize(d);
     v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l6.shift(p));
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l6.shift(p));
 
     v_exp.clear();
     d = {Interval(4, 9)};
@@ -502,7 +502,7 @@ TEST(LocalPRGTest, shift) {
     d = {Interval(5, 9), Interval(12, 13)};
     q.initialize(d);
     v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<Path>, v_exp, l6.shift(p));
+    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l6.shift(p));
 }
 
 TEST(LocalPRGTest, minimizer_sketch) {
@@ -814,7 +814,25 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
     EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, kmp_exp, kmp);
 }
 
-TEST(LocalPRGTest, get_covgs_along_localnode_path) {
+
+TEST(GetCovgsAlongLocalnodePathTest, emptyPanNodeReturnsEmpty) {
+    const auto prg_id { 3 };
+    LocalPRG local_prg { prg_id, "test", "" };
+    const std::vector<LocalNodePtr> local_node_max_likelihood_path;
+    const std::vector<KmerNodePtr> kmer_node_max_likelihood_path;
+
+    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(0, prg_id, "test") };
+    pangraph_node->kmer_prg = local_prg.kmer_prg;
+
+    const auto actual {
+            get_covgs_along_localnode_path(pangraph_node, local_node_max_likelihood_path, kmer_node_max_likelihood_path,
+                                           0) };
+    const std::vector<uint32_t> expected;
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(GetCovgsAlongLocalnodePathTest, get_covgs_along_localnode_path) {
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T");
     LocalPRG l4(4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG");
 

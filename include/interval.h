@@ -23,6 +23,8 @@ struct Interval {
     bool operator!=(const Interval &y) const;
 
     bool operator<(const Interval &y) const;
+
+    bool empty() const;
 };
 
 #endif

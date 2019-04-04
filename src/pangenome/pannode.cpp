@@ -15,7 +15,7 @@
 
 using namespace pangenome;
 
-Node::Node(const uint32_t i, const uint32_t j, const std::string n) : prg_id(i), node_id(j), name(n), covg(1) {}
+pangenome::Node::Node(const uint32_t i, const uint32_t j, const std::string n) : prg_id(i), node_id(j), name(n), covg(1) {}
 
 /*// copy constructor
 Node::Node(const Node& other)
@@ -47,7 +47,7 @@ Node& Node::operator=(const Node& other)
     return *this;
 }*/
 
-void Node::remove_read(ReadPtr r) {
+void pangenome::Node::remove_read(ReadPtr r) {
     //removes single copy of read
     auto it = find(reads.begin(), reads.end(), r);
     if (it != reads.end()) {
@@ -57,7 +57,7 @@ void Node::remove_read(ReadPtr r) {
     }
 }
 
-std::string Node::get_name() const {
+std::string pangenome::Node::get_name() const {
     if (prg_id != node_id) {
         return name + "." + std::to_string(node_id);
     } else {
@@ -65,7 +65,7 @@ std::string Node::get_name() const {
     }
 }
 
-void Node::add_path(const std::vector<KmerNodePtr> &kmp, const uint32_t &sample_id) {
+void pangenome::Node::add_path(const std::vector<KmerNodePtr> &kmp, const uint32_t &sample_id) {
     for (uint32_t i = 0; i != kmp.size(); ++i) {
         assert(kmp[i]->id < kmer_prg.nodes.size() and kmer_prg.nodes[kmp[i]->id] != nullptr);
         kmer_prg.nodes[kmp[i]->id]->increment_covg(0, sample_id);
@@ -73,7 +73,7 @@ void Node::add_path(const std::vector<KmerNodePtr> &kmp, const uint32_t &sample_
     }
 }
 
-void Node::get_read_overlap_coordinates(std::vector<std::vector<uint32_t>> &read_overlap_coordinates) {
+void pangenome::Node::get_read_overlap_coordinates(std::vector<std::vector<uint32_t>> &read_overlap_coordinates) {
     read_overlap_coordinates.reserve(reads.size());
     std::vector<uint32_t> coordinate;
 
@@ -96,7 +96,7 @@ void Node::get_read_overlap_coordinates(std::vector<std::vector<uint32_t>> &read
                                                                        << " (the " << read_count << "th on this node)"
                                                                        << std::endl << "Found end " << end
                                                                        << " after found start " << start));
-        coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->strand};
+        coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->is_forward};
         read_overlap_coordinates.push_back(coordinate);
     }
 
@@ -112,7 +112,7 @@ void Node::get_read_overlap_coordinates(std::vector<std::vector<uint32_t>> &read
 
 }
 
-void Node::construct_multisample_vcf(VCF &master_vcf, const std::vector<LocalNodePtr> &vcf_reference_path,
+void pangenome::Node::construct_multisample_vcf(VCF &master_vcf, const std::vector<LocalNodePtr> &vcf_reference_path,
                                      const std::shared_ptr<LocalPRG> &prg, const uint32_t w,
                                      const uint32_t &min_kmer_covg) {
     // create a vcf with respect to this ref
@@ -149,19 +149,46 @@ void Node::construct_multisample_vcf(VCF &master_vcf, const std::vector<LocalNod
     master_vcf.append_vcf(vcf);
 }
 
-bool Node::operator==(const Node &y) const {
+bool pangenome::Node::operator==(const Node &y) const {
     return (node_id == y.node_id);
 }
 
-bool Node::operator!=(const Node &y) const {
+bool pangenome::Node::operator!=(const Node &y) const {
     return (node_id != y.node_id);
 }
 
-bool Node::operator<(const Node &y) const {
+bool pangenome::Node::operator<(const Node &y) const {
     return (node_id < y.node_id);
 }
 
 std::ostream &pangenome::operator<<(std::ostream &out, pangenome::Node const &n) {
     out << n.node_id << "," << n.prg_id << " covg: " << n.covg;
     return out;
+}
+
+std::set<ReadCoordinate>
+pangenome::Node::get_read_overlap_coordinates(const prg::Path &local_path, const uint32_t &min_number_hits) {
+    std::set<ReadCoordinate> read_overlap_coordinates;
+
+    for (const auto &current_read: this->reads) {
+        const auto read_hits_inside_path { find_hits_inside_path(current_read->hits.at(this->prg_id), local_path) };
+
+        if (read_hits_inside_path.size() < min_number_hits) {
+            continue;
+        }
+
+        const auto read_hits_iter { read_hits_inside_path.cbegin() };
+        uint32_t start { (*read_hits_iter)->read_start_position };
+        uint32_t end { 0 };
+
+        for (const auto &read_hit : read_hits_inside_path) {
+            start = std::min(start, read_hit->read_start_position);
+            end = std::max(end, read_hit->read_start_position + read_hit->prg_path.length());
+        }
+
+        assert(end > start);
+
+        read_overlap_coordinates.emplace(current_read->id, start, end, (*read_hits_iter)->is_forward);
+    }
+    return read_overlap_coordinates;
 }

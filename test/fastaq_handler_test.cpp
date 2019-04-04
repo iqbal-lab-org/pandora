@@ -35,7 +35,6 @@ TEST(FastaqHandlerTest, getline_fa) {
     FastaqHandler fh("../../test/test_cases/reads.fa");
     bool foundline = false;
     while (std::getline(fh.instream, fh.line)) {
-        std::cout << fh.line << std::endl;
         foundline = true;
     }
     EXPECT_TRUE(foundline);
@@ -45,7 +44,6 @@ TEST(FastaqHandlerTest, getline_fagz) {
     FastaqHandler fh("../../test/test_cases/reads.fa.gz");
     bool foundline = false;
     while (std::getline(fh.instream, fh.line)) {
-        std::cout << fh.line << std::endl;
         foundline = true;
     }
     EXPECT_TRUE(foundline);

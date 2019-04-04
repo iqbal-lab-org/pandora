@@ -21,18 +21,18 @@
 using namespace debruijn;
 
 // Define a debruijn graph with s-mers of genes as nodes
-Graph::Graph(uint8_t s) : next_id(0), size(s) {
+debruijn::Graph::Graph(uint8_t s) : next_id(0), size(s) {
     nodes.reserve(200000);
 };
 
 
-Graph::~Graph() {
+debruijn::Graph::~Graph() {
     nodes.clear();
 }
 
 // Add a node in dbg corresponding to a fixed size deque of pangenome graph
 // node/orientation ids and labelled with the read_ids which cover it
-OrientedNodePtr Graph::add_node(const std::deque<uint_least32_t> &node_ids, uint32_t read_id) {
+OrientedNodePtr debruijn::Graph::add_node(const std::deque<uint_least32_t> &node_ids, uint32_t read_id) {
     assert(node_ids.size() == size);
 
     if (node_hash.find(node_ids) != node_hash.end()) {
@@ -93,7 +93,7 @@ bool edge_is_valid(OrientedNodePtr from, OrientedNodePtr to) {
 }
 
 // Add directed edge between from and to
-void Graph::add_edge(OrientedNodePtr from, OrientedNodePtr to) {
+void debruijn::Graph::add_edge(OrientedNodePtr from, OrientedNodePtr to) {
     assert(from.first != nullptr and to.first != nullptr);
     assert(edge_is_valid(from, to) or assert_msg("edge from " << *from.first << " to " << *to.first << " is invalid"));
 
@@ -126,7 +126,7 @@ void Graph::add_edge(OrientedNodePtr from, OrientedNodePtr to) {
 }
 
 // Remove all mentions of de bruijn node with id given from graph
-void Graph::remove_node(const uint32_t dbg_node_id) {
+void debruijn::Graph::remove_node(const uint32_t dbg_node_id) {
     //cout << "remove node " << dbg_node_id << endl;
     auto it = nodes.find(dbg_node_id);
     if (it != nodes.end()) {
@@ -190,7 +190,7 @@ void Graph::remove_node(const uint32_t dbg_node_id) {
 }*/
 
 // Remove all copies of read from de bruijn node
-void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_node_id) {
+void debruijn::Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_node_id) {
     //cout << "remove read " << (uint)read_id << " from node " << (uint)dbg_node_id << endl;
     auto it = nodes.find(dbg_node_id);
     bool found_read_intersect;
@@ -256,7 +256,7 @@ void Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_nod
 }
 
 // Get the dbg node ids corresponding to leaves
-std::unordered_set<uint32_t> Graph::get_leaves(uint_least32_t covg_thresh) {
+std::unordered_set<uint32_t> debruijn::Graph::get_leaves(uint_least32_t covg_thresh) {
     std::unordered_set<uint32_t> s;
     for (const auto &c : nodes) {
         BOOST_LOG_TRIVIAL(debug) << "node " << *c.second
@@ -272,7 +272,7 @@ std::unordered_set<uint32_t> Graph::get_leaves(uint_least32_t covg_thresh) {
 }
 
 // Get deques of dbg node ids corresponding to maximal non-branching paths in dbg
-std::set<std::deque<uint32_t>> Graph::get_unitigs() {
+std::set<std::deque<uint32_t>> debruijn::Graph::get_unitigs() {
     std::set<std::deque<uint32_t>> all_tigs;
     std::set<uint32_t> seen;
 
@@ -298,7 +298,7 @@ std::set<std::deque<uint32_t>> Graph::get_unitigs() {
 }
 
 // Extend a dbg path on either end until reaching a branch point
-void Graph::extend_unitig(std::deque<uint32_t> &tig) {
+void debruijn::Graph::extend_unitig(std::deque<uint32_t> &tig) {
     bool tig_is_empty = (tig.empty());
     bool node_is_isolated = (tig.size() == 1
                              and (nodes[tig.back()]->out_nodes.size() + nodes[tig.back()]->in_nodes.size()) == 0);
@@ -423,7 +423,7 @@ void Graph::extend_unitig(std::deque<uint32_t> &tig) {
 }
 
 // Search the outnodes of node_ptr_to_search for node_ptr_to_find
-bool Graph::found_in_out_nodes(const NodePtr node_ptr_to_search, const NodePtr node_ptr_to_find) const {
+bool debruijn::Graph::found_in_out_nodes(const NodePtr node_ptr_to_search, const NodePtr node_ptr_to_find) const {
     for (const auto &i : node_ptr_to_search->out_nodes) {
         if (*nodes.at(i) == *node_ptr_to_find) {
             return true;
@@ -435,7 +435,7 @@ bool Graph::found_in_out_nodes(const NodePtr node_ptr_to_search, const NodePtr n
 }
 
 // Search the innodes of node_ptr_to_search for node_ptr_to_find
-bool Graph::found_in_in_nodes(const NodePtr node_ptr_to_search, const NodePtr node_ptr_to_find) const {
+bool debruijn::Graph::found_in_in_nodes(const NodePtr node_ptr_to_search, const NodePtr node_ptr_to_find) const {
     for (const auto &i : node_ptr_to_search->in_nodes) {
         if (*nodes.at(i) == *node_ptr_to_find) {
             return true;
@@ -448,7 +448,7 @@ bool Graph::found_in_in_nodes(const NodePtr node_ptr_to_search, const NodePtr no
 
 // Graphs are equal if they have nodes corresponding to the same kmer
 // of node/orientations, with outnodes and innodes the same
-bool Graph::operator==(const Graph &y) const {
+bool debruijn::Graph::operator==(const Graph &y) const {
     // want the graphs to have the same nodes, even if
     // the ids given them is different.
     if (nodes.size() != y.nodes.size()) {
@@ -499,7 +499,7 @@ bool Graph::operator==(const Graph &y) const {
     return true;
 }
 
-bool Graph::operator!=(const Graph &y) const {
+bool debruijn::Graph::operator!=(const Graph &y) const {
     return !(*this == y);
 }
 

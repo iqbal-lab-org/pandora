@@ -6,7 +6,7 @@
 
 MiniRecord::MiniRecord() {};
 
-MiniRecord::MiniRecord(const uint32_t p, const Path q, const uint32_t n, const bool c) : prg_id(p), path(q),
+MiniRecord::MiniRecord(const uint32_t p, const prg::Path q, const uint32_t n, const bool c) : prg_id(p), path(q),
                                                                                          knode_id(n), strand(c) {};
 
 MiniRecord::~MiniRecord() {};
