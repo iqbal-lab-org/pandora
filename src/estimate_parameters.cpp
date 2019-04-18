@@ -234,7 +234,8 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     if (bin and num_reads > 30 and covg > 30) {
         bin = true;
         mean_covg = find_mean_covg(kmer_covg_dist);
-        exp_depth_covg = mean_covg;
+        if (exp_depth_covg < 1)
+            exp_depth_covg = mean;
         std::cout << "found mean kmer covg " << mean_covg << " and mean global covg " << covg
                   << " with avg num reads covering node " << num_reads << std::endl;
         if (mean_covg > 0 and mean_covg < covg) {
