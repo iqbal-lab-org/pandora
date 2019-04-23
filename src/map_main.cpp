@@ -114,36 +114,35 @@ int pandora_map(int argc, char *argv[]) {
             }
         } else if (arg == "-w") {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                w = (unsigned) atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                w = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "-w option requires one argument." << std::endl;
                 return 1;
             }
         } else if (arg == "-k") {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                k = (unsigned) atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                k = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "-k option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "-m") || (arg == "--max_diff")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                max_diff = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                max_diff = strtol(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--max_diff option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "-c") || (arg == "--min_cluster_size")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                min_cluster_size = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                min_cluster_size = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--min_cluster_size option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "-e") || (arg == "--error_rate")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                e_rate = static_cast<float>(atof(
-                        argv[++i])); // Increment 'i' so we don't get the argument as the next argv[i].
+                e_rate = strtof(argv[++i], nullptr); // Increment 'i' so we don't get the argument as the next argv[i].
                 if (e_rate < 0.01) {
                     illumina = true;
                 }
@@ -153,7 +152,7 @@ int pandora_map(int argc, char *argv[]) {
             }
         } else if ((arg == "--genome_size")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                genome_size = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                genome_size = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--genome_size option requires one argument." << std::endl;
                 return 1;
@@ -186,56 +185,56 @@ int pandora_map(int argc, char *argv[]) {
             bin = true;
         } else if ((arg == "--max_covg")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                max_covg = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                max_covg = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--max_covg option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "--min_allele_covg_gt")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                min_allele_covg_gt = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                min_allele_covg_gt = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--min_allele_covg_gt option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "--min_total_covg_gt")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                min_total_covg_gt = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                min_total_covg_gt = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--min_total_covg_gt option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "--min_diff_covg_gt")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                min_diff_covg_gt = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                min_diff_covg_gt = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--min_diff_covg_gt option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "--min_allele_fraction_covg_gt")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                min_allele_fraction_covg_gt = static_cast<float>(atof(argv[++i])); // Increment 'i' so we don't get the argument as the next argv[i].
+                min_allele_fraction_covg_gt = strtof(argv[++i], nullptr); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--min_allele_fraction_covg_gt option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "--genotyping_error_rate")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                genotyping_error_rate = static_cast<float>(atof(argv[++i])); // Increment 'i' so we don't get the argument as the next argv[i].
+                genotyping_error_rate = strtof(argv[++i], nullptr); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--genotyping_error_rate option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "--confidence_threshold")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                confidence_threshold = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                confidence_threshold = (uint16_t)strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--confidence_threshold option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "--denovo_kmer_size")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                denovo_kmer_size = atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                denovo_kmer_size = (uint_least8_t)strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--denovo_kmer_size option requires one argument." << std::endl;
                 return 1;
