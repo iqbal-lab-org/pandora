@@ -150,6 +150,8 @@ void CandidateRegion::generate_read_pileup(const fs::path &reads_filepath) {
 
 
 void CandidateRegion::write_denovo_paths_to_file(const fs::path &output_directory) {
+    fs::create_directories(output_directory);
+
     if (denovo_paths.empty()) {
         BOOST_LOG_TRIVIAL(debug) << "No denovo paths for " << filename;
         return;
@@ -157,7 +159,6 @@ void CandidateRegion::write_denovo_paths_to_file(const fs::path &output_director
 
     auto fasta { generate_fasta_for_denovo_paths() };
 
-    fs::create_directories(output_directory);
     const auto discovered_paths_filepath { output_directory / filename };
 
     fasta.save(discovered_paths_filepath.string());
