@@ -27,7 +27,7 @@ int pandora_random_path(int argc, char *argv[]) // the "pandora walk" comand
 
     uint32_t num_paths = 1;
     if (argc == 3) {
-        num_paths = atoi(argv[2]);
+        num_paths = strtoul(argv[2], nullptr, 10);
     }
 
     for (const auto &prg_ptr: prgs) {
