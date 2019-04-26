@@ -23,7 +23,7 @@ static void show_index_usage() {
               << std::endl;
 }
 
-int pandora_index(int argc, char *argv[]) // the "pandora index" comand
+int pandora_index(int argc, char *argv[]) // the "pandora index" command
 {
     // if not enough arguments, print usage
     if (argc < 2) {
@@ -32,7 +32,7 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
     }
 
     // otherwise, parse the parameters from the command line
-    std::string prgfile, index_outfile = "", log_level="info";
+    std::string prgfile, index_outfile, log_level = "info";
     bool update = false;
     uint32_t w = 14, k = 15, id=0; // default parameters
     for (int i = 1; i < argc; ++i) {
@@ -44,21 +44,21 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
             update = true;
         } else if (arg == "-w") {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                w = (unsigned) atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                w = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "-w option requires one argument." << std::endl;
                 return 1;
             }
         } else if (arg == "-k") {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                k = (unsigned) atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                k = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "-k option requires one argument." << std::endl;
                 return 1;
             }
         } else if (arg == "--offset") {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                id = (unsigned) atoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+                id = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--offset option requires one argument." << std::endl;
                 return 1;
@@ -107,7 +107,7 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" comand
     index_prgs(prgs, index, w, k, outdir);
 
     // save index
-    if (index_outfile != "")
+    if (not index_outfile.empty())
         index->save(index_outfile);
     else if (id > 0)
         index->save(prgfile+"."+std::to_string(id), w, k);
