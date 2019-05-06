@@ -205,8 +205,9 @@ LocalPRG::build_graph(const Interval &i, const std::vector<uint32_t> &from_ids, 
         if (v.size() < (uint32_t) 4) {
             BOOST_LOG_TRIVIAL(warning) << "In conversion from linear localPRG string to graph, splitting the string by "
                                           "the next var site resulted in the wrong number of intervals. Please check that site numbers "
-                                          "are flanked by a space on either side. Or perhaps ordering of numbers in GFA is irregular?!"
-                                          "Size of partition based on site " << next_site << " is " << v.size();
+                                          "are flanked by a space on either side. Or perhaps ordering of numbers in GFA is irregular?! "
+                                          "Size of partition based on site " << next_site << " is " << v.size()
+                                          << "\nLocalPRG name: " << name;
             std::exit(-1);
         }
         next_site += 2;
