@@ -41,16 +41,6 @@ MirrorURL: http://mirrors.ukfast.co.uk/sites/archive.ubuntu.com/
     cd ..
 
     #============================================
-    # INSTALL PANDORA
+    # CONVENIENCE SCRIPT
     #============================================
-    git clone https://github.com/leoisl/pandora
-    cd pandora
-    mkdir -p build
-    cd build
-    cmake ..
-    make -j 8
-    ctest -VV
-    echo "export PATH=$(pwd):$PATH" >> $SINGULARITY_ENVIRONMENT
-
-
-
+    printf "cd /pandora\nbash\n" > /pandora_start.sh

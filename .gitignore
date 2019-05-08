@@ -4,10 +4,14 @@ doc/html
 
 # Ignore the build and lib dirs
 build
+build_debug
 tmp
 
 # Ignore any executables
 bin/*
+
+# Singularity images
+pandora_debug.img
 
 # Ignore Mac specific files
 .DS_Store
