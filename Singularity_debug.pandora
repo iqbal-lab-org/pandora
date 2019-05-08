@@ -1,6 +1,6 @@
 Bootstrap: debootstrap
 OSVersion: bionic
-MirrorURL: http://us.archive.ubuntu.com/ubuntu/
+MirrorURL: http://mirrors.ukfast.co.uk/sites/archive.ubuntu.com/
 
 %help
   To run: `singularity exec pandora.simg pandora`
@@ -14,7 +14,7 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     apt-add-repository universe
     apt update
     apt install -y git wget build-essential cmake seqtk
-    apt-get install -y man time
+    apt-get install -y man time gdbserver
     export LC_ALL=C.UTF-8
     export LANG=C.UTF-8
     echo 'export LC_ALL=C.UTF-8' >> $SINGULARITY_ENVIRONMENT
@@ -43,12 +43,12 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     #============================================
     # INSTALL PANDORA
     #============================================
-    git clone -b dev --single-branch https://github.com/rmcolq/pandora.git
+    git clone https://github.com/leoisl/pandora
     cd pandora
     mkdir -p build
     cd build
     cmake ..
-    make
+    make -j 8
     ctest -VV
     echo "export PATH=$(pwd):$PATH" >> $SINGULARITY_ENVIRONMENT
 
