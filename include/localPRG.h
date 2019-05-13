@@ -21,15 +21,15 @@ using PanNodePtr = std::shared_ptr<pangenome::Node>;
 namespace fs = boost::filesystem;
 
 class LocalPRG {
-    uint32_t next_id;
-    std::string buff;
+    uint32_t next_id; //internal variables used in some methods - TODO: maybe this should not be an object variable
+    std::string buff; //internal variables used in some methods - TODO: maybe this should not be an object variable
 public:
-    uint32_t next_site;
-    uint32_t id;
-    std::string name;
-    std::string seq;
-    LocalGraph prg;
-    KmerGraph kmer_prg;
+    uint32_t next_site; //denotes the id of the next variant site to be processed - TODO: maybe this should not be an object variable
+    uint32_t id; //id of this LocalPRG in the full graph (first gene is 0, second is 1, and so on...)
+    std::string name; //name (fasta comment)
+    std::string seq; //seq of LocalPRG (the PRG as string itself)
+    LocalGraph prg; //the graph that represents this LocalPRG
+    KmerGraph kmer_prg; //the kmer sketch graph
     //VCF vcf;
     std::vector<uint32_t> num_hits;
 

@@ -13,7 +13,7 @@
 
 class Index {
 public:
-    std::unordered_map<uint64_t, std::vector<MiniRecord> *> minhash;
+    std::unordered_map<uint64_t, std::vector<MiniRecord> *> minhash; //map of minimizers to MiniRecords
 
     Index();
 

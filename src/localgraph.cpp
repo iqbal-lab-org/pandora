@@ -22,7 +22,7 @@ LocalGraph::~LocalGraph() {
     }*/
     nodes.clear();
 }
-
+//add the node with a given id and seq if the id is not already in the nodes
 void LocalGraph::add_node(const uint32_t &id, const std::string &seq, const Interval &pos) {
     assert(seq.length() == pos.length);
     assert(id < std::numeric_limits<uint32_t>::max() || assert_msg("WARNING, reached max local graph node size"));
@@ -128,7 +128,7 @@ void LocalGraph::read_gfa(const std::string &filepath) {
     }
 }
 
-std::vector<prg::Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos, const uint32_t &len) const {
+std::vector<prg::Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos, const uint32_t &len) const { //node_id: where to start the walk, pos: the position in the node_id, len = k+w-1 -> the length that the walk has to go through - we are sketching kmers in a graph
     //cout << "walking graph from node " << node_id << " pos " << pos << " for length " << len << endl;
     // walks from position pos in node node for length len bases
     assert((nodes.at(node_id)->pos.start <= pos && nodes.at(node_id)->pos.get_end() >= pos) || assert_msg(
@@ -141,8 +141,8 @@ std::vector<prg::Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t 
     std::deque<Interval> d;
 
     //cout << "pos+len: " << pos+len << " nodes.at(node_id)->pos.get_end(): " << nodes.at(node_id)->pos.get_end() << endl;
-    if (pos + len <= nodes.at(node_id)->pos.get_end()) {
-        p.initialize(Interval(pos, pos + len));
+    if (pos + len <= nodes.at(node_id)->pos.get_end()) { //checks if we can go until the end of the kmer
+        p.initialize(Interval(pos, pos + len)); //create the path containing this interval of the node
         //cout << "return path: " << p << endl;
         return_paths.push_back(p);
         //cout << "return_paths size: " << return_paths.size() << endl; 

@@ -113,7 +113,7 @@ void read_prg_file(std::vector<std::shared_ptr<LocalPRG>> &prgs,
         fh.get_next();
         if (fh.name.empty() or fh.read.empty())
             continue;
-        auto s = std::make_shared<LocalPRG>(LocalPRG(id, fh.name, fh.read));
+        auto s = std::make_shared<LocalPRG>(LocalPRG(id, fh.name, fh.read)); //build a node in the graph, which will represent a LocalPRG (the graph is a list of nodes, each representing a LocalPRG)
         if (s != nullptr) {
             prgs.push_back(s);
             id++;

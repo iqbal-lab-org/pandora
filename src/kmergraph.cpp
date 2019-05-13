@@ -130,16 +130,16 @@ void KmerGraph::clear() {
     exp_depth_covg = 0;
 }
 
-KmerNodePtr KmerGraph::add_node(const prg::Path &p) {
-    for (const auto &c : nodes) {
+KmerNodePtr KmerGraph::add_node(const prg::Path &p) { //add this kmer path to this kmer graph
+    for (const auto &c : nodes) { //check if this kmer path is already added
         if (c->path == p) {
             return c;
         }
     }
 
-    // if we didn't find an existing node
-    KmerNodePtr n(std::make_shared<KmerNode>(nodes.size(), p));
-    nodes.push_back(n);
+    // if we didn't find an existing node, add this kmer path to the graph
+    KmerNodePtr n(std::make_shared<KmerNode>(nodes.size(), p)); //create the node
+    nodes.push_back(n); //add it to nodes
     //nodes[next_id] = make_shared<KmerNode>(next_id, p);
     assert(k == 0 or p.length() == 0 or p.length() == k);
     if (k == 0 and p.length() > 0) {

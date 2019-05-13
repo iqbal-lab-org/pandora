@@ -128,7 +128,7 @@ uint64_t hash64(uint64_t key, const uint64_t &mask) {
 
 std::pair<uint64_t, uint64_t> KmerHash::kmerhash(const std::string &s, const uint32_t k) {
     // if we've already worked out the answer, return
-    auto it = lookup.find(s);
+    auto it = lookup.find(s); //checks if this string is already in the hash
     if (it != lookup.end()) {
         return it->second;
     }

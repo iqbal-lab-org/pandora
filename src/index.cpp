@@ -20,17 +20,17 @@ Index::~Index() {
 void Index::add_record(const uint64_t kmer, const uint32_t prg_id, const prg::Path path, const uint32_t knode_id,
                        const bool strand) {
     //cout << "Add kmer " << kmer << " id, path, strand " << prg_id << ", " << path << ", " << strand << endl;
-    auto it = minhash.find(kmer);
-    if (it == minhash.end()) {
-        auto *newv = new std::vector<MiniRecord>;
+    auto it = minhash.find(kmer); //checks if kmer is in minhash
+    if (it == minhash.end()) { //no
+        auto *newv = new std::vector<MiniRecord>; //get a new vector of MiniRecords - TODO: is this a memory leak?
         newv->reserve(20);
         newv->emplace_back(MiniRecord(prg_id, path, knode_id, strand));
         minhash.insert(std::pair<uint64_t, std::vector<MiniRecord> *>(kmer, newv));
         //cout << "New minhash size: " << minhash.size() << endl; 
-    } else {
-        MiniRecord mr(prg_id, path, knode_id, strand);
-        if (find(it->second->begin(), it->second->end(), mr) == it->second->end()) {
-            it->second->push_back(mr);
+    } else { //yes
+        MiniRecord mr(prg_id, path, knode_id, strand); //create a new MiniRecord from this minimizer kmer
+        if (find(it->second->begin(), it->second->end(), mr) == it->second->end()) { //checks if minimizer kmer is in the vector indexed by minhash[kmer]
+            it->second->push_back(mr); //no, add it
         }
         //cout << "New minhash entry for  kmer " << kmer << endl;
     }
@@ -151,10 +151,10 @@ bool Index::operator!=(const Index &other) const {
 }
 
 
-void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs,
-                std::shared_ptr<Index> &index,
-                const uint32_t w,
-                const uint32_t k,
+void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs, //all PRGs to be indexed
+                std::shared_ptr<Index> &index, //kmer sketch index to be built here
+                const uint32_t w, //window size
+                const uint32_t k, //kmer size
                 const std::string &outdir) {
     BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
     if (prgs.size() == 0)
@@ -168,9 +168,9 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs,
     index->minhash.reserve(r);
 
     // now fill index
-    auto dir_num = int(prgs[0]->id/4000);
-    for (uint32_t i = 0; i != prgs.size(); ++i) {
-        if (i==0 or prgs[i]->id % 4000 == 0) {
+    auto dir_num = int(prgs[0]->id/4000); //the number of the dir to put this index
+    for (uint32_t i = 0; i != prgs.size(); ++i) { //for each prg
+        if (i==0 or prgs[i]->id % 4000 == 0) { //deal with a new dir to be created
             fs::create_directories(outdir + "/" + int_to_string(dir_num + 1));
             dir_num++;
         }
