@@ -9,11 +9,16 @@
 #include "interval.h"
 #include "prg/path.h"
 #include "localnode.h"
+#include "IITree.h"
+
 
 
 class LocalGraph {
 public:
     std::map<uint32_t, LocalNodePtr> nodes; // representing nodes in graph
+    IITree<uint32_t, LocalNodePtr> intervalTree; //TODO: move to private
+    std::map<uint32_t, LocalNodePtr> startIndexOfZeroLengthIntervals;
+    std::map<uint32_t, LocalNodePtr> startIndexOfAllIntervals;
 
     LocalGraph();
 

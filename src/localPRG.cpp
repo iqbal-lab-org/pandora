@@ -27,6 +27,8 @@ LocalPRG::LocalPRG(uint32_t i, const std::string &n, const std::string &p)
     } else {
         prg.add_node(0, "", Interval(0, 0));
     }
+    //index the intervals in the prg
+    prg.intervalTree.index();
 }
 
 
@@ -75,29 +77,29 @@ std::vector<LocalNodePtr> LocalPRG::nodes_along_path(const prg::Path &p) const {
         uint32_t interval_end = it->get_end();
 
         // find the appropriate node of the prg
-        uint32_t nbOfNodesAdded=0;
-        for (auto n = prg.nodes.begin(); n != prg.nodes.end(); ++n) {
-            auto node_ptr = n->second;
-            uint32_t node_start = node_ptr->pos.start;
-            uint32_t node_end = node_ptr->pos.get_end();
-
-            //bool is_overlapping_node = interval_end > node_start and interval.start < node_end;
-            //bool is_equal_node = interval.start == node_start and interval_end == node_end;
-            bool node_contains_interval = node_start <= interval.start && interval_end <= node_end;
-            bool is_null_node = (interval.start == node_start and interval.length == 0 and it == --(p.path.end()) and
-                                 n != prg.nodes.begin());
-
-            //if (is_overlapping_node or is_equal_node or is_null_node) {
-            if (node_contains_interval or is_null_node) {
-                path_nodes.push_back(n->second);
-                ++nbOfNodesAdded;
-            } else if (interval_end < node_start) {
-                // local nodes are labelled in order of occurance in the linear prg string, no need to search further
-                break;
+        // 1. check for degenerate cases
+        if (interval.length == 0) { //0-length intervals
+            if (it == --(p.path.end())) { //if this is the last interval of the path - it can match any interval
+                auto itstartIndexOfAllIntervals = prg.startIndexOfAllIntervals.find(interval.start); //tries to find the interval in prg.startIndexOfAllIntervals
+                if (itstartIndexOfAllIntervals != prg.startIndexOfAllIntervals.end() && //if we found it and
+                    itstartIndexOfAllIntervals->second != prg.nodes.begin()->second) //the node we are trying to add is not the first node of the prg
+                    path_nodes.push_back(itstartIndexOfAllIntervals->second); //add it
+            }
+            else {
+                //if it is not the last interval, it should match a 0-length interval
+                auto itstartIndexOfZeroLengthIntervals = prg.startIndexOfZeroLengthIntervals.find(interval.start); //tries to find the interval in prg.startIndexOfZeroLengthIntervals
+                if (itstartIndexOfZeroLengthIntervals != prg.startIndexOfZeroLengthIntervals.end())
+                    //found it, add!
+                    path_nodes.push_back(itstartIndexOfZeroLengthIntervals->second); //if it is not the last, add it
             }
         }
-
-        assert(nbOfNodesAdded==1);
+        else {
+            //2. Normal overlaps, use interval tree
+            std::vector<size_t> overlaps;
+            prg.intervalTree.overlap(interval.start, interval_end, overlaps); // retrieve overlaps
+            for (size_t i = 0; i < overlaps.size(); ++i)
+                path_nodes.push_back(prg.intervalTree.data(overlaps[i]));
+        }
     }
     return path_nodes;
 }

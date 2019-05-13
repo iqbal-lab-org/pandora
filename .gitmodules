@@ -1,0 +1,3 @@
+[submodule "cgranges"]
+	path = cgranges
+	url = https://github.com/lh3/cgranges
