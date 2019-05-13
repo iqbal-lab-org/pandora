@@ -5,11 +5,11 @@
 #include <cstdint>
 #include "prg/path.h"
 
-
+//Minimizer Record
 struct MiniRecord {
-    uint32_t prg_id;
-    prg::Path path;
-    uint32_t knode_id;
+    uint32_t prg_id; //prg id of the minimizer
+    prg::Path path; //kmer path of the minimizer
+    uint32_t knode_id; //kmer graph node id
     bool strand;
 
     MiniRecord();

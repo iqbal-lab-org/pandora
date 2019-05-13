@@ -7,7 +7,7 @@
 
 using namespace prg;
 
-void Path::initialize(const std::deque<Interval> &q) {
+void Path::initialize(const std::deque<Interval> &q) { //initializes this path with the intervals given in q - TODO: why not in a constructor?
     if (q.empty())
         return;
     path.clear();

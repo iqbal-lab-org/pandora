@@ -20,10 +20,10 @@ class LocalNode {
     std::unordered_set<KmerNodePtr> prev_kmer_paths;
 public:
     std::string seq;
-    Interval pos;
+    Interval pos; //pos in the prg
     uint32_t id;
-    uint32_t covg; // covg by hits
-    uint32_t sketch_next; // used by minimizer_sketch function in localPRG.cpp
+    uint32_t covg; // covg by hits - initially has the size of the interval
+    uint32_t sketch_next; // used by minimizer_sketch function in localPRG.cpp - the next position to sketch?
     bool skip; //used by minimizer_sketch function in localPRG.cpp
 
     std::vector<LocalNodePtr> outNodes; // representing edges from this node to the nodes in the vector
