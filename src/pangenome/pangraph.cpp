@@ -491,25 +491,26 @@ bool pangenome::Graph::operator!=(const Graph &y) const {
 }
 
 // Saves a presence/absence/copynumber matrix for each node and each sample
-void pangenome::Graph::save_matrix(const std::string &filepath) {
+void pangenome::Graph::save_matrix(const std::string &filepath, const std::vector<std::string> &sample_names) {
     // write a presence/absence matrix for samples and nodes
     std::ofstream handle;
     handle.open(filepath);
 
     // save header line with sample names
-    for (const auto &s : samples) {
-        handle << "\t" << s.second->name;
+    for (const auto &name : sample_names) {
+        handle << "\t" << name;
     }
     handle << std::endl;
 
     // for each node, save number of each sample
     for (const auto &n : nodes) {
         handle << n.second->name;
-        for (const auto &s : samples) {
-            if (s.second->paths.find(n.second->node_id) == s.second->paths.end()) {
+        for (const auto &name : sample_names) {
+            if (samples.find(name) == samples.end()
+                or samples[name]->paths.find(n.second->node_id) == samples[name]->paths.end()) {
                 handle << "\t0";
             } else {
-                handle << "\t" << s.second->paths[n.second->node_id].size();
+                handle << "\t" << samples[name]->paths[n.second->node_id].size();
             }
         }
         handle << std::endl;

@@ -400,6 +400,7 @@ int pandora_compare(int argc, char *argv[]) {
     for (const auto & sample : samples)
         sample_names.push_back(sample.first);
     master_vcf.add_samples(sample_names);
+    assert( master_vcf.samples.size() == samples.size());
     Fastaq vcf_ref_fa(true, false);
 
     for (const auto &pangraph_node_entry: pangraph->nodes) {
@@ -428,7 +429,7 @@ int pandora_compare(int argc, char *argv[]) {
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
     BOOST_LOG_TRIVIAL(info) << "Output matrix";
-    pangraph->save_matrix(outdir + "/pandora_multisample.matrix");
+    pangraph->save_matrix(outdir + "/pandora_multisample.matrix", sample_names);
 
     if (pangraph->nodes.empty()) {
         std::cout << "No LocalPRGs found to compare samples on. "
