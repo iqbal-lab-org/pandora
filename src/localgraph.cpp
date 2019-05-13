@@ -32,6 +32,13 @@ void LocalGraph::add_node(const uint32_t &id, const std::string &seq, const Inte
         nodes[id] = n;
         //nodes[id] = make_shared<LocalNode>(seq, pos, id);
         //cout << "Added node " << id << endl;
+
+        //add the node to the interval indexes for fast overlap queries
+        if (pos.length==0)
+            startIndexOfZeroLengthIntervals[pos.start] = n;
+        else
+            intervalTree.add(pos.start, pos.get_end(), n);
+        startIndexOfAllIntervals[pos.start] = n;
     } else {
         assert((it->second->seq == seq) && (it->second->pos == pos));
     }

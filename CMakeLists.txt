@@ -35,7 +35,8 @@ set(EXTERNAL_LIBS
 include_directories(
         ${CMAKE_BINARY_DIR}/include
         ${PROJECT_SOURCE_DIR}/include
-        ${PROJECT_SOURCE_DIR}/src)
+        ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/cgranges/cpp)
 
 file(GLOB_RECURSE SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/*.cpp
