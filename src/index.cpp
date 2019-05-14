@@ -167,16 +167,18 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs, //all PRGs to be i
     }
     index->minhash.reserve(r);
 
+    //create the dirs for the index
+    const int nbOfGFAsPerDir=4000;
+    for (uint32_t i = 0; i <= prgs.size()/nbOfGFAsPerDir; ++i)
+        fs::create_directories(outdir + "/" + int_to_string(i + 1));
+
     // now fill index
-    auto dir_num = int(prgs[0]->id/4000); //the number of the dir to put this index
-    for (uint32_t i = 0; i != prgs.size(); ++i) { //for each prg
-        if (i==0 or prgs[i]->id % 4000 == 0) { //deal with a new dir to be created
-            fs::create_directories(outdir + "/" + int_to_string(dir_num + 1));
-            dir_num++;
-        }
+    #pragma omp parallel for
+    for (uint32_t i = 0; i < prgs.size(); ++i) { //for each prg
+        uint32_t dir = i/nbOfGFAsPerDir + 1;
         prgs[i]->minimizer_sketch(index, w, k);
         prgs[i]->kmer_prg.save(
-                outdir + "/" + int_to_string(dir_num) + "/" + prgs[i]->name + ".k" + std::to_string(k) + ".w" +
+                outdir + "/" + int_to_string(dir) + "/" + prgs[i]->name + ".k" + std::to_string(k) + ".w" +
                 std::to_string(w) + ".gfa");
     }
     BOOST_LOG_TRIVIAL(debug) << "Finished adding " << prgs.size() << " LocalPRGs";
