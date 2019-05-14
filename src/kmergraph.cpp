@@ -132,7 +132,7 @@ void KmerGraph::clear() {
 
 KmerNodePtr KmerGraph::add_node(const prg::Path &p) { //add this kmer path to this kmer graph
     for (const auto &c : nodes) { //check if this kmer path is already added
-        if (c->path == p) {
+        if (c->path == p) { //TODO: overload operator == to receive a prg::Path?
             return c;
         }
     }

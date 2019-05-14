@@ -269,15 +269,15 @@ std::vector<prg::Path> LocalPRG::shift(prg::Path p) const {
     // first find extensions of the path
     while (!short_paths.empty()) {
         p = short_paths.front();
-        n = nodes_along_path(p);
+        n = nodes_along_path(p); //TODO: this can be optimized by deriving the nodes_along_path from the previous path
         short_paths.pop_front();
 
         // if we can extend within the same localnode, do
-        if (p.get_end() < n.back()->pos.get_end()) {
+        if (p.get_end() < n.back()->pos.get_end()) { //extend by one base in the same local node
             p.path.back().length += 1;
             k_paths.push_back(p);
         } else if (p.get_end() != (--(prg.nodes.end()))->second->pos.get_end()) {
-            for (uint32_t i = 0; i != n.back()->outNodes.size(); ++i) {
+            for (uint32_t i = 0; i != n.back()->outNodes.size(); ++i) { //go to the out-neighbours to extend
                 //exp_num_return_seqs += 1;
                 short_paths.push_back(p);
                 short_paths.back().add_end_interval(
@@ -293,7 +293,7 @@ std::vector<prg::Path> LocalPRG::shift(prg::Path p) const {
 
         while (!short_paths.empty()) {
             p = short_paths.front();
-            n = nodes_along_path(p);
+            n = nodes_along_path(p); //TODO: THIS SHOULD BE DEFINITELY MEMOIZED
             short_paths.pop_front();
 
             if (n.back()->pos.get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
@@ -346,7 +346,7 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
 
     // create a null start node in the kmer graph
     d = { Interval(0, 0) };
-    kmer_path.initialize(d); //initializes this path with the intervals given in d
+    kmer_path.initialize(d); //initializes this path with the null start
     kmer_prg.add_node(kmer_path);
     num_kmers_added += 1;
 
@@ -364,11 +364,11 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
     for (uint32_t i = 0; i != walk_paths.size(); ++i) { //goes through all walks
         // find minimizer for this walk
         smallest = std::numeric_limits<uint64_t>::max(); //find the minimizer
-        for (uint32_t j = 0; j != w; j++) { //goes through all windows
-            kmer_path = walk_paths[i].subpath(j, k); //gets the subpath related to this k-mer
+        for (uint32_t j = 0; j != w; j++) { //goes through all windows to find the minimizer of this walk
+            kmer_path = walk_paths[i].subpath(j, k); //gets the subpath related to this k-mer //TODO: move constructor/assignment op in Path?
             if (!kmer_path.path.empty()) {
                 kmer = string_along_path(kmer_path); //get the string along the path
-                kh = hash.kmerhash(kmer, k);
+                kh = hash.kmerhash(kmer, k); //TODO: replace by GATB's minimizer?
                 smallest = std::min(smallest, std::min(kh.first, kh.second));
             }
         }
@@ -388,8 +388,8 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
                     }
                 }
 
-                if (kh.first == smallest or kh.second == smallest) {
-                    const auto found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(kmer_path)); //checks if the kmer path is already in this kmer graph
+                if (kh.first == smallest or kh.second == smallest) { //if this kmer is the minimizer
+                    const auto found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(kmer_path)); //checks if the kmer path is already in this kmer graph //TODO: improve this, takes 24% of the CPU cycles
                     if (found == kmer_prg.nodes.end()) {
                         // add to index, kmer_prg
                         num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
