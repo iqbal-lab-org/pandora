@@ -31,7 +31,7 @@ bin/*
 *.mod
 *.smod
 
-# Compiled Static libraries
+# Compiled Staticpandora_debug.img libraries
 *.lai
 *.la
 *.a
@@ -67,3 +67,10 @@ scripts/*
 
 # local directory - michael
 vm-build/
+
+# local directory - leandro
+Singularity_debug.pandora
+debug_with_singularity.sh
+pandora_debug.img
+build_debug/
+build/
