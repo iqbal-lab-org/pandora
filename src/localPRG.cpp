@@ -67,8 +67,19 @@ std::string LocalPRG::string_along_path(const std::vector<LocalNodePtr> &p) {
     return s;
 }
 
+std::vector<LocalNodePtr> LocalPRG::nodes_along_path(const prg::Path &p) const {
+    auto it = nodes_along_path_memoization.find(p);
+    if (it == nodes_along_path_memoization.end()) {
+        //not memoized, memoize
+        std::vector<LocalNodePtr> result = nodes_along_path_core(p);
+        nodes_along_path_memoization[p] = result;
+        return result;
+    } else
+        return it->second;
+}
 
-std::vector<LocalNodePtr> LocalPRG::nodes_along_path(const prg::Path &p) const { //return the local nodes that contain the given kmer path
+
+std::vector<LocalNodePtr> LocalPRG::nodes_along_path_core(const prg::Path &p) const { //return the local nodes that contain the given kmer path
     std::vector<LocalNodePtr> path_nodes; //the local nodes path
     path_nodes.reserve(100);
 

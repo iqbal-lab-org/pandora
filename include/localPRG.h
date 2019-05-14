@@ -23,6 +23,9 @@ namespace fs = boost::filesystem;
 class LocalPRG {
     uint32_t next_id; //internal variables used in some methods - TODO: maybe this should not be an object variable
     std::string buff; //internal variables used in some methods - TODO: maybe this should not be an object variable
+
+    mutable std::map<prg::Path, std::vector<LocalNodePtr>> nodes_along_path_memoization;
+    std::vector<LocalNodePtr> nodes_along_path_core(const prg::Path &) const;
 public:
     uint32_t next_site; //denotes the id of the next variant site to be processed - TODO: maybe this should not be an object variable
     uint32_t id; //id of this LocalPRG in the full graph (first gene is 0, second is 1, and so on...)
