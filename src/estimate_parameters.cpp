@@ -231,8 +231,7 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
         mean = fit_mean_covg(kmer_covg_dist, zero_thresh);
         var = fit_variance_covg(kmer_covg_dist, mean, zero_thresh);
     }
-    if (   (bin and num_reads > 30 and covg > 30)
-        or (not bin and abs(var - mean) < 2 and mean > 10 and num_reads > 30 and covg > 2) ){
+    if (bin and num_reads > 30 and covg > 30) {
         bin = true;
         mean_covg = find_mean_covg(kmer_covg_dist);
         exp_depth_covg = mean_covg;
