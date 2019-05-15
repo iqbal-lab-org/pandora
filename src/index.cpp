@@ -155,7 +155,8 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs, //all PRGs to be i
                 std::shared_ptr<Index> &index, //kmer sketch index to be built here
                 const uint32_t w, //window size
                 const uint32_t k, //kmer size
-                const std::string &outdir) {
+                const std::string &outdir,
+                uint32_t threads) {
     BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
     if (prgs.size() == 0)
         return;
@@ -173,7 +174,7 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs, //all PRGs to be i
         fs::create_directories(outdir + "/" + int_to_string(i + 1));
 
     // now fill index
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(threads)
     for (uint32_t i = 0; i < prgs.size(); ++i) { //for each prg
         uint32_t dir = i/nbOfGFAsPerDir + 1;
         prgs[i]->minimizer_sketch(index, w, k);
