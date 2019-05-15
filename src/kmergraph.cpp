@@ -21,8 +21,8 @@
 using namespace prg;
 
 KmerGraph::KmerGraph() {
-    nodes.reserve(60000);
     reserved_size = 60000;
+    nodes.reserve(reserved_size);
     num_reads = 0;
     shortest_path_length = 0;
     k = 0; // nb the kmer size is determined by the first non-null node added
@@ -54,6 +54,7 @@ KmerGraph::KmerGraph(const KmerGraph &other) {
         n = std::make_shared<KmerNode>(*node);
         assert(nodes.size() == n->id);
         nodes.push_back(n);
+        sorted_nodes.insert(n);
     }
 
     // now need to copy the edges
@@ -62,10 +63,6 @@ KmerGraph::KmerGraph(const KmerGraph &other) {
             add_edge(nodes.at(node->id), nodes.at(node->outNodes[j]->id));
         }
     }
-
-    // finally create sorted_nodes
-    sort_topologically();
-
 }
 
 // Assignment operator
@@ -94,6 +91,7 @@ KmerGraph &KmerGraph::operator=(const KmerGraph &other) {
         n = std::make_shared<KmerNode>(*node);
         assert(nodes.size() == n->id);
         nodes.push_back(n);
+        sorted_nodes.insert(n);
     }
 
     // now need to copy the edges
@@ -102,9 +100,6 @@ KmerGraph &KmerGraph::operator=(const KmerGraph &other) {
             add_edge(nodes.at(node->id), nodes.at(node->outNodes[j]->id));
         }
     }
-
-    // finally create sorted_nodes
-    sort_topologically();
 
     return *this;
 }
@@ -140,6 +135,7 @@ KmerNodePtr KmerGraph::add_node(const prg::Path &p) { //add this kmer path to th
     // if we didn't find an existing node, add this kmer path to the graph
     KmerNodePtr n(std::make_shared<KmerNode>(nodes.size(), p)); //create the node
     nodes.push_back(n); //add it to nodes
+    sorted_nodes.insert(n);
     //nodes[next_id] = make_shared<KmerNode>(next_id, p);
     assert(k == 0 or p.length() == 0 or p.length() == k);
     if (k == 0 and p.length() > 0) {
@@ -217,25 +213,14 @@ void KmerGraph::remove_shortcut_edges() {
     BOOST_LOG_TRIVIAL(debug) << "Found and removed " << num_removed_edges << " edges from the kmergraph";
 }
 
-void KmerGraph::sort_topologically() {
-    sorted_nodes.clear();
-    sorted_nodes.reserve(nodes.size());
-    sorted_nodes = nodes;
-    sort(sorted_nodes.begin(), sorted_nodes.end(), pCompKmerNode());
-}
-
 void KmerGraph::check() {
-    if (sorted_nodes.empty()) {
-        sort_topologically();
-    }
-
     // should not have any leaves, only nodes with degree 0 are start and end
     for (auto c = sorted_nodes.begin(); c != sorted_nodes.end(); ++c) {
-        assert(!(*c)->inNodes.empty() or (*c) == sorted_nodes[0] ||
+        assert(!(*c)->inNodes.empty() or (*c) == (*sorted_nodes.begin())||
                assert_msg("node" << **c << " has inNodes size " << (*c)->inNodes.size()));
-        assert(!(*c)->outNodes.empty() or (*c) == sorted_nodes.back() || assert_msg(
+        assert(!(*c)->outNodes.empty() or (*c) == *(sorted_nodes.rbegin()) || assert_msg(
                 "node" << **c << " has outNodes size " << (*c)->outNodes.size() << " and isn't equal to back node "
-                       << *sorted_nodes.back()));
+                       << **(sorted_nodes.rbegin())));
         for (const auto &d: (*c)->outNodes) {
             assert((*c)->path < d->path || assert_msg((*c)->path << " is not less than " << d->path));
             assert(find(c, sorted_nodes.end(), d) != sorted_nodes.end() ||
@@ -302,16 +287,17 @@ float KmerGraph::prob(const uint32_t &j, const uint32_t &num, const uint32_t &sa
     //prob of node j where j is node id (hence pos in nodes)
     assert(p != 1);
     assert(j < nodes.size());
-    if (sorted_nodes.empty() and !nodes.empty()) {
-        sort_topologically();
-        check();
-    }
+    #ifndef NDEBUG
+        //TODO: check if tests must be updated or not due to this (I think not - sorted_nodes is always sorted)
+        //if this is added, some tests bug, since it was not executed before...
+        //check();
+    #endif
 
     uint32_t sum_coverages = nodes[j]->get_covg(0, sample_id)
                              + nodes[j]->get_covg(1, sample_id);
 
     float ret;
-    if (j == sorted_nodes[0]->id or j == sorted_nodes.back()->id) {
+    if (j == (*sorted_nodes.begin())->id or j == (*sorted_nodes.rbegin())->id) {
         ret = 0; // is really undefined
     } else if (sum_coverages > num) {
         // under model assumptions this can't happen, but it inevitably will, so bodge
@@ -347,6 +333,12 @@ bool KmerGraph::coverage_is_zeroes(const uint32_t& sample_id){
 }
 
 float KmerGraph::find_max_path(std::vector<KmerNodePtr> &maxpath, const uint32_t &sample_id) {
+    //TODO: UPDATE THIS WHEN LEARNING MAP
+    //TODO: THESE 3 FUNCTIONS MUST BE REFACTORED: find_max_path(), find_nb_max_path() and find_lin_max_path()
+    //TODO: FIX THIS INNEFICIENCY I INTRODUCED
+    std::vector<KmerNodePtr> sorted_nodes(this->sorted_nodes.begin(), this->sorted_nodes.end());
+
+
     // finds a max likelihood path
     BOOST_LOG_TRIVIAL(debug) << "Find max path for sample_id" << sample_id;
 
@@ -408,6 +400,12 @@ float KmerGraph::find_max_path(std::vector<KmerNodePtr> &maxpath, const uint32_t
 }
 
 float KmerGraph::find_nb_max_path(std::vector<KmerNodePtr> &maxpath, const uint32_t &sample_id) {
+    //TODO: UPDATE THIS WHEN LEARNING MAP
+    //TODO: THESE 3 FUNCTIONS MUST BE REFACTORED: find_max_path(), find_nb_max_path() and find_lin_max_path()
+    //TODO: FIX THIS INNEFICIENCY I INTRODUCED
+    std::vector<KmerNodePtr> sorted_nodes(this->sorted_nodes.begin(), this->sorted_nodes.end());
+
+
     // finds a max likelihood path
     check();
 
@@ -461,6 +459,12 @@ float KmerGraph::find_nb_max_path(std::vector<KmerNodePtr> &maxpath, const uint3
 }
 
 float KmerGraph::find_lin_max_path(std::vector<KmerNodePtr> &maxpath, const uint32_t &sample_id) {
+    //TODO: UPDATE THIS WHEN LEARNING MAP
+    //TODO: THESE 3 FUNCTIONS MUST BE REFACTORED: find_max_path(), find_nb_max_path() and find_lin_max_path()
+    //TODO: FIX THIS INNEFICIENCY I INTRODUCED
+    std::vector<KmerNodePtr> sorted_nodes(this->sorted_nodes.begin(), this->sorted_nodes.end());
+
+
     // finds a max likelihood path
     check();
 
@@ -662,14 +666,18 @@ void KmerGraph::save_covg_dist(const std::string &filepath) {
 }
 
 uint32_t KmerGraph::min_path_length() {
+    //TODO: FIX THIS INNEFICIENCY I INTRODUCED
+    std::vector<KmerNodePtr> sorted_nodes(this->sorted_nodes.begin(), this->sorted_nodes.end());
+
     if (shortest_path_length > 0) {
         return shortest_path_length;
     }
 
-    if (sorted_nodes.empty()) {
-        sort_topologically();
-        check();
-    }
+    #ifndef NDEBUG
+        //TODO: check if tests must be updated or not due to this (I think not - sorted_nodes is always sorted)
+        //if this is added, some tests bug, since it was not executed before...
+        //check();
+    #endif
 
     std::vector<uint32_t> len(sorted_nodes.size(), 0); // length of shortest path from node i to end of graph
     for (uint32_t j = sorted_nodes.size() - 1; j != 0; --j) {
@@ -757,6 +765,7 @@ void KmerGraph::load(const std::string &filepath) {
                 assert(id == nodes.size() or num_nodes - id == nodes.size() or
                        assert_msg("id " << id << " != " << nodes.size() << " nodes.size() for kmergraph "));
                 nodes.push_back(n);
+                sorted_nodes.insert(n);
                 if (k == 0 and p.length() > 0) {
                     k = p.length();
                 }

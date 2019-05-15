@@ -400,8 +400,9 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
                 }
 
                 if (kh.first == smallest or kh.second == smallest) { //if this kmer is the minimizer
-                    const auto found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(kmer_path)); //checks if the kmer path is already in this kmer graph //TODO: improve this, takes 24% of the CPU cycles
-                    if (found == kmer_prg.nodes.end()) {
+                    KmerNodePtr dummyKmerHoldingKmerPath = std::make_shared<KmerNode>(KmerNode(0, kmer_path));
+                    const auto found = kmer_prg.sorted_nodes.find(dummyKmerHoldingKmerPath); //checks if the kmer path is already in this kmer graph
+                    if (found == kmer_prg.sorted_nodes.end()) {
                         // add to index, kmer_prg
                         num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
                         kn = kmer_prg.add_node_with_kh(kmer_path, std::min(kh.first, kh.second), num_AT);
@@ -447,8 +448,9 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
             kh = hash.kmerhash(kmer, k);
             if (std::min(kh.first, kh.second) <= kn->khash) {
                 // found next minimizer
-                const auto found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v.back()));
-                if (found == kmer_prg.nodes.end()) {
+                KmerNodePtr dummyKmerHoldingKmerPath = std::make_shared<KmerNode>(KmerNode(0, v.back()));
+                const auto found = kmer_prg.sorted_nodes.find(dummyKmerHoldingKmerPath);
+                if (found == kmer_prg.sorted_nodes.end()) {
                     num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
                     new_kn = kmer_prg.add_node_with_kh(v.back(), std::min(kh.first, kh.second), num_AT);
 
@@ -486,8 +488,9 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
                     kmer = string_along_path(v[j]);
                     kh = hash.kmerhash(kmer, k);
                     if (kh.first == smallest or kh.second == smallest) {
-                        const auto found = find_if(kmer_prg.nodes.begin(), kmer_prg.nodes.end(), condition(v[j]));
-                        if (found == kmer_prg.nodes.end()) {
+                        KmerNodePtr dummyKmerHoldingKmerPath = std::make_shared<KmerNode>(KmerNode(0, v[j]));
+                        const auto found = kmer_prg.sorted_nodes.find(dummyKmerHoldingKmerPath);
+                        if (found == kmer_prg.sorted_nodes.end()) {
                             num_AT = std::count(kmer.begin(), kmer.end(), 'A') +
                                      std::count(kmer.begin(), kmer.end(), 'T');
                             new_kn = kmer_prg.add_node_with_kh(v[j], std::min(kh.first, kh.second), num_AT);
