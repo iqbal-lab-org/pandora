@@ -61,7 +61,6 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" command
         } else if (arg == "-t") {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 threads = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
-                omp_set_num_threads(threads);
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "-t option requires one argument." << std::endl;
                 return 1;
@@ -115,7 +114,7 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" command
 
     // index PRGs
     auto index = std::make_shared<Index>();
-    index_prgs(prgs, index, w, k, outdir);
+    index_prgs(prgs, index, w, k, outdir, threads);
 
     // save index
     if (not index_outfile.empty())

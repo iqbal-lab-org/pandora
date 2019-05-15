@@ -40,5 +40,6 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &,
                 std::shared_ptr<Index> &,
                 const uint32_t,
                 const uint32_t,
-                const std::string &);
+                const std::string &,
+                uint32_t threads=1);
 #endif
