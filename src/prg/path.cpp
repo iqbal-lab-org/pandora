@@ -1,64 +1,70 @@
 #include <cassert>
+#include <localPRG.h>
 #include "prg/path.h"
 
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-
-using namespace prg;
-
-void Path::initialize(const std::deque<Interval> &q) { //initializes this path with the intervals given in q - TODO: why not in a constructor?
-    if (q.empty())
-        return;
-    path.clear();
-    path.reserve(q.size() + 5);
-    path.insert(path.end(), q.begin(), q.end());
-}
-
-void Path::initialize(const std::vector<Interval> &q) {
-    if (q.empty())
-        return;
-    path.clear();
-    path.reserve(q.size() + 5);
-    path.insert(path.end(), q.begin(), q.end());
-}
-
-void Path::initialize(const Interval &i) {
-    path.clear();
-    path.push_back(i);
-}
-
-uint32_t Path::get_start() const {
+uint32_t prg::Path::get_start() const {
     if (path.size() < 1)
         return 0;
     return path.front().start;
 }
 
-uint32_t Path::get_end() const {
+uint32_t prg::Path::get_end() const {
     if (path.size() < 1)
         return 0;
     return path.back().start + (uint32_t) path.back().length;
 }
 
-uint32_t Path::length() const {
+uint32_t prg::Path::length() const {
     uint32_t length = 0;
     for (const auto &interval: path)
         length += interval.length;
     return length;
 }
 
-void Path::add_end_interval(const Interval &i) {
+void prg::Path::add_end_interval(const Interval &i) {
+    memoizedDirty = true;
     assert (i.start >= get_end() || assert_msg(
             "tried to add interval starting at " << i.start << " to end of path finishing at " << get_end()));
     path.push_back(i);
 }
 
-Path Path::subpath(const uint32_t start, const uint32_t len) const {
-    //function now returns the path starting at position start along the path, rather than at position start on 
+std::vector<LocalNodePtr> prg::Path::nodes_along_path(const LocalPRG &localPrg) {
+    //sanity check
+    assert ((isMemoized == false || (isMemoized == true && localPRGIdOfMemoizedLocalNodePath == localPrg.id)) ||
+            assert_msg(
+                    "Memoization bug: memoized a local node path for PRG with id"
+                            << localPRGIdOfMemoizedLocalNodePath
+                            <<
+                            " but PRG id " << localPrg.id
+                            << " is also trying to use this memoized path"));
+
+    if (isMemoized == false || memoizedDirty == true) { //checks if we must do memoization
+        //yes
+        //not memoized, memoize
+        memoizedLocalNodePath = localPrg.nodes_along_path_core(*this);
+
+        //update the memoization control variables
+        localPRGIdOfMemoizedLocalNodePath = localPrg.id;
+        isMemoized = true;
+        memoizedDirty = false;
+
+        //return the local node path
+        return memoizedLocalNodePath;
+    } else if (memoizedDirty == false) {
+        //redudant call, return the memoized local node path
+        return memoizedLocalNodePath;
+    }
+}
+
+prg::Path prg::Path::subpath(const uint32_t start, const uint32_t len) const {
+    //function now returns the path starting at position start along the path, rather than at position start on
     //linear PRG, and for length len
     //cout << "find subpath of " << *this << " from " << start << " for length " << len << endl;
     assert(start + len <= length());
-    Path p;
+    prg::Path p;
     std::deque<Interval> d;
     uint32_t covered_length = 0;
     uint32_t added_len = 0;
@@ -87,7 +93,7 @@ Path Path::subpath(const uint32_t start, const uint32_t len) const {
     return p;
 }
 
-bool Path::is_branching(const Path &y) const // returns true if the two paths branch together or coalesce apart
+bool prg::Path::is_branching(const prg::Path &y) const // returns true if the two paths branch together or coalesce apart
 {
     // simple case, one ends before the other starts -> return false
     if (get_end() < y.get_start() or y.get_end() < get_start()) {
@@ -135,7 +141,7 @@ bool Path::is_branching(const Path &y) const // returns true if the two paths br
     return false;
 }
 
-bool Path::is_subpath(const Path &big_path) const {
+bool prg::Path::is_subpath(const prg::Path &big_path) const {
     if (big_path.length() < length()
         or big_path.get_start() > get_start()
         or big_path.get_end() < get_end()
@@ -163,7 +169,7 @@ bool Path::is_subpath(const Path &big_path) const {
     return false;
 }
 
-bool Path::operator<(const Path &y) const {
+bool prg::Path::operator<(const prg::Path &y) const {
     auto it2 = y.path.begin();
     auto it = path.begin();
     while (it != path.end() and it2 != y.path.end()) {
@@ -182,7 +188,7 @@ bool Path::operator<(const Path &y) const {
     return false; // shouldn't ever call this
 }
 
-bool Path::operator==(const Path &y) const {
+bool prg::Path::operator==(const prg::Path &y) const {
     if (path.size() != y.path.size()) { return false; }
     auto it2 = y.path.begin();
     for (auto it = path.begin(); it != path.end();) {
@@ -195,19 +201,19 @@ bool Path::operator==(const Path &y) const {
 
 // tests if the paths are equal except for null nodes at the start or
 // ends of the paths
-bool equal_except_null_nodes(const Path &x, const Path &y) {
-    auto it2 = y.path.begin();
-    for (auto it = x.path.begin(); it != x.path.end();) {
-        while (it != x.path.end() and it->length == 0) {
+bool equal_except_null_nodes(const prg::Path &x, const prg::Path &y) {
+    auto it2 = y.begin();
+    for (auto it = x.begin(); it != x.end();) {
+        while (it != x.end() and it->length == 0) {
             it++;
         }
-        while (it2 != y.path.end() and it2->length == 0) {
+        while (it2 != y.end() and it2->length == 0) {
             it2++;
         }
 
-        if (it == x.path.end() and it2 == y.path.end()) {
+        if (it == x.end() and it2 == y.end()) {
             break;
-        } else if (it == x.path.end() or it2 == y.path.end()) {
+        } else if (it == x.end() or it2 == y.end()) {
             return false;
         }
 
@@ -221,11 +227,11 @@ bool equal_except_null_nodes(const Path &x, const Path &y) {
     return true;
 }
 
-bool Path::operator!=(const Path &y) const {
+bool prg::Path::operator!=(const prg::Path &y) const {
     return (!(path == y.path));
 }
 
-std::ostream &prg::operator<<(std::ostream &out, Path const &p) {
+std::ostream &prg::operator<<(std::ostream &out, const prg::Path &p) {
     uint32_t num_intervals = p.path.size();
     out << num_intervals << "{";
     for (auto it = p.path.begin(); it != p.path.end(); ++it) {
@@ -235,7 +241,7 @@ std::ostream &prg::operator<<(std::ostream &out, Path const &p) {
     return out;
 }
 
-std::istream &prg::operator>>(std::istream &in, Path &p) {
+std::istream &prg::operator>>(std::istream &in, prg::Path &p) {
     uint32_t num_intervals;
     in >> num_intervals;
     std::deque<Interval> d(num_intervals, Interval());
@@ -248,11 +254,11 @@ std::istream &prg::operator>>(std::istream &in, Path &p) {
     return in;
 }
 
-Path prg::get_union(const Path &x, const Path &y) {
+prg::Path prg::get_union(const prg::Path &x, const prg::Path &y) {
     auto xit = x.path.begin();
     auto yit = y.path.begin();
 
-    Path p;
+    prg::Path p;
     assert (x < y);
 
     if (x.get_end() < y.get_start() or x.is_branching(y)) {
