@@ -55,7 +55,7 @@ public:
 
     std::vector<prg::Path> shift(prg::Path) const;
 
-    void minimizer_sketch(const std::shared_ptr<Index> &index, const uint32_t w, const uint32_t k);
+    void minimizer_sketch(const std::shared_ptr<Index> &index, const uint32_t w, const uint32_t k, double percentageDone=-1.0);
 
     // functions used once hits have been collected against the PRG
     std::vector<KmerNodePtr> kmernode_path_from_localnode_path(const std::vector<LocalNodePtr> &) const;
