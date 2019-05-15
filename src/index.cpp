@@ -168,7 +168,7 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs, //all PRGs to be i
         fs::create_directories(outdir + "/" + int_to_string(i + 1));
 
     // now fill index
-    #pragma omp parallel for num_threads(threads)
+    #pragma omp parallel for num_threads(threads) schedule(dynamic, 3)
     for (uint32_t i = 0; i < prgs.size(); ++i) { //for each prg
         uint32_t dir = i/nbOfGFAsPerDir + 1;
         prgs[i]->minimizer_sketch(index, w, k);
