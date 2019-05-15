@@ -171,7 +171,7 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs, //all PRGs to be i
     #pragma omp parallel for num_threads(threads) schedule(dynamic, 3)
     for (uint32_t i = 0; i < prgs.size(); ++i) { //for each prg
         uint32_t dir = i/nbOfGFAsPerDir + 1;
-        prgs[i]->minimizer_sketch(index, w, k);
+        prgs[i]->minimizer_sketch(index, w, k, (((double)(i))/prgs.size())*100);
         prgs[i]->kmer_prg.save(
                 outdir + "/" + int_to_string(dir) + "/" + prgs[i]->name + ".k" + std::to_string(k) + ".w" +
                 std::to_string(w) + ".gfa");

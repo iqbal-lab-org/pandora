@@ -327,8 +327,9 @@ std::vector<prg::Path> LocalPRG::shift(prg::Path p) const {
 }
 
 
-void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint32_t w, const uint32_t k) {
-    BOOST_LOG_TRIVIAL(info) << "Sketch PRG " << name << " which has " << prg.nodes.size() << " nodes";
+void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint32_t w, const uint32_t k, double percentageDone) {
+    if (percentageDone >= 0) BOOST_LOG_TRIVIAL(info) << "Sketch PRG " << name << " which has " << prg.nodes.size() << " nodes (" << percentageDone << "% done)";
+    else BOOST_LOG_TRIVIAL(info) << "Sketch PRG " << name << " which has " << prg.nodes.size() << " nodes";
 
     // clean up after any previous runs
     // although note we can't clear the index because it is also added to by other LocalPRGs
