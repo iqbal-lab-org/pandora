@@ -14,9 +14,9 @@ TEST(PathTest, initialize) {
     Path p;
     vector<Interval> d = {Interval(0, 1), Interval(3, 3), Interval(5, 10)};
     p.initialize(d);
-    EXPECT_EQ(p.path.size(), d.size());
+    EXPECT_EQ(p.size(), d.size());
     for (uint i = 0; i != d.size(); ++i) {
-        EXPECT_EQ(p.path[i], d[i]);
+        EXPECT_EQ(p[i], d[i]);
     }
 }
 
@@ -44,7 +44,7 @@ TEST(PathTest, add_end_interval) {
     p.initialize(d);
     p.add_end_interval(Interval(6, 9));
     d.push_back(Interval(6, 9));
-    EXPECT_ITERABLE_EQ(vector<Interval>, d, p.path);
+    EXPECT_ITERABLE_EQ(vector<Interval>, d, p.getPath());
     EXPECT_DEATH(p.add_end_interval(Interval(0, 1)), "");
 }
 
@@ -57,34 +57,34 @@ TEST(PathTest, subpath) {
     // regular
     p1 = p.subpath(0, 3);
     d1 = {Interval(1, 3), Interval(4, 5)};
-    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.path);
+    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.getPath());
 
     // handle zero-length interval
     p1 = p.subpath(1, 3);
     d1 = {Interval(2, 3), Interval(4, 5), Interval(6, 6), Interval(9, 10)};
-    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.path);
+    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.getPath());
 
     // start in another interval
     p1 = p.subpath(2, 3);
     d1 = {Interval(4, 5), Interval(6, 6), Interval(9, 11)};
-    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.path);
+    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.getPath());
 
     // all in one interval
     p1 = p.subpath(3, 3);
     d1 = {Interval(6, 6), Interval(9, 12)};
-    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.path);
+    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.getPath());
 
     // all in one interval
     p1 = p.subpath(4, 3);
     d1 = {Interval(10, 13)};
-    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.path);
+    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.getPath());
 
     // and several null nodes at start of path
     d = {Interval(0, 0), Interval(1, 1), Interval(3, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
     p.initialize(d);
     d1 = {Interval(0, 0), Interval(1, 1), Interval(3, 3), Interval(4, 5), Interval(6, 6), Interval(9, 10)};
     p1 = p.subpath(0, 2);
-    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.path);
+    EXPECT_ITERABLE_EQ(vector<Interval>, d1, p1.getPath());
 
     // can't get subpath from a coordinate not in path
     //EXPECT_DEATH(p.subpath(0,3), "");
@@ -314,7 +314,7 @@ TEST(PathTest, get_union) {
     // branching
     d2 = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(50, 60)};
     p2.initialize(d2);
-    q.path.clear();
+    q.clear();
     EXPECT_EQ(q, get_union(p1, p2));
 
     // non-overlapping

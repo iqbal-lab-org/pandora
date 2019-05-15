@@ -15,9 +15,13 @@ class Index {
 public:
     std::unordered_map<uint64_t, std::vector<MiniRecord> *> minhash; //map of minimizers to MiniRecords - for each minimizer, records some information of it
 
-    Index();
-
-    ~Index();
+    //declares all default constructors, destructors and assignment operators explicitly
+    Index() = default; //default constructor
+    Index(const Index &other) = default; //copy default constructor
+    Index(Index &&other) = default; //move default constructor
+    Index& operator=(const Index& other) = default; //copy assignment operator
+    Index& operator=(Index&& other) = default; //move assignment operator
+    virtual ~Index() = default; //destructor
 
     void add_record(const uint64_t, const uint32_t, const prg::Path, const uint32_t, const bool);
 

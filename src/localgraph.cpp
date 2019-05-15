@@ -168,7 +168,7 @@ std::vector<prg::Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t 
                 // Note, would have just added start interval to each item in walk_paths, but can't seem to force result of it2 to be non-const
                 //cout << (*it2) << endl;
                 p2.initialize(Interval(pos, nodes.at(node_id)->pos.get_end()));
-                p2.path.insert(p2.path.end(), walk_path.path.begin(), walk_path.path.end());
+                p2.insert_to_the_end(walk_path.begin(), walk_path.end());
                 //cout << "path: " << p2 << " p2.length: " << p2.length << endl;
                 if (p2.length() == len) {
                     return_paths.push_back(p2);
@@ -208,7 +208,7 @@ std::vector<prg::Path> LocalGraph::walk_back(const uint32_t &node_id, const uint
             if (innode != it->second->outNodes.end()) {
                 walk_paths = walk_back(it->second->id, it->second->pos.get_end(), len - len_added);
                 for (uint32_t i = 0; i != walk_paths.size(); ++i) {
-                    p2.initialize(walk_paths[i].path);
+                    p2.initialize(walk_paths[i]);
                     p2.add_end_interval(Interval(nodes.at(node_id)->pos.start, pos));
                     //cout << p2 << endl;
                     if (p2.length() == len) {

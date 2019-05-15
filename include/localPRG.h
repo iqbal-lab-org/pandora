@@ -24,7 +24,7 @@ class LocalPRG {
     uint32_t next_id; //internal variables used in some methods - TODO: maybe this should not be an object variable
     std::string buff; //internal variables used in some methods - TODO: maybe this should not be an object variable
 
-    mutable std::map<prg::Path, std::vector<LocalNodePtr>> nodes_along_path_memoization;
+    friend class prg::Path; //for memoization
     std::vector<LocalNodePtr> nodes_along_path_core(const prg::Path &) const;
 public:
     uint32_t next_site; //denotes the id of the next variant site to be processed - TODO: maybe this should not be an object variable
@@ -45,7 +45,7 @@ public:
 
     static std::string string_along_path(const std::vector<LocalNodePtr> &);
 
-    std::vector<LocalNodePtr> nodes_along_path(const prg::Path &) const;
+    std::vector<LocalNodePtr> nodes_along_path(prg::Path &) const;
 
     std::vector<Interval> split_by_site(const Interval &) const;
 
@@ -55,7 +55,7 @@ public:
 
     std::vector<prg::Path> shift(prg::Path) const;
 
-    void minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, const uint32_t k);
+    void minimizer_sketch(const std::shared_ptr<Index> &index, const uint32_t w, const uint32_t k);
 
     // functions used once hits have been collected against the PRG
     std::vector<KmerNodePtr> kmernode_path_from_localnode_path(const std::vector<LocalNodePtr> &) const;

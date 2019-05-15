@@ -26,7 +26,7 @@ MinimizerHit::MinimizerHit(const uint32_t read_id, const Interval read_interval,
                            const prg::Path prg_path, const uint32_t kmer_node_id, const bool is_forward)
         : read_id(read_id), read_start_position(read_interval.start), prg_id(prg_id), kmer_node_id(kmer_node_id),
           is_forward(is_forward) {
-    this->prg_path.initialize(prg_path.path);
+    this->prg_path.initialize(prg_path);
     assert(read_interval.length == this->prg_path.length());
 };
 

@@ -48,7 +48,7 @@ std::string LocalPRG::string_along_path(const prg::Path &p) const {
     assert(p.get_start() <= seq.length());
     assert(p.get_end() <= seq.length());
     std::string s;
-    for (const auto &it : p.path) {
+    for (const auto &it : p) {
         s += seq.substr(it.start, it.length);
         //std::cout << s << std::endl;
     }
@@ -67,15 +67,8 @@ std::string LocalPRG::string_along_path(const std::vector<LocalNodePtr> &p) {
     return s;
 }
 
-std::vector<LocalNodePtr> LocalPRG::nodes_along_path(const prg::Path &p) const {
-    auto it = nodes_along_path_memoization.find(p);
-    if (it == nodes_along_path_memoization.end()) {
-        //not memoized, memoize
-        std::vector<LocalNodePtr> result = nodes_along_path_core(p);
-        nodes_along_path_memoization[p] = result;
-        return result;
-    } else
-        return it->second;
+std::vector<LocalNodePtr> LocalPRG::nodes_along_path(prg::Path &p) const {
+    return p.nodes_along_path(*this);
 }
 
 
@@ -83,14 +76,14 @@ std::vector<LocalNodePtr> LocalPRG::nodes_along_path_core(const prg::Path &p) co
     std::vector<LocalNodePtr> path_nodes; //the local nodes path
     path_nodes.reserve(100);
 
-    for (auto it = p.path.begin(); it != p.path.end(); ++it) {
+    for (auto it = p.begin(); it != p.end(); ++it) {
         const auto &interval = *it;
         uint32_t interval_end = it->get_end();
 
         // find the appropriate node of the prg
         // 1. check for degenerate cases
         if (interval.length == 0) { //0-length intervals
-            if (it == --(p.path.end())) { //if this is the last interval of the path - it can match any interval
+            if (it == --(p.end())) { //if this is the last interval of the path - it can match any interval
                 auto itstartIndexOfAllIntervals = prg.startIndexOfAllIntervals.find(interval.start); //tries to find the interval in prg.startIndexOfAllIntervals
                 if (itstartIndexOfAllIntervals != prg.startIndexOfAllIntervals.end() && //if we found it and
                     itstartIndexOfAllIntervals->second != prg.nodes.begin()->second) //the node we are trying to add is not the first node of the prg
@@ -285,7 +278,10 @@ std::vector<prg::Path> LocalPRG::shift(prg::Path p) const {
 
         // if we can extend within the same localnode, do
         if (p.get_end() < n.back()->pos.get_end()) { //extend by one base in the same local node
-            p.path.back().length += 1;
+            //p.path.back().length += 1; //changes to the interval are done explictly now
+            Interval interval = p.getAndRemoveLastInterval(); //get the last interval and remove it
+            interval.length+=1; //modify it
+            p.push_back(interval); //add it back
             k_paths.push_back(p);
         } else if (p.get_end() != (--(prg.nodes.end()))->second->pos.get_end()) {
             for (uint32_t i = 0; i != n.back()->outNodes.size(); ++i) { //go to the out-neighbours to extend
@@ -331,7 +327,7 @@ std::vector<prg::Path> LocalPRG::shift(prg::Path p) const {
 }
 
 
-void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, const uint32_t k) {
+void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint32_t w, const uint32_t k) {
     BOOST_LOG_TRIVIAL(info) << "Sketch PRG " << name << " which has " << prg.nodes.size() << " nodes";
 
     // clean up after any previous runs
@@ -377,7 +373,7 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
         smallest = std::numeric_limits<uint64_t>::max(); //find the minimizer
         for (uint32_t j = 0; j != w; j++) { //goes through all windows to find the minimizer of this walk
             kmer_path = walk_paths[i].subpath(j, k); //gets the subpath related to this k-mer //TODO: move constructor/assignment op in Path?
-            if (!kmer_path.path.empty()) {
+            if (!kmer_path.empty()) {
                 kmer = string_along_path(kmer_path); //get the string along the path
                 kh = hash.kmerhash(kmer, k); //TODO: replace by GATB's minimizer?
                 smallest = std::min(smallest, std::min(kh.first, kh.second));
@@ -386,7 +382,7 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, 
         for (uint32_t j = 0; j != w; j++) { //now re-iterates the windows
             kmer_path = walk_paths[i].subpath(j, k); //gets the subpath related to this kmer
             auto old_kn = kmer_prg.nodes[0];
-            if (!kmer_path.path.empty()) {
+            if (!kmer_path.empty()) {
                 kmer = string_along_path(kmer_path);
                 kh = hash.kmerhash(kmer, k);
                 n = nodes_along_path(kmer_path);
@@ -579,13 +575,13 @@ LocalPRG::kmernode_path_from_localnode_path(const std::vector<LocalNodePtr> &loc
     local_path.initialize(d);
 
     for (const auto &n: kmer_prg.sorted_nodes) {
-        for (const auto &interval : local_path.path) {
+        for (const auto &interval : local_path) {
             if (interval.start > n->path.get_end())
                 break;
             else if (interval.get_end() < n->path.get_start())
                 continue;
-            else if ((intervals_overlap(interval, n->path.path[0]) or
-                      intervals_overlap(interval, n->path.path.back())) and not local_path.is_branching(n->path)) {
+            else if ((intervals_overlap(interval, n->path[0]) or
+                      intervals_overlap(interval, n->path.back())) and not local_path.is_branching(n->path)) {
                 //and not n.second->path.is_branching(local_path))
                 kmernode_path.push_back(n);
                 break;
@@ -743,7 +739,7 @@ get_covgs_along_localnode_path(const PanNodePtr pan_node, const std::vector<Loca
         }
 
         k = j;
-        for (const auto &interval : kmernode_ptr->path.path) {
+        for (const auto &interval : kmernode_ptr->path) {
                 assert(localnode_path[k]->pos.start <= interval.start and
                    localnode_path[k]->pos.get_end() >= interval.get_end());
 
@@ -1201,7 +1197,7 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg, const std::vector
         if (n->path.length() == 0)
             continue;
         else if (prev != nullptr) {
-            auto prev_interval_it = prev->path.path.begin();
+            auto prev_interval_it = prev->path.begin();
             while (prev_interval_it->get_end() < n->path.get_start()) {
                 added += prev_interval_it->length;
                 prev_interval_it++;
