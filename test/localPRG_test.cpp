@@ -660,8 +660,7 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw1) {
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
     std::set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
-    l.kmer_prg.sort_topologically();
-    vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
+    auto lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
     for (auto sit = sketch.begin(); sit != sketch.end(); ++sit) {
@@ -682,8 +681,7 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw5) {
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
     set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
-    l.kmer_prg.sort_topologically();
-    vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
+    auto lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
     for (auto sit = sketch.begin(); sit != sketch.end(); ++sit) {
@@ -704,8 +702,7 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw10) {
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
     set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
-    l.kmer_prg.sort_topologically();
-    vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
+    auto lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
     for (auto sit = sketch.begin(); sit != sketch.end(); ++sit) {
@@ -726,8 +723,7 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw15) {
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
     set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
-    l.kmer_prg.sort_topologically();
-    vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
+    auto lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
     for (auto sit = sketch.begin(); sit != sketch.end(); ++sit) {
@@ -774,7 +770,6 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
     KmerHash hash;
 
     l3.minimizer_sketch(index, 2, 3);
-    l3.kmer_prg.sort_topologically();
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
 
     vector<KmerNodePtr> kmp = l3.kmernode_path_from_localnode_path(lmp);
@@ -787,7 +782,6 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
 
     index->clear();
     l4.minimizer_sketch(index, 3, 3);
-    l4.kmer_prg.sort_topologically();
     lmp = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6]};
 
     kmp = l4.kmernode_path_from_localnode_path(lmp);
@@ -801,7 +795,6 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
     // case where we don't have start and end point in localpath, so need to consider whether kmer overlaps
     index->clear();
     l5.minimizer_sketch(index, 2, 3);
-    l5.kmer_prg.sort_topologically();
     lmp = {l5.prg.nodes[1], l5.prg.nodes[2], l5.prg.nodes[4], l5.prg.nodes[6], l5.prg.nodes[7]};
 
     kmp = l5.kmernode_path_from_localnode_path(lmp);
@@ -1361,7 +1354,6 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf) {
 
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
     l3.minimizer_sketch(index, 1, 3);
-    l3.kmer_prg.sort_topologically();
 
     VCF vcf;
 

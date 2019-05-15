@@ -292,14 +292,13 @@ TEST(KmerGraphTest, sort_topologically) {
     kg.add_edge(kg.nodes[4], kg.nodes[6]);
     kg.add_edge(kg.nodes[5], kg.nodes[6]);
 
-    kg.sort_topologically();
-
     // for each node, outnodes are further along vector
-    vector<KmerNodePtr>::iterator it;
+    set<KmerNodePtr>::iterator it;
     uint i = 0;
-    for (vector<KmerNodePtr>::iterator c = kg.sorted_nodes.begin(); c != kg.sorted_nodes.end(); ++c) {
+    for (auto c = kg.sorted_nodes.begin(); c != kg.sorted_nodes.end(); ++c) {
         for (const auto &d: (*c)->outNodes) {
-            it = c + 1;
+            it = c;
+            ++it;
             while ((*it)->path != d->path and it != kg.sorted_nodes.end()) {
                 it++;
             }
@@ -349,7 +348,9 @@ TEST(KmerGraphTest, check) {
     kg.sorted_nodes = {kg.nodes[0], kg.nodes[1], kg.nodes[4], kg.nodes[3], kg.nodes[2], kg.nodes[5], kg.nodes[6]};
     kg.check();
     kg.sorted_nodes = {kg.nodes[6], kg.nodes[5], kg.nodes[0], kg.nodes[3], kg.nodes[2], kg.nodes[1], kg.nodes[4]};
-    EXPECT_DEATH(kg.check(), "");
+    //There is no way to expect death here since kg.sorted_nodes are always sorted now
+    //EXPECT_DEATH(kg.check(), "");
+    kg.check();
 }
 
 TEST(KmerGraphTest, remove_shortcut_edges){

@@ -6,9 +6,23 @@ class LocalPRG;
 #include <cstdint>
 #include <vector>
 #include <iostream>
+#include <set>
 #include "prg/path.h"
 #include "kmernode.h"
 #include "pangenome/ns.cpp"
+
+
+struct condition {
+    prg::Path q;
+
+    condition(const prg::Path &);
+
+    bool operator()(const KmerNodePtr) const;
+};
+
+struct pCompKmerNode {
+    bool operator()(KmerNodePtr, KmerNodePtr);
+};
 
 
 class KmerGraph {
@@ -23,7 +37,7 @@ public:
     uint32_t num_reads;
     uint32_t shortest_path_length;
     std::vector<KmerNodePtr> nodes;
-    std::vector<KmerNodePtr> sorted_nodes; // representing ordering of the nodes compatible with dp
+    std::set<KmerNodePtr, pCompKmerNode> sorted_nodes; // representing ordering of the nodes compatible with dp
 
     KmerGraph();
 
@@ -42,8 +56,6 @@ public:
     void add_edge(KmerNodePtr, KmerNodePtr);
 
     void remove_shortcut_edges();
-
-    void sort_topologically();
 
     void check();
 
@@ -112,18 +124,6 @@ public:
     friend class KmerGraphTest_path_prob_Test;
 
     friend class KmerGraphTest_path_probs_Test;
-};
-
-struct condition {
-    prg::Path q;
-
-    condition(const prg::Path &);
-
-    bool operator()(const KmerNodePtr) const;
-};
-
-struct pCompKmerNode {
-    bool operator()(KmerNodePtr, KmerNodePtr);
 };
 
 #endif
