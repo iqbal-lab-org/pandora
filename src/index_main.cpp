@@ -117,6 +117,7 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" command
     index_prgs(prgs, index, w, k, outdir, threads);
 
     // save index
+    BOOST_LOG_TRIVIAL(info) << "Saving index...";
     if (not index_outfile.empty())
         index->save(index_outfile);
     else if (id > 0)
@@ -124,6 +125,7 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" command
     else
         index->save(prgfile, w, k);
 
+    BOOST_LOG_TRIVIAL(info) << "All done!";
     return 0;
 }
 
