@@ -168,13 +168,16 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs, //all PRGs to be i
         fs::create_directories(outdir + "/" + int_to_string(i + 1));
 
     // now fill index
-    #pragma omp parallel for num_threads(threads) schedule(dynamic, 3)
+    std::atomic_uint32_t nbOfPRGsDone{0};
+    #pragma omp parallel for num_threads(threads) schedule(dynamic, 1)
     for (uint32_t i = 0; i < prgs.size(); ++i) { //for each prg
         uint32_t dir = i/nbOfGFAsPerDir + 1;
-        prgs[i]->minimizer_sketch(index, w, k, (((double)(i))/prgs.size())*100);
+        prgs[i]->minimizer_sketch(index, w, k, (((double)(nbOfPRGsDone.load()))/prgs.size())*100);
         prgs[i]->kmer_prg.save(
                 outdir + "/" + int_to_string(dir) + "/" + prgs[i]->name + ".k" + std::to_string(k) + ".w" +
                 std::to_string(w) + ".gfa");
+
+        ++nbOfPRGsDone;
     }
     BOOST_LOG_TRIVIAL(debug) << "Finished adding " << prgs.size() << " LocalPRGs";
     BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << index->minhash.size();
