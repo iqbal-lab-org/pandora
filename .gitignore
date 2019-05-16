@@ -62,9 +62,6 @@ log.txt
 # and files for debugging and sending to other people
 EcoliK12_pandora*
 
-#internal scripts
-scripts/*
-
 # local directory - michael
 vm-build/
 
