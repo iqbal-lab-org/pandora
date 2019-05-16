@@ -61,5 +61,23 @@ target_link_libraries(${PROJECT_NAME}
         ${ZLIB_LIBRARY})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include)
 
+#Build compare_indexes
+set(SRC_FILES_COMPARE_INDEXES ${SRC_FILES})
+list(REMOVE_ITEM SRC_FILES_COMPARE_INDEXES ${PROJECT_SOURCE_DIR}/src/main.cpp)
+add_executable(compare_indexes ${PROJECT_SOURCE_DIR}/scripts/compare_indexes/compare_indexes.cpp ${SRC_FILES_COMPARE_INDEXES})
+set_target_properties(compare_indexes PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin/)
+target_link_libraries(compare_indexes
+        ${CMAKE_THREAD_LIBS_INIT}
+        ${Boost_IOSTREAMS_LIBRARY}
+        ${Boost_FILESYSTEM_LIBRARY}
+        ${Boost_SYSTEM_LIBRARY}
+        ${Boost_LOG_LIBRARY}
+        ${Boost_THREAD_LIBRARY}
+        ${EXTERNAL_LIBS}
+        ${CMAKE_DL_LIBS}
+        ${ZLIB_LIBRARY})
+target_include_directories(compare_indexes PUBLIC ${CMAKE_BINARY_DIR}/include)
+
+
 enable_testing()
 add_subdirectory(test)
