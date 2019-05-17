@@ -108,7 +108,13 @@ std::vector<LocalNodePtr> LocalPRG::nodes_along_path_core(const prg::Path &p) co
     return path_nodes;
 }
 
-//SPLIT THE GIVEN INTERVAL INTO THE INTERVAL OF THE ALLELES (THE INTERVALS BETWEEN EVEN NUMBERS)
+
+/* Split the interval first into the invariant region coming before it, all its alleles and then the rest of the PRG.
+ * Example:
+ ATGTCTGAG 5 GTTATT 6 ATTATC 6 GTTATC 5 AGGAACGATATCTTTCATTTT 7  9 A 10 G 10 T 9 CTTCAAAAAAGAAT 8 GCTTCTACAGAGAAC 7 GTGCCCAC 11 A 12 G 11 GGGTTCTATCGGTTATGCAAACAAAAACCA 13 A 14 G 13 TGAACCCTTTATTCTTTTT 15 A 16 G 15 CCCAATTT 17 ACTG 18 GCTG 18 GCTA 17 GTAGTTGCTGAA 19 A 20 G 19 GCAATAA 21 C 22 T 21 GATGCCATTC 23 A 24 C 24 T 23 ACCATGCTTTGATT 25 A 26 T 25 CTCTGTTATTAGCACTGAATTAT 27 A 28 T 27 TGAGTCAATTGAAGATGGAGATATTGGG 29 GTAATT 30 ATAATC 29 AACAATGGCAATATGAT 31 ACGCGTT 32 ACGCGTA 32 CCGCGTT 31 ATTCTGTC 33 CCGCAG 34 ACGCAA 33 AGCCAATCATAATACTGTCTTAGT 35 A 36 T 35 ACGGAACG 37 C 38 T 37 TGCAATAACTTGTGTCT 39 G 40 C 39 TTTTGTTCGCAGCCACC 41  43 A 44 T 43 AAGAAATC 42 AAAGAAAAT 41 AAATGATGACTGGCTACTTACCCAATCAGC 45 C 46 T 45 CTTGCTAT 47 A 48 C 47 GCTTCATTTGG 49  51 TTTAA 52 TTTGG 51 ATGGAGTT 50 GTTGAATGGAGTA 50 CTTGAACGGAGTT 49 GTTGGGGTCAGCGGTGG 53 A 54 T 53 GAACCTTTGCT 55 GTATGGAGATGATTT 57 CCTTC 58 GCTTA 57  56 ATATGGGGATGACTTCCTTC 55 ACTTCATTGATTTTATCATCGAGAATTCACCAGATACTGCTTT 59 A 60 G 59 CATGTTTTAACAAACGG 61 A 62 G 61 CGCAAATTT 63  65 G 66 T 65 CTGATATCAACTTTAC 67 ACAG 68 TCAG 67  64 GCTGATATCACCTTTACTCAG 64 GCTGATACCAACTTTACTCAT 63 GAAATGGCAAAGCGAAG 69 C 70 T 69 AAAAAGAT 71 A 72 C 71 AAAATCACCTTTGGTAT 73 A 74 C 73 CCGCTCTACTCATCAAGACCACTTGTGCATGATCAT 75 C 76 T 75 TGGTAGG 77 GAG 78 AAG 78 GAA 77 TGATGGCGCATTTAATGAAACGGTTAA 79 A 80 G 79 GGGTTAAT 81 C 82 T 81 AATGCAGG 83 AAACTCA 84 GAACTCA 84 AAACTTG 83 GGGATTAATATCGAACTTAGAGTTATTCC 85  87 G 88 T 87 ACACTGGC 86 GACATTGGT 85 TAACTATAC 89 A 90 G 90 C 89 GAATTGGATG 91  93 GCATC 94 ATATT 93 GTAGAGTTCGT 92 ATATTGTAGAATTCGC 91 TGGCCGTGT 95 G 96 T 95 TTCTCCAACATCAATCAGATTTCCCTTATGGGG 97 TTGGAAT 98 TTGGAGC 98 CTGGAAT 97 CTATCGGTTGGGC 99 GCGAAAA 100 ACGAAAG 100 ACGAAAA 99 AACTGGTC 101 AACA 102 CACC 101 ATCTTCATTGA 103  105 A 106 G 105 CACAGCAG 107 C 108 T 107  104 TCACAGTAGT 103 TATAGTGAGAAA 109 ATAATCTC 111 TGCC 112 CGCC 111  110 GTAATCTCCACC 110 ATAACCTCCGCT 109 ATAGACGCTGC 113 GC 114 AC 114 AT 113 ACAGGTCAGG 115 C 116 T 115 ATACCTCT 117 A 118 G 117 ACAATTTTTAATTATCCTTTGTGT 119 C 120 T 119 ATCTTCC 121  123 C 124 T 123 GAAAGAGC 125 TT 126 CT 125  122 TGAAAGGGCTA 121 GGGAGCTTGCTG 127 C 128 T 127 TCAGTCGATCTCTGATTGGAAAAATTACTATCC 129 A 130 T 129 AAAGAATGTGATGAATG 131 C 132 T 131 ACTCAGAAG 133 C 134 T 133 CTTCCTGT 135 ACTGGT 136 GCTGGT 136 GCTGGC 135 TATTTCAGTTC 137 CTCAACA 138 TTCAACG 138 CTCAAAA 137 GGCCGTTTTCATCAA 139 C 140 T 139 CACCGAGACCAATTTTA
+ Param i will be start=0, length=2424
+ Divided into (0,9) = ATGTCTGAG; (12,6) = GTTATT, (21,6) = ATTATC, (30,6) = GTTATC, (39, 2385) = the rest of the string -> AGGAACGATATCTTTC...
+ */
 std::vector<Interval> LocalPRG::split_by_site(const Interval &i) const {
     // Splits interval by next_site based on substring of seq in the interval
     //std::cout << "splitting by site " << next_site << " in interval " << i << std::endl;
@@ -202,8 +208,8 @@ LocalPRG::build_graph(const Interval &i, const std::vector<uint32_t> &from_ids, 
 
     // add nodes
     std::string s = seq.substr(i.start, i.length); //check length correct with this end...
-    if (isalpha_string(s)) // should return true for empty string too
-    {
+    if (isalpha_string(s)) // should return true for empty string too - If s does not contain variation, then it wont have spaces, and this will return false. If it contains variations, then it will have space and will return true. Basically the question is: does s contains variation?
+    {   //s does not contain variations
         prg.add_node(next_id, s, i);
         // add edges from previous part of graph to start of this interval
         for (uint32_t j = 0; j != from_ids.size(); j++) {
@@ -211,9 +217,9 @@ LocalPRG::build_graph(const Interval &i, const std::vector<uint32_t> &from_ids, 
         }
         end_ids.push_back(next_id);
         next_id++;
-    } else {
+    } else { //s contains variation
         // split by next var site
-        std::vector<Interval> v = split_by_site(i); // should have length at least 4
+        std::vector<Interval> v = split_by_site(i); // should have length at least 4 //This will get the first site and split it into its alleles
         if (v.size() < (uint32_t) 4) {
             BOOST_LOG_TRIVIAL(warning) << "In conversion from linear localPRG string to graph, splitting the string by "
                                           "the next var site resulted in the wrong number of intervals. Please check that site numbers "
@@ -223,7 +229,7 @@ LocalPRG::build_graph(const Interval &i, const std::vector<uint32_t> &from_ids, 
             std::exit(-1);
         }
         next_site += 2; //update next site
-        // add first interval (should be alpha)
+        // add first interval (should be the invariable seq, and thus composed only by alpha chars)
         s = seq.substr(v[0].start, v[0].length);
         if (!(isalpha_string(s))) {
             BOOST_LOG_TRIVIAL(warning) << "In conversion from linear localPRG string to graph, splitting the string by "
