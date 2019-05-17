@@ -74,3 +74,4 @@ build/
 data_issue*
 build_release/
 build_release_with_debug/
+build_profiling/

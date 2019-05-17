@@ -21,8 +21,12 @@ else ()
     message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER} has no C++11 support")
 endif ()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_SYSTEM_NO_DEPRECATED -fopenmp")
-#add_definitions("-DNDEBUG")  # assert statements are not run
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_SYSTEM_NO_DEPRECATED -fopenmp -Wall -Wextra")
+
+#print CMAKE debug and release flags to know what we are exactly doing
+#message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
+#message("CMAKE_CXX_FLAGS_RELEASE is ${CMAKE_CXX_FLAGS_RELEASE}")
+#message("CMAKE_CXX_FLAGS_RELWITHDEBINFO is ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib)
 
@@ -65,6 +69,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include)
 set(SRC_FILES_COMPARE_INDEXES ${SRC_FILES})
 list(REMOVE_ITEM SRC_FILES_COMPARE_INDEXES ${PROJECT_SOURCE_DIR}/src/main.cpp)
 add_executable(compare_indexes ${PROJECT_SOURCE_DIR}/scripts/compare_indexes/compare_indexes.cpp ${SRC_FILES_COMPARE_INDEXES})
+add_dependencies(compare_indexes gatb)
 set_target_properties(compare_indexes PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin/)
 target_link_libraries(compare_indexes
         ${CMAKE_THREAD_LIBS_INIT}
