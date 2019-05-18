@@ -36,12 +36,13 @@ set(EXTERNAL_LIBS
         hdf5
         hdf5_tools)
 
+#include directories as SYSTEM includes, thus warnings will be ignored for these
 include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
         ${PROJECT_SOURCE_DIR}/cgranges/cpp
         )
 
-
+#normal includes: warnings will be reported for these
 include_directories(
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src
