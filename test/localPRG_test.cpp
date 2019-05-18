@@ -459,68 +459,77 @@ TEST(LocalPRGTest, shift) {
     p.initialize(d);
     d = {Interval(1, 4)};
     q.initialize(d);
-    vector<prg::Path> v_exp = {q};
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l1.shift(p));
+    vector<PathPtr> v_exp = { std::make_shared<prg::Path>(q) };
+    bool equal = std::equal(v_exp.begin(), v_exp.end(), l1.shift(p).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
     v_exp.clear();
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l1.shift(q)); // there are no shifts over end of prg
+    equal = std::equal(v_exp.begin(), v_exp.end(), l1.shift(q).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     d = {Interval(0, 1), Interval(4, 6)};
     p.initialize(d);
     d = {Interval(4, 6), Interval(13, 14)};
     q.initialize(d);
-    v_exp = {q};
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l2.shift(p));
+    v_exp = { std::make_shared<prg::Path>(q) };
+    equal = std::equal(v_exp.begin(), v_exp.end(), l2.shift(p).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
     v_exp.clear();
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l2.shift(q));
+    equal = std::equal(v_exp.begin(), v_exp.end(), l2.shift(q).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     v_exp.clear();
     d = {Interval(0, 2)};
     p.initialize(d);
     d = {Interval(1, 2), Interval(5, 6)};
     q.initialize(d);
-    v_exp.push_back(q);
+    v_exp.push_back(std::make_shared<prg::Path>(q));
     d = {Interval(1, 2), Interval(20, 21)};
     q.initialize(d);
-    v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l3.shift(p));
+    v_exp.push_back(std::make_shared<prg::Path>(q));
+    equal = std::equal(v_exp.begin(), v_exp.end(), l3.shift(p).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     v_exp.clear();
     d = {Interval(1, 2), Interval(5, 6)};
     p.initialize(d);
     d = {Interval(5, 6), Interval(9, 10)};
     q.initialize(d);
-    v_exp.push_back(q);
+    v_exp.push_back(std::make_shared<prg::Path>(q));
     d = {Interval(5, 6), Interval(13, 14)};
     q.initialize(d);
-    v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l3.shift(p));
+    v_exp.push_back(std::make_shared<prg::Path>(q));
+    equal = std::equal(v_exp.begin(), v_exp.end(), l3.shift(p).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     v_exp.clear();
     d = {Interval(0, 0), Interval(3, 3), Interval(6, 6), Interval(9, 9), Interval(13, 18)};
     p.initialize(d);
     d = {Interval(14, 19)};
     q.initialize(d);
-    v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l5.shift(p));
+    v_exp.push_back(std::make_shared<prg::Path>(q));
+    equal = std::equal(v_exp.begin(), v_exp.end(), l5.shift(p).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     v_exp.clear();
     d = {Interval(3, 8)};
     p.initialize(d);
     d = {Interval(4, 9), Interval(20, 20), Interval(23, 23)};
     q.initialize(d);
-    v_exp.push_back(q);
+    v_exp.push_back(std::make_shared<prg::Path>(q));
     d = {Interval(4, 9)};
     q.initialize(d);
-    v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l6.shift(p));
+    v_exp.push_back(std::make_shared<prg::Path>(q));
+    equal = std::equal(v_exp.begin(), v_exp.end(), l6.shift(p).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     v_exp.clear();
     d = {Interval(4, 9)};
     p.initialize(d);
     d = {Interval(5, 9), Interval(12, 13)};
     q.initialize(d);
-    v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l6.shift(p));
+    v_exp.push_back(std::make_shared<prg::Path>(q));
+    equal = std::equal(v_exp.begin(), v_exp.end(), l6.shift(p).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 }
 
 TEST(LocalPRGTest, minimizer_sketch) {

@@ -265,20 +265,20 @@ LocalPRG::build_graph(const Interval &i, const std::vector<uint32_t> &from_ids, 
 }
 
 
-std::vector<prg::Path> LocalPRG::shift(prg::Path p) const {
+std::vector<PathPtr> LocalPRG::shift(prg::Path p) const {
     // returns all paths of the same length which have been shifted by one position along prg graph
     prg::Path q;
     q = p.subpath(1, p.length() - 1);
     std::vector<LocalNodePtr> n;
-    std::vector<prg::Path> return_paths;
-    std::deque<prg::Path> short_paths = { q };
-    std::vector<prg::Path> k_paths;
+    std::vector<PathPtr> return_paths;
+    std::deque<PathPtr> short_paths = { std::make_shared<prg::Path>(q) };
+    std::vector<PathPtr> k_paths;
     bool non_terminus;
     //uint exp_num_return_seqs = 0;
 
     // first find extensions of the path
     while (!short_paths.empty()) {
-        p = short_paths.front();
+        p = *(short_paths.front());
         n = nodes_along_path(p); //TODO: this can be optimized by deriving the nodes_along_path from the previous path
         short_paths.pop_front();
 
@@ -288,12 +288,12 @@ std::vector<prg::Path> LocalPRG::shift(prg::Path p) const {
             Interval interval = p.getAndRemoveLastInterval(); //get the last interval and remove it
             interval.length+=1; //modify it
             p.push_back(interval); //add it back
-            k_paths.push_back(p);
+            k_paths.push_back(std::make_shared<prg::Path>(p));
         } else if (p.get_end() != (--(prg.nodes.end()))->second->pos.get_end()) {
             for (uint32_t i = 0; i != n.back()->outNodes.size(); ++i) { //go to the out-neighbours to extend
                 //exp_num_return_seqs += 1;
-                short_paths.push_back(p);
-                short_paths.back().add_end_interval(
+                short_paths.push_back(std::make_shared<prg::Path>(p));
+                short_paths.back()->add_end_interval(
                         Interval(n.back()->outNodes[i]->pos.start, n.back()->outNodes[i]->pos.start));
             }
         }
@@ -305,17 +305,17 @@ std::vector<prg::Path> LocalPRG::shift(prg::Path p) const {
         non_terminus = false; // assume there all extensions are terminal i.e. reach end or prg
 
         while (!short_paths.empty()) {
-            p = short_paths.front();
+            p = *(short_paths.front());
             n = nodes_along_path(p);
             short_paths.pop_front();
 
             if (n.back()->pos.get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
-                return_paths.push_back(p);
+                return_paths.push_back(std::make_shared<prg::Path>(p));
             } else if (n.back()->pos.get_end() == p.get_end()) {
                 for (uint32_t j = 0; j != n.back()->outNodes.size(); ++j) {
                     if (n.back()->outNodes[j]->pos.length == 0) {
-                        short_paths.push_back(p);
-                        short_paths.back().add_end_interval(n.back()->outNodes[j]->pos);
+                        short_paths.push_back(std::make_shared<prg::Path>((p)));
+                        short_paths.back()->add_end_interval(n.back()->outNodes[j]->pos);
                     } else {
                         non_terminus = true;
                     }
@@ -332,7 +332,6 @@ std::vector<prg::Path> LocalPRG::shift(prg::Path p) const {
     return return_paths;
 }
 
-
 void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint32_t w, const uint32_t k, double percentageDone) {
     if (percentageDone >= 0) BOOST_LOG_TRIVIAL(info) << "Sketch PRG " << name << " which has " << prg.nodes.size() << " nodes (" << percentageDone << "% done)";
     else BOOST_LOG_TRIVIAL(info) << "Sketch PRG " << name << " which has " << prg.nodes.size() << " nodes";
@@ -342,11 +341,11 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
     kmer_prg.clear();
 
     // declare variables
-    std::vector<prg::Path> walk_paths, shift_paths, v;
+    std::vector<PathPtr> walk_paths, shift_paths, v;
     walk_paths.reserve(100);
     shift_paths.reserve(100);
     std::deque<KmerNodePtr> current_leaves, end_leaves;
-    std::deque<std::vector<prg::Path>> shifts;
+    std::deque<std::vector<PathPtr>> shifts;
     std::deque<Interval> d;
     prg::Path kmer_path;
     std::string kmer;
@@ -379,7 +378,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
         // find minimizer for this walk
         smallest = std::numeric_limits<uint64_t>::max(); //find the minimizer
         for (uint32_t j = 0; j != w; j++) { //goes through all windows to find the minimizer of this walk
-            kmer_path = walk_paths[i].subpath(j, k); //gets the subpath related to this k-mer //TODO: move constructor/assignment op in Path?
+            kmer_path = walk_paths[i]->subpath(j, k); //gets the subpath related to this k-mer //TODO: move constructor/assignment op in Path?
             if (!kmer_path.empty()) {
                 kmer = string_along_path(kmer_path); //get the string along the path
                 kh = hash.kmerhash(kmer, k); //TODO: replace by GATB's minimizer?
@@ -387,7 +386,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
             }
         }
         for (uint32_t j = 0; j != w; j++) { //now re-iterates the windows
-            kmer_path = walk_paths[i].subpath(j, k); //gets the subpath related to this kmer
+            kmer_path = walk_paths[i]->subpath(j, k); //gets the subpath related to this kmer
             auto old_kn = kmer_prg.nodes[0];
             if (!kmer_path.empty()) {
                 kmer = string_along_path(kmer_path);
@@ -446,24 +445,24 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
         while (!shifts.empty()) {
             v = shifts.front();
             shifts.pop_front();
-            assert(v.back().length() == k);
-            kmer = string_along_path(v.back());
+            assert(v.back()->length() == k);
+            kmer = string_along_path(*(v.back()));
             kh = hash.kmerhash(kmer, k);
             if (std::min(kh.first, kh.second) <= kn->khash) {
                 // found next minimizer
-                KmerNodePtr dummyKmerHoldingKmerPath = std::make_shared<KmerNode>(KmerNode(0, v.back()));
+                KmerNodePtr dummyKmerHoldingKmerPath = std::make_shared<KmerNode>(KmerNode(0, *(v.back())));
                 const auto found = kmer_prg.sorted_nodes.find(dummyKmerHoldingKmerPath);
                 if (found == kmer_prg.sorted_nodes.end()) {
                     num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
-                    new_kn = kmer_prg.add_node_with_kh(v.back(), std::min(kh.first, kh.second), num_AT);
+                    new_kn = kmer_prg.add_node_with_kh(*(v.back()), std::min(kh.first, kh.second), num_AT);
 
                     #pragma omp critical
                     {
-                        index->add_record(std::min(kh.first, kh.second), id, v.back(), new_kn->id,
+                        index->add_record(std::min(kh.first, kh.second), id, *(v.back()), new_kn->id,
                                           (kh.first <= kh.second));
                     }
                     kmer_prg.add_edge(kn, new_kn);
-                    if (v.back().get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
+                    if (v.back()->get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
                         end_leaves.push_back(new_kn);
                     } else if (find(current_leaves.begin(), current_leaves.end(), new_kn) == current_leaves.end()) {
                         current_leaves.push_back(new_kn);
@@ -471,7 +470,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
                     num_kmers_added += 1;
                 } else {
                     kmer_prg.add_edge(kn, *found);
-                    if (v.back().get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
+                    if (v.back()->get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
                         end_leaves.push_back(*found);
                     } else if (find(current_leaves.begin(), current_leaves.end(), *found) == current_leaves.end()) {
                         current_leaves.push_back(*found);
@@ -482,25 +481,25 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
                 smallest = std::numeric_limits<uint64_t>::max();
                 auto old_kn = kn;
                 for (uint32_t j = 0; j != w; j++) {
-                    kmer = string_along_path(v[j]);
+                    kmer = string_along_path(*(v[j]));
                     kh = hash.kmerhash(kmer, k);
                     smallest = std::min(smallest, std::min(kh.first, kh.second));
                     //std::cout << min(kh.first, kh.second) << " ";
                 }
                 for (uint32_t j = 0; j != w; j++) {
-                    kmer = string_along_path(v[j]);
+                    kmer = string_along_path(*(v[j]));
                     kh = hash.kmerhash(kmer, k);
                     if (kh.first == smallest or kh.second == smallest) {
-                        KmerNodePtr dummyKmerHoldingKmerPath = std::make_shared<KmerNode>(KmerNode(0, v[j]));
+                        KmerNodePtr dummyKmerHoldingKmerPath = std::make_shared<KmerNode>(KmerNode(0, *(v[j])));
                         const auto found = kmer_prg.sorted_nodes.find(dummyKmerHoldingKmerPath);
                         if (found == kmer_prg.sorted_nodes.end()) {
                             num_AT = std::count(kmer.begin(), kmer.end(), 'A') +
                                      std::count(kmer.begin(), kmer.end(), 'T');
-                            new_kn = kmer_prg.add_node_with_kh(v[j], std::min(kh.first, kh.second), num_AT);
+                            new_kn = kmer_prg.add_node_with_kh(*(v[j]), std::min(kh.first, kh.second), num_AT);
 
                             #pragma omp critical
                             {
-                                index->add_record(std::min(kh.first, kh.second), id, v[j], new_kn->id,
+                                index->add_record(std::min(kh.first, kh.second), id, *(v[j]), new_kn->id,
                                                   (kh.first <= kh.second));
                             }
 
@@ -508,7 +507,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
                             kmer_prg.add_edge(old_kn, new_kn);
                             old_kn = new_kn;
 
-                            if (v.back().get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
+                            if (v.back()->get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
                                 end_leaves.push_back(new_kn);
                             } else if (find(current_leaves.begin(), current_leaves.end(), new_kn) ==
                                        current_leaves.end()) {
@@ -519,7 +518,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
                             kmer_prg.add_edge(old_kn, *found);
                             old_kn = *found;
 
-                            if (v.back().get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
+                            if (v.back()->get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
                                 end_leaves.push_back(*found);
                             } else if (find(current_leaves.begin(), current_leaves.end(), *found) ==
                                        current_leaves.end()) {
@@ -528,10 +527,10 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
                         }
                     }
                 }
-            } else if (v.back().get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
+            } else if (v.back()->get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
                 end_leaves.push_back(kn);
             } else {
-                shift_paths = shift(v.back());
+                shift_paths = shift(*(v.back()));
                 for (uint32_t i = 0; i != shift_paths.size(); ++i) {
                     shifts.push_back(v);
                     shifts.back().push_back(shift_paths[i]);
@@ -607,7 +606,7 @@ LocalPRG::localnode_path_from_kmernode_path(const std::vector<KmerNodePtr> &kmer
     std::vector<LocalNodePtr> localnode_path, kmernode, walk_path;
     if (kmernode_path.empty())
         return localnode_path;
-    std::vector<prg::Path> walk_paths;
+    std::vector<PathPtr> walk_paths;
     for (uint32_t i = 0; i != kmernode_path.size(); ++i) {
         if (i != 0 and kmernode_path[i]->path.length() == 0) // only have null paths at beginning and end
         {
@@ -632,7 +631,7 @@ LocalPRG::localnode_path_from_kmernode_path(const std::vector<KmerNodePtr> &kmer
     if (localnode_path[0]->id != 0) {
         walk_paths = prg.walk(0, 0, w);
         for (uint32_t i = 0; i != walk_paths.size(); ++i) {
-            walk_path = nodes_along_path(walk_paths[i]);
+            walk_path = nodes_along_path(*(walk_paths[i]));
             // does it overlap
             uint32_t n = 0, m = 0;
             overlap = false;
@@ -677,7 +676,7 @@ LocalPRG::localnode_path_from_kmernode_path(const std::vector<KmerNodePtr> &kmer
     if (localnode_path.back()->id != prg.nodes.size() - 1) {
         walk_paths = prg.walk_back(prg.nodes.size() - 1, seq.length(), w);
         for (uint32_t i = 0; i != walk_paths.size(); ++i) {
-            walk_path = nodes_along_path(walk_paths[i]);
+            walk_path = nodes_along_path(*(walk_paths[i]));
 
             // does it overlap
             uint32_t n = localnode_path.size();
