@@ -36,11 +36,16 @@ set(EXTERNAL_LIBS
         hdf5
         hdf5_tools)
 
-include_directories(
+include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
+        ${PROJECT_SOURCE_DIR}/cgranges/cpp
+        )
+
+
+include_directories(
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src
-        ${PROJECT_SOURCE_DIR}/cgranges/cpp)
+)
 
 file(GLOB_RECURSE SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/*.cpp
@@ -63,7 +68,6 @@ target_link_libraries(${PROJECT_NAME}
         ${EXTERNAL_LIBS}
         ${CMAKE_DL_LIBS}
         ${ZLIB_LIBRARY})
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include)
 
 #Build compare_indexes
 set(SRC_FILES_COMPARE_INDEXES ${SRC_FILES})
@@ -81,7 +85,6 @@ target_link_libraries(compare_indexes
         ${EXTERNAL_LIBS}
         ${CMAKE_DL_LIBS}
         ${ZLIB_LIBRARY})
-target_include_directories(compare_indexes PUBLIC ${CMAKE_BINARY_DIR}/include)
 
 
 enable_testing()
