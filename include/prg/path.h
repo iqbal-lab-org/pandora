@@ -196,7 +196,12 @@ public:
 
 bool equal_except_null_nodes(const prg::Path &, const prg::Path &);
 
-
+typedef std::shared_ptr<prg::Path> PathPtr;
+struct ComparePathPtr {
+    bool operator()(const PathPtr &p1, const PathPtr &p2) const {
+        return (*p1) == (*p2);
+    }
+};
 
 
 #endif

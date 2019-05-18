@@ -53,7 +53,7 @@ public:
                                       const std::vector<uint32_t> &,
                                       uint32_t current_level = 0);
 
-    std::vector<prg::Path> shift(prg::Path) const;
+    std::vector<PathPtr> shift(prg::Path) const;
 
     void minimizer_sketch(const std::shared_ptr<Index> &index, const uint32_t w, const uint32_t k, double percentageDone=-1.0);
 
