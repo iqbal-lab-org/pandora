@@ -44,6 +44,7 @@ public:
             this->memoizedDirty = std::move(other.memoizedDirty);
             this->localPRGIdOfMemoizedLocalNodePath = std::move(other.localPRGIdOfMemoizedLocalNodePath);
         }
+        return *this;
     }
 
     //destructor
