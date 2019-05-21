@@ -10,8 +10,16 @@
 #include "index.h"
 #include "localPRG.h"
 
-
-void Index::add_record(const uint64_t kmer, const uint32_t prg_id, const prg::Path path, const uint32_t knode_id,
+/**
+ * Adds a k-mer to the index. This is *just* called to add minimizers.
+ *
+ * @param kmer : the hash value of the minimizer (smallest hash of the canonicals)
+ * @param prg_id : the prg from where this k-mer comes from
+ * @param path : the path of this kmer in the prg
+ * @param knode_id : the id of the node representing this kmer in the KmerGraph
+ * @param strand : the strand
+ */
+void Index::add_record(const uint64_t kmer, const uint32_t prg_id, const prg::Path &path, const uint32_t knode_id,
                        const bool strand) {
     //cout << "Add kmer " << kmer << " id, path, strand " << prg_id << ", " << path << ", " << strand << endl;
     auto it = minhash.find(kmer); //checks if kmer is in minhash
