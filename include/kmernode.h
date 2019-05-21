@@ -15,11 +15,11 @@ class KmerNode;
 
 typedef std::shared_ptr<KmerNode> KmerNodePtr;
 
-class KmerNode {
+class KmerNode { //represent a kmer-minimizer in the KmerGraph
 
 public:
     uint32_t id;
-    prg::Path path;
+    prg::Path path; //the path of the kmer in the LocalPRG
     std::vector<KmerNodePtr> outNodes; // representing edges from this node to the nodes in the vector
     std::vector<KmerNodePtr> inNodes; // representing edges from other nodes to this node
     std::vector<std::pair<uint32_t, uint32_t>> covg_new; // sample covg by hits in fwd, rev dir

@@ -27,11 +27,11 @@ void Index::add_record(const uint64_t kmer, const uint32_t prg_id, const prg::Pa
         auto *newv = new std::vector<MiniRecord>; //get a new vector of MiniRecords - TODO: is this a memory leak?
         newv->reserve(20);
         newv->emplace_back(MiniRecord(prg_id, path, knode_id, strand));
-        minhash.insert(std::pair<uint64_t, std::vector<MiniRecord> *>(kmer, newv));
+        minhash.insert(std::pair<uint64_t, std::vector<MiniRecord> *>(kmer, newv)); //add this record to minhash
         //cout << "New minhash size: " << minhash.size() << endl; 
     } else { //yes
         MiniRecord mr(prg_id, path, knode_id, strand); //create a new MiniRecord from this minimizer kmer
-        if (find(it->second->begin(), it->second->end(), mr) == it->second->end()) { //checks if minimizer kmer is in the vector indexed by minhash[kmer]
+        if (find(it->second->begin(), it->second->end(), mr) == it->second->end()) { //checks if this minimizer record is already in the vector of this minimizer
             it->second->push_back(mr); //no, add it
         }
         //cout << "New minhash entry for  kmer " << kmer << endl;

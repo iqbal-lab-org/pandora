@@ -29,7 +29,7 @@ void LocalGraph::add_node(const uint32_t &id, const std::string &seq, const Inte
     auto it = nodes.find(id);
     if (it == nodes.end()) {
         LocalNodePtr n(std::make_shared<LocalNode>(seq, pos, id));
-        nodes[id] = n;
+        nodes[id] = n; //add the node to the map
         //nodes[id] = make_shared<LocalNode>(seq, pos, id);
         //cout << "Added node " << id << endl;
 

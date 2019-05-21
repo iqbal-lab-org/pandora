@@ -690,7 +690,7 @@ uint32_t KmerGraph::min_path_length() {
     shortest_path_length = len[0];
     return len[0];
 }
-
+//save the KmerGraph as gfa
 void KmerGraph::save(const std::string &filepath, const std::shared_ptr<LocalPRG> localprg) {
     uint32_t sample_id = 0;
 
