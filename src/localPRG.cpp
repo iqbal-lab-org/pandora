@@ -200,14 +200,14 @@ std::vector<Interval> LocalPRG::split_by_site(const Interval &i) const {
 std::vector<uint32_t> //builds the graph based on the given interval - RETURNS THE SINK NODE AFTER BUILDING THE GRAPH
 LocalPRG::build_graph(const Interval &i, const std::vector<uint32_t> &from_ids, uint32_t current_level) { //i: the interval from where to build the graph; from_ids: the sources from
     // we will return the ids on the ends of any stretches of graph added
-    std::vector<uint32_t> end_ids; //these are all the sink vertices created by this interval, then we can join them into a single node afterwards
+    std::vector<uint32_t> end_ids; //these are all the sink vertices (leaves) created by this interval, then we can join them into a single node afterwards
     end_ids.reserve(20);
 
     // save the start id, so can add 0, and the last id to the index at level 0 at the end
     uint32_t start_id = next_id;
 
     // add nodes
-    std::string s = seq.substr(i.start, i.length); //check length correct with this end...
+    std::string s = seq.substr(i.start, i.length); //gets the whole PRG string associated with this interval
     if (isalpha_string(s)) // should return true for empty string too - If s does not contain variation, then it wont have spaces, and this will return false. If it contains variations, then it will have space and will return true. Basically the question is: does s contains variation?
     {   //s does not contain variations
         prg.add_node(next_id, s, i);
@@ -219,7 +219,7 @@ LocalPRG::build_graph(const Interval &i, const std::vector<uint32_t> &from_ids, 
         next_id++;
     } else { //s contains variation
         // split by next var site
-        std::vector<Interval> v = split_by_site(i); // should have length at least 4 //This will get the first site and split it into its alleles
+        std::vector<Interval> v = split_by_site(i); // should have length at least 4 //Split the interval first into the invariant region coming before it, all its alleles and then the rest of the PRG.
         if (v.size() < (uint32_t) 4) {
             BOOST_LOG_TRIVIAL(warning) << "In conversion from linear localPRG string to graph, splitting the string by "
                                           "the next var site resulted in the wrong number of intervals. Please check that site numbers "
@@ -230,8 +230,8 @@ LocalPRG::build_graph(const Interval &i, const std::vector<uint32_t> &from_ids, 
         }
         next_site += 2; //update next site
         // add first interval (should be the invariable seq, and thus composed only by alpha chars)
-        s = seq.substr(v[0].start, v[0].length);
-        if (!(isalpha_string(s))) {
+        s = seq.substr(v[0].start, v[0].length); //gets the sequence of the invariable part
+        if (!(isalpha_string(s))) { //verify that the invariable part is indeed invariable
             BOOST_LOG_TRIVIAL(warning) << "In conversion from linear localPRG string to graph, splitting the string by "
                                           "the next var site resulted in the first interval being non alphabetic. Please check that site "
                                           "numbers are flanked by a space on either side. Or perhaps ordering of numbers in GFA is "
@@ -240,22 +240,22 @@ LocalPRG::build_graph(const Interval &i, const std::vector<uint32_t> &from_ids, 
                                           "var site: " << v[0];
             std::exit(-1);
         }
-        prg.add_node(next_id, s, v[0]); //add the first node, which is the source to the graph
-        // add edges from previous part of graph to start of this interval
+        prg.add_node(next_id, s, v[0]); //adds the invariable part as a node in the graph
+        // add edges from previous PRG to the start of this PRG
         for (uint32_t j = 0; j != from_ids.size(); j++) {
             prg.add_edge(from_ids[j], next_id);
         }
 
-        std::vector<uint32_t> mid_ids; //will denote all ids
+        std::vector<uint32_t> mid_ids; //will denote the id of the source node
         mid_ids.reserve(20);
         mid_ids.push_back(next_id);
         next_id++;
-        // add (recurring as necessary) middle intervals
+        // add (recurring as necessary) middle intervals //RECUSIVELY BUILDS THE GRAPH FOR EACH ALLELE AND ADD THEM HERE.
         for (uint32_t j = 1; j != v.size() - 1; j++) {
             std::vector<uint32_t> w = build_graph(v[j], mid_ids, current_level + 1);
-            end_ids.insert(end_ids.end(), w.begin(), w.end());
+            end_ids.insert(end_ids.end(), w.begin(), w.end()); //add the leaves from this internal graph to the set of all leaves
         }
-        // add end interval - the one that join all end_ids together
+        // join all leaves into the last node of v, which will be the rest of the PRG
         end_ids = build_graph(v.back(), end_ids, current_level);
     }
     if (start_id == 0) {
@@ -264,7 +264,8 @@ LocalPRG::build_graph(const Interval &i, const std::vector<uint32_t> &from_ids, 
     return end_ids;
 }
 
-
+//TODO: this finds all paths in the LocalPRG described by p shifted one node to the right
+//TODO: this is the main bottleneck and can be optimized
 std::vector<PathPtr> LocalPRG::shift(prg::Path p) const {
     // returns all paths of the same length which have been shifted by one position along prg graph
     prg::Path q;
@@ -369,15 +370,18 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
     }
 
     // find first w,k minimizers
-    walk_paths = prg.walk(prg.nodes.begin()->second->id, 0, w + k - 1); //get all walks to be checked
+    walk_paths = prg.walk(prg.nodes.begin()->second->id, 0, w + k - 1); //get all walks to be checked - all walks from prg.nodes.begin()->second->id composed of exactly w+k-1 bases - NOTE: WALKS AND PATHS HERE ARE THE SAME, SINCE THIS IS A DAG!!!
     if (walk_paths.empty()){
         return; // also trivially not true
     }
 
     for (uint32_t i = 0; i != walk_paths.size(); ++i) { //goes through all walks
         // find minimizer for this walk
-        smallest = std::numeric_limits<uint64_t>::max(); //find the minimizer
-        for (uint32_t j = 0; j != w; j++) { //goes through all windows to find the minimizer of this walk
+        smallest = std::numeric_limits<uint64_t>::max(); //will store the minimizer
+
+        //TODO: this can be optimized by invoking string_along_path() for the whole walk (only once) and computing the minimizer on that string
+        //TODO: this optimization won't be huge though...
+        for (uint32_t j = 0; j != w; j++) { //goes through all kmer of this window, and find the minimizer (which will be the minimizer of this walk)
             kmer_path = walk_paths[i]->subpath(j, k); //gets the subpath related to this k-mer //TODO: move constructor/assignment op in Path?
             if (!kmer_path.empty()) {
                 kmer = string_along_path(kmer_path); //get the string along the path
@@ -385,13 +389,13 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
                 smallest = std::min(smallest, std::min(kh.first, kh.second));
             }
         }
-        for (uint32_t j = 0; j != w; j++) { //now re-iterates the windows
+        for (uint32_t j = 0; j != w; j++) { //now re-iterates the k-mers
             kmer_path = walk_paths[i]->subpath(j, k); //gets the subpath related to this kmer
-            auto old_kn = kmer_prg.nodes[0];
+            auto old_kn = kmer_prg.nodes[0]; //old minimizer kmer node starts with the virtual start node
             if (!kmer_path.empty()) {
-                kmer = string_along_path(kmer_path);
-                kh = hash.kmerhash(kmer, k);
-                n = nodes_along_path(kmer_path);
+                kmer = string_along_path(kmer_path); //get the kmer
+                kh = hash.kmerhash(kmer, k); //and the hashes
+                n = nodes_along_path(kmer_path); //and the nodes of the localPRG along this kmer_path
 
                 if (prg.walk(n.back()->id, n.back()->pos.get_end(), w + k - 1).empty()) { //if the walk from the last node and last base of the path along this kmer is empty
                     while (kmer_path.get_end() >= n.back()->pos.get_end() and n.back()->outNodes.size() == 1 and
@@ -404,19 +408,19 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
                 if (kh.first == smallest or kh.second == smallest) { //if this kmer is the minimizer
                     KmerNodePtr dummyKmerHoldingKmerPath = std::make_shared<KmerNode>(KmerNode(0, kmer_path));
                     const auto found = kmer_prg.sorted_nodes.find(dummyKmerHoldingKmerPath); //checks if the kmer path is already in this kmer graph
-                    if (found == kmer_prg.sorted_nodes.end()) {
-                        // add to index, kmer_prg
+                    if (found == kmer_prg.sorted_nodes.end()) { //it is not
+                        // add to the KmerGraph (kmer_prg) first
                         num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
                         kn = kmer_prg.add_node_with_kh(kmer_path, std::min(kh.first, kh.second), num_AT);
                         #pragma omp critical
-                        {
+                        { //and now to the index
                             index->add_record(std::min(kh.first, kh.second), id, kmer_path, kn->id,
                                               (kh.first <= kh.second));
                         }
                         num_kmers_added += 1;
                         kmer_prg.add_edge(old_kn, kn);//add an edge from the old minimizer kmer to the current
-                        old_kn = kn;
-                        current_leaves.push_back(kn); //add to the leaves
+                        old_kn = kn; //update old minimizer kmer node
+                        current_leaves.push_back(kn); //add to the leaves - it is a leaf now
                     }
                 }
             }
@@ -425,25 +429,26 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
 
     // while we have intermediate leaves of the kmergraph, for each in turn, explore the neighbourhood
     // in the prg to find the next minikmers as you walk the prg
-    while (!current_leaves.empty()) {
+    // This is what find the rest of the minimizers!!!
+    while (!current_leaves.empty()) { //current leaves should contain all minimizers from each previous walk
         kn = current_leaves.front();
         current_leaves.pop_front();
         assert(kn->khash < std::numeric_limits<uint64_t>::max());
 
-        // find all paths which are this kmernode shifted by one place along the graph
+        // find all paths which are this kmer-minimizer shifted by one place along the graph
         shift_paths = shift(kn->path);
         if (shift_paths.empty()) {
             //assert(kn->path.get_start() == 0); not true for a too short test, would be true if all paths long enough to have at least 2 minikmers on...
             end_leaves.push_back(kn);
         }
-        for (uint32_t i = 0; i != shift_paths.size(); ++i) {
+        for (uint32_t i = 0; i != shift_paths.size(); ++i) { //add all shift_paths to shifts
             v = { shift_paths[i] };
             shifts.push_back(v);
         }
         shift_paths.clear();
 
-        while (!shifts.empty()) {
-            v = shifts.front();
+        while (!shifts.empty()) { //goes through all shifted paths
+            v = shifts.front(); //get the first shifted path
             shifts.pop_front();
             assert(v.back()->length() == k);
             kmer = string_along_path(*(v.back()));
@@ -527,11 +532,11 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
                         }
                     }
                 }
-            } else if (v.back()->get_end() == (--(prg.nodes.end()))->second->pos.get_end()) {
+            } else if (v.back()->get_end() == (--(prg.nodes.end()))->second->pos.get_end()) { //marginal case - we are in the end of the PRG -> current minimizer is a leaf
                 end_leaves.push_back(kn);
             } else {
-                shift_paths = shift(*(v.back()));
-                for (uint32_t i = 0; i != shift_paths.size(); ++i) {
+                shift_paths = shift(*(v.back())); //shift this path
+                for (uint32_t i = 0; i != shift_paths.size(); ++i) { //add it to the shifts
                     shifts.push_back(v);
                     shifts.back().push_back(shift_paths[i]);
                 }
