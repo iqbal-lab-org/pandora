@@ -47,7 +47,7 @@ public:
     std::unordered_set<MinimizerHitPtr> uhits;
     std::set<MinimizerHitPtr, pComp> hits;
 
-    void add_hit(const uint32_t i, const Minimizer &m, const MiniRecord *r);
+    void add_hit(const uint32_t i, const Minimizer &minimizerFromRead, const MiniRecord &minimizerFromPRG);
 
     void sort();
 

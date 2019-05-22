@@ -6,19 +6,24 @@
 #include "minimizer.h"
 #include "minirecord.h"
 
-
+//TODO: here we have one MinimizerHit for each (read_id, read_start_position, read_strand) and MiniRecord
+//TODO: we could make one (read_id, read_start_position, read_strand) and a vector of MiniRecord
 struct MinimizerHit {
+private:
     uint32_t read_id;
     uint32_t read_start_position;
-    uint32_t prg_id;
-    prg::Path prg_path;
-    uint32_t kmer_node_id;
-    bool is_forward;
+    bool read_strand;
+    const MiniRecord &minimizerFromPRG;
 
-    MinimizerHit(const uint32_t i, const Minimizer &m, const MiniRecord *r);
+public:
+    inline uint32_t get_read_id() const { return read_id; }
+    inline uint32_t get_read_start_position() const  { return read_start_position; }
+    inline uint32_t get_prg_id () const { return minimizerFromPRG.prg_id; }
+    inline const prg::Path & get_prg_path() const { return minimizerFromPRG.path; }
+    inline uint32_t get_kmer_node_id() const { return minimizerFromPRG.knode_id; }
+    inline bool is_forward() const { return read_strand == minimizerFromPRG.strand ;}
 
-    MinimizerHit(const uint32_t read_id, const Interval read_interval, const uint32_t prg_id, const prg::Path prg_path,
-                 const uint32_t kmer_node_id, const bool is_forward);
+    MinimizerHit(const uint32_t i, const Minimizer &minimizerFromRead, const MiniRecord &minimizerFromPRG);
 
     bool operator<(const MinimizerHit &y) const;
 

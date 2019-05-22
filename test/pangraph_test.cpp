@@ -128,7 +128,9 @@ TEST(PangenomeGraphAddNode, AddClusterWrongReadId_AssertCatches) {
     std::deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
     prg::Path path;
     path.initialize(raw_path);
-    MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(not_read_id, interval, prg_id, path, 0, 0));
+    Minimizer m1(0, interval.start, interval.get_end(), 0); // kmer, start, end, strand
+    MiniRecord mr1(prg_id, path, 0, 0);
+    MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(not_read_id, m1, mr1));
     cluster.insert(minimizer_hit);
 
     PGraphTester pg;
@@ -147,7 +149,9 @@ TEST(PangenomeGraphAddNode, AddClusterWrongPrgId_AssertCatches) {
     std::deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
     prg::Path path;
     path.initialize(raw_path);
-    MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(read_id, interval, not_prg_id, path, 0, 0));
+    Minimizer m1(0, interval.start, interval.get_end(), 0); // kmer, start, end, strand
+    MiniRecord mr1(not_prg_id, path, 0, 0);
+    MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(read_id, m1, mr1));
     cluster.insert(minimizer_hit);
 
     PGraphTester pg;
@@ -631,53 +635,46 @@ TEST(PangenomeGraphTest, save_mapped_read_strings) {
     PGraphTester pg;
     pangenome::ReadPtr pr;
     MinimizerHits mhits;
-
-    Minimizer m;
     std::deque<Interval> d;
     prg::Path p;
-    MiniRecord *mr;
 
     // read1
-    m = Minimizer(0, 1, 6, 0); // kmer, start, end, strand
+    Minimizer m1(0, 1, 6, 0); // kmer, start, end, strand
     d = {Interval(7, 8), Interval(10, 14)};
     p.initialize(d);
-    mr = new MiniRecord(0, p, 0, 0);
-    mhits.add_hit(1, m, mr); // read 1
+    MiniRecord mr1(0, p, 0, 0);
+    mhits.add_hit(1, m1, mr1); // read 1
 
-    m = Minimizer(0, 0, 5, 0);
+    Minimizer m2(0, 0, 5, 0);
     d = {Interval(6, 10), Interval(11, 12)};
     p.initialize(d);
-    delete mr;
-    mr = new MiniRecord(0, p, 0, 0);
-    mhits.add_hit(1, m, mr);
+    MiniRecord mr2(0, p, 0, 0);
+    mhits.add_hit(1, m2, mr2);
 
+    Minimizer m3(0, 0, 5, 0);
     d = {Interval(6, 10), Interval(12, 13)};
     p.initialize(d);
-    delete mr;
-    mr = new MiniRecord(0, p, 0, 0);
-    mhits.add_hit(1, m, mr);
+    MiniRecord mr3(0, p, 0, 0);
+    mhits.add_hit(1, m3, mr3);
 
     mhits.sort();
     pg.add_node(0, "zero", 1, mhits.hits);
     mhits.clear();
 
     //read 2
-    m = Minimizer(0, 2, 7, 1);
+    Minimizer m4(0, 2, 7, 1);
     d = {Interval(6, 10), Interval(11, 12)};
     p.initialize(d);
-    delete mr;
-    mr = new MiniRecord(0, p, 0, 0);
-    mhits.add_hit(2, m, mr);
+    MiniRecord mr4(0, p, 0, 0);
+    mhits.add_hit(2, m4, mr4);
 
-    m = Minimizer(0, 5, 10, 1);
+    Minimizer m5(0, 5, 10, 1);
     d = {Interval(6, 10), Interval(12, 13)};
     p.initialize(d);
-    delete mr;
-    mr = new MiniRecord(0, p, 0, 0);
-    mhits.add_hit(2, m, mr);
+    MiniRecord mr5(0, p, 0, 0);
+    mhits.add_hit(2, m5, mr5);
 
     mhits.sort();
-    delete mr;
     pg.add_node(0, "zero", 2, mhits.hits);
 
     std::string expected1 = ">read1 pandora: 1 0:6 + \nshould\n>read2 pandora: 2 2:10 - \nis time \n";

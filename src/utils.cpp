@@ -171,14 +171,14 @@ void add_read_hits(std::shared_ptr<Seq> sequence,
     uint32_t hit_count = 0;
     // creates Seq object for the read, then looks up minimizers in the Seq sketch and adds hits to a global MinimizerHits object
     //Seq s(id, name, seq, w, k);
-    for (auto it = sequence->sketch.begin(); it != sequence->sketch.end(); ++it) {
-        if (index->minhash.find((*it).kmer) != index->minhash.end()) {
-            for (uint32_t j = 0; j != index->minhash[(*it).kmer]->size(); ++j) {
-                minimizer_hits->add_hit(sequence->id, *it, &(index->minhash[(*it).kmer]->operator[](j)));
-                hit_count += 1;
+    for (auto sequenceSketchIt = sequence->sketch.begin(); sequenceSketchIt != sequence->sketch.end(); ++sequenceSketchIt) {
+        auto minhashIt = index->minhash.find((*sequenceSketchIt).kmer);
+        if (minhashIt != index->minhash.end()) { //checks if the kmer is in the index
+            //yes, add all hits of this minimizer hit to this kmer
+            for (const MiniRecord &miniRecord : *(minhashIt->second)) {
+                minimizer_hits->add_hit(sequence->id, *sequenceSketchIt, miniRecord);
+                ++hit_count;
             }
-            //} else {
-            //    cout << "did not find minimizer " << (*it).kmer << " in index" << endl;
         }
     }
     //hits->sort();
@@ -203,16 +203,16 @@ void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &cl
     uint32_t length_based_threshold;
     for (auto mh_current = ++minimizer_hits->hits.begin();
          mh_current != minimizer_hits->hits.end(); ++mh_current) {
-        if ((*mh_current)->read_id != (*mh_previous)->read_id or
-            (*mh_current)->prg_id != (*mh_previous)->prg_id or
-            (*mh_current)->is_forward != (*mh_previous)->is_forward or
-            (abs((int) (*mh_current)->read_start_position - (int) (*mh_previous)->read_start_position)) > max_diff) {
+        if ((*mh_current)->get_read_id() != (*mh_previous)->get_read_id() or
+            (*mh_current)->get_prg_id() != (*mh_previous)->get_prg_id() or
+            (*mh_current)->is_forward() != (*mh_previous)->is_forward() or
+            (abs((int) (*mh_current)->get_read_start_position() - (int) (*mh_previous)->get_read_start_position())) > max_diff) {
             // keep clusters which cover at least 1/2 the expected number of minihits
-            length_based_threshold = std::min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
+            length_based_threshold = std::min(prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length(),
                                               expected_number_kmers_in_short_read_sketch) *
                                      fraction_kmers_required_for_cluster;
             BOOST_LOG_TRIVIAL(debug) << "Length based cluster threshold min("
-                                     << prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length() << ", "
+                                     << prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length() << ", "
                                      << expected_number_kmers_in_short_read_sketch << ") * "
                                      << fraction_kmers_required_for_cluster << " = " << length_based_threshold;
 
@@ -230,10 +230,10 @@ void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &cl
         current_cluster.insert(*mh_current);
         mh_previous = mh_current;
     }
-    length_based_threshold = std::min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
+    length_based_threshold = std::min(prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length(),
                                       expected_number_kmers_in_short_read_sketch) * fraction_kmers_required_for_cluster;
     BOOST_LOG_TRIVIAL(debug) << "Length based cluster threshold min("
-                             << prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length() << ", "
+                             << prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length() << ", "
                              << expected_number_kmers_in_short_read_sketch << ") * "
                              << fraction_kmers_required_for_cluster << " = " << length_based_threshold;
     if (current_cluster.size() >
@@ -266,11 +266,11 @@ void filter_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &cl
         {
             cout << **p << endl;
         }*/
-        if (((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) && // if on same read and either
-            ((((*(*c_current).begin())->prg_id == (*(*c_previous).begin())->prg_id) && // same prg, different strand
-              ((*(*c_current).begin())->is_forward != (*(*c_previous).begin())->is_forward)) or // or cluster is contained
-             ((*--(*c_current).end())->read_start_position <=
-              (*--(*c_previous).end())->read_start_position))) // i.e. not least one hit outside overlap
+        if (((*(*c_current).begin())->get_read_id() == (*(*c_previous).begin())->get_read_id()) && // if on same read and either
+            ((((*(*c_current).begin())->get_prg_id() == (*(*c_previous).begin())->get_prg_id()) && // same prg, different strand
+              ((*(*c_current).begin())->is_forward() != (*(*c_previous).begin())->is_forward())) or // or cluster is contained
+             ((*--(*c_current).end())->get_read_start_position() <=
+              (*--(*c_previous).end())->get_read_start_position()))) // i.e. not least one hit outside overlap
             // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, but could also impose no more than 2k hits in overlap
         {
             if (c_previous->size() >= c_current->size()) {
@@ -298,24 +298,24 @@ void filter_clusters2(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &c
 
     auto it = clusters_by_size.begin();
     std::vector<int> read_v(genome_size, 0);
-    //cout << "fill from " << (*(it->begin()))->read_start_position << " to " << (*--(it->end()))->read_start_position << endl;
-    fill(read_v.begin() + (*(it->begin()))->read_start_position, read_v.begin() + (*--(it->end()))->read_start_position,
+    //cout << "fill from " << (*(it->begin()))->read_start_position() << " to " << (*--(it->end()))->read_start_position() << endl;
+    fill(read_v.begin() + (*(it->begin()))->get_read_start_position(), read_v.begin() + (*--(it->end()))->get_read_start_position(),
          1);
     bool contained;
     for (auto it_next = ++clusters_by_size.begin();
          it_next != clusters_by_size.end(); ++it_next) {
-        //cout << "read id " << (*(it_next->begin()))->prg_id << endl;
-        if ((*(it_next->begin()))->read_id == (*(it->begin()))->read_id) {
+        //cout << "read id " << (*(it_next->begin()))->get_prg_id() << endl;
+        if ((*(it_next->begin()))->get_read_id() == (*(it->begin()))->get_read_id()) {
             //check if have any 0s in interval of read_v between first and last
             contained = true;
-            for (uint32_t i = (*(it_next->begin()))->read_start_position;
-                 i < (*--(it_next->end()))->read_start_position; ++i) {
+            for (uint32_t i = (*(it_next->begin()))->get_read_start_position();
+                 i < (*--(it_next->end()))->get_read_start_position(); ++i) {
                 //cout << i << ":" << read_v[i] << "\t";
                 if (read_v[i] == 0) {
                     contained = false;
                     //cout << "found unique element at read position " << i << endl;
-                    //cout << "fill from " << i << " to " << (*--(it_next->end()))->read_start_position << endl;
-                    fill(read_v.begin() + i, read_v.begin() + (*--(it_next->end()))->read_start_position, 1);
+                    //cout << "fill from " << i << " to " << (*--(it_next->end()))->get_read_start_position() << endl;
+                    fill(read_v.begin() + i, read_v.begin() + (*--(it_next->end()))->get_read_start_position(), 1);
                     break;
                 }
 
@@ -344,9 +344,9 @@ add_clusters_to_pangraph(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp>
 
     // to do this consider pairs of clusters in turn
     for (auto cluster: clusters_of_hits) {
-        pangraph->add_node((*cluster.begin())->prg_id,
-                           prgs[(*cluster.begin())->prg_id]->name,
-                           (*cluster.begin())->read_id,
+        pangraph->add_node((*cluster.begin())->get_prg_id(),
+                           prgs[(*cluster.begin())->get_prg_id()]->name,
+                           (*cluster.begin())->get_read_id(),
                            cluster);
     }
 }

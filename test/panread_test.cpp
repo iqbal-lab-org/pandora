@@ -59,7 +59,9 @@ TEST(ReadAddHits, AddClusterSecondTime_DeathAndReadHitsNotChanged) {
     std::deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
     prg::Path path;
     path.initialize(raw_path);
-    MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(read_id, interval, prg_id, path, 0, 0));
+    Minimizer m1(0, interval.start, interval.get_end(), 0); // kmer, start, end, strand
+    MiniRecord mr1(prg_id, path, 0, 0);
+    MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(read_id, m1, mr1));
 
     cluster.insert(minimizer_hit);
     read.add_hits(prg_id, cluster);
@@ -79,7 +81,9 @@ TEST(ReadAddHits, AddSecondCluster_ReadHitsMapContainsCorrectPrgIds) {
     std::deque<Interval> raw_path = {Interval(7, 8), Interval(10, 14)};
     prg::Path path;
     path.initialize(raw_path);
-    MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(read_id, interval, prg_id, path, 0, 0));
+    Minimizer m1(0, interval.start, interval.get_end(), 0); // kmer, start, end, strand
+    MiniRecord mr1(prg_id, path, 0, 0);
+    MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(read_id, m1, mr1));
     cluster.insert(minimizer_hit);
     read.add_hits(prg_id, cluster);
 
@@ -264,7 +268,9 @@ TEST(PangenomeReadTest, remove_node) {
     std::deque<Interval> d = {Interval(7, 8), Interval(10, 14)};
     prg::Path p;
     p.initialize(d);
-    MinimizerHitPtr mh(std::make_shared<MinimizerHit>(4, i, 0, p, 0, 0));
+    Minimizer m1(0, i.start, i.get_end(), 0); // kmer, start, end, strand
+    MiniRecord mr1(0, p, 0, 0);
+    MinimizerHitPtr mh(std::make_shared<MinimizerHit>(4, m1, mr1));
     std::set<MinimizerHitPtr, pComp> c;
     c.insert(mh);
     pg.reads[2]->add_hits(4, c);
@@ -378,7 +384,9 @@ TEST(PangenomeReadTest, remove_node_it) {
     std::deque<Interval> d = {Interval(7, 8), Interval(10, 14)};
     prg::Path p;
     p.initialize(d);
-    MinimizerHitPtr mh(std::make_shared<MinimizerHit>(4, i, 0, p, 0, 0));
+    Minimizer m1(0, i.start, i.get_end(), 0); // kmer, start, end, strand
+    MiniRecord mr1(0, p, 0, 0);
+    MinimizerHitPtr mh(std::make_shared<MinimizerHit>(4, m1, mr1));
     std::set<MinimizerHitPtr, pComp> c;
     c.insert(mh);
     pg.reads[2]->add_hits(4, c);
@@ -509,7 +517,9 @@ TEST(PangenomeReadTest, replace_node) {
     std::deque<Interval> d = {Interval(7, 8), Interval(10, 14)};
     prg::Path p;
     p.initialize(d);
-    MinimizerHitPtr mh(std::make_shared<MinimizerHit>(4, i, 0, p, 0, 0));
+    Minimizer m1(0, i.start, i.get_end(), 0); // kmer, start, end, strand
+    MiniRecord mr1(0, p, 0, 0);
+    MinimizerHitPtr mh(std::make_shared<MinimizerHit>(4, m1, mr1));
     std::set<MinimizerHitPtr, pComp> c;
     c.insert(mh);
     pg.reads[1]->add_hits(4, c);

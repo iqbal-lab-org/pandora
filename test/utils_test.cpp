@@ -153,50 +153,82 @@ TEST(UtilsTest, addReadHits) {
     p.initialize(d);
     pair<uint64_t, uint64_t> kh = hash.kmerhash("AGC", 3);
     index->add_record(min(kh.first, kh.second), 1, p, 0, (kh.first < kh.second));
-    MinimizerHitPtr m1(make_shared<MinimizerHit>(0, Interval(0, 3), 1, p, 0, 1));
-    MinimizerHitPtr m2(make_shared<MinimizerHit>(0, Interval(1, 4), 1, p, 0, 0));
+    Minimizer min1(0, 0, 3, 1); // kmer, start, end, strand
+    MiniRecord mr1(1, p, 0, 1);
+    MinimizerHitPtr m1(make_shared<MinimizerHit>(0, min1, mr1));
+
+    Minimizer min2(0, 1, 4, 0); // kmer, start, end, strand
+    MiniRecord mr2(1, p, 0, 1);
+    MinimizerHitPtr m2(make_shared<MinimizerHit>(0, min2, mr2));
     expected1.hits.insert(m1);
     expected2.hits.insert(m2);
     d = {Interval(1, 4)};
     p.initialize(d);
     kh = hash.kmerhash("GCT", 3);
     index->add_record(min(kh.first, kh.second), 1, p, 0, (kh.first < kh.second));
-    MinimizerHitPtr m3(make_shared<MinimizerHit>(0, Interval(1, 4), 1, p, 0, 1));
-    MinimizerHitPtr m4(make_shared<MinimizerHit>(0, Interval(0, 3), 1, p, 0, 0));
+
+    Minimizer min3(0, 1, 4, 1); // kmer, start, end, strand
+    MiniRecord mr3(1, p, 0, 1);
+    MinimizerHitPtr m3(make_shared<MinimizerHit>(0, min3, mr3));
+
+    Minimizer min4(0, 0, 3, 0); // kmer, start, end, strand
+    MiniRecord mr4(1, p, 0, 1);
+    MinimizerHitPtr m4(make_shared<MinimizerHit>(0, min4, mr4));
+
     expected2.hits.insert(m3);
     expected1.hits.insert(m4);
     d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
     p.initialize(d);
     kh = hash.kmerhash("AGC", 3);
     index->add_record(min(kh.first, kh.second), 3, p, 0, (kh.first < kh.second));
-    MinimizerHitPtr m5(make_shared<MinimizerHit>(0, Interval(0, 3), 3, p, 0, 1));
-    MinimizerHitPtr m6(make_shared<MinimizerHit>(0, Interval(1, 4), 3, p, 0, 0));
+    Minimizer min5(0, 0, 3, 1); // kmer, start, end, strand
+    MiniRecord mr5(3, p, 0, 1);
+    MinimizerHitPtr m5(make_shared<MinimizerHit>(0, min5, mr5));
+
+    Minimizer min6(0, 1, 4, 0); // kmer, start, end, strand
+    MiniRecord mr6(3, p, 0, 1);
+    MinimizerHitPtr m6(make_shared<MinimizerHit>(0, min6, mr6));
     expected1.hits.insert(m5);
     expected2.hits.insert(m6);
     d = {Interval(0, 1), Interval(4, 5), Interval(12, 13)};
     p.initialize(d);
     kh = hash.kmerhash("AGT", 3);
     index->add_record(min(kh.first, kh.second), 3, p, 0, (kh.first < kh.second));
-    MinimizerHitPtr m9(make_shared<MinimizerHit>(0, Interval(0, 3), 3, p, 0, 1));
+
+    Minimizer min9(0, 0, 3, 1); // kmer, start, end, strand
+    MiniRecord mr9(3, p, 0, 1);
+    MinimizerHitPtr m9(make_shared<MinimizerHit>(0, min9, mr9));
     expected3.hits.insert(m9);
     d = {Interval(0, 1), Interval(19, 20), Interval(23, 24)};
     p.initialize(d);
     index->add_record(min(kh.first, kh.second), 3, p, 0, (kh.first < kh.second));
-    MinimizerHitPtr m10(make_shared<MinimizerHit>(0, Interval(0, 3), 3, p, 0, 1));
+
+    Minimizer min10(0, 0, 3, 1); // kmer, start, end, strand
+    MiniRecord mr10(3, p, 0, 1);
+    MinimizerHitPtr m10(make_shared<MinimizerHit>(0, min10, mr10));
     expected3.hits.insert(m10);
     d = {Interval(4, 5), Interval(8, 9), Interval(16, 16), Interval(23, 24)};
     p.initialize(d);
     kh = hash.kmerhash("GCT", 3);
     index->add_record(min(kh.first, kh.second), 3, p, 0, (kh.first < kh.second));
-    MinimizerHitPtr m7(make_shared<MinimizerHit>(0, Interval(1, 4), 3, p, 0, 1));
-    MinimizerHitPtr m8(make_shared<MinimizerHit>(0, Interval(0, 3), 3, p, 0, 0));
+
+    Minimizer min7(0, 1, 4, 1); // kmer, start, end, strand
+    MiniRecord mr7(3, p, 0, 1);
+    MinimizerHitPtr m7(make_shared<MinimizerHit>(0, min7, mr7));
+
+    Minimizer min8(0, 0, 3, 0); // kmer, start, end, strand
+    MiniRecord mr8(3, p, 0, 1);
+    MinimizerHitPtr m8(make_shared<MinimizerHit>(0, min8, mr8));
     expected2.hits.insert(m7);
     expected1.hits.insert(m8);
     d = {Interval(4, 5), Interval(12, 13), Interval(16, 16), Interval(23, 24)};
     p.initialize(d);
     kh = hash.kmerhash("GTT", 3);
     index->add_record(min(kh.first, kh.second), 3, p, 0, (kh.first < kh.second));
-    MinimizerHitPtr m11(make_shared<MinimizerHit>(0, Interval(1, 4), 3, p, 0, 1));
+
+    Minimizer min11(0, 1, 4, 1); // kmer, start, end, strand
+    MiniRecord mr11(3, p, 0, 1);
+    MinimizerHitPtr m11(make_shared<MinimizerHit>(0, min11, mr11));
     expected4.hits.insert(m11);
 
     auto s = std::make_shared<Seq>(Seq(0, "read1", "AGC", 1, 3));
@@ -285,21 +317,27 @@ TEST(UtilsTest, filter_clusters2) {
 
     MinimizerHitPtr mh;
     for (uint i = 0; i != 6; ++i) {
-        mh = make_shared<MinimizerHit>(1, Interval(i, i + 10), 0, p, 0, 0);
+        Minimizer min1(0, i, i+10, 0); // kmer, start, end, strand
+        MiniRecord mr1(0, p, 0, 0);
+        mh = make_shared<MinimizerHit>(1, min1, mr1);
         s.insert(mh);
     }
     ss.insert(s);
     ss_exp.insert(s);
     s.clear();
     for (uint i = 5; i != 15; ++i) {
-        mh = make_shared<MinimizerHit>(1, Interval(i, i + 10), 1, p, 0, 0);
+        Minimizer min2(0, i, i+10, 0); // kmer, start, end, strand
+        MiniRecord mr2(1, p, 0, 0);
+        mh = make_shared<MinimizerHit>(1, min2, mr2);
         s.insert(mh);
     }
     ss.insert(s);
     ss_exp.insert(s);
     s.clear();
     for (uint i = 3; i != 7; ++i) {
-        mh = make_shared<MinimizerHit>(1, Interval(i, i + 10), 2, p, 0, 0);
+        Minimizer min3(0, i, i+10, 0); // kmer, start, end, strand
+        MiniRecord mr3(2, p, 0, 0);
+        mh = make_shared<MinimizerHit>(1, min3, mr3);
         s.insert(mh);
     }
     ss.insert(s);

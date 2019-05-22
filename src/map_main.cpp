@@ -307,10 +307,10 @@ int pandora_map(int argc, char *argv[]) {
 
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
     auto index = std::make_shared<Index>();
-    index->load(prgfile, w, k);
+    index->load(prgfile, w, k); //load the index built in the index step
     std::vector<std::shared_ptr<LocalPRG>> prgs;
-    read_prg_file(prgs, prgfile);
-    load_PRG_kmergraphs(prgs, w, k, prgfile);
+    read_prg_file(prgs, prgfile); //load all PRGs, exactly like in the index step
+    load_PRG_kmergraphs(prgs, w, k, prgfile); //load all kmer-minimizer graphs built in the index step
 
     cout << now() << "Constructing pangenome::Graph from read file (this will take a while)" << endl;
     auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits(100000));

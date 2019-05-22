@@ -5,11 +5,11 @@
 #include <cstdint>
 #include "interval.h"
 
-
+//Represent a sequence minimizer of a READ!
 struct Minimizer {
-    uint64_t kmer;
-    Interval pos;
-    bool strand;
+    uint64_t kmer; //this is the minimum canonical kmer hashed value in fact
+    Interval pos; //position of the kmer in the read
+    bool strand; //strand of the kmer
 
     Minimizer() {};
 

@@ -496,8 +496,10 @@ TEST(FindHitsInsidePathTest, hitNotOnPathReturnEmpty) {
     prg_path.initialize(intervals);
 
     std::set<MinimizerHitPtr, pComp_path> read_hits;
+    const Minimizer readMinimizer(0, read_interval.start, read_interval.get_end(), is_forward);
+    const MiniRecord miniRecord(prg_id, prg_path, knode_id, is_forward);
     MinimizerHitPtr minimizer_hit {
-            std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+            std::make_shared<MinimizerHit>(read_id, readMinimizer, miniRecord) };
     read_hits.insert(minimizer_hit);
     prg::Path local_path;
     for (const auto &node : local_max_likelihood_path) {
@@ -525,13 +527,17 @@ TEST(FindHitsInsidePathTest, hitsBranchingFromPathReturnEmpty) {
     prg_path.initialize(intervals);
 
     std::set<MinimizerHitPtr, pComp_path> read_hits;
+    const Minimizer readMinimizer1(0, read_interval.start, read_interval.get_end(), is_forward);
+    const MiniRecord miniRecord1(prg_id, prg_path, knode_id, is_forward);
     MinimizerHitPtr minimizer_hit {
-            std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+            std::make_shared<MinimizerHit>(read_id, readMinimizer1, miniRecord1) };
     read_hits.insert(minimizer_hit);
 
     intervals = { Interval(29, 30), Interval(31, 33) };
     prg_path.initialize(intervals);
-    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    const Minimizer readMinimizer2(0, read_interval.start, read_interval.get_end(), is_forward);
+    const MiniRecord miniRecord2(prg_id, prg_path, knode_id, is_forward);
+    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, readMinimizer2, miniRecord2) };
     read_hits.insert(minimizer_hit);
 
     prg::Path local_path;
@@ -560,18 +566,25 @@ TEST(FindHitsInsidePathTest, hitsOverlappingEdgesOfPathReturnEmpty) {
     prg_path.initialize(intervals);
 
     std::set<MinimizerHitPtr, pComp_path> read_hits;
+    const Minimizer readMinimizer1(0, read_interval.start, read_interval.get_end(), is_forward);
+    const MiniRecord miniRecord1(prg_id, prg_path, knode_id, is_forward);
     MinimizerHitPtr minimizer_hit {
-            std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+            std::make_shared<MinimizerHit>(read_id, readMinimizer1, miniRecord1) };
     read_hits.insert(minimizer_hit);
+
 
     intervals = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(intervals);
-    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    const Minimizer readMinimizer2(0, read_interval.start, read_interval.get_end(), is_forward);
+    const MiniRecord miniRecord2(prg_id, prg_path, knode_id, is_forward);
+    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, readMinimizer2, miniRecord2) };
     read_hits.insert(minimizer_hit);
 
     intervals = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(intervals);
-    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    const Minimizer readMinimizer3(0, read_interval.start, read_interval.get_end(), is_forward);
+    const MiniRecord miniRecord3(prg_id, prg_path, knode_id, is_forward);
+    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, readMinimizer3, miniRecord3) };
     read_hits.insert(minimizer_hit);
 
     prg::Path local_path;
@@ -602,26 +615,35 @@ TEST(FindHitsInsidePathTest, hitsOnPathReturnCorrectHits) {
     prg_path.initialize(intervals);
 
     std::set<MinimizerHitPtr, pComp_path> read_hits;
+
+    const Minimizer readMinimizer1(0, read_interval.start, read_interval.get_end(), is_forward);
+    const MiniRecord miniRecord1(prg_id, prg_path, knode_id, is_forward);
     MinimizerHitPtr minimizer_hit {
-            std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+            std::make_shared<MinimizerHit>(read_id, readMinimizer1, miniRecord1) };
     read_hits.insert(minimizer_hit);
     expected.insert(minimizer_hit);
 
     intervals = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(intervals);
-    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    const Minimizer readMinimizer2(0, read_interval.start, read_interval.get_end(), is_forward);
+    const MiniRecord miniRecord2(prg_id, prg_path, knode_id, is_forward);
+    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, readMinimizer2, miniRecord2) };
     read_hits.insert(minimizer_hit);
     expected.insert(minimizer_hit);
 
     intervals = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(intervals);
-    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    const Minimizer readMinimizer3(0, read_interval.start, read_interval.get_end(), is_forward);
+    const MiniRecord miniRecord3(prg_id, prg_path, knode_id, is_forward);
+    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, readMinimizer3, miniRecord3) };
     read_hits.insert(minimizer_hit);
     expected.insert(minimizer_hit);
 
     intervals = { Interval(27, 30) };
     prg_path.initialize(intervals);
-    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, read_interval, prg_id, prg_path, knode_id, is_forward) };
+    const Minimizer readMinimizer4(0, read_interval.start, read_interval.get_end(), is_forward);
+    const MiniRecord miniRecord4(prg_id, prg_path, knode_id, is_forward);
+    minimizer_hit = { std::make_shared<MinimizerHit>(read_id, readMinimizer4, miniRecord4) };
     read_hits.insert(minimizer_hit);
     expected.insert(minimizer_hit);
 

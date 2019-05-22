@@ -93,10 +93,10 @@ void check_correct_hits(const uint32_t prg_id,
                         const uint32_t read_id,
                         const std::set<MinimizerHitPtr, pComp> &cluster) {
     for (const auto &hit_ptr : cluster) {
-        bool hits_correspond_to_correct_read = read_id == hit_ptr->read_id;
+        bool hits_correspond_to_correct_read = read_id == hit_ptr->get_read_id();
         assert(hits_correspond_to_correct_read);
 
-        bool hits_correspond_to_correct_prg = prg_id == hit_ptr->prg_id;
+        bool hits_correspond_to_correct_prg = prg_id == hit_ptr->get_prg_id();
         assert(hits_correspond_to_correct_prg);
     }
 }
@@ -110,7 +110,7 @@ void record_read_info(ReadPtr &read_ptr,
                       std::set<MinimizerHitPtr, pComp> &cluster) {
     assert(read_ptr != nullptr);
     read_ptr->add_hits(node_ptr->node_id, cluster);
-    bool orientation = !cluster.empty() and (*cluster.begin())->is_forward;
+    bool orientation = !cluster.empty() and (*cluster.begin())->is_forward();
     if (read_ptr->nodes.empty()
         or node_ptr != read_ptr->nodes.back()
         or orientation != read_ptr->node_orientations.back()
@@ -359,19 +359,19 @@ void pangenome::Graph::add_hits_to_kmergraphs(const std::vector<std::shared_ptr<
             for (const auto &minimizer_hit_ptr: read.hits.at(pangraph_node.prg_id)) {
                 const auto &minimizer_hit = *minimizer_hit_ptr;
 
-                assert(minimizer_hit.kmer_node_id < pangraph_node.kmer_prg.nodes.size());
-                assert(pangraph_node.kmer_prg.nodes[minimizer_hit.kmer_node_id] != nullptr);
+                assert(minimizer_hit.get_kmer_node_id() < pangraph_node.kmer_prg.nodes.size());
+                assert(pangraph_node.kmer_prg.nodes[minimizer_hit.get_kmer_node_id()] != nullptr);
 
-                auto &kmer_node = *pangraph_node.kmer_prg.nodes[minimizer_hit.kmer_node_id];
-                kmer_node.increment_covg(minimizer_hit.is_forward, sample_id);
+                auto &kmer_node = *pangraph_node.kmer_prg.nodes[minimizer_hit.get_kmer_node_id()];
+                kmer_node.increment_covg(minimizer_hit.is_forward(), sample_id);
 
-                if (pangraph_node.kmer_prg.nodes[minimizer_hit.kmer_node_id]->get_covg(minimizer_hit.is_forward, sample_id) ==
+                if (pangraph_node.kmer_prg.nodes[minimizer_hit.get_kmer_node_id()]->get_covg(minimizer_hit.is_forward(), sample_id) ==
                     1000) {
                     BOOST_LOG_TRIVIAL(debug) << "Adding hit " << minimizer_hit
                                              << " resulted in high coverage on node "
-                                             << *pangraph_node.kmer_prg.nodes[minimizer_hit.kmer_node_id];
+                                             << *pangraph_node.kmer_prg.nodes[minimizer_hit.get_kmer_node_id()];
                 }
-                num_hits[minimizer_hit.is_forward] += 1;
+                num_hits[minimizer_hit.is_forward()] += 1;
             }
         }
 

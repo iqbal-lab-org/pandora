@@ -34,8 +34,8 @@ MinimizerHits::~MinimizerHits() {
     clear();
 }
 
-void MinimizerHits::add_hit(const uint32_t i, const Minimizer &m, const MiniRecord *r) {
-    MinimizerHitPtr mh(std::make_shared<MinimizerHit>(i, m, r));
+void MinimizerHits::add_hit(const uint32_t i, const Minimizer &minimizerFromRead, const MiniRecord &minimizerFromPRG) {
+    MinimizerHitPtr mh(std::make_shared<MinimizerHit>(i, minimizerFromRead, minimizerFromPRG));
     uhits.insert(mh);
 }
 
@@ -76,50 +76,50 @@ bool pEq::operator()(const MinimizerHitPtr &lhs, const MinimizerHitPtr &rhs) con
 
 bool pComp_path::operator()(const MinimizerHitPtr &lhs, const MinimizerHitPtr &rhs) {
     // should be same id
-    if (lhs->prg_id < rhs->prg_id) { return true; }
-    if (rhs->prg_id < lhs->prg_id) { return false; }
+    if (lhs->get_prg_id() < rhs->get_prg_id()) { return true; }
+    if (rhs->get_prg_id() < lhs->get_prg_id()) { return false; }
     //want those that match against the same prg_path together
-    if (lhs->prg_path < rhs->prg_path) { return true; }
-    if (rhs->prg_path < lhs->prg_path) { return false; }
+    if (lhs->get_prg_path() < rhs->get_prg_path()) { return true; }
+    if (rhs->get_prg_path() < lhs->get_prg_path()) { return false; }
     //separated into two categories, corresponding to a forward, and a rev-complement hit, note fwd come first
-    if (lhs->is_forward > rhs->is_forward) { return true; }
-    if (rhs->is_forward > lhs->is_forward) { return false; }
+    if (lhs->is_forward() > rhs->is_forward()) { return true; }
+    if (rhs->is_forward() > lhs->is_forward()) { return false; }
     // finally, make sure that hits from separate reads aren't removed from the set as "=="
-    if (lhs->read_id < rhs->read_id) { return true; }
-    if (rhs->read_id < lhs->read_id) { return false; }
-    if (lhs->read_start_position < rhs->read_start_position) { return true; }
-    if (rhs->read_start_position < lhs->read_start_position) { return false; }
+    if (lhs->get_read_id() < rhs->get_read_id()) { return true; }
+    if (rhs->get_read_id() < lhs->get_read_id()) { return false; }
+    if (lhs->get_read_start_position() < rhs->get_read_start_position()) { return true; }
+    if (rhs->get_read_start_position() < lhs->get_read_start_position()) { return false; }
     return false;
 }
 
 bool clusterComp::operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<MinimizerHitPtr, pComp> rhs) {
-    if ((*lhs.begin())->read_id < (*rhs.begin())->read_id) { return true; }
-    if ((*rhs.begin())->read_id < (*lhs.begin())->read_id) { return false; }
-    if ((*lhs.begin())->read_start_position < (*rhs.begin())->read_start_position) { return true; }
-    if ((*rhs.begin())->read_start_position < (*lhs.begin())->read_start_position) { return false; }
+    if ((*lhs.begin())->get_read_id() < (*rhs.begin())->get_read_id()) { return true; }
+    if ((*rhs.begin())->get_read_id() < (*lhs.begin())->get_read_id()) { return false; }
+    if ((*lhs.begin())->get_read_start_position() < (*rhs.begin())->get_read_start_position()) { return true; }
+    if ((*rhs.begin())->get_read_start_position() < (*lhs.begin())->get_read_start_position()) { return false; }
     if (lhs.size() > rhs.size()) { return true; } // want bigger first!
     if (rhs.size() > lhs.size()) { return false; }
-    if ((*lhs.begin())->prg_id < (*rhs.begin())->prg_id) { return true; }
-    if ((*rhs.begin())->prg_id < (*lhs.begin())->prg_id) { return false; }
-    if ((*lhs.begin())->prg_path < (*rhs.begin())->prg_path) { return true; }
-    if ((*rhs.begin())->prg_path < (*lhs.begin())->prg_path) { return false; }
-    if ((*lhs.begin())->is_forward < (*rhs.begin())->is_forward) { return true; }
-    if ((*rhs.begin())->is_forward < (*lhs.begin())->is_forward) { return false; }
+    if ((*lhs.begin())->get_prg_id() < (*rhs.begin())->get_prg_id()) { return true; }
+    if ((*rhs.begin())->get_prg_id() < (*lhs.begin())->get_prg_id()) { return false; }
+    if ((*lhs.begin())->get_prg_path() < (*rhs.begin())->get_prg_path()) { return true; }
+    if ((*rhs.begin())->get_prg_path() < (*lhs.begin())->get_prg_path()) { return false; }
+    if ((*lhs.begin())->is_forward() < (*rhs.begin())->is_forward()) { return true; }
+    if ((*rhs.begin())->is_forward() < (*lhs.begin())->is_forward()) { return false; }
     return false;
 }
 
 bool clusterComp_size::operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<MinimizerHitPtr, pComp> rhs) {
-    if ((*lhs.begin())->read_id < (*rhs.begin())->read_id) { return true; }
-    if ((*rhs.begin())->read_id < (*lhs.begin())->read_id) { return false; }
+    if ((*lhs.begin())->get_read_id() < (*rhs.begin())->get_read_id()) { return true; }
+    if ((*rhs.begin())->get_read_id() < (*lhs.begin())->get_read_id()) { return false; }
     if (lhs.size() > rhs.size()) { return true; }
     if (rhs.size() > lhs.size()) { return false; }
-    if ((*lhs.begin())->read_start_position < (*rhs.begin())->read_start_position) { return true; }
-    if ((*rhs.begin())->read_start_position < (*lhs.begin())->read_start_position) { return false; }
-    if ((*lhs.begin())->prg_id < (*rhs.begin())->prg_id) { return true; }
-    if ((*rhs.begin())->prg_id < (*lhs.begin())->prg_id) { return false; }
-    if ((*lhs.begin())->prg_path < (*rhs.begin())->prg_path) { return true; }
-    if ((*rhs.begin())->prg_path < (*lhs.begin())->prg_path) { return false; }
-    if ((*lhs.begin())->is_forward < (*rhs.begin())->is_forward) { return true; }
-    if ((*rhs.begin())->is_forward < (*lhs.begin())->is_forward) { return false; }
+    if ((*lhs.begin())->get_read_start_position() < (*rhs.begin())->get_read_start_position()) { return true; }
+    if ((*rhs.begin())->get_read_start_position() < (*lhs.begin())->get_read_start_position()) { return false; }
+    if ((*lhs.begin())->get_prg_id() < (*rhs.begin())->get_prg_id()) { return true; }
+    if ((*rhs.begin())->get_prg_id() < (*lhs.begin())->get_prg_id()) { return false; }
+    if ((*lhs.begin())->get_prg_path() < (*rhs.begin())->get_prg_path()) { return true; }
+    if ((*rhs.begin())->get_prg_path() < (*lhs.begin())->get_prg_path()) { return false; }
+    if ((*lhs.begin())->is_forward() < (*rhs.begin())->is_forward()) { return true; }
+    if ((*rhs.begin())->is_forward() < (*lhs.begin())->is_forward()) { return false; }
     return false;
 }

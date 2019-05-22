@@ -84,11 +84,11 @@ void pangenome::Node::get_read_overlap_coordinates(std::vector<std::vector<uint3
             continue;
 
         auto hit_ptr_iter = read_ptr->hits.at(prg_id).begin();
-        uint32_t start = (*hit_ptr_iter)->read_start_position;
+        uint32_t start = (*hit_ptr_iter)->get_read_start_position();
         uint32_t end = 0;
         for (const auto &hit_ptr : read_ptr->hits.at(prg_id)) {
-            start = std::min(start, hit_ptr->read_start_position);
-            end = std::max(end, hit_ptr->read_start_position + hit_ptr->prg_path.length());
+            start = std::min(start, hit_ptr->get_read_start_position());
+            end = std::max(end, hit_ptr->get_read_start_position() + hit_ptr->get_prg_path().length());
         }
 
         assert(end > start or assert_msg(
@@ -96,7 +96,7 @@ void pangenome::Node::get_read_overlap_coordinates(std::vector<std::vector<uint3
                                                                        << " (the " << read_count << "th on this node)"
                                                                        << std::endl << "Found end " << end
                                                                        << " after found start " << start));
-        coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->is_forward};
+        coordinate = {read_ptr->id, start, end, (*hit_ptr_iter)->is_forward()};
         read_overlap_coordinates.push_back(coordinate);
     }
 
@@ -178,17 +178,17 @@ pangenome::Node::get_read_overlap_coordinates(const prg::Path &local_path, const
         }
 
         const auto read_hits_iter { read_hits_inside_path.cbegin() };
-        uint32_t start { (*read_hits_iter)->read_start_position };
+        uint32_t start { (*read_hits_iter)->get_read_start_position() };
         uint32_t end { 0 };
 
         for (const auto &read_hit : read_hits_inside_path) {
-            start = std::min(start, read_hit->read_start_position);
-            end = std::max(end, read_hit->read_start_position + read_hit->prg_path.length());
+            start = std::min(start, read_hit->get_read_start_position());
+            end = std::max(end, read_hit->get_read_start_position() + read_hit->get_prg_path().length());
         }
 
         assert(end > start);
 
-        read_overlap_coordinates.emplace(current_read->id, start, end, (*read_hits_iter)->is_forward);
+        read_overlap_coordinates.emplace(current_read->id, start, end, (*read_hits_iter)->is_forward());
     }
     return read_overlap_coordinates;
 }

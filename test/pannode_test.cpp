@@ -92,30 +92,27 @@ TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
     pangenome::ReadPtr pr;
     MinimizerHits mhits;
 
-    Minimizer m;
     std::deque<Interval> d;
     prg::Path p;
-    MiniRecord *mr;
 
     // read1
-    m = Minimizer(0, 1, 6, 0); // kmer, start, end, strand
+    Minimizer m1(0, 1, 6, 0); // kmer, start, end, strand
     d = {Interval(7, 8), Interval(10, 14)};
     p.initialize(d);
-    mr = new MiniRecord(0, p, 0, 0);
-    mhits.add_hit(1, m, mr); // read 1
+    MiniRecord mr1(0, p, 0, 0);
+    mhits.add_hit(1, m1, mr1); // read 1
 
-    m = Minimizer(0, 0, 5, 0);
+    Minimizer m2(0, 0, 5, 0);
     d = {Interval(6, 10), Interval(11, 12)};
     p.initialize(d);
-    delete mr;
-    mr = new MiniRecord(0, p, 0, 0);
-    mhits.add_hit(1, m, mr);
+    MiniRecord mr2(0, p, 0, 0);
+    mhits.add_hit(1, m2, mr2);
 
+    Minimizer m3(0, 0, 5, 0);
     d = {Interval(6, 10), Interval(12, 13)};
     p.initialize(d);
-    delete mr;
-    mr = new MiniRecord(0, p, 0, 0);
-    mhits.add_hit(1, m, mr);
+    MiniRecord mr3(0, p, 0, 0);
+    mhits.add_hit(1, m3, mr3);
 
     mhits.sort();
     pr = std::make_shared<pangenome::Read>(1);
@@ -124,27 +121,23 @@ TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
     mhits.clear();
 
     //read 2
-    m = Minimizer(0, 2, 7, 1);
+    Minimizer m4(0, 2, 7, 1);
     d = {Interval(6, 10), Interval(11, 12)};
     p.initialize(d);
-    delete mr;
-    mr = new MiniRecord(0, p, 0, 0);
-    mhits.add_hit(2, m, mr);
+    MiniRecord mr4(0, p, 0, 0);
+    mhits.add_hit(2, m4, mr4);
 
-    m = Minimizer(0, 5, 10, 1);
+    Minimizer m5(0, 5, 10, 1);
     d = {Interval(6, 10), Interval(12, 13)};
     p.initialize(d);
-    delete mr;
-    mr = new MiniRecord(0, p, 0, 0);
-    mhits.add_hit(2, m, mr);
+    MiniRecord mr5(0, p, 0, 0);
+    mhits.add_hit(2, m5, mr5);
 
     mhits.sort();
     pr = std::make_shared<pangenome::Read>(2);
     pr->add_hits(3, mhits.hits);
     pan_node.reads.insert(pr);
     mhits.clear();
-
-    delete mr;
 
     std::vector<std::vector<uint32_t>> read_overlap_coordinates;
     pan_node.get_read_overlap_coordinates(read_overlap_coordinates);
@@ -643,33 +636,47 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, prg_path, knode_id, orientation);
+    Minimizer m1(0, 2, 5, orientation); // kmer, start, end, strand
+    MiniRecord mr1(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m1, mr1);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m2(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr2(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m2, mr2);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m3(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr3(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m3, mr3);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, prg_path, knode_id, orientation);
+    Minimizer m4(0, 3, 6, orientation); // kmer, start, end, strand
+    MiniRecord mr4(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m4, mr4);
     hits.insert(mh);
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m5(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr5(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m5, mr5);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    Minimizer m6(0, 5, 8, orientation); // kmer, start, end, strand
+    MiniRecord mr6(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m6, mr6);
     hits.insert(mh);
     d = { Interval(27, 30) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    Minimizer m7(0, 6, 9, orientation); // kmer, start, end, strand
+    MiniRecord mr7(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m7, mr7);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -683,49 +690,71 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    Minimizer m8(0, 6, 9, orientation); // kmer, start, end, strand
+    MiniRecord mr8(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m8, mr8);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(12, 15), prg_id, prg_path, knode_id, orientation);
+    Minimizer m9(0, 12, 15, orientation); // kmer, start, end, strand
+    MiniRecord mr9(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m9, mr9);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(11, 14), prg_id, prg_path, knode_id, orientation);
+    Minimizer m10(0, 11, 14, orientation); // kmer, start, end, strand
+    MiniRecord mr10(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m10, mr10);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m11(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr11(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m11, mr11);
     hits.insert(mh);
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m12(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr12(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m12, mr12);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m13(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr13(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m13, mr13);
     hits.insert(mh);
     d = { Interval(27, 30) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    Minimizer m14(0, 10, 13, orientation); // kmer, start, end, strand
+    MiniRecord mr14(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m14, mr14);
     hits.insert(mh);
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m15(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr15(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m15, mr15);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m16(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr16(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m16, mr16);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(31, 33) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m17(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr17(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m17, mr17);
     hits.insert(mh);
     d = { Interval(78, 81) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    Minimizer m18(0, 13, 16, orientation); // kmer, start, end, strand
+    MiniRecord mr18(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m18, mr18);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -739,49 +768,71 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m19(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr19(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m19, mr19);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    Minimizer m20(0, 17, 20, orientation); // kmer, start, end, strand
+    MiniRecord mr20(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m20, mr20);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, prg_path, knode_id, orientation);
+    Minimizer m21(0, 15, 18, orientation); // kmer, start, end, strand
+    MiniRecord mr21(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m21, mr21);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    Minimizer m22(0, 5, 8, orientation); // kmer, start, end, strand
+    MiniRecord mr22(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m22, mr22);
     hits.insert(mh);
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m23(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr23(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m23, mr23);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m24(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr24(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m24, mr24);
     hits.insert(mh);
     d = { Interval(27, 30) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    Minimizer m25(0, 10, 13, orientation); // kmer, start, end, strand
+    MiniRecord mr25(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m25, mr25);
     hits.insert(mh);
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m26(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr26(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m26, mr26);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m27(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr27(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m27, mr27);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(31, 33) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m28(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr28(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m28, mr28);
     hits.insert(mh);
     d = { Interval(78, 81) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    Minimizer m29(0, 13, 16, orientation); // kmer, start, end, strand
+    MiniRecord mr29(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m29, mr29);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -795,34 +846,48 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m30(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr30(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m30, mr30);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    Minimizer m31(0, 10, 13, orientation); // kmer, start, end, strand
+    MiniRecord mr31(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m31, mr31);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m32(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr32(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m32, mr32);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    Minimizer m33(0, 6, 9, orientation); // kmer, start, end, strand
+    MiniRecord mr33(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m33, mr33);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m34(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr34(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m34, mr34);
     hits.insert(mh);
 
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m35(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr35(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m35, mr35);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m36(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr36(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m36, mr36);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -836,27 +901,39 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m37(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr37(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m37, mr37);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    Minimizer m38(0, 17, 20, orientation); // kmer, start, end, strand
+    MiniRecord mr38(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m38, mr38);
     hits.insert(mh);
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m39(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr39(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m39, mr39);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m40(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr40(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m40, mr40);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(31, 33) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m41(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr41(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m41, mr41);
     hits.insert(mh);
     d = { Interval(78, 81) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    Minimizer m42(0, 13, 16, orientation); // kmer, start, end, strand
+    MiniRecord mr42(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m42, mr42);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -910,33 +987,47 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, prg_path, knode_id, orientation);
+    Minimizer m1(0, 2, 5, orientation); // kmer, start, end, strand
+    MiniRecord mr1(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m1, mr1);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m2(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr2(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m2, mr2);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m3(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr3(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m3, mr3);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, prg_path, knode_id, orientation);
+    Minimizer m4(0, 3, 6, orientation); // kmer, start, end, strand
+    MiniRecord mr4(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m4, mr4);
     hits.insert(mh);
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m5(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr5(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m5, mr5);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    Minimizer m6(0, 5, 8, orientation); // kmer, start, end, strand
+    MiniRecord mr6(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m6, mr6);
     hits.insert(mh);
     d = { Interval(27, 30) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    Minimizer m7(0, 6, 9, orientation); // kmer, start, end, strand
+    MiniRecord mr7(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m7, mr7);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -950,49 +1041,71 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    Minimizer m8(0, 6, 9, orientation); // kmer, start, end, strand
+    MiniRecord mr8(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m8, mr8);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(12, 15), prg_id, prg_path, knode_id, orientation);
+    Minimizer m9(0, 12, 15, orientation); // kmer, start, end, strand
+    MiniRecord mr9(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m9 ,mr9);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(11, 14), prg_id, prg_path, knode_id, orientation);
+    Minimizer m10(0, 11, 14, orientation); // kmer, start, end, strand
+    MiniRecord mr10(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m10, mr10);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m11(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr11(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m11, mr11);
     hits.insert(mh);
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m12(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr12(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m12, mr12);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m13(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr13(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m13, mr13);
     hits.insert(mh);
     d = { Interval(27, 30) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    Minimizer m14(0, 10, 13, orientation); // kmer, start, end, strand
+    MiniRecord mr14(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m14, mr14);
     hits.insert(mh);
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m15(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr15(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m15, mr15);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m16(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr16(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m16, mr16);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(31, 33) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m17(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr17(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m17, mr17);
     hits.insert(mh);
     d = { Interval(78, 81) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    Minimizer m18(0, 13, 16, orientation); // kmer, start, end, strand
+    MiniRecord mr18(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m18, mr18);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -1006,49 +1119,71 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m19(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr19(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m19, mr19);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    Minimizer m20(0, 17, 20, orientation); // kmer, start, end, strand
+    MiniRecord mr20(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m20, mr20);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, prg_path, knode_id, orientation);
+    Minimizer m21(0, 15, 18, orientation); // kmer, start, end, strand
+    MiniRecord mr21(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m21, mr21);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    Minimizer m22(0, 5, 8, orientation); // kmer, start, end, strand
+    MiniRecord mr22(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m22, mr22);
     hits.insert(mh);
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m23(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr23(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m23, mr23);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m24(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr24(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m24, mr24);
     hits.insert(mh);
     d = { Interval(27, 30) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    Minimizer m25(0, 10, 13, orientation); // kmer, start, end, strand
+    MiniRecord mr25(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m25, mr25);
     hits.insert(mh);
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m26(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr26(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m26, mr26);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m27(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr27(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m27, mr27);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(31, 33) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m28(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr28(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m28, mr28);
     hits.insert(mh);
     d = { Interval(78, 81) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    Minimizer m29(0, 13, 16, orientation); // kmer, start, end, strand
+    MiniRecord mr29(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m29, mr29);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -1062,34 +1197,48 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m30(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr30(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m30, mr30);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    Minimizer m31(0, 10, 13, orientation); // kmer, start, end, strand
+    MiniRecord mr31(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m31, mr31);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m32(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr32(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m32, mr32);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    Minimizer m33(0, 6, 9, orientation); // kmer, start, end, strand
+    MiniRecord mr33(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m33, mr33);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m34(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr34(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m34, mr34);
     hits.insert(mh);
 
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m35(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr35(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m35, mr35);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m36(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr36(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m36, mr36);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -1103,27 +1252,39 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m37(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr37(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m37, mr37);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    Minimizer m38(0, 17, 20, orientation); // kmer, start, end, strand
+    MiniRecord mr38(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m38, mr38);
     hits.insert(mh);
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m39(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr39(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m39, mr39);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m40(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr40(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m40, mr40);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(31, 33) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m41(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr41(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m41, mr41);
     hits.insert(mh);
     d = { Interval(78, 81) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    Minimizer m42(0, 13, 16, orientation); // kmer, start, end, strand
+    MiniRecord mr42(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m42, mr42);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
@@ -1137,33 +1298,47 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, prg_path, knode_id, orientation);
+    Minimizer m43(0, 2, 5, orientation); // kmer, start, end, strand
+    MiniRecord mr43(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m43, mr43);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m44(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr44(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m44, mr44);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m45(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr45(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m45, mr45);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, prg_path, knode_id, orientation);
+    Minimizer m46(0, 3, 6, orientation); // kmer, start, end, strand
+    MiniRecord mr46(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m46, mr46);
     hits.insert(mh);
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m47(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr47(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m47, mr47);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    Minimizer m48(0, 5, 8, orientation); // kmer, start, end, strand
+    MiniRecord mr48(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m48, mr48);
     hits.insert(mh);
     d = { Interval(27, 30) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    Minimizer m49(0, 6, 9, orientation); // kmer, start, end, strand
+    MiniRecord mr49(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m49, mr49);
     hits.insert(mh);
 
     pr->add_hits(prg_id, hits);
