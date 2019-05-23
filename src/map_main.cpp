@@ -327,7 +327,6 @@ int pandora_map(int argc, char *argv[]) {
     uint32_t covg = pangraph_from_read_file(reads_filepath, pangraph, index, prgs, w, k, max_diff, e_rate,
                                             min_cluster_size, genome_size, illumina, clean, max_covg, threads);
 
-    exit(1);
 
     if (pangraph->nodes.empty()) {
         cout << "Found non of the LocalPRGs in the reads." << endl;
