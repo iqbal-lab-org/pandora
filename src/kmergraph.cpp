@@ -21,8 +21,8 @@
 using namespace prg;
 
 KmerGraph::KmerGraph() {
-    reserved_size = 60000;
-    nodes.reserve(reserved_size);
+    //reserved_size = 60000;
+    //nodes.reserve(reserved_size);
     num_reads = 0;
     shortest_path_length = 0;
     k = 0; // nb the kmer size is determined by the first non-null node added
