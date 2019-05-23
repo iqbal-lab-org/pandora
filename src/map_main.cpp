@@ -380,7 +380,7 @@ int pandora_map(int argc, char *argv[]) {
     for (auto pan_id_to_node_mapping = pangraph->nodes.begin(); pan_id_to_node_mapping != pangraph->nodes.end(); ++pan_id_to_node_mapping)
         pangraphNodesAsVector.push_back(pan_id_to_node_mapping->second);
 
-    #pragma omp parallel for num_threads(threads) schedule(dynamic, 100)
+    #pragma omp parallel for num_threads(threads) schedule(dynamic, 10)
     for (uint32_t i = 0; i < pangraphNodesAsVector.size(); ++i) {
         //add some progress
         if (i && i%100==0)
