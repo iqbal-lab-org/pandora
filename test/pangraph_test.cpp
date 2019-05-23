@@ -657,7 +657,6 @@ TEST(PangenomeGraphTest, save_mapped_read_strings) {
     MiniRecord mr3(0, p, 0, 0);
     mhits.add_hit(1, m3, mr3);
 
-    mhits.sort();
     pg.add_node(0, "zero", 1, mhits.hits);
     mhits.clear();
 
@@ -674,7 +673,6 @@ TEST(PangenomeGraphTest, save_mapped_read_strings) {
     MiniRecord mr5(0, p, 0, 0);
     mhits.add_hit(2, m5, mr5);
 
-    mhits.sort();
     pg.add_node(0, "zero", 2, mhits.hits);
 
     std::string expected1 = ">read1 pandora: 1 0:6 + \nshould\n>read2 pandora: 2 2:10 - \nis time \n";

@@ -1330,11 +1330,12 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg, const std:
     std::vector<LocalNodePtr> alt_path;
 
     std::vector<KmerNodePtr> ref_kmer_path = kmernode_path_from_localnode_path(ref_path);
-    std::cout << "ref path: ";
+
+    /*std::cout << "ref path: ";
     for (const auto &n : ref_kmer_path) {
         std::cout << n->path << " ";
     }
-    std::cout << std::endl;
+    std::cout << std::endl;*/
 
     std::vector<KmerNodePtr> alt_kmer_path;
 
@@ -1344,7 +1345,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg, const std:
     std::vector<uint32_t> alt_rev_covgs;
 
     for (auto &record : vcf.records) {
-        std::cout << record << std::endl;
+        //std::cout << record << std::endl;
         // find corresponding ref kmers
         auto end_pos = record.pos + record.ref.length();
         if (record.ref == ".")

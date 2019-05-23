@@ -37,21 +37,16 @@ struct clusterComp_size {
 
 class MinimizerHits {
 public:
-    MinimizerHits(const uint32_t &num_hits = 30000);
+    MinimizerHits() = default;
+    ~MinimizerHits() = default;
 
-    ~MinimizerHits();
-
-    void clear();
-
-    //std::unordered_set<MinimizerHit*, Hash, pEq> uhits;
-    std::unordered_set<MinimizerHitPtr> uhits;
     std::set<MinimizerHitPtr, pComp> hits;
 
     void add_hit(const uint32_t i, const Minimizer &minimizerFromRead, const MiniRecord &minimizerFromPRG);
 
-    void sort();
+    void clear () { hits.clear(); }
 
-    friend std::ostream &operator<<(std::ostream &out, const MinimizerHits &m);
+    //friend std::ostream &operator<<(std::ostream &out, const MinimizerHits &m);
 };
 
 #endif

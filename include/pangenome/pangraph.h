@@ -28,7 +28,7 @@ protected:
     std::unordered_map<std::string, SamplePtr> samples;
     uint32_t next_id;
 public:
-    std::unordered_map<ReadId, ReadPtr> reads;
+    std::map<ReadId, ReadPtr> reads;
     std::unordered_map<NodeId, NodePtr> nodes;
 
     Graph();

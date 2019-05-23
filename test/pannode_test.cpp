@@ -114,7 +114,6 @@ TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
     MiniRecord mr3(0, p, 0, 0);
     mhits.add_hit(1, m3, mr3);
 
-    mhits.sort();
     pr = std::make_shared<pangenome::Read>(1);
     pr->add_hits(3, mhits.hits);
     pan_node.reads.insert(pr);
@@ -133,7 +132,6 @@ TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
     MiniRecord mr5(0, p, 0, 0);
     mhits.add_hit(2, m5, mr5);
 
-    mhits.sort();
     pr = std::make_shared<pangenome::Read>(2);
     pr->add_hits(3, mhits.hits);
     pan_node.reads.insert(pr);

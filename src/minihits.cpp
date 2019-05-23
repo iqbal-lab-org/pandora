@@ -12,44 +12,9 @@
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-MinimizerHits::MinimizerHits(const uint32_t &num_hits) {
-    uhits.reserve(num_hits);
-}
-
-void MinimizerHits::clear() {
-    /*for (const auto &c: hits)
-    {
-        delete c;
-    }*/
-    hits.clear();
-
-    /*for (const auto &c: uhits)
-    {   
-        delete c;
-    }*/
-    uhits.clear();
-}
-
-MinimizerHits::~MinimizerHits() {
-    clear();
-}
-
 void MinimizerHits::add_hit(const uint32_t i, const Minimizer &minimizerFromRead, const MiniRecord &minimizerFromPRG) {
     MinimizerHitPtr mh(std::make_shared<MinimizerHit>(i, minimizerFromRead, minimizerFromPRG));
-    uhits.insert(mh);
-}
-
-void MinimizerHits::sort() {
-    if (hits.max_size() > uhits.size()) {
-        hits.insert(uhits.begin(), uhits.end());
-        assert(hits.size() == uhits.size() ||
-               assert_msg("Expected uhits.size()=" << uhits.size() << " to equal hits.size()=" << hits.size()));
-        uhits.clear();
-    } else {
-        std::cerr << "Could not create a set big enough for " << uhits.size() << " elements. The max size is "
-                  << hits.max_size() << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
+    hits.insert(mh);
 }
 
 /*std::ostream& operator<< (std::ostream & out, MinimizerHits const& m) {

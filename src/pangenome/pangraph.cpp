@@ -26,10 +26,6 @@ pangenome::Graph::Graph() : next_id(0) {
     nodes.reserve(6000);
 }
 
-void pangenome::Graph::reserve_num_reads(uint32_t &num_reads) {
-    reads.reserve(num_reads);
-}
-
 void pangenome::Graph::clear() {
     reads.clear();
     nodes.clear();

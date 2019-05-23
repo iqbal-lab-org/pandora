@@ -49,6 +49,7 @@ static void show_compare_usage() {
               << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
               << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 250 (bps)\n"
               << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
+              << "\t-t T\t\t\t\tNumber of threads, default 1\n"
               << "\t--genome_size\tNUM_BP\tEstimated length of genome, used for coverage estimation\n"
               << "\t--vcf_refs REF_FASTA\t\tA fasta file with an entry for each LocalPRG giving reference sequence for\n"
               << "\t\t\t\t\tVCF. Must have a perfect match in the graph and the same name as the graph\n"
@@ -98,7 +99,7 @@ int pandora_compare(int argc, char *argv[]) {
     // otherwise, parse the parameters from the command line
     std::string prgfile, read_index_fpath, outdir = "pandora", vcf_refs_file, log_level="info";
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300, min_allele_covg_gt = 0,
-            min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0; // default parameters
+            min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0, threads=1; // default parameters
     uint16_t confidence_threshold = 1;
     int max_diff = 250;
     float e_rate = 0.11, min_allele_fraction_covg_gt = 0, genotyping_error_rate=0.01;
@@ -245,7 +246,15 @@ int pandora_compare(int argc, char *argv[]) {
                 std::cerr << "--log_level option requires one argument." << std::endl;
                 return 1;
             }
-        } else {
+        } else if (arg == "-t") {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                threads = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "-t option requires one argument." << std::endl;
+                return 1;
+            }
+        }
+        else {
             std::cerr << argv[i] << " could not be attributed to any parameter" << std::endl;
         }
     }
@@ -269,6 +278,7 @@ int pandora_compare(int argc, char *argv[]) {
     std::cout << "\tk\t\t" << k << std::endl;
     std::cout << "\tmax_diff\t" << max_diff << std::endl;
     std::cout << "\terror_rate\t" << e_rate << std::endl;
+    std::cout << "\tthreads\t" << threads << std::endl;
     std::cout << "\tvcf_refs\t" << vcf_refs_file << std::endl;
     std::cout << "\tillumina\t" << illumina << std::endl;
     std::cout << "\tclean\t" << clean << std::endl;
@@ -296,8 +306,6 @@ int pandora_compare(int argc, char *argv[]) {
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
     auto pangraph_sample = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits(100000));
-
     Fastaq consensus_fq(true, true);
 
     vector<KmerNodePtr> kmp;
@@ -309,7 +317,6 @@ int pandora_compare(int argc, char *argv[]) {
     uint32_t sample_id = 0;
     for (const auto &sample: samples) {
         pangraph_sample->clear();
-        minimizer_hits->clear();
 
         const auto &sample_name = sample.first;
         const auto &sample_fpath = sample.second;
@@ -323,13 +330,11 @@ int pandora_compare(int argc, char *argv[]) {
                                 << sample_fpath
                                 << " (this will take a while)";
         uint32_t covg = pangraph_from_read_file(sample_fpath,
-                                                minimizer_hits,
                                                 pangraph_sample,
                                                 index, prgs, w, k,
                                                 max_diff, e_rate,
-                                                min_cluster_size, genome_size, illumina, clean, max_covg);
+                                                min_cluster_size, genome_size, illumina, clean, max_covg, threads);
         BOOST_LOG_TRIVIAL(info) << "Finished with minihits, so clear ";
-        minimizer_hits->clear();
 
         BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file "
                                 << sample_outdir << "/pandora.pangraph.gfa";
@@ -439,7 +444,6 @@ int pandora_compare(int argc, char *argv[]) {
 
     // clear up
     index->clear();
-    minimizer_hits->clear();
     pangraph->clear();
     pangraph_sample->clear();
 

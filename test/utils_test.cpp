@@ -231,9 +231,8 @@ TEST(UtilsTest, addReadHits) {
     MinimizerHitPtr m11(make_shared<MinimizerHit>(0, min11, mr11));
     expected4.hits.insert(m11);
 
-    auto s = std::make_shared<Seq>(Seq(0, "read1", "AGC", 1, 3));
-    add_read_hits(s, minimizer_hits, index);
-    minimizer_hits->sort();
+    Seq s(0, "read1", "AGC", 1, 3);
+    add_read_hits(s, minimizer_hits, *index);
     EXPECT_EQ(expected1.hits.size(), minimizer_hits->hits.size());
     set<MinimizerHitPtr, pComp>::const_iterator it2 = expected1.hits.begin();
     for (set<MinimizerHitPtr, pComp>::const_iterator it = minimizer_hits->hits.begin(); it != minimizer_hits->hits.end(); ++it) {
@@ -246,9 +245,8 @@ TEST(UtilsTest, addReadHits) {
     minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     uint32_t j = 0;
     EXPECT_EQ(j, minimizer_hits->hits.size());
-    s = std::make_shared<Seq>(Seq(0, "read2", "AGTT", 2, 3));
-    add_read_hits(s, minimizer_hits, index);
-    minimizer_hits->sort();
+    s = Seq(0, "read2", "AGTT", 2, 3);
+    add_read_hits(s, minimizer_hits, *index);
     EXPECT_EQ(expected4.hits.size(), minimizer_hits->hits.size());
     it2 = expected4.hits.begin();
     for (set<MinimizerHitPtr, pComp>::const_iterator it = minimizer_hits->hits.begin(); it != minimizer_hits->hits.end(); ++it) {
@@ -261,9 +259,8 @@ TEST(UtilsTest, addReadHits) {
 
     minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     EXPECT_EQ(j, minimizer_hits->hits.size());
-    s = std::make_shared<Seq>(Seq(0, "read2", "AGTT", 1, 3));
-    add_read_hits(s, minimizer_hits, index);
-    minimizer_hits->sort();
+    s = Seq(0, "read2", "AGTT", 1, 3);
+    add_read_hits(s, minimizer_hits, *index);
     EXPECT_EQ(expected3.hits.size(), minimizer_hits->hits.size());
     it2 = expected3.hits.begin();
     for (set<MinimizerHitPtr, pComp>::const_iterator it = minimizer_hits->hits.begin(); it != minimizer_hits->hits.end(); ++it) {
@@ -275,9 +272,8 @@ TEST(UtilsTest, addReadHits) {
     minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     j = 0;
     EXPECT_EQ(j, minimizer_hits->hits.size());
-    s = std::make_shared<Seq>(Seq(0, "read3", "AGCT", 1, 3));
-    add_read_hits(s, minimizer_hits, index);
-    minimizer_hits->sort();
+    s = Seq(0, "read3", "AGCT", 1, 3);
+    add_read_hits(s, minimizer_hits, *index);
     expected1.hits.insert(expected2.hits.begin(), expected2.hits.end());
     EXPECT_EQ(expected1.hits.size(), minimizer_hits->hits.size());
     it2 = expected1.hits.begin();
@@ -290,9 +286,8 @@ TEST(UtilsTest, addReadHits) {
     minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     j = 0;
     EXPECT_EQ(j, minimizer_hits->hits.size());
-    s = std::make_shared<Seq>(Seq(0, "read3", "AGCT", 2, 3));
-    add_read_hits(s, minimizer_hits, index);
-    minimizer_hits->sort();
+    s = Seq(0, "read3", "AGCT", 2, 3);
+    add_read_hits(s, minimizer_hits, *index);
     EXPECT_EQ(expected1.hits.size(), minimizer_hits->hits.size());
     it2 = expected1.hits.begin();
     for (auto it = minimizer_hits->hits.begin(); it != minimizer_hits->hits.end(); ++it) {
@@ -472,8 +467,8 @@ TEST(UtilsTest, simpleInferLocalPRGOrderForRead) {
     lp3->kmer_prg.add_edge(v[12], v[13]);
 
     // add read hits to mhs
-    auto s = std::make_shared<Seq>(Seq(0, "read1", "AGTTAAGTACG", 1, 3));
-    add_read_hits(s, minimizer_hits, index);
+    Seq s(0, "read1", "AGTTAAGTACG", 1, 3);
+    add_read_hits(s, minimizer_hits, *index);
     //add_read_hits(0, "read1", "AGTTAAGTACG", mhs, index, 1, 3);
 
     // initialize pangraph;
@@ -706,8 +701,8 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
     lp2->kmer_prg.add_edge(v[24], v[25]);
 
     // add read hits to mhs
-    auto s = std::make_shared<Seq>(Seq(0, "read2", "AGTTATGCTAGCTACTTACGGTA", 1, 3));
-    add_read_hits(s, minimizer_hits, index);
+    Seq s(0, "read2", "AGTTATGCTAGCTACTTACGGTA", 1, 3);
+    add_read_hits(s, minimizer_hits, *index);
     //add_read_hits(0, "read2", "AGTTATGCTAGCTACTTACGGTA", mhs, index, 1, 3);
 
     // initialize pangraph;
@@ -744,7 +739,6 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
 }*/
 
 TEST(UtilsTest, pangraphFromReadFile) {
-    auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     KmerHash hash;
 
     // initialize a prgs object
@@ -957,7 +951,7 @@ TEST(UtilsTest, pangraphFromReadFile) {
 
     // initialize pangraph;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    pangraph_from_read_file("../../test/test_cases/read2.fa", minimizer_hits, pangraph, index, prgs, 1, 3, 1, 0.1, 1);
+    pangraph_from_read_file("../../test/test_cases/read2.fa", pangraph, index, prgs, 1, 3, 1, 0.1, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
@@ -971,8 +965,7 @@ TEST(UtilsTest, pangraphFromReadFile) {
     EXPECT_EQ(pg_exp, *pangraph);
 
     pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    minimizer_hits->clear();
-    pangraph_from_read_file("../../test/test_cases/read2.fq", minimizer_hits, pangraph, index, prgs, 1, 3, 1, 0.1, 1);
+    pangraph_from_read_file("../../test/test_cases/read2.fq", pangraph, index, prgs, 1, 3, 1, 0.1, 1);
     pg_exp.add_node(1, "1", 0, mhs_dummy.hits);
     pg_exp.add_node(2, "2", 0, mhs_dummy.hits);
     pg_exp.add_node(3, "3", 0, mhs_dummy.hits);

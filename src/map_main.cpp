@@ -45,6 +45,7 @@ static void show_map_usage() {
               << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
               << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 500 (bps)\n"
               << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
+              << "\t-t T\t\t\t\tNumber of threads, default 1\n"
               << "\t--genome_size\tNUM_BP\tEstimated length of genome, used for coverage estimation\n"
               << "\t--output_kg\t\t\tSave kmer graphs with fwd and rev coverage annotations for found localPRGs\n"
               << "\t--output_vcf\t\t\tSave a vcf file for each found localPRG\n"
@@ -76,7 +77,7 @@ int pandora_map(int argc, char *argv[]) {
     // otherwise, parse the parameters from the command line
     string prgfile, reads_filepath, outdir = "pandora", vcf_refs_file, log_level="info";
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300,
-            min_allele_covg_gt = 0, min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0; // default parameters
+            min_allele_covg_gt = 0, min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0, threads=1; // default parameters
     uint16_t confidence_threshold = 1;
     uint_least8_t denovo_kmer_size{11};
     int max_diff = 250;
@@ -252,7 +253,15 @@ int pandora_map(int argc, char *argv[]) {
                 std::cerr << "--log_level option requires one argument." << std::endl;
                 return 1;
             }
-        } else {
+        } else if (arg == "-t") {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                threads = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "-t option requires one argument." << std::endl;
+                return 1;
+            }
+        }
+        else {
             cerr << argv[i] << " could not be attributed to any parameter" << endl;
         }
     }
@@ -280,6 +289,7 @@ int pandora_map(int argc, char *argv[]) {
     cout << "\tk\t\t" << k << endl;
     cout << "\tmax_diff\t" << max_diff << endl;
     cout << "\terror_rate\t" << e_rate << endl;
+    cout << "\tthreads\t" << threads << std::endl;
     cout << "\toutput_kg\t" << output_kg << endl;
     cout << "\toutput_vcf\t" << output_vcf << endl;
     cout << "\tvcf_refs\t" << vcf_refs_file << endl;
@@ -313,16 +323,10 @@ int pandora_map(int argc, char *argv[]) {
     load_PRG_kmergraphs(prgs, w, k, prgfile); //load all kmer-minimizer graphs built in the index step
 
     cout << now() << "Constructing pangenome::Graph from read file (this will take a while)" << endl;
-    auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits(100000));
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    uint32_t covg = pangraph_from_read_file(reads_filepath, minimizer_hits, pangraph, index, prgs, w, k, max_diff, e_rate,
-                                            min_cluster_size, genome_size, illumina, clean, max_covg);
+    uint32_t covg = pangraph_from_read_file(reads_filepath, pangraph, index, prgs, w, k, max_diff, e_rate,
+                                            min_cluster_size, genome_size, illumina, clean, max_covg, threads);
 
-    cout << now() << "Finished with index, so clear " << endl;
-    index->clear();
-
-    cout << now() << "Finished with minihits, so clear " << endl;
-    minimizer_hits->clear();
 
     if (pangraph->nodes.empty()) {
         cout << "Found non of the LocalPRGs in the reads." << endl;

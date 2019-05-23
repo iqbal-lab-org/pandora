@@ -25,33 +25,32 @@ TEST(MinimizerHitsTest, add_hit) {
     Minimizer m1(min(kh.first, kh.second), 1, 6, 0);
     MiniRecord mr1(0, p, 0, 0);
     mhits.add_hit(1, m1, mr1);
-    EXPECT_EQ((uint) 1, mhits.uhits.size());
+    EXPECT_EQ((uint) 1, mhits.hits.size());
     //mhits.add_hit(1, m, mr);
     //EXPECT_EQ((uint)1, mhits.uhits.size());
     mhits.add_hit(2, m1, mr1);
-    EXPECT_EQ((uint) 2, mhits.uhits.size());
+    EXPECT_EQ((uint) 2, mhits.hits.size());
 
     Minimizer m3(min(kh.first, kh.second), 0, 5, 0);
     MiniRecord mr3(0, p, 0, 0);
     mhits.add_hit(1, m3, mr3);
-    EXPECT_EQ((uint) 3, mhits.uhits.size());
+    EXPECT_EQ((uint) 3, mhits.hits.size());
 
     d = {Interval(6, 10), Interval(11, 12)};
     p.initialize(d);
     Minimizer m4(min(kh.first, kh.second), 0, 5, 0);
     MiniRecord mr4(0, p, 0, 0);
     mhits.add_hit(1, m4, mr4);
-    EXPECT_EQ((uint) 4, mhits.uhits.size());
+    EXPECT_EQ((uint) 4, mhits.hits.size());
 
     d = {Interval(6, 10), Interval(12, 13)};
     p.initialize(d);
     Minimizer m5(min(kh.first, kh.second), 0, 5, 0);
     MiniRecord mr5(0, p, 0, 0);
     mhits.add_hit(1, m5, mr5);
-    EXPECT_EQ((uint) 5, mhits.uhits.size());
+    EXPECT_EQ((uint) 5, mhits.hits.size());
 
     uint32_t j(5);
-    mhits.sort();
     EXPECT_EQ(j, mhits.hits.size());
 }
 
@@ -85,7 +84,6 @@ TEST(MinimizerHitsTest, pComp) {
     mhits.add_hit(1, m3, mr3);
     expected.push_back(MinimizerHit(1, m3, mr3));
 
-    mhits.sort();
     uint32_t j(1);
     for (set<MinimizerHitPtr, pComp>::iterator it = mhits.hits.begin(); it != --mhits.hits.end(); ++it) {
         EXPECT_EQ(expected[j], **it);
@@ -131,7 +129,6 @@ TEST(MinimizerHitsTest, pComp_path) {
     mhits.add_hit(1, m4, mr4);
     expected.push_front(MinimizerHit(1, m4, mr4));
 
-    mhits.sort();
     for (set<MinimizerHitPtr, pComp>::iterator it = mhits.hits.begin(); it != --mhits.hits.end(); ++it) {
         mhitspath.insert(*it);
     }
