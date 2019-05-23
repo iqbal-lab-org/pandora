@@ -447,12 +447,6 @@ int pandora_map(int argc, char *argv[]) {
         return 0;
     }
 
-    if (output_mapped_read_fa)
-        pangraph->save_mapped_read_strings(reads_filepath, outdir);
-
-    pangraph->clear();
-    index->clear();
-
 
     if (genotype) {
         std::vector<uint32_t> exp_depth_covgs = {exp_depth_covg};
@@ -476,6 +470,9 @@ int pandora_map(int argc, char *argv[]) {
         }
     }
 
+
+    if (output_mapped_read_fa)
+        pangraph->save_mapped_read_strings(reads_filepath, outdir);
 
     std::cout << "FINISH: " << now() << "\n";
     return 0;
