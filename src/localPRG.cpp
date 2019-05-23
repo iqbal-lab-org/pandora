@@ -852,7 +852,7 @@ LocalPRG::write_aligned_path_to_fasta(const boost::filesystem::path &filepath, c
 
 
 void LocalPRG::build_vcf(VCF &vcf, const std::vector<LocalNodePtr> &ref) const {
-    BOOST_LOG_TRIVIAL(info) << "Build VCF for prg " << name;
+    BOOST_LOG_TRIVIAL(debug) << "Build VCF for prg " << name;
     assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
 
     std::vector<LocalNodePtr> varpath;
@@ -978,7 +978,7 @@ void LocalPRG::build_vcf(VCF &vcf, const std::vector<LocalNodePtr> &ref) const {
 void LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const std::vector<LocalNodePtr> &rpath,
                                     const std::vector<LocalNodePtr> &sample_path,
                                     const std::string &sample_name) const {
-    BOOST_LOG_TRIVIAL(info) << "Update VCF with sample path";
+    BOOST_LOG_TRIVIAL(debug) << "Update VCF with sample path";
     /*for (uint i=0; i!=sample_path.size(); ++i)
     {
 	std::cout << *sample_path[i] << " ";
@@ -1322,7 +1322,7 @@ float gaps(std::vector<uint32_t> v1, std::vector<uint32_t> v2, const uint32_t &m
 void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg, const std::vector<LocalNodePtr> &ref_path,
                                        const uint32_t &min_kmer_covg, const std::string &sample_name,
                                        const uint32_t &sample_id) const {
-    BOOST_LOG_TRIVIAL(info) << "Update VCF with sample covgs";
+    BOOST_LOG_TRIVIAL(debug) << "Update VCF with sample covgs";
 
     assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
     vcf.sort_records();
@@ -1408,15 +1408,13 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg, const std:
 void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq, PanNodePtr pnode, std::vector<KmerNodePtr> &kmp,
                                             std::vector<LocalNodePtr> &lmp, const uint32_t w, const bool bin,
                                             const uint32_t global_covg, const uint32_t &sample_id) {
-    kmp.clear();
-    lmp.clear();
     if (pnode->reads.empty()) {
         BOOST_LOG_TRIVIAL(warning) << "Node " << pnode->get_name() << " has no reads";
         return;
     }
     kmp.reserve(800);
 
-    BOOST_LOG_TRIVIAL(info) << "Find maxpath for " << pnode->get_name();
+    BOOST_LOG_TRIVIAL(debug) << "Find maxpath for " << pnode->get_name();
     float ppath;
     if (bin)
         ppath = pnode->kmer_prg.find_max_path(kmp, sample_id);
@@ -1429,20 +1427,20 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq, PanNodePtr pnode,
     std::vector<uint32_t> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp, sample_id);
     auto mode_covg = mode(covgs);
     auto mean_covg = mean(covgs);
-    BOOST_LOG_TRIVIAL(info) << "Found global coverage " << global_covg << " and path mode " << mode_covg << " and mean "
+    BOOST_LOG_TRIVIAL(debug) << "Found global coverage " << global_covg << " and path mode " << mode_covg << " and mean "
                             << mean_covg;
     if (global_covg > 20 and 20 * mean(covgs) < global_covg) {
-        BOOST_LOG_TRIVIAL(info) << "Skip LocalPRG " << name << " mean along max likelihood path too low";
+        BOOST_LOG_TRIVIAL(debug) << "Skip LocalPRG " << name << " mean along max likelihood path too low";
         kmp.clear();
         return;
     }
     if (global_covg > 20 and mean(covgs) > 10 * global_covg) {
-        BOOST_LOG_TRIVIAL(info) << "Skip LocalPRG " << name << " as mean along max likelihood path too high";
+        BOOST_LOG_TRIVIAL(debug) << "Skip LocalPRG " << name << " as mean along max likelihood path too high";
         kmp.clear();
         return;
     }
     if (global_covg > 20 and mode(covgs) < 3 and mean(covgs) < 3) {
-        BOOST_LOG_TRIVIAL(info) << "Skip LocalPRG " << name << " as mode and mean along max likelihood path too low";
+        BOOST_LOG_TRIVIAL(debug) << "Skip LocalPRG " << name << " as mode and mean along max likelihood path too low";
         kmp.clear();
         return;
     }
@@ -1450,7 +1448,11 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq, PanNodePtr pnode,
     std::string fq_name = pnode->get_name();
     std::string header = " log P(data|sequence)=" + std::to_string(ppath);
     std::string seq = string_along_path(lmp);
-    output_fq.add_entry(fq_name, seq, covgs, global_covg, header);
+
+    #pragma omp critical(consensus_fq)
+    {
+        output_fq.add_entry(fq_name, seq, covgs, global_covg, header);
+    }
 }
 
 
@@ -1500,7 +1502,11 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf, PanNodePtr pnode, const std:
     add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, reference_path, min_kmer_covg, sample_name, sample_id);
     vcf.merge_multi_allelic();
     vcf.correct_dot_alleles(string_along_path(reference_path), name);
-    master_vcf.append_vcf(vcf);
+    #pragma omp critical(master_vcf)
+    {
+        master_vcf.append_vcf(vcf);
+    }
+
 }
 
 

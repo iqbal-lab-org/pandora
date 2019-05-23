@@ -417,7 +417,7 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
                      if (!fh.eof()) { //no
                         //print some logging
                         if (id && id % 100000 == 0)
-                            BOOST_LOG_TRIVIAL(info) << id << " reads read...";
+                            BOOST_LOG_TRIVIAL(info) << id << " reads processed...";
 
                         //read the read
                         fh.get_next();
