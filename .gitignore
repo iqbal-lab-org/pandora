@@ -31,7 +31,7 @@ bin/*
 *.mod
 *.smod
 
-# Compiled Staticpandora_debug.img libraries
+# Compiled Static libraries
 *.lai
 *.la
 *.a
