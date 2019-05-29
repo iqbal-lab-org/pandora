@@ -362,7 +362,7 @@ void infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>>
     // then adding the inferred gene ordering
     if (minimizer_hits->hits.empty()) { return; }
 
-    std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> clusters_of_hits;
+    std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> clusters_of_hits; //a cluster is a set of MinimizerHit. clusters_of_hits is a set of clusters.
     define_clusters(clusters_of_hits, prgs, minimizer_hits, max_diff, fraction_kmers_required_for_cluster,
                     min_cluster_size, expected_number_kmers_in_short_read_sketch);
 

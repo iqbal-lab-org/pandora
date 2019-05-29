@@ -119,11 +119,12 @@ void record_read_info(ReadPtr &read_ptr,
 
 
 // Add a node corresponding to a cluster of hits against a given localPRG from a read
-void pangenome::Graph::add_node(const uint32_t prg_id,
-                     const std::string &prg_name,
-                     const uint32_t read_id,
-                     std::set<MinimizerHitPtr, pComp> &cluster) {
-    check_correct_hits(prg_id, read_id, cluster);
+void pangenome::Graph::add_node(const uint32_t prg_id, //the prg from where this cluster of hits come //TODO: this can be inferred from cluster
+                     const std::string &prg_name, //the prg name
+                     const uint32_t read_id, //the read id from where this cluster of reads come //TODO: this can be inferred from cluster
+                     std::set<MinimizerHitPtr, pComp> &cluster //the cluster itself
+                     ) {
+    check_correct_hits(prg_id, read_id, cluster); //assure this cluster corresponds to the given prg and read
     auto read_ptr = get_read(read_id);
     assert(read_ptr != nullptr);
 
@@ -333,7 +334,7 @@ void pangenome::Graph::setup_kmergraphs(const std::vector<std::shared_ptr<LocalP
 
         BOOST_LOG_TRIVIAL(debug) << "setup kmergraphs for node " << pangraph_node.get_name();
         assert(pangraph_node.prg_id < prgs.size());
-        pangraph_node.kmer_prg = prgs[pangraph_node.prg_id]->kmer_prg;
+        pangraph_node.kmer_prg = prgs[pangraph_node.prg_id]->kmer_prg; //TODO: optimize this
         pangraph_node.kmer_prg.setup_coverages(total_number_samples);
     }
 }
