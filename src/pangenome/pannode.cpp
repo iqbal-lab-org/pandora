@@ -80,13 +80,14 @@ void pangenome::Node::get_read_overlap_coordinates(std::vector<std::vector<uint3
     auto read_count = 0;
     for (const auto &read_ptr : reads) {
         read_count++;
-        if (read_ptr->hits.at(prg_id).size() < 2)
+        auto hits = read_ptr->getHits();
+        if (hits.at(prg_id).size() < 2)
             continue;
 
-        auto hit_ptr_iter = read_ptr->hits.at(prg_id).begin();
+        auto hit_ptr_iter = hits.at(prg_id).begin();
         uint32_t start = (*hit_ptr_iter)->get_read_start_position();
         uint32_t end = 0;
-        for (const auto &hit_ptr : read_ptr->hits.at(prg_id)) {
+        for (const auto &hit_ptr : hits.at(prg_id)) {
             start = std::min(start, hit_ptr->get_read_start_position());
             end = std::max(end, hit_ptr->get_read_start_position() + hit_ptr->get_prg_path().length());
         }
@@ -171,7 +172,8 @@ pangenome::Node::get_read_overlap_coordinates(const prg::Path &local_path, const
     std::set<ReadCoordinate> read_overlap_coordinates;
 
     for (const auto &current_read: this->reads) {
-        const auto read_hits_inside_path { find_hits_inside_path(current_read->hits.at(this->prg_id), local_path) };
+        auto hits = current_read->getHits();
+        const auto read_hits_inside_path { find_hits_inside_path(hits.at(this->prg_id), local_path) };
 
         if (read_hits_inside_path.size() < min_number_hits) {
             continue;

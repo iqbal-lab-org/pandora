@@ -86,9 +86,9 @@ PathComponents find_interval_and_flanks_in_localpath(const Interval &interval,
 }
 
 
-std::set<MinimizerHitPtr, pComp_path>
-find_hits_inside_path(const std::set<MinimizerHitPtr, pComp_path> &read_hits, const prg::Path &local_path) {
-    std::set<MinimizerHitPtr, pComp_path> hits_inside_local_path;
+std::vector<MinimizerHitPtr>
+find_hits_inside_path(const std::vector<MinimizerHitPtr> &read_hits, const prg::Path &local_path) {
+    std::vector<MinimizerHitPtr> hits_inside_local_path;
 
     if (local_path.empty()) {
         return hits_inside_local_path;
@@ -105,7 +105,7 @@ find_hits_inside_path(const std::set<MinimizerHitPtr, pComp_path> &read_hits, co
             } else if (hit_is_to_right_of_current_interval) {
                 continue;
             } else if (current_read_hit->get_prg_path().is_subpath(local_path)) {
-                hits_inside_local_path.insert(current_read_hit);
+                hits_inside_local_path.push_back(current_read_hit);
                 break;
             }
         }

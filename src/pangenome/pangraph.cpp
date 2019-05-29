@@ -352,7 +352,8 @@ void pangenome::Graph::add_hits_to_kmergraphs(const std::vector<std::shared_ptr<
         for (const auto &read_ptr: pangraph_node.reads) {
             const Read &read = *read_ptr;
 
-            for (const auto &minimizer_hit_ptr: read.hits.at(pangraph_node.prg_id)) {
+            auto hits = read.getHits();
+            for (const auto &minimizer_hit_ptr : hits.at(pangraph_node.prg_id)) {
                 const auto &minimizer_hit = *minimizer_hit_ptr;
 
                 assert(minimizer_hit.get_kmer_node_id() < pangraph_node.kmer_prg.nodes.size());

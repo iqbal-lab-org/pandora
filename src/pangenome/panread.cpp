@@ -16,15 +16,52 @@
 
 using namespace pangenome;
 
-Read::Read(const uint32_t i) : id(i) {}
+Read::Read(const uint32_t i) : id(i), hits(0), node_orientations(0), nodes(0) {}
+
+Read::~Read() {
+    for (std::pair<uint32_t, std::vector<MinimizerHit*>*> &hitPair : hits) {
+        for (MinimizerHit* pointer : *(hitPair.second))
+            delete pointer;
+        delete hitPair.second;
+    }
+}
 
 void Read::add_hits(const uint32_t prg_id, std::set<MinimizerHitPtr, pComp> &cluster) {
-    if (hits.find(prg_id) == hits.end())
+/*
+    if (hits.find(prg_id) == hits.end()) {
         hits[prg_id] = {};
+    }
+*/
+    //add the hit if not yet in hits
+    if (std::find_if(hits.begin(), hits.end(), [&](const std::pair<uint32_t, std::vector<MinimizerHit*>*> &pairNodeIdAndClusterHits){
+        return pairNodeIdAndClusterHits.first == prg_id;
+    }) == hits.end()) {
+        hits.push_back(make_pair(prg_id, new std::vector<MinimizerHit*>(0)));
+        hits.shrink_to_fit(); //TODO: this can be a source of inneficiency, but can make us use less memory - using vector of ints and pointers, this can be stil quite fast
+        //TODO: to be sure, maybe we should deallocate and reallocate aother vector use another shrink to fit (see https://stackoverflow.com/questions/23502291/is-shrink-to-fit-the-proper-way-of-reducing-the-capacity-a-stdvector-to-its)
+        //TODO: but anyway these are just ints and pointers...
+    }
 
-    auto before_size = hits[prg_id].size();
-    hits[prg_id].insert(cluster.begin(), cluster.end());
-    assert(hits[prg_id].size() == before_size + cluster.size());
+    //search for the hit
+    auto hit = std::find_if(hits.begin(), hits.end(), [&](const std::pair<uint32_t, std::vector<MinimizerHit*>*> &pairNodeIdAndClusterHits){
+        return pairNodeIdAndClusterHits.first == prg_id;
+    })->second;
+
+
+    //update hit with the cluster hits
+    auto before_size = hit->size();
+    //hit->insert(hit->end(), cluster.begin(), cluster.end());
+    for (const auto &clusterHitSmrtPointer : cluster)
+        hit->push_back(new MinimizerHit(*clusterHitSmrtPointer));
+
+    std::sort(hit->begin(), hit->end(), [](const MinimizerHit * const lhs, const MinimizerHit * const rhs) {
+        return (*lhs) < (*rhs);
+    }); //TODO: might not need this...
+    auto last = std::unique(hit->begin(), hit->end()); //TODO: unique with pointers? - check this
+    hit->erase(last, hit->end());
+    hit->shrink_to_fit();
+
+    assert(hit->size() == before_size + cluster.size());
 }
 
 // find the index i in the nodes and node_orientations vectors such that [i,i+v.size()]

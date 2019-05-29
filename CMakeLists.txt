@@ -88,5 +88,5 @@ target_link_libraries(compare_indexes
         ${ZLIB_LIBRARY})
 
 
-enable_testing()
-add_subdirectory(test)
+#enable_testing()
+#add_subdirectory(test)
