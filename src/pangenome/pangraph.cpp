@@ -107,13 +107,13 @@ void record_read_info(ReadPtr &read_ptr,
     assert(read_ptr != nullptr);
     read_ptr->add_hits(node_ptr->node_id, cluster);
     bool orientation = !cluster.empty() and (*cluster.begin())->is_forward();
-    if (read_ptr->nodes.empty()
-        or node_ptr != read_ptr->nodes.back()
+    if (read_ptr->get_nodes().empty()
+        or node_ptr != read_ptr->get_nodes().back()
         or orientation != read_ptr->node_orientations.back()
         //or we think there really are 2 copies of gene
             ) {
-        read_ptr->nodes.push_back(node_ptr);
-        read_ptr->node_orientations.push_back(orientation);
+        read_ptr->add_node(node_ptr);
+        read_ptr->add_orientation(orientation);
     }
 }
 

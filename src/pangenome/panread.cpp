@@ -19,11 +19,8 @@ using namespace pangenome;
 Read::Read(const uint32_t i) : id(i), hits(0), node_orientations(0), nodes(0) {}
 
 Read::~Read() {
-    for (std::pair<uint32_t, std::vector<MinimizerHit*>*> &hitPair : hits) {
-        for (MinimizerHit* pointer : *(hitPair.second))
-            delete pointer;
-        delete hitPair.second;
-    }
+    for (MinimizerHit* minihit : hits)
+        delete minihit;
 }
 
 void Read::add_hits(const uint32_t prg_id, std::set<MinimizerHitPtr, pComp> &cluster) {
@@ -31,7 +28,7 @@ void Read::add_hits(const uint32_t prg_id, std::set<MinimizerHitPtr, pComp> &clu
     if (hits.find(prg_id) == hits.end()) {
         hits[prg_id] = {};
     }
-*/
+*//*
     //add the hit if not yet in hits
     if (std::find_if(hits.begin(), hits.end(), [&](const std::pair<uint32_t, std::vector<MinimizerHit*>*> &pairNodeIdAndClusterHits){
         return pairNodeIdAndClusterHits.first == prg_id;
@@ -61,7 +58,16 @@ void Read::add_hits(const uint32_t prg_id, std::set<MinimizerHitPtr, pComp> &clu
     hit->erase(last, hit->end());
     hit->shrink_to_fit();
 
-    assert(hit->size() == before_size + cluster.size());
+    assert(hit->size() == before_size + cluster.size());*/
+
+    for (const auto &clusterHitSmrtPointer : cluster)
+        hits.push_back(new MinimizerHit(*clusterHitSmrtPointer));
+    std::sort(hits.begin(), hits.end(), [](const MinimizerHit * const lhs, const MinimizerHit * const rhs) {
+        return (*lhs) < (*rhs);
+    }); //TODO: might not need this...
+    auto last = std::unique(hits.begin(), hits.end()); //TODO: unique with pointers? - check this
+    hits.erase(last, hits.end());
+    hits.shrink_to_fit();
 }
 
 // find the index i in the nodes and node_orientations vectors such that [i,i+v.size()]
