@@ -200,9 +200,9 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     for (const auto &node : pangraph->nodes) {
         num_reads += node.second->covg;
         for (uint32_t i = 1;
-             i != node.second->kmer_prg.nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
+             i != node.second->kmer_prg_with_coverage.kmer_prg->nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
         {
-            c = node.second->kmer_prg.nodes[i]->get_covg(0, sample_id) + node.second->kmer_prg.nodes[i]->get_covg(1, sample_id);
+            c = node.second->kmer_prg_with_coverage.get_covg(i, 0, sample_id) + node.second->kmer_prg_with_coverage.get_covg(i, 1, sample_id);
             if (c < 1000) {
                 kmer_covg_dist[c] += 1;
             }
@@ -255,19 +255,19 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     // find probability threshold
     std::cout << now() << "Collect kmer probability distribution" << std::endl;
     for (const auto &node : pangraph->nodes) {
-        node.second->kmer_prg.set_exp_depth_covg(exp_depth_covg);
+        node.second->kmer_prg_with_coverage.set_exp_depth_covg(exp_depth_covg);
         if (bin)
-            node.second->kmer_prg.set_p(e_rate);
+            node.second->kmer_prg_with_coverage.set_p(e_rate);
         else
-            node.second->kmer_prg.set_nb(nb_p, nb_r);
+            node.second->kmer_prg_with_coverage.set_nb(nb_p, nb_r);
 
         for (uint32_t i = 1;
-             i < node.second->kmer_prg.nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
+             i < node.second->kmer_prg_with_coverage.kmer_prg->nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
         {
             if (bin)
-                p = node.second->kmer_prg.prob(i, sample_id);
+                p = node.second->kmer_prg_with_coverage.prob(i, sample_id);
             else
-                p = node.second->kmer_prg.nb_prob(i, sample_id);
+                p = node.second->kmer_prg_with_coverage.nb_prob(i, sample_id);
             //cout << i << " " << p << " because has covg " << node.second->kmer_prg.nodes[i]->covg[0] << ", " << node.second->kmer_prg.nodes[i]->covg[1] << endl;
             for (int j = 0; j < 200; ++j) {
                 if ((float) j - 200 <= p and (float) j + 1 - 200 > p) {
@@ -307,7 +307,7 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
 
     // set threshold in each kmer graph
     for (auto &node : pangraph->nodes) {
-        node.second->kmer_prg.thresh = thresh;
+        node.second->kmer_prg_with_coverage.set_thresh(thresh);
     }
     return exp_depth_covg;
 }

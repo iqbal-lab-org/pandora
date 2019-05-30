@@ -67,9 +67,9 @@ std::string pangenome::Node::get_name() const {
 
 void pangenome::Node::add_path(const std::vector<KmerNodePtr> &kmp, const uint32_t &sample_id) {
     for (uint32_t i = 0; i != kmp.size(); ++i) {
-        assert(kmp[i]->id < kmer_prg.nodes.size() and kmer_prg.nodes[kmp[i]->id] != nullptr);
-        kmer_prg.nodes[kmp[i]->id]->increment_covg(0, sample_id);
-        kmer_prg.nodes[kmp[i]->id]->increment_covg(1, sample_id);
+        assert(kmp[i]->id < kmer_prg_with_coverage.kmer_prg->nodes.size() and kmer_prg_with_coverage.kmer_prg->nodes[kmp[i]->id] != nullptr);
+        kmer_prg_with_coverage.increment_covg(kmp[i]->id, 0, sample_id);
+        kmer_prg_with_coverage.increment_covg(kmp[i]->id, 1, sample_id);
     }
 }
 
@@ -130,13 +130,13 @@ void pangenome::Node::construct_multisample_vcf(VCF &master_vcf, const std::vect
             if (count == 0) {
                 prg->add_sample_gt_to_vcf(vcf, vcf_reference_path, sample_local_path, sample->name);
                 BOOST_LOG_TRIVIAL(debug) << "With sample added:\n" << vcf;
-                prg->add_sample_covgs_to_vcf(vcf, kmer_prg, vcf_reference_path, min_kmer_covg, sample->name,
+                prg->add_sample_covgs_to_vcf(vcf, kmer_prg_with_coverage, vcf_reference_path, min_kmer_covg, sample->name,
                                              sample->sample_id);
                 BOOST_LOG_TRIVIAL(debug) << "With sample coverages added:\n" << vcf;
             } else {
                 auto path_specific_sample_name = sample->name + std::to_string(count);
                 prg->add_sample_gt_to_vcf(vcf, vcf_reference_path, sample_local_path, path_specific_sample_name);
-                prg->add_sample_covgs_to_vcf(vcf, kmer_prg, vcf_reference_path, min_kmer_covg,
+                prg->add_sample_covgs_to_vcf(vcf, kmer_prg_with_coverage, vcf_reference_path, min_kmer_covg,
                                              path_specific_sample_name,
                                              sample->sample_id);
             }

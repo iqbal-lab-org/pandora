@@ -25,7 +25,7 @@ public:
     const uint32_t node_id; // unique node id, so can have multiple copies of a localPRG in graph
     const std::string name;
     mutable uint32_t covg;
-    KmerGraph kmer_prg;
+    KmerGraphWithCoverage kmer_prg_with_coverage;
 
     Node(const uint32_t, const uint32_t, const std::string);
     //Node(const Node&);

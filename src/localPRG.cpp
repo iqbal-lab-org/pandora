@@ -758,13 +758,13 @@ get_covgs_along_localnode_path(const PanNodePtr pan_node, const std::vector<Loca
             end = std::min(start + interval.length, localnode_path[k]->pos.get_end());
 
             for (uint32_t l = start; l < end; ++l) {
-                assert(kmernode_ptr->id < pan_node->kmer_prg.nodes.size() and
-                       pan_node->kmer_prg.nodes[kmernode_ptr->id] != nullptr);
+                assert(kmernode_ptr->id < pan_node->kmer_prg_with_coverage.kmer_prg->nodes.size() and
+                       pan_node->kmer_prg_with_coverage.kmer_prg->nodes[kmernode_ptr->id] != nullptr);
 
                 coverages_for_each_base_in_localnode_path[k][l] = std::max(
                         coverages_for_each_base_in_localnode_path[k][l],
-                        pan_node->kmer_prg.nodes[kmernode_ptr->id]->get_covg(0, sample_id) +
-                        pan_node->kmer_prg.nodes[kmernode_ptr->id]->get_covg(1, sample_id));
+                        pan_node->kmer_prg_with_coverage.get_covg(kmernode_ptr->id, 0, sample_id) +
+                        pan_node->kmer_prg_with_coverage.get_covg(kmernode_ptr->id, 1, sample_id));
             }
             k++;
         }
@@ -1176,7 +1176,7 @@ LocalPRG::find_alt_path(const std::vector<LocalNodePtr> &ref_path, const uint32_
 }
 
 
-void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg, const std::vector<KmerNodePtr> &kmer_path,
+void LocalPRG::append_kmer_covgs_in_range(const KmerGraphWithCoverage &kg, const std::vector<KmerNodePtr> &kmer_path,
                                           const std::vector<LocalNodePtr> &local_path, const uint32_t &pos_from,
                                           const uint32_t &pos_to, std::vector<uint32_t> &fwd_covgs,
                                           std::vector<uint32_t> &rev_covgs, const uint32_t &sample_id) const {
@@ -1223,9 +1223,9 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg, const std::vector
 
         if (pos_from <= added + k and added < pos_to) {
             //std::cout << " add " << n->path << std::endl;
-            assert(n->id < kg.nodes.size() and kg.nodes[n->id] != nullptr);
-            fwd_covgs.push_back(kg.nodes.at(n->id)->get_covg(0, sample_id));
-            rev_covgs.push_back(kg.nodes.at(n->id)->get_covg(1, sample_id));
+            assert(n->id < kg.kmer_prg->nodes.size() and kg.kmer_prg->nodes[n->id] != nullptr);
+            fwd_covgs.push_back(kg.get_covg(n->id, 0, sample_id));
+            rev_covgs.push_back(kg.get_covg(n->id, 1, sample_id));
         } else if (added > pos_to)
             break;
 
@@ -1319,7 +1319,7 @@ float gaps(std::vector<uint32_t> v1, std::vector<uint32_t> v2, const uint32_t &m
 }
 
 
-void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg, const std::vector<LocalNodePtr> &ref_path,
+void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg, const std::vector<LocalNodePtr> &ref_path,
                                        const uint32_t &min_kmer_covg, const std::string &sample_name,
                                        const uint32_t &sample_id) const {
     BOOST_LOG_TRIVIAL(debug) << "Update VCF with sample covgs";
@@ -1417,9 +1417,9 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq, PanNodePtr pnode,
     BOOST_LOG_TRIVIAL(debug) << "Find maxpath for " << pnode->get_name();
     float ppath;
     if (bin)
-        ppath = pnode->kmer_prg.find_max_path(kmp, sample_id);
+        ppath = pnode->kmer_prg_with_coverage.find_max_path(kmp, sample_id);
     else
-        ppath = pnode->kmer_prg.find_nb_max_path(kmp, sample_id);
+        ppath = pnode->kmer_prg_with_coverage.find_nb_max_path(kmp, sample_id);
 
     lmp.reserve(100);
     lmp = localnode_path_from_kmernode_path(kmp, w);
@@ -1499,7 +1499,7 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf, PanNodePtr pnode, const std:
     VCF vcf;
     build_vcf(vcf, reference_path);
     add_sample_gt_to_vcf(vcf, reference_path, lmp, sample_name);
-    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, reference_path, min_kmer_covg, sample_name, sample_id);
+    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg_with_coverage, reference_path, min_kmer_covg, sample_name, sample_id);
     vcf.merge_multi_allelic();
     vcf.correct_dot_alleles(string_along_path(reference_path), name);
     #pragma omp critical(master_vcf)

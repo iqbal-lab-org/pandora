@@ -18,41 +18,29 @@ typedef std::shared_ptr<KmerNode> KmerNodePtr;
 class KmerNode { //represent a kmer-minimizer in the KmerGraph
 
 public:
+    //attributes (TODO: protect these? only this class should operate in these attributes, move logic that change them to here?)
     uint32_t id;
     prg::Path path; //the path of the kmer in the LocalPRG
     std::vector<KmerNodePtr> outNodes; // representing edges from this node to the nodes in the vector
     std::vector<KmerNodePtr> inNodes; // representing edges from other nodes to this node
-    std::vector<std::pair<uint32_t, uint32_t>> covg_new; // sample covg by hits in fwd, rev dir
     uint64_t khash; //the kmer hash value
     uint8_t num_AT; // the number of As and Ts in this kmer
 
+    //constructors and assignment operators
     KmerNode(uint32_t, const prg::Path &);
-
     KmerNode(const KmerNode &);
-
     KmerNode &operator=(const KmerNode &);
-
     bool operator==(const KmerNode &y) const;
 
-    void increment_covg(const bool &, const uint32_t &sample_id = 0);
 
-    uint32_t get_covg(const bool &strand, const uint32_t &sample_id);
-
-    void set_covg(const uint32_t &, const bool &, const uint32_t &);
-
+    //friends
     friend std::ostream &operator<<(std::ostream &out, const KmerNode &n);
-
     friend class KmerGraph;
-
     friend struct condition;
     friend struct pCompKmerNode;
-
     friend class LocalPRG;
-
     friend class pangenome::Graph;
-
     friend class pangenome::Node;
-
     friend int pandora_check_kmergraph(int argc, char *argv[]);
 
     /*

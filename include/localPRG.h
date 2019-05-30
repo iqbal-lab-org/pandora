@@ -85,11 +85,11 @@ public:
                                             const std::string &,
                                             const std::string &) const;
 
-    void append_kmer_covgs_in_range(const KmerGraph &, const std::vector<KmerNodePtr> &,
+    void append_kmer_covgs_in_range(const KmerGraphWithCoverage &, const std::vector<KmerNodePtr> &,
                                     const std::vector<LocalNodePtr> &, const uint32_t &, const uint32_t &,
                                     std::vector<uint32_t> &, std::vector<uint32_t> &, const uint32_t &sample_id) const;
 
-    void add_sample_covgs_to_vcf(VCF &, const KmerGraph &, const std::vector<LocalNodePtr> &,
+    void add_sample_covgs_to_vcf(VCF &, const KmerGraphWithCoverage &, const std::vector<LocalNodePtr> &,
                                      const uint32_t &min_kmer_covg, const std::string &sample_name="sample",
                                      const uint32_t &sample_id=0) const;
 

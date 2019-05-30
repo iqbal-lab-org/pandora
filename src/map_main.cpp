@@ -413,7 +413,7 @@ int pandora_map(int argc, char *argv[]) {
         }
 
         if (output_kg) {
-            pangraph_node->kmer_prg.save(outdir + "/kmer_graphs/" + pangraph_node->get_name() + ".kg.gfa",
+            pangraph_node->kmer_prg_with_coverage.save(outdir + "/kmer_graphs/" + pangraph_node->get_name() + ".kg.gfa",
                                      prgs[pangraph_node->prg_id]);
         }
 
