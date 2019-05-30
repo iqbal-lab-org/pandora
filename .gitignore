@@ -67,3 +67,14 @@ scripts/*
 
 # local directory - michael
 vm-build/
+
+# local directory - leandro
+Singularity_debug.pandora
+debug_with_singularity.sh
+pandora_debug.img
+build_debug/
+build/
+data_issue*
+build_release/
+build_release_with_debug/
+build_profiling/

@@ -10,27 +10,29 @@
 #include "index.h"
 #include "localPRG.h"
 
-
-Index::Index() = default;
-
-Index::~Index() {
-    clear();
-};
-
-void Index::add_record(const uint64_t kmer, const uint32_t prg_id, const prg::Path path, const uint32_t knode_id,
+/**
+ * Adds a k-mer to the index. This is *just* called to add minimizers.
+ *
+ * @param kmer : the hash value of the minimizer (smallest hash of the canonicals)
+ * @param prg_id : the prg from where this k-mer comes from
+ * @param path : the path of this kmer in the prg
+ * @param knode_id : the id of the node representing this kmer in the KmerGraph
+ * @param strand : the strand
+ */
+void Index::add_record(const uint64_t kmer, const uint32_t prg_id, const prg::Path &path, const uint32_t knode_id,
                        const bool strand) {
     //cout << "Add kmer " << kmer << " id, path, strand " << prg_id << ", " << path << ", " << strand << endl;
-    auto it = minhash.find(kmer);
-    if (it == minhash.end()) {
-        auto *newv = new std::vector<MiniRecord>;
+    auto it = minhash.find(kmer); //checks if kmer is in minhash
+    if (it == minhash.end()) { //no
+        auto *newv = new std::vector<MiniRecord>; //get a new vector of MiniRecords - TODO: is this a memory leak?
         newv->reserve(20);
         newv->emplace_back(MiniRecord(prg_id, path, knode_id, strand));
-        minhash.insert(std::pair<uint64_t, std::vector<MiniRecord> *>(kmer, newv));
+        minhash.insert(std::pair<uint64_t, std::vector<MiniRecord> *>(kmer, newv)); //add this record to minhash
         //cout << "New minhash size: " << minhash.size() << endl; 
-    } else {
-        MiniRecord mr(prg_id, path, knode_id, strand);
-        if (find(it->second->begin(), it->second->end(), mr) == it->second->end()) {
-            it->second->push_back(mr);
+    } else { //yes
+        MiniRecord mr(prg_id, path, knode_id, strand); //create a new MiniRecord from this minimizer kmer
+        if (find(it->second->begin(), it->second->end(), mr) == it->second->end()) { //checks if this minimizer record is already in the vector of this minimizer
+            it->second->push_back(mr); //no, add it
         }
         //cout << "New minhash entry for  kmer " << kmer << endl;
     }
@@ -151,11 +153,12 @@ bool Index::operator!=(const Index &other) const {
 }
 
 
-void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs,
-                std::shared_ptr<Index> &index,
-                const uint32_t w,
-                const uint32_t k,
-                const std::string &outdir) {
+void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs, //all PRGs to be indexed
+                std::shared_ptr<Index> &index, //kmer sketch index to be built here
+                const uint32_t w, //window size
+                const uint32_t k, //kmer size
+                const std::string &outdir,
+                uint32_t threads) {
     BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
     if (prgs.size() == 0)
         return;
@@ -167,17 +170,22 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &prgs,
     }
     index->minhash.reserve(r);
 
+    //create the dirs for the index
+    const int nbOfGFAsPerDir=4000;
+    for (uint32_t i = 0; i <= prgs.size()/nbOfGFAsPerDir; ++i)
+        fs::create_directories(outdir + "/" + int_to_string(i + 1));
+
     // now fill index
-    auto dir_num = int(prgs[0]->id/4000);
-    for (uint32_t i = 0; i != prgs.size(); ++i) {
-        if (i==0 or prgs[i]->id % 4000 == 0) {
-            fs::create_directories(outdir + "/" + int_to_string(dir_num + 1));
-            dir_num++;
-        }
-        prgs[i]->minimizer_sketch(index, w, k);
+    std::atomic_uint32_t nbOfPRGsDone{0};
+    #pragma omp parallel for num_threads(threads) schedule(dynamic, 1)
+    for (uint32_t i = 0; i < prgs.size(); ++i) { //for each prg
+        uint32_t dir = i/nbOfGFAsPerDir + 1;
+        prgs[i]->minimizer_sketch(index, w, k, (((double)(nbOfPRGsDone.load()))/prgs.size())*100);
         prgs[i]->kmer_prg.save(
-                outdir + "/" + int_to_string(dir_num) + "/" + prgs[i]->name + ".k" + std::to_string(k) + ".w" +
+                outdir + "/" + int_to_string(dir) + "/" + prgs[i]->name + ".k" + std::to_string(k) + ".w" +
                 std::to_string(w) + ".gfa");
+
+        ++nbOfPRGsDone;
     }
     BOOST_LOG_TRIVIAL(debug) << "Finished adding " << prgs.size() << " LocalPRGs";
     BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << index->minhash.size();

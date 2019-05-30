@@ -60,18 +60,24 @@ uint32_t find_mean_covg(std::vector<uint32_t> &kmer_covg_dist) {
     bool first_peak = true;
     uint32_t max_covg = 0;
     uint32_t noise_buffer = 0;
+    uint32_t run_of_zeroes = 0;
 
     for (uint32_t i = 1; i != kmer_covg_dist.size(); ++i) {
+        if (kmer_covg_dist[i] == 0 and kmer_covg_dist[i - 1] == 0) {
+            run_of_zeroes += 1;
+        }
         if (kmer_covg_dist[i] <= kmer_covg_dist[i - 1]) {
             // only interested in where we stop being in a decreasing section
             continue;
-        } else if (first_peak and noise_buffer < 3) {
+        } else if (first_peak and run_of_zeroes < 10 and noise_buffer < 3) {
             // increase buffer -> have to see several increases to believe not noise
             noise_buffer += 1;
+            run_of_zeroes = 0;
             continue;
         } else if (first_peak) {
             // have seen several increases now, so probably out of first peak
             first_peak = false;
+            run_of_zeroes = 0;
             max_covg = i;
         } else if (kmer_covg_dist[i] > kmer_covg_dist[max_covg]) {
             // have a new max
@@ -232,7 +238,7 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
         var = fit_variance_covg(kmer_covg_dist, mean, zero_thresh);
     }
     if (   (bin and num_reads > 30 and covg > 30)
-        or (not bin and abs(var - mean) < 2 and mean > 10 and num_reads > 30 and covg > 2) ){
+           or (not bin and abs(var - mean) < 2 and mean > 10 and num_reads > 30 and covg > 2) ){
         bin = true;
         mean_covg = find_mean_covg(kmer_covg_dist);
         if (exp_depth_covg < 1)

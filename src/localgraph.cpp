@@ -22,16 +22,23 @@ LocalGraph::~LocalGraph() {
     }*/
     nodes.clear();
 }
-
+//add the node with a given id and seq if the id is not already in the nodes
 void LocalGraph::add_node(const uint32_t &id, const std::string &seq, const Interval &pos) {
     assert(seq.length() == pos.length);
     assert(id < std::numeric_limits<uint32_t>::max() || assert_msg("WARNING, reached max local graph node size"));
     auto it = nodes.find(id);
     if (it == nodes.end()) {
         LocalNodePtr n(std::make_shared<LocalNode>(seq, pos, id));
-        nodes[id] = n;
+        nodes[id] = n; //add the node to the map
         //nodes[id] = make_shared<LocalNode>(seq, pos, id);
         //cout << "Added node " << id << endl;
+
+        //add the node to the interval indexes for fast overlap queries
+        if (pos.length==0)
+            startIndexOfZeroLengthIntervals[pos.start] = n;
+        else
+            intervalTree.add(pos.start, pos.get_end(), n);
+        startIndexOfAllIntervals[pos.start] = n;
     } else {
         assert((it->second->seq == seq) && (it->second->pos == pos));
     }
@@ -128,23 +135,23 @@ void LocalGraph::read_gfa(const std::string &filepath) {
     }
 }
 
-std::vector<prg::Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos, const uint32_t &len) const {
+std::vector<PathPtr> LocalGraph::walk(const uint32_t &node_id, const uint32_t &pos, const uint32_t &len) const { //node_id: where to start the walk, pos: the position in the node_id, len = k+w-1 -> the length that the walk has to go through - we are sketching kmers in a graph
     //cout << "walking graph from node " << node_id << " pos " << pos << " for length " << len << endl;
     // walks from position pos in node node for length len bases
     assert((nodes.at(node_id)->pos.start <= pos && nodes.at(node_id)->pos.get_end() >= pos) || assert_msg(
             nodes.at(node_id)->pos.start << "<=" << pos << " and " << nodes.at(node_id)->pos.get_end() << ">="
                                          << pos)); // if this fails, pos given lies on a different node
-    std::vector<prg::Path> return_paths, walk_paths;
+    std::vector<PathPtr> return_paths, walk_paths;
     return_paths.reserve(20);
     walk_paths.reserve(20);
     prg::Path p, p2;
     std::deque<Interval> d;
 
     //cout << "pos+len: " << pos+len << " nodes.at(node_id)->pos.get_end(): " << nodes.at(node_id)->pos.get_end() << endl;
-    if (pos + len <= nodes.at(node_id)->pos.get_end()) {
-        p.initialize(Interval(pos, pos + len));
+    if (pos + len <= nodes.at(node_id)->pos.get_end()) { //checks if we can go until the end of the kmer
+        p.initialize(Interval(pos, pos + len)); //create the path containing this interval of the node
         //cout << "return path: " << p << endl;
-        return_paths.push_back(p);
+        return_paths.push_back(std::make_shared<prg::Path>(p));
         //cout << "return_paths size: " << return_paths.size() << endl; 
         return return_paths;
     }
@@ -161,10 +168,10 @@ std::vector<prg::Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t 
                 // Note, would have just added start interval to each item in walk_paths, but can't seem to force result of it2 to be non-const
                 //cout << (*it2) << endl;
                 p2.initialize(Interval(pos, nodes.at(node_id)->pos.get_end()));
-                p2.path.insert(p2.path.end(), walk_path.path.begin(), walk_path.path.end());
+                p2.insert_to_the_end(walk_path->begin(), walk_path->end());
                 //cout << "path: " << p2 << " p2.length: " << p2.length << endl;
                 if (p2.length() == len) {
-                    return_paths.push_back(p2);
+                    return_paths.push_back(std::make_shared<prg::Path>(p2));
                 }
             }
         }
@@ -172,13 +179,13 @@ std::vector<prg::Path> LocalGraph::walk(const uint32_t &node_id, const uint32_t 
     return return_paths;
 }
 
-std::vector<prg::Path> LocalGraph::walk_back(const uint32_t &node_id, const uint32_t &pos, const uint32_t &len) const {
+std::vector<PathPtr> LocalGraph::walk_back(const uint32_t &node_id, const uint32_t &pos, const uint32_t &len) const {
     //cout << "start walking back from " << pos << " in node " << node_id << " for length " << len << endl;
     // walks from position pos in node back through prg for length len bases
     assert((nodes.at(node_id)->pos.start <= pos && nodes.at(node_id)->pos.get_end() >= pos) || assert_msg(
             nodes.at(node_id)->pos.start << "<=" << pos << " and " << nodes.at(node_id)->pos.get_end() << ">="
                                          << pos)); // if this fails, pos given lies on a different node
-    std::vector<prg::Path> return_paths, walk_paths;
+    std::vector<PathPtr> return_paths, walk_paths;
     return_paths.reserve(20);
     walk_paths.reserve(20);
     prg::Path p, p2;
@@ -187,7 +194,7 @@ std::vector<prg::Path> LocalGraph::walk_back(const uint32_t &node_id, const uint
     if (nodes.at(node_id)->pos.start + len <= pos) {
         p.initialize(Interval(pos - len, pos));
         //cout << "return path: " << p << endl;
-        return_paths.push_back(p);
+        return_paths.push_back(std::make_shared<prg::Path>(p));
         return return_paths;
     }
 
@@ -201,12 +208,12 @@ std::vector<prg::Path> LocalGraph::walk_back(const uint32_t &node_id, const uint
             if (innode != it->second->outNodes.end()) {
                 walk_paths = walk_back(it->second->id, it->second->pos.get_end(), len - len_added);
                 for (uint32_t i = 0; i != walk_paths.size(); ++i) {
-                    p2.initialize(walk_paths[i].path);
+                    p2.initialize(*(walk_paths[i]));
                     p2.add_end_interval(Interval(nodes.at(node_id)->pos.start, pos));
                     //cout << p2 << endl;
                     if (p2.length() == len) {
                         //cout << "output path: " << p2 << endl;
-                        return_paths.push_back(p2);
+                        return_paths.push_back(std::make_shared<prg::Path>(p2));
                     }
                 }
             }

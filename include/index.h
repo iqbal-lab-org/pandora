@@ -13,13 +13,17 @@
 
 class Index {
 public:
-    std::unordered_map<uint64_t, std::vector<MiniRecord> *> minhash;
+    std::unordered_map<uint64_t, std::vector<MiniRecord> *> minhash; //map of minimizers to MiniRecords - for each minimizer, records some information of it
 
-    Index();
+    //declares all default constructors, destructors and assignment operators explicitly
+    Index() = default; //default constructor
+    Index(const Index &other) = default; //copy default constructor
+    Index(Index &&other) = default; //move default constructor
+    Index& operator=(const Index& other) = default; //copy assignment operator
+    Index& operator=(Index&& other) = default; //move assignment operator
+    virtual ~Index() = default; //destructor
 
-    ~Index();
-
-    void add_record(const uint64_t, const uint32_t, const prg::Path, const uint32_t, const bool);
+    void add_record(const uint64_t, const uint32_t, const prg::Path &, const uint32_t, const bool);
 
     void save(const std::string &prgfile, uint32_t w, uint32_t k);
 
@@ -40,5 +44,6 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>> &,
                 std::shared_ptr<Index> &,
                 const uint32_t,
                 const uint32_t,
-                const std::string &);
+                const std::string &,
+                uint32_t threads=1);
 #endif

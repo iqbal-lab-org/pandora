@@ -165,93 +165,111 @@ TEST(LocalPRGTest, nodes_along_path) {
 
     // empty interval expects no nodes along
     deque<Interval> d = {Interval(0, 0)};
-    prg::Path p;
-    p.initialize(d);
+    prg::Path p1;
+    p1.initialize(d);
+    prg::Path p2;
+    p2.initialize(d);
+    prg::Path p3;
+    p3.initialize(d);
     vector<LocalNodePtr> v;
 
     //EXPECT_EQ(v, l0.nodes_along_path(p));
-    EXPECT_EQ(v, l1.nodes_along_path(p));
-    EXPECT_EQ(v, l2.nodes_along_path(p));
-    EXPECT_EQ(v, l3.nodes_along_path(p));
+    EXPECT_EQ(v, l1.nodes_along_path(p1));
+    EXPECT_EQ(v, l2.nodes_along_path(p2));
+    EXPECT_EQ(v, l3.nodes_along_path(p3));
 
     // positive length interval
     d = {Interval(1, 3)};
-    p.initialize(d);
+    p1.initialize(d);
+    p2.initialize(d);
+    p3.initialize(d);
     uint32_t j = 1;
-    EXPECT_EQ(j, l1.nodes_along_path(p).size());
+    EXPECT_EQ(j, l1.nodes_along_path(p1).size());
     j = 0;
-    EXPECT_EQ(j, l1.nodes_along_path(p)[0]->id);
-    EXPECT_EQ(j, l2.nodes_along_path(p).size()); // no nodes in this interval
-    EXPECT_EQ(j, l3.nodes_along_path(p).size());
+    EXPECT_EQ(j, l1.nodes_along_path(p1)[0]->id);
+    EXPECT_EQ(j, l2.nodes_along_path(p2).size()); // no nodes in this interval
+    EXPECT_EQ(j, l3.nodes_along_path(p3).size());
     // different interval
     d = {Interval(4, 5)};
-    p.initialize(d);
+    p1.initialize(d);
+    p2.initialize(d);
+    p3.initialize(d);
     j = 1;
-    EXPECT_EQ(j, l2.nodes_along_path(p).size());
-    EXPECT_EQ(j, l3.nodes_along_path(p).size());
-    EXPECT_EQ(j, l2.nodes_along_path(p)[0]->id);
-    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+    EXPECT_EQ(j, l2.nodes_along_path(p2).size());
+    EXPECT_EQ(j, l3.nodes_along_path(p3).size());
+    EXPECT_EQ(j, l2.nodes_along_path(p2)[0]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p3)[0]->id);
 
     // multiple intervals
     d = {Interval(0, 1), Interval(4, 5)};
-    p.initialize(d);
+    p1.initialize(d);
+    p2.initialize(d);
+    p3.initialize(d);
     j = 1;
-    EXPECT_EQ(j, l1.nodes_along_path(p).size());
+    EXPECT_EQ(j, l1.nodes_along_path(p1).size());
     j = 2;
-    EXPECT_EQ(j, l2.nodes_along_path(p).size());
-    EXPECT_EQ(j, l3.nodes_along_path(p).size());
+    EXPECT_EQ(j, l2.nodes_along_path(p2).size());
+    EXPECT_EQ(j, l3.nodes_along_path(p3).size());
     j = 0;
-    EXPECT_EQ(j, l1.nodes_along_path(p)[0]->id);
-    EXPECT_EQ(j, l2.nodes_along_path(p)[0]->id);
-    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+    EXPECT_EQ(j, l1.nodes_along_path(p1)[0]->id);
+    EXPECT_EQ(j, l2.nodes_along_path(p2)[0]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p3)[0]->id);
     j = 1;
-    EXPECT_EQ(j, l2.nodes_along_path(p)[1]->id);
-    EXPECT_EQ(j, l3.nodes_along_path(p)[1]->id);
+    EXPECT_EQ(j, l2.nodes_along_path(p2)[1]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p3)[1]->id);
 
     // including empty interval
     d = {Interval(12, 13), Interval(16, 16), Interval(23, 24)};
-    p.initialize(d);
+    p1.initialize(d);
+    p2.initialize(d);
+    p3.initialize(d);
     j = 3;
-    vector<LocalNodePtr> w = l3.nodes_along_path(p);
+    vector<LocalNodePtr> w = l3.nodes_along_path(p3);
     EXPECT_EQ(j, w.size());
-    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p3)[0]->id);
     j = 4;
-    EXPECT_EQ(j, l3.nodes_along_path(p)[1]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p3)[1]->id);
     j = 6;
-    EXPECT_EQ(j, l3.nodes_along_path(p)[2]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p3)[2]->id);
 
     // a path with an empty node at end
     d = {Interval(12, 13), Interval(16, 16), Interval(23, 23)};
-    p.initialize(d);
+    p1.initialize(d);
+    p2.initialize(d);
+    p3.initialize(d);
     j = 3;
-    w = l3.nodes_along_path(p);
+    w = l3.nodes_along_path(p3);
     EXPECT_EQ(j, w.size());
-    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p3)[0]->id);
     j = 4;
-    EXPECT_EQ(j, l3.nodes_along_path(p)[1]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p3)[1]->id);
     j = 6;
-    EXPECT_EQ(j, l3.nodes_along_path(p)[2]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p3)[2]->id);
 
     // and a path which ends on a null node
     d = {Interval(12, 13), Interval(16, 16)};
-    p.initialize(d);
+    p1.initialize(d);
+    p2.initialize(d);
+    p3.initialize(d);
     j = 2;
-    w = l3.nodes_along_path(p);
+    w = l3.nodes_along_path(p3);
     EXPECT_EQ(j, w.size());
     j = 3;
-    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p3)[0]->id);
     j = 4;
-    EXPECT_EQ(j, l3.nodes_along_path(p)[1]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p3)[1]->id);
 
     // and a path that can't really exist still works
     d = {Interval(12, 13), Interval(19, 20)};
-    p.initialize(d);
+    p1.initialize(d);
+    p2.initialize(d);
+    p3.initialize(d);
     j = 2;
-    EXPECT_EQ(j, l3.nodes_along_path(p).size());
+    EXPECT_EQ(j, l3.nodes_along_path(p3).size());
     j = 3;
-    EXPECT_EQ(j, l3.nodes_along_path(p)[0]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p3)[0]->id);
     j = 5;
-    EXPECT_EQ(j, l3.nodes_along_path(p)[1]->id);
+    EXPECT_EQ(j, l3.nodes_along_path(p3)[1]->id);
 }
 
 TEST(LocalPRGTest, split_by_siteNoSites) {
@@ -441,68 +459,77 @@ TEST(LocalPRGTest, shift) {
     p.initialize(d);
     d = {Interval(1, 4)};
     q.initialize(d);
-    vector<prg::Path> v_exp = {q};
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l1.shift(p));
+    vector<PathPtr> v_exp = { std::make_shared<prg::Path>(q) };
+    bool equal = std::equal(v_exp.begin(), v_exp.end(), l1.shift(p).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
     v_exp.clear();
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l1.shift(q)); // there are no shifts over end of prg
+    equal = std::equal(v_exp.begin(), v_exp.end(), l1.shift(q).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     d = {Interval(0, 1), Interval(4, 6)};
     p.initialize(d);
     d = {Interval(4, 6), Interval(13, 14)};
     q.initialize(d);
-    v_exp = {q};
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l2.shift(p));
+    v_exp = { std::make_shared<prg::Path>(q) };
+    equal = std::equal(v_exp.begin(), v_exp.end(), l2.shift(p).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
     v_exp.clear();
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l2.shift(q));
+    equal = std::equal(v_exp.begin(), v_exp.end(), l2.shift(q).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     v_exp.clear();
     d = {Interval(0, 2)};
     p.initialize(d);
     d = {Interval(1, 2), Interval(5, 6)};
     q.initialize(d);
-    v_exp.push_back(q);
+    v_exp.push_back(std::make_shared<prg::Path>(q));
     d = {Interval(1, 2), Interval(20, 21)};
     q.initialize(d);
-    v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l3.shift(p));
+    v_exp.push_back(std::make_shared<prg::Path>(q));
+    equal = std::equal(v_exp.begin(), v_exp.end(), l3.shift(p).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     v_exp.clear();
     d = {Interval(1, 2), Interval(5, 6)};
     p.initialize(d);
     d = {Interval(5, 6), Interval(9, 10)};
     q.initialize(d);
-    v_exp.push_back(q);
+    v_exp.push_back(std::make_shared<prg::Path>(q));
     d = {Interval(5, 6), Interval(13, 14)};
     q.initialize(d);
-    v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l3.shift(p));
+    v_exp.push_back(std::make_shared<prg::Path>(q));
+    equal = std::equal(v_exp.begin(), v_exp.end(), l3.shift(p).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     v_exp.clear();
     d = {Interval(0, 0), Interval(3, 3), Interval(6, 6), Interval(9, 9), Interval(13, 18)};
     p.initialize(d);
     d = {Interval(14, 19)};
     q.initialize(d);
-    v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l5.shift(p));
+    v_exp.push_back(std::make_shared<prg::Path>(q));
+    equal = std::equal(v_exp.begin(), v_exp.end(), l5.shift(p).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     v_exp.clear();
     d = {Interval(3, 8)};
     p.initialize(d);
     d = {Interval(4, 9), Interval(20, 20), Interval(23, 23)};
     q.initialize(d);
-    v_exp.push_back(q);
+    v_exp.push_back(std::make_shared<prg::Path>(q));
     d = {Interval(4, 9)};
     q.initialize(d);
-    v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l6.shift(p));
+    v_exp.push_back(std::make_shared<prg::Path>(q));
+    equal = std::equal(v_exp.begin(), v_exp.end(), l6.shift(p).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     v_exp.clear();
     d = {Interval(4, 9)};
     p.initialize(d);
     d = {Interval(5, 9), Interval(12, 13)};
     q.initialize(d);
-    v_exp.push_back(q);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, v_exp, l6.shift(p));
+    v_exp.push_back(std::make_shared<prg::Path>(q));
+    equal = std::equal(v_exp.begin(), v_exp.end(), l6.shift(p).begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 }
 
 TEST(LocalPRGTest, minimizer_sketch) {
@@ -660,12 +687,11 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw1) {
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
     std::set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
-    l.kmer_prg.sort_topologically();
-    vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
+    auto lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
     for (auto sit = sketch.begin(); sit != sketch.end(); ++sit) {
-        EXPECT_EQ((*sit).pos, (*lit)->path.path[0]);
+        EXPECT_EQ((*sit).pos, (*lit)->path[0]);
         ++lit;
     }
 }
@@ -682,12 +708,11 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw5) {
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
     set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
-    l.kmer_prg.sort_topologically();
-    vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
+    auto lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
     for (auto sit = sketch.begin(); sit != sketch.end(); ++sit) {
-        EXPECT_EQ((*sit).pos, (*lit)->path.path[0]);
+        EXPECT_EQ((*sit).pos, (*lit)->path[0]);
         ++lit;
     }
 }
@@ -704,12 +729,11 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw10) {
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
     set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
-    l.kmer_prg.sort_topologically();
-    vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
+    auto lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
     for (auto sit = sketch.begin(); sit != sketch.end(); ++sit) {
-        EXPECT_EQ((*sit).pos, (*lit)->path.path[0]);
+        EXPECT_EQ((*sit).pos, (*lit)->path[0]);
         ++lit;
     }
 }
@@ -726,12 +750,11 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw15) {
     EXPECT_EQ(l.kmer_prg.nodes.size(), s.sketch.size() + 2);
 
     set<Minimizer, MiniPos> sketch(s.sketch.begin(), s.sketch.end());
-    l.kmer_prg.sort_topologically();
-    vector<KmerNodePtr>::iterator lit = l.kmer_prg.sorted_nodes.begin();
+    auto lit = l.kmer_prg.sorted_nodes.begin();
     lit++;
 
     for (auto sit = sketch.begin(); sit != sketch.end(); ++sit) {
-        EXPECT_EQ((*sit).pos, (*lit)->path.path[0]);
+        EXPECT_EQ((*sit).pos, (*lit)->path[0]);
         ++lit;
     }
 }
@@ -774,7 +797,6 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
     KmerHash hash;
 
     l3.minimizer_sketch(index, 2, 3);
-    l3.kmer_prg.sort_topologically();
     vector<LocalNodePtr> lmp = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6]};
 
     vector<KmerNodePtr> kmp = l3.kmernode_path_from_localnode_path(lmp);
@@ -787,7 +809,6 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
 
     index->clear();
     l4.minimizer_sketch(index, 3, 3);
-    l4.kmer_prg.sort_topologically();
     lmp = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[4], l4.prg.nodes[6]};
 
     kmp = l4.kmernode_path_from_localnode_path(lmp);
@@ -801,7 +822,6 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path) {
     // case where we don't have start and end point in localpath, so need to consider whether kmer overlaps
     index->clear();
     l5.minimizer_sketch(index, 2, 3);
-    l5.kmer_prg.sort_topologically();
     lmp = {l5.prg.nodes[1], l5.prg.nodes[2], l5.prg.nodes[4], l5.prg.nodes[6], l5.prg.nodes[7]};
 
     kmp = l5.kmernode_path_from_localnode_path(lmp);
@@ -1361,7 +1381,6 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf) {
 
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
     l3.minimizer_sketch(index, 1, 3);
-    l3.kmer_prg.sort_topologically();
 
     VCF vcf;
 

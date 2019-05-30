@@ -21,8 +21,12 @@ else ()
     message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER} has no C++11 support")
 endif ()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -DBOOST_SYSTEM_NO_DEPRECATED -g -O2")
-#add_definitions("-DNDEBUG")  # assert statements are not run
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_SYSTEM_NO_DEPRECATED -fopenmp -Wall -Wextra")
+
+#print CMAKE debug and release flags to know what we are exactly doing
+#message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
+#message("CMAKE_CXX_FLAGS_RELEASE is ${CMAKE_CXX_FLAGS_RELEASE}")
+#message("CMAKE_CXX_FLAGS_RELWITHDEBINFO is ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib)
 
@@ -32,10 +36,17 @@ set(EXTERNAL_LIBS
         hdf5
         hdf5_tools)
 
-include_directories(
+#include directories as SYSTEM includes, thus warnings will be ignored for these
+include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
+        ${PROJECT_SOURCE_DIR}/cgranges/cpp
+        )
+
+#normal includes: warnings will be reported for these
+include_directories(
         ${PROJECT_SOURCE_DIR}/include
-        ${PROJECT_SOURCE_DIR}/src)
+        ${PROJECT_SOURCE_DIR}/src
+)
 
 file(GLOB_RECURSE SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/*.cpp
@@ -58,7 +69,7 @@ target_link_libraries(${PROJECT_NAME}
         ${EXTERNAL_LIBS}
         ${CMAKE_DL_LIBS}
         ${ZLIB_LIBRARY})
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/include)
+
 
 enable_testing()
 add_subdirectory(test)

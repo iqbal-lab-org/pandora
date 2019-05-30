@@ -204,45 +204,50 @@ TEST(LocalGraphTest, walk) {
     lg2.add_edge(2, 3);
 
     // simple case, there are 2 paths of length 3
-    vector<prg::Path> q1;
+    vector<PathPtr> q1;
     prg::Path p;
     deque<Interval> d = {Interval(0, 1), Interval(4, 6)};
     p.initialize(d);
-    q1.push_back(p);
+    q1.push_back(std::make_shared<prg::Path>(p));
     d = {Interval(0, 1), Interval(7, 8), Interval(13, 14)};
     p.initialize(d);
-    q1.push_back(p);
-    vector<prg::Path> p1 = lg2.walk(0, 0, 3);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, q1, p1);
+    q1.push_back(std::make_shared<prg::Path>(p));
+    vector<PathPtr> p1 = lg2.walk(0, 0, 3);
+    bool equal = std::equal(q1.begin(), q1.end(), p1.begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     // but only one can be extended to a path of length 4
     q1.clear();
     d = {Interval(0, 1), Interval(4, 6), Interval(13, 14)};
     p.initialize(d);
-    q1.push_back(p);
+    q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg2.walk(0, 0, 4);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, q1, p1);
+    equal = std::equal(q1.begin(), q1.end(), p1.begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     // for even simpler path of length 1
     q1.clear();
     d = {Interval(0, 1)};
     p.initialize(d);
-    q1.push_back(p);
+    q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg2.walk(0, 0, 1);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, q1, p1);
+    equal = std::equal(q1.begin(), q1.end(), p1.begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     // no paths of length 5
     q1.clear();
     p1 = lg2.walk(0, 0, 5);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, q1, p1);
+    equal = std::equal(q1.begin(), q1.end(), p1.begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     // 1 path starting from middle var site
     q1.clear();
     d = {Interval(4, 6), Interval(13, 14)};
     p.initialize(d);
-    q1.push_back(p);
+    q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg2.walk(1, 4, 3);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, q1, p1);
+    equal = std::equal(q1.begin(), q1.end(), p1.begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     // test on a slightly more complex graph
     LocalGraph lg3;
@@ -265,20 +270,22 @@ TEST(LocalGraphTest, walk) {
     q1.clear();
     d = {Interval(0, 1), Interval(4, 5), Interval(8, 9), Interval(16, 16), Interval(23, 24)};
     p.initialize(d);
-    q1.push_back(p);
+    q1.push_back(std::make_shared<prg::Path>(p));
     d = {Interval(0, 1), Interval(4, 5), Interval(12, 13), Interval(16, 16), Interval(23, 24)};
     p.initialize(d);
-    q1.push_back(p);
+    q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg3.walk(0, 0, 4);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, q1, p1);
+    equal = std::equal(q1.begin(), q1.end(), p1.begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     // also want to allow walks starting from an empty node, including the empty node
     q1.clear();
     d = {Interval(16, 16), Interval(23, 24)};
     p.initialize(d);
-    q1.push_back(p);
+    q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg3.walk(4, 16, 1);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, q1, p1);
+    equal = std::equal(q1.begin(), q1.end(), p1.begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 }
 
 TEST(LocalGraphTest, walk_back) {
@@ -293,45 +300,50 @@ TEST(LocalGraphTest, walk_back) {
     lg2.add_edge(2, 3);
 
     // simple case, there are 2 paths of length 3
-    vector<prg::Path> q1;
+    vector<PathPtr> q1;
     prg::Path p;
     deque<Interval> d = {Interval(4, 6), Interval(13, 14)};
     p.initialize(d);
-    q1.push_back(p);
+    q1.push_back(std::make_shared<prg::Path>(p));
     d = {Interval(0, 1), Interval(7, 8), Interval(13, 14)};
     p.initialize(d);
-    q1.push_back(p);
-    vector<prg::Path> p1 = lg2.walk_back(3, 14, 3);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, q1, p1);
+    q1.push_back(std::make_shared<prg::Path>(p));
+    vector<PathPtr> p1 = lg2.walk_back(3, 14, 3);
+    bool equal = std::equal(q1.begin(), q1.end(), p1.begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     // but only one can be extended to a path of length 4
     q1.clear();
     d = {Interval(0, 1), Interval(4, 6), Interval(13, 14)};
     p.initialize(d);
-    q1.push_back(p);
+    q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg2.walk_back(3, 14, 4);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, q1, p1);
+    equal = std::equal(q1.begin(), q1.end(), p1.begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     // for even simpler path of length 1
     q1.clear();
     d = {Interval(0, 1)};
     p.initialize(d);
-    q1.push_back(p);
+    q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg2.walk_back(0, 1, 1);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, q1, p1);
+    equal = std::equal(q1.begin(), q1.end(), p1.begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     // no paths of length 5
     q1.clear();
     p1 = lg2.walk_back(3, 14, 5);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, q1, p1);
+    equal = std::equal(q1.begin(), q1.end(), p1.begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     // 1 path starting from middle var site
     q1.clear();
     d = {Interval(0, 1), Interval(4, 6)};
     p.initialize(d);
-    q1.push_back(p);
+    q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg2.walk_back(1, 6, 3);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, q1, p1);
+    equal = std::equal(q1.begin(), q1.end(), p1.begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     // test on a slightly more complex graph
     LocalGraph lg3;
@@ -354,23 +366,25 @@ TEST(LocalGraphTest, walk_back) {
     q1.clear();
     d = {Interval(0, 1), Interval(4, 5), Interval(8, 9), Interval(16, 16), Interval(23, 24)};
     p.initialize(d);
-    q1.push_back(p);
+    q1.push_back(std::make_shared<prg::Path>(p));
     d = {Interval(0, 1), Interval(4, 5), Interval(12, 13), Interval(16, 16), Interval(23, 24)};
     p.initialize(d);
-    q1.push_back(p);
+    q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg3.walk_back(6, 24, 4);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, q1, p1);
+    equal = std::equal(q1.begin(), q1.end(), p1.begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 
     // also want to allow walks starting from an empty node, including the empty node
     q1.clear();
     d = {Interval(8, 9), Interval(16, 16)};
     p.initialize(d);
-    q1.push_back(p);
+    q1.push_back(std::make_shared<prg::Path>(p));
     d = {Interval(12, 13), Interval(16, 16)};
     p.initialize(d);
-    q1.push_back(p);
+    q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg3.walk_back(4, 16, 1);
-    EXPECT_ITERABLE_EQ(vector<prg::Path>, q1, p1);
+    equal = std::equal(q1.begin(), q1.end(), p1.begin(), ComparePathPtr());
+    EXPECT_EQ(equal, true);
 }
 
 TEST(LocalGraphTest, nodes_along_string) {

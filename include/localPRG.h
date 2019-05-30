@@ -21,15 +21,18 @@ using PanNodePtr = std::shared_ptr<pangenome::Node>;
 namespace fs = boost::filesystem;
 
 class LocalPRG {
-    uint32_t next_id;
-    std::string buff;
+    uint32_t next_id; //internal variables used in some methods - TODO: maybe this should not be an object variable
+    std::string buff; //internal variables used in some methods - TODO: maybe this should not be an object variable
+
+    friend class prg::Path; //for memoization
+    std::vector<LocalNodePtr> nodes_along_path_core(const prg::Path &) const;
 public:
-    uint32_t next_site;
-    uint32_t id;
-    std::string name;
-    std::string seq;
-    LocalGraph prg;
-    KmerGraph kmer_prg;
+    uint32_t next_site; //denotes the id of the next variant site to be processed - TODO: maybe this should not be an object variable
+    uint32_t id; //id of this LocalPRG in the full graph (first gene is 0, second is 1, and so on...)
+    std::string name; //name (fasta comment)
+    std::string seq; //seq of LocalPRG (the PRG as string itself)
+    LocalGraph prg; //the graph that represents this LocalPRG
+    KmerGraph kmer_prg; //the kmer sketch graph
     //VCF vcf;
     std::vector<uint32_t> num_hits;
 
@@ -42,7 +45,7 @@ public:
 
     static std::string string_along_path(const std::vector<LocalNodePtr> &);
 
-    std::vector<LocalNodePtr> nodes_along_path(const prg::Path &) const;
+    std::vector<LocalNodePtr> nodes_along_path(prg::Path &) const;
 
     std::vector<Interval> split_by_site(const Interval &) const;
 
@@ -50,9 +53,9 @@ public:
                                       const std::vector<uint32_t> &,
                                       uint32_t current_level = 0);
 
-    std::vector<prg::Path> shift(prg::Path) const;
+    std::vector<PathPtr> shift(prg::Path) const;
 
-    void minimizer_sketch(std::shared_ptr<Index> index, const uint32_t w, const uint32_t k);
+    void minimizer_sketch(const std::shared_ptr<Index> &index, const uint32_t w, const uint32_t k, double percentageDone=-1.0);
 
     // functions used once hits have been collected against the PRG
     std::vector<KmerNodePtr> kmernode_path_from_localnode_path(const std::vector<LocalNodePtr> &) const;

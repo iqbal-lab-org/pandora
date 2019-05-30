@@ -90,7 +90,7 @@ public:
     bool operator!=(const Graph &y) const;
 
     // graph read/write
-    void save_matrix(const std::string &);
+    void save_matrix(const std::string &, const std::vector<std::string> &);
 
     void save_mapped_read_strings(const std::string &read_filepath, const std::string &outprefix, const int buff = 0);
 

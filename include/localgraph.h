@@ -9,11 +9,16 @@
 #include "interval.h"
 #include "prg/path.h"
 #include "localnode.h"
+#include "IITree.h"
+
 
 
 class LocalGraph {
 public:
     std::map<uint32_t, LocalNodePtr> nodes; // representing nodes in graph
+    IITree<uint32_t, LocalNodePtr> intervalTree; //TODO: move to private
+    std::map<uint32_t, LocalNodePtr> startIndexOfZeroLengthIntervals;
+    std::map<uint32_t, LocalNodePtr> startIndexOfAllIntervals;
 
     LocalGraph();
 
@@ -27,9 +32,9 @@ public:
 
     void read_gfa(const std::string &);
 
-    std::vector<prg::Path> walk(const uint32_t &, const uint32_t &, const uint32_t &) const;
+    std::vector<PathPtr> walk(const uint32_t &, const uint32_t &, const uint32_t &) const;
 
-    std::vector<prg::Path> walk_back(const uint32_t &, const uint32_t &, const uint32_t &) const;
+    std::vector<PathPtr> walk_back(const uint32_t &, const uint32_t &, const uint32_t &) const;
 
     LocalNodePtr get_previous_node(const LocalNodePtr) const;
 

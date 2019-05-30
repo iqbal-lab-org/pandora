@@ -622,7 +622,9 @@ TEST(PangenomeGraphTest, save_matrix) {
     pg.add_node(1, "one", "sample1", 0, l0, kmp);
     pg.add_node(2, "two", "sample3", 0, l0, kmp);
 
-    pg.save_matrix("../../test/test_cases/pangraph_test_save.matrix");
+    std::vector<std::string> names = {"sample1", "sample2", "sample3", "sample4"};
+
+    pg.save_matrix("../../test/test_cases/pangraph_test_save.matrix", names);
 }
 
 TEST(PangenomeGraphTest, save_mapped_read_strings) {
