@@ -21,6 +21,13 @@ TEST(EstimateParametersTest, find_mean_covg) {
     // do need an increase three times
     std::vector<uint> v4 = {30, 24, 12, 3, 6, 2, 11, 10, 9, 8, 4, 3, 2, 1};
     EXPECT_EQ(uint(0), find_mean_covg(v4));
+    // a too clean one with run of zeroes doing it
+    std::vector<uint> v5 = {30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5};
+    EXPECT_EQ(uint(12), find_mean_covg(v5));
+    // insufficient zeroes with a peak
+    std::vector<uint> v6 = {30, 0, 0, 0, 0, 0, 0, 0, 0, 2, 14, 15, 16, 18, 14, 8, 9, 1};
+    EXPECT_EQ(uint(13), find_mean_covg(v6));
+
 }
 
 TEST(EstimateParametersTest, find_prob_thresh) {

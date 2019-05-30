@@ -318,7 +318,8 @@ int pandora_compare(int argc, char *argv[]) {
         const auto &sample_fpath = sample.second;
 
         // make output dir for this sample
-        auto sample_outdir = outdir.append("/").append(sample_name);
+        auto sample_outdir = outdir;
+        sample_outdir.append("/").append(sample_name);
         fs::create_directories(sample_outdir);
 
         // construct the pangraph for this sample
