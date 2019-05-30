@@ -308,10 +308,6 @@ int pandora_compare(int argc, char *argv[]) {
 
     Fastaq consensus_fq(true, true);
 
-    vector<KmerNodePtr> kmp;
-    vector<LocalNodePtr> lmp;
-    vector<vector<uint32_t>> read_overlap_coordinates;
-
     // for each sample, run pandora to get the sample pangraph
     std::vector<uint32_t> exp_depth_covgs;
     uint32_t sample_id = 0;
@@ -334,8 +330,6 @@ int pandora_compare(int argc, char *argv[]) {
                                                 index, prgs, w, k,
                                                 max_diff, e_rate,
                                                 min_cluster_size, genome_size, illumina, clean, max_covg, threads);
-        BOOST_LOG_TRIVIAL(info) << "Finished with minihits, so clear ";
-
         BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file "
                                 << sample_outdir << "/pandora.pangraph.gfa";
         write_pangraph_gfa(sample_outdir + "/pandora.pangraph.gfa", pangraph_sample);
@@ -357,7 +351,9 @@ int pandora_compare(int argc, char *argv[]) {
         BOOST_LOG_TRIVIAL(info) << "Find max likelihood PRG paths";
         auto sample_pangraph_size = pangraph_sample->nodes.size();
         for (auto c = pangraph_sample->nodes.begin(); c != pangraph_sample->nodes.end();) {
-            LocalPRG local_prg = *prgs[c->second->prg_id];
+            LocalPRG &local_prg = *prgs[c->second->prg_id];
+            vector<KmerNodePtr> kmp;
+            vector<LocalNodePtr> lmp;
             local_prg.add_consensus_path_to_fastaq(consensus_fq,
                                                    c->second,
                                                    kmp, lmp, w,
