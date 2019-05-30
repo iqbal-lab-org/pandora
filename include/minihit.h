@@ -10,8 +10,8 @@
 //TODO: we could make one (read_id, read_start_position, read_strand) and a vector of MiniRecord
 struct MinimizerHit {
 private:
-    uint32_t read_id;
-    uint32_t read_start_position;
+    uint32_t read_id; //TODO: this can be made a template and change depending on the maximum number of reads
+    uint32_t read_start_position; //TODO: this can be made a template and change depending on the maximum read length
     bool read_strand;
     const MiniRecord &minimizerFromPRG;
 

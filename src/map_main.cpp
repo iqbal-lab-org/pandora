@@ -418,6 +418,7 @@ int pandora_map(int argc, char *argv[]) {
         }
 
         if (output_vcf) {
+            //TODO: this takes a lot of time and should be optimized, but it is only called in this part, so maybe this should be low prioritized
             prgs[pangraph_node->prg_id]->add_variants_to_vcf(master_vcf, pangraph_node, vcf_ref, kmp, lmp, min_kmer_covg);
         }
 
