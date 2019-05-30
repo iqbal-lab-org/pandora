@@ -1407,7 +1407,8 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
 
 void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq, PanNodePtr pnode, std::vector<KmerNodePtr> &kmp,
                                             std::vector<LocalNodePtr> &lmp, const uint32_t w, const bool bin,
-                                            const uint32_t global_covg, const uint32_t &sample_id) {
+                                            const uint32_t global_covg, const uint32_t &sample_id,
+                                            bool fromCompare /*is this function being called from compare_main? If yes, no need to sync some stuff*/ ) {
     if (pnode->reads.empty()) {
         BOOST_LOG_TRIVIAL(warning) << "Node " << pnode->get_name() << " has no reads";
         return;
@@ -1449,9 +1450,16 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq, PanNodePtr pnode,
     std::string header = " log P(data|sequence)=" + std::to_string(ppath);
     std::string seq = string_along_path(lmp);
 
-    #pragma omp critical(consensus_fq)
-    {
+    if (fromCompare) {
+        //no need to sync
         output_fq.add_entry(fq_name, seq, covgs, global_covg, header);
+    }else {
+        //need to sync
+        #pragma omp critical(consensus_fq)
+        {
+            output_fq.add_entry(fq_name, seq, covgs, global_covg, header);
+        }
+
     }
 }
 

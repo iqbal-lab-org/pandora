@@ -399,7 +399,7 @@ void pangenome::Graph::copy_coverages_to_kmergraphs(const Graph &ref_pangraph, c
 
 std::vector<LocalNodePtr>
 pangenome::Graph::infer_node_vcf_reference_path(const Node &node, const std::shared_ptr<LocalPRG> &prg_ptr, const uint32_t &w,
-                                     const std::unordered_map<std::string, std::string> &vcf_refs) {
+                                     const std::unordered_map<std::string, std::string> &vcf_refs) const {
     BOOST_LOG_TRIVIAL(info) << "Infer VCF reference path";
     const auto &prg = *prg_ptr;
     if (vcf_refs.find(prg.name) != vcf_refs.end()){
@@ -412,7 +412,7 @@ pangenome::Graph::infer_node_vcf_reference_path(const Node &node, const std::sha
 }
 
 std::vector<LocalNodePtr>
-pangenome::Graph::get_node_closest_vcf_reference(const Node &node, const uint32_t &w, const LocalPRG &prg) {
+pangenome::Graph::get_node_closest_vcf_reference(const Node &node, const uint32_t &w, const LocalPRG &prg) const {
      //TODO: check if this is correct
      auto kmer_prg_with_coverage = node.kmer_prg_with_coverage; //TODO: is this indeed an assignment op?
 

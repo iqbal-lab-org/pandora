@@ -79,10 +79,10 @@ public:
 
     std::vector<LocalNodePtr>
     infer_node_vcf_reference_path(const Node &, const std::shared_ptr<LocalPRG> &, const uint32_t &,
-                                  const std::unordered_map<std::string, std::string> &);
+                                  const std::unordered_map<std::string, std::string> &) const;
 
     std::vector<LocalNodePtr>
-    get_node_closest_vcf_reference(const Node &, const uint32_t &, const LocalPRG &);
+    get_node_closest_vcf_reference(const Node &, const uint32_t &, const LocalPRG &) const;
 
     // graph comparison
     bool operator==(const Graph &y) const;

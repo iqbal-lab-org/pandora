@@ -100,7 +100,8 @@ public:
                                       const uint32_t,
                                       const bool,
                                       const uint32_t,
-                                      const uint32_t &sample_id = 0);
+                                      const uint32_t &sample_id = 0,
+                                      bool fromCompare=false /*is this function being called from compare_main? If yes, no need to sync some stuff*/);
     std::vector<LocalNodePtr> get_valid_vcf_reference(const std::string &) const;
 
     void add_variants_to_vcf(VCF &, PanNodePtr, const std::string &, const std::vector<KmerNodePtr> &,

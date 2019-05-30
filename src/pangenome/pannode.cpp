@@ -147,7 +147,11 @@ void pangenome::Node::construct_multisample_vcf(VCF &master_vcf, const std::vect
     BOOST_LOG_TRIVIAL(debug) << "After merging alleles:\n" << vcf;
     vcf.correct_dot_alleles(prg->string_along_path(vcf_reference_path), prg->name);
     BOOST_LOG_TRIVIAL(debug) << "After fixing dot alleles:\n" << vcf;
-    master_vcf.append_vcf(vcf);
+
+    #pragma omp critical(master_vcf)
+    {
+        master_vcf.append_vcf(vcf);
+    }
 }
 
 bool pangenome::Node::operator==(const Node &y) const {
