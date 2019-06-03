@@ -7,6 +7,7 @@
 #include <string>
 #include <cstdint>
 #include "vcfrecord.h"
+#include "IITree.h"
 
 
 class LocalNode;
@@ -14,13 +15,27 @@ class LocalNode;
 typedef std::shared_ptr<LocalNode> LocalNodePtr;
 
 class VCF {
+private:
+    IITree<uint32_t, VCFRecord*> recordIntervalTree;
+    void add_record_core(const VCFRecord &vr);
+
+    //find a VCRRecord in records
+    std::vector<std::shared_ptr<VCFRecord>>::iterator find_record_in_records(const VCFRecord &vr) {
+        return find_if(records.begin(), records.end(), [&vr](const std::shared_ptr<VCFRecord> &record) { return *record==vr; });
+    }
+
+    std::vector<std::shared_ptr<VCFRecord>>::const_iterator find_record_in_records(const VCFRecord &vr) const {
+        return find_if(records.begin(), records.end(), [&vr](const std::shared_ptr<VCFRecord> &record) { return *record==vr; });
+    }
+
+
 public:
-    std::vector<VCFRecord> records;
+    std::vector<std::shared_ptr<VCFRecord>> records;
     std::vector<std::string> samples;
 
-    VCF();
-
-    ~VCF();
+    //constructor/destructors
+    VCF() = default;
+    virtual ~VCF() = default;
 
     void add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i = ".", std::string g = "");
 
@@ -36,8 +51,6 @@ public:
                        const std::string &a);
 
     void add_sample_ref_alleles(const std::string &, const std::string &, const uint32_t &, const uint32_t &);
-
-    void clear();
 
     void append_vcf(const VCF &);
 

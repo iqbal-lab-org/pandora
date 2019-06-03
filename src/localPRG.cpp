@@ -1344,7 +1344,8 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
     std::vector<uint32_t> alt_fwd_covgs;
     std::vector<uint32_t> alt_rev_covgs;
 
-    for (auto &record : vcf.records) {
+    for (auto &recordPointer : vcf.records) {
+        auto &record = *recordPointer;
         //std::cout << record << std::endl;
         // find corresponding ref kmers
         auto end_pos = record.pos + record.ref.length();
