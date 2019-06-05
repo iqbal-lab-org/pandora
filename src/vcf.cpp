@@ -196,7 +196,9 @@ void VCF::append_vcf(const VCF &other_vcf) {
 }
 
 void VCF::sort_records() {
-    sort(records.begin(), records.end());
+    sort(records.begin(), records.end(), [](const std::shared_ptr<VCFRecord>& lhs, const std::shared_ptr<VCFRecord>& rhs) {
+        return (*lhs) < (*rhs);
+    });
 }
 
 bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const std::string &chrom) const {
@@ -545,7 +547,7 @@ void VCF::save(const std::string &filepath, bool simple, bool complexgraph, bool
              (indel and records[i]->info.find("SVTYPE=INDEL") != std::string::npos) or
              (phsnps and records[i]->info.find("SVTYPE=PH_SNPs") != std::string::npos) or
              (complexvar and records[i]->info.find("SVTYPE=COMPLEX") != std::string::npos))) {
-            handle << records[i];
+            handle << *(records[i]);
         }
     }
     handle.close();

@@ -65,7 +65,9 @@ void Read::add_hits(const uint32_t prg_id, std::set<MinimizerHitPtr, pComp> &clu
     std::sort(hits.begin(), hits.end(), [](const MinimizerHit * const lhs, const MinimizerHit * const rhs) {
         return (*lhs) < (*rhs);
     }); //TODO: might not need this...
-    auto last = std::unique(hits.begin(), hits.end()); //TODO: unique with pointers? - check this
+    auto last = std::unique(hits.begin(), hits.end(), [](const MinimizerHit * const lhs, const MinimizerHit * const rhs) {
+        return (*lhs) == (*rhs);
+    });
     hits.erase(last, hits.end());
     hits.shrink_to_fit();
 }

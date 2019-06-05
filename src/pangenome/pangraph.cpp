@@ -359,8 +359,7 @@ void pangenome::Graph::add_hits_to_kmergraphs(const std::vector<std::shared_ptr<
                 assert(minimizer_hit.get_kmer_node_id() < pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes.size());
                 assert(pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes[minimizer_hit.get_kmer_node_id()] != nullptr);
 
-                auto &kmer_node = *(pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes[minimizer_hit.get_kmer_node_id()]);
-                pangraph_node.kmer_prg_with_coverage.increment_covg(kmer_node.id, minimizer_hit.is_forward(), sample_id);
+                pangraph_node.kmer_prg_with_coverage.increment_covg(minimizer_hit.get_kmer_node_id(), minimizer_hit.is_forward(), sample_id);
 
                 if (pangraph_node.kmer_prg_with_coverage.get_covg(minimizer_hit.get_kmer_node_id(), minimizer_hit.is_forward(), sample_id) ==
                     1000) {
@@ -415,7 +414,7 @@ std::vector<LocalNodePtr>
 pangenome::Graph::get_node_closest_vcf_reference(const Node &node, const uint32_t &w, const LocalPRG &prg) const {
      //TODO: check if this is correct
      auto kmer_prg_with_coverage = node.kmer_prg_with_coverage; //TODO: is this indeed an assignment op?
-
+    kmer_prg_with_coverage.zeroCoverages();
 
     for (const auto &sample_entry: this->samples) {
         const auto &sample = sample_entry.second;

@@ -104,6 +104,7 @@ private:
     float nb_p;
     float nb_r;
     int thresh;
+    uint32_t total_number_samples;
 
 public:
     KmerGraph *kmer_prg; //the underlying KmerGraph - TODO: it is dangerous to leave this public, make it private?
@@ -111,10 +112,8 @@ public:
     //constructor, destructors, etc
     KmerGraphWithCoverage(KmerGraph *kmer_prg=nullptr, const uint32_t &total_number_samples=1) :
             nodeIndex2SampleCoverage((kmer_prg ? kmer_prg->nodes.size() : 0)),
-            exp_depth_covg{0}, p{1}, nb_p{0.015}, nb_r{2}, thresh{25}, kmer_prg{kmer_prg} {
-        //setup the coverages
-        for (auto &sampleCoverage: nodeIndex2SampleCoverage)
-            sampleCoverage = std::vector<std::pair<uint32_t, uint32_t>>(total_number_samples);
+            exp_depth_covg{0}, p{1}, nb_p{0.015}, nb_r{2}, thresh{-25}, kmer_prg{kmer_prg}, total_number_samples{total_number_samples} {
+        zeroCoverages();
     }
     KmerGraphWithCoverage(const KmerGraphWithCoverage &other) = default; //copy default constructor
     KmerGraphWithCoverage(KmerGraphWithCoverage &&other) = default; //move default constructor
@@ -133,7 +132,10 @@ public:
     void set_nb(const float &, const float &);
     void set_thresh (int thresh) { this->thresh = thresh; }
 
-
+    void zeroCoverages() {
+        for (auto &sampleCoverage: nodeIndex2SampleCoverage)
+            sampleCoverage = std::vector<std::pair<uint32_t, uint32_t>>(total_number_samples);
+    }
 
     float nb_prob(uint32_t, const uint32_t &sample_id);
 
