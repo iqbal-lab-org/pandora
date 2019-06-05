@@ -20,7 +20,7 @@
 
 void VCF::add_record_core(const VCFRecord &vr) {
     records.push_back(std::make_shared<VCFRecord>(vr));
-    recordIntervalTree.add(vr.pos, vr.pos + vr.ref.length(), records.back().get());
+    chrom2recordIntervalTree[vr.chrom].add(vr.pos, vr.pos + vr.ref.length(), records.back().get());
 }
 
 void VCF::add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i, std::string g) {
@@ -432,34 +432,33 @@ void VCF::correct_dot_alleles(const std::string &vcf_ref, const std::string &chr
 void VCF::make_gt_compatible() {
     //TODO: this can be a source of inneficiency, fix this?
     //TODO: interval tree does not to be indexed everytime this function is called, only if the interval tree changed
-    recordIntervalTree.index();
+    for (auto &pair : chrom2recordIntervalTree)
+        pair.second.index();
 
     uint record_count=0;
     for (auto &recordPointer : records) { //goes through all records
         auto &record = *recordPointer;
         record_count++;
-        uint other_record_count=0;
         for (uint i = 0; i < record.samples.size(); ++i) { //goes through all samples of this record
 
             //retrieve all VCF records overlapping this record
             std::vector<VCFRecord*> overlappingVCFRecords;
 
             std::vector<size_t> overlaps;
-            recordIntervalTree.overlap(record.pos, record.pos + record.ref.length(), overlaps);
+            chrom2recordIntervalTree[record.chrom].overlap(record.pos, record.pos + record.ref.length(), overlaps);
             for (size_t i = 0; i < overlaps.size(); ++i)
-                overlappingVCFRecords.push_back(recordIntervalTree.data(overlaps[i]));
+                overlappingVCFRecords.push_back(chrom2recordIntervalTree[record.chrom].data(overlaps[i]));
 
             for (VCFRecord* other_record_pointer : overlappingVCFRecords) {
                 VCFRecord &other_record = *other_record_pointer;
                 if (record == other_record) //no need to process this
                     continue;
-                if (    record.samples[i].find(std::string("GT")) != record.samples[i].end()
-                    && other_record.samples[i].count("GT")
-                    && record.samples[i][std::string("GT")].size() > 0
-                    && other_record.samples[i][std::string("GT")].size() > 0) {
-                    other_record_count++;
-                    //and record.samples[i]["GT"][0] > 0
-                    //and other_record.samples[i]["GT"][0] > 0) {
+                if (other_record.pos <= record.pos + record.ref.length()
+                    && record.samples[i].find("GT") != record.samples[i].end()
+                    && other_record.samples[i].find("GT") != other_record.samples[i].end()
+                    && record.samples[i]["GT"].size() > 0
+                    && other_record.samples[i]["GT"].size() > 0) {
+
                     if (record.samples[i]["GT"][0] == 0 and other_record.samples[i]["GT"][0] == 0)
                         continue;
                     else if (not record.regt_samples.empty() and not other_record.regt_samples.empty()
@@ -601,7 +600,7 @@ bool VCF::operator!=(const VCF &y) const {
 
 std::ostream &operator<<(std::ostream &out, VCF const &m) {
     for (const auto &record : m.records) {
-        out << record;
+        out << (*record);
     }
     return out;
 }

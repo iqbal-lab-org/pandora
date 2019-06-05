@@ -8,6 +8,7 @@
 #include <cstdint>
 #include "vcfrecord.h"
 #include "IITree.h"
+#include <map>
 
 
 class LocalNode;
@@ -16,7 +17,7 @@ typedef std::shared_ptr<LocalNode> LocalNodePtr;
 
 class VCF {
 private:
-    IITree<uint32_t, VCFRecord*> recordIntervalTree;
+    std::map<std::string, IITree<uint32_t, VCFRecord*>> chrom2recordIntervalTree;
     void add_record_core(const VCFRecord &vr);
 
     //find a VCRRecord in records
