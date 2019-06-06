@@ -309,8 +309,8 @@ int pandora_compare(int argc, char *argv[]) {
     //shared variable - controlled by critical(pangraph)
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    //shared variable - controlled by critical(exp_depth_covgs)
-    std::vector<uint32_t> exp_depth_covgs;
+    //shared variable - naturally synchronized due to threads accessing different indexes
+    std::vector<uint32_t> exp_depth_covgs(samples.size(), 0);
 
     // for each sample, run pandora to get the sample pangraph
     //TODO: try to work around nested parallelism here
@@ -350,11 +350,7 @@ int pandora_compare(int argc, char *argv[]) {
 
         BOOST_LOG_TRIVIAL(info) << "Estimate parameters for kmer graph model";
         auto exp_depth_covg = estimate_parameters(pangraph_sample, sample_outdir, k, e_rate, covg, bin, 0);
-
-        #pragma omp critical(exp_depth_covgs)
-        {
-            exp_depth_covgs.push_back(exp_depth_covg);
-        }
+        exp_depth_covgs[sample_id] = exp_depth_covg;
 
         if (min_kmer_covg == 0)
             min_kmer_covg = exp_depth_covg/10;
@@ -363,18 +359,14 @@ int pandora_compare(int argc, char *argv[]) {
         auto sample_pangraph_size = pangraph_sample->nodes.size();
         Fastaq consensus_fq(true, true);
         for (auto c = pangraph_sample->nodes.begin(); c != pangraph_sample->nodes.end();) {
-            LocalPRG &local_prg = *prgs[c->second->prg_id];
+            const LocalPRG &local_prg = *prgs[c->second->prg_id];
             vector<KmerNodePtr> kmp;
             vector<LocalNodePtr> lmp;
 
-            //TODO: improve this critical
-            #pragma omp critical(add_consensus_path_to_fastaq)
-            {
-                local_prg.add_consensus_path_to_fastaq(consensus_fq,
-                                                       c->second,
-                                                       kmp, lmp, w,
-                                                       bin, covg, 0, true);
-            }
+            local_prg.add_consensus_path_to_fastaq(consensus_fq,
+                                                   c->second,
+                                                   kmp, lmp, w,
+                                                   bin, covg, 0, true);
 
             if (kmp.empty()) {
                 c = pangraph_sample->remove_node(c->second);
