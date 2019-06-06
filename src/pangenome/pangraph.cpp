@@ -160,8 +160,8 @@ void pangenome::Graph::add_node(const uint32_t prg_id, const std::string &prg_na
     // add a new sample if it doesn't exist
     SamplePtr s = get_sample(sample_name, sample_id);
     s->add_path(prg_id, kmp);
-    if (std::find(n->samples.begin(), n->samples.end(), s) == n->samples.end())
-        n->samples.push_back(s);
+    if (n->samples.find(s) == n->samples.end())
+        n->samples.insert(s);
 }
 
 // Remove the node n, and all references to it

@@ -8,6 +8,7 @@ namespace pangenome {
     class Read;
 
     class Sample;
+    struct SamplePtrSorterBySampleId;
 
     class Graph;
 

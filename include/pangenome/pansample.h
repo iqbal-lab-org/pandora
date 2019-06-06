@@ -33,4 +33,8 @@ public:
     friend std::ostream &operator<<(std::ostream &out, const Sample &s);
 };
 
+struct pangenome::SamplePtrSorterBySampleId {
+    bool operator()(const pangenome::SamplePtr &lhs, const pangenome::SamplePtr &rhs) const;
+};
+
 #endif

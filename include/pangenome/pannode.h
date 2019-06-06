@@ -10,6 +10,7 @@
 #include "pangenome/ns.cpp"
 #include "vcf.h"
 #include "denovo_discovery/denovo_utils.h"
+#include "pansample.h"
 
 
 class LocalPRG;
@@ -20,7 +21,7 @@ using PanReadPtr = std::shared_ptr<pangenome::Read>;
 class pangenome::Node {
 public:
     std::unordered_multiset<ReadPtr> reads;
-    std::vector<SamplePtr> samples;
+    std::set<SamplePtr, SamplePtrSorterBySampleId> samples;
     const uint32_t prg_id; // corresponding the the LocalPRG id
     const uint32_t node_id; // unique node id, so can have multiple copies of a localPRG in graph
     const std::string name;

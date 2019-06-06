@@ -48,3 +48,8 @@ std::ostream &pangenome::operator<<(std::ostream &out, pangenome::Sample const &
     }
     return out;
 }
+
+
+bool pangenome::SamplePtrSorterBySampleId::operator()(const pangenome::SamplePtr &lhs, const pangenome::SamplePtr &rhs) const {
+    return lhs->sample_id < rhs->sample_id;
+}
