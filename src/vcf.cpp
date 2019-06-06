@@ -20,7 +20,7 @@
 
 void VCF::add_record_core(const VCFRecord &vr) {
     records.push_back(std::make_shared<VCFRecord>(vr));
-    chrom2recordIntervalTree[vr.chrom].add(vr.pos, vr.pos + vr.ref.length(), records.back().get());
+    chrom2recordIntervalTree[vr.chrom].add(vr.pos, vr.pos + vr.ref.length() + 1, records.back().get());
 }
 
 void VCF::add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i, std::string g) {
@@ -445,15 +445,21 @@ void VCF::make_gt_compatible() {
             std::vector<VCFRecord*> overlappingVCFRecords;
 
             std::vector<size_t> overlaps;
-            chrom2recordIntervalTree[record.chrom].overlap(record.pos, record.pos + record.ref.length(), overlaps);
+            chrom2recordIntervalTree[record.chrom].overlap(record.pos, record.pos + record.ref.length() + 1, overlaps);
             for (size_t i = 0; i < overlaps.size(); ++i)
                 overlappingVCFRecords.push_back(chrom2recordIntervalTree[record.chrom].data(overlaps[i]));
+
+            //TODO: not sure if we need to sort, but doing it just in case... Check this later
+            std::sort(overlappingVCFRecords.begin(), overlappingVCFRecords.end(), [](VCFRecord* lhs, VCFRecord* rhs) {
+                return *lhs < *rhs;
+            });
 
             for (VCFRecord* other_record_pointer : overlappingVCFRecords) {
                 VCFRecord &other_record = *other_record_pointer;
                 if (record == other_record) //no need to process this
                     continue;
-                if (other_record.pos <= record.pos + record.ref.length()
+                if (   record.pos <= other_record.pos
+                    && other_record.pos <= record.pos + record.ref.length()
                     && record.samples[i].find("GT") != record.samples[i].end()
                     && other_record.samples[i].find("GT") != other_record.samples[i].end()
                     && record.samples[i]["GT"].size() > 0
