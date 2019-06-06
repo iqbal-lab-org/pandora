@@ -302,19 +302,10 @@ int pandora_compare(int argc, char *argv[]) {
     // load read index
     std::cout << now() << "Loading read index file " << read_index_fpath << std::endl;
     auto samples = load_read_index(read_index_fpath);
-
-
-
-    //paralell region!
-    //shared variable - controlled by critical(pangraph)
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-
-    //shared variable - naturally synchronized due to threads accessing different indexes
-    std::vector<uint32_t> exp_depth_covgs(samples.size(), 0);
+    std::vector<uint32_t> exp_depth_covgs;
 
     // for each sample, run pandora to get the sample pangraph
-    //TODO: try to work around nested parallelism here
-    #pragma omp parallel for num_threads(threads) schedule(dynamic, 1)
     for (uint32_t sample_id = 0; sample_id < samples.size(); ++sample_id) {
         const auto &sample = samples[sample_id];
         auto pangraph_sample = std::make_shared<pangenome::Graph>(pangenome::Graph());
@@ -335,7 +326,7 @@ int pandora_compare(int argc, char *argv[]) {
                                                 pangraph_sample,
                                                 index, prgs, w, k,
                                                 max_diff, e_rate,
-                                                min_cluster_size, genome_size, illumina, clean, max_covg, 1, true); //TODO: try to work around nested parallelism here and change "1" to threads
+                                                min_cluster_size, genome_size, illumina, clean, max_covg, threads);
         BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file "
                                 << sample_outdir << "/pandora.pangraph.gfa";
         write_pangraph_gfa(sample_outdir + "/pandora.pangraph.gfa", pangraph_sample);
@@ -350,7 +341,7 @@ int pandora_compare(int argc, char *argv[]) {
 
         BOOST_LOG_TRIVIAL(info) << "Estimate parameters for kmer graph model";
         auto exp_depth_covg = estimate_parameters(pangraph_sample, sample_outdir, k, e_rate, covg, bin, 0);
-        exp_depth_covgs[sample_id] = exp_depth_covg;
+        exp_depth_covgs.push_back(exp_depth_covg);
 
         if (min_kmer_covg == 0)
             min_kmer_covg = exp_depth_covg/10;
@@ -362,35 +353,24 @@ int pandora_compare(int argc, char *argv[]) {
             const LocalPRG &local_prg = *prgs[c->second->prg_id];
             vector<KmerNodePtr> kmp;
             vector<LocalNodePtr> lmp;
-
-            //TODO: improve this critical
-            #pragma omp critical(add_consensus_path_to_fastaq)
-            {
-                local_prg.add_consensus_path_to_fastaq(consensus_fq,
-                                                       c->second,
-                                                       kmp, lmp, w,
-                                                       bin, covg, 0, true);
-            }
+            local_prg.add_consensus_path_to_fastaq(consensus_fq,
+                                                   c->second,
+                                                   kmp, lmp, w,
+                                                   bin, covg, 0);
 
             if (kmp.empty()) {
                 c = pangraph_sample->remove_node(c->second);
                 continue;
             }
 
-            #pragma omp critical(pangraph)
-            {
-                pangraph->add_node(c->second->prg_id, c->second->name, sample_name, sample_id,
-                                   prgs[c->second->prg_id], kmp);
-            }
+            pangraph->add_node(c->second->prg_id, c->second->name, sample_name, sample_id,
+                               prgs[c->second->prg_id], kmp);
 
             ++c;
         }
 
-        #pragma omp critical(pangraph)
-        {
-            pangraph->setup_kmergraphs(prgs, samples.size());
-            pangraph->copy_coverages_to_kmergraphs(*pangraph_sample, sample_id);
-        }
+        pangraph->setup_kmergraphs(prgs, samples.size());
+        pangraph->copy_coverages_to_kmergraphs(*pangraph_sample, sample_id);
 
         consensus_fq.save(sample_outdir + "/pandora.consensus.fq.gz");
         consensus_fq.clear();

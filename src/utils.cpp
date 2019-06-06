@@ -388,8 +388,7 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
                                  const bool illumina,
                                  const bool clean,
                                  const uint32_t max_covg,
-                                 uint32_t threads,
-                                 bool fromCompare /*is this function being called from compare_main? If yes, no need to sync some stuff*/) {
+                                 uint32_t threads) {
     //constant variables
     const double fraction_kmers_required_for_cluster = 0.5 / exp(e_rate * k);
     const uint32_t nb_reads_to_map_in_a_batch = 1000; //nb of reads to map in a batch
@@ -411,9 +410,9 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
             //read the next batch of reads
             uint32_t nbOfReads=0;
 
-            //declares a lambda function to make the critical section controlling after easier
-            auto readReadsInBatchFunction = [&]() {
-                //read the reads in batch
+            //read the reads in batch
+            #pragma omp critical(ReadFileMutex)
+            {
                 for (auto &sequence : sequencesBuffer) {
                     //did we reach the end already?
                     if (!fh.eof()) { //no
@@ -430,17 +429,6 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
                         break; //we read everything already, exit this loop
                     }
                 }
-            };
-
-            if (fromCompare and threads==1) {
-                //no need to sync
-                readReadsInBatchFunction();
-            }else {
-                //need to sync
-                #pragma omp critical(ReadFileMutex)
-                {
-                    readReadsInBatchFunction();
-                }
             }
 
 
@@ -453,8 +441,8 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
 
                 //checks if we are still good regarding coverage
                 if (!sequence.sketch.empty()) {
-                    //declares a lambda function to make the critical section controlling after easier
-                    auto checkMaxCovgExceededFunction = [&]() {
+                    #pragma omp critical(covg)
+                    {
                         //check if the max_covg was already exceeded
                         if (covg / genome_size > max_covg) {
                             //if reached here, it means that another thread realised that we went past the max_covg, so we just exit
@@ -467,17 +455,6 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
                                 BOOST_LOG_TRIVIAL(warning) << "Stop processing reads as have reached max coverage";
                                 coverageExceeded = true;
                             }
-                        }
-                    };
-
-                    if (fromCompare and threads==1) {
-                        //no need to sync
-                        checkMaxCovgExceededFunction();
-                    }else {
-                        //need to sync
-                        #pragma omp critical(covg)
-                        {
-                            checkMaxCovgExceededFunction();
                         }
                     }
 
