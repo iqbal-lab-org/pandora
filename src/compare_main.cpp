@@ -363,10 +363,14 @@ int pandora_compare(int argc, char *argv[]) {
             vector<KmerNodePtr> kmp;
             vector<LocalNodePtr> lmp;
 
-            local_prg.add_consensus_path_to_fastaq(consensus_fq,
-                                                   c->second,
-                                                   kmp, lmp, w,
-                                                   bin, covg, 0, true);
+            //TODO: improve this critical
+            #pragma omp critical(add_consensus_path_to_fastaq)
+            {
+                local_prg.add_consensus_path_to_fastaq(consensus_fq,
+                                                       c->second,
+                                                       kmp, lmp, w,
+                                                       bin, covg, 0, true);
+            }
 
             if (kmp.empty()) {
                 c = pangraph_sample->remove_node(c->second);
