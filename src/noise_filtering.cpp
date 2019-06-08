@@ -179,7 +179,7 @@ void construct_debruijn_graph(std::shared_ptr<pangenome::Graph> pangraph, debrui
         hashed_ids.clear();
 
         for (uint32_t i = 0; i < r.second->get_nodes().size(); ++i) {
-            hashed_ids.push_back(node_plus_orientation_to_num(r.second->get_nodes()[i]->node_id,
+            hashed_ids.push_back(node_plus_orientation_to_num(r.second->get_nodes()[i].lock()->node_id,
                                                               r.second->node_orientations[i]));
 
             if (hashed_ids.size() == dbg.size) {
@@ -205,7 +205,7 @@ void remove_leaves(std::shared_ptr<pangenome::Graph> pangraph,
     std::vector<uint_least32_t> node_ids;
     std::vector<bool> node_orients;
     std::pair<uint32_t, uint32_t> pos;
-    pangenome::NodePtr node;
+    pangenome::WeakNodePtr node;
 
     while (leaves_exist) {
 
@@ -233,7 +233,7 @@ void remove_leaves(std::shared_ptr<pangenome::Graph> pangraph,
             for (const auto &r : dbg.nodes[i]->read_ids) {
                 std::cout << "remove from read " << r << ": ";
                 for (const auto &n : pangraph->reads[r]->get_nodes()) {
-                    std::cout << n->node_id << " ";
+                    std::cout << n.lock()->node_id << " ";
                 }
                 std::cout << std::endl;
                 if (pangraph->reads[r]->get_nodes().size() == dbg.size) {
@@ -247,22 +247,23 @@ void remove_leaves(std::shared_ptr<pangenome::Graph> pangraph,
                     assert(pos.first == 0 or pos.first + node_ids.size() == pangraph->reads[r]->get_nodes().size());
                     if (pos.first == 0) {
                         node = pangraph->reads[r]->get_nodes()[0];
-                        pangraph->reads[r]->remove_node(pangraph->reads[r]->get_nodes().begin());
-                        node->remove_read(pangraph->reads[r]);
+                        pangraph->reads[r]->remove_all_nodes_with_this_id(pangraph->reads[r]->get_nodes().begin()->lock()->node_id);
+                        node.lock()->remove_read(pangraph->reads[r]);
                     } else if (pos.first + node_ids.size() == pangraph->reads[r]->get_nodes().size()) {
                         node = pangraph->reads[r]->get_nodes().back();
-                        pangraph->reads[r]->remove_node(--pangraph->reads[r]->get_nodes().end());
-                        node->remove_read(pangraph->reads[r]);
+                        pangraph->reads[r]->remove_all_nodes_with_this_id((--pangraph->reads[r]->get_nodes().end())->lock()->node_id);
+                        node.lock()->remove_read(pangraph->reads[r]);
                     }
                     std::cout << "read is now " << r << ": ";
                     for (const auto &n : pangraph->reads[r]->get_nodes()) {
-                        std::cout << n->node_id << " ";
+                        std::cout << n.lock()->node_id << " ";
                     }
                     std::cout << "done" << std::endl;
                 }
             }
-            if (node and node->covg == 0) {
-                pangraph->remove_node(node);
+            auto nodeSharedPtrFromWeakPtr = node.lock();
+            if (nodeSharedPtrFromWeakPtr and nodeSharedPtrFromWeakPtr->covg == 0) {
+                pangraph->remove_node(nodeSharedPtrFromWeakPtr);
             }
 
             // remove dbg node
@@ -394,13 +395,13 @@ void filter_unitigs(std::shared_ptr<pangenome::Graph> pangraph,
             for (const auto &r : reads_along_tig) {
                 std::cout << "read " << r->id << " was ";
                 for (const auto &n : r->get_nodes()) {
-                    std::cout << n->node_id << " ";
+                    std::cout << n.lock()->node_id << " ";
                 }
                 std::cout << std::endl;
                 remove_middle_nodes_of_tig_from_read(pangraph, dbg, r, node_ids, node_orients);
                 std::cout << "read " << r->id << " is now ";
                 for (const auto &n : r->get_nodes()) {
-                    std::cout << n->node_id << " ";
+                    std::cout << n.lock()->node_id << " ";
                 }
                 std::cout << std::endl;
             }
