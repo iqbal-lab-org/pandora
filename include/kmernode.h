@@ -20,13 +20,13 @@ typedef std::weak_ptr<KmerNode> WeakKmerNodePtr;
 class KmerNode { //represent a kmer-minimizer in the KmerGraph
 private:
     std::vector<WeakKmerNodePtr>::const_iterator findNodePtrInNodesVector(const std::vector<WeakKmerNodePtr> &nodesVector, const KmerNodePtr &rhs) const {
-        find_if(nodesVector.begin(), nodesVector.end(), [&rhs](const WeakKmerNodePtr &lhs) {
+        return find_if(nodesVector.begin(), nodesVector.end(), [&rhs](const WeakKmerNodePtr &lhs) {
             return lhs.lock() == rhs;
         });
     }
 
     std::vector<WeakKmerNodePtr>::const_iterator findNodeInNodesVector(const std::vector<WeakKmerNodePtr> &nodesVector, const KmerNode &rhs) const {
-        find_if(nodesVector.begin(), nodesVector.end(), [&rhs](const WeakKmerNodePtr &lhs) {
+        return find_if(nodesVector.begin(), nodesVector.end(), [&rhs](const WeakKmerNodePtr &lhs) {
             return *(lhs.lock()) == rhs;
         });
     }
