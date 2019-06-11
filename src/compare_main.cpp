@@ -443,6 +443,12 @@ int pandora_compare(int argc, char *argv[]) {
 
         BOOST_LOG_TRIVIAL(debug) << " c.first: " << node_id << " prgs[c.first]->name: " << prg_ptr->name;
         pangraph_node.construct_multisample_vcf(master_vcf, vcf_reference_path, prg_ptr, w, min_kmer_covg);
+
+        #pragma omp critical(master_vcf)
+        {
+            if (pangraph_node_index%20 == 0)
+                master_vcf.save(outdir + "/pandora_multisample_consensus.vcf." + to_string(pangraph_node_index), true, true, true, true, true, true, true);
+        }
     }
 
 
