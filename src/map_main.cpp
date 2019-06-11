@@ -59,7 +59,7 @@ static void show_map_usage() {
               << "\t--max_covg\t\t\tMaximum average coverage from reads to accept\n"
               << "\t--genotype\t\t\tAdd extra step to carefully genotype sites\n"
               << "\t--snps_only\t\t\tWhen genotyping, include only snp sites\n"
-              << "\t--discover\t\t\tAdd denovo discovery\n"
+              << "\t-d,--discover\t\t\tAdd denovo discovery\n"
               << "\t--denovo_kmer_size\t\t\tKmer size to use for denovo discovery\n"
               << "\t--log_level\t\t\tdebug,[info],warning,error\n"
               << std::endl;
@@ -243,7 +243,7 @@ int pandora_map(int argc, char *argv[]) {
             genotype = true;
         } else if ((arg == "--snps_only")) {
             snps_only = true;
-        } else if ((arg == "--discover")) {
+        } else if ((arg == "--discover") || (arg == "-d")) {
             discover_denovo = true;
         } else if ((arg == "--log_level")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
