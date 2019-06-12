@@ -396,10 +396,12 @@ int pandora_compare(int argc, char *argv[]) {
 
     // load vcf refs
     VCFRefs vcf_refs; //no need to control this variable - read only
-    std::string vcf_ref;
-    if (!vcf_refs_file.empty()) {
-        vcf_refs.reserve(prgs.size());
-        load_vcf_refs_file(vcf_refs_file, vcf_refs);
+    {
+        std::string vcf_ref;
+        if (!vcf_refs_file.empty()) {
+            vcf_refs.reserve(prgs.size());
+            load_vcf_refs_file(vcf_refs_file, vcf_refs);
+        }
     }
 
     //all sample names - read only variable - no need to control
@@ -411,13 +413,29 @@ int pandora_compare(int argc, char *argv[]) {
     //shared variable - controlled by critical(vcf_ref_fa)
     Fastaq vcf_ref_fa(true, false);
 
+    //shared variable - controlled by critical(VCFPathsToBeConcatenated)
+    std::vector<std::string> VCFPathsToBeConcatenated;
+
+    //shared variable - controlled by critical(VCFGenotypedPathsToBeConcatenated)
+    std::vector<std::string> VCFGenotypedPathsToBeConcatenated;
+
     //create the dir that will contain all vcfs
+    const int nbOfVCFsPerDir=4000;
     auto VCFsDirs = outdir + "/VCFs";
     fs::create_directories(VCFsDirs);
     //create the dirs for the VCFs
-    const int nbOfVCFsPerDir=4000;
     for (uint32_t i = 0; i <= pangraph->nodes.size()/nbOfVCFsPerDir; ++i)
         fs::create_directories(VCFsDirs + "/" + int_to_string(i + 1));
+
+    //create the dirs for the VCFs genotyped, if flag is passed
+    auto VCFsGenotypedDirs = outdir + "/VCFs_genotyped";
+    if (genotype) {
+        for (uint32_t i = 0; i <= pangraph->nodes.size()/nbOfVCFsPerDir; ++i)
+            fs::create_directories(VCFsGenotypedDirs + "/" + int_to_string(i + 1));
+    }
+
+
+
 
     //transforms to a vector to parallelize this
     //TODO: use OMP task instead?
@@ -435,7 +453,7 @@ int pandora_compare(int argc, char *argv[]) {
 
         const auto &prg_id = pangraph_node.prg_id;
         assert(prgs.size() > prg_id);
-        const auto& prg_ptr = prgs[prg_id];
+        const auto &prg_ptr = prgs[prg_id];
 
         const auto vcf_reference_path = pangraph->infer_node_vcf_reference_path(pangraph_node, prg_ptr, w, vcf_refs);
 
@@ -447,22 +465,51 @@ int pandora_compare(int argc, char *argv[]) {
         BOOST_LOG_TRIVIAL(debug) << " c.first: " << node_id << " prgs[c.first]->name: " << prg_ptr->name;
 
         //output the vcf for this sample
-        uint32_t dir = pangraph_node_index/nbOfVCFsPerDir + 1;
-        pangraph_node.construct_sample_vcf(VCFsDirs + "/" + int_to_string(dir), sample_names, vcf_reference_path, prg_ptr, w, min_kmer_covg);
+        VCF vcf;
+
+        //add all samples to the vcf
+        vcf.add_samples(sample_names);
+        assert( vcf.samples.size() == samples.size());
+
+        //build the vcf
+        pangraph_node.construct_sample_vcf(vcf, vcf_reference_path, prg_ptr, w, min_kmer_covg);
+
+        //save the vcf to disk
+        uint32_t dir = pangraph_node.node_id / nbOfVCFsPerDir + 1; //get the good dir for this sample vcf
+        auto vcfPath = VCFsDirs + "/" + int_to_string(dir) + "/" + prg_ptr->name + ".vcf";
+        vcf.save(vcfPath, true, true, true, true, true, true, true);
+
+        //add the vcf path to VCFPathsToBeConcatenated to concatenate after
+        #pragma omp critical(VCFPathsToBeConcatenated)
+        {
+            VCFPathsToBeConcatenated.push_back(vcfPath);
+        }
+
+
+        if (genotype) {
+            //genotype
+            vcf.genotype(exp_depth_covgs, genotyping_error_rate, confidence_threshold, min_allele_covg_gt,
+                         min_allele_fraction_covg_gt,
+                         min_total_covg_gt, min_diff_covg_gt, false);
+
+            //save the genotyped vcf to disk
+            auto vcfGenotypedPath = VCFsGenotypedDirs + "/" + int_to_string(dir) + "/" + prg_ptr->name + "_genotyped.vcf";
+            vcf.save(vcfGenotypedPath, true, true, true, true, true, true, true);
+
+            //add the genotyped vcf path to VCFGenotypedPathsToBeConcatenated to concatenate after
+            #pragma omp critical(VCFGenotypedPathsToBeConcatenated)
+            {
+                VCFGenotypedPathsToBeConcatenated.push_back(vcfGenotypedPath);
+            }
+        }
     }
 
-
-    //master_vcf.save(outdir + "/pandora_multisample_consensus.vcf", true, true, true, true, true, true, true);
+    //generate all the multisample files
     vcf_ref_fa.save(outdir + "/pandora_multisample.vcf_ref.fa");
+    VCF::concatenateVCFs(VCFPathsToBeConcatenated, outdir + "/pandora_multisample_consensus.vcf");
+    if (genotype)
+        VCF::concatenateVCFs(VCFGenotypedPathsToBeConcatenated, outdir + "/pandora_multisample_genotyped.vcf");
 
-    /*
-     * TODO: temporarily removed
-    if (genotype) {
-        master_vcf.genotype(exp_depth_covgs, genotyping_error_rate, confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
-                            min_total_covg_gt, min_diff_covg_gt, false);
-        master_vcf.save(outdir + "/pandora_multisample_genotyped.vcf", true, true, true, true, true, true, true);
-    }
-     */
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
     BOOST_LOG_TRIVIAL(info) << "Output matrix";

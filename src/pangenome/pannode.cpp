@@ -113,14 +113,14 @@ void pangenome::Node::get_read_overlap_coordinates(std::vector<std::vector<uint3
 
 }
 
-void pangenome::Node::construct_sample_vcf(const string &dir, const std::vector<std::string> &sample_names,
+void pangenome::Node::construct_sample_vcf(VCF &master_vcf,
                                      const std::vector<LocalNodePtr> &vcf_reference_path,
                                      const std::shared_ptr<LocalPRG> &prg, const uint32_t w,
                                      const uint32_t &min_kmer_covg) {
     // create a vcf with respect to this ref
     VCF vcf;
     prg->build_vcf(vcf, vcf_reference_path);
-    vcf.add_samples(sample_names);
+    vcf.add_samples(master_vcf.samples);
 
     BOOST_LOG_TRIVIAL(debug) << "Initial build:\n" << vcf;
 
@@ -148,7 +148,7 @@ void pangenome::Node::construct_sample_vcf(const string &dir, const std::vector<
     BOOST_LOG_TRIVIAL(debug) << "After merging alleles:\n" << vcf;
     vcf.correct_dot_alleles(prg->string_along_path(vcf_reference_path), prg->name);
     BOOST_LOG_TRIVIAL(debug) << "After fixing dot alleles:\n" << vcf;
-    vcf.save(dir+"/"+prg->name+".vcf", true, true, true, true, true, true, true);
+    master_vcf.append_vcf(vcf);
 }
 
 bool pangenome::Node::operator==(const Node &y) const {

@@ -44,7 +44,7 @@ public:
     get_read_overlap_coordinates(const prg::Path &local_path, const uint32_t &min_number_hits = 2);
 
     void
-    construct_sample_vcf(const string &dir, const std::vector<std::string> &sample_names,
+    construct_sample_vcf(VCF &master_vcf,
                          const std::vector<LocalNodePtr> &vcf_reference_path,
                          const std::shared_ptr<LocalPRG> &prg, const uint32_t w,
                          const uint32_t &min_kmer_covg);
