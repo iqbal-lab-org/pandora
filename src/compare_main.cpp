@@ -402,19 +402,22 @@ int pandora_compare(int argc, char *argv[]) {
         load_vcf_refs_file(vcf_refs_file, vcf_refs);
     }
 
-
-
-
-    //shared variable - controlled by critical(master_vcf)
-    VCF master_vcf;
+    //all sample names - read only variable - no need to control
     std::vector<std::string> sample_names = {};
     for (const auto & sample : samples)
         sample_names.push_back(sample.first);
-    master_vcf.add_samples(sample_names);
-    assert( master_vcf.samples.size() == samples.size());
+
 
     //shared variable - controlled by critical(vcf_ref_fa)
     Fastaq vcf_ref_fa(true, false);
+
+    //create the dir that will contain all vcfs
+    auto VCFsDirs = outdir + "/VCFs";
+    fs::create_directories(VCFsDirs);
+    //create the dirs for the VCFs
+    const int nbOfVCFsPerDir=4000;
+    for (uint32_t i = 0; i <= pangraph->nodes.size()/nbOfVCFsPerDir; ++i)
+        fs::create_directories(VCFsDirs + "/" + int_to_string(i + 1));
 
     //transforms to a vector to parallelize this
     //TODO: use OMP task instead?
@@ -442,18 +445,24 @@ int pandora_compare(int argc, char *argv[]) {
         }
 
         BOOST_LOG_TRIVIAL(debug) << " c.first: " << node_id << " prgs[c.first]->name: " << prg_ptr->name;
-        pangraph_node.construct_multisample_vcf(master_vcf, vcf_reference_path, prg_ptr, w, min_kmer_covg);
+
+        //output the vcf for this sample
+        uint32_t dir = pangraph_node_index/nbOfVCFsPerDir + 1;
+        pangraph_node.construct_sample_vcf(VCFsDirs + "/" + int_to_string(dir), sample_names, vcf_reference_path, prg_ptr, w, min_kmer_covg);
     }
 
 
-    master_vcf.save(outdir + "/pandora_multisample_consensus.vcf", true, true, true, true, true, true, true);
+    //master_vcf.save(outdir + "/pandora_multisample_consensus.vcf", true, true, true, true, true, true, true);
     vcf_ref_fa.save(outdir + "/pandora_multisample.vcf_ref.fa");
 
+    /*
+     * TODO: temporarily removed
     if (genotype) {
         master_vcf.genotype(exp_depth_covgs, genotyping_error_rate, confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
                             min_total_covg_gt, min_diff_covg_gt, false);
         master_vcf.save(outdir + "/pandora_multisample_genotyped.vcf", true, true, true, true, true, true, true);
     }
+     */
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
     BOOST_LOG_TRIVIAL(info) << "Output matrix";
