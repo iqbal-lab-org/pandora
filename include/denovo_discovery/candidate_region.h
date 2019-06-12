@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <algorithm>
+#include <numeric>
+#include <cmath>
 #include <set>
 #include "interval.h"
 #include "denovo_utils.h"
@@ -81,6 +83,14 @@ private:
 std::vector<Interval> identify_low_coverage_intervals(const std::vector<uint32_t> &covg_at_each_position,
                                                       const uint32_t &min_required_covg = 2,
                                                       const uint32_t &min_length = 5);
+
+std::vector<Interval> find_coverage_anomalies(const std::vector<uint32_t> &per_base_coverage,
+                                              const uint_least32_t min_dist_between_candidates);
+
+std::vector<Interval> collapse_candidate_indicies_into_intervals(const std::vector<uint_least32_t> &candidate_idxs,
+                                                                 const uint_least32_t min_dist_between_candidates);
+
+std::vector<double> transform_to_log_change(const std::vector<uint32_t> &per_base_coverage);
 
 using CandidateRegions = std::unordered_map<CandidateRegionIdentifier, CandidateRegion>;
 

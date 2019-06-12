@@ -1051,3 +1051,164 @@ TEST(WriteDenovoPathsToFileTest, twoReadsWritesTwoReadsToFile) {
 
     EXPECT_EQ(actual, expected);
 }
+
+
+TEST(TransformToLogChangeTest, emptyInEmptyOut) {
+    const std::vector<uint32_t> coverage;
+
+    std::vector<double> expected;
+    const auto actual { transform_to_log_change(coverage) };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(TransformToLogChangeTest, oneElementInCoverageReturnEmpty) {
+    const std::vector<uint32_t> coverage { 4 };
+
+    std::vector<double> expected;
+    const auto actual { transform_to_log_change(coverage) };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(TransformToLogChangeTest, twoElementsInCoverageReturnCorrectResult) {
+    const std::vector<uint32_t> coverage { 4, 9 };
+
+    std::vector<double> expected { 0.6931471805599453 };
+    const auto actual { transform_to_log_change(coverage) };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(TransformToLogChangeTest, zeroesInCoverageReturnCorrectResult) {
+    const std::vector<uint32_t> coverage { 4, 0, 0, 9 };
+
+    std::vector<double> expected { -1.6094379124341003, 0.0, 2.302585092994046 };
+    const auto actual { transform_to_log_change(coverage) };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(FindCoverageAnomalies, emptyInEmptyOut) {
+    const std::vector<uint32_t> coverage;
+    const uint_least32_t min_dist_between_candidates { 11 };
+
+    const std::vector<Interval> expected;
+    const auto actual { find_coverage_anomalies(coverage, min_dist_between_candidates) };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(FindCoverageAnomalies, oneElementReturnEmpty) {
+    const std::vector<uint32_t> coverage { 5 };
+    const uint_least32_t min_dist_between_candidates { 11 };
+
+    const std::vector<Interval> expected;
+    const auto actual { find_coverage_anomalies(coverage, min_dist_between_candidates) };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(FindCoverageAnomalies, oneElementAnomalyReturnOneInterval) {
+    const std::vector<uint32_t> coverage { 5, 44, 5, 5, 5 };
+    const uint_least32_t min_dist_between_candidates { 11 };
+
+    const std::vector<Interval> expected { Interval(1, 3) };
+    const auto actual { find_coverage_anomalies(coverage, min_dist_between_candidates) };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(FindCoverageAnomalies, noElementAnomalyReturnEmpty) {
+    const std::vector<uint32_t> coverage { 5, 5, 5, 5, 5 };
+    const uint_least32_t min_dist_between_candidates { 11 };
+
+    const std::vector<Interval> expected;
+    const auto actual { find_coverage_anomalies(coverage, min_dist_between_candidates) };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(FindCoverageAnomalies, singletonAnomalyAtEndReturnLengthOneInterval) {
+    const std::vector<uint32_t> coverage { 5, 5, 5, 5, 44 };
+    const uint_least32_t min_dist_between_candidates { 11 };
+
+    const std::vector<Interval> expected { Interval(4, 5) };
+    const auto actual { find_coverage_anomalies(coverage, min_dist_between_candidates) };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(FindCoverageAnomalies, pairedAnomalyAtEndReturnLengthOfCombinedIntervals) {
+    const std::vector<uint32_t> coverage { 20, 20, 20, 0, 20, 20, 20, 0 };
+    const uint_least32_t min_dist_between_candidates { 2 };
+
+    const std::vector<Interval> expected { Interval(3, 5), Interval(7, 8) };
+    const auto actual { find_coverage_anomalies(coverage, min_dist_between_candidates) };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(CollapseCandidateIndiciesIntoIntervals, emptyInEmptyOut) {
+    const std::vector<uint32_t> idxs;
+    const uint_least32_t min_dist_between_candidates { 11 };
+
+    const std::vector<Interval> expected;
+    const auto actual { collapse_candidate_indicies_into_intervals(idxs, min_dist_between_candidates) };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(CollapseCandidateIndiciesIntoIntervals, singletonAnomalyAtStartReturnLengthOneInterval) {
+    const std::vector<uint32_t> idxs { 1 };
+    const uint_least32_t min_dist_between_candidates { 11 };
+
+    const std::vector<Interval> expected { Interval(1, 2) };
+    const auto actual { collapse_candidate_indicies_into_intervals(idxs, min_dist_between_candidates) };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(CollapseCandidateIndiciesIntoIntervals, closeAnomalyAtStartReturnLengthOfBothInterval) {
+    const std::vector<uint32_t> idxs { 2, 9 };
+    const uint_least32_t min_dist_between_candidates { 11 };
+
+    const std::vector<Interval> expected { Interval(2, 10) };
+    const auto actual { collapse_candidate_indicies_into_intervals(idxs, min_dist_between_candidates) };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(CollapseCandidateIndiciesIntoIntervals, closeAnomalyAtEndReturnLengthOfBothInterval) {
+    const std::vector<uint32_t> idxs { 3, 20, 22 };
+    const uint_least32_t min_dist_between_candidates { 11 };
+
+    const std::vector<Interval> expected { Interval(3, 4), Interval(20, 23) };
+    const auto actual { collapse_candidate_indicies_into_intervals(idxs, min_dist_between_candidates) };
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(CollapseCandidateIndiciesIntoIntervals, mixOfAnomaly) {
+    const std::vector<uint32_t> idxs { 3, 20, 22, 35, 40, 51, 70 };
+    const uint_least32_t min_dist_between_candidates { 11 };
+
+    const std::vector<Interval> expected { Interval(3, 4), Interval(20, 23), Interval(35, 52), Interval(70, 71) };
+    const auto actual { collapse_candidate_indicies_into_intervals(idxs, min_dist_between_candidates) };
+
+    EXPECT_EQ(actual, expected);
+}
