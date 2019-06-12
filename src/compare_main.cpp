@@ -444,7 +444,7 @@ int pandora_compare(int argc, char *argv[]) {
     for (auto pan_id_to_node_mapping = pangraph->nodes.begin(); pan_id_to_node_mapping != pangraph->nodes.end(); ++pan_id_to_node_mapping)
         pangraphNodesAsVector.push_back(*pan_id_to_node_mapping);
 
-    #pragma omp parallel for num_threads(threads) schedule(dynamic, 3)
+    #pragma omp parallel for num_threads(threads) schedule(dynamic, 1)
     for (uint32_t pangraph_node_index=0; pangraph_node_index < pangraphNodesAsVector.size(); ++pangraph_node_index) {
         const auto &pangraph_node_entry = pangraphNodesAsVector[pangraph_node_index];
         BOOST_LOG_TRIVIAL(debug) << "Consider next node";
@@ -462,8 +462,6 @@ int pandora_compare(int argc, char *argv[]) {
             vcf_ref_fa.add_entry(prg_ptr->name, prg_ptr->string_along_path(vcf_reference_path), "");
         }
 
-        BOOST_LOG_TRIVIAL(debug) << " c.first: " << node_id << " prgs[c.first]->name: " << prg_ptr->name;
-
         //output the vcf for this sample
         VCF vcf;
 
@@ -475,7 +473,7 @@ int pandora_compare(int argc, char *argv[]) {
         pangraph_node.construct_sample_vcf(vcf, vcf_reference_path, prg_ptr, w, min_kmer_covg);
 
         //save the vcf to disk
-        uint32_t dir = pangraph_node.node_id / nbOfVCFsPerDir + 1; //get the good dir for this sample vcf
+        uint32_t dir = pangraph_node_index / nbOfVCFsPerDir + 1; //get the good dir for this sample vcf
         auto vcfPath = VCFsDirs + "/" + int_to_string(dir) + "/" + prg_ptr->name + ".vcf";
         vcf.save(vcfPath, true, true, true, true, true, true, true);
 

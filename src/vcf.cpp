@@ -616,6 +616,7 @@ void VCF::concatenateVCFs(const std::vector<std::string> &VCFPathsToBeConcatenat
                 outFile << line << std::endl;
         }
         headerIsOutput = true;
+        inFile.close();
     }
     outFile.close();
 }
