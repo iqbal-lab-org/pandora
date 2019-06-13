@@ -13,6 +13,7 @@ namespace pangenome {
     class Graph;
 
     typedef std::shared_ptr<pangenome::Node> NodePtr;
+    typedef std::weak_ptr<pangenome::Node> WeakNodePtr;
     typedef std::shared_ptr<pangenome::Read> ReadPtr;
     typedef std::shared_ptr<pangenome::Sample> SamplePtr;
 }

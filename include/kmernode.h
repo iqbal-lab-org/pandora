@@ -8,23 +8,53 @@ class KmerNode;
 #include <vector>
 #include <ostream>
 #include <memory>
+#include <algorithm>
 
 #include "prg/path.h"
 #include "pangenome/ns.cpp"
 
 
 typedef std::shared_ptr<KmerNode> KmerNodePtr;
+typedef std::weak_ptr<KmerNode> WeakKmerNodePtr;
 
 class KmerNode { //represent a kmer-minimizer in the KmerGraph
+private:
+    std::vector<WeakKmerNodePtr>::const_iterator findNodePtrInNodesVector(const std::vector<WeakKmerNodePtr> &nodesVector, const KmerNodePtr &rhs) const {
+        return find_if(nodesVector.begin(), nodesVector.end(), [&rhs](const WeakKmerNodePtr &lhs) {
+            return lhs.lock() == rhs;
+        });
+    }
+
+    std::vector<WeakKmerNodePtr>::const_iterator findNodeInNodesVector(const std::vector<WeakKmerNodePtr> &nodesVector, const KmerNode &rhs) const {
+        return find_if(nodesVector.begin(), nodesVector.end(), [&rhs](const WeakKmerNodePtr &lhs) {
+            return *(lhs.lock()) == rhs;
+        });
+    }
+
+
 
 public:
     //attributes (TODO: protect these? only this class should operate in these attributes, move logic that change them to here?)
     uint32_t id;
     prg::Path path; //the path of the kmer in the LocalPRG
-    std::vector<KmerNodePtr> outNodes; // representing edges from this node to the nodes in the vector
-    std::vector<KmerNodePtr> inNodes; // representing edges from other nodes to this node
+    std::vector<WeakKmerNodePtr> outNodes; // representing edges from this node to the nodes in the vector
+    std::vector<WeakKmerNodePtr> inNodes; // representing edges from other nodes to this node
     uint64_t khash; //the kmer hash value
     uint8_t num_AT; // the number of As and Ts in this kmer
+
+    std::vector<WeakKmerNodePtr>::const_iterator findNodePtrInOutNodes(const KmerNodePtr &rhs) const {
+        return findNodePtrInNodesVector(outNodes, rhs);
+    }
+    std::vector<WeakKmerNodePtr>::const_iterator findNodePtrInInNodes(const KmerNodePtr &rhs) const {
+        return findNodePtrInNodesVector(inNodes, rhs);
+    }
+    std::vector<WeakKmerNodePtr>::const_iterator findNodeInOutNodes(const KmerNode &rhs) const {
+        return findNodeInNodesVector(outNodes, rhs);
+    }
+
+    std::vector<WeakKmerNodePtr>::const_iterator findNodeInInNodes(const KmerNode &rhs) const {
+        return findNodeInNodesVector(inNodes, rhs);
+    }
 
     //constructors and assignment operators
     KmerNode(uint32_t, const prg::Path &);

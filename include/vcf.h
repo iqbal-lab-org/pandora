@@ -82,6 +82,8 @@ public:
 
     bool operator!=(const VCF &y) const;
 
+    static void concatenateVCFs(const std::vector<std::string> &VCFPathsToBeConcatenated, const std::string &sink);
+
     friend std::ostream &operator<<(std::ostream &out, const VCF &m);
 };
 

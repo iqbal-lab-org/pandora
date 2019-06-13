@@ -108,7 +108,7 @@ void record_read_info(ReadPtr &read_ptr,
     read_ptr->add_hits(node_ptr->node_id, cluster);
     bool orientation = !cluster.empty() and (*cluster.begin())->is_forward();
     if (read_ptr->get_nodes().empty()
-        or node_ptr != read_ptr->get_nodes().back()
+        or node_ptr != read_ptr->get_nodes().back().lock()
         or orientation != read_ptr->node_orientations.back()
         //or we think there really are 2 copies of gene
             ) {
@@ -169,7 +169,7 @@ std::unordered_map<uint32_t, NodePtr>::iterator pangenome::Graph::remove_node(No
     //cout << "Remove graph node " << *n << endl;
     // removes all instances of node n and references to it in reads
     for (const auto &r : n->reads) {
-        r->remove_node(n);
+        r->remove_all_nodes_with_this_id(n->node_id);
     }
 
     auto it = nodes.find(n->node_id);
@@ -185,23 +185,23 @@ std::unordered_map<uint32_t, NodePtr>::iterator pangenome::Graph::remove_node(No
 void pangenome::Graph::remove_read(const uint32_t read_id) {
     for (const auto &n : reads[read_id]->nodes) {
         //cout << "looking at read node " << n->node_id;
-        n->covg -= 1;
-        n->reads.erase(reads[read_id]);
-        if (n->covg == 0) {
-            remove_node(n);
+        auto nSharedPtr = n.lock();
+        nSharedPtr->covg -= 1;
+        nSharedPtr->reads.erase(reads[read_id]);
+        if (nSharedPtr->covg == 0) {
+            remove_node(nSharedPtr);
         }
     }
     reads.erase(read_id);
 }
 
 // Remove a single instance of a node from a read while iterating through the nodes of the read
-std::vector<NodePtr>::iterator pangenome::Graph::remove_node_from_read(std::vector<NodePtr>::iterator node_it, ReadPtr read_ptr) {
+std::vector<WeakNodePtr>::iterator pangenome::Graph::remove_node_from_read(std::vector<WeakNodePtr>::iterator node_it, ReadPtr read_ptr) {
+    auto node_ptr = node_it->lock();
 
-    BOOST_LOG_TRIVIAL(debug) << "remove node " << (*node_it)->node_id << " from read " << read_ptr->id;
-    NodePtr node_ptr = *node_it;
-
+    BOOST_LOG_TRIVIAL(debug) << "remove node " << node_ptr->node_id << " from read " << read_ptr->id;
     // remove node from read
-    node_it = read_ptr->remove_node(node_it);
+    node_it = read_ptr->remove_node_with_iterator(node_it);
 
     // remove read from node
     auto read_it = node_ptr->reads.find(read_ptr);
@@ -254,7 +254,6 @@ void pangenome::Graph::split_node_by_reads(std::unordered_set<ReadPtr> &reads_al
     nodes[next_id] = n;
 
     // switch old node to new node in reads
-    std::vector<NodePtr>::iterator it;
     std::unordered_multiset<ReadPtr>::iterator rit;
     std::pair<uint32_t, uint32_t> pos;
     for (const auto &r : reads_along_tig) {
@@ -266,13 +265,13 @@ void pangenome::Graph::split_node_by_reads(std::unordered_set<ReadPtr> &reads_al
 
         //find iterator to the node in the read
         pos = r->find_position(node_ids, node_orients);
-        it = std::find(r->nodes.begin() + pos.first, r->nodes.end(), nodes[node_id]);
+        auto it = r->find_node_by_id(node_id);
 
         // replace the node in the read
         if (it != r->nodes.end()) {
             //cout << "replace node " << (*it)->node_id << " in this read" << endl;
             //cout << "read was " << *r << endl;
-            r->replace_node(it, n);
+            r->replace_node_with_iterator(it, n);
             //cout << "read is now " << *r << endl;
             nodes[node_id]->reads.erase(rit);
             nodes[node_id]->covg -= 1;

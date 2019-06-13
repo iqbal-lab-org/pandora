@@ -23,6 +23,12 @@ Read::~Read() {
         delete minihit;
 }
 
+std::vector<WeakNodePtr>::iterator Read::find_node_by_id (uint32_t node_id) {
+    return find_if(nodes.begin(), nodes.end(), [&node_id](const WeakNodePtr &weakNodePtr) {
+        return weakNodePtr.lock()->node_id == node_id;
+    });
+}
+
 void Read::add_hits(const uint32_t prg_id, std::set<MinimizerHitPtr, pComp> &cluster) {
 /*
     if (hits.find(prg_id) == hits.end()) {
@@ -103,14 +109,14 @@ Read::find_position(const std::vector<uint_least32_t> &node_ids, const std::vect
     for (uint32_t i = 0; i < nodes.size(); ++i) {
         //cout << "compare nodes pos " << i << " with node_ids 0" << endl;
         // if first node matches at position i going forwards...
-        if (nodes[i]->node_id == node_ids[0] and node_orientations[i] == node_orients[0]) {
+        if (nodes[i].lock()->node_id == node_ids[0] and node_orientations[i] == node_orients[0]) {
             //cout << "start node " << i << " fwd " << nodes[i]->node_id << " " << node_orientations[i];
             //cout << " matches " << node_ids[0] << " and " << node_orients[0] << endl;
 
             search_pos = 0;
             found_pos = 0;
             while (i + found_pos < nodes.size()
-                   and nodes[i + found_pos]->node_id == node_ids[search_pos]
+                   and nodes[i + found_pos].lock()->node_id == node_ids[search_pos]
                    and node_orientations[i + found_pos] == node_orients[search_pos]) {
                 //cout << "fwd " << search_pos << " " << i + found_pos << endl;
                 if (search_pos == node_ids.size() - 1 or i + found_pos == nodes.size() - 1) {
@@ -130,7 +136,7 @@ Read::find_position(const std::vector<uint_least32_t> &node_ids, const std::vect
         // first <size_overhang> nodes
         //cout << "compare nodes pos " << 0 << " with node_ids " << i + node_ids.size() - nodes.size() << endl;
         if (i + node_ids.size() > nodes.size()
-            and nodes[0]->node_id == node_ids[i + node_ids.size() - nodes.size()]
+            and nodes[0].lock()->node_id == node_ids[i + node_ids.size() - nodes.size()]
             and node_orientations[0] == node_orients[i + node_orients.size() - nodes.size()]) {
 
             //cout << "start node " << i << " truncated fwd " << nodes[0]->node_id;
@@ -141,7 +147,7 @@ Read::find_position(const std::vector<uint_least32_t> &node_ids, const std::vect
             search_pos = i + node_ids.size() - nodes.size();
             found_pos = 0;
             while (found_pos < nodes.size()
-                   and nodes[found_pos]->node_id == node_ids[search_pos]
+                   and nodes[found_pos].lock()->node_id == node_ids[search_pos]
                    and node_orientations[found_pos] == node_orients[search_pos]) {
                 //cout << "fwd " << search_pos << " " << found_pos << endl;
                 if (search_pos == node_ids.size() - 1 or found_pos == nodes.size() - 1) {
@@ -157,7 +163,7 @@ Read::find_position(const std::vector<uint_least32_t> &node_ids, const std::vect
         }
 
         //cout << "compare nodes pos " << nodes.size() -1 -i << " with node_ids " << 0 << endl;
-        if (nodes[nodes.size() - 1 - i]->node_id == node_ids[0]
+        if (nodes[nodes.size() - 1 - i].lock()->node_id == node_ids[0]
             and node_orientations[node_orientations.size() - 1 - i] == !node_orients[0]) {
             //cout << "start node " << i << " bwd " << nodes[nodes.size() -1 -i]->node_id;
             //cout << " " << node_orientations[nodes.size() -1 -i];
@@ -166,7 +172,7 @@ Read::find_position(const std::vector<uint_least32_t> &node_ids, const std::vect
             search_pos = 0;
             found_pos = 0;
             while (i + found_pos < nodes.size()
-                   and nodes[nodes.size() - 1 - i - found_pos]->node_id == node_ids[search_pos]
+                   and nodes[nodes.size() - 1 - i - found_pos].lock()->node_id == node_ids[search_pos]
                    and node_orientations[nodes.size() - 1 - i - found_pos] == !node_orients[search_pos]) {
                 //cout << "bwd " << search_pos << " " << nodes.size() -1 -i -found_pos << endl;
                 if (search_pos == node_ids.size() - 1 or i + 1 + found_pos == nodes.size()) {
@@ -188,7 +194,7 @@ Read::find_position(const std::vector<uint_least32_t> &node_ids, const std::vect
         if (i + node_ids.size() > nodes.size()
             //and nodes[nodes.size() -1 -i]->node_id == node_ids[i + node_ids.size() - nodes.size()]
             //and node_orientations[node_orientations.size() -1  -i] == !node_orients[i + node_orients.size() - nodes.size()])
-            and nodes.back()->node_id == node_ids[i + node_ids.size() - nodes.size()]
+            and nodes.back().lock()->node_id == node_ids[i + node_ids.size() - nodes.size()]
             and node_orientations.back() == !node_orients[i + node_orients.size() - nodes.size()]) {
             //cout << "start node " << i << " truncated bwd " << nodes.back()->node_id;
             //cout << " " << node_orientations.back();
@@ -200,7 +206,7 @@ Read::find_position(const std::vector<uint_least32_t> &node_ids, const std::vect
             search_pos = i + node_ids.size() - nodes.size();
             found_pos = 0;
             while (found_pos < nodes.size()
-                   and nodes[nodes.size() - 1 - found_pos]->node_id == node_ids[search_pos]
+                   and nodes[nodes.size() - 1 - found_pos].lock()->node_id == node_ids[search_pos]
                    and node_orientations[nodes.size() - 1 - found_pos] == !node_orients[search_pos]) {
                 //cout << "bwd " << search_pos << " " << found_pos << endl;
                 if (search_pos == node_ids.size() - 1 or i + 1 + found_pos == nodes.size()) {
@@ -218,18 +224,18 @@ Read::find_position(const std::vector<uint_least32_t> &node_ids, const std::vect
     return std::make_pair(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint32_t>::max());
 }
 
-void Read::remove_node(NodePtr n_original) {
+void Read::remove_all_nodes_with_this_id(const uint32_t node_id) {
     //removes all copies of node
-    auto it = find(nodes.begin(), nodes.end(), n_original);
+    auto it = find_node_by_id(node_id);
     while (it != nodes.end()) {
         uint32_t d = distance(nodes.begin(), it);
         nodes.erase(it);
         node_orientations.erase(node_orientations.begin() + d);
-        it = find(nodes.begin(), nodes.end(), n_original);
+        it = find_node_by_id(node_id);
     }
 }
 
-std::vector<NodePtr>::iterator Read::remove_node(std::vector<NodePtr>::iterator nit) {
+std::vector<WeakNodePtr>::iterator Read::remove_node_with_iterator(std::vector<WeakNodePtr>::iterator nit) {
     //(*nit)->covg -= 1;
     uint32_t d = distance(nodes.begin(), nit);
     node_orientations.erase(node_orientations.begin() + d);
@@ -237,7 +243,7 @@ std::vector<NodePtr>::iterator Read::remove_node(std::vector<NodePtr>::iterator 
     return nit;
 }
 
-void Read::replace_node(std::vector<NodePtr>::iterator n_original, NodePtr n) {
+void Read::replace_node_with_iterator(std::vector<WeakNodePtr>::iterator n_original, NodePtr n) {
     //hits[n->node_id].insert(hits[(*n_original)->node_id].begin(),hits[(*n_original)->node_id].end() );
     auto it = nodes.erase(n_original);
     nodes.insert(it, n);
@@ -264,7 +270,7 @@ std::ostream &pangenome::operator<<(std::ostream &out, const pangenome::Read &r)
     out << r.id << "\t";
 
     for (const auto &i : r.nodes) {
-        out << *i << " ";
+        out << *(i.lock()) << " ";
     }
     out << std::endl;
     return out;

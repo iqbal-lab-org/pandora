@@ -604,6 +604,23 @@ bool VCF::operator!=(const VCF &y) const {
     return !(*this == y);
 }
 
+
+void VCF::concatenateVCFs(const std::vector<std::string> &VCFPathsToBeConcatenated, const std::string &sink) {
+    std::ofstream outFile(sink);
+    bool headerIsOutput = false;
+    for (const auto &VCFPath : VCFPathsToBeConcatenated) {
+        std::ifstream inFile(VCFPath);
+        std::string line;
+        while (std::getline(inFile, line)) {
+            if ((line[0]!='#') || (line[0]=='#' && headerIsOutput==false))
+                outFile << line << std::endl;
+        }
+        headerIsOutput = true;
+        inFile.close();
+    }
+    outFile.close();
+}
+
 std::ostream &operator<<(std::ostream &out, VCF const &m) {
     for (const auto &record : m.records) {
         out << (*record);

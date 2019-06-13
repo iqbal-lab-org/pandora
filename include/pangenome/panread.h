@@ -18,7 +18,7 @@ private:
     //todo: there are things that can be done here
     //todo: maybe use sdsl?
     std::vector<MinimizerHit*> hits; //store all Minimizer Hits mapping to this read
-    std::vector<NodePtr> nodes;
+    std::vector<WeakNodePtr> nodes;
 
 public:
     const uint32_t id; // corresponding the the read id
@@ -47,15 +47,17 @@ public:
 
         return hitsMap;
     }
-    const std::vector<NodePtr>& get_nodes() const {
+    const std::vector<WeakNodePtr>& get_nodes() const {
         return nodes;
     }
 
     //TODO: this can modify nodes, use with care...
     //TODO: replace this?
-    std::vector<NodePtr>& get_nodes() {
+    std::vector<WeakNodePtr>& get_nodes() {
         return nodes;
     }
+
+    std::vector<WeakNodePtr>::iterator find_node_by_id (uint32_t node_id);
 
     //modifiers
     void add_node(const NodePtr &nodePtr) {
@@ -73,13 +75,13 @@ public:
     std::pair<uint32_t, uint32_t>
     find_position(const std::vector<uint_least32_t> &, const std::vector<bool> &, const uint16_t min_overlap = 1);
 
-    void remove_node(NodePtr);
-
-    std::vector<NodePtr>::iterator remove_node(std::vector<NodePtr>::iterator);
-
     // remove nodes
-    void replace_node(std::vector<NodePtr>::iterator, NodePtr);
+    void remove_all_nodes_with_this_id(uint32_t node_id);
+    std::vector<WeakNodePtr>::iterator remove_node_with_iterator(std::vector<WeakNodePtr>::iterator nit);
+
     // replace nodes
+    void replace_node_with_iterator(std::vector<WeakNodePtr>::iterator n_original, NodePtr n);
+
 
     bool operator==(const Read &y) const;
 

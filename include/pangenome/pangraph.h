@@ -62,7 +62,7 @@ public:
 
     void remove_read(const uint32_t);
 
-    std::vector<NodePtr>::iterator remove_node_from_read(std::vector<NodePtr>::iterator, ReadPtr);
+    std::vector<WeakNodePtr>::iterator remove_node_from_read(std::vector<WeakNodePtr>::iterator, ReadPtr);
 
     void remove_low_covg_nodes(const uint32_t &);
 
