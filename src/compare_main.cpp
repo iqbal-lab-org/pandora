@@ -379,6 +379,12 @@ int pandora_compare(int argc, char *argv[]) {
                       << ". Is your genome_size accurate? Genome size is assumed to be " << genome_size
                       << " and can be updated with --genome_size" << std::endl;
         }
+
+
+        // Note: pangraph_sample is destroyed here and as well as all Read information (pangenome::Graph::reads) about the sample
+        // pangraph does not keep the read information
+        // This is important since this is the heaviest information to keep in compare
+        // pangraph has just coverage information and the consensus path for each sample and PRG
     }
 
     // for each pannode in graph, find a best reference
