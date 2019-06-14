@@ -19,17 +19,18 @@ typedef std::weak_ptr<KmerNode> WeakKmerNodePtr;
 
 class KmerNode { //represent a kmer-minimizer in the KmerGraph
 private:
+    //finder helpers
     std::vector<WeakKmerNodePtr>::const_iterator findNodePtrInNodesVector(const std::vector<WeakKmerNodePtr> &nodesVector, const KmerNodePtr &rhs) const {
         return find_if(nodesVector.begin(), nodesVector.end(), [&rhs](const WeakKmerNodePtr &lhs) {
             return lhs.lock() == rhs;
         });
     }
-
     std::vector<WeakKmerNodePtr>::const_iterator findNodeInNodesVector(const std::vector<WeakKmerNodePtr> &nodesVector, const KmerNode &rhs) const {
         return find_if(nodesVector.begin(), nodesVector.end(), [&rhs](const WeakKmerNodePtr &lhs) {
             return *(lhs.lock()) == rhs;
         });
     }
+    //finder helpers
 
 
 
@@ -42,6 +43,7 @@ public:
     uint64_t khash; //the kmer hash value
     uint8_t num_AT; // the number of As and Ts in this kmer
 
+    //finders of nodes in out/in nodes lists
     std::vector<WeakKmerNodePtr>::const_iterator findNodePtrInOutNodes(const KmerNodePtr &rhs) const {
         return findNodePtrInNodesVector(outNodes, rhs);
     }

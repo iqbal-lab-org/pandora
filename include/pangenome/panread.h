@@ -13,15 +13,13 @@
 
 class pangenome::Read {
 private:
-    //derive this from MinimizerHits?
-    //or maybe keep it here but without the read id, since it is duplicated?
-    //todo: there are things that can be done here
-    //todo: maybe use sdsl?
+    //TODO: derive this from MinimizerHits?
+    //TODO: or maybe keep it here but without the read id, since it is duplicated?
     std::vector<MinimizerHit*> hits; //store all Minimizer Hits mapping to this read
     std::vector<WeakNodePtr> nodes;
 
 public:
-    const uint32_t id; // corresponding the the read id
+    const uint32_t id; //read id
     std::vector<bool> node_orientations;
 
     //constructor/destructors
@@ -30,6 +28,8 @@ public:
 
 
     //getters
+    //TODO: this can be a source of time inneficiency at the cost of using less memory
+    //TODO: check if we should fallback to representing hits as std::unordered_map<uint32_t, std::vector<MinimizerHitPtr>> directly
     std::unordered_map<uint32_t, std::vector<MinimizerHitPtr>> getHits() const {
         std::unordered_map<uint32_t, std::vector<MinimizerHitPtr>> hitsMap; //this will map node_ids from the pangenome::Graph to their minimizer hits
         for (const MinimizerHit * const minihit : hits) {
@@ -50,9 +50,8 @@ public:
     const std::vector<WeakNodePtr>& get_nodes() const {
         return nodes;
     }
-
-    //TODO: this can modify nodes, use with care...
-    //TODO: replace this?
+    //TODO: this getter allows the caller to the private attribute nodes, use with care...
+    //TODO: replace/remove this?
     std::vector<WeakNodePtr>& get_nodes() {
         return nodes;
     }

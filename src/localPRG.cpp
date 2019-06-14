@@ -18,8 +18,8 @@
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 
-LocalPRG::LocalPRG(uint32_t i, const std::string &n, const std::string &p)
-        : next_id(0), buff(" "), next_site(5), id(i), name(n), seq(p), num_hits(2, 0) {
+LocalPRG::LocalPRG(uint32_t i, const std::string &name, const std::string &seq)
+        : next_id(0), buff(" "), next_site(5), id(i), name(name), seq(seq), num_hits(2, 0) {
     std::vector<uint32_t> v; //TODO: v is not used - safe to delete - but is passed as a parameter...
     // avoid error if a prg contains only empty space as it's sequence
     if (seq.find_first_not_of("\t\n\v\f\r") != std::string::npos) {
@@ -412,6 +412,8 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
                         // add to the KmerGraph (kmer_prg) first
                         num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
                         kn = kmer_prg.add_node_with_kh(kmer_path, std::min(kh.first, kh.second), num_AT);
+
+                        //TODO: name these criticals
                         #pragma omp critical
                         { //and now to the index
                             index->add_record(std::min(kh.first, kh.second), id, kmer_path, kn->id,
@@ -461,6 +463,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
                     num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
                     new_kn = kmer_prg.add_node_with_kh(*(v.back()), std::min(kh.first, kh.second), num_AT);
 
+                    //TODO: name these criticals
                     #pragma omp critical
                     {
                         index->add_record(std::min(kh.first, kh.second), id, *(v.back()), new_kn->id,
@@ -502,6 +505,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
                                      std::count(kmer.begin(), kmer.end(), 'T');
                             new_kn = kmer_prg.add_node_with_kh(*(v[j]), std::min(kh.first, kh.second), num_AT);
 
+                            //TODO: name these criticals
                             #pragma omp critical
                             {
                                 index->add_record(std::min(kh.first, kh.second), id, *(v[j]), new_kn->id,
@@ -1413,7 +1417,7 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq, PanNodePtr pnode,
         BOOST_LOG_TRIVIAL(warning) << "Node " << pnode->get_name() << " has no reads";
         return;
     }
-    kmp.reserve(800);
+    kmp.reserve(800); //TODO: check this
 
     BOOST_LOG_TRIVIAL(debug) << "Find maxpath for " << pnode->get_name();
     float ppath;

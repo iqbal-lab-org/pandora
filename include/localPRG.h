@@ -20,12 +20,15 @@
 using PanNodePtr = std::shared_ptr<pangenome::Node>;
 namespace fs = boost::filesystem;
 
+/**
+ * Represents a PRG of the many given as input to pandora
+ */
 class LocalPRG {
-    uint32_t next_id; //internal variables used in some methods - TODO: maybe this should not be an object variable
-    std::string buff; //internal variables used in some methods - TODO: maybe this should not be an object variable
-
-    friend class prg::Path; //for memoization
+private:
+    uint32_t next_id; //TODO: this should be definitely removed - it is a variable that works only in a method, not an object variable
+    std::string buff; //TODO: this should be definitely removed - it is a variable that works only in a method, not an object variable
     std::vector<LocalNodePtr> nodes_along_path_core(const prg::Path &) const;
+
 public:
     uint32_t next_site; //denotes the id of the next variant site to be processed - TODO: maybe this should not be an object variable
     uint32_t id; //id of this LocalPRG in the full graph (first gene is 0, second is 1, and so on...)
@@ -110,7 +113,9 @@ public:
     std::string random_path();
 
 
+    //friends definitions
     friend std::ostream &operator<<(std::ostream &out, const LocalPRG &data);
+    friend class prg::Path; //for memoization
 };
 
 bool operator<(const std::pair<std::vector<LocalNodePtr>, float> &p1,

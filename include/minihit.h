@@ -6,12 +6,15 @@
 #include "minimizer.h"
 #include "minirecord.h"
 
-//TODO: here we have one MinimizerHit for each (read_id, read_start_position, read_strand) and MiniRecord
-//TODO: we could make one (read_id, read_start_position, read_strand) and a vector of MiniRecord
+/**
+ * Describes a hit between a read an a minimizer from the PRG
+ * TODO: Possible improvement (memory): here we have one MinimizerHit for each (read_id, read_start_position, read_strand) and MiniRecord
+ * TODO: Possible improvement (memory): we could make one (read_id, read_start_position, read_strand) and a vector of MiniRecords
+ */
 struct MinimizerHit {
 private:
-    uint32_t read_id; //TODO: this can be made a template and change depending on the maximum number of reads
-    uint32_t read_start_position; //TODO: this can be made a template and change depending on the maximum read length
+    uint32_t read_id; //TODO: Possible improvement (memory): this can be made a template and change depending on the maximum number of reads
+    uint32_t read_start_position; //TODO: Possible improvement (memory): this can be made a template and change depending on the maximum read length
     bool read_strand;
     const MiniRecord &minimizerFromPRG;
 

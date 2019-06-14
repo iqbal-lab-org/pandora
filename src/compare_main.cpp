@@ -420,10 +420,10 @@ int pandora_compare(int argc, char *argv[]) {
     Fastaq vcf_ref_fa(true, false);
 
     //shared variable - controlled by critical(VCFPathsToBeConcatenated)
-    std::vector<std::string> VCFPathsToBeConcatenated;
+    std::vector<std::string> VCFPathsToBeConcatenated; //TODO: we can allocate the correct size of the vectors already here
 
     //shared variable - controlled by critical(VCFGenotypedPathsToBeConcatenated)
-    std::vector<std::string> VCFGenotypedPathsToBeConcatenated;
+    std::vector<std::string> VCFGenotypedPathsToBeConcatenated; //TODO: we can allocate the correct size of the vectors already here
 
     //create the dir that will contain all vcfs
     const int nbOfVCFsPerDir=4000;
