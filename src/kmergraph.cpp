@@ -28,14 +28,12 @@ using namespace prg;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 KmerGraph::KmerGraph() {
-    num_reads = 0;
     shortest_path_length = 0;
     k = 0; // nb the kmer size is determined by the first non-null node added
 }
 
 // copy constructor
 KmerGraph::KmerGraph(const KmerGraph &other) {
-    num_reads = other.num_reads;
     shortest_path_length = other.shortest_path_length;
     k = other.k;
     KmerNodePtr n;
@@ -71,7 +69,6 @@ KmerGraph &KmerGraph::operator=(const KmerGraph &other) {
     nodes.reserve(other.nodes.size());
 
     // shallow copy no pointers
-    num_reads = other.num_reads;
     shortest_path_length = other.shortest_path_length;
     k = other.k;
     KmerNodePtr n;
@@ -101,7 +98,6 @@ void KmerGraph::clear() {
     sorted_nodes.clear();
     assert(sorted_nodes.empty());
 
-    num_reads = 0;
     shortest_path_length = 0;
     k = 0;
 }
@@ -509,14 +505,14 @@ float KmerGraphWithCoverage::nb_prob(uint32_t j, const uint32_t &sample_id) {
 }
 
 float KmerGraphWithCoverage::lin_prob(uint32_t j, const uint32_t &sample_id) {
-    assert(kmer_prg->num_reads != 0);
+    assert(num_reads != 0);
     auto k = get_covg(j, 0, sample_id) + get_covg(j, 1, sample_id);
-    return log(float(k)/kmer_prg->num_reads);
+    return log(float(k)/num_reads);
 }
 
 float KmerGraphWithCoverage::prob(uint32_t j, const uint32_t &sample_id) {
-    assert(kmer_prg->num_reads != 0);
-    return prob(j, kmer_prg->num_reads, sample_id);
+    assert(num_reads != 0);
+    return prob(j, num_reads, sample_id);
 }
 
 float KmerGraphWithCoverage::prob(const uint32_t &j, const uint32_t &num, const uint32_t &sample_id) {
@@ -579,7 +575,7 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr> &maxpath, co
 
     // check if p set
     assert(p < 1 || assert_msg("p was not set in kmergraph"));
-    assert(kmer_prg->num_reads > 0 || assert_msg("num_reads was not set in kmergraph"));
+    assert(num_reads > 0 || assert_msg("num_reads was not set in kmergraph"));
 
     // need to catch if thesh not set too...
     kmer_prg->check();
@@ -867,7 +863,7 @@ float KmerGraph::prob_paths(const std::vector<std::vector<KmerNodePtr>> &kpaths)
     for (uint32_t i = 0; i != path_node_covg.size(); ++i) {
         if (path_node_covg[i] > 0) {
             //cout << "prob of node " << nodes[i]->id << " which has path covg " << path_node_covg[i] << " and so we expect to see " << num_reads*path_node_covg[i]/kpaths.size() << " times IS " << prob(nodes[i]->id, num_reads*path_node_covg[i]/kpaths.size()) << endl;
-            ret_p += prob(nodes[i]->id, num_reads * path_node_covg[i] / kpaths.size(), <#initializer#>);
+                ret_p += prob(nodes[i]->id, num_reads * path_node_covg[i] / kpaths.size(), <#initializer#>);
             if (nodes[i]->path.length() > 0) {
                 len += 1;
             }

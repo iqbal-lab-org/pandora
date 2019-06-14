@@ -31,7 +31,6 @@ private:
     uint32_t k;
 
 public:
-    uint32_t num_reads;
     uint32_t shortest_path_length;
     std::vector<KmerNodePtr> nodes;
     std::set<KmerNodePtr, pCompKmerNode> sorted_nodes; // representing ordering of the nodes compatible with dp
@@ -105,6 +104,7 @@ private:
     float nb_r;
     int thresh;
     uint32_t total_number_samples;
+    uint32_t num_reads;
 
 public:
     KmerGraph *kmer_prg; //the underlying KmerGraph - TODO: it is dangerous to leave this public, make it private?
@@ -112,7 +112,7 @@ public:
     //constructor, destructors, etc
     KmerGraphWithCoverage(KmerGraph *kmer_prg=nullptr, const uint32_t &total_number_samples=1) :
             nodeIndex2SampleCoverage((kmer_prg ? kmer_prg->nodes.size() : 0)),
-            exp_depth_covg{0}, p{1}, nb_p{0.015}, nb_r{2}, thresh{-25}, kmer_prg{kmer_prg}, total_number_samples{total_number_samples} {
+            exp_depth_covg{0}, p{1}, nb_p{0.015}, nb_r{2}, thresh{-25}, kmer_prg{kmer_prg}, total_number_samples{total_number_samples}, num_reads{0} {
         zeroCoverages();
     }
     KmerGraphWithCoverage(const KmerGraphWithCoverage &other) = default; //copy default constructor
@@ -123,6 +123,7 @@ public:
 
     //getter
     uint32_t get_covg(uint32_t node_id, bool strand, uint32_t sample_id) const;
+    uint32_t get_num_reads() const { return num_reads; }
 
     //setters
     void increment_covg(uint32_t node_id, bool strand, uint32_t sample_id);
@@ -131,6 +132,7 @@ public:
     void set_p(const float);
     void set_nb(const float &, const float &);
     void set_thresh (int thresh) { this->thresh = thresh; }
+    void set_num_reads(uint32_t num_reads) { this->num_reads = num_reads; }
 
     void zeroCoverages() {
         for (auto &sampleCoverage: nodeIndex2SampleCoverage)
