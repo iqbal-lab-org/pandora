@@ -70,8 +70,7 @@ CandidateRegions find_candidate_regions_for_pan_node(const TmpPanNode &pangraph_
     const auto covgs_along_localnode_path {
             get_covgs_along_localnode_path(pangraph_node, local_node_max_likelihood_path, kmer_node_max_likelihood_path,
                                            sample_id) };
-    //    const auto candidate_intervals { identify_low_coverage_intervals(covgs_along_localnode_path) };
-    const auto candidate_intervals { find_coverage_anomalies(covgs_along_localnode_path, 22) };
+    const auto candidate_intervals { identify_low_coverage_intervals(covgs_along_localnode_path) };
 
     CandidateRegions candidate_regions;
 
@@ -121,57 +120,6 @@ identify_low_coverage_intervals(const std::vector<uint32_t> &covg_at_each_positi
         ++current;
     }
     return identified_regions;
-}
-
-
-std::vector<Interval> find_coverage_anomalies(const std::vector<uint32_t> &per_base_coverage,
-                                              const uint_least32_t min_dist_between_candidates) {
-    const auto log_change_in_covg { transform_to_log_change(per_base_coverage) };
-    const double covg_threshold { 1.0 };
-    std::vector<uint_least32_t> candidate_idxs;
-
-    for (uint_least32_t i = 0; i < log_change_in_covg.size(); i++) {
-        if (std::abs(log_change_in_covg[i]) >= covg_threshold) {
-            candidate_idxs.push_back(i + 1); // add one as log_change_in_covg has length 1 less than per_base_coverage
-        }
-    }
-
-    return collapse_candidate_indicies_into_intervals(candidate_idxs, min_dist_between_candidates);
-}
-
-
-std::vector<Interval> collapse_candidate_indicies_into_intervals(const std::vector<uint_least32_t> &candidate_idxs,
-                                                                 const uint_least32_t min_dist_between_candidates) {
-    std::vector<Interval> identified_regions;
-
-    if (candidate_idxs.empty()) {
-        return identified_regions;
-    }
-    auto start { candidate_idxs.at(0) };
-    for (size_t i = 0; i < candidate_idxs.size() - 1; i++) {
-        const bool close_to_next { (candidate_idxs[i + 1] - candidate_idxs[i]) <= min_dist_between_candidates };
-        if (not close_to_next) {
-            identified_regions.emplace_back(start, candidate_idxs[i] + 1);
-            start = candidate_idxs[i + 1];
-        }
-    }
-    identified_regions.emplace_back(start, candidate_idxs.back() + 1);
-
-    return identified_regions;
-}
-
-
-std::vector<double> transform_to_log_change(const std::vector<uint32_t> &per_base_coverage) {
-    if (per_base_coverage.size() < 2) {
-        return std::vector<double>();
-    }
-
-    const auto log_division_of { [](uint32_t val, uint32_t prev) { return std::log((val + 1.0) / (prev + 1.0)); }};
-    std::vector<double> result(per_base_coverage.size());
-
-    std::adjacent_difference(per_base_coverage.begin(), per_base_coverage.end(), result.begin(), log_division_of);
-    result.erase(result.begin());
-    return result;
 }
 
 
