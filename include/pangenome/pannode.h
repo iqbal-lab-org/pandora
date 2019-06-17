@@ -18,6 +18,7 @@ struct ReadCoordinate;
 using PanReadPtr = std::shared_ptr<pangenome::Read>;
 
 
+//TODO: this class should have a pointer to its LocalPRG
 class pangenome::Node {
 public:
     std::unordered_multiset<ReadPtr> reads;
@@ -44,7 +45,7 @@ public:
     get_read_overlap_coordinates(const prg::Path &local_path, const uint32_t &min_number_hits = 2);
 
     void
-    construct_sample_vcf(VCF &master_vcf,
+    construct_multisample_vcf(VCF &master_vcf,
                          const std::vector<LocalNodePtr> &vcf_reference_path,
                          const std::shared_ptr<LocalPRG> &prg, const uint32_t w,
                          const uint32_t &min_kmer_covg);

@@ -500,3 +500,11 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
 
     return covg;
 }
+
+
+
+void fatalError (const string &message) {
+    cerr << endl << endl << "[FATAL ERROR] " << message << endl << endl;
+    cerr.flush();
+    exit(1);
+}

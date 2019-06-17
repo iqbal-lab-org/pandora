@@ -76,8 +76,6 @@ public:
                                      const std::vector<LocalNodePtr> &,
                                      const float &) const;
 
-    void build_vcf(VCF &, const std::vector<LocalNodePtr> &) const;
-
     void add_sample_gt_to_vcf(VCF &,
                               const std::vector<LocalNodePtr> &,
                               const std::vector<LocalNodePtr> &,
@@ -87,6 +85,12 @@ public:
                                             const uint32_t,
                                             const std::string &,
                                             const std::string &) const;
+
+    std::string random_path();
+
+    //TODO: I really feel like these methods are not responsability of a LocalPRG
+    //TODO: many of them should be in VCF class, or in the KmerGraphWithCoverage or Fastaq
+    void build_vcf(VCF &, const std::vector<LocalNodePtr> &) const;
 
     void append_kmer_covgs_in_range(const KmerGraphWithCoverage &, const std::vector<KmerNodePtr> &,
                                     const std::vector<LocalNodePtr> &, const uint32_t &, const uint32_t &,
@@ -109,8 +113,6 @@ public:
     void add_variants_to_vcf(VCF &, PanNodePtr, const std::string &, const std::vector<KmerNodePtr> &,
                                  const std::vector<LocalNodePtr> &, const uint32_t &min_kmer_covg,
                                  const uint32_t &sample_id=0, const std::string &sample_name="sample");
-
-    std::string random_path();
 
 
     //friends definitions
