@@ -24,7 +24,7 @@ public:
     inline uint32_t get_prg_id () const { return minimizerFromPRG.prg_id; }
     inline const prg::Path & get_prg_path() const { return minimizerFromPRG.path; }
     inline uint32_t get_kmer_node_id() const { return minimizerFromPRG.knode_id; }
-    inline bool is_forward() const { return read_strand == minimizerFromPRG.strand ;}
+    inline bool is_forward() const { return read_strand == minimizerFromPRG.strand ;} //TODO: the name of this method is very misleading, should be same_strands() or sth like this
 
     MinimizerHit(const uint32_t i, const Minimizer &minimizerFromRead, const MiniRecord &minimizerFromPRG);
 

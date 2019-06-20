@@ -107,7 +107,7 @@ private:
     uint32_t num_reads;
 
 public:
-    KmerGraph *kmer_prg; //the underlying KmerGraph - TODO: it is dangerous to leave this public, make it private?
+    KmerGraph * kmer_prg; //the underlying KmerGraph - TODO: it is dangerous to leave this public, make it private? - this should be const
 
     //constructor, destructors, etc
     KmerGraphWithCoverage(KmerGraph *kmer_prg=nullptr, const uint32_t &total_number_samples=1) :

@@ -375,6 +375,7 @@ void infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>>
     }
 }
 
+//TODO: this should be in a constructor of pangenome::Graph or in a factory class
 uint32_t pangraph_from_read_file(const std::string &filepath,
                                  std::shared_ptr<pangenome::Graph> pangraph,
                                  std::shared_ptr<Index> index,

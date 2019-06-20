@@ -18,8 +18,8 @@
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 
-LocalPRG::LocalPRG(uint32_t i, const std::string &name, const std::string &seq)
-        : next_id(0), buff(" "), next_site(5), id(i), name(name), seq(seq), num_hits(2, 0) {
+LocalPRG::LocalPRG(uint32_t id, const std::string &name, const std::string &seq)
+        : next_id(0), buff(" "), next_site(5), id(id), name(name), seq(seq), num_hits(2, 0) {
     std::vector<uint32_t> v; //TODO: v is not used - safe to delete - but is passed as a parameter...
     // avoid error if a prg contains only empty space as it's sequence
     if (seq.find_first_not_of("\t\n\v\f\r") != std::string::npos) {
