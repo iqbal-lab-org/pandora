@@ -29,7 +29,7 @@ std::vector<WeakNodePtr>::iterator Read::find_node_by_id (uint32_t node_id) {
     });
 }
 
-void Read::add_hits(const std::set<MinimizerHitPtr, pComp> &cluster) {
+void Read::add_hits(const NodePtr &node_ptr, const std::set<MinimizerHitPtr, pComp> &cluster) {
     //TODO: review this method...
     auto before_size = hits.size();
 
@@ -45,6 +45,43 @@ void Read::add_hits(const std::set<MinimizerHitPtr, pComp> &cluster) {
     hits.shrink_to_fit();
 
     assert(hits.size() == before_size + cluster.size());
+
+    //add the orientation/node accordingly
+    bool orientation = !cluster.empty() and (*cluster.begin())->is_forward();
+    if (get_nodes().empty()
+        or node_ptr != get_nodes().back().lock()
+        or orientation != node_orientations.back()
+        //or we think there really are 2 copies of gene
+            ) {
+        add_node(node_ptr);
+        add_orientation(orientation);
+    }
+}
+
+
+std::unordered_map<uint32_t, std::vector<MinimizerHitPtr>> Read::get_hits_as_unordered_map() const {
+    std::unordered_map<uint32_t, std::vector<MinimizerHitPtr>> hitsMap; //this will map node_ids from the pangenome::Graph to their minimizer hits
+    for (const MinimizerHit * const minihit : hits) {
+        //gets the nodeId
+        uint32_t nodeId = minihit->get_prg_id(); //prg_id == node_id in pangenome::Graph
+
+        //checks if we have an entry for this nodeId in hitsMap
+        if (hitsMap.find(nodeId) == hitsMap.end())
+            //no, add it
+            hitsMap[nodeId] = std::vector<MinimizerHitPtr>();
+
+        //add this minihit to hitsMap
+        hitsMap[nodeId].push_back(std::make_shared<MinimizerHit>(*minihit)); //TODO: I think here we don't really need to create a shared pointer - a raw pointer is fine
+    }
+
+    //add empty hits if we have them - for backwards compatibility
+    for (const WeakNodePtr &node : nodes) {
+        auto node_id = node.lock()->node_id;
+        if (hitsMap.find(node_id) == hitsMap.end())
+            hitsMap[node_id] = {};
+    }
+
+    return hitsMap;
 }
 
 // find the index i in the nodes and node_orientations vectors such that [i,i+v.size()]

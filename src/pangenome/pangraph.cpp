@@ -93,16 +93,7 @@ void update_read_info_with_node_and_cluster(
         ReadPtr &read_ptr,
         const NodePtr &node_ptr,
         const std::set<MinimizerHitPtr, pComp> &cluster) {
-    read_ptr->add_hits(cluster);
-    bool orientation = !cluster.empty() and (*cluster.begin())->is_forward();
-    if (read_ptr->get_nodes().empty()
-        or node_ptr != read_ptr->get_nodes().back().lock()
-        or orientation != read_ptr->node_orientations.back()
-        //or we think there really are 2 copies of gene
-            ) {
-        read_ptr->add_node(node_ptr);
-        read_ptr->add_orientation(orientation);
-    }
+    read_ptr->add_hits(node_ptr, cluster);
 }
 
 

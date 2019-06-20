@@ -27,29 +27,10 @@ public:
     virtual ~Read();
 
 
-    //getters
-    const std::vector<MinimizerHit*> & get_hits() const {
-        return hits;
-    }
     //TODO: this can be a source of time inneficiency at the cost of using less memory
     //TODO: check if we should fallback to representing hits as std::unordered_map<uint32_t, std::vector<MinimizerHitPtr>> directly
-    std::unordered_map<uint32_t, std::vector<MinimizerHitPtr>> get_hits_as_unordered_map() const {
-        std::unordered_map<uint32_t, std::vector<MinimizerHitPtr>> hitsMap; //this will map node_ids from the pangenome::Graph to their minimizer hits
-        for (const MinimizerHit * const minihit : hits) {
-            //gets the nodeId
-            uint32_t nodeId = minihit->get_prg_id(); //prg_id == node_id in pangenome::Graph
+    std::unordered_map<uint32_t, std::vector<MinimizerHitPtr>> get_hits_as_unordered_map() const;
 
-            //checks if we have an entry for this nodeId in hitsMap
-            if (hitsMap.find(nodeId) == hitsMap.end())
-                //no, add it
-                hitsMap[nodeId] = std::vector<MinimizerHitPtr>();
-
-            //add this minihit to hitsMap
-            hitsMap[nodeId].push_back(std::make_shared<MinimizerHit>(*minihit)); //TODO: I think here we don't really need to create a shared pointer - a raw pointer is fine
-        }
-
-        return hitsMap;
-    }
     const std::vector<WeakNodePtr>& get_nodes() const {
         return nodes;
     }
@@ -72,7 +53,7 @@ public:
     }
 
 
-    void add_hits(const std::set<MinimizerHitPtr, pComp> &);
+    void add_hits(const NodePtr &node_ptr, const std::set<MinimizerHitPtr, pComp> &cluster);
 
     std::pair<uint32_t, uint32_t>
     find_position(const std::vector<uint_least32_t> &, const std::vector<bool> &, const uint16_t min_overlap = 1);
