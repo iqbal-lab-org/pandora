@@ -16,11 +16,6 @@ TEST(KmerNodeTest, create) {
 
     uint j = 0;
     EXPECT_EQ(j, kn.id);
-    j = 1;
-    EXPECT_EQ(j, kn.covg_new.size());
-    j = 0;
-    EXPECT_EQ(j, kn.get_covg(0, 0));
-    EXPECT_EQ(j, kn.get_covg(0, 0));
     EXPECT_EQ(j, kn.num_AT);
     EXPECT_EQ(p, kn.path);
 }
@@ -31,23 +26,14 @@ TEST(KmerNodeTest, assign) {
     prg::Path p;
     p.initialize(d);
     KmerNode kn(0, p);
-    kn.increment_covg(0,0);
-    kn.increment_covg(1,0);
-    kn.increment_covg(1,0);
 
     EXPECT_EQ((uint)0, kn.id);
-    EXPECT_EQ((uint)1, kn.covg_new.size());
-    EXPECT_EQ((uint)1, kn.get_covg(0, 0));
-    EXPECT_EQ((uint)2, kn.get_covg(1, 0));
     EXPECT_EQ((uint)0, kn.num_AT);
     EXPECT_EQ(p, kn.path);
 
     KmerNode kn_prime = kn;
 
     EXPECT_EQ((uint)0, kn_prime.id);
-    EXPECT_EQ((uint)1, kn_prime.covg_new.size());
-    EXPECT_EQ((uint)1, kn_prime.get_covg(0, 0));
-    EXPECT_EQ((uint)2, kn_prime.get_covg(1, 0));
     EXPECT_EQ((uint)0, kn_prime.num_AT);
     EXPECT_EQ(p, kn.path);
 }
@@ -81,7 +67,6 @@ TEST(KmerNodeTest, equals) {
 
     // covg doesn't affect whether equal
     KmerNode kn5(0, p1);
-    kn5.set_covg(6, 0, 0);
     EXPECT_EQ(kn5, kn5);
     EXPECT_EQ(kn1, kn5);
     EXPECT_EQ(kn5, kn1);
