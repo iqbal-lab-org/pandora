@@ -110,9 +110,10 @@ public:
     KmerGraph * kmer_prg; //the underlying KmerGraph - TODO: it is dangerous to leave this public, make it private? - this should be const
 
     //constructor, destructors, etc
-    KmerGraphWithCoverage(KmerGraph *kmer_prg=nullptr, const uint32_t &total_number_samples=1) :
-            nodeIndex2SampleCoverage((kmer_prg ? kmer_prg->nodes.size() : 0)),
+    KmerGraphWithCoverage(KmerGraph * kmer_prg, uint32_t total_number_samples=1) :
+            nodeIndex2SampleCoverage(kmer_prg->nodes.size()),
             exp_depth_covg{0}, p{1}, nb_p{0.015}, nb_r{2}, thresh{-25}, kmer_prg{kmer_prg}, total_number_samples{total_number_samples}, num_reads{0} {
+        assert(kmer_prg != nullptr);
         zeroCoverages();
     }
     KmerGraphWithCoverage(const KmerGraphWithCoverage &other) = default; //copy default constructor
@@ -124,6 +125,7 @@ public:
     //getter
     uint32_t get_covg(uint32_t node_id, bool strand, uint32_t sample_id) const;
     uint32_t get_num_reads() const { return num_reads; }
+    uint32_t get_total_number_samples() const {return total_number_samples; }
 
     //setters
     void increment_covg(uint32_t node_id, bool strand, uint32_t sample_id);

@@ -933,6 +933,8 @@ void KmerGraphWithCoverage::save(const std::string &filepath, const std::shared_
 
 //TODO: THIS SHOULD BE RECODED, WE ARE DUPLICATING CODE HERE (SEE KmerGraph::load())!!!
 void KmerGraphWithCoverage::load(const std::string &filepath) {
+    //TODO: this might be dangerous, recode this?
+    auto kmer_prg = const_cast<KmerGraph*>(this->kmer_prg);
     kmer_prg->clear();
     uint32_t sample_id = 0;
 
