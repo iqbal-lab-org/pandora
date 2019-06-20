@@ -40,6 +40,9 @@ public:
         return nodes;
     }
 
+    //TODO: just used in tests, move to private and friend the test class
+    void set_nodes(const std::vector<WeakNodePtr> &nodes) { this->nodes = nodes; }
+
     std::vector<WeakNodePtr>::iterator find_node_by_id (uint32_t node_id);
 
     //modifiers
