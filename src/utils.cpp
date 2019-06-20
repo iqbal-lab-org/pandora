@@ -343,10 +343,11 @@ add_clusters_to_pangraph(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp>
 
     // to do this consider pairs of clusters in turn
     for (auto cluster: clusters_of_hits) {
-        pangraph->add_node((*cluster.begin())->get_prg_id(),
-                           prgs[(*cluster.begin())->get_prg_id()]->name,
-                           (*cluster.begin())->get_read_id(),
-                           cluster);
+
+        pangraph->add_hits_between_PRG_and_read(
+               prgs[(*cluster.begin())->get_prg_id()],
+               (*cluster.begin())->get_read_id(),
+               cluster);
     }
 }
 

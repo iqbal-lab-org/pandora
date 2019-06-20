@@ -302,13 +302,16 @@ int pandora_compare(int argc, char *argv[]) {
     // load read index
     std::cout << now() << "Loading read index file " << read_index_fpath << std::endl;
     auto samples = load_read_index(read_index_fpath);
-    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
+    std::vector<std::string> sample_names;
+    for (const auto &sample_pair : samples) sample_names.push_back(sample_pair.first);
+
+    auto pangraph = std::make_shared<pangenome::Graph>(sample_names);
     std::vector<uint32_t> exp_depth_covgs;
 
     // for each sample, run pandora to get the sample pangraph
     for (uint32_t sample_id = 0; sample_id < samples.size(); ++sample_id) {
         const auto &sample = samples[sample_id];
-        auto pangraph_sample = std::make_shared<pangenome::Graph>(pangenome::Graph());
+        auto pangraph_sample = std::make_shared<pangenome::Graph>();
 
         const auto &sample_name = sample.first;
         const auto &sample_fpath = sample.second;
@@ -336,7 +339,6 @@ int pandora_compare(int argc, char *argv[]) {
         }
 
         BOOST_LOG_TRIVIAL(info) << "Update LocalPRGs with hits";
-        pangraph_sample->setup_kmergraphs(prgs, 1);
         pangraph_sample->add_hits_to_kmergraphs(prgs, 0);
 
         BOOST_LOG_TRIVIAL(info) << "Estimate parameters for kmer graph model";
@@ -363,13 +365,12 @@ int pandora_compare(int argc, char *argv[]) {
                 continue;
             }
 
-            pangraph->add_node(c->second->prg_id, c->second->name, sample_name, sample_id,
-                               prgs[c->second->prg_id], kmp);
+            pangraph->add_node(prgs[c->second->prg_id]);
+            pangraph->add_hits_between_PRG_and_sample(c->second->prg_id, sample_name, kmp);
 
             ++c;
         }
 
-        pangraph->setup_kmergraphs(prgs, samples.size());
         pangraph->copy_coverages_to_kmergraphs(*pangraph_sample, sample_id);
 
         consensus_fq.save(sample_outdir + "/pandora.consensus.fq.gz");
@@ -409,12 +410,6 @@ int pandora_compare(int argc, char *argv[]) {
             load_vcf_refs_file(vcf_refs_file, vcf_refs);
         }
     }
-
-    //all sample names - read only variable - no need to control
-    std::vector<std::string> sample_names = {};
-    for (const auto & sample : samples)
-        sample_names.push_back(sample.first);
-
 
     //shared variable - controlled by critical(vcf_ref_fa)
     Fastaq vcf_ref_fa(true, false);
@@ -527,7 +522,6 @@ int pandora_compare(int argc, char *argv[]) {
 
     // clear up
     index->clear();
-    pangraph->clear();
 
     // current date/time based on current system
     std::cout << "FINISH: " << now() << std::endl;
