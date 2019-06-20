@@ -15,7 +15,14 @@
 
 using namespace pangenome;
 
-pangenome::Node::Node(const uint32_t i, const uint32_t j, const std::string n) : prg_id(i), node_id(j), name(n), covg(1) {}
+//constructors
+pangenome::Node::Node(const std::shared_ptr<LocalPRG> &prg) : Node(prg, prg->id) {}
+pangenome::Node::Node(const std::shared_ptr<LocalPRG> &prg,
+     uint32_t node_id,
+     uint32_t total_number_samples //total number of samples that we have in this node
+) : prg(prg), prg_id(prg->id), node_id(node_id), name(prg->name), covg(0),
+    kmer_prg_with_coverage(const_cast<KmerGraph*>(&prg->kmer_prg), //TODO: this is very dangerous, KmerGraphWithCoverage::kmer_prg must be made const
+    total_number_samples) {}
 
 /*// copy constructor
 Node::Node(const Node& other)
@@ -80,7 +87,7 @@ void pangenome::Node::get_read_overlap_coordinates(std::vector<std::vector<uint3
     auto read_count = 0;
     for (const auto &read_ptr : reads) {
         read_count++;
-        auto hits = read_ptr->getHits();
+        auto hits = read_ptr->get_hits_as_unordered_map();
         if (hits.at(prg_id).size() < 2)
             continue;
 
@@ -173,7 +180,7 @@ pangenome::Node::get_read_overlap_coordinates(const prg::Path &local_path, const
     std::set<ReadCoordinate> read_overlap_coordinates;
 
     for (const auto &current_read: this->reads) {
-        auto hits = current_read->getHits();
+        auto hits = current_read->get_hits_as_unordered_map();
         const auto read_hits_inside_path { find_hits_inside_path(hits.at(this->prg_id), local_path) };
 
         if (read_hits_inside_path.size() < min_number_hits) {

@@ -18,18 +18,26 @@ struct ReadCoordinate;
 using PanReadPtr = std::shared_ptr<pangenome::Read>;
 
 
-//TODO: this class should have a pointer to its LocalPRG
 class pangenome::Node {
 public:
     std::unordered_multiset<ReadPtr> reads;
     std::set<SamplePtr, SamplePtrSorterBySampleId> samples;
-    const uint32_t prg_id; // corresponding the the LocalPRG id
+    const uint32_t prg_id; // corresponding the the LocalPRG id - TODO: this is not needed - we point to the LocalPRG, which has this info
     const uint32_t node_id; // unique node id, so can have multiple copies of a localPRG in graph
-    const std::string name;
-    mutable uint32_t covg;
+    const std::string name; //TODO: this is not needed - we point to the LocalPRG, which has this info
+    mutable uint32_t covg; //TODO: this is not needed - it is reads.size()
+    std::shared_ptr<LocalPRG> prg; //TODO: this should be made const
     KmerGraphWithCoverage kmer_prg_with_coverage;
 
-    Node(const uint32_t, const uint32_t, const std::string);
+    //main constructor
+    Node(const std::shared_ptr<LocalPRG> &prg,
+         uint32_t node_id,
+         uint32_t total_number_samples=1 //total number of samples that we have in this node
+    );
+
+    //convenience constructors
+    Node(const std::shared_ptr<LocalPRG> &prg);
+
     //Node(const Node&);
     //Node& operator=(const Node&);
 
@@ -63,6 +71,12 @@ public:
 
 
     friend class pangenome::Read;
+};
+
+struct EqualComparatorWeakNodePtr {
+    bool operator()(const pangenome::WeakNodePtr &lhs, const pangenome::WeakNodePtr &rhs) {
+        return *(lhs.lock()) == *(rhs.lock());
+    }
 };
 
 

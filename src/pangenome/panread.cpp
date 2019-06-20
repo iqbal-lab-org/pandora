@@ -29,8 +29,9 @@ std::vector<WeakNodePtr>::iterator Read::find_node_by_id (uint32_t node_id) {
     });
 }
 
-void Read::add_hits(const uint32_t prg_id, std::set<MinimizerHitPtr, pComp> &cluster) {
+void Read::add_hits(const std::set<MinimizerHitPtr, pComp> &cluster) {
     //TODO: review this method...
+    auto before_size = hits.size();
 
     for (const auto &clusterHitSmrtPointer : cluster)
         hits.push_back(new MinimizerHit(*clusterHitSmrtPointer));
@@ -42,6 +43,8 @@ void Read::add_hits(const uint32_t prg_id, std::set<MinimizerHitPtr, pComp> &clu
     });
     hits.erase(last, hits.end());
     hits.shrink_to_fit();
+
+    assert(hits.size() == before_size + cluster.size());
 }
 
 // find the index i in the nodes and node_orientations vectors such that [i,i+v.size()]

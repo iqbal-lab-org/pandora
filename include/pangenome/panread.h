@@ -28,9 +28,12 @@ public:
 
 
     //getters
+    const std::vector<MinimizerHit*> & get_hits() const {
+        return hits;
+    }
     //TODO: this can be a source of time inneficiency at the cost of using less memory
     //TODO: check if we should fallback to representing hits as std::unordered_map<uint32_t, std::vector<MinimizerHitPtr>> directly
-    std::unordered_map<uint32_t, std::vector<MinimizerHitPtr>> getHits() const {
+    std::unordered_map<uint32_t, std::vector<MinimizerHitPtr>> get_hits_as_unordered_map() const {
         std::unordered_map<uint32_t, std::vector<MinimizerHitPtr>> hitsMap; //this will map node_ids from the pangenome::Graph to their minimizer hits
         for (const MinimizerHit * const minihit : hits) {
             //gets the nodeId
@@ -69,7 +72,7 @@ public:
     }
 
 
-    void add_hits(const uint32_t, std::set<MinimizerHitPtr, pComp> &);
+    void add_hits(const std::set<MinimizerHitPtr, pComp> &);
 
     std::pair<uint32_t, uint32_t>
     find_position(const std::vector<uint_least32_t> &, const std::vector<bool> &, const uint16_t min_overlap = 1);
