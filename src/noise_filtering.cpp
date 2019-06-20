@@ -247,7 +247,7 @@ void remove_leaves(std::shared_ptr<pangenome::Graph> pangraph,
                     assert(pos.first == 0 or pos.first + node_ids.size() == pangraph->reads[r]->get_nodes().size());
                     if (pos.first == 0) {
                         node = pangraph->reads[r]->get_nodes()[0];
-                        pangraph->reads[r]->remove_all_nodes_with_this_id(pangraph->reads[r]->get_nodes().begin()->lock()->node_id);
+                        pangraph->reads[r]->remove_node_with_iterator(pangraph->reads[r]->get_nodes().begin());
                         node.lock()->remove_read(pangraph->reads[r]);
                     } else if (pos.first + node_ids.size() == pangraph->reads[r]->get_nodes().size()) {
                         node = pangraph->reads[r]->get_nodes().back();
