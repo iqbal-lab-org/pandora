@@ -95,10 +95,14 @@ int pandora_index(int argc, char *argv[]) // the "pandora index" command
         }
     }
 
+    //configure logging
     auto g_log_level{boost::log::trivial::info};
     if (log_level == "debug")
         g_log_level = boost::log::trivial::debug;
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= g_log_level);
+
+    //configure path memoization to be done
+    LocalPRG::path_memoization_in_nodes_along_path_method = true;
 
     // load PRGs from file
     std::vector<std::shared_ptr<LocalPRG>> prgs;
