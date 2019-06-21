@@ -477,9 +477,8 @@ TEST(UtilsTest, simpleInferLocalPRGOrderForRead) {
 
     // create a pangraph object representing the truth we expect (prg 3 then 1)
     pangenome::Graph pg_exp;
-    MinimizerHits mhs_dummy;
-    pg_exp.add_node(1, "1", 0, mhs_dummy.hits);
-    pg_exp.add_node(0, "0", 0, mhs_dummy.hits);
+    pg_exp.add_node(lp1);
+    pg_exp.add_node(lp3);
     //pg_exp.add_edge(0,1,3,0);
 
     EXPECT_EQ(pg_exp, *pangraph);
@@ -496,9 +495,9 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
 
     auto lp1 = std::make_shared<LocalPRG>(LocalPRG(1, "1", ""));
     auto lp3 = std::make_shared<LocalPRG>(LocalPRG(3, "3", ""));
-    auto lp4 = std::make_shared<LocalPRG>(LocalPRG(0, "", ""));
+    auto lp0 = std::make_shared<LocalPRG>(LocalPRG(0, "", ""));
     auto lp2 = std::make_shared<LocalPRG>(LocalPRG(2, "2", ""));
-    prgs.push_back(lp4);
+    prgs.push_back(lp0);
     prgs.push_back(lp1);
     prgs.push_back(lp2);
     prgs.push_back(lp3);
@@ -640,30 +639,30 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
 
     d = {Interval(8, 8)};
     p.initialize(d);
-    kn = lp4->kmer_prg.add_node(p);
+    kn = lp0->kmer_prg.add_node(p);
     v.push_back(kn);
 
     d = {Interval(8, 11)};
     p.initialize(d);
     kh = hash.kmerhash("CTA", 3);
     index->add_record(min(kh.first, kh.second), 0, p, 0, (kh.first < kh.second));
-    kn = lp4->kmer_prg.add_node(p);
+    kn = lp0->kmer_prg.add_node(p);
     v.push_back(kn);
-    lp4->kmer_prg.add_edge(v[17], v[18]);
+    lp0->kmer_prg.add_edge(v[17], v[18]);
 
     d = {Interval(9, 12)};
     p.initialize(d);
     kh = hash.kmerhash("TAG", 3);
     index->add_record(min(kh.first, kh.second), 0, p, 0, (kh.first < kh.second));
-    kn = lp4->kmer_prg.add_node(p);
+    kn = lp0->kmer_prg.add_node(p);
     v.push_back(kn);
-    lp4->kmer_prg.add_edge(v[18], v[19]);
+    lp0->kmer_prg.add_edge(v[18], v[19]);
 
     d = {Interval(12, 12)};
     p.initialize(d);
-    kn = lp4->kmer_prg.add_node(p);
+    kn = lp0->kmer_prg.add_node(p);
     v.push_back(kn);
-    lp4->kmer_prg.add_edge(v[19], v[20]);
+    lp0->kmer_prg.add_edge(v[19], v[20]);
 
     d = {Interval(0, 0)};
     p.initialize(d);
@@ -712,11 +711,10 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
     pangenome::Graph pg_exp;
-    MinimizerHits mhs_dummy;
-    pg_exp.add_node(1, "1", 0, mhs_dummy.hits);
-    pg_exp.add_node(2, "2", 0, mhs_dummy.hits);
-    pg_exp.add_node(3, "3", 0, mhs_dummy.hits);
-    pg_exp.add_node(0, "0", 0, mhs_dummy.hits);
+    pg_exp.add_node(lp1);
+    pg_exp.add_node(lp2);
+    pg_exp.add_node(lp3);
+    pg_exp.add_node(lp0);
     //pg_exp.add_edge(3,0,3,0);
     //pg_exp.add_edge(0,2,3,0);
     //pg_exp.add_edge(2,1,3,0);
@@ -745,9 +743,9 @@ TEST(UtilsTest, pangraphFromReadFile) {
     std::vector<std::shared_ptr<LocalPRG>> prgs;
     auto lp1 = std::make_shared<LocalPRG>(LocalPRG(1, "1", ""));
     auto lp3 = std::make_shared<LocalPRG>(LocalPRG(3, "3", ""));
-    auto lp4 = std::make_shared<LocalPRG>(LocalPRG(0, "0", ""));
+    auto lp0 = std::make_shared<LocalPRG>(LocalPRG(0, "0", ""));
     auto lp2 = std::make_shared<LocalPRG>(LocalPRG(2, "2", ""));
-    prgs.push_back(lp4);
+    prgs.push_back(lp0);
     prgs.push_back(lp1);
     prgs.push_back(lp2);
     prgs.push_back(lp3);
@@ -889,30 +887,30 @@ TEST(UtilsTest, pangraphFromReadFile) {
 
     d = {Interval(8, 8)};
     p.initialize(d);
-    kn = lp4->kmer_prg.add_node(p);
+    kn = lp0->kmer_prg.add_node(p);
     v.push_back(kn);
 
     d = {Interval(8, 11)};
     p.initialize(d);
     kh = hash.kmerhash("CTA", 3);
     index->add_record(min(kh.first, kh.second), 0, p, 0, (kh.first < kh.second));
-    kn = lp4->kmer_prg.add_node(p);
+    kn = lp0->kmer_prg.add_node(p);
     v.push_back(kn);
-    lp4->kmer_prg.add_edge(v[17], v[18]);
+    lp0->kmer_prg.add_edge(v[17], v[18]);
 
     d = {Interval(9, 12)};
     p.initialize(d);
     kh = hash.kmerhash("TAG", 3);
     index->add_record(min(kh.first, kh.second), 0, p, 0, (kh.first < kh.second));
-    kn = lp4->kmer_prg.add_node(p);
+    kn = lp0->kmer_prg.add_node(p);
     v.push_back(kn);
-    lp4->kmer_prg.add_edge(v[18], v[19]);
+    lp0->kmer_prg.add_edge(v[18], v[19]);
 
     d = {Interval(12, 12)};
     p.initialize(d);
-    kn = lp4->kmer_prg.add_node(p);
+    kn = lp0->kmer_prg.add_node(p);
     v.push_back(kn);
-    lp4->kmer_prg.add_edge(v[19], v[20]);
+    lp0->kmer_prg.add_edge(v[19], v[20]);
 
     d = {Interval(0, 0)};
     p.initialize(d);
@@ -956,20 +954,21 @@ TEST(UtilsTest, pangraphFromReadFile) {
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
     pangenome::Graph pg_exp;
-    MinimizerHits mhs_dummy;
-    pg_exp.add_node(1, "1", 0, mhs_dummy.hits);
-    pg_exp.add_node(2, "2", 0, mhs_dummy.hits);
-    pg_exp.add_node(3, "3", 0, mhs_dummy.hits);
-    pg_exp.add_node(0, "0", 0, mhs_dummy.hits);
+    pg_exp.add_node(lp1);
+    pg_exp.add_node(lp2);
+    pg_exp.add_node(lp3);
+    pg_exp.add_node(lp0);
 
     EXPECT_EQ(pg_exp, *pangraph);
 
     pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
     pangraph_from_read_file("../../test/test_cases/read2.fq", pangraph, index, prgs, 1, 3, 1, 0.1, 1);
-    pg_exp.add_node(1, "1", 0, mhs_dummy.hits);
-    pg_exp.add_node(2, "2", 0, mhs_dummy.hits);
-    pg_exp.add_node(3, "3", 0, mhs_dummy.hits);
-    pg_exp.add_node(0, "0", 0, mhs_dummy.hits);
+    pg_exp.add_node(lp1);
+    pg_exp.add_node(lp2);
+    pg_exp.add_node(lp3);
+    pg_exp.add_node(lp0);
+
+    //TODO: shouldn't we have an EXPECT_EQ() here?
 
     index->clear();
 }
