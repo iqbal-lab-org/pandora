@@ -33,16 +33,6 @@ protected:
     std::unordered_map<std::string, SamplePtr> samples; //the samples this pangraph has information
     uint32_t next_id;
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // internal methods
-    /**
-     * Remove nodes with covg <= thresh from graph
-     * @param thresh
-     */
-    void remove_low_covg_nodes(const uint32_t &thresh);
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 public:
     //TODO: move all attributes to private
     std::map<ReadId, ReadPtr> reads;
@@ -125,7 +115,14 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    //TODO: refactor the methods below
+    /**
+     * Remove nodes with covg <= thresh from graph
+    * @param thresh
+    */
+    void remove_low_covg_nodes(const uint32_t &thresh);
+
+
+    //TODO: possibly refactor the methods below
     std::unordered_map<uint32_t, NodePtr>::iterator remove_node(NodePtr);
     void remove_read(const uint32_t);
     std::vector<WeakNodePtr>::iterator remove_node_from_read(std::vector<WeakNodePtr>::iterator, ReadPtr);

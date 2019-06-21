@@ -3,7 +3,7 @@
 
 class PGraphTester : public pangenome::Graph {
 public:
-    PGraphTester() : Graph() {};
+    using Graph::Graph; //inherits all ctors from pangenome::Graph
 
     friend class PangenomeGraphTest_add_node_Test;
 
@@ -18,4 +18,6 @@ public:
     friend class PangenomeReadTest_find_position_Test;
 
     friend class PangenomeReadTest_split_node_by_reads_Test;
+
+    FRIEND_TEST(PangenomeGraphConstructor, constructors_and_get_sample);
 };
