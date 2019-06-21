@@ -119,7 +119,7 @@ TEST(MinimizerHitTest, compare) {
     d = {Interval(6, 10), Interval(13, 13), Interval(14, 15)};
     p.initialize(d);
     MiniRecord mr5 = MiniRecord(0, p, 0, 0);
-    MinimizerHit mh5(1, m4, mr5);
+    MinimizerHit mh5(1, m5, mr5);
 
     Minimizer m6 = Minimizer(min(kh.first, kh.second), 0, 5, 0);
     d = {Interval(6, 10), Interval(14, 14), Interval(14, 15)};
