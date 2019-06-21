@@ -18,6 +18,9 @@
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 
+//memoization is always disabled by default
+bool LocalPRG::path_memoization_in_nodes_along_path_method = false;
+
 LocalPRG::LocalPRG(uint32_t id, const std::string &name, const std::string &seq)
         : next_id(0), buff(" "), next_site(5), id(id), name(name), seq(seq), num_hits(2, 0) {
     std::vector<uint32_t> v; //TODO: v is not used - safe to delete - but is passed as a parameter...
@@ -68,7 +71,10 @@ std::string LocalPRG::string_along_path(const std::vector<LocalNodePtr> &p) {
 }
 
 std::vector<LocalNodePtr> LocalPRG::nodes_along_path(prg::Path &p) const {
-    return p.nodes_along_path(*this);
+    if (path_memoization_in_nodes_along_path_method)
+        return p.nodes_along_path(*this); //memoized version
+    else
+        return nodes_along_path_core(p); //non-memoized version
 }
 
 

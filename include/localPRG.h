@@ -39,6 +39,8 @@ public:
     //VCF vcf;
     std::vector<uint32_t> num_hits;
 
+    static bool path_memoization_in_nodes_along_path_method; //flag to turn on or off path memoization in nodes_along_path method
+
     LocalPRG(uint32_t id, const std::string &name, const std::string &seq);
 
     // functions used to create LocalGraph from PRG string, and to sketch graph
