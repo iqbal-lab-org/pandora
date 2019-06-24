@@ -56,6 +56,8 @@ std::vector<LocalNodePtr> prg::Path::nodes_along_path(const LocalPRG &localPrg) 
     } else if (memoizedDirty == false) {
         //redudant call, return the memoized local node path
         return memoizedLocalNodePath;
+    } else {
+        fatalError("Bug on prg::Path::nodes_along_path()");
     }
 }
 

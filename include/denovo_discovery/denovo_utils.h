@@ -67,7 +67,7 @@ struct PathComponents {
 PathComponents find_interval_and_flanks_in_localpath(const Interval &interval,
                                                      const std::vector<LocalNodePtr> &local_node_max_likelihood_path);
 
-std::set<MinimizerHitPtr, pComp_path>
-find_hits_inside_path(const std::set<MinimizerHitPtr, pComp_path> &read_hits, const prg::Path &local_path);
+std::vector<MinimizerHitPtr>
+find_hits_inside_path(const std::vector<MinimizerHitPtr> &read_hits, const prg::Path &local_path);
 
 #endif

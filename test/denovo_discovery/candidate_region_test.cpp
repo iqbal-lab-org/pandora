@@ -328,15 +328,13 @@ TEST(IdentifyLowCoverageIntervalsTest, twoRegionsBelowThresholdOneLessThanMinLen
 TEST(FindCandidateRegionsForPanNodeTest, emptyPanNodeReturnsNoCandidates) {
     const auto num_samples { 1 };
     const auto prg_id { 3 };
-    LocalPRG local_prg { prg_id, "test", "" };
+    auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "test", "") };
     const std::vector<LocalNodePtr> local_node_max_likelihood_path;
     const std::vector<KmerNodePtr> kmer_node_max_likelihood_path;
 
-    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(0, prg_id, "test") };
-    pangraph_node->kmer_prg = local_prg.kmer_prg;
-    pangraph_node->kmer_prg.setup_coverages(num_samples);
+    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(local_prg_ptr, local_prg_ptr->id, num_samples) };
 
-    auto local_prg_ptr { std::make_shared<LocalPRG>(local_prg) };
+
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr, kmer_node_max_likelihood_path,
                                                 local_node_max_likelihood_path };
 
@@ -351,22 +349,20 @@ TEST(FindCandidateRegionsForPanNodeTest, emptyPanNodeReturnsNoCandidates) {
 TEST(FindCandidateRegionsForPanNodeTest, noCoverageReturnWholePrgAsCandidate) {
     const auto num_samples { 1 };
     const auto prg_id { 3 };
-    LocalPRG local_prg { prg_id, "test", "AAA 5 G 6 C 5 TTT" };
+    auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "test", "AAA 5 G 6 C 5 TTT") };
     auto index { std::make_shared<Index>() };
     const auto w { 1 };
     const auto k { 3 };
-    local_prg.minimizer_sketch(index, w, k);
+    local_prg_ptr->minimizer_sketch(index, w, k);
     const std::string expected_sequence { "AAAGTTT" };
-    const std::vector<LocalNodePtr> local_node_max_likelihood_path { local_prg.prg.nodes[0], local_prg.prg.nodes[1],
-                                                                     local_prg.prg.nodes[3] };
+    const std::vector<LocalNodePtr> local_node_max_likelihood_path { local_prg_ptr->prg.nodes[0], local_prg_ptr->prg.nodes[1],
+                                                                     local_prg_ptr->prg.nodes[3] };
     std::vector<KmerNodePtr> kmer_node_max_likelihood_path {
-            local_prg.kmernode_path_from_localnode_path(local_node_max_likelihood_path) };
+            local_prg_ptr->kmernode_path_from_localnode_path(local_node_max_likelihood_path) };
 
-    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(0, prg_id, "test") };
-    pangraph_node->kmer_prg = local_prg.kmer_prg;
-    pangraph_node->kmer_prg.setup_coverages(num_samples);
+    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(local_prg_ptr, local_prg_ptr->id, num_samples) };
 
-    auto local_prg_ptr { std::make_shared<LocalPRG>(local_prg) };
+
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr, kmer_node_max_likelihood_path,
                                                 local_node_max_likelihood_path };
 
@@ -384,25 +380,23 @@ TEST(FindCandidateRegionsForPanNodeTest, noCoverageReturnWholePrgAsCandidate) {
 TEST(FindCandidateRegionsForPanNodeTest, highCoverageReturnEmpty) {
     const auto num_samples { 1 };
     const auto prg_id { 3 };
-    LocalPRG local_prg { prg_id, "test", "AAA 5 G 6 C 5 TTT" };
+    auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "test", "AAA 5 G 6 C 5 TTT") };
     auto index { std::make_shared<Index>() };
     const auto w { 1 };
     const auto k { 3 };
-    local_prg.minimizer_sketch(index, w, k);
+    local_prg_ptr->minimizer_sketch(index, w, k);
     const std::string expected_sequence { "AAAGTTT" };
-    const std::vector<LocalNodePtr> local_node_max_likelihood_path { local_prg.prg.nodes[0], local_prg.prg.nodes[1],
-                                                                     local_prg.prg.nodes[3] };
+    const std::vector<LocalNodePtr> local_node_max_likelihood_path { local_prg_ptr->prg.nodes[0], local_prg_ptr->prg.nodes[1],
+                                                                     local_prg_ptr->prg.nodes[3] };
     std::vector<KmerNodePtr> kmer_node_max_likelihood_path {
-            local_prg.kmernode_path_from_localnode_path(local_node_max_likelihood_path) };
+            local_prg_ptr->kmernode_path_from_localnode_path(local_node_max_likelihood_path) };
 
-    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(0, prg_id, "test") };
-    pangraph_node->kmer_prg = local_prg.kmer_prg;
-    pangraph_node->kmer_prg.setup_coverages(num_samples);
-    for (const auto &kmer_node : pangraph_node->kmer_prg.nodes) {
-        kmer_node->set_covg(100, false, 0);
+    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(local_prg_ptr, local_prg_ptr->id, num_samples) };
+
+    for (const auto &kmer_node : pangraph_node->kmer_prg_with_coverage.kmer_prg->nodes) {
+        pangraph_node->kmer_prg_with_coverage.set_covg(kmer_node->id, 100, false, 0);
     }
 
-    auto local_prg_ptr { std::make_shared<LocalPRG>(local_prg) };
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr, kmer_node_max_likelihood_path,
                                                 local_node_max_likelihood_path };
 
@@ -416,30 +410,27 @@ TEST(FindCandidateRegionsForPanNodeTest, highCoverageReturnEmpty) {
 TEST(FindCandidateRegionsForPanNodeTest, noCoverageOnFiveBasesReturnFiveBasesAsCandidate) {
     const auto num_samples { 1 };
     const auto prg_id { 3 };
-    LocalPRG local_prg { prg_id, "test", "AAAA 5 GGG 6 CCC 5 TTTT" };
+    auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "test", "AAAA 5 GGG 6 CCC 5 TTTT") };
     auto index { std::make_shared<Index>() };
     const auto w { 1 };
     const auto k { 3 };
-    local_prg.minimizer_sketch(index, w, k);
+    local_prg_ptr->minimizer_sketch(index, w, k);
     const std::string expected_sequence { "AAAAGGGTTTT" };
-    const std::vector<LocalNodePtr> local_node_max_likelihood_path { local_prg.prg.nodes[0], local_prg.prg.nodes[1],
-                                                                     local_prg.prg.nodes[3] };
+    const std::vector<LocalNodePtr> local_node_max_likelihood_path { local_prg_ptr->prg.nodes[0], local_prg_ptr->prg.nodes[1],
+                                                                     local_prg_ptr->prg.nodes[3] };
     const std::vector<int> kmer_node_idxs_for_max_path { 0, 1, 2, 3, 5, 7, 9, 11, 13, 14, 15 };
     std::vector<KmerNodePtr> kmer_node_max_likelihood_path;
     kmer_node_max_likelihood_path.reserve(kmer_node_idxs_for_max_path.size());
     for (const auto &idx : kmer_node_idxs_for_max_path) {
-        kmer_node_max_likelihood_path.push_back(local_prg.kmer_prg.nodes[idx]);
+        kmer_node_max_likelihood_path.push_back(local_prg_ptr->kmer_prg.nodes[idx]);
     }
 
-    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(0, prg_id, "test") };
-    local_prg.kmer_prg.setup_coverages(num_samples);
+    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(local_prg_ptr, local_prg_ptr->id, num_samples) };
     const std::vector<int> kmer_node_idxs_for_high_covg { 0, 1, 14, 15 };
     for (const auto &idx : kmer_node_idxs_for_high_covg) {
-        local_prg.kmer_prg.nodes[idx]->set_covg(100, false, 0);
+        pangraph_node->kmer_prg_with_coverage.set_covg(idx, 100, false, 0);
     }
-    pangraph_node->kmer_prg = local_prg.kmer_prg;
 
-    auto local_prg_ptr { std::make_shared<LocalPRG>(local_prg) };
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr, kmer_node_max_likelihood_path,
                                                 local_node_max_likelihood_path };
 
@@ -455,20 +446,20 @@ TEST(FindCandidateRegionsForPanNodeTest, noCoverageOnFiveBasesReturnFiveBasesAsC
 
 TEST(FindCandidateRegionsForPanNodeTest, noCoverageOnFiveBasesReturnFiveBasesPlusPaddingAsCandidate) {
     const auto prg_id { 3 };
-    LocalPRG local_prg { prg_id, "test", "AAAA 5 GGG 6 CCC 5 TTTT" };
+    auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "test", "AAAA 5 GGG 6 CCC 5 TTTT") };
     const std::string expected_sequence { "AAAAGGGTTTT" };
     const auto expected_max_likelihood_sequence { "AAGGGTT" };
     auto index { std::make_shared<Index>() };
     const auto w { 1 };
     const auto k { 3 };
-    local_prg.minimizer_sketch(index, w, k);
+    local_prg_ptr->minimizer_sketch(index, w, k);
 
     const std::vector<int> local_node_idxs_for_max_path { 0, 1, 3 };
     std::vector<LocalNodePtr> local_node_max_likelihood_path;
     local_node_max_likelihood_path.reserve(local_node_idxs_for_max_path.size());
 
     for (const auto &idx : local_node_idxs_for_max_path) {
-        local_node_max_likelihood_path.push_back(local_prg.prg.nodes[idx]);
+        local_node_max_likelihood_path.push_back(local_prg_ptr->prg.nodes[idx]);
     }
 
     const std::vector<int> kmer_node_idxs_for_max_path { 0, 1, 2, 3, 5, 7, 9, 11, 13, 14, 15 };
@@ -476,21 +467,17 @@ TEST(FindCandidateRegionsForPanNodeTest, noCoverageOnFiveBasesReturnFiveBasesPlu
     kmer_node_max_likelihood_path.reserve(kmer_node_idxs_for_max_path.size());
 
     for (const auto &idx : kmer_node_idxs_for_max_path) {
-        kmer_node_max_likelihood_path.push_back(local_prg.kmer_prg.nodes[idx]);
+        kmer_node_max_likelihood_path.push_back(local_prg_ptr->kmer_prg.nodes[idx]);
     }
 
-    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(0, prg_id, "test") };
     const auto num_samples { 1 };
-    local_prg.kmer_prg.setup_coverages(num_samples);
+    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(local_prg_ptr, local_prg_ptr->id, num_samples) };
     const std::vector<int> kmer_node_idxs_for_high_covg { 0, 1, 14, 15 };
 
     for (const auto &idx : kmer_node_idxs_for_high_covg) {
-        local_prg.kmer_prg.nodes[idx]->set_covg(100, false, 0);
+        pangraph_node->kmer_prg_with_coverage.set_covg(idx, 100, false, 0);
     }
 
-    pangraph_node->kmer_prg = local_prg.kmer_prg;
-
-    auto local_prg_ptr { std::make_shared<LocalPRG>(local_prg) };
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr, kmer_node_max_likelihood_path,
                                                 local_node_max_likelihood_path };
 
@@ -509,20 +496,20 @@ TEST(FindCandidateRegionsForPanNodeTest, noCoverageOnFiveBasesReturnFiveBasesPlu
 
 TEST(FindCandidateRegionsForPanNodeTest, noCoverageOnStartFiveBasesReturnFiveBasesAsCandidate) {
     const auto prg_id { 3 };
-    LocalPRG local_prg { prg_id, "test", "AAAA 5 GGG 6 CCC 5 TTTT" };
+    auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "test", "AAAA 5 GGG 6 CCC 5 TTTT") };
     const std::string expected_sequence { "AAAAGGGTTTT" };
     const auto expected_max_likelihood_sequence { "AAAAG" };
     auto index { std::make_shared<Index>() };
     const auto w { 1 };
     const auto k { 3 };
-    local_prg.minimizer_sketch(index, w, k);
+    local_prg_ptr->minimizer_sketch(index, w, k);
 
     const std::vector<int> local_node_idxs_for_max_path { 0, 1, 3 };
     std::vector<LocalNodePtr> local_node_max_likelihood_path;
     local_node_max_likelihood_path.reserve(local_node_idxs_for_max_path.size());
 
     for (const auto &idx : local_node_idxs_for_max_path) {
-        local_node_max_likelihood_path.push_back(local_prg.prg.nodes[idx]);
+        local_node_max_likelihood_path.push_back(local_prg_ptr->prg.nodes[idx]);
     }
 
     const std::vector<int> kmer_node_idxs_for_max_path { 0, 1, 2, 3, 5, 7, 9, 11, 13, 14, 15 };
@@ -530,21 +517,18 @@ TEST(FindCandidateRegionsForPanNodeTest, noCoverageOnStartFiveBasesReturnFiveBas
     kmer_node_max_likelihood_path.reserve(kmer_node_idxs_for_max_path.size());
 
     for (const auto &idx : kmer_node_idxs_for_max_path) {
-        kmer_node_max_likelihood_path.push_back(local_prg.kmer_prg.nodes[idx]);
+        kmer_node_max_likelihood_path.push_back(local_prg_ptr->kmer_prg.nodes[idx]);
     }
 
-    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(0, prg_id, "test") };
     const auto num_samples { 1 };
-    local_prg.kmer_prg.setup_coverages(num_samples);
+    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(local_prg_ptr, local_prg_ptr->id, num_samples) };
     const std::vector<int> kmer_node_idxs_for_high_covg { 9, 11, 13, 14, 15 };
 
     for (const auto &idx : kmer_node_idxs_for_high_covg) {
-        local_prg.kmer_prg.nodes[idx]->set_covg(100, false, 0);
+        pangraph_node->kmer_prg_with_coverage.set_covg(idx, 100, false, 0);
     }
 
-    pangraph_node->kmer_prg = local_prg.kmer_prg;
 
-    auto local_prg_ptr { std::make_shared<LocalPRG>(local_prg) };
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr, kmer_node_max_likelihood_path,
                                                 local_node_max_likelihood_path };
 
@@ -563,20 +547,20 @@ TEST(FindCandidateRegionsForPanNodeTest, noCoverageOnStartFiveBasesReturnFiveBas
 
 TEST(FindCandidateRegionsForPanNodeTest, noCoverageOnEndFiveBasesReturnFiveBasesAsCandidate) {
     const auto prg_id { 3 };
-    LocalPRG local_prg { prg_id, "test", "AAAA 5 GGG 6 CCC 5 TTTT" };
+    auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "test", "AAAA 5 GGG 6 CCC 5 TTTT") };
     const std::string expected_sequence { "AAAAGGGTTTT" };
     const auto expected_max_likelihood_sequence { "GTTTT" };
     auto index { std::make_shared<Index>() };
     const auto w { 1 };
     const auto k { 3 };
-    local_prg.minimizer_sketch(index, w, k);
+    local_prg_ptr->minimizer_sketch(index, w, k);
 
     const std::vector<int> local_node_idxs_for_max_path { 0, 1, 3 };
     std::vector<LocalNodePtr> local_node_max_likelihood_path;
     local_node_max_likelihood_path.reserve(local_node_idxs_for_max_path.size());
 
     for (const auto &idx : local_node_idxs_for_max_path) {
-        local_node_max_likelihood_path.push_back(local_prg.prg.nodes[idx]);
+        local_node_max_likelihood_path.push_back(local_prg_ptr->prg.nodes[idx]);
     }
 
     const std::vector<int> kmer_node_idxs_for_max_path { 0, 1, 2, 3, 5, 7, 9, 11, 13, 14, 15 };
@@ -584,21 +568,17 @@ TEST(FindCandidateRegionsForPanNodeTest, noCoverageOnEndFiveBasesReturnFiveBases
     kmer_node_max_likelihood_path.reserve(kmer_node_idxs_for_max_path.size());
 
     for (const auto &idx : kmer_node_idxs_for_max_path) {
-        kmer_node_max_likelihood_path.push_back(local_prg.kmer_prg.nodes[idx]);
+        kmer_node_max_likelihood_path.push_back(local_prg_ptr->kmer_prg.nodes[idx]);
     }
 
-    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(0, prg_id, "test") };
     const auto num_samples { 1 };
-    local_prg.kmer_prg.setup_coverages(num_samples);
+    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(local_prg_ptr, local_prg_ptr->id, num_samples) };
     const std::vector<int> kmer_node_idxs_for_high_covg { 0, 1, 2, 3, 5 };
 
     for (const auto &idx : kmer_node_idxs_for_high_covg) {
-        local_prg.kmer_prg.nodes[idx]->set_covg(100, false, 0);
+        pangraph_node->kmer_prg_with_coverage.set_covg(idx, 100, false, 0);
     }
 
-    pangraph_node->kmer_prg = local_prg.kmer_prg;
-
-    auto local_prg_ptr { std::make_shared<LocalPRG>(local_prg) };
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr, kmer_node_max_likelihood_path,
                                                 local_node_max_likelihood_path };
 
@@ -618,20 +598,20 @@ TEST(FindCandidateRegionsForPanNodeTest, noCoverageOnEndFiveBasesReturnFiveBases
 TEST(FindCandidateRegionsForPanNodeTest,
      noCoverageOnFiveBasesWithinDoubleNestingReturnFiveBasesPlusPaddingAsCandidate) {
     const auto prg_id { 3 };
-    LocalPRG local_prg { prg_id, "test", "AAAA 5 CCCC 6 GG 7 XXX 8 YYY 7 GG 5 TTTT" };
+    auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "test", "AAAA 5 CCCC 6 GG 7 XXX 8 YYY 7 GG 5 TTTT") };
     const std::string expected_sequence { "AAAAGGYYYGGTTTT" };
     const auto expected_max_likelihood_sequence { "GGYYYGG" };
     auto index { std::make_shared<Index>() };
     const auto w { 1 };
     const auto k { 3 };
-    local_prg.minimizer_sketch(index, w, k);
+    local_prg_ptr->minimizer_sketch(index, w, k);
 
     const std::vector<int> local_node_idxs_for_max_path { 0, 2, 4, 5, 6 };
     std::vector<LocalNodePtr> local_node_max_likelihood_path;
     local_node_max_likelihood_path.reserve(local_node_idxs_for_max_path.size());
 
     for (const auto &idx : local_node_idxs_for_max_path) {
-        local_node_max_likelihood_path.push_back(local_prg.prg.nodes[idx]);
+        local_node_max_likelihood_path.push_back(local_prg_ptr->prg.nodes[idx]);
     }
 
     const std::vector<int> kmer_node_idxs_for_max_path { 0, 1, 2, 4, 6, 9, 12, 15, 18, 21, 23, 24, 19, 22, 25 };
@@ -639,21 +619,17 @@ TEST(FindCandidateRegionsForPanNodeTest,
     kmer_node_max_likelihood_path.reserve(kmer_node_idxs_for_max_path.size());
 
     for (const auto &idx : kmer_node_idxs_for_max_path) {
-        kmer_node_max_likelihood_path.push_back(local_prg.kmer_prg.nodes[idx]);
+        kmer_node_max_likelihood_path.push_back(local_prg_ptr->kmer_prg.nodes[idx]);
     }
 
-    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(0, prg_id, "test") };
     const auto num_samples { 1 };
-    local_prg.kmer_prg.setup_coverages(num_samples);
+    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(local_prg_ptr, local_prg_ptr->id, num_samples) };
     const std::vector<int> kmer_node_idxs_for_high_covg { 0, 1, 2, 4, 24, 19, 22, 25 };
 
     for (const auto &idx : kmer_node_idxs_for_high_covg) {
-        local_prg.kmer_prg.nodes[idx]->set_covg(100, false, 0);
+        pangraph_node->kmer_prg_with_coverage.set_covg(idx, 100, false, 0);
     }
 
-    pangraph_node->kmer_prg = local_prg.kmer_prg;
-
-    auto local_prg_ptr { std::make_shared<LocalPRG>(local_prg) };
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr, kmer_node_max_likelihood_path,
                                                 local_node_max_likelihood_path };
 
@@ -672,20 +648,20 @@ TEST(FindCandidateRegionsForPanNodeTest,
 
 TEST(FindCandidateRegionsForPanNodeTest, noCoverageOnTwoFiveBaseRegionsWithinDoubleNestingReturnTwoRegionsAsCandidate) {
     const auto prg_id { 3 };
-    LocalPRG local_prg { prg_id, "test", "AAAA 5 CCCC 6 GG 7 XXX 8 YYY 7 GG 5 TTTTT" };
+    auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "test", "AAAA 5 CCCC 6 GG 7 XXX 8 YYY 7 GG 5 TTTTT") };
     const std::string expected_sequence { "AAAAGGYYYGGTTTTT" };
     std::vector<std::string> expected_max_likelihood_sequences { "AAAAG", "YGGTT" };
     auto index { std::make_shared<Index>() };
     const auto w { 1 };
     const auto k { 3 };
-    local_prg.minimizer_sketch(index, w, k);
+    local_prg_ptr->minimizer_sketch(index, w, k);
 
     const std::vector<int> local_node_idxs_for_max_path { 0, 2, 4, 5, 6 };
     std::vector<LocalNodePtr> local_node_max_likelihood_path;
     local_node_max_likelihood_path.reserve(local_node_idxs_for_max_path.size());
 
     for (const auto &idx : local_node_idxs_for_max_path) {
-        local_node_max_likelihood_path.push_back(local_prg.prg.nodes[idx]);
+        local_node_max_likelihood_path.push_back(local_prg_ptr->prg.nodes[idx]);
     }
 
     const std::vector<int> kmer_node_idxs_for_max_path { 0, 1, 2, 4, 6, 9, 12, 15, 18, 21, 23, 25, 19, 22, 24, 26 };
@@ -693,21 +669,17 @@ TEST(FindCandidateRegionsForPanNodeTest, noCoverageOnTwoFiveBaseRegionsWithinDou
     kmer_node_max_likelihood_path.reserve(kmer_node_idxs_for_max_path.size());
 
     for (const auto &idx : kmer_node_idxs_for_max_path) {
-        kmer_node_max_likelihood_path.push_back(local_prg.kmer_prg.nodes[idx]);
+        kmer_node_max_likelihood_path.push_back(local_prg_ptr->kmer_prg.nodes[idx]);
     }
 
-    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(0, prg_id, "test") };
     const auto num_samples { 1 };
-    local_prg.kmer_prg.setup_coverages(num_samples);
+    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(local_prg_ptr, local_prg_ptr->id, num_samples) };
     const std::vector<int> kmer_node_idxs_for_high_covg { 12, 24, 26 };
 
     for (const auto &idx : kmer_node_idxs_for_high_covg) {
-        local_prg.kmer_prg.nodes[idx]->set_covg(100, false, 0);
+        pangraph_node->kmer_prg_with_coverage.set_covg(idx, 100, false, 0);
     }
 
-    pangraph_node->kmer_prg = local_prg.kmer_prg;
-
-    auto local_prg_ptr { std::make_shared<LocalPRG>(local_prg) };
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr, kmer_node_max_likelihood_path,
                                                 local_node_max_likelihood_path };
 

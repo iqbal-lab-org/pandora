@@ -258,51 +258,61 @@ TEST(NoiseFilteringDbgNodeIdsToIdsAndOrientations, OverlapBackwardsSomeReverseCo
 }
 
 TEST(NoiseFilteringTest, construct_debruijn_graph) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
+
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
-    pangraph->add_node(3, "3", 0, mhs);
-    pangraph->add_node(4, "4", 0, mhs);
-    pangraph->add_node(5, "5", 0, mhs);
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+    auto l3 = std::make_shared<LocalPRG>(3, "3", "");
+    auto l4 = std::make_shared<LocalPRG>(4, "4", "");
+    auto l5 = std::make_shared<LocalPRG>(5, "5", "");
+    auto l6 = std::make_shared<LocalPRG>(6, "6", "");
+    auto l7 = std::make_shared<LocalPRG>(7, "7", "");
+
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
 
     // overlaps to create loop
-    pangraph->add_node(3, "3", 1, mhs);
-    pangraph->add_node(4, "4", 1, mhs);
-    pangraph->add_node(5, "5", 1, mhs);
-    pangraph->add_node(0, "0", 1, mhs);
-    pangraph->add_node(1, "1", 1, mhs);
-    pangraph->add_node(2, "2", 1, mhs);
+    pangraph->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
 
     // starts correct and deviates
-    pangraph->add_node(1, "1", 2, mhs);
-    pangraph->add_node(2, "2", 2, mhs);
-    pangraph->add_node(3, "3", 2, mhs);
-    pangraph->add_node(7, "7", 2, mhs);
+    pangraph->add_hits_between_PRG_and_read(l1, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l7, 2, dummy_cluster);
 
     // all disjoint, short
-    pangraph->add_node(0, "0", 3, mhs);
-    pangraph->add_node(6, "6", 3, mhs);
-    pangraph->add_node(3, "3", 3, mhs);
-    pangraph->add_node(4, "4", 3, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 3, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l6, 3, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 3, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 3, dummy_cluster);
 
     // deviates in middle
-    pangraph->add_node(0, "0", 4, mhs);
-    pangraph->add_node(1, "1", 4, mhs);
-    pangraph->add_node(2, "2", 4, mhs);
-    pangraph->add_node(6, "6", 4, mhs);
-    pangraph->add_node(3, "3", 4, mhs);
-    pangraph->add_node(4, "4", 4, mhs);
-    pangraph->add_node(5, "5", 4, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l6, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 4, dummy_cluster);
 
     // all disjoint, long
-    pangraph->add_node(6, "6", 5, mhs);
-    pangraph->add_node(1, "1", 5, mhs);
-    pangraph->add_node(2, "2", 5, mhs);
-    pangraph->add_node(6, "6", 5, mhs);
-    pangraph->add_node(3, "3", 5, mhs);
+    pangraph->add_hits_between_PRG_and_read(l6, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l6, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 5, dummy_cluster);
 
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);
@@ -372,13 +382,17 @@ TEST(NoiseFilteringTest, construct_debruijn_graph) {
 }
 
 TEST(NoiseFilteringRemoveLeaves, OneDBGNode_RemovedFromPanGraph) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+
     // first an example where only one read giving 1 dbg node, want no segfaults
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);
     remove_leaves(pangraph, dbg);
@@ -388,13 +402,17 @@ TEST(NoiseFilteringRemoveLeaves, OneDBGNode_RemovedFromPanGraph) {
 }
 
 TEST(NoiseFilteringRemoveLeaves, OneDBGNode_RemovedFromDBGraph) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+
     // first an example where only one read giving 1 dbg node, want no segfaults
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);
     remove_leaves(pangraph, dbg);
@@ -403,22 +421,31 @@ TEST(NoiseFilteringRemoveLeaves, OneDBGNode_RemovedFromDBGraph) {
 }
 
 TEST(NoiseFilteringRemoveLeaves, OneLoop_NoLeavesRemoved) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
-    pangraph->add_node(3, "3", 0, mhs);
-    pangraph->add_node(4, "4", 0, mhs);
-    pangraph->add_node(5, "5", 0, mhs);
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+    auto l3 = std::make_shared<LocalPRG>(3, "3", "");
+    auto l4 = std::make_shared<LocalPRG>(4, "4", "");
+    auto l5 = std::make_shared<LocalPRG>(5, "5", "");
 
-    pangraph->add_node(3, "3", 1, mhs);
-    pangraph->add_node(4, "4", 1, mhs);
-    pangraph->add_node(5, "5", 1, mhs);
-    pangraph->add_node(0, "0", 1, mhs);
-    pangraph->add_node(1, "1", 1, mhs);
-    pangraph->add_node(2, "2", 1, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
+
+    // overlaps to create loop
+    pangraph->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
+
 
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);
@@ -431,28 +458,38 @@ TEST(NoiseFilteringRemoveLeaves, OneLoop_NoLeavesRemoved) {
 }
 
 TEST(NoiseFilteringRemoveLeaves, OneLoopAndDeviantPath_OneLeafRemoved) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
-    pangraph->add_node(3, "3", 0, mhs);
-    pangraph->add_node(4, "4", 0, mhs);
-    pangraph->add_node(5, "5", 0, mhs);
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+    auto l3 = std::make_shared<LocalPRG>(3, "3", "");
+    auto l4 = std::make_shared<LocalPRG>(4, "4", "");
+    auto l5 = std::make_shared<LocalPRG>(5, "5", "");
+    auto l6 = std::make_shared<LocalPRG>(6, "6", "");
+    auto l7 = std::make_shared<LocalPRG>(7, "7", "");
 
-    pangraph->add_node(3, "3", 1, mhs);
-    pangraph->add_node(4, "4", 1, mhs);
-    pangraph->add_node(5, "5", 1, mhs);
-    pangraph->add_node(0, "0", 1, mhs);
-    pangraph->add_node(1, "1", 1, mhs);
-    pangraph->add_node(2, "2", 1, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
+
+    // overlaps to create loop
+    pangraph->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
 
     // starts correct and deviates
-    pangraph->add_node(1, "1", 2, mhs);
-    pangraph->add_node(2, "2", 2, mhs);
-    pangraph->add_node(3, "3", 2, mhs);
-    pangraph->add_node(7, "7", 2, mhs);
+    pangraph->add_hits_between_PRG_and_read(l1, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l7, 2, dummy_cluster);
 
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);
@@ -467,28 +504,38 @@ TEST(NoiseFilteringRemoveLeaves, OneLoopAndDeviantPath_OneLeafRemoved) {
 }
 
 TEST(NoiseFilteringRemoveLeaves, OneLoopAndIncorrectPath_TwoLeavesRemoved) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
-    pangraph->add_node(3, "3", 0, mhs);
-    pangraph->add_node(4, "4", 0, mhs);
-    pangraph->add_node(5, "5", 0, mhs);
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+    auto l3 = std::make_shared<LocalPRG>(3, "3", "");
+    auto l4 = std::make_shared<LocalPRG>(4, "4", "");
+    auto l5 = std::make_shared<LocalPRG>(5, "5", "");
+    auto l6 = std::make_shared<LocalPRG>(6, "6", "");
+    auto l7 = std::make_shared<LocalPRG>(7, "7", "");
 
-    pangraph->add_node(3, "3", 1, mhs);
-    pangraph->add_node(4, "4", 1, mhs);
-    pangraph->add_node(5, "5", 1, mhs);
-    pangraph->add_node(0, "0", 1, mhs);
-    pangraph->add_node(1, "1", 1, mhs);
-    pangraph->add_node(2, "2", 1, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
+
+    // overlaps to create loop
+    pangraph->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
 
     // incorrect short
-    pangraph->add_node(0, "0", 3, mhs);
-    pangraph->add_node(5, "5", 3, mhs);//6
-    pangraph->add_node(3, "3", 3, mhs);
-    pangraph->add_node(4, "4", 3, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 3, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 3, dummy_cluster);//6
+    pangraph->add_hits_between_PRG_and_read(l3, 3, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 3, dummy_cluster);
 
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);
@@ -503,31 +550,41 @@ TEST(NoiseFilteringRemoveLeaves, OneLoopAndIncorrectPath_TwoLeavesRemoved) {
 }
 
 TEST(NoiseFilteringRemoveLeaves, OneLoopAndDeviatesInMiddle_NoLeavesRemoved) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
-    pangraph->add_node(3, "3", 0, mhs);
-    pangraph->add_node(4, "4", 0, mhs);
-    pangraph->add_node(5, "5", 0, mhs);
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+    auto l3 = std::make_shared<LocalPRG>(3, "3", "");
+    auto l4 = std::make_shared<LocalPRG>(4, "4", "");
+    auto l5 = std::make_shared<LocalPRG>(5, "5", "");
+    auto l6 = std::make_shared<LocalPRG>(6, "6", "");
+    auto l7 = std::make_shared<LocalPRG>(7, "7", "");
 
-    pangraph->add_node(3, "3", 1, mhs);
-    pangraph->add_node(4, "4", 1, mhs);
-    pangraph->add_node(5, "5", 1, mhs);
-    pangraph->add_node(0, "0", 1, mhs);
-    pangraph->add_node(1, "1", 1, mhs);
-    pangraph->add_node(2, "2", 1, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
+
+    // overlaps to create loop
+    pangraph->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
 
     // deviates in middle
-    pangraph->add_node(0, "0", 4, mhs);
-    pangraph->add_node(1, "1", 4, mhs);
-    pangraph->add_node(2, "2", 4, mhs);
-    pangraph->add_node(6, "6", 4, mhs);
-    pangraph->add_node(3, "3", 4, mhs);
-    pangraph->add_node(4, "4", 4, mhs);
-    pangraph->add_node(5, "5", 4, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l6, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 4, dummy_cluster);
 
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);
@@ -540,29 +597,40 @@ TEST(NoiseFilteringRemoveLeaves, OneLoopAndDeviatesInMiddle_NoLeavesRemoved) {
 }
 
 TEST(NoiseFilteringRemoveLeaves, OneLoopAndLongerWrongPath_LeavesRemoved) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
-    pangraph->add_node(3, "3", 0, mhs);
-    pangraph->add_node(4, "4", 0, mhs);
-    pangraph->add_node(5, "5", 0, mhs);
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+    auto l3 = std::make_shared<LocalPRG>(3, "3", "");
+    auto l4 = std::make_shared<LocalPRG>(4, "4", "");
+    auto l5 = std::make_shared<LocalPRG>(5, "5", "");
+    auto l6 = std::make_shared<LocalPRG>(6, "6", "");
+    auto l7 = std::make_shared<LocalPRG>(7, "7", "");
 
-    pangraph->add_node(3, "3", 1, mhs);
-    pangraph->add_node(4, "4", 1, mhs);
-    pangraph->add_node(5, "5", 1, mhs);
-    pangraph->add_node(0, "0", 1, mhs);
-    pangraph->add_node(1, "1", 1, mhs);
-    pangraph->add_node(2, "2", 1, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
+
+    // overlaps to create loop
+    pangraph->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
+
 
     // incorrect longer
-    pangraph->add_node(6, "6", 5, mhs);
-    pangraph->add_node(1, "1", 5, mhs);
-    pangraph->add_node(7, "7", 5, mhs);//2
-    pangraph->add_node(6, "6", 5, mhs);
-    pangraph->add_node(3, "3", 5, mhs);
+    pangraph->add_hits_between_PRG_and_read(l6, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l7, 5, dummy_cluster);//2
+    pangraph->add_hits_between_PRG_and_read(l6, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 5, dummy_cluster);
 
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);
@@ -580,13 +648,22 @@ TEST(NoiseFilteringRemoveLeaves, OneLoopAndLongerWrongPath_LeavesRemoved) {
 }
 
 TEST(NoiseFilteringRemoveLeaves, AllTogether_GraphsLookCorrect) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+    auto l3 = std::make_shared<LocalPRG>(3, "3", "");
+    auto l4 = std::make_shared<LocalPRG>(4, "4", "");
+    auto l5 = std::make_shared<LocalPRG>(5, "5", "");
+    auto l6 = std::make_shared<LocalPRG>(6, "6", "");
+    auto l7 = std::make_shared<LocalPRG>(7, "7", "");
+
     // first an example where only one read giving 1 dbg node, want no segfaults
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);
     remove_leaves(pangraph, dbg);
@@ -596,48 +673,48 @@ TEST(NoiseFilteringRemoveLeaves, AllTogether_GraphsLookCorrect) {
     EXPECT_EQ(pg_exp, *pangraph);
 
     // and now a full example
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
-    pangraph->add_node(3, "3", 0, mhs);
-    pangraph->add_node(4, "4", 0, mhs);
-    pangraph->add_node(5, "5", 0, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
 
     // overlapping in loop
-    pangraph->add_node(3, "3", 1, mhs);
-    pangraph->add_node(4, "4", 1, mhs);
-    pangraph->add_node(5, "5", 1, mhs);
-    pangraph->add_node(0, "0", 1, mhs);
-    pangraph->add_node(1, "1", 1, mhs);
-    pangraph->add_node(2, "2", 1, mhs);
+    pangraph->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
 
     // starts correct and deviates
-    pangraph->add_node(1, "1", 2, mhs);
-    pangraph->add_node(2, "2", 2, mhs);
-    pangraph->add_node(3, "3", 2, mhs);
-    pangraph->add_node(7, "7", 2, mhs);
+    pangraph->add_hits_between_PRG_and_read(l1, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l7, 2, dummy_cluster);
 
     // incorrect short
-    pangraph->add_node(0, "0", 3, mhs);
-    pangraph->add_node(5, "5", 3, mhs);//6
-    pangraph->add_node(3, "3", 3, mhs);
-    pangraph->add_node(4, "4", 3, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 3, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 3, dummy_cluster);//6
+    pangraph->add_hits_between_PRG_and_read(l3, 3, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 3, dummy_cluster);
 
     // deviates in middle
-    pangraph->add_node(0, "0", 4, mhs);
-    pangraph->add_node(1, "1", 4, mhs);
-    pangraph->add_node(2, "2", 4, mhs);
-    pangraph->add_node(6, "6", 4, mhs);
-    pangraph->add_node(3, "3", 4, mhs);
-    pangraph->add_node(4, "4", 4, mhs);
-    pangraph->add_node(5, "5", 4, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l6, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 4, dummy_cluster);
 
     // incorrect longer
-    pangraph->add_node(6, "6", 5, mhs);
-    pangraph->add_node(1, "1", 5, mhs);
-    pangraph->add_node(1, "1", 5, mhs);//2
-    pangraph->add_node(6, "6", 5, mhs);
-    pangraph->add_node(3, "3", 5, mhs);
+    pangraph->add_hits_between_PRG_and_read(l6, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 5, dummy_cluster);//2
+    pangraph->add_hits_between_PRG_and_read(l6, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 5, dummy_cluster);
 
     construct_debruijn_graph(pangraph, dbg);
     remove_leaves(pangraph, dbg);
@@ -692,54 +769,63 @@ TEST(NoiseFilteringRemoveLeaves, AllTogether_GraphsLookCorrect) {
 
     EXPECT_EQ(dbg_exp, dbg);
 
-    pg_exp.add_node(0, "0", 0, mhs);
-    pg_exp.add_node(1, "1", 0, mhs);
-    pg_exp.add_node(2, "2", 0, mhs);
-    pg_exp.add_node(3, "3", 0, mhs);
-    pg_exp.add_node(4, "4", 0, mhs);
-    pg_exp.add_node(5, "5", 0, mhs);
+    pg_exp.add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
 
-    pg_exp.add_node(3, "3", 1, mhs);
-    pg_exp.add_node(4, "4", 1, mhs);
-    pg_exp.add_node(5, "5", 1, mhs);
-    pg_exp.add_node(0, "0", 1, mhs);
-    pg_exp.add_node(1, "1", 1, mhs);
-    pg_exp.add_node(2, "2", 1, mhs);
+    pg_exp.add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
 
-    pg_exp.add_node(1, "1", 2, mhs);
-    pg_exp.add_node(2, "2", 2, mhs);
-    pg_exp.add_node(3, "3", 2, mhs);
+    pg_exp.add_hits_between_PRG_and_read(l1, 2, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l2, 2, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l3, 2, dummy_cluster);
 
-    pg_exp.add_node(0, "0", 4, mhs);
-    pg_exp.add_node(1, "1", 4, mhs);
-    pg_exp.add_node(2, "2", 4, mhs);
-    pg_exp.add_node(6, "6", 4, mhs);
-    pg_exp.add_node(3, "3", 4, mhs);
-    pg_exp.add_node(4, "4", 4, mhs);
-    pg_exp.add_node(5, "5", 4, mhs);
+    pg_exp.add_hits_between_PRG_and_read(l0, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l1, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l2, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l6, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l3, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l4, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l5, 4, dummy_cluster);
 
     EXPECT_EQ(pg_exp, *pangraph);
 }
 
 TEST(NoiseFilteringFilterUnitigs, SimpleCaseNothingToDo_ReadsUnchanged) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
-    pangraph->add_node(3, "3", 0, mhs);
-    pangraph->add_node(4, "4", 0, mhs);
-    pangraph->add_node(5, "5", 0, mhs);
-    pangraph->add_node(0, "0", 0, mhs);
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+    auto l3 = std::make_shared<LocalPRG>(3, "3", "");
+    auto l4 = std::make_shared<LocalPRG>(4, "4", "");
+    auto l5 = std::make_shared<LocalPRG>(5, "5", "");
+    auto l6 = std::make_shared<LocalPRG>(6, "6", "");
+    auto l7 = std::make_shared<LocalPRG>(7, "7", "");
 
-    pangraph->add_node(0, "0", 1, mhs);
-    pangraph->add_node(1, "1", 1, mhs);
-    pangraph->add_node(2, "2", 1, mhs);
-    pangraph->add_node(3, "3", 1, mhs);
-    pangraph->add_node(4, "4", 1, mhs);
-    pangraph->add_node(5, "5", 1, mhs);
-    pangraph->add_node(0, "0", 1, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+
+    pangraph->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
 
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);
@@ -747,54 +833,63 @@ TEST(NoiseFilteringFilterUnitigs, SimpleCaseNothingToDo_ReadsUnchanged) {
 
     pangenome::Graph *pg_exp;
     pg_exp = new pangenome::Graph();
-    pg_exp->add_node(0, "0", 0, mhs);
-    pg_exp->add_node(1, "1", 0, mhs);
-    pg_exp->add_node(2, "2", 0, mhs);
-    pg_exp->add_node(3, "3", 0, mhs);
-    pg_exp->add_node(4, "4", 0, mhs);
-    pg_exp->add_node(5, "5", 0, mhs);
-    pg_exp->add_node(0, "0", 0, mhs);
+    pg_exp->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
 
-    pg_exp->add_node(0, "0", 1, mhs);
-    pg_exp->add_node(1, "1", 1, mhs);
-    pg_exp->add_node(2, "2", 1, mhs);
-    pg_exp->add_node(3, "3", 1, mhs);
-    pg_exp->add_node(4, "4", 1, mhs);
-    pg_exp->add_node(5, "5", 1, mhs);
-    pg_exp->add_node(0, "0", 1, mhs);
+    pg_exp->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
 
     // check contents of read 0 are correct
-    EXPECT_EQ(pg_exp->reads[0]->nodes.size(), pangraph->reads[0]->nodes.size());
-    for (uint i = 0; i < min(pangraph->reads[0]->nodes.size(), pg_exp->reads[0]->nodes.size()); ++i) {
-        EXPECT_EQ(*pangraph->reads[0]->nodes[i], *pg_exp->reads[0]->nodes[i]);
+    EXPECT_EQ(pg_exp->reads[0]->get_nodes().size(), pangraph->reads[0]->get_nodes().size());
+    for (uint i = 0; i < min(pangraph->reads[0]->get_nodes().size(), pg_exp->reads[0]->get_nodes().size()); ++i) {
+        EXPECT_EQ(*pangraph->reads[0]->get_nodes()[i].lock(), *pg_exp->reads[0]->get_nodes()[i].lock());
     }
     // check contents of read 1 are correct
-    EXPECT_EQ(pg_exp->reads[1]->nodes.size(), pangraph->reads[1]->nodes.size());
-    for (uint i = 0; i < min(pangraph->reads[1]->nodes.size(), pg_exp->reads[1]->nodes.size()); ++i) {
-        EXPECT_EQ(*pangraph->reads[1]->nodes[i], *pg_exp->reads[1]->nodes[i]);
+    EXPECT_EQ(pg_exp->reads[1]->get_nodes().size(), pangraph->reads[1]->get_nodes().size());
+    for (uint i = 0; i < min(pangraph->reads[1]->get_nodes().size(), pg_exp->reads[1]->get_nodes().size()); ++i) {
+        EXPECT_EQ(*pangraph->reads[1]->get_nodes()[i].lock(), *pg_exp->reads[1]->get_nodes()[i].lock());
     }
 
     delete pg_exp;
 }
 
 TEST(NoiseFilteringFilterUnitigs, SimpleCaseNothingToDoCycle_ReadsUnchanged) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
-    pangraph->add_node(3, "3", 0, mhs);
-    pangraph->add_node(4, "4", 0, mhs);
-    pangraph->add_node(5, "5", 0, mhs);
-    pangraph->add_node(0, "0", 0, mhs);
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+    auto l3 = std::make_shared<LocalPRG>(3, "3", "");
+    auto l4 = std::make_shared<LocalPRG>(4, "4", "");
+    auto l5 = std::make_shared<LocalPRG>(5, "5", "");
+    auto l6 = std::make_shared<LocalPRG>(6, "6", "");
+    auto l7 = std::make_shared<LocalPRG>(7, "7", "");
 
-    pangraph->add_node(2, "2", 1, mhs);
-    pangraph->add_node(3, "3", 1, mhs);
-    pangraph->add_node(4, "4", 1, mhs);
-    pangraph->add_node(5, "5", 1, mhs);
-    pangraph->add_node(0, "0", 1, mhs);
-    pangraph->add_node(1, "1", 1, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+
+    pangraph->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
 
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);
@@ -802,31 +897,31 @@ TEST(NoiseFilteringFilterUnitigs, SimpleCaseNothingToDoCycle_ReadsUnchanged) {
 
     pangenome::Graph *pg_exp;
     pg_exp = new pangenome::Graph();
-    pg_exp->add_node(0, "0", 0, mhs);
-    pg_exp->add_node(1, "1", 0, mhs);
-    pg_exp->add_node(2, "2", 0, mhs);
-    pg_exp->add_node(3, "3", 0, mhs);
-    pg_exp->add_node(4, "4", 0, mhs);
-    pg_exp->add_node(5, "5", 0, mhs);
-    pg_exp->add_node(0, "0", 0, mhs);
+    pg_exp->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
 
-    pg_exp->add_node(2, "2", 1, mhs);
-    pg_exp->add_node(3, "3", 1, mhs);
-    pg_exp->add_node(4, "4", 1, mhs);
-    pg_exp->add_node(5, "5", 1, mhs);
-    pg_exp->add_node(0, "0", 1, mhs);
-    pg_exp->add_node(1, "1", 1, mhs);
+    pg_exp->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
 
 
     // check contents of read 0 are correct
-    EXPECT_EQ(pg_exp->reads[0]->nodes.size(), pangraph->reads[0]->nodes.size());
-    for (uint i = 0; i < min(pangraph->reads[0]->nodes.size(), pg_exp->reads[0]->nodes.size()); ++i) {
-        EXPECT_EQ(*pangraph->reads[0]->nodes[i], *pg_exp->reads[0]->nodes[i]);
+    EXPECT_EQ(pg_exp->reads[0]->get_nodes().size(), pangraph->reads[0]->get_nodes().size());
+    for (uint i = 0; i < min(pangraph->reads[0]->get_nodes().size(), pg_exp->reads[0]->get_nodes().size()); ++i) {
+        EXPECT_EQ(*pangraph->reads[0]->get_nodes()[i].lock(), *pg_exp->reads[0]->get_nodes()[i].lock());
     }
     // check contents of read 1 are correct
-    EXPECT_EQ(pg_exp->reads[1]->nodes.size(), pangraph->reads[1]->nodes.size());
-    for (uint i = 0; i < min(pangraph->reads[1]->nodes.size(), pg_exp->reads[1]->nodes.size()); ++i) {
-        EXPECT_EQ(*pangraph->reads[1]->nodes[i], *pg_exp->reads[1]->nodes[i]);
+    EXPECT_EQ(pg_exp->reads[1]->get_nodes().size(), pangraph->reads[1]->get_nodes().size());
+    for (uint i = 0; i < min(pangraph->reads[1]->get_nodes().size(), pg_exp->reads[1]->get_nodes().size()); ++i) {
+        EXPECT_EQ(*pangraph->reads[1]->get_nodes()[i].lock(), *pg_exp->reads[1]->get_nodes()[i].lock());
     }
 
     delete pg_exp;
@@ -886,22 +981,22 @@ TEST(NoiseFilteringFilterUnitigs, SimpleCaseNothingToDoCycle_ReadsUnchanged) {
     pg_exp->add_node(3,"3",2, mhs);
 
     // check contents of read 0 are correct
-    EXPECT_EQ(pg_exp->reads[0]->nodes.size(), pg->reads[0]->nodes.size());
-    for (uint i=0; i < min(pg->reads[0]->nodes.size(), pg_exp->reads[0]->nodes.size()); ++i)
+    EXPECT_EQ(pg_exp->reads[0]->get_nodes().size(), pg->reads[0]->get_nodes().size());
+    for (uint i=0; i < min(pg->reads[0]->get_nodes().size(), pg_exp->reads[0]->get_nodes().size()); ++i)
     {
-        EXPECT_EQ(*pg->reads[0]->nodes[i], *pg_exp->reads[0]->nodes[i]);
+        EXPECT_EQ(*pg->reads[0]->get_nodes()[i], *pg_exp->reads[0]->get_nodes()[i]);
     }
     // check contents of read 1 are correct
-    EXPECT_EQ(pg_exp->reads[1]->nodes.size(), pg->reads[1]->nodes.size());
-    for (uint i=0; i < min(pg->reads[1]->nodes.size(),pg_exp->reads[1]->nodes.size()) ; ++i)
+    EXPECT_EQ(pg_exp->reads[1]->get_nodes().size(), pg->reads[1]->get_nodes().size());
+    for (uint i=0; i < min(pg->reads[1]->get_nodes().size(),pg_exp->reads[1]->get_nodes().size()) ; ++i)
     {
-        EXPECT_EQ(*pg->reads[1]->nodes[i], *pg_exp->reads[1]->nodes[i]);
+        EXPECT_EQ(*pg->reads[1]->get_nodes()[i], *pg_exp->reads[1]->get_nodes()[i]);
     }
     // check contents of read 2 are correct
-    EXPECT_EQ(pg_exp->reads[2]->nodes.size(), pg->reads[2]->nodes.size());
-    for (uint i=0; i < min(pg->reads[2]->nodes.size(),pg_exp->reads[2]->nodes.size()) ; ++i)
+    EXPECT_EQ(pg_exp->reads[2]->get_nodes().size(), pg->reads[2]->get_nodes().size());
+    for (uint i=0; i < min(pg->reads[2]->get_nodes().size(),pg_exp->reads[2]->get_nodes().size()) ; ++i)
     {
-        EXPECT_EQ(*pg->reads[2]->nodes[i], *pg_exp->reads[2]->nodes[i]);
+        EXPECT_EQ(*pg->reads[2]->get_nodes()[i], *pg_exp->reads[2]->get_nodes()[i]);
     }
 
     delete pg;
@@ -1026,31 +1121,40 @@ TEST(NoiseFilteringFilterUnitigs,FilterUnitigsReadWrong_DbgAlsoPruned)
 }*/
 
 TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesInMiddle_ReadPruned) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
-    pangraph->add_node(3, "3", 0, mhs);
-    pangraph->add_node(4, "4", 0, mhs);
-    pangraph->add_node(5, "5", 0, mhs);
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+    auto l3 = std::make_shared<LocalPRG>(3, "3", "");
+    auto l4 = std::make_shared<LocalPRG>(4, "4", "");
+    auto l5 = std::make_shared<LocalPRG>(5, "5", "");
+    auto l6 = std::make_shared<LocalPRG>(6, "6", "");
+    auto l7 = std::make_shared<LocalPRG>(7, "7", "");
 
-    pangraph->add_node(0, "0", 1, mhs);
-    pangraph->add_node(1, "1", 1, mhs);
-    pangraph->add_node(2, "2", 1, mhs);
-    pangraph->add_node(3, "3", 1, mhs);
-    pangraph->add_node(4, "4", 1, mhs);
-    pangraph->add_node(5, "5", 1, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
+
+    pangraph->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
 
     // deviates in middle
-    pangraph->add_node(0, "0", 4, mhs);
-    pangraph->add_node(1, "1", 4, mhs);
-    pangraph->add_node(2, "2", 4, mhs);
-    pangraph->add_node(6, "6", 4, mhs);
-    pangraph->add_node(3, "3", 4, mhs);
-    pangraph->add_node(4, "4", 4, mhs);
-    pangraph->add_node(5, "5", 4, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l6, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 4, dummy_cluster);
 
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);
@@ -1058,31 +1162,32 @@ TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesInMiddle_ReadPruned) 
 
     pangenome::Graph *pg_exp;
     pg_exp = new pangenome::Graph();
-    pg_exp->add_node(0, "0", 0, mhs);
-    pg_exp->add_node(1, "1", 0, mhs);
-    pg_exp->add_node(2, "2", 0, mhs);
-    pg_exp->add_node(3, "3", 0, mhs);
-    pg_exp->add_node(4, "4", 0, mhs);
-    pg_exp->add_node(5, "5", 0, mhs);
+    pg_exp->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
 
-    pg_exp->add_node(0, "0", 1, mhs);
-    pg_exp->add_node(1, "1", 1, mhs);
-    pg_exp->add_node(2, "2", 1, mhs);
-    pg_exp->add_node(3, "3", 1, mhs);
-    pg_exp->add_node(4, "4", 1, mhs);
-    pg_exp->add_node(5, "5", 1, mhs);
+    pg_exp->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
 
-    pg_exp->add_node(0, "0", 4, mhs);
-    pg_exp->add_node(1, "1", 4, mhs);
-    pg_exp->add_node(2, "2", 4, mhs);
-    pg_exp->add_node(3, "3", 4, mhs);
-    pg_exp->add_node(4, "4", 4, mhs);
-    pg_exp->add_node(5, "5", 4, mhs);
+    pg_exp->add_hits_between_PRG_and_read(l0, 4, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l1, 4, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l2, 4, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l3, 4, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l4, 4, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l5, 4, dummy_cluster);
+
 
     // check contents of read 4 are correct
-    EXPECT_EQ(pg_exp->reads[4]->nodes.size(), pangraph->reads[4]->nodes.size());
-    for (uint i = 0; i < min(pangraph->reads[4]->nodes.size(), pg_exp->reads[4]->nodes.size()); ++i) {
-        EXPECT_EQ(*pangraph->reads[4]->nodes[i], *pg_exp->reads[4]->nodes[i]);
+    EXPECT_EQ(pg_exp->reads[4]->get_nodes().size(), pangraph->reads[4]->get_nodes().size());
+    for (uint i = 0; i < min(pangraph->reads[4]->get_nodes().size(), pg_exp->reads[4]->get_nodes().size()); ++i) {
+        EXPECT_EQ(*pangraph->reads[4]->get_nodes()[i].lock(), *pg_exp->reads[4]->get_nodes()[i].lock());
     }
     delete pg_exp;
 }
@@ -1134,33 +1239,46 @@ TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesInMiddle_ReadPruned) 
 }*/
 
 TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesLongerInMiddle_ReadPruned) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
-    pangraph->add_node(3, "3", 0, mhs);
-    pangraph->add_node(4, "4", 0, mhs);
-    pangraph->add_node(5, "5", 0, mhs);
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+    auto l3 = std::make_shared<LocalPRG>(3, "3", "");
+    auto l4 = std::make_shared<LocalPRG>(4, "4", "");
+    auto l5 = std::make_shared<LocalPRG>(5, "5", "");
+    auto l6 = std::make_shared<LocalPRG>(6, "6", "");
+    auto l7 = std::make_shared<LocalPRG>(7, "7", "");
+    auto l8 = std::make_shared<LocalPRG>(8, "8", "");
+    auto l9 = std::make_shared<LocalPRG>(9, "9", "");
+    auto l10 = std::make_shared<LocalPRG>(10, "10", "");
+    auto l11 = std::make_shared<LocalPRG>(11, "11", "");
 
-    pangraph->add_node(0, "0", 1, mhs);
-    pangraph->add_node(1, "1", 1, mhs);
-    pangraph->add_node(2, "2", 1, mhs);
-    pangraph->add_node(3, "3", 1, mhs);
-    pangraph->add_node(4, "4", 1, mhs);
-    pangraph->add_node(5, "5", 1, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
+
+    pangraph->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
 
     // deviates in middle longer
-    pangraph->add_node(0, "0", 5, mhs);
-    pangraph->add_node(1, "1", 5, mhs);
-    pangraph->add_node(2, "2", 5, mhs);
-    pangraph->add_node(9, "9", 5, mhs);
-    pangraph->add_node(10, "10", 5, mhs);
-    pangraph->add_node(11, "11", 5, mhs);
-    pangraph->add_node(3, "3", 5, mhs);
-    pangraph->add_node(4, "4", 5, mhs);
-    pangraph->add_node(5, "5", 5, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l9, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l10, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l11, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 5, dummy_cluster);
 
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);
@@ -1168,31 +1286,31 @@ TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesLongerInMiddle_ReadPr
 
     pangenome::Graph *pg_exp;
     pg_exp = new pangenome::Graph();
-    pg_exp->add_node(0, "0", 0, mhs);
-    pg_exp->add_node(1, "1", 0, mhs);
-    pg_exp->add_node(2, "2", 0, mhs);
-    pg_exp->add_node(3, "3", 0, mhs);
-    pg_exp->add_node(4, "4", 0, mhs);
-    pg_exp->add_node(5, "5", 0, mhs);
+    pg_exp->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
 
-    pg_exp->add_node(0, "0", 1, mhs);
-    pg_exp->add_node(1, "1", 1, mhs);
-    pg_exp->add_node(2, "2", 1, mhs);
-    pg_exp->add_node(3, "3", 1, mhs);
-    pg_exp->add_node(4, "4", 1, mhs);
-    pg_exp->add_node(5, "5", 1, mhs);
+    pg_exp->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
 
-    pg_exp->add_node(0, "0", 5, mhs);
-    pg_exp->add_node(1, "1", 5, mhs);
-    pg_exp->add_node(2, "2", 5, mhs);
-    pg_exp->add_node(3, "3", 5, mhs);
-    pg_exp->add_node(4, "4", 5, mhs);
-    pg_exp->add_node(5, "5", 5, mhs);
+    pg_exp->add_hits_between_PRG_and_read(l0, 5, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l1, 5, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l2, 5, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l3, 5, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l4, 5, dummy_cluster);
+    pg_exp->add_hits_between_PRG_and_read(l5, 5, dummy_cluster);
 
     // check contents of read 4 are correct
-    EXPECT_EQ(pg_exp->reads[5]->nodes.size(), pangraph->reads[5]->nodes.size());
-    for (uint i = 0; i < min(pangraph->reads[5]->nodes.size(), pg_exp->reads[5]->nodes.size()); ++i) {
-        EXPECT_EQ(*pangraph->reads[5]->nodes[i], *pg_exp->reads[5]->nodes[i]);
+    EXPECT_EQ(pg_exp->reads[5]->get_nodes().size(), pangraph->reads[5]->get_nodes().size());
+    for (uint i = 0; i < min(pangraph->reads[5]->get_nodes().size(), pg_exp->reads[5]->get_nodes().size()); ++i) {
+        EXPECT_EQ(*pangraph->reads[5]->get_nodes()[i].lock(), *pg_exp->reads[5]->get_nodes()[i].lock());
     }
 
     delete pg_exp;
@@ -1251,88 +1369,101 @@ TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesLongerInMiddle_ReadPr
 }*/
 
 TEST(NoiseFilteringFilterUnitigs, AllTogether_PanGraphIsAsExpected) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
-    pangraph->add_node(3, "3", 0, mhs);
-    pangraph->add_node(4, "4", 0, mhs);
-    pangraph->add_node(5, "5", 0, mhs);
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+    auto l3 = std::make_shared<LocalPRG>(3, "3", "");
+    auto l4 = std::make_shared<LocalPRG>(4, "4", "");
+    auto l5 = std::make_shared<LocalPRG>(5, "5", "");
+    auto l6 = std::make_shared<LocalPRG>(6, "6", "");
+    auto l7 = std::make_shared<LocalPRG>(7, "7", "");
+    auto l8 = std::make_shared<LocalPRG>(8, "8", "");
+    auto l9 = std::make_shared<LocalPRG>(9, "9", "");
+    auto l10 = std::make_shared<LocalPRG>(10, "10", "");
+    auto l11 = std::make_shared<LocalPRG>(11, "11", "");
+
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
 
     // starts correct and deviates
-    pangraph->add_node(1, "1", 2, mhs);
-    pangraph->add_node(2, "2", 2, mhs);
-    pangraph->add_node(3, "3", 2, mhs);
-    pangraph->add_node(7, "7", 2, mhs);
+    pangraph->add_hits_between_PRG_and_read(l1, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l7, 2, dummy_cluster);
 
     // incorrect short
-    pangraph->add_node(0, "0", 3, mhs);
-    pangraph->add_node(5, "5", 3, mhs);//6
-    pangraph->add_node(3, "3", 3, mhs);
-    pangraph->add_node(4, "4", 3, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 3, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 3, dummy_cluster);//6
+    pangraph->add_hits_between_PRG_and_read(l3, 3, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 3, dummy_cluster);
 
     // deviates in middle
-    pangraph->add_node(0, "0", 4, mhs);
-    pangraph->add_node(1, "1", 4, mhs);
-    pangraph->add_node(2, "2", 4, mhs);
-    pangraph->add_node(6, "6", 4, mhs);
-    pangraph->add_node(3, "3", 4, mhs);
-    pangraph->add_node(4, "4", 4, mhs);
-    pangraph->add_node(5, "5", 4, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l6, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 4, dummy_cluster);
 
     // deviates in middle longer
-    pangraph->add_node(0, "0", 5, mhs);
-    pangraph->add_node(1, "1", 5, mhs);
-    pangraph->add_node(2, "2", 5, mhs);
-    pangraph->add_node(9, "9", 5, mhs);
-    pangraph->add_node(10, "10", 5, mhs);
-    pangraph->add_node(11, "11", 5, mhs);
-    pangraph->add_node(3, "3", 5, mhs);
-    pangraph->add_node(4, "4", 5, mhs);
-    pangraph->add_node(5, "5", 5, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l9, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l10, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l11, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 5, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 5, dummy_cluster);
 
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);
     filter_unitigs(pangraph, dbg, 1);
 
     pangenome::Graph pg_exp;
-    pg_exp.add_node(0, "0", 0, mhs);
-    pg_exp.add_node(1, "1", 0, mhs);
-    pg_exp.add_node(2, "2", 0, mhs);
-    pg_exp.add_node(3, "3", 0, mhs);
-    pg_exp.add_node(4, "4", 0, mhs);
-    pg_exp.add_node(5, "5", 0, mhs);
+    pg_exp.add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
 
 
     // starts correct and deviates
-    pg_exp.add_node(1, "1", 2, mhs);
-    pg_exp.add_node(2, "2", 2, mhs);
-    pg_exp.add_node(3, "3", 2, mhs);
-    pg_exp.add_node(7, "7", 2, mhs);
+    pg_exp.add_hits_between_PRG_and_read(l1, 2, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l2, 2, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l3, 2, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l7, 2, dummy_cluster);
 
     // incorrect short
-    pg_exp.add_node(0, "0", 3, mhs);
-    pg_exp.add_node(5, "5", 3, mhs);//6
-    pg_exp.add_node(3, "3", 3, mhs);
-    pg_exp.add_node(4, "4", 3, mhs);
+    pg_exp.add_hits_between_PRG_and_read(l0, 3, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l5, 3, dummy_cluster);//6
+    pg_exp.add_hits_between_PRG_and_read(l3, 3, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l4, 3, dummy_cluster);
 
     // deviates in middle
-    pg_exp.add_node(0, "0", 4, mhs);
-    pg_exp.add_node(1, "1", 4, mhs);
-    pg_exp.add_node(2, "2", 4, mhs);
-    pg_exp.add_node(3, "3", 4, mhs);
-    pg_exp.add_node(4, "4", 4, mhs);
-    pg_exp.add_node(5, "5", 4, mhs);
+    pg_exp.add_hits_between_PRG_and_read(l0, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l1, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l2, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l3, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l4, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l5, 4, dummy_cluster);
 
     // deviates in middle longer
-    pg_exp.add_node(0, "0", 5, mhs);
-    pg_exp.add_node(1, "1", 5, mhs);
-    pg_exp.add_node(2, "2", 5, mhs);
-    pg_exp.add_node(3, "3", 5, mhs);
-    pg_exp.add_node(4, "4", 5, mhs);
-    pg_exp.add_node(5, "5", 5, mhs);
+    pg_exp.add_hits_between_PRG_and_read(l0, 5, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l1, 5, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l2, 5, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l3, 5, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l4, 5, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l5, 5, dummy_cluster);
 
     EXPECT_EQ(pg_exp, *pangraph);
 }
@@ -1445,45 +1576,55 @@ TEST(NoiseFilteringFilterUnitigs, AllTogether_PanGraphIsAsExpected) {
 }*/
 
 TEST(NoiseFilteringTest, detangle_pangraph_with_debruijn_graph) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
-    pangraph->add_node(3, "3", 0, mhs);
-    pangraph->add_node(4, "4", 0, mhs);
-    pangraph->add_node(5, "5", 0, mhs);
-    pangraph->add_node(0, "0", 0, mhs);
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+    auto l3 = std::make_shared<LocalPRG>(3, "3", "");
+    auto l4 = std::make_shared<LocalPRG>(4, "4", "");
+    auto l5 = std::make_shared<LocalPRG>(5, "5", "");
+    auto l6 = std::make_shared<LocalPRG>(6, "6", "");
+    auto l7 = std::make_shared<LocalPRG>(7, "7", "");
+
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
 
     // overlapping in loop
-    pangraph->add_node(3, "3", 1, mhs);
-    pangraph->add_node(4, "4", 1, mhs);
-    pangraph->add_node(5, "5", 1, mhs);
-    pangraph->add_node(0, "0", 1, mhs);
-    pangraph->add_node(1, "1", 1, mhs);
-    pangraph->add_node(2, "2", 1, mhs);
+    pangraph->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
+
 
     // starts correct and deviates
-    pangraph->add_node(1, "1", 2, mhs);
-    pangraph->add_node(2, "2", 2, mhs);
-    pangraph->add_node(3, "3", 2, mhs);
-    pangraph->add_node(7, "7", 2, mhs);
+    pangraph->add_hits_between_PRG_and_read(l1, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l7, 2, dummy_cluster);
 
     // incorrect short
-    pangraph->add_node(0, "0", 3, mhs);
-    pangraph->add_node(5, "5", 3, mhs);//6
-    pangraph->add_node(3, "3", 3, mhs);
-    pangraph->add_node(4, "4", 3, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 3, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 3, dummy_cluster);//6
+    pangraph->add_hits_between_PRG_and_read(l3, 3, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 3, dummy_cluster);
 
     // deviates in middle
-    pangraph->add_node(0, "0", 4, mhs);
-    pangraph->add_node(1, "1", 4, mhs);
-    pangraph->add_node(2, "2", 4, mhs);
-    pangraph->add_node(6, "6", 4, mhs);
-    pangraph->add_node(3, "3", 4, mhs);
-    pangraph->add_node(4, "4", 4, mhs);
-    pangraph->add_node(5, "5", 4, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l6, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 4, dummy_cluster);
 
     debruijn::Graph dbg(3);
     construct_debruijn_graph(pangraph, dbg);
@@ -1492,178 +1633,197 @@ TEST(NoiseFilteringTest, detangle_pangraph_with_debruijn_graph) {
     pangenome::Graph pg_exp;
     pangenome::ReadPtr r;
     pangenome::NodePtr n;
-    n = make_shared<pangenome::Node>(0, 0, "0");
+    n = make_shared<pangenome::Node>(l0, 0);
     pg_exp.nodes[0] = n;
-    n = make_shared<pangenome::Node>(1, 1, "1");
+    n = make_shared<pangenome::Node>(l1, 1);
     pg_exp.nodes[1] = n;
-    n = make_shared<pangenome::Node>(2, 2, "2");
+    n = make_shared<pangenome::Node>(l2, 2);
     pg_exp.nodes[2] = n;
-    n = make_shared<pangenome::Node>(3, 8, "3");
+    n = make_shared<pangenome::Node>(l3, 8);
     pg_exp.nodes[8] = n;
-    n = make_shared<pangenome::Node>(4, 9, "4");
+    n = make_shared<pangenome::Node>(l4, 9);
     pg_exp.nodes[9] = n;
-    n = make_shared<pangenome::Node>(5, 10, "5");
+    n = make_shared<pangenome::Node>(l5, 10);
     pg_exp.nodes[10] = n;
-    n = make_shared<pangenome::Node>(0, 11, "0");
+    n = make_shared<pangenome::Node>(l0, 11);
     pg_exp.nodes[11] = n;
     r = make_shared<pangenome::Read>(0);
     pg_exp.reads[0] = r;
-    r->nodes = {pg_exp.nodes[0], pg_exp.nodes[1], pg_exp.nodes[2], pg_exp.nodes[8],
-                pg_exp.nodes[9], pg_exp.nodes[10], pg_exp.nodes[11]};
+    r->set_nodes({pg_exp.nodes[0], pg_exp.nodes[1], pg_exp.nodes[2], pg_exp.nodes[8],
+                pg_exp.nodes[9], pg_exp.nodes[10], pg_exp.nodes[11]});
 
-    n = make_shared<pangenome::Node>(1, 12, "1");
+    n = make_shared<pangenome::Node>(l1, 12);
     pg_exp.nodes[12] = n;
-    n = make_shared<pangenome::Node>(2, 13, "2");
+    n = make_shared<pangenome::Node>(l2, 13);
     pg_exp.nodes[13] = n;
     r = make_shared<pangenome::Read>(1);
     pg_exp.reads[1] = r;
-    r->nodes = {pg_exp.nodes[8], pg_exp.nodes[9], pg_exp.nodes[10], pg_exp.nodes[11],
-                pg_exp.nodes[12], pg_exp.nodes[13]};
+    r->set_nodes({pg_exp.nodes[8], pg_exp.nodes[9], pg_exp.nodes[10], pg_exp.nodes[11],
+                pg_exp.nodes[12], pg_exp.nodes[13]});
 
-    n = make_shared<pangenome::Node>(1, 20, "1");
+    n = make_shared<pangenome::Node>(l1, 20);
     pg_exp.nodes[20] = n;
-    n = make_shared<pangenome::Node>(2, 21, "2");
+    n = make_shared<pangenome::Node>(l2, 21);
     pg_exp.nodes[21] = n;
-    n = make_shared<pangenome::Node>(3, 22, "3");
+    n = make_shared<pangenome::Node>(l3, 22);
     pg_exp.nodes[22] = n;
-    n = make_shared<pangenome::Node>(7, 7, "7");
+    n = make_shared<pangenome::Node>(l7, 7);
     pg_exp.nodes[7] = n;
     r = make_shared<pangenome::Read>(2);
     pg_exp.reads[2] = r;
-    r->nodes = {pg_exp.nodes[20], pg_exp.nodes[21], pg_exp.nodes[22], pg_exp.nodes[7]};
+    r->set_nodes({pg_exp.nodes[20], pg_exp.nodes[21], pg_exp.nodes[22], pg_exp.nodes[7]});
 
-    n = make_shared<pangenome::Node>(0, 23, "0");
+    n = make_shared<pangenome::Node>(l0, 23);
     pg_exp.nodes[23] = n;
-    n = make_shared<pangenome::Node>(5, 5, "5");
+    n = make_shared<pangenome::Node>(l5, 5);
     pg_exp.nodes[5] = n;
-    n = make_shared<pangenome::Node>(3, 3, "3");
+    n = make_shared<pangenome::Node>(l3, 3);
     pg_exp.nodes[3] = n;
-    n = make_shared<pangenome::Node>(4, 4, "4");
+    n = make_shared<pangenome::Node>(l4, 4);
     pg_exp.nodes[4] = n;
     r = make_shared<pangenome::Read>(3);
     pg_exp.reads[3] = r;
-    r->nodes = {pg_exp.nodes[23], pg_exp.nodes[5], pg_exp.nodes[3], pg_exp.nodes[4]};
+    r->set_nodes({pg_exp.nodes[23], pg_exp.nodes[5], pg_exp.nodes[3], pg_exp.nodes[4]});
 
-    n = make_shared<pangenome::Node>(0, 14, "0");
+    n = make_shared<pangenome::Node>(l0, 14);
     pg_exp.nodes[14] = n;
-    n = make_shared<pangenome::Node>(1, 15, "1");
+    n = make_shared<pangenome::Node>(l1, 15);
     pg_exp.nodes[15] = n;
-    n = make_shared<pangenome::Node>(2, 16, "2");
+    n = make_shared<pangenome::Node>(l2, 16);
     pg_exp.nodes[16] = n;
-    n = make_shared<pangenome::Node>(6, 6, "6");
+    n = make_shared<pangenome::Node>(l6, 6);
     pg_exp.nodes[6] = n;
-    n = make_shared<pangenome::Node>(3, 17, "3");
+    n = make_shared<pangenome::Node>(l3, 17);
     pg_exp.nodes[17] = n;
-    n = make_shared<pangenome::Node>(4, 18, "4");
+    n = make_shared<pangenome::Node>(l4, 18);
     pg_exp.nodes[18] = n;
-    n = make_shared<pangenome::Node>(5, 19, "5");
+    n = make_shared<pangenome::Node>(l5, 19);
     pg_exp.nodes[19] = n;
     r = make_shared<pangenome::Read>(4);
     pg_exp.reads[4] = r;
-    r->nodes = {pg_exp.nodes[14], pg_exp.nodes[15], pg_exp.nodes[16], pg_exp.nodes[6],
-                pg_exp.nodes[17], pg_exp.nodes[18], pg_exp.nodes[19]};
+    r->set_nodes({pg_exp.nodes[14], pg_exp.nodes[15], pg_exp.nodes[16], pg_exp.nodes[6],
+                pg_exp.nodes[17], pg_exp.nodes[18], pg_exp.nodes[19]});
 
     //EXPECT_EQ(pg_exp, *pg);
 }
 
 TEST(NoiseFilteringTest, clean_pangraph_with_debruijn_graph) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
-    pangraph->add_node(3, "3", 0, mhs);
-    pangraph->add_node(4, "4", 0, mhs);
-    pangraph->add_node(5, "5", 0, mhs);
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+    auto l3 = std::make_shared<LocalPRG>(3, "3", "");
+    auto l4 = std::make_shared<LocalPRG>(4, "4", "");
+    auto l5 = std::make_shared<LocalPRG>(5, "5", "");
+    auto l6 = std::make_shared<LocalPRG>(6, "6", "");
+    auto l7 = std::make_shared<LocalPRG>(7, "7", "");
+
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
 
     // starts correct and deviates
-    pangraph->add_node(1, "1", 2, mhs);
-    pangraph->add_node(2, "2", 2, mhs);
-    pangraph->add_node(3, "3", 2, mhs);
-    pangraph->add_node(7, "7", 2, mhs);
+    pangraph->add_hits_between_PRG_and_read(l1, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l7, 2, dummy_cluster);
 
     // incorrect short
-    pangraph->add_node(0, "0", 3, mhs);
-    pangraph->add_node(5, "5", 3, mhs);//6
-    pangraph->add_node(3, "3", 3, mhs);
-    pangraph->add_node(4, "4", 3, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 3, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 3, dummy_cluster);//6
+    pangraph->add_hits_between_PRG_and_read(l3, 3, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 3, dummy_cluster);
 
     // deviates in middle
-    pangraph->add_node(0, "0", 4, mhs);
-    pangraph->add_node(1, "1", 4, mhs);
-    pangraph->add_node(2, "2", 4, mhs);
-    pangraph->add_node(6, "6", 4, mhs);
-    pangraph->add_node(3, "3", 4, mhs);
-    pangraph->add_node(4, "4", 4, mhs);
-    pangraph->add_node(5, "5", 4, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l6, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 4, dummy_cluster);
 
     //clean_pangraph_with_debruijn_graph(pg, 3, 1);
 
     pangenome::Graph pg_exp;
-    pg_exp.add_node(0, "0", 0, mhs);
-    pg_exp.add_node(1, "1", 0, mhs);
-    pg_exp.add_node(2, "2", 0, mhs);
-    pg_exp.add_node(3, "3", 0, mhs);
-    pg_exp.add_node(4, "4", 0, mhs);
-    pg_exp.add_node(5, "5", 0, mhs);
+    pg_exp.add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
 
     // starts correct and deviates
-    pg_exp.add_node(1, "1", 2, mhs);
-    pg_exp.add_node(2, "2", 2, mhs);
-    pg_exp.add_node(3, "3", 2, mhs);
+    pg_exp.add_hits_between_PRG_and_read(l1, 2, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l2, 2, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l3, 2, dummy_cluster);
 
     // deviates in middle
-    pg_exp.add_node(0, "0", 4, mhs);
-    pg_exp.add_node(1, "1", 4, mhs);
-    pg_exp.add_node(2, "2", 4, mhs);
-    pg_exp.add_node(3, "3", 4, mhs);
-    pg_exp.add_node(4, "4", 4, mhs);
-    pg_exp.add_node(5, "5", 4, mhs);
+    pg_exp.add_hits_between_PRG_and_read(l0, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l1, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l2, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l3, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l4, 4, dummy_cluster);
+    pg_exp.add_hits_between_PRG_and_read(l5, 4, dummy_cluster);
 
     //EXPECT_EQ(pg_exp, *pg);
 }
 
 TEST(NoiseFilteringTest, write_pangraph_gfa) {
-    set<MinimizerHitPtr, pComp> mhs;
+    set<MinimizerHitPtr, pComp> dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    
-    pangraph->add_node(0, "0", 0, mhs);
-    pangraph->add_node(1, "1", 0, mhs);
-    pangraph->add_node(2, "2", 0, mhs);
-    pangraph->add_node(3, "3", 0, mhs);
-    pangraph->add_node(4, "4", 0, mhs);
-    pangraph->add_node(5, "5", 0, mhs);
-    pangraph->add_node(0, "0", 0, mhs);
+
+    auto l0 = std::make_shared<LocalPRG>(0, "0", "");
+    auto l1 = std::make_shared<LocalPRG>(1, "1", "");
+    auto l2 = std::make_shared<LocalPRG>(2, "2", "");
+    auto l3 = std::make_shared<LocalPRG>(3, "3", "");
+    auto l4 = std::make_shared<LocalPRG>(4, "4", "");
+    auto l5 = std::make_shared<LocalPRG>(5, "5", "");
+    auto l6 = std::make_shared<LocalPRG>(6, "6", "");
+    auto l7 = std::make_shared<LocalPRG>(7, "7", "");
+
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 0, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l0, 0, dummy_cluster);
 
     // overlapping in loop
-    pangraph->add_node(3, "3", 1, mhs);
-    pangraph->add_node(4, "4", 1, mhs);
-    pangraph->add_node(5, "5", 1, mhs);
-    pangraph->add_node(0, "0", 1, mhs);
-    pangraph->add_node(1, "1", 1, mhs);
-    pangraph->add_node(2, "2", 1, mhs);
+    pangraph->add_hits_between_PRG_and_read(l3, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l0, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 1, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 1, dummy_cluster);
+
 
     // starts correct and deviates
-    pangraph->add_node(1, "1", 2, mhs);
-    pangraph->add_node(2, "2", 2, mhs);
-    pangraph->add_node(3, "3", 2, mhs);
-    pangraph->add_node(7, "7", 2, mhs);
+    pangraph->add_hits_between_PRG_and_read(l1, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 2, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l7, 2, dummy_cluster);
 
     // incorrect short
-    pangraph->add_node(0, "0", 3, mhs);
-    pangraph->add_node(5, "5", 3, mhs);//6
-    pangraph->add_node(3, "3", 3, mhs);
-    pangraph->add_node(4, "4", 3, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 3, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 3, dummy_cluster);//6
+    pangraph->add_hits_between_PRG_and_read(l3, 3, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 3, dummy_cluster);
 
     // deviates in middle
-    pangraph->add_node(0, "0", 4, mhs);
-    pangraph->add_node(1, "1", 4, mhs);
-    pangraph->add_node(2, "2", 4, mhs);
-    pangraph->add_node(6, "6", 4, mhs);
-    pangraph->add_node(3, "3", 4, mhs);
-    pangraph->add_node(4, "4", 4, mhs);
-    pangraph->add_node(5, "5", 4, mhs);
+    pangraph->add_hits_between_PRG_and_read(l0, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l1, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l2, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l6, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l3, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l4, 4, dummy_cluster);
+    pangraph->add_hits_between_PRG_and_read(l5, 4, dummy_cluster);
 
     write_pangraph_gfa("../test/test_cases/noisefiltering_test.pangraph.gfa", pangraph);
 }

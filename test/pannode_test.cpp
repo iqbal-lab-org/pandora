@@ -13,21 +13,23 @@
 using namespace pangenome;
 
 TEST(PangenomeNodeTest, create) {
-
-    pangenome::Node pan_node(4, 3, "3");
+    auto local_graph_ptr { std::make_shared<LocalPRG>(4, "3", "") };
+    pangenome::Node pan_node(local_graph_ptr, 3);
     uint32_t j = 3;
     EXPECT_EQ(j, pan_node.node_id);
     EXPECT_EQ((uint) 4, pan_node.prg_id);
     EXPECT_EQ("3", pan_node.name);
-    EXPECT_EQ((uint) 1, pan_node.covg);
+    EXPECT_EQ((uint) 0, pan_node.covg);
     EXPECT_EQ((uint) 0, pan_node.reads.size());
     EXPECT_EQ((uint) 0, pan_node.samples.size());
 }
 
 TEST(PangenomeNodeTest, get_name) {
-    pangenome::Node pn1(3, 3, "3");
-    pangenome::Node pn2(2, 2, "2");
-    pangenome::Node pn3(2, 4, "2");
+    auto l1 { std::make_shared<LocalPRG>(3, "3", "") };
+    auto l2 { std::make_shared<LocalPRG>(2, "2", "") };
+    pangenome::Node pn1(l1);
+    pangenome::Node pn2(l2);
+    pangenome::Node pn3(l2, 4);
 
     EXPECT_EQ(pn1.get_name(), "3");
     EXPECT_EQ(pn2.get_name(), "2");
@@ -35,119 +37,112 @@ TEST(PangenomeNodeTest, get_name) {
 }
 
 TEST(PangenomeNodeTest, add_path) {
-    pangenome::Node pn1(3, 3, "3");
-    std::vector<KmerNodePtr> kmp;
-    pn1.add_path(kmp, 0);
-
-    KmerGraph kg;
+    //setup the KmerGraph
+    auto local_prg_ptr { std::make_shared<LocalPRG>(3, "3", "") };
     std::deque<Interval> d = {Interval(0, 0)};
     prg::Path p;
     p.initialize(d);
-    kg.add_node(p);
+    local_prg_ptr->kmer_prg.add_node(p);
     d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
     p.initialize(d);
-    kg.add_node(p);
+    local_prg_ptr->kmer_prg.add_node(p);
     d = {Interval(4, 5), Interval(8, 9), Interval(16, 16), Interval(23, 24)};
     p.initialize(d);
-    kg.add_node(p);
+    local_prg_ptr->kmer_prg.add_node(p);
     d = {Interval(0, 1), Interval(4, 5), Interval(12, 13)};
     p.initialize(d);
-    kg.add_node(p);
+    local_prg_ptr->kmer_prg.add_node(p);
     d = {Interval(4, 5), Interval(12, 13), Interval(16, 16), Interval(23, 24)};
     p.initialize(d);
-    kg.add_node(p);
+    local_prg_ptr->kmer_prg.add_node(p);
     d = {Interval(0, 1), Interval(19, 20), Interval(23, 24)};
     p.initialize(d);
-    kg.add_node(p);
+    local_prg_ptr->kmer_prg.add_node(p);
     d = {Interval(24, 24)};
     p.initialize(d);
-    kg.add_node(p);
-    EXPECT_EQ((uint) 7, kg.nodes.size());
+    local_prg_ptr->kmer_prg.add_node(p);
+    EXPECT_EQ((uint) 7, local_prg_ptr->kmer_prg.nodes.size());
 
-    pn1.kmer_prg = kg;
-    EXPECT_EQ((uint) 7, pn1.kmer_prg.nodes.size());
-    std::vector<KmerNodePtr> sorted_nodes_as_vector(pn1.kmer_prg.sorted_nodes.begin(), pn1.kmer_prg.sorted_nodes.end());
-    EXPECT_EQ((uint) 7, sorted_nodes_as_vector.size());
-    kmp = {sorted_nodes_as_vector[0], sorted_nodes_as_vector[3], sorted_nodes_as_vector[4],
-           sorted_nodes_as_vector[6]};
+    //setup the Node
+    pangenome::Node pn1(local_prg_ptr);
+    std::vector<KmerNodePtr> kmp;
     pn1.add_path(kmp, 0);
-    EXPECT_EQ((uint) 1, sorted_nodes_as_vector[0]->get_covg(0, 0));
-    EXPECT_EQ((uint) 0, sorted_nodes_as_vector[1]->get_covg(0, 0));
-    EXPECT_EQ((uint) 0, sorted_nodes_as_vector[2]->get_covg(0, 0));
-    EXPECT_EQ((uint) 1, sorted_nodes_as_vector[3]->get_covg(0, 0));
-    EXPECT_EQ((uint) 1, sorted_nodes_as_vector[4]->get_covg(0, 0));
-    EXPECT_EQ((uint) 0, sorted_nodes_as_vector[5]->get_covg(0, 0));
-    EXPECT_EQ((uint) 1, sorted_nodes_as_vector[6]->get_covg(0, 0));
-    EXPECT_EQ((uint) 1, sorted_nodes_as_vector[0]->get_covg(1, 0));
-    EXPECT_EQ((uint) 0, sorted_nodes_as_vector[1]->get_covg(1, 0));
-    EXPECT_EQ((uint) 0, sorted_nodes_as_vector[2]->get_covg(1, 0));
-    EXPECT_EQ((uint) 1, sorted_nodes_as_vector[3]->get_covg(1, 0));
-    EXPECT_EQ((uint) 1, sorted_nodes_as_vector[4]->get_covg(1, 0));
-    EXPECT_EQ((uint) 0, sorted_nodes_as_vector[5]->get_covg(1, 0));
-    EXPECT_EQ((uint) 1, sorted_nodes_as_vector[6]->get_covg(1, 0));
+
+
+    //do the tests
+    EXPECT_EQ((uint) 7, pn1.kmer_prg_with_coverage.kmer_prg->nodes.size());
+    const auto& nodes = pn1.kmer_prg_with_coverage.kmer_prg->nodes;
+    kmp = {nodes[0], nodes[3], nodes[4], nodes[6]};
+    pn1.add_path(kmp, 0);
+    EXPECT_EQ((uint) 1, pn1.kmer_prg_with_coverage.get_covg(0, 0, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg_with_coverage.get_covg(1, 0, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg_with_coverage.get_covg(2, 0, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg_with_coverage.get_covg(3, 0, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg_with_coverage.get_covg(4, 0, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg_with_coverage.get_covg(5, 0, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg_with_coverage.get_covg(6, 0, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg_with_coverage.get_covg(0, 1, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg_with_coverage.get_covg(1, 1, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg_with_coverage.get_covg(2, 1, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg_with_coverage.get_covg(3, 1, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg_with_coverage.get_covg(4, 1, 0));
+    EXPECT_EQ((uint) 0, pn1.kmer_prg_with_coverage.get_covg(5, 1, 0));
+    EXPECT_EQ((uint) 1, pn1.kmer_prg_with_coverage.get_covg(6, 1, 0));
 }
 
 TEST(PangenomeNodeTest, get_read_overlap_coordinates) {
-    pangenome::Node pan_node(3, 3, "3");
+    auto local_prg_ptr { std::make_shared<LocalPRG>(3, "3", "") };
+    auto pan_node_ptr = std::make_shared<pangenome::Node>(local_prg_ptr);
     pangenome::ReadPtr pr;
     MinimizerHits mhits;
 
-    Minimizer m;
     std::deque<Interval> d;
     prg::Path p;
-    MiniRecord *mr;
 
     // read1
-    m = Minimizer(0, 1, 6, 0); // kmer, start, end, strand
+    Minimizer m1(0, 1, 6, 0); // kmer, start, end, strand
     d = {Interval(7, 8), Interval(10, 14)};
     p.initialize(d);
-    mr = new MiniRecord(0, p, 0, 0);
-    mhits.add_hit(1, m, mr); // read 1
+    MiniRecord mr1(3, p, 0, 0);
+    mhits.add_hit(1, m1, mr1); // read 1
 
-    m = Minimizer(0, 0, 5, 0);
+    Minimizer m2(0, 0, 5, 0);
     d = {Interval(6, 10), Interval(11, 12)};
     p.initialize(d);
-    delete mr;
-    mr = new MiniRecord(0, p, 0, 0);
-    mhits.add_hit(1, m, mr);
+    MiniRecord mr2(3, p, 0, 0);
+    mhits.add_hit(1, m2, mr2);
 
+    Minimizer m3(0, 0, 5, 0);
     d = {Interval(6, 10), Interval(12, 13)};
     p.initialize(d);
-    delete mr;
-    mr = new MiniRecord(0, p, 0, 0);
-    mhits.add_hit(1, m, mr);
+    MiniRecord mr3(3, p, 0, 0);
+    mhits.add_hit(1, m3, mr3);
 
-    mhits.sort();
     pr = std::make_shared<pangenome::Read>(1);
-    pr->add_hits(3, mhits.hits);
-    pan_node.reads.insert(pr);
+    pr->add_hits(pan_node_ptr, mhits.hits);
+    pan_node_ptr->reads.insert(pr);
     mhits.clear();
 
     //read 2
-    m = Minimizer(0, 2, 7, 1);
+    Minimizer m4(0, 2, 7, 1);
     d = {Interval(6, 10), Interval(11, 12)};
     p.initialize(d);
-    delete mr;
-    mr = new MiniRecord(0, p, 0, 0);
-    mhits.add_hit(2, m, mr);
+    MiniRecord mr4(3, p, 0, 0);
+    mhits.add_hit(2, m4, mr4);
 
-    m = Minimizer(0, 5, 10, 1);
+    Minimizer m5(0, 5, 10, 1);
     d = {Interval(6, 10), Interval(12, 13)};
     p.initialize(d);
-    delete mr;
-    mr = new MiniRecord(0, p, 0, 0);
-    mhits.add_hit(2, m, mr);
+    MiniRecord mr5(3, p, 0, 0);
+    mhits.add_hit(2, m5, mr5);
 
-    mhits.sort();
     pr = std::make_shared<pangenome::Read>(2);
-    pr->add_hits(3, mhits.hits);
-    pan_node.reads.insert(pr);
+    pr->add_hits(pan_node_ptr, mhits.hits);
+    pan_node_ptr->reads.insert(pr);
     mhits.clear();
 
-    delete mr;
-
     std::vector<std::vector<uint32_t>> read_overlap_coordinates;
-    pan_node.get_read_overlap_coordinates(read_overlap_coordinates);
+    pan_node_ptr->get_read_overlap_coordinates(read_overlap_coordinates);
     std::vector<std::vector<uint32_t>> expected_read_overlap_coordinates = {{1, 0, 6,  1},
                                                                             {2, 2, 10, 0}};
     for (const auto &coord : read_overlap_coordinates) {
@@ -170,31 +165,29 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_single_prg)
     auto prg_ptr = std::make_shared<LocalPRG>(local_prg);
     auto &kg = local_prg.kmer_prg;
 
-    pangenome::Graph pangraph;
+    std::vector<std::string> sample_names = {"sample1", "sample2", "sample3", "sample4"};
+    pangenome::Graph pangraph(sample_names);
 
     //sample1
-    std::string sample_name = "sample1";
     std::vector<KmerNodePtr> sample_kmer_path = {kg.nodes[0], kg.nodes[2], kg.nodes[6], kg.nodes[9]};
-    pangraph.add_node(prg_id, prg_name, sample_name, 0, prg_ptr, sample_kmer_path);
+    pangraph.add_node(prg_ptr);
+    pangraph.add_hits_between_PRG_and_sample(prg_id, sample_names[0], sample_kmer_path);
 
     //sample2 identical to sample1
-    sample_name = "sample2";
     sample_kmer_path = {kg.nodes[0], kg.nodes[2], kg.nodes[6], kg.nodes[9]};
-    pangraph.add_node(prg_id, prg_name, sample_name, 1, prg_ptr, sample_kmer_path);
+    pangraph.add_node(prg_ptr);
+    pangraph.add_hits_between_PRG_and_sample(prg_id, sample_names[1], sample_kmer_path);
 
     //sample3 with top path
-    sample_name = "sample3";
     sample_kmer_path = {kg.nodes[0], kg.nodes[1], kg.nodes[5], kg.nodes[9]};
-    pangraph.add_node(prg_id, prg_name, sample_name, 2, prg_ptr, sample_kmer_path);
+    pangraph.add_node(prg_ptr);
+    pangraph.add_hits_between_PRG_and_sample(prg_id, sample_names[2], sample_kmer_path);
 
     //sample4 with bottom path
-    sample_name = "sample4";
     sample_kmer_path = {kg.nodes[0], kg.nodes[4], kg.nodes[9]};
-    pangraph.add_node(prg_id, prg_name, sample_name, 3, prg_ptr, sample_kmer_path);
+    pangraph.add_node(prg_ptr);
+    pangraph.add_hits_between_PRG_and_sample(prg_id, sample_names[3], sample_kmer_path);
 
-    LocalPRG dummy(0,"null","");
-    auto dummy_prg_ptr = std::make_shared<LocalPRG>(dummy);
-    pangraph.setup_kmergraphs({dummy_prg_ptr, dummy_prg_ptr, dummy_prg_ptr, prg_ptr}, 4);
 
     VCF master_vcf;
     std::vector<LocalNodePtr> vcf_reference_path = {local_prg.prg.nodes[0], local_prg.prg.nodes[1], local_prg.prg.nodes[3], local_prg.prg.nodes[5], local_prg.prg.nodes[7]};
@@ -219,55 +212,55 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_single_prg)
     std::vector<uint16_t> no_covg2 = {0,0};
     std::vector<uint16_t> no_covg3 = {0,0,0};
 
-    EXPECT_EQ((uint)1, master_vcf.records[0].pos);
-    EXPECT_EQ("GT", master_vcf.records[0].ref);
-    EXPECT_EQ((uint)1, master_vcf.records[0].alt.size());
-    EXPECT_EQ("G", master_vcf.records[0].alt[0]);
-    EXPECT_EQ((uint)4, master_vcf.records[0].samples.size());
-    EXPECT_FALSE(master_vcf.records[0].samples[sample4_index].find("GT") == master_vcf.records[0].samples[sample4_index].end()) ;
-    EXPECT_TRUE(master_vcf.records[0].samples[sample3_index].find("GT") == master_vcf.records[0].samples[sample3_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[0].samples[sample2_index].find("GT") == master_vcf.records[0].samples[sample2_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[0].samples[sample1_index].find("GT") == master_vcf.records[0].samples[sample1_index].end()) ;
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample4_index]["GT"], alt_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample2_index]["GT"], ref_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample1_index]["GT"], ref_gt);
+    EXPECT_EQ((uint)1, master_vcf.records[0]->pos);
+    EXPECT_EQ("GT", master_vcf.records[0]->ref);
+    EXPECT_EQ((uint)1, master_vcf.records[0]->alt.size());
+    EXPECT_EQ("G", master_vcf.records[0]->alt[0]);
+    EXPECT_EQ((uint)4, master_vcf.records[0]->samples.size());
+    EXPECT_FALSE(master_vcf.records[0]->samples[sample4_index].find("GT") == master_vcf.records[0]->samples[sample4_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[0]->samples[sample3_index].find("GT") == master_vcf.records[0]->samples[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0]->samples[sample2_index].find("GT") == master_vcf.records[0]->samples[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0]->samples[sample1_index].find("GT") == master_vcf.records[0]->samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample4_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample1_index]["GT"], ref_gt);
     std::vector<std::string> formats = {"MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG",
                               "SUM_FWD_COVG", "SUM_REV_COVG"};
     for (const auto format : formats){
-        EXPECT_FALSE(master_vcf.records[0].samples[sample1_index].find(format) == master_vcf.records[0].samples[sample1_index].end());
-        EXPECT_FALSE(master_vcf.records[0].samples[sample2_index].find(format) == master_vcf.records[0].samples[sample2_index].end());
-        EXPECT_FALSE(master_vcf.records[0].samples[sample3_index].find(format) == master_vcf.records[0].samples[sample3_index].end());
-        EXPECT_FALSE(master_vcf.records[0].samples[sample4_index].find(format) == master_vcf.records[0].samples[sample4_index].end());
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample1_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample2_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample3_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample4_index][format], no_covg2);
+        EXPECT_FALSE(master_vcf.records[0]->samples[sample1_index].find(format) == master_vcf.records[0]->samples[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[0]->samples[sample2_index].find(format) == master_vcf.records[0]->samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[0]->samples[sample3_index].find(format) == master_vcf.records[0]->samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[0]->samples[sample4_index].find(format) == master_vcf.records[0]->samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample1_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample2_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample3_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample4_index][format], no_covg2);
     }
 
 
-    EXPECT_EQ((uint)2, master_vcf.records[1].pos);
-    EXPECT_EQ("T", master_vcf.records[1].ref);
-    EXPECT_EQ((uint)2, master_vcf.records[1].alt.size());
-    EXPECT_EQ("C", master_vcf.records[1].alt[0]);
-    EXPECT_EQ("CT", master_vcf.records[1].alt[1]);
-    EXPECT_EQ((uint)4, master_vcf.records[0].samples.size());
-    EXPECT_TRUE(master_vcf.records[1].samples[sample4_index].find("GT") == master_vcf.records[1].samples[sample4_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[1].samples[sample3_index].find("GT") == master_vcf.records[1].samples[sample3_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[1].samples[sample2_index].find("GT") == master_vcf.records[1].samples[sample2_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[1].samples[sample1_index].find("GT") == master_vcf.records[1].samples[sample1_index].end()) ;
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample3_index]["GT"], alt_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample2_index]["GT"], ref_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample1_index]["GT"], ref_gt);
+    EXPECT_EQ((uint)2, master_vcf.records[1]->pos);
+    EXPECT_EQ("T", master_vcf.records[1]->ref);
+    EXPECT_EQ((uint)2, master_vcf.records[1]->alt.size());
+    EXPECT_EQ("C", master_vcf.records[1]->alt[0]);
+    EXPECT_EQ("CT", master_vcf.records[1]->alt[1]);
+    EXPECT_EQ((uint)4, master_vcf.records[0]->samples.size());
+    EXPECT_TRUE(master_vcf.records[1]->samples[sample4_index].find("GT") == master_vcf.records[1]->samples[sample4_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1]->samples[sample3_index].find("GT") == master_vcf.records[1]->samples[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1]->samples[sample2_index].find("GT") == master_vcf.records[1]->samples[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1]->samples[sample1_index].find("GT") == master_vcf.records[1]->samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample3_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample1_index]["GT"], ref_gt);
 
     for (const auto format : formats){
-        EXPECT_FALSE(master_vcf.records[1].samples[sample1_index].find(format) == master_vcf.records[1].samples[sample1_index].end());
-        EXPECT_FALSE(master_vcf.records[1].samples[sample2_index].find(format) == master_vcf.records[1].samples[sample2_index].end());
-        EXPECT_FALSE(master_vcf.records[1].samples[sample3_index].find(format) == master_vcf.records[1].samples[sample3_index].end());
-        EXPECT_FALSE(master_vcf.records[1].samples[sample4_index].find(format) == master_vcf.records[1].samples[sample4_index].end());
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample1_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample2_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample3_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample4_index][format], no_covg3);
+        EXPECT_FALSE(master_vcf.records[1]->samples[sample1_index].find(format) == master_vcf.records[1]->samples[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[1]->samples[sample2_index].find(format) == master_vcf.records[1]->samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[1]->samples[sample3_index].find(format) == master_vcf.records[1]->samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[1]->samples[sample4_index].find(format) == master_vcf.records[1]->samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample1_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample2_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample3_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample4_index][format], no_covg3);
     }
 }
 
@@ -288,37 +281,39 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
     auto prg_ptr2 = std::make_shared<LocalPRG>(local_prg2);
     auto &kg2 = local_prg2.kmer_prg;
 
-    pangenome::Graph pangraph;
+    std::vector<std::string> sample_names = {"sample1", "sample2", "sample3", "sample4"};
+    pangenome::Graph pangraph(sample_names);
 
     //sample1
-    std::string sample_name = "sample1";
     std::vector<KmerNodePtr> sample_kmer_path = {kg1.nodes[0], kg1.nodes[2], kg1.nodes[6], kg1.nodes[9]};
-    pangraph.add_node(prg_id1, prg_name1, sample_name, 0, prg_ptr1, sample_kmer_path);
+    pangraph.add_node(prg_ptr1);
+    pangraph.add_hits_between_PRG_and_sample(prg_id1, sample_names[0], sample_kmer_path);
     sample_kmer_path = {kg2.nodes[0], kg2.nodes[1], kg2.nodes[5], kg2.nodes[9]};
-    pangraph.add_node(prg_id2, prg_name2, sample_name, 0, prg_ptr2, sample_kmer_path);
+    pangraph.add_node(prg_ptr2);
+    pangraph.add_hits_between_PRG_and_sample(prg_id2, sample_names[0], sample_kmer_path);
 
     //sample2 identical to sample1 in prg1, no prg2
-    sample_name = "sample2";
     sample_kmer_path = {kg1.nodes[0], kg1.nodes[2], kg1.nodes[6], kg1.nodes[9]};
-    pangraph.add_node(prg_id1, prg_name1, sample_name, 1, prg_ptr1, sample_kmer_path);
+    pangraph.add_node(prg_ptr1);
+    pangraph.add_hits_between_PRG_and_sample(prg_id1, sample_names[1], sample_kmer_path);
 
     //sample3 with top path
-    sample_name = "sample3";
     sample_kmer_path = {kg1.nodes[0], kg1.nodes[1], kg1.nodes[5], kg1.nodes[9]};
-    pangraph.add_node(prg_id1, prg_name1, sample_name, 2, prg_ptr1, sample_kmer_path);
+    pangraph.add_node(prg_ptr1);
+    pangraph.add_hits_between_PRG_and_sample(prg_id1, sample_names[2], sample_kmer_path);
     sample_kmer_path = {kg2.nodes[0], kg2.nodes[4], kg2.nodes[9]};
-    pangraph.add_node(prg_id2, prg_name2, sample_name, 2, prg_ptr2, sample_kmer_path);
+    pangraph.add_node(prg_ptr2);
+    pangraph.add_hits_between_PRG_and_sample(prg_id2, sample_names[2], sample_kmer_path);
+
 
     //sample4 with bottom path
-    sample_name = "sample4";
     sample_kmer_path = {kg1.nodes[0], kg1.nodes[4], kg1.nodes[9]};
-    pangraph.add_node(prg_id1, prg_name1, sample_name, 3, prg_ptr1, sample_kmer_path);
+    pangraph.add_node(prg_ptr1);
+    pangraph.add_hits_between_PRG_and_sample(prg_id1, sample_names[3], sample_kmer_path);
     sample_kmer_path = {kg2.nodes[0], kg2.nodes[3], kg2.nodes[7], kg2.nodes[8], kg2.nodes[9]};
-    pangraph.add_node(prg_id2, prg_name2, sample_name, 3, prg_ptr2, sample_kmer_path);
+    pangraph.add_node(prg_ptr2);
+    pangraph.add_hits_between_PRG_and_sample(prg_id2, sample_names[3], sample_kmer_path);
 
-    LocalPRG dummy(0,"null","");
-    auto dummy_prg_ptr = std::make_shared<LocalPRG>(dummy);
-    pangraph.setup_kmergraphs({dummy_prg_ptr, dummy_prg_ptr, dummy_prg_ptr, prg_ptr1, dummy_prg_ptr, prg_ptr2}, 4);
 
     VCF master_vcf;
     std::vector<LocalNodePtr> vcf_reference_path1 = {local_prg1.prg.nodes[0], local_prg1.prg.nodes[1], local_prg1.prg.nodes[3], local_prg1.prg.nodes[5], local_prg1.prg.nodes[7]};
@@ -348,100 +343,100 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
     std::vector<uint16_t> no_covg2 = {0,0};
     std::vector<uint16_t> no_covg3 = {0,0,0};
 
-    EXPECT_EQ((uint)1, master_vcf.records[0].pos);
-    EXPECT_EQ("GT", master_vcf.records[0].ref);
-    EXPECT_EQ((uint)1, master_vcf.records[0].alt.size());
-    EXPECT_EQ("G", master_vcf.records[0].alt[0]);
-    EXPECT_EQ((uint)4, master_vcf.records[0].samples.size());
-    EXPECT_FALSE(master_vcf.records[0].samples[sample4_index].find("GT") == master_vcf.records[0].samples[sample4_index].end()) ;
-    EXPECT_TRUE(master_vcf.records[0].samples[sample3_index].find("GT") == master_vcf.records[0].samples[sample3_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[0].samples[sample2_index].find("GT") == master_vcf.records[0].samples[sample2_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[0].samples[sample1_index].find("GT") == master_vcf.records[0].samples[sample1_index].end()) ;
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample4_index]["GT"], alt_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample2_index]["GT"], ref_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample1_index]["GT"], ref_gt);
+    EXPECT_EQ((uint)1, master_vcf.records[0]->pos);
+    EXPECT_EQ("GT", master_vcf.records[0]->ref);
+    EXPECT_EQ((uint)1, master_vcf.records[0]->alt.size());
+    EXPECT_EQ("G", master_vcf.records[0]->alt[0]);
+    EXPECT_EQ((uint)4, master_vcf.records[0]->samples.size());
+    EXPECT_FALSE(master_vcf.records[0]->samples[sample4_index].find("GT") == master_vcf.records[0]->samples[sample4_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[0]->samples[sample3_index].find("GT") == master_vcf.records[0]->samples[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0]->samples[sample2_index].find("GT") == master_vcf.records[0]->samples[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0]->samples[sample1_index].find("GT") == master_vcf.records[0]->samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample4_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample1_index]["GT"], ref_gt);
     std::vector<std::string> formats = {"MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG",
                                         "SUM_FWD_COVG", "SUM_REV_COVG"};
     for (const auto format : formats){
-        EXPECT_FALSE(master_vcf.records[0].samples[sample1_index].find(format) == master_vcf.records[0].samples[sample1_index].end());
-        EXPECT_FALSE(master_vcf.records[0].samples[sample2_index].find(format) == master_vcf.records[0].samples[sample2_index].end());
-        EXPECT_FALSE(master_vcf.records[0].samples[sample3_index].find(format) == master_vcf.records[0].samples[sample3_index].end());
-        EXPECT_FALSE(master_vcf.records[0].samples[sample4_index].find(format) == master_vcf.records[0].samples[sample4_index].end());
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample1_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample2_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample3_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample4_index][format], no_covg2);
+        EXPECT_FALSE(master_vcf.records[0]->samples[sample1_index].find(format) == master_vcf.records[0]->samples[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[0]->samples[sample2_index].find(format) == master_vcf.records[0]->samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[0]->samples[sample3_index].find(format) == master_vcf.records[0]->samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[0]->samples[sample4_index].find(format) == master_vcf.records[0]->samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample1_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample2_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample3_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample4_index][format], no_covg2);
     }
 
 
-    EXPECT_EQ((uint)2, master_vcf.records[1].pos);
-    EXPECT_EQ("T", master_vcf.records[1].ref);
-    EXPECT_EQ((uint)2, master_vcf.records[1].alt.size());
-    EXPECT_EQ("C", master_vcf.records[1].alt[0]);
-    EXPECT_EQ("CT", master_vcf.records[1].alt[1]);
-    EXPECT_EQ((uint)4, master_vcf.records[1].samples.size());
-    EXPECT_TRUE(master_vcf.records[1].samples[sample4_index].find("GT") == master_vcf.records[1].samples[sample4_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[1].samples[sample3_index].find("GT") == master_vcf.records[1].samples[sample3_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[1].samples[sample2_index].find("GT") == master_vcf.records[1].samples[sample2_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[1].samples[sample1_index].find("GT") == master_vcf.records[1].samples[sample1_index].end()) ;
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample3_index]["GT"], alt_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample2_index]["GT"], ref_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample1_index]["GT"], ref_gt);
+    EXPECT_EQ((uint)2, master_vcf.records[1]->pos);
+    EXPECT_EQ("T", master_vcf.records[1]->ref);
+    EXPECT_EQ((uint)2, master_vcf.records[1]->alt.size());
+    EXPECT_EQ("C", master_vcf.records[1]->alt[0]);
+    EXPECT_EQ("CT", master_vcf.records[1]->alt[1]);
+    EXPECT_EQ((uint)4, master_vcf.records[1]->samples.size());
+    EXPECT_TRUE(master_vcf.records[1]->samples[sample4_index].find("GT") == master_vcf.records[1]->samples[sample4_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1]->samples[sample3_index].find("GT") == master_vcf.records[1]->samples[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1]->samples[sample2_index].find("GT") == master_vcf.records[1]->samples[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1]->samples[sample1_index].find("GT") == master_vcf.records[1]->samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample3_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample1_index]["GT"], ref_gt);
 
     for (const auto format : formats){
-        EXPECT_FALSE(master_vcf.records[1].samples[sample1_index].find(format) == master_vcf.records[1].samples[sample1_index].end());
-        EXPECT_FALSE(master_vcf.records[1].samples[sample2_index].find(format) == master_vcf.records[1].samples[sample2_index].end());
-        EXPECT_FALSE(master_vcf.records[1].samples[sample3_index].find(format) == master_vcf.records[1].samples[sample3_index].end());
-        EXPECT_FALSE(master_vcf.records[1].samples[sample4_index].find(format) == master_vcf.records[1].samples[sample4_index].end());
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample1_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample2_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample3_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample4_index][format], no_covg3);
+        EXPECT_FALSE(master_vcf.records[1]->samples[sample1_index].find(format) == master_vcf.records[1]->samples[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[1]->samples[sample2_index].find(format) == master_vcf.records[1]->samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[1]->samples[sample3_index].find(format) == master_vcf.records[1]->samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[1]->samples[sample4_index].find(format) == master_vcf.records[1]->samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample1_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample2_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample3_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample4_index][format], no_covg3);
     }
 
-    EXPECT_EQ((uint)1, master_vcf.records[2].pos);
-    EXPECT_EQ("GA", master_vcf.records[2].ref);
-    EXPECT_EQ((uint)1, master_vcf.records[2].alt.size());
-    EXPECT_EQ("G", master_vcf.records[2].alt[0]);
-    EXPECT_EQ((uint)4, master_vcf.records[2].samples.size());
-    EXPECT_TRUE(master_vcf.records[2].samples[sample4_index].find("GT") == master_vcf.records[2].samples[sample4_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[2].samples[sample3_index].find("GT") == master_vcf.records[2].samples[sample3_index].end()) ;
-    EXPECT_TRUE(master_vcf.records[2].samples[sample2_index].find("GT") == master_vcf.records[2].samples[sample2_index].end()) ;
-    EXPECT_TRUE(master_vcf.records[2].samples[sample1_index].find("GT") == master_vcf.records[2].samples[sample1_index].end()) ;
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2].samples[sample3_index]["GT"], alt_gt);
+    EXPECT_EQ((uint)1, master_vcf.records[2]->pos);
+    EXPECT_EQ("GA", master_vcf.records[2]->ref);
+    EXPECT_EQ((uint)1, master_vcf.records[2]->alt.size());
+    EXPECT_EQ("G", master_vcf.records[2]->alt[0]);
+    EXPECT_EQ((uint)4, master_vcf.records[2]->samples.size());
+    EXPECT_TRUE(master_vcf.records[2]->samples[sample4_index].find("GT") == master_vcf.records[2]->samples[sample4_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[2]->samples[sample3_index].find("GT") == master_vcf.records[2]->samples[sample3_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[2]->samples[sample2_index].find("GT") == master_vcf.records[2]->samples[sample2_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[2]->samples[sample1_index].find("GT") == master_vcf.records[2]->samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->samples[sample3_index]["GT"], alt_gt);
 
     for (const auto format : formats){
-        EXPECT_FALSE(master_vcf.records[2].samples[sample1_index].find(format) == master_vcf.records[2].samples[sample1_index].end());
-        EXPECT_TRUE(master_vcf.records[2].samples[sample2_index].find(format) == master_vcf.records[2].samples[sample2_index].end());
-        EXPECT_FALSE(master_vcf.records[2].samples[sample3_index].find(format) == master_vcf.records[2].samples[sample3_index].end());
-        EXPECT_FALSE(master_vcf.records[2].samples[sample4_index].find(format) == master_vcf.records[2].samples[sample4_index].end());
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2].samples[sample1_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2].samples[sample3_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2].samples[sample4_index][format], no_covg2);
+        EXPECT_FALSE(master_vcf.records[2]->samples[sample1_index].find(format) == master_vcf.records[2]->samples[sample1_index].end());
+        EXPECT_TRUE(master_vcf.records[2]->samples[sample2_index].find(format) == master_vcf.records[2]->samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[2]->samples[sample3_index].find(format) == master_vcf.records[2]->samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[2]->samples[sample4_index].find(format) == master_vcf.records[2]->samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->samples[sample1_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->samples[sample3_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->samples[sample4_index][format], no_covg2);
     }
 
 
-    EXPECT_EQ((uint)2, master_vcf.records[3].pos);
-    EXPECT_EQ("A", master_vcf.records[3].ref);
-    EXPECT_EQ((uint)2, master_vcf.records[3].alt.size());
-    EXPECT_EQ("G", master_vcf.records[3].alt[0]);
-    EXPECT_EQ("GA", master_vcf.records[3].alt[1]);
-    EXPECT_EQ((uint)4, master_vcf.records[3].samples.size());
-    EXPECT_FALSE(master_vcf.records[3].samples[sample4_index].find("GT") == master_vcf.records[3].samples[sample4_index].end()) ;
-    EXPECT_TRUE(master_vcf.records[3].samples[sample3_index].find("GT") == master_vcf.records[3].samples[sample3_index].end()) ;
-    EXPECT_TRUE(master_vcf.records[3].samples[sample2_index].find("GT") == master_vcf.records[3].samples[sample2_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[3].samples[sample1_index].find("GT") == master_vcf.records[3].samples[sample1_index].end()) ;
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample1_index]["GT"], alt_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample4_index]["GT"], alt2_gt);
+    EXPECT_EQ((uint)2, master_vcf.records[3]->pos);
+    EXPECT_EQ("A", master_vcf.records[3]->ref);
+    EXPECT_EQ((uint)2, master_vcf.records[3]->alt.size());
+    EXPECT_EQ("G", master_vcf.records[3]->alt[0]);
+    EXPECT_EQ("GA", master_vcf.records[3]->alt[1]);
+    EXPECT_EQ((uint)4, master_vcf.records[3]->samples.size());
+    EXPECT_FALSE(master_vcf.records[3]->samples[sample4_index].find("GT") == master_vcf.records[3]->samples[sample4_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[3]->samples[sample3_index].find("GT") == master_vcf.records[3]->samples[sample3_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[3]->samples[sample2_index].find("GT") == master_vcf.records[3]->samples[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[3]->samples[sample1_index].find("GT") == master_vcf.records[3]->samples[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample1_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample4_index]["GT"], alt2_gt);
 
     for (const auto format : formats){
-        EXPECT_FALSE(master_vcf.records[3].samples[sample1_index].find(format) == master_vcf.records[3].samples[sample1_index].end());
-        EXPECT_TRUE(master_vcf.records[3].samples[sample2_index].find(format) == master_vcf.records[3].samples[sample2_index].end());
-        EXPECT_FALSE(master_vcf.records[3].samples[sample3_index].find(format) == master_vcf.records[3].samples[sample3_index].end());
-        EXPECT_FALSE(master_vcf.records[3].samples[sample4_index].find(format) == master_vcf.records[3].samples[sample4_index].end());
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample1_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample3_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample4_index][format], no_covg3);
+        EXPECT_FALSE(master_vcf.records[3]->samples[sample1_index].find(format) == master_vcf.records[3]->samples[sample1_index].end());
+        EXPECT_TRUE(master_vcf.records[3]->samples[sample2_index].find(format) == master_vcf.records[3]->samples[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[3]->samples[sample3_index].find(format) == master_vcf.records[3]->samples[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[3]->samples[sample4_index].find(format) == master_vcf.records[3]->samples[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample1_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample3_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample4_index][format], no_covg3);
     }
 }
 
@@ -462,68 +457,71 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg_with_covgs)
     auto prg_ptr2 = std::make_shared<LocalPRG>(local_prg2);
     auto &kg2 = local_prg2.kmer_prg;
 
-    pangenome::Graph pangraph;
+    pangenome::Graph pangraph({"sample1", "sample2", "sample3", "sample4"});
 
     //sample1
     std::string sample_name = "sample1";
     std::vector<KmerNodePtr> sample_kmer_path = {kg1.nodes[0], kg1.nodes[2], kg1.nodes[6], kg1.nodes[9]};
-    pangraph.add_node(prg_id1, prg_name1, sample_name, 0, prg_ptr1, sample_kmer_path);
+    pangraph.add_node(prg_ptr1);
+    pangraph.add_hits_between_PRG_and_sample(prg_id1, sample_name, sample_kmer_path);
     sample_kmer_path = {kg2.nodes[0], kg2.nodes[1], kg2.nodes[5], kg2.nodes[9]};
-    pangraph.add_node(prg_id2, prg_name2, sample_name, 0, prg_ptr2, sample_kmer_path);
-
-    LocalPRG dummy(0,"null","");
-    auto dummy_prg_ptr = std::make_shared<LocalPRG>(dummy);
-    pangraph.setup_kmergraphs({dummy_prg_ptr, dummy_prg_ptr, dummy_prg_ptr, prg_ptr1, dummy_prg_ptr, prg_ptr2}, 4);
+    pangraph.add_node(prg_ptr2);
+    pangraph.add_hits_between_PRG_and_sample(prg_id2, sample_name, sample_kmer_path);
 
     auto &pannode1 = *pangraph.nodes[prg_id1];
     auto &pannode2 = *pangraph.nodes[prg_id2];
 
-    pannode1.kmer_prg.nodes[0]->set_covg(4, 0, 0);
-    pannode1.kmer_prg.nodes[2]->set_covg(4, 0, 0);
-    pannode1.kmer_prg.nodes[6]->set_covg(4, 0, 0);
-    pannode1.kmer_prg.nodes[9]->set_covg(4, 0, 0);
-    pannode2.kmer_prg.nodes[0]->set_covg(4, 0, 0);
-    pannode2.kmer_prg.nodes[1]->set_covg(4, 0, 0);
-    pannode2.kmer_prg.nodes[5]->set_covg(4, 0, 0);
-    pannode2.kmer_prg.nodes[9]->set_covg(4, 0, 0);
+    pannode1.kmer_prg_with_coverage.set_covg(0, 4, 0, 0);
+    pannode1.kmer_prg_with_coverage.set_covg(2, 4, 0, 0);
+    pannode1.kmer_prg_with_coverage.set_covg(6, 4, 0, 0);
+    pannode1.kmer_prg_with_coverage.set_covg(9, 4, 0, 0);
+    pannode2.kmer_prg_with_coverage.set_covg(0, 4, 0, 0);
+    pannode2.kmer_prg_with_coverage.set_covg(1, 4, 0, 0);
+    pannode2.kmer_prg_with_coverage.set_covg(5, 4, 0, 0);
+    pannode2.kmer_prg_with_coverage.set_covg(9, 4, 0, 0);
 
     //sample2 identical to sample1 in prg1, no prg2
     sample_name = "sample2";
     sample_kmer_path = {kg1.nodes[0], kg1.nodes[2], kg1.nodes[6], kg1.nodes[9]};
-    pangraph.add_node(prg_id1, prg_name1, sample_name, 1, prg_ptr1, sample_kmer_path);
-    pannode1.kmer_prg.nodes[0]->set_covg(10, 0, 1);
-    pannode1.kmer_prg.nodes[2]->set_covg(10, 0, 1);
-    pannode1.kmer_prg.nodes[6]->set_covg(10, 0, 1);
-    pannode1.kmer_prg.nodes[9]->set_covg(10, 0, 1);
+    pangraph.add_node(prg_ptr1);
+    pangraph.add_hits_between_PRG_and_sample(prg_id1, sample_name, sample_kmer_path);
+    pannode1.kmer_prg_with_coverage.set_covg(0, 10, 0, 1);
+    pannode1.kmer_prg_with_coverage.set_covg(2, 10, 0, 1);
+    pannode1.kmer_prg_with_coverage.set_covg(6, 10, 0, 1);
+    pannode1.kmer_prg_with_coverage.set_covg(9, 10, 0, 1);
 
     //sample3 with top path
     sample_name = "sample3";
     sample_kmer_path = {kg1.nodes[0], kg1.nodes[1], kg1.nodes[5], kg1.nodes[9]};
-    pangraph.add_node(prg_id1, prg_name1, sample_name, 2, prg_ptr1, sample_kmer_path);
+    pangraph.add_node(prg_ptr1);
+    pangraph.add_hits_between_PRG_and_sample(prg_id1, sample_name, sample_kmer_path);
     sample_kmer_path = {kg2.nodes[0], kg2.nodes[4], kg2.nodes[9]};
-    pangraph.add_node(prg_id2, prg_name2, sample_name, 2, prg_ptr2, sample_kmer_path);
-    pannode1.kmer_prg.nodes[0]->set_covg(2, 0, 2);
-    pannode1.kmer_prg.nodes[1]->set_covg(2, 0, 2);
-    pannode1.kmer_prg.nodes[5]->set_covg(2, 0, 2);
-    pannode1.kmer_prg.nodes[9]->set_covg(2, 0, 2);
-    pannode2.kmer_prg.nodes[0]->set_covg(2, 0, 2);
-    pannode2.kmer_prg.nodes[4]->set_covg(2, 0, 2);
-    pannode2.kmer_prg.nodes[9]->set_covg(2, 0, 2);
+    pangraph.add_node(prg_ptr2);
+    pangraph.add_hits_between_PRG_and_sample(prg_id2, sample_name, sample_kmer_path);
+    pannode1.kmer_prg_with_coverage.set_covg(0, 2, 0, 2);
+    pannode1.kmer_prg_with_coverage.set_covg(1, 2, 0, 2);
+    pannode1.kmer_prg_with_coverage.set_covg(5, 2, 0, 2);
+    pannode1.kmer_prg_with_coverage.set_covg(9, 2, 0, 2);
+    pannode2.kmer_prg_with_coverage.set_covg(0, 2, 0, 2);
+    pannode2.kmer_prg_with_coverage.set_covg(4, 2, 0, 2);
+    pannode2.kmer_prg_with_coverage.set_covg(9, 2, 0, 2);
 
     //sample4 with bottom path
     sample_name = "sample4";
     sample_kmer_path = {kg1.nodes[0], kg1.nodes[4], kg1.nodes[9]};
-    pangraph.add_node(prg_id1, prg_name1, sample_name, 3, prg_ptr1, sample_kmer_path);
+    pangraph.add_node(prg_ptr1);
+    pangraph.add_hits_between_PRG_and_sample(prg_id1, sample_name, sample_kmer_path);
     sample_kmer_path = {kg2.nodes[0], kg2.nodes[3], kg2.nodes[7], kg2.nodes[8], kg2.nodes[9]};
-    pangraph.add_node(prg_id2, prg_name2, sample_name, 3, prg_ptr2, sample_kmer_path);
-    pannode1.kmer_prg.nodes[0]->set_covg(5, 0, 3);
-    pannode1.kmer_prg.nodes[4]->set_covg(5, 0, 3);
-    pannode1.kmer_prg.nodes[9]->set_covg(5, 0, 3);
-    pannode2.kmer_prg.nodes[0]->set_covg(5, 0, 3);
-    pannode2.kmer_prg.nodes[3]->set_covg(5, 0, 3);
-    pannode2.kmer_prg.nodes[7]->set_covg(5, 0, 3);
-    pannode2.kmer_prg.nodes[8]->set_covg(5, 0, 3);
-    pannode2.kmer_prg.nodes[9]->set_covg(5, 0, 3);
+    pangraph.add_node(prg_ptr2);
+    pangraph.add_hits_between_PRG_and_sample(prg_id2, sample_name, sample_kmer_path);
+    pannode1.kmer_prg_with_coverage.set_covg(0, 5, 0, 3);
+    pannode1.kmer_prg_with_coverage.set_covg(4, 5, 0, 3);
+    pannode1.kmer_prg_with_coverage.set_covg(9, 5, 0, 3);
+    pannode2.kmer_prg_with_coverage.set_covg(0, 5, 0, 3);
+    pannode2.kmer_prg_with_coverage.set_covg(3, 5, 0, 3);
+    pannode2.kmer_prg_with_coverage.set_covg(7, 5, 0, 3);
+    pannode2.kmer_prg_with_coverage.set_covg(8, 5, 0, 3);
+    pannode2.kmer_prg_with_coverage.set_covg(9, 5, 0, 3);
 
     VCF master_vcf;
     std::vector<LocalNodePtr> vcf_reference_path1 = {local_prg1.prg.nodes[0], local_prg1.prg.nodes[1], local_prg1.prg.nodes[3], local_prg1.prg.nodes[5], local_prg1.prg.nodes[7]};
@@ -553,33 +551,35 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg_with_covgs)
     std::vector<uint16_t> covgs_005 = {0,0,5};
     std::vector<uint16_t> covgs_000 = {0,0,0};
 
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample4_index]["MEAN_FWD_COVG"], covgs_05);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample2_index]["MEAN_FWD_COVG"], covgs_100);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample1_index]["MEAN_FWD_COVG"], covgs_40);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample4_index]["MEAN_REV_COVG"], covgs_00);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample2_index]["MEAN_REV_COVG"], covgs_00);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0].samples[sample1_index]["MEAN_REV_COVG"], covgs_00);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample4_index]["MEAN_FWD_COVG"], covgs_05);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample2_index]["MEAN_FWD_COVG"], covgs_100);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample1_index]["MEAN_FWD_COVG"], covgs_40);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample4_index]["MEAN_REV_COVG"], covgs_00);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample2_index]["MEAN_REV_COVG"], covgs_00);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample1_index]["MEAN_REV_COVG"], covgs_00);
 
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample3_index]["MEAN_FWD_COVG"], covgs_020);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample2_index]["MEAN_FWD_COVG"], covgs_1000);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample1_index]["MEAN_FWD_COVG"], covgs_400);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample4_index]["MEAN_REV_COVG"], covgs_000);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample2_index]["MEAN_REV_COVG"], covgs_000);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1].samples[sample1_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample3_index]["MEAN_FWD_COVG"], covgs_020);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample2_index]["MEAN_FWD_COVG"], covgs_1000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample1_index]["MEAN_FWD_COVG"], covgs_400);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample4_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample2_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample1_index]["MEAN_REV_COVG"], covgs_000);
 
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2].samples[sample3_index]["MEAN_FWD_COVG"], covgs_02);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2].samples[sample3_index]["MEAN_REV_COVG"], covgs_00);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->samples[sample3_index]["MEAN_FWD_COVG"], covgs_02);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->samples[sample3_index]["MEAN_REV_COVG"], covgs_00);
 
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample1_index]["MEAN_FWD_COVG"], covgs_040);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample4_index]["MEAN_FWD_COVG"], covgs_005);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample1_index]["MEAN_REV_COVG"], covgs_000);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3].samples[sample4_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample1_index]["MEAN_FWD_COVG"], covgs_040);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample4_index]["MEAN_FWD_COVG"], covgs_005);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample1_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample4_index]["MEAN_REV_COVG"], covgs_000);
 }
 
 TEST(PangenomeNodeTest, equals) {
-    pangenome::Node pn1(3, 3, "3");
-    pangenome::Node pn2(2, 2, "2");
-    pangenome::Node pn3(2, 2, "2");
+    auto l1 { std::make_shared<LocalPRG>(3, "3", "") };
+    auto l2 { std::make_shared<LocalPRG>(2, "2", "") };
+    pangenome::Node pn1(l1);
+    pangenome::Node pn2(l2);
+    pangenome::Node pn3(l2);
 
     EXPECT_EQ(pn1, pn1);
     EXPECT_EQ(pn2, pn2);
@@ -591,9 +591,11 @@ TEST(PangenomeNodeTest, equals) {
 }
 
 TEST(PangenomeNodeTest, nequals) {
-    pangenome::Node pn1(3, 3, "3");
-    pangenome::Node pn2(2, 2, "2");
-    pangenome::Node pn3(2, 2, "2");
+    auto l1 { std::make_shared<LocalPRG>(3, "3", "") };
+    auto l2 { std::make_shared<LocalPRG>(2, "2", "") };
+    pangenome::Node pn1(l1);
+    pangenome::Node pn2(l2);
+    pangenome::Node pn3(l2);
 
     EXPECT_EQ((pn1 != pn2), true);
     EXPECT_EQ((pn2 != pn1), true);
@@ -604,9 +606,11 @@ TEST(PangenomeNodeTest, nequals) {
 }
 
 TEST(PangenomeNodeTest, less) {
-    pangenome::Node pn1(3, 3, "3");
-    pangenome::Node pn2(2, 2, "2");
-    pangenome::Node pn3(2, 2, "2");
+    auto l1 { std::make_shared<LocalPRG>(3, "3", "") };
+    auto l2 { std::make_shared<LocalPRG>(2, "2", "") };
+    pangenome::Node pn1(l1);
+    pangenome::Node pn2(l2);
+    pangenome::Node pn3(l2);
 
     EXPECT_EQ((pn1 < pn1), false);
     EXPECT_EQ((pn2 < pn2), false);
@@ -626,16 +630,17 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
     //  Read 3 has prg 3 sequence in interval (4,14] but is missing bits
     //  Read 4 doesn't have prg 3 sequence - on all hits are noise
     //
-    uint32_t pan_node_id = 3, prg_id = 3, read_id = 0, knode_id = 0;
-    string pan_node_name = "three";
+    uint32_t read_id = 0, knode_id = 0;
+
     bool orientation(true);
     deque<Interval> d;
     prg::Path prg_path;
     MinimizerHitPtr mh;
 
-    PanNodePtr pan_node = make_shared<pangenome::Node>(pan_node_id, prg_id, pan_node_name);
+    uint32_t prg_id = 3;
+    auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "three", "") };
+    PanNodePtr pan_node = make_shared<pangenome::Node>(local_prg_ptr);
     PanReadPtr pr = make_shared<pangenome::Read>(read_id);
-
     set<MinimizerHitPtr, pComp> hits;
 
 
@@ -643,36 +648,50 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, prg_path, knode_id, orientation);
+    Minimizer m1(0, 2, 5, orientation); // kmer, start, end, strand
+    MiniRecord mr1(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m1, mr1);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m2(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr2(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m2, mr2);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m3(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr3(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m3, mr3);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, prg_path, knode_id, orientation);
+    Minimizer m4(0, 3, 6, orientation); // kmer, start, end, strand
+    MiniRecord mr4(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m4, mr4);
     hits.insert(mh);
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m5(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr5(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m5, mr5);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    Minimizer m6(0, 5, 8, orientation); // kmer, start, end, strand
+    MiniRecord mr6(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m6, mr6);
     hits.insert(mh);
     d = { Interval(27, 30) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    Minimizer m7(0, 6, 9, orientation); // kmer, start, end, strand
+    MiniRecord mr7(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m7, mr7);
     hits.insert(mh);
 
-    pr->add_hits(prg_id, hits);
+    pr->add_hits(pan_node, hits);
     pan_node->reads.insert(pr);
     hits.clear();
 
@@ -683,52 +702,74 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    Minimizer m8(0, 6, 9, orientation); // kmer, start, end, strand
+    MiniRecord mr8(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m8, mr8);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(12, 15), prg_id, prg_path, knode_id, orientation);
+    Minimizer m9(0, 12, 15, orientation); // kmer, start, end, strand
+    MiniRecord mr9(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m9, mr9);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(11, 14), prg_id, prg_path, knode_id, orientation);
+    Minimizer m10(0, 11, 14, orientation); // kmer, start, end, strand
+    MiniRecord mr10(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m10, mr10);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m11(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr11(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m11, mr11);
     hits.insert(mh);
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m12(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr12(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m12, mr12);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m13(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr13(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m13, mr13);
     hits.insert(mh);
     d = { Interval(27, 30) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    Minimizer m14(0, 10, 13, orientation); // kmer, start, end, strand
+    MiniRecord mr14(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m14, mr14);
     hits.insert(mh);
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m15(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr15(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m15, mr15);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m16(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr16(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m16, mr16);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(31, 33) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m17(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr17(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m17, mr17);
     hits.insert(mh);
     d = { Interval(78, 81) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    Minimizer m18(0, 13, 16, orientation); // kmer, start, end, strand
+    MiniRecord mr18(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m18, mr18);
     hits.insert(mh);
 
-    pr->add_hits(prg_id, hits);
+    pr->add_hits(pan_node, hits);
     pan_node->reads.insert(pr);
     hits.clear();
 
@@ -739,52 +780,74 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m19(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr19(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m19, mr19);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    Minimizer m20(0, 17, 20, orientation); // kmer, start, end, strand
+    MiniRecord mr20(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m20, mr20);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, prg_path, knode_id, orientation);
+    Minimizer m21(0, 15, 18, orientation); // kmer, start, end, strand
+    MiniRecord mr21(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m21, mr21);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    Minimizer m22(0, 5, 8, orientation); // kmer, start, end, strand
+    MiniRecord mr22(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m22, mr22);
     hits.insert(mh);
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m23(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr23(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m23, mr23);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m24(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr24(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m24, mr24);
     hits.insert(mh);
     d = { Interval(27, 30) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    Minimizer m25(0, 10, 13, orientation); // kmer, start, end, strand
+    MiniRecord mr25(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m25, mr25);
     hits.insert(mh);
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m26(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr26(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m26, mr26);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m27(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr27(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m27, mr27);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(31, 33) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m28(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr28(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m28, mr28);
     hits.insert(mh);
     d = { Interval(78, 81) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    Minimizer m29(0, 13, 16, orientation); // kmer, start, end, strand
+    MiniRecord mr29(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m29, mr29);
     hits.insert(mh);
 
-    pr->add_hits(prg_id, hits);
+    pr->add_hits(pan_node, hits);
     pan_node->reads.insert(pr);
     hits.clear();
 
@@ -795,37 +858,51 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m30(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr30(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m30, mr30);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    Minimizer m31(0, 10, 13, orientation); // kmer, start, end, strand
+    MiniRecord mr31(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m31, mr31);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m32(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr32(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m32, mr32);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    Minimizer m33(0, 6, 9, orientation); // kmer, start, end, strand
+    MiniRecord mr33(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m33, mr33);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m34(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr34(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m34, mr34);
     hits.insert(mh);
 
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m35(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr35(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m35, mr35);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m36(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr36(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m36, mr36);
     hits.insert(mh);
 
-    pr->add_hits(prg_id, hits);
+    pr->add_hits(pan_node, hits);
     pan_node->reads.insert(pr);
     hits.clear();
 
@@ -836,30 +913,42 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m37(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr37(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m37, mr37);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    Minimizer m38(0, 17, 20, orientation); // kmer, start, end, strand
+    MiniRecord mr38(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m38, mr38);
     hits.insert(mh);
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m39(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr39(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m39, mr39);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m40(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr40(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m40, mr40);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(31, 33) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m41(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr41(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m41, mr41);
     hits.insert(mh);
     d = { Interval(78, 81) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    Minimizer m42(0, 13, 16, orientation); // kmer, start, end, strand
+    MiniRecord mr42(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m42, mr42);
     hits.insert(mh);
 
-    pr->add_hits(prg_id, hits);
+    pr->add_hits(pan_node, hits);
     pan_node->reads.insert(pr);
     hits.clear();
 
@@ -893,14 +982,15 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     //  Read 4 doesn't have prg 3 sequence - on all hits are noise
     //  Read 5 is a duplicate of Read 0
     //
-    uint32_t pan_node_id = 3, prg_id = 3, read_id = 0, knode_id = 0;
-    string pan_node_name = "three";
+    uint32_t read_id = 0, knode_id = 0;
     bool orientation(true);
     deque<Interval> d;
     prg::Path prg_path;
     MinimizerHitPtr mh;
 
-    PanNodePtr pan_node = make_shared<pangenome::Node>(pan_node_id, prg_id, pan_node_name);
+    uint32_t prg_id = 3;
+    auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "three", "") };
+    PanNodePtr pan_node = make_shared<pangenome::Node>(local_prg_ptr);
     PanReadPtr pr = make_shared<pangenome::Read>(read_id);
 
     set<MinimizerHitPtr, pComp> hits;
@@ -910,36 +1000,50 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, prg_path, knode_id, orientation);
+    Minimizer m1(0, 2, 5, orientation); // kmer, start, end, strand
+    MiniRecord mr1(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m1, mr1);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m2(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr2(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m2, mr2);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m3(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr3(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m3, mr3);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, prg_path, knode_id, orientation);
+    Minimizer m4(0, 3, 6, orientation); // kmer, start, end, strand
+    MiniRecord mr4(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m4, mr4);
     hits.insert(mh);
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m5(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr5(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m5, mr5);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    Minimizer m6(0, 5, 8, orientation); // kmer, start, end, strand
+    MiniRecord mr6(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m6, mr6);
     hits.insert(mh);
     d = { Interval(27, 30) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    Minimizer m7(0, 6, 9, orientation); // kmer, start, end, strand
+    MiniRecord mr7(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m7, mr7);
     hits.insert(mh);
 
-    pr->add_hits(prg_id, hits);
+    pr->add_hits(pan_node, hits);
     pan_node->reads.insert(pr);
     hits.clear();
 
@@ -950,52 +1054,74 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    Minimizer m8(0, 6, 9, orientation); // kmer, start, end, strand
+    MiniRecord mr8(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m8, mr8);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(12, 15), prg_id, prg_path, knode_id, orientation);
+    Minimizer m9(0, 12, 15, orientation); // kmer, start, end, strand
+    MiniRecord mr9(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m9 ,mr9);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(11, 14), prg_id, prg_path, knode_id, orientation);
+    Minimizer m10(0, 11, 14, orientation); // kmer, start, end, strand
+    MiniRecord mr10(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m10, mr10);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m11(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr11(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m11, mr11);
     hits.insert(mh);
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m12(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr12(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m12, mr12);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m13(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr13(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m13, mr13);
     hits.insert(mh);
     d = { Interval(27, 30) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    Minimizer m14(0, 10, 13, orientation); // kmer, start, end, strand
+    MiniRecord mr14(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m14, mr14);
     hits.insert(mh);
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m15(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr15(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m15, mr15);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m16(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr16(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m16, mr16);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(31, 33) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m17(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr17(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m17, mr17);
     hits.insert(mh);
     d = { Interval(78, 81) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    Minimizer m18(0, 13, 16, orientation); // kmer, start, end, strand
+    MiniRecord mr18(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m18, mr18);
     hits.insert(mh);
 
-    pr->add_hits(prg_id, hits);
+    pr->add_hits(pan_node, hits);
     pan_node->reads.insert(pr);
     hits.clear();
 
@@ -1006,52 +1132,74 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m19(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr19(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m19, mr19);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    Minimizer m20(0, 17, 20, orientation); // kmer, start, end, strand
+    MiniRecord mr20(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m20, mr20);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(15, 18), prg_id, prg_path, knode_id, orientation);
+    Minimizer m21(0, 15, 18, orientation); // kmer, start, end, strand
+    MiniRecord mr21(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m21, mr21);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    Minimizer m22(0, 5, 8, orientation); // kmer, start, end, strand
+    MiniRecord mr22(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m22, mr22);
     hits.insert(mh);
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m23(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr23(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m23, mr23);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m24(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr24(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m24, mr24);
     hits.insert(mh);
     d = { Interval(27, 30) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    Minimizer m25(0, 10, 13, orientation); // kmer, start, end, strand
+    MiniRecord mr25(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m25, mr25);
     hits.insert(mh);
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m26(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr26(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m26, mr26);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m27(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr27(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m27, mr27);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(31, 33) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m28(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr28(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m28, mr28);
     hits.insert(mh);
     d = { Interval(78, 81) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    Minimizer m29(0, 13, 16, orientation); // kmer, start, end, strand
+    MiniRecord mr29(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m29, mr29);
     hits.insert(mh);
 
-    pr->add_hits(prg_id, hits);
+    pr->add_hits(pan_node, hits);
     pan_node->reads.insert(pr);
     hits.clear();
 
@@ -1062,37 +1210,51 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m30(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr30(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m30, mr30);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(10, 13), prg_id, prg_path, knode_id, orientation);
+    Minimizer m31(0, 10, 13, orientation); // kmer, start, end, strand
+    MiniRecord mr31(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m31, mr31);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m32(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr32(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m32, mr32);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    Minimizer m33(0, 6, 9, orientation); // kmer, start, end, strand
+    MiniRecord mr33(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m33, mr33);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m34(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr34(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m34, mr34);
     hits.insert(mh);
 
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m35(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr35(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m35, mr35);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m36(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr36(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m36, mr36);
     hits.insert(mh);
 
-    pr->add_hits(prg_id, hits);
+    pr->add_hits(pan_node, hits);
     pan_node->reads.insert(pr);
     hits.clear();
 
@@ -1103,30 +1265,42 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m37(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr37(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m37, mr37);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(17, 20), prg_id, prg_path, knode_id, orientation);
+    Minimizer m38(0, 17, 20, orientation); // kmer, start, end, strand
+    MiniRecord mr38(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m38, mr38);
     hits.insert(mh);
 
     // noise
     d = { Interval(7, 8), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(1, 4), prg_id, prg_path, knode_id, orientation);
+    Minimizer m39(0, 1, 4, orientation); // kmer, start, end, strand
+    MiniRecord mr39(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m39, mr39);
     hits.insert(mh);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m40(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr40(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m40, mr40);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(31, 33) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(9, 12), prg_id, prg_path, knode_id, orientation);
+    Minimizer m41(0, 9, 12, orientation); // kmer, start, end, strand
+    MiniRecord mr41(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m41, mr41);
     hits.insert(mh);
     d = { Interval(78, 81) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(13, 16), prg_id, prg_path, knode_id, orientation);
+    Minimizer m42(0, 13, 16, orientation); // kmer, start, end, strand
+    MiniRecord mr42(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m42, mr42);
     hits.insert(mh);
 
-    pr->add_hits(prg_id, hits);
+    pr->add_hits(pan_node, hits);
     pan_node->reads.insert(pr);
     hits.clear();
 
@@ -1137,36 +1311,50 @@ TEST(ExtractReadsTest, get_read_overlap_coordinates_no_duplicates) {
     // hits overlapping edges of path
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(2, 5), prg_id, prg_path, knode_id, orientation);
+    Minimizer m43(0, 2, 5, orientation); // kmer, start, end, strand
+    MiniRecord mr43(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m43, mr43);
     hits.insert(mh);
     d = { Interval(29, 30), Interval(33, 33), Interval(40, 42) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(8, 11), prg_id, prg_path, knode_id, orientation);
+    Minimizer m44(0, 8, 11, orientation); // kmer, start, end, strand
+    MiniRecord mr44(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m44, mr44);
     hits.insert(mh);
     d = { Interval(28, 30), Interval(33, 33), Interval(40, 41) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(7, 10), prg_id, prg_path, knode_id, orientation);
+    Minimizer m45(0, 7, 10, orientation); // kmer, start, end, strand
+    MiniRecord mr45(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m45, mr45);
     hits.insert(mh);
 
     // hits on path
     d = { Interval(4, 5), Interval(8, 9), Interval(16, 17) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(3, 6), prg_id, prg_path, knode_id, orientation);
+    Minimizer m46(0, 3, 6, orientation); // kmer, start, end, strand
+    MiniRecord mr46(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m46, mr46);
     hits.insert(mh);
     d = { Interval(8, 9), Interval(16, 17), Interval(27, 28) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(4, 7), prg_id, prg_path, knode_id, orientation);
+    Minimizer m47(0, 4, 7, orientation); // kmer, start, end, strand
+    MiniRecord mr47(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m47, mr47);
     hits.insert(mh);
     d = { Interval(16, 17), Interval(27, 29) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(5, 8), prg_id, prg_path, knode_id, orientation);
+    Minimizer m48(0, 5, 8, orientation); // kmer, start, end, strand
+    MiniRecord mr48(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m48, mr48);
     hits.insert(mh);
     d = { Interval(27, 30) };
     prg_path.initialize(d);
-    mh = make_shared<MinimizerHit>(read_id, Interval(6, 9), prg_id, prg_path, knode_id, orientation);
+    Minimizer m49(0, 6, 9, orientation); // kmer, start, end, strand
+    MiniRecord mr49(prg_id, prg_path, knode_id, orientation);
+    mh = make_shared<MinimizerHit>(read_id, m49, mr49);
     hits.insert(mh);
 
-    pr->add_hits(prg_id, hits);
+    pr->add_hits(pan_node, hits);
     pan_node->reads.insert(pr);
     hits.clear();
 

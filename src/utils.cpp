@@ -163,22 +163,21 @@ void load_vcf_refs_file(const std::string &filepath, VCFRefs &vcf_refs) {
     }
 }
 
-//void add_read_hits(const uint32_t id, const string& name, const string& seq, MinimizerHits* hits, Index* idx, const uint32_t w, const uint32_t k)
-void add_read_hits(std::shared_ptr<Seq> sequence,
-                   std::shared_ptr<MinimizerHits> minimizer_hits,
-                   std::shared_ptr<Index> index) {
+void add_read_hits(const Seq &sequence,
+                   const std::shared_ptr<MinimizerHits> &minimizer_hits,
+                   const Index &index) {
     //cout << now() << "Search for hits for read " << s->name << " which has sketch size " << s->sketch.size() << " against index of size " << idx->minhash.size() << endl;
-    uint32_t hit_count = 0;
+    //uint32_t hit_count = 0;
     // creates Seq object for the read, then looks up minimizers in the Seq sketch and adds hits to a global MinimizerHits object
     //Seq s(id, name, seq, w, k);
-    for (auto it = sequence->sketch.begin(); it != sequence->sketch.end(); ++it) {
-        if (index->minhash.find((*it).kmer) != index->minhash.end()) {
-            for (uint32_t j = 0; j != index->minhash[(*it).kmer]->size(); ++j) {
-                minimizer_hits->add_hit(sequence->id, *it, &(index->minhash[(*it).kmer]->operator[](j)));
-                hit_count += 1;
+    for (auto sequenceSketchIt = sequence.sketch.begin(); sequenceSketchIt != sequence.sketch.end(); ++sequenceSketchIt) {
+        auto minhashIt = index.minhash.find((*sequenceSketchIt).kmer);
+        if (minhashIt != index.minhash.end()) { //checks if the kmer is in the index
+            //yes, add all hits of this minimizer hit to this kmer
+            for (const MiniRecord &miniRecord : *(minhashIt->second)) {
+                minimizer_hits->add_hit(sequence.id, *sequenceSketchIt, miniRecord);
+                //++hit_count;
             }
-            //} else {
-            //    cout << "did not find minimizer " << (*it).kmer << " in index" << endl;
         }
     }
     //hits->sort();
@@ -203,16 +202,16 @@ void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &cl
     uint32_t length_based_threshold;
     for (auto mh_current = ++minimizer_hits->hits.begin();
          mh_current != minimizer_hits->hits.end(); ++mh_current) {
-        if ((*mh_current)->read_id != (*mh_previous)->read_id or
-            (*mh_current)->prg_id != (*mh_previous)->prg_id or
-            (*mh_current)->is_forward != (*mh_previous)->is_forward or
-            (abs((int) (*mh_current)->read_start_position - (int) (*mh_previous)->read_start_position)) > max_diff) {
+        if ((*mh_current)->get_read_id() != (*mh_previous)->get_read_id() or
+            (*mh_current)->get_prg_id() != (*mh_previous)->get_prg_id() or
+            (*mh_current)->is_forward() != (*mh_previous)->is_forward() or
+            (abs((int) (*mh_current)->get_read_start_position() - (int) (*mh_previous)->get_read_start_position())) > max_diff) {
             // keep clusters which cover at least 1/2 the expected number of minihits
-            length_based_threshold = std::min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
+            length_based_threshold = std::min(prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length(),
                                               expected_number_kmers_in_short_read_sketch) *
                                      fraction_kmers_required_for_cluster;
             BOOST_LOG_TRIVIAL(debug) << "Length based cluster threshold min("
-                                     << prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length() << ", "
+                                     << prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length() << ", "
                                      << expected_number_kmers_in_short_read_sketch << ") * "
                                      << fraction_kmers_required_for_cluster << " = " << length_based_threshold;
 
@@ -230,10 +229,10 @@ void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &cl
         current_cluster.insert(*mh_current);
         mh_previous = mh_current;
     }
-    length_based_threshold = std::min(prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length(),
+    length_based_threshold = std::min(prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length(),
                                       expected_number_kmers_in_short_read_sketch) * fraction_kmers_required_for_cluster;
     BOOST_LOG_TRIVIAL(debug) << "Length based cluster threshold min("
-                             << prgs[(*mh_previous)->prg_id]->kmer_prg.min_path_length() << ", "
+                             << prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length() << ", "
                              << expected_number_kmers_in_short_read_sketch << ") * "
                              << fraction_kmers_required_for_cluster << " = " << length_based_threshold;
     if (current_cluster.size() >
@@ -266,11 +265,11 @@ void filter_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &cl
         {
             cout << **p << endl;
         }*/
-        if (((*(*c_current).begin())->read_id == (*(*c_previous).begin())->read_id) && // if on same read and either
-            ((((*(*c_current).begin())->prg_id == (*(*c_previous).begin())->prg_id) && // same prg, different strand
-              ((*(*c_current).begin())->is_forward != (*(*c_previous).begin())->is_forward)) or // or cluster is contained
-             ((*--(*c_current).end())->read_start_position <=
-              (*--(*c_previous).end())->read_start_position))) // i.e. not least one hit outside overlap
+        if (((*(*c_current).begin())->get_read_id() == (*(*c_previous).begin())->get_read_id()) && // if on same read and either
+            ((((*(*c_current).begin())->get_prg_id() == (*(*c_previous).begin())->get_prg_id()) && // same prg, different strand
+              ((*(*c_current).begin())->is_forward() != (*(*c_previous).begin())->is_forward())) or // or cluster is contained
+             ((*--(*c_current).end())->get_read_start_position() <=
+              (*--(*c_previous).end())->get_read_start_position()))) // i.e. not least one hit outside overlap
             // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters, but could also impose no more than 2k hits in overlap
         {
             if (c_previous->size() >= c_current->size()) {
@@ -298,24 +297,24 @@ void filter_clusters2(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &c
 
     auto it = clusters_by_size.begin();
     std::vector<int> read_v(genome_size, 0);
-    //cout << "fill from " << (*(it->begin()))->read_start_position << " to " << (*--(it->end()))->read_start_position << endl;
-    fill(read_v.begin() + (*(it->begin()))->read_start_position, read_v.begin() + (*--(it->end()))->read_start_position,
+    //cout << "fill from " << (*(it->begin()))->read_start_position() << " to " << (*--(it->end()))->read_start_position() << endl;
+    fill(read_v.begin() + (*(it->begin()))->get_read_start_position(), read_v.begin() + (*--(it->end()))->get_read_start_position(),
          1);
     bool contained;
     for (auto it_next = ++clusters_by_size.begin();
          it_next != clusters_by_size.end(); ++it_next) {
-        //cout << "read id " << (*(it_next->begin()))->prg_id << endl;
-        if ((*(it_next->begin()))->read_id == (*(it->begin()))->read_id) {
+        //cout << "read id " << (*(it_next->begin()))->get_prg_id() << endl;
+        if ((*(it_next->begin()))->get_read_id() == (*(it->begin()))->get_read_id()) {
             //check if have any 0s in interval of read_v between first and last
             contained = true;
-            for (uint32_t i = (*(it_next->begin()))->read_start_position;
-                 i < (*--(it_next->end()))->read_start_position; ++i) {
+            for (uint32_t i = (*(it_next->begin()))->get_read_start_position();
+                 i < (*--(it_next->end()))->get_read_start_position(); ++i) {
                 //cout << i << ":" << read_v[i] << "\t";
                 if (read_v[i] == 0) {
                     contained = false;
                     //cout << "found unique element at read position " << i << endl;
-                    //cout << "fill from " << i << " to " << (*--(it_next->end()))->read_start_position << endl;
-                    fill(read_v.begin() + i, read_v.begin() + (*--(it_next->end()))->read_start_position, 1);
+                    //cout << "fill from " << i << " to " << (*--(it_next->end()))->get_read_start_position() << endl;
+                    fill(read_v.begin() + i, read_v.begin() + (*--(it_next->end()))->get_read_start_position(), 1);
                     break;
                 }
 
@@ -344,10 +343,11 @@ add_clusters_to_pangraph(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp>
 
     // to do this consider pairs of clusters in turn
     for (auto cluster: clusters_of_hits) {
-        pangraph->add_node((*cluster.begin())->prg_id,
-                           prgs[(*cluster.begin())->prg_id]->name,
-                           (*cluster.begin())->read_id,
-                           cluster);
+
+        pangraph->add_hits_between_PRG_and_read(
+               prgs[(*cluster.begin())->get_prg_id()],
+               (*cluster.begin())->get_read_id(),
+               cluster);
     }
 }
 
@@ -361,23 +361,23 @@ void infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>>
     // this step infers the gene order for a read and adds this to the pangraph
     // by defining clusters of hits, keeping those which are not noise and
     // then adding the inferred gene ordering
-
-    minimizer_hits->sort();
     if (minimizer_hits->hits.empty()) { return; }
 
-    std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> clusters_of_hits;
+    std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> clusters_of_hits; //a cluster is a set of MinimizerHit. clusters_of_hits is a set of clusters.
     define_clusters(clusters_of_hits, prgs, minimizer_hits, max_diff, fraction_kmers_required_for_cluster,
                     min_cluster_size, expected_number_kmers_in_short_read_sketch);
 
-    minimizer_hits->clear();
-
     filter_clusters(clusters_of_hits);
     //filter_clusters2(clusters_of_hits, genome_size);
-    add_clusters_to_pangraph(clusters_of_hits, pangraph, prgs);
+
+    #pragma omp critical(pangraph)
+    {
+        add_clusters_to_pangraph(clusters_of_hits, pangraph, prgs);
+    }
 }
 
+//TODO: this should be in a constructor of pangenome::Graph or in a factory class
 uint32_t pangraph_from_read_file(const std::string &filepath,
-                                 std::shared_ptr<MinimizerHits> minimizer_hits,
                                  std::shared_ptr<pangenome::Graph> pangraph,
                                  std::shared_ptr<Index> index,
                                  const std::vector<std::shared_ptr<LocalPRG>> &prgs,
@@ -389,53 +389,102 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
                                  const uint32_t genome_size,
                                  const bool illumina,
                                  const bool clean,
-                                 const uint32_t max_covg) {
-    uint64_t covg = 0;
-    float fraction_kmers_required_for_cluster = 0.5 / exp(e_rate * k);
-    uint32_t expected_number_kmers_in_short_read_sketch = std::numeric_limits<uint32_t>::max();
-    auto sequence = std::make_shared<Seq>(Seq(0, "null", "", w, k));
-    uint32_t id = 0;
+                                 const uint32_t max_covg,
+                                 uint32_t threads) {
+    //constant variables
+    const double fraction_kmers_required_for_cluster = 0.5 / exp(e_rate * k);
+    const uint32_t nb_reads_to_map_in_a_batch = 1000; //nb of reads to map in a batch
 
+
+    //shared variable - controlled by critical(covg)
+    uint64_t covg{0};
+
+    //shared variables - controlled by critical(ReadFileMutex)
     FastaqHandler fh(filepath);
-    while (!fh.eof()) {
-        fh.get_next();
-        sequence->initialize(id, fh.name, fh.read, w, k);
-        if (!sequence->sketch.empty()) {
-            covg += sequence->seq.length();
-            if (covg / genome_size > max_covg) {
-                BOOST_LOG_TRIVIAL(warning) << "Stop reading readfile as have reached max coverage";
-                break;
-            }
-        } else {
-            id++;
-            continue;
-        }
-        if (illumina and expected_number_kmers_in_short_read_sketch == std::numeric_limits<uint32_t>::max()) {
-            assert(w != 0);
-            expected_number_kmers_in_short_read_sketch = sequence->seq.length() * 2 / w;
-        }
-        //cout << now() << "Add read hits" << endl;
-        add_read_hits(sequence, minimizer_hits, index);
-        id++;
-        if (id > 10000000) {
-            BOOST_LOG_TRIVIAL(debug) << "Stop reading readfile as have reached 10,000,000 reads";
-            break;
-        }
+    uint32_t id{0};
 
-        if (minimizer_hits->uhits.size() > 90000) {
-            BOOST_LOG_TRIVIAL(debug) << "Infer gene orders and add to pangenome::Graph";
-            pangraph->reserve_num_reads(id);
-            infer_localPRG_order_for_reads(prgs, minimizer_hits, pangraph, max_diff, genome_size,
-                                           fraction_kmers_required_for_cluster, min_cluster_size,
-                                           expected_number_kmers_in_short_read_sketch);
+    //parallel region
+    #pragma omp parallel num_threads(threads)
+    {
+        //will hold the reads batch
+        std::vector<Seq> sequencesBuffer(nb_reads_to_map_in_a_batch, Seq(0, "null", "", w, k));
+        while (true) {
+            //read the next batch of reads
+            uint32_t nbOfReads=0;
+
+            //read the reads in batch
+            #pragma omp critical(ReadFileMutex)
+            {
+                for (auto &sequence : sequencesBuffer) {
+                    //did we reach the end already?
+                    if (!fh.eof()) { //no
+                        //print some logging
+                        if (id && id % 100000 == 0)
+                            BOOST_LOG_TRIVIAL(info) << id << " reads processed...";
+
+                        //read the read
+                        fh.get_next();
+                        sequence.initialize(id, fh.name, fh.read, w, k);
+                        ++nbOfReads;
+                        ++id;
+                    } else{ //yes
+                        break; //we read everything already, exit this loop
+                    }
+                }
+            }
+
+
+            if (nbOfReads==0) break; //we reached the end of the file, nothing else to map
+
+            //quasimap the batch of reads
+            bool coverageExceeded=false;
+            for (uint32_t i=0; i<nbOfReads; i++) {
+                const auto& sequence = sequencesBuffer[i];
+
+                //checks if we are still good regarding coverage
+                if (!sequence.sketch.empty()) {
+                    #pragma omp critical(covg)
+                    {
+                        //check if the max_covg was already exceeded
+                        if (covg / genome_size > max_covg) {
+                            //if reached here, it means that another thread realised that we went past the max_covg, so we just exit
+                            coverageExceeded = true;
+                        } else {
+                            //no other thread still signalized exceeding max coverage
+                            covg += sequence.seq.length();
+                            if (covg / genome_size > max_covg) {
+                                //oops, we are the first one to see max_covg being exceeded, print and exit!
+                                BOOST_LOG_TRIVIAL(warning) << "Stop processing reads as have reached max coverage";
+                                coverageExceeded = true;
+                            }
+                        }
+                    }
+
+                    if (coverageExceeded) break; //max covg exceeded, get out
+                } else {
+                    continue;
+                }
+
+                uint32_t expected_number_kmers_in_short_read_sketch{std::numeric_limits<uint32_t>::max()};
+                if (illumina and expected_number_kmers_in_short_read_sketch == std::numeric_limits<uint32_t>::max()) {
+                    assert(w != 0);
+                    expected_number_kmers_in_short_read_sketch = sequence.seq.length() * 2 / w;
+                }
+
+                //get the minizer hits
+                auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
+                add_read_hits(sequence, minimizer_hits, *index);
+
+                //infer
+                infer_localPRG_order_for_reads(prgs, minimizer_hits, pangraph, max_diff, genome_size,
+                                               fraction_kmers_required_for_cluster, min_cluster_size,
+                                               expected_number_kmers_in_short_read_sketch);
+            }
+
+            if (coverageExceeded) break; //max_covg exceeded, get out
         }
     }
-    BOOST_LOG_TRIVIAL(debug) << "Found " << id << " reads";
-
-    BOOST_LOG_TRIVIAL(debug) << "Infer gene orders and add to pangenome::Graph";
-    pangraph->reserve_num_reads(id);
-    infer_localPRG_order_for_reads(prgs, minimizer_hits, pangraph, max_diff, genome_size, fraction_kmers_required_for_cluster,
-                                   min_cluster_size, expected_number_kmers_in_short_read_sketch);
+    BOOST_LOG_TRIVIAL(info) << "Processed " << id << " reads";
 
     BOOST_LOG_TRIVIAL(debug) << "Pangraph has " << pangraph->nodes.size() << " nodes";
 
@@ -452,4 +501,12 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
     }
 
     return covg;
+}
+
+
+
+void fatalError (const string &message) {
+    cerr << endl << endl << "[FATAL ERROR] " << message << endl << endl;
+    cerr.flush();
+    exit(1);
 }
