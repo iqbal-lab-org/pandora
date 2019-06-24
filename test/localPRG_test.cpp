@@ -157,7 +157,10 @@ TEST(LocalPRGTest, string_along_localpath) {
     EXPECT_EQ("AGT", l2.string_along_path(p));
 }
 
-TEST(LocalPRGTest, nodes_along_path) {
+//core function called to test the LocalPRG::nodes_along_path() method in both tests that follow:
+//TEST(LocalPRGTest, nodes_along_path_without_memoization) and
+//TEST(LocalPRGTest, nodes_along_path_with_memoization)
+void nodes_along_path_core_test() {
     LocalPRG l0(0, "empty", "");
     LocalPRG l1(1, "simple", "AGCT");
     LocalPRG l2(2, "varsite", "A 5 GC 6 G 5 T");
@@ -270,6 +273,17 @@ TEST(LocalPRGTest, nodes_along_path) {
     EXPECT_EQ(j, l3.nodes_along_path(p3)[0]->id);
     j = 5;
     EXPECT_EQ(j, l3.nodes_along_path(p3)[1]->id);
+}
+
+TEST(LocalPRGTest, nodes_along_path_without_memoization) {
+    assert(LocalPRG::path_memoization_in_nodes_along_path_method == false);
+    nodes_along_path_core_test();
+}
+
+TEST(LocalPRGTest, nodes_along_path_with_memoization) {
+    LocalPRG::path_memoization_in_nodes_along_path_method=true;
+    nodes_along_path_core_test();
+    LocalPRG::path_memoization_in_nodes_along_path_method=false;
 }
 
 TEST(LocalPRGTest, split_by_siteNoSites) {
