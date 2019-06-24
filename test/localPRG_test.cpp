@@ -276,14 +276,14 @@ void nodes_along_path_core_test() {
 }
 
 TEST(LocalPRGTest, nodes_along_path_without_memoization) {
-    assert(LocalPRG::path_memoization_in_nodes_along_path_method == false);
+    LocalPRG::do_path_memoization_in_nodes_along_path_method = false;
     nodes_along_path_core_test();
 }
 
 TEST(LocalPRGTest, nodes_along_path_with_memoization) {
-    LocalPRG::path_memoization_in_nodes_along_path_method=true;
+    LocalPRG::do_path_memoization_in_nodes_along_path_method = true;
     nodes_along_path_core_test();
-    LocalPRG::path_memoization_in_nodes_along_path_method=false;
+    LocalPRG::do_path_memoization_in_nodes_along_path_method = false;
 }
 
 TEST(LocalPRGTest, split_by_siteNoSites) {
