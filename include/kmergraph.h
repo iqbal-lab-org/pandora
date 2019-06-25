@@ -62,7 +62,7 @@ public:
     void save(const std::string &, const std::shared_ptr<LocalPRG> = nullptr);
     void load(const std::string &);
 
-    bool operator==(const KmerGraph &y) const;
+    bool operator==(const KmerGraph &other_graph) const;
 
     friend std::ostream &operator<<(std::ostream &out, KmerGraph const &data);
 

@@ -391,18 +391,18 @@ uint32_t KmerGraph::min_path_length() {
     return len[0];
 }
 
-bool KmerGraph::operator==(const KmerGraph &y) const {
+bool KmerGraph::operator==(const KmerGraph &other_graph) const {
     // false if have different numbers of nodes
-    if (y.nodes.size() != nodes.size()) {//cout << "different numbers of nodes" << endl;
+    if (other_graph.nodes.size() != nodes.size()) {//cout << "different numbers of nodes" << endl;
         return false;
     }
 
     // false if have different nodes
     for (const auto &kmer_node_ptr: nodes) {
         const auto &kmer_node = *kmer_node_ptr;
-        // if node not equal to a node in y, then false
-        auto found = find_if(y.nodes.begin(), y.nodes.end(), condition(kmer_node.path));
-        if (found == y.nodes.end()) {
+        // if node not equal to a node in other_graph, then false
+        auto found = find_if(other_graph.nodes.begin(), other_graph.nodes.end(), condition(kmer_node.path));
+        if (found == other_graph.nodes.end()) {
             return false;
         }
 
