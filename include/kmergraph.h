@@ -74,6 +74,15 @@ public:
     //friends
     friend struct condition;
     friend class KmerGraphWithCoverage;
+
+    friend class KmerGraphWithCoverageTest_set_p_Test;
+    friend class KmerGraphWithCoverageTest_prob_failNoNumReads_Test;
+    friend class KmerGraphWithCoverageTest_prob_simple_Test;
+    friend class KmerGraphWithCoverageTest_prob_realNodeCovgs_Test;
+    friend class KmerGraphWithCoverageTest_findMaxPath_InvalidProbModel_Test;
+    friend class KmerGraphWithCoverageTest_findMaxPathSimple_Test;
+    friend class KmerGraphWithCoverageTest_findMaxPathSimple_WithMaxKmersInAvg_Test;
+
 };
 
 #endif

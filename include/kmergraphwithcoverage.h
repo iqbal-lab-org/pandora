@@ -97,9 +97,17 @@ public:
 
 
     //test friends
+    friend class KmerGraphWithCoverageTest_set_exp_depth_covg_Test;
     friend class KmerGraphWithCoverageTest_set_p_Test;
-    friend class KmerGraphWithCoverageTest_prob_Test;
+    friend class KmerGraphWithCoverageTest_set_nb_Test;
+    friend class KmerGraphWithCoverageTest_prob_failNoNumReads_Test;
+    friend class KmerGraphWithCoverageTest_prob_simple_Test;
+    friend class KmerGraphWithCoverageTest_prob_realNodeCovgs_Test;
+    friend class KmerGraphWithCoverageTest_findMaxPath_InvalidProbModel_Test;
     friend class KmerGraphWithCoverageTest_findMaxPathSimple_Test;
+    friend class KmerGraphWithCoverageTest_findMaxPathSimple_WithMaxKmersInAvg_Test;
+
+
     friend class KmerGraphWithCoverageTest_findMaxPath2Level_Test;
     friend class KmerGraphWithCoverageTest_find_max_paths_2Level_Test;
     friend class KmerGraphWithCoverageTest_path_prob_Test;
