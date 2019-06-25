@@ -1080,7 +1080,7 @@ TEST(PangenomeGraphTest, save_mapped_read_strings) {
     MiniRecord mr3(0, p, 0, 0);
     mhits.add_hit(1, m3, mr3);
 
-    auto l0 = std::make_shared<LocalPRG>(LocalPRG(0, "0", ""));
+    auto l0 = std::make_shared<LocalPRG>(LocalPRG(0, "zero", ""));
     pg.add_node(l0);
     pg.add_hits_between_PRG_and_read(l0, 1, mhits.hits);
     mhits.clear();
