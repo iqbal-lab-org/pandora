@@ -38,24 +38,24 @@ public:
     //attributes (TODO: protect these? only this class should operate in these attributes, move logic that change them to here?)
     uint32_t id;
     prg::Path path; //the path of the kmer in the LocalPRG
-    std::vector<WeakKmerNodePtr> outNodes; // representing edges from this node to the nodes in the vector
-    std::vector<WeakKmerNodePtr> inNodes; // representing edges from other nodes to this node
+    std::vector<WeakKmerNodePtr> out_nodes; // representing edges from this node to the nodes in the vector
+    std::vector<WeakKmerNodePtr> in_nodes; // representing edges from other nodes to this node
     uint64_t khash; //the kmer hash value
     uint8_t num_AT; // the number of As and Ts in this kmer
 
     //finders of nodes in out/in nodes lists
     std::vector<WeakKmerNodePtr>::const_iterator findNodePtrInOutNodes(const KmerNodePtr &rhs) const {
-        return findNodePtrInNodesVector(outNodes, rhs);
+        return findNodePtrInNodesVector(out_nodes, rhs);
     }
     std::vector<WeakKmerNodePtr>::const_iterator findNodePtrInInNodes(const KmerNodePtr &rhs) const {
-        return findNodePtrInNodesVector(inNodes, rhs);
+        return findNodePtrInNodesVector(in_nodes, rhs);
     }
     std::vector<WeakKmerNodePtr>::const_iterator findNodeInOutNodes(const KmerNode &rhs) const {
-        return findNodeInNodesVector(outNodes, rhs);
+        return findNodeInNodesVector(out_nodes, rhs);
     }
 
     std::vector<WeakKmerNodePtr>::const_iterator findNodeInInNodes(const KmerNode &rhs) const {
-        return findNodeInNodesVector(inNodes, rhs);
+        return findNodeInNodesVector(in_nodes, rhs);
     }
 
     //constructors and assignment operators

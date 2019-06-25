@@ -52,8 +52,8 @@ KmerGraph::KmerGraph(const KmerGraph &other) {
 
     // now need to copy the edges
     for (const auto &node : other.nodes) {
-        for (uint32_t j = 0; j < node->outNodes.size(); ++j) {
-            add_edge(nodes.at(node->id), nodes.at(node->outNodes[j].lock()->id));
+        for (uint32_t j = 0; j < node->out_nodes.size(); ++j) {
+            add_edge(nodes.at(node->id), nodes.at(node->out_nodes[j].lock()->id));
         }
     }
 }
@@ -83,8 +83,8 @@ KmerGraph &KmerGraph::operator=(const KmerGraph &other) {
 
     // now need to copy the edges
     for (const auto &node : other.nodes) {
-        for (uint32_t j = 0; j < node->outNodes.size(); ++j) {
-            add_edge(nodes.at(node->id), nodes.at(node->outNodes[j].lock()->id));
+        for (uint32_t j = 0; j < node->out_nodes.size(); ++j) {
+            add_edge(nodes.at(node->id), nodes.at(node->out_nodes[j].lock()->id));
         }
     }
 
@@ -147,9 +147,9 @@ void KmerGraph::add_edge(KmerNodePtr from, KmerNodePtr to) {
             "Cannot add edge from " << from->id << " to " << to->id << " because " << from->path << " is not less than "
                                     << to->path));
 
-    if (from->findNodePtrInOutNodes(to) == from->outNodes.end()) {
-        from->outNodes.emplace_back(to);
-        to->inNodes.emplace_back(from);
+    if (from->findNodePtrInOutNodes(to) == from->out_nodes.end()) {
+        from->out_nodes.emplace_back(to);
+        to->in_nodes.emplace_back(from);
         //cout << "added edge from " << from->id << " to " << to->id << endl;
     }
 }
@@ -163,20 +163,20 @@ void KmerGraph::remove_shortcut_edges() {
 
     for (const auto &n : nodes) {
         //cout << n.first << endl;
-        for (const auto &out : n->outNodes) {
+        for (const auto &out : n->out_nodes) {
             auto outNodeAsSharedPtr = out.lock();
-            for (auto nextOut = outNodeAsSharedPtr->outNodes.begin(); nextOut != outNodeAsSharedPtr->outNodes.end();) {
+            for (auto nextOut = outNodeAsSharedPtr->out_nodes.begin(); nextOut != outNodeAsSharedPtr->out_nodes.end();) {
                 auto nextOutAsSharedPtr = nextOut->lock();
                 // if the outnode of an outnode of A is another outnode of A
-                if (n->findNodePtrInOutNodes(nextOutAsSharedPtr) != n->outNodes.end()) {
+                if (n->findNodePtrInOutNodes(nextOutAsSharedPtr) != n->out_nodes.end()) {
                     temp_path = get_union(n->path, nextOutAsSharedPtr->path);
 
                     if (outNodeAsSharedPtr->path.is_subpath(temp_path)) {
                         //remove it from the outnodes
                         BOOST_LOG_TRIVIAL(debug) << "found the union of " << n->path << " and " << nextOutAsSharedPtr->path;
                         BOOST_LOG_TRIVIAL(debug) << "result " << temp_path << " contains " << outNodeAsSharedPtr->path;
-                        nextOutAsSharedPtr->inNodes.erase(nextOutAsSharedPtr->findNodePtrInInNodes(outNodeAsSharedPtr));
-                        nextOut = outNodeAsSharedPtr->outNodes.erase(nextOut);
+                        nextOutAsSharedPtr->in_nodes.erase(nextOutAsSharedPtr->findNodePtrInInNodes(outNodeAsSharedPtr));
+                        nextOut = outNodeAsSharedPtr->out_nodes.erase(nextOut);
                         BOOST_LOG_TRIVIAL(debug) << "next out is now " << nextOutAsSharedPtr->path;
                         num_removed_edges += 1;
                         break;
@@ -195,12 +195,12 @@ void KmerGraph::remove_shortcut_edges() {
 void KmerGraph::check() const {
     // should not have any leaves, only nodes with degree 0 are start and end
     for (auto c = sorted_nodes.begin(); c != sorted_nodes.end(); ++c) {
-        assert(!(*c)->inNodes.empty() or (*c) == (*sorted_nodes.begin())||
-               assert_msg("node" << **c << " has inNodes size " << (*c)->inNodes.size()));
-        assert(!(*c)->outNodes.empty() or (*c) == *(sorted_nodes.rbegin()) || assert_msg(
-                "node" << **c << " has outNodes size " << (*c)->outNodes.size() << " and isn't equal to back node "
+        assert(!(*c)->in_nodes.empty() or (*c) == (*sorted_nodes.begin())||
+               assert_msg("node" << **c << " has inNodes size " << (*c)->in_nodes.size()));
+        assert(!(*c)->out_nodes.empty() or (*c) == *(sorted_nodes.rbegin()) || assert_msg(
+                "node" << **c << " has outNodes size " << (*c)->out_nodes.size() << " and isn't equal to back node "
                        << **(sorted_nodes.rbegin())));
-        for (const auto &d: (*c)->outNodes) {
+        for (const auto &d: (*c)->out_nodes) {
             auto dAsSharedPtr = d.lock();
             assert((*c)->path < dAsSharedPtr->path || assert_msg((*c)->path << " is not less than " << dAsSharedPtr->path));
             assert(find(c, sorted_nodes.end(), dAsSharedPtr) != sorted_nodes.end() ||
@@ -245,8 +245,8 @@ void KmerGraph::save(const std::string &filepath, const std::shared_ptr<LocalPRG
             //TODO: leave as coverage 0 or change this?
             handle << "\tFC:i:" << 0 << "\t" << "\tRC:i:" << 0 << std::endl;//"\t" << (unsigned)nodes[i].second->num_AT << endl;
 
-            for (uint32_t j = 0; j < c->outNodes.size(); ++j) {
-                handle << "L\t" << c->id << "\t+\t" << c->outNodes[j].lock()->id << "\t+\t0M" << std::endl;
+            for (uint32_t j = 0; j < c->out_nodes.size(); ++j) {
+                handle << "L\t" << c->id << "\t+\t" << c->out_nodes[j].lock()->id << "\t+\t0M" << std::endl;
             }
         }
         handle.close();
@@ -333,8 +333,8 @@ void KmerGraph::load(const std::string &filepath) {
             id++;
             assert(n->id < outnode_counts.size() or assert_msg(n->id << ">=" << outnode_counts.size()));
             assert(n->id < innode_counts.size() or assert_msg(n->id << ">=" << innode_counts.size()));
-            n->outNodes.reserve(outnode_counts[n->id]);
-            n->inNodes.reserve(innode_counts[n->id]);
+            n->out_nodes.reserve(outnode_counts[n->id]);
+            n->in_nodes.reserve(innode_counts[n->id]);
         }
 
         myfile.clear();
@@ -380,9 +380,9 @@ uint32_t KmerGraph::min_path_length() {
 
     std::vector<uint32_t> len(sorted_nodes.size(), 0); // length of shortest path from node i to end of graph
     for (uint32_t j = sorted_nodes.size() - 1; j != 0; --j) {
-        for (uint32_t i = 0; i != sorted_nodes[j - 1]->outNodes.size(); ++i) {
-            if (len[sorted_nodes[j - 1]->outNodes[i].lock()->id] + 1 > len[j - 1]) {
-                len[j - 1] = len[sorted_nodes[j - 1]->outNodes[i].lock()->id] + 1;
+        for (uint32_t i = 0; i != sorted_nodes[j - 1]->out_nodes.size(); ++i) {
+            if (len[sorted_nodes[j - 1]->out_nodes[i].lock()->id] + 1 > len[j - 1]) {
+                len[j - 1] = len[sorted_nodes[j - 1]->out_nodes[i].lock()->id] + 1;
             }
         }
     }
@@ -406,10 +406,10 @@ bool KmerGraph::operator==(const KmerGraph &y) const {
         }
 
         // if the node is found but has different edges, then false
-        if (kmer_node.outNodes.size() != (*found)->outNodes.size()) { return false; }
-        if (kmer_node.inNodes.size() != (*found)->inNodes.size()) { return false; }
-        for (uint32_t j = 0; j != kmer_node.outNodes.size(); ++j) {
-            if ((*found)->findNodeInOutNodes(*(kmer_node.outNodes[j].lock())) == (*found)->outNodes.end()) {
+        if (kmer_node.out_nodes.size() != (*found)->out_nodes.size()) { return false; }
+        if (kmer_node.in_nodes.size() != (*found)->in_nodes.size()) { return false; }
+        for (uint32_t j = 0; j != kmer_node.out_nodes.size(); ++j) {
+            if ((*found)->findNodeInOutNodes(*(kmer_node.out_nodes[j].lock())) == (*found)->out_nodes.end()) {
                 return false;
             }
         }
@@ -595,8 +595,8 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr> &maxpath, co
     for (uint32_t j = kmer_prg->nodes.size() - 1; j != 0; --j) {
         max_mean = std::numeric_limits<float>::lowest();
         max_len = 0; // tie break with longest kmer path
-        for (uint32_t i = 0; i != sorted_nodes[j - 1]->outNodes.size(); ++i) {
-            auto node_id = sorted_nodes[j - 1]->outNodes[i].lock()->id;
+        for (uint32_t i = 0; i != sorted_nodes[j - 1]->out_nodes.size(); ++i) {
+            auto node_id = sorted_nodes[j - 1]->out_nodes[i].lock()->id;
             if ((node_id == sorted_nodes.back()->id and thresh > max_mean + 0.000001) or
                 (M[node_id] / len[node_id] >
                  max_mean + 0.000001) or
@@ -656,8 +656,8 @@ float KmerGraphWithCoverage::find_nb_max_path(std::vector<KmerNodePtr> &maxpath,
     for (uint32_t j = kmer_prg->nodes.size() - 1; j != 0; --j) {
         max_mean = std::numeric_limits<float>::lowest();
         max_len = 0; // tie break with longest kmer path
-        for (uint32_t i = 0; i != sorted_nodes[j - 1]->outNodes.size(); ++i) {
-            auto node_id = sorted_nodes[j - 1]->outNodes[i].lock()->id;
+        for (uint32_t i = 0; i != sorted_nodes[j - 1]->out_nodes.size(); ++i) {
+            auto node_id = sorted_nodes[j - 1]->out_nodes[i].lock()->id;
             if ((node_id == sorted_nodes.back()->id and thresh > max_mean + 0.000001) or
                 (M[node_id] / len[node_id] >
                  max_mean + 0.000001) or
@@ -716,8 +716,8 @@ float KmerGraphWithCoverage::find_lin_max_path(std::vector<KmerNodePtr> &maxpath
     for (uint32_t j = kmer_prg->nodes.size() - 1; j != 0; --j) {
         max_mean = std::numeric_limits<float>::lowest();
         max_len = 0; // tie break with longest kmer path
-        for (uint32_t i = 0; i != sorted_nodes[j - 1]->outNodes.size(); ++i) {
-            auto node_id = sorted_nodes[j - 1]->outNodes[i].lock()->id;
+        for (uint32_t i = 0; i != sorted_nodes[j - 1]->out_nodes.size(); ++i) {
+            auto node_id = sorted_nodes[j - 1]->out_nodes[i].lock()->id;
             if ((node_id == sorted_nodes.back()->id and thresh > max_mean + 0.000001) or
                 (M[node_id] / len[node_id] >
                  max_mean + 0.000001) or
@@ -806,14 +806,14 @@ std::vector<std::vector<KmerNodePtr>> KmerGraphWithCoverage::get_random_paths(ui
 
     if (!kmer_prg->nodes.empty()) {
         for (uint32_t j = 0; j != num_paths; ++j) {
-            i = rand() % kmer_prg->nodes[0]->outNodes.size();
-            rpath.push_back(kmer_prg->nodes[0]->outNodes[i].lock());
+            i = rand() % kmer_prg->nodes[0]->out_nodes.size();
+            rpath.push_back(kmer_prg->nodes[0]->out_nodes[i].lock());
             while (rpath.back() != kmer_prg->nodes[kmer_prg->nodes.size() - 1]) {
-                if (rpath.back()->outNodes.size() == 1) {
-                    rpath.push_back(rpath.back()->outNodes[0].lock());
+                if (rpath.back()->out_nodes.size() == 1) {
+                    rpath.push_back(rpath.back()->out_nodes[0].lock());
                 } else {
-                    i = rand() % rpath.back()->outNodes.size();
-                    rpath.push_back(rpath.back()->outNodes[i].lock());
+                    i = rand() % rpath.back()->out_nodes.size();
+                    rpath.push_back(rpath.back()->out_nodes[i].lock());
                 }
             }
             rpath.pop_back();
@@ -920,8 +920,8 @@ void KmerGraphWithCoverage::save(const std::string &filepath, const std::shared_
             handle << "\tFC:i:" << get_covg(c->id, 0, sample_id) << "\t" << "\tRC:i:"
                    << get_covg(c->id, 1, sample_id) << std::endl;//"\t" << (unsigned)nodes[i].second->num_AT << endl;
 
-            for (uint32_t j = 0; j < c->outNodes.size(); ++j) {
-                handle << "L\t" << c->id << "\t+\t" << c->outNodes[j].lock()->id << "\t+\t0M" << std::endl;
+            for (uint32_t j = 0; j < c->out_nodes.size(); ++j) {
+                handle << "L\t" << c->id << "\t+\t" << c->out_nodes[j].lock()->id << "\t+\t0M" << std::endl;
             }
         }
         handle.close();
@@ -1011,8 +1011,8 @@ void KmerGraphWithCoverage::load(const std::string &filepath) {
             id++;
             assert(n->id < outnode_counts.size() or assert_msg(n->id << ">=" << outnode_counts.size()));
             assert(n->id < innode_counts.size() or assert_msg(n->id << ">=" << innode_counts.size()));
-            n->outNodes.reserve(outnode_counts[n->id]);
-            n->inNodes.reserve(innode_counts[n->id]);
+            n->out_nodes.reserve(outnode_counts[n->id]);
+            n->in_nodes.reserve(innode_counts[n->id]);
         }
 
         myfile.clear();
