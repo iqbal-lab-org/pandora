@@ -11,7 +11,7 @@
 struct Minimizer {
     uint64_t canonical_kmer_hash;
     Interval pos_of_kmer_in_read;
-    bool strand; //strand of the kmer
+    bool is_forward_strand;
 
     Minimizer() {};
 
