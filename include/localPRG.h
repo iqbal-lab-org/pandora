@@ -12,6 +12,7 @@
 #include "prg/path.h"
 #include "pangenome/pannode.h"
 #include "kmergraph.h"
+#include "kmergraphwithcoverage.h"
 #include "vcf.h"
 #include "fastaq.h"
 #include <boost/filesystem.hpp>
