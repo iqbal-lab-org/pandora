@@ -261,9 +261,9 @@ void remove_leaves(std::shared_ptr<pangenome::Graph> pangraph,
                     std::cout << "done" << std::endl;
                 }
             }
-            auto nodeSharedPtrFromWeakPtr = node.lock();
-            if (nodeSharedPtrFromWeakPtr and nodeSharedPtrFromWeakPtr->covg == 0) {
-                pangraph->remove_node(nodeSharedPtrFromWeakPtr);
+            auto node_shared_ptr_from_weak_ptr = node.lock();
+            if (node_shared_ptr_from_weak_ptr and node_shared_ptr_from_weak_ptr->covg == 0) {
+                pangraph->remove_node(node_shared_ptr_from_weak_ptr);
             }
 
             // remove dbg node

@@ -317,7 +317,7 @@ int pandora_map(int argc, char *argv[]) {
 
     cout << now() << "Loading Index and LocalPRGs from file" << endl;
     auto index = std::make_shared<Index>();
-    index->load(prgfile, w, k); //load the index built in the index step
+    index->load(prgfile, w, k);
     std::vector<std::shared_ptr<LocalPRG>> prgs;
     read_prg_file(prgs, prgfile); //load all PRGs, exactly like in the index step
     load_PRG_kmergraphs(prgs, w, k, prgfile); //load all kmer-minimizer graphs built in the index step
@@ -361,9 +361,9 @@ int pandora_map(int argc, char *argv[]) {
     CandidateRegions candidate_regions;
 
     //shared variable - will denote which nodes we have to remove after the parallel loop
-    //synced with critical(nodesToRemove)
-    std::vector<pangenome::NodePtr> nodesToRemove;
-    nodesToRemove.reserve(pangraph->nodes.size());
+    //synced with critical(nodes_to_remove)
+    std::vector<pangenome::NodePtr> nodes_to_remove;
+    nodes_to_remove.reserve(pangraph->nodes.size());
 
     //this a read-only var, no need for sync
     VCFRefs vcf_refs;
@@ -404,9 +404,9 @@ int pandora_map(int argc, char *argv[]) {
         if (kmp.empty()) {
             //pan_id_to_node_mapping = pangraph->remove_node(pangraph_node);
             //mark the node as to remove
-            #pragma omp critical(nodesToRemove)
+            #pragma omp critical(nodes_to_remove)
             {
-                nodesToRemove.push_back(pangraph_node);
+                nodes_to_remove.push_back(pangraph_node);
             }
             continue;
         }
@@ -433,8 +433,8 @@ int pandora_map(int argc, char *argv[]) {
     }
 
     //remove the nodes marked as to be removed
-    for (const auto &nodeToRemove : nodesToRemove)
-        pangraph->remove_node(nodeToRemove);
+    for (const auto &node_to_remove : nodes_to_remove)
+        pangraph->remove_node(node_to_remove);
 
     consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
     if (output_vcf)
