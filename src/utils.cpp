@@ -171,7 +171,7 @@ void add_read_hits(const Seq &sequence,
     // creates Seq object for the read, then looks up minimizers in the Seq sketch and adds hits to a global MinimizerHits object
     //Seq s(id, name, seq, w, k);
     for (auto sequenceSketchIt = sequence.sketch.begin(); sequenceSketchIt != sequence.sketch.end(); ++sequenceSketchIt) {
-        auto minhashIt = index.minhash.find((*sequenceSketchIt).kmer);
+        auto minhashIt = index.minhash.find((*sequenceSketchIt).canonical_kmer_hash);
         if (minhashIt != index.minhash.end()) { //checks if the kmer is in the index
             //yes, add all hits of this minimizer hit to this kmer
             for (const MiniRecord &miniRecord : *(minhashIt->second)) {

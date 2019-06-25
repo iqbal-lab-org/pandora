@@ -9,7 +9,7 @@
  * Represents a minimizer from a read or sequence (not from a graph, as MiniRecord)
  */
 struct Minimizer {
-    uint64_t kmer; //this is the canonical kmer's hashed value (canonical = minimum between FW and RC kmer)
+    uint64_t canonical_kmer_hash;
     Interval pos; //position of the kmer in the read
     bool strand; //strand of the kmer
 

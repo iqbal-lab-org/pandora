@@ -6,7 +6,7 @@
 #include "interval.h"
 
 
-Minimizer::Minimizer(uint64_t s, uint32_t a, uint32_t b, bool c) : kmer(s), pos(Interval(a, b)), strand(c) {
+Minimizer::Minimizer(uint64_t s, uint32_t a, uint32_t b, bool c) : canonical_kmer_hash(s), pos(Interval(a, b)), strand(c) {
     assert(s <= pow(4, pos.length)); // used to check kmer length same as interval length.
     // Can't any more but at least know if s is too big for a kmer of interval size to have generated it.
 }
@@ -16,8 +16,8 @@ Minimizer::~Minimizer() {
 }
 
 bool Minimizer::operator<(const Minimizer &y) const {
-    if (kmer < y.kmer) { return true; }
-    if (y.kmer < kmer) { return false; }
+    if (canonical_kmer_hash < y.canonical_kmer_hash) { return true; }
+    if (y.canonical_kmer_hash < canonical_kmer_hash) { return false; }
 
     if (pos.start < y.pos.start) { return true; }
     if (y.pos.start < pos.start) { return false; }
@@ -34,13 +34,13 @@ bool Minimizer::operator<(const Minimizer &y) const {
 }
 
 bool Minimizer::operator==(const Minimizer &y) const {
-    if (kmer != y.kmer) { return false; }
+    if (canonical_kmer_hash != y.canonical_kmer_hash) { return false; }
     if (!(pos == y.pos)) { return false; }
     if (strand != y.strand) { return false; }
     return true;
 }
 
 std::ostream &operator<<(std::ostream &out, Minimizer const &m) {
-    out << "(" << m.kmer << ", " << m.pos << ", " << m.strand << ")";
+    out << "(" << m.canonical_kmer_hash << ", " << m.pos << ", " << m.strand << ")";
     return out;
 }
