@@ -147,7 +147,7 @@ void KmerGraph::add_edge(KmerNodePtr from, KmerNodePtr to) {
             "Cannot add edge from " << from->id << " to " << to->id << " because " << from->path << " is not less than "
                                     << to->path));
 
-    if (from->findNodePtrInOutNodes(to) == from->out_nodes.end()) {
+    if (from->find_node_ptr_in_out_nodes(to) == from->out_nodes.end()) {
         from->out_nodes.emplace_back(to);
         to->in_nodes.emplace_back(from);
         //cout << "added edge from " << from->id << " to " << to->id << endl;
@@ -164,19 +164,20 @@ void KmerGraph::remove_shortcut_edges() {
     for (const auto &n : nodes) {
         //cout << n.first << endl;
         for (const auto &out : n->out_nodes) {
-            auto outNodeAsSharedPtr = out.lock();
-            for (auto nextOut = outNodeAsSharedPtr->out_nodes.begin(); nextOut != outNodeAsSharedPtr->out_nodes.end();) {
+            auto out_node_as_shared_ptr = out.lock();
+            for (auto nextOut = out_node_as_shared_ptr->out_nodes.begin(); nextOut != out_node_as_shared_ptr->out_nodes.end();) {
                 auto nextOutAsSharedPtr = nextOut->lock();
                 // if the outnode of an outnode of A is another outnode of A
-                if (n->findNodePtrInOutNodes(nextOutAsSharedPtr) != n->out_nodes.end()) {
+                if (n->find_node_ptr_in_out_nodes(nextOutAsSharedPtr) != n->out_nodes.end()) {
                     temp_path = get_union(n->path, nextOutAsSharedPtr->path);
 
-                    if (outNodeAsSharedPtr->path.is_subpath(temp_path)) {
+                    if (out_node_as_shared_ptr->path.is_subpath(temp_path)) {
                         //remove it from the outnodes
                         BOOST_LOG_TRIVIAL(debug) << "found the union of " << n->path << " and " << nextOutAsSharedPtr->path;
-                        BOOST_LOG_TRIVIAL(debug) << "result " << temp_path << " contains " << outNodeAsSharedPtr->path;
-                        nextOutAsSharedPtr->in_nodes.erase(nextOutAsSharedPtr->findNodePtrInInNodes(outNodeAsSharedPtr));
-                        nextOut = outNodeAsSharedPtr->out_nodes.erase(nextOut);
+                        BOOST_LOG_TRIVIAL(debug) << "result " << temp_path << " contains " << out_node_as_shared_ptr->path;
+                        nextOutAsSharedPtr->in_nodes.erase(
+                                nextOutAsSharedPtr->find_node_ptr_in_in_nodes(out_node_as_shared_ptr));
+                        nextOut = out_node_as_shared_ptr->out_nodes.erase(nextOut);
                         BOOST_LOG_TRIVIAL(debug) << "next out is now " << nextOutAsSharedPtr->path;
                         num_removed_edges += 1;
                         break;
@@ -409,7 +410,7 @@ bool KmerGraph::operator==(const KmerGraph &y) const {
         if (kmer_node.out_nodes.size() != (*found)->out_nodes.size()) { return false; }
         if (kmer_node.in_nodes.size() != (*found)->in_nodes.size()) { return false; }
         for (uint32_t j = 0; j != kmer_node.out_nodes.size(); ++j) {
-            if ((*found)->findNodeInOutNodes(*(kmer_node.out_nodes[j].lock())) == (*found)->out_nodes.end()) {
+            if ((*found)->find_node_in_out_nodes(*(kmer_node.out_nodes[j].lock())) == (*found)->out_nodes.end()) {
                 return false;
             }
         }

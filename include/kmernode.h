@@ -44,17 +44,17 @@ public:
     uint8_t num_AT; // the number of As and Ts in this kmer
 
     //finders of nodes in out/in nodes lists
-    std::vector<WeakKmerNodePtr>::const_iterator findNodePtrInOutNodes(const KmerNodePtr &rhs) const {
+    std::vector<WeakKmerNodePtr>::const_iterator find_node_ptr_in_out_nodes(const KmerNodePtr &rhs) const {
         return findNodePtrInNodesVector(out_nodes, rhs);
     }
-    std::vector<WeakKmerNodePtr>::const_iterator findNodePtrInInNodes(const KmerNodePtr &rhs) const {
+    std::vector<WeakKmerNodePtr>::const_iterator find_node_ptr_in_in_nodes(const KmerNodePtr &rhs) const {
         return findNodePtrInNodesVector(in_nodes, rhs);
     }
-    std::vector<WeakKmerNodePtr>::const_iterator findNodeInOutNodes(const KmerNode &rhs) const {
+    std::vector<WeakKmerNodePtr>::const_iterator find_node_in_out_nodes(const KmerNode &rhs) const {
         return findNodeInNodesVector(out_nodes, rhs);
     }
 
-    std::vector<WeakKmerNodePtr>::const_iterator findNodeInInNodes(const KmerNode &rhs) const {
+    std::vector<WeakKmerNodePtr>::const_iterator find_node_in_in_nodes(const KmerNode &rhs) const {
         return findNodeInNodesVector(in_nodes, rhs);
     }
 
