@@ -296,21 +296,21 @@ void KmerGraph::load(const std::string &filepath) {
                 ss >> p;
                 ss.clear();
                 //add_node(p);
-                KmerNodePtr n = std::make_shared<KmerNode>(id, p);
-                assert(n != nullptr);
+                KmerNodePtr kmer_node = std::make_shared<KmerNode>(id, p);
+                assert(kmer_node != nullptr);
                 assert(id == nodes.size() or num_nodes - id == nodes.size() or
                        assert_msg("id " << id << " != " << nodes.size() << " nodes.size() for kmergraph "));
-                nodes.push_back(n);
-                sorted_nodes.insert(n);
+                nodes.push_back(kmer_node);
+                sorted_nodes.insert(kmer_node);
                 if (k == 0 and p.length() > 0) {
                     k = p.length();
                 }
                 covg = stoi(split(split_line[3], "FC:i:")[0]);
-                //n->set_covg(covg, 0, sample_id); //TODO: do not read the coverage?
+                //kmer_node->set_covg(covg, 0, sample_id); //TODO: do not read the coverage?
                 covg = stoi(split(split_line[4], "RC:i:")[0]);
-                //n->set_covg(covg, 1, sample_id); //TODO: do not read the coverage?
+                //kmer_node->set_covg(covg, 1, sample_id); //TODO: do not read the coverage?
                 if (split_line.size() >= 6) {
-                    n->num_AT = std::stoi(split_line[5]);
+                    kmer_node->num_AT = std::stoi(split_line[5]);
                 }
             } else if (line[0] == 'L') {
                 split_line = split(line, "\t");
