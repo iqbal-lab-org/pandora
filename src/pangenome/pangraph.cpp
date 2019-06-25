@@ -15,6 +15,7 @@
 #include "pangenome/panread.h"
 #include "pangenome/pansample.h"
 #include "minihit.h"
+#include "kmergraphwithcoverage.h"
 #include "fastaq_handler.h"
 
 
@@ -395,7 +396,8 @@ pangenome::Graph::get_node_closest_vcf_reference(const Node &node, const uint32_
     kmer_prg_with_coverage.set_num_reads(node.covg);
 
     std::vector<KmerNodePtr> kmer_path;
-    kmer_prg_with_coverage.find_lin_max_path(kmer_path, 0);
+    uint32_t max_num_kmers_to_average = 100;
+    kmer_prg_with_coverage.find_max_path(kmer_path, "lin", max_num_kmers_to_average, 0);
     if (!kmer_path.empty()) {
         auto reference_path = prg.localnode_path_from_kmernode_path(kmer_path, w);
         BOOST_LOG_TRIVIAL(debug) << "Found reference path to return";

@@ -74,13 +74,12 @@ public:
 
     float prob(const uint32_t &, const uint32_t &, const uint32_t &sample_id);
 
+    float get_prob(const std::string& prob_model, const uint32_t &node_id, const uint32_t &sample_id);
+
     bool coverage_is_zeroes(const uint32_t&);
 
-    float find_max_path(std::vector<KmerNodePtr> &, const uint32_t &);
-
-    float find_nb_max_path(std::vector<KmerNodePtr> &, const uint32_t &sample_id);
-
-    float find_lin_max_path(std::vector<KmerNodePtr> &, const uint32_t &sample_id);
+    float find_max_path(std::vector<KmerNodePtr> &maxpath, const std::string& prob_model,
+                        const uint32_t &max_num_kmers_to_average, const uint32_t &sample_id);
 
     std::vector<std::vector<KmerNodePtr>> find_max_paths(uint32_t, const uint32_t &sample_id);
 
@@ -88,7 +87,7 @@ public:
 
     std::vector<std::vector<KmerNodePtr>> get_random_paths(uint32_t);
 
-    float prob_path(const std::vector<KmerNodePtr> &, const uint32_t &sample_id);
+    float prob_path(const std::vector<KmerNodePtr> &kpath, const uint32_t &sample_id, const std::string& prob_model);
 
     float prob_paths(const std::vector<std::vector<KmerNodePtr>> &);
 

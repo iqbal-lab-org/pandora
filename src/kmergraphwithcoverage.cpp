@@ -128,6 +128,22 @@ float KmerGraphWithCoverage::prob(const uint32_t &j, const uint32_t &num, const 
     return ret;
 }
 
+float KmerGraphWithCoverage::get_prob(const std::string& prob_model, const uint32_t &node_id, const uint32_t &sample_id){
+    if (prob_model == "nbin")
+    {
+        return nb_prob(node_id, sample_id);
+    } else if (prob_model == "bin") {
+        assert(p < 1 || assert_msg("p was not set in kmergraph"));
+        assert(num_reads > 0 || assert_msg("num_reads was not set in kmergraph"));
+        return prob(node_id, sample_id);
+    } else if (prob_model == "lin") {
+        return lin_prob(node_id, sample_id);
+    } else {
+        BOOST_LOG_TRIVIAL(warning) << "Invalid probability model for kmer coverage distribution: should be nbin, bin or lin";
+        exit(1);
+    }
+}
+
 bool KmerGraphWithCoverage::coverage_is_zeroes(const uint32_t& sample_id){
     bool all_zero = true;
     for (const auto &n : kmer_prg->nodes) {
@@ -143,22 +159,15 @@ bool KmerGraphWithCoverage::coverage_is_zeroes(const uint32_t& sample_id){
     return all_zero;
 }
 
-float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr> &maxpath, const uint32_t &sample_id) {
+float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr> &maxpath,
+                               const std::string& prob_model,
+                               const uint32_t &max_num_kmers_to_average,
+                               const uint32_t &sample_id) {
     //TODO: UPDATE THIS WHEN LEARNING MAP
-    //TODO: THESE 3 FUNCTIONS MUST BE REFACTORED: find_max_path(), find_nb_max_path() and find_lin_max_path()
+    //TODO: THIS FUNCTION MUST BE REFACTORED
     //TODO: FIX THIS INNEFICIENCY I INTRODUCED
-    std::vector<KmerNodePtr> sorted_nodes(this->kmer_prg->sorted_nodes.begin(), this->kmer_prg->sorted_nodes.end());
-
-
-    // finds a max likelihood path
-    BOOST_LOG_TRIVIAL(debug) << "Find max path for sample_id" << sample_id;
-
-    // check if p set
-    assert(p < 1 || assert_msg("p was not set in kmergraph"));
-    assert(num_reads > 0 || assert_msg("num_reads was not set in kmergraph"));
-
-    // need to catch if thesh not set too...
-    kmer_prg->check();
+    const std::vector<KmerNodePtr> sorted_nodes(this->kmer_prg->sorted_nodes.begin(), this->kmer_prg->sorted_nodes.end());
+    this->kmer_prg->check();
 
     // also check not all 0 covgs
     auto coverages_all_zero = coverage_is_zeroes(sample_id);
@@ -166,165 +175,60 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr> &maxpath, co
         return std::numeric_limits<float>::lowest();
 
     // create vectors to hold the intermediate values
-    std::vector<float> M(kmer_prg->nodes.size(), 0); // max log prob pf paths from pos i to end of graph
-    std::vector<int> len(kmer_prg->nodes.size(), 0); // length of max log path from pos i to end of graph
-    std::vector<uint32_t> prev(kmer_prg->nodes.size(), kmer_prg->nodes.size() - 1); // prev node along path
+    std::vector<float> M(sorted_nodes.size(), 0); // max log prob of paths from pos i to end of graph
+    std::vector<uint32_t> len(sorted_nodes.size(), 0); // length of max log path from pos i to end of graph
+    std::vector<uint32_t> prev(sorted_nodes.size(), sorted_nodes.size() - 1); // prev node along path
     float max_mean;
     int max_len;
+    const float tolerance = 0.000001;
 
-    for (uint32_t j = kmer_prg->nodes.size() - 1; j != 0; --j) {
+    for (uint32_t j = sorted_nodes.size() - 1; j != 0; --j) {
         max_mean = std::numeric_limits<float>::lowest();
         max_len = 0; // tie break with longest kmer path
-        for (uint32_t i = 0; i != sorted_nodes[j - 1]->outNodes.size(); ++i) {
-            auto node_id = sorted_nodes[j - 1]->outNodes[i].lock()->id;
-            if ((node_id == sorted_nodes.back()->id and thresh > max_mean + 0.000001) or
-                (M[node_id] / len[node_id] >
-                 max_mean + 0.000001) or
-                (max_mean - M[node_id] / len[node_id] <=
-                 0.000001 and
-                 len[node_id] > max_len)) {
-                M[sorted_nodes[j - 1]->id] =
-                        prob(sorted_nodes[j - 1]->id, sample_id) + M[node_id];
-                len[sorted_nodes[j - 1]->id] = 1 + len[node_id];
-                prev[sorted_nodes[j - 1]->id] = node_id;
-                if (node_id != sorted_nodes.back()->id) {
-                    max_mean = M[node_id] / len[node_id];
-                    max_len = len[node_id];
-                    //cout << " and new max_mean: " << max_mean;
+        const auto & current_node = sorted_nodes[j - 1];
+        for (uint32_t i = 0; i != current_node->outNodes.size(); ++i) {
+            const auto & considered_outnode = current_node->outNodes[i].lock();
+            bool is_terminus_and_most_likely = considered_outnode->id == sorted_nodes.back()->id
+                                               and thresh > max_mean + tolerance;
+            bool avg_log_likelihood_is_most_likely = M[considered_outnode->id] /
+                                                     len[considered_outnode->id] > max_mean + tolerance;
+            bool avg_log_likelihood_is_close_to_most_likely = max_mean - M[considered_outnode->id] /
+                                                                         len[considered_outnode->id] <= tolerance;
+            bool is_longer_path = len[considered_outnode->id] > max_len;
+
+            if (is_terminus_and_most_likely or avg_log_likelihood_is_most_likely
+                or ( avg_log_likelihood_is_close_to_most_likely and is_longer_path)) {
+                M[current_node->id] = get_prob(prob_model,current_node->id, sample_id)
+                                      + M[considered_outnode->id];
+                len[current_node->id] = 1 + len[considered_outnode->id];
+                prev[current_node->id] = considered_outnode->id;
+
+                if (len[current_node->id] > max_num_kmers_to_average){
+                    uint32_t prev_node = prev[current_node->id];
+                    for (uint step=0; step<max_num_kmers_to_average; step++){
+                        prev_node = prev[prev_node];
+                    }
+                    M[current_node->id] -= get_prob(prob_model,sorted_nodes[prev_node]->id, sample_id);
+                    len[current_node->id] -= 1;
+                    assert(len[current_node->id] == max_num_kmers_to_average);
+                }
+
+                if (considered_outnode->id != sorted_nodes.back()->id) {
+                    max_mean = M[considered_outnode->id] / len[considered_outnode->id];
+                    max_len = len[considered_outnode->id];
                 } else {
                     max_mean = thresh;
                 }
             }
         }
     }
-    // remove the final length added for the null start node
-    len[0] -= 1;
 
     // extract path
     uint32_t prev_node = prev[sorted_nodes[0]->id];
     while (prev_node < sorted_nodes.size() - 1) {
-        maxpath.push_back(kmer_prg->nodes[prev_node]);
+        maxpath.push_back(this->kmer_prg->nodes[prev_node]);
         prev_node = prev[prev_node];
-    }
 
-    assert(len[0] > 0 || assert_msg("found no path through kmer prg"));
-    return M[0] / len[0];
-}
-
-float KmerGraphWithCoverage::find_nb_max_path(std::vector<KmerNodePtr> &maxpath, const uint32_t &sample_id) {
-    //TODO: UPDATE THIS WHEN LEARNING MAP
-    //TODO: THESE 3 FUNCTIONS MUST BE REFACTORED: find_max_path(), find_nb_max_path() and find_lin_max_path()
-    //TODO: FIX THIS INNEFICIENCY I INTRODUCED
-    std::vector<KmerNodePtr> sorted_nodes(this->kmer_prg->sorted_nodes.begin(), this->kmer_prg->sorted_nodes.end());
-
-
-    // finds a max likelihood path
-    kmer_prg->check();
-
-    // also check not all 0 covgs
-    auto coverages_all_zero = coverage_is_zeroes(sample_id);
-    if (coverages_all_zero)
-        return std::numeric_limits<float>::lowest();
-
-    // create vectors to hold the intermediate values
-    std::vector<float> M(kmer_prg->nodes.size(), 0); // max log prob pf paths from pos i to end of graph
-    std::vector<int> len(kmer_prg->nodes.size(), 0); // length of max log path from pos i to end of graph
-    std::vector<uint32_t> prev(kmer_prg->nodes.size(), kmer_prg->nodes.size() - 1); // prev node along path
-    float max_mean;
-    int max_len;
-
-    for (uint32_t j = kmer_prg->nodes.size() - 1; j != 0; --j) {
-        max_mean = std::numeric_limits<float>::lowest();
-        max_len = 0; // tie break with longest kmer path
-        for (uint32_t i = 0; i != sorted_nodes[j - 1]->outNodes.size(); ++i) {
-            auto node_id = sorted_nodes[j - 1]->outNodes[i].lock()->id;
-            if ((node_id == sorted_nodes.back()->id and thresh > max_mean + 0.000001) or
-                (M[node_id] / len[node_id] >
-                 max_mean + 0.000001) or
-                (max_mean - M[node_id] / len[node_id] <=
-                 0.000001 and
-                 len[node_id] > max_len)) {
-                M[sorted_nodes[j - 1]->id] =
-                        nb_prob(sorted_nodes[j - 1]->id, sample_id) + M[node_id];
-                len[sorted_nodes[j - 1]->id] = 1 + len[node_id];
-                prev[sorted_nodes[j - 1]->id] = node_id;
-                if (node_id != sorted_nodes.back()->id) {
-                    max_mean = M[node_id] / len[node_id];
-                    max_len = len[node_id];
-                } else {
-                    max_mean = thresh;
-                }
-            }
-        }
-    }
-    // remove the final length added for the null start node
-    len[0] -= 1;
-
-    // extract path
-    uint32_t prev_node = prev[sorted_nodes[0]->id];
-    while (prev_node < sorted_nodes.size() - 1) {
-        maxpath.push_back(kmer_prg->nodes[prev_node]);
-        prev_node = prev[prev_node];
-    }
-
-    assert(len[0] > 0 || assert_msg("found no path through kmer prg"));
-    return M[0] / len[0];
-}
-
-float KmerGraphWithCoverage::find_lin_max_path(std::vector<KmerNodePtr> &maxpath, const uint32_t &sample_id) {
-    //TODO: UPDATE THIS WHEN LEARNING MAP
-    //TODO: THESE 3 FUNCTIONS MUST BE REFACTORED: find_max_path(), find_nb_max_path() and find_lin_max_path()
-    //TODO: FIX THIS INNEFICIENCY I INTRODUCED
-    std::vector<KmerNodePtr> sorted_nodes(this->kmer_prg->sorted_nodes.begin(), this->kmer_prg->sorted_nodes.end());
-
-
-    // finds a max likelihood path
-    kmer_prg->check();
-
-    // also check not all 0 covgs
-    auto coverages_all_zero = coverage_is_zeroes(sample_id);
-    if (coverages_all_zero)
-        return std::numeric_limits<float>::lowest();
-
-    // create vectors to hold the intermediate values
-    std::vector<float> M(kmer_prg->nodes.size(), 0); // max log prob pf paths from pos i to end of graph
-    std::vector<int> len(kmer_prg->nodes.size(), 0); // length of max log path from pos i to end of graph
-    std::vector<uint32_t> prev(kmer_prg->nodes.size(), kmer_prg->nodes.size() - 1); // prev node along path
-    float max_mean;
-    int max_len;
-
-    for (uint32_t j = kmer_prg->nodes.size() - 1; j != 0; --j) {
-        max_mean = std::numeric_limits<float>::lowest();
-        max_len = 0; // tie break with longest kmer path
-        for (uint32_t i = 0; i != sorted_nodes[j - 1]->outNodes.size(); ++i) {
-            auto node_id = sorted_nodes[j - 1]->outNodes[i].lock()->id;
-            if ((node_id == sorted_nodes.back()->id and thresh > max_mean + 0.000001) or
-                (M[node_id] / len[node_id] >
-                 max_mean + 0.000001) or
-                (max_mean - M[node_id] / len[node_id] <=
-                 0.000001 and
-                 len[node_id] > max_len)) {
-                M[sorted_nodes[j - 1]->id] =
-                        lin_prob(sorted_nodes[j - 1]->id, sample_id) + M[node_id];
-                len[sorted_nodes[j - 1]->id] = 1 + len[node_id];
-                prev[sorted_nodes[j - 1]->id] = node_id;
-                if (node_id != sorted_nodes.back()->id) {
-                    max_mean = M[node_id] / len[node_id];
-                    max_len = len[node_id];
-                } else {
-                    max_mean = thresh;
-                }
-            }
-        }
-    }
-    // remove the final length added for the null start node
-    len[0] -= 1;
-
-    // extract path
-    uint32_t prev_node = prev[sorted_nodes[0]->id];
-    while (prev_node < kmer_prg->sorted_nodes.size() - 1) {
-        maxpath.push_back(kmer_prg->nodes[prev_node]);
-        prev_node = prev[prev_node];
         if (maxpath.size() > 1000000){
             BOOST_LOG_TRIVIAL(warning) << "I think I've found an infinite loop - is something wrong with this kmergraph?";
             exit(1);
@@ -332,8 +236,9 @@ float KmerGraphWithCoverage::find_lin_max_path(std::vector<KmerNodePtr> &maxpath
     }
 
     assert(len[0] > 0 || assert_msg("found no path through kmer prg"));
-    return M[0] / len[0];
+    return prob_path(maxpath, sample_id, prob_model);
 }
+
 
 /*
 std::vector<std::vector<KmerNodePtr>> KmerGraph::find_max_paths(uint32_t num,
@@ -405,10 +310,10 @@ std::vector<std::vector<KmerNodePtr>> KmerGraphWithCoverage::get_random_paths(ui
 }
 
 float KmerGraphWithCoverage::prob_path(const std::vector<KmerNodePtr> &kpath,
-                           const uint32_t &sample_id) {
+                           const uint32_t &sample_id, const std::string& prob_model) {
     float ret_p = 0;
     for (uint32_t i = 0; i != kpath.size(); ++i) {
-        ret_p += prob(kpath[i]->id, sample_id);
+        ret_p += get_prob(prob_model, kpath[i]->id, sample_id);
     }
     uint32_t len = kpath.size();
     if (kpath[0]->path.length() == 0) {
