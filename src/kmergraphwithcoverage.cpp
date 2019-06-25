@@ -43,6 +43,7 @@ void KmerGraphWithCoverage::increment_covg(uint32_t node_id, bool strand, uint32
 }
 
 uint32_t KmerGraphWithCoverage::get_covg(uint32_t node_id, bool strand, uint32_t sample_id) const {
+
     if (this->nodeIndex2SampleCoverage[node_id].size() <= sample_id)
         return 0;
 
