@@ -1424,11 +1424,12 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq, PanNodePtr pnode,
     kmp.reserve(800); //TODO: check this
 
     BOOST_LOG_TRIVIAL(debug) << "Find maxpath for " << pnode->get_name();
-    float ppath;
+    uint32_t max_num_kmers_to_average = 100;
+    std::string prob_model = "nbin";
     if (bin)
-        ppath = pnode->kmer_prg_with_coverage.find_max_path(kmp, sample_id);
-    else
-        ppath = pnode->kmer_prg_with_coverage.find_nb_max_path(kmp, sample_id);
+        prob_model = "bin";
+    float ppath = pnode->kmer_prg_with_coverage.find_max_path(kmp, prob_model, max_num_kmers_to_average, sample_id);
+
 
     lmp.reserve(100);
     lmp = localnode_path_from_kmernode_path(kmp, w);

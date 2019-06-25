@@ -12,7 +12,6 @@
 #include "kmernode.h"
 #include "kmergraph.h"
 #include "kmergraphwithcoverage.h"
-#include "kmergraphwithcoverage.cpp"
 #include "localPRG.h"
 
 
@@ -25,7 +24,6 @@ using namespace prg;
 KmerGraph::KmerGraph() {
     shortest_path_length = 0;
     k = 0; // nb the kmer size is determined by the first non-null node added
-    KmerGraphWithCoverage(this);
 }
 
 // copy constructor
@@ -223,8 +221,6 @@ std::ostream &operator<<(std::ostream &out, KmerGraph const &data) {
 
 //save the KmerGraph as gfa
 void KmerGraph::save(const std::string &filepath, const std::shared_ptr<LocalPRG> localprg) {
-    uint32_t sample_id = 0;
-
     std::ofstream handle;
     handle.open(filepath);
     if (handle.is_open()) {
@@ -254,7 +250,6 @@ void KmerGraph::save(const std::string &filepath, const std::shared_ptr<LocalPRG
 
 void KmerGraph::load(const std::string &filepath) {
     clear();
-    uint32_t sample_id = 0;
 
     std::string line;
     std::vector<std::string> split_line;
@@ -301,9 +296,7 @@ void KmerGraph::load(const std::string &filepath) {
                     k = p.length();
                 }
                 covg = stoi(split(split_line[3], "FC:i:")[0]);
-                //n->set_covg(covg, 0, sample_id); //TODO: do not read the coverage?
                 covg = stoi(split(split_line[4], "RC:i:")[0]);
-                //n->set_covg(covg, 1, sample_id); //TODO: do not read the coverage?
                 if (split_line.size() >= 6) {
                     n->num_AT = std::stoi(split_line[5]);
                 }
