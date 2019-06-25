@@ -10,7 +10,7 @@
  */
 struct Minimizer {
     uint64_t canonical_kmer_hash;
-    Interval pos; //position of the kmer in the read
+    Interval pos_of_kmer_in_read;
     bool strand; //strand of the kmer
 
     Minimizer() {};

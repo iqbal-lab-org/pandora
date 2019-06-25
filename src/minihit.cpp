@@ -11,14 +11,14 @@
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer &minimizerFromRead, const MiniRecord &minimizerFromPRG) :
-        read_id{i}, read_start_position{minimizerFromRead.pos.start}, read_strand{minimizerFromRead.strand}, minimizerFromPRG{minimizerFromPRG}{
+        read_id{i}, read_start_position{minimizerFromRead.pos_of_kmer_in_read.start}, read_strand{minimizerFromRead.strand}, minimizerFromPRG{minimizerFromPRG}{
 
-    assert(minimizerFromRead.pos.length == minimizerFromPRG.path.length());
+    assert(minimizerFromRead.pos_of_kmer_in_read.length == minimizerFromPRG.path.length());
     assert(read_id < std::numeric_limits<uint32_t>::max() ||
            assert_msg("Variable sizes too small to handle this number of reads"));
     assert(minimizerFromPRG.prg_id < std::numeric_limits<uint32_t>::max() ||
            assert_msg("Variable sizes too small to handle this number of prgs"));
-    assert(minimizerFromRead.pos.length == minimizerFromPRG.path.length());
+    assert(minimizerFromRead.pos_of_kmer_in_read.length == minimizerFromPRG.path.length());
 }
 
 
