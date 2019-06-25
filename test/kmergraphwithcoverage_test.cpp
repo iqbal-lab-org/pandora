@@ -251,7 +251,6 @@ TEST(KmerGraphWithCoverageTest, findMaxPath_InvalidProbModel) {
     KmerGraphWithCoverage kgc(&kg);
     uint32_t sample_id = 0;
     uint32_t max_num_kmers_to_average = 100;
-    kgc.zeroCoverages(1);
 
     kgc.set_covg(1,4, 0, sample_id);
     kgc.set_covg(2,3, 0, sample_id);
@@ -303,7 +302,6 @@ TEST(KmerGraphWithCoverageTest, findMaxPathSimple) {
     KmerGraphWithCoverage kgc(&kg);
     uint32_t sample_id = 0;
     uint32_t max_num_kmers_to_average = 100;
-    kgc.zeroCoverages(1);
 
     kgc.set_covg(1,4, 0, sample_id);
     kgc.set_covg(2,3, 0, sample_id);
@@ -366,7 +364,6 @@ TEST(KmerGraphWithCoverageTest, findMaxPathSimple_WithMaxKmersInAvg) {
     KmerGraphWithCoverage kgc(&kg);
     uint32_t sample_id = 0;
     uint32_t max_num_kmers_to_average = 1;
-    kgc.zeroCoverages(1);
 
     kgc.set_covg(1,4, 0, sample_id);
     kgc.set_covg(2,3, 0, sample_id);
