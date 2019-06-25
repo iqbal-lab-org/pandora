@@ -946,10 +946,10 @@ void KmerGraphWithCoverage::load(const std::string &filepath) {
     prg::Path p;
     uint32_t num_nodes = 0;
 
-    std::ifstream myfile(filepath);
-    if (myfile.is_open()) {
+    std::ifstream graph_file(filepath);
+    if (graph_file.is_open()) {
 
-        while (getline(myfile, line).good()) {
+        while (getline(graph_file, line).good()) {
             if (line[0] == 'S') {
                 split_line = split(line, "\t");
                 assert(split_line.size() >= 4);
@@ -957,12 +957,12 @@ void KmerGraphWithCoverage::load(const std::string &filepath) {
                 num_nodes = std::max(num_nodes, id);
             }
         }
-        myfile.clear();
-        myfile.seekg(0, myfile.beg);
+        graph_file.clear();
+        graph_file.seekg(0, graph_file.beg);
         kmer_prg->nodes.reserve(num_nodes);
         std::vector<uint16_t> outnode_counts(num_nodes + 1, 0), innode_counts(num_nodes + 1, 0);
 
-        while (getline(myfile, line).good()) {
+        while (getline(graph_file, line).good()) {
             if (line[0] == 'S') {
                 split_line = split(line, "\t");
                 assert(split_line.size() >= 4);
@@ -1016,10 +1016,10 @@ void KmerGraphWithCoverage::load(const std::string &filepath) {
             n->in_nodes.reserve(innode_counts[n->id]);
         }
 
-        myfile.clear();
-        myfile.seekg(0, myfile.beg);
+        graph_file.clear();
+        graph_file.seekg(0, graph_file.beg);
 
-        while (getline(myfile, line).good()) {
+        while (getline(graph_file, line).good()) {
             if (line[0] == 'L') {
                 split_line = split(line, "\t");
                 assert(split_line.size() >= 5);
