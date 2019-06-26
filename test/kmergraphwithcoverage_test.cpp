@@ -686,7 +686,7 @@ TEST(KmerGraphWithCoverageTest, load) {
 
     KmerGraphWithCoverage kmergraph_with_coverage(&kmergraph);
     kmergraph_with_coverage.set_covg(1, 5, 1, 0);
-    kmergraph_with_coverage.set_covg(2, 4, 1, 0);
+    kmergraph_with_coverage.set_covg(0, 4, 1, 0);
 
     KmerGraphWithCoverage read_kmergraph_with_coverage(&kmergraph);
     read_kmergraph_with_coverage.load("kmergraphwithcoverage_test.gfa");
