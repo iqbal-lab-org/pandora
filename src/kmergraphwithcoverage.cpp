@@ -76,9 +76,9 @@ void KmerGraphWithCoverage::set_negative_binomial_parameters(const float &nbin_p
 
 float KmerGraphWithCoverage::nbin_prob(uint32_t node_id, const uint32_t &sample_id) {
     auto k = get_covg(node_id, 0, sample_id) + get_covg(node_id, 1, sample_id);
-    float ret = log(pdf(boost::math::negative_binomial(negative_binomial_parameter_r, negative_binomial_parameter_p), k));
-    ret = std::max(ret, std::numeric_limits<float>::lowest() / 1000);
-    return ret;
+    float return_prob = log(pdf(boost::math::negative_binomial(negative_binomial_parameter_r, negative_binomial_parameter_p), k));
+    return_prob = std::max(return_prob, std::numeric_limits<float>::lowest() / 1000);
+    return return_prob;
 }
 
 float KmerGraphWithCoverage::lin_prob(uint32_t node_id, const uint32_t &sample_id) {
@@ -103,25 +103,24 @@ float KmerGraphWithCoverage::bin_prob(const uint32_t &node_id, const uint32_t &n
 
     uint32_t sum_coverages = get_covg(node_id, 0, sample_id) + get_covg(node_id, 1, sample_id);
 
-    float ret;
+    float return_prob;
     if (node_id == (*(kmer_prg->sorted_nodes.begin()))->id or node_id == (*(kmer_prg->sorted_nodes.rbegin()))->id) {
-        ret = 0; // is really undefined
+        return_prob = 0; // is really undefined
     } else if (sum_coverages > num) {
         // under model assumptions this can't happen, but it inevitably will, so bodge
-        ret = lognchoosek2(sum_coverages,
+        return_prob = lognchoosek2(sum_coverages,
                            get_covg(node_id, 0, sample_id),
                            get_covg(node_id, 1, sample_id))
               + sum_coverages * log(binomial_parameter_p / 2);
         // note this may give disadvantage to repeat kmers
     } else {
-        ret = lognchoosek2(num,
+        return_prob = lognchoosek2(num,
                            get_covg(node_id, 0, sample_id),
                            get_covg(node_id, 1, sample_id))
               + sum_coverages * log(binomial_parameter_p / 2)
               + (num - sum_coverages) * log(1 - binomial_parameter_p);
     }
-    //cout << " is " << ret << endl;
-    return ret;
+    return return_prob;
 }
 
 float KmerGraphWithCoverage::get_prob(const std::string& prob_model, const uint32_t &node_id, const uint32_t &sample_id){
@@ -311,9 +310,9 @@ std::vector<std::vector<KmerNodePtr>> KmerGraphWithCoverage::get_random_paths(ui
 
 float KmerGraphWithCoverage::prob_path(const std::vector<KmerNodePtr> &kpath,
                            const uint32_t &sample_id, const std::string& prob_model) {
-    float ret_p = 0;
+    float return_prob_path = 0;
     for (uint32_t i = 0; i != kpath.size(); ++i) {
-        ret_p += get_prob(prob_model, kpath[i]->id, sample_id);
+        return_prob_path += get_prob(prob_model, kpath[i]->id, sample_id);
     }
     uint32_t len = kpath.size();
     if (kpath[0]->path.length() == 0) {
@@ -325,7 +324,7 @@ float KmerGraphWithCoverage::prob_path(const std::vector<KmerNodePtr> &kpath,
     if (len == 0) {
         len = 1;
     }
-    return ret_p / len;
+    return return_prob_path / len;
 }
 
 /*
