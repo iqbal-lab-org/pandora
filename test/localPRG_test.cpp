@@ -1476,7 +1476,7 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_bin) {
     pn3->kmer_prg_with_coverage.set_covg(8, 6, 0, 0);
 
     pn3->kmer_prg_with_coverage.set_num_reads(6);
-    pn3->kmer_prg_with_coverage.set_p(0.0001);
+    pn3->kmer_prg_with_coverage.set_binomial_parameter_p(0.0001);
     shared_ptr<pangenome::Read> pr(make_shared<pangenome::Read>(0));
     pn3->reads.insert(pr);
 
@@ -1512,7 +1512,7 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_nbin) {
     pn3->kmer_prg_with_coverage.set_covg(7, 3, 1, 0);
     pn3->kmer_prg_with_coverage.set_covg(8, 6, 0, 0);
     pn3->kmer_prg_with_coverage.set_num_reads(6);
-    pn3->kmer_prg_with_coverage.set_nb(0.05, 2.0);
+    pn3->kmer_prg_with_coverage.set_negative_binomial_parameters(0.05, 2.0);
     shared_ptr<pangenome::Read> pr(make_shared<pangenome::Read>(0));
     pn3->reads.insert(pr);
 

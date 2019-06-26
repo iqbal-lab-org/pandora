@@ -82,7 +82,9 @@ public:
     friend class KmerGraphWithCoverageTest_findMaxPath_InvalidProbModel_Test;
     friend class KmerGraphWithCoverageTest_findMaxPathSimple_Test;
     friend class KmerGraphWithCoverageTest_findMaxPathSimple_WithMaxKmersInAvg_Test;
-
+    friend class KmerGraphWithCoverageTest_findMaxPath2Level_bin_Test;
+    friend class KmerGraphWithCoverageTest_findMaxPath2Level_nbin_Test;
+    friend class KmerGraphWithCoverageTest_findMaxPath2Level_lin_Test;
 };
 
 #endif
