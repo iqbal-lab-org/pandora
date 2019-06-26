@@ -1115,7 +1115,7 @@ TEST(PangenomeGraphTest, save_mapped_read_strings) {
 }
 
 TEST(PangenomeGraphTest, get_node_closest_vcf_reference_no_paths) {
-    uint32_t prg_id = 3, w=1, k=3;
+    uint32_t prg_id = 3, w=1, k=3, max_num_kmers_to_average=100;
     std::string prg_name = "nested varsite";
     auto l3 = std::make_shared<LocalPRG>(prg_id, prg_name , "A 5 G 7 C 8 T 7  6 G 5 T");
     auto index = std::make_shared<Index>();
@@ -1127,12 +1127,12 @@ TEST(PangenomeGraphTest, get_node_closest_vcf_reference_no_paths) {
 
     pangraph.add_node(l3);
     pangraph.add_hits_between_PRG_and_sample(prg_id, sample_name, sample_kmer_path);
-    auto path = pangraph.get_node_closest_vcf_reference(*pangraph.nodes[prg_id], w, *l3);
+    auto path = pangraph.get_node_closest_vcf_reference(*pangraph.nodes[prg_id], w, *l3,max_num_kmers_to_average);
     EXPECT_ITERABLE_EQ(std::vector<LocalNodePtr>, path, l3->prg.top_path());
 }
 
 TEST(PangenomeGraphTest, get_node_closest_vcf_reference_one_path) {
-    uint32_t prg_id = 3, w=1, k=3;
+    uint32_t prg_id = 3, w=1, k=3, max_num_kmers_to_average=100;
     std::string prg_name = "nested varsite";
     auto l3 = std::make_shared<LocalPRG>(prg_id, prg_name , "A 5 G 7 C 8 T 7  6 G 5 T");
     auto index = std::make_shared<Index>();
@@ -1148,14 +1148,14 @@ TEST(PangenomeGraphTest, get_node_closest_vcf_reference_one_path) {
     pangraph.add_hits_between_PRG_and_sample(prg_id, sample_name, sample_kmer_path);
     auto &node = *pangraph.nodes[prg_id];
 
-    auto path = pangraph.get_node_closest_vcf_reference(node, w, *l3);
+    auto path = pangraph.get_node_closest_vcf_reference(node, w, *l3,max_num_kmers_to_average);
     std::vector<LocalNodePtr> exp_path = {l3->prg.nodes[0], l3->prg.nodes[1], l3->prg.nodes[3], l3->prg.nodes[4], l3->prg.nodes[6]};
 
     EXPECT_ITERABLE_EQ(std::vector<LocalNodePtr>, path, exp_path);
 }
 
 TEST(PangenomeGraphTest, get_node_closest_vcf_reference_three_paths) {
-    uint32_t prg_id = 3, w=1, k=3;
+    uint32_t prg_id = 3, w=1, k=3, max_num_kmers_to_average=100;
     std::string prg_name = "nested varsite";
     auto l3 = std::make_shared<LocalPRG>(prg_id, prg_name , "A 5 G 7 C 8 T 7  6 G 5 T");
     auto index = std::make_shared<Index>();
@@ -1178,7 +1178,7 @@ TEST(PangenomeGraphTest, get_node_closest_vcf_reference_three_paths) {
     pangraph.add_hits_between_PRG_and_sample(prg_id, sample_name, sample_kmer_path);
 
     auto &node = *pangraph.nodes[prg_id];
-    auto path = pangraph.get_node_closest_vcf_reference(node, w, *l3);
+    auto path = pangraph.get_node_closest_vcf_reference(node, w, *l3, max_num_kmers_to_average);
     std::vector<LocalNodePtr> exp_path = {l3->prg.nodes[0], l3->prg.nodes[1], l3->prg.nodes[3], l3->prg.nodes[4], l3->prg.nodes[6]};
 
     EXPECT_ITERABLE_EQ(std::vector<LocalNodePtr>, path, exp_path);
@@ -1249,7 +1249,7 @@ TEST(PangenomeGraphTest, infer_node_vcf_reference_path_no_file_strings)
     pangenome::Graph pangraph({sample_name});
     std::vector<KmerNodePtr> empty;
     auto index = std::make_shared<Index>();
-    uint32_t prg_id = 0, sample_id = 0, w = 1, k = 3;
+    uint32_t prg_id = 0, sample_id = 0, w = 1, k = 3, max_num_kmers_to_average=100;
     std::unordered_map<std::string, std::string> vcf_refs;
     std::vector<std::vector<LocalNodePtr>> vcf_ref_paths;
     for (const auto &prg_string : prg_strings){
@@ -1258,7 +1258,8 @@ TEST(PangenomeGraphTest, infer_node_vcf_reference_path_no_file_strings)
         prgs.back()->minimizer_sketch(index, w, k);
         pangraph.add_node(prgs.back());
         pangraph.add_hits_between_PRG_and_sample(prg_id, sample_name, empty);
-        vcf_ref_paths.emplace_back(pangraph.infer_node_vcf_reference_path(*pangraph.nodes[prg_id], prgs.back(), w, vcf_refs));
+        vcf_ref_paths.emplace_back(pangraph.infer_node_vcf_reference_path(*pangraph.nodes[prg_id], prgs.back(), w,
+                                                                          vcf_refs, max_num_kmers_to_average));
         prg_id++;
     }
 
@@ -1285,7 +1286,7 @@ TEST(PangenomeGraphTest, infer_node_vcf_reference_path_with_file_strings)
     pangenome::Graph pangraph({sample_name});
     std::vector<KmerNodePtr> empty;
     auto index = std::make_shared<Index>();
-    uint32_t prg_id = 0, sample_id = 0, w = 1, k = 3;
+    uint32_t prg_id = 0, sample_id = 0, w = 1, k = 3, max_num_kmers_to_average=100;
     std::vector<std::vector<LocalNodePtr>> vcf_ref_paths;
     for (const auto &prg_string : prg_strings){
         std::string prg_name = "prg" + std::to_string(prg_id);
@@ -1294,7 +1295,7 @@ TEST(PangenomeGraphTest, infer_node_vcf_reference_path_with_file_strings)
         pangraph.add_node(prgs.back());
         pangraph.add_hits_between_PRG_and_sample(prg_id, sample_name, empty);
         vcf_ref_paths.emplace_back(pangraph.infer_node_vcf_reference_path(*pangraph.nodes[prg_id], prgs.back(),
-                                                                          w, vcf_ref_strings));
+                                                                          w, vcf_ref_strings, max_num_kmers_to_average));
         prg_id++;
     }
 

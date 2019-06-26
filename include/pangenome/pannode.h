@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <vector>
 #include "kmergraph.h"
+#include "kmergraphwithcoverage.h"
 #include "localPRG.h"
 #include "pangenome/ns.cpp"
 #include "vcf.h"

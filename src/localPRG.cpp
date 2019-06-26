@@ -1339,12 +1339,6 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
 
     std::vector<KmerNodePtr> ref_kmer_path = kmernode_path_from_localnode_path(ref_path);
 
-    /*std::cout << "ref path: ";
-    for (const auto &n : ref_kmer_path) {
-        std::cout << n->path << " ";
-    }
-    std::cout << std::endl;*/
-
     std::vector<KmerNodePtr> alt_kmer_path;
 
     std::vector<uint32_t> ref_fwd_covgs;
@@ -1416,7 +1410,8 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
 
 void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq, PanNodePtr pnode, std::vector<KmerNodePtr> &kmp,
                                             std::vector<LocalNodePtr> &lmp, const uint32_t w, const bool bin,
-                                            const uint32_t global_covg, const uint32_t &sample_id) const {
+                                            const uint32_t global_covg, const uint32_t &max_num_kmers_to_average,
+                                            const uint32_t &sample_id) const {
     if (pnode->reads.empty()) {
         BOOST_LOG_TRIVIAL(warning) << "Node " << pnode->get_name() << " has no reads";
         return;
@@ -1424,11 +1419,11 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq, PanNodePtr pnode,
     kmp.reserve(800); //TODO: check this
 
     BOOST_LOG_TRIVIAL(debug) << "Find maxpath for " << pnode->get_name();
-    float ppath;
+    std::string prob_model = "nbin";
     if (bin)
-        ppath = pnode->kmer_prg_with_coverage.find_max_path(kmp, sample_id);
-    else
-        ppath = pnode->kmer_prg_with_coverage.find_nb_max_path(kmp, sample_id);
+        prob_model = "bin";
+    float ppath = pnode->kmer_prg_with_coverage.find_max_path(kmp, prob_model, max_num_kmers_to_average, sample_id);
+
 
     lmp.reserve(100);
     lmp = localnode_path_from_kmernode_path(kmp, w);

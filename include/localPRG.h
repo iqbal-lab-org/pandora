@@ -12,6 +12,7 @@
 #include "prg/path.h"
 #include "pangenome/pannode.h"
 #include "kmergraph.h"
+#include "kmergraphwithcoverage.h"
 #include "vcf.h"
 #include "fastaq.h"
 #include <boost/filesystem.hpp>
@@ -102,14 +103,9 @@ public:
                                      const uint32_t &min_kmer_covg, const std::string &sample_name="sample",
                                      const uint32_t &sample_id=0) const;
 
-    void add_consensus_path_to_fastaq(Fastaq &,
-                                      PanNodePtr,
-                                      std::vector<KmerNodePtr> &,
-                                      std::vector<LocalNodePtr> &,
-                                      const uint32_t,
-                                      const bool,
-                                      const uint32_t,
-                                      const uint32_t &sample_id = 0) const;
+    void add_consensus_path_to_fastaq(Fastaq &, PanNodePtr, std::vector<KmerNodePtr> &, std::vector<LocalNodePtr> &,
+                                          const uint32_t, const bool, const uint32_t,
+                                          const uint32_t &max_num_kmers_to_average, const uint32_t &sample_id) const;
     std::vector<LocalNodePtr> get_valid_vcf_reference(const std::string &) const;
 
     void add_variants_to_vcf(VCF &, PanNodePtr, const std::string &, const std::vector<KmerNodePtr> &,

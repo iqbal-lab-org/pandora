@@ -11,7 +11,7 @@
 #include <cmath>
 
 
-using namespace std;
+using namespace prg;
 
 TEST(KmerGraphTest, add_node) {
     // add node and check it's there

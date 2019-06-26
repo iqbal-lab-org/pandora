@@ -80,7 +80,7 @@ private:
 
 std::vector<Interval> identify_low_coverage_intervals(const std::vector<uint32_t> &covg_at_each_position,
                                                       const uint32_t &min_required_covg = 2,
-                                                      const uint32_t &min_length = 5);
+                                                      const uint32_t &min_length = 1);
 
 using CandidateRegions = std::unordered_map<CandidateRegionIdentifier, CandidateRegion>;
 

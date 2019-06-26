@@ -15,6 +15,7 @@
 #include "pangenome/panread.h"
 #include "pangenome/pansample.h"
 #include "minihit.h"
+#include "kmergraphwithcoverage.h"
 #include "fastaq_handler.h"
 
 
@@ -353,8 +354,9 @@ void pangenome::Graph::copy_coverages_to_kmergraphs(const Graph &ref_pangraph, c
 
 
 std::vector<LocalNodePtr>
-pangenome::Graph::infer_node_vcf_reference_path(const Node &node, const std::shared_ptr<LocalPRG> &prg_ptr, const uint32_t &w,
-                                     const std::unordered_map<std::string, std::string> &vcf_refs) const {
+pangenome::Graph::infer_node_vcf_reference_path(const Node &node, const std::shared_ptr<LocalPRG> &prg_ptr,
+                                                const uint32_t &w, const std::unordered_map<std::string,std::string> &vcf_refs,
+                                                const uint32_t& max_num_kmers_to_average) const {
     BOOST_LOG_TRIVIAL(info) << "Infer VCF reference path";
     const auto &prg = *prg_ptr;
     if (vcf_refs.find(prg.name) != vcf_refs.end()){
@@ -363,11 +365,12 @@ pangenome::Graph::infer_node_vcf_reference_path(const Node &node, const std::sha
         if (!reference_path.empty())
             return reference_path;
     }
-    return get_node_closest_vcf_reference(node, w, prg);
+    return get_node_closest_vcf_reference(node, w, prg, max_num_kmers_to_average);
 }
 
 std::vector<LocalNodePtr>
-pangenome::Graph::get_node_closest_vcf_reference(const Node &node, const uint32_t &w, const LocalPRG &prg) const {
+pangenome::Graph::get_node_closest_vcf_reference(const Node &node, const uint32_t &w, const LocalPRG &prg,
+                                                 const uint32_t& max_num_kmers_to_average) const {
      //TODO: check if this is correct
      auto kmer_prg_with_coverage = node.kmer_prg_with_coverage; //TODO: is this indeed an assignment op?
     kmer_prg_with_coverage.zeroCoverages();
@@ -395,7 +398,7 @@ pangenome::Graph::get_node_closest_vcf_reference(const Node &node, const uint32_
     kmer_prg_with_coverage.set_num_reads(node.covg);
 
     std::vector<KmerNodePtr> kmer_path;
-    kmer_prg_with_coverage.find_lin_max_path(kmer_path, 0);
+    kmer_prg_with_coverage.find_max_path(kmer_path, "lin", max_num_kmers_to_average, 0);
     if (!kmer_path.empty()) {
         auto reference_path = prg.localnode_path_from_kmernode_path(kmer_path, w);
         BOOST_LOG_TRIVIAL(debug) << "Found reference path to return";

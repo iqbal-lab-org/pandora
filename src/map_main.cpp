@@ -60,7 +60,7 @@ static void show_map_usage() {
               << "\t--max_covg\t\t\tMaximum average coverage from reads to accept\n"
               << "\t--genotype\t\t\tAdd extra step to carefully genotype sites\n"
               << "\t--snps_only\t\t\tWhen genotyping, include only snp sites\n"
-              << "\t--discover\t\t\tAdd denovo discovery\n"
+              << "\t-d,--discover\t\t\tAdd denovo discovery\n"
               << "\t--denovo_kmer_size\t\t\tKmer size to use for denovo discovery\n"
               << "\t--log_level\t\t\tdebug,[info],warning,error\n"
               << std::endl;
@@ -76,7 +76,7 @@ int pandora_map(int argc, char *argv[]) {
 
     // otherwise, parse the parameters from the command line
     string prgfile, reads_filepath, outdir = "pandora", vcf_refs_file, log_level="info";
-    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300,
+    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300, max_num_kmers_to_average=100,
             min_allele_covg_gt = 0, min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0, threads=1; // default parameters
     uint16_t confidence_threshold = 1;
     uint_least8_t denovo_kmer_size{11};
@@ -191,6 +191,13 @@ int pandora_map(int argc, char *argv[]) {
                 std::cerr << "--max_covg option requires one argument." << std::endl;
                 return 1;
             }
+        } else if ((arg == "--max_num_kmers_to_average")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                max_num_kmers_to_average = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--max_num_kmers_to_average option requires one argument." << std::endl;
+                return 1;
+            }
         } else if ((arg == "--min_allele_covg_gt")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 min_allele_covg_gt = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
@@ -244,7 +251,7 @@ int pandora_map(int argc, char *argv[]) {
             genotype = true;
         } else if ((arg == "--snps_only")) {
             snps_only = true;
-        } else if ((arg == "--discover")) {
+        } else if ((arg == "--discover") || (arg == "-d")) {
             discover_denovo = true;
         } else if ((arg == "--log_level")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
@@ -399,7 +406,8 @@ int pandora_map(int argc, char *argv[]) {
         //add consensus path to fastaq
         std::vector<KmerNodePtr> kmp;
         std::vector<LocalNodePtr> lmp;
-        prgs[pangraph_node->prg_id]->add_consensus_path_to_fastaq(consensus_fq, pangraph_node, kmp, lmp, w, bin, covg);
+        prgs[pangraph_node->prg_id]->add_consensus_path_to_fastaq(consensus_fq, pangraph_node, kmp, lmp, w, bin, covg,
+                                                                  max_num_kmers_to_average, 0);
 
         if (kmp.empty()) {
             //pan_id_to_node_mapping = pangraph->remove_node(pangraph_node);
