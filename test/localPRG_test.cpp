@@ -1484,7 +1484,8 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_bin) {
     vector<KmerNodePtr> kmp;
     vector<LocalNodePtr> lmp;
 
-    l3->add_consensus_path_to_fastaq(fq, pn3, kmp, lmp, 1, true, 8, 0);
+    uint32_t max_num_kmers_to_average = 100;
+    l3->add_consensus_path_to_fastaq(fq, pn3, kmp, lmp, 1, true, 8, max_num_kmers_to_average, 0);
     EXPECT_EQ("AGTTAT", l3->string_along_path(lmp));
     bool added_to_fq = find(fq.names.begin(), fq.names.end(), "three") != fq.names.end();
     EXPECT_TRUE(added_to_fq);
@@ -1520,7 +1521,8 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_nbin) {
     vector<KmerNodePtr> kmp;
     vector<LocalNodePtr> lmp;
 
-    l3->add_consensus_path_to_fastaq(fq, pn3, kmp, lmp, 1, false, 8, 0);
+    uint32_t max_num_kmers_to_average = 100;
+    l3->add_consensus_path_to_fastaq(fq, pn3, kmp, lmp, 1, false, 8, max_num_kmers_to_average, 0);
 
     EXPECT_NE(kmp.size(), 0);
     std::vector<uint32_t> expected = {2, 5, 8, 10};

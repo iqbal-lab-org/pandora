@@ -76,7 +76,7 @@ int pandora_map(int argc, char *argv[]) {
 
     // otherwise, parse the parameters from the command line
     string prgfile, reads_filepath, outdir = "pandora", vcf_refs_file, log_level="info";
-    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300,
+    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300, max_num_kmers_to_average=100,
             min_allele_covg_gt = 0, min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0, threads=1; // default parameters
     uint16_t confidence_threshold = 1;
     uint_least8_t denovo_kmer_size{11};
@@ -189,6 +189,13 @@ int pandora_map(int argc, char *argv[]) {
                 max_covg = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
             } else { // Uh-oh, there was no argument to the destination option.
                 std::cerr << "--max_covg option requires one argument." << std::endl;
+                return 1;
+            }
+        } else if ((arg == "--max_num_kmers_to_average")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                max_num_kmers_to_average = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--max_num_kmers_to_average option requires one argument." << std::endl;
                 return 1;
             }
         } else if ((arg == "--min_allele_covg_gt")) {
@@ -399,7 +406,8 @@ int pandora_map(int argc, char *argv[]) {
         //add consensus path to fastaq
         std::vector<KmerNodePtr> kmp;
         std::vector<LocalNodePtr> lmp;
-        prgs[pangraph_node->prg_id]->add_consensus_path_to_fastaq(consensus_fq, pangraph_node, kmp, lmp, w, bin, covg);
+        prgs[pangraph_node->prg_id]->add_consensus_path_to_fastaq(consensus_fq, pangraph_node, kmp, lmp, w, bin, covg,
+                                                                  max_num_kmers_to_average, 0);
 
         if (kmp.empty()) {
             //pan_id_to_node_mapping = pangraph->remove_node(pangraph_node);

@@ -137,9 +137,9 @@ public:
     void copy_coverages_to_kmergraphs(const Graph &, const uint32_t &);
     std::vector<LocalNodePtr>
     infer_node_vcf_reference_path(const Node &, const std::shared_ptr<LocalPRG> &, const uint32_t &,
-                                  const std::unordered_map<std::string, std::string> &) const;
+                                  const std::unordered_map<std::string, std::string> &, const uint32_t&) const;
     std::vector<LocalNodePtr>
-    get_node_closest_vcf_reference(const Node &, const uint32_t &, const LocalPRG &) const;
+    get_node_closest_vcf_reference(const Node &, const uint32_t &, const LocalPRG &, const uint32_t& max_num_kmers_to_average) const;
     // graph comparison
     bool operator==(const Graph &y) const;
     bool operator!=(const Graph &y) const;
