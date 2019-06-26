@@ -24,9 +24,9 @@ private:
     //each coverage of a sample is represented by a std::pair, for the forward and reverse reads coverage of that sample
     std::vector<std::vector<std::pair<uint32_t, uint32_t>>> nodeIndex2SampleCoverage;
     uint32_t exp_depth_covg;
-    float p;
-    float nb_p;
-    float nb_r;
+    float binomial_parameter_p;
+    float negative_binomial_parameter_p;
+    float negative_binomial_parameter_r;
     int thresh;
     uint32_t total_number_samples;
     uint32_t num_reads;
@@ -37,7 +37,7 @@ public:
     //constructor, destructors, etc
     KmerGraphWithCoverage(KmerGraph * kmer_prg, uint32_t total_number_samples=1) :
             nodeIndex2SampleCoverage(kmer_prg->nodes.size()),
-            exp_depth_covg{0}, p{1}, nb_p{0.015}, nb_r{2}, thresh{-25}, total_number_samples{total_number_samples}, num_reads{0}, kmer_prg{kmer_prg} {
+            exp_depth_covg{0}, binomial_parameter_p{1}, negative_binomial_parameter_p{0.015}, negative_binomial_parameter_r{2}, thresh{-25}, total_number_samples{total_number_samples}, num_reads{0}, kmer_prg{kmer_prg} {
         assert(kmer_prg != nullptr);
         zeroCoverages();
     }
@@ -56,8 +56,8 @@ public:
     void increment_covg(uint32_t node_id, bool strand, uint32_t sample_id);
     void set_covg(uint32_t node_id, uint32_t value, bool strand, uint32_t sample_id);
     void set_exp_depth_covg(const uint32_t);
-    void set_p(const float);
-    void set_nb(const float &, const float &);
+    void set_binomial_parameter_p(const float);
+    void set_negative_binomial_parameters(const float &, const float &);
     void set_thresh (int thresh) { this->thresh = thresh; }
     void set_num_reads(uint32_t num_reads) { this->num_reads = num_reads; }
 
@@ -66,13 +66,13 @@ public:
             sampleCoverage = std::vector<std::pair<uint32_t, uint32_t>>(total_number_samples);
     }
 
-    float nb_prob(uint32_t, const uint32_t &sample_id);
+    float nbin_prob(uint32_t, const uint32_t &sample_id);
 
     float lin_prob(uint32_t, const uint32_t &sample_id);
 
-    float prob(uint32_t, const uint32_t &sample_id);
+    float bin_prob(uint32_t, const uint32_t &sample_id);
 
-    float prob(const uint32_t &, const uint32_t &, const uint32_t &sample_id);
+    float bin_prob(const uint32_t &, const uint32_t &, const uint32_t &sample_id);
 
     float get_prob(const std::string& prob_model, const uint32_t &node_id, const uint32_t &sample_id);
 
@@ -106,11 +106,11 @@ public:
     friend class KmerGraphWithCoverageTest_findMaxPath_InvalidProbModel_Test;
     friend class KmerGraphWithCoverageTest_findMaxPathSimple_Test;
     friend class KmerGraphWithCoverageTest_findMaxPathSimple_WithMaxKmersInAvg_Test;
+    friend class KmerGraphWithCoverageTest_findMaxPath2Level_bin_Test;
+    friend class KmerGraphWithCoverageTest_findMaxPath2Level_nbin_Test;
+    friend class KmerGraphWithCoverageTest_findMaxPath2Level_lin_Test;
 
-
-    friend class KmerGraphWithCoverageTest_findMaxPath2Level_Test;
     friend class KmerGraphWithCoverageTest_find_max_paths_2Level_Test;
-    friend class KmerGraphWithCoverageTest_path_prob_Test;
     friend class KmerGraphWithCoverageTest_path_probs_Test;
 };
 
