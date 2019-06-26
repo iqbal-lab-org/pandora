@@ -1339,12 +1339,6 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
 
     std::vector<KmerNodePtr> ref_kmer_path = kmernode_path_from_localnode_path(ref_path);
 
-    /*std::cout << "ref path: ";
-    for (const auto &n : ref_kmer_path) {
-        std::cout << n->path << " ";
-    }
-    std::cout << std::endl;*/
-
     std::vector<KmerNodePtr> alt_kmer_path;
 
     std::vector<uint32_t> ref_fwd_covgs;
