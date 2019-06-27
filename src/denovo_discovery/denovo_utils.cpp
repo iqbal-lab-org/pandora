@@ -96,15 +96,16 @@ find_hits_inside_path(const std::vector<MinimizerHitPtr> &read_hits, const prg::
 
     for (const auto &current_read_hit : read_hits) {
         for (const auto &interval : local_path) {
-            const auto hit_is_to_left_of_path_start { interval.start > current_read_hit->get_prg_path().get_end() };
+            const auto &prg_path_of_current_read_hit = current_read_hit->get_prg_path();
+            const auto hit_is_to_left_of_path_start { interval.start > prg_path_of_current_read_hit.get_end() };
             const auto hit_is_to_right_of_current_interval {
-                    interval.get_end() < current_read_hit->get_prg_path().get_start() };
+                    interval.get_end() < prg_path_of_current_read_hit.get_start() };
 
             if (hit_is_to_left_of_path_start) {
                 break;
             } else if (hit_is_to_right_of_current_interval) {
                 continue;
-            } else if (current_read_hit->get_prg_path().is_subpath(local_path)) {
+            } else if (prg_path_of_current_read_hit.is_subpath(local_path)) {
                 hits_inside_local_path.push_back(current_read_hit);
                 break;
             }

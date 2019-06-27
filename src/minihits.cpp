@@ -12,8 +12,8 @@
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-void MinimizerHits::add_hit(const uint32_t i, const Minimizer &minimizerFromRead, const MiniRecord &minimizerFromPRG) {
-    MinimizerHitPtr mh(std::make_shared<MinimizerHit>(i, minimizerFromRead, minimizerFromPRG));
+void MinimizerHits::add_hit(const uint32_t i, const Minimizer &minimizer_from_read, const MiniRecord &minimizer_from_PRG) {
+    MinimizerHitPtr mh(std::make_shared<MinimizerHit>(i, minimizer_from_read, minimizer_from_PRG));
     hits.insert(mh);
 }
 

@@ -685,7 +685,7 @@ TEST(LocalPRGTest, minimizer_sketch) {
 
 struct MiniPos {
     bool operator()(Minimizer lhs, Minimizer rhs) {
-        return (lhs.pos.start) < (rhs.pos.start);
+        return (lhs.pos_of_kmer_in_read.start) < (rhs.pos_of_kmer_in_read.start);
     }
 };
 
@@ -705,7 +705,7 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw1) {
     lit++;
 
     for (auto sit = sketch.begin(); sit != sketch.end(); ++sit) {
-        EXPECT_EQ((*sit).pos, (*lit)->path[0]);
+        EXPECT_EQ((*sit).pos_of_kmer_in_read, (*lit)->path[0]);
         ++lit;
     }
 }
@@ -726,7 +726,7 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw5) {
     lit++;
 
     for (auto sit = sketch.begin(); sit != sketch.end(); ++sit) {
-        EXPECT_EQ((*sit).pos, (*lit)->path[0]);
+        EXPECT_EQ((*sit).pos_of_kmer_in_read, (*lit)->path[0]);
         ++lit;
     }
 }
@@ -747,7 +747,7 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw10) {
     lit++;
 
     for (auto sit = sketch.begin(); sit != sketch.end(); ++sit) {
-        EXPECT_EQ((*sit).pos, (*lit)->path[0]);
+        EXPECT_EQ((*sit).pos_of_kmer_in_read, (*lit)->path[0]);
         ++lit;
     }
 }
@@ -768,7 +768,7 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw15) {
     lit++;
 
     for (auto sit = sketch.begin(); sit != sketch.end(); ++sit) {
-        EXPECT_EQ((*sit).pos, (*lit)->path[0]);
+        EXPECT_EQ((*sit).pos_of_kmer_in_read, (*lit)->path[0]);
         ++lit;
     }
 }

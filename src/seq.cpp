@@ -57,8 +57,8 @@ uint64_t find_smallest_kmer_value(const vector<Minimizer> &window, uint &pos_of_
     uint64_t smallest = std::numeric_limits<uint64_t>::max();
     uint i = 0;
     for (const auto &minimizer : window) {
-        if (minimizer.kmer <= smallest) {
-            smallest = minimizer.kmer;
+        if (minimizer.canonical_kmer_hash <= smallest) {
+            smallest = minimizer.canonical_kmer_hash;
             pos_of_smallest = i;
         }
         i++;
@@ -68,7 +68,7 @@ uint64_t find_smallest_kmer_value(const vector<Minimizer> &window, uint &pos_of_
 
 void Seq::add_minimizing_kmers_to_sketch(const vector<Minimizer> &window, const uint64_t &smallest) {
     for (const auto &minimizer : window) {
-        if (minimizer.kmer == smallest) {
+        if (minimizer.canonical_kmer_hash == smallest) {
             sketch.insert(minimizer);
             //num_minis_found += 1;
         }
@@ -86,7 +86,7 @@ void Seq::minimize_window(vector<Minimizer> &window, uint64_t &smallest) {
 //add the last element of the window (a Minimizer) to the sketch, update the smallest and clear the window
 void Seq::add_new_smallest_minimizer(vector<Minimizer> &window, uint64_t &smallest) {
     sketch.insert(window.back());
-    smallest = window.back().kmer;
+    smallest = window.back().canonical_kmer_hash;
     window.clear();
 }
 
@@ -114,7 +114,7 @@ void Seq::minimizer_sketch(const uint32_t w, const uint32_t k) {
 
         if (window.size() == w) {
             minimize_window(window, smallest); //finds the minimizer in the window, add the minimizer to the sketch set and erase everything until the minimizer
-        } else if (buff >= w + k and window.back().kmer <= smallest) {
+        } else if (buff >= w + k and window.back().canonical_kmer_hash <= smallest) {
             add_new_smallest_minimizer(window, smallest); //add the last element of the window (a Minimizer) to the sketch, update the smallest and clear the window
         }
         assert(window.size() < w ||

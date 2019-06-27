@@ -42,7 +42,7 @@ public:
 
     std::set<MinimizerHitPtr, pComp> hits;
 
-    void add_hit(const uint32_t i, const Minimizer &minimizerFromRead, const MiniRecord &minimizerFromPRG);
+    void add_hit(const uint32_t i, const Minimizer &minimizer_from_read, const MiniRecord &minimizer_from_PRG);
 
     void clear () { hits.clear(); }
 

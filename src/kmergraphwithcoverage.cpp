@@ -180,8 +180,8 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr> &maxpath,
         max_mean = std::numeric_limits<float>::lowest();
         max_length = 0; // tie break with longest kmer path
         const auto & current_node = sorted_nodes[j - 1];
-        for (uint32_t i = 0; i != current_node->outNodes.size(); ++i) {
-            const auto & considered_outnode = current_node->outNodes[i].lock();
+        for (uint32_t i = 0; i != current_node->out_nodes.size(); ++i) {
+            const auto & considered_outnode = current_node->out_nodes[i].lock();
             bool is_terminus_and_most_likely = considered_outnode->id == sorted_nodes.back()->id
                                                and thresh > max_mean + tolerance;
             bool avg_log_likelihood_is_most_likely = max_sum_of_log_probs_from_node[considered_outnode->id] /
@@ -290,14 +290,14 @@ std::vector<std::vector<KmerNodePtr>> KmerGraphWithCoverage::get_random_paths(ui
 
     if (!kmer_prg->nodes.empty()) {
         for (uint32_t j = 0; j != num_paths; ++j) {
-            i = rand() % kmer_prg->nodes[0]->outNodes.size();
-            rpath.push_back(kmer_prg->nodes[0]->outNodes[i].lock());
+            i = rand() % kmer_prg->nodes[0]->out_nodes.size();
+            rpath.push_back(kmer_prg->nodes[0]->out_nodes[i].lock());
             while (rpath.back() != kmer_prg->nodes[kmer_prg->nodes.size() - 1]) {
-                if (rpath.back()->outNodes.size() == 1) {
-                    rpath.push_back(rpath.back()->outNodes[0].lock());
+                if (rpath.back()->out_nodes.size() == 1) {
+                    rpath.push_back(rpath.back()->out_nodes[0].lock());
                 } else {
-                    i = rand() % rpath.back()->outNodes.size();
-                    rpath.push_back(rpath.back()->outNodes[i].lock());
+                    i = rand() % rpath.back()->out_nodes.size();
+                    rpath.push_back(rpath.back()->out_nodes[i].lock());
                 }
             }
             rpath.pop_back();
@@ -404,8 +404,8 @@ void KmerGraphWithCoverage::save(const std::string &filepath, const std::shared_
             handle << "\tFC:i:" << get_covg(c->id, 0, sample_id) << "\t" << "\tRC:i:"
                    << get_covg(c->id, 1, sample_id) << std::endl;//"\t" << (unsigned)nodes[i].second->num_AT << endl;
 
-            for (uint32_t j = 0; j < c->outNodes.size(); ++j) {
-                handle << "L\t" << c->id << "\t+\t" << c->outNodes[j].lock()->id << "\t+\t0M" << std::endl;
+            for (uint32_t j = 0; j < c->out_nodes.size(); ++j) {
+                handle << "L\t" << c->id << "\t+\t" << c->out_nodes[j].lock()->id << "\t+\t0M" << std::endl;
             }
         }
         handle.close();
@@ -495,8 +495,8 @@ void KmerGraphWithCoverage::load(const std::string &filepath) {
             id++;
             assert(n->id < outnode_counts.size() or assert_msg(n->id << ">=" << outnode_counts.size()));
             assert(n->id < innode_counts.size() or assert_msg(n->id << ">=" << innode_counts.size()));
-            n->outNodes.reserve(outnode_counts[n->id]);
-            n->inNodes.reserve(innode_counts[n->id]);
+            n->out_nodes.reserve(outnode_counts[n->id]);
+            n->in_nodes.reserve(innode_counts[n->id]);
         }
 
         myfile.clear();
@@ -515,8 +515,8 @@ void KmerGraphWithCoverage::load(const std::string &filepath) {
                     to = std::stoi(split_line[1]);
                 }
                 kmer_prg->add_edge(kmer_prg->nodes[from], kmer_prg->nodes[to]);
-                //nodes[from]->outNodes.push_back(nodes.at(to));
-                //nodes[to]->inNodes.push_back(nodes.at(from));
+                //nodes[from]->out_nodes.push_back(nodes.at(to));
+                //nodes[to]->in_nodes.push_back(nodes.at(from));
             }
         }
     } else {

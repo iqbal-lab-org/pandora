@@ -94,24 +94,24 @@ TEST(KmerGraphTest, add_edge) {
     auto n3 = kg.add_node(p3);
     kg.add_edge(n1, n3);
     j = 2;
-    EXPECT_EQ(j, kg.nodes[0]->outNodes.size());
+    EXPECT_EQ(j, kg.nodes[0]->out_nodes.size());
     j = 1;
-    EXPECT_EQ(j, kg.nodes[1]->inNodes.size());
-    EXPECT_EQ(j, kg.nodes[2]->inNodes.size());
+    EXPECT_EQ(j, kg.nodes[1]->in_nodes.size());
+    EXPECT_EQ(j, kg.nodes[2]->in_nodes.size());
     j = 0;
-    EXPECT_EQ(j, kg.nodes[1]->outNodes.size());
-    EXPECT_EQ(j, kg.nodes[0]->inNodes.size());
+    EXPECT_EQ(j, kg.nodes[1]->out_nodes.size());
+    EXPECT_EQ(j, kg.nodes[0]->in_nodes.size());
 
     // repeat and nothing should happen
     kg.add_edge(n1, n3);
     j = 2;
-    EXPECT_EQ(j, kg.nodes[0]->outNodes.size());
+    EXPECT_EQ(j, kg.nodes[0]->out_nodes.size());
     j = 1;
-    EXPECT_EQ(j, kg.nodes[1]->inNodes.size());
-    EXPECT_EQ(j, kg.nodes[2]->inNodes.size());
+    EXPECT_EQ(j, kg.nodes[1]->in_nodes.size());
+    EXPECT_EQ(j, kg.nodes[2]->in_nodes.size());
     j = 0;
-    EXPECT_EQ(j, kg.nodes[1]->outNodes.size());
-    EXPECT_EQ(j, kg.nodes[0]->inNodes.size());
+    EXPECT_EQ(j, kg.nodes[1]->out_nodes.size());
+    EXPECT_EQ(j, kg.nodes[0]->in_nodes.size());
 }
 
 TEST(KmerGraphTest, clear) {
@@ -279,7 +279,7 @@ TEST(KmerGraphTest, sort_topologically) {
     set<KmerNodePtr>::iterator it;
     uint i = 0;
     for (auto c = kg.sorted_nodes.begin(); c != kg.sorted_nodes.end(); ++c) {
-        for (const auto &d: (*c)->outNodes) {
+        for (const auto &d: (*c)->out_nodes) {
             it = c;
             ++it;
             while ((*it)->path != d.lock()->path and it != kg.sorted_nodes.end()) {
