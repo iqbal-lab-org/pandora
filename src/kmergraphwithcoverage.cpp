@@ -5,6 +5,7 @@
 #include <cstdio>      /* NULL */
 #include <cstdlib>     /* srand, rand */
 #include <cmath>
+#include <cstdint>
 
 #include <boost/math/distributions/negative_binomial.hpp>
 #include <boost/log/trivial.hpp>
@@ -36,10 +37,15 @@ void KmerGraphWithCoverage::set_binomial_parameter_p(const float e_rate) {
 void KmerGraphWithCoverage::increment_covg(uint32_t node_id, bool strand, uint32_t sample_id) {
     assert(this->nodeIndex2SampleCoverage[node_id].size() > sample_id);
 
+    //get a pointer to the value we want to increment
+    uint16_t* coverage_ptr = nullptr;
     if (strand)
-        this->nodeIndex2SampleCoverage[node_id][sample_id].first++;
+        coverage_ptr = &(this->nodeIndex2SampleCoverage[node_id][sample_id].first);
     else
-        this->nodeIndex2SampleCoverage[node_id][sample_id].second++;
+        coverage_ptr = &(this->nodeIndex2SampleCoverage[node_id][sample_id].second);
+
+    if ((*coverage_ptr) < UINT16_MAX) //checks if it is safe to increase the coverage (no overflow)
+        ++(*coverage_ptr);
 }
 
 uint32_t KmerGraphWithCoverage::get_covg(uint32_t node_id, bool strand, uint32_t sample_id) const {
@@ -48,12 +54,12 @@ uint32_t KmerGraphWithCoverage::get_covg(uint32_t node_id, bool strand, uint32_t
         return 0;
 
     if (strand)
-        return this->nodeIndex2SampleCoverage[node_id][sample_id].first;
+        return (uint32_t)(this->nodeIndex2SampleCoverage[node_id][sample_id].first);
     else
-        return this->nodeIndex2SampleCoverage[node_id][sample_id].second;
+        return (uint32_t)(this->nodeIndex2SampleCoverage[node_id][sample_id].second);
 }
 
-void KmerGraphWithCoverage::set_covg(uint32_t node_id, uint32_t value, bool strand, uint32_t sample_id) {
+void KmerGraphWithCoverage::set_covg(uint32_t node_id, uint16_t value, bool strand, uint32_t sample_id) {
     assert(this->nodeIndex2SampleCoverage[node_id].size() > sample_id);
     if (strand)
         this->nodeIndex2SampleCoverage[node_id][sample_id].first = value;
@@ -416,6 +422,7 @@ void KmerGraphWithCoverage::save(const std::string &filepath, const std::shared_
 }
 
 //TODO: THIS SHOULD BE RECODED, WE ARE DUPLICATING CODE HERE (SEE KmerGraph::load())!!!
+//TODO: remove this method?
 void KmerGraphWithCoverage::load(const std::string &filepath) {
     //TODO: this might be dangerous, recode this?
     auto kmer_prg = const_cast<KmerGraph*>(this->kmer_prg);
@@ -425,7 +432,8 @@ void KmerGraphWithCoverage::load(const std::string &filepath) {
     std::string line;
     std::vector<std::string> split_line;
     std::stringstream ss;
-    uint32_t id = 0, covg, from, to;
+    uint32_t id = 0, from, to;
+    uint16_t covg;
     prg::Path p;
     uint32_t num_nodes = 0;
 
@@ -466,9 +474,9 @@ void KmerGraphWithCoverage::load(const std::string &filepath) {
                 if (kmer_prg->k == 0 and p.length() > 0) {
                     kmer_prg->k = p.length();
                 }
-                covg = stoi(split(split_line[3], "FC:i:")[0]);
+                covg = (uint16_t)(stoul(split(split_line[3], "FC:i:")[0]));
                 set_covg(n->id, covg, 0, sample_id);
-                covg = stoi(split(split_line[4], "RC:i:")[0]);
+                covg = (uint16_t)(stoul(split(split_line[4], "RC:i:")[0]));
                 set_covg(n->id, covg, 1, sample_id);
                 if (split_line.size() >= 6) {
                     n->num_AT = std::stoi(split_line[5]);

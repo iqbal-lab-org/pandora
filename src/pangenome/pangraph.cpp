@@ -346,8 +346,8 @@ void pangenome::Graph::copy_coverages_to_kmergraphs(const Graph &ref_pangraph, c
         for (auto & kmergraph_node_ptr : pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes){
             const auto &knode_id = kmergraph_node_ptr->id;
             assert(knode_id < ref_node.kmer_prg_with_coverage.kmer_prg->nodes.size());
-            pangraph_node.kmer_prg_with_coverage.set_covg(knode_id, ref_node.kmer_prg_with_coverage.get_covg(knode_id, 0, ref_sample_id), 0, sample_id);
-            pangraph_node.kmer_prg_with_coverage.set_covg(knode_id, ref_node.kmer_prg_with_coverage.get_covg(knode_id, 1, ref_sample_id), 1, sample_id);
+            pangraph_node.kmer_prg_with_coverage.set_covg(knode_id, (uint16_t)(ref_node.kmer_prg_with_coverage.get_covg(knode_id, 0, ref_sample_id)), 0, sample_id);
+            pangraph_node.kmer_prg_with_coverage.set_covg(knode_id, (uint16_t)(ref_node.kmer_prg_with_coverage.get_covg(knode_id, 1, ref_sample_id)), 1, sample_id);
         }
     }
 }
