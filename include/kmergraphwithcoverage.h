@@ -22,7 +22,7 @@ class KmerGraphWithCoverage {
 private:
     //each coverage is represented as a std::vector, each position of the vector representing the coverage of a sample
     //each coverage of a sample is represented by a std::pair, for the forward and reverse reads coverage of that sample
-    std::vector<std::vector<std::pair<uint32_t, uint32_t>>> nodeIndex2SampleCoverage;
+    std::vector<std::vector<std::pair<uint16_t, uint16_t>>> nodeIndex2SampleCoverage;
     uint32_t exp_depth_covg;
     float binomial_parameter_p;
     float negative_binomial_parameter_p;
@@ -48,13 +48,18 @@ public:
     virtual ~KmerGraphWithCoverage() = default;
 
     //getter
+    //TODO: we should return a uint16_t instead of a uint32_t, but I did not want to change the interface
+    //TODO: converting uint16_t to uint32_t is safe anyway
+    //TODO: some parts of the code accumulates under the type of this variable, so it might be dangerous to change to uint16_t wihtout careful analysis
+    //TODO: leaving to uint32_t to be safe
     uint32_t get_covg(uint32_t node_id, bool strand, uint32_t sample_id) const;
+
     uint32_t get_num_reads() const { return num_reads; }
     uint32_t get_total_number_samples() const {return total_number_samples; }
 
     //setters
     void increment_covg(uint32_t node_id, bool strand, uint32_t sample_id);
-    void set_covg(uint32_t node_id, uint32_t value, bool strand, uint32_t sample_id);
+    void set_covg(uint32_t node_id, uint16_t value, bool strand, uint32_t sample_id);
     void set_exp_depth_covg(const uint32_t);
     void set_binomial_parameter_p(const float);
     void set_negative_binomial_parameters(const float &, const float &);
@@ -62,8 +67,11 @@ public:
     void set_num_reads(uint32_t num_reads) { this->num_reads = num_reads; }
 
     void zeroCoverages() {
-        for (auto &sampleCoverage: nodeIndex2SampleCoverage)
-            sampleCoverage = std::vector<std::pair<uint32_t, uint32_t>>(total_number_samples);
+        for (auto &sampleCoverage: nodeIndex2SampleCoverage) {
+            sampleCoverage = std::vector<std::pair<uint16_t, uint16_t>>(total_number_samples);
+            sampleCoverage.shrink_to_fit(); //tries to make this information as compact as possible (TODO: use sdsl?)
+        }
+
     }
 
     float nbin_prob(uint32_t, const uint32_t &sample_id);
