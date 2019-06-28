@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <cmath>
+#include <cstdint>
 
 using namespace prg;
 
@@ -104,6 +105,91 @@ TEST(KmerGraphWithCoverageTest, assign) {
     EXPECT_EQ(kmergraph1, kmergraph1);
     EXPECT_EQ(kmergraph2, kmergraph2);
 }*/
+
+TEST(KmerGraphWithCoverageTest, get_and_set_increment_covg){
+    //create a kmergraph with 5 nodes
+    const uint32_t nb_of_nodes = 5;
+    KmerGraph kmergraph;
+
+    auto create_kmergraph_helper = [&](uint32_t node_index) {
+        std::deque<Interval> interval = {Interval(node_index, node_index)};
+        prg::Path path;
+        path.initialize(interval);
+        kmergraph.add_node(path);
+    };
+
+    for (uint32_t node_index=0; node_index < nb_of_nodes; ++node_index)
+        create_kmergraph_helper(node_index);
+
+    //create a KmerGraphWithCoverage on 10 samples
+    const uint32_t nb_of_samples = 10;
+    KmerGraphWithCoverage kmergraph_with_coverage(&kmergraph, nb_of_samples);
+
+    //function that will help to check the coverages in the tests
+    using Nodeindex_Strand_Sampleindex_Tuple = std::tuple<uint32_t, bool, uint32_t>;
+    std::map<Nodeindex_Strand_Sampleindex_Tuple, uint16_t> expected_coverage;
+    auto check_coverages = [&]() {
+        //verifies all <node, strand, sample> coverage matches expected_coverage
+        //if the tuple does not exist, then the expected_coverage is assumed to be 0 (as per std::map::operator[] and uint16_t default constructor)
+        for (uint32_t node_index=0; node_index < nb_of_nodes; ++node_index) {
+            for (uint32_t sample_index=0; sample_index<nb_of_samples; ++sample_index) {
+                EXPECT_EQ(kmergraph_with_coverage.get_covg(node_index, 0, sample_index), expected_coverage[make_tuple(node_index, 0, sample_index)]);
+                EXPECT_EQ(kmergraph_with_coverage.get_covg(node_index, 1, sample_index), expected_coverage[make_tuple(node_index, 1, sample_index)]);
+            }
+        }
+    };
+
+    //1. expect all coverages to be 0
+    check_coverages();
+
+    //2. lets set some random coverages
+    auto set_covg_helper = [&] (uint32_t node_id, uint16_t value, bool strand, uint32_t sample_id) {
+        kmergraph_with_coverage.set_covg(node_id, value, strand, sample_id);
+        expected_coverage[make_tuple(node_id, strand, sample_id)] = value;
+    };
+    set_covg_helper(0,100,0,5);
+    set_covg_helper(0,150,1,5);
+    set_covg_helper(1,789,1,9);
+    set_covg_helper(2,120,0,3);
+    set_covg_helper(3,130,0,2);
+    set_covg_helper(4,780,1,7);
+    check_coverages();
+
+    //3. setup the maximum coverage
+    set_covg_helper(4,UINT16_MAX,0,1);
+    set_covg_helper(4,UINT16_MAX,1,1);
+    check_coverages();
+
+    //4. setup the minimum coverage
+    set_covg_helper(3,0,0,1);
+    set_covg_helper(3,0,1,1);
+    check_coverages();
+
+    //5. test increment coverage
+    auto increment_covg_helper = [&] (uint32_t node_id, bool strand, uint32_t sample_id) {
+        auto old_covg = kmergraph_with_coverage.get_covg(node_id, strand, sample_id);
+        kmergraph_with_coverage.increment_covg(node_id, strand, sample_id);
+        expected_coverage[make_tuple(node_id, strand, sample_id)] = old_covg+1;
+    };
+    increment_covg_helper(0,0,5);
+    increment_covg_helper(0,1,5);
+    increment_covg_helper(1,1,9);
+    increment_covg_helper(2,0,3);
+    increment_covg_helper(3,0,2);
+    increment_covg_helper(4,1,7);
+    increment_covg_helper(3,0,1);
+    increment_covg_helper(3,1,1);
+    check_coverages();
+
+
+    //6. test incrementing coverage above the maximum value
+    set_covg_helper(2,UINT16_MAX,0,9); //first set to max value
+    check_coverages();
+    kmergraph_with_coverage.increment_covg(2, 0, 9); //now try to increment
+    EXPECT_EQ(kmergraph_with_coverage.get_covg(2, 0, 9), UINT16_MAX); //should still be UINT16_MAX
+    check_coverages(); //to be sure nothing changed
+}
+
 
 TEST(KmerGraphWithCoverageTest, set_exp_depth_covg){
     KmerGraph kmergraph;
