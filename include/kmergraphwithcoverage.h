@@ -47,13 +47,19 @@ public:
     KmerGraphWithCoverage& operator=(KmerGraphWithCoverage&& other) = default; //move assignment operator
     virtual ~KmerGraphWithCoverage() = default;
 
-    //getter
-    //TODO: we should return a uint16_t instead of a uint32_t, but I did not want to change the interface
-    //TODO: converting uint16_t to uint32_t is safe anyway
-    //TODO: some parts of the code accumulates under the type of this variable, so it might be dangerous to change to uint16_t wihtout careful analysis
-    //TODO: leaving to uint32_t to be safe
+    //getters
+    /*
+    TODO: we should return a uint16_t instead of a uint32_t, but I did not want to change the interface, as it can be dangerous
+    WARNING: some parts of the code accumulates under the type of this return value,
+                     so it might be dangerous to change to uint16_t without careful analysis.
+             e.g.: I can see summing a bunch of coverage and potentially getting a value larger than 65535,
+                     which would incur overflow and bugs.
+    NOTE: converting uint16_t to uint32_t is safe anyway, so it is fine to leave like this
+    NOTE: the advantage of returning a uint16_t here is a negligible improvement in RAM usage, so I don't think it is
+             worth the risk now
+    TODO: leaving return type as uint32_t to be safe for now, need a recheck later
+     */
     uint32_t get_covg(uint32_t node_id, bool strand, uint32_t sample_id) const;
-
     uint32_t get_num_reads() const { return num_reads; }
     uint32_t get_total_number_samples() const {return total_number_samples; }
 
