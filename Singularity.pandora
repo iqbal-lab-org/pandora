@@ -49,5 +49,4 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     cd build
     cmake -DCMAKE_BUILD_TYPE=Release ..
     make
-    ctest -VV
     echo "export PATH=$(pwd):$PATH" >> $SINGULARITY_ENVIRONMENT
