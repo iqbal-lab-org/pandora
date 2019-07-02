@@ -108,6 +108,7 @@ identify_low_coverage_intervals(const std::vector<uint32_t> &covg_at_each_positi
     auto previous { covg_at_each_position.begin() };
     auto current { first };
 
+    //TODO: merging candidate regions that are close enough together
     while (current != covg_at_each_position.end()) {
         previous = current;
         current = std::find_if_not(current, covg_at_each_position.end(), predicate);
@@ -122,30 +123,18 @@ identify_low_coverage_intervals(const std::vector<uint32_t> &covg_at_each_positi
     return identified_regions;
 }
 
+void CandidateRegion::add_pileup_entry(const std::string &read, const ReadCoordinate &read_coordinate) {
+    const bool read_coord_start_is_past_read_end { read_coordinate.start >= read.length() };
+    if (read_coord_start_is_past_read_end) return;
 
-void CandidateRegion::generate_read_pileup(const fs::path &reads_filepath) {
-    FastaqHandler readfile(reads_filepath.string());
-    if (readfile.eof()) return;
+    const auto end_pos_of_region_in_read { std::min(read_coordinate.end, (uint32_t) read.length()) };
+    std::string sequence_in_read_overlapping_region {
+            read.substr(read_coordinate.start, end_pos_of_region_in_read - read_coordinate.start) };
 
-    uint32_t last_id { 0 };
-
-    for (auto &read_coordinate : this->read_coordinates) {
-        assert(last_id <= read_coordinate.id);  // stops from iterating through fastq multiple times
-        readfile.get_id(read_coordinate.id);
-
-        const bool read_coord_start_is_past_read_end { read_coordinate.start >= readfile.read.length() };
-        if (read_coord_start_is_past_read_end) continue;
-
-        const auto end_pos_of_region_in_read { std::min(read_coordinate.end, (uint32_t) readfile.read.length()) };
-        std::string sequence_in_read_overlapping_region {
-                readfile.read.substr(read_coordinate.start, end_pos_of_region_in_read - read_coordinate.start) };
-
-        if (!read_coordinate.is_forward) {
-            sequence_in_read_overlapping_region = reverse_complement(sequence_in_read_overlapping_region);
-        }
-        this->pileup.push_back(sequence_in_read_overlapping_region);
-        last_id = read_coordinate.id;
+    if (!read_coordinate.is_forward) {
+        sequence_in_read_overlapping_region = reverse_complement(sequence_in_read_overlapping_region);
     }
+    this->pileup.push_back(sequence_in_read_overlapping_region);
 }
 
 
@@ -189,3 +178,17 @@ TmpPanNode::TmpPanNode(const PanNodePtr &pangraph_node, const shared_ptr<LocalPR
         : pangraph_node { pangraph_node }, local_prg { local_prg },
           kmer_node_max_likelihood_path { kmer_node_max_likelihood_path },
           local_node_max_likelihood_path { local_node_max_likelihood_path } {}
+
+
+
+
+PileupConstructionMap construct_pileup_construction_map(const CandidateRegions &candidate_regions) {
+    PileupConstructionMap pileup_construction_map;
+    for (const auto &element : candidate_regions) {
+        const auto &candidate_region{element.second};
+        for (const auto &read_coordinate : candidate_region.read_coordinates) {
+            pileup_construction_map[read_coordinate.id].emplace_back(&candidate_region, &read_coordinate);
+        }
+    }
+    return pileup_construction_map;
+}

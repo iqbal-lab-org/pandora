@@ -386,6 +386,7 @@ int pandora_map(int argc, char *argv[]) {
     for (auto pan_id_to_node_mapping = pangraph->nodes.begin(); pan_id_to_node_mapping != pangraph->nodes.end(); ++pan_id_to_node_mapping)
         pangraphNodesAsVector.push_back(pan_id_to_node_mapping->second);
 
+    //TODO: check the batch size
     #pragma omp parallel for num_threads(threads) schedule(dynamic, 10)
     for (uint32_t i = 0; i < pangraphNodesAsVector.size(); ++i) {
         //add some progress
@@ -440,6 +441,10 @@ int pandora_map(int argc, char *argv[]) {
         }
     }
 
+    //build the pileup for candidate regions multithreadly TODO: multithread to be done
+    const auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
+
+
     //remove the nodes marked as to be removed
     for (const auto &node_to_remove : nodes_to_remove)
         pangraph->remove_node(node_to_remove);
@@ -472,7 +477,7 @@ int pandora_map(int argc, char *argv[]) {
 
         for (auto &element : candidate_regions) {
             auto &candidate_region {element.second};
-            candidate_region.generate_read_pileup(reads_filepath);
+//            candidate_region.generate_read_pileup(reads_filepath);
             denovo.find_paths_through_candidate_region(candidate_region);
             candidate_region.write_denovo_paths_to_file(denovo_output_directory);
         }

@@ -31,7 +31,7 @@ void DenovoDiscovery::find_paths_through_candidate_region(CandidateRegion &candi
         if (clean_assembly_graph) {
             clean(gatb_graph);
         }
-        graph = gatb_graph;
+        graph = gatb_graph; //TODO: use move constructor
 
     } catch (gatb::core::system::Exception &error) {
         BOOST_LOG_TRIVIAL(debug) << "Couldn't create GATB graph." << "\n\tEXCEPTION: " << error.getMessage();
@@ -66,7 +66,7 @@ void DenovoDiscovery::find_paths_through_candidate_region(CandidateRegion &candi
                 candidate_region.denovo_paths.insert(candidate_region.denovo_paths.begin(), denovo_paths.begin(),
                                                      denovo_paths.end());
                 if (not candidate_region.denovo_paths.empty()) {
-                    // add flank to each sequence
+                    // add flank to each sequence - the whole sequence from the start to the end of the gene
                     for (auto &current_path : candidate_region.denovo_paths) {
                         const auto start_kmer_offset { candidate_region.max_likelihood_sequence.substr(0, start_idx) };
                         const auto end_kmer_offset { candidate_region.max_likelihood_sequence

@@ -63,7 +63,7 @@ public:
 
     std::string get_max_likelihood_sequence_with_flanks() const;
 
-    void generate_read_pileup(const fs::path &reads_filepath);
+    void add_pileup_entry(const std::string &read, const ReadCoordinate &read_coordinate);
 
     void write_denovo_paths_to_file(const fs::path &output_directory);
 
@@ -86,5 +86,10 @@ using CandidateRegions = std::unordered_map<CandidateRegionIdentifier, Candidate
 
 CandidateRegions find_candidate_regions_for_pan_node(const TmpPanNode &pangraph_node_components,
                                                      const uint_least16_t &candidate_region_interval_padding = 0);
+
+
+using ReadId = uint32_t;
+using PileupConstructionMap = std::map<ReadId, std::vector<std::pair<const CandidateRegion *, const ReadCoordinate *>>>;
+PileupConstructionMap construct_pileup_construction_map(const CandidateRegions &candidate_regions);
 
 #endif //PANDORA_CANDIDATE_REGION_H
