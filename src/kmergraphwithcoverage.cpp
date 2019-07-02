@@ -34,37 +34,37 @@ void KmerGraphWithCoverage::set_binomial_parameter_p(const float e_rate) {
     //cout << "using p: " << p << endl;
 }
 
-void KmerGraphWithCoverage::increment_covg(uint32_t node_id, bool strand, uint32_t sample_id) {
-    assert(this->nodeIndex2SampleCoverage[node_id].size() > sample_id);
+void KmerGraphWithCoverage::increment_covg(uint32_t node_id, bool is_forward, uint32_t sample_id) {
+    assert(this->node_index_to_sample_coverage[node_id].size() > sample_id);
 
     //get a pointer to the value we want to increment
     uint16_t* coverage_ptr = nullptr;
-    if (strand)
-        coverage_ptr = &(this->nodeIndex2SampleCoverage[node_id][sample_id].first);
+    if (is_forward)
+        coverage_ptr = &(this->node_index_to_sample_coverage[node_id][sample_id].first);
     else
-        coverage_ptr = &(this->nodeIndex2SampleCoverage[node_id][sample_id].second);
+        coverage_ptr = &(this->node_index_to_sample_coverage[node_id][sample_id].second);
 
     if ((*coverage_ptr) < UINT16_MAX) //checks if it is safe to increase the coverage (no overflow)
         ++(*coverage_ptr);
 }
 
-uint32_t KmerGraphWithCoverage::get_covg(uint32_t node_id, bool strand, uint32_t sample_id) const {
+uint32_t KmerGraphWithCoverage::get_covg(uint32_t node_id, bool is_forward, uint32_t sample_id) const {
 
-    if (this->nodeIndex2SampleCoverage[node_id].size() <= sample_id)
+    if (this->node_index_to_sample_coverage[node_id].size() <= sample_id)
         return 0;
 
-    if (strand)
-        return (uint32_t)(this->nodeIndex2SampleCoverage[node_id][sample_id].first);
+    if (is_forward)
+        return (uint32_t)(this->node_index_to_sample_coverage[node_id][sample_id].first);
     else
-        return (uint32_t)(this->nodeIndex2SampleCoverage[node_id][sample_id].second);
+        return (uint32_t)(this->node_index_to_sample_coverage[node_id][sample_id].second);
 }
 
-void KmerGraphWithCoverage::set_covg(uint32_t node_id, uint16_t value, bool strand, uint32_t sample_id) {
-    assert(this->nodeIndex2SampleCoverage[node_id].size() > sample_id);
-    if (strand)
-        this->nodeIndex2SampleCoverage[node_id][sample_id].first = value;
+void KmerGraphWithCoverage::set_covg(uint32_t node_id, uint16_t value, bool is_forward, uint32_t sample_id) {
+    assert(this->node_index_to_sample_coverage[node_id].size() > sample_id);
+    if (is_forward)
+        this->node_index_to_sample_coverage[node_id][sample_id].first = value;
     else
-        this->nodeIndex2SampleCoverage[node_id][sample_id].second = value;
+        this->node_index_to_sample_coverage[node_id][sample_id].second = value;
 }
 
 
@@ -377,7 +377,7 @@ void KmerGraphWithCoverage::save_covg_dist(const std::string &filepath) {
         const KmerNode &kmer_node = *kmer_node_ptr;
 
         uint32_t sample_id = 0;
-        for (const auto &sample_coverage: nodeIndex2SampleCoverage[kmer_node.id]) {
+        for (const auto &sample_coverage: node_index_to_sample_coverage[kmer_node.id]) {
             handle << kmer_node.id << " "
                    << sample_id << " "
                    << sample_coverage.first << " "

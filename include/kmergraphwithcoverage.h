@@ -22,7 +22,7 @@ class KmerGraphWithCoverage {
 private:
     //each coverage is represented as a std::vector, each position of the vector representing the coverage of a sample
     //each coverage of a sample is represented by a std::pair, for the forward and reverse reads coverage of that sample
-    std::vector<std::vector<std::pair<uint16_t, uint16_t>>> nodeIndex2SampleCoverage;
+    std::vector<std::vector<std::pair<uint16_t, uint16_t>>> node_index_to_sample_coverage;
     uint32_t exp_depth_covg;
     float binomial_parameter_p;
     float negative_binomial_parameter_p;
@@ -36,7 +36,7 @@ public:
 
     //constructor, destructors, etc
     KmerGraphWithCoverage(KmerGraph * kmer_prg, uint32_t total_number_samples=1) :
-            nodeIndex2SampleCoverage(kmer_prg->nodes.size()),
+            node_index_to_sample_coverage(kmer_prg->nodes.size()),
             exp_depth_covg{0}, binomial_parameter_p{1}, negative_binomial_parameter_p{0.015}, negative_binomial_parameter_r{2}, thresh{-25}, total_number_samples{total_number_samples}, num_reads{0}, kmer_prg{kmer_prg} {
         assert(kmer_prg != nullptr);
         zeroCoverages();
@@ -59,13 +59,13 @@ public:
              worth the risk now
     TODO: leaving return type as uint32_t to be safe for now, need a recheck later
      */
-    uint32_t get_covg(uint32_t node_id, bool strand, uint32_t sample_id) const;
+    uint32_t get_covg(uint32_t node_id, bool is_forward, uint32_t sample_id) const;
     uint32_t get_num_reads() const { return num_reads; }
     uint32_t get_total_number_samples() const {return total_number_samples; }
 
     //setters
-    void increment_covg(uint32_t node_id, bool strand, uint32_t sample_id);
-    void set_covg(uint32_t node_id, uint16_t value, bool strand, uint32_t sample_id);
+    void increment_covg(uint32_t node_id, bool is_forward, uint32_t sample_id);
+    void set_covg(uint32_t node_id, uint16_t value, bool is_forward, uint32_t sample_id);
     void set_exp_depth_covg(const uint32_t);
     void set_binomial_parameter_p(const float);
     void set_negative_binomial_parameters(const float &, const float &);
@@ -73,7 +73,7 @@ public:
     void set_num_reads(uint32_t num_reads) { this->num_reads = num_reads; }
 
     void zeroCoverages() {
-        for (auto &sampleCoverage: nodeIndex2SampleCoverage) {
+        for (auto &sampleCoverage: node_index_to_sample_coverage) {
             sampleCoverage = std::vector<std::pair<uint16_t, uint16_t>>(total_number_samples);
             sampleCoverage.shrink_to_fit(); //tries to make this information as compact as possible (TODO: use sdsl?)
         }
