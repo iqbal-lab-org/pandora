@@ -9,6 +9,7 @@
 #include "fastaq.h"
 #include "fastaq_handler.h"
 #include "localPRG.h"
+#include <omp.h>
 
 
 using CandidateRegionIdentifier = std::tuple<Interval, std::string>;
@@ -51,6 +52,8 @@ public:
 
     CandidateRegion(const Interval &interval, std::string name, const uint_least16_t &interval_padding);
 
+    virtual ~CandidateRegion();
+
     bool operator==(const CandidateRegion &rhs) const;
 
     bool operator!=(const CandidateRegion &rhs) const;
@@ -71,6 +74,8 @@ private:
     const Interval interval;
     const std::string name;
     const uint_least16_t interval_padding;
+    //TODO: check if we might have issues here with copy constructor - I think not: OpenMP locks work on the address of the lock I think
+    omp_lock_t add_pileup_entry_lock; //synchronizes multithreaded access to the add_pileup_entry() method
 
     void initialise_filename();
 
@@ -89,7 +94,12 @@ CandidateRegions find_candidate_regions_for_pan_node(const TmpPanNode &pangraph_
 
 
 using ReadId = uint32_t;
-using PileupConstructionMap = std::map<ReadId, std::vector<std::pair<const CandidateRegion *, const ReadCoordinate *>>>;
-PileupConstructionMap construct_pileup_construction_map(const CandidateRegions &candidate_regions);
+using PileupConstructionMap = std::map<ReadId, std::vector<std::pair<CandidateRegion *, const ReadCoordinate *>>>;
+
+PileupConstructionMap construct_pileup_construction_map(CandidateRegions &candidate_regions);
+
+void
+load_all_candidate_regions_pileups_from_fastq(const fs::path &reads_filepath, const CandidateRegions &candidate_regions,
+                                              const PileupConstructionMap &pileup_construction_map, const uint32_t threads=1);
 
 #endif //PANDORA_CANDIDATE_REGION_H

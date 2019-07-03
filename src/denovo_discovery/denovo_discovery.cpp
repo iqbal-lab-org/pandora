@@ -26,7 +26,7 @@ void DenovoDiscovery::find_paths_through_candidate_region(CandidateRegion &candi
 
     try {
         Graph gatb_graph = LocalAssemblyGraph::create(new BankStrings(candidate_region.pileup),
-                                                      "-kmer-size %d -abundance-min %d -verbose 0", kmer_size,
+                                                      "-kmer-size %d -abundance-min %d -verbose 0 -nb-cores 1", kmer_size,
                                                       min_covg_for_node_in_assembly_graph);
         if (clean_assembly_graph) {
             clean(gatb_graph);
