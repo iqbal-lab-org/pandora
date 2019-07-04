@@ -206,6 +206,8 @@ PileupConstructionMap construct_pileup_construction_map(CandidateRegions &candid
 void
 load_all_candidate_regions_pileups_from_fastq(const fs::path &reads_filepath, const CandidateRegions &candidate_regions,
                                               const PileupConstructionMap &pileup_construction_map, const uint32_t threads) {
+    BOOST_LOG_TRIVIAL(info) << " Loading all candidate regions pileups from " << reads_filepath.string() << " ...";
+
     if (candidate_regions.empty() or pileup_construction_map.empty())
         return;
 
@@ -274,4 +276,5 @@ load_all_candidate_regions_pileups_from_fastq(const fs::path &reads_filepath, co
 
         }
     }
+    BOOST_LOG_TRIVIAL(info) << " Loaded all candidate regions pileups from " << reads_filepath.string();
 }
