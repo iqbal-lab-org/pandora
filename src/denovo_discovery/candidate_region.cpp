@@ -10,14 +10,19 @@ size_t std::hash<CandidateRegionIdentifier>::operator()(const CandidateRegionIde
 CandidateRegion::CandidateRegion(const Interval &interval, std::string name)
         : interval { interval }, name { std::move(name) }, interval_padding { 0 } {
     initialise_filename();
+    omp_init_lock(&add_pileup_entry_lock);
 }
 
 
 CandidateRegion::CandidateRegion(const Interval &interval, std::string name, const uint_least16_t &interval_padding)
         : interval { interval }, name { std::move(name) }, interval_padding { interval_padding } {
     initialise_filename();
+    omp_init_lock(&add_pileup_entry_lock);
 }
 
+CandidateRegion::~CandidateRegion() {
+    omp_destroy_lock(&add_pileup_entry_lock);
+}
 
 void CandidateRegion::initialise_filename() {
     const auto i { get_interval() };
@@ -108,6 +113,7 @@ identify_low_coverage_intervals(const std::vector<uint32_t> &covg_at_each_positi
     auto previous { covg_at_each_position.begin() };
     auto current { first };
 
+    //TODO: merging candidate regions that are close enough together
     while (current != covg_at_each_position.end()) {
         previous = current;
         current = std::find_if_not(current, covg_at_each_position.end(), predicate);
@@ -122,29 +128,20 @@ identify_low_coverage_intervals(const std::vector<uint32_t> &covg_at_each_positi
     return identified_regions;
 }
 
-
-void CandidateRegion::generate_read_pileup(const fs::path &reads_filepath) {
-    FastaqHandler readfile(reads_filepath.string());
-    if (readfile.eof()) return;
-
-    uint32_t last_id { 0 };
-
-    for (auto &read_coordinate : this->read_coordinates) {
-        assert(last_id <= read_coordinate.id);  // stops from iterating through fastq multiple times
-        readfile.get_id(read_coordinate.id);
-
-        const bool read_coord_start_is_past_read_end { read_coordinate.start >= readfile.read.length() };
-        if (read_coord_start_is_past_read_end) continue;
-
-        const auto end_pos_of_region_in_read { std::min(read_coordinate.end, (uint32_t) readfile.read.length()) };
-        std::string sequence_in_read_overlapping_region {
-                readfile.read.substr(read_coordinate.start, end_pos_of_region_in_read - read_coordinate.start) };
+void CandidateRegion::add_pileup_entry(const std::string &read, const ReadCoordinate &read_coordinate) {
+    const bool read_coord_start_is_past_read_end { read_coordinate.start >= read.length() };
+    if (not read_coord_start_is_past_read_end) {
+        const auto end_pos_of_region_in_read{std::min(read_coordinate.end, (uint32_t) read.length())};
+        std::string sequence_in_read_overlapping_region{
+                read.substr(read_coordinate.start, end_pos_of_region_in_read - read_coordinate.start)};
 
         if (!read_coordinate.is_forward) {
             sequence_in_read_overlapping_region = reverse_complement(sequence_in_read_overlapping_region);
         }
-        this->pileup.push_back(sequence_in_read_overlapping_region);
-        last_id = read_coordinate.id;
+
+        omp_set_lock(&add_pileup_entry_lock);
+            this->pileup.push_back(sequence_in_read_overlapping_region);
+        omp_unset_lock(&add_pileup_entry_lock);
     }
 }
 
@@ -189,3 +186,95 @@ TmpPanNode::TmpPanNode(const PanNodePtr &pangraph_node, const shared_ptr<LocalPR
         : pangraph_node { pangraph_node }, local_prg { local_prg },
           kmer_node_max_likelihood_path { kmer_node_max_likelihood_path },
           local_node_max_likelihood_path { local_node_max_likelihood_path } {}
+
+
+
+
+PileupConstructionMap construct_pileup_construction_map(CandidateRegions &candidate_regions) {
+    PileupConstructionMap pileup_construction_map;
+    for (auto &element : candidate_regions) {
+        auto &candidate_region{element.second};
+        for (const auto &read_coordinate : candidate_region.read_coordinates) {
+            pileup_construction_map[read_coordinate.id].emplace_back(&candidate_region, &read_coordinate);
+        }
+    }
+    return pileup_construction_map;
+}
+
+
+
+void
+load_all_candidate_regions_pileups_from_fastq(const fs::path &reads_filepath, const CandidateRegions &candidate_regions,
+                                              const PileupConstructionMap &pileup_construction_map, const uint32_t threads) {
+    BOOST_LOG_TRIVIAL(info) << " Loading all candidate regions pileups from " << reads_filepath.string() << " ...";
+
+    if (candidate_regions.empty() or pileup_construction_map.empty())
+        return;
+
+    const uint32_t nb_reads_to_map_in_a_batch = 1000; //nb of reads to map in a batch
+
+    //shared variables - controlled by critical(ReadFileMutex)
+    FastaqHandler fh(reads_filepath.string());
+    uint32_t id{0};
+
+    //parallel region
+    //TODO: this is duplicated code with pangraph_from_read_file(), refactor
+    #pragma omp parallel num_threads(threads)
+    {
+        //will hold the reads batch
+        std::vector<std::pair<uint32_t, std::string>> sequencesBuffer(nb_reads_to_map_in_a_batch, make_pair(0, ""));
+        while (true) {
+            //read the next batch of reads
+            uint32_t nbOfReads = 0;
+
+            //read the reads in batch
+            #pragma omp critical(ReadFileMutex)
+            {
+                //TODO: we need to read only until the max read id
+                for (auto &id_and_sequence : sequencesBuffer) {
+                    //did we reach the end already?
+                    if (!fh.eof()) { //no
+                        //print some logging
+                        if (id && id % 100000 == 0)
+                            BOOST_LOG_TRIVIAL(info) << id << " reads processed...";
+
+                        //read the read
+                        fh.get_next();
+                        id_and_sequence = make_pair(id, fh.read);
+                        ++nbOfReads;
+                        ++id;
+                    } else { //yes
+                        break; //we read everything already, exit this loop
+                    }
+                }
+            }
+
+
+            if (nbOfReads == 0) break; //we reached the end of the file, nothing else to map
+
+            //process nbOfReads reads
+            for (uint32_t i=0; i<nbOfReads; i++) {
+                uint32_t id;
+                std::string sequence;
+                std::tie(id, sequence)  = sequencesBuffer[i];
+
+                auto pileup_construction_map_iterator = pileup_construction_map.find(id);
+                const bool is_read_required_for_pileup = pileup_construction_map_iterator != pileup_construction_map.end();
+
+                if (not is_read_required_for_pileup)
+                    continue;
+
+                //create all pileups for this read
+                for (const auto &pair : pileup_construction_map_iterator->second) {
+                    CandidateRegion * candidate_region;
+                    const ReadCoordinate * read_coordinate;
+                    std::tie(candidate_region, read_coordinate) = pair;
+
+                    candidate_region->add_pileup_entry(sequence, *read_coordinate);
+                }
+            }
+
+        }
+    }
+    BOOST_LOG_TRIVIAL(info) << " Loaded all candidate regions pileups from " << reads_filepath.string();
+}

@@ -1,9 +1,11 @@
 #include <iostream>
 #include <cstdio>
 #include "gtest/gtest.h"
+#include "gmock/gmock.h"
 #include "../test_macro.cpp"
 #include "denovo_discovery/candidate_region.h"
 #include "fastaq.h"
+#include "../test_helpers.h"
 
 
 TEST(CandidateRegionGetIntervalTest, noPaddingReturnsOriginalInterval) {
@@ -702,22 +704,13 @@ TEST(FindCandidateRegionsForPanNodeTest, noCoverageOnTwoFiveBaseRegionsWithinDou
     EXPECT_EQ(actual_max_likelihood_sequences, expected_max_likelihood_sequences);
 }
 
-
-TEST(GenerateReadPileupsForCandidateRegionTest, emptyReadsFileWithReadCoordsPileupsEmpty) {
-
-    Fastaq temp_fastq { false, true };
-    const fs::path temp_reads_filepath { fs::unique_path() };
-    temp_fastq.save(temp_reads_filepath.string());
-
+TEST(AddPileupEntryForCandidateRegionTest, emptyReadWithReadCoordsPileupsEmpty) {
+    const auto read_sequence { "" };
     CandidateRegion candidate { Interval(1, 3), "test" };
-
     ReadCoordinate read_coord_1 { 0, 6, 10, true };
+
     candidate.read_coordinates.insert(read_coord_1);
-
-    candidate.generate_read_pileup(temp_reads_filepath);
-    const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
-    ASSERT_TRUE(temp_removed_successfully);
-
+    candidate.add_pileup_entry(read_sequence, read_coord_1);
     const auto &actual { candidate.pileup };
     const ReadPileup expected;
 
@@ -725,48 +718,13 @@ TEST(GenerateReadPileupsForCandidateRegionTest, emptyReadsFileWithReadCoordsPile
 }
 
 
-TEST(GenerateReadPileupsForCandidateRegionTest, nonEmptyReadsFileWithNoReadCoordsPileupsEmpty) {
-
-    Fastaq temp_fastq { false, true };
-    const auto read_name { "0" };
-    const auto read_sequence { "ABC" };
-    const std::vector<uint32_t> read_covg { 1, 2, 3 };
-    const auto global_covg { 2 };
-    temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
-    const fs::path temp_reads_filepath { fs::unique_path() };
-    temp_fastq.save(temp_reads_filepath.string());
-
-    CandidateRegion candidate { Interval(1, 3), "test" };
-
-    candidate.generate_read_pileup(temp_reads_filepath);
-    const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
-    ASSERT_TRUE(temp_removed_successfully);
-
-    const auto &actual { candidate.pileup };
-    const ReadPileup expected;
-
-    EXPECT_EQ(actual, expected);
-}
-
-
-TEST(GenerateReadPileupsForCandidateRegionTest, oneReadInFileOneReadCoordPileupHasOneEntry) {
-
-    Fastaq temp_fastq { false, true };
-    const auto read_name { "0" };
+TEST(AddPileupEntryForCandidateRegionTest, oneReadOneReadCoordPileupHasOneEntry) {
     const std::string read_sequence { "XXXFOOXXX" };
-    const auto global_covg { 2 };
-    const std::vector<uint32_t> read_covg(read_sequence.length(), global_covg);
-    temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
-    const fs::path temp_reads_filepath { fs::unique_path() };
-    temp_fastq.save(temp_reads_filepath.string());
-
     CandidateRegion candidate { Interval(0, 3), "test" };
     ReadCoordinate read_coord { 0, 3, 6, true }; // FOO
     candidate.read_coordinates.insert(read_coord);
 
-    candidate.generate_read_pileup(temp_reads_filepath);
-    const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
-    ASSERT_TRUE(temp_removed_successfully);
+    candidate.add_pileup_entry(read_sequence, read_coord);
 
     const auto &actual { candidate.pileup };
     const ReadPileup expected { "FOO" };
@@ -775,24 +733,13 @@ TEST(GenerateReadPileupsForCandidateRegionTest, oneReadInFileOneReadCoordPileupH
 }
 
 
-TEST(GenerateReadPileupsForCandidateRegionTest, oneReadInFileOneWholeReadCoordPileupHasOneEntrySameAsRead) {
-
-    Fastaq temp_fastq { false, true };
-    const auto read_name { "0" };
+TEST(AddPileupEntryForCandidateRegionTest, oneReadOneWholeReadCoordPileupHasOneEntrySameAsRead) {
     const std::string read_sequence { "XXXFOOXXX" };
-    const auto global_covg { 2 };
-    const std::vector<uint32_t> read_covg(read_sequence.length(), global_covg);
-    temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
-    const fs::path temp_reads_filepath { fs::unique_path() };
-    temp_fastq.save(temp_reads_filepath.string());
-
     CandidateRegion candidate { Interval(0, 3), "test" };
     ReadCoordinate read_coord { 0, 0, 10, true }; // XXXFOOXXX
     candidate.read_coordinates.insert(read_coord);
 
-    candidate.generate_read_pileup(temp_reads_filepath);
-    const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
-    ASSERT_TRUE(temp_removed_successfully);
+    candidate.add_pileup_entry(read_sequence, read_coord);
 
     const auto &actual { candidate.pileup };
     const ReadPileup expected { "XXXFOOXXX" };
@@ -801,25 +748,15 @@ TEST(GenerateReadPileupsForCandidateRegionTest, oneReadInFileOneWholeReadCoordPi
 }
 
 
-TEST(GenerateReadPileupsForCandidateRegionTest,
-     oneReadInFileOneReadCoordThatRunsPastEndOfReadPileupHasOneEntryUpToEndOfRead) {
-
-    Fastaq temp_fastq { false, true };
-    const auto read_name { "0" };
+TEST(AddPileupEntryForCandidateRegionTest,
+     oneReadOneReadCoordThatRunsPastEndOfReadPileupHasOneEntryUpToEndOfRead) {
     const std::string read_sequence { "XXXFOOXXX" };
-    const auto global_covg { 2 };
-    const std::vector<uint32_t> read_covg(read_sequence.length(), global_covg);
-    temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
-    const fs::path temp_reads_filepath { fs::unique_path() };
-    temp_fastq.save(temp_reads_filepath.string());
 
     CandidateRegion candidate { Interval(0, 3), "test" };
     ReadCoordinate read_coord { 0, 5, 20, true }; // OXXX
     candidate.read_coordinates.insert(read_coord);
 
-    candidate.generate_read_pileup(temp_reads_filepath);
-    const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
-    ASSERT_TRUE(temp_removed_successfully);
+    candidate.add_pileup_entry(read_sequence, read_coord);
 
     const auto &actual { candidate.pileup };
     const ReadPileup expected { "OXXX" };
@@ -828,25 +765,15 @@ TEST(GenerateReadPileupsForCandidateRegionTest,
 }
 
 
-TEST(GenerateReadPileupsForCandidateRegionTest,
-     oneReadInFileOneReverseReadCoordThatRunsPastEndOfReadPileupHasOneEntryUpToEndOfRead) {
-
-    Fastaq temp_fastq { false, true };
-    const auto read_name { "0" };
+TEST(AddPileupEntryForCandidateRegionTest,
+     oneReadOneReverseReadCoordThatRunsPastEndOfReadPileupHasOneEntryUpToEndOfRead) {
     const std::string read_sequence { "AATTCCGG" };
-    const auto global_covg { 2 };
-    const std::vector<uint32_t> read_covg(read_sequence.length(), global_covg);
-    temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
-    const fs::path temp_reads_filepath { fs::unique_path() };
-    temp_fastq.save(temp_reads_filepath.string());
 
     CandidateRegion candidate { Interval(0, 3), "test" };
     ReadCoordinate read_coord { 0, 5, 20, false }; // CCG
     candidate.read_coordinates.insert(read_coord);
 
-    candidate.generate_read_pileup(temp_reads_filepath);
-    const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
-    ASSERT_TRUE(temp_removed_successfully);
+    candidate.add_pileup_entry(read_sequence, read_coord);
 
     const auto &actual { candidate.pileup };
     const ReadPileup expected { "CCG" };
@@ -855,24 +782,15 @@ TEST(GenerateReadPileupsForCandidateRegionTest,
 }
 
 
-TEST(GenerateReadPileupsForCandidateRegionTest, oneReadInFileOneReadCoordOutsideReadPileupEmpty) {
+TEST(AddPileupEntryForCandidateRegionTest, oneReadOneReadCoordOutsideReadPileupEmpty) {
 
-    Fastaq temp_fastq { false, true };
-    const auto read_name { "0" };
     const std::string read_sequence { "XXXFOOXXX" };
-    const auto global_covg { 2 };
-    const std::vector<uint32_t> read_covg(read_sequence.length(), global_covg);
-    temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
-    const fs::path temp_reads_filepath { fs::unique_path() };
-    temp_fastq.save(temp_reads_filepath.string());
 
     CandidateRegion candidate { Interval(0, 3), "test" };
     ReadCoordinate read_coord { 0, 15, 20, true };
     candidate.read_coordinates.insert(read_coord);
 
-    candidate.generate_read_pileup(temp_reads_filepath);
-    const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
-    ASSERT_TRUE(temp_removed_successfully);
+    candidate.add_pileup_entry(read_sequence, read_coord);
 
     const auto &actual { candidate.pileup };
     const ReadPileup expected;
@@ -881,8 +799,7 @@ TEST(GenerateReadPileupsForCandidateRegionTest, oneReadInFileOneReadCoordOutside
 }
 
 
-TEST(GenerateReadPileupsForCandidateRegionTest, twoReadsInFileOneReverseOneForwardReadCoordPileupHasTwoEntries) {
-
+TEST(LoadAllCandidateRegionsPileupsFromFastq, emptyCandidateRegionReturnsEmptyPileup) {
     Fastaq temp_fastq { false, true };
     auto read_name { "0" };
     std::string read_sequence { "AATTCCGG" };
@@ -890,6 +807,88 @@ TEST(GenerateReadPileupsForCandidateRegionTest, twoReadsInFileOneReverseOneForwa
     const std::vector<uint32_t> read_covg(read_sequence.length(), global_covg);
     temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
     read_name = "1";
+    read_sequence = "GATTACAA";
+    temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
+    const fs::path temp_reads_filepath { fs::unique_path() };
+    temp_fastq.save(temp_reads_filepath.string());
+
+    CandidateRegions candidate_regions;
+    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
+    load_all_candidate_regions_pileups_from_fastq(temp_reads_filepath, candidate_regions, pileup_construction_map);
+
+    const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
+    ASSERT_TRUE(temp_removed_successfully);
+
+    EXPECT_TRUE(candidate_regions.empty());
+}
+
+TEST(AddPileupEntryForCandidateRegionTest, oneCandidateZeroReadsInFilePileupHasZeroEntries) {
+
+    Fastaq temp_fastq { false, true };
+    const fs::path temp_reads_filepath { fs::unique_path() };
+    temp_fastq.save(temp_reads_filepath.string());
+
+    CandidateRegion candidate { Interval(0, 3), "test" };
+    ReadCoordinate read_coord1 { 0, 2, 4, true };
+    ReadCoordinate read_coord2 { 1, 3, 6, false };
+    candidate.read_coordinates.insert(read_coord1);
+    candidate.read_coordinates.insert(read_coord2);
+
+    CandidateRegions candidate_regions { std::make_pair(candidate.get_id(), candidate) };
+    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
+    load_all_candidate_regions_pileups_from_fastq(temp_reads_filepath, candidate_regions, pileup_construction_map);
+
+    const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
+    ASSERT_TRUE(temp_removed_successfully);
+
+    const auto &actual { candidate_regions.at(candidate.get_id()).pileup };
+    const ReadPileup expected {};
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(AddPileupEntryForCandidateRegionTest, oneCandidateTwoReadsInFileOneReadInCandidatePileupHasOneEntry) {
+
+    Fastaq temp_fastq { false, true };
+    auto read_name { "0" };
+    std::string read_sequence { "AATTCCGG" };
+    const auto global_covg { 2 };
+    const std::vector<uint32_t> read_covg(read_sequence.length(), global_covg);
+    temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
+    read_name = "5";
+    read_sequence = "GATTACAA";
+    temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
+    const fs::path temp_reads_filepath { fs::unique_path() };
+    temp_fastq.save(temp_reads_filepath.string());
+
+    CandidateRegion candidate { Interval(0, 3), "test" };
+    ReadCoordinate read_coord1 { 0, 2, 4, true }; // TT
+    ReadCoordinate read_coord2 { 4, 3, 6, false }; // no corresponding read
+    candidate.read_coordinates.insert(read_coord1);
+    candidate.read_coordinates.insert(read_coord2);
+
+    CandidateRegions candidate_regions { std::make_pair(candidate.get_id(), candidate) };
+    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
+    load_all_candidate_regions_pileups_from_fastq(temp_reads_filepath, candidate_regions, pileup_construction_map);
+
+    const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
+    ASSERT_TRUE(temp_removed_successfully);
+
+    const auto &actual { candidate_regions.at(candidate.get_id()).pileup };
+    const ReadPileup expected { "TT" };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(AddPileupEntryForCandidateRegionTest, oneCandidateTwoReadsInFileTwoReadsInCandidatePileupHasTwoEntries) {
+
+    Fastaq temp_fastq { false, true };
+    auto read_name { "0" };
+    std::string read_sequence { "AATTCCGG" };
+    const auto global_covg { 2 };
+    const std::vector<uint32_t> read_covg(read_sequence.length(), global_covg);
+    temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
+    read_name = "5";
     read_sequence = "GATTACAA";
     temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
     const fs::path temp_reads_filepath { fs::unique_path() };
@@ -901,18 +900,54 @@ TEST(GenerateReadPileupsForCandidateRegionTest, twoReadsInFileOneReverseOneForwa
     candidate.read_coordinates.insert(read_coord1);
     candidate.read_coordinates.insert(read_coord2);
 
-    candidate.generate_read_pileup(temp_reads_filepath);
+    CandidateRegions candidate_regions { std::make_pair(candidate.get_id(), candidate) };
+    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
+    load_all_candidate_regions_pileups_from_fastq(temp_reads_filepath, candidate_regions, pileup_construction_map);
+
     const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
     ASSERT_TRUE(temp_removed_successfully);
 
-    const auto &actual { candidate.pileup };
+    const auto &actual { candidate_regions.at(candidate.get_id()).pileup };
     const ReadPileup expected { "TT", "GTA" };
 
     EXPECT_EQ(actual, expected);
 }
 
+TEST(AddPileupEntryForCandidateRegionTest, twoCandidatesZeroReadsInFilePileupHasZeroEntries) {
 
-TEST(GenerateReadPileupsForCandidateRegionTest, twoReadsInFileThreeForwardReadCoordsPileupHasThreeEntries) {
+    Fastaq temp_fastq { false, true };
+    const fs::path temp_reads_filepath { fs::unique_path() };
+    temp_fastq.save(temp_reads_filepath.string());
+
+    CandidateRegion candidate_1 { Interval(0, 3), "test" };
+    ReadCoordinate read_coord1 { 0, 2, 4, true };
+    ReadCoordinate read_coord2 { 1, 3, 6, false };
+    candidate_1.read_coordinates.insert(read_coord1);
+    candidate_1.read_coordinates.insert(read_coord2);
+
+    CandidateRegion candidate_2 { Interval(0, 3), "test2" };
+    ReadCoordinate read_coord3 { 0, 2, 4, true };
+    ReadCoordinate read_coord4 { 1, 3, 6, false };
+    candidate_2.read_coordinates.insert(read_coord3);
+    candidate_2.read_coordinates.insert(read_coord4);
+
+    CandidateRegions candidate_regions { std::make_pair(candidate_1.get_id(), candidate_1),
+                                         std::make_pair(candidate_2.get_id(), candidate_2) };
+    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
+    load_all_candidate_regions_pileups_from_fastq(temp_reads_filepath, candidate_regions, pileup_construction_map);
+
+    const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
+    ASSERT_TRUE(temp_removed_successfully);
+
+    const auto &actual_1 { candidate_regions.at(candidate_1.get_id()).pileup };
+    const auto &actual_2 { candidate_regions.at(candidate_2.get_id()).pileup };
+    const ReadPileup expected {};
+
+    EXPECT_EQ(actual_1, expected);
+    EXPECT_EQ(actual_2, expected);
+}
+
+TEST(AddPileupEntryForCandidateRegionTest, twoCandidatesTwoReadsInFileOneReadInOneCandidatePileupHasOneEntryInOneCandidate) {
 
     Fastaq temp_fastq { false, true };
     auto read_name { "0" };
@@ -920,33 +955,39 @@ TEST(GenerateReadPileupsForCandidateRegionTest, twoReadsInFileThreeForwardReadCo
     const auto global_covg { 2 };
     const std::vector<uint32_t> read_covg(read_sequence.length(), global_covg);
     temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
-    read_name = "1";
+    read_name = "5";
     read_sequence = "GATTACAA";
     temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
     const fs::path temp_reads_filepath { fs::unique_path() };
     temp_fastq.save(temp_reads_filepath.string());
 
-    CandidateRegion candidate { Interval(0, 3), "test" };
-    ReadCoordinate read_coord1 { 0, 0, 2, true }; // AA
-    ReadCoordinate read_coord2 { 1, 4, 6, true }; // AC
-    ReadCoordinate read_coord3 { 0, 1, 6, true }; // ATTCC
-    candidate.read_coordinates.insert(read_coord1);
-    candidate.read_coordinates.insert(read_coord2);
-    candidate.read_coordinates.insert(read_coord3);
+    CandidateRegion candidate_1 { Interval(0, 3), "test" };
+    ReadCoordinate read_coord1 { 0, 2, 4, true };
+    candidate_1.read_coordinates.insert(read_coord1);
 
-    candidate.generate_read_pileup(temp_reads_filepath);
+    CandidateRegion candidate_2 { Interval(0, 3), "test2" };
+    ReadCoordinate read_coord2 { 4, 3, 6, false };
+    candidate_2.read_coordinates.insert(read_coord2);
+
+    CandidateRegions candidate_regions { std::make_pair(candidate_1.get_id(), candidate_1),
+                                         std::make_pair(candidate_2.get_id(), candidate_2) };
+    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
+    load_all_candidate_regions_pileups_from_fastq(temp_reads_filepath, candidate_regions, pileup_construction_map);
+
     const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
     ASSERT_TRUE(temp_removed_successfully);
 
-    auto actual { candidate.pileup };
-    std::sort(actual.begin(), actual.end());
-    const ReadPileup expected { "AA", "AC", "ATTCC" };
+    const auto &actual_1 { candidate_regions.at(candidate_1.get_id()).pileup };
+    const auto &actual_2 { candidate_regions.at(candidate_2.get_id()).pileup };
+    const ReadPileup expected_1 {"TT"};
+    const ReadPileup expected_2 {};
 
-    EXPECT_EQ(actual, expected);
+    EXPECT_EQ(actual_1, expected_1);
+    EXPECT_EQ(actual_2, expected_2);
 }
 
 
-TEST(GenerateReadPileupsForCandidateRegionTest, twoReadsInFileThreeForwardTwoTheSameReadCoordsPileupHasTwoEntries) {
+TEST(AddPileupEntryForCandidateRegionTest, twoCandidatesTwoReadsInFileOneReadInEachCandidatePileupHasOneEntryInEachCandidate) {
 
     Fastaq temp_fastq { false, true };
     auto read_name { "0" };
@@ -960,23 +1001,74 @@ TEST(GenerateReadPileupsForCandidateRegionTest, twoReadsInFileThreeForwardTwoThe
     const fs::path temp_reads_filepath { fs::unique_path() };
     temp_fastq.save(temp_reads_filepath.string());
 
-    CandidateRegion candidate { Interval(0, 3), "test" };
-    ReadCoordinate read_coord1 { 0, 0, 2, true }; // AA
-    ReadCoordinate read_coord2 { 1, 4, 6, true }; // AC
-    ReadCoordinate read_coord3 { 0, 0, 2, true }; // AA duplicate
-    candidate.read_coordinates.insert(read_coord1);
-    candidate.read_coordinates.insert(read_coord2);
-    candidate.read_coordinates.insert(read_coord3);
+    CandidateRegion candidate_1 { Interval(0, 3), "test" };
+    ReadCoordinate read_coord1 { 0, 2, 4, true }; //TT
+    candidate_1.read_coordinates.insert(read_coord1);
 
-    candidate.generate_read_pileup(temp_reads_filepath);
+    CandidateRegion candidate_2 { Interval(0, 3), "test2" };
+    ReadCoordinate read_coord2 { 1, 3, 6, true }; // TAC
+    candidate_2.read_coordinates.insert(read_coord2);
+
+    CandidateRegions candidate_regions { std::make_pair(candidate_1.get_id(), candidate_1),
+                                         std::make_pair(candidate_2.get_id(), candidate_2) };
+    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
+    load_all_candidate_regions_pileups_from_fastq(temp_reads_filepath, candidate_regions, pileup_construction_map);
+
     const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
     ASSERT_TRUE(temp_removed_successfully);
 
-    auto actual { candidate.pileup };
-    std::sort(actual.begin(), actual.end());
-    const ReadPileup expected { "AA", "AC" };
+    const auto &actual_1 { candidate_regions.at(candidate_1.get_id()).pileup };
+    const auto &actual_2 { candidate_regions.at(candidate_2.get_id()).pileup };
+    const ReadPileup expected_1 { "TT" };
+    const ReadPileup expected_2 { "TAC" };
 
-    EXPECT_EQ(actual, expected);
+    EXPECT_EQ(actual_1, expected_1);
+    EXPECT_EQ(actual_2, expected_2);
+}
+
+TEST(AddPileupEntryForCandidateRegionTest, twoCandidatesTwoReadsInFileOneReadInEachCandidatePileupHasOneEntryInEachCandidateUsingFourThreads) {
+
+    const uint32_t threads = 4;
+    Fastaq temp_fastq { false, true };
+    auto read_name { "0" };
+    std::string read_sequence { "AATTCCGG" };
+    const auto global_covg { 2 };
+    const std::vector<uint32_t> read_covg(read_sequence.length(), global_covg);
+    for (uint32_t i=0; i < threads/2*1000; ++i) {
+        temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
+    }
+    read_name = "1";
+    read_sequence = "GATTACAA";
+    for (uint32_t i=0; i < threads/2*1000; ++i) {
+        temp_fastq.add_entry(read_name, read_sequence, read_covg, global_covg);
+    }
+    const fs::path temp_reads_filepath { fs::unique_path() };
+    temp_fastq.save(temp_reads_filepath.string());
+
+
+    CandidateRegion candidate_1 { Interval(0, 3), "test" };
+    ReadCoordinate read_coord1 { 0, 2, 4, true }; //TT
+    candidate_1.read_coordinates.insert(read_coord1);
+
+    CandidateRegion candidate_2 { Interval(0, 3), "test2" };
+    ReadCoordinate read_coord2 { 3000, 3, 6, true }; // TAC
+    candidate_2.read_coordinates.insert(read_coord2);
+
+    CandidateRegions candidate_regions { std::make_pair(candidate_1.get_id(), candidate_1),
+                                         std::make_pair(candidate_2.get_id(), candidate_2) };
+    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
+    load_all_candidate_regions_pileups_from_fastq(temp_reads_filepath, candidate_regions, pileup_construction_map, threads);
+
+    const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
+    ASSERT_TRUE(temp_removed_successfully);
+
+    const auto &actual_1 { candidate_regions.at(candidate_1.get_id()).pileup };
+    const auto &actual_2 { candidate_regions.at(candidate_2.get_id()).pileup };
+    const ReadPileup expected_1 { "TT" };
+    const ReadPileup expected_2 { "TAC" };
+
+    EXPECT_EQ(actual_1, expected_1);
+    EXPECT_EQ(actual_2, expected_2);
 }
 
 
@@ -1022,4 +1114,123 @@ TEST(WriteDenovoPathsToFileTest, twoReadsWritesTwoReadsToFile) {
     fs::remove(filepath);
 
     EXPECT_EQ(actual, expected);
+}
+
+TEST(ConstructPileupConstructionMapTest, emptyInEmptyOut) {
+    CandidateRegions empty_candidate_regions;
+    const auto actual { construct_pileup_construction_map(empty_candidate_regions) };
+    PileupConstructionMap expected;
+    EXPECT_EQ(actual, expected);
+}
+
+
+void compare_maps(const PileupConstructionMap &map1, const PileupConstructionMap &map2) {
+    std::vector<ReadId> keys1, keys2;
+    for (const auto &item : map1)
+        keys1.push_back(item.first);
+    for (const auto &item : map2)
+        keys2.push_back(item.first);
+
+    EXPECT_EQ(keys1, keys2);
+
+    for (auto key : keys1) {
+        auto vector1 = map1.at(key);
+        auto vector2 = map2.at(key);
+
+        //TODO: find the correct way to compare a vector of pair of pointers with google test
+        //TODO: or even better: compare the maps themselves
+        EXPECT_TRUE(vector1.size() == vector2.size());
+        EXPECT_TRUE(std::is_permutation(vector1.begin(), vector1.end(), vector2.begin(), [](const std::pair<CandidateRegion *, const ReadCoordinate *> &pair1,
+                                                        const std::pair<CandidateRegion *, const ReadCoordinate *> &pair2) {
+            return *pair1.first == *pair2.first && *pair1.second == *pair2.second;
+        }));
+
+    }
+}
+
+
+TEST(ConstructPileupConstructionMapTest, oneCandidateRegionOneReadCoordinate) {
+    CandidateRegion candidate { Interval(0, 3), "test" };
+    const uint32_t read_id = 0;
+    ReadCoordinate read_coord { read_id, 5, 20, true };
+    candidate.read_coordinates.insert(read_coord);
+    CandidateRegions candidate_regions { std::make_pair(candidate.get_id(), candidate) };
+
+    const auto actual { construct_pileup_construction_map(candidate_regions) };
+    PileupConstructionMap expected;
+    expected[read_id].emplace_back(&candidate, &read_coord);
+    compare_maps(actual, expected);
+}
+
+TEST(ConstructPileupConstructionMapTest, oneCandidateRegionTwoReadCoordinatesSameReadId) {
+    CandidateRegion candidate { Interval(0, 3), "test" };
+    const uint32_t read_id = 0;
+    ReadCoordinate read_coord_1 { read_id, 5, 20, true };
+    candidate.read_coordinates.insert(read_coord_1);
+    ReadCoordinate read_coord_2 { read_id, 50, 100, true };
+    candidate.read_coordinates.insert(read_coord_2);
+    CandidateRegions candidate_regions { std::make_pair(candidate.get_id(), candidate) };
+
+    const auto actual { construct_pileup_construction_map(candidate_regions) };
+    PileupConstructionMap expected;
+    expected[read_id].emplace_back(&candidate, &read_coord_1);
+    expected[read_id].emplace_back(&candidate, &read_coord_2);
+
+    compare_maps(actual, expected);
+}
+
+
+TEST(ConstructPileupConstructionMapTest, oneCandidateRegionTwoReadCoordinatesDifferentReadId) {
+    CandidateRegion candidate { Interval(0, 3), "test" };
+    const uint32_t read_id_1 = 0;
+    ReadCoordinate read_coord_1 { read_id_1, 5, 20, true };
+    candidate.read_coordinates.insert(read_coord_1);
+    const uint32_t read_id_2 = 2;
+    ReadCoordinate read_coord_2 { read_id_2, 50, 100, true };
+    candidate.read_coordinates.insert(read_coord_2);
+    CandidateRegions candidate_regions { std::make_pair(candidate.get_id(), candidate) };
+
+    const auto actual { construct_pileup_construction_map(candidate_regions) };
+    PileupConstructionMap expected;
+    expected[read_id_1].emplace_back(&candidate, &read_coord_1);
+    expected[read_id_2].emplace_back(&candidate, &read_coord_2);
+
+    compare_maps(actual, expected);
+}
+
+TEST(ConstructPileupConstructionMapTest, twoCandidateRegionsOneReadCoordinateEachDifferentReadId) {
+    CandidateRegion candidate_1 { Interval(0, 3), "test" };
+    const uint32_t read_id_1 = 0;
+    ReadCoordinate read_coord_1 { read_id_1, 5, 20, true };
+    candidate_1.read_coordinates.insert(read_coord_1);
+    CandidateRegion candidate_2 { Interval(10, 20), "test2" };
+    const uint32_t read_id_2 = 2;
+    ReadCoordinate read_coord_2 { read_id_2, 50, 100, true };
+    candidate_2.read_coordinates.insert(read_coord_2);
+    CandidateRegions candidate_regions { std::make_pair(candidate_1.get_id(), candidate_1), std::make_pair(candidate_2.get_id(), candidate_2) };
+
+    const auto actual { construct_pileup_construction_map(candidate_regions) };
+    PileupConstructionMap expected;
+    expected[read_id_1].emplace_back(&candidate_1, &read_coord_1);
+    expected[read_id_2].emplace_back(&candidate_2, &read_coord_2);
+
+    compare_maps(actual, expected);
+}
+
+TEST(ConstructPileupConstructionMapTest, twoCandidateRegionsOneReadCoordinateEachSameReadId) {
+    CandidateRegion candidate_1 { Interval(0, 3), "test" };
+    const uint32_t read_id = 0;
+    ReadCoordinate read_coord_1 { read_id, 5, 20, true };
+    candidate_1.read_coordinates.insert(read_coord_1);
+    CandidateRegion candidate_2 { Interval(10, 20), "test2" };
+    ReadCoordinate read_coord_2 { read_id, 50, 100, true };
+    candidate_2.read_coordinates.insert(read_coord_2);
+    CandidateRegions candidate_regions { std::make_pair(candidate_1.get_id(), candidate_1), std::make_pair(candidate_2.get_id(), candidate_2) };
+
+    const auto actual { construct_pileup_construction_map(candidate_regions) };
+    PileupConstructionMap expected;
+    expected[read_id].emplace_back(&candidate_1, &read_coord_1);
+    expected[read_id].emplace_back(&candidate_2, &read_coord_2);
+
+    compare_maps(actual, expected);
 }
