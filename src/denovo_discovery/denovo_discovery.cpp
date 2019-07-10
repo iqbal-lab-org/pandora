@@ -14,7 +14,7 @@ void DenovoDiscovery::find_paths_through_candidate_region(CandidateRegion &candi
         return;
     }
 
-    const auto max_path_length { length_of_candidate_sequence + 50 };
+    const auto max_path_length { length_of_candidate_sequence + max_insertion_size };
 
     if (kmer_size > max_path_length) {
         BOOST_LOG_TRIVIAL(debug) << "Kmer size " << kmer_size << " is greater than the maximum path length "
@@ -59,13 +59,13 @@ void DenovoDiscovery::find_paths_through_candidate_region(CandidateRegion &candi
             std::tie(end_node, end_found) = graph.get_node(current_end_kmer);
 
             if (end_found) {
-                auto tree_of_nodes_visited_during_dfs { graph.depth_first_search_from(start_node) };
                 auto denovo_paths {
-                        graph.get_paths_between(current_start_kmer, current_end_kmer, tree_of_nodes_visited_during_dfs,
-                                                max_path_length, expected_kmer_covg) };
-                candidate_region.denovo_paths.insert(candidate_region.denovo_paths.begin(), denovo_paths.begin(),
-                                                     denovo_paths.end());
-                if (not candidate_region.denovo_paths.empty()) {
+                        graph.get_paths_between(start_node, end_node, max_path_length, expected_kmer_covg) };
+
+                if (not denovo_paths.empty()) {
+                    candidate_region.denovo_paths.insert(candidate_region.denovo_paths.begin(), denovo_paths.begin(),
+                                                         denovo_paths.end());
+
                     // add flank to each sequence - the whole sequence from the start to the end of the gene
                     for (auto &current_path : candidate_region.denovo_paths) {
                         const auto start_kmer_offset { candidate_region.max_likelihood_sequence.substr(0, start_idx) };
@@ -78,10 +78,10 @@ void DenovoDiscovery::find_paths_through_candidate_region(CandidateRegion &candi
                                                                                            .append(candidate_region
                                                                                                            .right_flanking_sequence);
                     }
-                }
 
-                remove_graph_file();
-                return;
+                    remove_graph_file();
+                    return;
+                }
             }
         }
     }
@@ -92,8 +92,8 @@ void DenovoDiscovery::find_paths_through_candidate_region(CandidateRegion &candi
 }
 
 
-DenovoDiscovery::DenovoDiscovery(const uint_least8_t &kmer_size, const double &read_error_rate)
-        : kmer_size { kmer_size }, read_error_rate { read_error_rate } {}
+DenovoDiscovery::DenovoDiscovery(const uint_least8_t &kmer_size, const double &read_error_rate, const uint8_t max_insertion_size)
+        : kmer_size { kmer_size }, read_error_rate { read_error_rate }, max_insertion_size { max_insertion_size } {}
 
 
 double DenovoDiscovery::calculate_kmer_coverage(const uint32_t &read_covg, const uint32_t &ref_length) const {
