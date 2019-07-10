@@ -90,20 +90,21 @@ DfsTree LocalAssemblyGraph::depth_first_search_from(const Node &start_node, bool
  * The associated util function is a recursive function that generates a path down to a "leaf" of the tree and
  * then comes back up to the next unexplored branching point.
  */
-DenovoPaths
+std::pair<DenovoPaths, bool>
 LocalAssemblyGraph::get_paths_between(const Node &start_node, const Node &end_node,
                                       const uint32_t &max_path_length, const double &expected_coverage) {
     DenovoPaths paths_between_queries;
+    bool abandoned = false;
     const std::string start_kmer = toString(start_node);
     const std::string end_kmer = toString(end_node);
 
     auto tree { depth_first_search_from(start_node) };
 
     //check if end node is in forward tree, if not just return
-    bool is_end_kmer_reachable_from_start_kmer =
+    bool end_kmer_not_reachable_from_start_kmer =
             tree.find(end_kmer) == tree.end();
-    if (is_end_kmer_reachable_from_start_kmer) {
-        return paths_between_queries;
+    if (end_kmer_not_reachable_from_start_kmer) {
+        return std::make_pair(paths_between_queries, abandoned);
     }
 
     auto reverse_tree { depth_first_search_from(end_node, true) };
@@ -119,6 +120,7 @@ LocalAssemblyGraph::get_paths_between(const Node &start_node, const Node &end_no
         const float required_percent_of_expected_covg { retries * COVG_SCALING_FACTOR };
         if (required_percent_of_expected_covg > 1.0) {
             BOOST_LOG_TRIVIAL(debug) << "Abandoning local assembly for slice as too many paths.";
+            abandoned = true;
             break;
         }
         build_paths_between(start_kmer, end_kmer, path_accumulator, tree, reverse_tree, paths_between_queries, max_path_length,
@@ -128,7 +130,7 @@ LocalAssemblyGraph::get_paths_between(const Node &start_node, const Node &end_no
 
     BOOST_LOG_TRIVIAL(debug) << "Path enumeration complete. There were " << std::to_string(paths_between_queries.size())
                              << " paths found.";
-    return paths_between_queries;
+    return std::make_pair(paths_between_queries, abandoned);
 }
 
 

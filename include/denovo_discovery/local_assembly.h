@@ -32,7 +32,7 @@ public:
 
     std::pair<Node, bool> get_node(const std::string &query_kmer);
 
-    DenovoPaths get_paths_between(const Node &start_node, const Node &end_node,
+    std::pair<DenovoPaths, bool> get_paths_between(const Node &start_node, const Node &end_node,
                                   const uint32_t &max_path_length,
                                   const double &expected_coverage = 1);
 

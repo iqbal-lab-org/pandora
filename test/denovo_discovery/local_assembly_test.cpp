@@ -172,7 +172,7 @@ TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers) {
     const auto end_kmer { "AGGCC" };
     std::tie(end_node, found) = graph.get_node(end_kmer);
 
-    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path);
+    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path).first;
 
     DenovoPaths expected_seqs(seqs.begin(), seqs.end());
     EXPECT_EQ(result, expected_seqs);
@@ -201,7 +201,7 @@ TEST(GetPathsBetweenTest, lotsOfHighCovgCyclesReturnEmpty) {
     std::tie(end_node, found) = graph.get_node(end_kmer);
 
 
-    auto actual { graph.get_paths_between(start_node, end_node, max_path_length, expected_coverage) };
+    auto actual { graph.get_paths_between(start_node, end_node, max_path_length, expected_coverage).first };
     DenovoPaths expected;
     remove_graph_file();
 
@@ -225,7 +225,7 @@ TEST(DepthFirstSearchFromTest, SimpleGraphTwoNodesReturnSeqPassedIn) {
     Node end_node;
     std::tie(end_node, found) = graph.get_node(end_kmer);
 
-    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path);
+    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path).first;
 
     EXPECT_EQ(result.size(), 1);
     EXPECT_EQ(*result.begin(), seq);
@@ -249,7 +249,7 @@ TEST(DepthFirstSearchFromTest, SimpleGraphSixNodesReturnSeqPassedIn) {
     Node end_node;
     std::tie(end_node, found) = graph.get_node(end_kmer);
 
-    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path);
+    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path).first;
 
     bool original_seq_found = false;
     // make sure all paths begin and end with correct kmer
@@ -285,7 +285,7 @@ TEST(DepthFirstSearchFromTest, TwoReadsSameSequenceReturnOneSequence) {
     Node end_node;
     std::tie(end_node, found) = graph.get_node(end_kmer);
 
-    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path);
+    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path).first;
 
     EXPECT_EQ(result.size(), 1);
     EXPECT_EQ(*result.begin(), seq1);
@@ -311,7 +311,7 @@ TEST(DepthFirstSearchFromTest, TwoReadsOneVariantReturnOriginalTwoSequences) {
     Node end_node;
     std::tie(end_node, found) = graph.get_node(end_kmer);
 
-    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path);
+    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path).first;
 
     int original_seq_found = 0;
     for (auto &path: result) {
@@ -347,7 +347,7 @@ TEST(DepthFirstSearchFromTest, ThreeReadsTwoVariantsReturnOriginalSequences) {
     Node end_node;
     std::tie(end_node, found) = graph.get_node(end_kmer);
 
-    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path);
+    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path).first;
 
     int original_seq_found = 0;
     for (auto &path: result) {
@@ -384,7 +384,7 @@ TEST(DepthFirstSearchFromTest, TwoReadsTwoVariantsReturnOriginalTwoSequencesPlus
     Node end_node;
     std::tie(end_node, found) = graph.get_node(end_kmer);
 
-    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path);
+    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path).first;
 
     // add other expected paths due to variants
     std::vector<std::string> expected_seqs = { seq1, seq2, "TTGGTGATCCCATTATG", "TTGGTCATCCCGTTATG" };
@@ -417,7 +417,7 @@ TEST(DepthFirstSearchFromTest, ThreeReadsOneReverseComplimentReturnPathsForStran
     Node end_node;
     std::tie(end_node, found) = graph.get_node(end_kmer);
 
-    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path);
+    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path).first;
 
     // add other expected paths due to variants
     const std::string expected_seq = "ATGTGCA";
@@ -447,7 +447,7 @@ TEST(DepthFirstSearchFromTest, SimpleCycleReturnPathsOfLengthsUpToMaxPathLengthC
     Node end_node;
     std::tie(end_node, found) = graph.get_node(end_kmer);
 
-    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path);
+    auto result = graph.get_paths_between(start_node, end_node, g_test_max_path).first;
 
     const std::string min_expected_seq = "ATATAT";
     bool is_in = false;
