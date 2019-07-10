@@ -23,7 +23,7 @@ using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
 using DenovoPaths = std::vector<std::string>;
 
 constexpr float COVG_SCALING_FACTOR { 0.1 };
-constexpr auto MAX_NUMBER_CANDIDATE_PATHS { 50 };
+constexpr auto MAX_NUMBER_CANDIDATE_PATHS { 25 };
 
 
 class LocalAssemblyGraph : public Graph {
@@ -32,15 +32,15 @@ public:
 
     std::pair<Node, bool> get_node(const std::string &query_kmer);
 
-    DfsTree depth_first_search_from(const Node &start_node);
-
-    DenovoPaths get_paths_between(const std::string &start_kmer, const std::string &end_kmer,
-                                  std::unordered_map<string, GraphVector<Node> > &tree, const uint32_t &max_path_length,
+    DenovoPaths get_paths_between(const Node &start_node, const Node &end_node,
+                                  const uint32_t &max_path_length,
                                   const double &expected_coverage = 1);
 
 private:
+    DfsTree depth_first_search_from(const Node &start_node, bool reverse=false);
+
     void build_paths_between(const std::string &start_kmer, const std::string &end_kmer, std::string path_accumulator,
-                             std::unordered_map<string, GraphVector<Node>> &tree, DenovoPaths &paths_between_queries,
+                             DfsTree &tree, DfsTree &reverse_tree, DenovoPaths &paths_between_queries,
                              const uint32_t &max_path_length, const double &expected_kmer_covg,
                              const float &required_percent_of_expected_covg = COVG_SCALING_FACTOR,
                              uint32_t num_kmers_below_threshold = 0);

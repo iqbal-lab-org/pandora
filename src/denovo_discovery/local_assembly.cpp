@@ -55,7 +55,7 @@ std::pair<Node, bool> LocalAssemblyGraph::get_node(const std::string &query_kmer
 
 
 // Non-recursive implementation of DFS from "Algorithm Design" - Kleinberg and Tardos (First Edition)
-DfsTree LocalAssemblyGraph::depth_first_search_from(const Node &start_node) {
+DfsTree LocalAssemblyGraph::depth_first_search_from(const Node &start_node, bool reverse) {
     BOOST_LOG_TRIVIAL(debug) << "Starting DFS...";
     std::stack <Node> nodes_to_explore({ start_node });
 
@@ -72,7 +72,7 @@ DfsTree LocalAssemblyGraph::depth_first_search_from(const Node &start_node) {
         }
 
         explored_nodes.insert(toString(current_node));
-        auto children_of_current_node { successors(current_node) };
+        auto children_of_current_node { (reverse ? predecessors(current_node) : successors(current_node)) };
         tree_of_nodes_visited[toString(current_node)] = children_of_current_node;
 
         for (unsigned int i = 0; i < children_of_current_node.size(); ++i) {
@@ -91,11 +91,26 @@ DfsTree LocalAssemblyGraph::depth_first_search_from(const Node &start_node) {
  * then comes back up to the next unexplored branching point.
  */
 DenovoPaths
-LocalAssemblyGraph::get_paths_between(const std::string &start_kmer, const std::string &end_kmer, DfsTree &tree,
+LocalAssemblyGraph::get_paths_between(const Node &start_node, const Node &end_node,
                                       const uint32_t &max_path_length, const double &expected_coverage) {
+    DenovoPaths paths_between_queries;
+    const std::string start_kmer = toString(start_node);
+    const std::string end_kmer = toString(end_node);
+
+    auto tree { depth_first_search_from(start_node) };
+
+    //check if end node is in forward tree, if not just return
+    bool is_end_kmer_reachable_from_start_kmer =
+            tree.find(end_kmer) == tree.end();
+    if (is_end_kmer_reachable_from_start_kmer) {
+        return paths_between_queries;
+    }
+
+    auto reverse_tree { depth_first_search_from(end_node, true) };
+
+
     BOOST_LOG_TRIVIAL(debug) << "Enumerating all paths in DFS tree between " << start_kmer << " and " << end_kmer;
     std::string path_accumulator { start_kmer.substr(0, start_kmer.length() - 1) };
-    DenovoPaths paths_between_queries;
     uint8_t retries { 1 };
 
     do {
@@ -106,7 +121,7 @@ LocalAssemblyGraph::get_paths_between(const std::string &start_kmer, const std::
             BOOST_LOG_TRIVIAL(debug) << "Abandoning local assembly for slice as too many paths.";
             break;
         }
-        build_paths_between(start_kmer, end_kmer, path_accumulator, tree, paths_between_queries, max_path_length,
+        build_paths_between(start_kmer, end_kmer, path_accumulator, tree, reverse_tree, paths_between_queries, max_path_length,
                             expected_coverage, required_percent_of_expected_covg);
         retries++;
     } while (paths_between_queries.size() > MAX_NUMBER_CANDIDATE_PATHS);
@@ -119,7 +134,8 @@ LocalAssemblyGraph::get_paths_between(const std::string &start_kmer, const std::
 
 void LocalAssemblyGraph::build_paths_between(const std::string &start_kmer, const std::string &end_kmer,
                                              std::string path_accumulator,
-                                             std::unordered_map <string, GraphVector<Node>> &tree,
+                                             DfsTree &tree,
+                                             DfsTree &reverse_tree,
                                              DenovoPaths &paths_between_queries, const uint32_t &max_path_length,
                                              const double &expected_kmer_covg,
                                              const float &required_percent_of_expected_covg,
@@ -127,6 +143,12 @@ void LocalAssemblyGraph::build_paths_between(const std::string &start_kmer, cons
     if (path_accumulator.length() > max_path_length or paths_between_queries.size() > MAX_NUMBER_CANDIDATE_PATHS) {
         return;
     }
+
+    bool start_kmer_cannot_reach_end_kmer = reverse_tree.find(start_kmer) == reverse_tree.end();
+    if (start_kmer_cannot_reach_end_kmer) {
+        return;
+    }
+
 
     auto start_node { buildNode(start_kmer.c_str()) };
     const auto kmer_coverage { queryAbundance(start_node) };
@@ -151,7 +173,7 @@ void LocalAssemblyGraph::build_paths_between(const std::string &start_kmer, cons
 
     for (unsigned int i = 0; i < num_children; ++i) {
         const auto next_start_kmer { toString(children_of_start_node[i]) };
-        build_paths_between(next_start_kmer, end_kmer, path_accumulator, tree, paths_between_queries, max_path_length,
+        build_paths_between(next_start_kmer, end_kmer, path_accumulator, tree, reverse_tree, paths_between_queries, max_path_length,
                             expected_kmer_covg, required_percent_of_expected_covg, num_kmers_below_threshold);
     }
 }
