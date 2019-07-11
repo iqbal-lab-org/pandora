@@ -19,7 +19,7 @@ public:
     bool clean_assembly_graph { false };
     const uint8_t max_insertion_size;
 
-    DenovoDiscovery(const uint_least8_t &kmer_size, const double &read_error_rate, const uint8_t max_insertion_size = 50);
+    DenovoDiscovery(const uint_least8_t &kmer_size, const double &read_error_rate, const uint8_t max_insertion_size = 10);
 
     void find_paths_through_candidate_region(CandidateRegion &candidate_region);
 
