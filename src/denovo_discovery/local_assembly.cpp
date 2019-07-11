@@ -187,14 +187,10 @@ void LocalAssemblyGraph::build_paths_between(const std::string &start_kmer, cons
         return;
     }
 
-    bool start_kmer_cannot_reach_end_kmer = node_to_distance_to_the_end_node.find(start_kmer) == node_to_distance_to_the_end_node.end();
-    if (start_kmer_cannot_reach_end_kmer) {
-        return;
-    }
-
-    bool start_kmer_cannot_reach_end_kmer_with_distance_max_path_length =
-            path_accumulator.length() + node_to_distance_to_the_end_node.at(start_kmer) > max_path_length;
-    if (start_kmer_cannot_reach_end_kmer_with_distance_max_path_length)
+    bool start_kmer_can_reach_end_kmer_with_distance_max_path_length =
+            (node_to_distance_to_the_end_node.find(start_kmer) != node_to_distance_to_the_end_node.end() and
+            path_accumulator.length() + node_to_distance_to_the_end_node.at(start_kmer) <= max_path_length);
+    if (not start_kmer_can_reach_end_kmer_with_distance_max_path_length)
         return;
 
     auto start_node { buildNode(start_kmer.c_str()) };
