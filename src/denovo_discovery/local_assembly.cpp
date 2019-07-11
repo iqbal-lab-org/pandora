@@ -83,6 +83,47 @@ DfsTree LocalAssemblyGraph::depth_first_search_from(const Node &start_node, bool
     return tree_of_nodes_visited;
 }
 
+/*
+BFS implementation - returns a distance map with where the keys are kmers of the nodes found in the BFS
+and the values are the distances from the start node to the such found nodes
+*/
+BfsDistanceMap LocalAssemblyGraph::breadth_first_search_from(const Node &start_node, bool reverse) {
+    BOOST_LOG_TRIVIAL(debug) << "Starting BFS...";
+
+    std::unordered_set <std::string> explored_nodes;
+    BfsDistanceMap node_to_distance_to_the_start_node;
+    std::map<std::string, std::string> child_kmer_to_parent_kmer;
+
+    std::queue <Node> nodes_to_explore({ start_node });
+    child_kmer_to_parent_kmer[toString(start_node)] = "none";
+
+    while (not nodes_to_explore.empty()) {
+        auto &current_node { nodes_to_explore.front() };
+        nodes_to_explore.pop();
+
+        auto current_kmer = toString(current_node);
+        auto parent_kmer = child_kmer_to_parent_kmer.at(current_kmer);
+
+        bool previously_explored { explored_nodes.find(current_kmer) != explored_nodes.end() };
+        if (previously_explored) {
+            continue;
+        }
+
+        explored_nodes.insert(current_kmer);
+        node_to_distance_to_the_start_node[current_kmer] =
+                (parent_kmer == "none" ? 0 : node_to_distance_to_the_start_node.at(parent_kmer)+1);
+
+        auto children_of_current_node { (reverse ? predecessors(current_node) : successors(current_node)) };
+
+        for (unsigned int i = 0; i < children_of_current_node.size(); ++i) {
+            nodes_to_explore.push(children_of_current_node[i]);
+            child_kmer_to_parent_kmer[toString(children_of_current_node[i])] = current_kmer;
+        }
+    }
+    BOOST_LOG_TRIVIAL(debug) << "BFS finished.";
+    return node_to_distance_to_the_start_node;
+}
+
 
 /* The aim of this function is to take a DFS tree, and return all paths within this tree that start at start_kmer
  * and end at end_kmer. Allowing for the different combinations in the number of cycles if the path contains any.
@@ -107,7 +148,7 @@ LocalAssemblyGraph::get_paths_between(const Node &start_node, const Node &end_no
         return std::make_pair(paths_between_queries, abandoned);
     }
 
-    auto reverse_tree { depth_first_search_from(end_node, true) };
+    auto node_to_distance_to_the_end_node { breadth_first_search_from(end_node, true) };
 
 
     BOOST_LOG_TRIVIAL(debug) << "Enumerating all paths in DFS tree between " << start_kmer << " and " << end_kmer;
@@ -123,7 +164,7 @@ LocalAssemblyGraph::get_paths_between(const Node &start_node, const Node &end_no
             abandoned = true;
             break;
         }
-        build_paths_between(start_kmer, end_kmer, path_accumulator, tree, reverse_tree, paths_between_queries, max_path_length,
+        build_paths_between(start_kmer, end_kmer, path_accumulator, tree, node_to_distance_to_the_end_node, paths_between_queries, max_path_length,
                             expected_coverage, required_percent_of_expected_covg);
         retries++;
     } while (paths_between_queries.size() > MAX_NUMBER_CANDIDATE_PATHS);
@@ -137,7 +178,7 @@ LocalAssemblyGraph::get_paths_between(const Node &start_node, const Node &end_no
 void LocalAssemblyGraph::build_paths_between(const std::string &start_kmer, const std::string &end_kmer,
                                              std::string path_accumulator,
                                              DfsTree &tree,
-                                             DfsTree &reverse_tree,
+                                             BfsDistanceMap &node_to_distance_to_the_end_node,
                                              DenovoPaths &paths_between_queries, const uint32_t &max_path_length,
                                              const double &expected_kmer_covg,
                                              const float &required_percent_of_expected_covg,
@@ -146,11 +187,15 @@ void LocalAssemblyGraph::build_paths_between(const std::string &start_kmer, cons
         return;
     }
 
-    bool start_kmer_cannot_reach_end_kmer = reverse_tree.find(start_kmer) == reverse_tree.end();
+    bool start_kmer_cannot_reach_end_kmer = node_to_distance_to_the_end_node.find(start_kmer) == node_to_distance_to_the_end_node.end();
     if (start_kmer_cannot_reach_end_kmer) {
         return;
     }
 
+    bool start_kmer_cannot_reach_end_kmer_with_distance_max_path_length =
+            path_accumulator.length() + node_to_distance_to_the_end_node.at(start_kmer) > max_path_length;
+    if (start_kmer_cannot_reach_end_kmer_with_distance_max_path_length)
+        return;
 
     auto start_node { buildNode(start_kmer.c_str()) };
     const auto kmer_coverage { queryAbundance(start_node) };
@@ -175,8 +220,9 @@ void LocalAssemblyGraph::build_paths_between(const std::string &start_kmer, cons
 
     for (unsigned int i = 0; i < num_children; ++i) {
         const auto next_start_kmer { toString(children_of_start_node[i]) };
-        build_paths_between(next_start_kmer, end_kmer, path_accumulator, tree, reverse_tree, paths_between_queries, max_path_length,
-                            expected_kmer_covg, required_percent_of_expected_covg, num_kmers_below_threshold);
+        build_paths_between(next_start_kmer, end_kmer, path_accumulator, tree, node_to_distance_to_the_end_node,
+                paths_between_queries, max_path_length, expected_kmer_covg, required_percent_of_expected_covg,
+                num_kmers_below_threshold);
     }
 }
 
