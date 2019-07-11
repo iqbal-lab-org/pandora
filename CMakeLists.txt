@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 2.8.7)
 set(PROJECT_NAME_STR pandora)
 project(${PROJECT_NAME_STR} C CXX)
 
+# add a RELEASE_WITH_ASSERTS build type
+set(CMAKE_CXX_FLAGS_RELEASE_WITH_ASSERTS "-O3")
+
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
 
