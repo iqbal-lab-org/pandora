@@ -25,7 +25,7 @@ using BfsDistanceMap = std::map<std::string, uint32_t>;
 using DenovoPaths = std::vector<std::string>;
 
 constexpr float COVG_SCALING_FACTOR { 0.1 };
-constexpr auto MAX_NUMBER_CANDIDATE_PATHS { 25 };
+constexpr auto MAX_NUMBER_CANDIDATE_PATHS { 50 };
 
 
 class LocalAssemblyGraph : public Graph {
