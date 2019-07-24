@@ -53,12 +53,13 @@ WORKDIR /usr/local
 #============================================
 ENV PANDORA_BRANCH dev
 ENV PANDORA_GIT="https://github.com/rmcolq/pandora.git"
+ENV PANDORA_BUILD RELEASE_WITH_ASSERTS
 
 RUN git clone -b "$PANDORA_BRANCH" --single-branch  --recursive "$PANDORA_GIT"
 WORKDIR pandora
 RUN mkdir -p build
 WORKDIR build
-RUN cmake -DCMAKE_BUILD_TYPE=Release .. && make
+RUN cmake -DCMAKE_BUILD_TYPE="$PANDORA_BUILD" .. && make
 RUN ln -s $(realpath pandora) /usr/local/bin/pandora
 # uncomment the below once tests pass for release mode
-# RUN ctest -V
+RUN ctest -V
