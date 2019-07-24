@@ -61,5 +61,4 @@ RUN mkdir -p build
 WORKDIR build
 RUN cmake -DCMAKE_BUILD_TYPE="$PANDORA_BUILD" .. && make
 RUN ln -s $(realpath pandora) /usr/local/bin/pandora
-# uncomment the below once tests pass for release mode
 RUN ctest -V
