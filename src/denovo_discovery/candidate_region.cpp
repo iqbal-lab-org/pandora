@@ -10,18 +10,24 @@ size_t std::hash<CandidateRegionIdentifier>::operator()(const CandidateRegionIde
 CandidateRegion::CandidateRegion(const Interval &interval, std::string name)
         : interval { interval }, name { std::move(name) }, interval_padding { 0 } {
     initialise_filename();
+    #ifndef NO_OPENMP
     omp_init_lock(&add_pileup_entry_lock);
+    #endif
 }
 
 
 CandidateRegion::CandidateRegion(const Interval &interval, std::string name, const uint_least16_t &interval_padding)
         : interval { interval }, name { std::move(name) }, interval_padding { interval_padding } {
     initialise_filename();
+    #ifndef NO_OPENMP
     omp_init_lock(&add_pileup_entry_lock);
+    #endif
 }
 
 CandidateRegion::~CandidateRegion() {
+    #ifndef NO_OPENMP
     omp_destroy_lock(&add_pileup_entry_lock);
+    #endif
 }
 
 void CandidateRegion::initialise_filename() {
@@ -138,10 +144,13 @@ void CandidateRegion::add_pileup_entry(const std::string &read, const ReadCoordi
         if (!read_coordinate.is_forward) {
             sequence_in_read_overlapping_region = reverse_complement(sequence_in_read_overlapping_region);
         }
-
+        #ifndef NO_OPENMP
         omp_set_lock(&add_pileup_entry_lock);
             this->pileup.push_back(sequence_in_read_overlapping_region);
         omp_unset_lock(&add_pileup_entry_lock);
+        #else
+            this->pileup.push_back(sequence_in_read_overlapping_region);
+        #endif
     }
 }
 

@@ -9,7 +9,10 @@
 #include "fastaq.h"
 #include "fastaq_handler.h"
 #include "localPRG.h"
-#include <omp.h>
+
+#ifndef NO_OPENMP
+#include<omp.h>
+#endif
 
 
 using CandidateRegionIdentifier = std::tuple<Interval, std::string>;
@@ -74,8 +77,11 @@ private:
     const Interval interval;
     const std::string name;
     const uint_least16_t interval_padding;
+
+    #ifndef NO_OPENMP
     //TODO: check if we might have issues here with copy constructor - I think not: OpenMP locks work on the address of the lock I think
     omp_lock_t add_pileup_entry_lock; //synchronizes multithreaded access to the add_pileup_entry() method
+    #endif
 
     void initialise_filename();
 
