@@ -185,7 +185,7 @@ void add_read_hits(const Seq &sequence,
     //     << hits->hits.size() + hits->uhits.size() << endl;
 }
 
-void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits,
+void define_clusters(std::set<MinimizerHitCluster, clusterComp> &clusters_of_hits,
                      const std::vector<std::shared_ptr<LocalPRG>> &prgs,
                      std::shared_ptr<MinimizerHits> minimizer_hits,
                      const int max_diff,
@@ -197,7 +197,7 @@ void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &cl
 
     // A cluster of hits should match same localPRG, each hit not more than max_diff read bases from the last hit (this last bit is to handle repeat genes). 
     auto mh_previous = minimizer_hits->hits.begin();
-    std::set<MinimizerHitPtr, pComp> current_cluster;
+    MinimizerHitCluster current_cluster;
     current_cluster.insert(*mh_previous);
     uint32_t length_based_threshold;
     for (auto mh_current = ++minimizer_hits->hits.begin();
@@ -247,7 +247,7 @@ void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &cl
     BOOST_LOG_TRIVIAL(debug) << "Found " << clusters_of_hits.size() << " clusters of hits";
 }
 
-void filter_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits) {
+void filter_clusters(std::set<MinimizerHitCluster, clusterComp> &clusters_of_hits) {
     // Next order clusters, choose between those that overlap by too much
     BOOST_LOG_TRIVIAL(debug) << "Filter the " << clusters_of_hits.size() << " clusters of hits";
     if (clusters_of_hits.empty()) { return; }
@@ -286,13 +286,13 @@ void filter_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &cl
     BOOST_LOG_TRIVIAL(debug) << "Now have " << clusters_of_hits.size() << " clusters of hits";
 }
 
-void filter_clusters2(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits,
+void filter_clusters2(std::set<MinimizerHitCluster, clusterComp> &clusters_of_hits,
                       const uint32_t &genome_size) {
     // Sort clusters by size, and filter out those small clusters which are entirely contained in bigger clusters on reads
     BOOST_LOG_TRIVIAL(debug) << "Filter2 the " << clusters_of_hits.size() << " clusters of hits";
     if (clusters_of_hits.empty()) { return; }
 
-    std::set<std::set<MinimizerHitPtr, pComp>, clusterComp_size> clusters_by_size(clusters_of_hits.begin(),
+    std::set<MinimizerHitCluster, clusterComp_size> clusters_by_size(clusters_of_hits.begin(),
                                                                                   clusters_of_hits.end());
 
     auto it = clusters_by_size.begin();
@@ -335,7 +335,7 @@ void filter_clusters2(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &c
 }
 
 void
-add_clusters_to_pangraph(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> &clusters_of_hits,
+add_clusters_to_pangraph(std::set<MinimizerHitCluster, clusterComp> &clusters_of_hits,
                          std::shared_ptr<pangenome::Graph> pangraph,
                          const std::vector<std::shared_ptr<LocalPRG>> &prgs) {
     BOOST_LOG_TRIVIAL(debug) << "Add inferred order to PanGraph";
@@ -363,7 +363,7 @@ void infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>>
     // then adding the inferred gene ordering
     if (minimizer_hits->hits.empty()) { return; }
 
-    std::set<std::set<MinimizerHitPtr, pComp>, clusterComp> clusters_of_hits; //a cluster is a set of MinimizerHit. clusters_of_hits is a set of clusters.
+    std::set<MinimizerHitCluster, clusterComp> clusters_of_hits;
     define_clusters(clusters_of_hits, prgs, minimizer_hits, max_diff, fraction_kmers_required_for_cluster,
                     min_cluster_size, expected_number_kmers_in_short_read_sketch);
 

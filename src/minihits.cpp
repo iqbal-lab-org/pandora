@@ -57,7 +57,7 @@ bool pComp_path::operator()(const MinimizerHitPtr &lhs, const MinimizerHitPtr &r
     return false;
 }
 
-bool clusterComp::operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<MinimizerHitPtr, pComp> rhs) {
+bool clusterComp::operator()(const MinimizerHitCluster lhs, const MinimizerHitCluster rhs) {
     if ((*lhs.begin())->get_read_id() < (*rhs.begin())->get_read_id()) { return true; }
     if ((*rhs.begin())->get_read_id() < (*lhs.begin())->get_read_id()) { return false; }
     if ((*lhs.begin())->get_read_start_position() < (*rhs.begin())->get_read_start_position()) { return true; }
@@ -73,7 +73,7 @@ bool clusterComp::operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<Mini
     return false;
 }
 
-bool clusterComp_size::operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<MinimizerHitPtr, pComp> rhs) {
+bool clusterComp_size::operator()(const MinimizerHitCluster lhs, const MinimizerHitCluster rhs) {
     if ((*lhs.begin())->get_read_id() < (*rhs.begin())->get_read_id()) { return true; }
     if ((*rhs.begin())->get_read_id() < (*lhs.begin())->get_read_id()) { return false; }
     if (lhs.size() > rhs.size()) { return true; }

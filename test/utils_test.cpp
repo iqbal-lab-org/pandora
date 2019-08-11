@@ -736,10 +736,7 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
     delete pg;
 }*/
 
-TEST(UtilsTest, pangraphFromReadFile) {
-    KmerHash hash;
-
-    // initialize a prgs object
+void setup_index(std::vector<std::shared_ptr<LocalPRG>> &prgs, std::shared_ptr<Index> &index){
     std::vector<std::shared_ptr<LocalPRG>> prgs;
     auto lp1 = std::make_shared<LocalPRG>(LocalPRG(1, "1", ""));
     auto lp3 = std::make_shared<LocalPRG>(LocalPRG(3, "3", ""));
@@ -750,9 +747,9 @@ TEST(UtilsTest, pangraphFromReadFile) {
     prgs.push_back(lp2);
     prgs.push_back(lp3);
 
-    // initialize index as we would expect with example prgs
     auto index = std::make_shared<Index>();
 
+    KmerHash hash;
     vector<KmerNodePtr> v;
     KmerNodePtr kn;
 
@@ -947,28 +944,48 @@ TEST(UtilsTest, pangraphFromReadFile) {
     v.push_back(kn);
     lp2->kmer_prg.add_edge(v[24], v[25]);
 
-    // initialize pangraph;
+}
+
+TEST(UtilsTest, pangraphFromReadFile_Fa) {
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
+
+    auto index = std::make_shared<Index>();
+    setup_index(prgs, index);
+
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
     pangraph_from_read_file("../../test/test_cases/read2.fa", pangraph, index, prgs, 1, 3, 1, 0.1, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
     pangenome::Graph pg_exp;
-    pg_exp.add_node(lp1);
-    pg_exp.add_node(lp2);
-    pg_exp.add_node(lp3);
-    pg_exp.add_node(lp0);
+    pg_exp.add_node(prgs[1]);
+    pg_exp.add_node(prgs[2]);
+    pg_exp.add_node(prgs[3]);
+    pg_exp.add_node(prgs[0]);
 
     EXPECT_EQ(pg_exp, *pangraph);
 
-    pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    pangraph_from_read_file("../../test/test_cases/read2.fq", pangraph, index, prgs, 1, 3, 1, 0.1, 1);
-    pg_exp.add_node(lp1);
-    pg_exp.add_node(lp2);
-    pg_exp.add_node(lp3);
-    pg_exp.add_node(lp0);
+    index->clear();
+}
 
-    //TODO: shouldn't we have an EXPECT_EQ() here?
+TEST(UtilsTest, pangraphFromReadFile_Fq) {
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
+
+    auto index = std::make_shared<Index>();
+    setup_index(prgs, index);
+
+    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
+    pangraph_from_read_file("../../test/test_cases/read2.fq", pangraph, index, prgs, 1, 3, 1, 0.1, 1);
+
+    // create a pangraph object representing the truth we expect (prg 3 4 2 1)
+    // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other prgs
+    pangenome::Graph pg_exp;
+    pg_exp.add_node(prgs[1]);
+    pg_exp.add_node(prgs[2]);
+    pg_exp.add_node(prgs[3]);
+    pg_exp.add_node(prgs[0]);
+
+    EXPECT_EQ(pg_exp, *pangraph);
 
     index->clear();
 }
