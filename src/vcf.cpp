@@ -499,6 +499,11 @@ std::string VCF::header() {
     char mbstr[10];
     strftime(mbstr, sizeof(mbstr), "%d/%m/%y", localtime(&t));
 
+    std::set<std::string> chroms;
+    for (const auto record : records) {
+        chroms.insert(record->chrom);
+    }
+
     std::string header;
     header += "##fileformat=VCFv4.3\n";
     header += "##fileDate==";
@@ -512,11 +517,25 @@ std::string VCF::header() {
     header += "##ALT=<ID=NESTED,Description=\"Variation site was a nested feature in the graph\">\n";
     header += "##ALT=<ID=TOO_MANY_ALTS,Description=\"Variation site was a multinested feature with too many alts to include all in the VCF\">\n";
     header += "##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description=\"Type of graph feature\">\n";
+    header += "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n";
+    header += "##FORMAT=<ID=MEAN_FWD_COVG,Number=A,Type=Integer,Description=\"Mean forward coverage\">\n";
+    header += "##FORMAT=<ID=MEAN_REV_COVG,Number=A,Type=Integer,Description=\"Mean reverse coverage\">\n";
+    header += "##FORMAT=<ID=MED_FWD_COVG,Number=A,Type=Integer,Description=\"Med forward coverage\">\n";
+    header += "##FORMAT=<ID=MED_REV_COVG,Number=A,Type=Integer,Description=\"Med reverse coverage\">\n";
+    header += "##FORMAT=<ID=SUM_FWD_COVG,Number=A,Type=Integer,Description=\"Sum forward coverage\">\n";
+    header += "##FORMAT=<ID=SUM_REV_COVG,Number=A,Type=Integer,Description=\"Sum reverse coverage\">\n";
+    header += "##FORMAT=<ID=GAPS,Number=A,Type=Float,Description=\"Number of gap bases\">\n";
+    header += "##FORMAT=<ID=LIKELIHOOD,Number=A,Type=Float,Description=\"Likelihood\">\n";
+    header += "##FORMAT=<ID=GT_CONF,Number=1,Type=Float,Description=\"Genotype confidence\">\n";
+    for (const auto chrom : chroms){
+        header += "##contig=<ID=" + chrom + ">\n";
+    }
     header += "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT";
     for (uint32_t i = 0; i != samples.size(); ++i) {
         header += "\t" + samples[i];
     }
     header += "\n";
+    std::cout << header << std::endl;
     return header;
 }
 
