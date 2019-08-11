@@ -9,7 +9,9 @@
 
 
 struct MinimizerHit;
+struct pComp;
 typedef std::shared_ptr<MinimizerHit> MinimizerHitPtr;
+typedef std::set<MinimizerHitPtr, pComp> MinimizerHitCluster;
 
 struct pComp {
     bool operator()(const MinimizerHitPtr &lhs, const MinimizerHitPtr &rhs);
@@ -28,11 +30,11 @@ struct pComp_path {
 };
 
 struct clusterComp {
-    bool operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<MinimizerHitPtr, pComp> rhs);
+    bool operator()(const MinimizerHitCluster lhs, const MinimizerHitCluster rhs);
 };
 
 struct clusterComp_size {
-    bool operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<MinimizerHitPtr, pComp> rhs);
+    bool operator()(const MinimizerHitCluster lhs, const MinimizerHitCluster rhs);
 };
 
 class MinimizerHits {
