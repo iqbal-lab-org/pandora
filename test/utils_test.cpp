@@ -737,7 +737,6 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead) {
 }*/
 
 void setup_index(std::vector<std::shared_ptr<LocalPRG>> &prgs, std::shared_ptr<Index> &index){
-    std::vector<std::shared_ptr<LocalPRG>> prgs;
     auto lp1 = std::make_shared<LocalPRG>(LocalPRG(1, "1", ""));
     auto lp3 = std::make_shared<LocalPRG>(LocalPRG(3, "3", ""));
     auto lp0 = std::make_shared<LocalPRG>(LocalPRG(0, "0", ""));
@@ -746,8 +745,6 @@ void setup_index(std::vector<std::shared_ptr<LocalPRG>> &prgs, std::shared_ptr<I
     prgs.push_back(lp1);
     prgs.push_back(lp2);
     prgs.push_back(lp3);
-
-    auto index = std::make_shared<Index>();
 
     KmerHash hash;
     vector<KmerNodePtr> v;
