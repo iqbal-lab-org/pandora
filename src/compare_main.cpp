@@ -49,6 +49,7 @@ static void show_compare_usage() {
               << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
               << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a cluster, default 250 (bps)\n"
               << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
+              << "\t-t T\t\t\t\tNumber of threads, default 1\n"
               << "\t--genome_size\tNUM_BP\tEstimated length of genome, used for coverage estimation\n"
               << "\t--vcf_refs REF_FASTA\t\tA fasta file with an entry for each LocalPRG giving reference sequence for\n"
               << "\t\t\t\t\tVCF. Must have a perfect match in the graph and the same name as the graph\n"
@@ -64,7 +65,7 @@ static void show_compare_usage() {
 using SampleIdText = std::string;
 using SampleFpath = std::string;
 
-std::map<SampleIdText, SampleFpath> load_read_index(const std::string &read_index_fpath) {
+std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(const std::string &read_index_fpath) {
     std::map<SampleIdText, SampleFpath> samples;
     std::string name, reads_path, line;
     std::ifstream myfile(read_index_fpath);
@@ -85,7 +86,7 @@ std::map<SampleIdText, SampleFpath> load_read_index(const std::string &read_inde
         exit(1);
     }
     std::cout << now() << "Finished loading " << samples.size() << " samples from read index" << std::endl;
-    return samples;
+    return std::vector<std::pair<SampleIdText, SampleFpath>>(samples.begin(), samples.end());
 }
 
 int pandora_compare(int argc, char *argv[]) {
@@ -97,8 +98,8 @@ int pandora_compare(int argc, char *argv[]) {
 
     // otherwise, parse the parameters from the command line
     std::string prgfile, read_index_fpath, outdir = "pandora", vcf_refs_file, log_level="info";
-    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300, min_allele_covg_gt = 0,
-            min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0; // default parameters
+    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300, max_num_kmers_to_average=100,
+            min_allele_covg_gt = 0, min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0, threads=1; // default parameters
     uint16_t confidence_threshold = 1;
     int max_diff = 250;
     float e_rate = 0.11, min_allele_fraction_covg_gt = 0, genotyping_error_rate=0.01;
@@ -194,6 +195,13 @@ int pandora_compare(int argc, char *argv[]) {
                 std::cerr << "--max_covg option requires one argument." << std::endl;
                 return 1;
             }
+        } else if ((arg == "--max_num_kmers_to_average")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                max_num_kmers_to_average = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--max_num_kmers_to_average option requires one argument." << std::endl;
+                return 1;
+            }
         } else if ((arg == "--min_allele_covg_gt")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 min_allele_covg_gt = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
@@ -245,7 +253,15 @@ int pandora_compare(int argc, char *argv[]) {
                 std::cerr << "--log_level option requires one argument." << std::endl;
                 return 1;
             }
-        } else {
+        } else if (arg == "-t") {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                threads = strtoul(argv[++i], nullptr, 10); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "-t option requires one argument." << std::endl;
+                return 1;
+            }
+        }
+        else {
             std::cerr << argv[i] << " could not be attributed to any parameter" << std::endl;
         }
     }
@@ -269,6 +285,7 @@ int pandora_compare(int argc, char *argv[]) {
     std::cout << "\tk\t\t" << k << std::endl;
     std::cout << "\tmax_diff\t" << max_diff << std::endl;
     std::cout << "\terror_rate\t" << e_rate << std::endl;
+    std::cout << "\tthreads\t" << threads << std::endl;
     std::cout << "\tvcf_refs\t" << vcf_refs_file << std::endl;
     std::cout << "\tillumina\t" << illumina << std::endl;
     std::cout << "\tclean\t" << clean << std::endl;
@@ -292,24 +309,16 @@ int pandora_compare(int argc, char *argv[]) {
     // load read index
     std::cout << now() << "Loading read index file " << read_index_fpath << std::endl;
     auto samples = load_read_index(read_index_fpath);
+    std::vector<std::string> sample_names;
+    for (const auto &sample_pair : samples) sample_names.push_back(sample_pair.first);
 
-    auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    auto pangraph_sample = std::make_shared<pangenome::Graph>(pangenome::Graph());
-
-    auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits(100000));
-
-    Fastaq consensus_fq(true, true);
-
-    vector<KmerNodePtr> kmp;
-    vector<LocalNodePtr> lmp;
-    vector<vector<uint32_t>> read_overlap_coordinates;
+    auto pangraph = std::make_shared<pangenome::Graph>(sample_names);
+    std::vector<uint32_t> exp_depth_covgs;
 
     // for each sample, run pandora to get the sample pangraph
-    std::vector<uint32_t> exp_depth_covgs;
-    uint32_t sample_id = 0;
-    for (const auto &sample: samples) {
-        pangraph_sample->clear();
-        minimizer_hits->clear();
+    for (uint32_t sample_id = 0; sample_id < samples.size(); ++sample_id) {
+        const auto &sample = samples[sample_id];
+        auto pangraph_sample = std::make_shared<pangenome::Graph>();
 
         const auto &sample_name = sample.first;
         const auto &sample_fpath = sample.second;
@@ -324,14 +333,10 @@ int pandora_compare(int argc, char *argv[]) {
                                 << sample_fpath
                                 << " (this will take a while)";
         uint32_t covg = pangraph_from_read_file(sample_fpath,
-                                                minimizer_hits,
                                                 pangraph_sample,
                                                 index, prgs, w, k,
                                                 max_diff, e_rate,
-                                                min_cluster_size, genome_size, illumina, clean, max_covg);
-        BOOST_LOG_TRIVIAL(info) << "Finished with minihits, so clear ";
-        minimizer_hits->clear();
-
+                                                min_cluster_size, genome_size, illumina, clean, max_covg, threads);
         BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file "
                                 << sample_outdir << "/pandora.pangraph.gfa";
         write_pangraph_gfa(sample_outdir + "/pandora.pangraph.gfa", pangraph_sample);
@@ -341,35 +346,36 @@ int pandora_compare(int argc, char *argv[]) {
         }
 
         BOOST_LOG_TRIVIAL(info) << "Update LocalPRGs with hits";
-        pangraph_sample->setup_kmergraphs(prgs, 1);
         pangraph_sample->add_hits_to_kmergraphs(prgs, 0);
 
         BOOST_LOG_TRIVIAL(info) << "Estimate parameters for kmer graph model";
         auto exp_depth_covg = estimate_parameters(pangraph_sample, sample_outdir, k, e_rate, covg, bin, 0);
         exp_depth_covgs.push_back(exp_depth_covg);
+
         if (min_kmer_covg == 0)
             min_kmer_covg = exp_depth_covg/10;
 
         BOOST_LOG_TRIVIAL(info) << "Find max likelihood PRG paths";
         auto sample_pangraph_size = pangraph_sample->nodes.size();
+        Fastaq consensus_fq(true, true);
         for (auto c = pangraph_sample->nodes.begin(); c != pangraph_sample->nodes.end();) {
-            LocalPRG local_prg = *prgs[c->second->prg_id];
-            local_prg.add_consensus_path_to_fastaq(consensus_fq,
-                                                   c->second,
-                                                   kmp, lmp, w,
-                                                   bin, covg, 0);
+            const LocalPRG &local_prg = *prgs[c->second->prg_id];
+            vector<KmerNodePtr> kmp;
+            vector<LocalNodePtr> lmp;
+            local_prg.add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp, w, bin, covg,
+                                                   max_num_kmers_to_average, 0);
 
             if (kmp.empty()) {
                 c = pangraph_sample->remove_node(c->second);
                 continue;
             }
-            pangraph->add_node(c->second->prg_id, c->second->name, sample_name, sample_id,
-                               prgs[c->second->prg_id], kmp);
+
+            pangraph->add_node(prgs[c->second->prg_id]);
+            pangraph->add_hits_between_PRG_and_sample(c->second->prg_id, sample_name, kmp);
 
             ++c;
         }
 
-        pangraph->setup_kmergraphs(prgs, samples.size());
         pangraph->copy_coverages_to_kmergraphs(*pangraph_sample, sample_id);
 
         consensus_fq.save(sample_outdir + "/pandora.consensus.fq.gz");
@@ -380,7 +386,11 @@ int pandora_compare(int argc, char *argv[]) {
                       << " and can be updated with --genome_size" << std::endl;
         }
 
-        sample_id++;
+
+        // Note: pangraph_sample is destroyed here and as well as all Read information (pangenome::Graph::reads) about the sample
+        // pangraph does not keep the read information
+        // This is important since this is the heaviest information to keep in compare
+        // pangraph has just coverage information and the consensus path for each sample and PRG
     }
 
     // for each pannode in graph, find a best reference
@@ -388,45 +398,123 @@ int pandora_compare(int argc, char *argv[]) {
     BOOST_LOG_TRIVIAL(info) << "Multi-sample pangraph has "
                             << pangraph->nodes.size() << " nodes";
 
+
+
+
+
+
+
+    //parallel region!
+
     // load vcf refs
-    VCFRefs vcf_refs;
-    std::string vcf_ref;
-    if (!vcf_refs_file.empty()) {
-        vcf_refs.reserve(prgs.size());
-        load_vcf_refs_file(vcf_refs_file, vcf_refs);
+    VCFRefs vcf_refs; //no need to control this variable - read only
+    {
+        std::string vcf_ref;
+        if (!vcf_refs_file.empty()) {
+            vcf_refs.reserve(prgs.size());
+            load_vcf_refs_file(vcf_refs_file, vcf_refs);
+        }
     }
 
-    VCF master_vcf;
-    std::vector<std::string> sample_names = {};
-    for (const auto & sample : samples)
-        sample_names.push_back(sample.first);
-    master_vcf.add_samples(sample_names);
-    assert( master_vcf.samples.size() == samples.size());
+    //shared variable - controlled by critical(vcf_ref_fa)
     Fastaq vcf_ref_fa(true, false);
 
-    for (const auto &pangraph_node_entry: pangraph->nodes) {
+    //shared variable - controlled by critical(VCFPathsToBeConcatenated)
+    std::vector<std::string> VCFPathsToBeConcatenated; //TODO: we can allocate the correct size of the vectors already here
+
+    //shared variable - controlled by critical(VCFGenotypedPathsToBeConcatenated)
+    std::vector<std::string> VCFGenotypedPathsToBeConcatenated; //TODO: we can allocate the correct size of the vectors already here
+
+    //create the dir that will contain all vcfs
+    const int nbOfVCFsPerDir=4000;
+    auto VCFsDirs = outdir + "/VCFs";
+    fs::create_directories(VCFsDirs);
+    //create the dirs for the VCFs
+    for (uint32_t i = 0; i <= pangraph->nodes.size()/nbOfVCFsPerDir; ++i)
+        fs::create_directories(VCFsDirs + "/" + int_to_string(i + 1));
+
+    //create the dirs for the VCFs genotyped, if flag is passed
+    auto VCFsGenotypedDirs = outdir + "/VCFs_genotyped";
+    if (genotype) {
+        for (uint32_t i = 0; i <= pangraph->nodes.size()/nbOfVCFsPerDir; ++i)
+            fs::create_directories(VCFsGenotypedDirs + "/" + int_to_string(i + 1));
+    }
+
+
+
+
+    //transforms to a vector to parallelize this
+    //TODO: use OMP task instead?
+    std::vector<std::pair<NodeId, std::shared_ptr<pangenome::Node>>> pangraphNodesAsVector;
+    pangraphNodesAsVector.reserve(pangraph->nodes.size());
+    for (auto pan_id_to_node_mapping = pangraph->nodes.begin(); pan_id_to_node_mapping != pangraph->nodes.end(); ++pan_id_to_node_mapping)
+        pangraphNodesAsVector.push_back(*pan_id_to_node_mapping);
+
+    #pragma omp parallel for num_threads(threads) schedule(dynamic, 1)
+    for (uint32_t pangraph_node_index=0; pangraph_node_index < pangraphNodesAsVector.size(); ++pangraph_node_index) {
+        const auto &pangraph_node_entry = pangraphNodesAsVector[pangraph_node_index];
         BOOST_LOG_TRIVIAL(debug) << "Consider next node";
         const auto &node_id = pangraph_node_entry.first;
         pangenome::Node &pangraph_node = *pangraph_node_entry.second;
 
         const auto &prg_id = pangraph_node.prg_id;
         assert(prgs.size() > prg_id);
-        const auto& prg_ptr = prgs[prg_id];
+        const auto &prg_ptr = prgs[prg_id];
 
-        const auto vcf_reference_path = pangraph->infer_node_vcf_reference_path(pangraph_node, prg_ptr, w, vcf_refs);
-        vcf_ref_fa.add_entry(prg_ptr->name, prg_ptr->string_along_path(vcf_reference_path), "");
-        BOOST_LOG_TRIVIAL(debug) << " c.first: " << node_id << " prgs[c.first]->name: " << prg_ptr->name;
+        const auto vcf_reference_path = pangraph->infer_node_vcf_reference_path(pangraph_node, prg_ptr, w, vcf_refs,
+                                                                                max_num_kmers_to_average);
 
-        pangraph_node.construct_multisample_vcf(master_vcf, vcf_reference_path, prg_ptr, w, min_kmer_covg);
+        #pragma omp critical(vcf_ref_fa)
+        {
+            vcf_ref_fa.add_entry(prg_ptr->name, prg_ptr->string_along_path(vcf_reference_path), "");
+        }
+
+        //output the vcf for this sample
+        VCF vcf;
+
+        //add all samples to the vcf
+        vcf.add_samples(sample_names);
+        assert( vcf.samples.size() == samples.size());
+
+        //build the vcf
+        pangraph_node.construct_multisample_vcf(vcf, vcf_reference_path, prg_ptr, w, min_kmer_covg);
+
+        //save the vcf to disk
+        uint32_t dir = pangraph_node_index / nbOfVCFsPerDir + 1; //get the good dir for this sample vcf
+        auto vcfPath = VCFsDirs + "/" + int_to_string(dir) + "/" + prg_ptr->name + ".vcf";
+        vcf.save(vcfPath, true, true, true, true, true, true, true);
+
+        //add the vcf path to VCFPathsToBeConcatenated to concatenate after
+        #pragma omp critical(VCFPathsToBeConcatenated)
+        {
+            VCFPathsToBeConcatenated.push_back(vcfPath);
+        }
+
+
+        if (genotype) {
+            //genotype
+            vcf.genotype(exp_depth_covgs, genotyping_error_rate, confidence_threshold, min_allele_covg_gt,
+                         min_allele_fraction_covg_gt,
+                         min_total_covg_gt, min_diff_covg_gt, false);
+
+            //save the genotyped vcf to disk
+            auto vcfGenotypedPath = VCFsGenotypedDirs + "/" + int_to_string(dir) + "/" + prg_ptr->name + "_genotyped.vcf";
+            vcf.save(vcfGenotypedPath, true, true, true, true, true, true, true);
+
+            //add the genotyped vcf path to VCFGenotypedPathsToBeConcatenated to concatenate after
+            #pragma omp critical(VCFGenotypedPathsToBeConcatenated)
+            {
+                VCFGenotypedPathsToBeConcatenated.push_back(vcfGenotypedPath);
+            }
+        }
     }
-    master_vcf.save(outdir + "/pandora_multisample_consensus.vcf", true, true, true, true, true, true, true);
+
+    //generate all the multisample files
     vcf_ref_fa.save(outdir + "/pandora_multisample.vcf_ref.fa");
+    VCF::concatenateVCFs(VCFPathsToBeConcatenated, outdir + "/pandora_multisample_consensus.vcf");
+    if (genotype)
+        VCF::concatenateVCFs(VCFGenotypedPathsToBeConcatenated, outdir + "/pandora_multisample_genotyped.vcf");
 
-    if (genotype) {
-        master_vcf.genotype(exp_depth_covgs, genotyping_error_rate, confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
-                            min_total_covg_gt, min_diff_covg_gt, false);
-        master_vcf.save(outdir + "/pandora_multisample_genotyped.vcf", true, true, true, true, true, true, true);
-    }
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
     BOOST_LOG_TRIVIAL(info) << "Output matrix";
@@ -440,9 +528,6 @@ int pandora_compare(int argc, char *argv[]) {
 
     // clear up
     index->clear();
-    minimizer_hits->clear();
-    pangraph->clear();
-    pangraph_sample->clear();
 
     // current date/time based on current system
     std::cout << "FINISH: " << now() << std::endl;

@@ -7,6 +7,8 @@
 #include <string>
 #include <cstdint>
 #include "vcfrecord.h"
+#include "IITree.h"
+#include <map>
 
 
 class LocalNode;
@@ -14,13 +16,30 @@ class LocalNode;
 typedef std::shared_ptr<LocalNode> LocalNodePtr;
 
 class VCF {
+private:
+    /* will contain, for each chromosome, an interval tree containing VCF records interval and a pointer to the VCF Record itself to allow
+       VCF::make_gt_compatible() to execute a lot faster than serial search */
+    std::map<std::string, IITree<uint32_t, VCFRecord*>> chrom2recordIntervalTree;
+
+    //add a VCF record to this VCF
+    void add_record_core(const VCFRecord &vr);
+
+    //find a VCRRecord in records
+    std::vector<std::shared_ptr<VCFRecord>>::iterator find_record_in_records(const VCFRecord &vr) {
+        return find_if(records.begin(), records.end(), [&vr](const std::shared_ptr<VCFRecord> &record) { return *record==vr; });
+    }
+    std::vector<std::shared_ptr<VCFRecord>>::const_iterator find_record_in_records(const VCFRecord &vr) const {
+        return find_if(records.begin(), records.end(), [&vr](const std::shared_ptr<VCFRecord> &record) { return *record==vr; });
+    }
+
+
 public:
-    std::vector<VCFRecord> records;
+    std::vector<std::shared_ptr<VCFRecord>> records;
     std::vector<std::string> samples;
 
-    VCF();
-
-    ~VCF();
+    //constructor/destructors
+    VCF() = default;
+    virtual ~VCF() = default;
 
     void add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i = ".", std::string g = "");
 
@@ -36,8 +55,6 @@ public:
                        const std::string &a);
 
     void add_sample_ref_alleles(const std::string &, const std::string &, const uint32_t &, const uint32_t &);
-
-    void clear();
 
     void append_vcf(const VCF &);
 
@@ -67,6 +84,13 @@ public:
     bool operator==(const VCF &y) const;
 
     bool operator!=(const VCF &y) const;
+
+    /**
+     * Concatenate several VCF files that were previously written to disk as .vcfs into a single VCF file
+     * @param VCFPathsToBeConcatenated : vector containing paths to the .vcfs to be concatenated
+     * @param sink : where to put the concatenated VCFs
+     */
+    static void concatenateVCFs(const std::vector<std::string> &VCFPathsToBeConcatenated, const std::string &sink);
 
     friend std::ostream &operator<<(std::ostream &out, const VCF &m);
 };

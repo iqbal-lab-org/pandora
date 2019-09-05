@@ -5,11 +5,13 @@
 #include <cstdint>
 #include "interval.h"
 
-
+/**
+ * Represents a minimizer from a read or sequence (not from a graph, as MiniRecord)
+ */
 struct Minimizer {
-    uint64_t kmer;
-    Interval pos;
-    bool strand;
+    uint64_t canonical_kmer_hash;
+    Interval pos_of_kmer_in_read;
+    bool is_forward_strand;
 
     Minimizer() {};
 

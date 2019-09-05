@@ -28,23 +28,23 @@ TEST(MinimizerTest, create) {
     kh = hash.kmerhash("ACGTA", 5);
     Minimizer m3(kh.first, 5, 10, 0);
 
-    EXPECT_EQ(m1.kmer, kh.first);
-    EXPECT_EQ(m3.kmer, kh.first);
+    EXPECT_EQ(m1.canonical_kmer_hash, kh.first);
+    EXPECT_EQ(m3.canonical_kmer_hash, kh.first);
     kh = hash.kmerhash("ACGTG", 5);
-    EXPECT_EQ(m2.kmer, kh.first);
+    EXPECT_EQ(m2.canonical_kmer_hash, kh.first);
 
     uint32_t j = 0;
-    EXPECT_EQ(m1.pos.start, j);
+    EXPECT_EQ(m1.pos_of_kmer_in_read.start, j);
     j = 1;
-    EXPECT_EQ(m2.pos.start, j);
+    EXPECT_EQ(m2.pos_of_kmer_in_read.start, j);
     j = 5;
-    EXPECT_EQ(m3.pos.start, j);
+    EXPECT_EQ(m3.pos_of_kmer_in_read.start, j);
 
-    EXPECT_EQ(m1.pos.get_end(), j);
+    EXPECT_EQ(m1.pos_of_kmer_in_read.get_end(), j);
     j = 6;
-    EXPECT_EQ(m2.pos.get_end(), j);
+    EXPECT_EQ(m2.pos_of_kmer_in_read.get_end(), j);
     j = 10;
-    EXPECT_EQ(m3.pos.get_end(), j);
+    EXPECT_EQ(m3.pos_of_kmer_in_read.get_end(), j);
 
     EXPECT_DEATH(Minimizer(kh.first, 0, 2, 0), ""); // interval too short to be valid
     //EXPECT_DEATH(Minimizer(kh.first, 0,8,0),""); // interval too long to be valid
@@ -76,11 +76,11 @@ TEST(MinimizerTest, less_than) {
     vector<Minimizer> v = {m4, m2, m5, m1, m3};
     int i = 0;
     for (std::set<Minimizer>::iterator it = s.begin(); it != s.end(); ++it) {
-        EXPECT_EQ(it->kmer, v[i].kmer) << "for i " << i << " kmers do not agree: " << it->kmer << ", " << v[i].kmer;
-        EXPECT_EQ(it->pos.start, v[i].pos.start)
-                            << "start positions do not agree: " << it->pos.start << ", " << v[i].pos.start;
-        EXPECT_EQ(it->pos.get_end(), v[i].pos.get_end())
-                            << "end positions do not agree: " << it->pos.get_end() << ", " << v[i].pos.get_end();
+        EXPECT_EQ(it->canonical_kmer_hash, v[i].canonical_kmer_hash) << "for i " << i << " kmers do not agree: " << it->canonical_kmer_hash << ", " << v[i].canonical_kmer_hash;
+        EXPECT_EQ(it->pos_of_kmer_in_read.start, v[i].pos_of_kmer_in_read.start)
+                            << "start positions do not agree: " << it->pos_of_kmer_in_read.start << ", " << v[i].pos_of_kmer_in_read.start;
+        EXPECT_EQ(it->pos_of_kmer_in_read.get_end(), v[i].pos_of_kmer_in_read.get_end())
+                            << "end positions do not agree: " << it->pos_of_kmer_in_read.get_end() << ", " << v[i].pos_of_kmer_in_read.get_end();
         ++i;
     }
 }

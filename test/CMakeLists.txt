@@ -29,7 +29,7 @@ target_link_libraries(pandora_test
 target_include_directories(pandora_test PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         ${CMAKE_BINARY_DIR}/include
-        ${source_dir}/googletest/include
+        ${source_dir}/googletest/include #Change here for CLion unit tests inspection
         ${source_dir}/googlemock/include)
 
 add_test(NAME pandora_test COMMAND pandora_test)

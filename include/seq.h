@@ -15,11 +15,11 @@ public:
     std::string seq;
     std::set<Minimizer> sketch;
 
-    Seq(uint32_t, std::string, std::string, uint32_t, uint32_t);
+    Seq(uint32_t, const std::string &, const std::string &, uint32_t, uint32_t);
 
     ~Seq();
 
-    void initialize(uint32_t, std::string, std::string, uint32_t, uint32_t);
+    void initialize(uint32_t, const std::string &, const std::string &, uint32_t, uint32_t);
 
     bool add_letter_to_get_next_kmer(const char &, const uint64_t &, const uint64_t &, uint32_t &, uint64_t (&)[2],
                                      uint64_t (&)[2]);

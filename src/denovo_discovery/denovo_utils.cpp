@@ -86,9 +86,9 @@ PathComponents find_interval_and_flanks_in_localpath(const Interval &interval,
 }
 
 
-std::set<MinimizerHitPtr, pComp_path>
-find_hits_inside_path(const std::set<MinimizerHitPtr, pComp_path> &read_hits, const prg::Path &local_path) {
-    std::set<MinimizerHitPtr, pComp_path> hits_inside_local_path;
+std::vector<MinimizerHitPtr>
+find_hits_inside_path(const std::vector<MinimizerHitPtr> &read_hits, const prg::Path &local_path) {
+    std::vector<MinimizerHitPtr> hits_inside_local_path;
 
     if (local_path.empty()) {
         return hits_inside_local_path;
@@ -96,16 +96,17 @@ find_hits_inside_path(const std::set<MinimizerHitPtr, pComp_path> &read_hits, co
 
     for (const auto &current_read_hit : read_hits) {
         for (const auto &interval : local_path) {
-            const auto hit_is_to_left_of_path_start { interval.start > current_read_hit->prg_path.get_end() };
+            const auto &prg_path_of_current_read_hit = current_read_hit->get_prg_path();
+            const auto hit_is_to_left_of_path_start { interval.start > prg_path_of_current_read_hit.get_end() };
             const auto hit_is_to_right_of_current_interval {
-                    interval.get_end() < current_read_hit->prg_path.get_start() };
+                    interval.get_end() < prg_path_of_current_read_hit.get_start() };
 
             if (hit_is_to_left_of_path_start) {
                 break;
             } else if (hit_is_to_right_of_current_interval) {
                 continue;
-            } else if (current_read_hit->prg_path.is_subpath(local_path)) {
-                hits_inside_local_path.insert(current_read_hit);
+            } else if (prg_path_of_current_read_hit.is_subpath(local_path)) {
+                hits_inside_local_path.push_back(current_read_hit);
                 break;
             }
         }

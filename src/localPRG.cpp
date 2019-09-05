@@ -17,9 +17,10 @@
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
+bool LocalPRG::do_path_memoization_in_nodes_along_path_method = false;
 
-LocalPRG::LocalPRG(uint32_t i, const std::string &n, const std::string &p)
-        : next_id(0), buff(" "), next_site(5), id(i), name(n), seq(p), num_hits(2, 0) {
+LocalPRG::LocalPRG(uint32_t id, const std::string &name, const std::string &seq)
+        : next_id(0), buff(" "), next_site(5), id(id), name(name), seq(seq), num_hits(2, 0) {
     std::vector<uint32_t> v; //TODO: v is not used - safe to delete - but is passed as a parameter...
     // avoid error if a prg contains only empty space as it's sequence
     if (seq.find_first_not_of("\t\n\v\f\r") != std::string::npos) {
@@ -68,7 +69,10 @@ std::string LocalPRG::string_along_path(const std::vector<LocalNodePtr> &p) {
 }
 
 std::vector<LocalNodePtr> LocalPRG::nodes_along_path(prg::Path &p) const {
-    return p.nodes_along_path(*this);
+    if (do_path_memoization_in_nodes_along_path_method)
+        return p.nodes_along_path(*this); //memoized version
+    else
+        return nodes_along_path_core(p); //non-memoized version
 }
 
 
@@ -412,6 +416,8 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
                         // add to the KmerGraph (kmer_prg) first
                         num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
                         kn = kmer_prg.add_node_with_kh(kmer_path, std::min(kh.first, kh.second), num_AT);
+
+                        //TODO: name these criticals
                         #pragma omp critical
                         { //and now to the index
                             index->add_record(std::min(kh.first, kh.second), id, kmer_path, kn->id,
@@ -461,6 +467,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
                     num_AT = std::count(kmer.begin(), kmer.end(), 'A') + std::count(kmer.begin(), kmer.end(), 'T');
                     new_kn = kmer_prg.add_node_with_kh(*(v.back()), std::min(kh.first, kh.second), num_AT);
 
+                    //TODO: name these criticals
                     #pragma omp critical
                     {
                         index->add_record(std::min(kh.first, kh.second), id, *(v.back()), new_kn->id,
@@ -502,6 +509,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index> &index, const uint3
                                      std::count(kmer.begin(), kmer.end(), 'T');
                             new_kn = kmer_prg.add_node_with_kh(*(v[j]), std::min(kh.first, kh.second), num_AT);
 
+                            //TODO: name these criticals
                             #pragma omp critical
                             {
                                 index->add_record(std::min(kh.first, kh.second), id, *(v[j]), new_kn->id,
@@ -758,13 +766,13 @@ get_covgs_along_localnode_path(const PanNodePtr pan_node, const std::vector<Loca
             end = std::min(start + interval.length, localnode_path[k]->pos.get_end());
 
             for (uint32_t l = start; l < end; ++l) {
-                assert(kmernode_ptr->id < pan_node->kmer_prg.nodes.size() and
-                       pan_node->kmer_prg.nodes[kmernode_ptr->id] != nullptr);
+                assert(kmernode_ptr->id < pan_node->kmer_prg_with_coverage.kmer_prg->nodes.size() and
+                       pan_node->kmer_prg_with_coverage.kmer_prg->nodes[kmernode_ptr->id] != nullptr);
 
                 coverages_for_each_base_in_localnode_path[k][l] = std::max(
                         coverages_for_each_base_in_localnode_path[k][l],
-                        pan_node->kmer_prg.nodes[kmernode_ptr->id]->get_covg(0, sample_id) +
-                        pan_node->kmer_prg.nodes[kmernode_ptr->id]->get_covg(1, sample_id));
+                        pan_node->kmer_prg_with_coverage.get_covg(kmernode_ptr->id, 0, sample_id) +
+                        pan_node->kmer_prg_with_coverage.get_covg(kmernode_ptr->id, 1, sample_id));
             }
             k++;
         }
@@ -852,7 +860,7 @@ LocalPRG::write_aligned_path_to_fasta(const boost::filesystem::path &filepath, c
 
 
 void LocalPRG::build_vcf(VCF &vcf, const std::vector<LocalNodePtr> &ref) const {
-    BOOST_LOG_TRIVIAL(info) << "Build VCF for prg " << name;
+    BOOST_LOG_TRIVIAL(debug) << "Build VCF for prg " << name;
     assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
 
     std::vector<LocalNodePtr> varpath;
@@ -978,7 +986,7 @@ void LocalPRG::build_vcf(VCF &vcf, const std::vector<LocalNodePtr> &ref) const {
 void LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const std::vector<LocalNodePtr> &rpath,
                                     const std::vector<LocalNodePtr> &sample_path,
                                     const std::string &sample_name) const {
-    BOOST_LOG_TRIVIAL(info) << "Update VCF with sample path";
+    BOOST_LOG_TRIVIAL(debug) << "Update VCF with sample path";
     /*for (uint i=0; i!=sample_path.size(); ++i)
     {
 	std::cout << *sample_path[i] << " ";
@@ -1176,7 +1184,7 @@ LocalPRG::find_alt_path(const std::vector<LocalNodePtr> &ref_path, const uint32_
 }
 
 
-void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg, const std::vector<KmerNodePtr> &kmer_path,
+void LocalPRG::append_kmer_covgs_in_range(const KmerGraphWithCoverage &kg, const std::vector<KmerNodePtr> &kmer_path,
                                           const std::vector<LocalNodePtr> &local_path, const uint32_t &pos_from,
                                           const uint32_t &pos_to, std::vector<uint32_t> &fwd_covgs,
                                           std::vector<uint32_t> &rev_covgs, const uint32_t &sample_id) const {
@@ -1223,9 +1231,9 @@ void LocalPRG::append_kmer_covgs_in_range(const KmerGraph &kg, const std::vector
 
         if (pos_from <= added + k and added < pos_to) {
             //std::cout << " add " << n->path << std::endl;
-            assert(n->id < kg.nodes.size() and kg.nodes[n->id] != nullptr);
-            fwd_covgs.push_back(kg.nodes.at(n->id)->get_covg(0, sample_id));
-            rev_covgs.push_back(kg.nodes.at(n->id)->get_covg(1, sample_id));
+            assert(n->id < kg.kmer_prg->nodes.size() and kg.kmer_prg->nodes[n->id] != nullptr);
+            fwd_covgs.push_back(kg.get_covg(n->id, 0, sample_id));
+            rev_covgs.push_back(kg.get_covg(n->id, 1, sample_id));
         } else if (added > pos_to)
             break;
 
@@ -1319,10 +1327,10 @@ float gaps(std::vector<uint32_t> v1, std::vector<uint32_t> v2, const uint32_t &m
 }
 
 
-void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg, const std::vector<LocalNodePtr> &ref_path,
+void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg, const std::vector<LocalNodePtr> &ref_path,
                                        const uint32_t &min_kmer_covg, const std::string &sample_name,
                                        const uint32_t &sample_id) const {
-    BOOST_LOG_TRIVIAL(info) << "Update VCF with sample covgs";
+    BOOST_LOG_TRIVIAL(debug) << "Update VCF with sample covgs";
 
     assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
     vcf.sort_records();
@@ -1330,11 +1338,6 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg, const std:
     std::vector<LocalNodePtr> alt_path;
 
     std::vector<KmerNodePtr> ref_kmer_path = kmernode_path_from_localnode_path(ref_path);
-    std::cout << "ref path: ";
-    for (const auto &n : ref_kmer_path) {
-        std::cout << n->path << " ";
-    }
-    std::cout << std::endl;
 
     std::vector<KmerNodePtr> alt_kmer_path;
 
@@ -1343,8 +1346,9 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg, const std:
     std::vector<uint32_t> alt_fwd_covgs;
     std::vector<uint32_t> alt_rev_covgs;
 
-    for (auto &record : vcf.records) {
-        std::cout << record << std::endl;
+    for (auto &recordPointer : vcf.records) {
+        auto &record = *recordPointer;
+        //std::cout << record << std::endl;
         // find corresponding ref kmers
         auto end_pos = record.pos + record.ref.length();
         if (record.ref == ".")
@@ -1406,21 +1410,20 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraph &kg, const std:
 
 void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq, PanNodePtr pnode, std::vector<KmerNodePtr> &kmp,
                                             std::vector<LocalNodePtr> &lmp, const uint32_t w, const bool bin,
-                                            const uint32_t global_covg, const uint32_t &sample_id) {
-    kmp.clear();
-    lmp.clear();
+                                            const uint32_t global_covg, const uint32_t &max_num_kmers_to_average,
+                                            const uint32_t &sample_id) const {
     if (pnode->reads.empty()) {
         BOOST_LOG_TRIVIAL(warning) << "Node " << pnode->get_name() << " has no reads";
         return;
     }
-    kmp.reserve(800);
+    kmp.reserve(800); //TODO: check this
 
-    BOOST_LOG_TRIVIAL(info) << "Find maxpath for " << pnode->get_name();
-    float ppath;
+    BOOST_LOG_TRIVIAL(debug) << "Find maxpath for " << pnode->get_name();
+    std::string prob_model = "nbin";
     if (bin)
-        ppath = pnode->kmer_prg.find_max_path(kmp, sample_id);
-    else
-        ppath = pnode->kmer_prg.find_nb_max_path(kmp, sample_id);
+        prob_model = "bin";
+    float ppath = pnode->kmer_prg_with_coverage.find_max_path(kmp, prob_model, max_num_kmers_to_average, sample_id);
+
 
     lmp.reserve(100);
     lmp = localnode_path_from_kmernode_path(kmp, w);
@@ -1428,20 +1431,20 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq, PanNodePtr pnode,
     std::vector<uint32_t> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp, sample_id);
     auto mode_covg = mode(covgs);
     auto mean_covg = mean(covgs);
-    BOOST_LOG_TRIVIAL(info) << "Found global coverage " << global_covg << " and path mode " << mode_covg << " and mean "
+    BOOST_LOG_TRIVIAL(debug) << "Found global coverage " << global_covg << " and path mode " << mode_covg << " and mean "
                             << mean_covg;
     if (global_covg > 20 and 20 * mean(covgs) < global_covg) {
-        BOOST_LOG_TRIVIAL(info) << "Skip LocalPRG " << name << " mean along max likelihood path too low";
+        BOOST_LOG_TRIVIAL(debug) << "Skip LocalPRG " << name << " mean along max likelihood path too low";
         kmp.clear();
         return;
     }
     if (global_covg > 20 and mean(covgs) > 10 * global_covg) {
-        BOOST_LOG_TRIVIAL(info) << "Skip LocalPRG " << name << " as mean along max likelihood path too high";
+        BOOST_LOG_TRIVIAL(debug) << "Skip LocalPRG " << name << " as mean along max likelihood path too high";
         kmp.clear();
         return;
     }
     if (global_covg > 20 and mode(covgs) < 3 and mean(covgs) < 3) {
-        BOOST_LOG_TRIVIAL(info) << "Skip LocalPRG " << name << " as mode and mean along max likelihood path too low";
+        BOOST_LOG_TRIVIAL(debug) << "Skip LocalPRG " << name << " as mode and mean along max likelihood path too low";
         kmp.clear();
         return;
     }
@@ -1449,7 +1452,11 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq, PanNodePtr pnode,
     std::string fq_name = pnode->get_name();
     std::string header = " log P(data|sequence)=" + std::to_string(ppath);
     std::string seq = string_along_path(lmp);
-    output_fq.add_entry(fq_name, seq, covgs, global_covg, header);
+
+    #pragma omp critical(consensus_fq)
+    {
+        output_fq.add_entry(fq_name, seq, covgs, global_covg, header);
+    }
 }
 
 
@@ -1496,10 +1503,14 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf, PanNodePtr pnode, const std:
     VCF vcf;
     build_vcf(vcf, reference_path);
     add_sample_gt_to_vcf(vcf, reference_path, lmp, sample_name);
-    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg, reference_path, min_kmer_covg, sample_name, sample_id);
+    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg_with_coverage, reference_path, min_kmer_covg, sample_name, sample_id);
     vcf.merge_multi_allelic();
     vcf.correct_dot_alleles(string_along_path(reference_path), name);
-    master_vcf.append_vcf(vcf);
+    #pragma omp critical(master_vcf)
+    {
+        master_vcf.append_vcf(vcf);
+    }
+
 }
 
 

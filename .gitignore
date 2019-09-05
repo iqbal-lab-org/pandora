@@ -1,5 +1,5 @@
 .idea
-cmake-build-debug/
+cmake-build-*/
 doc/html
 
 # Ignore the build and lib dirs
@@ -62,9 +62,6 @@ log.txt
 # and files for debugging and sending to other people
 EcoliK12_pandora*
 
-#internal scripts
-scripts/*
-
 # local directory - michael
 vm-build/
 
@@ -72,9 +69,8 @@ vm-build/
 Singularity_debug.pandora
 debug_with_singularity.sh
 pandora_debug.img
-build_debug/
+build_debug*
 build/
 data_issue*
-build_release/
-build_release_with_debug/
-build_profiling/
+build_release*
+build_profiling*

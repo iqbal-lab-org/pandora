@@ -47,7 +47,6 @@ MirrorURL: http://us.archive.ubuntu.com/ubuntu/
     cd pandora
     mkdir -p build
     cd build
-    cmake ..
+    cmake -DCMAKE_BUILD_TYPE=Release ..
     make
-    ctest -VV
     echo "export PATH=$(pwd):$PATH" >> $SINGULARITY_ENVIRONMENT

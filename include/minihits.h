@@ -9,7 +9,9 @@
 
 
 struct MinimizerHit;
+struct pComp;
 typedef std::shared_ptr<MinimizerHit> MinimizerHitPtr;
+typedef std::set<MinimizerHitPtr, pComp> MinimizerHitCluster;
 
 struct pComp {
     bool operator()(const MinimizerHitPtr &lhs, const MinimizerHitPtr &rhs);
@@ -28,30 +30,25 @@ struct pComp_path {
 };
 
 struct clusterComp {
-    bool operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<MinimizerHitPtr, pComp> rhs);
+    bool operator()(const MinimizerHitCluster lhs, const MinimizerHitCluster rhs);
 };
 
 struct clusterComp_size {
-    bool operator()(std::set<MinimizerHitPtr, pComp> lhs, std::set<MinimizerHitPtr, pComp> rhs);
+    bool operator()(const MinimizerHitCluster lhs, const MinimizerHitCluster rhs);
 };
 
 class MinimizerHits {
 public:
-    MinimizerHits(const uint32_t &num_hits = 30000);
+    MinimizerHits() = default;
+    ~MinimizerHits() = default;
 
-    ~MinimizerHits();
-
-    void clear();
-
-    //std::unordered_set<MinimizerHit*, Hash, pEq> uhits;
-    std::unordered_set<MinimizerHitPtr> uhits;
     std::set<MinimizerHitPtr, pComp> hits;
 
-    void add_hit(const uint32_t i, const Minimizer &m, const MiniRecord *r);
+    void add_hit(const uint32_t i, const Minimizer &minimizer_from_read, const MiniRecord &minimizer_from_PRG);
 
-    void sort();
+    void clear () { hits.clear(); }
 
-    friend std::ostream &operator<<(std::ostream &out, const MinimizerHits &m);
+    //friend std::ostream &operator<<(std::ostream &out, const MinimizerHits &m);
 };
 
 #endif

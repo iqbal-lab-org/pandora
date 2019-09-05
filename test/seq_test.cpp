@@ -46,7 +46,7 @@ TEST(SeqTest, sketchIncludesEveryLetter) {
 
     set<int> pos_inc;
     for (auto it = s4.sketch.begin(); it != s4.sketch.end(); ++it) {
-        for (uint32_t j = (*it).pos.start; j < (*it).pos.get_end(); ++j) {
+        for (uint32_t j = (*it).pos_of_kmer_in_read.start; j < (*it).pos_of_kmer_in_read.get_end(); ++j) {
             pos_inc.insert(j);
         }
 
@@ -61,7 +61,7 @@ TEST(SeqTest, sketchIncludesEveryLetter) {
 
     pos_inc.clear();
     for (auto it = s2.sketch.begin(); it != s2.sketch.end(); ++it) {
-        for (uint32_t j = (*it).pos.start; j < (*it).pos.get_end(); ++j) {
+        for (uint32_t j = (*it).pos_of_kmer_in_read.start; j < (*it).pos_of_kmer_in_read.get_end(); ++j) {
             pos_inc.insert(j);
         }
     }
@@ -72,7 +72,7 @@ TEST(SeqTest, sketchIncludesEveryLetter) {
 
     pos_inc.clear();
     for (auto it = s1.sketch.begin(); it != s1.sketch.end(); ++it) {
-        for (uint32_t j = (*it).pos.start; j < (*it).pos.get_end(); ++j) {
+        for (uint32_t j = (*it).pos_of_kmer_in_read.start; j < (*it).pos_of_kmer_in_read.get_end(); ++j) {
             pos_inc.insert(j);
         }
     }

@@ -198,17 +198,17 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     uint32_t c, mean_covg;
     unsigned long num_reads = 0;
     int thresh;
-    float p;
-    float nb_p = 0, nb_r = 0;
+    float binomial_parameter_p;
+    float negative_binomial_parameter_p = 0, negative_binomial_parameter_r = 0;
 
     // first we estimate error rate
     std::cout << now() << "Collect kmer coverage distribution" << std::endl;
     for (const auto &node : pangraph->nodes) {
         num_reads += node.second->covg;
         for (uint32_t i = 1;
-             i != node.second->kmer_prg.nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
+             i != node.second->kmer_prg_with_coverage.kmer_prg->nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
         {
-            c = node.second->kmer_prg.nodes[i]->get_covg(0, sample_id) + node.second->kmer_prg.nodes[i]->get_covg(1, sample_id);
+            c = node.second->kmer_prg_with_coverage.get_covg(i, 0, sample_id) + node.second->kmer_prg_with_coverage.get_covg(i, 1, sample_id);
             if (c < 1000) {
                 kmer_covg_dist[c] += 1;
             }
@@ -251,7 +251,7 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
             std::cout << e_rate << std::endl;
         }
     } else if (not bin and num_reads > 30 and covg > 2 and mean < var) {
-        fit_negative_binomial(mean, var, nb_p, nb_r);
+        fit_negative_binomial(mean, var, negative_binomial_parameter_p, negative_binomial_parameter_r);
         exp_depth_covg = mean;
     } else {
         std::cout << now() << "Insufficient coverage to update error rate" << std::endl;
@@ -262,22 +262,21 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     // find probability threshold
     std::cout << now() << "Collect kmer probability distribution" << std::endl;
     for (const auto &node : pangraph->nodes) {
-        node.second->kmer_prg.set_exp_depth_covg(exp_depth_covg);
+        node.second->kmer_prg_with_coverage.set_exp_depth_covg(exp_depth_covg);
         if (bin)
-            node.second->kmer_prg.set_p(e_rate);
+            node.second->kmer_prg_with_coverage.set_binomial_parameter_p(e_rate);
         else
-            node.second->kmer_prg.set_nb(nb_p, nb_r);
+            node.second->kmer_prg_with_coverage.set_negative_binomial_parameters(negative_binomial_parameter_p, negative_binomial_parameter_r);
 
         for (uint32_t i = 1;
-             i < node.second->kmer_prg.nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
+             i < node.second->kmer_prg_with_coverage.kmer_prg->nodes.size() - 1; ++i) //NB first and last kmer in kmergraph are null
         {
             if (bin)
-                p = node.second->kmer_prg.prob(i, sample_id);
+                binomial_parameter_p = node.second->kmer_prg_with_coverage.bin_prob(i, sample_id);
             else
-                p = node.second->kmer_prg.nb_prob(i, sample_id);
-            //cout << i << " " << p << " because has covg " << node.second->kmer_prg.nodes[i]->covg[0] << ", " << node.second->kmer_prg.nodes[i]->covg[1] << endl;
+                binomial_parameter_p = node.second->kmer_prg_with_coverage.nbin_prob(i, sample_id);
             for (int j = 0; j < 200; ++j) {
-                if ((float) j - 200 <= p and (float) j + 1 - 200 > p) {
+                if ((float) j - 200 <= binomial_parameter_p and (float) j + 1 - 200 > binomial_parameter_p) {
                     kmer_prob_dist[j] += 1;
                     break;
                 }
@@ -314,7 +313,7 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
 
     // set threshold in each kmer graph
     for (auto &node : pangraph->nodes) {
-        node.second->kmer_prg.thresh = thresh;
+        node.second->kmer_prg_with_coverage.set_thresh(thresh);
     }
     return exp_depth_covg;
 }

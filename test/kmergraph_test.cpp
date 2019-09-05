@@ -11,7 +11,7 @@
 #include <cmath>
 
 
-using namespace std;
+using namespace prg;
 
 TEST(KmerGraphTest, add_node) {
     // add node and check it's there
@@ -27,11 +27,6 @@ TEST(KmerGraphTest, add_node) {
     EXPECT_EQ(p, kg.nodes[0]->path);
     j = 0;
     EXPECT_EQ(j, kg.nodes[0]->id);
-    j = 1;
-    EXPECT_EQ(j, kg.nodes[0]->covg_new.size());
-    j = 0;
-    EXPECT_EQ(j, kg.nodes[0]->get_covg(0, sample_id));
-    EXPECT_EQ(j, kg.nodes[0]->get_covg(0, sample_id));
     EXPECT_EQ(j, kg.nodes[0]->num_AT);
 
     // add node another time and expect nothing to happen
@@ -41,11 +36,6 @@ TEST(KmerGraphTest, add_node) {
     EXPECT_EQ(p, kg.nodes[0]->path);
     j = 0;
     EXPECT_EQ(j, kg.nodes[0]->id);
-    j = 1;
-    EXPECT_EQ(j, kg.nodes[0]->covg_new.size());
-    j = 0;
-    EXPECT_EQ(j, kg.nodes[0]->get_covg(0, sample_id));
-    EXPECT_EQ(j, kg.nodes[0]->get_covg(0, sample_id));
     EXPECT_EQ(j, kg.nodes[0]->num_AT);
 
     // add a second node and check gets next id
@@ -57,8 +47,6 @@ TEST(KmerGraphTest, add_node) {
     EXPECT_EQ(p, kg.nodes[1]->path);
     j = 0;
     EXPECT_EQ(j, kg.nodes[0]->id);
-    EXPECT_EQ(j, kg.nodes[0]->get_covg(0, sample_id));
-    EXPECT_EQ(j, kg.nodes[1]->get_covg(0, sample_id));
     EXPECT_EQ(j, kg.nodes[0]->num_AT);
     j = 1;
     EXPECT_EQ(j, kg.nodes[1]->id);
@@ -79,11 +67,6 @@ TEST(KmerGraphTest, add_node_with_kh) {
     EXPECT_EQ(p, kg.nodes[0]->path);
     j = 0;
     EXPECT_EQ(j, kg.nodes[0]->id);
-    j = 1;
-    EXPECT_EQ(j, kg.nodes[0]->covg_new.size());
-    j = 0;
-    EXPECT_EQ(j, kg.nodes[0]->get_covg(0, sample_id));
-    EXPECT_EQ(j, kg.nodes[0]->get_covg(0, sample_id));
     EXPECT_EQ(j, kg.nodes[0]->num_AT);
 
     EXPECT_EQ(kh, kg.nodes[0]->khash);
@@ -111,24 +94,24 @@ TEST(KmerGraphTest, add_edge) {
     auto n3 = kg.add_node(p3);
     kg.add_edge(n1, n3);
     j = 2;
-    EXPECT_EQ(j, kg.nodes[0]->outNodes.size());
+    EXPECT_EQ(j, kg.nodes[0]->out_nodes.size());
     j = 1;
-    EXPECT_EQ(j, kg.nodes[1]->inNodes.size());
-    EXPECT_EQ(j, kg.nodes[2]->inNodes.size());
+    EXPECT_EQ(j, kg.nodes[1]->in_nodes.size());
+    EXPECT_EQ(j, kg.nodes[2]->in_nodes.size());
     j = 0;
-    EXPECT_EQ(j, kg.nodes[1]->outNodes.size());
-    EXPECT_EQ(j, kg.nodes[0]->inNodes.size());
+    EXPECT_EQ(j, kg.nodes[1]->out_nodes.size());
+    EXPECT_EQ(j, kg.nodes[0]->in_nodes.size());
 
     // repeat and nothing should happen
     kg.add_edge(n1, n3);
     j = 2;
-    EXPECT_EQ(j, kg.nodes[0]->outNodes.size());
+    EXPECT_EQ(j, kg.nodes[0]->out_nodes.size());
     j = 1;
-    EXPECT_EQ(j, kg.nodes[1]->inNodes.size());
-    EXPECT_EQ(j, kg.nodes[2]->inNodes.size());
+    EXPECT_EQ(j, kg.nodes[1]->in_nodes.size());
+    EXPECT_EQ(j, kg.nodes[2]->in_nodes.size());
     j = 0;
-    EXPECT_EQ(j, kg.nodes[1]->outNodes.size());
-    EXPECT_EQ(j, kg.nodes[0]->inNodes.size());
+    EXPECT_EQ(j, kg.nodes[1]->out_nodes.size());
+    EXPECT_EQ(j, kg.nodes[0]->in_nodes.size());
 }
 
 TEST(KmerGraphTest, clear) {
@@ -296,10 +279,10 @@ TEST(KmerGraphTest, sort_topologically) {
     set<KmerNodePtr>::iterator it;
     uint i = 0;
     for (auto c = kg.sorted_nodes.begin(); c != kg.sorted_nodes.end(); ++c) {
-        for (const auto &d: (*c)->outNodes) {
+        for (const auto &d: (*c)->out_nodes) {
             it = c;
             ++it;
-            while ((*it)->path != d->path and it != kg.sorted_nodes.end()) {
+            while ((*it)->path != d.lock()->path and it != kg.sorted_nodes.end()) {
                 it++;
             }
             EXPECT_EQ((it != kg.sorted_nodes.end()), true);
@@ -366,509 +349,6 @@ TEST(KmerGraphTest, remove_shortcut_edges){
     l2->minimizer_sketch(index, w, k);
 }
 
-TEST(KmerGraphTest, set_p) {
-    KmerGraph kg;
-    EXPECT_DEATH(kg.set_p(0.4), "");
-    kg.k = 3;
-    EXPECT_DEATH(kg.set_p(0), "");
-    EXPECT_DEATH(kg.set_p(1), "");
-    kg.set_p(0.5);
-    EXPECT_EQ(1 / exp(1.5) - 0.00001 <= kg.p and 1 / exp(1.5) + 0.00001 >= kg.p, true);
-}
-
-TEST(KmerGraphTest, prob) {
-    uint32_t sample_id = 0;
-    KmerGraph kg;
-    EXPECT_DEATH(kg.prob(0, sample_id), "");  // out of range, no nodes have been defined
-
-    std::deque<Interval> d = {Interval(0, 0)};
-    prg::Path p;
-    p.initialize(d);
-    kg.add_node(p);
-
-    EXPECT_DEATH(kg.prob(0, sample_id), ""); // still no p set
-    kg.k = 3;
-    kg.set_p(0.5);
-
-    EXPECT_DEATH(kg.prob(0, sample_id), ""); // no num_reads set
-    kg.num_reads = 1;
-
-    EXPECT_EQ(kg.nodes.size(), (uint) 1);
-    EXPECT_EQ(0, kg.prob(0, sample_id));
-
-    d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(4, 5), Interval(12, 13)};
-    p.initialize(d);
-    kg.add_node(p);
-
-    EXPECT_EQ(kg.nodes.size(), (uint) 3);
-    //EXPECT_EQ(0, prob(1));
-
-    EXPECT_EQ(kg.prob(1, sample_id), kg.prob(1, sample_id));
-    EXPECT_EQ(kg.prob(2, sample_id), kg.prob(2, sample_id));
-
-}
-
-TEST(KmerGraphTest, findMaxPathSimple) {
-    KmerGraph kg;
-    std::deque<Interval> d = {Interval(0, 0)};
-    prg::Path p;
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4, 5), Interval(8, 9), Interval(16, 16), Interval(23, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(4, 5), Interval(12, 13)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4, 5), Interval(12, 13), Interval(16, 16), Interval(23, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(19, 20), Interval(23, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(24, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    uint j = 7;
-    EXPECT_EQ(j, kg.nodes.size());
-
-    kg.add_edge(kg.nodes[0], kg.nodes[1]);
-    kg.add_edge(kg.nodes[1], kg.nodes[2]);
-    kg.add_edge(kg.nodes[0], kg.nodes[3]);
-    kg.add_edge(kg.nodes[3], kg.nodes[4]);
-    kg.add_edge(kg.nodes[0], kg.nodes[5]);
-    kg.add_edge(kg.nodes[2], kg.nodes[6]);
-    kg.add_edge(kg.nodes[4], kg.nodes[6]);
-    kg.add_edge(kg.nodes[5], kg.nodes[6]);
-
-    uint32_t sample_id = 0;
-    kg.setup_coverages(1);
-
-    kg.nodes[1]->set_covg(4, 0, sample_id);
-    kg.nodes[2]->set_covg(3, 0, sample_id);
-
-    kg.num_reads = 5;
-    kg.k = 3;
-
-    vector<KmerNodePtr> mp;
-    kg.set_p(0.01);
-    kg.find_max_path(mp, sample_id);
-    vector<KmerNodePtr> exp_order = {kg.nodes[1], kg.nodes[2]};
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
-
-    mp.clear();
-    kg.nodes[1]->set_covg(0, 0, sample_id);
-    kg.nodes[2]->set_covg(0, 0, sample_id);
-    kg.nodes[5]->set_covg(5, 1, sample_id);
-    kg.set_p(0.01);
-    kg.find_max_path(mp, sample_id);
-    exp_order = {kg.nodes[5]};
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
-}
-
-TEST(KmerGraphTest, findMaxPath2Level) {
-    KmerGraph kg;
-    std::deque<Interval> d = {Interval(0, 0)};
-    prg::Path p;
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4, 5), Interval(8, 9), Interval(16, 17)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(8, 9), Interval(16, 18)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(4, 5), Interval(12, 13)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4, 5), Interval(12, 13), Interval(16, 17)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(12, 13), Interval(16, 18)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(16, 18), Interval(23, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(19, 20), Interval(23, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(24, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    uint j = 10;
-    EXPECT_EQ(j, kg.nodes.size());
-
-    kg.add_edge(kg.nodes[0], kg.nodes[1]);
-    kg.add_edge(kg.nodes[1], kg.nodes[2]);
-    kg.add_edge(kg.nodes[2], kg.nodes[3]);
-    kg.add_edge(kg.nodes[0], kg.nodes[4]);
-    kg.add_edge(kg.nodes[4], kg.nodes[5]);
-    kg.add_edge(kg.nodes[5], kg.nodes[6]);
-    kg.add_edge(kg.nodes[3], kg.nodes[7]);
-    kg.add_edge(kg.nodes[6], kg.nodes[7]);
-    kg.add_edge(kg.nodes[0], kg.nodes[8]);
-    kg.add_edge(kg.nodes[7], kg.nodes[9]);
-    kg.add_edge(kg.nodes[8], kg.nodes[9]);
-
-    uint32_t sample_id = 0;
-    kg.setup_coverages(1);
-
-    kg.nodes[4]->set_covg(4, 0, sample_id);
-    kg.nodes[5]->set_covg(3, 0, sample_id);
-    kg.nodes[6]->set_covg(5, 0, sample_id);
-    kg.nodes[7]->set_covg(4, 0, sample_id);
-
-    kg.num_reads = 5;
-    kg.k = 3;
-
-    std::vector<KmerNodePtr> mp;
-    kg.set_p(0.01);
-    kg.find_max_path(mp, sample_id);
-    vector<KmerNodePtr> exp_order = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7]};
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
-
-    mp.clear();
-    kg.nodes[4]->set_covg(0, 0, sample_id);
-    kg.nodes[5]->set_covg(0, 0, sample_id);
-    kg.nodes[6]->set_covg(0, 0, sample_id);
-    kg.nodes[7]->set_covg(0, 0, sample_id);
-    kg.nodes[8]->set_covg(5, 1, sample_id);
-    kg.set_p(0.01);
-    kg.find_max_path(mp, sample_id);
-    exp_order = {kg.nodes[8]};
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
-}
-
-/*
-TEST(KmerGraphTest, find_max_paths_2Level) {
-    KmerGraph kg;
-    deque<Interval> d = {Interval(0, 0)};
-    Path p;
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4, 5), Interval(8, 9), Interval(16, 17)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(8, 9), Interval(16, 18)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(4, 5), Interval(12, 13)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4, 5), Interval(12, 13), Interval(16, 17)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(12, 13), Interval(16, 18)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(16, 18), Interval(23, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(19, 20), Interval(23, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(24, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    uint j = 10;
-    EXPECT_EQ(j, kg.nodes.size());
-
-    kg.add_edge(kg.nodes[0], kg.nodes[1]);
-    kg.add_edge(kg.nodes[1], kg.nodes[2]);
-    kg.add_edge(kg.nodes[2], kg.nodes[3]);
-    kg.add_edge(kg.nodes[0], kg.nodes[4]);
-    kg.add_edge(kg.nodes[4], kg.nodes[5]);
-    kg.add_edge(kg.nodes[5], kg.nodes[6]);
-    kg.add_edge(kg.nodes[3], kg.nodes[7]);
-    kg.add_edge(kg.nodes[6], kg.nodes[7]);
-    kg.add_edge(kg.nodes[0], kg.nodes[8]);
-    kg.add_edge(kg.nodes[7], kg.nodes[9]);
-    kg.add_edge(kg.nodes[8], kg.nodes[9]);
-
-    kg.nodes[4]->covg[0] += 4;
-    kg.nodes[5]->covg[0] += 3;
-    kg.nodes[6]->covg[0] += 5;
-    kg.nodes[7]->covg[0] += 4;
-    kg.nodes[8]->covg[1] += 5;
-
-    kg.num_reads = 10;
-    kg.k = 3;
-
-    kg.set_p(0.01);
-    uint32_t sample_id = 0;
-    vector<vector<KmerNodePtr>> mps = kg.find_max_paths(2, sample_id);
-    EXPECT_EQ((uint) 2, mps.size());
-    vector<KmerNodePtr> exp_order = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7]};
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mps[1]);
-
-    exp_order = {kg.nodes[8]};
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mps[0]);
-}
- */
-
-TEST(KmerGraphTest, random_paths) {
-    KmerGraph kg;
-    std::deque<Interval> d = {Interval(0, 0)};
-    prg::Path p;
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4, 5), Interval(8, 9), Interval(16, 17)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(8, 9), Interval(16, 18)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(4, 5), Interval(12, 13)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4, 5), Interval(12, 13), Interval(16, 17)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(12, 13), Interval(16, 18)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(16, 18), Interval(23, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(19, 20), Interval(23, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(24, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    uint j = 10;
-    EXPECT_EQ(j, kg.nodes.size());
-
-    kg.add_edge(kg.nodes[0], kg.nodes[1]);
-    kg.add_edge(kg.nodes[1], kg.nodes[2]);
-    kg.add_edge(kg.nodes[2], kg.nodes[3]);
-    kg.add_edge(kg.nodes[0], kg.nodes[4]);
-    kg.add_edge(kg.nodes[4], kg.nodes[5]);
-    kg.add_edge(kg.nodes[5], kg.nodes[6]);
-    kg.add_edge(kg.nodes[3], kg.nodes[7]);
-    kg.add_edge(kg.nodes[6], kg.nodes[7]);
-    kg.add_edge(kg.nodes[0], kg.nodes[8]);
-    kg.add_edge(kg.nodes[7], kg.nodes[9]);
-    kg.add_edge(kg.nodes[8], kg.nodes[9]);
-
-    vector<vector<KmerNodePtr>> rps;
-    vector<KmerNodePtr> exp_order1 = {kg.nodes[1], kg.nodes[2], kg.nodes[3], kg.nodes[7]};
-    vector<KmerNodePtr> exp_order2 = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7]};
-    vector<KmerNodePtr> exp_order3 = {kg.nodes[8]};
-
-    rps = kg.get_random_paths(10);
-    for (uint i = 0; i != rps.size(); ++i) {
-        for (uint j = 0; j != rps[i].size(); ++j) {
-            if (rps[i][j]->id == 1) {
-                EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order1, rps[i]);
-            } else if (rps[i][j]->id == 4) {
-                EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order2, rps[i]);
-            } else if (rps[i][j]->id == 8) {
-                EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order3, rps[i]);
-            }
-        }
-    }
-}
-
-TEST(KmerGraphTest, path_prob) {
-    KmerGraph kg;
-    std::deque<Interval> d = {Interval(0, 0)};
-    prg::Path p;
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4, 5), Interval(8, 9), Interval(16, 17)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(8, 9), Interval(16, 18)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(4, 5), Interval(12, 13)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4, 5), Interval(12, 13), Interval(16, 17)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(12, 13), Interval(16, 18)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(16, 18), Interval(23, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(19, 20), Interval(23, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(24, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    uint j = 10;
-    EXPECT_EQ(j, kg.nodes.size());
-
-    kg.add_edge(kg.nodes[0], kg.nodes[1]);
-    kg.add_edge(kg.nodes[1], kg.nodes[2]);
-    kg.add_edge(kg.nodes[2], kg.nodes[3]);
-    kg.add_edge(kg.nodes[0], kg.nodes[4]);
-    kg.add_edge(kg.nodes[4], kg.nodes[5]);
-    kg.add_edge(kg.nodes[5], kg.nodes[6]);
-    kg.add_edge(kg.nodes[3], kg.nodes[7]);
-    kg.add_edge(kg.nodes[6], kg.nodes[7]);
-    kg.add_edge(kg.nodes[0], kg.nodes[8]);
-    kg.add_edge(kg.nodes[7], kg.nodes[9]);
-    kg.add_edge(kg.nodes[8], kg.nodes[9]);
-
-    uint32_t sample_id = 0;
-    kg.setup_coverages(1);
-
-    kg.nodes[4]->set_covg(4, 0, sample_id);
-    kg.nodes[5]->set_covg(3, 0, sample_id);
-    kg.nodes[6]->set_covg(5, 0, sample_id);
-    kg.nodes[7]->set_covg(4, 0, sample_id);
-
-    kg.num_reads = 5;
-    kg.k = 3;
-
-    std::vector<KmerNodePtr> mp;
-    kg.set_p(0.01);
-    float mp_p = kg.find_max_path(mp, sample_id);
-    vector<KmerNodePtr> exp_order = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7], kg.nodes[9]};
-    float exp_p = 0;
-    for (uint i = 0; i != exp_order.size(); ++i) {
-        exp_p += kg.prob(exp_order[i]->id, sample_id);
-    }
-    exp_p /= 4;
-    EXPECT_EQ(mp_p, exp_p);
-
-    mp.clear();
-    kg.nodes[4]->set_covg(0, 0, sample_id);
-    kg.nodes[5]->set_covg(0, 0, sample_id);
-    kg.nodes[6]->set_covg(0, 0, sample_id);
-    kg.nodes[7]->set_covg(0, 0, sample_id);
-    kg.nodes[8]->set_covg(5, 1, sample_id);
-    kg.set_p(0.01);
-    mp_p = kg.find_max_path(mp, sample_id);
-    exp_order = {kg.nodes[8], kg.nodes[9]};
-    exp_p = 0;
-    for (uint i = 0; i != exp_order.size(); ++i) {
-        exp_p += kg.prob(exp_order[i]->id, sample_id);
-    }
-    EXPECT_EQ(mp_p, exp_p);
-}
-
-/*
-TEST(KmerGraphTest, path_probs) {
-    KmerGraph kg;
-    deque<Interval> d = {Interval(0, 0)};
-    Path p;
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4, 5), Interval(8, 9), Interval(16, 17)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(8, 9), Interval(16, 18)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(4, 5), Interval(12, 13)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(4, 5), Interval(12, 13), Interval(16, 17)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(12, 13), Interval(16, 18)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(16, 18), Interval(23, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 1), Interval(19, 20), Interval(23, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(24, 24)};
-    p.initialize(d);
-    kg.add_node(p);
-    uint j = 10;
-    EXPECT_EQ(j, kg.nodes.size());
-
-    kg.add_edge(kg.nodes[0], kg.nodes[1]);
-    kg.add_edge(kg.nodes[1], kg.nodes[2]);
-    kg.add_edge(kg.nodes[2], kg.nodes[3]);
-    kg.add_edge(kg.nodes[0], kg.nodes[4]);
-    kg.add_edge(kg.nodes[4], kg.nodes[5]);
-    kg.add_edge(kg.nodes[5], kg.nodes[6]);
-    kg.add_edge(kg.nodes[3], kg.nodes[7]);
-    kg.add_edge(kg.nodes[6], kg.nodes[7]);
-    kg.add_edge(kg.nodes[0], kg.nodes[8]);
-    kg.add_edge(kg.nodes[7], kg.nodes[9]);
-    kg.add_edge(kg.nodes[8], kg.nodes[9]);
-
-    kg.nodes[4]->covg[0] += 4;
-    kg.nodes[5]->covg[0] += 3;
-    kg.nodes[6]->covg[0] += 5;
-    kg.nodes[7]->covg[0] += 4;
-    kg.nodes[8]->covg[1] += 5;
-
-    kg.num_reads = 10;
-    kg.k = 3;
-    kg.set_p(0.01);
-    vector<vector<KmerNodePtr>> mps = kg.find_max_paths(2, <#initializer#>);
-    EXPECT_EQ((uint) 2, mps.size());
-
-    // check get right answer
-    vector<KmerNodePtr> exp_nodes = {kg.nodes[4], kg.nodes[5], kg.nodes[6], kg.nodes[7], kg.nodes[8]};
-    float exp_p = 0;
-    for (uint i = 0; i != exp_nodes.size(); ++i) {
-        exp_p += kg.prob(exp_nodes[i]->id, 5);
-    }
-    exp_p /= 5;
-    EXPECT_EQ(kg.prob_paths(mps), exp_p);
-}
- */
-
-TEST(KmerGraphTest, save_covg_dist) {
-    KmerGraph kg;
-    std::deque<Interval> d = {Interval(0, 0)};
-    prg::Path p, p1, p2;
-    p.initialize(d);
-    kg.add_node(p);
-    d = {Interval(0, 3)};
-    p1.initialize(d);
-    auto n1 = kg.add_node(p1);
-    d = {Interval(1, 4)};
-    p2.initialize(d);
-    auto n2 = kg.add_node(p2);
-    kg.add_edge(n1, n2);
-    d = {Interval(4, 4)};
-    p.initialize(d);
-    kg.add_node(p);
-    kg.setup_coverages(1);
-    kg.nodes[1]->set_covg(5, 1, 0);
-    kg.nodes[2]->set_covg(4, 1, 0);
-    kg.nodes[1]->num_AT = 4;
-    kg.nodes[2]->num_AT = 6;
-
-    kg.save_covg_dist("test_cases/kmergraph_test.covg.txt");
-}
-
 TEST(KmerGraphTest, save) {
     auto l = std::make_shared<LocalPRG>(LocalPRG(1, "test localPRG", "ACGT"));
 
@@ -881,8 +361,6 @@ TEST(KmerGraphTest, save) {
     p2.initialize(d);
     auto n2 = kg.add_node(p2);
     kg.add_edge(n1, n2);
-    kg.setup_coverages(1);
-    kg.nodes[0]->set_covg(5, 1, 0);
     EXPECT_EQ((uint) 0, kg.nodes[0]->num_AT);
 
     //kg.save("../test/test_cases/kmergraph_test.gfa");
@@ -899,8 +377,6 @@ TEST(KmerGraphTest, save_no_prg) {
     p2.initialize(d);
     auto n2 = kg.add_node(p2);
     kg.add_edge(n1, n2);
-    kg.setup_coverages(1);
-    kg.nodes[0]->set_covg(5, 1, 0);
     EXPECT_EQ((uint) 0, kg.nodes[0]->num_AT);
 
     //kg.save("../test/test_cases/kmergraph_test.gfa");
@@ -917,9 +393,6 @@ TEST(KmerGraphTest, load) {
     p2.initialize(d);
     auto n2 = kg.add_node(p2);
     kg.add_edge(n1, n2);
-
-    kg.setup_coverages(1);
-    kg.nodes[0]->set_covg(5, 1, 0);
 
     //read_kg.load("../test/test_cases/kmergraph_test.gfa");
     read_kg.load("kmergraph_test2.gfa");

@@ -169,7 +169,7 @@ void construct_debruijn_graph(std::shared_ptr<pangenome::Graph> pangraph, debrui
     std::deque<uint_least32_t> hashed_ids;
 
     for (const auto &r : pangraph->reads) {
-        if (r.second->nodes.size() < dbg.size) {
+        if (r.second->get_nodes().size() < dbg.size) {
             // can't add anything for this read
             continue;
         }
@@ -178,8 +178,8 @@ void construct_debruijn_graph(std::shared_ptr<pangenome::Graph> pangraph, debrui
         current = std::make_pair(nullptr, false);
         hashed_ids.clear();
 
-        for (uint32_t i = 0; i < r.second->nodes.size(); ++i) {
-            hashed_ids.push_back(node_plus_orientation_to_num(r.second->nodes[i]->node_id,
+        for (uint32_t i = 0; i < r.second->get_nodes().size(); ++i) {
+            hashed_ids.push_back(node_plus_orientation_to_num(r.second->get_nodes()[i].lock()->node_id,
                                                               r.second->node_orientations[i]));
 
             if (hashed_ids.size() == dbg.size) {
@@ -205,7 +205,7 @@ void remove_leaves(std::shared_ptr<pangenome::Graph> pangraph,
     std::vector<uint_least32_t> node_ids;
     std::vector<bool> node_orients;
     std::pair<uint32_t, uint32_t> pos;
-    pangenome::NodePtr node;
+    pangenome::WeakNodePtr node;
 
     while (leaves_exist) {
 
@@ -232,11 +232,11 @@ void remove_leaves(std::shared_ptr<pangenome::Graph> pangraph,
             assert(not dbg.nodes[i]->read_ids.empty());
             for (const auto &r : dbg.nodes[i]->read_ids) {
                 std::cout << "remove from read " << r << ": ";
-                for (const auto &n : pangraph->reads[r]->nodes) {
-                    std::cout << n->node_id << " ";
+                for (const auto &n : pangraph->reads[r]->get_nodes()) {
+                    std::cout << n.lock()->node_id << " ";
                 }
                 std::cout << std::endl;
-                if (pangraph->reads[r]->nodes.size() == dbg.size) {
+                if (pangraph->reads[r]->get_nodes().size() == dbg.size) {
                     std::cout << "remove read";
                     pangraph->remove_read(r);
                     std::cout << " done" << std::endl;
@@ -244,25 +244,26 @@ void remove_leaves(std::shared_ptr<pangenome::Graph> pangraph,
                     std::cout << "remove from read ";
                     pos = pangraph->reads[r]->find_position(node_ids, node_orients);
                     std::cout << " pos " << pos.first << " " << pos.second;
-                    assert(pos.first == 0 or pos.first + node_ids.size() == pangraph->reads[r]->nodes.size());
+                    assert(pos.first == 0 or pos.first + node_ids.size() == pangraph->reads[r]->get_nodes().size());
                     if (pos.first == 0) {
-                        node = pangraph->reads[r]->nodes[0];
-                        pangraph->reads[r]->remove_node(pangraph->reads[r]->nodes.begin());
-                        node->remove_read(pangraph->reads[r]);
-                    } else if (pos.first + node_ids.size() == pangraph->reads[r]->nodes.size()) {
-                        node = pangraph->reads[r]->nodes.back();
-                        pangraph->reads[r]->remove_node(--pangraph->reads[r]->nodes.end());
-                        node->remove_read(pangraph->reads[r]);
+                        node = pangraph->reads[r]->get_nodes()[0];
+                        pangraph->reads[r]->remove_node_with_iterator(pangraph->reads[r]->get_nodes().begin());
+                        node.lock()->remove_read(pangraph->reads[r]);
+                    } else if (pos.first + node_ids.size() == pangraph->reads[r]->get_nodes().size()) {
+                        node = pangraph->reads[r]->get_nodes().back();
+                        pangraph->reads[r]->remove_all_nodes_with_this_id((--pangraph->reads[r]->get_nodes().end())->lock()->node_id);
+                        node.lock()->remove_read(pangraph->reads[r]);
                     }
                     std::cout << "read is now " << r << ": ";
-                    for (const auto &n : pangraph->reads[r]->nodes) {
-                        std::cout << n->node_id << " ";
+                    for (const auto &n : pangraph->reads[r]->get_nodes()) {
+                        std::cout << n.lock()->node_id << " ";
                     }
                     std::cout << "done" << std::endl;
                 }
             }
-            if (node and node->covg == 0) {
-                pangraph->remove_node(node);
+            auto node_shared_ptr_from_weak_ptr = node.lock();
+            if (node_shared_ptr_from_weak_ptr and node_shared_ptr_from_weak_ptr->covg == 0) {
+                pangraph->remove_node(node_shared_ptr_from_weak_ptr);
             }
 
             // remove dbg node
@@ -299,7 +300,7 @@ void find_reads_along_tig(const debruijn::Graph &dbg,
     all_reads_along_tig = true;
     std::cout << "kept reads along tig: ";
     for (auto r = reads_along_tig.begin(); r != reads_along_tig.end();) {
-        if ((*r)->nodes.size() > dbg.size and
+        if ((*r)->get_nodes().size() > dbg.size and
             (*r)->find_position(pg_node_ids, pg_node_orients, dbg.size + 1).first ==
             std::numeric_limits<uint32_t>::max()) {
             r = reads_along_tig.erase(r);
@@ -325,7 +326,7 @@ void remove_middle_nodes_of_tig_from_read(std::shared_ptr<pangenome::Graph> pang
     std::pair<uint32_t, uint32_t> pos = r->find_position(node_ids, node_orients);
     std::cout << "found pos " << pos.first << " " << pos.second << std::endl;
     auto start_shift = pos.first;
-    if (pos.first > 0 or pos.second < r->nodes.size() - 1 or node_ids.size() == r->nodes.size())
+    if (pos.first > 0 or pos.second < r->get_nodes().size() - 1 or node_ids.size() == r->get_nodes().size())
         start_shift += std::max((int) 0, (int) pos.second - (int) node_ids.size()) + dbg.size;
     else {
         std::vector<uint_least32_t> sub_node_ids(node_ids.begin() + dbg.size, node_ids.end());
@@ -337,7 +338,7 @@ void remove_middle_nodes_of_tig_from_read(std::shared_ptr<pangenome::Graph> pang
 
 
     auto end_shift = pos.second;
-    if (pos.first > 0 or pos.second < r->nodes.size() - 1 or node_ids.size() == r->nodes.size()) {
+    if (pos.first > 0 or pos.second < r->get_nodes().size() - 1 or node_ids.size() == r->get_nodes().size()) {
         end_shift -= dbg.size - 1;
     } else {
         std::vector<uint_least32_t> sub_node_ids(node_ids.begin(), node_ids.end() - dbg.size);
@@ -349,9 +350,9 @@ void remove_middle_nodes_of_tig_from_read(std::shared_ptr<pangenome::Graph> pang
     }
 
     std::cout << "remove nodes " << start_shift << " to " << end_shift << std::endl;
-    auto it = r->nodes.begin() + start_shift;
+    auto it = r->get_nodes().begin() + start_shift;
     for (auto shift = start_shift; shift < end_shift; ++shift) {
-        if (it == r->nodes.end()) {
+        if (it == r->get_nodes().end()) {
             break;
         }
         it = pangenome->remove_node_from_read(it, r);
@@ -393,14 +394,14 @@ void filter_unitigs(std::shared_ptr<pangenome::Graph> pangraph,
             std::cout << "not enough reads, so remove the tig from the reads" << std::endl;
             for (const auto &r : reads_along_tig) {
                 std::cout << "read " << r->id << " was ";
-                for (const auto &n : r->nodes) {
-                    std::cout << n->node_id << " ";
+                for (const auto &n : r->get_nodes()) {
+                    std::cout << n.lock()->node_id << " ";
                 }
                 std::cout << std::endl;
                 remove_middle_nodes_of_tig_from_read(pangraph, dbg, r, node_ids, node_orients);
                 std::cout << "read " << r->id << " is now ";
-                for (const auto &n : r->nodes) {
-                    std::cout << n->node_id << " ";
+                for (const auto &n : r->get_nodes()) {
+                    std::cout << n.lock()->node_id << " ";
                 }
                 std::cout << std::endl;
             }

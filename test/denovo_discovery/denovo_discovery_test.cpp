@@ -189,7 +189,8 @@ TEST(FindPathsThroughCandidateRegionTest, endKmersDontExistInGraphReturnEmpty) {
 TEST(FindPathsThroughCandidateRegionTest, endKmerExistsInStartKmersFindPathAndCycles) {
     const int k { 9 };
     const double error_rate { 0.11 };
-    DenovoDiscovery denovo { k, error_rate };
+    const uint8_t max_insertion_size = 50;
+    DenovoDiscovery denovo { k, error_rate, max_insertion_size };
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGATGCGCTGA";
     candidate_region.pileup = { "ATGCGCTGACATGCGCTGA", "ATGCGCTGACATGCGCTGA" };

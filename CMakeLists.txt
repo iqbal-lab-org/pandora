@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 2.8.7)
 set(PROJECT_NAME_STR pandora)
 project(${PROJECT_NAME_STR} C CXX)
 
+# add a RELEASE_WITH_ASSERTS build type
+set(CMAKE_CXX_FLAGS_RELEASE_WITH_ASSERTS "-O3")
+
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
 
@@ -21,7 +24,15 @@ else ()
     message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER} has no C++11 support")
 endif ()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_SYSTEM_NO_DEPRECATED -fopenmp -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_SYSTEM_NO_DEPRECATED -Wall -Wextra")
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(MACOSX TRUE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_OPENMP")
+else ()
+    find_package(OPENMP 4.0 REQUIRED)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+endif()
 
 #print CMAKE debug and release flags to know what we are exactly doing
 #message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
@@ -69,6 +80,27 @@ target_link_libraries(${PROJECT_NAME}
         ${EXTERNAL_LIBS}
         ${CMAKE_DL_LIBS}
         ${ZLIB_LIBRARY})
+
+
+
+if(BUILD_COMPARE_INDEXES)
+    #Build compare_indexes
+    set(SRC_FILES_COMPARE_INDEXES ${SRC_FILES})
+    list(REMOVE_ITEM SRC_FILES_COMPARE_INDEXES ${PROJECT_SOURCE_DIR}/src/main.cpp)
+    add_executable(compare_indexes ${PROJECT_SOURCE_DIR}/scripts/compare_indexes/compare_indexes.cpp ${SRC_FILES_COMPARE_INDEXES})
+    add_dependencies(compare_indexes gatb)
+    set_target_properties(compare_indexes PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin/)
+    target_link_libraries(compare_indexes
+            ${CMAKE_THREAD_LIBS_INIT}
+            ${Boost_IOSTREAMS_LIBRARY}
+            ${Boost_FILESYSTEM_LIBRARY}
+            ${Boost_SYSTEM_LIBRARY}
+            ${Boost_LOG_LIBRARY}
+            ${Boost_THREAD_LIBRARY}
+            ${EXTERNAL_LIBS}
+            ${CMAKE_DL_LIBS}
+            ${ZLIB_LIBRARY})
+endif(BUILD_COMPARE_INDEXES)
 
 
 enable_testing()

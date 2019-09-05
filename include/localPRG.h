@@ -12,6 +12,7 @@
 #include "prg/path.h"
 #include "pangenome/pannode.h"
 #include "kmergraph.h"
+#include "kmergraphwithcoverage.h"
 #include "vcf.h"
 #include "fastaq.h"
 #include <boost/filesystem.hpp>
@@ -20,12 +21,15 @@
 using PanNodePtr = std::shared_ptr<pangenome::Node>;
 namespace fs = boost::filesystem;
 
+/**
+ * Represents a PRG of the many given as input to pandora
+ */
 class LocalPRG {
-    uint32_t next_id; //internal variables used in some methods - TODO: maybe this should not be an object variable
-    std::string buff; //internal variables used in some methods - TODO: maybe this should not be an object variable
-
-    friend class prg::Path; //for memoization
+private:
+    uint32_t next_id; //TODO: this should be definitely removed - it is a variable that works only in a method, not an object variable
+    std::string buff; //TODO: this should be definitely removed - it is a variable that works only in a method, not an object variable
     std::vector<LocalNodePtr> nodes_along_path_core(const prg::Path &) const;
+
 public:
     uint32_t next_site; //denotes the id of the next variant site to be processed - TODO: maybe this should not be an object variable
     uint32_t id; //id of this LocalPRG in the full graph (first gene is 0, second is 1, and so on...)
@@ -36,7 +40,9 @@ public:
     //VCF vcf;
     std::vector<uint32_t> num_hits;
 
-    LocalPRG(uint32_t, const std::string &, const std::string &);
+    static bool do_path_memoization_in_nodes_along_path_method;
+
+    LocalPRG(uint32_t id, const std::string &name, const std::string &seq);
 
     // functions used to create LocalGraph from PRG string, and to sketch graph
     bool isalpha_string(const std::string &) const;
@@ -73,8 +79,6 @@ public:
                                      const std::vector<LocalNodePtr> &,
                                      const float &) const;
 
-    void build_vcf(VCF &, const std::vector<LocalNodePtr> &) const;
-
     void add_sample_gt_to_vcf(VCF &,
                               const std::vector<LocalNodePtr> &,
                               const std::vector<LocalNodePtr> &,
@@ -85,32 +89,33 @@ public:
                                             const std::string &,
                                             const std::string &) const;
 
-    void append_kmer_covgs_in_range(const KmerGraph &, const std::vector<KmerNodePtr> &,
+    std::string random_path();
+
+    //TODO: I really feel like these methods are not responsability of a LocalPRG
+    //TODO: many of them should be in VCF class, or in the KmerGraphWithCoverage or Fastaq
+    void build_vcf(VCF &, const std::vector<LocalNodePtr> &) const;
+
+    void append_kmer_covgs_in_range(const KmerGraphWithCoverage &, const std::vector<KmerNodePtr> &,
                                     const std::vector<LocalNodePtr> &, const uint32_t &, const uint32_t &,
                                     std::vector<uint32_t> &, std::vector<uint32_t> &, const uint32_t &sample_id) const;
 
-    void add_sample_covgs_to_vcf(VCF &, const KmerGraph &, const std::vector<LocalNodePtr> &,
+    void add_sample_covgs_to_vcf(VCF &, const KmerGraphWithCoverage &, const std::vector<LocalNodePtr> &,
                                      const uint32_t &min_kmer_covg, const std::string &sample_name="sample",
                                      const uint32_t &sample_id=0) const;
 
-    void add_consensus_path_to_fastaq(Fastaq &,
-                                      PanNodePtr,
-                                      std::vector<KmerNodePtr> &,
-                                      std::vector<LocalNodePtr> &,
-                                      const uint32_t,
-                                      const bool,
-                                      const uint32_t,
-                                      const uint32_t &sample_id = 0);
+    void add_consensus_path_to_fastaq(Fastaq &, PanNodePtr, std::vector<KmerNodePtr> &, std::vector<LocalNodePtr> &,
+                                          const uint32_t, const bool, const uint32_t,
+                                          const uint32_t &max_num_kmers_to_average, const uint32_t &sample_id) const;
     std::vector<LocalNodePtr> get_valid_vcf_reference(const std::string &) const;
 
     void add_variants_to_vcf(VCF &, PanNodePtr, const std::string &, const std::vector<KmerNodePtr> &,
                                  const std::vector<LocalNodePtr> &, const uint32_t &min_kmer_covg,
                                  const uint32_t &sample_id=0, const std::string &sample_name="sample");
 
-    std::string random_path();
 
-
+    //friends definitions
     friend std::ostream &operator<<(std::ostream &out, const LocalPRG &data);
+    friend class prg::Path; //for memoization
 };
 
 bool operator<(const std::pair<std::vector<LocalNodePtr>, float> &p1,
