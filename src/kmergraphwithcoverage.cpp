@@ -197,7 +197,7 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr> &maxpath,
                                                               - max_sum_of_log_probs_from_node[considered_outnode->id] /
                                                                 length_of_maxpath_from_node[considered_outnode->id]
                                                               <= tolerance;
-            bool is_longer_path = length_of_maxpath_from_node[considered_outnode->id] > max_length;
+            bool is_longer_path = length_of_maxpath_from_node[considered_outnode->id] > (uint) max_length;
 
             if (is_terminus_and_most_likely or avg_log_likelihood_is_most_likely
                 or ( avg_log_likelihood_is_close_to_most_likely and is_longer_path)) {

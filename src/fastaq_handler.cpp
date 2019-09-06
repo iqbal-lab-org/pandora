@@ -116,7 +116,7 @@ void print(std::istream &infile) {
     }
 
     //Print read vector
-    for (i = 0; i < read.size(); i++) {
+    for (auto i = 0; i < read.size(); i++) {
         std::cout << read[i];
     }
 }
