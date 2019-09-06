@@ -454,7 +454,6 @@ int pandora_compare(int argc, char *argv[]) {
     for (uint32_t pangraph_node_index=0; pangraph_node_index < pangraphNodesAsVector.size(); ++pangraph_node_index) {
         const auto &pangraph_node_entry = pangraphNodesAsVector[pangraph_node_index];
         BOOST_LOG_TRIVIAL(debug) << "Consider next node";
-        const auto &node_id = pangraph_node_entry.first;
         pangenome::Node &pangraph_node = *pangraph_node_entry.second;
 
         const auto &prg_id = pangraph_node.prg_id;
