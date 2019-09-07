@@ -8,6 +8,11 @@
 
 namespace fs = boost::filesystem;
 
+double fit_mean_covg(const std::vector<uint32_t> &, const uint8_t);
+
+double fit_variance_covg(const std::vector<uint32_t> &, double &, const uint8_t);
+
+void fit_negative_binomial(double &, double &, float &, float &);
 
 uint32_t find_mean_covg(std::vector<uint32_t> &);
 
