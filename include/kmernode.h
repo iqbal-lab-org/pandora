@@ -66,7 +66,7 @@ public:
 
 
     //friends
-    friend std::ostream &operator<<(std::ostream &out, const KmerNode &n);
+    friend std::ostream &operator<<(std::ostream &, const KmerNode &);
     friend class KmerGraph;
     friend struct condition;
     friend struct pCompKmerNode;
@@ -74,11 +74,6 @@ public:
     friend class pangenome::Graph;
     friend class pangenome::Node;
     friend int pandora_check_kmergraph(int argc, char *argv[]);
-
-    /*
-    friend void estimate_parameters(pangenome::Graph *, const std::string &, const uint32_t, float &, const uint32_t);
-     */
-
 };
 
 #endif

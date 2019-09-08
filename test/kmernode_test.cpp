@@ -35,7 +35,13 @@ TEST(KmerNodeTest, assign) {
 
     EXPECT_EQ((uint)0, kn_prime.id);
     EXPECT_EQ((uint)0, kn_prime.num_AT);
-    EXPECT_EQ(p, kn.path);
+    EXPECT_EQ(p, kn_prime.path);
+
+    kn_prime = kn;
+
+    EXPECT_EQ((uint)0, kn_prime.id);
+    EXPECT_EQ((uint)0, kn_prime.num_AT);
+    EXPECT_EQ(p, kn_prime.path);
 }
 
 TEST(KmerNodeTest, equals) {
@@ -73,3 +79,14 @@ TEST(KmerNodeTest, equals) {
 
 }
 
+TEST(KmerNodeTest, StringStream) {
+    std::deque<Interval> d = {Interval(0, 4)};
+    prg::Path p;
+    p.initialize(d);
+    KmerNode kn(0, p);
+
+    std::ostringstream out;
+    out << kn;
+
+    EXPECT_EQ( "0 1{[0, 4)} ", out.str() );
+}
