@@ -1316,6 +1316,303 @@ TEST(LocalPRGTest, find_alt_path) {
 
 }
 
+// TODO: refactor some tests here to make use of mocks
+class LocalPRGMock : public LocalPRG {
+public:
+    LocalPRGMock() : LocalPRG(0, "", "") {}
+};
+
+
+class LocalPRGTest___get_number_of_bases_in_local_path_before_a_given_position___Fixture : public ::testing::Test {
+protected:
+    class LocalPRGMockExposesTestedMethod : public LocalPRGMock {
+    public:
+        virtual uint32_t
+        get_number_of_bases_in_local_path_before_a_given_position(const std::vector<LocalNodePtr> &local_path,
+                                                                  uint32_t position) const {
+            return LocalPRGMock::get_number_of_bases_in_local_path_before_a_given_position(local_path, position);
+        }
+    };
+
+
+    void SetUp() override {
+        local_path_with_two_intervals.push_back(std::make_shared<LocalNode>("", Interval(10, 20), 0));
+        local_path_with_two_intervals.push_back(std::make_shared<LocalNode>("", Interval(35, 45), 1));
+    }
+
+    void TearDown() override {
+    }
+
+    LocalPRGMockExposesTestedMethod local_prg_mock;
+    std::vector<LocalNodePtr> empty_local_path;
+    std::vector<LocalNodePtr> local_path_with_two_intervals;
+};
+
+
+TEST_F(LocalPRGTest___get_number_of_bases_in_local_path_before_a_given_position___Fixture,
+       empty_local_path___returns_0) {
+    uint32_t position = 30;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_in_local_path_before_a_given_position(empty_local_path,
+                                                                                               position);
+
+    uint32_t expected = 0;
+    ASSERT_EQ(actual, expected);
+}
+
+TEST_F(LocalPRGTest___get_number_of_bases_in_local_path_before_a_given_position___Fixture,
+       local_path_with_two_intervals___position_just_before_first_interval___returns_0) {
+    uint32_t position = 9;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_in_local_path_before_a_given_position(
+            local_path_with_two_intervals, position);
+
+    uint32_t expected = 0;
+    ASSERT_EQ(actual, expected);
+}
+
+TEST_F(LocalPRGTest___get_number_of_bases_in_local_path_before_a_given_position___Fixture,
+       local_path_with_two_intervals___position_at_the_start_of_first_interval___returns_0) {
+    uint32_t position = 10;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_in_local_path_before_a_given_position(
+            local_path_with_two_intervals, position);
+
+    uint32_t expected = 0;
+    ASSERT_EQ(actual, expected);
+}
+
+TEST_F(LocalPRGTest___get_number_of_bases_in_local_path_before_a_given_position___Fixture,
+       local_path_with_two_intervals___position_just_after_the_start_of_first_interval___returns_1) {
+    uint32_t position = 11;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_in_local_path_before_a_given_position(
+            local_path_with_two_intervals, position);
+
+    uint32_t expected = 1;
+    ASSERT_EQ(actual, expected);
+}
+
+TEST_F(LocalPRGTest___get_number_of_bases_in_local_path_before_a_given_position___Fixture,
+       local_path_with_two_intervals___position_just_before_the_end_of_first_interval___returns_8) {
+    uint32_t position = 18;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_in_local_path_before_a_given_position(
+            local_path_with_two_intervals, position);
+
+    uint32_t expected = 8;
+    ASSERT_EQ(actual, expected);
+}
+
+TEST_F(LocalPRGTest___get_number_of_bases_in_local_path_before_a_given_position___Fixture,
+       local_path_with_two_intervals___position_at_the_end_of_first_interval___returns_9) {
+    uint32_t position = 19;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_in_local_path_before_a_given_position(
+            local_path_with_two_intervals, position);
+
+    uint32_t expected = 9;
+    ASSERT_EQ(actual, expected);
+}
+
+TEST_F(LocalPRGTest___get_number_of_bases_in_local_path_before_a_given_position___Fixture,
+       local_path_with_two_intervals___position_just_after_the_end_of_first_interval___returns_10) {
+    uint32_t position = 20;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_in_local_path_before_a_given_position(
+            local_path_with_two_intervals, position);
+
+    uint32_t expected = 10;
+    ASSERT_EQ(actual, expected);
+}
+
+
+TEST_F(LocalPRGTest___get_number_of_bases_in_local_path_before_a_given_position___Fixture,
+       local_path_with_two_intervals___position_between_intervals___returns_10) {
+    uint32_t position = 30;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_in_local_path_before_a_given_position(
+            local_path_with_two_intervals, position);
+
+    uint32_t expected = 10;
+    ASSERT_EQ(actual, expected);
+}
+
+TEST_F(LocalPRGTest___get_number_of_bases_in_local_path_before_a_given_position___Fixture,
+       local_path_with_two_intervals___position_at_the_start_of_second_interval___returns_10) {
+    uint32_t position = 35;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_in_local_path_before_a_given_position(
+            local_path_with_two_intervals, position);
+
+    uint32_t expected = 10;
+    ASSERT_EQ(actual, expected);
+}
+
+TEST_F(LocalPRGTest___get_number_of_bases_in_local_path_before_a_given_position___Fixture,
+       local_path_with_two_intervals___position_just_after_the_start_of_second_interval___returns_11) {
+    uint32_t position = 36;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_in_local_path_before_a_given_position(
+            local_path_with_two_intervals, position);
+
+    uint32_t expected = 11;
+    ASSERT_EQ(actual, expected);
+}
+
+
+class LocalPRGTest___get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node___Fixture
+        : public ::testing::Test {
+protected:
+    class LocalPRGMockExposesTestedMethod : public LocalPRGMock {
+    public:
+        virtual uint32_t
+        get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node(const KmerNodePtr &previous_kmer_node,
+                                                                           const KmerNodePtr &current_kmer_node) const {
+            return LocalPRGMock::get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node(previous_kmer_node,
+                                                                                                    current_kmer_node);
+        }
+    };
+
+
+    void SetUp() override {
+        {
+            prg::Path path_from_3_to_30;
+            path_from_3_to_30.push_back(Interval(3, 7));
+            path_from_3_to_30.push_back(Interval(12, 20));
+            path_from_3_to_30.push_back(Interval(20, 25));
+            path_from_3_to_30.push_back(Interval(25, 30));
+            kmer_node_from_3_to_30 = std::make_shared<KmerNode>(1, path_from_3_to_30);
+        }
+
+        {
+            prg::Path path_from_3_to_50;
+            path_from_3_to_50.push_back(Interval(3, 50));
+            kmer_node_from_3_to_50 = std::make_shared<KmerNode>(2, path_from_3_to_50);
+        }
+
+        {
+            prg::Path path_from_4_to_50;
+            path_from_4_to_50.push_back(Interval(4, 50));
+            kmer_node_from_4_to_50 = std::make_shared<KmerNode>(2, path_from_4_to_50);
+        }
+
+        {
+            prg::Path path_from_7_to_50;
+            path_from_7_to_50.push_back(Interval(7, 50));
+            kmer_node_from_7_to_50 = std::make_shared<KmerNode>(2, path_from_7_to_50);
+        }
+
+        {
+            prg::Path path_from_10_to_50;
+            path_from_10_to_50.push_back(Interval(10, 50));
+            kmer_node_from_10_to_50 = std::make_shared<KmerNode>(2, path_from_10_to_50);
+        }
+
+        {
+            prg::Path path_from_15_to_50;
+            path_from_15_to_50.push_back(Interval(15, 50));
+            kmer_node_from_15_to_50 = std::make_shared<KmerNode>(2, path_from_15_to_50);
+        }
+
+
+        {
+            prg::Path path_from_40_to_50;
+            path_from_40_to_50.push_back(Interval(40, 50));
+            kmer_node_from_40_to_50 = std::make_shared<KmerNode>(2, path_from_40_to_50);
+        }
+    }
+
+    void TearDown() override {
+    }
+
+    LocalPRGMockExposesTestedMethod local_prg_mock;
+    KmerNodePtr kmer_node_from_3_to_30;
+    KmerNodePtr kmer_node_from_3_to_50;
+    KmerNodePtr kmer_node_from_4_to_50;
+    KmerNodePtr kmer_node_from_7_to_50;
+    KmerNodePtr kmer_node_from_10_to_50;
+    KmerNodePtr kmer_node_from_15_to_50;
+    KmerNodePtr kmer_node_from_40_to_50;
+};
+
+
+TEST_F(LocalPRGTest___get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node___Fixture,
+       previous_node_exactly_at_the_start_of_current_node___returns_0) {
+    KmerNodePtr previous_node = kmer_node_from_3_to_30;
+    KmerNodePtr current_node = kmer_node_from_3_to_50;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node(previous_node,
+                                                                                                        current_node);
+
+    uint32_t expected = 0;
+    ASSERT_EQ(actual, expected);
+}
+
+TEST_F(LocalPRGTest___get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node___Fixture,
+       previous_node_just_before_the_start_of_current_node___returns_1) {
+    KmerNodePtr previous_node = kmer_node_from_3_to_30;
+    KmerNodePtr current_node = kmer_node_from_4_to_50;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node(previous_node,
+                                                                                                        current_node);
+
+    uint32_t expected = 1;
+    ASSERT_EQ(actual, expected);
+}
+
+TEST_F(LocalPRGTest___get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node___Fixture,
+       current_node_right_at_the_end_of_first_interval_of_previous_node___returns_4) {
+    KmerNodePtr previous_node = kmer_node_from_3_to_30;
+    KmerNodePtr current_node = kmer_node_from_7_to_50;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node(previous_node,
+                                                                                                        current_node);
+
+    uint32_t expected = 4;
+    ASSERT_EQ(actual, expected);
+}
+
+TEST_F(LocalPRGTest___get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node___Fixture,
+       current_node_between_the_first_and_second_interval_of_previous_node___returns_4) {
+    KmerNodePtr previous_node = kmer_node_from_3_to_30;
+    KmerNodePtr current_node = kmer_node_from_10_to_50;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node(previous_node,
+                                                                                                        current_node);
+
+    uint32_t expected = 4;
+    ASSERT_EQ(actual, expected);
+}
+
+
+TEST_F(LocalPRGTest___get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node___Fixture,
+       current_node_inside_second_interval_of_previous_node___returns_7) {
+    KmerNodePtr previous_node = kmer_node_from_3_to_30;
+    KmerNodePtr current_node = kmer_node_from_15_to_50;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node(previous_node,
+                                                                                                        current_node);
+
+    uint32_t expected = 7;
+    ASSERT_EQ(actual, expected);
+}
+
+
+TEST_F(LocalPRGTest___get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node___Fixture,
+       current_node_after_previous_node___returns_22) {
+    KmerNodePtr previous_node = kmer_node_from_3_to_30;
+    KmerNodePtr current_node = kmer_node_from_40_to_50;
+
+    uint32_t actual = local_prg_mock.get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node(previous_node,
+                                                                                                        current_node);
+
+    uint32_t expected = 22;
+    ASSERT_EQ(actual, expected);
+}
+
+
+
 TEST(LocalPRGTest, append_kmer_covgs_in_range) {
     auto index = std::make_shared<Index>();
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
@@ -1342,40 +1639,29 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range) {
     };
     vector<uint32_t> fwd, rev, exp_fwd, exp_rev;
 
-    l3.append_kmer_covgs_in_range(kg, kmp, lmp, 0, 0,
-                                  fwd, rev, 0);
+    std::tie(fwd, rev) = l3.append_kmer_covgs_in_range(kg, kmp, lmp, 0, 0, 0);
     EXPECT_TRUE(fwd.empty());
     EXPECT_TRUE(rev.empty());
 
-    l3.append_kmer_covgs_in_range(kg, kmp, lmp, 0, 1,
-                                  fwd, rev, 0);
+    std::tie(fwd, rev) = l3.append_kmer_covgs_in_range(kg, kmp, lmp, 0, 1, 0);
     exp_fwd = {4};
     exp_rev = {3};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_rev, rev);
 
-    fwd.clear();
-    rev.clear();
-    l3.append_kmer_covgs_in_range(kg, kmp, lmp, 0, 2,
-                                  fwd, rev, 0);
+    std::tie(fwd, rev) = l3.append_kmer_covgs_in_range(kg, kmp, lmp, 0, 2, 0);
     exp_fwd = {4, 4};
     exp_rev = {3, 5};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_rev, rev);
 
-    fwd.clear();
-    rev.clear();
-    l3.append_kmer_covgs_in_range(kg, kmp, lmp, 0, 3,
-                                  fwd, rev, 0);
+    std::tie(fwd, rev) = l3.append_kmer_covgs_in_range(kg, kmp, lmp, 0, 3, 0);
     exp_fwd = {4, 4, 4};
     exp_rev = {3, 5, 6};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_rev, rev);
 
-    fwd.clear();
-    rev.clear();
-    l3.append_kmer_covgs_in_range(kg, kmp, lmp, 1, 2,
-                                  fwd, rev, 0);
+    std::tie(fwd, rev) = l3.append_kmer_covgs_in_range(kg, kmp, lmp, 1, 2, 0);
     exp_fwd = {4, 4};
     exp_rev = {3, 5};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
