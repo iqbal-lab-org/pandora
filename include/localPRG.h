@@ -95,9 +95,23 @@ public:
     //TODO: many of them should be in VCF class, or in the KmerGraphWithCoverage or Fastaq
     void build_vcf(VCF &, const std::vector<LocalNodePtr> &) const;
 
-    void append_kmer_covgs_in_range(const KmerGraphWithCoverage &, const std::vector<KmerNodePtr> &,
-                                    const std::vector<LocalNodePtr> &, const uint32_t &, const uint32_t &,
-                                    std::vector<uint32_t> &, std::vector<uint32_t> &, const uint32_t &sample_id) const;
+
+    virtual std::pair<std::vector<uint32_t>, std::vector<uint32_t>>
+    append_kmer_covgs_in_range(const KmerGraphWithCoverage &kmer_graph_with_coverage,
+                               const std::vector<KmerNodePtr> &kmer_path,
+                               const std::vector<LocalNodePtr> &local_path, const uint32_t &range_pos_start,
+                               const uint32_t &range_pos_end, const uint32_t &sample_id) const;
+
+protected: //helper methods of append_kmer_covgs_in_range():
+    virtual uint32_t
+    get_number_of_bases_in_local_path_before_a_given_position(const std::vector<LocalNodePtr> &local_path,
+                                                              uint32_t position) const;
+
+    virtual uint32_t
+    get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node(const KmerNodePtr &previous_kmer_node,
+                                                                       const KmerNodePtr &current_kmer_node) const;
+
+public:
 
     void add_sample_covgs_to_vcf(VCF &, const KmerGraphWithCoverage &, const std::vector<LocalNodePtr> &,
                                      const uint32_t &min_kmer_covg, const std::string &sample_name="sample",

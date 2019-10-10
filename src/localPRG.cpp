@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <numeric>
 #include <cstdlib>
+#include <utility>
 
 #include <boost/log/trivial.hpp>
 
@@ -1183,62 +1184,110 @@ LocalPRG::find_alt_path(const std::vector<LocalNodePtr> &ref_path, const uint32_
     return alt_path; // this never happens
 }
 
-
-void LocalPRG::append_kmer_covgs_in_range(const KmerGraphWithCoverage &kg, const std::vector<KmerNodePtr> &kmer_path,
-                                          const std::vector<LocalNodePtr> &local_path, const uint32_t &pos_from,
-                                          const uint32_t &pos_to, std::vector<uint32_t> &fwd_covgs,
-                                          std::vector<uint32_t> &rev_covgs, const uint32_t &sample_id) const {
-    //std::cout << "START" << std::endl;
-    assert(fwd_covgs.empty());
-    assert(rev_covgs.empty());
-    assert(kmer_path.size() > 1);
-    //std::cout << "add kmer coverages from " << pos_from  << " to " << pos_to << std::endl;
-
-    // start by adding coverage before we get to first kmer
-    uint32_t added = 0, k = 0;
-    //std::cout << "first kmer" << kmer_path[1]->path << std::endl;
-    for (const auto &n: local_path) {
-        //std::cout << n->pos << " ";
-        if (n->pos.length == 0) {
+uint32_t
+LocalPRG::get_number_of_bases_in_local_path_before_a_given_position(const std::vector<LocalNodePtr> &local_path,
+                                                                    uint32_t position) const {
+    uint32_t number_of_bases_in_local_path_before_the_position = 0;
+    for (const auto &local_node : local_path) {
+        bool local_node_is_empty = local_node->pos.length == 0;
+        if (local_node_is_empty) {
             continue;
-        } else if (n->pos.get_end() < kmer_path[1]->path.get_start()) {
-            added += n->pos.length;
-        } else if (n->pos.get_end() >= kmer_path[1]->path.get_start() and n->pos.start < kmer_path[1]->path.get_end()) {
-            added += kmer_path[1]->path.get_start() - n->pos.start;
+        }
+
+        bool local_node_starts_before_position = local_node->pos.start < position;
+        bool local_node_ends_before_position =
+                local_node->pos.get_end() <= position;
+        if (local_node_ends_before_position) {
+            number_of_bases_in_local_path_before_the_position += local_node->pos.length;
+        } else if (local_node_starts_before_position) {
+            number_of_bases_in_local_path_before_the_position += position - local_node->pos.start;
             break;
         }
     }
 
-    //std::cout << "added " << added << std::endl;
-    KmerNodePtr prev = nullptr;
-    for (const auto &n: kmer_path) {
-        //std::cout << n->path << " ";
-        if (n->path.length() == 0)
+    return number_of_bases_in_local_path_before_the_position;
+}
+
+uint32_t
+LocalPRG::get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node(const KmerNodePtr &previous_kmer_node,
+                                                                             const KmerNodePtr &current_kmer_node) const {
+    uint32_t number_of_bases_that_are_exclusively_in_the_previous_kmer_node = 0;
+    auto previous_kmer_node_path_interval_iterator = previous_kmer_node->path.begin();
+
+    bool previous_kmer_node_path_interval_ends_before_current_kmer_node =
+            previous_kmer_node_path_interval_iterator->get_end() <=
+            current_kmer_node->path.get_start();
+    while (previous_kmer_node_path_interval_ends_before_current_kmer_node) {
+        number_of_bases_that_are_exclusively_in_the_previous_kmer_node += previous_kmer_node_path_interval_iterator->length;
+        previous_kmer_node_path_interval_iterator++;
+        previous_kmer_node_path_interval_ends_before_current_kmer_node =
+                previous_kmer_node_path_interval_iterator->get_end() <=
+                current_kmer_node->path.get_start();
+    }
+
+    if (current_kmer_node->path.get_start() > previous_kmer_node_path_interval_iterator->start) {
+        number_of_bases_that_are_exclusively_in_the_previous_kmer_node +=
+                current_kmer_node->path.get_start() - previous_kmer_node_path_interval_iterator->start;
+    }
+
+    return number_of_bases_that_are_exclusively_in_the_previous_kmer_node;
+}
+
+
+std::pair<std::vector<uint32_t>, std::vector<uint32_t>>
+LocalPRG::append_kmer_covgs_in_range(const KmerGraphWithCoverage &kmer_graph_with_coverage,
+                                     const std::vector<KmerNodePtr> &kmer_path,
+                                     const std::vector<LocalNodePtr> &local_path, const uint32_t &range_pos_start,
+                                     const uint32_t &range_pos_end, const uint32_t &sample_id) const {
+    assert(kmer_path.size() >
+           1); // this is an assert because it is the programmers responsibility to ensure that the kmer_path given to this function has at least size 1
+    // TODO: this assert could be removed if we represent std::vector<KmerNodePtr> as a concept (class) in such a way that this class could only be constructed if given a large enough kmer_path (or whatever condition to build a correct kmer_path)
+    // TODO: the existence of this class would transfer the responsibility of having a correct kmer_path to its constructor, instead of here
+    // TODO: kmer_path is used in lots of places and there are some hard-coded logic about it, it is worth upgrading it to a class, this will be done later
+
+    uint32_t starting_position_of_first_non_trivial_kmer_in_kmer_path = kmer_path[1]->path.get_start(); // TODO: e.g. this could be replaced by kmer_path.get_first_non_trivial_kmer().get_start(); (for now, we have to implicitly know hat kmer_path[1] is the first non-trivial kmer)
+    uint32_t number_of_bases_in_local_path_before_first_non_trivial_kmer_in_kmer_path = get_number_of_bases_in_local_path_before_a_given_position(
+            local_path, starting_position_of_first_non_trivial_kmer_in_kmer_path);
+
+
+    std::vector<uint32_t> forward_coverages;
+    std::vector<uint32_t> reverse_coverages;
+    uint32_t number_of_bases_in_local_path_which_were_already_considered = number_of_bases_in_local_path_before_first_non_trivial_kmer_in_kmer_path;
+    uint32_t kmer_size = kmer_path[1]->path.length();
+    KmerNodePtr previous_kmer_node = nullptr;
+
+    for (const auto &current_kmer_node: kmer_path) {
+        bool current_kmer_node_is_empty = current_kmer_node->path.length() == 0;
+        if (current_kmer_node_is_empty) {
             continue;
-        else if (prev != nullptr) {
-            auto prev_interval_it = prev->path.begin();
-            while (prev_interval_it->get_end() < n->path.get_start()) {
-                added += prev_interval_it->length;
-                prev_interval_it++;
-            }
-            added += n->path.get_start() - prev_interval_it->start;
+        }
+
+        bool there_is_previous_kmer_node = previous_kmer_node != nullptr;
+        if (there_is_previous_kmer_node) {
+            uint32_t number_of_bases_that_are_exclusively_in_the_previous_kmer_node = get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node(
+                    previous_kmer_node, current_kmer_node);
+            number_of_bases_in_local_path_which_were_already_considered += number_of_bases_that_are_exclusively_in_the_previous_kmer_node;
+        }
+
+        bool is_inside_the_given_range =
+                range_pos_start <= number_of_bases_in_local_path_which_were_already_considered + kmer_size and
+                number_of_bases_in_local_path_which_were_already_considered < range_pos_end;
+        if (is_inside_the_given_range) {
+            assert(current_kmer_node->id < kmer_graph_with_coverage.kmer_prg->nodes.size() and
+                   kmer_graph_with_coverage.kmer_prg->nodes[current_kmer_node->id] != nullptr);
+            forward_coverages.push_back(kmer_graph_with_coverage.get_covg(current_kmer_node->id, 0, sample_id));
+            reverse_coverages.push_back(kmer_graph_with_coverage.get_covg(current_kmer_node->id, 1, sample_id));
         } else {
-            k = n->path.length();
-            //added += k;
+            bool has_gone_past_the_given_range =
+                    number_of_bases_in_local_path_which_were_already_considered > range_pos_end;
+            if (has_gone_past_the_given_range)
+                break;
         }
 
-        //std::cout << "pos_from:" << pos_from << " < added + k:" << added + k << " and added: " << added << " < pos_to:" << pos_to << std::endl;
-
-        if (pos_from <= added + k and added < pos_to) {
-            //std::cout << " add " << n->path << std::endl;
-            assert(n->id < kg.kmer_prg->nodes.size() and kg.kmer_prg->nodes[n->id] != nullptr);
-            fwd_covgs.push_back(kg.get_covg(n->id, 0, sample_id));
-            rev_covgs.push_back(kg.get_covg(n->id, 1, sample_id));
-        } else if (added > pos_to)
-            break;
-
-        prev = n;
+        previous_kmer_node = current_kmer_node;
     }
+
+    return std::make_pair(forward_coverages, reverse_coverages);
 }
 
 
@@ -1341,11 +1390,6 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
 
     std::vector<KmerNodePtr> alt_kmer_path;
 
-    std::vector<uint32_t> ref_fwd_covgs;
-    std::vector<uint32_t> ref_rev_covgs;
-    std::vector<uint32_t> alt_fwd_covgs;
-    std::vector<uint32_t> alt_rev_covgs;
-
     for (auto &recordPointer : vcf.records) {
         auto &record = *recordPointer;
         //std::cout << record << std::endl;
@@ -1354,8 +1398,9 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
         if (record.ref == ".")
             end_pos = record.pos;
 
-        append_kmer_covgs_in_range(kg, ref_kmer_path, ref_path, record.pos, end_pos, ref_fwd_covgs, ref_rev_covgs,
-                                   sample_id);
+        std::vector<uint32_t> ref_fwd_covgs;
+        std::vector<uint32_t> ref_rev_covgs;
+        std::tie(ref_fwd_covgs, ref_rev_covgs) = append_kmer_covgs_in_range(kg, ref_kmer_path, ref_path, record.pos, end_pos, sample_id);
 
         // find corresponding alt kmers
         // if sample has alt path, we have the kmer path for this, but otherwise we will need to work it out
@@ -1382,8 +1427,9 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
             if (alt_allele == ".")
                 end_pos = record.pos;
 
-            append_kmer_covgs_in_range(kg, alt_kmer_path, alt_path, record.pos, end_pos, alt_fwd_covgs, alt_rev_covgs,
-                                       sample_id);
+            std::vector<uint32_t> alt_fwd_covgs;
+            std::vector<uint32_t> alt_rev_covgs;
+            std::tie(alt_fwd_covgs, alt_rev_covgs) = append_kmer_covgs_in_range(kg, alt_kmer_path, alt_path, record.pos, end_pos, sample_id);
 
             record.append_format(sample_index, "MEAN_FWD_COVG", mean(alt_fwd_covgs));
             record.append_format(sample_index, "MEAN_REV_COVG", mean(alt_rev_covgs));
@@ -1392,14 +1438,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
             record.append_format(sample_index, "SUM_FWD_COVG", sum(alt_fwd_covgs));
             record.append_format(sample_index, "SUM_REV_COVG", sum(alt_rev_covgs));
             record.append_format(sample_index, "GAPS", gaps(alt_fwd_covgs, alt_rev_covgs, min_kmer_covg));
-            alt_fwd_covgs.clear();
-            alt_rev_covgs.clear();
         }
-
-        ref_fwd_covgs.clear();
-        ref_rev_covgs.clear();
-        alt_fwd_covgs.clear();
-        alt_rev_covgs.clear();
     }
 
     vcf.add_formats({ "MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG", "SUM_FWD_COVG", "SUM_REV_COVG",
