@@ -1235,10 +1235,10 @@ LocalPRG::get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node(con
 
 
 std::pair<std::vector<uint32_t>, std::vector<uint32_t>>
-LocalPRG::append_kmer_covgs_in_range(const KmerGraphWithCoverage &kmer_graph_with_coverage,
-                                     const std::vector<KmerNodePtr> &kmer_path,
-                                     const std::vector<LocalNodePtr> &local_path, const uint32_t &range_pos_start,
-                                     const uint32_t &range_pos_end, const uint32_t &sample_id) const {
+LocalPRG::get_forward_and_reverse_kmer_coverages_in_range(const KmerGraphWithCoverage &kmer_graph_with_coverage,
+                                                          const std::vector<KmerNodePtr> &kmer_path,
+                                                          const std::vector<LocalNodePtr> &local_path, const uint32_t &range_pos_start,
+                                                          const uint32_t &range_pos_end, const uint32_t &sample_id) const {
     assert(kmer_path.size() >
            1); // this is an assert because it is the programmers responsibility to ensure that the kmer_path given to this function has at least size 1
     // TODO: this assert could be removed if we represent std::vector<KmerNodePtr> as a concept (class) in such a way that this class could only be constructed if given a large enough kmer_path (or whatever condition to build a correct kmer_path)
@@ -1400,7 +1400,9 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
 
         std::vector<uint32_t> ref_fwd_covgs;
         std::vector<uint32_t> ref_rev_covgs;
-        std::tie(ref_fwd_covgs, ref_rev_covgs) = append_kmer_covgs_in_range(kg, ref_kmer_path, ref_path, record.pos, end_pos, sample_id);
+        std::tie(ref_fwd_covgs, ref_rev_covgs) = get_forward_and_reverse_kmer_coverages_in_range(kg, ref_kmer_path,
+                                                                                                 ref_path, record.pos,
+                                                                                                 end_pos, sample_id);
 
         // find corresponding alt kmers
         // if sample has alt path, we have the kmer path for this, but otherwise we will need to work it out
@@ -1429,7 +1431,10 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
 
             std::vector<uint32_t> alt_fwd_covgs;
             std::vector<uint32_t> alt_rev_covgs;
-            std::tie(alt_fwd_covgs, alt_rev_covgs) = append_kmer_covgs_in_range(kg, alt_kmer_path, alt_path, record.pos, end_pos, sample_id);
+            std::tie(alt_fwd_covgs, alt_rev_covgs) = get_forward_and_reverse_kmer_coverages_in_range(kg, alt_kmer_path,
+                                                                                                     alt_path,
+                                                                                                     record.pos,
+                                                                                                     end_pos, sample_id);
 
             record.append_format(sample_index, "MEAN_FWD_COVG", mean(alt_fwd_covgs));
             record.append_format(sample_index, "MEAN_REV_COVG", mean(alt_rev_covgs));
