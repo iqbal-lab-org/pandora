@@ -97,12 +97,12 @@ public:
 
 
     virtual std::pair<std::vector<uint32_t>, std::vector<uint32_t>>
-    append_kmer_covgs_in_range(const KmerGraphWithCoverage &kmer_graph_with_coverage,
-                               const std::vector<KmerNodePtr> &kmer_path,
-                               const std::vector<LocalNodePtr> &local_path, const uint32_t &range_pos_start,
-                               const uint32_t &range_pos_end, const uint32_t &sample_id) const;
+    get_forward_and_reverse_kmer_coverages_in_range(const KmerGraphWithCoverage &kmer_graph_with_coverage,
+                                                    const std::vector<KmerNodePtr> &kmer_path,
+                                                    const std::vector<LocalNodePtr> &local_path, const uint32_t &range_pos_start,
+                                                    const uint32_t &range_pos_end, const uint32_t &sample_id) const;
 
-protected: //helper methods of append_kmer_covgs_in_range():
+protected: //helper methods of get_forward_and_reverse_kmer_coverages_in_range():
     virtual uint32_t
     get_number_of_bases_in_local_path_before_a_given_position(const std::vector<LocalNodePtr> &local_path,
                                                               uint32_t position) const;

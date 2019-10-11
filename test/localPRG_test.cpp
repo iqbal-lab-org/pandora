@@ -1316,7 +1316,6 @@ TEST(LocalPRGTest, find_alt_path) {
 
 }
 
-// TODO: refactor some tests here to make use of mocks
 class LocalPRGMock : public LocalPRG {
 public:
     LocalPRGMock() : LocalPRG(0, "", "") {}
@@ -1613,7 +1612,7 @@ TEST_F(LocalPRGTest___get_number_of_bases_that_are_exclusively_in_the_previous_k
 
 
 
-TEST(LocalPRGTest, append_kmer_covgs_in_range) {
+TEST(LocalPRGTest, get_forward_and_reverse_kmer_coverages_in_range) {
     auto index = std::make_shared<Index>();
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
     l3.minimizer_sketch(index, 1, 3);
@@ -1639,29 +1638,29 @@ TEST(LocalPRGTest, append_kmer_covgs_in_range) {
     };
     vector<uint32_t> fwd, rev, exp_fwd, exp_rev;
 
-    std::tie(fwd, rev) = l3.append_kmer_covgs_in_range(kg, kmp, lmp, 0, 0, 0);
+    std::tie(fwd, rev) = l3.get_forward_and_reverse_kmer_coverages_in_range(kg, kmp, lmp, 0, 0, 0);
     EXPECT_TRUE(fwd.empty());
     EXPECT_TRUE(rev.empty());
 
-    std::tie(fwd, rev) = l3.append_kmer_covgs_in_range(kg, kmp, lmp, 0, 1, 0);
+    std::tie(fwd, rev) = l3.get_forward_and_reverse_kmer_coverages_in_range(kg, kmp, lmp, 0, 1, 0);
     exp_fwd = {4};
     exp_rev = {3};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_rev, rev);
 
-    std::tie(fwd, rev) = l3.append_kmer_covgs_in_range(kg, kmp, lmp, 0, 2, 0);
+    std::tie(fwd, rev) = l3.get_forward_and_reverse_kmer_coverages_in_range(kg, kmp, lmp, 0, 2, 0);
     exp_fwd = {4, 4};
     exp_rev = {3, 5};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_rev, rev);
 
-    std::tie(fwd, rev) = l3.append_kmer_covgs_in_range(kg, kmp, lmp, 0, 3, 0);
+    std::tie(fwd, rev) = l3.get_forward_and_reverse_kmer_coverages_in_range(kg, kmp, lmp, 0, 3, 0);
     exp_fwd = {4, 4, 4};
     exp_rev = {3, 5, 6};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_rev, rev);
 
-    std::tie(fwd, rev) = l3.append_kmer_covgs_in_range(kg, kmp, lmp, 1, 2, 0);
+    std::tie(fwd, rev) = l3.get_forward_and_reverse_kmer_coverages_in_range(kg, kmp, lmp, 1, 2, 0);
     exp_fwd = {4, 4};
     exp_rev = {3, 5};
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_fwd, fwd);
