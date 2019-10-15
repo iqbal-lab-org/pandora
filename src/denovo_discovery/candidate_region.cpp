@@ -139,7 +139,8 @@ CandidateRegions find_candidate_regions_for_pan_node(
 
 std::vector<Interval> identify_low_coverage_intervals(
     const std::vector<uint32_t>& covg_at_each_position,
-    const uint32_t& min_required_covg, const uint32_t& min_length)
+    const uint32_t& min_required_covg, const uint32_t& min_length,
+    const uint32_t& max_length)
 {
     std::vector<Interval> identified_regions;
     const auto predicate { [min_required_covg](
@@ -152,7 +153,11 @@ std::vector<Interval> identify_low_coverage_intervals(
     while (current != covg_at_each_position.end()) {
         previous = current;
         current = std::find_if_not(current, covg_at_each_position.end(), predicate);
-        if (current - previous >= min_length) {
+        const auto length_of_interval { current - previous };
+        const bool interval_between_min_and_max_len
+            = (length_of_interval >= min_length) and (length_of_interval <= max_length);
+
+        if (interval_between_min_and_max_len) {
             identified_regions.emplace_back(previous - first, current - first);
         }
         if (current == covg_at_each_position.end()) {
