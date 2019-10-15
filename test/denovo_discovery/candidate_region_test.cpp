@@ -342,7 +342,35 @@ TEST(IdentifyLowCoverageIntervalsTest,
 
     EXPECT_EQ(actual, expected);
 }
+TEST(IdentifyLowCoverageIntervalsTest,
+    twoRegionsBelowThresholdOneSameAsMaxLengthReturnTwoIntervals)
+{
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const std::vector<uint32_t> covgs { 4, 2, 1, 1, 1, 4, 1, 2, 4 };
 
+    const auto actual { identify_low_coverage_intervals(
+        covgs, min_covg, min_len, max_len) };
+    const std::vector<Interval> expected { Interval(1, 5), Interval(6, 8) };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(IdentifyLowCoverageIntervalsTest,
+    twoRegionsBelowThresholdOneGreaterThanMaxLengthReturnOneInterval)
+{
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const std::vector<uint32_t> covgs { 4, 2, 1, 1, 1, 2, 4, 1, 2, 4 };
+
+    const auto actual { identify_low_coverage_intervals(
+        covgs, min_covg, min_len, max_len) };
+    const std::vector<Interval> expected { Interval(7, 9) };
+
+    EXPECT_EQ(actual, expected);
+}
 TEST(FindCandidateRegionsForPanNodeTest, emptyPanNodeReturnsNoCandidates)
 {
     const auto num_samples { 1 };
