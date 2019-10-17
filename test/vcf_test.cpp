@@ -898,6 +898,47 @@ TEST(VCFTest, merge_multi_allelic) {
     EXPECT_EQ((uint) 1, vcf.records[4]->alt.size());
 }
 
+
+
+TEST(VCFTest, merge_multi_allelic___vcf_with_two_samples_and_two_records_second_record_does_not_map_to_second_sample) {
+    // declares vcf with two samples
+    VCF vcf;
+    vcf.add_samples({"sample1", "sample2"});
+
+    // add two bi-allelic records to be merged
+    vcf.add_record("chrom1", 5, "A", "G");
+    vcf.add_record("chrom1", 5, "A", "C");
+
+    // first record maps to both samples
+    vcf.records[0]->samples[0]["MEAN_FWD_COVG"] = {1, 2};
+    vcf.records[0]->samples[1]["MEAN_FWD_COVG"] = {1, 3};
+
+    // second record maps to first sample only
+    vcf.records[1]->samples[0]["MEAN_FWD_COVG"] = {1, 4};
+
+    // do the merge
+    vcf.merge_multi_allelic();
+
+    // output the vcf just for us to look at it
+    std::vector<std::string> formats = {"MEAN_FWD_COVG"};
+    vcf.add_formats(formats);
+    std::cout << vcf;
+
+    /*
+Doubts come here:
+Current output:
+chrom1	6	.	A	G	.	.	SVTYPE=SNP	GT:MEAN_FWD_COVG	.:.	.:1,3
+chrom1	6	.	A	G,C	.	.	SVTYPE=SNP	GT:MEAN_FWD_COVG	.:1,2,4	.:1,3
+
+Bugs (I think):
+1. First record should be removed, as it got merged into the second one
+2. ".:1,3" -> ".:1,3,0" - we should add a coverage of 0 if the record does not map to a sample
+     * Or should it be ".:1,3" -> ".:1,3,." : a '.' instead of 0?
+
+Expected output (? - could you please fill - it can be the str representation of the record?):
+     */
+}
+
 TEST(VCFTest, correct_dot_alleles) {
     VCF vcf;
     // at start
