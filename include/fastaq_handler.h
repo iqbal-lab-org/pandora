@@ -1,14 +1,13 @@
-#ifndef __FASTAQ_HANDLER_H_INCLUDED__   // if fastaq_handler.h hasn't been included yet...
+#ifndef __FASTAQ_HANDLER_H_INCLUDED__ // if fastaq_handler.h hasn't been included yet...
 #define __FASTAQ_HANDLER_H_INCLUDED__
 
-#include <string>
-#include <cstdint>
-#include <fstream>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/log/core.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
-
+#include <boost/log/trivial.hpp>
+#include <cstdint>
+#include <fstream>
+#include <string>
 
 namespace logging = boost::log;
 
@@ -22,7 +21,7 @@ struct FastaqHandler {
     std::string read;
     uint32_t num_reads_parsed;
 
-    FastaqHandler(const std::string &);
+    FastaqHandler(const std::string&);
 
     ~FastaqHandler();
 
@@ -32,7 +31,7 @@ struct FastaqHandler {
 
     void skip_next();
 
-    void get_id(const uint32_t &);
+    void get_id(const uint32_t&);
 
     void close();
 };

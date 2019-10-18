@@ -1,9 +1,9 @@
-#ifndef __MINIMIZER_H_INCLUDED__   // if minimizer.h hasn't been included yet...
+#ifndef __MINIMIZER_H_INCLUDED__ // if minimizer.h hasn't been included yet...
 #define __MINIMIZER_H_INCLUDED__
 
-#include <ostream>
-#include <cstdint>
 #include "interval.h"
+#include <cstdint>
+#include <ostream>
 
 /**
  * Represents a minimizer from a read or sequence (not from a graph, as MiniRecord)
@@ -19,11 +19,11 @@ struct Minimizer {
 
     ~Minimizer();
 
-    bool operator<(const Minimizer &y) const;
+    bool operator<(const Minimizer& y) const;
 
-    bool operator==(const Minimizer &y) const;
+    bool operator==(const Minimizer& y) const;
 
-    friend std::ostream &operator<<(std::ostream &out, const Minimizer &m);
+    friend std::ostream& operator<<(std::ostream& out, const Minimizer& m);
 };
 
 #endif
