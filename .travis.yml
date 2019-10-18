@@ -1,16 +1,22 @@
 language: cpp
-compiler: g++
+compiler: gcc
+os: linux
+dist: bionic
+
+include:
+  - os: linux
+    addons:
+      apt:
+        packages:
+          - clang-format-8
 
 before_install:
-- sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-- sudo apt-get update -qq
-
-install:
-- sudo apt-get install -qq g++-4.8
-- export CXX="g++-4.8"
+  - find src/ include/ test/ -type f \( -iname \*.h -o -iname \*.cpp \) | xargs -I _ clang-format -style=file -output-replacements-xml _ | grep -c "<replacement " >/dev/null
+  - if [ $? -ne 1 ]; then echo "Not all source and header files are formatted with clang-format"; exit 1 fi
 
 script:
   - bash install.sh
 
 notifications:
   email: false
+
