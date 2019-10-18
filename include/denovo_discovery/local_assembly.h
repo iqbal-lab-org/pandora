@@ -22,6 +22,7 @@ namespace fs = boost::filesystem;
 using DfsTree = std::unordered_map<std::string, GraphVector<Node>>;
 using BfsDistanceMap = std::map<std::string, uint32_t>;
 using DenovoPaths = std::vector<std::string>;
+using FoundPaths = bool;
 
 constexpr float COVG_SCALING_FACTOR { 0.1 };
 constexpr auto MAX_NUMBER_CANDIDATE_PATHS { 25 };
@@ -32,7 +33,7 @@ public:
 
     std::pair<Node, bool> get_node(const std::string& query_kmer);
 
-    std::pair<DenovoPaths, bool> get_paths_between(const Node& start_node,
+    std::pair<DenovoPaths, FoundPaths> get_paths_between(const Node& start_node,
         const Node& end_node, const uint32_t& max_path_length,
         const double& expected_coverage = 1);
 

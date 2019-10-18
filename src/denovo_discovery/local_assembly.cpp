@@ -145,7 +145,7 @@ BfsDistanceMap LocalAssemblyGraph::breadth_first_search_from(
  * The associated util function is a recursive function that generates a path down to a
  * "leaf" of the tree and then comes back up to the next unexplored branching point.
  */
-std::pair<DenovoPaths, bool> LocalAssemblyGraph::get_paths_between(
+std::pair<DenovoPaths, FoundPaths> LocalAssemblyGraph::get_paths_between(
     const Node& start_node, const Node& end_node, const uint32_t& max_path_length,
     const double& expected_coverage)
 {
@@ -209,8 +209,9 @@ void LocalAssemblyGraph::build_paths_between(const std::string& start_kmer,
             and path_accumulator.length()
                     + node_to_distance_to_the_end_node.at(start_kmer)
                 <= max_path_length);
-    if (not start_kmer_can_reach_end_kmer_with_distance_max_path_length)
+    if (not start_kmer_can_reach_end_kmer_with_distance_max_path_length) {
         return;
+    }
 
     auto start_node { buildNode(start_kmer.c_str()) };
     const auto kmer_coverage { queryAbundance(start_node) };

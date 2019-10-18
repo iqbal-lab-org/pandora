@@ -71,7 +71,7 @@ void DenovoDiscovery::find_paths_through_candidate_region(
 
             if (end_found) {
                 DenovoPaths denovo_paths;
-                bool abandoned;
+                FoundPaths abandoned;
                 std::tie(denovo_paths, abandoned) = graph.get_paths_between(
                     start_node, end_node, max_path_length, expected_kmer_covg);
 
