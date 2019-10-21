@@ -10,12 +10,23 @@ include:
         packages:
           - clang-format-8
 
-before_install:
-  - find src/ include/ test/ -type f \( -iname \*.h -o -iname \*.cpp \) | xargs -I _ clang-format -style=file -output-replacements-xml _ | grep -c "<replacement " >/dev/null
-  - if [ $? -ne 1 ]; then echo "Not all source and header files are formatted with clang-format"; exit 1; fi
+jobs:
+  include:
+    - stage: "Lint"                # naming the Tests stage
+      name: "Format"            # names the first Tests stage job
+      script:
+        - find src/ include/ test/ -type f \( -iname \*.h -o -iname \*.cpp \) | xargs -I _ clang-format -style=file -output-replacements-xml _ | grep -c "<replacement " >/dev/null
+        - if [ $? -ne 1 ]; then echo "Not all source and header files are formatted with clang-format"; exit 1; fi
+    - stage: "Build"
+      script: echo "This is where we build Pandora"
+    - stage: "Test"
+      name: "Unit tests"
+      script: echo "This is where we run the unit tests"
 
-script:
-  - bash install.sh
+stages:
+  - "Lint"
+  - "Build"
+  - "Test"
 
 notifications:
   email: false
