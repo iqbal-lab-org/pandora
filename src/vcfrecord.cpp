@@ -4,7 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
-
+#include <sstream>
 #include <boost/log/trivial.hpp>
 
 #include "vcfrecord.h"
@@ -382,45 +382,46 @@ bool VCFRecord::operator<(const VCFRecord &y) const {
 }
 
 
-std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
-    out << m.chrom << "\t" << m.pos + 1 << "\t" << m.id << "\t" << m.ref << "\t";
+std::string VCFRecord::to_string() const {
+    std::stringstream out;
+    out << this->chrom << "\t" << this->pos + 1 << "\t" << this->id << "\t" << this->ref << "\t";
 
-    if (m.alt.empty()) {
+    if (this->alt.empty()) {
         out << ".";
     } else {
         std::string buffer = "";
-        for (const auto &a : m.alt) {
+        for (const auto &a : this->alt) {
             out << buffer << a;
             buffer = ",";
         }
     }
-    out << "\t" << m.qual << "\t"
-        << m.filter << "\t" << m.info << "\t";
+    out << "\t" << this->qual << "\t"
+        << this->filter << "\t" << this->info << "\t";
 
     std::string last_format;
-    if (!m.format.empty())
-        last_format = m.format[m.format.size() - 1];
+    if (!this->format.empty())
+        last_format = this->format[this->format.size() - 1];
 
-    for (const auto &s : m.format) {
+    for (const auto &s : this->format) {
         out << s;
         if (s != last_format)
             out << ":";
     }
 
-    for (uint_least16_t i = 0; i < m.samples.size(); ++i) {
+    for (uint_least16_t i = 0; i < this->samples.size(); ++i) {
         out << "\t";
-        for (const auto &f : m.format) {
+        for (const auto &f : this->format) {
             std::string buffer = "";
-            if (m.samples[i].find(f) != m.samples[i].end() and not m.samples[i].at(f).empty()) {
-                for (const auto &a : m.samples.at(i).at(f)) {
+            if (this->samples[i].find(f) != this->samples[i].end() and not this->samples[i].at(f).empty()) {
+                for (const auto &a : this->samples.at(i).at(f)) {
                     out << buffer << +a;
                     buffer = ",";
                 }
 
-            } else if (m.regt_samples.size() > i
-                       and m.regt_samples[i].find(f) != m.regt_samples[i].end()
-                       and not m.regt_samples[i].at(f).empty()) {
-                for (const auto &a : m.regt_samples.at(i).at(f)) {
+            } else if (this->regt_samples.size() > i
+                       and this->regt_samples[i].find(f) != this->regt_samples[i].end()
+                       and not this->regt_samples[i].at(f).empty()) {
+                for (const auto &a : this->regt_samples.at(i).at(f)) {
                     out << buffer << +a;
                     buffer = ",";
                 }
@@ -433,7 +434,12 @@ std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
         }
     }
 
-    out << std::endl;
+    return out.str();
+}
+
+
+std::ostream &operator<<(std::ostream &out, VCFRecord const &vcf_record) {
+    out << vcf_record.to_string();
     return out;
 }
 

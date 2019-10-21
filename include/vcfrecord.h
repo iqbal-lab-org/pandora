@@ -72,9 +72,33 @@ struct VCFRecord {
 
     bool operator<(const VCFRecord &y) const;
 
+    std::string to_string() const;
     friend std::ostream &operator<<(std::ostream &out, const VCFRecord &m);
 
     friend std::istream &operator>>(std::istream &in, VCFRecord &m);
+
+
+    inline bool graph_type_is_simple() const {
+        return this->info.find("GRAPHTYPE=SIMPLE") != std::string::npos;
+    }
+    inline bool graph_type_is_nested() const {
+        return this->info.find("GRAPHTYPE=NESTED") != std::string::npos;
+    }
+    inline bool graph_type_has_too_many_alts() const {
+        return this->info.find("GRAPHTYPE=TOO_MANY_ALTS") != std::string::npos;
+    }
+    inline bool svtype_is_SNP() const {
+        return this->info.find("SVTYPE=SNP") != std::string::npos;
+    }
+    inline bool svtype_is_indel() const {
+        return this->info.find("SVTYPE=INDEL") != std::string::npos;
+    }
+    inline bool svtype_is_PH_SNPs() const {
+        return this->info.find("SVTYPE=PH_SNPs") != std::string::npos;
+    }
+    inline bool svtype_is_complex() const {
+        return this->info.find("SVTYPE=COMPLEX") != std::string::npos;
+    }
 };
 
 #endif

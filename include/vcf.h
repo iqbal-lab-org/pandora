@@ -74,13 +74,6 @@ public:
 
     void make_gt_compatible();
 
-    std::string header();
-
-    void save(const std::string &, bool simple = false, bool complexgraph = false, bool toomanyalts = false,
-              bool snp = false, bool indel = false, bool phsnps = false, bool complexvar = false);
-
-    void load(const std::string &);
-
     bool operator==(const VCF &y) const;
 
     bool operator!=(const VCF &y) const;
@@ -92,7 +85,15 @@ public:
      */
     static void concatenateVCFs(const std::vector<std::string> &VCFPathsToBeConcatenated, const std::string &sink);
 
-    friend std::ostream &operator<<(std::ostream &out, const VCF &m);
+
+
+    // serialization operations
+    void save(const std::string &filepath, bool output_dot_allele = false, bool graph_is_simple = true, bool graph_is_nested = true, bool graph_has_too_many_alts = true, bool sv_type_is_snp = true, bool sv_type_is_indel = true,
+              bool sv_type_is_ph_snps = true, bool sv_type_is_complex = true);
+    virtual std::string header() const;
+    std::string to_string(bool output_dot_allele = false, bool graph_is_simple = true, bool graph_is_nested = true, bool graph_has_too_many_alts = true, bool sv_type_is_snp = true, bool sv_type_is_indel = true,
+                          bool sv_type_is_ph_snps = true, bool sv_type_is_complex = true);
+    void load(const std::string &filepath);
 };
 
 #endif

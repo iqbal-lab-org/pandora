@@ -129,7 +129,7 @@ void pangenome::Node::construct_multisample_vcf(VCF &master_vcf,
     prg->build_vcf(vcf, vcf_reference_path);
     vcf.add_samples(master_vcf.samples);
 
-    BOOST_LOG_TRIVIAL(debug) << "Initial build:\n" << vcf;
+    BOOST_LOG_TRIVIAL(debug) << "Initial build:\n" << vcf.to_string() << std::endl;
 
     for (const auto &sample: samples) {
         uint32_t count = 0;
@@ -137,10 +137,10 @@ void pangenome::Node::construct_multisample_vcf(VCF &master_vcf,
             const auto sample_local_path = prg->localnode_path_from_kmernode_path(sample_kmer_path, w);
             if (count == 0) {
                 prg->add_sample_gt_to_vcf(vcf, vcf_reference_path, sample_local_path, sample->name);
-                BOOST_LOG_TRIVIAL(debug) << "With sample added:\n" << vcf;
+                BOOST_LOG_TRIVIAL(debug) << "With sample added:\n" << vcf.to_string();
                 prg->add_sample_covgs_to_vcf(vcf, kmer_prg_with_coverage, vcf_reference_path, min_kmer_covg, sample->name,
                                              sample->sample_id);
-                BOOST_LOG_TRIVIAL(debug) << "With sample coverages added:\n" << vcf;
+                BOOST_LOG_TRIVIAL(debug) << "With sample coverages added:\n" << vcf.to_string();
             } else {
                 auto path_specific_sample_name = sample->name + std::to_string(count);
                 prg->add_sample_gt_to_vcf(vcf, vcf_reference_path, sample_local_path, path_specific_sample_name);
@@ -152,9 +152,9 @@ void pangenome::Node::construct_multisample_vcf(VCF &master_vcf,
         }
     }
     vcf.merge_multi_allelic();
-    BOOST_LOG_TRIVIAL(debug) << "After merging alleles:\n" << vcf;
+    BOOST_LOG_TRIVIAL(debug) << "After merging alleles:\n" << vcf.to_string();
     vcf.correct_dot_alleles(prg->string_along_path(vcf_reference_path), prg->name);
-    BOOST_LOG_TRIVIAL(debug) << "After fixing dot alleles:\n" << vcf;
+    BOOST_LOG_TRIVIAL(debug) << "After fixing dot alleles:\n" << vcf.to_string();
     master_vcf.append_vcf(vcf);
 }
 

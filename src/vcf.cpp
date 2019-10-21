@@ -493,7 +493,18 @@ void VCF::make_gt_compatible() {
     }
 }
 
-std::string VCF::header() {
+void VCF::save(const std::string &filepath, bool output_dot_allele, bool graph_is_simple, bool graph_is_nested, bool graph_has_too_many_alts, bool sv_type_is_snp, bool sv_type_is_indel,
+               bool sv_type_is_ph_snps, bool sv_type_is_complex) {
+    BOOST_LOG_TRIVIAL(debug) << "Saving VCF to " << filepath;
+    std::ofstream handle;
+    handle.open(filepath);
+    handle << this->to_string(output_dot_allele, graph_is_simple, graph_is_nested, graph_has_too_many_alts, sv_type_is_snp, sv_type_is_indel,
+            sv_type_is_ph_snps, sv_type_is_complex);
+    handle.close();
+    BOOST_LOG_TRIVIAL(debug) << "Finished saving " << this->records.size() << " entries to file";
+}
+
+std::string VCF::header() const {
     // find date
     time_t t = time(0);
     char mbstr[10];
@@ -535,47 +546,39 @@ std::string VCF::header() {
         header += "\t" + samples[i];
     }
     header += "\n";
-    std::cout << header << std::endl;
     return header;
 }
 
-// NB in the absence of filter flags being set to true, all results are saved. If one or more filter flags for SVTYPE are set, 
-// then only those matching the filter are saved. Similarly for GRAPHTYPE.
-void VCF::save(const std::string &filepath, bool simple, bool complexgraph, bool toomanyalts, bool snp, bool indel,
-               bool phsnps, bool complexvar) {
-    /*if (samples.empty())
-    {
-	    cout << now() << "Did not save VCF for sample" << endl;
-	    return;
-    }*/
-    BOOST_LOG_TRIVIAL(debug) << "Saving VCF to " << filepath;
+std::string VCF::to_string(bool output_dot_allele, bool graph_is_simple, bool graph_is_nested, bool graph_has_too_many_alts, bool sv_type_is_snp, bool sv_type_is_indel,
+                           bool sv_type_is_ph_snps, bool sv_type_is_complex) {
+    std::stringstream out;
+    out << header();
 
-    // open and write header
-    std::ofstream handle;
-    handle.open(filepath);
-
-    handle << header();
-
+    // TODO: a side-effect of saving a VCF is sorting it, this might not be desirable
+    // TODO: remove this side effect or always keep the VCF sorted
     sort_records();
 
-    for (uint32_t i = 0; i != records.size(); ++i) {
-        if (records[i]->contains_dot_allele())
-            continue;
+    for (const auto &record : this->records) {
+        bool record_has_dot_allele_and_should_be_output = output_dot_allele and record->contains_dot_allele();
 
-        if (((!simple and !complexgraph) or
-             (simple and records[i]->info.find("GRAPHTYPE=SIMPLE") != std::string::npos) or
-             (complexgraph and records[i]->info.find("GRAPHTYPE=NESTED") != std::string::npos) or
-             (toomanyalts and records[i]->info.find("GRAPHTYPE=TOO_MANY_ALTS") != std::string::npos)) and
-            ((!snp and !indel and !phsnps and !complexvar) or
-             (snp and records[i]->info.find("SVTYPE=SNP") != std::string::npos) or
-             (indel and records[i]->info.find("SVTYPE=INDEL") != std::string::npos) or
-             (phsnps and records[i]->info.find("SVTYPE=PH_SNPs") != std::string::npos) or
-             (complexvar and records[i]->info.find("SVTYPE=COMPLEX") != std::string::npos))) {
-            handle << *(records[i]);
+
+        bool graph_type_condition_is_satisfied = (graph_is_simple and record->graph_type_is_simple()) or
+                                                 (graph_is_nested and record->graph_type_is_nested()) or
+                                                 (graph_has_too_many_alts and record->graph_type_has_too_many_alts());
+        bool sv_type_condition_is_satisfied = (sv_type_is_snp and record->svtype_is_SNP()) or
+                                              (sv_type_is_indel and record->svtype_is_indel()) or
+                                              (sv_type_is_ph_snps and record->svtype_is_PH_SNPs()) or
+                                              (sv_type_is_complex and record->svtype_is_complex());
+        bool graph_and_sv_type_conditions_are_satisfied = graph_type_condition_is_satisfied and sv_type_condition_is_satisfied;
+
+        bool record_should_be_output = record_has_dot_allele_and_should_be_output or graph_and_sv_type_conditions_are_satisfied;
+
+        if (record_should_be_output) {
+            out << record->to_string() << std::endl;
         }
     }
-    handle.close();
-    BOOST_LOG_TRIVIAL(debug) << "Finished saving " << records.size() << " entries to file";
+
+    return out.str();
 }
 
 void VCF::load(const std::string &filepath) {
@@ -638,11 +641,4 @@ void VCF::concatenateVCFs(const std::vector<std::string> &VCFPathsToBeConcatenat
         inFile.close();
     }
     outFile.close();
-}
-
-std::ostream &operator<<(std::ostream &out, VCF const &m) {
-    for (const auto &record : m.records) {
-        out << (*record);
-    }
-    return out;
 }

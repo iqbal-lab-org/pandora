@@ -922,7 +922,7 @@ TEST(VCFTest, merge_multi_allelic___vcf_with_two_samples_and_two_records_second_
     // output the vcf just for us to look at it
     std::vector<std::string> formats = {"MEAN_FWD_COVG"};
     vcf.add_formats(formats);
-    std::cout << vcf;
+
 
     /*
 Doubts come here:
@@ -1089,33 +1089,188 @@ TEST(VCFTest, equals) {
     EXPECT_EQ((vcf3 == vcf), false);
 }
 
-TEST(VCFTest, save) {
-    VCF vcf;
-    vcf.add_record("chrom1", 5, "A", "G");
-    vcf.add_record("chrom1", 46, "T", "TA");
-    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
-    std::vector<std::string> empty = {};
-    vcf.add_record(vr, empty);
-    uint j = 3;
-    EXPECT_EQ(j, vcf.records.size());
+class VCFTest___serialization___Fixture : public ::testing::Test {
+protected:
+    VCF vcf_with_zero_records;
+    VCF vcf_with_one_record;
+    VCF vcf_with_three_records;
+    void SetUp() override {
+        {
+            vcf_with_one_record.add_record("chrom1", 5, "A", "G", "GRAPHTYPE=SIMPLE;SVTYPE=SNP");
+        }
 
-    vcf.save("vcf_test.vcf");
+        {
+            vcf_with_three_records.add_record("chrom1", 5, "A", "G", "GRAPHTYPE=SIMPLE;SVTYPE=SNP");
+            vcf_with_three_records.add_record("chrom1", 46, "T", "TA", "GRAPHTYPE=SIMPLE;SVTYPE=SNP");
+            VCFRecord vcf_record = VCFRecord("chrom1", 79, "C", "G", "GRAPHTYPE=SIMPLE;SVTYPE=SNP");
+            std::vector<std::string> empty_sample_names = {};
+            vcf_with_three_records.add_record(vcf_record, empty_sample_names);
+        }
+    }
+
+    void TearDown() override {
+    }
+};
+
+TEST_F(VCFTest___serialization___Fixture, save_vcf_with_zero_records___load_vcf___expect_equal_vcf) {
+    vcf_with_zero_records.save("vcf_serialization_test_zero.vcf");
+
+    // TODO: use factory pattern instead
+    VCF actual;
+    actual.load("vcf_serialization_test_zero.vcf");
+
+    VCF& expected = vcf_with_zero_records;
+    EXPECT_EQ(actual, expected);
 }
 
-TEST(VCFTest, load) {
-    VCF vcf, vcf1;
-    vcf.add_record("chrom1", 5, "A", "G");
-    vcf.add_record("chrom1", 46, "T", "TA");
-    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
-    std::vector<std::string> empty = {};
-    vcf.add_record(vr, empty);
-    uint j = 3;
-    EXPECT_EQ(j, vcf.records.size());
+TEST_F(VCFTest___serialization___Fixture, save_vcf_with_one_record___load_vcf___expect_equal_vcf) {
+    vcf_with_one_record.save("vcf_serialization_test_one.vcf");
 
-    vcf1.load("vcf_test.vcf");
+    // TODO: use factory pattern instead
+    VCF actual;
+    actual.load("vcf_serialization_test_one.vcf");
 
-    EXPECT_EQ(vcf == vcf1, true);
+    VCF& expected = vcf_with_one_record;
+    EXPECT_EQ(actual, expected);
 }
+
+
+TEST_F(VCFTest___serialization___Fixture, save_vcf_with_three_records___load_vcf___expect_equal_vcf) {
+    vcf_with_three_records.save("vcf_serialization_test_three.vcf");
+
+    // TODO: use factory pattern instead
+    VCF actual;
+    actual.load("vcf_serialization_test_three.vcf");
+
+    VCF& expected = vcf_with_three_records;
+    EXPECT_EQ(actual, expected);
+}
+
+
+class VCFTest___to_string___Fixture : public ::testing::Test {
+protected:
+    class VCF_DummyHeader_Mock : public VCF {
+    public:
+        using VCF::VCF;
+        const std::string dummy_header {"##Dummy_header;\n"};
+        virtual std::string header() const {
+            return dummy_header;
+        }
+    };
+
+    std::shared_ptr<VCF> vcf_with_all_records;
+    VCFRecord graph_type_is_simple_sv_is_snp;
+    VCFRecord graph_type_is_nested_sv_is_snp;
+    VCFRecord graph_type_has_too_many_alts_sv_is_snp;
+    VCFRecord graph_type_is_simple_sv_is_indel;
+    VCFRecord graph_type_is_simple_sv_is_ph_snps;
+    VCFRecord graph_type_is_simple_sv_is_complex;
+    VCFRecord record_with_dot_allele;
+    std::vector<std::string> sample_names;
+    void SetUp() override {
+        graph_type_is_simple_sv_is_snp = VCFRecord("0", 0, "0", "0", "SVTYPE=SNP", "GRAPHTYPE=SIMPLE");
+        graph_type_is_nested_sv_is_snp = VCFRecord("0", 1, "0", "0", "SVTYPE=SNP", "GRAPHTYPE=NESTED");
+        graph_type_has_too_many_alts_sv_is_snp = VCFRecord("0", 2, "0", "0", "SVTYPE=SNP", "GRAPHTYPE=TOO_MANY_ALTS");
+        graph_type_is_simple_sv_is_indel = VCFRecord("0", 3, "0", "0", "SVTYPE=INDEL", "GRAPHTYPE=SIMPLE");
+        graph_type_is_simple_sv_is_ph_snps = VCFRecord("0", 4, "0", "0", "SVTYPE=PH_SNPs", "GRAPHTYPE=SIMPLE");
+        graph_type_is_simple_sv_is_complex = VCFRecord("0", 5, "0", "0", "SVTYPE=COMPLEX", "GRAPHTYPE=SIMPLE");
+        vcf_with_all_records = std::make_shared<VCF_DummyHeader_Mock>();
+        record_with_dot_allele = VCFRecord("0", 6, ".", ".", ".", ".");
+        vcf_with_all_records->add_record(graph_type_is_simple_sv_is_snp, sample_names);
+        vcf_with_all_records->add_record(graph_type_is_nested_sv_is_snp, sample_names);
+        vcf_with_all_records->add_record(graph_type_has_too_many_alts_sv_is_snp, sample_names);
+        vcf_with_all_records->add_record(graph_type_is_simple_sv_is_indel, sample_names);
+        vcf_with_all_records->add_record(graph_type_is_simple_sv_is_ph_snps, sample_names);
+        vcf_with_all_records->add_record(graph_type_is_simple_sv_is_complex, sample_names);
+        vcf_with_all_records->add_record(record_with_dot_allele, sample_names);
+    }
+
+    void TearDown() override {
+    }
+};
+
+TEST_F(VCFTest___to_string___Fixture, graph_type_is_simple_sv_is_snp) {
+    std::string actual = vcf_with_all_records->to_string(false, true, false, false, true, false, false, false);
+
+    std::string expected = "##Dummy_header;\n0\t1\t.\t0\t0\t.\t.\tSVTYPE=SNP;GRAPHTYPE=SIMPLE\tGT\n";
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(VCFTest___to_string___Fixture, graph_type_is_nested_sv_is_snp) {
+    std::string actual = vcf_with_all_records->to_string(false, false, true, false, true, false, false, false);
+
+    std::string expected = "##Dummy_header;\n0\t2\t.\t0\t0\t.\t.\tSVTYPE=SNP;GRAPHTYPE=NESTED\tGT\n";
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(VCFTest___to_string___Fixture, graph_type_has_too_many_alts_sv_is_snp) {
+    std::string actual = vcf_with_all_records->to_string(false, false, false, true, true, false, false, false);
+
+    std::string expected = "##Dummy_header;\n0\t3\t.\t0\t0\t.\t.\tSVTYPE=SNP;GRAPHTYPE=TOO_MANY_ALTS\tGT\n";
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(VCFTest___to_string___Fixture, graph_type_is_simple_sv_is_indel) {
+    std::string actual = vcf_with_all_records->to_string(false, true, false, false, false, true, false, false);
+
+    std::string expected = "##Dummy_header;\n0\t4\t.\t0\t0\t.\t.\tSVTYPE=INDEL;GRAPHTYPE=SIMPLE\tGT\n";
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(VCFTest___to_string___Fixture, graph_type_is_simple_sv_is_ph_snps) {
+    std::string actual = vcf_with_all_records->to_string(false, true, false, false, false, false, true, false);
+
+    std::string expected = "##Dummy_header;\n0\t5\t.\t0\t0\t.\t.\tSVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE\tGT\n";
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(VCFTest___to_string___Fixture, graph_type_is_simple_sv_is_complex) {
+    std::string actual = vcf_with_all_records->to_string(false, true, false, false, false, false, false, true);
+
+    std::string expected = "##Dummy_header;\n0\t6\t.\t0\t0\t.\t.\tSVTYPE=COMPLEX;GRAPHTYPE=SIMPLE\tGT\n";
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST_F(VCFTest___to_string___Fixture, record_with_dot_allele) {
+    std::string actual = vcf_with_all_records->to_string(true, false, false, false, false, false, false, false);
+
+    std::string expected = "##Dummy_header;\n0\t7\t.\t.\t.\t.\t.\t.;.\tGT\n";
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST_F(VCFTest___to_string___Fixture, all_records_filtered_out) {
+    std::string actual = vcf_with_all_records->to_string(false, false, false, false, false, false, false, false);
+
+    std::string expected = "##Dummy_header;\n";
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST_F(VCFTest___to_string___Fixture, no_records_filtered_out) {
+    std::string actual = vcf_with_all_records->to_string(true, true, true, true, true, true, true, true);
+
+    std::string expected = "##Dummy_header;\n";
+    expected += "0\t1\t.\t0\t0\t.\t.\tSVTYPE=SNP;GRAPHTYPE=SIMPLE\tGT\n";
+    expected += "0\t2\t.\t0\t0\t.\t.\tSVTYPE=SNP;GRAPHTYPE=NESTED\tGT\n";
+    expected += "0\t3\t.\t0\t0\t.\t.\tSVTYPE=SNP;GRAPHTYPE=TOO_MANY_ALTS\tGT\n";
+    expected += "0\t4\t.\t0\t0\t.\t.\tSVTYPE=INDEL;GRAPHTYPE=SIMPLE\tGT\n";
+    expected += "0\t5\t.\t0\t0\t.\t.\tSVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE\tGT\n";
+    expected += "0\t6\t.\t0\t0\t.\t.\tSVTYPE=COMPLEX;GRAPHTYPE=SIMPLE\tGT\n";
+    expected += "0\t7\t.\t.\t.\t.\t.\t.;.\tGT\n";
+
+    EXPECT_EQ(actual, expected);
+}
+
 
 TEST(VCFTest, filter) {
     VCF vcf, vcf1, vcf2, vcf3, vcf4;
@@ -1123,16 +1278,16 @@ TEST(VCFTest, filter) {
     vcf.add_record("chrom1", 46, "T", "TA", "SVTYPE=INDEL;GRAPHTYPE=NESTED");
     vcf.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
     vcf.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=PH_SNPs;GRAPHTYPE=NESTED");
-    vcf.save("vcf_filter_test.vcf", true, false, false, false, false, false, false);
+    vcf.save("vcf_filter_test.vcf", false, true, false, false, true, false, true, false);
 
     vcf1.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
     vcf1.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
     vcf2.load("vcf_filter_test.vcf");
-    EXPECT_EQ(vcf2 == vcf1, true);
+    EXPECT_EQ(vcf2, vcf1);
 
-    vcf.save("vcf_filter_test.vcf", false, false, false, false, false, true, false);
-    vcf3.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
-    vcf3.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=SNP;GRAPHTYPE=NESTED");
+    vcf.save("vcf_filter_test.vcf", false, true, true, false, false, false, true, false);
+    vcf3.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
+    vcf3.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=PH_SNPs;GRAPHTYPE=NESTED");
     vcf4.load("vcf_filter_test.vcf");
-    EXPECT_EQ(vcf3 == vcf4, true);
+    EXPECT_EQ(vcf3, vcf4);
 }
