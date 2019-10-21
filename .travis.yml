@@ -22,11 +22,15 @@ jobs:
     - stage: "Test"
       name: "Unit tests"
       script: echo "This is where we run the unit tests"
+    - stage: "Deploy"
+      name: "DockerHub"
+      script: echo "This is where we deploy a container to Docker Hub"
 
 stages:
   - "Lint"
   - "Build"
   - "Test"
+  - "Deploy"
 
 notifications:
   email: false
