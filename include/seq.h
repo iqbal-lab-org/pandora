@@ -6,6 +6,7 @@
 #include <ostream>
 #include <set>
 #include <string>
+#include <vector>
 
 class Seq {
 public:

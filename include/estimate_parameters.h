@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <cstdint>
 #include <cstring>
+#include <pangenome/pangraph.h>
 
 namespace fs = boost::filesystem;
 
