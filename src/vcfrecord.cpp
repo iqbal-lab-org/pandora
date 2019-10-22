@@ -14,42 +14,33 @@
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 
-VCFRecord::VCFRecord(std::string c, uint32_t p, std::string r, std::string a, std::string i, std::string g) : chrom(c),
-                                                                                                              pos(p),
-                                                                                                              id("."),
-                                                                                                              ref(r),
-                                                                                                              qual("."),
-                                                                                                              filter("."),
-                                                                                                              info(i),
-                                                                                                              format({"GT"}) {
-    if (a == "")
-        alt.push_back(".");
+VCFRecord::VCFRecord(const std::string &chrom, uint32_t pos, const std::string &ref, const std::string &alt,
+                     const std::string &info, const std::string &graph_type_info) : chrom(chrom),
+                                                                                    pos(pos),
+                                                                                    id("."),
+                                                                                    ref(ref),
+                                                                                    qual("."),
+                                                                                    filter("."),
+                                                                                    info(info),
+                                                                                    format({"GT"}) {
+    if (alt == "")
+        this->alts.push_back(".");
     else
-        alt.push_back(a);
+        this->alts.push_back(alt);
 
-    // fix so no empty strings
-    if (ref == "") { ref = "."; }
-
-    // classify variants as SNPs, INDELs PH_SNPs or COMPLEX
-    // need to think about how to handle cases where there are more than 2 options, not all of one type
-    if (info == ".") {
-        if (ref == "." and (alt.empty() or alt[0] == ".")) {}
-        else if (ref == "." or alt.empty() or alt[0] == ".") { info = "SVTYPE=INDEL"; }
-        else if (ref.length() == 1 and !alt.empty() and alt[0].length() == 1) { info = "SVTYPE=SNP"; }
-        else if (!alt.empty() and alt[0].length() == ref.length()) { info = "SVTYPE=PH_SNPs"; }
-        else if (!alt.empty() and ref.length() < alt[0].length() and
-                 ref.compare(0, ref.length(), alt[0], 0, ref.length()) == 0) { info = "SVTYPE=INDEL"; }
-        else if (!alt.empty() and alt[0].length() < ref.length() and
-                 alt[0].compare(0, alt[0].length(), ref, 0, alt[0].length()) == 0) { info = "SVTYPE=INDEL"; }
-        else { info = "SVTYPE=COMPLEX"; }
+    if (this->ref == "") {
+        this->ref = ".";
     }
 
-    // add graph type info
-    if (g != "") {
-        info += ";";
-        info += g;
+    if (this->info == ".") {
+        this->info = infer_SVTYPE();
     }
-};
+
+    if (graph_type_info != "") {
+        this->info += ";";
+        this->info += graph_type_info;
+    }
+}
 
 VCFRecord::VCFRecord() : chrom("."), pos(0), id("."), ref("."), qual("."), filter("."), info(".") {};
 
@@ -58,7 +49,7 @@ VCFRecord::VCFRecord(const VCFRecord &other) {
     pos = other.pos;
     id = other.id;
     ref = other.ref;
-    alt = other.alt;
+    alts = other.alts;
     qual = other.qual;
     filter = other.filter;
     info = other.info;
@@ -66,6 +57,28 @@ VCFRecord::VCFRecord(const VCFRecord &other) {
     samples = other.samples;
     regt_samples = other.regt_samples;
 }
+
+
+std::string VCFRecord::infer_SVTYPE() const {
+    // TODO: need to think about how to handle cases where there are more than 2 options, not all of one type
+    if (ref == "." and (alts.empty() or alts[0] == "."))
+        return ".";
+    else if (ref == "." or alts.empty() or alts[0] == ".")
+        return "SVTYPE=INDEL";
+    else if (ref.length() == 1 and !alts.empty() and alts[0].length() == 1)
+        return "SVTYPE=SNP";
+    else if (!alts.empty() and alts[0].length() == ref.length())
+        return "SVTYPE=PH_SNPs";
+    else if (!alts.empty() and ref.length() < alts[0].length() and
+             ref.compare(0, ref.length(), alts[0], 0, ref.length()) == 0)
+        return "SVTYPE=INDEL";
+    else if (!alts.empty() and alts[0].length() < ref.length() and
+             alts[0].compare(0, alts[0].length(), ref, 0, alts[0].length()) == 0)
+        return "SVTYPE=INDEL";
+    else
+        return "SVTYPE=COMPLEX";
+}
+
 
 VCFRecord &VCFRecord::operator=(const VCFRecord &other) {
     // check for self-assignment
@@ -76,7 +89,7 @@ VCFRecord &VCFRecord::operator=(const VCFRecord &other) {
     pos = other.pos;
     id = other.id;
     ref = other.ref;
-    alt = other.alt;
+    alts = other.alts;
     qual = other.qual;
     filter = other.filter;
     info = other.info;
@@ -94,7 +107,7 @@ void VCFRecord::clear() {
     pos = 0;
     id = ".";
     ref = ".";
-    alt.clear();
+    alts.clear();
     qual = ".";
     filter = ".";
     info = ".";
@@ -347,7 +360,7 @@ void VCFRecord::genotype(const uint16_t confidence_threshold) {
 bool VCFRecord::contains_dot_allele() const {
     if (ref == "." or ref == "")
         return true;
-    for (const auto &a : alt){
+    for (const auto &a : alts){
         if (a == "." or a == "")
             return true;
     }
@@ -358,9 +371,9 @@ bool VCFRecord::operator==(const VCFRecord &y) const {
     if (chrom != y.chrom) { return false; }
     if (pos != y.pos) { return false; }
     if (ref != y.ref) { return false; }
-    if (alt.size() != y.alt.size()) { return false; }
-    for (const auto &a : alt) {
-        if (find(y.alt.begin(), y.alt.end(), a) == y.alt.end()) { return false; }
+    if (alts.size() != y.alts.size()) { return false; }
+    for (const auto &a : alts) {
+        if (find(y.alts.begin(), y.alts.end(), a) == y.alts.end()) { return false; }
     }
     return true;
 }
@@ -376,8 +389,8 @@ bool VCFRecord::operator<(const VCFRecord &y) const {
     if (pos > y.pos) { return false; }
     if (ref < y.ref) { return true; }
     if (ref > y.ref) { return false; }
-    if (alt < y.alt) { return true; }
-    if (alt > y.alt) { return false; }
+    if (alts < y.alts) { return true; }
+    if (alts > y.alts) { return false; }
     return false;
 }
 
@@ -386,11 +399,11 @@ std::string VCFRecord::to_string() const {
     std::stringstream out;
     out << this->chrom << "\t" << this->pos + 1 << "\t" << this->id << "\t" << this->ref << "\t";
 
-    if (this->alt.empty()) {
+    if (this->alts.empty()) {
         out << ".";
     } else {
         std::string buffer = "";
-        for (const auto &a : this->alt) {
+        for (const auto &a : this->alts) {
             out << buffer << a;
             buffer = ",";
         }
@@ -449,7 +462,7 @@ std::istream &operator>>(std::istream &in, VCFRecord &m) {
     std::vector<std::string> float_strings = {"LIKELIHOOD", "GT_CONF", "GAPS"};
     std::unordered_map<std::string, std::vector<uint16_t>> sample_data;
     std::unordered_map<std::string, std::vector<float>> regt_sample_data;
-    m.alt.clear();
+    m.alts.clear();
     in >> m.chrom;
     in.ignore(1, '\t');
     in >> m.pos;
@@ -460,11 +473,11 @@ std::istream &operator>>(std::istream &in, VCFRecord &m) {
     in >> m.ref;
     in.ignore(1, '\t');
     in >> alt_s;
-    m.alt.push_back(alt_s);
+    m.alts.push_back(alt_s);
     int c = in.peek();
     while (c == ',') {
         in >> alt_s;
-        m.alt.push_back(alt_s);
+        m.alts.push_back(alt_s);
         c = in.peek();
     }
     in.ignore(1, '\t');
@@ -500,3 +513,11 @@ std::istream &operator>>(std::istream &in, VCFRecord &m) {
 }
 
 
+size_t VCFRecord::get_longest_allele_length() const {
+    size_t longest_allele_length = this->ref.size();
+    for (const std::string &alt : this->alts) {
+        longest_allele_length = std::max(longest_allele_length, alt.size());
+    }
+    return longest_allele_length;
+
+}

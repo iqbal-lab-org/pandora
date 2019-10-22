@@ -252,24 +252,6 @@ TEST(VCFTest, reorder_add_record_and_sample) {
 }
 
 
-/*
- * NOTE: since the clear function does not exist anymore, I removed this test
-TEST(VCFTest, clear) {
-    VCF vcf;
-    vcf.add_record("chrom1", 5, "A", "G");
-    vcf.add_record("chrom1", 46, "T", "TA");
-    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
-    std::vector<std::string> empty = {};
-    vcf.add_record(vr, empty);
-    uint j = 3;
-    EXPECT_EQ(j, vcf.records.size());
-
-    vcf.clear();
-    j = 0;
-    EXPECT_EQ(j, vcf.records.size());
-}
-*/
-
 TEST(VCFTest, append_vcf_simple_case) {
     VCF vcf;
     vcf.add_record("chrom1", 5, "A", "G");
@@ -292,9 +274,9 @@ TEST(VCFTest, append_vcf_simple_case) {
         EXPECT_EQ(vcf.records[i]->chrom, "chrom2");
     }
     EXPECT_EQ((uint) 5, vcf.records[4]->pos);
-    EXPECT_EQ("TA", vcf.records[5]->alt[0]);
+    EXPECT_EQ("TA", vcf.records[5]->alts[0]);
     EXPECT_EQ((uint) 79, vcf.records[6]->pos);
-    EXPECT_EQ("A", vcf.records[7]->alt[0]);
+    EXPECT_EQ("A", vcf.records[7]->alts[0]);
 }
 
 TEST(VCFTest, append_vcf_some_duplicate_records) {
@@ -505,8 +487,8 @@ TEST(VCFTest, sort_records) {
     EXPECT_EQ((uint) 79, vcf.records[2]->pos);
     EXPECT_EQ((uint) 79, vcf.records[3]->pos);
     EXPECT_EQ((uint) 79, vcf.records[5]->pos);
-    EXPECT_EQ("G", vcf.records[3]->alt[0]);
-    EXPECT_EQ("G", vcf.records[5]->alt[0]);
+    EXPECT_EQ("G", vcf.records[3]->alts[0]);
+    EXPECT_EQ("G", vcf.records[5]->alts[0]);
 }
 
 TEST(VCFTest, pos_in_range) {
@@ -797,12 +779,12 @@ TEST(VCFTest, clean) {
     vcf.clean();
     EXPECT_EQ((uint) 3, vcf.records.size());
     EXPECT_EQ((uint) 79, vcf.records[0]->pos);
-    EXPECT_EQ((uint) 1, vcf.records[0]->alt.size());
-    EXPECT_EQ("G", vcf.records[0]->alt[0]);
+    EXPECT_EQ((uint) 1, vcf.records[0]->alts.size());
+    EXPECT_EQ("G", vcf.records[0]->alts[0]);
     EXPECT_EQ((uint) 5, vcf.records[1]->pos);
     EXPECT_EQ((uint) 79, vcf.records[2]->pos);
-    EXPECT_EQ((uint) 1, vcf.records[2]->alt.size());
-    EXPECT_EQ("A", vcf.records[2]->alt[0]);
+    EXPECT_EQ((uint) 1, vcf.records[2]->alts.size());
+    EXPECT_EQ("A", vcf.records[2]->alts[0]);
 }
 
 TEST(VCFTest, add_formats) {
@@ -859,19 +841,19 @@ TEST(VCFTest, merge_multi_allelic) {
 
     EXPECT_EQ((uint) 5, vcf.records.size());
     EXPECT_EQ((uint) 5, vcf.records[0]->pos);
-    EXPECT_EQ((uint) 2, vcf.records[0]->alt.size());
+    EXPECT_EQ((uint) 2, vcf.records[0]->alts.size());
     EXPECT_EQ((uint) 1, vcf.records[0]->samples.size());
     EXPECT_EQ((uint) 0, vcf.records[0]->samples[0].size());
 
     EXPECT_EQ((uint) 46, vcf.records[1]->pos);
-    EXPECT_EQ((uint) 2, vcf.records[1]->alt.size());
+    EXPECT_EQ((uint) 2, vcf.records[1]->alts.size());
     EXPECT_EQ((uint) 1, vcf.records[1]->samples.size());
     bool found_gt = vcf.records[1]->samples[0].find("GT") != vcf.records[1]->samples[0].end();
     EXPECT_TRUE(found_gt);
     EXPECT_EQ((uint) 0, vcf.records[1]->samples[0]["GT"].size());
 
     EXPECT_EQ((uint) 76, vcf.records[2]->pos);
-    EXPECT_EQ((uint) 2, vcf.records[2]->alt.size());
+    EXPECT_EQ((uint) 2, vcf.records[2]->alts.size());
     EXPECT_EQ((uint) 1, vcf.records[2]->samples.size());
     found_gt = vcf.records[2]->samples[0].find("GT") != vcf.records[2]->samples[0].end();
     EXPECT_TRUE(found_gt);
@@ -893,9 +875,9 @@ TEST(VCFTest, merge_multi_allelic) {
     EXPECT_EQ(13.0, vcf.records[2]->regt_samples[0]["GT_CONF"][0]);
 
     EXPECT_EQ((uint) 85, vcf.records[3]->pos);
-    EXPECT_EQ((uint) 1, vcf.records[3]->alt.size());
+    EXPECT_EQ((uint) 1, vcf.records[3]->alts.size());
     EXPECT_EQ((uint) 85, vcf.records[4]->pos);
-    EXPECT_EQ((uint) 1, vcf.records[4]->alt.size());
+    EXPECT_EQ((uint) 1, vcf.records[4]->alts.size());
 }
 
 
@@ -906,8 +888,8 @@ TEST(VCFTest, merge_multi_allelic___vcf_with_two_samples_and_two_records_second_
     vcf.add_samples({"sample1", "sample2"});
 
     // add two bi-allelic records to be merged
-    vcf.add_record("chrom1", 5, "A", "G");
-    vcf.add_record("chrom1", 5, "A", "C");
+    vcf.add_record("chrom1", 5, "A", "C", "SVTYPE=SNP", "GRAPHTYPE=SIMPLE");
+    vcf.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP", "GRAPHTYPE=SIMPLE");
 
     // first record maps to both samples
     vcf.records[0]->samples[0]["MEAN_FWD_COVG"] = {1, 2};
@@ -922,6 +904,8 @@ TEST(VCFTest, merge_multi_allelic___vcf_with_two_samples_and_two_records_second_
     // output the vcf just for us to look at it
     std::vector<std::string> formats = {"MEAN_FWD_COVG"};
     vcf.add_formats(formats);
+
+    std::cout << vcf.to_string() << std::endl;
 
 
     /*
@@ -972,22 +956,22 @@ TEST(VCFTest, correct_dot_alleles) {
     EXPECT_EQ(vcf.records[6]->ref, "T");
     EXPECT_EQ(vcf.records[7]->ref, "T");
 
-    EXPECT_EQ(vcf.records[0]->alt.size(), 1);
-    EXPECT_EQ(vcf.records[0]->alt[0], "TAT");
-    EXPECT_EQ(vcf.records[1]->alt.size(), 1);
-    EXPECT_EQ(vcf.records[1]->alt[0], "CA");
-    EXPECT_EQ(vcf.records[2]->alt.size(), 1);
-    EXPECT_EQ(vcf.records[2]->alt[0], "T");
-    EXPECT_EQ(vcf.records[3]->alt.size(), 1);
-    EXPECT_EQ(vcf.records[3]->alt[0], "T");
-    EXPECT_EQ(vcf.records[4]->alt.size(), 1);
-    EXPECT_EQ(vcf.records[4]->alt[0], "A");
-    EXPECT_EQ(vcf.records[5]->alt.size(), 1);
-    EXPECT_EQ(vcf.records[5]->alt[0], "C");
-    EXPECT_EQ(vcf.records[6]->alt.size(), 1);
-    EXPECT_EQ(vcf.records[6]->alt[0], "TT");
-    EXPECT_EQ(vcf.records[7]->alt.size(), 1);
-    EXPECT_EQ(vcf.records[7]->alt[0], "TTA");
+    EXPECT_EQ(vcf.records[0]->alts.size(), 1);
+    EXPECT_EQ(vcf.records[0]->alts[0], "TAT");
+    EXPECT_EQ(vcf.records[1]->alts.size(), 1);
+    EXPECT_EQ(vcf.records[1]->alts[0], "CA");
+    EXPECT_EQ(vcf.records[2]->alts.size(), 1);
+    EXPECT_EQ(vcf.records[2]->alts[0], "T");
+    EXPECT_EQ(vcf.records[3]->alts.size(), 1);
+    EXPECT_EQ(vcf.records[3]->alts[0], "T");
+    EXPECT_EQ(vcf.records[4]->alts.size(), 1);
+    EXPECT_EQ(vcf.records[4]->alts[0], "A");
+    EXPECT_EQ(vcf.records[5]->alts.size(), 1);
+    EXPECT_EQ(vcf.records[5]->alts[0], "C");
+    EXPECT_EQ(vcf.records[6]->alts.size(), 1);
+    EXPECT_EQ(vcf.records[6]->alts[0], "TT");
+    EXPECT_EQ(vcf.records[7]->alts.size(), 1);
+    EXPECT_EQ(vcf.records[7]->alts[0], "TTA");
 }
 
 TEST(VCFTest, make_gt_compatible) {

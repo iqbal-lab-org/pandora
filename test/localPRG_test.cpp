@@ -991,7 +991,7 @@ TEST(LocalPRGTest, build_vcf) {
     EXPECT_EQ("varsite", vcf.records[0]->chrom);
     EXPECT_EQ((uint) 1, vcf.records[0]->pos);
     EXPECT_EQ("GC", vcf.records[0]->ref);
-    EXPECT_EQ("G", vcf.records[0]->alt[0]);
+    EXPECT_EQ("G", vcf.records[0]->alts[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.records[0]->info);
 
     vcf = VCF();
@@ -1002,7 +1002,7 @@ TEST(LocalPRGTest, build_vcf) {
     EXPECT_EQ("varsite", vcf.records[0]->chrom);
     EXPECT_EQ((uint) 1, vcf.records[0]->pos);
     EXPECT_EQ("G", vcf.records[0]->ref);
-    EXPECT_EQ("GC", vcf.records[0]->alt[0]);
+    EXPECT_EQ("GC", vcf.records[0]->alts[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.records[0]->info);
 
     vcf = VCF();
@@ -1013,11 +1013,11 @@ TEST(LocalPRGTest, build_vcf) {
     EXPECT_EQ("nested varsite", vcf.records[0]->chrom);
     EXPECT_EQ((uint) 1, vcf.records[0]->pos);
     EXPECT_EQ("GC", vcf.records[0]->ref);
-    EXPECT_EQ("G", vcf.records[0]->alt[0]);
+    EXPECT_EQ("G", vcf.records[0]->alts[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=NESTED", vcf.records[0]->info);
     EXPECT_EQ((uint) 2, vcf.records[1]->pos);
     EXPECT_EQ("C", vcf.records[1]->ref);
-    EXPECT_EQ("T", vcf.records[1]->alt[0]);
+    EXPECT_EQ("T", vcf.records[1]->alts[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=NESTED", vcf.records[1]->info);
 
     vcf = VCF();
@@ -1028,11 +1028,11 @@ TEST(LocalPRGTest, build_vcf) {
     EXPECT_EQ("nested varsite", vcf.records[0]->chrom);
     EXPECT_EQ((uint) 1, vcf.records[0]->pos);
     EXPECT_EQ("GT", vcf.records[0]->ref);
-    EXPECT_EQ("G", vcf.records[0]->alt[0]);
+    EXPECT_EQ("G", vcf.records[0]->alts[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=NESTED", vcf.records[0]->info);
     EXPECT_EQ((uint) 2, vcf.records[1]->pos);
     EXPECT_EQ("T", vcf.records[1]->ref);
-    EXPECT_EQ("C", vcf.records[1]->alt[0]);
+    EXPECT_EQ("C", vcf.records[1]->alts[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=NESTED", vcf.records[1]->info);
 
     vcf = VCF();
@@ -1043,11 +1043,11 @@ TEST(LocalPRGTest, build_vcf) {
     EXPECT_EQ("nested varsite", vcf.records[0]->chrom);
     EXPECT_EQ((uint) 1, vcf.records[0]->pos);
     EXPECT_EQ("G", vcf.records[0]->ref);
-    EXPECT_EQ("GC", vcf.records[0]->alt[0]);
+    EXPECT_EQ("GC", vcf.records[0]->alts[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.records[0]->info);
     EXPECT_EQ((uint) 1, vcf.records[1]->pos);
     EXPECT_EQ("G", vcf.records[1]->ref);
-    EXPECT_EQ("GT", vcf.records[1]->alt[0]);
+    EXPECT_EQ("GT", vcf.records[1]->alts[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.records[1]->info);
 
     vcf = VCF();
@@ -1058,27 +1058,27 @@ TEST(LocalPRGTest, build_vcf) {
     EXPECT_EQ("small real PRG", vcf.records[0]->chrom);
     EXPECT_EQ((uint) 119, vcf.records[0]->pos);
     EXPECT_EQ("T", vcf.records[0]->ref);
-    EXPECT_EQ("C", vcf.records[0]->alt[0]);
+    EXPECT_EQ("C", vcf.records[0]->alts[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[0]->info);
 
     EXPECT_EQ((uint) 158, vcf.records[1]->pos);
     EXPECT_EQ("TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG", vcf.records[1]->ref);
-    EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA", vcf.records[1]->alt[0]);
+    EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA", vcf.records[1]->alts[0]);
     EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE", vcf.records[1]->info);
 
     EXPECT_EQ((uint) 251, vcf.records[2]->pos);
     EXPECT_EQ("A", vcf.records[2]->ref);
-    EXPECT_EQ("G", vcf.records[2]->alt[0]);
+    EXPECT_EQ("G", vcf.records[2]->alts[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[2]->info);
 
     EXPECT_EQ((uint) 272, vcf.records[3]->pos);
     EXPECT_EQ("A", vcf.records[3]->ref);
-    EXPECT_EQ("C", vcf.records[3]->alt[0]);
+    EXPECT_EQ("C", vcf.records[3]->alts[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[3]->info);
 
     EXPECT_EQ((uint) 293, vcf.records[4]->pos);
     EXPECT_EQ("G", vcf.records[4]->ref);
-    EXPECT_EQ("T", vcf.records[4]->alt[0]);
+    EXPECT_EQ("T", vcf.records[4]->alts[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[4]->info);
 
     vcf = VCF();
@@ -1091,27 +1091,27 @@ TEST(LocalPRGTest, build_vcf) {
     EXPECT_EQ("small real PRG", vcf.records[0]->chrom);
     EXPECT_EQ((uint) 119, vcf.records[0]->pos);
     EXPECT_EQ("C", vcf.records[0]->ref);
-    EXPECT_EQ("T", vcf.records[0]->alt[0]);
+    EXPECT_EQ("T", vcf.records[0]->alts[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[0]->info);
 
     EXPECT_EQ((uint) 158, vcf.records[1]->pos);
     EXPECT_EQ("TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG", vcf.records[1]->ref);
-    EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA", vcf.records[1]->alt[0]);
+    EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA", vcf.records[1]->alts[0]);
     EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE", vcf.records[1]->info);
 
     EXPECT_EQ((uint) 251, vcf.records[2]->pos);
     EXPECT_EQ("G", vcf.records[2]->ref);
-    EXPECT_EQ("A", vcf.records[2]->alt[0]);
+    EXPECT_EQ("A", vcf.records[2]->alts[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[2]->info);
 
     EXPECT_EQ((uint) 272, vcf.records[3]->pos);
     EXPECT_EQ("A", vcf.records[3]->ref);
-    EXPECT_EQ("C", vcf.records[3]->alt[0]);
+    EXPECT_EQ("C", vcf.records[3]->alts[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[3]->info);
 
     EXPECT_EQ((uint) 293, vcf.records[4]->pos);
     EXPECT_EQ("T", vcf.records[4]->ref);
-    EXPECT_EQ("G", vcf.records[4]->alt[0]);
+    EXPECT_EQ("G", vcf.records[4]->alts[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.records[4]->info);
 
     vcf = VCF();
@@ -1280,7 +1280,7 @@ TEST(LocalPRGTest, find_alt_path) {
     alt_path = l3.find_alt_path(bottom, 1, "G", "GC");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, top, alt_path);
 
-    // and now for the one where the alt or ref is "."
+    // and now for the one where the alts or ref is "."
     top = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6], l3.prg.nodes[7],
            l3.prg.nodes[9]};
     bottom = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2], l3.prg.nodes[4], l3.prg.nodes[6], l3.prg.nodes[8],
@@ -1291,7 +1291,7 @@ TEST(LocalPRGTest, find_alt_path) {
     alt_path = l3.find_alt_path(bottom, 6, ".", "T");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, top, alt_path);
 
-    // if the site is at the start and alt is "."
+    // if the site is at the start and alts is "."
     LocalPRG l3_(3, "nested varsite", " 5 G 7 C 8 T 7  6  5 TAT 9 T 10  9 ");
     top = {l3_.prg.nodes[0], l3_.prg.nodes[1], l3_.prg.nodes[2], l3_.prg.nodes[4], l3_.prg.nodes[6]};
     bottom = {l3_.prg.nodes[0], l3_.prg.nodes[5], l3_.prg.nodes[6]};
@@ -1302,7 +1302,7 @@ TEST(LocalPRGTest, find_alt_path) {
     alt_path = l3_.find_alt_path(bottom, 0, ".", "GC");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, top, alt_path);
 
-    // if the site at the end has ref/alt as "."
+    // if the site at the end has ref/alts as "."
     top = {l3_.prg.nodes[0], l3_.prg.nodes[1], l3_.prg.nodes[2], l3_.prg.nodes[4],
            l3_.prg.nodes[6], l3_.prg.nodes[7], l3_.prg.nodes[9]};
     bottom = {l3_.prg.nodes[0], l3_.prg.nodes[1], l3_.prg.nodes[2], l3_.prg.nodes[4],
@@ -1717,7 +1717,7 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf) {
     kg.set_covg(7, 1, 0, 0);
     kg.set_covg(7, 0, 1, 0);
 
-    // alt
+    // alts
     kg.set_covg(2, 6, 0, 0);
     kg.set_covg(2, 8, 1, 0);
     kg.set_covg(5, 5, 0, 0);

@@ -214,8 +214,8 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_single_prg)
 
     EXPECT_EQ((uint)1, master_vcf.records[0]->pos);
     EXPECT_EQ("GT", master_vcf.records[0]->ref);
-    EXPECT_EQ((uint)1, master_vcf.records[0]->alt.size());
-    EXPECT_EQ("G", master_vcf.records[0]->alt[0]);
+    EXPECT_EQ((uint)1, master_vcf.records[0]->alts.size());
+    EXPECT_EQ("G", master_vcf.records[0]->alts[0]);
     EXPECT_EQ((uint)4, master_vcf.records[0]->samples.size());
     EXPECT_FALSE(master_vcf.records[0]->samples[sample4_index].find("GT") == master_vcf.records[0]->samples[sample4_index].end()) ;
     EXPECT_TRUE(master_vcf.records[0]->samples[sample3_index].find("GT") == master_vcf.records[0]->samples[sample3_index].end()) ;
@@ -240,9 +240,9 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_single_prg)
 
     EXPECT_EQ((uint)2, master_vcf.records[1]->pos);
     EXPECT_EQ("T", master_vcf.records[1]->ref);
-    EXPECT_EQ((uint)2, master_vcf.records[1]->alt.size());
-    EXPECT_EQ("C", master_vcf.records[1]->alt[0]);
-    EXPECT_EQ("CT", master_vcf.records[1]->alt[1]);
+    EXPECT_EQ((uint)2, master_vcf.records[1]->alts.size());
+    EXPECT_EQ("C", master_vcf.records[1]->alts[0]);
+    EXPECT_EQ("CT", master_vcf.records[1]->alts[1]);
     EXPECT_EQ((uint)4, master_vcf.records[0]->samples.size());
     EXPECT_TRUE(master_vcf.records[1]->samples[sample4_index].find("GT") == master_vcf.records[1]->samples[sample4_index].end()) ;
     EXPECT_FALSE(master_vcf.records[1]->samples[sample3_index].find("GT") == master_vcf.records[1]->samples[sample3_index].end()) ;
@@ -345,8 +345,8 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
 
     EXPECT_EQ((uint)1, master_vcf.records[0]->pos);
     EXPECT_EQ("GT", master_vcf.records[0]->ref);
-    EXPECT_EQ((uint)1, master_vcf.records[0]->alt.size());
-    EXPECT_EQ("G", master_vcf.records[0]->alt[0]);
+    EXPECT_EQ((uint)1, master_vcf.records[0]->alts.size());
+    EXPECT_EQ("G", master_vcf.records[0]->alts[0]);
     EXPECT_EQ((uint)4, master_vcf.records[0]->samples.size());
     EXPECT_FALSE(master_vcf.records[0]->samples[sample4_index].find("GT") == master_vcf.records[0]->samples[sample4_index].end()) ;
     EXPECT_TRUE(master_vcf.records[0]->samples[sample3_index].find("GT") == master_vcf.records[0]->samples[sample3_index].end()) ;
@@ -371,9 +371,9 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
 
     EXPECT_EQ((uint)2, master_vcf.records[1]->pos);
     EXPECT_EQ("T", master_vcf.records[1]->ref);
-    EXPECT_EQ((uint)2, master_vcf.records[1]->alt.size());
-    EXPECT_EQ("C", master_vcf.records[1]->alt[0]);
-    EXPECT_EQ("CT", master_vcf.records[1]->alt[1]);
+    EXPECT_EQ((uint)2, master_vcf.records[1]->alts.size());
+    EXPECT_EQ("C", master_vcf.records[1]->alts[0]);
+    EXPECT_EQ("CT", master_vcf.records[1]->alts[1]);
     EXPECT_EQ((uint)4, master_vcf.records[1]->samples.size());
     EXPECT_TRUE(master_vcf.records[1]->samples[sample4_index].find("GT") == master_vcf.records[1]->samples[sample4_index].end()) ;
     EXPECT_FALSE(master_vcf.records[1]->samples[sample3_index].find("GT") == master_vcf.records[1]->samples[sample3_index].end()) ;
@@ -396,8 +396,8 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
 
     EXPECT_EQ((uint)1, master_vcf.records[2]->pos);
     EXPECT_EQ("GA", master_vcf.records[2]->ref);
-    EXPECT_EQ((uint)1, master_vcf.records[2]->alt.size());
-    EXPECT_EQ("G", master_vcf.records[2]->alt[0]);
+    EXPECT_EQ((uint)1, master_vcf.records[2]->alts.size());
+    EXPECT_EQ("G", master_vcf.records[2]->alts[0]);
     EXPECT_EQ((uint)4, master_vcf.records[2]->samples.size());
     EXPECT_TRUE(master_vcf.records[2]->samples[sample4_index].find("GT") == master_vcf.records[2]->samples[sample4_index].end()) ;
     EXPECT_FALSE(master_vcf.records[2]->samples[sample3_index].find("GT") == master_vcf.records[2]->samples[sample3_index].end()) ;
@@ -418,9 +418,9 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
 
     EXPECT_EQ((uint)2, master_vcf.records[3]->pos);
     EXPECT_EQ("A", master_vcf.records[3]->ref);
-    EXPECT_EQ((uint)2, master_vcf.records[3]->alt.size());
-    EXPECT_EQ("G", master_vcf.records[3]->alt[0]);
-    EXPECT_EQ("GA", master_vcf.records[3]->alt[1]);
+    EXPECT_EQ((uint)2, master_vcf.records[3]->alts.size());
+    EXPECT_EQ("G", master_vcf.records[3]->alts[0]);
+    EXPECT_EQ("GA", master_vcf.records[3]->alts[1]);
     EXPECT_EQ((uint)4, master_vcf.records[3]->samples.size());
     EXPECT_FALSE(master_vcf.records[3]->samples[sample4_index].find("GT") == master_vcf.records[3]->samples[sample4_index].end()) ;
     EXPECT_TRUE(master_vcf.records[3]->samples[sample3_index].find("GT") == master_vcf.records[3]->samples[sample3_index].end()) ;

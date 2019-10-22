@@ -15,7 +15,7 @@ TEST(VCFRecordTest, create_empty) {
     EXPECT_EQ((uint) 0, vr.pos);
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ(".", vr.ref);
-    EXPECT_EQ((uint) 0, vr.alt.size());
+    EXPECT_EQ((uint) 0, vr.alts.size());
     EXPECT_EQ(".", vr.qual);
     EXPECT_EQ(".", vr.filter);
     EXPECT_EQ(".", vr.info);
@@ -31,7 +31,7 @@ TEST(VCFRecordTest, create_with_values) {
     EXPECT_EQ((uint) 3, vr.pos);
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ("A", vr.ref);
-    EXPECT_EQ("T", vr.alt[0]);
+    EXPECT_EQ("T", vr.alts[0]);
     EXPECT_EQ(".", vr.qual);
     EXPECT_EQ(".", vr.filter);
     EXPECT_EQ("SVTYPE=SNP", vr.info);
@@ -48,7 +48,7 @@ TEST(VCFRecordTest, create_from_record) {
     EXPECT_EQ((uint) 3, vr.pos);
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ("A", vr.ref);
-    EXPECT_EQ("T", vr.alt[0]);
+    EXPECT_EQ("T", vr.alts[0]);
     EXPECT_EQ(".", vr.qual);
     EXPECT_EQ(".", vr.filter);
     EXPECT_EQ("SVTYPE=SNP", vr.info);
@@ -75,7 +75,7 @@ TEST(VCFRecordTest, create_from_record_with_samples) {
     EXPECT_EQ((uint) 3, vr.pos);
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ("A", vr.ref);
-    EXPECT_EQ("T", vr.alt[0]);
+    EXPECT_EQ("T", vr.alts[0]);
     EXPECT_EQ(".", vr.qual);
     EXPECT_EQ(".", vr.filter);
     EXPECT_EQ("SVTYPE=SNP", vr.info);
@@ -91,7 +91,7 @@ TEST(VCFRecordTest, clear_simple) {
     EXPECT_EQ((uint) 0, vr.pos);
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ(".", vr.ref);
-    EXPECT_EQ((uint) 0, vr.alt.size());
+    EXPECT_EQ((uint) 0, vr.alts.size());
     EXPECT_EQ(".", vr.qual);
     EXPECT_EQ(".", vr.filter);
     EXPECT_EQ(".", vr.info);
@@ -112,7 +112,7 @@ TEST(VCFRecordTest, clear_with_samples) {
     EXPECT_EQ((uint) 0, vr.pos);
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ(".", vr.ref);
-    EXPECT_EQ((uint) 0, vr.alt.size());
+    EXPECT_EQ((uint) 0, vr.alts.size());
     EXPECT_EQ(".", vr.qual);
     EXPECT_EQ(".", vr.filter);
     EXPECT_EQ(".", vr.info);
@@ -139,7 +139,7 @@ TEST(VCFRecordTest, clear_with_sample_confs) {
     EXPECT_EQ((uint) 0, vr.pos);
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ(".", vr.ref);
-    EXPECT_EQ((uint) 0, vr.alt.size());
+    EXPECT_EQ((uint) 0, vr.alts.size());
     EXPECT_EQ(".", vr.qual);
     EXPECT_EQ(".", vr.filter);
     EXPECT_EQ(".", vr.info);
@@ -160,8 +160,8 @@ TEST(VCFRecordTest, clear_sample) {
     vr.clear_sample(3);
     EXPECT_EQ((uint) 3, vr.pos);
     EXPECT_EQ("A", vr.ref);
-    EXPECT_EQ((uint) 1, vr.alt.size());
-    EXPECT_EQ("T", vr.alt[0]);
+    EXPECT_EQ((uint) 1, vr.alts.size());
+    EXPECT_EQ("T", vr.alts[0]);
     EXPECT_EQ((uint) 2, vr.samples.size());
     EXPECT_EQ((uint) 1, vr.samples[0].size());
     EXPECT_EQ((uint) 1, vr.samples[1].size());
@@ -171,8 +171,8 @@ TEST(VCFRecordTest, clear_sample) {
     vr.clear_sample(1);
     EXPECT_EQ((uint) 3, vr.pos);
     EXPECT_EQ("A", vr.ref);
-    EXPECT_EQ((uint) 1, vr.alt.size());
-    EXPECT_EQ("T", vr.alt[0]);
+    EXPECT_EQ((uint) 1, vr.alts.size());
+    EXPECT_EQ("T", vr.alts[0]);
     EXPECT_EQ((uint) 2, vr.samples.size());
     EXPECT_EQ((uint) 1, vr.samples[0].size());
     EXPECT_EQ((uint) 0, vr.samples[1].size());
@@ -182,8 +182,8 @@ TEST(VCFRecordTest, clear_sample) {
     vr.clear_sample(1);
     EXPECT_EQ((uint) 3, vr.pos);
     EXPECT_EQ("A", vr.ref);
-    EXPECT_EQ((uint) 1, vr.alt.size());
-    EXPECT_EQ("T", vr.alt[0]);
+    EXPECT_EQ((uint) 1, vr.alts.size());
+    EXPECT_EQ("T", vr.alts[0]);
     EXPECT_EQ((uint) 2, vr.samples.size());
     EXPECT_EQ((uint) 1, vr.samples[0].size());
     EXPECT_EQ((uint) 0, vr.samples[1].size());
@@ -193,7 +193,7 @@ TEST(VCFRecordTest, clear_sample) {
     vr.clear_sample(0);
     EXPECT_EQ((uint) 0, vr.pos);
     EXPECT_EQ(".", vr.ref);
-    EXPECT_EQ((uint) 0, vr.alt.size());
+    EXPECT_EQ((uint) 0, vr.alts.size());
     EXPECT_EQ((uint) 0, vr.samples.size());
     EXPECT_EQ((uint) 0, vr.regt_samples.size());
 }
@@ -601,7 +601,7 @@ TEST(VCFRecordConfidenceTest, gets_correct_confidence_simple_case) {
 
 TEST(VCFRecordConfidenceTest, gets_correct_confidence_two_alts) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    vr.alt.push_back("C");
+    vr.alts.push_back("C");
     unordered_map<string, vector<float>> m;
     unordered_map<string, vector<uint16_t>> m2;
     vr.regt_samples.push_back(m);
@@ -616,7 +616,7 @@ TEST(VCFRecordConfidenceTest, gets_correct_confidence_two_alts) {
 
 TEST(VCFRecordConfidenceTest, gets_correct_confidence_min_total) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    vr.alt.push_back("C");
+    vr.alts.push_back("C");
     unordered_map<string, vector<float>> m;
     unordered_map<string, vector<uint16_t>> m2;
     vr.regt_samples.push_back(m);
@@ -634,7 +634,7 @@ TEST(VCFRecordConfidenceTest, gets_correct_confidence_min_total) {
 
 TEST(VCFRecordConfidenceTest, gets_correct_confidence_min_diff) {
     VCFRecord vr("chrom1", 3, "A", "T");
-    vr.alt.push_back("C");
+    vr.alts.push_back("C");
     unordered_map<string, vector<float>> m;
     unordered_map<string, vector<uint16_t>> m2;
     vr.regt_samples.push_back(m);
@@ -965,4 +965,22 @@ TEST(VCFRecordTest, ostream_with_zero_pos) {
 }
 
 
+TEST(VCFRecordTest, get_longest_allele_length___longest_allele_is_ref) {
+    VCFRecord vr("chrom1", 1, "ACGT", "A", ".", ".");
 
+    size_t actual = vr.get_longest_allele_length();
+    size_t expected = 4;
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(VCFRecordTest, get_longest_allele_length___longest_allele_is_alt) {
+    VCFRecord vr("chrom1", 1, "ACGT", "A", ".", ".");
+    vr.alts.push_back("ACGTTTTAC");
+    vr.alts.push_back("C");
+
+    size_t actual = vr.get_longest_allele_length();
+    size_t expected = 9;
+
+    EXPECT_EQ(actual, expected);
+}

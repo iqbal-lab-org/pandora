@@ -219,7 +219,7 @@ void VCF::genotype(const std::vector<uint32_t> &expected_depth_covg, const float
     BOOST_LOG_TRIVIAL(info) << now() << "Genotype VCF";
     for (auto &vrPointer : records) {
         auto &vr = *vrPointer;
-        if (not snps_only or (vr.ref.length() == 1 and !vr.alt.empty() and vr.alt[0].length() == 1)) {
+        if (not snps_only or (vr.ref.length() == 1 and !vr.alts.empty() and vr.alts[0].length() == 1)) {
             vr.likelihood(expected_depth_covg, error_rate, min_allele_covg, min_fraction_allele_covg);
             vr.confidence(min_site_total_covg, min_site_diff_covg);
             vr.genotype(confidence_threshold);
@@ -304,73 +304,73 @@ void merge_gt(VCFRecord &first, const VCFRecord &second, const uint16_t i, const
 
 
 void VCF::merge_multi_allelic(uint32_t max_allele_length) {
-    if (records.size() < 2)
+    auto vcf_size = records.size();
+    bool no_need_for_merging = vcf_size < 2;
+    if (no_need_for_merging)
         return;
 
-    uint32_t prev_pos = 0;
-    VCFRecord prev_vr(*(records.at(prev_pos)));
-    auto vcf_size = records.size();
     auto reserve_size = vcf_size * 1.05;
     records.reserve(reserve_size);
-    for (uint32_t current_pos = 1; current_pos < vcf_size; ++current_pos) {
-        const auto &record = *(records.at(current_pos));
-        //cout << "comparing record " << current_pos << "/" << vcf_size << " to record " << prev_pos << endl;
 
-        if (record != prev_vr
-            and prev_vr.chrom == record.chrom
-            and prev_vr.pos == record.pos
-            and prev_vr.ref == record.ref
-            and prev_vr.ref != "."
-            and prev_vr.ref != ""
-            and prev_vr.ref.length() <= max_allele_length
-            and prev_vr.alt[0].length() <= max_allele_length) {
+    uint32_t previous_vcf_record_position = 0;
+    VCFRecord previous_vcf_record_copy(*(records.at(previous_vcf_record_position)));
+    for (uint32_t current_vcf_record_position = 1; current_vcf_record_position < vcf_size; ++current_vcf_record_position) {
+        const auto &current_vcf_record = *(records.at(current_vcf_record_position));
 
-            // merge alts
-            uint16_t prev_alt_size = prev_vr.alt.size();
-            bool short_enough = true;
-            for (const auto &a : record.alt) {
-                if (a.length() > max_allele_length)
-                    short_enough = false;
-                prev_vr.alt.push_back(a);
-            }
-            if (!short_enough) {
-                prev_pos = current_pos;
-                prev_vr = *(records.at(prev_pos));
-                continue;
-            }
+        // ensure we are merging only bi-allelic records
+        assert(current_vcf_record.alts.size() == 1);
+
+        bool both_records_have_the_same_ref = previous_vcf_record_copy.has_non_null_reference()
+                                              and current_vcf_record.has_non_null_reference()
+                                              and previous_vcf_record_copy.ref == current_vcf_record.ref;
+
+        bool all_alleles_have_at_most_max_allele_length =
+                previous_vcf_record_copy.get_longest_allele_length() <= max_allele_length
+                and current_vcf_record.get_longest_allele_length() <= max_allele_length;
+
+        bool previous_and_current_vcf_should_be_merged = current_vcf_record != previous_vcf_record_copy
+                                                         and previous_vcf_record_copy.has_the_same_position(current_vcf_record)
+                                                         and both_records_have_the_same_ref
+                                                         and all_alleles_have_at_most_max_allele_length;
+
+        if (previous_and_current_vcf_should_be_merged) {
+            uint16_t alts_offset = previous_vcf_record_copy.alts.size();
+            previous_vcf_record_copy.alts.insert(previous_vcf_record_copy.alts.end(), current_vcf_record.alts.begin(), current_vcf_record.alts.end());
 
             // merge count/likelihood data
-            if (record.samples.empty()) {
-                records.at(current_pos)->clear();
-                records.at(prev_pos)->clear();
-                add_record_core(prev_vr);
-                prev_pos = records.size() - 1;
-                prev_vr = *(records.at(prev_pos));
+            // TODO: this code is not covered by tests, IDK what it is supposed to do
+            if (current_vcf_record.samples.empty()) {
+                records.at(current_vcf_record_position)->clear();
+                records.at(previous_vcf_record_position)->clear();
+                add_record_core(previous_vcf_record_copy);
+                previous_vcf_record_position = records.size() - 1;
+                previous_vcf_record_copy = *(records.at(previous_vcf_record_position));
             }
-            for (uint i = 0; i < record.samples.size(); ++i) {
+
+            for (uint i = 0; i < current_vcf_record.samples.size(); ++i) {
                 auto keys = {"MEAN_FWD_COVG", "MEAN_REV_COVG",
                              "MED_FWD_COVG", "MED_REV_COVG",
                              "SUM_FWD_COVG", "SUM_REV_COVG"};
                 for (const auto &key: keys) {
-                    merge_sample_key(prev_vr.samples[i], record.samples[i], key);
+                    merge_sample_key(previous_vcf_record_copy.samples[i], current_vcf_record.samples[i], key);
                 }
                 keys = {"LIKELIHOOD", "GT_CONF", "GAPS"};
-                if (!prev_vr.regt_samples.empty() and !record.regt_samples.empty()) {
+                if (!previous_vcf_record_copy.regt_samples.empty() and !current_vcf_record.regt_samples.empty()) {
                     for (const auto &key: keys)
-                        merge_regt_sample_key(prev_vr.regt_samples[i], record.regt_samples[i], key);
+                        merge_regt_sample_key(previous_vcf_record_copy.regt_samples[i], current_vcf_record.regt_samples[i], key);
                 }
 
                 //merge GT
-                merge_gt(prev_vr, record, i, prev_alt_size);
-                records.at(current_pos)->clear_sample(i);
-                records.at(prev_pos)->clear_sample(i);
+                merge_gt(previous_vcf_record_copy, current_vcf_record, i, alts_offset);
+                records.at(current_vcf_record_position)->clear_sample(i);
+                records.at(previous_vcf_record_position)->clear_sample(i);
             }
-            add_record_core(prev_vr);
-            prev_pos = records.size() - 1;
-            prev_vr = *(records.at(prev_pos));
-        } else if (record != prev_vr) {
-            prev_pos = current_pos;
-            prev_vr = *(records.at(prev_pos));
+            add_record_core(previous_vcf_record_copy);
+            previous_vcf_record_position = records.size() - 1;
+            previous_vcf_record_copy = *(records.at(previous_vcf_record_position));
+        } else if (current_vcf_record != previous_vcf_record_copy) {
+            previous_vcf_record_position = current_vcf_record_position;
+            previous_vcf_record_copy = *(records.at(previous_vcf_record_position));
         }
     }
     clean();
@@ -400,7 +400,7 @@ void VCF::correct_dot_alleles(const std::string &vcf_ref, const std::string &chr
             else
                 record.ref = prev_letter + record.ref;
                 record.pos -= 1;
-            for (auto &a : record.alt){
+            for (auto &a : record.alts){
                 if(a == "" or a == ".")
                     a = prev_letter;
                 else
@@ -415,7 +415,7 @@ void VCF::correct_dot_alleles(const std::string &vcf_ref, const std::string &chr
                 record.ref = next_letter;
             } else
                 record.ref = record.ref + next_letter;
-            for (auto &a : record.alt)
+            for (auto &a : record.alts)
                 if(a == "" or a == ".")
                     a = next_letter;
                 else

@@ -7,14 +7,13 @@
 #include <cstdint>
 #include <unordered_map>
 
-
 struct VCFRecord {
     //#CHROM POS ID REF ALT QUAL FILTER INFO FORMAT
     std::string chrom;
     uint32_t pos;
     std::string id; // not used
     std::string ref;
-    std::vector<std::string> alt;
+    std::vector<std::string> alts;
     std::string qual; // not used
     std::string filter; // not used
     std::string info;
@@ -22,11 +21,14 @@ struct VCFRecord {
     std::vector<std::unordered_map<std::string, std::vector<uint16_t>>> samples;      // should have an entry for each sample in vcf,
     std::vector<std::unordered_map<std::string, std::vector<float>>> regt_samples;   // in the same order
 
-    VCFRecord(std::string, uint32_t, std::string, std::string, std::string i = ".", std::string g = "");
+    VCFRecord(const std::string &chrom, uint32_t pos, const std::string &ref, const std::string &alt,
+              const std::string &info=".", const std::string &graph_type_info="");
 
     VCFRecord();
 
     VCFRecord(const VCFRecord &);
+
+    std::string infer_SVTYPE() const;
 
     VCFRecord &operator=(const VCFRecord &);
 
@@ -99,6 +101,14 @@ struct VCFRecord {
     inline bool svtype_is_complex() const {
         return this->info.find("SVTYPE=COMPLEX") != std::string::npos;
     }
+    inline bool has_the_same_position(const VCFRecord &other) const {
+        return this->chrom==other.chrom and this->pos==other.pos;
+    }
+    inline bool has_non_null_reference () const {
+        return this->ref != "." and this->ref != "";
+    }
+
+    size_t get_longest_allele_length() const;
 };
 
 #endif

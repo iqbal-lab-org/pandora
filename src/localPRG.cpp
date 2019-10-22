@@ -1420,7 +1420,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
         record.set_format(sample_index, "SUM_REV_COVG", sum(ref_rev_covgs));
         record.set_format(sample_index, "GAPS", gaps(ref_fwd_covgs, ref_rev_covgs, min_kmer_covg));
 
-        for (const auto &alt_allele : record.alt) {
+        for (const auto &alt_allele : record.alts) {
             alt_path = find_alt_path(ref_path, record.pos, record.ref, alt_allele);
             alt_kmer_path = kmernode_path_from_localnode_path(alt_path);
 
