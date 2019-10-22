@@ -41,6 +41,10 @@ public:
     VCF() = default;
     virtual ~VCF() = default;
 
+    inline size_t get_VCF_size() const {
+        return records.size();
+    }
+
     void add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i = ".", std::string g = "");
 
     VCFRecord &add_record(VCFRecord &, const std::vector<std::string> &sample_names);
@@ -68,7 +72,7 @@ public:
 
     void clean();
 
-    void merge_multi_allelic(uint32_t max_allele_length = 10000);
+    VCF merge_multi_allelic(uint32_t max_allele_length = 10000) const;
 
     void correct_dot_alleles(const std::string &, const std::string &);
 

@@ -835,7 +835,7 @@ TEST(VCFTest, merge_multi_allelic) {
     vcf.add_record("chrom1", 85, "A", "G");
     vcf.add_record("chrom1", 85, "T", "C");
 
-    vcf.merge_multi_allelic();
+    vcf = vcf.merge_multi_allelic();
     std::vector<std::string> formats = {"GT", "LIKELIHOOD", "GT_CONF", "MEAN_FWD_COVG", "MEAN_REV_COVG", "GAPS"};
     vcf.add_formats(formats);
 
@@ -899,7 +899,7 @@ TEST(VCFTest, merge_multi_allelic___vcf_with_two_samples_and_two_records_second_
     vcf.records[1]->samples[0]["MEAN_FWD_COVG"] = {1, 4};
 
     // do the merge
-    vcf.merge_multi_allelic();
+    vcf = vcf.merge_multi_allelic();
 
     // output the vcf just for us to look at it
     std::vector<std::string> formats = {"MEAN_FWD_COVG"};

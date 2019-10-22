@@ -240,142 +240,62 @@ void VCF::clean() {
     }
 }
 
-void merge_sample_key(std::unordered_map<std::string, std::vector<uint16_t>> &first,
-                      const std::unordered_map<std::string, std::vector<uint16_t>> &second,
-                      const std::string &key) {
-    if (first.empty() or second.empty() or first.find(key) == first.end() or first[key].empty()) {
-        return;
-    } else if (first.find(key) != first.end() and (second.find(key) == second.end() or second.at(key).empty())) {
-        first.erase(key);
-    } else if (first[key][0] == second.at(key).at(0)) {
-        bool ref = true;
-        for (const auto &val : second.at(key)) {
-            if (!ref)
-                first[key].push_back(val);
-            ref = false;
-        }
-    } else
-        first.erase(key);
-}
-
-void merge_regt_sample_key(std::unordered_map<std::string, std::vector<float>> &first,
-                           const std::unordered_map<std::string, std::vector<float>> &second,
-                           const std::string &key) {
-    if (first.empty() or second.empty() or first.find(key) == first.end() or first[key].empty()) {
-        return;
-    } else if (first.find(key) != first.end() and (second.find(key) == second.end() or second.at(key).empty())) {
-        first.erase(key);
-    } else if (first[key][0] == second.at(key).at(0)) {
-        bool ref = true;
-        for (const auto &val : second.at(key)) {
-            if (!ref)
-                first[key].push_back(val);
-            ref = false;
-        }
-    } else
-        first.erase(key);
-}
-
-void merge_gt(VCFRecord &first, const VCFRecord &second, const uint16_t i, const uint16_t prev_alt_size) {
-    if (first.samples.size() < i or second.samples.size() < i) {
-        return;
-    } else if (second.samples[i].find("GT") == second.samples[i].end()
-               or second.samples[i].at("GT").empty()) {
-        return;
-    } else if (first.samples[i].find("GT") == first.samples[i].end()
-               or first.samples[i]["GT"].empty()) {
-        if (second.samples[i].at("GT")[0] == 0) {
-            first.samples[i]["GT"] = {0};
-        } else {
-            uint16_t new_allele = second.samples[i].at("GT")[0] + prev_alt_size;
-            first.samples[i]["GT"] = {new_allele};
-        }
-    } else if (first.samples[i]["GT"][0] != 0 or second.samples[i].at("GT")[0] != 0) {
-        //conflict, try to resolve with likelihoods
-        if (first.regt_samples.size() > i
-            and first.regt_samples[i].find("LIKELIHOOD") != first.regt_samples[i].end()) {
-            first.confidence();
-            first.genotype(5);
-        } else {
-            first.samples[i]["GT"] = {};
-        }
-    }
-}
 
 
-void VCF::merge_multi_allelic(uint32_t max_allele_length) {
-    auto vcf_size = records.size();
+
+VCF VCF::merge_multi_allelic(uint32_t max_allele_length) const {
+    size_t vcf_size = this->get_VCF_size();
     bool no_need_for_merging = vcf_size < 2;
     if (no_need_for_merging)
-        return;
+        return VCF(*this);
 
-    auto reserve_size = vcf_size * 1.05;
-    records.reserve(reserve_size);
+    VCF merged_VCF;
+    merged_VCF.add_samples(this->samples);
 
-    uint32_t previous_vcf_record_position = 0;
-    VCFRecord previous_vcf_record_copy(*(records.at(previous_vcf_record_position)));
-    for (uint32_t current_vcf_record_position = 1; current_vcf_record_position < vcf_size; ++current_vcf_record_position) {
-        const auto &current_vcf_record = *(records.at(current_vcf_record_position));
+    VCFRecord vcf_record_merged(**(records.begin()));
+    for_each(records.begin()+1, records.end(), [&](const std::shared_ptr<VCFRecord> &vcf_record_to_be_merged_in_pointer) {
+        const VCFRecord &vcf_record_to_be_merged_in = *vcf_record_to_be_merged_in_pointer;
 
-        // ensure we are merging only bi-allelic records
-        assert(current_vcf_record.alts.size() == 1);
+        bool ensure_we_are_merging_only_biallelic_records = vcf_record_to_be_merged_in.alts.size() == 1;
+        assert(ensure_we_are_merging_only_biallelic_records);
 
-        bool both_records_have_the_same_ref = previous_vcf_record_copy.has_non_null_reference()
-                                              and current_vcf_record.has_non_null_reference()
-                                              and previous_vcf_record_copy.ref == current_vcf_record.ref;
+        bool both_records_have_the_same_ref = vcf_record_merged.has_non_null_reference()
+                                              and vcf_record_to_be_merged_in.has_non_null_reference()
+                                              and vcf_record_merged.ref == vcf_record_to_be_merged_in.ref;
 
         bool all_alleles_have_at_most_max_allele_length =
-                previous_vcf_record_copy.get_longest_allele_length() <= max_allele_length
-                and current_vcf_record.get_longest_allele_length() <= max_allele_length;
+                vcf_record_merged.get_longest_allele_length() <= max_allele_length
+                and vcf_record_to_be_merged_in.get_longest_allele_length() <= max_allele_length;
 
-        bool previous_and_current_vcf_should_be_merged = current_vcf_record != previous_vcf_record_copy
-                                                         and previous_vcf_record_copy.has_the_same_position(current_vcf_record)
-                                                         and both_records_have_the_same_ref
-                                                         and all_alleles_have_at_most_max_allele_length;
+        bool vcf_record_should_be_merged_in = vcf_record_to_be_merged_in != vcf_record_merged
+                                              and vcf_record_merged.has_the_same_position(vcf_record_to_be_merged_in)
+                                              and both_records_have_the_same_ref
+                                              and all_alleles_have_at_most_max_allele_length;
 
-        if (previous_and_current_vcf_should_be_merged) {
-            uint16_t alts_offset = previous_vcf_record_copy.alts.size();
-            previous_vcf_record_copy.alts.insert(previous_vcf_record_copy.alts.end(), current_vcf_record.alts.begin(), current_vcf_record.alts.end());
-
-            // merge count/likelihood data
-            // TODO: this code is not covered by tests, IDK what it is supposed to do
-            if (current_vcf_record.samples.empty()) {
+        if (vcf_record_should_be_merged_in) {
+            // TODO: this code is not covered by tests, IDK what it is supposed to do - commenting it out and asserting out if we reach it
+            if (vcf_record_to_be_merged_in.samples.empty()) {
+                assert_msg("VCF::merge_multi_allelic: vcf_record_to_be_merged_in has no samples");
+                /*
                 records.at(current_vcf_record_position)->clear();
                 records.at(previous_vcf_record_position)->clear();
-                add_record_core(previous_vcf_record_copy);
+                merged_VCF.add_record_core(vcf_record_merged);
                 previous_vcf_record_position = records.size() - 1;
-                previous_vcf_record_copy = *(records.at(previous_vcf_record_position));
+                vcf_record_merged = *(records.at(previous_vcf_record_position));
+                 */
             }
-
-            for (uint i = 0; i < current_vcf_record.samples.size(); ++i) {
-                auto keys = {"MEAN_FWD_COVG", "MEAN_REV_COVG",
-                             "MED_FWD_COVG", "MED_REV_COVG",
-                             "SUM_FWD_COVG", "SUM_REV_COVG"};
-                for (const auto &key: keys) {
-                    merge_sample_key(previous_vcf_record_copy.samples[i], current_vcf_record.samples[i], key);
-                }
-                keys = {"LIKELIHOOD", "GT_CONF", "GAPS"};
-                if (!previous_vcf_record_copy.regt_samples.empty() and !current_vcf_record.regt_samples.empty()) {
-                    for (const auto &key: keys)
-                        merge_regt_sample_key(previous_vcf_record_copy.regt_samples[i], current_vcf_record.regt_samples[i], key);
-                }
-
-                //merge GT
-                merge_gt(previous_vcf_record_copy, current_vcf_record, i, alts_offset);
-                records.at(current_vcf_record_position)->clear_sample(i);
-                records.at(previous_vcf_record_position)->clear_sample(i);
-            }
-            add_record_core(previous_vcf_record_copy);
-            previous_vcf_record_position = records.size() - 1;
-            previous_vcf_record_copy = *(records.at(previous_vcf_record_position));
-        } else if (current_vcf_record != previous_vcf_record_copy) {
-            previous_vcf_record_position = current_vcf_record_position;
-            previous_vcf_record_copy = *(records.at(previous_vcf_record_position));
+            vcf_record_merged.merge_record_into_this(vcf_record_to_be_merged_in);
+        }else {
+            merged_VCF.add_record_core(vcf_record_merged);
+            vcf_record_merged = vcf_record_to_be_merged_in;
         }
-    }
-    clean();
-    assert(records.size() <= vcf_size);
-    sort_records();
+    });
+    merged_VCF.add_record_core(vcf_record_merged);
+
+    merged_VCF.sort_records();
+    assert(merged_VCF.get_VCF_size() <= vcf_size);
+
+    return merged_VCF;
 }
 
 void VCF::correct_dot_alleles(const std::string &vcf_ref, const std::string &chrom) {

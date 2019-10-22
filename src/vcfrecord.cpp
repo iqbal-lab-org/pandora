@@ -465,3 +465,49 @@ size_t VCFRecord::get_longest_allele_length() const {
     return longest_allele_length;
 
 }
+
+
+void VCFRecord::merge_sample_information(const VCFRecord &other) {
+    for (size_t sample_index = 0; sample_index < this->samples.size(); ++sample_index) {
+        auto keys = {"MEAN_FWD_COVG", "MEAN_REV_COVG",
+                     "MED_FWD_COVG", "MED_REV_COVG",
+                     "SUM_FWD_COVG", "SUM_REV_COVG"};
+        for (const auto &key: keys) {
+            merge_sample_key(this->samples[sample_index], other.samples[sample_index], key);
+        }
+
+        keys = {"LIKELIHOOD", "GT_CONF", "GAPS"};
+        if (!this->regt_samples.empty() and !other.regt_samples.empty()) {
+            for (const auto &key: keys)
+                merge_sample_key(this->regt_samples[sample_index], other.regt_samples[sample_index], key);
+        }
+    }
+}
+
+
+void VCFRecord::merge_gt(const VCFRecord &other) {
+    for (size_t sample_index = 0; sample_index < this->samples.size(); ++sample_index) {
+        if (other.samples[sample_index].find("GT") == other.samples[sample_index].end()
+            or other.samples[sample_index].at("GT").empty()) {
+            continue;
+        } else if (this->samples[sample_index].find("GT") == this->samples[sample_index].end()
+                   or this->samples[sample_index]["GT"].empty()) {
+            if (other.samples[sample_index].at("GT")[0] == 0) {
+                this->samples[sample_index]["GT"] = {0};
+            } else {
+                uint32_t allele_offset = this->alts.size();
+                uint16_t new_allele = other.samples[sample_index].at("GT")[0] + allele_offset;
+                this->samples[sample_index]["GT"] = {new_allele};
+            }
+        } else if (this->samples[sample_index]["GT"][0] != 0 or other.samples[sample_index].at("GT")[0] != 0) {
+            //conflict, try to resolve with likelihoods
+            if (this->regt_samples.size() > sample_index
+                and this->regt_samples[sample_index].find("LIKELIHOOD") != this->regt_samples[sample_index].end()) {
+                this->confidence();
+                this->genotype(5); //TODO: solve this bug
+            } else {
+                this->samples[sample_index]["GT"] = {};
+            }
+        }
+    }
+}
