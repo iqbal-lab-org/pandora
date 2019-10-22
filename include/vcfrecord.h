@@ -6,8 +6,13 @@
 #include <string>
 #include <cstdint>
 #include <unordered_map>
+#include "sampleinfo.h"
 
 struct VCFRecord {
+private:
+    std::string infer_SVTYPE() const;
+
+public:
     //#CHROM POS ID REF ALT QUAL FILTER INFO FORMAT
     std::string chrom;
     uint32_t pos;
@@ -23,18 +28,16 @@ struct VCFRecord {
 
     VCFRecord(const std::string &chrom, uint32_t pos, const std::string &ref, const std::string &alt,
               const std::string &info=".", const std::string &graph_type_info="");
-
     VCFRecord();
+    VCFRecord(const VCFRecord &) = default;
+    VCFRecord &operator=(const VCFRecord &) = default;
+    ~VCFRecord() = default;
 
-    VCFRecord(const VCFRecord &);
 
-    std::string infer_SVTYPE() const;
 
-    VCFRecord &operator=(const VCFRecord &);
-
-    ~VCFRecord();
-
-    void clear();
+    inline void clear() {
+        *this = VCFRecord();
+    }
 
     void clear_sample(uint32_t);
 

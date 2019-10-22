@@ -42,25 +42,10 @@ VCFRecord::VCFRecord(const std::string &chrom, uint32_t pos, const std::string &
     }
 }
 
-VCFRecord::VCFRecord() : chrom("."), pos(0), id("."), ref("."), qual("."), filter("."), info(".") {};
-
-VCFRecord::VCFRecord(const VCFRecord &other) {
-    chrom = other.chrom;
-    pos = other.pos;
-    id = other.id;
-    ref = other.ref;
-    alts = other.alts;
-    qual = other.qual;
-    filter = other.filter;
-    info = other.info;
-    format = other.format;
-    samples = other.samples;
-    regt_samples = other.regt_samples;
-}
-
+VCFRecord::VCFRecord() : chrom("."), pos(0), id("."), ref("."), qual("."), filter("."), info(".") {}
 
 std::string VCFRecord::infer_SVTYPE() const {
-    // TODO: need to think about how to handle cases where there are more than 2 options, not all of one type
+    // TODO: How to handle cases where there are more than 2 options, not all of one type
     if (ref == "." and (alts.empty() or alts[0] == "."))
         return ".";
     else if (ref == "." or alts.empty() or alts[0] == ".")
@@ -77,47 +62,6 @@ std::string VCFRecord::infer_SVTYPE() const {
         return "SVTYPE=INDEL";
     else
         return "SVTYPE=COMPLEX";
-}
-
-
-VCFRecord &VCFRecord::operator=(const VCFRecord &other) {
-    // check for self-assignment
-    if (this == &other)
-        return *this;
-
-    chrom = other.chrom;
-    pos = other.pos;
-    id = other.id;
-    ref = other.ref;
-    alts = other.alts;
-    qual = other.qual;
-    filter = other.filter;
-    info = other.info;
-    format = other.format;
-    samples = other.samples;
-    regt_samples = other.regt_samples;
-
-    return *this;
-}
-
-VCFRecord::~VCFRecord() {};
-
-void VCFRecord::clear() {
-    chrom = ".";
-    pos = 0;
-    id = ".";
-    ref = ".";
-    alts.clear();
-    qual = ".";
-    filter = ".";
-    info = ".";
-    format.clear();
-    for (auto s : samples)
-        s.clear();
-    samples.clear();
-    for (auto r : regt_samples)
-        r.clear();
-    regt_samples.clear();
 }
 
 void VCFRecord::clear_sample(uint32_t i) {
