@@ -32,7 +32,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 else ()
     find_package(OpenMP 4.0 REQUIRED)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-endif()
+endif ()
 
 #print CMAKE debug and release flags to know what we are exactly doing
 #message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
@@ -82,8 +82,7 @@ target_link_libraries(${PROJECT_NAME}
         ${ZLIB_LIBRARY})
 
 
-
-if(BUILD_COMPARE_INDEXES)
+if (BUILD_COMPARE_INDEXES)
     #Build compare_indexes
     set(SRC_FILES_COMPARE_INDEXES ${SRC_FILES})
     list(REMOVE_ITEM SRC_FILES_COMPARE_INDEXES ${PROJECT_SOURCE_DIR}/src/main.cpp)
@@ -100,7 +99,7 @@ if(BUILD_COMPARE_INDEXES)
             ${EXTERNAL_LIBS}
             ${CMAKE_DL_LIBS}
             ${ZLIB_LIBRARY})
-endif(BUILD_COMPARE_INDEXES)
+endif (BUILD_COMPARE_INDEXES)
 
 
 enable_testing()

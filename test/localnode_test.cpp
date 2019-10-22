@@ -1,13 +1,13 @@
-#include "gtest/gtest.h"
-#include "localnode.h"
 #include "interval.h"
-#include <stdint.h>
+#include "localnode.h"
+#include "gtest/gtest.h"
 #include <iostream>
-
+#include <stdint.h>
 
 using namespace std;
 
-TEST(LocalNodeTest, create) {
+TEST(LocalNodeTest, create)
+{
 
     LocalNode ln("ACGTA", Interval(0, 5), 0);
 
@@ -18,7 +18,8 @@ TEST(LocalNodeTest, create) {
     EXPECT_EQ(j, ln.id);
 }
 
-TEST(LocalNodeTest, equals) {
+TEST(LocalNodeTest, equals)
+{
     LocalNode ln1("ACGTA", Interval(0, 5), 0);
     LocalNode ln2("AGCTA", Interval(0, 5), 0);
     LocalNode ln3("ACGTA", Interval(0, 4), 0);
@@ -29,10 +30,10 @@ TEST(LocalNodeTest, equals) {
     EXPECT_EQ(ln3, ln3);
     EXPECT_EQ(ln4, ln4);
     EXPECT_EQ((ln1 == ln2), false);
-    //EXPECT_EQ((ln1==ln3), false); //now interval associated with a node does not matter
+    // EXPECT_EQ((ln1==ln3), false); //now interval associated with a node does not
+    // matter
     EXPECT_EQ((ln1 == ln4), false);
     EXPECT_EQ((ln2 == ln3), false);
     EXPECT_EQ((ln2 == ln4), false);
     EXPECT_EQ((ln3 == ln4), false);
 }
-

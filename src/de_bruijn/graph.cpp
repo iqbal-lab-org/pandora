@@ -1,13 +1,12 @@
-#include <deque>
-#include <limits>
-#include <fstream>
-#include <unordered_set>
-#include <set>
-#include <deque>
-#include <iostream>
-#include <memory>
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <deque>
+#include <fstream>
+#include <iostream>
+#include <limits>
+#include <memory>
+#include <set>
+#include <unordered_set>
 
 #include <boost/log/trivial.hpp>
 
@@ -15,24 +14,25 @@
 #include "noise_filtering.h"
 #include "utils.h"
 
-
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace debruijn;
 
 // Define a debruijn graph with s-mers of genes as nodes
-debruijn::Graph::Graph(uint8_t s) : next_id(0), size(s) {
+debruijn::Graph::Graph(uint8_t s)
+    : next_id(0)
+    , size(s)
+{
     nodes.reserve(200000);
 };
 
-
-debruijn::Graph::~Graph() {
-    nodes.clear();
-}
+debruijn::Graph::~Graph() { nodes.clear(); }
 
 // Add a node in dbg corresponding to a fixed size deque of pangenome graph
 // node/orientation ids and labelled with the read_ids which cover it
-OrientedNodePtr debruijn::Graph::add_node(const std::deque<uint_least32_t> &node_ids, uint32_t read_id) {
+OrientedNodePtr debruijn::Graph::add_node(
+    const std::deque<uint_least32_t>& node_ids, uint32_t read_id)
+{
     assert(node_ids.size() == size);
 
     if (node_hash.find(node_ids) != node_hash.end()) {
@@ -55,8 +55,8 @@ OrientedNodePtr debruijn::Graph::add_node(const std::deque<uint_least32_t> &node
     }
 
     next_id++;
-    assert(next_id < std::numeric_limits<uint_least32_t>::max() ||
-           assert_msg("WARNING, reached max de bruijn graph node size"));
+    assert(next_id < std::numeric_limits<uint_least32_t>::max()
+        || assert_msg("WARNING, reached max de bruijn graph node size"));
     return make_pair(n, true);
 }
 
@@ -65,23 +65,24 @@ OrientedNodePtr debruijn::Graph::add_node(const std::deque<uint_least32_t> &node
 // Note that forward and reverse complement kmers are treated as
 // equal, but an edge is only valid if the orientation they were found
 // in in the read allows the overlap
-bool edge_is_valid(OrientedNodePtr from, OrientedNodePtr to) {
+bool edge_is_valid(OrientedNodePtr from, OrientedNodePtr to)
+{
     std::deque<uint_least32_t> hashed_node_ids_from = from.first->hashed_node_ids;
     std::deque<uint_least32_t> hashed_node_ids_to = to.first->hashed_node_ids;
     if (!from.second) {
         hashed_node_ids_from = rc_hashed_node_ids(hashed_node_ids_from);
-        //cout << "reverse from" << endl;
+        // cout << "reverse from" << endl;
     }
 
     if (!to.second) {
         hashed_node_ids_to = rc_hashed_node_ids(hashed_node_ids_to);
-        //cout << "reverse to" << endl;
+        // cout << "reverse to" << endl;
     }
     /*cout << from.second << to.second << " compare (";
     for (const auto &n : hashed_node_ids_from)
     {
-	cout << n << " ";
-    } 
+        cout << n << " ";
+    }
     cout << ") to (";
     for (const auto &n : hashed_node_ids_to)
     {
@@ -93,49 +94,62 @@ bool edge_is_valid(OrientedNodePtr from, OrientedNodePtr to) {
 }
 
 // Add directed edge between from and to
-void debruijn::Graph::add_edge(OrientedNodePtr from, OrientedNodePtr to) {
+void debruijn::Graph::add_edge(OrientedNodePtr from, OrientedNodePtr to)
+{
     assert(from.first != nullptr and to.first != nullptr);
-    assert(edge_is_valid(from, to) or assert_msg("edge from " << *from.first << " to " << *to.first << " is invalid"));
+    assert(edge_is_valid(from, to)
+        or assert_msg(
+            "edge from " << *from.first << " to " << *to.first << " is invalid"));
 
-    //uint8_t num_edges_added = 0;
-    if (from.second and from.first->out_nodes.find(to.first->id) == from.first->out_nodes.end()) {
+    // uint8_t num_edges_added = 0;
+    if (from.second
+        and from.first->out_nodes.find(to.first->id) == from.first->out_nodes.end()) {
         from.first->out_nodes.insert(to.first->id);
-        //cout << "added edge " << from.first->id << " -> " << to.first->id << " so out_nodes.size() == "
+        // cout << "added edge " << from.first->id << " -> " << to.first->id << " so
+        // out_nodes.size() == "
         //     << from.first->out_nodes.size() << endl;
         ////num_edges_added += 1;
-    } else if (!from.second and from.first->in_nodes.find(to.first->id) == from.first->in_nodes.end()) {
+    } else if (!from.second
+        and from.first->in_nodes.find(to.first->id) == from.first->in_nodes.end()) {
         from.first->in_nodes.insert(to.first->id);
-        //cout << "added edge " << from.first->id << " <- " << to.first->id << " so in_nodes.size() == "
+        // cout << "added edge " << from.first->id << " <- " << to.first->id << " so
+        // in_nodes.size() == "
         //     << from.first->in_nodes.size() << endl;
         ////num_edges_added += 1;
     }
 
-    if (to.second and to.first->in_nodes.find(from.first->id) == to.first->in_nodes.end()) {
+    if (to.second
+        and to.first->in_nodes.find(from.first->id) == to.first->in_nodes.end()) {
         to.first->in_nodes.insert(from.first->id);
-        //cout << "added edge " << to.first->id << " <- " << from.first->id << " so in_nodes.size() == "
+        // cout << "added edge " << to.first->id << " <- " << from.first->id << " so
+        // in_nodes.size() == "
         //     << to.first->in_nodes.size() << endl;
         ////num_edges_added += 1;
-    } else if (!to.second and to.first->out_nodes.find(from.first->id) == to.first->out_nodes.end()) {
+    } else if (!to.second
+        and to.first->out_nodes.find(from.first->id) == to.first->out_nodes.end()) {
         to.first->out_nodes.insert(from.first->id);
-        //cout << "added edge " << to.first->id << " -> " << from.first->id << " so out_nodes.size() == "
+        // cout << "added edge " << to.first->id << " -> " << from.first->id << " so
+        // out_nodes.size() == "
         //     << to.first->out_nodes.size() << endl;
         ////num_edges_added += 1;
     }
 
-    //assert(num_edges_added == 2 or assert_msg("did not add edge from " << *from << " to " << *to));
+    // assert(num_edges_added == 2 or assert_msg("did not add edge from " << *from << "
+    // to " << *to));
 }
 
 // Remove all mentions of de bruijn node with id given from graph
-void debruijn::Graph::remove_node(const uint32_t dbg_node_id) {
-    //cout << "remove node " << dbg_node_id << endl;
+void debruijn::Graph::remove_node(const uint32_t dbg_node_id)
+{
+    // cout << "remove node " << dbg_node_id << endl;
     auto it = nodes.find(dbg_node_id);
     if (it != nodes.end()) {
         // remove this node from lists of out nodes from other graph nodes
-        for (const auto &n : it->second->out_nodes) {
+        for (const auto& n : it->second->out_nodes) {
             nodes[n]->in_nodes.erase(dbg_node_id);
             nodes[n]->out_nodes.erase(dbg_node_id);
         }
-        for (const auto &n : it->second->in_nodes) {
+        for (const auto& n : it->second->in_nodes) {
             nodes[n]->out_nodes.erase(dbg_node_id);
             nodes[n]->in_nodes.erase(dbg_node_id);
         }
@@ -155,12 +169,12 @@ void debruijn::Graph::remove_node(const uint32_t dbg_node_id) {
 
     // first remove nodes
     unordered_set<uint32_t> read_ids;
-    bool orientation = overlap_forwards(nodes[tig[0]]->hashed_node_ids, nodes[tig[1]]->hashed_node_ids);
-    for (uint i=1; i<nodes.size()-1; ++i)
+    bool orientation = overlap_forwards(nodes[tig[0]]->hashed_node_ids,
+nodes[tig[1]]->hashed_node_ids); for (uint i=1; i<nodes.size()-1; ++i)
     {
         read_ids.insert(nodes[tig[i]]->read_ids.begin(), nodes[tig[i]]->read_ids.end());
-        orientation *= overlap_forwards(nodes[tig[i]]->hashed_node_ids, nodes[tig[i+1]]->hashed_node_ids);
-        remove_node[tig[i]];
+        orientation *= overlap_forwards(nodes[tig[i]]->hashed_node_ids,
+nodes[tig[i+1]]->hashed_node_ids); remove_node[tig[i]];
     }
 
     // then add nodes and edges back to allow continuity
@@ -190,62 +204,69 @@ void debruijn::Graph::remove_node(const uint32_t dbg_node_id) {
 }*/
 
 // Remove all copies of read from de bruijn node
-void debruijn::Graph::remove_read_from_node(const uint32_t read_id, const uint32_t dbg_node_id) {
-    //cout << "remove read " << (uint)read_id << " from node " << (uint)dbg_node_id << endl;
+void debruijn::Graph::remove_read_from_node(
+    const uint32_t read_id, const uint32_t dbg_node_id)
+{
+    // cout << "remove read " << (uint)read_id << " from node " << (uint)dbg_node_id <<
+    // endl;
     auto it = nodes.find(dbg_node_id);
     bool found_read_intersect;
     if (it != nodes.end()) {
-        //cout << "found node " << *(it->second) << endl;
+        // cout << "found node " << *(it->second) << endl;
         auto rit = it->second->read_ids.find(read_id);
         if (rit != it->second->read_ids.end()) {
-            //cout << "found read id on node" << endl;
+            // cout << "found read id on node" << endl;
             it->second->read_ids.erase(rit);
-            //cout << "removed read id" << endl;
+            // cout << "removed read id" << endl;
 
             // if there are no more reads covering it, remove the node
 
             if (it->second->read_ids.empty()) {
-                //cout << "no more reads, so remove node" << endl;
+                // cout << "no more reads, so remove node" << endl;
                 remove_node(dbg_node_id);
             } else {
                 // otherwise, remove any outnodes which no longer share a read
-                //cout << "remove outnodes which no longer share a read" << endl;
-                for (std::unordered_set<uint32_t>::iterator nit = it->second->out_nodes.begin();
+                // cout << "remove outnodes which no longer share a read" << endl;
+                for (std::unordered_set<uint32_t>::iterator nit
+                     = it->second->out_nodes.begin();
                      nit != it->second->out_nodes.end();) {
-                    //cout << "out node " << *nit << endl;
+                    // cout << "out node " << *nit << endl;
                     found_read_intersect = false;
-                    for (const auto &r : it->second->read_ids) {
-                        if (nodes[*nit]->read_ids.find(r) != nodes[*nit]->read_ids.end()) {
+                    for (const auto& r : it->second->read_ids) {
+                        if (nodes[*nit]->read_ids.find(r)
+                            != nodes[*nit]->read_ids.end()) {
                             found_read_intersect = true;
-                            //cout << " shares a read" << endl;
+                            // cout << " shares a read" << endl;
                             break;
                         }
                     }
                     if (!found_read_intersect) {
-                        //cout << " does not share a read" << endl;
+                        // cout << " does not share a read" << endl;
                         nodes[*nit]->in_nodes.erase(dbg_node_id);
                         nit = it->second->out_nodes.erase(nit);
-                        //cout << "removed" << endl;
+                        // cout << "removed" << endl;
                     } else {
                         nit++;
                     }
                 }
-                for (std::unordered_set<uint32_t>::iterator nit = it->second->in_nodes.begin();
+                for (std::unordered_set<uint32_t>::iterator nit
+                     = it->second->in_nodes.begin();
                      nit != it->second->in_nodes.end();) {
-                    //cout << "out node " << *nit << endl;
+                    // cout << "out node " << *nit << endl;
                     found_read_intersect = false;
-                    for (const auto &r : it->second->read_ids) {
-                        if (nodes[*nit]->read_ids.find(r) != nodes[*nit]->read_ids.end()) {
+                    for (const auto& r : it->second->read_ids) {
+                        if (nodes[*nit]->read_ids.find(r)
+                            != nodes[*nit]->read_ids.end()) {
                             found_read_intersect = true;
-                            //cout << " shares a read" << endl;
+                            // cout << " shares a read" << endl;
                             break;
                         }
                     }
                     if (!found_read_intersect) {
-                        //cout << " does not share a read" << endl;
+                        // cout << " does not share a read" << endl;
                         nodes[*nit]->out_nodes.erase(dbg_node_id);
                         nit = it->second->in_nodes.erase(nit);
-                        //cout << "removed" << endl;
+                        // cout << "removed" << endl;
                     } else {
                         nit++;
                     }
@@ -256,12 +277,13 @@ void debruijn::Graph::remove_read_from_node(const uint32_t read_id, const uint32
 }
 
 // Get the dbg node ids corresponding to leaves
-std::unordered_set<uint32_t> debruijn::Graph::get_leaves(uint_least32_t covg_thresh) {
+std::unordered_set<uint32_t> debruijn::Graph::get_leaves(uint_least32_t covg_thresh)
+{
     std::unordered_set<uint32_t> s;
-    for (const auto &c : nodes) {
-        BOOST_LOG_TRIVIAL(debug) << "node " << *c.second
-                                 << " has " << c.second->out_nodes.size() << " + " << c.second->in_nodes.size()
-                                 << " outnodes";
+    for (const auto& c : nodes) {
+        BOOST_LOG_TRIVIAL(debug)
+            << "node " << *c.second << " has " << c.second->out_nodes.size() << " + "
+            << c.second->in_nodes.size() << " outnodes";
         if (c.second->read_ids.size() > covg_thresh) {
             continue;
         } else if (c.second->out_nodes.size() + c.second->in_nodes.size() <= 1) {
@@ -272,25 +294,27 @@ std::unordered_set<uint32_t> debruijn::Graph::get_leaves(uint_least32_t covg_thr
 }
 
 // Get deques of dbg node ids corresponding to maximal non-branching paths in dbg
-std::set<std::deque<uint32_t>> debruijn::Graph::get_unitigs() {
+std::set<std::deque<uint32_t>> debruijn::Graph::get_unitigs()
+{
     std::set<std::deque<uint32_t>> all_tigs;
     std::set<uint32_t> seen;
 
-    for (const auto &node_entry : nodes) {
-        const auto &id = node_entry.first;
+    for (const auto& node_entry : nodes) {
+        const auto& id = node_entry.first;
         assert(id <= next_id);
 
-        const auto &node_ptr = node_entry.second;
+        const auto& node_ptr = node_entry.second;
         assert(node_ptr != nullptr);
 
         bool node_seen = seen.find(id) != seen.end();
-        bool at_branch = (node_ptr->out_nodes.size() > 1) or (node_ptr->in_nodes.size() > 1);
+        bool at_branch
+            = (node_ptr->out_nodes.size() > 1) or (node_ptr->in_nodes.size() > 1);
         if (node_seen or at_branch)
             continue;
 
-        std::deque<uint32_t> tig = {id};
+        std::deque<uint32_t> tig = { id };
         extend_unitig(tig);
-        for (const auto &other_id: tig)
+        for (const auto& other_id : tig)
             seen.insert(other_id);
         all_tigs.insert(tig);
     }
@@ -298,16 +322,19 @@ std::set<std::deque<uint32_t>> debruijn::Graph::get_unitigs() {
 }
 
 // Extend a dbg path on either end until reaching a branch point
-void debruijn::Graph::extend_unitig(std::deque<uint32_t> &tig) {
+void debruijn::Graph::extend_unitig(std::deque<uint32_t>& tig)
+{
     bool tig_is_empty = (tig.empty());
     bool node_is_isolated = (tig.size() == 1
-                             and (nodes[tig.back()]->out_nodes.size() + nodes[tig.back()]->in_nodes.size()) == 0);
+        and (nodes[tig.back()]->out_nodes.size() + nodes[tig.back()]->in_nodes.size())
+            == 0);
     if (tig_is_empty or node_is_isolated) {
-        //cout << "node is isolated or tig empty" << endl;
+        // cout << "node is isolated or tig empty" << endl;
         return;
     }
 
-    bool can_extend = nodes[tig.back()]->out_nodes.size() == 1;// and nodes[tig.back()]->in_nodes.size() <= 1;
+    bool can_extend = nodes[tig.back()]->out_nodes.size()
+        == 1; // and nodes[tig.back()]->in_nodes.size() <= 1;
     bool use_outnodes = true;
     while (can_extend) {
 
@@ -317,28 +344,32 @@ void debruijn::Graph::extend_unitig(std::deque<uint32_t> &tig) {
         }
         cout << endl;*/
 
-        if (use_outnodes)// and find(tig.begin(), tig.end(), *nodes[tig.back()]->out_nodes.begin())!=tig.end())
+        if (use_outnodes) // and find(tig.begin(), tig.end(),
+                          // *nodes[tig.back()]->out_nodes.begin())!=tig.end())
             tig.push_back(*nodes[tig.back()]->out_nodes.begin());
-        else //if (find(tig.begin(), tig.end(), *nodes[tig.back()]->in_nodes.begin())!=tig.end())
+        else // if (find(tig.begin(), tig.end(),
+             // *nodes[tig.back()]->in_nodes.begin())!=tig.end())
             tig.push_back(*nodes[tig.back()]->in_nodes.begin());
 
-        if (std::find(nodes[tig.back()]->in_nodes.begin(), nodes[tig.back()]->in_nodes.end(),
-                      *-- --tig.end()) != nodes[tig.back()]->in_nodes.end()) {
+        if (std::find(nodes[tig.back()]->in_nodes.begin(),
+                nodes[tig.back()]->in_nodes.end(), *----tig.end())
+            != nodes[tig.back()]->in_nodes.end()) {
             can_extend = nodes[tig.back()]->out_nodes.size() == 1
-                         and nodes[tig.back()]->in_nodes.size() <= 1
-                         and tig.front() != tig.back();
+                and nodes[tig.back()]->in_nodes.size() <= 1
+                and tig.front() != tig.back();
             use_outnodes = true;
-            //cout << "A";
-        } else if (std::find(nodes[tig.back()]->out_nodes.begin(), nodes[tig.back()]->out_nodes.end(),
-                             *-- --tig.end()) != nodes[tig.back()]->out_nodes.end()) {
+            // cout << "A";
+        } else if (std::find(nodes[tig.back()]->out_nodes.begin(),
+                       nodes[tig.back()]->out_nodes.end(), *----tig.end())
+            != nodes[tig.back()]->out_nodes.end()) {
             can_extend = nodes[tig.back()]->in_nodes.size() == 1
-                         and nodes[tig.back()]->out_nodes.size() <= 1
-                         and tig.front() != tig.back();
+                and nodes[tig.back()]->out_nodes.size() <= 1
+                and tig.front() != tig.back();
             use_outnodes = false;
-            //cout << "B";
+            // cout << "B";
         } else {
             can_extend = false;
-            //cout << "C";
+            // cout << "C";
         }
 
         /*cout << "tig in progress b: ";
@@ -349,25 +380,28 @@ void debruijn::Graph::extend_unitig(std::deque<uint32_t> &tig) {
     }
 
     if (tig.size() == 1) {
-        can_extend = nodes[tig.front()]->in_nodes.size() == 1 and nodes[tig.front()]->out_nodes.size() <= 1;
+        can_extend = nodes[tig.front()]->in_nodes.size() == 1
+            and nodes[tig.front()]->out_nodes.size() <= 1;
         use_outnodes = false;
-        //cout << "D";
+        // cout << "D";
     } else {
 
-        if (std::find(nodes[tig.front()]->in_nodes.begin(), nodes[tig.front()]->in_nodes.end(),
-                      *++tig.begin()) != nodes[tig.front()]->in_nodes.end()) {
+        if (std::find(nodes[tig.front()]->in_nodes.begin(),
+                nodes[tig.front()]->in_nodes.end(), *++tig.begin())
+            != nodes[tig.front()]->in_nodes.end()) {
             can_extend = nodes[tig.front()]->out_nodes.size() == 1
-                         and nodes[tig.front()]->in_nodes.size() <= 1
-                         and tig.front() != tig.back();
+                and nodes[tig.front()]->in_nodes.size() <= 1
+                and tig.front() != tig.back();
             use_outnodes = true;
-            //cout << "E";
-        } else if (std::find(nodes[tig.front()]->out_nodes.begin(), nodes[tig.front()]->out_nodes.end(),
-                             *++tig.begin()) != nodes[tig.front()]->out_nodes.end()) {
+            // cout << "E";
+        } else if (std::find(nodes[tig.front()]->out_nodes.begin(),
+                       nodes[tig.front()]->out_nodes.end(), *++tig.begin())
+            != nodes[tig.front()]->out_nodes.end()) {
             can_extend = nodes[tig.front()]->in_nodes.size() == 1
-                         and nodes[tig.front()]->out_nodes.size() <= 1
-                         and tig.front() != tig.back();
+                and nodes[tig.front()]->out_nodes.size() <= 1
+                and tig.front() != tig.back();
             use_outnodes = false;
-            //cout << "F";
+            // cout << "F";
         } else {
             can_extend = false;
         }
@@ -380,51 +414,59 @@ void debruijn::Graph::extend_unitig(std::deque<uint32_t> &tig) {
         }
         cout << endl;*/
 
-        if (use_outnodes)// and find(tig.begin(), tig.end(), *nodes[tig.front()]->out_nodes.begin())!=tig.end())
+        if (use_outnodes) // and find(tig.begin(), tig.end(),
+                          // *nodes[tig.front()]->out_nodes.begin())!=tig.end())
             tig.push_front(*nodes[tig.front()]->out_nodes.begin());
-        else //if (find(tig.begin(), tig.end(), *nodes[tig.front()]->in_nodes.begin())!=tig.end())
+        else // if (find(tig.begin(), tig.end(),
+             // *nodes[tig.front()]->in_nodes.begin())!=tig.end())
             tig.push_front(*nodes[tig.front()]->in_nodes.begin());
 
-        if (std::find(nodes[tig.front()]->in_nodes.begin(), nodes[tig.front()]->in_nodes.end(),
-                      *++tig.begin()) != nodes[tig.front()]->in_nodes.end()) {
+        if (std::find(nodes[tig.front()]->in_nodes.begin(),
+                nodes[tig.front()]->in_nodes.end(), *++tig.begin())
+            != nodes[tig.front()]->in_nodes.end()) {
             can_extend = nodes[tig.front()]->out_nodes.size() == 1
-                         and nodes[tig.front()]->in_nodes.size() <= 1
-                         and tig.front() != tig.back();
+                and nodes[tig.front()]->in_nodes.size() <= 1
+                and tig.front() != tig.back();
             use_outnodes = true;
-            //cout << "G";
-        } else if (std::find(nodes[tig.front()]->out_nodes.begin(), nodes[tig.front()]->out_nodes.end(),
-                             *++tig.begin()) != nodes[tig.front()]->out_nodes.end()) {
+            // cout << "G";
+        } else if (std::find(nodes[tig.front()]->out_nodes.begin(),
+                       nodes[tig.front()]->out_nodes.end(), *++tig.begin())
+            != nodes[tig.front()]->out_nodes.end()) {
             can_extend = nodes[tig.front()]->in_nodes.size() == 1
-                         and nodes[tig.front()]->out_nodes.size() <= 1
-                         and tig.front() != tig.back();
+                and nodes[tig.front()]->out_nodes.size() <= 1
+                and tig.front() != tig.back();
             use_outnodes = false;
-            //cout << "H";
+            // cout << "H";
         } else {
             can_extend = false;
-            //cout << "I";
+            // cout << "I";
         }
 
         /*cout << "tig in progress f: ";
         for (const auto &n : tig)
-        {   
+        {
             cout << n << " ";
         }
         cout << endl;*/
     }
 
-    while (tig.size() > 1 and tig.front() == tig.back())//find(tig.begin(), --tig.end(), tig.back()) == tig.end())
+    while (tig.size() > 1
+        and tig.front()
+            == tig.back()) // find(tig.begin(), --tig.end(), tig.back()) == tig.end())
         tig.pop_back();
 
     std::stringstream tig_ss;
-    for (const auto &n : tig)
+    for (const auto& n : tig)
         tig_ss << n << " ";
     BOOST_LOG_TRIVIAL(debug) << "got tig of length " << tig.size() << ": "
                              << tig_ss.str();
 }
 
 // Search the outnodes of node_ptr_to_search for node_ptr_to_find
-bool debruijn::Graph::found_in_out_nodes(const NodePtr node_ptr_to_search, const NodePtr node_ptr_to_find) const {
-    for (const auto &i : node_ptr_to_search->out_nodes) {
+bool debruijn::Graph::found_in_out_nodes(
+    const NodePtr node_ptr_to_search, const NodePtr node_ptr_to_find) const
+{
+    for (const auto& i : node_ptr_to_search->out_nodes) {
         if (*nodes.at(i) == *node_ptr_to_find) {
             return true;
         } else {
@@ -435,8 +477,10 @@ bool debruijn::Graph::found_in_out_nodes(const NodePtr node_ptr_to_search, const
 }
 
 // Search the innodes of node_ptr_to_search for node_ptr_to_find
-bool debruijn::Graph::found_in_in_nodes(const NodePtr node_ptr_to_search, const NodePtr node_ptr_to_find) const {
-    for (const auto &i : node_ptr_to_search->in_nodes) {
+bool debruijn::Graph::found_in_in_nodes(
+    const NodePtr node_ptr_to_search, const NodePtr node_ptr_to_find) const
+{
+    for (const auto& i : node_ptr_to_search->in_nodes) {
         if (*nodes.at(i) == *node_ptr_to_find) {
             return true;
         } else {
@@ -448,7 +492,8 @@ bool debruijn::Graph::found_in_in_nodes(const NodePtr node_ptr_to_search, const 
 
 // Graphs are equal if they have nodes corresponding to the same kmer
 // of node/orientations, with outnodes and innodes the same
-bool debruijn::Graph::operator==(const Graph &y) const {
+bool debruijn::Graph::operator==(const Graph& y) const
+{
     // want the graphs to have the same nodes, even if
     // the ids given them is different.
     if (nodes.size() != y.nodes.size()) {
@@ -456,32 +501,35 @@ bool debruijn::Graph::operator==(const Graph &y) const {
         return false;
     }
 
-    for (const auto &t : nodes) {
+    for (const auto& t : nodes) {
         bool found = false;
-        for (const auto &s : y.nodes) {
+        for (const auto& s : y.nodes) {
             if (*t.second == *s.second) {
-                //cout << t.first << " " << *t.second << " == " << *s.second << " " << s.first << endl;
+                // cout << t.first << " " << *t.second << " == " << *s.second << " " <<
+                // s.first << endl;
 
                 found = true;
 
                 // also check the outnodes are the same
-                if (t.second->out_nodes.size() + t.second->in_nodes.size() !=
-                    s.second->out_nodes.size() + s.second->in_nodes.size()) {
+                if (t.second->out_nodes.size() + t.second->in_nodes.size()
+                    != s.second->out_nodes.size() + s.second->in_nodes.size()) {
                     BOOST_LOG_TRIVIAL(debug) << "node has different number of outnodes";
                     return false;
                 }
 
-                for (const auto &i : t.second->out_nodes) {
+                for (const auto& i : t.second->out_nodes) {
                     if (not y.found_in_out_nodes(s.second, nodes.at(i))
                         and not y.found_in_in_nodes(s.second, nodes.at(i))) {
-                        BOOST_LOG_TRIVIAL(debug) << "did not find " << i << " in outnode or innodes";
+                        BOOST_LOG_TRIVIAL(debug)
+                            << "did not find " << i << " in outnode or innodes";
                         return false;
                     }
                 }
-                for (const auto &i : t.second->in_nodes) {
+                for (const auto& i : t.second->in_nodes) {
                     if (not y.found_in_out_nodes(s.second, nodes.at(i))
                         and not y.found_in_in_nodes(s.second, nodes.at(i))) {
-                        BOOST_LOG_TRIVIAL(debug) << "did not find " << i << " in outnode or innodes";
+                        BOOST_LOG_TRIVIAL(debug)
+                            << "did not find " << i << " in outnode or innodes";
                         return false;
                     }
                 }
@@ -489,28 +537,28 @@ bool debruijn::Graph::operator==(const Graph &y) const {
             }
         }
         if (!found) {
-            BOOST_LOG_TRIVIAL(debug) << "did not find node " << t.first << " " << *t.second;
+            BOOST_LOG_TRIVIAL(debug)
+                << "did not find node " << t.first << " " << *t.second;
             return false;
         }
     }
 
     // nodes can't be equal within a graph so don't need to check vice versa
-    //cout << "found all nodes" << endl;
+    // cout << "found all nodes" << endl;
     return true;
 }
 
-bool debruijn::Graph::operator!=(const Graph &y) const {
-    return !(*this == y);
-}
+bool debruijn::Graph::operator!=(const Graph& y) const { return !(*this == y); }
 
 namespace debruijn {
-    std::ostream &operator<<(std::ostream &out, const Graph &m) {
-        for (const auto &n : m.nodes) {
-            out << n.first << ": " << *(n.second) << std::endl;
-            for (const auto &o : n.second->out_nodes) {
-                out << n.first << " -> " << o << std::endl;
-            }
+std::ostream& operator<<(std::ostream& out, const Graph& m)
+{
+    for (const auto& n : m.nodes) {
+        out << n.first << ": " << *(n.second) << std::endl;
+        for (const auto& o : n.second->out_nodes) {
+            out << n.first << " -> " << o << std::endl;
         }
-        return out;
     }
+    return out;
+}
 }

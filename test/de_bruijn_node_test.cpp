@@ -1,33 +1,33 @@
-#include "gtest/gtest.h"
-#include "test_macro.cpp"
 #include "de_bruijn/node.h"
-#include <iostream>
+#include "test_macro.cpp"
+#include "gtest/gtest.h"
 #include <deque>
+#include <iostream>
 #include <unordered_set>
-
 
 using namespace debruijn;
 
-TEST(DeBruijnNodeTest, create) {
-    std::deque<uint_least32_t> v({4, 6, 8});
-    std::unordered_multiset<uint32_t> w({0});
+TEST(DeBruijnNodeTest, create)
+{
+    std::deque<uint_least32_t> v({ 4, 6, 8 });
+    std::unordered_multiset<uint32_t> w({ 0 });
     Node n(2, v, 0);
-    EXPECT_EQ(n.id, (uint) 2);
+    EXPECT_EQ(n.id, (uint)2);
     EXPECT_ITERABLE_EQ(std::deque<uint_least32_t>, n.hashed_node_ids, v);
     EXPECT_ITERABLE_EQ(std::unordered_multiset<uint32_t>, n.read_ids, w);
 }
 
-TEST(DeBruijnNodeTest, equals) {
-    std::deque<uint_least32_t> v({4, 7, 8});
-    std::deque<uint_least32_t> w({4, 6, 8});
-    std::deque<uint_least32_t> y({9, 6, 5});
+TEST(DeBruijnNodeTest, equals)
+{
+    std::deque<uint_least32_t> v({ 4, 7, 8 });
+    std::deque<uint_least32_t> w({ 4, 6, 8 });
+    std::deque<uint_least32_t> y({ 9, 6, 5 });
 
     Node n1(2, v, 0);
     Node n2(2, v, 5);
     Node n3(3, v, 0);
     Node n4(2, w, 0);
     Node n5(2, y, 0);
-
 
     EXPECT_EQ(n1, n1);
     EXPECT_EQ(n2, n2);
@@ -48,7 +48,6 @@ TEST(DeBruijnNodeTest, equals) {
     EXPECT_EQ(n5, n2);
     EXPECT_EQ(n5, n3);
 
-
     EXPECT_NE(n1, n4);
     EXPECT_NE(n4, n1);
     EXPECT_NE(n2, n4);
@@ -58,4 +57,3 @@ TEST(DeBruijnNodeTest, equals) {
     EXPECT_NE(n5, n4);
     EXPECT_NE(n4, n5);
 }
-

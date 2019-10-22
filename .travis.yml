@@ -1,16 +1,37 @@
 language: cpp
-compiler: g++
+compiler: gcc
+os: linux
+dist: bionic
 
-before_install:
-- sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-- sudo apt-get update -qq
+include:
+  - os: linux
+    addons:
+      apt:
+        packages:
+          - clang-format-8
 
-install:
-- sudo apt-get install -qq g++-4.8
-- export CXX="g++-4.8"
+jobs:
+  include:
+    - stage: "Lint"                # naming the Tests stage
+      name: "Format"            # names the first Tests stage job
+      script:
+        - find src/ include/ test/ -type f \( -iname \*.h -o -iname \*.cpp \) | xargs -I _ clang-format -style=file -output-replacements-xml _ | grep -c "<replacement " >/dev/null
+        - if [ $? -ne 1 ]; then echo "Not all source and header files are formatted with clang-format"; exit 1; fi
+    - stage: "Build"
+      script: echo "This is where we build Pandora"
+    - stage: "Test"
+      name: "Unit tests"
+      script: echo "This is where we run the unit tests"
+    - stage: "Deploy"
+      name: "DockerHub"
+      script: echo "This is where we deploy a container to Docker Hub"
 
-script:
-  - bash install.sh
+stages:
+  - "Lint"
+  - "Build"
+  - "Test"
+  - "Deploy"
 
 notifications:
   email: false
+

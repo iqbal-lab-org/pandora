@@ -1,9 +1,9 @@
 #include "pangenome/pangraph.h"
-
+#include "gtest/gtest.h"
 
 class PGraphTester : public pangenome::Graph {
 public:
-    using Graph::Graph; //inherits all ctors from pangenome::Graph
+    using Graph::Graph; // inherits all ctors from pangenome::Graph
 
     friend class PangenomeGraphTest_add_node_Test;
 
