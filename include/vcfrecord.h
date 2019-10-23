@@ -24,8 +24,9 @@ public:
     std::string filter; // not used
     std::string info;
     std::vector<std::string> format; //e.g. "GT"
-    std::vector<std::unordered_map<std::string, std::vector<uint16_t>>> samples;      // should have an entry for each sample in vcf,
-    std::vector<std::unordered_map<std::string, std::vector<float>>> regt_samples;   // in the same order
+    SamplesInfos<uint16_t> sampleIndex_to_format_to_sampleInfo;
+    SamplesInfos<float> sampleIndex_to_format_to_sampleGenotypedInfo;   // in the same order
+
 
     VCFRecord(const std::string &chrom, uint32_t pos, const std::string &ref, const std::string &alt,
               const std::string &info=".", const std::string &graph_type_info="");

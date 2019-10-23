@@ -9,6 +9,7 @@
 
 #include "vcfrecord.h"
 #include "utils.h"
+#include "sampleinfo.h"
 
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
@@ -65,15 +66,15 @@ std::string VCFRecord::infer_SVTYPE() const {
 }
 
 void VCFRecord::clear_sample(uint32_t i) {
-    if (samples.size() > i) {
-        samples.at(i).clear();
+    if (sampleIndex_to_format_to_sampleInfo.size() > i) {
+        sampleIndex_to_format_to_sampleInfo.at(i).clear();
     }
 
-    if (regt_samples.size() > i) {
-        regt_samples.at(i).clear();
+    if (sampleIndex_to_format_to_sampleGenotypedInfo.size() > i) {
+        sampleIndex_to_format_to_sampleGenotypedInfo.at(i).clear();
     }
     bool all_cleared(true);
-    for (const auto &s : samples) {
+    for (const auto &s : sampleIndex_to_format_to_sampleInfo) {
         if (!s.empty()) {
             all_cleared = false;
             break;
@@ -92,19 +93,18 @@ void VCFRecord::add_formats(const std::vector<std::string> &formats) {
 }
 
 void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const std::vector<uint16_t>& val){
-    assert(samples.size() > sample_id);
-    samples[sample_id][format] = val;
+    assert(sampleIndex_to_format_to_sampleInfo.size() > sample_id);
+    sampleIndex_to_format_to_sampleInfo[sample_id][format] = val;
     add_formats({format});
 }
 
 void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const std::vector<float>& val){
-    std::unordered_map<std::string, std::vector<float>> m;
-    m.reserve(3);
-    for (uint i=regt_samples.size(); i<samples.size(); ++i) {
-        regt_samples.push_back(m);
-    }
-    assert(regt_samples.size() > sample_id);
-    regt_samples[sample_id][format] = val;
+    size_t amount_to_push = 0;
+    if (sampleIndex_to_format_to_sampleInfo.size() > sampleIndex_to_format_to_sampleGenotypedInfo.size())
+        amount_to_push = sampleIndex_to_format_to_sampleInfo.size() - sampleIndex_to_format_to_sampleGenotypedInfo.size();
+    sampleIndex_to_format_to_sampleGenotypedInfo.push_back_several_empty_sample_infos(amount_to_push);
+    assert(sampleIndex_to_format_to_sampleGenotypedInfo.size() > sample_id);
+    sampleIndex_to_format_to_sampleGenotypedInfo[sample_id][format] = val;
     add_formats({format});
 }
 
@@ -133,9 +133,9 @@ void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format,
 }
 
 void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const uint16_t& val){
-    assert(samples.size() > sample_id);
-    if (samples[sample_id].find(format)!=samples[sample_id].end()){
-        samples[sample_id][format].push_back(val);
+    assert(sampleIndex_to_format_to_sampleInfo.size() > sample_id);
+    if (sampleIndex_to_format_to_sampleInfo[sample_id].find(format) != sampleIndex_to_format_to_sampleInfo[sample_id].end()){
+        sampleIndex_to_format_to_sampleInfo[sample_id][format].push_back(val);
     } else {
         set_format(sample_id, format, val);
     }
@@ -154,16 +154,14 @@ void VCFRecord::append_format(const uint32_t& sample_id, const std::string& form
 }
 
 void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const float& val){
-    std::unordered_map<std::string, std::vector<float>> m;
-    m.reserve(3);
-    if (regt_samples.empty()) {
-        for (const auto &sample : samples) {
-            regt_samples.push_back(m);
-        }
+    if (sampleIndex_to_format_to_sampleGenotypedInfo.empty()) {
+        size_t amount_to_push = sampleIndex_to_format_to_sampleInfo.size();
+        sampleIndex_to_format_to_sampleGenotypedInfo.push_back_several_empty_sample_infos(amount_to_push);
     }
-    assert(regt_samples.size() > sample_id);
-    if (regt_samples[sample_id].find(format)!=regt_samples[sample_id].end()){
-        regt_samples[sample_id][format].push_back(val);
+
+    assert(sampleIndex_to_format_to_sampleGenotypedInfo.size() > sample_id);
+    if (sampleIndex_to_format_to_sampleGenotypedInfo[sample_id].find(format) != sampleIndex_to_format_to_sampleGenotypedInfo[sample_id].end()){
+        sampleIndex_to_format_to_sampleGenotypedInfo[sample_id][format].push_back(val);
     } else {
         set_format(sample_id, format, val);
     }
@@ -171,24 +169,24 @@ void VCFRecord::append_format(const uint32_t& sample_id, const std::string& form
 
 std::vector<uint16_t> VCFRecord::get_format_u(const uint32_t& sample_id, const std::string& format){
     std::vector<uint16_t> empty_return;
-    bool sample_exists = samples.size() > sample_id;
+    bool sample_exists = sampleIndex_to_format_to_sampleInfo.size() > sample_id;
     if (!sample_exists)
         return empty_return;
-    bool found_key_in_sample = samples[sample_id].find(format)!=samples[sample_id].end();
+    bool found_key_in_sample = sampleIndex_to_format_to_sampleInfo[sample_id].find(format) != sampleIndex_to_format_to_sampleInfo[sample_id].end();
     if (!found_key_in_sample)
         return empty_return;
-    return samples[sample_id][format];
+    return sampleIndex_to_format_to_sampleInfo[sample_id][format];
 }
 
 std::vector<float> VCFRecord::get_format_f(const uint32_t& sample_id, const std::string& format){
     std::vector<float> empty_return;
-    bool sample_exists = regt_samples.size() > sample_id;
+    bool sample_exists = sampleIndex_to_format_to_sampleGenotypedInfo.size() > sample_id;
     if (!sample_exists)
         return empty_return;
-    bool found_key_in_sample = regt_samples[sample_id].find(format)!=regt_samples[sample_id].end();
+    bool found_key_in_sample = sampleIndex_to_format_to_sampleGenotypedInfo[sample_id].find(format) != sampleIndex_to_format_to_sampleGenotypedInfo[sample_id].end();
     if (!found_key_in_sample)
         return empty_return;
-    return regt_samples[sample_id][format];
+    return sampleIndex_to_format_to_sampleGenotypedInfo[sample_id][format];
 }
 
 float logfactorial(uint32_t n) {
@@ -201,7 +199,7 @@ float logfactorial(uint32_t n) {
 
 void VCFRecord::likelihood(const std::vector<uint32_t> &expected_depth_covg_v, const float &error_rate,
                            const uint32_t &min_allele_covg, const float &min_fraction_allele_covg) {
-    for (uint_least16_t i = 0; i < samples.size(); ++i) {
+    for (uint_least16_t i = 0; i < sampleIndex_to_format_to_sampleInfo.size(); ++i) {
         assert(i < expected_depth_covg_v.size());
         const auto &expected_depth_covg = expected_depth_covg_v[i];
         const uint32_t min_covg = std::max(min_allele_covg, uint(min_fraction_allele_covg*expected_depth_covg));
@@ -239,12 +237,12 @@ void VCFRecord::likelihood(const std::vector<uint32_t> &expected_depth_covg_v, c
         }
     }
 
-    assert(regt_samples.size() == samples.size() or assert_msg(regt_samples.size() << "!=" << samples.size()));
+    assert(sampleIndex_to_format_to_sampleGenotypedInfo.size() == sampleIndex_to_format_to_sampleInfo.size() or assert_msg(sampleIndex_to_format_to_sampleGenotypedInfo.size() << "!=" << sampleIndex_to_format_to_sampleInfo.size()));
 }
 
 void VCFRecord::confidence(const uint32_t &min_total_covg, const uint32_t &min_diff_covg) {
-    for (uint i=0; i < regt_samples.size(); ++i) {
-        auto& sample = regt_samples[i];
+    for (uint i=0; i < sampleIndex_to_format_to_sampleGenotypedInfo.size(); ++i) {
+        auto& sample = sampleIndex_to_format_to_sampleGenotypedInfo[i];
         if (sample.find("LIKELIHOOD") != sample.end()) {
             assert(sample["LIKELIHOOD"].size() > 1);
             float max_lik = 0, max_lik2 = 0;
@@ -262,12 +260,12 @@ void VCFRecord::confidence(const uint32_t &min_total_covg, const uint32_t &min_d
                 }
             }
 
-            assert(samples.size() > i);
-            assert(samples[i].find("MEAN_FWD_COVG")!=samples[i].end());
-            assert(samples[i]["MEAN_FWD_COVG"].size() > max_coord);
+            assert(sampleIndex_to_format_to_sampleInfo.size() > i);
+            assert(sampleIndex_to_format_to_sampleInfo[i].find("MEAN_FWD_COVG") != sampleIndex_to_format_to_sampleInfo[i].end());
+            assert(sampleIndex_to_format_to_sampleInfo[i]["MEAN_FWD_COVG"].size() > max_coord);
 
-            const auto & max_covg = samples[i]["MEAN_FWD_COVG"][max_coord]+samples[i]["MEAN_REV_COVG"][max_coord];
-            const auto & next_covg = samples[i]["MEAN_FWD_COVG"][max_coord2]+samples[i]["MEAN_REV_COVG"][max_coord2];
+            const auto & max_covg = sampleIndex_to_format_to_sampleInfo[i]["MEAN_FWD_COVG"][max_coord] + sampleIndex_to_format_to_sampleInfo[i]["MEAN_REV_COVG"][max_coord];
+            const auto & next_covg = sampleIndex_to_format_to_sampleInfo[i]["MEAN_FWD_COVG"][max_coord2] + sampleIndex_to_format_to_sampleInfo[i]["MEAN_REV_COVG"][max_coord2];
             bool enough_total_covg = (max_covg + next_covg >= min_total_covg);
             bool enough_difference_in_covg = (std::abs(max_covg-next_covg) >= min_diff_covg);
             if (enough_total_covg and enough_difference_in_covg)
@@ -280,23 +278,23 @@ void VCFRecord::confidence(const uint32_t &min_total_covg, const uint32_t &min_d
 }
 
 void VCFRecord::genotype(const uint16_t confidence_threshold) {
-    for (uint_least16_t i = 0; i < samples.size(); ++i) {
-        if (regt_samples[i].find("GT_CONF") != regt_samples[i].end()) {
-            if (regt_samples[i]["GT_CONF"][0] > confidence_threshold) {
+    for (uint_least16_t i = 0; i < sampleIndex_to_format_to_sampleInfo.size(); ++i) {
+        if (sampleIndex_to_format_to_sampleGenotypedInfo[i].find("GT_CONF") != sampleIndex_to_format_to_sampleGenotypedInfo[i].end()) {
+            if (sampleIndex_to_format_to_sampleGenotypedInfo[i]["GT_CONF"][0] > confidence_threshold) {
                 uint16_t allele = 0;
                 float max_likelihood = 0;
-                for (const auto &likelihood : regt_samples[i]["LIKELIHOOD"]) {
+                for (const auto &likelihood : sampleIndex_to_format_to_sampleGenotypedInfo[i]["LIKELIHOOD"]) {
                     if (max_likelihood == 0 or likelihood > max_likelihood) {
-                        samples[i]["GT"] = {allele};
+                        sampleIndex_to_format_to_sampleInfo[i]["GT"] = {allele};
                         max_likelihood = likelihood;
                     }
                     allele++;
                 }
             } else {
-                samples[i]["GT"].clear();
+                sampleIndex_to_format_to_sampleInfo[i]["GT"].clear();
             }
         } else {
-            samples[i]["GT"].clear();
+            sampleIndex_to_format_to_sampleInfo[i]["GT"].clear();
         }
     }
 }
@@ -365,20 +363,20 @@ std::string VCFRecord::to_string() const {
             out << ":";
     }
 
-    for (uint_least16_t i = 0; i < this->samples.size(); ++i) {
+    for (uint_least16_t i = 0; i < this->sampleIndex_to_format_to_sampleInfo.size(); ++i) {
         out << "\t";
         for (const auto &f : this->format) {
             std::string buffer = "";
-            if (this->samples[i].find(f) != this->samples[i].end() and not this->samples[i].at(f).empty()) {
-                for (const auto &a : this->samples.at(i).at(f)) {
+            if (this->sampleIndex_to_format_to_sampleInfo[i].find(f) != this->sampleIndex_to_format_to_sampleInfo[i].end() and not this->sampleIndex_to_format_to_sampleInfo[i].at(f).empty()) {
+                for (const auto &a : this->sampleIndex_to_format_to_sampleInfo.at(i).at(f)) {
                     out << buffer << +a;
                     buffer = ",";
                 }
 
-            } else if (this->regt_samples.size() > i
-                       and this->regt_samples[i].find(f) != this->regt_samples[i].end()
-                       and not this->regt_samples[i].at(f).empty()) {
-                for (const auto &a : this->regt_samples.at(i).at(f)) {
+            } else if (this->sampleIndex_to_format_to_sampleGenotypedInfo.size() > i
+                       and this->sampleIndex_to_format_to_sampleGenotypedInfo[i].find(f) != this->sampleIndex_to_format_to_sampleGenotypedInfo[i].end()
+                       and not this->sampleIndex_to_format_to_sampleGenotypedInfo[i].at(f).empty()) {
+                for (const auto &a : this->sampleIndex_to_format_to_sampleGenotypedInfo.at(i).at(f)) {
                     out << buffer << +a;
                     buffer = ",";
                 }
@@ -404,8 +402,6 @@ std::istream &operator>>(std::istream &in, VCFRecord &m) {
     std::string token, alt_s;
     std::vector<std::string> sample_strings, sample_substrings;
     std::vector<std::string> float_strings = {"LIKELIHOOD", "GT_CONF", "GAPS"};
-    std::unordered_map<std::string, std::vector<uint16_t>> sample_data;
-    std::unordered_map<std::string, std::vector<float>> regt_sample_data;
     m.alts.clear();
     in >> m.chrom;
     in.ignore(1, '\t');
@@ -433,23 +429,22 @@ std::istream &operator>>(std::istream &in, VCFRecord &m) {
     in.ignore(1, '\t');
     in >> token;
     m.format = split(token, ":");
-    sample_data.reserve(m.format.size());
     while (in >> token) {
         sample_strings = split(token, ":");
         assert(sample_strings.size() == m.format.size() or assert_msg("sample data does not fit format"));
-        m.samples.push_back(sample_data);
-        m.regt_samples.push_back(regt_sample_data);
+        m.sampleIndex_to_format_to_sampleInfo.push_back_several_empty_sample_infos(1);
+        m.sampleIndex_to_format_to_sampleGenotypedInfo.push_back_several_empty_sample_infos(1);
         for (uint32_t i = 0; i < m.format.size(); ++i) {
             if (sample_strings[i] != "."
                 and find(float_strings.begin(), float_strings.end(), m.format[i]) == float_strings.end()) {
                 sample_substrings = split(sample_strings[i], ",");
                 for (const auto &s : sample_substrings)
-                    m.samples.back()[m.format[i]].push_back(stoi(s));
+                    m.sampleIndex_to_format_to_sampleInfo.back()[m.format[i]].push_back(stoi(s));
             } else if (sample_strings[i] != "."
                        and find(float_strings.begin(), float_strings.end(), m.format[i]) != float_strings.end()) {
                 sample_substrings = split(sample_strings[i], ",");
                 for (const auto &s : sample_substrings)
-                    m.regt_samples.back()[m.format[i]].push_back(stof(s));
+                    m.sampleIndex_to_format_to_sampleGenotypedInfo.back()[m.format[i]].push_back(stof(s));
             }
         }
     }
@@ -468,45 +463,45 @@ size_t VCFRecord::get_longest_allele_length() const {
 
 
 void VCFRecord::merge_sample_information(const VCFRecord &other) {
-    for (size_t sample_index = 0; sample_index < this->samples.size(); ++sample_index) {
+    for (size_t sample_index = 0; sample_index < this->sampleIndex_to_format_to_sampleInfo.size(); ++sample_index) {
         auto keys = {"MEAN_FWD_COVG", "MEAN_REV_COVG",
                      "MED_FWD_COVG", "MED_REV_COVG",
                      "SUM_FWD_COVG", "SUM_REV_COVG"};
         for (const auto &key: keys) {
-            merge_sample_key(this->samples[sample_index], other.samples[sample_index], key);
+            merge_sample_key(this->sampleIndex_to_format_to_sampleInfo[sample_index], other.sampleIndex_to_format_to_sampleInfo[sample_index], key);
         }
 
         keys = {"LIKELIHOOD", "GT_CONF", "GAPS"};
-        if (!this->regt_samples.empty() and !other.regt_samples.empty()) {
+        if (!this->sampleIndex_to_format_to_sampleGenotypedInfo.empty() and !other.sampleIndex_to_format_to_sampleGenotypedInfo.empty()) {
             for (const auto &key: keys)
-                merge_sample_key(this->regt_samples[sample_index], other.regt_samples[sample_index], key);
+                merge_sample_key(this->sampleIndex_to_format_to_sampleGenotypedInfo[sample_index], other.sampleIndex_to_format_to_sampleGenotypedInfo[sample_index], key);
         }
     }
 }
 
 
 void VCFRecord::merge_gt(const VCFRecord &other) {
-    for (size_t sample_index = 0; sample_index < this->samples.size(); ++sample_index) {
-        if (other.samples[sample_index].find("GT") == other.samples[sample_index].end()
-            or other.samples[sample_index].at("GT").empty()) {
+    for (size_t sample_index = 0; sample_index < this->sampleIndex_to_format_to_sampleInfo.size(); ++sample_index) {
+        if (other.sampleIndex_to_format_to_sampleInfo[sample_index].find("GT") == other.sampleIndex_to_format_to_sampleInfo[sample_index].end()
+            or other.sampleIndex_to_format_to_sampleInfo[sample_index].at("GT").empty()) {
             continue;
-        } else if (this->samples[sample_index].find("GT") == this->samples[sample_index].end()
-                   or this->samples[sample_index]["GT"].empty()) {
-            if (other.samples[sample_index].at("GT")[0] == 0) {
-                this->samples[sample_index]["GT"] = {0};
+        } else if (this->sampleIndex_to_format_to_sampleInfo[sample_index].find("GT") == this->sampleIndex_to_format_to_sampleInfo[sample_index].end()
+                   or this->sampleIndex_to_format_to_sampleInfo[sample_index]["GT"].empty()) {
+            if (other.sampleIndex_to_format_to_sampleInfo[sample_index].at("GT")[0] == 0) {
+                this->sampleIndex_to_format_to_sampleInfo[sample_index]["GT"] = {0};
             } else {
                 uint32_t allele_offset = this->alts.size();
-                uint16_t new_allele = other.samples[sample_index].at("GT")[0] + allele_offset;
-                this->samples[sample_index]["GT"] = {new_allele};
+                uint16_t new_allele = other.sampleIndex_to_format_to_sampleInfo[sample_index].at("GT")[0] + allele_offset;
+                this->sampleIndex_to_format_to_sampleInfo[sample_index]["GT"] = {new_allele};
             }
-        } else if (this->samples[sample_index]["GT"][0] != 0 or other.samples[sample_index].at("GT")[0] != 0) {
+        } else if (this->sampleIndex_to_format_to_sampleInfo[sample_index]["GT"][0] != 0 or other.sampleIndex_to_format_to_sampleInfo[sample_index].at("GT")[0] != 0) {
             //conflict, try to resolve with likelihoods
-            if (this->regt_samples.size() > sample_index
-                and this->regt_samples[sample_index].find("LIKELIHOOD") != this->regt_samples[sample_index].end()) {
+            if (this->sampleIndex_to_format_to_sampleGenotypedInfo.size() > sample_index
+                and this->sampleIndex_to_format_to_sampleGenotypedInfo[sample_index].find("LIKELIHOOD") != this->sampleIndex_to_format_to_sampleGenotypedInfo[sample_index].end()) {
                 this->confidence();
                 this->genotype(5); //TODO: solve this bug
             } else {
-                this->samples[sample_index]["GT"] = {};
+                this->sampleIndex_to_format_to_sampleInfo[sample_index]["GT"] = {};
             }
         }
     }

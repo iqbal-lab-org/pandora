@@ -1410,7 +1410,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
         assert(sample_it != vcf.samples.end());
         auto sample_index = distance(vcf.samples.begin(), sample_it);
         assert((uint) sample_index != vcf.samples.size());
-        assert(record.samples.size() > (uint) sample_index);
+        assert(record.sampleIndex_to_format_to_sampleInfo.size() > (uint) sample_index);
 
         record.set_format(sample_index, "MEAN_FWD_COVG", mean(ref_fwd_covgs));
         record.set_format(sample_index, "MEAN_REV_COVG", mean(ref_rev_covgs));

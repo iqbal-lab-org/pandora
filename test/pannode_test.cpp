@@ -216,25 +216,25 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_single_prg)
     EXPECT_EQ("GT", master_vcf.records[0]->ref);
     EXPECT_EQ((uint)1, master_vcf.records[0]->alts.size());
     EXPECT_EQ("G", master_vcf.records[0]->alts[0]);
-    EXPECT_EQ((uint)4, master_vcf.records[0]->samples.size());
-    EXPECT_FALSE(master_vcf.records[0]->samples[sample4_index].find("GT") == master_vcf.records[0]->samples[sample4_index].end()) ;
-    EXPECT_TRUE(master_vcf.records[0]->samples[sample3_index].find("GT") == master_vcf.records[0]->samples[sample3_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[0]->samples[sample2_index].find("GT") == master_vcf.records[0]->samples[sample2_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[0]->samples[sample1_index].find("GT") == master_vcf.records[0]->samples[sample1_index].end()) ;
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample4_index]["GT"], alt_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample2_index]["GT"], ref_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample1_index]["GT"], ref_gt);
+    EXPECT_EQ((uint)4, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo.size());
+    EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample4_index].find("GT") == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample4_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample3_index].find("GT") == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample2_index].find("GT") == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample1_index].find("GT") == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample4_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample1_index]["GT"], ref_gt);
     std::vector<std::string> formats = {"MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG",
                               "SUM_FWD_COVG", "SUM_REV_COVG"};
     for (const auto format : formats){
-        EXPECT_FALSE(master_vcf.records[0]->samples[sample1_index].find(format) == master_vcf.records[0]->samples[sample1_index].end());
-        EXPECT_FALSE(master_vcf.records[0]->samples[sample2_index].find(format) == master_vcf.records[0]->samples[sample2_index].end());
-        EXPECT_FALSE(master_vcf.records[0]->samples[sample3_index].find(format) == master_vcf.records[0]->samples[sample3_index].end());
-        EXPECT_FALSE(master_vcf.records[0]->samples[sample4_index].find(format) == master_vcf.records[0]->samples[sample4_index].end());
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample1_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample2_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample3_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample4_index][format], no_covg2);
+        EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample1_index].find(format) == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample2_index].find(format) == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample3_index].find(format) == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample4_index].find(format) == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample1_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample2_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample3_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample4_index][format], no_covg2);
     }
 
 
@@ -243,24 +243,24 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_single_prg)
     EXPECT_EQ((uint)2, master_vcf.records[1]->alts.size());
     EXPECT_EQ("C", master_vcf.records[1]->alts[0]);
     EXPECT_EQ("CT", master_vcf.records[1]->alts[1]);
-    EXPECT_EQ((uint)4, master_vcf.records[0]->samples.size());
-    EXPECT_TRUE(master_vcf.records[1]->samples[sample4_index].find("GT") == master_vcf.records[1]->samples[sample4_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[1]->samples[sample3_index].find("GT") == master_vcf.records[1]->samples[sample3_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[1]->samples[sample2_index].find("GT") == master_vcf.records[1]->samples[sample2_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[1]->samples[sample1_index].find("GT") == master_vcf.records[1]->samples[sample1_index].end()) ;
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample3_index]["GT"], alt_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample2_index]["GT"], ref_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample1_index]["GT"], ref_gt);
+    EXPECT_EQ((uint)4, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo.size());
+    EXPECT_TRUE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample4_index].find("GT") == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample4_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample3_index].find("GT") == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample2_index].find("GT") == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample1_index].find("GT") == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample3_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample1_index]["GT"], ref_gt);
 
     for (const auto format : formats){
-        EXPECT_FALSE(master_vcf.records[1]->samples[sample1_index].find(format) == master_vcf.records[1]->samples[sample1_index].end());
-        EXPECT_FALSE(master_vcf.records[1]->samples[sample2_index].find(format) == master_vcf.records[1]->samples[sample2_index].end());
-        EXPECT_FALSE(master_vcf.records[1]->samples[sample3_index].find(format) == master_vcf.records[1]->samples[sample3_index].end());
-        EXPECT_FALSE(master_vcf.records[1]->samples[sample4_index].find(format) == master_vcf.records[1]->samples[sample4_index].end());
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample1_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample2_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample3_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample4_index][format], no_covg3);
+        EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample1_index].find(format) == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample2_index].find(format) == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample3_index].find(format) == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample4_index].find(format) == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample1_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample2_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample3_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample4_index][format], no_covg3);
     }
 }
 
@@ -347,25 +347,25 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
     EXPECT_EQ("GT", master_vcf.records[0]->ref);
     EXPECT_EQ((uint)1, master_vcf.records[0]->alts.size());
     EXPECT_EQ("G", master_vcf.records[0]->alts[0]);
-    EXPECT_EQ((uint)4, master_vcf.records[0]->samples.size());
-    EXPECT_FALSE(master_vcf.records[0]->samples[sample4_index].find("GT") == master_vcf.records[0]->samples[sample4_index].end()) ;
-    EXPECT_TRUE(master_vcf.records[0]->samples[sample3_index].find("GT") == master_vcf.records[0]->samples[sample3_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[0]->samples[sample2_index].find("GT") == master_vcf.records[0]->samples[sample2_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[0]->samples[sample1_index].find("GT") == master_vcf.records[0]->samples[sample1_index].end()) ;
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample4_index]["GT"], alt_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample2_index]["GT"], ref_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample1_index]["GT"], ref_gt);
+    EXPECT_EQ((uint)4, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo.size());
+    EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample4_index].find("GT") == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample4_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample3_index].find("GT") == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample2_index].find("GT") == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample1_index].find("GT") == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample4_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample1_index]["GT"], ref_gt);
     std::vector<std::string> formats = {"MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG",
                                         "SUM_FWD_COVG", "SUM_REV_COVG"};
     for (const auto format : formats){
-        EXPECT_FALSE(master_vcf.records[0]->samples[sample1_index].find(format) == master_vcf.records[0]->samples[sample1_index].end());
-        EXPECT_FALSE(master_vcf.records[0]->samples[sample2_index].find(format) == master_vcf.records[0]->samples[sample2_index].end());
-        EXPECT_FALSE(master_vcf.records[0]->samples[sample3_index].find(format) == master_vcf.records[0]->samples[sample3_index].end());
-        EXPECT_FALSE(master_vcf.records[0]->samples[sample4_index].find(format) == master_vcf.records[0]->samples[sample4_index].end());
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample1_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample2_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample3_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample4_index][format], no_covg2);
+        EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample1_index].find(format) == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample2_index].find(format) == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample3_index].find(format) == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample4_index].find(format) == master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample1_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample2_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample3_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample4_index][format], no_covg2);
     }
 
 
@@ -374,45 +374,45 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
     EXPECT_EQ((uint)2, master_vcf.records[1]->alts.size());
     EXPECT_EQ("C", master_vcf.records[1]->alts[0]);
     EXPECT_EQ("CT", master_vcf.records[1]->alts[1]);
-    EXPECT_EQ((uint)4, master_vcf.records[1]->samples.size());
-    EXPECT_TRUE(master_vcf.records[1]->samples[sample4_index].find("GT") == master_vcf.records[1]->samples[sample4_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[1]->samples[sample3_index].find("GT") == master_vcf.records[1]->samples[sample3_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[1]->samples[sample2_index].find("GT") == master_vcf.records[1]->samples[sample2_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[1]->samples[sample1_index].find("GT") == master_vcf.records[1]->samples[sample1_index].end()) ;
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample3_index]["GT"], alt_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample2_index]["GT"], ref_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample1_index]["GT"], ref_gt);
+    EXPECT_EQ((uint)4, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo.size());
+    EXPECT_TRUE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample4_index].find("GT") == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample4_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample3_index].find("GT") == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample3_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample2_index].find("GT") == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample1_index].find("GT") == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample3_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample2_index]["GT"], ref_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample1_index]["GT"], ref_gt);
 
     for (const auto format : formats){
-        EXPECT_FALSE(master_vcf.records[1]->samples[sample1_index].find(format) == master_vcf.records[1]->samples[sample1_index].end());
-        EXPECT_FALSE(master_vcf.records[1]->samples[sample2_index].find(format) == master_vcf.records[1]->samples[sample2_index].end());
-        EXPECT_FALSE(master_vcf.records[1]->samples[sample3_index].find(format) == master_vcf.records[1]->samples[sample3_index].end());
-        EXPECT_FALSE(master_vcf.records[1]->samples[sample4_index].find(format) == master_vcf.records[1]->samples[sample4_index].end());
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample1_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample2_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample3_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample4_index][format], no_covg3);
+        EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample1_index].find(format) == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample1_index].end());
+        EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample2_index].find(format) == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample3_index].find(format) == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample4_index].find(format) == master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample1_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample2_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample3_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample4_index][format], no_covg3);
     }
 
     EXPECT_EQ((uint)1, master_vcf.records[2]->pos);
     EXPECT_EQ("GA", master_vcf.records[2]->ref);
     EXPECT_EQ((uint)1, master_vcf.records[2]->alts.size());
     EXPECT_EQ("G", master_vcf.records[2]->alts[0]);
-    EXPECT_EQ((uint)4, master_vcf.records[2]->samples.size());
-    EXPECT_TRUE(master_vcf.records[2]->samples[sample4_index].find("GT") == master_vcf.records[2]->samples[sample4_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[2]->samples[sample3_index].find("GT") == master_vcf.records[2]->samples[sample3_index].end()) ;
-    EXPECT_TRUE(master_vcf.records[2]->samples[sample2_index].find("GT") == master_vcf.records[2]->samples[sample2_index].end()) ;
-    EXPECT_TRUE(master_vcf.records[2]->samples[sample1_index].find("GT") == master_vcf.records[2]->samples[sample1_index].end()) ;
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->samples[sample3_index]["GT"], alt_gt);
+    EXPECT_EQ((uint)4, master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo.size());
+    EXPECT_TRUE(master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample4_index].find("GT") == master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample4_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample3_index].find("GT") == master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample3_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample2_index].find("GT") == master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample2_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample1_index].find("GT") == master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample3_index]["GT"], alt_gt);
 
     for (const auto format : formats){
-        EXPECT_FALSE(master_vcf.records[2]->samples[sample1_index].find(format) == master_vcf.records[2]->samples[sample1_index].end());
-        EXPECT_TRUE(master_vcf.records[2]->samples[sample2_index].find(format) == master_vcf.records[2]->samples[sample2_index].end());
-        EXPECT_FALSE(master_vcf.records[2]->samples[sample3_index].find(format) == master_vcf.records[2]->samples[sample3_index].end());
-        EXPECT_FALSE(master_vcf.records[2]->samples[sample4_index].find(format) == master_vcf.records[2]->samples[sample4_index].end());
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->samples[sample1_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->samples[sample3_index][format], no_covg2);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->samples[sample4_index][format], no_covg2);
+        EXPECT_FALSE(master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample1_index].find(format) == master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample1_index].end());
+        EXPECT_TRUE(master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample2_index].find(format) == master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample3_index].find(format) == master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample4_index].find(format) == master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample1_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample3_index][format], no_covg2);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample4_index][format], no_covg2);
     }
 
 
@@ -421,22 +421,22 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg)
     EXPECT_EQ((uint)2, master_vcf.records[3]->alts.size());
     EXPECT_EQ("G", master_vcf.records[3]->alts[0]);
     EXPECT_EQ("GA", master_vcf.records[3]->alts[1]);
-    EXPECT_EQ((uint)4, master_vcf.records[3]->samples.size());
-    EXPECT_FALSE(master_vcf.records[3]->samples[sample4_index].find("GT") == master_vcf.records[3]->samples[sample4_index].end()) ;
-    EXPECT_TRUE(master_vcf.records[3]->samples[sample3_index].find("GT") == master_vcf.records[3]->samples[sample3_index].end()) ;
-    EXPECT_TRUE(master_vcf.records[3]->samples[sample2_index].find("GT") == master_vcf.records[3]->samples[sample2_index].end()) ;
-    EXPECT_FALSE(master_vcf.records[3]->samples[sample1_index].find("GT") == master_vcf.records[3]->samples[sample1_index].end()) ;
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample1_index]["GT"], alt_gt);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample4_index]["GT"], alt2_gt);
+    EXPECT_EQ((uint)4, master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo.size());
+    EXPECT_FALSE(master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample4_index].find("GT") == master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample4_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample3_index].find("GT") == master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample3_index].end()) ;
+    EXPECT_TRUE(master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample2_index].find("GT") == master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample2_index].end()) ;
+    EXPECT_FALSE(master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample1_index].find("GT") == master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample1_index].end()) ;
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample1_index]["GT"], alt_gt);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample4_index]["GT"], alt2_gt);
 
     for (const auto format : formats){
-        EXPECT_FALSE(master_vcf.records[3]->samples[sample1_index].find(format) == master_vcf.records[3]->samples[sample1_index].end());
-        EXPECT_TRUE(master_vcf.records[3]->samples[sample2_index].find(format) == master_vcf.records[3]->samples[sample2_index].end());
-        EXPECT_FALSE(master_vcf.records[3]->samples[sample3_index].find(format) == master_vcf.records[3]->samples[sample3_index].end());
-        EXPECT_FALSE(master_vcf.records[3]->samples[sample4_index].find(format) == master_vcf.records[3]->samples[sample4_index].end());
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample1_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample3_index][format], no_covg3);
-        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample4_index][format], no_covg3);
+        EXPECT_FALSE(master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample1_index].find(format) == master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample1_index].end());
+        EXPECT_TRUE(master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample2_index].find(format) == master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample2_index].end());
+        EXPECT_FALSE(master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample3_index].find(format) == master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample3_index].end());
+        EXPECT_FALSE(master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample4_index].find(format) == master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample4_index].end());
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample1_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample3_index][format], no_covg3);
+        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample4_index][format], no_covg3);
     }
 }
 
@@ -551,27 +551,27 @@ TEST(PangenomeNodeTest,construct_multisample_vcf_two_prg_with_covgs)
     std::vector<uint16_t> covgs_005 = {0,0,5};
     std::vector<uint16_t> covgs_000 = {0,0,0};
 
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample4_index]["MEAN_FWD_COVG"], covgs_05);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample2_index]["MEAN_FWD_COVG"], covgs_100);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample1_index]["MEAN_FWD_COVG"], covgs_40);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample4_index]["MEAN_REV_COVG"], covgs_00);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample2_index]["MEAN_REV_COVG"], covgs_00);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->samples[sample1_index]["MEAN_REV_COVG"], covgs_00);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample4_index]["MEAN_FWD_COVG"], covgs_05);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample2_index]["MEAN_FWD_COVG"], covgs_100);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample1_index]["MEAN_FWD_COVG"], covgs_40);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample4_index]["MEAN_REV_COVG"], covgs_00);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample2_index]["MEAN_REV_COVG"], covgs_00);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_format_to_sampleInfo[sample1_index]["MEAN_REV_COVG"], covgs_00);
 
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample3_index]["MEAN_FWD_COVG"], covgs_020);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample2_index]["MEAN_FWD_COVG"], covgs_1000);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample1_index]["MEAN_FWD_COVG"], covgs_400);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample4_index]["MEAN_REV_COVG"], covgs_000);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample2_index]["MEAN_REV_COVG"], covgs_000);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->samples[sample1_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample3_index]["MEAN_FWD_COVG"], covgs_020);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample2_index]["MEAN_FWD_COVG"], covgs_1000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample1_index]["MEAN_FWD_COVG"], covgs_400);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample4_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample2_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_format_to_sampleInfo[sample1_index]["MEAN_REV_COVG"], covgs_000);
 
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->samples[sample3_index]["MEAN_FWD_COVG"], covgs_02);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->samples[sample3_index]["MEAN_REV_COVG"], covgs_00);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample3_index]["MEAN_FWD_COVG"], covgs_02);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->sampleIndex_to_format_to_sampleInfo[sample3_index]["MEAN_REV_COVG"], covgs_00);
 
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample1_index]["MEAN_FWD_COVG"], covgs_040);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample4_index]["MEAN_FWD_COVG"], covgs_005);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample1_index]["MEAN_REV_COVG"], covgs_000);
-    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->samples[sample4_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample1_index]["MEAN_FWD_COVG"], covgs_040);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample4_index]["MEAN_FWD_COVG"], covgs_005);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample1_index]["MEAN_REV_COVG"], covgs_000);
+    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_format_to_sampleInfo[sample4_index]["MEAN_REV_COVG"], covgs_000);
 }
 
 TEST(PangenomeNodeTest, equals) {

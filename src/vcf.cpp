@@ -24,33 +24,30 @@ void VCF::add_record_core(const VCFRecord &vr) {
 }
 
 void VCF::add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i, std::string g) {
-    std::unordered_map<std::string, std::vector<uint16_t>> empty_map;
     VCFRecord vr(c, p, r, a, i, g);
     if (find_record_in_records(vr) == records.end()) { //TODO: improve this search to log(n) using a map or sth
         add_record_core(vr);
-        records.back()->samples.insert(records.back()->samples.end(), samples.size(), empty_map);
+        records.back()->sampleIndex_to_format_to_sampleInfo.push_back_several_empty_sample_infos(samples.size());
     }
-    //cout << "added record: " << vr << endl;
 }
 
 
 
 VCFRecord &VCF::add_record(VCFRecord &vr, const std::vector<std::string> &sample_names) {
-    assert(vr.samples.size() == sample_names.size() or sample_names.size() == 0);
+    assert(vr.sampleIndex_to_format_to_sampleInfo.size() == sample_names.size() or sample_names.size() == 0);
 
-    std::unordered_map<std::string, std::vector<uint16_t>> empty_map;
     auto record_it = find_record_in_records(vr); //TODO: improve this search to log(n) using a map or sth
     if (record_it == records.end()) {
         add_record_core(vr);
-        records.back()->samples.clear();
-        records.back()->samples.insert(records.back()->samples.end(), samples.size(), empty_map);
+        records.back()->sampleIndex_to_format_to_sampleInfo.clear();
+        records.back()->sampleIndex_to_format_to_sampleInfo.push_back_several_empty_sample_infos(samples.size());
         record_it = --records.end();
     }
 
     for (uint32_t i=0; i < sample_names.size(); ++i){
         auto &name = sample_names[i];
         ptrdiff_t sample_index = get_sample_index(name);
-        (*record_it)->samples[sample_index] = vr.samples[i];
+        (*record_it)->sampleIndex_to_format_to_sampleInfo[sample_index] = vr.sampleIndex_to_format_to_sampleInfo[i];
     }
 
     return **record_it;
@@ -70,16 +67,14 @@ void VCF::add_formats(const std::vector<std::string> &v) {
 }
 
 ptrdiff_t VCF::get_sample_index(const std::string &name) {
-    std::unordered_map<std::string, std::vector<uint16_t>> empty_map;
-
     // if this sample has not been added before, add a column for it
     auto sample_it = find(samples.begin(), samples.end(), name);
     if (sample_it == samples.end()) {
         //cout << "this is the first time this sample has been added" << endl;
         samples.push_back(name);
         for (uint32_t i = 0; i != records.size(); ++i) {
-            records[i]->samples.push_back(empty_map);
-            assert(samples.size() == records[i]->samples.size());
+            records[i]->sampleIndex_to_format_to_sampleInfo.push_back_several_empty_sample_infos(1);
+            assert(samples.size() == records[i]->sampleIndex_to_format_to_sampleInfo.size());
         }
         return samples.size() - 1;
     } else {
@@ -104,7 +99,7 @@ void VCF::add_sample_gt(const std::string &name, const std::string &c, const uin
     auto it = find_record_in_records(vr); //TODO: improve this search to log(n) using a map or sth
     if (it != records.end()) {
         //cout << "found record with this ref and alt" << endl;
-        (*it)->samples[sample_index]["GT"] = {1};
+        (*it)->sampleIndex_to_format_to_sampleInfo[sample_index]["GT"] = {1};
         vrp = it->get();
     } else {
         //cout << "didn't find a record for pos " << p << " ref " << r << " and alt " << a << endl;
@@ -112,7 +107,7 @@ void VCF::add_sample_gt(const std::string &name, const std::string &c, const uin
         for (uint32_t i = 0; i != records.size(); ++i) {
             if (records[i]->chrom == c and records[i]->pos == p and r == a and records[i]->ref == r) {
                 //cout << "have ref allele" << endl;
-                records[i]->samples[sample_index]["GT"] = {0};
+                records[i]->sampleIndex_to_format_to_sampleInfo[sample_index]["GT"] = {0};
                 vrp = records[i].get();
                 added = true;
             }
@@ -120,7 +115,7 @@ void VCF::add_sample_gt(const std::string &name, const std::string &c, const uin
         if (!added and r != a) {
             //cout << "have new allele not in graph" << endl;
             add_record(c, p, r, a, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
-            records.back()->samples[sample_index]["GT"] = {1};
+            records.back()->sampleIndex_to_format_to_sampleInfo[sample_index]["GT"] = {1};
             vrp = records.back().get();
             added = true;
         }
@@ -131,13 +126,13 @@ void VCF::add_sample_gt(const std::string &name, const std::string &c, const uin
     // update other samples at this site if they have ref allele at this pos
     for (uint32_t i = 0; i != records.size(); ++i) {
         if (records[i]->chrom == c and records[i]->pos <= p and records[i]->pos + records[i]->ref.length() > p) {
-            for (uint32_t j = 0; j != records[i]->samples.size(); ++j) {
-                if (records[i]->samples[j].find("GT") != records[i]->samples[j].end()
-                    and !records[i]->samples[j]["GT"].empty()
-                    and records[i]->samples[j]["GT"][0] == 0) {
+            for (uint32_t j = 0; j != records[i]->sampleIndex_to_format_to_sampleInfo.size(); ++j) {
+                if (records[i]->sampleIndex_to_format_to_sampleInfo[j].find("GT") != records[i]->sampleIndex_to_format_to_sampleInfo[j].end()
+                    and !records[i]->sampleIndex_to_format_to_sampleInfo[j]["GT"].empty()
+                    and records[i]->sampleIndex_to_format_to_sampleInfo[j]["GT"][0] == 0) {
                     //cout << "update my record to have ref allele also for sample " << j << endl;
                     //cout << records[i] << endl;
-                    vrp->samples[j]["GT"] = {0};
+                    vrp->sampleIndex_to_format_to_sampleInfo[j]["GT"] = {0};
                 }
             }
         }
@@ -152,7 +147,7 @@ void VCF::add_sample_ref_alleles(const std::string &sample_name, const std::stri
     for (uint32_t i = 0; i != records.size(); ++i) {
         if (records[i]->chrom == chrom and pos <= records[i]->pos and
             records[i]->pos + records[i]->ref.length() <= pos_to) {
-            records[i]->samples[sample_index]["GT"] = {0};
+            records[i]->sampleIndex_to_format_to_sampleInfo[sample_index]["GT"] = {0};
             //cout << "update record " << records[i] << endl;
         }
     }
@@ -177,11 +172,10 @@ void VCF::append_vcf(const VCF &other_vcf) {
 
     BOOST_LOG_TRIVIAL(debug) << "for all existing " << original_size << " records, add null entries for the "
                              << num_samples_added << " new samples";
-    std::unordered_map<std::string, std::vector<uint16_t>> empty_u_map;
     assert(original_size < std::numeric_limits<uint_least64_t>::max() ||
            assert_msg("VCF size has got too big to use the append feature"));
     for (uint_least64_t i = 0; i < original_size; ++i) {
-        records[i]->samples.insert(records[i]->samples.end(), num_samples_added, empty_u_map);
+        records[i]->sampleIndex_to_format_to_sampleInfo.push_back_several_empty_sample_infos(num_samples_added);
     }
 
     BOOST_LOG_TRIVIAL(debug) << "add the " << other_vcf.records.size() << " records";
@@ -189,7 +183,7 @@ void VCF::append_vcf(const VCF &other_vcf) {
         auto &record = *recordPointer;
         VCFRecord &vr = add_record(record, other_vcf.samples);
         for (uint_least16_t j = 0; j < other_vcf.samples.size(); ++j) {
-            vr.samples[other_sample_positions[j]] = record.samples[j];
+            vr.sampleIndex_to_format_to_sampleInfo[other_sample_positions[j]] = record.sampleIndex_to_format_to_sampleInfo[j];
             //NB this overwrites old data without checking
         }
     }
@@ -274,7 +268,7 @@ VCF VCF::merge_multi_allelic(uint32_t max_allele_length) const {
 
         if (vcf_record_should_be_merged_in) {
             // TODO: this code is not covered by tests, IDK what it is supposed to do - commenting it out and asserting out if we reach it
-            if (vcf_record_to_be_merged_in.samples.empty()) {
+            if (vcf_record_to_be_merged_in.sampleIndex_to_format_to_sampleInfo.empty()) {
                 assert_msg("VCF::merge_multi_allelic: vcf_record_to_be_merged_in has no samples");
                 /*
                 records.at(current_vcf_record_position)->clear();
@@ -359,7 +353,7 @@ void VCF::make_gt_compatible() {
     for (auto &recordPointer : records) { //goes through all records
         auto &record = *recordPointer;
         record_count++;
-        for (uint i = 0; i < record.samples.size(); ++i) { //goes through all samples of this record
+        for (uint i = 0; i < record.sampleIndex_to_format_to_sampleInfo.size(); ++i) { //goes through all samples of this record
 
             //retrieve all VCF records overlapping this record
             std::vector<VCFRecord*> overlappingVCFRecords;
@@ -380,32 +374,32 @@ void VCF::make_gt_compatible() {
                     continue;
                 if (   record.pos <= other_record.pos
                     && other_record.pos <= record.pos + record.ref.length()
-                    && record.samples[i].find("GT") != record.samples[i].end()
-                    && other_record.samples[i].find("GT") != other_record.samples[i].end()
-                    && record.samples[i]["GT"].size() > 0
-                    && other_record.samples[i]["GT"].size() > 0) {
+                    && record.sampleIndex_to_format_to_sampleInfo[i].find("GT") != record.sampleIndex_to_format_to_sampleInfo[i].end()
+                    && other_record.sampleIndex_to_format_to_sampleInfo[i].find("GT") != other_record.sampleIndex_to_format_to_sampleInfo[i].end()
+                    && record.sampleIndex_to_format_to_sampleInfo[i]["GT"].size() > 0
+                    && other_record.sampleIndex_to_format_to_sampleInfo[i]["GT"].size() > 0) {
 
-                    if (record.samples[i]["GT"][0] == 0 and other_record.samples[i]["GT"][0] == 0)
+                    if (record.sampleIndex_to_format_to_sampleInfo[i]["GT"][0] == 0 and other_record.sampleIndex_to_format_to_sampleInfo[i]["GT"][0] == 0)
                         continue;
-                    else if (not record.regt_samples.empty() and not other_record.regt_samples.empty()
-                             and record.regt_samples[i].find("LIKELIHOOD") != record.regt_samples[i].end()
+                    else if (not record.sampleIndex_to_format_to_sampleGenotypedInfo.empty() and not other_record.sampleIndex_to_format_to_sampleGenotypedInfo.empty()
+                             and record.sampleIndex_to_format_to_sampleGenotypedInfo[i].find("LIKELIHOOD") != record.sampleIndex_to_format_to_sampleGenotypedInfo[i].end()
                              and
-                             other_record.regt_samples[i].find("LIKELIHOOD") != other_record.regt_samples[i].end()) {
-                        if (record.regt_samples[i]["LIKELIHOOD"][record.samples[i]["GT"][0]] >
-                            other_record.regt_samples[i]["LIKELIHOOD"][other_record.samples[i]["GT"][0]]) {
-                            if (record.samples[i]["GT"][0] == 0)
-                                other_record.samples[i]["GT"] = {0};
+                             other_record.sampleIndex_to_format_to_sampleGenotypedInfo[i].find("LIKELIHOOD") != other_record.sampleIndex_to_format_to_sampleGenotypedInfo[i].end()) {
+                        if (record.sampleIndex_to_format_to_sampleGenotypedInfo[i]["LIKELIHOOD"][record.sampleIndex_to_format_to_sampleInfo[i]["GT"][0]] >
+                            other_record.sampleIndex_to_format_to_sampleGenotypedInfo[i]["LIKELIHOOD"][other_record.sampleIndex_to_format_to_sampleInfo[i]["GT"][0]]) {
+                            if (record.sampleIndex_to_format_to_sampleInfo[i]["GT"][0] == 0)
+                                other_record.sampleIndex_to_format_to_sampleInfo[i]["GT"] = {0};
                             else
-                                other_record.samples[i]["GT"] = {};
+                                other_record.sampleIndex_to_format_to_sampleInfo[i]["GT"] = {};
                         } else {
-                            if (other_record.samples[i]["GT"][0] == 0)
-                                record.samples[i]["GT"] = {0};
+                            if (other_record.sampleIndex_to_format_to_sampleInfo[i]["GT"][0] == 0)
+                                record.sampleIndex_to_format_to_sampleInfo[i]["GT"] = {0};
                             else
-                                record.samples[i]["GT"] = {};
+                                record.sampleIndex_to_format_to_sampleInfo[i]["GT"] = {};
                         }
                     } else {
-                        other_record.samples[i] = {};
-                        record.samples[i] = {};
+                        other_record.sampleIndex_to_format_to_sampleInfo[i] = {};
+                        record.sampleIndex_to_format_to_sampleInfo[i] = {};
                     }
                 }
             }
