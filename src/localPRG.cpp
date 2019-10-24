@@ -14,6 +14,7 @@
 #include "inthash.h"
 #include "utils.h"
 #include "fastaq.h"
+#include "Maths.h"
 
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
@@ -1290,68 +1291,6 @@ LocalPRG::get_forward_and_reverse_kmer_coverages_in_range(const KmerGraphWithCov
     return std::make_pair(forward_coverages, reverse_coverages);
 }
 
-
-uint32_t sum(const std::vector<uint32_t> &v) {
-    return std::accumulate(v.begin(), v.end(), 0);
-}
-
-
-uint32_t mean(const std::vector<uint32_t> &v) {
-    /*std::string s;
-    for (const auto &i : v)
-        s += int_to_string(i) + " ";
-    BOOST_LOG_TRIVIAL(debug) << "mean of " << s;*/
-    if (v.empty())
-        return 0;
-    return std::accumulate(v.begin(), v.end(), 0) / v.size();
-}
-
-
-uint32_t median(std::vector<uint32_t> v) {
-    /*std::string s;
-    for (const auto &i : v)
-        s += int_to_string(i) + " ";
-    BOOST_LOG_TRIVIAL(debug) << "median of " << s;*/
-    if (v.empty())
-        return 0;
-    std::sort(v.begin(), v.end());
-    if (v.size() % 2 == 1) {
-        int n = (v.size() + 1) / 2;
-        return v[n - 1];
-    } else {
-        int n1 = (v.size() + 1) / 2;
-        int n2 = (v.size() - 1) / 2;
-        return (v[n1] + v[n2]) / 2;
-    }
-}
-
-
-uint32_t mode(std::vector<uint32_t> v) {
-    std::sort(v.begin(), v.end());
-    /*std::string s;
-    for (const auto &i : v)
-        s += int_to_string(i) + " ";
-    BOOST_LOG_TRIVIAL(debug) << "mode of " << s;*/
-    uint32_t counter = 1;
-    uint32_t max_count = 1;
-    uint32_t most_common = 0;
-    uint32_t last = 0;
-    for (const auto &n : v) {
-        if (n == last)
-            counter++;
-        else {
-            if (counter > max_count) {
-                max_count = counter;
-                most_common = last;
-            }
-            counter = 1;
-        }
-        last = n;
-    }
-    return most_common;
-}
-
-
 float gaps(std::vector<uint32_t> v, const uint32_t &min_covg) {
     if (v.empty())
         return 0;
@@ -1412,12 +1351,12 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
         assert((uint) sample_index != vcf.samples.size());
         assert(record.sampleIndex_to_format_to_sampleInfo.size() > (uint) sample_index);
 
-        record.set_format(sample_index, "MEAN_FWD_COVG", mean(ref_fwd_covgs));
-        record.set_format(sample_index, "MEAN_REV_COVG", mean(ref_rev_covgs));
-        record.set_format(sample_index, "MED_FWD_COVG", median(ref_fwd_covgs));
-        record.set_format(sample_index, "MED_REV_COVG", median(ref_rev_covgs));
-        record.set_format(sample_index, "SUM_FWD_COVG", sum(ref_fwd_covgs));
-        record.set_format(sample_index, "SUM_REV_COVG", sum(ref_rev_covgs));
+        record.set_format(sample_index, "MEAN_FWD_COVG", Maths::mean(ref_fwd_covgs.begin(), ref_fwd_covgs.end()));
+        record.set_format(sample_index, "MEAN_REV_COVG", Maths::mean(ref_rev_covgs.begin(), ref_rev_covgs.end()));
+        record.set_format(sample_index, "MED_FWD_COVG", Maths::median(ref_fwd_covgs.begin(), ref_fwd_covgs.end()));
+        record.set_format(sample_index, "MED_REV_COVG", Maths::median(ref_rev_covgs.begin(), ref_rev_covgs.end()));
+        record.set_format(sample_index, "SUM_FWD_COVG", Maths::sum(ref_fwd_covgs.begin(), ref_fwd_covgs.end()));
+        record.set_format(sample_index, "SUM_REV_COVG", Maths::sum(ref_rev_covgs.begin(), ref_rev_covgs.end()));
         record.set_format(sample_index, "GAPS", gaps(ref_fwd_covgs, ref_rev_covgs, min_kmer_covg));
 
         for (const auto &alt_allele : record.alts) {
@@ -1436,12 +1375,12 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
                                                                                                      record.pos,
                                                                                                      end_pos, sample_id);
 
-            record.append_format(sample_index, "MEAN_FWD_COVG", mean(alt_fwd_covgs));
-            record.append_format(sample_index, "MEAN_REV_COVG", mean(alt_rev_covgs));
-            record.append_format(sample_index, "MED_FWD_COVG", median(alt_fwd_covgs));
-            record.append_format(sample_index, "MED_REV_COVG", median(alt_rev_covgs));
-            record.append_format(sample_index, "SUM_FWD_COVG", sum(alt_fwd_covgs));
-            record.append_format(sample_index, "SUM_REV_COVG", sum(alt_rev_covgs));
+            record.append_format(sample_index, "MEAN_FWD_COVG", Maths::mean(alt_fwd_covgs.begin(), alt_fwd_covgs.end()));
+            record.append_format(sample_index, "MEAN_REV_COVG", Maths::mean(alt_rev_covgs.begin(), alt_rev_covgs.end()));
+            record.append_format(sample_index, "MED_FWD_COVG", Maths::median(alt_fwd_covgs.begin(), alt_fwd_covgs.end()));
+            record.append_format(sample_index, "MED_REV_COVG", Maths::median(alt_rev_covgs.begin(), alt_rev_covgs.end()));
+            record.append_format(sample_index, "SUM_FWD_COVG", Maths::sum(alt_fwd_covgs.begin(), alt_fwd_covgs.end()));
+            record.append_format(sample_index, "SUM_REV_COVG", Maths::sum(alt_rev_covgs.begin(), alt_rev_covgs.end()));
             record.append_format(sample_index, "GAPS", gaps(alt_fwd_covgs, alt_rev_covgs, min_kmer_covg));
         }
     }
@@ -1473,21 +1412,21 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq &output_fq, PanNodePtr pnode,
     lmp = localnode_path_from_kmernode_path(kmp, w);
 
     std::vector<uint32_t> covgs = get_covgs_along_localnode_path(pnode, lmp, kmp, sample_id);
-    auto mode_covg = mode(covgs);
-    auto mean_covg = mean(covgs);
+    auto mode_covg = Maths::mode(covgs.begin(), covgs.end());
+    auto mean_covg = Maths::mean(covgs.begin(), covgs.end());
     BOOST_LOG_TRIVIAL(debug) << "Found global coverage " << global_covg << " and path mode " << mode_covg << " and mean "
                             << mean_covg;
-    if (global_covg > 20 and 20 * mean(covgs) < global_covg) {
+    if (global_covg > 20 and 20 * mean_covg < global_covg) {
         BOOST_LOG_TRIVIAL(debug) << "Skip LocalPRG " << name << " mean along max likelihood path too low";
         kmp.clear();
         return;
     }
-    if (global_covg > 20 and mean(covgs) > 10 * global_covg) {
+    if (global_covg > 20 and mean_covg > 10 * global_covg) {
         BOOST_LOG_TRIVIAL(debug) << "Skip LocalPRG " << name << " as mean along max likelihood path too high";
         kmp.clear();
         return;
     }
-    if (global_covg > 20 and mode(covgs) < 3 and mean(covgs) < 3) {
+    if (global_covg > 20 and mode_covg < 3 and mean_covg < 3) {
         BOOST_LOG_TRIVIAL(debug) << "Skip LocalPRG " << name << " as mode and mean along max likelihood path too low";
         kmp.clear();
         return;
