@@ -119,31 +119,13 @@ public:
 
     // MERGING-RELATED METHODS
     inline void merge_record_into_this(const VCFRecord &other) {
-        merge_sample_information(other);
+        this->sampleIndex_to_format_to_sampleInfo.merge_other_samples_infos_into_this(other.sampleIndex_to_format_to_sampleInfo);
+        this->sampleIndex_to_format_to_sampleGenotypedInfo.merge_other_samples_infos_into_this(other.sampleIndex_to_format_to_sampleGenotypedInfo);
         merge_gt(other);
         add_alts(other);
     }
 
 private:
-    template <class STORAGE_TYPE>
-    void merge_sample_key(std::unordered_map<std::string, std::vector<STORAGE_TYPE>> &first,
-                          const std::unordered_map<std::string, std::vector<STORAGE_TYPE>> &second,
-                          const std::string &key) {
-        if (first.empty() or second.empty() or first.find(key) == first.end() or first[key].empty()) {
-            return;
-        } else if (first.find(key) != first.end() and (second.find(key) == second.end() or second.at(key).empty())) {
-            first.erase(key);
-        } else if (first[key][0] == second.at(key).at(0)) {
-            bool ref = true;
-            for (const auto &val : second.at(key)) {
-                if (!ref)
-                    first[key].push_back(val);
-                ref = false;
-            }
-        } else
-            first.erase(key);
-    }
-    void merge_sample_information(const VCFRecord &other);
     void merge_gt(const VCFRecord &other);
     inline void add_alts(const VCFRecord &other) {
         this->alts.insert(this->alts.end(), other.alts.begin(), other.alts.end());

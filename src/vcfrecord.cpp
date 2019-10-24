@@ -461,25 +461,6 @@ size_t VCFRecord::get_longest_allele_length() const {
 
 }
 
-
-void VCFRecord::merge_sample_information(const VCFRecord &other) {
-    for (size_t sample_index = 0; sample_index < this->sampleIndex_to_format_to_sampleInfo.size(); ++sample_index) {
-        auto keys = {"MEAN_FWD_COVG", "MEAN_REV_COVG",
-                     "MED_FWD_COVG", "MED_REV_COVG",
-                     "SUM_FWD_COVG", "SUM_REV_COVG"};
-        for (const auto &key: keys) {
-            merge_sample_key(this->sampleIndex_to_format_to_sampleInfo[sample_index], other.sampleIndex_to_format_to_sampleInfo[sample_index], key);
-        }
-
-        keys = {"LIKELIHOOD", "GT_CONF", "GAPS"};
-        if (!this->sampleIndex_to_format_to_sampleGenotypedInfo.empty() and !other.sampleIndex_to_format_to_sampleGenotypedInfo.empty()) {
-            for (const auto &key: keys)
-                merge_sample_key(this->sampleIndex_to_format_to_sampleGenotypedInfo[sample_index], other.sampleIndex_to_format_to_sampleGenotypedInfo[sample_index], key);
-        }
-    }
-}
-
-
 void VCFRecord::merge_gt(const VCFRecord &other) {
     for (size_t sample_index = 0; sample_index < this->sampleIndex_to_format_to_sampleInfo.size(); ++sample_index) {
         if (other.sampleIndex_to_format_to_sampleInfo[sample_index].find("GT") == other.sampleIndex_to_format_to_sampleInfo[sample_index].end()
