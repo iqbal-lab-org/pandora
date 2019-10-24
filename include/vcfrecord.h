@@ -24,8 +24,7 @@ public:
     std::string filter; // not used
     std::string info;
     std::vector<std::string> format; //e.g. "GT"
-    SamplesInfos<uint16_t> sampleIndex_to_format_to_sampleInfo;
-    SamplesInfos<float> sampleIndex_to_format_to_sampleGenotypedInfo;   // in the same order
+    SamplesInfos sampleIndex_to_sampleInfo;
 
 
     VCFRecord(const std::string &chrom, uint32_t pos, const std::string &ref, const std::string &alt,
@@ -64,12 +63,6 @@ public:
     std::vector<uint16_t> get_format_u(const uint32_t&, const std::string&);
 
     std::vector<float> get_format_f(const uint32_t&, const std::string&);
-
-    void likelihood(const std::vector<uint32_t> &, const float &, const uint32_t &, const float &min_fraction_allele_covg=0);
-
-    void confidence(const uint32_t &min_total_covg=0, const uint32_t &min_diff_covg=0);
-
-    void genotype(const uint16_t);
 
     bool contains_dot_allele() const;
 
@@ -119,8 +112,7 @@ public:
 
     // MERGING-RELATED METHODS
     inline void merge_record_into_this(const VCFRecord &other) {
-        this->sampleIndex_to_format_to_sampleInfo.merge_other_samples_infos_into_this(other.sampleIndex_to_format_to_sampleInfo);
-        this->sampleIndex_to_format_to_sampleGenotypedInfo.merge_other_samples_infos_into_this(other.sampleIndex_to_format_to_sampleGenotypedInfo);
+        this->sampleIndex_to_sampleInfo.merge_other_samples_infos_into_this(other.sampleIndex_to_sampleInfo);
         merge_gt(other);
         add_alts(other);
     }

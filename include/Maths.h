@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <vector>
 #include "gtest/gtest.h"
+#include <cmath>
 
 class Maths {
 public:
@@ -97,6 +98,22 @@ public:
         const testing::internal::FloatingPoint<FloatOrDouble> lhs(left), rhs(right);
         return lhs.AlmostEquals(rhs);
     }
+
+    inline static double logfactorial (uint32_t n) {
+        double logfactorial = 0;
+        for (uint32_t i = 1; i <= n; ++i) {
+            logfactorial += std::log(i);
+        }
+        return logfactorial;
+    }
+
+    template<class Iterator>
+    inline static typename std::iterator_traits<Iterator>::difference_type arg_max (Iterator begin, Iterator end) {
+        auto max_element_iterator = std::max_element(begin, end);
+        auto index_of_max_element = std::distance(begin, max_element_iterator);
+        return index_of_max_element;
+    }
+
 };
 
 

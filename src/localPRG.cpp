@@ -1291,30 +1291,6 @@ LocalPRG::get_forward_and_reverse_kmer_coverages_in_range(const KmerGraphWithCov
     return std::make_pair(forward_coverages, reverse_coverages);
 }
 
-float gaps(std::vector<uint32_t> v, const uint32_t &min_covg) {
-    if (v.empty())
-        return 0;
-    uint32_t gap = 0;
-    for (const auto &n : v) {
-        if (n < min_covg)
-            gap++;
-    }
-    return float(gap) / v.size();
-}
-
-
-float gaps(std::vector<uint32_t> v1, std::vector<uint32_t> v2, const uint32_t &min_kmer_covg) {
-    if (v1.empty() or v2.size() != v1.size())
-        return 0;
-    uint32_t gap = 0;
-    for (uint i = 0; i < v1.size(); ++i) {
-        if (v1[i] + v2[i] < min_kmer_covg)
-            gap++;
-    }
-    return float(gap) / v1.size();
-}
-
-
 void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg, const std::vector<LocalNodePtr> &ref_path,
                                        const uint32_t &min_kmer_covg, const std::string &sample_name,
                                        const uint32_t &sample_id) const {
@@ -1337,11 +1313,16 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
         if (record.ref == ".")
             end_pos = record.pos;
 
+        std::vector< std::vector<uint32_t> > all_forward_coverages;
+        std::vector< std::vector<uint32_t> > all_reverse_coverages;
+
         std::vector<uint32_t> ref_fwd_covgs;
         std::vector<uint32_t> ref_rev_covgs;
         std::tie(ref_fwd_covgs, ref_rev_covgs) = get_forward_and_reverse_kmer_coverages_in_range(kg, ref_kmer_path,
                                                                                                  ref_path, record.pos,
                                                                                                  end_pos, sample_id);
+        all_forward_coverages.push_back(ref_fwd_covgs);
+        all_reverse_coverages.push_back(ref_rev_covgs);
 
         // find corresponding alt kmers
         // if sample has alt path, we have the kmer path for this, but otherwise we will need to work it out
@@ -1349,15 +1330,6 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
         assert(sample_it != vcf.samples.end());
         auto sample_index = distance(vcf.samples.begin(), sample_it);
         assert((uint) sample_index != vcf.samples.size());
-        assert(record.sampleIndex_to_format_to_sampleInfo.size() > (uint) sample_index);
-
-        record.set_format(sample_index, "MEAN_FWD_COVG", Maths::mean(ref_fwd_covgs.begin(), ref_fwd_covgs.end()));
-        record.set_format(sample_index, "MEAN_REV_COVG", Maths::mean(ref_rev_covgs.begin(), ref_rev_covgs.end()));
-        record.set_format(sample_index, "MED_FWD_COVG", Maths::median(ref_fwd_covgs.begin(), ref_fwd_covgs.end()));
-        record.set_format(sample_index, "MED_REV_COVG", Maths::median(ref_rev_covgs.begin(), ref_rev_covgs.end()));
-        record.set_format(sample_index, "SUM_FWD_COVG", Maths::sum(ref_fwd_covgs.begin(), ref_fwd_covgs.end()));
-        record.set_format(sample_index, "SUM_REV_COVG", Maths::sum(ref_rev_covgs.begin(), ref_rev_covgs.end()));
-        record.set_format(sample_index, "GAPS", gaps(ref_fwd_covgs, ref_rev_covgs, min_kmer_covg));
 
         for (const auto &alt_allele : record.alts) {
             alt_path = find_alt_path(ref_path, record.pos, record.ref, alt_allele);
@@ -1374,15 +1346,11 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
                                                                                                      alt_path,
                                                                                                      record.pos,
                                                                                                      end_pos, sample_id);
-
-            record.append_format(sample_index, "MEAN_FWD_COVG", Maths::mean(alt_fwd_covgs.begin(), alt_fwd_covgs.end()));
-            record.append_format(sample_index, "MEAN_REV_COVG", Maths::mean(alt_rev_covgs.begin(), alt_rev_covgs.end()));
-            record.append_format(sample_index, "MED_FWD_COVG", Maths::median(alt_fwd_covgs.begin(), alt_fwd_covgs.end()));
-            record.append_format(sample_index, "MED_REV_COVG", Maths::median(alt_rev_covgs.begin(), alt_rev_covgs.end()));
-            record.append_format(sample_index, "SUM_FWD_COVG", Maths::sum(alt_fwd_covgs.begin(), alt_fwd_covgs.end()));
-            record.append_format(sample_index, "SUM_REV_COVG", Maths::sum(alt_rev_covgs.begin(), alt_rev_covgs.end()));
-            record.append_format(sample_index, "GAPS", gaps(alt_fwd_covgs, alt_rev_covgs, min_kmer_covg));
+            all_forward_coverages.push_back(alt_fwd_covgs);
+            all_reverse_coverages.push_back(alt_rev_covgs);
         }
+
+        record.sampleIndex_to_sampleInfo.push_back(SampleInfo(all_forward_coverages, all_reverse_coverages));
     }
 
     vcf.add_formats({ "MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG", "SUM_FWD_COVG", "SUM_REV_COVG",

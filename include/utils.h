@@ -40,6 +40,14 @@ struct spointer_values_equal {
     }
 };
 
+// pointer less comparator, from https://stackoverflow.com/questions/41375232/is-there-an-stl-comparator-for-stdset-or-stdmap-with-shared-ptr-keys-that
+struct ptr_less{
+    template<typename T>
+    bool operator()(T lhs, T rhs) const {
+        return std::less<decltype(*lhs)>()(*lhs, *rhs);
+    }
+};
+
 // utility functions
 std::string now();
 

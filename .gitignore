@@ -74,3 +74,8 @@ build/
 data_issue*
 build_release*
 build_profiling*
+docker/
+
+mounted_folder/
+
+docker_dev/

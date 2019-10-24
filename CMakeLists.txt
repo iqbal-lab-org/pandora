@@ -47,6 +47,8 @@ set(EXTERNAL_LIBS
         hdf5
         hdf5_tools)
 
+include(${PROJECT_SOURCE_DIR}/ext/gtest.cmake)
+
 #include directories as SYSTEM includes, thus warnings will be ignored for these
 include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
@@ -57,6 +59,8 @@ include_directories(SYSTEM
 include_directories(
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src
+        ${source_dir}/googletest/include
+        ${source_dir}/googlemock/include
 )
 
 file(GLOB_RECURSE SRC_FILES
@@ -66,10 +70,11 @@ file(GLOB_RECURSE SRC_FILES
         ${PROJECT_SOURCE_DIR}/include/*.hpp
         ${PROJECT_SOURCE_DIR}/include/*.h
         ${PROJECT_SOURCE_DIR}/include/*/*.hpp
-        ${PROJECT_SOURCE_DIR}/include/*/*.h)
+        ${PROJECT_SOURCE_DIR}/include/*/*.h
+        )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-add_dependencies(${PROJECT_NAME} gatb)
+add_dependencies(${PROJECT_NAME} gatb gtest)
 target_link_libraries(${PROJECT_NAME}
         ${CMAKE_THREAD_LIBS_INIT}
         ${Boost_IOSTREAMS_LIBRARY}
@@ -88,7 +93,7 @@ if(BUILD_COMPARE_INDEXES)
     set(SRC_FILES_COMPARE_INDEXES ${SRC_FILES})
     list(REMOVE_ITEM SRC_FILES_COMPARE_INDEXES ${PROJECT_SOURCE_DIR}/src/main.cpp)
     add_executable(compare_indexes ${PROJECT_SOURCE_DIR}/scripts/compare_indexes/compare_indexes.cpp ${SRC_FILES_COMPARE_INDEXES})
-    add_dependencies(compare_indexes gatb)
+    add_dependencies(compare_indexes gatb gtest)
     set_target_properties(compare_indexes PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin/)
     target_link_libraries(compare_indexes
             ${CMAKE_THREAD_LIBS_INIT}
