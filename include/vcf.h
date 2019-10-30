@@ -9,6 +9,7 @@
 #include "vcfrecord.h"
 #include "IITree.h"
 #include <map>
+#include "OptionsAggregator.h"
 
 
 class LocalNode;
@@ -32,13 +33,16 @@ private:
         return find_if(records.begin(), records.end(), [&vr](const std::shared_ptr<VCFRecord> &record) { return *record==vr; });
     }
 
+    std::vector<VCFRecord*> get_all_records_overlapping_the_given_record (const VCFRecord &vcf_record) const;
+
 
 public:
+    GenotypingOptions const * genotyping_options;
     std::vector<std::shared_ptr<VCFRecord>> records;
     std::vector<std::string> samples;
 
     //constructor/destructors
-    VCF() = default;
+    VCF(GenotypingOptions const * genotyping_options) : genotyping_options(genotyping_options){}
     virtual ~VCF() = default;
 
     inline size_t get_VCF_size() const {
@@ -51,14 +55,16 @@ public:
 
     void add_samples(const std::vector<std::string>);
 
-    void add_formats(const std::vector<std::string> &);
-
     ptrdiff_t get_sample_index(const std::string &);
 
-    void add_sample_gt(const std::string &name, const std::string &c, const uint32_t p, const std::string &r,
-                       const std::string &a);
+    void add_a_new_record_discovered_in_a_sample_and_genotype_it(const std::string &sample_name, const std::string &chrom, const uint32_t pos, const std::string &ref,
+                                                                 const std::string &alt);
+private:
+    void update_other_samples_of_this_record(VCFRecord *reference_record);
 
-    void add_sample_ref_alleles(const std::string &, const std::string &, const uint32_t &, const uint32_t &);
+public:
+
+    void set_sample_gt_to_ref_allele_for_records_in_the_interval(const std::string &sample_name, const std::string &chrom, const uint32_t &pos_from, const uint32_t &pos_to);
 
     void append_vcf(const VCF &);
 
@@ -66,9 +72,7 @@ public:
 
     bool pos_in_range(const uint32_t, const uint32_t, const std::string &) const;
 
-    void genotype(const std::vector<uint32_t> &, const float &, const uint16_t, const uint32_t &min_allele_covg,
-                  const float &min_fraction_allele_covg, const uint32_t &min_site_total_covg,
-                  const uint32_t &min_site_diff_covg, bool snps_only);
+    void genotype();
 
     void clean();
 
@@ -95,9 +99,12 @@ public:
     void save(const std::string &filepath, bool output_dot_allele = false, bool graph_is_simple = true, bool graph_is_nested = true, bool graph_has_too_many_alts = true, bool sv_type_is_snp = true, bool sv_type_is_indel = true,
               bool sv_type_is_ph_snps = true, bool sv_type_is_complex = true);
     virtual std::string header() const;
-    std::string to_string(bool output_dot_allele = false, bool graph_is_simple = true, bool graph_is_nested = true, bool graph_has_too_many_alts = true, bool sv_type_is_snp = true, bool sv_type_is_indel = true,
+    std::string to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage,
+                          bool output_dot_allele = false, bool graph_is_simple = true, bool graph_is_nested = true, bool graph_has_too_many_alts = true, bool sv_type_is_snp = true, bool sv_type_is_indel = true,
                           bool sv_type_is_ph_snps = true, bool sv_type_is_complex = true);
-    void load(const std::string &filepath);
+
+    // TODO: check if we keep this, it is only used in tests - better to keep in a VCFMock class
+    // void load(const std::string &filepath);
 };
 
 #endif

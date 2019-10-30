@@ -79,10 +79,10 @@ public:
                                      const std::vector<LocalNodePtr> &,
                                      const float &) const;
 
-    void add_sample_gt_to_vcf(VCF &,
-                              const std::vector<LocalNodePtr> &,
-                              const std::vector<LocalNodePtr> &,
-                              const std::string &sample_name = "sample") const;
+    void add_new_records_and_genotype_to_vcf_using_max_likelihood_path_of_the_sample(VCF &vcf,
+                                                                                     const std::vector<LocalNodePtr> &rpath,
+                                                                                     const std::vector<LocalNodePtr> &sample_path,
+                                                                                     const std::string &sample_name = "sample") const;
 
     std::vector<LocalNodePtr> find_alt_path(const std::vector<LocalNodePtr> &,
                                             const uint32_t,
@@ -93,7 +93,7 @@ public:
 
     //TODO: I really feel like these methods are not responsability of a LocalPRG
     //TODO: many of them should be in VCF class, or in the KmerGraphWithCoverage or Fastaq
-    void build_vcf(VCF &, const std::vector<LocalNodePtr> &) const;
+    void build_vcf_from_reference_path(VCF &vcf, const std::vector<LocalNodePtr> &ref) const;
 
 
     virtual std::pair<std::vector<uint32_t>, std::vector<uint32_t>>
@@ -113,9 +113,8 @@ protected: //helper methods of get_forward_and_reverse_kmer_coverages_in_range()
 
 public:
 
-    void add_sample_covgs_to_vcf(VCF &, const KmerGraphWithCoverage &, const std::vector<LocalNodePtr> &,
-                                     const uint32_t &min_kmer_covg, const std::string &sample_name="sample",
-                                     const uint32_t &sample_id=0) const;
+    void add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg, const std::vector<LocalNodePtr> &ref_path,
+                                           const std::string &sample_name, const uint32_t &sample_id) const;
 
     void add_consensus_path_to_fastaq(Fastaq &, PanNodePtr, std::vector<KmerNodePtr> &, std::vector<LocalNodePtr> &,
                                           const uint32_t, const bool, const uint32_t,

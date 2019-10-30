@@ -23,10 +23,10 @@ public:
     std::string qual; // not used
     std::string filter; // not used
     std::string info;
-    std::vector<std::string> format; //e.g. "GT"
+
     SamplesInfos sampleIndex_to_sampleInfo;
 
-
+    // TODO: make sure only consistent VCFs are built (e.g. at least two alleles: ref + 1 alt)?
     VCFRecord(const std::string &chrom, uint32_t pos, const std::string &ref, const std::string &alt,
               const std::string &info=".", const std::string &graph_type_info="");
     VCFRecord();
@@ -34,35 +34,28 @@ public:
     VCFRecord &operator=(const VCFRecord &) = default;
     ~VCFRecord() = default;
 
+    std::string get_format (bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const;
+
+    inline bool ref_allele_is_inside_given_interval(const std::string &chrom, uint32_t pos_from, uint32_t pos_to) const {
+        return this->chrom == chrom
+               and pos_from <= this->pos
+               and this->pos + this->ref.length() <= pos_to;
+    }
+
+    inline bool is_SNP () const {
+        return ref.length() == 1 and alts.size()==1 and alts[0].length() == 1;
+
+    }
 
 
     inline void clear() {
         *this = VCFRecord();
     }
 
-    void clear_sample(uint32_t);
 
-    void add_formats(const std::vector<std::string> &);
-
-    void set_format(const uint32_t&, const std::string&, const std::vector<uint16_t>&);
-
-    void set_format(const uint32_t&, const std::string&, const std::vector<float>&);
-
-    void set_format(const uint32_t&, const std::string&, const uint16_t&);
-
-    void set_format(const uint32_t&, const std::string&, const uint32_t&);
-
-    void set_format(const uint32_t&, const std::string&, const float&);
-
-    void append_format(const uint32_t&, const std::string&, const uint16_t&);
-
-    void append_format(const uint32_t&, const std::string&, const uint32_t&);
-
-    void append_format(const uint32_t&, const std::string&, const float&);
-
-    std::vector<uint16_t> get_format_u(const uint32_t&, const std::string&);
-
-    std::vector<float> get_format_f(const uint32_t&, const std::string&);
+    inline void genotype() {
+        sampleIndex_to_sampleInfo.genotype_from_coverage();
+    }
 
     bool contains_dot_allele() const;
 
@@ -72,10 +65,10 @@ public:
 
     bool operator<(const VCFRecord &y) const;
 
-    std::string to_string() const;
-    friend std::ostream &operator<<(std::ostream &out, const VCFRecord &m);
+    std::string to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const;
 
-    friend std::istream &operator>>(std::istream &in, VCFRecord &m);
+    // TODO: check if we keep this, it is only used in tests - better to keep in a VCFMock class
+    // friend std::istream &operator>>(std::istream &in, VCFRecord &m);
 
 
     inline bool graph_type_is_simple() const {
@@ -108,17 +101,13 @@ public:
 
     size_t get_longest_allele_length() const;
 
-
-
     // MERGING-RELATED METHODS
     inline void merge_record_into_this(const VCFRecord &other) {
-        this->sampleIndex_to_sampleInfo.merge_other_samples_infos_into_this(other.sampleIndex_to_sampleInfo);
-        merge_gt(other);
+        this->sampleIndex_to_sampleInfo.merge_other_samples_infos_into_this(other.sampleIndex_to_sampleInfo, alts.size());
         add_alts(other);
     }
 
 private:
-    void merge_gt(const VCFRecord &other);
     inline void add_alts(const VCFRecord &other) {
         this->alts.insert(this->alts.end(), other.alts.begin(), other.alts.end());
     }

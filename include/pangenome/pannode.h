@@ -12,6 +12,7 @@
 #include "vcf.h"
 #include "denovo_discovery/denovo_utils.h"
 #include "pansample.h"
+#include "OptionsAggregator.h"
 
 
 class LocalPRG;
@@ -55,9 +56,9 @@ public:
 
     void
     construct_multisample_vcf(VCF &master_vcf,
-                         const std::vector<LocalNodePtr> &vcf_reference_path,
-                         const std::shared_ptr<LocalPRG> &prg, const uint32_t w,
-                         const uint32_t &min_kmer_covg);
+                              const std::vector<LocalNodePtr> &vcf_reference_path,
+                              const std::shared_ptr<LocalPRG> &prg, const uint32_t w,
+                              const GenotypingOptions &genotyping_options);
 
     bool operator==(const Node &y) const;
 

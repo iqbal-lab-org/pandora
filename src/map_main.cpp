@@ -318,6 +318,10 @@ int pandora_map(int argc, char *argv[]) {
         g_log_level = boost::log::trivial::debug;
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= g_log_level);
 
+    GenotypingOptions genotyping_options({}, genotyping_error_rate, confidence_threshold, min_allele_covg_gt,
+                                         min_allele_fraction_covg_gt,
+                                         min_total_covg_gt, min_diff_covg_gt, 0, false);
+
     fs::create_directories(outdir);
     if (output_kg)
         fs::create_directories(outdir + "/kmer_graphs");
@@ -350,8 +354,9 @@ int pandora_map(int argc, char *argv[]) {
 
     cout << now() << "Estimate parameters for kmer graph model" << endl;
     auto exp_depth_covg = estimate_parameters(pangraph, outdir, k, e_rate, covg, bin, sample_id);
-    if (min_kmer_covg == 0)
-        min_kmer_covg = exp_depth_covg/10;
+    genotyping_options.add_exp_depth_covg(exp_depth_covg);
+    if (genotyping_options.get_min_kmer_covg() == 0)
+        genotyping_options.set_min_kmer_covg(exp_depth_covg/10);
 
     std::cout << now() << "Find PRG paths and write to files:" << std::endl;
 
@@ -362,7 +367,7 @@ int pandora_map(int argc, char *argv[]) {
     Fastaq consensus_fq(true, true);
 
     //shared variable - synced with critical(master_vcf)
-    VCF master_vcf;
+    VCF master_vcf(&genotyping_options);
 
     //shared variable - synced with critical(candidate_regions)
     CandidateRegions candidate_regions;
@@ -469,9 +474,7 @@ int pandora_map(int argc, char *argv[]) {
 
 
     if (genotype) {
-        std::vector<uint32_t> exp_depth_covgs = {exp_depth_covg};
-        master_vcf.genotype(exp_depth_covgs, genotyping_error_rate, confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
-                            min_total_covg_gt, min_diff_covg_gt, snps_only);
+        master_vcf.genotype();
         if (snps_only)
             master_vcf.save(outdir + "/pandora_genotyped.vcf", false, true, true, true, true, false, false, false);
         else

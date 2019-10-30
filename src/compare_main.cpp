@@ -31,6 +31,7 @@
 #include "index.h"
 #include "noise_filtering.h"
 #include "estimate_parameters.h"
+#include "OptionsAggregator.h"
 
 
 using std::set;
@@ -99,7 +100,7 @@ int pandora_compare(int argc, char *argv[]) {
     // otherwise, parse the parameters from the command line
     std::string prgfile, read_index_fpath, outdir = "pandora", vcf_refs_file, log_level="info";
     uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000, max_covg = 300, max_num_kmers_to_average=100,
-            min_allele_covg_gt = 0, min_total_covg_gt = 0, min_diff_covg_gt = 0, min_kmer_covg=0, threads=1; // default parameters
+            min_allele_covg_gt = 0, min_total_covg_gt = 0, min_diff_covg_gt = 0, threads=1; // default parameters
     uint16_t confidence_threshold = 1;
     int max_diff = 250;
     float e_rate = 0.11, min_allele_fraction_covg_gt = 0, genotyping_error_rate=0.01;
@@ -299,6 +300,13 @@ int pandora_compare(int argc, char *argv[]) {
         g_log_level = boost::log::trivial::debug;
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= g_log_level);
 
+
+    // set up the options aggregators
+    GenotypingOptions genotyping_options({}, genotyping_error_rate, confidence_threshold, min_allele_covg_gt,
+                                         min_allele_fraction_covg_gt,
+                                         min_total_covg_gt, min_diff_covg_gt, 0, false);
+
+
     std::cout << now() << "Loading Index and LocalPRGs from file" << std::endl;
     auto index = std::make_shared<Index>();
     index->load(prgfile, w, k);
@@ -313,7 +321,7 @@ int pandora_compare(int argc, char *argv[]) {
     for (const auto &sample_pair : samples) sample_names.push_back(sample_pair.first);
 
     auto pangraph = std::make_shared<pangenome::Graph>(sample_names);
-    std::vector<uint32_t> exp_depth_covgs;
+
 
     // for each sample, run pandora to get the sample pangraph
     for (uint32_t sample_id = 0; sample_id < samples.size(); ++sample_id) {
@@ -350,10 +358,10 @@ int pandora_compare(int argc, char *argv[]) {
 
         BOOST_LOG_TRIVIAL(info) << "Estimate parameters for kmer graph model";
         auto exp_depth_covg = estimate_parameters(pangraph_sample, sample_outdir, k, e_rate, covg, bin, 0);
-        exp_depth_covgs.push_back(exp_depth_covg);
+        genotyping_options.add_exp_depth_covg(exp_depth_covg);
 
-        if (min_kmer_covg == 0)
-            min_kmer_covg = exp_depth_covg/10;
+        if (genotyping_options.get_min_kmer_covg() == 0)
+            genotyping_options.set_min_kmer_covg(exp_depth_covg/10);
 
         BOOST_LOG_TRIVIAL(info) << "Find max likelihood PRG paths";
         auto sample_pangraph_size = pangraph_sample->nodes.size();
@@ -469,14 +477,14 @@ int pandora_compare(int argc, char *argv[]) {
         }
 
         //output the vcf for this sample
-        VCF vcf;
+        VCF vcf(&genotyping_options);
 
         //add all samples to the vcf
         vcf.add_samples(sample_names);
         assert( vcf.samples.size() == samples.size());
 
         //build the vcf
-        pangraph_node.construct_multisample_vcf(vcf, vcf_reference_path, prg_ptr, w, min_kmer_covg);
+        pangraph_node.construct_multisample_vcf(vcf, vcf_reference_path, prg_ptr, w, genotyping_options);
 
         //save the vcf to disk
         uint32_t dir = pangraph_node_index / nbOfVCFsPerDir + 1; //get the good dir for this sample vcf
@@ -492,9 +500,7 @@ int pandora_compare(int argc, char *argv[]) {
 
         if (genotype) {
             //genotype
-            vcf.genotype(exp_depth_covgs, genotyping_error_rate, confidence_threshold, min_allele_covg_gt,
-                         min_allele_fraction_covg_gt,
-                         min_total_covg_gt, min_diff_covg_gt, false);
+            vcf.genotype();
 
             //save the genotyped vcf to disk
             auto vcfGenotypedPath = VCFsGenotypedDirs + "/" + int_to_string(dir) + "/" + prg_ptr->name + "_genotyped.vcf";

@@ -861,7 +861,10 @@ LocalPRG::write_aligned_path_to_fasta(const boost::filesystem::path &filepath, c
 }
 
 
-void LocalPRG::build_vcf(VCF &vcf, const std::vector<LocalNodePtr> &ref) const {
+// TODO: remove all the parameters from here:
+// TODO: we should return a VCF, instead of modifying one (avoid side effects)
+// TODO: a LocalPRG should know its reference path
+void LocalPRG::build_vcf_from_reference_path(VCF &vcf, const std::vector<LocalNodePtr> &ref) const {
     BOOST_LOG_TRIVIAL(debug) << "Build VCF for prg " << name;
     assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
 
@@ -985,9 +988,9 @@ void LocalPRG::build_vcf(VCF &vcf, const std::vector<LocalNodePtr> &ref) const {
 }
 
 
-void LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const std::vector<LocalNodePtr> &rpath,
-                                    const std::vector<LocalNodePtr> &sample_path,
-                                    const std::string &sample_name) const {
+void LocalPRG::add_new_records_and_genotype_to_vcf_using_max_likelihood_path_of_the_sample (VCF &vcf, const std::vector<LocalNodePtr> &rpath,
+                                                                                            const std::vector<LocalNodePtr> &sample_path,
+                                                                                            const std::string &sample_name) const {
     BOOST_LOG_TRIVIAL(debug) << "Update VCF with sample path";
     /*for (uint i=0; i!=sample_path.size(); ++i)
     {
@@ -1035,7 +1038,7 @@ void LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const std::vector<LocalNodePtr> &r
             // refpath back == samplepath back
             // add ref allele from previous site to this one
             //std::cout << "update with ref alleles from " << pos << " to " << pos_to << std::endl;
-            vcf.add_sample_ref_alleles(sample_name, name, pos, pos_to);
+            vcf.set_sample_gt_to_ref_allele_for_records_in_the_interval(sample_name, name, pos, pos_to);
             pos = pos_to;
 
             // add new site to vcf
@@ -1051,7 +1054,7 @@ void LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const std::vector<LocalNodePtr> &r
             }
 
             //std::cout << "add sample gt" << std::endl;
-            vcf.add_sample_gt(sample_name, name, pos, ref, alt);
+            vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it(sample_name, name, pos, ref, alt);
             found_new_site = false;
 
             // prepare for next iteration
@@ -1092,7 +1095,7 @@ void LocalPRG::add_sample_gt_to_vcf(VCF &vcf, const std::vector<LocalNodePtr> &r
         }
     }
     //std::cout << "add last ref alleles" << std::endl;
-    vcf.add_sample_ref_alleles(sample_name, name, pos, pos_to);
+    vcf.set_sample_gt_to_ref_allele_for_records_in_the_interval(sample_name, name, pos, pos_to);
     //std::cout << "done" << std::endl;
 }
 
@@ -1292,8 +1295,7 @@ LocalPRG::get_forward_and_reverse_kmer_coverages_in_range(const KmerGraphWithCov
 }
 
 void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg, const std::vector<LocalNodePtr> &ref_path,
-                                       const uint32_t &min_kmer_covg, const std::string &sample_name,
-                                       const uint32_t &sample_id) const {
+                                       const std::string &sample_name, const uint32_t &sample_id) const {
     BOOST_LOG_TRIVIAL(debug) << "Update VCF with sample covgs";
 
     assert(!prg.nodes.empty()); //otherwise empty nodes -> segfault
@@ -1325,12 +1327,6 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
         all_reverse_coverages.push_back(ref_rev_covgs);
 
         // find corresponding alt kmers
-        // if sample has alt path, we have the kmer path for this, but otherwise we will need to work it out
-        auto sample_it = find(vcf.samples.begin(), vcf.samples.end(), sample_name);
-        assert(sample_it != vcf.samples.end());
-        auto sample_index = distance(vcf.samples.begin(), sample_it);
-        assert((uint) sample_index != vcf.samples.size());
-
         for (const auto &alt_allele : record.alts) {
             alt_path = find_alt_path(ref_path, record.pos, record.ref, alt_allele);
             alt_kmer_path = kmernode_path_from_localnode_path(alt_path);
@@ -1350,12 +1346,15 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
             all_reverse_coverages.push_back(alt_rev_covgs);
         }
 
-        record.sampleIndex_to_sampleInfo.push_back(SampleInfo(all_forward_coverages, all_reverse_coverages));
+
+        // if sample has alt path, we have the kmer path for this, but otherwise we will need to work it out
+        auto sample_it = find(vcf.samples.begin(), vcf.samples.end(), sample_name);
+        assert(sample_it != vcf.samples.end());
+        auto sample_index = distance(vcf.samples.begin(), sample_it);
+        assert((uint) sample_index != vcf.samples.size());
+        record.sampleIndex_to_sampleInfo[sample_index].add_coverage_information(all_forward_coverages,
+                                                                                all_reverse_coverages);
     }
-
-    vcf.add_formats({ "MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG", "SUM_FWD_COVG", "SUM_REV_COVG",
-                      "GAPS" });
-
 }
 
 
@@ -1451,10 +1450,10 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf, PanNodePtr pnode, const std:
         reference_path = lmp;
     }
 
-    VCF vcf;
-    build_vcf(vcf, reference_path);
-    add_sample_gt_to_vcf(vcf, reference_path, lmp, sample_name);
-    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg_with_coverage, reference_path, min_kmer_covg, sample_name, sample_id);
+    VCF vcf(master_vcf.genotyping_options);
+    build_vcf_from_reference_path(vcf, reference_path);
+    add_new_records_and_genotype_to_vcf_using_max_likelihood_path_of_the_sample(vcf, reference_path, lmp, sample_name);
+    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg_with_coverage, reference_path, sample_name, sample_id);
     vcf = vcf.merge_multi_allelic();
     vcf.correct_dot_alleles(string_along_path(reference_path), name);
     #pragma omp critical(master_vcf)
