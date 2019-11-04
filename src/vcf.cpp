@@ -351,7 +351,7 @@ void VCF::make_gt_compatible() {
     // set the GT compatible to the GT from coverage
     for (auto &recordPointer : records) {
         for (uint i = 0; i < recordPointer->sampleIndex_to_sampleInfo.size(); ++i) {
-            auto gt_from_coverage = recordPointer->sampleIndex_to_sampleInfo[i].get_gt_coverages();
+            auto gt_from_coverage = recordPointer->sampleIndex_to_sampleInfo[i].get_gt_from_coverages();
             recordPointer->sampleIndex_to_sampleInfo[i].set_gt_coverages_compatible(gt_from_coverage);
         }
     }
@@ -381,16 +381,17 @@ void VCF::make_gt_compatible() {
                     && record.sampleIndex_to_sampleInfo[i].is_gt_from_coverages_valid()
                     && other_record.sampleIndex_to_sampleInfo[i].is_gt_from_coverages_valid()) {
 
-                    if (record.sampleIndex_to_sampleInfo[i].get_gt_coverages() == 0 and other_record.sampleIndex_to_sampleInfo[i].get_gt_coverages() == 0)
+                    if (record.sampleIndex_to_sampleInfo[i].get_gt_from_coverages() == 0 and
+                            other_record.sampleIndex_to_sampleInfo[i].get_gt_from_coverages() == 0)
                         continue;
-                    else if (record.sampleIndex_to_sampleInfo[i].get_likelihood_of_GT_from_coverages() >
-                            other_record.sampleIndex_to_sampleInfo[i].get_likelihood_of_GT_from_coverages()) {
-                        if (record.sampleIndex_to_sampleInfo[i].get_gt_coverages() == 0)
+                    else if (record.sampleIndex_to_sampleInfo[i].get_likelihood_of_gt_from_coverages() >
+                             other_record.sampleIndex_to_sampleInfo[i].get_likelihood_of_gt_from_coverages()) {
+                        if (record.sampleIndex_to_sampleInfo[i].get_gt_from_coverages() == 0)
                             other_record.sampleIndex_to_sampleInfo[i].set_gt_coverages_compatible(0);
                         else
                             other_record.sampleIndex_to_sampleInfo[i].set_gt_coverages_compatible(boost::none);
                     } else {
-                        if (other_record.sampleIndex_to_sampleInfo[i].get_gt_coverages() == 0)
+                        if (other_record.sampleIndex_to_sampleInfo[i].get_gt_from_coverages() == 0)
                             record.sampleIndex_to_sampleInfo[i].set_gt_coverages_compatible(0);
                         else
                             record.sampleIndex_to_sampleInfo[i].set_gt_coverages_compatible(boost::none);

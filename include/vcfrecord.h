@@ -23,8 +23,7 @@ public:
     std::string qual; // not used
     std::string filter; // not used
     std::string info;
-
-    SamplesInfos sampleIndex_to_sampleInfo;
+    SampleIndexToSampleInfo sampleIndex_to_sampleInfo;
 
     // TODO: make sure only consistent VCFs are built (e.g. at least two alleles: ref + 1 alt)?
     VCFRecord(const std::string &chrom, uint32_t pos, const std::string &ref, const std::string &alt,
@@ -103,7 +102,7 @@ public:
 
     // MERGING-RELATED METHODS
     inline void merge_record_into_this(const VCFRecord &other) {
-        this->sampleIndex_to_sampleInfo.merge_other_samples_infos_into_this(other.sampleIndex_to_sampleInfo, alts.size());
+        this->sampleIndex_to_sampleInfo.merge_other_samples_infos_into_this(other.sampleIndex_to_sampleInfo);
         add_alts(other);
     }
 
