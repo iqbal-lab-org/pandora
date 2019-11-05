@@ -87,7 +87,7 @@ public:
     virtual inline bool ref_allele_is_inside_given_interval(const std::string &chrom, uint32_t pos_from, uint32_t pos_to) const {
         return this->chrom == chrom
                and pos_from <= this->pos
-               and this->pos + this->ref.length() <= pos_to; //TODO: do we have an off by 1 error here? Anyway, I will keep what is in the code for now
+               and this->pos + this->ref.length() <= pos_to;
     }
     virtual inline bool is_SNP () const {
         return ref.length() == 1 and alts.size()==1 and alts[0].length() == 1;

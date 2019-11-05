@@ -258,7 +258,26 @@ TEST(VCFRecordTest, get_longest_allele_length___longest_allele_is_alt) {
     EXPECT_EQ(actual, expected);
 }
 
-
+class VCFRecordTest___ref_allele_is_inside_given_interval______Fixture : public ::testing::Test {
+public:
+    VCFRecordTest___ref_allele_is_inside_given_interval______Fixture() : vcf_record("chrom", 10, "REF", ""){}
+    VCFRecord vcf_record;
+};
+TEST_F(VCFRecordTest___ref_allele_is_inside_given_interval______Fixture, different_chroms) {
+    EXPECT_FALSE(vcf_record.ref_allele_is_inside_given_interval("dif_chrom", 0, 0));
+}
+TEST_F(VCFRecordTest___ref_allele_is_inside_given_interval______Fixture, ends_1_position_short) {
+    EXPECT_FALSE(vcf_record.ref_allele_is_inside_given_interval("chrom", 10, 12));
+}
+TEST_F(VCFRecordTest___ref_allele_is_inside_given_interval______Fixture, starts_1_position_after) {
+    EXPECT_FALSE(vcf_record.ref_allele_is_inside_given_interval("chrom", 11, 13));
+}
+TEST_F(VCFRecordTest___ref_allele_is_inside_given_interval______Fixture, exact_interval) {
+    EXPECT_TRUE(vcf_record.ref_allele_is_inside_given_interval("chrom", 10, 13));
+}
+TEST_F(VCFRecordTest___ref_allele_is_inside_given_interval______Fixture, larger_interval) {
+    EXPECT_TRUE(vcf_record.ref_allele_is_inside_given_interval("chrom", 9, 14));
+}
 
 
 
