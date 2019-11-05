@@ -121,8 +121,13 @@ boost::optional<SampleInfo::IndexAndConfidenceAndMaxLikelihood> SampleInfo::get_
     size_t index_of_second_max_likelihood; //guaranteed to exist, since we have at least two alleles
     {
         std::vector<double> likelihoods_for_all_alleles_without_max_element(likelihoods_for_all_alleles.begin(), likelihoods_for_all_alleles.end());
-        likelihoods_for_all_alleles_without_max_element[index_of_max_likelihood] = -std::numeric_limits<double>::max();
+        likelihoods_for_all_alleles_without_max_element.erase(likelihoods_for_all_alleles_without_max_element.begin()+index_of_max_likelihood);
         index_of_second_max_likelihood = Maths::arg_max(likelihoods_for_all_alleles_without_max_element.begin(), likelihoods_for_all_alleles_without_max_element.end());
+
+        bool index_of_second_max_likelihood_is_past_index_of_max_likelihood = index_of_second_max_likelihood >= index_of_max_likelihood;
+        if (index_of_second_max_likelihood_is_past_index_of_max_likelihood) {
+            ++index_of_second_max_likelihood;
+        }
     }
 
     double max_likelihood = likelihoods_for_all_alleles[index_of_max_likelihood];

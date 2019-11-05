@@ -258,12 +258,14 @@ protected:
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 };
 
+//NB: we use template here so that we can change what the container holds
+//This allows us to hold whatever thing (e.g. a mock) to be able to test this class
 template<class SAMPLE_TYPE>
 class SampleIndexToSampleInfoTemplate : public std::vector<SAMPLE_TYPE> {
 public:
     SampleIndexToSampleInfoTemplate(){}
 
-    inline void emplace_back_several_empty_sample_infos (size_t amount, GenotypingOptions const * genotyping_options) {
+    virtual inline void emplace_back_several_empty_sample_infos (size_t amount, GenotypingOptions const * genotyping_options) {
         size_t initial_size = this->size();
         for (size_t index = initial_size; index < initial_size + amount; ++index) {
             this->emplace_back(index, genotyping_options);
@@ -271,7 +273,7 @@ public:
     }
 
 
-    inline void merge_other_samples_infos_into_this(const SampleIndexToSampleInfoTemplate<SAMPLE_TYPE> &other) {
+    virtual inline void merge_other_samples_infos_into_this(const SampleIndexToSampleInfoTemplate<SAMPLE_TYPE> &other) {
         bool same_number_of_samples = this->size() == other.size();
         assert(same_number_of_samples);
 
@@ -281,7 +283,7 @@ public:
     }
 
 
-    std::string to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const {
+    virtual std::string to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const {
         std::stringstream out;
 
         for (uint32_t sample_info_index = 0; sample_info_index < this->size(); ++sample_info_index) {
@@ -296,13 +298,14 @@ public:
         return out.str();
     }
 
-    inline void genotype_from_coverage () {
+    virtual inline void genotype_from_coverage () {
         for (SAMPLE_TYPE &sample_info : (*this)) {
             sample_info.genotype_from_coverage();
         }
     }
 };
 
+// the SampleIndexToSampleInfoTemplate that is used in production
 using SampleIndexToSampleInfo = SampleIndexToSampleInfoTemplate<SampleInfo>;
 
 #endif //PANDORA_SAMPLEINFO_H
