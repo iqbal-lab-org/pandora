@@ -14,7 +14,7 @@
 // TODO: use memoization to speed up everything here
 // TODO: this class is doing too much. There is the concept of an allele info which can be factored out to another class
 // TODO: also there is SampleInfo hierarchy hidden here, where two subclasses could be derived, one dealing with genotyping from max likelihood path
-// TODO: and the other with genotyping from coverage
+// TODO: and the other with genotyping from coverage, and maybe a third one to deal with compatible genotypes
 class SampleInfo {
 public:
     SampleInfo(uint32_t sample_index, GenotypingOptions const *  genotyping_options) :
@@ -163,7 +163,7 @@ public:
 
 
     //other trivial getter
-    uint32_t get_sample_index() const {
+    virtual uint32_t get_sample_index() const {
         return sample_index;
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -179,14 +179,14 @@ public:
 
     using IndexAndConfidenceAndMaxLikelihood = std::tuple<size_t, double, double>;
     virtual boost::optional<IndexAndConfidenceAndMaxLikelihood> get_confidence () const;
-    std::string get_confidence_to_string () const;
+    virtual std::string get_confidence_to_string () const;
 
     using GenotypeAndMaxLikelihood = std::pair<uint32_t, double>;
     virtual boost::optional<GenotypeAndMaxLikelihood> get_genotype_from_coverage () const;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    std::string to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_compatible_coverage) const;
+    virtual std::string to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_compatible_coverage) const;
 protected:
     uint32_t sample_index;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -264,6 +264,7 @@ template<class SAMPLE_TYPE>
 class SampleIndexToSampleInfoTemplate : public std::vector<SAMPLE_TYPE> {
 public:
     SampleIndexToSampleInfoTemplate(){}
+    virtual ~SampleIndexToSampleInfoTemplate(){}
 
     virtual inline void emplace_back_several_empty_sample_infos (size_t amount, GenotypingOptions const * genotyping_options) {
         size_t initial_size = this->size();
