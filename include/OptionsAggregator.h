@@ -45,7 +45,7 @@ public:
         return min_allele_covg;
     }
 
-    float get_min_fraction_allele_covg() const {
+    double get_min_fraction_allele_covg() const {
         return min_fraction_allele_covg;
     }
 

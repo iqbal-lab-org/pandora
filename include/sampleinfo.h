@@ -9,7 +9,7 @@
 #include <boost/optional.hpp>
 #include "Maths.h"
 #include "OptionsAggregator.h"
-
+#include <boost/bind.hpp>
 
 // TODO: use memoization to speed up everything here
 // TODO: this class is doing too much. There is the concept of an allele info which can be factored out to another class
@@ -18,6 +18,7 @@
 class SampleInfo {
 public:
     SampleInfo(uint32_t sample_index, GenotypingOptions const *  genotyping_options) :
+    sample_index(sample_index),
     genotyping_options(genotyping_options),
     exp_depth_covg_for_this_sample(genotyping_options->get_sample_index_to_exp_depth_covg()[sample_index])
     {}
@@ -159,6 +160,12 @@ public:
         return std::max(genotyping_options->get_min_allele_covg(),
                 uint(genotyping_options->get_min_fraction_allele_covg() * exp_depth_covg_for_this_sample));
     }
+
+
+    //other trivial getter
+    uint32_t get_sample_index() const {
+        return sample_index;
+    }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -179,8 +186,9 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    std::string to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const;
-private:
+    std::string to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_compatible_coverage) const;
+protected:
+    uint32_t sample_index;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // genotyping options
     GenotypingOptions const * genotyping_options;
@@ -214,15 +222,15 @@ private:
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    virtual void check_if_coverage_information_is_correct() const;
+    virtual bool check_if_coverage_information_is_correct() const;
 
 
     /////////////////////////////////////////////
     // get_likelihoods_for_all_alleles() helpers
-    virtual uint32_t get_total_mean_coverage_given_a_mininum_threshold(uint32_t allele, uint32_t minimum_threshold) const;
-    virtual uint32_t get_total_mean_coverage_over_all_alleles_given_a_mininum_threshold(uint32_t minimum_threshold) const;
-    virtual double compute_likelihood(bool min_coverage_threshold_is_satisfied, uint32_t expected_depth_covg, uint32_t total_mean_coverage_of_allele_above_threshold,
-                                                 uint32_t total_mean_coverage_of_all_other_alleles_above_threshold, double error_rate,
+    virtual uint32_t get_total_mean_coverage_given_a_minimum_threshold(uint32_t allele, uint32_t minimum_threshold) const;
+    virtual uint32_t get_total_mean_coverage_over_all_alleles_given_a_minimum_threshold(uint32_t minimum_threshold) const;
+    virtual double compute_likelihood(bool min_coverage_threshold_is_satisfied, double expected_depth_covg, double total_mean_coverage_of_allele_above_threshold,
+                                      double total_mean_coverage_of_all_other_alleles_above_threshold, double error_rate,
                                                  double gaps) const;
     /////////////////////////////////////////////
 
@@ -232,27 +240,69 @@ private:
     // merge_other_sample_info_into_this() helpers
     virtual void merge_other_sample_gt_from_max_likelihood_path_into_this(const SampleInfo &other, uint32_t allele_offset);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // to_string() helpers - TODO: this could be simplified with generic lambdas, but these are just available in C++14
+    template <class METHOD_TYPE>
+    static void print_the_output_of_method_for_each_allele (std::stringstream &out, const SampleInfo* const sample_info,
+            const METHOD_TYPE &method) {
+        out << ":";
+
+        for (uint32_t allele = 0; allele < sample_info->get_number_of_alleles(); ++allele) {
+            if (allele > 0) {
+                out << ",";
+            }
+            out << boost::bind(method, sample_info, _1)(allele);
+        }
+    };
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 };
 
-
-class SampleIndexToSampleInfo : public std::vector<SampleInfo> {
+template<class SAMPLE_TYPE>
+class SampleIndexToSampleInfoTemplate : public std::vector<SAMPLE_TYPE> {
 public:
-    SampleIndexToSampleInfo(){}
+    SampleIndexToSampleInfoTemplate(){}
 
-    inline void push_back_several_empty_sample_infos (size_t amount, GenotypingOptions const * genotyping_options) {
-        for (size_t index = 0; index < amount; ++index)
-            push_back(SampleInfo(index, genotyping_options));
+    inline void emplace_back_several_empty_sample_infos (size_t amount, GenotypingOptions const * genotyping_options) {
+        size_t initial_size = this->size();
+        for (size_t index = initial_size; index < initial_size + amount; ++index) {
+            this->emplace_back(index, genotyping_options);
+        }
     }
 
-    void merge_other_samples_infos_into_this(const SampleIndexToSampleInfo &other);
 
-    std::string to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const;
+    inline void merge_other_samples_infos_into_this(const SampleIndexToSampleInfoTemplate<SAMPLE_TYPE> &other) {
+        bool same_number_of_samples = this->size() == other.size();
+        assert(same_number_of_samples);
+
+        for (size_t sample_index = 0; sample_index < this->size(); ++sample_index) {
+            (*this)[sample_index].merge_other_sample_info_into_this(other[sample_index]);
+        }
+    }
+
+
+    std::string to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const {
+        std::stringstream out;
+
+        for (uint32_t sample_info_index = 0; sample_info_index < this->size(); ++sample_info_index) {
+            const SAMPLE_TYPE &sample_info = (*this)[sample_info_index];
+            out << sample_info.to_string(genotyping_from_maximum_likelihood, genotyping_from_coverage);
+
+            bool is_the_last_sample_info = sample_info_index == this->size()-1;
+            if (not is_the_last_sample_info)
+                out << "\t";
+        }
+
+        return out.str();
+    }
 
     inline void genotype_from_coverage () {
-        for (uint32_t sample_index = 0; sample_index < size(); ++sample_index) {
-            (*this)[sample_index].genotype_from_coverage();
+        for (SAMPLE_TYPE &sample_info : (*this)) {
+            sample_info.genotype_from_coverage();
         }
     }
 };
+
+using SampleIndexToSampleInfo = SampleIndexToSampleInfoTemplate<SampleInfo>;
 
 #endif //PANDORA_SAMPLEINFO_H

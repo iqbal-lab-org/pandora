@@ -191,7 +191,7 @@ std::istream &operator>>(std::istream &in, VCFRecord &m) {
         sample_strings = split(token, ":");
         assert(sample_strings.size() == m.format.size() or assert_msg("sample data does not fit format"));
         m.sampleIndex_to_format_to_sampleInfo.push_back_several_empty_sample_infos(1);
-        m.sampleIndex_to_format_to_sampleGenotypedInfo.push_back_several_empty_sample_infos(1);
+        m.sampleIndex_to_format_to_sampleGenotypedInfo.emplace_back_several_empty_sample_infos(1);
         for (uint32_t i = 0; i < m.format.size(); ++i) {
             if (sample_strings[i] != "."
                 and find(float_strings.begin(), float_strings.end(), m.format[i]) == float_strings.end()) {

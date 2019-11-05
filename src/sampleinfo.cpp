@@ -4,11 +4,11 @@ void SampleInfo::add_coverage_information (const std::vector< std::vector<uint32
                                            const std::vector< std::vector<uint32_t> > &allele_to_reverse_coverages) {
     this->allele_to_forward_coverages = allele_to_forward_coverages;
     this->allele_to_reverse_coverages = allele_to_reverse_coverages;
-    check_if_coverage_information_is_correct();
+    assert(check_if_coverage_information_is_correct());
 }
 
 void SampleInfo::genotype_from_coverage () {
-    check_if_coverage_information_is_correct();
+    assert(check_if_coverage_information_is_correct());
 
     auto genotype_and_max_likelihood_optional = get_genotype_from_coverage();
     if (genotype_and_max_likelihood_optional) {
@@ -20,11 +20,22 @@ void SampleInfo::genotype_from_coverage () {
 }
 
 
-void SampleInfo::check_if_coverage_information_is_correct() const {
+bool SampleInfo::check_if_coverage_information_is_correct() const {
     // at least two alleles because a VCF record has a ref and at least one alt
     bool there_are_at_least_two_alleles = allele_to_forward_coverages.size() >= 2 and allele_to_reverse_coverages.size() >= 2;
-    bool same_length_vectors = allele_to_forward_coverages.size() == allele_to_reverse_coverages.size();
-    assert(there_are_at_least_two_alleles and same_length_vectors);
+    bool forward_and_reverse_coverages_have_the_same_number_of_alleles = allele_to_forward_coverages.size() == allele_to_reverse_coverages.size();
+
+    bool all_alleles_in_forward_and_reverse_have_the_same_number_of_bases = true;
+    for (size_t allele_index = 0; allele_index < allele_to_forward_coverages.size(); ++allele_index) {
+        bool alleles_in_forward_and_reverse_have_the_same_number_of_bases =
+                allele_to_forward_coverages[allele_index].size() == allele_to_reverse_coverages[allele_index].size();
+        if (not alleles_in_forward_and_reverse_have_the_same_number_of_bases) {
+            all_alleles_in_forward_and_reverse_have_the_same_number_of_bases = false;
+            break;
+        }
+    }
+
+    return there_are_at_least_two_alleles and forward_and_reverse_coverages_have_the_same_number_of_alleles and all_alleles_in_forward_and_reverse_have_the_same_number_of_bases;
 }
 
 double SampleInfo::get_gaps (uint32_t allele) const {
@@ -43,10 +54,12 @@ std::vector<double> SampleInfo::get_likelihoods_for_all_alleles () const {
     std::vector<double> likelihoods;
 
     uint32_t min_coverage_threshold = get_min_coverage_threshold_for_this_sample();
-    uint32_t total_mean_coverage_over_all_alleles_above_threshold = get_total_mean_coverage_over_all_alleles_given_a_mininum_threshold(min_coverage_threshold);
+    uint32_t total_mean_coverage_over_all_alleles_above_threshold = get_total_mean_coverage_over_all_alleles_given_a_minimum_threshold(
+            min_coverage_threshold);
 
     for (size_t allele = 0; allele < get_number_of_alleles(); ++allele) {
-        uint32_t total_mean_coverage_of_allele_above_threshold = get_total_mean_coverage_given_a_mininum_threshold(allele, min_coverage_threshold);
+        uint32_t total_mean_coverage_of_allele_above_threshold = get_total_mean_coverage_given_a_minimum_threshold(
+                allele, min_coverage_threshold);
         bool min_coverage_threshold_is_satisfied = total_mean_coverage_of_allele_above_threshold > 0;
 
         uint32_t total_mean_coverage_of_all_other_alleles_above_threshold = total_mean_coverage_over_all_alleles_above_threshold - total_mean_coverage_of_allele_above_threshold;
@@ -63,7 +76,7 @@ std::vector<double> SampleInfo::get_likelihoods_for_all_alleles () const {
 }
 
 
-uint32_t SampleInfo::get_total_mean_coverage_given_a_mininum_threshold(uint32_t allele, uint32_t minimum_threshold) const {
+uint32_t SampleInfo::get_total_mean_coverage_given_a_minimum_threshold(uint32_t allele, uint32_t minimum_threshold) const {
     uint32_t total_mean_coverage = this->get_mean_coverage_both_alleles(allele);
     if (total_mean_coverage >= minimum_threshold)
         return total_mean_coverage;
@@ -72,30 +85,31 @@ uint32_t SampleInfo::get_total_mean_coverage_given_a_mininum_threshold(uint32_t 
 }
 
 
-uint32_t SampleInfo::get_total_mean_coverage_over_all_alleles_given_a_mininum_threshold(uint32_t minimum_threshold) const {
+uint32_t SampleInfo::get_total_mean_coverage_over_all_alleles_given_a_minimum_threshold(uint32_t minimum_threshold) const {
     uint32_t total_mean_coverage_over_all_alleles = 0;
     for (uint32_t allele = 0; allele < get_number_of_alleles(); ++allele)
-        total_mean_coverage_over_all_alleles += get_total_mean_coverage_given_a_mininum_threshold(allele, minimum_threshold);
+        total_mean_coverage_over_all_alleles += get_total_mean_coverage_given_a_minimum_threshold(allele,
+                                                                                                  minimum_threshold);
     return total_mean_coverage_over_all_alleles;
 }
 
 
-double SampleInfo::compute_likelihood(bool min_coverage_threshold_is_satisfied, uint32_t expected_depth_covg, uint32_t total_mean_coverage_of_allele_above_threshold,
-                                 uint32_t total_mean_coverage_of_all_other_alleles_above_threshold, double error_rate,
+double SampleInfo::compute_likelihood(bool min_coverage_threshold_is_satisfied, double expected_depth_covg, double total_mean_coverage_of_allele_above_threshold,
+                                 double total_mean_coverage_of_all_other_alleles_above_threshold, double error_rate,
                                  double gaps) const {
     // For more details about this, look at page 66 of the thesis
     if (min_coverage_threshold_is_satisfied) {
-        return       - ((double)(expected_depth_covg))
+        return       - expected_depth_covg
                      + total_mean_coverage_of_allele_above_threshold * log(expected_depth_covg)
                      - Maths::logfactorial(total_mean_coverage_of_allele_above_threshold)
                      + total_mean_coverage_of_all_other_alleles_above_threshold * log(error_rate)
                      - expected_depth_covg * gaps
-                     + log(1 - exp(-(double)expected_depth_covg)) * (1 - gaps);
+                     + log(1 - exp(-expected_depth_covg)) * (1 - gaps);
     } else {
-        return       - ((double)(expected_depth_covg))
+        return       - expected_depth_covg
                      + total_mean_coverage_of_all_other_alleles_above_threshold * log(error_rate)
                      - expected_depth_covg * gaps
-                     + log(1 - exp(-(double)expected_depth_covg)) * (1 - gaps);
+                     + log(1 - exp(-expected_depth_covg)) * (1 - gaps);
     }
 }
 
@@ -161,60 +175,42 @@ boost::optional<SampleInfo::GenotypeAndMaxLikelihood> SampleInfo::get_genotype_f
 }
 
 
-std::string SampleInfo::to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const {
-    bool only_one_flag_is_set = ((int)(genotyping_from_maximum_likelihood) + (int)(genotyping_from_coverage)) == 1;
+std::string SampleInfo::to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_compatible_coverage) const {
+    bool only_one_flag_is_set = ((int)(genotyping_from_maximum_likelihood) + (int)(genotyping_from_compatible_coverage)) == 1;
     assert(only_one_flag_is_set);
 
-    std::stringstream out;
-    for (uint32_t allele = 0; allele < get_number_of_alleles(); ++allele) {
-        if (genotyping_from_maximum_likelihood) {
-            out << gt_from_max_likelihood_path_to_string();
-        }
-        if (genotyping_from_coverage) {
-            out << gt_from_coverages_compatible_to_string();
-        }
-
-        out << ":" << get_mean_forward_coverage(allele)
-            << ":" << get_mean_reverse_coverage(allele)
-            << ":" << get_median_forward_coverage(allele)
-            << ":" << get_median_reverse_coverage(allele)
-            << ":" << get_sum_forward_coverage(allele)
-            << ":" << get_sum_reverse_coverage(allele)
-            << ":" << get_gaps(allele);
-
-        if (genotyping_from_coverage) {
-            out << ":" << get_likelihoods_for_all_alleles()[allele]
-                << ":" << get_confidence_to_string();
-        }
-    }
-
-    return out.str();
-}
-
-
-void SampleIndexToSampleInfo::merge_other_samples_infos_into_this(const SampleIndexToSampleInfo &other) {
-    bool same_number_of_samples = size() == other.size();
-    assert(same_number_of_samples);
-
-    for (size_t sample_index = 0; sample_index < size(); ++sample_index) {
-        (*this)[sample_index].merge_other_sample_info_into_this(other[sample_index]);
-    }
-}
-
-
-std::string SampleIndexToSampleInfo::to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const {
-    bool only_one_flag_is_set = ((int)(genotyping_from_maximum_likelihood) + (int)(genotyping_from_coverage)) == 1;
-    assert(only_one_flag_is_set);
+    std::vector<double> likelihoods_for_all_alleles = get_likelihoods_for_all_alleles();
 
     std::stringstream out;
+    if (genotyping_from_maximum_likelihood) {
+        out << gt_from_max_likelihood_path_to_string();
+    }
+    if (genotyping_from_compatible_coverage) {
+        out << gt_from_coverages_compatible_to_string();
+    }
 
-    for (uint32_t sample_info_index = 0; sample_info_index < size(); ++sample_info_index) {
-        const SampleInfo &sample_info = (*this)[sample_info_index];
-        out << sample_info.to_string(genotyping_from_maximum_likelihood, genotyping_from_coverage);
+    auto uint32_methods_to_call = {&SampleInfo::get_mean_forward_coverage, &SampleInfo::get_mean_reverse_coverage,
+                                   &SampleInfo::get_median_forward_coverage, &SampleInfo::get_median_reverse_coverage,
+                                   &SampleInfo::get_sum_forward_coverage, &SampleInfo::get_sum_reverse_coverage};
+    for (const auto &method : uint32_methods_to_call) {
+        print_the_output_of_method_for_each_allele(out, this, method);
+    }
 
-        bool is_the_last_sample_info = sample_info_index == size()-1;
-        if (not is_the_last_sample_info)
-            out << "\t";
+    auto double_methods_to_call = {&SampleInfo::get_gaps};
+    for (const auto &method : double_methods_to_call) {
+        print_the_output_of_method_for_each_allele(out, this, method);
+    }
+
+    if (genotyping_from_compatible_coverage) {
+        out << ":";
+        for (uint32_t allele = 0; allele < get_number_of_alleles(); ++allele) {
+            if (allele > 0) {
+                out << ",";
+            }
+            out << likelihoods_for_all_alleles[allele];
+        }
+
+        out << ":" << get_confidence_to_string();
     }
 
     return out.str();

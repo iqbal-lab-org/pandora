@@ -154,7 +154,7 @@
 //    VCF vcf;
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 46, "T", "TA");
 //    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
-//    vr.sampleIndex_to_format_to_sampleInfo.push_back_several_empty_sample_infos(1);
+//    vr.sampleIndex_to_format_to_sampleInfo.emplace_back_several_empty_sample_infos(1);
 //    vr.sampleIndex_to_format_to_sampleInfo[0]["GT"] = {1};
 //    std::vector<std::string> samples = {"sample"};
 //    VCFRecord &ref_vr = vcf.add_record(vr, samples);
@@ -170,7 +170,7 @@
 //    VCF vcf;
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 46, "T", "TA");
 //    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
-//    vr.sampleIndex_to_format_to_sampleInfo.push_back_several_empty_sample_infos(1);
+//    vr.sampleIndex_to_format_to_sampleInfo.emplace_back_several_empty_sample_infos(1);
 //    vr.sampleIndex_to_format_to_sampleInfo[0]["GT"] = {1};
 //    std::vector<std::string> samples = {"sample1"};
 //    VCFRecord &ref_vr = vcf.add_record(vr, samples);
@@ -816,8 +816,8 @@
 //    vcf.add_record("chrom1", 76, "CTT", "TA");
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 76, "CTT", "TA");
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 76, "CTT", "A");
-//    vcf.records[4]->sampleIndex_to_format_to_sampleGenotypedInfo.push_back_several_empty_sample_infos(1);
-//    vcf.records[5]->sampleIndex_to_format_to_sampleGenotypedInfo.push_back_several_empty_sample_infos(1);
+//    vcf.records[4]->sampleIndex_to_format_to_sampleGenotypedInfo.emplace_back_several_empty_sample_infos(1);
+//    vcf.records[5]->sampleIndex_to_format_to_sampleGenotypedInfo.emplace_back_several_empty_sample_infos(1);
 //    vcf.records[4]->sampleIndex_to_format_to_sampleGenotypedInfo[0]["LIKELIHOOD"] = {-50, -3};
 //    vcf.records[5]->sampleIndex_to_format_to_sampleGenotypedInfo[0]["LIKELIHOOD"] = {-50, -16};
 //    vcf.records[4]->sampleIndex_to_format_to_sampleGenotypedInfo[0]["GT_CONF"] = {47};
@@ -986,8 +986,8 @@
 //    vcf.add_record("chrom1", 76, "CTT", "TA");
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 76, "CTT", "TA");
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 76, "CTT", "A");
-//    vcf.records[4]->sampleIndex_to_format_to_sampleGenotypedInfo.push_back_several_empty_sample_infos(1);
-//    vcf.records[5]->sampleIndex_to_format_to_sampleGenotypedInfo.push_back_several_empty_sample_infos(1);
+//    vcf.records[4]->sampleIndex_to_format_to_sampleGenotypedInfo.emplace_back_several_empty_sample_infos(1);
+//    vcf.records[5]->sampleIndex_to_format_to_sampleGenotypedInfo.emplace_back_several_empty_sample_infos(1);
 //    vcf.records[4]->sampleIndex_to_format_to_sampleGenotypedInfo[0]["LIKELIHOOD"] = {-50, -3};
 //    vcf.records[5]->sampleIndex_to_format_to_sampleGenotypedInfo[0]["LIKELIHOOD"] = {-50, -16};
 //    vcf.records[4]->sampleIndex_to_format_to_sampleGenotypedInfo[0]["GT_CONF"] = {47};
@@ -997,8 +997,8 @@
 //    vcf.add_record("chrom1", 85, "A", "C");
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 85, "A", "A");
 //    vcf.records[6]->sampleIndex_to_format_to_sampleInfo[0]["GT"] = {1};
-//    vcf.records[6]->sampleIndex_to_format_to_sampleGenotypedInfo.push_back_several_empty_sample_infos(1);
-//    vcf.records[7]->sampleIndex_to_format_to_sampleGenotypedInfo.push_back_several_empty_sample_infos(1);
+//    vcf.records[6]->sampleIndex_to_format_to_sampleGenotypedInfo.emplace_back_several_empty_sample_infos(1);
+//    vcf.records[7]->sampleIndex_to_format_to_sampleGenotypedInfo.emplace_back_several_empty_sample_infos(1);
 //    vcf.records[6]->sampleIndex_to_format_to_sampleGenotypedInfo[0]["LIKELIHOOD"] = {-5, -30};
 //    vcf.records[7]->sampleIndex_to_format_to_sampleGenotypedInfo[0]["LIKELIHOOD"] = {-5, -16};
 //    vcf.records[6]->sampleIndex_to_format_to_sampleGenotypedInfo[0]["GT_CONF"] = {47};
@@ -1008,8 +1008,8 @@
 //    vcf.add_record("chrom1", 95, "A", "C");
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 95, "A", "A");
 //    vcf.records[8]->sampleIndex_to_format_to_sampleInfo[0]["GT"] = {1};
-//    vcf.records[8]->sampleIndex_to_format_to_sampleGenotypedInfo.push_back_several_empty_sample_infos(1);
-//    vcf.records[9]->sampleIndex_to_format_to_sampleGenotypedInfo.push_back_several_empty_sample_infos(1);
+//    vcf.records[8]->sampleIndex_to_format_to_sampleGenotypedInfo.emplace_back_several_empty_sample_infos(1);
+//    vcf.records[9]->sampleIndex_to_format_to_sampleGenotypedInfo.emplace_back_several_empty_sample_infos(1);
 //    vcf.records[8]->sampleIndex_to_format_to_sampleGenotypedInfo[0]["LIKELIHOOD"] = {-50, -3};
 //    vcf.records[9]->sampleIndex_to_format_to_sampleGenotypedInfo[0]["LIKELIHOOD"] = {-50, -60};
 //    vcf.records[8]->sampleIndex_to_format_to_sampleGenotypedInfo[0]["GT_CONF"] = {47};

@@ -27,7 +27,8 @@ void VCF::add_record(std::string c, uint32_t p, std::string r, std::string a, st
     VCFRecord vr(c, p, r, a, i, g);
     if (find_record_in_records(vr) == records.end()) { //TODO: improve this search to log(n) using a map or sth
         add_record_core(vr);
-        records.back()->sampleIndex_to_sampleInfo.push_back_several_empty_sample_infos(samples.size(), genotyping_options);
+        records.back()->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(samples.size(),
+                                                                                          genotyping_options);
     }
 }
 
@@ -40,7 +41,8 @@ VCFRecord &VCF::add_record(VCFRecord &vr, const std::vector<std::string> &sample
     if (record_it == records.end()) {
         add_record_core(vr);
         records.back()->sampleIndex_to_sampleInfo.clear();
-        records.back()->sampleIndex_to_sampleInfo.push_back_several_empty_sample_infos(samples.size(), genotyping_options);
+        records.back()->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(samples.size(),
+                                                                                          genotyping_options);
         record_it = --records.end();
     }
 
@@ -67,7 +69,7 @@ ptrdiff_t VCF::get_sample_index(const std::string &name) {
         //cout << "this is the first time this sample has been added" << endl;
         samples.push_back(name);
         for (uint32_t i = 0; i != records.size(); ++i) {
-            records[i]->sampleIndex_to_sampleInfo.push_back_several_empty_sample_infos(1, genotyping_options);
+            records[i]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1, genotyping_options);
             assert(samples.size() == records[i]->sampleIndex_to_sampleInfo.size());
         }
         return samples.size() - 1;
@@ -181,7 +183,8 @@ void VCF::append_vcf(const VCF &other_vcf) {
     assert(original_size < std::numeric_limits<uint_least64_t>::max() ||
            assert_msg("VCF size has got too big to use the append feature"));
     for (uint_least64_t i = 0; i < original_size; ++i) {
-        records[i]->sampleIndex_to_sampleInfo.push_back_several_empty_sample_infos(num_samples_added, genotyping_options);
+        records[i]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(num_samples_added,
+                                                                                      genotyping_options);
     }
 
     BOOST_LOG_TRIVIAL(debug) << "add the " << other_vcf.records.size() << " records";
