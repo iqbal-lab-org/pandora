@@ -221,7 +221,7 @@ void VCF::genotype() {
 
     for (auto &vcf_record : records) {
         if (all_SV_types or (genotyping_options->is_snps_only() and vcf_record->is_SNP())) {
-            vcf_record->genotype();
+            vcf_record->genotype_from_coverage();
         }
     }
     make_gt_compatible();

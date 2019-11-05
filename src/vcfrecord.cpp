@@ -66,11 +66,11 @@ std::string VCFRecord::infer_SVTYPE() const {
 
 
 std::string VCFRecord::get_format (bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const {
-    static std::vector<std::string> format_for_genotyping_from_maximum_likelihood = {"GT", "MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG", "SUM_FWD_COVG", "SUM_REV_COVG", "GAPS"};
-    static std::vector<std::string> format_for_genotyping_from_coverage = {"GT", "MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG", "SUM_FWD_COVG", "SUM_REV_COVG", "GAPS", "LIKELIHOOD", "GT_CONF"};
-
     bool only_one_flag_is_set = ((int)(genotyping_from_maximum_likelihood) + (int)(genotyping_from_coverage)) == 1;
     assert(only_one_flag_is_set);
+
+    static std::vector<std::string> format_for_genotyping_from_maximum_likelihood = {"GT", "MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG", "SUM_FWD_COVG", "SUM_REV_COVG", "GAPS"};
+    static std::vector<std::string> format_for_genotyping_from_coverage = {"GT", "MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG", "SUM_FWD_COVG", "SUM_REV_COVG", "GAPS", "LIKELIHOOD", "GT_CONF"};
 
     const std::vector<std::string> *format;
     if (genotyping_from_maximum_likelihood)
@@ -129,27 +129,33 @@ bool VCFRecord::operator<(const VCFRecord &y) const {
 
 
 std::string VCFRecord::to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const {
-    bool only_one_flag_is_set = ((int)(genotyping_from_maximum_likelihood) + (int)(genotyping_from_coverage)) == 1;
-    assert(only_one_flag_is_set);
-
     std::stringstream out;
-    out << this->chrom << "\t" << this->pos + 1 << "\t" << this->id << "\t" << this->ref << "\t";
 
+    out << this->chrom << "\t"
+        << this->pos + 1 << "\t"
+        << this->id << "\t"
+        << this->ref << "\t"
+        << this->alts_to_string() << "\t"
+        << this->qual << "\t"
+        << this->filter << "\t"
+        << this->info << "\t"
+        << this->get_format(genotyping_from_maximum_likelihood, genotyping_from_coverage) << "\t"
+        << this->sample_infos_to_string(genotyping_from_maximum_likelihood, genotyping_from_coverage);
+
+    return out.str();
+}
+
+std::string VCFRecord::alts_to_string() const {
+    std::stringstream out;
     if (this->alts.empty()) {
         out << ".";
     } else {
         std::string buffer = "";
-        for (const auto &a : this->alts) {
-            out << buffer << a;
+        for (const auto &alt : this->alts) {
+            out << buffer << alt;
             buffer = ",";
         }
     }
-    out << "\t" << this->qual
-        << "\t" << this->filter
-        << "\t" << this->info
-        << "\t" << get_format(genotyping_from_maximum_likelihood, genotyping_from_coverage)
-        << "\t" << sampleIndex_to_sampleInfo.to_string(genotyping_from_maximum_likelihood, genotyping_from_coverage);
-
     return out.str();
 }
 
