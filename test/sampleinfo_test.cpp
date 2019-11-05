@@ -230,7 +230,7 @@ TEST_F(SampleInfoTest___genotype_from_coverage___Fixture, valid_genotype) {
 
     EXPECT_TRUE(default_sample_info.is_gt_from_coverages_valid());
     EXPECT_EQ(0, default_sample_info.get_gt_from_coverages());
-    EXPECT_EQ(-1.0, default_sample_info.get_likelihood_of_gt_from_coverages());
+    EXPECT_NEAR(-1.0, default_sample_info.get_likelihood_of_gt_from_coverages(), 0.000001);
 }
 
 TEST_F(SampleInfoTest___genotype_from_coverage___Fixture, invalid_genotype) {
@@ -626,8 +626,9 @@ TEST_F(SampleInfoTest___get_confidence___Fixture, get_confidence___returns_valid
 
     auto actual = sample_info.get_confidence();
 
-    SampleInfo::IndexAndConfidenceAndMaxLikelihood expected = std::make_tuple(1, 2.0, -3.0);
-    EXPECT_EQ(expected, actual);
+    EXPECT_EQ(1, std::get<0>(*actual));
+    EXPECT_NEAR(2.0, std::get<1>(*actual), 0.000001);
+    EXPECT_NEAR(-3.0, std::get<2>(*actual), 0.000001);
 }
 
 
@@ -722,8 +723,8 @@ TEST_F(SampleInfoTest___get_genotype_from_coverage___Fixture, valid_confidence_a
 
     auto actual = sample_info.get_genotype_from_coverage();
 
-    std::pair<uint32_t, double> expected(1, -50.5);
-    EXPECT_EQ(expected, actual);
+    EXPECT_EQ(1, actual->first);
+    EXPECT_NEAR(-50.5, actual->second, 0.000001);
 }
 
 
