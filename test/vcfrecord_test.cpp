@@ -204,9 +204,9 @@ private:
     class VCFRecordMock : public VCFRecord {
     public:
         using VCFRecord::VCFRecord;
-        MOCK_METHOD(std::string, alts_to_string, (), (const));
-        MOCK_METHOD(std::string, get_format, (bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage), (const));
-        MOCK_METHOD(std::string, sample_infos_to_string, (bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage), (const));
+        MOCK_METHOD(std::string, alts_to_string, (), (const override));
+        MOCK_METHOD(std::string, get_format, (bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage), (const override));
+        MOCK_METHOD(std::string, sample_infos_to_string, (bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage), (const override));
     };
 
 public:

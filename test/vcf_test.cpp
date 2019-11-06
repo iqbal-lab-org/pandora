@@ -522,7 +522,6 @@ TEST(VCFTest, pos_in_range) {
 
 
 
-// TODO : TO CHECK
 // This fixture + mocking enables us to easily test VCF::genotype()
 // We have two new tests enough to cover all the cases in the method
 // The old tests will be re-added as integration tests
@@ -531,14 +530,14 @@ public:
     class VCFMock : public VCF {
     public:
         using VCF::VCF;
-        MOCK_METHOD(void, make_gt_compatible, (), ()); // We mock make_gt_compatible() because we need to ensure it is called in VCF::genotype()
+        MOCK_METHOD(void, make_gt_compatible, (), (override)); // We mock make_gt_compatible() because we need to ensure it is called in VCF::genotype()
     };
 
     class VCFRecordMock : public VCFRecord {
     public:
         using VCFRecord::VCFRecord;
-        MOCK_METHOD(void, genotype_from_coverage, (), ()); // We also need to ensure genotype_from_coverage() is called in VCF::genotype()
-        MOCK_METHOD(bool, is_SNP, (), (const)); // We mock is_SNP() just to make it easy to create VCFRecords that are SNP or not
+        MOCK_METHOD(void, genotype_from_coverage, (), (override)); // We also need to ensure genotype_from_coverage() is called in VCF::genotype()
+        MOCK_METHOD(bool, is_SNP, (), (const override)); // We mock is_SNP() just to make it easy to create VCFRecords that are SNP or not
     };
 
     VCFTest___genotype___Fixture() :
@@ -605,6 +604,7 @@ TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OLD GENOTYPING TEST THAT WILL BE READDED AS INTEGRATION TEST
 // INTEGRATION TEST BECAUSE THEY TEST THE WHOLE GENOTYPING PIPELINE
+// TODO: READD
 // FROM VCF::genotype() to VCF_Record::genotype_from_coverage() to SampleIndexToSampleInfo::genotype_from_coverage() to SampleInfo::genotype_from_coverage()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1047,6 +1047,8 @@ TEST(VCFTest, clean) {
 //    EXPECT_EQ(vcf.records[7]->alts[0], "TTA");
 //}
 //
+
+
 //TEST(VCFTest, make_gt_compatible) {
 //    VCF vcf = create_VCF_with_default_parameters();
 //    // no gt
@@ -1106,7 +1108,7 @@ TEST(VCFTest, clean) {
 //    EXPECT_EQ((uint16_t) 1, vcf.records[8]->sampleIndex_to_sampleInfo[0]["GT"][0]);
 //    EXPECT_EQ((uint16_t) 0, vcf.records[9]->sampleIndex_to_sampleInfo[0]["GT"].size());
 //}
-//
+
 
 TEST(VCFTest, equals) {
     VCF vcf = create_VCF_with_default_parameters();

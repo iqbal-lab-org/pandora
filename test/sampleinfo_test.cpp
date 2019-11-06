@@ -189,9 +189,9 @@ TEST_F(SampleInfoTest___Fixture, gt_coverages_compatible___default_sample_info__
 
 
 TEST_F(SampleInfoTest___Fixture, gt_coverages_compatible___default_sample_info___valid_gt) {
-    default_sample_info.set_gt_coverages_compatible(5);
+    default_sample_info.set_gt_from_coverages_compatible(5);
     EXPECT_TRUE(default_sample_info.is_gt_from_coverages_compatible_valid());
-    EXPECT_EQ(5, default_sample_info.get_gt_coverages_compatible());
+    EXPECT_EQ(5, default_sample_info.get_gt_from_coverages_compatible());
     EXPECT_EQ("5", default_sample_info.gt_from_coverages_compatible_to_string());
 }
 
@@ -224,16 +224,27 @@ TEST_F(SampleInfoTest___genotype_from_coverage___Fixture, valid_genotype) {
 
     EXPECT_CALL(default_sample_info, get_genotype_from_coverage).
             Times(1).
-            WillOnce(Return(std::make_pair<uint32_t, double>(0, -1.0)));
+            WillOnce(Return(std::make_pair<uint32_t, double>(2, -1.0)));
 
     default_sample_info.genotype_from_coverage();
 
     EXPECT_TRUE(default_sample_info.is_gt_from_coverages_valid());
-    EXPECT_EQ(0, default_sample_info.get_gt_from_coverages());
+    EXPECT_EQ(2, default_sample_info.get_gt_from_coverages());
     EXPECT_NEAR(-1.0, default_sample_info.get_likelihood_of_gt_from_coverages(), 0.000001);
+    EXPECT_EQ(2, default_sample_info.get_gt_from_coverages_compatible());
 }
 
 TEST_F(SampleInfoTest___genotype_from_coverage___Fixture, invalid_genotype) {
+    EXPECT_CALL(default_sample_info, check_if_coverage_information_is_correct)
+            .Times(1)
+            .WillOnce(Return(true));
+
+    EXPECT_CALL(default_sample_info, get_genotype_from_coverage).
+            Times(1).
+            WillOnce(Return(boost::none));
+
+    default_sample_info.genotype_from_coverage();
+
     EXPECT_FALSE(default_sample_info.is_gt_from_coverages_valid());
     try {
         default_sample_info.get_gt_from_coverages();
@@ -251,8 +262,7 @@ private:
     class SampleInfoMock : public SampleInfo {
     public:
         using SampleInfo::SampleInfo;
-        MOCK_METHOD(void, genotype_from_coverage, (), ());
-        MOCK_METHOD(uint32_t, get_gt_from_coverages, (), (const override));
+        MOCK_METHOD(boost::optional<SampleInfo::GenotypeAndMaxLikelihood>, get_genotype_from_coverage, (), (const override));
     };
 
 
@@ -345,9 +355,9 @@ TEST_F(SampleInfoTest___merge_other_sample_info_into_this___Fixture,
 
 TEST_F(SampleInfoTest___merge_other_sample_info_into_this___Fixture,
        merge_a_sample_with_three_alleles_into_one_with_two_alleles___original_gt_invalid___both_gts_are_valid_and_first_is_not_zero___genotypes_from_coverage_to_solve_conflict) {
-    EXPECT_CALL(sample_info_with_two_alleles, get_gt_from_coverages()).
+    EXPECT_CALL(sample_info_with_two_alleles, get_genotype_from_coverage()).
             Times(1).
-            WillOnce(Return(1));
+            WillOnce(Return(SampleInfo::GenotypeAndMaxLikelihood(1, -1.0)));
     sample_info_with_two_alleles.set_gt_from_max_likelihood_path(1);
     sample_info_with_three_alleles.set_gt_from_max_likelihood_path(0);
 
@@ -359,9 +369,9 @@ TEST_F(SampleInfoTest___merge_other_sample_info_into_this___Fixture,
 
 TEST_F(SampleInfoTest___merge_other_sample_info_into_this___Fixture,
        merge_a_sample_with_three_alleles_into_one_with_two_alleles___original_gt_invalid___both_gts_are_valid_and_second_is_not_zero___genotypes_from_coverage_to_solve_conflict) {
-    EXPECT_CALL(sample_info_with_two_alleles, get_gt_from_coverages()).
+    EXPECT_CALL(sample_info_with_two_alleles, get_genotype_from_coverage()).
             Times(1).
-            WillOnce(Return(3));
+            WillOnce(Return(SampleInfo::GenotypeAndMaxLikelihood(3, -1.0)));
     sample_info_with_two_alleles.set_gt_from_max_likelihood_path(0);
     sample_info_with_three_alleles.set_gt_from_max_likelihood_path(2);
 
@@ -462,15 +472,15 @@ public:
     public:
         using SampleInfo::SampleInfo;
 
-        MOCK_METHOD(size_t, get_number_of_alleles, (), (const));
-        MOCK_METHOD(uint32_t, get_min_coverage_threshold_for_this_sample, (), (const));
+        MOCK_METHOD(size_t, get_number_of_alleles, (), (const override));
+        MOCK_METHOD(uint32_t, get_min_coverage_threshold_for_this_sample, (), (const override));
         MOCK_METHOD(uint32_t, get_total_mean_coverage_over_all_alleles_given_a_minimum_threshold, (uint32_t
-                minimum_threshold), (const));
+                minimum_threshold), (const override));
         MOCK_METHOD(uint32_t, get_total_mean_coverage_given_a_minimum_threshold, (uint32_t
                 allele, uint32_t
-                minimum_threshold), (const));
+                minimum_threshold), (const override));
         MOCK_METHOD(double, get_gaps, (uint32_t
-                allele), (const));
+                allele), (const override));
         MOCK_METHOD(double, compute_likelihood, (bool
                 min_coverage_threshold_is_satisfied, double
                 expected_depth_covg, double
@@ -478,7 +488,7 @@ public:
                         double
                 total_mean_coverage_of_all_other_alleles_above_threshold, double
                 error_rate, double
-                gaps), (const));
+                gaps), (const override));
     };
 
     SampleInfoTest___get_likelihoods_for_all_alleles___Fixture() :
@@ -550,9 +560,9 @@ public:
     class SampleInfoMock : public SampleInfo {
     public:
         using SampleInfo::SampleInfo;
-        MOCK_METHOD(std::vector<double>, get_likelihoods_for_all_alleles, (), (const));
+        MOCK_METHOD(std::vector<double>, get_likelihoods_for_all_alleles, (), (const override));
         MOCK_METHOD(uint32_t, get_mean_coverage_both_alleles, (uint32_t
-                allele), (const));
+                allele), (const override));
     };
 
     SampleInfoTest___get_confidence___Fixture() :
@@ -637,7 +647,7 @@ public:
     class SampleInfoMock : public SampleInfo {
     public:
         using SampleInfo::SampleInfo;
-        MOCK_METHOD(boost::optional<IndexAndConfidenceAndMaxLikelihood>, get_confidence, (), (const));
+        MOCK_METHOD(boost::optional<IndexAndConfidenceAndMaxLikelihood>, get_confidence, (), (const override));
     };
 
     SampleInfoTest___get_confidence_to_string___Fixture() :
@@ -677,7 +687,7 @@ public:
     class SampleInfoMock : public SampleInfo {
     public:
         using SampleInfo::SampleInfo;
-        MOCK_METHOD(boost::optional<SampleInfo::IndexAndConfidenceAndMaxLikelihood>, get_confidence, (), (const));
+        MOCK_METHOD(boost::optional<SampleInfo::IndexAndConfidenceAndMaxLikelihood>, get_confidence, (), (const override));
     };
 
     SampleInfoTest___get_genotype_from_coverage___Fixture() :
@@ -752,7 +762,7 @@ TEST_F(SampleInfoTest___Fixture, to_string___genotyping_from_maximum_likelihood)
 }
 
 TEST_F(SampleInfoTest___Fixture, to_string___genotyping_from_compatible_coverage) {
-    default_sample_info.set_gt_coverages_compatible(2);
+    default_sample_info.set_gt_from_coverages_compatible(2);
     default_sample_info.add_coverage_information({{10},
                                                   {20, 30},
                                                   {40, 50, 70}},
@@ -818,10 +828,10 @@ public:
         SampleInfoMock(const SampleInfoMock &other) : SampleInfoMock(other.get_sample_index(),
                                                                      other.genotyping_options) {}
 
-        MOCK_METHOD(void, merge_other_sample_info_into_this, (const SampleInfo &other), ());
+        MOCK_METHOD(void, merge_other_sample_info_into_this, (const SampleInfo &other), (override));
         MOCK_METHOD(std::string, to_string, (bool
                 genotyping_from_maximum_likelihood, bool
-                genotyping_from_compatible_coverage), (const));
+                genotyping_from_compatible_coverage), (const override));
     };
 
 
@@ -891,7 +901,135 @@ TEST_F(SampleIndexToSampleInfoTemplate___Fixture, to_string___two_samples) {
 }
 
 
+class SampleInfoTest___solve_incompatible_gt_conflict_with___Fixture : public ::testing::Test {
+public:
+    class SampleInfoMock : public SampleInfo {
+    public:
+        using SampleInfo::SampleInfo;
+        MOCK_METHOD(bool, is_gt_from_coverages_compatible_valid, (), (const override));
+        MOCK_METHOD(uint32_t, get_gt_from_coverages_compatible, (), (const override));
+        MOCK_METHOD(double, get_likelihood_of_gt_from_coverages_compatible, (), (const override));
+        MOCK_METHOD(void, set_gt_from_coverages_compatible, (const boost::optional<uint32_t> &gt), (override));
+    };
 
+    SampleInfoTest___solve_incompatible_gt_conflict_with___Fixture() :
+            sample_info_invalid_gt(0, &default_genotyping_options),
+            sample_info_gt_0_with_likelihood_minus_10(0, &default_genotyping_options),
+            sample_info_gt_0_with_likelihood_minus_5(0, &default_genotyping_options),
+            sample_info_gt_3_with_likelihood_minus_10(0, &default_genotyping_options),
+            sample_info_gt_3_with_likelihood_minus_5(0, &default_genotyping_options) {}
+
+
+    void SetUp() override {
+        ON_CALL(sample_info_invalid_gt, is_gt_from_coverages_compatible_valid)
+        .WillByDefault(Return(false));
+        ON_CALL(sample_info_gt_0_with_likelihood_minus_10, is_gt_from_coverages_compatible_valid)
+                .WillByDefault(Return(true));
+        ON_CALL(sample_info_gt_0_with_likelihood_minus_5, is_gt_from_coverages_compatible_valid)
+                .WillByDefault(Return(true));
+        ON_CALL(sample_info_gt_3_with_likelihood_minus_10, is_gt_from_coverages_compatible_valid)
+                .WillByDefault(Return(true));
+        ON_CALL(sample_info_gt_3_with_likelihood_minus_5, is_gt_from_coverages_compatible_valid)
+                .WillByDefault(Return(true));
+
+        ON_CALL(sample_info_gt_0_with_likelihood_minus_10, get_gt_from_coverages_compatible)
+                .WillByDefault(Return(0));
+        ON_CALL(sample_info_gt_0_with_likelihood_minus_5, get_gt_from_coverages_compatible)
+                .WillByDefault(Return(0));
+        ON_CALL(sample_info_gt_3_with_likelihood_minus_10, get_gt_from_coverages_compatible)
+                .WillByDefault(Return(3));
+        ON_CALL(sample_info_gt_3_with_likelihood_minus_5, get_gt_from_coverages_compatible)
+                .WillByDefault(Return(3));
+
+        ON_CALL(sample_info_gt_0_with_likelihood_minus_10, get_likelihood_of_gt_from_coverages_compatible)
+                .WillByDefault(Return(-10.0));
+        ON_CALL(sample_info_gt_0_with_likelihood_minus_5, get_likelihood_of_gt_from_coverages_compatible)
+                .WillByDefault(Return(-5.0));
+        ON_CALL(sample_info_gt_3_with_likelihood_minus_10, get_likelihood_of_gt_from_coverages_compatible)
+                .WillByDefault(Return(-10.0));
+        ON_CALL(sample_info_gt_3_with_likelihood_minus_5, get_likelihood_of_gt_from_coverages_compatible)
+                .WillByDefault(Return(-5.0));
+    }
+
+    void TearDown() override {
+    }
+
+    SampleInfoMock sample_info_invalid_gt;
+    SampleInfoMock sample_info_gt_0_with_likelihood_minus_10;
+    SampleInfoMock sample_info_gt_0_with_likelihood_minus_5;
+    SampleInfoMock sample_info_gt_3_with_likelihood_minus_10;
+    SampleInfoMock sample_info_gt_3_with_likelihood_minus_5;
+};
+
+TEST_F(SampleInfoTest___solve_incompatible_gt_conflict_with___Fixture, first_sample_info_has_invalid_gt) {
+    EXPECT_CALL(sample_info_invalid_gt, set_gt_from_coverages_compatible)
+    .Times(0);
+    EXPECT_CALL(sample_info_gt_0_with_likelihood_minus_10, set_gt_from_coverages_compatible)
+        .Times(0);
+
+    sample_info_invalid_gt.solve_incompatible_gt_conflict_with(
+            sample_info_gt_0_with_likelihood_minus_10);
+}
+
+TEST_F(SampleInfoTest___solve_incompatible_gt_conflict_with___Fixture, second_sample_info_has_invalid_gt) {
+    EXPECT_CALL(sample_info_gt_0_with_likelihood_minus_10, set_gt_from_coverages_compatible)
+            .Times(0);
+    EXPECT_CALL(sample_info_invalid_gt, set_gt_from_coverages_compatible)
+            .Times(0);
+
+    sample_info_gt_0_with_likelihood_minus_10.solve_incompatible_gt_conflict_with(
+            sample_info_invalid_gt);
+}
+
+TEST_F(SampleInfoTest___solve_incompatible_gt_conflict_with___Fixture, both_gts_are_to_ref) {
+    EXPECT_CALL(sample_info_gt_0_with_likelihood_minus_10, set_gt_from_coverages_compatible)
+            .Times(0);
+    EXPECT_CALL(sample_info_gt_0_with_likelihood_minus_5, set_gt_from_coverages_compatible)
+            .Times(0);
+
+    sample_info_gt_0_with_likelihood_minus_10.solve_incompatible_gt_conflict_with(
+            sample_info_gt_0_with_likelihood_minus_5);
+}
+
+TEST_F(SampleInfoTest___solve_incompatible_gt_conflict_with___Fixture, first_gt_is_0_second_is_3_gt_0_higher_likelihood) {
+    EXPECT_CALL(sample_info_gt_0_with_likelihood_minus_5, set_gt_from_coverages_compatible)
+            .Times(0);
+    EXPECT_CALL(sample_info_gt_3_with_likelihood_minus_10, set_gt_from_coverages_compatible(boost::optional<uint32_t>(0)))
+            .Times(1);
+
+    sample_info_gt_0_with_likelihood_minus_5.solve_incompatible_gt_conflict_with(
+            sample_info_gt_3_with_likelihood_minus_10);
+}
+
+TEST_F(SampleInfoTest___solve_incompatible_gt_conflict_with___Fixture, first_gt_is_0_second_is_3_gt_3_higher_likelihood) {
+    EXPECT_CALL(sample_info_gt_0_with_likelihood_minus_10, set_gt_from_coverages_compatible(boost::optional<uint32_t>(boost::none)))
+            .Times(1);
+    EXPECT_CALL(sample_info_gt_3_with_likelihood_minus_5, set_gt_from_coverages_compatible)
+            .Times(0);
+
+    sample_info_gt_0_with_likelihood_minus_10.solve_incompatible_gt_conflict_with(
+            sample_info_gt_3_with_likelihood_minus_5);
+}
+
+TEST_F(SampleInfoTest___solve_incompatible_gt_conflict_with___Fixture, first_gt_is_3_second_is_0_gt_3_higher_likelihood) {
+    EXPECT_CALL(sample_info_gt_3_with_likelihood_minus_5, set_gt_from_coverages_compatible)
+            .Times(0);
+    EXPECT_CALL(sample_info_gt_0_with_likelihood_minus_10, set_gt_from_coverages_compatible(boost::optional<uint32_t>(boost::none)))
+            .Times(1);
+
+    sample_info_gt_3_with_likelihood_minus_5.solve_incompatible_gt_conflict_with(
+            sample_info_gt_0_with_likelihood_minus_10);
+}
+
+TEST_F(SampleInfoTest___solve_incompatible_gt_conflict_with___Fixture, first_gt_is_3_second_is_0_gt_0_higher_likelihood) {
+    EXPECT_CALL(sample_info_gt_3_with_likelihood_minus_10, set_gt_from_coverages_compatible(boost::optional<uint32_t>(0)))
+            .Times(1);
+    EXPECT_CALL(sample_info_gt_0_with_likelihood_minus_5, set_gt_from_coverages_compatible)
+            .Times(0);
+
+    sample_info_gt_3_with_likelihood_minus_10.solve_incompatible_gt_conflict_with(
+            sample_info_gt_0_with_likelihood_minus_5);
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1036,7 +1174,7 @@ public:
     public:
         using SampleInfo::SampleInfo;
         MOCK_METHOD(double, get_gaps, (uint32_t
-                allele), (const));
+                allele), (const override));
     };
 
     SampleInfoTest___gets_correct_likelihood_gaps___Fixture() :

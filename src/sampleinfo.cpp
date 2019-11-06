@@ -17,6 +17,9 @@ void SampleInfo::genotype_from_coverage () {
         GT_from_coverages = boost::none;
         likelihood_of_GT_from_coverages = boost::none;
     }
+
+    // TODO: I don't really like this side-effect - refactor this
+    set_gt_from_coverages_compatible(GT_from_coverages);
 }
 
 
@@ -248,7 +251,39 @@ void SampleInfo::merge_other_sample_gt_from_max_likelihood_path_into_this (const
         }
     } else if (this->get_gt_from_max_likelihood_path() != 0 or other.get_gt_from_max_likelihood_path() != 0) {
         //conflict, genotype using the coverages to solve
-        this->genotype_from_coverage();
-        this->set_gt_from_max_likelihood_path(this->get_gt_from_coverages());
+        boost::optional<SampleInfo::GenotypeAndMaxLikelihood> genotype_and_max_likelihood_from_coverage_optional = this->get_genotype_from_coverage();
+        boost::optional<uint32_t> genotype_from_coverage = boost::none;
+        if (genotype_and_max_likelihood_from_coverage_optional) {
+            genotype_from_coverage = genotype_and_max_likelihood_from_coverage_optional->first;
+        }
+        this->set_gt_from_max_likelihood_path(genotype_from_coverage);
+    }
+}
+
+
+void SampleInfo::solve_incompatible_gt_conflict_with (SampleInfo &other) {
+    bool any_of_gts_are_invalid_thus_no_conflict = not this->is_gt_from_coverages_compatible_valid() or not other.is_gt_from_coverages_compatible_valid();
+    if (any_of_gts_are_invalid_thus_no_conflict)
+        return;
+
+    bool both_gts_are_to_ref_thus_no_conflict =
+            this->get_gt_from_coverages_compatible() == 0 and other.get_gt_from_coverages_compatible() == 0;
+    if (both_gts_are_to_ref_thus_no_conflict)
+        return;
+
+    if (this->get_likelihood_of_gt_from_coverages_compatible() > other.get_likelihood_of_gt_from_coverages_compatible()) {
+            if (this->get_gt_from_coverages_compatible() == 0) {
+                other.set_gt_from_coverages_compatible(0);
+            }
+            else {
+                other.set_gt_from_coverages_compatible(boost::none);
+            }
+    } else {
+        if (other.get_gt_from_coverages_compatible() == 0) {
+            this->set_gt_from_coverages_compatible(0);
+        }
+        else {
+            this->set_gt_from_coverages_compatible(boost::none);
+        }
     }
 }

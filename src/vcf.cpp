@@ -20,7 +20,7 @@
 
 void VCF::add_record_core(const VCFRecord &vr) {
     records.push_back(std::make_shared<VCFRecord>(vr));
-    chrom2recordIntervalTree[vr.chrom].add(vr.pos, vr.pos + vr.ref.length() + 1, records.back().get());
+    chrom_to_record_interval_tree[vr.chrom].add(vr.pos, vr.pos + vr.ref.length() + 1, records.back().get());
 }
 
 void VCF::add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i, std::string g) {
@@ -347,70 +347,37 @@ void VCF::correct_dot_alleles(const std::string &vcf_ref, const std::string &chr
 }
 
 void VCF::make_gt_compatible() {
-    //TODO: this can be a source of inneficiency, fix this?
-    //TODO: interval tree does not to be indexed everytime this function is called, only if the interval tree changed
     BOOST_LOG_TRIVIAL(info) << now() << "Make all genotypes compatible";
 
-    // set the GT compatible to the GT from coverage
     for (auto &recordPointer : records) {
-        for (uint i = 0; i < recordPointer->sampleIndex_to_sampleInfo.size(); ++i) {
-            auto gt_from_coverage = recordPointer->sampleIndex_to_sampleInfo[i].get_gt_from_coverages();
-            recordPointer->sampleIndex_to_sampleInfo[i].set_gt_coverages_compatible(gt_from_coverage);
-        }
-    }
+        VCFRecord &record = *recordPointer;
 
+        std::vector<VCFRecord*> overlapping_records = get_all_records_overlapping_the_given_record(record);
 
-    // update GT compatible
-    for (auto &pair : chrom2recordIntervalTree)
-        pair.second.index();
+        for (VCFRecord* overlapping_record_ptr : overlapping_records) {
+            VCFRecord &overlapping_record = *overlapping_record_ptr;
 
-    uint record_count=0;
-    for (auto &recordPointer : records) {
-        auto &record = *recordPointer;
-        record_count++;
-        for (uint i = 0; i < record.sampleIndex_to_sampleInfo.size(); ++i) {
-            //retrieve all VCF records overlapping this record
-            std::vector<VCFRecord*> overlappingVCFRecords = get_all_records_overlapping_the_given_record(record);
+            bool this_record_starts_before_the_overlapping_record =
+                    record.pos < overlapping_record.pos;
 
-            for (VCFRecord* other_record_pointer : overlappingVCFRecords) {
-                VCFRecord &other_record = *other_record_pointer;
-
-                bool same_record_no_need_to_process = record == other_record;
-                if (same_record_no_need_to_process)
-                    continue;
-
-                bool other_record_start_overlaps_this_record = record.pos <= other_record.pos && other_record.pos <= record.pos + record.ref.length();
-                if (   other_record_start_overlaps_this_record
-                    && record.sampleIndex_to_sampleInfo[i].is_gt_from_coverages_valid()
-                    && other_record.sampleIndex_to_sampleInfo[i].is_gt_from_coverages_valid()) {
-
-                    if (record.sampleIndex_to_sampleInfo[i].get_gt_from_coverages() == 0 and
-                            other_record.sampleIndex_to_sampleInfo[i].get_gt_from_coverages() == 0)
-                        continue;
-                    else if (record.sampleIndex_to_sampleInfo[i].get_likelihood_of_gt_from_coverages() >
-                             other_record.sampleIndex_to_sampleInfo[i].get_likelihood_of_gt_from_coverages()) {
-                        if (record.sampleIndex_to_sampleInfo[i].get_gt_from_coverages() == 0)
-                            other_record.sampleIndex_to_sampleInfo[i].set_gt_coverages_compatible(0);
-                        else
-                            other_record.sampleIndex_to_sampleInfo[i].set_gt_coverages_compatible(boost::none);
-                    } else {
-                        if (other_record.sampleIndex_to_sampleInfo[i].get_gt_from_coverages() == 0)
-                            record.sampleIndex_to_sampleInfo[i].set_gt_coverages_compatible(0);
-                        else
-                            record.sampleIndex_to_sampleInfo[i].set_gt_coverages_compatible(boost::none);
-                    }
-                }
+            if (this_record_starts_before_the_overlapping_record) {
+                record.solve_incompatible_gt_conflict_with(overlapping_record);
             }
+            // else it was already processed, no need to do it twice
         }
     }
 }
 
-std::vector<VCFRecord*> VCF::get_all_records_overlapping_the_given_record (const VCFRecord &vcf_record) const {
+std::vector<VCFRecord*> VCF::get_all_records_overlapping_the_given_record (const VCFRecord &vcf_record) {
     std::vector<VCFRecord*> overlappingVCFRecords;
     std::vector<size_t> overlaps;
-    chrom2recordIntervalTree.at(vcf_record.chrom).overlap(vcf_record.pos, vcf_record.pos + vcf_record.ref.length() + 1, overlaps);
+
+    IITree<uint32_t, VCFRecord*>& record_interval_tree_for_this_record = chrom_to_record_interval_tree[vcf_record.chrom];
+    record_interval_tree_for_this_record.index();
+
+    chrom_to_record_interval_tree.at(vcf_record.chrom).overlap(vcf_record.pos, vcf_record.pos + vcf_record.ref.length() + 1, overlaps);
     for (size_t i = 0; i < overlaps.size(); ++i)
-        overlappingVCFRecords.push_back(chrom2recordIntervalTree.at(vcf_record.chrom).data(overlaps[i]));
+        overlappingVCFRecords.push_back(chrom_to_record_interval_tree.at(vcf_record.chrom).data(overlaps[i]));
 
     //TODO: not sure if we need to sort, but doing it just in case... Check this later
     std::sort(overlappingVCFRecords.begin(), overlappingVCFRecords.end(), [](VCFRecord* lhs, VCFRecord* rhs) {

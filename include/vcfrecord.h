@@ -118,6 +118,10 @@ public:
         this->sampleIndex_to_sampleInfo.merge_other_samples_infos_into_this(other.sampleIndex_to_sampleInfo);
         add_alts(other);
     }
+
+    virtual inline void solve_incompatible_gt_conflict_with (VCFRecord &other) {
+        this->sampleIndex_to_sampleInfo.solve_incompatible_gt_conflict_with(other.sampleIndex_to_sampleInfo);
+    }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // TODO: check if we keep this, it is only used in tests - better to keep in a VCFMock class

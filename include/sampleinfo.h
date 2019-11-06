@@ -95,13 +95,13 @@ public:
         return (bool)(this->GT_from_coverages_compatible);
     }
 
-    virtual inline void set_gt_coverages_compatible (const boost::optional<uint32_t> &gt) {
+    virtual inline void set_gt_from_coverages_compatible (const boost::optional<uint32_t> &gt) {
         this->GT_from_coverages_compatible = gt;
     }
 
-    virtual inline uint32_t get_gt_coverages_compatible () const {
+    virtual inline uint32_t get_gt_from_coverages_compatible () const {
         if (not is_gt_from_coverages_compatible_valid()) {
-            throw std::runtime_error("GT_from_coverages_compatible is not valid at SampleInfo::get_gt_coverages_compatible()");
+            throw std::runtime_error("GT_from_coverages_compatible is not valid at SampleInfo::get_gt_from_coverages_compatible()");
         }
         return *(this->GT_from_coverages_compatible);
     }
@@ -109,10 +109,15 @@ public:
     virtual inline std::string gt_from_coverages_compatible_to_string() const {
         std::stringstream ss;
         if (is_gt_from_coverages_compatible_valid())
-            ss << get_gt_coverages_compatible();
+            ss << get_gt_from_coverages_compatible();
         else
             ss << ".";
         return ss.str();
+    }
+
+    virtual inline double get_likelihood_of_gt_from_coverages_compatible() const {
+        uint32_t gt_from_coverages_compatible = get_gt_from_coverages_compatible();
+        return get_likelihoods_for_all_alleles()[gt_from_coverages_compatible];
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -185,6 +190,7 @@ public:
     virtual boost::optional<GenotypeAndMaxLikelihood> get_genotype_from_coverage () const;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    void solve_incompatible_gt_conflict_with (SampleInfo &other);
 
     virtual std::string to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_compatible_coverage) const;
 protected:
@@ -302,6 +308,15 @@ public:
     virtual inline void genotype_from_coverage () {
         for (SAMPLE_TYPE &sample_info : (*this)) {
             sample_info.genotype_from_coverage();
+        }
+    }
+
+    virtual inline void solve_incompatible_gt_conflict_with (SampleIndexToSampleInfoTemplate<SAMPLE_TYPE> &other) {
+        bool same_number_of_samples = this->size() == other.size();
+        assert(same_number_of_samples);
+
+        for (size_t sample_index = 0; sample_index < this->size(); ++sample_index) {
+            (*this)[sample_index].solve_incompatible_gt_conflict_with(other[sample_index]);
         }
     }
 };

@@ -1,15 +1,9 @@
 #include <cassert>
-#include <cmath>
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <numeric>
-#include <sstream>
 #include <boost/log/trivial.hpp>
-
-#include "vcfrecord.h"
-#include "utils.h"
-#include "sampleinfo.h"
+#include "vcf.h"
 
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)

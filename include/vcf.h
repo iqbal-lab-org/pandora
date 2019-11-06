@@ -105,7 +105,7 @@ public:
 protected:
     /* will contain, for each chromosome, an interval tree containing VCF records interval and a pointer to the VCF Record itself to allow
        VCF::make_gt_compatible() to execute a lot faster than serial search */
-    std::map<std::string, IITree<uint32_t, VCFRecord*>> chrom2recordIntervalTree;
+    std::map<std::string, IITree<uint32_t, VCFRecord*>> chrom_to_record_interval_tree;
 
     //add a VCF record to this VCF
     virtual void add_record_core(const VCFRecord &vr);
@@ -118,7 +118,7 @@ protected:
         return find_if(records.begin(), records.end(), [&vr](const std::shared_ptr<VCFRecord> &record) { return *record==vr; });
     }
 
-    virtual std::vector<VCFRecord*> get_all_records_overlapping_the_given_record (const VCFRecord &vcf_record) const;
+    virtual std::vector<VCFRecord*> get_all_records_overlapping_the_given_record (const VCFRecord &vcf_record);
 
     virtual void update_other_samples_of_this_record(VCFRecord *reference_record);
 
