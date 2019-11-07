@@ -29,7 +29,7 @@ public:
     VCFRecord();
     VCFRecord(const VCFRecord &) = default;
     virtual VCFRecord &operator=(const VCFRecord &) = default;
-    virtual ~VCFRecord() = default;
+    virtual ~VCFRecord(){}
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 

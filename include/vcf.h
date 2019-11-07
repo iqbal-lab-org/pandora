@@ -27,7 +27,7 @@ public:
     // TODO: make VCF not sample updatable - we have to specify the samples upfront - this can be done in pandora
     // and it makes a lot of things easier and less error prone
     VCF(GenotypingOptions const * genotyping_options) : genotyping_options(genotyping_options){}
-    virtual ~VCF() = default;
+    virtual ~VCF(){}
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -40,7 +40,11 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // adders
-    virtual void add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i = ".", std::string g = "");
+    // TODO : I think this method is not needed. It should receive a VCFRecord and add it to the VCF,
+    // TODO :  to allow for dependency injection. Remove later
+    virtual void add_record(const std::string &chrom, uint32_t position, const std::string &ref,
+                         const std::string &alt, const std::string &info = ".", const std::string &graph_type_info = "");
+    virtual void add_record(const VCFRecord &vcf_record);
     virtual VCFRecord &add_record(VCFRecord &, const std::vector<std::string> &sample_names);
     virtual void add_samples(const std::vector<std::string>);
     virtual void append_vcf(const VCF &);
@@ -53,6 +57,7 @@ public:
         return records.size();
     }
     virtual ptrdiff_t get_sample_index(const std::string &);
+    virtual std::vector<VCFRecord*> get_all_records_overlapping_the_given_record (const VCFRecord &vcf_record);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -117,8 +122,6 @@ protected:
     virtual inline std::vector<std::shared_ptr<VCFRecord>>::const_iterator find_record_in_records(const VCFRecord &vr) const {
         return find_if(records.begin(), records.end(), [&vr](const std::shared_ptr<VCFRecord> &record) { return *record==vr; });
     }
-
-    virtual std::vector<VCFRecord*> get_all_records_overlapping_the_given_record (const VCFRecord &vcf_record);
 
     virtual void update_other_samples_of_this_record(VCFRecord *reference_record);
 

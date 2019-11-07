@@ -23,10 +23,16 @@ void VCF::add_record_core(const VCFRecord &vr) {
     chrom_to_record_interval_tree[vr.chrom].add(vr.pos, vr.pos + vr.ref.length() + 1, records.back().get());
 }
 
-void VCF::add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i, std::string g) {
-    VCFRecord vr(c, p, r, a, i, g);
-    if (find_record_in_records(vr) == records.end()) { //TODO: improve this search to log(n) using a map or sth
-        add_record_core(vr);
+void VCF::add_record(const std::string &chrom, uint32_t position, const std::string &ref,
+                     const std::string &alt, const std::string &info, const std::string &graph_type_info) {
+    VCFRecord vr(chrom, position, ref, alt, info, graph_type_info);
+    this->add_record(vr);
+}
+
+
+void VCF::add_record(const VCFRecord &vcf_record) {
+    if (find_record_in_records(vcf_record) == records.end()) { //TODO: improve this search to log(n) using a map or sth
+        add_record_core(vcf_record);
         records.back()->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(samples.size(),
                                                                                           genotyping_options);
     }

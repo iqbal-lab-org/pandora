@@ -1049,6 +1049,134 @@ TEST(VCFTest, clean) {
 //
 
 
+class VCFTest___make_gt_compatible___Fixture : public ::testing::Test {
+public:
+    class VCFRecordMock : public VCFRecord {
+    public:
+        using VCFRecord::VCFRecord;
+        MOCK_METHOD(void, solve_incompatible_gt_conflict_with, (VCFRecord &other), (override));
+    };
+
+    class VCFMock : public VCF {
+    public:
+        using VCF::VCF;
+        MOCK_METHOD(std::vector<VCFRecord*>, get_all_records_overlapping_the_given_record, (const VCFRecord &vcf_record), (override));
+    };
+
+    VCFTest___make_gt_compatible___Fixture() :
+            vcf(&default_genotyping_options),
+            vcf_record_1(std::make_shared<VCFRecordMock>("1", 1, "A", "T")),
+            vcf_record_2(std::make_shared<VCFRecordMock>("1", 2, "A", "T")),
+            vcf_record_3(std::make_shared<VCFRecordMock>("1", 3, "A", "T"))
+    {}
+
+    void SetUp() override {
+        vcf.records.push_back(vcf_record_1);
+        vcf.records.push_back(vcf_record_2);
+    }
+
+    void TearDown() override {
+    }
+
+    VCFMock vcf;
+    std::shared_ptr<VCFRecordMock> vcf_record_1;
+    std::shared_ptr<VCFRecordMock> vcf_record_2;
+    std::shared_ptr<VCFRecordMock> vcf_record_3;
+};
+
+
+TEST_F(VCFTest___make_gt_compatible___Fixture, side_by_side_no_overlapping_records___no_conflict) {
+    {
+        InSequence seq;
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Field(&VCFRecord::pos, 1)	))
+                .Times(1)
+                .WillOnce(Return(std::vector<VCFRecord*>({vcf_record_1.get()})));
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Field(&VCFRecord::pos, 2)	))
+                .Times(1)
+                .WillOnce(Return(std::vector<VCFRecord*>({vcf_record_2.get()})));
+    }
+
+    EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with)
+    .Times(0);
+    EXPECT_CALL(*vcf_record_2, solve_incompatible_gt_conflict_with)
+    .Times(0);
+
+    vcf.make_gt_compatible();
+}
+
+TEST_F(VCFTest___make_gt_compatible___Fixture, two_overlapping_records___conflict) {
+    {
+        InSequence seq;
+
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Field(&VCFRecord::pos, 1)))
+                .Times(1)
+                .WillOnce(Return(std::vector<VCFRecord *>({vcf_record_1.get(), vcf_record_2.get()})));
+
+        EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 2)))
+                .Times(1);
+
+
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Field(&VCFRecord::pos, 2)))
+                .Times(1)
+                .WillOnce(Return(std::vector<VCFRecord *>({vcf_record_1.get(), vcf_record_2.get()})));
+    }
+
+
+    EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 1)))
+            .Times(0);
+    EXPECT_CALL(*vcf_record_2, solve_incompatible_gt_conflict_with)
+            .Times(0);
+
+    vcf.make_gt_compatible();
+}
+
+TEST_F(VCFTest___make_gt_compatible___Fixture, several_records___conflict) {
+    vcf.records.push_back(vcf_record_3);
+    {
+        InSequence seq;
+
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Field(&VCFRecord::pos, 1)))
+                .Times(1)
+                .WillOnce(Return(std::vector<VCFRecord *>({vcf_record_1.get(), vcf_record_2.get(), vcf_record_3.get()})));
+
+        EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 2)))
+                .Times(1);
+
+        EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 3)))
+                .Times(1);
+
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Field(&VCFRecord::pos, 2)))
+                .Times(1)
+                .WillOnce(Return(std::vector<VCFRecord *>({vcf_record_1.get(), vcf_record_2.get(), vcf_record_3.get()})));
+
+        EXPECT_CALL(*vcf_record_2, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 3)))
+                .Times(1);
+
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Field(&VCFRecord::pos, 3)))
+                .Times(1)
+                .WillOnce(Return(std::vector<VCFRecord *>({vcf_record_1.get(), vcf_record_2.get(), vcf_record_3.get()})));
+    }
+
+    EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 1)))
+            .Times(0);
+    EXPECT_CALL(*vcf_record_2, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 1)))
+            .Times(0);
+    EXPECT_CALL(*vcf_record_2, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 2)))
+            .Times(0);
+    EXPECT_CALL(*vcf_record_3, solve_incompatible_gt_conflict_with)
+            .Times(0);
+
+    vcf.make_gt_compatible();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// OLD make_gt_compatible TEST THAT WILL BE READDED AS INTEGRATION TEST
+// TODO: READD
+// TODO: SPLIT THIS TEST INTO 5 OR 6
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //TEST(VCFTest, make_gt_compatible) {
 //    VCF vcf = create_VCF_with_default_parameters();
 //    // no gt
@@ -1064,8 +1192,8 @@ TEST(VCFTest, clean) {
 //    vcf.add_record("chrom1", 76, "CTT", "TA");
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 76, "CTT", "TA");
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 76, "CTT", "A");
-//    vcf.records[4]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1);
-//    vcf.records[5]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1);
+//    vcf.records[4]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1, vcf.genotyping_options);
+//    vcf.records[5]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1, vcf.genotyping_options);
 //    vcf.records[4]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-50, -3};
 //    vcf.records[5]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-50, -16};
 //    vcf.records[4]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {47};
@@ -1108,6 +1236,7 @@ TEST(VCFTest, clean) {
 //    EXPECT_EQ((uint16_t) 1, vcf.records[8]->sampleIndex_to_sampleInfo[0]["GT"][0]);
 //    EXPECT_EQ((uint16_t) 0, vcf.records[9]->sampleIndex_to_sampleInfo[0]["GT"].size());
 //}
+
 
 
 TEST(VCFTest, equals) {
