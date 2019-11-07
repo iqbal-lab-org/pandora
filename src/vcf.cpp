@@ -20,7 +20,7 @@
 
 void VCF::add_record_core(const VCFRecord &vr) {
     records.push_back(std::make_shared<VCFRecord>(vr));
-    chrom_to_record_interval_tree[vr.chrom].add(vr.pos, vr.pos + vr.ref.length() + 1, records.back().get());
+    chrom_to_record_interval_tree[vr.chrom].add(vr.pos, vr.pos + vr.ref.length(), records.back().get());
 }
 
 void VCF::add_record(const std::string &chrom, uint32_t position, const std::string &ref,
@@ -375,22 +375,24 @@ void VCF::make_gt_compatible() {
 }
 
 std::vector<VCFRecord*> VCF::get_all_records_overlapping_the_given_record (const VCFRecord &vcf_record) {
-    std::vector<VCFRecord*> overlappingVCFRecords;
-    std::vector<size_t> overlaps;
-
     IITree<uint32_t, VCFRecord*>& record_interval_tree_for_this_record = chrom_to_record_interval_tree[vcf_record.chrom];
     record_interval_tree_for_this_record.index();
 
-    chrom_to_record_interval_tree.at(vcf_record.chrom).overlap(vcf_record.pos, vcf_record.pos + vcf_record.ref.length() + 1, overlaps);
-    for (size_t i = 0; i < overlaps.size(); ++i)
-        overlappingVCFRecords.push_back(chrom_to_record_interval_tree.at(vcf_record.chrom).data(overlaps[i]));
+    std::vector<size_t> overlaps;
+    record_interval_tree_for_this_record.overlap(vcf_record.pos, vcf_record.pos + vcf_record.ref.length(), overlaps);
+
+    std::vector<VCFRecord*> overlapping_records;
+    for (size_t i = 0; i < overlaps.size(); ++i) {
+        overlapping_records.push_back(record_interval_tree_for_this_record.data(overlaps[i]));
+    }
+
 
     //TODO: not sure if we need to sort, but doing it just in case... Check this later
-    std::sort(overlappingVCFRecords.begin(), overlappingVCFRecords.end(), [](VCFRecord* lhs, VCFRecord* rhs) {
+    std::sort(overlapping_records.begin(), overlapping_records.end(), [](VCFRecord* lhs, VCFRecord* rhs) {
         return *lhs < *rhs;
     });
 
-    return overlappingVCFRecords;
+    return overlapping_records;
 }
 
 

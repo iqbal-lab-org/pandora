@@ -1238,6 +1238,126 @@ TEST_F(VCFTest___make_gt_compatible___Fixture, several_records___conflict) {
 //}
 
 
+class VCFTest___get_all_records_overlapping_the_given_record___Fixture : public ::testing::Test {
+public:
+    VCFTest___get_all_records_overlapping_the_given_record___Fixture() :
+            vcf(&default_genotyping_options),
+            vcf_record_5_to_10("1", 5, "AAAAA", "T"),
+            vcf_record_7_to_8("1", 7, "A", "T"),
+            vcf_record_9_to_12("1", 9, "AAA", "T"),
+            vcf_record_10_to_12("1", 10, "AA", "T"),
+            vcf_record_3_to_6("1", 3, "AAA", "T"),
+            vcf_record_3_to_5("1", 3, "AA", "T"),
+            vcf_record_3_to_13("1", 3, "AAAAAAAAAA", "T"),
+            vcf_record_5_to_10_other_chrom("2", 5, "AAAAA", "T")
+    {}
+
+    void SetUp() override {
+    }
+
+    void TearDown() override {
+    }
+
+    VCF vcf;
+    VCFRecord vcf_record_5_to_10;
+    VCFRecord vcf_record_7_to_8;
+    VCFRecord vcf_record_9_to_12;
+    VCFRecord vcf_record_10_to_12;
+    VCFRecord vcf_record_3_to_6;
+    VCFRecord vcf_record_3_to_5;
+    VCFRecord vcf_record_3_to_13;
+    VCFRecord vcf_record_5_to_10_other_chrom;
+};
+
+TEST_F(VCFTest___get_all_records_overlapping_the_given_record___Fixture, querying_the_indexed_record___returns_itself) {
+    vcf.add_record(vcf_record_5_to_10);
+
+    std::vector<VCFRecord*> expected = vcf.get_all_records_overlapping_the_given_record(vcf_record_5_to_10);
+
+    EXPECT_EQ(expected.size(), 1);
+    EXPECT_EQ(*(expected[0]), vcf_record_5_to_10);
+}
+
+TEST_F(VCFTest___get_all_records_overlapping_the_given_record___Fixture, querying_a_record_inside_indexed_record) {
+    vcf.add_record(vcf_record_5_to_10);
+
+    std::vector<VCFRecord*> expected = vcf.get_all_records_overlapping_the_given_record(vcf_record_7_to_8);
+
+    EXPECT_EQ(expected.size(), 1);
+    EXPECT_EQ(*(expected[0]), vcf_record_5_to_10);
+}
+
+TEST_F(VCFTest___get_all_records_overlapping_the_given_record___Fixture, querying_a_record_overlapping_just_on_the_right_border) {
+    vcf.add_record(vcf_record_5_to_10);
+
+    std::vector<VCFRecord*> expected = vcf.get_all_records_overlapping_the_given_record(vcf_record_9_to_12);
+
+    EXPECT_EQ(expected.size(), 1);
+    EXPECT_EQ(*(expected[0]), vcf_record_5_to_10);
+}
+
+TEST_F(VCFTest___get_all_records_overlapping_the_given_record___Fixture, querying_a_record_overlapping_just_after_the_right_border) {
+    vcf.add_record(vcf_record_5_to_10);
+
+    std::vector<VCFRecord*> expected = vcf.get_all_records_overlapping_the_given_record(vcf_record_10_to_12);
+
+    EXPECT_EQ(expected.size(), 0);
+}
+
+TEST_F(VCFTest___get_all_records_overlapping_the_given_record___Fixture, querying_a_record_overlapping_just_on_the_left_border) {
+    vcf.add_record(vcf_record_5_to_10);
+
+    std::vector<VCFRecord*> expected = vcf.get_all_records_overlapping_the_given_record(vcf_record_3_to_6);
+
+    EXPECT_EQ(expected.size(), 1);
+    EXPECT_EQ(*(expected[0]), vcf_record_5_to_10);
+}
+
+TEST_F(VCFTest___get_all_records_overlapping_the_given_record___Fixture, querying_a_record_overlapping_just_before_the_left_border) {
+    vcf.add_record(vcf_record_5_to_10);
+
+    std::vector<VCFRecord*> expected = vcf.get_all_records_overlapping_the_given_record(vcf_record_3_to_5);
+
+    EXPECT_EQ(expected.size(), 0);
+}
+
+TEST_F(VCFTest___get_all_records_overlapping_the_given_record___Fixture, querying_a_record_envelopping_indexed_record) {
+    vcf.add_record(vcf_record_5_to_10);
+
+    std::vector<VCFRecord*> expected = vcf.get_all_records_overlapping_the_given_record(vcf_record_3_to_13);
+
+    EXPECT_EQ(expected.size(), 1);
+    EXPECT_EQ(*(expected[0]), vcf_record_5_to_10);
+}
+
+TEST_F(VCFTest___get_all_records_overlapping_the_given_record___Fixture, querying_a_record_in_other_chrom) {
+    vcf.add_record(vcf_record_5_to_10);
+
+    std::vector<VCFRecord*> expected = vcf.get_all_records_overlapping_the_given_record(vcf_record_5_to_10_other_chrom);
+
+    EXPECT_EQ(expected.size(), 0);
+}
+
+TEST_F(VCFTest___get_all_records_overlapping_the_given_record___Fixture, indexing_all_records___querying_vcf_record_5_to_10___returns_sorted_records) {
+    vcf.add_record(vcf_record_5_to_10);
+    vcf.add_record(vcf_record_7_to_8);
+    vcf.add_record(vcf_record_9_to_12);
+    vcf.add_record(vcf_record_10_to_12);
+    vcf.add_record(vcf_record_3_to_6);
+    vcf.add_record(vcf_record_3_to_5);
+    vcf.add_record(vcf_record_3_to_13);
+    vcf.add_record(vcf_record_5_to_10_other_chrom);
+
+    std::vector<VCFRecord*> expected = vcf.get_all_records_overlapping_the_given_record(vcf_record_5_to_10);
+
+    EXPECT_EQ(expected.size(), 5);
+    EXPECT_EQ(*(expected[0]), vcf_record_3_to_6);
+    EXPECT_EQ(*(expected[1]), vcf_record_3_to_13);
+    EXPECT_EQ(*(expected[2]), vcf_record_5_to_10);
+    EXPECT_EQ(*(expected[3]), vcf_record_7_to_8);
+    EXPECT_EQ(*(expected[4]), vcf_record_9_to_12);
+}
+
 
 TEST(VCFTest, equals) {
     VCF vcf = create_VCF_with_default_parameters();
