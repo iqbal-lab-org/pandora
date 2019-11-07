@@ -12,6 +12,9 @@
 
 using namespace std;
 using ::testing::Return;
+using ::testing::Field;
+using ::testing::InSequence;
+
 
 TEST(VCFTest, add_record_with_values) {
 
@@ -519,25 +522,19 @@ TEST(VCFTest, pos_in_range) {
 }
 
 
-
-
-
-// This fixture + mocking enables us to easily test VCF::genotype()
-// We have two new tests enough to cover all the cases in the method
-// The old tests will be re-added as integration tests
 class VCFTest___genotype___Fixture : public ::testing::Test {
 public:
     class VCFMock : public VCF {
     public:
         using VCF::VCF;
-        MOCK_METHOD(void, make_gt_compatible, (), (override)); // We mock make_gt_compatible() because we need to ensure it is called in VCF::genotype()
+        MOCK_METHOD(void, make_gt_compatible, (), (override));
     };
 
     class VCFRecordMock : public VCFRecord {
     public:
         using VCFRecord::VCFRecord;
-        MOCK_METHOD(void, genotype_from_coverage, (), (override)); // We also need to ensure genotype_from_coverage() is called in VCF::genotype()
-        MOCK_METHOD(bool, is_SNP, (), (const override)); // We mock is_SNP() just to make it easy to create VCFRecords that are SNP or not
+        MOCK_METHOD(void, genotype_from_coverage, (), (override));
+        MOCK_METHOD(bool, is_SNP, (), (const override));
     };
 
     VCFTest___genotype___Fixture() :
@@ -549,9 +546,9 @@ public:
 
     void SetUp() override {
         ON_CALL(*non_snp_vcf_record_ptr, is_SNP)
-        .WillByDefault(Return(false)); // non_snp_vcf_record_ptr is not a SNP
+        .WillByDefault(Return(false));
         ON_CALL(*snp_vcf_record_ptr, is_SNP)
-        .WillByDefault(Return(true)); // snp_vcf_record_ptr is a SNP
+        .WillByDefault(Return(true));
 
         default_vcf.records.push_back(non_snp_vcf_record_ptr);
         default_vcf.records.push_back(snp_vcf_record_ptr);
@@ -573,28 +570,31 @@ GenotypingOptions VCFTest___genotype___Fixture::genotyping_options_snps_only({1,
 
 
 TEST_F(VCFTest___genotype___Fixture, genotype_all_records) {
-    // Here, we don't really care if the records are correctly genotyped - there is another test for this
-    // We just care if all records are genotyped, and if they are made compatible after
-    // We also don't care if they are correctly made compatible, there is another test for this
-    EXPECT_CALL(*non_snp_vcf_record_ptr, genotype_from_coverage)
-    .Times(1); //ensure this record is genotyped exactly 1 time
-    EXPECT_CALL(*snp_vcf_record_ptr, genotype_from_coverage)
-    .Times(1); //ensure this record is genotyped exactly 1 time
-    EXPECT_CALL(default_vcf, make_gt_compatible)
-    .Times(1); //ensure the records are made compatible
+    {
+        InSequence seq;
+        EXPECT_CALL(*non_snp_vcf_record_ptr, genotype_from_coverage)
+                .Times(1);
+        EXPECT_CALL(*snp_vcf_record_ptr, genotype_from_coverage)
+                .Times(1);
+        EXPECT_CALL(default_vcf, make_gt_compatible)
+                .Times(1);
+    }
 
     default_vcf.genotype();
 }
 
 
 TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only) {
-    // Here, we just care that only the SNP record is genotyped, and not the other
+    {
+        InSequence seq;
+        EXPECT_CALL(*snp_vcf_record_ptr, genotype_from_coverage)
+                .Times(1);
+        EXPECT_CALL(snps_only_vcf, make_gt_compatible)
+                .Times(1);
+    }
+
     EXPECT_CALL(*non_snp_vcf_record_ptr, genotype_from_coverage)
-    .Times(0); // ensure the non_SNP record is not genotyped
-    EXPECT_CALL(*snp_vcf_record_ptr, genotype_from_coverage)
-    .Times(1); // ensure the SNP record is genotyped
-    EXPECT_CALL(snps_only_vcf, make_gt_compatible)
-    .Times(1); //ensure the records are made compatible
+    .Times(0);
 
     snps_only_vcf.genotype();
 }
