@@ -386,8 +386,6 @@ std::vector<VCFRecord*> VCF::get_all_records_overlapping_the_given_record (const
         overlapping_records.push_back(record_interval_tree_for_this_record.data(overlaps[i]));
     }
 
-
-    //TODO: not sure if we need to sort, but doing it just in case... Check this later
     std::sort(overlapping_records.begin(), overlapping_records.end(), [](VCFRecord* lhs, VCFRecord* rhs) {
         return *lhs < *rhs;
     });
