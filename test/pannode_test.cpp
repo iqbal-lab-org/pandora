@@ -236,7 +236,7 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture, construct_multis
     pangraph.add_hits_between_PRG_and_sample(nested_varsite_PRG->id, sample_names[3], sample_kmer_path);
 
     auto &pannode = *pangraph.nodes[nested_varsite_PRG->id];
-    pannode.construct_multisample_vcf(master_vcf, nested_varsite_vcf_reference_path, nested_varsite_PRG, w, default_genotyping_options);
+    pannode.construct_multisample_vcf(master_vcf, nested_varsite_vcf_reference_path, nested_varsite_PRG, w);
 
 
 

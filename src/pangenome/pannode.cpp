@@ -122,8 +122,7 @@ void pangenome::Node::get_read_overlap_coordinates(std::vector<std::vector<uint3
 
 void pangenome::Node::construct_multisample_vcf(VCF &master_vcf,
                                      const std::vector<LocalNodePtr> &vcf_reference_path,
-                                     const std::shared_ptr<LocalPRG> &prg, const uint32_t w,
-                                     const GenotypingOptions &genotyping_options) {
+                                     const std::shared_ptr<LocalPRG> &prg, const uint32_t w) {
     // create a vcf with respect to this ref
     VCF vcf(master_vcf.genotyping_options);
     prg->build_vcf_from_reference_path(vcf, vcf_reference_path);

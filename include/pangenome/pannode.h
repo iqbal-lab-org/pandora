@@ -57,8 +57,7 @@ public:
     void
     construct_multisample_vcf(VCF &master_vcf,
                               const std::vector<LocalNodePtr> &vcf_reference_path,
-                              const std::shared_ptr<LocalPRG> &prg, const uint32_t w,
-                              const GenotypingOptions &genotyping_options);
+                              const std::shared_ptr<LocalPRG> &prg, const uint32_t w);
 
     bool operator==(const Node &y) const;
 

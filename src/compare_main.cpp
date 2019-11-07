@@ -484,7 +484,7 @@ int pandora_compare(int argc, char *argv[]) {
         assert( vcf.samples.size() == samples.size());
 
         //build the vcf
-        pangraph_node.construct_multisample_vcf(vcf, vcf_reference_path, prg_ptr, w, genotyping_options);
+        pangraph_node.construct_multisample_vcf(vcf, vcf_reference_path, prg_ptr, w);
 
         //save the vcf to disk
         uint32_t dir = pangraph_node_index / nbOfVCFsPerDir + 1; //get the good dir for this sample vcf
