@@ -1583,6 +1583,22 @@ TEST_F(VCFTest___get_all_records_overlapping_the_given_record___Fixture, indexin
     EXPECT_EQ(*(expected[4]), vcf_record_9_to_12);
 }
 
+TEST_F(VCFTest___get_all_records_overlapping_the_given_record___Fixture, indexing_all_records___then_cleaning_the_vcf___and_querying___expects_nothing_found) {
+    vcf.add_record(vcf_record_5_to_10);
+    vcf.add_record(vcf_record_7_to_8);
+    vcf.add_record(vcf_record_9_to_12);
+    vcf.add_record(vcf_record_10_to_12);
+    vcf.add_record(vcf_record_3_to_6);
+    vcf.add_record(vcf_record_3_to_5);
+    vcf.add_record(vcf_record_3_to_13);
+    vcf.add_record(vcf_record_5_to_10_other_chrom);
+
+    vcf.clean();
+    std::vector<VCFRecord*> expected = vcf.get_all_records_overlapping_the_given_record(vcf_record_5_to_10);
+
+    EXPECT_EQ(expected.size(), 0);
+}
+
 
 TEST(VCFTest, equals) {
     VCF vcf = create_VCF_with_default_parameters();
