@@ -1335,11 +1335,7 @@ class LocalPRGTest___get_number_of_bases_in_local_path_before_a_given_position__
 protected:
     class LocalPRGMockExposesTestedMethod : public LocalPRGMock {
     public:
-        virtual uint32_t
-        get_number_of_bases_in_local_path_before_a_given_position(const std::vector<LocalNodePtr> &local_path,
-                                                                  uint32_t position) const {
-            return LocalPRGMock::get_number_of_bases_in_local_path_before_a_given_position(local_path, position);
-        }
+        using LocalPRGMock::get_number_of_bases_in_local_path_before_a_given_position;
     };
 
 
@@ -1474,12 +1470,7 @@ class LocalPRGTest___get_number_of_bases_that_are_exclusively_in_the_previous_km
 protected:
     class LocalPRGMockExposesTestedMethod : public LocalPRGMock {
     public:
-        virtual uint32_t
-        get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node(const KmerNodePtr &previous_kmer_node,
-                                                                           const KmerNodePtr &current_kmer_node) const {
-            return LocalPRGMock::get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node(previous_kmer_node,
-                                                                                                    current_kmer_node);
-        }
+        using LocalPRGMock::get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node;
     };
 
 

@@ -20,17 +20,7 @@ public:
     class SampleInfoMock : public SampleInfo {
     public:
         using SampleInfo::SampleInfo;
-
-        virtual double compute_likelihood(bool min_coverage_threshold_is_satisfied, double expected_depth_covg,
-                                          double total_mean_coverage_of_allele_above_threshold,
-                                          double total_mean_coverage_of_all_other_alleles_above_threshold,
-                                          double error_rate,
-                                          double gaps) const {
-            return SampleInfo::compute_likelihood(min_coverage_threshold_is_satisfied, expected_depth_covg,
-                                                  total_mean_coverage_of_allele_above_threshold,
-                                                  total_mean_coverage_of_all_other_alleles_above_threshold, error_rate,
-                                                  gaps);
-        }
+        using SampleInfo::compute_likelihood;
     };
 
     SampleInfoTest___Fixture() :
