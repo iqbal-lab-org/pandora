@@ -28,6 +28,9 @@ public:
               const std::string &info=".", const std::string &graph_type_info="");
     VCFRecord();
     VCFRecord(const VCFRecord &) = default;
+    virtual std::shared_ptr<VCFRecord> make_copy_as_shared_ptr () const {
+        return std::make_shared<VCFRecord>(*this);
+    }
     virtual VCFRecord &operator=(const VCFRecord &) = default;
     virtual ~VCFRecord(){}
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

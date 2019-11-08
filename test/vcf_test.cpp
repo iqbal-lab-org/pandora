@@ -12,8 +12,10 @@
 
 using namespace std;
 using ::testing::Return;
+using ::testing::ReturnRef;
 using ::testing::Field;
 using ::testing::InSequence;
+using ::testing::_;
 
 
 TEST(VCFTest, add_record_with_values) {
@@ -878,7 +880,221 @@ TEST(VCFTest, clean) {
 }
 
 
+class VCFTest___merge_multi_allelic_core___Fixture : public ::testing::Test {
+public:
+    class VCFVisibilityMock : public VCF {
+    public:
+        using VCF::VCF;
+        using VCF::merge_multi_allelic_core;
+    };
 
+    class VCFMock : public VCFVisibilityMock {
+    public:
+        using VCFVisibilityMock::VCFVisibilityMock;
+        MOCK_METHOD(void, add_samples, (const std::vector<std::string> &sample_names), (override));
+        MOCK_METHOD(void, add_record_core,(const VCFRecord &vr), (override));
+        MOCK_METHOD(void, sort_records, (), (override));
+    };
+
+    class VCFRecordMock : public VCFRecord {
+    public:
+        using VCFRecord::VCFRecord;
+        MOCK_METHOD(bool, can_biallelic_record_be_merged_into_this, (const VCFRecord &vcf_record_to_be_merged_in, uint32_t max_allele_length), (const override));
+        MOCK_METHOD(void, merge_record_into_this, (const VCFRecord &other), (override));
+        MOCK_METHOD(std::shared_ptr<VCFRecord>, make_copy_as_shared_ptr, (), (const override));
+    };
+
+    VCFTest___merge_multi_allelic_core___Fixture() :
+            vcf(&default_genotyping_options),
+            merged_vcf(&default_genotyping_options){}
+
+    void SetUp() override {
+    }
+
+    void TearDown() override {
+    }
+
+    VCFMock vcf;
+    VCFMock merged_vcf;
+};
+
+TEST_F(VCFTest___merge_multi_allelic_core___Fixture, merged_VCF_is_not_initially_empty) {
+    VCFVisibilityMock vcf(&default_genotyping_options);
+    VCF merged_vcf(vcf.genotyping_options);
+    merged_vcf.add_record("1", 1, "A", "T");
+
+    EXPECT_DEATH(vcf.merge_multi_allelic_core(merged_vcf, 10000), "");
+}
+
+TEST_F(VCFTest___merge_multi_allelic_core___Fixture, one_sized_VCF) {
+    VCFVisibilityMock one_sized_vcf(&default_genotyping_options);
+    one_sized_vcf.add_record("1", 1, "A", "T");
+
+    VCFVisibilityMock merged_vcf(one_sized_vcf.genotyping_options);
+    one_sized_vcf.merge_multi_allelic_core(merged_vcf, 10000);
+
+    EXPECT_EQ(one_sized_vcf, merged_vcf);
+}
+
+TEST_F(VCFTest___merge_multi_allelic_core___Fixture, two_records_to_be_merged) {
+    // expectations for the merged record
+    auto merged_record_1 = std::make_shared<VCFRecordMock>("merged_1", 1, "A", "T");;
+    EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_2"), _))
+    .Times(1)
+    .WillOnce(Return(true));
+    EXPECT_CALL(*merged_record_1, merge_record_into_this(Field(&VCFRecord::chrom, "original_2")))
+    .Times(1);
+
+    // expectations for the original records
+    auto vcf_record_1 = std::make_shared<VCFRecordMock>("original_1", 1, "A", "T");
+    EXPECT_CALL(*vcf_record_1, make_copy_as_shared_ptr)
+            .Times(1)
+            .WillOnce(Return(merged_record_1));
+    auto vcf_record_2 = std::make_shared<VCFRecordMock>("original_2", 2, "A", "T");
+    EXPECT_CALL(*vcf_record_2, make_copy_as_shared_ptr)
+            .Times(0);
+
+    //expectations for the merged vcf
+    EXPECT_CALL(merged_vcf, add_samples(vcf.samples))
+            .Times(1);
+    EXPECT_CALL(merged_vcf, add_record_core(Field(&VCFRecord::chrom, "merged_1")))
+            .Times(1);
+    EXPECT_CALL(merged_vcf, sort_records)
+            .Times(1);
+
+    vcf.records.push_back(vcf_record_1);
+    vcf.records.push_back(vcf_record_2);
+    vcf.merge_multi_allelic_core(merged_vcf, 10000);
+}
+
+
+
+TEST_F(VCFTest___merge_multi_allelic_core___Fixture, three_non_mergeable_records) {
+    // expectations for the merged records
+    auto merged_record_1 = std::make_shared<VCFRecordMock>("merged_1", 1, "A", "T");;
+    EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_2"), _))
+            .Times(1)
+            .WillOnce(Return(false));
+    EXPECT_CALL(*merged_record_1, merge_record_into_this)
+            .Times(0);
+    auto merged_record_2 = std::make_shared<VCFRecordMock>("merged_2", 1, "A", "T");;
+    EXPECT_CALL(*merged_record_2, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_3"), _))
+            .Times(1)
+            .WillOnce(Return(false));
+    EXPECT_CALL(*merged_record_2, merge_record_into_this)
+            .Times(0);
+    auto merged_record_3 = std::make_shared<VCFRecordMock>("merged_3", 1, "A", "T");;
+    EXPECT_CALL(*merged_record_3, can_biallelic_record_be_merged_into_this)
+            .Times(0);
+    EXPECT_CALL(*merged_record_3, merge_record_into_this)
+            .Times(0);
+
+    // expectations for the original records
+    auto vcf_record_1 = std::make_shared<VCFRecordMock>("original_1", 1, "A", "T");
+    EXPECT_CALL(*vcf_record_1, make_copy_as_shared_ptr)
+            .Times(1)
+            .WillOnce(Return(merged_record_1));
+    auto vcf_record_2 = std::make_shared<VCFRecordMock>("original_2", 2, "A", "T");
+    EXPECT_CALL(*vcf_record_2, make_copy_as_shared_ptr)
+            .Times(1)
+            .WillOnce(Return(merged_record_2));
+    auto vcf_record_3 = std::make_shared<VCFRecordMock>("original_3", 3, "A", "T");
+    EXPECT_CALL(*vcf_record_3, make_copy_as_shared_ptr)
+            .Times(1)
+            .WillOnce(Return(merged_record_3));
+
+    //expectations for the merged vcf
+    EXPECT_CALL(merged_vcf, add_samples(vcf.samples))
+            .Times(1);
+    EXPECT_CALL(merged_vcf, add_record_core(Field(&VCFRecord::chrom, "merged_1")))
+            .Times(1);
+    EXPECT_CALL(merged_vcf, add_record_core(Field(&VCFRecord::chrom, "merged_2")))
+            .Times(1);
+    EXPECT_CALL(merged_vcf, add_record_core(Field(&VCFRecord::chrom, "merged_3")))
+            .Times(1);
+    EXPECT_CALL(merged_vcf, sort_records)
+            .Times(1);
+
+
+    vcf.records.push_back(vcf_record_1);
+    vcf.records.push_back(vcf_record_2);
+    vcf.records.push_back(vcf_record_3);
+    vcf.merge_multi_allelic_core(merged_vcf, 10000);
+}
+
+
+TEST_F(VCFTest___merge_multi_allelic_core___Fixture, two_records_to_be_merged___followed_by_one_record_not_mergeable___followed_by_two_to_be_merged) {
+    // expectations for the merged records
+    auto merged_record_1 = std::make_shared<VCFRecordMock>("merged_1", 1, "A", "T");;
+    EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_2"), _))
+            .Times(1)
+            .WillOnce(Return(true));
+    EXPECT_CALL(*merged_record_1, merge_record_into_this(Field(&VCFRecord::chrom, "original_2")))
+            .Times(1);
+    EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_3"), _))
+            .Times(1)
+            .WillOnce(Return(false));
+    auto merged_record_2 = std::make_shared<VCFRecordMock>("merged_2", 1, "A", "T");;
+    EXPECT_CALL(*merged_record_2, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_4"), _))
+            .Times(1)
+            .WillOnce(Return(false));
+    EXPECT_CALL(*merged_record_2, merge_record_into_this)
+            .Times(0);
+    auto merged_record_3 = std::make_shared<VCFRecordMock>("merged_3", 1, "A", "T");;
+    EXPECT_CALL(*merged_record_3, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_5"), _))
+            .Times(1)
+            .WillOnce(Return(true));
+    EXPECT_CALL(*merged_record_3, merge_record_into_this(Field(&VCFRecord::chrom, "original_5")))
+            .Times(1);
+
+    // expectations for the original records
+    auto vcf_record_1 = std::make_shared<VCFRecordMock>("original_1", 1, "A", "T");
+    EXPECT_CALL(*vcf_record_1, make_copy_as_shared_ptr)
+            .Times(1)
+            .WillOnce(Return(merged_record_1));
+    auto vcf_record_2 = std::make_shared<VCFRecordMock>("original_2", 2, "A", "T");
+    EXPECT_CALL(*vcf_record_2, make_copy_as_shared_ptr)
+            .Times(0);
+    auto vcf_record_3 = std::make_shared<VCFRecordMock>("original_3", 3, "A", "T");
+    EXPECT_CALL(*vcf_record_3, make_copy_as_shared_ptr)
+            .Times(1)
+            .WillOnce(Return(merged_record_2));
+    auto vcf_record_4 = std::make_shared<VCFRecordMock>("original_4", 4, "A", "T");
+    EXPECT_CALL(*vcf_record_4, make_copy_as_shared_ptr)
+            .Times(1)
+            .WillOnce(Return(merged_record_3));
+    auto vcf_record_5 = std::make_shared<VCFRecordMock>("original_5", 5, "A", "T");
+    EXPECT_CALL(*vcf_record_5, make_copy_as_shared_ptr)
+            .Times(0);
+
+    //expectations for the merged vcf
+    EXPECT_CALL(merged_vcf, add_samples(vcf.samples))
+            .Times(1);
+    EXPECT_CALL(merged_vcf, add_record_core(Field(&VCFRecord::chrom, "merged_1")))
+            .Times(1);
+    EXPECT_CALL(merged_vcf, add_record_core(Field(&VCFRecord::chrom, "merged_2")))
+            .Times(1);
+    EXPECT_CALL(merged_vcf, add_record_core(Field(&VCFRecord::chrom, "merged_3")))
+            .Times(1);
+    EXPECT_CALL(merged_vcf, sort_records)
+            .Times(1);
+
+
+    vcf.records.push_back(vcf_record_1);
+    vcf.records.push_back(vcf_record_2);
+    vcf.records.push_back(vcf_record_3);
+    vcf.records.push_back(vcf_record_4);
+    vcf.records.push_back(vcf_record_5);
+    vcf.merge_multi_allelic_core(merged_vcf, 10000);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// OLD merge_multi_allelic TESTS - TO BE READDED AS INTEGRATION TESTS
+// REASON COMMENTED OUT: These tests are covered by and redundant with sampleinfo_test.cpp::merge_other_sample_info_into_this tests
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //TEST(VCFTest, merge_multi_allelic) {
 //    VCF vcf = create_VCF_with_default_parameters();
 //    // no gt

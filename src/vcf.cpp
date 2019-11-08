@@ -61,7 +61,7 @@ VCFRecord &VCF::add_record(VCFRecord &vr, const std::vector<std::string> &sample
     return **record_it;
 }
 
-void VCF::add_samples(const std::vector<std::string> sample_names) {
+void VCF::add_samples(const std::vector<std::string> &sample_names) {
     for (uint32_t i=0; i < sample_names.size(); ++i){
         auto &name = sample_names[i];
         ptrdiff_t sample_index = get_sample_index(name);
@@ -246,23 +246,27 @@ void VCF::clean() {
 
 
 
-VCF VCF::merge_multi_allelic(uint32_t max_allele_length) const {
+void VCF::merge_multi_allelic_core(VCF &merged_VCF, uint32_t max_allele_length) const {
+    VCF empty_vcf = VCF(merged_VCF.genotyping_options);
+    bool merged_VCF_passed_as_parameter_is_initially_empty = merged_VCF == empty_vcf;
+    assert(merged_VCF_passed_as_parameter_is_initially_empty);
+
     size_t vcf_size = this->get_VCF_size();
     bool no_need_for_merging = vcf_size <= 1;
-    if (no_need_for_merging)
-        return VCF(*this);
+    if (no_need_for_merging) {
+        merged_VCF = *this;
+        return;
+    }
 
-    VCF merged_VCF(genotyping_options);
     merged_VCF.add_samples(this->samples);
 
-    VCFRecord vcf_record_merged(**(records.begin()));
+    std::shared_ptr<VCFRecord> vcf_record_merged = (records[0])->make_copy_as_shared_ptr();
     for_each(records.begin()+1, records.end(), [&](const std::shared_ptr<VCFRecord> &vcf_record_to_be_merged_in_pointer) {
-        const VCFRecord &vcf_record_to_be_merged_in = *vcf_record_to_be_merged_in_pointer;
-        bool vcf_record_should_be_merged_in = vcf_record_merged.can_biallelic_record_be_merged_into_this(vcf_record_to_be_merged_in, max_allele_length);
+        bool vcf_record_should_be_merged_in = vcf_record_merged->can_biallelic_record_be_merged_into_this(*vcf_record_to_be_merged_in_pointer, max_allele_length);
 
         if (vcf_record_should_be_merged_in) {
             // TODO: this code is not covered by tests, IDK what it is supposed to do - commenting it out and asserting out if we reach it
-            if (vcf_record_to_be_merged_in.sampleIndex_to_sampleInfo.empty()) {
+            if (vcf_record_to_be_merged_in_pointer->sampleIndex_to_sampleInfo.empty()) {
                 assert_msg("VCF::merge_multi_allelic: vcf_record_to_be_merged_in has no samples");
                 /*
                 records.at(current_vcf_record_position)->clear();
@@ -272,18 +276,17 @@ VCF VCF::merge_multi_allelic(uint32_t max_allele_length) const {
                 vcf_record_merged = *(records.at(previous_vcf_record_position));
                  */
             }
-            vcf_record_merged.merge_record_into_this(vcf_record_to_be_merged_in);
+            vcf_record_merged->merge_record_into_this(*vcf_record_to_be_merged_in_pointer);
         }else {
-            merged_VCF.add_record_core(vcf_record_merged);
-            vcf_record_merged = vcf_record_to_be_merged_in;
+            merged_VCF.add_record_core(*vcf_record_merged);
+            vcf_record_merged = vcf_record_to_be_merged_in_pointer->make_copy_as_shared_ptr();
         }
     });
-    merged_VCF.add_record_core(vcf_record_merged);
+    merged_VCF.add_record_core(*vcf_record_merged);
 
     merged_VCF.sort_records();
 
     assert(merged_VCF.get_VCF_size() <= vcf_size);
-    return merged_VCF;
 }
 
 void VCF::correct_dot_alleles(const std::string &vcf_ref, const std::string &chrom) {

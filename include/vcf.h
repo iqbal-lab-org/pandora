@@ -46,7 +46,7 @@ public:
                          const std::string &alt, const std::string &info = ".", const std::string &graph_type_info = "");
     virtual void add_record(const VCFRecord &vcf_record);
     virtual VCFRecord &add_record(VCFRecord &, const std::vector<std::string> &sample_names);
-    virtual void add_samples(const std::vector<std::string>);
+    virtual void add_samples(const std::vector<std::string> &sample_names);
     virtual void append_vcf(const VCF &);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -73,7 +73,11 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // merging related methods
-    virtual VCF merge_multi_allelic(uint32_t max_allele_length = 10000) const;
+    virtual inline VCF merge_multi_allelic(uint32_t max_allele_length = 10000) const {
+        VCF merged_VCF(this->genotyping_options);
+        merge_multi_allelic_core(merged_VCF, max_allele_length);
+        return merged_VCF;
+    }
     virtual void correct_dot_alleles(const std::string &, const std::string &);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -125,6 +129,7 @@ protected:
 
     virtual void update_other_samples_of_this_record(VCFRecord *reference_record);
 
+    virtual void merge_multi_allelic_core(VCF &merged_vcf, uint32_t max_allele_length) const;
 };
 
 #endif
