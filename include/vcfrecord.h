@@ -105,23 +105,34 @@ public:
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // misc methods
-    virtual inline void clear() {
-        *this = VCFRecord();
-    }
-
+    // genotyping related methods
     virtual inline void genotype_from_coverage() {
         sampleIndex_to_sampleInfo.genotype_from_coverage();
-    }
-
-    virtual inline void merge_record_into_this(const VCFRecord &other) {
-        this->sampleIndex_to_sampleInfo.merge_other_samples_infos_into_this(other.sampleIndex_to_sampleInfo);
-        add_alts(other);
     }
 
     virtual inline void solve_incompatible_gt_conflict_with (VCFRecord &other) {
         this->sampleIndex_to_sampleInfo.solve_incompatible_gt_conflict_with(other.sampleIndex_to_sampleInfo);
     }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // merging related methods
+    virtual inline void merge_record_into_this(const VCFRecord &other) {
+        this->sampleIndex_to_sampleInfo.merge_other_samples_infos_into_this(other.sampleIndex_to_sampleInfo);
+        add_alts(other);
+    }
+
+    virtual bool can_biallelic_record_be_merged_into_this (const VCFRecord &vcf_record_to_be_merged_in, uint32_t max_allele_length = 10000) const;
+
+
+
+    virtual inline void clear() {
+        *this = VCFRecord();
+    }
+
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // TODO: check if we keep this, it is only used in tests - better to keep in a VCFMock class

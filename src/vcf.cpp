@@ -258,22 +258,7 @@ VCF VCF::merge_multi_allelic(uint32_t max_allele_length) const {
     VCFRecord vcf_record_merged(**(records.begin()));
     for_each(records.begin()+1, records.end(), [&](const std::shared_ptr<VCFRecord> &vcf_record_to_be_merged_in_pointer) {
         const VCFRecord &vcf_record_to_be_merged_in = *vcf_record_to_be_merged_in_pointer;
-
-        bool ensure_we_are_merging_only_biallelic_records = vcf_record_to_be_merged_in.alts.size() == 1;
-        assert(ensure_we_are_merging_only_biallelic_records);
-
-        bool both_records_have_the_same_ref = vcf_record_merged.has_non_null_reference()
-                                              and vcf_record_to_be_merged_in.has_non_null_reference()
-                                              and vcf_record_merged.ref == vcf_record_to_be_merged_in.ref;
-
-        bool all_alleles_have_at_most_max_allele_length =
-                vcf_record_merged.get_longest_allele_length() <= max_allele_length
-                and vcf_record_to_be_merged_in.get_longest_allele_length() <= max_allele_length;
-
-        bool vcf_record_should_be_merged_in = vcf_record_to_be_merged_in != vcf_record_merged
-                                              and vcf_record_merged.has_the_same_position(vcf_record_to_be_merged_in)
-                                              and both_records_have_the_same_ref
-                                              and all_alleles_have_at_most_max_allele_length;
+        bool vcf_record_should_be_merged_in = vcf_record_merged.can_biallelic_record_be_merged_into_this(vcf_record_to_be_merged_in, max_allele_length);
 
         if (vcf_record_should_be_merged_in) {
             // TODO: this code is not covered by tests, IDK what it is supposed to do - commenting it out and asserting out if we reach it
@@ -296,8 +281,8 @@ VCF VCF::merge_multi_allelic(uint32_t max_allele_length) const {
     merged_VCF.add_record_core(vcf_record_merged);
 
     merged_VCF.sort_records();
-    assert(merged_VCF.get_VCF_size() <= vcf_size);
 
+    assert(merged_VCF.get_VCF_size() <= vcf_size);
     return merged_VCF;
 }
 

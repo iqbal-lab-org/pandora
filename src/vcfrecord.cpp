@@ -17,9 +17,7 @@ VCFRecord::VCFRecord(const std::string &chrom, uint32_t pos, const std::string &
                                                                                     qual("."),
                                                                                     filter("."),
                                                                                     info(info) {
-    if (alt == "")
-        this->alts.push_back(".");
-    else
+    if (alt != "")
         this->alts.push_back(alt);
 
     if (this->ref == "") {
@@ -218,3 +216,25 @@ size_t VCFRecord::get_longest_allele_length() const {
     return longest_allele_length;
 
 }
+
+
+bool VCFRecord::can_biallelic_record_be_merged_into_this (const VCFRecord &vcf_record_to_be_merged_in, uint32_t max_allele_length) const {
+    bool ensure_we_are_merging_only_biallelic_records = vcf_record_to_be_merged_in.alts.size() == 1;
+    assert(ensure_we_are_merging_only_biallelic_records);
+
+    bool both_records_have_the_same_ref = this->has_non_null_reference()
+                                          and vcf_record_to_be_merged_in.has_non_null_reference()
+                                          and this->ref == vcf_record_to_be_merged_in.ref;
+
+    bool all_alleles_have_at_most_max_allele_length =
+            this->get_longest_allele_length() <= max_allele_length
+            and vcf_record_to_be_merged_in.get_longest_allele_length() <= max_allele_length;
+
+    bool vcf_record_should_be_merged_in = vcf_record_to_be_merged_in != (*this)
+                                          and this->has_the_same_position(vcf_record_to_be_merged_in)
+                                          and both_records_have_the_same_ref
+                                          and all_alleles_have_at_most_max_allele_length;
+
+    return vcf_record_should_be_merged_in;
+}
+

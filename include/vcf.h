@@ -89,7 +89,7 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // misc methods
-    virtual void sort_records();
+    virtual void sort_records(); // TODO: remove this method and store the records always sorted
     virtual void clean();
     virtual bool pos_in_range(const uint32_t, const uint32_t, const std::string &) const;
 

@@ -281,6 +281,85 @@ TEST_F(VCFRecordTest___ref_allele_is_inside_given_interval______Fixture, larger_
 
 
 
+class VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture : public ::testing::Test {
+public:
+    VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture() :
+        vcf_record_only_ref_no_alts("1", 1, "A", ""),
+        vcf_record_tri_allelic("1", 1, "A", "T"),
+        vcf_record_null_reference("1", 1, ".", "T"),
+        vcf_record_ref_A("1", 1, "A", "T"),
+        vcf_record_ref_C("1", 1, "C", "CT"),
+        vcf_record_ref_A_too_long_alt("1", 1, "A", "TTTTTT"),
+        vcf_record_ref_A_same_chrom_different_pos("1", 2, "A", "T"),
+        vcf_record_ref_A_different_chrom_same_pos("2", 1, "A", "T"),
+        vcf_record_ref_A_different_alt("1", 1, "A", "C")
+    {
+        vcf_record_tri_allelic.alts.push_back("TT");
+    }
+
+    VCFRecord vcf_record_only_ref_no_alts;
+    VCFRecord vcf_record_tri_allelic;
+    VCFRecord vcf_record_null_reference;
+    VCFRecord vcf_record_ref_A;
+    VCFRecord vcf_record_ref_C;
+    VCFRecord vcf_record_ref_A_too_long_alt;
+    VCFRecord vcf_record_ref_A_same_chrom_different_pos;
+    VCFRecord vcf_record_ref_A_different_chrom_same_pos;
+    VCFRecord vcf_record_ref_A_different_alt;
+};
+
+TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture, merge_only_ref_no_alts___expects_death) {
+    EXPECT_DEATH(vcf_record_ref_A.can_biallelic_record_be_merged_into_this(vcf_record_only_ref_no_alts), "");
+}
+
+TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture, merge_triallelic___expects_death) {
+    EXPECT_DEATH(vcf_record_ref_A.can_biallelic_record_be_merged_into_this(vcf_record_tri_allelic), "");
+}
+
+TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture, this_has_null_ref) {
+    bool actual = vcf_record_null_reference.can_biallelic_record_be_merged_into_this(vcf_record_ref_A);
+    EXPECT_FALSE(actual);
+}
+
+TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture, other_has_null_ref) {
+    bool actual = vcf_record_ref_A.can_biallelic_record_be_merged_into_this(vcf_record_null_reference);
+    EXPECT_FALSE(actual);
+}
+
+TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture, different_refs) {
+    bool actual = vcf_record_ref_A.can_biallelic_record_be_merged_into_this(vcf_record_ref_C);
+    EXPECT_FALSE(actual);
+}
+
+TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture, this_has_alt_too_long) {
+    bool actual = vcf_record_ref_A.can_biallelic_record_be_merged_into_this(vcf_record_ref_A_too_long_alt, 5);
+    EXPECT_FALSE(actual);
+}
+
+TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture, other_has_alt_too_long) {
+    bool actual = vcf_record_ref_A_too_long_alt.can_biallelic_record_be_merged_into_this(vcf_record_ref_A, 5);
+    EXPECT_FALSE(actual);
+}
+
+TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture, same_record) {
+    bool actual = vcf_record_ref_A.can_biallelic_record_be_merged_into_this(vcf_record_ref_A);
+    EXPECT_FALSE(actual);
+}
+
+TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture, same_chrom_different_pos) {
+    bool actual = vcf_record_ref_A.can_biallelic_record_be_merged_into_this(vcf_record_ref_A_same_chrom_different_pos);
+    EXPECT_FALSE(actual);
+}
+
+TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture, same_different_chrom_same_pos) {
+    bool actual = vcf_record_ref_A.can_biallelic_record_be_merged_into_this(vcf_record_ref_A_different_chrom_same_pos);
+    EXPECT_FALSE(actual);
+}
+
+TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture, can_be_merged) {
+    bool actual = vcf_record_ref_A.can_biallelic_record_be_merged_into_this(vcf_record_ref_A_different_alt);
+    EXPECT_TRUE(actual);
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

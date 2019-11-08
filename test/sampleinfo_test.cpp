@@ -354,7 +354,7 @@ TEST_F(SampleInfoTest___merge_other_sample_info_into_this___Fixture,
 }
 
 TEST_F(SampleInfoTest___merge_other_sample_info_into_this___Fixture,
-       merge_a_sample_with_three_alleles_into_one_with_two_alleles___original_gt_invalid___both_gts_are_valid_and_first_is_not_zero___genotypes_from_coverage_to_solve_conflict) {
+       merge_a_sample_with_three_alleles_into_one_with_two_alleles___both_gts_are_valid_and_first_is_not_zero___genotypes_from_coverage_to_solve_conflict) {
     EXPECT_CALL(sample_info_with_two_alleles, get_genotype_from_coverage()).
             Times(1).
             WillOnce(Return(SampleInfo::GenotypeAndMaxLikelihood(1, -1.0)));
@@ -368,7 +368,7 @@ TEST_F(SampleInfoTest___merge_other_sample_info_into_this___Fixture,
 
 
 TEST_F(SampleInfoTest___merge_other_sample_info_into_this___Fixture,
-       merge_a_sample_with_three_alleles_into_one_with_two_alleles___original_gt_invalid___both_gts_are_valid_and_second_is_not_zero___genotypes_from_coverage_to_solve_conflict) {
+       merge_a_sample_with_three_alleles_into_one_with_two_alleles___both_gts_are_valid_and_second_is_not_zero___genotypes_from_coverage_to_solve_conflict) {
     EXPECT_CALL(sample_info_with_two_alleles, get_genotype_from_coverage()).
             Times(1).
             WillOnce(Return(SampleInfo::GenotypeAndMaxLikelihood(3, -1.0)));
