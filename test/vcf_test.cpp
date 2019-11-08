@@ -936,7 +936,7 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, one_sized_VCF) {
     EXPECT_EQ(one_sized_vcf, merged_vcf);
 }
 
-TEST_F(VCFTest___merge_multi_allelic_core___Fixture, two_records_to_be_merged) {
+TEST_F(VCFTest___merge_multi_allelic_core___Fixture, three_records_to_be_merged) {
     // expectations for the merged record
     auto merged_record_1 = std::make_shared<VCFRecordMock>("merged_1", 1, "A", "T");;
     EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_2"), _))
@@ -944,6 +944,11 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, two_records_to_be_merged) {
     .WillOnce(Return(true));
     EXPECT_CALL(*merged_record_1, merge_record_into_this(Field(&VCFRecord::chrom, "original_2")))
     .Times(1);
+    EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_3"), _))
+            .Times(1)
+            .WillOnce(Return(true));
+    EXPECT_CALL(*merged_record_1, merge_record_into_this(Field(&VCFRecord::chrom, "original_3")))
+            .Times(1);
 
     // expectations for the original records
     auto vcf_record_1 = std::make_shared<VCFRecordMock>("original_1", 1, "A", "T");
@@ -952,6 +957,9 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, two_records_to_be_merged) {
             .WillOnce(Return(merged_record_1));
     auto vcf_record_2 = std::make_shared<VCFRecordMock>("original_2", 2, "A", "T");
     EXPECT_CALL(*vcf_record_2, make_copy_as_shared_ptr)
+            .Times(0);
+    auto vcf_record_3 = std::make_shared<VCFRecordMock>("original_3", 3, "A", "T");
+    EXPECT_CALL(*vcf_record_3, make_copy_as_shared_ptr)
             .Times(0);
 
     //expectations for the merged vcf
@@ -964,6 +972,7 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, two_records_to_be_merged) {
 
     vcf.records.push_back(vcf_record_1);
     vcf.records.push_back(vcf_record_2);
+    vcf.records.push_back(vcf_record_3);
     vcf.merge_multi_allelic_core(merged_vcf, 10000);
 }
 
