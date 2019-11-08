@@ -18,7 +18,6 @@ typedef std::shared_ptr<LocalNode> LocalNodePtr;
 
 class VCF {
 public:
-    std::vector<std::shared_ptr<VCFRecord>> records;
     GenotypingOptions const * genotyping_options;
     std::vector<std::string> samples;
 
@@ -53,6 +52,10 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // getters
+    const std::vector<std::shared_ptr<VCFRecord>> &get_records() const {
+        return records;
+    }
+
     virtual inline size_t get_VCF_size() const {
         return records.size();
     }
@@ -112,6 +115,7 @@ public:
     // TODO: check if we keep this, it is only used in tests - better to keep in a VCFMock class
     // void load(const std::string &filepath);
 protected:
+    std::vector<std::shared_ptr<VCFRecord>> records;
     /* will contain, for each chromosome, an interval tree containing VCF records interval and a pointer to the VCF Record itself to allow
        VCF::make_gt_compatible() to execute a lot faster than serial search */
     std::map<std::string, IITree<uint32_t, VCFRecord*>> chrom_to_record_interval_tree;

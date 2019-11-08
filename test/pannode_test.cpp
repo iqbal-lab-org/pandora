@@ -240,7 +240,7 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture, construct_multis
 
 
 
-    EXPECT_EQ((uint)2, master_vcf.records.size());
+    EXPECT_EQ((uint)2, master_vcf.get_VCF_size());
     EXPECT_EQ((uint)4, master_vcf.samples.size());
 
     //NB samples order changes to get index of each sample so can compare
@@ -256,36 +256,36 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture, construct_multis
     uint16_t alt_gt = 1;
     uint16_t ref_gt = 0;
 
-    EXPECT_EQ((uint)1, master_vcf.records[0]->pos);
-    EXPECT_EQ("GT", master_vcf.records[0]->ref);
-    EXPECT_EQ((uint)1, master_vcf.records[0]->alts.size());
-    EXPECT_EQ("G", master_vcf.records[0]->alts[0]);
-    EXPECT_EQ((uint)4, master_vcf.records[0]->sampleIndex_to_sampleInfo.size());
-    EXPECT_TRUE(master_vcf.records[0]->sampleIndex_to_sampleInfo[sample4_index].is_gt_from_max_likelihood_path_valid()) ;
-    EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_sampleInfo[sample3_index].is_gt_from_max_likelihood_path_valid()) ;
-    EXPECT_TRUE(master_vcf.records[0]->sampleIndex_to_sampleInfo[sample2_index].is_gt_from_max_likelihood_path_valid()) ;
-    EXPECT_TRUE(master_vcf.records[0]->sampleIndex_to_sampleInfo[sample1_index].is_gt_from_max_likelihood_path_valid()) ;
-    EXPECT_EQ(master_vcf.records[0]->sampleIndex_to_sampleInfo[sample4_index].get_gt_from_max_likelihood_path(), alt_gt);
-    EXPECT_EQ(master_vcf.records[0]->sampleIndex_to_sampleInfo[sample2_index].get_gt_from_max_likelihood_path(), ref_gt);
-    EXPECT_EQ(master_vcf.records[0]->sampleIndex_to_sampleInfo[sample1_index].get_gt_from_max_likelihood_path(), ref_gt);
+    EXPECT_EQ((uint)1, master_vcf.get_records()[0]->pos);
+    EXPECT_EQ("GT", master_vcf.get_records()[0]->ref);
+    EXPECT_EQ((uint)1, master_vcf.get_records()[0]->alts.size());
+    EXPECT_EQ("G", master_vcf.get_records()[0]->alts[0]);
+    EXPECT_EQ((uint)4, master_vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+    EXPECT_TRUE(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample4_index].is_gt_from_max_likelihood_path_valid()) ;
+    EXPECT_FALSE(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample3_index].is_gt_from_max_likelihood_path_valid()) ;
+    EXPECT_TRUE(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample2_index].is_gt_from_max_likelihood_path_valid()) ;
+    EXPECT_TRUE(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample1_index].is_gt_from_max_likelihood_path_valid()) ;
+    EXPECT_EQ(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample4_index].get_gt_from_max_likelihood_path(), alt_gt);
+    EXPECT_EQ(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample2_index].get_gt_from_max_likelihood_path(), ref_gt);
+    EXPECT_EQ(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample1_index].get_gt_from_max_likelihood_path(), ref_gt);
 
-    test_format_fields_for_each_sample_and_allele_for_a_given_record(*(master_vcf.records[0]), sample_names.size(), 2);
+    test_format_fields_for_each_sample_and_allele_for_a_given_record(*(master_vcf.get_records()[0]), sample_names.size(), 2);
 
-    EXPECT_EQ((uint)2, master_vcf.records[1]->pos);
-    EXPECT_EQ("T", master_vcf.records[1]->ref);
-    EXPECT_EQ((uint)2, master_vcf.records[1]->alts.size());
-    EXPECT_EQ("C", master_vcf.records[1]->alts[0]);
-    EXPECT_EQ("CT", master_vcf.records[1]->alts[1]);
-    EXPECT_EQ((uint)4, master_vcf.records[0]->sampleIndex_to_sampleInfo.size());
-    EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_sampleInfo[sample4_index].is_gt_from_max_likelihood_path_valid());
-    EXPECT_TRUE(master_vcf.records[1]->sampleIndex_to_sampleInfo[sample3_index].is_gt_from_max_likelihood_path_valid());
-    EXPECT_TRUE(master_vcf.records[1]->sampleIndex_to_sampleInfo[sample2_index].is_gt_from_max_likelihood_path_valid());
-    EXPECT_TRUE(master_vcf.records[1]->sampleIndex_to_sampleInfo[sample1_index].is_gt_from_max_likelihood_path_valid());
-    EXPECT_EQ(master_vcf.records[1]->sampleIndex_to_sampleInfo[sample3_index].get_gt_from_max_likelihood_path(), alt_gt);
-    EXPECT_EQ(master_vcf.records[1]->sampleIndex_to_sampleInfo[sample2_index].get_gt_from_max_likelihood_path(), ref_gt);
-    EXPECT_EQ(master_vcf.records[1]->sampleIndex_to_sampleInfo[sample1_index].get_gt_from_max_likelihood_path(), ref_gt);
+    EXPECT_EQ((uint)2, master_vcf.get_records()[1]->pos);
+    EXPECT_EQ("T", master_vcf.get_records()[1]->ref);
+    EXPECT_EQ((uint)2, master_vcf.get_records()[1]->alts.size());
+    EXPECT_EQ("C", master_vcf.get_records()[1]->alts[0]);
+    EXPECT_EQ("CT", master_vcf.get_records()[1]->alts[1]);
+    EXPECT_EQ((uint)4, master_vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+    EXPECT_FALSE(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample4_index].is_gt_from_max_likelihood_path_valid());
+    EXPECT_TRUE(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample3_index].is_gt_from_max_likelihood_path_valid());
+    EXPECT_TRUE(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample2_index].is_gt_from_max_likelihood_path_valid());
+    EXPECT_TRUE(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample1_index].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample3_index].get_gt_from_max_likelihood_path(), alt_gt);
+    EXPECT_EQ(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample2_index].get_gt_from_max_likelihood_path(), ref_gt);
+    EXPECT_EQ(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample1_index].get_gt_from_max_likelihood_path(), ref_gt);
 
-    test_format_fields_for_each_sample_and_allele_for_a_given_record(*(master_vcf.records[1]), sample_names.size(), 3);
+    test_format_fields_for_each_sample_and_allele_for_a_given_record(*(master_vcf.get_records()[1]), sample_names.size(), 3);
 }
 
 //TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture,construct_multisample_vcf_two_prg)
@@ -329,7 +329,7 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture, construct_multis
 //    auto &pannode2 = *pangraph.nodes[modified_PRG->id];
 //    pannode2.construct_multisample_vcf(master_vcf, modified_vcf_reference_path, modified_PRG, w, default_genotyping_options);
 //
-//    EXPECT_EQ((uint)4, master_vcf.records.size());
+//    EXPECT_EQ((uint)4, master_vcf.get_VCF_size());
 //    EXPECT_EQ((uint)4, master_vcf.samples.size());
 //
 //    //NB samples order changes to get index of each sample so can compare
@@ -346,70 +346,70 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture, construct_multis
 //    uint16_t ref_gt = 0;
 //    uint16_t alt2_gt = 2;
 //
-//    EXPECT_EQ((uint)1, master_vcf.records[0]->pos);
-//    EXPECT_EQ("GT", master_vcf.records[0]->ref);
-//    EXPECT_EQ((uint)1, master_vcf.records[0]->alts.size());
-//    EXPECT_EQ("G", master_vcf.records[0]->alts[0]);
-//    EXPECT_EQ((uint)4, master_vcf.records[0]->sampleIndex_to_sampleInfo.size());
-//    EXPECT_TRUE(master_vcf.records[0]->sampleIndex_to_sampleInfo[sample4_index].is_gt_from_max_likelihood_path_valid()) ;
-//    EXPECT_FALSE(master_vcf.records[0]->sampleIndex_to_sampleInfo[sample3_index].is_gt_from_max_likelihood_path_valid()) ;
-//    EXPECT_TRUE(master_vcf.records[0]->sampleIndex_to_sampleInfo[sample2_index].is_gt_from_max_likelihood_path_valid()) ;
-//    EXPECT_TRUE(master_vcf.records[0]->sampleIndex_to_sampleInfo[sample1_index].is_gt_from_max_likelihood_path_valid()) ;
-//    EXPECT_EQ(master_vcf.records[0]->sampleIndex_to_sampleInfo[sample4_index].get_gt_from_max_likelihood_path(), alt_gt);
-//    EXPECT_EQ(master_vcf.records[0]->sampleIndex_to_sampleInfo[sample2_index].get_gt_from_max_likelihood_path(), ref_gt);
-//    EXPECT_EQ(master_vcf.records[0]->sampleIndex_to_sampleInfo[sample1_index].get_gt_from_max_likelihood_path(), ref_gt);
-//    test_format_fields_for_each_sample_and_allele_for_a_given_record(*(master_vcf.records[0]), 4, 2);
+//    EXPECT_EQ((uint)1, master_vcf.get_records()[0]->pos);
+//    EXPECT_EQ("GT", master_vcf.get_records()[0]->ref);
+//    EXPECT_EQ((uint)1, master_vcf.get_records()[0]->alts.size());
+//    EXPECT_EQ("G", master_vcf.get_records()[0]->alts[0]);
+//    EXPECT_EQ((uint)4, master_vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+//    EXPECT_TRUE(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample4_index].is_gt_from_max_likelihood_path_valid()) ;
+//    EXPECT_FALSE(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample3_index].is_gt_from_max_likelihood_path_valid()) ;
+//    EXPECT_TRUE(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample2_index].is_gt_from_max_likelihood_path_valid()) ;
+//    EXPECT_TRUE(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample1_index].is_gt_from_max_likelihood_path_valid()) ;
+//    EXPECT_EQ(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample4_index].get_gt_from_max_likelihood_path(), alt_gt);
+//    EXPECT_EQ(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample2_index].get_gt_from_max_likelihood_path(), ref_gt);
+//    EXPECT_EQ(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample1_index].get_gt_from_max_likelihood_path(), ref_gt);
+//    test_format_fields_for_each_sample_and_allele_for_a_given_record(*(master_vcf.get_records()[0]), 4, 2);
 //
 //
-//    EXPECT_EQ((uint)2, master_vcf.records[1]->pos);
-//    EXPECT_EQ("T", master_vcf.records[1]->ref);
-//    EXPECT_EQ((uint)2, master_vcf.records[1]->alts.size());
-//    EXPECT_EQ("C", master_vcf.records[1]->alts[0]);
-//    EXPECT_EQ("CT", master_vcf.records[1]->alts[1]);
-//    EXPECT_EQ((uint)4, master_vcf.records[1]->sampleIndex_to_sampleInfo.size());
-//    EXPECT_FALSE(master_vcf.records[1]->sampleIndex_to_sampleInfo[sample4_index].is_gt_from_max_likelihood_path_valid()) ;
-//    EXPECT_TRUE(master_vcf.records[1]->sampleIndex_to_sampleInfo[sample3_index].is_gt_from_max_likelihood_path_valid()) ;
-//    EXPECT_TRUE(master_vcf.records[1]->sampleIndex_to_sampleInfo[sample2_index].is_gt_from_max_likelihood_path_valid()) ;
-//    EXPECT_TRUE(master_vcf.records[1]->sampleIndex_to_sampleInfo[sample1_index].is_gt_from_max_likelihood_path_valid()) ;
-//    EXPECT_EQ(master_vcf.records[1]->sampleIndex_to_sampleInfo[sample3_index].get_gt_from_max_likelihood_path(), alt_gt);
-//    EXPECT_EQ(master_vcf.records[1]->sampleIndex_to_sampleInfo[sample2_index].get_gt_from_max_likelihood_path(), ref_gt);
-//    EXPECT_EQ(master_vcf.records[1]->sampleIndex_to_sampleInfo[sample1_index].get_gt_from_max_likelihood_path(), ref_gt);
-//    test_format_fields_for_each_sample_and_allele_for_a_given_record(*(master_vcf.records[1]), 4, 3);
+//    EXPECT_EQ((uint)2, master_vcf.get_records()[1]->pos);
+//    EXPECT_EQ("T", master_vcf.get_records()[1]->ref);
+//    EXPECT_EQ((uint)2, master_vcf.get_records()[1]->alts.size());
+//    EXPECT_EQ("C", master_vcf.get_records()[1]->alts[0]);
+//    EXPECT_EQ("CT", master_vcf.get_records()[1]->alts[1]);
+//    EXPECT_EQ((uint)4, master_vcf.get_records()[1]->sampleIndex_to_sampleInfo.size());
+//    EXPECT_FALSE(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample4_index].is_gt_from_max_likelihood_path_valid()) ;
+//    EXPECT_TRUE(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample3_index].is_gt_from_max_likelihood_path_valid()) ;
+//    EXPECT_TRUE(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample2_index].is_gt_from_max_likelihood_path_valid()) ;
+//    EXPECT_TRUE(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample1_index].is_gt_from_max_likelihood_path_valid()) ;
+//    EXPECT_EQ(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample3_index].get_gt_from_max_likelihood_path(), alt_gt);
+//    EXPECT_EQ(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample2_index].get_gt_from_max_likelihood_path(), ref_gt);
+//    EXPECT_EQ(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample1_index].get_gt_from_max_likelihood_path(), ref_gt);
+//    test_format_fields_for_each_sample_and_allele_for_a_given_record(*(master_vcf.get_records()[1]), 4, 3);
 //
 //
-//    EXPECT_EQ((uint)1, master_vcf.records[2]->pos);
-//    EXPECT_EQ("GA", master_vcf.records[2]->ref);
-//    EXPECT_EQ((uint)1, master_vcf.records[2]->alts.size());
-//    EXPECT_EQ("G", master_vcf.records[2]->alts[0]);
-//    EXPECT_EQ((uint)4, master_vcf.records[2]->sampleIndex_to_sampleInfo.size());
-//    EXPECT_FALSE(master_vcf.records[2]->sampleIndex_to_sampleInfo[sample4_index].is_gt_from_max_likelihood_path_valid()) ;
-//    EXPECT_TRUE(master_vcf.records[2]->sampleIndex_to_sampleInfo[sample3_index].is_gt_from_max_likelihood_path_valid()) ;
-//    EXPECT_FALSE(master_vcf.records[2]->sampleIndex_to_sampleInfo[sample2_index].is_gt_from_max_likelihood_path_valid()) ;
-//    EXPECT_FALSE(master_vcf.records[2]->sampleIndex_to_sampleInfo[sample1_index].is_gt_from_max_likelihood_path_valid()) ;
-//    EXPECT_EQ(master_vcf.records[2]->sampleIndex_to_sampleInfo[sample3_index].get_gt_from_max_likelihood_path(), alt_gt);
-//    test_format_fields_for_each_sample_and_allele_for_a_given_record(*(master_vcf.records[2]), 4, 2);
+//    EXPECT_EQ((uint)1, master_vcf.get_records()[2]->pos);
+//    EXPECT_EQ("GA", master_vcf.get_records()[2]->ref);
+//    EXPECT_EQ((uint)1, master_vcf.get_records()[2]->alts.size());
+//    EXPECT_EQ("G", master_vcf.get_records()[2]->alts[0]);
+//    EXPECT_EQ((uint)4, master_vcf.get_records()[2]->sampleIndex_to_sampleInfo.size());
+//    EXPECT_FALSE(master_vcf.get_records()[2]->sampleIndex_to_sampleInfo[sample4_index].is_gt_from_max_likelihood_path_valid()) ;
+//    EXPECT_TRUE(master_vcf.get_records()[2]->sampleIndex_to_sampleInfo[sample3_index].is_gt_from_max_likelihood_path_valid()) ;
+//    EXPECT_FALSE(master_vcf.get_records()[2]->sampleIndex_to_sampleInfo[sample2_index].is_gt_from_max_likelihood_path_valid()) ;
+//    EXPECT_FALSE(master_vcf.get_records()[2]->sampleIndex_to_sampleInfo[sample1_index].is_gt_from_max_likelihood_path_valid()) ;
+//    EXPECT_EQ(master_vcf.get_records()[2]->sampleIndex_to_sampleInfo[sample3_index].get_gt_from_max_likelihood_path(), alt_gt);
+//    test_format_fields_for_each_sample_and_allele_for_a_given_record(*(master_vcf.get_records()[2]), 4, 2);
 
-//    EXPECT_EQ((uint)2, master_vcf.records[3]->pos);
-//    EXPECT_EQ("A", master_vcf.records[3]->ref);
-//    EXPECT_EQ((uint)2, master_vcf.records[3]->alts.size());
-//    EXPECT_EQ("G", master_vcf.records[3]->alts[0]);
-//    EXPECT_EQ("GA", master_vcf.records[3]->alts[1]);
-//    EXPECT_EQ((uint)4, master_vcf.records[3]->sampleIndex_to_sampleInfo.size());
-//    EXPECT_FALSE(master_vcf.records[3]->sampleIndex_to_sampleInfo[sample4_index].find("GT") == master_vcf.records[3]->sampleIndex_to_sampleInfo[sample4_index].end()) ;
-//    EXPECT_TRUE(master_vcf.records[3]->sampleIndex_to_sampleInfo[sample3_index].find("GT") == master_vcf.records[3]->sampleIndex_to_sampleInfo[sample3_index].end()) ;
-//    EXPECT_TRUE(master_vcf.records[3]->sampleIndex_to_sampleInfo[sample2_index].find("GT") == master_vcf.records[3]->sampleIndex_to_sampleInfo[sample2_index].end()) ;
-//    EXPECT_FALSE(master_vcf.records[3]->sampleIndex_to_sampleInfo[sample1_index].find("GT") == master_vcf.records[3]->sampleIndex_to_sampleInfo[sample1_index].end()) ;
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_sampleInfo[sample1_index]["GT"], alt_gt);
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_sampleInfo[sample4_index]["GT"], alt2_gt);
+//    EXPECT_EQ((uint)2, master_vcf.get_records()[3]->pos);
+//    EXPECT_EQ("A", master_vcf.get_records()[3]->ref);
+//    EXPECT_EQ((uint)2, master_vcf.get_records()[3]->alts.size());
+//    EXPECT_EQ("G", master_vcf.get_records()[3]->alts[0]);
+//    EXPECT_EQ("GA", master_vcf.get_records()[3]->alts[1]);
+//    EXPECT_EQ((uint)4, master_vcf.get_records()[3]->sampleIndex_to_sampleInfo.size());
+//    EXPECT_FALSE(master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample4_index].find("GT") == master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample4_index].end()) ;
+//    EXPECT_TRUE(master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample3_index].find("GT") == master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample3_index].end()) ;
+//    EXPECT_TRUE(master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample2_index].find("GT") == master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample2_index].end()) ;
+//    EXPECT_FALSE(master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample1_index].find("GT") == master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample1_index].end()) ;
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample1_index]["GT"], alt_gt);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample4_index]["GT"], alt2_gt);
 //
 //    for (const auto format : formats){
-//        EXPECT_FALSE(master_vcf.records[3]->sampleIndex_to_sampleInfo[sample1_index].find(format) == master_vcf.records[3]->sampleIndex_to_sampleInfo[sample1_index].end());
-//        EXPECT_TRUE(master_vcf.records[3]->sampleIndex_to_sampleInfo[sample2_index].find(format) == master_vcf.records[3]->sampleIndex_to_sampleInfo[sample2_index].end());
-//        EXPECT_FALSE(master_vcf.records[3]->sampleIndex_to_sampleInfo[sample3_index].find(format) == master_vcf.records[3]->sampleIndex_to_sampleInfo[sample3_index].end());
-//        EXPECT_FALSE(master_vcf.records[3]->sampleIndex_to_sampleInfo[sample4_index].find(format) == master_vcf.records[3]->sampleIndex_to_sampleInfo[sample4_index].end());
-//        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_sampleInfo[sample1_index][format], no_covg3);
-//        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_sampleInfo[sample3_index][format], no_covg3);
-//        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_sampleInfo[sample4_index][format], no_covg3);
+//        EXPECT_FALSE(master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample1_index].find(format) == master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample1_index].end());
+//        EXPECT_TRUE(master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample2_index].find(format) == master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample2_index].end());
+//        EXPECT_FALSE(master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample3_index].find(format) == master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample3_index].end());
+//        EXPECT_FALSE(master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample4_index].find(format) == master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample4_index].end());
+//        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample1_index][format], no_covg3);
+//        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample3_index][format], no_covg3);
+//        EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample4_index][format], no_covg3);
 //    }
 //}
 //
@@ -503,7 +503,7 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture, construct_multis
 //    pannode1.construct_multisample_vcf(master_vcf, vcf_reference_path1, nested_varsite_PRG, w, min_kmer_covg);
 //    pannode2.construct_multisample_vcf(master_vcf, vcf_reference_path2, modified_PRG, w, min_kmer_covg);
 //
-//    EXPECT_EQ((uint)4, master_vcf.records.size());
+//    EXPECT_EQ((uint)4, master_vcf.get_VCF_size());
 //    EXPECT_EQ((uint)4, master_vcf.samples.size());
 //
 //    //NB samples order changes to get index of each sample so can compare
@@ -524,27 +524,27 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture, construct_multis
 //    std::vector<uint16_t> covgs_005 = {0,0,5};
 //    std::vector<uint16_t> covgs_000 = {0,0,0};
 //
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_sampleInfo[sample4_index]["MEAN_FWD_COVG"], covgs_05);
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_sampleInfo[sample2_index]["MEAN_FWD_COVG"], covgs_100);
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_sampleInfo[sample1_index]["MEAN_FWD_COVG"], covgs_40);
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_sampleInfo[sample4_index]["MEAN_REV_COVG"], covgs_00);
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_sampleInfo[sample2_index]["MEAN_REV_COVG"], covgs_00);
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[0]->sampleIndex_to_sampleInfo[sample1_index]["MEAN_REV_COVG"], covgs_00);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample4_index]["MEAN_FWD_COVG"], covgs_05);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample2_index]["MEAN_FWD_COVG"], covgs_100);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample1_index]["MEAN_FWD_COVG"], covgs_40);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample4_index]["MEAN_REV_COVG"], covgs_00);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample2_index]["MEAN_REV_COVG"], covgs_00);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample1_index]["MEAN_REV_COVG"], covgs_00);
 //
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_sampleInfo[sample3_index]["MEAN_FWD_COVG"], covgs_020);
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_sampleInfo[sample2_index]["MEAN_FWD_COVG"], covgs_1000);
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_sampleInfo[sample1_index]["MEAN_FWD_COVG"], covgs_400);
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_sampleInfo[sample4_index]["MEAN_REV_COVG"], covgs_000);
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_sampleInfo[sample2_index]["MEAN_REV_COVG"], covgs_000);
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[1]->sampleIndex_to_sampleInfo[sample1_index]["MEAN_REV_COVG"], covgs_000);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample3_index]["MEAN_FWD_COVG"], covgs_020);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample2_index]["MEAN_FWD_COVG"], covgs_1000);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample1_index]["MEAN_FWD_COVG"], covgs_400);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample4_index]["MEAN_REV_COVG"], covgs_000);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample2_index]["MEAN_REV_COVG"], covgs_000);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample1_index]["MEAN_REV_COVG"], covgs_000);
 //
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->sampleIndex_to_sampleInfo[sample3_index]["MEAN_FWD_COVG"], covgs_02);
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[2]->sampleIndex_to_sampleInfo[sample3_index]["MEAN_REV_COVG"], covgs_00);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[2]->sampleIndex_to_sampleInfo[sample3_index]["MEAN_FWD_COVG"], covgs_02);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[2]->sampleIndex_to_sampleInfo[sample3_index]["MEAN_REV_COVG"], covgs_00);
 //
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_sampleInfo[sample1_index]["MEAN_FWD_COVG"], covgs_040);
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_sampleInfo[sample4_index]["MEAN_FWD_COVG"], covgs_005);
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_sampleInfo[sample1_index]["MEAN_REV_COVG"], covgs_000);
-//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.records[3]->sampleIndex_to_sampleInfo[sample4_index]["MEAN_REV_COVG"], covgs_000);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample1_index]["MEAN_FWD_COVG"], covgs_040);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample4_index]["MEAN_FWD_COVG"], covgs_005);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample1_index]["MEAN_REV_COVG"], covgs_000);
+//    EXPECT_ITERABLE_EQ(std::vector<uint16_t>, master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample4_index]["MEAN_REV_COVG"], covgs_000);
 //}
 //
 //TEST(PangenomeNodeTest, equals) {

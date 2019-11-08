@@ -21,9 +21,9 @@ using ::testing::_;
 TEST(VCFTest, add_record_with_values) {
 
     VCF vcf = create_VCF_with_default_parameters();
-    EXPECT_EQ((uint) 0, vcf.records.size());
+    EXPECT_EQ((uint) 0, vcf.get_VCF_size());
     vcf.add_record("chrom1", 5, "A", "G");
-    EXPECT_EQ((uint) 1, vcf.records.size());
+    EXPECT_EQ((uint) 1, vcf.get_VCF_size());
 }
 
 TEST(VCFTest, add_record_twice_with_values) {
@@ -31,7 +31,7 @@ TEST(VCFTest, add_record_twice_with_values) {
     VCF vcf = create_VCF_with_default_parameters();
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 5, "A", "G");
-    EXPECT_EQ((uint) 1, vcf.records.size());
+    EXPECT_EQ((uint) 1, vcf.get_VCF_size());
 }
 
 TEST(VCFTest, add_two_records_with_values) {
@@ -39,7 +39,7 @@ TEST(VCFTest, add_two_records_with_values) {
     VCF vcf = create_VCF_with_default_parameters();
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
-    EXPECT_EQ((uint) 2, vcf.records.size());
+    EXPECT_EQ((uint) 2, vcf.get_VCF_size());
 }
 
 TEST(VCFTest, add_two_records_and_a_repeat_with_values) {
@@ -48,7 +48,7 @@ TEST(VCFTest, add_two_records_and_a_repeat_with_values) {
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
     vcf.add_record("chrom1", 5, "A", "G");
-    EXPECT_EQ((uint) 2, vcf.records.size());
+    EXPECT_EQ((uint) 2, vcf.get_VCF_size());
 }
 
 TEST(VCFTest, add_record_by_record) {
@@ -56,7 +56,7 @@ TEST(VCFTest, add_record_by_record) {
     VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
     std::vector<std::string> empty = {};
     vcf.add_record(vr, empty);
-    EXPECT_EQ((uint) 1, vcf.records.size());
+    EXPECT_EQ((uint) 1, vcf.get_VCF_size());
 }
 
 TEST(VCFTest, add_record_by_record_and_values) {
@@ -65,7 +65,7 @@ TEST(VCFTest, add_record_by_record_and_values) {
     std::vector<std::string> empty = {};
     vcf.add_record(vr, empty);
     vcf.add_record("chrom1", 79, "C", "G");
-    EXPECT_EQ((uint) 1, vcf.records.size());
+    EXPECT_EQ((uint) 1, vcf.get_VCF_size());
 }
 
 TEST(VCFTest, add_record_by_values_and_record) {
@@ -74,7 +74,7 @@ TEST(VCFTest, add_record_by_values_and_record) {
     VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
     std::vector<std::string> empty = {};
     vcf.add_record(vr, empty);
-    EXPECT_EQ((uint) 1, vcf.records.size());
+    EXPECT_EQ((uint) 1, vcf.get_VCF_size());
 }
 
 TEST(VCFTest, add_record_by_record_returned_by_reference) {
@@ -91,7 +91,7 @@ TEST(VCFTest, add_samples_empty) {
     std::vector<std::string> samples;
     vcf.add_samples(samples);
     EXPECT_EQ(vcf.samples.size(), (uint)0);
-    EXPECT_EQ(vcf.records.size(), (uint)0);
+    EXPECT_EQ(vcf.get_VCF_size(), (uint)0);
 }
 
 TEST(VCFTest, add_samples_simple) {
@@ -99,7 +99,7 @@ TEST(VCFTest, add_samples_simple) {
     std::vector<std::string> samples = {"hello", "there", "people"};
     vcf.add_samples(samples);
     EXPECT_ITERABLE_EQ(std::vector<std::string>, samples, vcf.samples);
-    EXPECT_EQ(vcf.records.size(), (uint)0);
+    EXPECT_EQ(vcf.get_VCF_size(), (uint)0);
 }
 
 TEST(VCFTest, add_samples_with_record) {
@@ -112,8 +112,8 @@ TEST(VCFTest, add_samples_with_record) {
     std::vector<std::string> exp_samples = {"sample", "hello", "there", "people"};
 
     EXPECT_ITERABLE_EQ(std::vector<std::string>, exp_samples, vcf.samples);
-    EXPECT_EQ(vcf.records.size(), (uint)1);
-    EXPECT_EQ(vcf.records[0]->sampleIndex_to_sampleInfo.size(), exp_samples.size());
+    EXPECT_EQ(vcf.get_VCF_size(), (uint)1);
+    EXPECT_EQ(vcf.get_records()[0]->sampleIndex_to_sampleInfo.size(), exp_samples.size());
 }
 
 TEST(VCFTest, add_a_new_record_discovered_in_a_sample_and_genotype_it) {
@@ -126,25 +126,25 @@ TEST(VCFTest, add_a_new_record_discovered_in_a_sample_and_genotype_it) {
     vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 46, "T", "TA");
     uint j = 1;
     EXPECT_EQ(j, vcf.samples.size());
-    EXPECT_EQ(j, vcf.records[1]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint16_t) 1, vcf.records[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
-    EXPECT_EQ(j, vcf.records[0]->sampleIndex_to_sampleInfo.size());
-    EXPECT_FALSE(vcf.records[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
-    EXPECT_EQ(j, vcf.records[2]->sampleIndex_to_sampleInfo.size());
-    EXPECT_FALSE(vcf.records[2]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
-    EXPECT_EQ(j, vcf.records[3]->sampleIndex_to_sampleInfo.size());
-    EXPECT_FALSE(vcf.records[3]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ(j, vcf.get_records()[1]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
+    EXPECT_EQ(j, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+    EXPECT_FALSE(vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ(j, vcf.get_records()[2]->sampleIndex_to_sampleInfo.size());
+    EXPECT_FALSE(vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ(j, vcf.get_records()[3]->sampleIndex_to_sampleInfo.size());
+    EXPECT_FALSE(vcf.get_records()[3]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
 
     vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 79, "C", "C");
     EXPECT_EQ(j, vcf.samples.size());
-    EXPECT_EQ(j, vcf.records[1]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint16_t) 1, vcf.records[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
-    EXPECT_EQ(j, vcf.records[0]->sampleIndex_to_sampleInfo.size());
-    EXPECT_FALSE(vcf.records[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
-    EXPECT_EQ(j, vcf.records[2]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint16_t) 0, vcf.records[2]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
-    EXPECT_EQ(j, vcf.records[3]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint16_t) 0, vcf.records[3]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
+    EXPECT_EQ(j, vcf.get_records()[1]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
+    EXPECT_EQ(j, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+    EXPECT_FALSE(vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ(j, vcf.get_records()[2]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
+    EXPECT_EQ(j, vcf.get_records()[3]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[3]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
 }
 
 TEST(VCFTest, add_record_by_record_with_existing_sample) {
@@ -202,31 +202,31 @@ TEST(VCFTest, set_sample_gt_to_ref_allele_for_records_in_the_interval) {
 
     vcf.set_sample_gt_to_ref_allele_for_records_in_the_interval("sample", "chrom1", 15, 78);
     EXPECT_EQ((uint) 1, vcf.samples.size());
-    EXPECT_EQ((uint) 5, vcf.records.size());
-    EXPECT_EQ((uint) 1, vcf.records[0]->sampleIndex_to_sampleInfo.size());
-    EXPECT_FALSE(vcf.records[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
-    EXPECT_EQ((uint) 1, vcf.records[1]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint16_t) 0, vcf.records[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
-    EXPECT_EQ((uint) 1, vcf.records[2]->sampleIndex_to_sampleInfo.size());
-    EXPECT_FALSE(vcf.records[2]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
-    EXPECT_EQ((uint) 1, vcf.records[3]->sampleIndex_to_sampleInfo.size());
-    EXPECT_FALSE(vcf.records[3]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
-    EXPECT_EQ((uint) 1, vcf.records[4]->sampleIndex_to_sampleInfo.size());
-    EXPECT_FALSE(vcf.records[4]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ((uint) 5, vcf.get_VCF_size());
+    EXPECT_EQ((uint) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+    EXPECT_FALSE(vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ((uint) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
+    EXPECT_EQ((uint) 1, vcf.get_records()[2]->sampleIndex_to_sampleInfo.size());
+    EXPECT_FALSE(vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ((uint) 1, vcf.get_records()[3]->sampleIndex_to_sampleInfo.size());
+    EXPECT_FALSE(vcf.get_records()[3]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ((uint) 1, vcf.get_records()[4]->sampleIndex_to_sampleInfo.size());
+    EXPECT_FALSE(vcf.get_records()[4]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
 
     vcf.set_sample_gt_to_ref_allele_for_records_in_the_interval("sample2", "chrom1", 5, 46);
     EXPECT_EQ((uint) 2, vcf.samples.size());
-    EXPECT_EQ((uint) 5, vcf.records.size());
-    EXPECT_EQ((uint) 2, vcf.records[0]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint16_t) 0, vcf.records[0]->sampleIndex_to_sampleInfo[1].get_gt_from_max_likelihood_path());
-    EXPECT_EQ((uint) 2, vcf.records[1]->sampleIndex_to_sampleInfo.size());
-    EXPECT_FALSE(vcf.records[1]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
-    EXPECT_EQ((uint) 2, vcf.records[2]->sampleIndex_to_sampleInfo.size());
-    EXPECT_FALSE(vcf.records[2]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
-    EXPECT_EQ((uint) 2, vcf.records[3]->sampleIndex_to_sampleInfo.size());
-    EXPECT_FALSE(vcf.records[3]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
-    EXPECT_EQ((uint) 2, vcf.records[4]->sampleIndex_to_sampleInfo.size());
-    EXPECT_FALSE(vcf.records[4]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ((uint) 5, vcf.get_VCF_size());
+    EXPECT_EQ((uint) 2, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[0]->sampleIndex_to_sampleInfo[1].get_gt_from_max_likelihood_path());
+    EXPECT_EQ((uint) 2, vcf.get_records()[1]->sampleIndex_to_sampleInfo.size());
+    EXPECT_FALSE(vcf.get_records()[1]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ((uint) 2, vcf.get_records()[2]->sampleIndex_to_sampleInfo.size());
+    EXPECT_FALSE(vcf.get_records()[2]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ((uint) 2, vcf.get_records()[3]->sampleIndex_to_sampleInfo.size());
+    EXPECT_FALSE(vcf.get_records()[3]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ((uint) 2, vcf.get_records()[4]->sampleIndex_to_sampleInfo.size());
+    EXPECT_FALSE(vcf.get_records()[4]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
 }
 
 TEST(VCFTest, reorder_add_record_and_sample) {
@@ -241,19 +241,19 @@ TEST(VCFTest, reorder_add_record_and_sample) {
     vcf.sort_records();
 
     EXPECT_EQ((uint) 2, vcf.samples.size());
-    EXPECT_EQ((uint) 4, vcf.records.size());
-    EXPECT_EQ((uint) 2, vcf.records[0]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint) 2, vcf.records[1]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint) 2, vcf.records[2]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint) 2, vcf.records[3]->sampleIndex_to_sampleInfo.size());
-    EXPECT_FALSE(vcf.records[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
-    EXPECT_EQ((uint16_t) 1, vcf.records[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
-    EXPECT_EQ((uint16_t) 1, vcf.records[2]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
-    EXPECT_FALSE(vcf.records[3]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
-    EXPECT_FALSE(vcf.records[0]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
-    EXPECT_FALSE(vcf.records[1]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
-    EXPECT_EQ((uint16_t) 0, vcf.records[2]->sampleIndex_to_sampleInfo[1].get_gt_from_max_likelihood_path());
-    EXPECT_EQ((uint16_t) 0, vcf.records[3]->sampleIndex_to_sampleInfo[1].get_gt_from_max_likelihood_path());
+    EXPECT_EQ((uint) 4, vcf.get_VCF_size());
+    EXPECT_EQ((uint) 2, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint) 2, vcf.get_records()[1]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint) 2, vcf.get_records()[2]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint) 2, vcf.get_records()[3]->sampleIndex_to_sampleInfo.size());
+    EXPECT_FALSE(vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
+    EXPECT_EQ((uint16_t) 1, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
+    EXPECT_FALSE(vcf.get_records()[3]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_FALSE(vcf.get_records()[0]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
+    EXPECT_FALSE(vcf.get_records()[1]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[2]->sampleIndex_to_sampleInfo[1].get_gt_from_max_likelihood_path());
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[3]->sampleIndex_to_sampleInfo[1].get_gt_from_max_likelihood_path());
 
 }
 
@@ -272,17 +272,17 @@ TEST(VCFTest, append_vcf_simple_case) {
     new_vcf.add_record("chrom2", 79, "C", "A");
 
     vcf.append_vcf(new_vcf);
-    EXPECT_EQ((uint) 8, vcf.records.size());
+    EXPECT_EQ((uint) 8, vcf.get_VCF_size());
     for (uint i = 0; i < 4; ++i) {
-        EXPECT_EQ(vcf.records[i]->chrom, "chrom1");
+        EXPECT_EQ(vcf.get_records()[i]->chrom, "chrom1");
     }
     for (uint i = 4; i < 8; ++i) {
-        EXPECT_EQ(vcf.records[i]->chrom, "chrom2");
+        EXPECT_EQ(vcf.get_records()[i]->chrom, "chrom2");
     }
-    EXPECT_EQ((uint) 5, vcf.records[4]->pos);
-    EXPECT_EQ("TA", vcf.records[5]->alts[0]);
-    EXPECT_EQ((uint) 79, vcf.records[6]->pos);
-    EXPECT_EQ("A", vcf.records[7]->alts[0]);
+    EXPECT_EQ((uint) 5, vcf.get_records()[4]->pos);
+    EXPECT_EQ("TA", vcf.get_records()[5]->alts[0]);
+    EXPECT_EQ((uint) 79, vcf.get_records()[6]->pos);
+    EXPECT_EQ("A", vcf.get_records()[7]->alts[0]);
 }
 
 TEST(VCFTest, append_vcf_some_duplicate_records) {
@@ -299,15 +299,15 @@ TEST(VCFTest, append_vcf_some_duplicate_records) {
     new_vcf.add_record("chrom1", 79, "C", "A");
 
     vcf.append_vcf(new_vcf);
-    EXPECT_EQ((uint) 6, vcf.records.size());
+    EXPECT_EQ((uint) 6, vcf.get_VCF_size());
     for (uint i = 0; i < 4; ++i) {
-        EXPECT_EQ(vcf.records[i]->chrom, "chrom1");
+        EXPECT_EQ(vcf.get_records()[i]->chrom, "chrom1");
     }
     for (uint i = 4; i < 6; ++i) {
-        EXPECT_EQ(vcf.records[i]->chrom, "chrom2");
+        EXPECT_EQ(vcf.get_records()[i]->chrom, "chrom2");
     }
-    EXPECT_EQ((uint) 5, vcf.records[4]->pos);
-    EXPECT_EQ((uint) 79, vcf.records[5]->pos);
+    EXPECT_EQ((uint) 5, vcf.get_records()[4]->pos);
+    EXPECT_EQ((uint) 79, vcf.get_records()[5]->pos);
 }
 
 TEST(VCFTest, append_vcf_one_sample) {
@@ -327,20 +327,20 @@ TEST(VCFTest, append_vcf_one_sample) {
     vcf.append_vcf(new_vcf);
     EXPECT_EQ((uint) 1, vcf.samples.size());
     EXPECT_EQ("sample", vcf.samples[0]);
-    EXPECT_EQ((uint) 1, vcf.records[0]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint) 1, vcf.records[5]->sampleIndex_to_sampleInfo.size());
-    bool valid_gt = vcf.records[2]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    EXPECT_EQ((uint) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint) 1, vcf.get_records()[5]->sampleIndex_to_sampleInfo.size());
+    bool valid_gt = vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_TRUE(valid_gt);
-    EXPECT_EQ((uint) 1, vcf.records[2]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
-    valid_gt = vcf.records[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    EXPECT_EQ((uint) 1, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
+    valid_gt = vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_FALSE(valid_gt);
-    valid_gt = vcf.records[1]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    valid_gt = vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_FALSE(valid_gt);
-    valid_gt = vcf.records[4]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    valid_gt = vcf.get_records()[4]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_FALSE(valid_gt);
-    valid_gt = vcf.records[3]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    valid_gt = vcf.get_records()[3]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_FALSE(valid_gt);
-    valid_gt = vcf.records[5]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    valid_gt = vcf.get_records()[5]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_FALSE(valid_gt);
 }
 
@@ -361,20 +361,20 @@ TEST(VCFTest, append_vcf_one_sample_in_new_vcf) {
     vcf.append_vcf(new_vcf);
     EXPECT_EQ((uint) 1, vcf.samples.size());
     EXPECT_EQ("sample", vcf.samples[0]);
-    EXPECT_EQ((uint) 1, vcf.records[0]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint) 1, vcf.records[5]->sampleIndex_to_sampleInfo.size());
-    bool valid_gt = vcf.records[4]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    EXPECT_EQ((uint) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint) 1, vcf.get_records()[5]->sampleIndex_to_sampleInfo.size());
+    bool valid_gt = vcf.get_records()[4]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_TRUE(valid_gt);
-    EXPECT_EQ((uint) 1, vcf.records[4]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
-    valid_gt = vcf.records[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    EXPECT_EQ((uint) 1, vcf.get_records()[4]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
+    valid_gt = vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_FALSE(valid_gt);
-    valid_gt = vcf.records[1]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    valid_gt = vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_FALSE(valid_gt);
-    valid_gt = vcf.records[2]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    valid_gt = vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_FALSE(valid_gt);
-    valid_gt = vcf.records[3]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    valid_gt = vcf.get_records()[3]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_FALSE(valid_gt);
-    valid_gt = vcf.records[5]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    valid_gt = vcf.get_records()[5]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_FALSE(valid_gt);
 }
 
@@ -396,20 +396,20 @@ TEST(VCFTest, append_vcf_shared_sample) {
     vcf.append_vcf(new_vcf);
     EXPECT_EQ((uint) 1, vcf.samples.size());
     EXPECT_EQ("sample", vcf.samples[0]);
-    EXPECT_EQ((uint) 1, vcf.records[0]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint) 1, vcf.records[5]->sampleIndex_to_sampleInfo.size());
-    bool valid_gt = vcf.records[1]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    EXPECT_EQ((uint) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint) 1, vcf.get_records()[5]->sampleIndex_to_sampleInfo.size());
+    bool valid_gt = vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_TRUE(valid_gt);
-    EXPECT_EQ((uint) 1, vcf.records[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
-    valid_gt = vcf.records[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    EXPECT_EQ((uint) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
+    valid_gt = vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_FALSE(valid_gt);
-    valid_gt = vcf.records[4]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    valid_gt = vcf.get_records()[4]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_FALSE(valid_gt);
-    valid_gt = vcf.records[2]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    valid_gt = vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_FALSE(valid_gt);
-    valid_gt = vcf.records[3]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    valid_gt = vcf.get_records()[3]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_FALSE(valid_gt);
-    valid_gt = vcf.records[5]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
+    valid_gt = vcf.get_records()[5]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid();
     EXPECT_FALSE(valid_gt);
 }
 
@@ -435,36 +435,36 @@ TEST(VCFTest, append_vcf_shared_samples_different_order) {
     EXPECT_EQ((uint) 2, vcf.samples.size());
     vector<string> v = {"sample", "sample1"};
     EXPECT_ITERABLE_EQ(vector<string>, v, vcf.samples);
-    EXPECT_EQ((uint) 2, vcf.records[0]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint) 2, vcf.records[1]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint) 2, vcf.records[2]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint) 2, vcf.records[3]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint) 2, vcf.records[4]->sampleIndex_to_sampleInfo.size());
-    EXPECT_EQ((uint) 2, vcf.records[5]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint) 2, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint) 2, vcf.get_records()[1]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint) 2, vcf.get_records()[2]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint) 2, vcf.get_records()[3]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint) 2, vcf.get_records()[4]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint) 2, vcf.get_records()[5]->sampleIndex_to_sampleInfo.size());
 
     uint16_t alt_gt = 1;
     uint16_t ref_gt = 0;
 
-    EXPECT_FALSE(vcf.records[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
-    EXPECT_FALSE(vcf.records[0]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
+    EXPECT_FALSE(vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_FALSE(vcf.get_records()[0]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
 
-    EXPECT_TRUE(vcf.records[1]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
-    EXPECT_TRUE(vcf.records[1]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
-    EXPECT_EQ(vcf.records[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path(), alt_gt);
-    EXPECT_EQ(vcf.records[1]->sampleIndex_to_sampleInfo[1].get_gt_from_max_likelihood_path(), ref_gt);
+    EXPECT_TRUE(vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_TRUE(vcf.get_records()[1]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ(vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path(), alt_gt);
+    EXPECT_EQ(vcf.get_records()[1]->sampleIndex_to_sampleInfo[1].get_gt_from_max_likelihood_path(), ref_gt);
 
-    EXPECT_FALSE(vcf.records[2]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
-    EXPECT_FALSE(vcf.records[2]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
+    EXPECT_FALSE(vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_FALSE(vcf.get_records()[2]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
 
-    EXPECT_FALSE(vcf.records[3]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
-    EXPECT_TRUE(vcf.records[3]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
-    EXPECT_EQ(vcf.records[3]->sampleIndex_to_sampleInfo[1].get_gt_from_max_likelihood_path(), alt_gt);
+    EXPECT_FALSE(vcf.get_records()[3]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_TRUE(vcf.get_records()[3]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
+    EXPECT_EQ(vcf.get_records()[3]->sampleIndex_to_sampleInfo[1].get_gt_from_max_likelihood_path(), alt_gt);
 
-    EXPECT_FALSE(vcf.records[4]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
-    EXPECT_FALSE(vcf.records[4]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
+    EXPECT_FALSE(vcf.get_records()[4]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_FALSE(vcf.get_records()[4]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
 
-    EXPECT_FALSE(vcf.records[5]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
-    EXPECT_FALSE(vcf.records[5]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
+    EXPECT_FALSE(vcf.get_records()[5]->sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
+    EXPECT_FALSE(vcf.get_records()[5]->sampleIndex_to_sampleInfo[1].is_gt_from_max_likelihood_path_valid());
 }
 
 TEST(VCFTest, sort_records) {
@@ -480,21 +480,21 @@ TEST(VCFTest, sort_records) {
     vcf.add_record("chrom2", 79, "C", "G");
     vcf.sort_records();
 
-    EXPECT_EQ((uint) 6, vcf.records.size());
+    EXPECT_EQ((uint) 6, vcf.get_VCF_size());
     for (uint i = 0; i < 4; ++i) {
-        EXPECT_EQ("chrom1", vcf.records[i]->chrom);
+        EXPECT_EQ("chrom1", vcf.get_records()[i]->chrom);
     }
     for (uint i = 4; i < 6; ++i) {
-        EXPECT_EQ("chrom2", vcf.records[i]->chrom);
+        EXPECT_EQ("chrom2", vcf.get_records()[i]->chrom);
     }
-    EXPECT_EQ((uint) 5, vcf.records[0]->pos);
-    EXPECT_EQ((uint) 5, vcf.records[4]->pos);
-    EXPECT_EQ((uint) 46, vcf.records[1]->pos);
-    EXPECT_EQ((uint) 79, vcf.records[2]->pos);
-    EXPECT_EQ((uint) 79, vcf.records[3]->pos);
-    EXPECT_EQ((uint) 79, vcf.records[5]->pos);
-    EXPECT_EQ("G", vcf.records[3]->alts[0]);
-    EXPECT_EQ("G", vcf.records[5]->alts[0]);
+    EXPECT_EQ((uint) 5, vcf.get_records()[0]->pos);
+    EXPECT_EQ((uint) 5, vcf.get_records()[4]->pos);
+    EXPECT_EQ((uint) 46, vcf.get_records()[1]->pos);
+    EXPECT_EQ((uint) 79, vcf.get_records()[2]->pos);
+    EXPECT_EQ((uint) 79, vcf.get_records()[3]->pos);
+    EXPECT_EQ((uint) 79, vcf.get_records()[5]->pos);
+    EXPECT_EQ("G", vcf.get_records()[3]->alts[0]);
+    EXPECT_EQ("G", vcf.get_records()[5]->alts[0]);
 }
 
 TEST(VCFTest, pos_in_range) {
@@ -529,6 +529,7 @@ public:
     class VCFMock : public VCF {
     public:
         using VCF::VCF;
+        using VCF::records;
         MOCK_METHOD(void, make_gt_compatible, (), (override));
     };
 
@@ -639,86 +640,86 @@ TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only) {
 //    std::vector<float> f = {0.0, 0.0};
 //
 //    // record 0, not a snp site
-//    vcf.records[0]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {0, 10};
-//    vcf.records[0]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {1, 20};
-//    vcf.records[0]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"] = {1, 15};
-//    vcf.records[0]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"] = {2, 24};
-//    vcf.records[0]->set_format(0,"GAPS", f);
-//    vcf.records[0]->set_format(1,"GAPS", f);
+//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {0, 10};
+//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {1, 20};
+//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"] = {1, 15};
+//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"] = {2, 24};
+//    vcf.get_records()[0]->set_format(0,"GAPS", f);
+//    vcf.get_records()[0]->set_format(1,"GAPS", f);
 //
 //
 //    // record 1, different genotypes but both correct
-//    vcf.records[1]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {0, 10};
-//    vcf.records[1]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {1, 20};
-//    vcf.records[1]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"] = {10, 1};
-//    vcf.records[1]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"] = {21, 2};
-//    vcf.records[1]->set_format(0,"GAPS", f);
-//    vcf.records[1]->set_format(1,"GAPS", f);
+//    vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {0, 10};
+//    vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {1, 20};
+//    vcf.get_records()[1]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"] = {10, 1};
+//    vcf.get_records()[1]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"] = {21, 2};
+//    vcf.get_records()[1]->set_format(0,"GAPS", f);
+//    vcf.get_records()[1]->set_format(1,"GAPS", f);
 //
 //    // record 2, same genotypes first correct
-//    vcf.records[2]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {0, 10};
-//    vcf.records[2]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {1, 20};
-//    vcf.records[2]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"] = {10, 1};
-//    vcf.records[2]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"] = {21, 2};
-//    vcf.records[2]->set_format(0,"GAPS", f);
-//    vcf.records[2]->set_format(1,"GAPS", f);
+//    vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {0, 10};
+//    vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {1, 20};
+//    vcf.get_records()[2]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"] = {10, 1};
+//    vcf.get_records()[2]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"] = {21, 2};
+//    vcf.get_records()[2]->set_format(0,"GAPS", f);
+//    vcf.get_records()[2]->set_format(1,"GAPS", f);
 //
 //    // record 3, same genotypes both wrong
-//    vcf.records[3]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {20, 1};
-//    vcf.records[3]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {21, 2};
-//    vcf.records[3]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"] = {10, 1};
-//    vcf.records[3]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"] = {21, 2};
-//    vcf.records[3]->set_format(0,"GAPS", f);
-//    vcf.records[3]->set_format(1,"GAPS", f);
+//    vcf.get_records()[3]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {20, 1};
+//    vcf.get_records()[3]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {21, 2};
+//    vcf.get_records()[3]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"] = {10, 1};
+//    vcf.get_records()[3]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"] = {21, 2};
+//    vcf.get_records()[3]->set_format(0,"GAPS", f);
+//    vcf.get_records()[3]->set_format(1,"GAPS", f);
 //
 //    // record 4, missing count data for first sample
-//    vcf.records[4]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {0, 10};
-//    vcf.records[4]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {20};
-//    vcf.records[4]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"] = {10, 1};
-//    vcf.records[4]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"] = {21, 2};
-//    vcf.records[4]->set_format(0,"GAPS", f);
-//    vcf.records[4]->set_format(1,"GAPS", f);
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {0, 10};
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {20};
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"] = {10, 1};
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"] = {21, 2};
+//    vcf.get_records()[4]->set_format(0,"GAPS", f);
+//    vcf.get_records()[4]->set_format(1,"GAPS", f);
 //
 //    // record 5, not confident for second sample
-//    vcf.records[5]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {0, 10};
-//    vcf.records[5]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {1, 20};
-//    vcf.records[5]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"] = {2, 1};
-//    vcf.records[5]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"] = {4, 2};
-//    vcf.records[5]->set_format(0,"GAPS", f);
-//    vcf.records[5]->set_format(1,"GAPS", f);
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {0, 10};
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {1, 20};
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"] = {2, 1};
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"] = {4, 2};
+//    vcf.get_records()[5]->set_format(0,"GAPS", f);
+//    vcf.get_records()[5]->set_format(1,"GAPS", f);
 //
 //    vcf.genotype({30, 30}, 0.01, 30, 0, 1, 0, 0, true);
 //
 //    // not genotyped first record
-//    EXPECT_EQ((uint16_t) 1, vcf.records[0]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint16_t) 1, vcf.records[0]->sampleIndex_to_sampleInfo[1]["GT"][0]);
-//    bool found_confidence = vcf.records[0]->sampleIndex_to_sampleInfo[0].find("GT_CONF") != vcf.records[0]->sampleIndex_to_sampleInfo[0].end();
+//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo[0]["GT"][0]);
+//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo[1]["GT"][0]);
+//    bool found_confidence = vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].find("GT_CONF") != vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].end();
 //    EXPECT_FALSE(found_confidence);
-//    found_confidence = vcf.records[0]->sampleIndex_to_sampleInfo[1].find("GT_CONF") != vcf.records[0]->sampleIndex_to_sampleInfo[1].end();
+//    found_confidence = vcf.get_records()[0]->sampleIndex_to_sampleInfo[1].find("GT_CONF") != vcf.get_records()[0]->sampleIndex_to_sampleInfo[1].end();
 //    EXPECT_FALSE(found_confidence);
 //
 //    // both correct
-//    EXPECT_EQ((uint) 2, vcf.records[1]->sampleIndex_to_sampleInfo.size());
-//    bool valid_gt = vcf.records[1]->sampleIndex_to_sampleInfo[0].find("GT") != vcf.records[1]->sampleIndex_to_sampleInfo[0].end();
+//    EXPECT_EQ((uint) 2, vcf.get_records()[1]->sampleIndex_to_sampleInfo.size());
+//    bool valid_gt = vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].find("GT") != vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].end();
 //    EXPECT_TRUE(valid_gt);
-//    valid_gt = vcf.records[1]->sampleIndex_to_sampleInfo[1].find("GT") != vcf.records[1]->sampleIndex_to_sampleInfo[1].end();
+//    valid_gt = vcf.get_records()[1]->sampleIndex_to_sampleInfo[1].find("GT") != vcf.get_records()[1]->sampleIndex_to_sampleInfo[1].end();
 //    EXPECT_TRUE(valid_gt);
-//    EXPECT_EQ((uint) 1, vcf.records[1]->sampleIndex_to_sampleInfo[0]["GT"].size());
-//    EXPECT_EQ((uint) 1, vcf.records[1]->sampleIndex_to_sampleInfo[1]["GT"].size());
-//    EXPECT_EQ((uint16_t) 1, vcf.records[1]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.records[1]->sampleIndex_to_sampleInfo[1]["GT"][0]);
+//    EXPECT_EQ((uint) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["GT"].size());
+//    EXPECT_EQ((uint) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[1]["GT"].size());
+//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["GT"][0]);
+//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[1]["GT"][0]);
 //    // first correct
-//    EXPECT_EQ((uint16_t) 1, vcf.records[2]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.records[2]->sampleIndex_to_sampleInfo[1]["GT"][0]);
+//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["GT"][0]);
+//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[2]->sampleIndex_to_sampleInfo[1]["GT"][0]);
 //    // both wrong
-//    EXPECT_EQ((uint16_t) 0, vcf.records[3]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.records[3]->sampleIndex_to_sampleInfo[1]["GT"][0]);
+//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[3]->sampleIndex_to_sampleInfo[0]["GT"][0]);
+//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[3]->sampleIndex_to_sampleInfo[1]["GT"][0]);
 //    // first missing data
-//    EXPECT_EQ((uint) 0, vcf.records[4]->sampleIndex_to_sampleInfo[0]["GT"].size());
-//    EXPECT_EQ((uint16_t) 0, vcf.records[4]->sampleIndex_to_sampleInfo[1]["GT"][0]);
+//    EXPECT_EQ((uint) 0, vcf.get_records()[4]->sampleIndex_to_sampleInfo[0]["GT"].size());
+//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[4]->sampleIndex_to_sampleInfo[1]["GT"][0]);
 //    // second not confident
-//    EXPECT_EQ((uint16_t) 1, vcf.records[5]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint) 0, vcf.records[5]->sampleIndex_to_sampleInfo[1]["GT"].size());
+//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["GT"][0]);
+//    EXPECT_EQ((uint) 0, vcf.get_records()[5]->sampleIndex_to_sampleInfo[1]["GT"].size());
 //}
 //
 //TEST(VCFTest, genotype_with_all_sites) {
@@ -750,134 +751,136 @@ TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only) {
 //    std::vector<float> f = {0.0, 0.0};
 //
 //    // record 0, not a snp site
-//    vcf.records[0]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(0);
-//    vcf.records[0]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(1);
-//    vcf.records[0]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(10);
-//    vcf.records[0]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(20);
-//    vcf.records[0]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(1);
-//    vcf.records[0]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(2);
-//    vcf.records[0]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(15);
-//    vcf.records[0]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(24);
-//    vcf.records[0]->set_format(0,"GAPS", f);
-//    vcf.records[0]->set_format(1,"GAPS", f);
+//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(0);
+//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(1);
+//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(10);
+//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(20);
+//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(1);
+//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(2);
+//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(15);
+//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(24);
+//    vcf.get_records()[0]->set_format(0,"GAPS", f);
+//    vcf.get_records()[0]->set_format(1,"GAPS", f);
 //
 //    // record 1, different genotypes but both correct
-//    vcf.records[1]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(0);
-//    vcf.records[1]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(1);
-//    vcf.records[1]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(10);
-//    vcf.records[1]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(20);
-//    vcf.records[1]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(10);
-//    vcf.records[1]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(21);
-//    vcf.records[1]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(1);
-//    vcf.records[1]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(2);
-//    vcf.records[1]->set_format(0,"GAPS", f);
-//    vcf.records[1]->set_format(1,"GAPS", f);
+//    vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(0);
+//    vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(1);
+//    vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(10);
+//    vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(20);
+//    vcf.get_records()[1]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(10);
+//    vcf.get_records()[1]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(21);
+//    vcf.get_records()[1]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(1);
+//    vcf.get_records()[1]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(2);
+//    vcf.get_records()[1]->set_format(0,"GAPS", f);
+//    vcf.get_records()[1]->set_format(1,"GAPS", f);
 //
 //    // record 2, same genotypes first correct
-//    vcf.records[2]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(0);
-//    vcf.records[2]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(1);
-//    vcf.records[2]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(10);
-//    vcf.records[2]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(20);
-//    vcf.records[2]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(10);
-//    vcf.records[2]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(21);
-//    vcf.records[2]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(1);
-//    vcf.records[2]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(2);
-//    vcf.records[2]->set_format(0,"GAPS", f);
-//    vcf.records[2]->set_format(1,"GAPS", f);
+//    vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(0);
+//    vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(1);
+//    vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(10);
+//    vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(20);
+//    vcf.get_records()[2]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(10);
+//    vcf.get_records()[2]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(21);
+//    vcf.get_records()[2]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(1);
+//    vcf.get_records()[2]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(2);
+//    vcf.get_records()[2]->set_format(0,"GAPS", f);
+//    vcf.get_records()[2]->set_format(1,"GAPS", f);
 //
 //    // record 3, same genotypes both wrong
-//    vcf.records[3]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(20);
-//    vcf.records[3]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(21);
-//    vcf.records[3]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(1);
-//    vcf.records[3]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(2);
-//    vcf.records[3]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(10);
-//    vcf.records[3]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(21);
-//    vcf.records[3]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(1);
-//    vcf.records[3]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(2);
-//    vcf.records[3]->set_format(0,"GAPS", f);
-//    vcf.records[3]->set_format(1,"GAPS", f);
+//    vcf.get_records()[3]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(20);
+//    vcf.get_records()[3]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(21);
+//    vcf.get_records()[3]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(1);
+//    vcf.get_records()[3]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(2);
+//    vcf.get_records()[3]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(10);
+//    vcf.get_records()[3]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(21);
+//    vcf.get_records()[3]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(1);
+//    vcf.get_records()[3]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(2);
+//    vcf.get_records()[3]->set_format(0,"GAPS", f);
+//    vcf.get_records()[3]->set_format(1,"GAPS", f);
 //
 //    // record 4, missing count data for first sample
-//    vcf.records[4]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(0);
-//    vcf.records[4]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(10);
-//    vcf.records[4]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(20);
-//    vcf.records[4]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(10);
-//    vcf.records[4]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(21);
-//    vcf.records[4]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(1);
-//    vcf.records[4]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(2);
-//    vcf.records[4]->set_format(0,"GAPS", f);
-//    vcf.records[4]->set_format(1,"GAPS", f);
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(0);
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(10);
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(20);
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(10);
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(21);
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(1);
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(2);
+//    vcf.get_records()[4]->set_format(0,"GAPS", f);
+//    vcf.get_records()[4]->set_format(1,"GAPS", f);
 //
 //    // record 5, not confident for second sample
-//    vcf.records[5]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(0);
-//    vcf.records[5]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(1);
-//    vcf.records[5]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(10);
-//    vcf.records[5]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(20);
-//    vcf.records[5]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(2);
-//    vcf.records[5]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(4);
-//    vcf.records[5]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(1);
-//    vcf.records[5]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(2);
-//    vcf.records[5]->set_format(0,"GAPS", f);
-//    vcf.records[5]->set_format(1,"GAPS", f);
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(0);
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(1);
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"].push_back(10);
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"].push_back(20);
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(2);
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(4);
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"].push_back(1);
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[1]["MEAN_REV_COVG"].push_back(2);
+//    vcf.get_records()[5]->set_format(0,"GAPS", f);
+//    vcf.get_records()[5]->set_format(1,"GAPS", f);
 //
 //    bool snps_only = false;
 //    vcf.genotype({30, 30}, 0.01, 30, 0, 1, 0, 0, snps_only);
 //
 //    // first record now genotyped
-//    EXPECT_EQ((uint16_t) 1, vcf.records[0]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint16_t) 1, vcf.records[0]->sampleIndex_to_sampleInfo[1]["GT"][0]);
-//    bool found_confidence = vcf.records[0]->sampleIndex_to_sampleInfo[0].find("GT_CONF") != vcf.records[0]->sampleIndex_to_sampleInfo[0].end();
+//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo[0]["GT"][0]);
+//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo[1]["GT"][0]);
+//    bool found_confidence = vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].find("GT_CONF") != vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].end();
 //    EXPECT_TRUE(found_confidence);
-//    found_confidence = vcf.records[0]->sampleIndex_to_sampleInfo[1].find("GT_CONF") != vcf.records[0]->sampleIndex_to_sampleInfo[1].end();
+//    found_confidence = vcf.get_records()[0]->sampleIndex_to_sampleInfo[1].find("GT_CONF") != vcf.get_records()[0]->sampleIndex_to_sampleInfo[1].end();
 //    EXPECT_TRUE(found_confidence);
 //    // both correct
-//    EXPECT_EQ((uint) 2, vcf.records[1]->sampleIndex_to_sampleInfo.size());
-//    bool valid_gt = vcf.records[1]->sampleIndex_to_sampleInfo[0].find("GT") != vcf.records[1]->sampleIndex_to_sampleInfo[0].end();
+//    EXPECT_EQ((uint) 2, vcf.get_records()[1]->sampleIndex_to_sampleInfo.size());
+//    bool valid_gt = vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].find("GT") != vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].end();
 //    EXPECT_TRUE(valid_gt);
-//    valid_gt = vcf.records[1]->sampleIndex_to_sampleInfo[1].find("GT") != vcf.records[1]->sampleIndex_to_sampleInfo[1].end();
+//    valid_gt = vcf.get_records()[1]->sampleIndex_to_sampleInfo[1].find("GT") != vcf.get_records()[1]->sampleIndex_to_sampleInfo[1].end();
 //    EXPECT_TRUE(valid_gt);
-//    EXPECT_EQ((uint) 1, vcf.records[1]->sampleIndex_to_sampleInfo[0]["GT"].size());
-//    EXPECT_EQ((uint) 1, vcf.records[1]->sampleIndex_to_sampleInfo[1]["GT"].size());
-//    EXPECT_EQ((uint16_t) 1, vcf.records[1]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.records[1]->sampleIndex_to_sampleInfo[1]["GT"][0]);
+//    EXPECT_EQ((uint) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["GT"].size());
+//    EXPECT_EQ((uint) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[1]["GT"].size());
+//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["GT"][0]);
+//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[1]["GT"][0]);
 //    // first correct
-//    EXPECT_EQ((uint16_t) 1, vcf.records[2]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.records[2]->sampleIndex_to_sampleInfo[1]["GT"][0]);
+//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["GT"][0]);
+//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[2]->sampleIndex_to_sampleInfo[1]["GT"][0]);
 //    // both wrong
-//    EXPECT_EQ((uint16_t) 0, vcf.records[3]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.records[3]->sampleIndex_to_sampleInfo[1]["GT"][0]);
+//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[3]->sampleIndex_to_sampleInfo[0]["GT"][0]);
+//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[3]->sampleIndex_to_sampleInfo[1]["GT"][0]);
 //    // first missing data
-//    EXPECT_EQ((uint) 0, vcf.records[4]->sampleIndex_to_sampleInfo[0]["GT"].size());
-//    EXPECT_EQ((uint16_t) 0, vcf.records[4]->sampleIndex_to_sampleInfo[1]["GT"][0]);
+//    EXPECT_EQ((uint) 0, vcf.get_records()[4]->sampleIndex_to_sampleInfo[0]["GT"].size());
+//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[4]->sampleIndex_to_sampleInfo[1]["GT"][0]);
 //    // second not confident
-//    EXPECT_EQ((uint16_t) 1, vcf.records[5]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint) 0, vcf.records[5]->sampleIndex_to_sampleInfo[1]["GT"].size());
+//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["GT"][0]);
+//    EXPECT_EQ((uint) 0, vcf.get_records()[5]->sampleIndex_to_sampleInfo[1]["GT"].size());
 //
 //}
 
-TEST(VCFTest, clean) {
-    VCF vcf = create_VCF_with_default_parameters();
 
-    VCFRecord dummy;
-    std::vector<std::string> empty = {};
-    vcf.add_record(dummy, empty);
-    vcf.add_record("chrom1", 79, "C", "G");
-    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 2, "T", "TA");
-    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 5, "A", "G");
-    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 79, "C", "A");
-    vcf.records[2]->clear();
-    EXPECT_EQ((uint) 5, vcf.records.size());
-
-    vcf.clean();
-    EXPECT_EQ((uint) 3, vcf.records.size());
-    EXPECT_EQ((uint) 79, vcf.records[0]->pos);
-    EXPECT_EQ((uint) 1, vcf.records[0]->alts.size());
-    EXPECT_EQ("G", vcf.records[0]->alts[0]);
-    EXPECT_EQ((uint) 5, vcf.records[1]->pos);
-    EXPECT_EQ((uint) 79, vcf.records[2]->pos);
-    EXPECT_EQ((uint) 1, vcf.records[2]->alts.size());
-    EXPECT_EQ("A", vcf.records[2]->alts[0]);
-}
+// REASON COMMENTED OUT: THIS METHOD DOES NOT EXIST ANYMORE
+//TEST(VCFTest, clean) {
+//    VCF vcf = create_VCF_with_default_parameters();
+//
+//    VCFRecord dummy;
+//    std::vector<std::string> empty = {};
+//    vcf.add_record(dummy, empty);
+//    vcf.add_record("chrom1", 79, "C", "G");
+//    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 2, "T", "TA");
+//    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 5, "A", "G");
+//    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 79, "C", "A");
+//    vcf.get_records()[2]->clear();
+//    EXPECT_EQ((uint) 5, vcf.get_VCF_size());
+//
+//    vcf.clean();
+//    EXPECT_EQ((uint) 3, vcf.get_VCF_size());
+//    EXPECT_EQ((uint) 79, vcf.get_records()[0]->pos);
+//    EXPECT_EQ((uint) 1, vcf.get_records()[0]->alts.size());
+//    EXPECT_EQ("G", vcf.get_records()[0]->alts[0]);
+//    EXPECT_EQ((uint) 5, vcf.get_records()[1]->pos);
+//    EXPECT_EQ((uint) 79, vcf.get_records()[2]->pos);
+//    EXPECT_EQ((uint) 1, vcf.get_records()[2]->alts.size());
+//    EXPECT_EQ("A", vcf.get_records()[2]->alts[0]);
+//}
 
 
 class VCFTest___merge_multi_allelic_core___Fixture : public ::testing::Test {
@@ -891,6 +894,7 @@ public:
     class VCFMock : public VCFVisibilityMock {
     public:
         using VCFVisibilityMock::VCFVisibilityMock;
+        using VCF::records;
         MOCK_METHOD(void, add_samples, (const std::vector<std::string> &sample_names), (override));
         MOCK_METHOD(void, add_record_core,(const VCFRecord &vr), (override));
         MOCK_METHOD(void, sort_records, (), (override));
@@ -1119,63 +1123,63 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, two_records_to_be_merged___
 //    vcf.add_record("chrom1", 76, "CTT", "TA");
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 76, "CTT", "TA");
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 76, "CTT", "A");
-//    vcf.records[4]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1, &default_genotyping_options);
-//    vcf.records[5]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1, &default_genotyping_options);
-//    vcf.records[4]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-50, -3};
-//    vcf.records[5]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-50, -16};
-//    vcf.records[4]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {47};
-//    vcf.records[5]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {56};
-//    vcf.records[4]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {2, 30};
-//    vcf.records[5]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {2, 30};
-//    vcf.records[4]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {2, 30};
-//    vcf.records[5]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {2, 30};
-//    vcf.records[4]->sampleIndex_to_sampleInfo[0]["GAPS"] = {4, 0};
-//    vcf.records[5]->sampleIndex_to_sampleInfo[0]["GAPS"] = {4, 1};
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1, &default_genotyping_options);
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1, &default_genotyping_options);
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-50, -3};
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-50, -16};
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {47};
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {56};
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {2, 30};
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {2, 30};
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {2, 30};
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"] = {2, 30};
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[0]["GAPS"] = {4, 0};
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["GAPS"] = {4, 1};
 //    // incompatible
 //    vcf.add_record("chrom1", 85, "A", "G");
 //    vcf.add_record("chrom1", 85, "T", "C");
 //
 //    vcf = vcf.merge_multi_allelic();
 //
-//    EXPECT_EQ((uint) 5, vcf.records.size());
-//    EXPECT_EQ((uint) 5, vcf.records[0]->pos);
-//    EXPECT_EQ((uint) 2, vcf.records[0]->alts.size());
-//    EXPECT_EQ((uint) 1, vcf.records[0]->sampleIndex_to_sampleInfo.size());
-//    EXPECT_EQ((uint) 0, vcf.records[0]->sampleIndex_to_sampleInfo[0].size());
+//    EXPECT_EQ((uint) 5, vcf.get_VCF_size());
+//    EXPECT_EQ((uint) 5, vcf.get_records()[0]->pos);
+//    EXPECT_EQ((uint) 2, vcf.get_records()[0]->alts.size());
+//    EXPECT_EQ((uint) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+//    EXPECT_EQ((uint) 0, vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].size());
 //
-//    EXPECT_EQ((uint) 46, vcf.records[1]->pos);
-//    EXPECT_EQ((uint) 2, vcf.records[1]->alts.size());
-//    EXPECT_EQ((uint) 1, vcf.records[1]->sampleIndex_to_sampleInfo.size());
-//    bool valid_gt = vcf.records[1]->sampleIndex_to_sampleInfo[0].find("GT") != vcf.records[1]->sampleIndex_to_sampleInfo[0].end();
+//    EXPECT_EQ((uint) 46, vcf.get_records()[1]->pos);
+//    EXPECT_EQ((uint) 2, vcf.get_records()[1]->alts.size());
+//    EXPECT_EQ((uint) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo.size());
+//    bool valid_gt = vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].find("GT") != vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].end();
 //    EXPECT_TRUE(valid_gt);
-//    EXPECT_EQ((uint) 0, vcf.records[1]->sampleIndex_to_sampleInfo[0]["GT"].size());
+//    EXPECT_EQ((uint) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["GT"].size());
 //
-//    EXPECT_EQ((uint) 76, vcf.records[2]->pos);
-//    EXPECT_EQ((uint) 2, vcf.records[2]->alts.size());
-//    EXPECT_EQ((uint) 1, vcf.records[2]->sampleIndex_to_sampleInfo.size());
-//    valid_gt = vcf.records[2]->sampleIndex_to_sampleInfo[0].find("GT") != vcf.records[2]->sampleIndex_to_sampleInfo[0].end();
+//    EXPECT_EQ((uint) 76, vcf.get_records()[2]->pos);
+//    EXPECT_EQ((uint) 2, vcf.get_records()[2]->alts.size());
+//    EXPECT_EQ((uint) 1, vcf.get_records()[2]->sampleIndex_to_sampleInfo.size());
+//    valid_gt = vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].find("GT") != vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].end();
 //    EXPECT_TRUE(valid_gt);
-//    EXPECT_EQ((uint) 1, vcf.records[2]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint) 3, vcf.records[2]->sampleIndex_to_sampleInfo[0].size());
-//    bool found = vcf.records[2]->sampleIndex_to_sampleInfo[0].find("LIKELIHOOD") != vcf.records[2]->sampleIndex_to_sampleInfo[0].end();
+//    EXPECT_EQ((uint) 1, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["GT"][0]);
+//    EXPECT_EQ((uint) 3, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].size());
+//    bool found = vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].find("LIKELIHOOD") != vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].end();
 //    EXPECT_TRUE(found);
-//    EXPECT_EQ((uint) 3, vcf.records[2]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"].size());
-//    EXPECT_EQ(-50.0, vcf.records[2]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"][0]);
-//    EXPECT_EQ(-3.0, vcf.records[2]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"][1]);
-//    EXPECT_EQ(-16.0, vcf.records[2]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"][2]);
-//    EXPECT_EQ((uint) 3, vcf.records[2]->sampleIndex_to_sampleInfo[0]["GAPS"].size());
-//    EXPECT_EQ(4, vcf.records[2]->sampleIndex_to_sampleInfo[0]["GAPS"][0]);
-//    EXPECT_EQ(0, vcf.records[2]->sampleIndex_to_sampleInfo[0]["GAPS"][1]);
-//    EXPECT_EQ(1, vcf.records[2]->sampleIndex_to_sampleInfo[0]["GAPS"][2]);
-//    found = vcf.records[2]->sampleIndex_to_sampleInfo[0].find("GT_CONF") != vcf.records[2]->sampleIndex_to_sampleInfo[0].end();
+//    EXPECT_EQ((uint) 3, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"].size());
+//    EXPECT_EQ(-50.0, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"][0]);
+//    EXPECT_EQ(-3.0, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"][1]);
+//    EXPECT_EQ(-16.0, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"][2]);
+//    EXPECT_EQ((uint) 3, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["GAPS"].size());
+//    EXPECT_EQ(4, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["GAPS"][0]);
+//    EXPECT_EQ(0, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["GAPS"][1]);
+//    EXPECT_EQ(1, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["GAPS"][2]);
+//    found = vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].find("GT_CONF") != vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].end();
 //    EXPECT_TRUE(found);
-//    EXPECT_EQ((uint) 1, vcf.records[2]->sampleIndex_to_sampleInfo[0]["GT_CONF"].size());
-//    EXPECT_EQ(13.0, vcf.records[2]->sampleIndex_to_sampleInfo[0]["GT_CONF"][0]);
+//    EXPECT_EQ((uint) 1, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["GT_CONF"].size());
+//    EXPECT_EQ(13.0, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["GT_CONF"][0]);
 //
-//    EXPECT_EQ((uint) 85, vcf.records[3]->pos);
-//    EXPECT_EQ((uint) 1, vcf.records[3]->alts.size());
-//    EXPECT_EQ((uint) 85, vcf.records[4]->pos);
-//    EXPECT_EQ((uint) 1, vcf.records[4]->alts.size());
+//    EXPECT_EQ((uint) 85, vcf.get_records()[3]->pos);
+//    EXPECT_EQ((uint) 1, vcf.get_records()[3]->alts.size());
+//    EXPECT_EQ((uint) 85, vcf.get_records()[4]->pos);
+//    EXPECT_EQ((uint) 1, vcf.get_records()[4]->alts.size());
 //}
 
 
@@ -1190,11 +1194,11 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, two_records_to_be_merged___
 //    vcf.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP", "GRAPHTYPE=SIMPLE");
 //
 //    // first record maps to both samples
-//    vcf.records[0]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {1, 2};
-//    vcf.records[0]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"] = {1, 3};
+//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {1, 2};
+//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"] = {1, 3};
 //
 //    // second record maps to first sample only
-//    vcf.records[1]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {1, 4};
+//    vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {1, 4};
 //
 //    // do the merge
 //    vcf = vcf.merge_multi_allelic();
@@ -1245,31 +1249,31 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, two_records_to_be_merged___
 //    vcf.correct_dot_alleles(vcf_ref, "chrom1");
 //    vcf.correct_dot_alleles(vcf_ref, "chrom2");
 //
-//    EXPECT_EQ(vcf.records[0]->ref, "T");
-//    EXPECT_EQ(vcf.records[1]->ref, "C");
-//    EXPECT_EQ(vcf.records[2]->ref, "TTA");
-//    EXPECT_EQ(vcf.records[3]->ref, "TA");
-//    EXPECT_EQ(vcf.records[4]->ref, "TA");
-//    EXPECT_EQ(vcf.records[5]->ref, "CTA");
-//    EXPECT_EQ(vcf.records[6]->ref, "T");
-//    EXPECT_EQ(vcf.records[7]->ref, "T");
+//    EXPECT_EQ(vcf.get_records()[0]->ref, "T");
+//    EXPECT_EQ(vcf.get_records()[1]->ref, "C");
+//    EXPECT_EQ(vcf.get_records()[2]->ref, "TTA");
+//    EXPECT_EQ(vcf.get_records()[3]->ref, "TA");
+//    EXPECT_EQ(vcf.get_records()[4]->ref, "TA");
+//    EXPECT_EQ(vcf.get_records()[5]->ref, "CTA");
+//    EXPECT_EQ(vcf.get_records()[6]->ref, "T");
+//    EXPECT_EQ(vcf.get_records()[7]->ref, "T");
 //
-//    EXPECT_EQ(vcf.records[0]->alts.size(), 1);
-//    EXPECT_EQ(vcf.records[0]->alts[0], "TAT");
-//    EXPECT_EQ(vcf.records[1]->alts.size(), 1);
-//    EXPECT_EQ(vcf.records[1]->alts[0], "CA");
-//    EXPECT_EQ(vcf.records[2]->alts.size(), 1);
-//    EXPECT_EQ(vcf.records[2]->alts[0], "T");
-//    EXPECT_EQ(vcf.records[3]->alts.size(), 1);
-//    EXPECT_EQ(vcf.records[3]->alts[0], "T");
-//    EXPECT_EQ(vcf.records[4]->alts.size(), 1);
-//    EXPECT_EQ(vcf.records[4]->alts[0], "A");
-//    EXPECT_EQ(vcf.records[5]->alts.size(), 1);
-//    EXPECT_EQ(vcf.records[5]->alts[0], "C");
-//    EXPECT_EQ(vcf.records[6]->alts.size(), 1);
-//    EXPECT_EQ(vcf.records[6]->alts[0], "TT");
-//    EXPECT_EQ(vcf.records[7]->alts.size(), 1);
-//    EXPECT_EQ(vcf.records[7]->alts[0], "TTA");
+//    EXPECT_EQ(vcf.get_records()[0]->alts.size(), 1);
+//    EXPECT_EQ(vcf.get_records()[0]->alts[0], "TAT");
+//    EXPECT_EQ(vcf.get_records()[1]->alts.size(), 1);
+//    EXPECT_EQ(vcf.get_records()[1]->alts[0], "CA");
+//    EXPECT_EQ(vcf.get_records()[2]->alts.size(), 1);
+//    EXPECT_EQ(vcf.get_records()[2]->alts[0], "T");
+//    EXPECT_EQ(vcf.get_records()[3]->alts.size(), 1);
+//    EXPECT_EQ(vcf.get_records()[3]->alts[0], "T");
+//    EXPECT_EQ(vcf.get_records()[4]->alts.size(), 1);
+//    EXPECT_EQ(vcf.get_records()[4]->alts[0], "A");
+//    EXPECT_EQ(vcf.get_records()[5]->alts.size(), 1);
+//    EXPECT_EQ(vcf.get_records()[5]->alts[0], "C");
+//    EXPECT_EQ(vcf.get_records()[6]->alts.size(), 1);
+//    EXPECT_EQ(vcf.get_records()[6]->alts[0], "TT");
+//    EXPECT_EQ(vcf.get_records()[7]->alts.size(), 1);
+//    EXPECT_EQ(vcf.get_records()[7]->alts[0], "TTA");
 //}
 //
 
@@ -1285,6 +1289,7 @@ public:
     class VCFMock : public VCF {
     public:
         using VCF::VCF;
+        using VCF::records;
         MOCK_METHOD(std::vector<VCFRecord*>, get_all_records_overlapping_the_given_record, (const VCFRecord &vcf_record), (override));
     };
 
@@ -1417,49 +1422,49 @@ TEST_F(VCFTest___make_gt_compatible___Fixture, several_records___conflict) {
 //    vcf.add_record("chrom1", 76, "CTT", "TA");
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 76, "CTT", "TA");
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 76, "CTT", "A");
-//    vcf.records[4]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1, vcf.genotyping_options);
-//    vcf.records[5]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1, vcf.genotyping_options);
-//    vcf.records[4]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-50, -3};
-//    vcf.records[5]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-50, -16};
-//    vcf.records[4]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {47};
-//    vcf.records[5]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {56};
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1, vcf.genotyping_options);
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1, vcf.genotyping_options);
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-50, -3};
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-50, -16};
+//    vcf.get_records()[4]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {47};
+//    vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {56};
 //    // gt incompatible one ref, ref correct
 //    vcf.add_record("chrom1", 85, "A", "G");
 //    vcf.add_record("chrom1", 85, "A", "C");
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 85, "A", "A");
-//    vcf.records[6]->sampleIndex_to_sampleInfo[0]["GT"] = {1};
-//    vcf.records[6]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1);
-//    vcf.records[7]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1);
-//    vcf.records[6]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-5, -30};
-//    vcf.records[7]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-5, -16};
-//    vcf.records[6]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {47};
-//    vcf.records[7]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {56};
+//    vcf.get_records()[6]->sampleIndex_to_sampleInfo[0]["GT"] = {1};
+//    vcf.get_records()[6]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1);
+//    vcf.get_records()[7]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1);
+//    vcf.get_records()[6]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-5, -30};
+//    vcf.get_records()[7]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-5, -16};
+//    vcf.get_records()[6]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {47};
+//    vcf.get_records()[7]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {56};
 //    // gt incompatible one ref, ref wrong
 //    vcf.add_record("chrom1", 95, "A", "G");
 //    vcf.add_record("chrom1", 95, "A", "C");
 //    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 95, "A", "A");
-//    vcf.records[8]->sampleIndex_to_sampleInfo[0]["GT"] = {1};
-//    vcf.records[8]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1);
-//    vcf.records[9]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1);
-//    vcf.records[8]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-50, -3};
-//    vcf.records[9]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-50, -60};
-//    vcf.records[8]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {47};
-//    vcf.records[9]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {10};
+//    vcf.get_records()[8]->sampleIndex_to_sampleInfo[0]["GT"] = {1};
+//    vcf.get_records()[8]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1);
+//    vcf.get_records()[9]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1);
+//    vcf.get_records()[8]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-50, -3};
+//    vcf.get_records()[9]->sampleIndex_to_sampleInfo[0]["LIKELIHOOD"] = {-50, -60};
+//    vcf.get_records()[8]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {47};
+//    vcf.get_records()[9]->sampleIndex_to_sampleInfo[0]["GT_CONF"] = {10};
 //
 //    vcf.make_gt_compatible();
 //
-//    bool valid_gt = vcf.records[0]->sampleIndex_to_sampleInfo[0].find("GT") != vcf.records[0]->sampleIndex_to_sampleInfo[0].end();
+//    bool valid_gt = vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].find("GT") != vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].end();
 //    EXPECT_FALSE(valid_gt);
-//    valid_gt = vcf.records[1]->sampleIndex_to_sampleInfo[0].find("GT") != vcf.records[1]->sampleIndex_to_sampleInfo[0].end();
+//    valid_gt = vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].find("GT") != vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].end();
 //    EXPECT_FALSE(valid_gt);
-//    EXPECT_EQ((uint) 0, vcf.records[2]->sampleIndex_to_sampleInfo[0]["GT"].size());
-//    EXPECT_EQ((uint) 0, vcf.records[3]->sampleIndex_to_sampleInfo[0]["GT"].size());
-//    EXPECT_EQ((uint16_t) 1, vcf.records[4]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint) 0, vcf.records[5]->sampleIndex_to_sampleInfo[0]["GT"].size());
-//    EXPECT_EQ((uint16_t) 0, vcf.records[6]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.records[7]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint16_t) 1, vcf.records[8]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.records[9]->sampleIndex_to_sampleInfo[0]["GT"].size());
+//    EXPECT_EQ((uint) 0, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["GT"].size());
+//    EXPECT_EQ((uint) 0, vcf.get_records()[3]->sampleIndex_to_sampleInfo[0]["GT"].size());
+//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[4]->sampleIndex_to_sampleInfo[0]["GT"][0]);
+//    EXPECT_EQ((uint) 0, vcf.get_records()[5]->sampleIndex_to_sampleInfo[0]["GT"].size());
+//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[6]->sampleIndex_to_sampleInfo[0]["GT"][0]);
+//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[7]->sampleIndex_to_sampleInfo[0]["GT"][0]);
+//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[8]->sampleIndex_to_sampleInfo[0]["GT"][0]);
+//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[9]->sampleIndex_to_sampleInfo[0]["GT"].size());
 //}
 
 
@@ -1582,23 +1587,6 @@ TEST_F(VCFTest___get_all_records_overlapping_the_given_record___Fixture, indexin
     EXPECT_EQ(*(expected[3]), vcf_record_7_to_8);
     EXPECT_EQ(*(expected[4]), vcf_record_9_to_12);
 }
-
-TEST_F(VCFTest___get_all_records_overlapping_the_given_record___Fixture, indexing_all_records___then_cleaning_the_vcf___and_querying___expects_nothing_found) {
-    vcf.add_record(vcf_record_5_to_10);
-    vcf.add_record(vcf_record_7_to_8);
-    vcf.add_record(vcf_record_9_to_12);
-    vcf.add_record(vcf_record_10_to_12);
-    vcf.add_record(vcf_record_3_to_6);
-    vcf.add_record(vcf_record_3_to_5);
-    vcf.add_record(vcf_record_3_to_13);
-    vcf.add_record(vcf_record_5_to_10_other_chrom);
-
-    vcf.clean();
-    std::vector<VCFRecord*> expected = vcf.get_all_records_overlapping_the_given_record(vcf_record_5_to_10);
-
-    EXPECT_EQ(expected.size(), 0);
-}
-
 
 TEST(VCFTest, equals) {
     VCF vcf = create_VCF_with_default_parameters();
