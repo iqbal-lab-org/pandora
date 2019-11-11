@@ -7,15 +7,18 @@
 #include <cstdint>
 #include <unordered_map>
 #include "sampleinfo.h"
+#include "vcf.h"
 
-struct VCFRecord {
+class VCF;
+
+class VCFRecord {
 public:
+    VCF const * parent_vcf;
+
     //#CHROM POS ID REF ALT QUAL FILTER INFO FORMAT
     std::string chrom;
     uint32_t pos;
     std::string id; // not used
-    std::string ref;
-    std::vector<std::string> alts;
     std::string qual; // not used
     std::string filter; // not used
     std::string info;
@@ -24,9 +27,9 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // constructors, destructors, operator=, etc
     // TODO: make sure only consistent VCFs are built (e.g. at least two alleles: ref + 1 alt)?
-    VCFRecord(const std::string &chrom, uint32_t pos, const std::string &ref, const std::string &alt,
+    VCFRecord(VCF const * parent_vcf, const std::string &chrom, uint32_t pos, const std::string &ref, const std::string &alt,
               const std::string &info=".", const std::string &graph_type_info="");
-    VCFRecord();
+    VCFRecord(VCF const * parent_vcf);
     VCFRecord(const VCFRecord &) = default;
     virtual std::shared_ptr<VCFRecord> make_copy_as_shared_ptr () const {
         return std::make_shared<VCFRecord>(*this);
@@ -34,6 +37,42 @@ public:
     virtual VCFRecord &operator=(const VCFRecord &) = default;
     virtual ~VCFRecord(){}
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // getters
+    virtual inline const std::string &get_ref() const {
+        return ref;
+    }
+
+    virtual inline const std::vector<std::string> &get_alts() const {
+        return alts;
+    }
+
+    virtual inline uint32_t get_number_of_alleles() const {
+        return 1 + alts.size();
+    }
+
+    virtual inline bool allele_is_valid (const std::string &allele) const {
+        return allele != "" and allele != ".";
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // modifiers
+    virtual inline void set_ref(std::string ref);
+    virtual inline void add_new_alt(const std::string &alt);
+
+    template <class ITERATOR_TYPE>
+    inline void add_new_alts(ITERATOR_TYPE begin, ITERATOR_TYPE end) {
+        for(;begin<end;++begin) {
+            add_new_alt(*begin);
+        }
+    }
+
+    virtual inline void add_new_samples(uint32_t number_of_samples);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 
@@ -123,8 +162,9 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // merging related methods
     virtual inline void merge_record_into_this(const VCFRecord &other) {
+        assert(there_are_no_common_alt_alleles_between_this_and_other(other));
         this->sampleIndex_to_sampleInfo.merge_other_samples_infos_into_this(other.sampleIndex_to_sampleInfo);
-        add_alts(other);
+        add_new_alts(other.get_alts().begin(), other.get_alts().end());
     }
 
     virtual bool can_biallelic_record_be_merged_into_this (const VCFRecord &vcf_record_to_be_merged_in, uint32_t max_allele_length = 10000) const;
@@ -132,7 +172,9 @@ public:
 
 
     virtual inline void clear() {
-        *this = VCFRecord();
+        *this = VCFRecord(parent_vcf);
+    }
+
     }
 
 
@@ -142,11 +184,17 @@ public:
     // friend std::istream &operator>>(std::istream &in, VCFRecord &m);
 
 protected:
+    std::string ref;
+    std::vector<std::string> alts;
+
+
     std::string infer_SVTYPE() const;
 
     virtual inline void add_alts(const VCFRecord &other) {
         this->alts.insert(this->alts.end(), other.alts.begin(), other.alts.end());
     }
+
+    virtual inline bool there_are_no_common_alt_alleles_between_this_and_other(const VCFRecord &other) const;
 };
 
 #endif

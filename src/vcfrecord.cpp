@@ -3,26 +3,24 @@
 #include <vector>
 #include <algorithm>
 #include <boost/log/trivial.hpp>
-#include "vcf.h"
+#include <vcfrecord.h>
 
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 
-VCFRecord::VCFRecord(const std::string &chrom, uint32_t pos, const std::string &ref, const std::string &alt,
-                     const std::string &info, const std::string &graph_type_info) : chrom(chrom),
-                                                                                    pos(pos),
-                                                                                    id("."),
-                                                                                    ref(ref),
-                                                                                    qual("."),
-                                                                                    filter("."),
-                                                                                    info(info) {
-    if (alt != "")
-        this->alts.push_back(alt);
-
-    if (this->ref == "") {
-        this->ref = ".";
-    }
+VCFRecord::VCFRecord(VCF const * parent_vcf, const std::string &chrom, uint32_t pos, const std::string &ref, const std::string &alt,
+                     const std::string &info, const std::string &graph_type_info) :
+                     parent_vcf(parent_vcf),
+                     chrom(chrom),
+                     pos(pos),
+                     id("."),
+                     qual("."),
+                     filter("."),
+                     info(info) {
+    add_new_samples(parent_vcf->samples.size());
+    set_ref(ref);
+    add_new_alt(alt);
 
     if (this->info == ".") {
         this->info = infer_SVTYPE();
@@ -34,7 +32,11 @@ VCFRecord::VCFRecord(const std::string &chrom, uint32_t pos, const std::string &
     }
 }
 
-VCFRecord::VCFRecord() : chrom("."), pos(0), id("."), ref("."), qual("."), filter("."), info(".") {}
+VCFRecord::VCFRecord(VCF const * parent_vcf) : chrom("."), pos(0), id("."), qual("."), filter("."),
+    info("."), parent_vcf(parent_vcf) {
+    add_new_samples(parent_vcf->samples.size());
+    set_ref(".");
+}
 
 std::string VCFRecord::infer_SVTYPE() const {
     // TODO: How to handle cases where there are more than 2 options, not all of one type
@@ -233,8 +235,40 @@ bool VCFRecord::can_biallelic_record_be_merged_into_this (const VCFRecord &vcf_r
     bool vcf_record_should_be_merged_in = vcf_record_to_be_merged_in != (*this)
                                           and this->has_the_same_position(vcf_record_to_be_merged_in)
                                           and both_records_have_the_same_ref
-                                          and all_alleles_have_at_most_max_allele_length;
+                                          and all_alleles_have_at_most_max_allele_length
+                                          and there_are_no_common_alt_alleles_between_this_and_other(vcf_record_to_be_merged_in);
 
     return vcf_record_should_be_merged_in;
 }
 
+
+void VCFRecord::set_ref(std::string ref) {
+    if (ref == "") {
+        ref = ".";
+    }
+    this->ref = ref;
+    set_number_of_alleles_and_resize_coverage_information_for_all_samples(1);
+}
+
+void VCFRecord::add_new_alt(const std::string &alt) {
+    if (not allele_is_valid(alt))
+        return;
+    if (std::find(alts.begin(), alts.end(), alt) != alts.end())
+        return;
+
+    alts.push_back(alt);
+    set_number_of_alleles_and_resize_coverage_information_for_all_samples(alts.size() + 1);
+}
+
+
+void VCFRecord::add_new_samples(uint32_t number_of_samples) {
+    sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(number_of_samples, get_number_of_alleles() ,parent_vcf->genotyping_options);
+}
+
+bool VCFRecord::there_are_no_common_alt_alleles_between_this_and_other(const VCFRecord &other) const {
+    std::set<std::string> all_unique_alt_alleles;
+    all_unique_alt_alleles.insert(this->get_alts().begin(), this->get_alts().end());
+    all_unique_alt_alleles.insert(other.get_alts().begin(), other.get_alts().end());
+    size_t the_size_we_are_supposed_to_have_if_there_are_no_common_alt_alleles = this->get_alts().size() + other.get_alts().size();
+    return all_unique_alt_alleles.size() == the_size_we_are_supposed_to_have_if_there_are_no_common_alt_alleles;
+}
