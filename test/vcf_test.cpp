@@ -1103,7 +1103,7 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, two_records_to_be_merged___
 
 TEST(VCFTest___merge_multi_allelic, vcf_with_two_samples_and_two_records_second_record_does_not_map_to_second_sample) {
     // declares vcf with two samples
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
     vcf.add_samples({"sample1", "sample2"});
 
     // add two bi-allelic records to be merged
@@ -1132,23 +1132,19 @@ TEST(VCFTest___merge_multi_allelic, vcf_with_two_samples_and_two_records_second_
     // do the merge
     vcf = vcf.merge_multi_allelic();
 
-    // output the vcf just for us to look at it
-    std::cout << vcf.to_string(true, false) << std::endl;
+    EXPECT_EQ(1, vcf.get_VCF_size());
+    EXPECT_EQ("chrom1", vcf.get_records()[0]->get_chrom());
+    EXPECT_EQ(5, vcf.get_records()[0]->get_pos());
+    EXPECT_EQ("A", vcf.get_records()[0]->get_ref());
+    EXPECT_EQ(std::vector<std::string>({"C", "G"}), vcf.get_records()[0]->get_alts());
+    EXPECT_EQ(2, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ(1, vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].get_mean_forward_coverage(0));
+    EXPECT_EQ(2, vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].get_mean_forward_coverage(1));
+    EXPECT_EQ(4, vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].get_mean_forward_coverage(2));
+    EXPECT_EQ(1, vcf.get_records()[0]->sampleIndex_to_sampleInfo[1].get_mean_forward_coverage(0));
+    EXPECT_EQ(3, vcf.get_records()[0]->sampleIndex_to_sampleInfo[1].get_mean_forward_coverage(1));
+    EXPECT_EQ(0, vcf.get_records()[0]->sampleIndex_to_sampleInfo[1].get_mean_forward_coverage(2));
 
-
-    /*
-Doubts come here:
-Current output:
-chrom1	6	.	A	G	.	.	SVTYPE=SNP	GT:MEAN_FWD_COVG	.:.	.:1,3
-chrom1	6	.	A	G,C	.	.	SVTYPE=SNP	GT:MEAN_FWD_COVG	.:1,2,4	.:1,3
-
-Bugs (I think):
-1. First record should be removed, as it got merged into the second one
-2. ".:1,3" -> ".:1,3,0" - we should add a coverage of 0 if the record does not map to a sample
-     * Or should it be ".:1,3" -> ".:1,3,." : a '.' instead of 0?
-
-Expected output (? - could you please fill - it can be the str representation of the record?):
-     */
 }
 
 
