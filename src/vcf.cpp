@@ -25,7 +25,7 @@ void VCF::add_record_core(const VCFRecord &vr) {
 
 void VCF::add_record(const std::string &chrom, uint32_t position, const std::string &ref,
                      const std::string &alt, const std::string &info, const std::string &graph_type_info) {
-    VCFRecord vr(chrom, position, ref, alt, info, graph_type_info);
+    VCFRecord vr(this, chrom, position, ref, alt, info, graph_type_info);
     this->add_record(vr);
 }
 
@@ -33,29 +33,27 @@ void VCF::add_record(const std::string &chrom, uint32_t position, const std::str
 void VCF::add_record(const VCFRecord &vcf_record) {
     if (find_record_in_records(vcf_record) == records.end()) { //TODO: improve this search to log(n) using a map or sth
         add_record_core(vcf_record);
-        records.back()->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(samples.size(),
-                                                                                          genotyping_options);
     }
 }
 
 
 
-VCFRecord &VCF::add_record(VCFRecord &vr, const std::vector<std::string> &sample_names) {
+VCFRecord &VCF::add_or_update_record_restricted_to_the_given_samples(VCFRecord &vr, const std::vector<std::string> &sample_names) {
+    //TODO: refactor this, this function does too much
+
     assert(vr.sampleIndex_to_sampleInfo.size() == sample_names.size() or sample_names.size() == 0);
 
     auto record_it = find_record_in_records(vr); //TODO: improve this search to log(n) using a map or sth
     if (record_it == records.end()) {
         add_record_core(vr);
-        records.back()->sampleIndex_to_sampleInfo.clear();
-        records.back()->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(samples.size(),
-                                                                                          genotyping_options);
         record_it = --records.end();
+        (*record_it)->reset_sample_infos_to_contain_the_given_number_of_samples(samples.size());
     }
 
     for (uint32_t i=0; i < sample_names.size(); ++i){
         auto &name = sample_names[i];
-        ptrdiff_t sample_index = get_sample_index(name);
-        (*record_it)->sampleIndex_to_sampleInfo[sample_index] = vr.sampleIndex_to_sampleInfo[i];
+        ptrdiff_t sample_index = get_sample_index(name); //TODO: potentially add new samples to the VCF
+        (*record_it)->sampleIndex_to_sampleInfo[sample_index] = vr.sampleIndex_to_sampleInfo[i]; // TODO: assumes that sample_names indexes == vr's sample names
     }
 
     return **record_it;
@@ -74,9 +72,9 @@ ptrdiff_t VCF::get_sample_index(const std::string &name) {
     if (sample_it == samples.end()) {
         //cout << "this is the first time this sample has been added" << endl;
         samples.push_back(name);
-        for (uint32_t i = 0; i != records.size(); ++i) {
-            records[i]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1, genotyping_options);
-            assert(samples.size() == records[i]->sampleIndex_to_sampleInfo.size());
+        for (auto& record_ptr : records) {
+            record_ptr->add_new_samples(1);
+            assert(samples.size() == record_ptr->sampleIndex_to_sampleInfo.size());
         }
         return samples.size() - 1;
     } else {
@@ -189,14 +187,13 @@ void VCF::append_vcf(const VCF &other_vcf) {
     assert(original_size < std::numeric_limits<uint_least64_t>::max() ||
            assert_msg("VCF size has got too big to use the append feature"));
     for (uint_least64_t i = 0; i < original_size; ++i) {
-        records[i]->sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(num_samples_added,
-                                                                                      genotyping_options);
+        records[i]->add_new_samples(num_samples_added);
     }
 
     BOOST_LOG_TRIVIAL(debug) << "add the " << other_vcf.records.size() << " records";
     for (auto &recordPointer : other_vcf.records) {
         auto &record = *recordPointer;
-        VCFRecord &vr = add_record(record, other_vcf.samples);
+        VCFRecord &vr = add_or_update_record_restricted_to_the_given_samples(record, other_vcf.samples);
         for (uint_least16_t j = 0; j < other_vcf.samples.size(); ++j) {
             vr.sampleIndex_to_sampleInfo[other_sample_positions[j]] = record.sampleIndex_to_sampleInfo[j];
             //NB this overwrites old data without checking
@@ -540,4 +537,14 @@ void VCF::concatenateVCFs(const std::vector<std::string> &VCFPathsToBeConcatenat
         inFile.close();
     }
     outFile.close();
+}
+
+
+
+//find a VCRRecord in records
+std::vector<std::shared_ptr<VCFRecord>>::iterator VCF::find_record_in_records(const VCFRecord &vr) {
+    return find_if(records.begin(), records.end(), [&vr](const std::shared_ptr<VCFRecord> &record) { return *record==vr; });
+}
+std::vector<std::shared_ptr<VCFRecord>>::const_iterator VCF::find_record_in_records(const VCFRecord &vr) const {
+    return find_if(records.begin(), records.end(), [&vr](const std::shared_ptr<VCFRecord> &record) { return *record==vr; });
 }

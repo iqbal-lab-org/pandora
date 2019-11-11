@@ -13,6 +13,7 @@
 
 
 class LocalNode;
+class VCFRecord;
 
 typedef std::shared_ptr<LocalNode> LocalNodePtr;
 
@@ -44,7 +45,7 @@ public:
     virtual void add_record(const std::string &chrom, uint32_t position, const std::string &ref,
                          const std::string &alt, const std::string &info = ".", const std::string &graph_type_info = "");
     virtual void add_record(const VCFRecord &vcf_record);
-    virtual VCFRecord &add_record(VCFRecord &, const std::vector<std::string> &sample_names);
+    virtual VCFRecord &add_or_update_record_restricted_to_the_given_samples(VCFRecord &vr, const std::vector<std::string> &sample_names);
     virtual void add_samples(const std::vector<std::string> &sample_names);
     virtual void append_vcf(const VCF &);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -124,12 +125,8 @@ protected:
     virtual void add_record_core(const VCFRecord &vr);
 
     //find a VCRRecord in records
-    virtual inline std::vector<std::shared_ptr<VCFRecord>>::iterator find_record_in_records(const VCFRecord &vr) {
-        return find_if(records.begin(), records.end(), [&vr](const std::shared_ptr<VCFRecord> &record) { return *record==vr; });
-    }
-    virtual inline std::vector<std::shared_ptr<VCFRecord>>::const_iterator find_record_in_records(const VCFRecord &vr) const {
-        return find_if(records.begin(), records.end(), [&vr](const std::shared_ptr<VCFRecord> &record) { return *record==vr; });
-    }
+    virtual inline std::vector<std::shared_ptr<VCFRecord>>::iterator find_record_in_records(const VCFRecord &vr);
+    virtual inline std::vector<std::shared_ptr<VCFRecord>>::const_iterator find_record_in_records(const VCFRecord &vr) const;
 
     virtual void update_other_samples_of_this_record(VCFRecord *reference_record);
 

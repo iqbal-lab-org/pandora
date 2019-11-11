@@ -85,6 +85,8 @@ public:
     }
 
     virtual inline void add_new_samples(uint32_t number_of_samples);
+
+    virtual inline void reset_sample_infos_to_contain_the_given_number_of_samples (uint32_t number_of_samples);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 

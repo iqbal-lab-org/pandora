@@ -346,6 +346,10 @@ protected: // We forbid anyone to change this class' sample and allele informati
 
     std::vector<SAMPLE_TYPE> sample_index_to_sample_info_container;
 
+    virtual inline void clear() {
+        sample_index_to_sample_info_container.clear();
+    }
+
     virtual inline void emplace_back_several_empty_sample_infos (size_t amount, uint32_t number_of_alleles, GenotypingOptions const * genotyping_options) {
         size_t initial_size = this->size();
         for (size_t index = initial_size; index < initial_size + amount; ++index) {

@@ -272,3 +272,9 @@ bool VCFRecord::there_are_no_common_alt_alleles_between_this_and_other(const VCF
     size_t the_size_we_are_supposed_to_have_if_there_are_no_common_alt_alleles = this->get_alts().size() + other.get_alts().size();
     return all_unique_alt_alleles.size() == the_size_we_are_supposed_to_have_if_there_are_no_common_alt_alleles;
 }
+
+
+void VCFRecord::reset_sample_infos_to_contain_the_given_number_of_samples (uint32_t number_of_samples) {
+    sampleIndex_to_sampleInfo.clear();
+    sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(number_of_samples, get_number_of_alleles(), parent_vcf->genotyping_options);
+}
