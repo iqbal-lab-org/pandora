@@ -463,7 +463,7 @@ int pandora_map(int argc, char *argv[]) {
 
     consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
     if (output_vcf)
-        master_vcf.save(outdir + "/pandora_consensus.vcf");
+        master_vcf.save(outdir + "/pandora_consensus.vcf", true, false);
 
     if (pangraph->nodes.empty()) {
         std::cout << "All nodes which were found have been removed during cleaning. Is your genome_size accurate?"
@@ -476,9 +476,9 @@ int pandora_map(int argc, char *argv[]) {
     if (genotype) {
         master_vcf.genotype();
         if (snps_only)
-            master_vcf.save(outdir + "/pandora_genotyped.vcf", false, true, true, true, true, false, false, false);
+            master_vcf.save(outdir + "/pandora_genotyped.vcf", false, true,false, true, true, true, true, false, false, false);
         else
-            master_vcf.save(outdir + "/pandora_genotyped.vcf");
+            master_vcf.save(outdir + "/pandora_genotyped.vcf", false, true);
     }
 
     if (discover_denovo) {

@@ -108,7 +108,8 @@ public:
     static void concatenateVCFs(const std::vector<std::string> &VCFPathsToBeConcatenated, const std::string &sink);
 
     // serialization operations
-    virtual void save(const std::string &filepath, bool output_dot_allele = false, bool graph_is_simple = true, bool graph_is_nested = true, bool graph_has_too_many_alts = true, bool sv_type_is_snp = true, bool sv_type_is_indel = true,
+    virtual void save(const std::string &filepath, bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage,
+            bool output_dot_allele = false, bool graph_is_simple = true, bool graph_is_nested = true, bool graph_has_too_many_alts = true, bool sv_type_is_snp = true, bool sv_type_is_indel = true,
                       bool sv_type_is_ph_snps = true, bool sv_type_is_complex = true);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

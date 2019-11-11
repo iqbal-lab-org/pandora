@@ -489,7 +489,7 @@ int pandora_compare(int argc, char *argv[]) {
         //save the vcf to disk
         uint32_t dir = pangraph_node_index / nbOfVCFsPerDir + 1; //get the good dir for this sample vcf
         auto vcfPath = VCFsDirs + "/" + int_to_string(dir) + "/" + prg_ptr->name + ".vcf";
-        vcf.save(vcfPath);
+        vcf.save(vcfPath, true, false);
 
         //add the vcf path to VCFPathsToBeConcatenated to concatenate after
         #pragma omp critical(VCFPathsToBeConcatenated)
@@ -504,7 +504,7 @@ int pandora_compare(int argc, char *argv[]) {
 
             //save the genotyped vcf to disk
             auto vcfGenotypedPath = VCFsGenotypedDirs + "/" + int_to_string(dir) + "/" + prg_ptr->name + "_genotyped.vcf";
-            vcf.save(vcfGenotypedPath);
+            vcf.save(vcfGenotypedPath, false, true);
 
             //add the genotyped vcf path to VCFGenotypedPathsToBeConcatenated to concatenate after
             #pragma omp critical(VCFGenotypedPathsToBeConcatenated)
