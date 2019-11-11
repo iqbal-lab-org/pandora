@@ -230,19 +230,6 @@ void VCF::genotype() {
     make_gt_compatible();
 }
 
-void VCF::clean() {
-    VCFRecord dummy;
-    for (auto record_it = records.begin(); record_it != records.end();) {
-        if (**record_it == dummy)
-            record_it = records.erase(record_it);
-        else
-            record_it++;
-    }
-}
-
-
-
-
 void VCF::merge_multi_allelic_core(VCF &merged_VCF, uint32_t max_allele_length) const {
     VCF empty_vcf = VCF(merged_VCF.genotyping_options);
     bool merged_VCF_passed_as_parameter_is_initially_empty = merged_VCF == empty_vcf;
@@ -286,55 +273,57 @@ void VCF::merge_multi_allelic_core(VCF &merged_VCF, uint32_t max_allele_length) 
     assert(merged_VCF.get_VCF_size() <= vcf_size);
 }
 
-void VCF::correct_dot_alleles(const std::string &vcf_ref, const std::string &chrom) {
+VCF VCF::correct_dot_alleles(const std::string &vcf_ref, const std::string &chrom) const {
+    // TODO: optimize this to several loci
+
     //NB need to merge multiallelic before
     //NB cannot add covgs after
-    auto vcf_size = records.size();
+
+    VCF vcf_with_dot_alleles_corrected(genotyping_options);
+    vcf_with_dot_alleles_corrected.add_samples(samples);
+
     for (auto &recordPointer : records) {
         auto &record = *recordPointer;
-        if (record.chrom != chrom)
+
+        bool we_are_not_in_the_given_chrom = record.get_chrom() != chrom;
+
+        if (we_are_not_in_the_given_chrom) {
+            vcf_with_dot_alleles_corrected.add_record(record);
             continue;
-        assert(vcf_ref.length() >= record.pos || assert_msg("vcf_ref.length() = " << vcf_ref.length() << "!>= record.pos "
-                                                                                 << record.pos << "\n" << record.to_string(true, false) << "\n"
-                                                                                 << vcf_ref));
-        bool add_prev_letter = record.contains_dot_allele();
-
-        if (add_prev_letter and record.pos > 0) {
-            BOOST_LOG_TRIVIAL(debug) << record.pos;
-            auto prev_letter = vcf_ref[record.pos - 1];
-            BOOST_LOG_TRIVIAL(debug) << prev_letter;
-            if (record.ref == "" or record.ref == ".")
-                record.ref = prev_letter;
-            else
-                record.ref = prev_letter + record.ref;
-                record.pos -= 1;
-            for (auto &a : record.alts){
-                if(a == "" or a == ".")
-                    a = prev_letter;
-                else
-                    a = prev_letter + a;
-            }
-
-
-        } else if (add_prev_letter and record.pos + record.ref.length() + 1 < vcf_ref.length()) {
-            auto next_letter = vcf_ref[record.pos + record.ref.length()];
-            if (record.ref == "" or record.ref == ".") {
-                next_letter = vcf_ref[record.pos];
-                record.ref = next_letter;
-            } else
-                record.ref = record.ref + next_letter;
-            for (auto &a : record.alts)
-                if(a == "" or a == ".")
-                    a = next_letter;
-                else
-                    a = a + next_letter;
-        } else if (add_prev_letter) {
-            record.clear();
         }
+
+        assert(vcf_ref.length() >= record.get_pos() || assert_msg("vcf_ref.length() = " << vcf_ref.length() << "!>= record.get_pos() "
+                                                                                 << record.get_pos() << "\n" << record.to_string(true, false) << "\n"
+                                                                                 << vcf_ref));
+        bool record_contains_dot_allele = record.contains_dot_allele();
+        bool record_did_not_contain_dot_allele_or_was_corrected = true;
+        bool there_is_a_previous_letter = record.get_pos() > 0;
+        bool there_is_a_next_letter = record.get_pos() + record.get_ref().length() + 1 < vcf_ref.length();
+        if (record_contains_dot_allele and there_is_a_previous_letter) {
+            char prev_letter = vcf_ref[record.get_pos() - 1];
+            record.correct_dot_alleles_adding_nucleotide_before(prev_letter);
+        } else if (record_contains_dot_allele and there_is_a_next_letter) {
+            char next_letter;
+            if (record.allele_is_valid(record.get_ref())) {
+                next_letter = vcf_ref[record.get_pos() + record.get_ref().length()];
+            }else {
+                next_letter = vcf_ref[record.get_pos()];
+            }
+            record.correct_dot_alleles_adding_nucleotide_after(next_letter);
+        } else if (record_contains_dot_allele) {
+            record_did_not_contain_dot_allele_or_was_corrected = false;
+        }
+
+        if (record_did_not_contain_dot_allele_or_was_corrected) {
+            vcf_with_dot_alleles_corrected.add_record(record);
+        }
+
     }
-    clean();
-    assert(records.size() <= vcf_size);
-    sort_records();
+
+    assert(vcf_with_dot_alleles_corrected.get_VCF_size() <= this->get_VCF_size());
+
+    vcf_with_dot_alleles_corrected.sort_records();
+    return vcf_with_dot_alleles_corrected;
 }
 
 void VCF::make_gt_compatible() {

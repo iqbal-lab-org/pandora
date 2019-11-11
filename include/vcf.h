@@ -82,7 +82,7 @@ public:
         merge_multi_allelic_core(merged_VCF, max_allele_length);
         return merged_VCF;
     }
-    virtual void correct_dot_alleles(const std::string &, const std::string &);
+    virtual VCF correct_dot_alleles(const std::string &vcf_ref, const std::string &chrom) const;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -98,7 +98,6 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // misc methods
     virtual void sort_records(); // TODO: remove this method and store the records always sorted
-    virtual void clean();
     virtual bool pos_in_range(const uint32_t, const uint32_t, const std::string &) const;
 
     /**

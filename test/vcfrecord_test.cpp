@@ -119,12 +119,22 @@ TEST_F(VCFRecordTest___default_VCF_Record___Fixture, add_new_alt___alt_is_empty_
     EXPECT_EQ(1, vcf_record.sampleIndex_to_sampleInfo[0].get_number_of_alleles());
 }
 
-TEST_F(VCFRecordTest___default_VCF_Record___Fixture, add_new_alt___alt_is_dot___not_added) {
+TEST_F(VCFRecordTest___default_VCF_Record___Fixture, add_new_alt___alt_is_dot___added) {
     vcf_record.add_new_alt(".");
 
-    EXPECT_EQ(0, vcf_record.get_alts().size());
-    EXPECT_EQ(1, vcf_record.sampleIndex_to_sampleInfo[0].get_number_of_alleles());
+    EXPECT_EQ(1, vcf_record.get_alts().size());
+    EXPECT_EQ(2, vcf_record.sampleIndex_to_sampleInfo[0].get_number_of_alleles());
 }
+
+TEST_F(VCFRecordTest___default_VCF_Record___Fixture, add_new_alt___add_a_dot_alt___then_a_valid_alt___only_valid_alt_remains) {
+    vcf_record.add_new_alt(".");
+    vcf_record.add_new_alt("A");
+
+    EXPECT_EQ(1, vcf_record.get_alts().size());
+    EXPECT_EQ("A", vcf_record.get_alts()[0]);
+    EXPECT_EQ(2, vcf_record.sampleIndex_to_sampleInfo[0].get_number_of_alleles());
+}
+
 
 TEST_F(VCFRecordTest___default_VCF_Record___Fixture, add_new_alt___alt_is_valid) {
     vcf_record.add_new_alt("AC");

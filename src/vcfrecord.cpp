@@ -242,6 +242,39 @@ bool VCFRecord::can_biallelic_record_be_merged_into_this (const VCFRecord &vcf_r
 }
 
 
+void VCFRecord::correct_dot_alleles (char nucleotide, bool add_nucleotide_before_the_sequence) {
+    std::string prefix = "";
+    std::string suffix = "";
+    int pos_change = 0;
+
+    if (add_nucleotide_before_the_sequence) {
+        prefix += nucleotide;
+        pos_change = -1;
+    }else {
+        suffix += nucleotide;
+        pos_change = 0;
+    }
+
+    if (allele_is_valid(get_ref())) {
+        ref = prefix + ref + suffix;
+    }
+    else {
+        ref = nucleotide;
+    }
+
+    for (auto &alt : alts){
+        if(allele_is_valid(alt)) {
+            alt = prefix + alt + suffix;
+        }
+        else {
+            alt = nucleotide;
+        }
+    }
+
+    pos += pos_change;
+}
+
+
 void VCFRecord::set_ref(std::string ref) {
     if (ref == "") {
         ref = ".";
@@ -250,11 +283,17 @@ void VCFRecord::set_ref(std::string ref) {
     set_number_of_alleles_and_resize_coverage_information_for_all_samples(1);
 }
 
-void VCFRecord::add_new_alt(const std::string &alt) {
-    if (not allele_is_valid(alt))
+void VCFRecord::add_new_alt(std::string alt) {
+    if (alt == "")
         return;
+
     if (std::find(alts.begin(), alts.end(), alt) != alts.end())
         return;
+
+    bool only_dot_alt_is_present = alts.size()==1 and alts[0]==".";
+    if (only_dot_alt_is_present) {
+        alts.clear();
+    }
 
     alts.push_back(alt);
     set_number_of_alleles_and_resize_coverage_information_for_all_samples(alts.size() + 1);

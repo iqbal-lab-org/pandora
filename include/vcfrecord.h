@@ -75,12 +75,14 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // modifiers
     virtual inline void set_ref(std::string ref);
-    virtual inline void add_new_alt(const std::string &alt);
+    virtual inline void add_new_alt(std::string alt);
 
     template <class ITERATOR_TYPE>
     inline void add_new_alts(ITERATOR_TYPE begin, ITERATOR_TYPE end) {
         for(;begin<end;++begin) {
-            add_new_alt(*begin);
+            if (allele_is_valid(*begin)) {
+                add_new_alt(*begin);
+            }
         }
     }
 
@@ -191,8 +193,13 @@ public:
         *this = VCFRecord(parent_vcf);
     }
 
+    virtual inline void correct_dot_alleles_adding_nucleotide_before (char nucleotide) {
+        correct_dot_alleles(nucleotide, true);
     }
 
+    virtual inline void correct_dot_alleles_adding_nucleotide_after (char nucleotide) {
+        correct_dot_alleles(nucleotide, false);
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -208,8 +215,10 @@ protected:
 
     std::string infer_SVTYPE() const;
 
-    virtual inline void add_alts(const VCFRecord &other) {
-        this->alts.insert(this->alts.end(), other.alts.begin(), other.alts.end());
+    virtual void correct_dot_alleles (char nucleotide, bool add_nucleotide_before_the_sequence);
+
+    virtual inline void set_number_of_alleles_and_resize_coverage_information_for_all_samples (uint32_t number_of_alleles) {
+        sampleIndex_to_sampleInfo.set_number_of_alleles_and_resize_coverage_information_for_all_samples(number_of_alleles);
     }
 
     virtual inline bool there_are_no_common_alt_alleles_between_this_and_other(const VCFRecord &other) const;

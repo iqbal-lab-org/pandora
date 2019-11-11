@@ -1241,57 +1241,57 @@ Expected output (? - could you please fill - it can be the str representation of
 
 
 
-//TEST(VCFTest, correct_dot_alleles) {
-//    VCF vcf = create_VCF_with_default_parameters();
-//    // at start
-//    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 0, ".", "TA");
-//    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom2", 0, "T", ".");
-//    // in middle
-//    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 35, ".", "A");
-//    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom2", 35, "TA", ".");
-//    // multiple alts
-//    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 44, "TA", "T");
-//    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 44, "TA", ".");
-//    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom2", 44, ".", "T");
-//    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom2", 44, ".", "TA");
-//
-//    string vcf_ref = "TATATGTGTC"
-//            "GCGACACTGC"
-//            "ATGCATGCAT"
-//            "AGTCCTAAAG"
-//            "TCCTTAAACG"
-//            "TTTATAGTCG";
-//
-//    vcf.correct_dot_alleles(vcf_ref, "chrom1");
-//    vcf.correct_dot_alleles(vcf_ref, "chrom2");
-//
-//    EXPECT_EQ(vcf.get_records()[0]->get_ref(), "T");
-//    EXPECT_EQ(vcf.get_records()[1]->get_ref(), "C");
-//    EXPECT_EQ(vcf.get_records()[2]->get_ref(), "TTA");
-//    EXPECT_EQ(vcf.get_records()[3]->get_ref(), "TA");
-//    EXPECT_EQ(vcf.get_records()[4]->get_ref(), "TA");
-//    EXPECT_EQ(vcf.get_records()[5]->get_ref(), "CTA");
-//    EXPECT_EQ(vcf.get_records()[6]->get_ref(), "T");
-//    EXPECT_EQ(vcf.get_records()[7]->get_ref(), "T");
-//
-//    EXPECT_EQ(vcf.get_records()[0]->get_alts().size(), 1);
-//    EXPECT_EQ(vcf.get_records()[0]->get_alts()[0], "TAT");
-//    EXPECT_EQ(vcf.get_records()[1]->get_alts().size(), 1);
-//    EXPECT_EQ(vcf.get_records()[1]->get_alts()[0], "CA");
-//    EXPECT_EQ(vcf.get_records()[2]->get_alts().size(), 1);
-//    EXPECT_EQ(vcf.get_records()[2]->get_alts()[0], "T");
-//    EXPECT_EQ(vcf.get_records()[3]->get_alts().size(), 1);
-//    EXPECT_EQ(vcf.get_records()[3]->get_alts()[0], "T");
-//    EXPECT_EQ(vcf.get_records()[4]->get_alts().size(), 1);
-//    EXPECT_EQ(vcf.get_records()[4]->get_alts()[0], "A");
-//    EXPECT_EQ(vcf.get_records()[5]->get_alts().size(), 1);
-//    EXPECT_EQ(vcf.get_records()[5]->get_alts()[0], "C");
-//    EXPECT_EQ(vcf.get_records()[6]->get_alts().size(), 1);
-//    EXPECT_EQ(vcf.get_records()[6]->get_alts()[0], "TT");
-//    EXPECT_EQ(vcf.get_records()[7]->get_alts().size(), 1);
-//    EXPECT_EQ(vcf.get_records()[7]->get_alts()[0], "TTA");
-//}
-//
+TEST(VCFTest, correct_dot_alleles) {
+    VCF vcf = create_VCF_with_default_parameters(0);
+    // at start
+    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 0, ".", "TA");
+    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom2", 0, "T", ".");
+    // in middle
+    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 35, ".", "A");
+    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom2", 35, "TA", ".");
+    // multiple alts
+    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 44, "TA", "T");
+    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 44, "TA", ".");
+    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom2", 44, ".", "T");
+    vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom2", 44, ".", "TA");
+
+    string vcf_ref = "TATATGTGTC"
+            "GCGACACTGC"
+            "ATGCATGCAT"
+            "AGTCCTAAAG"
+            "TCCTTAAACG"
+            "TTTATAGTCG";
+
+    vcf = vcf.correct_dot_alleles(vcf_ref, "chrom1");
+    vcf = vcf.correct_dot_alleles(vcf_ref, "chrom2");
+
+    EXPECT_EQ(vcf.get_records()[0]->get_ref(), "T");
+    EXPECT_EQ(vcf.get_records()[1]->get_ref(), "C");
+    EXPECT_EQ(vcf.get_records()[2]->get_ref(), "TTA");
+    EXPECT_EQ(vcf.get_records()[3]->get_ref(), "TA");
+    EXPECT_EQ(vcf.get_records()[4]->get_ref(), "TA");
+    EXPECT_EQ(vcf.get_records()[5]->get_ref(), "CTA");
+    EXPECT_EQ(vcf.get_records()[6]->get_ref(), "T");
+    EXPECT_EQ(vcf.get_records()[7]->get_ref(), "T");
+
+    EXPECT_EQ(vcf.get_records()[0]->get_alts().size(), 1);
+    EXPECT_EQ(vcf.get_records()[0]->get_alts()[0], "TAT");
+    EXPECT_EQ(vcf.get_records()[1]->get_alts().size(), 1);
+    EXPECT_EQ(vcf.get_records()[1]->get_alts()[0], "CA");
+    EXPECT_EQ(vcf.get_records()[2]->get_alts().size(), 1);
+    EXPECT_EQ(vcf.get_records()[2]->get_alts()[0], "T");
+    EXPECT_EQ(vcf.get_records()[3]->get_alts().size(), 1);
+    EXPECT_EQ(vcf.get_records()[3]->get_alts()[0], "T");
+    EXPECT_EQ(vcf.get_records()[4]->get_alts().size(), 1);
+    EXPECT_EQ(vcf.get_records()[4]->get_alts()[0], "A");
+    EXPECT_EQ(vcf.get_records()[5]->get_alts().size(), 1);
+    EXPECT_EQ(vcf.get_records()[5]->get_alts()[0], "C");
+    EXPECT_EQ(vcf.get_records()[6]->get_alts().size(), 1);
+    EXPECT_EQ(vcf.get_records()[6]->get_alts()[0], "TT");
+    EXPECT_EQ(vcf.get_records()[7]->get_alts().size(), 1);
+    EXPECT_EQ(vcf.get_records()[7]->get_alts()[0], "TTA");
+}
+
 
 
 class VCFTest___make_gt_compatible___Fixture : public ::testing::Test {

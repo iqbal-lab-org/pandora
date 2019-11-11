@@ -1453,7 +1453,7 @@ void LocalPRG::add_variants_to_vcf(VCF &master_vcf, PanNodePtr pnode, const std:
     add_new_records_and_genotype_to_vcf_using_max_likelihood_path_of_the_sample(vcf, reference_path, lmp, sample_name);
     add_sample_covgs_to_vcf(vcf, pnode->kmer_prg_with_coverage, reference_path, sample_name, sample_id);
     vcf = vcf.merge_multi_allelic();
-    vcf.correct_dot_alleles(string_along_path(reference_path), name);
+    vcf = vcf.correct_dot_alleles(string_along_path(reference_path), name);
     #pragma omp critical(master_vcf)
     {
         master_vcf.append_vcf(vcf);
