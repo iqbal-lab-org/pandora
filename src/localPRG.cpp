@@ -1311,9 +1311,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
         auto &record = *recordPointer;
         //std::cout << record << std::endl;
         // find corresponding ref kmers
-        auto end_pos = record.pos + record.ref.length();
-        if (record.ref == ".")
-            end_pos = record.pos;
+        auto end_pos = record.get_ref_end_pos();
 
         std::vector< std::vector<uint32_t> > all_forward_coverages;
         std::vector< std::vector<uint32_t> > all_reverse_coverages;
@@ -1321,26 +1319,26 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
         std::vector<uint32_t> ref_fwd_covgs;
         std::vector<uint32_t> ref_rev_covgs;
         std::tie(ref_fwd_covgs, ref_rev_covgs) = get_forward_and_reverse_kmer_coverages_in_range(kg, ref_kmer_path,
-                                                                                                 ref_path, record.pos,
+                                                                                                 ref_path, record.get_pos(),
                                                                                                  end_pos, sample_id);
         all_forward_coverages.push_back(ref_fwd_covgs);
         all_reverse_coverages.push_back(ref_rev_covgs);
 
         // find corresponding alt kmers
-        for (const auto &alt_allele : record.alts) {
-            alt_path = find_alt_path(ref_path, record.pos, record.ref, alt_allele);
+        for (const auto &alt_allele : record.get_alts()) {
+            alt_path = find_alt_path(ref_path, record.get_pos(), record.get_ref(), alt_allele);
             alt_kmer_path = kmernode_path_from_localnode_path(alt_path);
 
             // find alt covgs
-            end_pos = record.pos + alt_allele.length();
+            end_pos = record.get_pos() + alt_allele.length();
             if (alt_allele == ".")
-                end_pos = record.pos;
+                end_pos = record.get_pos();
 
             std::vector<uint32_t> alt_fwd_covgs;
             std::vector<uint32_t> alt_rev_covgs;
             std::tie(alt_fwd_covgs, alt_rev_covgs) = get_forward_and_reverse_kmer_coverages_in_range(kg, alt_kmer_path,
                                                                                                      alt_path,
-                                                                                                     record.pos,
+                                                                                                     record.get_pos(),
                                                                                                      end_pos, sample_id);
             all_forward_coverages.push_back(alt_fwd_covgs);
             all_reverse_coverages.push_back(alt_rev_covgs);
@@ -1352,7 +1350,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF &vcf, const KmerGraphWithCoverage &kg
         assert(sample_it != vcf.samples.end());
         auto sample_index = distance(vcf.samples.begin(), sample_it);
         assert((uint) sample_index != vcf.samples.size());
-        record.sampleIndex_to_sampleInfo[sample_index].add_coverage_information(all_forward_coverages,
+        record.sampleIndex_to_sampleInfo[sample_index].set_coverage_information(all_forward_coverages,
                                                                                 all_reverse_coverages);
     }
 }

@@ -256,10 +256,10 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture, construct_multis
     uint16_t alt_gt = 1;
     uint16_t ref_gt = 0;
 
-    EXPECT_EQ((uint)1, master_vcf.get_records()[0]->pos);
-    EXPECT_EQ("GT", master_vcf.get_records()[0]->ref);
-    EXPECT_EQ((uint)1, master_vcf.get_records()[0]->alts.size());
-    EXPECT_EQ("G", master_vcf.get_records()[0]->alts[0]);
+    EXPECT_EQ((uint)1, master_vcf.get_records()[0]->get_pos());
+    EXPECT_EQ("GT", master_vcf.get_records()[0]->get_ref());
+    EXPECT_EQ((uint)1, master_vcf.get_records()[0]->get_alts().size());
+    EXPECT_EQ("G", master_vcf.get_records()[0]->get_alts()[0]);
     EXPECT_EQ((uint)4, master_vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
     EXPECT_TRUE(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample4_index].is_gt_from_max_likelihood_path_valid()) ;
     EXPECT_FALSE(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample3_index].is_gt_from_max_likelihood_path_valid()) ;
@@ -271,11 +271,11 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture, construct_multis
 
     test_format_fields_for_each_sample_and_allele_for_a_given_record(*(master_vcf.get_records()[0]), sample_names.size(), 2);
 
-    EXPECT_EQ((uint)2, master_vcf.get_records()[1]->pos);
-    EXPECT_EQ("T", master_vcf.get_records()[1]->ref);
-    EXPECT_EQ((uint)2, master_vcf.get_records()[1]->alts.size());
-    EXPECT_EQ("C", master_vcf.get_records()[1]->alts[0]);
-    EXPECT_EQ("CT", master_vcf.get_records()[1]->alts[1]);
+    EXPECT_EQ((uint)2, master_vcf.get_records()[1]->get_pos());
+    EXPECT_EQ("T", master_vcf.get_records()[1]->get_ref());
+    EXPECT_EQ((uint)2, master_vcf.get_records()[1]->get_alts().size());
+    EXPECT_EQ("C", master_vcf.get_records()[1]->get_alts()[0]);
+    EXPECT_EQ("CT", master_vcf.get_records()[1]->get_alts()[1]);
     EXPECT_EQ((uint)4, master_vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
     EXPECT_FALSE(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample4_index].is_gt_from_max_likelihood_path_valid());
     EXPECT_TRUE(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample3_index].is_gt_from_max_likelihood_path_valid());
@@ -346,10 +346,10 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture, construct_multis
 //    uint16_t ref_gt = 0;
 //    uint16_t alt2_gt = 2;
 //
-//    EXPECT_EQ((uint)1, master_vcf.get_records()[0]->pos);
-//    EXPECT_EQ("GT", master_vcf.get_records()[0]->ref);
-//    EXPECT_EQ((uint)1, master_vcf.get_records()[0]->alts.size());
-//    EXPECT_EQ("G", master_vcf.get_records()[0]->alts[0]);
+//    EXPECT_EQ((uint)1, master_vcf.get_records()[0]->get_pos());
+//    EXPECT_EQ("GT", master_vcf.get_records()[0]->get_ref());
+//    EXPECT_EQ((uint)1, master_vcf.get_records()[0]->get_alts().size());
+//    EXPECT_EQ("G", master_vcf.get_records()[0]->get_alts()[0]);
 //    EXPECT_EQ((uint)4, master_vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
 //    EXPECT_TRUE(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample4_index].is_gt_from_max_likelihood_path_valid()) ;
 //    EXPECT_FALSE(master_vcf.get_records()[0]->sampleIndex_to_sampleInfo[sample3_index].is_gt_from_max_likelihood_path_valid()) ;
@@ -361,11 +361,11 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture, construct_multis
 //    test_format_fields_for_each_sample_and_allele_for_a_given_record(*(master_vcf.get_records()[0]), 4, 2);
 //
 //
-//    EXPECT_EQ((uint)2, master_vcf.get_records()[1]->pos);
-//    EXPECT_EQ("T", master_vcf.get_records()[1]->ref);
-//    EXPECT_EQ((uint)2, master_vcf.get_records()[1]->alts.size());
-//    EXPECT_EQ("C", master_vcf.get_records()[1]->alts[0]);
-//    EXPECT_EQ("CT", master_vcf.get_records()[1]->alts[1]);
+//    EXPECT_EQ((uint)2, master_vcf.get_records()[1]->get_pos());
+//    EXPECT_EQ("T", master_vcf.get_records()[1]->get_ref());
+//    EXPECT_EQ((uint)2, master_vcf.get_records()[1]->get_alts().size());
+//    EXPECT_EQ("C", master_vcf.get_records()[1]->get_alts()[0]);
+//    EXPECT_EQ("CT", master_vcf.get_records()[1]->get_alts()[1]);
 //    EXPECT_EQ((uint)4, master_vcf.get_records()[1]->sampleIndex_to_sampleInfo.size());
 //    EXPECT_FALSE(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample4_index].is_gt_from_max_likelihood_path_valid()) ;
 //    EXPECT_TRUE(master_vcf.get_records()[1]->sampleIndex_to_sampleInfo[sample3_index].is_gt_from_max_likelihood_path_valid()) ;
@@ -377,10 +377,10 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture, construct_multis
 //    test_format_fields_for_each_sample_and_allele_for_a_given_record(*(master_vcf.get_records()[1]), 4, 3);
 //
 //
-//    EXPECT_EQ((uint)1, master_vcf.get_records()[2]->pos);
-//    EXPECT_EQ("GA", master_vcf.get_records()[2]->ref);
-//    EXPECT_EQ((uint)1, master_vcf.get_records()[2]->alts.size());
-//    EXPECT_EQ("G", master_vcf.get_records()[2]->alts[0]);
+//    EXPECT_EQ((uint)1, master_vcf.get_records()[2]->get_pos());
+//    EXPECT_EQ("GA", master_vcf.get_records()[2]->get_ref());
+//    EXPECT_EQ((uint)1, master_vcf.get_records()[2]->get_alts().size());
+//    EXPECT_EQ("G", master_vcf.get_records()[2]->get_alts()[0]);
 //    EXPECT_EQ((uint)4, master_vcf.get_records()[2]->sampleIndex_to_sampleInfo.size());
 //    EXPECT_FALSE(master_vcf.get_records()[2]->sampleIndex_to_sampleInfo[sample4_index].is_gt_from_max_likelihood_path_valid()) ;
 //    EXPECT_TRUE(master_vcf.get_records()[2]->sampleIndex_to_sampleInfo[sample3_index].is_gt_from_max_likelihood_path_valid()) ;
@@ -389,11 +389,11 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture, construct_multis
 //    EXPECT_EQ(master_vcf.get_records()[2]->sampleIndex_to_sampleInfo[sample3_index].get_gt_from_max_likelihood_path(), alt_gt);
 //    test_format_fields_for_each_sample_and_allele_for_a_given_record(*(master_vcf.get_records()[2]), 4, 2);
 
-//    EXPECT_EQ((uint)2, master_vcf.get_records()[3]->pos);
-//    EXPECT_EQ("A", master_vcf.get_records()[3]->ref);
-//    EXPECT_EQ((uint)2, master_vcf.get_records()[3]->alts.size());
-//    EXPECT_EQ("G", master_vcf.get_records()[3]->alts[0]);
-//    EXPECT_EQ("GA", master_vcf.get_records()[3]->alts[1]);
+//    EXPECT_EQ((uint)2, master_vcf.get_records()[3]->get_pos());
+//    EXPECT_EQ("A", master_vcf.get_records()[3]->get_ref());
+//    EXPECT_EQ((uint)2, master_vcf.get_records()[3]->get_alts().size());
+//    EXPECT_EQ("G", master_vcf.get_records()[3]->get_alts()[0]);
+//    EXPECT_EQ("GA", master_vcf.get_records()[3]->get_alts()[1]);
 //    EXPECT_EQ((uint)4, master_vcf.get_records()[3]->sampleIndex_to_sampleInfo.size());
 //    EXPECT_FALSE(master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample4_index].find("GT") == master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample4_index].end()) ;
 //    EXPECT_TRUE(master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample3_index].find("GT") == master_vcf.get_records()[3]->sampleIndex_to_sampleInfo[sample3_index].end()) ;
@@ -938,7 +938,7 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture, construct_multis
 //
 //    prg::Path local_path;
 //    for (const auto &node : lmp) {
-//        local_path.add_end_interval(node->pos);
+//        local_path.add_end_interval(node->get_pos());
 //    }
 //    const auto overlaps { pan_node->get_read_overlap_coordinates(local_path) };
 //
@@ -1344,7 +1344,7 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture, construct_multis
 //
 //    prg::Path local_path;
 //    for (const auto &node : lmp) {
-//        local_path.add_end_interval(node->pos);
+//        local_path.add_end_interval(node->get_pos());
 //    }
 //    const auto overlaps { pan_node->get_read_overlap_coordinates(local_path) };
 //

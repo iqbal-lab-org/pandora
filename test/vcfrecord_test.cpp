@@ -16,8 +16,8 @@ TEST(VCFRecordTest, create_empty) {
     VCF vcf = create_VCF_with_default_parameters();
     VCFRecord vr(&vcf);
     EXPECT_EQ(&vcf, vr.parent_vcf);
-    EXPECT_EQ(".", vr.chrom);
-    EXPECT_EQ((uint) 0, vr.pos);
+    EXPECT_EQ(".", vr.get_chrom());
+    EXPECT_EQ((uint) 0, vr.get_pos());
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ(".", vr.get_ref());
     EXPECT_EQ((uint) 0, vr.get_alts().size());
@@ -32,8 +32,8 @@ TEST(VCFRecordTest, create_with_values) {
     VCF vcf = create_VCF_with_default_parameters();
     VCFRecord vr(&vcf,"chrom1", 3, "A", "T");
     EXPECT_EQ(&vcf, vr.parent_vcf);
-    EXPECT_EQ("chrom1", vr.chrom);
-    EXPECT_EQ((uint) 3, vr.pos);
+    EXPECT_EQ("chrom1", vr.get_chrom());
+    EXPECT_EQ((uint) 3, vr.get_pos());
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ("A", vr.get_ref());
     EXPECT_EQ(1, vr.get_alts().size());
@@ -50,8 +50,8 @@ TEST(VCFRecordTest, create_from_record) {
     VCFRecord template_vr(&vcf,"chrom1", 3, "A", "T");
     VCFRecord vr(template_vr);
     EXPECT_EQ(&vcf, vr.parent_vcf);
-    EXPECT_EQ("chrom1", vr.chrom);
-    EXPECT_EQ((uint) 3, vr.pos);
+    EXPECT_EQ("chrom1", vr.get_chrom());
+    EXPECT_EQ((uint) 3, vr.get_pos());
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ("A", vr.get_ref());
     EXPECT_EQ(1, vr.get_alts().size());
@@ -68,8 +68,8 @@ TEST(VCFRecordTest, create_from_record_with_samples) {
     VCFRecord template_vr(&vcf,"chrom1", 3, "A", "T");
     VCFRecord vr(template_vr);
     EXPECT_EQ(&vcf, vr.parent_vcf);
-    EXPECT_EQ("chrom1", vr.chrom);
-    EXPECT_EQ((uint) 3, vr.pos);
+    EXPECT_EQ("chrom1", vr.get_chrom());
+    EXPECT_EQ((uint) 3, vr.get_pos());
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ("A", vr.get_ref());
     EXPECT_EQ(1, vr.get_alts().size());
@@ -172,8 +172,8 @@ TEST(VCFRecordTest, clear_simple) {
     VCFRecord vr(&vcf,"chrom1", 3, "A", "T");
     vr.clear();
     EXPECT_EQ(&vcf, vr.parent_vcf);
-    EXPECT_EQ(".", vr.chrom);
-    EXPECT_EQ((uint) 0, vr.pos);
+    EXPECT_EQ(".", vr.get_chrom());
+    EXPECT_EQ((uint) 0, vr.get_pos());
     EXPECT_EQ(".", vr.id);
     EXPECT_EQ(".", vr.get_ref());
     EXPECT_EQ((uint) 0, vr.get_alts().size());

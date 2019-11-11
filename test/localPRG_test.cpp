@@ -989,10 +989,10 @@ TEST(LocalPRGTest, build_vcf) {
     l2.build_vcf_from_reference_path(vcf, l2.prg.top_path());
     j = 1;
     EXPECT_EQ(j, vcf.get_VCF_size());
-    EXPECT_EQ("varsite", vcf.get_records()[0]->chrom);
-    EXPECT_EQ((uint) 1, vcf.get_records()[0]->pos);
-    EXPECT_EQ("GC", vcf.get_records()[0]->ref);
-    EXPECT_EQ("G", vcf.get_records()[0]->alts[0]);
+    EXPECT_EQ("varsite", vcf.get_records()[0]->get_chrom());
+    EXPECT_EQ((uint) 1, vcf.get_records()[0]->get_pos());
+    EXPECT_EQ("GC", vcf.get_records()[0]->get_ref());
+    EXPECT_EQ("G", vcf.get_records()[0]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.get_records()[0]->info);
 
     vcf = create_VCF_with_default_parameters();
@@ -1000,10 +1000,10 @@ TEST(LocalPRGTest, build_vcf) {
     l2.build_vcf_from_reference_path(vcf, lmp);
     j = 1;
     EXPECT_EQ(j, vcf.get_VCF_size());
-    EXPECT_EQ("varsite", vcf.get_records()[0]->chrom);
-    EXPECT_EQ((uint) 1, vcf.get_records()[0]->pos);
-    EXPECT_EQ("G", vcf.get_records()[0]->ref);
-    EXPECT_EQ("GC", vcf.get_records()[0]->alts[0]);
+    EXPECT_EQ("varsite", vcf.get_records()[0]->get_chrom());
+    EXPECT_EQ((uint) 1, vcf.get_records()[0]->get_pos());
+    EXPECT_EQ("G", vcf.get_records()[0]->get_ref());
+    EXPECT_EQ("GC", vcf.get_records()[0]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.get_records()[0]->info);
 
     vcf = create_VCF_with_default_parameters();
@@ -1011,14 +1011,14 @@ TEST(LocalPRGTest, build_vcf) {
     vcf.sort_records();
     j = 2;
     EXPECT_EQ(j, vcf.get_VCF_size());
-    EXPECT_EQ("nested varsite", vcf.get_records()[0]->chrom);
-    EXPECT_EQ((uint) 1, vcf.get_records()[0]->pos);
-    EXPECT_EQ("GC", vcf.get_records()[0]->ref);
-    EXPECT_EQ("G", vcf.get_records()[0]->alts[0]);
+    EXPECT_EQ("nested varsite", vcf.get_records()[0]->get_chrom());
+    EXPECT_EQ((uint) 1, vcf.get_records()[0]->get_pos());
+    EXPECT_EQ("GC", vcf.get_records()[0]->get_ref());
+    EXPECT_EQ("G", vcf.get_records()[0]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=NESTED", vcf.get_records()[0]->info);
-    EXPECT_EQ((uint) 2, vcf.get_records()[1]->pos);
-    EXPECT_EQ("C", vcf.get_records()[1]->ref);
-    EXPECT_EQ("T", vcf.get_records()[1]->alts[0]);
+    EXPECT_EQ((uint) 2, vcf.get_records()[1]->get_pos());
+    EXPECT_EQ("C", vcf.get_records()[1]->get_ref());
+    EXPECT_EQ("T", vcf.get_records()[1]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=NESTED", vcf.get_records()[1]->info);
 
     vcf = create_VCF_with_default_parameters();;
@@ -1026,14 +1026,14 @@ TEST(LocalPRGTest, build_vcf) {
     l3.build_vcf_from_reference_path(vcf, lmp);
     vcf.sort_records();
     EXPECT_EQ(j, vcf.get_VCF_size());
-    EXPECT_EQ("nested varsite", vcf.get_records()[0]->chrom);
-    EXPECT_EQ((uint) 1, vcf.get_records()[0]->pos);
-    EXPECT_EQ("GT", vcf.get_records()[0]->ref);
-    EXPECT_EQ("G", vcf.get_records()[0]->alts[0]);
+    EXPECT_EQ("nested varsite", vcf.get_records()[0]->get_chrom());
+    EXPECT_EQ((uint) 1, vcf.get_records()[0]->get_pos());
+    EXPECT_EQ("GT", vcf.get_records()[0]->get_ref());
+    EXPECT_EQ("G", vcf.get_records()[0]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=NESTED", vcf.get_records()[0]->info);
-    EXPECT_EQ((uint) 2, vcf.get_records()[1]->pos);
-    EXPECT_EQ("T", vcf.get_records()[1]->ref);
-    EXPECT_EQ("C", vcf.get_records()[1]->alts[0]);
+    EXPECT_EQ((uint) 2, vcf.get_records()[1]->get_pos());
+    EXPECT_EQ("T", vcf.get_records()[1]->get_ref());
+    EXPECT_EQ("C", vcf.get_records()[1]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=NESTED", vcf.get_records()[1]->info);
 
     vcf = create_VCF_with_default_parameters();;
@@ -1041,14 +1041,14 @@ TEST(LocalPRGTest, build_vcf) {
     l3.build_vcf_from_reference_path(vcf, lmp);
     vcf.sort_records();
     EXPECT_EQ(j, vcf.get_VCF_size());
-    EXPECT_EQ("nested varsite", vcf.get_records()[0]->chrom);
-    EXPECT_EQ((uint) 1, vcf.get_records()[0]->pos);
-    EXPECT_EQ("G", vcf.get_records()[0]->ref);
-    EXPECT_EQ("GC", vcf.get_records()[0]->alts[0]);
+    EXPECT_EQ("nested varsite", vcf.get_records()[0]->get_chrom());
+    EXPECT_EQ((uint) 1, vcf.get_records()[0]->get_pos());
+    EXPECT_EQ("G", vcf.get_records()[0]->get_ref());
+    EXPECT_EQ("GC", vcf.get_records()[0]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.get_records()[0]->info);
-    EXPECT_EQ((uint) 1, vcf.get_records()[1]->pos);
-    EXPECT_EQ("G", vcf.get_records()[1]->ref);
-    EXPECT_EQ("GT", vcf.get_records()[1]->alts[0]);
+    EXPECT_EQ((uint) 1, vcf.get_records()[1]->get_pos());
+    EXPECT_EQ("G", vcf.get_records()[1]->get_ref());
+    EXPECT_EQ("GT", vcf.get_records()[1]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.get_records()[1]->info);
 
     vcf = create_VCF_with_default_parameters();;
@@ -1056,30 +1056,30 @@ TEST(LocalPRGTest, build_vcf) {
     vcf.sort_records();
     j = 5;
     EXPECT_EQ(j, vcf.get_VCF_size());
-    EXPECT_EQ("small real PRG", vcf.get_records()[0]->chrom);
-    EXPECT_EQ((uint) 119, vcf.get_records()[0]->pos);
-    EXPECT_EQ("T", vcf.get_records()[0]->ref);
-    EXPECT_EQ("C", vcf.get_records()[0]->alts[0]);
+    EXPECT_EQ("small real PRG", vcf.get_records()[0]->get_chrom());
+    EXPECT_EQ((uint) 119, vcf.get_records()[0]->get_pos());
+    EXPECT_EQ("T", vcf.get_records()[0]->get_ref());
+    EXPECT_EQ("C", vcf.get_records()[0]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[0]->info);
 
-    EXPECT_EQ((uint) 158, vcf.get_records()[1]->pos);
-    EXPECT_EQ("TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG", vcf.get_records()[1]->ref);
-    EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA", vcf.get_records()[1]->alts[0]);
+    EXPECT_EQ((uint) 158, vcf.get_records()[1]->get_pos());
+    EXPECT_EQ("TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG", vcf.get_records()[1]->get_ref());
+    EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA", vcf.get_records()[1]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE", vcf.get_records()[1]->info);
 
-    EXPECT_EQ((uint) 251, vcf.get_records()[2]->pos);
-    EXPECT_EQ("A", vcf.get_records()[2]->ref);
-    EXPECT_EQ("G", vcf.get_records()[2]->alts[0]);
+    EXPECT_EQ((uint) 251, vcf.get_records()[2]->get_pos());
+    EXPECT_EQ("A", vcf.get_records()[2]->get_ref());
+    EXPECT_EQ("G", vcf.get_records()[2]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[2]->info);
 
-    EXPECT_EQ((uint) 272, vcf.get_records()[3]->pos);
-    EXPECT_EQ("A", vcf.get_records()[3]->ref);
-    EXPECT_EQ("C", vcf.get_records()[3]->alts[0]);
+    EXPECT_EQ((uint) 272, vcf.get_records()[3]->get_pos());
+    EXPECT_EQ("A", vcf.get_records()[3]->get_ref());
+    EXPECT_EQ("C", vcf.get_records()[3]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[3]->info);
 
-    EXPECT_EQ((uint) 293, vcf.get_records()[4]->pos);
-    EXPECT_EQ("G", vcf.get_records()[4]->ref);
-    EXPECT_EQ("T", vcf.get_records()[4]->alts[0]);
+    EXPECT_EQ((uint) 293, vcf.get_records()[4]->get_pos());
+    EXPECT_EQ("G", vcf.get_records()[4]->get_ref());
+    EXPECT_EQ("T", vcf.get_records()[4]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[4]->info);
 
     vcf = create_VCF_with_default_parameters();;
@@ -1089,30 +1089,30 @@ TEST(LocalPRGTest, build_vcf) {
     vcf.sort_records();
     j = 5;
     EXPECT_EQ(j, vcf.get_VCF_size());
-    EXPECT_EQ("small real PRG", vcf.get_records()[0]->chrom);
-    EXPECT_EQ((uint) 119, vcf.get_records()[0]->pos);
-    EXPECT_EQ("C", vcf.get_records()[0]->ref);
-    EXPECT_EQ("T", vcf.get_records()[0]->alts[0]);
+    EXPECT_EQ("small real PRG", vcf.get_records()[0]->get_chrom());
+    EXPECT_EQ((uint) 119, vcf.get_records()[0]->get_pos());
+    EXPECT_EQ("C", vcf.get_records()[0]->get_ref());
+    EXPECT_EQ("T", vcf.get_records()[0]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[0]->info);
 
-    EXPECT_EQ((uint) 158, vcf.get_records()[1]->pos);
-    EXPECT_EQ("TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG", vcf.get_records()[1]->ref);
-    EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA", vcf.get_records()[1]->alts[0]);
+    EXPECT_EQ((uint) 158, vcf.get_records()[1]->get_pos());
+    EXPECT_EQ("TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG", vcf.get_records()[1]->get_ref());
+    EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA", vcf.get_records()[1]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE", vcf.get_records()[1]->info);
 
-    EXPECT_EQ((uint) 251, vcf.get_records()[2]->pos);
-    EXPECT_EQ("G", vcf.get_records()[2]->ref);
-    EXPECT_EQ("A", vcf.get_records()[2]->alts[0]);
+    EXPECT_EQ((uint) 251, vcf.get_records()[2]->get_pos());
+    EXPECT_EQ("G", vcf.get_records()[2]->get_ref());
+    EXPECT_EQ("A", vcf.get_records()[2]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[2]->info);
 
-    EXPECT_EQ((uint) 272, vcf.get_records()[3]->pos);
-    EXPECT_EQ("A", vcf.get_records()[3]->ref);
-    EXPECT_EQ("C", vcf.get_records()[3]->alts[0]);
+    EXPECT_EQ((uint) 272, vcf.get_records()[3]->get_pos());
+    EXPECT_EQ("A", vcf.get_records()[3]->get_ref());
+    EXPECT_EQ("C", vcf.get_records()[3]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[3]->info);
 
-    EXPECT_EQ((uint) 293, vcf.get_records()[4]->pos);
-    EXPECT_EQ("T", vcf.get_records()[4]->ref);
-    EXPECT_EQ("G", vcf.get_records()[4]->alts[0]);
+    EXPECT_EQ((uint) 293, vcf.get_records()[4]->get_pos());
+    EXPECT_EQ("T", vcf.get_records()[4]->get_ref());
+    EXPECT_EQ("G", vcf.get_records()[4]->get_alts()[0]);
     EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[4]->info);
 
     vcf = create_VCF_with_default_parameters();;

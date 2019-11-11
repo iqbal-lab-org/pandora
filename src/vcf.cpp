@@ -20,7 +20,7 @@
 
 void VCF::add_record_core(const VCFRecord &vr) {
     records.push_back(std::make_shared<VCFRecord>(vr));
-    chrom_to_record_interval_tree[vr.chrom].add(vr.pos, vr.pos + vr.ref.length(), records.back().get());
+    chrom_to_record_interval_tree[vr.get_chrom()].add(vr.get_pos(), vr.get_ref_end_pos(), records.back().get());
 }
 
 void VCF::add_record(const std::string &chrom, uint32_t position, const std::string &ref,
@@ -64,7 +64,7 @@ VCFRecord &VCF::add_record(VCFRecord &vr, const std::vector<std::string> &sample
 void VCF::add_samples(const std::vector<std::string> &sample_names) {
     for (uint32_t i=0; i < sample_names.size(); ++i){
         auto &name = sample_names[i];
-        ptrdiff_t sample_index = get_sample_index(name);
+        get_sample_index(name);
     }
 }
 
@@ -96,7 +96,7 @@ void VCF::add_a_new_record_discovered_in_a_sample_and_genotype_it(const std::str
 
     ptrdiff_t sample_index = get_sample_index(sample_name);
 
-    VCFRecord vcf_record(chrom, pos, ref, alt);
+    VCFRecord vcf_record(this, chrom, pos, ref, alt);
     VCFRecord *vcf_record_pointer;
 
     auto vcf_record_iterator = find_record_in_records(vcf_record); //TODO: improve this search to log(n) using alt map or sth
@@ -114,7 +114,7 @@ void VCF::add_a_new_record_discovered_in_a_sample_and_genotype_it(const std::str
         if (sample_genotyped_towards_ref_allele) {
             // TODO: create a method to find records based on chrom, pos and ref only
             for (const auto &record : records) {
-                if (record->chrom == chrom and record->pos == pos and record->ref == ref) {
+                if (record->get_chrom() == chrom and record->get_pos() == pos and record->get_ref() == ref) {
                     record->sampleIndex_to_sampleInfo[sample_index].set_gt_from_max_likelihood_path(0);
                     vcf_record_pointer = record.get();
                     vcf_record_was_processed = true;
@@ -138,8 +138,8 @@ void VCF::add_a_new_record_discovered_in_a_sample_and_genotype_it(const std::str
 void VCF::update_other_samples_of_this_record(VCFRecord *reference_record) {
     // update other samples at this site if they have ref allele at this pos
     for (const auto &other_record : records) {
-        bool both_records_are_on_the_same_site = other_record->chrom == reference_record->chrom;
-        bool reference_record_start_overlaps_other_record = other_record->pos <= reference_record->pos and reference_record->pos < other_record->pos + other_record->ref.length();
+        bool both_records_are_on_the_same_site = other_record->get_chrom() == reference_record->get_chrom();
+        bool reference_record_start_overlaps_other_record = other_record->get_pos() <= reference_record->get_pos() and reference_record->get_pos() < other_record->get_pos() + other_record->get_ref().length();
         if ( both_records_are_on_the_same_site and reference_record_start_overlaps_other_record) {
             for (uint32_t sample_index = 0; sample_index != other_record->sampleIndex_to_sampleInfo.size(); ++sample_index) {
                 if (other_record->sampleIndex_to_sampleInfo[sample_index].is_gt_from_max_likelihood_path_valid()
@@ -214,7 +214,7 @@ bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const std::string
     // is there a record contained in the range from,to?
     for (const auto &recordPointer : records) {
         const auto &record = *recordPointer;
-        if (chrom == record.chrom and from < record.pos and record.pos + record.ref.length() <= to) {
+        if (chrom == record.get_chrom() and from < record.get_pos() and record.get_pos() + record.get_ref().length() <= to) {
             return true;
         }
     }
@@ -352,7 +352,7 @@ void VCF::make_gt_compatible() {
             VCFRecord &overlapping_record = *overlapping_record_ptr;
 
             bool this_record_starts_before_the_overlapping_record =
-                    record.pos < overlapping_record.pos;
+                    record.get_pos() < overlapping_record.get_pos();
 
             if (this_record_starts_before_the_overlapping_record) {
                 record.solve_incompatible_gt_conflict_with(overlapping_record);
@@ -363,11 +363,11 @@ void VCF::make_gt_compatible() {
 }
 
 std::vector<VCFRecord*> VCF::get_all_records_overlapping_the_given_record (const VCFRecord &vcf_record) {
-    IITree<uint32_t, VCFRecord*>& record_interval_tree_for_this_record = chrom_to_record_interval_tree[vcf_record.chrom];
+    IITree<uint32_t, VCFRecord*>& record_interval_tree_for_this_record = chrom_to_record_interval_tree[vcf_record.get_chrom()];
     record_interval_tree_for_this_record.index();
 
     std::vector<size_t> overlaps;
-    record_interval_tree_for_this_record.overlap(vcf_record.pos, vcf_record.pos + vcf_record.ref.length(), overlaps);
+    record_interval_tree_for_this_record.overlap(vcf_record.get_pos(), vcf_record.get_pos() + vcf_record.get_ref().length(), overlaps);
 
     std::vector<VCFRecord*> overlapping_records;
     for (size_t i = 0; i < overlaps.size(); ++i) {
@@ -402,7 +402,7 @@ std::string VCF::header() const {
 
     std::set<std::string> chroms;
     for (const auto record : records) {
-        chroms.insert(record->chrom);
+        chroms.insert(record->get_chrom());
     }
 
     std::string header;

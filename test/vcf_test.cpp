@@ -14,6 +14,7 @@ using namespace std;
 using ::testing::Return;
 using ::testing::ReturnRef;
 using ::testing::Field;
+using ::testing::Property;
 using ::testing::InSequence;
 using ::testing::_;
 
@@ -53,17 +54,17 @@ TEST(VCFTest, add_two_records_and_a_repeat_with_values) {
 
 TEST(VCFTest, add_record_by_record) {
     VCF vcf = create_VCF_with_default_parameters();
-    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
+    VCFRecord vr = VCFRecord(&vcf, "chrom1", 79, "C", "G");
     std::vector<std::string> empty = {};
-    vcf.add_record(vr, empty);
+    vcf.add_or_update_record_restricted_to_the_given_samples(vr, empty);
     EXPECT_EQ((uint) 1, vcf.get_VCF_size());
 }
 
 TEST(VCFTest, add_record_by_record_and_values) {
     VCF vcf = create_VCF_with_default_parameters();
-    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
+    VCFRecord vr = VCFRecord(&vcf, "chrom1", 79, "C", "G");
     std::vector<std::string> empty = {};
-    vcf.add_record(vr, empty);
+    vcf.add_or_update_record_restricted_to_the_given_samples(vr, empty);
     vcf.add_record("chrom1", 79, "C", "G");
     EXPECT_EQ((uint) 1, vcf.get_VCF_size());
 }
@@ -71,23 +72,23 @@ TEST(VCFTest, add_record_by_record_and_values) {
 TEST(VCFTest, add_record_by_values_and_record) {
     VCF vcf = create_VCF_with_default_parameters();
     vcf.add_record("chrom1", 79, "C", "G");
-    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
+    VCFRecord vr = VCFRecord(&vcf, "chrom1", 79, "C", "G");
     std::vector<std::string> empty = {};
-    vcf.add_record(vr, empty);
+    vcf.add_or_update_record_restricted_to_the_given_samples(vr, empty);
     EXPECT_EQ((uint) 1, vcf.get_VCF_size());
 }
 
 TEST(VCFTest, add_record_by_record_returned_by_reference) {
     VCF vcf = create_VCF_with_default_parameters();
-    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
+    VCFRecord vr = VCFRecord(&vcf, "chrom1", 79, "C", "G");
     std::vector<std::string> empty = {};
-    VCFRecord &ref_vr = vcf.add_record(vr, empty);
-    EXPECT_EQ(ref_vr.chrom, "chrom1");
-    EXPECT_EQ(ref_vr.pos, (uint) 79);
+    VCFRecord &ref_vr = vcf.add_or_update_record_restricted_to_the_given_samples(vr, empty);
+    EXPECT_EQ(ref_vr.get_chrom(), "chrom1");
+    EXPECT_EQ(ref_vr.get_pos(), (uint) 79);
 }
 
 TEST(VCFTest, add_samples_empty) {
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
     std::vector<std::string> samples;
     vcf.add_samples(samples);
     EXPECT_EQ(vcf.samples.size(), (uint)0);
@@ -95,7 +96,7 @@ TEST(VCFTest, add_samples_empty) {
 }
 
 TEST(VCFTest, add_samples_simple) {
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
     std::vector<std::string> samples = {"hello", "there", "people"};
     vcf.add_samples(samples);
     EXPECT_ITERABLE_EQ(std::vector<std::string>, samples, vcf.samples);
@@ -103,7 +104,7 @@ TEST(VCFTest, add_samples_simple) {
 }
 
 TEST(VCFTest, add_samples_with_record) {
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
     vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 5, "A", "G");
 
     std::vector<std::string> samples = {"hello", "there", "people"};
@@ -117,7 +118,7 @@ TEST(VCFTest, add_samples_with_record) {
 }
 
 TEST(VCFTest, add_a_new_record_discovered_in_a_sample_and_genotype_it) {
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
     vcf.add_record("chrom1", 79, "C", "G");
@@ -148,26 +149,25 @@ TEST(VCFTest, add_a_new_record_discovered_in_a_sample_and_genotype_it) {
 }
 
 TEST(VCFTest, add_record_by_record_with_existing_sample) {
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
     vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 46, "T", "TA");
-    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
+    VCFRecord vr = VCFRecord(&vcf, "chrom1", 79, "C", "G");
     std::vector<std::string> empty = {};
-    VCFRecord &ref_vr = vcf.add_record(vr, empty);
-    EXPECT_EQ(ref_vr.chrom, "chrom1");
-    EXPECT_EQ(ref_vr.pos, (uint) 79);
+    VCFRecord &ref_vr = vcf.add_or_update_record_restricted_to_the_given_samples(vr, empty);
+    EXPECT_EQ(ref_vr.get_chrom(), "chrom1");
+    EXPECT_EQ(ref_vr.get_pos(), (uint) 79);
     EXPECT_EQ(ref_vr.sampleIndex_to_sampleInfo.size(), (uint) 1);
 }
 
 TEST(VCFTest, add_record_by_record_with_same_existing_sample) {
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
     vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 46, "T", "TA");
-    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
-    vr.sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1, &default_genotyping_options);
+    VCFRecord vr = VCFRecord(&vcf, "chrom1", 79, "C", "G");
     vr.sampleIndex_to_sampleInfo[0].set_gt_from_max_likelihood_path(1);
     std::vector<std::string> samples = {"sample"};
-    VCFRecord &ref_vr = vcf.add_record(vr, samples);
-    EXPECT_EQ(ref_vr.chrom, "chrom1");
-    EXPECT_EQ(ref_vr.pos, (uint) 79);
+    VCFRecord &ref_vr = vcf.add_or_update_record_restricted_to_the_given_samples(vr, samples);
+    EXPECT_EQ(ref_vr.get_chrom(), "chrom1");
+    EXPECT_EQ(ref_vr.get_pos(), (uint) 79);
     EXPECT_EQ(ref_vr.sampleIndex_to_sampleInfo.size(), (uint) 1);
     EXPECT_ITERABLE_EQ(vector<std::string>, samples, vcf.samples);
     EXPECT_TRUE(ref_vr.sampleIndex_to_sampleInfo[0].is_gt_from_max_likelihood_path_valid());
@@ -175,15 +175,14 @@ TEST(VCFTest, add_record_by_record_with_same_existing_sample) {
 }
 
 TEST(VCFTest, add_record_by_record_with_different_existing_sample) {
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
     vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 46, "T", "TA");
-    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
-    vr.sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(1, &default_genotyping_options);
+    VCFRecord vr = VCFRecord(&vcf, "chrom1", 79, "C", "G");
     vr.sampleIndex_to_sampleInfo[0].set_gt_from_max_likelihood_path(1);
     std::vector<std::string> samples = {"sample1"};
-    VCFRecord &ref_vr = vcf.add_record(vr, samples);
-    EXPECT_EQ(ref_vr.chrom, "chrom1");
-    EXPECT_EQ(ref_vr.pos, (uint) 79);
+    VCFRecord &ref_vr = vcf.add_or_update_record_restricted_to_the_given_samples(vr, samples);
+    EXPECT_EQ(ref_vr.get_chrom(), "chrom1");
+    EXPECT_EQ(ref_vr.get_pos(), (uint) 79);
     EXPECT_EQ(ref_vr.sampleIndex_to_sampleInfo.size(), (uint) 2);
     std::vector<std::string> exp_samples = {"sample", "sample1"};
     EXPECT_ITERABLE_EQ(vector<std::string>, exp_samples, vcf.samples);
@@ -193,7 +192,7 @@ TEST(VCFTest, add_record_by_record_with_different_existing_sample) {
 }
 
 TEST(VCFTest, set_sample_gt_to_ref_allele_for_records_in_the_interval) {
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
     vcf.add_record("chrom1", 79, "C", "G");
@@ -230,7 +229,7 @@ TEST(VCFTest, set_sample_gt_to_ref_allele_for_records_in_the_interval) {
 }
 
 TEST(VCFTest, reorder_add_record_and_sample) {
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
     vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample1", "chrom1", 46, "T", "TA");
@@ -274,15 +273,15 @@ TEST(VCFTest, append_vcf_simple_case) {
     vcf.append_vcf(new_vcf);
     EXPECT_EQ((uint) 8, vcf.get_VCF_size());
     for (uint i = 0; i < 4; ++i) {
-        EXPECT_EQ(vcf.get_records()[i]->chrom, "chrom1");
+        EXPECT_EQ(vcf.get_records()[i]->get_chrom(), "chrom1");
     }
     for (uint i = 4; i < 8; ++i) {
-        EXPECT_EQ(vcf.get_records()[i]->chrom, "chrom2");
+        EXPECT_EQ(vcf.get_records()[i]->get_chrom(), "chrom2");
     }
-    EXPECT_EQ((uint) 5, vcf.get_records()[4]->pos);
-    EXPECT_EQ("TA", vcf.get_records()[5]->alts[0]);
-    EXPECT_EQ((uint) 79, vcf.get_records()[6]->pos);
-    EXPECT_EQ("A", vcf.get_records()[7]->alts[0]);
+    EXPECT_EQ((uint) 5, vcf.get_records()[4]->get_pos());
+    EXPECT_EQ("TA", vcf.get_records()[5]->get_alts()[0]);
+    EXPECT_EQ((uint) 79, vcf.get_records()[6]->get_pos());
+    EXPECT_EQ("A", vcf.get_records()[7]->get_alts()[0]);
 }
 
 TEST(VCFTest, append_vcf_some_duplicate_records) {
@@ -301,24 +300,24 @@ TEST(VCFTest, append_vcf_some_duplicate_records) {
     vcf.append_vcf(new_vcf);
     EXPECT_EQ((uint) 6, vcf.get_VCF_size());
     for (uint i = 0; i < 4; ++i) {
-        EXPECT_EQ(vcf.get_records()[i]->chrom, "chrom1");
+        EXPECT_EQ(vcf.get_records()[i]->get_chrom(), "chrom1");
     }
     for (uint i = 4; i < 6; ++i) {
-        EXPECT_EQ(vcf.get_records()[i]->chrom, "chrom2");
+        EXPECT_EQ(vcf.get_records()[i]->get_chrom(), "chrom2");
     }
-    EXPECT_EQ((uint) 5, vcf.get_records()[4]->pos);
-    EXPECT_EQ((uint) 79, vcf.get_records()[5]->pos);
+    EXPECT_EQ((uint) 5, vcf.get_records()[4]->get_pos());
+    EXPECT_EQ((uint) 79, vcf.get_records()[5]->get_pos());
 }
 
 TEST(VCFTest, append_vcf_one_sample) {
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
     vcf.add_record("chrom1", 79, "C", "G");
     vcf.add_record("chrom1", 79, "C", "A");
     vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 79, "C", "G");
 
-    VCF new_vcf = create_VCF_with_default_parameters();
+    VCF new_vcf = create_VCF_with_default_parameters(0);
     new_vcf.add_record("chrom2", 5, "A", "G");
     new_vcf.add_record("chrom1", 46, "T", "TA");
     new_vcf.add_record("chrom2", 79, "C", "G");
@@ -345,13 +344,13 @@ TEST(VCFTest, append_vcf_one_sample) {
 }
 
 TEST(VCFTest, append_vcf_one_sample_in_new_vcf) {
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
     vcf.add_record("chrom1", 79, "C", "G");
     vcf.add_record("chrom1", 79, "C", "A");
 
-    VCF new_vcf = create_VCF_with_default_parameters();
+    VCF new_vcf = create_VCF_with_default_parameters(0);
     new_vcf.add_record("chrom2", 5, "A", "G");
     new_vcf.add_record("chrom1", 46, "T", "TA");
     new_vcf.add_record("chrom2", 79, "C", "G");
@@ -379,14 +378,14 @@ TEST(VCFTest, append_vcf_one_sample_in_new_vcf) {
 }
 
 TEST(VCFTest, append_vcf_shared_sample) {
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
     vcf.add_record("chrom1", 79, "C", "G");
     vcf.add_record("chrom1", 79, "C", "A");
     vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 46, "T", "TA");
 
-    VCF new_vcf = create_VCF_with_default_parameters();
+    VCF new_vcf = create_VCF_with_default_parameters(0);
     new_vcf.add_record("chrom2", 5, "A", "G");
     new_vcf.add_record("chrom1", 46, "T", "TA");
     new_vcf.add_record("chrom2", 79, "C", "G");
@@ -414,7 +413,7 @@ TEST(VCFTest, append_vcf_shared_sample) {
 }
 
 TEST(VCFTest, append_vcf_shared_samples_different_order) {
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
     vcf.add_record("chrom1", 79, "C", "G");
@@ -422,7 +421,7 @@ TEST(VCFTest, append_vcf_shared_samples_different_order) {
 
     vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it("sample", "chrom1", 46, "T", "TA");
 
-    VCF new_vcf = create_VCF_with_default_parameters();
+    VCF new_vcf = create_VCF_with_default_parameters(0);
     new_vcf.add_record("chrom1", 79, "C", "A");
     new_vcf.add_record("chrom2", 5, "A", "G");
     new_vcf.add_record("chrom1", 46, "T", "TA");
@@ -482,19 +481,19 @@ TEST(VCFTest, sort_records) {
 
     EXPECT_EQ((uint) 6, vcf.get_VCF_size());
     for (uint i = 0; i < 4; ++i) {
-        EXPECT_EQ("chrom1", vcf.get_records()[i]->chrom);
+        EXPECT_EQ("chrom1", vcf.get_records()[i]->get_chrom());
     }
     for (uint i = 4; i < 6; ++i) {
-        EXPECT_EQ("chrom2", vcf.get_records()[i]->chrom);
+        EXPECT_EQ("chrom2", vcf.get_records()[i]->get_chrom());
     }
-    EXPECT_EQ((uint) 5, vcf.get_records()[0]->pos);
-    EXPECT_EQ((uint) 5, vcf.get_records()[4]->pos);
-    EXPECT_EQ((uint) 46, vcf.get_records()[1]->pos);
-    EXPECT_EQ((uint) 79, vcf.get_records()[2]->pos);
-    EXPECT_EQ((uint) 79, vcf.get_records()[3]->pos);
-    EXPECT_EQ((uint) 79, vcf.get_records()[5]->pos);
-    EXPECT_EQ("G", vcf.get_records()[3]->alts[0]);
-    EXPECT_EQ("G", vcf.get_records()[5]->alts[0]);
+    EXPECT_EQ((uint) 5, vcf.get_records()[0]->get_pos());
+    EXPECT_EQ((uint) 5, vcf.get_records()[4]->get_pos());
+    EXPECT_EQ((uint) 46, vcf.get_records()[1]->get_pos());
+    EXPECT_EQ((uint) 79, vcf.get_records()[2]->get_pos());
+    EXPECT_EQ((uint) 79, vcf.get_records()[3]->get_pos());
+    EXPECT_EQ((uint) 79, vcf.get_records()[5]->get_pos());
+    EXPECT_EQ("G", vcf.get_records()[3]->get_alts()[0]);
+    EXPECT_EQ("G", vcf.get_records()[5]->get_alts()[0]);
 }
 
 TEST(VCFTest, pos_in_range) {
@@ -543,8 +542,8 @@ public:
     VCFTest___genotype___Fixture() :
     default_vcf(&default_genotyping_options),
     snps_only_vcf(&genotyping_options_snps_only),
-    non_snp_vcf_record_ptr(new VCFRecordMock()),
-    snp_vcf_record_ptr(new VCFRecordMock())
+    non_snp_vcf_record_ptr(new VCFRecordMock(&default_vcf)),
+    snp_vcf_record_ptr(new VCFRecordMock(&default_vcf))
     {}
 
     void SetUp() override {
@@ -873,13 +872,13 @@ TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only) {
 //
 //    vcf.clean();
 //    EXPECT_EQ((uint) 3, vcf.get_VCF_size());
-//    EXPECT_EQ((uint) 79, vcf.get_records()[0]->pos);
-//    EXPECT_EQ((uint) 1, vcf.get_records()[0]->alts.size());
-//    EXPECT_EQ("G", vcf.get_records()[0]->alts[0]);
-//    EXPECT_EQ((uint) 5, vcf.get_records()[1]->pos);
-//    EXPECT_EQ((uint) 79, vcf.get_records()[2]->pos);
-//    EXPECT_EQ((uint) 1, vcf.get_records()[2]->alts.size());
-//    EXPECT_EQ("A", vcf.get_records()[2]->alts[0]);
+//    EXPECT_EQ((uint) 79, vcf.get_records()[0]->get_pos());
+//    EXPECT_EQ((uint) 1, vcf.get_records()[0]->get_alts().size());
+//    EXPECT_EQ("G", vcf.get_records()[0]->get_alts()[0]);
+//    EXPECT_EQ((uint) 5, vcf.get_records()[1]->get_pos());
+//    EXPECT_EQ((uint) 79, vcf.get_records()[2]->get_pos());
+//    EXPECT_EQ((uint) 1, vcf.get_records()[2]->get_alts().size());
+//    EXPECT_EQ("A", vcf.get_records()[2]->get_alts()[0]);
 //}
 
 
@@ -942,34 +941,34 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, one_sized_VCF) {
 
 TEST_F(VCFTest___merge_multi_allelic_core___Fixture, three_records_to_be_merged) {
     // expectations for the merged record
-    auto merged_record_1 = std::make_shared<VCFRecordMock>("merged_1", 1, "A", "T");;
-    EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_2"), _))
+    auto merged_record_1 = std::make_shared<VCFRecordMock>(&merged_vcf, "merged_1", 1, "A", "T");;
+    EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Property(&VCFRecord::get_chrom, "original_2"), _))
     .Times(1)
     .WillOnce(Return(true));
-    EXPECT_CALL(*merged_record_1, merge_record_into_this(Field(&VCFRecord::chrom, "original_2")))
+    EXPECT_CALL(*merged_record_1, merge_record_into_this(Property(&VCFRecord::get_chrom, "original_2")))
     .Times(1);
-    EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_3"), _))
+    EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Property(&VCFRecord::get_chrom, "original_3"), _))
             .Times(1)
             .WillOnce(Return(true));
-    EXPECT_CALL(*merged_record_1, merge_record_into_this(Field(&VCFRecord::chrom, "original_3")))
+    EXPECT_CALL(*merged_record_1, merge_record_into_this(Property(&VCFRecord::get_chrom, "original_3")))
             .Times(1);
 
     // expectations for the original records
-    auto vcf_record_1 = std::make_shared<VCFRecordMock>("original_1", 1, "A", "T");
+    auto vcf_record_1 = std::make_shared<VCFRecordMock>(&vcf, "original_1", 1, "A", "T");
     EXPECT_CALL(*vcf_record_1, make_copy_as_shared_ptr)
             .Times(1)
             .WillOnce(Return(merged_record_1));
-    auto vcf_record_2 = std::make_shared<VCFRecordMock>("original_2", 2, "A", "T");
+    auto vcf_record_2 = std::make_shared<VCFRecordMock>(&vcf, "original_2", 2, "A", "T");
     EXPECT_CALL(*vcf_record_2, make_copy_as_shared_ptr)
             .Times(0);
-    auto vcf_record_3 = std::make_shared<VCFRecordMock>("original_3", 3, "A", "T");
+    auto vcf_record_3 = std::make_shared<VCFRecordMock>(&vcf, "original_3", 3, "A", "T");
     EXPECT_CALL(*vcf_record_3, make_copy_as_shared_ptr)
             .Times(0);
 
     //expectations for the merged vcf
     EXPECT_CALL(merged_vcf, add_samples(vcf.samples))
             .Times(1);
-    EXPECT_CALL(merged_vcf, add_record_core(Field(&VCFRecord::chrom, "merged_1")))
+    EXPECT_CALL(merged_vcf, add_record_core(Property(&VCFRecord::get_chrom, "merged_1")))
             .Times(1);
     EXPECT_CALL(merged_vcf, sort_records)
             .Times(1);
@@ -984,34 +983,34 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, three_records_to_be_merged)
 
 TEST_F(VCFTest___merge_multi_allelic_core___Fixture, three_non_mergeable_records) {
     // expectations for the merged records
-    auto merged_record_1 = std::make_shared<VCFRecordMock>("merged_1", 1, "A", "T");;
-    EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_2"), _))
+    auto merged_record_1 = std::make_shared<VCFRecordMock>(&merged_vcf, "merged_1", 1, "A", "T");;
+    EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Property(&VCFRecord::get_chrom, "original_2"), _))
             .Times(1)
             .WillOnce(Return(false));
     EXPECT_CALL(*merged_record_1, merge_record_into_this)
             .Times(0);
-    auto merged_record_2 = std::make_shared<VCFRecordMock>("merged_2", 1, "A", "T");;
-    EXPECT_CALL(*merged_record_2, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_3"), _))
+    auto merged_record_2 = std::make_shared<VCFRecordMock>(&merged_vcf, "merged_2", 1, "A", "T");;
+    EXPECT_CALL(*merged_record_2, can_biallelic_record_be_merged_into_this(Property(&VCFRecord::get_chrom, "original_3"), _))
             .Times(1)
             .WillOnce(Return(false));
     EXPECT_CALL(*merged_record_2, merge_record_into_this)
             .Times(0);
-    auto merged_record_3 = std::make_shared<VCFRecordMock>("merged_3", 1, "A", "T");;
+    auto merged_record_3 = std::make_shared<VCFRecordMock>(&merged_vcf, "merged_3", 1, "A", "T");;
     EXPECT_CALL(*merged_record_3, can_biallelic_record_be_merged_into_this)
             .Times(0);
     EXPECT_CALL(*merged_record_3, merge_record_into_this)
             .Times(0);
 
     // expectations for the original records
-    auto vcf_record_1 = std::make_shared<VCFRecordMock>("original_1", 1, "A", "T");
+    auto vcf_record_1 = std::make_shared<VCFRecordMock>(&vcf, "original_1", 1, "A", "T");
     EXPECT_CALL(*vcf_record_1, make_copy_as_shared_ptr)
             .Times(1)
             .WillOnce(Return(merged_record_1));
-    auto vcf_record_2 = std::make_shared<VCFRecordMock>("original_2", 2, "A", "T");
+    auto vcf_record_2 = std::make_shared<VCFRecordMock>(&vcf, "original_2", 2, "A", "T");
     EXPECT_CALL(*vcf_record_2, make_copy_as_shared_ptr)
             .Times(1)
             .WillOnce(Return(merged_record_2));
-    auto vcf_record_3 = std::make_shared<VCFRecordMock>("original_3", 3, "A", "T");
+    auto vcf_record_3 = std::make_shared<VCFRecordMock>(&vcf, "original_3", 3, "A", "T");
     EXPECT_CALL(*vcf_record_3, make_copy_as_shared_ptr)
             .Times(1)
             .WillOnce(Return(merged_record_3));
@@ -1019,11 +1018,11 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, three_non_mergeable_records
     //expectations for the merged vcf
     EXPECT_CALL(merged_vcf, add_samples(vcf.samples))
             .Times(1);
-    EXPECT_CALL(merged_vcf, add_record_core(Field(&VCFRecord::chrom, "merged_1")))
+    EXPECT_CALL(merged_vcf, add_record_core(Property(&VCFRecord::get_chrom, "merged_1")))
             .Times(1);
-    EXPECT_CALL(merged_vcf, add_record_core(Field(&VCFRecord::chrom, "merged_2")))
+    EXPECT_CALL(merged_vcf, add_record_core(Property(&VCFRecord::get_chrom, "merged_2")))
             .Times(1);
-    EXPECT_CALL(merged_vcf, add_record_core(Field(&VCFRecord::chrom, "merged_3")))
+    EXPECT_CALL(merged_vcf, add_record_core(Property(&VCFRecord::get_chrom, "merged_3")))
             .Times(1);
     EXPECT_CALL(merged_vcf, sort_records)
             .Times(1);
@@ -1038,56 +1037,56 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, three_non_mergeable_records
 
 TEST_F(VCFTest___merge_multi_allelic_core___Fixture, two_records_to_be_merged___followed_by_one_record_not_mergeable___followed_by_two_to_be_merged) {
     // expectations for the merged records
-    auto merged_record_1 = std::make_shared<VCFRecordMock>("merged_1", 1, "A", "T");;
-    EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_2"), _))
+    auto merged_record_1 = std::make_shared<VCFRecordMock>(&merged_vcf, "merged_1", 1, "A", "T");;
+    EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Property(&VCFRecord::get_chrom, "original_2"), _))
             .Times(1)
             .WillOnce(Return(true));
-    EXPECT_CALL(*merged_record_1, merge_record_into_this(Field(&VCFRecord::chrom, "original_2")))
+    EXPECT_CALL(*merged_record_1, merge_record_into_this(Property(&VCFRecord::get_chrom, "original_2")))
             .Times(1);
-    EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_3"), _))
+    EXPECT_CALL(*merged_record_1, can_biallelic_record_be_merged_into_this(Property(&VCFRecord::get_chrom, "original_3"), _))
             .Times(1)
             .WillOnce(Return(false));
-    auto merged_record_2 = std::make_shared<VCFRecordMock>("merged_2", 1, "A", "T");;
-    EXPECT_CALL(*merged_record_2, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_4"), _))
+    auto merged_record_2 = std::make_shared<VCFRecordMock>(&merged_vcf, "merged_2", 1, "A", "T");;
+    EXPECT_CALL(*merged_record_2, can_biallelic_record_be_merged_into_this(Property(&VCFRecord::get_chrom, "original_4"), _))
             .Times(1)
             .WillOnce(Return(false));
     EXPECT_CALL(*merged_record_2, merge_record_into_this)
             .Times(0);
-    auto merged_record_3 = std::make_shared<VCFRecordMock>("merged_3", 1, "A", "T");;
-    EXPECT_CALL(*merged_record_3, can_biallelic_record_be_merged_into_this(Field(&VCFRecord::chrom, "original_5"), _))
+    auto merged_record_3 = std::make_shared<VCFRecordMock>(&merged_vcf, "merged_3", 1, "A", "T");;
+    EXPECT_CALL(*merged_record_3, can_biallelic_record_be_merged_into_this(Property(&VCFRecord::get_chrom, "original_5"), _))
             .Times(1)
             .WillOnce(Return(true));
-    EXPECT_CALL(*merged_record_3, merge_record_into_this(Field(&VCFRecord::chrom, "original_5")))
+    EXPECT_CALL(*merged_record_3, merge_record_into_this(Property(&VCFRecord::get_chrom, "original_5")))
             .Times(1);
 
     // expectations for the original records
-    auto vcf_record_1 = std::make_shared<VCFRecordMock>("original_1", 1, "A", "T");
+    auto vcf_record_1 = std::make_shared<VCFRecordMock>(&vcf, "original_1", 1, "A", "T");
     EXPECT_CALL(*vcf_record_1, make_copy_as_shared_ptr)
             .Times(1)
             .WillOnce(Return(merged_record_1));
-    auto vcf_record_2 = std::make_shared<VCFRecordMock>("original_2", 2, "A", "T");
+    auto vcf_record_2 = std::make_shared<VCFRecordMock>(&vcf, "original_2", 2, "A", "T");
     EXPECT_CALL(*vcf_record_2, make_copy_as_shared_ptr)
             .Times(0);
-    auto vcf_record_3 = std::make_shared<VCFRecordMock>("original_3", 3, "A", "T");
+    auto vcf_record_3 = std::make_shared<VCFRecordMock>(&vcf, "original_3", 3, "A", "T");
     EXPECT_CALL(*vcf_record_3, make_copy_as_shared_ptr)
             .Times(1)
             .WillOnce(Return(merged_record_2));
-    auto vcf_record_4 = std::make_shared<VCFRecordMock>("original_4", 4, "A", "T");
+    auto vcf_record_4 = std::make_shared<VCFRecordMock>(&vcf, "original_4", 4, "A", "T");
     EXPECT_CALL(*vcf_record_4, make_copy_as_shared_ptr)
             .Times(1)
             .WillOnce(Return(merged_record_3));
-    auto vcf_record_5 = std::make_shared<VCFRecordMock>("original_5", 5, "A", "T");
+    auto vcf_record_5 = std::make_shared<VCFRecordMock>(&vcf, "original_5", 5, "A", "T");
     EXPECT_CALL(*vcf_record_5, make_copy_as_shared_ptr)
             .Times(0);
 
     //expectations for the merged vcf
     EXPECT_CALL(merged_vcf, add_samples(vcf.samples))
             .Times(1);
-    EXPECT_CALL(merged_vcf, add_record_core(Field(&VCFRecord::chrom, "merged_1")))
+    EXPECT_CALL(merged_vcf, add_record_core(Property(&VCFRecord::get_chrom, "merged_1")))
             .Times(1);
-    EXPECT_CALL(merged_vcf, add_record_core(Field(&VCFRecord::chrom, "merged_2")))
+    EXPECT_CALL(merged_vcf, add_record_core(Property(&VCFRecord::get_chrom, "merged_2")))
             .Times(1);
-    EXPECT_CALL(merged_vcf, add_record_core(Field(&VCFRecord::chrom, "merged_3")))
+    EXPECT_CALL(merged_vcf, add_record_core(Property(&VCFRecord::get_chrom, "merged_3")))
             .Times(1);
     EXPECT_CALL(merged_vcf, sort_records)
             .Times(1);
@@ -1100,6 +1099,59 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, two_records_to_be_merged___
     vcf.records.push_back(vcf_record_5);
     vcf.merge_multi_allelic_core(merged_vcf, 10000);
 }
+
+
+TEST(VCFTest___merge_multi_allelic, vcf_with_two_samples_and_two_records_second_record_does_not_map_to_second_sample) {
+    // declares vcf with two samples
+    VCF vcf = create_VCF_with_default_parameters();
+    vcf.add_samples({"sample1", "sample2"});
+
+    // add two bi-allelic records to be merged
+    vcf.add_record("chrom1", 5, "A", "C", "SVTYPE=SNP", "GRAPHTYPE=SIMPLE");
+    vcf.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP", "GRAPHTYPE=SIMPLE");
+
+    // causing conflict and using genotype from the coverages to solve
+    vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].set_gt_from_max_likelihood_path(1);
+    vcf.get_records()[0]->sampleIndex_to_sampleInfo[1].set_gt_from_max_likelihood_path(1);
+    vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].set_gt_from_max_likelihood_path(1);
+    vcf.get_records()[1]->sampleIndex_to_sampleInfo[1].set_gt_from_max_likelihood_path(1);
+
+    // first record maps to both samples
+    vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].set_coverage_information({{1},
+                                                                                 {2}}, {{0},
+                                                                                        {0}});
+    vcf.get_records()[0]->sampleIndex_to_sampleInfo[1].set_coverage_information({{1},
+                                                                                 {3}}, {{0},
+                                                                                        {0}});
+
+    // second record maps to first sample only
+    vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].set_coverage_information({{1},
+                                                                                 {4}}, {{0},
+                                                                                        {0}});
+
+    // do the merge
+    vcf = vcf.merge_multi_allelic();
+
+    // output the vcf just for us to look at it
+    std::cout << vcf.to_string(true, false) << std::endl;
+
+
+    /*
+Doubts come here:
+Current output:
+chrom1	6	.	A	G	.	.	SVTYPE=SNP	GT:MEAN_FWD_COVG	.:.	.:1,3
+chrom1	6	.	A	G,C	.	.	SVTYPE=SNP	GT:MEAN_FWD_COVG	.:1,2,4	.:1,3
+
+Bugs (I think):
+1. First record should be removed, as it got merged into the second one
+2. ".:1,3" -> ".:1,3,0" - we should add a coverage of 0 if the record does not map to a sample
+     * Or should it be ".:1,3" -> ".:1,3,." : a '.' instead of 0?
+
+Expected output (? - could you please fill - it can be the str representation of the record?):
+     */
+}
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1142,20 +1194,20 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, two_records_to_be_merged___
 //    vcf = vcf.merge_multi_allelic();
 //
 //    EXPECT_EQ((uint) 5, vcf.get_VCF_size());
-//    EXPECT_EQ((uint) 5, vcf.get_records()[0]->pos);
-//    EXPECT_EQ((uint) 2, vcf.get_records()[0]->alts.size());
+//    EXPECT_EQ((uint) 5, vcf.get_records()[0]->get_pos());
+//    EXPECT_EQ((uint) 2, vcf.get_records()[0]->get_alts().size());
 //    EXPECT_EQ((uint) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
 //    EXPECT_EQ((uint) 0, vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].size());
 //
-//    EXPECT_EQ((uint) 46, vcf.get_records()[1]->pos);
-//    EXPECT_EQ((uint) 2, vcf.get_records()[1]->alts.size());
+//    EXPECT_EQ((uint) 46, vcf.get_records()[1]->get_pos());
+//    EXPECT_EQ((uint) 2, vcf.get_records()[1]->get_alts().size());
 //    EXPECT_EQ((uint) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo.size());
 //    bool valid_gt = vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].find("GT") != vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].end();
 //    EXPECT_TRUE(valid_gt);
 //    EXPECT_EQ((uint) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["GT"].size());
 //
-//    EXPECT_EQ((uint) 76, vcf.get_records()[2]->pos);
-//    EXPECT_EQ((uint) 2, vcf.get_records()[2]->alts.size());
+//    EXPECT_EQ((uint) 76, vcf.get_records()[2]->get_pos());
+//    EXPECT_EQ((uint) 2, vcf.get_records()[2]->get_alts().size());
 //    EXPECT_EQ((uint) 1, vcf.get_records()[2]->sampleIndex_to_sampleInfo.size());
 //    valid_gt = vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].find("GT") != vcf.get_records()[2]->sampleIndex_to_sampleInfo[0].end();
 //    EXPECT_TRUE(valid_gt);
@@ -1176,55 +1228,19 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, two_records_to_be_merged___
 //    EXPECT_EQ((uint) 1, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["GT_CONF"].size());
 //    EXPECT_EQ(13.0, vcf.get_records()[2]->sampleIndex_to_sampleInfo[0]["GT_CONF"][0]);
 //
-//    EXPECT_EQ((uint) 85, vcf.get_records()[3]->pos);
-//    EXPECT_EQ((uint) 1, vcf.get_records()[3]->alts.size());
-//    EXPECT_EQ((uint) 85, vcf.get_records()[4]->pos);
-//    EXPECT_EQ((uint) 1, vcf.get_records()[4]->alts.size());
+//    EXPECT_EQ((uint) 85, vcf.get_records()[3]->get_pos());
+//    EXPECT_EQ((uint) 1, vcf.get_records()[3]->get_alts().size());
+//    EXPECT_EQ((uint) 85, vcf.get_records()[4]->get_pos());
+//    EXPECT_EQ((uint) 1, vcf.get_records()[4]->get_alts().size());
 //}
 
 
 
-//TEST(VCFTest, merge_multi_allelic___vcf_with_two_samples_and_two_records_second_record_does_not_map_to_second_sample) {
-//    // declares vcf with two samples
-//    VCF vcf = create_VCF_with_default_parameters();
-//    vcf.add_samples({"sample1", "sample2"});
-//
-//    // add two bi-allelic records to be merged
-//    vcf.add_record("chrom1", 5, "A", "C", "SVTYPE=SNP", "GRAPHTYPE=SIMPLE");
-//    vcf.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP", "GRAPHTYPE=SIMPLE");
-//
-//    // first record maps to both samples
-//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {1, 2};
-//    vcf.get_records()[0]->sampleIndex_to_sampleInfo[1]["MEAN_FWD_COVG"] = {1, 3};
-//
-//    // second record maps to first sample only
-//    vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"] = {1, 4};
-//
-//    // do the merge
-//    vcf = vcf.merge_multi_allelic();
-//
-//    // output the vcf just for us to look at it
-//    std::vector<std::string> formats = {"MEAN_FWD_COVG"};
-//    vcf.add_formats(formats);
-//
-//    std::cout << vcf.to_string() << std::endl;
-//
-//
-//    /*
-//Doubts come here:
-//Current output:
-//chrom1	6	.	A	G	.	.	SVTYPE=SNP	GT:MEAN_FWD_COVG	.:.	.:1,3
-//chrom1	6	.	A	G,C	.	.	SVTYPE=SNP	GT:MEAN_FWD_COVG	.:1,2,4	.:1,3
-//
-//Bugs (I think):
-//1. First record should be removed, as it got merged into the second one
-//2. ".:1,3" -> ".:1,3,0" - we should add a coverage of 0 if the record does not map to a sample
-//     * Or should it be ".:1,3" -> ".:1,3,." : a '.' instead of 0?
-//
-//Expected output (? - could you please fill - it can be the str representation of the record?):
-//     */
-//}
-//
+
+
+
+
+
 //TEST(VCFTest, correct_dot_alleles) {
 //    VCF vcf = create_VCF_with_default_parameters();
 //    // at start
@@ -1249,31 +1265,31 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, two_records_to_be_merged___
 //    vcf.correct_dot_alleles(vcf_ref, "chrom1");
 //    vcf.correct_dot_alleles(vcf_ref, "chrom2");
 //
-//    EXPECT_EQ(vcf.get_records()[0]->ref, "T");
-//    EXPECT_EQ(vcf.get_records()[1]->ref, "C");
-//    EXPECT_EQ(vcf.get_records()[2]->ref, "TTA");
-//    EXPECT_EQ(vcf.get_records()[3]->ref, "TA");
-//    EXPECT_EQ(vcf.get_records()[4]->ref, "TA");
-//    EXPECT_EQ(vcf.get_records()[5]->ref, "CTA");
-//    EXPECT_EQ(vcf.get_records()[6]->ref, "T");
-//    EXPECT_EQ(vcf.get_records()[7]->ref, "T");
+//    EXPECT_EQ(vcf.get_records()[0]->get_ref(), "T");
+//    EXPECT_EQ(vcf.get_records()[1]->get_ref(), "C");
+//    EXPECT_EQ(vcf.get_records()[2]->get_ref(), "TTA");
+//    EXPECT_EQ(vcf.get_records()[3]->get_ref(), "TA");
+//    EXPECT_EQ(vcf.get_records()[4]->get_ref(), "TA");
+//    EXPECT_EQ(vcf.get_records()[5]->get_ref(), "CTA");
+//    EXPECT_EQ(vcf.get_records()[6]->get_ref(), "T");
+//    EXPECT_EQ(vcf.get_records()[7]->get_ref(), "T");
 //
-//    EXPECT_EQ(vcf.get_records()[0]->alts.size(), 1);
-//    EXPECT_EQ(vcf.get_records()[0]->alts[0], "TAT");
-//    EXPECT_EQ(vcf.get_records()[1]->alts.size(), 1);
-//    EXPECT_EQ(vcf.get_records()[1]->alts[0], "CA");
-//    EXPECT_EQ(vcf.get_records()[2]->alts.size(), 1);
-//    EXPECT_EQ(vcf.get_records()[2]->alts[0], "T");
-//    EXPECT_EQ(vcf.get_records()[3]->alts.size(), 1);
-//    EXPECT_EQ(vcf.get_records()[3]->alts[0], "T");
-//    EXPECT_EQ(vcf.get_records()[4]->alts.size(), 1);
-//    EXPECT_EQ(vcf.get_records()[4]->alts[0], "A");
-//    EXPECT_EQ(vcf.get_records()[5]->alts.size(), 1);
-//    EXPECT_EQ(vcf.get_records()[5]->alts[0], "C");
-//    EXPECT_EQ(vcf.get_records()[6]->alts.size(), 1);
-//    EXPECT_EQ(vcf.get_records()[6]->alts[0], "TT");
-//    EXPECT_EQ(vcf.get_records()[7]->alts.size(), 1);
-//    EXPECT_EQ(vcf.get_records()[7]->alts[0], "TTA");
+//    EXPECT_EQ(vcf.get_records()[0]->get_alts().size(), 1);
+//    EXPECT_EQ(vcf.get_records()[0]->get_alts()[0], "TAT");
+//    EXPECT_EQ(vcf.get_records()[1]->get_alts().size(), 1);
+//    EXPECT_EQ(vcf.get_records()[1]->get_alts()[0], "CA");
+//    EXPECT_EQ(vcf.get_records()[2]->get_alts().size(), 1);
+//    EXPECT_EQ(vcf.get_records()[2]->get_alts()[0], "T");
+//    EXPECT_EQ(vcf.get_records()[3]->get_alts().size(), 1);
+//    EXPECT_EQ(vcf.get_records()[3]->get_alts()[0], "T");
+//    EXPECT_EQ(vcf.get_records()[4]->get_alts().size(), 1);
+//    EXPECT_EQ(vcf.get_records()[4]->get_alts()[0], "A");
+//    EXPECT_EQ(vcf.get_records()[5]->get_alts().size(), 1);
+//    EXPECT_EQ(vcf.get_records()[5]->get_alts()[0], "C");
+//    EXPECT_EQ(vcf.get_records()[6]->get_alts().size(), 1);
+//    EXPECT_EQ(vcf.get_records()[6]->get_alts()[0], "TT");
+//    EXPECT_EQ(vcf.get_records()[7]->get_alts().size(), 1);
+//    EXPECT_EQ(vcf.get_records()[7]->get_alts()[0], "TTA");
 //}
 //
 
@@ -1295,9 +1311,9 @@ public:
 
     VCFTest___make_gt_compatible___Fixture() :
             vcf(&default_genotyping_options),
-            vcf_record_1(std::make_shared<VCFRecordMock>("1", 1, "A", "T")),
-            vcf_record_2(std::make_shared<VCFRecordMock>("1", 2, "A", "T")),
-            vcf_record_3(std::make_shared<VCFRecordMock>("1", 3, "A", "T"))
+            vcf_record_1(std::make_shared<VCFRecordMock>(&vcf, "1", 1, "A", "T")),
+            vcf_record_2(std::make_shared<VCFRecordMock>(&vcf, "1", 2, "A", "T")),
+            vcf_record_3(std::make_shared<VCFRecordMock>(&vcf, "1", 3, "A", "T"))
     {}
 
     void SetUp() override {
@@ -1318,10 +1334,10 @@ public:
 TEST_F(VCFTest___make_gt_compatible___Fixture, side_by_side_no_overlapping_records___no_conflict) {
     {
         InSequence seq;
-        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Field(&VCFRecord::pos, 1)	))
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Property(&VCFRecord::get_pos, 1)	))
                 .Times(1)
                 .WillOnce(Return(std::vector<VCFRecord*>({vcf_record_1.get()})));
-        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Field(&VCFRecord::pos, 2)	))
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Property(&VCFRecord::get_pos, 2)	))
                 .Times(1)
                 .WillOnce(Return(std::vector<VCFRecord*>({vcf_record_2.get()})));
     }
@@ -1338,21 +1354,21 @@ TEST_F(VCFTest___make_gt_compatible___Fixture, two_overlapping_records___conflic
     {
         InSequence seq;
 
-        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Field(&VCFRecord::pos, 1)))
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Property(&VCFRecord::get_pos, 1)))
                 .Times(1)
                 .WillOnce(Return(std::vector<VCFRecord *>({vcf_record_1.get(), vcf_record_2.get()})));
 
-        EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 2)))
+        EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Property(&VCFRecord::get_pos, 2)))
                 .Times(1);
 
 
-        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Field(&VCFRecord::pos, 2)))
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Property(&VCFRecord::get_pos, 2)))
                 .Times(1)
                 .WillOnce(Return(std::vector<VCFRecord *>({vcf_record_1.get(), vcf_record_2.get()})));
     }
 
 
-    EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 1)))
+    EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Property(&VCFRecord::get_pos, 1)))
             .Times(0);
     EXPECT_CALL(*vcf_record_2, solve_incompatible_gt_conflict_with)
             .Times(0);
@@ -1365,33 +1381,33 @@ TEST_F(VCFTest___make_gt_compatible___Fixture, several_records___conflict) {
     {
         InSequence seq;
 
-        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Field(&VCFRecord::pos, 1)))
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Property(&VCFRecord::get_pos, 1)))
                 .Times(1)
                 .WillOnce(Return(std::vector<VCFRecord *>({vcf_record_1.get(), vcf_record_2.get(), vcf_record_3.get()})));
 
-        EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 2)))
+        EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Property(&VCFRecord::get_pos, 2)))
                 .Times(1);
 
-        EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 3)))
+        EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Property(&VCFRecord::get_pos, 3)))
                 .Times(1);
 
-        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Field(&VCFRecord::pos, 2)))
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Property(&VCFRecord::get_pos, 2)))
                 .Times(1)
                 .WillOnce(Return(std::vector<VCFRecord *>({vcf_record_1.get(), vcf_record_2.get(), vcf_record_3.get()})));
 
-        EXPECT_CALL(*vcf_record_2, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 3)))
+        EXPECT_CALL(*vcf_record_2, solve_incompatible_gt_conflict_with(Property(&VCFRecord::get_pos, 3)))
                 .Times(1);
 
-        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Field(&VCFRecord::pos, 3)))
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Property(&VCFRecord::get_pos, 3)))
                 .Times(1)
                 .WillOnce(Return(std::vector<VCFRecord *>({vcf_record_1.get(), vcf_record_2.get(), vcf_record_3.get()})));
     }
 
-    EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 1)))
+    EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Property(&VCFRecord::get_pos, 1)))
             .Times(0);
-    EXPECT_CALL(*vcf_record_2, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 1)))
+    EXPECT_CALL(*vcf_record_2, solve_incompatible_gt_conflict_with(Property(&VCFRecord::get_pos, 1)))
             .Times(0);
-    EXPECT_CALL(*vcf_record_2, solve_incompatible_gt_conflict_with(Field(&VCFRecord::pos, 2)))
+    EXPECT_CALL(*vcf_record_2, solve_incompatible_gt_conflict_with(Property(&VCFRecord::get_pos, 2)))
             .Times(0);
     EXPECT_CALL(*vcf_record_3, solve_incompatible_gt_conflict_with)
             .Times(0);
@@ -1472,14 +1488,14 @@ class VCFTest___get_all_records_overlapping_the_given_record___Fixture : public 
 public:
     VCFTest___get_all_records_overlapping_the_given_record___Fixture() :
             vcf(&default_genotyping_options),
-            vcf_record_5_to_10("1", 5, "AAAAA", "T"),
-            vcf_record_7_to_8("1", 7, "A", "T"),
-            vcf_record_9_to_12("1", 9, "AAA", "T"),
-            vcf_record_10_to_12("1", 10, "AA", "T"),
-            vcf_record_3_to_6("1", 3, "AAA", "T"),
-            vcf_record_3_to_5("1", 3, "AA", "T"),
-            vcf_record_3_to_13("1", 3, "AAAAAAAAAA", "T"),
-            vcf_record_5_to_10_other_chrom("2", 5, "AAAAA", "T")
+            vcf_record_5_to_10(&vcf, "1", 5, "AAAAA", "T"),
+            vcf_record_7_to_8(&vcf, "1", 7, "A", "T"),
+            vcf_record_9_to_12(&vcf, "1", 9, "AAA", "T"),
+            vcf_record_10_to_12(&vcf, "1", 10, "AA", "T"),
+            vcf_record_3_to_6(&vcf, "1", 3, "AAA", "T"),
+            vcf_record_3_to_5(&vcf, "1", 3, "AA", "T"),
+            vcf_record_3_to_13(&vcf, "1", 3, "AAAAAAAAAA", "T"),
+            vcf_record_5_to_10_other_chrom(&vcf, "2", 5, "AAAAA", "T")
     {}
 
     void SetUp() override {
@@ -1592,15 +1608,15 @@ TEST(VCFTest, equals) {
     VCF vcf = create_VCF_with_default_parameters();
     vcf.add_record("chrom1", 5, "A", "G");
     vcf.add_record("chrom1", 46, "T", "TA");
-    VCFRecord vr = VCFRecord("chrom1", 79, "C", "G");
+    VCFRecord vr = VCFRecord(&vcf, "chrom1", 79, "C", "G");
     std::vector<std::string> empty = {};
-    vcf.add_record(vr, empty);
+    vcf.add_or_update_record_restricted_to_the_given_samples(vr, empty);
     EXPECT_EQ(vcf, vcf);
 
     // different order
     VCF vcf1 = create_VCF_with_default_parameters();
     vcf1.add_record("chrom1", 5, "A", "G");
-    vcf1.add_record(vr, empty);
+    vcf1.add_or_update_record_restricted_to_the_given_samples(vr, empty);
     vcf1.add_record("chrom1", 46, "T", "TA");
     EXPECT_EQ(vcf1, vcf1);
     EXPECT_EQ(vcf, vcf1);
@@ -1609,7 +1625,7 @@ TEST(VCFTest, equals) {
     // same length, one different
     VCF vcf2 = create_VCF_with_default_parameters();
     vcf2.add_record("chrom1", 10, "A", "G");
-    vcf2.add_record(vr, empty);
+    vcf2.add_or_update_record_restricted_to_the_given_samples(vr, empty);
     vcf2.add_record("chrom1", 46, "T", "TA");
     EXPECT_EQ(vcf2, vcf2);
     EXPECT_EQ((vcf == vcf2), false);
@@ -1618,7 +1634,7 @@ TEST(VCFTest, equals) {
     // different length
     VCF vcf3 = create_VCF_with_default_parameters();
     vcf3.add_record("chrom1", 5, "A", "G");
-    vcf3.add_record(vr, empty);
+    vcf3.add_or_update_record_restricted_to_the_given_samples(vr, empty);
     vcf3.add_record("chrom1", 46, "T", "TA");
     vcf3.add_record("chrom1", 30, "G", "CC");
     EXPECT_EQ(vcf3, vcf3);

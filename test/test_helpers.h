@@ -19,6 +19,6 @@ bool equal_containers(const CONT_TYPE<T> &lhs, const CONT_TYPE<T> &rhs, const Bi
 
 extern GenotypingOptions default_genotyping_options;
 
-VCF create_VCF_with_default_parameters();
+VCF create_VCF_with_default_parameters(size_t nb_of_samples=1);
 
 #endif //PANDORA_TEST_HELPERS_H

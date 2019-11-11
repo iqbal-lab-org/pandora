@@ -16,13 +16,11 @@ public:
     VCF const * parent_vcf;
 
     //#CHROM POS ID REF ALT QUAL FILTER INFO FORMAT
-    std::string chrom;
-    uint32_t pos;
     std::string id; // not used
     std::string qual; // not used
     std::string filter; // not used
     std::string info;
-    SampleIndexToSampleInfo sampleIndex_to_sampleInfo;
+    SampleIndexToSampleInfo sampleIndex_to_sampleInfo; //it is fine to leave this public
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // constructors, destructors, operator=, etc
@@ -54,6 +52,22 @@ public:
 
     virtual inline bool allele_is_valid (const std::string &allele) const {
         return allele != "" and allele != ".";
+    }
+
+    const std::string &get_chrom() const {
+        return chrom;
+    }
+
+    uint32_t get_pos() const {
+        return pos;
+    }
+
+    virtual inline uint32_t get_ref_end_pos () const {
+        if (allele_is_valid(get_ref())) {
+            return pos + get_ref().length();
+        } else {
+            return pos;
+        }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -186,6 +200,8 @@ public:
 protected:
     std::string ref;
     std::vector<std::string> alts;
+    std::string chrom;
+    uint32_t pos;
 
 
     std::string infer_SVTYPE() const;
