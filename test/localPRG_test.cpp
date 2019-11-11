@@ -978,7 +978,7 @@ TEST(LocalPRGTest, build_vcf) {
     LocalPRG l5(5, "another real PRG",
                 "ATGACAAAGGTTACACCGT 5 C 6 T 5 TGACGTGCTACGCCTGTCAGGCCTATTCGACTCCTGCAAT 7 G 8 A 7 TATTGAATTTGCATAGTTTT 9 G 10 A 9 TAGGTCGA 11 G 12 A 11 TAAGGCGTTCACGCCGCATCCGGCGTGAACAAA 13 G 14 T 13 TACTCTTTTT 15  17  19 C 20 T 19 GCACAATCCAA 18 CGCACAAACCAA 17  16  21 CGCACAATCCAA 22  23 CGT 24 CGC 23 ACAAACCA 25 A 26 T 25  21 TATGTGCAAATTATTACTTTTTCCAGAAATCATCGAAAACGG 15 ");
 
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
 
     l1.build_vcf_from_reference_path(vcf, l1.prg.top_path());
     uint j = 0;
@@ -1143,7 +1143,7 @@ TEST(LocalPRGTest, add_new_records_and_genotype_to_vcf_using_max_likelihood_path
     LocalPRG l5(5, "another real PRG", " 5 ATGCTTATTGGCTATGT 7  9 ACGCGTA 10 TCGCGTA 10 ACGTGTG 9 TCAACAAATGACCAGAACA"
                                        "C 11 A 12 C 11  8 ACGCGTATCAACAAATGATCAGAACACA 7 GATCTACAACGTAATGCG 6 AAGT 5 ");
 
-    VCF vcf = create_VCF_with_default_parameters();
+    VCF vcf = create_VCF_with_default_parameters(0);
 
     vector<LocalNodePtr> lmp1 = {l1.prg.nodes[0]};
     l1.build_vcf_from_reference_path(vcf, l1.prg.top_path());
@@ -1152,7 +1152,7 @@ TEST(LocalPRGTest, add_new_records_and_genotype_to_vcf_using_max_likelihood_path
     uint j = 1;
     EXPECT_EQ(j, vcf.samples.size());
 
-    vcf = create_VCF_with_default_parameters();;
+    vcf = create_VCF_with_default_parameters(0);
     vector<LocalNodePtr> lmp2 = {l2.prg.nodes[0], l2.prg.nodes[2], l2.prg.nodes[3]};
     l2.build_vcf_from_reference_path(vcf, l2.prg.top_path());
     l2.add_new_records_and_genotype_to_vcf_using_max_likelihood_path_of_the_sample(vcf, l2.prg.top_path(), lmp2,
@@ -1162,7 +1162,7 @@ TEST(LocalPRGTest, add_new_records_and_genotype_to_vcf_using_max_likelihood_path
     EXPECT_EQ(j, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
     EXPECT_EQ((uint16_t) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
 
-    vcf = create_VCF_with_default_parameters();;
+    vcf = create_VCF_with_default_parameters(0);
     vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
     l3.build_vcf_from_reference_path(vcf, l3.prg.top_path());
     vcf.sort_records();
@@ -1172,7 +1172,7 @@ TEST(LocalPRGTest, add_new_records_and_genotype_to_vcf_using_max_likelihood_path
     EXPECT_EQ(j, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
     EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
 
-    vcf = create_VCF_with_default_parameters();;
+    vcf = create_VCF_with_default_parameters(0);
     vector<LocalNodePtr> lmp4 = {l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[5], l4.prg.nodes[6],
                                  l4.prg.nodes[8], l4.prg.nodes[9], l4.prg.nodes[10], l4.prg.nodes[12], l4.prg.nodes[13],
                                  l4.prg.nodes[15]};
@@ -1192,7 +1192,7 @@ TEST(LocalPRGTest, add_new_records_and_genotype_to_vcf_using_max_likelihood_path
     EXPECT_EQ(j, vcf.get_records()[4]->sampleIndex_to_sampleInfo.size());
     EXPECT_EQ((uint16_t) 0, vcf.get_records()[4]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
 
-    vcf = create_VCF_with_default_parameters();;
+    vcf = create_VCF_with_default_parameters(0);
     vector<LocalNodePtr> lmp5 = {l5.prg.nodes[0], l5.prg.nodes[1], l5.prg.nodes[10], l5.prg.nodes[11],
                                  l5.prg.nodes[13]};
     l5.build_vcf_from_reference_path(vcf, l5.prg.top_path());

@@ -159,7 +159,7 @@ class PangenomeNodeTest___construct_multisample_vcf___Fixture : public ::testing
 protected:
     PangenomeNodeTest___construct_multisample_vcf___Fixture() :
             w(1), k(3), min_kmer_covg(0), index(std::make_shared<Index>()), sample_names({"sample1", "sample2", "sample3", "sample4"}),
-            pangraph(sample_names), master_vcf(create_VCF_with_default_parameters()),
+            pangraph(sample_names), master_vcf(create_VCF_with_default_parameters(0)),
             nested_varsite_PRG(std::make_shared<LocalPRG>(0, "nested varsite" , "A 5 G 7 C 8 T 8 CT 7  6 G 5 T")),
             modified_PRG(std::make_shared<LocalPRG>(1, "modified" , "A 5 G 7 G 8 A 8 GA 7  6 G 5 T"))
     {
