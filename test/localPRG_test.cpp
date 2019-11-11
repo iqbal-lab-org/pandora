@@ -1667,83 +1667,79 @@ TEST(LocalPRGTest, get_forward_and_reverse_kmer_coverages_in_range) {
     EXPECT_ITERABLE_EQ(vector<uint32_t>, exp_rev, rev);
 }
 
-//TEST(LocalPRGTest, add_sample_covgs_to_vcf) {
-//    uint32_t min_kmer_covgs = 0;
-//    auto index = std::make_shared<Index>();
-//    vector<string> short_formats = {"GT"};
-//    vector<string> formats = {"GT", "MEAN_FWD_COVG", "MEAN_REV_COVG",
-//                              "MED_FWD_COVG", "MED_REV_COVG",
-//                              "SUM_FWD_COVG", "SUM_REV_COVG", "GAPS"};
-//
-//    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-//    l3.minimizer_sketch(index, 1, 3);
-//
-//    VCF vcf = create_VCF_with_default_parameters();
-//
-//    vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
-//    l3.build_vcf_from_reference_path(vcf, l3.prg.top_path());
-//    vcf.sort_records();
-//    l3.add_new_records_and_genotype_to_vcf_using_max_likelihood_path_of_the_sample(vcf, l3.prg.top_path(), lmp3,
-//                                                                                   "sample");
-//    EXPECT_EQ((uint) 1, vcf.samples.size());
-//    EXPECT_EQ((uint) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
-//    EXPECT_ITERABLE_EQ(vector<string>, short_formats, vcf.get_records()[0]->format);
-//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//
-//    KmerGraphWithCoverage kg(&l3.kmer_prg);
-//    l3.add_sample_covgs_to_vcf(vcf, kg, l3.prg.top_path(), min_kmer_covgs, "sample",
-//                               0);
-//    EXPECT_EQ((uint) 1, vcf.samples.size());
-//    EXPECT_EQ((uint) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
-//    EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.get_records()[0]->format);
-//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"][1]);
-//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"][1]);
-//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MED_FWD_COVG"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MED_REV_COVG"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MED_FWD_COVG"][1]);
-//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MED_REV_COVG"][1]);
-//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["SUM_FWD_COVG"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["SUM_REV_COVG"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["SUM_FWD_COVG"][1]);
-//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["SUM_REV_COVG"][1]);
-//
-//    // ref
-//    kg.set_covg(1, 1, 0, 0);
-//    kg.set_covg(1, 0, 1, 0);
-//    kg.set_covg(4, 1, 0, 0);
-//    kg.set_covg(4, 0, 1, 0);
-//    kg.set_covg(7, 1, 0, 0);
-//    kg.set_covg(7, 0, 1, 0);
-//
-//    // alts
-//    kg.set_covg(2, 6, 0, 0);
-//    kg.set_covg(2, 8, 1, 0);
-//    kg.set_covg(5, 5, 0, 0);
-//    kg.set_covg(5, 5, 1, 0);
-//    kg.set_covg(8, 4, 0, 0);
-//    kg.set_covg(8, 5, 1, 0);
-//
-//    l3.add_sample_covgs_to_vcf(vcf, kg, l3.prg.top_path(), min_kmer_covgs, "sample", 0);
-//    EXPECT_EQ((uint) 1, vcf.samples.size());
-//    EXPECT_EQ((uint) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
-//    EXPECT_ITERABLE_EQ(vector<string>, formats, vcf.get_records()[0]->format);
-//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["GT"][0]);
-//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"][0]);
-//    EXPECT_EQ((uint16_t) 5, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_FWD_COVG"][1]);
-//    EXPECT_EQ((uint16_t) 6, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MEAN_REV_COVG"][1]);
-//    EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MED_FWD_COVG"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MED_REV_COVG"][0]);
-//    EXPECT_EQ((uint16_t) 5, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MED_FWD_COVG"][1]);
-//    EXPECT_EQ((uint16_t) 5, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["MED_REV_COVG"][1]);
-//    EXPECT_EQ((uint16_t) 3, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["SUM_FWD_COVG"][0]);
-//    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["SUM_REV_COVG"][0]);
-//    EXPECT_EQ((uint16_t) 15, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["SUM_FWD_COVG"][1]);
-//    EXPECT_EQ((uint16_t) 18, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0]["SUM_REV_COVG"][1]);
-//}
+TEST(LocalPRGTest, add_sample_covgs_to_vcf) {
+    auto index = std::make_shared<Index>();
+    LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
+    l3.minimizer_sketch(index, 1, 3);
+
+    VCF vcf = create_VCF_with_default_parameters(0);
+
+    vector<LocalNodePtr> lmp3 = {l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3], l3.prg.nodes[4], l3.prg.nodes[6]};
+    l3.build_vcf_from_reference_path(vcf, l3.prg.top_path());
+    vcf.sort_records();
+    l3.add_new_records_and_genotype_to_vcf_using_max_likelihood_path_of_the_sample(vcf, l3.prg.top_path(), lmp3,
+                                                                                   "sample");
+    EXPECT_EQ((uint) 1, vcf.samples.size());
+    EXPECT_EQ((uint) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
+
+    KmerGraphWithCoverage kg(&l3.kmer_prg);
+    l3.add_sample_covgs_to_vcf(vcf, kg, l3.prg.top_path(), "sample", 0);
+    EXPECT_EQ((uint) 1, vcf.samples.size());
+    EXPECT_EQ((uint) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
+
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_mean_forward_coverage(0));
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_mean_reverse_coverage(0));
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_mean_forward_coverage(1));
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_mean_reverse_coverage(1));
+
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_median_forward_coverage(0));
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_median_reverse_coverage(0));
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_median_forward_coverage(1));
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_median_reverse_coverage(1));
+
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_sum_forward_coverage(0));
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_sum_reverse_coverage(0));
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_sum_forward_coverage(1));
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_sum_reverse_coverage(1));
+
+    // ref
+    kg.set_covg(1, 1, 0, 0);
+    kg.set_covg(1, 0, 1, 0);
+    kg.set_covg(4, 1, 0, 0);
+    kg.set_covg(4, 0, 1, 0);
+    kg.set_covg(7, 1, 0, 0);
+    kg.set_covg(7, 0, 1, 0);
+
+    // alts
+    kg.set_covg(2, 6, 0, 0);
+    kg.set_covg(2, 8, 1, 0);
+    kg.set_covg(5, 5, 0, 0);
+    kg.set_covg(5, 5, 1, 0);
+    kg.set_covg(8, 4, 0, 0);
+    kg.set_covg(8, 5, 1, 0);
+
+    l3.add_sample_covgs_to_vcf(vcf, kg, l3.prg.top_path(), "sample", 0);
+    EXPECT_EQ((uint) 1, vcf.samples.size());
+    EXPECT_EQ((uint) 1, vcf.get_records()[0]->sampleIndex_to_sampleInfo.size());
+    EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_gt_from_max_likelihood_path());
+
+    EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_mean_forward_coverage(0));
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_mean_reverse_coverage(0));
+    EXPECT_EQ((uint16_t) 5, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_mean_forward_coverage(1));
+    EXPECT_EQ((uint16_t) 6, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_mean_reverse_coverage(1));
+
+    EXPECT_EQ((uint16_t) 1, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_median_forward_coverage(0));
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_median_reverse_coverage(0));
+    EXPECT_EQ((uint16_t) 5, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_median_forward_coverage(1));
+    EXPECT_EQ((uint16_t) 5, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_median_reverse_coverage(1));
+
+    EXPECT_EQ((uint16_t) 3, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_sum_forward_coverage(0));
+    EXPECT_EQ((uint16_t) 0, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_sum_reverse_coverage(0));
+    EXPECT_EQ((uint16_t) 15, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_sum_forward_coverage(1));
+    EXPECT_EQ((uint16_t) 18, vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_sum_reverse_coverage(1));
+}
 
 TEST(LocalPRGTest, add_consensus_path_to_fastaq_bin) {
     auto index = std::make_shared<Index>();
