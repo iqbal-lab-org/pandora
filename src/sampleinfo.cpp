@@ -24,8 +24,7 @@ void SampleInfo::genotype_from_coverage () {
 
 
 bool SampleInfo::check_if_coverage_information_is_correct() const {
-    // at least two alleles because a VCF record has a ref and at least one alt
-    bool there_are_at_least_two_alleles = allele_to_forward_coverages.size() >= 2 and allele_to_reverse_coverages.size() >= 2;
+    bool there_are_at_least_one_allele = allele_to_forward_coverages.size() >= 1 and allele_to_reverse_coverages.size() >= 1;
     bool forward_and_reverse_coverages_have_the_same_number_of_alleles = allele_to_forward_coverages.size() == allele_to_reverse_coverages.size();
 
     bool correct_number_of_alleles = allele_to_forward_coverages.size() == get_number_of_alleles();
@@ -40,10 +39,10 @@ bool SampleInfo::check_if_coverage_information_is_correct() const {
         }
     }
 
-    return there_are_at_least_two_alleles
-        and forward_and_reverse_coverages_have_the_same_number_of_alleles
-        and correct_number_of_alleles
-        and all_alleles_in_forward_and_reverse_have_the_same_number_of_bases;
+    return there_are_at_least_one_allele
+           and forward_and_reverse_coverages_have_the_same_number_of_alleles
+           and correct_number_of_alleles
+           and all_alleles_in_forward_and_reverse_have_the_same_number_of_bases;
 }
 
 double SampleInfo::get_gaps (uint32_t allele) const {

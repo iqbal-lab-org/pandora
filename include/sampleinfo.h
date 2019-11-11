@@ -23,8 +23,8 @@ public:
     genotyping_options(genotyping_options),
     exp_depth_covg_for_this_sample(genotyping_options->get_sample_index_to_exp_depth_covg()[sample_index])
     {
-        bool at_least_two_alleles = number_of_alleles >= 2;
-        assert(at_least_two_alleles);
+        bool at_least_one_allele = number_of_alleles >= 1;
+        assert(at_least_one_allele);
         resize_to_the_number_of_alleles();
     }
 

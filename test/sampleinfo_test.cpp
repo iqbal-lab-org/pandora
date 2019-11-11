@@ -20,8 +20,19 @@ TEST(SampleInfoTest, constructor___zero_alleles___expects_death) {
     EXPECT_DEATH(SampleInfo(0, 0, &default_genotyping_options), "");
 }
 
-TEST(SampleInfoTest, constructor___one_allele___expects_death) {
-    EXPECT_DEATH(SampleInfo(0, 1, &default_genotyping_options), "");
+TEST(SampleInfoTest, constructor___one_allele) {
+    SampleInfo sample_info(1, 1, &default_genotyping_options);
+
+    EXPECT_EQ(sample_info.get_sample_index(), 1);
+    EXPECT_EQ(sample_info.get_number_of_alleles(), 1);
+
+    std::vector< std::vector<uint32_t> > default_coverages{{0}};
+    EXPECT_ITERABLE_EQ(std::vector< std::vector<uint32_t> >, sample_info.get_allele_to_forward_coverages(),
+                       default_coverages);
+    EXPECT_ITERABLE_EQ(std::vector< std::vector<uint32_t> >, sample_info.get_allele_to_reverse_coverages(),
+                       default_coverages);
+    EXPECT_EQ(sample_info.get_genotyping_options(), &default_genotyping_options);
+    EXPECT_EQ(sample_info.get_exp_depth_covg_for_this_sample(), default_genotyping_options.get_sample_index_to_exp_depth_covg()[1]);
 }
 
 TEST(SampleInfoTest, constructor___two_alleles) {
@@ -232,9 +243,14 @@ TEST_F(SampleInfoTest___Fixture, set_number_of_alleles_and_resize_coverage_infor
     EXPECT_DEATH(default_sample_info_three_alleles.set_number_of_alleles_and_resize_coverage_information(0), "");
 }
 
-TEST_F(SampleInfoTest___Fixture, set_number_of_alleles_and_resize_coverage_information___resize_to_one_allele___expects_death) {
+TEST_F(SampleInfoTest___Fixture, set_number_of_alleles_and_resize_coverage_information___resize_to_one_allele___shrinks) {
     default_sample_info_three_alleles.set_coverage_information(allele_to_coverage_three_alleles, allele_to_coverage_three_alleles);
-    EXPECT_DEATH(default_sample_info_three_alleles.set_number_of_alleles_and_resize_coverage_information(1), "");
+
+    default_sample_info_three_alleles.set_number_of_alleles_and_resize_coverage_information(1);
+
+    EXPECT_EQ(1, default_sample_info_three_alleles.get_number_of_alleles());
+    EXPECT_EQ(allele_to_coverage_one_allele, default_sample_info_three_alleles.get_allele_to_forward_coverages());
+    EXPECT_EQ(allele_to_coverage_one_allele, default_sample_info_three_alleles.get_allele_to_reverse_coverages());
 }
 
 TEST_F(SampleInfoTest___Fixture, set_number_of_alleles_and_resize_coverage_information___resize_to_two_alleles___shrinks) {
