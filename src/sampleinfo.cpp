@@ -1,6 +1,6 @@
 #include "sampleinfo.h"
 
-void SampleInfo::add_coverage_information (const std::vector< std::vector<uint32_t> > &allele_to_forward_coverages,
+void SampleInfo::set_coverage_information (const std::vector< std::vector<uint32_t> > &allele_to_forward_coverages,
                                            const std::vector< std::vector<uint32_t> > &allele_to_reverse_coverages) {
     this->allele_to_forward_coverages = allele_to_forward_coverages;
     this->allele_to_reverse_coverages = allele_to_reverse_coverages;
@@ -28,8 +28,10 @@ bool SampleInfo::check_if_coverage_information_is_correct() const {
     bool there_are_at_least_two_alleles = allele_to_forward_coverages.size() >= 2 and allele_to_reverse_coverages.size() >= 2;
     bool forward_and_reverse_coverages_have_the_same_number_of_alleles = allele_to_forward_coverages.size() == allele_to_reverse_coverages.size();
 
+    bool correct_number_of_alleles = allele_to_forward_coverages.size() == get_number_of_alleles();
+
     bool all_alleles_in_forward_and_reverse_have_the_same_number_of_bases = true;
-    for (size_t allele_index = 0; allele_index < allele_to_forward_coverages.size(); ++allele_index) {
+    for (size_t allele_index = 0; allele_index < get_number_of_alleles(); ++allele_index) {
         bool alleles_in_forward_and_reverse_have_the_same_number_of_bases =
                 allele_to_forward_coverages[allele_index].size() == allele_to_reverse_coverages[allele_index].size();
         if (not alleles_in_forward_and_reverse_have_the_same_number_of_bases) {
@@ -38,7 +40,10 @@ bool SampleInfo::check_if_coverage_information_is_correct() const {
         }
     }
 
-    return there_are_at_least_two_alleles and forward_and_reverse_coverages_have_the_same_number_of_alleles and all_alleles_in_forward_and_reverse_have_the_same_number_of_bases;
+    return there_are_at_least_two_alleles
+        and forward_and_reverse_coverages_have_the_same_number_of_alleles
+        and correct_number_of_alleles
+        and all_alleles_in_forward_and_reverse_have_the_same_number_of_bases;
 }
 
 double SampleInfo::get_gaps (uint32_t allele) const {
@@ -228,13 +233,19 @@ std::string SampleInfo::to_string(bool genotyping_from_maximum_likelihood, bool 
 void SampleInfo::merge_other_sample_info_into_this (const SampleInfo &other) {
     uint32_t allele_offset = this->get_number_of_alleles();
 
-    allele_to_forward_coverages.insert(allele_to_forward_coverages.end(),
-                                       other.allele_to_forward_coverages.begin()+1, other.allele_to_forward_coverages.end());
-    allele_to_reverse_coverages.insert(allele_to_reverse_coverages.end(),
-                                       other.allele_to_reverse_coverages.begin()+1, other.allele_to_reverse_coverages.end());
+    std::vector< std::vector<uint32_t> > allele_to_forward_coverages_merged(this->allele_to_forward_coverages);
+    allele_to_forward_coverages_merged.insert(allele_to_forward_coverages_merged.end(),
+                                              other.allele_to_forward_coverages.begin()+1, other.allele_to_forward_coverages.end());
+
+    std::vector< std::vector<uint32_t> > allele_to_reverse_coverages_merged(this->allele_to_reverse_coverages);
+    allele_to_reverse_coverages_merged.insert(allele_to_reverse_coverages_merged.end(),
+                                              other.allele_to_reverse_coverages.begin()+1, other.allele_to_reverse_coverages.end());
+
+
+    set_number_of_alleles_and_resize_coverage_information(this->get_number_of_alleles() + other.get_number_of_alleles() - 1);
+    set_coverage_information(allele_to_forward_coverages_merged, allele_to_reverse_coverages_merged);
 
     merge_other_sample_gt_from_max_likelihood_path_into_this(other, allele_offset);
-
     //TODO: We do not merge GT_from_coverages_compatible as it is not needed
 }
 
@@ -286,4 +297,10 @@ void SampleInfo::solve_incompatible_gt_conflict_with (SampleInfo &other) {
             this->set_gt_from_coverages_compatible(boost::none);
         }
     }
+}
+
+void SampleInfo::set_number_of_alleles_and_resize_coverage_information (uint32_t number_of_alleles) {
+    this->number_of_alleles = number_of_alleles;
+    resize_to_the_number_of_alleles();
+    assert(check_if_coverage_information_is_correct());
 }

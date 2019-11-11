@@ -15,6 +15,45 @@ using ::testing::DoubleEq;
 using ::testing::Property;
 using ::testing::_;
 
+
+TEST(SampleInfoTest, constructor___zero_alleles___expects_death) {
+    EXPECT_DEATH(SampleInfo(0, 0, &default_genotyping_options), "");
+}
+
+TEST(SampleInfoTest, constructor___one_allele___expects_death) {
+    EXPECT_DEATH(SampleInfo(0, 1, &default_genotyping_options), "");
+}
+
+TEST(SampleInfoTest, constructor___two_alleles) {
+    SampleInfo sample_info(1, 2, &default_genotyping_options);
+
+    EXPECT_EQ(sample_info.get_sample_index(), 1);
+    EXPECT_EQ(sample_info.get_number_of_alleles(), 2);
+
+    std::vector< std::vector<uint32_t> > default_coverages{{0}, {0}};
+    EXPECT_ITERABLE_EQ(std::vector< std::vector<uint32_t> >, sample_info.get_allele_to_forward_coverages(),
+                       default_coverages);
+    EXPECT_ITERABLE_EQ(std::vector< std::vector<uint32_t> >, sample_info.get_allele_to_reverse_coverages(),
+                       default_coverages);
+    EXPECT_EQ(sample_info.get_genotyping_options(), &default_genotyping_options);
+    EXPECT_EQ(sample_info.get_exp_depth_covg_for_this_sample(), default_genotyping_options.get_sample_index_to_exp_depth_covg()[1]);
+}
+
+TEST(SampleInfoTest, constructor___five_alleles) {
+    SampleInfo sample_info(3, 5, &default_genotyping_options);
+
+    EXPECT_EQ(sample_info.get_sample_index(), 3);
+    EXPECT_EQ(sample_info.get_number_of_alleles(), 5);
+
+    std::vector< std::vector<uint32_t> > default_coverages{{0}, {0}, {0}, {0}, {0}};
+    EXPECT_ITERABLE_EQ(std::vector< std::vector<uint32_t> >, sample_info.get_allele_to_forward_coverages(),
+                       default_coverages);
+    EXPECT_ITERABLE_EQ(std::vector< std::vector<uint32_t> >, sample_info.get_allele_to_reverse_coverages(),
+                       default_coverages);
+    EXPECT_EQ(sample_info.get_genotyping_options(), &default_genotyping_options);
+    EXPECT_EQ(sample_info.get_exp_depth_covg_for_this_sample(), default_genotyping_options.get_sample_index_to_exp_depth_covg()[3]);
+}
+
 class SampleInfoTest___Fixture : public ::testing::Test {
 public:
     class SampleInfoMock : public SampleInfo {
@@ -24,23 +63,24 @@ public:
     };
 
     SampleInfoTest___Fixture() :
-            default_sample_info(0, &default_genotyping_options) {}
+            default_sample_info(0, 2, &default_genotyping_options),
+            default_sample_info_two_alleles(0, 2, &default_genotyping_options),
+            default_sample_info_three_alleles(0, 3, &default_genotyping_options) {}
 
     void SetUp() override {
-        allele_to_coverage_one_allele.push_back({1, 2});
+        allele_to_coverage_one_allele = std::vector<std::vector<uint32_t> >({{1, 2}});
 
-        allele_to_coverage_two_alleles.push_back({1, 2});
-        allele_to_coverage_two_alleles.push_back({3, 4});
+        allele_to_coverage_two_alleles = std::vector<std::vector<uint32_t>>({{1, 2}, {3, 4}});
 
-        allele_to_coverage_three_alleles.push_back({1, 2});
-        allele_to_coverage_three_alleles.push_back({3, 4});
-        allele_to_coverage_three_alleles.push_back({5, 6});
+        allele_to_coverage_three_alleles = std::vector<std::vector<uint32_t>>({{1, 2}, {3, 4}, {5, 6}});
     }
 
     void TearDown() override {
     }
 
     SampleInfoMock default_sample_info;
+    SampleInfoMock default_sample_info_two_alleles;
+    SampleInfoMock default_sample_info_three_alleles;
     std::vector<std::vector<uint32_t> > allele_to_coverage_empty;
     std::vector<std::vector<uint32_t> > allele_to_coverage_one_allele;
     std::vector<std::vector<uint32_t> > allele_to_coverage_two_alleles;
@@ -109,48 +149,48 @@ TEST_F(SampleInfoTest___Fixture, gt_from_max_likelihood_path_to_string___valid_g
 
 TEST_F(SampleInfoTest___Fixture, get_allele_to_forward_coverages___default_sample_info) {
     std::vector<std::vector<uint32_t> > actual = default_sample_info.get_allele_to_forward_coverages();
-    std::vector<std::vector<uint32_t> > expected;
+    std::vector<std::vector<uint32_t> > expected{ { 0 }, { 0 } };
 
     EXPECT_EQ(actual, expected);
 }
 
 TEST_F(SampleInfoTest___Fixture, get_allele_to_reverse_coverages___default_sample_info) {
     std::vector<std::vector<uint32_t> > actual = default_sample_info.get_allele_to_reverse_coverages();
-    std::vector<std::vector<uint32_t> > expected;
+    std::vector<std::vector<uint32_t> > expected{ { 0 }, { 0 } };
 
     EXPECT_EQ(actual, expected);
 }
 
-TEST_F(SampleInfoTest___Fixture, add_coverage_information___forward_coverage_has_no_alleles___expects_death) {
+TEST_F(SampleInfoTest___Fixture, set_coverage_information___forward_coverage_has_no_alleles___expects_death) {
     EXPECT_DEATH(
-            default_sample_info.add_coverage_information(allele_to_coverage_empty, allele_to_coverage_three_alleles),
+            default_sample_info.set_coverage_information(allele_to_coverage_empty, allele_to_coverage_three_alleles),
             "");
 }
 
-TEST_F(SampleInfoTest___Fixture, add_coverage_information___forward_coverage_has_one_allele___expects_death) {
-    EXPECT_DEATH(default_sample_info.add_coverage_information(allele_to_coverage_one_allele,
+TEST_F(SampleInfoTest___Fixture, set_coverage_information___forward_coverage_has_one_allele___expects_death) {
+    EXPECT_DEATH(default_sample_info.set_coverage_information(allele_to_coverage_one_allele,
                                                               allele_to_coverage_three_alleles), "");
 }
 
-TEST_F(SampleInfoTest___Fixture, add_coverage_information___reverse_coverage_has_no_alleles___expects_death) {
+TEST_F(SampleInfoTest___Fixture, set_coverage_information___reverse_coverage_has_no_alleles___expects_death) {
     EXPECT_DEATH(
-            default_sample_info.add_coverage_information(allele_to_coverage_three_alleles, allele_to_coverage_empty),
+            default_sample_info.set_coverage_information(allele_to_coverage_three_alleles, allele_to_coverage_empty),
             "");
 }
 
-TEST_F(SampleInfoTest___Fixture, add_coverage_information___reverse_coverage_has_one_allele___expects_death) {
-    EXPECT_DEATH(default_sample_info.add_coverage_information(allele_to_coverage_three_alleles,
+TEST_F(SampleInfoTest___Fixture, set_coverage_information___reverse_coverage_has_one_allele___expects_death) {
+    EXPECT_DEATH(default_sample_info.set_coverage_information(allele_to_coverage_three_alleles,
                                                               allele_to_coverage_one_allele), "");
 }
 
 TEST_F(SampleInfoTest___Fixture,
-       add_coverage_information___both_coverages_have_two_alleles___different_number_of_bases___expects_death) {
-    EXPECT_DEATH(default_sample_info.add_coverage_information(allele_to_coverage_two_alleles, {{1, 2},
+       set_coverage_information___both_coverages_have_two_alleles___different_number_of_bases___expects_death) {
+    EXPECT_DEATH(default_sample_info.set_coverage_information(allele_to_coverage_two_alleles, {{1, 2},
                                                                                                {3}}), "");
 }
 
-TEST_F(SampleInfoTest___Fixture, add_coverage_information___both_coverages_have_two_alleles) {
-    default_sample_info.add_coverage_information(allele_to_coverage_two_alleles, allele_to_coverage_two_alleles);
+TEST_F(SampleInfoTest___Fixture, set_coverage_information___both_coverages_have_two_alleles) {
+    default_sample_info.set_coverage_information(allele_to_coverage_two_alleles, allele_to_coverage_two_alleles);
 
     auto expected = allele_to_coverage_two_alleles;
 
@@ -161,12 +201,75 @@ TEST_F(SampleInfoTest___Fixture, add_coverage_information___both_coverages_have_
     EXPECT_EQ(actual, expected);
 }
 
+TEST_F(SampleInfoTest___Fixture, set_coverage_information___fwd_coverage_has_two_alleles___rev_coverage_has_three_alleles___sample_info_expects_three_alleles___expects_death) {
+    EXPECT_DEATH(default_sample_info_three_alleles.set_coverage_information(allele_to_coverage_two_alleles, allele_to_coverage_three_alleles), "");
+}
+
+TEST_F(SampleInfoTest___Fixture, set_coverage_information___fwd_coverage_has_three_alleles___rev_coverage_has_two_alleles___sample_info_expects_three_alleles___expects_death) {
+    EXPECT_DEATH(default_sample_info_three_alleles.set_coverage_information(allele_to_coverage_three_alleles, allele_to_coverage_two_alleles), "");
+}
+
+TEST_F(SampleInfoTest___Fixture, set_coverage_information___both_coverages_have_three_alleles) {
+    default_sample_info_three_alleles.set_coverage_information(allele_to_coverage_three_alleles, allele_to_coverage_three_alleles);
+
+    auto expected = allele_to_coverage_three_alleles;
+    auto actual = default_sample_info_three_alleles.get_allele_to_forward_coverages();
+    EXPECT_EQ(actual, expected);
+
+    actual = default_sample_info_three_alleles.get_allele_to_reverse_coverages();
+    EXPECT_EQ(actual, expected);
+}
+
 
 TEST_F(SampleInfoTest___Fixture,
-       add_coverage_information___forward_covg_has_two_alleles___reverse_covg_has_three_alleles___expects_death) {
-    EXPECT_DEATH(default_sample_info.add_coverage_information(allele_to_coverage_two_alleles,
+       set_coverage_information___forward_covg_has_two_alleles___reverse_covg_has_three_alleles___expects_death) {
+    EXPECT_DEATH(default_sample_info.set_coverage_information(allele_to_coverage_two_alleles,
                                                               allele_to_coverage_three_alleles), "");
 }
+
+TEST_F(SampleInfoTest___Fixture, set_number_of_alleles_and_resize_coverage_information___resize_to_zero_alleles___expects_death) {
+    default_sample_info_three_alleles.set_coverage_information(allele_to_coverage_three_alleles, allele_to_coverage_three_alleles);
+    EXPECT_DEATH(default_sample_info_three_alleles.set_number_of_alleles_and_resize_coverage_information(0), "");
+}
+
+TEST_F(SampleInfoTest___Fixture, set_number_of_alleles_and_resize_coverage_information___resize_to_one_allele___expects_death) {
+    default_sample_info_three_alleles.set_coverage_information(allele_to_coverage_three_alleles, allele_to_coverage_three_alleles);
+    EXPECT_DEATH(default_sample_info_three_alleles.set_number_of_alleles_and_resize_coverage_information(1), "");
+}
+
+TEST_F(SampleInfoTest___Fixture, set_number_of_alleles_and_resize_coverage_information___resize_to_two_alleles___shrinks) {
+    default_sample_info_three_alleles.set_coverage_information(allele_to_coverage_three_alleles, allele_to_coverage_three_alleles);
+
+    default_sample_info_three_alleles.set_number_of_alleles_and_resize_coverage_information(2);
+
+    EXPECT_EQ(2, default_sample_info_three_alleles.get_number_of_alleles());
+    EXPECT_EQ(allele_to_coverage_two_alleles, default_sample_info_three_alleles.get_allele_to_forward_coverages());
+    EXPECT_EQ(allele_to_coverage_two_alleles, default_sample_info_three_alleles.get_allele_to_reverse_coverages());
+}
+
+TEST_F(SampleInfoTest___Fixture, set_number_of_alleles_and_resize_coverage_information___resize_to_three_alleles___no_change) {
+    default_sample_info_three_alleles.set_coverage_information(allele_to_coverage_three_alleles, allele_to_coverage_three_alleles);
+
+    default_sample_info_three_alleles.set_number_of_alleles_and_resize_coverage_information(3);
+
+    EXPECT_EQ(3, default_sample_info_three_alleles.get_number_of_alleles());
+    EXPECT_EQ(allele_to_coverage_three_alleles, default_sample_info_three_alleles.get_allele_to_forward_coverages());
+    EXPECT_EQ(allele_to_coverage_three_alleles, default_sample_info_three_alleles.get_allele_to_reverse_coverages());
+}
+
+TEST_F(SampleInfoTest___Fixture, set_number_of_alleles_and_resize_coverage_information___resize_to_four_alleles___expands) {
+    default_sample_info_three_alleles.set_coverage_information(allele_to_coverage_three_alleles, allele_to_coverage_three_alleles);
+
+    default_sample_info_three_alleles.set_number_of_alleles_and_resize_coverage_information(4);
+
+    EXPECT_EQ(4, default_sample_info_three_alleles.get_number_of_alleles());
+    auto allele_to_coverage_four_alleles = allele_to_coverage_three_alleles;
+    allele_to_coverage_four_alleles.push_back({0});
+    EXPECT_EQ(allele_to_coverage_four_alleles, default_sample_info_three_alleles.get_allele_to_forward_coverages());
+    EXPECT_EQ(allele_to_coverage_four_alleles, default_sample_info_three_alleles.get_allele_to_reverse_coverages());
+}
+
+
 
 TEST_F(SampleInfoTest___Fixture, gt_coverages_compatible___default_sample_info___invalid_gt) {
     EXPECT_FALSE(default_sample_info.is_gt_from_coverages_valid());
@@ -196,7 +299,7 @@ private:
 
 public:
     SampleInfoTest___genotype_from_coverage___Fixture() :
-            default_sample_info(0, &default_genotyping_options) {}
+            default_sample_info(0, 2, &default_genotyping_options) {}
 
     void SetUp() override {
     }
@@ -258,19 +361,19 @@ private:
 
 public:
     SampleInfoTest___merge_other_sample_info_into_this___Fixture() :
-            sample_info_with_two_alleles(0, &default_genotyping_options),
-            sample_info_with_three_alleles(0, &default_genotyping_options) {}
+            sample_info_with_two_alleles(0, 2, &default_genotyping_options),
+            sample_info_with_three_alleles(0, 3, &default_genotyping_options) {}
 
     void SetUp() override {
         allele_to_coverage_two_alleles.push_back({1, 2});
         allele_to_coverage_two_alleles.push_back({3, 4});
-        sample_info_with_two_alleles.add_coverage_information(allele_to_coverage_two_alleles,
+        sample_info_with_two_alleles.set_coverage_information(allele_to_coverage_two_alleles,
                                                               allele_to_coverage_two_alleles);
 
         allele_to_coverage_three_alleles.push_back({1, 2});
         allele_to_coverage_three_alleles.push_back({5, 6});
         allele_to_coverage_three_alleles.push_back({7, 8});
-        sample_info_with_three_alleles.add_coverage_information(allele_to_coverage_three_alleles,
+        sample_info_with_three_alleles.set_coverage_information(allele_to_coverage_three_alleles,
                                                                 allele_to_coverage_three_alleles);
     }
 
@@ -376,7 +479,7 @@ public:
     static GenotypingOptions genotyping_options_with_min_kmer_covg_10;
 
     SampleInfoTest___get_gaps___Fixture() :
-            sample_info_with_min_kmer_covg_10(0, &genotyping_options_with_min_kmer_covg_10) {}
+            sample_info_with_min_kmer_covg_10(0, 2, &genotyping_options_with_min_kmer_covg_10) {}
 
     void SetUp() override {
     }
@@ -391,7 +494,7 @@ GenotypingOptions SampleInfoTest___get_gaps___Fixture::genotyping_options_with_m
         {10, 10, 10, 10, 10, 10, 10, 10, 10, 10}, 0.01, 0, 0, 0, 0, 0, 10, false);
 
 TEST_F(SampleInfoTest___get_gaps___Fixture, get_gaps___coverages_just_below_threshold) {
-    sample_info_with_min_kmer_covg_10.add_coverage_information({{5},
+    sample_info_with_min_kmer_covg_10.set_coverage_information({{5},
                                                                 {5, 5, 5, 5}}, {{4},
                                                                                 {4, 4, 4, 4}});
 
@@ -403,7 +506,7 @@ TEST_F(SampleInfoTest___get_gaps___Fixture, get_gaps___coverages_just_below_thre
 }
 
 TEST_F(SampleInfoTest___get_gaps___Fixture, get_gaps___coverages_all_equal_threshold) {
-    sample_info_with_min_kmer_covg_10.add_coverage_information({{5},
+    sample_info_with_min_kmer_covg_10.set_coverage_information({{5},
                                                                 {5, 5, 5, 5}}, {{5},
                                                                                 {5, 5, 5, 5}});
 
@@ -415,7 +518,7 @@ TEST_F(SampleInfoTest___get_gaps___Fixture, get_gaps___coverages_all_equal_thres
 }
 
 TEST_F(SampleInfoTest___get_gaps___Fixture, get_gaps___coverages_all_above_threshold) {
-    sample_info_with_min_kmer_covg_10.add_coverage_information({{5},
+    sample_info_with_min_kmer_covg_10.set_coverage_information({{5},
                                                                 {5, 5, 5, 5}}, {{6},
                                                                                 {6, 6, 6, 6}});
 
@@ -427,7 +530,7 @@ TEST_F(SampleInfoTest___get_gaps___Fixture, get_gaps___coverages_all_above_thres
 }
 
 TEST_F(SampleInfoTest___get_gaps___Fixture, get_gaps___coverages_below_equal_and_above_threshold) {
-    sample_info_with_min_kmer_covg_10.add_coverage_information({{0, 0,  0},
+    sample_info_with_min_kmer_covg_10.set_coverage_information({{0, 0,  0},
                                                                 {9, 10, 11, 9, 10, 9}}, {{9, 10, 11},
                                                                                          {0, 0,  0, 0, 0, 0}});
 
@@ -442,7 +545,7 @@ TEST_F(SampleInfoTest___get_gaps___Fixture, get_gaps___coverages_below_equal_and
 TEST(SampleInfoTest, get_min_coverage_threshold_for_this_sample___min_allele_covg_is_higher) {
     GenotypingOptions genotyping_options(
             {10, 5}, 0.01, 0, 100, 1.0, 0, 0, 00, false);
-    SampleInfo sample_info(0, &genotyping_options);
+    SampleInfo sample_info(0, 2, &genotyping_options);
 
     EXPECT_EQ(100, sample_info.get_min_coverage_threshold_for_this_sample());
 }
@@ -450,7 +553,7 @@ TEST(SampleInfoTest, get_min_coverage_threshold_for_this_sample___min_allele_cov
 TEST(SampleInfoTest, get_min_coverage_threshold_for_this_sample___min_fraction_allele_covg_is_higher) {
     GenotypingOptions genotyping_options(
             {10, 100}, 0.01, 0, 40, 0.5, 0, 0, 00, false);
-    SampleInfo sample_info(1, &genotyping_options);
+    SampleInfo sample_info(1, 2, &genotyping_options);
 
     EXPECT_EQ(50, sample_info.get_min_coverage_threshold_for_this_sample());
 }
@@ -482,7 +585,7 @@ public:
     };
 
     SampleInfoTest___get_likelihoods_for_all_alleles___Fixture() :
-            sample_info(0, &default_genotyping_options) {}
+            sample_info(0, 2, &default_genotyping_options) {}
 
     void SetUp() override {
     }
@@ -556,7 +659,7 @@ public:
     };
 
     SampleInfoTest___get_confidence___Fixture() :
-            sample_info(0, &genotyping_options_get_confidence), default_sample_info(0, &default_genotyping_options) {}
+            sample_info(0, 2, &genotyping_options_get_confidence), default_sample_info(0, 2, &default_genotyping_options) {}
 
     void SetUp() override {
     }
@@ -641,7 +744,7 @@ public:
     };
 
     SampleInfoTest___get_confidence_to_string___Fixture() :
-            sample_info(0, &default_genotyping_options) {}
+            sample_info(0, 2, &default_genotyping_options) {}
 
     void SetUp() override {
     }
@@ -681,7 +784,7 @@ public:
     };
 
     SampleInfoTest___get_genotype_from_coverage___Fixture() :
-            sample_info(0, &genotyping_options_high_confidence_threshold) {}
+            sample_info(0, 2, &genotyping_options_high_confidence_threshold) {}
 
     void SetUp() override {
     }
@@ -737,30 +840,30 @@ TEST_F(SampleInfoTest___Fixture, to_string___both_flags_set___expects_death) {
 }
 
 TEST_F(SampleInfoTest___Fixture, to_string___genotyping_from_maximum_likelihood) {
-    default_sample_info.set_gt_from_max_likelihood_path(1);
-    default_sample_info.add_coverage_information({{10},
+    default_sample_info_three_alleles.set_gt_from_max_likelihood_path(1);
+    default_sample_info_three_alleles.set_coverage_information({{10},
                                                   {20, 30},
                                                   {40, 50, 70}},
                                                  {{70},
                                                   {80,  90},
                                                   {100, 120, 130}});
 
-    std::string actual = default_sample_info.to_string(true, false);
+    std::string actual = default_sample_info_three_alleles.to_string(true, false);
 
     std::string expected = "1:10,25,53:70,85,116:10,25,50:70,85,120:10,50,160:70,170,350:0,0,0";
     EXPECT_EQ(actual, expected);
 }
 
 TEST_F(SampleInfoTest___Fixture, to_string___genotyping_from_compatible_coverage) {
-    default_sample_info.set_gt_from_coverages_compatible(2);
-    default_sample_info.add_coverage_information({{10},
+    default_sample_info_three_alleles.set_gt_from_coverages_compatible(2);
+    default_sample_info_three_alleles.set_coverage_information({{10},
                                                   {20, 30},
                                                   {40, 50, 70}},
                                                  {{70},
                                                   {80,  90},
                                                   {100, 120, 130}});
 
-    std::string actual = default_sample_info.to_string(false, true);
+    std::string actual = default_sample_info_three_alleles.to_string(false, true);
 
     std::string expected = "2:10,25,53:70,85,116:10,25,50:70,85,120:10,50,160:70,170,350:0,0,0:-1559.97,-1558.47,-1577.88:1.50545";
     EXPECT_EQ(actual, expected);
@@ -809,13 +912,39 @@ TEST_F(SampleInfoTest___Fixture, compute_likelihood___min_coverage_threshold_is_
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+template<class SAMPLE_TYPE>
+class SampleIndexToSampleInfoTemplateAllVisible : public SampleIndexToSampleInfoTemplate<SAMPLE_TYPE> {
+public:
+    using SampleIndexToSampleInfoTemplate<SAMPLE_TYPE>::SampleIndexToSampleInfoTemplate;
+    using SampleIndexToSampleInfoTemplate<SAMPLE_TYPE>::emplace_back_several_empty_sample_infos;
+    using SampleIndexToSampleInfoTemplate<SAMPLE_TYPE>::set_number_of_alleles_and_resize_coverage_information_for_all_samples;
+    using SampleIndexToSampleInfoTemplate<SAMPLE_TYPE>::merge_other_samples_infos_into_this;
+};
+
 class SampleIndexToSampleInfoTemplate___Fixture : public ::testing::Test {
 public:
     class SampleInfoMock : public SampleInfo {
     public:
         using SampleInfo::SampleInfo;
 
-        SampleInfoMock(const SampleInfoMock &other) : SampleInfoMock(other.get_sample_index(),
+        SampleInfoMock(const SampleInfoMock &other) : SampleInfoMock(other.get_sample_index(), 2,
                                                                      other.genotyping_options) {}
 
         MOCK_METHOD(void, merge_other_sample_info_into_this, (const SampleInfo &other), (override));
@@ -826,31 +955,50 @@ public:
 
 
     void SetUp() override {
-        for (size_t index = 0; index < 2; ++index) {
-            sample_index_to_sample_info.emplace_back(index, &default_genotyping_options);
-        }
+        sample_index_to_sample_info.emplace_back_several_empty_sample_infos(2, 2, &default_genotyping_options);
     }
 
     void TearDown() override {
     }
 
-    SampleIndexToSampleInfoTemplate<SampleInfoMock> sample_index_to_sample_info;
+    SampleIndexToSampleInfoTemplateAllVisible<SampleInfoMock> sample_index_to_sample_info;
 };
 
-TEST_F(SampleIndexToSampleInfoTemplate___Fixture, push_back_several_empty_sample_infos) {
-    sample_index_to_sample_info.emplace_back_several_empty_sample_infos(3, &default_genotyping_options);
+TEST_F(SampleIndexToSampleInfoTemplate___Fixture, emplace_back_several_empty_sample_infos___same_number_of_alleles) {
+    sample_index_to_sample_info.emplace_back_several_empty_sample_infos(3, 2, &default_genotyping_options);
+
+    std::vector<std::vector<uint32_t>> empty_coverage_vector{{0},{0}};
 
     EXPECT_EQ(5, sample_index_to_sample_info.size());
     for (size_t index = 0; index < sample_index_to_sample_info.size(); ++index) {
         EXPECT_EQ(index, sample_index_to_sample_info[index].get_sample_index());
+        EXPECT_EQ(2, sample_index_to_sample_info[index].get_number_of_alleles());
+        EXPECT_EQ(empty_coverage_vector, sample_index_to_sample_info[index].get_allele_to_forward_coverages());
+        EXPECT_EQ(empty_coverage_vector, sample_index_to_sample_info[index].get_allele_to_reverse_coverages());
+        EXPECT_EQ(&default_genotyping_options, sample_index_to_sample_info[index].get_genotyping_options());
+    }
+}
+
+TEST_F(SampleIndexToSampleInfoTemplate___Fixture, emplace_back_several_empty_sample_infos___different_number_of_alleles___all_samples_get_fixed) {
+    sample_index_to_sample_info.emplace_back_several_empty_sample_infos(2, 5, &default_genotyping_options);
+
+    std::vector<std::vector<uint32_t>> empty_coverage_vector{{0},{0},{0},{0},{0}};
+
+    EXPECT_EQ(4, sample_index_to_sample_info.size());
+    for (size_t index = 0; index < sample_index_to_sample_info.size(); ++index) {
+        EXPECT_EQ(index, sample_index_to_sample_info[index].get_sample_index());
+        EXPECT_EQ(5, sample_index_to_sample_info[index].get_number_of_alleles());
+        EXPECT_EQ(empty_coverage_vector, sample_index_to_sample_info[index].get_allele_to_forward_coverages());
+        EXPECT_EQ(empty_coverage_vector, sample_index_to_sample_info[index].get_allele_to_reverse_coverages());
+        EXPECT_EQ(&default_genotyping_options, sample_index_to_sample_info[index].get_genotyping_options());
     }
 }
 
 
 TEST_F(SampleIndexToSampleInfoTemplate___Fixture,
        merge_other_samples_infos_into_this___different_nb_of_samples___expects_death) {
-    SampleIndexToSampleInfoTemplate<SampleInfoMock> another_sample_index_to_sample_info;
-    another_sample_index_to_sample_info.emplace_back_several_empty_sample_infos(5, &default_genotyping_options);
+    SampleIndexToSampleInfoTemplateAllVisible<SampleInfoMock> another_sample_index_to_sample_info;
+    another_sample_index_to_sample_info.emplace_back_several_empty_sample_infos(5, 2, &default_genotyping_options);
 
     EXPECT_DEATH(sample_index_to_sample_info.merge_other_samples_infos_into_this(another_sample_index_to_sample_info),
                  "");
@@ -858,8 +1006,8 @@ TEST_F(SampleIndexToSampleInfoTemplate___Fixture,
 
 
 TEST_F(SampleIndexToSampleInfoTemplate___Fixture, merge_other_samples_infos_into_this___successful_merge) {
-    SampleIndexToSampleInfoTemplate<SampleInfoMock> another_sample_index_to_sample_info;
-    another_sample_index_to_sample_info.emplace_back_several_empty_sample_infos(2, &default_genotyping_options);
+    SampleIndexToSampleInfoTemplateAllVisible<SampleInfoMock> another_sample_index_to_sample_info;
+    another_sample_index_to_sample_info.emplace_back_several_empty_sample_infos(2, 2, &default_genotyping_options);
 
     EXPECT_CALL(sample_index_to_sample_info[0],
                 merge_other_sample_info_into_this(Property(&SampleInfoMock::get_sample_index, 0)))
@@ -873,7 +1021,7 @@ TEST_F(SampleIndexToSampleInfoTemplate___Fixture, merge_other_samples_infos_into
 
 
 TEST_F(SampleIndexToSampleInfoTemplate___Fixture, to_string___no_samples) {
-    SampleIndexToSampleInfoTemplate<SampleInfoMock> no_samples;
+    SampleIndexToSampleInfoTemplateAllVisible<SampleInfoMock> no_samples;
     std::string actual = no_samples.to_string(true, false);
     EXPECT_EQ("", actual);
 }
@@ -903,11 +1051,11 @@ public:
     };
 
     SampleInfoTest___solve_incompatible_gt_conflict_with___Fixture() :
-            sample_info_invalid_gt(0, &default_genotyping_options),
-            sample_info_gt_0_with_likelihood_minus_10(0, &default_genotyping_options),
-            sample_info_gt_0_with_likelihood_minus_5(0, &default_genotyping_options),
-            sample_info_gt_3_with_likelihood_minus_10(0, &default_genotyping_options),
-            sample_info_gt_3_with_likelihood_minus_5(0, &default_genotyping_options) {}
+            sample_info_invalid_gt(0, 2, &default_genotyping_options),
+            sample_info_gt_0_with_likelihood_minus_10(0, 2, &default_genotyping_options),
+            sample_info_gt_0_with_likelihood_minus_5(0, 2, &default_genotyping_options),
+            sample_info_gt_3_with_likelihood_minus_10(0, 2, &default_genotyping_options),
+            sample_info_gt_3_with_likelihood_minus_5(0, 2, &default_genotyping_options) {}
 
 
     void SetUp() override {
@@ -1098,7 +1246,7 @@ TEST_F(SampleInfoTest___solve_incompatible_gt_conflict_with___Fixture, first_gt_
 //}
 //
 TEST_F(SampleInfoTest___Fixture, get_likelihoods_for_all_alleles___gets_correct_likelihood_simple_case) {
-    default_sample_info.add_coverage_information({{1},
+    default_sample_info.set_coverage_information({{1},
                                                   {2}}, {{1},
                                                          {2}});
 
@@ -1113,8 +1261,8 @@ TEST_F(SampleInfoTest___Fixture, get_likelihoods_for_all_alleles___gets_correct_
 
 TEST(SampleInfoTest, get_likelihoods_for_all_alleles___gets_correct_likelihood_with_min_covg_threshold) {
     GenotypingOptions genotyping_options({1}, 0.01, 0, 3, 0, 0, 0, 0, false);
-    SampleInfo sample_info(0, &genotyping_options);
-    sample_info.add_coverage_information({{1},
+    SampleInfo sample_info(0, 2, &genotyping_options);
+    sample_info.set_coverage_information({{1},
                                           {2}}, {{1},
                                                  {2}});
 
@@ -1130,7 +1278,7 @@ TEST(SampleInfoTest, get_likelihoods_for_all_alleles___gets_correct_likelihood_w
 
 
 TEST_F(SampleInfoTest___Fixture, get_likelihoods_for_all_alleles___handles_ref_covg_0) {
-    default_sample_info.add_coverage_information({{0},
+    default_sample_info.set_coverage_information({{0},
                                                   {2}}, {{0},
                                                          {2}});
 
@@ -1144,7 +1292,7 @@ TEST_F(SampleInfoTest___Fixture, get_likelihoods_for_all_alleles___handles_ref_c
 }
 
 TEST_F(SampleInfoTest___Fixture, get_likelihoods_for_all_alleles___handles_alt_covg_0) {
-    default_sample_info.add_coverage_information({{1},
+    default_sample_info.set_coverage_information({{1},
                                                   {0}}, {{1},
                                                          {0}});
 
@@ -1168,7 +1316,7 @@ public:
     };
 
     SampleInfoTest___gets_correct_likelihood_gaps___Fixture() :
-            sample_info(0, &default_genotyping_options) {}
+            sample_info(0, 2, &default_genotyping_options) {}
 
     void SetUp() override {
     }
@@ -1187,7 +1335,7 @@ TEST_F(SampleInfoTest___gets_correct_likelihood_gaps___Fixture,
     EXPECT_CALL(sample_info, get_gaps(1))
             .WillRepeatedly(Return(0.8));
 
-    sample_info.add_coverage_information({{1},
+    sample_info.set_coverage_information({{1},
                                           {2}}, {{1},
                                                  {2}});
 
@@ -1301,7 +1449,7 @@ TEST_F(SampleInfoTest___get_confidence___Fixture, get_confidence___gets_correct_
 
 TEST_F(SampleInfoTest___get_confidence___Fixture, get_confidence___gets_correct_confidence_min_total___confidence_is_invalid) {
     GenotypingOptions genotyping_options({10, 10}, 0.01, 0, 0, 0.0, 3, 0, 0, 0);
-    SampleInfoTest___get_confidence___Fixture::SampleInfoMock sample_info(0, &genotyping_options);
+    SampleInfoTest___get_confidence___Fixture::SampleInfoMock sample_info(0, 2, &genotyping_options);
     EXPECT_CALL(sample_info, get_likelihoods_for_all_alleles)
             .WillRepeatedly(Return(std::vector<double>({-14.0, -6.0, -3.0})));
     EXPECT_CALL(sample_info, get_mean_coverage_both_alleles(_))
@@ -1315,7 +1463,7 @@ TEST_F(SampleInfoTest___get_confidence___Fixture, get_confidence___gets_correct_
 
 TEST_F(SampleInfoTest___get_confidence___Fixture, get_confidence___gets_correct_confidence_min_total___confidence_is_valid) {
     GenotypingOptions genotyping_options({10, 10}, 0.01, 0, 0, 0.0, 2, 0, 0, 0);
-    SampleInfoTest___get_confidence___Fixture::SampleInfoMock sample_info(0, &genotyping_options);
+    SampleInfoTest___get_confidence___Fixture::SampleInfoMock sample_info(0, 2, &genotyping_options);
     EXPECT_CALL(sample_info, get_likelihoods_for_all_alleles)
             .WillRepeatedly(Return(std::vector<double>({-14.0, -6.0, -3.0})));
     EXPECT_CALL(sample_info, get_mean_coverage_both_alleles(_))
@@ -1334,7 +1482,7 @@ TEST_F(SampleInfoTest___get_confidence___Fixture, get_confidence___gets_correct_
 
 TEST_F(SampleInfoTest___get_confidence___Fixture, get_confidence___gets_correct_confidence_min_diff) {
     GenotypingOptions genotyping_options({10, 10}, 0.01, 0, 0, 0.0, 0, 3, 0, 0);
-    SampleInfoTest___get_confidence___Fixture::SampleInfoMock sample_info(0, &genotyping_options);
+    SampleInfoTest___get_confidence___Fixture::SampleInfoMock sample_info(0, 2, &genotyping_options);
     EXPECT_CALL(sample_info, get_likelihoods_for_all_alleles)
             .WillRepeatedly(Return(std::vector<double>({-14.0, -6.0, -3.0})));
     EXPECT_CALL(sample_info, get_mean_coverage_both_alleles(0))

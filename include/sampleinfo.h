@@ -17,14 +17,18 @@
 // TODO: and the other with genotyping from coverage, and maybe a third one to deal with compatible genotypes
 class SampleInfo {
 public:
-    SampleInfo(uint32_t sample_index, GenotypingOptions const *  genotyping_options) :
+    SampleInfo(uint32_t sample_index, uint32_t number_of_alleles, GenotypingOptions const * genotyping_options) :
     sample_index(sample_index),
+    number_of_alleles(number_of_alleles),
     genotyping_options(genotyping_options),
     exp_depth_covg_for_this_sample(genotyping_options->get_sample_index_to_exp_depth_covg()[sample_index])
-    {}
+    {
+        bool at_least_two_alleles = number_of_alleles >= 2;
+        assert(at_least_two_alleles);
+        resize_to_the_number_of_alleles();
+    }
 
     virtual ~SampleInfo(){}
-
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,8 +60,9 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // methods related to genotyping from the coverage
-    virtual void add_coverage_information (const std::vector< std::vector<uint32_t> > &allele_to_forward_coverages,
-                                   const std::vector< std::vector<uint32_t> > &allele_to_reverse_coverages);
+    virtual inline void set_number_of_alleles_and_resize_coverage_information (uint32_t number_of_alleles);
+    virtual void set_coverage_information (const std::vector< std::vector<uint32_t> > &allele_to_forward_coverages,
+                                           const std::vector< std::vector<uint32_t> > &allele_to_reverse_coverages);
 
     virtual inline const std::vector< std::vector<uint32_t> > & get_allele_to_forward_coverages() const {
         return allele_to_forward_coverages;
@@ -129,10 +134,6 @@ public:
 
 
     // trivial getters over format fields
-    virtual inline size_t get_number_of_alleles() const {
-        return allele_to_forward_coverages.size();
-    }
-
     virtual inline uint32_t get_mean_forward_coverage(uint32_t allele) const {
         return Maths::mean(allele_to_forward_coverages[allele].begin(), allele_to_forward_coverages[allele].end());
     }
@@ -167,10 +168,23 @@ public:
     }
 
 
-    //other trivial getter
-    virtual uint32_t get_sample_index() const {
+    //other trivial getters
+    virtual inline uint32_t get_sample_index() const {
         return sample_index;
     }
+
+    virtual inline size_t get_number_of_alleles() const {
+        return number_of_alleles;
+    }
+
+    virtual inline const GenotypingOptions *get_genotyping_options() const {
+        return genotyping_options;
+    }
+
+    virtual inline uint32_t get_exp_depth_covg_for_this_sample() const {
+        return exp_depth_covg_for_this_sample;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -195,6 +209,8 @@ public:
     virtual std::string to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_compatible_coverage) const;
 protected:
     uint32_t sample_index;
+    uint32_t number_of_alleles;
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // genotyping options
     GenotypingOptions const * genotyping_options;
@@ -229,6 +245,12 @@ protected:
 
 
     virtual bool check_if_coverage_information_is_correct() const;
+
+    virtual inline void resize_to_the_number_of_alleles() {
+        allele_to_forward_coverages.resize(get_number_of_alleles(), std::vector<uint32_t>{0});
+        allele_to_reverse_coverages.resize(get_number_of_alleles(), std::vector<uint32_t>{0});
+    }
+
 
 
     /////////////////////////////////////////////
@@ -267,28 +289,23 @@ protected:
 //NB: we use template here so that we can change what the container holds
 //This allows us to hold whatever thing (e.g. a mock) to be able to test this class
 template<class SAMPLE_TYPE>
-class SampleIndexToSampleInfoTemplate : public std::vector<SAMPLE_TYPE> {
+class SampleIndexToSampleInfoTemplate {
 public:
-    SampleIndexToSampleInfoTemplate(){}
-    virtual ~SampleIndexToSampleInfoTemplate(){}
-
-    virtual inline void emplace_back_several_empty_sample_infos (size_t amount, GenotypingOptions const * genotyping_options) {
-        size_t initial_size = this->size();
-        for (size_t index = initial_size; index < initial_size + amount; ++index) {
-            this->emplace_back(index, genotyping_options);
-        }
+    virtual inline size_t size() const {
+        return sample_index_to_sample_info_container.size();
     }
 
-
-    virtual inline void merge_other_samples_infos_into_this(const SampleIndexToSampleInfoTemplate<SAMPLE_TYPE> &other) {
-        bool same_number_of_samples = this->size() == other.size();
-        assert(same_number_of_samples);
-
-        for (size_t sample_index = 0; sample_index < this->size(); ++sample_index) {
-            (*this)[sample_index].merge_other_sample_info_into_this(other[sample_index]);
-        }
+    virtual inline bool empty () const {
+        return sample_index_to_sample_info_container.empty();
     }
 
+    virtual inline const SAMPLE_TYPE & operator[] (size_t index) const {
+        return sample_index_to_sample_info_container[index];
+    }
+
+    virtual inline SAMPLE_TYPE & operator[] (size_t index) {
+        return sample_index_to_sample_info_container[index];
+    }
 
     virtual std::string to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const {
         std::stringstream out;
@@ -306,7 +323,7 @@ public:
     }
 
     virtual inline void genotype_from_coverage () {
-        for (SAMPLE_TYPE &sample_info : (*this)) {
+        for (SAMPLE_TYPE &sample_info : sample_index_to_sample_info_container) {
             sample_info.genotype_from_coverage();
         }
     }
@@ -317,6 +334,39 @@ public:
 
         for (size_t sample_index = 0; sample_index < this->size(); ++sample_index) {
             (*this)[sample_index].solve_incompatible_gt_conflict_with(other[sample_index]);
+        }
+    }
+
+    SampleIndexToSampleInfoTemplate(){}
+    virtual ~SampleIndexToSampleInfoTemplate(){}
+
+protected: // We forbid anyone to change this class' sample and allele information, as this can be dangerous.
+           // Except for VCFRecord, which is the only one that has the rights to change its internal data
+    friend class VCFRecord;
+
+    std::vector<SAMPLE_TYPE> sample_index_to_sample_info_container;
+
+    virtual inline void emplace_back_several_empty_sample_infos (size_t amount, uint32_t number_of_alleles, GenotypingOptions const * genotyping_options) {
+        size_t initial_size = this->size();
+        for (size_t index = initial_size; index < initial_size + amount; ++index) {
+            sample_index_to_sample_info_container.emplace_back(index, number_of_alleles, genotyping_options);
+        }
+        set_number_of_alleles_and_resize_coverage_information_for_all_samples(number_of_alleles);
+    }
+
+    void set_number_of_alleles_and_resize_coverage_information_for_all_samples(uint32_t number_of_alleles) {
+        for (SAMPLE_TYPE &sample_info : sample_index_to_sample_info_container) {
+            sample_info.set_number_of_alleles_and_resize_coverage_information(number_of_alleles);
+        }
+    }
+
+    virtual inline void merge_other_samples_infos_into_this(const SampleIndexToSampleInfoTemplate<SAMPLE_TYPE> &other) {
+        bool same_number_of_samples = this->size() == other.size();
+        assert(same_number_of_samples);
+
+        for (size_t sample_index = 0; sample_index < this->size(); ++sample_index) {
+            (*this)[sample_index].merge_other_sample_info_into_this(
+                    other[sample_index]);
         }
     }
 };
