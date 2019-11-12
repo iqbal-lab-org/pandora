@@ -13,18 +13,24 @@ class VCF;
 
 class VCFRecord {
 public:
+    // TODO : protect this member?
     VCF const * parent_vcf;
 
     //#CHROM POS ID REF ALT QUAL FILTER INFO FORMAT
     std::string id; // not used
     std::string qual; // not used
     std::string filter; // not used
+
+    // TODO : protect this member?
     std::string info;
-    SampleIndexToSampleInfo sampleIndex_to_sampleInfo; //it is fine to leave this public
+
+    // it is fine to leave this public - only VCFRecord can do operations that change the number of samples in
+    // SampleIndexToSampleInfo
+    // TODO : protect this member?
+    SampleIndexToSampleInfo sampleIndex_to_sampleInfo;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // constructors, destructors, operator=, etc
-    // TODO: make sure only consistent VCFs are built (e.g. at least two alleles: ref + 1 alt)?
     VCFRecord(VCF const * parent_vcf, const std::string &chrom, uint32_t pos, const std::string &ref, const std::string &alt,
               const std::string &info=".", const std::string &graph_type_info="");
     VCFRecord(VCF const * parent_vcf);
@@ -187,31 +193,26 @@ public:
 
     virtual bool can_biallelic_record_be_merged_into_this (const VCFRecord &vcf_record_to_be_merged_in, uint32_t max_allele_length = 10000) const;
 
-
-
     virtual inline void clear() {
         *this = VCFRecord(parent_vcf);
     }
 
+    // WARNING: a side-effect of this method is changing the pos of the record, which might be an issue
     virtual inline void correct_dot_alleles_adding_nucleotide_before (char nucleotide) {
         correct_dot_alleles(nucleotide, true);
     }
 
+    // WARNING: a side-effect of this method is changing the pos of the record, which might be an issue
     virtual inline void correct_dot_alleles_adding_nucleotide_after (char nucleotide) {
         correct_dot_alleles(nucleotide, false);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // TODO: check if we keep this, it is only used in tests - better to keep in a VCFMock class
-    // friend std::istream &operator>>(std::istream &in, VCFRecord &m);
-
 protected:
     std::string ref;
     std::vector<std::string> alts;
     std::string chrom;
     uint32_t pos;
-
 
     std::string infer_SVTYPE() const;
 

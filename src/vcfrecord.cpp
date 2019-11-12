@@ -12,12 +12,12 @@
 VCFRecord::VCFRecord(VCF const * parent_vcf, const std::string &chrom, uint32_t pos, const std::string &ref, const std::string &alt,
                      const std::string &info, const std::string &graph_type_info) :
                      parent_vcf(parent_vcf),
-                     chrom(chrom),
-                     pos(pos),
                      id("."),
                      qual("."),
                      filter("."),
-                     info(info) {
+                     info(info),
+                     chrom(chrom),
+                     pos(pos) {
     add_new_samples(parent_vcf->samples.size());
     set_ref(ref);
     add_new_alt(alt);
@@ -32,8 +32,8 @@ VCFRecord::VCFRecord(VCF const * parent_vcf, const std::string &chrom, uint32_t 
     }
 }
 
-VCFRecord::VCFRecord(VCF const * parent_vcf) : chrom("."), pos(0), id("."), qual("."), filter("."),
-    info("."), parent_vcf(parent_vcf) {
+VCFRecord::VCFRecord(VCF const * parent_vcf) : parent_vcf(parent_vcf), id("."), qual("."), filter("."),
+    info("."), chrom("."), pos(0) {
     add_new_samples(parent_vcf->samples.size());
     set_ref(".");
 }
@@ -153,62 +153,6 @@ std::string VCFRecord::alts_to_string() const {
     return out.str();
 }
 
-
-// TODO: check if we keep this, it is only used in tests - better to keep in a VCFMock class
-/*
-std::istream &operator>>(std::istream &in, VCFRecord &m) {
-    std::string token, alt_s;
-    std::vector<std::string> sample_strings, sample_substrings;
-    std::vector<std::string> float_strings = {"LIKELIHOOD", "GT_CONF", "GAPS"};
-    m.alts.clear();
-    in >> m.chrom;
-    in.ignore(1, '\t');
-    in >> m.pos;
-    m.pos -= 1;
-    in.ignore(1, '\t');
-    in >> m.id;
-    in.ignore(1, '\t');
-    in >> m.ref;
-    in.ignore(1, '\t');
-    in >> alt_s;
-    m.alts.push_back(alt_s);
-    int c = in.peek();
-    while (c == ',') {
-        in >> alt_s;
-        m.alts.push_back(alt_s);
-        c = in.peek();
-    }
-    in.ignore(1, '\t');
-    in >> m.qual;
-    in.ignore(1, '\t');
-    in >> m.filter;
-    in.ignore(1, '\t');
-    in >> m.info;
-    in.ignore(1, '\t');
-    in >> token;
-    m.format = split(token, ":");
-    while (in >> token) {
-        sample_strings = split(token, ":");
-        assert(sample_strings.size() == m.format.size() or assert_msg("sample data does not fit format"));
-        m.sampleIndex_to_format_to_sampleInfo.push_back_several_empty_sample_infos(1);
-        m.sampleIndex_to_format_to_sampleGenotypedInfo.emplace_back_several_empty_sample_infos(1);
-        for (uint32_t i = 0; i < m.format.size(); ++i) {
-            if (sample_strings[i] != "."
-                and find(float_strings.begin(), float_strings.end(), m.format[i]) == float_strings.end()) {
-                sample_substrings = split(sample_strings[i], ",");
-                for (const auto &s : sample_substrings)
-                    m.sampleIndex_to_format_to_sampleInfo.back()[m.format[i]].push_back(stoi(s));
-            } else if (sample_strings[i] != "."
-                       and find(float_strings.begin(), float_strings.end(), m.format[i]) != float_strings.end()) {
-                sample_substrings = split(sample_strings[i], ",");
-                for (const auto &s : sample_substrings)
-                    m.sampleIndex_to_format_to_sampleGenotypedInfo.back()[m.format[i]].push_back(stof(s));
-            }
-        }
-    }
-    return in;
-}
-*/
 
 size_t VCFRecord::get_longest_allele_length() const {
     size_t longest_allele_length = this->ref.size();

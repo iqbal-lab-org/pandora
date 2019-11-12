@@ -208,6 +208,8 @@ void VCF::sort_records() {
 }
 
 bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const std::string &chrom) const {
+    // TODO : performance improvement: use this->chrom_to_record_interval_tree
+
     // is there a record contained in the range from,to?
     for (const auto &recordPointer : records) {
         const auto &record = *recordPointer;

@@ -1364,6 +1364,8 @@ TEST_F(SampleInfoTest___gets_correct_likelihood_gaps___Fixture,
     EXPECT_NEAR(actual, expected, 0.00001);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // REASON COMMENTED OUT: ALREADY TESTED, SEE TEST_F(SampleInfoTest___get_confidence___Fixture, get_confidence___not_enough_total_covg)
 //TEST(VCFRecordLikelihoodTest, death_not_enough_covgs) {
 //    VCFRecord vr("chrom1", 3, "A", "T");
@@ -1400,8 +1402,7 @@ TEST_F(SampleInfoTest___gets_correct_likelihood_gaps___Fixture,
 //    exp_likelihood = 4*log(2) -2 - log(4) - log(3) - log(2) + 2 * log(0.01) + 0.2*log(1-exp(-(float(2)))) - 2*0.8;
 //    EXPECT_FLOAT_EQ(exp_likelihood, vr.sampleIndex_to_sampleInfo[1]["LIKELIHOOD"][1]);
 //}
-//
-//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CONFIDENCE TESTS
@@ -1430,7 +1431,7 @@ TEST_F(SampleInfoTest___gets_correct_likelihood_gaps___Fixture,
 //    bool found_confidence = !vr.get_format_f(0,"GT_CONF").empty();
 //    EXPECT_TRUE(found_confidence);
 //}
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 TEST_F(SampleInfoTest___get_confidence___Fixture, get_confidence___gets_correct_confidence_simple_case) {
@@ -1653,3 +1654,4 @@ TEST_F(SampleInfoTest___get_confidence___Fixture, get_confidence___handles_alt_c
 //    EXPECT_EQ(vr.sampleIndex_to_sampleInfo[5]["LIKELIHOOD"][1], 6);
 //    EXPECT_EQ(vr.sampleIndex_to_sampleInfo[5]["GT"][0], 1);
 //}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

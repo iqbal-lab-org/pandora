@@ -19,7 +19,10 @@ typedef std::shared_ptr<LocalNode> LocalNodePtr;
 
 class VCF {
 public:
+    // TODO : protect this member
     GenotypingOptions const * genotyping_options;
+
+    // TODO : protect this member
     std::vector<std::string> samples;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
