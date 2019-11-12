@@ -854,8 +854,11 @@ TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only) {
 //    EXPECT_EQ((uint) 0, vcf.get_records()[5]->sampleIndex_to_sampleInfo[1]["GT"].size());
 //
 //}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // REASON COMMENTED OUT: THIS METHOD DOES NOT EXIST ANYMORE
 //TEST(VCFTest, clean) {
 //    VCF vcf = create_VCF_with_default_parameters();
@@ -880,6 +883,7 @@ TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only) {
 //    EXPECT_EQ((uint) 1, vcf.get_records()[2]->get_alts().size());
 //    EXPECT_EQ("A", vcf.get_records()[2]->get_alts()[0]);
 //}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 class VCFTest___merge_multi_allelic_core___Fixture : public ::testing::Test {
@@ -1229,7 +1233,7 @@ TEST(VCFTest___merge_multi_allelic, vcf_with_two_samples_and_two_records_second_
 //    EXPECT_EQ((uint) 85, vcf.get_records()[4]->get_pos());
 //    EXPECT_EQ((uint) 1, vcf.get_records()[4]->get_alts().size());
 //}
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -1478,6 +1482,7 @@ TEST_F(VCFTest___make_gt_compatible___Fixture, several_records___conflict) {
 //    EXPECT_EQ((uint16_t) 1, vcf.get_records()[8]->sampleIndex_to_sampleInfo[0]["GT"][0]);
 //    EXPECT_EQ((uint16_t) 0, vcf.get_records()[9]->sampleIndex_to_sampleInfo[0]["GT"].size());
 //}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 class VCFTest___get_all_records_overlapping_the_given_record___Fixture : public ::testing::Test {
@@ -1640,94 +1645,6 @@ TEST(VCFTest, equals) {
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// TODO : decide what to do with serialization - load was removed from the code
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//class VCFTest___serialization___Fixture : public ::testing::Test {
-//protected:
-//    VCF vcf_with_zero_records;
-//    VCF vcf_with_one_record;
-//    VCF vcf_with_three_records;
-//    void SetUp() override {
-//        {
-//            vcf_with_one_record.add_record("chrom1", 5, "A", "G", "GRAPHTYPE=SIMPLE;SVTYPE=SNP");
-//        }
-//
-//        {
-//            vcf_with_three_records.add_record("chrom1", 5, "A", "G", "GRAPHTYPE=SIMPLE;SVTYPE=SNP");
-//            vcf_with_three_records.add_record("chrom1", 46, "T", "TA", "GRAPHTYPE=SIMPLE;SVTYPE=SNP");
-//            VCFRecord vcf_record = VCFRecord("chrom1", 79, "C", "G", "GRAPHTYPE=SIMPLE;SVTYPE=SNP");
-//            std::vector<std::string> empty_sample_names = {};
-//            vcf_with_three_records.add_record(vcf_record, empty_sample_names);
-//        }
-//    }
-//
-//    void TearDown() override {
-//    }
-//};
-//
-//TEST_F(VCFTest___serialization___Fixture, save_vcf_with_zero_records___load_vcf___expect_equal_vcf) {
-//    vcf_with_zero_records.save("vcf_serialization_test_zero.vcf");
-//
-//    // TODO: use factory pattern instead
-//    VCF actual;
-//    actual.load("vcf_serialization_test_zero.vcf");
-//
-//    VCF& expected = vcf_with_zero_records;
-//    EXPECT_EQ(actual, expected);
-//}
-//
-//TEST_F(VCFTest___serialization___Fixture, save_vcf_with_one_record___load_vcf___expect_equal_vcf) {
-//    vcf_with_one_record.save("vcf_serialization_test_one.vcf");
-//
-//    // TODO: use factory pattern instead
-//    VCF actual;
-//    actual.load("vcf_serialization_test_one.vcf");
-//
-//    VCF& expected = vcf_with_one_record;
-//    EXPECT_EQ(actual, expected);
-//}
-//
-//
-//TEST_F(VCFTest___serialization___Fixture, save_vcf_with_three_records___load_vcf___expect_equal_vcf) {
-//    vcf_with_three_records.save("vcf_serialization_test_three.vcf");
-//
-//    // TODO: use factory pattern instead
-//    VCF actual;
-//    actual.load("vcf_serialization_test_three.vcf");
-//
-//    VCF& expected = vcf_with_three_records;
-//    EXPECT_EQ(actual, expected);
-//}
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// TODO : this can be tested with mocking
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//TEST(VCFTest, filter) {
-//    VCF vcf, vcf1, vcf2, vcf3, vcf4;
-//    vcf.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
-//    vcf.add_record("chrom1", 46, "T", "TA", "SVTYPE=INDEL;GRAPHTYPE=NESTED");
-//    vcf.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
-//    vcf.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=PH_SNPs;GRAPHTYPE=NESTED");
-//    vcf.save("vcf_filter_test.vcf", false, true, false, false, true, false, true, false);
-//
-//    vcf1.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
-//    vcf1.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
-//    vcf2.load("vcf_filter_test.vcf");
-//    EXPECT_EQ(vcf2, vcf1);
-//
-//    vcf.save("vcf_filter_test.vcf", false, true, true, false, false, false, true, false);
-//    vcf3.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
-//    vcf3.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=PH_SNPs;GRAPHTYPE=NESTED");
-//    vcf4.load("vcf_filter_test.vcf");
-//    EXPECT_EQ(vcf3, vcf4);
-//}
-
-
-
-
 class VCFTest___to_string___Fixture : public ::testing::Test {
 protected:
     class VCF_DummyHeader_Mock : public VCF {
@@ -1861,11 +1778,124 @@ TEST_F(VCFTest___to_string___Fixture, no_records_filtered_out) {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// OLD serialization TESTS
+// WILL NOT BE READDED AS WE DO NOT NEED FULL SERIALIZATION OF VCFs (ONLY SAVE, WHICH JUST WRAPS VCF::to_string()), WHICH IS TESTED WITH A NEW TEST
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//class VCFTest___serialization___Fixture : public ::testing::Test {
+//protected:
+//    VCF vcf_with_zero_records;
+//    VCF vcf_with_one_record;
+//    VCF vcf_with_three_records;
+//    void SetUp() override {
+//        {
+//            vcf_with_one_record.add_record("chrom1", 5, "A", "G", "GRAPHTYPE=SIMPLE;SVTYPE=SNP");
+//        }
+//
+//        {
+//            vcf_with_three_records.add_record("chrom1", 5, "A", "G", "GRAPHTYPE=SIMPLE;SVTYPE=SNP");
+//            vcf_with_three_records.add_record("chrom1", 46, "T", "TA", "GRAPHTYPE=SIMPLE;SVTYPE=SNP");
+//            VCFRecord vcf_record = VCFRecord("chrom1", 79, "C", "G", "GRAPHTYPE=SIMPLE;SVTYPE=SNP");
+//            std::vector<std::string> empty_sample_names = {};
+//            vcf_with_three_records.add_record(vcf_record, empty_sample_names);
+//        }
+//    }
+//
+//    void TearDown() override {
+//    }
+//};
+//
+//TEST_F(VCFTest___serialization___Fixture, save_vcf_with_zero_records___load_vcf___expect_equal_vcf) {
+//    vcf_with_zero_records.save("vcf_serialization_test_zero.vcf");
+//
+//    VCF actual;
+//    actual.load("vcf_serialization_test_zero.vcf");
+//
+//    VCF& expected = vcf_with_zero_records;
+//    EXPECT_EQ(actual, expected);
+//}
+//
+//TEST_F(VCFTest___serialization___Fixture, save_vcf_with_one_record___load_vcf___expect_equal_vcf) {
+//    vcf_with_one_record.save("vcf_serialization_test_one.vcf");
+//
+//    VCF actual;
+//    actual.load("vcf_serialization_test_one.vcf");
+//
+//    VCF& expected = vcf_with_one_record;
+//    EXPECT_EQ(actual, expected);
+//}
+//
+//
+//TEST_F(VCFTest___serialization___Fixture, save_vcf_with_three_records___load_vcf___expect_equal_vcf) {
+//    vcf_with_three_records.save("vcf_serialization_test_three.vcf");
+//
+//    VCF actual;
+//    actual.load("vcf_serialization_test_three.vcf");
+//
+//    VCF& expected = vcf_with_three_records;
+//    EXPECT_EQ(actual, expected);
+//}
+//
+//
+//TEST(VCFTest, filter) {
+//    VCF vcf, vcf1, vcf2, vcf3, vcf4;
+//    vcf.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
+//    vcf.add_record("chrom1", 46, "T", "TA", "SVTYPE=INDEL;GRAPHTYPE=NESTED");
+//    vcf.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
+//    vcf.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=PH_SNPs;GRAPHTYPE=NESTED");
+//    vcf.save("vcf_filter_test.vcf", false, true, false, false, true, false, true, false);
+//
+//    vcf1.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
+//    vcf1.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
+//    vcf2.load("vcf_filter_test.vcf");
+//    EXPECT_EQ(vcf2, vcf1);
+//
+//    vcf.save("vcf_filter_test.vcf", false, true, true, false, false, false, true, false);
+//    vcf3.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
+//    vcf3.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=PH_SNPs;GRAPHTYPE=NESTED");
+//    vcf4.load("vcf_filter_test.vcf");
+//    EXPECT_EQ(vcf3, vcf4);
+//}
+
+class VCFTest___save___Fixture : public ::testing::Test {
+protected:
+    class VCF_Mock : public VCF {
+    public:
+        using VCF::VCF;
+        MOCK_METHOD(std::string, to_string, (bool genotyping_from_maximum_likelihood,
+                bool genotyping_from_coverage, bool output_dot_allele, bool
+                graph_is_simple, bool graph_is_nested, bool
+                graph_has_too_many_alts, bool sv_type_is_snp, bool sv_type_is_indel, bool
+                sv_type_is_ph_snps, bool sv_type_is_complex), (override));
+    };
+
+    VCFTest___save___Fixture() : vcf(&default_genotyping_options) {}
+
+    VCF_Mock vcf;
+};
+
+
+// TODO : improve this test with dependency injection in the file handler
+TEST_F(VCFTest___save___Fixture, save_true_then_false_flags) {
+    EXPECT_CALL(vcf, to_string(true, false, true, false, true, false, true, false, true, false))
+    .Times(1);
+
+    vcf.save("/dev/null", true, false, true, false, true, false, true, false, true, false);
+}
+
+TEST_F(VCFTest___save___Fixture, save_false_then_true_flags) {
+    EXPECT_CALL(vcf, to_string(false, true, false, true, false, true, false, true, false, true))
+            .Times(1);
+
+    vcf.save("/dev/null", false, true, false, true, false, true, false, true, false, true);
+}
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // PREVIOUS TESTS FROM VCF_RECORD FOLLOW
 // COMMENTED OUT == NO NEED ANYMORE AND I PUT THE REASON WHY IT IS NOT NEEDED
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // REASON WHY THESE ARE COMMENTED OUT: NO NEED ANYMORE, FORMATS ARE NOT VARIABLE ANYMORE, WHICH RENDERS THE CODE SIMPLER

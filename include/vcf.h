@@ -24,8 +24,8 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //constructor/destructors
-    // TODO: make VCF not sample updatable - we have to specify the samples upfront - this can be done in pandora
-    // and it makes a lot of things easier and less error prone
+    // TODO: make VCF not sample updatable - we have to specify the samples upfront - this can be done in pandora and
+    //  will render the code less complicated and less error-prone
     VCF(GenotypingOptions const * genotyping_options) : genotyping_options(genotyping_options){}
     virtual ~VCF(){}
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,8 +40,6 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // adders
-    // TODO : I think this method is not needed. It should receive a VCFRecord and add it to the VCF,
-    // TODO :  to allow for dependency injection. Remove later
     virtual void add_record(const std::string &chrom, uint32_t position, const std::string &ref,
                          const std::string &alt, const std::string &info = ".", const std::string &graph_type_info = "");
     virtual void add_record(const VCFRecord &vcf_record);
@@ -108,13 +106,13 @@ public:
     static void concatenateVCFs(const std::vector<std::string> &VCFPathsToBeConcatenated, const std::string &sink);
 
     // serialization operations
+    // TODO : give a file handler instead of filepath to allow for mocking
+    // TODO : the file handler must be a wrapper on ostream, to allow for mocking in fact
     virtual void save(const std::string &filepath, bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage,
             bool output_dot_allele = false, bool graph_is_simple = true, bool graph_is_nested = true, bool graph_has_too_many_alts = true, bool sv_type_is_snp = true, bool sv_type_is_indel = true,
                       bool sv_type_is_ph_snps = true, bool sv_type_is_complex = true);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // TODO: check if we keep this, it is only used in tests - better to keep in a VCFMock class
-    // void load(const std::string &filepath);
 protected:
     std::vector<std::shared_ptr<VCFRecord>> records;
     /* will contain, for each chromosome, an interval tree containing VCF records interval and a pointer to the VCF Record itself to allow
