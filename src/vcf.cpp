@@ -465,40 +465,6 @@ std::string VCF::to_string(bool genotyping_from_maximum_likelihood, bool genotyp
 }
 
 
-// TODO: check if we keep this, it is only used in tests - better to keep in a VCFMock class
-/*
-void VCF::load(const std::string &filepath) {
-    BOOST_LOG_TRIVIAL(debug) << "Loading VCF from " << filepath;
-    VCFRecord vr;
-    std::string line;
-    std::stringstream ss;
-    uint32_t added = 0;
-    std::vector<std::string> sample_names = {};
-    // NB this doesn't currently clear records first. Do we want to?
-
-    std::ifstream myfile(filepath);
-    if (myfile.is_open()) {
-        while (getline(myfile, line).good()) {
-            if (line[0] != '#') {
-                ss << line;
-                ss >> vr;
-                ss.clear();
-                add_record(vr, sample_names);
-                added += 1;
-            } else if (line[1] != '#'){
-                auto sample_string = line.replace(0,45, "");
-                sample_names = split(sample_string, "\t");
-            }
-        }
-    } else {
-        std::cerr << "Unable to open VCF file " << filepath << std::endl;
-        std::exit(1);
-    }
-    BOOST_LOG_TRIVIAL(debug) << "Finished loading " << added << " entries to VCF, which now has size "
-                             << records.size();
-}
- */
-
 bool VCF::operator==(const VCF &y) const {
     if (records.size() != y.records.size()) { return false; }
     for (uint32_t i = 0; i != y.records.size(); ++i) {
