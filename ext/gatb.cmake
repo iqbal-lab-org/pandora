@@ -13,7 +13,7 @@ ExternalProject_Add(gatb
         DOWNLOAD_COMMAND  wget https://github.com/GATB/gatb-core/archive/v1.4.1.tar.gz --timestamping -O gatb.tar.gz
         DOWNLOAD_DIR      "${CMAKE_BINARY_DIR}/ext"
         CONFIGURE_COMMAND ""
-        BUILD_COMMAND     bash -c "cd ${GATB_BUILD_DIR} && cmake -D CMAKE_C_COMPILER=${CMAKE_C_COMPILER} -D CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} ${GATB_DIR} && make -j 4"
+        BUILD_COMMAND     bash -c "cd ${GATB_BUILD_DIR} && cmake -D CMAKE_C_COMPILER=${CMAKE_C_COMPILER} -D CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} ${GATB_DIR} && make"
         INSTALL_COMMAND   ""
         TEST_COMMAND      "")
 
