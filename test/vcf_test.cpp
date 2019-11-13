@@ -1650,13 +1650,10 @@ protected:
     class VCF_DummyHeader_Mock : public VCF {
     public:
         using VCF::VCF;
-        const std::string dummy_header {"##Dummy_header;\n"};
-        virtual std::string header() const {
-            return dummy_header;
-        }
+        MOCK_METHOD(std::string, header, (), (const override));
     };
 
-    std::shared_ptr<VCF> vcf_with_all_records;
+    std::shared_ptr<VCF_DummyHeader_Mock> vcf_with_all_records;
     VCFRecord graph_type_is_simple_sv_is_snp;
     VCFRecord graph_type_is_nested_sv_is_snp;
     VCFRecord graph_type_has_too_many_alts_sv_is_snp;
@@ -1685,6 +1682,10 @@ protected:
         vcf_with_all_records->add_or_update_record_restricted_to_the_given_samples(graph_type_is_simple_sv_is_ph_snps, sample_names);
         vcf_with_all_records->add_or_update_record_restricted_to_the_given_samples(graph_type_is_simple_sv_is_complex, sample_names);
         vcf_with_all_records->add_or_update_record_restricted_to_the_given_samples(record_with_dot_allele, sample_names);
+
+        EXPECT_CALL(*vcf_with_all_records, header)
+        .Times(1)
+        .WillOnce(Return(std::string("##Dummy_header;\n")));
     }
 
     void TearDown() override {
