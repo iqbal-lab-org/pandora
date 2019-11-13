@@ -1475,34 +1475,27 @@ protected:
 
 
     void SetUp() override {
-        prg::Path path_from_3_to_30;
         path_from_3_to_30.push_back(Interval(3, 7));
         path_from_3_to_30.push_back(Interval(12, 20));
         path_from_3_to_30.push_back(Interval(20, 25));
         path_from_3_to_30.push_back(Interval(25, 30));
         kmer_node_from_3_to_30 = std::make_shared<KmerNode>(1, path_from_3_to_30);
 
-        prg::Path path_from_3_to_50;
         path_from_3_to_50.push_back(Interval(3, 50));
         kmer_node_from_3_to_50 = std::make_shared<KmerNode>(2, path_from_3_to_50);
 
-        prg::Path path_from_4_to_50;
         path_from_4_to_50.push_back(Interval(4, 50));
         kmer_node_from_4_to_50 = std::make_shared<KmerNode>(2, path_from_4_to_50);
 
-        prg::Path path_from_7_to_50;
         path_from_7_to_50.push_back(Interval(7, 50));
         kmer_node_from_7_to_50 = std::make_shared<KmerNode>(2, path_from_7_to_50);
 
-        prg::Path path_from_10_to_50;
         path_from_10_to_50.push_back(Interval(10, 50));
         kmer_node_from_10_to_50 = std::make_shared<KmerNode>(2, path_from_10_to_50);
 
-        prg::Path path_from_15_to_50;
         path_from_15_to_50.push_back(Interval(15, 50));
         kmer_node_from_15_to_50 = std::make_shared<KmerNode>(2, path_from_15_to_50);
 
-        prg::Path path_from_40_to_50;
         path_from_40_to_50.push_back(Interval(40, 50));
         kmer_node_from_40_to_50 = std::make_shared<KmerNode>(2, path_from_40_to_50);
     }
@@ -1518,6 +1511,14 @@ protected:
     KmerNodePtr kmer_node_from_10_to_50;
     KmerNodePtr kmer_node_from_15_to_50;
     KmerNodePtr kmer_node_from_40_to_50;
+
+    prg::Path path_from_3_to_30;
+    prg::Path path_from_3_to_50;
+    prg::Path path_from_4_to_50;
+    prg::Path path_from_7_to_50;
+    prg::Path path_from_10_to_50;
+    prg::Path path_from_15_to_50;
+    prg::Path path_from_40_to_50;
 };
 
 
