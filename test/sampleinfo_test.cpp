@@ -238,6 +238,27 @@ TEST_F(SampleInfoTest___Fixture,
                                                               allele_to_coverage_three_alleles), "");
 }
 
+
+TEST_F(SampleInfoTest___Fixture,
+       set_coverage_information___both_covgs_have_two_alleles_but_have_different_number_of_bases_on_first_allele___expects_death) {
+    std::vector<std::vector<uint32_t> > allele_to_coverage_two_alleles_first_allele_has_only_one_base(allele_to_coverage_two_alleles);
+    allele_to_coverage_two_alleles_first_allele_has_only_one_base[0] = { 1 };
+
+    EXPECT_DEATH(default_sample_info.set_coverage_information(allele_to_coverage_two_alleles,
+                                                              allele_to_coverage_two_alleles_first_allele_has_only_one_base), "");
+}
+
+
+TEST_F(SampleInfoTest___Fixture,
+       set_coverage_information___both_covgs_have_two_alleles_but_have_different_number_of_bases_on_second_allele___expects_death) {
+    std::vector<std::vector<uint32_t> > allele_to_coverage_two_alleles_second_allele_has_only_one_base(allele_to_coverage_two_alleles);
+    allele_to_coverage_two_alleles_second_allele_has_only_one_base[1] = { 3 };
+
+    EXPECT_DEATH(default_sample_info.set_coverage_information(allele_to_coverage_two_alleles,
+                                                              allele_to_coverage_two_alleles_second_allele_has_only_one_base), "");
+}
+
+
 TEST_F(SampleInfoTest___Fixture, set_number_of_alleles_and_resize_coverage_information___resize_to_zero_alleles___expects_death) {
     default_sample_info_three_alleles.set_coverage_information(allele_to_coverage_three_alleles, allele_to_coverage_three_alleles);
     EXPECT_DEATH(default_sample_info_three_alleles.set_number_of_alleles_and_resize_coverage_information(0), "");
