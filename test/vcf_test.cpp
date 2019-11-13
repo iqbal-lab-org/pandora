@@ -1613,6 +1613,7 @@ TEST(VCFTest, equals) {
     std::vector<std::string> empty = {};
     vcf.add_or_update_record_restricted_to_the_given_samples(vr, empty);
     EXPECT_EQ(vcf, vcf);
+    EXPECT_FALSE(vcf != vcf);
 
     // different order
     VCF vcf1 = create_VCF_with_default_parameters();
@@ -1620,8 +1621,11 @@ TEST(VCFTest, equals) {
     vcf1.add_or_update_record_restricted_to_the_given_samples(vr, empty);
     vcf1.add_record("chrom1", 46, "T", "TA");
     EXPECT_EQ(vcf1, vcf1);
+    EXPECT_FALSE(vcf1 != vcf1);
     EXPECT_EQ(vcf, vcf1);
+    EXPECT_FALSE(vcf != vcf1);
     EXPECT_EQ(vcf1, vcf);
+    EXPECT_FALSE(vcf1 != vcf);
 
     // same length, one different
     VCF vcf2 = create_VCF_with_default_parameters();
@@ -1629,8 +1633,11 @@ TEST(VCFTest, equals) {
     vcf2.add_or_update_record_restricted_to_the_given_samples(vr, empty);
     vcf2.add_record("chrom1", 46, "T", "TA");
     EXPECT_EQ(vcf2, vcf2);
-    EXPECT_EQ((vcf == vcf2), false);
-    EXPECT_EQ((vcf2 == vcf), false);
+    EXPECT_FALSE(vcf2 != vcf2);
+    EXPECT_NE(vcf, vcf2);
+    EXPECT_FALSE(vcf == vcf2);
+    EXPECT_NE(vcf2, vcf);
+    EXPECT_FALSE(vcf2 == vcf);
 
     // different length
     VCF vcf3 = create_VCF_with_default_parameters();
@@ -1639,8 +1646,11 @@ TEST(VCFTest, equals) {
     vcf3.add_record("chrom1", 46, "T", "TA");
     vcf3.add_record("chrom1", 30, "G", "CC");
     EXPECT_EQ(vcf3, vcf3);
-    EXPECT_EQ((vcf == vcf3), false);
-    EXPECT_EQ((vcf3 == vcf), false);
+    EXPECT_FALSE(vcf3 != vcf3);
+    EXPECT_NE(vcf, vcf3);
+    EXPECT_FALSE(vcf == vcf3);
+    EXPECT_NE(vcf3, vcf);
+    EXPECT_FALSE(vcf3 == vcf);
 }
 
 
