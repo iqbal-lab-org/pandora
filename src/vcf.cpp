@@ -384,21 +384,26 @@ void VCF::save(const std::string &filepath, bool genotyping_from_maximum_likelih
     BOOST_LOG_TRIVIAL(debug) << "Finished saving " << this->records.size() << " entries to file";
 }
 
-std::string VCF::header() const {
-    // find date
+std::string VCF::get_current_date () const {
     time_t t = time(0);
-    char mbstr[10];
+    char mbstr[16];
     strftime(mbstr, sizeof(mbstr), "%d/%m/%y", localtime(&t));
+    return std::string(mbstr);
+}
+
+std::string VCF::header() const {
+    std::string date = get_current_date();
 
     std::set<std::string> chroms;
-    for (const auto record : records) {
+    for (const std::shared_ptr<VCFRecord> &record : records) {
         chroms.insert(record->get_chrom());
     }
 
     std::string header;
+    header.reserve(10000);
     header += "##fileformat=VCFv4.3\n";
     header += "##fileDate==";
-    header += mbstr;
+    header += date;
     header += "\n##ALT=<ID=SNP,Description=\"SNP\">\n";
     header += "##ALT=<ID=PH_SNPs,Description=\"Phased SNPs\">\n";
     header += "##ALT=<ID=INDEL,Description=\"Insertion-deletion\">\n";
@@ -418,12 +423,12 @@ std::string VCF::header() const {
     header += "##FORMAT=<ID=GAPS,Number=A,Type=Float,Description=\"Number of gap bases\">\n";
     header += "##FORMAT=<ID=LIKELIHOOD,Number=A,Type=Float,Description=\"Likelihood\">\n";
     header += "##FORMAT=<ID=GT_CONF,Number=1,Type=Float,Description=\"Genotype confidence\">\n";
-    for (const auto chrom : chroms){
+    for (const std::string &chrom : chroms){
         header += "##contig=<ID=" + chrom + ">\n";
     }
     header += "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT";
-    for (uint32_t i = 0; i != samples.size(); ++i) {
-        header += "\t" + samples[i];
+    for (const std::string &sample : samples){
+        header += "\t" + sample;
     }
     header += "\n";
     return header;

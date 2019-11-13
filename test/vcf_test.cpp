@@ -1644,6 +1644,67 @@ TEST(VCFTest, equals) {
 }
 
 
+class VCFTest___header___Fixture : public ::testing::Test {
+protected:
+    class VCF_Mock : public VCF {
+    public:
+        using VCF::VCF;
+        MOCK_METHOD(std::string, get_current_date, (), (const override));
+    };
+
+    VCFTest___header___Fixture() : vcf(&default_genotyping_options){
+    }
+
+    void SetUp() override {
+        vcf.add_samples({"sample_1", "sample_2"});
+        vcf.add_record("chrom_Z", 0, "A", "T");
+        vcf.add_record("chrom_G", 0, "A", "T");
+        vcf.add_record("chrom_A", 0, "A", "T");
+
+        EXPECT_CALL(vcf, get_current_date)
+        .Times(1)
+        .WillOnce(Return(std::string("dummy_date")));
+    }
+
+    void TearDown() override {
+    }
+
+    VCF_Mock vcf;
+};
+
+TEST_F(VCFTest___header___Fixture, header) {
+    std::string expected = "##fileformat=VCFv4.3\n"
+                           "##fileDate==dummy_date\n"
+                           "##ALT=<ID=SNP,Description=\"SNP\">\n"
+                           "##ALT=<ID=PH_SNPs,Description=\"Phased SNPs\">\n"
+                           "##ALT=<ID=INDEL,Description=\"Insertion-deletion\">\n"
+                           "##ALT=<ID=COMPLEX,Description=\"Complex variant, collection of SNPs and indels\">\n"
+                           "##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of variant\">\n"
+                           "##ALT=<ID=SIMPLE,Description=\"Graph bubble is simple\">\n"
+                           "##ALT=<ID=NESTED,Description=\"Variation site was a nested feature in the graph\">\n"
+                           "##ALT=<ID=TOO_MANY_ALTS,Description=\"Variation site was a multinested feature with too many alts to include all in the VCF\">\n"
+                           "##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description=\"Type of graph feature\">\n"
+                           "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n"
+                           "##FORMAT=<ID=MEAN_FWD_COVG,Number=A,Type=Integer,Description=\"Mean forward coverage\">\n"
+                           "##FORMAT=<ID=MEAN_REV_COVG,Number=A,Type=Integer,Description=\"Mean reverse coverage\">\n"
+                           "##FORMAT=<ID=MED_FWD_COVG,Number=A,Type=Integer,Description=\"Med forward coverage\">\n"
+                           "##FORMAT=<ID=MED_REV_COVG,Number=A,Type=Integer,Description=\"Med reverse coverage\">\n"
+                           "##FORMAT=<ID=SUM_FWD_COVG,Number=A,Type=Integer,Description=\"Sum forward coverage\">\n"
+                           "##FORMAT=<ID=SUM_REV_COVG,Number=A,Type=Integer,Description=\"Sum reverse coverage\">\n"
+                           "##FORMAT=<ID=GAPS,Number=A,Type=Float,Description=\"Number of gap bases\">\n"
+                           "##FORMAT=<ID=LIKELIHOOD,Number=A,Type=Float,Description=\"Likelihood\">\n"
+                           "##FORMAT=<ID=GT_CONF,Number=1,Type=Float,Description=\"Genotype confidence\">\n"
+                           "##contig=<ID=chrom_A>\n"
+                           "##contig=<ID=chrom_G>\n"
+                           "##contig=<ID=chrom_Z>\n"
+                           "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample_1\tsample_2\n";
+
+    std::string actual = vcf.header();
+
+    EXPECT_EQ(actual, expected);
+}
+
+
 
 class VCFTest___to_string___Fixture : public ::testing::Test {
 protected:

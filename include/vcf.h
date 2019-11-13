@@ -132,6 +132,8 @@ protected:
     virtual void update_other_samples_of_this_record(VCFRecord *reference_record);
 
     virtual void merge_multi_allelic_core(VCF &merged_vcf, uint32_t max_allele_length) const;
+
+    virtual inline std::string get_current_date () const;
 };
 
 #endif
