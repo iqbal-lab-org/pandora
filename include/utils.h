@@ -101,6 +101,12 @@ uint32_t pangraph_from_read_file(const std::string &, std::shared_ptr<pangenome:
 void infer_most_likely_prg_path_for_pannode(const std::vector<std::shared_ptr<LocalPRG>> &, PanNode *, uint32_t, float);
 
 
-void fatalError (const std::string &message);
+void fatal_error (const std::string &message);
+
+// TODO : refactor all file open and closing to use these functions
+void open_file_for_reading (const std::string &file_path, std::ifstream &stream);
+void open_file_for_writing (const std::string &file_path, std::ofstream &stream);
+
+std::vector<std::string> get_vector_of_strings_from_file (const std::string &file_path);
 
 #endif

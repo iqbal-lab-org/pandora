@@ -487,20 +487,25 @@ bool VCF::operator!=(const VCF &y) const {
 }
 
 
-void VCF::concatenateVCFs(const std::vector<std::string> &VCFPathsToBeConcatenated, const std::string &sink) {
-    std::ofstream outFile(sink);
-    bool headerIsOutput = false;
-    for (const auto &VCFPath : VCFPathsToBeConcatenated) {
-        std::ifstream inFile(VCFPath);
+void VCF::concatenate_VCFs(const std::vector<std::string> &VCF_paths_to_be_concatenated, const std::string &final_VCF_file) {
+    std::ofstream out_file;
+    open_file_for_writing(final_VCF_file, out_file);
+
+    bool header_is_output = false;
+    for (const auto &VCF_path : VCF_paths_to_be_concatenated) {
+        std::ifstream in_file;
+        open_file_for_reading(VCF_path, in_file);
+
         std::string line;
-        while (std::getline(inFile, line)) {
-            if ((line[0]!='#') || (line[0]=='#' && headerIsOutput==false))
-                outFile << line << std::endl;
+        while (std::getline(in_file, line)) {
+            if ((line[0]!='#') || (line[0]=='#' && header_is_output == false))
+                out_file << line << std::endl;
         }
-        headerIsOutput = true;
-        inFile.close();
+        header_is_output = true;
+
+        in_file.close();
     }
-    outFile.close();
+    out_file.close();
 }
 
 

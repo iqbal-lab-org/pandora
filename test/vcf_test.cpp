@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <iostream>
 #include "test_helpers.h"
-
+#include "utils.h"
 
 using namespace std;
 using ::testing::Return;
@@ -1962,6 +1962,24 @@ TEST_F(VCFTest___save___Fixture, save_false_then_true_flags) {
 }
 
 
+
+TEST(VCFTest, concatenate_VCFs) {
+    VCF::concatenate_VCFs({
+        "../../test/test_cases/concatenate_VCFs/fake_vcf1.vcf",
+        "../../test/test_cases/concatenate_VCFs/fake_vcf2.vcf",
+        "../../test/test_cases/concatenate_VCFs/fake_vcf3.vcf"},
+        "concatenated_vcf.vcf");
+    std::vector<std::string> actual = get_vector_of_strings_from_file("concatenated_vcf.vcf");
+
+    std::vector<std::string> expected = {
+            "#dummy_header",
+            "line_1",
+            "line_2",
+            "line_3"
+    };
+
+    EXPECT_EQ(actual, expected);
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

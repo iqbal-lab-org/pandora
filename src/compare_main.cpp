@@ -516,9 +516,9 @@ int pandora_compare(int argc, char *argv[]) {
 
     //generate all the multisample files
     vcf_ref_fa.save(outdir + "/pandora_multisample.vcf_ref.fa");
-    VCF::concatenateVCFs(VCFPathsToBeConcatenated, outdir + "/pandora_multisample_consensus.vcf");
+    VCF::concatenate_VCFs(VCFPathsToBeConcatenated, outdir + "/pandora_multisample_consensus.vcf");
     if (genotype)
-        VCF::concatenateVCFs(VCFGenotypedPathsToBeConcatenated, outdir + "/pandora_multisample_genotyped.vcf");
+        VCF::concatenate_VCFs(VCFGenotypedPathsToBeConcatenated, outdir + "/pandora_multisample_genotyped.vcf");
 
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample

@@ -100,20 +100,20 @@ public:
     // misc methods
     virtual void sort_records(); // TODO: remove this method and store the records always sorted
     virtual bool pos_in_range(const uint32_t, const uint32_t, const std::string &) const;
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * Concatenate several VCF files that were previously written to disk as .vcfs into a single VCF file
-     * @param VCFPathsToBeConcatenated : vector containing paths to the .vcfs to be concatenated
-     * @param sink : where to put the concatenated VCFs
-     */
-    static void concatenateVCFs(const std::vector<std::string> &VCFPathsToBeConcatenated, const std::string &sink);
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // serialization operations
     // TODO : give a file handler instead of filepath to allow for mocking
     // TODO : the file handler must be a wrapper on ostream, to allow for mocking in fact
     virtual void save(const std::string &filepath, bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage,
             bool output_dot_allele = false, bool graph_is_simple = true, bool graph_is_nested = true, bool graph_has_too_many_alts = true, bool sv_type_is_snp = true, bool sv_type_is_indel = true,
                       bool sv_type_is_ph_snps = true, bool sv_type_is_complex = true);
+
+
+    // concatenate several VCF files that were previously written to disk as .vcfs into a single VCF file
+    static void concatenate_VCFs(const std::vector<std::string> &VCF_paths_to_be_concatenated, const std::string &final_VCF_file);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 protected:

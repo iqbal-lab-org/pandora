@@ -505,8 +505,45 @@ uint32_t pangraph_from_read_file(const std::string &filepath,
 
 
 
-void fatalError (const string &message) {
+void fatal_error (const string &message) {
     cerr << endl << endl << "[FATAL ERROR] " << message << endl << endl;
     cerr.flush();
     exit(1);
+}
+
+
+
+void open_file_for_reading (const std::string &file_path, std::ifstream &stream) {
+    stream.open(file_path);
+    if (!stream.is_open()) {
+        std::stringstream ss;
+        ss << "Error opening file " << file_path;
+        fatal_error(ss.str());
+    }
+}
+
+void open_file_for_writing (const std::string &file_path, std::ofstream &stream) {
+    stream.open(file_path);
+    if (!stream.is_open()) {
+        std::stringstream ss;
+        ss << "Error opening file " << file_path;
+        fatal_error(ss.str());
+    }
+}
+
+
+//read all strings in the readsFile file and return them as a vector of strings
+std::vector<std::string> get_vector_of_strings_from_file (const std::string &file_path) {
+    std::vector<std::string> lines;
+    std::string line;
+
+    std::ifstream in_file;
+    open_file_for_reading(file_path, in_file);
+    while (getline(in_file, line)) {
+        if (line.size() > 0)
+            lines.push_back(line);
+    }
+    in_file.close();
+
+    return lines;
 }
