@@ -80,7 +80,7 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // modifiers
-    virtual inline void set_ref(std::string ref);
+    virtual inline void set_ref_and_clear_alts(std::string ref);
     virtual inline void add_new_alt(std::string alt);
 
     template <class ITERATOR_TYPE>
@@ -164,6 +164,7 @@ public:
     virtual inline bool has_non_null_reference () const {
         return this->ref != "." and this->ref != "";
     }
+    virtual inline bool have_at_least_one_alt_and_all_alts_are_valid() const;
     virtual size_t get_longest_allele_length() const;
     virtual bool contains_dot_allele() const;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,11 +186,7 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // merging related methods
-    virtual inline void merge_record_into_this(const VCFRecord &other) {
-        assert(there_are_no_common_alt_alleles_between_this_and_other(other));
-        this->sampleIndex_to_sampleInfo.merge_other_samples_infos_into_this(other.sampleIndex_to_sampleInfo);
-        add_new_alts(other.get_alts().begin(), other.get_alts().end());
-    }
+    virtual inline void merge_record_into_this(const VCFRecord &other);
 
     virtual bool can_biallelic_record_be_merged_into_this (const VCFRecord &vcf_record_to_be_merged_in, uint32_t max_allele_length = 10000) const;
 

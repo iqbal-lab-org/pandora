@@ -91,24 +91,38 @@ public:
 };
 
 
-TEST_F(VCFRecordTest___default_VCF_Record___Fixture, set_ref___ref_is_empty) {
-    vcf_record.set_ref("");
+TEST_F(VCFRecordTest___default_VCF_Record___Fixture, set_ref_and_clear_alts___ref_is_empty) {
+    vcf_record.set_ref_and_clear_alts("");
 
     EXPECT_EQ(".", vcf_record.get_ref());
     EXPECT_EQ(1, vcf_record.sampleIndex_to_sampleInfo[0].get_number_of_alleles());
 }
 
-TEST_F(VCFRecordTest___default_VCF_Record___Fixture, set_ref___ref_is_dot) {
-    vcf_record.set_ref(".");
+TEST_F(VCFRecordTest___default_VCF_Record___Fixture, set_ref_and_clear_alts___ref_is_dot) {
+    vcf_record.set_ref_and_clear_alts(".");
 
     EXPECT_EQ(".", vcf_record.get_ref());
     EXPECT_EQ(1, vcf_record.sampleIndex_to_sampleInfo[0].get_number_of_alleles());
 }
 
-TEST_F(VCFRecordTest___default_VCF_Record___Fixture, set_ref___ref_is_valid) {
-    vcf_record.set_ref("ACGT");
+TEST_F(VCFRecordTest___default_VCF_Record___Fixture, set_ref_and_clear_alts___ref_is_valid) {
+    vcf_record.set_ref_and_clear_alts("ACGT");
 
     EXPECT_EQ("ACGT", vcf_record.get_ref());
+    EXPECT_EQ(1, vcf_record.sampleIndex_to_sampleInfo[0].get_number_of_alleles());
+}
+
+
+TEST_F(VCFRecordTest___default_VCF_Record___Fixture, set_ref_and_clear_alts___check_if_alts_are_cleared___and_sample_infos_are_resized) {
+    vcf_record.add_new_alt("G");
+    vcf_record.add_new_alt("C");
+    vcf_record.add_new_alt("T");
+    EXPECT_EQ(4, vcf_record.sampleIndex_to_sampleInfo[0].get_number_of_alleles());
+
+    vcf_record.set_ref_and_clear_alts("ACGT");
+
+    EXPECT_EQ("ACGT", vcf_record.get_ref());
+    EXPECT_EQ(0, vcf_record.get_alts().size());
     EXPECT_EQ(1, vcf_record.sampleIndex_to_sampleInfo[0].get_number_of_alleles());
 }
 
@@ -341,6 +355,51 @@ TEST_F(VCFRecordTest___to_string___Fixture, to_string) {
     EXPECT_EQ(actual, expected);
 }
 
+TEST(VCFRecordTest, have_at_least_one_alt_and_all_alts_are_valid___no_alts___return_false) {
+    VCF vcf = create_VCF_with_default_parameters();
+    VCFRecord vcf_record(&vcf);
+
+    EXPECT_FALSE(vcf_record.have_at_least_one_alt_and_all_alts_are_valid());
+}
+
+TEST(VCFRecordTest, have_at_least_one_alt_and_all_alts_are_valid___one_empty_alt___return_false) {
+    VCF vcf = create_VCF_with_default_parameters();
+    VCFRecord vcf_record(&vcf, "1", 0, "A", "");
+
+    EXPECT_FALSE(vcf_record.have_at_least_one_alt_and_all_alts_are_valid());
+}
+
+TEST(VCFRecordTest, have_at_least_one_alt_and_all_alts_are_valid___one_dot_alt___return_false) {
+    VCF vcf = create_VCF_with_default_parameters();
+    VCFRecord vcf_record(&vcf, "1", 0, "A", ".");
+
+    EXPECT_FALSE(vcf_record.have_at_least_one_alt_and_all_alts_are_valid());
+}
+
+TEST(VCFRecordTest, have_at_least_one_alt_and_all_alts_are_valid___one_valid_alt___return_true) {
+    VCF vcf = create_VCF_with_default_parameters();
+    VCFRecord vcf_record(&vcf, "1", 0, "A", "C");
+
+    EXPECT_TRUE(vcf_record.have_at_least_one_alt_and_all_alts_are_valid());
+}
+
+TEST(VCFRecordTest, have_at_least_one_alt_and_all_alts_are_valid___two_valid_alts___return_true) {
+    VCF vcf = create_VCF_with_default_parameters();
+    VCFRecord vcf_record(&vcf, "1", 0, "A", "C");
+    vcf_record.add_new_alt("G");
+
+    EXPECT_TRUE(vcf_record.have_at_least_one_alt_and_all_alts_are_valid());
+}
+
+TEST(VCFRecordTest, have_at_least_one_alt_and_all_alts_are_valid___two_valid_alts_one_invalid___return_false) {
+    VCF vcf = create_VCF_with_default_parameters();
+    VCFRecord vcf_record(&vcf, "1", 0, "A", "C");
+    vcf_record.add_new_alt("G");
+    vcf_record.add_new_alt(".");
+
+    EXPECT_FALSE(vcf_record.have_at_least_one_alt_and_all_alts_are_valid());
+}
+
 TEST(VCFRecordTest, get_longest_allele_length___longest_allele_is_ref) {
     VCF vcf = create_VCF_with_default_parameters();
     VCFRecord vr(&vcf, "chrom1", 1, "ACGT", "A", ".", ".");
@@ -395,18 +454,26 @@ public:
     VCFRecordTest___merge_record_into_this______Fixture() :
             vcf(create_VCF_with_default_parameters()),
             vcf_record_only_ref_no_alts(&vcf, "1", 1, "A", ""),
+            vcf_record_ref_A_alt_dot(&vcf, "1", 1, "A", "."),
             vcf_record_ref_A_alt_T(&vcf, "1", 1, "A", "T"),
+            vcf_record_ref_A_alt_T_dot(&vcf, "1", 1, "A", "T"),
             vcf_record_ref_A_alt_TTT(&vcf, "1", 1, "A", "TTT"),
             vcf_record_ref_A_alt_T_TT_TTT(&vcf, "1", 1, "A", "T")
+
     {
         vcf_record_ref_A_alt_T_TT_TTT.add_new_alt("TT");
         vcf_record_ref_A_alt_T_TT_TTT.add_new_alt("TTT");
+
+        vcf_record_ref_A_alt_T_dot.add_new_alt(".");
     }
     VCF vcf;
     VCFRecord vcf_record_only_ref_no_alts;
+    VCFRecord vcf_record_ref_A_alt_dot;
     VCFRecord vcf_record_ref_A_alt_T;
+    VCFRecord vcf_record_ref_A_alt_T_dot;
     VCFRecord vcf_record_ref_A_alt_TTT;
     VCFRecord vcf_record_ref_A_alt_T_TT_TTT;
+
 };
 
 // TODO : mock this->sampleIndex_to_sampleInfo.merge_other_samples_infos_into_this()
@@ -415,6 +482,14 @@ TEST_F(VCFRecordTest___merge_record_into_this______Fixture, merge_T_into_no_alts
 
     EXPECT_EQ(1, vcf_record_only_ref_no_alts.get_alts().size());
     EXPECT_EQ("T", vcf_record_only_ref_no_alts.get_alts()[0]);
+    EXPECT_EQ(2, vcf_record_only_ref_no_alts.sampleIndex_to_sampleInfo[0].get_number_of_alleles());
+}
+
+TEST_F(VCFRecordTest___merge_record_into_this______Fixture, merge_dot_into_no_alts) {
+    vcf_record_only_ref_no_alts.merge_record_into_this(vcf_record_ref_A_alt_dot);
+
+    EXPECT_EQ(0, vcf_record_only_ref_no_alts.get_alts().size());
+    EXPECT_EQ(1, vcf_record_only_ref_no_alts.sampleIndex_to_sampleInfo[0].get_number_of_alleles());
 }
 
 TEST_F(VCFRecordTest___merge_record_into_this______Fixture, merge_no_alts_into_T) {
@@ -422,6 +497,15 @@ TEST_F(VCFRecordTest___merge_record_into_this______Fixture, merge_no_alts_into_T
 
     EXPECT_EQ(1, vcf_record_ref_A_alt_T.get_alts().size());
     EXPECT_EQ("T", vcf_record_ref_A_alt_T.get_alts()[0]);
+    EXPECT_EQ(2, vcf_record_ref_A_alt_T.sampleIndex_to_sampleInfo[0].get_number_of_alleles());
+}
+
+TEST_F(VCFRecordTest___merge_record_into_this______Fixture, merge_dot_into_T) {
+    vcf_record_ref_A_alt_T.merge_record_into_this(vcf_record_ref_A_alt_dot);
+
+    EXPECT_EQ(1, vcf_record_ref_A_alt_T.get_alts().size());
+    EXPECT_EQ("T", vcf_record_ref_A_alt_T.get_alts()[0]);
+    EXPECT_EQ(2, vcf_record_ref_A_alt_T.sampleIndex_to_sampleInfo[0].get_number_of_alleles());
 }
 
 TEST_F(VCFRecordTest___merge_record_into_this______Fixture, merge_TTT_into_T) {
@@ -430,6 +514,21 @@ TEST_F(VCFRecordTest___merge_record_into_this______Fixture, merge_TTT_into_T) {
     EXPECT_EQ(2, vcf_record_ref_A_alt_T.get_alts().size());
     EXPECT_EQ("T", vcf_record_ref_A_alt_T.get_alts()[0]);
     EXPECT_EQ("TTT", vcf_record_ref_A_alt_T.get_alts()[1]);
+    EXPECT_EQ(3, vcf_record_ref_A_alt_T.sampleIndex_to_sampleInfo[0].get_number_of_alleles());
+}
+
+TEST_F(VCFRecordTest___merge_record_into_this______Fixture, merge_T_into_TTT) {
+    vcf_record_ref_A_alt_TTT.merge_record_into_this(vcf_record_ref_A_alt_T);
+
+    EXPECT_EQ(2, vcf_record_ref_A_alt_TTT.get_alts().size());
+    EXPECT_EQ("TTT", vcf_record_ref_A_alt_TTT.get_alts()[0]);
+    EXPECT_EQ("T", vcf_record_ref_A_alt_TTT.get_alts()[1]);
+    EXPECT_EQ(3, vcf_record_ref_A_alt_TTT.sampleIndex_to_sampleInfo[0].get_number_of_alleles());
+}
+
+
+TEST_F(VCFRecordTest___merge_record_into_this______Fixture, merge_T_dot_into_TTT___expects_death) {
+    EXPECT_DEATH(vcf_record_ref_A_alt_TTT.merge_record_into_this(vcf_record_ref_A_alt_T_dot), "");
 }
 
 TEST_F(VCFRecordTest___merge_record_into_this______Fixture, merge_first_alt_is_common___expects_death) {
@@ -471,7 +570,8 @@ public:
 };
 
 TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture, merge_only_ref_no_alts___expects_death) {
-    EXPECT_DEATH(vcf_record_ref_A.can_biallelic_record_be_merged_into_this(vcf_record_only_ref_no_alts), "");
+    bool actual = vcf_record_ref_A.can_biallelic_record_be_merged_into_this(vcf_record_only_ref_no_alts);
+    EXPECT_TRUE(actual);
 }
 
 TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture, merge_triallelic___expects_death) {

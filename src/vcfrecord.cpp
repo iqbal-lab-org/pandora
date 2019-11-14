@@ -19,7 +19,7 @@ VCFRecord::VCFRecord(VCF const * parent_vcf, const std::string &chrom, uint32_t 
                      chrom(chrom),
                      pos(pos) {
     add_new_samples(parent_vcf->samples.size());
-    set_ref(ref);
+    set_ref_and_clear_alts(ref);
     add_new_alt(alt);
 
     if (this->info == ".") {
@@ -35,7 +35,7 @@ VCFRecord::VCFRecord(VCF const * parent_vcf, const std::string &chrom, uint32_t 
 VCFRecord::VCFRecord(VCF const * parent_vcf) : parent_vcf(parent_vcf), id("."), qual("."), filter("."),
     info("."), chrom("."), pos(0) {
     add_new_samples(parent_vcf->samples.size());
-    set_ref(".");
+    set_ref_and_clear_alts(".");
 }
 
 std::string VCFRecord::infer_SVTYPE() const {
@@ -154,6 +154,15 @@ std::string VCFRecord::alts_to_string() const {
 }
 
 
+bool VCFRecord::have_at_least_one_alt_and_all_alts_are_valid() const {
+    bool have_at_least_one_alt = this->alts.size() > 0;
+    bool all_alts_are_valid = std::all_of(this->alts.begin(), this->alts.end(), [this](const std::string &alt) -> bool {
+        return this->allele_is_valid(alt);
+    });
+
+    return have_at_least_one_alt and all_alts_are_valid;
+}
+
 size_t VCFRecord::get_longest_allele_length() const {
     size_t longest_allele_length = this->ref.size();
     for (const std::string &alt : this->alts) {
@@ -163,9 +172,36 @@ size_t VCFRecord::get_longest_allele_length() const {
 
 }
 
+void VCFRecord::merge_record_into_this(const VCFRecord &other) {
+    // several checks because VCFRecords can be in an inconsistent state, and we want to make sure we are merging only
+    // what we are expecting
+    // TODO : do not allow to create inconsistent (i.e. those having no alt or invalid ref/alt)?
+
+    // no need for merge
+    bool other_record_has_no_alt = other.alts.size() == 0;
+    if (other_record_has_no_alt)
+        return;
+
+    bool other_record_has_only_one_alt_and_is_invalid = other.alts.size() == 1 and not other.allele_is_valid(other.alts[0]);
+    if (other_record_has_only_one_alt_and_is_invalid)
+        return;
+
+    // these are our assumptions
+    assert(other.have_at_least_one_alt_and_all_alts_are_valid());
+    assert(there_are_no_common_alt_alleles_between_this_and_other(other));
+
+    this->sampleIndex_to_sampleInfo.merge_other_samples_infos_into_this(other.sampleIndex_to_sampleInfo);
+    add_new_alts(other.get_alts().begin(), other.get_alts().end());
+}
+
+
 
 bool VCFRecord::can_biallelic_record_be_merged_into_this (const VCFRecord &vcf_record_to_be_merged_in, uint32_t max_allele_length) const {
-    bool ensure_we_are_merging_only_biallelic_records = vcf_record_to_be_merged_in.alts.size() == 1;
+    // TODO : when this function is called, we could have VCFRecords with no alts, but they would still be biallelic because
+    // these are corrected afterwards
+    // TODO : maybe fix this?
+    // bool ensure_we_are_merging_only_biallelic_records = vcf_record_to_be_merged_in.alts.size() == 1;
+    bool ensure_we_are_merging_only_biallelic_records = vcf_record_to_be_merged_in.alts.size() <= 1;
     assert(ensure_we_are_merging_only_biallelic_records);
 
     bool both_records_have_the_same_ref = this->has_non_null_reference()
@@ -219,11 +255,12 @@ void VCFRecord::correct_dot_alleles (char nucleotide, bool add_nucleotide_before
 }
 
 
-void VCFRecord::set_ref(std::string ref) {
+void VCFRecord::set_ref_and_clear_alts(std::string ref) {
     if (ref == "") {
         ref = ".";
     }
     this->ref = ref;
+    this->alts.clear();
     set_number_of_alleles_and_resize_coverage_information_for_all_samples(1);
 }
 
