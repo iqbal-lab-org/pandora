@@ -1217,19 +1217,20 @@ LocalPRG::get_number_of_bases_that_are_exclusively_in_the_previous_kmer_node(con
                                                                              const KmerNodePtr &current_kmer_node) const {
     uint32_t number_of_bases_that_are_exclusively_in_the_previous_kmer_node = 0;
     auto previous_kmer_node_path_interval_iterator = previous_kmer_node->path.begin();
+    auto previous_kmer_node_path_interval_ends_before_current_kmer_node =
+            [&] () {
+        return previous_kmer_node_path_interval_iterator != previous_kmer_node->path.end() and
+               previous_kmer_node_path_interval_iterator->get_end() <=
+               current_kmer_node->path.get_start();
+    };
 
-    bool previous_kmer_node_path_interval_ends_before_current_kmer_node =
-            previous_kmer_node_path_interval_iterator->get_end() <=
-            current_kmer_node->path.get_start();
-    while (previous_kmer_node_path_interval_ends_before_current_kmer_node) {
+    while (previous_kmer_node_path_interval_ends_before_current_kmer_node()) {
         number_of_bases_that_are_exclusively_in_the_previous_kmer_node += previous_kmer_node_path_interval_iterator->length;
         previous_kmer_node_path_interval_iterator++;
-        previous_kmer_node_path_interval_ends_before_current_kmer_node =
-                previous_kmer_node_path_interval_iterator->get_end() <=
-                current_kmer_node->path.get_start();
     }
 
-    if (current_kmer_node->path.get_start() > previous_kmer_node_path_interval_iterator->start) {
+    if (previous_kmer_node_path_interval_iterator != previous_kmer_node->path.end() and
+        current_kmer_node->path.get_start() > previous_kmer_node_path_interval_iterator->start) {
         number_of_bases_that_are_exclusively_in_the_previous_kmer_node +=
                 current_kmer_node->path.get_start() - previous_kmer_node_path_interval_iterator->start;
     }
