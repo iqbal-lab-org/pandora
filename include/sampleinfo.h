@@ -204,7 +204,7 @@ public:
     virtual boost::optional<GenotypeAndMaxLikelihood> get_genotype_from_coverage () const;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void solve_incompatible_gt_conflict_with (SampleInfo &other);
+    virtual void solve_incompatible_gt_conflict_with (SampleInfo &other);
 
     virtual std::string to_string(bool genotyping_from_maximum_likelihood, bool genotyping_from_compatible_coverage) const;
 protected:
