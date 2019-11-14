@@ -78,7 +78,7 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // merging related methods
-    virtual inline VCF merge_multi_allelic(uint32_t max_allele_length = 10000) const {
+    virtual inline VCF merge_multi_allelic(uint32_t max_allele_length = 100000) const {
         VCF merged_VCF(this->genotyping_options);
         merge_multi_allelic_core(merged_VCF, max_allele_length);
         return merged_VCF;

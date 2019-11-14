@@ -56,8 +56,8 @@ public:
         return 1 + alts.size();
     }
 
-    virtual inline bool allele_is_valid (const std::string &allele) const {
-        return allele != "" and allele != ".";
+    virtual inline bool allele_is_dot (const std::string &allele) const {
+        return allele == ".";
     }
 
     const std::string &get_chrom() const {
@@ -69,10 +69,10 @@ public:
     }
 
     virtual inline uint32_t get_ref_end_pos () const {
-        if (allele_is_valid(get_ref())) {
-            return pos + get_ref().length();
-        } else {
+        if (allele_is_dot(get_ref())) {
             return pos;
+        } else {
+            return pos + get_ref().length();
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,9 +86,7 @@ public:
     template <class ITERATOR_TYPE>
     inline void add_new_alts(ITERATOR_TYPE begin, ITERATOR_TYPE end) {
         for(;begin<end;++begin) {
-            if (allele_is_valid(*begin)) {
-                add_new_alt(*begin);
-            }
+            add_new_alt(*begin);
         }
     }
 
@@ -161,10 +159,6 @@ public:
     virtual inline bool has_the_same_position(const VCFRecord &other) const {
         return this->chrom==other.chrom and this->pos==other.pos;
     }
-    virtual inline bool has_non_null_reference () const {
-        return this->ref != "." and this->ref != "";
-    }
-    virtual inline bool have_at_least_one_alt_and_all_alts_are_valid() const;
     virtual size_t get_longest_allele_length() const;
     virtual bool contains_dot_allele() const;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

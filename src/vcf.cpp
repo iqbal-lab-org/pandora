@@ -306,10 +306,10 @@ VCF VCF::correct_dot_alleles(const std::string &vcf_ref, const std::string &chro
             record.correct_dot_alleles_adding_nucleotide_before(prev_letter);
         } else if (record_contains_dot_allele and there_is_a_next_letter) {
             char next_letter;
-            if (record.allele_is_valid(record.get_ref())) {
-                next_letter = vcf_ref[record.get_pos() + record.get_ref().length()];
-            }else {
+            if (record.allele_is_dot(record.get_ref())) {
                 next_letter = vcf_ref[record.get_pos()];
+            }else {
+                next_letter = vcf_ref[record.get_pos() + record.get_ref().length()];
             }
             record.correct_dot_alleles_adding_nucleotide_after(next_letter);
         } else if (record_contains_dot_allele) {
