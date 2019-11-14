@@ -41,7 +41,7 @@ protected:
     std::vector<double> four_sized_vector_double;
 };
 
-TEST_F(MathsTest___all_methods___Fixture, sum___empty_vector_int) {
+TEST_F(MathsTest___all_methods___Fixture, sum___empty_vector_int___returns_zero) {
     uint32_t actual = Maths::sum(empty_vector_int.begin(), empty_vector_int.end());
 
     uint32_t expected = 0;
@@ -62,7 +62,7 @@ TEST_F(MathsTest___all_methods___Fixture, sum___two_sized_vector_int) {
     EXPECT_EQ(actual, expected);
 }
 
-TEST_F(MathsTest___all_methods___Fixture, sum___empty_vector_double) {
+TEST_F(MathsTest___all_methods___Fixture, sum___empty_vector_double___returns_zero) {
     double actual = Maths::sum(empty_vector_double.begin(), empty_vector_double.end());
 
     double expected = 0.0;
@@ -84,13 +84,11 @@ TEST_F(MathsTest___all_methods___Fixture, sum___two_sized_vector_double) {
 }
 
 
-TEST_F(MathsTest___all_methods___Fixture, mean___empty_vector_int___throws_runtime_error) {
-    try {
-        Maths::mean(empty_vector_int.begin(), empty_vector_int.end());
-        FAIL();
-    }catch (std::runtime_error &error) {
-        SUCCEED();
-    }
+TEST_F(MathsTest___all_methods___Fixture, mean___empty_vector_int___returns_zero) {
+    uint32_t actual = Maths::mean(empty_vector_int.begin(), empty_vector_int.end());
+
+    uint32_t expected = 0;
+    EXPECT_EQ(actual, expected);
 }
 
 TEST_F(MathsTest___all_methods___Fixture, mean___one_sized_vector_int) {
@@ -115,13 +113,11 @@ TEST_F(MathsTest___all_methods___Fixture, mean___four_sized_vector_int) {
 }
 
 
-TEST_F(MathsTest___all_methods___Fixture, mean___empty_vector_double___throws_runtime_error) {
-    try {
-        Maths::mean(empty_vector_double.begin(), empty_vector_double.end());
-        FAIL();
-    }catch (std::runtime_error &error) {
-        SUCCEED();
-    }
+TEST_F(MathsTest___all_methods___Fixture, mean___empty_vector_double___returns_zero) {
+    double actual = Maths::mean(empty_vector_double.begin(), empty_vector_double.end());
+
+    double expected = 0.0;
+    EXPECT_EQ(actual, expected);
 }
 
 TEST_F(MathsTest___all_methods___Fixture, mean___one_sized_vector_double) {
@@ -147,13 +143,11 @@ TEST_F(MathsTest___all_methods___Fixture, mean___four_sized_vector_double) {
 
 
 
-TEST_F(MathsTest___all_methods___Fixture, median___empty_vector_int___throws_runtime_error) {
-    try {
-        Maths::median(empty_vector_int.begin(), empty_vector_int.end());
-        FAIL();
-    }catch (std::runtime_error &error) {
-        SUCCEED();
-    }
+TEST_F(MathsTest___all_methods___Fixture, median___empty_vector_int___returns_zero) {
+    uint32_t actual = Maths::median(empty_vector_int.begin(), empty_vector_int.end());
+
+    uint32_t expected = 0;
+    EXPECT_EQ(actual, expected);
 }
 
 TEST_F(MathsTest___all_methods___Fixture, median___one_sized_vector_int) {
@@ -185,13 +179,11 @@ TEST_F(MathsTest___all_methods___Fixture, median___four_sized_vector_int) {
 }
 
 
-TEST_F(MathsTest___all_methods___Fixture, median___empty_vector_double___throws_runtime_error) {
-    try {
-        Maths::median(empty_vector_double.begin(), empty_vector_double.end());
-        FAIL();
-    }catch (std::runtime_error &error) {
-        SUCCEED();
-    }
+TEST_F(MathsTest___all_methods___Fixture, median___empty_vector_double___returns_zero) {
+    double actual = Maths::median(empty_vector_double.begin(), empty_vector_double.end());
+
+    double expected = 0.0;
+    EXPECT_EQ(actual, expected);
 }
 
 TEST_F(MathsTest___all_methods___Fixture, median___one_sized_vector_double) {
@@ -222,13 +214,11 @@ TEST_F(MathsTest___all_methods___Fixture, median___four_sized_vector_double) {
     EXPECT_TRUE(Maths::equals(actual, expected));
 }
 
-TEST_F(MathsTest___all_methods___Fixture, mode___empty_vector_int___throws_runtime_error) {
-    try {
-        Maths::mode(empty_vector_int.begin(), empty_vector_int.end());
-        FAIL();
-    }catch (std::runtime_error &error) {
-        SUCCEED();
-    }
+TEST_F(MathsTest___all_methods___Fixture, mode___empty_vector_int___returns_zero) {
+    uint32_t actual = Maths::mode(empty_vector_int.begin(), empty_vector_int.end());
+
+    uint32_t expected = 0;
+    EXPECT_EQ(actual, expected);
 }
 
 TEST(MathsTest, mode___vector_with_only_one_value_int) {

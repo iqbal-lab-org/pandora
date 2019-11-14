@@ -12,11 +12,15 @@
 class Maths {
 public:
     template<class Iterator>
-    inline static typename std::iterator_traits<Iterator>::value_type sum(Iterator begin, Iterator end) {
+    inline static typename std::iterator_traits<Iterator>::value_type get_default_value () {
         typedef typename std::iterator_traits<Iterator>::value_type value_type;
-
         value_type default_value = value_type();
-        return std::accumulate(begin, end, default_value);
+        return default_value;
+    }
+
+    template<class Iterator>
+    inline static typename std::iterator_traits<Iterator>::value_type sum(Iterator begin, Iterator end) {
+        return std::accumulate(begin, end, get_default_value<Iterator>());
     }
 
     template<class Iterator>
@@ -26,7 +30,7 @@ public:
         difference_type number_of_elements = std::distance(begin, end);
         bool no_elements_in_container = number_of_elements == 0;
         if (no_elements_in_container) {
-            throw std::runtime_error("no_elements_in_container at Maths::mean()");
+            return get_default_value<Iterator>();
         }
 
         return Maths::sum(begin, end) / number_of_elements;
@@ -40,7 +44,7 @@ public:
 
         std::vector<value_type> copy_vector(begin, end);
         if (copy_vector.empty()) {
-            throw std::runtime_error("no_elements_in_container at Maths::median()");
+            return get_default_value<Iterator>();
         }
 
         std::sort(copy_vector.begin(), copy_vector.end());
@@ -62,7 +66,7 @@ public:
 
         std::vector<value_type> copy_vector(begin, end);
         if (copy_vector.empty()) {
-            throw std::runtime_error("no_elements_in_container at Maths::mode()");
+            return get_default_value<Iterator>();
         }
 
         std::sort(copy_vector.begin(), copy_vector.end());
