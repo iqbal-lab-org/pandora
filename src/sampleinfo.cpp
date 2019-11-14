@@ -49,6 +49,9 @@ double SampleInfo::get_gaps (uint32_t allele) const {
     double gaps = 0.0;
     size_t number_of_bases_in_allele = allele_to_forward_coverages[allele].size();
 
+    if (number_of_bases_in_allele == 0)
+        return 1.0;
+
     for (size_t base_index = 0; base_index < number_of_bases_in_allele; ++base_index) {
         if (allele_to_forward_coverages[allele][base_index] + allele_to_reverse_coverages[allele][base_index] < genotyping_options->get_min_kmer_covg())
             gaps++;
