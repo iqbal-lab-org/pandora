@@ -245,10 +245,10 @@ void LocalAssemblyGraph::build_paths_between(const std::string& start_kmer,
     }
 }
 
-void remove_graph_file()
+void remove_graph_file (const fs::path &prefix)
 {
-    const fs::path p { "dummy.h5" };
-    fs::remove(p);
+    const fs::path h5_file(prefix.string() + ".h5");
+    fs::remove(h5_file);
 }
 
 void clean(Graph& graph, const uint16_t& num_cores)
