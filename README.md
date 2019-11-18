@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/rmcolq/pandora.svg?token=mxzxNwUzHrkcpsL2i7zU&branch=dev)](https://travis-ci.com/rmcolq/pandora) dev
 
-[![https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/1285)
+![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/rmcolq/pandora)
 
 # Pandora
 
@@ -50,15 +50,16 @@ pandora map -p <panrg.fa> -r <reads.fq>
 
 ## Installation
 
-### Singularity Container
-We highly recommend that you download and use the singularity container:
+### Containers
+We highly recommend that you download a containerized image of Pandora. Pandora is hosted on Dockerhub and images can be downloaded with the command:
 ```
-singularity pull shub://rmcolq/pandora:pandora
+docker pull rmcolq/pandora:latest
 ```
-or download direcly as you run:
+Alternatively, using singularity:
 ```
-singularity exec shub://rmcolq/pandora:pandora pandora <command>
+singularity pull docker://rmcolq/pandora:latest
 ```
+NB For consistency, we no longer maintain images on singularity hub.
 
 ### Installation from source
 This is not recommended because the required zlib and boost system installs do not always play nicely.
@@ -157,4 +158,5 @@ This takes Nanopore or Illumina read fasta/q for a number of samples, mapping ea
        --max_covg INT                   Maximum average coverage from reads to accept, default first 300
        --genotype                       Output a genotyped VCF
        --log_level LEVEL                Verbosity for logging, use "debug" for more output
+
 
