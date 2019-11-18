@@ -1637,11 +1637,7 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, PanNodePtr pnode,
     }
 
     std::string fq_name = pnode->get_name();
-    std::string header = " logP(data|sequence)=" + std::to_string(ppath) + " mean_covg=" + std::to_string(mean(covgs))
-                         + " mode_covg=" + std::to_string(mode(covgs)) + " median_covg=" + std::to_string(median(covgs))
-                         + " sum_covg=" + std::to_string(sum(covgs)) + " gaps_0=" + std::to_string(gaps(covgs,0))
-                         + " gaps_1=" + std::to_string(gaps(covgs,1)) + + " gaps_2=" + std::to_string(gaps(covgs,2))
-                         + " gaps_10%=" + std::to_string(gaps(covgs,uint(global_covg/10)));
+    std::string header = " log P(data|sequence)=" + std::to_string(ppath);
     std::string seq = string_along_path(lmp);
 
 #pragma omp critical(consensus_fq)
