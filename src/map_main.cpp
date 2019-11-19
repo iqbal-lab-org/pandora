@@ -484,10 +484,11 @@ int pandora_map(int argc, char *argv[]) {
     if (discover_denovo) {
         DenovoDiscovery denovo { denovo_kmer_size, e_rate };
         const fs::path denovo_output_directory {fs::path(outdir) / "denovo_paths"};
+        fs::create_directories(denovo_output_directory);
 
         for (auto &element : candidate_regions) {
             auto &candidate_region {element.second};
-            denovo.find_paths_through_candidate_region(candidate_region); //TODO: this is hard to parallelize due to GATB's temp files
+            denovo.find_paths_through_candidate_region(candidate_region, denovo_output_directory); //TODO: this is hard to parallelize due to GATB's temp files
             candidate_region.write_denovo_paths_to_file(denovo_output_directory);
         }
     }
