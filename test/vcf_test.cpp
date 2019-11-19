@@ -1313,7 +1313,8 @@ public:
             vcf(&default_genotyping_options),
             vcf_record_1(std::make_shared<VCFRecordMock>(&vcf, "1", 1, "A", "T")),
             vcf_record_2(std::make_shared<VCFRecordMock>(&vcf, "1", 2, "A", "T")),
-            vcf_record_3(std::make_shared<VCFRecordMock>(&vcf, "1", 3, "A", "T"))
+            vcf_record_3(std::make_shared<VCFRecordMock>(&vcf, "1", 3, "A", "T")),
+            vcf_record_3B(std::make_shared<VCFRecordMock>(&vcf, "1", 3, "AC", "T"))
     {}
 
     void SetUp() override {
@@ -1328,6 +1329,7 @@ public:
     std::shared_ptr<VCFRecordMock> vcf_record_1;
     std::shared_ptr<VCFRecordMock> vcf_record_2;
     std::shared_ptr<VCFRecordMock> vcf_record_3;
+    std::shared_ptr<VCFRecordMock> vcf_record_3B;
 };
 
 
@@ -1371,6 +1373,34 @@ TEST_F(VCFTest___make_gt_compatible___Fixture, two_overlapping_records___conflic
     EXPECT_CALL(*vcf_record_1, solve_incompatible_gt_conflict_with(Property(&VCFRecord::get_pos, 1)))
             .Times(0);
     EXPECT_CALL(*vcf_record_2, solve_incompatible_gt_conflict_with)
+            .Times(0);
+
+    vcf.make_gt_compatible();
+}
+
+TEST_F(VCFTest___make_gt_compatible___Fixture, two_overlapping_records_starting_on_the_same_pos___conflict) {
+    VCFMock vcf(&default_genotyping_options);
+    vcf.records.push_back(vcf_record_3);
+    vcf.records.push_back(vcf_record_3B);
+
+    {
+        InSequence seq;
+
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Property(&VCFRecord::get_ref, "A")))
+                .Times(1)
+                .WillOnce(Return(std::vector<VCFRecord *>({vcf_record_3.get(), vcf_record_3B.get()})));
+
+        EXPECT_CALL(*vcf_record_3, solve_incompatible_gt_conflict_with(Property(&VCFRecord::get_ref, "AC")))
+                .Times(1);
+
+
+        EXPECT_CALL(vcf, get_all_records_overlapping_the_given_record(Property(&VCFRecord::get_ref, "AC")))
+                .Times(1)
+                .WillOnce(Return(std::vector<VCFRecord *>({vcf_record_3B.get()})));
+    }
+
+
+    EXPECT_CALL(*vcf_record_3B, solve_incompatible_gt_conflict_with(Property(&VCFRecord::get_pos, 1)))
             .Times(0);
 
     vcf.make_gt_compatible();

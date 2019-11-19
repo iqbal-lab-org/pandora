@@ -339,8 +339,11 @@ void VCF::make_gt_compatible() {
         for (VCFRecord* overlapping_record_ptr : overlapping_records) {
             VCFRecord &overlapping_record = *overlapping_record_ptr;
 
+            bool record_starts_at_the_same_position_but_ref_is_smaller_than_overlapping_record_ref =
+                    record.get_pos() == overlapping_record.get_pos() and record.get_ref() < overlapping_record.get_ref();
+
             bool this_record_starts_before_the_overlapping_record =
-                    record.get_pos() < overlapping_record.get_pos();
+                    record.get_pos() < overlapping_record.get_pos() or record_starts_at_the_same_position_but_ref_is_smaller_than_overlapping_record_ref;
 
             if (this_record_starts_before_the_overlapping_record) {
                 record.solve_incompatible_gt_conflict_with(overlapping_record);
