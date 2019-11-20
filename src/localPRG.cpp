@@ -1650,9 +1650,13 @@ std::vector<LocalNodePtr> LocalPRG::get_valid_vcf_reference(
     const std::string& vcf_reference_sequence) const
 {
     std::vector<LocalNodePtr> reference_path = {};
-    if (vcf_reference_sequence.length() < 30) {
+    if (vcf_reference_sequence.length() > 0 and vcf_reference_sequence.length() < 30) {
         BOOST_LOG_TRIVIAL(warning)
             << "Input vcf_ref path was too short to be the ref for PRG " << name;
+        return reference_path;
+    } else if (vcf_reference_sequence.length() == 0) {
+        BOOST_LOG_TRIVIAL(debug)
+            << "No input vcf_ref path was given for ref for PRG " << name;
         return reference_path;
     }
 
