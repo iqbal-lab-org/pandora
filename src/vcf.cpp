@@ -601,7 +601,6 @@ std::string VCF::header()
         header += "\t" + samples[i];
     }
     header += "\n";
-    std::cout << header << std::endl;
     return header;
 }
 
