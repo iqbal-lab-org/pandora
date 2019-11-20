@@ -387,6 +387,52 @@ TEST_F(SampleInfoTest___genotype_from_coverage___Fixture, invalid_genotype) {
 }
 
 
+class SampleInfoTest___genotype_from_coverage_only_records_along_the_maximum_likelihood_path___Fixture : public ::testing::Test {
+private:
+    class SampleInfoMock : public SampleInfo {
+    public:
+        using SampleInfo::SampleInfo;
+        MOCK_METHOD(void, genotype_from_coverage, (), (override));
+        MOCK_METHOD(bool, is_gt_from_max_likelihood_path_valid, (), (const override));
+    };
+
+public:
+    SampleInfoTest___genotype_from_coverage_only_records_along_the_maximum_likelihood_path___Fixture() :
+            sample_info_mock(0, 2, &default_genotyping_options)
+            {}
+
+    void SetUp() override {
+    }
+
+    void TearDown() override {
+    }
+
+    SampleInfoMock sample_info_mock;
+};
+
+
+TEST_F(SampleInfoTest___genotype_from_coverage_only_records_along_the_maximum_likelihood_path___Fixture, invalid_gt_from_ML_path___do_not_genotype_from_coverage) {
+    EXPECT_CALL(sample_info_mock, is_gt_from_max_likelihood_path_valid)
+    .Times(1)
+    .WillOnce(Return(false));
+    EXPECT_CALL(sample_info_mock, genotype_from_coverage)
+    .Times(0);
+
+    sample_info_mock.genotype_from_coverage_only_records_along_the_maximum_likelihood_path();
+}
+
+
+TEST_F(SampleInfoTest___genotype_from_coverage_only_records_along_the_maximum_likelihood_path___Fixture, valid_gt_from_ML_path___genotype_from_coverage) {
+    EXPECT_CALL(sample_info_mock, is_gt_from_max_likelihood_path_valid)
+            .Times(1)
+            .WillOnce(Return(true));
+    EXPECT_CALL(sample_info_mock, genotype_from_coverage)
+            .Times(1);
+
+    sample_info_mock.genotype_from_coverage_only_records_along_the_maximum_likelihood_path();
+}
+
+
 class SampleInfoTest___merge_other_sample_info_into_this___Fixture : public ::testing::Test {
 private:
     class SampleInfoMock : public SampleInfo {

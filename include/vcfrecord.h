@@ -172,7 +172,7 @@ public:
     }
 
     virtual inline void genotype_from_coverage_only_records_along_the_maximum_likelihood_path() {
-        //sampleIndex_to_sampleInfo.genotype_from_coverage_only_records_along_the_maximum_likelihood_path();
+        sampleIndex_to_sampleInfo.genotype_from_coverage_only_records_along_the_maximum_likelihood_path();
     }
 
 

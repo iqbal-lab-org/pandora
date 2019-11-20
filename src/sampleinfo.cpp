@@ -23,6 +23,13 @@ void SampleInfo::genotype_from_coverage () {
 }
 
 
+void SampleInfo::genotype_from_coverage_only_records_along_the_maximum_likelihood_path () {
+    if (this->is_gt_from_max_likelihood_path_valid()) {
+        this->genotype_from_coverage();
+    }
+}
+
+
 bool SampleInfo::check_if_coverage_information_is_correct() const {
     bool there_are_at_least_one_allele = allele_to_forward_coverages.size() >= 1 and allele_to_reverse_coverages.size() >= 1;
     bool forward_and_reverse_coverages_have_the_same_number_of_alleles = allele_to_forward_coverages.size() == allele_to_reverse_coverages.size();

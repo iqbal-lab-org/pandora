@@ -73,6 +73,7 @@ public:
     }
 
     virtual void genotype_from_coverage ();
+    virtual void genotype_from_coverage_only_records_along_the_maximum_likelihood_path ();
 
     virtual inline bool is_gt_from_coverages_valid () const {
         return (bool)(this->GT_from_coverages);
@@ -325,6 +326,12 @@ public:
     virtual inline void genotype_from_coverage () {
         for (SAMPLE_TYPE &sample_info : sample_index_to_sample_info_container) {
             sample_info.genotype_from_coverage();
+        }
+    }
+
+    virtual inline void genotype_from_coverage_only_records_along_the_maximum_likelihood_path () {
+        for (SAMPLE_TYPE &sample_info : sample_index_to_sample_info_container) {
+            sample_info.genotype_from_coverage_only_records_along_the_maximum_likelihood_path();
         }
     }
 
