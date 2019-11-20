@@ -171,6 +171,11 @@ public:
         sampleIndex_to_sampleInfo.genotype_from_coverage();
     }
 
+    virtual inline void genotype_from_coverage_only_records_along_the_maximum_likelihood_path() {
+        //sampleIndex_to_sampleInfo.genotype_from_coverage_only_records_along_the_maximum_likelihood_path();
+    }
+
+
     virtual inline void solve_incompatible_gt_conflict_with (VCFRecord &other) {
         this->sampleIndex_to_sampleInfo.solve_incompatible_gt_conflict_with(other.sampleIndex_to_sampleInfo);
     }

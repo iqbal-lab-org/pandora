@@ -499,8 +499,7 @@ int pandora_compare(int argc, char *argv[]) {
 
 
         if (genotype) {
-            //genotype
-            vcf.genotype();
+            vcf.genotype(true);
 
             //save the genotyped vcf to disk
             auto vcfGenotypedPath = VCFsGenotypedDirs + "/" + int_to_string(dir) + "/" + prg_ptr->name + "_genotyped.vcf";

@@ -71,7 +71,7 @@ public:
     virtual void add_a_new_record_discovered_in_a_sample_and_genotype_it(const std::string &sample_name, const std::string &chrom, const uint32_t pos, const std::string &ref,
                                                                          const std::string &alt);
     virtual void set_sample_gt_to_ref_allele_for_records_in_the_interval(const std::string &sample_name, const std::string &chrom, const uint32_t &pos_from, const uint32_t &pos_to);
-    virtual void genotype();
+    virtual void genotype(bool genotype_only_records_along_the_maximum_likelihood_path);
     virtual void make_gt_compatible();
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

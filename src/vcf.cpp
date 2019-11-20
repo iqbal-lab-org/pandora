@@ -220,16 +220,26 @@ bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const std::string
     return false;
 }
 
-void VCF::genotype() {
+void VCF::genotype(bool genotype_only_records_along_the_maximum_likelihood_path) {
     BOOST_LOG_TRIVIAL(info) << now() << "Genotype VCF";
     bool all_SV_types = not genotyping_options->is_snps_only();
 
     for (auto &vcf_record : records) {
         if (all_SV_types or (genotyping_options->is_snps_only() and vcf_record->is_SNP())) {
-            vcf_record->genotype_from_coverage();
+            if (genotype_only_records_along_the_maximum_likelihood_path) {
+                vcf_record->genotype_from_coverage_only_records_along_the_maximum_likelihood_path();
+            }
+            else {
+                vcf_record->genotype_from_coverage();
+            }
         }
     }
-    make_gt_compatible();
+
+
+    bool need_to_make_gt_compatible = not genotype_only_records_along_the_maximum_likelihood_path;
+    if (need_to_make_gt_compatible) {
+        make_gt_compatible();
+    }
 }
 
 void VCF::merge_multi_allelic_core(VCF &merged_VCF, uint32_t max_allele_length) const {

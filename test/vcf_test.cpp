@@ -536,6 +536,7 @@ public:
     public:
         using VCFRecord::VCFRecord;
         MOCK_METHOD(void, genotype_from_coverage, (), (override));
+        MOCK_METHOD(void, genotype_from_coverage_only_records_along_the_maximum_likelihood_path, (), (override));
         MOCK_METHOD(bool, is_SNP, (), (const override));
     };
 
@@ -571,7 +572,27 @@ public:
 GenotypingOptions VCFTest___genotype___Fixture::genotyping_options_snps_only({1,1,1,1,1,1,1,1,1,1}, 0.01, 0, 0, 0, 0, 0, 0, true);
 
 
-TEST_F(VCFTest___genotype___Fixture, genotype_all_records) {
+TEST_F(VCFTest___genotype___Fixture, genotype_all_records___only_along_the_ML_path) {
+    {
+        InSequence seq;
+        EXPECT_CALL(*non_snp_vcf_record_ptr, genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+                .Times(1);
+        EXPECT_CALL(*snp_vcf_record_ptr, genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+                .Times(1);
+    }
+
+    EXPECT_CALL(*non_snp_vcf_record_ptr, genotype_from_coverage)
+            .Times(0);
+    EXPECT_CALL(*snp_vcf_record_ptr, genotype_from_coverage)
+            .Times(0);
+    EXPECT_CALL(default_vcf, make_gt_compatible)
+            .Times(0);
+
+
+    default_vcf.genotype(true);
+}
+
+TEST_F(VCFTest___genotype___Fixture, genotype_all_records___not_only_along_the_ML_path) {
     {
         InSequence seq;
         EXPECT_CALL(*non_snp_vcf_record_ptr, genotype_from_coverage)
@@ -582,11 +603,38 @@ TEST_F(VCFTest___genotype___Fixture, genotype_all_records) {
                 .Times(1);
     }
 
-    default_vcf.genotype();
+
+    EXPECT_CALL(*non_snp_vcf_record_ptr, genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+            .Times(0);
+    EXPECT_CALL(*snp_vcf_record_ptr, genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+            .Times(0);
+
+    default_vcf.genotype(false);
 }
 
 
-TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only) {
+TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only___only_along_the_ML_path) {
+    {
+        InSequence seq;
+        EXPECT_CALL(*snp_vcf_record_ptr, genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+                .Times(1);
+    }
+
+    EXPECT_CALL(*non_snp_vcf_record_ptr, genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+            .Times(0);
+    EXPECT_CALL(*snp_vcf_record_ptr, genotype_from_coverage)
+            .Times(0);
+    EXPECT_CALL(*non_snp_vcf_record_ptr, genotype_from_coverage)
+    .Times(0);
+    EXPECT_CALL(snps_only_vcf, make_gt_compatible)
+    .Times(0);
+
+
+    snps_only_vcf.genotype(true);
+}
+
+
+TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only___not_only_along_the_ML_path) {
     {
         InSequence seq;
         EXPECT_CALL(*snp_vcf_record_ptr, genotype_from_coverage)
@@ -596,9 +644,14 @@ TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only) {
     }
 
     EXPECT_CALL(*non_snp_vcf_record_ptr, genotype_from_coverage)
-    .Times(0);
+            .Times(0);
+    EXPECT_CALL(*snp_vcf_record_ptr, genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+            .Times(0);
+    EXPECT_CALL(*non_snp_vcf_record_ptr, genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+            .Times(0);
 
-    snps_only_vcf.genotype();
+
+    snps_only_vcf.genotype(false);
 }
 
 
