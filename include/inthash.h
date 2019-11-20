@@ -2,7 +2,7 @@
 #define __INTHASH_H_INCLUDED__
 
 #include <cstdint>
-#include <cstring>
+#include <string> //cstring doesn't compile on mac here
 #include <unordered_map>
 
 uint32_t nt4(char);
