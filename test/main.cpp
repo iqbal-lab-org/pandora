@@ -1,8 +1,8 @@
 #include <boost/log/core.hpp>
 #include "gtest/gtest.h"
 
-
-int main(int argc, char **argv) {
+int main(int argc, char** argv)
+{
     auto core = boost::log::core::get();
     core->set_logging_enabled(false);
 

@@ -5,11 +5,10 @@
 #include <stdint.h>
 #include <iostream>
 
+TEST(KmerNodeTest, create)
+{
 
-
-TEST(KmerNodeTest, create) {
-
-    std::deque<Interval> d = {Interval(0, 4)};
+    std::deque<Interval> d = { Interval(0, 4) };
     prg::Path p;
     p.initialize(d);
     KmerNode kn(0, p);
@@ -20,9 +19,10 @@ TEST(KmerNodeTest, create) {
     EXPECT_EQ(p, kn.path);
 }
 
-TEST(KmerNodeTest, assign) {
+TEST(KmerNodeTest, assign)
+{
 
-    std::deque<Interval> d = {Interval(0, 4)};
+    std::deque<Interval> d = { Interval(0, 4) };
     prg::Path p;
     p.initialize(d);
     KmerNode kn(0, p);
@@ -44,12 +44,13 @@ TEST(KmerNodeTest, assign) {
     EXPECT_EQ(p, kn_prime.path);
 }
 
-TEST(KmerNodeTest, equals) {
+TEST(KmerNodeTest, equals)
+{
 
-    std::deque<Interval> d = {Interval(0, 4)};
+    std::deque<Interval> d = { Interval(0, 4) };
     prg::Path p1, p2;
     p1.initialize(d);
-    d = {Interval(2, 6)};
+    d = { Interval(2, 6) };
     p2.initialize(d);
     KmerNode kn1(0, p1);
     KmerNode kn2(3, p1);
@@ -61,7 +62,7 @@ TEST(KmerNodeTest, equals) {
     EXPECT_EQ(kn2, kn2);
     EXPECT_EQ(kn3, kn3);
     EXPECT_EQ(kn4, kn4);
-    EXPECT_EQ((kn1 == kn2), true); //id doesn't affect ==
+    EXPECT_EQ((kn1 == kn2), true); // id doesn't affect ==
     EXPECT_EQ((kn1 == kn3), false);
     EXPECT_EQ((kn1 == kn4), false);
     EXPECT_EQ((kn2 == kn1), true);
@@ -69,18 +70,18 @@ TEST(KmerNodeTest, equals) {
     EXPECT_EQ((kn2 == kn4), false);
     EXPECT_EQ((kn3 == kn1), false);
     EXPECT_EQ((kn3 == kn2), false);
-    EXPECT_EQ((kn3 == kn4), true); //id doesn't affect ==
+    EXPECT_EQ((kn3 == kn4), true); // id doesn't affect ==
 
     // covg doesn't affect whether equal
     KmerNode kn5(0, p1);
     EXPECT_EQ(kn5, kn5);
     EXPECT_EQ(kn1, kn5);
     EXPECT_EQ(kn5, kn1);
-
 }
 
-TEST(KmerNodeTest, StringStream) {
-    std::deque<Interval> d = {Interval(0, 4)};
+TEST(KmerNodeTest, StringStream)
+{
+    std::deque<Interval> d = { Interval(0, 4) };
     prg::Path p;
     p.initialize(d);
     KmerNode kn(0, p);
@@ -88,5 +89,5 @@ TEST(KmerNodeTest, StringStream) {
     std::ostringstream out;
     out << kn;
 
-    EXPECT_EQ( "0 1{[0, 4)} ", out.str() );
+    EXPECT_EQ("0 1{[0, 4)} ", out.str());
 }

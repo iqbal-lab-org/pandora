@@ -10,7 +10,8 @@ TEST(GetNodeFromGraph, LowestKmerOfNode_KmerFoundInGraphAndNeighbour)
 {
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings("AATGTCAGG", NULL),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
     auto kmer = "AATGT";
     Node real_node;
     bool found;
@@ -33,7 +34,8 @@ TEST(GetNodeFromGraph, HighestKmerOfNode_KmerFoundInGraph)
 {
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings("AATGTCAGG", NULL),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
     auto kmer = "ACATT";
 
     Node node;
@@ -51,7 +53,8 @@ TEST(GetNodeFromGraph, HighestKmerOfNode_KmerFoundInGraphAndNeighbour)
 {
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings("TCGTTGTCACT", NULL),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
 
     const auto kmer { "TCGTT" };
 
@@ -80,7 +83,8 @@ TEST(GetNodeFromGraph, LowestKmerOfStartNode_KmerFoundInGraphButNotNeighbourOfSt
 {
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings("TCGTTGTCACT", NULL),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
 
     const auto kmer { "AACGA" };
 
@@ -109,7 +113,8 @@ TEST(GetNodeFromGraph, RevcompKmerOfInitialSeq_KmerFoundInGraphAndCorrectNeighbo
 {
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings("TCGTTGTCACT", NULL),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
 
     const auto kmer { "TGACA" };
 
@@ -138,7 +143,8 @@ TEST(GetNodeFromGraph, NonExistentKmer_NotFoundInGraphAndNodeEmpty)
 {
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings("AATGTCAGG", NULL),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
     auto kmer = "ACTGT";
 
     Node node;
@@ -161,7 +167,8 @@ TEST(GetPathsBetweenTest, OnlyReturnPathsBetweenStartAndEndKmers)
 
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings(seqs),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
 
     Node start_node;
     bool found;
@@ -190,7 +197,8 @@ TEST(GetPathsBetweenTest, lotsOfHighCovgCyclesReturnEmpty)
 
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings(seqs),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
 
     Node start_node;
     bool found;
@@ -217,7 +225,8 @@ TEST(DepthFirstSearchFromTest, SimpleGraphTwoNodesReturnSeqPassedIn)
 
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings(seq, NULL),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
 
     Node start_node;
     bool found;
@@ -241,7 +250,8 @@ TEST(DepthFirstSearchFromTest, SimpleGraphSixNodesReturnSeqPassedIn)
 
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings(seq, NULL),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
 
     Node start_node;
     bool found;
@@ -277,7 +287,8 @@ TEST(DepthFirstSearchFromTest, TwoReadsSameSequenceReturnOneSequence)
 
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings(seqs),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
 
     Node start_node;
     bool found;
@@ -303,7 +314,8 @@ TEST(DepthFirstSearchFromTest, TwoReadsOneVariantReturnOriginalTwoSequences)
 
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings(seqs),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
 
     Node start_node;
     bool found;
@@ -339,7 +351,8 @@ TEST(DepthFirstSearchFromTest, ThreeReadsTwoVariantsReturnOriginalSequences)
 
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings(seqs),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
 
     Node start_node;
     bool found;
@@ -378,7 +391,8 @@ TEST(DepthFirstSearchFromTest,
 
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings(seqs),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
 
     Node start_node;
     bool found;
@@ -412,7 +426,8 @@ TEST(DepthFirstSearchFromTest,
 
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings(seqs),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
 
     Node start_node;
     bool found;
@@ -441,7 +456,8 @@ TEST(DepthFirstSearchFromTest, SimpleCycleReturnPathsOfLengthsUpToMaxPathLengthC
 
     LocalAssemblyGraph graph;
     graph = LocalAssemblyGraph::create(new BankStrings(seqs),
-        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test", TEST_KMER_SIZE);
+        "-kmer-size %d -abundance-min 1 -verbose 0 -out gatb_graph_test",
+        TEST_KMER_SIZE);
 
     Node start_node;
     bool found;
@@ -717,8 +733,8 @@ TEST(GenerateEndKmersTest, GenerateNoKmersReturnEmptySet)
 
 TEST(QueryAbundance, oneKmer_ReturnOne)
 {
-    Graph graph = Graph::create(
-        new BankStrings("AATGT", NULL), "-kmer-size 5 -abundance-min 1 -verbose 0 -out gatb_graph_test");
+    Graph graph = Graph::create(new BankStrings("AATGT", NULL),
+        "-kmer-size 5 -abundance-min 1 -verbose 0 -out gatb_graph_test");
     auto kmer = "AATGT";
     auto node { graph.buildNode(kmer) };
     const auto covg { graph.queryAbundance(node) };
@@ -745,8 +761,8 @@ TEST(QueryAbundance, twoKmers_ReturnTwo)
 
 TEST(QueryAbundance, fakeKmer_ReturnZero)
 {
-    Graph graph = Graph::create(
-        new BankStrings("AATGT", NULL), "-kmer-size 5 -abundance-min 1 -verbose 0 -out gatb_graph_test");
+    Graph graph = Graph::create(new BankStrings("AATGT", NULL),
+        "-kmer-size 5 -abundance-min 1 -verbose 0 -out gatb_graph_test");
     auto kmer = "CCCCC";
     auto node { graph.buildNode(kmer) };
     const auto covg { graph.queryAbundance(node) };

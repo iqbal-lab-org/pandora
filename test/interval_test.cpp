@@ -3,8 +3,8 @@
 #include <iostream>
 #include "interval.h"
 
-
-TEST(IntervalTest, create) {
+TEST(IntervalTest, create)
+{
     Interval i(0, 0);
     uint32_t j = 0;
     EXPECT_EQ(i.start, j);
@@ -25,14 +25,16 @@ TEST(IntervalTest, create) {
     EXPECT_DEATH(Interval(-1, 10), "");
 }
 
-TEST(IntervalTest, write) {
+TEST(IntervalTest, write)
+{
     Interval i(1, 5);
     std::stringstream out;
     out << i;
     EXPECT_EQ(out.str(), "[1, 5)");
 }
 
-TEST(IntervalTest, read) {
+TEST(IntervalTest, read)
+{
     Interval i(1, 5);
     std::stringstream out;
     out << i;
@@ -41,7 +43,8 @@ TEST(IntervalTest, read) {
     EXPECT_EQ(i, j);
 }
 
-TEST(IntervalTest, equals) {
+TEST(IntervalTest, equals)
+{
     Interval i(1, 5);
     Interval j(1, 5);
     EXPECT_EQ(i, j);
@@ -60,7 +63,8 @@ TEST(IntervalTest, equals) {
     EXPECT_EQ(j, j);
 }
 
-TEST(IntervalTest, notequals) {
+TEST(IntervalTest, notequals)
+{
     Interval i(1, 5);
     Interval j(1, 5);
     EXPECT_EQ((i != j), false);
@@ -80,7 +84,8 @@ TEST(IntervalTest, notequals) {
     EXPECT_NE(j, i);
 }
 
-TEST(IntervalTest, lessthan) {
+TEST(IntervalTest, lessthan)
+{
     Interval i(1, 5);
     Interval j(2, 5);
     Interval k(0, 4);
@@ -104,14 +109,16 @@ TEST(IntervalTest, lessthan) {
     EXPECT_EQ((j < l), false);
 }
 
-TEST(intervalEmptyTest, emptyIntervalReturnsTrue) {
-    const Interval empty_interval{};
+TEST(intervalEmptyTest, emptyIntervalReturnsTrue)
+{
+    const Interval empty_interval {};
 
     EXPECT_TRUE(empty_interval.empty());
 }
 
-TEST(intervalEmptyTest, nonEmptyIntervalReturnsFalse) {
-    const Interval non_empty_interval{1, 4};
+TEST(intervalEmptyTest, nonEmptyIntervalReturnsFalse)
+{
+    const Interval non_empty_interval { 1, 4 };
 
     EXPECT_FALSE(non_empty_interval.empty());
 }
