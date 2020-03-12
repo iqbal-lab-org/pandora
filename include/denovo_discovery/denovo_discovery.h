@@ -21,7 +21,8 @@ public:
     DenovoDiscovery(const uint_least8_t& kmer_size, const double& read_error_rate,
         const uint8_t max_insertion_size = 15);
 
-    void find_paths_through_candidate_region(CandidateRegion& candidate_region, const fs::path &denovo_output_directory);
+    void find_paths_through_candidate_region(
+        CandidateRegion& candidate_region, const fs::path& denovo_output_directory);
 
     double calculate_kmer_coverage(
         const uint32_t& read_covg, const uint32_t& ref_length) const;

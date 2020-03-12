@@ -1,4 +1,5 @@
 ﻿---
 BasedOnStyle: WebKit
 ColumnLimit: 88
+SortIncludes: false
 ...

@@ -10,8 +10,7 @@
 #include "fastaq_handler.h"
 #include "fastaq.h"
 
-
-int pandora_random_path(int argc, char *argv[]) // the "pandora walk" comand
+int pandora_random_path(int argc, char* argv[]) // the "pandora walk" comand
 {
     if (argc != 3 and argc != 2) {
         fprintf(stderr, "Usage: pandora random_path <in_prg.fa> [<num_paths>]\n");
@@ -30,7 +29,7 @@ int pandora_random_path(int argc, char *argv[]) // the "pandora walk" comand
         num_paths = strtoul(argv[2], nullptr, 10);
     }
 
-    for (const auto &prg_ptr: prgs) {
+    for (const auto& prg_ptr : prgs) {
         std::unordered_set<std::string> random_paths;
         auto skip = 0;
         while (random_paths.size() < num_paths and skip < 10) {
@@ -42,7 +41,7 @@ int pandora_random_path(int argc, char *argv[]) // the "pandora walk" comand
             }
         }
         uint32_t i = 0;
-        for (const auto &path : random_paths) {
+        for (const auto& path : random_paths) {
             fa.add_entry(prg_ptr->name + "_" + std::to_string(i), path);
             i++;
         }
@@ -52,4 +51,3 @@ int pandora_random_path(int argc, char *argv[]) // the "pandora walk" comand
 
     return 0;
 }
-

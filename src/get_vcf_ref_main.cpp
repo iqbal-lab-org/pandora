@@ -10,8 +10,7 @@
 #include "fastaq_handler.h"
 #include "fastaq.h"
 
-
-int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
+int pandora_get_vcf_ref(int argc, char* argv[]) // the "pandora walk" comand
 {
     if (argc != 3 and argc != 2) {
         fprintf(stderr, "Usage: pandora get_vcf_ref <in_prg.fa> <seq.fa>\n");
@@ -26,7 +25,7 @@ int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
     Fastaq fa(true, false);
 
     if (argc == 2) {
-        for (const auto &prg_ptr: prgs) {
+        for (const auto& prg_ptr : prgs) {
             std::vector<LocalNodePtr> npath;
             npath = prg_ptr->prg.top_path();
             fa.add_entry(prg_ptr->name, prg_ptr->string_along_path(npath));
@@ -37,13 +36,14 @@ int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
         FastaqHandler readfile(argv[2]);
         bool found;
 
-        for (const auto &prg_ptr: prgs) {
+        for (const auto& prg_ptr : prgs) {
             found = false;
             readfile.get_id(0);
             while (not readfile.eof()) {
                 npath = prg_ptr->get_valid_vcf_reference(readfile.read);
                 if (not npath.empty()) {
-                    //BOOST_LOG_TRIVIAL(debug) << ">" << prg_ptr->name << std::endl << readfile.read;
+                    // BOOST_LOG_TRIVIAL(debug) << ">" << prg_ptr->name << std::endl <<
+                    // readfile.read;
                     fa.add_entry(prg_ptr->name, prg_ptr->string_along_path(npath));
                     found = true;
                     break;
@@ -65,4 +65,3 @@ int pandora_get_vcf_ref(int argc, char *argv[]) // the "pandora walk" comand
 
     return 0;
 }
-

@@ -11,21 +11,28 @@
 
 class Maths {
 public:
-    template<class Iterator>
-    inline static typename std::iterator_traits<Iterator>::value_type get_default_value () {
+    template <class Iterator>
+    inline static typename std::iterator_traits<Iterator>::value_type
+    get_default_value()
+    {
         typedef typename std::iterator_traits<Iterator>::value_type value_type;
         value_type default_value = value_type();
         return default_value;
     }
 
-    template<class Iterator>
-    inline static typename std::iterator_traits<Iterator>::value_type sum(Iterator begin, Iterator end) {
+    template <class Iterator>
+    inline static typename std::iterator_traits<Iterator>::value_type sum(
+        Iterator begin, Iterator end)
+    {
         return std::accumulate(begin, end, get_default_value<Iterator>());
     }
 
-    template<class Iterator>
-    inline static typename std::iterator_traits<Iterator>::value_type mean(Iterator begin, Iterator end) {
-        typedef typename std::iterator_traits<Iterator>::difference_type difference_type;
+    template <class Iterator>
+    inline static typename std::iterator_traits<Iterator>::value_type mean(
+        Iterator begin, Iterator end)
+    {
+        typedef
+            typename std::iterator_traits<Iterator>::difference_type difference_type;
 
         difference_type number_of_elements = std::distance(begin, end);
         bool no_elements_in_container = number_of_elements == 0;
@@ -36,10 +43,12 @@ public:
         return Maths::sum(begin, end) / number_of_elements;
     }
 
-
-    template<class Iterator>
-    inline static typename std::iterator_traits<Iterator>::value_type median(Iterator begin, Iterator end) {
-        // TODO: performance improvement: copy pointers to the vector, not the elements themselves
+    template <class Iterator>
+    inline static typename std::iterator_traits<Iterator>::value_type median(
+        Iterator begin, Iterator end)
+    {
+        // TODO: performance improvement: copy pointers to the vector, not the elements
+        // themselves
         typedef typename std::iterator_traits<Iterator>::value_type value_type;
 
         std::vector<value_type> copy_vector(begin, end);
@@ -58,10 +67,12 @@ public:
         }
     }
 
-
-    template<class Iterator>
-    inline static typename std::iterator_traits<Iterator>::value_type mode(Iterator begin, Iterator end) {
-        // TODO: performance improvement: copy pointers to the vector, not the elements themselves
+    template <class Iterator>
+    inline static typename std::iterator_traits<Iterator>::value_type mode(
+        Iterator begin, Iterator end)
+    {
+        // TODO: performance improvement: copy pointers to the vector, not the elements
+        // themselves
         typedef typename std::iterator_traits<Iterator>::value_type value_type;
 
         std::vector<value_type> copy_vector(begin, end);
@@ -74,18 +85,19 @@ public:
         uint32_t max_count = 1;
         value_type most_common_value = copy_vector[0];
         value_type last_value = copy_vector[0];
-        for_each(copy_vector.begin()+1, copy_vector.end(), [&](const value_type &value) {
-            if (value == last_value)
-                counter++;
-            else {
-                if (counter > max_count) {
-                    max_count = counter;
-                    most_common_value = last_value;
+        for_each(
+            copy_vector.begin() + 1, copy_vector.end(), [&](const value_type& value) {
+                if (value == last_value)
+                    counter++;
+                else {
+                    if (counter > max_count) {
+                        max_count = counter;
+                        most_common_value = last_value;
+                    }
+                    counter = 1;
                 }
-                counter = 1;
-            }
-            last_value = value;
-        });
+                last_value = value;
+            });
 
         if (counter > max_count) {
             max_count = counter;
@@ -95,15 +107,18 @@ public:
         return most_common_value;
     }
 
-    // floating point comparison is not well defined, these functions compare floating pointers based on how google test does it
-    // based on https://stackoverflow.com/a/3423299/5264075
+    // floating point comparison is not well defined, these functions compare floating
+    // pointers based on how google test does it based on
+    // https://stackoverflow.com/a/3423299/5264075
     template <class FloatOrDouble>
-    inline static bool equals(FloatOrDouble left, FloatOrDouble right) {
+    inline static bool equals(FloatOrDouble left, FloatOrDouble right)
+    {
         const testing::internal::FloatingPoint<FloatOrDouble> lhs(left), rhs(right);
         return lhs.AlmostEquals(rhs);
     }
 
-    inline static double logfactorial (uint32_t n) {
+    inline static double logfactorial(uint32_t n)
+    {
         double logfactorial = 0;
         for (uint32_t i = 1; i <= n; ++i) {
             logfactorial += std::log(i);
@@ -111,14 +126,14 @@ public:
         return logfactorial;
     }
 
-    template<class Iterator>
-    inline static typename std::iterator_traits<Iterator>::difference_type arg_max (Iterator begin, Iterator end) {
+    template <class Iterator>
+    inline static typename std::iterator_traits<Iterator>::difference_type arg_max(
+        Iterator begin, Iterator end)
+    {
         auto max_element_iterator = std::max_element(begin, end);
         auto index_of_max_element = std::distance(begin, max_element_iterator);
         return index_of_max_element;
     }
-
 };
 
-
-#endif //PANDORA_MATHS_H
+#endif // PANDORA_MATHS_H

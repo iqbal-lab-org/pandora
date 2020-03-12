@@ -245,7 +245,7 @@ void LocalAssemblyGraph::build_paths_between(const std::string& start_kmer,
     }
 }
 
-void remove_graph_file (const fs::path &prefix)
+void remove_graph_file(const fs::path& prefix)
 {
     const fs::path h5_file(prefix.string() + ".h5");
     fs::remove(h5_file);
