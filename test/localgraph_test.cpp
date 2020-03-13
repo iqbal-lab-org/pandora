@@ -1,12 +1,12 @@
+#include "gtest/gtest.h"
+#include "test_macro.cpp"
 #include "interval.h"
+#include "prg/path.h"
 #include "localPRG.h"
 #include "localgraph.h"
 #include "localnode.h"
-#include "prg/path.h"
-#include "test_macro.cpp"
-#include "gtest/gtest.h"
-#include <iostream>
 #include <stdint.h>
+#include <iostream>
 
 using namespace std;
 

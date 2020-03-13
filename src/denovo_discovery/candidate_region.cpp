@@ -195,8 +195,6 @@ void CandidateRegion::add_pileup_entry(
 
 void CandidateRegion::write_denovo_paths_to_file(const fs::path& output_directory)
 {
-    fs::create_directories(output_directory);
-
     if (denovo_paths.empty()) {
         BOOST_LOG_TRIVIAL(debug) << "No denovo paths for " << filename;
         return;

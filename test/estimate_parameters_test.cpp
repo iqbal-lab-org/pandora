@@ -1,9 +1,9 @@
-#include "estimate_parameters.h"
-#include "pangenome/pangraph.h"
-#include "gtest/gtest.h"
+#include <stdint.h>
 #include <cstring>
 #include <iostream>
-#include <stdint.h>
+#include "gtest/gtest.h"
+#include "pangenome/pangraph.h"
+#include "estimate_parameters.h"
 
 using namespace std;
 

@@ -1,18 +1,18 @@
-#include "index.h"
-#include "interval.h"
-#include "inthash.h"
-#include "localPRG.h"
-#include "minihit.h"
-#include "minihits.h"
-#include "pangenome/pangraph.h"
-#include "prg/path.h"
-#include "seq.h"
+#include "gtest/gtest.h"
 #include "test_macro.cpp"
 #include "utils.h"
-#include "gtest/gtest.h"
-#include <algorithm>
-#include <iostream>
+#include "localPRG.h"
+#include "pangenome/pangraph.h"
+#include "interval.h"
+#include "prg/path.h"
+#include "minihit.h"
+#include "minihits.h"
+#include "index.h"
+#include "inthash.h"
+#include "seq.h"
 #include <stdint.h>
+#include <iostream>
+#include <algorithm>
 #include <vector>
 
 using namespace std;

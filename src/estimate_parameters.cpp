@@ -1,14 +1,14 @@
-#include "estimate_parameters.h"
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <cmath>
+#include <cassert>
+#include <numeric>
+#include <algorithm>
+#include "utils.h"
 #include "pangenome/pangraph.h"
 #include "pangenome/pannode.h"
-#include "utils.h"
-#include <algorithm>
-#include <cassert>
-#include <cmath>
-#include <fstream>
-#include <iostream>
-#include <numeric>
-#include <vector>
+#include "estimate_parameters.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 

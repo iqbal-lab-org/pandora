@@ -1,13 +1,13 @@
-#include "minihits.h"
-#include "minihit.h"
-#include "minimizer.h"
-#include "minirecord.h"
-#include "utils.h" // for pointer_values_equal
 #include <cassert>
 #include <functional>
 #include <iostream>
-#include <memory>
 #include <sstream>
+#include <memory>
+#include "minihits.h"
+#include "minihit.h"
+#include "minirecord.h"
+#include "minimizer.h"
+#include "utils.h" // for pointer_values_equal
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 

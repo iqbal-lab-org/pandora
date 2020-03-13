@@ -1,5 +1,5 @@
-#include <cassert>
 #include <iostream>
+#include <cassert>
 
 #include <boost/log/trivial.hpp>
 

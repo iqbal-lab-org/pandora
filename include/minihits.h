@@ -1,11 +1,11 @@
 #ifndef __MINIHITS_H_INCLUDED__ // if minihits.h hasn't been included yet...
 #define __MINIHITS_H_INCLUDED__
 
-#include "minimizer.h"
-#include "minirecord.h"
-#include <memory>
 #include <set>
 #include <unordered_set>
+#include <memory>
+#include "minimizer.h"
+#include "minirecord.h"
 
 struct MinimizerHit;
 struct pComp;

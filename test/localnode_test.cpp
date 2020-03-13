@@ -1,8 +1,8 @@
-#include "interval.h"
-#include "localnode.h"
 #include "gtest/gtest.h"
-#include <iostream>
+#include "localnode.h"
+#include "interval.h"
 #include <stdint.h>
+#include <iostream>
 
 using namespace std;
 

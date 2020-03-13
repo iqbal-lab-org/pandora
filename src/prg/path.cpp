@@ -1,6 +1,6 @@
-#include "prg/path.h"
 #include <cassert>
 #include <localPRG.h>
+#include "prg/path.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -62,7 +62,7 @@ std::vector<LocalNodePtr> prg::Path::nodes_along_path(const LocalPRG& localPrg)
         // redudant call, return the memoized local node path
         return memoizedLocalNodePath;
     } else {
-        fatalError("Bug on prg::Path::nodes_along_path()");
+        fatal_error("Bug on prg::Path::nodes_along_path()");
     }
 }
 

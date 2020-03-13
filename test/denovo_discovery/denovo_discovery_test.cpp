@@ -109,7 +109,7 @@ TEST(FindPathsThroughCandidateRegionTest, emptyPileupReturnsEmpty)
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
 
-    denovo.find_paths_through_candidate_region(candidate_region);
+    denovo.find_paths_through_candidate_region(candidate_region, ".");
 
     const DenovoPaths expected;
     const auto& actual { candidate_region.denovo_paths };
@@ -126,7 +126,7 @@ TEST(FindPathsThroughCandidateRegionTest, kmerSizeBiggerThanCandidateReturnsEmpt
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
     candidate_region.pileup = { "FOO", "BAR" };
 
-    denovo.find_paths_through_candidate_region(candidate_region);
+    denovo.find_paths_through_candidate_region(candidate_region, ".");
 
     const DenovoPaths expected;
     const auto& actual { candidate_region.denovo_paths };
@@ -144,7 +144,7 @@ TEST(FindPathsThroughCandidateRegionTest,
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
     candidate_region.pileup = { "FOO", "BAR" };
 
-    denovo.find_paths_through_candidate_region(candidate_region);
+    denovo.find_paths_through_candidate_region(candidate_region, ".");
 
     const DenovoPaths expected;
     const auto& actual { candidate_region.denovo_paths };
@@ -161,7 +161,7 @@ TEST(FindPathsThroughCandidateRegionTest, startKmersDontExistInGraphReturnEmpty)
     candidate_region.max_likelihood_sequence = "GGGGGGGGGGAGTCGGACT";
     candidate_region.pileup = { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT" };
 
-    denovo.find_paths_through_candidate_region(candidate_region);
+    denovo.find_paths_through_candidate_region(candidate_region, ".");
 
     const DenovoPaths expected;
     const auto& actual { candidate_region.denovo_paths };
@@ -178,7 +178,7 @@ TEST(FindPathsThroughCandidateRegionTest, endKmersDontExistInGraphReturnEmpty)
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGCCCCCCCCC";
     candidate_region.pileup = { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT" };
 
-    denovo.find_paths_through_candidate_region(candidate_region);
+    denovo.find_paths_through_candidate_region(candidate_region, ".");
 
     const DenovoPaths expected;
     const auto& actual { candidate_region.denovo_paths };
@@ -196,7 +196,7 @@ TEST(FindPathsThroughCandidateRegionTest, endKmerExistsInStartKmersFindPathAndCy
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGATGCGCTGA";
     candidate_region.pileup = { "ATGCGCTGACATGCGCTGA", "ATGCGCTGACATGCGCTGA" };
 
-    denovo.find_paths_through_candidate_region(candidate_region);
+    denovo.find_paths_through_candidate_region(candidate_region, ".");
 
     const DenovoPaths expected { "ATGCGCTGACATGCGCTGA", "ATGCGCTGACATGCGCTGACATGCGCTGA",
         "ATGCGCTGACATGCGCTGACATGCGCTGACATGCGCTGA",
@@ -220,7 +220,7 @@ TEST(FindPathsThroughCandidateRegionTest,
     candidate_region.pileup
         = { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT", "AAATAAA", "GCGGCGCGGCC" };
 
-    denovo.find_paths_through_candidate_region(candidate_region);
+    denovo.find_paths_through_candidate_region(candidate_region, ".");
 
     const DenovoPaths expected { "ATGCGCTGAGAGTCGGACT" };
     const auto& actual { candidate_region.denovo_paths };
@@ -237,7 +237,7 @@ TEST(FindPathsThroughCandidateRegionTest, twoIdenticalReadsReturnOnePath)
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
     candidate_region.pileup = { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT" };
 
-    denovo.find_paths_through_candidate_region(candidate_region);
+    denovo.find_paths_through_candidate_region(candidate_region, ".");
 
     const DenovoPaths expected { "ATGCGCTGAGAGTCGGACT" };
     const auto& actual { candidate_region.denovo_paths };
@@ -255,7 +255,7 @@ TEST(
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
     candidate_region.pileup = { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGATAGTCGGACT" };
 
-    denovo.find_paths_through_candidate_region(candidate_region);
+    denovo.find_paths_through_candidate_region(candidate_region, ".");
 
     const DenovoPaths expected;
     const auto& actual { candidate_region.denovo_paths };
@@ -274,7 +274,7 @@ TEST(FindPathsThroughCandidateRegionTest,
     candidate_region.pileup
         = { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT", "ATGCGCTGATAGTCGGACT" };
 
-    denovo.find_paths_through_candidate_region(candidate_region);
+    denovo.find_paths_through_candidate_region(candidate_region, ".");
 
     const DenovoPaths expected { "ATGCGCTGAGAGTCGGACT" };
     const auto& actual { candidate_region.denovo_paths };
@@ -292,7 +292,7 @@ TEST(FindPathsThroughCandidateRegionTest, twoPossiblePathsWithGoodCovgReturnsTwo
     candidate_region.pileup = { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT",
         "ATGCGCTGATAGTCGGACT", "ATGCGCTGATAGTCGGACT" };
 
-    denovo.find_paths_through_candidate_region(candidate_region);
+    denovo.find_paths_through_candidate_region(candidate_region, ".");
     std::sort(
         candidate_region.denovo_paths.begin(), candidate_region.denovo_paths.end());
 

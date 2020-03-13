@@ -1,8 +1,8 @@
-#include "fastaq_handler.h"
-#include "gtest/gtest.h"
-#include <cstdint>
-#include <fstream>
 #include <iostream>
+#include <fstream>
+#include <cstdint>
+#include "gtest/gtest.h"
+#include "fastaq_handler.h"
 
 using namespace std;
 

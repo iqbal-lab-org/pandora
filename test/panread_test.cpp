@@ -1,16 +1,16 @@
-#include "minihit.h"
+#include "gtest/gtest.h"
+#include "test_macro.cpp"
 #include "pangenome/ns.cpp"
 #include "pangenome/pannode.h"
 #include "pangenome/panread.h"
 #include "pangenome_graph_class.h"
 #include "test_helpers.h"
-#include "test_macro.cpp"
-#include "gtest/gtest.h"
-#include <functional>
-#include <iostream>
-#include <set>
+#include "minihit.h"
 #include <stdint.h>
+#include <iostream>
 #include <utility>
+#include <functional>
+#include <set>
 
 using namespace pangenome;
 

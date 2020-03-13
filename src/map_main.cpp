@@ -10,25 +10,25 @@
  * 3. Command line argument handling for option of dumped_db screening
  * 4. Change structure so not copying minimzers etc, but use pointers
  */
-#include <algorithm>
-#include <cassert>
-#include <cstdlib>
 #include <iostream>
-#include <map>
-#include <set>
+#include <cstdlib>
 #include <vector>
+#include <set>
+#include <algorithm>
+#include <map>
+#include <cassert>
 
-#include "estimate_parameters.h"
-#include "index.h"
+#include "utils.h"
 #include "localPRG.h"
 #include "localgraph.h"
-#include "noise_filtering.h"
 #include "pangenome/pangraph.h"
 #include "pangenome/pannode.h"
-#include "utils.h"
+#include "index.h"
+#include "estimate_parameters.h"
+#include "noise_filtering.h"
 
-#include "denovo_discovery/denovo_discovery.h"
 #include "denovo_discovery/denovo_utils.h"
+#include "denovo_discovery/denovo_discovery.h"
 
 using std::set;
 using std::vector;
@@ -381,6 +381,10 @@ int pandora_map(int argc, char* argv[])
         g_log_level = boost::log::trivial::debug;
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= g_log_level);
 
+    GenotypingOptions genotyping_options({}, genotyping_error_rate,
+        confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
+        min_total_covg_gt, min_diff_covg_gt, 0, false);
+
     fs::create_directories(outdir);
     if (output_kg)
         fs::create_directories(outdir + "/kmer_graphs");
@@ -418,8 +422,9 @@ int pandora_map(int argc, char* argv[])
     cout << now() << "Estimate parameters for kmer graph model" << endl;
     auto exp_depth_covg
         = estimate_parameters(pangraph, outdir, k, e_rate, covg, bin, sample_id);
-    if (min_kmer_covg == 0)
-        min_kmer_covg = exp_depth_covg / 10;
+    genotyping_options.add_exp_depth_covg(exp_depth_covg);
+    if (genotyping_options.get_min_kmer_covg() == 0)
+        genotyping_options.set_min_kmer_covg(exp_depth_covg / 10);
 
     std::cout << now() << "Find PRG paths and write to files:" << std::endl;
 
@@ -428,7 +433,7 @@ int pandora_map(int argc, char* argv[])
     Fastaq consensus_fq(true, true);
 
     // shared variable - synced with critical(master_vcf)
-    VCF master_vcf;
+    VCF master_vcf(&genotyping_options);
 
     // shared variable - synced with critical(candidate_regions)
     CandidateRegions candidate_regions;
@@ -532,8 +537,7 @@ int pandora_map(int argc, char* argv[])
 
     consensus_fq.save(outdir + "/pandora.consensus.fq.gz");
     if (output_vcf)
-        master_vcf.save(outdir + "/pandora_consensus.vcf", true, true, true, true, true,
-            true, true);
+        master_vcf.save(outdir + "/pandora_consensus.vcf", true, false);
 
     if (pangraph->nodes.empty()) {
         std::cout << "All nodes which were found have been removed during cleaning. Is "
@@ -545,27 +549,24 @@ int pandora_map(int argc, char* argv[])
     }
 
     if (genotype) {
-        std::vector<uint32_t> exp_depth_covgs = { exp_depth_covg };
-        master_vcf.genotype(exp_depth_covgs, genotyping_error_rate,
-            confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
-            min_total_covg_gt, min_diff_covg_gt, snps_only);
+        master_vcf.genotype(true);
         if (snps_only)
-            master_vcf.save(outdir + "/pandora_genotyped.vcf", true, true, true, true,
-                false, false, false);
+            master_vcf.save(outdir + "/pandora_genotyped.vcf", false, true, false, true,
+                true, true, true, false, false, false);
         else
-            master_vcf.save(outdir + "/pandora_genotyped.vcf", true, true, true, true,
-                true, true, true);
+            master_vcf.save(outdir + "/pandora_genotyped.vcf", false, true);
     }
 
     if (discover_denovo) {
         DenovoDiscovery denovo { denovo_kmer_size, e_rate };
         const fs::path denovo_output_directory { fs::path(outdir) / "denovo_paths" };
+        fs::create_directories(denovo_output_directory);
 
         for (auto& element : candidate_regions) {
             auto& candidate_region { element.second };
-            denovo.find_paths_through_candidate_region(
-                candidate_region); // TODO: this is hard to parallelize due to GATB's
-                                   // temp files
+            denovo.find_paths_through_candidate_region(candidate_region,
+                denovo_output_directory); // TODO: this is hard to parallelize due to
+                                          // GATB's temp files
             candidate_region.write_denovo_paths_to_file(denovo_output_directory);
         }
     }

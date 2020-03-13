@@ -1,13 +1,14 @@
-#include "inthash.h"
 #include "gtest/gtest.h"
-#include <algorithm>
-#include <cmath>
-#include <cstring>
+#include "inthash.h"
 #include <iostream>
-#include <set>
-#include <stdint.h>
+#include <cstring>
 #include <string>
+#include <set>
 #include <vector>
+#include <cmath>
+#include <algorithm>
+#include <stdint.h>
+#include <iostream>
 
 using namespace std;
 

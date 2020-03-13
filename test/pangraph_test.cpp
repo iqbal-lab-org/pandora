@@ -1,18 +1,18 @@
-#include "localPRG.h"
-#include "minihit.h"
+#include "gtest/gtest.h"
+#include "test_macro.cpp"
 #include "pangenome/ns.cpp"
+#include "pangenome_graph_class.h"
 #include "pangenome/pannode.h"
 #include "pangenome/panread.h"
 #include "pangenome/pansample.h"
-#include "pangenome_graph_class.h"
-#include "test_macro.cpp"
-#include "gtest/gtest.h"
-#include <boost/filesystem.hpp>
-#include <cassert>
-#include <fstream>
-#include <iostream>
-#include <numeric>
+#include "minihit.h"
+#include "localPRG.h"
 #include <stdint.h>
+#include <numeric>
+#include <cassert>
+#include <iostream>
+#include <fstream>
+#include <boost/filesystem.hpp>
 
 using namespace pangenome;
 

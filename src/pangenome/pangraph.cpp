@@ -1,22 +1,22 @@
-#include <algorithm>
-#include <boost/filesystem.hpp>
-#include <cassert>
-#include <fstream>
 #include <iostream>
-#include <memory>
-#include <set>
 #include <unordered_map>
 #include <unordered_set>
+#include <set>
+#include <memory>
 #include <vector>
+#include <fstream>
+#include <cassert>
+#include <algorithm>
+#include <boost/filesystem.hpp>
 
-#include "fastaq_handler.h"
-#include "kmergraphwithcoverage.h"
-#include "minihit.h"
+#include "utils.h"
 #include "pangenome/pangraph.h"
 #include "pangenome/pannode.h"
 #include "pangenome/panread.h"
 #include "pangenome/pansample.h"
-#include "utils.h"
+#include "minihit.h"
+#include "kmergraphwithcoverage.h"
+#include "fastaq_handler.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 

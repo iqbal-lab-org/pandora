@@ -1,25 +1,25 @@
 #ifndef __EXTRACT_READS_H_INCLUDED__
 #define __EXTRACT_READS_H_INCLUDED__
 
-#include "denovo_discovery/local_assembly.h"
-#include "fastaq.h"
-#include "fastaq_handler.h"
-#include "interval.h"
-#include "localPRG.h"
+#include <set>
+#include <algorithm>
+#include <memory>
+#include <cassert>
+#include <utility>
+#include <vector>
 #include "localnode.h"
-#include "minihit.h"
 #include "minihits.h"
+#include "denovo_discovery/local_assembly.h"
+#include "interval.h"
+#include "minihit.h"
 #include "pangenome/ns.cpp"
 #include "pangenome/pannode.h"
 #include "pangenome/panread.h"
-#include "prg/path.h"
+#include "localPRG.h"
+#include "fastaq_handler.h"
+#include "fastaq.h"
 #include "utils.h"
-#include <algorithm>
-#include <cassert>
-#include <memory>
-#include <set>
-#include <utility>
-#include <vector>
+#include "prg/path.h"
 
 using PanNodePtr = std::shared_ptr<pangenome::Node>;
 

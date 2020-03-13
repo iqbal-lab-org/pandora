@@ -1,13 +1,13 @@
 #ifndef __FASTAQ_HANDLER_H_INCLUDED__ // if fastaq_handler.h hasn't been included yet...
 #define __FASTAQ_HANDLER_H_INCLUDED__
 
-#include <boost/iostreams/filtering_streambuf.hpp>
-#include <boost/log/core.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/trivial.hpp>
+#include <string>
 #include <cstdint>
 #include <fstream>
-#include <string>
+#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
 
 namespace logging = boost::log;
 

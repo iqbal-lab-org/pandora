@@ -1,15 +1,15 @@
 #ifndef __LOCALNODE_H_INCLUDED__ // if localnode.h hasn't been included yet...
 #define __LOCALNODE_H_INCLUDED__
 
-#include "interval.h"
-#include "kmernode.h"
-#include "prg/path.h"
-#include <cstdint>
 #include <cstring>
-#include <memory>
-#include <ostream>
-#include <unordered_set>
+#include <cstdint>
 #include <vector>
+#include <unordered_set>
+#include <ostream>
+#include <memory>
+#include "interval.h"
+#include "prg/path.h"
+#include "kmernode.h"
 
 class LocalNode;
 

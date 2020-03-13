@@ -1,19 +1,19 @@
+#include <sstream>
+#include <fstream>
 #include <cassert>
-#include <cmath>
-#include <cstdint>
+#include <limits>
 #include <cstdio> /* NULL */
 #include <cstdlib> /* srand, rand */
-#include <fstream>
-#include <limits>
-#include <sstream>
+#include <cmath>
+#include <cstdint>
 
-#include <boost/log/trivial.hpp>
 #include <boost/math/distributions/negative_binomial.hpp>
+#include <boost/log/trivial.hpp>
 
-#include "kmergraphwithcoverage.h"
-#include "kmernode.h"
-#include "localPRG.h"
 #include "utils.h"
+#include "kmernode.h"
+#include "kmergraphwithcoverage.h"
+#include "localPRG.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 

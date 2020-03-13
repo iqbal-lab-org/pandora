@@ -1,27 +1,27 @@
-#include <algorithm>
-#include <boost/filesystem.hpp>
-#include <cassert>
-#include <cctype>
-#include <cmath>
 #include <cstring>
-#include <ctime>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <memory>
-#include <set>
 #include <sstream>
+#include <iomanip>
 #include <unordered_map>
 #include <vector>
+#include <iostream>
+#include <fstream>
+#include <cmath>
+#include <cassert>
+#include <cctype>
+#include <set>
+#include <memory>
+#include <ctime>
+#include <algorithm>
+#include <boost/filesystem.hpp>
 
-#include "fastaq_handler.h"
+#include "utils.h"
+#include "seq.h"
 #include "localPRG.h"
-#include "minihit.h"
-#include "noise_filtering.h"
 #include "pangenome/pangraph.h"
 #include "pangenome/panread.h"
-#include "seq.h"
-#include "utils.h"
+#include "noise_filtering.h"
+#include "minihit.h"
+#include "fastaq_handler.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -572,9 +572,46 @@ uint32_t pangraph_from_read_file(const std::string& filepath,
     return covg;
 }
 
-void fatalError(const string& message)
+void fatal_error(const string& message)
 {
     cerr << endl << endl << "[FATAL ERROR] " << message << endl << endl;
     cerr.flush();
     exit(1);
+}
+
+void open_file_for_reading(const std::string& file_path, std::ifstream& stream)
+{
+    stream.open(file_path);
+    if (!stream.is_open()) {
+        std::stringstream ss;
+        ss << "Error opening file " << file_path;
+        fatal_error(ss.str());
+    }
+}
+
+void open_file_for_writing(const std::string& file_path, std::ofstream& stream)
+{
+    stream.open(file_path);
+    if (!stream.is_open()) {
+        std::stringstream ss;
+        ss << "Error opening file " << file_path;
+        fatal_error(ss.str());
+    }
+}
+
+// read all strings in the readsFile file and return them as a vector of strings
+std::vector<std::string> get_vector_of_strings_from_file(const std::string& file_path)
+{
+    std::vector<std::string> lines;
+    std::string line;
+
+    std::ifstream in_file;
+    open_file_for_reading(file_path, in_file);
+    while (getline(in_file, line)) {
+        if (line.size() > 0)
+            lines.push_back(line);
+    }
+    in_file.close();
+
+    return lines;
 }

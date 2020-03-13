@@ -1,12 +1,13 @@
-#include <algorithm>
-#include <cassert>
 #include <deque>
-#include <fstream>
-#include <iostream>
 #include <limits>
-#include <memory>
-#include <set>
+#include <fstream>
 #include <unordered_set>
+#include <set>
+#include <deque>
+#include <iostream>
+#include <memory>
+#include <cassert>
+#include <algorithm>
 
 #include <boost/log/trivial.hpp>
 

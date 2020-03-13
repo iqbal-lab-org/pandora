@@ -1,14 +1,14 @@
 #ifndef __INDEX_H_INCLUDED__ // if index.h hasn't been included yet...
 #define __INDEX_H_INCLUDED__
 
+#include <cstring>
+#include <cstdint>
+#include <vector>
+#include <unordered_map>
+#include <memory>
 #include "minirecord.h"
 #include "prg/path.h"
 #include "utils.h"
-#include <cstdint>
-#include <cstring>
-#include <memory>
-#include <unordered_map>
-#include <vector>
 
 class Index {
 public:

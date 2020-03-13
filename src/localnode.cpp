@@ -1,8 +1,8 @@
+#include <iostream>
+#include <algorithm>
 #include "localnode.h"
 #include "interval.h"
 #include "utils.h" // for pointer_values_equal
-#include <algorithm>
-#include <iostream>
 
 LocalNode::LocalNode(std::string s, Interval p, uint32_t i)
     : seq(s)

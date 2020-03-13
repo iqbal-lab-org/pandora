@@ -1,13 +1,13 @@
-#include "fastaq_handler.h"
+#include <cstring>
+#include <cassert>
+#include <vector>
+#include <iostream>
+#include <fstream>
 #include "localPRG.h"
+#include "utils.h"
 #include "localgraph.h"
 #include "localnode.h"
-#include "utils.h"
-#include <cassert>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <vector>
+#include "fastaq_handler.h"
 
 int pandora_walk(int argc, char* argv[]) // the "pandora walk" comand
 {

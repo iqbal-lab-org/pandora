@@ -1,13 +1,13 @@
 #include <cstring>
-#include <fstream>
-#include <iostream>
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "localPRG.h"
 #include "utils.h"
+#include "localPRG.h"
 
 static void show_index_usage()
 {

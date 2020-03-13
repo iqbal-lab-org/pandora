@@ -1,6 +1,6 @@
-#include "interval.h"
-#include <cassert>
 #include <limits>
+#include <cassert>
+#include "interval.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 

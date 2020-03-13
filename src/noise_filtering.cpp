@@ -1,17 +1,17 @@
-#include "de_bruijn/graph.h"
-#include "minihit.h"
+#include <iostream>
+#include <map>
+#include <unordered_set>
+#include <set>
+#include <utility>
+#include <vector>
+#include <fstream>
+#include <cassert>
+#include "utils.h"
 #include "pangenome/pangraph.h"
 #include "pangenome/pannode.h"
 #include "pangenome/panread.h"
-#include "utils.h"
-#include <cassert>
-#include <fstream>
-#include <iostream>
-#include <map>
-#include <set>
-#include <unordered_set>
-#include <utility>
-#include <vector>
+#include "de_bruijn/graph.h"
+#include "minihit.h"
 
 uint_least32_t node_plus_orientation_to_num(
     const uint_least32_t node_id, const bool orientation)

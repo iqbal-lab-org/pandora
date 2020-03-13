@@ -1,8 +1,8 @@
+#include "gtest/gtest.h"
 #include "minirecord.h"
 #include "prg/path.h"
-#include "gtest/gtest.h"
-#include <iostream>
 #include <stdint.h>
+#include <iostream>
 
 using namespace std;
 

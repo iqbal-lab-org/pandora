@@ -1,11 +1,11 @@
+#include <iostream>
+#include <sstream>
+#include <set>
+#include "gtest/gtest.h"
 #include "../test_macro.cpp"
 #include "denovo_discovery/denovo_utils.h"
 #include "minihit.h"
 #include "pangenome/panread.h"
-#include "gtest/gtest.h"
-#include <iostream>
-#include <set>
-#include <sstream>
 
 using PanNodePtr = std::shared_ptr<pangenome::Node>;
 using PanReadPtr = std::shared_ptr<pangenome::Read>;

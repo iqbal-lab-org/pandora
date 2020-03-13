@@ -1,11 +1,11 @@
-#include "minihit.h"
-#include "minirecord.h"
-#include "prg/path.h"
-#include <algorithm>
 #include <cassert>
 #include <functional>
 #include <iostream>
 #include <limits>
+#include <algorithm>
+#include "minirecord.h"
+#include "minihit.h"
+#include "prg/path.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 

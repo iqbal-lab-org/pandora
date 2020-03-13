@@ -1,15 +1,15 @@
-#include "pangenome/panread.h"
-#include "minihits.h"
-#include "pangenome/pannode.h"
-#include <algorithm>
+#include <iostream>
+#include <fstream>
 #include <cassert>
 #include <climits>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <set>
 #include <unordered_set>
+#include <set>
+#include <memory>
 #include <utility>
+#include <algorithm>
+#include "pangenome/panread.h"
+#include "pangenome/pannode.h"
+#include "minihits.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 

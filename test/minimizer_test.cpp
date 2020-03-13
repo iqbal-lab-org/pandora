@@ -1,13 +1,13 @@
 //#include <limits.h>
-#include "interval.h"
-#include "inthash.h"
+#include "gtest/gtest.h"
 #include "minimizer.h"
 #include "prg/path.h"
-#include "gtest/gtest.h"
-#include <iostream>
+#include "interval.h"
+#include "inthash.h"
 #include <set>
-#include <stdint.h>
 #include <vector>
+#include <stdint.h>
+#include <iostream>
 
 using std::set;
 using namespace std;

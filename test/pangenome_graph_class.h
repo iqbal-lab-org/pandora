@@ -1,5 +1,4 @@
 #include "pangenome/pangraph.h"
-#include "gtest/gtest.h"
 
 class PGraphTester : public pangenome::Graph {
 public:

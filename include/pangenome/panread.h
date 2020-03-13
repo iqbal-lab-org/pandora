@@ -1,14 +1,14 @@
 #ifndef __PANREAD_H_INCLUDED__ // if panread.h hasn't been included yet...
 #define __PANREAD_H_INCLUDED__
 
+#include <string>
+#include <cstdint>
+#include <vector>
+#include <iostream>
+#include <unordered_map>
+#include <minihit.h>
 #include "minihits.h"
 #include "pangenome/ns.cpp"
-#include <cstdint>
-#include <iostream>
-#include <minihit.h>
-#include <string>
-#include <unordered_map>
-#include <vector>
 
 class pangenome::Read {
 private:

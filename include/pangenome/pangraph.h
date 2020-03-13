@@ -7,14 +7,14 @@ class LocalPRG;
 
 class KmerNode;
 
-#include <cstdint>
-#include <ostream>
 #include <string>
+#include <cstdint>
 #include <unordered_map>
+#include <ostream>
 #include <vector>
 
-#include "localPRG.h"
 #include "minihits.h"
+#include "localPRG.h"
 #include "pangenome/ns.cpp"
 
 using KmerNodePtr = std::shared_ptr<KmerNode>;

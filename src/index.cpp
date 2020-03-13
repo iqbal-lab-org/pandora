@@ -1,14 +1,14 @@
-#include <algorithm>
-#include <fstream>
 #include <iostream>
+#include <fstream>
 #include <unordered_map>
 #include <vector>
+#include <algorithm>
 
 #include <boost/log/trivial.hpp>
 
+#include "minirecord.h"
 #include "index.h"
 #include "localPRG.h"
-#include "minirecord.h"
 
 /**
  * Adds a k-mer to the index. This is *just* called to add minimizers.

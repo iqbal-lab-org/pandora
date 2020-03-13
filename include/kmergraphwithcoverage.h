@@ -4,14 +4,13 @@
 
 class LocalPRG;
 
-#include "kmergraph.h"
-#include "kmernode.h"
-#include "pangenome/ns.cpp"
-#include "prg/path.h"
-#include <cassert>
 #include <cstdint>
-#include <iostream>
 #include <vector>
+#include <iostream>
+#include "prg/path.h"
+#include "kmernode.h"
+#include "kmergraph.h"
+#include "pangenome/ns.cpp"
 
 /**
  * Represents an annotated KmerGraph, where the annotation is only the coverage on the
