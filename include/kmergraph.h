@@ -3,13 +3,13 @@
 
 class LocalPRG;
 
-#include "kmernode.h"
-#include "pangenome/ns.cpp"
-#include "prg/path.h"
 #include <cstdint>
+#include <vector>
 #include <iostream>
 #include <set>
-#include <vector>
+#include "prg/path.h"
+#include "kmernode.h"
+#include "pangenome/ns.cpp"
 
 struct condition {
     prg::Path q;

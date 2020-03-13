@@ -1,11 +1,11 @@
 #ifndef __DBNODE_H_INCLUDED__ // if de_bruijn/node.h hasn't been included yet...
 #define __DBNODE_H_INCLUDED__
 
-#include "de_bruijn/ns.cpp"
 #include <cstdint>
 #include <deque>
-#include <memory>
 #include <unordered_set>
+#include <memory>
+#include "de_bruijn/ns.cpp"
 
 class debruijn::Node {
 public:

@@ -1,8 +1,8 @@
-#include "de_bruijn/node.h"
-#include "test_macro.cpp"
 #include "gtest/gtest.h"
-#include <deque>
+#include "test_macro.cpp"
+#include "de_bruijn/node.h"
 #include <iostream>
+#include <deque>
 #include <unordered_set>
 
 using namespace debruijn;

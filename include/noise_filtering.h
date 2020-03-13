@@ -2,10 +2,10 @@
                                       // yet...
 #define __NOISEFILTERING_H_INCLUDED__
 
-#include "de_bruijn/graph.h"
-#include "pangenome/pangraph.h"
-#include <cstdint>
 #include <string>
+#include <cstdint>
+#include "pangenome/pangraph.h"
+#include "de_bruijn/graph.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 

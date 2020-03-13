@@ -1,14 +1,15 @@
-#include "pangenome/pannode.h"
-#include "localPRG.h"
-#include "minihit.h"
-#include "pangenome/panread.h"
-#include "pangenome/pansample.h"
-#include "utils.h"
+#include <iostream>
+#include <fstream>
+#include <cassert>
 #include <algorithm>
 #include <boost/log/trivial.hpp>
-#include <cassert>
-#include <fstream>
-#include <iostream>
+#include "pangenome/pannode.h"
+#include "pangenome/pansample.h"
+#include "pangenome/panread.h"
+#include "minihit.h"
+#include "utils.h"
+#include "localPRG.h"
+#include "OptionsAggregator.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -142,15 +143,15 @@ void pangenome::Node::get_read_overlap_coordinates(
 
 void pangenome::Node::construct_multisample_vcf(VCF& master_vcf,
     const std::vector<LocalNodePtr>& vcf_reference_path,
-    const std::shared_ptr<LocalPRG>& prg, const uint32_t w,
-    const uint32_t& min_kmer_covg)
+    const std::shared_ptr<LocalPRG>& prg, const uint32_t w)
 {
     // create a vcf with respect to this ref
-    VCF vcf;
-    prg->build_vcf(vcf, vcf_reference_path);
+    VCF vcf(master_vcf.genotyping_options);
+    prg->build_vcf_from_reference_path(vcf, vcf_reference_path);
     vcf.add_samples(master_vcf.samples);
 
-    BOOST_LOG_TRIVIAL(debug) << "Initial build:\n" << vcf;
+    BOOST_LOG_TRIVIAL(debug) << "Initial build:\n"
+                             << vcf.to_string(true, false) << std::endl;
 
     for (const auto& sample : samples) {
         uint32_t count = 0;
@@ -158,27 +159,32 @@ void pangenome::Node::construct_multisample_vcf(VCF& master_vcf,
             const auto sample_local_path
                 = prg->localnode_path_from_kmernode_path(sample_kmer_path, w);
             if (count == 0) {
-                prg->add_sample_gt_to_vcf(
+                prg->add_new_records_and_genotype_to_vcf_using_max_likelihood_path_of_the_sample(
                     vcf, vcf_reference_path, sample_local_path, sample->name);
-                BOOST_LOG_TRIVIAL(debug) << "With sample added:\n" << vcf;
+                BOOST_LOG_TRIVIAL(debug) << "With sample added:\n"
+                                         << vcf.to_string(true, false);
                 prg->add_sample_covgs_to_vcf(vcf, kmer_prg_with_coverage,
-                    vcf_reference_path, min_kmer_covg, sample->name, sample->sample_id);
-                BOOST_LOG_TRIVIAL(debug) << "With sample coverages added:\n" << vcf;
+                    vcf_reference_path, sample->name, sample->sample_id);
+                BOOST_LOG_TRIVIAL(debug) << "With sample coverages added:\n"
+                                         << vcf.to_string(true, false);
             } else {
                 auto path_specific_sample_name = sample->name + std::to_string(count);
-                prg->add_sample_gt_to_vcf(vcf, vcf_reference_path, sample_local_path,
+                prg->add_new_records_and_genotype_to_vcf_using_max_likelihood_path_of_the_sample(
+                    vcf, vcf_reference_path, sample_local_path,
                     path_specific_sample_name);
                 prg->add_sample_covgs_to_vcf(vcf, kmer_prg_with_coverage,
-                    vcf_reference_path, min_kmer_covg, path_specific_sample_name,
-                    sample->sample_id);
+                    vcf_reference_path, path_specific_sample_name, sample->sample_id);
             }
             count++;
         }
     }
-    vcf.merge_multi_allelic();
-    BOOST_LOG_TRIVIAL(debug) << "After merging alleles:\n" << vcf;
-    vcf.correct_dot_alleles(prg->string_along_path(vcf_reference_path), prg->name);
-    BOOST_LOG_TRIVIAL(debug) << "After fixing dot alleles:\n" << vcf;
+    vcf = vcf.merge_multi_allelic();
+    BOOST_LOG_TRIVIAL(debug) << "After merging alleles:\n"
+                             << vcf.to_string(true, false);
+    vcf = vcf.correct_dot_alleles(
+        prg->string_along_path(vcf_reference_path), prg->name);
+    BOOST_LOG_TRIVIAL(debug) << "After fixing dot alleles:\n"
+                             << vcf.to_string(true, false);
     master_vcf.append_vcf(vcf);
 }
 

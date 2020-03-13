@@ -1,6 +1,6 @@
-#include <algorithm>
-#include <cassert>
 #include <fstream>
+#include <cassert>
+#include <algorithm>
 
 #include <boost/log/trivial.hpp>
 

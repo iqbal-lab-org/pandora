@@ -1,10 +1,10 @@
 #ifndef __MINIHIT_H_INCLUDED__ // if minihit.h hasn't been included yet...
 #define __MINIHIT_H_INCLUDED__
 
+#include <ostream>
+#include <cstdint>
 #include "minimizer.h"
 #include "minirecord.h"
-#include <cstdint>
-#include <ostream>
 
 /**
  * Describes a hit between a read an a minimizer from the PRG

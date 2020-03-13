@@ -1,11 +1,11 @@
-#include <cassert>
-#include <cctype>
 #include <fstream>
 #include <iostream>
+#include <cassert>
+#include <cctype>
 #include <unordered_map>
 
-#include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
 #include <boost/log/trivial.hpp>
 
 #include "fastaq.h"

@@ -1,84 +1,237 @@
 #ifndef __VCFRECORD_H_INCLUDED__ // if vcfrecord.h hasn't been included yet...
 #define __VCFRECORD_H_INCLUDED__
 
-#include <cstdint>
 #include <iostream>
-#include <string>
-#include <unordered_map>
 #include <vector>
+#include <string>
+#include <cstdint>
+#include <unordered_map>
+#include "sampleinfo.h"
+#include "vcf.h"
 
-struct VCFRecord {
+class VCF;
+
+class VCFRecord {
+public:
+    // TODO : protect this member?
+    VCF const* parent_vcf;
+
     //#CHROM POS ID REF ALT QUAL FILTER INFO FORMAT
-    std::string chrom;
-    uint32_t pos;
     std::string id; // not used
-    std::string ref;
-    std::vector<std::string> alt;
     std::string qual; // not used
     std::string filter; // not used
+
+    // TODO : protect this member?
     std::string info;
-    std::vector<std::string> format; // e.g. "GT"
-    std::vector<std::unordered_map<std::string, std::vector<uint16_t>>>
-        samples; // should have an entry for each sample in vcf,
-    std::vector<std::unordered_map<std::string, std::vector<float>>>
-        regt_samples; // in the same order
 
-    VCFRecord(std::string, uint32_t, std::string, std::string, std::string i = ".",
-        std::string g = "");
+    // it is fine to leave this public - only VCFRecord can do operations that change
+    // the number of samples in SampleIndexToSampleInfo
+    // TODO : protect this member?
+    SampleIndexToSampleInfo sampleIndex_to_sampleInfo;
 
-    VCFRecord();
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // constructors, destructors, operator=, etc
+    VCFRecord(VCF const* parent_vcf, const std::string& chrom, uint32_t pos,
+        const std::string& ref, const std::string& alt, const std::string& info = ".",
+        const std::string& graph_type_info = "");
+    VCFRecord(VCF const* parent_vcf);
+    VCFRecord(const VCFRecord&) = default;
+    virtual std::shared_ptr<VCFRecord> make_copy_as_shared_ptr() const
+    {
+        return std::make_shared<VCFRecord>(*this);
+    }
+    virtual VCFRecord& operator=(const VCFRecord&) = default;
+    virtual ~VCFRecord() {}
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    VCFRecord(const VCFRecord&);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // getters
+    virtual inline const std::string& get_ref() const { return ref; }
 
-    VCFRecord& operator=(const VCFRecord&);
+    virtual inline const std::vector<std::string>& get_alts() const { return alts; }
 
-    ~VCFRecord();
+    virtual inline uint32_t get_number_of_alleles() const { return 1 + alts.size(); }
 
-    void clear();
+    virtual inline bool allele_is_dot(const std::string& allele) const
+    {
+        return allele == ".";
+    }
 
-    void clear_sample(uint32_t);
+    const std::string& get_chrom() const { return chrom; }
 
-    void add_formats(const std::vector<std::string>&);
+    uint32_t get_pos() const { return pos; }
 
-    void set_format(const uint32_t&, const std::string&, const std::vector<uint16_t>&);
+    virtual inline uint32_t get_ref_end_pos() const
+    {
+        if (allele_is_dot(get_ref())) {
+            return pos;
+        } else {
+            return pos + get_ref().length();
+        }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void set_format(const uint32_t&, const std::string&, const std::vector<float>&);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // modifiers
+    virtual inline void set_ref_and_clear_alts(std::string ref);
+    virtual inline void add_new_alt(std::string alt);
 
-    void set_format(const uint32_t&, const std::string&, const uint16_t&);
+    template <class ITERATOR_TYPE>
+    inline void add_new_alts(ITERATOR_TYPE begin, ITERATOR_TYPE end)
+    {
+        for (; begin < end; ++begin) {
+            add_new_alt(*begin);
+        }
+    }
 
-    void set_format(const uint32_t&, const std::string&, const uint32_t&);
+    virtual inline void add_new_samples(uint32_t number_of_samples);
 
-    void set_format(const uint32_t&, const std::string&, const float&);
+    virtual inline void reset_sample_infos_to_contain_the_given_number_of_samples(
+        uint32_t number_of_samples);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void append_format(const uint32_t&, const std::string&, const uint16_t&);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // comparison operators
+    virtual bool operator==(const VCFRecord& y) const;
+    virtual bool operator!=(const VCFRecord& y) const;
+    virtual bool operator<(const VCFRecord& y) const;
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void append_format(const uint32_t&, const std::string&, const uint32_t&);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // to_string related methods
+    virtual std::string alts_to_string() const;
+    virtual std::string get_format(
+        bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const;
+    virtual std::string sample_infos_to_string(
+        bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const
+    {
+        return this->sampleIndex_to_sampleInfo.to_string(
+            genotyping_from_maximum_likelihood, genotyping_from_coverage);
+    }
+    virtual std::string to_string(
+        bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const;
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void append_format(const uint32_t&, const std::string&, const float&);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // methods querying the INFO
+    virtual inline bool graph_type_is_simple() const
+    {
+        return this->info.find("GRAPHTYPE=SIMPLE") != std::string::npos;
+    }
+    virtual inline bool graph_type_is_nested() const
+    {
+        return this->info.find("GRAPHTYPE=NESTED") != std::string::npos;
+    }
+    virtual inline bool graph_type_has_too_many_alts() const
+    {
+        return this->info.find("GRAPHTYPE=TOO_MANY_ALTS") != std::string::npos;
+    }
+    virtual inline bool svtype_is_SNP() const
+    {
+        return this->info.find("SVTYPE=SNP") != std::string::npos;
+    }
+    virtual inline bool svtype_is_indel() const
+    {
+        return this->info.find("SVTYPE=INDEL") != std::string::npos;
+    }
+    virtual inline bool svtype_is_PH_SNPs() const
+    {
+        return this->info.find("SVTYPE=PH_SNPs") != std::string::npos;
+    }
+    virtual inline bool svtype_is_complex() const
+    {
+        return this->info.find("SVTYPE=COMPLEX") != std::string::npos;
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    std::vector<uint16_t> get_format_u(const uint32_t&, const std::string&);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // general querying
+    virtual inline bool ref_allele_is_inside_given_interval(
+        const std::string& chrom, uint32_t pos_from, uint32_t pos_to) const
+    {
+        return this->chrom == chrom and pos_from <= this->pos
+            and this->pos + this->ref.length() <= pos_to;
+    }
+    virtual inline bool is_SNP() const
+    {
+        return ref.length() == 1 and alts.size() == 1 and alts[0].length() == 1;
+    }
+    virtual inline bool has_the_same_position(const VCFRecord& other) const
+    {
+        return this->chrom == other.chrom and this->pos == other.pos;
+    }
+    virtual size_t get_longest_allele_length() const;
+    virtual bool contains_dot_allele() const;
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    std::vector<float> get_format_f(const uint32_t&, const std::string&);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // genotyping related methods
+    virtual inline void genotype_from_coverage()
+    {
+        sampleIndex_to_sampleInfo.genotype_from_coverage();
+    }
 
-    void likelihood(const std::vector<uint32_t>&, const float&, const uint32_t&,
-        const float& min_fraction_allele_covg = 0);
+    virtual inline void
+    genotype_from_coverage_only_records_along_the_maximum_likelihood_path()
+    {
+        sampleIndex_to_sampleInfo
+            .genotype_from_coverage_only_records_along_the_maximum_likelihood_path();
+    }
 
-    void confidence(
-        const uint32_t& min_total_covg = 0, const uint32_t& min_diff_covg = 0);
+    virtual inline void solve_incompatible_gt_conflict_with(VCFRecord& other)
+    {
+        this->sampleIndex_to_sampleInfo.solve_incompatible_gt_conflict_with(
+            other.sampleIndex_to_sampleInfo);
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void genotype(const uint16_t);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // merging related methods
+    virtual inline void merge_record_into_this(const VCFRecord& other);
 
-    bool contains_dot_allele() const;
+    virtual bool can_biallelic_record_be_merged_into_this(
+        const VCFRecord& vcf_record_to_be_merged_in,
+        uint32_t max_allele_length = 10000) const;
 
-    bool operator==(const VCFRecord& y) const;
+    virtual inline void clear() { *this = VCFRecord(parent_vcf); }
 
-    bool operator!=(const VCFRecord& y) const;
+    // WARNING: a side-effect of this method is changing the pos of the record, which
+    // might be an issue
+    virtual inline void correct_dot_alleles_adding_nucleotide_before(char nucleotide)
+    {
+        correct_dot_alleles(nucleotide, true);
+    }
 
-    bool operator<(const VCFRecord& y) const;
+    // WARNING: a side-effect of this method is changing the pos of the record, which
+    // might be an issue
+    virtual inline void correct_dot_alleles_adding_nucleotide_after(char nucleotide)
+    {
+        correct_dot_alleles(nucleotide, false);
+    }
 
-    friend std::ostream& operator<<(std::ostream& out, const VCFRecord& m);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+protected:
+    std::string ref;
+    std::vector<std::string> alts;
+    std::string chrom;
+    uint32_t pos;
 
-    friend std::istream& operator>>(std::istream& in, VCFRecord& m);
+    std::string infer_SVTYPE() const;
+
+    virtual void correct_dot_alleles(
+        char nucleotide, bool add_nucleotide_before_the_sequence);
+
+    virtual inline void
+    set_number_of_alleles_and_resize_coverage_information_for_all_samples(
+        uint32_t number_of_alleles)
+    {
+        sampleIndex_to_sampleInfo
+            .set_number_of_alleles_and_resize_coverage_information_for_all_samples(
+                number_of_alleles);
+    }
+
+    virtual inline bool there_are_no_common_alt_alleles_between_this_and_other(
+        const VCFRecord& other) const;
 };
 
 #endif

@@ -1,9 +1,9 @@
+#include "gtest/gtest.h"
 #include "pangenome/ns.cpp"
 #include "pangenome/pannode.h"
 #include "pangenome/pansample.h"
-#include "gtest/gtest.h"
-#include <iostream>
 #include <stdint.h>
+#include <iostream>
 
 using namespace pangenome;
 

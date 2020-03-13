@@ -2,10 +2,9 @@
                                           // included yet...
 #define __ESTIMATEPARAMETERS_H_INCLUDED__
 
-#include <boost/filesystem.hpp>
-#include <cstdint>
 #include <cstring>
-#include <pangenome/pangraph.h>
+#include <cstdint>
+#include <boost/filesystem.hpp>
 
 namespace fs = boost::filesystem;
 

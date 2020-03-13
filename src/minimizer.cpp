@@ -1,9 +1,9 @@
-#include "minimizer.h"
-#include "interval.h"
-#include "prg/path.h"
+#include <iostream>
 #include <cassert>
 #include <cmath>
-#include <iostream>
+#include "minimizer.h"
+#include "prg/path.h"
+#include "interval.h"
 
 Minimizer::Minimizer(uint64_t s, uint32_t a, uint32_t b, bool c)
     : canonical_kmer_hash(s)

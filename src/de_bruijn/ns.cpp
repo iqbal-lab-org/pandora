@@ -1,10 +1,10 @@
 #ifndef __DBGNS_CPP_INCLUDED__ // if de_bruijn/ns.cpp hasn't been included yet...
 #define __DBGNS_CPP_INCLUDED__
 
-#include <boost/functional/hash.hpp>
 #include <iostream>
 #include <memory>
 #include <unordered_map>
+#include <boost/functional/hash.hpp>
 
 namespace debruijn {
 class Node;

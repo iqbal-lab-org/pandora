@@ -1,9 +1,9 @@
-#include "interval.h"
-#include "kmernode.h"
-#include "prg/path.h"
 #include "gtest/gtest.h"
-#include <iostream>
+#include "kmernode.h"
+#include "interval.h"
+#include "prg/path.h"
 #include <stdint.h>
+#include <iostream>
 
 TEST(KmerNodeTest, create)
 {

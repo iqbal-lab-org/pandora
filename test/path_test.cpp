@@ -1,9 +1,9 @@
+#include "gtest/gtest.h"
+#include "test_macro.cpp"
 #include "interval.h"
 #include "prg/path.h"
-#include "test_macro.cpp"
-#include "gtest/gtest.h"
-#include <iostream>
 #include <stdint.h>
+#include <iostream>
 
 typedef prg::Path Path;
 using namespace std;

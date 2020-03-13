@@ -1,17 +1,18 @@
 #ifndef __PANNODE_H_INCLUDED__ // if pannode.h hasn't been included yet...
 #define __PANNODE_H_INCLUDED__
 
-#include "denovo_discovery/denovo_utils.h"
+#include <string>
+#include <cstdint>
+#include <unordered_set>
+#include <vector>
 #include "kmergraph.h"
 #include "kmergraphwithcoverage.h"
 #include "localPRG.h"
 #include "pangenome/ns.cpp"
-#include "pansample.h"
 #include "vcf.h"
-#include <cstdint>
-#include <string>
-#include <unordered_set>
-#include <vector>
+#include "denovo_discovery/denovo_utils.h"
+#include "pansample.h"
+#include "OptionsAggregator.h"
 
 class LocalPRG;
 struct ReadCoordinate;
@@ -56,8 +57,7 @@ public:
 
     void construct_multisample_vcf(VCF& master_vcf,
         const std::vector<LocalNodePtr>& vcf_reference_path,
-        const std::shared_ptr<LocalPRG>& prg, const uint32_t w,
-        const uint32_t& min_kmer_covg);
+        const std::shared_ptr<LocalPRG>& prg, const uint32_t w);
 
     bool operator==(const Node& y) const;
 

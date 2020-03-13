@@ -1,12 +1,12 @@
+#include <string>
 #include <cstring>
 #include <iostream>
-#include <string>
 //#include <fstream>
-#include "fastaq_handler.h"
-#include "utils.h"
+#include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
-#include <boost/iostreams/filtering_streambuf.hpp>
+#include "fastaq_handler.h"
+#include "utils.h"
 
 FastaqHandler::FastaqHandler(const std::string& filepath)
     : gzipped(false)

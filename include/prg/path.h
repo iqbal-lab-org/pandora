@@ -1,13 +1,13 @@
 #ifndef __PATH_H_INCLUDED__ // if path.h hasn't been included yet...
 #define __PATH_H_INCLUDED__
 
+#include <deque>
+#include <vector>
+#include <iostream>
+#include <cstdint>
 #include "interval.h"
 #include "prg/ns.cpp"
-#include <cstdint>
-#include <deque>
-#include <iostream>
 #include <memory>
-#include <vector>
 
 class LocalPRG;
 class LocalNode;

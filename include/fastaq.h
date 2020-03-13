@@ -1,10 +1,10 @@
 #ifndef __FASTAQ_H_INCLUDED__ // if fastaq.h hasn't been included yet...
 #define __FASTAQ_H_INCLUDED__
 
-#include <cmath>
-#include <iostream>
-#include <unordered_map>
 #include <vector>
+#include <unordered_map>
+#include <iostream>
+#include <cmath>
 
 struct Fastaq {
     bool gzipped;

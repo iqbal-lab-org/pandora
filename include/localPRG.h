@@ -1,21 +1,21 @@
 #ifndef __LOCALPRG_H_INCLUDED__ // if localPRG.h hasn't been included yet...
 #define __LOCALPRG_H_INCLUDED__
 
-#include "fastaq.h"
-#include "index.h"
-#include "interval.h"
-#include "kmergraph.h"
-#include "kmergraphwithcoverage.h"
-#include "localgraph.h"
-#include "pangenome/pannode.h"
-#include "prg/path.h"
-#include "vcf.h"
-#include <boost/filesystem.hpp>
-#include <cstdint>
 #include <cstring>
+#include <cstdint>
+#include <vector>
 #include <iostream>
 #include <memory>
-#include <vector>
+#include "interval.h"
+#include "index.h"
+#include "localgraph.h"
+#include "prg/path.h"
+#include "pangenome/pannode.h"
+#include "kmergraph.h"
+#include "kmergraphwithcoverage.h"
+#include "vcf.h"
+#include "fastaq.h"
+#include <boost/filesystem.hpp>
 
 using PanNodePtr = std::shared_ptr<pangenome::Node>;
 namespace fs = boost::filesystem;
@@ -85,8 +85,9 @@ public:
     void write_aligned_path_to_fasta(const boost::filesystem::path&,
         const std::vector<LocalNodePtr>&, const float&) const;
 
-    void add_sample_gt_to_vcf(VCF&, const std::vector<LocalNodePtr>&,
-        const std::vector<LocalNodePtr>&,
+    void add_new_records_and_genotype_to_vcf_using_max_likelihood_path_of_the_sample(
+        VCF& vcf, const std::vector<LocalNodePtr>& rpath,
+        const std::vector<LocalNodePtr>& sample_path,
         const std::string& sample_name = "sample") const;
 
     std::vector<LocalNodePtr> find_alt_path(const std::vector<LocalNodePtr>&,
@@ -97,7 +98,8 @@ public:
     // TODO: I really feel like these methods are not responsability of a LocalPRG
     // TODO: many of them should be in VCF class, or in the KmerGraphWithCoverage or
     // Fastaq
-    void build_vcf(VCF&, const std::vector<LocalNodePtr>&) const;
+    void build_vcf_from_reference_path(
+        VCF& vcf, const std::vector<LocalNodePtr>& ref) const;
 
     virtual std::pair<std::vector<uint32_t>, std::vector<uint32_t>>
     get_forward_and_reverse_kmer_coverages_in_range(
@@ -115,9 +117,9 @@ protected: // helper methods of get_forward_and_reverse_kmer_coverages_in_range(
         const KmerNodePtr& current_kmer_node) const;
 
 public:
-    void add_sample_covgs_to_vcf(VCF&, const KmerGraphWithCoverage&,
-        const std::vector<LocalNodePtr>&, const uint32_t& min_kmer_covg,
-        const std::string& sample_name = "sample", const uint32_t& sample_id = 0) const;
+    void add_sample_covgs_to_vcf(VCF& vcf, const KmerGraphWithCoverage& kg,
+        const std::vector<LocalNodePtr>& ref_path, const std::string& sample_name,
+        const uint32_t& sample_id) const;
 
     void add_consensus_path_to_fastaq(Fastaq&, PanNodePtr, std::vector<KmerNodePtr>&,
         std::vector<LocalNodePtr>&, const uint32_t, const bool, const uint32_t,

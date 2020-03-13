@@ -1,13 +1,13 @@
-#include <cassert>
 #include <cstring>
-#include <fstream>
-#include <iostream>
+#include <cassert>
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 #include <boost/log/trivial.hpp>
 
-#include "localPRG.h"
 #include "utils.h"
+#include "localPRG.h"
 
 int pandora_check_kmergraph(
     int argc, char* argv[]) // the "pandora check_kmergraph" comand

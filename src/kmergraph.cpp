@@ -1,18 +1,18 @@
+#include <sstream>
+#include <fstream>
 #include <cassert>
-#include <cmath>
+#include <limits>
 #include <cstdio> /* NULL */
 #include <cstdlib> /* srand, rand */
-#include <fstream>
-#include <limits>
-#include <sstream>
+#include <cmath>
 
 #include <boost/log/trivial.hpp>
 
+#include "utils.h"
+#include "kmernode.h"
 #include "kmergraph.h"
 #include "kmergraphwithcoverage.h"
-#include "kmernode.h"
 #include "localPRG.h"
-#include "utils.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 

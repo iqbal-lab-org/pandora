@@ -1,13 +1,13 @@
-#include "interval.h"
-#include "inthash.h"
+#include "gtest/gtest.h"
 #include "minihit.h"
 #include "minimizer.h"
 #include "minirecord.h"
+#include "interval.h"
 #include "prg/path.h"
-#include "gtest/gtest.h"
-#include <algorithm>
-#include <iostream>
+#include "inthash.h"
 #include <stdint.h>
+#include <iostream>
+#include <algorithm>
 
 using namespace std;
 

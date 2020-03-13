@@ -1,14 +1,14 @@
+#include "gtest/gtest.h"
+#include "minirecord.h"
+#include "prg/path.h"
 #include "index.h"
 #include "interval.h"
 #include "inthash.h"
-#include "minirecord.h"
-#include "prg/path.h"
 #include "utils.h"
-#include "gtest/gtest.h"
-#include <algorithm>
-#include <iostream>
-#include <stdint.h>
 #include <vector>
+#include <stdint.h>
+#include <iostream>
+#include <algorithm>
 
 using namespace std;
 

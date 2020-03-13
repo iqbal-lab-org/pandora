@@ -1,11 +1,11 @@
-#include <deque>
 #include <iostream>
-#include <unordered_map>
+#include <deque>
 #include <unordered_set>
+#include <unordered_map>
 
-#include "de_bruijn_graph_class.h"
-#include "test_macro.cpp"
 #include "gtest/gtest.h"
+#include "test_macro.cpp"
+#include "de_bruijn_graph_class.h"
 
 using namespace debruijn;
 

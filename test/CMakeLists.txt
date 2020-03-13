@@ -1,5 +1,3 @@
-include(${PROJECT_SOURCE_DIR}/ext/gtest.cmake)
-
 file(GLOB_RECURSE TEST_SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/*.cpp
         ${PROJECT_SOURCE_DIR}/src/*/*.cpp

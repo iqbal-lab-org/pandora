@@ -1,10 +1,10 @@
-#include "minihit.h"
-#include "noise_filtering.h"
-#include "pangenome/pannode.h"
-#include "pangenome/panread.h"
-#include "pangenome_graph_class.h"
-#include "test_macro.cpp"
 #include "gtest/gtest.h"
+#include "test_macro.cpp"
+#include "noise_filtering.h"
+#include "pangenome_graph_class.h"
+#include "pangenome/panread.h"
+#include "pangenome/pannode.h"
+#include "minihit.h"
 
 using namespace std;
 

@@ -1,9 +1,9 @@
-#include "interval.h"
-#include "minimizer.h"
-#include "seq.h"
 #include "gtest/gtest.h"
-#include <iostream>
+#include "seq.h"
+#include "minimizer.h"
+#include "interval.h"
 #include <stdint.h>
+#include <iostream>
 
 using namespace std;
 

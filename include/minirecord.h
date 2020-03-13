@@ -1,9 +1,9 @@
 #ifndef __MINIRECORD_H_INCLUDED__ // if minirecord.h hasn't been included yet...
 #define __MINIRECORD_H_INCLUDED__
 
-#include "prg/path.h"
-#include <cstdint>
 #include <iostream>
+#include <cstdint>
+#include "prg/path.h"
 
 // Minimizer Record - stores information about a minimizer
 struct MiniRecord {

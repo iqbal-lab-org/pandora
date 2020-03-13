@@ -1,15 +1,15 @@
 #ifndef __DBGRAPH_H_INCLUDED__ // if de_bruijn/graph.h hasn't been included yet...
 #define __DBGRAPH_H_INCLUDED__
 
-#include "de_bruijn/node.h"
-#include "de_bruijn/ns.cpp"
 #include <cstdint>
 #include <deque>
-#include <iostream>
 #include <memory>
-#include <set>
 #include <unordered_map>
 #include <unordered_set>
+#include <set>
+#include <iostream>
+#include "de_bruijn/ns.cpp"
+#include "de_bruijn/node.h"
 
 class debruijn::Graph {
 protected:

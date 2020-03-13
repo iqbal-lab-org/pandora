@@ -1,19 +1,20 @@
-#include <algorithm>
+#include <fstream>
+#include <set>
 #include <cassert>
 #include <cmath>
-#include <cstdlib>
-#include <fstream>
+#include <algorithm>
 #include <numeric>
-#include <set>
+#include <cstdlib>
 #include <utility>
 
 #include <boost/log/trivial.hpp>
 
-#include "fastaq.h"
-#include "inthash.h"
-#include "localPRG.h"
 #include "minimizer.h"
+#include "localPRG.h"
+#include "inthash.h"
 #include "utils.h"
+#include "fastaq.h"
+#include "Maths.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -106,9 +107,8 @@ std::vector<LocalNodePtr> LocalPRG::nodes_along_path_core(const prg::Path& p) co
                 if (itstartIndexOfAllIntervals != prg.startIndexOfAllIntervals.end()
                     && // if we found it and
                     itstartIndexOfAllIntervals->second
-                        != prg.nodes.begin()
-                               ->second) // the node we are trying to add
-                                         // is not the first node of the prg
+                        != prg.nodes.begin()->second) // the node we are trying to add
+                                                      // is not the first node of the prg
                     path_nodes.push_back(itstartIndexOfAllIntervals->second); // add it
             } else {
                 // if it is not the last interval, it should match a 0-length interval
@@ -186,9 +186,9 @@ std::vector<Interval> LocalPRG::split_by_site(const Interval& i) const
         and j + d.size()
             <= i.get_end()) { // splits the interval into the start of alleles and their
                               // end (e.g: " 5 <start>TGTTCCTGA 6 ... ACGTCT<end> 5 ") -
-                              // intervals are (0, 0), (<start>, length) - length is
-                              // such that it is the end (the interval is really inside
-                              // the site)
+                              // intervals are (0, 0), (<start>, length) - length is such
+                              // that it is the end (the interval is really inside the
+                              // site)
         v.emplace_back(Interval(k, j));
         k = j + d.size();
         j = seq.find(d, k);
@@ -273,8 +273,8 @@ std::vector<Interval> LocalPRG::split_by_site(const Interval& i) const
 
 std::vector<uint32_t> // builds the graph based on the given interval - RETURNS THE SINK
                       // NODE AFTER BUILDING THE GRAPH
-LocalPRG::build_graph(
-    const Interval& i, const std::vector<uint32_t>& from_ids, uint32_t current_level)
+                      LocalPRG::build_graph(const Interval& i,
+                          const std::vector<uint32_t>& from_ids, uint32_t current_level)
 { // i: the interval from where to build the graph; from_ids: the sources from
     // we will return the ids on the ends of any stretches of graph added
     std::vector<uint32_t>
@@ -1049,7 +1049,11 @@ void LocalPRG::write_aligned_path_to_fasta(const boost::filesystem::path& filepa
     handle.close();
 }
 
-void LocalPRG::build_vcf(VCF& vcf, const std::vector<LocalNodePtr>& ref) const
+// TODO: remove all the parameters from here:
+// TODO: we should return a VCF, instead of modifying one (avoid side effects)
+// TODO: a LocalPRG should know its reference path
+void LocalPRG::build_vcf_from_reference_path(
+    VCF& vcf, const std::vector<LocalNodePtr>& ref) const
 {
     BOOST_LOG_TRIVIAL(debug) << "Build VCF for prg " << name;
     assert(!prg.nodes.empty()); // otherwise empty nodes -> segfault
@@ -1176,8 +1180,11 @@ void LocalPRG::build_vcf(VCF& vcf, const std::vector<LocalNodePtr>& ref) const
     }
 }
 
-void LocalPRG::add_sample_gt_to_vcf(VCF& vcf, const std::vector<LocalNodePtr>& rpath,
-    const std::vector<LocalNodePtr>& sample_path, const std::string& sample_name) const
+void LocalPRG::
+    add_new_records_and_genotype_to_vcf_using_max_likelihood_path_of_the_sample(
+        VCF& vcf, const std::vector<LocalNodePtr>& rpath,
+        const std::vector<LocalNodePtr>& sample_path,
+        const std::string& sample_name) const
 {
     BOOST_LOG_TRIVIAL(debug) << "Update VCF with sample path";
     /*for (uint i=0; i!=sample_path.size(); ++i)
@@ -1227,7 +1234,8 @@ void LocalPRG::add_sample_gt_to_vcf(VCF& vcf, const std::vector<LocalNodePtr>& r
             // add ref allele from previous site to this one
             // std::cout << "update with ref alleles from " << pos << " to " << pos_to
             // << std::endl;
-            vcf.add_sample_ref_alleles(sample_name, name, pos, pos_to);
+            vcf.set_sample_gt_to_ref_allele_for_records_in_the_interval(
+                sample_name, name, pos, pos_to);
             pos = pos_to;
 
             // add new site to vcf
@@ -1243,7 +1251,8 @@ void LocalPRG::add_sample_gt_to_vcf(VCF& vcf, const std::vector<LocalNodePtr>& r
             }
 
             // std::cout << "add sample gt" << std::endl;
-            vcf.add_sample_gt(sample_name, name, pos, ref, alt);
+            vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it(
+                sample_name, name, pos, ref, alt);
             found_new_site = false;
 
             // prepare for next iteration
@@ -1284,7 +1293,8 @@ void LocalPRG::add_sample_gt_to_vcf(VCF& vcf, const std::vector<LocalNodePtr>& r
         }
     }
     // std::cout << "add last ref alleles" << std::endl;
-    vcf.add_sample_ref_alleles(sample_name, name, pos, pos_to);
+    vcf.set_sample_gt_to_ref_allele_for_records_in_the_interval(
+        sample_name, name, pos, pos_to);
     // std::cout << "done" << std::endl;
 }
 
@@ -1413,21 +1423,22 @@ uint32_t LocalPRG::get_number_of_bases_that_are_exclusively_in_the_previous_kmer
 {
     uint32_t number_of_bases_that_are_exclusively_in_the_previous_kmer_node = 0;
     auto previous_kmer_node_path_interval_iterator = previous_kmer_node->path.begin();
+    auto previous_kmer_node_path_interval_ends_before_current_kmer_node = [&]() {
+        return previous_kmer_node_path_interval_iterator
+            != previous_kmer_node->path.end()
+            and previous_kmer_node_path_interval_iterator->get_end()
+            <= current_kmer_node->path.get_start();
+    };
 
-    bool previous_kmer_node_path_interval_ends_before_current_kmer_node
-        = previous_kmer_node_path_interval_iterator->get_end()
-        <= current_kmer_node->path.get_start();
-    while (previous_kmer_node_path_interval_ends_before_current_kmer_node) {
+    while (previous_kmer_node_path_interval_ends_before_current_kmer_node()) {
         number_of_bases_that_are_exclusively_in_the_previous_kmer_node
             += previous_kmer_node_path_interval_iterator->length;
         previous_kmer_node_path_interval_iterator++;
-        previous_kmer_node_path_interval_ends_before_current_kmer_node
-            = previous_kmer_node_path_interval_iterator->get_end()
-            <= current_kmer_node->path.get_start();
     }
 
-    if (current_kmer_node->path.get_start()
-        > previous_kmer_node_path_interval_iterator->start) {
+    if (previous_kmer_node_path_interval_iterator != previous_kmer_node->path.end()
+        and current_kmer_node->path.get_start()
+            > previous_kmer_node_path_interval_iterator->start) {
         number_of_bases_that_are_exclusively_in_the_previous_kmer_node
             += current_kmer_node->path.get_start()
             - previous_kmer_node_path_interval_iterator->start;
@@ -1455,11 +1466,10 @@ LocalPRG::get_forward_and_reverse_kmer_coverages_in_range(
     // about it, it is worth upgrading it to a class, this will be done later
 
     uint32_t starting_position_of_first_non_trivial_kmer_in_kmer_path
-        = kmer_path[1]
-              ->path.get_start(); // TODO: e.g. this could be replaced by
-                                  // kmer_path.get_first_non_trivial_kmer().get_start();
-                                  // (for now, we have to implicitly know hat
-                                  // kmer_path[1] is the first non-trivial kmer)
+        = kmer_path[1]->path.get_start(); // TODO: e.g. this could be replaced by
+                                          // kmer_path.get_first_non_trivial_kmer().get_start();
+                                          // (for now, we have to implicitly know hat
+                                          // kmer_path[1] is the first non-trivial kmer)
     uint32_t number_of_bases_in_local_path_before_first_non_trivial_kmer_in_kmer_path
         = get_number_of_bases_in_local_path_before_a_given_position(
             local_path, starting_position_of_first_non_trivial_kmer_in_kmer_path);
@@ -1514,95 +1524,9 @@ LocalPRG::get_forward_and_reverse_kmer_coverages_in_range(
     return std::make_pair(forward_coverages, reverse_coverages);
 }
 
-uint32_t sum(const std::vector<uint32_t>& v)
-{
-    return std::accumulate(v.begin(), v.end(), 0);
-}
-
-uint32_t mean(const std::vector<uint32_t>& v)
-{
-    /*std::string s;
-    for (const auto &i : v)
-        s += int_to_string(i) + " ";
-    BOOST_LOG_TRIVIAL(debug) << "mean of " << s;*/
-    if (v.empty())
-        return 0;
-    return std::accumulate(v.begin(), v.end(), 0) / v.size();
-}
-
-uint32_t median(std::vector<uint32_t> v)
-{
-    /*std::string s;
-    for (const auto &i : v)
-        s += int_to_string(i) + " ";
-    BOOST_LOG_TRIVIAL(debug) << "median of " << s;*/
-    if (v.empty())
-        return 0;
-    std::sort(v.begin(), v.end());
-    if (v.size() % 2 == 1) {
-        int n = (v.size() + 1) / 2;
-        return v[n - 1];
-    } else {
-        int n1 = (v.size() + 1) / 2;
-        int n2 = (v.size() - 1) / 2;
-        return (v[n1] + v[n2]) / 2;
-    }
-}
-
-uint32_t mode(std::vector<uint32_t> v)
-{
-    std::sort(v.begin(), v.end());
-    /*std::string s;
-    for (const auto &i : v)
-        s += int_to_string(i) + " ";
-    BOOST_LOG_TRIVIAL(debug) << "mode of " << s;*/
-    uint32_t counter = 1;
-    uint32_t max_count = 1;
-    uint32_t most_common = 0;
-    uint32_t last = 0;
-    for (const auto& n : v) {
-        if (n == last)
-            counter++;
-        else {
-            if (counter > max_count) {
-                max_count = counter;
-                most_common = last;
-            }
-            counter = 1;
-        }
-        last = n;
-    }
-    return most_common;
-}
-
-float gaps(std::vector<uint32_t> v, const uint32_t& min_covg)
-{
-    if (v.empty())
-        return 0;
-    uint32_t gap = 0;
-    for (const auto& n : v) {
-        if (n < min_covg)
-            gap++;
-    }
-    return float(gap) / v.size();
-}
-
-float gaps(
-    std::vector<uint32_t> v1, std::vector<uint32_t> v2, const uint32_t& min_kmer_covg)
-{
-    if (v1.empty() or v2.size() != v1.size())
-        return 0;
-    uint32_t gap = 0;
-    for (uint i = 0; i < v1.size(); ++i) {
-        if (v1[i] + v2[i] < min_kmer_covg)
-            gap++;
-    }
-    return float(gap) / v1.size();
-}
-
 void LocalPRG::add_sample_covgs_to_vcf(VCF& vcf, const KmerGraphWithCoverage& kg,
-    const std::vector<LocalNodePtr>& ref_path, const uint32_t& min_kmer_covg,
-    const std::string& sample_name, const uint32_t& sample_id) const
+    const std::vector<LocalNodePtr>& ref_path, const std::string& sample_name,
+    const uint32_t& sample_id) const
 {
     BOOST_LOG_TRIVIAL(debug) << "Update VCF with sample covgs";
 
@@ -1616,66 +1540,52 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF& vcf, const KmerGraphWithCoverage& kg
 
     std::vector<KmerNodePtr> alt_kmer_path;
 
-    for (auto& recordPointer : vcf.records) {
+    for (auto& recordPointer : vcf.get_records()) {
         auto& record = *recordPointer;
         // std::cout << record << std::endl;
         // find corresponding ref kmers
-        auto end_pos = record.pos + record.ref.length();
-        if (record.ref == ".")
-            end_pos = record.pos;
+        auto end_pos = record.get_ref_end_pos();
+
+        std::vector<std::vector<uint32_t>> all_forward_coverages;
+        std::vector<std::vector<uint32_t>> all_reverse_coverages;
 
         std::vector<uint32_t> ref_fwd_covgs;
         std::vector<uint32_t> ref_rev_covgs;
         std::tie(ref_fwd_covgs, ref_rev_covgs)
             = get_forward_and_reverse_kmer_coverages_in_range(
-                kg, ref_kmer_path, ref_path, record.pos, end_pos, sample_id);
+                kg, ref_kmer_path, ref_path, record.get_pos(), end_pos, sample_id);
+        all_forward_coverages.push_back(ref_fwd_covgs);
+        all_reverse_coverages.push_back(ref_rev_covgs);
 
         // find corresponding alt kmers
+        for (const auto& alt_allele : record.get_alts()) {
+            alt_path = find_alt_path(
+                ref_path, record.get_pos(), record.get_ref(), alt_allele);
+            alt_kmer_path = kmernode_path_from_localnode_path(alt_path);
+
+            // find alt covgs
+            end_pos = record.get_pos() + alt_allele.length();
+            if (alt_allele == ".")
+                end_pos = record.get_pos();
+
+            std::vector<uint32_t> alt_fwd_covgs;
+            std::vector<uint32_t> alt_rev_covgs;
+            std::tie(alt_fwd_covgs, alt_rev_covgs)
+                = get_forward_and_reverse_kmer_coverages_in_range(
+                    kg, alt_kmer_path, alt_path, record.get_pos(), end_pos, sample_id);
+            all_forward_coverages.push_back(alt_fwd_covgs);
+            all_reverse_coverages.push_back(alt_rev_covgs);
+        }
+
         // if sample has alt path, we have the kmer path for this, but otherwise we will
         // need to work it out
         auto sample_it = find(vcf.samples.begin(), vcf.samples.end(), sample_name);
         assert(sample_it != vcf.samples.end());
         auto sample_index = distance(vcf.samples.begin(), sample_it);
         assert((uint)sample_index != vcf.samples.size());
-        assert(record.samples.size() > (uint)sample_index);
-
-        record.set_format(sample_index, "MEAN_FWD_COVG", mean(ref_fwd_covgs));
-        record.set_format(sample_index, "MEAN_REV_COVG", mean(ref_rev_covgs));
-        record.set_format(sample_index, "MED_FWD_COVG", median(ref_fwd_covgs));
-        record.set_format(sample_index, "MED_REV_COVG", median(ref_rev_covgs));
-        record.set_format(sample_index, "SUM_FWD_COVG", sum(ref_fwd_covgs));
-        record.set_format(sample_index, "SUM_REV_COVG", sum(ref_rev_covgs));
-        record.set_format(
-            sample_index, "GAPS", gaps(ref_fwd_covgs, ref_rev_covgs, min_kmer_covg));
-
-        for (const auto& alt_allele : record.alt) {
-            alt_path = find_alt_path(ref_path, record.pos, record.ref, alt_allele);
-            alt_kmer_path = kmernode_path_from_localnode_path(alt_path);
-
-            // find alt covgs
-            end_pos = record.pos + alt_allele.length();
-            if (alt_allele == ".")
-                end_pos = record.pos;
-
-            std::vector<uint32_t> alt_fwd_covgs;
-            std::vector<uint32_t> alt_rev_covgs;
-            std::tie(alt_fwd_covgs, alt_rev_covgs)
-                = get_forward_and_reverse_kmer_coverages_in_range(
-                    kg, alt_kmer_path, alt_path, record.pos, end_pos, sample_id);
-
-            record.append_format(sample_index, "MEAN_FWD_COVG", mean(alt_fwd_covgs));
-            record.append_format(sample_index, "MEAN_REV_COVG", mean(alt_rev_covgs));
-            record.append_format(sample_index, "MED_FWD_COVG", median(alt_fwd_covgs));
-            record.append_format(sample_index, "MED_REV_COVG", median(alt_rev_covgs));
-            record.append_format(sample_index, "SUM_FWD_COVG", sum(alt_fwd_covgs));
-            record.append_format(sample_index, "SUM_REV_COVG", sum(alt_rev_covgs));
-            record.append_format(sample_index, "GAPS",
-                gaps(alt_fwd_covgs, alt_rev_covgs, min_kmer_covg));
-        }
+        record.sampleIndex_to_sampleInfo[sample_index].set_coverage_information(
+            all_forward_coverages, all_reverse_coverages);
     }
-
-    vcf.add_formats({ "MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG",
-        "SUM_FWD_COVG", "SUM_REV_COVG", "GAPS" });
 }
 
 void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, PanNodePtr pnode,
@@ -1701,24 +1611,24 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, PanNodePtr pnode,
 
     std::vector<uint32_t> covgs
         = get_covgs_along_localnode_path(pnode, lmp, kmp, sample_id);
-    auto mode_covg = mode(covgs);
-    auto mean_covg = mean(covgs);
+    auto mode_covg = Maths::mode(covgs.begin(), covgs.end());
+    auto mean_covg = Maths::mean(covgs.begin(), covgs.end());
     BOOST_LOG_TRIVIAL(debug) << "Found global coverage " << global_covg
                              << " and path mode " << mode_covg << " and mean "
                              << mean_covg;
-    if (global_covg > 20 and 20 * mean(covgs) < global_covg) {
+    if (global_covg > 20 and 20 * mean_covg < global_covg) {
         BOOST_LOG_TRIVIAL(debug)
             << "Skip LocalPRG " << name << " mean along max likelihood path too low";
         kmp.clear();
         return;
     }
-    if (global_covg > 20 and mean(covgs) > 10 * global_covg) {
+    if (global_covg > 20 and mean_covg > 10 * global_covg) {
         BOOST_LOG_TRIVIAL(debug) << "Skip LocalPRG " << name
                                  << " as mean along max likelihood path too high";
         kmp.clear();
         return;
     }
-    if (global_covg > 20 and mode(covgs) < 3 and mean(covgs) < 3) {
+    if (global_covg > 20 and mode_covg < 3 and mean_covg < 3) {
         BOOST_LOG_TRIVIAL(debug)
             << "Skip LocalPRG " << name
             << " as mode and mean along max likelihood path too low";
@@ -1783,13 +1693,14 @@ void LocalPRG::add_variants_to_vcf(VCF& master_vcf, PanNodePtr pnode,
         reference_path = lmp;
     }
 
-    VCF vcf;
-    build_vcf(vcf, reference_path);
-    add_sample_gt_to_vcf(vcf, reference_path, lmp, sample_name);
-    add_sample_covgs_to_vcf(vcf, pnode->kmer_prg_with_coverage, reference_path,
-        min_kmer_covg, sample_name, sample_id);
-    vcf.merge_multi_allelic();
-    vcf.correct_dot_alleles(string_along_path(reference_path), name);
+    VCF vcf(master_vcf.genotyping_options);
+    build_vcf_from_reference_path(vcf, reference_path);
+    add_new_records_and_genotype_to_vcf_using_max_likelihood_path_of_the_sample(
+        vcf, reference_path, lmp, sample_name);
+    add_sample_covgs_to_vcf(
+        vcf, pnode->kmer_prg_with_coverage, reference_path, sample_name, sample_id);
+    vcf = vcf.merge_multi_allelic();
+    vcf = vcf.correct_dot_alleles(string_along_path(reference_path), name);
 #pragma omp critical(master_vcf)
     {
         master_vcf.append_vcf(vcf);

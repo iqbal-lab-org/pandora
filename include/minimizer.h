@@ -1,9 +1,9 @@
 #ifndef __MINIMIZER_H_INCLUDED__ // if minimizer.h hasn't been included yet...
 #define __MINIMIZER_H_INCLUDED__
 
-#include "interval.h"
-#include <cstdint>
 #include <ostream>
+#include <cstdint>
+#include "interval.h"
 
 /**
  * Represents a minimizer from a read or sequence (not from a graph, as MiniRecord)

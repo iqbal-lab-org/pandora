@@ -1,14 +1,14 @@
-#include "test_macro.cpp"
 #include "gtest/gtest.h"
+#include "test_macro.cpp"
 
 #include "interval.h"
+#include "prg/path.h"
 #include "kmergraph.h"
 #include "kmernode.h"
 #include "localPRG.h"
-#include "prg/path.h"
-#include <cmath>
-#include <iostream>
 #include <stdint.h>
+#include <iostream>
+#include <cmath>
 
 using namespace prg;
 

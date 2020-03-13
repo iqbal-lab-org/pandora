@@ -1,15 +1,15 @@
 #ifndef __LOCALGRAPH_H_INCLUDED__ // if localgraph.h hasn't been included yet...
 #define __LOCALGRAPH_H_INCLUDED__
 
-#include "IITree.h"
-#include "interval.h"
-#include "localnode.h"
-#include "prg/path.h"
-#include <cstdint>
-#include <cstring>
-#include <iostream>
 #include <map>
 #include <vector>
+#include <iostream>
+#include <cstring>
+#include <cstdint>
+#include "interval.h"
+#include "prg/path.h"
+#include "localnode.h"
+#include "IITree.h"
 
 class LocalGraph {
 public:

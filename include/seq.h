@@ -1,12 +1,11 @@
 #ifndef __SEQ_H_INCLUDED__ // if seq.h hasn't been included yet...
 #define __SEQ_H_INCLUDED__
 
-#include "minimizer.h"
-#include <cstdint>
-#include <ostream>
-#include <set>
 #include <string>
-#include <vector>
+#include <cstdint>
+#include <set>
+#include <ostream>
+#include "minimizer.h"
 
 class Seq {
 public:

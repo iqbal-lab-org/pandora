@@ -1,5 +1,5 @@
-#include "fastaq.h"
 #include "gtest/gtest.h"
+#include "fastaq.h"
 #include <iostream>
 
 using namespace std;

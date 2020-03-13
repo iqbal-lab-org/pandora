@@ -1,7 +1,7 @@
-#include "interval.h"
 #include "gtest/gtest.h"
-#include <iostream>
 #include <stdint.h>
+#include <iostream>
+#include "interval.h"
 
 TEST(IntervalTest, create)
 {

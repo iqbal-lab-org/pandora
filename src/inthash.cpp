@@ -1,8 +1,8 @@
-#include "inthash.h"
+#include <iostream>
 #include <cassert>
 #include <cmath>
 #include <cstring>
-#include <iostream>
+#include "inthash.h"
 
 /* Taken from Heng Li minimap https://github.com/lh3/minimap/blob/master/sketch.c
  *

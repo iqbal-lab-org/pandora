@@ -3,15 +3,15 @@
 
 class KmerNode;
 
-#include <algorithm>
-#include <cstdint>
 #include <cstring>
-#include <memory>
-#include <ostream>
+#include <cstdint>
 #include <vector>
+#include <ostream>
+#include <memory>
+#include <algorithm>
 
-#include "pangenome/ns.cpp"
 #include "prg/path.h"
+#include "pangenome/ns.cpp"
 
 typedef std::shared_ptr<KmerNode> KmerNodePtr;
 typedef std::weak_ptr<KmerNode> WeakKmerNodePtr;
