@@ -71,7 +71,8 @@ static void show_map_usage()
         << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative "
            "binomial\n"
         << "\t--max_covg\t\t\tMaximum average coverage from reads to accept\n"
-        << "\t--genotype\t\t\tAdd extra step to carefully genotype sites\n"
+        << "\t--genotype MODE\t\t\tAdd extra step to carefully genotype sites. "
+           "Has two modes: global (ML path oriented) or local (coverage oriented)\n"
         << "\t--snps_only\t\t\tWhen genotyping, include only snp sites\n"
         << "\t-d,--discover\t\t\tAdd denovo discovery\n"
         << "\t--denovo_kmer_size\t\t\tKmer size to use for denovo discovery\n"
@@ -103,7 +104,8 @@ int pandora_map(int argc, char* argv[])
     bool output_comparison_paths = false, output_mapped_read_fa = false;
     bool illumina = false, clean = false;
     bool output_covgs = false, bin = false;
-    bool genotype = false, snps_only = false, discover_denovo = false;
+    bool snps_only = false, discover_denovo = false;
+    std::string genotype;
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -309,7 +311,13 @@ int pandora_map(int argc, char* argv[])
                 return 1;
             }
         } else if ((arg == "--genotype")) {
-            genotype = true;
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                genotype = argv[++i]; // Increment 'i' so we don't get the argument as
+                // the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--genotype option requires one argument." << std::endl;
+                return 1;
+            }
         } else if ((arg == "--snps_only")) {
             snps_only = true;
         } else if ((arg == "--discover") || (arg == "-d")) {
@@ -338,9 +346,17 @@ int pandora_map(int argc, char* argv[])
 
     assert(w <= k);
     assert(not prgfile.empty());
-    if (snps_only)
-        genotype = true;
-    if (genotype)
+
+    bool valid_genotype_option
+        = genotype == "" || genotype == "global" || genotype == "local";
+    if (!valid_genotype_option) {
+        std::cerr << "--genotype should be either global or local." << std::endl;
+        return 1;
+    }
+    bool do_global_genotyping = genotype == "global";
+    bool do_local_genotyping = genotype == "local";
+
+    if (do_global_genotyping or do_local_genotyping)
         output_vcf = true;
     if (illumina and e_rate > 0.1) {
         e_rate = 0.001;
@@ -548,13 +564,14 @@ int pandora_map(int argc, char* argv[])
         return 0;
     }
 
-    if (genotype) {
-        master_vcf.genotype(true);
+    if (do_global_genotyping or do_local_genotyping) {
+        master_vcf.genotype(do_global_genotyping, do_local_genotyping);
         if (snps_only)
-            master_vcf.save(outdir + "/pandora_genotyped.vcf", false, true, false, true,
-                true, true, true, false, false, false);
+            master_vcf.save(outdir + "/pandora_genotyped_" + genotype + ".vcf", false,
+                true, false, true, true, true, true, false, false, false);
         else
-            master_vcf.save(outdir + "/pandora_genotyped.vcf", false, true);
+            master_vcf.save(
+                outdir + "/pandora_genotyped_" + genotype + ".vcf", false, true);
     }
 
     if (discover_denovo) {

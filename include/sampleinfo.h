@@ -90,8 +90,24 @@ public:
     }
 
     virtual void genotype_from_coverage();
-    virtual void
-    genotype_from_coverage_only_records_along_the_maximum_likelihood_path();
+
+    // clang-format off
+    /*
+     * The idea here is that we only regenotype records that lie on the ML path;
+     * If the regenotyping from coverage disagrees on what the ML path call (the global choice), we call null.
+     * For example, suppose these are two records before regenotyping:
+     * GC00003708      61      T       C           ...                      0:0,15:0,28:0,15:0,28:0,31:0,56:1,0
+     * GC00003708      61      TTGGTGGATCGCGGT TTGGTGGGTCGCGGT      ...     0:7,2:13,4:6,0:12,0:46,13:80,29:0.5,0.833333
+     * The global choice is genotype 0 for both records.
+     * The local choice is genotype 1 for the Record 1 and genotype 0 for Record 2.
+     * This function will then genotype null for Record 1 (global choice disagrees with local choice),
+     * and genotype 0 for Record 2 (global choice agrees with local choice).
+     * Therefore, given that the ML path produces a compatible VCF, the regenotyping of this function
+     * will keep the VCF compatible.
+     * If you want to be driven by the local choice, use genotype_from_coverage() function
+     */
+    // clang-format on
+    virtual void genotype_from_coverage_using_maximum_likelihood_path_as_reference();
 
     virtual inline bool is_gt_from_coverages_valid() const
     {
@@ -385,11 +401,11 @@ public:
     }
 
     virtual inline void
-    genotype_from_coverage_only_records_along_the_maximum_likelihood_path()
+    genotype_from_coverage_using_maximum_likelihood_path_as_reference()
     {
         for (SAMPLE_TYPE& sample_info : sample_index_to_sample_info_container) {
             sample_info
-                .genotype_from_coverage_only_records_along_the_maximum_likelihood_path();
+                .genotype_from_coverage_using_maximum_likelihood_path_as_reference();
         }
     }
 

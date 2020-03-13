@@ -65,7 +65,8 @@ static void show_compare_usage()
         << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative "
            "binomial\n"
         << "\t--max_covg\t\t\tMaximum average coverage from reads to accept\n"
-        << "\t--genotype\t\t\tAdd extra step to carefully genotype sites\n"
+        << "\t--genotype MODE\t\t\tAdd extra step to carefully genotype sites. "
+           "Has two modes: global (ML path oriented) or local (coverage oriented)\n"
         << "\t--log_level\t\t\tdebug,[info],warning,error\n"
         << std::endl;
 }
@@ -120,7 +121,8 @@ int pandora_compare(int argc, char* argv[])
     uint16_t confidence_threshold = 1;
     int max_diff = 250;
     float e_rate = 0.11, min_allele_fraction_covg_gt = 0, genotyping_error_rate = 0.01;
-    bool illumina = false, clean = false, bin = false, genotype = false;
+    bool illumina = false, clean = false, bin = false;
+    std::string genotype;
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -303,7 +305,13 @@ int pandora_compare(int argc, char* argv[])
                 return 1;
             }
         } else if ((arg == "--genotype")) {
-            genotype = true;
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                genotype = argv[++i]; // Increment 'i' so we don't get the argument as
+                // the next argv[i].
+            } else { // Uh-oh, there was no argument to the destination option.
+                std::cerr << "--genotype option requires one argument." << std::endl;
+                return 1;
+            }
         } else if ((arg == "--log_level")) {
             if (i + 1 < argc) { // Make sure we aren't at the end of argv!
                 log_level = argv[++i]; // Increment 'i' so we don't get the argument as
@@ -335,6 +343,15 @@ int pandora_compare(int argc, char* argv[])
     if (illumina and max_diff > 200) {
         max_diff = 2 * k + 1;
     }
+
+    bool valid_genotype_option
+        = genotype == "" || genotype == "global" || genotype == "local";
+    if (!valid_genotype_option) {
+        std::cerr << "--genotype should be either global or local." << std::endl;
+        return 1;
+    }
+    bool do_global_genotyping = genotype == "global";
+    bool do_local_genotyping = genotype == "local";
 
     // then run the programme...
     std::cout << "START: " << now() << std::endl;
@@ -500,9 +517,9 @@ int pandora_compare(int argc, char* argv[])
     for (uint32_t i = 0; i <= pangraph->nodes.size() / nbOfVCFsPerDir; ++i)
         fs::create_directories(VCFsDirs + "/" + int_to_string(i + 1));
 
-    // create the dirs for the VCFs genotyped, if flag is passed
-    auto VCFsGenotypedDirs = outdir + "/VCFs_genotyped";
-    if (genotype) {
+    // create the dirs for the VCFs genotyped, if genotyping should be done
+    auto VCFsGenotypedDirs = outdir + "/VCFs_genotyped_" + genotype;
+    if (do_global_genotyping || do_local_genotyping) {
         for (uint32_t i = 0; i <= pangraph->nodes.size() / nbOfVCFsPerDir; ++i)
             fs::create_directories(VCFsGenotypedDirs + "/" + int_to_string(i + 1));
     }
@@ -559,8 +576,8 @@ int pandora_compare(int argc, char* argv[])
             VCFPathsToBeConcatenated.push_back(vcfPath);
         }
 
-        if (genotype) {
-            vcf.genotype(true);
+        if (do_global_genotyping or do_local_genotyping) {
+            vcf.genotype(do_global_genotyping, do_local_genotyping);
 
             // save the genotyped vcf to disk
             auto vcfGenotypedPath = VCFsGenotypedDirs + "/" + int_to_string(dir) + "/"
@@ -579,9 +596,10 @@ int pandora_compare(int argc, char* argv[])
     vcf_ref_fa.save(outdir + "/pandora_multisample.vcf_ref.fa");
     VCF::concatenate_VCFs(
         VCFPathsToBeConcatenated, outdir + "/pandora_multisample_consensus.vcf");
-    if (genotype)
+    if (do_global_genotyping or do_local_genotyping) {
         VCF::concatenate_VCFs(VCFGenotypedPathsToBeConcatenated,
-            outdir + "/pandora_multisample_genotyped.vcf");
+            outdir + "/pandora_multisample_genotyped_" + genotype + ".vcf");
+    }
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
     BOOST_LOG_TRIVIAL(info) << "Output matrix";
