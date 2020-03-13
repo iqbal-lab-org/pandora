@@ -26,10 +26,31 @@ void SampleInfo::genotype_from_coverage()
     set_gt_from_coverages_compatible(GT_from_coverages);
 }
 
-void SampleInfo::genotype_from_coverage_only_records_along_the_maximum_likelihood_path()
+void SampleInfo::genotype_from_coverage_using_maximum_likelihood_path_as_reference()
 {
     if (this->is_gt_from_max_likelihood_path_valid()) {
-        this->genotype_from_coverage();
+        uint32_t valid_GT_from_maximum_likelihood_path
+            = this->get_gt_from_max_likelihood_path();
+
+        assert(check_if_coverage_information_is_correct());
+        auto genotype_and_max_likelihood_optional = get_genotype_from_coverage();
+        if (genotype_and_max_likelihood_optional) {
+            std::tie(GT_from_coverages, likelihood_of_GT_from_coverages)
+                = *genotype_and_max_likelihood_optional;
+
+            bool global_and_local_choices_are_not_compatible
+                = GT_from_coverages != valid_GT_from_maximum_likelihood_path;
+            if (global_and_local_choices_are_not_compatible) {
+                GT_from_coverages = boost::none;
+                likelihood_of_GT_from_coverages = boost::none;
+            }
+        } else {
+            GT_from_coverages = boost::none;
+            likelihood_of_GT_from_coverages = boost::none;
+        }
+
+        // TODO: I don't really like this side-effect - refactor this
+        set_gt_from_coverages_compatible(GT_from_coverages);
     }
 }
 

@@ -172,10 +172,10 @@ public:
     }
 
     virtual inline void
-    genotype_from_coverage_only_records_along_the_maximum_likelihood_path()
+    genotype_from_coverage_using_maximum_likelihood_path_as_reference()
     {
         sampleIndex_to_sampleInfo
-            .genotype_from_coverage_only_records_along_the_maximum_likelihood_path();
+            .genotype_from_coverage_using_maximum_likelihood_path_as_reference();
     }
 
     virtual inline void solve_incompatible_gt_conflict_with(VCFRecord& other)

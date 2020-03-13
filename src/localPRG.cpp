@@ -107,8 +107,9 @@ std::vector<LocalNodePtr> LocalPRG::nodes_along_path_core(const prg::Path& p) co
                 if (itstartIndexOfAllIntervals != prg.startIndexOfAllIntervals.end()
                     && // if we found it and
                     itstartIndexOfAllIntervals->second
-                        != prg.nodes.begin()->second) // the node we are trying to add
-                                                      // is not the first node of the prg
+                        != prg.nodes.begin()
+                               ->second) // the node we are trying to add
+                                         // is not the first node of the prg
                     path_nodes.push_back(itstartIndexOfAllIntervals->second); // add it
             } else {
                 // if it is not the last interval, it should match a 0-length interval
@@ -186,9 +187,9 @@ std::vector<Interval> LocalPRG::split_by_site(const Interval& i) const
         and j + d.size()
             <= i.get_end()) { // splits the interval into the start of alleles and their
                               // end (e.g: " 5 <start>TGTTCCTGA 6 ... ACGTCT<end> 5 ") -
-                              // intervals are (0, 0), (<start>, length) - length is such
-                              // that it is the end (the interval is really inside the
-                              // site)
+                              // intervals are (0, 0), (<start>, length) - length is
+                              // such that it is the end (the interval is really inside
+                              // the site)
         v.emplace_back(Interval(k, j));
         k = j + d.size();
         j = seq.find(d, k);
@@ -273,8 +274,8 @@ std::vector<Interval> LocalPRG::split_by_site(const Interval& i) const
 
 std::vector<uint32_t> // builds the graph based on the given interval - RETURNS THE SINK
                       // NODE AFTER BUILDING THE GRAPH
-                      LocalPRG::build_graph(const Interval& i,
-                          const std::vector<uint32_t>& from_ids, uint32_t current_level)
+LocalPRG::build_graph(
+    const Interval& i, const std::vector<uint32_t>& from_ids, uint32_t current_level)
 { // i: the interval from where to build the graph; from_ids: the sources from
     // we will return the ids on the ends of any stretches of graph added
     std::vector<uint32_t>
@@ -1466,10 +1467,11 @@ LocalPRG::get_forward_and_reverse_kmer_coverages_in_range(
     // about it, it is worth upgrading it to a class, this will be done later
 
     uint32_t starting_position_of_first_non_trivial_kmer_in_kmer_path
-        = kmer_path[1]->path.get_start(); // TODO: e.g. this could be replaced by
-                                          // kmer_path.get_first_non_trivial_kmer().get_start();
-                                          // (for now, we have to implicitly know hat
-                                          // kmer_path[1] is the first non-trivial kmer)
+        = kmer_path[1]
+              ->path.get_start(); // TODO: e.g. this could be replaced by
+                                  // kmer_path.get_first_non_trivial_kmer().get_start();
+                                  // (for now, we have to implicitly know hat
+                                  // kmer_path[1] is the first non-trivial kmer)
     uint32_t number_of_bases_in_local_path_before_first_non_trivial_kmer_in_kmer_path
         = get_number_of_bases_in_local_path_before_a_given_position(
             local_path, starting_position_of_first_non_trivial_kmer_in_kmer_path);

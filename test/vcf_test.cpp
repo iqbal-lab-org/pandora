@@ -727,7 +727,7 @@ public:
         using VCFRecord::VCFRecord;
         MOCK_METHOD(void, genotype_from_coverage, (), (override));
         MOCK_METHOD(void,
-            genotype_from_coverage_only_records_along_the_maximum_likelihood_path, (),
+            genotype_from_coverage_using_maximum_likelihood_path_as_reference, (),
             (override));
         MOCK_METHOD(bool, is_SNP, (), (const override));
     };
@@ -763,15 +763,25 @@ public:
 GenotypingOptions VCFTest___genotype___Fixture::genotyping_options_snps_only(
     { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }, 0.01, 0, 0, 0, 0, 0, 0, true);
 
-TEST_F(VCFTest___genotype___Fixture, genotype_all_records___only_along_the_ML_path)
+TEST_F(VCFTest___genotype___Fixture, no_options_set___expects_death)
+{
+    EXPECT_DEATH(default_vcf.genotype(false, false), "");
+}
+
+TEST_F(VCFTest___genotype___Fixture, two_options_set___expects_death)
+{
+    EXPECT_DEATH(default_vcf.genotype(true, true), "");
+}
+
+TEST_F(VCFTest___genotype___Fixture, genotype_all_records___global_genotyping)
 {
     {
         InSequence seq;
         EXPECT_CALL(*non_snp_vcf_record_ptr,
-            genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+            genotype_from_coverage_using_maximum_likelihood_path_as_reference)
             .Times(1);
         EXPECT_CALL(*snp_vcf_record_ptr,
-            genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+            genotype_from_coverage_using_maximum_likelihood_path_as_reference)
             .Times(1);
     }
 
@@ -779,10 +789,10 @@ TEST_F(VCFTest___genotype___Fixture, genotype_all_records___only_along_the_ML_pa
     EXPECT_CALL(*snp_vcf_record_ptr, genotype_from_coverage).Times(0);
     EXPECT_CALL(default_vcf, make_gt_compatible).Times(0);
 
-    default_vcf.genotype(true);
+    default_vcf.genotype(true, false);
 }
 
-TEST_F(VCFTest___genotype___Fixture, genotype_all_records___not_only_along_the_ML_path)
+TEST_F(VCFTest___genotype___Fixture, genotype_all_records___local_genotyping)
 {
     {
         InSequence seq;
@@ -792,36 +802,35 @@ TEST_F(VCFTest___genotype___Fixture, genotype_all_records___not_only_along_the_M
     }
 
     EXPECT_CALL(*non_snp_vcf_record_ptr,
-        genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+        genotype_from_coverage_using_maximum_likelihood_path_as_reference)
         .Times(0);
     EXPECT_CALL(*snp_vcf_record_ptr,
-        genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+        genotype_from_coverage_using_maximum_likelihood_path_as_reference)
         .Times(0);
 
-    default_vcf.genotype(false);
+    default_vcf.genotype(false, true);
 }
 
-TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only___only_along_the_ML_path)
+TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only___global_genotyping)
 {
     {
         InSequence seq;
         EXPECT_CALL(*snp_vcf_record_ptr,
-            genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+            genotype_from_coverage_using_maximum_likelihood_path_as_reference)
             .Times(1);
     }
 
     EXPECT_CALL(*non_snp_vcf_record_ptr,
-        genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+        genotype_from_coverage_using_maximum_likelihood_path_as_reference)
         .Times(0);
     EXPECT_CALL(*snp_vcf_record_ptr, genotype_from_coverage).Times(0);
     EXPECT_CALL(*non_snp_vcf_record_ptr, genotype_from_coverage).Times(0);
     EXPECT_CALL(snps_only_vcf, make_gt_compatible).Times(0);
 
-    snps_only_vcf.genotype(true);
+    snps_only_vcf.genotype(true, false);
 }
 
-TEST_F(VCFTest___genotype___Fixture,
-    genotype_snp_records_only___not_only_along_the_ML_path)
+TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only___local_genotyping)
 {
     {
         InSequence seq;
@@ -831,13 +840,13 @@ TEST_F(VCFTest___genotype___Fixture,
 
     EXPECT_CALL(*non_snp_vcf_record_ptr, genotype_from_coverage).Times(0);
     EXPECT_CALL(*snp_vcf_record_ptr,
-        genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+        genotype_from_coverage_using_maximum_likelihood_path_as_reference)
         .Times(0);
     EXPECT_CALL(*non_snp_vcf_record_ptr,
-        genotype_from_coverage_only_records_along_the_maximum_likelihood_path)
+        genotype_from_coverage_using_maximum_likelihood_path_as_reference)
         .Times(0);
 
-    snps_only_vcf.genotype(false);
+    snps_only_vcf.genotype(false, true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

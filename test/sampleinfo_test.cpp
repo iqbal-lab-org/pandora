@@ -488,18 +488,24 @@ TEST_F(SampleInfoTest___genotype_from_coverage___Fixture, invalid_genotype)
 }
 
 class
-    SampleInfoTest___genotype_from_coverage_only_records_along_the_maximum_likelihood_path___Fixture
+    SampleInfoTest___genotype_from_coverage_using_maximum_likelihood_path_as_reference___Fixture
     : public ::testing::Test {
 private:
     class SampleInfoMock : public SampleInfo {
     public:
         using SampleInfo::SampleInfo;
-        MOCK_METHOD(void, genotype_from_coverage, (), (override));
         MOCK_METHOD(bool, is_gt_from_max_likelihood_path_valid, (), (const override));
+        MOCK_METHOD(uint32_t, get_gt_from_max_likelihood_path, (), (const override));
+        MOCK_METHOD(
+            bool, check_if_coverage_information_is_correct, (), (const override));
+        MOCK_METHOD(boost::optional<GenotypeAndMaxLikelihood>,
+            get_genotype_from_coverage, (), (const override));
+        MOCK_METHOD(void, set_gt_from_coverages_compatible,
+            (const boost::optional<uint32_t>& gt), (override));
     };
 
 public:
-    SampleInfoTest___genotype_from_coverage_only_records_along_the_maximum_likelihood_path___Fixture()
+    SampleInfoTest___genotype_from_coverage_using_maximum_likelihood_path_as_reference___Fixture()
         : sample_info_mock(0, 2, &default_genotyping_options)
     {
     }
@@ -512,29 +518,88 @@ public:
 };
 
 TEST_F(
-    SampleInfoTest___genotype_from_coverage_only_records_along_the_maximum_likelihood_path___Fixture,
-    invalid_gt_from_ML_path___do_not_genotype_from_coverage)
+    SampleInfoTest___genotype_from_coverage_using_maximum_likelihood_path_as_reference___Fixture,
+    invalid_gt_from_ML_path___do_not_set_gt_from_coverages_compatible)
 {
     EXPECT_CALL(sample_info_mock, is_gt_from_max_likelihood_path_valid)
         .Times(1)
         .WillOnce(Return(false));
-    EXPECT_CALL(sample_info_mock, genotype_from_coverage).Times(0);
+    EXPECT_CALL(sample_info_mock, set_gt_from_coverages_compatible).Times(0);
 
     sample_info_mock
-        .genotype_from_coverage_only_records_along_the_maximum_likelihood_path();
+        .genotype_from_coverage_using_maximum_likelihood_path_as_reference();
 }
 
 TEST_F(
-    SampleInfoTest___genotype_from_coverage_only_records_along_the_maximum_likelihood_path___Fixture,
-    valid_gt_from_ML_path___genotype_from_coverage)
+    SampleInfoTest___genotype_from_coverage_using_maximum_likelihood_path_as_reference___Fixture,
+    valid_gt_from_ML_path___genotype_from_coverage_is_none___set_gt_from_coverages_compatible_to_none)
 {
     EXPECT_CALL(sample_info_mock, is_gt_from_max_likelihood_path_valid)
         .Times(1)
         .WillOnce(Return(true));
-    EXPECT_CALL(sample_info_mock, genotype_from_coverage).Times(1);
+    EXPECT_CALL(sample_info_mock, get_gt_from_max_likelihood_path)
+        .Times(1)
+        .WillOnce(Return(4));
+    EXPECT_CALL(sample_info_mock, check_if_coverage_information_is_correct)
+        .Times(1)
+        .WillOnce(Return(true));
+    EXPECT_CALL(sample_info_mock, get_genotype_from_coverage)
+        .Times(1)
+        .WillOnce(Return(boost::none));
+    EXPECT_CALL(
+        sample_info_mock, set_gt_from_coverages_compatible(testing::Eq(boost::none)))
+        .Times(1);
 
     sample_info_mock
-        .genotype_from_coverage_only_records_along_the_maximum_likelihood_path();
+        .genotype_from_coverage_using_maximum_likelihood_path_as_reference();
+}
+
+TEST_F(
+    SampleInfoTest___genotype_from_coverage_using_maximum_likelihood_path_as_reference___Fixture,
+    valid_gt_from_ML_path___gt_from_coverage_differs_from_gt_from_ML___set_gt_from_coverages_compatible_to_none)
+{
+    EXPECT_CALL(sample_info_mock, is_gt_from_max_likelihood_path_valid)
+        .Times(1)
+        .WillOnce(Return(true));
+    EXPECT_CALL(sample_info_mock, get_gt_from_max_likelihood_path)
+        .Times(1)
+        .WillOnce(Return(4));
+    EXPECT_CALL(sample_info_mock, check_if_coverage_information_is_correct)
+        .Times(1)
+        .WillOnce(Return(true));
+    EXPECT_CALL(sample_info_mock, get_genotype_from_coverage)
+        .Times(1)
+        .WillOnce(Return(std::pair<uint32_t, double>(2, 0.0)));
+    EXPECT_CALL(
+        sample_info_mock, set_gt_from_coverages_compatible(testing::Eq(boost::none)))
+        .Times(1);
+
+    sample_info_mock
+        .genotype_from_coverage_using_maximum_likelihood_path_as_reference();
+}
+
+TEST_F(
+    SampleInfoTest___genotype_from_coverage_using_maximum_likelihood_path_as_reference___Fixture,
+    valid_gt_from_ML_path___gt_from_coverage_equals_gt_from_ML___set_gt_from_coverages_compatible_gt_from_ML)
+{
+    EXPECT_CALL(sample_info_mock, is_gt_from_max_likelihood_path_valid)
+        .Times(1)
+        .WillOnce(Return(true));
+    EXPECT_CALL(sample_info_mock, get_gt_from_max_likelihood_path)
+        .Times(1)
+        .WillOnce(Return(4));
+    EXPECT_CALL(sample_info_mock, check_if_coverage_information_is_correct)
+        .Times(1)
+        .WillOnce(Return(true));
+    EXPECT_CALL(sample_info_mock, get_genotype_from_coverage)
+        .Times(1)
+        .WillOnce(Return(std::pair<uint32_t, double>(4, 0.0)));
+    EXPECT_CALL(sample_info_mock,
+        set_gt_from_coverages_compatible(testing::Eq(boost::optional<unsigned int>(4))))
+        .Times(1);
+
+    sample_info_mock
+        .genotype_from_coverage_using_maximum_likelihood_path_as_reference();
 }
 
 class SampleInfoTest___merge_other_sample_info_into_this___Fixture
