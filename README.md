@@ -99,12 +99,18 @@ If you haven't, you will need a multiple sequence alignment for each graph. Prec
 ### Build index
 Takes a fasta-like file of PanRG sequences and constructs an index, and a directory of gfa files to be used by `pandora map` or `pandora compare`. These are output in the same directory as the PanRG file.
 
-      Usage: pandora index [options] <PanRG>
-      Options:
+```
+$ pandora index --help
+Usage: pandora index [options] <prgs.fa>
+Options:
         -h,--help                       Show this help message
         -w W                            Window size for (w,k)-minimizers, default 14
         -k K                            K-mer size for (w,k)-minimizers, default 15
-        -t T                            Number of concurrent threads, default 1
+        -t T                            Number of threads, default 1
+        --offset                        Offset for PRG ids, default 0
+        --outfile                       Filename for index
+        --log_level                     debug,[info],warning,error
+```
 
 The index stores (w,k)-minimizers for each PanRG path found. These parameters can be specified, but default to w=14, k=15.
 
