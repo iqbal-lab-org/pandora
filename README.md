@@ -117,28 +117,37 @@ The index stores (w,k)-minimizers for each PanRG path found. These parameters ca
 ### Map reads to index
 This takes a fasta/q of Nanopore or Illumina reads and compares to the index. It infers which of the PanRG genes/elements is present, and for those that are present it outputs the inferred sequence and a genotyped VCF.
 
-      Usage: pandora map -p PanRG_FILE -r READ_FILE -o OUTDIR <option(s)>
-      Options:
-       -h,--help                        Show this help message
-       -p,--prg_file PanRG_FILE         Specify a fasta-style PanRG file
-       -r,--read_file READ_FILE         Specify a file of reads in fasta/q format
-       -o,--outdir OUTDIR               Specify directory of output
-       -w W                             Window size for (w,k)-minimizers, must be <=k, default 14
-       -k K                             K-mer size for (w,k)-minimizers, default 15
-       -m,--max_diff INT                Maximum distance between consecutive hits within a cluster, default 250 bps
-       -e,--error_rate FLOAT            Estimated error rate for reads, default 0.11/0.001 for Nanopore/Illumina
-       -c,--min_cluster_size INT        Minimum number of hits in a cluster to consider a locus present, default 10
-       --genome_size NUM_BP             Estimated length of genome, used for coverage estimation, default 5000000
-       --vcf_refs REF_FASTA             A fasta file with an entry for each loci in the PanRG in order, giving 
-                                        reference sequence to be used as VCF ref. Must have a perfect match to a 
-                                        path in the graph and the same name as the locus in the graph.
-       --illumina                       Data is from Illumina, not Nanopore, so is shorter with low error rate
-       --bin                            Use binomial model for kmer coverages, default is negative binomial
-       --max_covg INT                   Maximum average coverage from reads to accept, default first 300
-       --genotype                       Output a genotyped VCF
-       --discover                       Add denovo discovery
-       --denovo_kmer_size INT           Kmer size to use for denovo discovery, default 11
-       --log_level LEVEL                Verbosity for logging, use "debug" for more output
+```
+$ pandora map --help
+Usage: pandora map -p PRG_FILE -r READ_FILE <option(s)>
+Options:
+        -h,--help                       Show this help message
+        -p,--prg_file PRG_FILE          Specify a fasta-style prg file
+        -r,--read_file READ_FILE        Specify a file of reads in fasta format
+        -o,--outdir OUTDIR      Specify directory of output
+        -w W                            Window size for (w,k)-minimizers, must be <=k, default 14
+        -k K                            K-mer size for (w,k)-minimizers, default 15
+        -m,--max_diff INT               Maximum distance between consecutive hits within a cluster, default 500 (bps)
+        -e,--error_rate FLOAT           Estimated error rate for reads, default 0.11
+        -t T                            Number of threads, default 1
+        --genome_size   NUM_BP  Estimated length of genome, used for coverage estimation
+        --output_kg                     Save kmer graphs with fwd and rev coverage annotations for found localPRGs
+        --output_vcf                    Save a vcf file for each found localPRG
+        --vcf_refs REF_FASTA            A fasta file with an entry for each LocalPRG giving reference sequence for
+                                        VCF. Must have a perfect match in the graph and the same name as the graph
+        --output_comparison_paths       Save a fasta file for a random selection of paths through localPRG
+        --output_covgs  Save a file of covgs for each localPRG present, one number per base of fasta file
+        --output_mapped_read_fa Save a file for each gene containing read parts which overlapped it
+        --illumina                      Data is from illumina rather than nanopore, so is shorter with low error rate
+        --clean                 Add a step to clean and detangle the pangraph
+        --bin                   Use binomial model for kmer coverages, default is negative binomial
+        --max_covg                      Maximum average coverage from reads to accept
+        --genotype MODE                 Add extra step to carefully genotype sites. Has two modes: global (ML path oriented) or local (coverage oriented)
+        --snps_only                     When genotyping, include only snp sites
+        -d,--discover                   Add denovo discovery
+        --denovo_kmer_size                      Kmer size to use for denovo discovery
+        --log_level                     debug,[info],warning,error
+```
 
 ### Compare reads from several samples
 This takes Nanopore or Illumina read fasta/q for a number of samples, mapping each to the index. It infers which of the PanRG genes/elements is present in each sample, and outputs a presence/absence pangenome matrix, the inferred sequences for each sample and a genotyped multisample pangenome VCF.
