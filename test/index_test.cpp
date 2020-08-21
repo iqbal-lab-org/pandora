@@ -12,6 +12,8 @@
 
 using namespace std;
 
+const std::string TEST_CASE_DIR = "test_cases/";
+
 TEST(IndexTest, add_record)
 {
     Index idx;
@@ -152,33 +154,33 @@ TEST(IndexTest, merging_indexes)
     uint32_t w = 2, k = 3;
     std::vector<std::shared_ptr<LocalPRG>> prgs;
     auto index = std::make_shared<Index>();
-    auto outdir = "../../test/test_cases/kgs/";
+    auto outdir = TEST_CASE_DIR + "kgs/";
 
-    read_prg_file(prgs, "../../test/test_cases/prg1.fa", 1);
+    read_prg_file(prgs, TEST_CASE_DIR + "prg1.fa", 1);
     index_prgs(prgs, index, w, k, outdir);
-    index->save("../../test/test_cases/prg1.fa.idx");
-
-    prgs.clear();
-    index->clear();
-    read_prg_file(prgs, "../../test/test_cases/prg2.fa", 2);
-    index_prgs(prgs, index, w, k, outdir);
-    index->save("../../test/test_cases/prg2.fa.idx");
+    index->save(TEST_CASE_DIR + "prg1.fa.idx");
 
     prgs.clear();
     index->clear();
-    read_prg_file(prgs, "../../test/test_cases/prg3.fa", 3);
+    read_prg_file(prgs, TEST_CASE_DIR + "prg2.fa", 2);
     index_prgs(prgs, index, w, k, outdir);
-    index->save("../../test/test_cases/prg3.fa.idx");
+    index->save(TEST_CASE_DIR + "prg2.fa.idx");
+
+    prgs.clear();
+    index->clear();
+    read_prg_file(prgs, TEST_CASE_DIR + "prg3.fa", 3);
+    index_prgs(prgs, index, w, k, outdir);
+    index->save(TEST_CASE_DIR + "prg3.fa.idx");
 
     // merge
     auto index_merged = std::make_shared<Index>();
-    index_merged->load("../../test/test_cases/prg1.fa.idx");
-    index_merged->load("../../test/test_cases/prg2.fa.idx");
-    index_merged->load("../../test/test_cases/prg3.fa.idx");
+    index_merged->load(TEST_CASE_DIR + "prg1.fa.idx");
+    index_merged->load(TEST_CASE_DIR + "prg2.fa.idx");
+    index_merged->load(TEST_CASE_DIR + "prg3.fa.idx");
 
     // now an index from all 4 in
     prgs.clear();
     auto index_all = std::make_shared<Index>();
-    read_prg_file(prgs, "../../test/test_cases/prg0123.fa");
+    read_prg_file(prgs, TEST_CASE_DIR + "prg0123.fa");
     index_prgs(prgs, index_all, w, k, outdir);
 }

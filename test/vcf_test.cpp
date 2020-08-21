@@ -18,6 +18,8 @@ using ::testing::Property;
 using ::testing::Return;
 using ::testing::ReturnRef;
 
+const std::string TEST_CASE_DIR = "test_cases/";
+
 TEST(VCFTest, add_record_with_values)
 {
 
@@ -752,7 +754,7 @@ public:
         snps_only_vcf.records.push_back(snp_vcf_record_ptr);
     }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     VCFMock default_vcf;
     VCFMock snps_only_vcf;
@@ -1215,9 +1217,9 @@ public:
     {
     }
 
-    void SetUp() override {}
+    void SetUp() override { }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     VCFMock vcf;
     VCFMock merged_vcf;
@@ -1688,7 +1690,7 @@ public:
         vcf.records.push_back(vcf_record_2);
     }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     VCFMock vcf;
     std::shared_ptr<VCFRecordMock> vcf_record_1;
@@ -1935,9 +1937,9 @@ public:
     {
     }
 
-    void SetUp() override {}
+    void SetUp() override { }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     VCF vcf;
     VCFRecord vcf_record_5_to_10;
@@ -2140,7 +2142,7 @@ protected:
             .WillOnce(Return(std::string("dummy_date")));
     }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     VCF_Mock vcf;
 };
@@ -2250,7 +2252,7 @@ protected:
             .WillOnce(Return(std::string("##Dummy_header;\n")));
     }
 
-    void TearDown() override {}
+    void TearDown() override { }
 };
 
 TEST_F(VCFTest___to_string___Fixture, graph_type_is_simple_sv_is_snp)
@@ -2509,9 +2511,9 @@ TEST_F(VCFTest___save___Fixture, save_false_then_true_flags)
 
 TEST(VCFTest, concatenate_VCFs)
 {
-    VCF::concatenate_VCFs({ "../../test/test_cases/concatenate_VCFs/fake_vcf1.vcf",
-                              "../../test/test_cases/concatenate_VCFs/fake_vcf2.vcf",
-                              "../../test/test_cases/concatenate_VCFs/fake_vcf3.vcf" },
+    VCF::concatenate_VCFs({ TEST_CASE_DIR + "concatenate_VCFs/fake_vcf1.vcf",
+                              TEST_CASE_DIR + "concatenate_VCFs/fake_vcf2.vcf",
+                              TEST_CASE_DIR + "concatenate_VCFs/fake_vcf3.vcf" },
         "concatenated_vcf.vcf");
     std::vector<std::string> actual
         = get_vector_of_strings_from_file("concatenated_vcf.vcf");

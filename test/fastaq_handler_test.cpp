@@ -6,37 +6,39 @@
 
 using namespace std;
 
+const std::string TEST_CASE_DIR = "test_cases/";
+
 TEST(FastaqHandlerTest, create_fa)
 {
-    FastaqHandler fh("../../test/test_cases/reads.fa");
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
     EXPECT_EQ((uint32_t)0, fh.num_reads_parsed);
     EXPECT_TRUE(fh.fastaq_file.is_open());
 }
 
 TEST(FastaqHandlerTest, create_fq)
 {
-    FastaqHandler fh("../../test/test_cases/reads.fq");
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fq");
     EXPECT_EQ((uint)0, fh.num_reads_parsed);
     EXPECT_TRUE(fh.fastaq_file.is_open());
 }
 
 TEST(FastaqHandlerTest, create_fagz)
 {
-    FastaqHandler fh("../../test/test_cases/reads.fa.gz");
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fa.gz");
     EXPECT_EQ((uint)0, fh.num_reads_parsed);
     EXPECT_TRUE(fh.fastaq_file.is_open());
 }
 
 TEST(FastaqHandlerTest, create_fqgz)
 {
-    FastaqHandler fh("../../test/test_cases/reads.fq.gz");
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fq.gz");
     EXPECT_EQ((uint)0, fh.num_reads_parsed);
     EXPECT_TRUE(fh.fastaq_file.is_open());
 }
 
 TEST(FastaqHandlerTest, getline_fa)
 {
-    FastaqHandler fh("../../test/test_cases/reads.fa");
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
     bool foundline = false;
     while (std::getline(fh.instream, fh.line)) {
         foundline = true;
@@ -46,7 +48,7 @@ TEST(FastaqHandlerTest, getline_fa)
 
 TEST(FastaqHandlerTest, getline_fagz)
 {
-    FastaqHandler fh("../../test/test_cases/reads.fa.gz");
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fa.gz");
     bool foundline = false;
     while (std::getline(fh.instream, fh.line)) {
         foundline = true;
@@ -56,7 +58,7 @@ TEST(FastaqHandlerTest, getline_fagz)
 
 TEST(FastaqHandlerTest, get_next)
 {
-    FastaqHandler fh("../../test/test_cases/reads.fa");
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
     fh.get_next();
     EXPECT_EQ((uint32_t)1, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read0");
@@ -90,7 +92,7 @@ TEST(FastaqHandlerTest, get_next)
 
 TEST(FastaqHandlerTest, get_id_fa)
 {
-    FastaqHandler fh("../../test/test_cases/reads.fa");
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
 
     fh.get_id(1);
     EXPECT_EQ((uint32_t)2, fh.num_reads_parsed);
@@ -130,7 +132,7 @@ TEST(FastaqHandlerTest, get_id_fa)
 
 TEST(FastaqHandlerTest, get_id_fq)
 {
-    FastaqHandler fh("../../test/test_cases/reads.fq");
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fq");
 
     fh.get_id(1);
     EXPECT_EQ((uint32_t)2, fh.num_reads_parsed);
@@ -178,7 +180,7 @@ TEST(FastaqHandlerTest, get_id_fq)
 
 TEST(FastaqHandlerTest, get_id_fagz)
 {
-    FastaqHandler fh("../../test/test_cases/reads.fa.gz");
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fa.gz");
 
     fh.get_id(1);
     EXPECT_EQ((uint)2, fh.num_reads_parsed);
@@ -218,7 +220,7 @@ TEST(FastaqHandlerTest, get_id_fagz)
 
 TEST(FastaqHandlerTest, get_id_fqgz)
 {
-    FastaqHandler fh("../../test/test_cases/reads.fq.gz");
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fq.gz");
 
     fh.get_id(1);
     EXPECT_EQ((uint)2, fh.num_reads_parsed);
@@ -258,7 +260,7 @@ TEST(FastaqHandlerTest, get_id_fqgz)
 
 TEST(FastaqHandlerTest, close)
 {
-    FastaqHandler fh("../../test/test_cases/reads.fa");
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
     EXPECT_EQ((uint32_t)0, fh.num_reads_parsed);
     EXPECT_TRUE(fh.fastaq_file.is_open());
     fh.close();
@@ -267,7 +269,7 @@ TEST(FastaqHandlerTest, close)
 
 TEST(FastaqHandlerTest, close_fqgz)
 {
-    FastaqHandler fh("../../test/test_cases/reads.fq.gz");
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fq.gz");
     EXPECT_EQ((uint)0, fh.num_reads_parsed);
     EXPECT_TRUE(fh.fastaq_file.is_open());
     fh.close();
