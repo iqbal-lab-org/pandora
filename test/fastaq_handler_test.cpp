@@ -12,6 +12,7 @@ TEST(FastaqHandlerTest, create_fa)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
     EXPECT_EQ((uint32_t)0, fh.num_reads_parsed);
+    
     EXPECT_TRUE(fh.fastaq_file.is_open());
 }
 
@@ -40,7 +41,7 @@ TEST(FastaqHandlerTest, getline_fa)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
     bool foundline = false;
-    while (std::getline(fh.instream, fh.line)) {
+    while (std::getline(fh.instream, fh.seq)) {
         foundline = true;
     }
     EXPECT_TRUE(foundline);
@@ -50,7 +51,7 @@ TEST(FastaqHandlerTest, getline_fagz)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fa.gz");
     bool foundline = false;
-    while (std::getline(fh.instream, fh.line)) {
+    while (std::getline(fh.instream, fh.seq)) {
         foundline = true;
     }
     EXPECT_TRUE(foundline);
