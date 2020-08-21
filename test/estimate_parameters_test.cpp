@@ -7,6 +7,8 @@
 
 using namespace std;
 
+const std::string TEST_CASE_DIR = "test_cases/";
+
 TEST(EstimateParameters_FitMeanCovg, Empty)
 {
     std::vector<uint> v = {};
@@ -204,9 +206,9 @@ TEST(EstimateParameters_EstimateParameters, PangraphWithNodes_SimpleBinomial)
     bool bin = true, illumina = true;
 
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    pangraph_from_read_file("../../test/test_cases/estimate_parameters_reads.fa",
-        pangraph, index, prgs, w, k, 1, e_rate, min_cluster_size, genome_size,
-        illumina);
+    const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads.fa";
+    pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
+        min_cluster_size, genome_size, illumina);
     pangraph->add_hits_to_kmergraphs(prgs);
 
     auto expected_depth_covg
@@ -228,9 +230,9 @@ TEST(
     bool bin = true, illumina = true;
 
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    pangraph_from_read_file("../../test/test_cases/estimate_parameters_reads3.fa",
-        pangraph, index, prgs, w, k, 1, e_rate, min_cluster_size, genome_size,
-        illumina);
+    const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads3.fa";
+    pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
+        min_cluster_size, genome_size, illumina);
     pangraph->add_hits_to_kmergraphs(prgs);
 
     auto expected_depth_covg
@@ -251,9 +253,9 @@ TEST(EstimateParameters_EstimateParameters, PangraphWithNodes_SimpleNegativeBino
     bool bin = false, illumina = true;
 
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    pangraph_from_read_file("../../test/test_cases/estimate_parameters_reads.fa",
-        pangraph, index, prgs, w, k, 1, e_rate, min_cluster_size, genome_size,
-        illumina);
+    const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads.fa";
+    pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
+        min_cluster_size, genome_size, illumina);
     pangraph->add_hits_to_kmergraphs(prgs);
 
     auto expected_depth_covg
@@ -275,9 +277,9 @@ TEST(EstimateParameters_EstimateParameters,
     bool bin = false, illumina = true;
 
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    pangraph_from_read_file("../../test/test_cases/estimate_parameters_reads4.fa",
-        pangraph, index, prgs, w, k, 1, e_rate, min_cluster_size, genome_size,
-        illumina);
+    const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads4.fa";
+    pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
+        min_cluster_size, genome_size, illumina);
     pangraph->add_hits_to_kmergraphs(prgs);
 
     auto expected_depth_covg
@@ -300,9 +302,9 @@ TEST(EstimateParameters_EstimateParameters,
     bool bin = true, illumina = true;
 
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    pangraph_from_read_file("../../test/test_cases/estimate_parameters_reads4.fa",
-        pangraph, index, prgs, w, k, 1, e_rate, min_cluster_size, genome_size,
-        illumina);
+    const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads4.fa";
+    pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
+        min_cluster_size, genome_size, illumina);
     pangraph->add_hits_to_kmergraphs(prgs);
 
     auto expected_depth_covg
@@ -324,9 +326,9 @@ TEST(EstimateParameters_EstimateParameters, PangraphWithNodes_NoiseReads)
     bool bin = false, illumina = true;
 
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    pangraph_from_read_file("../../test/test_cases/estimate_parameters_reads2.fa",
-        pangraph, index, prgs, w, k, 1, e_rate, min_cluster_size, genome_size,
-        illumina);
+    const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads2.fa";
+    pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
+        min_cluster_size, genome_size, illumina);
     pangraph->add_hits_to_kmergraphs(prgs);
 
     auto expected_depth_covg
