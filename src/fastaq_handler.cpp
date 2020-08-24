@@ -9,7 +9,8 @@
 #include "utils.h"
 
 FastaqHandler::FastaqHandler(const std::string& filepath)
-    : filepath(filepath)
+    : closed_status(3)
+    , filepath(filepath)
     , gzipped(false)
     , num_reads_parsed(0)
     , read_status(0)
@@ -124,5 +125,7 @@ void FastaqHandler::get_id(const uint32_t& id)
 void FastaqHandler::close()
 {
     BOOST_LOG_TRIVIAL(debug) << "Close fastaq file";
-    gzclose(this->fastaq_file);
+    this->closed_status = gzclose(this->fastaq_file);
 }
+
+bool FastaqHandler::is_closed() const { return this->closed_status == Z_OK; }

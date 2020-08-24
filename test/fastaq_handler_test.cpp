@@ -117,9 +117,8 @@ TEST(FastaqHandlerTest, get_id_fq)
     {
         std::ofstream outstream(filepath);
         outstream << "@read1 comment\nACGT\n+\n^^^^\n";
-        outstream <<"@read2 comment\nGCGT\n+\n^^^^\n";
+        outstream << "@read2 comment\nGCGT\n+\n^^^^\n";
         outstream << "@read3 comment\nTCGT\n+\n^^^^\n";
-
     }
 
     FastaqHandler fh(filepath);
@@ -148,13 +147,13 @@ TEST(FastaqHandlerTest, get_id_fq)
     EXPECT_EQ(expected_read, fh.read);
 }
 
-TEST(FastaqHandlerTest, get_id_past_end_throws_error) {
+TEST(FastaqHandlerTest, get_id_past_end_throws_error)
+{
     const std::string filepath = std::tmpnam(nullptr);
     {
         std::ofstream outstream(filepath);
         outstream << "@read1 comment\nACGT\n+\n^^^^\n";
-        outstream <<"@read2 comment\nGCGT\n+\n^^^^\n";
-
+        outstream << "@read2 comment\nGCGT\n+\n^^^^\n";
     }
 
     FastaqHandler fh(filepath);
@@ -247,14 +246,14 @@ TEST(FastaqHandlerTest, close)
     EXPECT_EQ((uint32_t)0, fh.num_reads_parsed);
     EXPECT_TRUE(fh.fastaq_file);
     fh.close();
-    EXPECT_FALSE(fh.fastaq_file);
+    EXPECT_TRUE(fh.is_closed());
 }
 
 TEST(FastaqHandlerTest, close_fqgz)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fq.gz");
     EXPECT_EQ((uint)0, fh.num_reads_parsed);
-    EXPECT_TRUE(fh.fastaq_file);
+    EXPECT_FALSE(fh.is_closed());
     fh.close();
-    EXPECT_FALSE(fh.fastaq_file);
+    EXPECT_TRUE(fh.is_closed());
 }
