@@ -12,49 +12,29 @@ TEST(FastaqHandlerTest, create_fa)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
     EXPECT_EQ((uint32_t)0, fh.num_reads_parsed);
-    
-    EXPECT_TRUE(fh.fastaq_file.is_open());
+
+    EXPECT_TRUE(fh.fastaq_file);
 }
 
 TEST(FastaqHandlerTest, create_fq)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fq");
     EXPECT_EQ((uint)0, fh.num_reads_parsed);
-    EXPECT_TRUE(fh.fastaq_file.is_open());
+    EXPECT_TRUE(fh.fastaq_file);
 }
 
 TEST(FastaqHandlerTest, create_fagz)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fa.gz");
     EXPECT_EQ((uint)0, fh.num_reads_parsed);
-    EXPECT_TRUE(fh.fastaq_file.is_open());
+    EXPECT_TRUE(fh.fastaq_file);
 }
 
 TEST(FastaqHandlerTest, create_fqgz)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fq.gz");
     EXPECT_EQ((uint)0, fh.num_reads_parsed);
-    EXPECT_TRUE(fh.fastaq_file.is_open());
-}
-
-TEST(FastaqHandlerTest, getline_fa)
-{
-    FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
-    bool foundline = false;
-    while (std::getline(fh.instream, fh.seq)) {
-        foundline = true;
-    }
-    EXPECT_TRUE(foundline);
-}
-
-TEST(FastaqHandlerTest, getline_fagz)
-{
-    FastaqHandler fh(TEST_CASE_DIR + "reads.fa.gz");
-    bool foundline = false;
-    while (std::getline(fh.instream, fh.seq)) {
-        foundline = true;
-    }
-    EXPECT_TRUE(foundline);
+    EXPECT_TRUE(fh.fastaq_file);
 }
 
 TEST(FastaqHandlerTest, get_next)
@@ -133,50 +113,52 @@ TEST(FastaqHandlerTest, get_id_fa)
 
 TEST(FastaqHandlerTest, get_id_fq)
 {
-    FastaqHandler fh(TEST_CASE_DIR + "reads.fq");
+    const std::string filepath = std::tmpnam(nullptr);
+    {
+        std::ofstream outstream(filepath);
+        outstream << "@read1 comment\nACGT\n+\n^^^^\n";
+        outstream <<"@read2 comment\nGCGT\n+\n^^^^\n";
+        outstream << "@read3 comment\nTCGT\n+\n^^^^\n";
 
+    }
+
+    FastaqHandler fh(filepath);
     fh.get_id(1);
-    EXPECT_EQ((uint32_t)2, fh.num_reads_parsed);
-    EXPECT_EQ(fh.name, "read1");
-    EXPECT_EQ(fh.read, "should copy the phrase *should*");
+    uint32_t expected_num_parsed = 2;
+    std::string expected_name = "read2";
+    std::string expected_read = "GCGT";
+    EXPECT_EQ(expected_num_parsed, fh.num_reads_parsed);
+    EXPECT_EQ(expected_name, fh.name);
+    EXPECT_EQ(expected_read, fh.read);
 
     fh.get_id(0);
-    EXPECT_EQ((uint32_t)1, fh.num_reads_parsed);
-    EXPECT_EQ(fh.name, "read0");
-    EXPECT_EQ(fh.read, "to be ignored");
+    expected_num_parsed = 1;
+    expected_name = "read1";
+    expected_read = "ACGT";
+    EXPECT_EQ(expected_num_parsed, fh.num_reads_parsed);
+    EXPECT_EQ(expected_name, fh.name);
+    EXPECT_EQ(expected_read, fh.read);
 
     fh.get_id(2);
-    EXPECT_EQ((uint32_t)3, fh.num_reads_parsed);
-    EXPECT_EQ(fh.name, "read2");
-    EXPECT_EQ(fh.read, "this time we should get *is time *");
+    expected_num_parsed = 3;
+    expected_name = "read3";
+    expected_read = "TCGT";
+    EXPECT_EQ(expected_num_parsed, fh.num_reads_parsed);
+    EXPECT_EQ(expected_name, fh.name);
+    EXPECT_EQ(expected_read, fh.read);
+}
 
-    fh.get_id(1);
-    EXPECT_EQ((uint32_t)2, fh.num_reads_parsed);
-    EXPECT_EQ(fh.name, "read1");
-    EXPECT_EQ(fh.read, "should copy the phrase *should*");
+TEST(FastaqHandlerTest, get_id_past_end_throws_error) {
+    const std::string filepath = std::tmpnam(nullptr);
+    {
+        std::ofstream outstream(filepath);
+        outstream << "@read1 comment\nACGT\n+\n^^^^\n";
+        outstream <<"@read2 comment\nGCGT\n+\n^^^^\n";
 
-    fh.get_id(0);
-    EXPECT_EQ((uint32_t)1, fh.num_reads_parsed);
-    EXPECT_EQ(fh.name, "read0");
-    EXPECT_EQ(fh.read, "to be ignored");
+    }
 
-    fh.get_id(1);
-    EXPECT_EQ((uint32_t)2, fh.num_reads_parsed);
-    EXPECT_EQ(fh.name, "read1");
-    EXPECT_EQ(fh.read, "should copy the phrase *should*");
-
-    fh.get_id(2);
-    EXPECT_EQ((uint32_t)3, fh.num_reads_parsed);
-    EXPECT_EQ(fh.name, "read2");
-    EXPECT_EQ(fh.read, "this time we should get *is time *");
-
-    fh.get_id(4);
-    EXPECT_EQ((uint)5, fh.num_reads_parsed);
-    EXPECT_EQ(fh.name, "read4");
-
-    fh.get_id(3);
-    EXPECT_EQ((uint)4, fh.num_reads_parsed);
-    EXPECT_EQ(fh.name, "read3");
+    FastaqHandler fh(filepath);
+    EXPECT_THROW(fh.get_id(10), std::out_of_range);
 }
 
 TEST(FastaqHandlerTest, get_id_fagz)
@@ -263,16 +245,16 @@ TEST(FastaqHandlerTest, close)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
     EXPECT_EQ((uint32_t)0, fh.num_reads_parsed);
-    EXPECT_TRUE(fh.fastaq_file.is_open());
+    EXPECT_TRUE(fh.fastaq_file);
     fh.close();
-    EXPECT_FALSE(fh.fastaq_file.is_open());
+    EXPECT_FALSE(fh.fastaq_file);
 }
 
 TEST(FastaqHandlerTest, close_fqgz)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fq.gz");
     EXPECT_EQ((uint)0, fh.num_reads_parsed);
-    EXPECT_TRUE(fh.fastaq_file.is_open());
+    EXPECT_TRUE(fh.fastaq_file);
     fh.close();
-    EXPECT_FALSE(fh.fastaq_file.is_open());
+    EXPECT_FALSE(fh.fastaq_file);
 }

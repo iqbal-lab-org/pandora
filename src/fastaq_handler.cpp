@@ -19,6 +19,9 @@ FastaqHandler::FastaqHandler(const std::string& filepath)
 
     BOOST_LOG_TRIVIAL(debug) << "Open fastaq file" << filepath;
     this->fastaq_file = gzopen(filepath.c_str(), "r");
+    if (this->fastaq_file == nullptr) {
+        throw "Unable to open " + this->filepath;
+    }
     this->inbuf = kseq_init(this->fastaq_file);
 }
 
@@ -29,6 +32,10 @@ bool FastaqHandler::eof() const { return (this->read_status == -1); }
 void FastaqHandler::get_next()
 {
     this->read_status = kseq_read(this->inbuf);
+
+    if (this->eof()) {
+        return;
+    }
 
     if (this->read_status == -2) {
         throw "Truncated quality string detected";
@@ -108,8 +115,8 @@ void FastaqHandler::get_id(const uint32_t& id)
 
     while (num_reads_parsed <= id) {
         get_next();
-        if (eof()) {
-            break;
+        if (eof() && num_reads_parsed < id) {
+            throw std::out_of_range("Requested a read past the end of the file.");
         }
     }
 }
