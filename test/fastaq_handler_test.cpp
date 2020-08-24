@@ -71,6 +71,24 @@ TEST(FastaqHandlerTest, get_next)
     EXPECT_EQ(fh.read, "another junk line");
 }
 
+TEST(FastaqHandlerTest, eof)
+{
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
+    EXPECT_FALSE(fh.eof());
+    fh.get_next();
+    EXPECT_FALSE(fh.eof());
+    fh.get_next();
+    EXPECT_FALSE(fh.eof());
+    fh.get_next();
+    EXPECT_FALSE(fh.eof());
+    fh.get_next();
+    EXPECT_FALSE(fh.eof());
+    fh.get_next();
+    EXPECT_TRUE(fh.eof());
+    fh.get_next();
+    EXPECT_TRUE(fh.eof());
+}
+
 TEST(FastaqHandlerTest, get_id_fa)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
