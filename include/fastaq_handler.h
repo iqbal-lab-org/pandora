@@ -24,7 +24,9 @@ struct FastaqHandler {
     std::string name;
     std::string read;
     uint32_t num_reads_parsed;
-    int read_status; // https://github.com/attractivechaos/klib/blob/928581a78413bed4efa956731b35b18a638f20f3/kseq.h#L171
+    int read_status;   // see https://github.com/attractivechaos/klib/blob/928581a78413bed4efa956731b35b18a638f20f3/kseq.h#L171
+    int closed_status; // see https://github.com/attractivechaos/klib/blob/928581a78413bed4efa956731b35b18a638f20f3/kseq.h#L171
+
 
     FastaqHandler(const std::string&);
 
@@ -39,6 +41,9 @@ struct FastaqHandler {
     void get_id(const uint32_t&);
 
     void close();
+
+    bool is_closed() const;
+
 };
 
 #endif

@@ -26,7 +26,11 @@ FastaqHandler::FastaqHandler(const std::string& filepath)
     this->inbuf = kseq_init(this->fastaq_file);
 }
 
-FastaqHandler::~FastaqHandler() { close(); }
+FastaqHandler::~FastaqHandler() {
+    if (!this->is_closed()) {
+        close();
+    }
+}
 
 bool FastaqHandler::eof() const { return (this->read_status == -1); }
 
