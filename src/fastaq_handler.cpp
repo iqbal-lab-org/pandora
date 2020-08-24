@@ -32,7 +32,7 @@ FastaqHandler::~FastaqHandler() {
     }
 }
 
-bool FastaqHandler::eof() const { return (this->read_status == -1); }
+bool FastaqHandler::eof() const { return ks_eof(this->inbuf->f); }
 
 void FastaqHandler::get_next()
 {
