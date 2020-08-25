@@ -267,6 +267,18 @@ TEST(FastaqHandlerTest, close)
     EXPECT_TRUE(fh.is_closed());
 }
 
+TEST(FastaqHandlerTest, close_multiple_times_does_not_error)
+{
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
+    EXPECT_EQ((uint32_t)0, fh.num_reads_parsed);
+    EXPECT_TRUE(fh.fastaq_file);
+    fh.close();
+    EXPECT_TRUE(fh.is_closed());
+    fh.close();
+    fh.close();
+}
+
+
 TEST(FastaqHandlerTest, close_fqgz)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fq.gz");

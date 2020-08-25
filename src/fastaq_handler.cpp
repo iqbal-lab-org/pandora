@@ -24,12 +24,7 @@ FastaqHandler::FastaqHandler(const std::string& filepath)
     this->inbuf = kseq_init(this->fastaq_file);
 }
 
-FastaqHandler::~FastaqHandler()
-{
-    if (!this->is_closed()) {
-        close();
-    }
-}
+FastaqHandler::~FastaqHandler() { this->close(); }
 
 bool FastaqHandler::eof() const { return ks_eof(this->inbuf->f); }
 
@@ -128,8 +123,9 @@ void FastaqHandler::get_id(const uint32_t& id)
 
 void FastaqHandler::close()
 {
-    BOOST_LOG_TRIVIAL(debug) << "Close fastaq file";
-    this->closed_status = gzclose(this->fastaq_file);
+    if (!this->is_closed()) {
+        this->closed_status = gzclose(this->fastaq_file);
+    }
 }
 
 bool FastaqHandler::is_closed() const { return this->closed_status == Z_OK; }
