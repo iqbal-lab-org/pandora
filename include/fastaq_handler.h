@@ -17,15 +17,17 @@ KSEQ_INIT(gzFile, gzread)
 namespace logging = boost::log;
 
 struct FastaqHandler {
-    const std::string &filepath;
-    bool gzipped;
-    gzFile fastaq_file;
+private:
+    int closed_status; // see
+                       // https://github.com/attractivechaos/klib/blob/928581a78413bed4efa956731b35b18a638f20f3/kseq.h#L171
     kseq_t* inbuf;
+
+public:
+    const std::string& filepath;
+    gzFile fastaq_file;
     std::string name;
     std::string read;
     uint32_t num_reads_parsed;
-    int closed_status; // see https://github.com/attractivechaos/klib/blob/928581a78413bed4efa956731b35b18a638f20f3/kseq.h#L171
-
 
     FastaqHandler(const std::string&);
 
@@ -42,7 +44,6 @@ struct FastaqHandler {
     void close();
 
     bool is_closed() const;
-
 };
 
 #endif

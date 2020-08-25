@@ -11,7 +11,6 @@
 FastaqHandler::FastaqHandler(const std::string& filepath)
     : closed_status(3)
     , filepath(filepath)
-    , gzipped(false)
     , num_reads_parsed(0)
 {
     // level for boost logging
@@ -25,7 +24,8 @@ FastaqHandler::FastaqHandler(const std::string& filepath)
     this->inbuf = kseq_init(this->fastaq_file);
 }
 
-FastaqHandler::~FastaqHandler() {
+FastaqHandler::~FastaqHandler()
+{
     if (!this->is_closed()) {
         close();
     }
