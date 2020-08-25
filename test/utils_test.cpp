@@ -17,7 +17,7 @@
 
 using namespace std;
 
-const std::string TEST_CASE_DIR = "test_cases/";
+const std::string TEST_CASE_DIR = "../../test/test_cases/";
 
 TEST(UtilsTest, split)
 {

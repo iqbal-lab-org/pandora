@@ -16,7 +16,7 @@
 
 using namespace pangenome;
 
-const std::string TEST_CASE_DIR = "test_cases/";
+const std::string TEST_CASE_DIR = "../../test/test_cases/";
 
 TEST(PangenomeGraphConstructor, constructors_and_get_sample)
 {

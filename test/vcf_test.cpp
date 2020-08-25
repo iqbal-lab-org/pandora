@@ -18,7 +18,7 @@ using ::testing::Property;
 using ::testing::Return;
 using ::testing::ReturnRef;
 
-const std::string TEST_CASE_DIR = "test_cases/";
+const std::string TEST_CASE_DIR = "../../test/test_cases/";
 
 TEST(VCFTest, add_record_with_values)
 {

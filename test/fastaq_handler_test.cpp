@@ -6,7 +6,7 @@
 
 using namespace std;
 
-const std::string TEST_CASE_DIR = "test_cases/";
+const std::string TEST_CASE_DIR = "../../test/test_cases/";
 
 TEST(FastaqHandlerTest, create_fa)
 {
@@ -69,6 +69,24 @@ TEST(FastaqHandlerTest, get_next)
     EXPECT_EQ((uint)5, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read4");
     EXPECT_EQ(fh.read, "another junk line");
+}
+
+TEST(FastaqHandlerTest, eof)
+{
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
+    EXPECT_FALSE(fh.eof());
+    fh.get_next();
+    EXPECT_FALSE(fh.eof());
+    fh.get_next();
+    EXPECT_FALSE(fh.eof());
+    fh.get_next();
+    EXPECT_FALSE(fh.eof());
+    fh.get_next();
+    EXPECT_FALSE(fh.eof());
+    fh.get_next();
+    EXPECT_TRUE(fh.eof());
+    fh.get_next();
+    EXPECT_TRUE(fh.eof());
 }
 
 TEST(FastaqHandlerTest, get_id_fa)

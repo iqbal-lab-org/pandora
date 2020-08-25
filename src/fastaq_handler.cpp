@@ -13,7 +13,6 @@ FastaqHandler::FastaqHandler(const std::string& filepath)
     , filepath(filepath)
     , gzipped(false)
     , num_reads_parsed(0)
-    , read_status(0)
 {
     // level for boost logging
     //    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
@@ -26,21 +25,26 @@ FastaqHandler::FastaqHandler(const std::string& filepath)
     this->inbuf = kseq_init(this->fastaq_file);
 }
 
-FastaqHandler::~FastaqHandler() { close(); }
+FastaqHandler::~FastaqHandler() {
+    if (!this->is_closed()) {
+        close();
+    }
+}
 
-bool FastaqHandler::eof() const { return (this->read_status == -1); }
+bool FastaqHandler::eof() const { return ks_eof(this->inbuf->f); }
 
 void FastaqHandler::get_next()
 {
-    this->read_status = kseq_read(this->inbuf);
+    int read_status = kseq_read(this->inbuf);
 
-    if (this->eof()) {
+    bool no_more_reads_available = read_status == -1;
+    if (no_more_reads_available) {
         return;
     }
 
-    if (this->read_status == -2) {
+    if (read_status == -2) {
         throw "Truncated quality string detected";
-    } else if (this->read_status == -3) {
+    } else if (read_status == -3) {
         throw "Error reading " + this->filepath;
     }
 
