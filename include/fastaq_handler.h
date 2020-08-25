@@ -37,8 +37,6 @@ public:
 
     void get_next();
 
-    void skip_next();
-
     void get_id(const uint32_t&);
 
     void close();

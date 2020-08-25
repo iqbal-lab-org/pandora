@@ -94,3 +94,4 @@ pandora.cbp
 test/cmake_install.cmake
 test/estimate_parameters_test
 test/pandora_test
+coverage

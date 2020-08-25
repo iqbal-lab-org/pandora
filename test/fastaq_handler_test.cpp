@@ -8,6 +8,11 @@ using namespace std;
 
 const std::string TEST_CASE_DIR = "../../test/test_cases/";
 
+TEST(FastaqHandlerTest, non_existant_file_throws_exception)
+{
+    EXPECT_THROW(FastaqHandler fh("fake.file"), std::string);
+}
+
 TEST(FastaqHandlerTest, create_fa)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
@@ -178,6 +183,18 @@ TEST(FastaqHandlerTest, get_id_past_end_throws_error)
     EXPECT_THROW(fh.get_id(10), std::out_of_range);
 }
 
+TEST(FastaqHandlerTest, truncated_quality_string_throws_exception)
+{
+    const std::string filepath = std::tmpnam(nullptr);
+    {
+        std::ofstream outstream(filepath);
+        outstream << "@read1 comment\nACGT\n+\n^^^\n";
+    }
+
+    FastaqHandler fh(filepath);
+    EXPECT_THROW(fh.get_next(), const char*);
+}
+
 TEST(FastaqHandlerTest, get_id_fagz)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fa.gz");
@@ -277,7 +294,6 @@ TEST(FastaqHandlerTest, close_multiple_times_does_not_error)
     fh.close();
     fh.close();
 }
-
 
 TEST(FastaqHandlerTest, close_fqgz)
 {

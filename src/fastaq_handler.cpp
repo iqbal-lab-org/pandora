@@ -16,7 +16,6 @@ FastaqHandler::FastaqHandler(const std::string& filepath)
     // level for boost logging
     //    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
 
-    BOOST_LOG_TRIVIAL(debug) << "Open fastaq file" << filepath;
     this->fastaq_file = gzopen(filepath.c_str(), "r");
     if (this->fastaq_file == nullptr) {
         throw "Unable to open " + this->filepath;
@@ -48,13 +47,43 @@ void FastaqHandler::get_next()
     this->read = this->inbuf->seq.s;
 }
 
-void FastaqHandler::skip_next()
+void FastaqHandler::get_id(const uint32_t& id)
 {
-    if (this->eof()) {
-        return;
+    const uint32_t one_based_id = id + 1;
+    if (one_based_id < this->num_reads_parsed) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "restart buffer as have id " << num_reads_parsed << " and want id "
+            << one_based_id << " (" << id << ") with 0-based indexing.";
+        num_reads_parsed = 0;
+        name.clear();
+        read.clear();
+        gzrewind(this->fastaq_file);
+        kseq_rewind(this->inbuf);
     }
-    this->get_next();
+
+    while (id > 1 and num_reads_parsed < id) {
+        get_next();
+        if (eof()) {
+            break;
+        }
+    }
+
+    while (num_reads_parsed <= id) {
+        get_next();
+        if (eof() && num_reads_parsed < id) {
+            throw std::out_of_range("Requested a read past the end of the file.");
+        }
+    }
 }
+
+void FastaqHandler::close()
+{
+    if (!this->is_closed()) {
+        this->closed_status = gzclose(this->fastaq_file);
+    }
+}
+
+bool FastaqHandler::is_closed() const { return this->closed_status == Z_OK; }
 
 void print(std::ifstream& infile)
 {
@@ -91,41 +120,3 @@ void print(std::istream& infile)
         std::cout << read[i];
     }
 }
-
-void FastaqHandler::get_id(const uint32_t& id)
-{
-    const uint32_t one_based_id = id + 1;
-    if (one_based_id < this->num_reads_parsed) {
-        BOOST_LOG_TRIVIAL(warning)
-            << "restart buffer as have id " << num_reads_parsed << " and want id "
-            << one_based_id << " (" << id << ") with 0-based indexing.";
-        num_reads_parsed = 0;
-        name.clear();
-        read.clear();
-        gzrewind(this->fastaq_file);
-        kseq_rewind(this->inbuf);
-    }
-
-    while (id > 1 and num_reads_parsed < id) {
-        skip_next();
-        if (eof()) {
-            break;
-        }
-    }
-
-    while (num_reads_parsed <= id) {
-        get_next();
-        if (eof() && num_reads_parsed < id) {
-            throw std::out_of_range("Requested a read past the end of the file.");
-        }
-    }
-}
-
-void FastaqHandler::close()
-{
-    if (!this->is_closed()) {
-        this->closed_status = gzclose(this->fastaq_file);
-    }
-}
-
-bool FastaqHandler::is_closed() const { return this->closed_status == Z_OK; }
