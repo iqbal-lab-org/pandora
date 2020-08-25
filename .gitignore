@@ -79,3 +79,17 @@ docker/
 mounted_folder/
 
 docker_dev/
+CMakeCache.txt
+CMakeFiles
+CTestTestfile.cmake
+ext/gatb.tar.gz
+gatb-prefix
+ext/gatb-core-1.4.1
+gtest
+include/gatb
+include/hdf5
+include/json
+include/BooPHF
+pandora.cbp
+test/cmake_install.cmake
+test/estimate_parameters_test
