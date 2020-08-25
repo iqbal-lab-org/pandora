@@ -9,7 +9,7 @@
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
-#include <stdio.h>
+#include <cstdio>
 #include <zlib.h>
 #include "kseq.h"
 KSEQ_INIT(gzFile, gzread)

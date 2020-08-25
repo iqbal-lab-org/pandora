@@ -1,12 +1,6 @@
 #include <string>
-#include <cstring>
 #include <iostream>
-//#include <fstream>
-#include <boost/iostreams/filtering_streambuf.hpp>
-#include <boost/iostreams/copy.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
 #include "fastaq_handler.h"
-#include "utils.h"
 
 FastaqHandler::FastaqHandler(const std::string& filepath)
     : closed_status(3)
@@ -51,9 +45,6 @@ void FastaqHandler::get_id(const uint32_t& id)
 {
     const uint32_t one_based_id = id + 1;
     if (one_based_id < this->num_reads_parsed) {
-        BOOST_LOG_TRIVIAL(warning)
-            << "restart buffer as have id " << num_reads_parsed << " and want id "
-            << one_based_id << " (" << id << ") with 0-based indexing.";
         num_reads_parsed = 0;
         name.clear();
         read.clear();
@@ -84,39 +75,3 @@ void FastaqHandler::close()
 }
 
 bool FastaqHandler::is_closed() const { return this->closed_status == Z_OK; }
-
-void print(std::ifstream& infile)
-{
-    char file;
-    std::vector<char> read;
-    uint i = 0;
-
-    // Read infile to vector
-    while (!infile.eof()) {
-        infile >> file;
-        read.push_back(file);
-    }
-
-    // Print read vector
-    for (i = 0; i < read.size(); i++) {
-        std::cout << read[i];
-    }
-}
-
-void print(std::istream& infile)
-{
-    char file;
-    std::vector<char> read;
-    int i = 0;
-
-    // Read infile to vector
-    while (!infile.eof()) {
-        infile >> file;
-        read.push_back(file);
-    }
-
-    // Print read vector
-    for (auto i = 0; i < read.size(); i++) {
-        std::cout << read[i];
-    }
-}
