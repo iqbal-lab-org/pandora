@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdint>
 #include <fstream>
+#include <sstream>
 #include <exception>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/log/core.hpp>
@@ -18,8 +19,7 @@ namespace logging = boost::log;
 
 struct FastaqHandler {
 private:
-    int closed_status; // see
-                       // https://github.com/attractivechaos/klib/blob/928581a78413bed4efa956731b35b18a638f20f3/kseq.h#L171
+    bool closed;
     kseq_t* inbuf;
 
 public:

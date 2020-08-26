@@ -3,7 +3,7 @@
 #include "fastaq_handler.h"
 
 FastaqHandler::FastaqHandler(const std::string filepath)
-    : closed_status(3)
+    : closed(false)
     , filepath(filepath)
     , num_reads_parsed(0)
 {
@@ -67,8 +67,17 @@ void FastaqHandler::get_nth_read(const uint32_t& idx)
 void FastaqHandler::close()
 {
     if (!this->is_closed()) {
-        this->closed_status = gzclose(this->fastaq_file);
+        const auto closed_status = gzclose(this->fastaq_file);
+        kseq_destroy(this->inbuf);
+
+        if (closed_status != Z_OK) {
+            std::ostringstream err_msg;
+            err_msg << "Failed to close " << this->filepath
+                    << ". Got zlib return code: " << closed_status << std::endl;
+            throw std::ios_base::failure(err_msg.str());
+        }
+        this->closed = true;
     }
 }
 
-bool FastaqHandler::is_closed() const { return this->closed_status == Z_OK; }
+bool FastaqHandler::is_closed() const { return this->closed; }
