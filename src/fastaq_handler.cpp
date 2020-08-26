@@ -20,13 +20,15 @@ bool FastaqHandler::eof() const { return ks_eof(this->inbuf->f); }
 
 void FastaqHandler::get_next()
 {
+    if (this->eof()) {
+        throw std::out_of_range("Read requested after the end of file was reached");
+    }
     int read_status = kseq_read(this->inbuf);
 
-    bool no_more_reads_available = read_status == -1;
-    if (no_more_reads_available) {
-        return;
+    // if not eof but we get -1 here then it was an empty file/read/line
+    if (read_status == -1) {
+        throw std::out_of_range("Read requested after the end of file was reached");
     }
-
     if (read_status == -2) {
         throw "Truncated quality string detected";
     } else if (read_status == -3) {

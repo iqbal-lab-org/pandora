@@ -48,7 +48,11 @@ int pandora_get_vcf_ref(int argc, char* argv[]) // the "pandora walk" comand
                     found = true;
                     break;
                 }
-                readfile.get_next();
+                try {
+                    readfile.get_next();
+                } catch (std::out_of_range& err) {
+                    break;
+                }
             }
 
             if (!found) {

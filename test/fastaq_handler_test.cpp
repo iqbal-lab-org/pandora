@@ -70,10 +70,7 @@ TEST(FastaqHandlerTest, get_next)
     EXPECT_EQ(fh.name, "read4");
     EXPECT_EQ(fh.read, "another junk line");
 
-    fh.get_next();
-    EXPECT_EQ((uint)5, fh.num_reads_parsed);
-    EXPECT_EQ(fh.name, "read4");
-    EXPECT_EQ(fh.read, "another junk line");
+    EXPECT_THROW(fh.get_next(), std::out_of_range);
 }
 
 TEST(FastaqHandlerTest, eof)
@@ -88,8 +85,6 @@ TEST(FastaqHandlerTest, eof)
     EXPECT_FALSE(fh.eof());
     fh.get_next();
     EXPECT_FALSE(fh.eof());
-    fh.get_next();
-    EXPECT_TRUE(fh.eof());
     fh.get_next();
     EXPECT_TRUE(fh.eof());
 }
@@ -308,4 +303,17 @@ TEST(FastaqHandlerTest, filepath_test)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fq.gz");
     EXPECT_EQ(TEST_CASE_DIR + "reads.fq.gz", fh.filepath);
+}
+
+TEST(FastaqHandlerTest, get_next_on_empty_file_throws_exception)
+{
+    const std::string filepath = std::tmpnam(nullptr);
+    {
+        std::ofstream outstream(filepath);
+        outstream << "";
+    }
+
+    FastaqHandler fh(filepath);
+    EXPECT_FALSE(fh.eof());
+    EXPECT_THROW(fh.get_next(), std::out_of_range);
 }

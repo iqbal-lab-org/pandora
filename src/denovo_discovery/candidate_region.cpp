@@ -283,20 +283,17 @@ void load_all_candidate_regions_pileups_from_fastq(const fs::path& reads_filepat
             {
                 // TODO: we need to read only until the max read id
                 for (auto& id_and_sequence : sequencesBuffer) {
-                    // did we reach the end already?
-                    if (!fh.eof()) { // no
-                        // print some logging
-                        if (id && id % 100000 == 0)
-                            BOOST_LOG_TRIVIAL(info) << id << " reads processed...";
-
-                        // read the read
-                        fh.get_next();
-                        id_and_sequence = make_pair(id, fh.read);
-                        ++nbOfReads;
-                        ++id;
-                    } else { // yes
-                        break; // we read everything already, exit this loop
+                    if (id && id % 100000 == 0) {
+                        BOOST_LOG_TRIVIAL(info) << id << " reads processed...";
                     }
+                    try {
+                        fh.get_next();
+                    } catch (std::out_of_range& err) {
+                        break;
+                    }
+                    id_and_sequence = make_pair(id, fh.read);
+                    ++nbOfReads;
+                    ++id;
                 }
             }
 

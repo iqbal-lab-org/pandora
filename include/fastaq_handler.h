@@ -29,7 +29,7 @@ public:
     std::string read;
     uint32_t num_reads_parsed;
 
-    FastaqHandler(const std::string filepath);
+    FastaqHandler(const std::string);
 
     ~FastaqHandler();
 
