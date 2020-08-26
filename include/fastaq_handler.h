@@ -23,13 +23,13 @@ private:
     kseq_t* inbuf;
 
 public:
-    const std::string& filepath;
+    const std::string filepath;
     gzFile fastaq_file;
     std::string name;
     std::string read;
     uint32_t num_reads_parsed;
 
-    FastaqHandler(const std::string&);
+    FastaqHandler(const std::string filepath);
 
     ~FastaqHandler();
 

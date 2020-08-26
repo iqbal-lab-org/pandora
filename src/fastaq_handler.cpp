@@ -2,14 +2,11 @@
 #include <iostream>
 #include "fastaq_handler.h"
 
-FastaqHandler::FastaqHandler(const std::string& filepath)
+FastaqHandler::FastaqHandler(const std::string filepath)
     : closed_status(3)
     , filepath(filepath)
     , num_reads_parsed(0)
 {
-    // level for boost logging
-    //    logging::core::get()->set_filter(logging::trivial::severity >= g_log_level);
-
     this->fastaq_file = gzopen(filepath.c_str(), "r");
     if (this->fastaq_file == nullptr) {
         throw "Unable to open " + this->filepath;

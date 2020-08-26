@@ -303,3 +303,9 @@ TEST(FastaqHandlerTest, close_fqgz)
     fh.close();
     EXPECT_TRUE(fh.is_closed());
 }
+
+TEST(FastaqHandlerTest, filepath_test)
+{
+    FastaqHandler fh(TEST_CASE_DIR + "reads.fq.gz");
+    EXPECT_EQ(TEST_CASE_DIR + "reads.fq.gz", fh.filepath);
+}
