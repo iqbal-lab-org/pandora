@@ -89,47 +89,47 @@ TEST(FastaqHandlerTest, eof)
     EXPECT_TRUE(fh.eof());
 }
 
-TEST(FastaqHandlerTest, get_id_fa)
+TEST(FastaqHandlerTest, get_nth_read_fa)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fa");
 
-    fh.get_id(1);
+    fh.get_nth_read(1);
     EXPECT_EQ((uint32_t)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
     EXPECT_EQ(fh.read, "should copy the phrase *should*");
 
-    fh.get_id(0);
+    fh.get_nth_read(0);
     EXPECT_EQ((uint32_t)1, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read0");
     EXPECT_EQ(fh.read, "to be ignored");
 
-    fh.get_id(2);
+    fh.get_nth_read(2);
     EXPECT_EQ((uint32_t)3, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read2");
     EXPECT_EQ(fh.read, "this time we should get *is time *");
 
-    fh.get_id(1);
+    fh.get_nth_read(1);
     EXPECT_EQ((uint32_t)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
     EXPECT_EQ(fh.read, "should copy the phrase *should*");
 
-    fh.get_id(0);
+    fh.get_nth_read(0);
     EXPECT_EQ((uint32_t)1, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read0");
     EXPECT_EQ(fh.read, "to be ignored");
 
-    fh.get_id(1);
+    fh.get_nth_read(1);
     EXPECT_EQ((uint32_t)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
     EXPECT_EQ(fh.read, "should copy the phrase *should*");
 
-    fh.get_id(2);
+    fh.get_nth_read(2);
     EXPECT_EQ((uint32_t)3, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read2");
     EXPECT_EQ(fh.read, "this time we should get *is time *");
 }
 
-TEST(FastaqHandlerTest, get_id_fq)
+TEST(FastaqHandlerTest, get_nth_read_fq)
 {
     const std::string filepath = std::tmpnam(nullptr);
     {
@@ -140,7 +140,7 @@ TEST(FastaqHandlerTest, get_id_fq)
     }
 
     FastaqHandler fh(filepath);
-    fh.get_id(1);
+    fh.get_nth_read(1);
     uint32_t expected_num_parsed = 2;
     std::string expected_name = "read2";
     std::string expected_read = "GCGT";
@@ -148,7 +148,7 @@ TEST(FastaqHandlerTest, get_id_fq)
     EXPECT_EQ(expected_name, fh.name);
     EXPECT_EQ(expected_read, fh.read);
 
-    fh.get_id(0);
+    fh.get_nth_read(0);
     expected_num_parsed = 1;
     expected_name = "read1";
     expected_read = "ACGT";
@@ -156,7 +156,7 @@ TEST(FastaqHandlerTest, get_id_fq)
     EXPECT_EQ(expected_name, fh.name);
     EXPECT_EQ(expected_read, fh.read);
 
-    fh.get_id(2);
+    fh.get_nth_read(2);
     expected_num_parsed = 3;
     expected_name = "read3";
     expected_read = "TCGT";
@@ -165,7 +165,7 @@ TEST(FastaqHandlerTest, get_id_fq)
     EXPECT_EQ(expected_read, fh.read);
 }
 
-TEST(FastaqHandlerTest, get_id_past_end_throws_error)
+TEST(FastaqHandlerTest, get_nth_read_past_end_throws_error)
 {
     const std::string filepath = std::tmpnam(nullptr);
     {
@@ -175,7 +175,7 @@ TEST(FastaqHandlerTest, get_id_past_end_throws_error)
     }
 
     FastaqHandler fh(filepath);
-    EXPECT_THROW(fh.get_id(10), std::out_of_range);
+    EXPECT_THROW(fh.get_nth_read(10), std::out_of_range);
 }
 
 TEST(FastaqHandlerTest, truncated_quality_string_throws_exception)
@@ -190,81 +190,81 @@ TEST(FastaqHandlerTest, truncated_quality_string_throws_exception)
     EXPECT_THROW(fh.get_next(), const char*);
 }
 
-TEST(FastaqHandlerTest, get_id_fagz)
+TEST(FastaqHandlerTest, get_nth_read_fagz)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fa.gz");
 
-    fh.get_id(1);
+    fh.get_nth_read(1);
     EXPECT_EQ((uint)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
     EXPECT_EQ(fh.read, "should copy the phrase *should*");
 
-    fh.get_id(0);
+    fh.get_nth_read(0);
     EXPECT_EQ((uint)1, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read0");
     EXPECT_EQ(fh.read, "to be ignored");
 
-    fh.get_id(2);
+    fh.get_nth_read(2);
     EXPECT_EQ((uint)3, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read2");
     EXPECT_EQ(fh.read, "this time we should get *is time *");
 
-    fh.get_id(1);
+    fh.get_nth_read(1);
     EXPECT_EQ((uint)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
     EXPECT_EQ(fh.read, "should copy the phrase *should*");
 
-    fh.get_id(0);
+    fh.get_nth_read(0);
     EXPECT_EQ((uint)1, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read0");
     EXPECT_EQ(fh.read, "to be ignored");
 
-    fh.get_id(1);
+    fh.get_nth_read(1);
     EXPECT_EQ((uint)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
     EXPECT_EQ(fh.read, "should copy the phrase *should*");
 
-    fh.get_id(2);
+    fh.get_nth_read(2);
     EXPECT_EQ((uint)3, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read2");
     EXPECT_EQ(fh.read, "this time we should get *is time *");
 }
 
-TEST(FastaqHandlerTest, get_id_fqgz)
+TEST(FastaqHandlerTest, get_nth_read_fqgz)
 {
     FastaqHandler fh(TEST_CASE_DIR + "reads.fq.gz");
 
-    fh.get_id(1);
+    fh.get_nth_read(1);
     EXPECT_EQ((uint)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
     EXPECT_EQ(fh.read, "should copy the phrase *should*");
 
-    fh.get_id(0);
+    fh.get_nth_read(0);
     EXPECT_EQ((uint)1, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read0");
     EXPECT_EQ(fh.read, "to be ignored");
 
-    fh.get_id(2);
+    fh.get_nth_read(2);
     EXPECT_EQ((uint)3, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read2");
     EXPECT_EQ(fh.read, "this time we should get *is time *");
 
-    fh.get_id(1);
+    fh.get_nth_read(1);
     EXPECT_EQ((uint)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
     EXPECT_EQ(fh.read, "should copy the phrase *should*");
 
-    fh.get_id(0);
+    fh.get_nth_read(0);
     EXPECT_EQ((uint)1, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read0");
     EXPECT_EQ(fh.read, "to be ignored");
 
-    fh.get_id(1);
+    fh.get_nth_read(1);
     EXPECT_EQ((uint)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
     EXPECT_EQ(fh.read, "should copy the phrase *should*");
 
-    fh.get_id(2);
+    fh.get_nth_read(2);
     EXPECT_EQ((uint)3, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read2");
     EXPECT_EQ(fh.read, "this time we should get *is time *");

@@ -40,10 +40,14 @@ void FastaqHandler::get_next()
     this->read = this->inbuf->seq.s;
 }
 
-void FastaqHandler::get_id(const uint32_t& id)
+void FastaqHandler::get_nth_read(const uint32_t& idx)
 {
-    const uint32_t one_based_id = id + 1;
-    if (one_based_id < this->num_reads_parsed) {
+    // edge case where no reads have been loaded yet
+    if (this->num_reads_parsed == 0) {
+        this->get_next();
+    }
+    const uint32_t one_based_idx = idx + 1;
+    if (one_based_idx < this->num_reads_parsed) {
         num_reads_parsed = 0;
         name.clear();
         read.clear();
@@ -51,16 +55,10 @@ void FastaqHandler::get_id(const uint32_t& id)
         kseq_rewind(this->inbuf);
     }
 
-    while (id > 1 and num_reads_parsed < id) {
-        get_next();
-        if (eof()) {
-            break;
-        }
-    }
-
-    while (num_reads_parsed <= id) {
-        get_next();
-        if (eof() && num_reads_parsed < id) {
+    while (this->num_reads_parsed < one_based_idx) {
+        try {
+            this->get_next();
+        } catch (std::out_of_range& err) {
             throw std::out_of_range("Requested a read past the end of the file.");
         }
     }

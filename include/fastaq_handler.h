@@ -37,7 +37,7 @@ public:
 
     void get_next();
 
-    void get_id(const uint32_t&);
+    void get_nth_read(const uint32_t& idx);
 
     void close();
 

@@ -38,7 +38,7 @@ int pandora_get_vcf_ref(int argc, char* argv[]) // the "pandora walk" comand
 
         for (const auto& prg_ptr : prgs) {
             found = false;
-            readfile.get_id(0);
+            readfile.get_nth_read(0);
             while (not readfile.eof()) {
                 npath = prg_ptr->get_valid_vcf_reference(readfile.read);
                 if (not npath.empty()) {
