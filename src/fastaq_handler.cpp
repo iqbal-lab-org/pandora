@@ -56,11 +56,7 @@ void FastaqHandler::get_nth_read(const uint32_t& idx)
     }
 
     while (this->num_reads_parsed < one_based_idx) {
-        try {
-            this->get_next();
-        } catch (std::out_of_range& err) {
-            throw std::out_of_range("Requested a read past the end of the file.");
-        }
+        this->get_next();
     }
 }
 
