@@ -10,7 +10,7 @@ const std::string TEST_CASE_DIR = "../../test/test_cases/";
 
 TEST(FastaqHandlerTest, non_existant_file_throws_exception)
 {
-    EXPECT_THROW(FastaqHandler fh("fake.file"), std::string);
+    EXPECT_THROW(FastaqHandler fh("fake.file"), std::ios_base::failure);
 }
 
 TEST(FastaqHandlerTest, create_fa)
@@ -187,7 +187,7 @@ TEST(FastaqHandlerTest, truncated_quality_string_throws_exception)
     }
 
     FastaqHandler fh(filepath);
-    EXPECT_THROW(fh.get_next(), const char*);
+    EXPECT_THROW(fh.get_next(), std::runtime_error);
 }
 
 TEST(FastaqHandlerTest, get_nth_read_fagz)

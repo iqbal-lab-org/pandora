@@ -9,7 +9,7 @@ FastaqHandler::FastaqHandler(const std::string filepath)
 {
     this->fastaq_file = gzopen(filepath.c_str(), "r");
     if (this->fastaq_file == nullptr) {
-        throw "Unable to open " + this->filepath;
+        throw std::ios_base::failure("Unable to open " + this->filepath);
     }
     this->inbuf = kseq_init(this->fastaq_file);
 }
@@ -30,9 +30,9 @@ void FastaqHandler::get_next()
         throw std::out_of_range("Read requested after the end of file was reached");
     }
     if (read_status == -2) {
-        throw "Truncated quality string detected";
+        throw std::runtime_error("Truncated quality string detected");
     } else if (read_status == -3) {
-        throw "Error reading " + this->filepath;
+        throw std::ios_base::failure("Error reading " + this->filepath);
     }
 
     ++this->num_reads_parsed;
