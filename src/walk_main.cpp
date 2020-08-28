@@ -49,9 +49,12 @@ int pandora_walk(int argc, char* argv[]) // the "pandora walk" comand
     std::string read_string;
     FastaqHandler readfile(argv[2]);
     while (not readfile.eof()) {
-        readfile.get_next();
-        // cout << "Try to find gene " << readfile.num_reads_parsed << " " <<
-        // readfile.name << endl << readfile.read << endl;
+        try {
+            readfile.get_next();
+        } catch (std::out_of_range& err) {
+            break;
+        }
+
         for (const auto& prg_ptr : prgs) {
             npath = prg_ptr->prg.nodes_along_string(readfile.read);
             if (not npath.empty()) {

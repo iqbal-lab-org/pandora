@@ -22,6 +22,8 @@
 
 using namespace std;
 
+const std::string TEST_CASE_DIR = "../../test/test_cases/";
+
 TEST(LocalPRGTest, create)
 {
     LocalPRG l0(0, "empty", "");
@@ -1494,7 +1496,7 @@ TEST(LocalPRGTest, moreupdateVCF)
 {
     // load PRGs from file
     std::vector<std::shared_ptr<LocalPRG>> prgs;
-    read_prg_file(prgs, "../../test/test_cases/updatevcf_test.fa");
+    read_prg_file(prgs, TEST_CASE_DIR + "updatevcf_test.fa");
 
     EXPECT_EQ((uint)3, prgs.size());
 
@@ -1616,7 +1618,7 @@ protected:
             std::make_shared<LocalNode>("", Interval(35, 45), 1));
     }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     LocalPRGMockExposesTestedMethod local_prg_mock;
     std::vector<LocalNodePtr> empty_local_path;
@@ -1800,7 +1802,7 @@ protected:
         kmer_node_from_40_to_50 = std::make_shared<KmerNode>(2, path_from_40_to_50);
     }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     LocalPRGMockExposesTestedMethod local_prg_mock;
     KmerNodePtr kmer_node_from_3_to_30;

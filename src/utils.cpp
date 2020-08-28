@@ -120,7 +120,11 @@ void read_prg_file(std::vector<std::shared_ptr<LocalPRG>>& prgs,
 
     FastaqHandler fh(filepath);
     while (!fh.eof()) {
-        fh.get_next();
+        try {
+            fh.get_next();
+        } catch (std::out_of_range& err) {
+            break;
+        }
         if (fh.name.empty() or fh.read.empty())
             continue;
         auto s = std::make_shared<LocalPRG>(LocalPRG(id, fh.name,
@@ -171,7 +175,11 @@ void load_vcf_refs_file(const std::string& filepath, VCFRefs& vcf_refs)
 
     FastaqHandler fh(filepath);
     while (!fh.eof()) {
-        fh.get_next();
+        try {
+            fh.get_next();
+        } catch (std::out_of_range& err) {
+            break;
+        }
         if (!fh.name.empty() && !fh.read.empty()) {
             vcf_refs[fh.name] = fh.read;
         }
@@ -473,20 +481,17 @@ uint32_t pangraph_from_read_file(const std::string& filepath,
 #pragma omp critical(ReadFileMutex)
             {
                 for (auto& sequence : sequencesBuffer) {
-                    // did we reach the end already?
-                    if (!fh.eof()) { // no
-                        // print some logging
-                        if (id && id % 100000 == 0)
-                            BOOST_LOG_TRIVIAL(info) << id << " reads processed...";
-
-                        // read the read
-                        fh.get_next();
-                        sequence.initialize(id, fh.name, fh.read, w, k);
-                        ++nbOfReads;
-                        ++id;
-                    } else { // yes
-                        break; // we read everything already, exit this loop
+                    if (id && id % 100000 == 0) {
+                        BOOST_LOG_TRIVIAL(info) << id << " reads processed...";
                     }
+                    try {
+                        fh.get_next();
+                    } catch (std::out_of_range& err) {
+                        break;
+                    }
+                    sequence.initialize(id, fh.name, fh.read, w, k);
+                    ++nbOfReads;
+                    ++id;
                 }
             }
 

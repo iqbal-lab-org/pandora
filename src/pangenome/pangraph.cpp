@@ -545,7 +545,7 @@ void pangenome::Graph::save_mapped_read_strings(
         outhandle.open(outdir + "/" + node_ptr.second->get_name() + "/"
             + node_ptr.second->get_name() + ".reads.fa");
         for (const auto& coord : read_overlap_coordinates) {
-            readfile.get_id(coord[0]);
+            readfile.get_nth_read(coord[0]);
             start = (uint32_t)std::max((int32_t)coord[1] - buff, 0);
             end = std::min(coord[2] + (uint32_t)buff, (uint32_t)readfile.read.length());
             outhandle << ">" << readfile.name << " pandora: " << coord[0] << " "

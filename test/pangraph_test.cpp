@@ -16,6 +16,8 @@
 
 using namespace pangenome;
 
+const std::string TEST_CASE_DIR = "../../test/test_cases/";
+
 TEST(PangenomeGraphConstructor, constructors_and_get_sample)
 {
     {
@@ -1094,7 +1096,7 @@ TEST(PangenomeGraphTest, split_node_by_reads)
     EXPECT_EQ(pg1.nodes[7]->covg, (uint)0);
 }
 
-TEST(PangenomeGraphTest, add_hits_to_kmergraph) {}
+TEST(PangenomeGraphTest, add_hits_to_kmergraph) { }
 
 TEST(PangenomeGraphTest, save_matrix)
 {
@@ -1117,7 +1119,7 @@ TEST(PangenomeGraphTest, save_matrix)
     pg.add_hits_between_PRG_and_sample(1, "sample1", kmp);
     pg.add_hits_between_PRG_and_sample(2, "sample3", kmp);
 
-    pg.save_matrix("../../test/test_cases/pangraph_test_save.matrix", names);
+    pg.save_matrix(TEST_CASE_DIR + "pangraph_test_save.matrix", names);
 }
 
 TEST(PangenomeGraphTest, save_mapped_read_strings)
@@ -1172,14 +1174,13 @@ TEST(PangenomeGraphTest, save_mapped_read_strings)
     std::string expected2
         = ">read2 pandora: 2 2:10 - \nis time \n>read1 pandora: 1 0:6 + \nshould\n";
 
-    pg.save_mapped_read_strings(
-        "../../test/test_cases/reads.fa", "save_mapped_read_strings");
+    pg.save_mapped_read_strings(TEST_CASE_DIR + "reads.fa", "save_mapped_read_strings");
     std::ifstream ifs("save_mapped_read_strings/zero/zero.reads.fa");
     std::string content(
         (std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
     EXPECT_TRUE((content == expected1) or (content == expected2));
 
-    pg.save_mapped_read_strings("../../test/test_cases/reads.fa", ".");
+    pg.save_mapped_read_strings(TEST_CASE_DIR + "reads.fa", ".");
     std::ifstream ifs2("zero/zero.reads.fa");
     std::string content2(
         (std::istreambuf_iterator<char>(ifs2)), (std::istreambuf_iterator<char>()));
