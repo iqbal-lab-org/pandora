@@ -1,143 +1,63 @@
-#include <cstring>
-#include <vector>
-#include <iostream>
-#include <fstream>
+#include "index_main.h"
 
-#include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
-#include <boost/log/expressions.hpp>
-
-#include "utils.h"
-#include "localPRG.h"
-#include <omp.h>
-
-static void show_index_usage()
+void setup_index_subcommand(CLI::App& app)
 {
-    std::cerr
-        << "Usage: pandora index [options] <prgs.fa>\n"
-        << "Options:\n"
-        << "\t-h,--help\t\t\tShow this help message\n"
-        //<< "\t-u, --update\t\tLook for an index and add only PRGs with new names\n"
-        << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 14\n"
-        << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
-        << "\t-t T\t\t\t\tNumber of threads, default 1\n"
-        << "\t--offset\t\t\t\tOffset for PRG ids, default 0\n"
-        << "\t--outfile\t\t\t\tFilename for index\n"
-        << "\t--log_level\t\t\tdebug,[info],warning,error\n"
-        << std::endl;
+    auto opt = std::make_shared<IndexOptions>();
+    auto index = app.add_subcommand(
+        "index", "Index population reference graph (PRG) sequences.");
+    // todo: figure out how to change the METAVAR for some options
+    index->add_option("prg", opt->prgfile, "PRG to index (in fasta format)")
+        ->required()
+        ->check(CLI::ExistingFile);
+    index->add_option("-w", opt->window_size, "Window size for (w,k)-minimizers");
+    index->add_option("-k", opt->kmer_size, "K-mer size for (w,k)-minimizers");
+    index->add_option("-t,--threads", opt->threads, "Maximum number of threads to use");
+    index->add_option("--offset", opt->id_offset, "Offset for PRG ids");
+    index->add_option("-o,--outfile", opt->outfile, "Filename for index");
+    index->add_flag(
+        "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
+
+    // Set the function that will be called when this subcommand is issued.
+    index->callback([opt]() { pandora_index(*opt); });
 }
 
-int pandora_index(int argc, char* argv[]) // the "pandora index" command
+int pandora_index(IndexOptions const& opt) // the "pandora index" command
 {
-    // if not enough arguments, print usage
-    if (argc < 2) {
-        show_index_usage();
-        return 1;
+    auto log_level = boost::log::trivial::info;
+    if (opt.verbosity == 1) {
+        log_level = boost::log::trivial::debug;
+    } else if (opt.verbosity > 1) {
+        log_level = boost::log::trivial::trace;
     }
-
-    // otherwise, parse the parameters from the command line
-    std::string prgfile, index_outfile, log_level = "info";
-    bool update = false;
-    uint32_t w = 14, k = 15, id = 0, threads = 1; // default parameters
-    for (int i = 1; i < argc; ++i) {
-        std::string arg = argv[i];
-        if ((arg == "-h") || (arg == "--help")) {
-            show_index_usage();
-            return 0;
-        } else if ((arg == "-u") || (arg == "--update")) {
-            update = true;
-        } else if (arg == "-w") {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                w = strtoul(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "-w option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if (arg == "-k") {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                k = strtoul(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "-k option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if (arg == "-t") {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                threads = strtoul(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "-t option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if (arg == "--offset") {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                id = strtoul(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--offset option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if (arg == "--outfile") {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                index_outfile = argv[++i]; // Increment 'i' so we don't get the argument
-                                           // as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--outfile option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if ((arg == "--log_level")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                log_level = argv[++i]; // Increment 'i' so we don't get the argument as
-                                       // the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--log_level option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if (prgfile.empty()) {
-            prgfile = argv[i];
-            BOOST_LOG_TRIVIAL(debug) << "prgfile: " << prgfile;
-        } else {
-            std::cerr << argv[i] << " could not be attributed to any parameter"
-                      << std::endl;
-        }
-    }
-
-    auto g_log_level { boost::log::trivial::info };
-    if (log_level == "debug")
-        g_log_level = boost::log::trivial::debug;
-    boost::log::core::get()->set_filter(boost::log::trivial::severity >= g_log_level);
+    boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
 
     LocalPRG::do_path_memoization_in_nodes_along_path_method = true;
 
     // load PRGs from file
     std::vector<std::shared_ptr<LocalPRG>> prgs;
-    read_prg_file(prgs, prgfile, id);
+    read_prg_file(prgs, opt.prgfile, opt.id_offset);
 
     // get output directory for the gfa
-    boost::filesystem::path p(prgfile);
+    boost::filesystem::path p(opt.prgfile);
     boost::filesystem::path dir = p.parent_path();
     std::string outdir = dir.string();
     if (outdir.empty())
         outdir = ".";
     outdir += "/kmer_prgs";
 
-    // index PRGs
+    BOOST_LOG_TRIVIAL(info) << "Indexing PRG...";
     auto index = std::make_shared<Index>();
-    index_prgs(prgs, index, w, k, outdir, threads);
+    index_prgs(prgs, index, opt.window_size, opt.kmer_size, outdir, opt.threads);
 
     // save index
     BOOST_LOG_TRIVIAL(info) << "Saving index...";
-    if (not index_outfile.empty())
-        index->save(index_outfile);
-    else if (id > 0)
-        index->save(prgfile + "." + std::to_string(id), w, k);
+    if (not opt.outfile.empty())
+        index->save(opt.outfile);
+    else if (opt.id_offset > 0)
+        index->save(opt.prgfile + "." + std::to_string(opt.id_offset), opt.window_size,
+            opt.kmer_size);
     else
-        index->save(prgfile, w, k);
+        index->save(opt.prgfile, opt.window_size, opt.kmer_size);
 
     BOOST_LOG_TRIVIAL(info) << "All done!";
     return 0;
