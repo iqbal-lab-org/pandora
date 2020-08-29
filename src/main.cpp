@@ -1,5 +1,7 @@
 #include <iostream>
 #include <cstring>
+#include "CLI11.hpp"
+#include "index_main.h"
 
 int pandora_index(int argc, char* argv[]);
 
@@ -24,7 +26,6 @@ static int usage()
         << "Program: pandora\n"
         << "Contact: Rachel Colquhoun <rmnorris@well.ox.ac.uk>\n\n"
         << "Usage:   pandora <command> [options]\n\n"
-        << "Command: index         index PRG sequences from FASTA format\n"
         << "         map           identify PRG ordering and sequence from reads for a "
            "single sample\n"
         << "         compare	     identify and compare the PRG ordering and "
@@ -46,6 +47,14 @@ static int usage()
 
 int main(int argc, char* argv[])
 {
+    CLI::App app{"Pandora, Pan-genome inference and genotyping with long noisy or short accurate reads."};
+    setup_index_subcommand(app);
+    app.require_subcommand();
+
+    CLI11_PARSE(app, argc, argv);
+
+    return 0;
+
     int ret;
     if (argc < 2)
         return usage();
