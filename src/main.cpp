@@ -48,6 +48,7 @@ static int usage()
 int main(int argc, char* argv[])
 {
     CLI::App app{"Pandora, Pan-genome inference and genotyping with long noisy or short accurate reads."};
+    app.get_formatter()->label("REQUIRED", "[required]");
     setup_index_subcommand(app);
     app.require_subcommand();
 
