@@ -1,19 +1,37 @@
 #include "index_main.h"
+#include <sstream>
 
 void setup_index_subcommand(CLI::App& app)
 {
     auto opt = std::make_shared<IndexOptions>();
     auto index = app.add_subcommand(
         "index", "Index population reference graph (PRG) sequences.");
-    // todo: figure out how to change the METAVAR for some options
-    index->add_option("prg", opt->prgfile, "PRG to index (in fasta format)")
+    index->add_option("<PRG>", opt->prgfile, "PRG to index (in fasta format)")
         ->required()
-        ->check(CLI::ExistingFile);
-    index->add_option("-w", opt->window_size, "Window size for (w,k)-minimizers");
-    index->add_option("-k", opt->kmer_size, "K-mer size for (w,k)-minimizers");
-    index->add_option("-t,--threads", opt->threads, "Maximum number of threads to use");
-    index->add_option("--offset", opt->id_offset, "Offset for PRG ids");
-    index->add_option("-o,--outfile", opt->outfile, "Filename for index");
+        ->check(CLI::ExistingFile.description(""))
+        ->type_name("FILE");
+
+    std::stringstream desc;
+    desc << "Window size for (w,k)-minimizers [default: " << opt->window_size << "]";
+    index->add_option("-w", opt->window_size, desc.str())->type_name("INT");
+
+    desc.str(std::string());
+    desc << "K-mer size for (w,k)-minimizers [default: " << opt->kmer_size << "]";
+    index->add_option("-k", opt->kmer_size, desc.str())->type_name("INT");
+
+    desc.str(std::string());
+    desc << "Maximum number of threads to use [default: " << opt->threads << "]";
+    index->add_option("-t,--threads", opt->threads, desc.str())->type_name("INT");
+
+    desc.str(std::string());
+    desc << "Offset for PRG ids [default: " << opt->id_offset << "]";
+    index->add_option("--offset", opt->id_offset, desc.str())->type_name("INT");
+
+    desc.str(std::string());
+    desc << "Filename for the index [default: <PRG>.k" << opt->kmer_size << ".w"
+         << opt->window_size << ".idx]";
+    index->add_option("-o,--outfile", opt->outfile, desc.str())->type_name("FILE");
+
     index->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
 
