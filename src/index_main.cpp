@@ -1,45 +1,47 @@
 #include "index_main.h"
-#include <sstream>
 
 void setup_index_subcommand(CLI::App& app)
 {
     auto opt = std::make_shared<IndexOptions>();
-    auto index = app.add_subcommand(
+    auto index_subcmd = app.add_subcommand(
         "index", "Index population reference graph (PRG) sequences.");
-    index->add_option("<PRG>", opt->prgfile, "PRG to index (in fasta format)")
+    index_subcmd->add_option("<PRG>", opt->prgfile, "PRG to index (in fasta format)")
         ->required()
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
     std::stringstream desc;
-    desc << "Window size for (w,k)-minimizers [default: " << opt->window_size << "]";
-    index->add_option("-w", opt->window_size, desc.str())->type_name("INT");
+    desc << "Window size for (w,k)-minimizers (must be <=K) [default: "
+         << opt->window_size << "]";
+    index_subcmd->add_option("-w", opt->window_size, desc.str())->type_name("INT");
 
     desc.str(std::string());
     desc << "K-mer size for (w,k)-minimizers [default: " << opt->kmer_size << "]";
-    index->add_option("-k", opt->kmer_size, desc.str())->type_name("INT");
+    index_subcmd->add_option("-k", opt->kmer_size, desc.str())->type_name("INT");
 
     desc.str(std::string());
     desc << "Maximum number of threads to use [default: " << opt->threads << "]";
-    index->add_option("-t,--threads", opt->threads, desc.str())->type_name("INT");
+    index_subcmd->add_option("-t,--threads", opt->threads, desc.str())
+        ->type_name("INT");
 
     desc.str(std::string());
     desc << "Offset for PRG ids [default: " << opt->id_offset << "]";
-    index->add_option("--offset", opt->id_offset, desc.str())->type_name("INT");
+    index_subcmd->add_option("--offset", opt->id_offset, desc.str())->type_name("INT");
 
     desc.str(std::string());
     desc << "Filename for the index [default: <PRG>.k" << opt->kmer_size << ".w"
          << opt->window_size << ".idx]";
-    index->add_option("-o,--outfile", opt->outfile, desc.str())->type_name("FILE");
+    index_subcmd->add_option("-o,--outfile", opt->outfile, desc.str())
+        ->type_name("FILE");
 
-    index->add_flag(
+    index_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
 
     // Set the function that will be called when this subcommand is issued.
-    index->callback([opt]() { pandora_index(*opt); });
+    index_subcmd->callback([opt]() { pandora_index(*opt); });
 }
 
-int pandora_index(IndexOptions const& opt) // the "pandora index" command
+int pandora_index(IndexOptions const& opt)
 {
     auto log_level = boost::log::trivial::info;
     if (opt.verbosity == 1) {
@@ -48,6 +50,10 @@ int pandora_index(IndexOptions const& opt) // the "pandora index" command
         log_level = boost::log::trivial::trace;
     }
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
+
+    if (opt.window_size > opt.kmer_size) {
+        throw std::logic_error("W must NOT be greater than K");
+    }
 
     LocalPRG::do_path_memoization_in_nodes_along_path_method = true;
 

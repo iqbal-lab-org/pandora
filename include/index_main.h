@@ -4,6 +4,7 @@
 #include <omp.h>
 #include <string>
 #include <cstring>
+#include <sstream>
 #include <vector>
 #include <iostream>
 #include <fstream>
