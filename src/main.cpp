@@ -3,6 +3,7 @@
 #include "CLI11.hpp"
 #include "index_main.h"
 #include "map_main.h"
+#include "compare_main.h"
 
 int pandora_index(int argc, char* argv[]);
 
@@ -23,9 +24,6 @@ int pandora_merge_index(int argc, char* argv[]);
 static int usage()
 {
     std::cerr
-        << "\n"
-        << "         compare	     identify and compare the PRG ordering and "
-           "sequences for a set of samples\n"
         << "         walk          outputs a path through the nodes in a GFA "
            "corresponding\n"
         << "                       to input sequence, provided it exists\n"
@@ -44,7 +42,8 @@ int main(int argc, char* argv[])
     app.get_formatter()->label("REQUIRED", "[required]");
     setup_index_subcommand(app);
     setup_map_subcommand(app);
-    app.require_subcommand(2);
+    setup_compare_subcommand(app);
+    app.require_subcommand();
 
     CLI11_PARSE(app, argc, argv);
 

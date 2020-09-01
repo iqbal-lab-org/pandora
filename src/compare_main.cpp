@@ -9,70 +9,166 @@
  * How do I handle multiple occurrences of a gene in a sample? I would like to output
  * all the versions called against my new reference
  */
+#include "compare_main.h"
 
-#include <iostream>
-#include <sstream>
-#include <vector>
-#include <set>
-#include <tuple>
-#include <functional>
-#include <cctype>
-#include <fstream>
-#include <algorithm>
-#include <map>
-#include <cassert>
-#include <boost/log/trivial.hpp>
-#include <boost/log/expressions.hpp>
-
-#include "utils.h"
-#include "localPRG.h"
-#include "localgraph.h"
-#include "pangenome/pangraph.h"
-#include "pangenome/pannode.h"
-#include "index.h"
-#include "noise_filtering.h"
-#include "estimate_parameters.h"
-#include "OptionsAggregator.h"
-
-using std::set;
-using std::vector;
-
-static void show_compare_usage()
+void setup_compare_subcommand(CLI::App& app)
 {
-    std::cerr
-        << "Usage: pandora compare -p PRG_FILE -r READ_INDEX -o OUTDIR <option(s)>\n"
-        << "Options:\n"
-        << "\t-h,--help\t\t\tShow this help message\n"
-        << "\t-p,--prg_file PRG_FILE\t\tSpecify a fasta-style prg file\n"
-        << "\t-r,--read_index READ_INDEX\tSpecify a file with a line per sample\n"
-        << "\t\t\t\t\tsample_id <tab> filepath to reads in fasta/q format\n"
-        << "\t-o,--outdir OUTDIR\tSpecify directory of output\n"
-        << "\t-w W\t\t\t\tWindow size for (w,k)-minimizers, default 14\n"
-        << "\t-k K\t\t\t\tK-mer size for (w,k)-minimizers, default 15\n"
-        << "\t-m,--max_diff INT\t\tMaximum distance between consecutive hits within a "
-           "cluster, default 250 (bps)\n"
-        << "\t-e,--error_rate FLOAT\t\tEstimated error rate for reads, default 0.11\n"
-        << "\t-t T\t\t\t\tNumber of threads, default 1\n"
-        << "\t--genome_size\tNUM_BP\tEstimated length of genome, used for coverage "
-           "estimation\n"
-        << "\t--vcf_refs REF_FASTA\t\tA fasta file with an entry for each LocalPRG "
-           "giving reference sequence for\n"
-        << "\t\t\t\t\tVCF. Must have a perfect match in the graph and the same name as "
-           "the graph\n"
-        << "\t--illumina\t\t\tData is from illumina rather than nanopore, so is "
-           "shorter with low error rate\n"
-        << "\t--clean\t\t\tAdd a step to clean and detangle the pangraph\n"
-        << "\t--bin\t\t\tUse binomial model for kmer coverages, default is negative "
-           "binomial\n"
-        << "\t--max_covg\t\t\tMaximum average coverage from reads to accept\n"
-        << "\t--genotype MODE\t\t\tAdd extra step to carefully genotype sites. "
-           "Has two modes: global (ML path oriented) or local (coverage oriented)\n"
-        << "\t--log_level\t\t\tdebug,[info],warning,error\n"
-        << std::endl;
-}
+    // todo: make groups for opts
+    auto opt = std::make_shared<CompareOptions>();
+    auto compare_subcmd = app.add_subcommand("compare",
+        "Quasi-map reads from multiple samples to an indexed PRG, infer the "
+        "sequence of present loci in each sample, and call variants between the "
+        "samples.");
 
-using SampleIdText = std::string;
-using SampleFpath = std::string;
+    compare_subcmd
+        ->add_option("<TARGET>", opt->prgfile, "An indexed PRG file (in fasta format)")
+        ->required()
+        ->check(CLI::ExistingFile.description(""))
+        ->type_name("FILE");
+
+    compare_subcmd
+        ->add_option("<QUERY_IDX>", opt->reads_idx_file,
+            "A tab-delimited file where each line is a sample identifier followed by "
+            "the path to the fast{a,q} of reads for that sample")
+        ->required()
+        ->check(CLI::ExistingFile.description(""))
+        ->type_name("FILE");
+
+    std::stringstream desc;
+    desc << "Window size for (w,k)-minimizers (must be <=k) [default: "
+         << opt->window_size << "]";
+    compare_subcmd->add_option("-w", opt->window_size, desc.str())->type_name("INT");
+
+    desc.str(std::string());
+    desc << "K-mer size for (w,k)-minimizers [default: " << opt->kmer_size << "]";
+    compare_subcmd->add_option("-k", opt->kmer_size, desc.str())->type_name("INT");
+
+    desc.str(std::string());
+    desc << "Directory to write output files to [default: " << opt->outdir << "]";
+    compare_subcmd->add_option("-o,--outdir", opt->outdir, desc.str())
+        ->type_name("DIR");
+
+    desc.str(std::string());
+    desc << "Maximum number of threads to use [default: " << opt->threads << "]";
+    compare_subcmd->add_option("-t,--threads", opt->threads, desc.str())
+        ->type_name("INT");
+
+    desc.str(std::string());
+    desc << "Fasta file with an entry for each loci. The entries will be used as the "
+            "reference sequence for their respective loci. The sequence MUST have a "
+            "perfect match in <TARGET> and the same name";
+    compare_subcmd->add_option("--vcf-refs", opt->vcf_refs_file, desc.str())
+        ->type_name("FILE");
+
+    desc.str(std::string());
+    desc << "Estimated error rate for reads [default: " << opt->error_rate << "]";
+    compare_subcmd->add_option("-e,--error-rate", opt->error_rate, desc.str());
+
+    // todo: how necessary is this opt if we remove max_cog?
+    desc.str(std::string());
+    desc << "Estimated length of the genome - used for coverage estimation [default: "
+         << opt->genome_size << "]";
+    compare_subcmd->add_option("-g,--genome-size", opt->genome_size, desc.str())
+        ->type_name("INT");
+
+    desc.str(std::string());
+    desc << "Maximum distance (bp) between consecutive hits within a cluster [default: "
+         << opt->max_diff << "]";
+    compare_subcmd->add_option("-m,--max-diff", opt->max_diff, desc.str())
+        ->type_name("INT");
+
+    compare_subcmd->add_flag(
+        "--output-vcf", opt->output_vcf, "Save a VCF file for each found loci");
+
+    compare_subcmd->add_flag("--illumina", opt->illumina,
+        "Reads are from Illumina. Alters error rate used and adjusts for shorter "
+        "reads");
+
+    compare_subcmd->add_flag(
+        "--clean", opt->clean, "Add a step to clean and detangle the pangraph");
+
+    compare_subcmd->add_flag("--bin", opt->binomial,
+        "Use binomial model for kmer coverages [default: negative binomial]");
+
+    // todo: suggest removing this parameter
+    desc.str(std::string());
+    desc << "Maximum average coverage of reads to accept [default: " << opt->max_covg
+         << "]";
+    compare_subcmd->add_option("--max-covg", opt->max_covg, desc.str())
+        ->type_name("INT");
+
+    auto genotype_validator = [](const std::string& str) {
+        bool valid_genotype_option = str == "global" || str == "local";
+        if (!valid_genotype_option) {
+            return std::string("--genotype should be either 'global' or 'local'.");
+        }
+        return std::string();
+    };
+    // todo: zam mentioned we probably only want global - remove local and make this a
+    // flag?
+    compare_subcmd
+        ->add_option("--genotype", opt->genotype,
+            "Add extra step to carefully genotype sites. There are two modes: 'global' "
+            "(ML path oriented) or 'local' (coverage oriented)")
+        ->type_name("MODE")
+        ->check(genotype_validator);
+
+    desc.str(std::string());
+    desc << "Minimum size of a cluster of hits between a read and a loci to consider "
+            "the loci present [default: "
+         << opt->min_cluster_size << "]";
+    compare_subcmd
+        ->add_option("-c,--min-cluster-size", opt->min_cluster_size, desc.str())
+        ->type_name("INT");
+
+    desc.str(std::string());
+    desc << "Maximum number of kmers to average over when selecting the maximum "
+            "likelihood path [default: "
+         << opt->max_num_kmers_to_avg << "]";
+    compare_subcmd->add_option("--kmer-avg", opt->max_num_kmers_to_avg, desc.str())
+        ->type_name("INT");
+
+    desc.str(std::string());
+    desc << "Should this be exposed?"; // todo
+    compare_subcmd
+        ->add_option("--min-allele-covg-gt", opt->min_allele_covg_gt, desc.str())
+        ->type_name("INT");
+
+    desc.str(std::string());
+    desc << "Should this be exposed?"; // todo
+    compare_subcmd
+        ->add_option("--min-total-covg-gt", opt->min_total_covg_gt, desc.str())
+        ->type_name("INT");
+
+    desc.str(std::string());
+    desc << "Should this be exposed?"; // todo
+    compare_subcmd->add_option("--min-diff-covg-gt", opt->min_diff_covg_gt, desc.str())
+        ->type_name("INT");
+
+    desc.str(std::string());
+    desc << "Should this be exposed?"; // todo
+    compare_subcmd
+        ->add_option("--min-allele-fraction-covg-gt", opt->min_allele_fraction_covg_gt,
+            desc.str())
+        ->type_name("INT");
+
+    desc.str(std::string());
+    desc << ""; // todo
+    compare_subcmd->add_option(
+        "--genotyping-error-rate", opt->genotyping_error_rate, desc.str());
+
+    desc.str(std::string());
+    desc << ""; // todo
+    compare_subcmd
+        ->add_option("--confidence-threshold", opt->confidence_threshold, desc.str())
+        ->type_name("INT");
+
+    compare_subcmd->add_flag(
+        "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
+
+    // Set the function that will be called when this subcommand is issued.
+    compare_subcmd->callback([opt]() { pandora_compare(*opt); });
+}
 
 std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
     const std::string& read_index_fpath)
@@ -86,315 +182,78 @@ std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
             if (std::getline(linestream, name, '\t')) {
                 linestream >> reads_path;
                 if (samples.find(name) != samples.end()) {
-                    std::cout << "Warning: non-unique sample ids given! Only the last "
-                                 "of these will be kept"
-                              << std::endl;
+                    BOOST_LOG_TRIVIAL(warning)
+                        << "Warning: non-unique sample ids given! Only the last "
+                           "of these will be kept";
                 }
                 samples[name] = reads_path;
             }
         }
     } else {
-        std::cerr << "Unable to open read index file " << read_index_fpath << std::endl;
+        BOOST_LOG_TRIVIAL(error)
+            << "Unable to open read index file " << read_index_fpath;
         exit(1);
     }
-    std::cout << now() << "Finished loading " << samples.size()
-              << " samples from read index" << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Finished loading " << samples.size()
+                            << " samples from read index";
     return std::vector<std::pair<SampleIdText, SampleFpath>>(
         samples.begin(), samples.end());
 }
 
-int pandora_compare(int argc, char* argv[])
+int pandora_compare(CompareOptions& opt)
 {
-    // if not enough arguments, print usage
-    if (argc < 7) {
-        show_compare_usage();
-        return 1;
+    auto log_level = boost::log::trivial::info;
+    if (opt.verbosity == 1) {
+        log_level = boost::log::trivial::debug;
+    } else if (opt.verbosity > 1) {
+        log_level = boost::log::trivial::trace;
+    }
+    boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
+
+    // =========
+    // todo: this all seems strange
+    if (opt.error_rate < 0.01) {
+        opt.illumina = true;
+    }
+    if (opt.error_rate > 0.05 and opt.illumina) {
+        opt.error_rate = 0.001;
+    }
+    if (opt.illumina and opt.error_rate > 0.1) {
+        opt.error_rate = 0.001;
+    }
+    if (opt.illumina and opt.max_diff > 200) {
+        opt.max_diff = 2 * opt.kmer_size + 1;
+    }
+    // ==========
+
+    if (opt.window_size > opt.kmer_size) {
+        throw std::logic_error("W must NOT be greater than K");
     }
 
-    // otherwise, parse the parameters from the command line
-    std::string prgfile, read_index_fpath, outdir = "pandora", vcf_refs_file,
-                                           log_level = "info";
-    uint32_t w = 14, k = 15, min_cluster_size = 10, genome_size = 5000000,
-             max_covg = 300, max_num_kmers_to_average = 100, min_allele_covg_gt = 0,
-             min_total_covg_gt = 0, min_diff_covg_gt = 0,
-             threads = 1; // default parameters
-    uint16_t confidence_threshold = 1;
-    int max_diff = 250;
-    float e_rate = 0.11, min_allele_fraction_covg_gt = 0, genotyping_error_rate = 0.01;
-    bool illumina = false, clean = false, bin = false;
-    std::string genotype;
-    for (int i = 1; i < argc; ++i) {
-        std::string arg = argv[i];
-        if ((arg == "-h") || (arg == "--help")) {
-            show_compare_usage();
-            return 0;
-        } else if ((arg == "-p") || (arg == "--prg_file")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                prgfile = argv[++i]; // Increment 'i' so we don't get the argument as
-                                     // the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--prg_file option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if ((arg == "-r") || (arg == "--read_index")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                read_index_fpath = argv[++i]; // Increment 'i' so we don't get the
-                                              // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--read_index option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if ((arg == "-o") || (arg == "--outdir")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                outdir = argv[++i]; // Increment 'i' so we don't get the argument as the
-                                    // next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--outdir option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if (arg == "-w") {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                w = strtoul(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "-w option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if (arg == "-k") {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                k = strtoul(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "-k option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if ((arg == "-m") || (arg == "--max_diff")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                max_diff = strtol(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--max_diff option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if ((arg == "-c") || (arg == "--min_cluster_size")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                min_cluster_size = strtoul(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--min_cluster_size option requires one argument."
-                          << std::endl;
-                return 1;
-            }
-        } else if ((arg == "-e") || (arg == "--error_rate")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                e_rate
-                    = strtof(argv[++i], nullptr); // Increment 'i' so we don't get the
-                                                  // argument as the next argv[i].
-                if (e_rate < 0.01) {
-                    illumina = true;
-                }
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--error_rate option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if ((arg == "--genome_size")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                genome_size = strtoul(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--genome_size option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if (arg == "--vcf_refs") {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                vcf_refs_file = argv[++i]; // Increment 'i' so we don't get the argument
-                                           // as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--vcf_refs option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if ((arg == "--illumina")) {
-            illumina = true;
-        } else if ((arg == "--clean")) {
-            clean = true;
-        } else if ((arg == "--bin")) {
-            bin = true;
-        } else if ((arg == "--max_covg")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                max_covg = strtoul(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--max_covg option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if ((arg == "--max_num_kmers_to_average")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                max_num_kmers_to_average = strtoul(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--max_num_kmers_to_average option requires one argument."
-                          << std::endl;
-                return 1;
-            }
-        } else if ((arg == "--min_allele_covg_gt")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                min_allele_covg_gt = strtoul(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--min_allele_covg_gt option requires one argument."
-                          << std::endl;
-                return 1;
-            }
-        } else if ((arg == "--min_total_covg_gt")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                min_total_covg_gt = strtoul(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--min_total_covg_gt option requires one argument."
-                          << std::endl;
-                return 1;
-            }
-        } else if ((arg == "--min_diff_covg_gt")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                min_diff_covg_gt = strtoul(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--min_diff_covg_gt option requires one argument."
-                          << std::endl;
-                return 1;
-            }
-        } else if ((arg == "--min_allele_fraction_covg_gt")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                min_allele_fraction_covg_gt
-                    = strtof(argv[++i], nullptr); // Increment 'i' so we don't get the
-                                                  // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr
-                    << "--min_allele_fraction_covg_gt option requires one argument."
-                    << std::endl;
-                return 1;
-            }
-        } else if ((arg == "--genotyping_error_rate")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                genotyping_error_rate
-                    = strtof(argv[++i], nullptr); // Increment 'i' so we don't get the
-                                                  // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--genotyping_error_rate option requires one argument."
-                          << std::endl;
-                return 1;
-            }
-        } else if ((arg == "--confidence_threshold")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                confidence_threshold = (uint16_t)strtoul(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--confidence_threshold option requires one argument."
-                          << std::endl;
-                return 1;
-            }
-        } else if ((arg == "--genotype")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                genotype = argv[++i]; // Increment 'i' so we don't get the argument as
-                // the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--genotype option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if ((arg == "--log_level")) {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                log_level = argv[++i]; // Increment 'i' so we don't get the argument as
-                                       // the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "--log_level option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if (arg == "-t") {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                threads = strtoul(
-                    argv[++i], nullptr, 10); // Increment 'i' so we don't get the
-                                             // argument as the next argv[i].
-            } else { // Uh-oh, there was no argument to the destination option.
-                std::cerr << "-t option requires one argument." << std::endl;
-                return 1;
-            }
-        } else {
-            std::cerr << argv[i] << " could not be attributed to any parameter"
-                      << std::endl;
-        }
-    }
+    bool do_global_genotyping { opt.genotype == "global" };
+    bool do_local_genotyping { opt.genotype == "local" };
 
-    assert(w <= k);
-    assert(not prgfile.empty());
-    if (illumina and e_rate > 0.1) {
-        e_rate = 0.001;
-    }
-    if (illumina and max_diff > 200) {
-        max_diff = 2 * k + 1;
-    }
+    if (do_global_genotyping or do_local_genotyping)
+        opt.output_vcf = true;
 
-    bool valid_genotype_option
-        = genotype == "" || genotype == "global" || genotype == "local";
-    if (!valid_genotype_option) {
-        std::cerr << "--genotype should be either global or local." << std::endl;
-        return 1;
-    }
-    bool do_global_genotyping = genotype == "global";
-    bool do_local_genotyping = genotype == "local";
+    GenotypingOptions genotyping_options({}, opt.genotyping_error_rate,
+        opt.confidence_threshold, opt.min_allele_covg_gt,
+        opt.min_allele_fraction_covg_gt, opt.min_total_covg_gt, opt.min_diff_covg_gt, 0,
+        false);
 
-    // then run the programme...
-    std::cout << "START: " << now() << std::endl;
-    std::cout << "\nUsing parameters: " << std::endl;
-    std::cout << "\tprgfile\t\t" << prgfile << std::endl;
-    std::cout << "\tread_index_fpath\t" << read_index_fpath << std::endl;
-    std::cout << "\toutdir\t" << outdir << std::endl;
-    std::cout << "\tw\t\t" << w << std::endl;
-    std::cout << "\tk\t\t" << k << std::endl;
-    std::cout << "\tmax_diff\t" << max_diff << std::endl;
-    std::cout << "\terror_rate\t" << e_rate << std::endl;
-    std::cout << "\tthreads\t" << threads << std::endl;
-    std::cout << "\tvcf_refs\t" << vcf_refs_file << std::endl;
-    std::cout << "\tillumina\t" << illumina << std::endl;
-    std::cout << "\tclean\t" << clean << std::endl;
-    std::cout << "\tbin\t" << bin << std::endl << std::endl;
-    std::cout << "\tmax_covg\t" << max_covg << std::endl;
-    std::cout << "\tgenotype\t" << genotype << std::endl;
-    std::cout << "\tlog_level\t" << log_level << std::endl << std::endl;
-
-    auto g_log_level { boost::log::trivial::info };
-    if (log_level == "debug")
-        g_log_level = boost::log::trivial::debug;
-    boost::log::core::get()->set_filter(boost::log::trivial::severity >= g_log_level);
-
-    // set up the options aggregators
-    GenotypingOptions genotyping_options({}, genotyping_error_rate,
-        confidence_threshold, min_allele_covg_gt, min_allele_fraction_covg_gt,
-        min_total_covg_gt, min_diff_covg_gt, 0, false);
-
-    std::cout << now() << "Loading Index and LocalPRGs from file" << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Loading Index and LocalPRGs from file...";
     auto index = std::make_shared<Index>();
-    index->load(prgfile, w, k);
+    index->load(opt.prgfile, opt.window_size, opt.kmer_size);
     std::vector<std::shared_ptr<LocalPRG>> prgs;
-    read_prg_file(prgs, prgfile);
-    load_PRG_kmergraphs(prgs, w, k, prgfile);
+    read_prg_file(prgs, opt.prgfile);
+    load_PRG_kmergraphs(prgs, opt.window_size, opt.kmer_size, opt.prgfile);
 
-    // load read index
-    std::cout << now() << "Loading read index file " << read_index_fpath << std::endl;
-    auto samples = load_read_index(read_index_fpath);
+    BOOST_LOG_TRIVIAL(info) << "Loading read index file...";
+    auto samples = load_read_index(opt.reads_idx_file);
     std::vector<std::string> sample_names;
-    for (const auto& sample_pair : samples)
+    for (const auto& sample_pair : samples) {
         sample_names.push_back(sample_pair.first);
+    }
 
     auto pangraph = std::make_shared<pangenome::Graph>(sample_names);
 
@@ -407,16 +266,16 @@ int pandora_compare(int argc, char* argv[])
         const auto& sample_fpath = sample.second;
 
         // make output dir for this sample
-        auto sample_outdir = outdir;
+        auto sample_outdir = opt.outdir;
         sample_outdir.append("/").append(sample_name);
         fs::create_directories(sample_outdir);
 
-        // construct the pangraph for this sample
         BOOST_LOG_TRIVIAL(info) << "Constructing pangenome::Graph from read file "
                                 << sample_fpath << " (this will take a while)";
         uint32_t covg = pangraph_from_read_file(sample_fpath, pangraph_sample, index,
-            prgs, w, k, max_diff, e_rate, min_cluster_size, genome_size, illumina,
-            clean, max_covg, threads);
+            prgs, opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate,
+            opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean,
+            opt.max_covg, opt.threads);
         BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file " << sample_outdir
                                 << "/pandora.pangraph.gfa";
         write_pangraph_gfa(sample_outdir + "/pandora.pangraph.gfa", pangraph_sample);
@@ -430,12 +289,13 @@ int pandora_compare(int argc, char* argv[])
         pangraph_sample->add_hits_to_kmergraphs(prgs, 0);
 
         BOOST_LOG_TRIVIAL(info) << "Estimate parameters for kmer graph model";
-        auto exp_depth_covg = estimate_parameters(
-            pangraph_sample, sample_outdir, k, e_rate, covg, bin, 0);
+        auto exp_depth_covg = estimate_parameters(pangraph_sample, sample_outdir,
+            opt.kmer_size, opt.error_rate, covg, opt.binomial, 0);
         genotyping_options.add_exp_depth_covg(exp_depth_covg);
 
-        if (genotyping_options.get_min_kmer_covg() == 0)
+        if (genotyping_options.get_min_kmer_covg() == 0) {
             genotyping_options.set_min_kmer_covg(exp_depth_covg / 10);
+        }
 
         BOOST_LOG_TRIVIAL(info) << "Find max likelihood PRG paths";
         auto sample_pangraph_size = pangraph_sample->nodes.size();
@@ -445,8 +305,8 @@ int pandora_compare(int argc, char* argv[])
             const LocalPRG& local_prg = *prgs[c->second->prg_id];
             vector<KmerNodePtr> kmp;
             vector<LocalNodePtr> lmp;
-            local_prg.add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp, w,
-                bin, covg, max_num_kmers_to_average, 0);
+            local_prg.add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp,
+                opt.window_size, opt.binomial, covg, opt.max_num_kmers_to_avg, 0);
 
             if (kmp.empty()) {
                 c = pangraph_sample->remove_node(c->second);
@@ -465,11 +325,10 @@ int pandora_compare(int argc, char* argv[])
         consensus_fq.save(sample_outdir + "/pandora.consensus.fq.gz");
         consensus_fq.clear();
         if (pangraph_sample->nodes.empty() and sample_pangraph_size > 0) {
-            std::cout << "WARNING: All LocalPRGs found were removed for sample "
-                      << sample_name
-                      << ". Is your genome_size accurate? Genome size is assumed to be "
-                      << genome_size << " and can be updated with --genome_size"
-                      << std::endl;
+            BOOST_LOG_TRIVIAL(warning)
+                << "All LocalPRGs found were removed for sample " << sample_name
+                << ". Is your genome_size accurate? Genome size is assumed to be "
+                << opt.genome_size << " and can be updated with --genome_size";
         }
 
         // Note: pangraph_sample is destroyed here and as well as all Read information
@@ -489,10 +348,9 @@ int pandora_compare(int argc, char* argv[])
     // load vcf refs
     VCFRefs vcf_refs; // no need to control this variable - read only
     {
-        std::string vcf_ref;
-        if (!vcf_refs_file.empty()) {
+        if (!opt.vcf_refs_file.empty()) {
             vcf_refs.reserve(prgs.size());
-            load_vcf_refs_file(vcf_refs_file, vcf_refs);
+            load_vcf_refs_file(opt.vcf_refs_file, vcf_refs);
         }
     }
 
@@ -510,18 +368,18 @@ int pandora_compare(int argc, char* argv[])
                                            // the vectors already here
 
     // create the dir that will contain all vcfs
-    const int nbOfVCFsPerDir = 4000;
-    auto VCFsDirs = outdir + "/VCFs";
-    fs::create_directories(VCFsDirs);
+    const int nb_vcfs_per_dir = 4000;
+    auto vcfs_dir = opt.outdir + "/VCFs";
+    fs::create_directories(vcfs_dir);
     // create the dirs for the VCFs
-    for (uint32_t i = 0; i <= pangraph->nodes.size() / nbOfVCFsPerDir; ++i)
-        fs::create_directories(VCFsDirs + "/" + int_to_string(i + 1));
+    for (uint32_t i = 0; i <= pangraph->nodes.size() / nb_vcfs_per_dir; ++i)
+        fs::create_directories(vcfs_dir + "/" + int_to_string(i + 1));
 
     // create the dirs for the VCFs genotyped, if genotyping should be done
-    auto VCFsGenotypedDirs = outdir + "/VCFs_genotyped_" + genotype;
+    auto vcfs_genotyped_dirs = opt.outdir + "/VCFs_genotyped_" + opt.genotype;
     if (do_global_genotyping || do_local_genotyping) {
-        for (uint32_t i = 0; i <= pangraph->nodes.size() / nbOfVCFsPerDir; ++i)
-            fs::create_directories(VCFsGenotypedDirs + "/" + int_to_string(i + 1));
+        for (uint32_t i = 0; i <= pangraph->nodes.size() / nb_vcfs_per_dir; ++i)
+            fs::create_directories(vcfs_genotyped_dirs + "/" + int_to_string(i + 1));
     }
 
     // transforms to a vector to parallelize this
@@ -530,22 +388,25 @@ int pandora_compare(int argc, char* argv[])
         pangraphNodesAsVector;
     pangraphNodesAsVector.reserve(pangraph->nodes.size());
     for (auto pan_id_to_node_mapping = pangraph->nodes.begin();
-         pan_id_to_node_mapping != pangraph->nodes.end(); ++pan_id_to_node_mapping)
+         pan_id_to_node_mapping != pangraph->nodes.end(); ++pan_id_to_node_mapping) {
+        // todo: use emplace_back?
         pangraphNodesAsVector.push_back(*pan_id_to_node_mapping);
+    }
 
-#pragma omp parallel for num_threads(threads) schedule(dynamic, 1)
+#pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 1)
     for (uint32_t pangraph_node_index = 0;
          pangraph_node_index < pangraphNodesAsVector.size(); ++pangraph_node_index) {
         const auto& pangraph_node_entry = pangraphNodesAsVector[pangraph_node_index];
-        BOOST_LOG_TRIVIAL(debug) << "Consider next node";
+        BOOST_LOG_TRIVIAL(debug) << "Considering next node...";
         pangenome::Node& pangraph_node = *pangraph_node_entry.second;
 
         const auto& prg_id = pangraph_node.prg_id;
         assert(prgs.size() > prg_id);
         const auto& prg_ptr = prgs[prg_id];
 
-        const auto vcf_reference_path = pangraph->infer_node_vcf_reference_path(
-            pangraph_node, prg_ptr, w, vcf_refs, max_num_kmers_to_average);
+        const auto vcf_reference_path
+            = pangraph->infer_node_vcf_reference_path(pangraph_node, prg_ptr,
+                opt.window_size, vcf_refs, opt.max_num_kmers_to_avg);
 
 #pragma omp critical(vcf_ref_fa)
         {
@@ -561,61 +422,62 @@ int pandora_compare(int argc, char* argv[])
         assert(vcf.samples.size() == samples.size());
 
         // build the vcf
-        pangraph_node.construct_multisample_vcf(vcf, vcf_reference_path, prg_ptr, w);
+        pangraph_node.construct_multisample_vcf(
+            vcf, vcf_reference_path, prg_ptr, opt.window_size);
 
         // save the vcf to disk
-        uint32_t dir = pangraph_node_index / nbOfVCFsPerDir
+        uint32_t dir = pangraph_node_index / nb_vcfs_per_dir
             + 1; // get the good dir for this sample vcf
-        auto vcfPath
-            = VCFsDirs + "/" + int_to_string(dir) + "/" + prg_ptr->name + ".vcf";
-        vcf.save(vcfPath, true, false);
+        auto vcf_path
+            = vcfs_dir + "/" + int_to_string(dir) + "/" + prg_ptr->name + ".vcf";
+        vcf.save(vcf_path, true, false);
 
 // add the vcf path to VCFPathsToBeConcatenated to concatenate after
 #pragma omp critical(VCFPathsToBeConcatenated)
         {
-            VCFPathsToBeConcatenated.push_back(vcfPath);
+            VCFPathsToBeConcatenated.push_back(vcf_path);
         }
 
         if (do_global_genotyping or do_local_genotyping) {
             vcf.genotype(do_global_genotyping, do_local_genotyping);
 
             // save the genotyped vcf to disk
-            auto vcfGenotypedPath = VCFsGenotypedDirs + "/" + int_to_string(dir) + "/"
-                + prg_ptr->name + "_genotyped.vcf";
-            vcf.save(vcfGenotypedPath, false, true);
+            auto vcf_genotyped_path = vcfs_genotyped_dirs + "/" + int_to_string(dir)
+                + "/" + prg_ptr->name + "_genotyped.vcf";
+            vcf.save(vcf_genotyped_path, false, true);
 
 // add the genotyped vcf path to VCFGenotypedPathsToBeConcatenated to concatenate after
 #pragma omp critical(VCFGenotypedPathsToBeConcatenated)
             {
-                VCFGenotypedPathsToBeConcatenated.push_back(vcfGenotypedPath);
+                VCFGenotypedPathsToBeConcatenated.push_back(vcf_genotyped_path);
             }
         }
     }
 
     // generate all the multisample files
-    vcf_ref_fa.save(outdir + "/pandora_multisample.vcf_ref.fa");
+    vcf_ref_fa.save(opt.outdir + "/pandora_multisample.vcf_ref.fa");
     VCF::concatenate_VCFs(
-        VCFPathsToBeConcatenated, outdir + "/pandora_multisample_consensus.vcf");
+        VCFPathsToBeConcatenated, opt.outdir + "/pandora_multisample_consensus.vcf");
     if (do_global_genotyping or do_local_genotyping) {
         VCF::concatenate_VCFs(VCFGenotypedPathsToBeConcatenated,
-            outdir + "/pandora_multisample_genotyped_" + genotype + ".vcf");
+            opt.outdir + "/pandora_multisample_genotyped_" + opt.genotype + ".vcf");
     }
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
     BOOST_LOG_TRIVIAL(info) << "Output matrix";
-    pangraph->save_matrix(outdir + "/pandora_multisample.matrix", sample_names);
+    pangraph->save_matrix(opt.outdir + "/pandora_multisample.matrix", sample_names);
 
     if (pangraph->nodes.empty()) {
-        std::cout << "No LocalPRGs found to compare samples on. "
-                  << "Is your genome_size accurate? Genome size is assumed to be "
-                  << genome_size << " and can be updated with --genome_size"
-                  << std::endl;
+        BOOST_LOG_TRIVIAL(error)
+            << "No LocalPRGs found to compare samples on. "
+            << "Is your genome_size accurate? Genome size is assumed to be "
+            << opt.genome_size << " and can be updated with --genome_size";
     }
 
     // clear up
     index->clear();
 
     // current date/time based on current system
-    std::cout << "FINISH: " << now() << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Done!";
     return 0;
 }
