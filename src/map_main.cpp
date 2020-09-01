@@ -47,10 +47,6 @@ void setup_map_subcommand(CLI::App& app)
     map_subcmd->add_option("-t,--threads", opt->threads, desc.str())->type_name("INT");
 
     desc.str(std::string());
-    desc << "Offset for PRG ids [default: " << opt->id_offset << "]";
-    map_subcmd->add_option("--offset", opt->id_offset, desc.str())->type_name("INT");
-
-    desc.str(std::string());
     desc << "Fasta file with an entry for each loci. The entries will be used as the "
             "reference sequence for their respective loci. The sequence MUST have a "
             "perfect match in <TARGET> and the same name";
@@ -228,8 +224,8 @@ int pandora_map(MapOptions& opt)
         throw std::logic_error("W must NOT be greater than K");
     }
 
-    bool do_global_genotyping = opt.genotype == "global";
-    bool do_local_genotyping = opt.genotype == "local";
+    bool do_global_genotyping { opt.genotype == "global" };
+    bool do_local_genotyping { opt.genotype == "local" };
 
     if (do_global_genotyping or do_local_genotyping)
         opt.output_vcf = true;
