@@ -12,11 +12,9 @@ void setup_map_subcommand(CLI::App& app)
     // todo: make groups for opts
     auto opt = std::make_shared<MapOptions>();
     auto map_subcmd = app.add_subcommand("map",
-        "Quasi-map reads from a single sample to an indexed PRG and infer the "
-        "presence or absence of PRG loci in the sample. Infers the sequence at "
-        "loci as a mosaic of reference sequences and outputs a set of variant "
-        "calls for the sample with respect to the graph and optionally identifies "
-        "de novo variants not present in the graph.");
+        "Quasi-map reads to an indexed PRG, infer the "
+        "sequence of present loci in the sample, and (optionally) genotype/discover "
+        "variants.");
 
     map_subcmd
         ->add_option("<TARGET>", opt->prgfile, "An indexed PRG file (in fasta format)")
@@ -195,7 +193,7 @@ void setup_map_subcommand(CLI::App& app)
 
     map_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
-    
+
     // Set the function that will be called when this subcommand is issued.
     map_subcmd->callback([opt]() { pandora_map(*opt); });
 }
