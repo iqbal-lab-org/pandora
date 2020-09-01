@@ -95,3 +95,7 @@ test/cmake_install.cmake
 test/estimate_parameters_test
 test/pandora_test
 coverage
+Makefile
+cmake_install.cmake
+compile_commands.json
+pandora

@@ -11,7 +11,7 @@ void setup_index_subcommand(CLI::App& app)
         ->type_name("FILE");
 
     std::stringstream desc;
-    desc << "Window size for (w,k)-minimizers (must be <=K) [default: "
+    desc << "Window size for (w,k)-minimizers (must be <=k) [default: "
          << opt->window_size << "]";
     index_subcmd->add_option("-w", opt->window_size, desc.str())->type_name("INT");
 

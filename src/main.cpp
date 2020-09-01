@@ -2,6 +2,7 @@
 #include <cstring>
 #include "CLI11.hpp"
 #include "index_main.h"
+#include "map_main.h"
 
 int pandora_index(int argc, char* argv[]);
 
@@ -50,7 +51,8 @@ int main(int argc, char* argv[])
     CLI::App app{"Pandora, Pan-genome inference and genotyping with long noisy or short accurate reads."};
     app.get_formatter()->label("REQUIRED", "[required]");
     setup_index_subcommand(app);
-    app.require_subcommand();
+    setup_map_subcommand(app);
+    app.require_subcommand(2);
 
     CLI11_PARSE(app, argc, argv);
 

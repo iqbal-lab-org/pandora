@@ -53,7 +53,7 @@ struct MapOptions {
     std::string genotype;
     bool snps_only { false };
     bool discover { false };
-    uint_least8_t denovo_kmer_size { 11 };
+    uint8_t denovo_kmer_size { 11 };
     uint32_t min_cluster_size { 10 };
     uint32_t max_num_kmers_to_avg { 100 };
     uint32_t min_allele_covg_gt { 0 };
@@ -62,9 +62,10 @@ struct MapOptions {
     float min_allele_fraction_covg_gt { 0 };
     float genotyping_error_rate { 0.01 };
     uint16_t confidence_threshold { 1 };
+    uint32_t min_kmer_covg { 0 };
 };
 
 void setup_map_subcommand(CLI::App& app);
-int pandora_map(MapOptions const& opt);
+int pandora_map(MapOptions& opt);
 
 #endif // PANDORA_MAP_MAIN_H
