@@ -4,6 +4,7 @@
 #include "index_main.h"
 #include "map_main.h"
 #include "compare_main.h"
+#include "walk_main.h"
 
 int pandora_index(int argc, char* argv[]);
 
@@ -24,9 +25,6 @@ int pandora_merge_index(int argc, char* argv[]);
 static int usage()
 {
     std::cerr
-        << "         walk          outputs a path through the nodes in a GFA "
-           "corresponding\n"
-        << "                       to input sequence, provided it exists\n"
         << "         random_path   outputs a fasta of random paths through the PRGs\n"
         << "         get_vcf_ref   outputs a fasta suitable for use as the VCF "
            "reference using input sequences\n"
@@ -43,6 +41,7 @@ int main(int argc, char* argv[])
     setup_index_subcommand(app);
     setup_map_subcommand(app);
     setup_compare_subcommand(app);
+    setup_walk_subcommand(app);
     app.require_subcommand();
 
     CLI11_PARSE(app, argc, argv);

@@ -1,0 +1,21 @@
+#ifndef PANDORA_WALK_MAIN_H
+#define PANDORA_WALK_MAIN_H
+#include <cstring>
+#include <vector>
+#include <iostream>
+
+#include "localPRG.h"
+#include "utils.h"
+#include "fastaq_handler.h"
+#include "CLI11.hpp"
+
+struct WalkOptions {
+    std::string prgfile;
+    std::string seqfile;
+    bool top { false };
+    bool bottom { false };
+};
+
+void setup_walk_subcommand(CLI::App& app);
+int pandora_walk(WalkOptions const& opt);
+#endif // PANDORA_WALK_MAIN_H
