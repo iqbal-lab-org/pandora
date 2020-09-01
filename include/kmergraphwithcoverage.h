@@ -7,6 +7,7 @@ class LocalPRG;
 #include <cstdint>
 #include <vector>
 #include <iostream>
+#include <cassert>
 #include "prg/path.h"
 #include "kmernode.h"
 #include "kmergraph.h"
