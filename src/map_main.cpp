@@ -131,8 +131,6 @@ void setup_map_subcommand(CLI::App& app)
 
     map_subcmd->add_flag(
         "--snps", opt->snps_only, "When genotyping, only include SNP sites");
-    map_subcmd->add_flag(
-        "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
 
     map_subcmd->add_flag(
         "-d,--discover", opt->discover, "Add a step to discover de novo variants");
@@ -194,6 +192,10 @@ void setup_map_subcommand(CLI::App& app)
     map_subcmd
         ->add_option("--confidence-threshold", opt->confidence_threshold, desc.str())
         ->type_name("INT");
+
+    map_subcmd->add_flag(
+        "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
+    
     // Set the function that will be called when this subcommand is issued.
     map_subcmd->callback([opt]() { pandora_map(*opt); });
 }
