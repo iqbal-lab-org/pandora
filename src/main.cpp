@@ -24,11 +24,6 @@ static int usage()
 {
     std::cerr
         << "\n"
-        << "Program: pandora\n"
-        << "Contact: Rachel Colquhoun <rmnorris@well.ox.ac.uk>\n\n"
-        << "Usage:   pandora <command> [options]\n\n"
-        << "         map           identify PRG ordering and sequence from reads for a "
-           "single sample\n"
         << "         compare	     identify and compare the PRG ordering and "
            "sequences for a set of samples\n"
         << "         walk          outputs a path through the nodes in a GFA "
@@ -39,9 +34,6 @@ static int usage()
            "reference using input sequences\n"
         << "         merge_index   allows multiple indexes to be merged (no "
            "compatibility check)\n"
-        << "\n"
-        << "Note: To map reads against PRG sequences, you need to first index the\n"
-        << "      PRGs with pandora index\n"
         << std::endl;
     return 1;
 }
