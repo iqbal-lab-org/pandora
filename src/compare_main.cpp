@@ -37,65 +37,84 @@ void setup_compare_subcommand(CLI::App& app)
     std::stringstream desc;
     desc << "Window size for (w,k)-minimizers (must be <=k) [default: "
          << opt->window_size << "]";
-    compare_subcmd->add_option("-w", opt->window_size, desc.str())->type_name("INT");
+    compare_subcmd->add_option("-w", opt->window_size, desc.str())
+        ->type_name("INT")
+        ->group("Indexing");
 
     desc.str(std::string());
     desc << "K-mer size for (w,k)-minimizers [default: " << opt->kmer_size << "]";
-    compare_subcmd->add_option("-k", opt->kmer_size, desc.str())->type_name("INT");
+    compare_subcmd->add_option("-k", opt->kmer_size, desc.str())
+        ->type_name("INT")
+        ->group("Indexing");
 
     desc.str(std::string());
     desc << "Directory to write output files to [default: " << opt->outdir << "]";
     compare_subcmd->add_option("-o,--outdir", opt->outdir, desc.str())
-        ->type_name("DIR");
+        ->type_name("DIR")
+        ->group("Input/Output");
 
     desc.str(std::string());
     desc << "Maximum number of threads to use [default: " << opt->threads << "]";
     compare_subcmd->add_option("-t,--threads", opt->threads, desc.str())
-        ->type_name("INT");
+        ->type_name("INT")
+        ->group("Input/Output");
 
     desc.str(std::string());
     desc << "Fasta file with an entry for each loci. The entries will be used as the "
             "reference sequence for their respective loci. The sequence MUST have a "
             "perfect match in <TARGET> and the same name";
     compare_subcmd->add_option("--vcf-refs", opt->vcf_refs_file, desc.str())
-        ->type_name("FILE");
+        ->type_name("FILE")
+        ->group("Input/Output");
 
     desc.str(std::string());
     desc << "Estimated error rate for reads [default: " << opt->error_rate << "]";
-    compare_subcmd->add_option("-e,--error-rate", opt->error_rate, desc.str());
+    compare_subcmd->add_option("-e,--error-rate", opt->error_rate, desc.str())
+        ->group("Parameter Estimation");
 
     // todo: how necessary is this opt if we remove max_cog?
     desc.str(std::string());
     desc << "Estimated length of the genome - used for coverage estimation [default: "
          << opt->genome_size << "]";
     compare_subcmd->add_option("-g,--genome-size", opt->genome_size, desc.str())
-        ->type_name("INT");
+        ->type_name("INT")
+        ->group("Parameter Estimation");
 
     desc.str(std::string());
     desc << "Maximum distance (bp) between consecutive hits within a cluster [default: "
          << opt->max_diff << "]";
     compare_subcmd->add_option("-m,--max-diff", opt->max_diff, desc.str())
-        ->type_name("INT");
+        ->type_name("INT")
+        ->group("Mapping");
 
-    compare_subcmd->add_flag(
-        "--output-vcf", opt->output_vcf, "Save a VCF file for each found loci");
+    compare_subcmd
+        ->add_flag(
+            "--output-vcf", opt->output_vcf, "Save a VCF file for each found loci")
+        ->group("Input/Output");
 
-    compare_subcmd->add_flag("--illumina", opt->illumina,
-        "Reads are from Illumina. Alters error rate used and adjusts for shorter "
-        "reads");
+    compare_subcmd
+        ->add_flag("--illumina", opt->illumina,
+            "Reads are from Illumina. Alters error rate used and adjusts for shorter "
+            "reads")
+        ->group("Preset");
 
-    compare_subcmd->add_flag(
-        "--clean", opt->clean, "Add a step to clean and detangle the pangraph");
+    compare_subcmd
+        ->add_flag(
+            "--clean", opt->clean, "Add a step to clean and detangle the pangraph")
+        ->group("Filtering");
 
-    compare_subcmd->add_flag("--bin", opt->binomial,
-        "Use binomial model for kmer coverages [default: negative binomial]");
+    compare_subcmd
+        ->add_flag("--bin", opt->binomial,
+            "Use binomial model for kmer coverages [default: negative binomial]")
+        ->group("Parameter Estimation");
 
     // todo: suggest removing this parameter
     desc.str(std::string());
     desc << "Maximum average coverage of reads to accept [default: " << opt->max_covg
          << "]";
     compare_subcmd->add_option("--max-covg", opt->max_covg, desc.str())
-        ->type_name("INT");
+        ->type_name("INT")
+        ->group("Filtering");
 
     auto genotype_validator = [](const std::string& str) {
         bool valid_genotype_option = str == "global" || str == "local";
@@ -111,7 +130,8 @@ void setup_compare_subcommand(CLI::App& app)
             "Add extra step to carefully genotype sites. There are two modes: 'global' "
             "(ML path oriented) or 'local' (coverage oriented)")
         ->type_name("MODE")
-        ->check(genotype_validator);
+        ->check(genotype_validator)
+        ->group("Consensus/Variant Calling");
 
     desc.str(std::string());
     desc << "Minimum size of a cluster of hits between a read and a loci to consider "
@@ -119,49 +139,57 @@ void setup_compare_subcommand(CLI::App& app)
          << opt->min_cluster_size << "]";
     compare_subcmd
         ->add_option("-c,--min-cluster-size", opt->min_cluster_size, desc.str())
-        ->type_name("INT");
+        ->type_name("INT")
+        ->group("Mapping");
 
     desc.str(std::string());
     desc << "Maximum number of kmers to average over when selecting the maximum "
             "likelihood path [default: "
          << opt->max_num_kmers_to_avg << "]";
     compare_subcmd->add_option("--kmer-avg", opt->max_num_kmers_to_avg, desc.str())
-        ->type_name("INT");
+        ->type_name("INT")
+        ->group("Consensus/Variant Calling");
 
     desc.str(std::string());
     desc << "Should this be exposed?"; // todo
     compare_subcmd
         ->add_option("--min-allele-covg-gt", opt->min_allele_covg_gt, desc.str())
-        ->type_name("INT");
+        ->type_name("INT")
+        ->group("??");
 
     desc.str(std::string());
     desc << "Should this be exposed?"; // todo
     compare_subcmd
         ->add_option("--min-total-covg-gt", opt->min_total_covg_gt, desc.str())
-        ->type_name("INT");
+        ->type_name("INT")
+        ->group("??");
 
     desc.str(std::string());
     desc << "Should this be exposed?"; // todo
     compare_subcmd->add_option("--min-diff-covg-gt", opt->min_diff_covg_gt, desc.str())
-        ->type_name("INT");
+        ->type_name("INT")
+        ->group("??");
 
     desc.str(std::string());
     desc << "Should this be exposed?"; // todo
     compare_subcmd
         ->add_option("--min-allele-fraction-covg-gt", opt->min_allele_fraction_covg_gt,
             desc.str())
-        ->type_name("INT");
+        ->type_name("INT")
+        ->group("??");
 
     desc.str(std::string());
     desc << ""; // todo
-    compare_subcmd->add_option(
-        "--genotyping-error-rate", opt->genotyping_error_rate, desc.str());
+    compare_subcmd
+        ->add_option("--genotyping-error-rate", opt->genotyping_error_rate, desc.str())
+        ->group("Consensus/Variant Calling");
 
     desc.str(std::string());
     desc << ""; // todo
     compare_subcmd
         ->add_option("--confidence-threshold", opt->confidence_threshold, desc.str())
-        ->type_name("INT");
+        ->type_name("INT")
+        ->group("Consensus/Variant Calling");
 
     compare_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
