@@ -8,7 +8,7 @@ void setup_walk_subcommand(CLI::App& app)
         "input sequence (if it exists) or the top/bottom path");
     walk_subcmd->add_option("<PRG>", opt->prgfile, "A PRG file (in fasta format)")
         ->required()
-        ->check(CLI::ExistingFile.description("Output a path "))
+        ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
     auto input = walk_subcmd
