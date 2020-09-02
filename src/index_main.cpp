@@ -25,10 +25,6 @@ void setup_index_subcommand(CLI::App& app)
         ->type_name("INT");
 
     desc.str(std::string());
-    desc << "Offset for PRG ids [default: " << opt->id_offset << "]";
-    index_subcmd->add_option("--offset", opt->id_offset, desc.str())->type_name("INT");
-
-    desc.str(std::string());
     desc << "Filename for the index [default: <PRG>.k" << opt->kmer_size << ".w"
          << opt->window_size << ".idx]";
     index_subcmd->add_option("-o,--outfile", opt->outfile, desc.str())
