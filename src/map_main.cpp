@@ -29,56 +29,56 @@ void setup_map_subcommand(CLI::App& app)
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
-    std::stringstream desc;
-    desc << "Window size for (w,k)-minimizers (must be <=k) [default: "
-         << opt->window_size << "]";
-    map_subcmd->add_option("-w", opt->window_size, desc.str())
+    map_subcmd
+        ->add_option(
+            "-w", opt->window_size, "Window size for (w,k)-minimizers (must be <=k)")
         ->type_name("INT")
+        ->capture_default_str()
         ->group("Indexing");
 
-    desc.str(std::string());
-    desc << "K-mer size for (w,k)-minimizers [default: " << opt->kmer_size << "]";
-    map_subcmd->add_option("-k", opt->kmer_size, desc.str())
+    map_subcmd->add_option("-k", opt->kmer_size, "K-mer size for (w,k)-minimizers")
         ->type_name("INT")
+        ->capture_default_str()
         ->group("Indexing");
 
-    desc.str(std::string());
-    desc << "Directory to write output files to [default: " << opt->outdir << "]";
-    map_subcmd->add_option("-o,--outdir", opt->outdir, desc.str())
+    map_subcmd
+        ->add_option("-o,--outdir", opt->outdir, "Directory to write output files to")
         ->type_name("DIR")
+        ->capture_default_str()
         ->group("Input/Output");
 
-    desc.str(std::string());
-    desc << "Maximum number of threads to use [default: " << opt->threads << "]";
-    map_subcmd->add_option("-t,--threads", opt->threads, desc.str())
+    map_subcmd
+        ->add_option("-t,--threads", opt->threads, "Maximum number of threads to use")
         ->type_name("INT")
+        ->capture_default_str()
         ->group("Input/Output");
 
-    desc.str(std::string());
-    desc << "Fasta file with an entry for each loci. The entries will be used as the "
-            "reference sequence for their respective loci. The sequence MUST have a "
-            "perfect match in <TARGET> and the same name";
-    map_subcmd->add_option("--vcf-refs", opt->vcf_refs_file, desc.str())
+    std::string description
+        = "Fasta file with an entry for each loci.\nThe entries will be used as the "
+          "reference sequence for their respective loci.\nThe sequence MUST have a "
+          "perfect match in <TARGET> and the same name";
+    map_subcmd->add_option("--vcf-refs", opt->vcf_refs_file, description)
         ->type_name("FILE")
         ->group("Input/Output");
 
-    desc.str(std::string());
-    desc << "Estimated error rate for reads [default: " << opt->error_rate << "]";
-    map_subcmd->add_option("-e,--error-rate", opt->error_rate, desc.str())
+    map_subcmd
+        ->add_option(
+            "-e,--error-rate", opt->error_rate, "Estimated error rate for reads")
+        ->capture_default_str()
         ->group("Parameter Estimation");
 
     // todo: how necessary is this opt if we remove max_cog?
-    desc.str(std::string());
-    desc << "Estimated length of the genome - used for coverage estimation [default: "
-         << opt->genome_size << "]";
-    map_subcmd->add_option("-g,--genome-size", opt->genome_size, desc.str())
+    map_subcmd
+        ->add_option("-g,--genome-size", opt->genome_size,
+            "Estimated length of the genome - used for coverage estimation")
+        ->capture_default_str()
         ->type_name("INT")
         ->group("Parameter Estimation");
 
-    desc.str(std::string());
-    desc << "Maximum distance (bp) between consecutive hits within a cluster [default: "
-         << opt->max_diff << "]";
-    map_subcmd->add_option("-m,--max-diff", opt->max_diff, desc.str())
+    map_subcmd
+        ->add_option("-m,--max-diff", opt->max_diff,
+            "Maximum distance (bp) between consecutive hits within a cluster")
+        ->capture_default_str()
         ->type_name("INT")
         ->group("Mapping");
 
@@ -130,10 +130,10 @@ void setup_map_subcommand(CLI::App& app)
         ->group("Parameter Estimation");
 
     // todo: suggest removing this parameter
-    desc.str(std::string());
-    desc << "Maximum average coverage of reads to accept [default: " << opt->max_covg
-         << "]";
-    map_subcmd->add_option("--max-covg", opt->max_covg, desc.str())
+    map_subcmd
+        ->add_option(
+            "--max-covg", opt->max_covg, "Maximum average coverage of reads to accept")
+        ->capture_default_str()
         ->type_name("INT")
         ->group("Filtering");
 
@@ -146,10 +146,10 @@ void setup_map_subcommand(CLI::App& app)
     };
     // todo: zam mentioned we probably only want global - remove local and make this a
     // flag?
-    map_subcmd
-        ->add_option("--genotype", opt->genotype,
-            "Add extra step to carefully genotype sites. There are two modes: 'global' "
-            "(ML path oriented) or 'local' (coverage oriented)")
+    description
+        = "Add extra step to carefully genotype sites. There are two modes: 'global' "
+          "(ML path oriented) or 'local' (coverage oriented)";
+    map_subcmd->add_option("--genotype", opt->genotype, description)
         ->type_name("MODE")
         ->check(genotype_validator)
         ->group("Consensus/Variant Calling");
@@ -163,72 +163,76 @@ void setup_map_subcommand(CLI::App& app)
             "-d,--discover", opt->discover, "Add a step to discover de novo variants")
         ->group("Consensus/Variant Calling");
 
-    desc.str(std::string());
-    desc << "K-mer size to use when disovering de novo variants [default: "
-         << std::to_string(opt->denovo_kmer_size) << "]";
-    map_subcmd->add_option("--discover-k", opt->denovo_kmer_size, desc.str())
+    map_subcmd
+        ->add_option("--discover-k", opt->denovo_kmer_size,
+            "K-mer size to use when disovering de novo variants")
+        ->capture_default_str()
         ->type_name("INT")
         ->group("Consensus/Variant Calling");
 
-    desc.str(std::string());
-    desc << "Minimum size of a cluster of hits between a read and a loci to consider "
-            "the loci present [default: "
-         << opt->min_cluster_size << "]";
-    map_subcmd->add_option("-c,--min-cluster-size", opt->min_cluster_size, desc.str())
+    description
+        = "Minimum size of a cluster of hits between a read and a loci to consider "
+          "the loci present";
+    map_subcmd->add_option("-c,--min-cluster-size", opt->min_cluster_size, description)
+        ->capture_default_str()
         ->type_name("INT")
         ->group("Mapping");
 
-    desc.str(std::string());
-    desc << "Maximum number of kmers to average over when selecting the maximum "
-            "likelihood path [default: "
-         << opt->max_num_kmers_to_avg << "]";
-    map_subcmd->add_option("--kmer-avg", opt->max_num_kmers_to_avg, desc.str())
+    description = "Maximum number of kmers to average over when selecting the maximum "
+                  "likelihood path";
+    map_subcmd->add_option("--kmer-avg", opt->max_num_kmers_to_avg, description)
+        ->capture_default_str()
         ->type_name("INT")
         ->group("Consensus/Variant Calling");
 
-    desc.str(std::string());
-    desc << "Should this be exposed?"; // todo
-    map_subcmd->add_option("--min-kmer-covg", opt->min_kmer_covg, desc.str())
+    // todo: should we remove this?
+    map_subcmd
+        ->add_option("--min-kmer-covg", opt->min_kmer_covg, "Should this be exposed?")
+        ->capture_default_str()
         ->type_name("INT")
         ->group("??");
 
-    desc.str(std::string());
-    desc << "Should this be exposed?"; // todo
-    map_subcmd->add_option("--min-allele-covg-gt", opt->min_allele_covg_gt, desc.str())
+    // todo: should we remove this?
+    map_subcmd
+        ->add_option(
+            "--min-allele-covg-gt", opt->min_allele_covg_gt, "Should this be exposed?")
+        ->type_name("INT")
+        ->capture_default_str()
+        ->group("??");
+
+    // todo: should we remove this?
+    map_subcmd
+        ->add_option(
+            "--min-total-covg-gt", opt->min_total_covg_gt, "Should this be exposed?")
+        ->type_name("INT")
+        ->capture_default_str()
+        ->group("??");
+
+    // todo: should we remove this?
+    map_subcmd
+        ->add_option(
+            "--min-diff-covg-gt", opt->min_diff_covg_gt, "Should this be exposed?")
+        ->capture_default_str()
         ->type_name("INT")
         ->group("??");
 
-    desc.str(std::string());
-    desc << "Should this be exposed?"; // todo
-    map_subcmd->add_option("--min-total-covg-gt", opt->min_total_covg_gt, desc.str())
-        ->type_name("INT")
-        ->group("??");
-
-    desc.str(std::string());
-    desc << "Should this be exposed?"; // todo
-    map_subcmd->add_option("--min-diff-covg-gt", opt->min_diff_covg_gt, desc.str())
-        ->type_name("INT")
-        ->group("??");
-
-    desc.str(std::string());
-    desc << "Should this be exposed?"; // todo
+    // todo: should we remove this?
     map_subcmd
         ->add_option("--min-allele-fraction-covg-gt", opt->min_allele_fraction_covg_gt,
-            desc.str())
+            "Should this be exposed?")
+        ->capture_default_str()
         ->type_name("INT")
         ->group("??");
 
-    desc.str(std::string());
-    desc << ""; // todo
-    map_subcmd
-        ->add_option("--genotyping-error-rate", opt->genotyping_error_rate, desc.str())
+    // todo: need a description
+    map_subcmd->add_option("--genotyping-error-rate", opt->genotyping_error_rate, "??")
+        ->capture_default_str()
         ->group("Consensus/Variant Calling");
 
-    desc.str(std::string());
-    desc << ""; // todo
-    map_subcmd
-        ->add_option("--confidence-threshold", opt->confidence_threshold, desc.str())
+    // todo: need a description
+    map_subcmd->add_option("--confidence-threshold", opt->confidence_threshold, "??")
         ->type_name("INT")
+        ->capture_default_str()
         ->group("Consensus/Variant Calling");
 
     map_subcmd->add_flag(

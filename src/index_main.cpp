@@ -10,25 +10,24 @@ void setup_index_subcommand(CLI::App& app)
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
-    std::stringstream desc;
-    desc << "Window size for (w,k)-minimizers (must be <=k) [default: "
-         << opt->window_size << "]";
-    index_subcmd->add_option("-w", opt->window_size, desc.str())->type_name("INT");
+    index_subcmd
+        ->add_option(
+            "-w", opt->window_size, "Window size for (w,k)-minimizers (must be <=k)")
+        ->type_name("INT")
+        ->capture_default_str();
 
-    desc.str(std::string());
-    desc << "K-mer size for (w,k)-minimizers [default: " << opt->kmer_size << "]";
-    index_subcmd->add_option("-k", opt->kmer_size, desc.str())->type_name("INT");
+    index_subcmd->add_option("-k", opt->kmer_size, "K-mer size for (w,k)-minimizers")
+        ->type_name("INT")
+        ->capture_default_str();
 
-    desc.str(std::string());
-    desc << "Maximum number of threads to use [default: " << opt->threads << "]";
-    index_subcmd->add_option("-t,--threads", opt->threads, desc.str())
-        ->type_name("INT");
+    index_subcmd
+        ->add_option("-t,--threads", opt->threads, "Maximum number of threads to use")
+        ->type_name("INT")
+        ->capture_default_str();
 
-    desc.str(std::string());
-    desc << "Filename for the index [default: <PRG>.k" << opt->kmer_size << ".w"
-         << opt->window_size << ".idx]";
-    index_subcmd->add_option("-o,--outfile", opt->outfile, desc.str())
-        ->type_name("FILE");
+    index_subcmd->add_option("-o,--outfile", opt->outfile, "Filename for the index")
+        ->type_name("FILE")
+        ->default_str("<PRG>.kXX.wXX.idx");
 
     index_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");

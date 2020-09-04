@@ -52,7 +52,7 @@ struct MapOptions {
     std::string genotype;
     bool snps_only { false };
     bool discover { false };
-    uint8_t denovo_kmer_size { 11 };
+    uint32_t denovo_kmer_size { 11 };
     uint32_t min_cluster_size { 10 };
     uint32_t max_num_kmers_to_avg { 100 };
     uint32_t min_allele_covg_gt { 0 };
