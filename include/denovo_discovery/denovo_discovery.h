@@ -18,7 +18,7 @@ public:
     bool clean_assembly_graph { false };
     const uint8_t max_insertion_size;
 
-    DenovoDiscovery(const uint_least8_t& kmer_size, const double& read_error_rate,
+    DenovoDiscovery(const uint32_t& kmer_size, const double& read_error_rate,
         const uint8_t max_insertion_size = 15);
 
     void find_paths_through_candidate_region(
@@ -28,7 +28,7 @@ public:
         const uint32_t& read_covg, const uint32_t& ref_length) const;
 
 private:
-    const uint_least8_t kmer_size;
+    const uint32_t kmer_size;
     const double read_error_rate;
 };
 
