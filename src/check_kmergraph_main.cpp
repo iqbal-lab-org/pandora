@@ -1,35 +1,78 @@
-#include <cstring>
-#include <cassert>
-#include <vector>
-#include <iostream>
-#include <fstream>
+#include "check_kmergraph_main.h"
 
-#include <boost/log/trivial.hpp>
+void setup_check_kmergraph_subcommand(CLI::App& app)
+{
+    auto opt = std::make_shared<CheckKmerGraphOptions>();
+    // todo: improve description
+    std::string description = "For each sequence, return the path through the PRG";
+    auto check_subcmd = app.add_subcommand("check_kmergraph", description);
 
-#include "utils.h"
-#include "localPRG.h"
+    check_subcmd->add_option("<PRG>", opt->prgfile, "PRG to index (in fasta format)")
+        ->required()
+        ->check(CLI::ExistingFile.description(""))
+        ->type_name("FILE");
 
-int pandora_check_kmergraph(
-    int argc, char* argv[]) // the "pandora check_kmergraph" comand
+    auto input = check_subcmd
+                     ->add_option("-i,--input", opt->seqfile,
+                         "Fast{a,q} of sequences to output paths through the PRG for")
+                     ->check(CLI::ExistingFile.description(""))
+                     ->type_name("FILE");
+
+    check_subcmd
+        ->add_option(
+            "-w", opt->window_size, "Window size for (w,k)-minimizers (must be <=k)")
+        ->type_name("INT")
+        ->capture_default_str();
+
+    check_subcmd->add_option("-k", opt->kmer_size, "K-mer size for (w,k)-minimizers")
+        ->type_name("INT")
+        ->capture_default_str();
+
+    auto top = check_subcmd->add_flag(
+        "-T,--top", opt->top, "Output the top path through each local PRG");
+    auto bottom = check_subcmd->add_flag(
+        "-B,--bottom", opt->bottom, "Output the bottom path through each local PRG");
+
+    // todo: this "flag" doesn't seem to do what it says. i.e. it still outputs the node path?
+    auto check = check_subcmd->add_flag(
+        "--flag", opt->flag, "output success/fail rather than the node path");
+
+    check_subcmd->add_flag(
+        "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
+
+    input->excludes(top)->excludes(bottom);
+    check->needs(input);
+    top->excludes(bottom);
+
+    check_subcmd->callback([opt]() { pandora_check_kmergraph(*opt); });
+}
+
+int pandora_check_kmergraph(CheckKmerGraphOptions const& opt)
 {
     // can either provide a prgfile with 1 prg and a sequence file (or top/bottom) and
     // return the path through the prg for each sequence OR can provide a prgfile with
     // multiple sequences in it, and a seq file with the same number, with 1-1
     // correspondance and check seq n in prg n.
-    if (argc < 5) {
-        fprintf(stderr,
-            "Usage: pandora check_kmergraph <prg.fa> <seq.fa> <k> <w> <flag>\n");
-        return 1;
+
+    auto log_level = boost::log::trivial::info;
+    if (opt.verbosity == 1) {
+        log_level = boost::log::trivial::debug;
+    } else if (opt.verbosity > 1) {
+        log_level = boost::log::trivial::trace;
     }
+    boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
 
     // load prg graphs and kmergraphs, for now assume there is only one PRG in this file
     std::vector<std::shared_ptr<LocalPRG>> prgs;
-    read_prg_file(prgs, argv[1]);
-    load_PRG_kmergraphs(prgs, std::stoi(argv[4]), std::stoi(argv[3]), argv[1]);
-    assert(!prgs.empty());
-    bool flag = false; // output success/fail rather than the node path
+    read_prg_file(prgs, opt.prgfile);
+    load_PRG_kmergraphs(prgs, opt.window_size, opt.kmer_size, opt.prgfile);
 
-    if (strcmp(argv[2], "--top") == 0) {
+    if (prgs.empty()) {
+        BOOST_LOG_TRIVIAL(error) << "PRG is empty!";
+        exit(1);
+    }
+
+    if (opt.top) {
         for (uint32_t i = 0; i != prgs.size(); ++i) {
             std::cout << "Top node path along PRG " << prgs[i]->name << ": ";
             auto npath = prgs[i]->prg.top_path();
@@ -38,21 +81,8 @@ int pandora_check_kmergraph(
             }
             std::cout << std::endl;
         }
-        /*vector<KmerNodePtr> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
-        cout << kpath[0]->id;
-        for (uint j=1; j != kpath.size(); ++j)
-            {
-            if (find(kpath[j]->inNodes.begin(), kpath[j]->inNodes.end(),
-        kpath[j-1])!=kpath[j]->inNodes.end())
-            {
-                    cout << "->" << kpath[j]->id;
-            } else {
-            cout << "  " << kpath[j]->id;
-            }
-            }
-        cout << endl;*/
         return 0;
-    } else if (strcmp(argv[2], "--bottom") == 0) {
+    } else if (opt.bottom) {
         for (uint32_t i = 0; i != prgs.size(); ++i) {
             std::cout << "Bottom node path along PRG " << prgs[i]->name << ": ";
             auto npath = prgs[i]->prg.bottom_path();
@@ -61,139 +91,47 @@ int pandora_check_kmergraph(
             }
             std::cout << std::endl;
         }
-        /*vector<KmerNodePtr> kpath = prgs[0]->find_kmernodes_on_localnode_path(npath);
-        cout << kpath[0]->id;
-        for (uint j=1; j != kpath.size(); ++j)
-        {
-            if (find(kpath[j]->inNodes.begin(), kpath[j]->inNodes.end(),
-        kpath[j-1])!=kpath[j]->inNodes.end())
-            {
-                cout << "->" << kpath[j]->id;
-            } else {
-                cout << "  " << kpath[j]->id;
-            }
-        }
-        cout << endl;*/
         return 0;
-    }
-    if (argc > 5 and strcmp(argv[5], "--flag") == 0) {
-        flag = true;
-    }
+    } else if (!opt.seqfile.empty()) {
+        // for each read in readfile,  infer node path along sequence
+        std::vector<LocalNodePtr> npath;
 
-    // for each read in readfile,  infer node path along sequence
-    std::vector<LocalNodePtr> npath;
-    std::string name, read, line;
-    uint32_t read_num = 0;
+        FastaqHandler seq_handle(opt.seqfile);
 
-    std::ifstream myfile(argv[2]);
-    if (myfile.is_open()) {
-        while (getline(myfile, line).good()) {
-            if (line.empty() || line[0] == '>') {
-                if (!name.empty() && !read.empty()) {
-                    if (prgs.size() == 1) {
-                        std::cout << "Node path for read " << read_num << " " << name
-                                  << " along PRG " << prgs[0]->name << ": ";
-                        npath = prgs[0]->prg.nodes_along_string(read);
-                        if (npath.empty()) {
-                            npath
-                                = prgs[0]->prg.nodes_along_string(rev_complement(read));
-                        }
-                    } else if (read_num < prgs.size()) {
-                        std::cout << "Node path for read " << read_num << " " << name
-                                  << " along PRG " << prgs[read_num]->name << ": ";
-                        npath = prgs[read_num]->prg.nodes_along_string(read);
-                        if (npath.empty()) {
-                            npath = prgs[read_num]->prg.nodes_along_string(
-                                rev_complement(read));
-                        }
-                    } else {
-                        BOOST_LOG_TRIVIAL(error)
-                            << "Different numbers of PRGs and reads, exiting";
-                        break;
-                    }
-                    if (flag) {
-                        if (npath.empty() and read.size() < 300) {
-                            BOOST_LOG_TRIVIAL(error) << "short fail!";
-                        } else if (npath.empty() and read.size() >= 300) {
-                            BOOST_LOG_TRIVIAL(error) << "long fail!";
-                        } else {
-                            BOOST_LOG_TRIVIAL(debug) << "success!";
-                        }
-                    } else {
-                        for (uint32_t j = 0; j != npath.size(); ++j) {
-                            std::cout << "->" << *npath[j];
-                        }
-                        std::cout << std::endl;
-                    }
-                    /*vector<KmerNodePtr> kpath =
-                    prgs[0]->find_kmernodes_on_localnode_path(npath);
-
-                    cout << "kmers on path: " << endl;
-                            for (uint j=0; j != kpath.size(); ++j)
-                            {
-                                cout << kpath[j]->id << " " << kpath[j]->path << endl;
-                            }
-
-                        cout << "kmer path: " << kpath[0]->id;
-                        for (uint j=1; j != kpath.size(); ++j)
-                        {
-                      if (find(kpath[j]->inNodes.begin(), kpath[j]->inNodes.end(),
-                    kpath[j-1])!=kpath[j]->inNodes.end())
-                                {
-                                    cout << "->" << kpath[j]->id;
-                                } else {
-                                    cout << endl << "no edge from " << kpath[j-1]->path
-                    << " to " << kpath[j]->path << endl; cout << "outnodes are: " <<
-                    endl; for (uint n=0; n!= kpath[j-1]->outNodes.size(); ++n)
-                        {
-                        cout << kpath[j-1]->outNodes[n]->path << endl;
-                        }
-
-                                }
-                        }
-                        cout << endl;*/
-                    /*for (uint j=0; j != kpath.size(); ++j)
-                            {
-                    cout << kpath[j]->khash << endl;
-                    }*/
-                    read_num += 1;
-                }
-                name.clear();
-                read.clear();
-                if (!line.empty()) {
-                    name = line.substr(1);
-                }
-            } else {
-                read += line;
+        while (!seq_handle.eof()) {
+            try {
+                seq_handle.get_next();
+            } catch (std::out_of_range& err) {
+                break;
             }
-        }
-        // and last entry
-        if (!name.empty() && !read.empty()) {
+
             if (prgs.size() == 1) {
-                std::cout << "Node path for read " << read_num << " " << name
-                          << " along PRG " << prgs[0]->name << ": ";
-                npath = prgs[0]->prg.nodes_along_string(read);
+                std::cout << "Node path for read " << seq_handle.num_reads_parsed << " "
+                          << seq_handle.name << " along PRG " << prgs[0]->name << ": ";
+                npath = prgs[0]->prg.nodes_along_string(seq_handle.read);
                 if (npath.empty()) {
-                    npath = prgs[0]->prg.nodes_along_string(rev_complement(read));
+                    npath = prgs[0]->prg.nodes_along_string(
+                        rev_complement(seq_handle.read));
                 }
-            } else if (read_num < prgs.size()) {
-                std::cout << "Node path for read " << read_num << " " << name
-                          << " along PRG " << prgs[read_num]->name << ": ";
-                npath = prgs[read_num]->prg.nodes_along_string(read);
+            } else if (seq_handle.num_reads_parsed < prgs.size()) {
+                std::cout << "Node path for read " << seq_handle.num_reads_parsed << " "
+                          << seq_handle.name << " along PRG "
+                          << prgs[seq_handle.num_reads_parsed]->name << ": ";
+                npath = prgs[seq_handle.num_reads_parsed]->prg.nodes_along_string(
+                    seq_handle.read);
                 if (npath.empty()) {
-                    npath
-                        = prgs[read_num]->prg.nodes_along_string(rev_complement(read));
+                    npath = prgs[seq_handle.num_reads_parsed]->prg.nodes_along_string(
+                        rev_complement(seq_handle.read));
                 }
             } else {
-                std::cout << "Different numbers of PRGs and reads, exiting"
-                          << std::endl;
-                myfile.close();
-                return 1;
+                BOOST_LOG_TRIVIAL(error)
+                    << "Different numbers of PRGs and reads, exiting";
+                exit(1);
             }
-            if (flag) {
-                if (npath.empty() and read.size() < 300) {
+            if (opt.flag) {
+                if (npath.empty() and seq_handle.read.size() < 300) {
                     BOOST_LOG_TRIVIAL(error) << "short fail!";
-                } else if (npath.empty() and read.size() >= 300) {
+                } else if (npath.empty() and seq_handle.read.size() >= 300) {
                     BOOST_LOG_TRIVIAL(error) << "long fail!";
                 } else {
                     BOOST_LOG_TRIVIAL(debug) << "success!";
@@ -204,42 +142,12 @@ int pandora_check_kmergraph(
                 }
                 std::cout << std::endl;
             }
-            /*vector<KmerNodePtr> kpath =
-            prgs[0]->find_kmernodes_on_localnode_path(npath);
-
-                cout << "kmers on path: " << endl;
-                for (uint j=0; j != kpath.size(); ++j)
-                {
-                    cout << kpath[j]->id << " " << kpath[j]->path << endl;
-                }
-
-                cout << "kmer path: " << kpath[0]->id;
-                for (uint j=1; j != kpath.size(); ++j)
-                {
-            if (find(kpath[j]->inNodes.begin(), kpath[j]->inNodes.end(),
-            kpath[j-1])!=kpath[j]->inNodes.end())
-                    {
-                        cout << "->" << kpath[j]->id;
-                    } else {
-                cout << endl << "no edge from " << kpath[j-1]->path << " to " <<
-            kpath[j]->path << endl; cout << "outnodes are: " << endl; for (uint n=0; n!=
-            kpath[j-1]->outNodes.size(); ++n)
-                        {
-                            cout << kpath[j-1]->outNodes[n]->path << endl;
-                        }
-
-                    }
-                }
-                cout << endl;*/
-            /*for (uint j=0; j != kpath.size(); ++j)
-            {
-                cout << kpath[j]->khash << endl;
-            }*/
         }
-        myfile.close();
+        seq_handle.close();
     } else {
-        std::cerr << "Unable to open sequence file " << argv[2] << std::endl;
-        return 1;
+        BOOST_LOG_TRIVIAL(error) << "One of --top, --bottom or --input must be given";
+        exit(1);
     }
+
     return 0;
 }
