@@ -6,6 +6,7 @@
 #include "compare_main.h"
 #include "walk_main.h"
 #include "check_kmergraph_main.h"
+#include "get_vcf_ref_main.h"
 
 class MyFormatter : public CLI::Formatter {
 public:
@@ -68,7 +69,7 @@ static int usage()
 
 int main(int argc, char* argv[])
 {
-    CLI::App app { "Pandora, Pan-genome inference and genotyping with long noisy or "
+    CLI::App app { "Pandora: Pan-genome inference and genotyping with long noisy or "
                    "short accurate reads." };
     app.formatter(std::make_shared<MyFormatter>());
     setup_index_subcommand(app);
@@ -76,6 +77,7 @@ int main(int argc, char* argv[])
     setup_compare_subcommand(app);
     setup_walk_subcommand(app);
     setup_check_kmergraph_subcommand(app);
+    setup_get_vcf_ref_subcommand(app);
     app.require_subcommand();
 
     CLI11_PARSE(app, argc, argv);
