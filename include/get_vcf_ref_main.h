@@ -8,6 +8,7 @@
 #include "fastaq_handler.h"
 #include "fastaq.h"
 #include "CLI11.hpp"
+
 struct GetVcfRefOptions {
     std::string prgfile;
     std::string seqfile;

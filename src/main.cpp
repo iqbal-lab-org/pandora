@@ -7,6 +7,7 @@
 #include "walk_main.h"
 #include "check_kmergraph_main.h"
 #include "get_vcf_ref_main.h"
+#include "random_path_main.h"
 
 class MyFormatter : public CLI::Formatter {
 public:
@@ -58,9 +59,6 @@ int pandora_merge_index(int argc, char* argv[]);
 static int usage()
 {
     std::cerr
-        << "         random_path   outputs a fasta of random paths through the PRGs\n"
-        << "         get_vcf_ref   outputs a fasta suitable for use as the VCF "
-           "reference using input sequences\n"
         << "         merge_index   allows multiple indexes to be merged (no "
            "compatibility check)\n"
         << std::endl;
@@ -78,16 +76,13 @@ int main(int argc, char* argv[])
     setup_walk_subcommand(app);
     setup_check_kmergraph_subcommand(app);
     setup_get_vcf_ref_subcommand(app);
+    setup_random_path_subcommand(app);
     app.require_subcommand();
 
     CLI11_PARSE(app, argc, argv);
 
     return 0;
 
-    //    else if (strcmp(argv[1], "get_vcf_ref") == 0)
-    //        ret = pandora_get_vcf_ref(argc - 1, argv + 1);
-    //    else if (strcmp(argv[1], "random_path") == 0)
-    //        ret = pandora_random_path(argc - 1, argv + 1);
     //    else if (strcmp(argv[1], "merge_index") == 0)
     //        ret = pandora_merge_index(argc - 1, argv + 1);
 }
