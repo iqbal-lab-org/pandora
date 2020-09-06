@@ -1,5 +1,5 @@
-#ifndef PANDORA_CHECK_KMERGRAPH_MAIN_H
-#define PANDORA_CHECK_KMERGRAPH_MAIN_H
+#ifndef PANDORA_SEQ2PATH_MAIN_H
+#define PANDORA_SEQ2PATH_MAIN_H
 #include <cstring>
 #include <cassert>
 #include <vector>
@@ -12,7 +12,7 @@
 #include "fastaq_handler.h"
 #include "CLI11.hpp"
 
-struct CheckKmerGraphOptions {
+struct Seq2PathOptions {
     std::string prgfile;
     std::string seqfile;
     uint32_t kmer_size { 15 };
@@ -23,7 +23,7 @@ struct CheckKmerGraphOptions {
     uint8_t verbosity { 0 };
 };
 
-void setup_check_kmergraph_subcommand(CLI::App& app);
-int pandora_check_kmergraph(CheckKmerGraphOptions const& opt);
+void setup_seq2path_subcommand(CLI::App& app);
+int pandora_seq2path(Seq2PathOptions const& opt);
 
-#endif // PANDORA_CHECK_KMERGRAPH_MAIN_H
+#endif // PANDORA_SEQ2PATH_MAIN_H
