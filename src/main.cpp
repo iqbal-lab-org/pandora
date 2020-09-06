@@ -4,7 +4,7 @@
 #include "map_main.h"
 #include "compare_main.h"
 #include "walk_main.h"
-#include "check_kmergraph_main.h"
+#include "seq2path_main.h"
 #include "get_vcf_ref_main.h"
 #include "random_path_main.h"
 #include "merge_index_main.h"
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
     setup_map_subcommand(app);
     setup_compare_subcommand(app);
     setup_walk_subcommand(app);
-    setup_check_kmergraph_subcommand(app);
+    setup_seq2path_subcommand(app);
     setup_get_vcf_ref_subcommand(app);
     setup_random_path_subcommand(app);
     setup_merge_index_subcommand(app);

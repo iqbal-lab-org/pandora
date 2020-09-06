@@ -1,53 +1,54 @@
-#include "check_kmergraph_main.h"
+#include "seq2path_main.h"
 
-void setup_check_kmergraph_subcommand(CLI::App& app)
+void setup_seq2path_subcommand(CLI::App& app)
 {
-    auto opt = std::make_shared<CheckKmerGraphOptions>();
+    auto opt = std::make_shared<Seq2PathOptions>();
     // todo: improve description
     std::string description = "For each sequence, return the path through the PRG";
-    auto check_subcmd = app.add_subcommand("check_kmergraph", description);
+    auto seq2path_subcmd = app.add_subcommand("seq2path", description);
 
-    check_subcmd->add_option("<PRG>", opt->prgfile, "PRG to index (in fasta format)")
+    seq2path_subcmd->add_option("<PRG>", opt->prgfile, "PRG to index (in fasta format)")
         ->required()
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
-    auto input = check_subcmd
+    auto input = seq2path_subcmd
                      ->add_option("-i,--input", opt->seqfile,
                          "Fast{a,q} of sequences to output paths through the PRG for")
                      ->check(CLI::ExistingFile.description(""))
                      ->type_name("FILE");
 
-    check_subcmd
+    seq2path_subcmd
         ->add_option(
             "-w", opt->window_size, "Window size for (w,k)-minimizers (must be <=k)")
         ->type_name("INT")
         ->capture_default_str();
 
-    check_subcmd->add_option("-k", opt->kmer_size, "K-mer size for (w,k)-minimizers")
+    seq2path_subcmd->add_option("-k", opt->kmer_size, "K-mer size for (w,k)-minimizers")
         ->type_name("INT")
         ->capture_default_str();
 
-    auto top = check_subcmd->add_flag(
+    auto top = seq2path_subcmd->add_flag(
         "-T,--top", opt->top, "Output the top path through each local PRG");
-    auto bottom = check_subcmd->add_flag(
+    auto bottom = seq2path_subcmd->add_flag(
         "-B,--bottom", opt->bottom, "Output the bottom path through each local PRG");
 
-    // todo: this "flag" doesn't seem to do what it says. i.e. it still outputs the node path?
-    auto check = check_subcmd->add_flag(
+    // todo: this "flag" doesn't seem to do what it says. i.e. it still outputs the node
+    // path?
+    auto check = seq2path_subcmd->add_flag(
         "--flag", opt->flag, "output success/fail rather than the node path");
 
-    check_subcmd->add_flag(
+    seq2path_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
 
     input->excludes(top)->excludes(bottom);
     check->needs(input);
     top->excludes(bottom);
 
-    check_subcmd->callback([opt]() { pandora_check_kmergraph(*opt); });
+    seq2path_subcmd->callback([opt]() { pandora_seq2path(*opt); });
 }
 
-int pandora_check_kmergraph(CheckKmerGraphOptions const& opt)
+int pandora_seq2path(Seq2PathOptions const& opt)
 {
     // can either provide a prgfile with 1 prg and a sequence file (or top/bottom) and
     // return the path through the prg for each sequence OR can provide a prgfile with
