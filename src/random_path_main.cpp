@@ -36,7 +36,7 @@ int pandora_random_path(RandomPathOptions const& opt)
         log_level = boost::log::trivial::trace;
     }
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
-    
+
     std::vector<std::shared_ptr<LocalPRG>> prgs;
     read_prg_file(prgs, opt.prgfile);
 

@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cstring>
 #include "CLI11.hpp"
 #include "index_main.h"
 #include "map_main.h"
@@ -8,6 +7,7 @@
 #include "check_kmergraph_main.h"
 #include "get_vcf_ref_main.h"
 #include "random_path_main.h"
+#include "merge_index_main.h"
 
 class MyFormatter : public CLI::Formatter {
 public:
@@ -50,21 +50,6 @@ public:
     }
 };
 
-int pandora_get_vcf_ref(int argc, char* argv[]);
-
-int pandora_random_path(int argc, char* argv[]);
-
-int pandora_merge_index(int argc, char* argv[]);
-
-static int usage()
-{
-    std::cerr
-        << "         merge_index   allows multiple indexes to be merged (no "
-           "compatibility check)\n"
-        << std::endl;
-    return 1;
-}
-
 int main(int argc, char* argv[])
 {
     CLI::App app { "Pandora: Pan-genome inference and genotyping with long noisy or "
@@ -77,12 +62,10 @@ int main(int argc, char* argv[])
     setup_check_kmergraph_subcommand(app);
     setup_get_vcf_ref_subcommand(app);
     setup_random_path_subcommand(app);
+    setup_merge_index_subcommand(app);
     app.require_subcommand();
 
     CLI11_PARSE(app, argc, argv);
 
     return 0;
-
-    //    else if (strcmp(argv[1], "merge_index") == 0)
-    //        ret = pandora_merge_index(argc - 1, argv + 1);
 }
