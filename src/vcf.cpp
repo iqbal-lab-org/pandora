@@ -1,9 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <cassert>
 #include <ctime>
-#include <numeric>
 #include <vector>
 #include <algorithm>
 
@@ -12,7 +10,6 @@
 #include "vcfrecord.h"
 #include "vcf.h"
 #include "utils.h"
-#include "localnode.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -514,22 +511,22 @@ std::string VCF::header() const
     header += "##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description=\"Type of graph "
               "feature\">\n";
     header += "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n";
-    header += "##FORMAT=<ID=MEAN_FWD_COVG,Number=A,Type=Integer,Description=\"Mean "
+    header += "##FORMAT=<ID=MEAN_FWD_COVG,Number=R,Type=Integer,Description=\"Mean "
               "forward coverage\">\n";
-    header += "##FORMAT=<ID=MEAN_REV_COVG,Number=A,Type=Integer,Description=\"Mean "
+    header += "##FORMAT=<ID=MEAN_REV_COVG,Number=R,Type=Integer,Description=\"Mean "
               "reverse coverage\">\n";
-    header += "##FORMAT=<ID=MED_FWD_COVG,Number=A,Type=Integer,Description=\"Med "
+    header += "##FORMAT=<ID=MED_FWD_COVG,Number=R,Type=Integer,Description=\"Med "
               "forward coverage\">\n";
-    header += "##FORMAT=<ID=MED_REV_COVG,Number=A,Type=Integer,Description=\"Med "
+    header += "##FORMAT=<ID=MED_REV_COVG,Number=R,Type=Integer,Description=\"Med "
               "reverse coverage\">\n";
-    header += "##FORMAT=<ID=SUM_FWD_COVG,Number=A,Type=Integer,Description=\"Sum "
+    header += "##FORMAT=<ID=SUM_FWD_COVG,Number=R,Type=Integer,Description=\"Sum "
               "forward coverage\">\n";
-    header += "##FORMAT=<ID=SUM_REV_COVG,Number=A,Type=Integer,Description=\"Sum "
+    header += "##FORMAT=<ID=SUM_REV_COVG,Number=R,Type=Integer,Description=\"Sum "
               "reverse coverage\">\n";
-    header += "##FORMAT=<ID=GAPS,Number=A,Type=Float,Description=\"Number of gap "
+    header += "##FORMAT=<ID=GAPS,Number=R,Type=Float,Description=\"Number of gap "
               "bases\">\n";
     header
-        += "##FORMAT=<ID=LIKELIHOOD,Number=A,Type=Float,Description=\"Likelihood\">\n";
+        += "##FORMAT=<ID=LIKELIHOOD,Number=R,Type=Float,Description=\"Likelihood\">\n";
     header += "##FORMAT=<ID=GT_CONF,Number=1,Type=Float,Description=\"Genotype "
               "confidence\">\n";
     for (const std::string& chrom : chroms) {
