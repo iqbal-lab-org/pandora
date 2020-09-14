@@ -187,13 +187,6 @@ void setup_map_subcommand(CLI::App& app)
 
     // todo: should we remove this?
     map_subcmd
-        ->add_option("--min-kmer-covg", opt->min_kmer_covg, "Should this be exposed?")
-        ->capture_default_str()
-        ->type_name("INT")
-        ->group("??");
-
-    // todo: should we remove this?
-    map_subcmd
         ->add_option(
             "--min-allele-covg-gt", opt->min_allele_covg_gt, "Should this be exposed?")
         ->type_name("INT")
@@ -403,7 +396,7 @@ int pandora_map(MapOptions& opt)
             // TODO: this takes a lot of time and should be optimized, but it is
             // only called in this part, so maybe this should be low prioritized
             prgs[pangraph_node->prg_id]->add_variants_to_vcf(
-                master_vcf, pangraph_node, vcf_ref, kmp, lmp, opt.min_kmer_covg);
+                master_vcf, pangraph_node, vcf_ref, kmp, lmp);
         }
 
         if (opt.discover) {
