@@ -1689,8 +1689,8 @@ std::vector<LocalNodePtr> LocalPRG::get_valid_vcf_reference(
 
 void LocalPRG::add_variants_to_vcf(VCF& master_vcf, PanNodePtr pnode,
     const std::string& vcf_ref, const std::vector<KmerNodePtr>& kmp,
-    const std::vector<LocalNodePtr>& lmp, const uint32_t& min_kmer_covg,
-    const uint32_t& sample_id, const std::string& sample_name)
+    const std::vector<LocalNodePtr>& lmp, const uint32_t& sample_id,
+    const std::string& sample_name)
 {
     auto reference_path = get_valid_vcf_reference(vcf_ref);
     if (reference_path.empty()) {

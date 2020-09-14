@@ -128,8 +128,7 @@ public:
 
     void add_variants_to_vcf(VCF&, PanNodePtr, const std::string&,
         const std::vector<KmerNodePtr>&, const std::vector<LocalNodePtr>&,
-        const uint32_t& min_kmer_covg, const uint32_t& sample_id = 0,
-        const std::string& sample_name = "sample");
+        const uint32_t& sample_id = 0, const std::string& sample_name = "sample");
 
     // friends definitions
     friend std::ostream& operator<<(std::ostream& out, const LocalPRG& data);

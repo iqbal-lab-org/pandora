@@ -61,7 +61,6 @@ struct MapOptions {
     float min_allele_fraction_covg_gt { 0 };
     float genotyping_error_rate { 0.01 };
     uint16_t confidence_threshold { 1 };
-    uint32_t min_kmer_covg { 0 };
 };
 
 void setup_map_subcommand(CLI::App& app);
