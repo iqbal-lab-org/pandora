@@ -15,7 +15,7 @@ void setup_compare_subcommand(CLI::App& app)
 {
     // todo: make groups for opts
     auto opt = std::make_shared<CompareOptions>();
-    auto compare_subcmd = app.add_subcommand("compare",
+    auto* compare_subcmd = app.add_subcommand("compare",
         "Quasi-map reads from multiple samples to an indexed PRG, infer the "
         "sequence of present loci in each sample, and call variants between the "
         "samples.");
@@ -58,10 +58,8 @@ void setup_compare_subcommand(CLI::App& app)
         ->capture_default_str()
         ->group("Input/Output");
 
-    description
-        = "Fasta file with an entry for each loci.\nThe entries will be used as the "
-          "reference sequence for their respective loci.\nThe sequence MUST have a "
-          "perfect match in <TARGET> and the same name";
+    description = "Fasta file with a reference sequence to use for each loci. The "
+                  "sequence MUST have a perfect match in <TARGET> and the same name";
     compare_subcmd->add_option("--vcf-refs", opt->vcf_refs_file, description)
         ->type_name("FILE")
         ->group("Input/Output");
@@ -88,12 +86,11 @@ void setup_compare_subcommand(CLI::App& app)
         ->group("Mapping");
 
     compare_subcmd
-        ->add_flag(
-            "--output-vcf", opt->output_vcf, "Save a VCF file for each found loci")
+        ->add_flag("--loci-vcf", opt->output_vcf, "Save a VCF file for each found loci")
         ->group("Input/Output");
 
     compare_subcmd
-        ->add_flag("--illumina", opt->illumina,
+        ->add_flag("-I,--illumina", opt->illumina,
             "Reads are from Illumina. Alters error rate used and adjusts for shorter "
             "reads")
         ->group("Preset");
@@ -108,7 +105,6 @@ void setup_compare_subcommand(CLI::App& app)
             "Use binomial model for kmer coverages [default: negative binomial]")
         ->group("Parameter Estimation");
 
-    // todo: suggest removing this parameter
     compare_subcmd
         ->add_option(
             "--max-covg", opt->max_covg, "Maximum average coverage of reads to accept")
@@ -123,8 +119,6 @@ void setup_compare_subcommand(CLI::App& app)
         }
         return std::string();
     };
-    // todo: zam mentioned we probably only want global - remove local and make this a
-    // flag?
     description
         = "Add extra step to carefully genotype sites. There are two modes: 'global' "
           "(ML path oriented) or 'local' (coverage oriented)";
@@ -149,50 +143,45 @@ void setup_compare_subcommand(CLI::App& app)
         ->type_name("INT")
         ->group("Consensus/Variant Calling");
 
-    // todo: should we remove this?
-    compare_subcmd
-        ->add_option(
-            "--min-allele-covg-gt", opt->min_allele_covg_gt, "Should this be exposed?")
+    description
+        = "Hard threshold for the minimum allele coverage allowed when genotyping";
+    compare_subcmd->add_option("-a", opt->min_allele_covg_gt, description)
         ->type_name("INT")
         ->capture_default_str()
-        ->group("??");
+        ->group("Genotyping");
 
-    // todo: should we remove this?
-    compare_subcmd
-        ->add_option(
-            "--min-total-covg-gt", opt->min_total_covg_gt, "Should this be exposed?")
+    description = "The minimum required total coverage for a site when genotyping";
+    compare_subcmd->add_option("-s", opt->min_total_covg_gt, description)
         ->type_name("INT")
         ->capture_default_str()
-        ->group("??");
+        ->group("Genotyping");
 
-    // todo: should we remove this?
-    compare_subcmd
-        ->add_option(
-            "--min-diff-covg-gt", opt->min_diff_covg_gt, "Should this be exposed?")
+    description = "Minimum difference in coverage on a site required between the first "
+                  "and second maximum likelihood path";
+    compare_subcmd->add_option("-D", opt->min_diff_covg_gt, description)
         ->capture_default_str()
         ->type_name("INT")
-        ->group("??");
+        ->group("Genotyping");
 
-    // todo: should we remove this?
-    compare_subcmd
-        ->add_option("--min-allele-fraction-covg-gt", opt->min_allele_fraction_covg_gt,
-            "Should this be exposed?")
+    description = "Minimum allele coverage, as a fraction of the expected coverage, "
+                  "allowed when genotyping";
+    compare_subcmd->add_option("-F", opt->min_allele_fraction_covg_gt, description)
         ->capture_default_str()
         ->type_name("INT")
-        ->group("??");
+        ->group("Genotyping");
 
-    // todo: need a description
+    description = "When genotyping, assume that coverage on alternative alleles arises "
+                  "as a result of an error process with rate -E.";
     compare_subcmd
-        ->add_option("--genotyping-error-rate", opt->genotyping_error_rate, "??")
+        ->add_option("-E,--gt-error-rate", opt->genotyping_error_rate, description)
         ->capture_default_str()
-        ->group("Consensus/Variant Calling");
+        ->group("Genotyping");
 
-    // todo: need a description
-    compare_subcmd
-        ->add_option("--confidence-threshold", opt->confidence_threshold, "??")
+    description = "Minimum genotype confidence (GT_CONF) required to make a call";
+    compare_subcmd->add_option("-G,--gt-conf", opt->confidence_threshold, description)
         ->type_name("INT")
         ->capture_default_str()
-        ->group("Consensus/Variant Calling");
+        ->group("Genotyping");
 
     compare_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
