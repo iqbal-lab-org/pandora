@@ -1,10 +1,3 @@
-/*
- * Todo:
- * 1. Allow reverse complement strand minimizers
- * 2. Make sure mapped region not got large indels from unsupported intervals
- * 3. Command line argument handling for option of dumped_db screening
- * 4. Change structure so not copying minimzers etc, but use pointers
- */
 #include "map_main.h"
 
 void setup_map_subcommand(CLI::App& app)
