@@ -9,9 +9,8 @@
 
 void setup_map_subcommand(CLI::App& app)
 {
-    // todo: make groups for opts
     auto opt = std::make_shared<MapOptions>();
-    auto map_subcmd = app.add_subcommand("map",
+    auto* map_subcmd = app.add_subcommand("map",
         "Quasi-map reads to an indexed PRG, infer the "
         "sequence of present loci in the sample, and (optionally) genotype/discover "
         "variants.");
@@ -53,10 +52,9 @@ void setup_map_subcommand(CLI::App& app)
         ->capture_default_str()
         ->group("Input/Output");
 
-    std::string description
-        = "Fasta file with an entry for each loci.\nThe entries will be used as the "
-          "reference sequence for their respective loci.\nThe sequence MUST have a "
-          "perfect match in <TARGET> and the same name";
+    std::string description = "Fasta file with a reference sequence to use for each "
+                              "loci. The sequence MUST have a "
+                              "perfect match in <TARGET> and the same name";
     map_subcmd->add_option("--vcf-refs", opt->vcf_refs_file, description)
         ->type_name("FILE")
         ->group("Input/Output");
@@ -82,39 +80,33 @@ void setup_map_subcommand(CLI::App& app)
         ->type_name("INT")
         ->group("Mapping");
 
-    // todo: suggest rename
     map_subcmd
-        ->add_flag("--output-kg", opt->output_kg,
+        ->add_flag("--kg", opt->output_kg,
             "Save kmer graphs with forward and reverse coverage annotations for found "
             "loci")
         ->group("Input/Output");
 
-    // todo: suggest rename
     map_subcmd
-        ->add_flag(
-            "--output-vcf", opt->output_vcf, "Save a VCF file for each found loci")
+        ->add_flag("--loci-vcf", opt->output_vcf, "Save a VCF file for each found loci")
         ->group("Input/Output");
 
-    // todo: suggest rename
     map_subcmd
-        ->add_flag("--output-comparison-paths", opt->output_comparison_paths,
+        ->add_flag("-C,--comparison-paths", opt->output_comparison_paths,
             "Save a fasta file for a random selection of paths through loci")
         ->group("Input/Output");
 
-    // todo: suggest rename
     map_subcmd
-        ->add_flag("--output-covgs", opt->output_covgs,
+        ->add_flag("--coverages", opt->output_covgs,
             "Save a file of coverages for each loci present - one number per base")
         ->group("Input/Output");
 
-    // todo: suggest rename
     map_subcmd
-        ->add_flag("--output-mapped-read-fa", opt->output_mapped_read_fa,
-            "Save a file for each loci containing read parts which overlapped it")
+        ->add_flag("-M,--mapped-reads", opt->output_mapped_read_fa,
+            "Save a fasta file for each loci containing read parts which overlapped it")
         ->group("Input/Output");
 
     map_subcmd
-        ->add_flag("--illumina", opt->illumina,
+        ->add_flag("-I,--illumina", opt->illumina,
             "Reads are from Illumina. Alters error rate used and adjusts for shorter "
             "reads")
         ->group("Preset");
@@ -129,7 +121,6 @@ void setup_map_subcommand(CLI::App& app)
             "Use binomial model for kmer coverages [default: negative binomial]")
         ->group("Parameter Estimation");
 
-    // todo: suggest removing this parameter
     map_subcmd
         ->add_option(
             "--max-covg", opt->max_covg, "Maximum average coverage of reads to accept")
@@ -144,8 +135,6 @@ void setup_map_subcommand(CLI::App& app)
         }
         return std::string();
     };
-    // todo: zam mentioned we probably only want global - remove local and make this a
-    // flag?
     description
         = "Add extra step to carefully genotype sites. There are two modes: 'global' "
           "(ML path oriented) or 'local' (coverage oriented)";
@@ -165,7 +154,7 @@ void setup_map_subcommand(CLI::App& app)
 
     map_subcmd
         ->add_option("--discover-k", opt->denovo_kmer_size,
-            "K-mer size to use when disovering de novo variants")
+            "Kmer size to use when disovering de novo variants")
         ->capture_default_str()
         ->type_name("INT")
         ->group("Consensus/Variant Calling");
@@ -185,48 +174,45 @@ void setup_map_subcommand(CLI::App& app)
         ->type_name("INT")
         ->group("Consensus/Variant Calling");
 
-    // todo: should we remove this?
+    description
+        = "Hard threshold for the minimum allele coverage allowed when genotyping";
+    map_subcmd->add_option("-a", opt->min_allele_covg_gt, description)
+        ->type_name("INT")
+        ->capture_default_str()
+        ->group("Genotyping");
+
+    description = "The minimum required total coverage for a site when genotyping";
+    map_subcmd->add_option("-s", opt->min_total_covg_gt, description)
+        ->type_name("INT")
+        ->capture_default_str()
+        ->group("Genotyping");
+
+    description = "Minimum difference in coverage on a site required between the first "
+                  "and second maximum likelihood path";
+    map_subcmd->add_option("-D", opt->min_diff_covg_gt, description)
+        ->capture_default_str()
+        ->type_name("INT")
+        ->group("Genotyping");
+
+    description = "Minimum allele coverage, as a fraction of the expected coverage, "
+                  "allowed when genotyping";
+    map_subcmd->add_option("-F", opt->min_allele_fraction_covg_gt, description)
+        ->capture_default_str()
+        ->type_name("INT")
+        ->group("Genotyping");
+
+    description = "When genotyping, assume that coverage on alternative alleles arises "
+                  "as a result of an error process with rate -E.";
     map_subcmd
-        ->add_option(
-            "--min-allele-covg-gt", opt->min_allele_covg_gt, "Should this be exposed?")
+        ->add_option("-E,--gt-error-rate", opt->genotyping_error_rate, description)
+        ->capture_default_str()
+        ->group("Genotyping");
+
+    description = "Minimum genotype confidence (GT_CONF) required to make a call";
+    map_subcmd->add_option("-G,--gt-conf", opt->confidence_threshold, description)
         ->type_name("INT")
         ->capture_default_str()
-        ->group("??");
-
-    // todo: should we remove this?
-    map_subcmd
-        ->add_option(
-            "--min-total-covg-gt", opt->min_total_covg_gt, "Should this be exposed?")
-        ->type_name("INT")
-        ->capture_default_str()
-        ->group("??");
-
-    // todo: should we remove this?
-    map_subcmd
-        ->add_option(
-            "--min-diff-covg-gt", opt->min_diff_covg_gt, "Should this be exposed?")
-        ->capture_default_str()
-        ->type_name("INT")
-        ->group("??");
-
-    // todo: should we remove this?
-    map_subcmd
-        ->add_option("--min-allele-fraction-covg-gt", opt->min_allele_fraction_covg_gt,
-            "Should this be exposed?")
-        ->capture_default_str()
-        ->type_name("INT")
-        ->group("??");
-
-    // todo: need a description
-    map_subcmd->add_option("--genotyping-error-rate", opt->genotyping_error_rate, "??")
-        ->capture_default_str()
-        ->group("Consensus/Variant Calling");
-
-    // todo: need a description
-    map_subcmd->add_option("--confidence-threshold", opt->confidence_threshold, "??")
-        ->type_name("INT")
-        ->capture_default_str()
-        ->group("Consensus/Variant Calling");
+        ->group("Genotyping");
 
     map_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
