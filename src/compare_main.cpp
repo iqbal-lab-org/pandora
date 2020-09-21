@@ -13,7 +13,6 @@
 
 void setup_compare_subcommand(CLI::App& app)
 {
-    // todo: make groups for opts
     auto opt = std::make_shared<CompareOptions>();
     auto* compare_subcmd = app.add_subcommand("compare",
         "Quasi-map reads from multiple samples to an indexed PRG, infer the "
