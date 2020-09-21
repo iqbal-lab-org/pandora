@@ -3,7 +3,6 @@
 void setup_seq2path_subcommand(CLI::App& app)
 {
     auto opt = std::make_shared<Seq2PathOptions>();
-    // todo: improve description
     std::string description = "For each sequence, return the path through the PRG";
     auto seq2path_subcmd = app.add_subcommand("seq2path", description);
 
