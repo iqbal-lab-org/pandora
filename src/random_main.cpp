@@ -1,33 +1,32 @@
-#include "random_path_main.h"
+#include "random_main.h"
 
-void setup_random_path_subcommand(CLI::App& app)
+void setup_random_subcommand(CLI::App& app)
 {
-    auto opt = std::make_shared<RandomPathOptions>();
+    auto opt = std::make_shared<RandomOptions>();
 
     std::string description = "Outputs a fasta of random paths through the PRGs";
-    // todo: rename to random?
-    auto random_path_subcmd = app.add_subcommand("random_path", description);
+    auto * random_subcmd = app.add_subcommand("random", description);
 
-    random_path_subcmd
+    random_subcmd
         ->add_option("<PRG>", opt->prgfile, "PRG to generate random paths from")
         ->required()
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
-    random_path_subcmd->add_option("-n", opt->num_paths, "Number of paths to output")
+    random_subcmd->add_option("-n", opt->num_paths, "Number of paths to output")
         ->capture_default_str()
         ->type_name("INT");
 
-    random_path_subcmd->add_flag(
+    random_subcmd->add_flag(
         "-z,--compress", opt->compress, "Compress the output with gzip");
 
-    random_path_subcmd->add_flag(
+    random_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
 
-    random_path_subcmd->callback([opt]() { pandora_random_path(*opt); });
+    random_subcmd->callback([opt]() { pandora_random_path(*opt); });
 }
 
-int pandora_random_path(RandomPathOptions const& opt)
+int pandora_random_path(RandomOptions const& opt)
 {
     auto log_level = boost::log::trivial::info;
     if (opt.verbosity == 1) {

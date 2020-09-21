@@ -6,7 +6,7 @@
 #include "walk_main.h"
 #include "seq2path_main.h"
 #include "get_vcf_ref_main.h"
-#include "random_path_main.h"
+#include "random_main.h"
 #include "merge_index_main.h"
 
 class MyFormatter : public CLI::Formatter {
@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
     setup_walk_subcommand(app);
     setup_seq2path_subcommand(app);
     setup_get_vcf_ref_subcommand(app);
-    setup_random_path_subcommand(app);
+    setup_random_subcommand(app);
     setup_merge_index_subcommand(app);
     app.require_subcommand();
 
