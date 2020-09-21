@@ -1,14 +1,3 @@
-/*
- * C++ Program to call variation between a set of samples.
- * To do this, runs pandora map process on each sample/readfile to find the best gene
- * sequence for each gene inferred present in that sample. Then compares the paths found
- * through each gene and outputs a vcf and aligned fasta for each one.
- */
-/*
- * QUESTIONS:
- * How do I handle multiple occurrences of a gene in a sample? I would like to output
- * all the versions called against my new reference
- */
 #include "compare_main.h"
 
 void setup_compare_subcommand(CLI::App& app)
