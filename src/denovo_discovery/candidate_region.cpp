@@ -108,20 +108,19 @@ CandidateRegions find_candidate_regions_for_pan_node(
         i++;
     }
 
-    const auto candidate_intervals { identify_low_coverage_intervals(
+    auto candidate_intervals { identify_low_coverage_intervals(
         covgs_along_localnode_path) };
+    BOOST_LOG_TRIVIAL(trace) << candidate_intervals.size()
+                             << " candidate intervals before merging";
+    merge_intervals_within(candidate_intervals, candidate_region_interval_padding);
+    BOOST_LOG_TRIVIAL(trace) << candidate_intervals.size()
+                             << " candidate intervals after merging";
 
     CandidateRegions candidate_regions;
-
-    BOOST_LOG_TRIVIAL(debug) << "there are " << candidate_intervals.size()
-                             << " intervals";
 
     for (const auto& current_interval : candidate_intervals) {
         CandidateRegion candidate_region { current_interval, pangraph_node->get_name(),
             candidate_region_interval_padding };
-        BOOST_LOG_TRIVIAL(debug)
-            << "Looking at interval: " << candidate_region.get_interval();
-        BOOST_LOG_TRIVIAL(debug) << "For gene: " << candidate_region.get_name();
 
         const auto interval_path_components { find_interval_and_flanks_in_localpath(
             candidate_region.get_interval(), local_node_max_likelihood_path) };
@@ -129,9 +128,10 @@ CandidateRegions find_candidate_regions_for_pan_node(
         candidate_region.read_coordinates = pangraph_node->get_read_overlap_coordinates(
             interval_path_components.slice);
 
-        BOOST_LOG_TRIVIAL(debug)
-            << "there are " << candidate_region.read_coordinates.size()
-            << " read_overlap_coordinates";
+        BOOST_LOG_TRIVIAL(trace)
+            << "Candidate region with interval " << candidate_region.get_interval()
+            << " for gene " << candidate_region.get_name() << " has "
+            << candidate_region.read_coordinates.size() << " read overlaps";
 
         candidate_region.max_likelihood_sequence
             = local_prg->string_along_path(interval_path_components.slice);
@@ -152,7 +152,7 @@ std::vector<Interval> identify_low_coverage_intervals(
 {
     std::vector<Interval> identified_regions;
     const auto predicate { [min_required_covg](
-                               uint_least32_t x) { return x <= min_required_covg; } };
+                               uint_least32_t x) { return x < min_required_covg; } };
     auto first { covg_at_each_position.begin() };
     auto previous { covg_at_each_position.begin() };
     auto current { first };
@@ -204,7 +204,6 @@ void CandidateRegion::add_pileup_entry(
 void CandidateRegion::write_denovo_paths_to_file(const fs::path& output_directory)
 {
     if (denovo_paths.empty()) {
-        BOOST_LOG_TRIVIAL(debug) << "No denovo paths for " << filename;
         return;
     }
 
@@ -213,9 +212,6 @@ void CandidateRegion::write_denovo_paths_to_file(const fs::path& output_director
     const auto discovered_paths_filepath { output_directory / filename };
 
     fasta.save(discovered_paths_filepath.string());
-
-    BOOST_LOG_TRIVIAL(debug) << "Denovo path for " << name
-                             << " written to: " << discovered_paths_filepath;
 }
 
 Fastaq CandidateRegion::generate_fasta_for_denovo_paths()
@@ -330,6 +326,6 @@ void load_all_candidate_regions_pileups_from_fastq(const fs::path& reads_filepat
             }
         }
     }
-    BOOST_LOG_TRIVIAL(info) << "Loaded all candidate regions pileups from "
-                            << reads_filepath.string();
+    BOOST_LOG_TRIVIAL(trace) << "Loaded all candidate regions pileups from "
+                             << reads_filepath.string();
 }

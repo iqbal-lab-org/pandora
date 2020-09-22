@@ -1,5 +1,3 @@
-#include <limits>
-#include <cassert>
 #include "interval.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
@@ -14,7 +12,7 @@ Interval::Interval(uint32_t s, uint32_t e)
                         // strings can be represented
 }
 
-uint32_t Interval::get_end() const { return start + (uint32_t)length; }
+uint32_t Interval::get_end() const { return start + length; }
 
 std::ostream& operator<<(std::ostream& out, Interval const& i)
 {
@@ -65,3 +63,36 @@ bool Interval::operator<(const Interval& y) const
 }
 
 bool Interval::empty() const { return length == 0; }
+
+void merge_intervals_within(std::vector<Interval>& intervals, const uint32_t dist)
+{
+    if (intervals.size() < 2) { // nothing to merge
+        return;
+    }
+    std::sort(intervals.begin(), intervals.end());
+
+    // assumption that iv1 < iv2
+    auto close { [dist](const Interval& iv1, const Interval& iv2) -> bool {
+        const auto leading_edge { iv1.get_end() + dist };
+        return leading_edge > iv2.start;
+    } };
+
+    unsigned long prev_idx { 0 };
+    for (std::size_t i = 1; i < intervals.size(); ++i) {
+        const auto& current_iv { intervals[i] };
+        auto& prev_iv { intervals[prev_idx] };
+
+        if (close(prev_iv, current_iv)) {
+            const auto new_end { std::max(prev_iv.get_end(), current_iv.get_end()) };
+            intervals[prev_idx] = Interval(prev_iv.start, new_end);
+
+            // remove the current interval as it was merged into the previous interval
+            intervals.erase(intervals.begin() + i);
+            --i; // vector elements get relocated after erase so stay at current idx
+        } else {
+            ++prev_idx;
+        }
+    }
+
+    intervals.resize(prev_idx + 1);
+}

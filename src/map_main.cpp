@@ -276,11 +276,11 @@ int pandora_map(MapOptions& opt)
                             << "/pandora.pangraph.gfa";
     write_pangraph_gfa(opt.outdir + "/pandora.pangraph.gfa", pangraph);
 
-    BOOST_LOG_TRIVIAL(info) << "Update LocalPRGs with hits...";
+    BOOST_LOG_TRIVIAL(info) << "Updating local PRGs with hits...";
     uint32_t sample_id = 0;
     pangraph->add_hits_to_kmergraphs(prgs);
 
-    BOOST_LOG_TRIVIAL(info) << "Estimate parameters for kmer graph model...";
+    BOOST_LOG_TRIVIAL(info) << "Estimating parameters for kmer graph model...";
     auto exp_depth_covg = estimate_parameters(pangraph, opt.outdir, opt.kmer_size,
         opt.error_rate, covg, opt.binomial, sample_id);
     genotyping_options.add_exp_depth_covg(exp_depth_covg);
@@ -389,7 +389,8 @@ int pandora_map(MapOptions& opt)
     // build the pileup for candidate regions multithreadly
     if (opt.discover) {
         BOOST_LOG_TRIVIAL(info)
-            << "Building read pileups for candidate de novo regions...";
+            << "Building read pileups for " << candidate_regions.size()
+            << " candidate de novo regions...";
         // the construct_pileup_construction_map function is intentionally left
         // single threaded since it would require too much synchronization
         const auto pileup_construction_map

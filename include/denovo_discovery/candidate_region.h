@@ -89,8 +89,8 @@ private:
 
 std::vector<Interval> identify_low_coverage_intervals(
     const std::vector<uint32_t>& covg_at_each_position,
-    const uint32_t& min_required_covg = 2, const uint32_t& min_length = 1,
-    const uint32_t& max_length = 20);
+    const uint32_t& min_required_covg = 3, const uint32_t& min_length = 1,
+    const uint32_t& max_length = 76);
 
 using CandidateRegions = std::unordered_map<CandidateRegionIdentifier, CandidateRegion>;
 
@@ -107,6 +107,6 @@ PileupConstructionMap construct_pileup_construction_map(
 
 void load_all_candidate_regions_pileups_from_fastq(const fs::path& reads_filepath,
     const CandidateRegions& candidate_regions,
-    const PileupConstructionMap& pileup_construction_map, const uint32_t threads = 1);
+    const PileupConstructionMap& pileup_construction_map, uint32_t threads = 1);
 
 #endif // PANDORA_CANDIDATE_REGION_H
