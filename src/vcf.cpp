@@ -264,32 +264,24 @@ bool VCF::pos_in_range(
     return false;
 }
 
-void VCF::genotype(bool do_global_genotyping, bool do_local_genotyping)
+void VCF::genotype(const bool do_local_genotyping)
 {
-    bool exactly_one_option_is_set
-        = int(do_global_genotyping) + int(do_local_genotyping) == 1;
-    assert(exactly_one_option_is_set);
-
-    BOOST_LOG_TRIVIAL(info) << now() << "Genotype VCF";
     bool all_SV_types = not genotyping_options->is_snps_only();
 
-    if (do_global_genotyping) {
-        for (auto& vcf_record : records) {
-            bool should_genotype_record = all_SV_types
-                or (genotyping_options->is_snps_only() and vcf_record->is_SNP());
-            if (should_genotype_record) {
+    for (auto& vcf_record : records) {
+        bool should_genotype_record = all_SV_types
+            or (genotyping_options->is_snps_only() and vcf_record->is_SNP());
+        if (should_genotype_record) {
+            if (do_local_genotyping) {
+                vcf_record->genotype_from_coverage();
+            } else {
                 vcf_record
                     ->genotype_from_coverage_using_maximum_likelihood_path_as_reference();
             }
         }
-    } else {
-        for (auto& vcf_record : records) {
-            bool should_genotype_record = all_SV_types
-                or (genotyping_options->is_snps_only() and vcf_record->is_SNP());
-            if (should_genotype_record) {
-                vcf_record->genotype_from_coverage();
-            }
-        }
+    }
+
+    if (do_local_genotyping) {
         make_gt_compatible();
     }
 }

@@ -100,20 +100,15 @@ void setup_compare_subcommand(CLI::App& app)
         ->type_name("INT")
         ->group("Filtering");
 
-    auto genotype_validator = [](const std::string& str) {
-        bool valid_genotype_option = str == "global" || str == "local";
-        if (!valid_genotype_option) {
-            return std::string("--genotype should be either 'global' or 'local'.");
-        }
-        return std::string();
-    };
-    description
-        = "Add extra step to carefully genotype sites. There are two modes: 'global' "
-          "(ML path oriented) or 'local' (coverage oriented)";
-    compare_subcmd->add_option("--genotype", opt->genotype, description)
-        ->type_name("MODE")
-        ->check(genotype_validator)
-        ->group("Consensus/Variant Calling");
+    description = "Add extra step to carefully genotype sites.";
+    auto* gt_opt = compare_subcmd->add_flag("--genotype", opt->genotype, description)
+                       ->group("Consensus/Variant Calling");
+
+    description = "(Intended for developers) Use coverage-oriented (local) genotyping "
+                  "instead of the default ML path-oriented (global) approach.";
+    compare_subcmd->add_flag("--local", opt->local_genotype, description)
+        ->needs(gt_opt)
+        ->group("Genotyping");
 
     description
         = "Minimum size of a cluster of hits between a read and a loci to consider "
@@ -238,11 +233,9 @@ int pandora_compare(CompareOptions& opt)
         throw std::logic_error("W must NOT be greater than K");
     }
 
-    bool do_global_genotyping { opt.genotype == "global" };
-    bool do_local_genotyping { opt.genotype == "local" };
-
-    if (do_global_genotyping or do_local_genotyping)
+    if (opt.genotype) {
         opt.output_vcf = true;
+    }
 
     GenotypingOptions genotyping_options({}, opt.genotyping_error_rate,
         opt.confidence_threshold, opt.min_allele_covg_gt,
@@ -380,14 +373,16 @@ int pandora_compare(CompareOptions& opt)
     auto vcfs_dir = opt.outdir + "/VCFs";
     fs::create_directories(vcfs_dir);
     // create the dirs for the VCFs
-    for (uint32_t i = 0; i <= pangraph->nodes.size() / nb_vcfs_per_dir; ++i)
+    for (uint32_t i = 0; i <= pangraph->nodes.size() / nb_vcfs_per_dir; ++i) {
         fs::create_directories(vcfs_dir + "/" + int_to_string(i + 1));
+    }
 
     // create the dirs for the VCFs genotyped, if genotyping should be done
-    auto vcfs_genotyped_dirs = opt.outdir + "/VCFs_genotyped_" + opt.genotype;
-    if (do_global_genotyping || do_local_genotyping) {
-        for (uint32_t i = 0; i <= pangraph->nodes.size() / nb_vcfs_per_dir; ++i)
+    auto vcfs_genotyped_dirs = opt.outdir + "/VCFs_genotyped";
+    if (opt.genotype) {
+        for (uint32_t i = 0; i <= pangraph->nodes.size() / nb_vcfs_per_dir; ++i) {
             fs::create_directories(vcfs_genotyped_dirs + "/" + int_to_string(i + 1));
+        }
     }
 
     // transforms to a vector to parallelize this
@@ -446,8 +441,10 @@ int pandora_compare(CompareOptions& opt)
             VCFPathsToBeConcatenated.push_back(vcf_path);
         }
 
-        if (do_global_genotyping or do_local_genotyping) {
-            vcf.genotype(do_global_genotyping, do_local_genotyping);
+        if (opt.genotype) {
+            BOOST_LOG_TRIVIAL(info) << "Genotyping VCF...";
+            vcf.genotype(opt.local_genotype);
+            BOOST_LOG_TRIVIAL(info) << "Finished genotyping VCF";
 
             // save the genotyped vcf to disk
             auto vcf_genotyped_path = vcfs_genotyped_dirs + "/" + int_to_string(dir)
@@ -466,9 +463,9 @@ int pandora_compare(CompareOptions& opt)
     vcf_ref_fa.save(opt.outdir + "/pandora_multisample.vcf_ref.fa");
     VCF::concatenate_VCFs(
         VCFPathsToBeConcatenated, opt.outdir + "/pandora_multisample_consensus.vcf");
-    if (do_global_genotyping or do_local_genotyping) {
+    if (opt.genotype) {
         VCF::concatenate_VCFs(VCFGenotypedPathsToBeConcatenated,
-            opt.outdir + "/pandora_multisample_genotyped_" + opt.genotype + ".vcf");
+            opt.outdir + "/pandora_multisample_genotyped.vcf");
     }
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
