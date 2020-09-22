@@ -47,7 +47,8 @@ struct CompareOptions {
     bool clean { false };
     bool binomial { false };
     uint32_t max_covg { 300 };
-    std::string genotype;
+    bool genotype { false };
+    bool local_genotype { false };
     uint32_t min_cluster_size { 10 };
     uint32_t max_num_kmers_to_avg { 100 };
     uint32_t min_allele_covg_gt { 0 };

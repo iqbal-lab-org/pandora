@@ -121,20 +121,15 @@ void setup_map_subcommand(CLI::App& app)
         ->type_name("INT")
         ->group("Filtering");
 
-    auto genotype_validator = [](const std::string& str) {
-        bool valid_genotype_option = str == "global" || str == "local";
-        if (!valid_genotype_option) {
-            return std::string("--genotype should be either 'global' or 'local'.");
-        }
-        return std::string();
-    };
-    description
-        = "Add extra step to carefully genotype sites. There are two modes: 'global' "
-          "(ML path oriented) or 'local' (coverage oriented)";
-    map_subcmd->add_option("--genotype", opt->genotype, description)
-        ->type_name("MODE")
-        ->check(genotype_validator)
-        ->group("Consensus/Variant Calling");
+    description = "Add extra step to carefully genotype sites.";
+    auto* gt_opt = map_subcmd->add_flag("--genotype", opt->genotype, description)
+                       ->group("Consensus/Variant Calling");
+
+    description = "(Intended for developers) Use coverage-oriented (local) genotyping "
+                  "instead of the default ML path-oriented (global) approach.";
+    map_subcmd->add_flag("--local", opt->local_genotype, description)
+        ->needs(gt_opt)
+        ->group("Genotyping");
 
     map_subcmd
         ->add_flag("--snps", opt->snps_only, "When genotyping, only include SNP sites")
@@ -244,11 +239,9 @@ int pandora_map(MapOptions& opt)
         throw std::logic_error("W must NOT be greater than K");
     }
 
-    bool do_global_genotyping { opt.genotype == "global" };
-    bool do_local_genotyping { opt.genotype == "local" };
-
-    if (do_global_genotyping or do_local_genotyping)
+    if (opt.genotype) {
         opt.output_vcf = true;
+    }
 
     GenotypingOptions genotyping_options({}, opt.genotyping_error_rate,
         opt.confidence_threshold, opt.min_allele_covg_gt,
@@ -424,14 +417,16 @@ int pandora_map(MapOptions& opt)
         return 0;
     }
 
-    if (do_global_genotyping or do_local_genotyping) {
-        master_vcf.genotype(do_global_genotyping, do_local_genotyping);
-        if (opt.snps_only)
-            master_vcf.save(opt.outdir + "/pandora_genotyped_" + opt.genotype + ".vcf",
-                false, true, false, true, true, true, true, false, false, false);
-        else
-            master_vcf.save(opt.outdir + "/pandora_genotyped_" + opt.genotype + ".vcf",
-                false, true);
+    if (opt.genotype) {
+        BOOST_LOG_TRIVIAL(info) << "Genotyping VCF...";
+        master_vcf.genotype(opt.local_genotype);
+        BOOST_LOG_TRIVIAL(info) << "Finished genotyping VCF";
+        if (opt.snps_only) {
+            master_vcf.save(opt.outdir + "/pandora_genotyped.vcf", false, true, false,
+                true, true, true, true, false, false, false);
+        } else {
+            master_vcf.save(opt.outdir + "/pandora_genotyped.vcf", false, true);
+        }
     }
 
     if (opt.discover) {

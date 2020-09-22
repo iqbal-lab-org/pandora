@@ -764,16 +764,6 @@ public:
 GenotypingOptions VCFTest___genotype___Fixture::genotyping_options_snps_only(
     { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }, 0.01, 0, 0, 0, 0, 0, 0, true);
 
-TEST_F(VCFTest___genotype___Fixture, no_options_set___expects_death)
-{
-    EXPECT_DEATH(default_vcf.genotype(false, false), "");
-}
-
-TEST_F(VCFTest___genotype___Fixture, two_options_set___expects_death)
-{
-    EXPECT_DEATH(default_vcf.genotype(true, true), "");
-}
-
 TEST_F(VCFTest___genotype___Fixture, genotype_all_records___global_genotyping)
 {
     {
@@ -790,7 +780,7 @@ TEST_F(VCFTest___genotype___Fixture, genotype_all_records___global_genotyping)
     EXPECT_CALL(*snp_vcf_record_ptr, genotype_from_coverage).Times(0);
     EXPECT_CALL(default_vcf, make_gt_compatible).Times(0);
 
-    default_vcf.genotype(true, false);
+    default_vcf.genotype(false);
 }
 
 TEST_F(VCFTest___genotype___Fixture, genotype_all_records___local_genotyping)
@@ -809,7 +799,7 @@ TEST_F(VCFTest___genotype___Fixture, genotype_all_records___local_genotyping)
         genotype_from_coverage_using_maximum_likelihood_path_as_reference)
         .Times(0);
 
-    default_vcf.genotype(false, true);
+    default_vcf.genotype(true);
 }
 
 TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only___global_genotyping)
@@ -828,7 +818,7 @@ TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only___global_genotypi
     EXPECT_CALL(*non_snp_vcf_record_ptr, genotype_from_coverage).Times(0);
     EXPECT_CALL(snps_only_vcf, make_gt_compatible).Times(0);
 
-    snps_only_vcf.genotype(true, false);
+    snps_only_vcf.genotype(false);
 }
 
 TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only___local_genotyping)
@@ -847,7 +837,7 @@ TEST_F(VCFTest___genotype___Fixture, genotype_snp_records_only___local_genotypin
         genotype_from_coverage_using_maximum_likelihood_path_as_reference)
         .Times(0);
 
-    snps_only_vcf.genotype(false, true);
+    snps_only_vcf.genotype(true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

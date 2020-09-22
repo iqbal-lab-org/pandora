@@ -75,7 +75,7 @@ public:
     virtual void set_sample_gt_to_ref_allele_for_records_in_the_interval(
         const std::string& sample_name, const std::string& chrom,
         const uint32_t& pos_from, const uint32_t& pos_to);
-    virtual void genotype(bool do_global_genotyping, bool do_local_genotyping);
+    virtual void genotype(const bool do_local_genotyping);
     virtual void make_gt_compatible();
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

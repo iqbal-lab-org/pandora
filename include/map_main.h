@@ -49,7 +49,8 @@ struct MapOptions {
     bool clean { false };
     bool binomial { false };
     uint32_t max_covg { 300 };
-    std::string genotype;
+    bool genotype { false };
+    bool local_genotype { false };
     bool snps_only { false };
     bool discover { false };
     uint32_t denovo_kmer_size { 11 };
