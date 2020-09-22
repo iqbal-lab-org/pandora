@@ -28,8 +28,8 @@ char Fastaq::covg_to_score(
     }
     // Rachel's original (and default) coverage to ASCII conversion function
     if (2 * global_covg < covg) {
-        BOOST_LOG_TRIVIAL(debug)
-            << "Found a base with a coverage way too high, so giving it a score of 0";
+        BOOST_LOG_TRIVIAL(trace) << "Found a base with a coverage way too high ("
+                                 << covg << "), so giving it a score of 0";
         return '!';
     }
 

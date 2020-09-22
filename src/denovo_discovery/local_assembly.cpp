@@ -61,7 +61,6 @@ std::pair<Node, bool> LocalAssemblyGraph::get_node(const std::string& query_kmer
 DfsTree LocalAssemblyGraph::depth_first_search_from(
     const Node& start_node, bool reverse)
 {
-    BOOST_LOG_TRIVIAL(debug) << "Starting DFS...";
     std::stack<Node> nodes_to_explore({ start_node });
 
     std::unordered_set<std::string> explored_nodes;
@@ -86,7 +85,6 @@ DfsTree LocalAssemblyGraph::depth_first_search_from(
             nodes_to_explore.push(children_of_current_node[i]);
         }
     }
-    BOOST_LOG_TRIVIAL(debug) << "DFS finished.";
     return tree_of_nodes_visited;
 }
 
@@ -98,8 +96,6 @@ nodes
 BfsDistanceMap LocalAssemblyGraph::breadth_first_search_from(
     const Node& start_node, bool reverse)
 {
-    BOOST_LOG_TRIVIAL(debug) << "Starting BFS...";
-
     std::unordered_set<std::string> explored_nodes;
     BfsDistanceMap node_to_distance_to_the_start_node;
     std::map<std::string, std::string> child_kmer_to_parent_kmer;
@@ -134,7 +130,6 @@ BfsDistanceMap LocalAssemblyGraph::breadth_first_search_from(
                 = current_kmer;
         }
     }
-    BOOST_LOG_TRIVIAL(debug) << "BFS finished.";
     return node_to_distance_to_the_start_node;
 }
 
@@ -159,8 +154,14 @@ std::pair<DenovoPaths, FoundPaths> LocalAssemblyGraph::get_paths_between(
     // check if end node is in forward tree, if not just return
     bool end_kmer_not_reachable_from_start_kmer = tree.find(end_kmer) == tree.end();
     if (end_kmer_not_reachable_from_start_kmer) {
+        BOOST_LOG_TRIVIAL(trace)
+            << "End kmer " << end_kmer << " is not reachable from start kmer "
+            << start_kmer << " in the de novo de Bruijn graph";
         return std::make_pair(paths_between_queries, abandoned);
     }
+    BOOST_LOG_TRIVIAL(trace) << "A valid path exists between start anchor kmer "
+                             << start_kmer << " and end anchor kmer " << end_kmer
+                             << " in the de novo de Bruijn graph";
 
     auto node_to_distance_to_the_end_node { breadth_first_search_from(end_node, true) };
 
