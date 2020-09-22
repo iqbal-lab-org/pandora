@@ -100,6 +100,14 @@ CandidateRegions find_candidate_regions_for_pan_node(
     const auto covgs_along_localnode_path { get_covgs_along_localnode_path(
         pangraph_node, local_node_max_likelihood_path, kmer_node_max_likelihood_path,
         sample_id) };
+
+    uint i { 1 };
+    BOOST_LOG_TRIVIAL(trace) << "Coverage along localnode path";
+    for (const auto& cov : covgs_along_localnode_path) {
+        BOOST_LOG_TRIVIAL(trace) << i << ": " << cov;
+        i++;
+    }
+
     const auto candidate_intervals { identify_low_coverage_intervals(
         covgs_along_localnode_path) };
 
@@ -322,6 +330,6 @@ void load_all_candidate_regions_pileups_from_fastq(const fs::path& reads_filepat
             }
         }
     }
-    BOOST_LOG_TRIVIAL(info) << " Loaded all candidate regions pileups from "
+    BOOST_LOG_TRIVIAL(info) << "Loaded all candidate regions pileups from "
                             << reads_filepath.string();
 }

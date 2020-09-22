@@ -60,18 +60,27 @@ void DenovoDiscovery::find_paths_through_candidate_region(
 
     for (uint_least16_t start_idx = 0; start_idx < start_kmers.size(); start_idx++) {
         const auto& current_start_kmer { start_kmers[start_idx] };
+        BOOST_LOG_TRIVIAL(trace)
+            << "Searching for start anchor kmer " << current_start_kmer;
         std::tie(start_node, start_found) = graph.get_node(current_start_kmer);
 
         if (not start_found) {
+            BOOST_LOG_TRIVIAL(trace)
+                << "Did not find start anchor kmer " << current_start_kmer;
             continue;
         }
+        BOOST_LOG_TRIVIAL(trace) << "Found start anchor kmer " << current_start_kmer;
 
         for (uint_least16_t end_idx = 0; end_idx < end_kmers.size(); end_idx++) {
             const auto& current_end_kmer { end_kmers[end_idx] };
 
+            BOOST_LOG_TRIVIAL(trace)
+                << "Searching for end anchor kmer " << current_end_kmer;
             std::tie(end_node, end_found) = graph.get_node(current_end_kmer);
 
             if (end_found) {
+                BOOST_LOG_TRIVIAL(trace)
+                    << "Found end anchor kmer " << current_end_kmer;
                 DenovoPaths denovo_paths;
                 FoundPaths abandoned;
                 std::tie(denovo_paths, abandoned) = graph.get_paths_between(
@@ -110,6 +119,9 @@ void DenovoDiscovery::find_paths_through_candidate_region(
                     remove_graph_file(GATB_graph_filepath);
                     return;
                 }
+            } else {
+                BOOST_LOG_TRIVIAL(trace)
+                    << "Did not find end anchor kmer " << current_end_kmer;
             }
         }
     }
