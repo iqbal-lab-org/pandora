@@ -3,23 +3,23 @@
 void setup_walk_subcommand(CLI::App& app)
 {
     auto opt = std::make_shared<WalkOptions>();
-    auto walk_subcmd = app.add_subcommand("walk",
+    auto* walk_subcmd = app.add_subcommand("walk",
         "Outputs a path through the nodes in a PRG corresponding to the either an "
         "input sequence (if it exists) or the top/bottom path");
     walk_subcmd->add_option("<PRG>", opt->prgfile, "A PRG file (in fasta format)")
         ->required()
-//        ->check(CLI::ExistingFile.description(""))
+        ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
-    auto input = walk_subcmd
-                     ->add_option("-i,--input", opt->seqfile,
-                         "Fast{a,q} of sequences to output paths through the PRG for")
-                     ->check(CLI::ExistingFile.description(""))
-                     ->type_name("FILE");
+    auto* input = walk_subcmd
+                      ->add_option("-i,--input", opt->seqfile,
+                          "Fast{a,q} of sequences to output paths through the PRG for")
+                      ->check(CLI::ExistingFile.description(""))
+                      ->type_name("FILE");
 
-    auto top = walk_subcmd->add_flag(
+    auto* top = walk_subcmd->add_flag(
         "-T,--top", opt->top, "Output the top path through each local PRG");
-    auto bottom = walk_subcmd->add_flag(
+    auto* bottom = walk_subcmd->add_flag(
         "-B,--bottom", opt->bottom, "Output the bottom path through each local PRG");
 
     input->excludes(top)->excludes(bottom);

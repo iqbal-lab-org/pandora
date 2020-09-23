@@ -115,8 +115,7 @@ void setup_map_subcommand(CLI::App& app)
         ->group("Parameter Estimation");
 
     map_subcmd
-        ->add_option(
-            "--max-covg", opt->max_covg, "Maximum average coverage of reads to accept")
+        ->add_option("--max-covg", opt->max_covg, "Maximum coverage of reads to accept")
         ->capture_default_str()
         ->type_name("INT")
         ->group("Filtering");

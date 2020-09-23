@@ -6,7 +6,7 @@ void setup_get_vcf_ref_subcommand(CLI::App& app)
 
     std::string description
         = "Outputs a fasta suitable for use as the VCF reference using input sequences";
-    auto gvr_subcmd = app.add_subcommand("get_vcf_ref", description);
+    auto* gvr_subcmd = app.add_subcommand("get_vcf_ref", description);
 
     gvr_subcmd->add_option("<PRG>", opt->prgfile, "PRG to index (in fasta format)")
         ->required()
@@ -14,8 +14,8 @@ void setup_get_vcf_ref_subcommand(CLI::App& app)
         ->type_name("FILE");
 
     gvr_subcmd
-        ->add_option(
-            "<QUERY>", opt->seqfile, "Fast{a,q} file of sequences for some reason???")
+        ->add_option("<QUERY>", opt->seqfile,
+            "Fast{a,q} file of sequences to retrive the PRG reference for")
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 

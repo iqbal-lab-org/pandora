@@ -94,8 +94,7 @@ void setup_compare_subcommand(CLI::App& app)
         ->group("Parameter Estimation");
 
     compare_subcmd
-        ->add_option(
-            "--max-covg", opt->max_covg, "Maximum average coverage of reads to accept")
+        ->add_option("--max-covg", opt->max_covg, "Maximum coverage of reads to accept")
         ->capture_default_str()
         ->type_name("INT")
         ->group("Filtering");
@@ -400,7 +399,6 @@ int pandora_compare(CompareOptions& opt)
     for (uint32_t pangraph_node_index = 0;
          pangraph_node_index < pangraphNodesAsVector.size(); ++pangraph_node_index) {
         const auto& pangraph_node_entry = pangraphNodesAsVector[pangraph_node_index];
-        BOOST_LOG_TRIVIAL(debug) << "Considering next node...";
         pangenome::Node& pangraph_node = *pangraph_node_entry.second;
 
         const auto& prg_id = pangraph_node.prg_id;
