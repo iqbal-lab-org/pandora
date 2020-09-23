@@ -41,11 +41,11 @@ pandora index -t 8 <panrg.fa>
 ```
 Compare first 30X of each Illumina sample to get pangenome matrix and VCF
 ```
-pandora compare -p <panrg.fa> -r <read_index.tab> --genotype --illumina --max_covg 30
+pandora compare --genotype --illumina --max-covg 30 <panrg.fa> <read_index.tab>
 ```
 Map Nanopore reads from a single sample to get approximate sequence for genes present
 ```
-pandora map -p <panrg.fa> -r <reads.fq>
+pandora map <panrg.fa> <reads.fq>
 ```
 
 ## Installation
@@ -92,6 +92,26 @@ ctest -VV
 ```
 
 ## Usage
+
+```
+$ pandora --help
+Pandora: Pan-genome inference and genotyping with long noisy or short accurate reads.
+Usage: pandora [OPTIONS] SUBCOMMAND
+
+Options:
+  -h,--help                   Print this help message and exit
+
+Subcommands:
+  index                       Index population reference graph (PRG) sequences.
+  map                         Quasi-map reads to an indexed PRG, infer the sequence of present loci in the sample, and (optionally) genotype/discover variants.
+  compare                     Quasi-map reads from multiple samples to an indexed PRG, infer the sequence of present loci in each sample, and call variants between the samples.
+  walk                        Outputs a path through the nodes in a PRG corresponding to the either an input sequence (if it exists) or the top/bottom path
+  seq2path                    For each sequence, return the path through the PRG
+  get_vcf_ref                 Outputs a fasta suitable for use as the VCF reference using input sequences
+  random                      Outputs a fasta of random paths through the PRGs
+  merge_index                 Allows multiple indices to be merged (no compatibility check
+```
+
 ### Population Reference Graphs
 Pandora assumes you have already constructed a fasta-like file of graphs, one entry for each gene/ genome region of interest.
 If you haven't, you will need a multiple sequence alignment for each graph. Precompiled collections of MSA representing othologous gene clusters for a number of species can be downloaded from [here](http://pangenome.de/) and converted to graphs using the pipeline from [here](https://github.com/rmcolq/make_prg).
@@ -101,15 +121,19 @@ Takes a fasta-like file of PanRG sequences and constructs an index, and a direct
 
 ```
 $ pandora index --help
-Usage: pandora index [options] <prgs.fa>
+Index population reference graph (PRG) sequences.
+Usage: pandora index [OPTIONS] <PRG>
+
+Positionals:
+  <PRG> FILE [required]       PRG to index (in fasta format)
+
 Options:
-        -h,--help                       Show this help message
-        -w W                            Window size for (w,k)-minimizers, default 14
-        -k K                            K-mer size for (w,k)-minimizers, default 15
-        -t T                            Number of threads, default 1
-        --offset                        Offset for PRG ids, default 0
-        --outfile                       Filename for index
-        --log_level                     debug,[info],warning,error
+  -h,--help                   Print this help message and exit
+  -w INT                      Window size for (w,k)-minimizers (must be <=k) [default: 14]
+  -k INT                      K-mer size for (w,k)-minimizers [default: 15]
+  -t,--threads INT            Maximum number of threads to use [default: 1]
+  -o,--outfile FILE           Filename for the index [default: <PRG>.kXX.wXX.idx]
+  -v                          Verbosity of logging. Repeat for increased verbosity
 ```
 
 The index stores (w,k)-minimizers for each PanRG path found. These parameters can be specified, but default to w=14, k=15.
@@ -119,59 +143,116 @@ This takes a fasta/q of Nanopore or Illumina reads and compares to the index. It
 
 ```
 $ pandora map --help
-Usage: pandora map -p PRG_FILE -r READ_FILE <option(s)>
+Quasi-map reads to an indexed PRG, infer the sequence of present loci in the sample, and (optionally) genotype/discover variants.
+Usage: ./pandora map [OPTIONS] <TARGET> <QUERY>
+
+Positionals:
+  <TARGET> FILE [required]    An indexed PRG file (in fasta format)
+  <QUERY> FILE [required]     Fast{a,q} file containing reads to quasi-map
+
 Options:
-        -h,--help                       Show this help message
-        -p,--prg_file PRG_FILE          Specify a fasta-style prg file
-        -r,--read_file READ_FILE        Specify a file of reads in fasta format
-        -o,--outdir OUTDIR      Specify directory of output
-        -w W                            Window size for (w,k)-minimizers, must be <=k, default 14
-        -k K                            K-mer size for (w,k)-minimizers, default 15
-        -m,--max_diff INT               Maximum distance between consecutive hits within a cluster, default 500 (bps)
-        -e,--error_rate FLOAT           Estimated error rate for reads, default 0.11
-        -t T                            Number of threads, default 1
-        --genome_size   NUM_BP  Estimated length of genome, used for coverage estimation
-        --output_kg                     Save kmer graphs with fwd and rev coverage annotations for found localPRGs
-        --output_vcf                    Save a vcf file for each found localPRG
-        --vcf_refs REF_FASTA            A fasta file with an entry for each LocalPRG giving reference sequence for
-                                        VCF. Must have a perfect match in the graph and the same name as the graph
-        --output_comparison_paths       Save a fasta file for a random selection of paths through localPRG
-        --output_covgs  Save a file of covgs for each localPRG present, one number per base of fasta file
-        --output_mapped_read_fa Save a file for each gene containing read parts which overlapped it
-        --illumina                      Data is from illumina rather than nanopore, so is shorter with low error rate
-        --clean                 Add a step to clean and detangle the pangraph
-        --bin                   Use binomial model for kmer coverages, default is negative binomial
-        --max_covg                      Maximum average coverage from reads to accept
-        --genotype MODE                 Add extra step to carefully genotype sites. Has two modes: global (ML path oriented) or local (coverage oriented)
-        --snps_only                     When genotyping, include only snp sites
-        -d,--discover                   Add denovo discovery
-        --denovo_kmer_size                      Kmer size to use for denovo discovery
-        --log_level                     debug,[info],warning,error
+  -h,--help                   Print this help message and exit
+  -v                          Verbosity of logging. Repeat for increased verbosity
+
+Indexing:
+  -w INT                      Window size for (w,k)-minimizers (must be <=k) [default: 14]
+  -k INT                      K-mer size for (w,k)-minimizers [default: 15]
+
+Input/Output:
+  -o,--outdir DIR             Directory to write output files to [default: pandora]
+  -t,--threads INT            Maximum number of threads to use [default: 1]
+  --vcf-refs FILE             Fasta file with a reference sequence to use for each loci. The sequence MUST have a perfect match in <TARGET> and the same name
+  --kg                        Save kmer graphs with forward and reverse coverage annotations for found loci
+  --loci-vcf                  Save a VCF file for each found loci
+  -C,--comparison-paths       Save a fasta file for a random selection of paths through loci
+  --coverages                 Save a file of coverages for each loci present - one number per base
+  -M,--mapped-reads           Save a fasta file for each loci containing read parts which overlapped it
+  
+Parameter Estimation:
+  -e,--error-rate FLOAT       Estimated error rate for reads [default: 0.11]
+  -g,--genome-size INT        Estimated length of the genome - used for coverage estimation [default: 5000000]
+  --bin                       Use binomial model for kmer coverages [default: negative binomial]
+
+Mapping:
+  -m,--max-diff INT           Maximum distance (bp) between consecutive hits within a cluster [default: 250]
+  -c,--min-cluster-size INT   Minimum size of a cluster of hits between a read and a loci to consider the loci present [default: 10]
+
+Preset:
+  -I,--illumina               Reads are from Illumina. Alters error rate used and adjusts for shorter reads
+
+Filtering:
+  --clean                     Add a step to clean and detangle the pangraph
+  --max-covg INT              Maximum coverage of reads to accept [default: 300]
+
+Consensus/Variant Calling:
+  --genotype                  Add extra step to carefully genotype sites.
+  --snps                      When genotyping, only include SNP sites
+  -d,--discover               Add a step to discover de novo variants
+  --discover-k INT            Kmer size to use when disovering de novo variants [default: 11]
+  --kmer-avg INT              Maximum number of kmers to average over when selecting the maximum likelihood path [default: 100]
+
+Genotyping:
+  --local Needs: --genotype   (Intended for developers) Use coverage-oriented (local) genotyping instead of the default ML path-oriented (global) approach.
+  -a INT                      Hard threshold for the minimum allele coverage allowed when genotyping [default: 0]
+  -s INT                      The minimum required total coverage for a site when genotyping [default: 0]
+  -D INT                      Minimum difference in coverage on a site required between the first and second maximum likelihood path [default: 0]
+  -F INT                      Minimum allele coverage, as a fraction of the expected coverage, allowed when genotyping [default: 0]
+  -E,--gt-error-rate FLOAT    When genotyping, assume that coverage on alternative alleles arises as a result of an error process with rate -E. [default: 0.01]
+  -G,--gt-conf INT            Minimum genotype confidence (GT_CONF) required to make a call [default: 1]
 ```
 
 ### Compare reads from several samples
 This takes Nanopore or Illumina read fasta/q for a number of samples, mapping each to the index. It infers which of the PanRG genes/elements is present in each sample, and outputs a presence/absence pangenome matrix, the inferred sequences for each sample and a genotyped multisample pangenome VCF.
 
-      Usage: pandora compare -p PanRG_FILE -r READ_INDEX -o OUTDIR <option(s)>
-      Options:
-       -h,--help                        Show this help message
-       -p,--prg_file PanRG_FILE         Specify a fasta-style PanRG file
-       -r,--read_index READ_INDEX       Specify a tab delimited file with a line per sample, detailing sample id 
-                                        and read fasta/q
-       -o,--outdir OUTDIR               Specify directory of output
-       -w W                             Window size for (w,k)-minimizers, must be <=k, default 14
-       -k K                             K-mer size for (w,k)-minimizers, default 15
-       -m,--max_diff INT                Maximum distance between consecutive hits within a cluster, default 250 bps
-       -e,--error_rate FLOAT            Estimated error rate for reads, default 0.11/0.001 for Nanopore/Illumina
-       -c,--min_cluster_size INT        Minimum number of hits in a cluster to consider a locus present, default 10
-       --genome_size NUM_BP             Estimated length of genome, used for coverage estimation, default 5000000
-       --vcf_refs REF_FASTA             A fasta file with an entry for each loci in the PanRG in order, giving 
-                                        reference sequence to be used as VCF ref. Must have a perfect match to a 
-                                        path in the graph and the same name as the locus in the graph.
-       --illumina                       Data is from Illumina, not Nanopore, so is shorter with low error rate
-       --bin                            Use binomial model for kmer coverages, default is negative binomial
-       --max_covg INT                   Maximum average coverage from reads to accept, default first 300
-       --genotype                       Output a genotyped VCF
-       --log_level LEVEL                Verbosity for logging, use "debug" for more output
+```
+$ pandora compare --help
+Quasi-map reads from multiple samples to an indexed PRG, infer the sequence of present loci in each sample, and call variants between the samples.
+Usage: ./pandora compare [OPTIONS] <TARGET> <QUERY_IDX>
 
+Positionals:
+  <TARGET> FILE [required]    An indexed PRG file (in fasta format)
+  <QUERY_IDX> FILE [required] A tab-delimited file where each line is a sample identifier followed by the path to the fast{a,q} of reads for that sample
 
+Options:
+  -h,--help                   Print this help message and exit
+  -v                          Verbosity of logging. Repeat for increased verbosity
+
+Indexing:
+  -w INT                      Window size for (w,k)-minimizers (must be <=k) [default: 14]
+  -k INT                      K-mer size for (w,k)-minimizers [default: 15]
+
+Input/Output:
+  -o,--outdir DIR             Directory to write output files to [default: pandora]
+  -t,--threads INT            Maximum number of threads to use [default: 1]
+  --vcf-refs FILE             Fasta file with a reference sequence to use for each loci. The sequence MUST have a perfect match in <TARGET> and the same name
+  --loci-vcf                  Save a VCF file for each found loci
+
+Parameter Estimation:
+  -e,--error-rate FLOAT       Estimated error rate for reads [default: 0.11]
+  -g,--genome-size INT        Estimated length of the genome - used for coverage estimation [default: 5000000]
+  --bin                       Use binomial model for kmer coverages [default: negative binomial]
+
+Mapping:
+  -m,--max-diff INT           Maximum distance (bp) between consecutive hits within a cluster [default: 250]
+  -c,--min-cluster-size INT   Minimum size of a cluster of hits between a read and a loci to consider the loci present [default: 10]
+
+Preset:
+  -I,--illumina               Reads are from Illumina. Alters error rate used and adjusts for shorter reads
+
+Filtering:
+  --clean                     Add a step to clean and detangle the pangraph
+  --max-covg INT              Maximum coverage of reads to accept [default: 300]
+
+Consensus/Variant Calling:
+  --genotype                  Add extra step to carefully genotype sites.
+  --kmer-avg INT              Maximum number of kmers to average over when selecting the maximum likelihood path [default: 100]
+  
+Genotyping:
+  --local Needs: --genotype   (Intended for developers) Use coverage-oriented (local) genotyping instead of the default ML path-oriented (global) approach.
+  -a INT                      Hard threshold for the minimum allele coverage allowed when genotyping [default: 0]
+  -s INT                      The minimum required total coverage for a site when genotyping [default: 0]
+  -D INT                      Minimum difference in coverage on a site required between the first and second maximum likelihood path [default: 0]
+  -F INT                      Minimum allele coverage, as a fraction of the expected coverage, allowed when genotyping [default: 0]
+  -E,--gt-error-rate FLOAT    When genotyping, assume that coverage on alternative alleles arises as a result of an error process with rate -E. [default: 0.01]
+  -G,--gt-conf INT            Minimum genotype confidence (GT_CONF) required to make a call [default: 1]
+```

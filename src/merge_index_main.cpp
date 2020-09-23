@@ -6,10 +6,10 @@ void setup_merge_index_subcommand(CLI::App& app)
     auto opt = std::make_shared<MergeIndexOptions>();
 
     std::string description
-        = "Allows multiple indicies to be merged (no compatibility check)";
-    auto merge_subcmd = app.add_subcommand("merge_index", description);
+        = "Allows multiple indices to be merged (no compatibility check)";
+    auto *merge_subcmd = app.add_subcommand("merge_index", description);
 
-    merge_subcmd->add_option("<IDX>", opt->indicies, "Indicies to merge")
+    merge_subcmd->add_option("<IDX>", opt->indicies, "Indices to merge")
         ->required()
         ->type_name("FILES");
 
