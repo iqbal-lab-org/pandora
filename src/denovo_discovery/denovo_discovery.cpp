@@ -125,9 +125,10 @@ void DenovoDiscovery::find_paths_through_candidate_region(
             }
         }
     }
-    BOOST_LOG_TRIVIAL(debug) << "Could not find any combination of start and end "
-                                "k-mers. Skipping local assembly for "
-                             << candidate_region.get_name();
+    BOOST_LOG_TRIVIAL(debug)
+        << "Could not find any combination of start and end "
+           "k-mers with a path between them. Skipping local assembly for "
+        << candidate_region.get_name();
     remove_graph_file(GATB_graph_filepath);
 }
 

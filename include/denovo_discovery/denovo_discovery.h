@@ -14,7 +14,7 @@ namespace fs = boost::filesystem;
 
 class DenovoDiscovery {
 public:
-    const uint_least8_t min_covg_for_node_in_assembly_graph { 2 };
+    const uint_least8_t min_covg_for_node_in_assembly_graph { 1 };
     bool clean_assembly_graph { false };
     const uint8_t max_insertion_size;
 
