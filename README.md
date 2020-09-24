@@ -167,7 +167,7 @@ Input/Output:
   -C,--comparison-paths       Save a fasta file for a random selection of paths through loci
   --coverages                 Save a file of coverages for each loci present - one number per base
   -M,--mapped-reads           Save a fasta file for each loci containing read parts which overlapped it
-  
+
 Parameter Estimation:
   -e,--error-rate FLOAT       Estimated error rate for reads [default: 0.11]
   -g,--genome-size INT        Estimated length of the genome - used for coverage estimation [default: 5000000]
@@ -189,6 +189,8 @@ Consensus/Variant Calling:
   --snps                      When genotyping, only include SNP sites
   -d,--discover               Add a step to discover de novo variants
   --discover-k INT            Kmer size to use when disovering de novo variants [default: 11]
+  --max-ins INT               Maximum insertion size allowed when discovering de novo variants. Warning: setting too long could cause performance degradation [default: 15]
+  --min-dbg-dp INT            Minimum depth on a node/kmer in the de Bruijn graph used for discovering de novo variants [default: 1]
   --kmer-avg INT              Maximum number of kmers to average over when selecting the maximum likelihood path [default: 100]
 
 Genotyping:

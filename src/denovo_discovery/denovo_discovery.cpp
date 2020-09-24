@@ -133,8 +133,10 @@ void DenovoDiscovery::find_paths_through_candidate_region(
 }
 
 DenovoDiscovery::DenovoDiscovery(const uint32_t& kmer_size,
-    const double& read_error_rate, const uint8_t max_insertion_size)
-    : max_insertion_size { max_insertion_size }
+    const double& read_error_rate, const uint16_t max_insertion_size,
+    const uint16_t min_covg_for_node_in_assembly_graph)
+    : min_covg_for_node_in_assembly_graph { min_covg_for_node_in_assembly_graph }
+    , max_insertion_size { max_insertion_size }
     , kmer_size { kmer_size }
     , read_error_rate { read_error_rate }
 {

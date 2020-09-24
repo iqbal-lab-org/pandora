@@ -146,6 +146,22 @@ void setup_map_subcommand(CLI::App& app)
         ->type_name("INT")
         ->group("Consensus/Variant Calling");
 
+    description = "Max. insertion size when discovering de novo variants. Warning: "
+                  "setting too long may impair performance";
+    map_subcmd->add_option("--max-ins", opt->max_insertion_size, description)
+        ->capture_default_str()
+        ->type_name("INT")
+        ->group("Consensus/Variant Calling");
+
+    description = "Minimum node/kmer depth in the de Bruijn graph used for discovering "
+                  "de novo variants";
+    map_subcmd
+        ->add_option(
+            "--min-dbg-dp", opt->min_covg_for_node_in_assembly_graph, description)
+        ->capture_default_str()
+        ->type_name("INT")
+        ->group("Consensus/Variant Calling");
+
     description
         = "Minimum size of a cluster of hits between a read and a loci to consider "
           "the loci present";
@@ -430,7 +446,8 @@ int pandora_map(MapOptions& opt)
     }
 
     if (opt.discover) {
-        DenovoDiscovery denovo { opt.denovo_kmer_size, opt.error_rate };
+        DenovoDiscovery denovo { opt.denovo_kmer_size, opt.error_rate,
+            opt.max_insertion_size, opt.min_covg_for_node_in_assembly_graph };
         const fs::path denovo_output_directory { fs::path(opt.outdir)
             / "denovo_paths" };
         fs::create_directories(denovo_output_directory);

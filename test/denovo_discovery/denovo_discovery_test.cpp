@@ -250,7 +250,9 @@ TEST(
 {
     const int k { 9 };
     const double error_rate { 0.11 };
-    DenovoDiscovery denovo { k, error_rate };
+    const auto max_insert { 15 };
+    const auto min_dbg_dp { 2 };
+    DenovoDiscovery denovo { k, error_rate, max_insert, min_dbg_dp };
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
     candidate_region.pileup = { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGATAGTCGGACT" };
@@ -268,7 +270,9 @@ TEST(FindPathsThroughCandidateRegionTest,
 {
     const int k { 9 };
     const double error_rate { 0.11 };
-    DenovoDiscovery denovo { k, error_rate };
+    const auto max_insert { 15 };
+    const auto min_dbg_dp { 2 };
+    DenovoDiscovery denovo { k, error_rate, max_insert, min_dbg_dp };
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
     candidate_region.pileup
