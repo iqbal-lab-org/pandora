@@ -54,6 +54,8 @@ struct MapOptions {
     bool snps_only { false };
     bool discover { false };
     uint32_t denovo_kmer_size { 11 };
+    uint16_t max_insertion_size { 15 };
+    uint16_t min_covg_for_node_in_assembly_graph { 1 };
     uint32_t min_cluster_size { 10 };
     uint32_t max_num_kmers_to_avg { 100 };
     uint32_t min_allele_covg_gt { 0 };
