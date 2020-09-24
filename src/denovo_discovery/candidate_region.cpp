@@ -284,9 +284,6 @@ void load_all_candidate_regions_pileups_from_fastq(const fs::path& reads_filepat
             {
                 // TODO: we need to read only until the max read id
                 for (auto& id_and_sequence : sequencesBuffer) {
-                    if (id && id % 100000 == 0) {
-                        BOOST_LOG_TRIVIAL(info) << id << " reads processed...";
-                    }
                     try {
                         fh.get_next();
                     } catch (std::out_of_range& err) {
