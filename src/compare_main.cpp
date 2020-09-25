@@ -58,12 +58,13 @@ void setup_compare_subcommand(CLI::App& app)
         ->capture_default_str()
         ->group("Parameter Estimation");
 
-    // todo: how necessary is this opt if we remove max_cog?
     compare_subcmd
         ->add_option("-g,--genome-size", opt->genome_size,
-            "Estimated length of the genome - used for coverage estimation")
+            "Estimated length of the genome - used for coverage estimation. Can pass "
+            "string such as 4.4m, 100k etc.")
+        ->transform(transform_cli_gsize)
         ->capture_default_str()
-        ->type_name("INT")
+        ->type_name("STR/INT")
         ->group("Parameter Estimation");
 
     compare_subcmd

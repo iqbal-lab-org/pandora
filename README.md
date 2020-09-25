@@ -170,7 +170,7 @@ Input/Output:
 
 Parameter Estimation:
   -e,--error-rate FLOAT       Estimated error rate for reads [default: 0.11]
-  -g,--genome-size INT        Estimated length of the genome - used for coverage estimation [default: 5000000]
+  -g,--genome-size STR/INT    Estimated length of the genome - used for coverage estimation. Can pass string such as 4.4m, 100k etc. [default: 5000000]
   --bin                       Use binomial model for kmer coverages [default: negative binomial]
 
 Mapping:
@@ -231,7 +231,7 @@ Input/Output:
 
 Parameter Estimation:
   -e,--error-rate FLOAT       Estimated error rate for reads [default: 0.11]
-  -g,--genome-size INT        Estimated length of the genome - used for coverage estimation [default: 5000000]
+  -g,--genome-size STR/INT    Estimated length of the genome - used for coverage estimation. Can pass string such as 4.4m, 100k etc. [default: 5000000]
   --bin                       Use binomial model for kmer coverages [default: negative binomial]
 
 Mapping:
