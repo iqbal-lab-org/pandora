@@ -100,4 +100,13 @@ void open_file_for_writing(const std::string& file_path, std::ofstream& stream);
 
 std::vector<std::string> get_vector_of_strings_from_file(const std::string& file_path);
 
+// string to genome size
+// effectively a copy of
+// https://github.com/lh3/minimap2/blob/6a4b9f9082b66597185a97c847b548250363d65a/main.c#L84
+uint32_t strtogs(const char*);
+
+// used to transofmr the CLI string
+// https://cliutils.github.io/CLI11/book/chapters/validators.html
+std::string transform_cli_gsize(std::string);
+
 #endif

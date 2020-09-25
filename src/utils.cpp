@@ -620,3 +620,31 @@ std::vector<std::string> get_vector_of_strings_from_file(const std::string& file
 
     return lines;
 }
+
+uint32_t strtogs(const char* str)
+{
+    double x;
+    char* p;
+    x = strtod(str, &p);
+
+    if (x < 0) {
+        throw std::logic_error("Negative number passed for genome size");
+    }
+
+    if (*p == 'G' || *p == 'g') {
+        x *= 1e9;
+    } else if (*p == 'M' || *p == 'm') {
+        x *= 1e6;
+    } else if (*p == 'K' || *p == 'k') {
+        x *= 1e3;
+    }
+    if (x > UINT32_MAX) {
+        throw std::runtime_error(
+            "Cannot handle genome size larger than 32-bit unsigned integer");
+    }
+    return (uint32_t)(x + .499);
+}
+
+std::string transform_cli_gsize(std::string str) {
+    return int_to_string(strtogs(str.c_str()));
+}

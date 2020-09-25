@@ -1011,13 +1011,114 @@ TEST(UtilsTest, pangraphFromReadFile_Fq)
     index->clear();
 }
 
-/*
-TEST(UtilsTest, lognChoosek2)
+TEST(StrToGsTest, HandlesEmptyStr)
 {
-    EXPECT_EQ(0.0, lognchoosek2(0,0,0));
-    EXPECT_EQ(0.0, lognchoosek2(1,0,0));
-    EXPECT_EQ(0.0, lognchoosek2(1,1,0));
+    const char* str { "" };
+
+    const auto actual { strtogs(str) };
+    const auto expected { 0 };
+
+    EXPECT_EQ(actual, expected);
 }
 
-//update_covgs_from_hits
-*/
+TEST(StrToGsTest, DecimalConvertsToInt)
+{
+    const char* str { "3.3" };
+
+    const auto actual { strtogs(str) };
+    const auto expected { 3 };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(StrToGsTest, DecimalRoundsUpToInt)
+{
+    const char* str { "3.7" };
+
+    const auto actual { strtogs(str) };
+    const auto expected { 4 };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(StrToGsTest, IntReturnsSame)
+{
+    const char* str { "310" };
+
+    const auto actual { strtogs(str) };
+    const auto expected { 310 };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(StrToGsTest, NegativeFails)
+{
+    const char* str { "-4" };
+
+    EXPECT_THROW(strtogs(str), std::logic_error);
+}
+
+TEST(StrToGsTest, Kilo)
+{
+    const auto* str { "3.1k" };
+
+    auto actual { strtogs(str) };
+    const auto expected { 3100 };
+
+    EXPECT_EQ(actual, expected);
+
+    str = "3.1K";
+
+    actual = strtogs(str);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(StrToGsTest, Mega)
+{
+    const auto* str { "3m" };
+
+    auto actual { strtogs(str) };
+    const auto expected { 3e6 };
+
+    EXPECT_EQ(actual, expected);
+
+    str = "3M";
+
+    actual = strtogs(str);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(StrToGsTest, Giga)
+{
+    const auto* str { "3g" };
+
+    auto actual { strtogs(str) };
+    const auto expected { 3e9 };
+
+    EXPECT_EQ(actual, expected);
+
+    str = "3G";
+
+    actual = strtogs(str);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(StrToGsTest, TooLargeFails)
+{
+    const auto* str { "20g" };
+
+    EXPECT_THROW(strtogs(str), std::runtime_error);
+}
+
+TEST(TransformCliGsizeTest, GenomeSizeStringProducesIntToStr)
+{
+    const std::string str { "2k" };
+
+    const auto actual { transform_cli_gsize(str) };
+    const auto *const expected { "2000" };
+
+    EXPECT_EQ(actual, expected);
+}
