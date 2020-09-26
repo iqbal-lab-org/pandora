@@ -143,7 +143,7 @@ This takes a fasta/q of Nanopore or Illumina reads and compares to the index. It
 
 ```
 $ pandora map --help
-Quasi-map reads to an indexed PRG, infer the sequence of present loci in the sample, and (optionally) genotype/discover variants.
+Quasi-map reads to an indexed PRG, infer the sequence of present loci in the sample, and optionally genotype variants.
 Usage: ./pandora map [OPTIONS] <TARGET> <QUERY>
 
 Positionals:
@@ -165,7 +165,6 @@ Input/Output:
   --kg                        Save kmer graphs with forward and reverse coverage annotations for found loci
   --loci-vcf                  Save a VCF file for each found loci
   -C,--comparison-paths       Save a fasta file for a random selection of paths through loci
-  --coverages                 Save a file of coverages for each loci present - one number per base
   -M,--mapped-reads           Save a fasta file for each loci containing read parts which overlapped it
 
 Parameter Estimation:
@@ -187,10 +186,6 @@ Filtering:
 Consensus/Variant Calling:
   --genotype                  Add extra step to carefully genotype sites.
   --snps                      When genotyping, only include SNP sites
-  -d,--discover               Add a step to discover de novo variants
-  --discover-k INT            Kmer size to use when disovering de novo variants [default: 11]
-  --max-ins INT               Maximum insertion size allowed when discovering de novo variants. Warning: setting too long could cause performance degradation [default: 15]
-  --min-dbg-dp INT            Minimum depth on a node/kmer in the de Bruijn graph used for discovering de novo variants [default: 1]
   --kmer-avg INT              Maximum number of kmers to average over when selecting the maximum likelihood path [default: 100]
 
 Genotyping:
@@ -257,4 +252,59 @@ Genotyping:
   -F INT                      Minimum allele coverage, as a fraction of the expected coverage, allowed when genotyping [default: 0]
   -E,--gt-error-rate FLOAT    When genotyping, assume that coverage on alternative alleles arises as a result of an error process with rate -E. [default: 0.01]
   -G,--gt-conf INT            Minimum genotype confidence (GT_CONF) required to make a call [default: 1]
+```
+
+### Discover novel variants
+
+This will look for regions in the pangraph where the reads do not map and attempt to locally assemble these regions to find novel variants.
+
+```
+$ pandora discover --help
+Quasi-map reads to an indexed PRG, infer the sequence of present loci in the sample and discover novel variants.
+Usage: ./pandora discover [OPTIONS] <TARGET> <QUERY>
+
+Positionals:
+  <TARGET> FILE [required]    An indexed PRG file (in fasta format)
+  <QUERY> FILE [required]     Fast{a,q} file containing reads to quasi-map
+
+Options:
+  -h,--help                   Print this help message and exit
+  --discover-k INT            K-mer size to use when discovering novel variants [default: 11]
+  --max-ins INT               Max. insertion size for novel variants. Warning: setting too long may impair performance [default: 15]
+  --covg-threshold INT        Positions with coverage less than this will be tagged for variant discovery [default: 3]
+  -l INT                      Min. length of consecutive positions below coverage threshold to trigger variant discovery [default: 1]
+  -L INT                      Max. length of consecutive positions below coverage threshold to trigger variant discovery [default: 50]
+  -P,--pad INT                Padding either side of candidate variant intervals [default: 22]
+  -d,--merge INT              Merge candidate variant intervals within distance [default: 22]
+  --min-dbg-dp INT            Minimum node/kmer depth in the de Bruijn graph used for discovering variants [default: 2]
+  -v                          Verbosity of logging. Repeat for increased verbosity
+
+Indexing:
+  -w INT                      Window size for (w,k)-minimizers (must be <=k) [default: 14]
+  -k INT                      K-mer size for (w,k)-minimizers [default: 15]
+
+Input/Output:
+  -o,--outdir DIR             Directory to write output files to [default: pandora_discover]
+  -t,--threads INT            Maximum number of threads to use [default: 1]
+  --kg                        Save kmer graphs with forward and reverse coverage annotations for found loci
+  -M,--mapped-reads           Save a fasta file for each loci containing read parts which overlapped it
+
+Parameter Estimation:
+  -e,--error-rate FLOAT       Estimated error rate for reads [default: 0.11]
+  -g,--genome-size STR/INT    Estimated length of the genome - used for coverage estimation. Can pass string such as 4.4m, 100k etc. [default: 5000000]
+  --bin                       Use binomial model for kmer coverages [default: negative binomial]
+
+Mapping:
+  -m,--max-diff INT           Maximum distance (bp) between consecutive hits within a cluster [default: 250]
+  -c,--min-cluster-size INT   Minimum size of a cluster of hits between a read and a loci to consider the loci present [default: 10]
+
+Preset:
+  -I,--illumina               Reads are from Illumina. Alters error rate used and adjusts for shorter reads
+
+Filtering:
+  --clean                     Add a step to clean and detangle the pangraph
+  --max-covg INT              Maximum coverage of reads to accept [default: 600]
+
+Consensus/Variant Calling:
+  --kmer-avg INT              Maximum number of kmers to average over when selecting the maximum likelihood path [default: 100]
 ```

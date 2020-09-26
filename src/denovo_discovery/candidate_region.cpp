@@ -83,9 +83,8 @@ bool CandidateRegion::operator!=(const CandidateRegion& rhs) const
     return !(rhs == *this);
 }
 
-CandidateRegions find_candidate_regions_for_pan_node(
-    const TmpPanNode& pangraph_node_components,
-    const uint_least16_t& candidate_region_interval_padding)
+CandidateRegions Discover::find_candidate_regions_for_pan_node(
+    const TmpPanNode& pangraph_node_components)
 {
     const auto& pangraph_node { pangraph_node_components.pangraph_node };
     const auto& local_prg { pangraph_node_components.local_prg };
@@ -108,11 +107,11 @@ CandidateRegions find_candidate_regions_for_pan_node(
         i++;
     }
 
-    auto candidate_intervals { identify_low_coverage_intervals(
+    auto candidate_intervals { this->identify_low_coverage_intervals(
         covgs_along_localnode_path) };
     BOOST_LOG_TRIVIAL(trace) << candidate_intervals.size()
                              << " candidate intervals before merging";
-    merge_intervals_within(candidate_intervals, candidate_region_interval_padding);
+    merge_intervals_within(candidate_intervals, this->merge_dist);
     BOOST_LOG_TRIVIAL(trace) << candidate_intervals.size()
                              << " candidate intervals after merging";
 
@@ -120,7 +119,7 @@ CandidateRegions find_candidate_regions_for_pan_node(
 
     for (const auto& current_interval : candidate_intervals) {
         CandidateRegion candidate_region { current_interval, pangraph_node->get_name(),
-            candidate_region_interval_padding };
+            this->candidate_padding };
 
         const auto interval_path_components { find_interval_and_flanks_in_localpath(
             candidate_region.get_interval(), local_node_max_likelihood_path) };
@@ -145,25 +144,24 @@ CandidateRegions find_candidate_regions_for_pan_node(
     return candidate_regions;
 }
 
-std::vector<Interval> identify_low_coverage_intervals(
-    const std::vector<uint32_t>& covg_at_each_position,
-    const uint32_t& min_required_covg, const uint32_t& min_length,
-    const uint32_t& max_length)
+std::vector<Interval> Discover::identify_low_coverage_intervals(
+    const std::vector<uint32_t>& covg_at_each_position)
 {
     std::vector<Interval> identified_regions;
-    const auto predicate { [min_required_covg](
-                               uint_least32_t x) { return x < min_required_covg; } };
+    const auto predicate { [this](uint_least32_t x) {
+        return x < this->min_required_covg;
+    } };
     auto first { covg_at_each_position.begin() };
     auto previous { covg_at_each_position.begin() };
     auto current { first };
 
-    // TODO: merging candidate regions that are close enough together
     while (current != covg_at_each_position.end()) {
         previous = current;
         current = std::find_if_not(current, covg_at_each_position.end(), predicate);
         const auto length_of_interval { current - previous };
         const bool interval_between_min_and_max_len
-            = (length_of_interval >= min_length) and (length_of_interval <= max_length);
+            = (length_of_interval >= this->min_candidate_len)
+            and (length_of_interval <= this->max_candidate_len);
 
         if (interval_between_min_and_max_len) {
             identified_regions.emplace_back(previous - first, current - first);
@@ -241,7 +239,7 @@ TmpPanNode::TmpPanNode(const PanNodePtr& pangraph_node,
 {
 }
 
-PileupConstructionMap construct_pileup_construction_map(
+PileupConstructionMap Discover::pileup_construction_map(
     CandidateRegions& candidate_regions)
 {
     PileupConstructionMap pileup_construction_map;
@@ -255,9 +253,9 @@ PileupConstructionMap construct_pileup_construction_map(
     return pileup_construction_map;
 }
 
-void load_all_candidate_regions_pileups_from_fastq(const fs::path& reads_filepath,
-    const CandidateRegions& candidate_regions,
-    const PileupConstructionMap& pileup_construction_map, const uint32_t threads)
+void Discover::load_candidate_region_pileups(
+    const fs::path& reads_filepath, const CandidateRegions& candidate_regions,
+    const PileupConstructionMap& pileup_construction_map, uint32_t threads)
 {
     if (candidate_regions.empty() or pileup_construction_map.empty())
         return;
@@ -325,4 +323,14 @@ void load_all_candidate_regions_pileups_from_fastq(const fs::path& reads_filepat
     }
     BOOST_LOG_TRIVIAL(trace) << "Loaded all candidate regions pileups from "
                              << reads_filepath.string();
+}
+
+Discover::Discover(uint32_t min_required_covg, uint32_t min_candidate_len,
+    uint32_t max_candidate_len, uint16_t candidate_padding, uint32_t merge_dist)
+    : min_required_covg { min_required_covg }
+    , min_candidate_len { min_candidate_len }
+    , max_candidate_len { max_candidate_len }
+    , candidate_padding { candidate_padding }
+    , merge_dist { merge_dist }
+{
 }

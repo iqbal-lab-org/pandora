@@ -156,9 +156,13 @@ TEST(IdentifyLowCoverageIntervalsTest, emptyCovgsReturnEmpty)
 {
     const auto min_len { 5 };
     const auto min_covg { 0 };
+    const auto max_len { 99 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs;
 
-    const auto actual { identify_low_coverage_intervals(covgs, min_covg, min_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected;
 
     EXPECT_EQ(actual, expected);
@@ -168,9 +172,13 @@ TEST(IdentifyLowCoverageIntervalsTest, singleCovgPositionAboveThresholdReturnEmp
 {
     const auto min_len { 1 };
     const auto min_covg { 1 };
+    const auto max_len { 99 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 2 };
 
-    const auto actual { identify_low_coverage_intervals(covgs, min_covg, min_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected;
 
     EXPECT_EQ(actual, expected);
@@ -181,9 +189,13 @@ TEST(IdentifyLowCoverageIntervalsTest,
 {
     const auto min_len { 1 };
     const auto min_covg { 3 };
+    const auto max_len { 99 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 2 };
 
-    const auto actual { identify_low_coverage_intervals(covgs, min_covg, min_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected { Interval(0, 1) };
 
     EXPECT_EQ(actual, expected);
@@ -193,9 +205,13 @@ TEST(IdentifyLowCoverageIntervalsTest, allPositionsAboveThresholdReturnEmpty)
 {
     const auto min_len { 1 };
     const auto min_covg { 1 };
+    const auto max_len { 99 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 2, 2, 2, 2 };
 
-    const auto actual { identify_low_coverage_intervals(covgs, min_covg, min_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected;
 
     EXPECT_EQ(actual, expected);
@@ -206,9 +222,13 @@ TEST(IdentifyLowCoverageIntervalsTest,
 {
     const auto min_len { 1 };
     const auto min_covg { 3 };
+    const auto max_len { 99 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 2, 2, 2, 2 };
 
-    const auto actual { identify_low_coverage_intervals(covgs, min_covg, min_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected { Interval(0, 4) };
 
     EXPECT_EQ(actual, expected);
@@ -219,9 +239,13 @@ TEST(IdentifyLowCoverageIntervalsTest,
 {
     const auto min_len { 10 };
     const auto min_covg { 3 };
+    const auto max_len { 99 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 2, 2, 2, 2 };
 
-    const auto actual { identify_low_coverage_intervals(covgs, min_covg, min_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected;
 
     EXPECT_EQ(actual, expected);
@@ -232,9 +256,13 @@ TEST(IdentifyLowCoverageIntervalsTest,
 {
     const auto min_len { 3 };
     const auto min_covg { 3 };
+    const auto max_len { 99 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 2, 2, 4, 4, 4 };
 
-    const auto actual { identify_low_coverage_intervals(covgs, min_covg, min_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected;
 
     EXPECT_EQ(actual, expected);
@@ -245,9 +273,13 @@ TEST(IdentifyLowCoverageIntervalsTest,
 {
     const auto min_len { 3 };
     const auto min_covg { 3 };
+    const auto max_len { 99 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 4, 2, 2, 4, 4 };
 
-    const auto actual { identify_low_coverage_intervals(covgs, min_covg, min_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected;
 
     EXPECT_EQ(actual, expected);
@@ -258,9 +290,13 @@ TEST(IdentifyLowCoverageIntervalsTest,
 {
     const auto min_len { 3 };
     const auto min_covg { 3 };
+    const auto max_len { 99 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 4, 4, 4, 2, 2 };
 
-    const auto actual { identify_low_coverage_intervals(covgs, min_covg, min_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected;
 
     EXPECT_EQ(actual, expected);
@@ -271,9 +307,13 @@ TEST(IdentifyLowCoverageIntervalsTest,
 {
     const auto min_len { 2 };
     const auto min_covg { 3 };
+    const auto max_len { 99 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 2, 2, 4, 4, 4 };
 
-    const auto actual { identify_low_coverage_intervals(covgs, min_covg, min_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected { Interval(0, 2) };
 
     EXPECT_EQ(actual, expected);
@@ -284,9 +324,13 @@ TEST(IdentifyLowCoverageIntervalsTest,
 {
     const auto min_len { 1 };
     const auto min_covg { 3 };
+    const auto max_len { 99 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 4, 2, 2, 4, 4 };
 
-    const auto actual { identify_low_coverage_intervals(covgs, min_covg, min_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected { Interval(1, 3) };
 
     EXPECT_EQ(actual, expected);
@@ -297,9 +341,13 @@ TEST(IdentifyLowCoverageIntervalsTest,
 {
     const auto min_len { 2 };
     const auto min_covg { 3 };
+    const auto max_len { 99 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 4, 4, 4, 2, 2 };
 
-    const auto actual { identify_low_coverage_intervals(covgs, min_covg, min_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected { Interval(3, 5) };
 
     EXPECT_EQ(actual, expected);
@@ -310,9 +358,13 @@ TEST(IdentifyLowCoverageIntervalsTest,
 {
     const auto min_len { 2 };
     const auto min_covg { 3 };
+    const auto max_len { 99 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 2, 2, 4, 4, 4, 2, 2 };
 
-    const auto actual { identify_low_coverage_intervals(covgs, min_covg, min_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected { Interval(0, 2), Interval(5, 7) };
 
     EXPECT_EQ(actual, expected);
@@ -322,9 +374,13 @@ TEST(IdentifyLowCoverageIntervalsTest, twoRegionsBelowThresholdReturnTwoInterval
 {
     const auto min_len { 2 };
     const auto min_covg { 3 };
+    const auto max_len { 99 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 4, 2, 1, 1, 4, 1, 2, 4 };
 
-    const auto actual { identify_low_coverage_intervals(covgs, min_covg, min_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected { Interval(1, 4), Interval(5, 7) };
 
     EXPECT_EQ(actual, expected);
@@ -335,9 +391,13 @@ TEST(IdentifyLowCoverageIntervalsTest,
 {
     const auto min_len { 3 };
     const auto min_covg { 3 };
+    const auto max_len { 99 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 4, 2, 1, 1, 4, 1, 2, 4 };
 
-    const auto actual { identify_low_coverage_intervals(covgs, min_covg, min_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected { Interval(1, 4) };
 
     EXPECT_EQ(actual, expected);
@@ -348,10 +408,12 @@ TEST(IdentifyLowCoverageIntervalsTest,
     const auto min_len { 2 };
     const auto max_len { 4 };
     const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 4, 2, 1, 1, 1, 4, 1, 2, 4 };
 
-    const auto actual { identify_low_coverage_intervals(
-        covgs, min_covg, min_len, max_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected { Interval(1, 5), Interval(6, 8) };
 
     EXPECT_EQ(actual, expected);
@@ -363,16 +425,24 @@ TEST(IdentifyLowCoverageIntervalsTest,
     const auto min_len { 2 };
     const auto max_len { 4 };
     const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const std::vector<uint32_t> covgs { 4, 2, 1, 1, 1, 2, 4, 1, 2, 4 };
 
-    const auto actual { identify_low_coverage_intervals(
-        covgs, min_covg, min_len, max_len) };
+    const auto actual { discover.identify_low_coverage_intervals(covgs) };
     const std::vector<Interval> expected { Interval(7, 9) };
 
     EXPECT_EQ(actual, expected);
 }
 TEST(FindCandidateRegionsForPanNodeTest, emptyPanNodeReturnsNoCandidates)
 {
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const auto num_samples { 1 };
     const auto prg_id { 3 };
     auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "test", "") };
@@ -386,13 +456,20 @@ TEST(FindCandidateRegionsForPanNodeTest, emptyPanNodeReturnsNoCandidates)
         kmer_node_max_likelihood_path, local_node_max_likelihood_path };
 
     const CandidateRegions expected;
-    const auto actual { find_candidate_regions_for_pan_node(pangraph_node_components) };
+    const auto actual { discover.find_candidate_regions_for_pan_node(
+        pangraph_node_components) };
 
     EXPECT_EQ(actual, expected);
 }
 
 TEST(FindCandidateRegionsForPanNodeTest, noCoverageReturnWholePrgAsCandidate)
 {
+    const auto min_len { 2 };
+    const auto max_len { 99 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const auto num_samples { 1 };
     const auto prg_id { 3 };
     auto local_prg_ptr { std::make_shared<LocalPRG>(
@@ -420,7 +497,8 @@ TEST(FindCandidateRegionsForPanNodeTest, noCoverageReturnWholePrgAsCandidate)
     expected_candidate.max_likelihood_sequence = expected_sequence;
     const CandidateRegions expected { std::make_pair(
         expected_candidate.get_id(), expected_candidate) };
-    const auto actual { find_candidate_regions_for_pan_node(pangraph_node_components) };
+    const auto actual { discover.find_candidate_regions_for_pan_node(
+        pangraph_node_components) };
     const auto actual_sequence {
         actual.at(expected_candidate.get_id()).max_likelihood_sequence
     };
@@ -431,6 +509,12 @@ TEST(FindCandidateRegionsForPanNodeTest, noCoverageReturnWholePrgAsCandidate)
 
 TEST(FindCandidateRegionsForPanNodeTest, highCoverageReturnEmpty)
 {
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const auto num_samples { 1 };
     const auto prg_id { 3 };
     auto local_prg_ptr { std::make_shared<LocalPRG>(
@@ -460,7 +544,8 @@ TEST(FindCandidateRegionsForPanNodeTest, highCoverageReturnEmpty)
         kmer_node_max_likelihood_path, local_node_max_likelihood_path };
 
     const CandidateRegions expected;
-    const auto actual { find_candidate_regions_for_pan_node(pangraph_node_components) };
+    const auto actual { discover.find_candidate_regions_for_pan_node(
+        pangraph_node_components) };
 
     EXPECT_EQ(actual, expected);
 }
@@ -468,6 +553,12 @@ TEST(FindCandidateRegionsForPanNodeTest, highCoverageReturnEmpty)
 TEST(
     FindCandidateRegionsForPanNodeTest, noCoverageOnFiveBasesReturnFiveBasesAsCandidate)
 {
+    const auto min_len { 2 };
+    const auto max_len { 99 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const auto num_samples { 1 };
     const auto prg_id { 3 };
     auto local_prg_ptr { std::make_shared<LocalPRG>(
@@ -502,7 +593,8 @@ TEST(
     CandidateRegion expected_candidate { Interval(3, 8), pangraph_node->get_name() };
     const CandidateRegions expected { std::make_pair(
         expected_candidate.get_id(), expected_candidate) };
-    const auto actual { find_candidate_regions_for_pan_node(pangraph_node_components) };
+    const auto actual { discover.find_candidate_regions_for_pan_node(
+        pangraph_node_components) };
     const auto actual_sequence {
         actual.at(expected_candidate.get_id()).get_max_likelihood_sequence_with_flanks()
     };
@@ -514,6 +606,12 @@ TEST(
 TEST(FindCandidateRegionsForPanNodeTest,
     noCoverageOnFiveBasesReturnFiveBasesPlusPaddingAsCandidate)
 {
+    const auto min_len { 2 };
+    const auto max_len { 40 };
+    const auto min_covg { 3 };
+    const auto pad { 1 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const auto prg_id { 3 };
     auto local_prg_ptr { std::make_shared<LocalPRG>(
         prg_id, "test", "AAAA 5 GGG 6 CCC 5 TTTT") };
@@ -553,13 +651,12 @@ TEST(FindCandidateRegionsForPanNodeTest,
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
         kmer_node_max_likelihood_path, local_node_max_likelihood_path };
 
-    const auto interval_padding { 1 };
     CandidateRegion expected_candidate { Interval(3, 8), pangraph_node->get_name(),
-        interval_padding };
+        pad };
     const CandidateRegions expected { std::make_pair(
         expected_candidate.get_id(), expected_candidate) };
-    const auto actual { find_candidate_regions_for_pan_node(
-        pangraph_node_components, interval_padding) };
+    const auto actual { discover.find_candidate_regions_for_pan_node(
+        pangraph_node_components) };
     const auto actual_sequence {
         actual.at(expected_candidate.get_id()).get_max_likelihood_sequence_with_flanks()
     };
@@ -575,6 +672,12 @@ TEST(FindCandidateRegionsForPanNodeTest,
 TEST(FindCandidateRegionsForPanNodeTest,
     noCoverageOnStartFiveBasesReturnFiveBasesAsCandidate)
 {
+    const auto min_len { 2 };
+    const auto max_len { 99 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const auto prg_id { 3 };
     auto local_prg_ptr { std::make_shared<LocalPRG>(
         prg_id, "test", "AAAA 5 GGG 6 CCC 5 TTTT") };
@@ -614,13 +717,12 @@ TEST(FindCandidateRegionsForPanNodeTest,
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
         kmer_node_max_likelihood_path, local_node_max_likelihood_path };
 
-    const auto interval_padding { 0 };
     CandidateRegion expected_candidate { Interval(0, 5), pangraph_node->get_name(),
-        interval_padding };
+        pad };
     const CandidateRegions expected { std::make_pair(
         expected_candidate.get_id(), expected_candidate) };
-    const auto actual { find_candidate_regions_for_pan_node(
-        pangraph_node_components, interval_padding) };
+    const auto actual { discover.find_candidate_regions_for_pan_node(
+        pangraph_node_components) };
     const auto actual_sequence {
         actual.at(expected_candidate.get_id()).get_max_likelihood_sequence_with_flanks()
     };
@@ -636,6 +738,12 @@ TEST(FindCandidateRegionsForPanNodeTest,
 TEST(FindCandidateRegionsForPanNodeTest,
     noCoverageOnEndFiveBasesReturnFiveBasesAsCandidate)
 {
+    const auto min_len { 2 };
+    const auto max_len { 99 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const auto prg_id { 3 };
     auto local_prg_ptr { std::make_shared<LocalPRG>(
         prg_id, "test", "AAAA 5 GGG 6 CCC 5 TTTT") };
@@ -675,13 +783,12 @@ TEST(FindCandidateRegionsForPanNodeTest,
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
         kmer_node_max_likelihood_path, local_node_max_likelihood_path };
 
-    const auto interval_padding { 0 };
     CandidateRegion expected_candidate { Interval(6, 11), pangraph_node->get_name(),
-        interval_padding };
+        pad };
     const CandidateRegions expected { std::make_pair(
         expected_candidate.get_id(), expected_candidate) };
-    const auto actual { find_candidate_regions_for_pan_node(
-        pangraph_node_components, interval_padding) };
+    const auto actual { discover.find_candidate_regions_for_pan_node(
+        pangraph_node_components) };
     const auto actual_sequence {
         actual.at(expected_candidate.get_id()).get_max_likelihood_sequence_with_flanks()
     };
@@ -697,6 +804,12 @@ TEST(FindCandidateRegionsForPanNodeTest,
 TEST(FindCandidateRegionsForPanNodeTest,
     noCoverageOnFiveBasesWithinDoubleNestingReturnFiveBasesPlusPaddingAsCandidate)
 {
+    const auto min_len { 2 };
+    const auto max_len { 40 };
+    const auto min_covg { 3 };
+    const auto pad { 1 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const auto prg_id { 3 };
     auto local_prg_ptr { std::make_shared<LocalPRG>(
         prg_id, "test", "AAAA 5 CCCC 6 GG 7 XXX 8 YYY 7 GG 5 TTTT") };
@@ -736,13 +849,12 @@ TEST(FindCandidateRegionsForPanNodeTest,
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
         kmer_node_max_likelihood_path, local_node_max_likelihood_path };
 
-    const auto interval_padding { 1 };
     CandidateRegion expected_candidate { Interval(5, 10), pangraph_node->get_name(),
-        interval_padding };
+        pad };
     const CandidateRegions expected { std::make_pair(
         expected_candidate.get_id(), expected_candidate) };
-    const auto actual { find_candidate_regions_for_pan_node(
-        pangraph_node_components, interval_padding) };
+    const auto actual { discover.find_candidate_regions_for_pan_node(
+        pangraph_node_components) };
     const auto actual_sequence {
         actual.at(expected_candidate.get_id()).get_max_likelihood_sequence_with_flanks()
     };
@@ -758,6 +870,12 @@ TEST(FindCandidateRegionsForPanNodeTest,
 TEST(FindCandidateRegionsForPanNodeTest,
     noCoverageOnTwoFiveBaseRegionsWithinDoubleNestingReturnTwoRegionsAsCandidate)
 {
+    const auto min_len { 2 };
+    const auto max_len { 40 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const auto prg_id { 3 };
     auto local_prg_ptr { std::make_shared<LocalPRG>(
         prg_id, "test", "AAAA 5 CCCC 6 GG 7 XXX 8 YYY 7 GG 5 TTTTT") };
@@ -797,16 +915,15 @@ TEST(FindCandidateRegionsForPanNodeTest,
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
         kmer_node_max_likelihood_path, local_node_max_likelihood_path };
 
-    const auto interval_padding { 0 };
     CandidateRegion expected_candidate1 { Interval(0, 5), pangraph_node->get_name(),
-        interval_padding };
+        pad };
     CandidateRegion expected_candidate2 { Interval(8, 13), pangraph_node->get_name(),
-        interval_padding };
+        pad };
     const CandidateRegions expected { std::make_pair(expected_candidate1.get_id(),
                                           expected_candidate1),
         std::make_pair(expected_candidate2.get_id(), expected_candidate2) };
-    const auto actual { find_candidate_regions_for_pan_node(
-        pangraph_node_components, interval_padding) };
+    const auto actual { discover.find_candidate_regions_for_pan_node(
+        pangraph_node_components) };
 
     EXPECT_EQ(actual, expected);
     std::vector<std::string> actual_max_likelihood_sequences;
@@ -922,8 +1039,14 @@ TEST(AddPileupEntryForCandidateRegionTest, oneReadOneReadCoordOutsideReadPileupE
 
 TEST(LoadAllCandidateRegionsPileupsFromFastq, emptyCandidateRegionReturnsEmptyPileup)
 {
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     Fastaq temp_fastq { false, true };
-    auto read_name { "0" };
+    const auto* read_name { "0" };
     std::string read_sequence { "AATTCCGG" };
     const auto global_covg { 2 };
     const std::vector<uint32_t> read_covg(read_sequence.length(), global_covg);
@@ -935,8 +1058,8 @@ TEST(LoadAllCandidateRegionsPileupsFromFastq, emptyCandidateRegionReturnsEmptyPi
     temp_fastq.save(temp_reads_filepath.string());
 
     CandidateRegions candidate_regions;
-    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
-    load_all_candidate_regions_pileups_from_fastq(
+    auto pileup_construction_map = discover.pileup_construction_map(candidate_regions);
+    discover.load_candidate_region_pileups(
         temp_reads_filepath, candidate_regions, pileup_construction_map);
 
     const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
@@ -948,7 +1071,12 @@ TEST(LoadAllCandidateRegionsPileupsFromFastq, emptyCandidateRegionReturnsEmptyPi
 TEST(AddPileupEntryForCandidateRegionTest,
     oneCandidateZeroReadsInFilePileupHasZeroEntries)
 {
-
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     Fastaq temp_fastq { false, true };
     const fs::path temp_reads_filepath { fs::unique_path() };
     temp_fastq.save(temp_reads_filepath.string());
@@ -961,8 +1089,8 @@ TEST(AddPileupEntryForCandidateRegionTest,
 
     CandidateRegions candidate_regions { std::make_pair(
         candidate.get_id(), candidate) };
-    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
-    load_all_candidate_regions_pileups_from_fastq(
+    auto pileup_construction_map = discover.pileup_construction_map(candidate_regions);
+    discover.load_candidate_region_pileups(
         temp_reads_filepath, candidate_regions, pileup_construction_map);
 
     const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
@@ -977,7 +1105,12 @@ TEST(AddPileupEntryForCandidateRegionTest,
 TEST(AddPileupEntryForCandidateRegionTest,
     oneCandidateTwoReadsInFileOneReadInCandidatePileupHasOneEntry)
 {
-
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     Fastaq temp_fastq { false, true };
     auto read_name { "0" };
     std::string read_sequence { "AATTCCGG" };
@@ -998,8 +1131,8 @@ TEST(AddPileupEntryForCandidateRegionTest,
 
     CandidateRegions candidate_regions { std::make_pair(
         candidate.get_id(), candidate) };
-    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
-    load_all_candidate_regions_pileups_from_fastq(
+    auto pileup_construction_map = discover.pileup_construction_map(candidate_regions);
+    discover.load_candidate_region_pileups(
         temp_reads_filepath, candidate_regions, pileup_construction_map);
 
     const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
@@ -1014,7 +1147,12 @@ TEST(AddPileupEntryForCandidateRegionTest,
 TEST(AddPileupEntryForCandidateRegionTest,
     oneCandidateTwoReadsInFileTwoReadsInCandidatePileupHasTwoEntries)
 {
-
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     Fastaq temp_fastq { false, true };
     auto read_name { "0" };
     std::string read_sequence { "AATTCCGG" };
@@ -1035,8 +1173,8 @@ TEST(AddPileupEntryForCandidateRegionTest,
 
     CandidateRegions candidate_regions { std::make_pair(
         candidate.get_id(), candidate) };
-    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
-    load_all_candidate_regions_pileups_from_fastq(
+    auto pileup_construction_map = discover.pileup_construction_map(candidate_regions);
+    discover.load_candidate_region_pileups(
         temp_reads_filepath, candidate_regions, pileup_construction_map);
 
     const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
@@ -1051,7 +1189,12 @@ TEST(AddPileupEntryForCandidateRegionTest,
 TEST(AddPileupEntryForCandidateRegionTest,
     twoCandidatesZeroReadsInFilePileupHasZeroEntries)
 {
-
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     Fastaq temp_fastq { false, true };
     const fs::path temp_reads_filepath { fs::unique_path() };
     temp_fastq.save(temp_reads_filepath.string());
@@ -1071,8 +1214,8 @@ TEST(AddPileupEntryForCandidateRegionTest,
     CandidateRegions candidate_regions { std::make_pair(
                                              candidate_1.get_id(), candidate_1),
         std::make_pair(candidate_2.get_id(), candidate_2) };
-    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
-    load_all_candidate_regions_pileups_from_fastq(
+    auto pileup_construction_map = discover.pileup_construction_map(candidate_regions);
+    discover.load_candidate_region_pileups(
         temp_reads_filepath, candidate_regions, pileup_construction_map);
 
     const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
@@ -1089,7 +1232,12 @@ TEST(AddPileupEntryForCandidateRegionTest,
 TEST(AddPileupEntryForCandidateRegionTest,
     twoCandidatesTwoReadsInFileOneReadInOneCandidatePileupHasOneEntryInOneCandidate)
 {
-
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     Fastaq temp_fastq { false, true };
     auto read_name { "0" };
     std::string read_sequence { "AATTCCGG" };
@@ -1113,8 +1261,8 @@ TEST(AddPileupEntryForCandidateRegionTest,
     CandidateRegions candidate_regions { std::make_pair(
                                              candidate_1.get_id(), candidate_1),
         std::make_pair(candidate_2.get_id(), candidate_2) };
-    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
-    load_all_candidate_regions_pileups_from_fastq(
+    auto pileup_construction_map = discover.pileup_construction_map(candidate_regions);
+    discover.load_candidate_region_pileups(
         temp_reads_filepath, candidate_regions, pileup_construction_map);
 
     const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
@@ -1132,7 +1280,12 @@ TEST(AddPileupEntryForCandidateRegionTest,
 TEST(AddPileupEntryForCandidateRegionTest,
     twoCandidatesTwoReadsInFileOneReadInEachCandidatePileupHasOneEntryInEachCandidate)
 {
-
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     Fastaq temp_fastq { false, true };
     auto read_name { "0" };
     std::string read_sequence { "AATTCCGG" };
@@ -1156,8 +1309,8 @@ TEST(AddPileupEntryForCandidateRegionTest,
     CandidateRegions candidate_regions { std::make_pair(
                                              candidate_1.get_id(), candidate_1),
         std::make_pair(candidate_2.get_id(), candidate_2) };
-    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
-    load_all_candidate_regions_pileups_from_fastq(
+    auto pileup_construction_map = discover.pileup_construction_map(candidate_regions);
+    discover.load_candidate_region_pileups(
         temp_reads_filepath, candidate_regions, pileup_construction_map);
 
     const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
@@ -1175,7 +1328,12 @@ TEST(AddPileupEntryForCandidateRegionTest,
 TEST(AddPileupEntryForCandidateRegionTest,
     twoCandidatesTwoReadsInFileOneReadInEachCandidatePileupHasOneEntryInEachCandidateUsingFourThreads)
 {
-
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     const uint32_t threads = 4;
     Fastaq temp_fastq { false, true };
     auto read_name { "0" };
@@ -1204,8 +1362,8 @@ TEST(AddPileupEntryForCandidateRegionTest,
     CandidateRegions candidate_regions { std::make_pair(
                                              candidate_1.get_id(), candidate_1),
         std::make_pair(candidate_2.get_id(), candidate_2) };
-    auto pileup_construction_map = construct_pileup_construction_map(candidate_regions);
-    load_all_candidate_regions_pileups_from_fastq(
+    auto pileup_construction_map = discover.pileup_construction_map(candidate_regions);
+    discover.load_candidate_region_pileups(
         temp_reads_filepath, candidate_regions, pileup_construction_map, threads);
 
     const auto temp_removed_successfully { fs::remove(temp_reads_filepath) };
@@ -1268,8 +1426,14 @@ TEST(WriteDenovoPathsToFileTest, twoReadsWritesTwoReadsToFile)
 
 TEST(ConstructPileupConstructionMapTest, emptyInEmptyOut)
 {
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     CandidateRegions empty_candidate_regions;
-    const auto actual { construct_pileup_construction_map(empty_candidate_regions) };
+    const auto actual { discover.pileup_construction_map(empty_candidate_regions) };
     PileupConstructionMap expected;
     EXPECT_EQ(actual, expected);
 }
@@ -1302,6 +1466,12 @@ void compare_maps(const PileupConstructionMap& map1, const PileupConstructionMap
 
 TEST(ConstructPileupConstructionMapTest, oneCandidateRegionOneReadCoordinate)
 {
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     CandidateRegion candidate { Interval(0, 3), "test" };
     const uint32_t read_id = 0;
     ReadCoordinate read_coord { read_id, 5, 20, true };
@@ -1309,7 +1479,7 @@ TEST(ConstructPileupConstructionMapTest, oneCandidateRegionOneReadCoordinate)
     CandidateRegions candidate_regions { std::make_pair(
         candidate.get_id(), candidate) };
 
-    const auto actual { construct_pileup_construction_map(candidate_regions) };
+    const auto actual { discover.pileup_construction_map(candidate_regions) };
     PileupConstructionMap expected;
     expected[read_id].emplace_back(&candidate, &read_coord);
     compare_maps(actual, expected);
@@ -1317,6 +1487,12 @@ TEST(ConstructPileupConstructionMapTest, oneCandidateRegionOneReadCoordinate)
 
 TEST(ConstructPileupConstructionMapTest, oneCandidateRegionTwoReadCoordinatesSameReadId)
 {
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     CandidateRegion candidate { Interval(0, 3), "test" };
     const uint32_t read_id = 0;
     ReadCoordinate read_coord_1 { read_id, 5, 20, true };
@@ -1326,7 +1502,7 @@ TEST(ConstructPileupConstructionMapTest, oneCandidateRegionTwoReadCoordinatesSam
     CandidateRegions candidate_regions { std::make_pair(
         candidate.get_id(), candidate) };
 
-    const auto actual { construct_pileup_construction_map(candidate_regions) };
+    const auto actual { discover.pileup_construction_map(candidate_regions) };
     PileupConstructionMap expected;
     expected[read_id].emplace_back(&candidate, &read_coord_1);
     expected[read_id].emplace_back(&candidate, &read_coord_2);
@@ -1337,6 +1513,12 @@ TEST(ConstructPileupConstructionMapTest, oneCandidateRegionTwoReadCoordinatesSam
 TEST(ConstructPileupConstructionMapTest,
     oneCandidateRegionTwoReadCoordinatesDifferentReadId)
 {
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     CandidateRegion candidate { Interval(0, 3), "test" };
     const uint32_t read_id_1 = 0;
     ReadCoordinate read_coord_1 { read_id_1, 5, 20, true };
@@ -1347,7 +1529,7 @@ TEST(ConstructPileupConstructionMapTest,
     CandidateRegions candidate_regions { std::make_pair(
         candidate.get_id(), candidate) };
 
-    const auto actual { construct_pileup_construction_map(candidate_regions) };
+    const auto actual { discover.pileup_construction_map(candidate_regions) };
     PileupConstructionMap expected;
     expected[read_id_1].emplace_back(&candidate, &read_coord_1);
     expected[read_id_2].emplace_back(&candidate, &read_coord_2);
@@ -1358,6 +1540,12 @@ TEST(ConstructPileupConstructionMapTest,
 TEST(ConstructPileupConstructionMapTest,
     twoCandidateRegionsOneReadCoordinateEachDifferentReadId)
 {
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     CandidateRegion candidate_1 { Interval(0, 3), "test" };
     const uint32_t read_id_1 = 0;
     ReadCoordinate read_coord_1 { read_id_1, 5, 20, true };
@@ -1370,7 +1558,7 @@ TEST(ConstructPileupConstructionMapTest,
                                              candidate_1.get_id(), candidate_1),
         std::make_pair(candidate_2.get_id(), candidate_2) };
 
-    const auto actual { construct_pileup_construction_map(candidate_regions) };
+    const auto actual { discover.pileup_construction_map(candidate_regions) };
     PileupConstructionMap expected;
     expected[read_id_1].emplace_back(&candidate_1, &read_coord_1);
     expected[read_id_2].emplace_back(&candidate_2, &read_coord_2);
@@ -1381,6 +1569,12 @@ TEST(ConstructPileupConstructionMapTest,
 TEST(ConstructPileupConstructionMapTest,
     twoCandidateRegionsOneReadCoordinateEachSameReadId)
 {
+    const auto min_len { 2 };
+    const auto max_len { 4 };
+    const auto min_covg { 3 };
+    const auto pad { 0 };
+    const auto dist { 0 };
+    Discover discover { min_covg, min_len, max_len, pad, dist };
     CandidateRegion candidate_1 { Interval(0, 3), "test" };
     const uint32_t read_id = 0;
     ReadCoordinate read_coord_1 { read_id, 5, 20, true };
@@ -1392,7 +1586,7 @@ TEST(ConstructPileupConstructionMapTest,
                                              candidate_1.get_id(), candidate_1),
         std::make_pair(candidate_2.get_id(), candidate_2) };
 
-    const auto actual { construct_pileup_construction_map(candidate_regions) };
+    const auto actual { discover.pileup_construction_map(candidate_regions) };
     PileupConstructionMap expected;
     expected[read_id].emplace_back(&candidate_1, &read_coord_1);
     expected[read_id].emplace_back(&candidate_2, &read_coord_2);
