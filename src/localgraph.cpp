@@ -354,7 +354,7 @@ std::vector<LocalNodePtr> LocalGraph::nodes_along_string(
         // found no successful path, so return an empty vector
         return npath;
     } else {
-        BOOST_LOG_TRIVIAL(debug) << "have " << w.size() << "candidates";
+        BOOST_LOG_TRIVIAL(debug) << "have " << w.size() << " candidates";
         // find the most exact match, the one which covers all sequence with minimal
         // extra to end of graph, or longest
         auto longest_length = 0;

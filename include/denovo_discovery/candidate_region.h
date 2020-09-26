@@ -87,26 +87,37 @@ private:
     Fastaq generate_fasta_for_denovo_paths();
 };
 
-std::vector<Interval> identify_low_coverage_intervals(
-    const std::vector<uint32_t>& covg_at_each_position,
-    const uint32_t& min_required_covg = 3, const uint32_t& min_length = 1,
-    const uint32_t& max_length = 76);
-
-using CandidateRegions = std::unordered_map<CandidateRegionIdentifier, CandidateRegion>;
-
-CandidateRegions find_candidate_regions_for_pan_node(
-    const TmpPanNode& pangraph_node_components,
-    const uint_least16_t& candidate_region_interval_padding = 0);
-
+using CandidateRegions
+= std::unordered_map<CandidateRegionIdentifier, CandidateRegion>;
 using ReadId = uint32_t;
-using PileupConstructionMap
-    = std::map<ReadId, std::vector<std::pair<CandidateRegion*, const ReadCoordinate*>>>;
+using PileupConstructionMap = std::map<ReadId,
+    std::vector<std::pair<CandidateRegion*, const ReadCoordinate*>>>;
 
-PileupConstructionMap construct_pileup_construction_map(
-    CandidateRegions& candidate_regions);
+class Discover {
+private:
+    const uint32_t min_required_covg;
+    const uint32_t min_candidate_len;
+    const uint32_t max_candidate_len;
+    const uint16_t candidate_padding;
+    const uint32_t merge_dist;
+public:
 
-void load_all_candidate_regions_pileups_from_fastq(const fs::path& reads_filepath,
-    const CandidateRegions& candidate_regions,
-    const PileupConstructionMap& pileup_construction_map, uint32_t threads = 1);
+    Discover(uint32_t, uint32_t, uint32_t, uint16_t, uint32_t);
+
+    std::vector<Interval> identify_low_coverage_intervals(
+        const std::vector<uint32_t>& covg_at_each_position);
+
+
+    CandidateRegions find_candidate_regions_for_pan_node(
+        const TmpPanNode& pangraph_node_components);
+
+
+    PileupConstructionMap pileup_construction_map(
+        CandidateRegions& candidate_regions);
+
+    void load_candidate_region_pileups(const fs::path& reads_filepath,
+        const CandidateRegions& candidate_regions,
+        const PileupConstructionMap& pileup_construction_map, uint32_t threads = 1);
+};
 
 #endif // PANDORA_CANDIDATE_REGION_H

@@ -8,6 +8,7 @@
 #include "get_vcf_ref_main.h"
 #include "random_main.h"
 #include "merge_index_main.h"
+#include "denovo_discovery/discover_main.h"
 
 class MyFormatter : public CLI::Formatter {
 public:
@@ -58,6 +59,7 @@ int main(int argc, char* argv[])
     setup_index_subcommand(app);
     setup_map_subcommand(app);
     setup_compare_subcommand(app);
+    setup_discover_subcommand(app);
     setup_walk_subcommand(app);
     setup_seq2path_subcommand(app);
     setup_get_vcf_ref_subcommand(app);
