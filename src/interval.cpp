@@ -5,11 +5,11 @@
 Interval::Interval(uint32_t s, uint32_t e)
     : start(s)
 {
-    assert(e >= start); // not a real interval ;
-    assert(e - start < std::numeric_limits<uint32_t>::max()
-        or assert_msg("Interval [" << s << "," << e << ") was too long"));
-    length = e - start; // intervals need to be exclusive of end point so that empty
-                        // strings can be represented
+    if (e < start) {
+        throw std::logic_error("Interval end cannot be less than the interval start");
+    }
+    // intervals need to be exclusive of end so that empty strings can be represented
+    length = e - start;
 }
 
 uint32_t Interval::get_end() const { return start + length; }
@@ -28,9 +28,6 @@ std::istream& operator>>(std::istream& in, Interval& i)
     in.ignore(2, ' ');
     in >> end;
     in.ignore(1, ')');
-    assert(end >= i.start);
-    assert(end - i.start < std::numeric_limits<uint32_t>::max()
-        or assert_msg("Interval [" << i.start << "," << end << ") was too long"));
     i.length = end - i.start;
     return in;
 }
@@ -64,6 +61,15 @@ bool Interval::operator<(const Interval& y) const
 
 bool Interval::empty() const { return length == 0; }
 
+bool Interval::is_close(const Interval& other, const uint32_t dist) const
+{
+    const auto iv1 = std::min(*this, other);
+    const auto iv2 = std::max(other, *this);
+
+    const auto leading_edge { iv1.get_end() + dist };
+    return leading_edge > iv2.start;
+}
+
 void merge_intervals_within(std::vector<Interval>& intervals, const uint32_t dist)
 {
     if (intervals.size() < 2) { // nothing to merge
@@ -71,18 +77,12 @@ void merge_intervals_within(std::vector<Interval>& intervals, const uint32_t dis
     }
     std::sort(intervals.begin(), intervals.end());
 
-    // assumption that iv1 < iv2
-    auto close { [dist](const Interval& iv1, const Interval& iv2) -> bool {
-        const auto leading_edge { iv1.get_end() + dist };
-        return leading_edge > iv2.start;
-    } };
-
     unsigned long prev_idx { 0 };
     for (std::size_t i = 1; i < intervals.size(); ++i) {
         const auto& current_iv { intervals[i] };
         auto& prev_iv { intervals[prev_idx] };
 
-        if (close(prev_iv, current_iv)) {
+        if (prev_iv.is_close(current_iv, dist)) {
             const auto new_end { std::max(prev_iv.get_end(), current_iv.get_end()) };
             intervals[prev_idx] = Interval(prev_iv.start, new_end);
 

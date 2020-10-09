@@ -46,10 +46,11 @@ TEST(MinimizerTest, create)
     j = 10;
     EXPECT_EQ(m3.pos_of_kmer_in_read.get_end(), j);
 
-    EXPECT_DEATH(Minimizer(kh.first, 0, 2, 0), ""); // interval too short to be valid
-    // EXPECT_DEATH(Minimizer(kh.first, 0,8,0),""); // interval too long to be valid
-    EXPECT_DEATH(
-        Minimizer(kh.first, 2, 0, 0), ""); // doesn't generate an interval as 2>0
+    // interval too short to be valid
+    EXPECT_DEATH(Minimizer(kh.first, 0, 2, 0), "");
+    // doesn't generate an interval as 2>0
+    EXPECT_THROW(
+        Minimizer(kh.first, 2, 0, 0), std::logic_error);
 }
 
 TEST(MinimizerTest, less_than)

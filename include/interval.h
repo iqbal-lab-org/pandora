@@ -12,7 +12,7 @@ struct Interval {
     uint32_t start;
     uint32_t length; // in pilot, longest prg was 208,562 characters long
 
-    Interval(uint32_t = 0, uint32_t = 0);
+    Interval(uint32_t s = 0, uint32_t e = 0);
 
     // non-inclusive
     uint32_t get_end() const;
@@ -28,6 +28,8 @@ struct Interval {
     bool operator<(const Interval& y) const;
 
     bool empty() const;
+
+    bool is_close(const Interval& other, uint32_t dist = 0) const;
 };
 
 // Merge intervals within dist of each other. Changes the vector inplace.
