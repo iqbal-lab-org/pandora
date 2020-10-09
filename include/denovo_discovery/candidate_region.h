@@ -87,11 +87,10 @@ private:
     Fastaq generate_fasta_for_denovo_paths();
 };
 
-using CandidateRegions
-= std::unordered_map<CandidateRegionIdentifier, CandidateRegion>;
+using CandidateRegions = std::unordered_map<CandidateRegionIdentifier, CandidateRegion>;
 using ReadId = uint32_t;
-using PileupConstructionMap = std::map<ReadId,
-    std::vector<std::pair<CandidateRegion*, const ReadCoordinate*>>>;
+using PileupConstructionMap
+    = std::map<ReadId, std::vector<std::pair<CandidateRegion*, const ReadCoordinate*>>>;
 
 class Discover {
 private:
@@ -100,20 +99,18 @@ private:
     const uint32_t max_candidate_len;
     const uint16_t candidate_padding;
     const uint32_t merge_dist;
-public:
 
-    Discover(uint32_t, uint32_t, uint32_t, uint16_t, uint32_t);
+public:
+    Discover(uint32_t min_required_covg, uint32_t min_candidate_len,
+        uint32_t max_candidate_len, uint16_t candidate_padding, uint32_t merge_dist);
 
     std::vector<Interval> identify_low_coverage_intervals(
         const std::vector<uint32_t>& covg_at_each_position);
 
-
     CandidateRegions find_candidate_regions_for_pan_node(
         const TmpPanNode& pangraph_node_components);
 
-
-    PileupConstructionMap pileup_construction_map(
-        CandidateRegions& candidate_regions);
+    PileupConstructionMap pileup_construction_map(CandidateRegions& candidate_regions);
 
     void load_candidate_region_pileups(const fs::path& reads_filepath,
         const CandidateRegions& candidate_regions,
