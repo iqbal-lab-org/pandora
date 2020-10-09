@@ -19,10 +19,8 @@ TEST(IntervalTest, create)
     j = 8;
     EXPECT_EQ(i.length, j);
 
-    // should fail if end is before start
-    EXPECT_DEATH(Interval(9, 1), "");
-    // input should be non-negative
-    EXPECT_DEATH(Interval(-1, 10), "");
+    EXPECT_THROW(Interval(9, 1), std::logic_error);
+    EXPECT_THROW(Interval(-1, 10), std::logic_error);
 }
 
 TEST(IntervalTest, write)
@@ -121,6 +119,91 @@ TEST(intervalEmptyTest, nonEmptyIntervalReturnsFalse)
     const Interval non_empty_interval { 1, 4 };
 
     EXPECT_FALSE(non_empty_interval.empty());
+}
+
+class IsCloseTest : public ::testing::Test {
+protected:
+    Interval iv { 4, 7 };
+};
+
+TEST_F(IsCloseTest, IntervalsAreTheSame)
+{
+    const Interval other { 4, 7 };
+    const uint32_t dist { 0 };
+
+    EXPECT_TRUE(iv.is_close(other, dist));
+}
+
+TEST_F(IsCloseTest, IntervalsHaveSameStart)
+{
+    const Interval other { 4, 9 };
+    const uint32_t dist { 0 };
+
+    EXPECT_TRUE(iv.is_close(other, dist));
+}
+
+TEST_F(IsCloseTest, IntervalsHaveSameEnd)
+{
+    const Interval other { 1, 7 };
+    const uint32_t dist { 0 };
+
+    EXPECT_TRUE(iv.is_close(other, dist));
+}
+
+TEST_F(IsCloseTest, IntervalsOverlap)
+{
+    const Interval other { 6, 9 };
+    const uint32_t dist { 0 };
+
+    EXPECT_TRUE(iv.is_close(other, dist));
+}
+
+TEST_F(IsCloseTest, OtherIntervalStartsAtEndAndDistIsZero)
+{
+    const Interval other { 7, 9 };
+    const uint32_t dist { 0 };
+
+    EXPECT_FALSE(iv.is_close(other, dist));
+}
+
+TEST_F(IsCloseTest, OtherIntervalStartsAtEndAndDistIsOne)
+{
+    const Interval other { 7, 9 };
+    const uint32_t dist { 1 };
+
+    EXPECT_TRUE(iv.is_close(other, dist));
+}
+
+TEST_F(IsCloseTest, OtherIntervalEndsAtStartOfThis)
+{
+    const Interval other { 2, 4 };
+    const uint32_t dist { 0 };
+
+    EXPECT_FALSE(iv.is_close(other, dist));
+}
+
+TEST_F(IsCloseTest, OtherIntervalEndsAtStartOfThisAndDistIsOne)
+{
+    const Interval other { 2, 4 };
+    const uint32_t dist { 1 };
+
+    EXPECT_TRUE(iv.is_close(other, dist));
+}
+
+TEST_F(IsCloseTest, OtherIntervalIsFarAway)
+{
+    const Interval other { 20, 40 };
+    const uint32_t dist { 1 };
+
+    EXPECT_FALSE(iv.is_close(other, dist));
+}
+
+TEST_F(IsCloseTest, OtherIntervalIsFarAwayButDistIsBig)
+{
+    const Interval other { 20, 40 };
+    const uint32_t dist { 100 };
+
+    EXPECT_TRUE(iv.is_close(other, dist));
 }
 
 class MergeIntervalsTest : public ::testing::Test {
