@@ -4,6 +4,8 @@
 namespace cortex {
 class BinaryKmer;
 enum class Nucleotide;
+class Node;
+class DBGraph;
 }
 
 #endif // CORTEX_NS_H

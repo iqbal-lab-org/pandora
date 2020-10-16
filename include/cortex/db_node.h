@@ -1,5 +1,6 @@
 /*
- * Adapted from https://github.com/iqbal-lab/cortex/blob/master/include/basic/base_encoding/event_encoding.h
+ * Adapted from
+ * https://github.com/iqbal-lab/cortex/blob/master/include/cortex_var/many_colours/element.h
  * Copyright 2009-2011 Zamin Iqbal and Mario Caccamo
  *
  * CORTEX project contacts:
@@ -26,37 +27,31 @@
  * **********************************************************************
  */
 /*
-  base_encoding/event_encoding.h
+  element.h  - defines the interface for the de Bruijn graph node. The
+  implementation is complemented by a hash table that stores every node indexed
+  by kmers (BinaryKmers).
+
+  The element routines, ie the one required by hash_table/priority queue, are
+  prefixed with element_
+
+  The de Bruijn based routines are prefixed with db_node_
 */
-#ifndef CORTEX_NUCLEOTIDE_H
-#define CORTEX_NUCLEOTIDE_H
+#ifndef CORTEX_DB_NODE_H
+#define CORTEX_DB_NODE_H
 
-#include <string>
-#include <vector>
-#include "cortex/ns.h"
+#include "ns.h"
+#include "cortex/binary_kmer.h"
 
-using cortex::Nucleotide;
+using Covg = uint32_t;
+using Edges = char;
 
-enum class cortex::Nucleotide {
-    Adenine,
-    Cytosine,
-    Guanine,
-    Thymine,
-    Undefined,
+class cortex::Node {
+    // todo: figure out private/public
+    const BinaryKmer kmer;
+    const Covg coverage;
+    const Edges individual_edges;
+    const char status; // will cast a NodeStatus to char
+    const char allele_status;
 };
 
-// char to binary nucleotide
-Nucleotide cton(char c);
-
-// binary nucleotide to char
-char ntoc(Nucleotide n);
-
-// nucleotides to string
-std::string ntos(std::vector<Nucleotide>& nucleotides);
-
-// nucleotide complement
-Nucleotide complement(Nucleotide n);
-
-// boolean good_symbol(char c);
-
-#endif // CORTEX_NUCLEOTIDE_H
+#endif // CORTEX_DB_NODE_H
