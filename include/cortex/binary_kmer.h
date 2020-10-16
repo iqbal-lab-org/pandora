@@ -1,4 +1,6 @@
 /*
+ * Adapted from https://github.com/iqbal-lab/cortex/blob/master/include/basic/binary_kmer.h
+ *
  * Copyright 2009-2011 Zamin Iqbal and Mario Caccamo
  *
  * CORTEX project contacts:
@@ -32,6 +34,7 @@
 #define BINARY_KMER_H_
 
 #include <inttypes.h>
+#include "cortex/ns.h"
 
 #include "global.h"
 #include "event_encoding.h"
@@ -42,10 +45,10 @@
 // encode the kmer in
 constexpr int NB_BITFIELDS_IN_BINARY_KMER {1};
 constexpr int BINARY_KMER_BYTES {(NB_BITFIELDS_IN_BINARY_KMER * sizeof(uint64_t))};
-using bitfield_bits = uint64_t; // todo could this be uint32 if max kmer size is 31?
+using bitfield_bits = uint64_t;
 
 
-class BinaryKmer {
+class cortex::BinaryKmer {
 private:
     bitfield_bits m_bitfield[NB_BITFIELDS_IN_BINARY_KMER];
 
