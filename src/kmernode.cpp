@@ -6,12 +6,17 @@
 #include "kmernode.h"
 #include "utils.h"
 
-
-KmerNode::KmerNode(uint32_t i, const prg::Path &p) : id(i), path(p),
-                                                khash(std::numeric_limits<uint64_t>::max()), num_AT(0) {}
+KmerNode::KmerNode(uint32_t i, const prg::Path& p)
+    : id(i)
+    , path(p)
+    , khash(std::numeric_limits<uint64_t>::max())
+    , num_AT(0)
+{
+}
 
 // copy constructor
-KmerNode::KmerNode(const KmerNode &other) {
+KmerNode::KmerNode(const KmerNode& other)
+{
     id = other.id;
     path = other.path;
     khash = other.khash;
@@ -20,7 +25,8 @@ KmerNode::KmerNode(const KmerNode &other) {
 }
 
 // Assignment operator
-KmerNode &KmerNode::operator=(const KmerNode &other) {
+KmerNode& KmerNode::operator=(const KmerNode& other)
+{
     // check for self-assignment
     if (this == &other)
         return *this;
@@ -34,11 +40,10 @@ KmerNode &KmerNode::operator=(const KmerNode &other) {
     return *this;
 }
 
-std::ostream &operator<<(std::ostream &out, const KmerNode &kmer_node) {
+std::ostream& operator<<(std::ostream& out, const KmerNode& kmer_node)
+{
     out << kmer_node.id << " " << kmer_node.path << " ";
     return out;
 }
 
-bool KmerNode::operator==(const KmerNode &y) const {
-    return path == y.path;
-}
+bool KmerNode::operator==(const KmerNode& y) const { return path == y.path; }

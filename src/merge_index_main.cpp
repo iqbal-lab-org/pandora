@@ -1,65 +1,45 @@
-#include <cstring>
-#include <vector>
-#include <iostream>
-#include <fstream>
+#include "merge_index_main.h"
 
-#include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
+void setup_merge_index_subcommand(CLI::App& app)
+{
 
-#include "utils.h"
-#include "localPRG.h"
+    auto opt = std::make_shared<MergeIndexOptions>();
 
+    std::string description
+        = "Allows multiple indices to be merged (no compatibility check)";
+    auto *merge_subcmd = app.add_subcommand("merge_index", description);
 
+    merge_subcmd->add_option("<IDX>", opt->indicies, "Indices to merge")
+        ->required()
+        ->type_name("FILES");
 
+    merge_subcmd->add_option("-o,--outfile", opt->outfile, "Filename for merged index")
+        ->type_name("FILE")
+        ->capture_default_str();
 
-static void show_index_usage() {
-    std::cerr << "Usage: pandora merge_index <index1> <index2> ...\n"
-              << "Options:\n"
-              << "\t--outfile\t\t\t\tFilename for merged index\n"
-              << std::endl;
+    merge_subcmd->add_flag(
+        "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
+
+    merge_subcmd->callback([opt]() { pandora_merge_index(*opt); });
 }
 
-int pandora_merge_index(int argc, char *argv[]) // the "pandora merge_index" comand
+int pandora_merge_index(MergeIndexOptions const& opt)
 {
-    // if not enough arguments, print usage
-    if (argc < 2) {
-        show_index_usage();
-        return 1;
+    auto log_level = boost::log::trivial::info;
+    if (opt.verbosity == 1) {
+        log_level = boost::log::trivial::debug;
+    } else if (opt.verbosity > 1) {
+        log_level = boost::log::trivial::trace;
     }
-
-    // otherwise, parse the parameters from the command line
-    std::string outfile = "merged_index.idx";
-    std::vector<std::string> indexes;
-    for (int i = 1; i < argc; ++i) {
-        std::string arg = argv[i];
-        if ((arg == "-h") || (arg == "--help")) {
-            show_index_usage();
-            return 0;
-        } else if (arg == "--outfile") {
-            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
-                outfile = argv[++i]; // Increment 'i' so we don't get the argument as the next argv[i].
-            } else {// Uh-oh, there was no argument to the destination option.
-                std::cerr << "--outfile option requires one argument." << std::endl;
-                return 1;
-            }
-        } else {
-            indexes.push_back(argv[i]);
-        }
-    }
-
-
-    boost::filesystem::path p(outfile);
-    boost::filesystem::path dir = p.parent_path();
+    boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
 
     // merge indexes
     auto index = std::make_shared<Index>();
-    for (const auto& new_index : indexes){
-        index->load(new_index);
+    for (const auto& indexfile : opt.indicies) {
+        index->load(indexfile);
     }
 
-    // save index
-    index->save(outfile);
+    index->save(opt.outfile.string());
 
     return 0;
 }
-

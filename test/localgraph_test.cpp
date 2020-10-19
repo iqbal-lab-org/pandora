@@ -8,10 +8,10 @@
 #include <stdint.h>
 #include <iostream>
 
-
 using namespace std;
 
-TEST(LocalGraphTest, add_node) {
+TEST(LocalGraphTest, add_node)
+{
     // add node and check it's there
     LocalGraph lg1;
     lg1.add_node(0, "AGCT", Interval(0, 4));
@@ -27,7 +27,8 @@ TEST(LocalGraphTest, add_node) {
     EXPECT_DEATH(lg1.add_node(1, "AGG", Interval(0, 4)), "");
 }
 
-TEST(LocalGraphTest, add_edge) {
+TEST(LocalGraphTest, add_edge)
+{
     LocalGraph lg2;
     lg2.add_node(0, "A", Interval(0, 1));
     lg2.add_node(1, "GC", Interval(4, 6));
@@ -43,7 +44,8 @@ TEST(LocalGraphTest, add_edge) {
     EXPECT_DEATH(lg2.add_edge(0, 4), "");
 }
 
-TEST(LocalGraphTest, equals) {
+TEST(LocalGraphTest, equals)
+{
     LocalGraph lg1;
     lg1.add_node(0, "AGCT", Interval(0, 4));
     EXPECT_EQ(lg1, lg1);
@@ -103,7 +105,8 @@ TEST(LocalGraphTest, equals) {
     EXPECT_EQ((lg2 == lg2r), false);
 }
 
-TEST(LocalGraphTest, not_equals) {
+TEST(LocalGraphTest, not_equals)
+{
     LocalGraph lg1;
     lg1.add_node(0, "AGCT", Interval(0, 4));
     EXPECT_EQ((lg1 != lg1), false);
@@ -163,7 +166,8 @@ TEST(LocalGraphTest, not_equals) {
     EXPECT_EQ((lg2 != lg2r), true);
 }
 
-TEST(LocalGraphTest, write_gfa) {
+TEST(LocalGraphTest, write_gfa)
+{
     LocalGraph lg2;
     lg2.add_node(0, "A", Interval(0, 1));
     lg2.add_node(1, "GC", Interval(4, 6));
@@ -177,7 +181,8 @@ TEST(LocalGraphTest, write_gfa) {
     lg2.write_gfa("localgraph_test.gfa");
 }
 
-TEST(LocalGraphTest, read_gfa) {
+TEST(LocalGraphTest, read_gfa)
+{
     LocalGraph lg2, read_lg2;
     lg2.add_node(0, "A", Interval(0, 1));
     lg2.add_node(1, "GC", Interval(4, 6));
@@ -192,7 +197,8 @@ TEST(LocalGraphTest, read_gfa) {
     EXPECT_EQ(lg2, read_lg2);
 }
 
-TEST(LocalGraphTest, walk) {
+TEST(LocalGraphTest, walk)
+{
     LocalGraph lg2;
     lg2.add_node(0, "A", Interval(0, 1));
     lg2.add_node(1, "GC", Interval(4, 6));
@@ -206,10 +212,10 @@ TEST(LocalGraphTest, walk) {
     // simple case, there are 2 paths of length 3
     vector<PathPtr> q1;
     prg::Path p;
-    deque<Interval> d = {Interval(0, 1), Interval(4, 6)};
+    deque<Interval> d = { Interval(0, 1), Interval(4, 6) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
-    d = {Interval(0, 1), Interval(7, 8), Interval(13, 14)};
+    d = { Interval(0, 1), Interval(7, 8), Interval(13, 14) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
     vector<PathPtr> p1 = lg2.walk(0, 0, 3);
@@ -218,7 +224,7 @@ TEST(LocalGraphTest, walk) {
 
     // but only one can be extended to a path of length 4
     q1.clear();
-    d = {Interval(0, 1), Interval(4, 6), Interval(13, 14)};
+    d = { Interval(0, 1), Interval(4, 6), Interval(13, 14) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg2.walk(0, 0, 4);
@@ -227,7 +233,7 @@ TEST(LocalGraphTest, walk) {
 
     // for even simpler path of length 1
     q1.clear();
-    d = {Interval(0, 1)};
+    d = { Interval(0, 1) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg2.walk(0, 0, 1);
@@ -242,7 +248,7 @@ TEST(LocalGraphTest, walk) {
 
     // 1 path starting from middle var site
     q1.clear();
-    d = {Interval(4, 6), Interval(13, 14)};
+    d = { Interval(4, 6), Interval(13, 14) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg2.walk(1, 4, 3);
@@ -268,10 +274,12 @@ TEST(LocalGraphTest, walk) {
     lg3.add_edge(5, 6);
 
     q1.clear();
-    d = {Interval(0, 1), Interval(4, 5), Interval(8, 9), Interval(16, 16), Interval(23, 24)};
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9), Interval(16, 16),
+        Interval(23, 24) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
-    d = {Interval(0, 1), Interval(4, 5), Interval(12, 13), Interval(16, 16), Interval(23, 24)};
+    d = { Interval(0, 1), Interval(4, 5), Interval(12, 13), Interval(16, 16),
+        Interval(23, 24) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg3.walk(0, 0, 4);
@@ -280,7 +288,7 @@ TEST(LocalGraphTest, walk) {
 
     // also want to allow walks starting from an empty node, including the empty node
     q1.clear();
-    d = {Interval(16, 16), Interval(23, 24)};
+    d = { Interval(16, 16), Interval(23, 24) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg3.walk(4, 16, 1);
@@ -288,7 +296,8 @@ TEST(LocalGraphTest, walk) {
     EXPECT_EQ(equal, true);
 }
 
-TEST(LocalGraphTest, walk_back) {
+TEST(LocalGraphTest, walk_back)
+{
     LocalGraph lg2;
     lg2.add_node(0, "A", Interval(0, 1));
     lg2.add_node(1, "GC", Interval(4, 6));
@@ -302,10 +311,10 @@ TEST(LocalGraphTest, walk_back) {
     // simple case, there are 2 paths of length 3
     vector<PathPtr> q1;
     prg::Path p;
-    deque<Interval> d = {Interval(4, 6), Interval(13, 14)};
+    deque<Interval> d = { Interval(4, 6), Interval(13, 14) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
-    d = {Interval(0, 1), Interval(7, 8), Interval(13, 14)};
+    d = { Interval(0, 1), Interval(7, 8), Interval(13, 14) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
     vector<PathPtr> p1 = lg2.walk_back(3, 14, 3);
@@ -314,7 +323,7 @@ TEST(LocalGraphTest, walk_back) {
 
     // but only one can be extended to a path of length 4
     q1.clear();
-    d = {Interval(0, 1), Interval(4, 6), Interval(13, 14)};
+    d = { Interval(0, 1), Interval(4, 6), Interval(13, 14) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg2.walk_back(3, 14, 4);
@@ -323,7 +332,7 @@ TEST(LocalGraphTest, walk_back) {
 
     // for even simpler path of length 1
     q1.clear();
-    d = {Interval(0, 1)};
+    d = { Interval(0, 1) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg2.walk_back(0, 1, 1);
@@ -338,7 +347,7 @@ TEST(LocalGraphTest, walk_back) {
 
     // 1 path starting from middle var site
     q1.clear();
-    d = {Interval(0, 1), Interval(4, 6)};
+    d = { Interval(0, 1), Interval(4, 6) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg2.walk_back(1, 6, 3);
@@ -364,10 +373,12 @@ TEST(LocalGraphTest, walk_back) {
     lg3.add_edge(5, 6);
 
     q1.clear();
-    d = {Interval(0, 1), Interval(4, 5), Interval(8, 9), Interval(16, 16), Interval(23, 24)};
+    d = { Interval(0, 1), Interval(4, 5), Interval(8, 9), Interval(16, 16),
+        Interval(23, 24) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
-    d = {Interval(0, 1), Interval(4, 5), Interval(12, 13), Interval(16, 16), Interval(23, 24)};
+    d = { Interval(0, 1), Interval(4, 5), Interval(12, 13), Interval(16, 16),
+        Interval(23, 24) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg3.walk_back(6, 24, 4);
@@ -376,10 +387,10 @@ TEST(LocalGraphTest, walk_back) {
 
     // also want to allow walks starting from an empty node, including the empty node
     q1.clear();
-    d = {Interval(8, 9), Interval(16, 16)};
+    d = { Interval(8, 9), Interval(16, 16) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
-    d = {Interval(12, 13), Interval(16, 16)};
+    d = { Interval(12, 13), Interval(16, 16) };
     p.initialize(d);
     q1.push_back(std::make_shared<prg::Path>(p));
     p1 = lg3.walk_back(4, 16, 1);
@@ -387,7 +398,8 @@ TEST(LocalGraphTest, walk_back) {
     EXPECT_EQ(equal, true);
 }
 
-TEST(LocalGraphTest, nodes_along_string) {
+TEST(LocalGraphTest, nodes_along_string)
+{
     LocalGraph lg2, read_lg2;
     lg2.add_node(0, "A", Interval(0, 1));
     lg2.add_node(1, "GC", Interval(4, 6));
@@ -398,30 +410,30 @@ TEST(LocalGraphTest, nodes_along_string) {
     lg2.add_edge(1, 3);
     lg2.add_edge(2, 3);
 
-    vector<LocalNodePtr> v_exp = {lg2.nodes[0], lg2.nodes[1], lg2.nodes[3]};
+    vector<LocalNodePtr> v_exp = { lg2.nodes[0], lg2.nodes[1], lg2.nodes[3] };
     vector<LocalNodePtr> v = lg2.nodes_along_string("AGCT");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
-    v_exp = {lg2.nodes[0], lg2.nodes[2], lg2.nodes[3]};
+    v_exp = { lg2.nodes[0], lg2.nodes[2], lg2.nodes[3] };
     v = lg2.nodes_along_string("AGT");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
-    v_exp = {lg2.nodes[0], lg2.nodes[1]};
+    v_exp = { lg2.nodes[0], lg2.nodes[1] };
     v = lg2.nodes_along_string("AGC");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
-    v_exp = {lg2.nodes[0], lg2.nodes[1], lg2.nodes[3]};
+    v_exp = { lg2.nodes[0], lg2.nodes[1], lg2.nodes[3] };
     v = lg2.nodes_along_string("AGC", true);
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
-    v_exp = {lg2.nodes[0], lg2.nodes[1]};
+    v_exp = { lg2.nodes[0], lg2.nodes[1] };
     v = lg2.nodes_along_string("AgC");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
     // check for simple prgs
     LocalGraph lg1, read_lg1;
     lg1.add_node(0, "AGTTCGTAGACCAACGCGCT", Interval(0, 20));
-    v_exp = {lg1.nodes[0]};
+    v_exp = { lg1.nodes[0] };
     v = lg1.nodes_along_string("AGTTCGTagACCAACGCGCT");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
     v_exp = {};
@@ -439,17 +451,17 @@ TEST(LocalGraphTest, nodes_along_string) {
     lg3.add_edge(1, 3);
     lg3.add_edge(2, 3);
 
-    v_exp = {lg3.nodes[0], lg3.nodes[1]};
+    v_exp = { lg3.nodes[0], lg3.nodes[1] };
     v = lg3.nodes_along_string("AGC");
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
-    v_exp = {lg3.nodes[0], lg3.nodes[2], lg3.nodes[3]};
+    v_exp = { lg3.nodes[0], lg3.nodes[2], lg3.nodes[3] };
     v = lg3.nodes_along_string("AGC", true);
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
-
 }
 
-TEST(LocalGraphTest, top_path) {
+TEST(LocalGraphTest, top_path)
+{
     LocalGraph lg2;
     lg2.add_node(0, "A", Interval(0, 1));
     lg2.add_node(1, "GC", Interval(4, 6));
@@ -460,17 +472,19 @@ TEST(LocalGraphTest, top_path) {
     lg2.add_edge(1, 3);
     lg2.add_edge(2, 3);
 
-    vector<LocalNodePtr> v_exp = {lg2.nodes[0], lg2.nodes[1], lg2.nodes[3]};
+    vector<LocalNodePtr> v_exp = { lg2.nodes[0], lg2.nodes[1], lg2.nodes[3] };
     vector<LocalNodePtr> v = lg2.top_path();
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
     LocalPRG lp3 = LocalPRG(3, "3", "T 5 G 7 C 8 T 7  6 G 5 TATG");
-    v_exp = {lp3.prg.nodes[0], lp3.prg.nodes[1], lp3.prg.nodes[2], lp3.prg.nodes[4], lp3.prg.nodes[6]};
+    v_exp = { lp3.prg.nodes[0], lp3.prg.nodes[1], lp3.prg.nodes[2], lp3.prg.nodes[4],
+        lp3.prg.nodes[6] };
     v = lp3.prg.top_path();
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 }
 
-TEST(LocalGraphTest, bottom_path) {
+TEST(LocalGraphTest, bottom_path)
+{
     LocalGraph lg2;
     lg2.add_node(0, "A", Interval(0, 1));
     lg2.add_node(1, "GC", Interval(4, 6));
@@ -481,12 +495,12 @@ TEST(LocalGraphTest, bottom_path) {
     lg2.add_edge(1, 3);
     lg2.add_edge(2, 3);
 
-    vector<LocalNodePtr> v_exp = {lg2.nodes[0], lg2.nodes[2], lg2.nodes[3]};
+    vector<LocalNodePtr> v_exp = { lg2.nodes[0], lg2.nodes[2], lg2.nodes[3] };
     vector<LocalNodePtr> v = lg2.bottom_path();
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 
     LocalPRG lp3 = LocalPRG(3, "3", "T 5 G 7 C 8 T 7  6 G 5 TATG");
-    v_exp = {lp3.prg.nodes[0], lp3.prg.nodes[5], lp3.prg.nodes[6]};
+    v_exp = { lp3.prg.nodes[0], lp3.prg.nodes[5], lp3.prg.nodes[6] };
     v = lp3.prg.bottom_path();
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, v_exp, v);
 }

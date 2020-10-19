@@ -1,57 +1,73 @@
 #include <iostream>
-#include <cstring>
+#include "CLI11.hpp"
+#include "index_main.h"
+#include "map_main.h"
+#include "compare_main.h"
+#include "walk_main.h"
+#include "seq2path_main.h"
+#include "get_vcf_ref_main.h"
+#include "random_main.h"
+#include "merge_index_main.h"
+#include "denovo_discovery/discover_main.h"
 
-int pandora_index(int argc, char *argv[]);
+class MyFormatter : public CLI::Formatter {
+public:
+    std::string make_option_opts(const CLI::Option* opt) const override
+    {
+        std::stringstream out;
 
-int pandora_walk(int argc, char *argv[]);
+        if (opt->get_type_size() != 0) {
+            if (!opt->get_type_name().empty())
+                out << " " << get_label(opt->get_type_name());
+            else if (opt->get_expected_min() > 1)
+                out << " x " << opt->get_expected();
 
-int pandora_map(int argc, char *argv[]);
-
-int pandora_compare(int argc, char *argv[]);
-
-int pandora_check_kmergraph(int argc, char *argv[]);
-
-int pandora_get_vcf_ref(int argc, char *argv[]);
-
-int pandora_random_path(int argc, char *argv[]);
-
-int pandora_merge_index(int argc, char *argv[]);
-
-
-static int usage() {
-    std::cerr << "\n"
-              << "Program: pandora\n"
-              << "Contact: Rachel Colquhoun <rmnorris@well.ox.ac.uk>\n\n"
-              << "Usage:   pandora <command> [options]\n\n"
-              << "Command: index         index PRG sequences from FASTA format\n"
-              << "         map           identify PRG ordering and sequence from reads for a single sample\n"
-              << "         compare	     identify and compare the PRG ordering and sequences for a set of samples\n"
-              << "         walk          outputs a path through the nodes in a GFA corresponding\n"
-              << "                       to input sequence, provided it exists\n"
-              << "         random_path   outputs a fasta of random paths through the PRGs\n"
-              << "         get_vcf_ref   outputs a fasta suitable for use as the VCF reference using input sequences\n"
-              << "         merge_index   allows multiple indexes to be merged (no compatibility check)\n"
-              << "\n"
-              << "Note: To map reads against PRG sequences, you need to first index the\n"
-              << "      PRGs with pandora index\n"
-              << std::endl;
-    return 1;
-}
-
-int main(int argc, char *argv[]) {
-    int ret;
-    if (argc < 2) return usage();
-    if (strcmp(argv[1], "index") == 0) ret = pandora_index(argc - 1, argv + 1);
-    else if (strcmp(argv[1], "walk") == 0) ret = pandora_walk(argc - 1, argv + 1);
-    else if (strcmp(argv[1], "map") == 0) ret = pandora_map(argc - 1, argv + 1);
-    else if (strcmp(argv[1], "compare") == 0) ret = pandora_compare(argc - 1, argv + 1);
-    else if (strcmp(argv[1], "check_kmergraph") == 0) ret = pandora_check_kmergraph(argc - 1, argv + 1);
-    else if (strcmp(argv[1], "get_vcf_ref") == 0) ret = pandora_get_vcf_ref(argc - 1, argv + 1);
-    else if (strcmp(argv[1], "random_path") == 0) ret = pandora_random_path(argc - 1, argv + 1);
-    else if (strcmp(argv[1], "merge_index") == 0) ret = pandora_merge_index(argc - 1, argv + 1);
-    else {
-        fprintf(stderr, "[main] unrecognized command '%s'\n", argv[1]);
-        return 1;
+            if (opt->get_required())
+                out << " " << get_label("[required]");
+        }
+        if (!opt->get_envname().empty())
+            out << " (" << get_label("Env") << ":" << opt->get_envname() << ")";
+        if (!opt->get_needs().empty()) {
+            out << " " << get_label("Needs") << ":";
+            for (const CLI::Option* op : opt->get_needs())
+                out << " " << op->get_name();
+        }
+        if (!opt->get_excludes().empty()) {
+            out << " " << get_label("Excludes") << ":";
+            for (const CLI::Option* op : opt->get_excludes())
+                out << " " << op->get_name();
+        }
+        return out.str();
     }
-    return ret;
+
+    std::string make_option_desc(const CLI::Option* opt) const override
+    {
+        std::stringstream out;
+        out << opt->get_description();
+        if (!opt->get_default_str().empty()) {
+            out << " [default: " << opt->get_default_str() << "]";
+        }
+        return out.str();
+    }
+};
+
+int main(int argc, char* argv[])
+{
+    CLI::App app { "Pandora: Pan-genome inference and genotyping with long noisy or "
+                   "short accurate reads." };
+    app.formatter(std::make_shared<MyFormatter>());
+    setup_index_subcommand(app);
+    setup_map_subcommand(app);
+    setup_compare_subcommand(app);
+    setup_discover_subcommand(app);
+    setup_walk_subcommand(app);
+    setup_seq2path_subcommand(app);
+    setup_get_vcf_ref_subcommand(app);
+    setup_random_subcommand(app);
+    setup_merge_index_subcommand(app);
+    app.require_subcommand();
+
+    CLI11_PARSE(app, argc, argv);
+
+    return 0;
 }

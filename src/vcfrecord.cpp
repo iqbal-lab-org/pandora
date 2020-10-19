@@ -1,496 +1,330 @@
 #include <cassert>
-#include <cmath>
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <numeric>
-
 #include <boost/log/trivial.hpp>
-
-#include "vcfrecord.h"
-#include "utils.h"
-
+#include <vcfrecord.h>
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
+VCFRecord::VCFRecord(VCF const* parent_vcf, const std::string& chrom, uint32_t pos,
+    const std::string& ref, const std::string& alt, const std::string& info,
+    const std::string& graph_type_info)
+    : parent_vcf(parent_vcf)
+    , id(".")
+    , qual(".")
+    , filter(".")
+    , info(info)
+    , chrom(chrom)
+    , pos(pos)
+{
+    add_new_samples(parent_vcf->samples.size());
+    set_ref_and_clear_alts(ref);
+    add_new_alt(alt);
 
-VCFRecord::VCFRecord(std::string c, uint32_t p, std::string r, std::string a, std::string i, std::string g) : chrom(c),
-                                                                                                              pos(p),
-                                                                                                              id("."),
-                                                                                                              ref(r),
-                                                                                                              qual("."),
-                                                                                                              filter("."),
-                                                                                                              info(i),
-                                                                                                              format({"GT"}) {
-    if (a == "")
-        alt.push_back(".");
+    if (this->info == ".") {
+        this->info = infer_SVTYPE();
+    }
+
+    if (graph_type_info != "") {
+        this->info += ";";
+        this->info += graph_type_info;
+    }
+}
+
+VCFRecord::VCFRecord(VCF const* parent_vcf)
+    : parent_vcf(parent_vcf)
+    , id(".")
+    , qual(".")
+    , filter(".")
+    , info(".")
+    , chrom(".")
+    , pos(0)
+{
+    add_new_samples(parent_vcf->samples.size());
+    set_ref_and_clear_alts(".");
+}
+
+std::string VCFRecord::infer_SVTYPE() const
+{
+    // TODO: How to handle cases where there are more than 2 options, not all of one
+    // type
+    if (ref == "." and (alts.empty() or alts[0] == "."))
+        return ".";
+    else if (ref == "." or alts.empty() or alts[0] == ".")
+        return "SVTYPE=INDEL";
+    else if (ref.length() == 1 and !alts.empty() and alts[0].length() == 1)
+        return "SVTYPE=SNP";
+    else if (!alts.empty() and alts[0].length() == ref.length())
+        return "SVTYPE=PH_SNPs";
+    else if (!alts.empty() and ref.length() < alts[0].length()
+        and ref.compare(0, ref.length(), alts[0], 0, ref.length()) == 0)
+        return "SVTYPE=INDEL";
+    else if (!alts.empty() and alts[0].length() < ref.length()
+        and alts[0].compare(0, alts[0].length(), ref, 0, alts[0].length()) == 0)
+        return "SVTYPE=INDEL";
     else
-        alt.push_back(a);
-
-    // fix so no empty strings
-    if (ref == "") { ref = "."; }
-
-    // classify variants as SNPs, INDELs PH_SNPs or COMPLEX
-    // need to think about how to handle cases where there are more than 2 options, not all of one type
-    if (info == ".") {
-        if (ref == "." and (alt.empty() or alt[0] == ".")) {}
-        else if (ref == "." or alt.empty() or alt[0] == ".") { info = "SVTYPE=INDEL"; }
-        else if (ref.length() == 1 and !alt.empty() and alt[0].length() == 1) { info = "SVTYPE=SNP"; }
-        else if (!alt.empty() and alt[0].length() == ref.length()) { info = "SVTYPE=PH_SNPs"; }
-        else if (!alt.empty() and ref.length() < alt[0].length() and
-                 ref.compare(0, ref.length(), alt[0], 0, ref.length()) == 0) { info = "SVTYPE=INDEL"; }
-        else if (!alt.empty() and alt[0].length() < ref.length() and
-                 alt[0].compare(0, alt[0].length(), ref, 0, alt[0].length()) == 0) { info = "SVTYPE=INDEL"; }
-        else { info = "SVTYPE=COMPLEX"; }
-    }
-
-    // add graph type info
-    if (g != "") {
-        info += ";";
-        info += g;
-    }
-};
-
-VCFRecord::VCFRecord() : chrom("."), pos(0), id("."), ref("."), qual("."), filter("."), info(".") {};
-
-VCFRecord::VCFRecord(const VCFRecord &other) {
-    chrom = other.chrom;
-    pos = other.pos;
-    id = other.id;
-    ref = other.ref;
-    alt = other.alt;
-    qual = other.qual;
-    filter = other.filter;
-    info = other.info;
-    format = other.format;
-    samples = other.samples;
-    regt_samples = other.regt_samples;
+        return "SVTYPE=COMPLEX";
 }
 
-VCFRecord &VCFRecord::operator=(const VCFRecord &other) {
-    // check for self-assignment
-    if (this == &other)
-        return *this;
+std::string VCFRecord::get_format(
+    bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const
+{
+    bool only_one_flag_is_set
+        = ((int)(genotyping_from_maximum_likelihood) + (int)(genotyping_from_coverage))
+        == 1;
+    assert(only_one_flag_is_set);
 
-    chrom = other.chrom;
-    pos = other.pos;
-    id = other.id;
-    ref = other.ref;
-    alt = other.alt;
-    qual = other.qual;
-    filter = other.filter;
-    info = other.info;
-    format = other.format;
-    samples = other.samples;
-    regt_samples = other.regt_samples;
+    static std::vector<std::string> format_for_genotyping_from_maximum_likelihood
+        = { "GT", "MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG",
+              "SUM_FWD_COVG", "SUM_REV_COVG", "GAPS" };
+    static std::vector<std::string> format_for_genotyping_from_coverage
+        = { "GT", "MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG",
+              "SUM_FWD_COVG", "SUM_REV_COVG", "GAPS", "LIKELIHOOD", "GT_CONF" };
 
-    return *this;
-}
+    const std::vector<std::string>* format;
+    if (genotyping_from_maximum_likelihood)
+        format = &format_for_genotyping_from_maximum_likelihood;
+    if (genotyping_from_coverage)
+        format = &format_for_genotyping_from_coverage;
 
-VCFRecord::~VCFRecord() {};
-
-void VCFRecord::clear() {
-    chrom = ".";
-    pos = 0;
-    id = ".";
-    ref = ".";
-    alt.clear();
-    qual = ".";
-    filter = ".";
-    info = ".";
-    format.clear();
-    for (auto s : samples)
-        s.clear();
-    samples.clear();
-    for (auto r : regt_samples)
-        r.clear();
-    regt_samples.clear();
-}
-
-void VCFRecord::clear_sample(uint32_t i) {
-    if (samples.size() > i) {
-        samples.at(i).clear();
-    }
-
-    if (regt_samples.size() > i) {
-        regt_samples.at(i).clear();
-    }
-    bool all_cleared(true);
-    for (const auto &s : samples) {
-        if (!s.empty()) {
-            all_cleared = false;
-            break;
-        }
-    }
-    if (all_cleared) {
-        clear();
-    }
-}
-
-void VCFRecord::add_formats(const std::vector<std::string> &formats) {
-    for (const auto &s : formats) {
-        if (find(format.begin(), format.end(), s) == format.end())
-            format.push_back(s);
-    }
-}
-
-void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const std::vector<uint16_t>& val){
-    assert(samples.size() > sample_id);
-    samples[sample_id][format] = val;
-    add_formats({format});
-}
-
-void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const std::vector<float>& val){
-    std::unordered_map<std::string, std::vector<float>> m;
-    m.reserve(3);
-    for (uint i=regt_samples.size(); i<samples.size(); ++i) {
-        regt_samples.push_back(m);
-    }
-    assert(regt_samples.size() > sample_id);
-    regt_samples[sample_id][format] = val;
-    add_formats({format});
-}
-
-void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const uint16_t& val){
-    std::vector<uint16_t> v = {};
-    v.emplace_back(val);
-    set_format(sample_id, format, v);
-}
-
-void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const uint32_t& val){
-    if (val >= std::numeric_limits<uint16_t>::max()){
-        BOOST_LOG_TRIVIAL(debug) << now() << "Value too large for sample id " << sample_id << " format " << format
-                                 << " value " << val;
-        uint16_t v = std::numeric_limits<uint16_t>::max() - 1;
-        set_format(sample_id, format, v);
-    } else {
-        uint16_t v = val;
-        set_format(sample_id, format, v);
-    }
-}
-
-void VCFRecord::set_format(const uint32_t& sample_id, const std::string& format, const float& val){
-    std::vector<float> v = {};
-    v.emplace_back(val);
-    set_format(sample_id, format, v);
-}
-
-void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const uint16_t& val){
-    assert(samples.size() > sample_id);
-    if (samples[sample_id].find(format)!=samples[sample_id].end()){
-        samples[sample_id][format].push_back(val);
-    } else {
-        set_format(sample_id, format, val);
-    }
-}
-
-void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const uint32_t& val){
-    if (val >= std::numeric_limits<uint16_t>::max()){
-        BOOST_LOG_TRIVIAL(debug) << now() << "Value too large for sample id " << sample_id << " format " << format
-                                 << " value " << val;
-        uint16_t v = std::numeric_limits<uint16_t>::max() - 1;
-        append_format(sample_id, format, v);
-    } else {
-        uint16_t v = val;
-        append_format(sample_id, format, v);
-    }
-}
-
-void VCFRecord::append_format(const uint32_t& sample_id, const std::string& format, const float& val){
-    std::unordered_map<std::string, std::vector<float>> m;
-    m.reserve(3);
-    if (regt_samples.empty()) {
-        for (const auto &sample : samples) {
-            regt_samples.push_back(m);
-        }
-    }
-    assert(regt_samples.size() > sample_id);
-    if (regt_samples[sample_id].find(format)!=regt_samples[sample_id].end()){
-        regt_samples[sample_id][format].push_back(val);
-    } else {
-        set_format(sample_id, format, val);
-    }
-}
-
-std::vector<uint16_t> VCFRecord::get_format_u(const uint32_t& sample_id, const std::string& format){
-    std::vector<uint16_t> empty_return;
-    bool sample_exists = samples.size() > sample_id;
-    if (!sample_exists)
-        return empty_return;
-    bool found_key_in_sample = samples[sample_id].find(format)!=samples[sample_id].end();
-    if (!found_key_in_sample)
-        return empty_return;
-    return samples[sample_id][format];
-}
-
-std::vector<float> VCFRecord::get_format_f(const uint32_t& sample_id, const std::string& format){
-    std::vector<float> empty_return;
-    bool sample_exists = regt_samples.size() > sample_id;
-    if (!sample_exists)
-        return empty_return;
-    bool found_key_in_sample = regt_samples[sample_id].find(format)!=regt_samples[sample_id].end();
-    if (!found_key_in_sample)
-        return empty_return;
-    return regt_samples[sample_id][format];
-}
-
-float logfactorial(uint32_t n) {
-    float ret = 0;
-    for (uint32_t i = 1; i <= n; ++i) {
-        ret += log(i);
-    }
-    return ret;
-}
-
-void VCFRecord::likelihood(const std::vector<uint32_t> &expected_depth_covg_v, const float &error_rate,
-                           const uint32_t &min_allele_covg, const float &min_fraction_allele_covg) {
-    for (uint_least16_t i = 0; i < samples.size(); ++i) {
-        assert(i < expected_depth_covg_v.size());
-        const auto &expected_depth_covg = expected_depth_covg_v[i];
-        const uint32_t min_covg = std::max(min_allele_covg, uint(min_fraction_allele_covg*expected_depth_covg));
-        const auto &fwd_covgs = get_format_u(i,"MEAN_FWD_COVG");
-        const auto &rev_covgs = get_format_u(i,"MEAN_REV_COVG");
-        const auto &gaps = get_format_f(i,"GAPS");
-        if (!fwd_covgs.empty() and fwd_covgs.size() == rev_covgs.size() and fwd_covgs.size() == gaps.size()){
-
-            std::vector<uint16_t> covgs = {};
-            for (uint j = 0; j < fwd_covgs.size(); ++j) {
-                uint32_t total_covg = fwd_covgs[j] + rev_covgs[j];
-                if (total_covg >= min_covg)
-                    covgs.push_back(total_covg);
-                else
-                    covgs.push_back(0);
-            }
-
-            float likelihood = 0;
-            for (uint j = 0; j < covgs.size(); ++j) {
-                auto other_covg = accumulate(covgs.begin(), covgs.end(), 0) - covgs[j];
-                if (covgs[j] > 0) {
-                    likelihood = covgs[j] * log(expected_depth_covg) - expected_depth_covg
-                                 - logfactorial(covgs[j]) + other_covg * log(error_rate);
-                    //std::cout << "likelihood before gaps " << likelihood << " gaps = " << gaps[j] << std::endl;
-                    likelihood += (1 - gaps[j]) * log(1 - exp(-(float)expected_depth_covg)) - expected_depth_covg * gaps[j];
-                    //std::cout << "likelihood after gaps " << likelihood << std::endl;
-                } else {
-                    likelihood = other_covg * log(error_rate) - expected_depth_covg;
-                    //std::cout << "likelihood before gaps " << likelihood << " gaps = " << gaps[j] << std::endl;
-                    likelihood += (1 - gaps[j]) * log(1 - exp(-(float)expected_depth_covg)) - expected_depth_covg * gaps[j];
-                    //std::cout << "likelihood after gaps " << likelihood << std::endl;
-                }
-                append_format(i,"LIKELIHOOD",likelihood);
-            }
+    std::stringstream out;
+    for (const auto& field : *format) {
+        out << field;
+        bool is_not_last_field = field != format->back();
+        if (is_not_last_field) {
+            out << ":";
         }
     }
 
-    assert(regt_samples.size() == samples.size() or assert_msg(regt_samples.size() << "!=" << samples.size()));
+    return out.str();
 }
 
-void VCFRecord::confidence(const uint32_t &min_total_covg, const uint32_t &min_diff_covg) {
-    for (uint i=0; i < regt_samples.size(); ++i) {
-        auto& sample = regt_samples[i];
-        if (sample.find("LIKELIHOOD") != sample.end()) {
-            assert(sample["LIKELIHOOD"].size() > 1);
-            float max_lik = 0, max_lik2 = 0;
-            uint32_t max_coord = 0, max_coord2 = 0;
-            for (uint j=0; j < sample["LIKELIHOOD"].size(); ++j ){
-                const auto & likelihood = sample["LIKELIHOOD"][j];
-                if (max_lik == 0 or likelihood > max_lik) {
-                    max_coord2 = max_coord;
-                    max_coord = j;
-                    max_lik2 = max_lik;
-                    max_lik = likelihood;
-                } else if (max_lik2 == 0 or likelihood > max_lik2) {
-                    max_lik2 = likelihood;
-                    max_coord2 = j;
-                }
-            }
-
-            assert(samples.size() > i);
-            assert(samples[i].find("MEAN_FWD_COVG")!=samples[i].end());
-            assert(samples[i]["MEAN_FWD_COVG"].size() > max_coord);
-
-            const auto & max_covg = samples[i]["MEAN_FWD_COVG"][max_coord]+samples[i]["MEAN_REV_COVG"][max_coord];
-            const auto & next_covg = samples[i]["MEAN_FWD_COVG"][max_coord2]+samples[i]["MEAN_REV_COVG"][max_coord2];
-            bool enough_total_covg = (max_covg + next_covg >= min_total_covg);
-            bool enough_difference_in_covg = (std::abs(max_covg-next_covg) >= min_diff_covg);
-            if (enough_total_covg and enough_difference_in_covg)
-                sample["GT_CONF"] = {std::abs(max_lik - max_lik2)};
-            else
-                sample["GT_CONF"] = {0};
-        }
-    }
-    add_formats({"GT_CONF"});
-}
-
-void VCFRecord::genotype(const uint16_t confidence_threshold) {
-    for (uint_least16_t i = 0; i < samples.size(); ++i) {
-        if (regt_samples[i].find("GT_CONF") != regt_samples[i].end()) {
-            if (regt_samples[i]["GT_CONF"][0] > confidence_threshold) {
-                uint16_t allele = 0;
-                float max_likelihood = 0;
-                for (const auto &likelihood : regt_samples[i]["LIKELIHOOD"]) {
-                    if (max_likelihood == 0 or likelihood > max_likelihood) {
-                        samples[i]["GT"] = {allele};
-                        max_likelihood = likelihood;
-                    }
-                    allele++;
-                }
-            } else {
-                samples[i]["GT"].clear();
-            }
-        } else {
-            samples[i]["GT"].clear();
-        }
-    }
-}
-
-bool VCFRecord::contains_dot_allele() const {
+bool VCFRecord::contains_dot_allele() const
+{
     if (ref == "." or ref == "")
         return true;
-    for (const auto &a : alt){
+    for (const auto& a : alts) {
         if (a == "." or a == "")
             return true;
     }
     return false;
 }
 
-bool VCFRecord::operator==(const VCFRecord &y) const {
-    if (chrom != y.chrom) { return false; }
-    if (pos != y.pos) { return false; }
-    if (ref != y.ref) { return false; }
-    if (alt.size() != y.alt.size()) { return false; }
-    for (const auto &a : alt) {
-        if (find(y.alt.begin(), y.alt.end(), a) == y.alt.end()) { return false; }
+bool VCFRecord::operator==(const VCFRecord& y) const
+{
+    if (chrom != y.chrom) {
+        return false;
+    }
+    if (pos != y.pos) {
+        return false;
+    }
+    if (ref != y.ref) {
+        return false;
+    }
+    if (alts.size() != y.alts.size()) {
+        return false;
+    }
+    for (const auto& a : alts) {
+        if (find(y.alts.begin(), y.alts.end(), a) == y.alts.end()) {
+            return false;
+        }
     }
     return true;
 }
 
-bool VCFRecord::operator!=(const VCFRecord &y) const {
-    return !(*this == y);
-}
+bool VCFRecord::operator!=(const VCFRecord& y) const { return !(*this == y); }
 
-bool VCFRecord::operator<(const VCFRecord &y) const {
-    if (chrom < y.chrom) { return true; }
-    if (chrom > y.chrom) { return false; }
-    if (pos < y.pos) { return true; }
-    if (pos > y.pos) { return false; }
-    if (ref < y.ref) { return true; }
-    if (ref > y.ref) { return false; }
-    if (alt < y.alt) { return true; }
-    if (alt > y.alt) { return false; }
+bool VCFRecord::operator<(const VCFRecord& y) const
+{
+    if (chrom < y.chrom) {
+        return true;
+    }
+    if (chrom > y.chrom) {
+        return false;
+    }
+    if (pos < y.pos) {
+        return true;
+    }
+    if (pos > y.pos) {
+        return false;
+    }
+    if (ref < y.ref) {
+        return true;
+    }
+    if (ref > y.ref) {
+        return false;
+    }
+    if (alts < y.alts) {
+        return true;
+    }
+    if (alts > y.alts) {
+        return false;
+    }
     return false;
 }
 
+std::string VCFRecord::to_string(
+    bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage) const
+{
+    std::stringstream out;
 
-std::ostream &operator<<(std::ostream &out, VCFRecord const &m) {
-    out << m.chrom << "\t" << m.pos + 1 << "\t" << m.id << "\t" << m.ref << "\t";
+    out << this->chrom << "\t" << this->pos + 1 << "\t" << this->id << "\t" << this->ref
+        << "\t" << this->alts_to_string() << "\t" << this->qual << "\t" << this->filter
+        << "\t" << this->info << "\t"
+        << this->get_format(
+               genotyping_from_maximum_likelihood, genotyping_from_coverage)
+        << "\t"
+        << this->sample_infos_to_string(
+               genotyping_from_maximum_likelihood, genotyping_from_coverage);
 
-    if (m.alt.empty()) {
+    return out.str();
+}
+
+std::string VCFRecord::alts_to_string() const
+{
+    std::stringstream out;
+    if (this->alts.empty()) {
         out << ".";
     } else {
         std::string buffer = "";
-        for (const auto &a : m.alt) {
-            out << buffer << a;
+        for (const auto& alt : this->alts) {
+            out << buffer << alt;
             buffer = ",";
         }
     }
-    out << "\t" << m.qual << "\t"
-        << m.filter << "\t" << m.info << "\t";
+    return out.str();
+}
 
-    std::string last_format;
-    if (!m.format.empty())
-        last_format = m.format[m.format.size() - 1];
+size_t VCFRecord::get_longest_allele_length() const
+{
+    size_t longest_allele_length = this->ref.size();
+    for (const std::string& alt : this->alts) {
+        longest_allele_length = std::max(longest_allele_length, alt.size());
+    }
+    return longest_allele_length;
+}
 
-    for (const auto &s : m.format) {
-        out << s;
-        if (s != last_format)
-            out << ":";
+void VCFRecord::merge_record_into_this(const VCFRecord& other)
+{
+    // no need for merge
+    bool other_record_has_no_alt = other.alts.size() == 0;
+    if (other_record_has_no_alt)
+        return;
+
+    assert(there_are_no_common_alt_alleles_between_this_and_other(other));
+
+    this->sampleIndex_to_sampleInfo.merge_other_samples_infos_into_this(
+        other.sampleIndex_to_sampleInfo);
+    add_new_alts(other.get_alts().begin(), other.get_alts().end());
+}
+
+bool VCFRecord::can_biallelic_record_be_merged_into_this(
+    const VCFRecord& vcf_record_to_be_merged_in, uint32_t max_allele_length) const
+{
+    // TODO : when this function is called, we could have VCFRecords with no alts, but
+    // they would still be biallelic because these are corrected afterwards
+    // TODO : maybe fix this?
+    // bool ensure_we_are_merging_only_biallelic_records =
+    // vcf_record_to_be_merged_in.alts.size() == 1;
+    bool ensure_we_are_merging_only_biallelic_records
+        = vcf_record_to_be_merged_in.alts.size() <= 1;
+    assert(ensure_we_are_merging_only_biallelic_records);
+
+    bool both_records_have_the_same_ref = this->ref == vcf_record_to_be_merged_in.ref;
+
+    bool all_alleles_have_at_most_max_allele_length
+        = this->get_longest_allele_length() <= max_allele_length
+        and vcf_record_to_be_merged_in.get_longest_allele_length() <= max_allele_length;
+
+    bool vcf_record_should_be_merged_in = vcf_record_to_be_merged_in != (*this)
+        and this->has_the_same_position(vcf_record_to_be_merged_in)
+        and both_records_have_the_same_ref
+        and all_alleles_have_at_most_max_allele_length
+        and there_are_no_common_alt_alleles_between_this_and_other(
+            vcf_record_to_be_merged_in);
+
+    return vcf_record_should_be_merged_in;
+}
+
+void VCFRecord::correct_dot_alleles(
+    char nucleotide, bool add_nucleotide_before_the_sequence)
+{
+    std::string prefix = "";
+    std::string suffix = "";
+    int pos_change = 0;
+
+    if (add_nucleotide_before_the_sequence) {
+        prefix += nucleotide;
+        pos_change = -1;
+    } else {
+        suffix += nucleotide;
+        pos_change = 0;
     }
 
-    for (uint_least16_t i = 0; i < m.samples.size(); ++i) {
-        out << "\t";
-        for (const auto &f : m.format) {
-            std::string buffer = "";
-            if (m.samples[i].find(f) != m.samples[i].end() and not m.samples[i].at(f).empty()) {
-                for (const auto &a : m.samples.at(i).at(f)) {
-                    out << buffer << +a;
-                    buffer = ",";
-                }
+    if (allele_is_dot(get_ref())) {
+        ref = nucleotide;
+    } else {
+        ref = prefix + ref + suffix;
+    }
 
-            } else if (m.regt_samples.size() > i
-                       and m.regt_samples[i].find(f) != m.regt_samples[i].end()
-                       and not m.regt_samples[i].at(f).empty()) {
-                for (const auto &a : m.regt_samples.at(i).at(f)) {
-                    out << buffer << +a;
-                    buffer = ",";
-                }
-            } else {
-                out << ".";
-            }
-
-            if (f != last_format)
-                out << ":";
+    for (auto& alt : alts) {
+        if (allele_is_dot(alt)) {
+            alt = nucleotide;
+        } else {
+            alt = prefix + alt + suffix;
         }
     }
 
-    out << std::endl;
-    return out;
+    pos += pos_change;
 }
 
-std::istream &operator>>(std::istream &in, VCFRecord &m) {
-    std::string token, alt_s;
-    std::vector<std::string> sample_strings, sample_substrings;
-    std::vector<std::string> float_strings = {"LIKELIHOOD", "GT_CONF", "GAPS"};
-    std::unordered_map<std::string, std::vector<uint16_t>> sample_data;
-    std::unordered_map<std::string, std::vector<float>> regt_sample_data;
-    m.alt.clear();
-    in >> m.chrom;
-    in.ignore(1, '\t');
-    in >> m.pos;
-    m.pos -= 1;
-    in.ignore(1, '\t');
-    in >> m.id;
-    in.ignore(1, '\t');
-    in >> m.ref;
-    in.ignore(1, '\t');
-    in >> alt_s;
-    m.alt.push_back(alt_s);
-    int c = in.peek();
-    while (c == ',') {
-        in >> alt_s;
-        m.alt.push_back(alt_s);
-        c = in.peek();
+void VCFRecord::set_ref_and_clear_alts(std::string ref)
+{
+    if (ref == "") {
+        ref = ".";
     }
-    in.ignore(1, '\t');
-    in >> m.qual;
-    in.ignore(1, '\t');
-    in >> m.filter;
-    in.ignore(1, '\t');
-    in >> m.info;
-    in.ignore(1, '\t');
-    in >> token;
-    m.format = split(token, ":");
-    sample_data.reserve(m.format.size());
-    while (in >> token) {
-        sample_strings = split(token, ":");
-        assert(sample_strings.size() == m.format.size() or assert_msg("sample data does not fit format"));
-        m.samples.push_back(sample_data);
-        m.regt_samples.push_back(regt_sample_data);
-        for (uint32_t i = 0; i < m.format.size(); ++i) {
-            if (sample_strings[i] != "."
-                and find(float_strings.begin(), float_strings.end(), m.format[i]) == float_strings.end()) {
-                sample_substrings = split(sample_strings[i], ",");
-                for (const auto &s : sample_substrings)
-                    m.samples.back()[m.format[i]].push_back(stoi(s));
-            } else if (sample_strings[i] != "."
-                       and find(float_strings.begin(), float_strings.end(), m.format[i]) != float_strings.end()) {
-                sample_substrings = split(sample_strings[i], ",");
-                for (const auto &s : sample_substrings)
-                    m.regt_samples.back()[m.format[i]].push_back(stof(s));
-            }
-        }
-    }
-    return in;
+    this->ref = ref;
+    this->alts.clear();
+    set_number_of_alleles_and_resize_coverage_information_for_all_samples(1);
 }
 
+void VCFRecord::add_new_alt(std::string alt)
+{
+    if (alt == "") {
+        alt = ".";
+    }
 
+    bool alt_already_present = std::find(alts.begin(), alts.end(), alt) != alts.end();
+    assert(not alt_already_present);
+
+    alts.push_back(alt);
+    set_number_of_alleles_and_resize_coverage_information_for_all_samples(
+        alts.size() + 1);
+}
+
+void VCFRecord::add_new_samples(uint32_t number_of_samples)
+{
+    sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(
+        number_of_samples, get_number_of_alleles(), parent_vcf->genotyping_options);
+}
+
+bool VCFRecord::there_are_no_common_alt_alleles_between_this_and_other(
+    const VCFRecord& other) const
+{
+    std::set<std::string> all_unique_alt_alleles;
+    all_unique_alt_alleles.insert(this->get_alts().begin(), this->get_alts().end());
+    all_unique_alt_alleles.insert(other.get_alts().begin(), other.get_alts().end());
+    size_t the_size_we_are_supposed_to_have_if_there_are_no_common_alt_alleles
+        = this->get_alts().size() + other.get_alts().size();
+    return all_unique_alt_alleles.size()
+        == the_size_we_are_supposed_to_have_if_there_are_no_common_alt_alleles;
+}
+
+void VCFRecord::reset_sample_infos_to_contain_the_given_number_of_samples(
+    uint32_t number_of_samples)
+{
+    sampleIndex_to_sampleInfo.clear();
+    sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(
+        number_of_samples, get_number_of_alleles(), parent_vcf->genotyping_options);
+}

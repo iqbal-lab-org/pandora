@@ -10,14 +10,12 @@
 #include <stdint.h>
 #include <iostream>
 
-
 using namespace std;
 
-TEST(InthashTest, checkCharToInt) {
-    test_table();
-}
+TEST(InthashTest, checkCharToInt) { test_table(); }
 
-set<string> generate_kmers(vector<string> v, uint32_t k) {
+set<string> generate_kmers(vector<string> v, uint32_t k)
+{
     set<string> current_strings, new_strings;
     if (k >= 1) {
         for (uint32_t j = 0; j < 4; j++) {
@@ -29,7 +27,8 @@ set<string> generate_kmers(vector<string> v, uint32_t k) {
 
     uint32_t n = 1;
     while (n < k) {
-        for (set<string>::iterator it = current_strings.begin(); it != current_strings.end(); ++it) {
+        for (set<string>::iterator it = current_strings.begin();
+             it != current_strings.end(); ++it) {
             for (uint32_t j = 0; j < 4; j++) {
                 new_strings.insert(*it + v[j]);
             }
@@ -41,13 +40,14 @@ set<string> generate_kmers(vector<string> v, uint32_t k) {
     return current_strings;
 }
 
-TEST(InthashTest, check1to1) {
-    vector<uint32_t> ks = {3, 5};
+TEST(InthashTest, check1to1)
+{
+    vector<uint32_t> ks = { 3, 5 };
     KmerHash hash;
     for (vector<uint32_t>::iterator jt = ks.begin(); jt != ks.end(); ++jt) {
         uint32_t k = *jt;
         // generate kmers for a given k
-        vector<string> dna = {"A", "G", "T", "C"};
+        vector<string> dna = { "A", "G", "T", "C" };
         set<string> kmers = generate_kmers(dna, k);
         // generate inthash of each kmer and assert it is different to the previous ones
         vector<uint64_t> khs, khs1, khs2;
@@ -59,13 +59,18 @@ TEST(InthashTest, check1to1) {
             khs.push_back(kh.first); // so each kmerhash value is first in one
 
             // don't expect any kmerhash value to be in more than 2 pairs
-            EXPECT_EQ((find(khs2.begin(), khs2.end(), min(kh.first, kh.second)) == khs2.end()), true);
-            if (find(khs1.begin(), khs1.end(), min(kh.first, kh.second)) != khs1.end()) {
-                khs2.push_back(min(kh.first, kh.second)); // if we found it as min once before, add to things seen twice
+            EXPECT_EQ((find(khs2.begin(), khs2.end(), min(kh.first, kh.second))
+                          == khs2.end()),
+                true);
+            if (find(khs1.begin(), khs1.end(), min(kh.first, kh.second))
+                != khs1.end()) {
+                khs2.push_back(
+                    min(kh.first, kh.second)); // if we found it as min once before, add
+                                               // to things seen twice
             } else {
-                khs1.push_back(min(kh.first, kh.second)); // otherwise, add to list seen once
+                khs1.push_back(
+                    min(kh.first, kh.second)); // otherwise, add to list seen once
             }
         }
     }
 }
-

@@ -1,9 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <cassert>
 #include <ctime>
-#include <numeric>
 #include <vector>
 #include <algorithm>
 
@@ -12,74 +10,79 @@
 #include "vcfrecord.h"
 #include "vcf.h"
 #include "utils.h"
-#include "localnode.h"
-
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-
-void VCF::add_record_core(const VCFRecord &vr) {
+void VCF::add_record_core(const VCFRecord& vr)
+{
     records.push_back(std::make_shared<VCFRecord>(vr));
-    chrom2recordIntervalTree[vr.chrom].add(vr.pos, vr.pos + vr.ref.length() + 1, records.back().get());
+    chrom_to_record_interval_tree[vr.get_chrom()].add(
+        vr.get_pos(), vr.get_ref_end_pos(), records.back().get());
 }
 
-void VCF::add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i, std::string g) {
-    std::unordered_map<std::string, std::vector<uint16_t>> empty_map;
-    VCFRecord vr(c, p, r, a, i, g);
-    if (find_record_in_records(vr) == records.end()) { //TODO: improve this search to log(n) using a map or sth
-        add_record_core(vr);
-        records.back()->samples.insert(records.back()->samples.end(), samples.size(), empty_map);
+void VCF::add_record(const std::string& chrom, uint32_t position,
+    const std::string& ref, const std::string& alt, const std::string& info,
+    const std::string& graph_type_info)
+{
+    VCFRecord vr(this, chrom, position, ref, alt, info, graph_type_info);
+    this->add_record(vr);
+}
+
+void VCF::add_record(const VCFRecord& vcf_record)
+{
+    if (find_record_in_records(vcf_record)
+        == records.end()) { // TODO: improve this search to log(n) using a map or sth
+        add_record_core(vcf_record);
     }
-    //cout << "added record: " << vr << endl;
 }
 
+VCFRecord& VCF::add_or_update_record_restricted_to_the_given_samples(
+    VCFRecord& vr, const std::vector<std::string>& sample_names)
+{
+    // TODO: refactor this, this function does too much
 
+    assert(vr.sampleIndex_to_sampleInfo.size() == sample_names.size()
+        or sample_names.size() == 0);
 
-VCFRecord &VCF::add_record(VCFRecord &vr, const std::vector<std::string> &sample_names) {
-    assert(vr.samples.size() == sample_names.size() or sample_names.size() == 0);
-
-    std::unordered_map<std::string, std::vector<uint16_t>> empty_map;
-    auto record_it = find_record_in_records(vr); //TODO: improve this search to log(n) using a map or sth
+    auto record_it = find_record_in_records(
+        vr); // TODO: improve this search to log(n) using a map or sth
     if (record_it == records.end()) {
         add_record_core(vr);
-        records.back()->samples.clear();
-        records.back()->samples.insert(records.back()->samples.end(), samples.size(), empty_map);
         record_it = --records.end();
+        (*record_it)
+            ->reset_sample_infos_to_contain_the_given_number_of_samples(samples.size());
     }
 
-    for (uint32_t i=0; i < sample_names.size(); ++i){
-        auto &name = sample_names[i];
-        ptrdiff_t sample_index = get_sample_index(name);
-        (*record_it)->samples[sample_index] = vr.samples[i];
+    for (uint32_t i = 0; i < sample_names.size(); ++i) {
+        auto& name = sample_names[i];
+        ptrdiff_t sample_index
+            = get_sample_index(name); // TODO: potentially add new samples to the VCF
+        (*record_it)->sampleIndex_to_sampleInfo[sample_index]
+            = vr.sampleIndex_to_sampleInfo[i]; // TODO: assumes that sample_names
+                                               // indexes == vr's sample names
     }
 
     return **record_it;
 }
 
-void VCF::add_samples(const std::vector<std::string> sample_names) {
-    for (uint32_t i=0; i < sample_names.size(); ++i){
-        auto &name = sample_names[i];
-        ptrdiff_t sample_index = get_sample_index(name);
+void VCF::add_samples(const std::vector<std::string>& sample_names)
+{
+    for (uint32_t i = 0; i < sample_names.size(); ++i) {
+        auto& name = sample_names[i];
+        get_sample_index(name);
     }
 }
 
-void VCF::add_formats(const std::vector<std::string> &v) {
-    for (auto &record : records) {
-        record->add_formats(v);
-    }
-}
-
-ptrdiff_t VCF::get_sample_index(const std::string &name) {
-    std::unordered_map<std::string, std::vector<uint16_t>> empty_map;
-
+ptrdiff_t VCF::get_sample_index(const std::string& name)
+{
     // if this sample has not been added before, add a column for it
     auto sample_it = find(samples.begin(), samples.end(), name);
     if (sample_it == samples.end()) {
-        //cout << "this is the first time this sample has been added" << endl;
+        // cout << "this is the first time this sample has been added" << endl;
         samples.push_back(name);
-        for (uint32_t i = 0; i != records.size(); ++i) {
-            records[i]->samples.push_back(empty_map);
-            assert(samples.size() == records[i]->samples.size());
+        for (auto& record_ptr : records) {
+            record_ptr->add_new_samples(1);
+            assert(samples.size() == record_ptr->sampleIndex_to_sampleInfo.size());
         }
         return samples.size() - 1;
     } else {
@@ -87,84 +90,125 @@ ptrdiff_t VCF::get_sample_index(const std::string &name) {
     }
 }
 
-void VCF::add_sample_gt(const std::string &name, const std::string &c, const uint32_t p, const std::string &r,
-                        const std::string &a) {
-    //cout << "adding gt " << c << " " << p << " " << r << " vs " << name << " " << a << endl;
-    if (r == "" and a == "") {
+// TODO: this method has two responsabilities, split into two
+void VCF::add_a_new_record_discovered_in_a_sample_and_genotype_it(
+    const std::string& sample_name, const std::string& chrom, const uint32_t pos,
+    const std::string& ref, const std::string& alt)
+{
+    // cout << "adding gt " << chrom << " " << pos << " " << ref << " vs " <<
+    // sample_name << " " << alt << endl;
+    if (ref == "" and alt == "") {
         return;
     }
 
-    //cout << "adding gt " << r << " vs " << a << endl;
+    // cout << "adding gt " << ref << " vs " << alt << endl;
 
-    ptrdiff_t sample_index = get_sample_index(name);
+    ptrdiff_t sample_index = get_sample_index(sample_name);
 
-    VCFRecord vr(c, p, r, a);
-    VCFRecord *vrp;
-    bool added = false;
-    auto it = find_record_in_records(vr); //TODO: improve this search to log(n) using a map or sth
-    if (it != records.end()) {
-        //cout << "found record with this ref and alt" << endl;
-        (*it)->samples[sample_index]["GT"] = {1};
-        vrp = it->get();
+    VCFRecord vcf_record(this, chrom, pos, ref, alt);
+    VCFRecord* vcf_record_pointer;
+
+    auto vcf_record_iterator = find_record_in_records(
+        vcf_record); // TODO: improve this search to log(n) using alt map or sth
+    bool vcf_record_was_found = vcf_record_iterator != records.end();
+    if (vcf_record_was_found) {
+        // cout << "found record with this ref and alt" << endl;
+        (*vcf_record_iterator)
+            ->sampleIndex_to_sampleInfo[sample_index]
+            .set_gt_from_max_likelihood_path(1);
+        vcf_record_pointer = vcf_record_iterator->get();
     } else {
-        //cout << "didn't find a record for pos " << p << " ref " << r << " and alt " << a << endl;
-        // either we have the ref allele, an alternative allele for a too nested site, or a mistake
-        for (uint32_t i = 0; i != records.size(); ++i) {
-            if (records[i]->chrom == c and records[i]->pos == p and r == a and records[i]->ref == r) {
-                //cout << "have ref allele" << endl;
-                records[i]->samples[sample_index]["GT"] = {0};
-                vrp = records[i].get();
-                added = true;
+        // cout << "didn't find alt record for pos " << pos << " ref " << ref << " and
+        // alt " << alt << endl;
+        // either we have the ref allele, an alternative allele for alt too nested site,
+        // or alt mistake
+        bool vcf_record_was_processed = false;
+
+        bool sample_genotyped_towards_ref_allele = ref == alt;
+        if (sample_genotyped_towards_ref_allele) {
+            // TODO: create a method to find records based on chrom, pos and ref only
+            for (const auto& record : records) {
+                if (record->get_chrom() == chrom and record->get_pos() == pos
+                    and record->get_ref() == ref) {
+                    record->sampleIndex_to_sampleInfo[sample_index]
+                        .set_gt_from_max_likelihood_path(0);
+                    vcf_record_pointer = record.get();
+                    vcf_record_was_processed = true;
+                }
             }
+        } else {
+            // cout << "have new allele not in graph" << endl;
+            add_record(
+                chrom, pos, ref, alt, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
+            records.back()
+                ->sampleIndex_to_sampleInfo[sample_index]
+                .set_gt_from_max_likelihood_path(1);
+            vcf_record_pointer = records.back().get();
+            vcf_record_was_processed = true;
         }
-        if (!added and r != a) {
-            //cout << "have new allele not in graph" << endl;
-            add_record(c, p, r, a, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
-            records.back()->samples[sample_index]["GT"] = {1};
-            vrp = records.back().get();
-            added = true;
-        }
+
         // check not mistake
-        assert(added);
+        assert(vcf_record_was_processed);
     }
 
+    update_other_samples_of_this_record(vcf_record_pointer);
+}
+
+void VCF::update_other_samples_of_this_record(VCFRecord* reference_record)
+{
     // update other samples at this site if they have ref allele at this pos
-    for (uint32_t i = 0; i != records.size(); ++i) {
-        if (records[i]->chrom == c and records[i]->pos <= p and records[i]->pos + records[i]->ref.length() > p) {
-            for (uint32_t j = 0; j != records[i]->samples.size(); ++j) {
-                if (records[i]->samples[j].find("GT") != records[i]->samples[j].end()
-                    and !records[i]->samples[j]["GT"].empty()
-                    and records[i]->samples[j]["GT"][0] == 0) {
-                    //cout << "update my record to have ref allele also for sample " << j << endl;
-                    //cout << records[i] << endl;
-                    vrp->samples[j]["GT"] = {0};
+    for (const auto& other_record : records) {
+        bool both_records_are_on_the_same_site
+            = other_record->get_chrom() == reference_record->get_chrom();
+        bool reference_record_start_overlaps_other_record
+            = other_record->get_pos() <= reference_record->get_pos()
+            and reference_record->get_pos()
+                < other_record->get_pos() + other_record->get_ref().length();
+        if (both_records_are_on_the_same_site
+            and reference_record_start_overlaps_other_record) {
+            for (uint32_t sample_index = 0;
+                 sample_index != other_record->sampleIndex_to_sampleInfo.size();
+                 ++sample_index) {
+                if (other_record->sampleIndex_to_sampleInfo[sample_index]
+                        .is_gt_from_max_likelihood_path_valid()
+                    and other_record->sampleIndex_to_sampleInfo[sample_index]
+                            .get_gt_from_max_likelihood_path()
+                        == 0) {
+                    // cout << "update my record to have ref allele also for sample " <<
+                    // sample_index << endl; cout << records[record_index] << endl;
+                    reference_record->sampleIndex_to_sampleInfo[sample_index]
+                        .set_gt_from_max_likelihood_path(0);
                 }
             }
         }
     }
 }
 
-void VCF::add_sample_ref_alleles(const std::string &sample_name, const std::string &chrom, const uint32_t &pos,
-                                 const uint32_t &pos_to) {
+void VCF::set_sample_gt_to_ref_allele_for_records_in_the_interval(
+    const std::string& sample_name, const std::string& chrom, const uint32_t& pos_from,
+    const uint32_t& pos_to)
+{
 
     ptrdiff_t sample_index = get_sample_index(sample_name);
 
-    for (uint32_t i = 0; i != records.size(); ++i) {
-        if (records[i]->chrom == chrom and pos <= records[i]->pos and
-            records[i]->pos + records[i]->ref.length() <= pos_to) {
-            records[i]->samples[sample_index]["GT"] = {0};
-            //cout << "update record " << records[i] << endl;
+    for (auto& record : records) {
+        if (record->ref_allele_is_inside_given_interval(chrom, pos_from, pos_to)) {
+            record->sampleIndex_to_sampleInfo[sample_index]
+                .set_gt_from_max_likelihood_path(0);
+            // cout << "update record " << records[i] << endl;
         }
     }
 }
 
-void VCF::append_vcf(const VCF &other_vcf) {
+void VCF::append_vcf(const VCF& other_vcf)
+{
     auto original_size = records.size();
     auto num_samples_added = 0;
 
-    BOOST_LOG_TRIVIAL(debug) << "find which samples are new of the " << other_vcf.samples.size() << " samples";
+    BOOST_LOG_TRIVIAL(debug) << "find which samples are new of the "
+                             << other_vcf.samples.size() << " samples";
     std::vector<uint_least16_t> other_sample_positions;
-    for (const auto &sample : other_vcf.samples) {
+    for (const auto& sample : other_vcf.samples) {
         auto sample_it = find(samples.begin(), samples.end(), sample);
         if (sample_it == samples.end()) {
             samples.push_back(sample);
@@ -175,442 +219,370 @@ void VCF::append_vcf(const VCF &other_vcf) {
         }
     }
 
-    BOOST_LOG_TRIVIAL(debug) << "for all existing " << original_size << " records, add null entries for the "
+    BOOST_LOG_TRIVIAL(debug) << "for all existing " << original_size
+                             << " records, add null entries for the "
                              << num_samples_added << " new samples";
-    std::unordered_map<std::string, std::vector<uint16_t>> empty_u_map;
-    assert(original_size < std::numeric_limits<uint_least64_t>::max() ||
-           assert_msg("VCF size has got too big to use the append feature"));
+    assert(original_size < std::numeric_limits<uint_least64_t>::max()
+        || assert_msg("VCF size has got too big to use the append feature"));
     for (uint_least64_t i = 0; i < original_size; ++i) {
-        records[i]->samples.insert(records[i]->samples.end(), num_samples_added, empty_u_map);
+        records[i]->add_new_samples(num_samples_added);
     }
 
     BOOST_LOG_TRIVIAL(debug) << "add the " << other_vcf.records.size() << " records";
-    for (auto &recordPointer : other_vcf.records) {
-        auto &record = *recordPointer;
-        VCFRecord &vr = add_record(record, other_vcf.samples);
+    for (auto& recordPointer : other_vcf.records) {
+        auto& record = *recordPointer;
+        VCFRecord& vr = add_or_update_record_restricted_to_the_given_samples(
+            record, other_vcf.samples);
         for (uint_least16_t j = 0; j < other_vcf.samples.size(); ++j) {
-            vr.samples[other_sample_positions[j]] = record.samples[j];
-            //NB this overwrites old data without checking
+            vr.sampleIndex_to_sampleInfo[other_sample_positions[j]]
+                = record.sampleIndex_to_sampleInfo[j];
+            // NB this overwrites old data without checking
         }
     }
 }
 
-void VCF::sort_records() {
-    sort(records.begin(), records.end(), [](const std::shared_ptr<VCFRecord>& lhs, const std::shared_ptr<VCFRecord>& rhs) {
-        return (*lhs) < (*rhs);
-    });
+void VCF::sort_records()
+{
+    sort(records.begin(), records.end(),
+        [](const std::shared_ptr<VCFRecord>& lhs,
+            const std::shared_ptr<VCFRecord>& rhs) { return (*lhs) < (*rhs); });
 }
 
-bool VCF::pos_in_range(const uint32_t from, const uint32_t to, const std::string &chrom) const {
+bool VCF::pos_in_range(
+    const uint32_t from, const uint32_t to, const std::string& chrom) const
+{
+    // TODO : performance improvement: use this->chrom_to_record_interval_tree
+
     // is there a record contained in the range from,to?
-    for (const auto &recordPointer : records) {
-        const auto &record = *recordPointer;
-        if (chrom == record.chrom and from < record.pos and record.pos + record.ref.length() <= to) {
+    for (const auto& recordPointer : records) {
+        const auto& record = *recordPointer;
+        if (chrom == record.get_chrom() and from < record.get_pos()
+            and record.get_pos() + record.get_ref().length() <= to) {
             return true;
         }
     }
     return false;
 }
 
-void VCF::genotype(const std::vector<uint32_t> &expected_depth_covg, const float &error_rate,
-                   const uint16_t confidence_threshold,
-                   const uint32_t &min_allele_covg, const float &min_fraction_allele_covg,
-                   const uint32_t &min_site_total_covg, const uint32_t &min_site_diff_covg, bool snps_only) {
-    BOOST_LOG_TRIVIAL(info) << now() << "Genotype VCF";
-    for (auto &vrPointer : records) {
-        auto &vr = *vrPointer;
-        if (not snps_only or (vr.ref.length() == 1 and !vr.alt.empty() and vr.alt[0].length() == 1)) {
-            vr.likelihood(expected_depth_covg, error_rate, min_allele_covg, min_fraction_allele_covg);
-            vr.confidence(min_site_total_covg, min_site_diff_covg);
-            vr.genotype(confidence_threshold);
+void VCF::genotype(const bool do_local_genotyping)
+{
+    bool all_SV_types = not genotyping_options->is_snps_only();
+
+    for (auto& vcf_record : records) {
+        bool should_genotype_record = all_SV_types
+            or (genotyping_options->is_snps_only() and vcf_record->is_SNP());
+        if (should_genotype_record) {
+            if (do_local_genotyping) {
+                vcf_record->genotype_from_coverage();
+            } else {
+                vcf_record
+                    ->genotype_from_coverage_using_maximum_likelihood_path_as_reference();
+            }
         }
     }
-    add_formats({"GT_CONF", "LIKELIHOOD"});
-    BOOST_LOG_TRIVIAL(info) << now() << "Make all genotypes compatible";
-    make_gt_compatible();
-}
 
-void VCF::clean() {
-    VCFRecord dummy;
-    for (auto record_it = records.begin(); record_it != records.end();) {
-        if (**record_it == dummy)
-            record_it = records.erase(record_it);
-        else
-            record_it++;
+    if (do_local_genotyping) {
+        make_gt_compatible();
     }
 }
 
-void merge_sample_key(std::unordered_map<std::string, std::vector<uint16_t>> &first,
-                      const std::unordered_map<std::string, std::vector<uint16_t>> &second,
-                      const std::string &key) {
-    if (first.empty() or second.empty() or first.find(key) == first.end() or first[key].empty()) {
-        return;
-    } else if (first.find(key) != first.end() and (second.find(key) == second.end() or second.at(key).empty())) {
-        first.erase(key);
-    } else if (first[key][0] == second.at(key).at(0)) {
-        bool ref = true;
-        for (const auto &val : second.at(key)) {
-            if (!ref)
-                first[key].push_back(val);
-            ref = false;
-        }
-    } else
-        first.erase(key);
-}
+void VCF::merge_multi_allelic_core(VCF& merged_VCF, uint32_t max_allele_length) const
+{
+    VCF empty_vcf = VCF(merged_VCF.genotyping_options);
+    bool merged_VCF_passed_as_parameter_is_initially_empty = merged_VCF == empty_vcf;
+    assert(merged_VCF_passed_as_parameter_is_initially_empty);
 
-void merge_regt_sample_key(std::unordered_map<std::string, std::vector<float>> &first,
-                           const std::unordered_map<std::string, std::vector<float>> &second,
-                           const std::string &key) {
-    if (first.empty() or second.empty() or first.find(key) == first.end() or first[key].empty()) {
+    size_t vcf_size = this->get_VCF_size();
+    bool no_need_for_merging = vcf_size <= 1;
+    if (no_need_for_merging) {
+        merged_VCF = *this;
         return;
-    } else if (first.find(key) != first.end() and (second.find(key) == second.end() or second.at(key).empty())) {
-        first.erase(key);
-    } else if (first[key][0] == second.at(key).at(0)) {
-        bool ref = true;
-        for (const auto &val : second.at(key)) {
-            if (!ref)
-                first[key].push_back(val);
-            ref = false;
-        }
-    } else
-        first.erase(key);
-}
-
-void merge_gt(VCFRecord &first, const VCFRecord &second, const uint16_t i, const uint16_t prev_alt_size) {
-    if (first.samples.size() < i or second.samples.size() < i) {
-        return;
-    } else if (second.samples[i].find("GT") == second.samples[i].end()
-               or second.samples[i].at("GT").empty()) {
-        return;
-    } else if (first.samples[i].find("GT") == first.samples[i].end()
-               or first.samples[i]["GT"].empty()) {
-        if (second.samples[i].at("GT")[0] == 0) {
-            first.samples[i]["GT"] = {0};
-        } else {
-            uint16_t new_allele = second.samples[i].at("GT")[0] + prev_alt_size;
-            first.samples[i]["GT"] = {new_allele};
-        }
-    } else if (first.samples[i]["GT"][0] != 0 or second.samples[i].at("GT")[0] != 0) {
-        //conflict, try to resolve with likelihoods
-        if (first.regt_samples.size() > i
-            and first.regt_samples[i].find("LIKELIHOOD") != first.regt_samples[i].end()) {
-            first.confidence();
-            first.genotype(5);
-        } else {
-            first.samples[i]["GT"] = {};
-        }
     }
-}
 
+    merged_VCF.add_samples(this->samples);
 
-void VCF::merge_multi_allelic(uint32_t max_allele_length) {
-    if (records.size() < 2)
-        return;
+    std::shared_ptr<VCFRecord> vcf_record_merged
+        = (records[0])->make_copy_as_shared_ptr();
+    for_each(records.begin() + 1, records.end(),
+        [&](const std::shared_ptr<VCFRecord>& vcf_record_to_be_merged_in_pointer) {
+            bool vcf_record_should_be_merged_in
+                = vcf_record_merged->can_biallelic_record_be_merged_into_this(
+                    *vcf_record_to_be_merged_in_pointer, max_allele_length);
 
-    uint32_t prev_pos = 0;
-    VCFRecord prev_vr(*(records.at(prev_pos)));
-    auto vcf_size = records.size();
-    auto reserve_size = vcf_size * 1.05;
-    records.reserve(reserve_size);
-    for (uint32_t current_pos = 1; current_pos < vcf_size; ++current_pos) {
-        const auto &record = *(records.at(current_pos));
-        //cout << "comparing record " << current_pos << "/" << vcf_size << " to record " << prev_pos << endl;
-
-        if (record != prev_vr
-            and prev_vr.chrom == record.chrom
-            and prev_vr.pos == record.pos
-            and prev_vr.ref == record.ref
-            and prev_vr.ref != "."
-            and prev_vr.ref != ""
-            and prev_vr.ref.length() <= max_allele_length
-            and prev_vr.alt[0].length() <= max_allele_length) {
-
-            // merge alts
-            uint16_t prev_alt_size = prev_vr.alt.size();
-            bool short_enough = true;
-            for (const auto &a : record.alt) {
-                if (a.length() > max_allele_length)
-                    short_enough = false;
-                prev_vr.alt.push_back(a);
-            }
-            if (!short_enough) {
-                prev_pos = current_pos;
-                prev_vr = *(records.at(prev_pos));
-                continue;
-            }
-
-            // merge count/likelihood data
-            if (record.samples.empty()) {
-                records.at(current_pos)->clear();
-                records.at(prev_pos)->clear();
-                add_record_core(prev_vr);
-                prev_pos = records.size() - 1;
-                prev_vr = *(records.at(prev_pos));
-            }
-            for (uint i = 0; i < record.samples.size(); ++i) {
-                auto keys = {"MEAN_FWD_COVG", "MEAN_REV_COVG",
-                             "MED_FWD_COVG", "MED_REV_COVG",
-                             "SUM_FWD_COVG", "SUM_REV_COVG"};
-                for (const auto &key: keys) {
-                    merge_sample_key(prev_vr.samples[i], record.samples[i], key);
+            if (vcf_record_should_be_merged_in) {
+                // TODO: this code is not covered by tests, IDK what it is supposed to
+                // do - commenting it out and asserting out if we reach it
+                if (vcf_record_to_be_merged_in_pointer->sampleIndex_to_sampleInfo
+                        .empty()) {
+                    assert_msg("VCF::merge_multi_allelic: vcf_record_to_be_merged_in "
+                               "has no samples");
+                    /*
+                    records.at(current_vcf_record_position)->clear();
+                    records.at(previous_vcf_record_position)->clear();
+                    merged_VCF.add_record_core(vcf_record_merged);
+                    previous_vcf_record_position = records.size() - 1;
+                    vcf_record_merged = *(records.at(previous_vcf_record_position));
+                     */
                 }
-                keys = {"LIKELIHOOD", "GT_CONF", "GAPS"};
-                if (!prev_vr.regt_samples.empty() and !record.regt_samples.empty()) {
-                    for (const auto &key: keys)
-                        merge_regt_sample_key(prev_vr.regt_samples[i], record.regt_samples[i], key);
-                }
-
-                //merge GT
-                merge_gt(prev_vr, record, i, prev_alt_size);
-                records.at(current_pos)->clear_sample(i);
-                records.at(prev_pos)->clear_sample(i);
+                vcf_record_merged->merge_record_into_this(
+                    *vcf_record_to_be_merged_in_pointer);
+            } else {
+                merged_VCF.add_record_core(*vcf_record_merged);
+                vcf_record_merged
+                    = vcf_record_to_be_merged_in_pointer->make_copy_as_shared_ptr();
             }
-            add_record_core(prev_vr);
-            prev_pos = records.size() - 1;
-            prev_vr = *(records.at(prev_pos));
-        } else if (record != prev_vr) {
-            prev_pos = current_pos;
-            prev_vr = *(records.at(prev_pos));
-        }
-    }
-    clean();
-    assert(records.size() <= vcf_size);
-    sort_records();
+        });
+    merged_VCF.add_record_core(*vcf_record_merged);
+
+    merged_VCF.sort_records();
+
+    assert(merged_VCF.get_VCF_size() <= vcf_size);
 }
 
-void VCF::correct_dot_alleles(const std::string &vcf_ref, const std::string &chrom) {
-    //NB need to merge multiallelic before
-    //NB cannot add covgs after
-    auto vcf_size = records.size();
-    for (auto &recordPointer : records) {
-        auto &record = *recordPointer;
-        if (record.chrom != chrom)
+VCF VCF::correct_dot_alleles(const std::string& vcf_ref, const std::string& chrom) const
+{
+    // TODO: optimize this to several loci
+
+    // NB need to merge multiallelic before
+    // NB cannot add covgs after
+
+    VCF vcf_with_dot_alleles_corrected(genotyping_options);
+    vcf_with_dot_alleles_corrected.add_samples(samples);
+
+    for (auto& recordPointer : records) {
+        auto& record = *recordPointer;
+
+        bool we_are_not_in_the_given_chrom = record.get_chrom() != chrom;
+
+        if (we_are_not_in_the_given_chrom) {
+            vcf_with_dot_alleles_corrected.add_record(record);
             continue;
-        assert(vcf_ref.length() >= record.pos || assert_msg("vcf_ref.length() = " << vcf_ref.length() << "!>= record.pos "
-                                                                                 << record.pos << "\n" << record << "\n"
-                                                                                 << vcf_ref));
-        bool add_prev_letter = record.contains_dot_allele();
+        }
 
-        if (add_prev_letter and record.pos > 0) {
-            BOOST_LOG_TRIVIAL(debug) << record.pos;
-            auto prev_letter = vcf_ref[record.pos - 1];
-            BOOST_LOG_TRIVIAL(debug) << prev_letter;
-            if (record.ref == "" or record.ref == ".")
-                record.ref = prev_letter;
-            else
-                record.ref = prev_letter + record.ref;
-                record.pos -= 1;
-            for (auto &a : record.alt){
-                if(a == "" or a == ".")
-                    a = prev_letter;
-                else
-                    a = prev_letter + a;
+        assert(vcf_ref.length() >= record.get_pos()
+            || assert_msg("vcf_ref.length() = " << vcf_ref.length()
+                                                << "!>= record.get_pos() "
+                                                << record.get_pos() << "\n"
+                                                << record.to_string(true, false) << "\n"
+                                                << vcf_ref));
+        bool record_contains_dot_allele = record.contains_dot_allele();
+        bool record_did_not_contain_dot_allele_or_was_corrected = true;
+        bool there_is_a_previous_letter = record.get_pos() > 0;
+        bool there_is_a_next_letter
+            = record.get_pos() + record.get_ref().length() + 1 < vcf_ref.length();
+        if (record_contains_dot_allele and there_is_a_previous_letter) {
+            char prev_letter = vcf_ref[record.get_pos() - 1];
+            record.correct_dot_alleles_adding_nucleotide_before(prev_letter);
+        } else if (record_contains_dot_allele and there_is_a_next_letter) {
+            char next_letter;
+            if (record.allele_is_dot(record.get_ref())) {
+                next_letter = vcf_ref[record.get_pos()];
+            } else {
+                next_letter = vcf_ref[record.get_pos() + record.get_ref().length()];
             }
+            record.correct_dot_alleles_adding_nucleotide_after(next_letter);
+        } else if (record_contains_dot_allele) {
+            record_did_not_contain_dot_allele_or_was_corrected = false;
+        }
 
-
-        } else if (add_prev_letter and record.pos + record.ref.length() + 1 < vcf_ref.length()) {
-            auto next_letter = vcf_ref[record.pos + record.ref.length()];
-            if (record.ref == "" or record.ref == ".") {
-                next_letter = vcf_ref[record.pos];
-                record.ref = next_letter;
-            } else
-                record.ref = record.ref + next_letter;
-            for (auto &a : record.alt)
-                if(a == "" or a == ".")
-                    a = next_letter;
-                else
-                    a = a + next_letter;
-        } else if (add_prev_letter) {
-            record.clear();
+        if (record_did_not_contain_dot_allele_or_was_corrected) {
+            vcf_with_dot_alleles_corrected.add_record(record);
         }
     }
-    clean();
-    assert(records.size() <= vcf_size);
-    sort_records();
+
+    assert(vcf_with_dot_alleles_corrected.get_VCF_size() <= this->get_VCF_size());
+
+    vcf_with_dot_alleles_corrected.sort_records();
+    return vcf_with_dot_alleles_corrected;
 }
 
-void VCF::make_gt_compatible() {
-    //TODO: this can be a source of inneficiency, fix this?
-    //TODO: interval tree does not to be indexed everytime this function is called, only if the interval tree changed
-    for (auto &pair : chrom2recordIntervalTree)
-        pair.second.index();
+void VCF::make_gt_compatible()
+{
+    BOOST_LOG_TRIVIAL(info) << now() << "Make all genotypes compatible";
 
-    uint record_count=0;
-    for (auto &recordPointer : records) { //goes through all records
-        auto &record = *recordPointer;
-        record_count++;
-        for (uint i = 0; i < record.samples.size(); ++i) { //goes through all samples of this record
+    for (auto& recordPointer : records) {
+        VCFRecord& record = *recordPointer;
 
-            //retrieve all VCF records overlapping this record
-            std::vector<VCFRecord*> overlappingVCFRecords;
+        std::vector<VCFRecord*> overlapping_records
+            = get_all_records_overlapping_the_given_record(record);
 
-            std::vector<size_t> overlaps;
-            chrom2recordIntervalTree[record.chrom].overlap(record.pos, record.pos + record.ref.length() + 1, overlaps);
-            for (size_t i = 0; i < overlaps.size(); ++i)
-                overlappingVCFRecords.push_back(chrom2recordIntervalTree[record.chrom].data(overlaps[i]));
+        for (VCFRecord* overlapping_record_ptr : overlapping_records) {
+            VCFRecord& overlapping_record = *overlapping_record_ptr;
 
-            //TODO: not sure if we need to sort, but doing it just in case... Check this later
-            std::sort(overlappingVCFRecords.begin(), overlappingVCFRecords.end(), [](VCFRecord* lhs, VCFRecord* rhs) {
-                return *lhs < *rhs;
-            });
+            bool
+                record_starts_at_the_same_position_but_ref_is_smaller_than_overlapping_record_ref
+                = record.get_pos() == overlapping_record.get_pos()
+                and record.get_ref() < overlapping_record.get_ref();
 
-            for (VCFRecord* other_record_pointer : overlappingVCFRecords) {
-                VCFRecord &other_record = *other_record_pointer;
-                if (record == other_record) //no need to process this
-                    continue;
-                if (   record.pos <= other_record.pos
-                    && other_record.pos <= record.pos + record.ref.length()
-                    && record.samples[i].find("GT") != record.samples[i].end()
-                    && other_record.samples[i].find("GT") != other_record.samples[i].end()
-                    && record.samples[i]["GT"].size() > 0
-                    && other_record.samples[i]["GT"].size() > 0) {
+            bool this_record_starts_before_the_overlapping_record
+                = record.get_pos() < overlapping_record.get_pos()
+                or record_starts_at_the_same_position_but_ref_is_smaller_than_overlapping_record_ref;
 
-                    if (record.samples[i]["GT"][0] == 0 and other_record.samples[i]["GT"][0] == 0)
-                        continue;
-                    else if (not record.regt_samples.empty() and not other_record.regt_samples.empty()
-                             and record.regt_samples[i].find("LIKELIHOOD") != record.regt_samples[i].end()
-                             and
-                             other_record.regt_samples[i].find("LIKELIHOOD") != other_record.regt_samples[i].end()) {
-                        if (record.regt_samples[i]["LIKELIHOOD"][record.samples[i]["GT"][0]] >
-                            other_record.regt_samples[i]["LIKELIHOOD"][other_record.samples[i]["GT"][0]]) {
-                            if (record.samples[i]["GT"][0] == 0)
-                                other_record.samples[i]["GT"] = {0};
-                            else
-                                other_record.samples[i]["GT"] = {};
-                        } else {
-                            if (other_record.samples[i]["GT"][0] == 0)
-                                record.samples[i]["GT"] = {0};
-                            else
-                                record.samples[i]["GT"] = {};
-                        }
-                    } else {
-                        other_record.samples[i] = {};
-                        record.samples[i] = {};
-                    }
-                }
+            if (this_record_starts_before_the_overlapping_record) {
+                record.solve_incompatible_gt_conflict_with(overlapping_record);
             }
+            // else it was already processed, no need to do it twice
         }
     }
 }
 
-std::string VCF::header() {
-    // find date
+std::vector<VCFRecord*> VCF::get_all_records_overlapping_the_given_record(
+    const VCFRecord& vcf_record)
+{
+    IITree<uint32_t, VCFRecord*>& record_interval_tree_for_this_record
+        = chrom_to_record_interval_tree[vcf_record.get_chrom()];
+    record_interval_tree_for_this_record.index();
+
+    std::vector<size_t> overlaps;
+    record_interval_tree_for_this_record.overlap(vcf_record.get_pos(),
+        vcf_record.get_pos() + vcf_record.get_ref().length(), overlaps);
+
+    std::vector<VCFRecord*> overlapping_records;
+    for (size_t i = 0; i < overlaps.size(); ++i) {
+        overlapping_records.push_back(
+            record_interval_tree_for_this_record.data(overlaps[i]));
+    }
+
+    std::sort(overlapping_records.begin(), overlapping_records.end(),
+        [](VCFRecord* lhs, VCFRecord* rhs) { return *lhs < *rhs; });
+
+    return overlapping_records;
+}
+
+void VCF::save(const std::string& filepath, bool genotyping_from_maximum_likelihood,
+    bool genotyping_from_coverage, bool output_dot_allele, bool graph_is_simple,
+    bool graph_is_nested, bool graph_has_too_many_alts, bool sv_type_is_snp,
+    bool sv_type_is_indel, bool sv_type_is_ph_snps, bool sv_type_is_complex)
+{
+    BOOST_LOG_TRIVIAL(debug) << "Saving VCF to " << filepath;
+    std::ofstream handle;
+    handle.open(filepath);
+    handle << this->to_string(genotyping_from_maximum_likelihood,
+        genotyping_from_coverage, output_dot_allele, graph_is_simple, graph_is_nested,
+        graph_has_too_many_alts, sv_type_is_snp, sv_type_is_indel, sv_type_is_ph_snps,
+        sv_type_is_complex);
+    handle.close();
+    BOOST_LOG_TRIVIAL(debug) << "Finished saving " << this->records.size()
+                             << " entries to file";
+}
+
+std::string VCF::get_current_date() const
+{
     time_t t = time(0);
-    char mbstr[10];
+    char mbstr[16];
     strftime(mbstr, sizeof(mbstr), "%d/%m/%y", localtime(&t));
+    return std::string(mbstr);
+}
+
+std::string VCF::header() const
+{
+    std::string date = get_current_date();
 
     std::set<std::string> chroms;
-    for (const auto record : records) {
-        chroms.insert(record->chrom);
+    for (const std::shared_ptr<VCFRecord>& record : records) {
+        chroms.insert(record->get_chrom());
     }
 
     std::string header;
+    header.reserve(10000);
     header += "##fileformat=VCFv4.3\n";
     header += "##fileDate==";
-    header += mbstr;
+    header += date;
     header += "\n##ALT=<ID=SNP,Description=\"SNP\">\n";
     header += "##ALT=<ID=PH_SNPs,Description=\"Phased SNPs\">\n";
     header += "##ALT=<ID=INDEL,Description=\"Insertion-deletion\">\n";
-    header += "##ALT=<ID=COMPLEX,Description=\"Complex variant, collection of SNPs and indels\">\n";
-    header += "##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of variant\">\n";
+    header += "##ALT=<ID=COMPLEX,Description=\"Complex variant, collection of SNPs and "
+              "indels\">\n";
+    header
+        += "##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of variant\">\n";
     header += "##ALT=<ID=SIMPLE,Description=\"Graph bubble is simple\">\n";
-    header += "##ALT=<ID=NESTED,Description=\"Variation site was a nested feature in the graph\">\n";
-    header += "##ALT=<ID=TOO_MANY_ALTS,Description=\"Variation site was a multinested feature with too many alts to include all in the VCF\">\n";
-    header += "##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description=\"Type of graph feature\">\n";
+    header += "##ALT=<ID=NESTED,Description=\"Variation site was a nested feature in "
+              "the graph\">\n";
+    header += "##ALT=<ID=TOO_MANY_ALTS,Description=\"Variation site was a multinested "
+              "feature with too many alts to include all in the VCF\">\n";
+    header += "##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description=\"Type of graph "
+              "feature\">\n";
     header += "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n";
-    header += "##FORMAT=<ID=MEAN_FWD_COVG,Number=A,Type=Integer,Description=\"Mean forward coverage\">\n";
-    header += "##FORMAT=<ID=MEAN_REV_COVG,Number=A,Type=Integer,Description=\"Mean reverse coverage\">\n";
-    header += "##FORMAT=<ID=MED_FWD_COVG,Number=A,Type=Integer,Description=\"Med forward coverage\">\n";
-    header += "##FORMAT=<ID=MED_REV_COVG,Number=A,Type=Integer,Description=\"Med reverse coverage\">\n";
-    header += "##FORMAT=<ID=SUM_FWD_COVG,Number=A,Type=Integer,Description=\"Sum forward coverage\">\n";
-    header += "##FORMAT=<ID=SUM_REV_COVG,Number=A,Type=Integer,Description=\"Sum reverse coverage\">\n";
-    header += "##FORMAT=<ID=GAPS,Number=A,Type=Float,Description=\"Number of gap bases\">\n";
-    header += "##FORMAT=<ID=LIKELIHOOD,Number=A,Type=Float,Description=\"Likelihood\">\n";
-    header += "##FORMAT=<ID=GT_CONF,Number=1,Type=Float,Description=\"Genotype confidence\">\n";
-    for (const auto chrom : chroms){
+    header += "##FORMAT=<ID=MEAN_FWD_COVG,Number=R,Type=Integer,Description=\"Mean "
+              "forward coverage\">\n";
+    header += "##FORMAT=<ID=MEAN_REV_COVG,Number=R,Type=Integer,Description=\"Mean "
+              "reverse coverage\">\n";
+    header += "##FORMAT=<ID=MED_FWD_COVG,Number=R,Type=Integer,Description=\"Med "
+              "forward coverage\">\n";
+    header += "##FORMAT=<ID=MED_REV_COVG,Number=R,Type=Integer,Description=\"Med "
+              "reverse coverage\">\n";
+    header += "##FORMAT=<ID=SUM_FWD_COVG,Number=R,Type=Integer,Description=\"Sum "
+              "forward coverage\">\n";
+    header += "##FORMAT=<ID=SUM_REV_COVG,Number=R,Type=Integer,Description=\"Sum "
+              "reverse coverage\">\n";
+    header += "##FORMAT=<ID=GAPS,Number=R,Type=Float,Description=\"Number of gap "
+              "bases\">\n";
+    header
+        += "##FORMAT=<ID=LIKELIHOOD,Number=R,Type=Float,Description=\"Likelihood\">\n";
+    header += "##FORMAT=<ID=GT_CONF,Number=1,Type=Float,Description=\"Genotype "
+              "confidence\">\n";
+    for (const std::string& chrom : chroms) {
         header += "##contig=<ID=" + chrom + ">\n";
     }
     header += "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT";
-    for (uint32_t i = 0; i != samples.size(); ++i) {
-        header += "\t" + samples[i];
+    for (const std::string& sample : samples) {
+        header += "\t" + sample;
     }
     header += "\n";
-    std::cout << header << std::endl;
     return header;
 }
 
-// NB in the absence of filter flags being set to true, all results are saved. If one or more filter flags for SVTYPE are set, 
-// then only those matching the filter are saved. Similarly for GRAPHTYPE.
-void VCF::save(const std::string &filepath, bool simple, bool complexgraph, bool toomanyalts, bool snp, bool indel,
-               bool phsnps, bool complexvar) {
-    /*if (samples.empty())
-    {
-	    cout << now() << "Did not save VCF for sample" << endl;
-	    return;
-    }*/
-    BOOST_LOG_TRIVIAL(debug) << "Saving VCF to " << filepath;
+std::string VCF::to_string(bool genotyping_from_maximum_likelihood,
+    bool genotyping_from_coverage, bool output_dot_allele, bool graph_is_simple,
+    bool graph_is_nested, bool graph_has_too_many_alts, bool sv_type_is_snp,
+    bool sv_type_is_indel, bool sv_type_is_ph_snps, bool sv_type_is_complex)
+{
+    bool only_one_flag_is_set
+        = ((int)(genotyping_from_maximum_likelihood) + (int)(genotyping_from_coverage))
+        == 1;
+    assert(only_one_flag_is_set);
 
-    // open and write header
-    std::ofstream handle;
-    handle.open(filepath);
+    std::stringstream out;
+    out << header();
 
-    handle << header();
-
+    // TODO: a side-effect of saving a VCF is sorting it, this might not be desirable
+    // TODO: remove this side effect or always keep the VCF sorted
     sort_records();
 
-    for (uint32_t i = 0; i != records.size(); ++i) {
-        if (records[i]->contains_dot_allele())
-            continue;
+    for (const auto& record : this->records) {
+        bool record_has_dot_allele_and_should_be_output
+            = output_dot_allele and record->contains_dot_allele();
 
-        if (((!simple and !complexgraph) or
-             (simple and records[i]->info.find("GRAPHTYPE=SIMPLE") != std::string::npos) or
-             (complexgraph and records[i]->info.find("GRAPHTYPE=NESTED") != std::string::npos) or
-             (toomanyalts and records[i]->info.find("GRAPHTYPE=TOO_MANY_ALTS") != std::string::npos)) and
-            ((!snp and !indel and !phsnps and !complexvar) or
-             (snp and records[i]->info.find("SVTYPE=SNP") != std::string::npos) or
-             (indel and records[i]->info.find("SVTYPE=INDEL") != std::string::npos) or
-             (phsnps and records[i]->info.find("SVTYPE=PH_SNPs") != std::string::npos) or
-             (complexvar and records[i]->info.find("SVTYPE=COMPLEX") != std::string::npos))) {
-            handle << *(records[i]);
+        bool graph_type_condition_is_satisfied
+            = (graph_is_simple and record->graph_type_is_simple())
+            or (graph_is_nested and record->graph_type_is_nested())
+            or (graph_has_too_many_alts and record->graph_type_has_too_many_alts());
+        bool sv_type_condition_is_satisfied
+            = (sv_type_is_snp and record->svtype_is_SNP())
+            or (sv_type_is_indel and record->svtype_is_indel())
+            or (sv_type_is_ph_snps and record->svtype_is_PH_SNPs())
+            or (sv_type_is_complex and record->svtype_is_complex());
+        bool graph_and_sv_type_conditions_are_satisfied
+            = graph_type_condition_is_satisfied and sv_type_condition_is_satisfied;
+
+        bool record_should_be_output = record_has_dot_allele_and_should_be_output
+            or graph_and_sv_type_conditions_are_satisfied;
+
+        if (record_should_be_output) {
+            out << record->to_string(
+                genotyping_from_maximum_likelihood, genotyping_from_coverage)
+                << std::endl;
         }
     }
-    handle.close();
-    BOOST_LOG_TRIVIAL(debug) << "Finished saving " << records.size() << " entries to file";
+
+    return out.str();
 }
 
-void VCF::load(const std::string &filepath) {
-    BOOST_LOG_TRIVIAL(debug) << "Loading VCF from " << filepath;
-    VCFRecord vr;
-    std::string line;
-    std::stringstream ss;
-    uint32_t added = 0;
-    std::vector<std::string> sample_names = {};
-    // NB this doesn't currently clear records first. Do we want to?
-
-    std::ifstream myfile(filepath);
-    if (myfile.is_open()) {
-        while (getline(myfile, line).good()) {
-            if (line[0] != '#') {
-                ss << line;
-                ss >> vr;
-                ss.clear();
-                add_record(vr, sample_names);
-                added += 1;
-            } else if (line[1] != '#'){
-                auto sample_string = line.replace(0,45, "");
-                sample_names = split(sample_string, "\t");
-            }
-        }
-    } else {
-        std::cerr << "Unable to open VCF file " << filepath << std::endl;
-        std::exit(1);
+bool VCF::operator==(const VCF& y) const
+{
+    if (records.size() != y.records.size()) {
+        return false;
     }
-    BOOST_LOG_TRIVIAL(debug) << "Finished loading " << added << " entries to VCF, which now has size "
-                             << records.size();
-}
-
-bool VCF::operator==(const VCF &y) const {
-    if (records.size() != y.records.size()) { return false; }
     for (uint32_t i = 0; i != y.records.size(); ++i) {
         if (find_record_in_records(*(y.records[i])) == records.end()) {
             return false;
@@ -619,30 +591,41 @@ bool VCF::operator==(const VCF &y) const {
     return true;
 }
 
-bool VCF::operator!=(const VCF &y) const {
-    return !(*this == y);
-}
+bool VCF::operator!=(const VCF& y) const { return !(*this == y); }
 
+void VCF::concatenate_VCFs(const std::vector<std::string>& VCF_paths_to_be_concatenated,
+    const std::string& final_VCF_file)
+{
+    std::ofstream out_file;
+    open_file_for_writing(final_VCF_file, out_file);
 
-void VCF::concatenateVCFs(const std::vector<std::string> &VCFPathsToBeConcatenated, const std::string &sink) {
-    std::ofstream outFile(sink);
-    bool headerIsOutput = false;
-    for (const auto &VCFPath : VCFPathsToBeConcatenated) {
-        std::ifstream inFile(VCFPath);
+    bool header_is_output = false;
+    for (const auto& VCF_path : VCF_paths_to_be_concatenated) {
+        std::ifstream in_file;
+        open_file_for_reading(VCF_path, in_file);
+
         std::string line;
-        while (std::getline(inFile, line)) {
-            if ((line[0]!='#') || (line[0]=='#' && headerIsOutput==false))
-                outFile << line << std::endl;
+        while (std::getline(in_file, line)) {
+            if ((line[0] != '#') || (line[0] == '#' && header_is_output == false))
+                out_file << line << std::endl;
         }
-        headerIsOutput = true;
-        inFile.close();
+        header_is_output = true;
+
+        in_file.close();
     }
-    outFile.close();
+    out_file.close();
 }
 
-std::ostream &operator<<(std::ostream &out, VCF const &m) {
-    for (const auto &record : m.records) {
-        out << (*record);
-    }
-    return out;
+// find a VCRRecord in records
+std::vector<std::shared_ptr<VCFRecord>>::iterator VCF::find_record_in_records(
+    const VCFRecord& vr)
+{
+    return find_if(records.begin(), records.end(),
+        [&vr](const std::shared_ptr<VCFRecord>& record) { return *record == vr; });
+}
+std::vector<std::shared_ptr<VCFRecord>>::const_iterator VCF::find_record_in_records(
+    const VCFRecord& vr) const
+{
+    return find_if(records.begin(), records.end(),
+        [&vr](const std::shared_ptr<VCFRecord>& record) { return *record == vr; });
 }

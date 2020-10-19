@@ -1,4 +1,4 @@
-#ifndef __VCF_H_INCLUDED__   // if vcf.h hasn't been included yet...
+#ifndef __VCF_H_INCLUDED__ // if vcf.h hasn't been included yet...
 #define __VCF_H_INCLUDED__
 
 #include <ostream>
@@ -9,90 +9,147 @@
 #include "vcfrecord.h"
 #include "IITree.h"
 #include <map>
-
+#include "OptionsAggregator.h"
 
 class LocalNode;
+class VCFRecord;
 
 typedef std::shared_ptr<LocalNode> LocalNodePtr;
 
 class VCF {
-private:
-    /* will contain, for each chromosome, an interval tree containing VCF records interval and a pointer to the VCF Record itself to allow
-       VCF::make_gt_compatible() to execute a lot faster than serial search */
-    std::map<std::string, IITree<uint32_t, VCFRecord*>> chrom2recordIntervalTree;
-
-    //add a VCF record to this VCF
-    void add_record_core(const VCFRecord &vr);
-
-    //find a VCRRecord in records
-    std::vector<std::shared_ptr<VCFRecord>>::iterator find_record_in_records(const VCFRecord &vr) {
-        return find_if(records.begin(), records.end(), [&vr](const std::shared_ptr<VCFRecord> &record) { return *record==vr; });
-    }
-    std::vector<std::shared_ptr<VCFRecord>>::const_iterator find_record_in_records(const VCFRecord &vr) const {
-        return find_if(records.begin(), records.end(), [&vr](const std::shared_ptr<VCFRecord> &record) { return *record==vr; });
-    }
-
-
 public:
-    std::vector<std::shared_ptr<VCFRecord>> records;
+    // TODO : protect this member
+    GenotypingOptions const* genotyping_options;
+
+    // TODO : protect this member
     std::vector<std::string> samples;
 
-    //constructor/destructors
-    VCF() = default;
-    virtual ~VCF() = default;
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // constructor/destructors
+    // TODO: make VCF not sample updatable - we have to specify the samples upfront -
+    // this can be done in pandora and
+    //  will render the code less complicated and less error-prone
+    VCF(GenotypingOptions const* genotyping_options)
+        : genotyping_options(genotyping_options)
+    {
+    }
+    virtual ~VCF() {}
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void add_record(std::string c, uint32_t p, std::string r, std::string a, std::string i = ".", std::string g = "");
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // comparison operators
+    virtual bool operator==(const VCF& y) const;
+    virtual bool operator!=(const VCF& y) const;
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    VCFRecord &add_record(VCFRecord &, const std::vector<std::string> &sample_names);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // adders
+    virtual void add_record(const std::string& chrom, uint32_t position,
+        const std::string& ref, const std::string& alt, const std::string& info = ".",
+        const std::string& graph_type_info = "");
+    virtual void add_record(const VCFRecord& vcf_record);
+    virtual VCFRecord& add_or_update_record_restricted_to_the_given_samples(
+        VCFRecord& vr, const std::vector<std::string>& sample_names);
+    virtual void add_samples(const std::vector<std::string>& sample_names);
+    virtual void append_vcf(const VCF&);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void add_samples(const std::vector<std::string>);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // getters
+    const std::vector<std::shared_ptr<VCFRecord>>& get_records() const
+    {
+        return records;
+    }
 
-    void add_formats(const std::vector<std::string> &);
+    virtual inline size_t get_VCF_size() const { return records.size(); }
+    virtual ptrdiff_t get_sample_index(const std::string&);
+    virtual std::vector<VCFRecord*> get_all_records_overlapping_the_given_record(
+        const VCFRecord& vcf_record);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    ptrdiff_t get_sample_index(const std::string &);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // genotyping related methods
+    virtual void add_a_new_record_discovered_in_a_sample_and_genotype_it(
+        const std::string& sample_name, const std::string& chrom, const uint32_t pos,
+        const std::string& ref, const std::string& alt);
+    virtual void set_sample_gt_to_ref_allele_for_records_in_the_interval(
+        const std::string& sample_name, const std::string& chrom,
+        const uint32_t& pos_from, const uint32_t& pos_to);
+    virtual void genotype(const bool do_local_genotyping);
+    virtual void make_gt_compatible();
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void add_sample_gt(const std::string &name, const std::string &c, const uint32_t p, const std::string &r,
-                       const std::string &a);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // merging related methods
+    virtual inline VCF merge_multi_allelic(uint32_t max_allele_length = 100000) const
+    {
+        VCF merged_VCF(this->genotyping_options);
+        merge_multi_allelic_core(merged_VCF, max_allele_length);
+        return merged_VCF;
+    }
+    virtual VCF correct_dot_alleles(
+        const std::string& vcf_ref, const std::string& chrom) const;
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void add_sample_ref_alleles(const std::string &, const std::string &, const uint32_t &, const uint32_t &);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // to_string methods
+    virtual std::string header() const;
+    virtual std::string to_string(bool genotyping_from_maximum_likelihood,
+        bool genotyping_from_coverage, bool output_dot_allele = false,
+        bool graph_is_simple = true, bool graph_is_nested = true,
+        bool graph_has_too_many_alts = true, bool sv_type_is_snp = true,
+        bool sv_type_is_indel = true, bool sv_type_is_ph_snps = true,
+        bool sv_type_is_complex = true);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void append_vcf(const VCF &);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // misc methods
+    virtual void
+    sort_records(); // TODO: remove this method and store the records always sorted
+    virtual bool pos_in_range(const uint32_t, const uint32_t, const std::string&) const;
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void sort_records();
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // serialization operations
+    // TODO : give a file handler instead of filepath to allow for mocking
+    // TODO : the file handler must be a wrapper on ostream, to allow for mocking in
+    // fact
+    virtual void save(const std::string& filepath,
+        bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage,
+        bool output_dot_allele = false, bool graph_is_simple = true,
+        bool graph_is_nested = true, bool graph_has_too_many_alts = true,
+        bool sv_type_is_snp = true, bool sv_type_is_indel = true,
+        bool sv_type_is_ph_snps = true, bool sv_type_is_complex = true);
 
-    bool pos_in_range(const uint32_t, const uint32_t, const std::string &) const;
+    // concatenate several VCF files that were previously written to disk as .vcfs into
+    // a single VCF file
+    static void concatenate_VCFs(
+        const std::vector<std::string>& VCF_paths_to_be_concatenated,
+        const std::string& final_VCF_file);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void genotype(const std::vector<uint32_t> &, const float &, const uint16_t, const uint32_t &min_allele_covg,
-                  const float &min_fraction_allele_covg, const uint32_t &min_site_total_covg,
-                  const uint32_t &min_site_diff_covg, bool snps_only);
+protected:
+    std::vector<std::shared_ptr<VCFRecord>> records;
+    /* will contain, for each chromosome, an interval tree containing VCF records
+       interval and a pointer to the VCF Record itself to allow
+       VCF::make_gt_compatible() to execute a lot faster than serial search */
+    std::map<std::string, IITree<uint32_t, VCFRecord*>> chrom_to_record_interval_tree;
 
-    void clean();
+    // add a VCF record to this VCF
+    virtual void add_record_core(const VCFRecord& vr);
 
-    void merge_multi_allelic(uint32_t max_allele_length = 10000);
+    // find a VCRRecord in records
+    virtual inline std::vector<std::shared_ptr<VCFRecord>>::iterator
+    find_record_in_records(const VCFRecord& vr);
+    virtual inline std::vector<std::shared_ptr<VCFRecord>>::const_iterator
+    find_record_in_records(const VCFRecord& vr) const;
 
-    void correct_dot_alleles(const std::string &, const std::string &);
+    virtual void update_other_samples_of_this_record(VCFRecord* reference_record);
 
-    void make_gt_compatible();
+    virtual void merge_multi_allelic_core(
+        VCF& merged_vcf, uint32_t max_allele_length) const;
 
-    std::string header();
-
-    void save(const std::string &, bool simple = false, bool complexgraph = false, bool toomanyalts = false,
-              bool snp = false, bool indel = false, bool phsnps = false, bool complexvar = false);
-
-    void load(const std::string &);
-
-    bool operator==(const VCF &y) const;
-
-    bool operator!=(const VCF &y) const;
-
-    /**
-     * Concatenate several VCF files that were previously written to disk as .vcfs into a single VCF file
-     * @param VCFPathsToBeConcatenated : vector containing paths to the .vcfs to be concatenated
-     * @param sink : where to put the concatenated VCFs
-     */
-    static void concatenateVCFs(const std::vector<std::string> &VCFPathsToBeConcatenated, const std::string &sink);
-
-    friend std::ostream &operator<<(std::ostream &out, const VCF &m);
+    virtual inline std::string get_current_date() const;
 };
 
 #endif

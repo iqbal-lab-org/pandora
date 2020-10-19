@@ -4,14 +4,14 @@
 #include <stdint.h>
 #include <iostream>
 
-
 using namespace std;
 
-TEST(MiniRecordTest, create) {
-    deque<Interval> v1 = {Interval(0, 5)};
-    deque<Interval> v2 = {Interval(1, 4), Interval(15, 17)};
-    deque<Interval> v3 = {Interval(1, 6)};
-    deque<Interval> v4 = {Interval(0, 3), Interval(16, 18)};
+TEST(MiniRecordTest, create)
+{
+    deque<Interval> v1 = { Interval(0, 5) };
+    deque<Interval> v2 = { Interval(1, 4), Interval(15, 17) };
+    deque<Interval> v3 = { Interval(1, 6) };
+    deque<Interval> v4 = { Interval(0, 3), Interval(16, 18) };
 
     prg::Path p;
     p.initialize(v1);
@@ -36,11 +36,12 @@ TEST(MiniRecordTest, create) {
     EXPECT_EQ(p, m4.path);
 }
 
-TEST(MiniRecordTest, equals) {
-    deque<Interval> v1 = {Interval(0, 5)};
-    deque<Interval> v2 = {Interval(1, 4), Interval(15, 17)};
-    deque<Interval> v3 = {Interval(1, 6)};
-    deque<Interval> v4 = {Interval(0, 3), Interval(16, 18)};
+TEST(MiniRecordTest, equals)
+{
+    deque<Interval> v1 = { Interval(0, 5) };
+    deque<Interval> v2 = { Interval(1, 4), Interval(15, 17) };
+    deque<Interval> v3 = { Interval(1, 6) };
+    deque<Interval> v4 = { Interval(0, 3), Interval(16, 18) };
 
     prg::Path p;
     p.initialize(v1);
@@ -62,9 +63,10 @@ TEST(MiniRecordTest, equals) {
     EXPECT_EQ((m3 == m4), false);
 }
 
-TEST(MiniRecordTest, write) {
+TEST(MiniRecordTest, write)
+{
     deque<Interval> d;
-    d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
+    d = { Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40) };
     prg::Path p;
     p.initialize(d);
     MiniRecord mr(1, p, 0, 0);
@@ -74,9 +76,10 @@ TEST(MiniRecordTest, write) {
     EXPECT_EQ(out.str(), "(1, 4{[1, 3)[4, 5)[6, 6)[9, 40)}, 0, 0)");
 }
 
-TEST(MiniRecordTest, read) {
+TEST(MiniRecordTest, read)
+{
     deque<Interval> d;
-    d = {Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40)};
+    d = { Interval(1, 3), Interval(4, 5), Interval(6, 6), Interval(9, 40) };
     prg::Path p;
     p.initialize(d);
     MiniRecord mr1(1, p, 0, 0), mr2;

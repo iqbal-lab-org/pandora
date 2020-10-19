@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <iostream>
 
-
 using std::set;
 using namespace std;
 
@@ -19,7 +18,8 @@ class Path;
 
 struct Minimizer;
 
-TEST(MinimizerTest, create) {
+TEST(MinimizerTest, create)
+{
     KmerHash hash;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
     Minimizer m1(kh.first, 0, 5, 0);
@@ -46,12 +46,15 @@ TEST(MinimizerTest, create) {
     j = 10;
     EXPECT_EQ(m3.pos_of_kmer_in_read.get_end(), j);
 
-    EXPECT_DEATH(Minimizer(kh.first, 0, 2, 0), ""); // interval too short to be valid
-    //EXPECT_DEATH(Minimizer(kh.first, 0,8,0),""); // interval too long to be valid
-    EXPECT_DEATH(Minimizer(kh.first, 2, 0, 0), ""); // doesn't generate an interval as 2>0
+    // interval too short to be valid
+    EXPECT_DEATH(Minimizer(kh.first, 0, 2, 0), "");
+    // doesn't generate an interval as 2>0
+    EXPECT_THROW(
+        Minimizer(kh.first, 2, 0, 0), std::logic_error);
 }
 
-TEST(MinimizerTest, less_than) {
+TEST(MinimizerTest, less_than)
+{
     KmerHash hash;
     pair<uint64_t, uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
     Minimizer m1(kh1.first, 0, 5, 0);
@@ -70,22 +73,29 @@ TEST(MinimizerTest, less_than) {
     s.insert(m5);
 
     uint32_t j = 5;
-    EXPECT_EQ(s.size(), j) << "size of set of minimizers " << s.size() << " is not equal to 5.";
+    EXPECT_EQ(s.size(), j) << "size of set of minimizers " << s.size()
+                           << " is not equal to 5.";
 
-    // note this is a bad test as need to know the order of hash.kmerhash values to set this up
-    vector<Minimizer> v = {m4, m2, m5, m1, m3};
+    // note this is a bad test as need to know the order of hash.kmerhash values to set
+    // this up
+    vector<Minimizer> v = { m4, m2, m5, m1, m3 };
     int i = 0;
     for (std::set<Minimizer>::iterator it = s.begin(); it != s.end(); ++it) {
-        EXPECT_EQ(it->canonical_kmer_hash, v[i].canonical_kmer_hash) << "for i " << i << " kmers do not agree: " << it->canonical_kmer_hash << ", " << v[i].canonical_kmer_hash;
+        EXPECT_EQ(it->canonical_kmer_hash, v[i].canonical_kmer_hash)
+            << "for i " << i << " kmers do not agree: " << it->canonical_kmer_hash
+            << ", " << v[i].canonical_kmer_hash;
         EXPECT_EQ(it->pos_of_kmer_in_read.start, v[i].pos_of_kmer_in_read.start)
-                            << "start positions do not agree: " << it->pos_of_kmer_in_read.start << ", " << v[i].pos_of_kmer_in_read.start;
+            << "start positions do not agree: " << it->pos_of_kmer_in_read.start << ", "
+            << v[i].pos_of_kmer_in_read.start;
         EXPECT_EQ(it->pos_of_kmer_in_read.get_end(), v[i].pos_of_kmer_in_read.get_end())
-                            << "end positions do not agree: " << it->pos_of_kmer_in_read.get_end() << ", " << v[i].pos_of_kmer_in_read.get_end();
+            << "end positions do not agree: " << it->pos_of_kmer_in_read.get_end()
+            << ", " << v[i].pos_of_kmer_in_read.get_end();
         ++i;
     }
 }
 
-TEST(MinimizerTest, equals) {
+TEST(MinimizerTest, equals)
+{
     KmerHash hash;
     pair<uint64_t, uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
     Minimizer m1(kh1.first, 0, 5, 0);
