@@ -38,8 +38,10 @@ void DenovoDiscovery::find_paths_through_candidate_region(
             new BankStrings(candidate_region.pileup),
             "-kmer-size %d -abundance-min %d -verbose 0 -nb-cores 1 -out %s", kmer_size,
             min_covg_for_node_in_assembly_graph, GATB_graph_filepath_as_string.c_str());
-        if (clean_assembly_graph) {
+        if (this->clean_assembly_graph) {
+            BOOST_LOG_TRIVIAL(debug) << "Cleaning local assembly graph...";
             clean(gatb_graph);
+            BOOST_LOG_TRIVIAL(debug) << "Local assembly graph cleaned";
         }
         graph = gatb_graph; // TODO: use move constructor
 
@@ -134,11 +136,12 @@ void DenovoDiscovery::find_paths_through_candidate_region(
 
 DenovoDiscovery::DenovoDiscovery(const uint16_t& kmer_size,
     const double& read_error_rate, const uint16_t max_insertion_size,
-    const uint16_t min_covg_for_node_in_assembly_graph)
-    : min_covg_for_node_in_assembly_graph { min_covg_for_node_in_assembly_graph }
-    , max_insertion_size { max_insertion_size }
-    , kmer_size { kmer_size }
+    const uint16_t min_covg_for_node_in_assembly_graph, const bool clean)
+    : kmer_size { kmer_size }
     , read_error_rate { read_error_rate }
+    , max_insertion_size { max_insertion_size }
+    , min_covg_for_node_in_assembly_graph { min_covg_for_node_in_assembly_graph }
+    , clean_assembly_graph { clean }
 {
 }
 

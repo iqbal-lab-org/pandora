@@ -93,6 +93,11 @@ void setup_discover_subcommand(CLI::App& app)
         ->group("Filtering");
 
     discover_subcmd
+        ->add_flag(
+            "--clean-dbg", opt->clean_dbg, "Clean the local assembly de Bruijn graph")
+        ->group("Filtering");
+
+    discover_subcmd
         ->add_flag("--bin", opt->binomial,
             "Use binomial model for kmer coverages [default: negative binomial]")
         ->group("Parameter Estimation");
@@ -343,7 +348,8 @@ int pandora_discover(DiscoverOptions& opt)
     }
 
     DenovoDiscovery denovo { opt.denovo_kmer_size, opt.error_rate,
-        opt.max_insertion_size, opt.min_covg_for_node_in_assembly_graph };
+        opt.max_insertion_size, opt.min_covg_for_node_in_assembly_graph,
+        opt.clean_dbg };
     const fs::path denovo_output_directory { fs::path(opt.outdir) / "denovo_paths" };
     fs::create_directories(denovo_output_directory);
     BOOST_LOG_TRIVIAL(info)
