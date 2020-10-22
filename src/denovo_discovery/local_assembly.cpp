@@ -259,15 +259,14 @@ void clean(Graph& graph, const uint16_t& num_cores)
     graph_simplifications._doBulgeRemoval = false;
     graph_simplifications._doECRemoval = false;
 
-    graph_simplifications._tipLen_Topo_kMult
-        = 2; // remove all tips of length <= k * X bp  [default '2.500000'] set to 0 to
-             // turn off
-    graph_simplifications._tipLen_RCTC_kMult
-        = 0; // remove tips that pass coverage criteria, of length <= k * X bp  [default
-             // '10.000000'] set to 0 to turn off
-    graph_simplifications._tipRCTCcutoff
-        = 2; // tip relative coverage coefficient: mean coverage of neighbors >  X * tip
-             // coverage default 2.0
+    // remove all tips of length <= k * X bp  [default '2.500000'] set to 0 to turn off
+    graph_simplifications._tipLen_Topo_kMult = 2;
+    // remove tips that pass coverage criteria, of length <= k * X bp  [default
+    // '10.000000'] set to 0 to turn off
+    graph_simplifications._tipLen_RCTC_kMult = 0;
+    // tip relative coverage coefficient: mean coverage of neighbors >  X * tip coverage
+    // default 2.0
+    graph_simplifications._tipRCTCcutoff = 2;
     graph_simplifications.simplify();
 }
 

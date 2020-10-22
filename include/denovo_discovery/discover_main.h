@@ -44,6 +44,7 @@ struct DiscoverOptions {
     uint32_t merge_dist { 22 };
     uint32_t min_cluster_size { 10 };
     uint32_t max_num_kmers_to_avg { 100 };
+    bool clean_dbg { false };
 };
 
 void setup_discover_subcommand(CLI::App& app);
