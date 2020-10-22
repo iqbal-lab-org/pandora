@@ -107,6 +107,7 @@ void setup_discover_subcommand(CLI::App& app)
         ->add_option("--discover-k", opt->denovo_kmer_size,
             "K-mer size to use when discovering novel variants")
         ->capture_default_str()
+        ->check(CLI::Range(0, MAX_DENOVO_K))
         ->type_name("INT");
 
     std::string description = "Max. insertion size for novel variants. Warning: "

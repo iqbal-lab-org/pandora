@@ -13,6 +13,7 @@
 #include "denovo_discovery/candidate_region.h"
 #include "denovo_discovery/denovo_discovery.h"
 
+constexpr auto MAX_DENOVO_K { 32 };
 namespace fs = boost::filesystem;
 
 /// Collection of all options of discover subcommand.
@@ -33,7 +34,7 @@ struct DiscoverOptions {
     bool clean { false };
     bool binomial { false };
     uint32_t max_covg { 600 };
-    uint32_t denovo_kmer_size { 11 };
+    uint16_t denovo_kmer_size { 11 };
     uint16_t max_insertion_size { 15 };
     uint16_t min_covg_for_node_in_assembly_graph { 2 };
     uint32_t min_candidate_covg { 3 };
