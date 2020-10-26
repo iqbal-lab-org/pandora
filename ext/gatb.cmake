@@ -9,7 +9,12 @@ ExternalProject_Add(gatb
         GIT_REPOSITORY https://github.com/GATB/gatb-core.git
         GIT_TAG "v1.4.1"
         PREFIX "${CMAKE_CURRENT_BINARY_DIR}/gatb"
-        SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/gatb/src/gatb/gatb-core/gatb-core"
+        SOURCE_SUBDIR gatb-core
         CMAKE_ARGS -DKSIZE_LIST=32
         INSTALL_COMMAND "")
+
+ExternalProject_Get_Property(gatb source_dir binary_dir)
+
+set(gatb_source_dir ${source_dir})
+set(gatb_binary_dir ${binary_dir})
 

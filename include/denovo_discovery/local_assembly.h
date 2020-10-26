@@ -8,8 +8,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <gatb/debruijn/impl/Simplifications.hpp>
-#include <gatb/gatb_core.hpp>
+#include "gatb/debruijn/impl/Simplifications.hpp"
+#include "gatb/gatb_core.hpp"
 #include <sys/stat.h>
 
 #include <boost/filesystem.hpp>
