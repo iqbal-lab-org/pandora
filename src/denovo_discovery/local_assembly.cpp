@@ -180,6 +180,8 @@ std::pair<DenovoPaths, FoundPaths> LocalAssemblyGraph::get_paths_between(
             abandoned = true;
             break;
         }
+
+        BOOST_LOG_TRIVIAL(trace) << "Trying local assembly with " << std::to_string(required_percent_of_expected_covg) << " * <expected covg>";
         build_paths_between(start_kmer, end_kmer, path_accumulator, tree,
             node_to_distance_to_the_end_node, paths_between_queries, max_path_length,
             expected_coverage, required_percent_of_expected_covg);
@@ -224,7 +226,6 @@ void LocalAssemblyGraph::build_paths_between(const std::string& start_kmer,
             return;
         }
     }
-
     path_accumulator.push_back(start_kmer.back());
 
     if (string_ends_with(path_accumulator, end_kmer)

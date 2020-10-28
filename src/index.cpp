@@ -22,8 +22,6 @@
 void Index::add_record(const uint64_t kmer, const uint32_t prg_id,
     const prg::Path& path, const uint32_t knode_id, const bool strand)
 {
-    // cout << "Add kmer " << kmer << " id, path, strand " << prg_id << ", " << path <<
-    // ", " << strand << endl;
     auto it = minhash.find(kmer); // checks if kmer is in minhash
     if (it == minhash.end()) { // no
         auto* newv = new std::vector<MiniRecord>; // get a new vector of MiniRecords -
@@ -32,7 +30,6 @@ void Index::add_record(const uint64_t kmer, const uint32_t prg_id,
         newv->emplace_back(MiniRecord(prg_id, path, knode_id, strand));
         minhash.insert(std::pair<uint64_t, std::vector<MiniRecord>*>(
             kmer, newv)); // add this record to minhash
-        // cout << "New minhash size: " << minhash.size() << endl;
     } else { // yes
         MiniRecord mr(prg_id, path, knode_id,
             strand); // create a new MiniRecord from this minimizer kmer
@@ -41,7 +38,6 @@ void Index::add_record(const uint64_t kmer, const uint32_t prg_id,
                                     // vector of this minimizer
             it->second->push_back(mr); // no, add it
         }
-        // cout << "New minhash entry for  kmer " << kmer << endl;
     }
 }
 
