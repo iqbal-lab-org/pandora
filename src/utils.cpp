@@ -1,13 +1,10 @@
 #include <cstring>
-#include <sstream>
 #include <iomanip>
 #include <unordered_map>
 #include <vector>
 #include <iostream>
-#include <fstream>
 #include <cmath>
 #include <cassert>
-#include <cctype>
 #include <set>
 #include <memory>
 #include <ctime>
@@ -18,7 +15,6 @@
 #include "seq.h"
 #include "localPRG.h"
 #include "pangenome/pangraph.h"
-#include "pangenome/panread.h"
 #include "noise_filtering.h"
 #include "minihit.h"
 #include "fastaq_handler.h"
@@ -76,7 +72,6 @@ char complement(char n)
     case 'c':
         return 'G';
     }
-    // assert(false);
     return 'N';
 }
 
@@ -134,7 +129,7 @@ void read_prg_file(std::vector<std::shared_ptr<LocalPRG>>& prgs,
             prgs.push_back(s);
             id++;
         } else {
-            std::cerr << "Failed to make LocalPRG for " << fh.name << std::endl;
+            BOOST_LOG_TRIVIAL(error) << "Failed to make LocalPRG for " << fh.name;
             exit(1);
         }
     }
@@ -151,12 +146,10 @@ void load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
         prefix += prgfile.substr(0, pos);
         prefix += "/";
     }
-    // cout << "prefix for kmerprgs dir is " << prefix << endl;
 
     auto dir_num = 0;
     std::string dir;
     for (const auto& prg : prgs) {
-        // cout << "Load kmergraph for " << prg->name << endl;
         if (prg->id % 4000 == 0) {
             dir = prefix + "kmer_prgs/" + int_to_string(dir_num + 1);
             dir_num++;
@@ -189,9 +182,6 @@ void load_vcf_refs_file(const std::string& filepath, VCFRefs& vcf_refs)
 void add_read_hits(const Seq& sequence,
     const std::shared_ptr<MinimizerHits>& minimizer_hits, const Index& index)
 {
-    // cout << now() << "Search for hits for read " << s->name << " which has sketch
-    // size " << s->sketch.size() << " against index of size " << idx->minhash.size() <<
-    // endl; uint32_t hit_count = 0;
     // creates Seq object for the read, then looks up minimizers in the Seq sketch and
     // adds hits to a global MinimizerHits object
     // Seq s(id, name, seq, w, k);
@@ -202,14 +192,9 @@ void add_read_hits(const Seq& sequence,
             // yes, add all hits of this minimizer hit to this kmer
             for (const MiniRecord& miniRecord : *(minhashIt->second)) {
                 minimizer_hits->add_hit(sequence.id, *sequenceSketchIt, miniRecord);
-                //++hit_count;
             }
         }
     }
-    // hits->sort();
-    // cout << now() << "Found " << hit_count << " hits found for read " << s->name << "
-    // so size of MinimizerHits is now "
-    //     << hits->hits.size() + hits->uhits.size() << endl;
 }
 
 void define_clusters(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hits,
@@ -218,7 +203,7 @@ void define_clusters(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hit
     const float& fraction_kmers_required_for_cluster, const uint32_t min_cluster_size,
     const uint32_t expected_number_kmers_in_short_read_sketch)
 {
-    BOOST_LOG_TRIVIAL(debug) << "Define clusters of hits from the "
+    BOOST_LOG_TRIVIAL(trace) << "Define clusters of hits from the "
                              << minimizer_hits->hits.size() << " hits";
 
     if (minimizer_hits->hits.empty()) {
@@ -245,7 +230,7 @@ void define_clusters(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hit
                       prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length(),
                       expected_number_kmers_in_short_read_sketch)
                 * fraction_kmers_required_for_cluster;
-            BOOST_LOG_TRIVIAL(debug)
+            BOOST_LOG_TRIVIAL(trace)
                 << "Length based cluster threshold min("
                 << prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length()
                 << ", " << expected_number_kmers_in_short_read_sketch << ") * "
@@ -255,9 +240,8 @@ void define_clusters(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hit
             if (current_cluster.size()
                 > std::max(length_based_threshold, min_cluster_size)) {
                 clusters_of_hits.insert(current_cluster);
-                // cout << "Found cluster of size " << current_cluster.size() << endl;
             } else {
-                BOOST_LOG_TRIVIAL(debug)
+                BOOST_LOG_TRIVIAL(trace)
                     << "Rejected cluster of size " << current_cluster.size()
                     << " < max(" << length_based_threshold << ", " << min_cluster_size
                     << ")";
@@ -271,7 +255,7 @@ void define_clusters(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hit
         = std::min(prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length(),
               expected_number_kmers_in_short_read_sketch)
         * fraction_kmers_required_for_cluster;
-    BOOST_LOG_TRIVIAL(debug)
+    BOOST_LOG_TRIVIAL(trace)
         << "Length based cluster threshold min("
         << prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length() << ", "
         << expected_number_kmers_in_short_read_sketch << ") * "
@@ -279,39 +263,27 @@ void define_clusters(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hit
     if (current_cluster.size() > std::max(length_based_threshold, min_cluster_size)) {
         clusters_of_hits.insert(current_cluster);
     } else {
-        BOOST_LOG_TRIVIAL(debug)
+        BOOST_LOG_TRIVIAL(trace)
             << "Rejected cluster of size " << current_cluster.size() << " < max("
             << length_based_threshold << ", " << min_cluster_size << ")";
     }
 
-    BOOST_LOG_TRIVIAL(debug) << "Found " << clusters_of_hits.size()
+    BOOST_LOG_TRIVIAL(trace) << "Found " << clusters_of_hits.size()
                              << " clusters of hits";
 }
 
 void filter_clusters(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hits)
 {
     // Next order clusters, choose between those that overlap by too much
-    BOOST_LOG_TRIVIAL(debug) << "Filter the " << clusters_of_hits.size()
+    BOOST_LOG_TRIVIAL(trace) << "Filter the " << clusters_of_hits.size()
                              << " clusters of hits";
     if (clusters_of_hits.empty()) {
         return;
     }
     // to do this consider pairs of clusters in turn
     auto c_previous = clusters_of_hits.begin();
-    /*cout << "first cluster" << endl;
-    for (set<MinimizerHit*, pComp>::iterator p=c_previous->begin();
-    p!=c_previous->end(); ++p)
-    {
-        cout << **p << endl;
-    }*/
     for (auto c_current = ++clusters_of_hits.begin();
          c_current != clusters_of_hits.end(); ++c_current) {
-        /*cout << "current cluster" << endl;
-        for (set<MinimizerHit*, pComp>::iterator p=c_current->begin();
-        p!=c_current->end(); ++p)
-        {
-            cout << **p << endl;
-        }*/
         if (((*(*c_current).begin())->get_read_id()
                 == (*(*c_previous).begin())->get_read_id())
             && // if on same read and either
@@ -330,16 +302,14 @@ void filter_clusters(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hit
         {
             if (c_previous->size() >= c_current->size()) {
                 clusters_of_hits.erase(c_current);
-                // cout << "erase current" << endl;
                 c_current = c_previous;
             } else {
                 clusters_of_hits.erase(c_previous);
-                // cout << "erase previous" << endl;
             }
         }
         c_previous = c_current;
     }
-    BOOST_LOG_TRIVIAL(debug) << "Now have " << clusters_of_hits.size()
+    BOOST_LOG_TRIVIAL(trace) << "Now have " << clusters_of_hits.size()
                              << " clusters of hits";
 }
 
@@ -348,7 +318,7 @@ void filter_clusters2(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hi
 {
     // Sort clusters by size, and filter out those small clusters which are entirely
     // contained in bigger clusters on reads
-    BOOST_LOG_TRIVIAL(debug) << "Filter2 the " << clusters_of_hits.size()
+    BOOST_LOG_TRIVIAL(trace) << "Filter2 the " << clusters_of_hits.size()
                              << " clusters of hits";
     if (clusters_of_hits.empty()) {
         return;
@@ -359,25 +329,18 @@ void filter_clusters2(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hi
 
     auto it = clusters_by_size.begin();
     std::vector<int> read_v(genome_size, 0);
-    // cout << "fill from " << (*(it->begin()))->read_start_position() << " to " <<
-    // (*--(it->end()))->read_start_position() << endl;
     fill(read_v.begin() + (*(it->begin()))->get_read_start_position(),
         read_v.begin() + (*--(it->end()))->get_read_start_position(), 1);
     bool contained;
     for (auto it_next = ++clusters_by_size.begin(); it_next != clusters_by_size.end();
          ++it_next) {
-        // cout << "read id " << (*(it_next->begin()))->get_prg_id() << endl;
         if ((*(it_next->begin()))->get_read_id() == (*(it->begin()))->get_read_id()) {
             // check if have any 0s in interval of read_v between first and last
             contained = true;
             for (uint32_t i = (*(it_next->begin()))->get_read_start_position();
                  i < (*--(it_next->end()))->get_read_start_position(); ++i) {
-                // cout << i << ":" << read_v[i] << "\t";
                 if (read_v[i] == 0) {
                     contained = false;
-                    // cout << "found unique element at read position " << i << endl;
-                    // cout << "fill from " << i << " to " <<
-                    // (*--(it_next->end()))->get_read_start_position() << endl;
                     fill(read_v.begin() + i,
                         read_v.begin()
                             + (*--(it_next->end()))->get_read_start_position(),
@@ -385,20 +348,16 @@ void filter_clusters2(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hi
                     break;
                 }
             }
-            // cout << endl;
             if (contained) {
-                // cout << "erase cluster so clusters_of_hits has size decrease from "
-                // << clusters_of_hits.size();
                 clusters_of_hits.erase(*it_next);
-                // cout << " to " << clusters_of_hits.size() << endl;
             }
         } else {
-            // cout << "consider new read" << endl;
+            // consider new read
             fill(read_v.begin(), read_v.end(), 0);
         }
         ++it;
     }
-    BOOST_LOG_TRIVIAL(debug) << "Now have " << clusters_of_hits.size()
+    BOOST_LOG_TRIVIAL(trace) << "Now have " << clusters_of_hits.size()
                              << " clusters of hits";
 }
 
@@ -407,7 +366,7 @@ void add_clusters_to_pangraph(
     std::shared_ptr<pangenome::Graph> pangraph,
     const std::vector<std::shared_ptr<LocalPRG>>& prgs)
 {
-    BOOST_LOG_TRIVIAL(debug) << "Add inferred order to PanGraph";
+    BOOST_LOG_TRIVIAL(trace) << "Add inferred order to PanGraph";
     if (clusters_of_hits.empty()) {
         return;
     }
@@ -645,6 +604,7 @@ uint32_t strtogs(const char* str)
     return (uint32_t)(x + .499);
 }
 
-std::string transform_cli_gsize(std::string str) {
+std::string transform_cli_gsize(std::string str)
+{
     return int_to_string(strtogs(str.c_str()));
 }

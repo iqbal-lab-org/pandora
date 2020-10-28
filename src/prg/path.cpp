@@ -69,8 +69,7 @@ std::vector<LocalNodePtr> prg::Path::nodes_along_path(const LocalPRG& localPrg)
 prg::Path prg::Path::subpath(const uint32_t start, const uint32_t len) const
 {
     // function now returns the path starting at position start along the path, rather
-    // than at position start on linear PRG, and for length len cout << "find subpath of
-    // " << *this << " from " << start << " for length " << len << endl;
+    // than at position start on linear PRG, and for length len
     assert(start + len <= length());
     prg::Path p;
     std::deque<Interval> d;
@@ -87,17 +86,12 @@ prg::Path prg::Path::subpath(const uint32_t start, const uint32_t len) const
             p.initialize(d);
             added_len
                 += std::min(len - added_len, interval.length - start + covered_length);
-            /// cout << "added first interval " << p.path.back() << " and added length
-            /// is now " << added_len << endl;
         } else if (covered_length >= start and added_len <= len) {
             p.add_end_interval(Interval(interval.start,
                 std::min(interval.get_end(), interval.start + len - added_len)));
             added_len += std::min(len - added_len, interval.length);
-            // cout << "added interval " << p.path.back() << " and added length is now "
-            // << added_len << endl;
         }
         covered_length += interval.length;
-        // cout << "covered length is now " << covered_length << endl;
         if (added_len >= len) {
             break;
         }
@@ -121,7 +115,6 @@ bool prg::Path::is_branching(const prg::Path& y)
         if (overlap) {
             if (it->start != it2->start) {
                 // had paths which overlapped and now don't
-                // cout << "branch" << endl;
                 return true; // represent branching paths at this point
             }
             ++it2;
@@ -131,17 +124,14 @@ bool prg::Path::is_branching(const prg::Path& y)
             }
         } else {
             for (it2 = y.path.begin(); it2 != y.path.end(); ++it2) {
-                // cout << *it << " " << *it2 << endl;
                 if ((it->get_end() > it2->start and it->start < it2->get_end())
                     or (*it == *it2)) {
                     // then the paths overlap
                     overlap = true;
-                    // cout << "overlap" << endl;
                     // first query the previous intervals if they exist, to see if they
                     // overlap
                     if (it != path.begin() && it2 != y.path.begin()
                         && (--it)->get_end() != (--it2)->get_end()) {
-                        // cout << "coal" << endl;
                         return true; // represent coalescent paths at this point
                     } else {
                         ++it2;
@@ -163,9 +153,6 @@ bool prg::Path::is_subpath(const prg::Path& big_path) const
 {
     if (big_path.length() < length() or big_path.get_start() > get_start()
         or big_path.get_end() < get_end() or is_branching(big_path)) {
-        // cout << "fell at first hurdle " << (big_path.length() < length());
-        // cout << (big_path.start > start) << (big_path.end < end);
-        // cout << (is_branching(big_path)) << endl;
         return false;
     }
 

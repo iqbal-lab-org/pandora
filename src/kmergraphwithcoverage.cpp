@@ -1,8 +1,6 @@
 #include <sstream>
-#include <fstream>
 #include <cassert>
 #include <limits>
-#include <cstdio> /* NULL */
 #include <cstdlib> /* srand, rand */
 #include <cmath>
 #include <cstdint>
@@ -31,7 +29,6 @@ void KmerGraphWithCoverage::set_binomial_parameter_p(const float e_rate)
     assert(kmer_prg->k != 0);
     assert(0 < e_rate and e_rate < 1);
     binomial_parameter_p = 1 / exp(e_rate * kmer_prg->k);
-    // cout << "using p: " << p << endl;
 }
 
 void KmerGraphWithCoverage::increment_covg(
@@ -82,7 +79,6 @@ void KmerGraphWithCoverage::set_negative_binomial_parameters(
 {
     if (nbin_prob == 0 and nb_fail == 0)
         return;
-    // qcout << "set nb" << endl;
     assert((negative_binomial_parameter_p > 0 and negative_binomial_parameter_p < 1)
         || assert_msg(
             "nb_p " << negative_binomial_parameter_p << " was not set in kmergraph"));
@@ -279,47 +275,6 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
     return prob_path(maxpath, sample_id, prob_model);
 }
 
-/*
-std::vector<std::vector<KmerNodePtr>> KmerGraph::find_max_paths(uint32_t num,
-                                                                const uint32_t
-&sample_id) {
-
-    // save original coverges so can put back at the end
-    std::vector<uint32_t> original_covgs0, original_covgs1;
-    for (uint32_t i = 0; i != nodes.size(); ++i) {
-        original_covgs0.push_back(nodes[i]->get_covg(0, sample_id));
-        original_covgs1.push_back(nodes[i]->get_covg(1, sample_id));
-    }
-
-    // find num max paths
-    //cout << "expected covg " << (uint)(p*num_reads/num) << endl;
-    std::vector<std::vector<KmerNodePtr>> paths;
-    std::vector<KmerNodePtr> maxpath;
-    find_max_path(maxpath, <#initializer#>);
-    //uint min_covg;
-    paths.push_back(maxpath);
-
-    while (paths.size() < num) {
-        for (uint32_t i = 0; i != maxpath.size(); ++i) {
-            maxpath[i]->covg[0] -= std::min(maxpath[i]->covg[0], (uint32_t) (p *
-num_reads / num)); maxpath[i]->covg[1] -= std::min(maxpath[i]->covg[1], (uint32_t) (p *
-num_reads / num));
-        }
-        maxpath.clear();
-        find_max_path(maxpath, <#initializer#>);
-        paths.push_back(maxpath);
-    }
-
-    // put covgs back
-    for (uint32_t i = 0; i != nodes.size(); ++i) {
-        nodes[i]->covg[0] = original_covgs0[i];
-        nodes[i]->covg[1] = original_covgs1[i];
-    }
-
-    return paths;
-}
- */
-
 std::vector<std::vector<KmerNodePtr>> KmerGraphWithCoverage::get_random_paths(
     uint32_t num_paths)
 {
@@ -373,44 +328,6 @@ float KmerGraphWithCoverage::prob_path(const std::vector<KmerNodePtr>& kpath,
     return return_prob_path / len;
 }
 
-/*
-float KmerGraph::prob_paths(const std::vector<std::vector<KmerNodePtr>> &kpaths) {
-    if (kpaths.empty()) {
-        return 0; // is this the correct default?
-    }
-
-    // collect how much coverage we expect on each node from these paths
-    std::vector<uint32_t> path_node_covg(nodes.size(), 0);
-    for (uint32_t i = 0; i != kpaths.size(); ++i) {
-        for (uint32_t j = 0; j != kpaths[i].size(); ++j) {
-            path_node_covg[kpaths[i][j]->id] += 1;
-        }
-    }
-
-    // now calculate max likelihood assuming independent paths
-    float ret_p = 0;
-    uint32_t len = 0;
-    for (uint32_t i = 0; i != path_node_covg.size(); ++i) {
-        if (path_node_covg[i] > 0) {
-            //cout << "prob of node " << nodes[i]->id << " which has path covg " <<
-path_node_covg[i] << " and so we expect to see " <<
-num_reads*path_node_covg[i]/kpaths.size() << " times IS " << prob(nodes[i]->id,
-num_reads*path_node_covg[i]/kpaths.size()) << endl; ret_p += prob(nodes[i]->id,
-num_reads * path_node_covg[i] / kpaths.size(), <#initializer#>); if
-(nodes[i]->path.length() > 0) { len += 1;
-            }
-        }
-    }
-
-    if (len == 0) {
-        len = 1;
-    }
-
-    //cout << "len " << len << endl;
-    return ret_p / len;
-}
-*/
-
 void KmerGraphWithCoverage::save_covg_dist(const std::string& filepath)
 {
     std::ofstream handle;
@@ -452,8 +369,7 @@ void KmerGraphWithCoverage::save(
             }
 
             handle << "\tFC:i:" << get_covg(c->id, 0, sample_id) << "\t"
-                   << "\tRC:i:" << get_covg(c->id, 1, sample_id)
-                   << std::endl; //"\t" << (unsigned)nodes[i].second->num_AT << endl;
+                   << "\tRC:i:" << get_covg(c->id, 1, sample_id) << std::endl;
 
             for (uint32_t j = 0; j < c->out_nodes.size(); ++j) {
                 handle << "L\t" << c->id << "\t+\t" << c->out_nodes[j].lock()->id
@@ -462,7 +378,7 @@ void KmerGraphWithCoverage::save(
         }
         handle.close();
     } else {
-        std::cerr << "Unable to open kmergraph file " << filepath << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "Unable to open kmergraph file " << filepath;
         std::exit(EXIT_FAILURE);
     }
 }
@@ -578,12 +494,10 @@ void KmerGraphWithCoverage::load(const std::string& filepath)
                     to = std::stoi(split_line[1]);
                 }
                 kmer_prg->add_edge(kmer_prg->nodes[from], kmer_prg->nodes[to]);
-                // nodes[from]->out_nodes.push_back(nodes.at(to));
-                // nodes[to]->in_nodes.push_back(nodes.at(from));
             }
         }
     } else {
-        std::cerr << "Unable to open kmergraph file " << filepath << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "Unable to open kmergraph file " << filepath;
         exit(1);
     }
 }

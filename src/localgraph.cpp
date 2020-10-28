@@ -9,19 +9,9 @@
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
-LocalGraph::LocalGraph()
-{
-    // reserve space in index
-    // index.reserve(10);
-}
+LocalGraph::LocalGraph() { }
 
-LocalGraph::~LocalGraph()
-{
-    /*for (const auto &c: nodes) {
-        delete c.second;
-    }*/
-    nodes.clear();
-}
+LocalGraph::~LocalGraph() { nodes.clear(); }
 // add the node with a given id and seq if the id is not already in the nodes
 void LocalGraph::add_node(
     const uint32_t& id, const std::string& seq, const Interval& pos)
@@ -33,9 +23,6 @@ void LocalGraph::add_node(
     if (it == nodes.end()) {
         LocalNodePtr n(std::make_shared<LocalNode>(seq, pos, id));
         nodes[id] = n; // add the node to the map
-        // nodes[id] = make_shared<LocalNode>(seq, pos, id);
-        // cout << "Added node " << id << endl;
-
         // add the node to the interval indexes for fast overlap queries
         if (pos.length == 0)
             startIndexOfZeroLengthIntervals[pos.start] = n;
@@ -60,24 +47,8 @@ void LocalGraph::add_edge(const uint32_t& from, const uint32_t& to)
                 << ">" << t->pos.start << " so cannot add edge from node " << *f
                 << " to node " << *t));
         f->outNodes.push_back(t);
-        // cout << "Added edge (" << f->id << ", " << t->id << ")" << endl;
     }
 }
-
-/*void LocalGraph::add_varsite (const uint16_t level, const uint32_t pre_site_id, const
-uint32_t post_site_id)
-{
-    assert(pre_site_id <= post_site_id);
-    while (level >= index.size())
-    {
-        vector<pair<uint32_t, uint32_t>> levelv;
-        levelv.reserve(400);
-        //levelv = {};
-        index.insert(index.end(), 1, levelv);
-    }
-    index[level].push_back(make_pair(pre_site_id, post_site_id));
-    return;
-}*/
 
 void LocalGraph::write_gfa(const std::string& filepath) const
 {
@@ -140,7 +111,7 @@ void LocalGraph::read_gfa(const std::string& filepath)
             }
         }
     } else {
-        std::cerr << "Unable to open GFA file " << filepath << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "Unable to open GFA file " << filepath;
         std::exit(1);
     }
 }
@@ -149,8 +120,6 @@ std::vector<PathPtr> LocalGraph::walk(
     const uint32_t& node_id, const uint32_t& pos, const uint32_t& len) const
 { // node_id: where to start the walk, pos: the position in the node_id, len = k+w-1 ->
   // the length that the walk has to go through - we are sketching kmers in a graph
-    // cout << "walking graph from node " << node_id << " pos " << pos << " for length "
-    // << len << endl;
     // walks from position pos in node node for length len bases
     assert(
         (nodes.at(node_id)->pos.start <= pos && nodes.at(node_id)->pos.get_end() >= pos)
@@ -163,35 +132,25 @@ std::vector<PathPtr> LocalGraph::walk(
     prg::Path p, p2;
     std::deque<Interval> d;
 
-    // cout << "pos+len: " << pos+len << " nodes.at(node_id)->pos.get_end(): " <<
-    // nodes.at(node_id)->pos.get_end() << endl;
     if (pos + len
         <= nodes.at(node_id)
                ->pos.get_end()) { // checks if we can go until the end of the kmer
         p.initialize(Interval(
             pos, pos + len)); // create the path containing this interval of the node
-        // cout << "return path: " << p << endl;
         return_paths.push_back(std::make_shared<prg::Path>(p));
-        // cout << "return_paths size: " << return_paths.size() << endl;
         return return_paths;
     }
     uint32_t len_added = std::min(nodes.at(node_id)->pos.get_end() - pos, len);
 
-    // cout << "len: " << len << " len_added: " << len_added << endl;
     if (len_added < len) {
         for (auto it = nodes.at(node_id)->outNodes.begin();
              it != nodes.at(node_id)->outNodes.end(); ++it) {
-            // cout << "Following node: " << (*it)->id << " to add " << len-len_added <<
-            // " more bases" << endl;
             walk_paths = walk((*it)->id, (*it)->pos.start, len - len_added);
-            // cout << "walk paths size: " << walk_paths.size() << endl;
             for (auto& walk_path : walk_paths) {
                 // Note, would have just added start interval to each item in
                 // walk_paths, but can't seem to force result of it2 to be non-const
-                // cout << (*it2) << endl;
                 p2.initialize(Interval(pos, nodes.at(node_id)->pos.get_end()));
                 p2.insert_to_the_end(walk_path->begin(), walk_path->end());
-                // cout << "path: " << p2 << " p2.length: " << p2.length << endl;
                 if (p2.length() == len) {
                     return_paths.push_back(std::make_shared<prg::Path>(p2));
                 }
@@ -204,8 +163,6 @@ std::vector<PathPtr> LocalGraph::walk(
 std::vector<PathPtr> LocalGraph::walk_back(
     const uint32_t& node_id, const uint32_t& pos, const uint32_t& len) const
 {
-    // cout << "start walking back from " << pos << " in node " << node_id << " for
-    // length " << len << endl;
     // walks from position pos in node back through prg for length len bases
     assert(
         (nodes.at(node_id)->pos.start <= pos && nodes.at(node_id)->pos.get_end() >= pos)
@@ -220,13 +177,11 @@ std::vector<PathPtr> LocalGraph::walk_back(
 
     if (nodes.at(node_id)->pos.start + len <= pos) {
         p.initialize(Interval(pos - len, pos));
-        // cout << "return path: " << p << endl;
         return_paths.push_back(std::make_shared<prg::Path>(p));
         return return_paths;
     }
 
     uint32_t len_added = std::min(pos - nodes.at(node_id)->pos.start, len);
-    // cout << "len: " << len << " len_added: " << len_added << endl;
 
     std::vector<LocalNodePtr>::iterator innode;
     if (len_added < len) {
@@ -239,9 +194,7 @@ std::vector<PathPtr> LocalGraph::walk_back(
                 for (uint32_t i = 0; i != walk_paths.size(); ++i) {
                     p2.initialize(*(walk_paths[i]));
                     p2.add_end_interval(Interval(nodes.at(node_id)->pos.start, pos));
-                    // cout << p2 << endl;
                     if (p2.length() == len) {
-                        // cout << "output path: " << p2 << endl;
                         return_paths.push_back(std::make_shared<prg::Path>(p2));
                     }
                 }
@@ -306,9 +259,6 @@ std::vector<LocalNodePtr> LocalGraph::nodes_along_string(
             for (uint32_t j = 0; j != p.back()->outNodes.size(); ++j) {
                 // if the start of query_string matches extended candidate_string, want
                 // to query candidate path extensions
-                // if (
-                // query_string.substr(0,candidate_string.size()+u[i].back()->outNodes[j]->seq.size())
-                // == candidate_string+u[i].back()->outNodes[j]->seq)
                 auto comp_string = candidate_string + p.back()->outNodes[j]->seq;
                 auto comp_length = std::min(query_string.size(), comp_string.size());
                 if (strcasecmp(query_string.substr(0, comp_length).c_str(),
@@ -406,8 +356,7 @@ std::vector<LocalNodePtr> LocalGraph::bottom_path() const
 bool LocalGraph::operator==(const LocalGraph& y) const
 {
     // false if have different numbers of nodes
-    if (y.nodes.size()
-        != nodes.size()) { // cout << "different numbers of nodes" << endl;
+    if (y.nodes.size() != nodes.size()) {
         return false;
     }
 
@@ -415,17 +364,14 @@ bool LocalGraph::operator==(const LocalGraph& y) const
     for (const auto& c : nodes) {
         // if node id doesn't exist
         auto it = y.nodes.find(c.first);
-        if (it == y.nodes.end()) { // cout << "node id doesn't exist" << endl;
+        if (it == y.nodes.end()) {
             return false;
         }
         // or node entries are different
         if (!(*c.second == *(it->second))) {
-            // cout << "node id " << c.first << " exists but has different values" <<
-            // endl;
             return false;
         }
     }
-    // otherwise is true
     return true;
 }
 

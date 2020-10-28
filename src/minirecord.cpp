@@ -1,4 +1,3 @@
-#include <cassert>
 #include <functional>
 #include <iostream>
 #include "minirecord.h"
@@ -16,8 +15,6 @@ MiniRecord::~MiniRecord() {};
 
 bool MiniRecord::operator==(const MiniRecord& y) const
 {
-    // cout << prg_id << "," << y.prg_id << endl;
-    // cout << path << "," << y.path << endl;
     if (prg_id != y.prg_id) {
         return false;
     }

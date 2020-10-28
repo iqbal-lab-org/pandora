@@ -1,17 +1,13 @@
 #include <sstream>
-#include <fstream>
 #include <cassert>
 #include <limits>
-#include <cstdio> /* NULL */
 #include <cstdlib> /* srand, rand */
-#include <cmath>
 
 #include <boost/log/trivial.hpp>
 
 #include "utils.h"
 #include "kmernode.h"
 #include "kmergraph.h"
-#include "kmergraphwithcoverage.h"
 #include "localPRG.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
@@ -109,7 +105,6 @@ KmerNodePtr KmerGraph::add_node(const prg::Path& p)
     KmerNodePtr n(std::make_shared<KmerNode>(nodes.size(), p)); // create the node
     nodes.push_back(n); // add it to nodes
     sorted_nodes.insert(n);
-    // nodes[next_id] = make_shared<KmerNode>(next_id, p);
     assert(k == 0 or p.length() == 0 or p.length() == k);
     if (k == 0 and p.length() > 0) {
         k = p.length();
@@ -150,7 +145,6 @@ void KmerGraph::add_edge(KmerNodePtr from, KmerNodePtr to)
     if (from->find_node_ptr_in_out_nodes(to) == from->out_nodes.end()) {
         from->out_nodes.emplace_back(to);
         to->in_nodes.emplace_back(from);
-        // cout << "added edge from " << from->id << " to " << to->id << endl;
     }
 }
 
@@ -163,7 +157,6 @@ void KmerGraph::remove_shortcut_edges()
     std::deque<std::vector<KmerNodePtr>> d;
 
     for (const auto& n : nodes) {
-        // cout << n.first << endl;
         for (const auto& out : n->out_nodes) {
             auto out_node_as_shared_ptr = out.lock();
             for (auto nextOut = out_node_as_shared_ptr->out_nodes.begin();
@@ -262,8 +255,7 @@ void KmerGraph::save(
 
             // TODO: leave as coverage 0 or change this?
             handle << "\tFC:i:" << 0 << "\t"
-                   << "\tRC:i:" << 0
-                   << std::endl; //"\t" << (unsigned)nodes[i].second->num_AT << endl;
+                   << "\tRC:i:" << 0 << std::endl;
 
             for (uint32_t j = 0; j < c->out_nodes.size(); ++j) {
                 handle << "L\t" << c->id << "\t+\t" << c->out_nodes[j].lock()->id
@@ -272,7 +264,7 @@ void KmerGraph::save(
         }
         handle.close();
     } else {
-        std::cerr << "Unable to open kmergraph file " << filepath << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "Unable to open kmergraph file " << filepath;
         std::exit(EXIT_FAILURE);
     }
 }
@@ -379,12 +371,10 @@ void KmerGraph::load(const std::string& filepath)
                     to = std::stoi(split_line[1]);
                 }
                 add_edge(nodes[from], nodes[to]);
-                // nodes[from]->outNodes.push_back(nodes.at(to));
-                // nodes[to]->inNodes.push_back(nodes.at(from));
             }
         }
     } else {
-        std::cerr << "Unable to open kmergraph file " << filepath << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "Unable to open kmergraph file " << filepath;
         exit(1);
     }
 }
@@ -421,8 +411,7 @@ uint32_t KmerGraph::min_path_length()
 bool KmerGraph::operator==(const KmerGraph& other_graph) const
 {
     // false if have different numbers of nodes
-    if (other_graph.nodes.size()
-        != nodes.size()) { // cout << "different numbers of nodes" << endl;
+    if (other_graph.nodes.size() != nodes.size()) {
         return false;
     }
 
@@ -450,7 +439,6 @@ bool KmerGraph::operator==(const KmerGraph& other_graph) const
             }
         }
     }
-    // otherwise is true
     return true;
 }
 

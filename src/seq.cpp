@@ -75,7 +75,6 @@ void Seq::add_minimizing_kmers_to_sketch(
     for (const auto& minimizer : window) {
         if (minimizer.canonical_kmer_hash == smallest) {
             sketch.insert(minimizer);
-            // num_minis_found += 1;
         }
     }
 }
@@ -138,7 +137,6 @@ void Seq::minimizer_sketch(const uint32_t w, const uint32_t k)
                           "still has size "
                 << window.size()));
     }
-    // cout << now() << "Sketch size " << sketch.size() << " for read " << name << endl;
 }
 
 std::ostream& operator<<(std::ostream& out, Seq const& data)
