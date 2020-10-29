@@ -261,7 +261,7 @@ This will look for regions in the pangraph where the reads do not map and attemp
 ```
 $ pandora discover --help
 Quasi-map reads to an indexed PRG, infer the sequence of present loci in the sample and discover novel variants.
-Usage: ./pandora discover [OPTIONS] <TARGET> <QUERY>
+Usage: pandora discover [OPTIONS] <TARGET> <QUERY>
 
 Positionals:
   <TARGET> FILE [required]    An indexed PRG file (in fasta format)
@@ -269,7 +269,7 @@ Positionals:
 
 Options:
   -h,--help                   Print this help message and exit
-  --discover-k INT            K-mer size to use when discovering novel variants [default: 11]
+  --discover-k INT:[0-32)     K-mer size to use when discovering novel variants [default: 11]
   --max-ins INT               Max. insertion size for novel variants. Warning: setting too long may impair performance [default: 15]
   --covg-threshold INT        Positions with coverage less than this will be tagged for variant discovery [default: 3]
   -l INT                      Min. length of consecutive positions below coverage threshold to trigger variant discovery [default: 1]
@@ -303,6 +303,7 @@ Preset:
 
 Filtering:
   --clean                     Add a step to clean and detangle the pangraph
+  --clean-dbg                 Clean the local assembly de Bruijn graph
   --max-covg INT              Maximum coverage of reads to accept [default: 600]
 
 Consensus/Variant Calling:
