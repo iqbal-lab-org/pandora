@@ -2,6 +2,20 @@ language: cpp
 compiler: gcc
 os: linux
 dist: bionic
+env:
+  - OMP_NUM_THREADS=4  # https://docs.travis-ci.com/user/languages/cpp/#openmp-projects
+
+git:
+  depth: 3  # https://docs.travis-ci.com/user/customizing-the-build/#git-clone-depth
+
+cache:
+  directories:
+    - ${TRAVIS_BUILD_DIR}/deps/boost-1.62.0
+
+branches:
+  only: # build all branches https://docs.travis-ci.com/user/customizing-the-build/#safelisting-or-blocklisting-branches
+    - gh-pages
+    - /.*/
 
 include:
   - os: linux
@@ -9,28 +23,27 @@ include:
       apt:
         packages:
           - clang-format-8
+          - zlib1g-dev
 
 jobs:
+  fast_finish: true
   include:
-    - stage: "Lint"                # naming the Tests stage
-      name: "Format"            # names the first Tests stage job
+    - stage: "Format"
       script:
         - find src/ include/ test/ -type f \( -iname \*.h -o -iname \*.cpp \) | xargs -I _ clang-format -style=file -output-replacements-xml _ | grep -c "<replacement " >/dev/null
         - if [ $? -ne 1 ]; then echo "Not all source and header files are formatted with clang-format"; exit 1; fi
-    - stage: "Build"
-      script: echo "This is where we build Pandora"
-    - stage: "Test"
-      name: "Unit tests"
-      script: echo "This is where we run the unit tests"
-    - stage: "Deploy"
-      name: "DockerHub"
-      script: echo "This is where we deploy a container to Docker Hub"
+    - stage: "Build and Test"
+      env:
+        - BOOST_VERSION="1.62.0"
+        - BOOST_LIBS="system,filesystem,iostreams,log,thread,date_time"
+        - BUILD_TYPE="Debug"
+        - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+      install: bash ci/install.sh
+      script: bash ci/script.sh
 
 stages:
-  - "Lint"
-  - "Build"
-  - "Test"
-  - "Deploy"
+  - "Format"
+  - "Build and Test"
 
 notifications:
   email: false

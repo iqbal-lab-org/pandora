@@ -1,49 +1,89 @@
-[![Build Status](https://travis-ci.org/rmcolq/pandora.svg?branch=master)](https://travis-ci.org/rmcolq/pandora) master
+| Branch             | Status                                                                           |
+|:-------------------|:---------------------------------------------------------------------------------|
+| [`master`][master] | ![Travis (.com) branch](https://img.shields.io/travis/com/rmcolq/pandora/master) |
+| [`dev`][dev]       | ![Travis (.com) branch](https://img.shields.io/travis/com/rmcolq/pandora/dev)    |
 
-[![Build Status](https://travis-ci.com/rmcolq/pandora.svg?token=mxzxNwUzHrkcpsL2i7zU&branch=dev)](https://travis-ci.com/rmcolq/pandora) dev
+[master]: https://github.com/rmcolq/pandora/tree/master
+[dev]: https://github.com/rmcolq/pandora/tree/dev
 
-![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/rmcolq/pandora)
 
 # Pandora
 
-## Contents
-* [Introduction](#introduction)
-* [Quick Start](#quick-start)
-* [Installation](#installation)
-* [Usage](#usage)
+[TOC]: #
+
+# Table of Contents
+- [Introduction](#introduction)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+  - [Containers](#containers)
+  - [Installation from source](#installation-from-source)
+- [Usage](#usage)
+  - [Population Reference Graphs](#population-reference-graphs)
+  - [Build index](#build-index)
+  - [Map reads to index](#map-reads-to-index)
+  - [Compare reads from several samples](#compare-reads-from-several-samples)
+  - [Discover novel variants](#discover-novel-variants)
+
 
 ## Introduction
-Pandora is a tool for bacterial genome analysis using a pangenome reference graph (PanRG). It allows gene presence/absence detection and genotyping of SNPs, indels and longer variants in one or a number of samples. Pandora works with Illumina or Nanopore data. Core ideas behind the method are:
- - new genomes look like recombinants (plus mutations) of things seen before
- - we should be analysing nucleotide-level variation everywhere, not just in core genes
- - arbitrary single reference genomes are unnatural and limit comparisons of diverse sets of genomes
 
-The pangenome reference graph (PanRG) is a collection of 'floating' local graphs, each representing some orthologous region of interest (e.g. genes, mobile elements or intergenic regions). See https://github.com/rmcolq/make_prg for a pipeline which can construct these PRGs from a set of aligned sequence files.
+Pandora is a tool for bacterial genome analysis using a pangenome
+reference graph (PanRG). It allows gene presence/absence detection and
+genotyping of SNPs, indels and longer variants in one or a number of
+samples. Pandora works with Illumina or Nanopore data. Core ideas behind
+the method are:
+- new genomes look like recombinants (plus mutations) of things seen
+  before
+- we should be analysing nucleotide-level variation everywhere, not just
+  in core genes
+- arbitrary single reference genomes are unnatural and limit comparisons
+  of diverse sets of genomes
+
+The pangenome reference graph (PanRG) is a collection of 'floating'
+local graphs, each representing some orthologous region of interest
+(e.g. genes, mobile elements or intergenic regions). See
+https://github.com/rmcolq/make_prg for a pipeline which can construct
+these PRGs from a set of aligned sequence files.
 
 Pandora can do the following for a single sample (read dataset):
-- Output inferred mosaic of reference sequences for loci (eg genes) from the PanRG which are present
-- Output a VCF showing the variation found within these loci, with respect to any reference path in the PRG.
+- Output inferred mosaic of reference sequences for loci (eg genes) from
+  the PanRG which are present
+- Output a VCF showing the variation found within these loci, with
+  respect to any reference path in the PRG.
 
 Soon, in a galaxy not so far away, it will allow:
 - discovery of new variation not in the PRG
 
 For a collection of samples, it can:
-- Output a matrix showing inferred copy-number of each locus in each sample genome
-- Output a multisample pangenome VCF showing how including genotype calls for each sample in each of the loci
-- Output one VCF per orthologous-chunk, showing how samples which contained this chunk differed in their gene sequence. Variation is shown with respect to the most informative recombinant path in the PRG.
+- Output a matrix showing inferred copy-number of each locus in each
+  sample genome
+- Output a multisample pangenome VCF showing how including genotype
+  calls for each sample in each of the loci
+- Output one VCF per orthologous-chunk, showing how samples which
+  contained this chunk differed in their gene sequence. Variation is
+  shown with respect to the most informative recombinant path in the
+  PRG.
 
 Warning - this code is still in development.
 
 ## Quick Start
+
 Index PanRG file:
+
 ```
 pandora index -t 8 <panrg.fa>
 ```
-Compare first 30X of each Illumina sample to get pangenome matrix and VCF
+
+Compare first 30X of each Illumina sample to get pangenome matrix and
+VCF
+
 ```
 pandora compare --genotype --illumina --max-covg 30 <panrg.fa> <read_index.tab>
 ```
-Map Nanopore reads from a single sample to get approximate sequence for genes present
+
+Map Nanopore reads from a single sample to get approximate sequence for
+genes present
+
 ```
 pandora map <panrg.fa> <reads.fq>
 ```
@@ -51,21 +91,34 @@ pandora map <panrg.fa> <reads.fq>
 ## Installation
 
 ### Containers
-We highly recommend that you download a containerized image of Pandora. Pandora is hosted on Dockerhub and images can be downloaded with the command:
+
+![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/rmcolq/pandora)
+
+We highly recommend that you download a containerized image of Pandora.
+Pandora is hosted on Dockerhub and images can be downloaded with the
+command:
+
 ```
 docker pull rmcolq/pandora:latest
 ```
+
 Alternatively, using singularity:
+
 ```
 singularity pull docker://rmcolq/pandora:latest
 ```
+
 NB For consistency, we no longer maintain images on singularity hub.
 
 ### Installation from source
-This is not recommended because the required zlib and boost system installs do not always play nicely.
-If you want to take the risk:
+
+This is not recommended because the required zlib and boost system
+installs do not always play nicely. If you want to take the risk:
 - Requires a Unix or Mac OS.
-- Requires a system install of `zlib`. If this is not already installed, [this](https://geeksww.com/tutorials/libraries/zlib/installation/installing_zlib_on_ubuntu_linux.php) tutorial is helpful or try the following.
+- Requires a system install of `zlib`. If this is not already installed,
+  [this](https://geeksww.com/tutorials/libraries/zlib/installation/installing_zlib_on_ubuntu_linux.php)
+  tutorial is helpful or try the following.
+
 ```
 wget http://www.zlib.net/zlib-1.2.11.tar.gz -O - | tar xzf -
 cd zlib-1.2.11
@@ -73,14 +126,23 @@ cd zlib-1.2.11
 make
 make install
 ```
-- Requires a system installation of `boost` containing the `system`, `filesystem`, `log` (which also depends on `thread` and `date_time`) and `iostreams` libraries. If not already installed use the following or look at [this](https://www.boost.org/doc/libs/1_62_0/more/getting_started/unix-variants.html) guide.
+
+- Requires a system installation of `boost` containing the `system`,
+  `filesystem`, `log` (which also depends on `thread` and `date_time`)
+  and `iostreams` libraries. If not already installed use the following
+  or look at
+  [this](https://www.boost.org/doc/libs/1_62_0/more/getting_started/unix-variants.html)
+  guide.
+
 ```
 wget https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.gz -O - | tar xzf -
 cd boost_1_62_0
 ./bootstrap.sh [--prefix=/prefix/path] --with-libraries=system,filesystem,iostreams,log,thread,date_time
 ./b2 install
 ```
+
 - Download and install `pandora` as follows:
+
 ```
 git clone --single-branch https://github.com/rmcolq/pandora.git --recursive
 cd pandora
@@ -113,11 +175,20 @@ Subcommands:
 ```
 
 ### Population Reference Graphs
-Pandora assumes you have already constructed a fasta-like file of graphs, one entry for each gene/ genome region of interest.
-If you haven't, you will need a multiple sequence alignment for each graph. Precompiled collections of MSA representing othologous gene clusters for a number of species can be downloaded from [here](http://pangenome.de/) and converted to graphs using the pipeline from [here](https://github.com/rmcolq/make_prg).
+
+Pandora assumes you have already constructed a fasta-like file of
+graphs, one entry for each gene/ genome region of interest. If you
+haven't, you will need a multiple sequence alignment for each graph.
+Precompiled collections of MSA representing othologous gene clusters for
+a number of species can be downloaded from [here](http://pangenome.de/)
+and converted to graphs using the pipeline from
+[here](https://github.com/rmcolq/make_prg).
 
 ### Build index
-Takes a fasta-like file of PanRG sequences and constructs an index, and a directory of gfa files to be used by `pandora map` or `pandora compare`. These are output in the same directory as the PanRG file.
+
+Takes a fasta-like file of PanRG sequences and constructs an index, and
+a directory of gfa files to be used by `pandora map` or `pandora
+compare`. These are output in the same directory as the PanRG file.
 
 ```
 $ pandora index --help
@@ -136,10 +207,15 @@ Options:
   -v                          Verbosity of logging. Repeat for increased verbosity
 ```
 
-The index stores (w,k)-minimizers for each PanRG path found. These parameters can be specified, but default to w=14, k=15.
+The index stores (w,k)-minimizers for each PanRG path found. These
+parameters can be specified, but default to w=14, k=15.
 
 ### Map reads to index
-This takes a fasta/q of Nanopore or Illumina reads and compares to the index. It infers which of the PanRG genes/elements is present, and for those that are present it outputs the inferred sequence and a genotyped VCF.
+
+This takes a fasta/q of Nanopore or Illumina reads and compares to the
+index. It infers which of the PanRG genes/elements is present, and for
+those that are present it outputs the inferred sequence and a genotyped
+VCF.
 
 ```
 $ pandora map --help
@@ -199,7 +275,12 @@ Genotyping:
 ```
 
 ### Compare reads from several samples
-This takes Nanopore or Illumina read fasta/q for a number of samples, mapping each to the index. It infers which of the PanRG genes/elements is present in each sample, and outputs a presence/absence pangenome matrix, the inferred sequences for each sample and a genotyped multisample pangenome VCF.
+
+This takes Nanopore or Illumina read fasta/q for a number of samples,
+mapping each to the index. It infers which of the PanRG genes/elements
+is present in each sample, and outputs a presence/absence pangenome
+matrix, the inferred sequences for each sample and a genotyped
+multisample pangenome VCF.
 
 ```
 $ pandora compare --help
@@ -256,7 +337,8 @@ Genotyping:
 
 ### Discover novel variants
 
-This will look for regions in the pangraph where the reads do not map and attempt to locally assemble these regions to find novel variants.
+This will look for regions in the pangraph where the reads do not map
+and attempt to locally assemble these regions to find novel variants.
 
 ```
 $ pandora discover --help
@@ -309,3 +391,4 @@ Filtering:
 Consensus/Variant Calling:
   --kmer-avg INT              Maximum number of kmers to average over when selecting the maximum likelihood path [default: 100]
 ```
+
