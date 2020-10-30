@@ -41,7 +41,7 @@ struct DiscoverOptions {
     uint32_t min_candidate_len { 1 };
     uint32_t max_candidate_len { 50 };
     uint16_t candidate_padding { 22 };
-    uint32_t merge_dist { 22 };
+    uint32_t merge_dist { 15 };
     uint32_t min_cluster_size { 10 };
     uint32_t max_num_kmers_to_avg { 100 };
     bool clean_dbg { false };

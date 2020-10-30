@@ -357,7 +357,7 @@ Options:
   -l INT                      Min. length of consecutive positions below coverage threshold to trigger variant discovery [default: 1]
   -L INT                      Max. length of consecutive positions below coverage threshold to trigger variant discovery [default: 50]
   -P,--pad INT                Padding either side of candidate variant intervals [default: 22]
-  -d,--merge INT              Merge candidate variant intervals within distance [default: 22]
+  -d,--merge INT              Merge candidate variant intervals within distance [default: 15]
   --min-dbg-dp INT            Minimum node/kmer depth in the de Bruijn graph used for discovering variants [default: 2]
   -v                          Verbosity of logging. Repeat for increased verbosity
 
