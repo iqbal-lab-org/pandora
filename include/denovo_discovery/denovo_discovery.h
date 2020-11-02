@@ -20,7 +20,7 @@ private:
 public:
     const uint16_t max_insertion_size;
     const uint16_t min_covg_for_node_in_assembly_graph;
-    bool clean_assembly_graph;
+    const bool clean_assembly_graph;
 
     DenovoDiscovery(const uint16_t& kmer_size, const double& read_error_rate,
         uint16_t max_insertion_size = 15,
