@@ -211,10 +211,10 @@ TEST(FindPathsThroughCandidateRegionTest, endKmerExistsInStartKmersFindPathAndCy
 TEST(FindPathsThroughCandidateRegionTest,
     doGraphCleaningtwoIdenticalReadsPlusNoiseReturnOnePath)
 {
+    const auto clean { true };
     const int k { 9 };
     const double error_rate { 0.11 };
-    DenovoDiscovery denovo { k, error_rate };
-    denovo.clean_assembly_graph = true;
+    DenovoDiscovery denovo { k, error_rate, 15, 1, clean };
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
     candidate_region.pileup
