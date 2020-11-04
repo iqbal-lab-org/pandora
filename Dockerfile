@@ -1,64 +1,48 @@
 # PANDORA
 # Pan-genome inference and genotyping with long noisy or short accurate reads
 
-ARG UBUNTU_VERSION="18.04"
-FROM ubuntu:"$UBUNTU_VERSION"
+FROM ubuntu:bionic
 
 ENV LC_ALL C.UTF-8
 ENV LANG C.UTF-8
 
-WORKDIR /usr/local
-
-RUN apt update && apt install -y software-properties-common
-RUN apt-add-repository universe && apt update
-RUN apt install -y \
-    build-essential \
-    cmake \
-    git \
-    man \
-    seqtk \
-    time \
-    wget
-
-
-#============================================
-# INSTALL ZLIB
-#============================================
-ENV ZLIB_VERSION 1.2.11
-ENV ZLIB_URL="http://www.zlib.net/zlib-${ZLIB_VERSION}.tar.gz"
-
-RUN wget "$ZLIB_URL" -O - | tar xzf -
-WORKDIR zlib-"$ZLIB_VERSION"
-RUN ./configure --prefix=/usr/ && make && make install
-
-WORKDIR /usr/local
+RUN apt update \
+    && apt install -y software-properties-common \
+    && apt-add-repository universe \
+    && apt update \
+    && apt install --no-install-recommends -y build-essential git cmake wget zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 #============================================
 # INSTALL BOOST
 #============================================
-ENV BOOST_MAJOR 1
-ENV BOOST_MINOR 62
-ENV BOOST_PATCH 0
-ENV BOOST_URL="https://sourceforge.net/projects/boost/files/boost/${BOOST_MAJOR}.${BOOST_MINOR}.${BOOST_PATCH}/boost_${BOOST_MAJOR}_${BOOST_MINOR}_${BOOST_PATCH}.tar.gz"
-ENV BOOST_LIBS="system,filesystem,iostreams,log,thread,date_time"
-
-RUN wget "$BOOST_URL" -O - | tar xzf -
-WORKDIR "boost_${BOOST_MAJOR}_${BOOST_MINOR}_${BOOST_PATCH}"
-RUN ./bootstrap.sh --prefix=/usr/ --with-libraries="$BOOST_LIBS" && ./b2 install
-
-WORKDIR /usr/local
-
+ENV BM 1
+ENV Bm 62
+ENV BP 0
+ENV BOOST_VERSION "${BM}.${Bm}.${BP}"
+ENV BOOST_V_USCORE "${BM}_${Bm}_${BP}"
+ENV BOOST_URL "http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_V_USCORE}.tar.gz"
+ENV BOOST_LIBS "system,filesystem,iostreams,log,thread,date_time"
+ENV BOOST_DIR "/boost_$BOOST_VERSION"
+RUN mkdir -p "$BOOST_DIR" \
+    && { wget --quiet -O - "${BOOST_URL}" | tar --strip-components=1 -xz -C "${BOOST_DIR}"; } \
+    && apt-get remove -y wget
+WORKDIR "$BOOST_DIR"
+RUN ./bootstrap.sh --prefix=/usr/ --with-libraries="$BOOST_LIBS" \
+    && ./b2 install \
+    && cd .. \
+    && rm -rf "$BOOST_DIR"
 #============================================
 # INSTALL PANDORA
 #============================================
-ENV PANDORA_BRANCH dev
-ENV PANDORA_GIT="https://github.com/rmcolq/pandora.git"
 ENV PANDORA_BUILD RELEASE_WITH_ASSERTS
+ENV PANDORA_DIR "/pandora/"
 
-RUN git clone -b "$PANDORA_BRANCH" --single-branch  --recursive "$PANDORA_GIT"
-WORKDIR pandora
-RUN mkdir -p build
-WORKDIR build
-RUN cmake -DCMAKE_BUILD_TYPE="$PANDORA_BUILD" .. && make
-RUN ln -s $(realpath pandora) /usr/local/bin/pandora
-RUN ctest -V
+COPY . $PANDORA_DIR
+WORKDIR ${PANDORA_DIR}/build
+RUN cmake -DCMAKE_BUILD_TYPE="$PANDORA_BUILD" .. \
+    && make \
+    && ctest \
+    && apt-get remove -y cmake git \
+    && ln -s $(realpath pandora) /bin/pandora
