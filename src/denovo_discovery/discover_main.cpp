@@ -141,11 +141,6 @@ void setup_discover_subcommand(CLI::App& app)
         ->capture_default_str()
         ->type_name("INT");
 
-    description = "Padding either side of candidate variant intervals";
-    discover_subcmd->add_option("-P,--pad", opt->candidate_padding, description)
-        ->capture_default_str()
-        ->type_name("INT");
-
     description = "Merge candidate variant intervals within distance";
     discover_subcmd->add_option("-d,--merge", opt->merge_dist, description)
         ->capture_default_str()
@@ -258,8 +253,10 @@ int pandora_discover(DiscoverOptions& opt)
     std::vector<pangenome::NodePtr> nodes_to_remove;
     nodes_to_remove.reserve(pangraph->nodes.size());
 
+    const uint16_t candidate_padding { static_cast<uint16_t>(
+        2 * opt.denovo_kmer_size) };
     Discover discover { opt.min_candidate_covg, opt.min_candidate_len,
-        opt.max_candidate_len, opt.candidate_padding, opt.merge_dist };
+        opt.max_candidate_len, candidate_padding, opt.merge_dist };
 
     // transforms the pangraph->nodes from map to vector so that we can run it in
     // parallel
