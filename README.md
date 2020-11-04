@@ -351,12 +351,11 @@ Positionals:
 
 Options:
   -h,--help                   Print this help message and exit
-  --discover-k INT:[0-32)     K-mer size to use when discovering novel variants [default: 11]
+  --discover-k INT:[0-32)     K-mer size to use when discovering novel variants [default: 15]
   --max-ins INT               Max. insertion size for novel variants. Warning: setting too long may impair performance [default: 15]
   --covg-threshold INT        Positions with coverage less than this will be tagged for variant discovery [default: 3]
   -l INT                      Min. length of consecutive positions below coverage threshold to trigger variant discovery [default: 1]
-  -L INT                      Max. length of consecutive positions below coverage threshold to trigger variant discovery [default: 50]
-  -P,--pad INT                Padding either side of candidate variant intervals [default: 22]
+  -L INT                      Max. length of consecutive positions below coverage threshold to trigger variant discovery [default: 30]
   -d,--merge INT              Merge candidate variant intervals within distance [default: 15]
   --min-dbg-dp INT            Minimum node/kmer depth in the de Bruijn graph used for discovering variants [default: 2]
   -v                          Verbosity of logging. Repeat for increased verbosity
