@@ -1118,7 +1118,37 @@ TEST(TransformCliGsizeTest, GenomeSizeStringProducesIntToStr)
     const std::string str { "2k" };
 
     const auto actual { transform_cli_gsize(str) };
-    const auto *const expected { "2000" };
+    const auto* const expected { "2000" };
 
     EXPECT_EQ(actual, expected);
+}
+
+TEST(MakeAbsoluteTest, CurrentDirAsPeriodReturnsAbsolutePath)
+{
+    const std::string str { "." };
+
+    const auto actual { make_absolute(str) };
+    const auto expected { fs::current_path() / "." };
+
+    EXPECT_EQ(actual, expected.string());
+}
+
+TEST(MakeAbsoluteTest, RelativeDirReturnsAbsolutePath)
+{
+    const std::string str { "../abs" };
+
+    const auto actual { make_absolute(str) };
+    const auto expected { fs::current_path() / "../abs" };
+
+    EXPECT_EQ(actual, expected.string());
+}
+
+TEST(MakeAbsoluteTest, FileReturnsAbsolutePathToFile)
+{
+    const std::string str { "foo.bar" };
+
+    const auto actual { make_absolute(str) };
+    const auto expected { fs::current_path() / str };
+
+    EXPECT_EQ(actual, expected.string());
 }

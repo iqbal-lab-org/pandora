@@ -608,3 +608,5 @@ std::string transform_cli_gsize(std::string str)
 {
     return int_to_string(strtogs(str.c_str()));
 }
+
+std::string make_absolute(std::string str) { return fs::absolute(str).string(); }
