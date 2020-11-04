@@ -105,8 +105,11 @@ std::vector<std::string> get_vector_of_strings_from_file(const std::string& file
 // https://github.com/lh3/minimap2/blob/6a4b9f9082b66597185a97c847b548250363d65a/main.c#L84
 uint32_t strtogs(const char*);
 
-// used to transofmr the CLI string
+// used to transform the CLI string
 // https://cliutils.github.io/CLI11/book/chapters/validators.html
 std::string transform_cli_gsize(std::string);
+
+// used to transform paths to absolute paths - designed to be used with CLI11 transform
+std::string make_absolute(std::string);
 
 #endif
