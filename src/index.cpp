@@ -49,17 +49,17 @@ void Index::clear()
     }
 }
 
-void Index::save(const std::string& prgfile, uint32_t w, uint32_t k)
+void Index::save(const fs::path& prgfile, uint32_t w, uint32_t k)
 {
-    auto filename
-        = prgfile + ".k" + std::to_string(k) + ".w" + std::to_string(w) + ".idx";
-    save(filename);
+    const fs::path filepath { prgfile.string() + ".k" + std::to_string(k) + ".w"
+        + std::to_string(w) + ".idx" };
+    save(filepath);
 }
 
-void Index::save(const std::string& indexfile)
+void Index::save(const fs::path& indexfile)
 {
     BOOST_LOG_TRIVIAL(debug) << "Saving index to " << indexfile;
-    std::ofstream handle;
+    fs::ofstream handle;
     handle.open(indexfile);
 
     handle << minhash.size() << std::endl;
@@ -76,14 +76,14 @@ void Index::save(const std::string& indexfile)
                              << " entries to file";
 }
 
-void Index::load(const std::string& prgfile, uint32_t w, uint32_t k)
+void Index::load(fs::path prgfile, uint32_t w, uint32_t k)
 {
-    auto filename
-        = prgfile + ".k" + std::to_string(k) + ".w" + std::to_string(w) + ".idx";
-    load(filename);
+    const auto ext { ".k" + std::to_string(k) + ".w" + std::to_string(w) + ".idx" };
+    prgfile += ext;
+    load(prgfile);
 }
 
-void Index::load(const std::string& indexfile)
+void Index::load(const fs::path& indexfile)
 {
     BOOST_LOG_TRIVIAL(debug) << "Loading index";
     BOOST_LOG_TRIVIAL(debug) << "File is " << indexfile;
@@ -93,7 +93,7 @@ void Index::load(const std::string& indexfile)
     MiniRecord mr;
     bool first = true;
 
-    std::ifstream myfile(indexfile);
+    fs::ifstream myfile(indexfile);
     if (myfile.is_open()) {
         while (myfile.good()) {
             c = myfile.peek();
@@ -175,14 +175,12 @@ bool Index::operator==(const Index& other) const
 
 bool Index::operator!=(const Index& other) const { return !(*this == other); }
 
-void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs, // all PRGs to be indexed
-    std::shared_ptr<Index>& index, // kmer sketch index to be built here
-    const uint32_t w, // window size
-    const uint32_t k, // kmer size
-    const std::string& outdir, uint32_t threads)
+void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    std::shared_ptr<Index>& index, const uint32_t w, const uint32_t k,
+    const fs::path& outdir, uint32_t threads)
 {
     BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
-    if (prgs.size() == 0)
+    if (prgs.empty())
         return;
 
     // first reserve an estimated index size
@@ -195,7 +193,7 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs, // all PRGs to be 
     // create the dirs for the index
     const int nbOfGFAsPerDir = 4000;
     for (uint32_t i = 0; i <= prgs.size() / nbOfGFAsPerDir; ++i)
-        fs::create_directories(outdir + "/" + int_to_string(i + 1));
+        fs::create_directories(outdir / int_to_string(i + 1));
 
     // now fill index
     std::atomic_uint32_t nbOfPRGsDone { 0 };
@@ -204,8 +202,10 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs, // all PRGs to be 
         uint32_t dir = i / nbOfGFAsPerDir + 1;
         prgs[i]->minimizer_sketch(
             index, w, k, (((double)(nbOfPRGsDone.load())) / prgs.size()) * 100);
-        prgs[i]->kmer_prg.save(outdir + "/" + int_to_string(dir) + "/" + prgs[i]->name
-            + ".k" + std::to_string(k) + ".w" + std::to_string(w) + ".gfa");
+        const auto gfa_file { outdir / int_to_string(dir)
+            / (prgs[i]->name + ".k" + std::to_string(k) + ".w" + std::to_string(w)
+                + ".gfa") };
+        prgs[i]->kmer_prg.save(gfa_file);
 
         ++nbOfPRGsDone;
     }

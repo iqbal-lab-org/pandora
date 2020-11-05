@@ -18,9 +18,9 @@ namespace fs = boost::filesystem;
 
 /// Collection of all options of discover subcommand.
 struct DiscoverOptions {
-    std::string prgfile;
-    std::string readsfile;
-    std::string outdir { "pandora_discover" };
+    fs::path prgfile;
+    fs::path readsfile;
+    fs::path outdir { "pandora_discover" };
     uint32_t window_size { 14 };
     uint32_t kmer_size { 15 };
     uint32_t threads { 1 };

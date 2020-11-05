@@ -3,10 +3,11 @@
 void setup_index_subcommand(CLI::App& app)
 {
     auto opt = std::make_shared<IndexOptions>();
-    auto index_subcmd = app.add_subcommand(
+    auto* index_subcmd = app.add_subcommand(
         "index", "Index population reference graph (PRG) sequences.");
     index_subcmd->add_option("<PRG>", opt->prgfile, "PRG to index (in fasta format)")
         ->required()
+        ->transform(make_absolute)
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
@@ -27,6 +28,7 @@ void setup_index_subcommand(CLI::App& app)
 
     index_subcmd->add_option("-o,--outfile", opt->outfile, "Filename for the index")
         ->type_name("FILE")
+        ->transform(make_absolute)
         ->default_str("<PRG>.kXX.wXX.idx");
 
     index_subcmd->add_flag(
@@ -57,26 +59,24 @@ int pandora_index(IndexOptions const& opt)
     read_prg_file(prgs, opt.prgfile, opt.id_offset);
 
     // get output directory for the gfa
-    boost::filesystem::path p(opt.prgfile);
-    boost::filesystem::path dir = p.parent_path();
-    std::string outdir = dir.string();
-    if (outdir.empty())
-        outdir = ".";
-    outdir += "/kmer_prgs";
+    const auto kmer_prgs_outdir { opt.prgfile.parent_path() / "kmer_prgs" };
 
     BOOST_LOG_TRIVIAL(info) << "Indexing PRG...";
     auto index = std::make_shared<Index>();
-    index_prgs(prgs, index, opt.window_size, opt.kmer_size, outdir, opt.threads);
+    index_prgs(
+        prgs, index, opt.window_size, opt.kmer_size, kmer_prgs_outdir, opt.threads);
 
     // save index
     BOOST_LOG_TRIVIAL(info) << "Saving index...";
-    if (not opt.outfile.empty())
+    if (not opt.outfile.empty()) {
         index->save(opt.outfile);
-    else if (opt.id_offset > 0)
-        index->save(opt.prgfile + "." + std::to_string(opt.id_offset), opt.window_size,
-            opt.kmer_size);
-    else
+    } else if (opt.id_offset > 0) {
+        const fs::path outfile { opt.prgfile.string() + "."
+            + std::to_string(opt.id_offset) };
+        index->save(outfile, opt.window_size, opt.kmer_size);
+    } else {
         index->save(opt.prgfile, opt.window_size, opt.kmer_size);
+    }
 
     BOOST_LOG_TRIVIAL(info) << "All done!";
     return 0;

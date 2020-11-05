@@ -8,8 +8,11 @@
 #include <cstdint>
 #include <string>
 #include <limits>
+#include <boost/filesystem/path.hpp>
 #include "minihits.h"
 #include "pangenome/ns.cpp"
+
+namespace fs = boost::filesystem;
 
 class Index;
 
@@ -56,13 +59,13 @@ std::string rev_complement(std::string);
 float lognchoosek2(uint32_t, uint32_t, uint32_t);
 
 // probably should be moved to map_main.cpp
-void read_prg_file(
-    std::vector<std::shared_ptr<LocalPRG>>&, const std::string&, uint32_t id = 0);
+void read_prg_file(std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    const fs::path& filepath, uint32_t id = 0);
 
-void load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>>&, const uint32_t&,
-    const uint32_t&, const std::string&);
+void load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    const uint32_t& w, const uint32_t& k, const fs::path& prgfile);
 
-void load_vcf_refs_file(const std::string&, VCFRefs&);
+void load_vcf_refs_file(const fs::path& filepath, VCFRefs& vcf_refs);
 
 void add_read_hits(const Seq&, const std::shared_ptr<MinimizerHits>&, const Index&);
 

@@ -351,12 +351,11 @@ void KmerGraphWithCoverage::save_covg_dist(const std::string& filepath)
 // save the KmerGraph as gfa
 // TODO: THIS SHOULD BE RECODED, WE ARE DUPLICATING CODE HERE (SEE KmerGraph::save())!!!
 void KmerGraphWithCoverage::save(
-    const std::string& filepath, const std::shared_ptr<LocalPRG> localprg)
+    const fs::path& filepath, const std::shared_ptr<LocalPRG> localprg) const
 {
     uint32_t sample_id = 0;
 
-    std::ofstream handle;
-    handle.open(filepath);
+    fs::ofstream handle(filepath);
     if (handle.is_open()) {
         handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << std::endl;
         for (const auto& c : kmer_prg->nodes) {
