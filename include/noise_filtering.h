@@ -44,6 +44,7 @@ void detangle_pangraph_with_debruijn_graph(
 void clean_pangraph_with_debruijn_graph(std::shared_ptr<pangenome::Graph>,
     const uint_least32_t, const uint_least32_t, const bool illumina = false);
 
-void write_pangraph_gfa(const std::string&, std::shared_ptr<pangenome::Graph>);
+void write_pangraph_gfa(
+    const fs::path& filepath, std::shared_ptr<pangenome::Graph> pangraph);
 
 #endif

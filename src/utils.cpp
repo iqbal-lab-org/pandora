@@ -108,12 +108,12 @@ float lognchoosek2(uint32_t n, uint32_t k1, uint32_t k2)
     return total;
 }
 
-void read_prg_file(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    const std::string& filepath, uint32_t id)
+void read_prg_file(
+    std::vector<std::shared_ptr<LocalPRG>>& prgs, const fs::path& filepath, uint32_t id)
 {
     BOOST_LOG_TRIVIAL(debug) << "Loading PRGs from file " << filepath;
 
-    FastaqHandler fh(filepath);
+    FastaqHandler fh(filepath.string());
     while (!fh.eof()) {
         try {
             fh.get_next();
@@ -137,36 +137,31 @@ void read_prg_file(std::vector<std::shared_ptr<LocalPRG>>& prgs,
 }
 
 void load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    const uint32_t& w, const uint32_t& k, const std::string& prgfile)
+    const uint32_t& w, const uint32_t& k, const fs::path& prgfile)
 {
     BOOST_LOG_TRIVIAL(debug) << "Loading kmer_prgs from files";
-    std::string prefix = "";
-    size_t pos = prgfile.find_last_of("/");
-    if (pos != std::string::npos) {
-        prefix += prgfile.substr(0, pos);
-        prefix += "/";
-    }
+    const auto kmer_prgs_dir { prgfile.parent_path() / "kmer_prgs" };
 
     auto dir_num = 0;
-    std::string dir;
+    fs::path dir;
     for (const auto& prg : prgs) {
         if (prg->id % 4000 == 0) {
-            dir = prefix + "kmer_prgs/" + int_to_string(dir_num + 1);
+            dir = kmer_prgs_dir / int_to_string(dir_num + 1);
             dir_num++;
-            boost::filesystem::path p(dir);
-            if (not boost::filesystem::exists(p))
-                dir = prefix + "kmer_prgs";
+            if (not fs::exists(dir))
+                dir = kmer_prgs_dir;
         }
-        prg->kmer_prg.load(dir + "/" + prg->name + ".k" + std::to_string(k) + ".w"
-            + std::to_string(w) + ".gfa");
+        const auto filename { prg->name + ".k" + std::to_string(k) + ".w"
+            + std::to_string(w) + ".gfa" };
+        prg->kmer_prg.load(dir / filename);
     }
 }
 
-void load_vcf_refs_file(const std::string& filepath, VCFRefs& vcf_refs)
+void load_vcf_refs_file(const fs::path& filepath, VCFRefs& vcf_refs)
 {
     BOOST_LOG_TRIVIAL(info) << "Loading VCF refs from file " << filepath;
 
-    FastaqHandler fh(filepath);
+    FastaqHandler fh(filepath.string());
     while (!fh.eof()) {
         try {
             fh.get_next();

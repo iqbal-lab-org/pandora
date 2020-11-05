@@ -512,10 +512,9 @@ pangenome::Node convert_node_debruijn_pangraph(
 }
 
 void write_pangraph_gfa(
-    const std::string& filepath, std::shared_ptr<pangenome::Graph> pangraph)
+    const fs::path& filepath, std::shared_ptr<pangenome::Graph> pangraph)
 {
-    std::ofstream gfa_fhandle;
-    gfa_fhandle.open(filepath);
+    fs::ofstream gfa_fhandle(filepath);
     gfa::dump::header(gfa_fhandle);
     gfa::dump::nodes(pangraph, gfa_fhandle);
 

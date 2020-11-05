@@ -451,10 +451,10 @@ bool pangenome::Graph::operator!=(const Graph& y) const { return !(*this == y); 
 
 // Saves a presence/absence/copynumber matrix for each node and each sample
 void pangenome::Graph::save_matrix(
-    const std::string& filepath, const std::vector<std::string>& sample_names)
+    const fs::path& filepath, const std::vector<std::string>& sample_names)
 {
     // write a presence/absence matrix for samples and nodes
-    std::ofstream handle;
+    fs::ofstream handle;
     handle.open(filepath);
 
     // save header line with sample names
@@ -480,11 +480,11 @@ void pangenome::Graph::save_matrix(
 }
 
 void pangenome::Graph::save_mapped_read_strings(
-    const std::string& readfilepath, const std::string& outdir, const int32_t buff)
+    const fs::path& readfilepath, const fs::path& outdir, const int32_t buff)
 {
     BOOST_LOG_TRIVIAL(debug) << "Save mapped read strings and coordinates";
-    std::ofstream outhandle;
-    FastaqHandler readfile(readfilepath);
+    fs::ofstream outhandle;
+    FastaqHandler readfile(readfilepath.string());
     uint32_t start, end;
 
     // for each node in pangraph, find overlaps and write to a file
@@ -493,9 +493,12 @@ void pangenome::Graph::save_mapped_read_strings(
         BOOST_LOG_TRIVIAL(debug)
             << "Find coordinates for node " << node_ptr.second->name;
         node_ptr.second->get_read_overlap_coordinates(read_overlap_coordinates);
-        fs::create_directories(outdir + "/" + node_ptr.second->get_name());
-        outhandle.open(outdir + "/" + node_ptr.second->get_name() + "/"
-            + node_ptr.second->get_name() + ".reads.fa");
+
+        const auto node_outpath { outdir / node_ptr.second->get_name()
+            / (node_ptr.second->get_name() + ".reads.fa") };
+        fs::create_directories(node_outpath.parent_path());
+        outhandle.open(node_outpath);
+
         for (const auto& coord : read_overlap_coordinates) {
             readfile.get_nth_read(coord[0]);
             start = (uint32_t)std::max((int32_t)coord[1] - buff, 0);

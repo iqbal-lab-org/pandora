@@ -193,7 +193,7 @@ int find_prob_thresh(std::vector<uint32_t>& kmer_prob_dist)
 }
 
 uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
-    const std::string& outdir, const uint32_t k, float& e_rate, const uint32_t covg,
+    const fs::path& outdir, const uint32_t k, float& e_rate, const uint32_t covg,
     bool& bin, const uint32_t& sample_id)
 {
     uint32_t exp_depth_covg = covg;
@@ -234,13 +234,16 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     num_reads = num_reads / pangraph->nodes.size();
 
     // save coverage distribution
-    BOOST_LOG_TRIVIAL(info) << "Writing kmer coverage distribution to " << outdir
-                            << "/kmer_covgs.txt";
     fs::create_directories(outdir);
-    std::ofstream handle;
-    handle.open(outdir + "/kmer_covgs.txt");
-    assert(!handle.fail()
-        or assert_msg("Could not open file " << outdir + "/kmer_covgs.txt"));
+    fs::ofstream handle;
+    const auto covg_filepath { outdir / "kmer_covgs.txt" };
+    BOOST_LOG_TRIVIAL(info) << "Writing kmer coverage distribution to "
+                            << covg_filepath;
+    handle.open(covg_filepath);
+    if (handle.fail()) {
+        throw std::runtime_error("Could not open file " + covg_filepath.string());
+    }
+
     for (uint32_t j = 0; j != kmer_covg_dist.size(); ++j) {
         handle << j << "\t" << kmer_covg_dist[j] << std::endl;
     }
@@ -314,11 +317,14 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     }
 
     // save probability distribution
-    BOOST_LOG_TRIVIAL(info) << "Writing kmer probability distribution to " << outdir
-                            << "/kmer_probs.txt";
-    handle.open(outdir + "/kmer_probs.txt");
-    assert(!handle.fail()
-        or assert_msg("Could not open file " << outdir + "/kmer_probs.txt"));
+    const auto kmer_prob_filepath { outdir / "kmer_probs.txt" };
+    BOOST_LOG_TRIVIAL(info) << "Writing kmer probability distribution to "
+                            << kmer_prob_filepath;
+    handle.open(kmer_prob_filepath);
+    if (handle.fail()) {
+        throw std::runtime_error("Could not open file " + kmer_prob_filepath.string());
+    }
+
     for (int j = 0; (uint32_t)j != kmer_prob_dist.size(); ++j) {
         handle << j - 200 << "\t" << kmer_prob_dist[j] << std::endl;
     }

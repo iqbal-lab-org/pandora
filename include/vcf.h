@@ -6,13 +6,25 @@
 #include <memory>
 #include <string>
 #include <cstdint>
+#include <iostream>
+#include <cassert>
+#include <ctime>
+#include <algorithm>
+#include <map>
+
+#include <boost/filesystem.hpp>
+#include <boost/log/trivial.hpp>
 #include "vcfrecord.h"
 #include "IITree.h"
-#include <map>
 #include "OptionsAggregator.h"
+
+#include "vcfrecord.h"
+#include "utils.h"
 
 class LocalNode;
 class VCFRecord;
+
+namespace fs = boost::filesystem;
 
 typedef std::shared_ptr<LocalNode> LocalNodePtr;
 
@@ -33,7 +45,7 @@ public:
         : genotyping_options(genotyping_options)
     {
     }
-    virtual ~VCF() {}
+    virtual ~VCF() { }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -114,18 +126,18 @@ public:
     // TODO : give a file handler instead of filepath to allow for mocking
     // TODO : the file handler must be a wrapper on ostream, to allow for mocking in
     // fact
-    virtual void save(const std::string& filepath,
-        bool genotyping_from_maximum_likelihood, bool genotyping_from_coverage,
-        bool output_dot_allele = false, bool graph_is_simple = true,
-        bool graph_is_nested = true, bool graph_has_too_many_alts = true,
-        bool sv_type_is_snp = true, bool sv_type_is_indel = true,
-        bool sv_type_is_ph_snps = true, bool sv_type_is_complex = true);
+    virtual void save(const fs::path& filepath, bool genotyping_from_maximum_likelihood,
+        bool genotyping_from_coverage, bool output_dot_allele = false,
+        bool graph_is_simple = true, bool graph_is_nested = true,
+        bool graph_has_too_many_alts = true, bool sv_type_is_snp = true,
+        bool sv_type_is_indel = true, bool sv_type_is_ph_snps = true,
+        bool sv_type_is_complex = true);
 
     // concatenate several VCF files that were previously written to disk as .vcfs into
     // a single VCF file
     static void concatenate_VCFs(
-        const std::vector<std::string>& VCF_paths_to_be_concatenated,
-        const std::string& final_VCF_file);
+        const std::vector<fs::path>& VCF_paths_to_be_concatenated,
+        const fs::path& final_VCF_file);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 protected:

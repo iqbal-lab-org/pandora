@@ -12,10 +12,13 @@ class KmerNode;
 #include <unordered_map>
 #include <ostream>
 #include <vector>
+#include <boost/filesystem.hpp>
 
 #include "minihits.h"
 #include "localPRG.h"
 #include "pangenome/ns.cpp"
+
+namespace fs = boost::filesystem;
 
 using KmerNodePtr = std::shared_ptr<KmerNode>;
 using ReadId = uint32_t;
@@ -152,9 +155,9 @@ public:
     bool operator==(const Graph& y) const;
     bool operator!=(const Graph& y) const;
     // graph read/write
-    void save_matrix(const std::string&, const std::vector<std::string>&);
-    void save_mapped_read_strings(const std::string& read_filepath,
-        const std::string& outprefix, const int buff = 0);
+    void save_matrix(const fs::path& filepath, const std::vector<std::string>& sample_names);
+    void save_mapped_read_strings(
+        const fs::path& readfilepath, const fs::path& outdir, int32_t buff = 0);
     friend std::ostream& operator<<(std::ostream& out, const Graph& m);
 };
 

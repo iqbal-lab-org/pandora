@@ -31,13 +31,13 @@ using SampleIdText = std::string;
 using SampleFpath = std::string;
 
 struct CompareOptions {
-    std::string prgfile;
-    std::string reads_idx_file;
-    std::string outdir { "pandora" };
+    fs::path prgfile;
+    fs::path reads_idx_file;
+    fs::path outdir { "pandora" };
     uint32_t window_size { 14 };
     uint32_t kmer_size { 15 };
     uint32_t threads { 1 };
-    std::string vcf_refs_file;
+    fs::path vcf_refs_file;
     uint8_t verbosity { 0 };
     float error_rate { 0.11 };
     uint32_t genome_size { 5000000 };
@@ -60,7 +60,7 @@ struct CompareOptions {
 };
 
 std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
-    const std::string& read_index_fpath);
+    const fs::path& read_index_fpath);
 void setup_compare_subcommand(CLI::App& app);
 int pandora_compare(CompareOptions& opt);
 

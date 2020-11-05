@@ -1,15 +1,4 @@
-#include <iostream>
-#include <fstream>
-#include <cassert>
-#include <ctime>
-#include <vector>
-#include <algorithm>
-
-#include <boost/log/trivial.hpp>
-
-#include "vcfrecord.h"
 #include "vcf.h"
-#include "utils.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -430,13 +419,13 @@ std::vector<VCFRecord*> VCF::get_all_records_overlapping_the_given_record(
     return overlapping_records;
 }
 
-void VCF::save(const std::string& filepath, bool genotyping_from_maximum_likelihood,
+void VCF::save(const fs::path& filepath, bool genotyping_from_maximum_likelihood,
     bool genotyping_from_coverage, bool output_dot_allele, bool graph_is_simple,
     bool graph_is_nested, bool graph_has_too_many_alts, bool sv_type_is_snp,
     bool sv_type_is_indel, bool sv_type_is_ph_snps, bool sv_type_is_complex)
 {
     BOOST_LOG_TRIVIAL(debug) << "Saving VCF to " << filepath;
-    std::ofstream handle;
+    fs::ofstream handle;
     handle.open(filepath);
     handle << this->to_string(genotyping_from_maximum_likelihood,
         genotyping_from_coverage, output_dot_allele, graph_is_simple, graph_is_nested,
@@ -574,20 +563,20 @@ bool VCF::operator==(const VCF& y) const
 
 bool VCF::operator!=(const VCF& y) const { return !(*this == y); }
 
-void VCF::concatenate_VCFs(const std::vector<std::string>& VCF_paths_to_be_concatenated,
-    const std::string& final_VCF_file)
+void VCF::concatenate_VCFs(const std::vector<fs::path>& VCF_paths_to_be_concatenated,
+    const fs::path& final_VCF_file)
 {
     std::ofstream out_file;
-    open_file_for_writing(final_VCF_file, out_file);
+    open_file_for_writing(final_VCF_file.string(), out_file);
 
     bool header_is_output = false;
     for (const auto& VCF_path : VCF_paths_to_be_concatenated) {
         std::ifstream in_file;
-        open_file_for_reading(VCF_path, in_file);
+        open_file_for_reading(VCF_path.string(), in_file);
 
         std::string line;
         while (std::getline(in_file, line)) {
-            if ((line[0] != '#') || (line[0] == '#' && header_is_output == false))
+            if ((line[0] != '#') || (line[0] == '#' && !header_is_output))
                 out_file << line << std::endl;
         }
         header_is_output = true;

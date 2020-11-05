@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <map>
 #include <cassert>
+#include <boost/filesystem.hpp>
 
 #include "utils.h"
 #include "localPRG.h"
@@ -29,13 +30,13 @@ namespace fs = boost::filesystem;
 
 /// Collection of all options of map subcommand.
 struct MapOptions {
-    std::string prgfile;
-    std::string readsfile;
-    std::string outdir { "pandora" };
+    fs::path prgfile;
+    fs::path readsfile;
+    fs::path outdir { "pandora" };
     uint32_t window_size { 14 };
     uint32_t kmer_size { 15 };
     uint32_t threads { 1 };
-    std::string vcf_refs_file;
+    fs::path vcf_refs_file;
     uint8_t verbosity { 0 };
     float error_rate { 0.11 };
     uint32_t genome_size { 5000000 };

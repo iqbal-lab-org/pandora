@@ -237,10 +237,9 @@ std::ostream& operator<<(std::ostream& out, KmerGraph const& data)
 }
 
 // save the KmerGraph as gfa
-void KmerGraph::save(
-    const std::string& filepath, const std::shared_ptr<LocalPRG> localprg)
+void KmerGraph::save(const fs::path& filepath, const std::shared_ptr<LocalPRG> localprg)
 {
-    std::ofstream handle;
+    fs::ofstream handle;
     handle.open(filepath);
     if (handle.is_open()) {
         handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << std::endl;
@@ -269,18 +268,18 @@ void KmerGraph::save(
     }
 }
 
-void KmerGraph::load(const std::string& filepath)
+void KmerGraph::load(const fs::path& filepath)
 {
     clear();
 
     std::string line;
     std::vector<std::string> split_line;
     std::stringstream ss;
-    uint32_t id = 0, covg, from, to;
+    uint32_t id = 0, from, to;
     prg::Path p;
     uint32_t num_nodes = 0;
 
-    std::ifstream myfile(filepath);
+    fs::ifstream myfile(filepath);
     if (myfile.is_open()) {
 
         while (getline(myfile, line).good()) {
@@ -321,8 +320,6 @@ void KmerGraph::load(const std::string& filepath)
                 if (k == 0 and p.length() > 0) {
                     k = p.length();
                 }
-                covg = stoi(split(split_line[3], "FC:i:")[0]);
-                covg = stoi(split(split_line[4], "RC:i:")[0]);
                 if (split_line.size() >= 6) {
                     kmer_node->num_AT = std::stoi(split_line[5]);
                 }
