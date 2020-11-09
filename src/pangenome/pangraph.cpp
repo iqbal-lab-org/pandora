@@ -300,14 +300,20 @@ void pangenome::Graph::add_hits_to_kmergraphs(
                            ->nodes[minimizer_hit.get_kmer_node_id()]
                     != nullptr);
 
-                pangraph_node.kmer_prg_with_coverage.increment_covg(
-                    minimizer_hit.get_kmer_node_id(), minimizer_hit.is_forward(),
-                    sample_id);
+                if (minimizer_hit.is_forward()) {
+                    pangraph_node.kmer_prg_with_coverage.increment_forward_covg(
+                        minimizer_hit.get_kmer_node_id(), sample_id);
+                } else {
+                    pangraph_node.kmer_prg_with_coverage.increment_reverse_covg(
+                        minimizer_hit.get_kmer_node_id(), sample_id);
+                }
 
-                if (pangraph_node.kmer_prg_with_coverage.get_covg(
-                        minimizer_hit.get_kmer_node_id(), minimizer_hit.is_forward(),
-                        sample_id)
-                    == 1000) {
+                const auto covg { minimizer_hit.is_forward()
+                        ? pangraph_node.kmer_prg_with_coverage.get_forward_covg(
+                            minimizer_hit.get_kmer_node_id(), sample_id)
+                        : pangraph_node.kmer_prg_with_coverage.get_reverse_covg(
+                            minimizer_hit.get_kmer_node_id(), sample_id) };
+                if (covg == 1000) {
                     BOOST_LOG_TRIVIAL(debug)
                         << "Adding hit " << minimizer_hit
                         << " resulted in high coverage on node "
@@ -340,14 +346,14 @@ void pangenome::Graph::copy_coverages_to_kmergraphs(
             pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes) {
             const auto& knode_id = kmergraph_node_ptr->id;
             assert(knode_id < ref_node.kmer_prg_with_coverage.kmer_prg->nodes.size());
-            pangraph_node.kmer_prg_with_coverage.set_covg(knode_id,
-                (uint16_t)(ref_node.kmer_prg_with_coverage.get_covg(
-                    knode_id, 0, ref_sample_id)),
-                0, sample_id);
-            pangraph_node.kmer_prg_with_coverage.set_covg(knode_id,
-                (uint16_t)(ref_node.kmer_prg_with_coverage.get_covg(
-                    knode_id, 1, ref_sample_id)),
-                1, sample_id);
+            pangraph_node.kmer_prg_with_coverage.set_reverse_covg(knode_id,
+                (uint16_t)(ref_node.kmer_prg_with_coverage.get_reverse_covg(
+                    knode_id, ref_sample_id)),
+                sample_id);
+            pangraph_node.kmer_prg_with_coverage.set_forward_covg(knode_id,
+                (uint16_t)(ref_node.kmer_prg_with_coverage.get_forward_covg(
+                    knode_id, ref_sample_id)),
+                sample_id);
         }
     }
 }
@@ -394,8 +400,8 @@ std::vector<LocalNodePtr> pangenome::Graph::get_node_closest_vcf_reference(
                     sample_path[i]->id < kmer_prg_with_coverage.kmer_prg->nodes.size()
                     and kmer_prg_with_coverage.kmer_prg->nodes[sample_path[i]->id]
                         != nullptr);
-                kmer_prg_with_coverage.increment_covg(sample_path[i]->id, 0, 0);
-                kmer_prg_with_coverage.increment_covg(sample_path[i]->id, 1, 0);
+                kmer_prg_with_coverage.increment_forward_covg(sample_path[i]->id, 0);
+                kmer_prg_with_coverage.increment_reverse_covg(sample_path[i]->id, 0);
             }
         }
     }

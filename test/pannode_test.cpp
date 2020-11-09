@@ -76,20 +76,20 @@ TEST(PangenomeNodeTest, add_path)
     const auto& nodes = pn1.kmer_prg_with_coverage.kmer_prg->nodes;
     kmp = { nodes[0], nodes[3], nodes[4], nodes[6] };
     pn1.add_path(kmp, 0);
-    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_covg(0, 0, 0));
-    EXPECT_EQ((uint)0, pn1.kmer_prg_with_coverage.get_covg(1, 0, 0));
-    EXPECT_EQ((uint)0, pn1.kmer_prg_with_coverage.get_covg(2, 0, 0));
-    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_covg(3, 0, 0));
-    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_covg(4, 0, 0));
-    EXPECT_EQ((uint)0, pn1.kmer_prg_with_coverage.get_covg(5, 0, 0));
-    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_covg(6, 0, 0));
-    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_covg(0, 1, 0));
-    EXPECT_EQ((uint)0, pn1.kmer_prg_with_coverage.get_covg(1, 1, 0));
-    EXPECT_EQ((uint)0, pn1.kmer_prg_with_coverage.get_covg(2, 1, 0));
-    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_covg(3, 1, 0));
-    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_covg(4, 1, 0));
-    EXPECT_EQ((uint)0, pn1.kmer_prg_with_coverage.get_covg(5, 1, 0));
-    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_covg(6, 1, 0));
+    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_reverse_covg(0, 0));
+    EXPECT_EQ((uint)0, pn1.kmer_prg_with_coverage.get_reverse_covg(1, 0));
+    EXPECT_EQ((uint)0, pn1.kmer_prg_with_coverage.get_reverse_covg(2, 0));
+    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_reverse_covg(3, 0));
+    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_reverse_covg(4, 0));
+    EXPECT_EQ((uint)0, pn1.kmer_prg_with_coverage.get_reverse_covg(5, 0));
+    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_reverse_covg(6, 0));
+    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_forward_covg(0, 0));
+    EXPECT_EQ((uint)0, pn1.kmer_prg_with_coverage.get_forward_covg(1, 0));
+    EXPECT_EQ((uint)0, pn1.kmer_prg_with_coverage.get_forward_covg(2, 0));
+    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_forward_covg(3, 0));
+    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_forward_covg(4, 0));
+    EXPECT_EQ((uint)0, pn1.kmer_prg_with_coverage.get_forward_covg(5, 0));
+    EXPECT_EQ((uint)1, pn1.kmer_prg_with_coverage.get_forward_covg(6, 0));
 }
 
 TEST(PangenomeNodeTest, get_read_overlap_coordinates)
@@ -189,7 +189,7 @@ protected:
             modified_PRG->prg.nodes[5], modified_PRG->prg.nodes[7] };
     }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     uint32_t w, k, min_kmer_covg;
     std::shared_ptr<Index> index;
@@ -617,14 +617,14 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture,
     auto& pannode1 = *pangraph.nodes[nested_varsite_PRG->id];
     auto& pannode2 = *pangraph.nodes[modified_PRG->id];
 
-    pannode1.kmer_prg_with_coverage.set_covg(0, 4, 0, 0);
-    pannode1.kmer_prg_with_coverage.set_covg(2, 4, 0, 0);
-    pannode1.kmer_prg_with_coverage.set_covg(6, 4, 0, 0);
-    pannode1.kmer_prg_with_coverage.set_covg(9, 4, 0, 0);
-    pannode2.kmer_prg_with_coverage.set_covg(0, 4, 0, 0);
-    pannode2.kmer_prg_with_coverage.set_covg(1, 4, 0, 0);
-    pannode2.kmer_prg_with_coverage.set_covg(5, 4, 0, 0);
-    pannode2.kmer_prg_with_coverage.set_covg(9, 4, 0, 0);
+    pannode1.kmer_prg_with_coverage.set_forward_covg(0, 4, 0);
+    pannode1.kmer_prg_with_coverage.set_forward_covg(2, 4, 0);
+    pannode1.kmer_prg_with_coverage.set_forward_covg(6, 4, 0);
+    pannode1.kmer_prg_with_coverage.set_forward_covg(9, 4, 0);
+    pannode2.kmer_prg_with_coverage.set_forward_covg(0, 4, 0);
+    pannode2.kmer_prg_with_coverage.set_forward_covg(1, 4, 0);
+    pannode2.kmer_prg_with_coverage.set_forward_covg(5, 4, 0);
+    pannode2.kmer_prg_with_coverage.set_forward_covg(9, 4, 0);
 
     // sample2 identical to sample1 in prg1, no prg2
     sample_kmer_path = { nested_varsite_kmer_coverage_graph_pointer->nodes[0],
@@ -634,10 +634,10 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture,
     pangraph.add_node(nested_varsite_PRG);
     pangraph.add_hits_between_PRG_and_sample(
         nested_varsite_PRG->id, sample_names[1], sample_kmer_path);
-    pannode1.kmer_prg_with_coverage.set_covg(0, 10, 0, 1);
-    pannode1.kmer_prg_with_coverage.set_covg(2, 10, 0, 1);
-    pannode1.kmer_prg_with_coverage.set_covg(6, 10, 0, 1);
-    pannode1.kmer_prg_with_coverage.set_covg(9, 10, 0, 1);
+    pannode1.kmer_prg_with_coverage.set_forward_covg(0, 10, 1);
+    pannode1.kmer_prg_with_coverage.set_forward_covg(2, 10, 1);
+    pannode1.kmer_prg_with_coverage.set_forward_covg(6, 10, 1);
+    pannode1.kmer_prg_with_coverage.set_forward_covg(9, 10, 1);
 
     // sample3 with top path
     sample_kmer_path = { nested_varsite_kmer_coverage_graph_pointer->nodes[0],
@@ -653,13 +653,13 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture,
     pangraph.add_node(modified_PRG);
     pangraph.add_hits_between_PRG_and_sample(
         modified_PRG->id, sample_names[2], sample_kmer_path);
-    pannode1.kmer_prg_with_coverage.set_covg(0, 2, 0, 2);
-    pannode1.kmer_prg_with_coverage.set_covg(1, 2, 0, 2);
-    pannode1.kmer_prg_with_coverage.set_covg(5, 2, 0, 2);
-    pannode1.kmer_prg_with_coverage.set_covg(9, 2, 0, 2);
-    pannode2.kmer_prg_with_coverage.set_covg(0, 2, 0, 2);
-    pannode2.kmer_prg_with_coverage.set_covg(4, 2, 0, 2);
-    pannode2.kmer_prg_with_coverage.set_covg(9, 2, 0, 2);
+    pannode1.kmer_prg_with_coverage.set_forward_covg(0, 2, 2);
+    pannode1.kmer_prg_with_coverage.set_forward_covg(1, 2, 2);
+    pannode1.kmer_prg_with_coverage.set_forward_covg(5, 2, 2);
+    pannode1.kmer_prg_with_coverage.set_forward_covg(9, 2, 2);
+    pannode2.kmer_prg_with_coverage.set_forward_covg(0, 2, 2);
+    pannode2.kmer_prg_with_coverage.set_forward_covg(4, 2, 2);
+    pannode2.kmer_prg_with_coverage.set_forward_covg(9, 2, 2);
 
     // sample4 with bottom path
     sample_kmer_path = { nested_varsite_kmer_coverage_graph_pointer->nodes[0],
@@ -676,14 +676,14 @@ TEST_F(PangenomeNodeTest___construct_multisample_vcf___Fixture,
     pangraph.add_node(modified_PRG);
     pangraph.add_hits_between_PRG_and_sample(
         modified_PRG->id, sample_names[3], sample_kmer_path);
-    pannode1.kmer_prg_with_coverage.set_covg(0, 5, 0, 3);
-    pannode1.kmer_prg_with_coverage.set_covg(4, 5, 0, 3);
-    pannode1.kmer_prg_with_coverage.set_covg(9, 5, 0, 3);
-    pannode2.kmer_prg_with_coverage.set_covg(0, 5, 0, 3);
-    pannode2.kmer_prg_with_coverage.set_covg(3, 5, 0, 3);
-    pannode2.kmer_prg_with_coverage.set_covg(7, 5, 0, 3);
-    pannode2.kmer_prg_with_coverage.set_covg(8, 5, 0, 3);
-    pannode2.kmer_prg_with_coverage.set_covg(9, 5, 0, 3);
+    pannode1.kmer_prg_with_coverage.set_forward_covg(0, 5, 3);
+    pannode1.kmer_prg_with_coverage.set_forward_covg(4, 5, 3);
+    pannode1.kmer_prg_with_coverage.set_forward_covg(9, 5, 3);
+    pannode2.kmer_prg_with_coverage.set_forward_covg(0, 5, 3);
+    pannode2.kmer_prg_with_coverage.set_forward_covg(3, 5, 3);
+    pannode2.kmer_prg_with_coverage.set_forward_covg(7, 5, 3);
+    pannode2.kmer_prg_with_coverage.set_forward_covg(8, 5, 3);
+    pannode2.kmer_prg_with_coverage.set_forward_covg(9, 5, 3);
 
     VCF master_vcf = create_VCF_with_default_parameters(0);
     std::vector<LocalNodePtr> vcf_reference_path1 = { nested_varsite_PRG->prg.nodes[0],

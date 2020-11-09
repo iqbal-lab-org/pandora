@@ -4,12 +4,10 @@
 #include "interval.h"
 #include "prg/path.h"
 #include "kmergraphwithcoverage.h"
-#include "kmernode.h"
 #include "localPRG.h"
 #include <stdint.h>
 #include <iostream>
 #include <cmath>
-#include <cstdint>
 
 using namespace prg;
 
@@ -36,7 +34,8 @@ KmerGraph create_kmergraph(uint32_t nb_of_nodes)
     return kmergraph;
 }
 
-using Nodeindex_Strand_Sampleindex_Tuple = std::tuple<uint32_t, bool, uint32_t>;
+using Nodeindex_Strand_Sampleindex_Tuple
+    = std::tuple<uint32_t, pandora::Strand, uint32_t>;
 
 // function that will help to check the coverages in the tests
 void check_coverages(const KmerGraphWithCoverage& kmergraph_with_coverage,
@@ -48,10 +47,14 @@ void check_coverages(const KmerGraphWithCoverage& kmergraph_with_coverage,
     // per std::map::operator[] and uint16_t default constructor)
     for (uint32_t node_index = 0; node_index < nb_of_nodes; ++node_index) {
         for (uint32_t sample_index = 0; sample_index < nb_of_samples; ++sample_index) {
-            EXPECT_EQ(kmergraph_with_coverage.get_covg(node_index, 0, sample_index),
-                expected_coverage[make_tuple(node_index, 0, sample_index)]);
-            EXPECT_EQ(kmergraph_with_coverage.get_covg(node_index, 1, sample_index),
-                expected_coverage[make_tuple(node_index, 1, sample_index)]);
+            EXPECT_EQ(
+                kmergraph_with_coverage.get_reverse_covg(node_index, sample_index),
+                expected_coverage[make_tuple(
+                    node_index, pandora::Strand::Reverse, sample_index)]);
+            EXPECT_EQ(
+                kmergraph_with_coverage.get_forward_covg(node_index, sample_index),
+                expected_coverage[make_tuple(
+                    node_index, pandora::Strand::Forward, sample_index)]);
         }
     }
 }
@@ -59,9 +62,14 @@ void check_coverages(const KmerGraphWithCoverage& kmergraph_with_coverage,
 // set the coverage in both kmergraph_with_coverage and expected_coverage
 void set_covg_helper(KmerGraphWithCoverage& kmergraph_with_coverage,
     std::map<Nodeindex_Strand_Sampleindex_Tuple, uint16_t>& expected_coverage,
-    uint32_t node_id, uint16_t value, bool strand, uint32_t sample_id)
+    uint32_t node_id, uint16_t value, pandora::Strand strand, uint32_t sample_id)
 {
-    kmergraph_with_coverage.set_covg(node_id, value, strand, sample_id);
+    if (strand == pandora::Strand::Forward) {
+        kmergraph_with_coverage.set_forward_covg(node_id, value, sample_id);
+    } else {
+        kmergraph_with_coverage.set_reverse_covg(node_id, value, sample_id);
+    }
+
     expected_coverage[make_tuple(node_id, strand, sample_id)] = value;
 }
 
@@ -70,108 +78,22 @@ void increment_covg_helper(KmerGraphWithCoverage& kmergraph_with_coverage,
     std::map<Nodeindex_Strand_Sampleindex_Tuple, uint16_t>& expected_coverage,
     uint32_t node_id, bool is_forward, uint32_t sample_id)
 {
-    auto old_covg = kmergraph_with_coverage.get_covg(node_id, is_forward, sample_id);
-    kmergraph_with_coverage.increment_covg(node_id, is_forward, sample_id);
-    expected_coverage[make_tuple(node_id, is_forward, sample_id)] = old_covg + 1;
+    auto old_covg { is_forward
+            ? kmergraph_with_coverage.get_forward_covg(node_id, sample_id)
+            : kmergraph_with_coverage.get_reverse_covg(node_id, sample_id) };
+
+    if (is_forward) {
+        kmergraph_with_coverage.increment_forward_covg(node_id, sample_id);
+        expected_coverage[make_tuple(node_id, pandora::Strand::Forward, sample_id)]
+            = old_covg + 1;
+    } else {
+        kmergraph_with_coverage.increment_reverse_covg(node_id, sample_id);
+        expected_coverage[make_tuple(node_id, pandora::Strand::Reverse, sample_id)]
+            = old_covg + 1;
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// helper functions
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*TEST(KmerGraphWithCoverageTest, equals) {
-    KmerGraph kmergraph1, kmergraph2;
-    deque<Interval> d = {Interval(0, 3)};
-    prg::Path p1, p2, p3;
-    p1.initialize(d);
-    auto n1 = kmergraph1.add_node(p1);
-    auto m1 = kmergraph2.add_node(p1);
-    d = {Interval(1, 4)};
-    p2.initialize(d);
-    auto n2 = kmergraph1.add_node(p2);
-    auto m2 = kmergraph2.add_node(p2);
-    kmergraph1.add_edge(n1, n2);
-    kmergraph2.add_edge(m1, m2);
-
-    d = {Interval(2, 5)};
-    p3.initialize(d);
-    auto m3 = kmergraph2.add_node(p3);
-
-    // same as themselves, different if different numbers of nodes
-    EXPECT_EQ(kmergraph1, kmergraph1);
-    EXPECT_EQ(kmergraph2, kmergraph2);
-    EXPECT_EQ((kmergraph1 == kmergraph2), false);
-    EXPECT_EQ((kmergraph2 == kmergraph1), false);
-
-    auto n3 = kmergraph1.add_node(p3);
-    kmergraph2.add_edge(m1, m3);
-
-    // same as themselves, different if different numbers of edges
-    EXPECT_EQ(kmergraph1, kmergraph1);
-    EXPECT_EQ(kmergraph2, kmergraph2);
-    EXPECT_EQ((kmergraph1 == kmergraph2), false);
-    EXPECT_EQ((kmergraph2 == kmergraph1), false);
-
-    kmergraph1.add_edge(n2, n3);
-
-    // same as themselves, different if edges in different places
-    EXPECT_EQ(kmergraph1, kmergraph1);
-    EXPECT_EQ(kmergraph2, kmergraph2);
-    EXPECT_EQ((kmergraph1 == kmergraph2), false);
-    EXPECT_EQ((kmergraph2 == kmergraph1), false);
-}
-
-TEST(KmerGraphWithCoverageTest, copy) {
-    KmerGraphWithCoverage kmergraph1;
-    deque<Interval> d = {Interval(0, 3)};
-    prg::Path p1, p2, p3;
-    p1.initialize(d);
-    auto n1 = kmergraph1.add_node(p1);
-    d = {Interval(1, 4)};
-    p2.initialize(d);
-    auto n2 = kmergraph1.add_node(p2);
-    kmergraph1.add_edge(n1, n2);
-
-    KmerGraphWithCoverage kmergraph2(kmergraph1);
-
-    EXPECT_EQ(kmergraph1, kmergraph1);
-    EXPECT_EQ(kmergraph2, kmergraph2);
-}
-
-TEST(KmerGraphWithCoverageTest, assign) {
-    KmerGraphWithCoverage kmergraph1;
-    std::deque<Interval> d = {Interval(0, 0)};
-    prg::Path p;
-    p.initialize(d);
-    auto n = kmergraph1.add_node(p);
-    d = {Interval(0, 3)};
-    prg::Path p1, p2, p3;
-    p1.initialize(d);
-    auto n1 = kmergraph1.add_node(p1);
-    d = {Interval(1, 4)};
-    p2.initialize(d);
-    auto n2 = kmergraph1.add_node(p2);
-    kmergraph1.add_edge(n1, n2);
-    d = {Interval(11, 14)};
-    p3.initialize(d);
-    auto n3 = kmergraph1.add_node(p3);
-    kmergraph1.add_edge(n1, n3);
-    d = {Interval(15, 18)};
-    p1.initialize(d);
-    n1 = kmergraph1.add_node(p1);
-    kmergraph1.add_edge(n2, n1);
-    d = {Interval(20, 20)};
-    p.initialize(d);
-    n = kmergraph1.add_node(p);
-    kmergraph1.add_edge(n1, n);
-    kmergraph1.add_edge(n3, n);
-
-    KmerGraphWithCoverage kmergraph2 = kmergraph1;
-
-    EXPECT_EQ(kmergraph1, kmergraph1);
-    EXPECT_EQ(kmergraph2, kmergraph2);
-}*/
 
 TEST(KmerGraphWithCoverageTest, noCoverageSetAllCoverageShouldBe0)
 {
@@ -195,12 +117,18 @@ TEST(KmerGraphWithCoverageTest, severalRamdomCoveragesSet)
     std::map<Nodeindex_Strand_Sampleindex_Tuple, uint16_t> expected_coverage;
 
     // set some random coverages and verify if they are all correctly set
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 0, 100, 0, 5);
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 0, 150, 1, 5);
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 1, 789, 1, 9);
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 2, 120, 0, 3);
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 3, 130, 0, 2);
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 4, 780, 1, 7);
+    set_covg_helper(kmergraph_with_coverage, expected_coverage, 0, 100,
+        pandora::Strand::Forward, 5);
+    set_covg_helper(kmergraph_with_coverage, expected_coverage, 0, 150,
+        pandora::Strand::Reverse, 5);
+    set_covg_helper(kmergraph_with_coverage, expected_coverage, 1, 789,
+        pandora::Strand::Reverse, 9);
+    set_covg_helper(kmergraph_with_coverage, expected_coverage, 2, 120,
+        pandora::Strand::Forward, 3);
+    set_covg_helper(kmergraph_with_coverage, expected_coverage, 3, 130,
+        pandora::Strand::Forward, 2);
+    set_covg_helper(kmergraph_with_coverage, expected_coverage, 4, 780,
+        pandora::Strand::Reverse, 7);
 
     check_coverages(
         kmergraph_with_coverage, expected_coverage, nb_of_nodes, nb_of_samples);
@@ -215,8 +143,10 @@ TEST(KmerGraphWithCoverageTest, maximumCoverageSet)
     std::map<Nodeindex_Strand_Sampleindex_Tuple, uint16_t> expected_coverage;
 
     // setup the maximum coverage
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 4, UINT16_MAX, 0, 1);
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 4, UINT16_MAX, 1, 1);
+    set_covg_helper(kmergraph_with_coverage, expected_coverage, 4, UINT16_MAX,
+        pandora::Strand::Forward, 1);
+    set_covg_helper(kmergraph_with_coverage, expected_coverage, 4, UINT16_MAX,
+        pandora::Strand::Reverse, 1);
 
     check_coverages(
         kmergraph_with_coverage, expected_coverage, nb_of_nodes, nb_of_samples);
@@ -231,8 +161,10 @@ TEST(KmerGraphWithCoverageTest, minimumCoverageSet)
     std::map<Nodeindex_Strand_Sampleindex_Tuple, uint16_t> expected_coverage;
 
     // setup the minimum coverage
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 3, 0, 0, 1);
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 3, 0, 1, 1);
+    set_covg_helper(
+        kmergraph_with_coverage, expected_coverage, 3, 0, pandora::Strand::Forward, 1);
+    set_covg_helper(
+        kmergraph_with_coverage, expected_coverage, 3, 0, pandora::Strand::Reverse, 1);
 
     check_coverages(
         kmergraph_with_coverage, expected_coverage, nb_of_nodes, nb_of_samples);
@@ -247,23 +179,31 @@ TEST(KmerGraphWithCoverageTest, incrementCoverage)
     std::map<Nodeindex_Strand_Sampleindex_Tuple, uint16_t> expected_coverage;
 
     // set some random coverages
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 0, 100, 0, 5);
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 0, 150, 1, 5);
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 1, 789, 1, 9);
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 2, 120, 0, 3);
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 3, 130, 0, 2);
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 4, 780, 1, 7);
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 3, 0, 0, 1);
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 3, 0, 1, 1);
+    set_covg_helper(kmergraph_with_coverage, expected_coverage, 0, 100,
+        pandora::Strand::Forward, 5);
+    set_covg_helper(kmergraph_with_coverage, expected_coverage, 0, 150,
+        pandora::Strand::Reverse, 5);
+    set_covg_helper(kmergraph_with_coverage, expected_coverage, 1, 789,
+        pandora::Strand::Reverse, 9);
+    set_covg_helper(kmergraph_with_coverage, expected_coverage, 2, 120,
+        pandora::Strand::Forward, 3);
+    set_covg_helper(kmergraph_with_coverage, expected_coverage, 3, 130,
+        pandora::Strand::Forward, 2);
+    set_covg_helper(kmergraph_with_coverage, expected_coverage, 4, 780,
+        pandora::Strand::Reverse, 7);
+    set_covg_helper(
+        kmergraph_with_coverage, expected_coverage, 3, 0, pandora::Strand::Forward, 1);
+    set_covg_helper(
+        kmergraph_with_coverage, expected_coverage, 3, 0, pandora::Strand::Reverse, 1);
     // test increment coverage
-    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 0, 0, 5);
-    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 0, 1, 5);
-    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 1, 1, 9);
-    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 2, 0, 3);
-    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 3, 0, 2);
-    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 4, 1, 7);
-    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 3, 0, 1);
-    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 3, 1, 1);
+    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 0, true, 5);
+    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 0, false, 5);
+    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 1, false, 9);
+    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 2, true, 3);
+    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 3, true, 2);
+    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 4, false, 7);
+    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 3, true, 1);
+    increment_covg_helper(kmergraph_with_coverage, expected_coverage, 3, false, 1);
 
     check_coverages(
         kmergraph_with_coverage, expected_coverage, nb_of_nodes, nb_of_samples);
@@ -277,16 +217,15 @@ TEST(KmerGraphWithCoverageTest, incrementCoverageAboveMaximumValue)
     KmerGraphWithCoverage kmergraph_with_coverage(&kmergraph, nb_of_samples);
     std::map<Nodeindex_Strand_Sampleindex_Tuple, uint16_t> expected_coverage;
 
-    set_covg_helper(kmergraph_with_coverage, expected_coverage, 2, UINT16_MAX, 0,
-        9); // first set to max value
+    set_covg_helper(kmergraph_with_coverage, expected_coverage, 2, UINT16_MAX,
+        pandora::Strand::Reverse, 9);
     check_coverages(
         kmergraph_with_coverage, expected_coverage, nb_of_nodes, nb_of_samples);
-    kmergraph_with_coverage.increment_covg(2, 0, 9); // now try to increment
+    kmergraph_with_coverage.increment_reverse_covg(2, 9);
 
-    EXPECT_EQ(kmergraph_with_coverage.get_covg(2, 0, 9),
-        UINT16_MAX); // should still be UINT16_MAX
-    check_coverages(kmergraph_with_coverage, expected_coverage, nb_of_nodes,
-        nb_of_samples); // to be sure nothing changed
+    EXPECT_EQ(kmergraph_with_coverage.get_reverse_covg(2, 9), UINT16_MAX);
+    check_coverages(
+        kmergraph_with_coverage, expected_coverage, nb_of_nodes, nb_of_samples);
 }
 
 TEST(KmerGraphWithCoverageTest, set_exp_depth_covg)
@@ -453,8 +392,8 @@ TEST(KmerGraphWithCoverageTest, findMaxPath_InvalidProbModel)
     uint32_t sample_id = 0;
     uint32_t max_num_kmers_to_average = 100;
 
-    kmergraph_with_coverage.set_covg(1, 4, 0, sample_id);
-    kmergraph_with_coverage.set_covg(2, 3, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(1, 4, sample_id);
+    kmergraph_with_coverage.set_forward_covg(2, 3, sample_id);
 
     kmergraph_with_coverage.num_reads = 5;
     kmergraph_with_coverage.kmer_prg->k = 3;
@@ -473,8 +412,8 @@ TEST(KmerGraphWithCoverageTest, findMaxPathSimple)
     uint32_t sample_id = 0;
     uint32_t max_num_kmers_to_average = 100;
 
-    kmergraph_with_coverage.set_covg(1, 4, 0, sample_id);
-    kmergraph_with_coverage.set_covg(2, 3, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(1, 4, sample_id);
+    kmergraph_with_coverage.set_forward_covg(2, 3, sample_id);
 
     kmergraph_with_coverage.num_reads = 5;
     kmergraph_with_coverage.kmer_prg->k = 3;
@@ -487,9 +426,9 @@ TEST(KmerGraphWithCoverageTest, findMaxPathSimple)
     EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
 
     mp.clear();
-    kmergraph_with_coverage.set_covg(1, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(2, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(5, 5, 1, sample_id);
+    kmergraph_with_coverage.set_forward_covg(1, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(2, 0, sample_id);
+    kmergraph_with_coverage.set_reverse_covg(5, 5, sample_id);
     kmergraph_with_coverage.set_binomial_parameter_p(0.01);
     kmergraph_with_coverage.find_max_path(
         mp, "bin", max_num_kmers_to_average, sample_id);
@@ -504,8 +443,8 @@ TEST(KmerGraphWithCoverageTest, findMaxPathSimple_WithMaxKmersInAvg)
     uint32_t sample_id = 0;
     uint32_t max_num_kmers_to_average = 1;
 
-    kmergraph_with_coverage.set_covg(1, 4, 0, sample_id);
-    kmergraph_with_coverage.set_covg(2, 3, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(1, 4, sample_id);
+    kmergraph_with_coverage.set_forward_covg(2, 3, sample_id);
 
     kmergraph_with_coverage.num_reads = 5;
     kmergraph_with_coverage.kmer_prg->k = 3;
@@ -518,9 +457,9 @@ TEST(KmerGraphWithCoverageTest, findMaxPathSimple_WithMaxKmersInAvg)
     EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
 
     mp.clear();
-    kmergraph_with_coverage.set_covg(1, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(2, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(5, 5, 1, sample_id);
+    kmergraph_with_coverage.set_forward_covg(1, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(2, 0, sample_id);
+    kmergraph_with_coverage.set_reverse_covg(5, 5, sample_id);
     kmergraph_with_coverage.set_binomial_parameter_p(0.01);
     kmergraph_with_coverage.find_max_path(
         mp, "bin", max_num_kmers_to_average, sample_id);
@@ -587,10 +526,10 @@ TEST(KmerGraphWithCoverageTest, findMaxPath2Level_bin)
     uint32_t sample_id = 0;
     uint32_t max_num_kmers_to_average = 100;
 
-    kmergraph_with_coverage.set_covg(4, 4, 0, sample_id);
-    kmergraph_with_coverage.set_covg(5, 3, 0, sample_id);
-    kmergraph_with_coverage.set_covg(6, 4, 0, sample_id);
-    kmergraph_with_coverage.set_covg(7, 3, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(4, 4, sample_id);
+    kmergraph_with_coverage.set_forward_covg(5, 3, sample_id);
+    kmergraph_with_coverage.set_forward_covg(6, 4, sample_id);
+    kmergraph_with_coverage.set_forward_covg(7, 3, sample_id);
 
     kmergraph_with_coverage.num_reads = 5;
     kmergraph_with_coverage.kmer_prg->k = 3;
@@ -612,11 +551,11 @@ TEST(KmerGraphWithCoverageTest, findMaxPath2Level_bin)
     EXPECT_EQ(mp_p, exp_p);
 
     mp.clear();
-    kmergraph_with_coverage.set_covg(4, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(5, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(6, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(7, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(8, 5, 1, sample_id);
+    kmergraph_with_coverage.set_forward_covg(4, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(5, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(6, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(7, 0, sample_id);
+    kmergraph_with_coverage.set_reverse_covg(8, 5, sample_id);
     mp_p = kmergraph_with_coverage.find_max_path(
         mp, "bin", max_num_kmers_to_average, sample_id);
     exp_order = { kmergraph.nodes[8] };
@@ -637,10 +576,10 @@ TEST(KmerGraphWithCoverageTest, findMaxPath2Level_nbin)
     uint32_t sample_id = 0;
     uint32_t max_num_kmers_to_average = 100;
 
-    kmergraph_with_coverage.set_covg(4, 4, 0, sample_id);
-    kmergraph_with_coverage.set_covg(5, 3, 0, sample_id);
-    kmergraph_with_coverage.set_covg(6, 4, 0, sample_id);
-    kmergraph_with_coverage.set_covg(7, 3, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(4, 4, sample_id);
+    kmergraph_with_coverage.set_forward_covg(5, 3, sample_id);
+    kmergraph_with_coverage.set_forward_covg(6, 4, sample_id);
+    kmergraph_with_coverage.set_forward_covg(7, 3, sample_id);
 
     kmergraph_with_coverage.num_reads = 5;
     kmergraph_with_coverage.kmer_prg->k = 3;
@@ -660,11 +599,11 @@ TEST(KmerGraphWithCoverageTest, findMaxPath2Level_nbin)
     EXPECT_EQ(mp_p, exp_p);
 
     mp.clear();
-    kmergraph_with_coverage.set_covg(4, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(5, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(6, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(7, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(8, 5, 1, sample_id);
+    kmergraph_with_coverage.set_forward_covg(4, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(5, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(6, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(7, 0, sample_id);
+    kmergraph_with_coverage.set_reverse_covg(8, 5, sample_id);
     mp_p = kmergraph_with_coverage.find_max_path(
         mp, "nbin", max_num_kmers_to_average, sample_id);
     exp_order = { kmergraph.nodes[8] };
@@ -685,10 +624,10 @@ TEST(KmerGraphWithCoverageTest, findMaxPath2Level_lin)
     uint32_t sample_id = 0;
     uint32_t max_num_kmers_to_average = 100;
 
-    kmergraph_with_coverage.set_covg(4, 4, 0, sample_id);
-    kmergraph_with_coverage.set_covg(5, 3, 0, sample_id);
-    kmergraph_with_coverage.set_covg(6, 4, 0, sample_id);
-    kmergraph_with_coverage.set_covg(7, 3, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(4, 4, sample_id);
+    kmergraph_with_coverage.set_forward_covg(5, 3, sample_id);
+    kmergraph_with_coverage.set_forward_covg(6, 4, sample_id);
+    kmergraph_with_coverage.set_forward_covg(7, 3, sample_id);
 
     kmergraph_with_coverage.num_reads = 5;
     kmergraph_with_coverage.kmer_prg->k = 3;
@@ -709,11 +648,11 @@ TEST(KmerGraphWithCoverageTest, findMaxPath2Level_lin)
     EXPECT_EQ(mp_p, exp_p);
 
     mp.clear();
-    kmergraph_with_coverage.set_covg(4, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(5, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(6, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(7, 0, 0, sample_id);
-    kmergraph_with_coverage.set_covg(8, 5, 1, sample_id);
+    kmergraph_with_coverage.set_forward_covg(4, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(5, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(6, 0, sample_id);
+    kmergraph_with_coverage.set_forward_covg(7, 0, sample_id);
+    kmergraph_with_coverage.set_reverse_covg(8, 5, sample_id);
     mp_p = kmergraph_with_coverage.find_max_path(
         mp, "lin", max_num_kmers_to_average, sample_id);
     exp_order = { kmergraph.nodes[8] };
@@ -780,77 +719,6 @@ TEST(KmerGraphWithCoverageTest, random_paths)
     }
 }
 
-/*
-TEST(KmerGraphWithCoverageTest, path_probs) {
-    KmerGraph kmergraph;
-    deque<Interval> d = {Interval(0, 0)};
-    Path p;
-    p.initialize(d);
-    kmergraph.add_node(p);
-    d = {Interval(0, 1), Interval(4, 5), Interval(8, 9)};
-    p.initialize(d);
-    kmergraph.add_node(p);
-    d = {Interval(4, 5), Interval(8, 9), Interval(16, 17)};
-    p.initialize(d);
-    kmergraph.add_node(p);
-    d = {Interval(8, 9), Interval(16, 18)};
-    p.initialize(d);
-    kmergraph.add_node(p);
-    d = {Interval(0, 1), Interval(4, 5), Interval(12, 13)};
-    p.initialize(d);
-    kmergraph.add_node(p);
-    d = {Interval(4, 5), Interval(12, 13), Interval(16, 17)};
-    p.initialize(d);
-    kmergraph.add_node(p);
-    d = {Interval(12, 13), Interval(16, 18)};
-    p.initialize(d);
-    kmergraph.add_node(p);
-    d = {Interval(16, 18), Interval(23, 24)};
-    p.initialize(d);
-    kmergraph.add_node(p);
-    d = {Interval(0, 1), Interval(19, 20), Interval(23, 24)};
-    p.initialize(d);
-    kmergraph.add_node(p);
-    d = {Interval(24, 24)};
-    p.initialize(d);
-    kmergraph.add_node(p);
-    uint j = 10;
-    EXPECT_EQ(j, kmergraph.nodes.size());
-
-    kmergraph.add_edge(kmergraph.nodes[0], kmergraph.nodes[1]);
-    kmergraph.add_edge(kmergraph.nodes[1], kmergraph.nodes[2]);
-    kmergraph.add_edge(kmergraph.nodes[2], kmergraph.nodes[3]);
-    kmergraph.add_edge(kmergraph.nodes[0], kmergraph.nodes[4]);
-    kmergraph.add_edge(kmergraph.nodes[4], kmergraph.nodes[5]);
-    kmergraph.add_edge(kmergraph.nodes[5], kmergraph.nodes[6]);
-    kmergraph.add_edge(kmergraph.nodes[3], kmergraph.nodes[7]);
-    kmergraph.add_edge(kmergraph.nodes[6], kmergraph.nodes[7]);
-    kmergraph.add_edge(kmergraph.nodes[0], kmergraph.nodes[8]);
-    kmergraph.add_edge(kmergraph.nodes[7], kmergraph.nodes[9]);
-    kmergraph.add_edge(kmergraph.nodes[8], kmergraph.nodes[9]);
-
-    kmergraph.nodes[4]->covg[0] += 4;
-    kmergraph.nodes[5]->covg[0] += 3;
-    kmergraph.nodes[6]->covg[0] += 5;
-    kmergraph.nodes[7]->covg[0] += 4;
-    kmergraph.nodes[8]->covg[1] += 5;
-
-    kmergraph.num_reads = 10;
-    kmergraph.k = 3;
-    kmergraph.set_p(0.01);
-    vector<vector<KmerNodePtr>> mps = kmergraph.find_max_paths(2, <#initializer#>);
-    EXPECT_EQ((uint) 2, mps.size());
-
-    // check get right answer
-    vector<KmerNodePtr> exp_nodes = {kmergraph.nodes[4], kmergraph.nodes[5],
-kmergraph.nodes[6], kmergraph.nodes[7], kmergraph.nodes[8]}; float exp_p = 0; for (uint
-i = 0; i != exp_nodes.size(); ++i) { exp_p += kmergraph.prob(exp_nodes[i]->id, 5);
-    }
-    exp_p /= 5;
-    EXPECT_EQ(kmergraph.prob_paths(mps), exp_p);
-}
- */
-
 TEST(KmerGraphWithCoverageTest, save_covg_dist)
 {
     KmerGraph kmergraph;
@@ -870,8 +738,8 @@ TEST(KmerGraphWithCoverageTest, save_covg_dist)
     kmergraph.add_node(p);
 
     KmerGraphWithCoverage kmergraph_with_coverage(&kmergraph);
-    kmergraph_with_coverage.set_covg(1, 5, 1, 0);
-    kmergraph_with_coverage.set_covg(2, 4, 1, 0);
+    kmergraph_with_coverage.set_reverse_covg(1, 5, 0);
+    kmergraph_with_coverage.set_reverse_covg(2, 4, 0);
 
     kmergraph_with_coverage.save_covg_dist("test_cases/kmergraph_test.covg.txt");
 }
@@ -890,10 +758,22 @@ TEST(KmerGraphWithCoverageTest, save_no_prg)
     EXPECT_EQ((uint)0, kmergraph.nodes[0]->num_AT);
 
     KmerGraphWithCoverage kmergraph_with_coverage(&kmergraph);
-    kmergraph_with_coverage.set_covg(0, 4, 1, 0);
-    kmergraph_with_coverage.set_covg(1, 5, 0, 0);
+    kmergraph_with_coverage.set_forward_covg(0, 4, 0);
+    kmergraph_with_coverage.set_reverse_covg(1, 5, 0);
 
-    kmergraph_with_coverage.save("kmergraphwithcoverage_test.gfa");
+    const fs::path filepath { std::tmpnam(nullptr) };
+    kmergraph_with_coverage.save(filepath);
+    fs::ifstream ifs(filepath);
+    const std::string actual_content(
+        (std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
+
+    const std::string expected_content { "H\tVN:Z:1.0\tbn:Z:--linear --singlearr\n"
+                                         "S\t0\t1{[0, 3)}\tFC:i:4\tRC:i:0\n"
+                                         "L\t0\t+\t1\t+\t0M\n"
+                                         "S\t1\t1{[1, 4)}\tFC:i:0\tRC:i:5\n" };
+
+    EXPECT_EQ(actual_content, expected_content);
+    ASSERT_TRUE(fs::remove(filepath));
 }
 
 TEST(KmerGraphWithCoverageTest, load)
@@ -909,12 +789,11 @@ TEST(KmerGraphWithCoverageTest, load)
     kmergraph.add_edge(n1, n2);
 
     KmerGraphWithCoverage kmergraph_with_coverage(&kmergraph);
-    kmergraph_with_coverage.set_covg(1, 5, 1, 0);
-    kmergraph_with_coverage.set_covg(0, 4, 1, 0);
+    kmergraph_with_coverage.set_reverse_covg(1, 5, 0);
+    kmergraph_with_coverage.set_reverse_covg(0, 4, 0);
 
     KmerGraphWithCoverage read_kmergraph_with_coverage(&kmergraph);
     read_kmergraph_with_coverage.load("kmergraphwithcoverage_test.gfa");
-    // EXPECT_EQ(kmergraph_with_coverage, read_kmergraph_with_coverage);
 }
 
 TEST(KmerGraphWithCoverageTest, load_prg)

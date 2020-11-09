@@ -92,8 +92,8 @@ void pangenome::Node::add_path(
     for (uint32_t i = 0; i != kmp.size(); ++i) {
         assert(kmp[i]->id < kmer_prg_with_coverage.kmer_prg->nodes.size()
             and kmer_prg_with_coverage.kmer_prg->nodes[kmp[i]->id] != nullptr);
-        kmer_prg_with_coverage.increment_covg(kmp[i]->id, 0, sample_id);
-        kmer_prg_with_coverage.increment_covg(kmp[i]->id, 1, sample_id);
+        kmer_prg_with_coverage.increment_forward_covg(kmp[i]->id, sample_id);
+        kmer_prg_with_coverage.increment_reverse_covg(kmp[i]->id, sample_id);
     }
 }
 

@@ -2,8 +2,6 @@
 #include "test_macro.cpp"
 #include "localPRG.h"
 #include "minimizer.h"
-#include "minirecord.h"
-#include "minihit.h"
 #include "interval.h"
 #include "prg/path.h"
 #include "localgraph.h"
@@ -14,10 +12,8 @@
 #include "pangenome/panread.h"
 #include "utils.h"
 #include "seq.h"
-#include "kmergraph.h"
 #include "kmernode.h"
 #include <stdint.h>
-#include <iostream>
 #include "test_helpers.h"
 
 using namespace std;
@@ -1019,7 +1015,7 @@ TEST(GetCovgsAlongLocalnodePathTest, get_covgs_along_localnode_path)
     vector<LocalNodePtr> lmp = l3->localnode_path_from_kmernode_path(kmp, 2);
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(l3));
     for (const auto& n : pn3->kmer_prg_with_coverage.kmer_prg->nodes) {
-        pn3->kmer_prg_with_coverage.increment_covg(n->id, 0, 0);
+        pn3->kmer_prg_with_coverage.increment_forward_covg(n->id, 0);
     }
     vector<uint> covgs = get_covgs_along_localnode_path(pn3, lmp, kmp, 0);
     vector<uint> covgs_exp = { 0, 1, 1, 1 };
@@ -1035,7 +1031,7 @@ TEST(GetCovgsAlongLocalnodePathTest, get_covgs_along_localnode_path)
     lmp = l4->localnode_path_from_kmernode_path(kmp, 1);
     shared_ptr<pangenome::Node> pn4(make_shared<pangenome::Node>(l4));
     for (const auto& n : pn4->kmer_prg_with_coverage.kmer_prg->nodes) {
-        pn4->kmer_prg_with_coverage.increment_covg(n->id, 0, 0);
+        pn4->kmer_prg_with_coverage.increment_forward_covg(n->id, 0);
     }
     covgs = get_covgs_along_localnode_path(pn4, lmp, kmp, 0);
     // covgs_exp = {1,2,3,3,3,3,3,3,3,3,3,3,2,1};
@@ -1067,7 +1063,7 @@ TEST(LocalPRGTest, write_covgs_to_file)
     vector<LocalNodePtr> lmp = l3->localnode_path_from_kmernode_path(kmp, 2);
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(l3));
     for (const auto& n : pn3->kmer_prg_with_coverage.kmer_prg->nodes) {
-        pn3->kmer_prg_with_coverage.increment_covg(n->id, 0, 0);
+        pn3->kmer_prg_with_coverage.increment_forward_covg(n->id, 0);
     }
     vector<uint> covgs = get_covgs_along_localnode_path(pn3, lmp, kmp, 0);
     vector<uint> covgs_exp = { 0, 1, 1, 1 };
@@ -1925,14 +1921,14 @@ TEST(LocalPRGTest, get_forward_and_reverse_kmer_coverages_in_range)
     l3.minimizer_sketch(index, 1, 3);
     KmerGraphWithCoverage kg(&l3.kmer_prg);
 
-    kg.set_covg(2, 4, 0, 0);
-    kg.set_covg(2, 3, 1, 0);
-    kg.set_covg(5, 4, 0, 0);
-    kg.set_covg(5, 5, 1, 0);
-    kg.set_covg(7, 2, 0, 0);
-    kg.set_covg(7, 3, 1, 0);
-    kg.set_covg(8, 4, 0, 0);
-    kg.set_covg(8, 6, 1, 0);
+    kg.set_forward_covg(2, 4, 0);
+    kg.set_reverse_covg(2, 3, 0);
+    kg.set_forward_covg(5, 4, 0);
+    kg.set_reverse_covg(5, 5, 0);
+    kg.set_forward_covg(7, 2, 0);
+    kg.set_reverse_covg(7, 3, 0);
+    kg.set_forward_covg(8, 4, 0);
+    kg.set_reverse_covg(8, 6, 0);
 
     vector<LocalNodePtr> lmp = {};
     vector<KmerNodePtr> kmp
@@ -2040,20 +2036,20 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
         vcf.get_records()[1]->sampleIndex_to_sampleInfo[0].get_sum_reverse_coverage(1));
 
     // ref
-    kg.set_covg(1, 1, 0, 0);
-    kg.set_covg(1, 0, 1, 0);
-    kg.set_covg(4, 1, 0, 0);
-    kg.set_covg(4, 0, 1, 0);
-    kg.set_covg(7, 1, 0, 0);
-    kg.set_covg(7, 0, 1, 0);
+    kg.set_forward_covg(1, 1, 0);
+    kg.set_reverse_covg(1, 0, 0);
+    kg.set_forward_covg(4, 1, 0);
+    kg.set_reverse_covg(4, 0, 0);
+    kg.set_forward_covg(7, 1, 0);
+    kg.set_reverse_covg(7, 0, 0);
 
     // alts
-    kg.set_covg(2, 6, 0, 0);
-    kg.set_covg(2, 8, 1, 0);
-    kg.set_covg(5, 5, 0, 0);
-    kg.set_covg(5, 5, 1, 0);
-    kg.set_covg(8, 4, 0, 0);
-    kg.set_covg(8, 5, 1, 0);
+    kg.set_forward_covg(2, 6, 0);
+    kg.set_reverse_covg(2, 8, 0);
+    kg.set_forward_covg(5, 5, 0);
+    kg.set_reverse_covg(5, 5, 0);
+    kg.set_forward_covg(8, 4, 0);
+    kg.set_reverse_covg(8, 5, 0);
 
     l3.add_sample_covgs_to_vcf(vcf, kg, l3.prg.top_path(), "sample", 0);
     EXPECT_EQ((uint)1, vcf.samples.size());
@@ -2107,14 +2103,14 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_bin)
     l3->minimizer_sketch(index, 1, 3);
 
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(l3));
-    pn3->kmer_prg_with_coverage.set_covg(2, 4, 0, 0);
-    pn3->kmer_prg_with_coverage.set_covg(2, 3, 1, 0);
-    pn3->kmer_prg_with_coverage.set_covg(5, 4, 0, 0);
-    pn3->kmer_prg_with_coverage.set_covg(5, 5, 0, 0);
-    pn3->kmer_prg_with_coverage.set_covg(7, 2, 0, 0);
-    pn3->kmer_prg_with_coverage.set_covg(7, 3, 1, 0);
-    pn3->kmer_prg_with_coverage.set_covg(8, 4, 0, 0);
-    pn3->kmer_prg_with_coverage.set_covg(8, 6, 0, 0);
+    pn3->kmer_prg_with_coverage.set_forward_covg(2, 4, 0);
+    pn3->kmer_prg_with_coverage.set_reverse_covg(2, 3, 0);
+    pn3->kmer_prg_with_coverage.set_forward_covg(5, 4, 0);
+    pn3->kmer_prg_with_coverage.set_forward_covg(5, 5, 0);
+    pn3->kmer_prg_with_coverage.set_forward_covg(7, 2, 0);
+    pn3->kmer_prg_with_coverage.set_reverse_covg(7, 3, 0);
+    pn3->kmer_prg_with_coverage.set_forward_covg(8, 4, 0);
+    pn3->kmer_prg_with_coverage.set_forward_covg(8, 6, 0);
 
     pn3->kmer_prg_with_coverage.set_num_reads(6);
     pn3->kmer_prg_with_coverage.set_binomial_parameter_p(0.0001);
@@ -2139,7 +2135,7 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_bin)
     bool added_to_headers = fq.headers.find("three") != fq.headers.end();
     EXPECT_TRUE(added_to_headers);
     EXPECT_EQ("AGTTAT", fq.sequences["three"]);
-    EXPECT_EQ(fq.scores["three"], "DDD\?\?!");
+    EXPECT_EQ(fq.scores["three"], R"(DDD??!)");
 }
 
 TEST(LocalPRGTest, add_consensus_path_to_fastaq_nbin)
@@ -2149,12 +2145,12 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_nbin)
     l3->minimizer_sketch(index, 1, 3);
 
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(l3));
-    pn3->kmer_prg_with_coverage.set_covg(2, 4, 0, 0);
-    pn3->kmer_prg_with_coverage.set_covg(2, 3, 1, 0);
-    pn3->kmer_prg_with_coverage.set_covg(5, 5, 0, 0);
-    pn3->kmer_prg_with_coverage.set_covg(7, 2, 0, 0);
-    pn3->kmer_prg_with_coverage.set_covg(7, 3, 1, 0);
-    pn3->kmer_prg_with_coverage.set_covg(8, 6, 0, 0);
+    pn3->kmer_prg_with_coverage.set_forward_covg(2, 4, 0);
+    pn3->kmer_prg_with_coverage.set_reverse_covg(2, 3, 0);
+    pn3->kmer_prg_with_coverage.set_forward_covg(5, 5, 0);
+    pn3->kmer_prg_with_coverage.set_forward_covg(7, 2, 0);
+    pn3->kmer_prg_with_coverage.set_reverse_covg(7, 3, 0);
+    pn3->kmer_prg_with_coverage.set_forward_covg(8, 6, 0);
     pn3->kmer_prg_with_coverage.set_num_reads(6);
     pn3->kmer_prg_with_coverage.set_negative_binomial_parameters(0.05, 2.0);
     shared_ptr<pangenome::Read> pr(make_shared<pangenome::Read>(0));

@@ -1,15 +1,11 @@
 #include <sstream>
-#include <cassert>
 #include <limits>
 #include <cstdlib> /* srand, rand */
 #include <cmath>
-#include <cstdint>
 
 #include <boost/math/distributions/negative_binomial.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "utils.h"
-#include "kmernode.h"
 #include "kmergraphwithcoverage.h"
 #include "localPRG.h"
 
@@ -32,46 +28,50 @@ void KmerGraphWithCoverage::set_binomial_parameter_p(const float e_rate)
 }
 
 void KmerGraphWithCoverage::increment_covg(
-    uint32_t node_id, bool is_forward, uint32_t sample_id)
+    uint32_t node_id, pandora::Strand strand, uint32_t sample_id)
 {
     assert(this->node_index_to_sample_coverage[node_id].size() > sample_id);
 
     // get a pointer to the value we want to increment
     uint16_t* coverage_ptr = nullptr;
-    if (is_forward)
+    if (strand == pandora::Strand::Forward) {
         coverage_ptr = &(this->node_index_to_sample_coverage[node_id][sample_id].first);
-    else
+    } else {
         coverage_ptr
             = &(this->node_index_to_sample_coverage[node_id][sample_id].second);
+    }
 
-    if ((*coverage_ptr)
-        < UINT16_MAX) // checks if it is safe to increase the coverage (no overflow)
+    const bool safe_to_increase_covg { (*coverage_ptr) < UINT16_MAX };
+    if (safe_to_increase_covg) {
         ++(*coverage_ptr);
+    }
 }
 
 uint32_t KmerGraphWithCoverage::get_covg(
-    uint32_t node_id, bool is_forward, uint32_t sample_id) const
+    uint32_t node_id, pandora::Strand strand, uint32_t sample_id) const
 {
 
     if (this->node_index_to_sample_coverage[node_id].size() <= sample_id)
         return 0;
 
-    if (is_forward)
+    if (strand == pandora::Strand::Forward) {
         return (uint32_t)(
             this->node_index_to_sample_coverage[node_id][sample_id].first);
-    else
+    } else {
         return (uint32_t)(
             this->node_index_to_sample_coverage[node_id][sample_id].second);
+    }
 }
 
 void KmerGraphWithCoverage::set_covg(
-    uint32_t node_id, uint16_t value, bool is_forward, uint32_t sample_id)
+    uint32_t node_id, uint16_t value, pandora::Strand strand, uint32_t sample_id)
 {
     assert(this->node_index_to_sample_coverage[node_id].size() > sample_id);
-    if (is_forward)
+    if (strand == pandora::Strand::Forward) {
         this->node_index_to_sample_coverage[node_id][sample_id].first = value;
-    else
+    } else {
         this->node_index_to_sample_coverage[node_id][sample_id].second = value;
+    }
 }
 
 void KmerGraphWithCoverage::set_negative_binomial_parameters(
@@ -90,7 +90,8 @@ void KmerGraphWithCoverage::set_negative_binomial_parameters(
 
 float KmerGraphWithCoverage::nbin_prob(uint32_t node_id, const uint32_t& sample_id)
 {
-    auto k = get_covg(node_id, 0, sample_id) + get_covg(node_id, 1, sample_id);
+    auto k = this->get_forward_covg(node_id, sample_id)
+        + this->get_reverse_covg(node_id, sample_id);
     float return_prob
         = log(pdf(boost::math::negative_binomial(
                       negative_binomial_parameter_r, negative_binomial_parameter_p),
@@ -102,7 +103,8 @@ float KmerGraphWithCoverage::nbin_prob(uint32_t node_id, const uint32_t& sample_
 float KmerGraphWithCoverage::lin_prob(uint32_t node_id, const uint32_t& sample_id)
 {
     assert(num_reads != 0);
-    auto k = get_covg(node_id, 0, sample_id) + get_covg(node_id, 1, sample_id);
+    auto k = this->get_forward_covg(node_id, sample_id)
+        + this->get_reverse_covg(node_id, sample_id);
     return log(float(k) / num_reads);
 }
 
@@ -123,8 +125,8 @@ float KmerGraphWithCoverage::bin_prob(
     // executed before... check();
 #endif
 
-    uint32_t sum_coverages
-        = get_covg(node_id, 0, sample_id) + get_covg(node_id, 1, sample_id);
+    uint32_t sum_coverages = this->get_forward_covg(node_id, sample_id)
+        + this->get_reverse_covg(node_id, sample_id);
 
     float return_prob;
     if (node_id == (*(kmer_prg->sorted_nodes.begin()))->id
@@ -132,13 +134,14 @@ float KmerGraphWithCoverage::bin_prob(
         return_prob = 0; // is really undefined
     } else if (sum_coverages > num) {
         // under model assumptions this can't happen, but it inevitably will, so bodge
-        return_prob = lognchoosek2(sum_coverages, get_covg(node_id, 0, sample_id),
-                          get_covg(node_id, 1, sample_id))
+        return_prob
+            = lognchoosek2(sum_coverages, this->get_forward_covg(node_id, sample_id),
+                  this->get_reverse_covg(node_id, sample_id))
             + sum_coverages * log(binomial_parameter_p / 2);
         // note this may give disadvantage to repeat kmers
     } else {
-        return_prob = lognchoosek2(num, get_covg(node_id, 0, sample_id),
-                          get_covg(node_id, 1, sample_id))
+        return_prob = lognchoosek2(num, this->get_forward_covg(node_id, sample_id),
+                          this->get_reverse_covg(node_id, sample_id))
             + sum_coverages * log(binomial_parameter_p / 2)
             + (num - sum_coverages) * log(1 - binomial_parameter_p);
     }
@@ -168,8 +171,9 @@ bool KmerGraphWithCoverage::coverage_is_zeroes(const uint32_t& sample_id)
 {
     bool all_zero = true;
     for (const auto& node_ptr : kmer_prg->nodes) {
-        if (get_covg(node_ptr->id, 0, sample_id) + get_covg(node_ptr->id, 1, sample_id)
-            > 0) {
+        const auto covg { this->get_forward_covg(node_ptr->id, sample_id)
+            + this->get_reverse_covg(node_ptr->id, sample_id) };
+        if (covg > 0) {
             BOOST_LOG_TRIVIAL(debug) << "Found non-zero coverage in kmer graph";
             all_zero = false;
             break;
@@ -367,8 +371,9 @@ void KmerGraphWithCoverage::save(
                 handle << c->path;
             }
 
-            handle << "\tFC:i:" << get_covg(c->id, 0, sample_id) << "\t"
-                   << "\tRC:i:" << get_covg(c->id, 1, sample_id) << std::endl;
+            handle << "\tFC:i:" << this->get_forward_covg(c->id, sample_id)
+                   << "\tRC:i:" << this->get_reverse_covg(c->id, sample_id)
+                   << std::endl;
 
             for (uint32_t j = 0; j < c->out_nodes.size(); ++j) {
                 handle << "L\t" << c->id << "\t+\t" << c->out_nodes[j].lock()->id
@@ -442,9 +447,9 @@ void KmerGraphWithCoverage::load(const std::string& filepath)
                     kmer_prg->k = p.length();
                 }
                 covg = (uint16_t)(stoul(split(split_line[3], "FC:i:")[0]));
-                set_covg(n->id, covg, 0, sample_id);
+                this->set_forward_covg(n->id, covg, sample_id);
                 covg = (uint16_t)(stoul(split(split_line[4], "RC:i:")[0]));
-                set_covg(n->id, covg, 1, sample_id);
+                this->set_reverse_covg(n->id, covg, sample_id);
                 if (split_line.size() >= 6) {
                     n->num_AT = std::stoi(split_line[5]);
                 }

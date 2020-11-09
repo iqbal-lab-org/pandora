@@ -7,12 +7,8 @@
 #include "pangenome/pansample.h"
 #include "minihit.h"
 #include "localPRG.h"
-#include <stdint.h>
-#include <numeric>
-#include <cassert>
+#include <cstdint>
 #include <iostream>
-#include <fstream>
-#include <boost/filesystem.hpp>
 
 using namespace pangenome;
 
@@ -1285,10 +1281,10 @@ TEST(PangenomeGraphTest, copy_coverages_to_kmergraphs)
     auto& kg = *(ref_pangraph.nodes[prg_id]->kmer_prg_with_coverage.kmer_prg);
     EXPECT_EQ(kg.nodes.size(), (uint)7);
     auto& kgWithCoverage = ref_pangraph.nodes[prg_id]->kmer_prg_with_coverage;
-    kgWithCoverage.set_covg(2, 5, 1, sample_id);
-    kgWithCoverage.set_covg(4, 8, 0, sample_id);
-    kgWithCoverage.set_covg(5, 2, 1, sample_id);
-    kgWithCoverage.set_covg(6, 5, 0, sample_id);
+    kgWithCoverage.set_reverse_covg(2, 5, sample_id);
+    kgWithCoverage.set_forward_covg(4, 8, sample_id);
+    kgWithCoverage.set_reverse_covg(5, 2, sample_id);
+    kgWithCoverage.set_forward_covg(6, 5, sample_id);
 
     pangenome::Graph pangraph({ "sample_0", "sample_1", "sample_2", "sample_3" });
     sample_id = 3;
@@ -1300,43 +1296,43 @@ TEST(PangenomeGraphTest, copy_coverages_to_kmergraphs)
     for (uint32_t id = 0; id < 3; ++id) {
         for (const auto& node :
             pangraph.nodes[prg_id]->kmer_prg_with_coverage.kmer_prg->nodes) {
-            EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(
-                          node->id, 0, id),
+            EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_forward_covg(
+                          node->id, id),
                 (uint)0);
-            EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(
-                          node->id, 1, id),
+            EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_reverse_covg(
+                          node->id, id),
                 (uint)0);
         }
     }
     auto id = sample_id;
-    EXPECT_EQ(
-        pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(0, 0, id), (uint)0);
-    EXPECT_EQ(
-        pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(0, 1, id), (uint)0);
-    EXPECT_EQ(
-        pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(1, 0, id), (uint)0);
-    EXPECT_EQ(
-        pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(1, 1, id), (uint)0);
-    EXPECT_EQ(
-        pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(2, 0, id), (uint)0);
-    EXPECT_EQ(
-        pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(2, 1, id), (uint)5);
-    EXPECT_EQ(
-        pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(3, 0, id), (uint)0);
-    EXPECT_EQ(
-        pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(3, 1, id), (uint)0);
-    EXPECT_EQ(
-        pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(4, 0, id), (uint)8);
-    EXPECT_EQ(
-        pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(4, 1, id), (uint)0);
-    EXPECT_EQ(
-        pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(5, 0, id), (uint)0);
-    EXPECT_EQ(
-        pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(5, 1, id), (uint)2);
-    EXPECT_EQ(
-        pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(6, 0, id), (uint)5);
-    EXPECT_EQ(
-        pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_covg(6, 1, id), (uint)0);
+    EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_forward_covg(0, id),
+        (uint)0);
+    EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_reverse_covg(0, id),
+        (uint)0);
+    EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_forward_covg(1, id),
+        (uint)0);
+    EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_reverse_covg(1, id),
+        (uint)0);
+    EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_forward_covg(2, id),
+        (uint)0);
+    EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_reverse_covg(2, id),
+        (uint)5);
+    EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_forward_covg(3, id),
+        (uint)0);
+    EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_reverse_covg(3, id),
+        (uint)0);
+    EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_forward_covg(4, id),
+        (uint)8);
+    EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_reverse_covg(4, id),
+        (uint)0);
+    EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_forward_covg(5, id),
+        (uint)0);
+    EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_reverse_covg(5, id),
+        (uint)2);
+    EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_forward_covg(6, id),
+        (uint)5);
+    EXPECT_EQ(pangraph.nodes[prg_id]->kmer_prg_with_coverage.get_reverse_covg(6, id),
+        (uint)0);
 }
 
 TEST(PangenomeGraphTest, infer_node_vcf_reference_path_no_file_strings)

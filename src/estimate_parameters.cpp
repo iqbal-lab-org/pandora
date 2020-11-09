@@ -222,8 +222,8 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
              i != node.second->kmer_prg_with_coverage.kmer_prg->nodes.size() - 1;
              ++i) // NB first and last kmer in kmergraph are null
         {
-            c = node.second->kmer_prg_with_coverage.get_covg(i, 0, sample_id)
-                + node.second->kmer_prg_with_coverage.get_covg(i, 1, sample_id);
+            c = node.second->kmer_prg_with_coverage.get_reverse_covg(i, sample_id)
+                + node.second->kmer_prg_with_coverage.get_forward_covg(i, sample_id);
             if (c < 1000) {
                 kmer_covg_dist[c] += 1;
             }
