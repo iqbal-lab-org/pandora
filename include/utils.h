@@ -14,6 +14,12 @@
 
 namespace fs = boost::filesystem;
 
+namespace pandora {
+enum class Strand {
+    Forward = '+',
+    Reverse = '-',
+};
+}
 class Index;
 
 class PanNode;

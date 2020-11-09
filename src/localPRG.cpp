@@ -940,10 +940,10 @@ std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr pan_node,
 
                 coverages_for_each_base_in_localnode_path[k][l]
                     = std::max(coverages_for_each_base_in_localnode_path[k][l],
-                        pan_node->kmer_prg_with_coverage.get_covg(
-                            kmernode_ptr->id, 0, sample_id)
-                            + pan_node->kmer_prg_with_coverage.get_covg(
-                                kmernode_ptr->id, 1, sample_id));
+                        pan_node->kmer_prg_with_coverage.get_reverse_covg(
+                            kmernode_ptr->id, sample_id)
+                            + pan_node->kmer_prg_with_coverage.get_forward_covg(
+                                kmernode_ptr->id, sample_id));
             }
             k++;
         }
@@ -1450,9 +1450,9 @@ LocalPRG::get_forward_and_reverse_kmer_coverages_in_range(
                 and kmer_graph_with_coverage.kmer_prg->nodes[current_kmer_node->id]
                     != nullptr);
             forward_coverages.push_back(
-                kmer_graph_with_coverage.get_covg(current_kmer_node->id, 0, sample_id));
+                kmer_graph_with_coverage.get_forward_covg(current_kmer_node->id, sample_id));
             reverse_coverages.push_back(
-                kmer_graph_with_coverage.get_covg(current_kmer_node->id, 1, sample_id));
+                kmer_graph_with_coverage.get_reverse_covg(current_kmer_node->id, sample_id));
         } else {
             bool has_gone_past_the_given_range
                 = number_of_bases_in_local_path_which_were_already_considered
