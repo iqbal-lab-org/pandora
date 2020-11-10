@@ -788,12 +788,21 @@ TEST(KmerGraphWithCoverageTest, load)
     auto n2 = kmergraph.add_node(p2);
     kmergraph.add_edge(n1, n2);
 
-    KmerGraphWithCoverage kmergraph_with_coverage(&kmergraph);
-    kmergraph_with_coverage.set_reverse_covg(1, 5, 0);
-    kmergraph_with_coverage.set_reverse_covg(0, 4, 0);
-
     KmerGraphWithCoverage read_kmergraph_with_coverage(&kmergraph);
-    read_kmergraph_with_coverage.load("kmergraphwithcoverage_test.gfa");
+    const fs::path filepath { "deleteme.gfa" };
+    {
+        fs::ofstream outstream(filepath);
+        outstream << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << std::endl;
+        outstream << "S\t0\t1{[0, 3)}\tFC:i:4\tRC:i:0" << std::endl;
+        outstream << "L\t0\t+\t1\t+\t0M" << std::endl;
+        outstream << "S\t1\t1{[1, 4)}\tFC:i:0\tRC:i:5" << std::endl;
+    }
+    read_kmergraph_with_coverage.load(filepath.string());
+    fs::remove(filepath);
+    EXPECT_EQ(read_kmergraph_with_coverage.get_reverse_covg(1, 0), 5);
+    EXPECT_EQ(read_kmergraph_with_coverage.get_forward_covg(1, 0), 0);
+    EXPECT_EQ(read_kmergraph_with_coverage.get_forward_covg(0, 0), 4);
+    EXPECT_EQ(read_kmergraph_with_coverage.get_reverse_covg(0, 0), 0);
 }
 
 TEST(KmerGraphWithCoverageTest, load_prg)
