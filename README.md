@@ -357,6 +357,7 @@ Options:
   -l INT                      Min. length of consecutive positions below coverage threshold to trigger variant discovery [default: 1]
   -L INT                      Max. length of consecutive positions below coverage threshold to trigger variant discovery [default: 30]
   -d,--merge INT              Merge candidate variant intervals within distance [default: 15]
+  -N INT                      Maximum number of candidate variants allowed for a candidate region [default: 25]
   --min-dbg-dp INT            Minimum node/kmer depth in the de Bruijn graph used for discovering variants [default: 2]
   -v                          Verbosity of logging. Repeat for increased verbosity
 
@@ -365,7 +366,7 @@ Indexing:
   -k INT                      K-mer size for (w,k)-minimizers [default: 15]
 
 Input/Output:
-  -o,--outdir DIR             Directory to write output files to [default: pandora_discover]
+  -o,--outdir DIR             Directory to write output files to [default: "pandora_discover"]
   -t,--threads INT            Maximum number of threads to use [default: 1]
   --kg                        Save kmer graphs with forward and reverse coverage annotations for found loci
   -M,--mapped-reads           Save a fasta file for each loci containing read parts which overlapped it

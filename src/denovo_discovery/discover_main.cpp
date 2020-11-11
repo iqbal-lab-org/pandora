@@ -149,6 +149,11 @@ void setup_discover_subcommand(CLI::App& app)
         ->capture_default_str()
         ->type_name("INT");
 
+    description = "Maximum number of candidate variants allowed for a candidate region";
+    discover_subcmd->add_option("-N", opt->max_num_candidate_paths, description)
+        ->capture_default_str()
+        ->type_name("INT");
+
     description = "Minimum node/kmer depth in the de Bruijn graph used for discovering "
                   "variants";
     discover_subcmd
@@ -351,8 +356,8 @@ int pandora_discover(DiscoverOptions& opt)
     }
 
     DenovoDiscovery denovo { opt.denovo_kmer_size, opt.error_rate,
-        opt.max_insertion_size, opt.min_covg_for_node_in_assembly_graph,
-        opt.clean_dbg };
+        opt.max_num_candidate_paths, opt.max_insertion_size,
+        opt.min_covg_for_node_in_assembly_graph, opt.clean_dbg };
     const fs::path denovo_output_directory { fs::path(opt.outdir) / "denovo_paths" };
     fs::create_directories(denovo_output_directory);
     BOOST_LOG_TRIVIAL(info)
