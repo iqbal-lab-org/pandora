@@ -186,7 +186,7 @@ std::pair<DenovoPaths, FoundPaths> LocalAssemblyGraph::get_paths_between(
             node_to_distance_to_the_end_node, paths_between_queries, max_path_length,
             expected_coverage, required_percent_of_expected_covg);
         retries++;
-    } while (paths_between_queries.size() > MAX_NUMBER_CANDIDATE_PATHS);
+    } while (paths_between_queries.size() > this->get_max_nb_paths());
 
     BOOST_LOG_TRIVIAL(debug) << "Path enumeration complete. There were "
                              << std::to_string(paths_between_queries.size())
@@ -202,7 +202,7 @@ void LocalAssemblyGraph::build_paths_between(const std::string& start_kmer,
     uint32_t num_kmers_below_threshold)
 {
     if (path_accumulator.length() > max_path_length
-        or paths_between_queries.size() > MAX_NUMBER_CANDIDATE_PATHS) {
+        or paths_between_queries.size() > this->get_max_nb_paths()) {
         return;
     }
 
