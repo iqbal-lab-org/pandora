@@ -30,7 +30,7 @@ class LocalAssemblyGraph : public Graph {
 public:
     LocalAssemblyGraph& operator=(const Graph& graph);
 
-    int get_max_nb_paths() { return this->max_nb_samples; }
+    int get_max_nb_paths() const { return this->max_nb_samples; }
     void set_max_nb_paths(const int n) { this->max_nb_samples = n; }
 
     std::pair<Node, bool> get_node(const std::string& query_kmer);
