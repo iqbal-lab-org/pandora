@@ -38,14 +38,14 @@ RUN ./bootstrap.sh --prefix=/usr/ --with-libraries="$BOOST_LIBS" \
 #============================================
 # can override the build type with docker's --build-arg command
 # https://docs.docker.com/engine/reference/builder/#arg
-ARG PANDORA_BUILD_TYPE="Release"
+ARG PANDORA_BUILD_TYPE="RELEASE_WITH_ASSERTS"
 ENV PANDORA_DIR "/pandora/"
 
 COPY . $PANDORA_DIR
 WORKDIR ${PANDORA_DIR}/build
 RUN cmake -DCMAKE_BUILD_TYPE="$PANDORA_BUILD_TYPE" .. \
     && make -j4 \
-#    && ctest -V \
+    && ctest -V \
     && apt-get remove -y cmake git \
     && mv pandora /bin/pandora \
     && cd / \
