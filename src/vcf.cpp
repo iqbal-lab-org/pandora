@@ -1,15 +1,4 @@
-#include <iostream>
-#include <fstream>
-#include <cassert>
-#include <ctime>
-#include <vector>
-#include <algorithm>
-
-#include <boost/log/trivial.hpp>
-
-#include "vcfrecord.h"
 #include "vcf.h"
-#include "utils.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -78,7 +67,6 @@ ptrdiff_t VCF::get_sample_index(const std::string& name)
     // if this sample has not been added before, add a column for it
     auto sample_it = find(samples.begin(), samples.end(), name);
     if (sample_it == samples.end()) {
-        // cout << "this is the first time this sample has been added" << endl;
         samples.push_back(name);
         for (auto& record_ptr : records) {
             record_ptr->add_new_samples(1);
@@ -95,13 +83,9 @@ void VCF::add_a_new_record_discovered_in_a_sample_and_genotype_it(
     const std::string& sample_name, const std::string& chrom, const uint32_t pos,
     const std::string& ref, const std::string& alt)
 {
-    // cout << "adding gt " << chrom << " " << pos << " " << ref << " vs " <<
-    // sample_name << " " << alt << endl;
     if (ref == "" and alt == "") {
         return;
     }
-
-    // cout << "adding gt " << ref << " vs " << alt << endl;
 
     ptrdiff_t sample_index = get_sample_index(sample_name);
 
@@ -112,14 +96,11 @@ void VCF::add_a_new_record_discovered_in_a_sample_and_genotype_it(
         vcf_record); // TODO: improve this search to log(n) using alt map or sth
     bool vcf_record_was_found = vcf_record_iterator != records.end();
     if (vcf_record_was_found) {
-        // cout << "found record with this ref and alt" << endl;
         (*vcf_record_iterator)
             ->sampleIndex_to_sampleInfo[sample_index]
             .set_gt_from_max_likelihood_path(1);
         vcf_record_pointer = vcf_record_iterator->get();
     } else {
-        // cout << "didn't find alt record for pos " << pos << " ref " << ref << " and
-        // alt " << alt << endl;
         // either we have the ref allele, an alternative allele for alt too nested site,
         // or alt mistake
         bool vcf_record_was_processed = false;
@@ -137,7 +118,6 @@ void VCF::add_a_new_record_discovered_in_a_sample_and_genotype_it(
                 }
             }
         } else {
-            // cout << "have new allele not in graph" << endl;
             add_record(
                 chrom, pos, ref, alt, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
             records.back()
@@ -174,8 +154,6 @@ void VCF::update_other_samples_of_this_record(VCFRecord* reference_record)
                     and other_record->sampleIndex_to_sampleInfo[sample_index]
                             .get_gt_from_max_likelihood_path()
                         == 0) {
-                    // cout << "update my record to have ref allele also for sample " <<
-                    // sample_index << endl; cout << records[record_index] << endl;
                     reference_record->sampleIndex_to_sampleInfo[sample_index]
                         .set_gt_from_max_likelihood_path(0);
                 }
@@ -195,7 +173,6 @@ void VCF::set_sample_gt_to_ref_allele_for_records_in_the_interval(
         if (record->ref_allele_is_inside_given_interval(chrom, pos_from, pos_to)) {
             record->sampleIndex_to_sampleInfo[sample_index]
                 .set_gt_from_max_likelihood_path(0);
-            // cout << "update record " << records[i] << endl;
         }
     }
 }
@@ -316,13 +293,6 @@ void VCF::merge_multi_allelic_core(VCF& merged_VCF, uint32_t max_allele_length) 
                         .empty()) {
                     assert_msg("VCF::merge_multi_allelic: vcf_record_to_be_merged_in "
                                "has no samples");
-                    /*
-                    records.at(current_vcf_record_position)->clear();
-                    records.at(previous_vcf_record_position)->clear();
-                    merged_VCF.add_record_core(vcf_record_merged);
-                    previous_vcf_record_position = records.size() - 1;
-                    vcf_record_merged = *(records.at(previous_vcf_record_position));
-                     */
                 }
                 vcf_record_merged->merge_record_into_this(
                     *vcf_record_to_be_merged_in_pointer);
@@ -449,13 +419,13 @@ std::vector<VCFRecord*> VCF::get_all_records_overlapping_the_given_record(
     return overlapping_records;
 }
 
-void VCF::save(const std::string& filepath, bool genotyping_from_maximum_likelihood,
+void VCF::save(const fs::path& filepath, bool genotyping_from_maximum_likelihood,
     bool genotyping_from_coverage, bool output_dot_allele, bool graph_is_simple,
     bool graph_is_nested, bool graph_has_too_many_alts, bool sv_type_is_snp,
     bool sv_type_is_indel, bool sv_type_is_ph_snps, bool sv_type_is_complex)
 {
     BOOST_LOG_TRIVIAL(debug) << "Saving VCF to " << filepath;
-    std::ofstream handle;
+    fs::ofstream handle;
     handle.open(filepath);
     handle << this->to_string(genotyping_from_maximum_likelihood,
         genotyping_from_coverage, output_dot_allele, graph_is_simple, graph_is_nested,
@@ -593,20 +563,20 @@ bool VCF::operator==(const VCF& y) const
 
 bool VCF::operator!=(const VCF& y) const { return !(*this == y); }
 
-void VCF::concatenate_VCFs(const std::vector<std::string>& VCF_paths_to_be_concatenated,
-    const std::string& final_VCF_file)
+void VCF::concatenate_VCFs(const std::vector<fs::path>& VCF_paths_to_be_concatenated,
+    const fs::path& final_VCF_file)
 {
     std::ofstream out_file;
-    open_file_for_writing(final_VCF_file, out_file);
+    open_file_for_writing(final_VCF_file.string(), out_file);
 
     bool header_is_output = false;
     for (const auto& VCF_path : VCF_paths_to_be_concatenated) {
         std::ifstream in_file;
-        open_file_for_reading(VCF_path, in_file);
+        open_file_for_reading(VCF_path.string(), in_file);
 
         std::string line;
         while (std::getline(in_file, line)) {
-            if ((line[0] != '#') || (line[0] == '#' && header_is_output == false))
+            if ((line[0] != '#') || (line[0] == '#' && !header_is_output))
                 out_file << line << std::endl;
         }
         header_is_output = true;

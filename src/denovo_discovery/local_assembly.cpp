@@ -180,11 +180,13 @@ std::pair<DenovoPaths, FoundPaths> LocalAssemblyGraph::get_paths_between(
             abandoned = true;
             break;
         }
+
+        BOOST_LOG_TRIVIAL(trace) << "Trying local assembly with " << std::to_string(required_percent_of_expected_covg) << " * <expected covg>";
         build_paths_between(start_kmer, end_kmer, path_accumulator, tree,
             node_to_distance_to_the_end_node, paths_between_queries, max_path_length,
             expected_coverage, required_percent_of_expected_covg);
         retries++;
-    } while (paths_between_queries.size() > MAX_NUMBER_CANDIDATE_PATHS);
+    } while (paths_between_queries.size() > this->get_max_nb_paths());
 
     BOOST_LOG_TRIVIAL(debug) << "Path enumeration complete. There were "
                              << std::to_string(paths_between_queries.size())
@@ -200,7 +202,7 @@ void LocalAssemblyGraph::build_paths_between(const std::string& start_kmer,
     uint32_t num_kmers_below_threshold)
 {
     if (path_accumulator.length() > max_path_length
-        or paths_between_queries.size() > MAX_NUMBER_CANDIDATE_PATHS) {
+        or paths_between_queries.size() > this->get_max_nb_paths()) {
         return;
     }
 
@@ -224,7 +226,6 @@ void LocalAssemblyGraph::build_paths_between(const std::string& start_kmer,
             return;
         }
     }
-
     path_accumulator.push_back(start_kmer.back());
 
     if (string_ends_with(path_accumulator, end_kmer)
@@ -259,15 +260,14 @@ void clean(Graph& graph, const uint16_t& num_cores)
     graph_simplifications._doBulgeRemoval = false;
     graph_simplifications._doECRemoval = false;
 
-    graph_simplifications._tipLen_Topo_kMult
-        = 2; // remove all tips of length <= k * X bp  [default '2.500000'] set to 0 to
-             // turn off
-    graph_simplifications._tipLen_RCTC_kMult
-        = 0; // remove tips that pass coverage criteria, of length <= k * X bp  [default
-             // '10.000000'] set to 0 to turn off
-    graph_simplifications._tipRCTCcutoff
-        = 2; // tip relative coverage coefficient: mean coverage of neighbors >  X * tip
-             // coverage default 2.0
+    // remove all tips of length <= k * X bp  [default '2.500000'] set to 0 to turn off
+    graph_simplifications._tipLen_Topo_kMult = 2;
+    // remove tips that pass coverage criteria, of length <= k * X bp  [default
+    // '10.000000'] set to 0 to turn off
+    graph_simplifications._tipLen_RCTC_kMult = 0;
+    // tip relative coverage coefficient: mean coverage of neighbors >  X * tip coverage
+    // default 2.0
+    graph_simplifications._tipRCTCcutoff = 2;
     graph_simplifications.simplify();
 }
 

@@ -6,9 +6,12 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <boost/filesystem.hpp>
 #include "minirecord.h"
 #include "prg/path.h"
 #include "utils.h"
+
+namespace fs = boost::filesystem;
 
 class Index {
 public:
@@ -28,13 +31,13 @@ public:
     void add_record(
         const uint64_t, const uint32_t, const prg::Path&, const uint32_t, const bool);
 
-    void save(const std::string& prgfile, uint32_t w, uint32_t k);
+    void save(const fs::path& prgfile, uint32_t w, uint32_t k);
 
-    void save(const std::string& indexfile);
+    void save(const fs::path& indexfile);
 
-    void load(const std::string& prgfile, uint32_t w, uint32_t k);
+    void load(fs::path prgfile, uint32_t w, uint32_t k);
 
-    void load(const std::string& indexfile);
+    void load(const fs::path& indexfile);
 
     void clear();
 
@@ -43,6 +46,7 @@ public:
     bool operator!=(const Index& other) const;
 };
 
-void index_prgs(std::vector<std::shared_ptr<LocalPRG>>&, std::shared_ptr<Index>&,
-    const uint32_t, const uint32_t, const std::string&, uint32_t threads = 1);
+void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    std::shared_ptr<Index>& index, uint32_t w, uint32_t k, const fs::path& outdir,
+    uint32_t threads = 1);
 #endif

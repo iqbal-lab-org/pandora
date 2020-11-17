@@ -1,9 +1,7 @@
 #include <fstream>
 #include <set>
 #include <cassert>
-#include <cmath>
 #include <algorithm>
-#include <numeric>
 #include <cstdlib>
 #include <utility>
 
@@ -47,7 +45,6 @@ bool LocalPRG::isalpha_string(const std::string& s) const
     // Returns if a string s is entirely alphabetic
     for (char j : s)
         if (isalpha(j) == 0) {
-            // std::cout << "Found non-alpha char: " << s[j] << std::endl;
             return false;
         }
     return true;
@@ -55,15 +52,12 @@ bool LocalPRG::isalpha_string(const std::string& s) const
 
 std::string LocalPRG::string_along_path(const prg::Path& p) const
 {
-    // std::cout << p << std::endl;
     assert(p.get_start() <= seq.length());
     assert(p.get_end() <= seq.length());
     std::string s;
     for (const auto& it : p) {
         s += seq.substr(it.start, it.length);
-        // std::cout << s << std::endl;
     }
-    // std::cout << "lengths: " << s.length() << ", " << p.length << std::endl;
     assert(s.length() == p.length()
         || assert_msg("sequence length "
             << s.length() << " is not equal to path length " << p.length()));
@@ -174,9 +168,6 @@ std::vector<LocalNodePtr> LocalPRG::nodes_along_path_core(const prg::Path& p) co
 std::vector<Interval> LocalPRG::split_by_site(const Interval& i) const
 {
     // Splits interval by next_site based on substring of seq in the interval
-    // std::cout << "splitting by site " << next_site << " in interval " << i <<
-    // std::endl;
-
     // Split first by var site
     std::vector<Interval> v; // contains the intervals split by the variant site
     v.reserve(4);
@@ -384,7 +375,6 @@ std::vector<PathPtr> LocalPRG::shift(prg::Path p) const
     std::deque<PathPtr> short_paths = { std::make_shared<prg::Path>(q) };
     std::vector<PathPtr> k_paths;
     bool non_terminus;
-    // uint exp_num_return_seqs = 0;
 
     // first find extensions of the path
     while (!short_paths.empty()) {
@@ -654,7 +644,6 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                     kmer = string_along_path(*(v[j]));
                     kh = hash.kmerhash(kmer, k);
                     smallest = std::min(smallest, std::min(kh.first, kh.second));
-                    // std::cout << min(kh.first, kh.second) << " ";
                 }
                 for (uint32_t j = 0; j != w; j++) {
                     kmer = string_along_path(*(v[j]));
@@ -850,18 +839,13 @@ std::vector<LocalNodePtr> LocalPRG::localnode_path_from_kmernode_path(
             }
         }
         if (localnode_path[0]->id != 0) {
-            // std::cout << "localnode path still does not start with 0" << std::endl;
             // add the first path to start
             LocalNodePtr next = nullptr;
             while (localnode_path[0]->id != 0 and next != localnode_path[0]) {
-                // std::cout << "look for a previous node to " << *localnode_path[0] <<
-                // std::endl;
                 next = prg.get_previous_node(localnode_path[0]);
                 if (next != nullptr) {
-                    // std::cout << "add " << *next << std::endl;
                     localnode_path.insert(localnode_path.begin(), next);
                 }
-                // std::cout << "new start node is " << *localnode_path[0] << std::endl;
             }
         }
     }
@@ -899,14 +883,10 @@ std::vector<LocalNodePtr> LocalPRG::localnode_path_from_kmernode_path(
             }
         }
         if (localnode_path.back()->id != prg.nodes.size() - 1) {
-            // std::cout << "localnode path still does not end with " <<
-            // prg.nodes.size()-1 << std::endl;
             // add the first path to end
             while (localnode_path.back()->id != prg.nodes.size() - 1
                 and !localnode_path.back()->outNodes.empty()) {
-                // std::cout << "extend " << *localnode_path.back();
                 localnode_path.push_back(localnode_path.back()->outNodes[0]);
-                // std::cout << " with " << *localnode_path.back() << std::endl;
             }
         }
     }
@@ -960,10 +940,10 @@ std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr pan_node,
 
                 coverages_for_each_base_in_localnode_path[k][l]
                     = std::max(coverages_for_each_base_in_localnode_path[k][l],
-                        pan_node->kmer_prg_with_coverage.get_covg(
-                            kmernode_ptr->id, 0, sample_id)
-                            + pan_node->kmer_prg_with_coverage.get_covg(
-                                kmernode_ptr->id, 1, sample_id));
+                        pan_node->kmer_prg_with_coverage.get_reverse_covg(
+                            kmernode_ptr->id, sample_id)
+                            + pan_node->kmer_prg_with_coverage.get_forward_covg(
+                                kmernode_ptr->id, sample_id));
             }
             k++;
         }
@@ -1188,17 +1168,6 @@ void LocalPRG::
         const std::string& sample_name) const
 {
     BOOST_LOG_TRIVIAL(debug) << "Update VCF with sample path";
-    /*for (uint i=0; i!=sample_path.size(); ++i)
-    {
-        std::cout << *sample_path[i] << " ";
-    }
-    std::cout << std::endl;
-    std::cout << now() << "Using ref path" << std::endl;
-    for (uint i=0; i!=rpath.size(); ++i)
-    {
-        std::cout << *rpath[i] << " ";
-    }
-    std::cout << std::endl;*/
     assert(!prg.nodes.empty()); // otherwise empty nodes -> segfault
 
     // if prg has only one node, simple case
@@ -1231,27 +1200,19 @@ void LocalPRG::
             found_new_site = true;
             sample_id++;
         } else if (found_new_site) {
-            // refpath back == samplepath back
             // add ref allele from previous site to this one
-            // std::cout << "update with ref alleles from " << pos << " to " << pos_to
-            // << std::endl;
             vcf.set_sample_gt_to_ref_allele_for_records_in_the_interval(
                 sample_name, name, pos, pos_to);
             pos = pos_to;
 
             // add new site to vcf
-            // std::cout << "find ref seq" << std::endl;
             for (uint32_t j = 1; j < refpath.size() - 1; ++j) {
                 ref += refpath[j]->seq;
-                // std::cout << ref << std::endl;
             }
-            // std::cout << "find alt seq" << std::endl;
             for (uint32_t j = 1; j < samplepath.size() - 1; ++j) {
                 alt += samplepath[j]->seq;
-                // std::cout << alt << std::endl;
             }
 
-            // std::cout << "add sample gt" << std::endl;
             vcf.add_a_new_record_discovered_in_a_sample_and_genotype_it(
                 sample_name, name, pos, ref, alt);
             found_new_site = false;
@@ -1276,7 +1237,6 @@ void LocalPRG::
             }
             pos_to = pos;
         } else {
-            // std::cout << pos_to << std::endl;
             refpath.erase(refpath.begin(), refpath.end() - 1);
             if (refpath.back()->id != prg.nodes.size() - 1) {
                 ref = "";
@@ -1293,10 +1253,8 @@ void LocalPRG::
             }
         }
     }
-    // std::cout << "add last ref alleles" << std::endl;
     vcf.set_sample_gt_to_ref_allele_for_records_in_the_interval(
         sample_name, name, pos, pos_to);
-    // std::cout << "done" << std::endl;
 }
 
 // Find the path through the PRG which deviates at pos from the ref path with alt
@@ -1305,8 +1263,6 @@ std::vector<LocalNodePtr> LocalPRG::find_alt_path(
     const std::vector<LocalNodePtr>& ref_path, const uint32_t pos,
     const std::string& ref, const std::string& alt) const
 {
-    // std::cout << now() << "Find alt path for PRG " << name << " variant " << pos << "
-    // " << ref << " " << alt << std::endl;
     std::vector<LocalNodePtr> alt_path, considered_path;
     std::deque<std::vector<LocalNodePtr>> paths_in_progress;
     uint32_t ref_added = 0, pos_along_ref_path = 0;
@@ -1327,8 +1283,6 @@ std::vector<LocalNodePtr> LocalPRG::find_alt_path(
             break;
         }
     }
-    // std::cout << "pos " << pos << " pos_along_ref_path " << pos_along_ref_path << "
-    // ref_path.size() " << ref_path.size() << std::endl;
 
     // find the localnodeptr we want to make our way back to
     while (pos_along_ref_path < ref_path.size() - 1
@@ -1339,7 +1293,6 @@ std::vector<LocalNodePtr> LocalPRG::find_alt_path(
     }
     assert(pos_along_ref_path < ref_path.size());
     auto ref_node_to_find = ref_path[pos_along_ref_path];
-    // std::cout << "trying to find " << *ref_node_to_find;
 
     // find an alt path with the required sequence
     if (alt_path.empty() and not ref_path.empty() and ref_path[0]->pos.length == 0)
@@ -1353,14 +1306,7 @@ std::vector<LocalNodePtr> LocalPRG::find_alt_path(
         considered_path = paths_in_progress.front();
         paths_in_progress.pop_front();
 
-        /*std::cout << "consider path ";
-        for (const auto &t : considered_path){
-            std::cout << t->pos << " ";
-        }
-        std::cout << std::endl;*/
-
         auto considered_seq = string_along_path(considered_path);
-        // std::cout << "considered_seq " << considered_seq << std::endl;
 
         if (considered_seq == working_alt) {
             // check if merge with ref path
@@ -1371,11 +1317,6 @@ std::vector<LocalNodePtr> LocalPRG::find_alt_path(
                     alt_path.end(), considered_path.begin(), considered_path.end());
                 alt_path.insert(alt_path.end(), ref_path.begin() + pos_along_ref_path,
                     ref_path.end());
-                /*std::cout << "found alt path ";
-                for (const auto &t : considered_path){
-                    std::cout << t->pos << " ";
-                }
-                std::cout << std::endl;*/
                 return alt_path;
             } else {
                 for (const auto& m : considered_path.back()->outNodes) {
@@ -1509,9 +1450,9 @@ LocalPRG::get_forward_and_reverse_kmer_coverages_in_range(
                 and kmer_graph_with_coverage.kmer_prg->nodes[current_kmer_node->id]
                     != nullptr);
             forward_coverages.push_back(
-                kmer_graph_with_coverage.get_covg(current_kmer_node->id, 0, sample_id));
+                kmer_graph_with_coverage.get_forward_covg(current_kmer_node->id, sample_id));
             reverse_coverages.push_back(
-                kmer_graph_with_coverage.get_covg(current_kmer_node->id, 1, sample_id));
+                kmer_graph_with_coverage.get_reverse_covg(current_kmer_node->id, sample_id));
         } else {
             bool has_gone_past_the_given_range
                 = number_of_bases_in_local_path_which_were_already_considered
@@ -1544,7 +1485,6 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF& vcf, const KmerGraphWithCoverage& kg
 
     for (auto& recordPointer : vcf.get_records()) {
         auto& record = *recordPointer;
-        // std::cout << record << std::endl;
         // find corresponding ref kmers
         auto end_pos = record.get_ref_end_pos();
 

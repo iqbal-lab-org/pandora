@@ -46,6 +46,7 @@ set(EXTERNAL_LIBS
         gatbcore
         hdf5
         hdf5_tools)
+link_directories(${gatb_binary_dir}/lib)
 
 include(${PROJECT_SOURCE_DIR}/ext/gtest.cmake)
 
@@ -53,6 +54,8 @@ include(${PROJECT_SOURCE_DIR}/ext/gtest.cmake)
 include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
         ${PROJECT_SOURCE_DIR}/cgranges/cpp
+        ${gatb_source_dir}/gatb-core/src
+        ${gatb_binary_dir}/include
         )
 
 #normal includes: warnings will be reported for these

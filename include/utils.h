@@ -8,9 +8,18 @@
 #include <cstdint>
 #include <string>
 #include <limits>
+#include <boost/filesystem/path.hpp>
 #include "minihits.h"
 #include "pangenome/ns.cpp"
 
+namespace fs = boost::filesystem;
+
+namespace pandora {
+enum class Strand {
+    Forward = '+',
+    Reverse = '-',
+};
+}
 class Index;
 
 class PanNode;
@@ -56,13 +65,13 @@ std::string rev_complement(std::string);
 float lognchoosek2(uint32_t, uint32_t, uint32_t);
 
 // probably should be moved to map_main.cpp
-void read_prg_file(
-    std::vector<std::shared_ptr<LocalPRG>>&, const std::string&, uint32_t id = 0);
+void read_prg_file(std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    const fs::path& filepath, uint32_t id = 0);
 
-void load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>>&, const uint32_t&,
-    const uint32_t&, const std::string&);
+void load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    const uint32_t& w, const uint32_t& k, const fs::path& prgfile);
 
-void load_vcf_refs_file(const std::string&, VCFRefs&);
+void load_vcf_refs_file(const fs::path& filepath, VCFRefs& vcf_refs);
 
 void add_read_hits(const Seq&, const std::shared_ptr<MinimizerHits>&, const Index&);
 
@@ -105,8 +114,11 @@ std::vector<std::string> get_vector_of_strings_from_file(const std::string& file
 // https://github.com/lh3/minimap2/blob/6a4b9f9082b66597185a97c847b548250363d65a/main.c#L84
 uint32_t strtogs(const char*);
 
-// used to transofmr the CLI string
+// used to transform the CLI string
 // https://cliutils.github.io/CLI11/book/chapters/validators.html
 std::string transform_cli_gsize(std::string);
+
+// used to transform paths to absolute paths - designed to be used with CLI11 transform
+std::string make_absolute(std::string);
 
 #endif

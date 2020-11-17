@@ -7,9 +7,12 @@ class LocalPRG;
 #include <vector>
 #include <iostream>
 #include <set>
+#include <boost/filesystem.hpp>
 #include "prg/path.h"
 #include "kmernode.h"
 #include "pangenome/ns.cpp"
+
+namespace fs = boost::filesystem;
 
 struct condition {
     prg::Path q;
@@ -59,8 +62,9 @@ public:
 
     uint32_t min_path_length();
 
-    void save(const std::string&, const std::shared_ptr<LocalPRG> = nullptr);
-    void load(const std::string&);
+    void save(
+        const fs::path& filepath, const std::shared_ptr<LocalPRG> localprg = nullptr);
+    void load(const fs::path& filepath);
 
     bool operator==(const KmerGraph& other_graph) const;
 

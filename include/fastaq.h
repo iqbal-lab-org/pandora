@@ -2,9 +2,20 @@
 #define __FASTAQ_H_INCLUDED__
 
 #include <vector>
+#include <iostream>
+#include <cassert>
+#include <cctype>
+#include <unordered_map>
+
 #include <unordered_map>
 #include <iostream>
 #include <cmath>
+#include <boost/filesystem.hpp>
+#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/log/trivial.hpp>
+
+namespace fs = boost::filesystem;
 
 struct Fastaq {
     bool gzipped;
@@ -29,7 +40,7 @@ struct Fastaq {
 
     void clear();
 
-    void save(const std::string&);
+    void save(const fs::path& filepath);
 
     bool operator==(const Fastaq& y) const;
 

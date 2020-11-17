@@ -12,6 +12,7 @@ class LocalPRG;
 #include "kmernode.h"
 #include "kmergraph.h"
 #include "pangenome/ns.cpp"
+#include "utils.h"
 
 /**
  * Represents an annotated KmerGraph, where the annotation is only the coverage on the
@@ -36,6 +37,11 @@ private:
     int thresh;
     uint32_t total_number_samples;
     uint32_t num_reads;
+    uint32_t get_covg(
+        uint32_t node_id, pandora::Strand strand, uint32_t sample_id) const;
+    void increment_covg(uint32_t node_id, pandora::Strand strand, uint32_t sample_id);
+    void set_covg(
+        uint32_t node_id, uint16_t value, pandora::Strand strand, uint32_t sample_id);
 
 public:
     KmerGraph* kmer_prg; // the underlying KmerGraph - TODO: it is dangerous to leave
@@ -78,16 +84,36 @@ public:
     improvement in RAM usage, so I don't think it is worth the risk now
     TODO: leaving return type as uint32_t to be safe for now, need a recheck later
      */
-    uint32_t get_covg(uint32_t node_id, bool is_forward, uint32_t sample_id) const;
+    uint32_t get_forward_covg(uint32_t node_id, uint32_t sample_id) const
+    {
+        return this->get_covg(node_id, pandora::Strand::Forward, sample_id);
+    }
+    uint32_t get_reverse_covg(uint32_t node_id, uint32_t sample_id) const
+    {
+        return this->get_covg(node_id, pandora::Strand::Reverse, sample_id);
+    }
     uint32_t get_num_reads() const { return num_reads; }
     uint32_t get_total_number_samples() const { return total_number_samples; }
 
     // setters
-    void increment_covg(uint32_t node_id, bool is_forward, uint32_t sample_id);
-    void set_covg(
-        uint32_t node_id, uint16_t value, bool is_forward, uint32_t sample_id);
-    void set_exp_depth_covg(const uint32_t);
-    void set_binomial_parameter_p(const float);
+    void increment_forward_covg(uint32_t node_id, uint32_t sample_id)
+    {
+        this->increment_covg(node_id, pandora::Strand::Forward, sample_id);
+    }
+    void increment_reverse_covg(uint32_t node_id, uint32_t sample_id)
+    {
+        this->increment_covg(node_id, pandora::Strand::Reverse, sample_id);
+    }
+    void set_forward_covg(uint32_t node_id, uint16_t value, uint32_t sample_id)
+    {
+        this->set_covg(node_id, value, pandora::Strand::Forward, sample_id);
+    }
+    void set_reverse_covg(uint32_t node_id, uint16_t value, uint32_t sample_id)
+    {
+        this->set_covg(node_id, value, pandora::Strand::Reverse, sample_id);
+    }
+    void set_exp_depth_covg(uint32_t);
+    void set_binomial_parameter_p(float);
     void set_negative_binomial_parameters(const float&, const float&);
     void set_thresh(int thresh) { this->thresh = thresh; }
     void set_num_reads(uint32_t num_reads) { this->num_reads = num_reads; }
@@ -131,7 +157,8 @@ public:
 
     float prob_paths(const std::vector<std::vector<KmerNodePtr>>&);
 
-    void save(const std::string&, const std::shared_ptr<LocalPRG> = nullptr);
+    void save(
+        const fs::path& filepath, std::shared_ptr<LocalPRG> localprg = nullptr) const;
     void load(const std::string&);
 
     // test friends

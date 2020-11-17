@@ -537,7 +537,7 @@ TEST(FindCandidateRegionsForPanNodeTest, highCoverageReturnEmpty)
 
     for (const auto& kmer_node :
         pangraph_node->kmer_prg_with_coverage.kmer_prg->nodes) {
-        pangraph_node->kmer_prg_with_coverage.set_covg(kmer_node->id, 100, false, 0);
+        pangraph_node->kmer_prg_with_coverage.set_reverse_covg(kmer_node->id, 100, 0);
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
@@ -584,7 +584,7 @@ TEST(
         local_prg_ptr, local_prg_ptr->id, num_samples) };
     const std::vector<int> kmer_node_idxs_for_high_covg { 0, 1, 14, 15 };
     for (const auto& idx : kmer_node_idxs_for_high_covg) {
-        pangraph_node->kmer_prg_with_coverage.set_covg(idx, 100, false, 0);
+        pangraph_node->kmer_prg_with_coverage.set_reverse_covg(idx, 100, 0);
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
@@ -645,7 +645,7 @@ TEST(FindCandidateRegionsForPanNodeTest,
     const std::vector<int> kmer_node_idxs_for_high_covg { 0, 1, 14, 15 };
 
     for (const auto& idx : kmer_node_idxs_for_high_covg) {
-        pangraph_node->kmer_prg_with_coverage.set_covg(idx, 100, false, 0);
+        pangraph_node->kmer_prg_with_coverage.set_reverse_covg(idx, 100, 0);
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
@@ -711,7 +711,7 @@ TEST(FindCandidateRegionsForPanNodeTest,
     const std::vector<int> kmer_node_idxs_for_high_covg { 9, 11, 13, 14, 15 };
 
     for (const auto& idx : kmer_node_idxs_for_high_covg) {
-        pangraph_node->kmer_prg_with_coverage.set_covg(idx, 100, false, 0);
+        pangraph_node->kmer_prg_with_coverage.set_reverse_covg(idx, 100, 0);
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
@@ -777,7 +777,7 @@ TEST(FindCandidateRegionsForPanNodeTest,
     const std::vector<int> kmer_node_idxs_for_high_covg { 0, 1, 2, 3, 5 };
 
     for (const auto& idx : kmer_node_idxs_for_high_covg) {
-        pangraph_node->kmer_prg_with_coverage.set_covg(idx, 100, false, 0);
+        pangraph_node->kmer_prg_with_coverage.set_reverse_covg(idx, 100, 0);
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
@@ -843,7 +843,7 @@ TEST(FindCandidateRegionsForPanNodeTest,
     const std::vector<int> kmer_node_idxs_for_high_covg { 0, 1, 2, 4, 24, 19, 22, 25 };
 
     for (const auto& idx : kmer_node_idxs_for_high_covg) {
-        pangraph_node->kmer_prg_with_coverage.set_covg(idx, 100, false, 0);
+        pangraph_node->kmer_prg_with_coverage.set_reverse_covg(idx, 100, 0);
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
@@ -909,7 +909,7 @@ TEST(FindCandidateRegionsForPanNodeTest,
     const std::vector<int> kmer_node_idxs_for_high_covg { 12, 24, 26 };
 
     for (const auto& idx : kmer_node_idxs_for_high_covg) {
-        pangraph_node->kmer_prg_with_coverage.set_covg(idx, 100, false, 0);
+        pangraph_node->kmer_prg_with_coverage.set_reverse_covg(idx, 100, 0);
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,

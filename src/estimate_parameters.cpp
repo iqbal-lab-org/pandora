@@ -1,6 +1,5 @@
 #include <vector>
 #include <iostream>
-#include <fstream>
 #include <cmath>
 #include <cassert>
 #include <numeric>
@@ -194,7 +193,7 @@ int find_prob_thresh(std::vector<uint32_t>& kmer_prob_dist)
 }
 
 uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
-    const std::string& outdir, const uint32_t k, float& e_rate, const uint32_t covg,
+    const fs::path& outdir, const uint32_t k, float& e_rate, const uint32_t covg,
     bool& bin, const uint32_t& sample_id)
 {
     uint32_t exp_depth_covg = covg;
@@ -223,8 +222,8 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
              i != node.second->kmer_prg_with_coverage.kmer_prg->nodes.size() - 1;
              ++i) // NB first and last kmer in kmergraph are null
         {
-            c = node.second->kmer_prg_with_coverage.get_covg(i, 0, sample_id)
-                + node.second->kmer_prg_with_coverage.get_covg(i, 1, sample_id);
+            c = node.second->kmer_prg_with_coverage.get_reverse_covg(i, sample_id)
+                + node.second->kmer_prg_with_coverage.get_forward_covg(i, sample_id);
             if (c < 1000) {
                 kmer_covg_dist[c] += 1;
             }
@@ -235,13 +234,16 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     num_reads = num_reads / pangraph->nodes.size();
 
     // save coverage distribution
-    BOOST_LOG_TRIVIAL(info) << "Writing kmer coverage distribution to " << outdir
-                            << "/kmer_covgs.txt";
     fs::create_directories(outdir);
-    std::ofstream handle;
-    handle.open(outdir + "/kmer_covgs.txt");
-    assert(!handle.fail()
-        or assert_msg("Could not open file " << outdir + "/kmer_covgs.txt"));
+    fs::ofstream handle;
+    const auto covg_filepath { outdir / "kmer_covgs.txt" };
+    BOOST_LOG_TRIVIAL(info) << "Writing kmer coverage distribution to "
+                            << covg_filepath;
+    handle.open(covg_filepath);
+    if (handle.fail()) {
+        throw std::runtime_error("Could not open file " + covg_filepath.string());
+    }
+
     for (uint32_t j = 0; j != kmer_covg_dist.size(); ++j) {
         handle << j << "\t" << kmer_covg_dist[j] << std::endl;
     }
@@ -250,14 +252,14 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     // evaluate error rate
     auto mean = fit_mean_covg(kmer_covg_dist, covg / 10);
     auto var = fit_variance_covg(kmer_covg_dist, mean, covg / 10);
-    std::cout << "mean, var: " << mean << " " << var << std::endl;
+    BOOST_LOG_TRIVIAL(debug) << "mean, var: " << mean << ", " << var;
     if (mean > var) {
         auto zero_thresh = 2;
         mean = fit_mean_covg(kmer_covg_dist, zero_thresh);
         var = fit_variance_covg(kmer_covg_dist, mean, zero_thresh);
-        std::cout << "new mean, var: " << mean << " " << var << std::endl;
+        BOOST_LOG_TRIVIAL(debug) << "new mean, var: " << mean << ", " << var;
     }
-    std::cout << bin << " " << num_reads << " " << covg << std::endl;
+    BOOST_LOG_TRIVIAL(debug) << "nb reads, covg" << num_reads << ", " << covg;
     if ((bin and num_reads > 30 and covg > 30)
         or (not bin and abs(var - mean) < 2 and mean > 10 and num_reads > 30
             and covg > 2)) {
@@ -315,11 +317,14 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     }
 
     // save probability distribution
-    BOOST_LOG_TRIVIAL(info) << "Writing kmer probability distribution to " << outdir
-                            << "/kmer_probs.txt";
-    handle.open(outdir + "/kmer_probs.txt");
-    assert(!handle.fail()
-        or assert_msg("Could not open file " << outdir + "/kmer_probs.txt"));
+    const auto kmer_prob_filepath { outdir / "kmer_probs.txt" };
+    BOOST_LOG_TRIVIAL(info) << "Writing kmer probability distribution to "
+                            << kmer_prob_filepath;
+    handle.open(kmer_prob_filepath);
+    if (handle.fail()) {
+        throw std::runtime_error("Could not open file " + kmer_prob_filepath.string());
+    }
+
     for (int j = 0; (uint32_t)j != kmer_prob_dist.size(); ++j) {
         handle << j - 200 << "\t" << kmer_prob_dist[j] << std::endl;
     }

@@ -8,8 +8,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <gatb/debruijn/impl/Simplifications.hpp>
-#include <gatb/gatb_core.hpp>
+#include "gatb/debruijn/impl/Simplifications.hpp"
+#include "gatb/gatb_core.hpp"
 #include <sys/stat.h>
 
 #include <boost/filesystem.hpp>
@@ -25,11 +25,13 @@ using DenovoPaths = std::vector<std::string>;
 using FoundPaths = bool;
 
 constexpr float COVG_SCALING_FACTOR { 0.1 };
-constexpr auto MAX_NUMBER_CANDIDATE_PATHS { 25 };
 
 class LocalAssemblyGraph : public Graph {
 public:
     LocalAssemblyGraph& operator=(const Graph& graph);
+
+    int get_max_nb_paths() const { return this->max_nb_samples; }
+    void set_max_nb_paths(const int n) { this->max_nb_samples = n; }
 
     std::pair<Node, bool> get_node(const std::string& query_kmer);
 
@@ -38,6 +40,7 @@ public:
         const double& expected_coverage = 1);
 
 private:
+    int max_nb_samples { 25 };
     DfsTree depth_first_search_from(const Node& start_node, bool reverse = false);
 
     BfsDistanceMap breadth_first_search_from(

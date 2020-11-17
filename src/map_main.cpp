@@ -10,6 +10,7 @@ void setup_map_subcommand(CLI::App& app)
     map_subcmd
         ->add_option("<TARGET>", opt->prgfile, "An indexed PRG file (in fasta format)")
         ->required()
+        ->transform(make_absolute)
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
@@ -17,6 +18,7 @@ void setup_map_subcommand(CLI::App& app)
         ->add_option(
             "<QUERY>", opt->readsfile, "Fast{a,q} file containing reads to quasi-map")
         ->required()
+        ->transform(make_absolute)
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
@@ -36,6 +38,7 @@ void setup_map_subcommand(CLI::App& app)
         ->add_option("-o,--outdir", opt->outdir, "Directory to write output files to")
         ->type_name("DIR")
         ->capture_default_str()
+        ->transform(make_absolute)
         ->group("Input/Output");
 
     map_subcmd
@@ -49,6 +52,8 @@ void setup_map_subcommand(CLI::App& app)
                               "perfect match in <TARGET> and the same name";
     map_subcmd->add_option("--vcf-refs", opt->vcf_refs_file, description)
         ->type_name("FILE")
+        ->transform(make_absolute)
+        ->check(CLI::ExistingFile.description(""))
         ->group("Input/Output");
 
     map_subcmd
@@ -231,8 +236,10 @@ int pandora_map(MapOptions& opt)
         false);
 
     fs::create_directories(opt.outdir);
-    if (opt.output_kg)
-        fs::create_directories(opt.outdir + "/kmer_graphs");
+    const auto kmer_graphs_dir { opt.outdir / "kmer_graphs" };
+    if (opt.output_kg) {
+        fs::create_directories(kmer_graphs_dir);
+    }
 
     BOOST_LOG_TRIVIAL(info) << "Loading Index and LocalPRGs from file...";
     auto index = std::make_shared<Index>();
@@ -244,10 +251,10 @@ int pandora_map(MapOptions& opt)
     BOOST_LOG_TRIVIAL(info)
         << "Constructing pangenome::Graph from read file (this will take a while)...";
     auto pangraph = std::make_shared<pangenome::Graph>();
-    uint32_t covg
-        = pangraph_from_read_file(opt.readsfile, pangraph, index, prgs, opt.window_size,
-            opt.kmer_size, opt.max_diff, opt.error_rate, opt.min_cluster_size,
-            opt.genome_size, opt.illumina, opt.clean, opt.max_covg, opt.threads);
+    uint32_t covg = pangraph_from_read_file(opt.readsfile.string(), pangraph, index,
+        prgs, opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate,
+        opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
+        opt.threads);
 
     if (pangraph->nodes.empty()) {
         BOOST_LOG_TRIVIAL(info) << "Found non of the LocalPRGs in the reads.";
@@ -255,9 +262,9 @@ int pandora_map(MapOptions& opt)
         return 0;
     }
 
-    BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file " << opt.outdir
-                            << "/pandora.pangraph.gfa";
-    write_pangraph_gfa(opt.outdir + "/pandora.pangraph.gfa", pangraph);
+    const auto pangraph_gfa { opt.outdir / "pandora.pangraph.gfa" };
+    BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file " << pangraph_gfa;
+    write_pangraph_gfa(pangraph_gfa, pangraph);
 
     BOOST_LOG_TRIVIAL(info) << "Updating local PRGs with hits...";
     uint32_t sample_id = 0;
@@ -340,7 +347,7 @@ int pandora_map(MapOptions& opt)
 
         if (opt.output_kg) {
             pangraph_node->kmer_prg_with_coverage.save(
-                opt.outdir + "/kmer_graphs/" + pangraph_node->get_name() + ".kg.gfa",
+                kmer_graphs_dir / (pangraph_node->get_name() + ".kg.gfa"),
                 prgs[pangraph_node->prg_id]);
         }
 
@@ -356,9 +363,9 @@ int pandora_map(MapOptions& opt)
     for (const auto& node_to_remove : nodes_to_remove)
         pangraph->remove_node(node_to_remove);
 
-    consensus_fq.save(opt.outdir + "/pandora.consensus.fq.gz");
+    consensus_fq.save(opt.outdir / "pandora.consensus.fq.gz");
     if (opt.output_vcf) {
-        master_vcf.save(opt.outdir + "/pandora_consensus.vcf", true, false);
+        master_vcf.save(opt.outdir / "pandora_consensus.vcf", true, false);
     }
 
     if (pangraph->nodes.empty()) {
@@ -374,11 +381,12 @@ int pandora_map(MapOptions& opt)
         BOOST_LOG_TRIVIAL(info) << "Genotyping VCF...";
         master_vcf.genotype(opt.local_genotype);
         BOOST_LOG_TRIVIAL(info) << "Finished genotyping VCF";
+        const auto gt_vcf_filepath { opt.outdir / "pandora_genotyped.vcf" };
         if (opt.snps_only) {
-            master_vcf.save(opt.outdir + "/pandora_genotyped.vcf", false, true, false,
-                true, true, true, true, false, false, false);
+            master_vcf.save(gt_vcf_filepath, false, true, false, true, true, true, true,
+                false, false, false);
         } else {
-            master_vcf.save(opt.outdir + "/pandora_genotyped.vcf", false, true);
+            master_vcf.save(gt_vcf_filepath, false, true);
         }
     }
 

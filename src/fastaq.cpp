@@ -1,13 +1,3 @@
-#include <fstream>
-#include <iostream>
-#include <cassert>
-#include <cctype>
-#include <unordered_map>
-
-#include <boost/iostreams/filtering_streambuf.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
-#include <boost/log/trivial.hpp>
-
 #include "fastaq.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
@@ -104,16 +94,15 @@ void Fastaq::clear()
     scores.clear();
 }
 
-void Fastaq::save(const std::string& filepath)
+void Fastaq::save(const fs::path& filepath)
 {
-    if (filepath.length() > 2 and filepath.substr(filepath.length() - 2) == "gz"
-        and !gzipped) {
+    const bool has_gzip_ext { filepath.extension() == ".gz" };
+    if (has_gzip_ext and !gzipped) {
         gzipped = true;
-    } else if (filepath.length() > 2 and filepath.substr(filepath.length() - 2) != "gz"
-        and gzipped) {
+    } else if ((!has_gzip_ext) and gzipped) {
         gzipped = false;
     }
-    std::ofstream file(
+    fs::ofstream file(
         filepath, std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
     boost::iostreams::filtering_streambuf<boost::iostreams::output> out;
     if (gzipped) {

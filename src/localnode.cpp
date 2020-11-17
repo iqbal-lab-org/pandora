@@ -22,23 +22,18 @@ std::ostream& operator<<(std::ostream& out, LocalNode const& n)
 
 bool LocalNode::operator==(const LocalNode& y) const
 {
-    if (seq != y.seq) { // cout << "different seq" << endl;
+    if (seq != y.seq) {
         return false;
     }
-    // if (!(pos == y.pos)) {//cout << "different interval" << endl;
-    // return false;}
-    if (id != y.id) { // cout << "different id" << endl;
+    if (id != y.id) {
         return false;
     }
-    if (outNodes.size()
-        != y.outNodes.size()) { // cout << "differnet numbers of out edges" << endl;
+    if (outNodes.size() != y.outNodes.size()) {
         return false;
     }
     for (uint32_t i = 0; i != outNodes.size(); ++i) {
         spointer_values_equal<LocalNode> eq = { outNodes[i] };
-        if (find_if(y.outNodes.begin(), y.outNodes.end(), eq)
-            == y.outNodes.end()) { // cout << "the out edge points to a different node"
-                                   // << endl;
+        if (find_if(y.outNodes.begin(), y.outNodes.end(), eq) == y.outNodes.end()) {
             return false;
         }
     }
