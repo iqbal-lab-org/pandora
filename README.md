@@ -43,6 +43,11 @@ Map Nanopore reads from a single sample to get approximate sequence for genes pr
 pandora map <panrg.fa> <reads.fq>
 ```
 
+## Hands on a toy example
+
+You can test `pandora` on a toy example following [this link](toy_example).
+There is no need to have pandora installed, as it is run inside containers.
+
 ## Installation
 
 ### Containers
