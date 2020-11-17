@@ -7,8 +7,8 @@ Here we present a walkthrough of running `pandora` on a toy example. We run: 1) 
 ```
 msas/ : contains the MSAs of the two genes we are using as toy example here, GC00006032 and GC00010897;
 prgs/toy_prg.fa : contains the PRGs of the two genes, GC00006032 and GC00010897. These are fairly simple PRGs. GC00006032 contains 4 variant sites, each representing a SNP, while GC00010897 contains 5;
-reads/ : contains perfect simulated reads from two toy samples. We simulated perfect reads, where one sample genotypes to one base of the variant site, while the other sample genotypes to the other;
-pandora_workflow_data : contains other data to run the pandora workflow;
+reads/ : contains perfect simulated reads from two toy samples. We simulated perfect reads, where one sample genotypes to one allele of the variant sites, while the other sample genotypes towards the other allele;
+pandora_workflow_data : contains other input and configuration files to run the pandora workflow;
 ```
 
 ##  pandora without de novo discovery
@@ -33,7 +33,7 @@ GC00006032	160	.	A	C	.	.	SVTYPE=SNP;GRAPHTYPE=SIMPLE	GT:MEAN_FWD_COVG:MEAN_REV_C
 GC00006032	218	.	T	C	.	.	SVTYPE=SNP;GRAPHTYPE=SIMPLE	GT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS:LIKELIHOOD:GT_CONF	1:0,0:1,4:0,0:0,4:0,0:4,8:0.75,0:-28.725,-7.0005:21.7245	0:8,0:6,0:9,0:8,0:33,0:27,0:0.25,1:-30.9944,-160.472:129.478
 ```
 
-We can see samples `toy_sample_1` and `toy_sample_2` genotype different alleles.
+We can see samples `toy_sample_1` and `toy_sample_2` genotype towards different alleles.
 
 ##  pandora workflow
 
@@ -50,7 +50,7 @@ We can see samples `toy_sample_1` and `toy_sample_2` genotype different alleles.
 
 `pandora` workflow output will be located at dir `pandora_workflow/output_toy_example_workflow/illumina/100x/random/compare_(no|with)denovo_global_genotyping`.
 
-Files `pandora_workflow/output_toy_example_workflow/illumina/100x/random/compare_nodenovo_global_genotyping/pandora_multisample_genotyped_global.vcf` and `output_toy_example_no_denovo/pandora_multisample_genotyped.vcf` both represent running `pandora` without de novo discovery and should be very similar files (just differentiating on some header lines, and on some statistics, due to slightly different versions used. For the former, it is the version used in the paper; for the latter, the version the `master` branch, which is more recent, with some bugs fixed). 
+Files `pandora_workflow/output_toy_example_workflow/illumina/100x/random/compare_nodenovo_global_genotyping/pandora_multisample_genotyped_global.vcf` and `output_toy_example_no_denovo/pandora_multisample_genotyped.vcf` both represent running `pandora` without de novo discovery and should be very similar files (just differentiating on some header lines, and on some statistics, due to slightly different versions used. For the first file, it is the version used in the paper; for the second file, the version on the `master` branch, which is more recent, with some bugs fixed). 
 
 File `pandora_workflow/output_toy_example_workflow/illumina/100x/random/compare_withdenovo_global_genotyping/pandora_multisample_genotyped_global.vcf` is the `pandora` VCF with de novo discovery, and it has some new VCF records that were discovered and genotyped. For example:
 
