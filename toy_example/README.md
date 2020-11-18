@@ -8,7 +8,7 @@ Here we present a walkthrough of running `pandora` on a toy example. We run: 1) 
 msas/ : contains the MSAs of the two genes we are using as toy example here, GC00006032 and GC00010897;
 prgs/toy_prg.fa : contains the PRGs of the two genes, GC00006032 and GC00010897. These are fairly simple PRGs. GC00006032 contains 4 variant sites, each representing a SNP, while GC00010897 contains 5;
 reads/ : contains perfect simulated reads from two toy samples. We simulated perfect reads, where one sample genotypes to one allele of the variant sites, while the other sample genotypes towards the other allele;
-pandora_workflow_data : contains other input and configuration files to run the pandora workflow;
+pandora_workflow_data/ : contains other input and configuration files to run the pandora workflow;
 ```
 
 ##  pandora without de novo discovery
