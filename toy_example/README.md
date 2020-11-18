@@ -41,7 +41,7 @@ We can see samples `toy_sample_1` and `toy_sample_2` genotype towards different 
 
 ### Dependencies
 
-* `singularity`
+* [`singularity`](https://sylabs.io/)
 * `git`
 * `python 3.6+`
 
