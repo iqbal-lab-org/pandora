@@ -15,7 +15,7 @@ pandora_workflow_data/ : contains other input and configuration files to run the
 
 ### Dependencies
 
-* `singularity`
+* [`singularity`](https://sylabs.io/)
 
 ### Running
 `cd toy_example && ./run_pandora_nodenovo.sh`
