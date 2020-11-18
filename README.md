@@ -37,7 +37,7 @@ these PanRGs from a set of aligned sequence files.
 Pandora can do the following for a single sample (read dataset):
 - Output inferred mosaic of reference sequences for loci (eg genes) from the PanRG which are present;
 - Output a VCF showing the variation found within these loci, with respect to any reference path in the PRG;
-- Discovery of new variation not in the PRG.
+- Discovery of new variation not in the PanRG.
 
 For a collection of samples, it can:
 - Output a matrix showing inferred copy-number of each locus in each sample genome;
