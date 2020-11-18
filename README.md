@@ -28,7 +28,7 @@
 ## Introduction
 Pandora is a tool for bacterial genome analysis using a pangenome reference graph (PanRG). It allows gene presence/absence detection and genotyping of SNPs, indels and longer variants in one or a number of samples. Pandora works with Illumina or Nanopore data. 
 
-The pangenome reference graph (PanRG) is a collection of 'floating'
+The PanRG is a collection of 'floating'
 local graphs, each representing some orthologous region of interest
 (e.g. genes, mobile elements or intergenic regions). See
 https://github.com/rmcolq/make_prg for a pipeline which can construct
