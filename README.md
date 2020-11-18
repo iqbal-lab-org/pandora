@@ -44,7 +44,7 @@ For a collection of samples, it can:
 - Output a multisample pangenome VCF showing how including genotype calls for each sample in each of the loci;
 - Output one VCF per locus. Variation is shown with respect to the most informative recombinant path in the PRG (see our paper).
 
-Warning - pandora is not yet a production-ready tool yet. 
+> **Warning - `pandora` is not yet a production-ready tool.** 
 
 ## Quick Start
 
