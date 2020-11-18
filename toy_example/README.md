@@ -22,7 +22,7 @@ pandora_workflow_data/ : contains other input and configuration files to run the
 
 ### Quick look at the output
 
-`pandora` output will be located at dir `output_toy_example_no_denovo`.
+`pandora` output will be located in directory `output_toy_example_no_denovo`.
 
 Taking a quick look at an excerpt of the genotyped VCF (`output_toy_example_no_denovo/pandora_multisample_genotyped.vcf`):
 
