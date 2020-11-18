@@ -71,7 +71,7 @@ pandora map <panrg.fa> <reads.fq>
 ## Hands-on toy example
 
 You can test `pandora` on a toy example following [this link](toy_example).
-There is no need to have pandora installed, as it is run inside containers.
+There is no need to have `pandora` installed, as it is run inside containers.
 
 ## Installation
 
