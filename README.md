@@ -132,7 +132,7 @@ git clone --single-branch https://github.com/rmcolq/pandora.git --recursive
 cd pandora
 mkdir -p build
 cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=ReleaseWithAsserts ..
 make
 ctest -VV
 ```
