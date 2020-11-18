@@ -1,6 +1,6 @@
 # Toy example
 
-Here we present a walkthrough of running `pandora` on a toy example. We run: 1) `pandora` without de novo discovery; 2) [`pandora` workflow](https://github.com/iqbal-lab-org/pandora_workflow), which runs `pandora` with and without de novo discovery (see Figure 2 of Colquhoun et al. "Nucleotide-resolution bacterial pan-genomics with reference graphs"). Although method 2) runs both modes of `pandora`, it is much more involved than method 1), as the user needs to configure and run a `snakemake` pipeline. If no de novo discovery is required, method 1 is a lot simpler to run (two commands) as opposed to running the pipeline. For completeness, we show both methods.
+Here we present a walkthrough of running `pandora` on a toy example. We run: 1) `pandora` without de novo discovery; 2) [`pandora` workflow](https://github.com/iqbal-lab-org/pandora_workflow), which runs `pandora` with and without de novo discovery (see Figure 2 of [our paper](pandora_2020_paper)). Although method 2) runs both modes of `pandora`, it is much more involved than method 1), as the user needs to configure and run a `snakemake` pipeline. If no de novo discovery is required, method 1 is a lot simpler to run (two commands) as opposed to running the pipeline. For completeness, we show both methods.
 
 ## Input data description
 
@@ -18,7 +18,9 @@ pandora_workflow_data/ : contains other input and configuration files to run the
 * [`singularity`](https://sylabs.io/)
 
 ### Running
-`cd toy_example && ./run_pandora_nodenovo.sh`
+```
+cd toy_example && ./run_pandora_nodenovo.sh
+```
 
 ### Quick look at the output
 
@@ -44,13 +46,15 @@ We can see samples `toy_sample_1` and `toy_sample_2` genotype towards different 
 * `python 3.6+`
 
 ### Running
-`cd toy_example && ./run_pandora_workflow.sh`
+```
+cd toy_example && ./run_pandora_workflow.sh
+```
 
 ### Quick look at the output
 
 `pandora` workflow output will be located at dir `pandora_workflow/output_toy_example_workflow/illumina/100x/random/compare_(no|with)denovo_global_genotyping`.
 
-Files `pandora_workflow/output_toy_example_workflow/illumina/100x/random/compare_nodenovo_global_genotyping/pandora_multisample_genotyped_global.vcf` and `output_toy_example_no_denovo/pandora_multisample_genotyped.vcf` both represent running `pandora` without de novo discovery and should be very similar files (just differentiating on some header lines, and on some statistics, due to slightly different versions used. For the first file, it is the version used in the paper; for the second file, the version on the `master` branch, which is more recent, with some bugs fixed). 
+Files `pandora_workflow/output_toy_example_workflow/illumina/100x/random/compare_nodenovo_global_genotyping/pandora_multisample_genotyped_global.vcf` and `output_toy_example_no_denovo/pandora_multisample_genotyped.vcf` both represent running `pandora` without de novo discovery and should be very similar files, just differentiating on some header lines, and on some statistics, due to slightly different versions used. For the first file, it is the version used in the paper; for the second file, the version on the `master` branch, which is more recent, with some bugs fixed.
 
 File `pandora_workflow/output_toy_example_workflow/illumina/100x/random/compare_withdenovo_global_genotyping/pandora_multisample_genotyped_global.vcf` is the `pandora` VCF with de novo discovery, and it has some new VCF records that were discovered and genotyped. For example:
 
@@ -59,3 +63,7 @@ File `pandora_workflow/output_toy_example_workflow/illumina/100x/random/compare_
 GC00006032	49	.	G	A	.	.	SVTYPE=SNP;GRAPHTYPE=SIMPLE	GT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS:LIKELIHOOD:GT_CONF	1:0,9:0,9:0,9:0,9:0,9:0,9:1,0:-96.8931,-8.36997:88.5231	0:69,0:58,0:69,0:58,0:139,0:116,0:0,1:-36.3338,-696.857:660.523
 GC00010897	44	.	C	T	.	.	SVTYPE=SNP;GRAPHTYPE=SIMPLE	GT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS:LIKELIHOOD:GT_CONF	1:0,2:0,2:0,2:0,2:0,4:0,4:1,1:-32.4207,-9.39441:23.0263	0:17,0:24,0:17,0:24,0:34,0:49,0:0,1:-4.99479,-300.812:295.817
 ```
+
+
+<!--Link References-->
+[pandora_2020_paper]: https://www.biorxiv.org/content/10.1101/2020.11.12.380378v2
