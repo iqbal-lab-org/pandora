@@ -1,6 +1,6 @@
 # Toy example
 
-Here we present a walkthrough of running `pandora` on a toy example. We run: 1) `pandora` without de novo discovery; 2) [`pandora` workflow](https://github.com/iqbal-lab-org/pandora_workflow), which runs `pandora` with and without de novo discovery (see Figure 2 of [our paper](pandora_2020_paper)). Although method 2) runs both modes of `pandora`, it is much more involved than method 1), as the user needs to configure and run a `snakemake` pipeline. If no de novo discovery is required, method 1 is a lot simpler to run (two commands) as opposed to running the pipeline. For completeness, we show both methods.
+Here we present a walkthrough of running `pandora` on a toy example. We run: 1) `pandora` without de novo discovery; 2) [`pandora` workflow](https://github.com/iqbal-lab-org/pandora_workflow), which runs `pandora` with and without de novo discovery (see Figure 2 of [our paper][pandora_2020_paper]). Although method 2) runs both modes of `pandora`, it is much more involved than method 1), as the user needs to configure and run a `snakemake` pipeline. If no de novo discovery is required, method 1 is a lot simpler to run (two commands) as opposed to running the pipeline. For completeness, we show both methods.
 
 ## Input data description
 

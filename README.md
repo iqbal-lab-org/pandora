@@ -41,7 +41,7 @@ Pandora can do the following for a single sample (read dataset):
 
 For a collection of samples, it can:
 - Output a matrix showing inferred presence-absence of each locus in each sample genome;
-- Output a multisample pangenome VCF including genotype calls for each sample in each of the loci. Variation is shown with respect to the most informative recombinant path in the PRGs (see [our paper](pandora_2020_paper)).
+- Output a multisample pangenome VCF including genotype calls for each sample in each of the loci. Variation is shown with respect to the most informative recombinant path in the PRGs (see [our paper][pandora_2020_paper]).
 
 > **Warning - `pandora` is not yet a production-ready tool.** 
 
