@@ -1,6 +1,6 @@
 # Toy example
 
-Here we present a walkthrough of running `pandora` on a toy example. We run: 1) `pandora` without de novo discovery; 2) `pandora` workflow (https://github.com/iqbal-lab-org/pandora_workflow), which runs pandora with and without de novo discovery (see Figure 2 of Colquhoun et al. "Nucleotide-resolution bacterial pan-genomics with reference graphs"). Although method 2) run both modes of `pandora`, it is much more involved than method 1), as the user needs to configure and run a `snakemake` pipeline. If no de novo discovery is required, method 1 is a lot simpler to run (two command lines) as opposed to running the pipeline. For completeness, we show both methods.
+Here we present a walkthrough of running `pandora` on a toy example. We run: 1) `pandora` without de novo discovery; 2) [`pandora` workflow](https://github.com/iqbal-lab-org/pandora_workflow), which runs `pandora` with and without de novo discovery (see Figure 2 of Colquhoun et al. "Nucleotide-resolution bacterial pan-genomics with reference graphs"). Although method 2) runs both modes of `pandora`, it is much more involved than method 1), as the user needs to configure and run a `snakemake` pipeline. If no de novo discovery is required, method 1 is a lot simpler to run (two commands) as opposed to running the pipeline. For completeness, we show both methods.
 
 ## Input data description
 
@@ -59,4 +59,3 @@ File `pandora_workflow/output_toy_example_workflow/illumina/100x/random/compare_
 GC00006032	49	.	G	A	.	.	SVTYPE=SNP;GRAPHTYPE=SIMPLE	GT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS:LIKELIHOOD:GT_CONF	1:0,9:0,9:0,9:0,9:0,9:0,9:1,0:-96.8931,-8.36997:88.5231	0:69,0:58,0:69,0:58,0:139,0:116,0:0,1:-36.3338,-696.857:660.523
 GC00010897	44	.	C	T	.	.	SVTYPE=SNP;GRAPHTYPE=SIMPLE	GT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS:LIKELIHOOD:GT_CONF	1:0,2:0,2:0,2:0,2:0,4:0,4:1,1:-32.4207,-9.39441:23.0263	0:17,0:24,0:17,0:24,0:34,0:49,0:0,1:-4.99479,-300.812:295.817
 ```
-
