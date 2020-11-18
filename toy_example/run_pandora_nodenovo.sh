@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
 set -eu
-
-singularity pull docker://rmcolq/pandora:latest
-singularity exec ./pandora-latest.simg pandora index prgs/toy_prg.fa
-singularity exec ./pandora-latest.simg pandora compare --genotype -o output_toy_example_no_denovo prgs/toy_prg.fa reads/read_index.tsv
+pandora_command="pandora index prgs/toy_prg.fa && pandora compare --genotype -o output_toy_example_no_denovo prgs/toy_prg.fa reads/read_index.tsv"
+singularity exec docker://rmcolq/pandora:latest bash -c "${pandora_command}"
