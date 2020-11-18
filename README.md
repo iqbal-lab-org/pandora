@@ -32,7 +32,7 @@ The PanRG is a collection of 'floating'
 local graphs, each representing some orthologous region of interest
 (e.g. genes, mobile elements or intergenic regions). See
 https://github.com/rmcolq/make_prg for a pipeline which can construct
-these PRGs from a set of aligned sequence files.
+these PanRGs from a set of aligned sequence files.
 
 Pandora can do the following for a single sample (read dataset):
 - Output inferred mosaic of reference sequences for loci (eg genes) from the PanRG which are present;
