@@ -19,7 +19,7 @@ pandora_workflow_data/ : contains other input and configuration files to run the
 
 ### Running
 ```
-cd toy_example && ./run_pandora_nodenovo.sh
+cd example && ./run_pandora_nodenovo.sh
 ```
 
 ### Quick look at the output
@@ -47,7 +47,7 @@ We can see samples `toy_sample_1` and `toy_sample_2` genotype towards different 
 
 ### Running
 ```
-cd toy_example && ./run_pandora_workflow.sh
+cd example && ./run_pandora_workflow.sh
 ```
 
 ### Quick look at the output
