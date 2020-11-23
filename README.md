@@ -26,45 +26,24 @@
 
 
 ## Introduction
+Pandora is a tool for bacterial genome analysis using a pangenome reference graph (PanRG). It allows gene presence/absence detection and genotyping of SNPs, indels and longer variants in one or a number of samples. Pandora works with Illumina or Nanopore data. For more details, see [our paper][pandora_2020_paper].
 
-Pandora is a tool for bacterial genome analysis using a pangenome
-reference graph (PanRG). It allows gene presence/absence detection and
-genotyping of SNPs, indels and longer variants in one or a number of
-samples. Pandora works with Illumina or Nanopore data. Core ideas behind
-the method are:
-- new genomes look like recombinants (plus mutations) of things seen
-  before
-- we should be analysing nucleotide-level variation everywhere, not just
-  in core genes
-- arbitrary single reference genomes are unnatural and limit comparisons
-  of diverse sets of genomes
-
-The pangenome reference graph (PanRG) is a collection of 'floating'
-local graphs, each representing some orthologous region of interest
+The PanRG is a collection of 'floating'
+local graphs (PRGs), each representing some orthologous region of interest
 (e.g. genes, mobile elements or intergenic regions). See
 https://github.com/rmcolq/make_prg for a pipeline which can construct
-these PRGs from a set of aligned sequence files.
+these PanRGs from a set of aligned sequence files.
 
 Pandora can do the following for a single sample (read dataset):
-- Output inferred mosaic of reference sequences for loci (eg genes) from
-  the PanRG which are present
-- Output a VCF showing the variation found within these loci, with
-  respect to any reference path in the PRG.
-
-Soon, in a galaxy not so far away, it will allow:
-- discovery of new variation not in the PRG
+- Output inferred mosaic of reference sequences for loci (eg genes) from the PRGs which are present in the PanRG;
+- Output a VCF showing the variation found within these loci, with respect to any reference path in the PRGs;
+- Discovery of new variation not in the PanRG.
 
 For a collection of samples, it can:
-- Output a matrix showing inferred copy-number of each locus in each
-  sample genome
-- Output a multisample pangenome VCF showing how including genotype
-  calls for each sample in each of the loci
-- Output one VCF per orthologous-chunk, showing how samples which
-  contained this chunk differed in their gene sequence. Variation is
-  shown with respect to the most informative recombinant path in the
-  PRG.
+- Output a matrix showing inferred presence-absence of each locus in each sample genome;
+- Output a multisample pangenome VCF including genotype calls for each sample in each of the loci. Variation is shown with respect to the most informative recombinant path in the PRGs (see [our paper][pandora_2020_paper]).
 
-Warning - this code is still in development.
+> **Warning - `pandora` is not yet a production-ready tool.** 
 
 ## Quick Start
 
@@ -87,6 +66,11 @@ genes present
 ```
 pandora map <panrg.fa> <reads.fq>
 ```
+
+## Hands-on toy example
+
+You can test `pandora` on a toy example following [this link](toy_example).
+There is no need to have `pandora` installed, as it is run inside containers.
 
 ## Installation
 
@@ -392,3 +376,6 @@ Consensus/Variant Calling:
   --kmer-avg INT              Maximum number of kmers to average over when selecting the maximum likelihood path [default: 100]
 ```
 
+
+<!--Link References-->
+[pandora_2020_paper]: https://www.biorxiv.org/content/10.1101/2020.11.12.380378v2
