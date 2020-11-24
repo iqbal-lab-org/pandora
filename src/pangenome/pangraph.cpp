@@ -4,7 +4,6 @@
 #include <set>
 #include <memory>
 #include <vector>
-#include <fstream>
 #include <cassert>
 #include <algorithm>
 #include <boost/filesystem.hpp>
@@ -14,8 +13,6 @@
 #include "pangenome/pannode.h"
 #include "pangenome/panread.h"
 #include "pangenome/pansample.h"
-#include "minihit.h"
-#include "kmergraphwithcoverage.h"
 #include "fastaq_handler.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
@@ -150,7 +147,6 @@ void pangenome::Graph::add_hits_between_PRG_and_sample(
 // Remove the node n, and all references to it
 std::unordered_map<uint32_t, NodePtr>::iterator pangenome::Graph::remove_node(NodePtr n)
 {
-    // cout << "Remove graph node " << *n << endl;
     // removes all instances of node n and references to it in reads
     for (const auto& r : n->reads) {
         r->remove_all_nodes_with_this_id(n->node_id);
@@ -169,7 +165,6 @@ std::unordered_map<uint32_t, NodePtr>::iterator pangenome::Graph::remove_node(No
 void pangenome::Graph::remove_read(const uint32_t read_id)
 {
     for (const auto& n : reads[read_id]->nodes) {
-        // cout << "looking at read node " << n->node_id;
         auto nSharedPtr = n.lock();
         nSharedPtr->covg -= 1;
         nSharedPtr->reads.erase(reads[read_id]);
@@ -209,11 +204,8 @@ void pangenome::Graph::remove_low_covg_nodes(const uint32_t& thresh)
 {
     BOOST_LOG_TRIVIAL(debug) << "Remove nodes with covg <= " << thresh << std::endl;
     for (auto it = nodes.begin(); it != nodes.end();) {
-        // cout << "look at node " << *(it->second) << endl;
         if (it->second->covg <= thresh) {
-            // cout << "delete node " << it->second->name;
             it = remove_node(it->second);
-            // cout << " so pangraph now has " << nodes.size() << " nodes" << endl;
         } else {
             ++it;
         }
@@ -262,10 +254,7 @@ void pangenome::Graph::split_node_by_reads(std::unordered_set<ReadPtr>& reads_al
 
         // replace the node in the read
         if (it != r->nodes.end()) {
-            // cout << "replace node " << (*it)->node_id << " in this read" << endl;
-            // cout << "read was " << *r << endl;
             r->replace_node_with_iterator(it, n);
-            // cout << "read is now " << *r << endl;
             nodes[node_id]->reads.erase(rit);
             nodes[node_id]->covg -= 1;
             if (nodes[node_id]->covg == 0) {
@@ -273,9 +262,6 @@ void pangenome::Graph::split_node_by_reads(std::unordered_set<ReadPtr>& reads_al
             }
             n->reads.insert(r);
             n->covg += 1;
-            //} else {
-            //    cout  << "read does not contain this node in context of the tig" <<
-            //    endl;
         }
     }
 
@@ -287,34 +273,6 @@ void pangenome::Graph::split_node_by_reads(std::unordered_set<ReadPtr>& reads_al
         }
     }
 }
-
-/*Graph::unordered_set<ReadPtr> find_reads_on_node_path(const vector<uint16_t>
-node_path_ids, const vector<bool> node_path_orients)
-{
-    unordered_set<ReadPtr> reads_on_node_path;
-
-    // collect all reads on nodes
-    for (const auto &i : node_path_ids)
-    {
-        for (const auto &r : nodes[n]->reads)
-        {
-            reads_on_node_path.insert(r);
-        }
-    }
-
-    // remove reads which deviate from path
-    for (auto rit = reads_on_node_path.begin(); rit != reads_on_node_path.end();)
-    {
-        if ((*rit)->find_position(node_path_ids, node_path_orients) ==
-std::numeric_limits<uint>::max())
-        {
-            rit = reads_on_node_path.erase(rit);
-        } else {
-            rit++;
-        }
-    }
-    return reads_on_node_path;
-}*/
 
 // For each node in pangraph, make a copy of the kmergraph and use the hits
 // stored on each read containing the node to add coverage to this graph
@@ -342,14 +300,20 @@ void pangenome::Graph::add_hits_to_kmergraphs(
                            ->nodes[minimizer_hit.get_kmer_node_id()]
                     != nullptr);
 
-                pangraph_node.kmer_prg_with_coverage.increment_covg(
-                    minimizer_hit.get_kmer_node_id(), minimizer_hit.is_forward(),
-                    sample_id);
+                if (minimizer_hit.is_forward()) {
+                    pangraph_node.kmer_prg_with_coverage.increment_forward_covg(
+                        minimizer_hit.get_kmer_node_id(), sample_id);
+                } else {
+                    pangraph_node.kmer_prg_with_coverage.increment_reverse_covg(
+                        minimizer_hit.get_kmer_node_id(), sample_id);
+                }
 
-                if (pangraph_node.kmer_prg_with_coverage.get_covg(
-                        minimizer_hit.get_kmer_node_id(), minimizer_hit.is_forward(),
-                        sample_id)
-                    == 1000) {
+                const auto covg { minimizer_hit.is_forward()
+                        ? pangraph_node.kmer_prg_with_coverage.get_forward_covg(
+                            minimizer_hit.get_kmer_node_id(), sample_id)
+                        : pangraph_node.kmer_prg_with_coverage.get_reverse_covg(
+                            minimizer_hit.get_kmer_node_id(), sample_id) };
+                if (covg == 1000) {
                     BOOST_LOG_TRIVIAL(debug)
                         << "Adding hit " << minimizer_hit
                         << " resulted in high coverage on node "
@@ -382,14 +346,14 @@ void pangenome::Graph::copy_coverages_to_kmergraphs(
             pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes) {
             const auto& knode_id = kmergraph_node_ptr->id;
             assert(knode_id < ref_node.kmer_prg_with_coverage.kmer_prg->nodes.size());
-            pangraph_node.kmer_prg_with_coverage.set_covg(knode_id,
-                (uint16_t)(ref_node.kmer_prg_with_coverage.get_covg(
-                    knode_id, 0, ref_sample_id)),
-                0, sample_id);
-            pangraph_node.kmer_prg_with_coverage.set_covg(knode_id,
-                (uint16_t)(ref_node.kmer_prg_with_coverage.get_covg(
-                    knode_id, 1, ref_sample_id)),
-                1, sample_id);
+            pangraph_node.kmer_prg_with_coverage.set_reverse_covg(knode_id,
+                (uint16_t)(ref_node.kmer_prg_with_coverage.get_reverse_covg(
+                    knode_id, ref_sample_id)),
+                sample_id);
+            pangraph_node.kmer_prg_with_coverage.set_forward_covg(knode_id,
+                (uint16_t)(ref_node.kmer_prg_with_coverage.get_forward_covg(
+                    knode_id, ref_sample_id)),
+                sample_id);
         }
     }
 }
@@ -436,8 +400,8 @@ std::vector<LocalNodePtr> pangenome::Graph::get_node_closest_vcf_reference(
                     sample_path[i]->id < kmer_prg_with_coverage.kmer_prg->nodes.size()
                     and kmer_prg_with_coverage.kmer_prg->nodes[sample_path[i]->id]
                         != nullptr);
-                kmer_prg_with_coverage.increment_covg(sample_path[i]->id, 0, 0);
-                kmer_prg_with_coverage.increment_covg(sample_path[i]->id, 1, 0);
+                kmer_prg_with_coverage.increment_forward_covg(sample_path[i]->id, 0);
+                kmer_prg_with_coverage.increment_reverse_covg(sample_path[i]->id, 0);
             }
         }
     }
@@ -467,12 +431,6 @@ bool same_prg_id::operator()(const std::pair<uint32_t, NodePtr>& n) const
 
 bool pangenome::Graph::operator==(const Graph& y) const
 {
-    // false if have different numbers of nodes
-    /*if (y.nodes.size() != nodes.size()) {
-        cout << "different num nodes " << nodes.size() << "!=" << y.nodes.size() <<
-    endl; return false;
-    }*/
-
     // false if have different nodes
     for (const auto& c : nodes) {
         // if node id doesn't exist
@@ -499,10 +457,10 @@ bool pangenome::Graph::operator!=(const Graph& y) const { return !(*this == y); 
 
 // Saves a presence/absence/copynumber matrix for each node and each sample
 void pangenome::Graph::save_matrix(
-    const std::string& filepath, const std::vector<std::string>& sample_names)
+    const fs::path& filepath, const std::vector<std::string>& sample_names)
 {
     // write a presence/absence matrix for samples and nodes
-    std::ofstream handle;
+    fs::ofstream handle;
     handle.open(filepath);
 
     // save header line with sample names
@@ -528,22 +486,25 @@ void pangenome::Graph::save_matrix(
 }
 
 void pangenome::Graph::save_mapped_read_strings(
-    const std::string& readfilepath, const std::string& outdir, const int32_t buff)
+    const fs::path& readfilepath, const fs::path& outdir, const int32_t buff)
 {
     BOOST_LOG_TRIVIAL(debug) << "Save mapped read strings and coordinates";
-    std::ofstream outhandle;
-    FastaqHandler readfile(readfilepath);
+    fs::ofstream outhandle;
+    FastaqHandler readfile(readfilepath.string());
     uint32_t start, end;
 
     // for each node in pangraph, find overlaps and write to a file
     std::vector<std::vector<uint32_t>> read_overlap_coordinates;
     for (const auto& node_ptr : nodes) {
-        std::cout << "Find coordinates for node " << node_ptr.second->name;
+        BOOST_LOG_TRIVIAL(debug)
+            << "Find coordinates for node " << node_ptr.second->name;
         node_ptr.second->get_read_overlap_coordinates(read_overlap_coordinates);
-        std::cout << "." << std::endl;
-        fs::create_directories(outdir + "/" + node_ptr.second->get_name());
-        outhandle.open(outdir + "/" + node_ptr.second->get_name() + "/"
-            + node_ptr.second->get_name() + ".reads.fa");
+
+        const auto node_outpath { outdir / node_ptr.second->get_name()
+            / (node_ptr.second->get_name() + ".reads.fa") };
+        fs::create_directories(node_outpath.parent_path());
+        outhandle.open(node_outpath);
+
         for (const auto& coord : read_overlap_coordinates) {
             readfile.get_nth_read(coord[0]);
             start = (uint32_t)std::max((int32_t)coord[1] - buff, 0);
@@ -571,13 +532,12 @@ void pangenome::Graph::save_mapped_read_strings(
 
 std::ostream& pangenome::operator<<(std::ostream& out, const pangenome::Graph& m)
 {
-    // cout << "printing pangraph" << endl;
     for (const auto& n : m.nodes) {
-        std::cout << n.second->prg_id << std::endl;
-        std::cout << *n.second << std::endl;
+        out << n.second->prg_id << std::endl;
+        out << *n.second << std::endl;
     }
     for (const auto& n : m.reads) {
-        std::cout << *(n.second) << std::endl;
+        out << *(n.second) << std::endl;
     }
 
     return out;

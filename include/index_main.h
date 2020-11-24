@@ -19,12 +19,12 @@
 
 /// Collection of all options of index subcommand.
 struct IndexOptions {
-    std::string prgfile;
+    fs::path prgfile;
     uint32_t window_size { 14 };
     uint32_t kmer_size { 15 };
     uint32_t threads { 1 };
     uint32_t id_offset { 0 };
-    std::string outfile;
+    fs::path outfile;
     uint8_t verbosity { 0 };
 };
 

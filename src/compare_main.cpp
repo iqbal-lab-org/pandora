@@ -11,6 +11,7 @@ void setup_compare_subcommand(CLI::App& app)
     compare_subcmd
         ->add_option("<TARGET>", opt->prgfile, "An indexed PRG file (in fasta format)")
         ->required()
+        ->transform(make_absolute)
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
@@ -19,6 +20,7 @@ void setup_compare_subcommand(CLI::App& app)
           "the path to the fast{a,q} of reads for that sample";
     compare_subcmd->add_option("<QUERY_IDX>", opt->reads_idx_file, description)
         ->required()
+        ->transform(make_absolute)
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
@@ -38,6 +40,7 @@ void setup_compare_subcommand(CLI::App& app)
         ->add_option("-o,--outdir", opt->outdir, "Directory to write output files to")
         ->type_name("DIR")
         ->capture_default_str()
+        ->transform(make_absolute)
         ->group("Input/Output");
 
     compare_subcmd
@@ -50,6 +53,8 @@ void setup_compare_subcommand(CLI::App& app)
                   "sequence MUST have a perfect match in <TARGET> and the same name";
     compare_subcmd->add_option("--vcf-refs", opt->vcf_refs_file, description)
         ->type_name("FILE")
+        ->transform(make_absolute)
+        ->check(CLI::ExistingFile.description(""))
         ->group("Input/Output");
 
     compare_subcmd
@@ -174,13 +179,13 @@ void setup_compare_subcommand(CLI::App& app)
 }
 
 std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
-    const std::string& read_index_fpath)
+    const fs::path& read_index_fpath)
 {
     std::map<SampleIdText, SampleFpath> samples;
     std::string name, reads_path, line;
-    std::ifstream myfile(read_index_fpath);
-    if (myfile.is_open()) {
-        while (getline(myfile, line).good()) {
+    fs::ifstream instream(read_index_fpath);
+    if (instream.is_open()) {
+        while (getline(instream, line).good()) {
             std::istringstream linestream(line);
             if (std::getline(linestream, name, '\t')) {
                 linestream >> reads_path;
@@ -267,8 +272,7 @@ int pandora_compare(CompareOptions& opt)
         const auto& sample_fpath = sample.second;
 
         // make output dir for this sample
-        auto sample_outdir = opt.outdir;
-        sample_outdir.append("/").append(sample_name);
+        const auto sample_outdir { opt.outdir / sample_name };
         fs::create_directories(sample_outdir);
 
         BOOST_LOG_TRIVIAL(info) << "Constructing pangenome::Graph from read file "
@@ -277,9 +281,10 @@ int pandora_compare(CompareOptions& opt)
             prgs, opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate,
             opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean,
             opt.max_covg, opt.threads);
-        BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file " << sample_outdir
-                                << "/pandora.pangraph.gfa";
-        write_pangraph_gfa(sample_outdir + "/pandora.pangraph.gfa", pangraph_sample);
+
+        const auto pangraph_gfa { sample_outdir / "pandora.pangraph.gfa" };
+        BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file " << pangraph_gfa;
+        write_pangraph_gfa(pangraph_gfa, pangraph_sample);
 
         if (pangraph_sample->nodes.empty()) {
             BOOST_LOG_TRIVIAL(warning)
@@ -323,7 +328,7 @@ int pandora_compare(CompareOptions& opt)
 
         pangraph->copy_coverages_to_kmergraphs(*pangraph_sample, sample_id);
 
-        consensus_fq.save(sample_outdir + "/pandora.consensus.fq.gz");
+        consensus_fq.save(sample_outdir / "pandora.consensus.fq.gz");
         consensus_fq.clear();
         if (pangraph_sample->nodes.empty() and sample_pangraph_size > 0) {
             BOOST_LOG_TRIVIAL(warning)
@@ -359,29 +364,28 @@ int pandora_compare(CompareOptions& opt)
     Fastaq vcf_ref_fa(true, false);
 
     // shared variable - controlled by critical(VCFPathsToBeConcatenated)
-    std::vector<std::string>
-        VCFPathsToBeConcatenated; // TODO: we can allocate the correct size of the
-                                  // vectors already here
+    std::vector<fs::path> VCFPathsToBeConcatenated; // TODO: we can allocate the correct
+                                                    // size of the vectors already here
 
     // shared variable - controlled by critical(VCFGenotypedPathsToBeConcatenated)
-    std::vector<std::string>
+    std::vector<fs::path>
         VCFGenotypedPathsToBeConcatenated; // TODO: we can allocate the correct size of
                                            // the vectors already here
 
     // create the dir that will contain all vcfs
     const int nb_vcfs_per_dir = 4000;
-    auto vcfs_dir = opt.outdir + "/VCFs";
+    const auto vcfs_dir { opt.outdir / "VCFs" };
     fs::create_directories(vcfs_dir);
     // create the dirs for the VCFs
     for (uint32_t i = 0; i <= pangraph->nodes.size() / nb_vcfs_per_dir; ++i) {
-        fs::create_directories(vcfs_dir + "/" + int_to_string(i + 1));
+        fs::create_directories(vcfs_dir / int_to_string(i + 1));
     }
 
     // create the dirs for the VCFs genotyped, if genotyping should be done
-    auto vcfs_genotyped_dirs = opt.outdir + "/VCFs_genotyped";
+    const auto vcfs_genotyped_dirs { opt.outdir / "VCFs_genotyped" };
     if (opt.genotype) {
         for (uint32_t i = 0; i <= pangraph->nodes.size() / nb_vcfs_per_dir; ++i) {
-            fs::create_directories(vcfs_genotyped_dirs + "/" + int_to_string(i + 1));
+            fs::create_directories(vcfs_genotyped_dirs / int_to_string(i + 1));
         }
     }
 
@@ -430,8 +434,8 @@ int pandora_compare(CompareOptions& opt)
         // save the vcf to disk
         uint32_t dir = pangraph_node_index / nb_vcfs_per_dir
             + 1; // get the good dir for this sample vcf
-        auto vcf_path
-            = vcfs_dir + "/" + int_to_string(dir) + "/" + prg_ptr->name + ".vcf";
+        const auto vcf_path { vcfs_dir / int_to_string(dir)
+            / (prg_ptr->name + ".vcf") };
         vcf.save(vcf_path, true, false);
 
 // add the vcf path to VCFPathsToBeConcatenated to concatenate after
@@ -446,8 +450,8 @@ int pandora_compare(CompareOptions& opt)
             BOOST_LOG_TRIVIAL(info) << "Finished genotyping VCF";
 
             // save the genotyped vcf to disk
-            auto vcf_genotyped_path = vcfs_genotyped_dirs + "/" + int_to_string(dir)
-                + "/" + prg_ptr->name + "_genotyped.vcf";
+            const auto vcf_genotyped_path { vcfs_genotyped_dirs / int_to_string(dir)
+                / (prg_ptr->name + "_genotyped.vcf") };
             vcf.save(vcf_genotyped_path, false, true);
 
 // add the genotyped vcf path to VCFGenotypedPathsToBeConcatenated to concatenate after
@@ -459,29 +463,27 @@ int pandora_compare(CompareOptions& opt)
     }
 
     // generate all the multisample files
-    vcf_ref_fa.save(opt.outdir + "/pandora_multisample.vcf_ref.fa");
+    vcf_ref_fa.save(opt.outdir / "pandora_multisample.vcf_ref.fa");
     VCF::concatenate_VCFs(
-        VCFPathsToBeConcatenated, opt.outdir + "/pandora_multisample_consensus.vcf");
+        VCFPathsToBeConcatenated, opt.outdir / "pandora_multisample_consensus.vcf");
     if (opt.genotype) {
         VCF::concatenate_VCFs(VCFGenotypedPathsToBeConcatenated,
-            opt.outdir + "/pandora_multisample_genotyped.vcf");
+            opt.outdir / "pandora_multisample_genotyped.vcf");
     }
 
     // output a matrix/vcf which has the presence/absence of each prg in each sample
     BOOST_LOG_TRIVIAL(info) << "Output matrix";
-    pangraph->save_matrix(opt.outdir + "/pandora_multisample.matrix", sample_names);
+    pangraph->save_matrix(opt.outdir / "pandora_multisample.matrix", sample_names);
 
     if (pangraph->nodes.empty()) {
         BOOST_LOG_TRIVIAL(error)
             << "No LocalPRGs found to compare samples on. "
             << "Is your genome_size accurate? Genome size is assumed to be "
-            << opt.genome_size << " and can be updated with --genome_size";
+            << opt.genome_size << " and can be updated with --genome-size";
     }
 
-    // clear up
     index->clear();
 
-    // current date/time based on current system
     BOOST_LOG_TRIVIAL(info) << "Done!";
     return 0;
 }

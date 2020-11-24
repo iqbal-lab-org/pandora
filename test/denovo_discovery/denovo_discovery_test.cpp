@@ -6,6 +6,7 @@ TEST(ExpectedKmerCoverage, IncreasingErrorRatesDecreasingExpectedCovg)
     const uint32_t read_covg { 50 };
     const uint32_t ref_length { 500 };
     const uint32_t k { 11 };
+    const int max_nb_paths { 25 };
     const std::vector<double> error_rates = { 0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35,
         0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95 };
 
@@ -18,7 +19,7 @@ TEST(ExpectedKmerCoverage, IncreasingErrorRatesDecreasingExpectedCovg)
 
     for (uint32_t i = 0; i < error_rates.size(); i++) {
         const auto& e { error_rates[i] };
-        const DenovoDiscovery denovo { k, e };
+        const DenovoDiscovery denovo { k, e, max_nb_paths };
         const auto result { denovo.calculate_kmer_coverage(read_covg, ref_length) };
         EXPECT_DOUBLE_EQ(result, expected[i]);
     }
@@ -30,7 +31,8 @@ TEST(ExpectedKmerCoverage, ZeroReadCovgReturnsZero)
     const uint32_t ref_length { 500 };
     const uint32_t k { 11 };
     const double error_rate { 0.1 };
-    const DenovoDiscovery denovo { k, error_rate };
+    const int max_nb_paths { 25 };
+    const DenovoDiscovery denovo { k, error_rate, max_nb_paths };
 
     const auto result { denovo.calculate_kmer_coverage(read_covg, ref_length) };
     const double expected { 0 };
@@ -44,7 +46,8 @@ TEST(ExpectedKmerCoverage, ZeroRefLengthThrowsException)
     const uint32_t ref_length { 0 };
     const uint32_t k { 11 };
     const double error_rate { 0.1 };
-    const DenovoDiscovery denovo { k, error_rate };
+    const int max_nb_paths { 25 };
+    const DenovoDiscovery denovo { k, error_rate, max_nb_paths };
 
     const std::string expected_msg { "ref_length should be greater than 0." };
 
@@ -65,7 +68,8 @@ TEST(ExpectedKmerCoverage, ZeroKThrowsException)
     const uint32_t ref_length { 500 };
     const uint32_t k { 0 };
     const double error_rate { 0.1 };
-    const DenovoDiscovery denovo { k, error_rate };
+    const int max_nb_paths { 25 };
+    const DenovoDiscovery denovo { k, error_rate, max_nb_paths };
 
     const std::string expected_msg { "K should be greater than 0." };
 
@@ -86,7 +90,8 @@ TEST(ExpectedKmerCoverage, negativeErrorRateThrowsException)
     const uint32_t ref_length { 500 };
     const uint32_t k { 5 };
     const double error_rate { -0.1 };
-    const DenovoDiscovery denovo { k, error_rate };
+    const int max_nb_paths { 25 };
+    const DenovoDiscovery denovo { k, error_rate, max_nb_paths };
 
     const std::string expected_msg { "error_rate should not be a negative value." };
 
@@ -105,7 +110,8 @@ TEST(FindPathsThroughCandidateRegionTest, emptyPileupReturnsEmpty)
 {
     const int k { 9 };
     const double error_rate { 0.11 };
-    DenovoDiscovery denovo { k, error_rate };
+    const int max_nb_paths { 25 };
+    const DenovoDiscovery denovo { k, error_rate, max_nb_paths };
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
 
@@ -121,7 +127,8 @@ TEST(FindPathsThroughCandidateRegionTest, kmerSizeBiggerThanCandidateReturnsEmpt
 {
     const int k { 99 };
     const double error_rate { 0.11 };
-    DenovoDiscovery denovo { k, error_rate };
+    const int max_nb_paths { 25 };
+    const DenovoDiscovery denovo { k, error_rate, max_nb_paths };
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
     candidate_region.pileup = { "FOO", "BAR" };
@@ -139,7 +146,8 @@ TEST(FindPathsThroughCandidateRegionTest,
 {
     const int k { 9 };
     const double error_rate { 0.11 };
-    DenovoDiscovery denovo { k, error_rate };
+    const int max_nb_paths { 25 };
+    const DenovoDiscovery denovo { k, error_rate, max_nb_paths };
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
     candidate_region.pileup = { "FOO", "BAR" };
@@ -156,7 +164,8 @@ TEST(FindPathsThroughCandidateRegionTest, startKmersDontExistInGraphReturnEmpty)
 {
     const int k { 9 };
     const double error_rate { 0.11 };
-    DenovoDiscovery denovo { k, error_rate };
+    const int max_nb_paths { 25 };
+    const DenovoDiscovery denovo { k, error_rate, max_nb_paths };
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "GGGGGGGGGGAGTCGGACT";
     candidate_region.pileup = { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT" };
@@ -173,7 +182,8 @@ TEST(FindPathsThroughCandidateRegionTest, endKmersDontExistInGraphReturnEmpty)
 {
     const int k { 9 };
     const double error_rate { 0.11 };
-    DenovoDiscovery denovo { k, error_rate };
+    const int max_nb_paths { 25 };
+    const DenovoDiscovery denovo { k, error_rate, max_nb_paths };
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGCCCCCCCCC";
     candidate_region.pileup = { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT" };
@@ -190,8 +200,9 @@ TEST(FindPathsThroughCandidateRegionTest, endKmerExistsInStartKmersFindPathAndCy
 {
     const int k { 9 };
     const double error_rate { 0.11 };
+    const int max_nb_paths { 25 };
     const uint8_t max_insertion_size = 50;
-    DenovoDiscovery denovo { k, error_rate, max_insertion_size };
+    DenovoDiscovery denovo { k, error_rate, max_nb_paths, max_insertion_size };
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGATGCGCTGA";
     candidate_region.pileup = { "ATGCGCTGACATGCGCTGA", "ATGCGCTGACATGCGCTGA" };
@@ -211,10 +222,11 @@ TEST(FindPathsThroughCandidateRegionTest, endKmerExistsInStartKmersFindPathAndCy
 TEST(FindPathsThroughCandidateRegionTest,
     doGraphCleaningtwoIdenticalReadsPlusNoiseReturnOnePath)
 {
+    const auto clean { true };
     const int k { 9 };
     const double error_rate { 0.11 };
-    DenovoDiscovery denovo { k, error_rate };
-    denovo.clean_assembly_graph = true;
+    const int max_nb_paths { 25 };
+    DenovoDiscovery denovo { k, error_rate, max_nb_paths, 15, 1, clean };
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
     candidate_region.pileup
@@ -232,7 +244,8 @@ TEST(FindPathsThroughCandidateRegionTest, twoIdenticalReadsReturnOnePath)
 {
     const int k { 9 };
     const double error_rate { 0.11 };
-    DenovoDiscovery denovo { k, error_rate };
+    const int max_nb_paths { 25 };
+    DenovoDiscovery denovo { k, error_rate, max_nb_paths };
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
     candidate_region.pileup = { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT" };
@@ -250,9 +263,10 @@ TEST(
 {
     const int k { 9 };
     const double error_rate { 0.11 };
+    const int max_nb_paths { 25 };
     const auto max_insert { 15 };
     const auto min_dbg_dp { 2 };
-    DenovoDiscovery denovo { k, error_rate, max_insert, min_dbg_dp };
+    DenovoDiscovery denovo { k, error_rate, max_nb_paths, max_insert, min_dbg_dp };
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
     candidate_region.pileup = { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGATAGTCGGACT" };
@@ -270,9 +284,10 @@ TEST(FindPathsThroughCandidateRegionTest,
 {
     const int k { 9 };
     const double error_rate { 0.11 };
+    const int max_nb_paths { 25 };
     const auto max_insert { 15 };
     const auto min_dbg_dp { 2 };
-    DenovoDiscovery denovo { k, error_rate, max_insert, min_dbg_dp };
+    DenovoDiscovery denovo { k, error_rate, max_nb_paths, max_insert, min_dbg_dp };
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
     candidate_region.pileup
@@ -290,7 +305,8 @@ TEST(FindPathsThroughCandidateRegionTest, twoPossiblePathsWithGoodCovgReturnsTwo
 {
     const int k { 9 };
     const double error_rate { 0.11 };
-    DenovoDiscovery denovo { k, error_rate };
+    const int max_nb_paths { 25 };
+    DenovoDiscovery denovo { k, error_rate, max_nb_paths };
     CandidateRegion candidate_region { Interval(0, 1), "test" };
     candidate_region.max_likelihood_sequence = "ATGCGCTGAGAGTCGGACT";
     candidate_region.pileup = { "ATGCGCTGAGAGTCGGACT", "ATGCGCTGAGAGTCGGACT",

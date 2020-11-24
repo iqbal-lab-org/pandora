@@ -1,7 +1,8 @@
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 3.0)
 
 set(PROJECT_NAME_STR pandora)
-project(${PROJECT_NAME_STR} C CXX)
+project(${PROJECT_NAME_STR} VERSION "0.7.0" LANGUAGES C CXX)
+configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
 # add a RELEASE_WITH_ASSERTS build type
 set(CMAKE_CXX_FLAGS_RELEASE_WITH_ASSERTS "-O3")
@@ -46,6 +47,7 @@ set(EXTERNAL_LIBS
         gatbcore
         hdf5
         hdf5_tools)
+link_directories(${gatb_binary_dir}/lib)
 
 include(${PROJECT_SOURCE_DIR}/ext/gtest.cmake)
 
@@ -53,6 +55,8 @@ include(${PROJECT_SOURCE_DIR}/ext/gtest.cmake)
 include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
         ${PROJECT_SOURCE_DIR}/cgranges/cpp
+        ${gatb_source_dir}/gatb-core/src
+        ${gatb_binary_dir}/include
         )
 
 #normal includes: warnings will be reported for these

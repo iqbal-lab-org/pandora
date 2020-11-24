@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cassert>
-#include <cmath>
 #include <cstring>
 #include "inthash.h"
 
@@ -38,24 +37,16 @@
  * means hash_64(x, mask)==hash_64(y, mask) if and only if x==y.
  */
 
-unsigned char seq_nt4_table[256] = {
-    0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 0, 4, 1, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 0, 4, 1, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
-};
+unsigned char seq_nt4_table[256] = { 0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 2, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4,
+    4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 };
 
 uint32_t nt4(char c) { return seq_nt4_table[(uint8_t)c]; }
 
@@ -138,27 +129,17 @@ std::pair<uint64_t, uint64_t> KmerHash::kmerhash(const std::string& s, const uin
     assert(s.size() == k);
     int c;
     uint64_t shift1 = 2 * (k - 1), mask = (1ULL << 2 * k) - 1, kmer[2] = { 0, 0 };
-    // uint64_t mask1 = pow(4,k) - 1, kh = 0, rckh = 0;
     char myArray[s.size() + 1]; // as 1 char space for null is also required
     strcpy(myArray, s.c_str());
     for (char i : s) {
         c = seq_nt4_table[(uint8_t)i];
-        // cout << s[i] << " -> " << c;
         if (c < 4) { // not an ambiguous base
             kmer[0] = (kmer[0] << 2 | c) & mask; // forward k-mer
             kmer[1] = (kmer[1] >> 2) | (3ULL ^ c) << shift1; // reverse k-mer
-            // kh += c*pow(4,i);
-            // rckh += (3-c)*pow(4,k-i-1);
         }
-        // cout << "after adding " << s[i] << "=" << c << " kh is now " << kh << " and
-        // kmer[0] is now " << kmer[0] << ", rckh is now " << rckh << " and kmer[1] is
-        // now " << kmer[1] << endl;
     }
-    // cout << "s: " << s << " -> " << kh << endl;
     kmer[0] = hash64(kmer[0], mask);
     kmer[1] = hash64(kmer[1], mask);
-    // cout << "kmer " << s << " has kmer[0] " << kmer[0] << " and kmer[1] " << kmer[1]
-    // << endl;
 
     auto ret = std::make_pair(kmer[0], kmer[1]);
     lookup[s] = ret;

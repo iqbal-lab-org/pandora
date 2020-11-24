@@ -14,6 +14,7 @@ void setup_discover_subcommand(CLI::App& app)
     discover_subcmd
         ->add_option("<TARGET>", opt->prgfile, "An indexed PRG file (in fasta format)")
         ->required()
+        ->transform(make_absolute)
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
@@ -21,6 +22,7 @@ void setup_discover_subcommand(CLI::App& app)
         ->add_option(
             "<QUERY>", opt->readsfile, "Fast{a,q} file containing reads to quasi-map")
         ->required()
+        ->transform(make_absolute)
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
@@ -38,6 +40,7 @@ void setup_discover_subcommand(CLI::App& app)
 
     discover_subcmd
         ->add_option("-o,--outdir", opt->outdir, "Directory to write output files to")
+        ->transform(make_absolute)
         ->type_name("DIR")
         ->capture_default_str()
         ->group("Input/Output");
@@ -93,6 +96,11 @@ void setup_discover_subcommand(CLI::App& app)
         ->group("Filtering");
 
     discover_subcmd
+        ->add_flag(
+            "--clean-dbg", opt->clean_dbg, "Clean the local assembly de Bruijn graph")
+        ->group("Filtering");
+
+    discover_subcmd
         ->add_flag("--bin", opt->binomial,
             "Use binomial model for kmer coverages [default: negative binomial]")
         ->group("Parameter Estimation");
@@ -107,6 +115,8 @@ void setup_discover_subcommand(CLI::App& app)
         ->add_option("--discover-k", opt->denovo_kmer_size,
             "K-mer size to use when discovering novel variants")
         ->capture_default_str()
+        ->check(CLI::Range(0, MAX_DENOVO_K)
+                    .description("[0-" + std::to_string(MAX_DENOVO_K) + ")"))
         ->type_name("INT");
 
     std::string description = "Max. insertion size for novel variants. Warning: "
@@ -134,13 +144,13 @@ void setup_discover_subcommand(CLI::App& app)
         ->capture_default_str()
         ->type_name("INT");
 
-    description = "Padding either side of candidate variant intervals";
-    discover_subcmd->add_option("-P,--pad", opt->candidate_padding, description)
+    description = "Merge candidate variant intervals within distance";
+    discover_subcmd->add_option("-d,--merge", opt->merge_dist, description)
         ->capture_default_str()
         ->type_name("INT");
 
-    description = "Merge candidate variant intervals within distance";
-    discover_subcmd->add_option("-d,--merge", opt->merge_dist, description)
+    description = "Maximum number of candidate variants allowed for a candidate region";
+    discover_subcmd->add_option("-N", opt->max_num_candidate_paths, description)
         ->capture_default_str()
         ->type_name("INT");
 
@@ -206,8 +216,11 @@ int pandora_discover(DiscoverOptions& opt)
     }
 
     fs::create_directories(opt.outdir);
-    if (opt.output_kg)
-        fs::create_directories(opt.outdir + "/kmer_graphs");
+
+    const auto kmer_graph_dir { opt.outdir / "kmer_graphs" };
+    if (opt.output_kg) {
+        fs::create_directories(kmer_graph_dir);
+    }
 
     BOOST_LOG_TRIVIAL(info) << "Loading Index and LocalPRGs from file...";
     auto index = std::make_shared<Index>();
@@ -219,10 +232,10 @@ int pandora_discover(DiscoverOptions& opt)
     BOOST_LOG_TRIVIAL(info)
         << "Constructing pangenome::Graph from read file (this will take a while)...";
     auto pangraph = std::make_shared<pangenome::Graph>();
-    uint32_t covg
-        = pangraph_from_read_file(opt.readsfile, pangraph, index, prgs, opt.window_size,
-            opt.kmer_size, opt.max_diff, opt.error_rate, opt.min_cluster_size,
-            opt.genome_size, opt.illumina, opt.clean, opt.max_covg, opt.threads);
+    uint32_t covg = pangraph_from_read_file(opt.readsfile.string(), pangraph, index,
+        prgs, opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate,
+        opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
+        opt.threads);
 
     if (pangraph->nodes.empty()) {
         BOOST_LOG_TRIVIAL(info) << "Found none of the LocalPRGs in the reads.";
@@ -232,7 +245,7 @@ int pandora_discover(DiscoverOptions& opt)
 
     BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file " << opt.outdir
                             << "/pandora.pangraph.gfa";
-    write_pangraph_gfa(opt.outdir + "/pandora.pangraph.gfa", pangraph);
+    write_pangraph_gfa(opt.outdir / "pandora.pangraph.gfa", pangraph);
 
     BOOST_LOG_TRIVIAL(info) << "Updating local PRGs with hits...";
     pangraph->add_hits_to_kmergraphs(prgs);
@@ -251,8 +264,10 @@ int pandora_discover(DiscoverOptions& opt)
     std::vector<pangenome::NodePtr> nodes_to_remove;
     nodes_to_remove.reserve(pangraph->nodes.size());
 
+    const uint16_t candidate_padding { static_cast<uint16_t>(
+        2 * opt.denovo_kmer_size) };
     Discover discover { opt.min_candidate_covg, opt.min_candidate_len,
-        opt.max_candidate_len, opt.candidate_padding, opt.merge_dist };
+        opt.max_candidate_len, candidate_padding, opt.merge_dist };
 
     // transforms the pangraph->nodes from map to vector so that we can run it in
     // parallel
@@ -284,7 +299,6 @@ int pandora_discover(DiscoverOptions& opt)
             opt.max_num_kmers_to_avg, 0);
 
         if (kmp.empty()) {
-            // pan_id_to_node_mapping = pangraph->remove_node(pangraph_node);
             // mark the node as to remove
 #pragma omp critical(nodes_to_remove)
             {
@@ -295,7 +309,7 @@ int pandora_discover(DiscoverOptions& opt)
 
         if (opt.output_kg) {
             pangraph_node->kmer_prg_with_coverage.save(
-                opt.outdir + "/kmer_graphs/" + pangraph_node->get_name() + ".kg.gfa",
+                kmer_graph_dir / (pangraph_node->get_name() + ".kg.gfa"),
                 prgs[pangraph_node->prg_id]);
         }
 
@@ -330,7 +344,7 @@ int pandora_discover(DiscoverOptions& opt)
         pangraph->remove_node(node_to_remove);
     }
 
-    consensus_fq.save(opt.outdir + "/pandora.consensus.fq.gz");
+    consensus_fq.save(opt.outdir / "pandora.consensus.fq.gz");
 
     if (pangraph->nodes.empty()) {
         BOOST_LOG_TRIVIAL(error)
@@ -342,7 +356,8 @@ int pandora_discover(DiscoverOptions& opt)
     }
 
     DenovoDiscovery denovo { opt.denovo_kmer_size, opt.error_rate,
-        opt.max_insertion_size, opt.min_covg_for_node_in_assembly_graph };
+        opt.max_num_candidate_paths, opt.max_insertion_size,
+        opt.min_covg_for_node_in_assembly_graph, opt.clean_dbg };
     const fs::path denovo_output_directory { fs::path(opt.outdir) / "denovo_paths" };
     fs::create_directories(denovo_output_directory);
     BOOST_LOG_TRIVIAL(info)

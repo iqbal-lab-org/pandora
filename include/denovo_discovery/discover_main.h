@@ -13,13 +13,14 @@
 #include "denovo_discovery/candidate_region.h"
 #include "denovo_discovery/denovo_discovery.h"
 
+constexpr auto MAX_DENOVO_K { 32 };
 namespace fs = boost::filesystem;
 
 /// Collection of all options of discover subcommand.
 struct DiscoverOptions {
-    std::string prgfile;
-    std::string readsfile;
-    std::string outdir { "pandora_discover" };
+    fs::path prgfile;
+    fs::path readsfile;
+    fs::path outdir { "pandora_discover" };
     uint32_t window_size { 14 };
     uint32_t kmer_size { 15 };
     uint32_t threads { 1 };
@@ -33,16 +34,17 @@ struct DiscoverOptions {
     bool clean { false };
     bool binomial { false };
     uint32_t max_covg { 600 };
-    uint32_t denovo_kmer_size { 11 };
+    uint16_t denovo_kmer_size { 15 };
     uint16_t max_insertion_size { 15 };
     uint16_t min_covg_for_node_in_assembly_graph { 2 };
     uint32_t min_candidate_covg { 3 };
     uint32_t min_candidate_len { 1 };
-    uint32_t max_candidate_len { 50 };
-    uint16_t candidate_padding { 22 };
-    uint32_t merge_dist { 22 };
+    uint32_t max_candidate_len { 30 };
+    int max_num_candidate_paths { 25 };
+    uint32_t merge_dist { 15 };
     uint32_t min_cluster_size { 10 };
     uint32_t max_num_kmers_to_avg { 100 };
+    bool clean_dbg { false };
 };
 
 void setup_discover_subcommand(CLI::App& app);
