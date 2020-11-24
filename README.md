@@ -139,7 +139,7 @@ ctest -VV
 
 ## Usage
 
-See [Usage](wiki/Usage).
+See [Usage](https://github.com/rmcolq/pandora/wiki/Usage).
 
 
 <!--Link References-->
