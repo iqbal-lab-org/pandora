@@ -28,7 +28,7 @@ from this point will have their changes meticulously documented here.
 
 ### Fixed
 
-- k-mer coverage underflow bug in `LoacalPRG` [[#183][183]]
+- k-mer coverage underflow bug in `LocalPRG` [[#183][183]]
 
 [Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.6...HEAD
 
@@ -37,4 +37,3 @@ from this point will have their changes meticulously documented here.
 [223]: https://github.com/rmcolq/pandora/pull/223
 [224]: https://github.com/rmcolq/pandora/pull/224
 [234]: https://github.com/rmcolq/pandora/pull/234
-
