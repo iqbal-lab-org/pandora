@@ -1,5 +1,6 @@
 #include <iostream>
 #include "CLI11.hpp"
+#include "version.h"
 #include "index_main.h"
 #include "map_main.h"
 #include "compare_main.h"
@@ -56,6 +57,10 @@ int main(int argc, char* argv[])
     CLI::App app { "Pandora: Pan-genome inference and genotyping with long noisy or "
                    "short accurate reads." };
     app.formatter(std::make_shared<MyFormatter>());
+    app.add_flag_callback("-V,--version", []() {
+        std::cout << "pandora version " << PANDORA_VERSION << std::endl;
+        throw(CLI::Success {});
+    });
     setup_index_subcommand(app);
     setup_map_subcommand(app);
     setup_compare_subcommand(app);

@@ -146,16 +146,18 @@ Usage: pandora [OPTIONS] SUBCOMMAND
 
 Options:
   -h,--help                   Print this help message and exit
+  -V,--version
 
 Subcommands:
   index                       Index population reference graph (PRG) sequences.
-  map                         Quasi-map reads to an indexed PRG, infer the sequence of present loci in the sample, and (optionally) genotype/discover variants.
+  map                         Quasi-map reads to an indexed PRG, infer the sequence of present loci in the sample, and optionally genotype variants.
   compare                     Quasi-map reads from multiple samples to an indexed PRG, infer the sequence of present loci in each sample, and call variants between the samples.
+  discover                    Quasi-map reads to an indexed PRG, infer the sequence of present loci in the sample and discover novel variants.
   walk                        Outputs a path through the nodes in a PRG corresponding to the either an input sequence (if it exists) or the top/bottom path
   seq2path                    For each sequence, return the path through the PRG
   get_vcf_ref                 Outputs a fasta suitable for use as the VCF reference using input sequences
   random                      Outputs a fasta of random paths through the PRGs
-  merge_index                 Allows multiple indices to be merged (no compatibility check
+  merge_index                 Allows multiple indices to be merged (no compatibility check)
 ```
 
 ### Population Reference Graphs
