@@ -18,11 +18,6 @@
   - [Containers](#containers)
   - [Installation from source](#installation-from-source)
 - [Usage](#usage)
-  - [Population Reference Graphs](#population-reference-graphs)
-  - [Build index](#build-index)
-  - [Map reads to index](#map-reads-to-index)
-  - [Compare reads from several samples](#compare-reads-from-several-samples)
-  - [Discover novel variants](#discover-novel-variants)
 
 
 ## Introduction
