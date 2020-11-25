@@ -14,6 +14,7 @@
 # Table of Contents
 - [Introduction](#introduction)
 - [Quick Start](#quick-start)
+- [Hands-on toy example](#hands-on-toy-example)
 - [Installation](#installation)
   - [Containers](#containers)
   - [Installation from source](#installation-from-source)
