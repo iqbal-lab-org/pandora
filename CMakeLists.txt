@@ -10,9 +10,6 @@ set(CMAKE_CXX_FLAGS_RELEASE_WITH_ASSERTS "-O3")
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
 
-set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.62.0 COMPONENTS system filesystem iostreams log thread date_time REQUIRED)
-
 # C++11 required
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -51,6 +48,12 @@ link_directories(${gatb_binary_dir}/lib)
 
 include(${PROJECT_SOURCE_DIR}/ext/gtest.cmake)
 
+
+# installs local boost
+include(${PROJECT_SOURCE_DIR}/ext/boost.cmake)
+link_directories(${CMAKE_CURRENT_BINARY_DIR}/boost/lib)
+
+
 #include directories as SYSTEM includes, thus warnings will be ignored for these
 include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
@@ -65,6 +68,7 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/src
         ${source_dir}/googletest/include
         ${source_dir}/googlemock/include
+        ${CMAKE_BINARY_DIR}/boost/include
 )
 
 file(GLOB_RECURSE SRC_FILES
@@ -78,38 +82,28 @@ file(GLOB_RECURSE SRC_FILES
         )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-add_dependencies(${PROJECT_NAME} gatb gtest)
+set(Boost_USE_STATIC_LIBS ON)
+
+add_dependencies(boost gatb gtest)
+add_dependencies(${PROJECT_NAME} gatb gtest boost)
+set(BOOST_LIBS
+        boost_atomic
+        boost_chrono
+        boost_date_time
+        boost_filesystem
+        boost_iostreams
+        boost_log
+        boost_log_setup
+        boost_regex
+        boost_system
+        boost_thread)
 target_link_libraries(${PROJECT_NAME}
         ${CMAKE_THREAD_LIBS_INIT}
-        ${Boost_IOSTREAMS_LIBRARY}
-        ${Boost_FILESYSTEM_LIBRARY}
-        ${Boost_SYSTEM_LIBRARY}
-        ${Boost_LOG_LIBRARY}
-        ${Boost_THREAD_LIBRARY}
         ${EXTERNAL_LIBS}
         ${CMAKE_DL_LIBS}
-        ${ZLIB_LIBRARY})
-
-
-
-if(BUILD_COMPARE_INDEXES)
-    #Build compare_indexes
-    set(SRC_FILES_COMPARE_INDEXES ${SRC_FILES})
-    list(REMOVE_ITEM SRC_FILES_COMPARE_INDEXES ${PROJECT_SOURCE_DIR}/src/main.cpp)
-    add_executable(compare_indexes ${PROJECT_SOURCE_DIR}/scripts/compare_indexes/compare_indexes.cpp ${SRC_FILES_COMPARE_INDEXES})
-    add_dependencies(compare_indexes gatb gtest)
-    set_target_properties(compare_indexes PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin/)
-    target_link_libraries(compare_indexes
-            ${CMAKE_THREAD_LIBS_INIT}
-            ${Boost_IOSTREAMS_LIBRARY}
-            ${Boost_FILESYSTEM_LIBRARY}
-            ${Boost_SYSTEM_LIBRARY}
-            ${Boost_LOG_LIBRARY}
-            ${Boost_THREAD_LIBRARY}
-            ${EXTERNAL_LIBS}
-            ${CMAKE_DL_LIBS}
-            ${ZLIB_LIBRARY})
-endif(BUILD_COMPARE_INDEXES)
+        ${ZLIB_LIBRARY}
+        ${BOOST_LIBS}
+)
 
 
 enable_testing()

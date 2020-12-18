@@ -9,17 +9,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
 
 add_dependencies(pandora_test
         gtest
-        gatb)
+        gatb
+        boost)
 
 target_link_libraries(pandora_test
         libgmock
         libgtest
         ${CMAKE_THREAD_LIBS_INIT}
-        ${Boost_IOSTREAMS_LIBRARY}
-        ${Boost_FILESYSTEM_LIBRARY}
-        ${Boost_SYSTEM_LIBRARY}
-        ${Boost_LOG_LIBRARY}
-        ${Boost_THREAD_LIBRARY}
+        ${BOOST_LIBS}
         ${EXTERNAL_LIBS}
         ${CMAKE_DL_LIBS}
         ${ZLIB_LIBRARY})
