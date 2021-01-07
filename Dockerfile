@@ -15,25 +15,6 @@ RUN apt update \
     && apt-get clean
 
 #============================================
-# INSTALL BOOST
-#============================================
-ENV BM 1
-ENV Bm 62
-ENV BP 0
-ENV BOOST_VERSION "${BM}.${Bm}.${BP}"
-ENV BOOST_V_USCORE "${BM}_${Bm}_${BP}"
-ENV BOOST_URL "http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_V_USCORE}.tar.gz"
-ENV BOOST_LIBS "system,filesystem,iostreams,log,thread,date_time"
-ENV BOOST_DIR "/boost_$BOOST_VERSION"
-RUN mkdir -p "$BOOST_DIR" \
-    && { wget --quiet -O - "${BOOST_URL}" | tar --strip-components=1 -xz -C "${BOOST_DIR}"; } \
-    && apt-get remove -y wget
-WORKDIR "$BOOST_DIR"
-RUN ./bootstrap.sh --prefix=/usr/ --with-libraries="$BOOST_LIBS" \
-    && ./b2 install \
-    && cd .. \
-    && rm -rf "$BOOST_DIR"
-#============================================
 # INSTALL PANDORA
 #============================================
 # can override the build type with docker's --build-arg command

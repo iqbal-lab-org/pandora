@@ -8,10 +8,6 @@ env:
 git:
   depth: 3  # https://docs.travis-ci.com/user/customizing-the-build/#git-clone-depth
 
-cache:
-  directories:
-    - ${TRAVIS_BUILD_DIR}/deps/boost-1.62.0
-
 branches:
   only: # build all branches https://docs.travis-ci.com/user/customizing-the-build/#safelisting-or-blocklisting-branches
     - gh-pages
@@ -34,11 +30,7 @@ jobs:
         - if [ $? -ne 1 ]; then echo "Not all source and header files are formatted with clang-format"; exit 1; fi
     - stage: "Build and Test"
       env:
-        - BOOST_VERSION="1.62.0"
-        - BOOST_LIBS="system,filesystem,iostreams,log,thread,date_time"
         - BUILD_TYPE="Debug"
-        - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
-      install: bash ci/install.sh
       script: bash ci/script.sh
 
 stages:

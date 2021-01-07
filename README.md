@@ -92,10 +92,9 @@ NB For consistency, we no longer maintain images on singularity hub.
 
 ### Installation from source
 
-This is not recommended because the required zlib and boost system
-installs do not always play nicely. If you want to take the risk:
-- Requires a Unix or Mac OS.
-- Requires a system install of `zlib`. If this is not already installed,
+Requirements:
+- A Unix or Mac OS.
+- A system install of `zlib`. If this is not already installed,
   [this](https://geeksww.com/tutorials/libraries/zlib/installation/installing_zlib_on_ubuntu_linux.php)
   tutorial is helpful or try the following.
 
@@ -105,20 +104,6 @@ cd zlib-1.2.11
 ./configure [--prefix=/prefix/path]
 make
 make install
-```
-
-- Requires a system installation of `boost` containing the `system`,
-  `filesystem`, `log` (which also depends on `thread` and `date_time`)
-  and `iostreams` libraries. If not already installed use the following
-  or look at
-  [this](https://www.boost.org/doc/libs/1_62_0/more/getting_started/unix-variants.html)
-  guide.
-
-```
-wget https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.gz -O - | tar xzf -
-cd boost_1_62_0
-./bootstrap.sh [--prefix=/prefix/path] --with-libraries=system,filesystem,iostreams,log,thread,date_time
-./b2 install
 ```
 
 - Download and install `pandora` as follows:

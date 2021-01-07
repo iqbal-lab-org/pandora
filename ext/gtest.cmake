@@ -1,8 +1,5 @@
 include(ExternalProject)
-#ExternalProject_Add(gtest
-#        URL https://github.com/google/googletest/archive/release-1.8.0.zip
-#        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
-#        INSTALL_COMMAND "")
+
 ExternalProject_Add(gtest
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG 703bd9caab50b139428cea1aaff9974ebee5742e

@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.0)
 
+
+# project configuration
 set(PROJECT_NAME_STR pandora)
 project(${PROJECT_NAME_STR} VERSION "0.7.0" LANGUAGES C CXX)
 configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
+
 # add a RELEASE_WITH_ASSERTS build type
 set(CMAKE_CXX_FLAGS_RELEASE_WITH_ASSERTS "-O3")
-
-find_package(Threads REQUIRED)
-find_package(ZLIB REQUIRED)
 
 # C++11 required
 include(CheckCXXCompilerFlag)
@@ -32,43 +32,86 @@ else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 endif()
 
-#print CMAKE debug and release flags to know what we are exactly doing
-#message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
-#message("CMAKE_CXX_FLAGS_RELEASE is ${CMAKE_CXX_FLAGS_RELEASE}")
-#message("CMAKE_CXX_FLAGS_RELWITHDEBINFO is ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 
-link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib)
 
+########################################################################################################################
+# FIND PRE-INSTALLED LIBS
+########################################################################################################################
+find_package(ZLIB REQUIRED)
+########################################################################################################################
+# END FIND PRE-INSTALLED LIBS
+########################################################################################################################
+
+
+
+
+########################################################################################################################
+# EXTERNAL LIBS INSTALLATION
+########################################################################################################################
+
+########################################################################################################################
+# INSTALL GATB
 include(${PROJECT_SOURCE_DIR}/ext/gatb.cmake)
-set(EXTERNAL_LIBS
+include_directories(SYSTEM
+        ${gatb_source_dir}/gatb-core/src
+        ${gatb_binary_dir}/include
+        )
+link_directories(${gatb_binary_dir}/lib)
+set(GATB_LIBS
         gatbcore
         hdf5
-        hdf5_tools)
-link_directories(${gatb_binary_dir}/lib)
+        hdf5_tools
+    )
+########################################################################################################################
 
+
+########################################################################################################################
+# INSTALL GTEST
 include(${PROJECT_SOURCE_DIR}/ext/gtest.cmake)
+include_directories(
+        "${gtest_source_dir}/googletest/include"
+        "${gtest_source_dir}/googlemock/include"
+)
+########################################################################################################################
 
 
-# installs local boost
+########################################################################################################################
+# INSTALL BOOST
 include(${PROJECT_SOURCE_DIR}/ext/boost.cmake)
-link_directories(${CMAKE_CURRENT_BINARY_DIR}/boost/lib)
+include_directories(${CMAKE_BINARY_DIR}/boost/include)
+link_directories(${CMAKE_BINARY_DIR}/boost/lib)
+set(BOOST_LIBS
+        boost_atomic
+        boost_chrono
+        boost_date_time
+        boost_filesystem
+        boost_iostreams
+        boost_log
+        boost_log_setup
+        boost_regex
+        boost_system
+        boost_thread)
+set(Boost_USE_STATIC_LIBS ON)
+########################################################################################################################
+
+########################################################################################################################
+# END EXTERNAL LIBS INSTALLATION
+########################################################################################################################
 
 
+########################################################################################################################
+# PANDORA INSTALLATION
+########################################################################################################################
 #include directories as SYSTEM includes, thus warnings will be ignored for these
 include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
         ${PROJECT_SOURCE_DIR}/cgranges/cpp
-        ${gatb_source_dir}/gatb-core/src
-        ${gatb_binary_dir}/include
         )
 
 #normal includes: warnings will be reported for these
 include_directories(
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src
-        ${source_dir}/googletest/include
-        ${source_dir}/googlemock/include
-        ${CMAKE_BINARY_DIR}/boost/include
 )
 
 file(GLOB_RECURSE SRC_FILES
@@ -82,27 +125,15 @@ file(GLOB_RECURSE SRC_FILES
         )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-set(Boost_USE_STATIC_LIBS ON)
 
 add_dependencies(boost gatb gtest)
 add_dependencies(${PROJECT_NAME} gatb gtest boost)
-set(BOOST_LIBS
-        boost_atomic
-        boost_chrono
-        boost_date_time
-        boost_filesystem
-        boost_iostreams
-        boost_log
-        boost_log_setup
-        boost_regex
-        boost_system
-        boost_thread)
+
 target_link_libraries(${PROJECT_NAME}
-        ${CMAKE_THREAD_LIBS_INIT}
-        ${EXTERNAL_LIBS}
-        ${CMAKE_DL_LIBS}
         ${ZLIB_LIBRARY}
         ${BOOST_LIBS}
+        ${GATB_LIBS}
+        ${CMAKE_DL_LIBS}
 )
 
 
