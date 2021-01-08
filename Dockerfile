@@ -10,7 +10,7 @@ RUN apt update \
     && apt install -y software-properties-common \
     && apt-add-repository universe \
     && apt update \
-    && apt install --no-install-recommends -y build-essential git cmake wget zlib1g-dev \
+    && apt install --no-install-recommends -y build-essential git cmake wget \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 

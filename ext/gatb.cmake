@@ -10,7 +10,7 @@ ExternalProject_Add(gatb
         GIT_TAG "v1.4.1"
         PREFIX "${CMAKE_CURRENT_BINARY_DIR}/gatb"
         SOURCE_SUBDIR gatb-core
-        CMAKE_ARGS -DKSIZE_LIST=32
+        CMAKE_ARGS -DKSIZE_LIST=32 -DZLIB_ROOT=${ZLIB_ROOT}
         INSTALL_COMMAND "")
 
 ExternalProject_Get_Property(gatb source_dir binary_dir)

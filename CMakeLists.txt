@@ -1,5 +1,12 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.2)
 
+# add hunter
+include("CMake/HunterGate.cmake")
+HunterGate(
+        URL "https://github.com/cpp-pm/hunter/archive/v0.23.289.tar.gz"
+        SHA1 "7d7323704780200a1575fc089d26f8a8a393a1fa"
+        LOCAL
+)
 
 # project configuration
 set(PROJECT_NAME_STR pandora)
@@ -37,7 +44,7 @@ endif()
 ########################################################################################################################
 # FIND PRE-INSTALLED LIBS
 ########################################################################################################################
-find_package(ZLIB REQUIRED)
+find_library(LIBRT rt REQUIRED)
 ########################################################################################################################
 # END FIND PRE-INSTALLED LIBS
 ########################################################################################################################
@@ -47,6 +54,13 @@ find_package(ZLIB REQUIRED)
 
 ########################################################################################################################
 # EXTERNAL LIBS INSTALLATION
+########################################################################################################################
+
+########################################################################################################################
+# INSTALL ZLIB
+hunter_add_package(ZLIB)
+find_package(ZLIB 1.2.11 REQUIRED)
+set(ZLIB_LIBRARY ZLIB::ZLIB)
 ########################################################################################################################
 
 ########################################################################################################################
@@ -77,21 +91,27 @@ include_directories(
 
 ########################################################################################################################
 # INSTALL BOOST
-include(${PROJECT_SOURCE_DIR}/ext/boost.cmake)
-include_directories(${CMAKE_BINARY_DIR}/boost/include)
-link_directories(${CMAKE_BINARY_DIR}/boost/lib)
-set(BOOST_LIBS
-        boost_atomic
-        boost_chrono
-        boost_date_time
-        boost_filesystem
-        boost_iostreams
-        boost_log
-        boost_log_setup
-        boost_regex
-        boost_system
-        boost_thread)
-set(Boost_USE_STATIC_LIBS ON)
+#include(${PROJECT_SOURCE_DIR}/ext/boost.cmake)
+#include_directories(${CMAKE_BINARY_DIR}/boost/include)
+#link_directories(${CMAKE_BINARY_DIR}/boost/lib)
+#set(BOOST_LIBS
+#        boost_atomic
+#        boost_chrono
+#        boost_date_time
+#        boost_filesystem
+#        boost_iostreams
+#        boost_log
+#        boost_log_setup
+#        boost_regex
+#        boost_system
+#        boost_thread)
+#set(Boost_USE_STATIC_LIBS ON)
+
+
+hunter_add_package(Boost COMPONENTS atomic chrono date_time filesystem iostreams log regex system thread)
+find_package(Boost CONFIG REQUIRED atomic chrono date_time filesystem iostreams log regex system thread)
+set(BOOST_LIBRARIES Boost::atomic Boost::chrono Boost::date_time Boost::filesystem Boost::iostreams Boost::log Boost::regex Boost::system Boost::thread)
+
 ########################################################################################################################
 
 ########################################################################################################################
@@ -126,14 +146,16 @@ file(GLOB_RECURSE SRC_FILES
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
-add_dependencies(boost gatb gtest)
-add_dependencies(${PROJECT_NAME} gatb gtest boost)
+
+add_dependencies(${PROJECT_NAME} gatb gtest)
 
 target_link_libraries(${PROJECT_NAME}
-        ${ZLIB_LIBRARY}
-        ${BOOST_LIBS}
         ${GATB_LIBS}
         ${CMAKE_DL_LIBS}
+        ${LIBRT}
+        ${ZLIB_LIBRARY}
+        ${BOOST_LIBRARIES}
+        -static-libgcc -static-libstdc++
 )
 
 
