@@ -1,7 +1,7 @@
 # PANDORA
 # Pan-genome inference and genotyping with long noisy or short accurate reads
 
-FROM ubuntu:bionic
+FROM ubuntu:focal
 
 ENV LC_ALL C.UTF-8
 ENV LANG C.UTF-8
