@@ -70,6 +70,42 @@ There is no need to have `pandora` installed, as it is run inside containers.
 
 ## Installation
 
+### No installation needed - precompiled portable binary
+
+You can use `pandora` with no installation at all by simply downloading the precompiled binary, and running it.
+In this binary, all libraries are linked statically, except for OpenMP.
+
+* **Requirements**
+  * The only dependency required to run the precompiled binary is OpenMP 4.0+;
+  * The easiest way to install OpenMP 4.0+ is to have GCC 4.9 (from April 22, 2014) or more recent installed, which supports OpenMP 4.0;
+  * Technical details on why OpenMP can't be linked statically
+can be found [here](https://gcc.gnu.org/onlinedocs/gfortran/OpenMP.html). 
+
+* **Download**:
+  ```
+  wget https://www.dropbox.com/s/74ptrnk4k5qcc6o/pandora-linux-precompiled_v0.8.0_beta?dl=1 -O pandora-linux-precompiled_v0.8.0_beta
+  ```
+  * **TODO: updated to a github link when we make the release;**
+* **Running**:
+```
+chmod +x pandora-linux-precompiled_v0.8.0_beta
+./pandora-linux-precompiled_v0.8.0_beta -h
+```
+
+* **Compatibility**: This precompiled binary works on pretty much any glibc-2.12-or-later-based x86 and x86-64 Linux distribution 
+  released since approx 2011. A non-exhaustive list: Debian >= 7, Ubuntu >= 10.10, Red Hat Enterprise Linux >= 6,
+  CentOS >= 6;
+  
+* **Credits**:
+  * Precompilation is done using [Holy Build Box](http://phusion.github.io/holy-build-box/);
+  * We acknowledge Páll Melsted since we followed his [blog post](https://pmelsted.wordpress.com/2015/10/14/building-binaries-for-bioinformatics/) to build this portable binary.
+
+* **Notes**:
+  * We provide precompiled binaries for Linux OS only;
+  * The performance of precompiled binaries is several times slower than a binary compiled from source.
+    The main reason is that the precompiled binary can't contain specific instructions that might provide speed up
+    the execution on specific processors as it has to be runnable on a wide range of systems;
+
 ### Containers
 
 ![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/rmcolq/pandora)
@@ -94,17 +130,6 @@ NB For consistency, we no longer maintain images on singularity hub.
 
 Requirements:
 - A Unix or Mac OS.
-- A system install of `zlib`. If this is not already installed,
-  [this](https://geeksww.com/tutorials/libraries/zlib/installation/installing_zlib_on_ubuntu_linux.php)
-  tutorial is helpful or try the following.
-
-```
-wget http://www.zlib.net/zlib-1.2.11.tar.gz -O - | tar xzf -
-cd zlib-1.2.11
-./configure [--prefix=/prefix/path]
-make
-make install
-```
 
 - Download and install `pandora` as follows:
 
@@ -114,7 +139,7 @@ cd pandora
 mkdir -p build
 cd build
 cmake ..
-make
+make -j4
 ctest -VV
 ```
 
