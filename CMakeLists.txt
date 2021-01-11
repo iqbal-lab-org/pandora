@@ -41,17 +41,8 @@ else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 endif()
 
-
-########################################################################################################################
-# FIND PRE-INSTALLED LIBS
-########################################################################################################################
-find_library(LIBRT rt REQUIRED)
-########################################################################################################################
-# END FIND PRE-INSTALLED LIBS
-########################################################################################################################
-
-
-
+# static C and C++ flags
+set(STATIC_C_CXX "-static-libgcc -static-libstdc++")
 
 ########################################################################################################################
 # EXTERNAL LIBS INSTALLATION
@@ -128,10 +119,9 @@ add_dependencies(${PROJECT_NAME} gatb)
 target_link_libraries(${PROJECT_NAME}
         ${GATB_LIBS}
         ${BOOST_LIBRARIES}
-        ${LIBRT}
         ${ZLIB_LIBRARY}
         ${CMAKE_DL_LIBS}
-        -static-libgcc -static-libstdc++
+        ${STATIC_C_CXX}
 )
 
 enable_testing()
