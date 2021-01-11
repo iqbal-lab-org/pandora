@@ -103,8 +103,8 @@ chmod +x pandora-linux-precompiled_v0.8.0_beta
 * **Notes**:
   * We provide precompiled binaries for Linux OS only;
   * The performance of precompiled binaries is several times slower than a binary compiled from source.
-    The main reason is that the precompiled binary can't contain specific instructions that might provide speed up
-    the execution on specific processors as it has to be runnable on a wide range of systems;
+    The main reason is that the precompiled binary can't contain specific instructions that might speed up
+    the execution on specific processors, as it has to be runnable on a wide range of systems;
 
 ### Containers
 
