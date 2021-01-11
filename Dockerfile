@@ -24,10 +24,11 @@ ENV PANDORA_DIR "/pandora/"
 
 COPY . $PANDORA_DIR
 WORKDIR ${PANDORA_DIR}/build
-RUN cmake -DCMAKE_BUILD_TYPE="$PANDORA_BUILD_TYPE" .. \
+RUN cmake -DCMAKE_BUILD_TYPE="$PANDORA_BUILD_TYPE" -j4 .. \
     && make -j4 \
     && ctest -V \
     && apt-get remove -y cmake git \
     && mv pandora /bin/pandora \
     && cd / \
-    && rm -rf $PANDORA_DIR
+    && rm -rf $PANDORA_DIR \
+    && rm -rf /root/.hunter

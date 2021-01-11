@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.12)  # required by hunter ZLIB installation
 
-# add hunter
-include("CMake/HunterGate.cmake")
+# include hunter
+include("cmake/HunterGate.cmake")
 HunterGate(
         URL "https://github.com/cpp-pm/hunter/archive/v0.23.289.tar.gz"
         SHA1 "7d7323704780200a1575fc089d26f8a8a393a1fa"
@@ -14,7 +14,7 @@ project(${PROJECT_NAME_STR} VERSION "0.7.0" LANGUAGES C CXX)
 configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
 
-# add a RELEASE_WITH_ASSERTS build type
+# add a RELEASE_WITH_ASSERTS build type - TODO: FIX THIS
 set(CMAKE_CXX_FLAGS_RELEASE_WITH_ASSERTS "-O3")
 
 # C++11 required
@@ -29,8 +29,10 @@ else ()
     message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER} has no C++11 support")
 endif ()
 
+# default flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_SYSTEM_NO_DEPRECATED -Wall -Wextra")
 
+# compile with openmp only on Linux
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(MACOSX TRUE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_OPENMP")
@@ -38,7 +40,6 @@ else ()
     find_package(OpenMP 4.0 REQUIRED)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 endif()
-
 
 
 ########################################################################################################################
@@ -79,11 +80,9 @@ set(GATB_LIBS
 
 ########################################################################################################################
 # INSTALL GTEST
-include(${PROJECT_SOURCE_DIR}/ext/gtest.cmake)
-include_directories(
-        "${gtest_source_dir}/googletest/include"
-        "${gtest_source_dir}/googlemock/include"
-)
+hunter_add_package(GTest)
+find_package(GTest CONFIG REQUIRED)
+set(Gtest_LIBRARIES GTest::gtest GTest::gmock_main)
 ########################################################################################################################
 
 ########################################################################################################################
@@ -107,7 +106,7 @@ include_directories(SYSTEM
         ${PROJECT_SOURCE_DIR}/cgranges/cpp
         )
 
-#normal includes: warnings will be reported for these
+# normal includes: warnings will be reported for these
 include_directories(
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src
@@ -124,7 +123,7 @@ file(GLOB_RECURSE SRC_FILES
         )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-add_dependencies(${PROJECT_NAME} gatb gtest)
+add_dependencies(${PROJECT_NAME} gatb)
 
 target_link_libraries(${PROJECT_NAME}
         ${GATB_LIBS}
@@ -134,7 +133,6 @@ target_link_libraries(${PROJECT_NAME}
         ${CMAKE_DL_LIBS}
         -static-libgcc -static-libstdc++
 )
-
 
 enable_testing()
 add_subdirectory(test)

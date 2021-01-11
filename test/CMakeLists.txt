@@ -7,18 +7,15 @@ add_executable(${PROJECT_NAME}_test ${TEST_SRC_FILES})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
 
-add_dependencies(${PROJECT_NAME}_test gatb gtest)
+add_dependencies(${PROJECT_NAME}_test gatb)
 
 target_include_directories(${PROJECT_NAME}_test PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         ${CMAKE_BINARY_DIR}/include
-        ${source_dir}/googletest/include
-        ${source_dir}/googlemock/include
         )
 
 target_link_libraries(${PROJECT_NAME}_test
-        libgmock
-        libgtest
+        ${Gtest_LIBRARIES}
         ${GATB_LIBS}
         ${BOOST_LIBRARIES}
         ${LIBRT}
