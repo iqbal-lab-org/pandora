@@ -8,7 +8,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PANDORA_DIR="$(dirname "${SCRIPT_DIR}")"
 PORTABLE_EXECUTABLE_BUILD_DIR="${PANDORA_DIR}/build_portable_executable"
 
-cd $PANDORA_DIR
+cd "$PANDORA_DIR"
 
 if [ -d "${PORTABLE_EXECUTABLE_BUILD_DIR}" ]; then
   echo "Please remove ${PORTABLE_EXECUTABLE_BUILD_DIR} before proceeding."
@@ -16,6 +16,6 @@ if [ -d "${PORTABLE_EXECUTABLE_BUILD_DIR}" ]; then
 fi
 
 sudo docker run -t -i --rm \
-  -v ${PANDORA_DIR}:/io \
+  -v "${PANDORA_DIR}":/io \
   phusion/holy-build-box-64:2.0.1 \
   bash /io/portable_binary_builder/build_portable_binary_core.sh
