@@ -129,7 +129,7 @@ NB For consistency, we no longer maintain images on singularity hub.
 ### Installation from source
 
 Requirements:
-- A Unix or Mac OS.
+- A Unix or Mac OS, with a C++11 compiler toolset (e.g. `g++`, `ld`, `make`, `ctest`, etc), `cmake`, `git` and `wget`.
 
 - Download and install `pandora` as follows:
 
