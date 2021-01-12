@@ -20,7 +20,7 @@ ctest -VV
 
 # verify if the binary is portable
 set +e
-libcheck pandora #TODO: libomp is still a shared library dependency
+libcheck pandora
 set -e
 
 # print ldd output for us to check the dependencies also
