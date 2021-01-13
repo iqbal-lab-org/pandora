@@ -113,3 +113,7 @@ example/pandora_workflow
 !example/scripts/data/ref_to_get_reads_from.toy_example_1.fa
 !example/scripts/data/ref_to_get_reads_from.toy_example_2.fa
 
+#portable binary build dir
+build_portable_executable
+
+pandora-linux-precompiled
