@@ -1,7 +1,5 @@
 #include "fastaq.h"
 
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
-
 Fastaq::Fastaq(bool gz, bool fq)
     : gzipped(gz)
     , fastq(fq)
@@ -51,7 +49,6 @@ void Fastaq::add_entry(const std::string& name, const std::string& sequence,
     const std::vector<uint32_t>& covgs, const uint_least16_t global_covg,
     const std::string header)
 {
-
     assert(name != "");
     assert(covgs.size() == sequence.length());
     auto mod_global_covg = global_covg;
@@ -77,7 +74,6 @@ void Fastaq::add_entry(const std::string& name, const std::string& sequence,
 void Fastaq::add_entry(
     const std::string& name, const std::string& sequence, const std::string header)
 {
-
     assert(name != "");
 
     names.push_back(name);

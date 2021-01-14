@@ -15,22 +15,35 @@ using namespace prg;
 
 void KmerGraphWithCoverage::set_exp_depth_covg(const uint32_t edp)
 {
-    assert(edp > 0);
+    bool exp_depth_covg_parameter_is_valid = edp > 0;
+    if (!exp_depth_covg_parameter_is_valid) {
+        FatalError() << "In KmerGraphWithCoverage::set_exp_depth_covg(): exp_depth_covg is invalid, must be > 0, is " << edp;
+    }
     exp_depth_covg = edp;
 }
 
 void KmerGraphWithCoverage::set_binomial_parameter_p(const float e_rate)
 {
     BOOST_LOG_TRIVIAL(debug) << "Set p in kmergraph";
-    assert(kmer_prg->k != 0);
-    assert(0 < e_rate and e_rate < 1);
+
+    bool valid_parameters_to_set_p = (kmer_prg->k != 0) && (0 < e_rate and e_rate < 1);
+    if (!valid_parameters_to_set_p) {
+        FatalError() << "In KmerGraphWithCoverage::set_binomial_parameter_p(): "
+                     << "Parameters to set p are not valid "
+                     << "(kmer_prg->k = " << kmer_prg->k << ", e_rate = " << e_rate << ")";
+    }
+
     binomial_parameter_p = 1 / exp(e_rate * kmer_prg->k);
 }
 
 void KmerGraphWithCoverage::increment_covg(
     uint32_t node_id, pandora::Strand strand, uint32_t sample_id)
 {
-    assert(this->node_index_to_sample_coverage[node_id].size() > sample_id);
+    bool sample_is_valid = this->node_index_to_sample_coverage[node_id].size() > sample_id;
+    if (!sample_is_valid) {
+        FatalError() << "In KmerGraphWithCoverage::increment_covg(), sample_id is invalid ("
+                     << sample_id << ")";
+    }
 
     // get a pointer to the value we want to increment
     uint16_t* coverage_ptr = nullptr;
@@ -66,7 +79,12 @@ uint32_t KmerGraphWithCoverage::get_covg(
 void KmerGraphWithCoverage::set_covg(
     uint32_t node_id, uint16_t value, pandora::Strand strand, uint32_t sample_id)
 {
-    assert(this->node_index_to_sample_coverage[node_id].size() > sample_id);
+    bool sample_is_valid = this->node_index_to_sample_coverage[node_id].size() > sample_id;
+    if (!sample_is_valid) {
+        FatalError() << "In KmerGraphWithCoverage::set_covg(), sample_id is invalid ("
+                     << sample_id << ")";
+    }
+
     if (strand == pandora::Strand::Forward) {
         this->node_index_to_sample_coverage[node_id][sample_id].first = value;
     } else {
@@ -79,11 +97,17 @@ void KmerGraphWithCoverage::set_negative_binomial_parameters(
 {
     if (nbin_prob == 0 and nb_fail == 0)
         return;
-    assert((negative_binomial_parameter_p > 0 and negative_binomial_parameter_p < 1)
-        || assert_msg(
-            "nb_p " << negative_binomial_parameter_p << " was not set in kmergraph"));
-    assert(negative_binomial_parameter_r > 0
-        || assert_msg("nb_r was not set in kmergraph"));
+
+    bool negative_binomial_parameters_were_previously_set =
+        (negative_binomial_parameter_p > 0 and negative_binomial_parameter_p < 1) &&
+        (negative_binomial_parameter_r > 0);
+    if (!(negative_binomial_parameters_were_previously_set)) {
+        FatalError() << "In KmerGraphWithCoverage::set_negative_binomial_parameters(): "
+                     << "negative_binomial_parameter_p (" << negative_binomial_parameter_p << ")"
+                     << " or negative_binomial_parameter_r (" << negative_binomial_parameter_r << ") "
+                     << "were not correctly set";
+    }
+
     negative_binomial_parameter_p += nbin_prob;
     negative_binomial_parameter_r += nb_fail;
 }
@@ -102,7 +126,11 @@ float KmerGraphWithCoverage::nbin_prob(uint32_t node_id, const uint32_t& sample_
 
 float KmerGraphWithCoverage::lin_prob(uint32_t node_id, const uint32_t& sample_id)
 {
-    assert(num_reads != 0);
+    bool reads_were_mapped_to_this_kmer_graph = num_reads != 0;
+    if (!reads_were_mapped_to_this_kmer_graph) {
+        FatalError() << "In KmerGraphWithCoverage::lin_prob(): impossible to compute "
+                     << "lin_prob, no reads were mapped to this kmer graph";
+    }
     auto k = this->get_forward_covg(node_id, sample_id)
         + this->get_reverse_covg(node_id, sample_id);
     return log(float(k) / num_reads);
@@ -110,20 +138,29 @@ float KmerGraphWithCoverage::lin_prob(uint32_t node_id, const uint32_t& sample_i
 
 float KmerGraphWithCoverage::bin_prob(uint32_t node_id, const uint32_t& sample_id)
 {
-    assert(num_reads != 0);
+    bool reads_were_mapped_to_this_kmer_graph = num_reads != 0;
+    if (!reads_were_mapped_to_this_kmer_graph) {
+        FatalError() << "In KmerGraphWithCoverage::bin_prob(): impossible to compute "
+                     << "bin_prob, no reads were mapped to this kmer graph";
+    }
     return bin_prob(node_id, num_reads, sample_id);
 }
 
 float KmerGraphWithCoverage::bin_prob(
     const uint32_t& node_id, const uint32_t& num, const uint32_t& sample_id)
 {
-    assert(binomial_parameter_p != 1);
-    assert(node_id < kmer_prg->nodes.size());
-#ifndef NDEBUG
-    // TODO: check if tests must be updated or not due to this (I think not -
-    // sorted_nodes is always sorted) if this is added, some tests bug, since it was not
-    // executed before... check();
-#endif
+    bool binomial_parameter_p_is_set_correctly = binomial_parameter_p != 1;
+    if (!binomial_parameter_p_is_set_correctly) {
+        FatalError() << "In KmerGraphWithCoverage::bin_prob(): "
+                     << "binomial_parameter_p (" << binomial_parameter_p << ")"
+                     << " is not correctly set";
+    }
+
+    bool node_exists = node_id < kmer_prg->nodes.size();
+    if (!node_exists) {
+        FatalError() << "In KmerGraphWithCoverage::bin_prob(): "
+                     << "attempt to access inexistent node" << node_id;
+    }
 
     uint32_t sum_coverages = this->get_forward_covg(node_id, sample_id)
         + this->get_reverse_covg(node_id, sample_id);
@@ -152,18 +189,22 @@ float KmerGraphWithCoverage::get_prob(
     const std::string& prob_model, const uint32_t& node_id, const uint32_t& sample_id)
 {
     if (prob_model == "nbin") {
+        // is there no parameter check here?
         return nbin_prob(node_id, sample_id);
     } else if (prob_model == "bin") {
-        assert(binomial_parameter_p < 1
-            || assert_msg("binomial_parameter_p was not set in kmergraph"));
-        assert(num_reads > 0 || assert_msg("num_reads was not set in kmergraph"));
+        bool binomial_parameters_are_ok = (binomial_parameter_p < 1) && (num_reads > 0);
+        if (!binomial_parameters_are_ok) {
+            FatalError() << "In KmerGraphWithCoverage::get_prob(): binomial parameters "
+                << "are not ok (binomial_parameter_p = " << binomial_parameter_p << ", "
+                << "num_reads = " << num_reads;
+        }
         return bin_prob(node_id, sample_id);
     } else if (prob_model == "lin") {
+        // is there no parameter check here?
         return lin_prob(node_id, sample_id);
     } else {
-        BOOST_LOG_TRIVIAL(warning) << "Invalid probability model for kmer coverage "
-                                      "distribution: should be nbin, bin or lin";
-        exit(1);
+        FatalError() << "Invalid probability model for kmer coverage distribution: "
+                     << "should be nbin, bin or lin";
     }
 }
 
@@ -246,6 +287,9 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
                     max_sum_of_log_probs_from_node[current_node->id]
                         -= get_prob(prob_model, sorted_nodes[prev_node]->id, sample_id);
                     length_of_maxpath_from_node[current_node->id] -= 1;
+
+                    // this remains as an assert, as it is a code check
+                    // Note: I think we might even be able to remove this
                     assert(length_of_maxpath_from_node[current_node->id]
                         == max_num_kmers_to_average);
                 }
@@ -274,8 +318,11 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
         }
     }
 
-    assert(length_of_maxpath_from_node[0] > 0
-        || assert_msg("found no path through kmer prg"));
+    bool path_was_found_through_the_kmer_PRG = length_of_maxpath_from_node[0] > 0;
+    if (!path_was_found_through_the_kmer_PRG) {
+        FatalError() << "In KmerGraphWithCoverage::find_max_path(), found no path through kmer prg";
+    }
+
     return prob_path(maxpath, sample_id, prob_model);
 }
 
@@ -410,7 +457,13 @@ void KmerGraphWithCoverage::load(const std::string& filepath)
         while (getline(myfile, line).good()) {
             if (line[0] == 'S') {
                 split_line = split(line, "\t");
-                assert(split_line.size() >= 4);
+
+                bool line_is_consistent = split_line.size() >= 4;
+                if (!line_is_consistent) {
+                    FatalError() << "In KmerGraphWithCoverage::load(), line \"" << line << "\" "
+                                 << "is inconsistent";
+                }
+
                 id = std::stoi(split_line[1]);
                 num_nodes = std::max(num_nodes, id);
             }
@@ -424,23 +477,36 @@ void KmerGraphWithCoverage::load(const std::string& filepath)
         while (getline(myfile, line).good()) {
             if (line[0] == 'S') {
                 split_line = split(line, "\t");
-                assert(split_line.size() >= 4);
+
+                bool line_is_consistent = split_line.size() >= 4;
+                if (!line_is_consistent) {
+                    FatalError() << "In KmerGraphWithCoverage::load(), line \"" << line << "\" "
+                                 << "is inconsistent";
+                }
+
                 id = stoi(split_line[1]);
                 ss << split_line[2];
                 char c = ss.peek();
-                assert(isdigit(c)
-                    or assert_msg("Cannot read in this sort of kmergraph GFA as it "
-                                  "does not label nodes "
-                                  "with their PRG path"));
+
+                if (!isdigit(c)) {
+                    FatalError() << "In KmerGraphWithCoverage::load(), line \"" << line << "\": "
+                                 << "Cannot read in this sort of kmergraph GFA as it "
+                                 << "does not label nodes with their PRG path";
+                }
+
                 ss >> p;
                 ss.clear();
                 // add_node(p);
                 KmerNodePtr n = std::make_shared<KmerNode>(id, p);
-                assert(n != nullptr);
-                assert(id == kmer_prg->nodes.size()
-                    or num_nodes - id == kmer_prg->nodes.size()
-                    or assert_msg("id " << id << " != " << kmer_prg->nodes.size()
-                                        << " nodes.size() for kmergraph "));
+
+                bool id_is_consistent = (id == kmer_prg->nodes.size() or num_nodes - id == kmer_prg->nodes.size());
+                if (!id_is_consistent) {
+                    FatalError() << "In KmerGraphWithCoverage::load(), id is inconsistent."
+                                 << "id = " << id << ", "
+                                 << "nodes.size() = " << kmer_prg->nodes.size() << ", "
+                                 << "num_nodes = " << num_nodes;
+                }
+
                 kmer_prg->nodes.push_back(n);
                 kmer_prg->sorted_nodes.insert(n);
                 if (kmer_prg->k == 0 and p.length() > 0) {
@@ -455,12 +521,29 @@ void KmerGraphWithCoverage::load(const std::string& filepath)
                 }
             } else if (line[0] == 'L') {
                 split_line = split(line, "\t");
-                assert(split_line.size() >= 5);
-                assert(stoi(split_line[1]) < (int)outnode_counts.size()
-                    or assert_msg(
-                        stoi(split_line[1]) << ">=" << outnode_counts.size()));
-                assert(stoi(split_line[3]) < (int)innode_counts.size()
-                    or assert_msg(stoi(split_line[3]) << ">=" << innode_counts.size()));
+
+                bool line_is_consistent = split_line.size() >= 5;
+                if (!line_is_consistent) {
+                    FatalError() << "In KmerGraphWithCoverage::load(), line \"" << line << "\" "
+                                 << "is inconsistent";
+                }
+
+                int from_node = stoi(split_line[1]);
+                int to_node = stoi(split_line[3]);
+
+                bool from_node_in_range = from_node < (int)outnode_counts.size();
+                bool to_node_in_range = to_node < (int)innode_counts.size();
+                if (!from_node_in_range) {
+                    FatalError() << "In KmerGraphWithCoverage::load(), line \"" << line << "\": "
+                                 << "from_node out of range: "
+                                 << from_node << ">=" << outnode_counts.size();
+                }
+                if (!to_node_in_range) {
+                    FatalError() << "In KmerGraphWithCoverage::load(), line \"" << line << "\": "
+                                 << "to_node out of range: "
+                                 << to_node << ">=" << innode_counts.size();
+                }
+
                 outnode_counts[stoi(split_line[1])] += 1;
                 innode_counts[stoi(split_line[3])] += 1;
             }
@@ -472,12 +555,11 @@ void KmerGraphWithCoverage::load(const std::string& filepath)
 
         id = 0;
         for (const auto& n : kmer_prg->nodes) {
-            assert(kmer_prg->nodes[id]->id == id);
+            bool id_is_consistent = (kmer_prg->nodes[id]->id == id) && (n->id < outnode_counts.size()) && (n->id < innode_counts.size());
+            if (!id_is_consistent) {
+                FatalError() << "In KmerGraphWithCoverage::load(), Node: " << n << " has inconsistent id, should be " << id;
+            }
             id++;
-            assert(n->id < outnode_counts.size()
-                or assert_msg(n->id << ">=" << outnode_counts.size()));
-            assert(n->id < innode_counts.size()
-                or assert_msg(n->id << ">=" << innode_counts.size()));
             n->out_nodes.reserve(outnode_counts[n->id]);
             n->in_nodes.reserve(innode_counts[n->id]);
         }
@@ -488,7 +570,13 @@ void KmerGraphWithCoverage::load(const std::string& filepath)
         while (getline(myfile, line).good()) {
             if (line[0] == 'L') {
                 split_line = split(line, "\t");
-                assert(split_line.size() >= 5);
+
+                bool line_is_consistent = split_line.size() >= 5;
+                if (!line_is_consistent) {
+                    FatalError() << "In KmerGraphWithCoverage::load(), line \"" << line << "\" "
+                                 << "is inconsistent";
+                }
+
                 if (split_line[2] == split_line[4]) {
                     from = std::stoi(split_line[1]);
                     to = std::stoi(split_line[3]);

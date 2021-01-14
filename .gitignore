@@ -117,3 +117,4 @@ example/pandora_workflow
 build_portable_executable
 
 pandora-linux-precompiled
+/cmake-build-release/

@@ -1,7 +1,5 @@
 #include "interval.h"
 
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
-
 Interval::Interval(uint32_t s, uint32_t e)
     : start(s)
 {

@@ -407,7 +407,13 @@ int pandora_compare(CompareOptions& opt)
         pangenome::Node& pangraph_node = *pangraph_node_entry.second;
 
         const auto& prg_id = pangraph_node.prg_id;
-        assert(prgs.size() > prg_id);
+
+        bool valid_prg_id = prgs.size() > prg_id;
+        if (!valid_prg_id) {
+            FatalError() << "[Error on PanRG] A PRG has an invalid ID (" << prg_id
+                         << "), >= than the number of PRGs (" << prgs.size()
+                         << ") in the PanRG";
+        }
         const auto& prg_ptr = prgs[prg_id];
 
         const auto vcf_reference_path
@@ -425,7 +431,6 @@ int pandora_compare(CompareOptions& opt)
 
         // add all samples to the vcf
         vcf.add_samples(sample_names);
-        assert(vcf.samples.size() == samples.size());
 
         // build the vcf
         pangraph_node.construct_multisample_vcf(
