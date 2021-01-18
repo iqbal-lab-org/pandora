@@ -134,7 +134,7 @@ void KmerGraph::add_edge(KmerNodePtr from, KmerNodePtr to)
         FatalError() << "In KmerGraph::add_edge(), from node is invalid";
     }
 
-    bool to_node_is_valid = to->id < nodes.size() and nodes[to->id] == to;
+    const bool to_node_is_valid = to->id < nodes.size() and nodes[to->id] == to;
     if (!to_node_is_valid) {
         FatalError() << "In KmerGraph::add_edge(), to node is invalid";
     }
