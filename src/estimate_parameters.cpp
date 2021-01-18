@@ -49,7 +49,7 @@ void fit_negative_binomial(double& mean, double& variance, float& p, float& r)
 
     bool negative_binomial_parameters_are_ok = mean > 0 and variance > 0 and mean < variance;
     if (!negative_binomial_parameters_are_ok) {
-        FatalError() << "In fit_negative_binomial(): parameters are invalid "
+        FatalError() << "Negative binomial parameters are invalid "
                      << "(mean is " << mean << ", variance is " << variance << ")";
     }
     p = mean / variance;
