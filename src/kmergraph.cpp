@@ -98,7 +98,7 @@ KmerNodePtr KmerGraph::add_node(const prg::Path& p)
     nodes.push_back(n); // add it to nodes
     sorted_nodes.insert(n);
 
-    bool path_is_valid = k == 0 or p.length() == 0 or p.length() == k;
+    const bool path_is_valid = k == 0 or p.length() == 0 or p.length() == k;
     if (!path_is_valid) {
         FatalError() << "In KmerGraph::add_node(), the node path is not valid (k is " << k
                      << ", p.length() is " << p.length();
