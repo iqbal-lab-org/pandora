@@ -105,7 +105,7 @@ void infer_most_likely_prg_path_for_pannode(
 class FatalError {
 public:
     FatalError(){
-        BOOST_LOG_TRIVIAL(error) << std::endl << std::endl << "[FATAL ERROR] ";
+        BOOST_LOG_TRIVIAL(error) << "[FATAL ERROR] ";
     }
 
     virtual ~FatalError() {
