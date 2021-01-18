@@ -129,7 +129,7 @@ bool condition::operator()(const KmerNodePtr kn) const { return kn->path == q; }
 
 void KmerGraph::add_edge(KmerNodePtr from, KmerNodePtr to)
 {
-    bool from_node_is_valid = from->id < nodes.size() and nodes[from->id] == from;
+    const bool from_node_is_valid = from->id < nodes.size() and nodes[from->id] == from;
     if (!from_node_is_valid) {
         FatalError() << "In KmerGraph::add_edge(), from node is invalid";
     }
