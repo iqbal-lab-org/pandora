@@ -1,6 +1,5 @@
 file(GLOB_RECURSE TEST_SRC_FILES
-        ${PROJECT_SOURCE_DIR}/src/*.cpp
-        ${PROJECT_SOURCE_DIR}/src/*/*.cpp
+        ${SRC_FILES}
         ${PROJECT_SOURCE_DIR}/test/*.cpp)
 list(REMOVE_ITEM TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/src/main.cpp)
 add_executable(${PROJECT_NAME}_test ${TEST_SRC_FILES})

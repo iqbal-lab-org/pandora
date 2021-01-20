@@ -22,7 +22,6 @@ else()
     set(BACKWARD_LIBRARIES "")
 endif()
 
-
 # add a RELEASE_WITH_ASSERTS build type - TODO: FIX THIS
 set(CMAKE_CXX_FLAGS_RELEASE_WITH_ASSERTS "-O3")
 
@@ -110,6 +109,8 @@ include_directories(SYSTEM
 include_directories(
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/thirdparty/include
+        ${PROJECT_SOURCE_DIR}/thirdparty/src
 )
 
 file(GLOB_RECURSE SRC_FILES
@@ -120,6 +121,10 @@ file(GLOB_RECURSE SRC_FILES
         ${PROJECT_SOURCE_DIR}/include/*.h
         ${PROJECT_SOURCE_DIR}/include/*/*.hpp
         ${PROJECT_SOURCE_DIR}/include/*/*.h
+
+        ${PROJECT_SOURCE_DIR}/thirdparty/src/*.cpp
+        ${PROJECT_SOURCE_DIR}/thirdparty/include/*.hpp
+        ${PROJECT_SOURCE_DIR}/thirdparty/include/*.h
         )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
