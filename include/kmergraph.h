@@ -11,6 +11,7 @@ class LocalPRG;
 #include "prg/path.h"
 #include "kmernode.h"
 #include "pangenome/ns.cpp"
+#include "fatal_error.h"
 
 namespace fs = boost::filesystem;
 

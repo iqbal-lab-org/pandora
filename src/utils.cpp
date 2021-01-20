@@ -535,7 +535,7 @@ void open_file_for_reading(const std::string& file_path, std::ifstream& stream)
 {
     stream.open(file_path);
     if (!stream.is_open()) {
-        FatalError() << "Error opening file " << file_path;
+        fatal_error("Error opening file ", file_path);
     }
 }
 
@@ -543,7 +543,7 @@ void open_file_for_writing(const std::string& file_path, std::ofstream& stream)
 {
     stream.open(file_path);
     if (!stream.is_open()) {
-        FatalError() << "Error opening file " << file_path;
+        fatal_error("Error opening file ", file_path);
     }
 }
 

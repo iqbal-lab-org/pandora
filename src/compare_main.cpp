@@ -408,11 +408,10 @@ int pandora_compare(CompareOptions& opt)
 
         const auto& prg_id = pangraph_node.prg_id;
 
-        bool valid_prg_id = prgs.size() > prg_id;
+        const bool valid_prg_id = prgs.size() > prg_id;
         if (!valid_prg_id) {
-            FatalError() << "[Error on PanRG] A PRG has an invalid ID (" << prg_id
-                         << "), >= than the number of PRGs (" << prgs.size()
-                         << ") in the PanRG";
+            fatal_error("Error reading PanRG: a PRG has an invalid ID (", prg_id, "), >= than the number of PRGs (",
+                prgs.size(), ") in the PanRG");
         }
         const auto& prg_ptr = prgs[prg_id];
 

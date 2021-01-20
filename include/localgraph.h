@@ -10,6 +10,13 @@
 #include "prg/path.h"
 #include "localnode.h"
 #include "IITree.h"
+#include <fstream>
+#include <cassert>
+#include <algorithm>
+#include <boost/log/trivial.hpp>
+#include "utils.h"
+#include "fatal_error.h"
+
 
 class LocalGraph {
 public:

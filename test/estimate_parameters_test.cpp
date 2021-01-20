@@ -1,9 +1,9 @@
 #include <stdint.h>
-#include <cstring>
 #include <iostream>
 #include "gtest/gtest.h"
 #include "pangenome/pangraph.h"
 #include "estimate_parameters.h"
+#include "test_helpers.h"
 
 using namespace std;
 
@@ -61,32 +61,36 @@ TEST(EstimateParameters_FitVarianceCovg, SimpleVar_ZeroThreshTwo)
     EXPECT_NEAR(5.529475392, fit_variance_covg(v, mean, 2), 0.000001);
 }
 
-TEST(EstimateParameters_FitNegativeBinomial, MeanZero_Death)
+TEST(EstimateParameters_FitNegativeBinomial, MeanZero_FatalRuntimeError)
 {
     double mean = 0, variance = 1;
     float p, r;
-    EXPECT_DEATH(fit_negative_binomial(mean, variance, p, r), "");
+    ASSERT_EXCEPTION(fit_negative_binomial(mean, variance, p, r), FatalRuntimeError,
+        "Negative binomial parameters are invalid");
 }
 
-TEST(EstimateParameters_FitNegativeBinomial, VarianceZero_Death)
+TEST(EstimateParameters_FitNegativeBinomial, VarianceZero_FatalRuntimeError)
 {
     double mean = 1, variance = 0;
     float p, r;
-    EXPECT_DEATH(fit_negative_binomial(mean, variance, p, r), "");
+    ASSERT_EXCEPTION(fit_negative_binomial(mean, variance, p, r), FatalRuntimeError,
+                     "Negative binomial parameters are invalid");
 }
 
-TEST(EstimateParameters_FitNegativeBinomial, MeanVarianceEqual_Death)
+TEST(EstimateParameters_FitNegativeBinomial, MeanVarianceEqual_FatalRuntimeError)
 {
     double mean = 1, variance = 1;
     float p, r;
-    EXPECT_DEATH(fit_negative_binomial(mean, variance, p, r), "");
+    ASSERT_EXCEPTION(fit_negative_binomial(mean, variance, p, r), FatalRuntimeError,
+                     "Negative binomial parameters are invalid");
 }
 
-TEST(EstimateParameters_FitNegativeBinomial, MeanGreaterThanVariance_Death)
+TEST(EstimateParameters_FitNegativeBinomial, MeanGreaterThanVariance_FatalRuntimeError)
 {
     double mean = 2, variance = 1;
     float p, r;
-    EXPECT_DEATH(fit_negative_binomial(mean, variance, p, r), "");
+    ASSERT_EXCEPTION(fit_negative_binomial(mean, variance, p, r), FatalRuntimeError,
+                     "Negative binomial parameters are invalid");
 }
 
 TEST(EstimateParameters_FitNegativeBinomial, SimpleFit)

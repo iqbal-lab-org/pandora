@@ -49,8 +49,15 @@ void Fastaq::add_entry(const std::string& name, const std::string& sequence,
     const std::vector<uint32_t>& covgs, const uint_least16_t global_covg,
     const std::string header)
 {
-    assert(name != "");
-    assert(covgs.size() == sequence.length());
+    bool fasta_entry_has_a_name = name.length() > 0;
+    if (!fasta_entry_has_a_name) {
+        fatal_error("Error adding entry to Fasta/q file: empty names are invalid");
+    }
+    bool quality_string_has_same_length_as_sequence = covgs.size() == sequence.length();
+    if (!quality_string_has_same_length_as_sequence) {
+        fatal_error("Error adding entry to Fasta/q file: sequence and quality string have different lengths");
+    }
+
     auto mod_global_covg = global_covg;
     if (global_covg < 1) {
         mod_global_covg = 1;
@@ -74,7 +81,10 @@ void Fastaq::add_entry(const std::string& name, const std::string& sequence,
 void Fastaq::add_entry(
     const std::string& name, const std::string& sequence, const std::string header)
 {
-    assert(name != "");
+    bool fasta_entry_has_a_name = name.length() > 0;
+    if (!fasta_entry_has_a_name) {
+        fatal_error("Error adding entry to Fasta/q file: empty names are invalid");
+    }
 
     names.push_back(name);
     headers[name] = header;

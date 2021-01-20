@@ -7,6 +7,7 @@
 #include "localnode.h"
 #include <stdint.h>
 #include <iostream>
+#include "test_helpers.h"
 
 using namespace std;
 
@@ -23,8 +24,10 @@ TEST(LocalGraphTest, add_node)
     EXPECT_EQ(ln1, *lg1.nodes[0]);
 
     // add impossible nodes and expect and error
-    EXPECT_DEATH(lg1.add_node(0, "AGGT", Interval(0, 4)), "");
-    EXPECT_DEATH(lg1.add_node(1, "AGG", Interval(0, 4)), "");
+    ASSERT_EXCEPTION(lg1.add_node(0, "AGGT", Interval(0, 4)), FatalRuntimeError,
+        "Error adding node to Local Graph");
+    ASSERT_EXCEPTION(lg1.add_node(1, "AGG", Interval(0, 4)), FatalRuntimeError,
+        "Error adding node to Local Graph");
 }
 
 TEST(LocalGraphTest, add_edge)

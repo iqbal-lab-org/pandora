@@ -13,6 +13,7 @@ class LocalPRG;
 #include "kmergraph.h"
 #include "pangenome/ns.cpp"
 #include "utils.h"
+#include "fatal_error.h"
 
 /**
  * Represents an annotated KmerGraph, where the annotation is only the coverage on the

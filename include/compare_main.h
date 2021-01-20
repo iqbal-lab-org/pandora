@@ -24,6 +24,7 @@
 #include "estimate_parameters.h"
 #include "OptionsAggregator.h"
 #include "CLI11.hpp"
+#include "fatal_error.h"
 
 using std::set;
 using std::vector;

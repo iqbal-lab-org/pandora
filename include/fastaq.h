@@ -6,14 +6,13 @@
 #include <cassert>
 #include <cctype>
 #include <unordered_map>
-
-#include <unordered_map>
 #include <iostream>
 #include <cmath>
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/log/trivial.hpp>
+#include "fatal_error.h"
 
 namespace fs = boost::filesystem;
 

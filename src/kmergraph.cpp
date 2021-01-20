@@ -100,8 +100,7 @@ KmerNodePtr KmerGraph::add_node(const prg::Path& p)
 
     const bool path_is_valid = k == 0 or p.length() == 0 or p.length() == k;
     if (!path_is_valid) {
-        FatalError() << "In KmerGraph::add_node(), the node path is not valid (k is " << k
-                     << ", p.length() is " << p.length();
+        fatal_error("Error adding node to Kmer Graph: the node path is not valid (k is ", k, ", p.length() is ", p.length());
     }
     if (k == 0 and p.length() > 0) {
         k = p.length();
@@ -131,19 +130,19 @@ void KmerGraph::add_edge(KmerNodePtr from, KmerNodePtr to)
 {
     const bool from_node_is_valid = from->id < nodes.size() and nodes[from->id] == from;
     if (!from_node_is_valid) {
-        FatalError() << "In KmerGraph::add_edge(), from node is invalid";
+        fatal_error("Error adding edge to Kmer Graph: from node is invalid: ", from->id);
     }
 
     const bool to_node_is_valid = to->id < nodes.size() and nodes[to->id] == to;
     if (!to_node_is_valid) {
-        FatalError() << "In KmerGraph::add_edge(), to node is invalid";
+        fatal_error("Error adding edge to Kmer Graph: to node is invalid: ", to->id);
     }
 
-    bool path_order_is_valid = from->path < to->path;
+    const bool path_order_is_valid = from->path < to->path;
     if (!path_order_is_valid) {
-        FatalError() << "In KmerGraph::add_edge(), cannot add edge from " << from->id
-                     << " to " << to->id << " because " << from->path
-                     << " is not less than " << to->path << " (path order is invalid)";
+        fatal_error("Error adding edge to Kmer Graph: cannot add edge from ", from->id,
+                     " to ", to->id, " because ", from->path,
+                     " is not less than ", to->path, " (path order is invalid)");
     }
 
     if (from->find_node_ptr_in_out_nodes(to) == from->out_nodes.end()) {
@@ -203,32 +202,31 @@ void KmerGraph::check() const
 {
     // should not have any leaves, only nodes with degree 0 are start and end
     for (auto c = sorted_nodes.begin(); c != sorted_nodes.end(); ++c) {
-        bool is_start_node = (*c) == (*sorted_nodes.begin());
-        bool is_end_node = (*c) == *(sorted_nodes.rbegin());
-        bool indegree_zero = (*c)->in_nodes.empty();
-        bool outdegree_zero = (*c)->out_nodes.empty();
+        const bool is_start_node = (*c) == (*sorted_nodes.begin());
+        const bool is_end_node = (*c) == *(sorted_nodes.rbegin());
+        const bool indegree_zero = (*c)->in_nodes.empty();
+        const bool outdegree_zero = (*c)->out_nodes.empty();
 
         if (indegree_zero and !is_start_node) {
-            FatalError() << "In KmerGraph::check(), node " << **c << "has indegree 0 and is not a start node";
+            fatal_error("Error checking Kmer Graph: node ", **c, "has indegree 0 and is not a start node");
         }
         if (outdegree_zero and !is_end_node) {
-            FatalError() << "In KmerGraph::check(), node " << **c << "has outdegree 0 and is not an end node";
+            fatal_error("Error checking Kmer Graph: node ", **c, "has outdegree 0 and is not an end node");
         }
         for (const auto& d : (*c)->out_nodes) {
             auto dAsSharedPtr = d.lock();
-            bool c_path_is_less_than_neighbours_path = (*c)->path < dAsSharedPtr->path;
+            const bool c_path_is_less_than_neighbours_path = (*c)->path < dAsSharedPtr->path;
             if (!c_path_is_less_than_neighbours_path) {
-                FatalError() << "In KmerGraph::check(), path " << (*c)->path
-                             << " is not less than path " << dAsSharedPtr->path
-                             << " (invalid neighbour path order)";
+                fatal_error("Error checking Kmer Graph: path ", (*c)->path,
+                    " is not less than path ", dAsSharedPtr->path, " (invalid neighbour path order)");
             }
 
-            bool neighbour_is_later_in_topological_order =
+            const bool neighbour_is_later_in_topological_order =
                 find(c, sorted_nodes.end(), dAsSharedPtr) != sorted_nodes.end();
             if (!neighbour_is_later_in_topological_order) {
-                FatalError() << "In KmerGraph::check(), node " << dAsSharedPtr->id
-                             << " does not occur later in sorted list than node " << (*c)->id
-                             << ", but it should due to the topological order";
+                fatal_error("Error checking Kmer Graph: node ", dAsSharedPtr->id,
+                            " does not occur later in sorted list than node ", (*c)->id,
+                            ", but it should due to the topological order");
             }
        }
     }
@@ -302,10 +300,9 @@ void KmerGraph::load(const fs::path& filepath)
             if (line[0] == 'S') {
                 split_line = split(line, "\t");
 
-                bool line_is_consistent = split_line.size() >= 4;
+                const bool line_is_consistent = split_line.size() >= 4;
                 if (!line_is_consistent) {
-                    FatalError() << "In KmerGraph::load(), line \"" << line << "\" "
-                                 << "is inconsistent";
+                    fatal_error("Error reading GFA. Offending line: ", line);
                 }
 
                 id = std::stoi(split_line[1]);
@@ -322,10 +319,9 @@ void KmerGraph::load(const fs::path& filepath)
             if (line[0] == 'S') {
                 split_line = split(line, "\t");
 
-                bool line_is_consistent = split_line.size() >= 4;
+                const bool line_is_consistent = split_line.size() >= 4;
                 if (!line_is_consistent) {
-                    FatalError() << "In KmerGraph::load(), line \"" << line << "\" "
-                                 << "is inconsistent";
+                    fatal_error("Error reading GFA. Offending line: ", line);
                 }
 
                 id = stoi(split_line[1]);
@@ -333,9 +329,9 @@ void KmerGraph::load(const fs::path& filepath)
                 char c = ss.peek();
 
                 if (!isdigit(c)) {
-                    FatalError() << "In KmerGraph::load(), line \"" << line << "\": "
-                                 << "Cannot read in this sort of kmergraph GFA as it "
-                                 << "does not label nodes with their PRG path";
+                    fatal_error("Error reading GFA: cannot read in this sort of kmergraph GFA as it ",
+                                "does not label nodes with their PRG path. ",
+                                "Offending line: ", line);
                 }
 
                 ss >> p;
@@ -343,12 +339,11 @@ void KmerGraph::load(const fs::path& filepath)
 
                 KmerNodePtr kmer_node = std::make_shared<KmerNode>(id, p);
 
-                bool id_is_consistent = (id == nodes.size() or num_nodes - id == nodes.size());
+                const bool id_is_consistent = (id == nodes.size() or num_nodes - id == nodes.size());
                 if (!id_is_consistent) {
-                    FatalError() << "In KmerGraph::load(), id is inconsistent."
-                                 << "id = " << id << ", "
-                                 << "nodes.size() = " << nodes.size() << ", "
-                                 << "num_nodes = " << num_nodes;
+                    fatal_error("Error reading GFA: node ID is inconsistent.",
+                                "id = ", id, ", ", "nodes.size() = ", nodes.size(), ", ",
+                                "num_nodes = ", num_nodes);
                 }
 
                 nodes.push_back(kmer_node);
@@ -362,26 +357,24 @@ void KmerGraph::load(const fs::path& filepath)
             } else if (line[0] == 'L') {
                 split_line = split(line, "\t");
 
-                bool line_is_consistent = split_line.size() >= 5;
+                const bool line_is_consistent = split_line.size() >= 5;
                 if (!line_is_consistent) {
-                    FatalError() << "In KmerGraph::load(), line \"" << line << "\" "
-                                 << "is inconsistent";
+                    fatal_error("Error reading GFA. Offending line: ", line);
                 }
 
-                int from_node = stoi(split_line[1]);
-                int to_node = stoi(split_line[3]);
-
-                bool from_node_in_range = from_node < (int)outnode_counts.size();
-                bool to_node_in_range = to_node < (int)innode_counts.size();
+                const int from_node = stoi(split_line[1]);
+                const int to_node = stoi(split_line[3]);
+                const bool from_node_in_range = from_node < (int)outnode_counts.size();
+                const bool to_node_in_range = to_node < (int)innode_counts.size();
                 if (!from_node_in_range) {
-                    FatalError() << "In KmerGraph::load(), line \"" << line << "\": "
-                                 << "from_node out of range: "
-                                 << from_node << ">=" << outnode_counts.size();
+                    fatal_error("Error reading GFA: from_node out of range: "
+                                , from_node, ">=", outnode_counts.size(),
+                                ". Offending line: ", line);
                 }
                 if (!to_node_in_range) {
-                    FatalError() << "In KmerGraph::load(), line \"" << line << "\": "
-                                 << "to_node out of range: "
-                                 << to_node << ">=" << innode_counts.size();
+                    fatal_error("Error reading GFA: to_node out of range: "
+                                , to_node, ">=", innode_counts.size(),
+                                ". Offending line: ", line);
                 }
 
                 outnode_counts[stoi(split_line[1])] += 1;
@@ -395,9 +388,9 @@ void KmerGraph::load(const fs::path& filepath)
 
         id = 0;
         for (const auto& n : nodes) {
-            bool id_is_consistent = (nodes[id]->id == id) && (n->id < outnode_counts.size()) && (n->id < innode_counts.size());
+            const bool id_is_consistent = (nodes[id]->id == id) && (n->id < outnode_counts.size()) && (n->id < innode_counts.size());
             if (!id_is_consistent) {
-                FatalError() << "In KmerGraph::load(), Node: " << n << " has inconsistent id, should be " << id;
+                fatal_error("Error reading GFA: node: ", n, " has inconsistent id, should be ", id);
             }
             id++;
             n->out_nodes.reserve(outnode_counts[n->id]);
@@ -411,10 +404,9 @@ void KmerGraph::load(const fs::path& filepath)
             if (line[0] == 'L') {
                 split_line = split(line, "\t");
 
-                bool line_is_consistent = split_line.size() >= 5;
+                const bool line_is_consistent = split_line.size() >= 5;
                 if (!line_is_consistent) {
-                    FatalError() << "In KmerGraph::load(), line \"" << line << "\" "
-                                 << "is inconsistent";
+                    fatal_error("Error reading GFA. Offending line: ", line);
                 }
 
                 if (split_line[2] == split_line[4]) {
@@ -429,8 +421,7 @@ void KmerGraph::load(const fs::path& filepath)
             }
         }
     } else {
-        BOOST_LOG_TRIVIAL(error) << "Unable to open kmergraph file " << filepath;
-        exit(1);
+        fatal_error("Error reading GFA: unable to open kmergraph file", filepath);
     }
 }
 

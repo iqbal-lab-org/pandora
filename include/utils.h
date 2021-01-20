@@ -12,6 +12,8 @@
 #include "minihits.h"
 #include "pangenome/ns.cpp"
 #include <boost/log/trivial.hpp>
+#include <sstream>
+#include "fatal_error.h"
 
 namespace fs = boost::filesystem;
 
@@ -101,26 +103,6 @@ uint32_t pangraph_from_read_file(const std::string&, std::shared_ptr<pangenome::
 //, const uint32_t, const float&, bool);
 void infer_most_likely_prg_path_for_pannode(
     const std::vector<std::shared_ptr<LocalPRG>>&, PanNode*, uint32_t, float);
-
-class FatalError {
-public:
-    FatalError(){
-        BOOST_LOG_TRIVIAL(error) << "[FATAL ERROR] ";
-    }
-
-    virtual ~FatalError() {
-        BOOST_LOG_TRIVIAL(error) << std::endl << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-
-    template<typename T>
-    FatalError& operator<<(const T &element)  {
-        BOOST_LOG_TRIVIAL(error) << element;
-        return *this;
-    }
-};
-
-void fatal_error(const std::string& message);
 
 // TODO : refactor all file open and closing to use these functions
 void open_file_for_reading(const std::string& file_path, std::ifstream& stream);

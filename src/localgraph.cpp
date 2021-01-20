@@ -1,11 +1,4 @@
-#include <fstream>
-#include <cassert>
-#include <algorithm>
-
-#include <boost/log/trivial.hpp>
-
 #include "localgraph.h"
-#include "utils.h"
 
 #define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
@@ -16,9 +9,11 @@ LocalGraph::~LocalGraph() { nodes.clear(); }
 void LocalGraph::add_node(
     const uint32_t& id, const std::string& seq, const Interval& pos)
 {
-    assert(seq.length() == pos.length);
-    assert(id < std::numeric_limits<uint32_t>::max()
-        || assert_msg("WARNING, reached max local graph node size"));
+    const bool sequence_and_interval_length_match = seq.length() == pos.length;
+    if (!sequence_and_interval_length_match) {
+        fatal_error("Error adding node to Local Graph: sequence and interval length do not match");
+    }
+
     auto it = nodes.find(id);
     if (it == nodes.end()) {
         LocalNodePtr n(std::make_shared<LocalNode>(seq, pos, id));
@@ -30,7 +25,11 @@ void LocalGraph::add_node(
             intervalTree.add(pos.start, pos.get_end(), n);
         startIndexOfAllIntervals[pos.start] = n;
     } else {
-        assert((it->second->seq == seq) && (it->second->pos == pos));
+        bool node_with_same_id_seq_and_pos_already_added = (it->second->seq == seq) && (it->second->pos == pos);
+        if (!node_with_same_id_seq_and_pos_already_added) {
+            fatal_error("Error adding node to Local Graph: node with ID ", id,
+                " already exists in graph, but with different sequence or pos");
+        }
     }
 }
 
