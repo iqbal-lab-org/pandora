@@ -14,6 +14,15 @@ project(${PROJECT_NAME_STR} VERSION "0.7.0" LANGUAGES C CXX)
 configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
 
+if(PRINT_STACKTRACE)
+    message(STATUS "Printing meaningful stacktrace enabled, please have binutils-dev installed")
+    add_compile_definitions(BACKWARD_HAS_BFD=1)
+    set(BACKWARD_LIBRARIES "-lbfd")
+else()
+    set(BACKWARD_LIBRARIES "")
+endif()
+
+
 # add a RELEASE_WITH_ASSERTS build type - TODO: FIX THIS
 set(CMAKE_CXX_FLAGS_RELEASE_WITH_ASSERTS "-O3")
 
@@ -122,6 +131,7 @@ target_link_libraries(${PROJECT_NAME}
         ${ZLIB_LIBRARY}
         ${CMAKE_DL_LIBS}
         ${STATIC_C_CXX}
+        ${BACKWARD_LIBRARIES}
 )
 
 enable_testing()

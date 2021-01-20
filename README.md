@@ -143,6 +143,11 @@ make -j4
 ctest -VV
 ```
 
+* If you want to produce meaningful stack traces in case `pandora` errors out, `binutils-dev` must be installed and the
+  `cmake` command above must be changed to:
+
+`cmake -DPRINT_STACKTRACE=True ..`
+
 ## Usage
 
 See [Usage](https://github.com/rmcolq/pandora/wiki/Usage).
