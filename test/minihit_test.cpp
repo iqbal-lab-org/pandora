@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <algorithm>
+#include "test_helpers.h"
 
 using namespace std;
 
@@ -32,7 +33,8 @@ TEST(MinimizerHitTest, create)
 
     kh = hash.kmerhash("hell", 4);
     m = Minimizer(min(kh.first, kh.second), 1, 5, 0);
-    EXPECT_DEATH(MinimizerHit(1, m, mr), "");
+    ASSERT_EXCEPTION(MinimizerHit(1, m, mr), FatalRuntimeError,
+                 "Error when storing minimizers: minimizer from read/sequence and from PRG have different lengths");
     // TEST SECOND CONSTRUCTOR!!
 }
 

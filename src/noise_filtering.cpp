@@ -14,7 +14,11 @@
 uint_least32_t node_plus_orientation_to_num(
     const uint_least32_t node_id, const bool orientation)
 {
-    assert(node_id < UINT_LEAST32_MAX / 2);
+    const bool node_id_is_consistent = node_id < UINT_LEAST32_MAX / 2;
+    if(!node_id_is_consistent) {
+        fatal_error("Error on converting node id and orientation to id only: "
+                    "node_id (", node_id, ") should be < than ", UINT_LEAST32_MAX / 2);
+    }
     uint_least32_t r = 2 * node_id;
     if (orientation) {
         r += 1;
@@ -59,7 +63,11 @@ bool overlap_forwards(
     const std::deque<uint_least32_t>& node1, const std::deque<uint_least32_t>& node2)
 {
     // second deque should extend first by 1
-    assert(node1.size() >= node2.size());
+    bool first_node_is_larger_or_same_size = node1.size() >= node2.size();
+    if(!first_node_is_larger_or_same_size) {
+        fatal_error("Error on checking for overlaps in noise filtering: first node must be larger or have the same size as the second");
+    }
+
     uint32_t i = node1.size() - node2.size() + 1;
     uint32_t j = 0;
     while (i < node1.size() and j < node2.size()) {
@@ -159,7 +167,13 @@ void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph& dbg,
     if (hashed_pg_node_ids.empty()) {
         hashed_pg_node_ids = extend_hashed_pg_node_ids_forwards(dbg, dbg_node_ids);
     }
-    assert(!hashed_pg_node_ids.empty());
+
+    // TODO: give a better name to this bool once we understand what id does
+    bool hashed_pg_node_ids_is_empty = hashed_pg_node_ids.empty();
+    if(hashed_pg_node_ids_is_empty) {
+        // TODO: improve this message
+        fatal_error("Error when noise filtering: hashed_pg_node_ids is empty");
+    }
     hashed_node_ids_to_ids_and_orientations(hashed_pg_node_ids, node_ids, node_orients);
 }
 

@@ -19,8 +19,6 @@
 #include "minihit.h"
 #include "fastaq_handler.h"
 
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
-
 std::string now()
 {
     time_t now;
@@ -84,13 +82,14 @@ std::string rev_complement(std::string s)
 
 float lognchoosek2(uint32_t n, uint32_t k1, uint32_t k2)
 {
-    assert(n >= k1 + k2
-        || assert_msg(
-            "Currently the model assumes that the most a given kmer (defined by "
-            "position) can occur is once per read, i.e. an error somewhere else in the "
-            "read cannot result in this kmer. If you are getting this message, then "
-            "you have evidence of violation of this assumption. Either try using a "
-            "bigger k, or come up with a better model"));
+    const bool parameters_are_valid = n >= (k1 + k2);
+    if (!parameters_are_valid) {
+        fatal_error("Currently the model assumes that the most a given kmer (defined by "
+                    "position) can occur is once per read, i.e. an error somewhere else in the "
+                    "read cannot result in this kmer. If you are getting this message, then "
+                    "you have evidence of violation of this assumption. Either try using a "
+                    "bigger k, or come up with a better model");
+    }
     float total = 0;
 
     for (uint32_t m = n; m != n - k1 - k2; --m) {
@@ -492,7 +491,6 @@ uint32_t pangraph_from_read_file(const std::string& filepath,
                 if (illumina
                     and expected_number_kmers_in_short_read_sketch
                         == std::numeric_limits<uint32_t>::max()) {
-                    assert(w != 0);
                     expected_number_kmers_in_short_read_sketch
                         = sequence.seq.length() * 2 / w;
                 }
@@ -542,6 +540,14 @@ void open_file_for_reading(const std::string& file_path, std::ifstream& stream)
 void open_file_for_writing(const std::string& file_path, std::ofstream& stream)
 {
     stream.open(file_path);
+    if (!stream.is_open()) {
+        fatal_error("Error opening file ", file_path);
+    }
+}
+
+void open_file_for_appending(const std::string& file_path, std::ofstream& stream)
+{
+    stream.open(file_path, std::ios::app);
     if (!stream.is_open()) {
         fatal_error("Error opening file ", file_path);
     }

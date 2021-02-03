@@ -1,7 +1,5 @@
 #include "localgraph.h"
 
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
-
 LocalGraph::LocalGraph() { }
 
 LocalGraph::~LocalGraph() { nodes.clear(); }
@@ -37,16 +35,21 @@ void LocalGraph::add_edge(const uint32_t& from, const uint32_t& to)
 {
     auto from_it = nodes.find(from);
     auto to_it = nodes.find(to);
-    assert((from_it != nodes.end()) && (to_it != nodes.end()));
-    if ((from_it != nodes.end()) && (to_it != nodes.end())) {
-        LocalNodePtr f = (nodes.find(from)->second);
-        LocalNodePtr t = (nodes.find(to)->second);
-        assert(f->pos.get_end() <= t->pos.start
-            || assert_msg(f->pos.get_end()
-                << ">" << t->pos.start << " so cannot add edge from node " << *f
-                << " to node " << *t));
-        f->outNodes.push_back(t);
+
+    const bool both_nodes_exist = (from_it != nodes.end()) && (to_it != nodes.end());
+    if(!both_nodes_exist) {
+        fatal_error("Cannot add edge to Local Graph: source (", from, ") or target (",
+            to, ") node does not exist");
     }
+
+    LocalNodePtr f = (nodes.find(from)->second);
+    LocalNodePtr t = (nodes.find(to)->second);
+
+    const bool nodes_do_not_overlap = f->pos.get_end() > t->pos.start;
+    if (nodes_do_not_overlap) {
+        fatal_error("Cannot add edge to Local Graph: source and target nodes do not overlap");
+    }
+    f->outNodes.push_back(t);
 }
 
 void LocalGraph::write_gfa(const std::string& filepath) const
@@ -82,7 +85,12 @@ void LocalGraph::read_gfa(const std::string& filepath)
         while (getline(myfile, line).good()) {
             if (line[0] == 'S') {
                 split_line = split(line, "\t");
-                assert(split_line.size() >= 3);
+
+                const bool line_is_consistent = split_line.size() >= 3;
+                if (!line_is_consistent) {
+                    fatal_error("Error reading GFA. Offending line: ", line);
+                }
+
                 if (split_line[2] == "*") {
                     split_line[2] = "";
                 }
@@ -98,7 +106,12 @@ void LocalGraph::read_gfa(const std::string& filepath)
         while (getline(myfile, line).good()) {
             if (line[0] == 'L') {
                 split_line = split(line, "\t");
-                assert(split_line.size() >= 5);
+
+                const bool line_is_consistent = split_line.size() >= 5;
+                if (!line_is_consistent) {
+                    fatal_error("Error reading GFA. Offending line: ", line);
+                }
+
                 if (split_line[2] == split_line[4]) {
                     from = stoi(split_line[1]);
                     to = stoi(split_line[3]);
@@ -120,11 +133,12 @@ std::vector<PathPtr> LocalGraph::walk(
 { // node_id: where to start the walk, pos: the position in the node_id, len = k+w-1 ->
   // the length that the walk has to go through - we are sketching kmers in a graph
     // walks from position pos in node node for length len bases
-    assert(
-        (nodes.at(node_id)->pos.start <= pos && nodes.at(node_id)->pos.get_end() >= pos)
-        || assert_msg(nodes.at(node_id)->pos.start
-            << "<=" << pos << " and " << nodes.at(node_id)->pos.get_end()
-            << ">=" << pos)); // if this fails, pos given lies on a different node
+    const bool pos_exists_in_node = (nodes.at(node_id)->pos.start <= pos) &&
+        (pos <= nodes.at(node_id)->pos.get_end());
+    if(!pos_exists_in_node) {
+        fatal_error("Error walking Local Graph: pos ", pos, " does not exist in node ", node_id);
+    }
+
     std::vector<PathPtr> return_paths, walk_paths;
     return_paths.reserve(20);
     walk_paths.reserve(20);
@@ -163,11 +177,12 @@ std::vector<PathPtr> LocalGraph::walk_back(
     const uint32_t& node_id, const uint32_t& pos, const uint32_t& len) const
 {
     // walks from position pos in node back through prg for length len bases
-    assert(
-        (nodes.at(node_id)->pos.start <= pos && nodes.at(node_id)->pos.get_end() >= pos)
-        || assert_msg(nodes.at(node_id)->pos.start
-            << "<=" << pos << " and " << nodes.at(node_id)->pos.get_end()
-            << ">=" << pos)); // if this fails, pos given lies on a different node
+    const bool pos_exists_in_node = (nodes.at(node_id)->pos.start <= pos) &&
+                                    (pos <= nodes.at(node_id)->pos.get_end());
+    if(!pos_exists_in_node) {
+        fatal_error("Error walking Local Graph: pos ", pos, " does not exist in node ", node_id);
+    }
+
     std::vector<PathPtr> return_paths, walk_paths;
     return_paths.reserve(20);
     walk_paths.reserve(20);
@@ -227,6 +242,11 @@ std::vector<LocalNodePtr> LocalGraph::nodes_along_string(
 {
     // Note expects the query string to start at the start of the PRG - can change this
     // later
+    const bool graph_is_empty = nodes.empty();
+    if (graph_is_empty) {
+        fatal_error("Error getting nodes along a sequence: graph is empty");
+    }
+
     std::vector<std::vector<LocalNodePtr>> u, v, w; // u <=> v -> w
     // ie reject paths in u, or extend and add to v
     // then set u=v and continue
@@ -237,8 +257,6 @@ std::vector<LocalNodePtr> LocalGraph::nodes_along_string(
     std::vector<LocalNodePtr> npath;
     std::string candidate_string = "";
     bool extended = true;
-
-    assert(!nodes.empty()); // otherwise empty nodes -> segfault
 
     // if there is only one node in PRG, simple case, do simple string compare
     if (nodes.size() == 1
@@ -326,9 +344,12 @@ std::vector<LocalNodePtr> LocalGraph::nodes_along_string(
 
 std::vector<LocalNodePtr> LocalGraph::top_path() const
 {
-    std::vector<LocalNodePtr> npath;
+    const bool graph_is_empty = nodes.empty();
+    if (graph_is_empty) {
+        fatal_error("Error getting top path in the graph: graph is empty");
+    }
 
-    assert(!nodes.empty()); // otherwise empty nodes -> segfault
+    std::vector<LocalNodePtr> npath;
 
     npath.push_back(nodes.at(0));
     while (not npath.back()->outNodes.empty()) {
@@ -340,9 +361,12 @@ std::vector<LocalNodePtr> LocalGraph::top_path() const
 
 std::vector<LocalNodePtr> LocalGraph::bottom_path() const
 {
-    std::vector<LocalNodePtr> npath;
+    const bool graph_is_empty = nodes.empty();
+    if (graph_is_empty) {
+        fatal_error("Error getting bottom path in the graph: graph is empty");
+    }
 
-    assert(!nodes.empty()); // otherwise empty nodes -> segfault
+    std::vector<LocalNodePtr> npath;
 
     npath.push_back(nodes.at(0));
     while (!npath.back()->outNodes.empty()) {

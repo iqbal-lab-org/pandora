@@ -107,6 +107,7 @@ void infer_most_likely_prg_path_for_pannode(
 // TODO : refactor all file open and closing to use these functions
 void open_file_for_reading(const std::string& file_path, std::ifstream& stream);
 void open_file_for_writing(const std::string& file_path, std::ofstream& stream);
+void open_file_for_appending(const std::string& file_path, std::ofstream& stream);
 
 std::vector<std::string> get_vector_of_strings_from_file(const std::string& file_path);
 

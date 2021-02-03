@@ -4,7 +4,7 @@ Interval::Interval(uint32_t s, uint32_t e)
     : start(s)
 {
     if (e < start) {
-        throw std::logic_error("Interval end cannot be less than the interval start");
+        fatal_error("Error when building interval: interval end cannot be less than the interval start");
     }
     // intervals need to be exclusive of end so that empty strings can be represented
     length = e - start;
@@ -93,4 +93,14 @@ void merge_intervals_within(std::vector<Interval>& intervals, const uint32_t dis
     }
 
     intervals.resize(prev_idx + 1);
+}
+
+bool Interval::sorted_interval_vector_has_overlapping_intervals (const std::vector<Interval> &intervals) {
+    for (uint32_t index = 1; index < intervals.size(); ++index) {
+        bool there_is_overlap = intervals[index - 1].get_end() > intervals[index].start;
+        if (there_is_overlap) {
+            return true;
+        }
+    }
+    return false;
 }

@@ -10,6 +10,7 @@
 #include "Maths.h"
 #include "OptionsAggregator.h"
 #include <boost/bind.hpp>
+#include "fatal_error.h"
 
 // TODO: use memoization to speed up everything here
 // TODO: this class is doing too much. There is the concept of an allele info which can
@@ -29,7 +30,9 @@ public:
               genotyping_options->get_sample_index_to_exp_depth_covg()[sample_index])
     {
         bool at_least_one_allele = number_of_alleles >= 1;
-        assert(at_least_one_allele);
+        if (!at_least_one_allele) {
+            fatal_error("Error on creating VCF Sample INFOs: the VCF record has no alleles");
+        }
         resize_to_the_number_of_alleles();
     }
 
@@ -413,7 +416,10 @@ public:
         SampleIndexToSampleInfoTemplate<SAMPLE_TYPE>& other)
     {
         bool same_number_of_samples = this->size() == other.size();
-        assert(same_number_of_samples);
+        if(!same_number_of_samples) {
+            fatal_error("Error solving genotype conflicts between two records: "
+                        "number of samples is not consistent between both records");
+        }
 
         for (size_t sample_index = 0; sample_index < this->size(); ++sample_index) {
             (*this)[sample_index].solve_incompatible_gt_conflict_with(
@@ -458,7 +464,10 @@ protected: // We forbid anyone to change this class' sample and allele informati
         const SampleIndexToSampleInfoTemplate<SAMPLE_TYPE>& other)
     {
         bool same_number_of_samples = this->size() == other.size();
-        assert(same_number_of_samples);
+        if(!same_number_of_samples) {
+            fatal_error("Error merging two records: "
+                        "number of samples is not consistent between both records");
+        }
 
         for (size_t sample_index = 0; sample_index < this->size(); ++sample_index) {
             (*this)[sample_index].merge_other_sample_info_into_this(

@@ -189,11 +189,13 @@ TEST_F(VCFRecordTest___default_VCF_Record___Fixture, add_new_alt___add_two_valid
 }
 
 TEST_F(VCFRecordTest___default_VCF_Record___Fixture,
-    add_new_alt___add_two_valid_alts_and_several_repeated_alts___expects_death)
+    add_new_alt___add_two_valid_alts_and_several_repeated_alts___expects_FatalRuntimeError)
 {
     vcf_record.add_new_alt("AC");
     vcf_record.add_new_alt("AG");
-    EXPECT_DEATH(vcf_record.add_new_alt("AC"), "");
+    ASSERT_EXCEPTION(vcf_record.add_new_alt("AC"),
+        FatalRuntimeError,
+        "Error adding new ALT to a VCF record: ALT already exists");
 }
 
 TEST_F(VCFRecordTest___default_VCF_Record___Fixture,
@@ -210,11 +212,13 @@ TEST_F(VCFRecordTest___default_VCF_Record___Fixture,
 }
 
 TEST_F(VCFRecordTest___default_VCF_Record___Fixture,
-    add_new_alts___add_two_valid_alts_and_a_repeated_alt___expects_death)
+    add_new_alts___add_two_valid_alts_and_a_repeated_alt___expects_FatalRuntimeError)
 {
     std::vector<std::string> alts { "AC", "AG", "",
         "." }; // NB: "" and "." are repeated because "" is translated to "."
-    EXPECT_DEATH(vcf_record.add_new_alts(alts.begin(), alts.end()), "");
+    ASSERT_EXCEPTION(vcf_record.add_new_alts(alts.begin(), alts.end()),
+        FatalRuntimeError,
+       "Error adding new ALT to a VCF record: ALT already exists");
 }
 
 TEST(VCFRecordTest, clear_simple)
@@ -567,27 +571,30 @@ TEST_F(VCFRecordTest___merge_record_into_this______Fixture, merge_T_dot_into_TTT
 }
 
 TEST_F(VCFRecordTest___merge_record_into_this______Fixture,
-    merge_first_alt_is_common___expects_death)
+    merge_first_alt_is_common___expects_FatalRuntimeError)
 {
-    EXPECT_DEATH(
+    ASSERT_EXCEPTION(
         vcf_record_ref_A_alt_T_TT_TTT.merge_record_into_this(vcf_record_ref_A_alt_T),
-        "");
+        FatalRuntimeError,
+        "When merging two VCF records, they have common ALTs, this should not happen");
 }
 
 TEST_F(VCFRecordTest___merge_record_into_this______Fixture,
     merge_last_alt_is_common___expects_death)
 {
-    EXPECT_DEATH(
+    ASSERT_EXCEPTION(
         vcf_record_ref_A_alt_T_TT_TTT.merge_record_into_this(vcf_record_ref_A_alt_TTT),
-        "");
+        FatalRuntimeError,
+        "When merging two VCF records, they have common ALTs, this should not happen");
 }
 
 TEST_F(VCFRecordTest___merge_record_into_this______Fixture,
-    merge_both_have_dot_alleles___expects_death)
+    merge_both_have_dot_alleles___expects_FatalRuntimeError)
 {
-    EXPECT_DEATH(
+    ASSERT_EXCEPTION(
         vcf_record_ref_A_alt_dot.merge_record_into_this(vcf_record_ref_A_alt_T_dot),
-        "");
+        FatalRuntimeError,
+        "When merging two VCF records, they have common ALTs, this should not happen");
 }
 
 class VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture
@@ -632,11 +639,12 @@ TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture,
 }
 
 TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture,
-    merge_triallelic___expects_death)
+    merge_triallelic___expects_FatalRuntimeError)
 {
-    EXPECT_DEATH(vcf_record_ref_A.can_biallelic_record_be_merged_into_this(
+    ASSERT_EXCEPTION(vcf_record_ref_A.can_biallelic_record_be_merged_into_this(
                      vcf_record_tri_allelic),
-        "");
+        FatalRuntimeError,
+        "When merging two biallelic records, one of them is not biallelic");
 }
 
 TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture,

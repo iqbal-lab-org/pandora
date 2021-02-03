@@ -8,6 +8,7 @@
 #include <vector>
 #include <stdint.h>
 #include <iostream>
+#include "test_helpers.h"
 
 using std::set;
 using namespace std;
@@ -47,10 +48,12 @@ TEST(MinimizerTest, create)
     EXPECT_EQ(m3.pos_of_kmer_in_read.get_end(), j);
 
     // interval too short to be valid
-    EXPECT_DEATH(Minimizer(kh.first, 0, 2, 0), "");
+    ASSERT_EXCEPTION(Minimizer(kh.first, 0, 2, 0), FatalRuntimeError,
+        "Error when building minimizer");
     // doesn't generate an interval as 2>0
-    EXPECT_THROW(
-        Minimizer(kh.first, 2, 0, 0), std::logic_error);
+    ASSERT_EXCEPTION(
+        Minimizer(kh.first, 2, 0, 0), FatalRuntimeError,
+        "Error when building interval: interval end cannot be less than the interval start");
 }
 
 TEST(MinimizerTest, less_than)

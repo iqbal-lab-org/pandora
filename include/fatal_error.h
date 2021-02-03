@@ -2,7 +2,6 @@
 #define PANDORA_FATAL_ERROR_H
 
 #include "backward.hpp"
-#include "utils.h"
 #include <sstream>
 
 template<typename T>

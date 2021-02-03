@@ -5,8 +5,6 @@
 #include <boost/log/trivial.hpp>
 #include <vcfrecord.h>
 
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
-
 VCFRecord::VCFRecord(VCF const* parent_vcf, const std::string& chrom, uint32_t pos,
     const std::string& ref, const std::string& alt, const std::string& info,
     const std::string& graph_type_info)
@@ -73,6 +71,8 @@ std::string VCFRecord::get_format(
     bool only_one_flag_is_set
         = ((int)(genotyping_from_maximum_likelihood) + (int)(genotyping_from_coverage))
         == 1;
+    // this will still remain an assert as it is responsibility of the dev to ensure
+    // this method is not called with the two flags set
     assert(only_one_flag_is_set);
 
     static std::vector<std::string> format_for_genotyping_from_maximum_likelihood
@@ -212,7 +212,9 @@ void VCFRecord::merge_record_into_this(const VCFRecord& other)
     if (other_record_has_no_alt)
         return;
 
-    assert(there_are_no_common_alt_alleles_between_this_and_other(other));
+    if(!there_are_no_common_alt_alleles_between_this_and_other(other)) {
+        fatal_error("When merging two VCF records, they have common ALTs, this should not happen");
+    }
 
     this->sampleIndex_to_sampleInfo.merge_other_samples_infos_into_this(
         other.sampleIndex_to_sampleInfo);
@@ -227,9 +229,11 @@ bool VCFRecord::can_biallelic_record_be_merged_into_this(
     // TODO : maybe fix this?
     // bool ensure_we_are_merging_only_biallelic_records =
     // vcf_record_to_be_merged_in.alts.size() == 1;
-    bool ensure_we_are_merging_only_biallelic_records
+    bool we_are_merging_only_biallelic_records
         = vcf_record_to_be_merged_in.alts.size() <= 1;
-    assert(ensure_we_are_merging_only_biallelic_records);
+    if(!we_are_merging_only_biallelic_records) {
+        fatal_error("When merging two biallelic records, one of them is not biallelic");
+    }
 
     bool both_records_have_the_same_ref = this->ref == vcf_record_to_be_merged_in.ref;
 
@@ -296,7 +300,9 @@ void VCFRecord::add_new_alt(std::string alt)
     }
 
     bool alt_already_present = std::find(alts.begin(), alts.end(), alt) != alts.end();
-    assert(not alt_already_present);
+    if (alt_already_present) {
+        fatal_error("Error adding new ALT to a VCF record: ALT already exists");
+    }
 
     alts.push_back(alt);
     set_number_of_alleles_and_resize_coverage_information_for_all_samples(

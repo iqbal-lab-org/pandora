@@ -60,7 +60,10 @@ public:
         , num_reads { 0 }
         , kmer_prg { kmer_prg }
     {
-        assert(kmer_prg != nullptr);
+        const bool kmer_prg_is_invalid = kmer_prg == nullptr;
+        if(kmer_prg_is_invalid) {
+            fatal_error("Error building Kmer Graph With Coverage: kmer PRG is invalid");
+        }
         zeroCoverages();
     }
     KmerGraphWithCoverage(const KmerGraphWithCoverage& other)

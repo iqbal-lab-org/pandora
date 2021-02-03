@@ -1,7 +1,5 @@
 #include "vcf.h"
 
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
-
 void VCF::add_record_core(const VCFRecord& vr)
 {
     records.push_back(std::make_shared<VCFRecord>(vr));
@@ -29,9 +27,12 @@ VCFRecord& VCF::add_or_update_record_restricted_to_the_given_samples(
     VCFRecord& vr, const std::vector<std::string>& sample_names)
 {
     // TODO: refactor this, this function does too much
-
-    assert(vr.sampleIndex_to_sampleInfo.size() == sample_names.size()
-        or sample_names.size() == 0);
+    const bool record_and_samples_are_consistent =
+        vr.sampleIndex_to_sampleInfo.size() == sample_names.size() or sample_names.size() == 0;
+    if (!record_and_samples_are_consistent) {
+        fatal_error("Error updating record to a subset of samples: record and subset "
+                    "of samples given are inconsistent");
+    }
 
     auto record_it = find_record_in_records(
         vr); // TODO: improve this search to log(n) using a map or sth
@@ -70,7 +71,12 @@ ptrdiff_t VCF::get_sample_index(const std::string& name)
         samples.push_back(name);
         for (auto& record_ptr : records) {
             record_ptr->add_new_samples(1);
-            assert(samples.size() == record_ptr->sampleIndex_to_sampleInfo.size());
+
+            const bool record_samples_match_VCF_samples = samples.size() == record_ptr->sampleIndex_to_sampleInfo.size();
+            if(!record_samples_match_VCF_samples) {
+                fatal_error("Error on adding a sample to VCF record: VCF record samples "
+                            "do no match global VCF samples");
+            }
         }
         return samples.size() - 1;
     } else {
@@ -127,8 +133,10 @@ void VCF::add_a_new_record_discovered_in_a_sample_and_genotype_it(
             vcf_record_was_processed = true;
         }
 
-        // check not mistake
-        assert(vcf_record_was_processed);
+        // check if there was a mistake
+        if(!vcf_record_was_processed) {
+            fatal_error("Error when adding a new VCF record discovered in a sample");
+        }
     }
 
     update_other_samples_of_this_record(vcf_record_pointer);
@@ -199,8 +207,6 @@ void VCF::append_vcf(const VCF& other_vcf)
     BOOST_LOG_TRIVIAL(debug) << "for all existing " << original_size
                              << " records, add null entries for the "
                              << num_samples_added << " new samples";
-    assert(original_size < std::numeric_limits<uint_least64_t>::max()
-        || assert_msg("VCF size has got too big to use the append feature"));
     for (uint_least64_t i = 0; i < original_size; ++i) {
         records[i]->add_new_samples(num_samples_added);
     }
@@ -267,7 +273,9 @@ void VCF::merge_multi_allelic_core(VCF& merged_VCF, uint32_t max_allele_length) 
 {
     VCF empty_vcf = VCF(merged_VCF.genotyping_options);
     bool merged_VCF_passed_as_parameter_is_initially_empty = merged_VCF == empty_vcf;
-    assert(merged_VCF_passed_as_parameter_is_initially_empty);
+    if(!merged_VCF_passed_as_parameter_is_initially_empty) {
+        fatal_error("Error on merging VCFs: initial VCF is not empty");
+    }
 
     size_t vcf_size = this->get_VCF_size();
     bool no_need_for_merging = vcf_size <= 1;
@@ -287,13 +295,6 @@ void VCF::merge_multi_allelic_core(VCF& merged_VCF, uint32_t max_allele_length) 
                     *vcf_record_to_be_merged_in_pointer, max_allele_length);
 
             if (vcf_record_should_be_merged_in) {
-                // TODO: this code is not covered by tests, IDK what it is supposed to
-                // do - commenting it out and asserting out if we reach it
-                if (vcf_record_to_be_merged_in_pointer->sampleIndex_to_sampleInfo
-                        .empty()) {
-                    assert_msg("VCF::merge_multi_allelic: vcf_record_to_be_merged_in "
-                               "has no samples");
-                }
                 vcf_record_merged->merge_record_into_this(
                     *vcf_record_to_be_merged_in_pointer);
             } else {
@@ -306,7 +307,11 @@ void VCF::merge_multi_allelic_core(VCF& merged_VCF, uint32_t max_allele_length) 
 
     merged_VCF.sort_records();
 
-    assert(merged_VCF.get_VCF_size() <= vcf_size);
+    bool merging_did_not_create_any_record = merged_VCF.get_VCF_size() <= vcf_size;
+    if(!merging_did_not_create_any_record) {
+        fatal_error("Error on merging VCFs: new VCF records were created, whereas "
+                    "this should not be the case");
+    }
 }
 
 VCF VCF::correct_dot_alleles(const std::string& vcf_ref, const std::string& chrom) const
@@ -329,12 +334,12 @@ VCF VCF::correct_dot_alleles(const std::string& vcf_ref, const std::string& chro
             continue;
         }
 
-        assert(vcf_ref.length() >= record.get_pos()
-            || assert_msg("vcf_ref.length() = " << vcf_ref.length()
-                                                << "!>= record.get_pos() "
-                                                << record.get_pos() << "\n"
-                                                << record.to_string(true, false) << "\n"
-                                                << vcf_ref));
+        const bool record_pos_refers_to_an_existing_pos_in_vcf_ref =
+            vcf_ref.length() >= record.get_pos();
+        if(!record_pos_refers_to_an_existing_pos_in_vcf_ref) {
+            fatal_error("When correcting dot alleles, a VCF record has an inexistent "
+                        "position (", record.get_pos(), ") in VCF ref with length ", vcf_ref.length());
+        }
         bool record_contains_dot_allele = record.contains_dot_allele();
         bool record_did_not_contain_dot_allele_or_was_corrected = true;
         bool there_is_a_previous_letter = record.get_pos() > 0;
@@ -360,9 +365,14 @@ VCF VCF::correct_dot_alleles(const std::string& vcf_ref, const std::string& chro
         }
     }
 
-    assert(vcf_with_dot_alleles_corrected.get_VCF_size() <= this->get_VCF_size());
-
     vcf_with_dot_alleles_corrected.sort_records();
+
+    bool correcting_dot_alleles_did_not_create_any_record = vcf_with_dot_alleles_corrected.get_VCF_size() <= this->get_VCF_size();
+    if(!correcting_dot_alleles_did_not_create_any_record) {
+        fatal_error("Error on correcting dot alleles: new VCF records were created, whereas "
+                    "this should not be the case");
+    }
+
     return vcf_with_dot_alleles_corrected;
 }
 
@@ -510,6 +520,8 @@ std::string VCF::to_string(bool genotyping_from_maximum_likelihood,
     bool only_one_flag_is_set
         = ((int)(genotyping_from_maximum_likelihood) + (int)(genotyping_from_coverage))
         == 1;
+    // this will still remain an assert as it is responsibility of the dev to ensure
+    // this method is not called with the two flags set
     assert(only_one_flag_is_set);
 
     std::stringstream out;

@@ -11,8 +11,6 @@
 #include "de_bruijn/graph.h"
 #include "noise_filtering.h"
 
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
-
 using namespace debruijn;
 
 // Define a debruijn graph with s-mers of genes as nodes
@@ -30,7 +28,11 @@ debruijn::Graph::~Graph() { nodes.clear(); }
 OrientedNodePtr debruijn::Graph::add_node(
     const std::deque<uint_least32_t>& node_ids, uint32_t read_id)
 {
-    assert(node_ids.size() == size);
+    const bool correct_number_of_nodes_to_add = node_ids.size() == size;
+    if(!correct_number_of_nodes_to_add) {
+        fatal_error("Error adding node to de Bruijn Graph: expected node of size ", size,
+                    ", received node of size ", node_ids.size());
+    }
 
     if (node_hash.find(node_ids) != node_hash.end()) {
         nodes[node_hash[node_ids]]->read_ids.insert(read_id);
@@ -43,7 +45,6 @@ OrientedNodePtr debruijn::Graph::add_node(
 
     NodePtr n;
     n = std::make_shared<Node>(next_id, node_ids, read_id);
-    assert(n != nullptr);
     nodes[next_id] = n;
     node_hash[node_ids] = next_id;
 
@@ -52,8 +53,6 @@ OrientedNodePtr debruijn::Graph::add_node(
     }
 
     next_id++;
-    assert(next_id < std::numeric_limits<uint_least32_t>::max()
-        || assert_msg("WARNING, reached max de bruijn graph node size"));
     return make_pair(n, true);
 }
 
@@ -80,10 +79,15 @@ bool edge_is_valid(OrientedNodePtr from, OrientedNodePtr to)
 // Add directed edge between from and to
 void debruijn::Graph::add_edge(OrientedNodePtr from, OrientedNodePtr to)
 {
-    assert(from.first != nullptr and to.first != nullptr);
-    assert(edge_is_valid(from, to)
-        or assert_msg(
-            "edge from " << *from.first << " to " << *to.first << " is invalid"));
+    bool nodes_are_valid = from.first != nullptr and to.first != nullptr;
+    if(!nodes_are_valid) {
+        fatal_error("Error adding edge to de Bruijn Graph: from or to node is invalid");
+    }
+
+    if (!edge_is_valid(from, to)) {
+        fatal_error("Error adding edge to de Bruijn Graph: edge from ", *from.first,
+                    " to ", *to.first, " is invalid");
+    }
 
     if (from.second
         and from.first->out_nodes.find(to.first->id) == from.first->out_nodes.end()) {
@@ -204,10 +208,7 @@ std::set<std::deque<uint32_t>> debruijn::Graph::get_unitigs()
 
     for (const auto& node_entry : nodes) {
         const auto& id = node_entry.first;
-        assert(id <= next_id);
-
         const auto& node_ptr = node_entry.second;
-        assert(node_ptr != nullptr);
 
         bool node_seen = seen.find(id) != seen.end();
         bool at_branch

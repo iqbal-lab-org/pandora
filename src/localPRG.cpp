@@ -52,15 +52,21 @@ bool LocalPRG::isalpha_string(const std::string& s) const
 
 std::string LocalPRG::string_along_path(const prg::Path& p) const
 {
-    assert(p.get_start() <= seq.length());
-    assert(p.get_end() <= seq.length());
+    const bool path_is_inside_the_PRG = (p.get_start() <= seq.length()) &&
+        (p.get_end() <= seq.length());
+    if(!path_is_inside_the_PRG) {
+        fatal_error("Error getting sequence along PRG path: path is out of range");
+    }
     std::string s;
     for (const auto& it : p) {
         s += seq.substr(it.start, it.length);
     }
-    assert(s.length() == p.length()
-        || assert_msg("sequence length "
-            << s.length() << " is not equal to path length " << p.length()));
+
+    bool sequence_and_path_have_the_same_length = s.length() == p.length();
+    if(!sequence_and_path_have_the_same_length) {
+        fatal_error("Error getting sequence along PRG path: the sequence generated ",
+            "has a length different from the path");
+    }
     return s;
 }
 
@@ -127,6 +133,28 @@ std::vector<LocalNodePtr> LocalPRG::nodes_along_path_core(const prg::Path& p) co
         }
     }
     return path_nodes;
+}
+
+void LocalPRG::check_if_vector_of_subintervals_is_consistent_with_envelopping_interval(
+    const std::vector<Interval> &subintervals, const Interval& envelopping_interval
+) {
+    bool invariant_region_starts_at_or_after_given_interval = subintervals[0].start >= envelopping_interval.start;
+    if (!invariant_region_starts_at_or_after_given_interval) {
+        fatal_error("When splitting PRG by site, invariant region starts before (",
+                    subintervals[0].start, ") the given interval (", envelopping_interval.start, ")");
+    }
+
+
+    bool there_is_overlap = Interval::sorted_interval_vector_has_overlapping_intervals(subintervals);
+    if (there_is_overlap) {
+        fatal_error("When splitting PRG by site, there are overlapping intervals");
+    }
+
+    bool site_ends_before_given_interval = subintervals.back().get_end() <= envelopping_interval.get_end();
+    if (!site_ends_before_given_interval) {
+        fatal_error("When splitting PRG by site, site ends (",
+                    subintervals.back().get_end(), ") after given interval (", envelopping_interval.get_end(), ")");
+    }
 }
 
 /* Split the interval first into the invariant region coming before it, all its alleles
@@ -197,14 +225,7 @@ std::vector<Interval> LocalPRG::split_by_site(const Interval& i) const
         v.emplace_back(Interval(k, i.get_end()));
     }
 
-    assert(v[0].start >= i.start);
-    for (uint32_t l = 1; l != v.size(); ++l) {
-        assert(v[l - 1].get_end() <= v[l].start
-            || assert_msg(v[l - 1].get_end()
-                << ">" << v[l].start << " giving overlapping intervals  " << v[l - 1]
-                << " and " << v[l]));
-    }
-    assert(v.back().get_end() <= i.get_end());
+    check_if_vector_of_subintervals_is_consistent_with_envelopping_interval(v, i);
 
     // then split by var site + 1, I.E. SPLITTING BY THE INTERVALS OF THE ALLELES - THIS
     // IS WHAT IS RETURNED
@@ -251,15 +272,7 @@ std::vector<Interval> LocalPRG::split_by_site(const Interval& i) const
         w = x;
     }
 
-    assert(w[0].start >= i.start);
-    for (uint32_t l = 1; l != w.size(); ++l) {
-        assert(w[l - 1].get_end() <= w[l].start
-            || assert_msg(w[l - 1].get_end()
-                << ">" << w[l].start << " giving overlapping intervals  " << w[l - 1]
-                << " and " << w[l]
-                << " when splitting seq :" << seq.substr(i.start, i.length)));
-    }
-    assert(w.back().get_end() <= i.get_end());
+    check_if_vector_of_subintervals_is_consistent_with_envelopping_interval(w, i);
     return w;
 }
 
@@ -356,7 +369,10 @@ LocalPRG::build_graph(
         end_ids = build_graph(v.back(), end_ids, current_level);
     }
     if (start_id == 0) {
-        assert(end_ids.size() == 1);
+        bool graph_has_a_sink_node = end_ids.size() == 1;
+        if (!graph_has_a_sink_node) {
+            fatal_error("Error building local PRG graph from interval: built graph has no sink node");
+        }
     }
     return end_ids;
 }
@@ -574,7 +590,6 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                                       // from each previous walk
         kn = current_leaves.front();
         current_leaves.pop_front();
-        assert(kn->khash < std::numeric_limits<uint64_t>::max());
 
         // find all paths which are this kmer-minimizer shifted by one place along the
         // graph
@@ -594,7 +609,12 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
         while (!shifts.empty()) { // goes through all shifted paths
             v = shifts.front(); // get the first shifted path
             shifts.pop_front();
-            assert(v.back()->length() == k);
+
+            bool shifted_path_has_k_bases = v.back()->length() == k;
+            if(!shifted_path_has_k_bases) {
+                fatal_error("Error when minimizing a local PRG: shifted path does not have k (",
+                    k, ") bases");
+            }
             kmer = string_along_path(*(v.back()));
             kh = hash.kmerhash(kmer, k);
             if (std::min(kh.first, kh.second) <= kn->khash) {
@@ -714,7 +734,11 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
     }
 
     // create a null end node, and for each end leaf add an edge to this terminus
-    assert(!end_leaves.empty());
+    bool kmer_graph_has_leaves = !end_leaves.empty();
+    if (!kmer_graph_has_leaves) {
+        fatal_error("Error when minimizing a local PRG: kmer graph does not have any leaves");
+    }
+
     d = { Interval((--(prg.nodes.end()))->second->pos.get_end(),
         (--(prg.nodes.end()))->second->pos.get_end()) };
     kmer_path.initialize(d);
@@ -725,9 +749,11 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
     }
 
     // print, check and return
-    assert(num_kmers_added == 0 or kmer_prg.nodes.size() == num_kmers_added
-        || assert_msg("nodes.size(): " << kmer_prg.nodes.size()
-                                       << " and num minikmers: " << num_kmers_added));
+    bool number_of_kmers_added_is_consistent = (num_kmers_added == 0) or
+        (kmer_prg.nodes.size() == num_kmers_added);
+    if (!number_of_kmers_added_is_consistent) {
+        fatal_error("Error when minimizing a local PRG: incorrect number of kmers added");
+    }
     kmer_prg.remove_shortcut_edges();
     kmer_prg.check();
 }
@@ -772,7 +798,11 @@ std::vector<KmerNodePtr> LocalPRG::kmernode_path_from_localnode_path(
         }
     }
 
-    assert(!kmernode_path.empty());
+    bool kmernode_path_is_empty = kmernode_path.empty();
+    if (kmernode_path_is_empty) {
+        fatal_error("Error when converting local node path to kmer node path: received "
+                    "non-empty local node path and returned an empty kmer node path");
+    }
     return kmernode_path;
 }
 
@@ -925,18 +955,27 @@ std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr pan_node,
 
         k = j;
         for (const auto& interval : kmernode_ptr->path) {
-            assert(localnode_path[k]->pos.start <= interval.start
-                and localnode_path[k]->pos.get_end() >= interval.get_end());
+            const LocalNodePtr &localnode = localnode_path[k];
+            bool local_node_is_inside_kmer_path_interval =
+                (localnode->pos.start <= interval.start) and
+                (localnode->pos.get_end() >= interval.get_end());
 
-            start = interval.start - localnode_path[k]->pos.start;
-            end = std::min(start + interval.length, localnode_path[k]->pos.get_end());
+            if (!local_node_is_inside_kmer_path_interval) {
+                fatal_error("Error when getting coverages along local node path: "
+                            "local node path and kmer node path are not consistent");
+            }
+
+            start = interval.start - localnode->pos.start;
+            end = std::min(start + interval.length, localnode->pos.get_end());
 
             for (uint32_t l = start; l < end; ++l) {
-                assert(kmernode_ptr->id
-                        < pan_node->kmer_prg_with_coverage.kmer_prg->nodes.size()
-                    and pan_node->kmer_prg_with_coverage.kmer_prg
-                            ->nodes[kmernode_ptr->id]
-                        != nullptr);
+                bool kmernode_is_valid =
+                    (kmernode_ptr->id < pan_node->kmer_prg_with_coverage.kmer_prg->nodes.size()) and
+                    (pan_node->kmer_prg_with_coverage.kmer_prg->nodes[kmernode_ptr->id] != nullptr);
+                if (!kmernode_is_valid) {
+                    fatal_error("Error when getting coverages along local node path: "
+                                "kmer node is not valid");
+                }
 
                 coverages_for_each_base_in_localnode_path[k][l]
                     = std::max(coverages_for_each_base_in_localnode_path[k][l],
@@ -962,8 +1001,7 @@ void LocalPRG::write_covgs_to_file(
     const boost::filesystem::path& filepath, const std::vector<uint32_t>& covgs) const
 {
     std::ofstream handle;
-    handle.open(filepath.string());
-    assert(!handle.fail() or assert_msg("Could not open file " << filepath.string()));
+    open_file_for_writing(filepath.string(), handle);
 
     handle << ">" << name << std::endl;
     for (const auto& i : covgs) {
@@ -978,8 +1016,7 @@ void LocalPRG::write_path_to_fasta(const boost::filesystem::path& filepath,
     const std::vector<LocalNodePtr>& lmp, const float& ppath) const
 {
     std::ofstream handle;
-    handle.open(filepath.string());
-    assert(!handle.fail() or assert_msg("Could not open file " << filepath.string()));
+    open_file_for_writing(filepath.string(), handle);
 
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath << std::endl;
     for (uint32_t j = 0; j != lmp.size(); ++j) {
@@ -994,8 +1031,7 @@ void LocalPRG::append_path_to_fasta(const boost::filesystem::path& filepath,
     const std::vector<LocalNodePtr>& lmp, const float& ppath) const
 {
     std::ofstream handle;
-    handle.open(filepath.string(), std::ios::app);
-    assert(!handle.fail() or assert_msg("Could not open file " << filepath.string()));
+    open_file_for_appending(filepath.string(), handle);
 
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath << std::endl;
     for (uint32_t j = 0; j != lmp.size(); ++j) {
@@ -1010,8 +1046,7 @@ void LocalPRG::write_aligned_path_to_fasta(const boost::filesystem::path& filepa
     const std::vector<LocalNodePtr>& lmp, const float& ppath) const
 {
     std::ofstream handle;
-    handle.open(filepath.string());
-    assert(!handle.fail() or assert_msg("Could not open file " << filepath.string()));
+    open_file_for_writing(filepath.string(), handle);
 
     handle << ">" << name << "\tlog P(data|sequence)=" << ppath << std::endl;
 
@@ -1037,7 +1072,11 @@ void LocalPRG::build_vcf_from_reference_path(
     VCF& vcf, const std::vector<LocalNodePtr>& ref) const
 {
     BOOST_LOG_TRIVIAL(debug) << "Build VCF for prg " << name;
-    assert(!prg.nodes.empty()); // otherwise empty nodes -> segfault
+
+    bool prg_is_empty = prg.nodes.empty();
+    if (prg_is_empty) {
+        fatal_error("Error when building VCF from reference path: PRG is empty");
+    }
 
     std::vector<LocalNodePtr> varpath;
     varpath.reserve(100);
@@ -1077,8 +1116,17 @@ void LocalPRG::build_vcf_from_reference_path(
         } else {
             // we have come down a level, add the alts compared to this region
             level -= 1;
-            assert(level >= 0);
-            assert(!level_start.empty());
+
+            bool level_is_valid = level >= 0;
+            if (!level_is_valid) {
+                fatal_error("Error when building VCF from reference path: PRG level is negative");
+            }
+
+            bool previous_levels_are_empty = level_start.empty();
+            if (previous_levels_are_empty) {
+                fatal_error("Error when building VCF from reference path: PRG or path is inconsistent (a site was closed without opening it)");
+            }
+
             // define ref and pos
             pos = 0;
             ref_seq = "";
@@ -1139,7 +1187,11 @@ void LocalPRG::build_vcf_from_reference_path(
             }
 
             // add sites to vcf
-            assert(pos + ref_seq.length() <= ref_length);
+            bool record_sequence_is_valid = pos + ref_seq.length() <= ref_length;
+            if (!record_sequence_is_valid) {
+                fatal_error("Error when building VCF from reference path: record sequence end (", pos + ref_seq.length(),
+                    ") overflows reference length (", ref_length, ")");
+            }
             for (auto& alt : alts) {
                 for (auto& j : alt) {
                     alt_seq += j->seq;
@@ -1153,7 +1205,11 @@ void LocalPRG::build_vcf_from_reference_path(
 
             level_start.pop_back();
             if (level == 0) {
-                assert(level_start.empty());
+                bool all_sites_were_closed = level_start.empty();
+                if (!all_sites_were_closed) {
+                    fatal_error("Error when building VCF from reference path: PRG or path is inconsistent (reached level 0 without closing all sites)");
+                }
+
                 vartype = "GRAPHTYPE=SIMPLE";
             }
         }
@@ -1168,7 +1224,20 @@ void LocalPRG::
         const std::string& sample_name) const
 {
     BOOST_LOG_TRIVIAL(debug) << "Update VCF with sample path";
-    assert(!prg.nodes.empty()); // otherwise empty nodes -> segfault
+
+    bool prg_is_empty = prg.nodes.empty();
+    if (prg_is_empty) {
+        fatal_error("Error when genotyping using max likelihood path: PRG is empty");
+    }
+    bool reference_path_is_empty = rpath.empty();
+    if (reference_path_is_empty) {
+        fatal_error("Error when genotyping using max likelihood path: reference path is empty");
+    }
+    bool sample_path_is_empty = sample_path.empty();
+    if (sample_path_is_empty) {
+        fatal_error("Error when genotyping using max likelihood path: sample path is empty");
+    }
+
 
     // if prg has only one node, simple case
     if (prg.nodes.size() == 1) {
@@ -1177,10 +1246,8 @@ void LocalPRG::
 
     std::vector<LocalNodePtr> refpath, samplepath;
     refpath.reserve(100);
-    assert(not rpath.empty());
     refpath.push_back(rpath[0]);
     samplepath.reserve(100);
-    assert(not sample_path.empty());
     samplepath.push_back(sample_path[0]);
     uint32_t ref_i = 1, sample_id = 1, pos = 0, pos_to = 0;
     std::vector<uint32_t> sample_covg(6, 0);

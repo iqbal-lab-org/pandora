@@ -16,7 +16,8 @@ using ::testing::Return;
 
 TEST(SampleInfoTest, constructor___zero_alleles___expects_death)
 {
-    EXPECT_DEATH(SampleInfo(0, 0, &default_genotyping_options), "");
+    ASSERT_EXCEPTION(SampleInfo(0, 0, &default_genotyping_options), FatalRuntimeError,
+                     "Error on creating VCF Sample INFOs: the VCF record has no alleles");
 }
 
 TEST(SampleInfoTest, constructor___one_allele)
@@ -204,41 +205,46 @@ TEST_F(SampleInfoTest___Fixture, get_allele_to_reverse_coverages___default_sampl
 TEST_F(SampleInfoTest___Fixture,
     set_coverage_information___forward_coverage_has_no_alleles___expects_death)
 {
-    EXPECT_DEATH(default_sample_info.set_coverage_information(
+    ASSERT_EXCEPTION(default_sample_info.set_coverage_information(
                      allele_to_coverage_empty, allele_to_coverage_three_alleles),
-        "");
+      FatalRuntimeError,
+     "Error when setting coverage information for sample: coverage information left inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
     set_coverage_information___forward_coverage_has_one_allele___expects_death)
 {
-    EXPECT_DEATH(default_sample_info.set_coverage_information(
+    ASSERT_EXCEPTION(default_sample_info.set_coverage_information(
                      allele_to_coverage_one_allele, allele_to_coverage_three_alleles),
-        "");
+     FatalRuntimeError,
+     "Error when setting coverage information for sample: coverage information left inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
     set_coverage_information___reverse_coverage_has_no_alleles___expects_death)
 {
-    EXPECT_DEATH(default_sample_info.set_coverage_information(
+    ASSERT_EXCEPTION(default_sample_info.set_coverage_information(
                      allele_to_coverage_three_alleles, allele_to_coverage_empty),
-        "");
+                     FatalRuntimeError,
+                     "Error when setting coverage information for sample: coverage information left inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
     set_coverage_information___reverse_coverage_has_one_allele___expects_death)
 {
-    EXPECT_DEATH(default_sample_info.set_coverage_information(
+    ASSERT_EXCEPTION(default_sample_info.set_coverage_information(
                      allele_to_coverage_three_alleles, allele_to_coverage_one_allele),
-        "");
+                     FatalRuntimeError,
+                     "Error when setting coverage information for sample: coverage information left inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
     set_coverage_information___both_coverages_have_two_alleles___different_number_of_bases___expects_death)
 {
-    EXPECT_DEATH(default_sample_info.set_coverage_information(
+    ASSERT_EXCEPTION(default_sample_info.set_coverage_information(
                      allele_to_coverage_two_alleles, { { 1, 2 }, { 3 } }),
-        "");
+                     FatalRuntimeError,
+                     "Error when setting coverage information for sample: coverage information left inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
@@ -259,17 +265,19 @@ TEST_F(SampleInfoTest___Fixture,
 TEST_F(SampleInfoTest___Fixture,
     set_coverage_information___fwd_coverage_has_two_alleles___rev_coverage_has_three_alleles___sample_info_expects_three_alleles___expects_death)
 {
-    EXPECT_DEATH(default_sample_info_three_alleles.set_coverage_information(
+    ASSERT_EXCEPTION(default_sample_info_three_alleles.set_coverage_information(
                      allele_to_coverage_two_alleles, allele_to_coverage_three_alleles),
-        "");
+                     FatalRuntimeError,
+                     "Error when setting coverage information for sample: coverage information left inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
     set_coverage_information___fwd_coverage_has_three_alleles___rev_coverage_has_two_alleles___sample_info_expects_three_alleles___expects_death)
 {
-    EXPECT_DEATH(default_sample_info_three_alleles.set_coverage_information(
+    ASSERT_EXCEPTION(default_sample_info_three_alleles.set_coverage_information(
                      allele_to_coverage_three_alleles, allele_to_coverage_two_alleles),
-        "");
+                     FatalRuntimeError,
+                     "Error when setting coverage information for sample: coverage information left inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
@@ -289,9 +297,10 @@ TEST_F(SampleInfoTest___Fixture,
 TEST_F(SampleInfoTest___Fixture,
     set_coverage_information___forward_covg_has_two_alleles___reverse_covg_has_three_alleles___expects_death)
 {
-    EXPECT_DEATH(default_sample_info.set_coverage_information(
+    ASSERT_EXCEPTION(default_sample_info.set_coverage_information(
                      allele_to_coverage_two_alleles, allele_to_coverage_three_alleles),
-        "");
+                     FatalRuntimeError,
+                     "Error when setting coverage information for sample: coverage information left inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
@@ -302,10 +311,11 @@ TEST_F(SampleInfoTest___Fixture,
             allele_to_coverage_two_alleles);
     allele_to_coverage_two_alleles_first_allele_has_only_one_base[0] = { 1 };
 
-    EXPECT_DEATH(
+    ASSERT_EXCEPTION(
         default_sample_info.set_coverage_information(allele_to_coverage_two_alleles,
             allele_to_coverage_two_alleles_first_allele_has_only_one_base),
-        "");
+        FatalRuntimeError,
+        "Error when setting coverage information for sample: coverage information left inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
@@ -316,10 +326,11 @@ TEST_F(SampleInfoTest___Fixture,
             allele_to_coverage_two_alleles);
     allele_to_coverage_two_alleles_second_allele_has_only_one_base[1] = { 3 };
 
-    EXPECT_DEATH(
+    ASSERT_EXCEPTION(
         default_sample_info.set_coverage_information(allele_to_coverage_two_alleles,
             allele_to_coverage_two_alleles_second_allele_has_only_one_base),
-        "");
+        FatalRuntimeError,
+        "Error when setting coverage information for sample: coverage information left inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
@@ -327,9 +338,10 @@ TEST_F(SampleInfoTest___Fixture,
 {
     default_sample_info_three_alleles.set_coverage_information(
         allele_to_coverage_three_alleles, allele_to_coverage_three_alleles);
-    EXPECT_DEATH(default_sample_info_three_alleles
+    ASSERT_EXCEPTION(default_sample_info_three_alleles
                      .set_number_of_alleles_and_resize_coverage_information(0),
-        "");
+                     FatalRuntimeError,
+                     "Error when setting number of alleles for sample: coverage information left inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
@@ -1287,9 +1299,11 @@ TEST_F(SampleIndexToSampleInfoTemplate___Fixture,
     another_sample_index_to_sample_info.emplace_back_several_empty_sample_infos(
         5, 2, &default_genotyping_options);
 
-    EXPECT_DEATH(sample_index_to_sample_info.merge_other_samples_infos_into_this(
+    ASSERT_EXCEPTION(sample_index_to_sample_info.merge_other_samples_infos_into_this(
                      another_sample_index_to_sample_info),
-        "");
+                     FatalRuntimeError,
+                     "Error merging two records: "
+                     "number of samples is not consistent between both records");
 }
 
 TEST_F(SampleIndexToSampleInfoTemplate___Fixture,

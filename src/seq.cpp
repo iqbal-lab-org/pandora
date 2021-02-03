@@ -10,8 +10,6 @@
 #include "seq.h"
 #include "utils.h"
 
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
-
 using std::vector;
 
 Seq::Seq(uint32_t i, const std::string& n, const std::string& p, uint32_t w, uint32_t k)
@@ -132,10 +130,12 @@ void Seq::minimizer_sketch(const uint32_t w, const uint32_t k)
                 smallest); // add the last element of the window (a Minimizer) to the
                            // sketch, update the smallest and clear the window
         }
-        assert(window.size() < w
-            || assert_msg("we can't have added a smallest kmer correctly as window "
-                          "still has size "
-                << window.size()));
+
+        const bool window_has_shortened = window.size() < w;
+        if(!window_has_shortened) {
+            fatal_error("Error when sketching sequence: a minimizer should have been added "
+                        "and windows should have size < ", w, " (is ", window.size(), ")");
+        }
     }
 }
 
