@@ -7,7 +7,6 @@
 #include <string>
 #include <cstdint>
 #include <iostream>
-#include <cassert>
 #include <ctime>
 #include <algorithm>
 #include <map>

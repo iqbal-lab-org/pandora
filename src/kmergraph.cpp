@@ -1,5 +1,4 @@
 #include <sstream>
-#include <cassert>
 #include <limits>
 #include <cstdlib> /* srand, rand */
 

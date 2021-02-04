@@ -1,8 +1,5 @@
-#include <cassert>
 #include <functional>
 #include <iostream>
-#include <limits>
-#include <algorithm>
 #include "minirecord.h"
 #include "minihit.h"
 #include "prg/path.h"

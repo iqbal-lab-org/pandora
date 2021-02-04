@@ -3,7 +3,6 @@
 #include <set>
 #include <iostream>
 #include <memory>
-#include <cassert>
 #include <algorithm>
 
 #include <boost/log/trivial.hpp>

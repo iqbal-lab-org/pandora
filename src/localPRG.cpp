@@ -1,6 +1,5 @@
 #include <fstream>
 #include <set>
-#include <cassert>
 #include <algorithm>
 #include <cstdlib>
 #include <utility>
@@ -595,8 +594,6 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
         // graph
         shift_paths = shift(kn->path);
         if (shift_paths.empty()) {
-            // assert(kn->path.get_start() == 0); not true for a too short test, would
-            // be true if all paths long enough to have at least 2 minikmers on...
             end_leaves.push_back(kn);
         }
         for (uint32_t i = 0; i != shift_paths.size();
@@ -1257,12 +1254,22 @@ void LocalPRG::
 
     while (!refpath.back()->outNodes.empty() or refpath.size() > 1) {
         if (refpath.back()->id < samplepath.back()->id) {
-            assert(rpath.size() > ref_i);
+            bool ref_index_is_valid = rpath.size() > ref_i;
+            if (!ref_index_is_valid) {
+                fatal_error("Error when genotyping using max likelihood path: ref index "
+                            "is not valid");
+            }
+
             refpath.push_back(rpath[ref_i]);
             found_new_site = true;
             ref_i++;
         } else if (samplepath.back()->id < refpath.back()->id) {
-            assert(sample_path.size() > sample_id);
+            bool sample_id_is_valid = sample_path.size() > sample_id;
+            if (!sample_id_is_valid) {
+                fatal_error("Error when genotyping using max likelihood path: sample "
+                            "is not valid");
+            }
+
             samplepath.push_back(sample_path[sample_id]);
             found_new_site = true;
             sample_id++;

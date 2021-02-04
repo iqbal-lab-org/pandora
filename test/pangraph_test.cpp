@@ -405,9 +405,10 @@ TEST(PangenomeGraph_add_hits_between_PRG_and_read, AddTheSameClusterTwice)
             true); // is the node_orientation was inserted in the read?
 
         // add the cluster again
-        EXPECT_DEATH(pg.add_hits_between_PRG_and_read(
+        ASSERT_EXCEPTION(pg.add_hits_between_PRG_and_read(
                          prg_pointer_1, read_id_1, *cluster_pointer_1),
-            "");
+            FatalRuntimeError,
+                         "Error when adding hits to Pangraph read");
 
         /*
         EXPECT_EQ(pg.nodes.size(), 1); //should not change

@@ -1,8 +1,5 @@
 #include <iostream>
-#include <cassert>
-
 #include <boost/log/trivial.hpp>
-
 #include "kmernode.h"
 #include "utils.h"
 

@@ -4,7 +4,6 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
-#include <cassert>
 #include <set>
 #include <memory>
 #include <ctime>

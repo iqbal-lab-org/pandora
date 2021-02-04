@@ -4,7 +4,6 @@
 #include <set>
 #include <memory>
 #include <vector>
-#include <cassert>
 #include <algorithm>
 #include <boost/filesystem.hpp>
 
@@ -418,10 +417,14 @@ std::vector<LocalNodePtr> pangenome::Graph::get_node_closest_vcf_reference(
         const auto& sample_paths = sample->paths.at(node.prg_id);
         for (const auto& sample_path : sample_paths) {
             for (uint32_t i = 0; i != sample_path.size(); ++i) {
-                assert(
-                    sample_path[i]->id < kmer_prg_with_coverage.kmer_prg->nodes.size()
-                    and kmer_prg_with_coverage.kmer_prg->nodes[sample_path[i]->id]
-                        != nullptr);
+                bool sample_path_node_is_valid =
+                    (sample_path[i]->id < kmer_prg_with_coverage.kmer_prg->nodes.size()) and
+                    (kmer_prg_with_coverage.kmer_prg->nodes[sample_path[i]->id] != nullptr);
+                if (!sample_path_node_is_valid) {
+                    fatal_error("When getting the path closest to VCF reference, "
+                                "a sample path node is not valid");
+                }
+
                 kmer_prg_with_coverage.increment_forward_covg(sample_path[i]->id, 0);
                 kmer_prg_with_coverage.increment_reverse_covg(sample_path[i]->id, 0);
             }
@@ -531,18 +534,26 @@ void pangenome::Graph::save_mapped_read_strings(
             readfile.get_nth_read(coord[0]);
             start = (uint32_t)std::max((int32_t)coord[1] - buff, 0);
             end = std::min(coord[2] + (uint32_t)buff, (uint32_t)readfile.read.length());
+
+            bool read_coordinates_are_valid =
+                (coord[1] < coord[2]) &&
+                (start <= coord[1]) &&
+                (start <= readfile.read.length()) &&
+                (coord[2] <= readfile.read.length()) &&
+                (end >= coord[2]) &&
+                (start < end);
+            if (!read_coordinates_are_valid) {
+                fatal_error("When saving mapped reads, read coordinates are not valid");
+            }
+
             outhandle << ">" << readfile.name << " pandora: " << coord[0] << " "
                       << start << ":" << end;
-            if (coord[3])
+            if (coord[3]) {
                 outhandle << " + " << std::endl;
-            else
+            }
+            else {
                 outhandle << " - " << std::endl;
-            assert(coord[1] < coord[2]);
-            assert(start <= coord[1]);
-            assert(start <= readfile.read.length());
-            assert(coord[2] <= readfile.read.length());
-            assert(end >= coord[2]);
-            assert(start < end);
+            }
             outhandle << readfile.read.substr(start, end - start) << std::endl;
         }
         outhandle.close();

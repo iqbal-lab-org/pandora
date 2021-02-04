@@ -5,7 +5,6 @@
 #include <iostream>
 #include <vector>
 #include <limits>
-#include <cassert>
 #include <algorithm>
 #include "fatal_error.h"
 

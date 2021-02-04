@@ -10,7 +10,6 @@
 #include <fstream>
 #include <algorithm>
 #include <map>
-#include <cassert>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
 

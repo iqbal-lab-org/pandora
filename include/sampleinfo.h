@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
-#include <cassert>
 #include <algorithm>
 #include <boost/optional.hpp>
 #include "Maths.h"
