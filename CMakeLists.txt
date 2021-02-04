@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.12)  # required by hunter ZLIB installation
 
 # include hunter
+set(HUNTER_ROOT ${CMAKE_BINARY_DIR}/hunter)
 include("cmake/HunterGate.cmake")
 HunterGate(
         URL "https://github.com/cpp-pm/hunter/archive/v0.23.289.tar.gz"
