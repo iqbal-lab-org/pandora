@@ -13,8 +13,6 @@
 #include "fastaq.h"
 #include "Maths.h"
 
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
-
 bool LocalPRG::do_path_memoization_in_nodes_along_path_method = false;
 
 LocalPRG::LocalPRG(uint32_t id, const std::string& name, const std::string& seq)
@@ -1252,24 +1250,53 @@ void LocalPRG::
     std::string alt;
     bool found_new_site = false;
 
+    // functions that help with some checks - lambdas for easyness
+    const auto check_if_ref_index_is_valid = [&]() {
+        bool ref_index_is_valid = rpath.size() > ref_i;
+        if (!ref_index_is_valid) {
+            fatal_error("Error when genotyping using max likelihood path: ref index "
+                        "is not valid");
+        }
+    };
+    const auto check_if_sample_id_is_valid = [&]() {
+        bool sample_id_is_valid = sample_path.size() > sample_id;
+        if (!sample_id_is_valid) {
+            fatal_error("Error when genotyping using max likelihood path: sample "
+                        "is not valid");
+        }
+    };
+
+    // function that helps preparing for next iteration in the following while  - lambdas for easyness
+    const auto prepare_next_iteration = [&](uint32_t &pos) {
+        refpath.erase(refpath.begin(), refpath.end() - 1);
+        if (refpath.back()->id != prg.nodes.size() - 1) {
+            const bool reference_path_is_empty
+                = refpath.empty(); // NB: the previous similar check refers to rpath, not refpath
+            if (reference_path_is_empty) {
+                fatal_error("Error when genotyping using max likelihood path: reference path is empty");
+            }
+            check_if_ref_index_is_valid();
+            check_if_sample_id_is_valid();
+
+            ref = "";
+            alt = "";
+            pos += refpath.back()->pos.length;
+            refpath.push_back(rpath[ref_i]);
+            ref_i++;
+            samplepath.erase(samplepath.begin(), samplepath.end() - 1);
+            samplepath.push_back(sample_path[sample_id]);
+            sample_id++;
+        }
+    };
+
     while (!refpath.back()->outNodes.empty() or refpath.size() > 1) {
         if (refpath.back()->id < samplepath.back()->id) {
-            bool ref_index_is_valid = rpath.size() > ref_i;
-            if (!ref_index_is_valid) {
-                fatal_error("Error when genotyping using max likelihood path: ref index "
-                            "is not valid");
-            }
-
+            check_if_ref_index_is_valid();
             refpath.push_back(rpath[ref_i]);
             found_new_site = true;
             ref_i++;
         } else if (samplepath.back()->id < refpath.back()->id) {
-            bool sample_id_is_valid = sample_path.size() > sample_id;
-            if (!sample_id_is_valid) {
-                fatal_error("Error when genotyping using max likelihood path: sample "
-                            "is not valid");
-            }
-
+            check_if_sample_id_is_valid();
             samplepath.push_back(sample_path[sample_id]);
             found_new_site = true;
             sample_id++;
@@ -1295,36 +1322,11 @@ void LocalPRG::
             for (uint32_t j = 1; j < refpath.size() - 1; ++j) {
                 pos += refpath[j]->pos.length;
             }
-            refpath.erase(refpath.begin(), refpath.end() - 1);
-            if (refpath.back()->id != prg.nodes.size() - 1) {
-                ref = "";
-                alt = "";
-                assert(not refpath.empty());
-                pos += refpath.back()->pos.length;
-                assert(rpath.size() > ref_i);
-                refpath.push_back(rpath[ref_i]);
-                ref_i++;
-                samplepath.erase(samplepath.begin(), samplepath.end() - 1);
-                assert(sample_path.size() > sample_id);
-                samplepath.push_back(sample_path[sample_id]);
-                sample_id++;
-            }
+
+            prepare_next_iteration(pos);
             pos_to = pos;
         } else {
-            refpath.erase(refpath.begin(), refpath.end() - 1);
-            if (refpath.back()->id != prg.nodes.size() - 1) {
-                ref = "";
-                alt = "";
-                assert(not refpath.empty());
-                pos_to += refpath.back()->pos.length;
-                assert(rpath.size() > ref_i);
-                refpath.push_back(rpath[ref_i]);
-                ref_i++;
-                samplepath.erase(samplepath.begin(), samplepath.end() - 1);
-                assert(sample_path.size() > sample_id);
-                samplepath.push_back(sample_path[sample_id]);
-                sample_id++;
-            }
+            prepare_next_iteration(pos_to);
         }
     }
     vcf.set_sample_gt_to_ref_allele_for_records_in_the_interval(
@@ -1365,13 +1367,25 @@ std::vector<LocalNodePtr> LocalPRG::find_alt_path(
         ref_added += ref_path[pos_along_ref_path]->pos.length;
         pos_along_ref_path++;
     }
-    assert(pos_along_ref_path < ref_path.size());
+
+    // TODO: change this bool variable name to a more meaningful one
+    bool pos_along_ref_path_less_than_ref_path_size = pos_along_ref_path < ref_path.size();
+    if (!pos_along_ref_path_less_than_ref_path_size) {
+        fatal_error("Error finding alternative path: pos along ref path is not less "
+                    "than ref path size");
+    }
     auto ref_node_to_find = ref_path[pos_along_ref_path];
 
     // find an alt path with the required sequence
     if (alt_path.empty() and not ref_path.empty() and ref_path[0]->pos.length == 0)
         alt_path.push_back(ref_path[0]);
-    assert(!alt_path.empty());
+
+    bool we_have_found_alt_paths = !alt_path.empty();
+    if (!we_have_found_alt_paths) {
+        fatal_error("Error finding alternative path: no alternative paths were found "
+                    "but we should have found at least one");
+    }
+
     for (const auto& m : alt_path.back()->outNodes) {
         paths_in_progress.push_back({ m });
     }
@@ -1406,8 +1420,9 @@ std::vector<LocalNodePtr> LocalPRG::find_alt_path(
             }
         }
     }
-    assert(true or assert_msg("Should have found an alt path!!"));
-    return alt_path; // this never happens
+
+    fatal_error("Error finding alternative path: no alternative paths were found "
+                "but we should have found at least one");
 }
 
 uint32_t LocalPRG::get_number_of_bases_in_local_path_before_a_given_position(
@@ -1470,16 +1485,11 @@ LocalPRG::get_forward_and_reverse_kmer_coverages_in_range(
     const std::vector<LocalNodePtr>& local_path, const uint32_t& range_pos_start,
     const uint32_t& range_pos_end, const uint32_t& sample_id) const
 {
-    assert(kmer_path.size()
-        > 1); // this is an assert because it is the programmers responsibility to
-              // ensure that the kmer_path given to this function has at least size 1
-    // TODO: this assert could be removed if we represent std::vector<KmerNodePtr> as a
-    // concept (class) in such a way that this class could only be constructed if given
-    // a large enough kmer_path (or whatever condition to build a correct kmer_path)
-    // TODO: the existence of this class would transfer the responsibility of having a
-    // correct kmer_path to its constructor, instead of here
-    // TODO: kmer_path is used in lots of places and there are some hard-coded logic
-    // about it, it is worth upgrading it to a class, this will be done later
+    bool kmer_path_is_valid = kmer_path.size() > 1;
+    if (!kmer_path_is_valid) {
+        fatal_error("Error when geting forward and reverse kmer coverages: kmer path "
+                    "is not valid");
+    }
 
     uint32_t starting_position_of_first_non_trivial_kmer_in_kmer_path
         = kmer_path[1]
@@ -1519,10 +1529,14 @@ LocalPRG::get_forward_and_reverse_kmer_coverages_in_range(
             and number_of_bases_in_local_path_which_were_already_considered
                 < range_pos_end;
         if (is_inside_the_given_range) {
-            assert(
-                current_kmer_node->id < kmer_graph_with_coverage.kmer_prg->nodes.size()
-                and kmer_graph_with_coverage.kmer_prg->nodes[current_kmer_node->id]
-                    != nullptr);
+            bool kmer_node_is_valid =
+                (current_kmer_node->id < kmer_graph_with_coverage.kmer_prg->nodes.size())
+                and (kmer_graph_with_coverage.kmer_prg->nodes[current_kmer_node->id] != nullptr);
+            if (!kmer_node_is_valid) {
+                fatal_error("Error when geting forward and reverse kmer coverages: found "
+                            "an invalid kmer node");
+            }
+
             forward_coverages.push_back(
                 kmer_graph_with_coverage.get_forward_covg(current_kmer_node->id, sample_id));
             reverse_coverages.push_back(
@@ -1545,9 +1559,12 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF& vcf, const KmerGraphWithCoverage& kg
     const std::vector<LocalNodePtr>& ref_path, const std::string& sample_name,
     const uint32_t& sample_id) const
 {
-    BOOST_LOG_TRIVIAL(debug) << "Update VCF with sample covgs";
+    bool prg_is_empty = prg.nodes.empty();
+    if (prg_is_empty) {
+        fatal_error("Error when adding sample coverages to VCF: PRG is empty");
+    }
 
-    assert(!prg.nodes.empty()); // otherwise empty nodes -> segfault
+    BOOST_LOG_TRIVIAL(debug) << "Update VCF with sample covgs";
     vcf.sort_records();
 
     std::vector<LocalNodePtr> alt_path;
@@ -1596,9 +1613,14 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF& vcf, const KmerGraphWithCoverage& kg
         // if sample has alt path, we have the kmer path for this, but otherwise we will
         // need to work it out
         auto sample_it = find(vcf.samples.begin(), vcf.samples.end(), sample_name);
-        assert(sample_it != vcf.samples.end());
         auto sample_index = distance(vcf.samples.begin(), sample_it);
-        assert((uint)sample_index != vcf.samples.size());
+
+        bool sample_is_valid = (sample_it != vcf.samples.end()) &&
+            ((uint)sample_index != vcf.samples.size());
+        if (!sample_is_valid) {
+            fatal_error("Error when adding sample coverages to VCF: sample is not valid");
+        }
+
         record.sampleIndex_to_sampleInfo[sample_index].set_coverage_information(
             all_forward_coverages, all_reverse_coverages);
     }
