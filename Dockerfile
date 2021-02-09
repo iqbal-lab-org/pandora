@@ -19,7 +19,7 @@ RUN apt update \
 #============================================
 # can override the build type with docker's --build-arg command
 # https://docs.docker.com/engine/reference/builder/#arg
-ARG PANDORA_BUILD_TYPE="RELEASE_WITH_ASSERTS"
+ARG PANDORA_BUILD_TYPE="Release"
 ENV PANDORA_DIR "/pandora/"
 
 COPY . $PANDORA_DIR

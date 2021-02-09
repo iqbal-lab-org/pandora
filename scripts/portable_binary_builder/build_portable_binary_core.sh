@@ -14,7 +14,7 @@ yum install wget git binutils-devel -y
 cd io
 mkdir build_portable_executable
 cd build_portable_executable
-cmake -DPRINT_STACKTRACE=True ..
+cmake -DPRINT_STACKTRACE=True -DCMAKE_BUILD_TYPE=Release ..
 make VERBOSE=1 -j 4
 ctest -VV
 

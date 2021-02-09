@@ -19,7 +19,6 @@ include:
       apt:
         packages:
           - clang-format-8
-          - zlib1g-dev
 
 jobs:
   fast_finish: true
@@ -30,7 +29,7 @@ jobs:
         - if [ $? -ne 1 ]; then echo "Not all source and header files are formatted with clang-format"; exit 1; fi
     - stage: "Build and Test"
       env:
-        - BUILD_TYPE="Debug"
+        - BUILD_TYPE="Release"
       script: bash ci/script.sh
 
 stages:
