@@ -14,7 +14,7 @@ set(PROJECT_NAME_STR pandora)
 project(${PROJECT_NAME_STR} VERSION "0.7.0" LANGUAGES C CXX)
 configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
-
+# add or not feature to print the stack trace
 if(PRINT_STACKTRACE)
     message(STATUS "Printing meaningful stacktrace enabled, please have binutils-dev installed")
     add_compile_definitions(BACKWARD_HAS_BFD=1)
@@ -23,8 +23,6 @@ else()
     set(BACKWARD_LIBRARIES "")
 endif()
 
-# add a RELEASE_WITH_ASSERTS build type - TODO: FIX THIS
-set(CMAKE_CXX_FLAGS_RELEASE_WITH_ASSERTS "-O3")
 
 # C++11 required
 include(CheckCXXCompilerFlag)
@@ -40,6 +38,12 @@ endif ()
 
 # default flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_SYSTEM_NO_DEPRECATED -Wall -Wextra")
+
+if(PRINT_STACKTRACE)
+    # -g is to add debug symbols, to make backtraces meaningful.
+    # it does not impact performance (see https://stackoverflow.com/a/39223245)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+endif ()
 
 # compile with openmp only on Linux
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -122,7 +126,6 @@ file(GLOB_RECURSE SRC_FILES
         ${PROJECT_SOURCE_DIR}/include/*.h
         ${PROJECT_SOURCE_DIR}/include/*/*.hpp
         ${PROJECT_SOURCE_DIR}/include/*/*.h
-
         ${PROJECT_SOURCE_DIR}/thirdparty/src/*.cpp
         ${PROJECT_SOURCE_DIR}/thirdparty/include/*.hpp
         ${PROJECT_SOURCE_DIR}/thirdparty/include/*.h

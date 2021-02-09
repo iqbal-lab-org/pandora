@@ -1,9 +1,9 @@
 hunter_config(
-        Boost
-        VERSION
-        "1.62.0"
-        CONFIGURATION_TYPES
-        Debug
+    Boost
+    VERSION
+    "1.62.0"
+    CONFIGURATION_TYPES
+    Release
 )
 
 hunter_config(
@@ -11,5 +11,5 @@ hunter_config(
     VERSION
     "1.10.0"
     CONFIGURATION_TYPES
-    Debug
+    Release
 )
