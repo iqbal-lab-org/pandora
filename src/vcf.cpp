@@ -520,9 +520,9 @@ std::string VCF::to_string(bool genotyping_from_maximum_likelihood,
     bool only_one_flag_is_set
         = ((int)(genotyping_from_maximum_likelihood) + (int)(genotyping_from_coverage))
         == 1;
-    // this will still remain an assert as it is responsibility of the dev to ensure
-    // this method is not called with the two flags set
-    assert(only_one_flag_is_set);
+    if (!only_one_flag_is_set) {
+        fatal_error("Error on stringifying VCF record: incompatible genotyping options");
+    }
 
     std::stringstream out;
     out << header();

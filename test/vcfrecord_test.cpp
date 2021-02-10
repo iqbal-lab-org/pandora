@@ -319,14 +319,16 @@ TEST(VCFRecordTest, get_format___no_flags_set___expects_death)
 {
     VCF vcf = create_VCF_with_default_parameters();
     VCFRecord vcf_record(&vcf);
-    EXPECT_DEATH(vcf_record.get_format(false, false), "");
+    ASSERT_EXCEPTION(vcf_record.get_format(false, false), FatalRuntimeError,
+     "Error on getting format field from VCF record: incompatible genotyping options");
 }
 
 TEST(VCFRecordTest, get_format___both_flags_set___expects_death)
 {
     VCF vcf = create_VCF_with_default_parameters();
     VCFRecord vcf_record(&vcf);
-    EXPECT_DEATH(vcf_record.get_format(true, true), "");
+    ASSERT_EXCEPTION(vcf_record.get_format(true, true), FatalRuntimeError,
+     "Error on getting format field from VCF record: incompatible genotyping options");
 }
 
 TEST(VCFRecordTest, get_format___genotyping_from_maximum_likelihood)

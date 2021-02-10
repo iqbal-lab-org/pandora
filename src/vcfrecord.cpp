@@ -70,9 +70,9 @@ std::string VCFRecord::get_format(
     bool only_one_flag_is_set
         = ((int)(genotyping_from_maximum_likelihood) + (int)(genotyping_from_coverage))
         == 1;
-    // this will still remain an assert as it is responsibility of the dev to ensure
-    // this method is not called with the two flags set
-    assert(only_one_flag_is_set);
+    if (!only_one_flag_is_set) {
+        fatal_error("Error on getting format field from VCF record: incompatible genotyping options");
+    }
 
     static std::vector<std::string> format_for_genotyping_from_maximum_likelihood
         = { "GT", "MEAN_FWD_COVG", "MEAN_REV_COVG", "MED_FWD_COVG", "MED_REV_COVG",

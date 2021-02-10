@@ -1126,12 +1126,14 @@ TEST_F(SampleInfoTest___get_genotype_from_coverage___Fixture,
 
 TEST_F(SampleInfoTest___Fixture, to_string___no_flags_set___expects_death)
 {
-    EXPECT_DEATH(default_sample_info.to_string(false, false), "");
+    ASSERT_EXCEPTION(default_sample_info.to_string(false, false), FatalRuntimeError,
+     "Error on stringifying VCF record sample info: incompatible genotyping options");
 }
 
 TEST_F(SampleInfoTest___Fixture, to_string___both_flags_set___expects_death)
 {
-    EXPECT_DEATH(default_sample_info.to_string(true, true), "");
+    ASSERT_EXCEPTION(default_sample_info.to_string(true, true), FatalRuntimeError,
+     "Error on stringifying VCF record sample info: incompatible genotyping options");
 }
 
 TEST_F(SampleInfoTest___Fixture, to_string___genotyping_from_maximum_likelihood)
