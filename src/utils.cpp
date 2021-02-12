@@ -487,7 +487,7 @@ uint32_t pangraph_from_read_file(const std::string& filepath,
                 }
 
                 const auto expected_number_kmers_in_read_sketch { sequence.seq.length()
-                    * 2 / w };
+                    * 2 / (w + 1) };
 
                 // get the minizer hits
                 auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
