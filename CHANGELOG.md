@@ -9,6 +9,15 @@ project adheres to
 
 ## [Unreleased]
 
+Some improvements to the build process:
+* We now use the [Hunter](https://github.com/cpp-pm/hunter) package manager to remove the requirement of having ZLIB and
+Boost system-wide installations;
+* We now provide a portable precompiled binary as another option to run `pandora` easily;
+* We refactored asserts into exceptions, and now `pandora` can be compiled correctly in the `Release` mode, and the build
+process will thus be able to create a more optimized binary;
+* `pandora` can now provide a meaningful stack trace in case of errors, to facilitate debugging
+  (need to pass flag `-DPRINT_STACKTRACE` to `CMake`);
+
 ## [v0.7.0]
 
 There is a significant amount of changes to the project between version
