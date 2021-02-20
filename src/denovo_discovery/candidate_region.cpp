@@ -20,10 +20,14 @@ CandidateRegion::CandidateRegion(const Interval& interval, std::string name)
 }
 
 CandidateRegion::CandidateRegion(
-    const Interval& interval, std::string name, const uint_least16_t& interval_padding)
+    const Interval& interval, std::string name, const uint_least16_t& interval_padding,
+    const std::vector<LocalNodePtr> &local_node_max_likelihood_path,
+    const std::string &local_node_max_likelihood_sequence)
     : interval { interval }
     , name { std::move(name) }
     , interval_padding { interval_padding }
+    , local_node_max_likelihood_path(local_node_max_likelihood_path)
+    , local_node_max_likelihood_sequence { local_node_max_likelihood_sequence }
 {
     initialise_filename();
 #ifndef NO_OPENMP
@@ -91,6 +95,9 @@ CandidateRegions Discover::find_candidate_regions_for_pan_node(
     const auto& local_node_max_likelihood_path {
         pangraph_node_components.local_node_max_likelihood_path
     };
+    const auto& local_node_max_likelihood_seq {
+        pangraph_node_components.local_node_max_likelihood_seq
+    };
     const auto& kmer_node_max_likelihood_path {
         pangraph_node_components.kmer_node_max_likelihood_path
     };
@@ -119,9 +126,9 @@ CandidateRegions Discover::find_candidate_regions_for_pan_node(
 
     for (const auto& current_interval : candidate_intervals) {
         CandidateRegion candidate_region { current_interval, pangraph_node->get_name(),
-            this->candidate_padding };
+            this->candidate_padding , local_node_max_likelihood_path, local_node_max_likelihood_seq};
 
-        const auto interval_path_components { find_interval_and_flanks_in_localpath(
+        auto interval_path_components { find_interval_and_flanks_in_localpath(
             candidate_region.get_interval(), local_node_max_likelihood_path) };
 
         candidate_region.read_coordinates = pangraph_node->get_read_overlap_coordinates(
@@ -199,17 +206,41 @@ void CandidateRegion::add_pileup_entry(
     }
 }
 
-void CandidateRegion::write_denovo_paths_to_file(const fs::path& output_directory)
+void CandidateRegion::write_denovo_paths_to_buffer(CandidateRegionWriteBuffer &buffer)
 {
     if (denovo_paths.empty()) {
         return;
     }
+    for (const std::string &denovo_path : denovo_paths) {
+        buffer.add_new_variant(name,
+            LocalNode::to_string_vector(local_node_max_likelihood_path),
+            get_variants(denovo_path));
+    }
+}
 
-    auto fasta { generate_fasta_for_denovo_paths() };
+std::string CandidateRegion::get_variants(const string &denovo_sequence) const {
+    // TODO: recheck: I think we can always assume we have flanking kmers, so we can't have
+    // insertion or deletions strictly at the very start or end of either sequences
+    // No need to check for this edge case
 
-    const auto discovered_paths_filepath { output_directory / filename };
+    size_t length_of_LCP = find_length_of_longest_common_prefix(
+        local_node_max_likelihood_sequence.cbegin(), local_node_max_likelihood_sequence.cend(),
+        denovo_sequence.cbegin(), denovo_sequence.cend());
+    size_t length_of_LCS = find_length_of_longest_common_prefix(
+        local_node_max_likelihood_sequence.crbegin(), local_node_max_likelihood_sequence.crend(),
+        denovo_sequence.crbegin(), denovo_sequence.crend());
 
-    fasta.save(discovered_paths_filepath.string());
+    std::string max_likelihood_variant = local_node_max_likelihood_sequence.substr(
+        length_of_LCP, local_node_max_likelihood_sequence.size() - length_of_LCP - length_of_LCS
+        );
+    std::string denovo_variant = denovo_sequence.substr(
+        length_of_LCP, denovo_sequence.size() - length_of_LCP - length_of_LCS
+    );
+
+    std::stringstream ss;
+    ss << length_of_LCP << " " << max_likelihood_variant << " " << denovo_variant;
+
+    return ss.str();
 }
 
 Fastaq CandidateRegion::generate_fasta_for_denovo_paths()
@@ -231,11 +262,13 @@ Fastaq CandidateRegion::generate_fasta_for_denovo_paths()
 TmpPanNode::TmpPanNode(const PanNodePtr& pangraph_node,
     const shared_ptr<LocalPRG>& local_prg,
     const vector<KmerNodePtr>& kmer_node_max_likelihood_path,
-    const vector<LocalNodePtr>& local_node_max_likelihood_path)
+    const vector<LocalNodePtr>& local_node_max_likelihood_path,
+    const std::string &local_node_max_likelihood_seq)
     : pangraph_node { pangraph_node }
     , local_prg { local_prg }
     , kmer_node_max_likelihood_path { kmer_node_max_likelihood_path }
     , local_node_max_likelihood_path { local_node_max_likelihood_path }
+    , local_node_max_likelihood_seq { local_node_max_likelihood_seq }
 {
 }
 
@@ -333,4 +366,34 @@ Discover::Discover(uint32_t min_required_covg, uint32_t min_candidate_len,
     , candidate_padding { candidate_padding }
     , merge_dist { merge_dist }
 {
+}
+
+void CandidateRegionWriteBuffer::add_new_variant(
+    const std::string &locus_name,
+    const std::string &ML_path,
+    const std::string &variant) {
+    bool locus_was_not_found = locus_name_to_ML_path.find(locus_name) == locus_name_to_ML_path.end();
+    if (locus_was_not_found) {
+        locus_name_to_ML_path[locus_name] = ML_path;
+    }
+    locus_name_to_variants[locus_name].push_back(variant);
+}
+
+
+void CandidateRegionWriteBuffer::write_to_file(const fs::path& output_file) {
+    ofstream output_filehandler;
+    open_file_for_writing(output_file.string(), output_filehandler);
+
+    output_filehandler << locus_name_to_ML_path.size() << std::endl;
+    for (const auto &locus_name_and_ML_path : locus_name_to_ML_path) {
+        const auto &locus_name = locus_name_and_ML_path.first;
+        output_filehandler << locus_name << std::endl;
+        output_filehandler << locus_name_and_ML_path.second << std::endl;
+        output_filehandler << locus_name_to_variants[locus_name].size() << std::endl;
+        for (const auto &variant : locus_name_to_variants[locus_name]) {
+            output_filehandler << variant << std::endl;
+        }
+    }
+
+    output_filehandler.close();
 }

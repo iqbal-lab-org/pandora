@@ -25,21 +25,27 @@ struct TmpPanNode {
     const std::shared_ptr<LocalPRG>& local_prg;
     const std::vector<KmerNodePtr>& kmer_node_max_likelihood_path;
     const std::vector<LocalNodePtr>& local_node_max_likelihood_path;
+    const std::string &local_node_max_likelihood_seq;
 
     TmpPanNode(const PanNodePtr& pangraph_node,
         const std::shared_ptr<LocalPRG>& local_prg,
         const std::vector<KmerNodePtr>& kmer_node_max_likelihood_path,
-        const std::vector<LocalNodePtr>& local_node_max_likelihood_path);
+        const std::vector<LocalNodePtr>& local_node_max_likelihood_path,
+        const std::string &local_node_max_likelihood_seq);
 };
 
 using DenovoPaths = std::vector<std::string>;
 using ReadPileup = std::vector<std::string>;
 using ReadCoordinates = std::set<ReadCoordinate>;
 
+class CandidateRegionWriteBuffer;
+
 class CandidateRegion {
 public:
     ReadCoordinates read_coordinates;
     std::string max_likelihood_sequence;
+    std::vector<LocalNodePtr> local_node_max_likelihood_path;
+    std::string local_node_max_likelihood_sequence;
     std::string left_flanking_sequence;
     std::string right_flanking_sequence;
     ReadPileup pileup;
@@ -49,7 +55,9 @@ public:
     CandidateRegion(const Interval& interval, std::string name);
 
     CandidateRegion(const Interval& interval, std::string name,
-        const uint_least16_t& interval_padding);
+        const uint_least16_t& interval_padding,
+        const std::vector<LocalNodePtr> &local_node_max_likelihood_path,
+        const std::string &local_node_max_likelihood_sequence);
 
     virtual ~CandidateRegion();
 
@@ -68,7 +76,7 @@ public:
     void add_pileup_entry(
         const std::string& read, const ReadCoordinate& read_coordinate);
 
-    void write_denovo_paths_to_file(const fs::path& output_directory);
+    void write_denovo_paths_to_buffer(CandidateRegionWriteBuffer &buffer);
 
 private:
     const Interval interval;
@@ -85,6 +93,23 @@ private:
     void initialise_filename();
 
     Fastaq generate_fasta_for_denovo_paths();
+
+    template <typename ItType>
+    size_t find_length_of_longest_common_prefix(ItType s1_begin, ItType s1_end,
+                                                ItType s2_begin, ItType s2_end) const {
+        size_t length_of_LCP;
+        ItType s1_it, s2_it;
+        for (length_of_LCP = 0, s1_it = s1_begin, s2_it = s2_begin;
+             s1_it < s1_end && s2_it < s2_end;
+             ++s1_it, ++s2_it, ++length_of_LCP) {
+            bool bases_are_equal = (*s1_it) == (*s2_it);
+            if (!bases_are_equal) {
+                break;
+            }
+        }
+        return length_of_LCP;
+    }
+    std::string get_variants(const string &denovo_path) const;
 };
 
 using CandidateRegions = std::unordered_map<CandidateRegionIdentifier, CandidateRegion>;
@@ -115,6 +140,20 @@ public:
     void load_candidate_region_pileups(const fs::path& reads_filepath,
         const CandidateRegions& candidate_regions,
         const PileupConstructionMap& pileup_construction_map, uint32_t threads = 1);
+};
+
+
+class CandidateRegionWriteBuffer {
+private:
+    std::map<std::string, std::string> locus_name_to_ML_path;
+    std::map<std::string, std::vector<std::string>> locus_name_to_variants;
+
+public:
+    CandidateRegionWriteBuffer() = default;
+    void add_new_variant(const std::string &locus_name,
+                         const std::string &ML_path,
+                         const std::string &variant);
+    void write_to_file(const fs::path& output_file);
 };
 
 #endif // PANDORA_CANDIDATE_REGION_H

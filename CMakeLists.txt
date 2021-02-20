@@ -143,5 +143,5 @@ target_link_libraries(${PROJECT_NAME}
         ${BACKWARD_LIBRARIES}
 )
 
-enable_testing()
-add_subdirectory(test)
+#enable_testing()
+#add_subdirectory(test)

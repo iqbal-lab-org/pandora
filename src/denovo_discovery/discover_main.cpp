@@ -321,8 +321,9 @@ int pandora_discover(DiscoverOptions& opt)
 
         BOOST_LOG_TRIVIAL(info) << "Searching for regions with evidence of novel "
                                    "variants...";
+        const string lmp_seq = prgs[pangraph_node->prg_id]->string_along_path(lmp);
         const TmpPanNode pangraph_node_components { pangraph_node,
-            prgs[pangraph_node->prg_id], kmp, lmp };
+            prgs[pangraph_node->prg_id], kmp, lmp, lmp_seq};
         auto candidate_regions_for_pan_node {
             discover.find_candidate_regions_for_pan_node(pangraph_node_components)
         };
@@ -370,14 +371,17 @@ int pandora_discover(DiscoverOptions& opt)
         << "Generating de novo variants as paths through their local graph...";
 
     // TODO: this is hard to parallelize due to GATB's temp files
+    CandidateRegionWriteBuffer buffer;
     for (auto& element : candidate_regions) {
         auto& candidate_region { element.second };
         denovo.find_paths_through_candidate_region(
             candidate_region, denovo_output_directory);
-        candidate_region.write_denovo_paths_to_file(denovo_output_directory);
+        candidate_region.write_denovo_paths_to_buffer(buffer);
     }
+    auto denovo_output_file = denovo_output_directory / "denovo_paths.txt";
+    buffer.write_to_file(denovo_output_file);
     BOOST_LOG_TRIVIAL(info) << "De novo variant paths written to "
-                            << denovo_output_directory.string();
+                            << denovo_output_file.string();
 
     if (opt.output_mapped_read_fa) {
         pangraph->save_mapped_read_strings(opt.readsfile, opt.outdir);
