@@ -145,11 +145,14 @@ public:
 
 class CandidateRegionWriteBuffer {
 private:
+    std::string sample_name;
     std::map<std::string, std::string> locus_name_to_ML_path;
     std::map<std::string, std::vector<std::string>> locus_name_to_variants;
 
 public:
-    CandidateRegionWriteBuffer() = default;
+    CandidateRegionWriteBuffer(const std::string &sample_name) :
+        sample_name(sample_name){}
+
     void add_new_variant(const std::string &locus_name,
                          const std::string &ML_path,
                          const std::string &variant);

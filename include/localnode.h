@@ -36,24 +36,9 @@ public:
 
     friend std::ostream& operator<<(std::ostream& out, const LocalNode& n);
 
-    std::string to_string() const
-    {
-        std::stringstream ss;
-        ss << pos.start << " " << pos.get_end() << " " << seq;
-        return ss.str();
-    }
+    std::string to_string() const;
 
-    static std::string to_string_vector(const std::vector<LocalNodePtr> local_nodes) {
-        std::stringstream ss;
-        ss << local_nodes.size() << std::endl;
-        for (const auto &node : local_nodes) {
-            ss << *node << std::endl;
-        }
-        std::string to_return = ss.str();
-        to_return.erase(to_return.size()-1);
-        return to_return;
-    }
-
+    static std::string to_string_vector(const std::vector<LocalNodePtr> local_nodes);
 
     friend class LocalGraph;
 
