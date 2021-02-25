@@ -28,7 +28,7 @@ public:
         uint16_t min_covg_for_node_in_assembly_graph = 1, bool clean = false);
 
     void find_paths_through_candidate_region(CandidateRegion& candidate_region,
-        const fs::path& denovo_output_directory) const;
+        const fs::path& temp_dir) const;
 
     double calculate_kmer_coverage(
         const uint32_t& read_covg, const uint32_t& ref_length) const;

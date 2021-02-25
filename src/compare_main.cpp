@@ -178,35 +178,6 @@ void setup_compare_subcommand(CLI::App& app)
     compare_subcmd->callback([opt]() { pandora_compare(*opt); });
 }
 
-std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
-    const fs::path& read_index_fpath)
-{
-    std::map<SampleIdText, SampleFpath> samples;
-    std::string name, reads_path, line;
-    fs::ifstream instream(read_index_fpath);
-    if (instream.is_open()) {
-        while (getline(instream, line).good()) {
-            std::istringstream linestream(line);
-            if (std::getline(linestream, name, '\t')) {
-                linestream >> reads_path;
-                if (samples.find(name) != samples.end()) {
-                    BOOST_LOG_TRIVIAL(warning)
-                        << "Warning: non-unique sample ids given! Only the last "
-                           "of these will be kept";
-                }
-                samples[name] = reads_path;
-            }
-        }
-    } else {
-        BOOST_LOG_TRIVIAL(error)
-            << "Unable to open read index file " << read_index_fpath;
-        exit(1);
-    }
-    BOOST_LOG_TRIVIAL(info) << "Finished loading " << samples.size()
-                            << " samples from read index";
-    return std::vector<std::pair<SampleIdText, SampleFpath>>(
-        samples.begin(), samples.end());
-}
 
 int pandora_compare(CompareOptions& opt)
 {
@@ -297,7 +268,7 @@ int pandora_compare(CompareOptions& opt)
         }
 
         BOOST_LOG_TRIVIAL(info) << "Update LocalPRGs with hits";
-        pangraph_sample->add_hits_to_kmergraphs(prgs, 0);
+        pangraph_sample->add_hits_to_kmergraphs(0);
 
         BOOST_LOG_TRIVIAL(info) << "Estimate parameters for kmer graph model";
         auto exp_depth_covg = estimate_parameters(pangraph_sample, sample_outdir,

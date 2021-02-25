@@ -1,7 +1,7 @@
 #include "denovo_discovery/denovo_discovery.h"
 
 void DenovoDiscovery::find_paths_through_candidate_region(
-    CandidateRegion& candidate_region, const fs::path& denovo_output_directory) const
+    CandidateRegion& candidate_region, const fs::path& temp_dir) const
 {
     const auto read_covg { candidate_region.pileup.size() };
     const auto length_of_candidate_sequence {
@@ -9,7 +9,7 @@ void DenovoDiscovery::find_paths_through_candidate_region(
     };
     const double expected_kmer_covg { calculate_kmer_coverage(
         read_covg, length_of_candidate_sequence) };
-    const fs::path GATB_graph_filepath(denovo_output_directory / "GATB_graph");
+    const fs::path GATB_graph_filepath(temp_dir / "GATB_graph");
 
     BOOST_LOG_TRIVIAL(debug) << "Running local assembly for: "
                              << candidate_region.get_name() << " - interval ["

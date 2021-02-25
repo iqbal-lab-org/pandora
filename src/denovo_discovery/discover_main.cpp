@@ -18,9 +18,10 @@ void setup_discover_subcommand(CLI::App& app)
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
-    discover_subcmd
-        ->add_option(
-            "<QUERY>", opt->readsfile, "Fast{a,q} file containing reads to quasi-map")
+    std::string description
+        = "A tab-delimited file where each line is a sample identifier followed by "
+          "the path to the fast{a,q} of reads for that sample";
+    discover_subcmd->add_option("<QUERY_IDX>", opt->reads_idx_file, description)
         ->required()
         ->transform(make_absolute)
         ->check(CLI::ExistingFile.description(""))
@@ -119,7 +120,7 @@ void setup_discover_subcommand(CLI::App& app)
                     .description("[0-" + std::to_string(MAX_DENOVO_K) + ")"))
         ->type_name("INT");
 
-    std::string description = "Max. insertion size for novel variants. Warning: "
+    description = "Max. insertion size for novel variants. Warning: "
                               "setting too long may impair performance";
     discover_subcmd->add_option("--max-ins", opt->max_insertion_size, description)
         ->capture_default_str()
@@ -221,13 +222,6 @@ int pandora_discover(DiscoverOptions& opt)
         throw std::logic_error("K must be a positive integer");
     }
 
-    fs::create_directories(opt.outdir);
-
-    const auto kmer_graph_dir { opt.outdir / "kmer_graphs" };
-    if (opt.output_kg) {
-        fs::create_directories(kmer_graph_dir);
-    }
-
     BOOST_LOG_TRIVIAL(info) << "Loading Index and LocalPRGs from file...";
     auto index = std::make_shared<Index>();
     index->load(opt.prgfile, opt.window_size, opt.kmer_size);
@@ -235,158 +229,188 @@ int pandora_discover(DiscoverOptions& opt)
     read_prg_file(prgs, opt.prgfile);
     load_PRG_kmergraphs(prgs, opt.window_size, opt.kmer_size, opt.prgfile);
 
-    BOOST_LOG_TRIVIAL(info)
-        << "Constructing pangenome::Graph from read file (this will take a while)...";
-    auto pangraph = std::make_shared<pangenome::Graph>();
-    uint32_t covg = pangraph_from_read_file(opt.readsfile.string(), pangraph, index,
-        prgs, opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate,
-        opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
-        opt.threads);
-
-    if (pangraph->nodes.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "Found none of the LocalPRGs in the reads.";
-        BOOST_LOG_TRIVIAL(info) << "Done!";
-        return 0;
+    BOOST_LOG_TRIVIAL(info) << "Loading read index file...";
+    auto samples = load_read_index(opt.reads_idx_file);
+    std::vector<std::string> sample_names;
+    for (const auto& sample_pair : samples) {
+        sample_names.push_back(sample_pair.first);
     }
 
-    BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file " << opt.outdir
-                            << "/pandora.pangraph.gfa";
-    write_pangraph_gfa(opt.outdir / "pandora.pangraph.gfa", pangraph);
+    // create temp dir
+    const auto temp_dir {opt.outdir / "temp"};
+    fs::create_directories(temp_dir);
 
-    BOOST_LOG_TRIVIAL(info) << "Updating local PRGs with hits...";
-    pangraph->add_hits_to_kmergraphs(prgs);
+    CandidateRegionWriteBuffer buffer;
 
-    BOOST_LOG_TRIVIAL(info) << "Find PRG paths and write to files...";
+    // for each sample, run pandora discover
+    for (uint32_t sample_id = 0; sample_id < samples.size(); ++sample_id) {
+        const auto& sample = samples[sample_id];
+        const auto& sample_name = sample.first;
+        const auto& sample_fpath = sample.second;
 
-    // paralell region!
-    // shared variable - synced with critical(consensus_fq)
-    Fastaq consensus_fq(true, true);
+        // make output dir for this sample
+        const auto sample_outdir { opt.outdir / sample_name };
+        fs::create_directories(sample_outdir);
 
-    // shared variable - synced with critical(candidate_regions)
-    CandidateRegions candidate_regions;
-
-    // shared variable - will denote which nodes we have to remove after the
-    // parallel loop synced with critical(nodes_to_remove)
-    std::vector<pangenome::NodePtr> nodes_to_remove;
-    nodes_to_remove.reserve(pangraph->nodes.size());
-
-    const uint16_t candidate_padding { static_cast<uint16_t>(
-        2 * opt.denovo_kmer_size) };
-    Discover discover { opt.min_candidate_covg, opt.min_candidate_len,
-        opt.max_candidate_len, candidate_padding, opt.merge_dist };
-
-    // transforms the pangraph->nodes from map to vector so that we can run it in
-    // parallel
-    // TODO: use OMP task instead?
-    std::vector<pangenome::NodePtr> pangraphNodesAsVector;
-    pangraphNodesAsVector.reserve(pangraph->nodes.size());
-    for (auto pan_id_to_node_mapping = pangraph->nodes.begin();
-         pan_id_to_node_mapping != pangraph->nodes.end(); ++pan_id_to_node_mapping) {
-        pangraphNodesAsVector.push_back(pan_id_to_node_mapping->second);
-    }
-
-    // TODO: check the batch size
-#pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 10)
-    for (uint32_t i = 0; i < pangraphNodesAsVector.size(); ++i) {
-        // add some progress
-        if (i && i % 100 == 0) {
-            BOOST_LOG_TRIVIAL(info)
-                << ((double)i) / pangraphNodesAsVector.size() * 100 << "% done";
-        }
-
-        // get the node
-        const auto& pangraph_node = pangraphNodesAsVector[i];
-
-        // add consensus path to fastaq
-        std::vector<KmerNodePtr> kmp;
-        std::vector<LocalNodePtr> lmp;
-        prgs[pangraph_node->prg_id]->add_consensus_path_to_fastaq(consensus_fq,
-            pangraph_node, kmp, lmp, opt.window_size, opt.binomial, covg,
-            opt.max_num_kmers_to_avg, 0);
-
-        if (kmp.empty()) {
-            // mark the node as to remove
-#pragma omp critical(nodes_to_remove)
-            {
-                nodes_to_remove.push_back(pangraph_node);
-            }
-            continue;
-        }
-
+        const auto kmer_graph_dir { sample_outdir / "kmer_graphs" };
         if (opt.output_kg) {
-            pangraph_node->kmer_prg_with_coverage.save(
-                kmer_graph_dir / (pangraph_node->get_name() + ".kg.gfa"),
-                prgs[pangraph_node->prg_id]);
+            fs::create_directories(kmer_graph_dir);
         }
 
-        BOOST_LOG_TRIVIAL(info) << "Searching for regions with evidence of novel "
-                                   "variants...";
-        const string lmp_seq = prgs[pangraph_node->prg_id]->string_along_path(lmp);
-        const TmpPanNode pangraph_node_components { pangraph_node,
-            prgs[pangraph_node->prg_id], kmp, lmp, lmp_seq};
-        auto candidate_regions_for_pan_node {
-            discover.find_candidate_regions_for_pan_node(pangraph_node_components)
-        };
+        BOOST_LOG_TRIVIAL(info) << "Constructing pangenome::Graph from read file "
+                                << sample_fpath << " (this will take a while)";
+        auto pangraph = std::make_shared<pangenome::Graph>();
+        uint32_t covg = pangraph_from_read_file(sample_fpath, pangraph, index,
+            prgs, opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate,
+            opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean,
+            opt.max_covg, opt.threads);
+
+        const auto pangraph_gfa { sample_outdir / "pandora.pangraph.gfa" };
+        BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file " << pangraph_gfa;
+        write_pangraph_gfa(pangraph_gfa, pangraph);
+
+        if (pangraph->nodes.empty()) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Found no LocalPRGs in the reads for sample " << sample_name;
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "Updating local PRGs with hits...";
+        pangraph->add_hits_to_kmergraphs();
+
+        BOOST_LOG_TRIVIAL(info) << "Find PRG paths and write to files...";
+
+        // paralell region!
+        // shared variable - synced with critical(consensus_fq)
+        Fastaq consensus_fq(true, true);
+
+        // shared variable - synced with critical(candidate_regions)
+        CandidateRegions candidate_regions;
+
+        // shared variable - will denote which nodes we have to remove after the
+        // parallel loop synced with critical(nodes_to_remove)
+        std::vector<pangenome::NodePtr> nodes_to_remove;
+        nodes_to_remove.reserve(pangraph->nodes.size());
+
+        const uint16_t candidate_padding { static_cast<uint16_t>(
+            2 * opt.denovo_kmer_size) };
+        Discover discover { opt.min_candidate_covg, opt.min_candidate_len,
+            opt.max_candidate_len, candidate_padding, opt.merge_dist };
+
+        // transforms the pangraph->nodes from map to vector so that we can run it in
+        // parallel
+        // TODO: use OMP task instead?
+        std::vector<pangenome::NodePtr> pangraphNodesAsVector;
+        pangraphNodesAsVector.reserve(pangraph->nodes.size());
+        for (auto pan_id_to_node_mapping = pangraph->nodes.begin();
+             pan_id_to_node_mapping != pangraph->nodes.end();
+             ++pan_id_to_node_mapping) {
+            pangraphNodesAsVector.push_back(pan_id_to_node_mapping->second);
+        }
+
+        // TODO: check the batch size
+#pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 10)
+        for (uint32_t i = 0; i < pangraphNodesAsVector.size(); ++i) {
+            // add some progress
+            if (i && i % 100 == 0) {
+                BOOST_LOG_TRIVIAL(info)
+                    << ((double)i) / pangraphNodesAsVector.size() * 100 << "% done";
+            }
+
+            // get the node
+            const auto& pangraph_node = pangraphNodesAsVector[i];
+
+            // add consensus path to fastaq
+            std::vector<KmerNodePtr> kmp;
+            std::vector<LocalNodePtr> lmp;
+            prgs[pangraph_node->prg_id]->add_consensus_path_to_fastaq(consensus_fq,
+                pangraph_node, kmp, lmp, opt.window_size, opt.binomial, covg,
+                opt.max_num_kmers_to_avg, 0);
+
+            if (kmp.empty()) {
+                // mark the node as to remove
+#pragma omp critical(nodes_to_remove)
+                {
+                    nodes_to_remove.push_back(pangraph_node);
+                }
+                continue;
+            }
+
+            if (opt.output_kg) {
+                pangraph_node->kmer_prg_with_coverage.save(
+                    kmer_graph_dir / (pangraph_node->get_name() + ".kg.gfa"),
+                    prgs[pangraph_node->prg_id]);
+            }
+
+            BOOST_LOG_TRIVIAL(info) << "Searching for regions with evidence of novel "
+                                       "variants...";
+            const string lmp_seq = prgs[pangraph_node->prg_id]->string_along_path(lmp);
+            const TmpPanNode pangraph_node_components { pangraph_node,
+                prgs[pangraph_node->prg_id], kmp, lmp, lmp_seq };
+            auto candidate_regions_for_pan_node {
+                discover.find_candidate_regions_for_pan_node(pangraph_node_components)
+            };
 
 #pragma omp critical(candidate_regions)
-        {
-            candidate_regions.insert(candidate_regions_for_pan_node.begin(),
-                candidate_regions_for_pan_node.end());
+            {
+                candidate_regions.insert(candidate_regions_for_pan_node.begin(),
+                    candidate_regions_for_pan_node.end());
+            }
         }
+
+        // build the pileup for candidate regions multithreadly
+        BOOST_LOG_TRIVIAL(info)
+            << "Building read pileups for " << candidate_regions.size()
+            << " candidate de novo regions...";
+        // the pileup_construction_map function is intentionally left
+        // single threaded since it would require too much synchronization
+        const auto pileup_construction_map
+            = discover.pileup_construction_map(candidate_regions);
+
+        discover.load_candidate_region_pileups(
+            sample_fpath, candidate_regions, pileup_construction_map, opt.threads);
+
+        // remove the nodes marked as to be removed
+        for (const auto& node_to_remove : nodes_to_remove) {
+            pangraph->remove_node(node_to_remove);
+        }
+
+        consensus_fq.save(sample_outdir / "pandora.consensus.fq.gz");
+
+        if (pangraph->nodes.empty()) {
+            BOOST_LOG_TRIVIAL(error)
+                << "All nodes which were found have been removed during cleaning. Is "
+                   "your genome_size accurate?"
+                << " Genome size is assumed to be " << opt.genome_size
+                << " and can be updated with --genome_size";
+            return 0;
+        }
+
+        DenovoDiscovery denovo { opt.denovo_kmer_size, opt.error_rate,
+            opt.max_num_candidate_paths, opt.max_insertion_size,
+            opt.min_covg_for_node_in_assembly_graph, opt.clean_dbg };
+
+        BOOST_LOG_TRIVIAL(info)
+            << "Generating de novo variants as paths through their local graph...";
+
+        // TODO: this is hard to parallelize due to GATB's temp files
+        for (auto& element : candidate_regions) {
+            auto& candidate_region { element.second };
+            denovo.find_paths_through_candidate_region(
+                candidate_region, temp_dir);
+            candidate_region.write_denovo_paths_to_buffer(buffer);
+        }
+
+        if (opt.output_mapped_read_fa) {
+            pangraph->save_mapped_read_strings(sample_fpath, sample_outdir);
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "Done discovering for " << sample_name << " !";
     }
 
-    // build the pileup for candidate regions multithreadly
-    BOOST_LOG_TRIVIAL(info) << "Building read pileups for " << candidate_regions.size()
-                            << " candidate de novo regions...";
-    // the pileup_construction_map function is intentionally left
-    // single threaded since it would require too much synchronization
-    const auto pileup_construction_map
-        = discover.pileup_construction_map(candidate_regions);
-
-    discover.load_candidate_region_pileups(
-        opt.readsfile, candidate_regions, pileup_construction_map, opt.threads);
-
-    // remove the nodes marked as to be removed
-    for (const auto& node_to_remove : nodes_to_remove) {
-        pangraph->remove_node(node_to_remove);
-    }
-
-    consensus_fq.save(opt.outdir / "pandora.consensus.fq.gz");
-
-    if (pangraph->nodes.empty()) {
-        BOOST_LOG_TRIVIAL(error)
-            << "All nodes which were found have been removed during cleaning. Is "
-               "your genome_size accurate?"
-            << " Genome size is assumed to be " << opt.genome_size
-            << " and can be updated with --genome_size";
-        return 0;
-    }
-
-    DenovoDiscovery denovo { opt.denovo_kmer_size, opt.error_rate,
-        opt.max_num_candidate_paths, opt.max_insertion_size,
-        opt.min_covg_for_node_in_assembly_graph, opt.clean_dbg };
-    const fs::path denovo_output_directory { fs::path(opt.outdir) / "denovo_paths" };
-    fs::create_directories(denovo_output_directory);
-    BOOST_LOG_TRIVIAL(info)
-        << "Generating de novo variants as paths through their local graph...";
-
-    // TODO: this is hard to parallelize due to GATB's temp files
-    CandidateRegionWriteBuffer buffer;
-    for (auto& element : candidate_regions) {
-        auto& candidate_region { element.second };
-        denovo.find_paths_through_candidate_region(
-            candidate_region, denovo_output_directory);
-        candidate_region.write_denovo_paths_to_buffer(buffer);
-    }
-    auto denovo_output_file = denovo_output_directory / "denovo_paths.txt";
+    auto denovo_output_file = opt.outdir / "denovo_paths.txt";
     buffer.write_to_file(denovo_output_file);
-    BOOST_LOG_TRIVIAL(info) << "De novo variant paths written to "
-                            << denovo_output_file.string();
+    BOOST_LOG_TRIVIAL(info)
+        << "De novo variant paths written to " << denovo_output_file.string();
 
-    if (opt.output_mapped_read_fa) {
-        pangraph->save_mapped_read_strings(opt.readsfile, opt.outdir);
-    }
-
-    BOOST_LOG_TRIVIAL(info) << "Done!";
     return 0;
 }

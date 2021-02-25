@@ -123,4 +123,10 @@ std::string transform_cli_gsize(std::string);
 // used to transform paths to absolute paths - designed to be used with CLI11 transform
 std::string make_absolute(std::string);
 
+using SampleIdText = std::string;
+using SampleFpath = std::string;
+
+std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
+    const fs::path& read_index_fpath);
+
 #endif

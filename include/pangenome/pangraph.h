@@ -24,10 +24,6 @@ using KmerNodePtr = std::shared_ptr<KmerNode>;
 using ReadId = uint32_t;
 using NodeId = uint32_t;
 
-// TODO: refactor this
-using SampleIdText = std::string;
-using SampleFpath = std::string;
-
 class pangenome::Graph {
 protected:
     std::unordered_map<std::string, SamplePtr>
@@ -141,8 +137,7 @@ public:
     void split_node_by_reads(std::unordered_set<ReadPtr>&, std::vector<uint_least32_t>&,
         const std::vector<bool>&, const uint_least32_t);
 
-    void add_hits_to_kmergraphs(
-        const std::vector<std::shared_ptr<LocalPRG>>&, const uint32_t& sample_id = 0);
+    void add_hits_to_kmergraphs(const uint32_t& sample_id = 0);
 
     void copy_coverages_to_kmergraphs(const Graph&, const uint32_t&);
     std::vector<LocalNodePtr> infer_node_vcf_reference_path(const Node&,
