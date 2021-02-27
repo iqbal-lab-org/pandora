@@ -83,13 +83,13 @@ can be found [here](https://gcc.gnu.org/onlinedocs/gfortran/OpenMP.html).
 
 * **Download**:
   ```
-  wget "https://www.dropbox.com/s/74ptrnk4k5qcc6o/pandora-linux-precompiled_v0.8.0_beta?dl=1" -O pandora-linux-precompiled_v0.8.0_beta
+  wget "https://www.dropbox.com/s/ltq2gti9t6wav1j/pandora-linux-precompiled_v0.8.1_beta?dl=1" -O pandora-linux-precompiled_v0.8.1_beta
   ```
   * **TODO: updated to a github link when we make the release;**
 * **Running**:
 ```
-chmod +x pandora-linux-precompiled_v0.8.0_beta
-./pandora-linux-precompiled_v0.8.0_beta -h
+chmod +x pandora-linux-precompiled_v0.8.1_beta
+./pandora-linux-precompiled_v0.8.1_beta -h
 ```
 
 * **Compatibility**: This precompiled binary works on pretty much any glibc-2.12-or-later-based x86 and x86-64 Linux distribution 
