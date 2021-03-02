@@ -100,7 +100,6 @@ uint32_t pangraph_from_read_file(const std::string&, std::shared_ptr<pangenome::
     const bool illumina = false, const bool clean = false,
     const uint32_t max_covg = 300, uint32_t threads = 1);
 
-//, const uint32_t, const float&, bool);
 void infer_most_likely_prg_path_for_pannode(
     const std::vector<std::shared_ptr<LocalPRG>>&, PanNode*, uint32_t, float);
 

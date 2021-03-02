@@ -35,7 +35,7 @@ public:
             typename std::iterator_traits<Iterator>::difference_type difference_type;
 
         difference_type number_of_elements = std::distance(begin, end);
-        bool no_elements_in_container = number_of_elements == 0;
+        const bool no_elements_in_container = number_of_elements == 0;
         if (no_elements_in_container) {
             return get_default_value<Iterator>();
         }

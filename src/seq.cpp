@@ -97,7 +97,7 @@ void Seq::add_new_smallest_minimizer(vector<Minimizer>& window, uint64_t& smalle
 
 void Seq::minimizer_sketch(const uint32_t w, const uint32_t k)
 {
-    bool sequence_too_short_to_sketch = seq.length() + 1 < w + k;
+    const bool sequence_too_short_to_sketch = seq.length() + 1 < w + k;
     if (sequence_too_short_to_sketch)
         return;
 
@@ -110,7 +110,7 @@ void Seq::minimizer_sketch(const uint32_t w, const uint32_t k)
     window.reserve(w);
 
     for (const char letter : seq) {
-        bool added = add_letter_to_get_next_kmer(letter, shift1, mask, buff, kmer,
+        const bool added = add_letter_to_get_next_kmer(letter, shift1, mask, buff, kmer,
             kh); // add the next base and remove the first one to get the next kmer
         if (not added)
             return;

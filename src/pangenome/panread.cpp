@@ -51,13 +51,13 @@ void Read::add_hits(
     hits.erase(last, hits.end());
     hits.shrink_to_fit();
 
-    bool hits_were_correctly_inserted = hits.size() == before_size + cluster.size();
+    const bool hits_were_correctly_inserted = hits.size() == before_size + cluster.size();
     if (!hits_were_correctly_inserted) {
         fatal_error("Error when adding hits to Pangraph read");
     }
 
     // add the orientation/node accordingly
-    bool orientation = !cluster.empty() and (*cluster.begin())->is_forward();
+    const bool orientation = !cluster.empty() and (*cluster.begin())->is_forward();
     if (get_nodes().empty() or node_ptr != get_nodes().back().lock()
         or orientation != node_orientations.back()
         // or we think there really are 2 copies of gene
@@ -108,7 +108,7 @@ std::pair<uint32_t, uint32_t> Read::find_position(
     const std::vector<uint_least32_t>& node_ids, const std::vector<bool>& node_orients,
     const uint16_t min_overlap)
 {
-    bool nodes_ids_and_orientations_are_valid =
+    const bool nodes_ids_and_orientations_are_valid =
         (not node_ids.empty()) and
         (node_ids.size() == node_orients.size());
     if (!nodes_ids_and_orientations_are_valid) {

@@ -28,7 +28,7 @@ public:
         , exp_depth_covg_for_this_sample(
               genotyping_options->get_sample_index_to_exp_depth_covg()[sample_index])
     {
-        bool at_least_one_allele = number_of_alleles >= 1;
+        const bool at_least_one_allele = number_of_alleles >= 1;
         if (!at_least_one_allele) {
             fatal_error("Error on creating VCF Sample INFOs: the VCF record has no alleles");
         }
@@ -387,7 +387,7 @@ public:
             out << sample_info.to_string(
                 genotyping_from_maximum_likelihood, genotyping_from_coverage);
 
-            bool is_the_last_sample_info = sample_info_index == this->size() - 1;
+            const bool is_the_last_sample_info = sample_info_index == this->size() - 1;
             if (not is_the_last_sample_info)
                 out << "\t";
         }
@@ -414,7 +414,7 @@ public:
     virtual inline void solve_incompatible_gt_conflict_with(
         SampleIndexToSampleInfoTemplate<SAMPLE_TYPE>& other)
     {
-        bool same_number_of_samples = this->size() == other.size();
+        const bool same_number_of_samples = this->size() == other.size();
         if(!same_number_of_samples) {
             fatal_error("Error solving genotype conflicts between two records: "
                         "number of samples is not consistent between both records");
@@ -462,7 +462,7 @@ protected: // We forbid anyone to change this class' sample and allele informati
     virtual inline void merge_other_samples_infos_into_this(
         const SampleIndexToSampleInfoTemplate<SAMPLE_TYPE>& other)
     {
-        bool same_number_of_samples = this->size() == other.size();
+        const bool same_number_of_samples = this->size() == other.size();
         if(!same_number_of_samples) {
             fatal_error("Error merging two records: "
                         "number of samples is not consistent between both records");

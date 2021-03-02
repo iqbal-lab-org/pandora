@@ -23,7 +23,7 @@ void LocalGraph::add_node(
             intervalTree.add(pos.start, pos.get_end(), n);
         startIndexOfAllIntervals[pos.start] = n;
     } else {
-        bool node_with_same_id_seq_and_pos_already_added = (it->second->seq == seq) && (it->second->pos == pos);
+        const bool node_with_same_id_seq_and_pos_already_added = (it->second->seq == seq) && (it->second->pos == pos);
         if (!node_with_same_id_seq_and_pos_already_added) {
             fatal_error("Error adding node to Local Graph: node with ID ", id,
                 " already exists in graph, but with different sequence or pos");

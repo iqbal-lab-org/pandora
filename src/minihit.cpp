@@ -11,7 +11,7 @@ MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer& minimizer_from_rea
     , read_strand { minimizer_from_read.is_forward_strand }
     , minimizer_from_PRG { minimizer_from_PRG }
 {
-    bool both_minimizers_have_same_length = minimizer_from_read.pos_of_kmer_in_read.length
+    const bool both_minimizers_have_same_length = minimizer_from_read.pos_of_kmer_in_read.length
         == minimizer_from_PRG.path.length();
     if(!both_minimizers_have_same_length) {
         fatal_error("Error when storing minimizers: minimizer from read/sequence "

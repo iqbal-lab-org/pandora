@@ -27,7 +27,7 @@ void prg::Path::add_end_interval(const Interval& i)
 {
     memoizedDirty = true;
 
-    bool interval_is_valid = i.start >= get_end();
+    const bool interval_is_valid = i.start >= get_end();
     if (!interval_is_valid) {
         fatal_error("Error when adding a new interval to a path");
     }
@@ -38,7 +38,7 @@ void prg::Path::add_end_interval(const Interval& i)
 std::vector<LocalNodePtr> prg::Path::nodes_along_path(const LocalPRG& localPrg)
 {
     // sanity check
-    bool memoization_is_valid = (isMemoized == false) ||
+    const bool memoization_is_valid = (isMemoized == false) ||
         (isMemoized == true && localPRGIdOfMemoizedLocalNodePath == localPrg.id);
     if (!memoization_is_valid) {
         fatal_error("Error when getting nodes along PRG path: memoized a local node path "
@@ -71,7 +71,7 @@ prg::Path prg::Path::subpath(const uint32_t start, const uint32_t len) const
 {
     // function now returns the path starting at position start along the path, rather
     // than at position start on linear PRG, and for length len
-    bool parameters_are_valid = start + len <= length();
+    const bool parameters_are_valid = start + len <= length();
     if (!parameters_are_valid) {
         fatal_error("Error when getting subpath from PRG path: given parameters are not valid");
     }
@@ -84,7 +84,7 @@ prg::Path prg::Path::subpath(const uint32_t start, const uint32_t len) const
         if ((covered_length <= start and covered_length + interval.length > start
                 and p.path.empty())
             or (covered_length == start and interval.length == 0 and p.path.empty())) {
-            bool no_interval_has_been_added_yet = added_len == 0;
+            const bool no_interval_has_been_added_yet = added_len == 0;
             if (!no_interval_has_been_added_yet) {
                 fatal_error("Error when getting subpath from PRG path: an interval "
                             "has already been added before the correct first one");
@@ -107,7 +107,7 @@ prg::Path prg::Path::subpath(const uint32_t start, const uint32_t len) const
         }
     }
 
-    bool subpath_length_is_correct = added_len == len;
+    const bool subpath_length_is_correct = added_len == len;
     if (!subpath_length_is_correct) {
         fatal_error("Error when getting subpath from PRG path: built the subpath with "
                     "the wrong length");
@@ -285,7 +285,7 @@ std::istream& prg::operator>>(std::istream& in, prg::Path& p)
 
 prg::Path prg::get_union(const prg::Path& x, const prg::Path& y)
 {
-    bool parameters_are_valid = x < y;
+    const bool parameters_are_valid = x < y;
     if (!parameters_are_valid) {
         fatal_error("Error when getting the union of two paths: first path: ", x,
             " must come before second path: ", y);
