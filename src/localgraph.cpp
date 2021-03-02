@@ -123,8 +123,7 @@ void LocalGraph::read_gfa(const std::string& filepath)
             }
         }
     } else {
-        BOOST_LOG_TRIVIAL(error) << "Unable to open GFA file " << filepath;
-        std::exit(1);
+        fatal_error("Unable to open GFA file: ", filepath);
     }
 }
 

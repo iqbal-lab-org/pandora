@@ -68,8 +68,7 @@ int pandora_seq2path(Seq2PathOptions const& opt)
     load_PRG_kmergraphs(prgs, opt.window_size, opt.kmer_size, opt.prgfile);
 
     if (prgs.empty()) {
-        BOOST_LOG_TRIVIAL(error) << "PRG is empty!";
-        exit(1);
+        fatal_error("PRG is empty!");
     }
 
     if (opt.top) {
@@ -124,9 +123,7 @@ int pandora_seq2path(Seq2PathOptions const& opt)
                         rev_complement(seq_handle.read));
                 }
             } else {
-                BOOST_LOG_TRIVIAL(error)
-                    << "Different numbers of PRGs and reads, exiting";
-                exit(1);
+                fatal_error("Different numbers of PRGs and reads");
             }
             if (opt.flag) {
                 if (npath.empty() and seq_handle.read.size() < 300) {
@@ -145,8 +142,7 @@ int pandora_seq2path(Seq2PathOptions const& opt)
         }
         seq_handle.close();
     } else {
-        BOOST_LOG_TRIVIAL(error) << "One of --top, --bottom or --input must be given";
-        exit(1);
+        fatal_error("One of --top, --bottom or --input must be given");
     }
 
     return 0;

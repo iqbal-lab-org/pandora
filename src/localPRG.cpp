@@ -311,16 +311,15 @@ LocalPRG::build_graph(
                                 // first into the invariant region coming before it, all
                                 // its alleles and then the rest of the PRG.
         if (v.size() < (uint32_t)4) {
-            BOOST_LOG_TRIVIAL(warning)
-                << "In conversion from linear localPRG string to graph, splitting the "
+            fatal_error(
+                   "In conversion from linear localPRG string to graph, splitting the "
                    "string by "
                    "the next var site resulted in the wrong number of intervals. "
                    "Please check that site numbers "
                    "are flanked by a space on either side. Or perhaps ordering of "
                    "numbers in GFA is irregular?! "
-                   "Size of partition based on site "
-                << next_site << " is " << v.size() << "\nLocalPRG name: " << name;
-            std::exit(-1);
+                   "Size of partition based on site ",
+                   next_site, " is ", v.size(), "\nLocalPRG name: ", name);
         }
         next_site += 2; // update next site
         // add first interval (should be the invariable seq, and thus composed only by
@@ -329,19 +328,18 @@ LocalPRG::build_graph(
             v[0].start, v[0].length); // gets the sequence of the invariable part
         if (!(isalpha_string(
                 s))) { // verify that the invariable part is indeed invariable
-            BOOST_LOG_TRIVIAL(warning)
-                << "In conversion from linear localPRG string to graph, splitting the "
+            fatal_error(
+                   "In conversion from linear localPRG string to graph, splitting the "
                    "string by "
                    "the next var site resulted in the first interval being non "
                    "alphabetic. Please check that site "
                    "numbers are flanked by a space on either side. Or perhaps ordering "
                    "of numbers in GFA is "
-                   "irregular?! After splitting by site "
-                << next_site
-                << " do not have alphabetic sequence before "
-                   "var site: "
-                << v[0];
-            std::exit(-1);
+                   "irregular?! After splitting by site ",
+                   next_site,
+                   " do not have alphabetic sequence before "
+                   "var site: ",
+                   v[0]);
         }
         prg.add_node(
             next_id, s, v[0]); // adds the invariable part as a node in the graph

@@ -69,8 +69,7 @@ int pandora_get_vcf_ref(GetVcfRefOptions const& opt)
 
             if (!found) {
                 if (npath.empty()) {
-                    BOOST_LOG_TRIVIAL(error) << "PRG is empty";
-                    exit(1);
+                    fatal_error("PRG is empty");
                 }
                 BOOST_LOG_TRIVIAL(debug)
                     << "Using top path as ref for " << prg_ptr->name;

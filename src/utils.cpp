@@ -127,8 +127,7 @@ void read_prg_file(
             prgs.push_back(s);
             id++;
         } else {
-            BOOST_LOG_TRIVIAL(error) << "Failed to make LocalPRG for " << fh.name;
-            exit(1);
+            fatal_error("Failed to make LocalPRG for ", fh.name);
         }
     }
     BOOST_LOG_TRIVIAL(debug) << "Number of LocalPRGs read: " << prgs.size();

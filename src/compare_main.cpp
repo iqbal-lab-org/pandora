@@ -198,9 +198,7 @@ std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
             }
         }
     } else {
-        BOOST_LOG_TRIVIAL(error)
-            << "Unable to open read index file " << read_index_fpath;
-        exit(1);
+        fatal_error("Unable to open read index file ", read_index_fpath);
     }
     BOOST_LOG_TRIVIAL(info) << "Finished loading " << samples.size()
                             << " samples from read index";

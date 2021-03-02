@@ -300,9 +300,8 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
         prev_node = prev_node_along_maxpath[prev_node];
 
         if (maxpath.size() > 1000000) {
-            BOOST_LOG_TRIVIAL(warning) << "I think I've found an infinite loop - is "
-                                          "something wrong with this kmergraph?";
-            exit(1);
+            fatal_error("I think I've found an infinite loop - is "
+                        "something wrong with this kmergraph?");
         }
     }
 
@@ -417,8 +416,7 @@ void KmerGraphWithCoverage::save(
         }
         handle.close();
     } else {
-        BOOST_LOG_TRIVIAL(error) << "Unable to open kmergraph file " << filepath;
-        std::exit(EXIT_FAILURE);
+        fatal_error("Unable to open kmergraph file ", filepath);
     }
 }
 
@@ -571,7 +569,6 @@ void KmerGraphWithCoverage::load(const std::string& filepath)
             }
         }
     } else {
-        fatal_error("Error reading GFA: unable to open kmergraph file", filepath);
-        exit(1);
+        fatal_error("Error reading GFA: unable to open kmergraph file: ", filepath);
     }
 }
