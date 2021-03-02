@@ -71,7 +71,7 @@ set(ZLIB_LIBRARY ZLIB::ZLIB)
 # INSTALL GATB
 include(${PROJECT_SOURCE_DIR}/ext/gatb.cmake)
 include_directories(SYSTEM
-        ${gatb_source_dir}/gatb-core/src
+        ${gatb_source_dir}/src
         ${gatb_binary_dir}/include
         )
 link_directories(${gatb_binary_dir}/lib)
