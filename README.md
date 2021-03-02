@@ -110,7 +110,7 @@ chmod +x pandora-linux-precompiled_v0.8.1_beta
 
 ![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/rmcolq/pandora)
 
-We highly recommend that you download a containerized image of Pandora.
+You can also download a containerized image of Pandora.
 Pandora is hosted on Dockerhub and images can be downloaded with the
 command:
 
@@ -128,6 +128,8 @@ NB For consistency, we no longer maintain images on singularity hub.
 
 ### Installation from source
 
+This is the hardest way to install `pandora`, but that yields the most optimised binary.
+
 Requirements:
 - A Unix or Mac OS, with a C++11 compiler toolset (e.g. `g++`, `ld`, `make`, `ctest`, etc), `cmake`, `git` and `wget`.
 
@@ -138,15 +140,13 @@ git clone --single-branch https://github.com/rmcolq/pandora.git --recursive
 cd pandora
 mkdir -p build
 cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release .. 
 make -j4
 ctest -VV
 ```
 
 * If you want to produce meaningful stack traces in case `pandora` errors out, `binutils-dev` must be installed and the
-  `cmake` command above must be changed to:
-
-`cmake -DPRINT_STACKTRACE=True ..`
+  `cmake` must receive this additional parameter: `-DPRINT_STACKTRACE=True`.
 
 ## Usage
 
