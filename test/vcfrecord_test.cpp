@@ -315,7 +315,7 @@ TEST(VCFRecordTest, alts_to_string___three_alts)
     EXPECT_EQ("A1,A2,A3", actual);
 }
 
-TEST(VCFRecordTest, get_format___no_flags_set___expects_death)
+TEST(VCFRecordTest, get_format___no_flags_set___expects_FatalRuntimeError)
 {
     VCF vcf = create_VCF_with_default_parameters();
     VCFRecord vcf_record(&vcf);
@@ -323,7 +323,7 @@ TEST(VCFRecordTest, get_format___no_flags_set___expects_death)
      "Error on getting format field from VCF record: incompatible genotyping options");
 }
 
-TEST(VCFRecordTest, get_format___both_flags_set___expects_death)
+TEST(VCFRecordTest, get_format___both_flags_set___expects_FatalRuntimeError)
 {
     VCF vcf = create_VCF_with_default_parameters();
     VCFRecord vcf_record(&vcf);
@@ -582,7 +582,7 @@ TEST_F(VCFRecordTest___merge_record_into_this______Fixture,
 }
 
 TEST_F(VCFRecordTest___merge_record_into_this______Fixture,
-    merge_last_alt_is_common___expects_death)
+    merge_last_alt_is_common___expects_FatalRuntimeError)
 {
     ASSERT_EXCEPTION(
         vcf_record_ref_A_alt_T_TT_TTT.merge_record_into_this(vcf_record_ref_A_alt_TTT),
@@ -633,7 +633,7 @@ public:
 };
 
 TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture,
-    merge_only_ref_no_alts___expects_death)
+    merge_only_ref_no_alts___expects_FatalRuntimeError)
 {
     bool actual = vcf_record_ref_A.can_biallelic_record_be_merged_into_this(
         vcf_record_only_ref_no_alts);

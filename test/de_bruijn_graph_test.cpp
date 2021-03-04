@@ -225,7 +225,7 @@ TEST(DeBruijnGraphAddEdge, AddEdgeNodesBothRC_EdgeAdded)
     EXPECT_FALSE(found_outnode_n2);
 }
 
-TEST(DeBruijnGraphAddEdge, AddEdgeNoOverlap_Death)
+TEST(DeBruijnGraphAddEdge, AddEdgeNoOverlap_FatalRuntimeError)
 {
     GraphTester g(3);
 

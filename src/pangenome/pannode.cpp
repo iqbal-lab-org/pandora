@@ -85,7 +85,7 @@ void pangenome::Node::add_path(
     const std::vector<KmerNodePtr>& kmp, const uint32_t& sample_id)
 {
     for (uint32_t i = 0; i != kmp.size(); ++i) {
-        bool kmer_node_is_valid =
+        const bool kmer_node_is_valid =
             (kmp[i]->id < kmer_prg_with_coverage.kmer_prg->nodes.size()) and
             (kmer_prg_with_coverage.kmer_prg->nodes[kmp[i]->id] != nullptr);
         if (!kmer_node_is_valid) {
@@ -118,7 +118,7 @@ void pangenome::Node::get_read_overlap_coordinates(
                 hit_ptr->get_read_start_position() + hit_ptr->get_prg_path().length());
         }
 
-        bool read_coordinates_are_valid = end > start;
+        const bool read_coordinates_are_valid = end > start;
         if (!read_coordinates_are_valid) {
             fatal_error("Error finding the read overlap coordinates for node ",
                          name, " and read ", read_ptr->id, " (the ", read_count,
@@ -226,7 +226,7 @@ std::set<ReadCoordinate> pangenome::Node::get_read_overlap_coordinates(
                     + read_hit->get_prg_path().length());
         }
 
-        bool read_coordinates_are_valid = end > start;
+        const bool read_coordinates_are_valid = end > start;
         if (!read_coordinates_are_valid) {
             fatal_error("Error finding the read overlap coordinates for node ",
                         name, " and read ", current_read->id, ". Found end ", end,

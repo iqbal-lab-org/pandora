@@ -78,8 +78,7 @@ int pandora_walk(WalkOptions const& opt)
             }
         }
     } else {
-        std::cerr << "One of --top, --bottom or --input must be given" << std::endl;
-        exit(1);
+        fatal_error("One of --top, --bottom or --input must be given");
     }
     return 0;
 }

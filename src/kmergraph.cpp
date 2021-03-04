@@ -276,8 +276,7 @@ void KmerGraph::save(const fs::path& filepath, const std::shared_ptr<LocalPRG> l
         }
         handle.close();
     } else {
-        BOOST_LOG_TRIVIAL(error) << "Unable to open kmergraph file " << filepath;
-        std::exit(EXIT_FAILURE);
+        fatal_error("Unable to open kmergraph file ", filepath);
     }
 }
 
@@ -420,7 +419,7 @@ void KmerGraph::load(const fs::path& filepath)
             }
         }
     } else {
-        fatal_error("Error reading GFA: unable to open kmergraph file", filepath);
+        fatal_error("Error reading GFA: unable to open kmergraph file: ", filepath);
     }
 }
 

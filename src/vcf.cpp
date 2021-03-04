@@ -100,7 +100,7 @@ void VCF::add_a_new_record_discovered_in_a_sample_and_genotype_it(
 
     auto vcf_record_iterator = find_record_in_records(
         vcf_record); // TODO: improve this search to log(n) using alt map or sth
-    bool vcf_record_was_found = vcf_record_iterator != records.end();
+    const bool vcf_record_was_found = vcf_record_iterator != records.end();
     if (vcf_record_was_found) {
         (*vcf_record_iterator)
             ->sampleIndex_to_sampleInfo[sample_index]
@@ -111,7 +111,7 @@ void VCF::add_a_new_record_discovered_in_a_sample_and_genotype_it(
         // or alt mistake
         bool vcf_record_was_processed = false;
 
-        bool sample_genotyped_towards_ref_allele = ref == alt;
+        const bool sample_genotyped_towards_ref_allele = ref == alt;
         if (sample_genotyped_towards_ref_allele) {
             // TODO: create a method to find records based on chrom, pos and ref only
             for (const auto& record : records) {
@@ -146,9 +146,9 @@ void VCF::update_other_samples_of_this_record(VCFRecord* reference_record)
 {
     // update other samples at this site if they have ref allele at this pos
     for (const auto& other_record : records) {
-        bool both_records_are_on_the_same_site
+        const bool both_records_are_on_the_same_site
             = other_record->get_chrom() == reference_record->get_chrom();
-        bool reference_record_start_overlaps_other_record
+        const bool reference_record_start_overlaps_other_record
             = other_record->get_pos() <= reference_record->get_pos()
             and reference_record->get_pos()
                 < other_record->get_pos() + other_record->get_ref().length();
@@ -249,10 +249,10 @@ bool VCF::pos_in_range(
 
 void VCF::genotype(const bool do_local_genotyping)
 {
-    bool all_SV_types = not genotyping_options->is_snps_only();
+    const bool all_SV_types = not genotyping_options->is_snps_only();
 
     for (auto& vcf_record : records) {
-        bool should_genotype_record = all_SV_types
+        const bool should_genotype_record = all_SV_types
             or (genotyping_options->is_snps_only() and vcf_record->is_SNP());
         if (should_genotype_record) {
             if (do_local_genotyping) {
@@ -272,13 +272,13 @@ void VCF::genotype(const bool do_local_genotyping)
 void VCF::merge_multi_allelic_core(VCF& merged_VCF, uint32_t max_allele_length) const
 {
     VCF empty_vcf = VCF(merged_VCF.genotyping_options);
-    bool merged_VCF_passed_as_parameter_is_initially_empty = merged_VCF == empty_vcf;
+    const bool merged_VCF_passed_as_parameter_is_initially_empty = merged_VCF == empty_vcf;
     if(!merged_VCF_passed_as_parameter_is_initially_empty) {
         fatal_error("Error on merging VCFs: initial VCF is not empty");
     }
 
     size_t vcf_size = this->get_VCF_size();
-    bool no_need_for_merging = vcf_size <= 1;
+    const bool no_need_for_merging = vcf_size <= 1;
     if (no_need_for_merging) {
         merged_VCF = *this;
         return;
@@ -290,7 +290,7 @@ void VCF::merge_multi_allelic_core(VCF& merged_VCF, uint32_t max_allele_length) 
         = (records[0])->make_copy_as_shared_ptr();
     for_each(records.begin() + 1, records.end(),
         [&](const std::shared_ptr<VCFRecord>& vcf_record_to_be_merged_in_pointer) {
-            bool vcf_record_should_be_merged_in
+            const bool vcf_record_should_be_merged_in
                 = vcf_record_merged->can_biallelic_record_be_merged_into_this(
                     *vcf_record_to_be_merged_in_pointer, max_allele_length);
 
@@ -307,7 +307,7 @@ void VCF::merge_multi_allelic_core(VCF& merged_VCF, uint32_t max_allele_length) 
 
     merged_VCF.sort_records();
 
-    bool merging_did_not_create_any_record = merged_VCF.get_VCF_size() <= vcf_size;
+    const bool merging_did_not_create_any_record = merged_VCF.get_VCF_size() <= vcf_size;
     if(!merging_did_not_create_any_record) {
         fatal_error("Error on merging VCFs: new VCF records were created, whereas "
                     "this should not be the case");
@@ -327,7 +327,7 @@ VCF VCF::correct_dot_alleles(const std::string& vcf_ref, const std::string& chro
     for (auto& recordPointer : records) {
         auto& record = *recordPointer;
 
-        bool we_are_not_in_the_given_chrom = record.get_chrom() != chrom;
+        const bool we_are_not_in_the_given_chrom = record.get_chrom() != chrom;
 
         if (we_are_not_in_the_given_chrom) {
             vcf_with_dot_alleles_corrected.add_record(record);
@@ -340,11 +340,11 @@ VCF VCF::correct_dot_alleles(const std::string& vcf_ref, const std::string& chro
             fatal_error("When correcting dot alleles, a VCF record has an inexistent "
                         "position (", record.get_pos(), ") in VCF ref with length ", vcf_ref.length());
         }
-        bool record_contains_dot_allele = record.contains_dot_allele();
-        bool record_did_not_contain_dot_allele_or_was_corrected = true;
-        bool there_is_a_previous_letter = record.get_pos() > 0;
-        bool there_is_a_next_letter
+        const bool record_contains_dot_allele = record.contains_dot_allele();
+        const bool there_is_a_previous_letter = record.get_pos() > 0;
+        const bool there_is_a_next_letter
             = record.get_pos() + record.get_ref().length() + 1 < vcf_ref.length();
+        bool record_did_not_contain_dot_allele_or_was_corrected = true;
         if (record_contains_dot_allele and there_is_a_previous_letter) {
             char prev_letter = vcf_ref[record.get_pos() - 1];
             record.correct_dot_alleles_adding_nucleotide_before(prev_letter);
@@ -367,7 +367,7 @@ VCF VCF::correct_dot_alleles(const std::string& vcf_ref, const std::string& chro
 
     vcf_with_dot_alleles_corrected.sort_records();
 
-    bool correcting_dot_alleles_did_not_create_any_record = vcf_with_dot_alleles_corrected.get_VCF_size() <= this->get_VCF_size();
+    const bool correcting_dot_alleles_did_not_create_any_record = vcf_with_dot_alleles_corrected.get_VCF_size() <= this->get_VCF_size();
     if(!correcting_dot_alleles_did_not_create_any_record) {
         fatal_error("Error on correcting dot alleles: new VCF records were created, whereas "
                     "this should not be the case");
@@ -394,7 +394,7 @@ void VCF::make_gt_compatible()
                 = record.get_pos() == overlapping_record.get_pos()
                 and record.get_ref() < overlapping_record.get_ref();
 
-            bool this_record_starts_before_the_overlapping_record
+            const bool this_record_starts_before_the_overlapping_record
                 = record.get_pos() < overlapping_record.get_pos()
                 or record_starts_at_the_same_position_but_ref_is_smaller_than_overlapping_record_ref;
 
@@ -517,7 +517,7 @@ std::string VCF::to_string(bool genotyping_from_maximum_likelihood,
     bool graph_is_nested, bool graph_has_too_many_alts, bool sv_type_is_snp,
     bool sv_type_is_indel, bool sv_type_is_ph_snps, bool sv_type_is_complex)
 {
-    bool only_one_flag_is_set
+    const bool only_one_flag_is_set
         = ((int)(genotyping_from_maximum_likelihood) + (int)(genotyping_from_coverage))
         == 1;
     if (!only_one_flag_is_set) {
@@ -532,22 +532,22 @@ std::string VCF::to_string(bool genotyping_from_maximum_likelihood,
     sort_records();
 
     for (const auto& record : this->records) {
-        bool record_has_dot_allele_and_should_be_output
+        const bool record_has_dot_allele_and_should_be_output
             = output_dot_allele and record->contains_dot_allele();
 
-        bool graph_type_condition_is_satisfied
+        const bool graph_type_condition_is_satisfied
             = (graph_is_simple and record->graph_type_is_simple())
             or (graph_is_nested and record->graph_type_is_nested())
             or (graph_has_too_many_alts and record->graph_type_has_too_many_alts());
-        bool sv_type_condition_is_satisfied
+        const bool sv_type_condition_is_satisfied
             = (sv_type_is_snp and record->svtype_is_SNP())
             or (sv_type_is_indel and record->svtype_is_indel())
             or (sv_type_is_ph_snps and record->svtype_is_PH_SNPs())
             or (sv_type_is_complex and record->svtype_is_complex());
-        bool graph_and_sv_type_conditions_are_satisfied
+        const bool graph_and_sv_type_conditions_are_satisfied
             = graph_type_condition_is_satisfied and sv_type_condition_is_satisfied;
 
-        bool record_should_be_output = record_has_dot_allele_and_should_be_output
+        const bool record_should_be_output = record_has_dot_allele_and_should_be_output
             or graph_and_sv_type_conditions_are_satisfied;
 
         if (record_should_be_output) {

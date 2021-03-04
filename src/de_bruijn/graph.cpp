@@ -78,7 +78,7 @@ bool edge_is_valid(OrientedNodePtr from, OrientedNodePtr to)
 // Add directed edge between from and to
 void debruijn::Graph::add_edge(OrientedNodePtr from, OrientedNodePtr to)
 {
-    bool nodes_are_valid = from.first != nullptr and to.first != nullptr;
+    const bool nodes_are_valid = from.first != nullptr and to.first != nullptr;
     if(!nodes_are_valid) {
         fatal_error("Error adding edge to de Bruijn Graph: from or to node is invalid");
     }
@@ -209,8 +209,8 @@ std::set<std::deque<uint32_t>> debruijn::Graph::get_unitigs()
         const auto& id = node_entry.first;
         const auto& node_ptr = node_entry.second;
 
-        bool node_seen = seen.find(id) != seen.end();
-        bool at_branch
+        const bool node_seen = seen.find(id) != seen.end();
+        const bool at_branch
             = (node_ptr->out_nodes.size() > 1) or (node_ptr->in_nodes.size() > 1);
         if (node_seen or at_branch)
             continue;
@@ -227,8 +227,8 @@ std::set<std::deque<uint32_t>> debruijn::Graph::get_unitigs()
 // Extend a dbg path on either end until reaching a branch point
 void debruijn::Graph::extend_unitig(std::deque<uint32_t>& tig)
 {
-    bool tig_is_empty = (tig.empty());
-    bool node_is_isolated = (tig.size() == 1
+    const bool tig_is_empty = (tig.empty());
+    const bool node_is_isolated = (tig.size() == 1
         and (nodes[tig.back()]->out_nodes.size() + nodes[tig.back()]->in_nodes.size())
             == 0);
     if (tig_is_empty or node_is_isolated) {

@@ -11,7 +11,7 @@ HunterGate(
 
 # project configuration
 set(PROJECT_NAME_STR pandora)
-project(${PROJECT_NAME_STR} VERSION "0.7.0" LANGUAGES C CXX)
+project(${PROJECT_NAME_STR} VERSION "0.8.0" LANGUAGES C CXX)
 configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
 # add or not feature to print the stack trace
@@ -71,7 +71,7 @@ set(ZLIB_LIBRARY ZLIB::ZLIB)
 # INSTALL GATB
 include(${PROJECT_SOURCE_DIR}/ext/gatb.cmake)
 include_directories(SYSTEM
-        ${gatb_source_dir}/gatb-core/src
+        ${gatb_source_dir}/src
         ${gatb_binary_dir}/include
         )
 link_directories(${gatb_binary_dir}/lib)
@@ -107,7 +107,7 @@ set(Boost_USE_STATIC_LIBS ON)
 #include directories as SYSTEM includes, thus warnings will be ignored for these
 include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
-        ${PROJECT_SOURCE_DIR}/cgranges/cpp
+        ${PROJECT_SOURCE_DIR}/thirdparty/cgranges/cpp
         )
 
 # normal includes: warnings will be reported for these

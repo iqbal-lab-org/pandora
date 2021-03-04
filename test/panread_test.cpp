@@ -54,7 +54,7 @@ TEST(ReadAddHits, AddOneEmptyClusterToHits_ReadHitsMapContainsCorrectPrgId)
     EXPECT_TRUE(result);
 }
 
-TEST(ReadAddHits, AddClusterSecondTime_DeathAndReadHitsNotChanged)
+TEST(ReadAddHits, AddClusterSecondTime_FatalRuntimeErrorAndReadHitsNotChanged)
 {
     uint32_t read_id = 1;
     Read read(read_id);

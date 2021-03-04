@@ -97,7 +97,7 @@ void merge_intervals_within(std::vector<Interval>& intervals, const uint32_t dis
 
 bool Interval::sorted_interval_vector_has_overlapping_intervals (const std::vector<Interval> &intervals) {
     for (uint32_t index = 1; index < intervals.size(); ++index) {
-        bool there_is_overlap = intervals[index - 1].get_end() > intervals[index].start;
+        const bool there_is_overlap = intervals[index - 1].get_end() > intervals[index].start;
         if (there_is_overlap) {
             return true;
         }

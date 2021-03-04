@@ -8,11 +8,11 @@ Minimizer::Minimizer(uint64_t s, uint32_t a, uint32_t b, bool c)
     , pos_of_kmer_in_read(Interval(a, b))
     , is_forward_strand(c)
 {
-    bool hash_value_is_consistend_with_kmer_interval_size
+    const bool hash_value_is_consistend_with_kmer_interval_size
         = s <= pow(4, pos_of_kmer_in_read.length);
     if (!hash_value_is_consistend_with_kmer_interval_size) {
         fatal_error("Error when building minimizer: hash value (", s,
-            ") is too big for kmer ", "of interval size ", pos_of_kmer_in_read.length);
+            ") is too big for kmer of interval size ", pos_of_kmer_in_read.length);
     }
 }
 
