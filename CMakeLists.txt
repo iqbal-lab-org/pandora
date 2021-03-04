@@ -107,7 +107,7 @@ set(Boost_USE_STATIC_LIBS ON)
 #include directories as SYSTEM includes, thus warnings will be ignored for these
 include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
-        ${PROJECT_SOURCE_DIR}/cgranges/cpp
+        ${PROJECT_SOURCE_DIR}/thirdparty/cgranges/cpp
         )
 
 # normal includes: warnings will be reported for these
