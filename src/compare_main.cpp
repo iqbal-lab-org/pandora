@@ -178,34 +178,6 @@ void setup_compare_subcommand(CLI::App& app)
     compare_subcmd->callback([opt]() { pandora_compare(*opt); });
 }
 
-std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
-    const fs::path& read_index_fpath)
-{
-    std::map<SampleIdText, SampleFpath> samples;
-    std::string name, reads_path, line;
-    fs::ifstream instream(read_index_fpath);
-    if (instream.is_open()) {
-        while (getline(instream, line).good()) {
-            std::istringstream linestream(line);
-            if (std::getline(linestream, name, '\t')) {
-                linestream >> reads_path;
-                if (samples.find(name) != samples.end()) {
-                    BOOST_LOG_TRIVIAL(warning)
-                        << "Warning: non-unique sample ids given! Only the last "
-                           "of these will be kept";
-                }
-                samples[name] = reads_path;
-            }
-        }
-    } else {
-        fatal_error("Unable to open read index file ", read_index_fpath);
-    }
-    BOOST_LOG_TRIVIAL(info) << "Finished loading " << samples.size()
-                            << " samples from read index";
-    return std::vector<std::pair<SampleIdText, SampleFpath>>(
-        samples.begin(), samples.end());
-}
-
 int pandora_compare(CompareOptions& opt)
 {
     auto log_level = boost::log::trivial::info;
