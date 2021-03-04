@@ -52,7 +52,7 @@ std::string LocalPRG::string_along_path(const prg::Path& p) const
     const bool path_is_inside_the_PRG = (p.get_start() <= seq.length()) &&
         (p.get_end() <= seq.length());
     if(!path_is_inside_the_PRG) {
-        fatal_error("Error getting sequence along PRG path: path is out of range");
+        fatal_error("Error getting sequence along PRG path: path goes beyond PRG limits");
     }
     std::string s;
     for (const auto& it : p) {

@@ -419,7 +419,7 @@ void KmerGraph::load(const fs::path& filepath)
             }
         }
     } else {
-        fatal_error("Error reading GFA: unable to open kmergraph file", filepath);
+        fatal_error("Error reading GFA: unable to open kmergraph file: ", filepath);
     }
 }
 

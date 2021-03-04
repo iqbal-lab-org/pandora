@@ -63,7 +63,7 @@ std::vector<LocalNodePtr> prg::Path::nodes_along_path(const LocalPRG& localPrg)
         // redudant call, return the memoized local node path
         return memoizedLocalNodePath;
     } else {
-        fatal_error("Bug on prg::Path::nodes_along_path()");
+        fatal_error("Error when getting nodes along PRG path: memoization state is invalid");
     }
 }
 
