@@ -14,7 +14,7 @@ using ::testing::DoubleNear;
 using ::testing::Property;
 using ::testing::Return;
 
-TEST(SampleInfoTest, constructor___zero_alleles___expects_death)
+TEST(SampleInfoTest, constructor___zero_alleles___expects_FatalRuntimeError)
 {
     ASSERT_EXCEPTION(SampleInfo(0, 0, &default_genotyping_options), FatalRuntimeError,
                      "Error on creating VCF Sample INFOs: the VCF record has no alleles");
@@ -203,7 +203,7 @@ TEST_F(SampleInfoTest___Fixture, get_allele_to_reverse_coverages___default_sampl
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___forward_coverage_has_no_alleles___expects_death)
+    set_coverage_information___forward_coverage_has_no_alleles___expects_FatalRuntimeError)
 {
     ASSERT_EXCEPTION(default_sample_info.set_coverage_information(
                      allele_to_coverage_empty, allele_to_coverage_three_alleles),
@@ -212,7 +212,7 @@ TEST_F(SampleInfoTest___Fixture,
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___forward_coverage_has_one_allele___expects_death)
+    set_coverage_information___forward_coverage_has_one_allele___expects_FatalRuntimeError)
 {
     ASSERT_EXCEPTION(default_sample_info.set_coverage_information(
                      allele_to_coverage_one_allele, allele_to_coverage_three_alleles),
@@ -221,7 +221,7 @@ TEST_F(SampleInfoTest___Fixture,
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___reverse_coverage_has_no_alleles___expects_death)
+    set_coverage_information___reverse_coverage_has_no_alleles___expects_FatalRuntimeError)
 {
     ASSERT_EXCEPTION(default_sample_info.set_coverage_information(
                      allele_to_coverage_three_alleles, allele_to_coverage_empty),
@@ -230,7 +230,7 @@ TEST_F(SampleInfoTest___Fixture,
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___reverse_coverage_has_one_allele___expects_death)
+    set_coverage_information___reverse_coverage_has_one_allele___expects_FatalRuntimeError)
 {
     ASSERT_EXCEPTION(default_sample_info.set_coverage_information(
                      allele_to_coverage_three_alleles, allele_to_coverage_one_allele),
@@ -239,7 +239,7 @@ TEST_F(SampleInfoTest___Fixture,
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___both_coverages_have_two_alleles___different_number_of_bases___expects_death)
+    set_coverage_information___both_coverages_have_two_alleles___different_number_of_bases___expects_FatalRuntimeError)
 {
     ASSERT_EXCEPTION(default_sample_info.set_coverage_information(
                      allele_to_coverage_two_alleles, { { 1, 2 }, { 3 } }),
@@ -263,7 +263,7 @@ TEST_F(SampleInfoTest___Fixture,
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___fwd_coverage_has_two_alleles___rev_coverage_has_three_alleles___sample_info_expects_three_alleles___expects_death)
+    set_coverage_information___fwd_coverage_has_two_alleles___rev_coverage_has_three_alleles___sample_info_expects_three_alleles___expects_FatalRuntimeError)
 {
     ASSERT_EXCEPTION(default_sample_info_three_alleles.set_coverage_information(
                      allele_to_coverage_two_alleles, allele_to_coverage_three_alleles),
@@ -272,7 +272,7 @@ TEST_F(SampleInfoTest___Fixture,
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___fwd_coverage_has_three_alleles___rev_coverage_has_two_alleles___sample_info_expects_three_alleles___expects_death)
+    set_coverage_information___fwd_coverage_has_three_alleles___rev_coverage_has_two_alleles___sample_info_expects_three_alleles___expects_FatalRuntimeError)
 {
     ASSERT_EXCEPTION(default_sample_info_three_alleles.set_coverage_information(
                      allele_to_coverage_three_alleles, allele_to_coverage_two_alleles),
@@ -295,7 +295,7 @@ TEST_F(SampleInfoTest___Fixture,
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___forward_covg_has_two_alleles___reverse_covg_has_three_alleles___expects_death)
+    set_coverage_information___forward_covg_has_two_alleles___reverse_covg_has_three_alleles___expects_FatalRuntimeError)
 {
     ASSERT_EXCEPTION(default_sample_info.set_coverage_information(
                      allele_to_coverage_two_alleles, allele_to_coverage_three_alleles),
@@ -304,7 +304,7 @@ TEST_F(SampleInfoTest___Fixture,
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___both_covgs_have_two_alleles_but_have_different_number_of_bases_on_first_allele___expects_death)
+    set_coverage_information___both_covgs_have_two_alleles_but_have_different_number_of_bases_on_first_allele___expects_FatalRuntimeError)
 {
     std::vector<std::vector<uint32_t>>
         allele_to_coverage_two_alleles_first_allele_has_only_one_base(
@@ -319,7 +319,7 @@ TEST_F(SampleInfoTest___Fixture,
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___both_covgs_have_two_alleles_but_have_different_number_of_bases_on_second_allele___expects_death)
+    set_coverage_information___both_covgs_have_two_alleles_but_have_different_number_of_bases_on_second_allele___expects_FatalRuntimeError)
 {
     std::vector<std::vector<uint32_t>>
         allele_to_coverage_two_alleles_second_allele_has_only_one_base(
@@ -334,7 +334,7 @@ TEST_F(SampleInfoTest___Fixture,
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_number_of_alleles_and_resize_coverage_information___resize_to_zero_alleles___expects_death)
+    set_number_of_alleles_and_resize_coverage_information___resize_to_zero_alleles___expects_FatalRuntimeError)
 {
     default_sample_info_three_alleles.set_coverage_information(
         allele_to_coverage_three_alleles, allele_to_coverage_three_alleles);
@@ -1124,13 +1124,13 @@ TEST_F(SampleInfoTest___get_genotype_from_coverage___Fixture,
     EXPECT_NEAR(-50.5, actual->second, 0.000001);
 }
 
-TEST_F(SampleInfoTest___Fixture, to_string___no_flags_set___expects_death)
+TEST_F(SampleInfoTest___Fixture, to_string___no_flags_set___expects_FatalRuntimeError)
 {
     ASSERT_EXCEPTION(default_sample_info.to_string(false, false), FatalRuntimeError,
      "Error on stringifying VCF record sample info: incompatible genotyping options");
 }
 
-TEST_F(SampleInfoTest___Fixture, to_string___both_flags_set___expects_death)
+TEST_F(SampleInfoTest___Fixture, to_string___both_flags_set___expects_FatalRuntimeError)
 {
     ASSERT_EXCEPTION(default_sample_info.to_string(true, true), FatalRuntimeError,
      "Error on stringifying VCF record sample info: incompatible genotyping options");
@@ -1294,7 +1294,7 @@ TEST_F(SampleIndexToSampleInfoTemplate___Fixture,
 }
 
 TEST_F(SampleIndexToSampleInfoTemplate___Fixture,
-    merge_other_samples_infos_into_this___different_nb_of_samples___expects_death)
+    merge_other_samples_infos_into_this___different_nb_of_samples___expects_FatalRuntimeError)
 {
     SampleIndexToSampleInfoTemplateAllVisible<SampleInfoMock>
         another_sample_index_to_sample_info;
