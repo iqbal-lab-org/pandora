@@ -2,7 +2,7 @@
 set -eu
 
 # configs
-pandora_URL="https://www.dropbox.com/s/3ofko0q5fcec5xe/pandora-linux-precompiled-v0.8.0-alpha?dl=1"
+pandora_URL="https://github.com/rmcolq/pandora/releases/download/v0.8.0-alpha/pandora-linux-precompiled-v0.8.0-alpha"
 pandora_executable="./pandora-linux-precompiled-v0.8.0-alpha"
 pandora_md5sum_file="./pandora-linux-precompiled-v0.8.0-alpha.md5sum.txt"
 

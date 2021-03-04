@@ -1,1 +1,1 @@
-3dfbf91158e3d1e8e1c9515800f8133e  pandora-linux-precompiled-v0.8.0-alpha
+0703e724c62cfe41c048519f53298825  pandora-linux-precompiled-v0.8.0-alpha
