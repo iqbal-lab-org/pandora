@@ -12,6 +12,7 @@
 [TOC]: #
 
 # Table of Contents
+- [News](#news)
 - [Introduction](#introduction)
 - [Quick Start](#quick-start)
 - [Hands-on toy example](#hands-on-toy-example)
@@ -19,6 +20,12 @@
   - [Containers](#containers)
   - [Installation from source](#installation-from-source)
 - [Usage](#usage)
+
+
+## News
+
+* A new pre-release version is out: [v0.8.0-alpha](https://github.com/rmcolq/pandora/releases/tag/v0.8.0-alpha).
+Note that this is yet an unstable version. The latest stable release is [v0.7.0](https://github.com/rmcolq/pandora/releases/tag/v0.7.0).
 
 
 ## Introduction
