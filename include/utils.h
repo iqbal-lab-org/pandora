@@ -128,4 +128,6 @@ using SampleFpath = std::string;
 std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
     const fs::path& read_index_fpath);
 
+void execute_command(const std::string &command, bool verbose, const std::string & message_if_it_fails);
+
 #endif

@@ -17,6 +17,7 @@
 #include "noise_filtering.h"
 #include "minihit.h"
 #include "fastaq_handler.h"
+#include <pstream.h>
 
 std::string now()
 {
@@ -627,4 +628,44 @@ std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
                             << " samples from read index";
     return std::vector<std::pair<SampleIdText, SampleFpath>>(
         samples.begin(), samples.end());
+}
+
+
+void execute_command(const std::string &command, bool verbose, const std::string & message_if_it_fails) {
+    // run a process and create a streambuf that reads its stdout and stderr
+    if (verbose)
+        cerr << "Executing " << command << "..." << endl;
+
+    //create the process
+    redi::ipstream proc(command, redi::pstreams::pstdout | redi::pstreams::pstderr);
+    string line;
+
+    // read child's stdout
+    while (getline(proc.out(), line)) {
+        if (verbose)
+            cout << line << endl;
+    }
+    // read child's stderr
+    while (getline(proc.err(), line)) {
+        if (verbose)
+            cerr << line << endl;
+    }
+
+    //check exit status
+    proc.close();
+    if (proc.rdbuf()->exited()) {
+        if (proc.rdbuf()->status() != 0) {
+            stringstream ss;
+            ss << "Error executing " << command << ". Exit status: " << proc.rdbuf()->status() << endl;
+            if (message_if_it_fails != "")
+                ss << "Message: " << message_if_it_fails << endl;
+            fatal_error(ss.str());
+        }
+        if (verbose)
+            cerr << "Executing " << command << " - Done!" << endl;
+    }
+    else {
+        fatal_error("On executing an external command");
+    }
+
 }

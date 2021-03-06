@@ -338,7 +338,7 @@ void pandora_discover_core(const std::vector<std::pair<SampleIdText, SampleFpath
             auto& candidate_region { element.second };
             denovo.find_paths_through_candidate_region(
                 candidate_region, temp_dir);
-            candidate_region.write_denovo_paths_to_buffer(buffer);
+            candidate_region.write_denovo_paths_to_buffer(buffer, temp_dir);
         }
         auto denovo_output_file = sample_outdir / "denovo_paths.txt";
         buffer.write_to_file(denovo_output_file);
@@ -421,6 +421,7 @@ int pandora_discover(DiscoverOptions& opt)
         sample_names.push_back(sample_pair.first);
     }
 
+#if ALLOW_FORK==1
     // adjust the nb of threads
     uint32_t nb_of_samples = samples.size();
     opt.threads = std::min(opt.threads, nb_of_samples);
@@ -458,7 +459,11 @@ int pandora_discover(DiscoverOptions& opt)
                 BOOST_LOG_TRIVIAL(info) << "Child process " << child_pid << " finished!";
             }
         }
-
+#else
+    // adjust the nb of threads
+    opt.threads = 1;
+    pandora_discover_core(samples, index, prgs, opt, 0);
+#endif
         // concatenate all denovo files
         std::vector<fs::path> denovo_paths_files;
         for (uint32_t sample_id = 0; sample_id < samples.size(); sample_id++) {
@@ -471,7 +476,10 @@ int pandora_discover(DiscoverOptions& opt)
         concatenate_denovo_files(denovo_output_file, denovo_paths_files);
         BOOST_LOG_TRIVIAL(info) << "De novo variant paths written to " << denovo_output_file.string();
         BOOST_LOG_TRIVIAL(info) << "All done!";
+
+#if ALLOW_FORK==1
     }
+#endif
 
     return 0;
 }

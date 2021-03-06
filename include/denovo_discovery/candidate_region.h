@@ -76,7 +76,8 @@ public:
     void add_pileup_entry(
         const std::string& read, const ReadCoordinate& read_coordinate);
 
-    void write_denovo_paths_to_buffer(CandidateRegionWriteBuffer &buffer);
+    void write_denovo_paths_to_buffer(CandidateRegionWriteBuffer &buffer,
+                                      const fs::path& temp_dir);
 
 private:
     const Interval interval;
@@ -94,22 +95,7 @@ private:
 
     Fastaq generate_fasta_for_denovo_paths();
 
-    template <typename ItType>
-    size_t find_length_of_longest_common_prefix(ItType s1_begin, ItType s1_end,
-                                                ItType s2_begin, ItType s2_end) const {
-        size_t length_of_LCP;
-        ItType s1_it, s2_it;
-        for (length_of_LCP = 0, s1_it = s1_begin, s2_it = s2_begin;
-             s1_it < s1_end && s2_it < s2_end;
-             ++s1_it, ++s2_it, ++length_of_LCP) {
-            bool bases_are_equal = (*s1_it) == (*s2_it);
-            if (!bases_are_equal) {
-                break;
-            }
-        }
-        return length_of_LCP;
-    }
-    std::string get_variants(const string &denovo_path) const;
+    std::vector<std::string> get_variants(const fs::path &temp_dir_for_alignment) const;
 };
 
 using CandidateRegions = std::unordered_map<CandidateRegionIdentifier, CandidateRegion>;
@@ -157,6 +143,10 @@ public:
                          const std::string &ML_path,
                          const std::string &variant);
     void write_to_file(const fs::path& output_file);
+
+    const std::string & get_sample_name () const {
+        return sample_name;
+    }
 };
 
 #endif // PANDORA_CANDIDATE_REGION_H

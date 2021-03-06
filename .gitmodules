@@ -4,3 +4,6 @@
 [submodule "thirdparty/cgranges"]
 	path = thirdparty/cgranges
 	url = https://github.com/lh3/cgranges
+[submodule "thirdparty/pstreams"]
+	path = thirdparty/pstreams
+	url = https://github.com/jwakely/pstreams/

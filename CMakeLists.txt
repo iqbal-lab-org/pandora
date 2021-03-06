@@ -108,6 +108,7 @@ set(Boost_USE_STATIC_LIBS ON)
 include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
         ${PROJECT_SOURCE_DIR}/thirdparty/cgranges/cpp
+        ${PROJECT_SOURCE_DIR}/thirdparty/pstreams
         )
 
 # normal includes: warnings will be reported for these
