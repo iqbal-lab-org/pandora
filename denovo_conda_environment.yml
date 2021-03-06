@@ -26,6 +26,7 @@ dependencies:
   - libopenblas=0.3.10=h5a2b251_0
   - libssh2=1.9.0=h1ba5d50_1
   - libstdcxx-ng=9.1.0=hdf63c60_0
+  - mafft=7.475=h516909a_0
   - ncurses=6.2=he6710b0_1
   - openssl=1.1.1j=h27cfd23_0
   - perl=5.26.2=h14c3975_0
