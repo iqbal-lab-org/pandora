@@ -1,15 +1,12 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
-#include <cassert>
 #include <numeric>
 #include <algorithm>
 #include "utils.h"
 #include "pangenome/pangraph.h"
 #include "pangenome/pannode.h"
 #include "estimate_parameters.h"
-
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 double fit_mean_covg(
     const std::vector<uint32_t>& kmer_covg_dist, const uint8_t zero_thresh)
@@ -48,8 +45,11 @@ double fit_variance_covg(const std::vector<uint32_t>& kmer_covg_dist, double& me
 
 void fit_negative_binomial(double& mean, double& variance, float& p, float& r)
 {
-    assert(mean > 0 and variance > 0);
-    assert(mean < variance);
+    const bool negative_binomial_parameters_are_ok = mean > 0 and variance > 0 and mean < variance;
+    if (!negative_binomial_parameters_are_ok) {
+        fatal_error("Negative binomial parameters are invalid: mean is ", mean,
+            ", variance is ", variance);
+    }
     p = mean / variance;
     r = (mean * p / (1 - p) + variance * p * p / (1 - p)) / 2;
     BOOST_LOG_TRIVIAL(debug) << "Negative binomial parameters p: " << p

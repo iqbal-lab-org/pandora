@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.12)  # required by hunter ZLIB installation
 
 # include hunter
+set(HUNTER_ROOT ${CMAKE_BINARY_DIR}/hunter)
 include("cmake/HunterGate.cmake")
 HunterGate(
         URL "https://github.com/cpp-pm/hunter/archive/v0.23.289.tar.gz"
@@ -10,12 +11,18 @@ HunterGate(
 
 # project configuration
 set(PROJECT_NAME_STR pandora)
-project(${PROJECT_NAME_STR} VERSION "0.7.0" LANGUAGES C CXX)
+project(${PROJECT_NAME_STR} VERSION "0.8.0" LANGUAGES C CXX)
 configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
+# add or not feature to print the stack trace
+if(PRINT_STACKTRACE)
+    message(STATUS "Printing meaningful stacktrace enabled, please have binutils-dev installed")
+    add_compile_definitions(BACKWARD_HAS_BFD=1)
+    set(BACKWARD_LIBRARIES "-lbfd")
+else()
+    set(BACKWARD_LIBRARIES "")
+endif()
 
-# add a RELEASE_WITH_ASSERTS build type - TODO: FIX THIS
-set(CMAKE_CXX_FLAGS_RELEASE_WITH_ASSERTS "-O3")
 
 # C++11 required
 include(CheckCXXCompilerFlag)
@@ -31,6 +38,12 @@ endif ()
 
 # default flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_SYSTEM_NO_DEPRECATED -Wall -Wextra")
+
+if(PRINT_STACKTRACE)
+    # -g is to add debug symbols, to make backtraces meaningful.
+    # it does not impact performance (see https://stackoverflow.com/a/39223245)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+endif ()
 
 # compile with openmp only on Linux
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -58,7 +71,7 @@ set(ZLIB_LIBRARY ZLIB::ZLIB)
 # INSTALL GATB
 include(${PROJECT_SOURCE_DIR}/ext/gatb.cmake)
 include_directories(SYSTEM
-        ${gatb_source_dir}/gatb-core/src
+        ${gatb_source_dir}/src
         ${gatb_binary_dir}/include
         )
 link_directories(${gatb_binary_dir}/lib)
@@ -94,13 +107,15 @@ set(Boost_USE_STATIC_LIBS ON)
 #include directories as SYSTEM includes, thus warnings will be ignored for these
 include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
-        ${PROJECT_SOURCE_DIR}/cgranges/cpp
+        ${PROJECT_SOURCE_DIR}/thirdparty/cgranges/cpp
         )
 
 # normal includes: warnings will be reported for these
 include_directories(
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/thirdparty/include
+        ${PROJECT_SOURCE_DIR}/thirdparty/src
 )
 
 file(GLOB_RECURSE SRC_FILES
@@ -111,6 +126,9 @@ file(GLOB_RECURSE SRC_FILES
         ${PROJECT_SOURCE_DIR}/include/*.h
         ${PROJECT_SOURCE_DIR}/include/*/*.hpp
         ${PROJECT_SOURCE_DIR}/include/*/*.h
+        ${PROJECT_SOURCE_DIR}/thirdparty/src/*.cpp
+        ${PROJECT_SOURCE_DIR}/thirdparty/include/*.hpp
+        ${PROJECT_SOURCE_DIR}/thirdparty/include/*.h
         )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
@@ -122,6 +140,7 @@ target_link_libraries(${PROJECT_NAME}
         ${ZLIB_LIBRARY}
         ${CMAKE_DL_LIBS}
         ${STATIC_C_CXX}
+        ${BACKWARD_LIBRARIES}
 )
 
 enable_testing()

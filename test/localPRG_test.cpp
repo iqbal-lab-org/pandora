@@ -148,10 +148,12 @@ TEST(LocalPRGTest, string_along_path)
     // forbidden paths
     d = { Interval(2, 3), Interval(13, 25) };
     p.initialize(d);
-    EXPECT_DEATH(l1.string_along_path(p), "");
-    EXPECT_DEATH(l1.string_along_path(p), "");
-    EXPECT_DEATH(l2.string_along_path(p), "");
-    EXPECT_DEATH(l3.string_along_path(p), "");
+    ASSERT_EXCEPTION(l1.string_along_path(p), FatalRuntimeError,
+        "Error getting sequence along PRG path");
+    ASSERT_EXCEPTION(l2.string_along_path(p), FatalRuntimeError,
+        "Error getting sequence along PRG path");
+    ASSERT_EXCEPTION(l3.string_along_path(p), FatalRuntimeError,
+        "Error getting sequence along PRG path");
 }
 
 TEST(LocalPRGTest, string_along_localpath)

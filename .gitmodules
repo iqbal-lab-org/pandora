@@ -1,3 +1,6 @@
-[submodule "cgranges"]
-	path = cgranges
+[submodule "thirdparty/gatb-core"]
+	path = thirdparty/gatb-core
+	url = https://github.com/leoisl/gatb-core
+[submodule "thirdparty/cgranges"]
+	path = thirdparty/cgranges
 	url = https://github.com/lh3/cgranges

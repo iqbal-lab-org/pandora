@@ -4,6 +4,7 @@
 #include "prg/path.h"
 #include <stdint.h>
 #include <iostream>
+#include "test_helpers.h"
 
 typedef prg::Path Path;
 using namespace std;
@@ -47,7 +48,8 @@ TEST(PathTest, add_end_interval)
     p.add_end_interval(Interval(6, 9));
     d.push_back(Interval(6, 9));
     EXPECT_ITERABLE_EQ(vector<Interval>, d, p.getPath());
-    EXPECT_DEATH(p.add_end_interval(Interval(0, 1)), "");
+    ASSERT_EXCEPTION(p.add_end_interval(Interval(0, 1)), FatalRuntimeError,
+                     "Error when adding a new interval to a path");
 }
 
 TEST(PathTest, subpath)
@@ -350,5 +352,6 @@ TEST(PathTest, get_union)
     // wrong way round
     d2 = { Interval(0, 0) };
     p2.initialize(d2);
-    EXPECT_DEATH(get_union(p1, p2), "");
+    ASSERT_EXCEPTION(get_union(p1, p2), FatalRuntimeError,
+        "Error when getting the union of two paths");
 }

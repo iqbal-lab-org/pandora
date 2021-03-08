@@ -1,13 +1,8 @@
-#include <cassert>
 #include <functional>
 #include <iostream>
-#include <limits>
-#include <algorithm>
 #include "minirecord.h"
 #include "minihit.h"
 #include "prg/path.h"
-
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer& minimizer_from_read,
     const MiniRecord& minimizer_from_PRG)
@@ -16,15 +11,12 @@ MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer& minimizer_from_rea
     , read_strand { minimizer_from_read.is_forward_strand }
     , minimizer_from_PRG { minimizer_from_PRG }
 {
-
-    assert(minimizer_from_read.pos_of_kmer_in_read.length
-        == minimizer_from_PRG.path.length());
-    assert(read_id < std::numeric_limits<uint32_t>::max()
-        || assert_msg("Variable sizes too small to handle this number of reads"));
-    assert(minimizer_from_PRG.prg_id < std::numeric_limits<uint32_t>::max()
-        || assert_msg("Variable sizes too small to handle this number of prgs"));
-    assert(minimizer_from_read.pos_of_kmer_in_read.length
-        == minimizer_from_PRG.path.length());
+    const bool both_minimizers_have_same_length = minimizer_from_read.pos_of_kmer_in_read.length
+        == minimizer_from_PRG.path.length();
+    if(!both_minimizers_have_same_length) {
+        fatal_error("Error when storing minimizers: minimizer from read/sequence "
+                    "and from PRG have different lengths");
+    }
 }
 
 bool MinimizerHit::operator==(const MinimizerHit& y) const

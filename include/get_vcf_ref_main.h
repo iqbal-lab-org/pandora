@@ -1,6 +1,5 @@
 #ifndef PANDORA_GET_VCF_REF_MAIN_H
 #define PANDORA_GET_VCF_REF_MAIN_H
-#include <cassert>
 #include <vector>
 #include <iostream>
 #include "localPRG.h"

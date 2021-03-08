@@ -15,7 +15,7 @@ pandora_workflow_data/ : contains other input and configuration files to run the
 
 ### Dependencies
 
-* [`singularity`](https://sylabs.io/)
+* `md5sum`, `wget`, `GCC` 4.9+ (see [why](../README.md#no-installation-needed---precompiled-portable-binary)).
 
 ### Running
 ```
@@ -41,9 +41,7 @@ We can see samples `toy_sample_1` and `toy_sample_2` genotype towards different 
 
 ### Dependencies
 
-* [`singularity`](https://sylabs.io/)
-* `git`
-* `python 3.6+`
+* [`singularity`](https://sylabs.io/), `git`, `python 3.6+`
 
 ### Running
 ```

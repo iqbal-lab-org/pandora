@@ -51,6 +51,12 @@ int pandora_index(IndexOptions const& opt)
     if (opt.window_size > opt.kmer_size) {
         throw std::logic_error("W must NOT be greater than K");
     }
+    if (opt.window_size <= 0) {
+        throw std::logic_error("W must be a positive integer");
+    }
+    if (opt.kmer_size <= 0) {
+        throw std::logic_error("K must be a positive integer");
+    }
 
     LocalPRG::do_path_memoization_in_nodes_along_path_method = true;
 

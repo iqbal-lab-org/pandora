@@ -124,9 +124,7 @@ void Index::load(const fs::path& indexfile)
             }
         }
     } else {
-        BOOST_LOG_TRIVIAL(warning) << "Unable to open index file " << indexfile
-                                   << ". Does it exist? Have you run pandora index?";
-        exit(1);
+        fatal_error("Unable to open index file ", indexfile, ". Does it exist? Have you run pandora index?");
     }
 
     if (minhash.size() <= 1) {

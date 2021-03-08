@@ -198,9 +198,7 @@ std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
             }
         }
     } else {
-        BOOST_LOG_TRIVIAL(error)
-            << "Unable to open read index file " << read_index_fpath;
-        exit(1);
+        fatal_error("Unable to open read index file ", read_index_fpath);
     }
     BOOST_LOG_TRIVIAL(info) << "Finished loading " << samples.size()
                             << " samples from read index";
@@ -233,9 +231,14 @@ int pandora_compare(CompareOptions& opt)
         opt.max_diff = 2 * opt.kmer_size + 1;
     }
     // ==========
-
     if (opt.window_size > opt.kmer_size) {
         throw std::logic_error("W must NOT be greater than K");
+    }
+    if (opt.window_size <= 0) {
+        throw std::logic_error("W must be a positive integer");
+    }
+    if (opt.kmer_size <= 0) {
+        throw std::logic_error("K must be a positive integer");
     }
 
     if (opt.genotype) {
@@ -407,7 +410,12 @@ int pandora_compare(CompareOptions& opt)
         pangenome::Node& pangraph_node = *pangraph_node_entry.second;
 
         const auto& prg_id = pangraph_node.prg_id;
-        assert(prgs.size() > prg_id);
+
+        const bool valid_prg_id = prgs.size() > prg_id;
+        if (!valid_prg_id) {
+            fatal_error("Error reading PanRG: a PRG has an invalid ID (", prg_id, "), >= than the number of PRGs (",
+                prgs.size(), ") in the PanRG");
+        }
         const auto& prg_ptr = prgs[prg_id];
 
         const auto vcf_reference_path
@@ -425,7 +433,6 @@ int pandora_compare(CompareOptions& opt)
 
         // add all samples to the vcf
         vcf.add_samples(sample_names);
-        assert(vcf.samples.size() == samples.size());
 
         // build the vcf
         pangraph_node.construct_multisample_vcf(

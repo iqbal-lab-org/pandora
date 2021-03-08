@@ -4,7 +4,6 @@
 #include <set>
 #include <memory>
 #include <vector>
-#include <cassert>
 #include <algorithm>
 #include <boost/filesystem.hpp>
 
@@ -14,8 +13,7 @@
 #include "pangenome/panread.h"
 #include "pangenome/pansample.h"
 #include "fastaq_handler.h"
-
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
+#include "fatal_error.h"
 
 using namespace pangenome;
 
@@ -35,10 +33,9 @@ pangenome::Graph::Graph(const std::vector<std::string>& sample_names)
 void pangenome::Graph::add_read(const uint32_t& read_id)
 {
     auto it = reads.find(read_id);
-    bool found = it != reads.end();
+    const bool found = it != reads.end();
     if (not found) {
         auto read_ptr = std::make_shared<Read>(read_id);
-        assert(read_ptr != nullptr);
         reads[read_id] = read_ptr;
     }
 }
@@ -47,16 +44,13 @@ void pangenome::Graph::add_node(const std::shared_ptr<LocalPRG>& prg, uint32_t n
 {
     NodePtr node_ptr;
     auto it = nodes.find(node_id);
-    bool found_node = it != nodes.end();
+    const bool found_node = it != nodes.end();
     if (not found_node) {
         node_ptr = std::make_shared<Node>(
             prg, node_id, samples.size()); // TODO: refactor this - holding the
                                            // reference to PRG is enough
-        assert(node_ptr != nullptr);
         nodes[node_id] = node_ptr;
     }
-    assert(node_id < std::numeric_limits<uint32_t>::max()
-        or assert_msg("WARNING, node_id reached max pangraph node size"));
 }
 
 /**
@@ -70,7 +64,13 @@ void update_node_info_with_this_read(const NodePtr& node_ptr, const ReadPtr& rea
 {
     node_ptr->covg += 1;
     node_ptr->reads.insert(read_ptr);
-    assert(node_ptr->covg == node_ptr->reads.size());
+
+    const bool coverage_information_is_consistent_with_read_information =
+        node_ptr->covg == node_ptr->reads.size();
+    if (!coverage_information_is_consistent_with_read_information) {
+        fatal_error("Error updating Pangraph node with read: coverage information "
+                    "is not consistent with read information");
+    }
 }
 
 // Checks that all hits in the cluster are from the given prg and read
@@ -78,11 +78,17 @@ void check_correct_hits(const uint32_t prg_id, const uint32_t read_id,
     const std::set<MinimizerHitPtr, pComp>& cluster)
 {
     for (const auto& hit_ptr : cluster) {
-        bool hits_correspond_to_correct_read = read_id == hit_ptr->get_read_id();
-        assert(hits_correspond_to_correct_read);
+        const bool hits_correspond_to_correct_read = read_id == hit_ptr->get_read_id();
+        if (!hits_correspond_to_correct_read) {
+            fatal_error("Minimizer hits error: hit should be on read id ", read_id,
+                ", but it is on read id ", hit_ptr->get_read_id());
+        }
 
-        bool hits_correspond_to_correct_prg = prg_id == hit_ptr->get_prg_id();
-        assert(hits_correspond_to_correct_prg);
+        const bool hits_correspond_to_correct_prg = prg_id == hit_ptr->get_prg_id();
+        if (!hits_correspond_to_correct_prg) {
+            fatal_error("Minimizer hits error: hit should be on PRG id ", prg_id,
+                        ", but it is on PRG id ", hit_ptr->get_prg_id());
+        }
     }
 }
 
@@ -111,7 +117,6 @@ void pangenome::Graph::add_hits_between_PRG_and_read(
     // add and get the new read
     add_read(read_id);
     auto read_ptr = get_read(read_id);
-    assert(read_ptr != nullptr);
 
     // add and get the new node
     add_node(prg);
@@ -228,8 +233,6 @@ void pangenome::Graph::split_node_by_reads(std::unordered_set<ReadPtr>& reads_al
     // (in the context of node_ids) with a new node
     while (nodes.find(next_id) != nodes.end()) {
         next_id++;
-        assert(next_id < std::numeric_limits<uint32_t>::max()
-            || assert_msg("WARNING, next_id reached max pangraph node size"));
     }
 
     // define new node
@@ -281,9 +284,13 @@ void pangenome::Graph::add_hits_to_kmergraphs(
 {
     for (const auto& node_entries : nodes) {
         Node& pangraph_node = *node_entries.second;
-        assert(pangraph_node.kmer_prg_with_coverage.kmer_prg != nullptr
-            and not pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes.empty());
-
+        const bool pangraph_node_has_a_valid_kmer_prg_with_coverage =
+            (pangraph_node.kmer_prg_with_coverage.kmer_prg != nullptr) and
+            (not pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes.empty());
+        if (!pangraph_node_has_a_valid_kmer_prg_with_coverage) {
+            fatal_error("Error adding hits to kmer graph: pangraph node does not have a "
+                        "valid Kmer PRG with coverage");
+        }
         uint32_t num_hits[2] = { 0, 0 };
 
         // add hits
@@ -294,11 +301,13 @@ void pangenome::Graph::add_hits_to_kmergraphs(
             for (const auto& minimizer_hit_ptr : hits.at(pangraph_node.prg_id)) {
                 const auto& minimizer_hit = *minimizer_hit_ptr;
 
-                assert(minimizer_hit.get_kmer_node_id()
-                    < pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes.size());
-                assert(pangraph_node.kmer_prg_with_coverage.kmer_prg
-                           ->nodes[minimizer_hit.get_kmer_node_id()]
-                    != nullptr);
+                const bool minimizer_hit_kmer_node_id_is_valid =
+                    (minimizer_hit.get_kmer_node_id() < pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes.size()) &&
+                    (pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes[minimizer_hit.get_kmer_node_id()] != nullptr);
+                if (!minimizer_hit_kmer_node_id_is_valid) {
+                    fatal_error("Error adding hits to kmer graph: minimizer hit "
+                                "kmer node is invalid");
+                }
 
                 if (minimizer_hit.is_forward()) {
                     pangraph_node.kmer_prg_with_coverage.increment_forward_covg(
@@ -339,13 +348,25 @@ void pangenome::Graph::copy_coverages_to_kmergraphs(
     const uint32_t ref_sample_id = 0;
     for (const auto& ref_node_entry : ref_pangraph.nodes) {
         const Node& ref_node = *ref_node_entry.second;
-        assert(nodes.find(ref_node.node_id) != nodes.end());
-        Node& pangraph_node = *nodes[ref_node.node_id];
 
+        const bool ref_node_is_in_this_pangraph = nodes.find(ref_node.node_id) != nodes.end();
+        if (!ref_node_is_in_this_pangraph) {
+            fatal_error("Error copying coverages to kmer graphs: reference node does not "
+                        "exist in pangraph");
+        }
+
+        Node& pangraph_node = *nodes[ref_node.node_id];
         for (auto& kmergraph_node_ptr :
             pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes) {
             const auto& knode_id = kmergraph_node_ptr->id;
-            assert(knode_id < ref_node.kmer_prg_with_coverage.kmer_prg->nodes.size());
+
+            const bool kmer_graph_node_id_is_valid =
+                knode_id < ref_node.kmer_prg_with_coverage.kmer_prg->nodes.size();
+            if (!kmer_graph_node_id_is_valid) {
+                fatal_error("Error copying coverages to kmer graphs: kmer graph node "
+                            "id is not valid");
+            }
+
             pangraph_node.kmer_prg_with_coverage.set_reverse_covg(knode_id,
                 (uint16_t)(ref_node.kmer_prg_with_coverage.get_reverse_covg(
                     knode_id, ref_sample_id)),
@@ -396,10 +417,14 @@ std::vector<LocalNodePtr> pangenome::Graph::get_node_closest_vcf_reference(
         const auto& sample_paths = sample->paths.at(node.prg_id);
         for (const auto& sample_path : sample_paths) {
             for (uint32_t i = 0; i != sample_path.size(); ++i) {
-                assert(
-                    sample_path[i]->id < kmer_prg_with_coverage.kmer_prg->nodes.size()
-                    and kmer_prg_with_coverage.kmer_prg->nodes[sample_path[i]->id]
-                        != nullptr);
+                const bool sample_path_node_is_valid =
+                    (sample_path[i]->id < kmer_prg_with_coverage.kmer_prg->nodes.size()) and
+                    (kmer_prg_with_coverage.kmer_prg->nodes[sample_path[i]->id] != nullptr);
+                if (!sample_path_node_is_valid) {
+                    fatal_error("When getting the path closest to VCF reference, "
+                                "a sample path node is not valid");
+                }
+
                 kmer_prg_with_coverage.increment_forward_covg(sample_path[i]->id, 0);
                 kmer_prg_with_coverage.increment_reverse_covg(sample_path[i]->id, 0);
             }
@@ -509,18 +534,26 @@ void pangenome::Graph::save_mapped_read_strings(
             readfile.get_nth_read(coord[0]);
             start = (uint32_t)std::max((int32_t)coord[1] - buff, 0);
             end = std::min(coord[2] + (uint32_t)buff, (uint32_t)readfile.read.length());
+
+            const bool read_coordinates_are_valid =
+                (coord[1] < coord[2]) &&
+                (start <= coord[1]) &&
+                (start <= readfile.read.length()) &&
+                (coord[2] <= readfile.read.length()) &&
+                (end >= coord[2]) &&
+                (start < end);
+            if (!read_coordinates_are_valid) {
+                fatal_error("When saving mapped reads, read coordinates are not valid");
+            }
+
             outhandle << ">" << readfile.name << " pandora: " << coord[0] << " "
                       << start << ":" << end;
-            if (coord[3])
+            if (coord[3]) {
                 outhandle << " + " << std::endl;
-            else
+            }
+            else {
                 outhandle << " - " << std::endl;
-            assert(coord[1] < coord[2]);
-            assert(start <= coord[1]);
-            assert(start <= readfile.read.length());
-            assert(coord[2] <= readfile.read.length());
-            assert(end >= coord[2]);
-            assert(start < end);
+            }
             outhandle << readfile.read.substr(start, end - start) << std::endl;
         }
         outhandle.close();

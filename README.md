@@ -83,13 +83,12 @@ can be found [here](https://gcc.gnu.org/onlinedocs/gfortran/OpenMP.html).
 
 * **Download**:
   ```
-  wget "https://www.dropbox.com/s/74ptrnk4k5qcc6o/pandora-linux-precompiled_v0.8.0_beta?dl=1" -O pandora-linux-precompiled_v0.8.0_beta
+  wget https://github.com/rmcolq/pandora/releases/download/v0.8.0-alpha/pandora-linux-precompiled-v0.8.0-alpha
   ```
-  * **TODO: updated to a github link when we make the release;**
 * **Running**:
 ```
-chmod +x pandora-linux-precompiled_v0.8.0_beta
-./pandora-linux-precompiled_v0.8.0_beta -h
+chmod +x pandora-linux-precompiled-v0.8.0-alpha
+./pandora-linux-precompiled-v0.8.0-alpha -h
 ```
 
 * **Compatibility**: This precompiled binary works on pretty much any glibc-2.12-or-later-based x86 and x86-64 Linux distribution 
@@ -110,7 +109,7 @@ chmod +x pandora-linux-precompiled_v0.8.0_beta
 
 ![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/rmcolq/pandora)
 
-We highly recommend that you download a containerized image of Pandora.
+You can also download a containerized image of Pandora.
 Pandora is hosted on Dockerhub and images can be downloaded with the
 command:
 
@@ -128,6 +127,8 @@ NB For consistency, we no longer maintain images on singularity hub.
 
 ### Installation from source
 
+This is the hardest way to install `pandora`, but that yields the most optimised binary.
+
 Requirements:
 - A Unix or Mac OS, with a C++11 compiler toolset (e.g. `g++`, `ld`, `make`, `ctest`, etc), `cmake`, `git` and `wget`.
 
@@ -138,10 +139,13 @@ git clone --single-branch https://github.com/rmcolq/pandora.git --recursive
 cd pandora
 mkdir -p build
 cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release .. 
 make -j4
 ctest -VV
 ```
+
+* If you want to produce meaningful stack traces in case `pandora` errors out, `binutils-dev` must be installed and the
+  `cmake` must receive this additional parameter: `-DPRINT_STACKTRACE=True`.
 
 ## Usage
 

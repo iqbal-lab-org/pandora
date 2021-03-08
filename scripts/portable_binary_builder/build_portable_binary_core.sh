@@ -8,14 +8,14 @@ source /hbb_exe/activate
 set -eux
 
 # install packages needed to compile
-yum install wget git -y
+yum install wget git binutils-devel -y
 
 # compile pandora
 cd io
 mkdir build_portable_executable
 cd build_portable_executable
-cmake ..
-make VERBOSE=1 -j 8
+cmake -DPRINT_STACKTRACE=True -DCMAKE_BUILD_TYPE=Release ..
+make VERBOSE=1 -j 4
 ctest -VV
 
 # verify if the binary is portable

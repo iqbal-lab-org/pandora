@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <iostream>
 #include <cmath>
+#include "fatal_error.h"
+#include "test_helpers.h"
 
 using namespace prg;
 
@@ -442,8 +444,9 @@ TEST(KmerGraphTest, load)
     EXPECT_EQ(kg, read_kg);
 }
 
-TEST(KmerGraphTest, load_prg)
+TEST(KmerGraphTest, load_prg_FatalRuntimeError)
 {
     KmerGraph read_kg;
-    EXPECT_DEATH(read_kg.load("kmergraph_test.gfa"), "");
+    ASSERT_EXCEPTION(read_kg.load("kmergraph_test.gfa"), FatalRuntimeError,
+        "Error reading GFA");
 }

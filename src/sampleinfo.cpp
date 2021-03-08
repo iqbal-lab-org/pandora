@@ -6,12 +6,18 @@ void SampleInfo::set_coverage_information(
 {
     this->allele_to_forward_coverages = allele_to_forward_coverages;
     this->allele_to_reverse_coverages = allele_to_reverse_coverages;
-    assert(check_if_coverage_information_is_correct());
+
+    if(!check_if_coverage_information_is_correct()) {
+        fatal_error("Error when setting coverage information for sample: "
+                    "coverage information left inconsistent");
+    }
 }
 
 void SampleInfo::genotype_from_coverage()
 {
-    assert(check_if_coverage_information_is_correct());
+    if(!check_if_coverage_information_is_correct()) {
+        fatal_error("Error when genotyping: coverage information is inconsistent");
+    }
 
     auto genotype_and_max_likelihood_optional = get_genotype_from_coverage();
     if (genotype_and_max_likelihood_optional) {
@@ -32,13 +38,15 @@ void SampleInfo::genotype_from_coverage_using_maximum_likelihood_path_as_referen
         uint32_t valid_GT_from_maximum_likelihood_path
             = this->get_gt_from_max_likelihood_path();
 
-        assert(check_if_coverage_information_is_correct());
+        if(!check_if_coverage_information_is_correct()) {
+            fatal_error("Error when genotyping: coverage information is inconsistent");
+        }
         auto genotype_and_max_likelihood_optional = get_genotype_from_coverage();
         if (genotype_and_max_likelihood_optional) {
             std::tie(GT_from_coverages, likelihood_of_GT_from_coverages)
                 = *genotype_and_max_likelihood_optional;
 
-            bool global_and_local_choices_are_not_compatible
+            const bool global_and_local_choices_are_not_compatible
                 = GT_from_coverages != valid_GT_from_maximum_likelihood_path;
             if (global_and_local_choices_are_not_compatible) {
                 GT_from_coverages = boost::none;
@@ -56,18 +64,18 @@ void SampleInfo::genotype_from_coverage_using_maximum_likelihood_path_as_referen
 
 bool SampleInfo::check_if_coverage_information_is_correct() const
 {
-    bool there_are_at_least_one_allele = allele_to_forward_coverages.size() >= 1
+    const bool there_are_at_least_one_allele = allele_to_forward_coverages.size() >= 1
         and allele_to_reverse_coverages.size() >= 1;
-    bool forward_and_reverse_coverages_have_the_same_number_of_alleles
+    const bool forward_and_reverse_coverages_have_the_same_number_of_alleles
         = allele_to_forward_coverages.size() == allele_to_reverse_coverages.size();
 
-    bool correct_number_of_alleles
+    const bool correct_number_of_alleles
         = allele_to_forward_coverages.size() == get_number_of_alleles();
 
     bool all_alleles_in_forward_and_reverse_have_the_same_number_of_bases = true;
     for (size_t allele_index = 0; allele_index < get_number_of_alleles();
          ++allele_index) {
-        bool alleles_in_forward_and_reverse_have_the_same_number_of_bases
+        const bool alleles_in_forward_and_reverse_have_the_same_number_of_bases
             = allele_to_forward_coverages[allele_index].size()
             == allele_to_reverse_coverages[allele_index].size();
         if (not alleles_in_forward_and_reverse_have_the_same_number_of_bases) {
@@ -113,7 +121,7 @@ std::vector<double> SampleInfo::get_likelihoods_for_all_alleles() const
         uint32_t total_mean_coverage_of_allele_above_threshold
             = get_total_mean_coverage_given_a_minimum_threshold(
                 allele, min_coverage_threshold);
-        bool min_coverage_threshold_is_satisfied
+        const bool min_coverage_threshold_is_satisfied
             = total_mean_coverage_of_allele_above_threshold > 0;
 
         uint32_t total_mean_coverage_of_all_other_alleles_above_threshold
@@ -195,7 +203,7 @@ SampleInfo::get_confidence() const
             = Maths::arg_max(likelihoods_for_all_alleles_without_max_element.begin(),
                 likelihoods_for_all_alleles_without_max_element.end());
 
-        bool index_of_second_max_likelihood_is_past_index_of_max_likelihood
+        const bool index_of_second_max_likelihood_is_past_index_of_max_likelihood
             = index_of_second_max_likelihood >= index_of_max_likelihood;
         if (index_of_second_max_likelihood_is_past_index_of_max_likelihood) {
             ++index_of_second_max_likelihood;
@@ -211,10 +219,10 @@ SampleInfo::get_confidence() const
         = get_mean_coverage_both_alleles(index_of_max_likelihood);
     uint32_t total_mean_coverage_of_second_max_likelihood_allele
         = get_mean_coverage_both_alleles(index_of_second_max_likelihood);
-    bool enough_total_covg = (total_mean_coverage_of_max_likelihood_allele
+    const bool enough_total_covg = (total_mean_coverage_of_max_likelihood_allele
             + total_mean_coverage_of_second_max_likelihood_allele
         >= genotyping_options->get_min_site_total_covg());
-    bool enough_difference_in_covg
+    const bool enough_difference_in_covg
         = (std::abs((int64_t)(total_mean_coverage_of_max_likelihood_allele)
                - (int64_t)(total_mean_coverage_of_second_max_likelihood_allele))
             >= genotyping_options->get_min_site_diff_covg());
@@ -251,7 +259,7 @@ SampleInfo::get_genotype_from_coverage() const
         std::tie(index_of_max_likelihood, confidence, max_likelihood)
             = *index_and_confidence_and_max_likelihood_optional;
 
-        bool satisfy_confidence_threshold
+        const bool satisfy_confidence_threshold
             = confidence > genotyping_options->get_confidence_threshold();
         if (satisfy_confidence_threshold) {
             return std::make_pair((uint32_t)index_of_max_likelihood, max_likelihood);
@@ -263,10 +271,12 @@ SampleInfo::get_genotype_from_coverage() const
 std::string SampleInfo::to_string(bool genotyping_from_maximum_likelihood,
     bool genotyping_from_compatible_coverage) const
 {
-    bool only_one_flag_is_set = ((int)(genotyping_from_maximum_likelihood)
+    const bool only_one_flag_is_set = ((int)(genotyping_from_maximum_likelihood)
                                     + (int)(genotyping_from_compatible_coverage))
         == 1;
-    assert(only_one_flag_is_set);
+    if (!only_one_flag_is_set) {
+        fatal_error("Error on stringifying VCF record sample info: incompatible genotyping options");
+    }
 
     std::vector<double> likelihoods_for_all_alleles = get_likelihoods_for_all_alleles();
 
@@ -363,13 +373,13 @@ void SampleInfo::merge_other_sample_gt_from_max_likelihood_path_into_this(
 
 void SampleInfo::solve_incompatible_gt_conflict_with(SampleInfo& other)
 {
-    bool any_of_gts_are_invalid_thus_no_conflict
+    const bool any_of_gts_are_invalid_thus_no_conflict
         = not this->is_gt_from_coverages_compatible_valid()
         or not other.is_gt_from_coverages_compatible_valid();
     if (any_of_gts_are_invalid_thus_no_conflict)
         return;
 
-    bool both_gts_are_to_ref_thus_no_conflict
+    const bool both_gts_are_to_ref_thus_no_conflict
         = this->get_gt_from_coverages_compatible() == 0
         and other.get_gt_from_coverages_compatible() == 0;
     if (both_gts_are_to_ref_thus_no_conflict)
@@ -396,5 +406,8 @@ void SampleInfo::set_number_of_alleles_and_resize_coverage_information(
 {
     this->number_of_alleles = number_of_alleles;
     resize_to_the_number_of_alleles();
-    assert(check_if_coverage_information_is_correct());
+    if(!check_if_coverage_information_is_correct()) {
+        fatal_error("Error when setting number of alleles for sample: "
+                    "coverage information left inconsistent");
+    }
 }

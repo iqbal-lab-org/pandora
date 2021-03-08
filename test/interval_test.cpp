@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <iostream>
 #include "interval.h"
+#include "test_helpers.h"
 
 TEST(IntervalTest, create)
 {
@@ -19,8 +20,10 @@ TEST(IntervalTest, create)
     j = 8;
     EXPECT_EQ(i.length, j);
 
-    EXPECT_THROW(Interval(9, 1), std::logic_error);
-    EXPECT_THROW(Interval(-1, 10), std::logic_error);
+    ASSERT_EXCEPTION(Interval(9, 1), FatalRuntimeError,
+     "Error when building interval: interval end cannot be less than the interval start");
+    ASSERT_EXCEPTION(Interval(-1, 10), FatalRuntimeError,
+             "Error when building interval: interval end cannot be less than the interval start");
 }
 
 TEST(IntervalTest, write)

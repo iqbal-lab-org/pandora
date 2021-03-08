@@ -11,6 +11,9 @@
 #include <boost/filesystem/path.hpp>
 #include "minihits.h"
 #include "pangenome/ns.cpp"
+#include <boost/log/trivial.hpp>
+#include <sstream>
+#include "fatal_error.h"
 
 namespace fs = boost::filesystem;
 
@@ -97,15 +100,13 @@ uint32_t pangraph_from_read_file(const std::string&, std::shared_ptr<pangenome::
     const bool illumina = false, const bool clean = false,
     const uint32_t max_covg = 300, uint32_t threads = 1);
 
-//, const uint32_t, const float&, bool);
 void infer_most_likely_prg_path_for_pannode(
     const std::vector<std::shared_ptr<LocalPRG>>&, PanNode*, uint32_t, float);
-
-void fatal_error(const std::string& message);
 
 // TODO : refactor all file open and closing to use these functions
 void open_file_for_reading(const std::string& file_path, std::ifstream& stream);
 void open_file_for_writing(const std::string& file_path, std::ofstream& stream);
+void open_file_for_appending(const std::string& file_path, std::ofstream& stream);
 
 std::vector<std::string> get_vector_of_strings_from_file(const std::string& file_path);
 

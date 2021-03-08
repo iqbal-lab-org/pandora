@@ -4,6 +4,7 @@
 #include <ostream>
 #include <cstdint>
 #include "interval.h"
+#include "fatal_error.h"
 
 /**
  * Represents a minimizer from a read or sequence (not from a graph, as MiniRecord)

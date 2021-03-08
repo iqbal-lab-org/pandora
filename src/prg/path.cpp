@@ -1,8 +1,5 @@
-#include <cassert>
 #include <localPRG.h>
 #include "prg/path.h"
-
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 uint32_t prg::Path::get_start() const
 {
@@ -29,21 +26,25 @@ uint32_t prg::Path::length() const
 void prg::Path::add_end_interval(const Interval& i)
 {
     memoizedDirty = true;
-    assert(i.start >= get_end()
-        || assert_msg("tried to add interval starting at "
-            << i.start << " to end of path finishing at " << get_end()));
+
+    const bool interval_is_valid = i.start >= get_end();
+    if (!interval_is_valid) {
+        fatal_error("Error when adding a new interval to a path");
+    }
+
     path.push_back(i);
 }
 
 std::vector<LocalNodePtr> prg::Path::nodes_along_path(const LocalPRG& localPrg)
 {
     // sanity check
-    assert(
-        (isMemoized == false
-            || (isMemoized == true && localPRGIdOfMemoizedLocalNodePath == localPrg.id))
-        || assert_msg("Memoization bug: memoized a local node path for PRG with id"
-            << localPRGIdOfMemoizedLocalNodePath << " but PRG id " << localPrg.id
-            << " is also trying to use this memoized path"));
+    const bool memoization_is_valid = (isMemoized == false) ||
+        (isMemoized == true && localPRGIdOfMemoizedLocalNodePath == localPrg.id);
+    if (!memoization_is_valid) {
+        fatal_error("Error when getting nodes along PRG path: memoized a local node path "
+                    "for PRG with id", localPRGIdOfMemoizedLocalNodePath, " but PRG id ",
+                    localPrg.id, " is also trying to use this memoized path");
+    }
 
     if (isMemoized == false
         || memoizedDirty == true) { // checks if we must do memoization
@@ -62,7 +63,7 @@ std::vector<LocalNodePtr> prg::Path::nodes_along_path(const LocalPRG& localPrg)
         // redudant call, return the memoized local node path
         return memoizedLocalNodePath;
     } else {
-        fatal_error("Bug on prg::Path::nodes_along_path()");
+        fatal_error("Error when getting nodes along PRG path: memoization state is invalid");
     }
 }
 
@@ -70,7 +71,11 @@ prg::Path prg::Path::subpath(const uint32_t start, const uint32_t len) const
 {
     // function now returns the path starting at position start along the path, rather
     // than at position start on linear PRG, and for length len
-    assert(start + len <= length());
+    const bool parameters_are_valid = start + len <= length();
+    if (!parameters_are_valid) {
+        fatal_error("Error when getting subpath from PRG path: given parameters are not valid");
+    }
+
     prg::Path p;
     std::deque<Interval> d;
     uint32_t covered_length = 0;
@@ -79,7 +84,12 @@ prg::Path prg::Path::subpath(const uint32_t start, const uint32_t len) const
         if ((covered_length <= start and covered_length + interval.length > start
                 and p.path.empty())
             or (covered_length == start and interval.length == 0 and p.path.empty())) {
-            assert(added_len == 0);
+            const bool no_interval_has_been_added_yet = added_len == 0;
+            if (!no_interval_has_been_added_yet) {
+                fatal_error("Error when getting subpath from PRG path: an interval "
+                            "has already been added before the correct first one");
+            }
+
             d = { Interval(interval.start + start - covered_length,
                 std::min(interval.get_end(),
                     interval.start + start - covered_length + len - added_len)) };
@@ -96,7 +106,13 @@ prg::Path prg::Path::subpath(const uint32_t start, const uint32_t len) const
             break;
         }
     }
-    assert(added_len == len);
+
+    const bool subpath_length_is_correct = added_len == len;
+    if (!subpath_length_is_correct) {
+        fatal_error("Error when getting subpath from PRG path: built the subpath with "
+                    "the wrong length");
+    }
+
     return p;
 }
 
@@ -269,12 +285,16 @@ std::istream& prg::operator>>(std::istream& in, prg::Path& p)
 
 prg::Path prg::get_union(const prg::Path& x, const prg::Path& y)
 {
+    const bool parameters_are_valid = x < y;
+    if (!parameters_are_valid) {
+        fatal_error("Error when getting the union of two paths: first path: ", x,
+            " must come before second path: ", y);
+    }
+
     auto xit = x.path.begin();
     auto yit = y.path.begin();
 
     prg::Path p;
-    assert(x < y);
-
     if (x.get_end() < y.get_start() or x.is_branching(y)) {
         return p;
     } else if (x.path.empty()) {

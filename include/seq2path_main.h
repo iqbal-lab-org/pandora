@@ -1,7 +1,6 @@
 #ifndef PANDORA_SEQ2PATH_MAIN_H
 #define PANDORA_SEQ2PATH_MAIN_H
 #include <cstring>
-#include <cassert>
 #include <vector>
 #include <iostream>
 
