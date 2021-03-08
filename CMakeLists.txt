@@ -104,11 +104,19 @@ set(Boost_USE_STATIC_LIBS ON)
 ########################################################################################################################
 # PANDORA INSTALLATION
 ########################################################################################################################
+# allows Seqan to be found
+list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/thirdparty/seqan/util/cmake")
+set(SEQAN_INCLUDE_PATH "${PROJECT_SOURCE_DIR}/thirdparty/seqan/include")
+
+# Load the SeqAn module and fail if not found
+find_package (SeqAn REQUIRED)
+
 #include directories as SYSTEM includes, thus warnings will be ignored for these
 include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
         ${PROJECT_SOURCE_DIR}/thirdparty/cgranges/cpp
         ${PROJECT_SOURCE_DIR}/thirdparty/pstreams
+        ${SEQAN_INCLUDE_DIRS}
         )
 
 # normal includes: warnings will be reported for these
@@ -118,6 +126,9 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/thirdparty/include
         ${PROJECT_SOURCE_DIR}/thirdparty/src
 )
+
+# Add definitions set by find_package (SeqAn).
+add_definitions (${SEQAN_DEFINITIONS})
 
 file(GLOB_RECURSE SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/*.cpp
@@ -142,6 +153,7 @@ target_link_libraries(${PROJECT_NAME}
         ${CMAKE_DL_LIBS}
         ${STATIC_C_CXX}
         ${BACKWARD_LIBRARIES}
+        ${SEQAN_LIBRARIES}
 )
 
 #enable_testing()

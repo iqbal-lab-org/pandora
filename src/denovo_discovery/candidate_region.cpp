@@ -1,5 +1,24 @@
 #include "denovo_discovery/candidate_region.h"
 #include "utils.h"
+#include <seqan/align.h>
+
+std::string SimpleDenovoVariantRecord::remove_spaces(const std::string &str) {
+    std::string to_return;
+    for (const char c : str) {
+        if (c != '-') {
+            to_return += c;
+        }
+    }
+    return to_return;
+}
+
+std::string SimpleDenovoVariantRecord::to_string() const {
+    std::string ref_to_print = remove_spaces(ref);
+    std::string alt_to_print = remove_spaces(alt);
+    std::stringstream ss;
+    ss << pos << "\t" << ref_to_print << "\t" << alt_to_print;
+    return ss.str();
+}
 
 size_t std::hash<CandidateRegionIdentifier>::operator()(
     const CandidateRegionIdentifier& id) const
@@ -208,78 +227,78 @@ void CandidateRegion::add_pileup_entry(
 }
 
 void CandidateRegion::write_denovo_paths_to_buffer(CandidateRegionWriteBuffer &buffer,
-                                                   const fs::path& temp_dir)
+    const fs::path &temp_dir)
 {
     if (denovo_paths.empty()) {
         return;
     }
 
-    const fs::path temp_dir_for_alignment = temp_dir / (filename.string() + "_aln_tmp");
-    fs::create_directories(temp_dir_for_alignment);
-
-    {
-        const std::string ref_filepath = (temp_dir_for_alignment / "ref.fa").string();
-        ofstream ref_filehandler;
-        open_file_for_writing(ref_filepath, ref_filehandler);
-        ref_filehandler << ">" << buffer.get_sample_name() << "." << name << std::endl;
-        ref_filehandler << local_node_max_likelihood_sequence << std::endl;
-        ref_filehandler.close();
-    }
-
-    {
-        const std::string denovo_filepath = (temp_dir_for_alignment / "denovo_paths.fa").string();
-        uint32_t denovo_path_index = 0;
-        ofstream denovo_filehandler;
-        open_file_for_writing(denovo_filepath, denovo_filehandler);
-        for (const std::string &denovo_path : denovo_paths) {
-            std::string denovo_path_header = string("denovo_path_") + to_string(denovo_path_index);
-            denovo_filehandler << ">" << denovo_path_header << std::endl;
-            denovo_filehandler << denovo_path << std::endl;
-            ++denovo_path_index;
-        }
-        denovo_filehandler.close();
-    }
-
-    std::vector<std::string> variants = get_variants(temp_dir_for_alignment);
     const std::string local_node_max_likelihood_path_as_str =
         LocalNode::to_string_vector(local_node_max_likelihood_path);
-    for (const std::string &variant : variants) {
-        buffer.add_new_variant(name, local_node_max_likelihood_path_as_str, variant);
+    for (const std::string &denovo_path : denovo_paths) {
+        std::vector<std::string> variants = get_variants(denovo_path, temp_dir);
+        for (const std::string &variant : variants) {
+            buffer.add_new_variant(name, local_node_max_likelihood_path_as_str, variant);
+        }
     }
 }
 
-std::vector<std::string> CandidateRegion::get_variants(const fs::path &temp_dir_for_alignment) const {
-    const std::string temp_dir_for_alignment_as_str = temp_dir_for_alignment.string();
-    execute_command("cd " + temp_dir_for_alignment_as_str + " && " +
-                    "bowtie2-build -q ref.fa ref_index",
-                    true, "bowtie2-build failed");
-    execute_command("cd " + temp_dir_for_alignment_as_str + " && " +
-                    "bowtie2 -x ref_index -S denovo_paths.sam --quiet --end-to-end -f -U denovo_paths.fa",
-                    true, "bowtie2 failed");
-    execute_command("cd " + temp_dir_for_alignment_as_str + " && " +
-                    "samtools view -b denovo_paths.sam -o denovo_paths.bam",
-                    true, "samtools view failed");
-    execute_command("cd " + temp_dir_for_alignment_as_str + " && " +
-                    "bcftools mpileup -f ref.fa denovo_paths.bam -o denovo_paths.mpileup",
-                    true, "bcftools mpileup failed");
-    execute_command("cd " + temp_dir_for_alignment_as_str + " && " +
-                    "bcftools call --ploidy 1 -v -m -f GQ,GP -O v -o denovo_paths.vcf denovo_paths.mpileup",
-                    true, "bcftools call failed");
+std::vector<std::string> CandidateRegion::get_variants(const string &denovo_sequence,
+                                                       const fs::path &temp_dir) const {
+    using namespace seqan;
+    typedef String<char> TSequence;                 // sequence type
+    typedef Align<TSequence, ArrayGaps> TAlign;     // align type
+    typedef Row<TAlign>::Type TRow;                 // gapped sequence type
 
-    std::vector<std::string> variants;
-    ifstream vcf_filehandler;
-    open_file_for_reading((temp_dir_for_alignment/"denovo_paths.vcf").string(), vcf_filehandler);
-    std::string line;
-    while (getline(vcf_filehandler, line).good()) {
-        bool is_comment = line[0]=='#';
-        if (is_comment) {
-            continue;
+    TSequence ref = local_node_max_likelihood_sequence;
+    TSequence alt = denovo_sequence;
+
+    TAlign align;
+    resize(rows(align), 2);
+    assignSource(row(align, 0), ref);
+    assignSource(row(align, 1), alt);
+
+    TRow &ref_row = row(align, 0);
+    TRow &alt_row = row(align, 1);
+
+    globalAlignment(align, Score<int, Simple>(4, -2, -2, -4), AffineGaps());
+    bool append_to_previous = false;
+    std::vector<SimpleDenovoVariantRecord> denovo_variants;
+    for (size_t alignment_index = 0; alignment_index < length(ref_row); ++alignment_index) {
+        char ref_base = (char)(ref_row[alignment_index]);
+        char alt_base = (char)(alt_row[alignment_index]);
+        const bool is_variant_position = ref_base != alt_base;
+        if (is_variant_position) {
+            if (append_to_previous) {
+                denovo_variants.back().ref += ref_base;
+                denovo_variants.back().alt += alt_base;
+            } else {
+                SimpleDenovoVariantRecord denovo_variant(alignment_index+1,
+                    std::string(1, ref_base), std::string(1, alt_base));
+                denovo_variants.push_back(denovo_variant);
+            }
+            append_to_previous = true;
+        } else {
+            append_to_previous = false;
         }
-        variants.push_back(line);
     }
-    vcf_filehandler.close();
 
-    return variants;
+    std::vector<std::string> denovo_variants_as_str;
+    for (const SimpleDenovoVariantRecord &denovo_variant : denovo_variants) {
+        denovo_variants_as_str.push_back(denovo_variant.to_string());
+    }
+
+    // DEBUG -- TODO: REMOVE LATER
+    ofstream debug_filehandler;
+    open_file_for_writing((temp_dir/(filename.string()+".debug.log")).string(), debug_filehandler);
+    debug_filehandler << align << std::endl;
+    for (const std::string &denovo_variant_as_str : denovo_variants_as_str) {
+        debug_filehandler << denovo_variant_as_str << std::endl;
+    }
+    debug_filehandler.close();
+    // DEBUG -- TODO: REMOVE LATER
+
+    return denovo_variants_as_str;
 }
 
 Fastaq CandidateRegion::generate_fasta_for_denovo_paths()

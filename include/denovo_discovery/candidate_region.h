@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <set>
 #include <vector>
+#include <sstream>
 
 #ifndef NO_OPENMP
 #include <omp.h>
@@ -37,6 +38,16 @@ struct TmpPanNode {
 using DenovoPaths = std::vector<std::string>;
 using ReadPileup = std::vector<std::string>;
 using ReadCoordinates = std::set<ReadCoordinate>;
+
+struct SimpleDenovoVariantRecord {
+public:
+    uint32_t pos;
+    std::string ref, alt;
+    SimpleDenovoVariantRecord(uint32_t pos, const std::string &ref, const std::string &alt) :
+        pos(pos), ref(ref), alt(alt){}
+    static std::string remove_spaces(const std::string &str);
+    std::string to_string() const;
+};
 
 class CandidateRegionWriteBuffer;
 
@@ -76,8 +87,7 @@ public:
     void add_pileup_entry(
         const std::string& read, const ReadCoordinate& read_coordinate);
 
-    void write_denovo_paths_to_buffer(CandidateRegionWriteBuffer &buffer,
-                                      const fs::path& temp_dir);
+    void write_denovo_paths_to_buffer(CandidateRegionWriteBuffer &buffer, const fs::path &temp_dir);
 
 private:
     const Interval interval;
@@ -95,7 +105,7 @@ private:
 
     Fastaq generate_fasta_for_denovo_paths();
 
-    std::vector<std::string> get_variants(const fs::path &temp_dir_for_alignment) const;
+    std::vector<std::string> get_variants(const string &denovo_sequence, const fs::path &temp_dir) const;
 };
 
 using CandidateRegions = std::unordered_map<CandidateRegionIdentifier, CandidateRegion>;

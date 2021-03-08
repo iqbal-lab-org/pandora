@@ -7,3 +7,6 @@
 [submodule "thirdparty/pstreams"]
 	path = thirdparty/pstreams
 	url = https://github.com/jwakely/pstreams/
+[submodule "thirdparty/seqan"]
+	path = thirdparty/seqan
+	url = https://github.com/seqan/seqan.git

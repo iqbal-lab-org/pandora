@@ -299,12 +299,9 @@ void pandora_discover_core(const std::vector<std::pair<SampleIdText, SampleFpath
                                      candidate_regions_for_pan_node.end());
         }
 
-        // build the pileup for candidate regions multithreadly
         BOOST_LOG_TRIVIAL(info)
             << "[Sample " << sample_name << "] " << "Building read pileups for " << candidate_regions.size()
             << " candidate de novo regions...";
-        // the pileup_construction_map function is intentionally left
-        // single threaded since it would require too much synchronization
         const auto pileup_construction_map
             = discover.pileup_construction_map(candidate_regions);
 
@@ -336,8 +333,7 @@ void pandora_discover_core(const std::vector<std::pair<SampleIdText, SampleFpath
         CandidateRegionWriteBuffer buffer(sample_name);
         for (auto& element : candidate_regions) {
             auto& candidate_region { element.second };
-            denovo.find_paths_through_candidate_region(
-                candidate_region, temp_dir);
+            denovo.find_paths_through_candidate_region(candidate_region, temp_dir);
             candidate_region.write_denovo_paths_to_buffer(buffer, temp_dir);
         }
         auto denovo_output_file = sample_outdir / "denovo_paths.txt";
