@@ -5,7 +5,7 @@ void setup_random_subcommand(CLI::App& app)
     auto opt = std::make_shared<RandomOptions>();
 
     std::string description = "Outputs a fasta of random paths through the PRGs";
-    auto * random_subcmd = app.add_subcommand("random", description);
+    auto* random_subcmd = app.add_subcommand("random", description);
 
     random_subcmd
         ->add_option("<PRG>", opt->prgfile, "PRG to generate random paths from")

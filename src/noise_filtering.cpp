@@ -14,9 +14,10 @@ uint_least32_t node_plus_orientation_to_num(
     const uint_least32_t node_id, const bool orientation)
 {
     const bool node_id_is_consistent = node_id < UINT_LEAST32_MAX / 2;
-    if(!node_id_is_consistent) {
+    if (!node_id_is_consistent) {
         fatal_error("Error on converting node id and orientation to id only: "
-                    "node_id (", node_id, ") should be < than ", UINT_LEAST32_MAX / 2);
+                    "node_id (",
+            node_id, ") should be < than ", UINT_LEAST32_MAX / 2);
     }
     uint_least32_t r = 2 * node_id;
     if (orientation) {
@@ -63,8 +64,9 @@ bool overlap_forwards(
 {
     // second deque should extend first by 1
     const bool first_node_is_larger_or_same_size = node1.size() >= node2.size();
-    if(!first_node_is_larger_or_same_size) {
-        fatal_error("Error on checking for overlaps in noise filtering: first node must be larger or have the same size as the second");
+    if (!first_node_is_larger_or_same_size) {
+        fatal_error("Error on checking for overlaps in noise filtering: first node "
+                    "must be larger or have the same size as the second");
     }
 
     uint32_t i = node1.size() - node2.size() + 1;
@@ -169,7 +171,7 @@ void dbg_node_ids_to_ids_and_orientations(const debruijn::Graph& dbg,
 
     // TODO: give a better name to this bool once we understand what it does
     const bool hashed_pg_node_ids_is_empty = hashed_pg_node_ids.empty();
-    if(hashed_pg_node_ids_is_empty) {
+    if (hashed_pg_node_ids_is_empty) {
         // TODO: improve this message
         fatal_error("Error when noise filtering: hashed_pg_node_ids is empty");
     }
@@ -253,8 +255,9 @@ void remove_leaves(std::shared_ptr<pangenome::Graph> pangraph, debruijn::Graph& 
                 } else {
                     pos = pangraph->reads[r]->find_position(node_ids, node_orients);
 
-                    const bool pos_of_nodes_in_read_is_valid = (pos.first == 0) or
-                        (pos.first + node_ids.size() == pangraph->reads[r]->get_nodes().size());
+                    const bool pos_of_nodes_in_read_is_valid = (pos.first == 0)
+                        or (pos.first + node_ids.size()
+                            == pangraph->reads[r]->get_nodes().size());
                     if (!pos_of_nodes_in_read_is_valid) {
                         fatal_error("Error when removing leaves from DBG: position of "
                                     "DBG nodes in reads are not valid");
@@ -554,8 +557,9 @@ void write_pangraph_gfa(
         auto first_node_direction = get_pangraph_node_direction(first_debruijn_node);
 
         for (const auto& second_debruijn_node_id : first_debruijn_node.out_nodes) {
-            const bool neighbour_node_exists_in_the_graph =
-                debruijn_graph.nodes.find(second_debruijn_node_id) != debruijn_graph.nodes.end();
+            const bool neighbour_node_exists_in_the_graph
+                = debruijn_graph.nodes.find(second_debruijn_node_id)
+                != debruijn_graph.nodes.end();
             if (!neighbour_node_exists_in_the_graph) {
                 fatal_error("Error writing pangraph to GFA: a neighbour of a node does "
                             "not exist in the graph");

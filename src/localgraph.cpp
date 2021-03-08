@@ -9,7 +9,8 @@ void LocalGraph::add_node(
 {
     const bool sequence_and_interval_length_match = seq.length() == pos.length;
     if (!sequence_and_interval_length_match) {
-        fatal_error("Error adding node to Local Graph: sequence and interval length do not match");
+        fatal_error("Error adding node to Local Graph: sequence and interval length do "
+                    "not match");
     }
 
     auto it = nodes.find(id);
@@ -23,7 +24,8 @@ void LocalGraph::add_node(
             intervalTree.add(pos.start, pos.get_end(), n);
         startIndexOfAllIntervals[pos.start] = n;
     } else {
-        const bool node_with_same_id_seq_and_pos_already_added = (it->second->seq == seq) && (it->second->pos == pos);
+        const bool node_with_same_id_seq_and_pos_already_added
+            = (it->second->seq == seq) && (it->second->pos == pos);
         if (!node_with_same_id_seq_and_pos_already_added) {
             fatal_error("Error adding node to Local Graph: node with ID ", id,
                 " already exists in graph, but with different sequence or pos");
@@ -37,7 +39,7 @@ void LocalGraph::add_edge(const uint32_t& from, const uint32_t& to)
     auto to_it = nodes.find(to);
 
     const bool both_nodes_exist = (from_it != nodes.end()) && (to_it != nodes.end());
-    if(!both_nodes_exist) {
+    if (!both_nodes_exist) {
         fatal_error("Cannot add edge to Local Graph: source (", from, ") or target (",
             to, ") node does not exist");
     }
@@ -47,7 +49,8 @@ void LocalGraph::add_edge(const uint32_t& from, const uint32_t& to)
 
     const bool nodes_do_not_overlap = f->pos.get_end() > t->pos.start;
     if (nodes_do_not_overlap) {
-        fatal_error("Cannot add edge to Local Graph: source and target nodes do not overlap");
+        fatal_error(
+            "Cannot add edge to Local Graph: source and target nodes do not overlap");
     }
     f->outNodes.push_back(t);
 }
@@ -132,10 +135,11 @@ std::vector<PathPtr> LocalGraph::walk(
 { // node_id: where to start the walk, pos: the position in the node_id, len = k+w-1 ->
   // the length that the walk has to go through - we are sketching kmers in a graph
     // walks from position pos in node node for length len bases
-    const bool pos_exists_in_node = (nodes.at(node_id)->pos.start <= pos) &&
-        (pos <= nodes.at(node_id)->pos.get_end());
-    if(!pos_exists_in_node) {
-        fatal_error("Error walking Local Graph: pos ", pos, " does not exist in node ", node_id);
+    const bool pos_exists_in_node = (nodes.at(node_id)->pos.start <= pos)
+        && (pos <= nodes.at(node_id)->pos.get_end());
+    if (!pos_exists_in_node) {
+        fatal_error("Error walking Local Graph: pos ", pos, " does not exist in node ",
+            node_id);
     }
 
     std::vector<PathPtr> return_paths, walk_paths;
@@ -176,10 +180,11 @@ std::vector<PathPtr> LocalGraph::walk_back(
     const uint32_t& node_id, const uint32_t& pos, const uint32_t& len) const
 {
     // walks from position pos in node back through prg for length len bases
-    const bool pos_exists_in_node = (nodes.at(node_id)->pos.start <= pos) &&
-                                    (pos <= nodes.at(node_id)->pos.get_end());
-    if(!pos_exists_in_node) {
-        fatal_error("Error walking Local Graph: pos ", pos, " does not exist in node ", node_id);
+    const bool pos_exists_in_node = (nodes.at(node_id)->pos.start <= pos)
+        && (pos <= nodes.at(node_id)->pos.get_end());
+    if (!pos_exists_in_node) {
+        fatal_error("Error walking Local Graph: pos ", pos, " does not exist in node ",
+            node_id);
     }
 
     std::vector<PathPtr> return_paths, walk_paths;

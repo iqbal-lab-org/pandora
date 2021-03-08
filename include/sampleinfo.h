@@ -30,12 +30,13 @@ public:
     {
         const bool at_least_one_allele = number_of_alleles >= 1;
         if (!at_least_one_allele) {
-            fatal_error("Error on creating VCF Sample INFOs: the VCF record has no alleles");
+            fatal_error(
+                "Error on creating VCF Sample INFOs: the VCF record has no alleles");
         }
         resize_to_the_number_of_alleles();
     }
 
-    virtual ~SampleInfo() {}
+    virtual ~SampleInfo() { }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // methods related to genotyping from the max likelihood path
@@ -415,7 +416,7 @@ public:
         SampleIndexToSampleInfoTemplate<SAMPLE_TYPE>& other)
     {
         const bool same_number_of_samples = this->size() == other.size();
-        if(!same_number_of_samples) {
+        if (!same_number_of_samples) {
             fatal_error("Error solving genotype conflicts between two records: "
                         "number of samples is not consistent between both records");
         }
@@ -426,8 +427,8 @@ public:
         }
     }
 
-    SampleIndexToSampleInfoTemplate() {}
-    virtual ~SampleIndexToSampleInfoTemplate() {}
+    SampleIndexToSampleInfoTemplate() { }
+    virtual ~SampleIndexToSampleInfoTemplate() { }
 
 protected: // We forbid anyone to change this class' sample and allele information, as
            // this can be dangerous. Except for VCFRecord, which is the only one that
@@ -463,7 +464,7 @@ protected: // We forbid anyone to change this class' sample and allele informati
         const SampleIndexToSampleInfoTemplate<SAMPLE_TYPE>& other)
     {
         const bool same_number_of_samples = this->size() == other.size();
-        if(!same_number_of_samples) {
+        if (!same_number_of_samples) {
             fatal_error("Error merging two records: "
                         "number of samples is not consistent between both records");
         }

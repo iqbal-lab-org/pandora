@@ -1220,8 +1220,7 @@ TEST_F(VCFTest___merge_multi_allelic_core___Fixture, merged_VCF_is_not_initially
     VCF merged_vcf(vcf.genotyping_options);
     merged_vcf.add_record("1", 1, "A", "T");
 
-    ASSERT_EXCEPTION(vcf.merge_multi_allelic_core(merged_vcf, 10000),
-        FatalRuntimeError,
+    ASSERT_EXCEPTION(vcf.merge_multi_allelic_core(merged_vcf, 10000), FatalRuntimeError,
         "Error on merging VCFs: initial VCF is not empty");
 }
 

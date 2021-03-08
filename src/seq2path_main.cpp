@@ -4,18 +4,18 @@ void setup_seq2path_subcommand(CLI::App& app)
 {
     auto opt = std::make_shared<Seq2PathOptions>();
     std::string description = "For each sequence, return the path through the PRG";
-    auto *seq2path_subcmd = app.add_subcommand("seq2path", description);
+    auto* seq2path_subcmd = app.add_subcommand("seq2path", description);
 
     seq2path_subcmd->add_option("<PRG>", opt->prgfile, "PRG to index (in fasta format)")
         ->required()
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
-    auto *input = seq2path_subcmd
-                     ->add_option("-i,--input", opt->seqfile,
-                         "Fast{a,q} of sequences to output paths through the PRG for")
-                     ->check(CLI::ExistingFile.description(""))
-                     ->type_name("FILE");
+    auto* input = seq2path_subcmd
+                      ->add_option("-i,--input", opt->seqfile,
+                          "Fast{a,q} of sequences to output paths through the PRG for")
+                      ->check(CLI::ExistingFile.description(""))
+                      ->type_name("FILE");
 
     seq2path_subcmd
         ->add_option(
@@ -27,14 +27,14 @@ void setup_seq2path_subcommand(CLI::App& app)
         ->type_name("INT")
         ->capture_default_str();
 
-    auto *top = seq2path_subcmd->add_flag(
+    auto* top = seq2path_subcmd->add_flag(
         "-T,--top", opt->top, "Output the top path through each local PRG");
-    auto *bottom = seq2path_subcmd->add_flag(
+    auto* bottom = seq2path_subcmd->add_flag(
         "-B,--bottom", opt->bottom, "Output the bottom path through each local PRG");
 
     // todo: this "flag" doesn't seem to do what it says. i.e. it still outputs the node
     // path?
-    auto *check = seq2path_subcmd->add_flag(
+    auto* check = seq2path_subcmd->add_flag(
         "--flag", opt->flag, "output success/fail rather than the node path");
 
     seq2path_subcmd->add_flag(

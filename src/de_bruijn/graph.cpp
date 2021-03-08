@@ -28,9 +28,9 @@ OrientedNodePtr debruijn::Graph::add_node(
     const std::deque<uint_least32_t>& node_ids, uint32_t read_id)
 {
     const bool correct_number_of_nodes_to_add = node_ids.size() == size;
-    if(!correct_number_of_nodes_to_add) {
-        fatal_error("Error adding node to de Bruijn Graph: expected node of size ", size,
-                    ", received node of size ", node_ids.size());
+    if (!correct_number_of_nodes_to_add) {
+        fatal_error("Error adding node to de Bruijn Graph: expected node of size ",
+            size, ", received node of size ", node_ids.size());
     }
 
     if (node_hash.find(node_ids) != node_hash.end()) {
@@ -79,13 +79,13 @@ bool edge_is_valid(OrientedNodePtr from, OrientedNodePtr to)
 void debruijn::Graph::add_edge(OrientedNodePtr from, OrientedNodePtr to)
 {
     const bool nodes_are_valid = from.first != nullptr and to.first != nullptr;
-    if(!nodes_are_valid) {
+    if (!nodes_are_valid) {
         fatal_error("Error adding edge to de Bruijn Graph: from or to node is invalid");
     }
 
     if (!edge_is_valid(from, to)) {
         fatal_error("Error adding edge to de Bruijn Graph: edge from ", *from.first,
-                    " to ", *to.first, " is invalid");
+            " to ", *to.first, " is invalid");
     }
 
     if (from.second

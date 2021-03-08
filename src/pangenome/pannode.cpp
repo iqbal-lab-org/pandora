@@ -85,11 +85,12 @@ void pangenome::Node::add_path(
     const std::vector<KmerNodePtr>& kmp, const uint32_t& sample_id)
 {
     for (uint32_t i = 0; i != kmp.size(); ++i) {
-        const bool kmer_node_is_valid =
-            (kmp[i]->id < kmer_prg_with_coverage.kmer_prg->nodes.size()) and
-            (kmer_prg_with_coverage.kmer_prg->nodes[kmp[i]->id] != nullptr);
+        const bool kmer_node_is_valid
+            = (kmp[i]->id < kmer_prg_with_coverage.kmer_prg->nodes.size())
+            and (kmer_prg_with_coverage.kmer_prg->nodes[kmp[i]->id] != nullptr);
         if (!kmer_node_is_valid) {
-            fatal_error("When adding a path to a Pangraph Node, a kmer node is not valid");
+            fatal_error(
+                "When adding a path to a Pangraph Node, a kmer node is not valid");
         }
         kmer_prg_with_coverage.increment_forward_covg(kmp[i]->id, sample_id);
         kmer_prg_with_coverage.increment_reverse_covg(kmp[i]->id, sample_id);
@@ -120,9 +121,9 @@ void pangenome::Node::get_read_overlap_coordinates(
 
         const bool read_coordinates_are_valid = end > start;
         if (!read_coordinates_are_valid) {
-            fatal_error("Error finding the read overlap coordinates for node ",
-                         name, " and read ", read_ptr->id, " (the ", read_count,
-                         "th on this node). Found end ", end, " after found start ", start);
+            fatal_error("Error finding the read overlap coordinates for node ", name,
+                " and read ", read_ptr->id, " (the ", read_count,
+                "th on this node). Found end ", end, " after found start ", start);
         }
 
         coordinate = { read_ptr->id, start, end, (*hit_ptr_iter)->is_forward() };
@@ -228,9 +229,9 @@ std::set<ReadCoordinate> pangenome::Node::get_read_overlap_coordinates(
 
         const bool read_coordinates_are_valid = end > start;
         if (!read_coordinates_are_valid) {
-            fatal_error("Error finding the read overlap coordinates for node ",
-                        name, " and read ", current_read->id, ". Found end ", end,
-                   " after found start ", start);
+            fatal_error("Error finding the read overlap coordinates for node ", name,
+                " and read ", current_read->id, ". Found end ", end,
+                " after found start ", start);
         }
 
         read_overlap_coordinates.emplace(

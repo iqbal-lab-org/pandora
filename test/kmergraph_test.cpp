@@ -447,6 +447,6 @@ TEST(KmerGraphTest, load)
 TEST(KmerGraphTest, load_prg_FatalRuntimeError)
 {
     KmerGraph read_kg;
-    ASSERT_EXCEPTION(read_kg.load("kmergraph_test.gfa"), FatalRuntimeError,
-        "Error reading GFA");
+    ASSERT_EXCEPTION(
+        read_kg.load("kmergraph_test.gfa"), FatalRuntimeError, "Error reading GFA");
 }

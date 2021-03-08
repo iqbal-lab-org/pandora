@@ -413,8 +413,8 @@ int pandora_compare(CompareOptions& opt)
 
         const bool valid_prg_id = prgs.size() > prg_id;
         if (!valid_prg_id) {
-            fatal_error("Error reading PanRG: a PRG has an invalid ID (", prg_id, "), >= than the number of PRGs (",
-                prgs.size(), ") in the PanRG");
+            fatal_error("Error reading PanRG: a PRG has an invalid ID (", prg_id,
+                "), >= than the number of PRGs (", prgs.size(), ") in the PanRG");
         }
         const auto& prg_ptr = prgs[prg_id];
 

@@ -152,7 +152,8 @@ std::pair<DenovoPaths, FoundPaths> LocalAssemblyGraph::get_paths_between(
     auto tree { depth_first_search_from(start_node) };
 
     // check if end node is in forward tree, if not just return
-    const bool end_kmer_not_reachable_from_start_kmer = tree.find(end_kmer) == tree.end();
+    const bool end_kmer_not_reachable_from_start_kmer
+        = tree.find(end_kmer) == tree.end();
     if (end_kmer_not_reachable_from_start_kmer) {
         BOOST_LOG_TRIVIAL(trace)
             << "End kmer " << end_kmer << " is not reachable from start kmer "
@@ -181,7 +182,9 @@ std::pair<DenovoPaths, FoundPaths> LocalAssemblyGraph::get_paths_between(
             break;
         }
 
-        BOOST_LOG_TRIVIAL(trace) << "Trying local assembly with " << std::to_string(required_percent_of_expected_covg) << " * <expected covg>";
+        BOOST_LOG_TRIVIAL(trace) << "Trying local assembly with "
+                                 << std::to_string(required_percent_of_expected_covg)
+                                 << " * <expected covg>";
         build_paths_between(start_kmer, end_kmer, path_accumulator, tree,
             node_to_distance_to_the_end_node, paths_between_queries, max_path_length,
             expected_coverage, required_percent_of_expected_covg);

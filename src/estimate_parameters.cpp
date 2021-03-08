@@ -45,7 +45,8 @@ double fit_variance_covg(const std::vector<uint32_t>& kmer_covg_dist, double& me
 
 void fit_negative_binomial(double& mean, double& variance, float& p, float& r)
 {
-    const bool negative_binomial_parameters_are_ok = mean > 0 and variance > 0 and mean < variance;
+    const bool negative_binomial_parameters_are_ok
+        = mean > 0 and variance > 0 and mean < variance;
     if (!negative_binomial_parameters_are_ok) {
         fatal_error("Negative binomial parameters are invalid: mean is ", mean,
             ", variance is ", variance);

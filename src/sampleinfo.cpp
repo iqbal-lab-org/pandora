@@ -7,7 +7,7 @@ void SampleInfo::set_coverage_information(
     this->allele_to_forward_coverages = allele_to_forward_coverages;
     this->allele_to_reverse_coverages = allele_to_reverse_coverages;
 
-    if(!check_if_coverage_information_is_correct()) {
+    if (!check_if_coverage_information_is_correct()) {
         fatal_error("Error when setting coverage information for sample: "
                     "coverage information left inconsistent");
     }
@@ -15,7 +15,7 @@ void SampleInfo::set_coverage_information(
 
 void SampleInfo::genotype_from_coverage()
 {
-    if(!check_if_coverage_information_is_correct()) {
+    if (!check_if_coverage_information_is_correct()) {
         fatal_error("Error when genotyping: coverage information is inconsistent");
     }
 
@@ -38,7 +38,7 @@ void SampleInfo::genotype_from_coverage_using_maximum_likelihood_path_as_referen
         uint32_t valid_GT_from_maximum_likelihood_path
             = this->get_gt_from_max_likelihood_path();
 
-        if(!check_if_coverage_information_is_correct()) {
+        if (!check_if_coverage_information_is_correct()) {
             fatal_error("Error when genotyping: coverage information is inconsistent");
         }
         auto genotype_and_max_likelihood_optional = get_genotype_from_coverage();
@@ -272,10 +272,11 @@ std::string SampleInfo::to_string(bool genotyping_from_maximum_likelihood,
     bool genotyping_from_compatible_coverage) const
 {
     const bool only_one_flag_is_set = ((int)(genotyping_from_maximum_likelihood)
-                                    + (int)(genotyping_from_compatible_coverage))
+                                          + (int)(genotyping_from_compatible_coverage))
         == 1;
     if (!only_one_flag_is_set) {
-        fatal_error("Error on stringifying VCF record sample info: incompatible genotyping options");
+        fatal_error("Error on stringifying VCF record sample info: incompatible "
+                    "genotyping options");
     }
 
     std::vector<double> likelihoods_for_all_alleles = get_likelihoods_for_all_alleles();
@@ -406,7 +407,7 @@ void SampleInfo::set_number_of_alleles_and_resize_coverage_information(
 {
     this->number_of_alleles = number_of_alleles;
     resize_to_the_number_of_alleles();
-    if(!check_if_coverage_information_is_correct()) {
+    if (!check_if_coverage_information_is_correct()) {
         fatal_error("Error when setting number of alleles for sample: "
                     "coverage information left inconsistent");
     }

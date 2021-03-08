@@ -234,7 +234,8 @@ TEST(DeBruijnGraphAddEdge, AddEdgeNoOverlap_FatalRuntimeError)
     OrientedNodePtr n1 = g.add_node(v1, 0);
     OrientedNodePtr n2 = g.add_node(v2, 0);
 
-    ASSERT_EXCEPTION(g.add_edge(n1, n2), FatalRuntimeError, "Error adding edge to de Bruijn Graph");
+    ASSERT_EXCEPTION(
+        g.add_edge(n1, n2), FatalRuntimeError, "Error adding edge to de Bruijn Graph");
 }
 
 TEST(DeBruijnGraphTest, remove_node)

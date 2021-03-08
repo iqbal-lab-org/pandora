@@ -83,11 +83,12 @@ float lognchoosek2(uint32_t n, uint32_t k1, uint32_t k2)
 {
     const bool parameters_are_valid = n >= (k1 + k2);
     if (!parameters_are_valid) {
-        fatal_error("Currently the model assumes that the most a given kmer (defined by "
-                    "position) can occur is once per read, i.e. an error somewhere else in the "
-                    "read cannot result in this kmer. If you are getting this message, then "
-                    "you have evidence of violation of this assumption. Either try using a "
-                    "bigger k, or come up with a better model");
+        fatal_error(
+            "Currently the model assumes that the most a given kmer (defined by "
+            "position) can occur is once per read, i.e. an error somewhere else in the "
+            "read cannot result in this kmer. If you are getting this message, then "
+            "you have evidence of violation of this assumption. Either try using a "
+            "bigger k, or come up with a better model");
     }
     float total = 0;
 

@@ -31,7 +31,8 @@ struct Interval {
 
     bool is_close(const Interval& other, uint32_t dist = 0) const;
 
-    static bool sorted_interval_vector_has_overlapping_intervals (const std::vector<Interval> &intervals);
+    static bool sorted_interval_vector_has_overlapping_intervals(
+        const std::vector<Interval>& intervals);
 };
 
 // Merge intervals within dist of each other. Changes the vector inplace.

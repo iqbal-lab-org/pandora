@@ -241,13 +241,13 @@ TEST(KmerGraphWithCoverageTest, set_p)
 {
     KmerGraph kmergraph;
     KmerGraphWithCoverage kmergraph_with_coverage(&kmergraph);
-    ASSERT_EXCEPTION(kmergraph_with_coverage.set_binomial_parameter_p(0.4), FatalRuntimeError,
-        "Error setting binomial parameter p, invalid parameters");
+    ASSERT_EXCEPTION(kmergraph_with_coverage.set_binomial_parameter_p(0.4),
+        FatalRuntimeError, "Error setting binomial parameter p, invalid parameters");
     kmergraph_with_coverage.kmer_prg->k = 3;
-    ASSERT_EXCEPTION(kmergraph_with_coverage.set_binomial_parameter_p(0), FatalRuntimeError,
-                     "Error setting binomial parameter p, invalid parameters");
-    ASSERT_EXCEPTION(kmergraph_with_coverage.set_binomial_parameter_p(1), FatalRuntimeError,
-                     "Error setting binomial parameter p, invalid parameters");
+    ASSERT_EXCEPTION(kmergraph_with_coverage.set_binomial_parameter_p(0),
+        FatalRuntimeError, "Error setting binomial parameter p, invalid parameters");
+    ASSERT_EXCEPTION(kmergraph_with_coverage.set_binomial_parameter_p(1),
+        FatalRuntimeError, "Error setting binomial parameter p, invalid parameters");
     kmergraph_with_coverage.set_binomial_parameter_p(0.5);
     EXPECT_EQ(1 / exp(1.5) - 0.00001 <= kmergraph_with_coverage.binomial_parameter_p
             and 1 / exp(1.5) + 0.00001 >= kmergraph_with_coverage.binomial_parameter_p,
@@ -268,8 +268,8 @@ TEST(KmerGraphWithCoverageTest, prob_failNoNodes)
     uint32_t sample_id = 0;
     KmerGraph kmergraph;
     KmerGraphWithCoverage kmergraph_with_coverage(&kmergraph);
-    ASSERT_EXCEPTION(kmergraph_with_coverage.bin_prob(0, sample_id),
-        FatalRuntimeError, "Impossible to compute bin_prob, no reads were mapped to this kmer graph");
+    ASSERT_EXCEPTION(kmergraph_with_coverage.bin_prob(0, sample_id), FatalRuntimeError,
+        "Impossible to compute bin_prob, no reads were mapped to this kmer graph");
 }
 
 TEST(KmerGraphWithCoverageTest, prob_failNoP)
@@ -283,8 +283,8 @@ TEST(KmerGraphWithCoverageTest, prob_failNoP)
     kmergraph.add_node(p);
     KmerGraphWithCoverage kmergraph_with_coverage(&kmergraph);
 
-    ASSERT_EXCEPTION(kmergraph_with_coverage.bin_prob(0, sample_id),
-                     FatalRuntimeError, "Impossible to compute bin_prob, no reads were mapped to this kmer graph");
+    ASSERT_EXCEPTION(kmergraph_with_coverage.bin_prob(0, sample_id), FatalRuntimeError,
+        "Impossible to compute bin_prob, no reads were mapped to this kmer graph");
 }
 
 TEST(KmerGraphWithCoverageTest, prob_failNoNumReads)
@@ -301,8 +301,8 @@ TEST(KmerGraphWithCoverageTest, prob_failNoNumReads)
     kmergraph_with_coverage.kmer_prg->k = 3;
     kmergraph_with_coverage.set_binomial_parameter_p(0.5);
 
-    ASSERT_EXCEPTION(kmergraph_with_coverage.bin_prob(0, sample_id),
-                     FatalRuntimeError, "Impossible to compute bin_prob, no reads were mapped to this kmer graph");
+    ASSERT_EXCEPTION(kmergraph_with_coverage.bin_prob(0, sample_id), FatalRuntimeError,
+        "Impossible to compute bin_prob, no reads were mapped to this kmer graph");
 }
 
 TEST(KmerGraphWithCoverageTest, prob_simple)
@@ -407,8 +407,8 @@ TEST(KmerGraphWithCoverageTest, findMaxPath_InvalidProbModel)
 
     vector<KmerNodePtr> mp;
     kmergraph_with_coverage.set_binomial_parameter_p(0.01);
-    ASSERT_EXCEPTION(
-        kmergraph_with_coverage.find_max_path(mp, "exp", max_num_kmers_to_average, sample_id),
+    ASSERT_EXCEPTION(kmergraph_with_coverage.find_max_path(
+                         mp, "exp", max_num_kmers_to_average, sample_id),
         FatalRuntimeError, "Invalid probability model for kmer coverage distribution");
 }
 

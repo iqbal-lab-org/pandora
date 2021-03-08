@@ -49,7 +49,7 @@ TEST(PathTest, add_end_interval)
     d.push_back(Interval(6, 9));
     EXPECT_ITERABLE_EQ(vector<Interval>, d, p.getPath());
     ASSERT_EXCEPTION(p.add_end_interval(Interval(0, 1)), FatalRuntimeError,
-                     "Error when adding a new interval to a path");
+        "Error when adding a new interval to a path");
 }
 
 TEST(PathTest, subpath)

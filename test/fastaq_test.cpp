@@ -144,9 +144,9 @@ TEST(FastaqTest, add_entry_FatalRuntimeError)
     ASSERT_EXCEPTION(f.add_entry("", "ACGT", { 0, 1, 2, 3 }, 40), FatalRuntimeError,
         "Error adding entry to Fasta/q file");
     ASSERT_EXCEPTION(f.add_entry("dummy", "ACGT", { 0, 1, 2 }, 40), FatalRuntimeError,
-                     "Error adding entry to Fasta/q file");
+        "Error adding entry to Fasta/q file");
     ASSERT_EXCEPTION(f.add_entry("dummy", "ACG", { 0, 1, 2, 3 }, 40), FatalRuntimeError,
-                     "Error adding entry to Fasta/q file");
+        "Error adding entry to Fasta/q file");
 }
 
 TEST(FastaqTest, add_entry_works)

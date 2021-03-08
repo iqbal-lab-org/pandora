@@ -107,7 +107,8 @@ TEST(NoiseFilteringOverlapForwards, SecondLongerThanFirst_FatalRuntimeError)
     std::deque<uint_least32_t> d1 = { 0, 4, 6, 2, 5, 4, 0, 1, 2 };
     std::deque<uint_least32_t> d2 = { 0, 4, 6, 2, 5, 4, 0, 1, 2, 3 };
     ASSERT_EXCEPTION(overlap_forwards(d1, d2), FatalRuntimeError,
-     "Error on checking for overlaps in noise filtering: first node must be larger or have the same size as the second");
+        "Error on checking for overlaps in noise filtering: first node must be larger "
+        "or have the same size as the second");
 }
 
 TEST(NoiseFilteringTest, overlap_backwards)

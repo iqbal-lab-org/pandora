@@ -32,8 +32,8 @@ private:
     std::vector<LocalNodePtr> nodes_along_path_core(const prg::Path&) const;
 
     static void check_if_vector_of_subintervals_is_consistent_with_envelopping_interval(
-        const std::vector<Interval> &subintervals, const Interval& envelopping_interval
-        );
+        const std::vector<Interval>& subintervals,
+        const Interval& envelopping_interval);
 
 public:
     uint32_t next_site; // denotes the id of the next variant site to be processed -

@@ -131,9 +131,11 @@ void Seq::minimizer_sketch(const uint32_t w, const uint32_t k)
         }
 
         const bool window_has_shortened = window.size() < w;
-        if(!window_has_shortened) {
-            fatal_error("Error when sketching sequence: a minimizer should have been added "
-                        "and windows should have size < ", w, " (is ", window.size(), ")");
+        if (!window_has_shortened) {
+            fatal_error(
+                "Error when sketching sequence: a minimizer should have been added "
+                "and windows should have size < ",
+                w, " (is ", window.size(), ")");
         }
     }
 }

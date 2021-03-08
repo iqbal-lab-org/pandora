@@ -193,8 +193,7 @@ TEST_F(VCFRecordTest___default_VCF_Record___Fixture,
 {
     vcf_record.add_new_alt("AC");
     vcf_record.add_new_alt("AG");
-    ASSERT_EXCEPTION(vcf_record.add_new_alt("AC"),
-        FatalRuntimeError,
+    ASSERT_EXCEPTION(vcf_record.add_new_alt("AC"), FatalRuntimeError,
         "Error adding new ALT to a VCF record: ALT already exists");
 }
 
@@ -217,8 +216,7 @@ TEST_F(VCFRecordTest___default_VCF_Record___Fixture,
     std::vector<std::string> alts { "AC", "AG", "",
         "." }; // NB: "" and "." are repeated because "" is translated to "."
     ASSERT_EXCEPTION(vcf_record.add_new_alts(alts.begin(), alts.end()),
-        FatalRuntimeError,
-       "Error adding new ALT to a VCF record: ALT already exists");
+        FatalRuntimeError, "Error adding new ALT to a VCF record: ALT already exists");
 }
 
 TEST(VCFRecordTest, clear_simple)
@@ -320,7 +318,8 @@ TEST(VCFRecordTest, get_format___no_flags_set___expects_FatalRuntimeError)
     VCF vcf = create_VCF_with_default_parameters();
     VCFRecord vcf_record(&vcf);
     ASSERT_EXCEPTION(vcf_record.get_format(false, false), FatalRuntimeError,
-     "Error on getting format field from VCF record: incompatible genotyping options");
+        "Error on getting format field from VCF record: incompatible genotyping "
+        "options");
 }
 
 TEST(VCFRecordTest, get_format___both_flags_set___expects_FatalRuntimeError)
@@ -328,7 +327,8 @@ TEST(VCFRecordTest, get_format___both_flags_set___expects_FatalRuntimeError)
     VCF vcf = create_VCF_with_default_parameters();
     VCFRecord vcf_record(&vcf);
     ASSERT_EXCEPTION(vcf_record.get_format(true, true), FatalRuntimeError,
-     "Error on getting format field from VCF record: incompatible genotyping options");
+        "Error on getting format field from VCF record: incompatible genotyping "
+        "options");
 }
 
 TEST(VCFRecordTest, get_format___genotyping_from_maximum_likelihood)
@@ -376,9 +376,9 @@ public:
     {
     }
 
-    void SetUp() override {}
+    void SetUp() override { }
 
-    void TearDown() override {}
+    void TearDown() override { }
     VCF vcf;
     VCFRecordMock vcf_record;
 };
@@ -644,7 +644,7 @@ TEST_F(VCFRecordTest___can_biallelic_record_be_merged_into_this______Fixture,
     merge_triallelic___expects_FatalRuntimeError)
 {
     ASSERT_EXCEPTION(vcf_record_ref_A.can_biallelic_record_be_merged_into_this(
-                     vcf_record_tri_allelic),
+                         vcf_record_tri_allelic),
         FatalRuntimeError,
         "When merging two biallelic records, one of them is not biallelic");
 }
