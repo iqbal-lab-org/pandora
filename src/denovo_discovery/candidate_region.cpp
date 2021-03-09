@@ -250,6 +250,8 @@ std::vector<std::string> CandidateRegion::get_variants(const string &denovo_sequ
     typedef Align<TSequence, ArrayGaps> TAlign;     // align type
     typedef Row<TAlign>::Type TRow;                 // gapped sequence type
 
+
+    // TODO: this can be further optimised by aligning the node sequence with the node alt (not the whole ML sequence with the whole ML alt)
     TSequence ref = local_node_max_likelihood_sequence;
     TSequence alt = denovo_sequence;
 
@@ -273,7 +275,8 @@ std::vector<std::string> CandidateRegion::get_variants(const string &denovo_sequ
                 denovo_variants.back().ref += ref_base;
                 denovo_variants.back().alt += alt_base;
             } else {
-                SimpleDenovoVariantRecord denovo_variant(alignment_index+1,
+                SimpleDenovoVariantRecord denovo_variant(
+                    toSourcePosition(ref_row, alignment_index)+1,
                     std::string(1, ref_base), std::string(1, alt_base));
                 denovo_variants.push_back(denovo_variant);
             }
