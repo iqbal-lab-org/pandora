@@ -4,18 +4,18 @@ void setup_seq2path_subcommand(CLI::App& app)
 {
     auto opt = std::make_shared<Seq2PathOptions>();
     std::string description = "For each sequence, return the path through the PRG";
-    auto *seq2path_subcmd = app.add_subcommand("seq2path", description);
+    auto* seq2path_subcmd = app.add_subcommand("seq2path", description);
 
     seq2path_subcmd->add_option("<PRG>", opt->prgfile, "PRG to index (in fasta format)")
         ->required()
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
-    auto *input = seq2path_subcmd
-                     ->add_option("-i,--input", opt->seqfile,
-                         "Fast{a,q} of sequences to output paths through the PRG for")
-                     ->check(CLI::ExistingFile.description(""))
-                     ->type_name("FILE");
+    auto* input = seq2path_subcmd
+                      ->add_option("-i,--input", opt->seqfile,
+                          "Fast{a,q} of sequences to output paths through the PRG for")
+                      ->check(CLI::ExistingFile.description(""))
+                      ->type_name("FILE");
 
     seq2path_subcmd
         ->add_option(
@@ -27,14 +27,14 @@ void setup_seq2path_subcommand(CLI::App& app)
         ->type_name("INT")
         ->capture_default_str();
 
-    auto *top = seq2path_subcmd->add_flag(
+    auto* top = seq2path_subcmd->add_flag(
         "-T,--top", opt->top, "Output the top path through each local PRG");
-    auto *bottom = seq2path_subcmd->add_flag(
+    auto* bottom = seq2path_subcmd->add_flag(
         "-B,--bottom", opt->bottom, "Output the bottom path through each local PRG");
 
     // todo: this "flag" doesn't seem to do what it says. i.e. it still outputs the node
     // path?
-    auto *check = seq2path_subcmd->add_flag(
+    auto* check = seq2path_subcmd->add_flag(
         "--flag", opt->flag, "output success/fail rather than the node path");
 
     seq2path_subcmd->add_flag(
@@ -68,8 +68,7 @@ int pandora_seq2path(Seq2PathOptions const& opt)
     load_PRG_kmergraphs(prgs, opt.window_size, opt.kmer_size, opt.prgfile);
 
     if (prgs.empty()) {
-        BOOST_LOG_TRIVIAL(error) << "PRG is empty!";
-        exit(1);
+        fatal_error("PRG is empty!");
     }
 
     if (opt.top) {
@@ -124,9 +123,7 @@ int pandora_seq2path(Seq2PathOptions const& opt)
                         rev_complement(seq_handle.read));
                 }
             } else {
-                BOOST_LOG_TRIVIAL(error)
-                    << "Different numbers of PRGs and reads, exiting";
-                exit(1);
+                fatal_error("Different numbers of PRGs and reads");
             }
             if (opt.flag) {
                 if (npath.empty() and seq_handle.read.size() < 300) {
@@ -145,8 +142,7 @@ int pandora_seq2path(Seq2PathOptions const& opt)
         }
         seq_handle.close();
     } else {
-        BOOST_LOG_TRIVIAL(error) << "One of --top, --bottom or --input must be given";
-        exit(1);
+        fatal_error("One of --top, --bottom or --input must be given");
     }
 
     return 0;

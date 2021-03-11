@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "fastaq.h"
 #include <iostream>
+#include "test_helpers.h"
 
 using namespace std;
 
@@ -137,13 +138,15 @@ TEST(AltCovgToScore, CrazyHighCovg_ReturnLastPrintableAscii)
     EXPECT_EQ(result, expected);
 }
 
-TEST(FastaqTest, add_entry_catch_asserts)
+TEST(FastaqTest, add_entry_FatalRuntimeError)
 {
     Fastaq f;
-    EXPECT_DEATH(f.add_entry("", "ACGT", { 0, 1, 2, 3 }, 40), "");
-    EXPECT_DEATH(f.add_entry("dummy", "ACGT", { 0, 1, 2 }, 40), "");
-    EXPECT_DEATH(f.add_entry("dummy", "ACG", { 0, 1, 2, 3 }, 40), "");
-    // EXPECT_DEATH(f.add_entry("dummy", "ACGT", {0, 1, 2, 3}, 0), "");
+    ASSERT_EXCEPTION(f.add_entry("", "ACGT", { 0, 1, 2, 3 }, 40), FatalRuntimeError,
+        "Error adding entry to Fasta/q file");
+    ASSERT_EXCEPTION(f.add_entry("dummy", "ACGT", { 0, 1, 2 }, 40), FatalRuntimeError,
+        "Error adding entry to Fasta/q file");
+    ASSERT_EXCEPTION(f.add_entry("dummy", "ACG", { 0, 1, 2, 3 }, 40), FatalRuntimeError,
+        "Error adding entry to Fasta/q file");
 }
 
 TEST(FastaqTest, add_entry_works)

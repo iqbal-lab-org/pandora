@@ -70,7 +70,7 @@ DfsTree LocalAssemblyGraph::depth_first_search_from(
         auto& current_node { nodes_to_explore.top() };
         nodes_to_explore.pop();
 
-        bool previously_explored { explored_nodes.find(toString(current_node))
+        const bool previously_explored { explored_nodes.find(toString(current_node))
             != explored_nodes.end() };
         if (previously_explored) {
             continue;
@@ -110,7 +110,7 @@ BfsDistanceMap LocalAssemblyGraph::breadth_first_search_from(
         auto current_kmer = toString(current_node);
         auto parent_kmer = child_kmer_to_parent_kmer.at(current_kmer);
 
-        bool previously_explored { explored_nodes.find(current_kmer)
+        const bool previously_explored { explored_nodes.find(current_kmer)
             != explored_nodes.end() };
         if (previously_explored) {
             continue;
@@ -152,7 +152,8 @@ std::pair<DenovoPaths, FoundPaths> LocalAssemblyGraph::get_paths_between(
     auto tree { depth_first_search_from(start_node) };
 
     // check if end node is in forward tree, if not just return
-    bool end_kmer_not_reachable_from_start_kmer = tree.find(end_kmer) == tree.end();
+    const bool end_kmer_not_reachable_from_start_kmer
+        = tree.find(end_kmer) == tree.end();
     if (end_kmer_not_reachable_from_start_kmer) {
         BOOST_LOG_TRIVIAL(trace)
             << "End kmer " << end_kmer << " is not reachable from start kmer "
@@ -181,7 +182,9 @@ std::pair<DenovoPaths, FoundPaths> LocalAssemblyGraph::get_paths_between(
             break;
         }
 
-        BOOST_LOG_TRIVIAL(trace) << "Trying local assembly with " << std::to_string(required_percent_of_expected_covg) << " * <expected covg>";
+        BOOST_LOG_TRIVIAL(trace) << "Trying local assembly with "
+                                 << std::to_string(required_percent_of_expected_covg)
+                                 << " * <expected covg>";
         build_paths_between(start_kmer, end_kmer, path_accumulator, tree,
             node_to_distance_to_the_end_node, paths_between_queries, max_path_length,
             expected_coverage, required_percent_of_expected_covg);
@@ -206,7 +209,7 @@ void LocalAssemblyGraph::build_paths_between(const std::string& start_kmer,
         return;
     }
 
-    bool start_kmer_can_reach_end_kmer_with_distance_max_path_length
+    const bool start_kmer_can_reach_end_kmer_with_distance_max_path_length
         = (node_to_distance_to_the_end_node.find(start_kmer)
                 != node_to_distance_to_the_end_node.end()
             and path_accumulator.length()

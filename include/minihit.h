@@ -5,6 +5,7 @@
 #include <cstdint>
 #include "minimizer.h"
 #include "minirecord.h"
+#include "fatal_error.h"
 
 /**
  * Describes a hit between a read an a minimizer from the PRG

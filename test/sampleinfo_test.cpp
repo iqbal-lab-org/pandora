@@ -14,9 +14,10 @@ using ::testing::DoubleNear;
 using ::testing::Property;
 using ::testing::Return;
 
-TEST(SampleInfoTest, constructor___zero_alleles___expects_death)
+TEST(SampleInfoTest, constructor___zero_alleles___expects_FatalRuntimeError)
 {
-    EXPECT_DEATH(SampleInfo(0, 0, &default_genotyping_options), "");
+    ASSERT_EXCEPTION(SampleInfo(0, 0, &default_genotyping_options), FatalRuntimeError,
+        "Error on creating VCF Sample INFOs: the VCF record has no alleles");
 }
 
 TEST(SampleInfoTest, constructor___one_allele)
@@ -98,7 +99,7 @@ public:
             = std::vector<std::vector<uint32_t>>({ { 1, 2 }, { 3, 4 }, { 5, 6 } });
     }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     SampleInfoMock default_sample_info;
     SampleInfoMock default_sample_info_two_alleles;
@@ -202,43 +203,55 @@ TEST_F(SampleInfoTest___Fixture, get_allele_to_reverse_coverages___default_sampl
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___forward_coverage_has_no_alleles___expects_death)
+    set_coverage_information___forward_coverage_has_no_alleles___expects_FatalRuntimeError)
 {
-    EXPECT_DEATH(default_sample_info.set_coverage_information(
-                     allele_to_coverage_empty, allele_to_coverage_three_alleles),
-        "");
+    ASSERT_EXCEPTION(default_sample_info.set_coverage_information(
+                         allele_to_coverage_empty, allele_to_coverage_three_alleles),
+        FatalRuntimeError,
+        "Error when setting coverage information for sample: coverage information left "
+        "inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___forward_coverage_has_one_allele___expects_death)
+    set_coverage_information___forward_coverage_has_one_allele___expects_FatalRuntimeError)
 {
-    EXPECT_DEATH(default_sample_info.set_coverage_information(
-                     allele_to_coverage_one_allele, allele_to_coverage_three_alleles),
-        "");
+    ASSERT_EXCEPTION(
+        default_sample_info.set_coverage_information(
+            allele_to_coverage_one_allele, allele_to_coverage_three_alleles),
+        FatalRuntimeError,
+        "Error when setting coverage information for sample: coverage information left "
+        "inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___reverse_coverage_has_no_alleles___expects_death)
+    set_coverage_information___reverse_coverage_has_no_alleles___expects_FatalRuntimeError)
 {
-    EXPECT_DEATH(default_sample_info.set_coverage_information(
-                     allele_to_coverage_three_alleles, allele_to_coverage_empty),
-        "");
+    ASSERT_EXCEPTION(default_sample_info.set_coverage_information(
+                         allele_to_coverage_three_alleles, allele_to_coverage_empty),
+        FatalRuntimeError,
+        "Error when setting coverage information for sample: coverage information left "
+        "inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___reverse_coverage_has_one_allele___expects_death)
+    set_coverage_information___reverse_coverage_has_one_allele___expects_FatalRuntimeError)
 {
-    EXPECT_DEATH(default_sample_info.set_coverage_information(
-                     allele_to_coverage_three_alleles, allele_to_coverage_one_allele),
-        "");
+    ASSERT_EXCEPTION(
+        default_sample_info.set_coverage_information(
+            allele_to_coverage_three_alleles, allele_to_coverage_one_allele),
+        FatalRuntimeError,
+        "Error when setting coverage information for sample: coverage information left "
+        "inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___both_coverages_have_two_alleles___different_number_of_bases___expects_death)
+    set_coverage_information___both_coverages_have_two_alleles___different_number_of_bases___expects_FatalRuntimeError)
 {
-    EXPECT_DEATH(default_sample_info.set_coverage_information(
-                     allele_to_coverage_two_alleles, { { 1, 2 }, { 3 } }),
-        "");
+    ASSERT_EXCEPTION(default_sample_info.set_coverage_information(
+                         allele_to_coverage_two_alleles, { { 1, 2 }, { 3 } }),
+        FatalRuntimeError,
+        "Error when setting coverage information for sample: coverage information left "
+        "inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
@@ -257,19 +270,25 @@ TEST_F(SampleInfoTest___Fixture,
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___fwd_coverage_has_two_alleles___rev_coverage_has_three_alleles___sample_info_expects_three_alleles___expects_death)
+    set_coverage_information___fwd_coverage_has_two_alleles___rev_coverage_has_three_alleles___sample_info_expects_three_alleles___expects_FatalRuntimeError)
 {
-    EXPECT_DEATH(default_sample_info_three_alleles.set_coverage_information(
-                     allele_to_coverage_two_alleles, allele_to_coverage_three_alleles),
-        "");
+    ASSERT_EXCEPTION(
+        default_sample_info_three_alleles.set_coverage_information(
+            allele_to_coverage_two_alleles, allele_to_coverage_three_alleles),
+        FatalRuntimeError,
+        "Error when setting coverage information for sample: coverage information left "
+        "inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___fwd_coverage_has_three_alleles___rev_coverage_has_two_alleles___sample_info_expects_three_alleles___expects_death)
+    set_coverage_information___fwd_coverage_has_three_alleles___rev_coverage_has_two_alleles___sample_info_expects_three_alleles___expects_FatalRuntimeError)
 {
-    EXPECT_DEATH(default_sample_info_three_alleles.set_coverage_information(
-                     allele_to_coverage_three_alleles, allele_to_coverage_two_alleles),
-        "");
+    ASSERT_EXCEPTION(
+        default_sample_info_three_alleles.set_coverage_information(
+            allele_to_coverage_three_alleles, allele_to_coverage_two_alleles),
+        FatalRuntimeError,
+        "Error when setting coverage information for sample: coverage information left "
+        "inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
@@ -287,49 +306,58 @@ TEST_F(SampleInfoTest___Fixture,
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___forward_covg_has_two_alleles___reverse_covg_has_three_alleles___expects_death)
+    set_coverage_information___forward_covg_has_two_alleles___reverse_covg_has_three_alleles___expects_FatalRuntimeError)
 {
-    EXPECT_DEATH(default_sample_info.set_coverage_information(
-                     allele_to_coverage_two_alleles, allele_to_coverage_three_alleles),
-        "");
+    ASSERT_EXCEPTION(
+        default_sample_info.set_coverage_information(
+            allele_to_coverage_two_alleles, allele_to_coverage_three_alleles),
+        FatalRuntimeError,
+        "Error when setting coverage information for sample: coverage information left "
+        "inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___both_covgs_have_two_alleles_but_have_different_number_of_bases_on_first_allele___expects_death)
+    set_coverage_information___both_covgs_have_two_alleles_but_have_different_number_of_bases_on_first_allele___expects_FatalRuntimeError)
 {
     std::vector<std::vector<uint32_t>>
         allele_to_coverage_two_alleles_first_allele_has_only_one_base(
             allele_to_coverage_two_alleles);
     allele_to_coverage_two_alleles_first_allele_has_only_one_base[0] = { 1 };
 
-    EXPECT_DEATH(
+    ASSERT_EXCEPTION(
         default_sample_info.set_coverage_information(allele_to_coverage_two_alleles,
             allele_to_coverage_two_alleles_first_allele_has_only_one_base),
-        "");
+        FatalRuntimeError,
+        "Error when setting coverage information for sample: coverage information left "
+        "inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_coverage_information___both_covgs_have_two_alleles_but_have_different_number_of_bases_on_second_allele___expects_death)
+    set_coverage_information___both_covgs_have_two_alleles_but_have_different_number_of_bases_on_second_allele___expects_FatalRuntimeError)
 {
     std::vector<std::vector<uint32_t>>
         allele_to_coverage_two_alleles_second_allele_has_only_one_base(
             allele_to_coverage_two_alleles);
     allele_to_coverage_two_alleles_second_allele_has_only_one_base[1] = { 3 };
 
-    EXPECT_DEATH(
+    ASSERT_EXCEPTION(
         default_sample_info.set_coverage_information(allele_to_coverage_two_alleles,
             allele_to_coverage_two_alleles_second_allele_has_only_one_base),
-        "");
+        FatalRuntimeError,
+        "Error when setting coverage information for sample: coverage information left "
+        "inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
-    set_number_of_alleles_and_resize_coverage_information___resize_to_zero_alleles___expects_death)
+    set_number_of_alleles_and_resize_coverage_information___resize_to_zero_alleles___expects_FatalRuntimeError)
 {
     default_sample_info_three_alleles.set_coverage_information(
         allele_to_coverage_three_alleles, allele_to_coverage_three_alleles);
-    EXPECT_DEATH(default_sample_info_three_alleles
-                     .set_number_of_alleles_and_resize_coverage_information(0),
-        "");
+    ASSERT_EXCEPTION(default_sample_info_three_alleles
+                         .set_number_of_alleles_and_resize_coverage_information(0),
+        FatalRuntimeError,
+        "Error when setting number of alleles for sample: coverage information left "
+        "inconsistent");
 }
 
 TEST_F(SampleInfoTest___Fixture,
@@ -436,9 +464,9 @@ public:
     {
     }
 
-    void SetUp() override {}
+    void SetUp() override { }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     SampleInfoMock default_sample_info;
 };
@@ -510,9 +538,9 @@ public:
     {
     }
 
-    void SetUp() override {}
+    void SetUp() override { }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     SampleInfoMock sample_info_mock;
 };
@@ -633,7 +661,7 @@ public:
             allele_to_coverage_three_alleles, allele_to_coverage_three_alleles);
     }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     SampleInfoMock sample_info_with_two_alleles;
     SampleInfoMock sample_info_with_three_alleles;
@@ -752,9 +780,9 @@ public:
     {
     }
 
-    void SetUp() override {}
+    void SetUp() override { }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     SampleInfo sample_info_with_min_kmer_covg_10;
 };
@@ -861,9 +889,9 @@ public:
     {
     }
 
-    void SetUp() override {}
+    void SetUp() override { }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     SampleInfoMock sample_info;
 };
@@ -937,9 +965,9 @@ public:
     {
     }
 
-    void SetUp() override {}
+    void SetUp() override { }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     SampleInfoMock sample_info;
     SampleInfoMock default_sample_info;
@@ -1028,9 +1056,9 @@ public:
     {
     }
 
-    void SetUp() override {}
+    void SetUp() override { }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     SampleInfoMock sample_info;
 };
@@ -1067,9 +1095,9 @@ public:
     {
     }
 
-    void SetUp() override {}
+    void SetUp() override { }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     SampleInfoMock sample_info;
 };
@@ -1112,14 +1140,18 @@ TEST_F(SampleInfoTest___get_genotype_from_coverage___Fixture,
     EXPECT_NEAR(-50.5, actual->second, 0.000001);
 }
 
-TEST_F(SampleInfoTest___Fixture, to_string___no_flags_set___expects_death)
+TEST_F(SampleInfoTest___Fixture, to_string___no_flags_set___expects_FatalRuntimeError)
 {
-    EXPECT_DEATH(default_sample_info.to_string(false, false), "");
+    ASSERT_EXCEPTION(default_sample_info.to_string(false, false), FatalRuntimeError,
+        "Error on stringifying VCF record sample info: incompatible genotyping "
+        "options");
 }
 
-TEST_F(SampleInfoTest___Fixture, to_string___both_flags_set___expects_death)
+TEST_F(SampleInfoTest___Fixture, to_string___both_flags_set___expects_FatalRuntimeError)
 {
-    EXPECT_DEATH(default_sample_info.to_string(true, true), "");
+    ASSERT_EXCEPTION(default_sample_info.to_string(true, true), FatalRuntimeError,
+        "Error on stringifying VCF record sample info: incompatible genotyping "
+        "options");
 }
 
 TEST_F(SampleInfoTest___Fixture, to_string___genotyping_from_maximum_likelihood)
@@ -1230,7 +1262,7 @@ public:
             2, 2, &default_genotyping_options);
     }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     SampleIndexToSampleInfoTemplateAllVisible<SampleInfoMock>
         sample_index_to_sample_info;
@@ -1280,16 +1312,18 @@ TEST_F(SampleIndexToSampleInfoTemplate___Fixture,
 }
 
 TEST_F(SampleIndexToSampleInfoTemplate___Fixture,
-    merge_other_samples_infos_into_this___different_nb_of_samples___expects_death)
+    merge_other_samples_infos_into_this___different_nb_of_samples___expects_FatalRuntimeError)
 {
     SampleIndexToSampleInfoTemplateAllVisible<SampleInfoMock>
         another_sample_index_to_sample_info;
     another_sample_index_to_sample_info.emplace_back_several_empty_sample_infos(
         5, 2, &default_genotyping_options);
 
-    EXPECT_DEATH(sample_index_to_sample_info.merge_other_samples_infos_into_this(
-                     another_sample_index_to_sample_info),
-        "");
+    ASSERT_EXCEPTION(sample_index_to_sample_info.merge_other_samples_infos_into_this(
+                         another_sample_index_to_sample_info),
+        FatalRuntimeError,
+        "Error merging two records: "
+        "number of samples is not consistent between both records");
 }
 
 TEST_F(SampleIndexToSampleInfoTemplate___Fixture,
@@ -1400,7 +1434,7 @@ public:
             .WillByDefault(Return(-5.0));
     }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     SampleInfoMock sample_info_invalid_gt;
     SampleInfoMock sample_info_gt_0_with_likelihood_minus_10;
@@ -1649,9 +1683,9 @@ public:
     {
     }
 
-    void SetUp() override {}
+    void SetUp() override { }
 
-    void TearDown() override {}
+    void TearDown() override { }
 
     SampleInfoMock sample_info;
 };

@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cassert>
 #include <unordered_set>
 #include <set>
 #include <memory>
@@ -8,8 +7,6 @@
 #include "pangenome/panread.h"
 #include "pangenome/pannode.h"
 #include "minihits.h"
-
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace pangenome;
 
@@ -54,10 +51,14 @@ void Read::add_hits(
     hits.erase(last, hits.end());
     hits.shrink_to_fit();
 
-    assert(hits.size() == before_size + cluster.size());
+    const bool hits_were_correctly_inserted
+        = hits.size() == before_size + cluster.size();
+    if (!hits_were_correctly_inserted) {
+        fatal_error("Error when adding hits to Pangraph read");
+    }
 
     // add the orientation/node accordingly
-    bool orientation = !cluster.empty() and (*cluster.begin())->is_forward();
+    const bool orientation = !cluster.empty() and (*cluster.begin())->is_forward();
     if (get_nodes().empty() or node_ptr != get_nodes().back().lock()
         or orientation != node_orientations.back()
         // or we think there really are 2 copies of gene
@@ -108,8 +109,13 @@ std::pair<uint32_t, uint32_t> Read::find_position(
     const std::vector<uint_least32_t>& node_ids, const std::vector<bool>& node_orients,
     const uint16_t min_overlap)
 {
-    assert(node_ids.size() == node_orients.size());
-    assert(not node_ids.empty());
+    const bool nodes_ids_and_orientations_are_valid
+        = (not node_ids.empty()) and (node_ids.size() == node_orients.size());
+    if (!nodes_ids_and_orientations_are_valid) {
+        fatal_error("When finding positions of nodes in a Pangraph read, the node "
+                    "ids and orientations are not valid");
+    }
+
     uint32_t search_pos = 0;
     uint32_t found_pos = 0;
 

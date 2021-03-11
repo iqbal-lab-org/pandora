@@ -1,13 +1,10 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include <cassert>
 #include <unordered_set>
 #include <algorithm>
 #include "pangenome/pansample.h"
 #include "pangenome/pannode.h"
-
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 using namespace pangenome;
 

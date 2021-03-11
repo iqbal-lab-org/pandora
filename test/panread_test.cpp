@@ -54,7 +54,7 @@ TEST(ReadAddHits, AddOneEmptyClusterToHits_ReadHitsMapContainsCorrectPrgId)
     EXPECT_TRUE(result);
 }
 
-TEST(ReadAddHits, AddClusterSecondTime_DeathAndReadHitsNotChanged)
+TEST(ReadAddHits, AddClusterSecondTime_FatalRuntimeErrorAndReadHitsNotChanged)
 {
     uint32_t read_id = 1;
     Read read(read_id);
@@ -73,7 +73,8 @@ TEST(ReadAddHits, AddClusterSecondTime_DeathAndReadHitsNotChanged)
     auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "four", "") };
     PanNodePtr pan_node = make_shared<pangenome::Node>(local_prg_ptr);
     read.add_hits(pan_node, cluster);
-    EXPECT_DEATH(read.add_hits(pan_node, cluster), "");
+    ASSERT_EXCEPTION(read.add_hits(pan_node, cluster), FatalRuntimeError,
+        "Error when adding hits to Pangraph read");
     EXPECT_EQ((uint)1, read.get_hits_as_unordered_map()[prg_id].size());
 }
 

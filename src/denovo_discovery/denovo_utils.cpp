@@ -1,7 +1,5 @@
 #include "denovo_discovery/denovo_utils.h"
 
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
-
 PathComponents find_interval_and_flanks_in_localpath(const Interval& interval,
     const std::vector<LocalNodePtr>& local_node_max_likelihood_path)
 {

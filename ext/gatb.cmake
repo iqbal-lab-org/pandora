@@ -6,11 +6,9 @@ SET (GATB_CORE_EXCLUDE_TESTS     1)
 SET (GATB_CORE_INCLUDE_EXAMPLES  1)
 
 ExternalProject_Add(gatb
-        GIT_REPOSITORY https://github.com/GATB/gatb-core.git
-        GIT_TAG "v1.4.1"
+        SOURCE_DIR "${CMAKE_SOURCE_DIR}/thirdparty/gatb-core/gatb-core"
         PREFIX "${CMAKE_CURRENT_BINARY_DIR}/gatb"
-        SOURCE_SUBDIR gatb-core
-        CMAKE_ARGS -DKSIZE_LIST=32
+        CMAKE_ARGS -DKSIZE_LIST=32 -DZLIB_ROOT=${ZLIB_ROOT}
         INSTALL_COMMAND "")
 
 ExternalProject_Get_Property(gatb source_dir binary_dir)

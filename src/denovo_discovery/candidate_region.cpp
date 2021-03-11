@@ -253,8 +253,8 @@ PileupConstructionMap Discover::pileup_construction_map(
     return pileup_construction_map;
 }
 
-void Discover::load_candidate_region_pileups(
-    const fs::path& reads_filepath, const CandidateRegions& candidate_regions,
+void Discover::load_candidate_region_pileups(const fs::path& reads_filepath,
+    const CandidateRegions& candidate_regions,
     const PileupConstructionMap& pileup_construction_map, uint32_t threads)
 {
     if (candidate_regions.empty() or pileup_construction_map.empty())

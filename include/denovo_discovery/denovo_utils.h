@@ -4,7 +4,6 @@
 #include <set>
 #include <algorithm>
 #include <memory>
-#include <cassert>
 #include <utility>
 #include <vector>
 #include "localnode.h"

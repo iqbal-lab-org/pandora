@@ -1,17 +1,28 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.12)  # required by hunter ZLIB installation
 
+# include hunter
+set(HUNTER_ROOT ${CMAKE_BINARY_DIR}/hunter)
+include("cmake/HunterGate.cmake")
+HunterGate(
+        URL "https://github.com/cpp-pm/hunter/archive/v0.23.289.tar.gz"
+        SHA1 "7d7323704780200a1575fc089d26f8a8a393a1fa"
+        LOCAL
+)
+
+# project configuration
 set(PROJECT_NAME_STR pandora)
-project(${PROJECT_NAME_STR} VERSION "0.7.0" LANGUAGES C CXX)
+project(${PROJECT_NAME_STR} VERSION "0.8.0" LANGUAGES C CXX)
 configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
-# add a RELEASE_WITH_ASSERTS build type
-set(CMAKE_CXX_FLAGS_RELEASE_WITH_ASSERTS "-O3")
+# add or not feature to print the stack trace
+if(PRINT_STACKTRACE)
+    message(STATUS "Printing meaningful stacktrace enabled, please have binutils-dev installed")
+    add_compile_definitions(BACKWARD_HAS_BFD=1)
+    set(BACKWARD_LIBRARIES "-lbfd")
+else()
+    set(BACKWARD_LIBRARIES "")
+endif()
 
-find_package(Threads REQUIRED)
-find_package(ZLIB REQUIRED)
-
-set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.62.0 COMPONENTS system filesystem iostreams log thread date_time REQUIRED)
 
 # C++11 required
 include(CheckCXXCompilerFlag)
@@ -25,8 +36,16 @@ else ()
     message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER} has no C++11 support")
 endif ()
 
+# default flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_SYSTEM_NO_DEPRECATED -Wall -Wextra")
 
+if(PRINT_STACKTRACE)
+    # -g is to add debug symbols, to make backtraces meaningful.
+    # it does not impact performance (see https://stackoverflow.com/a/39223245)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+endif ()
+
+# compile with openmp only on Linux
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(MACOSX TRUE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_OPENMP")
@@ -35,36 +54,68 @@ else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 endif()
 
-#print CMAKE debug and release flags to know what we are exactly doing
-#message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
-#message("CMAKE_CXX_FLAGS_RELEASE is ${CMAKE_CXX_FLAGS_RELEASE}")
-#message("CMAKE_CXX_FLAGS_RELWITHDEBINFO is ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+# static C and C++ flags
+set(STATIC_C_CXX "-static-libgcc -static-libstdc++")
 
-link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib)
+########################################################################################################################
+# EXTERNAL LIBS INSTALLATION
+########################################################################################################################
+########################################################################################################################
+# INSTALL ZLIB
+hunter_add_package(ZLIB)
+find_package(ZLIB 1.2.11 REQUIRED)
+set(ZLIB_LIBRARY ZLIB::ZLIB)
+########################################################################################################################
 
+########################################################################################################################
+# INSTALL GATB
 include(${PROJECT_SOURCE_DIR}/ext/gatb.cmake)
-set(EXTERNAL_LIBS
+include_directories(SYSTEM
+        ${gatb_source_dir}/src
+        ${gatb_binary_dir}/include
+        )
+link_directories(${gatb_binary_dir}/lib)
+set(GATB_LIBS
         gatbcore
         hdf5
-        hdf5_tools)
-link_directories(${gatb_binary_dir}/lib)
+        hdf5_tools
+    )
+########################################################################################################################
 
-include(${PROJECT_SOURCE_DIR}/ext/gtest.cmake)
+########################################################################################################################
+# INSTALL GTEST
+hunter_add_package(GTest)
+find_package(GTest CONFIG REQUIRED)
+set(Gtest_LIBRARIES GTest::gtest GTest::gmock_main)
+########################################################################################################################
 
+########################################################################################################################
+# INSTALL BOOST
+hunter_add_package(Boost COMPONENTS filesystem iostreams log system thread)
+find_package(Boost CONFIG REQUIRED filesystem iostreams log system thread)
+set(BOOST_LIBRARIES Boost::filesystem Boost::iostreams Boost::log Boost::system Boost::thread)
+set(Boost_USE_STATIC_LIBS ON)
+########################################################################################################################
+########################################################################################################################
+# END EXTERNAL LIBS INSTALLATION
+########################################################################################################################
+
+
+########################################################################################################################
+# PANDORA INSTALLATION
+########################################################################################################################
 #include directories as SYSTEM includes, thus warnings will be ignored for these
 include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
-        ${PROJECT_SOURCE_DIR}/cgranges/cpp
-        ${gatb_source_dir}/gatb-core/src
-        ${gatb_binary_dir}/include
+        ${PROJECT_SOURCE_DIR}/thirdparty/cgranges/cpp
         )
 
-#normal includes: warnings will be reported for these
+# normal includes: warnings will be reported for these
 include_directories(
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src
-        ${source_dir}/googletest/include
-        ${source_dir}/googlemock/include
+        ${PROJECT_SOURCE_DIR}/thirdparty/include
+        ${PROJECT_SOURCE_DIR}/thirdparty/src
 )
 
 file(GLOB_RECURSE SRC_FILES
@@ -75,42 +126,22 @@ file(GLOB_RECURSE SRC_FILES
         ${PROJECT_SOURCE_DIR}/include/*.h
         ${PROJECT_SOURCE_DIR}/include/*/*.hpp
         ${PROJECT_SOURCE_DIR}/include/*/*.h
+        ${PROJECT_SOURCE_DIR}/thirdparty/src/*.cpp
+        ${PROJECT_SOURCE_DIR}/thirdparty/include/*.hpp
+        ${PROJECT_SOURCE_DIR}/thirdparty/include/*.h
         )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-add_dependencies(${PROJECT_NAME} gatb gtest)
+add_dependencies(${PROJECT_NAME} gatb)
+
 target_link_libraries(${PROJECT_NAME}
-        ${CMAKE_THREAD_LIBS_INIT}
-        ${Boost_IOSTREAMS_LIBRARY}
-        ${Boost_FILESYSTEM_LIBRARY}
-        ${Boost_SYSTEM_LIBRARY}
-        ${Boost_LOG_LIBRARY}
-        ${Boost_THREAD_LIBRARY}
-        ${EXTERNAL_LIBS}
+        ${GATB_LIBS}
+        ${BOOST_LIBRARIES}
+        ${ZLIB_LIBRARY}
         ${CMAKE_DL_LIBS}
-        ${ZLIB_LIBRARY})
-
-
-
-if(BUILD_COMPARE_INDEXES)
-    #Build compare_indexes
-    set(SRC_FILES_COMPARE_INDEXES ${SRC_FILES})
-    list(REMOVE_ITEM SRC_FILES_COMPARE_INDEXES ${PROJECT_SOURCE_DIR}/src/main.cpp)
-    add_executable(compare_indexes ${PROJECT_SOURCE_DIR}/scripts/compare_indexes/compare_indexes.cpp ${SRC_FILES_COMPARE_INDEXES})
-    add_dependencies(compare_indexes gatb gtest)
-    set_target_properties(compare_indexes PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin/)
-    target_link_libraries(compare_indexes
-            ${CMAKE_THREAD_LIBS_INIT}
-            ${Boost_IOSTREAMS_LIBRARY}
-            ${Boost_FILESYSTEM_LIBRARY}
-            ${Boost_SYSTEM_LIBRARY}
-            ${Boost_LOG_LIBRARY}
-            ${Boost_THREAD_LIBRARY}
-            ${EXTERNAL_LIBS}
-            ${CMAKE_DL_LIBS}
-            ${ZLIB_LIBRARY})
-endif(BUILD_COMPARE_INDEXES)
-
+        ${STATIC_C_CXX}
+        ${BACKWARD_LIBRARIES}
+)
 
 enable_testing()
 add_subdirectory(test)

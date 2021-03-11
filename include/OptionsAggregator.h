@@ -1,6 +1,9 @@
 #ifndef PANDORA_OPTIONSAGGREGATOR_H
 #define PANDORA_OPTIONSAGGREGATOR_H
 
+#include <vector>
+#include <cstdint>
+
 class GenotypingOptions {
 private:
     std::vector<uint32_t> sample_index_to_exp_depth_covg;
