@@ -9,6 +9,8 @@ project adheres to
 
 ## [Unreleased]
 
+## [0.8.0]
+
 ### Added
 
 - We now provide a script to build a portable precompiled binary as
@@ -45,6 +47,7 @@ project adheres to
 - Don't assume Nanopore reads are longer than loci [[#265][265]]
 
 
+
 ## [v0.7.0]
 
 There is a significant amount of changes to the project between version
@@ -68,7 +71,8 @@ from this point will have their changes meticulously documented here.
 
 - k-mer coverage underflow bug in `LocalPRG` [[#183][183]]
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/0.8.0...HEAD
+[0.8.0]: https://github.com/rmcolq/pandora/releases/tag/0.8.0
 [v0.7.0]: https://github.com/rmcolq/pandora/releases/tag/v0.7.0
 
 [183]: https://github.com/rmcolq/pandora/issues/183
@@ -77,4 +81,5 @@ from this point will have their changes meticulously documented here.
 [224]: https://github.com/rmcolq/pandora/pull/224
 [234]: https://github.com/rmcolq/pandora/pull/234
 [265]: https://github.com/rmcolq/pandora/pull/265
+
 
