@@ -194,7 +194,7 @@ void define_clusters(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hit
     const std::vector<std::shared_ptr<LocalPRG>>& prgs,
     std::shared_ptr<MinimizerHits> minimizer_hits, const int max_diff,
     const float& fraction_kmers_required_for_cluster, const uint32_t min_cluster_size,
-    const uint32_t expected_number_kmers_in_short_read_sketch)
+    const uint32_t expected_number_kmers_in_read_sketch)
 {
     BOOST_LOG_TRIVIAL(trace) << "Define clusters of hits from the "
                              << minimizer_hits->hits.size() << " hits";
@@ -221,12 +221,12 @@ void define_clusters(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hit
             length_based_threshold
                 = std::min(
                       prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length(),
-                      expected_number_kmers_in_short_read_sketch)
+                      expected_number_kmers_in_read_sketch)
                 * fraction_kmers_required_for_cluster;
             BOOST_LOG_TRIVIAL(trace)
                 << "Length based cluster threshold min("
                 << prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length()
-                << ", " << expected_number_kmers_in_short_read_sketch << ") * "
+                << ", " << expected_number_kmers_in_read_sketch << ") * "
                 << fraction_kmers_required_for_cluster << " = "
                 << length_based_threshold;
 
@@ -246,12 +246,12 @@ void define_clusters(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hit
     }
     length_based_threshold
         = std::min(prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length(),
-              expected_number_kmers_in_short_read_sketch)
+              expected_number_kmers_in_read_sketch)
         * fraction_kmers_required_for_cluster;
     BOOST_LOG_TRIVIAL(trace)
         << "Length based cluster threshold min("
         << prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length() << ", "
-        << expected_number_kmers_in_short_read_sketch << ") * "
+        << expected_number_kmers_in_read_sketch << ") * "
         << fraction_kmers_required_for_cluster << " = " << length_based_threshold;
     if (current_cluster.size() > std::max(length_based_threshold, min_cluster_size)) {
         clusters_of_hits.insert(current_cluster);
@@ -377,7 +377,7 @@ void infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>>
     std::shared_ptr<pangenome::Graph> pangraph, const int max_diff,
     const uint32_t& genome_size, const float& fraction_kmers_required_for_cluster,
     const uint32_t min_cluster_size,
-    const uint32_t expected_number_kmers_in_short_read_sketch)
+    const uint32_t expected_number_kmers_in_read_sketch)
 {
     // this step infers the gene order for a read and adds this to the pangraph
     // by defining clusters of hits, keeping those which are not noise and
@@ -389,7 +389,7 @@ void infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>>
     std::set<MinimizerHitCluster, clusterComp> clusters_of_hits;
     define_clusters(clusters_of_hits, prgs, minimizer_hits, max_diff,
         fraction_kmers_required_for_cluster, min_cluster_size,
-        expected_number_kmers_in_short_read_sketch);
+        expected_number_kmers_in_read_sketch);
 
     filter_clusters(clusters_of_hits);
     // filter_clusters2(clusters_of_hits, genome_size);
@@ -484,15 +484,8 @@ uint32_t pangraph_from_read_file(const std::string& filepath,
                     continue;
                 }
 
-                uint32_t expected_number_kmers_in_short_read_sketch {
-                    std::numeric_limits<uint32_t>::max()
-                };
-                if (illumina
-                    and expected_number_kmers_in_short_read_sketch
-                        == std::numeric_limits<uint32_t>::max()) {
-                    expected_number_kmers_in_short_read_sketch
-                        = sequence.seq.length() * 2 / w;
-                }
+                const auto expected_number_kmers_in_read_sketch { sequence.seq.length()
+                    * 2 / (w + 1) };
 
                 // get the minizer hits
                 auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
@@ -501,7 +494,7 @@ uint32_t pangraph_from_read_file(const std::string& filepath,
                 // infer
                 infer_localPRG_order_for_reads(prgs, minimizer_hits, pangraph, max_diff,
                     genome_size, fraction_kmers_required_for_cluster, min_cluster_size,
-                    expected_number_kmers_in_short_read_sketch);
+                    expected_number_kmers_in_read_sketch);
             }
 
             if (coverageExceeded)
