@@ -436,6 +436,9 @@ int pandora_discover(DiscoverOptions& opt)
         } else if (on_child) {
             break;
         } else {
+            // TODO: fix this
+            // I guess when we are forking, messages to log are getting buffered and being printed several times
+            // This is happening to every log message before forking
             BOOST_LOG_TRIVIAL(info) << "Child process id " << child_process_id
                                     <<" (child #" << child_id << ") created...";
         }
