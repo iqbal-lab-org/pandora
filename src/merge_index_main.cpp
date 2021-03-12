@@ -7,7 +7,7 @@ void setup_merge_index_subcommand(CLI::App& app)
 
     std::string description
         = "Allows multiple indices to be merged (no compatibility check)";
-    auto *merge_subcmd = app.add_subcommand("merge_index", description);
+    auto* merge_subcmd = app.add_subcommand("merge_index", description);
 
     merge_subcmd->add_option("<IDX>", opt->indicies, "Indices to merge")
         ->required()

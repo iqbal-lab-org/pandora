@@ -70,56 +70,67 @@ There is no need to have `pandora` installed, as it is run inside containers.
 
 ## Installation
 
+### No installation needed - precompiled portable binary
+
+You can use `pandora` with no installation at all by simply downloading the precompiled binary, and running it.
+In this binary, all libraries are linked statically, except for OpenMP.
+
+* **Requirements**
+  * The only dependency required to run the precompiled binary is OpenMP 4.0+;
+  * The easiest way to install OpenMP 4.0+ is to have GCC 4.9 (from April 22, 2014) or more recent installed, which supports OpenMP 4.0;
+  * Technical details on why OpenMP can't be linked statically
+can be found [here](https://gcc.gnu.org/onlinedocs/gfortran/OpenMP.html). 
+
+* **Download**:
+  ```
+  wget https://github.com/rmcolq/pandora/releases/download/0.8.0/pandora-linux-precompiled-v0.8.0
+  ```
+* **Running**:
+```
+chmod +x pandora-linux-precompiled-v0.8.0
+./pandora-linux-precompiled-v0.8.0 -h
+```
+
+* **Compatibility**: This precompiled binary works on pretty much any glibc-2.12-or-later-based x86 and x86-64 Linux distribution 
+  released since approx 2011. A non-exhaustive list: Debian >= 7, Ubuntu >= 10.10, Red Hat Enterprise Linux >= 6,
+  CentOS >= 6;
+  
+* **Credits**:
+  * Precompilation is done using [Holy Build Box](http://phusion.github.io/holy-build-box/);
+  * We acknowledge Páll Melsted since we followed his [blog post](https://pmelsted.wordpress.com/2015/10/14/building-binaries-for-bioinformatics/) to build this portable binary.
+
+* **Notes**:
+  * We provide precompiled binaries for Linux OS only;
+  * The performance of precompiled binaries is several times slower than a binary compiled from source.
+    The main reason is that the precompiled binary can't contain specific instructions that might speed up
+    the execution on specific processors, as it has to be runnable on a wide range of systems;
+
 ### Containers
 
 ![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/rmcolq/pandora)
 
-We highly recommend that you download a containerized image of Pandora.
+You can also download a containerized image of Pandora.
 Pandora is hosted on Dockerhub and images can be downloaded with the
 command:
 
 ```
-docker pull rmcolq/pandora:latest
+docker pull quay.io/rmcolq/pandora
 ```
 
 Alternatively, using singularity:
 
 ```
-singularity pull docker://rmcolq/pandora:latest
+singularity pull docker://quay.io/rmcolq/pandora
 ```
 
 NB For consistency, we no longer maintain images on singularity hub.
 
 ### Installation from source
 
-This is not recommended because the required zlib and boost system
-installs do not always play nicely. If you want to take the risk:
-- Requires a Unix or Mac OS.
-- Requires a system install of `zlib`. If this is not already installed,
-  [this](https://geeksww.com/tutorials/libraries/zlib/installation/installing_zlib_on_ubuntu_linux.php)
-  tutorial is helpful or try the following.
+This is the hardest way to install `pandora`, but that yields the most optimised binary.
 
-```
-wget http://www.zlib.net/zlib-1.2.11.tar.gz -O - | tar xzf -
-cd zlib-1.2.11
-./configure [--prefix=/prefix/path]
-make
-make install
-```
-
-- Requires a system installation of `boost` containing the `system`,
-  `filesystem`, `log` (which also depends on `thread` and `date_time`)
-  and `iostreams` libraries. If not already installed use the following
-  or look at
-  [this](https://www.boost.org/doc/libs/1_62_0/more/getting_started/unix-variants.html)
-  guide.
-
-```
-wget https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.gz -O - | tar xzf -
-cd boost_1_62_0
-./bootstrap.sh [--prefix=/prefix/path] --with-libraries=system,filesystem,iostreams,log,thread,date_time
-./b2 install
-```
+Requirements:
+- A Unix or Mac OS, with a C++11 compiler toolset (e.g. `g++`, `ld`, `make`, `ctest`, etc), `cmake`, `git` and `wget`.
 
 - Download and install `pandora` as follows:
 
@@ -128,10 +139,13 @@ git clone --single-branch https://github.com/rmcolq/pandora.git --recursive
 cd pandora
 mkdir -p build
 cd build
-cmake ..
-make
+cmake -DCMAKE_BUILD_TYPE=Release .. 
+make -j4
 ctest -VV
 ```
+
+* If you want to produce meaningful stack traces in case `pandora` errors out, `binutils-dev` must be installed and the
+  `cmake` must receive this additional parameter: `-DPRINT_STACKTRACE=True`.
 
 ## Usage
 

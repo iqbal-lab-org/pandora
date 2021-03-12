@@ -1,15 +1,9 @@
-#include <cassert>
 #include <functional>
-#include <iostream>
-#include <sstream>
 #include <memory>
 #include "minihits.h"
 #include "minihit.h"
 #include "minirecord.h"
 #include "minimizer.h"
-#include "utils.h" // for pointer_values_equal
-
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
 
 void MinimizerHits::add_hit(const uint32_t i, const Minimizer& minimizer_from_read,
     const MiniRecord& minimizer_from_PRG)

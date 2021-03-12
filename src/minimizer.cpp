@@ -1,8 +1,6 @@
 #include <iostream>
-#include <cassert>
 #include <cmath>
 #include "minimizer.h"
-#include "prg/path.h"
 #include "interval.h"
 
 Minimizer::Minimizer(uint64_t s, uint32_t a, uint32_t b, bool c)
@@ -10,10 +8,12 @@ Minimizer::Minimizer(uint64_t s, uint32_t a, uint32_t b, bool c)
     , pos_of_kmer_in_read(Interval(a, b))
     , is_forward_strand(c)
 {
-    assert(s <= pow(4, pos_of_kmer_in_read.length)); // used to check kmer length same
-                                                     // as interval length.
-    // Can't any more but at least know if s is too big for a kmer of interval size to
-    // have generated it.
+    const bool hash_value_is_consistend_with_kmer_interval_size
+        = s <= pow(4, pos_of_kmer_in_read.length);
+    if (!hash_value_is_consistend_with_kmer_interval_size) {
+        fatal_error("Error when building minimizer: hash value (", s,
+            ") is too big for kmer of interval size ", pos_of_kmer_in_read.length);
+    }
 }
 
 Minimizer::~Minimizer()

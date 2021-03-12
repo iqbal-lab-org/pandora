@@ -6,6 +6,7 @@
 #include "gtest/gtest.h"
 #include "test_macro.cpp"
 #include "de_bruijn_graph_class.h"
+#include "test_helpers.h"
 
 using namespace debruijn;
 
@@ -224,7 +225,7 @@ TEST(DeBruijnGraphAddEdge, AddEdgeNodesBothRC_EdgeAdded)
     EXPECT_FALSE(found_outnode_n2);
 }
 
-TEST(DeBruijnGraphAddEdge, AddEdgeNoOverlap_Death)
+TEST(DeBruijnGraphAddEdge, AddEdgeNoOverlap_FatalRuntimeError)
 {
     GraphTester g(3);
 
@@ -232,7 +233,9 @@ TEST(DeBruijnGraphAddEdge, AddEdgeNoOverlap_Death)
     std::deque<uint_least32_t> v2 = { 6, 0, 9 };
     OrientedNodePtr n1 = g.add_node(v1, 0);
     OrientedNodePtr n2 = g.add_node(v2, 0);
-    EXPECT_DEATH(g.add_edge(n1, n2), "");
+
+    ASSERT_EXCEPTION(
+        g.add_edge(n1, n2), FatalRuntimeError, "Error adding edge to de Bruijn Graph");
 }
 
 TEST(DeBruijnGraphTest, remove_node)

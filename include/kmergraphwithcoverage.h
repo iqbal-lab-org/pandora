@@ -7,12 +7,12 @@ class LocalPRG;
 #include <cstdint>
 #include <vector>
 #include <iostream>
-#include <cassert>
 #include "prg/path.h"
 #include "kmernode.h"
 #include "kmergraph.h"
 #include "pangenome/ns.cpp"
 #include "utils.h"
+#include "fatal_error.h"
 
 /**
  * Represents an annotated KmerGraph, where the annotation is only the coverage on the
@@ -59,7 +59,10 @@ public:
         , num_reads { 0 }
         , kmer_prg { kmer_prg }
     {
-        assert(kmer_prg != nullptr);
+        const bool kmer_prg_is_invalid = kmer_prg == nullptr;
+        if (kmer_prg_is_invalid) {
+            fatal_error("Error building Kmer Graph With Coverage: kmer PRG is invalid");
+        }
         zeroCoverages();
     }
     KmerGraphWithCoverage(const KmerGraphWithCoverage& other)

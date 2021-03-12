@@ -9,6 +9,7 @@
 #include "localPRG.h"
 #include <cstdint>
 #include <iostream>
+#include "test_helpers.h"
 
 using namespace pangenome;
 
@@ -404,9 +405,9 @@ TEST(PangenomeGraph_add_hits_between_PRG_and_read, AddTheSameClusterTwice)
             true); // is the node_orientation was inserted in the read?
 
         // add the cluster again
-        EXPECT_DEATH(pg.add_hits_between_PRG_and_read(
-                         prg_pointer_1, read_id_1, *cluster_pointer_1),
-            "");
+        ASSERT_EXCEPTION(pg.add_hits_between_PRG_and_read(
+                             prg_pointer_1, read_id_1, *cluster_pointer_1),
+            FatalRuntimeError, "Error when adding hits to Pangraph read");
 
         /*
         EXPECT_EQ(pg.nodes.size(), 1); //should not change
@@ -475,7 +476,8 @@ TEST(PangenomeGraphAddNode, AddClusterWrongReadId_AssertCatches)
     PGraphTester pg;
     auto prg_pointer = std::make_shared<LocalPRG>(prg_id, "", "");
 
-    EXPECT_DEATH(pg.add_hits_between_PRG_and_read(prg_pointer, read_id, cluster), "");
+    ASSERT_EXCEPTION(pg.add_hits_between_PRG_and_read(prg_pointer, read_id, cluster),
+        FatalRuntimeError, "Minimizer hits error: hit should be on read id");
 }
 
 TEST(PangenomeGraphAddNode, AddClusterWrongPrgId_AssertCatches)
@@ -498,7 +500,8 @@ TEST(PangenomeGraphAddNode, AddClusterWrongPrgId_AssertCatches)
     PGraphTester pg;
     auto prg_pointer = std::make_shared<LocalPRG>(prg_id, "", "");
 
-    EXPECT_DEATH(pg.add_hits_between_PRG_and_read(prg_pointer, read_id, cluster), "");
+    ASSERT_EXCEPTION(pg.add_hits_between_PRG_and_read(prg_pointer, read_id, cluster),
+        FatalRuntimeError, "Minimizer hits error: hit should be on PRG id");
 }
 
 /* this test is now comprised in TEST(PangenomeGraphNode, add_node_and_get_node)

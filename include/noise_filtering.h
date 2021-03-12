@@ -7,8 +7,6 @@
 #include "pangenome/pangraph.h"
 #include "de_bruijn/graph.h"
 
-#define assert_msg(x) !(std::cerr << "Assertion failed: " << x << std::endl)
-
 uint_least32_t node_plus_orientation_to_num(const uint_least32_t, const bool);
 
 void num_to_node_plus_orientation(uint_least32_t&, bool&, const uint_least32_t);

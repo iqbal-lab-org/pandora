@@ -5,6 +5,7 @@
 #include <cstring>
 #include <cstdint>
 #include <boost/filesystem.hpp>
+#include "fatal_error.h"
 
 namespace fs = boost::filesystem;
 
