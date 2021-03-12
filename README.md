@@ -111,7 +111,7 @@ chmod +x pandora-linux-precompiled-v0.8.0
 [![Docker Repository on Quay](https://quay.io/repository/rmcolq/pandora/status "Docker Repository on Quay")](https://quay.io/repository/rmcolq/pandora)
 
 You can also download a containerized image of Pandora.
-Pandora is hosted on Dockerhub and images can be downloaded with the
+Pandora is hosted on Quay and images can be downloaded with the
 command:
 
 ```
@@ -123,8 +123,6 @@ Alternatively, using singularity:
 ```
 singularity pull docker://quay.io/rmcolq/pandora
 ```
-
-NB For consistency, we no longer maintain images on singularity hub.
 
 ### Installation from source
 
