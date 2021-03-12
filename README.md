@@ -108,7 +108,7 @@ chmod +x pandora-linux-precompiled-v0.8.0
 
 ### Containers
 
-![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/rmcolq/pandora)
+[![Docker Repository on Quay](https://quay.io/repository/rmcolq/pandora/status "Docker Repository on Quay")](https://quay.io/repository/rmcolq/pandora)
 
 You can also download a containerized image of Pandora.
 Pandora is hosted on Dockerhub and images can be downloaded with the
