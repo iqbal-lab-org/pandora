@@ -83,7 +83,8 @@ can be found [here](https://gcc.gnu.org/onlinedocs/gfortran/OpenMP.html).
 
 * **Download**:
   ```
-  wget https://github.com/rmcolq/pandora/releases/download/0.8.0/pandora-linux-precompiled-v0.8.0
+  wget https://github.com/rmcolq/pandora/releases/download/0.8.0/pandora-linux-precompiled-v0.8.0.gz
+  gunzip pandora-linux-precompiled-v0.8.0.gz
   ```
 * **Running**:
 ```
