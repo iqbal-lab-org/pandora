@@ -83,12 +83,12 @@ can be found [here](https://gcc.gnu.org/onlinedocs/gfortran/OpenMP.html).
 
 * **Download**:
   ```
-  wget https://github.com/rmcolq/pandora/releases/download/v0.8.0-alpha/pandora-linux-precompiled-v0.8.0-alpha
+  wget https://github.com/rmcolq/pandora/releases/download/0.8.0/pandora-linux-precompiled-v0.8.0
   ```
 * **Running**:
 ```
-chmod +x pandora-linux-precompiled-v0.8.0-alpha
-./pandora-linux-precompiled-v0.8.0-alpha -h
+chmod +x pandora-linux-precompiled-v0.8.0
+./pandora-linux-precompiled-v0.8.0 -h
 ```
 
 * **Compatibility**: This precompiled binary works on pretty much any glibc-2.12-or-later-based x86 and x86-64 Linux distribution 
@@ -114,13 +114,13 @@ Pandora is hosted on Dockerhub and images can be downloaded with the
 command:
 
 ```
-docker pull rmcolq/pandora:latest
+docker pull quay.io/rmcolq/pandora
 ```
 
 Alternatively, using singularity:
 
 ```
-singularity pull docker://rmcolq/pandora:latest
+singularity pull docker://quay.io/rmcolq/pandora
 ```
 
 NB For consistency, we no longer maintain images on singularity hub.
