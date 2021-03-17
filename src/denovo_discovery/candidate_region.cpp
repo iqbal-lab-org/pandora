@@ -226,25 +226,23 @@ void CandidateRegion::add_pileup_entry(
     }
 }
 
-void CandidateRegion::write_denovo_paths_to_buffer(CandidateRegionWriteBuffer &buffer,
-    const fs::path &temp_dir)
+void CandidateRegion::write_denovo_paths_to_buffer(CandidateRegionWriteBuffer &buffer)
 {
     if (denovo_paths.empty()) {
         return;
     }
 
     const std::string local_node_max_likelihood_path_as_str =
-        LocalNode::to_string_vector(local_node_max_likelihood_path);
+        LocalNode::to_string_vector(this->local_node_max_likelihood_path);
     for (const std::string &denovo_path : denovo_paths) {
-        std::vector<std::string> variants = get_variants(denovo_path, temp_dir);
+        std::vector<std::string> variants = get_variants(denovo_path);
         for (const std::string &variant : variants) {
             buffer.add_new_variant(name, local_node_max_likelihood_path_as_str, variant);
         }
     }
 }
 
-std::vector<std::string> CandidateRegion::get_variants(const string &denovo_sequence,
-                                                       const fs::path &temp_dir) const {
+std::vector<std::string> CandidateRegion::get_variants(const string &denovo_sequence) const {
     using namespace seqan;
     typedef String<char> TSequence;                 // sequence type
     typedef Align<TSequence, ArrayGaps> TAlign;     // align type
@@ -290,16 +288,6 @@ std::vector<std::string> CandidateRegion::get_variants(const string &denovo_sequ
     for (const SimpleDenovoVariantRecord &denovo_variant : denovo_variants) {
         denovo_variants_as_str.push_back(denovo_variant.to_string());
     }
-
-    // DEBUG -- TODO: REMOVE LATER
-    ofstream debug_filehandler;
-    open_file_for_writing((temp_dir/(filename.string()+".debug.log")).string(), debug_filehandler);
-    debug_filehandler << align << std::endl;
-    for (const std::string &denovo_variant_as_str : denovo_variants_as_str) {
-        debug_filehandler << denovo_variant_as_str << std::endl;
-    }
-    debug_filehandler.close();
-    // DEBUG -- TODO: REMOVE LATER
 
     return denovo_variants_as_str;
 }

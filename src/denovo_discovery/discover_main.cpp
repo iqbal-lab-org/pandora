@@ -334,7 +334,7 @@ void pandora_discover_core(const std::vector<std::pair<SampleIdText, SampleFpath
         for (auto& element : candidate_regions) {
             auto& candidate_region { element.second };
             denovo.find_paths_through_candidate_region(candidate_region, temp_dir);
-            candidate_region.write_denovo_paths_to_buffer(buffer, temp_dir);
+            candidate_region.write_denovo_paths_to_buffer(buffer);
         }
         auto denovo_output_file = sample_outdir / "denovo_paths.txt";
         buffer.write_to_file(denovo_output_file);
