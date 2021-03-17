@@ -45,7 +45,6 @@ public:
     std::string ref, alt;
     SimpleDenovoVariantRecord(uint32_t pos, const std::string &ref, const std::string &alt) :
         pos(pos), ref(ref), alt(alt){}
-    static std::string remove_spaces(const std::string &str);
     std::string to_string() const;
 };
 

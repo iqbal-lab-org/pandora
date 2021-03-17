@@ -128,4 +128,6 @@ using SampleFpath = std::string;
 std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
     const fs::path& read_index_fpath);
 
+std::string remove_spaces_from_string(const std::string &str);
+
 #endif

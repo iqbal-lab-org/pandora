@@ -2,19 +2,9 @@
 #include "utils.h"
 #include <seqan/align.h>
 
-std::string SimpleDenovoVariantRecord::remove_spaces(const std::string &str) {
-    std::string to_return;
-    for (const char c : str) {
-        if (c != '-') {
-            to_return += c;
-        }
-    }
-    return to_return;
-}
-
 std::string SimpleDenovoVariantRecord::to_string() const {
-    std::string ref_to_print = remove_spaces(ref);
-    std::string alt_to_print = remove_spaces(alt);
+    std::string ref_to_print = remove_spaces_from_string(ref);
+    std::string alt_to_print = remove_spaces_from_string(alt);
     std::stringstream ss;
     ss << pos << "\t" << ref_to_print << "\t" << alt_to_print;
     return ss.str();
