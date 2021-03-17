@@ -115,7 +115,6 @@ find_package (SeqAn REQUIRED)
 include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
         ${PROJECT_SOURCE_DIR}/thirdparty/cgranges/cpp
-        ${PROJECT_SOURCE_DIR}/thirdparty/pstreams
         ${SEQAN_INCLUDE_DIRS}
         )
 
