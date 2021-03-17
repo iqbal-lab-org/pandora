@@ -38,12 +38,14 @@ void prg::Path::add_end_interval(const Interval& i)
 std::vector<LocalNodePtr> prg::Path::nodes_along_path(const LocalPRG& localPrg)
 {
     // sanity check
-    const bool memoization_is_valid = (isMemoized == false) ||
-        (isMemoized == true && localPRGIdOfMemoizedLocalNodePath == localPrg.id);
+    const bool memoization_is_valid = (isMemoized == false)
+        || (isMemoized == true && localPRGIdOfMemoizedLocalNodePath == localPrg.id);
     if (!memoization_is_valid) {
-        fatal_error("Error when getting nodes along PRG path: memoized a local node path "
-                    "for PRG with id", localPRGIdOfMemoizedLocalNodePath, " but PRG id ",
-                    localPrg.id, " is also trying to use this memoized path");
+        fatal_error(
+            "Error when getting nodes along PRG path: memoized a local node path "
+            "for PRG with id",
+            localPRGIdOfMemoizedLocalNodePath, " but PRG id ", localPrg.id,
+            " is also trying to use this memoized path");
     }
 
     if (isMemoized == false
@@ -63,7 +65,8 @@ std::vector<LocalNodePtr> prg::Path::nodes_along_path(const LocalPRG& localPrg)
         // redudant call, return the memoized local node path
         return memoizedLocalNodePath;
     } else {
-        fatal_error("Error when getting nodes along PRG path: memoization state is invalid");
+        fatal_error(
+            "Error when getting nodes along PRG path: memoization state is invalid");
     }
 }
 
@@ -73,7 +76,8 @@ prg::Path prg::Path::subpath(const uint32_t start, const uint32_t len) const
     // than at position start on linear PRG, and for length len
     const bool parameters_are_valid = start + len <= length();
     if (!parameters_are_valid) {
-        fatal_error("Error when getting subpath from PRG path: given parameters are not valid");
+        fatal_error(
+            "Error when getting subpath from PRG path: given parameters are not valid");
     }
 
     prg::Path p;

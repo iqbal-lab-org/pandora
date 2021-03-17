@@ -406,9 +406,8 @@ TEST(PangenomeGraph_add_hits_between_PRG_and_read, AddTheSameClusterTwice)
 
         // add the cluster again
         ASSERT_EXCEPTION(pg.add_hits_between_PRG_and_read(
-                         prg_pointer_1, read_id_1, *cluster_pointer_1),
-            FatalRuntimeError,
-                         "Error when adding hits to Pangraph read");
+                             prg_pointer_1, read_id_1, *cluster_pointer_1),
+            FatalRuntimeError, "Error when adding hits to Pangraph read");
 
         /*
         EXPECT_EQ(pg.nodes.size(), 1); //should not change
@@ -502,7 +501,7 @@ TEST(PangenomeGraphAddNode, AddClusterWrongPrgId_AssertCatches)
     auto prg_pointer = std::make_shared<LocalPRG>(prg_id, "", "");
 
     ASSERT_EXCEPTION(pg.add_hits_between_PRG_and_read(prg_pointer, read_id, cluster),
-                     FatalRuntimeError, "Minimizer hits error: hit should be on PRG id");
+        FatalRuntimeError, "Minimizer hits error: hit should be on PRG id");
 }
 
 /* this test is now comprised in TEST(PangenomeGraphNode, add_node_and_get_node)

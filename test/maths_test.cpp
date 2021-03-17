@@ -29,7 +29,7 @@ protected:
             four_sized_vector_double.begin(), four_sized_vector_double.begin() + 3);
     }
 
-    void TearDown() override {}
+    void TearDown() override { }
     std::vector<uint32_t> empty_vector_int;
     std::vector<uint32_t> one_sized_vector_int;
     std::vector<uint32_t> two_sized_vector_int;

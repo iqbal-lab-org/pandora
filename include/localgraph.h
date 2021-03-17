@@ -16,7 +16,6 @@
 #include "utils.h"
 #include "fatal_error.h"
 
-
 class LocalGraph {
 public:
     std::map<uint32_t, LocalNodePtr> nodes; // representing nodes in graph

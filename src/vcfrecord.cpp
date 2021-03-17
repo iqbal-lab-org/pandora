@@ -71,7 +71,8 @@ std::string VCFRecord::get_format(
         = ((int)(genotyping_from_maximum_likelihood) + (int)(genotyping_from_coverage))
         == 1;
     if (!only_one_flag_is_set) {
-        fatal_error("Error on getting format field from VCF record: incompatible genotyping options");
+        fatal_error("Error on getting format field from VCF record: incompatible "
+                    "genotyping options");
     }
 
     static std::vector<std::string> format_for_genotyping_from_maximum_likelihood
@@ -211,8 +212,9 @@ void VCFRecord::merge_record_into_this(const VCFRecord& other)
     if (other_record_has_no_alt)
         return;
 
-    if(!there_are_no_common_alt_alleles_between_this_and_other(other)) {
-        fatal_error("When merging two VCF records, they have common ALTs, this should not happen");
+    if (!there_are_no_common_alt_alleles_between_this_and_other(other)) {
+        fatal_error("When merging two VCF records, they have common ALTs, this should "
+                    "not happen");
     }
 
     this->sampleIndex_to_sampleInfo.merge_other_samples_infos_into_this(
@@ -230,11 +232,12 @@ bool VCFRecord::can_biallelic_record_be_merged_into_this(
     // vcf_record_to_be_merged_in.alts.size() == 1;
     const bool we_are_merging_only_biallelic_records
         = vcf_record_to_be_merged_in.alts.size() <= 1;
-    if(!we_are_merging_only_biallelic_records) {
+    if (!we_are_merging_only_biallelic_records) {
         fatal_error("When merging two biallelic records, one of them is not biallelic");
     }
 
-    const bool both_records_have_the_same_ref = this->ref == vcf_record_to_be_merged_in.ref;
+    const bool both_records_have_the_same_ref
+        = this->ref == vcf_record_to_be_merged_in.ref;
 
     const bool all_alleles_have_at_most_max_allele_length
         = this->get_longest_allele_length() <= max_allele_length
@@ -298,7 +301,8 @@ void VCFRecord::add_new_alt(std::string alt)
         alt = ".";
     }
 
-    const bool alt_already_present = std::find(alts.begin(), alts.end(), alt) != alts.end();
+    const bool alt_already_present
+        = std::find(alts.begin(), alts.end(), alt) != alts.end();
     if (alt_already_present) {
         fatal_error("Error adding new ALT to a VCF record: ALT already exists");
     }

@@ -21,3 +21,6 @@ cmake_install.cmake
 compile_commands.json
 Makefile
 pandora.cbp
+build_portable_executable
+pandora-linux-precompiled
+/cmake-build-release/

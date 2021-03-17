@@ -51,7 +51,8 @@ void Read::add_hits(
     hits.erase(last, hits.end());
     hits.shrink_to_fit();
 
-    const bool hits_were_correctly_inserted = hits.size() == before_size + cluster.size();
+    const bool hits_were_correctly_inserted
+        = hits.size() == before_size + cluster.size();
     if (!hits_were_correctly_inserted) {
         fatal_error("Error when adding hits to Pangraph read");
     }
@@ -108,9 +109,8 @@ std::pair<uint32_t, uint32_t> Read::find_position(
     const std::vector<uint_least32_t>& node_ids, const std::vector<bool>& node_orients,
     const uint16_t min_overlap)
 {
-    const bool nodes_ids_and_orientations_are_valid =
-        (not node_ids.empty()) and
-        (node_ids.size() == node_orients.size());
+    const bool nodes_ids_and_orientations_are_valid
+        = (not node_ids.empty()) and (node_ids.size() == node_orients.size());
     if (!nodes_ids_and_orientations_are_valid) {
         fatal_error("When finding positions of nodes in a Pangraph read, the node "
                     "ids and orientations are not valid");

@@ -124,7 +124,8 @@ void Index::load(const fs::path& indexfile)
             }
         }
     } else {
-        fatal_error("Unable to open index file ", indexfile, ". Does it exist? Have you run pandora index?");
+        fatal_error("Unable to open index file ", indexfile,
+            ". Does it exist? Have you run pandora index?");
     }
 
     if (minhash.size() <= 1) {

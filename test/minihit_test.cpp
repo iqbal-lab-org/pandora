@@ -34,7 +34,8 @@ TEST(MinimizerHitTest, create)
     kh = hash.kmerhash("hell", 4);
     m = Minimizer(min(kh.first, kh.second), 1, 5, 0);
     ASSERT_EXCEPTION(MinimizerHit(1, m, mr), FatalRuntimeError,
-                 "Error when storing minimizers: minimizer from read/sequence and from PRG have different lengths");
+        "Error when storing minimizers: minimizer from read/sequence and from PRG have "
+        "different lengths");
     // TEST SECOND CONSTRUCTOR!!
 }
 

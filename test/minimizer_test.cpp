@@ -51,9 +51,9 @@ TEST(MinimizerTest, create)
     ASSERT_EXCEPTION(Minimizer(kh.first, 0, 2, 0), FatalRuntimeError,
         "Error when building minimizer");
     // doesn't generate an interval as 2>0
-    ASSERT_EXCEPTION(
-        Minimizer(kh.first, 2, 0, 0), FatalRuntimeError,
-        "Error when building interval: interval end cannot be less than the interval start");
+    ASSERT_EXCEPTION(Minimizer(kh.first, 2, 0, 0), FatalRuntimeError,
+        "Error when building interval: interval end cannot be less than the interval "
+        "start");
 }
 
 TEST(MinimizerTest, less_than)

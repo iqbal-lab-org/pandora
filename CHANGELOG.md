@@ -7,31 +7,44 @@ The format is based on
 project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.8.0]
+## [Unreleased]
 
-Improvements to the build process and performance.
+## [0.8.0]
 
 ### Added
-- We now provide a script to build a portable precompiled binary as another option to run `pandora` easily.
-  The portable binary is now provided with the release;
-- `pandora` can now provide a meaningful stack trace in case of errors, to facilitate debugging
-  (need to pass flag `-DPRINT_STACKTRACE` to `CMake`). Due to this, we now add debug symbols (`-g` flag)
-  to every `pandora` build type, but this [does not impact performance](https://stackoverflow.com/a/39223245).
+
+- We now provide a script to build a portable precompiled binary as
+  another option to run `pandora` easily. The portable binary is now
+  provided with the release;
+- `pandora` can now provide a meaningful stack trace in case of errors,
+  to facilitate debugging (need to pass flag `-DPRINT_STACKTRACE` to
+  `CMake`). Due to this, we now add debug symbols (`-g` flag) to every
+  `pandora` build type, but this
+  [does not impact performance](https://stackoverflow.com/a/39223245).
   The precompiled binary has this enabled.
-  
+
 ### Changed
-- We now use the [Hunter](https://github.com/cpp-pm/hunter) package manager, removing the requirement of having `ZLIB` and
-  `Boost` system-wide installations;
-- `GATB` is now a git submodule instead of an external project downloaded and compiled during compilation time.
-  This means that when git cloning `pandora`, `cgranges` and `GATB` are also downloaded/cloned, and when preparing
-  the build (running `cmake`), `Hunter` downloads and installs `Boost`, `GTest` and `ZLIB`.
-  Thus we still need internet connection to prepare the build (running `cmake`) but not for compiling (running `make`).
+
+- We now use the [Hunter](https://github.com/cpp-pm/hunter) package
+  manager, removing the requirement of having `ZLIB` and `Boost`
+  system-wide installations;
+- `GATB` is now a git submodule instead of an external project
+  downloaded and compiled during compilation time. This means that when
+  git cloning `pandora`, `cgranges` and `GATB` are also
+  downloaded/cloned, and when preparing the build (running `cmake`),
+  `Hunter` downloads and installs `Boost`, `GTest` and `ZLIB`. Thus we
+  still need internet connection to prepare the build (running `cmake`)
+  but not for compiling (running `make`).
 - We now use a GATB fork that accepts a `ZLIB` custom installation;
-- Refactored all thirdparty libraries (`cgranges`, `GATB`, `backward`, `CLI11`, `inthash`) into their own directory `thirdparty`.
+- Refactored all thirdparty libraries (`cgranges`, `GATB`, `backward`,
+  `CLI11`, `inthash`) into their own directory `thirdparty`.
 
 ### Fixed
-- Refactored asserts into exceptions, and now `pandora` can be compiled correctly in the `Release` mode. 
-  The build process is thus able to create a more optimized binary, resulting in improved performance.
+
+- Refactored asserts into exceptions, and now `pandora` can be compiled
+  correctly in the `Release` mode. The build process is thus able to
+  create a more optimized binary, resulting in improved performance.
+- Don't assume Nanopore reads are longer than loci [[#265][265]]
 
 
 
@@ -58,7 +71,8 @@ from this point will have their changes meticulously documented here.
 
 - k-mer coverage underflow bug in `LocalPRG` [[#183][183]]
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/0.8.0...HEAD
+[0.8.0]: https://github.com/rmcolq/pandora/releases/tag/0.8.0
 [v0.7.0]: https://github.com/rmcolq/pandora/releases/tag/v0.7.0
 
 [183]: https://github.com/rmcolq/pandora/issues/183
@@ -66,3 +80,6 @@ from this point will have their changes meticulously documented here.
 [223]: https://github.com/rmcolq/pandora/pull/223
 [224]: https://github.com/rmcolq/pandora/pull/224
 [234]: https://github.com/rmcolq/pandora/pull/234
+[265]: https://github.com/rmcolq/pandora/pull/265
+
+

@@ -21,9 +21,11 @@ TEST(IntervalTest, create)
     EXPECT_EQ(i.length, j);
 
     ASSERT_EXCEPTION(Interval(9, 1), FatalRuntimeError,
-     "Error when building interval: interval end cannot be less than the interval start");
+        "Error when building interval: interval end cannot be less than the interval "
+        "start");
     ASSERT_EXCEPTION(Interval(-1, 10), FatalRuntimeError,
-             "Error when building interval: interval end cannot be less than the interval start");
+        "Error when building interval: interval end cannot be less than the interval "
+        "start");
 }
 
 TEST(IntervalTest, write)

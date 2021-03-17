@@ -115,7 +115,7 @@ example/pandora_workflow
 
 #portable binary build dir
 build_portable_executable
-
 pandora-linux-precompiled
+
 /cmake-build-release/
 example/pandora_discover

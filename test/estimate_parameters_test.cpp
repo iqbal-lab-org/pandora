@@ -74,7 +74,7 @@ TEST(EstimateParameters_FitNegativeBinomial, VarianceZero_FatalRuntimeError)
     double mean = 1, variance = 0;
     float p, r;
     ASSERT_EXCEPTION(fit_negative_binomial(mean, variance, p, r), FatalRuntimeError,
-                     "Negative binomial parameters are invalid");
+        "Negative binomial parameters are invalid");
 }
 
 TEST(EstimateParameters_FitNegativeBinomial, MeanVarianceEqual_FatalRuntimeError)
@@ -82,7 +82,7 @@ TEST(EstimateParameters_FitNegativeBinomial, MeanVarianceEqual_FatalRuntimeError
     double mean = 1, variance = 1;
     float p, r;
     ASSERT_EXCEPTION(fit_negative_binomial(mean, variance, p, r), FatalRuntimeError,
-                     "Negative binomial parameters are invalid");
+        "Negative binomial parameters are invalid");
 }
 
 TEST(EstimateParameters_FitNegativeBinomial, MeanGreaterThanVariance_FatalRuntimeError)
@@ -90,7 +90,7 @@ TEST(EstimateParameters_FitNegativeBinomial, MeanGreaterThanVariance_FatalRuntim
     double mean = 2, variance = 1;
     float p, r;
     ASSERT_EXCEPTION(fit_negative_binomial(mean, variance, p, r), FatalRuntimeError,
-                     "Negative binomial parameters are invalid");
+        "Negative binomial parameters are invalid");
 }
 
 TEST(EstimateParameters_FitNegativeBinomial, SimpleFit)

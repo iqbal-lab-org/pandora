@@ -12,7 +12,6 @@
 [TOC]: #
 
 # Table of Contents
-- [News](#news)
 - [Introduction](#introduction)
 - [Quick Start](#quick-start)
 - [Hands-on toy example](#hands-on-toy-example)
@@ -20,12 +19,6 @@
   - [Containers](#containers)
   - [Installation from source](#installation-from-source)
 - [Usage](#usage)
-
-
-## News
-
-* A new pre-release version is out: [v0.8.0-alpha](https://github.com/rmcolq/pandora/releases/tag/v0.8.0-alpha).
-Note that this is yet an unstable version. The latest stable release is [v0.7.0](https://github.com/rmcolq/pandora/releases/tag/v0.7.0).
 
 
 ## Introduction
@@ -90,12 +83,13 @@ can be found [here](https://gcc.gnu.org/onlinedocs/gfortran/OpenMP.html).
 
 * **Download**:
   ```
-  wget https://github.com/rmcolq/pandora/releases/download/v0.8.0-alpha/pandora-linux-precompiled-v0.8.0-alpha
+  wget https://github.com/rmcolq/pandora/releases/download/0.8.0/pandora-linux-precompiled-v0.8.0.gz
+  gunzip pandora-linux-precompiled-v0.8.0.gz
   ```
 * **Running**:
 ```
-chmod +x pandora-linux-precompiled-v0.8.0-alpha
-./pandora-linux-precompiled-v0.8.0-alpha -h
+chmod +x pandora-linux-precompiled-v0.8.0
+./pandora-linux-precompiled-v0.8.0 -h
 ```
 
 * **Compatibility**: This precompiled binary works on pretty much any glibc-2.12-or-later-based x86 and x86-64 Linux distribution 
@@ -114,23 +108,21 @@ chmod +x pandora-linux-precompiled-v0.8.0-alpha
 
 ### Containers
 
-![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/rmcolq/pandora)
+[![Docker Repository on Quay](https://quay.io/repository/rmcolq/pandora/status "Docker Repository on Quay")](https://quay.io/repository/rmcolq/pandora)
 
 You can also download a containerized image of Pandora.
-Pandora is hosted on Dockerhub and images can be downloaded with the
+Pandora is hosted on Quay and images can be downloaded with the
 command:
 
 ```
-docker pull rmcolq/pandora:latest
+docker pull quay.io/rmcolq/pandora
 ```
 
 Alternatively, using singularity:
 
 ```
-singularity pull docker://rmcolq/pandora:latest
+singularity pull docker://quay.io/rmcolq/pandora
 ```
-
-NB For consistency, we no longer maintain images on singularity hub.
 
 ### Installation from source
 

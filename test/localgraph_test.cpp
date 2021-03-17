@@ -44,8 +44,8 @@ TEST(LocalGraphTest, add_edge)
     lg2.add_edge(2, 3);
 
     // expect failure if a node doesn't exist in the graph
-    ASSERT_EXCEPTION(lg2.add_edge(0, 4), FatalRuntimeError,
-        "Cannot add edge to Local Graph");
+    ASSERT_EXCEPTION(
+        lg2.add_edge(0, 4), FatalRuntimeError, "Cannot add edge to Local Graph");
 }
 
 TEST(LocalGraphTest, equals)

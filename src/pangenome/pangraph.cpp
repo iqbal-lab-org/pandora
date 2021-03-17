@@ -65,8 +65,8 @@ void update_node_info_with_this_read(const NodePtr& node_ptr, const ReadPtr& rea
     node_ptr->covg += 1;
     node_ptr->reads.insert(read_ptr);
 
-    const bool coverage_information_is_consistent_with_read_information =
-        node_ptr->covg == node_ptr->reads.size();
+    const bool coverage_information_is_consistent_with_read_information
+        = node_ptr->covg == node_ptr->reads.size();
     if (!coverage_information_is_consistent_with_read_information) {
         fatal_error("Error updating Pangraph node with read: coverage information "
                     "is not consistent with read information");
@@ -87,7 +87,7 @@ void check_correct_hits(const uint32_t prg_id, const uint32_t read_id,
         const bool hits_correspond_to_correct_prg = prg_id == hit_ptr->get_prg_id();
         if (!hits_correspond_to_correct_prg) {
             fatal_error("Minimizer hits error: hit should be on PRG id ", prg_id,
-                        ", but it is on PRG id ", hit_ptr->get_prg_id());
+                ", but it is on PRG id ", hit_ptr->get_prg_id());
         }
     }
 }
@@ -283,12 +283,13 @@ void pangenome::Graph::add_hits_to_kmergraphs (const uint32_t& sample_id)
 {
     for (const auto& node_entries : nodes) {
         Node& pangraph_node = *node_entries.second;
-        const bool pangraph_node_has_a_valid_kmer_prg_with_coverage =
-            (pangraph_node.kmer_prg_with_coverage.kmer_prg != nullptr) and
-            (not pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes.empty());
+        const bool pangraph_node_has_a_valid_kmer_prg_with_coverage
+            = (pangraph_node.kmer_prg_with_coverage.kmer_prg != nullptr)
+            and (not pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes.empty());
         if (!pangraph_node_has_a_valid_kmer_prg_with_coverage) {
-            fatal_error("Error adding hits to kmer graph: pangraph node does not have a "
-                        "valid Kmer PRG with coverage");
+            fatal_error(
+                "Error adding hits to kmer graph: pangraph node does not have a "
+                "valid Kmer PRG with coverage");
         }
         uint32_t num_hits[2] = { 0, 0 };
 
@@ -300,9 +301,12 @@ void pangenome::Graph::add_hits_to_kmergraphs (const uint32_t& sample_id)
             for (const auto& minimizer_hit_ptr : hits.at(pangraph_node.prg_id)) {
                 const auto& minimizer_hit = *minimizer_hit_ptr;
 
-                const bool minimizer_hit_kmer_node_id_is_valid =
-                    (minimizer_hit.get_kmer_node_id() < pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes.size()) &&
-                    (pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes[minimizer_hit.get_kmer_node_id()] != nullptr);
+                const bool minimizer_hit_kmer_node_id_is_valid
+                    = (minimizer_hit.get_kmer_node_id()
+                          < pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes.size())
+                    && (pangraph_node.kmer_prg_with_coverage.kmer_prg
+                            ->nodes[minimizer_hit.get_kmer_node_id()]
+                        != nullptr);
                 if (!minimizer_hit_kmer_node_id_is_valid) {
                     fatal_error("Error adding hits to kmer graph: minimizer hit "
                                 "kmer node is invalid");
@@ -348,10 +352,12 @@ void pangenome::Graph::copy_coverages_to_kmergraphs(
     for (const auto& ref_node_entry : ref_pangraph.nodes) {
         const Node& ref_node = *ref_node_entry.second;
 
-        const bool ref_node_is_in_this_pangraph = nodes.find(ref_node.node_id) != nodes.end();
+        const bool ref_node_is_in_this_pangraph
+            = nodes.find(ref_node.node_id) != nodes.end();
         if (!ref_node_is_in_this_pangraph) {
-            fatal_error("Error copying coverages to kmer graphs: reference node does not "
-                        "exist in pangraph");
+            fatal_error(
+                "Error copying coverages to kmer graphs: reference node does not "
+                "exist in pangraph");
         }
 
         Node& pangraph_node = *nodes[ref_node.node_id];
@@ -359,8 +365,8 @@ void pangenome::Graph::copy_coverages_to_kmergraphs(
             pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes) {
             const auto& knode_id = kmergraph_node_ptr->id;
 
-            const bool kmer_graph_node_id_is_valid =
-                knode_id < ref_node.kmer_prg_with_coverage.kmer_prg->nodes.size();
+            const bool kmer_graph_node_id_is_valid
+                = knode_id < ref_node.kmer_prg_with_coverage.kmer_prg->nodes.size();
             if (!kmer_graph_node_id_is_valid) {
                 fatal_error("Error copying coverages to kmer graphs: kmer graph node "
                             "id is not valid");
@@ -416,9 +422,11 @@ std::vector<LocalNodePtr> pangenome::Graph::get_node_closest_vcf_reference(
         const auto& sample_paths = sample->paths.at(node.prg_id);
         for (const auto& sample_path : sample_paths) {
             for (uint32_t i = 0; i != sample_path.size(); ++i) {
-                const bool sample_path_node_is_valid =
-                    (sample_path[i]->id < kmer_prg_with_coverage.kmer_prg->nodes.size()) and
-                    (kmer_prg_with_coverage.kmer_prg->nodes[sample_path[i]->id] != nullptr);
+                const bool sample_path_node_is_valid
+                    = (sample_path[i]->id
+                          < kmer_prg_with_coverage.kmer_prg->nodes.size())
+                    and (kmer_prg_with_coverage.kmer_prg->nodes[sample_path[i]->id]
+                        != nullptr);
                 if (!sample_path_node_is_valid) {
                     fatal_error("When getting the path closest to VCF reference, "
                                 "a sample path node is not valid");
@@ -534,13 +542,10 @@ void pangenome::Graph::save_mapped_read_strings(
             start = (uint32_t)std::max((int32_t)coord[1] - buff, 0);
             end = std::min(coord[2] + (uint32_t)buff, (uint32_t)readfile.read.length());
 
-            const bool read_coordinates_are_valid =
-                (coord[1] < coord[2]) &&
-                (start <= coord[1]) &&
-                (start <= readfile.read.length()) &&
-                (coord[2] <= readfile.read.length()) &&
-                (end >= coord[2]) &&
-                (start < end);
+            const bool read_coordinates_are_valid = (coord[1] < coord[2])
+                && (start <= coord[1]) && (start <= readfile.read.length())
+                && (coord[2] <= readfile.read.length()) && (end >= coord[2])
+                && (start < end);
             if (!read_coordinates_are_valid) {
                 fatal_error("When saving mapped reads, read coordinates are not valid");
             }
@@ -549,8 +554,7 @@ void pangenome::Graph::save_mapped_read_strings(
                       << start << ":" << end;
             if (coord[3]) {
                 outhandle << " + " << std::endl;
-            }
-            else {
+            } else {
                 outhandle << " - " << std::endl;
             }
             outhandle << readfile.read.substr(start, end - start) << std::endl;

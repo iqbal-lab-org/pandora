@@ -27,8 +27,9 @@ VCFRecord& VCF::add_or_update_record_restricted_to_the_given_samples(
     VCFRecord& vr, const std::vector<std::string>& sample_names)
 {
     // TODO: refactor this, this function does too much
-    const bool record_and_samples_are_consistent =
-        vr.sampleIndex_to_sampleInfo.size() == sample_names.size() or sample_names.size() == 0;
+    const bool record_and_samples_are_consistent
+        = vr.sampleIndex_to_sampleInfo.size() == sample_names.size()
+        or sample_names.size() == 0;
     if (!record_and_samples_are_consistent) {
         fatal_error("Error updating record to a subset of samples: record and subset "
                     "of samples given are inconsistent");
@@ -72,10 +73,12 @@ ptrdiff_t VCF::get_sample_index(const std::string& name)
         for (auto& record_ptr : records) {
             record_ptr->add_new_samples(1);
 
-            const bool record_samples_match_VCF_samples = samples.size() == record_ptr->sampleIndex_to_sampleInfo.size();
-            if(!record_samples_match_VCF_samples) {
-                fatal_error("Error on adding a sample to VCF record: VCF record samples "
-                            "do no match global VCF samples");
+            const bool record_samples_match_VCF_samples
+                = samples.size() == record_ptr->sampleIndex_to_sampleInfo.size();
+            if (!record_samples_match_VCF_samples) {
+                fatal_error(
+                    "Error on adding a sample to VCF record: VCF record samples "
+                    "do no match global VCF samples");
             }
         }
         return samples.size() - 1;
@@ -134,7 +137,7 @@ void VCF::add_a_new_record_discovered_in_a_sample_and_genotype_it(
         }
 
         // check if there was a mistake
-        if(!vcf_record_was_processed) {
+        if (!vcf_record_was_processed) {
             fatal_error("Error when adding a new VCF record discovered in a sample");
         }
     }
@@ -272,8 +275,9 @@ void VCF::genotype(const bool do_local_genotyping)
 void VCF::merge_multi_allelic_core(VCF& merged_VCF, uint32_t max_allele_length) const
 {
     VCF empty_vcf = VCF(merged_VCF.genotyping_options);
-    const bool merged_VCF_passed_as_parameter_is_initially_empty = merged_VCF == empty_vcf;
-    if(!merged_VCF_passed_as_parameter_is_initially_empty) {
+    const bool merged_VCF_passed_as_parameter_is_initially_empty
+        = merged_VCF == empty_vcf;
+    if (!merged_VCF_passed_as_parameter_is_initially_empty) {
         fatal_error("Error on merging VCFs: initial VCF is not empty");
     }
 
@@ -307,8 +311,9 @@ void VCF::merge_multi_allelic_core(VCF& merged_VCF, uint32_t max_allele_length) 
 
     merged_VCF.sort_records();
 
-    const bool merging_did_not_create_any_record = merged_VCF.get_VCF_size() <= vcf_size;
-    if(!merging_did_not_create_any_record) {
+    const bool merging_did_not_create_any_record
+        = merged_VCF.get_VCF_size() <= vcf_size;
+    if (!merging_did_not_create_any_record) {
         fatal_error("Error on merging VCFs: new VCF records were created, whereas "
                     "this should not be the case");
     }
@@ -334,11 +339,12 @@ VCF VCF::correct_dot_alleles(const std::string& vcf_ref, const std::string& chro
             continue;
         }
 
-        const bool record_pos_refers_to_an_existing_pos_in_vcf_ref =
-            vcf_ref.length() >= record.get_pos();
-        if(!record_pos_refers_to_an_existing_pos_in_vcf_ref) {
+        const bool record_pos_refers_to_an_existing_pos_in_vcf_ref
+            = vcf_ref.length() >= record.get_pos();
+        if (!record_pos_refers_to_an_existing_pos_in_vcf_ref) {
             fatal_error("When correcting dot alleles, a VCF record has an inexistent "
-                        "position (", record.get_pos(), ") in VCF ref with length ", vcf_ref.length());
+                        "position (",
+                record.get_pos(), ") in VCF ref with length ", vcf_ref.length());
         }
         const bool record_contains_dot_allele = record.contains_dot_allele();
         const bool there_is_a_previous_letter = record.get_pos() > 0;
@@ -367,10 +373,12 @@ VCF VCF::correct_dot_alleles(const std::string& vcf_ref, const std::string& chro
 
     vcf_with_dot_alleles_corrected.sort_records();
 
-    const bool correcting_dot_alleles_did_not_create_any_record = vcf_with_dot_alleles_corrected.get_VCF_size() <= this->get_VCF_size();
-    if(!correcting_dot_alleles_did_not_create_any_record) {
-        fatal_error("Error on correcting dot alleles: new VCF records were created, whereas "
-                    "this should not be the case");
+    const bool correcting_dot_alleles_did_not_create_any_record
+        = vcf_with_dot_alleles_corrected.get_VCF_size() <= this->get_VCF_size();
+    if (!correcting_dot_alleles_did_not_create_any_record) {
+        fatal_error(
+            "Error on correcting dot alleles: new VCF records were created, whereas "
+            "this should not be the case");
     }
 
     return vcf_with_dot_alleles_corrected;
@@ -521,7 +529,8 @@ std::string VCF::to_string(bool genotyping_from_maximum_likelihood,
         = ((int)(genotyping_from_maximum_likelihood) + (int)(genotyping_from_coverage))
         == 1;
     if (!only_one_flag_is_set) {
-        fatal_error("Error on stringifying VCF record: incompatible genotyping options");
+        fatal_error(
+            "Error on stringifying VCF record: incompatible genotyping options");
     }
 
     std::stringstream out;
