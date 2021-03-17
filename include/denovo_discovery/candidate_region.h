@@ -55,15 +55,25 @@ class CandidateRegion {
 public:
     ReadCoordinates read_coordinates;
     std::string max_likelihood_sequence;
+
     std::vector<LocalNodePtr> local_node_max_likelihood_path;
+    // NB local_node_max_likelihood_sequence differs from max_likelihood_sequence in the
+    // sense that max_likelihood_sequence is the ML sequence of the candidate region slice
+    // only
     std::string local_node_max_likelihood_sequence;
+
     std::string left_flanking_sequence;
     std::string right_flanking_sequence;
     ReadPileup pileup;
     fs::path filename;
     DenovoPaths denovo_paths;
 
+    void init();
+
     CandidateRegion(const Interval& interval, std::string name);
+
+    CandidateRegion(const Interval& interval, std::string name,
+                    const uint_least16_t& interval_padding);
 
     CandidateRegion(const Interval& interval, std::string name,
         const uint_least16_t& interval_padding,

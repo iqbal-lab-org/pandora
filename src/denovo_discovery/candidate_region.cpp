@@ -28,15 +28,27 @@ size_t std::hash<CandidateRegionIdentifier>::operator()(
         ^ std::hash<std::string>()(std::get<1>(id));
 }
 
+void CandidateRegion::init() {
+    initialise_filename();
+#ifndef NO_OPENMP
+    omp_init_lock(&add_pileup_entry_lock);
+#endif
+}
+
 CandidateRegion::CandidateRegion(const Interval& interval, std::string name)
     : interval { interval }
     , name { std::move(name) }
     , interval_padding { 0 }
 {
-    initialise_filename();
-#ifndef NO_OPENMP
-    omp_init_lock(&add_pileup_entry_lock);
-#endif
+    init();
+}
+
+CandidateRegion::CandidateRegion(
+    const Interval& interval, std::string name, const uint_least16_t& interval_padding) :
+    interval { interval }
+    , name { std::move(name) }
+    , interval_padding { interval_padding } {
+    init();
 }
 
 CandidateRegion::CandidateRegion(
@@ -49,10 +61,7 @@ CandidateRegion::CandidateRegion(
     , local_node_max_likelihood_path(local_node_max_likelihood_path)
     , local_node_max_likelihood_sequence { local_node_max_likelihood_sequence }
 {
-    initialise_filename();
-#ifndef NO_OPENMP
-    omp_init_lock(&add_pileup_entry_lock);
-#endif
+    init();
 }
 
 CandidateRegion::~CandidateRegion()
