@@ -98,7 +98,7 @@ public:
 
     void write_denovo_paths_to_buffer(CandidateRegionWriteBuffer &buffer);
 
-private:
+protected:
     const Interval interval;
     const std::string name;
     const uint_least16_t interval_padding;
@@ -114,7 +114,7 @@ private:
 
     Fastaq generate_fasta_for_denovo_paths();
 
-    std::vector<std::string> get_variants(const string &denovo_sequence) const;
+    virtual std::vector<std::string> get_variants(const string &denovo_sequence) const;
 };
 
 using CandidateRegions = std::unordered_map<CandidateRegionIdentifier, CandidateRegion>;
@@ -158,10 +158,10 @@ public:
     CandidateRegionWriteBuffer(const std::string &sample_name) :
         sample_name(sample_name){}
 
-    void add_new_variant(const std::string &locus_name,
+    virtual void add_new_variant(const std::string &locus_name,
                          const std::string &ML_path,
                          const std::string &variant);
-    void write_to_file(const fs::path& output_file);
+    virtual void write_to_file(const fs::path& output_file);
 
     const std::string & get_sample_name () const {
         return sample_name;

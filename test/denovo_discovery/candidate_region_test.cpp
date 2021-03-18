@@ -6,6 +6,11 @@
 #include "gtest/gtest.h"
 #include <cstdio>
 #include <iostream>
+#include <vector>
+#include <memory>
+
+using ::testing::Return;
+using ::testing::InSequence;
 
 TEST(CandidateRegionGetIntervalTest, noPaddingReturnsOriginalInterval)
 {
@@ -1388,43 +1393,93 @@ std::string read_file_to_string(const fs::path& filepath)
     return buffer.str();
 }
 
-TEST(WriteDenovoPathsToFileTest, noReadsDoesntWriteFile)
+class CandidateRegion___write_denovo_paths_to_buffer___Fixture : public ::testing::Test {
+public:
+    class CandidateRegionWriteBufferMock : public CandidateRegionWriteBuffer {
+    public:
+        using CandidateRegionWriteBuffer::CandidateRegionWriteBuffer;
+        MOCK_METHOD(void, add_new_variant,
+                    (const std::string &locus_name, const std::string &ML_path, const std::string &variant));
+    };
+
+    class CandidateRegionMock : public CandidateRegion {
+    public:
+        using CandidateRegion::CandidateRegion;
+        MOCK_METHOD(std::vector<std::string>, get_variants, (const string &denovo_sequence), (const));
+    };
+
+    CandidateRegion___write_denovo_paths_to_buffer___Fixture() :
+        buffer{"sample"}
+    {}
+    CandidateRegionWriteBufferMock buffer;
+};
+
+TEST_F(CandidateRegion___write_denovo_paths_to_buffer___Fixture, no_denovo_paths___nothing_is_written)
 {
-    const std::string name { "test" };
-    CandidateRegion candidate { Interval(0, 1), name };
-    const fs::path output_directory { "/tmp" };
-    const fs::path filepath { output_directory / candidate.filename };
+    EXPECT_CALL(buffer, add_new_variant).Times(0);
 
-    candidate.write_denovo_paths_to_file(output_directory);
-
-    EXPECT_FALSE(fs::exists(filepath));
+    CandidateRegion candidate { Interval(0, 1), "test" };
+    candidate.write_denovo_paths_to_buffer(buffer);
 }
 
-TEST(WriteDenovoPathsToFileTest, twoReadsWritesTwoReadsToFile)
+TEST_F(CandidateRegion___write_denovo_paths_to_buffer___Fixture, one_denovo_path_with_three_variants___three_variants_are_written)
 {
-    const std::string name { "test" };
-    CandidateRegion candidate { Interval(0, 1), name };
-    const fs::path output_directory { "/tmp" };
-    const fs::path filepath { output_directory / candidate.filename };
-    const DenovoPaths paths { "shrubberies", "ni" };
-    candidate.denovo_paths = paths;
+    // create the local_node_max_likelihood_path
+    LocalNode local_node("test", Interval(0, 1), 1);
+    std::vector<LocalNodePtr> local_node_max_likelihood_path({std::make_shared<LocalNode>(local_node)});
 
-    candidate.write_denovo_paths_to_file(output_directory);
+    // create candidate region with one denovo path that return 3 variants for the denovo path
+    CandidateRegionMock candidate{ Interval(0, 1), "CR_locus_name_mock",
+        1, local_node_max_likelihood_path, "local_node_max_likelihood_sequence_mock"};
+    candidate.denovo_paths.push_back("denovo_path_1");
+    EXPECT_CALL(candidate, get_variants("denovo_path_1")).Times(1).WillOnce(Return(
+        std::vector<std::string>({"Var1", "Var2", "Var3"})));
 
-    std::stringstream expected_ss;
-
-    for (size_t i = 0; i < paths.size(); ++i) {
-        expected_ss << ">test." << std::to_string(i) << std::endl
-                    << paths.at(i) << std::endl;
+    // expect 3 calls to add new variant in sequence and with these args
+    {
+        InSequence seq;
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "Var1")).Times(1);
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "Var2")).Times(1);
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "Var3")).Times(1);
     }
 
-    const std::string expected { expected_ss.str() };
-    const auto actual { read_file_to_string(filepath) };
-
-    fs::remove(filepath);
-
-    EXPECT_EQ(actual, expected);
+    candidate.write_denovo_paths_to_buffer(buffer);
 }
+
+TEST_F(CandidateRegion___write_denovo_paths_to_buffer___Fixture, two_denovo_paths_with_five_variants___five_variants_are_written)
+{
+    // create the local_node_max_likelihood_path
+    LocalNode local_node("test", Interval(0, 1), 1);
+    std::vector<LocalNodePtr> local_node_max_likelihood_path({std::make_shared<LocalNode>(local_node)});
+
+    // create candidate region with one denovo path that return 3 variants for the denovo path
+    CandidateRegionMock candidate{ Interval(0, 1), "CR_locus_name_mock",
+                                   1, local_node_max_likelihood_path, "local_node_max_likelihood_sequence_mock"};
+    candidate.denovo_paths.push_back("denovo_path_1");
+    candidate.denovo_paths.push_back("denovo_path_2");
+    {
+        InSequence seq;
+        EXPECT_CALL(candidate, get_variants("denovo_path_1")).Times(1).WillOnce(Return(
+            std::vector<std::string>({"denovo_path_1_Var1", "denovo_path_1_Var2",
+                                      "denovo_path_1_Var3"})));
+        EXPECT_CALL(candidate, get_variants("denovo_path_2")).Times(1).WillOnce(Return(
+            std::vector<std::string>({"denovo_path_2_Var1", "denovo_path_2_Var2"})));
+    }
+
+
+    // expect 3 calls to add new variant in sequence and with these args
+    {
+        InSequence seq;
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "denovo_path_1_Var1")).Times(1);
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "denovo_path_1_Var2")).Times(1);
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "denovo_path_1_Var3")).Times(1);
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "denovo_path_2_Var1")).Times(1);
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "denovo_path_2_Var2")).Times(1);
+    }
+
+    candidate.write_denovo_paths_to_buffer(buffer);
+}
+
 
 TEST(ConstructPileupConstructionMapTest, emptyInEmptyOut)
 {
@@ -1594,4 +1649,14 @@ TEST(ConstructPileupConstructionMapTest,
     expected[read_id].emplace_back(&candidate_2, &read_coord_2);
 
     compare_maps(actual, expected);
+}
+
+TEST(SimpleDenovoVariantRecord,
+     creation_and_to_string)
+{
+    SimpleDenovoVariantRecord record(10, "ACCG---T", "A---TTTG");
+    std::string expected {"10\tACCGT\tATTTG"};
+    std::string actual = record.to_string();
+
+    EXPECT_EQ(actual, expected);
 }
