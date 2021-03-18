@@ -448,12 +448,13 @@ TEST(FindCandidateRegionsForPanNodeTest, emptyPanNodeReturnsNoCandidates)
     auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "test", "") };
     const std::vector<LocalNodePtr> local_node_max_likelihood_path;
     const std::vector<KmerNodePtr> kmer_node_max_likelihood_path;
+    const std::string local_node_max_likelihood_seq;
 
     PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(
         local_prg_ptr, local_prg_ptr->id, num_samples) };
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path, local_node_max_likelihood_seq };
 
     const CandidateRegions expected;
     const auto actual { discover.find_candidate_regions_for_pan_node(
@@ -491,7 +492,8 @@ TEST(FindCandidateRegionsForPanNodeTest, noCoverageReturnWholePrgAsCandidate)
         local_prg_ptr, local_prg_ptr->id, num_samples) };
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path,
+                                                expected_sequence};
 
     CandidateRegion expected_candidate { Interval(0, 7), pangraph_node->get_name() };
     expected_candidate.max_likelihood_sequence = expected_sequence;
@@ -541,7 +543,7 @@ TEST(FindCandidateRegionsForPanNodeTest, highCoverageReturnEmpty)
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path, expected_sequence };
 
     const CandidateRegions expected;
     const auto actual { discover.find_candidate_regions_for_pan_node(
@@ -588,7 +590,7 @@ TEST(
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path, expected_sequence };
 
     CandidateRegion expected_candidate { Interval(3, 8), pangraph_node->get_name() };
     const CandidateRegions expected { std::make_pair(
@@ -649,7 +651,7 @@ TEST(FindCandidateRegionsForPanNodeTest,
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path, expected_sequence };
 
     CandidateRegion expected_candidate { Interval(3, 8), pangraph_node->get_name(),
         pad };
@@ -715,7 +717,7 @@ TEST(FindCandidateRegionsForPanNodeTest,
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path, expected_sequence };
 
     CandidateRegion expected_candidate { Interval(0, 5), pangraph_node->get_name(),
         pad };
@@ -781,7 +783,7 @@ TEST(FindCandidateRegionsForPanNodeTest,
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path, expected_sequence };
 
     CandidateRegion expected_candidate { Interval(6, 11), pangraph_node->get_name(),
         pad };
@@ -847,7 +849,7 @@ TEST(FindCandidateRegionsForPanNodeTest,
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path, expected_sequence };
 
     CandidateRegion expected_candidate { Interval(5, 10), pangraph_node->get_name(),
         pad };
@@ -913,7 +915,7 @@ TEST(FindCandidateRegionsForPanNodeTest,
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path, expected_sequence };
 
     CandidateRegion expected_candidate1 { Interval(0, 5), pangraph_node->get_name(),
         pad };
