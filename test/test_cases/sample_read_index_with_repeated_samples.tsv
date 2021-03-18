@@ -1,0 +1,8 @@
+sample_1	first_reads_1.fastq
+sample_2	first_reads_2.fastq
+sample_3	first_reads_3.fastq
+sample_3	second_reads_3.fastq
+sample_2	second_reads_2.fastq
+sample_3	third_reads_3.fastq
+sample_3	fourth_reads_3.fastq
+
