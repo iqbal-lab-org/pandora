@@ -1660,3 +1660,104 @@ TEST(SimpleDenovoVariantRecord,
 
     EXPECT_EQ(actual, expected);
 }
+
+TEST(CandidateRegionWriteBuffer, add_new_variant) {
+    CandidateRegionWriteBuffer buffer("test");
+
+    EXPECT_EQ(buffer.get_sample_name(), "test");
+    EXPECT_TRUE(buffer.get_locus_name_to_ML_path().empty());
+    EXPECT_TRUE(buffer.get_locus_name_to_variants().empty());
+
+    buffer.add_new_variant("locus_1", "ml_path_1", "var_1");
+    {
+        auto actual = buffer.get_locus_name_to_ML_path();
+        decltype(actual) expected {
+            {"locus_1", "ml_path_1"}
+        };
+        EXPECT_EQ(actual, expected);
+    }
+    {
+        auto actual = buffer.get_locus_name_to_variants();
+        decltype(actual) expected {
+            {"locus_1", std::vector<std::string>({"var_1"})}
+        };
+        EXPECT_EQ(actual, expected);
+    }
+
+    buffer.add_new_variant("locus_1", "ml_path_1", "var_2");
+    {
+        auto actual = buffer.get_locus_name_to_ML_path();
+        decltype(actual) expected {
+            {"locus_1", "ml_path_1"}
+        };
+        EXPECT_EQ(actual, expected);
+    }
+    {
+        auto actual = buffer.get_locus_name_to_variants();
+        decltype(actual) expected {
+            {"locus_1", std::vector<std::string>({"var_1", "var_2"})}
+        };
+        EXPECT_EQ(actual, expected);
+    }
+
+    buffer.add_new_variant("locus_2", "ml_path_2", "var_3");
+    {
+        auto actual = buffer.get_locus_name_to_ML_path();
+        decltype(actual) expected {
+            {"locus_1", "ml_path_1"},
+            {"locus_2", "ml_path_2"}
+        };
+        EXPECT_EQ(actual, expected);
+    }
+    {
+        auto actual = buffer.get_locus_name_to_variants();
+        decltype(actual) expected {
+            {"locus_1", std::vector<std::string>({"var_1", "var_2"})},
+            {"locus_2", std::vector<std::string>({"var_3"})}
+        };
+        EXPECT_EQ(actual, expected);
+    }
+
+    buffer.add_new_variant("locus_3", "ml_path_3", "var_4");
+    {
+        auto actual = buffer.get_locus_name_to_ML_path();
+        decltype(actual) expected {
+            {"locus_1", "ml_path_1"},
+            {"locus_2", "ml_path_2"},
+            {"locus_3", "ml_path_3"}
+        };
+        EXPECT_EQ(actual, expected);
+    }
+    {
+        auto actual = buffer.get_locus_name_to_variants();
+        decltype(actual) expected {
+            {"locus_1", std::vector<std::string>({"var_1", "var_2"})},
+            {"locus_2", std::vector<std::string>({"var_3"})},
+            {"locus_3", std::vector<std::string>({"var_4"})}
+        };
+        EXPECT_EQ(actual, expected);
+    }
+
+    buffer.add_new_variant("locus_3", "ml_path_3", "var_5");
+    {
+        auto actual = buffer.get_locus_name_to_ML_path();
+        decltype(actual) expected {
+            {"locus_1", "ml_path_1"},
+            {"locus_2", "ml_path_2"},
+            {"locus_3", "ml_path_3"}
+        };
+        EXPECT_EQ(actual, expected);
+    }
+    {
+        auto actual = buffer.get_locus_name_to_variants();
+        decltype(actual) expected {
+            {"locus_1", std::vector<std::string>({"var_1", "var_2"})},
+            {"locus_2", std::vector<std::string>({"var_3"})},
+            {"locus_3", std::vector<std::string>({"var_4", "var_5"})}
+        };
+        EXPECT_EQ(actual, expected);
+    }
+}
+
+// TODO: test
+// std::vector<std::string> CandidateRegion::get_variants(const string &denovo_sequence) const

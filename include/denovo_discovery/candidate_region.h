@@ -163,6 +163,14 @@ public:
     const std::string & get_sample_name () const {
         return sample_name;
     }
+
+    const std::map<std::string, std::string>& get_locus_name_to_ML_path() const {
+        return locus_name_to_ML_path;
+    }
+
+    const std::map<std::string, std::vector<std::string>> get_locus_name_to_variants() const {
+        return locus_name_to_variants;
+    }
 };
 
 #endif // PANDORA_CANDIDATE_REGION_H
