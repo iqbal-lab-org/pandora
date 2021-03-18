@@ -55,19 +55,17 @@ public:
     ReadCoordinates read_coordinates;
     std::string max_likelihood_sequence;
 
-    std::vector<LocalNodePtr> local_node_max_likelihood_path;
+    const std::vector<LocalNodePtr> local_node_max_likelihood_path;
     // NB local_node_max_likelihood_sequence differs from max_likelihood_sequence in the
     // sense that max_likelihood_sequence is the ML sequence of the candidate region slice
     // only
-    std::string local_node_max_likelihood_sequence;
+    const std::string local_node_max_likelihood_sequence;
 
     std::string left_flanking_sequence;
     std::string right_flanking_sequence;
     ReadPileup pileup;
     fs::path filename;
     DenovoPaths denovo_paths;
-
-    void init();
 
     CandidateRegion(const Interval& interval, std::string name);
 
@@ -110,9 +108,8 @@ protected:
                                       // add_pileup_entry() method
 #endif
 
+    void init();
     void initialise_filename();
-
-    Fastaq generate_fasta_for_denovo_paths();
 
     virtual std::vector<std::string> get_variants(const string &denovo_sequence) const;
 };

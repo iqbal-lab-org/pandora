@@ -291,21 +291,6 @@ std::vector<std::string> CandidateRegion::get_variants(const string &denovo_sequ
     return denovo_variants_as_str;
 }
 
-Fastaq CandidateRegion::generate_fasta_for_denovo_paths()
-{
-    const bool gzip { false };
-    const bool fastq { false };
-    Fastaq fasta { gzip, fastq };
-
-    for (size_t i = 0; i < denovo_paths.size(); ++i) {
-        const auto& path { denovo_paths.at(i) };
-        const std::string path_name { std::string(name).append(".").append(
-            std::to_string(i)) };
-        fasta.add_entry(path_name, path, "");
-    }
-
-    return fasta;
-}
 
 TmpPanNode::TmpPanNode(const PanNodePtr& pangraph_node,
     const shared_ptr<LocalPRG>& local_prg,
