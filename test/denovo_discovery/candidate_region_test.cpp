@@ -1759,5 +1759,34 @@ TEST(CandidateRegionWriteBuffer, add_new_variant) {
     }
 }
 
+class CandidateRegionWriteBuffer___Fixture : public ::testing::Test {
+public:
+    // mock that allow to access protected members
+    class CandidateRegionWriteBufferMock : public CandidateRegionWriteBuffer {
+    public:
+        using CandidateRegionWriteBuffer::CandidateRegionWriteBuffer;
+        void write_to_file_core(std::stringstream &output_filehandler) const {
+            CandidateRegionWriteBuffer::write_to_file_core(output_filehandler);
+        }
+    };
+};
+
+TEST_F(CandidateRegionWriteBuffer___Fixture, write_to_file_core) {
+    CandidateRegionWriteBufferMock buffer{ "test_sample" };
+    buffer.add_new_variant("locus_1", "ml_path_1", "var_1");
+    buffer.add_new_variant("locus_1", "ml_path_1", "var_2");
+    buffer.add_new_variant("locus_2", "ml_path_2", "var_3");
+    buffer.add_new_variant("locus_3", "ml_path_3", "var_4");
+    buffer.add_new_variant("locus_3", "ml_path_3", "var_5");
+
+    std::stringstream ss;
+    buffer.write_to_file_core(ss);
+
+    std::string expected = "Sample test_sample\n3 loci with denovo variants\nlocus_1\nml_path_1\n2 denovo variants for this locus\nvar_1\nvar_2\nlocus_2\nml_path_2\n1 denovo variants for this locus\nvar_3\nlocus_3\nml_path_3\n2 denovo variants for this locus\nvar_4\nvar_5\n";
+    std::string actual = ss.str();
+    EXPECT_EQ(actual, expected);
+}
+
+
 // TODO: test
 // std::vector<std::string> CandidateRegion::get_variants(const string &denovo_sequence) const

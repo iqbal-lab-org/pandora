@@ -405,29 +405,14 @@ void CandidateRegionWriteBuffer::add_new_variant(
     const std::string &locus_name,
     const std::string &ML_path,
     const std::string &variant) {
-    bool locus_was_not_found = locus_name_to_ML_path.find(locus_name) == locus_name_to_ML_path.end();
-    if (locus_was_not_found) {
-        locus_name_to_ML_path[locus_name] = ML_path;
-    }
+    locus_name_to_ML_path[locus_name] = ML_path;
     locus_name_to_variants[locus_name].push_back(variant);
 }
 
 
-void CandidateRegionWriteBuffer::write_to_file(const fs::path& output_file) {
+void CandidateRegionWriteBuffer::write_to_file(const fs::path& output_file) const {
     ofstream output_filehandler;
     open_file_for_writing(output_file.string(), output_filehandler);
-
-    output_filehandler << "Sample " << sample_name << std::endl;
-    output_filehandler << locus_name_to_ML_path.size() << " loci with denovo variants" << std::endl;
-    for (const auto &locus_name_and_ML_path : locus_name_to_ML_path) {
-        const auto &locus_name = locus_name_and_ML_path.first;
-        output_filehandler << locus_name << std::endl;
-        output_filehandler << locus_name_and_ML_path.second << std::endl;
-        output_filehandler << locus_name_to_variants[locus_name].size() << " denovo variants for this locus" << std::endl;
-        for (const auto &variant : locus_name_to_variants[locus_name]) {
-            output_filehandler << variant << std::endl;
-        }
-    }
-
+    write_to_file_core(output_filehandler);
     output_filehandler.close();
 }

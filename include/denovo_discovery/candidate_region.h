@@ -146,10 +146,25 @@ public:
 
 
 class CandidateRegionWriteBuffer {
-private:
+protected:
     std::string sample_name;
     std::map<std::string, std::string> locus_name_to_ML_path;
     std::map<std::string, std::vector<std::string>> locus_name_to_variants;
+
+    template <typename OFSTREAM_TYPE>
+    void write_to_file_core(OFSTREAM_TYPE &output_filehandler) const {
+        output_filehandler << "Sample " << sample_name << std::endl;
+        output_filehandler << locus_name_to_ML_path.size() << " loci with denovo variants" << std::endl;
+        for (const auto &locus_name_and_ML_path : locus_name_to_ML_path) {
+            const auto &locus_name = locus_name_and_ML_path.first;
+            output_filehandler << locus_name << std::endl;
+            output_filehandler << locus_name_and_ML_path.second << std::endl;
+            output_filehandler << locus_name_to_variants.at(locus_name).size() << " denovo variants for this locus" << std::endl;
+            for (const auto &variant : locus_name_to_variants.at(locus_name)) {
+                output_filehandler << variant << std::endl;
+            }
+        }
+    }
 
 public:
     CandidateRegionWriteBuffer(const std::string &sample_name) :
@@ -158,7 +173,8 @@ public:
     virtual void add_new_variant(const std::string &locus_name,
                          const std::string &ML_path,
                          const std::string &variant);
-    virtual void write_to_file(const fs::path& output_file);
+
+    void write_to_file(const fs::path& output_file) const;
 
     const std::string & get_sample_name () const {
         return sample_name;
