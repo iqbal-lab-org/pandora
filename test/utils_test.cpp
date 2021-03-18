@@ -1152,3 +1152,30 @@ TEST(MakeAbsoluteTest, FileReturnsAbsolutePathToFile)
 
     EXPECT_EQ(actual, expected.string());
 }
+
+TEST(remove_spaces_from_string, simple_test___no_spaces) {
+    std::string str {"ACGT"};
+
+    const std::string expected { "ACGT" };
+    const std::string actual = remove_spaces_from_string(str);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(remove_spaces_from_string, simple_test___with_spaces) {
+    std::string str {"-A-C------G--T---"};
+
+    const std::string expected { "ACGT" };
+    const std::string actual = remove_spaces_from_string(str);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(remove_spaces_from_string, simple_test___only_spaces) {
+    std::string str {"---------"};
+
+    const std::string expected { "" };
+    const std::string actual = remove_spaces_from_string(str);
+
+    EXPECT_EQ(actual, expected);
+}
