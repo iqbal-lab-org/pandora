@@ -1438,9 +1438,9 @@ TEST_F(CandidateRegion___write_denovo_paths_to_buffer___Fixture, one_denovo_path
     // expect 3 calls to add new variant in sequence and with these args
     {
         InSequence seq;
-        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "Var1")).Times(1);
-        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "Var2")).Times(1);
-        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "Var3")).Times(1);
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "Var1")).Times(1);
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "Var2")).Times(1);
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "Var3")).Times(1);
     }
 
     candidate.write_denovo_paths_to_buffer(buffer);
@@ -1470,11 +1470,11 @@ TEST_F(CandidateRegion___write_denovo_paths_to_buffer___Fixture, two_denovo_path
     // expect 3 calls to add new variant in sequence and with these args
     {
         InSequence seq;
-        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "denovo_path_1_Var1")).Times(1);
-        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "denovo_path_1_Var2")).Times(1);
-        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "denovo_path_1_Var3")).Times(1);
-        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "denovo_path_2_Var1")).Times(1);
-        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes \n(1 [0, 1) test)", "denovo_path_2_Var2")).Times(1);
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "denovo_path_1_Var1")).Times(1);
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "denovo_path_1_Var2")).Times(1);
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "denovo_path_1_Var3")).Times(1);
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "denovo_path_2_Var1")).Times(1);
+        EXPECT_CALL(buffer, add_new_variant("CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "denovo_path_2_Var2")).Times(1);
     }
 
     candidate.write_denovo_paths_to_buffer(buffer);
