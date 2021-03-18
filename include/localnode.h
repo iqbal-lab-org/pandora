@@ -38,7 +38,7 @@ public:
 
     std::string to_string() const;
 
-    static std::string to_string_vector(const std::vector<LocalNodePtr> local_nodes);
+    static std::string to_string_vector(const std::vector<LocalNodePtr> &local_nodes);
 
     friend class LocalGraph;
 

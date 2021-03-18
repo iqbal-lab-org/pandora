@@ -48,7 +48,7 @@ std::string LocalNode::to_string() const
     return ss.str();
 }
 
-std::string LocalNode::to_string_vector(const std::vector<LocalNodePtr> local_nodes) {
+std::string LocalNode::to_string_vector(const std::vector<LocalNodePtr> &local_nodes) {
     std::stringstream ss;
     ss << local_nodes.size() << " nodes " << std::endl;
     for (const auto &node : local_nodes) {
