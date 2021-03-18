@@ -94,6 +94,8 @@ public:
     void add_pileup_entry(
         const std::string& read, const ReadCoordinate& read_coordinate);
 
+    virtual std::vector<std::string> get_variants(const string &denovo_sequence) const;
+
     void write_denovo_paths_to_buffer(CandidateRegionWriteBuffer &buffer);
 
 protected:
@@ -110,8 +112,6 @@ protected:
 
     void init();
     void initialise_filename();
-
-    virtual std::vector<std::string> get_variants(const string &denovo_sequence) const;
 };
 
 using CandidateRegions = std::unordered_map<CandidateRegionIdentifier, CandidateRegion>;
