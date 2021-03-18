@@ -147,7 +147,7 @@ CandidateRegions Discover::find_candidate_regions_for_pan_node(
         CandidateRegion candidate_region { current_interval, pangraph_node->get_name(),
             this->candidate_padding , local_node_max_likelihood_path, local_node_max_likelihood_seq};
 
-        auto interval_path_components { find_interval_and_flanks_in_localpath(
+        const auto interval_path_components { find_interval_and_flanks_in_localpath(
             candidate_region.get_interval(), local_node_max_likelihood_path) };
 
         candidate_region.read_coordinates = pangraph_node->get_read_overlap_coordinates(
