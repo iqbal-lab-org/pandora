@@ -1807,7 +1807,7 @@ TEST_F(CandidateRegion___get_variants___Fixture, no_variant) {
 
 ////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
-// SNPS tests
+// SNPs tests
 TEST_F(CandidateRegion___get_variants___Fixture, SNP_in_the_start) {
     std::vector<std::string> actual = candidate.get_variants("CAGATATGTTCCGTTATGCGCAGCCCACA");
     std::vector<std::string> expected{"1\tA\tC"};
@@ -1948,3 +1948,162 @@ TEST_F(CandidateRegion___get_variants___Fixture, two_deletions_and_2_multiple_de
 ////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//// insertion tests
+TEST_F(CandidateRegion___get_variants___Fixture, insertion_in_the_start) {
+    std::vector<std::string> actual = candidate.get_variants("TAAGATATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected{"1\t\tT"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, insertion_in_the_middle) {
+    std::vector<std::string> actual = candidate.get_variants("AAGATATGTTCCGTTCATGCGCAGCCCACA");
+    std::vector<std::string> expected{"16\t\tC"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, insertion_in_the_end) {
+    std::vector<std::string> actual = candidate.get_variants("AAGATATGTTCCGTTATGCGCAGCCCACAG");
+    std::vector<std::string> expected{"30\t\tG"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, multiple_insertion_in_the_start) {
+    std::vector<std::string> actual = candidate.get_variants("CGTGAAGATATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected{"1\t\tCGTG"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, multiple_insertion_in_the_middle) {
+    std::vector<std::string> actual = candidate.get_variants("AAGATATGTTCCGTTGGCATGCGCAGCCCACA");
+    std::vector<std::string> expected{"16\t\tGGC"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, multiple_insertion_in_the_end) {
+    std::vector<std::string> actual = candidate.get_variants("AAGATATGTTCCGTTATGCGCAGCCCACAGT");
+    std::vector<std::string> expected{"30\t\tGT"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, two_distant_insertions) {
+    std::vector<std::string> actual = candidate.get_variants("AAGATATCGTTCCGTTATGCGCAGACCCACA");
+    std::vector<std::string> expected{
+        "8\t\tC",
+        "24\t\tA"
+    };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, three_distant_insertions) {
+    std::vector<std::string> actual = candidate.get_variants("AAGATGATGTTCCGTTACTGCGCAGCCCTACA");
+    std::vector<std::string> expected{
+        "6\t\tG",
+        "17\t\tC",
+        "27\t\tT"
+    };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, two_insertions_and_2_multiple_insertions) {
+    std::vector<std::string> actual = candidate.get_variants("AATGATATGAATTCCGTCTATGCGCAGCCTTTTTCACA");
+    std::vector<std::string> expected{
+        "3\t\tT",
+        "9\t\tAA",
+        "15\t\tC",
+        "26\t\tTTTTT"
+    };
+    EXPECT_EQ(actual, expected);
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+// Mixed variants tests
+TEST_F(CandidateRegion___get_variants___Fixture, SNP_and_insertion_in_the_start) {
+    std::vector<std::string> actual = candidate.get_variants("CTTAGATATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected{"1\tA\tCTT"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, SNP_and_deletion_in_the_start) {
+    std::vector<std::string> actual = candidate.get_variants("CATATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected{"1\tAAG\tC"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, SNP_and_insertion_in_the_middle) {
+    std::vector<std::string> actual = candidate.get_variants("AAGATATGTTCCGTGCCATGCGCAGCCCACA");
+    std::vector<std::string> expected{"15\tT\tGCC"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, SNP_and_deletion_in_the_middle) {
+    std::vector<std::string> actual = candidate.get_variants("AAGATATGTTCCGTCGCGCAGCCCACA");
+    std::vector<std::string> expected{"15\tTAT\tC"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, SNP_and_insertion_in_the_end) {
+    std::vector<std::string> actual = candidate.get_variants("AAGATATGTTCCGTTATGCGCAGCCCACGTGC");
+    std::vector<std::string> expected{"29\tA\tGTGC"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, SNP_and_deletion_in_the_end) {
+    std::vector<std::string> actual = candidate.get_variants("AAGATATGTTCCGTTATGCGCAGCCG");
+    std::vector<std::string> expected{"26\tCACA\tG"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, MSNP_and_insertion_in_the_start) {
+    std::vector<std::string> actual = candidate.get_variants("CCTTTATATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected{"1\tAAG\tCCTTT"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, MSNP_and_deletion_in_the_start) {
+    std::vector<std::string> actual = candidate.get_variants("CCATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected{"1\tAAGAT\tCC"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, MSNP_and_insertion_in_the_middle) {
+    std::vector<std::string> actual = candidate.get_variants("AAGATATGTTCCGTGCCCCGGCGCAGCCCACA");
+    std::vector<std::string> expected{"15\tTAT\tGCCCCG"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, MSNP_and_deletion_in_the_middle) {
+    std::vector<std::string> actual = candidate.get_variants("AAGATATGTTCCGTCCCGCAGCCCACA");
+    std::vector<std::string> expected{"15\tTATG\tCC"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, MSNP_and_insertion_in_the_end) {
+    std::vector<std::string> actual = candidate.get_variants("AAGATATGTTCCGTTATGCGCAGCCCTTTGTGT");
+    std::vector<std::string> expected{"27\tACA\tTTTGTGT"};
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, MSNP_and_deletion_in_the_end) {
+    std::vector<std::string> actual = candidate.get_variants("AAGATATGTTCCGTTATGCGCATTT");
+    std::vector<std::string> expected{"23\tGCCCACA\tTTT"};
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST_F(CandidateRegion___get_variants___Fixture, two_distant_MultiVariants) {
+    std::vector<std::string> actual = candidate.get_variants("AAGACCCCCGTTATGCGCATTTTTTTTTTCACA");
+    std::vector<std::string> expected{
+        "5\tTATGTT\tCCC",
+        "23\tGCC\tTTTTTTTTTT"
+    };
+    EXPECT_EQ(actual, expected);
+}
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
