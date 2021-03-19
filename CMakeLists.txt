@@ -155,5 +155,5 @@ target_link_libraries(${PROJECT_NAME}
         ${SEQAN_LIBRARIES}
 )
 
-#enable_testing()
-#add_subdirectory(test)
+enable_testing()
+add_subdirectory(test)
