@@ -375,6 +375,12 @@ int pandora_discover(DiscoverOptions& opt)
     } else if (opt.verbosity > 1) {
         log_level = boost::log::trivial::trace;
     }
+
+    // this is done so that everytime we write a log message, we flush the log
+    // if we don't do this, child processes will have messages buffered in their log object
+    // when forked and will output repeated log messages
+    boost::log::add_console_log(std::cout, boost::log::keywords::auto_flush = true);
+
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
 
     // =========
@@ -436,9 +442,6 @@ int pandora_discover(DiscoverOptions& opt)
         } else if (on_child) {
             break;
         } else {
-            // TODO: fix this
-            // I guess when we are forking, messages to log are getting buffered and being printed several times
-            // This is happening to every log message before forking
             BOOST_LOG_TRIVIAL(info) << "Child process id " << child_process_id
                                     <<" (child #" << child_id << ") created...";
         }

@@ -4,6 +4,7 @@
 #include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/log/utility/setup/console.hpp>
 #include "CLI11.hpp"
 #include "utils.h"
 #include "index.h"
