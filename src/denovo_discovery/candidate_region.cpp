@@ -2,7 +2,8 @@
 #include "utils.h"
 #include <seqan/align.h>
 
-std::string SimpleDenovoVariantRecord::to_string() const {
+std::string SimpleDenovoVariantRecord::to_string() const
+{
     std::string ref_to_print = remove_spaces_from_string(ref);
     std::string alt_to_print = remove_spaces_from_string(alt);
     std::stringstream ss;
@@ -18,7 +19,8 @@ size_t std::hash<CandidateRegionIdentifier>::operator()(
         ^ std::hash<std::string>()(std::get<1>(id));
 }
 
-void CandidateRegion::init() {
+void CandidateRegion::init()
+{
     initialise_filename();
 #ifndef NO_OPENMP
     omp_init_lock(&add_pileup_entry_lock);
@@ -34,17 +36,18 @@ CandidateRegion::CandidateRegion(const Interval& interval, std::string name)
 }
 
 CandidateRegion::CandidateRegion(
-    const Interval& interval, std::string name, const uint_least16_t& interval_padding) :
-    interval { interval }
+    const Interval& interval, std::string name, const uint_least16_t& interval_padding)
+    : interval { interval }
     , name { std::move(name) }
-    , interval_padding { interval_padding } {
+    , interval_padding { interval_padding }
+{
     init();
 }
 
-CandidateRegion::CandidateRegion(
-    const Interval& interval, std::string name, const uint_least16_t& interval_padding,
-    const std::vector<LocalNodePtr> &local_node_max_likelihood_path,
-    const std::string &local_node_max_likelihood_sequence)
+CandidateRegion::CandidateRegion(const Interval& interval, std::string name,
+    const uint_least16_t& interval_padding,
+    const std::vector<LocalNodePtr>& local_node_max_likelihood_path,
+    const std::string& local_node_max_likelihood_sequence)
     : interval { interval }
     , name { std::move(name) }
     , interval_padding { interval_padding }
@@ -145,7 +148,8 @@ CandidateRegions Discover::find_candidate_regions_for_pan_node(
 
     for (const auto& current_interval : candidate_intervals) {
         CandidateRegion candidate_region { current_interval, pangraph_node->get_name(),
-            this->candidate_padding , local_node_max_likelihood_path, local_node_max_likelihood_seq};
+            this->candidate_padding, local_node_max_likelihood_path,
+            local_node_max_likelihood_seq };
 
         const auto interval_path_components { find_interval_and_flanks_in_localpath(
             candidate_region.get_interval(), local_node_max_likelihood_path) };
@@ -225,31 +229,33 @@ void CandidateRegion::add_pileup_entry(
     }
 }
 
-void CandidateRegion::write_denovo_paths_to_buffer(CandidateRegionWriteBuffer &buffer)
+void CandidateRegion::write_denovo_paths_to_buffer(CandidateRegionWriteBuffer& buffer)
 {
     if (denovo_paths.empty()) {
         return;
     }
 
-    const std::string local_node_max_likelihood_path_as_str =
-        LocalNode::to_string_vector(this->local_node_max_likelihood_path);
-    for (const std::string &denovo_path : denovo_paths) {
+    const std::string local_node_max_likelihood_path_as_str
+        = LocalNode::to_string_vector(this->local_node_max_likelihood_path);
+    for (const std::string& denovo_path : denovo_paths) {
         std::vector<std::string> variants = get_variants(denovo_path);
-        for (const std::string &variant : variants) {
-            buffer.add_new_variant(name, local_node_max_likelihood_path_as_str, variant);
+        for (const std::string& variant : variants) {
+            buffer.add_new_variant(
+                name, local_node_max_likelihood_path_as_str, variant);
         }
     }
 }
 
-std::vector<std::string> CandidateRegion::get_variants(const string &denovo_sequence) const {
+std::vector<std::string> CandidateRegion::get_variants(
+    const string& denovo_sequence) const
+{
     using namespace seqan;
-    typedef String<char> TSequence;                 // sequence type
-    typedef Align<TSequence, ArrayGaps> TAlign;     // align type
-    typedef Row<TAlign>::Type TRow;                 // gapped sequence type
+    typedef String<char> TSequence; // sequence type
+    typedef Align<TSequence, ArrayGaps> TAlign; // align type
+    typedef Row<TAlign>::Type TRow; // gapped sequence type
 
-
-    // TODO: this can be further optimised by aligning the candidate region sequence with the candidate region alt
-    // (not the whole ML sequence with the whole ML alt)
+    // TODO: this can be further optimised by aligning the candidate region sequence
+    // with the candidate region alt (not the whole ML sequence with the whole ML alt)
     TSequence ref = local_node_max_likelihood_sequence;
     TSequence alt = denovo_sequence;
 
@@ -258,13 +264,14 @@ std::vector<std::string> CandidateRegion::get_variants(const string &denovo_sequ
     assignSource(row(align, 0), ref);
     assignSource(row(align, 1), alt);
 
-    TRow &ref_row = row(align, 0);
-    TRow &alt_row = row(align, 1);
+    TRow& ref_row = row(align, 0);
+    TRow& alt_row = row(align, 1);
 
     globalAlignment(align, Score<int, Simple>(4, -2, -4, -10), AffineGaps());
     bool append_to_previous = false;
     std::vector<SimpleDenovoVariantRecord> denovo_variants;
-    for (size_t alignment_index = 0; alignment_index < length(ref_row); ++alignment_index) {
+    for (size_t alignment_index = 0; alignment_index < length(ref_row);
+         ++alignment_index) {
         char ref_base = (char)(ref_row[alignment_index]);
         char alt_base = (char)(alt_row[alignment_index]);
         const bool is_variant_position = ref_base != alt_base;
@@ -285,19 +292,18 @@ std::vector<std::string> CandidateRegion::get_variants(const string &denovo_sequ
     }
 
     std::vector<std::string> denovo_variants_as_str;
-    for (const SimpleDenovoVariantRecord &denovo_variant : denovo_variants) {
+    for (const SimpleDenovoVariantRecord& denovo_variant : denovo_variants) {
         denovo_variants_as_str.push_back(denovo_variant.to_string());
     }
 
     return denovo_variants_as_str;
 }
 
-
 TmpPanNode::TmpPanNode(const PanNodePtr& pangraph_node,
     const shared_ptr<LocalPRG>& local_prg,
     const vector<KmerNodePtr>& kmer_node_max_likelihood_path,
     const vector<LocalNodePtr>& local_node_max_likelihood_path,
-    const std::string &local_node_max_likelihood_seq)
+    const std::string& local_node_max_likelihood_seq)
     : pangraph_node { pangraph_node }
     , local_prg { local_prg }
     , kmer_node_max_likelihood_path { kmer_node_max_likelihood_path }
@@ -402,16 +408,15 @@ Discover::Discover(uint32_t min_required_covg, uint32_t min_candidate_len,
 {
 }
 
-void CandidateRegionWriteBuffer::add_new_variant(
-    const std::string &locus_name,
-    const std::string &ML_path,
-    const std::string &variant) {
+void CandidateRegionWriteBuffer::add_new_variant(const std::string& locus_name,
+    const std::string& ML_path, const std::string& variant)
+{
     locus_name_to_ML_path[locus_name] = ML_path;
     locus_name_to_variants[locus_name].push_back(variant);
 }
 
-
-void CandidateRegionWriteBuffer::write_to_file(const fs::path& output_file) const {
+void CandidateRegionWriteBuffer::write_to_file(const fs::path& output_file) const
+{
     ofstream output_filehandler;
     open_file_for_writing(output_file.string(), output_filehandler);
     write_to_file_core(output_filehandler);

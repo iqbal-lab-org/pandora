@@ -121,7 +121,7 @@ void setup_discover_subcommand(CLI::App& app)
         ->type_name("INT");
 
     description = "Max. insertion size for novel variants. Warning: "
-                              "setting too long may impair performance";
+                  "setting too long may impair performance";
     discover_subcmd->add_option("--max-ins", opt->max_insertion_size, description)
         ->capture_default_str()
         ->type_name("INT");
@@ -186,11 +186,14 @@ void setup_discover_subcommand(CLI::App& app)
     discover_subcmd->callback([opt]() { pandora_discover(*opt); });
 }
 
-void pandora_discover_core(const std::vector<std::pair<SampleIdText, SampleFpath>> &samples,
-    const std::shared_ptr<Index> &index,
-    const std::vector<std::shared_ptr<LocalPRG>> &prgs,
-    const DiscoverOptions& opt, uint32_t first_index) {
-    for (uint32_t sample_id = first_index; sample_id < samples.size(); sample_id+=opt.threads) {
+void pandora_discover_core(
+    const std::vector<std::pair<SampleIdText, SampleFpath>>& samples,
+    const std::shared_ptr<Index>& index,
+    const std::vector<std::shared_ptr<LocalPRG>>& prgs, const DiscoverOptions& opt,
+    uint32_t first_index)
+{
+    for (uint32_t sample_id = first_index; sample_id < samples.size();
+         sample_id += opt.threads) {
         const auto& sample = samples[sample_id];
         const auto& sample_name = sample.first;
         const auto& sample_fpath = sample.second;
@@ -200,7 +203,7 @@ void pandora_discover_core(const std::vector<std::pair<SampleIdText, SampleFpath
         fs::create_directories(sample_outdir);
 
         // create temp dir
-        const auto temp_dir {sample_outdir / "temp"};
+        const auto temp_dir { sample_outdir / "temp" };
         fs::create_directories(temp_dir);
 
         // create kmer graph dir
@@ -209,27 +212,32 @@ void pandora_discover_core(const std::vector<std::pair<SampleIdText, SampleFpath
             fs::create_directories(kmer_graph_dir);
         }
 
-        BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] " << "Constructing pangenome::Graph from read file "
+        BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
+                                << "Constructing pangenome::Graph from read file "
                                 << sample_fpath << " (this will take a while)";
         auto pangraph = std::make_shared<pangenome::Graph>();
-        uint32_t covg = pangraph_from_read_file(sample_fpath, pangraph, index,
-                                                prgs, opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate,
-                                                opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean,
-                                                opt.max_covg, 1);
+        uint32_t covg = pangraph_from_read_file(sample_fpath, pangraph, index, prgs,
+            opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate,
+            opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean,
+            opt.max_covg, 1);
 
         const auto pangraph_gfa { sample_outdir / "pandora.pangraph.gfa" };
-        BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] " << "Writing pangenome::Graph to file " << pangraph_gfa;
+        BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
+                                << "Writing pangenome::Graph to file " << pangraph_gfa;
         write_pangraph_gfa(pangraph_gfa, pangraph);
 
         if (pangraph->nodes.empty()) {
             BOOST_LOG_TRIVIAL(warning)
-                << "[Sample " << sample_name << "] " << "Found no LocalPRGs in the reads for sample " << sample_name;
+                << "[Sample " << sample_name << "] "
+                << "Found no LocalPRGs in the reads for sample " << sample_name;
         }
 
-        BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] " << "Updating local PRGs with hits...";
+        BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
+                                << "Updating local PRGs with hits...";
         pangraph->add_hits_to_kmergraphs();
 
-        BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] " << "Find PRG paths and write to files...";
+        BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
+                                << "Find PRG paths and write to files...";
 
         Fastaq consensus_fq(true, true);
         CandidateRegions candidate_regions;
@@ -239,9 +247,9 @@ void pandora_discover_core(const std::vector<std::pair<SampleIdText, SampleFpath
         nodes_to_remove.reserve(pangraph->nodes.size());
 
         const uint16_t candidate_padding { static_cast<uint16_t>(
-                                               2 * opt.denovo_kmer_size) };
+            2 * opt.denovo_kmer_size) };
         Discover discover { opt.min_candidate_covg, opt.min_candidate_len,
-                            opt.max_candidate_len, candidate_padding, opt.merge_dist };
+            opt.max_candidate_len, candidate_padding, opt.merge_dist };
 
         // transforms the pangraph->nodes from map to vector so that we can run it in
         std::vector<pangenome::NodePtr> pangraphNodesAsVector;
@@ -256,7 +264,8 @@ void pandora_discover_core(const std::vector<std::pair<SampleIdText, SampleFpath
             // add some progress
             if (i && i % 100 == 0) {
                 BOOST_LOG_TRIVIAL(info)
-                    << "[Sample " << sample_name << "] " << ((double)i) / pangraphNodesAsVector.size() * 100 << "% done";
+                    << "[Sample " << sample_name << "] "
+                    << ((double)i) / pangraphNodesAsVector.size() * 100 << "% done";
             }
 
             // get the node
@@ -266,8 +275,8 @@ void pandora_discover_core(const std::vector<std::pair<SampleIdText, SampleFpath
             std::vector<KmerNodePtr> kmp;
             std::vector<LocalNodePtr> lmp;
             prgs[pangraph_node->prg_id]->add_consensus_path_to_fastaq(consensus_fq,
-                                                                      pangraph_node, kmp, lmp, opt.window_size, opt.binomial, covg,
-                                                                      opt.max_num_kmers_to_avg, 0);
+                pangraph_node, kmp, lmp, opt.window_size, opt.binomial, covg,
+                opt.max_num_kmers_to_avg, 0);
 
             if (kmp.empty()) {
                 // mark the node as to remove
@@ -281,21 +290,23 @@ void pandora_discover_core(const std::vector<std::pair<SampleIdText, SampleFpath
                     prgs[pangraph_node->prg_id]);
             }
 
-            BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] " << "Searching for regions with evidence of novel "
+            BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
+                                    << "Searching for regions with evidence of novel "
                                        "variants...";
             const string lmp_seq = prgs[pangraph_node->prg_id]->string_along_path(lmp);
             const TmpPanNode pangraph_node_components { pangraph_node,
-                                                        prgs[pangraph_node->prg_id], kmp, lmp, lmp_seq };
+                prgs[pangraph_node->prg_id], kmp, lmp, lmp_seq };
             auto candidate_regions_for_pan_node {
                 discover.find_candidate_regions_for_pan_node(pangraph_node_components)
             };
 
             candidate_regions.insert(candidate_regions_for_pan_node.begin(),
-                                     candidate_regions_for_pan_node.end());
+                candidate_regions_for_pan_node.end());
         }
 
         BOOST_LOG_TRIVIAL(info)
-            << "[Sample " << sample_name << "] " << "Building read pileups for " << candidate_regions.size()
+            << "[Sample " << sample_name << "] "
+            << "Building read pileups for " << candidate_regions.size()
             << " candidate de novo regions...";
         const auto pileup_construction_map
             = discover.pileup_construction_map(candidate_regions);
@@ -312,18 +323,20 @@ void pandora_discover_core(const std::vector<std::pair<SampleIdText, SampleFpath
 
         if (pangraph->nodes.empty()) {
             BOOST_LOG_TRIVIAL(error)
-                << "[Sample " << sample_name << "] " << "All nodes which were found have been removed during cleaning. Is "
+                << "[Sample " << sample_name << "] "
+                << "All nodes which were found have been removed during cleaning. Is "
                    "your genome_size accurate?"
                 << " Genome size is assumed to be " << opt.genome_size
                 << " and can be updated with --genome_size";
         }
 
         DenovoDiscovery denovo { opt.denovo_kmer_size, opt.error_rate,
-                                 opt.max_num_candidate_paths, opt.max_insertion_size,
-                                 opt.min_covg_for_node_in_assembly_graph, opt.clean_dbg };
+            opt.max_num_candidate_paths, opt.max_insertion_size,
+            opt.min_covg_for_node_in_assembly_graph, opt.clean_dbg };
 
         BOOST_LOG_TRIVIAL(info)
-            << "[Sample " << sample_name << "] " << "Generating de novo variants as paths through their local graph...";
+            << "[Sample " << sample_name << "] "
+            << "Generating de novo variants as paths through their local graph...";
 
         CandidateRegionWriteBuffer buffer(sample_name);
         for (auto& element : candidate_regions) {
@@ -334,25 +347,27 @@ void pandora_discover_core(const std::vector<std::pair<SampleIdText, SampleFpath
         auto denovo_output_file = sample_outdir / "denovo_paths.txt";
         buffer.write_to_file(denovo_output_file);
         BOOST_LOG_TRIVIAL(info)
-            << "[Sample " << sample_name << "] " << "De novo variant paths written to " << denovo_output_file.string();
-
+            << "[Sample " << sample_name << "] "
+            << "De novo variant paths written to " << denovo_output_file.string();
 
         if (opt.output_mapped_read_fa) {
             pangraph->save_mapped_read_strings(sample_fpath, sample_outdir);
         }
 
-        BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] " << "Done discovering!";
+        BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
+                                << "Done discovering!";
     }
 }
 
-
-void concatenate_denovo_files(const fs::path &output_filename, const std::vector<fs::path> &input_filenames) {
+void concatenate_denovo_files(
+    const fs::path& output_filename, const std::vector<fs::path>& input_filenames)
+{
     ofstream output_filehandler;
     open_file_for_writing(output_filename.string(), output_filehandler);
 
     output_filehandler << input_filenames.size() << " samples" << std::endl;
 
-    for (const fs::path &input_filename : input_filenames) {
+    for (const fs::path& input_filename : input_filenames) {
         ifstream input_filehandler;
         open_file_for_reading(input_filename.string(), input_filehandler);
         output_filehandler << input_filehandler.rdbuf();
@@ -372,8 +387,8 @@ int pandora_discover(DiscoverOptions& opt)
     }
 
     // this is done so that everytime we write a log message, we flush the log
-    // if we don't do this, child processes will have messages buffered in their log object
-    // when forked and will output repeated log messages
+    // if we don't do this, child processes will have messages buffered in their log
+    // object when forked and will output repeated log messages
     boost::log::add_console_log(std::cout, boost::log::keywords::auto_flush = true);
 
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
@@ -412,13 +427,14 @@ int pandora_discover(DiscoverOptions& opt)
     load_PRG_kmergraphs(prgs, opt.window_size, opt.kmer_size, opt.prgfile);
 
     BOOST_LOG_TRIVIAL(info) << "Loading read index file...";
-    std::vector<std::pair<SampleIdText, SampleFpath>> samples = load_read_index(opt.reads_idx_file);
+    std::vector<std::pair<SampleIdText, SampleFpath>> samples
+        = load_read_index(opt.reads_idx_file);
     std::vector<std::string> sample_names;
     for (const auto& sample_pair : samples) {
         sample_names.push_back(sample_pair.first);
     }
 
-#if ALLOW_FORK==1
+#if ALLOW_FORK == 1
     // adjust the nb of threads
     uint32_t nb_of_samples = samples.size();
     opt.threads = std::min(opt.threads, nb_of_samples);
@@ -438,22 +454,22 @@ int pandora_discover(DiscoverOptions& opt)
             break;
         } else {
             BOOST_LOG_TRIVIAL(info) << "Child process id " << child_process_id
-                                    <<" (child #" << child_id << ") created...";
+                                    << " (child #" << child_id << ") created...";
         }
     }
 
     if (on_child) {
         pandora_discover_core(samples, index, prgs, opt, child_id);
-    }
-    else {
-        //wait for all children to finish
+    } else {
+        // wait for all children to finish
         for (child_id = 0; child_id < opt.threads; ++child_id) {
             int child_pid = wait(NULL);
             bool error_on_waiting_for_child = child_pid == -1;
             if (error_on_waiting_for_child) {
                 fatal_error("Error waiting for child process.");
-            }else {
-                BOOST_LOG_TRIVIAL(info) << "Child process " << child_pid << " finished!";
+            } else {
+                BOOST_LOG_TRIVIAL(info)
+                    << "Child process " << child_pid << " finished!";
             }
         }
 #else
@@ -469,12 +485,13 @@ int pandora_discover(DiscoverOptions& opt)
             fs::path denovo_output_file = opt.outdir / sample_name / "denovo_paths.txt";
             denovo_paths_files.push_back(denovo_output_file);
         }
-        fs::path denovo_output_file = opt.outdir/"denovo_paths.txt";
+        fs::path denovo_output_file = opt.outdir / "denovo_paths.txt";
         concatenate_denovo_files(denovo_output_file, denovo_paths_files);
-        BOOST_LOG_TRIVIAL(info) << "De novo variant paths written to " << denovo_output_file.string();
+        BOOST_LOG_TRIVIAL(info)
+            << "De novo variant paths written to " << denovo_output_file.string();
         BOOST_LOG_TRIVIAL(info) << "All done!";
 
-#if ALLOW_FORK==1
+#if ALLOW_FORK == 1
     }
 #endif
 

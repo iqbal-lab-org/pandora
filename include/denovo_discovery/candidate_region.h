@@ -26,13 +26,13 @@ struct TmpPanNode {
     const std::shared_ptr<LocalPRG>& local_prg;
     const std::vector<KmerNodePtr>& kmer_node_max_likelihood_path;
     const std::vector<LocalNodePtr>& local_node_max_likelihood_path;
-    const std::string &local_node_max_likelihood_seq;
+    const std::string& local_node_max_likelihood_seq;
 
     TmpPanNode(const PanNodePtr& pangraph_node,
         const std::shared_ptr<LocalPRG>& local_prg,
         const std::vector<KmerNodePtr>& kmer_node_max_likelihood_path,
         const std::vector<LocalNodePtr>& local_node_max_likelihood_path,
-        const std::string &local_node_max_likelihood_seq);
+        const std::string& local_node_max_likelihood_seq);
 };
 
 using DenovoPaths = std::vector<std::string>;
@@ -43,8 +43,13 @@ struct SimpleDenovoVariantRecord {
 public:
     uint32_t pos;
     std::string ref, alt;
-    SimpleDenovoVariantRecord(uint32_t pos, const std::string &ref, const std::string &alt) :
-        pos(pos), ref(ref), alt(alt){}
+    SimpleDenovoVariantRecord(
+        uint32_t pos, const std::string& ref, const std::string& alt)
+        : pos(pos)
+        , ref(ref)
+        , alt(alt)
+    {
+    }
     std::string to_string() const;
 };
 
@@ -57,8 +62,8 @@ public:
 
     const std::vector<LocalNodePtr> local_node_max_likelihood_path;
     // NB local_node_max_likelihood_sequence differs from max_likelihood_sequence in the
-    // sense that max_likelihood_sequence is the ML sequence of the candidate region slice
-    // only
+    // sense that max_likelihood_sequence is the ML sequence of the candidate region
+    // slice only
     const std::string local_node_max_likelihood_sequence;
 
     std::string left_flanking_sequence;
@@ -70,12 +75,12 @@ public:
     CandidateRegion(const Interval& interval, std::string name);
 
     CandidateRegion(const Interval& interval, std::string name,
-                    const uint_least16_t& interval_padding);
+        const uint_least16_t& interval_padding);
 
     CandidateRegion(const Interval& interval, std::string name,
         const uint_least16_t& interval_padding,
-        const std::vector<LocalNodePtr> &local_node_max_likelihood_path,
-        const std::string &local_node_max_likelihood_sequence);
+        const std::vector<LocalNodePtr>& local_node_max_likelihood_path,
+        const std::string& local_node_max_likelihood_sequence);
 
     virtual ~CandidateRegion();
 
@@ -94,9 +99,9 @@ public:
     void add_pileup_entry(
         const std::string& read, const ReadCoordinate& read_coordinate);
 
-    virtual std::vector<std::string> get_variants(const string &denovo_sequence) const;
+    virtual std::vector<std::string> get_variants(const string& denovo_sequence) const;
 
-    void write_denovo_paths_to_buffer(CandidateRegionWriteBuffer &buffer);
+    void write_denovo_paths_to_buffer(CandidateRegionWriteBuffer& buffer);
 
 protected:
     const Interval interval;
@@ -144,7 +149,6 @@ public:
         const PileupConstructionMap& pileup_construction_map, uint32_t threads = 1);
 };
 
-
 class CandidateRegionWriteBuffer {
 protected:
     std::string sample_name;
@@ -152,39 +156,44 @@ protected:
     std::map<std::string, std::vector<std::string>> locus_name_to_variants;
 
     template <typename OFSTREAM_TYPE>
-    void write_to_file_core(OFSTREAM_TYPE &output_filehandler) const {
+    void write_to_file_core(OFSTREAM_TYPE& output_filehandler) const
+    {
         output_filehandler << "Sample " << sample_name << std::endl;
-        output_filehandler << locus_name_to_ML_path.size() << " loci with denovo variants" << std::endl;
-        for (const auto &locus_name_and_ML_path : locus_name_to_ML_path) {
-            const auto &locus_name = locus_name_and_ML_path.first;
+        output_filehandler << locus_name_to_ML_path.size()
+                           << " loci with denovo variants" << std::endl;
+        for (const auto& locus_name_and_ML_path : locus_name_to_ML_path) {
+            const auto& locus_name = locus_name_and_ML_path.first;
             output_filehandler << locus_name << std::endl;
             output_filehandler << locus_name_and_ML_path.second << std::endl;
-            output_filehandler << locus_name_to_variants.at(locus_name).size() << " denovo variants for this locus" << std::endl;
-            for (const auto &variant : locus_name_to_variants.at(locus_name)) {
+            output_filehandler << locus_name_to_variants.at(locus_name).size()
+                               << " denovo variants for this locus" << std::endl;
+            for (const auto& variant : locus_name_to_variants.at(locus_name)) {
                 output_filehandler << variant << std::endl;
             }
         }
     }
 
 public:
-    CandidateRegionWriteBuffer(const std::string &sample_name) :
-        sample_name(sample_name){}
+    CandidateRegionWriteBuffer(const std::string& sample_name)
+        : sample_name(sample_name)
+    {
+    }
 
-    virtual void add_new_variant(const std::string &locus_name,
-                         const std::string &ML_path,
-                         const std::string &variant);
+    virtual void add_new_variant(const std::string& locus_name,
+        const std::string& ML_path, const std::string& variant);
 
     void write_to_file(const fs::path& output_file) const;
 
-    const std::string & get_sample_name () const {
-        return sample_name;
-    }
+    const std::string& get_sample_name() const { return sample_name; }
 
-    const std::map<std::string, std::string>& get_locus_name_to_ML_path() const {
+    const std::map<std::string, std::string>& get_locus_name_to_ML_path() const
+    {
         return locus_name_to_ML_path;
     }
 
-    const std::map<std::string, std::vector<std::string>> get_locus_name_to_variants() const {
+    const std::map<std::string, std::vector<std::string>>
+    get_locus_name_to_variants() const
+    {
         return locus_name_to_variants;
     }
 };

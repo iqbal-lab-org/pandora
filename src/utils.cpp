@@ -621,8 +621,8 @@ std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
         samples.begin(), samples.end());
 }
 
-
-std::string remove_spaces_from_string (const std::string &str) {
+std::string remove_spaces_from_string(const std::string& str)
+{
     std::string to_return;
     to_return.reserve(str.size());
     for (const char c : str) {

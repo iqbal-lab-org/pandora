@@ -1155,8 +1155,9 @@ TEST(MakeAbsoluteTest, FileReturnsAbsolutePathToFile)
     EXPECT_EQ(actual, expected.string());
 }
 
-TEST(remove_spaces_from_string, simple_test___no_spaces) {
-    std::string str {"ACGT"};
+TEST(remove_spaces_from_string, simple_test___no_spaces)
+{
+    std::string str { "ACGT" };
 
     const std::string expected { "ACGT" };
     const std::string actual = remove_spaces_from_string(str);
@@ -1164,8 +1165,9 @@ TEST(remove_spaces_from_string, simple_test___no_spaces) {
     EXPECT_EQ(actual, expected);
 }
 
-TEST(remove_spaces_from_string, simple_test___with_spaces) {
-    std::string str {"-A-C------G--T---"};
+TEST(remove_spaces_from_string, simple_test___with_spaces)
+{
+    std::string str { "-A-C------G--T---" };
 
     const std::string expected { "ACGT" };
     const std::string actual = remove_spaces_from_string(str);
@@ -1173,8 +1175,9 @@ TEST(remove_spaces_from_string, simple_test___with_spaces) {
     EXPECT_EQ(actual, expected);
 }
 
-TEST(remove_spaces_from_string, simple_test___only_spaces) {
-    std::string str {"---------"};
+TEST(remove_spaces_from_string, simple_test___only_spaces)
+{
+    std::string str { "---------" };
 
     const std::string expected { "" };
     const std::string actual = remove_spaces_from_string(str);
@@ -1182,32 +1185,34 @@ TEST(remove_spaces_from_string, simple_test___only_spaces) {
     EXPECT_EQ(actual, expected);
 }
 
-TEST(load_read_index, read_index_does_not_exist___expects_FatalRuntimeError) {
+TEST(load_read_index, read_index_does_not_exist___expects_FatalRuntimeError)
+{
     ASSERT_EXCEPTION(load_read_index(fs::path("inexistent_read_index.tsv")),
-         FatalRuntimeError, "Unable to open read index file");
+        FatalRuntimeError, "Unable to open read index file");
 }
 
-TEST(load_read_index, read_index_has_three_samples) {
-    std::vector<std::pair<SampleIdText, SampleFpath>> actual =
-        load_read_index(fs::path("../../test/test_cases/sample_read_index.tsv"));
+TEST(load_read_index, read_index_has_three_samples)
+{
+    std::vector<std::pair<SampleIdText, SampleFpath>> actual
+        = load_read_index(fs::path("../../test/test_cases/sample_read_index.tsv"));
     std::vector<std::pair<SampleIdText, SampleFpath>> expected { {
         std::make_pair("sample_1", "reads_1.fastq"),
         std::make_pair("sample_2", "reads_2.fastq"),
         std::make_pair("sample_3", "reads_3.fastq"),
-    }};
+    } };
 
     EXPECT_EQ(actual, expected);
 }
 
-
-TEST(load_read_index, read_index_has_three_samples_and_two_are_repeated) {
-    std::vector<std::pair<SampleIdText, SampleFpath>> actual =
-        load_read_index(fs::path("../../test/test_cases/sample_read_index_with_repeated_samples.tsv"));
+TEST(load_read_index, read_index_has_three_samples_and_two_are_repeated)
+{
+    std::vector<std::pair<SampleIdText, SampleFpath>> actual = load_read_index(
+        fs::path("../../test/test_cases/sample_read_index_with_repeated_samples.tsv"));
     std::vector<std::pair<SampleIdText, SampleFpath>> expected { {
-                                                                     std::make_pair("sample_1", "first_reads_1.fastq"),
-                                                                     std::make_pair("sample_2", "second_reads_2.fastq"),
-                                                                     std::make_pair("sample_3", "fourth_reads_3.fastq"),
-                                                                 }};
+        std::make_pair("sample_1", "first_reads_1.fastq"),
+        std::make_pair("sample_2", "second_reads_2.fastq"),
+        std::make_pair("sample_3", "fourth_reads_3.fastq"),
+    } };
 
     EXPECT_EQ(actual, expected);
 }

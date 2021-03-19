@@ -279,7 +279,7 @@ void pangenome::Graph::split_node_by_reads(std::unordered_set<ReadPtr>& reads_al
 
 // For each node in pangraph, make a copy of the kmergraph and use the hits
 // stored on each read containing the node to add coverage to this graph
-void pangenome::Graph::add_hits_to_kmergraphs (const uint32_t& sample_id)
+void pangenome::Graph::add_hits_to_kmergraphs(const uint32_t& sample_id)
 {
     for (const auto& node_entries : nodes) {
         Node& pangraph_node = *node_entries.second;
