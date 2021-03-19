@@ -231,15 +231,10 @@ void pandora_discover_core(const std::vector<std::pair<SampleIdText, SampleFpath
 
         BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] " << "Find PRG paths and write to files...";
 
-        // paralell region!
-        // shared variable - synced with critical(consensus_fq)
         Fastaq consensus_fq(true, true);
-
-        // shared variable - synced with critical(candidate_regions)
         CandidateRegions candidate_regions;
 
-        // shared variable - will denote which nodes we have to remove after the
-        // parallel loop synced with critical(nodes_to_remove)
+        // will denote which nodes we have to remove after the loop
         std::vector<pangenome::NodePtr> nodes_to_remove;
         nodes_to_remove.reserve(pangraph->nodes.size());
 
