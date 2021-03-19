@@ -260,7 +260,7 @@ std::vector<std::string> CandidateRegion::get_variants(const string &denovo_sequ
     TRow &ref_row = row(align, 0);
     TRow &alt_row = row(align, 1);
 
-    globalAlignment(align, Score<int, Simple>(4, -2, -2, -4), AffineGaps());
+    globalAlignment(align, Score<int, Simple>(4, -2, -4, -10), AffineGaps());
     bool append_to_previous = false;
     std::vector<SimpleDenovoVariantRecord> denovo_variants;
     for (size_t alignment_index = 0; alignment_index < length(ref_row); ++alignment_index) {
