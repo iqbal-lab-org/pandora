@@ -39,8 +39,7 @@ graphs, one entry for each gene/ genome region of interest. If you
 haven't, you will need a multiple sequence alignment for each graph.
 Precompiled collections of MSA representing othologous gene clusters for
 a number of species can be downloaded from [here](http://pangenome.de/)
-and converted to graphs using the pipeline from
-[here](https://github.com/rmcolq/make_prg).
+and converted to graphs using [make_prg](https://github.com/leoisl/make_prg).
 
 # Build index
 
@@ -201,11 +200,11 @@ and attempt to locally assemble these regions to find novel variants.
 ```
 $ pandora discover --help
 Quasi-map reads to an indexed PRG, infer the sequence of present loci in the sample and discover novel variants.
-Usage: pandora discover [OPTIONS] <TARGET> <QUERY>
+Usage: pandora discover [OPTIONS] <TARGET> <QUERY_IDX>
 
 Positionals:
   <TARGET> FILE [required]    An indexed PRG file (in fasta format)
-  <QUERY> FILE [required]     Fast{a,q} file containing reads to quasi-map
+  <QUERY_IDX> FILE [required] A tab-delimited file where each line is a sample identifier followed by the path to the fast{a,q} of reads for that sample
 
 Options:
   -h,--help                   Print this help message and exit
