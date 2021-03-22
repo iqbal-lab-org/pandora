@@ -9,6 +9,18 @@ project adheres to
 
 ## [Unreleased]
 
+### Added
+- `pandora discover` is now multithreaded (added parameter `-t`);
+
+### Changed
+- `pandora discover` now receives read index files describing samples and reads, and discover denovo sequences in these samples;
+- `pandora discover` output changed to a proprietary format. See [example](example) for the new output;
+- `pandora` can now communicate with a [`make_prg` prototype](https://github.com/leoisl/make_prg) that is able to update PRGs
+without needing to realign and remake the PRG. This provides major performance upgrades to running the full `pandora` pipeline
+with denovo discovery enabled, and there is no need anymore to use a `snakemake` pipeline
+(see [this example](example/run_pandora.sh) to how to run the full pipeline);
+
+
 ## [0.8.0]
 
 ### Added
