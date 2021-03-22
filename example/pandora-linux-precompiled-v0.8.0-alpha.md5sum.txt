@@ -1,1 +1,0 @@
-0703e724c62cfe41c048519f53298825  pandora-linux-precompiled-v0.8.0-alpha
