@@ -64,7 +64,7 @@ We can see samples `toy_sample_1` and `toy_sample_2` genotype towards different 
 
 **With denovo**
 
-The VCF (`output_toy_example_with_denovo/pandora_multisample_genotyped.vcf`) has some new VCF records that were discovered and genotyped. For example:
+The VCF (`output_toy_example_with_denovo/pandora_multisample_genotyped.vcf`) has some new variants that were discovered and genotyped. For example:
 
 ```
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	toy_sample_1.100x.random.illumina	toy_sample_2.100x.random.illumina
