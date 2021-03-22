@@ -17,10 +17,8 @@ Here we present a walkthrough of running `pandora` on a toy example. We run:
 
 ## Input data description
 
-```
-msas/ : contains the MSAs of the two genes we are using as toy example here, GC00006032 and GC00010897;
-reads/ : contains 100x of perfect simulated reads from two toy samples. We simulated perfect reads, where one sample genotypes to one allele of the variant sites, while the other sample genotypes towards the other allele;
-```
+* `msas/` : contains the MSAs of the two genes we are using as toy example here, GC00006032 and GC00010897;
+* `reads/` : contains 100x of perfect simulated reads from two toy samples. We simulated perfect reads, where one sample genotypes to one allele of the variant sites, while the other sample genotypes towards the other allele;
 
 ## Running
 
