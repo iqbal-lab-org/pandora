@@ -118,3 +118,6 @@ build_portable_executable
 pandora-linux-precompiled
 
 /cmake-build-release/
+/example/pandora-linux-precompiled-v0.8.0
+/example/pandora-linux-precompiled-v0.8.0.gz
+/example/prgs/
