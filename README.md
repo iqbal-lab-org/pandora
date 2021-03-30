@@ -73,40 +73,26 @@ You can test `pandora` on a toy example following [this link](example).
 ### No installation needed - precompiled portable binary
 
 You can use `pandora` with no installation at all by simply downloading the precompiled binary, and running it.
-In this binary, all libraries are linked statically, except for OpenMP.
+In this binary, all libraries are linked statically.
 
 * **Requirements**
-  * The only dependency required to run the precompiled binary is OpenMP 4.0+;
-  * The easiest way to install OpenMP 4.0+ is to have GCC 4.9 (from April 22, 2014) or more recent installed, which supports OpenMP 4.0;
-  * Technical details on why OpenMP can't be linked statically
-can be found [here](https://gcc.gnu.org/onlinedocs/gfortran/OpenMP.html). 
+  * None 
 
 * **Download**:
   ```
-  wget https://www.dropbox.com/s/blco8jj005k1sx4/pandora-linux-precompiled-v0.9.0.gz?dl=1 -O pandora-linux-precompiled-v0.9.0.gz
-  gunzip pandora-linux-precompiled-v0.9.0.gz
+  wget https://github.com/rmcolq/pandora/releases/download/pandora_paper_tag1/pandora-linux-precompiled-pandora_paper_tag1
   ```
-  TODO: change to github URL if this PR gets merged.  
 
 * **Running**:
 ```
-chmod +x pandora-linux-precompiled-v0.9.0
-./pandora-linux-precompiled-v0.9.0 -h
+chmod +x pandora-linux-precompiled-pandora_paper_tag1
+./pandora-linux-precompiled-pandora_paper_tag1 -h
 ```
 
-* **Compatibility**: This precompiled binary works on pretty much any glibc-2.12-or-later-based x86 and x86-64 Linux distribution 
-  released since approx 2011. A non-exhaustive list: Debian >= 7, Ubuntu >= 10.10, Red Hat Enterprise Linux >= 6,
-  CentOS >= 6;
+* **Compatibility**: oldest distributions tested: Ubuntu 12.10;
   
-* **Credits**:
-  * Precompilation is done using [Holy Build Box](http://phusion.github.io/holy-build-box/);
-  * We acknowledge Páll Melsted since we followed his [blog post](https://pmelsted.wordpress.com/2015/10/14/building-binaries-for-bioinformatics/) to build this portable binary.
-
 * **Notes**:
   * We provide precompiled binaries for Linux OS only;
-  * The performance of precompiled binaries is several times slower than a binary compiled from source.
-    The main reason is that the precompiled binary can't contain specific instructions that might speed up
-    the execution on specific processors, as it has to be runnable on a wide range of systems;
 
 ### Containers
 
