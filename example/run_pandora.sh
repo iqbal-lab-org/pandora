@@ -2,8 +2,7 @@
 set -eu
 
 # configs
-# TODO: update to github link if this PR gets accepted
-pandora_URL="https://www.dropbox.com/s/3fu4g33yb24mgtb/pandora-linux-precompiled-pandora_paper_tag1?dl=1"
+pandora_URL="https://github.com/rmcolq/pandora/releases/download/pandora_paper_tag1/pandora-linux-precompiled-pandora_paper_tag1"
 pandora_executable="./pandora-linux-precompiled-pandora_paper_tag1"
 pandora_md5sum_file="./pandora-linux-precompiled-pandora_paper_tag1.md5sum.txt"
 
