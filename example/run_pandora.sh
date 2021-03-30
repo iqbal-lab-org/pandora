@@ -3,10 +3,9 @@ set -eu
 
 # configs
 # TODO: update to github link if this PR gets accepted
-pandora_URL="https://www.dropbox.com/s/blco8jj005k1sx4/pandora-linux-precompiled-v0.9.0.gz?dl=1"
-pandora_download_filepath="./pandora-linux-precompiled-v0.9.0.gz"
-pandora_md5sum_file="./pandora-linux-precompiled-v0.9.0.gz.md5sum.txt"
-pandora_executable="./pandora-linux-precompiled-v0.9.0"
+pandora_URL="https://www.dropbox.com/s/3fu4g33yb24mgtb/pandora-linux-precompiled-pandora_paper_tag1?dl=1"
+pandora_executable="./pandora-linux-precompiled-pandora_paper_tag1"
+pandora_md5sum_file="./pandora-linux-precompiled-pandora_paper_tag1.md5sum.txt"
 
 make_prg_URL="https://github.com/leoisl/make_prg/releases/download/v0.2.0_prototype/make_prg_0.2.0_prototype"
 make_prg_executable="./make_prg_0.2.0_prototype"
@@ -28,10 +27,8 @@ function download_tool {
   fi
 }
 
-download_tool "${pandora_URL}" "${pandora_download_filepath}" "${pandora_md5sum_file}"
+download_tool "${pandora_URL}" "${pandora_executable}" "${pandora_md5sum_file}"
 download_tool "${make_prg_URL}" "${make_prg_executable}" "${make_prg_md5sum_file}"
-gunzip -k "${pandora_download_filepath}"
-chmod +x "${pandora_executable}"
 
 echo "Running pandora without denovo..."
 echo "Running ${make_prg_executable} from_msa"
