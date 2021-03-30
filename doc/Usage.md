@@ -192,7 +192,7 @@ Genotyping:
   -G,--gt-conf INT            Minimum genotype confidence (GT_CONF) required to make a call [default: 1]
 ```
 
-# Discover novel variants
+# Discover novel variants in several samples
 
 This will look for regions in the pangraph where the reads do not map
 and attempt to locally assemble these regions to find novel variants.
