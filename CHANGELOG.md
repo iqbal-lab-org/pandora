@@ -18,6 +18,8 @@ project adheres to
 without needing to realign and remake the PRG. This provides major performance upgrades to running the full `pandora` pipeline
 with denovo discovery enabled, and there is no need anymore to use a `snakemake` pipeline
 (see [this example](example/run_pandora.sh) to how to run the full pipeline);
+- We now use [musl libc](https://musl.libc.org/) instead of [Holy Build Box](https://github.com/phusion/holy-build-box)
+to build a precompiled portable binary;
 
 
 ## [0.8.0]
