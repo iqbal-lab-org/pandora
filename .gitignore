@@ -105,9 +105,9 @@ example/prgs/kmer_prgs/
 example/prgs/toy_prg.fa.k15.w14.idx
 example/pandora-latest.simg
 example/pandora_workflow
-!example/msas/custom/GC00006032.fa
-!example/msas/custom/GC00010897.fa
-!example/pandora_workflow_data/assemblies/samples/toy_sample_1/toy_sample_1.ref.fa
+!example/msas/GC00006032.fa
+!example/msas/GC00010897.fa
+!example/pandorupdated_prgsa_workflow_data/assemblies/samples/toy_sample_1/toy_sample_1.ref.fa
 !example/pandora_workflow_data/assemblies/samples/toy_sample_2/toy_sample_2.ref.fa
 !example/prgs/toy_prg.fa
 !example/scripts/data/ref_to_get_reads_from.toy_example_1.fa
@@ -118,3 +118,15 @@ build_portable_executable
 pandora-linux-precompiled
 
 /cmake-build-release/
+example/pandora_discover
+example/venv
+/example/msas_output/
+/example/make_prg_0.2.0_prototype
+/example/pandora-linux-precompiled-v0.9.0
+/example/pandora_discover_out/
+/example/prgs/
+/example/output_toy_example_with_denovo/
+/example/updated_prgs/
+/example/pandora-linux-precompiled-v0.9.0.gz
+
+example/pandora-linux-precompiled-pandora_paper_tag1

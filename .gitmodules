@@ -4,3 +4,6 @@
 [submodule "thirdparty/cgranges"]
 	path = thirdparty/cgranges
 	url = https://github.com/lh3/cgranges
+[submodule "thirdparty/seqan"]
+	path = thirdparty/seqan
+	url = https://github.com/seqan/seqan.git

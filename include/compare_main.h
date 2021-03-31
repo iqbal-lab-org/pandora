@@ -27,8 +27,6 @@
 
 using std::set;
 using std::vector;
-using SampleIdText = std::string;
-using SampleFpath = std::string;
 
 struct CompareOptions {
     fs::path prgfile;

@@ -4,6 +4,7 @@
 #include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/log/utility/setup/console.hpp>
 #include "CLI11.hpp"
 #include "utils.h"
 #include "index.h"
@@ -13,13 +14,17 @@
 #include "denovo_discovery/candidate_region.h"
 #include "denovo_discovery/denovo_discovery.h"
 
+// set to 0 to disallow multiprocessing and 1 to allow multiprocessing
+// should always be 1 except if you want to trigger breakpoints, which does not
+// work on forked processes
+#define ALLOW_FORK 1
 constexpr auto MAX_DENOVO_K { 32 };
 namespace fs = boost::filesystem;
 
 /// Collection of all options of discover subcommand.
 struct DiscoverOptions {
     fs::path prgfile;
-    fs::path readsfile;
+    fs::path reads_idx_file;
     fs::path outdir { "pandora_discover" };
     uint32_t window_size { 14 };
     uint32_t kmer_size { 15 };

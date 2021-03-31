@@ -11,7 +11,7 @@ HunterGate(
 
 # project configuration
 set(PROJECT_NAME_STR pandora)
-project(${PROJECT_NAME_STR} VERSION "0.8.0" LANGUAGES C CXX)
+project(${PROJECT_NAME_STR} VERSION "0.9.0" LANGUAGES C CXX)
 configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
 # add or not feature to print the stack trace
@@ -104,10 +104,18 @@ set(Boost_USE_STATIC_LIBS ON)
 ########################################################################################################################
 # PANDORA INSTALLATION
 ########################################################################################################################
+# allows Seqan to be found
+list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/thirdparty/seqan/util/cmake")
+set(SEQAN_INCLUDE_PATH "${PROJECT_SOURCE_DIR}/thirdparty/seqan/include")
+
+# Load the SeqAn module and fail if not found
+find_package (SeqAn REQUIRED)
+
 #include directories as SYSTEM includes, thus warnings will be ignored for these
 include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
         ${PROJECT_SOURCE_DIR}/thirdparty/cgranges/cpp
+        ${SEQAN_INCLUDE_DIRS}
         )
 
 # normal includes: warnings will be reported for these
@@ -117,6 +125,9 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/thirdparty/include
         ${PROJECT_SOURCE_DIR}/thirdparty/src
 )
+
+# Add definitions set by find_package (SeqAn).
+add_definitions (${SEQAN_DEFINITIONS})
 
 file(GLOB_RECURSE SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/*.cpp
@@ -141,6 +152,7 @@ target_link_libraries(${PROJECT_NAME}
         ${CMAKE_DL_LIBS}
         ${STATIC_C_CXX}
         ${BACKWARD_LIBRARIES}
+        ${SEQAN_LIBRARIES}
 )
 
 enable_testing()

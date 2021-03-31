@@ -9,6 +9,20 @@ project adheres to
 
 ## [Unreleased]
 
+## [0.9.0]
+
+### Changed
+- `pandora discover` now receives read index files describing samples and reads, and discover denovo sequences in these samples.
+  To improve performance on discovering denovo sequences on several samples, `pandora discover` is now multithreaded, but
+  the performance is still the same as the previous version, i.e. each sample is processed in a single-threaded way;
+- `pandora discover` output changed to a proprietary format. See [example](example) for the new output;
+- `pandora` can now communicate with a [`make_prg` prototype](https://github.com/leoisl/make_prg) that is able to update PRGs
+without needing to realign and remake the PRG. This provides major performance upgrades to running the full `pandora` pipeline
+with denovo discovery enabled, and there is no need anymore to use a `snakemake` pipeline
+(see [this example](example/run_pandora.sh) to how to run the full pipeline);
+- We now use [musl libc](https://musl.libc.org/) instead of [Holy Build Box](https://github.com/phusion/holy-build-box)
+to build a precompiled portable binary, removing the dependency on `OpenMP 4.0+` or `GCC 4.9+`, and `GLIBC`;
+
 ## [0.8.0]
 
 ### Added

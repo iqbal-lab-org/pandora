@@ -1,7 +1,7 @@
 #include "denovo_discovery/denovo_discovery.h"
 
 void DenovoDiscovery::find_paths_through_candidate_region(
-    CandidateRegion& candidate_region, const fs::path& denovo_output_directory) const
+    CandidateRegion& candidate_region, const fs::path& temp_dir) const
 {
     const auto read_covg { candidate_region.pileup.size() };
     const auto length_of_candidate_sequence {
@@ -9,7 +9,7 @@ void DenovoDiscovery::find_paths_through_candidate_region(
     };
     const double expected_kmer_covg { calculate_kmer_coverage(
         read_covg, length_of_candidate_sequence) };
-    const fs::path GATB_graph_filepath(denovo_output_directory / "GATB_graph");
+    const fs::path GATB_graph_filepath(temp_dir / "GATB_graph");
 
     BOOST_LOG_TRIVIAL(debug) << "Running local assembly for: "
                              << candidate_region.get_name() << " - interval ["
@@ -95,13 +95,9 @@ void DenovoDiscovery::find_paths_through_candidate_region(
                 }
 
                 if (not denovo_paths.empty()) {
-                    candidate_region.denovo_paths.insert(
-                        candidate_region.denovo_paths.begin(), denovo_paths.begin(),
-                        denovo_paths.end());
-
                     // add flank to each sequence - the whole sequence from the start to
                     // the end of the gene
-                    for (auto& current_path : candidate_region.denovo_paths) {
+                    for (const std::string& denovo_path : denovo_paths) {
                         const auto start_kmer_offset {
                             candidate_region.max_likelihood_sequence.substr(
                                 0, start_idx)
@@ -111,12 +107,20 @@ void DenovoDiscovery::find_paths_through_candidate_region(
                                 candidate_region.max_likelihood_sequence.length()
                                 - end_idx)
                         };
-                        current_path
+                        std::string denovo_path_with_flanks
                             = std::string(candidate_region.left_flanking_sequence)
                                   .append(start_kmer_offset)
-                                  .append(current_path)
+                                  .append(denovo_path)
                                   .append(end_kmer_offset)
                                   .append(candidate_region.right_flanking_sequence);
+
+                        bool denovo_path_is_indeed_a_new_sequence
+                            = denovo_path_with_flanks
+                            != candidate_region.local_node_max_likelihood_sequence;
+                        if (denovo_path_is_indeed_a_new_sequence) {
+                            candidate_region.denovo_paths.push_back(
+                                denovo_path_with_flanks);
+                        }
                     }
 
                     remove_graph_file(GATB_graph_filepath);

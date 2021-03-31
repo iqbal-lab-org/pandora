@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-# Invokes phusion/holy-build-box-64:2.0.1 docker container to build portable pandora.
-# Inspired by Páll Melsted blog (https://pmelsted.wordpress.com/2015/10/14/building-binaries-for-bioinformatics/),
-# on how he et al managed to make kallisto (Nicolas L Bray, Harold Pimentel, Páll Melsted and Lior Pachter,
-# Near-optimal probabilistic RNA-seq quantification, Nature Biotechnology 34, 525–527 (2016), doi:10.1038/nbt.3519)
-# portable in different linux distributions.
 set -eu
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SCRIPTS_DIR="$(dirname "${CURRENT_DIR}")"
@@ -19,6 +14,6 @@ if [ -d "${PORTABLE_EXECUTABLE_BUILD_DIR}" ]; then
 fi
 
 docker run -t -i --rm \
-  -v "${PANDORA_DIR}":/io \
-  phusion/holy-build-box-64:2.0.1 \
-  bash /io/scripts/portable_binary_builder/build_portable_binary_core.sh
+  -v "${PANDORA_DIR}":/pandora \
+  leandroishilima/pandora_static_binary_toolchain:0.0.1 \
+  bash /pandora/scripts/portable_binary_builder/build_portable_binary_core.sh

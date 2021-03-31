@@ -39,3 +39,22 @@ bool LocalNode::operator==(const LocalNode& y) const
     }
     return true;
 }
+
+std::string LocalNode::to_string() const
+{
+    std::stringstream ss;
+    ss << pos.start << " " << pos.get_end() << " " << seq;
+    return ss.str();
+}
+
+std::string LocalNode::to_string_vector(const std::vector<LocalNodePtr>& local_nodes)
+{
+    std::stringstream ss;
+    ss << local_nodes.size() << " nodes" << std::endl;
+    for (const auto& node : local_nodes) {
+        ss << *node << std::endl;
+    }
+    std::string to_return = ss.str();
+    to_return.erase(to_return.size() - 1);
+    return to_return;
+}

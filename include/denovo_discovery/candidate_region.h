@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <set>
 #include <vector>
+#include <sstream>
 
 #ifndef NO_OPENMP
 #include <omp.h>
@@ -25,21 +26,46 @@ struct TmpPanNode {
     const std::shared_ptr<LocalPRG>& local_prg;
     const std::vector<KmerNodePtr>& kmer_node_max_likelihood_path;
     const std::vector<LocalNodePtr>& local_node_max_likelihood_path;
+    const std::string& local_node_max_likelihood_seq;
 
     TmpPanNode(const PanNodePtr& pangraph_node,
         const std::shared_ptr<LocalPRG>& local_prg,
         const std::vector<KmerNodePtr>& kmer_node_max_likelihood_path,
-        const std::vector<LocalNodePtr>& local_node_max_likelihood_path);
+        const std::vector<LocalNodePtr>& local_node_max_likelihood_path,
+        const std::string& local_node_max_likelihood_seq);
 };
 
 using DenovoPaths = std::vector<std::string>;
 using ReadPileup = std::vector<std::string>;
 using ReadCoordinates = std::set<ReadCoordinate>;
 
+struct SimpleDenovoVariantRecord {
+public:
+    uint32_t pos;
+    std::string ref, alt;
+    SimpleDenovoVariantRecord(
+        uint32_t pos, const std::string& ref, const std::string& alt)
+        : pos(pos)
+        , ref(ref)
+        , alt(alt)
+    {
+    }
+    std::string to_string() const;
+};
+
+class CandidateRegionWriteBuffer;
+
 class CandidateRegion {
 public:
     ReadCoordinates read_coordinates;
     std::string max_likelihood_sequence;
+
+    const std::vector<LocalNodePtr> local_node_max_likelihood_path;
+    // NB local_node_max_likelihood_sequence differs from max_likelihood_sequence in the
+    // sense that max_likelihood_sequence is the ML sequence of the candidate region
+    // slice only
+    const std::string local_node_max_likelihood_sequence;
+
     std::string left_flanking_sequence;
     std::string right_flanking_sequence;
     ReadPileup pileup;
@@ -50,6 +76,11 @@ public:
 
     CandidateRegion(const Interval& interval, std::string name,
         const uint_least16_t& interval_padding);
+
+    CandidateRegion(const Interval& interval, std::string name,
+        const uint_least16_t& interval_padding,
+        const std::vector<LocalNodePtr>& local_node_max_likelihood_path,
+        const std::string& local_node_max_likelihood_sequence);
 
     virtual ~CandidateRegion();
 
@@ -68,9 +99,11 @@ public:
     void add_pileup_entry(
         const std::string& read, const ReadCoordinate& read_coordinate);
 
-    void write_denovo_paths_to_file(const fs::path& output_directory);
+    virtual std::vector<std::string> get_variants(const string& denovo_sequence) const;
 
-private:
+    void write_denovo_paths_to_buffer(CandidateRegionWriteBuffer& buffer);
+
+protected:
     const Interval interval;
     const std::string name;
     const uint_least16_t interval_padding;
@@ -82,9 +115,8 @@ private:
                                       // add_pileup_entry() method
 #endif
 
+    void init();
     void initialise_filename();
-
-    Fastaq generate_fasta_for_denovo_paths();
 };
 
 using CandidateRegions = std::unordered_map<CandidateRegionIdentifier, CandidateRegion>;
@@ -115,6 +147,55 @@ public:
     void load_candidate_region_pileups(const fs::path& reads_filepath,
         const CandidateRegions& candidate_regions,
         const PileupConstructionMap& pileup_construction_map, uint32_t threads = 1);
+};
+
+class CandidateRegionWriteBuffer {
+protected:
+    std::string sample_name;
+    std::map<std::string, std::string> locus_name_to_ML_path;
+    std::map<std::string, std::vector<std::string>> locus_name_to_variants;
+
+    template <typename OFSTREAM_TYPE>
+    void write_to_file_core(OFSTREAM_TYPE& output_filehandler) const
+    {
+        output_filehandler << "Sample " << sample_name << std::endl;
+        output_filehandler << locus_name_to_ML_path.size()
+                           << " loci with denovo variants" << std::endl;
+        for (const auto& locus_name_and_ML_path : locus_name_to_ML_path) {
+            const auto& locus_name = locus_name_and_ML_path.first;
+            output_filehandler << locus_name << std::endl;
+            output_filehandler << locus_name_and_ML_path.second << std::endl;
+            output_filehandler << locus_name_to_variants.at(locus_name).size()
+                               << " denovo variants for this locus" << std::endl;
+            for (const auto& variant : locus_name_to_variants.at(locus_name)) {
+                output_filehandler << variant << std::endl;
+            }
+        }
+    }
+
+public:
+    CandidateRegionWriteBuffer(const std::string& sample_name)
+        : sample_name(sample_name)
+    {
+    }
+
+    virtual void add_new_variant(const std::string& locus_name,
+        const std::string& ML_path, const std::string& variant);
+
+    void write_to_file(const fs::path& output_file) const;
+
+    const std::string& get_sample_name() const { return sample_name; }
+
+    const std::map<std::string, std::string>& get_locus_name_to_ML_path() const
+    {
+        return locus_name_to_ML_path;
+    }
+
+    const std::map<std::string, std::vector<std::string>>
+    get_locus_name_to_variants() const
+    {
+        return locus_name_to_variants;
+    }
 };
 
 #endif // PANDORA_CANDIDATE_REGION_H
