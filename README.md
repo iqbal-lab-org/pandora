@@ -76,9 +76,6 @@ You can test `pandora` on a toy example following [this link](example).
 You can use `pandora` with no installation at all by simply downloading the precompiled binary, and running it.
 In this binary, all libraries are linked statically.
 
-* **Requirements**
-  * None 
-
 * **Download**:
   ```
   wget https://github.com/rmcolq/pandora/releases/download/0.9.0/pandora-linux-precompiled-v0.9.0
