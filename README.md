@@ -16,6 +16,7 @@
 - [Quick Start](#quick-start)
 - [Hands-on toy example](#hands-on-toy-example)
 - [Installation](#installation)
+  - [Precompiled portable binary](#no-installation-needed---precompiled-portable-binary)
   - [Containers](#containers)
   - [Installation from source](#installation-from-source)
 - [Usage](#usage)
