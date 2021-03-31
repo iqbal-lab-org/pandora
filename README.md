@@ -80,17 +80,15 @@ In this binary, all libraries are linked statically.
 
 * **Download**:
   ```
-  wget https://github.com/rmcolq/pandora/releases/download/pandora_paper_tag1/pandora-linux-precompiled-pandora_paper_tag1
+  wget https://github.com/rmcolq/pandora/releases/download/0.9.0/pandora-linux-precompiled-v0.9.0
   ```
 
 * **Running**:
 ```
-chmod +x pandora-linux-precompiled-pandora_paper_tag1
-./pandora-linux-precompiled-pandora_paper_tag1 -h
+chmod +x pandora-linux-precompiled-v0.9.0
+./pandora-linux-precompiled-v0.9.0 -h
 ```
 
-* **Compatibility**: oldest distributions tested: Ubuntu 12.10;
-  
 * **Notes**:
   * We provide precompiled binaries for Linux OS only;
 
