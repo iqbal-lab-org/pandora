@@ -9,7 +9,7 @@ project adheres to
 
 ## [Unreleased]
 
-## [0.9.0]
+## [0.9.0-rc1]
 
 ### Changed
 - `pandora discover` now receives read index files describing samples and reads, and discover denovo sequences in these samples.
