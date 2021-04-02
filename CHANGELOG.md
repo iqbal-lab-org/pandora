@@ -85,7 +85,7 @@ from this point will have their changes meticulously documented here.
 
 - k-mer coverage underflow bug in `LocalPRG` [[#183][183]]
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/0.9.0...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/0.9.0-rc1...HEAD
 [0.9.0-rc1]: https://github.com/rmcolq/pandora/releases/tag/0.9.0-rc1
 [0.8.0]: https://github.com/rmcolq/pandora/releases/tag/0.8.0
 [v0.7.0]: https://github.com/rmcolq/pandora/releases/tag/v0.7.0
