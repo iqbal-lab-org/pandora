@@ -65,20 +65,6 @@ EcoliK12_pandora*
 # local directory - michael
 vm-build/
 
-# local directory - leandro
-Singularity_debug.pandora
-debug_with_singularity.sh
-pandora_debug.img
-build_debug*
-build/
-data_issue*
-build_release*
-build_profiling*
-docker/
-
-mounted_folder/
-
-docker_dev/
 CMakeCache.txt
 CMakeFiles
 CTestTestfile.cmake
@@ -100,33 +86,16 @@ cmake_install.cmake
 compile_commands.json
 pandora
 
-example/output_toy_example_no_denovo/
-example/prgs/kmer_prgs/
-example/prgs/toy_prg.fa.k15.w14.idx
-example/pandora-latest.simg
-example/pandora_workflow
-!example/msas/GC00006032.fa
-!example/msas/GC00010897.fa
-!example/pandorupdated_prgsa_workflow_data/assemblies/samples/toy_sample_1/toy_sample_1.ref.fa
-!example/pandora_workflow_data/assemblies/samples/toy_sample_2/toy_sample_2.ref.fa
-!example/prgs/toy_prg.fa
-!example/scripts/data/ref_to_get_reads_from.toy_example_1.fa
-!example/scripts/data/ref_to_get_reads_from.toy_example_2.fa
+
+!example/msas
+!example/reads
+/example/pandora_discover_out/
+/example/prgs/
+/example/output_toy_example*
+/example/updated_prgs/
+/example/pandora-linux-precompiled*
+/example/make_prg_*
 
 #portable binary build dir
 build_portable_executable
 pandora-linux-precompiled
-
-/cmake-build-release/
-example/pandora_discover
-example/venv
-/example/msas_output/
-/example/make_prg_0.2.0_prototype
-/example/pandora-linux-precompiled-v0.9.0
-/example/pandora_discover_out/
-/example/prgs/
-/example/output_toy_example_with_denovo/
-/example/updated_prgs/
-/example/pandora-linux-precompiled-v0.9.0.gz
-
-example/pandora-linux-precompiled-pandora_paper_tag1
