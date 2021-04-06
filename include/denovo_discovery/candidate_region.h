@@ -192,7 +192,20 @@ public:
 
     CandidateRegionWriteBuffer(const std::string& sample_name)
         : sample_name(sample_name)
-    {
+    {}
+
+    virtual ~CandidateRegionWriteBuffer() = default;
+    CandidateRegionWriteBuffer(const CandidateRegionWriteBuffer& other) = default;
+    CandidateRegionWriteBuffer(CandidateRegionWriteBuffer&& other) = default;
+    CandidateRegionWriteBuffer& operator=(const CandidateRegionWriteBuffer& other) = default;
+    CandidateRegionWriteBuffer& operator=(CandidateRegionWriteBuffer&& other) = default;
+    bool operator==(const CandidateRegionWriteBuffer& other) const {
+        return this->sample_name == other.sample_name &&
+               this->locus_name_to_ML_path == other.locus_name_to_ML_path &&
+               this->locus_name_to_variants == other.locus_name_to_variants;
+    }
+    bool operator!=(const CandidateRegionWriteBuffer& other) const {
+        return !(*this == other);
     }
 
     virtual void add_new_variant(const std::string& locus_name,

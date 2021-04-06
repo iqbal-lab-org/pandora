@@ -411,8 +411,15 @@ Discover::Discover(uint32_t min_required_covg, uint32_t min_candidate_len,
 void CandidateRegionWriteBuffer::add_new_variant(const std::string& locus_name,
     const std::string& ML_path, const std::string& variant)
 {
+    std::vector<std::string> &variants = locus_name_to_variants[locus_name];
+    const bool variant_already_exists =
+        std::find(variants.begin(), variants.end(), variant) != variants.end();
+    if (variant_already_exists) {
+        return;
+    }
+
     locus_name_to_ML_path[locus_name] = ML_path;
-    locus_name_to_variants[locus_name].push_back(variant);
+    variants.push_back(variant);
 }
 
 void CandidateRegionWriteBuffer::write_to_file(const fs::path& output_file) const
@@ -423,7 +430,6 @@ void CandidateRegionWriteBuffer::write_to_file(const fs::path& output_file) cons
     output_filehandler.close();
 }
 
-// TODO: test
 void CandidateRegionWriteBuffer::merge (const CandidateRegionWriteBuffer &other) {
     const bool same_samples = this->sample_name == other.sample_name;
     if (!same_samples) {

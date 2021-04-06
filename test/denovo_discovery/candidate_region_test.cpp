@@ -2179,5 +2179,91 @@ TEST_F(CandidateRegion___get_variants___Fixture, two_distant_MultiVariants)
     std::vector<std::string> expected { "5\tTATGTT\tCCC", "23\tGCC\tTTTTTTTTTT" };
     EXPECT_EQ(actual, expected);
 }
+
+class CandidateRegionWriteBuffer___merge___Fixture : public ::testing::Test {
+public:
+    CandidateRegionWriteBuffer buffer_1, buffer_1_copy;
+    CandidateRegionWriteBuffer___merge___Fixture() : buffer_1("sample_1"){
+        buffer_1.add_new_variant("locus_1", "ML_path_1", "locus_1_var_1");
+        buffer_1.add_new_variant("locus_2", "ML_path_2", "locus_2_var_1");
+        buffer_1.add_new_variant("locus_2", "ML_path_2", "locus_2_var_2");
+        buffer_1.add_new_variant("locus_3", "ML_path_3", "locus_3_var_1");
+        buffer_1.add_new_variant("locus_3", "ML_path_3", "locus_3_var_2");
+        buffer_1.add_new_variant("locus_3", "ML_path_3", "locus_3_var_3");
+        buffer_1_copy = buffer_1;
+    }
+};
+
+TEST_F(CandidateRegionWriteBuffer___merge___Fixture, different_samples___expects_FatalRuntimeError) {
+
+    CandidateRegionWriteBuffer buffer_2("sample_2");
+    ASSERT_EXCEPTION(buffer_1.merge(buffer_2), FatalRuntimeError,
+                     "Tried to merge two candidate regions buffers of different samples.");
+}
+
+TEST_F(CandidateRegionWriteBuffer___merge___Fixture, has_same_loci_but_different_ML_path___expects_FatalRuntimeError) {
+
+    CandidateRegionWriteBuffer buffer_2("sample_1");
+    buffer_2.add_new_variant("locus_1", "ML_path_1", "locus_1_var_1"); // same
+    buffer_2.add_new_variant("locus_2", "ML_path_2", "locus_2_var_1"); // same
+    buffer_2.add_new_variant("locus_3", "ML_path_3_diff", "locus_3_var_1"); // different
+    ASSERT_EXCEPTION(buffer_1.merge(buffer_2), FatalRuntimeError,
+                     "Tried to merge two candidate regions buffers, but they have "
+                     "different ML paths for a same locus.");
+}
+
+TEST_F(CandidateRegionWriteBuffer___merge___Fixture, merge_empty_buffer___no_changes_expected) {
+
+    CandidateRegionWriteBuffer buffer_2("sample_1");
+    buffer_1.merge(buffer_2);
+    EXPECT_EQ(buffer_1, buffer_1_copy);
+}
+
+TEST_F(CandidateRegionWriteBuffer___merge___Fixture, merge_equal_buffer___no_changes_expected) {
+    buffer_1.merge(buffer_1_copy);
+    EXPECT_EQ(buffer_1, buffer_1_copy);
+}
+
+TEST_F(CandidateRegionWriteBuffer___merge___Fixture, merge_buffer_with_new_loci) {
+    CandidateRegionWriteBuffer buffer_2("sample_1");
+    buffer_2.add_new_variant("locus_4", "ML_path_4", "locus_4_var_1");
+    buffer_2.add_new_variant("locus_5", "ML_path_5", "locus_5_var_1");
+    buffer_2.add_new_variant("locus_5", "ML_path_5", "locus_5_var_2");
+    buffer_1.merge(buffer_2);
+
+    CandidateRegionWriteBuffer expected(buffer_1_copy);
+    expected.add_new_variant("locus_4", "ML_path_4", "locus_4_var_1");
+    expected.add_new_variant("locus_5", "ML_path_5", "locus_5_var_1");
+    expected.add_new_variant("locus_5", "ML_path_5", "locus_5_var_2");
+
+    EXPECT_EQ(expected, buffer_1);
+}
+
+TEST_F(CandidateRegionWriteBuffer___merge___Fixture, merge_buffer_with_new_and_repeated_loci_new_and_repeated_vars) {
+    CandidateRegionWriteBuffer buffer_2("sample_1");
+
+    buffer_2.add_new_variant("locus_1", "ML_path_1", "locus_1_var_2"); // new
+    buffer_2.add_new_variant("locus_2", "ML_path_2", "locus_2_var_1"); //repeated
+    buffer_2.add_new_variant("locus_2", "ML_path_2", "locus_2_var_3"); // new
+    buffer_2.add_new_variant("locus_3", "ML_path_3", "locus_3_var_1"); // repeated
+    buffer_2.add_new_variant("locus_3", "ML_path_3", "locus_3_var_2"); // repeated
+    buffer_2.add_new_variant("locus_3", "ML_path_3", "locus_3_var_3"); // repeated
+    buffer_2.add_new_variant("locus_3", "ML_path_3", "locus_3_var_4"); // new
+    buffer_2.add_new_variant("locus_3", "ML_path_3", "locus_3_var_5"); // new
+    buffer_2.add_new_variant("locus_3", "ML_path_3", "locus_3_var_6"); // new
+    buffer_2.add_new_variant("locus_4", "ML_path_4", "locus_4_var_1"); // new loci and var
+    buffer_1.merge(buffer_2);
+
+    CandidateRegionWriteBuffer expected(buffer_1_copy);
+    expected.add_new_variant("locus_1", "ML_path_1", "locus_1_var_2");
+    expected.add_new_variant("locus_2", "ML_path_2", "locus_2_var_3");
+    expected.add_new_variant("locus_3", "ML_path_3", "locus_3_var_4");
+    expected.add_new_variant("locus_3", "ML_path_3", "locus_3_var_5");
+    expected.add_new_variant("locus_3", "ML_path_3", "locus_3_var_6");
+    expected.add_new_variant("locus_4", "ML_path_4", "locus_4_var_1");
+
+    EXPECT_EQ(expected, buffer_1);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
