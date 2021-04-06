@@ -10,6 +10,10 @@
 #include <set>
 #include <vector>
 #include <sstream>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/vector.hpp>
 
 #ifndef NO_OPENMP
 #include <omp.h>
@@ -173,7 +177,19 @@ protected:
         }
     }
 
+    friend class boost::serialization::access;
+    // Note: trivial method, not tested
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & sample_name;
+        ar & locus_name_to_ML_path;
+        ar & locus_name_to_variants;
+    }
+
 public:
+    CandidateRegionWriteBuffer(){}  // required by Boost serialization
+
     CandidateRegionWriteBuffer(const std::string& sample_name)
         : sample_name(sample_name)
     {
@@ -196,6 +212,8 @@ public:
     {
         return locus_name_to_variants;
     }
+
+    void merge (const CandidateRegionWriteBuffer &other);
 };
 
 #endif // PANDORA_CANDIDATE_REGION_H

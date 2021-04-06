@@ -422,3 +422,31 @@ void CandidateRegionWriteBuffer::write_to_file(const fs::path& output_file) cons
     write_to_file_core(output_filehandler);
     output_filehandler.close();
 }
+
+// TODO: test
+void CandidateRegionWriteBuffer::merge (const CandidateRegionWriteBuffer &other) {
+    const bool same_samples = this->sample_name == other.sample_name;
+    if (!same_samples) {
+        fatal_error("Tried to merge two candidate regions buffers of different samples.");
+    }
+
+    for (const auto &locus_name_to_ML_path_entry : other.locus_name_to_ML_path) {
+        const auto &locus_name = locus_name_to_ML_path_entry.first;
+        const auto &ML_path = locus_name_to_ML_path_entry.second;
+
+        const bool locus_already_exists_in_this_buffer =
+            this->locus_name_to_ML_path.find(locus_name) != this->locus_name_to_ML_path.end();
+        if (locus_already_exists_in_this_buffer) {
+            const bool locus_has_same_ML_path =
+                this->locus_name_to_ML_path.at(locus_name) == other.locus_name_to_ML_path.at(locus_name);
+            if (!locus_has_same_ML_path) {
+                fatal_error("Tried to merge two candidate regions buffers, but they have "
+                            "different ML paths for a same locus.");
+            }
+        }
+
+        for (const std::string &variant : other.locus_name_to_variants.at(locus_name)) {
+            this->add_new_variant(locus_name, ML_path, variant);
+        }
+    }
+}
