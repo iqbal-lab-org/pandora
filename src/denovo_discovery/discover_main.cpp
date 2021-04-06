@@ -241,7 +241,7 @@ void find_denovo_variants_multiprocess(
     const fs::path &sample_outdir,
     const DenovoDiscovery &denovo,
     uint32_t threads) {
-    // transforms CandidateRegions into a vector of pointer to CandidateRegion so that
+    // transforms CandidateRegions into a vector of pointers to CandidateRegion so that
     // it is easier to multithread/multiprocess on it
     std::vector<CandidateRegion*> candidate_regions_as_vector;
     candidate_regions_as_vector.reserve(candidate_regions.size());
@@ -367,7 +367,7 @@ void pandora_discover_core(
     CandidateRegions candidate_regions;
 
     // shared variable - will denote which nodes we have to remove after the
-    // parallel loop synced with critical(nodes_to_remove)
+    // parallel loop. synced with critical(nodes_to_remove)
     std::vector<pangenome::NodePtr> nodes_to_remove;
     nodes_to_remove.reserve(pangraph->nodes.size());
 

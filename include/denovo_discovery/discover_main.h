@@ -14,10 +14,6 @@
 #include "denovo_discovery/candidate_region.h"
 #include "denovo_discovery/denovo_discovery.h"
 
-// set to 0 to disallow multiprocessing and 1 to allow multiprocessing
-// should always be 1 except if you want to trigger breakpoints, which does not
-// work on forked processes
-#define ALLOW_FORK 1
 constexpr auto MAX_DENOVO_K { 32 };
 namespace fs = boost::filesystem;
 
