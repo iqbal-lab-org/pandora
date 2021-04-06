@@ -2,7 +2,7 @@
 set -eu
 
 # configs
-pandora_URL="https://github.com/leoisl/pandora/releases/download/0.9.0-rc1_RAM/pandora-linux-precompiled-v0.9.0-rc1_RAM"
+pandora_URL="https://github.com/rmcolq/pandora/releases/download/0.9.0-rc1/pandora-linux-precompiled-v0.9.0-rc1"
 pandora_executable="./pandora-linux-precompiled-v0.9.0-rc1"
 make_prg_URL="https://github.com/leoisl/make_prg/releases/download/v0.2.0_prototype/make_prg_0.2.0_prototype"
 make_prg_executable="./make_prg_0.2.0_prototype"
