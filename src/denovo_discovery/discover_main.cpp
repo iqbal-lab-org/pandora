@@ -204,29 +204,28 @@ void concatenate_denovo_files(
     output_filehandler.close();
 }
 
-void find_denovo_variants_core(
-    std::vector<CandidateRegion*> &candidate_regions,
-    const SampleIdText &sample_name,
-    const fs::path &sample_outdir,
-    const DenovoDiscovery &denovo,
-    uint32_t child_id,
-    uint32_t threads) {
+void find_denovo_variants_core(std::vector<CandidateRegion*>& candidate_regions,
+    const SampleIdText& sample_name, const fs::path& sample_outdir,
+    const DenovoDiscovery& denovo, uint32_t child_id, uint32_t threads)
+{
     // create temp dir
-    const auto temp_dir { sample_outdir / ("temp_child_" + int_to_string(child_id))};
+    const auto temp_dir { sample_outdir / ("temp_child_" + int_to_string(child_id)) };
     fs::create_directories(temp_dir);
 
     CandidateRegionWriteBuffer buffer(sample_name);
-    for (uint32_t candidate_region_index=child_id;
-                  candidate_region_index < candidate_regions.size();
-                  candidate_region_index+=threads) {
-        CandidateRegion& candidate_region { *(candidate_regions[candidate_region_index]) };
+    for (uint32_t candidate_region_index = child_id;
+         candidate_region_index < candidate_regions.size();
+         candidate_region_index += threads) {
+        CandidateRegion& candidate_region { *(
+            candidate_regions[candidate_region_index]) };
         denovo.find_paths_through_candidate_region(candidate_region, temp_dir);
         candidate_region.write_denovo_paths_to_buffer(buffer);
     }
 
     // serialise the buffer
     {
-        const auto buffer_binary_filename = temp_dir / "candidate_regions_write_buffer.bin";
+        const auto buffer_binary_filename
+            = temp_dir / "candidate_regions_write_buffer.bin";
         std::ofstream buffer_binary_filehandler(buffer_binary_filename.string());
         boost::archive::text_oarchive buffer_binary_archive(buffer_binary_filehandler);
         // write class instance to archive
@@ -235,12 +234,10 @@ void find_denovo_variants_core(
     }
 }
 
-void find_denovo_variants_multiprocess(
-    CandidateRegions &candidate_regions,
-    const SampleIdText &sample_name,
-    const fs::path &sample_outdir,
-    const DenovoDiscovery &denovo,
-    uint32_t threads) {
+void find_denovo_variants_multiprocess(CandidateRegions& candidate_regions,
+    const SampleIdText& sample_name, const fs::path& sample_outdir,
+    const DenovoDiscovery& denovo, uint32_t threads)
+{
     // transforms CandidateRegions into a vector of pointers to CandidateRegion so that
     // it is easier to multithread/multiprocess on it
     std::vector<CandidateRegion*> candidate_regions_as_vector;
@@ -292,13 +289,15 @@ void find_denovo_variants_multiprocess(
     for (child_id = 0; child_id < threads; child_id++) {
         CandidateRegionWriteBuffer child_buffer;
         {
-            const auto child_temp_dir { sample_outdir / ("temp_child_" + int_to_string(child_id))};
-            const auto child_buffer_binary_filename = child_temp_dir / "candidate_regions_write_buffer.bin";
+            const auto child_temp_dir { sample_outdir
+                / ("temp_child_" + int_to_string(child_id)) };
+            const auto child_buffer_binary_filename
+                = child_temp_dir / "candidate_regions_write_buffer.bin";
             // create and open an archive for input
-            std::ifstream child_buffer_binary_filehandler(child_buffer_binary_filename.string());
+            std::ifstream child_buffer_binary_filehandler(
+                child_buffer_binary_filename.string());
             boost::archive::text_iarchive child_buffer_binary_archive(
-                child_buffer_binary_filehandler
-                );
+                child_buffer_binary_filehandler);
             // read class state from archive
             child_buffer_binary_archive >> child_buffer;
             // archive and stream closed when destructors are called
@@ -306,16 +305,14 @@ void find_denovo_variants_multiprocess(
         buffer.merge(child_buffer);
     }
 
-
     auto denovo_output_file = sample_outdir / "denovo_paths.txt";
     buffer.write_to_file(denovo_output_file);
-    BOOST_LOG_TRIVIAL(info)
-        << "[Sample " << sample_name << "] "
-        << "De novo variant paths written to " << denovo_output_file.string();
+    BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
+                            << "De novo variant paths written to "
+                            << denovo_output_file.string();
 }
 
-void pandora_discover_core(
-    const std::pair<SampleIdText, SampleFpath> &sample,
+void pandora_discover_core(const std::pair<SampleIdText, SampleFpath>& sample,
     const std::shared_ptr<Index>& index,
     const std::vector<std::shared_ptr<LocalPRG>>& prgs, const DiscoverOptions& opt)
 {
@@ -336,10 +333,10 @@ void pandora_discover_core(
                             << "Constructing pangenome::Graph from read file "
                             << sample_fpath << " (this will take a while)";
     auto pangraph = std::make_shared<pangenome::Graph>();
-    uint32_t covg = pangraph_from_read_file(sample_fpath, pangraph, index, prgs,
-        opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate,
-        opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean,
-        opt.max_covg, opt.threads);
+    uint32_t covg
+        = pangraph_from_read_file(sample_fpath, pangraph, index, prgs, opt.window_size,
+            opt.kmer_size, opt.max_diff, opt.error_rate, opt.min_cluster_size,
+            opt.genome_size, opt.illumina, opt.clean, opt.max_covg, opt.threads);
 
     const auto pangraph_gfa { sample_outdir / "pandora.pangraph.gfa" };
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
@@ -382,8 +379,7 @@ void pandora_discover_core(
     std::vector<pangenome::NodePtr> pangraphNodesAsVector;
     pangraphNodesAsVector.reserve(pangraph->nodes.size());
     for (auto pan_id_to_node_mapping = pangraph->nodes.begin();
-         pan_id_to_node_mapping != pangraph->nodes.end();
-         ++pan_id_to_node_mapping) {
+         pan_id_to_node_mapping != pangraph->nodes.end(); ++pan_id_to_node_mapping) {
         pangraphNodesAsVector.push_back(pan_id_to_node_mapping->second);
     }
 
@@ -438,10 +434,9 @@ void pandora_discover_core(
         }
     }
 
-    BOOST_LOG_TRIVIAL(info)
-        << "[Sample " << sample_name << "] "
-        << "Building read pileups for " << candidate_regions.size()
-        << " candidate de novo regions...";
+    BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
+                            << "Building read pileups for " << candidate_regions.size()
+                            << " candidate de novo regions...";
     // the pileup_construction_map function is intentionally left
     // single threaded since it would require too much synchronization
     const auto pileup_construction_map
@@ -473,8 +468,8 @@ void pandora_discover_core(
     BOOST_LOG_TRIVIAL(info)
         << "[Sample " << sample_name << "] "
         << "Generating de novo variants as paths through their local graph...";
-    find_denovo_variants_multiprocess(candidate_regions, sample_name, sample_outdir,
-        denovo, opt.threads);
+    find_denovo_variants_multiprocess(
+        candidate_regions, sample_name, sample_outdir, denovo, opt.threads);
 
     if (opt.output_mapped_read_fa) {
         pangraph->save_mapped_read_strings(sample_fpath, sample_outdir);
@@ -538,7 +533,7 @@ int pandora_discover(DiscoverOptions& opt)
         = load_read_index(opt.reads_idx_file);
 
     // for each sample, run pandora discover
-    for (const std::pair<SampleIdText, SampleFpath> &sample : samples) {
+    for (const std::pair<SampleIdText, SampleFpath>& sample : samples) {
         pandora_discover_core(sample, index, prgs, opt);
     }
 
@@ -552,8 +547,8 @@ int pandora_discover(DiscoverOptions& opt)
     }
     fs::path denovo_output_file = opt.outdir / "denovo_paths.txt";
     concatenate_denovo_files(denovo_output_file, denovo_paths_files);
-    BOOST_LOG_TRIVIAL(info)
-        << "De novo variant paths written to " << denovo_output_file.string();
+    BOOST_LOG_TRIVIAL(info) << "De novo variant paths written to "
+                            << denovo_output_file.string();
     BOOST_LOG_TRIVIAL(info) << "All done!";
 
     return 0;
