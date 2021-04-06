@@ -115,14 +115,14 @@ This is the hardest way to install `pandora`, but that yields the most optimised
 Requirements:
 - A Unix or Mac OS, with a C++11 compiler toolset (e.g. `g++`, `ld`, `make`, `ctest`, etc), `cmake`, `git` and `wget`.
 
-- Download and install `pandora` as follows:
+- Download and install `pandora` as follows (this example is using `4` threads, change `4` to how many threads you want):
 
 ```
 git clone --single-branch https://github.com/rmcolq/pandora.git --recursive
 cd pandora
 mkdir -p build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release .. 
+cmake -DHUNTER_JOBS_NUMBER=4 -DCMAKE_BUILD_TYPE=Release ..
 make -j4
 ctest -VV
 ```
