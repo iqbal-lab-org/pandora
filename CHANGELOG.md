@@ -14,7 +14,7 @@ project adheres to
 ### Changed
 - `pandora discover` now processes one sample at a time, but runs with several threads on the heavy tasks, i.e. when
 mapping reads, finding candidate regions, and finding denovo variants. The result is that it now takes a lot less RAM to
-run on multiple samples at the cost of a small increase of runtime.
+run on multiple samples.
 
 ## [0.9.0-rc1]
 
