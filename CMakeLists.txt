@@ -62,7 +62,6 @@ set(STATIC_C_CXX "-static-libgcc -static-libstdc++")
 ########################################################################################################################
 ########################################################################################################################
 # INSTALL ZLIB
-hunter_add_package(ZLIB)
 find_package(ZLIB 1.2.11 REQUIRED)
 set(ZLIB_LIBRARY ZLIB::ZLIB)
 ########################################################################################################################
@@ -91,7 +90,6 @@ set(Gtest_LIBRARIES GTest::gtest GTest::gmock_main)
 
 ########################################################################################################################
 # INSTALL BOOST
-hunter_add_package(Boost COMPONENTS filesystem iostreams log system thread)
 find_package(Boost CONFIG REQUIRED filesystem iostreams log system thread)
 set(BOOST_LIBRARIES Boost::filesystem Boost::iostreams Boost::log Boost::system Boost::thread)
 set(Boost_USE_STATIC_LIBS ON)
