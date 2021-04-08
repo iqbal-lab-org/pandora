@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.12)  # required by hunter ZLIB installation
 
 # include hunter
+option(HUNTER_STATUS_DEBUG "Hunter debug" ON)  # comment if does not want hunter debug on
 set(HUNTER_ROOT ${CMAKE_BINARY_DIR}/hunter)
 include("cmake/HunterGate.cmake")
 HunterGate(
