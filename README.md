@@ -99,13 +99,16 @@ Pandora is hosted on Quay and images can be downloaded with the
 command:
 
 ```
-docker pull quay.io/rmcolq/pandora
+URI="quay.io/rmcolq/pandora"
+docker pull "$URI"
+docker run -it "$URI" pandora --help
 ```
 
 Alternatively, using singularity:
 
 ```
-singularity pull docker://quay.io/rmcolq/pandora
+URI="docker://quay.io/rmcolq/pandora"
+singularity exec "$URI" pandora --help
 ```
 
 ### Installation from source
