@@ -12,7 +12,7 @@ HunterGate(
 # project configuration
 set(PROJECT_NAME_STR pandora)
 project(${PROJECT_NAME_STR} VERSION "0.9.0" LANGUAGES C CXX)
-set(ADDITIONAL_VERSION_LABELS "-rc1")
+set(ADDITIONAL_VERSION_LABELS "-rc2")
 configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
 # add or not feature to print the stack trace
@@ -92,9 +92,9 @@ set(Gtest_LIBRARIES GTest::gtest GTest::gmock_main)
 
 ########################################################################################################################
 # INSTALL BOOST
-hunter_add_package(Boost COMPONENTS filesystem iostreams log system thread)
-find_package(Boost CONFIG REQUIRED filesystem iostreams log system thread)
-set(BOOST_LIBRARIES Boost::filesystem Boost::iostreams Boost::log Boost::system Boost::thread)
+hunter_add_package(Boost COMPONENTS filesystem iostreams log serialization system thread)
+find_package(Boost CONFIG REQUIRED filesystem iostreams log serialization system thread)
+set(BOOST_LIBRARIES Boost::filesystem Boost::iostreams Boost::log Boost::serialization Boost::system Boost::thread)
 set(Boost_USE_STATIC_LIBS ON)
 ########################################################################################################################
 ########################################################################################################################

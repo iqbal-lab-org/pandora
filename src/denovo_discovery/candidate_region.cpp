@@ -411,8 +411,15 @@ Discover::Discover(uint32_t min_required_covg, uint32_t min_candidate_len,
 void CandidateRegionWriteBuffer::add_new_variant(const std::string& locus_name,
     const std::string& ML_path, const std::string& variant)
 {
+    std::vector<std::string>& variants = locus_name_to_variants[locus_name];
+    const bool variant_already_exists
+        = std::find(variants.begin(), variants.end(), variant) != variants.end();
+    if (variant_already_exists) {
+        return;
+    }
+
     locus_name_to_ML_path[locus_name] = ML_path;
-    locus_name_to_variants[locus_name].push_back(variant);
+    variants.push_back(variant);
 }
 
 void CandidateRegionWriteBuffer::write_to_file(const fs::path& output_file) const
@@ -421,4 +428,36 @@ void CandidateRegionWriteBuffer::write_to_file(const fs::path& output_file) cons
     open_file_for_writing(output_file.string(), output_filehandler);
     write_to_file_core(output_filehandler);
     output_filehandler.close();
+}
+
+void CandidateRegionWriteBuffer::merge(const CandidateRegionWriteBuffer& other)
+{
+    const bool same_samples = this->sample_name == other.sample_name;
+    if (!same_samples) {
+        fatal_error(
+            "Tried to merge two candidate regions buffers of different samples.");
+    }
+
+    for (const auto& locus_name_to_ML_path_entry : other.locus_name_to_ML_path) {
+        const auto& locus_name = locus_name_to_ML_path_entry.first;
+        const auto& ML_path = locus_name_to_ML_path_entry.second;
+
+        const bool locus_already_exists_in_this_buffer
+            = this->locus_name_to_ML_path.find(locus_name)
+            != this->locus_name_to_ML_path.end();
+        if (locus_already_exists_in_this_buffer) {
+            const bool locus_has_same_ML_path
+                = this->locus_name_to_ML_path.at(locus_name)
+                == other.locus_name_to_ML_path.at(locus_name);
+            if (!locus_has_same_ML_path) {
+                fatal_error(
+                    "Tried to merge two candidate regions buffers, but they have "
+                    "different ML paths for a same locus.");
+            }
+        }
+
+        for (const std::string& variant : other.locus_name_to_variants.at(locus_name)) {
+            this->add_new_variant(locus_name, ML_path, variant);
+        }
+    }
 }

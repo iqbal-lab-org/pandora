@@ -1,7 +1,7 @@
 #!/bin/bash
 set -evu
 
-export CMAKE_OPTIONS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE "
+export CMAKE_OPTIONS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DHUNTER_JOBS_NUMBER=4"
 
 echo "$CMAKE_OPTIONS"
 mkdir build
