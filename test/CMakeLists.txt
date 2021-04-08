@@ -16,11 +16,12 @@ target_include_directories(${PROJECT_NAME}_test PUBLIC
 target_link_libraries(${PROJECT_NAME}_test
         ${Gtest_LIBRARIES}
         ${GATB_LIBS}
-        ${BOOST_LIBRARIES}
+        ${Boost_LIBRARIES}
         ${ZLIB_LIBRARY}
         ${CMAKE_DL_LIBS}
         ${STATIC_C_CXX}
         ${BACKWARD_LIBRARIES}
+        ${RT_LIBRARY}
         )
 
 add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)

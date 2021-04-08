@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)  # required by hunter ZLIB installation
 
 # include hunter
-option(HUNTER_STATUS_DEBUG "Hunter debug" ON)  # comment if does not want hunter debug on
+option(HUNTER_STATUS_DEBUG "Hunter debug" OFF)  # comment if does not want hunter debug on
 set(HUNTER_ROOT ${CMAKE_BINARY_DIR}/hunter)
 include("cmake/HunterGate.cmake")
 HunterGate(
@@ -58,11 +58,15 @@ endif()
 # static C and C++ flags
 set(STATIC_C_CXX "-static-libgcc -static-libstdc++")
 
+# always link rt
+set(RT_LIBRARY "rt")
+
 ########################################################################################################################
 # EXTERNAL LIBS INSTALLATION
 ########################################################################################################################
 ########################################################################################################################
 # INSTALL ZLIB
+hunter_add_package(ZLIB)
 find_package(ZLIB 1.2.11 REQUIRED)
 set(ZLIB_LIBRARY ZLIB::ZLIB)
 ########################################################################################################################
@@ -91,9 +95,16 @@ set(Gtest_LIBRARIES GTest::gtest GTest::gmock_main)
 
 ########################################################################################################################
 # INSTALL BOOST
-find_package(Boost CONFIG REQUIRED filesystem iostreams log system thread)
-set(BOOST_LIBRARIES Boost::filesystem Boost::iostreams Boost::log Boost::system Boost::thread)
 set(Boost_USE_STATIC_LIBS ON)
+
+if(BIOCONDA)
+    find_package(Boost REQUIRED filesystem iostreams log log_setup system thread)
+else()
+    hunter_add_package(Boost COMPONENTS filesystem iostreams log system thread)
+    find_package(Boost CONFIG REQUIRED filesystem iostreams log log_setup system thread)
+    set(Boost_LIBRARIES Boost::filesystem Boost::iostreams Boost::log Boost::log_setup Boost::system Boost::thread)
+endif()
+
 ########################################################################################################################
 ########################################################################################################################
 # END EXTERNAL LIBS INSTALLATION
@@ -135,11 +146,12 @@ add_dependencies(${PROJECT_NAME} gatb)
 
 target_link_libraries(${PROJECT_NAME}
         ${GATB_LIBS}
-        ${BOOST_LIBRARIES}
+        ${Boost_LIBRARIES}
         ${ZLIB_LIBRARY}
         ${CMAKE_DL_LIBS}
         ${STATIC_C_CXX}
         ${BACKWARD_LIBRARIES}
+        ${RT_LIBRARY}
 )
 
 enable_testing()
