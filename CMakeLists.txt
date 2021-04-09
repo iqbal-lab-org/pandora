@@ -98,6 +98,7 @@ set(Gtest_LIBRARIES GTest::gtest GTest::gmock_main)
 ########################################################################################################################
 # INSTALL BOOST
 if(BIOCONDA)
+    ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
     set(Boost_USE_STATIC_LIBS OFF)
     find_package(Boost REQUIRED filesystem iostreams log log_setup system thread)
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
