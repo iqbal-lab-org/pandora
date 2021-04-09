@@ -98,14 +98,14 @@ set(Gtest_LIBRARIES GTest::gtest GTest::gmock_main)
 ########################################################################################################################
 # INSTALL BOOST
 if(BIOCONDA)
+    set(Boost_USE_STATIC_LIBS OFF)
     find_package(Boost REQUIRED filesystem iostreams log log_setup system thread)
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-    set(Boost_USE_STATIC_LIBS OFF)
 else()
+    set(Boost_USE_STATIC_LIBS ON)
     hunter_add_package(Boost COMPONENTS filesystem iostreams log system thread)
     find_package(Boost CONFIG REQUIRED filesystem iostreams log log_setup system thread)
     set(Boost_LIBRARIES Boost::filesystem Boost::iostreams Boost::log Boost::log_setup Boost::system Boost::thread)
-    set(Boost_USE_STATIC_LIBS ON)
 endif()
 ########################################################################################################################
 ########################################################################################################################
