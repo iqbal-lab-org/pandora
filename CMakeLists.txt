@@ -55,11 +55,13 @@ else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 endif()
 
-# static C and C++ flags
-set(STATIC_C_CXX "-static-libgcc -static-libstdc++")
-
 # always link rt
 set(RT_LIBRARY "rt")
+
+if(NOT BIOCONDA)
+    # static C and C++ flags
+    set(STATIC_C_CXX "-static-libgcc -static-libstdc++")
+endif()
 
 ########################################################################################################################
 # EXTERNAL LIBS INSTALLATION
@@ -95,17 +97,16 @@ set(Gtest_LIBRARIES GTest::gtest GTest::gmock_main)
 
 ########################################################################################################################
 # INSTALL BOOST
-set(Boost_USE_STATIC_LIBS ON)
-
 if(BIOCONDA)
     find_package(Boost REQUIRED filesystem iostreams log log_setup system thread)
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+    set(Boost_USE_STATIC_LIBS OFF)
 else()
     hunter_add_package(Boost COMPONENTS filesystem iostreams log system thread)
     find_package(Boost CONFIG REQUIRED filesystem iostreams log log_setup system thread)
     set(Boost_LIBRARIES Boost::filesystem Boost::iostreams Boost::log Boost::log_setup Boost::system Boost::thread)
+    set(Boost_USE_STATIC_LIBS ON)
 endif()
-
 ########################################################################################################################
 ########################################################################################################################
 # END EXTERNAL LIBS INSTALLATION
