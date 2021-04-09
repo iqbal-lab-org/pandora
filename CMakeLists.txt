@@ -99,6 +99,7 @@ set(Boost_USE_STATIC_LIBS ON)
 
 if(BIOCONDA)
     find_package(Boost REQUIRED filesystem iostreams log log_setup system thread)
+    include_directories(${Boost_INCLUDE_DIRS})
 else()
     hunter_add_package(Boost COMPONENTS filesystem iostreams log system thread)
     find_package(Boost CONFIG REQUIRED filesystem iostreams log log_setup system thread)
