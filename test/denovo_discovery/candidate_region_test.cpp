@@ -6,6 +6,11 @@
 #include "gtest/gtest.h"
 #include <cstdio>
 #include <iostream>
+#include <vector>
+#include <memory>
+
+using ::testing::InSequence;
+using ::testing::Return;
 
 TEST(CandidateRegionGetIntervalTest, noPaddingReturnsOriginalInterval)
 {
@@ -448,12 +453,14 @@ TEST(FindCandidateRegionsForPanNodeTest, emptyPanNodeReturnsNoCandidates)
     auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "test", "") };
     const std::vector<LocalNodePtr> local_node_max_likelihood_path;
     const std::vector<KmerNodePtr> kmer_node_max_likelihood_path;
+    const std::string local_node_max_likelihood_seq;
 
     PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(
         local_prg_ptr, local_prg_ptr->id, num_samples) };
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path,
+        local_node_max_likelihood_seq };
 
     const CandidateRegions expected;
     const auto actual { discover.find_candidate_regions_for_pan_node(
@@ -491,7 +498,8 @@ TEST(FindCandidateRegionsForPanNodeTest, noCoverageReturnWholePrgAsCandidate)
         local_prg_ptr, local_prg_ptr->id, num_samples) };
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path,
+        expected_sequence };
 
     CandidateRegion expected_candidate { Interval(0, 7), pangraph_node->get_name() };
     expected_candidate.max_likelihood_sequence = expected_sequence;
@@ -541,7 +549,8 @@ TEST(FindCandidateRegionsForPanNodeTest, highCoverageReturnEmpty)
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path,
+        expected_sequence };
 
     const CandidateRegions expected;
     const auto actual { discover.find_candidate_regions_for_pan_node(
@@ -588,7 +597,8 @@ TEST(
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path,
+        expected_sequence };
 
     CandidateRegion expected_candidate { Interval(3, 8), pangraph_node->get_name() };
     const CandidateRegions expected { std::make_pair(
@@ -649,7 +659,8 @@ TEST(FindCandidateRegionsForPanNodeTest,
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path,
+        expected_sequence };
 
     CandidateRegion expected_candidate { Interval(3, 8), pangraph_node->get_name(),
         pad };
@@ -715,7 +726,8 @@ TEST(FindCandidateRegionsForPanNodeTest,
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path,
+        expected_sequence };
 
     CandidateRegion expected_candidate { Interval(0, 5), pangraph_node->get_name(),
         pad };
@@ -781,7 +793,8 @@ TEST(FindCandidateRegionsForPanNodeTest,
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path,
+        expected_sequence };
 
     CandidateRegion expected_candidate { Interval(6, 11), pangraph_node->get_name(),
         pad };
@@ -847,7 +860,8 @@ TEST(FindCandidateRegionsForPanNodeTest,
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path,
+        expected_sequence };
 
     CandidateRegion expected_candidate { Interval(5, 10), pangraph_node->get_name(),
         pad };
@@ -913,7 +927,8 @@ TEST(FindCandidateRegionsForPanNodeTest,
     }
 
     const TmpPanNode pangraph_node_components { pangraph_node, local_prg_ptr,
-        kmer_node_max_likelihood_path, local_node_max_likelihood_path };
+        kmer_node_max_likelihood_path, local_node_max_likelihood_path,
+        expected_sequence };
 
     CandidateRegion expected_candidate1 { Interval(0, 5), pangraph_node->get_name(),
         pad };
@@ -1386,42 +1401,126 @@ std::string read_file_to_string(const fs::path& filepath)
     return buffer.str();
 }
 
-TEST(WriteDenovoPathsToFileTest, noReadsDoesntWriteFile)
+class CandidateRegion___write_denovo_paths_to_buffer___Fixture
+    : public ::testing::Test {
+public:
+    class CandidateRegionWriteBufferMock : public CandidateRegionWriteBuffer {
+    public:
+        using CandidateRegionWriteBuffer::CandidateRegionWriteBuffer;
+        MOCK_METHOD(void, add_new_variant,
+            (const std::string& locus_name, const std::string& ML_path,
+                const std::string& variant));
+    };
+
+    class CandidateRegionMock : public CandidateRegion {
+    public:
+        using CandidateRegion::CandidateRegion;
+        MOCK_METHOD(std::vector<std::string>, get_variants,
+            (const string& denovo_sequence), (const));
+    };
+
+    CandidateRegion___write_denovo_paths_to_buffer___Fixture()
+        : buffer { "sample" }
+    {
+    }
+    CandidateRegionWriteBufferMock buffer;
+};
+
+TEST_F(CandidateRegion___write_denovo_paths_to_buffer___Fixture,
+    no_denovo_paths___nothing_is_written)
 {
-    const std::string name { "test" };
-    CandidateRegion candidate { Interval(0, 1), name };
-    const fs::path output_directory { "/tmp" };
-    const fs::path filepath { output_directory / candidate.filename };
+    EXPECT_CALL(buffer, add_new_variant).Times(0);
 
-    candidate.write_denovo_paths_to_file(output_directory);
-
-    EXPECT_FALSE(fs::exists(filepath));
+    CandidateRegion candidate { Interval(0, 1), "test" };
+    candidate.write_denovo_paths_to_buffer(buffer);
 }
 
-TEST(WriteDenovoPathsToFileTest, twoReadsWritesTwoReadsToFile)
+TEST_F(CandidateRegion___write_denovo_paths_to_buffer___Fixture,
+    one_denovo_path_with_three_variants___three_variants_are_written)
 {
-    const std::string name { "test" };
-    CandidateRegion candidate { Interval(0, 1), name };
-    const fs::path output_directory { "/tmp" };
-    const fs::path filepath { output_directory / candidate.filename };
-    const DenovoPaths paths { "shrubberies", "ni" };
-    candidate.denovo_paths = paths;
+    // create the local_node_max_likelihood_path
+    LocalNode local_node("test", Interval(0, 1), 1);
+    std::vector<LocalNodePtr> local_node_max_likelihood_path(
+        { std::make_shared<LocalNode>(local_node) });
 
-    candidate.write_denovo_paths_to_file(output_directory);
+    // create candidate region with one denovo path that return 3 variants for the
+    // denovo path
+    CandidateRegionMock candidate { Interval(0, 1), "CR_locus_name_mock", 1,
+        local_node_max_likelihood_path, "local_node_max_likelihood_sequence_mock" };
+    candidate.denovo_paths.push_back("denovo_path_1");
+    EXPECT_CALL(candidate, get_variants("denovo_path_1"))
+        .Times(1)
+        .WillOnce(Return(std::vector<std::string>({ "Var1", "Var2", "Var3" })));
 
-    std::stringstream expected_ss;
-
-    for (size_t i = 0; i < paths.size(); ++i) {
-        expected_ss << ">test." << std::to_string(i) << std::endl
-                    << paths.at(i) << std::endl;
+    // expect 3 calls to add new variant in sequence and with these args
+    {
+        InSequence seq;
+        EXPECT_CALL(buffer,
+            add_new_variant("CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "Var1"))
+            .Times(1);
+        EXPECT_CALL(buffer,
+            add_new_variant("CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "Var2"))
+            .Times(1);
+        EXPECT_CALL(buffer,
+            add_new_variant("CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "Var3"))
+            .Times(1);
     }
 
-    const std::string expected { expected_ss.str() };
-    const auto actual { read_file_to_string(filepath) };
+    candidate.write_denovo_paths_to_buffer(buffer);
+}
 
-    fs::remove(filepath);
+TEST_F(CandidateRegion___write_denovo_paths_to_buffer___Fixture,
+    two_denovo_paths_with_five_variants___five_variants_are_written)
+{
+    // create the local_node_max_likelihood_path
+    LocalNode local_node("test", Interval(0, 1), 1);
+    std::vector<LocalNodePtr> local_node_max_likelihood_path(
+        { std::make_shared<LocalNode>(local_node) });
 
-    EXPECT_EQ(actual, expected);
+    // create candidate region with one denovo path that return 3 variants for the
+    // denovo path
+    CandidateRegionMock candidate { Interval(0, 1), "CR_locus_name_mock", 1,
+        local_node_max_likelihood_path, "local_node_max_likelihood_sequence_mock" };
+    candidate.denovo_paths.push_back("denovo_path_1");
+    candidate.denovo_paths.push_back("denovo_path_2");
+    {
+        InSequence seq;
+        EXPECT_CALL(candidate, get_variants("denovo_path_1"))
+            .Times(1)
+            .WillOnce(Return(std::vector<std::string>(
+                { "denovo_path_1_Var1", "denovo_path_1_Var2", "denovo_path_1_Var3" })));
+        EXPECT_CALL(candidate, get_variants("denovo_path_2"))
+            .Times(1)
+            .WillOnce(Return(std::vector<std::string>(
+                { "denovo_path_2_Var1", "denovo_path_2_Var2" })));
+    }
+
+    // expect 3 calls to add new variant in sequence and with these args
+    {
+        InSequence seq;
+        EXPECT_CALL(buffer,
+            add_new_variant(
+                "CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "denovo_path_1_Var1"))
+            .Times(1);
+        EXPECT_CALL(buffer,
+            add_new_variant(
+                "CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "denovo_path_1_Var2"))
+            .Times(1);
+        EXPECT_CALL(buffer,
+            add_new_variant(
+                "CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "denovo_path_1_Var3"))
+            .Times(1);
+        EXPECT_CALL(buffer,
+            add_new_variant(
+                "CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "denovo_path_2_Var1"))
+            .Times(1);
+        EXPECT_CALL(buffer,
+            add_new_variant(
+                "CR_locus_name_mock", "1 nodes\n(1 [0, 1) test)", "denovo_path_2_Var2"))
+            .Times(1);
+    }
+
+    candidate.write_denovo_paths_to_buffer(buffer);
 }
 
 TEST(ConstructPileupConstructionMapTest, emptyInEmptyOut)
@@ -1593,3 +1692,592 @@ TEST(ConstructPileupConstructionMapTest,
 
     compare_maps(actual, expected);
 }
+
+TEST(SimpleDenovoVariantRecord, creation_and_to_string)
+{
+    SimpleDenovoVariantRecord record(10, "ACCG---T", "A---TTTG");
+    std::string expected { "10\tACCGT\tATTTG" };
+    std::string actual = record.to_string();
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(CandidateRegionWriteBuffer, add_new_variant)
+{
+    CandidateRegionWriteBuffer buffer("test");
+
+    EXPECT_EQ(buffer.get_sample_name(), "test");
+    EXPECT_TRUE(buffer.get_locus_name_to_ML_path().empty());
+    EXPECT_TRUE(buffer.get_locus_name_to_variants().empty());
+
+    buffer.add_new_variant("locus_1", "ml_path_1", "var_1");
+    {
+        auto actual = buffer.get_locus_name_to_ML_path();
+        decltype(actual) expected { { "locus_1", "ml_path_1" } };
+        EXPECT_EQ(actual, expected);
+    }
+    {
+        auto actual = buffer.get_locus_name_to_variants();
+        decltype(actual) expected { { "locus_1",
+            std::vector<std::string>({ "var_1" }) } };
+        EXPECT_EQ(actual, expected);
+    }
+
+    buffer.add_new_variant("locus_1", "ml_path_1", "var_2");
+    {
+        auto actual = buffer.get_locus_name_to_ML_path();
+        decltype(actual) expected { { "locus_1", "ml_path_1" } };
+        EXPECT_EQ(actual, expected);
+    }
+    {
+        auto actual = buffer.get_locus_name_to_variants();
+        decltype(actual) expected { { "locus_1",
+            std::vector<std::string>({ "var_1", "var_2" }) } };
+        EXPECT_EQ(actual, expected);
+    }
+
+    buffer.add_new_variant("locus_2", "ml_path_2", "var_3");
+    {
+        auto actual = buffer.get_locus_name_to_ML_path();
+        decltype(actual) expected { { "locus_1", "ml_path_1" },
+            { "locus_2", "ml_path_2" } };
+        EXPECT_EQ(actual, expected);
+    }
+    {
+        auto actual = buffer.get_locus_name_to_variants();
+        decltype(actual) expected {
+            { "locus_1", std::vector<std::string>({ "var_1", "var_2" }) },
+            { "locus_2", std::vector<std::string>({ "var_3" }) }
+        };
+        EXPECT_EQ(actual, expected);
+    }
+
+    buffer.add_new_variant("locus_3", "ml_path_3", "var_4");
+    {
+        auto actual = buffer.get_locus_name_to_ML_path();
+        decltype(actual) expected { { "locus_1", "ml_path_1" },
+            { "locus_2", "ml_path_2" }, { "locus_3", "ml_path_3" } };
+        EXPECT_EQ(actual, expected);
+    }
+    {
+        auto actual = buffer.get_locus_name_to_variants();
+        decltype(actual) expected {
+            { "locus_1", std::vector<std::string>({ "var_1", "var_2" }) },
+            { "locus_2", std::vector<std::string>({ "var_3" }) },
+            { "locus_3", std::vector<std::string>({ "var_4" }) }
+        };
+        EXPECT_EQ(actual, expected);
+    }
+
+    buffer.add_new_variant("locus_3", "ml_path_3", "var_5");
+    {
+        auto actual = buffer.get_locus_name_to_ML_path();
+        decltype(actual) expected { { "locus_1", "ml_path_1" },
+            { "locus_2", "ml_path_2" }, { "locus_3", "ml_path_3" } };
+        EXPECT_EQ(actual, expected);
+    }
+    {
+        auto actual = buffer.get_locus_name_to_variants();
+        decltype(actual) expected {
+            { "locus_1", std::vector<std::string>({ "var_1", "var_2" }) },
+            { "locus_2", std::vector<std::string>({ "var_3" }) },
+            { "locus_3", std::vector<std::string>({ "var_4", "var_5" }) }
+        };
+        EXPECT_EQ(actual, expected);
+    }
+}
+
+class CandidateRegionWriteBuffer___Fixture : public ::testing::Test {
+public:
+    // mock that allow to access protected members
+    class CandidateRegionWriteBufferMock : public CandidateRegionWriteBuffer {
+    public:
+        using CandidateRegionWriteBuffer::CandidateRegionWriteBuffer;
+        void write_to_file_core(std::stringstream& output_filehandler) const
+        {
+            CandidateRegionWriteBuffer::write_to_file_core(output_filehandler);
+        }
+    };
+};
+
+TEST_F(CandidateRegionWriteBuffer___Fixture, write_to_file_core)
+{
+    CandidateRegionWriteBufferMock buffer { "test_sample" };
+    buffer.add_new_variant("locus_1", "ml_path_1", "var_1");
+    buffer.add_new_variant("locus_1", "ml_path_1", "var_2");
+    buffer.add_new_variant("locus_2", "ml_path_2", "var_3");
+    buffer.add_new_variant("locus_3", "ml_path_3", "var_4");
+    buffer.add_new_variant("locus_3", "ml_path_3", "var_5");
+
+    std::stringstream ss;
+    buffer.write_to_file_core(ss);
+
+    std::string expected
+        = "Sample test_sample\n3 loci with denovo variants\nlocus_1\nml_path_1\n2 "
+          "denovo variants for this locus\nvar_1\nvar_2\nlocus_2\nml_path_2\n1 denovo "
+          "variants for this locus\nvar_3\nlocus_3\nml_path_3\n2 denovo variants for "
+          "this locus\nvar_4\nvar_5\n";
+    std::string actual = ss.str();
+    EXPECT_EQ(actual, expected);
+}
+
+// NB: we can always assume we have some flanking sequences between the denovo sequence
+// and the ML sequence for these tests
+class CandidateRegion___get_variants___Fixture : public ::testing::Test {
+public:
+    CandidateRegion___get_variants___Fixture()
+        : candidate(Interval(0, 29), "test", 1, std::vector<LocalNodePtr>(),
+            "AAGATATGTTCCGTTATGCGCAGCCCACA")
+    {
+    }
+    CandidateRegion candidate;
+};
+
+TEST_F(CandidateRegion___get_variants___Fixture, no_variant)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected;
+    EXPECT_EQ(actual, expected);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+// SNPs tests
+TEST_F(CandidateRegion___get_variants___Fixture, SNP_in_the_start)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("CAGATATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected { "1\tA\tC" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, SNP_in_the_middle)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTGATGCGCAGCCCACA");
+    std::vector<std::string> expected { "15\tT\tG" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, SNP_in_the_end)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTTATGCGCAGCCCACT");
+    std::vector<std::string> expected { "29\tA\tT" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, MSNP_in_the_start)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("CGTGTATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected { "1\tAAGA\tCGTG" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, MSNP_in_the_middle)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTGGCGCGCAGCCCACA");
+    std::vector<std::string> expected { "15\tTAT\tGGC" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, MSNP_in_the_end)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTTATGCGCAGCCCAGT");
+    std::vector<std::string> expected { "28\tCA\tGT" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, two_distant_SNPs)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATCTTCCGTTATGCGCAGGCCACA");
+    std::vector<std::string> expected { "8\tG\tC", "24\tC\tG" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, three_distant_SNPs)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATCTTCCGTTATGCGCAGGCCACT");
+    std::vector<std::string> expected { "8\tG\tC", "24\tC\tG", "29\tA\tT" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, two_SNPs_and_2_MSNPs)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AACATATGAACCGTTTTGCGTTTTTCACA");
+    std::vector<std::string> expected { "3\tG\tC", "9\tTT\tAA", "16\tA\tT",
+        "21\tCAGCC\tTTTTT" };
+    EXPECT_EQ(actual, expected);
+}
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+// deletion tests
+TEST_F(CandidateRegion___get_variants___Fixture, deletion_in_the_start)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AGATATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected { "1\tA\t" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, deletion_in_the_middle)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTTTGCGCAGCCCACA");
+    std::vector<std::string> expected { "16\tA\t" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, deletion_in_the_end)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTTATGCGCAGCCCAC");
+    std::vector<std::string> expected { "29\tA\t" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, multiple_deletion_in_the_start)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("TATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected { "1\tAAGA\t" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, multiple_deletion_in_the_middle)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGGCGCAGCCCACA");
+    std::vector<std::string> expected { "14\tTTAT\t" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, multiple_deletion_in_the_end)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTTATGCGCAGCCCA");
+    std::vector<std::string> expected { "28\tCA\t" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, two_distant_deletions)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATTTCCGTTATGCGCACCCACA");
+    std::vector<std::string> expected { "8\tG\t", "23\tG\t" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, three_distant_deletions)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATTTCCGTTATGCGCAGCCAC");
+    std::vector<std::string> expected { "8\tG\t", "24\tC\t", "29\tA\t" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, two_deletions_and_2_multiple_deletions)
+{
+    std::vector<std::string> actual = candidate.get_variants("AAATATGCCGTTTGCGCACA");
+    std::vector<std::string> expected { "3\tG\t", "9\tTT\t", "16\tA\t", "21\tCAGCC\t" };
+    EXPECT_EQ(actual, expected);
+}
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//// insertion tests
+TEST_F(CandidateRegion___get_variants___Fixture, insertion_in_the_start)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("TAAGATATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected { "1\t\tT" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, insertion_in_the_middle)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTTCATGCGCAGCCCACA");
+    std::vector<std::string> expected { "16\t\tC" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, insertion_in_the_end)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTTATGCGCAGCCCACAG");
+    std::vector<std::string> expected { "30\t\tG" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, multiple_insertion_in_the_start)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("CGTGAAGATATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected { "1\t\tCGTG" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, multiple_insertion_in_the_middle)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTTGGCATGCGCAGCCCACA");
+    std::vector<std::string> expected { "16\t\tGGC" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, multiple_insertion_in_the_end)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTTATGCGCAGCCCACAGT");
+    std::vector<std::string> expected { "30\t\tGT" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, two_distant_insertions)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATCGTTCCGTTATGCGCAGACCCACA");
+    std::vector<std::string> expected { "8\t\tC", "24\t\tA" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, three_distant_insertions)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATGATGTTCCGTTACTGCGCAGCCCTACA");
+    std::vector<std::string> expected { "6\t\tG", "17\t\tC", "27\t\tT" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(
+    CandidateRegion___get_variants___Fixture, two_insertions_and_2_multiple_insertions)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AATGATATGAATTCCGTCTATGCGCAGCCTTTTTCACA");
+    std::vector<std::string> expected { "3\t\tT", "9\t\tAA", "15\t\tC", "26\t\tTTTTT" };
+    EXPECT_EQ(actual, expected);
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+// Mixed variants tests
+TEST_F(CandidateRegion___get_variants___Fixture, SNP_and_insertion_in_the_start)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("CTTAGATATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected { "1\tA\tCTT" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, SNP_and_deletion_in_the_start)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("CATATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected { "1\tAAG\tC" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, SNP_and_insertion_in_the_middle)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTGCCATGCGCAGCCCACA");
+    std::vector<std::string> expected { "15\tT\tGCC" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, SNP_and_deletion_in_the_middle)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTCGCGCAGCCCACA");
+    std::vector<std::string> expected { "15\tTAT\tC" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, SNP_and_insertion_in_the_end)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTTATGCGCAGCCCACGTGC");
+    std::vector<std::string> expected { "29\tA\tGTGC" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, SNP_and_deletion_in_the_end)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTTATGCGCAGCCG");
+    std::vector<std::string> expected { "26\tCACA\tG" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, MSNP_and_insertion_in_the_start)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("CCTTTATATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected { "1\tAAG\tCCTTT" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, MSNP_and_deletion_in_the_start)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("CCATGTTCCGTTATGCGCAGCCCACA");
+    std::vector<std::string> expected { "1\tAAGAT\tCC" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, MSNP_and_insertion_in_the_middle)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTGCCCCGGCGCAGCCCACA");
+    std::vector<std::string> expected { "15\tTAT\tGCCCCG" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, MSNP_and_deletion_in_the_middle)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTCCCGCAGCCCACA");
+    std::vector<std::string> expected { "15\tTATG\tCC" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, MSNP_and_insertion_in_the_end)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTTATGCGCAGCCCTTTGTGT");
+    std::vector<std::string> expected { "27\tACA\tTTTGTGT" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, MSNP_and_deletion_in_the_end)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGATATGTTCCGTTATGCGCATTT");
+    std::vector<std::string> expected { "23\tGCCCACA\tTTT" };
+    EXPECT_EQ(actual, expected);
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, two_distant_MultiVariants)
+{
+    std::vector<std::string> actual
+        = candidate.get_variants("AAGACCCCCGTTATGCGCATTTTTTTTTTCACA");
+    std::vector<std::string> expected { "5\tTATGTT\tCCC", "23\tGCC\tTTTTTTTTTT" };
+    EXPECT_EQ(actual, expected);
+}
+
+class CandidateRegionWriteBuffer___merge___Fixture : public ::testing::Test {
+public:
+    CandidateRegionWriteBuffer buffer_1, buffer_1_copy;
+    CandidateRegionWriteBuffer___merge___Fixture()
+        : buffer_1("sample_1")
+    {
+        buffer_1.add_new_variant("locus_1", "ML_path_1", "locus_1_var_1");
+        buffer_1.add_new_variant("locus_2", "ML_path_2", "locus_2_var_1");
+        buffer_1.add_new_variant("locus_2", "ML_path_2", "locus_2_var_2");
+        buffer_1.add_new_variant("locus_3", "ML_path_3", "locus_3_var_1");
+        buffer_1.add_new_variant("locus_3", "ML_path_3", "locus_3_var_2");
+        buffer_1.add_new_variant("locus_3", "ML_path_3", "locus_3_var_3");
+        buffer_1_copy = buffer_1;
+    }
+};
+
+TEST_F(CandidateRegionWriteBuffer___merge___Fixture,
+    different_samples___expects_FatalRuntimeError)
+{
+
+    CandidateRegionWriteBuffer buffer_2("sample_2");
+    ASSERT_EXCEPTION(buffer_1.merge(buffer_2), FatalRuntimeError,
+        "Tried to merge two candidate regions buffers of different samples.");
+}
+
+TEST_F(CandidateRegionWriteBuffer___merge___Fixture,
+    has_same_loci_but_different_ML_path___expects_FatalRuntimeError)
+{
+
+    CandidateRegionWriteBuffer buffer_2("sample_1");
+    buffer_2.add_new_variant("locus_1", "ML_path_1", "locus_1_var_1"); // same
+    buffer_2.add_new_variant("locus_2", "ML_path_2", "locus_2_var_1"); // same
+    buffer_2.add_new_variant("locus_3", "ML_path_3_diff", "locus_3_var_1"); // different
+    ASSERT_EXCEPTION(buffer_1.merge(buffer_2), FatalRuntimeError,
+        "Tried to merge two candidate regions buffers, but they have "
+        "different ML paths for a same locus.");
+}
+
+TEST_F(CandidateRegionWriteBuffer___merge___Fixture,
+    merge_empty_buffer___no_changes_expected)
+{
+
+    CandidateRegionWriteBuffer buffer_2("sample_1");
+    buffer_1.merge(buffer_2);
+    EXPECT_EQ(buffer_1, buffer_1_copy);
+}
+
+TEST_F(CandidateRegionWriteBuffer___merge___Fixture,
+    merge_equal_buffer___no_changes_expected)
+{
+    buffer_1.merge(buffer_1_copy);
+    EXPECT_EQ(buffer_1, buffer_1_copy);
+}
+
+TEST_F(CandidateRegionWriteBuffer___merge___Fixture, merge_buffer_with_new_loci)
+{
+    CandidateRegionWriteBuffer buffer_2("sample_1");
+    buffer_2.add_new_variant("locus_4", "ML_path_4", "locus_4_var_1");
+    buffer_2.add_new_variant("locus_5", "ML_path_5", "locus_5_var_1");
+    buffer_2.add_new_variant("locus_5", "ML_path_5", "locus_5_var_2");
+    buffer_1.merge(buffer_2);
+
+    CandidateRegionWriteBuffer expected(buffer_1_copy);
+    expected.add_new_variant("locus_4", "ML_path_4", "locus_4_var_1");
+    expected.add_new_variant("locus_5", "ML_path_5", "locus_5_var_1");
+    expected.add_new_variant("locus_5", "ML_path_5", "locus_5_var_2");
+
+    EXPECT_EQ(expected, buffer_1);
+}
+
+TEST_F(CandidateRegionWriteBuffer___merge___Fixture,
+    merge_buffer_with_new_and_repeated_loci_new_and_repeated_vars)
+{
+    CandidateRegionWriteBuffer buffer_2("sample_1");
+
+    buffer_2.add_new_variant("locus_1", "ML_path_1", "locus_1_var_2"); // new
+    buffer_2.add_new_variant("locus_2", "ML_path_2", "locus_2_var_1"); // repeated
+    buffer_2.add_new_variant("locus_2", "ML_path_2", "locus_2_var_3"); // new
+    buffer_2.add_new_variant("locus_3", "ML_path_3", "locus_3_var_1"); // repeated
+    buffer_2.add_new_variant("locus_3", "ML_path_3", "locus_3_var_2"); // repeated
+    buffer_2.add_new_variant("locus_3", "ML_path_3", "locus_3_var_3"); // repeated
+    buffer_2.add_new_variant("locus_3", "ML_path_3", "locus_3_var_4"); // new
+    buffer_2.add_new_variant("locus_3", "ML_path_3", "locus_3_var_5"); // new
+    buffer_2.add_new_variant("locus_3", "ML_path_3", "locus_3_var_6"); // new
+    buffer_2.add_new_variant(
+        "locus_4", "ML_path_4", "locus_4_var_1"); // new loci and var
+    buffer_1.merge(buffer_2);
+
+    CandidateRegionWriteBuffer expected(buffer_1_copy);
+    expected.add_new_variant("locus_1", "ML_path_1", "locus_1_var_2");
+    expected.add_new_variant("locus_2", "ML_path_2", "locus_2_var_3");
+    expected.add_new_variant("locus_3", "ML_path_3", "locus_3_var_4");
+    expected.add_new_variant("locus_3", "ML_path_3", "locus_3_var_5");
+    expected.add_new_variant("locus_3", "ML_path_3", "locus_3_var_6");
+    expected.add_new_variant("locus_4", "ML_path_4", "locus_4_var_1");
+
+    EXPECT_EQ(expected, buffer_1);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////

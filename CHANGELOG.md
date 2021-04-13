@@ -9,6 +9,27 @@ project adheres to
 
 ## [Unreleased]
 
+## [0.9.0-rc2]
+
+### Changed
+- `pandora discover` now processes one sample at a time, but runs with several threads on the heavy tasks, i.e. when
+mapping reads, finding candidate regions, and finding denovo variants. The result is that it now takes a lot less RAM to
+run on multiple samples.
+
+## [0.9.0-rc1]
+
+### Changed
+- `pandora discover` now receives read index files describing samples and reads, and discover denovo sequences in these samples.
+  To improve performance on discovering denovo sequences on several samples, `pandora discover` is now multithreaded, but
+  the performance is still the same as the previous version, i.e. each sample is processed in a single-threaded way;
+- `pandora discover` output changed to a proprietary format. See [example](example) for the new output;
+- `pandora` can now communicate with a [`make_prg` prototype](https://github.com/leoisl/make_prg) that is able to update PRGs
+without needing to realign and remake the PRG. This provides major performance upgrades to running the full `pandora` pipeline
+with denovo discovery enabled, and there is no need anymore to use a `snakemake` pipeline
+(see [this example](example/run_pandora.sh) to how to run the full pipeline);
+- We now use [musl libc](https://musl.libc.org/) instead of [Holy Build Box](https://github.com/phusion/holy-build-box)
+to build a precompiled portable binary, removing the dependency on `OpenMP 4.0+` or `GCC 4.9+`, and `GLIBC`;
+
 ## [0.8.0]
 
 ### Added
@@ -71,7 +92,9 @@ from this point will have their changes meticulously documented here.
 
 - k-mer coverage underflow bug in `LocalPRG` [[#183][183]]
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/0.8.0...HEAD
+[Unreleased]: https://github.com/rmcolq/pandora/compare/0.9.0-rc2...HEAD
+[0.9.0-rc2]: https://github.com/rmcolq/pandora/releases/tag/0.9.0-rc2
+[0.9.0-rc1]: https://github.com/rmcolq/pandora/releases/tag/0.9.0-rc1
 [0.8.0]: https://github.com/rmcolq/pandora/releases/tag/0.8.0
 [v0.7.0]: https://github.com/rmcolq/pandora/releases/tag/v0.7.0
 

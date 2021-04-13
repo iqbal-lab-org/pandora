@@ -213,7 +213,7 @@ TEST(EstimateParameters_EstimateParameters, PangraphWithNodes_SimpleBinomial)
     const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads.fa";
     pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
         min_cluster_size, genome_size, illumina);
-    pangraph->add_hits_to_kmergraphs(prgs);
+    pangraph->add_hits_to_kmergraphs();
 
     auto expected_depth_covg
         = estimate_parameters(pangraph, outdir, k, e_rate, covg, bin, sample_id);
@@ -237,7 +237,7 @@ TEST(
     const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads3.fa";
     pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
         min_cluster_size, genome_size, illumina);
-    pangraph->add_hits_to_kmergraphs(prgs);
+    pangraph->add_hits_to_kmergraphs();
 
     auto expected_depth_covg
         = estimate_parameters(pangraph, outdir, k, e_rate, covg, bin, sample_id);
@@ -260,7 +260,7 @@ TEST(EstimateParameters_EstimateParameters, PangraphWithNodes_SimpleNegativeBino
     const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads.fa";
     pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
         min_cluster_size, genome_size, illumina);
-    pangraph->add_hits_to_kmergraphs(prgs);
+    pangraph->add_hits_to_kmergraphs();
 
     auto expected_depth_covg
         = estimate_parameters(pangraph, outdir, k, e_rate, covg, bin, sample_id);
@@ -284,7 +284,7 @@ TEST(EstimateParameters_EstimateParameters,
     const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads4.fa";
     pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
         min_cluster_size, genome_size, illumina);
-    pangraph->add_hits_to_kmergraphs(prgs);
+    pangraph->add_hits_to_kmergraphs();
 
     auto expected_depth_covg
         = estimate_parameters(pangraph, outdir, k, e_rate, covg, bin, sample_id);
@@ -309,7 +309,7 @@ TEST(EstimateParameters_EstimateParameters,
     const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads4.fa";
     pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
         min_cluster_size, genome_size, illumina);
-    pangraph->add_hits_to_kmergraphs(prgs);
+    pangraph->add_hits_to_kmergraphs();
 
     auto expected_depth_covg
         = estimate_parameters(pangraph, outdir, k, e_rate, covg, bin, sample_id);
@@ -333,7 +333,7 @@ TEST(EstimateParameters_EstimateParameters, PangraphWithNodes_NoiseReads)
     const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads2.fa";
     pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
         min_cluster_size, genome_size, illumina);
-    pangraph->add_hits_to_kmergraphs(prgs);
+    pangraph->add_hits_to_kmergraphs();
 
     auto expected_depth_covg
         = estimate_parameters(pangraph, outdir, k, e_rate, covg, bin, sample_id);

@@ -16,6 +16,7 @@
 - [Quick Start](#quick-start)
 - [Hands-on toy example](#hands-on-toy-example)
 - [Installation](#installation)
+  - [Precompiled portable binary](#no-installation-needed---precompiled-portable-binary)
   - [Containers](#containers)
   - [Installation from source](#installation-from-source)
 - [Usage](#usage)
@@ -27,7 +28,7 @@ Pandora is a tool for bacterial genome analysis using a pangenome reference grap
 The PanRG is a collection of 'floating'
 local graphs (PRGs), each representing some orthologous region of interest
 (e.g. genes, mobile elements or intergenic regions). See
-https://github.com/rmcolq/make_prg for a pipeline which can construct
+https://github.com/leoisl/make_prg for a tool which can construct
 these PanRGs from a set of aligned sequence files.
 
 Pandora can do the following for a single sample (read dataset):
@@ -66,45 +67,28 @@ pandora map <panrg.fa> <reads.fq>
 ## Hands-on toy example
 
 You can test `pandora` on a toy example following [this link](example).
-There is no need to have `pandora` installed, as it is run inside containers.
+**There is no need to have `pandora` installed.**
 
 ## Installation
 
 ### No installation needed - precompiled portable binary
 
 You can use `pandora` with no installation at all by simply downloading the precompiled binary, and running it.
-In this binary, all libraries are linked statically, except for OpenMP.
-
-* **Requirements**
-  * The only dependency required to run the precompiled binary is OpenMP 4.0+;
-  * The easiest way to install OpenMP 4.0+ is to have GCC 4.9 (from April 22, 2014) or more recent installed, which supports OpenMP 4.0;
-  * Technical details on why OpenMP can't be linked statically
-can be found [here](https://gcc.gnu.org/onlinedocs/gfortran/OpenMP.html). 
+In this binary, all libraries are linked statically.
 
 * **Download**:
   ```
-  wget https://github.com/rmcolq/pandora/releases/download/0.8.0/pandora-linux-precompiled-v0.8.0.gz
-  gunzip pandora-linux-precompiled-v0.8.0.gz
+  wget https://github.com/rmcolq/pandora/releases/download/0.9.0-rc2/pandora-linux-precompiled-v0.9.0-rc2
   ```
+
 * **Running**:
 ```
-chmod +x pandora-linux-precompiled-v0.8.0
-./pandora-linux-precompiled-v0.8.0 -h
+chmod +x pandora-linux-precompiled-v0.9.0-rc2
+./pandora-linux-precompiled-v0.9.0-rc2 -h
 ```
-
-* **Compatibility**: This precompiled binary works on pretty much any glibc-2.12-or-later-based x86 and x86-64 Linux distribution 
-  released since approx 2011. A non-exhaustive list: Debian >= 7, Ubuntu >= 10.10, Red Hat Enterprise Linux >= 6,
-  CentOS >= 6;
-  
-* **Credits**:
-  * Precompilation is done using [Holy Build Box](http://phusion.github.io/holy-build-box/);
-  * We acknowledge Páll Melsted since we followed his [blog post](https://pmelsted.wordpress.com/2015/10/14/building-binaries-for-bioinformatics/) to build this portable binary.
 
 * **Notes**:
   * We provide precompiled binaries for Linux OS only;
-  * The performance of precompiled binaries is several times slower than a binary compiled from source.
-    The main reason is that the precompiled binary can't contain specific instructions that might speed up
-    the execution on specific processors, as it has to be runnable on a wide range of systems;
 
 ### Containers
 

@@ -36,6 +36,10 @@ public:
 
     friend std::ostream& operator<<(std::ostream& out, const LocalNode& n);
 
+    std::string to_string() const;
+
+    static std::string to_string_vector(const std::vector<LocalNodePtr>& local_nodes);
+
     friend class LocalGraph;
 
     friend class LocalPRG;

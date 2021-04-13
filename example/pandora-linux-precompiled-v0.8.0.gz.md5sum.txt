@@ -1,1 +1,0 @@
-e8a55497e8b1c3f9c55186c001e86eb3  pandora-linux-precompiled-v0.8.0.gz

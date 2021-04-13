@@ -24,7 +24,7 @@ ENV PANDORA_DIR "/pandora/"
 
 COPY . $PANDORA_DIR
 WORKDIR ${PANDORA_DIR}/build
-RUN cmake -DCMAKE_BUILD_TYPE="$PANDORA_BUILD_TYPE" -j4 .. \
+RUN cmake -DCMAKE_BUILD_TYPE="$PANDORA_BUILD_TYPE" -DHUNTER_JOBS_NUMBER=4 .. \
     && make -j4 \
     && ctest -V \
     && apt-get remove -y cmake git \

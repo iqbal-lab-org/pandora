@@ -1,4 +1,15 @@
 #include "denovo_discovery/candidate_region.h"
+#include "utils.h"
+#include <seqan/align.h>
+
+std::string SimpleDenovoVariantRecord::to_string() const
+{
+    std::string ref_to_print = remove_spaces_from_string(ref);
+    std::string alt_to_print = remove_spaces_from_string(alt);
+    std::stringstream ss;
+    ss << pos << "\t" << ref_to_print << "\t" << alt_to_print;
+    return ss.str();
+}
 
 size_t std::hash<CandidateRegionIdentifier>::operator()(
     const CandidateRegionIdentifier& id) const
@@ -8,15 +19,20 @@ size_t std::hash<CandidateRegionIdentifier>::operator()(
         ^ std::hash<std::string>()(std::get<1>(id));
 }
 
-CandidateRegion::CandidateRegion(const Interval& interval, std::string name)
-    : interval { interval }
-    , name { std::move(name) }
-    , interval_padding { 0 }
+void CandidateRegion::init()
 {
     initialise_filename();
 #ifndef NO_OPENMP
     omp_init_lock(&add_pileup_entry_lock);
 #endif
+}
+
+CandidateRegion::CandidateRegion(const Interval& interval, std::string name)
+    : interval { interval }
+    , name { std::move(name) }
+    , interval_padding { 0 }
+{
+    init();
 }
 
 CandidateRegion::CandidateRegion(
@@ -25,10 +41,20 @@ CandidateRegion::CandidateRegion(
     , name { std::move(name) }
     , interval_padding { interval_padding }
 {
-    initialise_filename();
-#ifndef NO_OPENMP
-    omp_init_lock(&add_pileup_entry_lock);
-#endif
+    init();
+}
+
+CandidateRegion::CandidateRegion(const Interval& interval, std::string name,
+    const uint_least16_t& interval_padding,
+    const std::vector<LocalNodePtr>& local_node_max_likelihood_path,
+    const std::string& local_node_max_likelihood_sequence)
+    : interval { interval }
+    , name { std::move(name) }
+    , interval_padding { interval_padding }
+    , local_node_max_likelihood_path(local_node_max_likelihood_path)
+    , local_node_max_likelihood_sequence { local_node_max_likelihood_sequence }
+{
+    init();
 }
 
 CandidateRegion::~CandidateRegion()
@@ -91,6 +117,9 @@ CandidateRegions Discover::find_candidate_regions_for_pan_node(
     const auto& local_node_max_likelihood_path {
         pangraph_node_components.local_node_max_likelihood_path
     };
+    const auto& local_node_max_likelihood_seq {
+        pangraph_node_components.local_node_max_likelihood_seq
+    };
     const auto& kmer_node_max_likelihood_path {
         pangraph_node_components.kmer_node_max_likelihood_path
     };
@@ -119,7 +148,8 @@ CandidateRegions Discover::find_candidate_regions_for_pan_node(
 
     for (const auto& current_interval : candidate_intervals) {
         CandidateRegion candidate_region { current_interval, pangraph_node->get_name(),
-            this->candidate_padding };
+            this->candidate_padding, local_node_max_likelihood_path,
+            local_node_max_likelihood_seq };
 
         const auto interval_path_components { find_interval_and_flanks_in_localpath(
             candidate_region.get_interval(), local_node_max_likelihood_path) };
@@ -199,43 +229,86 @@ void CandidateRegion::add_pileup_entry(
     }
 }
 
-void CandidateRegion::write_denovo_paths_to_file(const fs::path& output_directory)
+void CandidateRegion::write_denovo_paths_to_buffer(CandidateRegionWriteBuffer& buffer)
 {
     if (denovo_paths.empty()) {
         return;
     }
 
-    auto fasta { generate_fasta_for_denovo_paths() };
-
-    const auto discovered_paths_filepath { output_directory / filename };
-
-    fasta.save(discovered_paths_filepath.string());
+    const std::string local_node_max_likelihood_path_as_str
+        = LocalNode::to_string_vector(this->local_node_max_likelihood_path);
+    for (const std::string& denovo_path : denovo_paths) {
+        std::vector<std::string> variants = get_variants(denovo_path);
+        for (const std::string& variant : variants) {
+            buffer.add_new_variant(
+                name, local_node_max_likelihood_path_as_str, variant);
+        }
+    }
 }
 
-Fastaq CandidateRegion::generate_fasta_for_denovo_paths()
+std::vector<std::string> CandidateRegion::get_variants(
+    const string& denovo_sequence) const
 {
-    const bool gzip { false };
-    const bool fastq { false };
-    Fastaq fasta { gzip, fastq };
+    using namespace seqan;
+    typedef String<char> TSequence; // sequence type
+    typedef Align<TSequence, ArrayGaps> TAlign; // align type
+    typedef Row<TAlign>::Type TRow; // gapped sequence type
 
-    for (size_t i = 0; i < denovo_paths.size(); ++i) {
-        const auto& path { denovo_paths.at(i) };
-        const std::string path_name { std::string(name).append(".").append(
-            std::to_string(i)) };
-        fasta.add_entry(path_name, path, "");
+    // TODO: this can be further optimised by aligning the candidate region sequence
+    // with the candidate region alt (not the whole ML sequence with the whole ML alt)
+    TSequence ref = local_node_max_likelihood_sequence;
+    TSequence alt = denovo_sequence;
+
+    TAlign align;
+    resize(rows(align), 2);
+    assignSource(row(align, 0), ref);
+    assignSource(row(align, 1), alt);
+
+    TRow& ref_row = row(align, 0);
+    TRow& alt_row = row(align, 1);
+
+    globalAlignment(align, Score<int, Simple>(2, -1, -2, -4), AffineGaps());
+    bool append_to_previous = false;
+    std::vector<SimpleDenovoVariantRecord> denovo_variants;
+    for (size_t alignment_index = 0; alignment_index < length(ref_row);
+         ++alignment_index) {
+        char ref_base = (char)(ref_row[alignment_index]);
+        char alt_base = (char)(alt_row[alignment_index]);
+        const bool is_variant_position = ref_base != alt_base;
+        if (is_variant_position) {
+            if (append_to_previous) {
+                denovo_variants.back().ref += ref_base;
+                denovo_variants.back().alt += alt_base;
+            } else {
+                SimpleDenovoVariantRecord denovo_variant(
+                    toSourcePosition(ref_row, alignment_index) + 1,
+                    std::string(1, ref_base), std::string(1, alt_base));
+                denovo_variants.push_back(denovo_variant);
+            }
+            append_to_previous = true;
+        } else {
+            append_to_previous = false;
+        }
     }
 
-    return fasta;
+    std::vector<std::string> denovo_variants_as_str;
+    for (const SimpleDenovoVariantRecord& denovo_variant : denovo_variants) {
+        denovo_variants_as_str.push_back(denovo_variant.to_string());
+    }
+
+    return denovo_variants_as_str;
 }
 
 TmpPanNode::TmpPanNode(const PanNodePtr& pangraph_node,
     const shared_ptr<LocalPRG>& local_prg,
     const vector<KmerNodePtr>& kmer_node_max_likelihood_path,
-    const vector<LocalNodePtr>& local_node_max_likelihood_path)
+    const vector<LocalNodePtr>& local_node_max_likelihood_path,
+    const std::string& local_node_max_likelihood_seq)
     : pangraph_node { pangraph_node }
     , local_prg { local_prg }
     , kmer_node_max_likelihood_path { kmer_node_max_likelihood_path }
     , local_node_max_likelihood_path { local_node_max_likelihood_path }
+    , local_node_max_likelihood_seq { local_node_max_likelihood_seq }
 {
 }
 
@@ -333,4 +406,58 @@ Discover::Discover(uint32_t min_required_covg, uint32_t min_candidate_len,
     , candidate_padding { candidate_padding }
     , merge_dist { merge_dist }
 {
+}
+
+void CandidateRegionWriteBuffer::add_new_variant(const std::string& locus_name,
+    const std::string& ML_path, const std::string& variant)
+{
+    std::vector<std::string>& variants = locus_name_to_variants[locus_name];
+    const bool variant_already_exists
+        = std::find(variants.begin(), variants.end(), variant) != variants.end();
+    if (variant_already_exists) {
+        return;
+    }
+
+    locus_name_to_ML_path[locus_name] = ML_path;
+    variants.push_back(variant);
+}
+
+void CandidateRegionWriteBuffer::write_to_file(const fs::path& output_file) const
+{
+    ofstream output_filehandler;
+    open_file_for_writing(output_file.string(), output_filehandler);
+    write_to_file_core(output_filehandler);
+    output_filehandler.close();
+}
+
+void CandidateRegionWriteBuffer::merge(const CandidateRegionWriteBuffer& other)
+{
+    const bool same_samples = this->sample_name == other.sample_name;
+    if (!same_samples) {
+        fatal_error(
+            "Tried to merge two candidate regions buffers of different samples.");
+    }
+
+    for (const auto& locus_name_to_ML_path_entry : other.locus_name_to_ML_path) {
+        const auto& locus_name = locus_name_to_ML_path_entry.first;
+        const auto& ML_path = locus_name_to_ML_path_entry.second;
+
+        const bool locus_already_exists_in_this_buffer
+            = this->locus_name_to_ML_path.find(locus_name)
+            != this->locus_name_to_ML_path.end();
+        if (locus_already_exists_in_this_buffer) {
+            const bool locus_has_same_ML_path
+                = this->locus_name_to_ML_path.at(locus_name)
+                == other.locus_name_to_ML_path.at(locus_name);
+            if (!locus_has_same_ML_path) {
+                fatal_error(
+                    "Tried to merge two candidate regions buffers, but they have "
+                    "different ML paths for a same locus.");
+            }
+        }
+
+        for (const std::string& variant : other.locus_name_to_variants.at(locus_name)) {
+            this->add_new_variant(locus_name, ML_path, variant);
+        }
+    }
 }

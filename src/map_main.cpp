@@ -274,7 +274,7 @@ int pandora_map(MapOptions& opt)
 
     BOOST_LOG_TRIVIAL(info) << "Updating local PRGs with hits...";
     uint32_t sample_id = 0;
-    pangraph->add_hits_to_kmergraphs(prgs);
+    pangraph->add_hits_to_kmergraphs();
 
     BOOST_LOG_TRIVIAL(info) << "Estimating parameters for kmer graph model...";
     auto exp_depth_covg = estimate_parameters(pangraph, opt.outdir, opt.kmer_size,
