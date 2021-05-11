@@ -9,6 +9,11 @@ project adheres to
 
 ## [Unreleased]
 
+## [0.9.0]
+
+### Changed
+- Version bump from `0.9.0-rc2` to `0.9.0`.
+
 ## [0.9.0-rc2]
 
 ### Changed
@@ -92,7 +97,8 @@ from this point will have their changes meticulously documented here.
 
 - k-mer coverage underflow bug in `LocalPRG` [[#183][183]]
 
-[Unreleased]: https://github.com/rmcolq/pandora/compare/0.9.0-rc2...HEAD
+[Unreleased]: https://github.com/rmcolq/pandora/compare/0.9.0...HEAD
+[0.9.0]: https://github.com/rmcolq/pandora/releases/tag/0.9.0
 [0.9.0-rc2]: https://github.com/rmcolq/pandora/releases/tag/0.9.0-rc2
 [0.9.0-rc1]: https://github.com/rmcolq/pandora/releases/tag/0.9.0-rc1
 [0.8.0]: https://github.com/rmcolq/pandora/releases/tag/0.8.0

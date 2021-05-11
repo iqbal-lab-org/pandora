@@ -12,7 +12,7 @@ HunterGate(
 # project configuration
 set(PROJECT_NAME_STR pandora)
 project(${PROJECT_NAME_STR} VERSION "0.9.0" LANGUAGES C CXX)
-set(ADDITIONAL_VERSION_LABELS "-rc2")
+set(ADDITIONAL_VERSION_LABELS "")
 configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
 # add or not feature to print the stack trace
