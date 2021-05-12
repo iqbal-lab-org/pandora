@@ -78,13 +78,13 @@ In this binary, all libraries are linked statically.
 
 * **Download**:
   ```
-  wget https://github.com/rmcolq/pandora/releases/download/0.9.0-rc2/pandora-linux-precompiled-v0.9.0-rc2
+  wget https://github.com/rmcolq/pandora/releases/download/0.9.0/pandora-linux-precompiled-v0.9.0
   ```
 
 * **Running**:
 ```
-chmod +x pandora-linux-precompiled-v0.9.0-rc2
-./pandora-linux-precompiled-v0.9.0-rc2 -h
+chmod +x pandora-linux-precompiled-v0.9.0
+./pandora-linux-precompiled-v0.9.0 -h
 ```
 
 * **Notes**:
