@@ -16,15 +16,11 @@
  */
 struct MinimizerHit {
 private:
-    uint32_t read_id; // TODO: Possible improvement (memory): this can be made a
-                      // template and change depending on the maximum number of reads
-    uint32_t
-        read_start_position; // TODO: Possible improvement (memory): this can be made a
-                             // template and change depending on the maximum read length
-    bool read_strand;
-    const MiniRecord& minimizer_from_PRG;
-
+    uint32_t read_id;
+    uint32_t read_start_position;
 public:
+    const bool read_strand;
+    const MiniRecord& minimizer_from_PRG;
     inline uint32_t get_read_id() const { return read_id; }
     inline uint32_t get_read_start_position() const { return read_start_position; }
     inline uint32_t get_prg_id() const { return minimizer_from_PRG.prg_id; }

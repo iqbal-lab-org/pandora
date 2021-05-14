@@ -491,7 +491,7 @@ TEST(UtilsTest, simpleInferLocalPRGOrderForRead)
 
     // initialize pangraph;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    infer_localPRG_order_for_reads(prgs, minimizer_hits, pangraph, 1, 100, 0.1, 1);
+    get_minimizer_hit_clusters(prgs, minimizer_hits, pangraph, 1, 100, 0.1, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 then 1)
     pangenome::Graph pg_exp;
@@ -725,7 +725,7 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead)
 
     // initialize pangraph;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    infer_localPRG_order_for_reads(prgs, minimizer_hits, pangraph, 1, 100, 0.1, 1);
+    get_minimizer_hit_clusters(prgs, minimizer_hits, pangraph, 1, 100, 0.1, 1);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other
@@ -1193,9 +1193,9 @@ TEST(load_read_index, read_index_does_not_exist___expects_FatalRuntimeError)
 
 TEST(load_read_index, read_index_has_three_samples)
 {
-    std::vector<std::pair<SampleIdText, SampleFpath>> actual
+    std::vector<SampleData> actual
         = load_read_index(fs::path("../../test/test_cases/sample_read_index.tsv"));
-    std::vector<std::pair<SampleIdText, SampleFpath>> expected { {
+    std::vector<SampleData> expected { {
         std::make_pair("sample_1", "reads_1.fastq"),
         std::make_pair("sample_2", "reads_2.fastq"),
         std::make_pair("sample_3", "reads_3.fastq"),
@@ -1206,9 +1206,9 @@ TEST(load_read_index, read_index_has_three_samples)
 
 TEST(load_read_index, read_index_has_three_samples_and_two_are_repeated)
 {
-    std::vector<std::pair<SampleIdText, SampleFpath>> actual = load_read_index(
+    std::vector<SampleData> actual = load_read_index(
         fs::path("../../test/test_cases/sample_read_index_with_repeated_samples.tsv"));
-    std::vector<std::pair<SampleIdText, SampleFpath>> expected { {
+    std::vector<SampleData> expected { {
         std::make_pair("sample_1", "first_reads_1.fastq"),
         std::make_pair("sample_2", "second_reads_2.fastq"),
         std::make_pair("sample_3", "fourth_reads_3.fastq"),

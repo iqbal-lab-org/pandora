@@ -75,7 +75,7 @@ void update_node_info_with_this_read(const NodePtr& node_ptr, const ReadPtr& rea
 
 // Checks that all hits in the cluster are from the given prg and read
 void check_correct_hits(const uint32_t prg_id, const uint32_t read_id,
-    const std::set<MinimizerHitPtr, pComp>& cluster)
+    const MinimizerHitCluster& cluster)
 {
     for (const auto& hit_ptr : cluster) {
         const bool hits_correspond_to_correct_read = read_id == hit_ptr->get_read_id();
@@ -98,7 +98,7 @@ void check_correct_hits(const uint32_t prg_id, const uint32_t read_id,
 // the read was the same node and orientation)
 // Store the hits on the read
 void update_read_info_with_node_and_cluster(ReadPtr& read_ptr, const NodePtr& node_ptr,
-    const std::set<MinimizerHitPtr, pComp>& cluster)
+    const MinimizerHitCluster& cluster)
 {
     read_ptr->add_hits(node_ptr, cluster);
 }
@@ -108,7 +108,7 @@ void pangenome::Graph::add_hits_between_PRG_and_read(
         prg, // the prg from where this cluster of hits come
     const uint32_t read_id, // the read id from where this cluster of reads come - TODO:
                             // this can be derived from the cluster
-    std::set<MinimizerHitPtr, pComp>& cluster // the cluster itself
+    const MinimizerHitCluster& cluster
 )
 {
     check_correct_hits(prg->id, read_id,

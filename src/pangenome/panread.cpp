@@ -33,7 +33,7 @@ std::vector<WeakNodePtr>::iterator Read::find_node_by_id(uint32_t node_id)
 }
 
 void Read::add_hits(
-    const NodePtr& node_ptr, const std::set<MinimizerHitPtr, pComp>& cluster)
+    const NodePtr& node_ptr, const MinimizerHitCluster& cluster)
 {
     // TODO: review this method...
     auto before_size = hits.size();

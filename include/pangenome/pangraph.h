@@ -1,12 +1,7 @@
 #ifndef __PANGRAPH_H_INCLUDED__ // if pangraph.h hasn't been included yet...
 #define __PANGRAPH_H_INCLUDED__
 
-struct MinimizerHit;
-
-class LocalPRG;
-
-class KmerNode;
-
+#include "forward_declarations.h"
 #include <string>
 #include <cstdint>
 #include <unordered_map>
@@ -91,7 +86,7 @@ public:
         const std::shared_ptr<LocalPRG>&
             prg, // the prg from where this cluster of hits come
         const uint32_t read_id, // the read id from where this cluster of reads come
-        std::set<MinimizerHitPtr, pComp>& cluster // the cluster itself
+        const MinimizerHitCluster& cluster
     );
 
     /**
