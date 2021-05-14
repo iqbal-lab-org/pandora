@@ -15,6 +15,7 @@
 #include <boost/log/trivial.hpp>
 #include <sstream>
 #include "fatal_error.h"
+#include "paf_file.h"
 
 namespace fs = boost::filesystem;
 

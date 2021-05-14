@@ -438,6 +438,8 @@ uint32_t pangraph_from_read_file(const SampleData &sample,
     FastaqHandler fh(sample_filepath);
     uint32_t id { 0 };
 
+    PafFile unfiltered_mappings(sample_outdir / (sample_name + ".unfiltered.paf"));
+    PafFile filtered_mappings(sample_outdir / (sample_name + ".filtered.paf"));
 // parallel region
 #pragma omp parallel num_threads(threads)
     {
@@ -510,11 +512,20 @@ uint32_t pangraph_from_read_file(const SampleData &sample,
                 auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
                 add_read_hits(sequence, minimizer_hits, *index);
 
+                // write unfiltered minimizer hits
+                unfiltered_mappings.write_cluster(minimizer_hits->hits);
+
                 // infer
                 MinimizerHitClusters clusters_of_hits =
                     get_minimizer_hit_clusters(sample_name, sequence.id, prgs, minimizer_hits, pangraph, max_diff,
                     genome_size, fraction_kmers_required_for_cluster, min_cluster_size,
                     expected_number_kmers_in_read_sketch);
+
+#pragma omp critical(pangraph)
+                {
+                    add_clusters_to_pangraph(clusters_of_hits, pangraph, prgs);
+                    filtered_mappings.write_clusters(clusters_of_hits);
+                }
             }
 
             if (coverageExceeded)
