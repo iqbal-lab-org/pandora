@@ -101,3 +101,4 @@ build_portable_executable
 pandora-linux-precompiled
 
 /archives/
+/example/out/
