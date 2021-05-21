@@ -17,6 +17,7 @@
 - [Hands-on toy example](#hands-on-toy-example)
 - [Installation](#installation)
   - [Precompiled portable binary](#no-installation-needed---precompiled-portable-binary)
+  - [Conda](#conda)
   - [Containers](#containers)
   - [Installation from source](#installation-from-source)
 - [Usage](#usage)
@@ -78,17 +79,24 @@ In this binary, all libraries are linked statically.
 
 * **Download**:
   ```
-  wget https://github.com/rmcolq/pandora/releases/download/0.9.0/pandora-linux-precompiled-v0.9.0
+  wget https://github.com/rmcolq/pandora/releases/download/0.9.1/pandora-linux-precompiled-v0.9.1
   ```
 
 * **Running**:
 ```
-chmod +x pandora-linux-precompiled-v0.9.0
-./pandora-linux-precompiled-v0.9.0 -h
+chmod +x pandora-linux-precompiled-v0.9.1
+./pandora-linux-precompiled-v0.9.1 -h
 ```
 
 * **Notes**:
   * We provide precompiled binaries for Linux OS only;
+
+### Conda
+
+To install `pandora` through `conda`, run:
+```
+conda install -c bioconda pandora
+```
 
 ### Containers
 
