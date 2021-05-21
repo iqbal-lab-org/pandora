@@ -81,6 +81,19 @@ GC00010897	44	.	C	T	.	.	SVTYPE=SNP;GRAPHTYPE=SIMPLE	GT:MEAN_FWD_COVG:MEAN_REV_CO
 GC00010897	422	.	A	T	.	.	SVTYPE=SNP;GRAPHTYPE=SIMPLE	GT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS:LIKELIHOOD:GT_CONF	1:0,8:0,5:0,8:0,5:0,16:0,11:1,0:-155.867,-20.2266:135.641	0:12,0:9,0:12,0:9,0:12,0:9,0:0,1:-9.39494,-182.709:173.314
 ```
 
+## Extra
+
+### Running with conda
+
+If you install `pandora` via `conda`: `conda install -c bioconda pandora`,
+you can run this sample example by activating the `conda` environment containing `pandora` and running:
+
+```
+./run_pandora.sh conda
+```
+
+The output should be the same as using the precompiled binary.
+
 <!--Link References-->
 
 [pandora_2020_paper]: https://www.biorxiv.org/content/10.1101/2020.11.12.380378v2

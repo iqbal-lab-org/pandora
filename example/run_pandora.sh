@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 set -eu
 
-# configs
-pandora_URL="https://github.com/rmcolq/pandora/releases/download/0.9.0/pandora-linux-precompiled-v0.9.0"
-pandora_executable="./pandora-linux-precompiled-v0.9.0"
-make_prg_URL="https://github.com/leoisl/make_prg/releases/download/v0.2.0/make_prg_0.2.0"
-make_prg_executable="./make_prg_0.2.0"
-
+########################################################################################################################
+# argument parsing
+if [[ "$#" -gt 1 || ( "$#" -eq 1  && "$1" != "conda" ) ]] ; then
+    echo "Illegal parameters."
+    echo "Usage: $0 or $0 conda"
+    exit 1
+fi
+########################################################################################################################
 
 function download_tool {
   URL=$1
@@ -15,7 +17,19 @@ function download_tool {
   chmod +x "${executable}"
 }
 
-download_tool "${pandora_URL}" "${pandora_executable}"
+# setup tools
+if [ "$#" -eq 0 ] ; then
+  # not conda env
+  pandora_URL="https://github.com/rmcolq/pandora/releases/download/0.9.0/pandora-linux-precompiled-v0.9.0"
+  pandora_executable="./pandora-linux-precompiled-v0.9.0"
+  download_tool "${pandora_URL}" "${pandora_executable}"
+else
+  # conda env
+  pandora_executable="pandora"
+fi
+
+make_prg_URL="https://github.com/leoisl/make_prg/releases/download/v0.2.0/make_prg_0.2.0"
+make_prg_executable="./make_prg_0.2.0"
 download_tool "${make_prg_URL}" "${make_prg_executable}"
 
 echo "Running pandora without denovo..."
