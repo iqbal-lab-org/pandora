@@ -20,8 +20,8 @@ function download_tool {
 # setup tools
 if [ "$#" -eq 0 ] ; then
   # not conda env
-  pandora_URL="https://github.com/rmcolq/pandora/releases/download/0.9.0/pandora-linux-precompiled-v0.9.0"
-  pandora_executable="./pandora-linux-precompiled-v0.9.0"
+  pandora_URL="https://github.com/rmcolq/pandora/releases/download/0.9.1/pandora-linux-precompiled-v0.9.1"
+  pandora_executable="./pandora-linux-precompiled-v0.9.1"
   download_tool "${pandora_URL}" "${pandora_executable}"
 else
   # conda env
