@@ -3,6 +3,7 @@
 
 class LocalPRG;
 
+
 #include <cstdint>
 #include <vector>
 #include <iostream>
@@ -13,7 +14,9 @@ class LocalPRG;
 #include "pangenome/ns.cpp"
 #include "fatal_error.h"
 
+
 namespace fs = boost::filesystem;
+class LocalGraph;
 
 struct condition {
     prg::Path q;
@@ -47,6 +50,9 @@ public:
     virtual ~KmerGraph() = default;
 
     void clear();
+
+    KmerNodePtr create_null_start_node();
+    KmerNodePtr create_null_end_node(const LocalGraph &prg);
 
     KmerNodePtr add_node(const prg::Path&);
 

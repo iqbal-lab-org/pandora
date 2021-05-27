@@ -19,6 +19,7 @@
 
 using PanNodePtr = std::shared_ptr<pangenome::Node>;
 namespace fs = boost::filesystem;
+class AddRecordToIndexParams;
 
 /**
  * Represents a PRG of the many given as input to pandora
@@ -34,6 +35,16 @@ private:
     static void check_if_vector_of_subintervals_is_consistent_with_envelopping_interval(
         const std::vector<Interval>& subintervals,
         const Interval& envelopping_interval);
+
+    void minimize_kmer_paths_in_window(
+        const uint32_t w, const uint32_t k,
+        const std::vector<PathPtr>& kmer_paths_in_window,
+        KmerNodePtr previous_minimizer,
+        uint32_t &num_kmers_added,
+        std::vector<KmerNodePtr> &leaves_to_be_added_to_current_leaves,
+        std::vector<KmerNodePtr> &leaves_to_be_added_to_end_leaves,
+        std::set<KmerNodePtr> &leaves_seen_so_far,
+        std::vector<AddRecordToIndexParams> &add_record_to_index_params_buffer);
 
 public:
     uint32_t next_site; // denotes the id of the next variant site to be processed -
@@ -67,7 +78,7 @@ public:
 
     std::vector<PathPtr> shift(prg::Path) const;
 
-    void minimizer_sketch(const std::shared_ptr<Index>& index, const uint32_t w,
+    void minimizer_sketch(std::shared_ptr<Index>& index, const uint32_t w,
         const uint32_t k, double percentageDone = -1.0);
 
     // functions used once hits have been collected against the PRG

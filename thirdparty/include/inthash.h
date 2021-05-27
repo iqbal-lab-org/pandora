@@ -13,11 +13,10 @@ uint64_t hash64(uint64_t key, const uint64_t& mask);
 void test_table();
 
 class KmerHash {
-    std::unordered_map<std::string, std::pair<uint64_t, uint64_t>>
-        lookup; // TODO: replace by GATB's MPHF? -> Hashes a string to two values due to
-                // forward and RC
+private:
+    static std::unordered_map<std::string, std::pair<uint64_t, uint64_t>> lookup;
 public:
-    std::pair<uint64_t, uint64_t> kmerhash(const std::string& s, const uint32_t k);
+    static std::pair<uint64_t, uint64_t> kmerhash(const std::string& s, const uint32_t k);
 };
 
 #endif

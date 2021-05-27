@@ -84,6 +84,22 @@ void KmerGraph::clear()
     k = 0;
 }
 
+KmerNodePtr KmerGraph::create_null_start_node() {
+    std::deque<Interval> null_start_node = { Interval(0, 0) };
+    prg::Path kmer_path;
+    kmer_path.initialize(null_start_node);
+    return add_node(kmer_path);
+}
+
+KmerNodePtr KmerGraph::create_null_end_node(const LocalGraph &prg) {
+    std::deque<Interval> null_end_node = {
+        Interval((--(prg.nodes.end()))->second->pos.get_end(),
+        (--(prg.nodes.end()))->second->pos.get_end()) };
+    prg::Path kmer_path;
+    kmer_path.initialize(null_end_node);
+    return add_node(kmer_path);
+}
+
 KmerNodePtr KmerGraph::add_node(const prg::Path& p)
 { // add this kmer path to this kmer graph
     for (const auto& c : nodes) { // check if this kmer path is already added

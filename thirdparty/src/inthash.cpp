@@ -115,13 +115,24 @@ uint64_t hash64(uint64_t key, const uint64_t& mask)
 }
 
 /* Now use these functions in my own code */
-
+std::unordered_map<std::string, std::pair<uint64_t, uint64_t>> KmerHash::lookup;
 std::pair<uint64_t, uint64_t> KmerHash::kmerhash(const std::string& s, const uint32_t k)
 {
     // if we've already worked out the answer, return
-    auto it = lookup.find(s); // checks if this string is already in the hash
-    if (it != lookup.end()) {
-        return it->second;
+    bool found = false;
+    std::pair<uint64_t, uint64_t> hash;
+
+#pragma omp critical(kmerhash_lookup)
+    {
+        auto it = lookup.find(s); // checks if this string is already in the hash
+        if (it != lookup.end()) {
+            found = true;
+            hash = it->second;
+        }
+    }
+
+    if (found) {
+        return hash;
     }
 
     // this takes the hash of both forwards and reverse complement kmers and returns
@@ -141,7 +152,10 @@ std::pair<uint64_t, uint64_t> KmerHash::kmerhash(const std::string& s, const uin
     kmer[0] = hash64(kmer[0], mask);
     kmer[1] = hash64(kmer[1], mask);
 
-    auto ret = std::make_pair(kmer[0], kmer[1]);
-    lookup[s] = ret;
-    return ret;
+    hash = std::make_pair(kmer[0], kmer[1]);
+#pragma omp critical(kmerhash_lookup)
+    {
+        lookup[s] = hash;
+    }
+    return hash;
 }
