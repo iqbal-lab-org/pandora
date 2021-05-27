@@ -43,7 +43,6 @@ private:
         uint32_t &num_kmers_added,
         std::vector<KmerNodePtr> &leaves_to_be_added_to_current_leaves,
         std::vector<KmerNodePtr> &leaves_to_be_added_to_end_leaves,
-        std::set<KmerNodePtr> &leaves_seen_so_far,
         std::vector<AddRecordToIndexParams> &add_record_to_index_params_buffer);
 
 public:
