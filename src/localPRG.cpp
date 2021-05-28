@@ -15,7 +15,7 @@
 #include "fastaq.h"
 #include "Maths.h"
 
-#define MINIMIZER_SKETCH_MAX_BATCH_SIZE size_t(8)
+#define MINIMIZER_SKETCH_MAX_BATCH_SIZE size_t(64)
 
 bool LocalPRG::do_path_memoization_in_nodes_along_path_method = false;
 
