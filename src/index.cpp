@@ -200,7 +200,7 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
     for (uint32_t i = 0; i < prgs.size(); ++i) { // for each prg
         uint32_t dir = i / nbOfGFAsPerDir + 1;
         prgs[i]->minimizer_sketch(
-            index, w, k, (((double)(nbOfPRGsDone.load())) / prgs.size()) * 100);
+            index, w, k, threads, (((double)(nbOfPRGsDone.load())) / prgs.size()) * 100);
         const auto gfa_file { outdir / int_to_string(dir)
             / (prgs[i]->name + ".k" + std::to_string(k) + ".w" + std::to_string(w)
                 + ".gfa") };

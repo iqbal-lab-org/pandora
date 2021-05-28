@@ -510,3 +510,20 @@ bool pCompKmerNode::operator()(KmerNodePtr lhs, KmerNodePtr rhs)
 {
     return (lhs->path) < (rhs->path);
 }
+
+void KmerGraph::ensure_node_ids_are_in_topological_ordering() {
+    const bool nodes_and_sorted_nodes_are_consistent = nodes.size() == sorted_nodes.size();
+    if (!nodes_and_sorted_nodes_are_consistent) {
+        fatal_error("Error ensuring node ids are in topological order, nodes ans sorted "
+                    "nodes are inconsistent");
+    }
+
+    uint32_t node_index = 0;
+    for (auto &node : sorted_nodes) {
+        node->id = node_index;
+        ++node_index;
+    }
+
+    nodes.clear();
+    nodes.insert(nodes.end(), sorted_nodes.begin(), sorted_nodes.end());
+}

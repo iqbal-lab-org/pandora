@@ -4,7 +4,8 @@
 #include <cstdlib>
 #include <utility>
 #include <omp.h>
-
+#include <thread>
+#include <chrono>
 #include <boost/log/trivial.hpp>
 
 #include "minimizer.h"
@@ -13,6 +14,8 @@
 #include "utils.h"
 #include "fastaq.h"
 #include "Maths.h"
+
+#define MINIMIZER_SKETCH_MAX_BATCH_SIZE size_t(8)
 
 bool LocalPRG::do_path_memoization_in_nodes_along_path_method = false;
 
@@ -641,7 +644,7 @@ void bulk_add_multithreading_buffers(
 }
 
 void LocalPRG::minimizer_sketch(std::shared_ptr<Index>& index, const uint32_t w,
-    const uint32_t k, double percentageDone)
+    const uint32_t k, uint32_t nb_of_threads, double percentageDone)
 {
     // progress reporting
     if (percentageDone >= 0)
@@ -727,151 +730,185 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index>& index, const uint32_t w,
     walks.clear(); // memory efficiency
 
 
-    uint32_t nb_of_threads = 4; // TODO: make this a param
     BOOST_LOG_TRIVIAL(debug) << "Second part of minimizing";
+    std::set<int> idle_threads;
 #pragma omp parallel num_threads(nb_of_threads)
     {
+        int thread_id = omp_get_thread_num();
         // extend the current leaves
         while (true) {
-            KmerNodePtr current_leaf;
+            std::deque<KmerNodePtr> current_leaves_for_this_thread;
 
 #pragma omp critical(current_leaves)
             {
-                BOOST_LOG_TRIVIAL(debug) << "Number of leaves: " << current_leaves.size();
-                if (current_leaves.size()) {
+                BOOST_LOG_TRIVIAL(debug)
+                    << "Number of leaves: " << current_leaves.size();
+
+                uint32_t batch_size = std::min(current_leaves.size(),
+                    MINIMIZER_SKETCH_MAX_BATCH_SIZE);
+                KmerNodePtr current_leaf;
+                for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
                     current_leaf = current_leaves.front();
                     current_leaves.pop_front();
+                    current_leaves_for_this_thread.push_back(current_leaf);
                 }
             }
 
-            bool no_more_leaves_to_process = current_leaf == NULL;
-            if (no_more_leaves_to_process) {
-                break;
-            }
-
-            // buffers to decrease amount of locking inside the for loop
-            std::vector<KmerNodePtr> leaves_to_be_added_to_current_leaves;
-            leaves_to_be_added_to_current_leaves.reserve(8192);
-            std::vector<KmerNodePtr> leaves_to_be_added_to_end_leaves;
-            leaves_to_be_added_to_end_leaves.reserve(8192);
-            std::vector<AddRecordToIndexParams> add_record_to_index_params_buffer;
-            add_record_to_index_params_buffer.reserve(8192);
-            uint32_t local_num_kmers_added = 0;
-
-
-            // get the shifted paths from the current leaf
-            std::deque<std::vector<PathPtr>> shifts;
+            bool work_finished;
+            bool no_leaves_to_process_in_this_turn;
+#pragma omp critical(idle_threads)
             {
-                // find all paths which are this kmer-minimizer shifted by one place along the
-                // graph
-                std::vector<PathPtr> shift_paths = shift(current_leaf->path);
-                const bool current_leaf_is_an_end_leaf = shift_paths.empty();
-                if (current_leaf_is_an_end_leaf) {
-                    leaves_to_be_added_to_end_leaves.push_back(current_leaf);
+                no_leaves_to_process_in_this_turn = current_leaves_for_this_thread.empty();
+                if (no_leaves_to_process_in_this_turn) {
+                    // this thread is idle
+                    idle_threads.insert(thread_id);
+                    work_finished = idle_threads.size() == nb_of_threads;
                 }
-
-                for (const auto &path : shift_paths) {
-                    std::vector<PathPtr> shift_path = { path };
-                    shifts.push_back(shift_path);
-                }
-            }
-
-            while (!shifts.empty()) {
-                std::vector<PathPtr> current_path = shifts.front();
-                shifts.pop_front();
-                const PathPtr& candidate_leaf = current_path.back();
-
-                // sanity check
-                const bool shifted_path_has_k_bases = candidate_leaf->length() == k;
-                if (!shifted_path_has_k_bases) {
-                    fatal_error(
-                        "Error when minimizing a local PRG: candidate leaf does not have k (",
-                        k, ") bases");
-                }
-
-                const std::string kmer = string_along_path(*candidate_leaf);
-                const std::pair<uint64_t, uint64_t> kmer_hash = KmerHash::kmerhash(kmer, k);
-                const uint64_t minimizer_hash = std::min(kmer_hash.first, kmer_hash.second);
-
-                const bool candidate_leaf_is_a_minimizer = minimizer_hash <= current_leaf->khash;
-                const bool old_minimizer_has_dropped_out_the_window = current_path.size() == w;
-                const bool candidate_leaf_is_at_the_end_of_PRG =
-                    candidate_leaf->get_end() == (--(prg.nodes.end()))->second->pos.get_end();
-
-                if (candidate_leaf_is_a_minimizer) {
-                    // add the leaf to the kmer graph
-                    KmerNodePtr dummyKmerHoldingKmerPath
-                        = std::make_shared<KmerNode>(KmerNode(0, *candidate_leaf));
-                    bool candidate_leaf_not_found_in_kmer_graph;
-                    KmerNodePtr target_node_of_kmer_graph_edge;
-#pragma omp critical(kmer_prg)
-                    {
-                        const auto found = kmer_prg.sorted_nodes.find(dummyKmerHoldingKmerPath);
-                        candidate_leaf_not_found_in_kmer_graph
-                            = found == kmer_prg.sorted_nodes.end();
-                        if (candidate_leaf_not_found_in_kmer_graph) {
-                            size_t num_AT = std::count(kmer.begin(), kmer.end(), 'A')
-                                + std::count(kmer.begin(), kmer.end(), 'T');
-                            target_node_of_kmer_graph_edge =
-                                kmer_prg.add_node_with_kh(*candidate_leaf,
-                                    minimizer_hash, num_AT);
-                            local_num_kmers_added += 1;
-                        }
-                        else {
-                            target_node_of_kmer_graph_edge = *found;
-                        }
-                        kmer_prg.add_edge(current_leaf, target_node_of_kmer_graph_edge);
-                    }
-
-                    // add the leaf to current or end leaves
-                    const bool candidate_leaf_is_a_terminal_node
-                        = candidate_leaf->get_end() == (--(prg.nodes.end()))->second->pos.get_end();
-                    if (candidate_leaf_is_a_terminal_node) {
-                        leaves_to_be_added_to_end_leaves.push_back(target_node_of_kmer_graph_edge);
-                    } else {
-                        leaves_to_be_added_to_current_leaves.push_back(target_node_of_kmer_graph_edge);
-                    }
-
-                    // add the leaf to the index
-                    if (candidate_leaf_not_found_in_kmer_graph) {
-                        add_record_to_index_params_buffer.push_back(
-                            AddRecordToIndexParams(minimizer_hash, id, candidate_leaf,
-                                target_node_of_kmer_graph_edge->id,
-                                (kmer_hash.first <= kmer_hash.second)));
-                    }
-                }
-
-                else if (old_minimizer_has_dropped_out_the_window) {
-                    minimize_kmer_paths_in_window(w, k, current_path, current_leaf,
-                        local_num_kmers_added, leaves_to_be_added_to_current_leaves,
-                        leaves_to_be_added_to_end_leaves,
-                        add_record_to_index_params_buffer);
-                }
-
-                else if (candidate_leaf_is_at_the_end_of_PRG) {
-                    leaves_to_be_added_to_end_leaves.push_back(current_leaf);
-                }
-
                 else {
-                    std::vector<PathPtr> shift_paths = shift(*candidate_leaf);
-                    for (const auto &shifted_path : shift_paths) {
-                        shifts.push_back(current_path);
-                        shifts.back().push_back(shifted_path);
-                    }
+                    // this thread has work to do
+                    idle_threads.erase(thread_id);
+                    work_finished = false;
                 }
             }
 
-            bulk_add_multithreading_buffers(
-                leaves_to_be_added_to_current_leaves,
-                current_leaves,
-                current_leaves_seen_so_far,
-                leaves_to_be_added_to_end_leaves,
-                end_leaves,
-                end_leaves_seen_so_far,
-                add_record_to_index_params_buffer,
-                index,
-                local_num_kmers_added,
-                num_kmers_added);
+            if (work_finished) {
+                break; // nothing else to do
+            }
+
+            // work did not finish, but we have nothing to do now
+            if (no_leaves_to_process_in_this_turn) {
+                // sleep a bit and retry
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                continue;
+            }
+
+            // we have work to do
+            for (const KmerNodePtr& current_leaf : current_leaves_for_this_thread) {
+                // buffers to decrease amount of locking inside the for loop
+                std::vector<KmerNodePtr> leaves_to_be_added_to_current_leaves;
+                leaves_to_be_added_to_current_leaves.reserve(8192);
+                std::vector<KmerNodePtr> leaves_to_be_added_to_end_leaves;
+                leaves_to_be_added_to_end_leaves.reserve(8192);
+                std::vector<AddRecordToIndexParams> add_record_to_index_params_buffer;
+                add_record_to_index_params_buffer.reserve(8192);
+                uint32_t local_num_kmers_added = 0;
+
+                // get the shifted paths from the current leaf
+                std::deque<std::vector<PathPtr>> shifts;
+                {
+                    // find all paths which are this kmer-minimizer shifted by one place along the graph
+                    std::vector<PathPtr> shift_paths = shift(current_leaf->path);
+                    const bool current_leaf_is_an_end_leaf = shift_paths.empty();
+                    if (current_leaf_is_an_end_leaf) {
+                        leaves_to_be_added_to_end_leaves.push_back(current_leaf);
+                    }
+
+                    for (const auto& path : shift_paths) {
+                        std::vector<PathPtr> shift_path = { path };
+                        shifts.push_back(shift_path);
+                    }
+                }
+
+                while (!shifts.empty()) {
+                    std::vector<PathPtr> current_path = shifts.front();
+                    shifts.pop_front();
+                    const PathPtr& candidate_leaf = current_path.back();
+
+                    // sanity check
+                    const bool shifted_path_has_k_bases = candidate_leaf->length() == k;
+                    if (!shifted_path_has_k_bases) {
+                        fatal_error("Error when minimizing a local PRG: candidate leaf does not have k (",
+                            k, ") bases");
+                    }
+
+                    const std::string kmer = string_along_path(*candidate_leaf);
+                    const std::pair<uint64_t, uint64_t> kmer_hash
+                        = KmerHash::kmerhash(kmer, k);
+                    const uint64_t minimizer_hash
+                        = std::min(kmer_hash.first, kmer_hash.second);
+
+                    const bool candidate_leaf_is_a_minimizer
+                        = minimizer_hash <= current_leaf->khash;
+                    const bool old_minimizer_has_dropped_out_the_window
+                        = current_path.size() == w;
+                    const bool candidate_leaf_is_at_the_end_of_PRG
+                        = candidate_leaf->get_end()
+                        == (--(prg.nodes.end()))->second->pos.get_end();
+
+                    if (candidate_leaf_is_a_minimizer) {
+                        // add the leaf to the kmer graph
+                        KmerNodePtr dummyKmerHoldingKmerPath
+                            = std::make_shared<KmerNode>(KmerNode(0, *candidate_leaf));
+                        bool candidate_leaf_not_found_in_kmer_graph;
+                        KmerNodePtr target_node_of_kmer_graph_edge;
+#pragma omp critical(kmer_prg)
+                        {
+                            const auto found
+                                = kmer_prg.sorted_nodes.find(dummyKmerHoldingKmerPath);
+                            candidate_leaf_not_found_in_kmer_graph
+                                = found == kmer_prg.sorted_nodes.end();
+                            if (candidate_leaf_not_found_in_kmer_graph) {
+                                size_t num_AT
+                                    = std::count(kmer.begin(), kmer.end(), 'A')
+                                    + std::count(kmer.begin(), kmer.end(), 'T');
+                                target_node_of_kmer_graph_edge
+                                    = kmer_prg.add_node_with_kh(
+                                        *candidate_leaf, minimizer_hash, num_AT);
+                                local_num_kmers_added += 1;
+                            } else {
+                                target_node_of_kmer_graph_edge = *found;
+                            }
+                            kmer_prg.add_edge(
+                                current_leaf, target_node_of_kmer_graph_edge);
+                        }
+
+                        // add the leaf to current or end leaves
+                        const bool candidate_leaf_is_a_terminal_node
+                            = candidate_leaf->get_end()
+                            == (--(prg.nodes.end()))->second->pos.get_end();
+                        if (candidate_leaf_is_a_terminal_node) {
+                            leaves_to_be_added_to_end_leaves.push_back(
+                                target_node_of_kmer_graph_edge);
+                        } else {
+                            leaves_to_be_added_to_current_leaves.push_back(
+                                target_node_of_kmer_graph_edge);
+                        }
+
+                        // add the leaf to the index
+                        if (candidate_leaf_not_found_in_kmer_graph) {
+                            add_record_to_index_params_buffer.push_back(
+                                AddRecordToIndexParams(minimizer_hash, id,
+                                    candidate_leaf, target_node_of_kmer_graph_edge->id,
+                                    (kmer_hash.first <= kmer_hash.second)));
+                        }
+                    }
+
+                    else if (old_minimizer_has_dropped_out_the_window) {
+                        minimize_kmer_paths_in_window(w, k, current_path, current_leaf,
+                            local_num_kmers_added, leaves_to_be_added_to_current_leaves,
+                            leaves_to_be_added_to_end_leaves,
+                            add_record_to_index_params_buffer);
+                    }
+
+                    else if (candidate_leaf_is_at_the_end_of_PRG) {
+                        leaves_to_be_added_to_end_leaves.push_back(current_leaf);
+                    }
+
+                    else {
+                        std::vector<PathPtr> shift_paths = shift(*candidate_leaf);
+                        for (const auto& shifted_path : shift_paths) {
+                            shifts.push_back(current_path);
+                            shifts.back().push_back(shifted_path);
+                        }
+                    }
+                }
+
+                bulk_add_multithreading_buffers(leaves_to_be_added_to_current_leaves,
+                    current_leaves, current_leaves_seen_so_far,
+                    leaves_to_be_added_to_end_leaves, end_leaves,
+                    end_leaves_seen_so_far, add_record_to_index_params_buffer, index,
+                    local_num_kmers_added, num_kmers_added);
+            }
         }
     }
     BOOST_LOG_TRIVIAL(debug) << "End";
@@ -901,6 +938,9 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index>& index, const uint32_t w,
 
     // clean
     // kmer_prg.remove_shortcut_edges();
+
+    // fix the node ids to respect topological ordering
+    kmer_prg.ensure_node_ids_are_in_topological_ordering();
 
     // another sanity check
     kmer_prg.check();

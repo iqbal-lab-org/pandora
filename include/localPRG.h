@@ -78,7 +78,7 @@ public:
     std::vector<PathPtr> shift(prg::Path) const;
 
     void minimizer_sketch(std::shared_ptr<Index>& index, const uint32_t w,
-        const uint32_t k, double percentageDone = -1.0);
+        const uint32_t k, uint32_t nb_of_threads=1, double percentageDone = -1.0);
 
     // functions used once hits have been collected against the PRG
     std::vector<KmerNodePtr> kmernode_path_from_localnode_path(

@@ -81,6 +81,8 @@ public:
         const std::string&, const uint32_t, float&, const uint32_t, bool&,
         const uint32_t& sample_id);
 
+    void ensure_node_ids_are_in_topological_ordering();
+
     // friends
     friend struct condition;
     friend class KmerGraphWithCoverage;
