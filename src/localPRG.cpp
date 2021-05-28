@@ -599,10 +599,10 @@ void LocalPRG::minimize_kmer_paths_in_window(
 void bulk_add_multithreading_buffers(
     std::vector<KmerNodePtr> &leaves_to_be_added_to_current_leaves,
     std::deque<KmerNodePtr> &current_leaves,
-    std::set<KmerNodePtr, pCompKmerNode> &current_leaves_seen_so_far,
+    std::set<KmerNodePtr> &current_leaves_seen_so_far,
     std::vector<KmerNodePtr> &leaves_to_be_added_to_end_leaves,
     std::deque<KmerNodePtr> &end_leaves,
-    std::set<KmerNodePtr, pCompKmerNode> &end_leaves_seen_so_far,
+    std::set<KmerNodePtr> &end_leaves_seen_so_far,
     std::vector<AddRecordToIndexParams> &add_record_to_index_params_buffer,
     std::shared_ptr<Index>& index,
     uint32_t local_num_kmers_added,
@@ -659,9 +659,9 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index>& index, const uint32_t w,
 
     // leaves tracking
     std::deque<KmerNodePtr> current_leaves;
-    std::set<KmerNodePtr, pCompKmerNode> current_leaves_seen_so_far;
+    std::set<KmerNodePtr> current_leaves_seen_so_far;
     std::deque<KmerNodePtr> end_leaves;
-    std::set<KmerNodePtr, pCompKmerNode> end_leaves_seen_so_far;
+    std::set<KmerNodePtr> end_leaves_seen_so_far;
 
     // create a null start node in the kmer graph
     kmer_prg.create_null_start_node();
