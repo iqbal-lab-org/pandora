@@ -935,6 +935,11 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index>& index, const uint32_t w,
             "Error when minimizing a local PRG: incorrect number of kmers added");
     }
 
+    if (num_kmers_added > 10000) {
+        BOOST_LOG_TRIVIAL(debug) << "Heavy PRG: " <<
+            num_kmers_added << " minimizers in PRG " << this->name;
+    }
+
     // clean
     // kmer_prg.remove_shortcut_edges();
 
