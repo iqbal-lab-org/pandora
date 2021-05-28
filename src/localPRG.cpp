@@ -744,7 +744,7 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index>& index, const uint32_t w,
                 BOOST_LOG_TRIVIAL(debug)
                     << "Number of leaves: " << current_leaves.size();
 
-                uint32_t batch_size = std::min(current_leaves.size(),
+                size_t batch_size = std::min(current_leaves.size(),
                     MINIMIZER_SKETCH_MAX_BATCH_SIZE);
                 KmerNodePtr current_leaf;
                 for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
