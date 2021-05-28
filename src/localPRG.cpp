@@ -778,7 +778,6 @@ void LocalPRG::minimizer_sketch(std::shared_ptr<Index>& index, const uint32_t w,
             // work did not finish, but we have nothing to do now
             if (no_leaves_to_process_in_this_turn) {
                 // sleep a bit and retry
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
                 continue;
             }
 
