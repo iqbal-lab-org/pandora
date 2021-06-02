@@ -286,10 +286,13 @@ int pandora_compare(CompareOptions& opt)
             const LocalPRG& local_prg = *prgs[c->second->prg_id];
             vector<KmerNodePtr> kmp;
             vector<LocalNodePtr> lmp;
+            float ppath;
             local_prg.add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp,
-                opt.window_size, opt.binomial, covg, opt.max_num_kmers_to_avg, 0);
+                ppath, opt.window_size, opt.binomial, covg, opt.max_num_kmers_to_avg, 0);
 
-            if (kmp.empty()) {
+            const bool locus_does_not_satisfy_min_prob_requirements =
+                kmp.empty() || ppath <= -8;
+            if (locus_does_not_satisfy_min_prob_requirements) {
                 c = pangraph_sample->remove_node(c->second);
                 continue;
             }

@@ -125,9 +125,10 @@ public:
         const std::vector<LocalNodePtr>& ref_path, const std::string& sample_name,
         const uint32_t& sample_id) const;
 
-    void add_consensus_path_to_fastaq(Fastaq&, PanNodePtr, std::vector<KmerNodePtr>&,
-        std::vector<LocalNodePtr>&, const uint32_t, const bool, const uint32_t,
-        const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id) const;
+    void add_consensus_path_to_fastaq(Fastaq& output_fq, PanNodePtr pnode,
+                                      std::vector<KmerNodePtr>& kmp, std::vector<LocalNodePtr>& lmp, float &ppath,
+                                      const uint32_t w, const bool bin, const uint32_t global_covg,
+                                      const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id) const;
     std::vector<LocalNodePtr> get_valid_vcf_reference(const std::string&) const;
 
     void add_variants_to_vcf(VCF&, PanNodePtr, const std::string&,

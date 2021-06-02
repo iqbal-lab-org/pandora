@@ -1653,8 +1653,8 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF& vcf, const KmerGraphWithCoverage& kg
 }
 
 void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, PanNodePtr pnode,
-    std::vector<KmerNodePtr>& kmp, std::vector<LocalNodePtr>& lmp, const uint32_t w,
-    const bool bin, const uint32_t global_covg,
+    std::vector<KmerNodePtr>& kmp, std::vector<LocalNodePtr>& lmp, float &ppath,
+    const uint32_t w, const bool bin, const uint32_t global_covg,
     const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id) const
 {
     if (pnode->reads.empty()) {
@@ -1667,7 +1667,7 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, PanNodePtr pnode,
     std::string prob_model = "nbin";
     if (bin)
         prob_model = "bin";
-    float ppath = pnode->kmer_prg_with_coverage.find_max_path(
+    ppath = pnode->kmer_prg_with_coverage.find_max_path(
         kmp, prob_model, max_num_kmers_to_average, sample_id);
 
     lmp.reserve(100);

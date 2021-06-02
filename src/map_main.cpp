@@ -339,8 +339,9 @@ int pandora_map(MapOptions& opt)
         // add consensus path to fastaq
         std::vector<KmerNodePtr> kmp;
         std::vector<LocalNodePtr> lmp;
+        float ppath;
         prgs[pangraph_node->prg_id]->add_consensus_path_to_fastaq(consensus_fq,
-            pangraph_node, kmp, lmp, opt.window_size, opt.binomial, covg,
+            pangraph_node, kmp, lmp, ppath, opt.window_size, opt.binomial, covg,
             opt.max_num_kmers_to_avg, 0);
 
         if (kmp.empty()) {
