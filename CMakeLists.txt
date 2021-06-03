@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.12)  # required by hunter ZLIB installation
 
 # include hunter
+option(HUNTER_STATUS_DEBUG "Hunter debug" OFF)  # comment if does not want hunter debug on
 set(HUNTER_ROOT ${CMAKE_BINARY_DIR}/hunter)
 include("cmake/HunterGate.cmake")
 HunterGate(
@@ -11,7 +12,7 @@ HunterGate(
 
 # project configuration
 set(PROJECT_NAME_STR pandora)
-project(${PROJECT_NAME_STR} VERSION "0.9.0" LANGUAGES C CXX)
+project(${PROJECT_NAME_STR} VERSION "0.9.1" LANGUAGES C CXX)
 set(ADDITIONAL_VERSION_LABELS "")
 configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
@@ -55,8 +56,13 @@ else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 endif()
 
-# static C and C++ flags
-set(STATIC_C_CXX "-static-libgcc -static-libstdc++")
+# always link rt
+set(RT_LIBRARY "rt")
+
+if(NOT BIOCONDA)
+    # static C and C++ flags
+    set(STATIC_C_CXX "-static-libgcc -static-libstdc++")
+endif()
 
 ########################################################################################################################
 # EXTERNAL LIBS INSTALLATION
@@ -92,10 +98,10 @@ set(Gtest_LIBRARIES GTest::gtest GTest::gmock_main)
 
 ########################################################################################################################
 # INSTALL BOOST
+set(Boost_USE_STATIC_LIBS ON)
 hunter_add_package(Boost COMPONENTS filesystem iostreams log serialization system thread)
 find_package(Boost CONFIG REQUIRED filesystem iostreams log serialization system thread)
-set(BOOST_LIBRARIES Boost::filesystem Boost::iostreams Boost::log Boost::serialization Boost::system Boost::thread)
-set(Boost_USE_STATIC_LIBS ON)
+set(Boost_LIBRARIES Boost::filesystem Boost::iostreams Boost::log Boost::serialization Boost::system Boost::thread)
 ########################################################################################################################
 ########################################################################################################################
 # END EXTERNAL LIBS INSTALLATION
@@ -148,13 +154,16 @@ add_dependencies(${PROJECT_NAME} gatb)
 
 target_link_libraries(${PROJECT_NAME}
         ${GATB_LIBS}
-        ${BOOST_LIBRARIES}
+        ${Boost_LIBRARIES}
         ${ZLIB_LIBRARY}
         ${CMAKE_DL_LIBS}
         ${STATIC_C_CXX}
         ${BACKWARD_LIBRARIES}
         ${SEQAN_LIBRARIES}
+        ${RT_LIBRARY}
 )
 
 enable_testing()
 add_subdirectory(test)
+
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)

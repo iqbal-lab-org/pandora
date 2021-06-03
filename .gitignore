@@ -99,3 +99,6 @@ pandora
 #portable binary build dir
 build_portable_executable
 pandora-linux-precompiled
+
+/archives/
+/example/out/
