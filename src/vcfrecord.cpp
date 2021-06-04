@@ -315,8 +315,7 @@ void VCFRecord::add_new_alt(std::string alt)
 void VCFRecord::add_new_samples(uint32_t number_of_samples)
 {
     sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(
-        number_of_samples, get_number_of_alleles(), parent_vcf->genotyping_options,
-        pos, parent_vcf->get_vcf_ref().size());
+        number_of_samples, get_number_of_alleles(), parent_vcf->genotyping_options);
 }
 
 bool VCFRecord::there_are_no_common_alt_alleles_between_this_and_other(
@@ -336,6 +335,5 @@ void VCFRecord::reset_sample_infos_to_contain_the_given_number_of_samples(
 {
     sampleIndex_to_sampleInfo.clear();
     sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(
-        number_of_samples, get_number_of_alleles(), parent_vcf->genotyping_options,
-        pos, parent_vcf->get_vcf_ref().size());
+        number_of_samples, get_number_of_alleles(), parent_vcf->genotyping_options);
 }

@@ -76,14 +76,6 @@ public:
     virtual ptrdiff_t get_sample_index(const std::string&);
     virtual std::vector<VCFRecord*> get_all_records_overlapping_the_given_record(
         const VCFRecord& vcf_record);
-    virtual std::string get_vcf_ref() const { return vcf_ref; }
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // setters
-    virtual void set_vcf_ref(const std::string &vcf_ref) {
-        this->vcf_ref = vcf_ref;
-    }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -153,8 +145,6 @@ protected:
        interval and a pointer to the VCF Record itself to allow
        VCF::make_gt_compatible() to execute a lot faster than serial search */
     std::map<std::string, IITree<uint32_t, VCFRecord*>> chrom_to_record_interval_tree;
-
-    std::string vcf_ref;
 
     // add a VCF record to this VCF
     virtual void add_record_core(const VCFRecord& vr);

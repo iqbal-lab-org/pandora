@@ -21,15 +21,12 @@
 class SampleInfo {
 public:
     SampleInfo(uint32_t sample_index, uint32_t number_of_alleles,
-        GenotypingOptions const* genotyping_options, uint32_t pos,
-        uint32_t vcf_ref_length)
+        GenotypingOptions const* genotyping_options)
         : sample_index(sample_index)
         , number_of_alleles(number_of_alleles)
-        , pos(pos)
-        , vcf_ref_length(vcf_ref_length)
         , genotyping_options(genotyping_options)
         , exp_depth_covg_for_this_sample(
-            genotyping_options->get_sample_index_to_exp_depth_covg()[sample_index])
+              genotyping_options->get_sample_index_to_exp_depth_covg()[sample_index])
     {
         const bool at_least_one_allele = number_of_alleles >= 1;
         if (!at_least_one_allele) {
@@ -273,8 +270,6 @@ public:
 protected:
     uint32_t sample_index;
     uint32_t number_of_alleles;
-    uint32_t pos;
-    uint32_t vcf_ref_length;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // genotyping options
@@ -445,13 +440,12 @@ protected: // We forbid anyone to change this class' sample and allele informati
     virtual inline void clear() { sample_index_to_sample_info_container.clear(); }
 
     virtual inline void emplace_back_several_empty_sample_infos(size_t amount,
-        uint32_t number_of_alleles, GenotypingOptions const* genotyping_options,
-        uint32_t pos, uint32_t vcf_ref_length)
+        uint32_t number_of_alleles, GenotypingOptions const* genotyping_options)
     {
         size_t initial_size = this->size();
         for (size_t index = initial_size; index < initial_size + amount; ++index) {
             sample_index_to_sample_info_container.emplace_back(
-                index, number_of_alleles, genotyping_options, pos, vcf_ref_length);
+                index, number_of_alleles, genotyping_options);
         }
         set_number_of_alleles_and_resize_coverage_information_for_all_samples(
             number_of_alleles);
