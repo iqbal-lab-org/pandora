@@ -48,7 +48,10 @@ void SampleInfo::genotype_from_coverage_using_maximum_likelihood_path_as_referen
 
             const bool global_and_local_choices_are_not_compatible
                 = GT_from_coverages != valid_GT_from_maximum_likelihood_path;
-            if (global_and_local_choices_are_not_compatible) {
+
+            const bool on_the_edges = (pos <= 200) || (vcf_ref_length - pos <= 200);
+
+            if (global_and_local_choices_are_not_compatible or on_the_edges) {
                 GT_from_coverages = boost::none;
                 likelihood_of_GT_from_coverages = boost::none;
             }
@@ -261,7 +264,8 @@ SampleInfo::get_genotype_from_coverage() const
 
         const bool satisfy_confidence_threshold
             = confidence > genotyping_options->get_confidence_threshold();
-        if (satisfy_confidence_threshold) {
+        const bool on_the_edges = (pos <= 200) || (vcf_ref_length - pos <= 200);
+        if (satisfy_confidence_threshold and not on_the_edges) {
             return std::make_pair((uint32_t)index_of_max_likelihood, max_likelihood);
         }
     }

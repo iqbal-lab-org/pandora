@@ -150,6 +150,7 @@ void pangenome::Node::construct_multisample_vcf(VCF& master_vcf,
     // create a vcf with respect to this ref
     VCF vcf(master_vcf.genotyping_options);
     prg->build_vcf_from_reference_path(vcf, vcf_reference_path);
+    vcf.set_vcf_ref(prg->string_along_path(vcf_reference_path));
     vcf.add_samples(master_vcf.samples);
 
     BOOST_LOG_TRIVIAL(debug) << "Initial build:\n"
