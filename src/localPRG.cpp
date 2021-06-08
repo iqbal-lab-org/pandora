@@ -1675,6 +1675,20 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, PanNodePtr pnode,
 
     std::vector<uint32_t> covgs
         = get_covgs_along_localnode_path(pnode, lmp, kmp, sample_id);
+
+    uint32_t number_of_bases_with_zero_counts_in_ML_path =
+        std::count(covgs.begin(), covgs.end(), 0);
+    const double proportion_of_zero_count_kmers =
+        ((double)(number_of_bases_with_zero_counts_in_ML_path))/covgs.size();
+    const bool half_of_the_ML_path_has_zero_counts = proportion_of_zero_count_kmers >= 0.5;
+
+    if (half_of_the_ML_path_has_zero_counts) {
+        BOOST_LOG_TRIVIAL(debug)
+            << "Skip LocalPRG " << name << " : half (or more) kmers of the ML path has 0 coverage";
+        kmp.clear();
+        return;
+    }
+
     auto mode_covg = Maths::mode(covgs.begin(), covgs.end());
     auto mean_covg = Maths::mean(covgs.begin(), covgs.end());
     BOOST_LOG_TRIVIAL(debug) << "Found global coverage " << global_covg

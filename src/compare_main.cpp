@@ -290,8 +290,7 @@ int pandora_compare(CompareOptions& opt)
             local_prg.add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp,
                 ppath, opt.window_size, opt.binomial, covg, opt.max_num_kmers_to_avg, 0);
 
-            const bool locus_does_not_satisfy_min_prob_requirements =
-                kmp.empty() || ppath <= -8;
+            const bool locus_does_not_satisfy_min_prob_requirements = kmp.empty();
             if (locus_does_not_satisfy_min_prob_requirements) {
                 c = pangraph_sample->remove_node(c->second);
                 continue;
