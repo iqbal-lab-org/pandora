@@ -28,18 +28,26 @@ Here we present a walkthrough of running `pandora` on a toy example. We run:
 
 ### Quick look at the output
 
-`prgs`: contains output of `make_prg from_msa` and `pandora index`. Main files:
+The output is already present in dir `out_truth`. If all went fine, the last line of the execution of the script above should be:
+
+```
+Example run produced the expected result
+```
+
+and thus the dirs `out` and `out_truth` have the same contents.
+
+`out/prgs`: contains output of `make_prg from_msa` and `pandora index`. Main files:
   * `pangenome.prg.fa`: the PRG itself;
   * `pangenome.prg.fa.k15.w14.idx` and `kmer_prgs`: the PRG index;
   * `pangenome.update_DS`: update data structures that make the PRG updateable;
 
-`pandora_discover_out`: contains the output of `pandora discover`. Main files:
+`out/pandora_discover_out`: contains the output of `pandora discover`. Main files:
   * `denovo_paths.txt`: describes the denovo paths found in all samples;
 
-`updated_prgs`: contains the output of `make_prg update` and `pandora index` (on the updated PRG).
+`out/updated_prgs`: contains the output of `make_prg update` and `pandora index` (on the updated PRG).
 The files are similar to the ones in the `prgs` folder;
 
-`output_toy_example_no_denovo` and `output_toy_example_with_denovo`: contains the output of
+`out/output_toy_example_no_denovo` and `out/output_toy_example_with_denovo`: contains the output of
 `pandora compare` without denovo discovery and with denovo discovery, respectively. Main files:
   * `pandora_multisample.matrix`: see https://github.com/rmcolq/pandora/wiki/FAQ#q-where-can-i-find-gene-presenceabsence-information ;
   * `pandora_multisample.vcf_ref.fa`: see https://github.com/rmcolq/pandora/wiki/FAQ#q-what-are-the-sequences-in-pandora_multisamplevcf_reffa
@@ -50,7 +58,7 @@ The files are similar to the ones in the `prgs` folder;
 
 **No denovo**
 
-Taking a quick look at an excerpt of `output_toy_example_no_denovo/pandora_multisample_genotyped.vcf` 
+Taking a quick look at an excerpt of `out/output_toy_example_no_denovo/pandora_multisample_genotyped.vcf`
 (the VCF genotyped by `pandora` without denovo sequences):
 
 ```
@@ -64,7 +72,7 @@ We can see samples `toy_sample_1` and `toy_sample_2` genotype towards different 
 
 **With denovo**
 
-The VCF (`output_toy_example_with_denovo/pandora_multisample_genotyped.vcf`) has some new variants that were discovered and genotyped. For example:
+The VCF (`out/output_toy_example_with_denovo/pandora_multisample_genotyped.vcf`) has some new variants that were discovered and genotyped. For example:
 
 ```
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	toy_sample_1.100x.random.illumina	toy_sample_2.100x.random.illumina
@@ -72,6 +80,19 @@ GC00006032	49	.	A	G	.	.	SVTYPE=SNP;GRAPHTYPE=SIMPLE	GT:MEAN_FWD_COVG:MEAN_REV_CO
 GC00010897	44	.	C	T	.	.	SVTYPE=SNP;GRAPHTYPE=SIMPLE	GT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS:LIKELIHOOD:GT_CONF	1:0,11:0,16:0,11:0,16:0,23:0,32:1,0:-220.34,-8.03511:212.304	0:22,0:18,0:22,0:18,0:44,0:37,0:0,1:-2.87264,-270.207:267.334
 GC00010897	422	.	A	T	.	.	SVTYPE=SNP;GRAPHTYPE=SIMPLE	GT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS:LIKELIHOOD:GT_CONF	1:0,8:0,5:0,8:0,5:0,16:0,11:1,0:-155.867,-20.2266:135.641	0:12,0:9,0:12,0:9,0:12,0:9,0:0,1:-9.39494,-182.709:173.314
 ```
+
+## Extra
+
+### Running with conda
+
+If you install `pandora` via `conda`: `conda install -c bioconda pandora`,
+you can run this sample example by activating the `conda` environment containing `pandora` and running:
+
+```
+./run_pandora.sh conda
+```
+
+The output should be the same as using the precompiled binary.
 
 <!--Link References-->
 

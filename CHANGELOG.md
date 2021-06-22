@@ -9,6 +9,16 @@ project adheres to
 
 ## [Unreleased]
 
+## [0.9.1]
+
+### Added
+- `pandora` is now installable through `conda`;
+- A script to archive the `pandora` repository with git submodules;
+
+### Changed
+- Improved the sample example so now we can assert that the output produced is the expected one;
+- Changes to the build process that enables `pandora` to be compiled in the `conda` environment;
+
 ## [0.9.0]
 
 ### Changed
@@ -97,7 +107,8 @@ from this point will have their changes meticulously documented here.
 
 - k-mer coverage underflow bug in `LocalPRG` [[#183][183]]
 
-[Unreleased]: https://github.com/rmcolq/pandora/compare/0.9.0...HEAD
+[Unreleased]: https://github.com/rmcolq/pandora/compare/0.9.1...HEAD
+[0.9.1]: https://github.com/rmcolq/pandora/releases/tag/0.9.1
 [0.9.0]: https://github.com/rmcolq/pandora/releases/tag/0.9.0
 [0.9.0-rc2]: https://github.com/rmcolq/pandora/releases/tag/0.9.0-rc2
 [0.9.0-rc1]: https://github.com/rmcolq/pandora/releases/tag/0.9.0-rc1
