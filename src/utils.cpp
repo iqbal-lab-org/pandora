@@ -440,7 +440,7 @@ uint32_t pangraph_from_read_file(const SampleData &sample,
     FastaqHandler fh(sample_filepath);
     uint32_t id { 0 };
 
-    MinimizerMatchFile minimizer_matches(sample_outdir / (sample_name + ".minimatches"));
+    MinimizerMatchFile minimizer_matches(sample_outdir / (sample_name + ".minimatches"), prgs);
     SAMFile filtered_mappings(sample_outdir / (sample_name + ".filtered.sam"), prgs);
 // parallel region
 #pragma omp parallel num_threads(threads)
@@ -515,7 +515,7 @@ uint32_t pangraph_from_read_file(const SampleData &sample,
                 add_read_hits(sequence, minimizer_hits, *index);
 
                 // write unfiltered minimizer hits
-                minimizer_matches.write_hits(minimizer_hits->hits);
+                minimizer_matches.write_hits(sequence, minimizer_hits->hits);
 
                 // infer
                 MinimizerHitClusters clusters_of_hits =
