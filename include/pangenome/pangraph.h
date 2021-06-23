@@ -86,7 +86,7 @@ public:
         const std::shared_ptr<LocalPRG>&
             prg, // the prg from where this cluster of hits come
         const uint32_t read_id, // the read id from where this cluster of reads come
-        const MinimizerHitCluster& cluster
+        const Hits & cluster
     );
 
     /**

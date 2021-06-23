@@ -17,6 +17,8 @@
 #include "noise_filtering.h"
 #include "minihit.h"
 #include "fastaq_handler.h"
+#include "minimizermatch_file.h"
+#include "sam_file.h"
 
 std::string now()
 {
@@ -211,7 +213,7 @@ void define_clusters(
     // A cluster of hits should match same localPRG, each hit not more than max_diff
     // read bases from the last hit (this last bit is to handle repeat genes).
     auto mh_previous = minimizer_hits->hits.begin();
-    MinimizerHitCluster current_cluster;
+    Hits current_cluster;
     current_cluster.insert(*mh_previous);
     uint32_t length_based_threshold;
     for (auto mh_current = ++minimizer_hits->hits.begin();
@@ -316,7 +318,7 @@ void filter_clusters(
                              << " clusters of hits";
 }
 
-void filter_clusters2(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hits,
+void filter_clusters2(std::set<Hits, clusterComp>& clusters_of_hits,
     const uint32_t& genome_size)
 {
     // Sort clusters by size, and filter out those small clusters which are entirely
@@ -327,7 +329,7 @@ void filter_clusters2(std::set<MinimizerHitCluster, clusterComp>& clusters_of_hi
         return;
     }
 
-    std::set<MinimizerHitCluster, clusterComp_size> clusters_by_size(
+    std::set<Hits, clusterComp_size> clusters_by_size(
         clusters_of_hits.begin(), clusters_of_hits.end());
 
     auto it = clusters_by_size.begin();
@@ -438,8 +440,8 @@ uint32_t pangraph_from_read_file(const SampleData &sample,
     FastaqHandler fh(sample_filepath);
     uint32_t id { 0 };
 
-    PafFile unfiltered_mappings(sample_outdir / (sample_name + ".unfiltered.paf"));
-    PafFile filtered_mappings(sample_outdir / (sample_name + ".filtered.paf"));
+    MinimizerMatchFile minimizer_matches(sample_outdir / (sample_name + ".minimatches"));
+    SAMFile filtered_mappings(sample_outdir / (sample_name + ".filtered.sam"), prgs);
 // parallel region
 #pragma omp parallel num_threads(threads)
     {
@@ -513,7 +515,7 @@ uint32_t pangraph_from_read_file(const SampleData &sample,
                 add_read_hits(sequence, minimizer_hits, *index);
 
                 // write unfiltered minimizer hits
-                unfiltered_mappings.write_cluster(minimizer_hits->hits);
+                minimizer_matches.write_hits(minimizer_hits->hits);
 
                 // infer
                 MinimizerHitClusters clusters_of_hits =
@@ -524,7 +526,8 @@ uint32_t pangraph_from_read_file(const SampleData &sample,
 #pragma omp critical(pangraph)
                 {
                     add_clusters_to_pangraph(clusters_of_hits, pangraph, prgs);
-                    filtered_mappings.write_clusters(clusters_of_hits);
+                    filtered_mappings.write_sam_record_from_hit_cluster(
+                        sequence, clusters_of_hits);
                 }
             }
 

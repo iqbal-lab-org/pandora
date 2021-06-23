@@ -12,6 +12,10 @@ struct pComp {
     bool operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs);
 };
 
+struct pCompReadPositionFirst {
+    bool operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs);
+};
+
 struct pEq {
     bool operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) const;
 };
@@ -25,11 +29,11 @@ struct pComp_path {
 };
 
 struct clusterComp {
-    bool operator()(const MinimizerHitCluster lhs, const MinimizerHitCluster rhs);
+    bool operator()(const Hits &lhs, const Hits &rhs);
 };
 
 struct clusterComp_size {
-    bool operator()(const MinimizerHitCluster lhs, const MinimizerHitCluster rhs);
+    bool operator()(const Hits &lhs, const Hits &rhs);
 };
 
 class MinimizerHits {
@@ -37,7 +41,7 @@ public:
     MinimizerHits() = default;
     ~MinimizerHits() = default;
 
-    MinimizerHitCluster hits;
+    Hits hits;
 
     void add_hit(const uint32_t i, const Minimizer& minimizer_from_read,
         const MiniRecord& minimizer_from_PRG);

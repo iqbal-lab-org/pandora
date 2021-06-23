@@ -78,8 +78,42 @@ bool pComp_path::operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& r
     return false;
 }
 
+bool pCompReadPositionFirst::operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) {
+    if (lhs->get_read_id() < rhs->get_read_id()) {
+        return true;
+    }
+    if (rhs->get_read_id() < lhs->get_read_id()) {
+        return false;
+    }
+    if (lhs->get_read_start_position() < rhs->get_read_start_position()) {
+        return true;
+    }
+    if (rhs->get_read_start_position() < lhs->get_read_start_position()) {
+        return false;
+    }
+    if (lhs->is_forward() > rhs->is_forward()) {
+        return true;
+    }
+    if (rhs->is_forward() > lhs->is_forward()) {
+        return false;
+    }
+    if (lhs->get_prg_id() < rhs->get_prg_id()) {
+        return true;
+    }
+    if (rhs->get_prg_id() < lhs->get_prg_id()) {
+        return false;
+    }
+    if (lhs->get_prg_path() < rhs->get_prg_path()) {
+        return true;
+    }
+    if (rhs->get_prg_path() < lhs->get_prg_path()) {
+        return false;
+    }
+    return false;
+}
+
 bool clusterComp::operator()(
-    const MinimizerHitCluster lhs, const MinimizerHitCluster rhs)
+    const Hits &lhs, const Hits &rhs)
 {
     if ((*lhs.begin())->get_read_id() < (*rhs.begin())->get_read_id()) {
         return true;
@@ -123,7 +157,7 @@ bool clusterComp::operator()(
 }
 
 bool clusterComp_size::operator()(
-    const MinimizerHitCluster lhs, const MinimizerHitCluster rhs)
+    const Hits &lhs, const Hits &rhs)
 {
     if ((*lhs.begin())->get_read_id() < (*rhs.begin())->get_read_id()) {
         return true;
