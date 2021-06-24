@@ -34,9 +34,9 @@ bool MinimizerHit::operator==(const MinimizerHit& y) const
     if (!(get_prg_path() == y.get_prg_path())) {
         return false;
     }
-    if (is_forward() != y.is_forward()) {
-        return false;
-    }
+//    if (is_forward() != y.is_forward()) {
+//        return false;
+//    }
     return true;
 }
 
@@ -59,12 +59,12 @@ bool MinimizerHit::operator<(const MinimizerHit& y) const
     }
 
     // then by direction NB this bias is in favour of the forward direction
-    if (is_forward() < y.is_forward()) {
-        return false;
-    }
-    if (y.is_forward() < is_forward()) {
-        return true;
-    }
+//    if (is_forward() < y.is_forward()) {
+//        return false;
+//    }
+//    if (y.is_forward() < is_forward()) {
+//        return true;
+//    }
 
     // then by position on query string
     if (get_read_start_position() < y.get_read_start_position()) {

@@ -55,12 +55,12 @@ bool pComp_path::operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& r
     }
     // separated into two categories, corresponding to a forward, and a rev-complement
     // hit, note fwd come first
-    if (lhs->is_forward() > rhs->is_forward()) {
-        return true;
-    }
-    if (rhs->is_forward() > lhs->is_forward()) {
-        return false;
-    }
+//    if (lhs->is_forward() > rhs->is_forward()) {
+//        return true;
+//    }
+//    if (rhs->is_forward() > lhs->is_forward()) {
+//        return false;
+//    }
     // finally, make sure that hits from separate reads aren't removed from the set as
     // "=="
     if (lhs->get_read_id() < rhs->get_read_id()) {
@@ -91,12 +91,12 @@ bool pCompReadPositionFirst::operator()(const MinimizerHitPtr& lhs, const Minimi
     if (rhs->get_read_start_position() < lhs->get_read_start_position()) {
         return false;
     }
-    if (lhs->is_forward() > rhs->is_forward()) {
-        return true;
-    }
-    if (rhs->is_forward() > lhs->is_forward()) {
-        return false;
-    }
+//    if (lhs->is_forward() > rhs->is_forward()) {
+//        return true;
+//    }
+//    if (rhs->is_forward() > lhs->is_forward()) {
+//        return false;
+//    }
     if (lhs->get_prg_id() < rhs->get_prg_id()) {
         return true;
     }
@@ -147,12 +147,12 @@ bool clusterComp::operator()(
     if ((*rhs.begin())->get_prg_path() < (*lhs.begin())->get_prg_path()) {
         return false;
     }
-    if ((*lhs.begin())->is_forward() < (*rhs.begin())->is_forward()) {
-        return true;
-    }
-    if ((*rhs.begin())->is_forward() < (*lhs.begin())->is_forward()) {
-        return false;
-    }
+//    if ((*lhs.begin())->is_forward() < (*rhs.begin())->is_forward()) {
+//        return true;
+//    }
+//    if ((*rhs.begin())->is_forward() < (*lhs.begin())->is_forward()) {
+//        return false;
+//    }
     return false;
 }
 
@@ -191,11 +191,11 @@ bool clusterComp_size::operator()(
     if ((*rhs.begin())->get_prg_path() < (*lhs.begin())->get_prg_path()) {
         return false;
     }
-    if ((*lhs.begin())->is_forward() < (*rhs.begin())->is_forward()) {
-        return true;
-    }
-    if ((*rhs.begin())->is_forward() < (*lhs.begin())->is_forward()) {
-        return false;
-    }
+//    if ((*lhs.begin())->is_forward() < (*rhs.begin())->is_forward()) {
+//        return true;
+//    }
+//    if ((*rhs.begin())->is_forward() < (*lhs.begin())->is_forward()) {
+//        return false;
+//    }
     return false;
 }

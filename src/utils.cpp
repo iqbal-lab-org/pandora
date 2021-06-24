@@ -220,7 +220,7 @@ void define_clusters(
          mh_current != minimizer_hits->hits.end(); ++mh_current) {
         if ((*mh_current)->get_read_id() != (*mh_previous)->get_read_id()
             or (*mh_current)->get_prg_id() != (*mh_previous)->get_prg_id()
-            or (*mh_current)->is_forward() != (*mh_previous)->is_forward()
+            // or (*mh_current)->is_forward() != (*mh_previous)->is_forward()
             or (abs((int)(*mh_current)->get_read_start_position()
                    - (int)(*mh_previous)->get_read_start_position()))
                 > max_diff) {
@@ -294,9 +294,9 @@ void filter_clusters(
             && // if on same read and either
             ((((*(*c_current).begin())->get_prg_id()
                   == (*(*c_previous).begin())->get_prg_id())
-                 && // same prg, different strand
+                 /* && // same prg, different strand
                  ((*(*c_current).begin())->is_forward()
-                     != (*(*c_previous).begin())->is_forward()))
+                     != (*(*c_previous).begin())->is_forward())*/)
                 or // or cluster is contained
                 ((*--(*c_current).end())->get_read_start_position()
                     <= (*--(*c_previous).end())
