@@ -212,7 +212,7 @@ void decide_if_add_cluster_or_not(
 
     const uint32_t number_of_unique_mini_in_cluster = current_cluster.size() - number_of_equal_read_minimizers;
     const uint32_t cluster_size_threshold = std::max(length_based_threshold, min_cluster_size);
-    const bool cluster_should_be_accepted = number_of_unique_mini_in_cluster > cluster_size_threshold;
+    const bool cluster_should_be_accepted = number_of_unique_mini_in_cluster >= cluster_size_threshold;
     if (cluster_should_be_accepted) {
 #pragma omp critical(cluster_def_file)
         {
