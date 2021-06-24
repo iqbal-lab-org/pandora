@@ -192,6 +192,53 @@ void add_read_hits(const Seq& sequence,
     }
 }
 
+
+void decide_if_add_cluster_or_not(
+    const Seq &seq,
+    MinimizerHitClusters& clusters_of_hits,
+    const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    const std::set<MinimizerHitPtr, pComp>::iterator &mh_previous,
+    const uint32_t expected_number_kmers_in_read_sketch,
+    const float fraction_kmers_required_for_cluster,
+    const uint32_t min_cluster_size,
+    const Hits &current_cluster,
+    const uint32_t number_of_equal_read_minimizers,
+    GenericFile & cluster_def_file) {
+    // keep clusters which cover at least 1/2 the expected number of minihits
+    const uint32_t length_based_threshold = std::min(
+        prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length(),
+        expected_number_kmers_in_read_sketch)
+                                      * fraction_kmers_required_for_cluster;
+
+    const uint32_t number_of_unique_mini_in_cluster = current_cluster.size() - number_of_equal_read_minimizers;
+    const uint32_t cluster_size_threshold = std::max(length_based_threshold, min_cluster_size);
+    const bool cluster_should_be_accepted = number_of_unique_mini_in_cluster > cluster_size_threshold;
+    if (cluster_should_be_accepted) {
+#pragma omp critical(cluster_def_file)
+        {
+            cluster_def_file.get_file_handler() <<
+                                                "read:" << seq.name << "\t" <<
+                                                "prg:" << prgs[(*mh_previous)->get_prg_id()]->name << "\t" <<
+                                                "status:accepted\t" <<
+                                                "cluster_size:" << number_of_unique_mini_in_cluster << "\t" <<
+                                                "length_based_threshold:" << length_based_threshold << "\t" <<
+                                                "min_cluster_size:" << min_cluster_size << "\t" << std::endl;
+        }
+        clusters_of_hits.insert(current_cluster);
+    } else {
+#pragma omp critical(cluster_def_file)
+        {
+            cluster_def_file.get_file_handler() <<
+                                                "read:" << seq.name << "\t" <<
+                                                "prg:" << prgs[(*mh_previous)->get_prg_id()]->name << "\t" <<
+                                                "status:rejected\t" <<
+                                                "cluster_size:" << number_of_unique_mini_in_cluster << "\t" <<
+                                                "length_based_threshold:" << length_based_threshold << "\t" <<
+                                                "min_cluster_size:" << min_cluster_size << "\t" << std::endl;
+        }
+    }
+}
+
 void define_clusters(
     const std::string &sample_name,
     const Seq &seq,
@@ -216,99 +263,36 @@ void define_clusters(
     auto mh_previous = minimizer_hits->hits.begin();
     Hits current_cluster;
     current_cluster.insert(*mh_previous);
-    uint32_t length_based_threshold;
+    uint32_t number_of_equal_read_minimizers = 0;
     for (auto mh_current = ++minimizer_hits->hits.begin();
          mh_current != minimizer_hits->hits.end(); ++mh_current) {
-        if ((*mh_current)->get_read_id() != (*mh_previous)->get_read_id()
-            or (*mh_current)->get_prg_id() != (*mh_previous)->get_prg_id()
-            // or (*mh_current)->is_forward() != (*mh_previous)->is_forward()
-            or (abs((int)(*mh_current)->get_read_start_position()
-                   - (int)(*mh_previous)->get_read_start_position()))
-                > max_diff) {
-            // keep clusters which cover at least 1/2 the expected number of minihits
-            length_based_threshold
-                = std::min(
-                      prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length(),
-                      expected_number_kmers_in_read_sketch)
-                * fraction_kmers_required_for_cluster;
-            BOOST_LOG_TRIVIAL(trace) << tag
-                << "Length based cluster threshold min("
-                << prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length()
-                << ", " << expected_number_kmers_in_read_sketch << ") * "
-                << fraction_kmers_required_for_cluster << " = "
-                << length_based_threshold;
+        const bool read_minimizer_is_the_same =
+            (*mh_current)->get_read_start_position() == (*mh_previous)->get_read_start_position();
+        number_of_equal_read_minimizers += (int)read_minimizer_is_the_same;
 
-            if (current_cluster.size()
-                > std::max(length_based_threshold, min_cluster_size)) {
-#pragma omp critical(cluster_def_file)
-                {
-                    cluster_def_file.get_file_handler() <<
-                        "read:" << seq.name << "\t" <<
-                        "prg:" << prgs[(*mh_previous)->get_prg_id()]->name << "\t" <<
-                        "status:accepted\t" <<
-                        "cluster_size:" << current_cluster.size() << "\t" <<
-                        "length_based_threshold:" << length_based_threshold << "\t" <<
-                        "min_cluster_size:" << min_cluster_size << "\t" << std::endl;
-                }
-                clusters_of_hits.insert(current_cluster);
-            } else {
-#pragma omp critical(cluster_def_file)
-                {
-                    cluster_def_file.get_file_handler() <<
-                        "read:" << seq.name << "\t" <<
-                        "prg:" << prgs[(*mh_previous)->get_prg_id()]->name << "\t" <<
-                        "status:rejected\t" <<
-                        "cluster_size:" << current_cluster.size() << "\t" <<
-                        "length_based_threshold:" << length_based_threshold << "\t" <<
-                        "min_cluster_size:" << min_cluster_size << "\t" << std::endl;
-                }
-                BOOST_LOG_TRIVIAL(trace) << tag
-                    << "Rejected cluster of size " << current_cluster.size()
-                    << " < max(" << length_based_threshold << ", " << min_cluster_size
-                    << ")";
-            }
+        const bool switched_reads = (*mh_current)->get_read_id() != (*mh_previous)->get_read_id();
+        const bool switched_prgs = (*mh_current)->get_prg_id() != (*mh_previous)->get_prg_id();
+        const bool hits_too_distant = (abs((int)(*mh_current)->get_read_start_position()
+                                           - (int)(*mh_previous)->get_read_start_position())) > max_diff;
+        const bool switched_clusters = switched_reads or switched_prgs or hits_too_distant;
+        if (switched_clusters) {
+            decide_if_add_cluster_or_not(seq, clusters_of_hits, prgs, mh_previous,
+            expected_number_kmers_in_read_sketch, fraction_kmers_required_for_cluster,
+            min_cluster_size, current_cluster, number_of_equal_read_minimizers,
+            cluster_def_file);
+
+            // prepare next cluster
             current_cluster.clear();
+            number_of_equal_read_minimizers=0;
+
         }
         current_cluster.insert(*mh_current);
         mh_previous = mh_current;
     }
-    length_based_threshold
-        = std::min(prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length(),
-              expected_number_kmers_in_read_sketch)
-        * fraction_kmers_required_for_cluster;
-    BOOST_LOG_TRIVIAL(trace) << tag
-        << "Length based cluster threshold min("
-        << prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length() << ", "
-        << expected_number_kmers_in_read_sketch << ") * "
-        << fraction_kmers_required_for_cluster << " = " << length_based_threshold;
-    if (current_cluster.size() > std::max(length_based_threshold, min_cluster_size)) {
-#pragma omp critical(cluster_def_file)
-        {
-            cluster_def_file.get_file_handler()
-                << "read:" << seq.name << "\t"
-                << "prg:" << prgs[(*mh_previous)->get_prg_id()]->name << "\t"
-                << "status:accepted\t"
-                << "cluster_size:" << current_cluster.size() << "\t"
-                << "length_based_threshold:" << length_based_threshold << "\t"
-                << "min_cluster_size:" << min_cluster_size << "\t" << std::endl;
-        }
-
-        clusters_of_hits.insert(current_cluster);
-    } else {
-#pragma omp critical(cluster_def_file)
-        {
-            cluster_def_file.get_file_handler() <<
-                "read:" << seq.name << "\t" <<
-                "prg:" << prgs[(*mh_previous)->get_prg_id()]->name << "\t" <<
-                "status:rejected\t" <<
-                "cluster_size:" << current_cluster.size() << "\t" <<
-                "length_based_threshold:" << length_based_threshold << "\t" <<
-                "min_cluster_size:" << min_cluster_size << "\t" << std::endl;
-        }
-        BOOST_LOG_TRIVIAL(trace) << tag
-            << "Rejected cluster of size " << current_cluster.size() << " < max("
-            << length_based_threshold << ", " << min_cluster_size << ")";
-    }
+    decide_if_add_cluster_or_not(seq, clusters_of_hits, prgs, mh_previous,
+                                 expected_number_kmers_in_read_sketch, fraction_kmers_required_for_cluster,
+                                 min_cluster_size, current_cluster, number_of_equal_read_minimizers,
+                                 cluster_def_file);
 
     BOOST_LOG_TRIVIAL(trace) << tag << "Found " << clusters_of_hits.size()
                              << " clusters of hits";
