@@ -10,6 +10,7 @@ protected:
 public:
     GenericFile(const fs::path &filepath);
     virtual ~GenericFile();
+    std::ofstream& get_file_handler() { return file_handler; }
 };
 
 #endif

@@ -91,7 +91,8 @@ void filter_clusters2(
 
 MinimizerHitClusters get_minimizer_hit_clusters(const std::vector<std::shared_ptr<LocalPRG>>& prgs,
     std::shared_ptr<MinimizerHits> minimizer_hits, std::shared_ptr<pangenome::Graph>,
-    const int, const uint32_t&, const float&, const uint32_t min_cluster_size = 10,
+    const int, const uint32_t&, const float&, GenericFile &cluster_def_file,
+    GenericFile &cluster_filter_file, const uint32_t min_cluster_size = 10,
     const uint32_t expected_number_kmers_in_short_read_sketch
     = std::numeric_limits<uint32_t>::max());
 

@@ -194,14 +194,15 @@ void add_read_hits(const Seq& sequence,
 
 void define_clusters(
     const std::string &sample_name,
-    uint32_t read_id,
+    const Seq &seq,
     MinimizerHitClusters& clusters_of_hits,
     const std::vector<std::shared_ptr<LocalPRG>>& prgs,
     std::shared_ptr<MinimizerHits> minimizer_hits, const int max_diff,
     const float& fraction_kmers_required_for_cluster, const uint32_t min_cluster_size,
-    const uint32_t expected_number_kmers_in_read_sketch)
+    const uint32_t expected_number_kmers_in_read_sketch,
+    GenericFile & cluster_def_file)
 {
-    const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(read_id) + "]: ";
+    const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
 
     BOOST_LOG_TRIVIAL(trace) << tag << "Define clusters of hits from the "
                              << minimizer_hits->hits.size() << " hits";
@@ -239,8 +240,28 @@ void define_clusters(
 
             if (current_cluster.size()
                 > std::max(length_based_threshold, min_cluster_size)) {
+#pragma omp critical(cluster_def_file)
+                {
+                    cluster_def_file.get_file_handler() <<
+                        "read:" << seq.name << "\t" <<
+                        "prg:" << prgs[(*mh_previous)->get_prg_id()]->name << "\t" <<
+                        "status:accepted\t" <<
+                        "cluster_size:" << current_cluster.size() << "\t" <<
+                        "length_based_threshold:" << length_based_threshold << "\t" <<
+                        "min_cluster_size:" << min_cluster_size << "\t" << std::endl;
+                }
                 clusters_of_hits.insert(current_cluster);
             } else {
+#pragma omp critical(cluster_def_file)
+                {
+                    cluster_def_file.get_file_handler() <<
+                        "read:" << seq.name << "\t" <<
+                        "prg:" << prgs[(*mh_previous)->get_prg_id()]->name << "\t" <<
+                        "status:rejected\t" <<
+                        "cluster_size:" << current_cluster.size() << "\t" <<
+                        "length_based_threshold:" << length_based_threshold << "\t" <<
+                        "min_cluster_size:" << min_cluster_size << "\t" << std::endl;
+                }
                 BOOST_LOG_TRIVIAL(trace) << tag
                     << "Rejected cluster of size " << current_cluster.size()
                     << " < max(" << length_based_threshold << ", " << min_cluster_size
@@ -261,8 +282,29 @@ void define_clusters(
         << expected_number_kmers_in_read_sketch << ") * "
         << fraction_kmers_required_for_cluster << " = " << length_based_threshold;
     if (current_cluster.size() > std::max(length_based_threshold, min_cluster_size)) {
+#pragma omp critical(cluster_def_file)
+        {
+            cluster_def_file.get_file_handler()
+                << "read:" << seq.name << "\t"
+                << "prg:" << prgs[(*mh_previous)->get_prg_id()]->name << "\t"
+                << "status:accepted\t"
+                << "cluster_size:" << current_cluster.size() << "\t"
+                << "length_based_threshold:" << length_based_threshold << "\t"
+                << "min_cluster_size:" << min_cluster_size << "\t" << std::endl;
+        }
+
         clusters_of_hits.insert(current_cluster);
     } else {
+#pragma omp critical(cluster_def_file)
+        {
+            cluster_def_file.get_file_handler() <<
+                "read:" << seq.name << "\t" <<
+                "prg:" << prgs[(*mh_previous)->get_prg_id()]->name << "\t" <<
+                "status:rejected\t" <<
+                "cluster_size:" << current_cluster.size() << "\t" <<
+                "length_based_threshold:" << length_based_threshold << "\t" <<
+                "min_cluster_size:" << min_cluster_size << "\t" << std::endl;
+        }
         BOOST_LOG_TRIVIAL(trace) << tag
             << "Rejected cluster of size " << current_cluster.size() << " < max("
             << length_based_threshold << ", " << min_cluster_size << ")";
@@ -274,10 +316,12 @@ void define_clusters(
 
 void filter_clusters(
     const std::string &sample_name,
-    uint32_t read_id,
-    MinimizerHitClusters& clusters_of_hits)
+    const Seq &seq,
+    MinimizerHitClusters& clusters_of_hits,
+    const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    GenericFile &cluster_filter_file)
 {
-    const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(read_id) + "]: ";
+    const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
 
     // Next order clusters, choose between those that overlap by too much
     BOOST_LOG_TRIVIAL(trace) << tag << "Filter the " << clusters_of_hits.size()
@@ -306,14 +350,47 @@ void filter_clusters(
         // but could also impose no more than 2k hits in overlap
         {
             if (c_previous->size() >= c_current->size()) {
+#pragma omp critical(cluster_filter_file)
+                {
+                    cluster_filter_file.get_file_handler()
+                        << "cluster_size:" << c_current->size() << "\t"
+                        << "read:" << seq.name << "\t"
+                        << "prg:" << prgs[(*c_current->begin())->get_prg_id()]->name
+                        << "\t"
+                        << "status:filtered_out\t" << std::endl;
+                }
                 clusters_of_hits.erase(c_current);
                 c_current = c_previous;
+
             } else {
+#pragma omp critical(cluster_filter_file)
+                {
+                    cluster_filter_file.get_file_handler()
+                        << "cluster_size:" << c_previous->size() << "\t"
+                        << "read:" << seq.name << "\t"
+                        << "prg:" << prgs[(*c_previous->begin())->get_prg_id()]->name
+                        << "\t"
+                        << "status:filtered_out\t" << std::endl;
+                }
                 clusters_of_hits.erase(c_previous);
             }
         }
         c_previous = c_current;
     }
+
+    for (const auto &cluster : clusters_of_hits) {
+#pragma omp critical(cluster_filter_file)
+        {
+            cluster_filter_file.get_file_handler()
+                << "cluster_size:" << cluster.size() << "\t"
+                << "read:" << seq.name << "\t"
+                << "prg:" << prgs[(*cluster.begin())->get_prg_id()]->name
+                << "\t"
+                << "status:kept\t" << std::endl;
+        }
+
+    }
+
     BOOST_LOG_TRIVIAL(trace) << tag << "Now have " << clusters_of_hits.size()
                              << " clusters of hits";
 }
@@ -385,11 +462,13 @@ void add_clusters_to_pangraph(
 
 MinimizerHitClusters get_minimizer_hit_clusters(
     const std::string &sample_name,
-    uint32_t read_id,
+    const Seq &seq,
     const std::vector<std::shared_ptr<LocalPRG>>& prgs,
     std::shared_ptr<MinimizerHits> minimizer_hits,
     std::shared_ptr<pangenome::Graph> pangraph, const int max_diff,
     const uint32_t& genome_size, const float& fraction_kmers_required_for_cluster,
+    GenericFile &cluster_def_file,
+    GenericFile &cluster_filter_file,
     const uint32_t min_cluster_size,
     const uint32_t expected_number_kmers_in_read_sketch)
 {
@@ -402,11 +481,11 @@ MinimizerHitClusters get_minimizer_hit_clusters(
         return minimizer_hit_clusters;
     }
 
-    define_clusters(sample_name, read_id, minimizer_hit_clusters, prgs, minimizer_hits, max_diff,
+    define_clusters(sample_name, seq, minimizer_hit_clusters, prgs, minimizer_hits, max_diff,
         fraction_kmers_required_for_cluster, min_cluster_size,
-        expected_number_kmers_in_read_sketch);
+        expected_number_kmers_in_read_sketch, cluster_def_file);
 
-    filter_clusters(sample_name, read_id,minimizer_hit_clusters);
+    filter_clusters(sample_name, seq,minimizer_hit_clusters, prgs, cluster_filter_file);
     // filter_clusters2(clusters_of_hits, genome_size);
 
     return minimizer_hit_clusters;
@@ -442,6 +521,9 @@ uint32_t pangraph_from_read_file(const SampleData &sample,
 
     MinimizerMatchFile minimizer_matches(sample_outdir / (sample_name + ".minimatches"), prgs);
     SAMFile filtered_mappings(sample_outdir / (sample_name + ".filtered.sam"), prgs);
+    GenericFile cluster_def_file(sample_outdir / (sample_name + ".clusters_def_report"));
+    GenericFile cluster_filter_file(sample_outdir / (sample_name + ".clusters_filter_report"));
+
 // parallel region
 #pragma omp parallel num_threads(threads)
     {
@@ -522,9 +604,9 @@ uint32_t pangraph_from_read_file(const SampleData &sample,
 
                 // infer
                 MinimizerHitClusters clusters_of_hits =
-                    get_minimizer_hit_clusters(sample_name, sequence.id, prgs, minimizer_hits, pangraph, max_diff,
-                    genome_size, fraction_kmers_required_for_cluster, min_cluster_size,
-                    expected_number_kmers_in_read_sketch);
+                    get_minimizer_hit_clusters(sample_name, sequence, prgs, minimizer_hits, pangraph, max_diff,
+                    genome_size, fraction_kmers_required_for_cluster, cluster_def_file,
+                    cluster_filter_file, min_cluster_size, expected_number_kmers_in_read_sketch);
 
 #pragma omp critical(pangraph)
                 {
