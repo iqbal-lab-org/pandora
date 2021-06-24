@@ -515,7 +515,10 @@ uint32_t pangraph_from_read_file(const SampleData &sample,
                 add_read_hits(sequence, minimizer_hits, *index);
 
                 // write unfiltered minimizer hits
-                minimizer_matches.write_hits(sequence, minimizer_hits->hits);
+#pragma omp critical(minimizer_matches)
+                {
+                    minimizer_matches.write_hits(sequence, minimizer_hits->hits);
+                }
 
                 // infer
                 MinimizerHitClusters clusters_of_hits =
