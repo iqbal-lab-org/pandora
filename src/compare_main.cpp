@@ -199,9 +199,10 @@ int pandora_compare(CompareOptions& opt)
     if (opt.illumina and opt.error_rate > 0.1) {
         opt.error_rate = 0.001;
     }
-    if (opt.illumina and opt.max_diff > 200) {
-        opt.max_diff = 2 * opt.kmer_size + 1;
-    }
+//    if (opt.illumina and opt.max_diff > 200) {
+//        opt.max_diff = 2 * opt.kmer_size + 1;
+//    }
+    opt.max_diff = 2 * opt.kmer_size + 1;
     // ==========
     if (opt.window_size > opt.kmer_size) {
         throw std::logic_error("W must NOT be greater than K");

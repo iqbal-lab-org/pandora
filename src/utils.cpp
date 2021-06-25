@@ -212,7 +212,8 @@ void decide_if_add_cluster_or_not(
                                       * fraction_kmers_required_for_cluster;
 
     const uint32_t number_of_unique_mini_in_cluster = current_cluster.size() - number_of_equal_read_minimizers;
-    const uint32_t cluster_size_threshold = std::max(length_based_threshold, min_cluster_size);
+    // const uint32_t cluster_size_threshold = std::max(length_based_threshold, min_cluster_size);
+    const uint32_t cluster_size_threshold = min_cluster_size;
     const bool cluster_should_be_accepted = number_of_unique_mini_in_cluster >= cluster_size_threshold;
 
 #pragma omp critical(cluster_def_file)
@@ -277,10 +278,6 @@ void define_clusters(
                                                    - (int)(*mh_previous)->get_read_start_position());
         const bool hits_too_distant = distance_between_hits > max_diff;
 
-        if (!read_minimizer_is_the_same) {
-            distances_between_hits.push_back(distance_between_hits);
-        }
-
         const bool switched_clusters = switched_reads or switched_prgs or hits_too_distant;
         if (switched_clusters) {
             decide_if_add_cluster_or_not(seq, clusters_of_hits, prgs, mh_previous,
@@ -291,7 +288,12 @@ void define_clusters(
             // prepare next cluster
             current_cluster.clear();
             number_of_equal_read_minimizers=0;
+            distances_between_hits.clear();
 
+        } else {
+            if (!read_minimizer_is_the_same) {
+                distances_between_hits.push_back(distance_between_hits);
+            }
         }
         current_cluster.insert(*mh_current);
         mh_previous = mh_current;
