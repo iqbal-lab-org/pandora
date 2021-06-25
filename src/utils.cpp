@@ -174,27 +174,6 @@ void load_vcf_refs_file(const fs::path& filepath, VCFRefs& vcf_refs)
     }
 }
 
-std::set<uint32_t> get_prg_ids_where_this_read_minimizer_multimaps(
-    const std::vector<MiniRecord> &minimizers_from_prgs) {
-    std::set<uint32_t> prg_ids_seen_once;
-    std::set<uint32_t> prg_ids_seen_twice;
-
-    for (const MiniRecord &mini_record : minimizers_from_prgs) {
-        const uint32_t prg_id = mini_record.prg_id;
-        const bool prg_was_never_seen = prg_ids_seen_once.find(prg_id) == prg_ids_seen_once.end();
-        const bool prg_was_already_seen = prg_ids_seen_once.find(prg_id) != prg_ids_seen_once.end();
-
-        if (prg_was_never_seen) {
-            prg_ids_seen_once.insert(prg_id);
-        }
-        if (prg_was_already_seen) {
-            prg_ids_seen_twice.insert(prg_id);
-        }
-    }
-
-    return prg_ids_seen_twice;
-}
-
 void add_read_hits(const Seq& sequence,
     const std::shared_ptr<MinimizerHits>& minimizer_hits, const Index& index)
 {
@@ -204,18 +183,10 @@ void add_read_hits(const Seq& sequence,
     for (auto sequenceSketchIt = sequence.sketch.begin();
          sequenceSketchIt != sequence.sketch.end(); ++sequenceSketchIt) {
         auto minhashIt = index.minhash.find((*sequenceSketchIt).canonical_kmer_hash);
-        const bool kmer_is_in_the_index = minhashIt != index.minhash.end();
-        if (kmer_is_in_the_index) {
-            std::set<uint32_t> prg_ids_with_multimapping =
-                get_prg_ids_where_this_read_minimizer_multimaps(*(minhashIt->second));
-
-            // add hits that are not multimapped
+        if (minhashIt != index.minhash.end()) { // checks if the kmer is in the index
+            // yes, add all hits of this minimizer hit to this kmer
             for (const MiniRecord& miniRecord : *(minhashIt->second)) {
-                const bool hit_is_multimapped =
-                    prg_ids_with_multimapping.find(miniRecord.prg_id) != prg_ids_with_multimapping.end();
-                if (!hit_is_multimapped) {
-                    minimizer_hits->add_hit(sequence.id, *sequenceSketchIt, miniRecord);
-                }
+                minimizer_hits->add_hit(sequence.id, *sequenceSketchIt, miniRecord);
             }
         }
     }
