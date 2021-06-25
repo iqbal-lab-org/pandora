@@ -203,6 +203,7 @@ void decide_if_add_cluster_or_not(
     const uint32_t min_cluster_size,
     const Hits &current_cluster,
     const uint32_t number_of_equal_read_minimizers,
+    const std::vector<uint32_t> &distances_between_hits,
     GenericFile & cluster_def_file) {
     // keep clusters which cover at least 1/2 the expected number of minihits
     const uint32_t length_based_threshold = std::min(
@@ -213,29 +214,28 @@ void decide_if_add_cluster_or_not(
     const uint32_t number_of_unique_mini_in_cluster = current_cluster.size() - number_of_equal_read_minimizers;
     const uint32_t cluster_size_threshold = std::max(length_based_threshold, min_cluster_size);
     const bool cluster_should_be_accepted = number_of_unique_mini_in_cluster >= cluster_size_threshold;
-    if (cluster_should_be_accepted) {
+
 #pragma omp critical(cluster_def_file)
-        {
-            cluster_def_file.get_file_handler() <<
-                                                "read:" << seq.name << "\t" <<
-                                                "prg:" << prgs[(*mh_previous)->get_prg_id()]->name << "\t" <<
-                                                "status:accepted\t" <<
-                                                "cluster_size:" << number_of_unique_mini_in_cluster << "\t" <<
-                                                "length_based_threshold:" << length_based_threshold << "\t" <<
-                                                "min_cluster_size:" << min_cluster_size << "\t" << std::endl;
+    {
+        cluster_def_file.get_file_handler() <<
+            seq.name << "\t" <<
+            prgs[(*mh_previous)->get_prg_id()]->name << "\t";
+        if (cluster_should_be_accepted) {
+            cluster_def_file.get_file_handler() << "accepted\t";
+            clusters_of_hits.insert(current_cluster);
+        }else {
+            cluster_def_file.get_file_handler() << "rejected\t";
         }
-        clusters_of_hits.insert(current_cluster);
-    } else {
-#pragma omp critical(cluster_def_file)
-        {
-            cluster_def_file.get_file_handler() <<
-                                                "read:" << seq.name << "\t" <<
-                                                "prg:" << prgs[(*mh_previous)->get_prg_id()]->name << "\t" <<
-                                                "status:rejected\t" <<
-                                                "cluster_size:" << number_of_unique_mini_in_cluster << "\t" <<
-                                                "length_based_threshold:" << length_based_threshold << "\t" <<
-                                                "min_cluster_size:" << min_cluster_size << "\t" << std::endl;
+
+        cluster_def_file.get_file_handler() <<
+            number_of_unique_mini_in_cluster << "\t" <<
+            length_based_threshold << "\t" <<
+            min_cluster_size << "\t";
+
+        for (const auto &distance : distances_between_hits) {
+            cluster_def_file.get_file_handler() << distance << ",";
         }
+        cluster_def_file.get_file_handler() << std::endl;
     }
 }
 
@@ -264,6 +264,7 @@ void define_clusters(
     Hits current_cluster;
     current_cluster.insert(*mh_previous);
     uint32_t number_of_equal_read_minimizers = 0;
+    std::vector<uint32_t> distances_between_hits;
     for (auto mh_current = ++minimizer_hits->hits.begin();
          mh_current != minimizer_hits->hits.end(); ++mh_current) {
         const bool read_minimizer_is_the_same =
@@ -272,14 +273,20 @@ void define_clusters(
 
         const bool switched_reads = (*mh_current)->get_read_id() != (*mh_previous)->get_read_id();
         const bool switched_prgs = (*mh_current)->get_prg_id() != (*mh_previous)->get_prg_id();
-        const bool hits_too_distant = (abs((int)(*mh_current)->get_read_start_position()
-                                           - (int)(*mh_previous)->get_read_start_position())) > max_diff;
+        const uint32_t distance_between_hits = abs((int)(*mh_current)->get_read_start_position()
+                                                   - (int)(*mh_previous)->get_read_start_position());
+        const bool hits_too_distant = distance_between_hits > max_diff;
+
+        if (!read_minimizer_is_the_same) {
+            distances_between_hits.push_back(distance_between_hits);
+        }
+
         const bool switched_clusters = switched_reads or switched_prgs or hits_too_distant;
         if (switched_clusters) {
             decide_if_add_cluster_or_not(seq, clusters_of_hits, prgs, mh_previous,
             expected_number_kmers_in_read_sketch, fraction_kmers_required_for_cluster,
             min_cluster_size, current_cluster, number_of_equal_read_minimizers,
-            cluster_def_file);
+            distances_between_hits,cluster_def_file);
 
             // prepare next cluster
             current_cluster.clear();
@@ -292,7 +299,7 @@ void define_clusters(
     decide_if_add_cluster_or_not(seq, clusters_of_hits, prgs, mh_previous,
                                  expected_number_kmers_in_read_sketch, fraction_kmers_required_for_cluster,
                                  min_cluster_size, current_cluster, number_of_equal_read_minimizers,
-                                 cluster_def_file);
+                                 distances_between_hits, cluster_def_file);
 
     BOOST_LOG_TRIVIAL(trace) << tag << "Found " << clusters_of_hits.size()
                              << " clusters of hits";
@@ -337,11 +344,10 @@ void filter_clusters(
 #pragma omp critical(cluster_filter_file)
                 {
                     cluster_filter_file.get_file_handler()
-                        << "cluster_size:" << c_current->size() << "\t"
-                        << "read:" << seq.name << "\t"
-                        << "prg:" << prgs[(*c_current->begin())->get_prg_id()]->name
-                        << "\t"
-                        << "status:filtered_out\t" << std::endl;
+                        << c_current->size() << "\t"
+                        << seq.name << "\t"
+                        << prgs[(*c_current->begin())->get_prg_id()]->name << "\t"
+                        << "filtered_out" << std::endl;
                 }
                 clusters_of_hits.erase(c_current);
                 c_current = c_previous;
@@ -350,11 +356,10 @@ void filter_clusters(
 #pragma omp critical(cluster_filter_file)
                 {
                     cluster_filter_file.get_file_handler()
-                        << "cluster_size:" << c_previous->size() << "\t"
-                        << "read:" << seq.name << "\t"
-                        << "prg:" << prgs[(*c_previous->begin())->get_prg_id()]->name
-                        << "\t"
-                        << "status:filtered_out\t" << std::endl;
+                        << c_previous->size() << "\t"
+                        << seq.name << "\t"
+                        << prgs[(*c_previous->begin())->get_prg_id()]->name << "\t"
+                        << "filtered_out" << std::endl;
                 }
                 clusters_of_hits.erase(c_previous);
             }
@@ -366,11 +371,10 @@ void filter_clusters(
 #pragma omp critical(cluster_filter_file)
         {
             cluster_filter_file.get_file_handler()
-                << "cluster_size:" << cluster.size() << "\t"
-                << "read:" << seq.name << "\t"
-                << "prg:" << prgs[(*cluster.begin())->get_prg_id()]->name
-                << "\t"
-                << "status:kept\t" << std::endl;
+                << cluster.size() << "\t"
+                << seq.name << "\t"
+                << prgs[(*cluster.begin())->get_prg_id()]->name << "\t"
+                << "kept" << std::endl;
         }
 
     }
@@ -506,7 +510,11 @@ uint32_t pangraph_from_read_file(const SampleData &sample,
     MinimizerMatchFile minimizer_matches(sample_outdir / (sample_name + ".minimatches"), prgs);
     SAMFile filtered_mappings(sample_outdir / (sample_name + ".filtered.sam"), prgs);
     GenericFile cluster_def_file(sample_outdir / (sample_name + ".clusters_def_report"));
+    cluster_def_file.get_file_handler() <<
+        "read\tprg\tstatus\tcluster_size\tlength_based_threshold\tmin_cluster_size\tdistances_between_clusters" << std::endl;
     GenericFile cluster_filter_file(sample_outdir / (sample_name + ".clusters_filter_report"));
+    cluster_filter_file.get_file_handler() <<
+        "cluster_size\tread\tprg\tstatus" << std::endl;
 
 // parallel region
 #pragma omp parallel num_threads(threads)
