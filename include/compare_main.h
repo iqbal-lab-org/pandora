@@ -39,7 +39,7 @@ struct CompareOptions {
     uint8_t verbosity { 0 };
     float error_rate { 0.11 };
     uint32_t genome_size { 5000000 };
-    uint32_t max_diff { 31 };
+    uint32_t max_diff { 250 };
     bool output_vcf { false };
     bool illumina { false };
     bool clean { false };
@@ -47,7 +47,7 @@ struct CompareOptions {
     uint32_t max_covg { 300 };
     bool genotype { false };
     bool local_genotype { false };
-    uint32_t min_cluster_size { 5 };
+    uint32_t min_cluster_size { 10 };
     uint32_t max_num_kmers_to_avg { 100 };
     uint32_t min_allele_covg_gt { 0 };
     uint32_t min_total_covg_gt { 0 };
