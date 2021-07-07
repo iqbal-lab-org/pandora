@@ -58,7 +58,7 @@ void Read::add_hits(
     }
 
     // add the orientation/node accordingly
-    const bool orientation = !cluster.empty() and (*cluster.begin())->is_forward();
+    const bool orientation = !cluster.empty() and (*cluster.begin())->same_strands();
     if (get_nodes().empty() or node_ptr != get_nodes().back().lock()
         or orientation != node_orientations.back()
         // or we think there really are 2 copies of gene

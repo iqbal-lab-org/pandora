@@ -26,11 +26,11 @@ public:
     inline uint32_t get_prg_id() const { return minimizer_from_PRG.prg_id; }
     inline const prg::Path& get_prg_path() const { return minimizer_from_PRG.path; }
     inline uint32_t get_kmer_node_id() const { return minimizer_from_PRG.knode_id; }
-    inline bool is_forward() const
+    inline bool get_prg_kmer_strand() const { return minimizer_from_PRG.strand; }
+    inline bool same_strands() const
     {
-        return read_strand == minimizer_from_PRG.strand;
-    } // TODO: the name of this method is very misleading, should be same_strands() or
-      // sth like this
+        return read_strand == get_prg_kmer_strand();
+    }
 
     MinimizerHit(const uint32_t i, const Minimizer& minimizer_from_read,
         const MiniRecord& minimizer_from_PRG);

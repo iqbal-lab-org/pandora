@@ -44,12 +44,12 @@ bool Minimizer::operator<(const Minimizer& y) const
         return false;
     }
 
-//    if (is_forward_strand < y.is_forward_strand) {
-//        return false;
-//    }
-//    if (y.is_forward_strand < is_forward_strand) {
-//        return true;
-//    }
+    if (is_forward_strand < y.is_forward_strand) {
+        return false;
+    }
+    if (y.is_forward_strand < is_forward_strand) {
+        return true;
+    }
 
     // if both are completely equal (based on strict weak ordering)
     // then just return false since equality doesn't yield less than
@@ -64,9 +64,9 @@ bool Minimizer::operator==(const Minimizer& y) const
     if (!(pos_of_kmer_in_read == y.pos_of_kmer_in_read)) {
         return false;
     }
-//    if (is_forward_strand != y.is_forward_strand) {
-//        return false;
-//    }
+    if (is_forward_strand != y.is_forward_strand) {
+        return false;
+    }
     return true;
 }
 

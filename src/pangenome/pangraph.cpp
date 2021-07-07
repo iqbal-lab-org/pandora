@@ -312,7 +312,7 @@ void pangenome::Graph::add_hits_to_kmergraphs(const uint32_t& sample_id)
                                 "kmer node is invalid");
                 }
 
-                if (minimizer_hit.is_forward()) {
+                if (minimizer_hit.same_strands()) {
                     pangraph_node.kmer_prg_with_coverage.increment_forward_covg(
                         minimizer_hit.get_kmer_node_id(), sample_id);
                 } else {
@@ -320,7 +320,7 @@ void pangenome::Graph::add_hits_to_kmergraphs(const uint32_t& sample_id)
                         minimizer_hit.get_kmer_node_id(), sample_id);
                 }
 
-                const auto covg { minimizer_hit.is_forward()
+                const auto covg { minimizer_hit.same_strands()
                         ? pangraph_node.kmer_prg_with_coverage.get_forward_covg(
                             minimizer_hit.get_kmer_node_id(), sample_id)
                         : pangraph_node.kmer_prg_with_coverage.get_reverse_covg(
@@ -332,7 +332,7 @@ void pangenome::Graph::add_hits_to_kmergraphs(const uint32_t& sample_id)
                         << *pangraph_node.kmer_prg_with_coverage.kmer_prg
                                 ->nodes[minimizer_hit.get_kmer_node_id()];
                 }
-                num_hits[minimizer_hit.is_forward()] += 1;
+                num_hits[minimizer_hit.same_strands()] += 1;
             }
         }
 

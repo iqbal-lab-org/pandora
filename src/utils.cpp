@@ -280,7 +280,11 @@ void define_clusters(
                                                    - (int)(*mh_previous)->get_read_start_position());
         const bool hits_too_distant = distance_between_hits > max_diff;
 
-        const bool switched_clusters = switched_reads or switched_prgs or hits_too_distant;
+        const bool unconsistent_strands
+            = (*mh_current)->same_strands() != (*mh_previous)->same_strands();
+
+        const bool switched_clusters = switched_reads or switched_prgs or
+            hits_too_distant or unconsistent_strands;
         if (switched_clusters) {
             decide_if_add_cluster_or_not(seq, clusters_of_hits, prgs, mh_previous,
             expected_number_kmers_in_read_sketch, fraction_kmers_required_for_cluster,
@@ -330,11 +334,15 @@ void filter_clusters(
          c_current != clusters_of_hits.end(); ++c_current) {
         const bool both_clusters_from_same_read =
             ((*(*c_current).begin())->get_read_id() == (*(*c_previous).begin())->get_read_id());
+        const bool same_prg = (*(*c_current).begin())->get_prg_id() == (*(*c_previous).begin())->get_prg_id();
+        const bool unconsistent_strands = (*(*c_current).begin())->same_strands() != (*(*c_previous).begin())->same_strands();
         const bool current_cluster_is_contained_in_previous =
             (*--(*c_current).end())->get_read_start_position() <=
             (*--(*c_previous).end())->get_read_start_position();
-
-        if (both_clusters_from_same_read && current_cluster_is_contained_in_previous)
+        const bool one_of_the_clusters_should_be_filtered_out =
+            both_clusters_from_same_read && ((same_prg && unconsistent_strands) or
+                current_cluster_is_contained_in_previous);
+        if (one_of_the_clusters_should_be_filtered_out)
         // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters,
         // but could also impose no more than 2k hits in overlap
         {
