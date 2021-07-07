@@ -229,6 +229,8 @@ void decide_if_add_cluster_or_not(
         }
 
         cluster_def_file.get_file_handler() <<
+            current_cluster.size() << "\t" <<
+            number_of_equal_read_minimizers << "\t" <<
             number_of_unique_mini_in_cluster << "\t" <<
             length_based_threshold << "\t" <<
             min_cluster_size << "\t";
@@ -326,22 +328,17 @@ void filter_clusters(
     auto c_previous = clusters_of_hits.begin();
     for (auto c_current = ++clusters_of_hits.begin();
          c_current != clusters_of_hits.end(); ++c_current) {
-        if (((*(*c_current).begin())->get_read_id()
-                == (*(*c_previous).begin())->get_read_id())
-            && // if on same read and either
-            ((((*(*c_current).begin())->get_prg_id()
-                  == (*(*c_previous).begin())->get_prg_id())
-                 /* && // same prg, different strand
-                 ((*(*c_current).begin())->is_forward()
-                     != (*(*c_previous).begin())->is_forward())*/)
-                or // or cluster is contained
-                ((*--(*c_current).end())->get_read_start_position()
-                    <= (*--(*c_previous).end())
-                           ->get_read_start_position()))) // i.e. not least one hit
-                                                          // outside overlap
+        const bool both_clusters_from_same_read =
+            ((*(*c_current).begin())->get_read_id() == (*(*c_previous).begin())->get_read_id());
+        const bool current_cluster_is_contained_in_previous =
+            (*--(*c_current).end())->get_read_start_position() <=
+            (*--(*c_previous).end())->get_read_start_position();
+
+        if (both_clusters_from_same_read && current_cluster_is_contained_in_previous)
         // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters,
         // but could also impose no more than 2k hits in overlap
         {
+
             if (c_previous->size() >= c_current->size()) {
 #pragma omp critical(cluster_filter_file)
                 {
@@ -513,7 +510,7 @@ uint32_t pangraph_from_read_file(const SampleData &sample,
     SAMFile filtered_mappings(sample_outdir / (sample_name + ".filtered.sam"), prgs);
     GenericFile cluster_def_file(sample_outdir / (sample_name + ".clusters_def_report"));
     cluster_def_file.get_file_handler() <<
-        "read\tprg\tstatus\tcluster_size\tlength_based_threshold\tmin_cluster_size\tdistances_between_clusters" << std::endl;
+        "read\tprg\tstatus\tcluster_size\tnb_of_repeated_mini\tnb_of_unique_mini\tlength_based_threshold\tmin_cluster_size\tdistances_between_clusters" << std::endl;
     GenericFile cluster_filter_file(sample_outdir / (sample_name + ".clusters_filter_report"));
     cluster_filter_file.get_file_handler() <<
         "cluster_size\tread\tprg\tstatus" << std::endl;
