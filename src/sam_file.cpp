@@ -90,7 +90,9 @@ void SAMFile::write_sam_record_from_hit_cluster(
         const std::string cigar = get_cigar(mapped_positions_bitset);
         const std::string segment_sequence = get_segment_sequence(seq, mapped_positions_bitset);
 
-        file_handler << seq.name << "\t"
+        uint32_t first_mapped_pos = get_first_mapped_position(mapped_positions_bitset);
+        uint32_t last_mapped_pos = get_last_mapped_position(mapped_positions_bitset);
+        file_handler << seq.name << "[" << first_mapped_pos << ":" << last_mapped_pos << "]\t"
                      << "0\t"
                      << prgs[first_hit->get_prg_id()]->name << "\t"
                      << first_hit->get_prg_path() << "\t"
