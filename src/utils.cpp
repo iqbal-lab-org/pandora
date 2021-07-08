@@ -329,6 +329,7 @@ void filter_clusters(
         return;
     }
     // to do this consider pairs of clusters in turn
+    /*
     auto c_previous = clusters_of_hits.begin();
     for (auto c_current = ++clusters_of_hits.begin();
          c_current != clusters_of_hits.end(); ++c_current) {
@@ -373,6 +374,7 @@ void filter_clusters(
         }
         c_previous = c_current;
     }
+     */
 
     for (const auto &cluster : clusters_of_hits) {
 #pragma omp critical(cluster_filter_file)
