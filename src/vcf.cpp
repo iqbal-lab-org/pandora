@@ -120,6 +120,7 @@ void VCF::add_a_new_record_discovered_in_a_sample_and_genotype_it(
             for (const auto& record : records) {
                 if (record->get_chrom() == chrom and record->get_pos() == pos
                     and record->get_ref() == ref) {
+                    // ref allele
                     record->sampleIndex_to_sampleInfo[sample_index]
                         .set_gt_from_max_likelihood_path(0);
                     vcf_record_pointer = record.get();
@@ -127,6 +128,7 @@ void VCF::add_a_new_record_discovered_in_a_sample_and_genotype_it(
                 }
             }
         } else {
+            // alternative allele for alt too nested site
             add_record(
                 chrom, pos, ref, alt, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
             records.back()
@@ -138,6 +140,7 @@ void VCF::add_a_new_record_discovered_in_a_sample_and_genotype_it(
 
         // check if there was a mistake
         if (!vcf_record_was_processed) {
+            // alt mistake
             fatal_error("Error when adding a new VCF record discovered in a sample");
         }
     }

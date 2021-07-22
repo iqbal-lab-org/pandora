@@ -48,7 +48,7 @@ struct CompareOptions {
     bool genotype { false };
     bool local_genotype { false };
     uint32_t min_cluster_size { 10 };
-    uint32_t max_num_kmers_to_avg { 100 };
+    uint32_t max_num_kmers_to_avg { 10000 };
     uint32_t min_allele_covg_gt { 0 };
     uint32_t min_total_covg_gt { 0 };
     uint32_t min_diff_covg_gt { 0 };

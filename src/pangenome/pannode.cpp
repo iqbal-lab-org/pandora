@@ -160,23 +160,19 @@ void pangenome::Node::construct_multisample_vcf(VCF& master_vcf,
         for (const auto& sample_kmer_path : sample->paths[prg_id]) {
             const auto sample_local_path
                 = prg->localnode_path_from_kmernode_path(sample_kmer_path, w);
-            if (count == 0) {
-                prg->add_new_records_and_genotype_to_vcf_using_max_likelihood_path_of_the_sample(
-                    vcf, vcf_reference_path, sample_local_path, sample->name);
-                BOOST_LOG_TRIVIAL(debug) << "With sample added:\n"
-                                         << vcf.to_string(true, false);
-                prg->add_sample_covgs_to_vcf(vcf, kmer_prg_with_coverage,
-                    vcf_reference_path, sample->name, sample->sample_id);
-                BOOST_LOG_TRIVIAL(debug) << "With sample coverages added:\n"
-                                         << vcf.to_string(true, false);
-            } else {
-                auto path_specific_sample_name = sample->name + std::to_string(count);
-                prg->add_new_records_and_genotype_to_vcf_using_max_likelihood_path_of_the_sample(
-                    vcf, vcf_reference_path, sample_local_path,
-                    path_specific_sample_name);
-                prg->add_sample_covgs_to_vcf(vcf, kmer_prg_with_coverage,
-                    vcf_reference_path, path_specific_sample_name, sample->sample_id);
+            std::string sample_name = sample->name;
+            if (count > 0) {
+                sample_name += std::to_string(count);
             }
+
+            prg->add_new_records_and_genotype_to_vcf_using_max_likelihood_path_of_the_sample(
+                vcf, vcf_reference_path, sample_local_path, sample_name);
+            BOOST_LOG_TRIVIAL(debug) << "With sample added:\n"
+                                     << vcf.to_string(true, false);
+            prg->add_sample_covgs_to_vcf(vcf, kmer_prg_with_coverage,
+                vcf_reference_path, sample_name, sample->sample_id);
+            BOOST_LOG_TRIVIAL(debug) << "With sample coverages added:\n"
+                                     << vcf.to_string(true, false);
             count++;
         }
     }

@@ -115,13 +115,12 @@ void KmerGraphWithCoverage::set_negative_binomial_parameters(
 
 float KmerGraphWithCoverage::nbin_prob(uint32_t node_id, const uint32_t& sample_id)
 {
-    auto k = this->get_forward_covg(node_id, sample_id)
+    const auto k = this->get_forward_covg(node_id, sample_id)
         + this->get_reverse_covg(node_id, sample_id);
-    float return_prob
-        = log(pdf(boost::math::negative_binomial(
-                      negative_binomial_parameter_r, negative_binomial_parameter_p),
-            k));
-    return_prob = std::max(return_prob, std::numeric_limits<float>::lowest() / 1000);
+    const float prob = pdf(boost::math::negative_binomial(
+        negative_binomial_parameter_r, negative_binomial_parameter_p), k);
+    const float log_prob = log(prob);
+    const float return_prob = std::max(log_prob, std::numeric_limits<float>::lowest() / 1000);
     return return_prob;
 }
 
@@ -248,7 +247,8 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
         sorted_nodes.size(), sorted_nodes.size() - 1);
     float max_mean;
     int max_length;
-    const float tolerance = 0.000001;
+    const float float_point_tolerance = 0.000001;
+    const float close_likelihood_tolerance_per_node = log(1.10);  // if a path is longer, we give a 10% boost for each node prob
 
     for (uint32_t j = sorted_nodes.size() - 1; j != 0; --j) {
         max_mean = std::numeric_limits<float>::lowest();
@@ -258,18 +258,28 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
             const auto& considered_outnode = current_node->out_nodes[i].lock();
             const bool is_terminus_and_most_likely
                 = considered_outnode->id == sorted_nodes.back()->id
-                and thresh > max_mean + tolerance;
+                and thresh > max_mean + float_point_tolerance;
             const bool avg_log_likelihood_is_most_likely
                 = max_sum_of_log_probs_from_node[considered_outnode->id]
                     / length_of_maxpath_from_node[considered_outnode->id]
-                > max_mean + tolerance;
-            const bool avg_log_likelihood_is_close_to_most_likely = max_mean
-                    - max_sum_of_log_probs_from_node[considered_outnode->id]
-                        / length_of_maxpath_from_node[considered_outnode->id]
-                <= tolerance;
-            const bool is_longer_path
-                = length_of_maxpath_from_node[considered_outnode->id]
-                > (uint)max_length;
+                > max_mean + float_point_tolerance;
+
+            const int length_delta =  length_of_maxpath_from_node[considered_outnode->id] - (uint)max_length;
+            const bool is_longer_path = length_delta > 0;
+            float close_likelihood_tolerance = float_point_tolerance;
+            if (is_longer_path) {
+                close_likelihood_tolerance = length_delta * close_likelihood_tolerance_per_node;
+            }
+
+            const float considered_outnode_mean =  max_sum_of_log_probs_from_node[considered_outnode->id]
+                                                   / length_of_maxpath_from_node[considered_outnode->id];
+            const float mean_delta = max_mean - considered_outnode_mean;
+            const bool avg_log_likelihood_is_close_to_most_likely = mean_delta <= close_likelihood_tolerance;
+
+            if (not is_terminus_and_most_likely and not avg_log_likelihood_is_most_likely and
+                avg_log_likelihood_is_close_to_most_likely and is_longer_path) {
+                std::cout << "Longer path choice triggered" << std::endl;
+            }
 
             if (is_terminus_and_most_likely or avg_log_likelihood_is_most_likely
                 or (avg_log_likelihood_is_close_to_most_likely and is_longer_path)) {
