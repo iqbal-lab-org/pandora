@@ -249,7 +249,7 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
     float max_sum;
     int max_length;
     const float float_point_tolerance = 0.000001;
-    const float likelihood_boost_per_node = 100; // log(1.20);  // if a path is longer, we give a 20% boost for each node prob
+    const float likelihood_boost_per_node = log(1.20);  // if a path is longer, we give a 20% boost for each node prob
 
     for (uint32_t j = sorted_nodes.size() - 1; j != 0; --j) {
         max_mean = std::numeric_limits<float>::lowest();
