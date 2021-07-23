@@ -1668,7 +1668,7 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, PanNodePtr pnode,
     if (bin)
         prob_model = "bin";
     float ppath = pnode->kmer_prg_with_coverage.find_max_path(
-        kmp, prob_model, max_num_kmers_to_average, sample_id);
+        kmp, prob_model, max_num_kmers_to_average, sample_id, pnode->get_name());
 
     lmp.reserve(100);
     lmp = localnode_path_from_kmernode_path(kmp, w);

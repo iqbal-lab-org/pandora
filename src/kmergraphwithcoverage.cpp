@@ -228,7 +228,7 @@ bool KmerGraphWithCoverage::coverage_is_zeroes(const uint32_t& sample_id)
 
 float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
     const std::string& prob_model, const uint32_t& max_num_kmers_to_average,
-    const uint32_t& sample_id)
+    const uint32_t& sample_id, const std::string &name)
 {
     // TODO: FIX THIS INNEFICIENCY I INTRODUCED
     const std::vector<KmerNodePtr> sorted_nodes(
@@ -246,50 +246,50 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
     std::vector<uint32_t> prev_node_along_maxpath(
         sorted_nodes.size(), sorted_nodes.size() - 1);
     float max_mean;
+    float max_sum;
     int max_length;
     const float float_point_tolerance = 0.000001;
-    const float close_likelihood_tolerance_per_node = log(1.10);  // if a path is longer, we give a 10% boost for each node prob
+    const float likelihood_boost_per_node = 100; // log(1.20);  // if a path is longer, we give a 20% boost for each node prob
 
     for (uint32_t j = sorted_nodes.size() - 1; j != 0; --j) {
         max_mean = std::numeric_limits<float>::lowest();
-        max_length = 0; // tie break with longest kmer path
+        max_sum = std::numeric_limits<float>::lowest();
+        max_length = 1; // tie break with longest kmer path
         const auto& current_node = sorted_nodes[j - 1];
         for (uint32_t i = 0; i != current_node->out_nodes.size(); ++i) {
             const auto& considered_outnode = current_node->out_nodes[i].lock();
             const bool is_terminus_and_most_likely
                 = considered_outnode->id == sorted_nodes.back()->id
                 and thresh > max_mean + float_point_tolerance;
-            const bool avg_log_likelihood_is_most_likely
-                = max_sum_of_log_probs_from_node[considered_outnode->id]
-                    / length_of_maxpath_from_node[considered_outnode->id]
-                > max_mean + float_point_tolerance;
 
-            const int length_delta =  length_of_maxpath_from_node[considered_outnode->id] - (uint)max_length;
-            const bool is_longer_path = length_delta > 0;
-            float close_likelihood_tolerance = float_point_tolerance;
-            if (is_longer_path) {
-                close_likelihood_tolerance = length_delta * close_likelihood_tolerance_per_node;
+            float considered_outnode_mean = std::numeric_limits<float>::lowest();
+            if (length_of_maxpath_from_node[considered_outnode->id])
+                considered_outnode_mean = max_sum_of_log_probs_from_node[considered_outnode->id] / length_of_maxpath_from_node[considered_outnode->id];
+            const bool avg_log_likelihood_is_most_likely = considered_outnode_mean > max_mean + float_point_tolerance;
+
+
+            float considered_outnode_mean_no_boost = std::numeric_limits<float>::lowest();
+            if (length_of_maxpath_from_node[considered_outnode->id])
+                considered_outnode_mean_no_boost = (max_sum_of_log_probs_from_node[considered_outnode->id] - length_of_maxpath_from_node[considered_outnode->id] * likelihood_boost_per_node) / length_of_maxpath_from_node[considered_outnode->id];
+            const float max_mean_no_boost =
+                (max_sum - max_length * likelihood_boost_per_node) / max_length;
+            const bool avg_log_likelihood_is_most_likely_with_no_boost =
+                considered_outnode_mean_no_boost > max_mean_no_boost + float_point_tolerance;
+
+            if (avg_log_likelihood_is_most_likely and not avg_log_likelihood_is_most_likely_with_no_boost) {
+                std::cout << name << " had a path switch due to new DP;" << std::endl;
             }
 
-            const float considered_outnode_mean =  max_sum_of_log_probs_from_node[considered_outnode->id]
-                                                   / length_of_maxpath_from_node[considered_outnode->id];
-            const float mean_delta = max_mean - considered_outnode_mean;
-            const bool avg_log_likelihood_is_close_to_most_likely = mean_delta <= close_likelihood_tolerance;
-
-            if (not is_terminus_and_most_likely and not avg_log_likelihood_is_most_likely and
-                avg_log_likelihood_is_close_to_most_likely and is_longer_path) {
-                std::cout << "Longer path choice triggered" << std::endl;
-            }
-
-            if (is_terminus_and_most_likely or avg_log_likelihood_is_most_likely
-                or (avg_log_likelihood_is_close_to_most_likely and is_longer_path)) {
+            if (is_terminus_and_most_likely or avg_log_likelihood_is_most_likely) {
                 max_sum_of_log_probs_from_node[current_node->id]
                     = get_prob(prob_model, current_node->id, sample_id)
-                    + max_sum_of_log_probs_from_node[considered_outnode->id];
+                    + max_sum_of_log_probs_from_node[considered_outnode->id] +
+                    likelihood_boost_per_node;
                 length_of_maxpath_from_node[current_node->id]
                     = 1 + length_of_maxpath_from_node[considered_outnode->id];
                 prev_node_along_maxpath[current_node->id] = considered_outnode->id;
 
+                /*
                 if (length_of_maxpath_from_node[current_node->id]
                     > max_num_kmers_to_average) {
                     uint32_t prev_node = prev_node_along_maxpath[current_node->id];
@@ -305,10 +305,11 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
                     assert(length_of_maxpath_from_node[current_node->id]
                         == max_num_kmers_to_average);
                 }
+                 */
 
                 if (considered_outnode->id != sorted_nodes.back()->id) {
-                    max_mean = max_sum_of_log_probs_from_node[considered_outnode->id]
-                        / length_of_maxpath_from_node[considered_outnode->id];
+                    max_mean = considered_outnode_mean;
+                    max_sum = max_sum_of_log_probs_from_node[considered_outnode->id];
                     max_length = length_of_maxpath_from_node[considered_outnode->id];
                 } else {
                     max_mean = thresh;
