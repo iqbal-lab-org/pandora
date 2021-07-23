@@ -198,6 +198,7 @@ void setup_map_subcommand(CLI::App& app)
 
 int pandora_map(MapOptions& opt)
 {
+    /*
     auto log_level = boost::log::trivial::info;
     if (opt.verbosity == 1) {
         log_level = boost::log::trivial::debug;
@@ -401,5 +402,6 @@ int pandora_map(MapOptions& opt)
     }
 
     BOOST_LOG_TRIVIAL(info) << "Done!";
+     */
     return 0;
 }

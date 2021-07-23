@@ -57,8 +57,7 @@ struct CompareOptions {
     uint16_t confidence_threshold { 1 };
 };
 
-std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
-    const fs::path& read_index_fpath);
+std::vector<SampleData> load_read_index(const fs::path& read_index_fpath);
 void setup_compare_subcommand(CLI::App& app);
 int pandora_compare(CompareOptions& opt);
 

@@ -55,10 +55,10 @@ bool pComp_path::operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& r
     }
     // separated into two categories, corresponding to a forward, and a rev-complement
     // hit, note fwd come first
-    if (lhs->is_forward() > rhs->is_forward()) {
+    if (lhs->same_strands() > rhs->same_strands()) {
         return true;
     }
-    if (rhs->is_forward() > lhs->is_forward()) {
+    if (rhs->same_strands() > lhs->same_strands()) {
         return false;
     }
     // finally, make sure that hits from separate reads aren't removed from the set as
@@ -78,8 +78,42 @@ bool pComp_path::operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& r
     return false;
 }
 
+bool pCompReadPositionFirst::operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) {
+    if (lhs->get_read_id() < rhs->get_read_id()) {
+        return true;
+    }
+    if (rhs->get_read_id() < lhs->get_read_id()) {
+        return false;
+    }
+    if (lhs->get_read_start_position() < rhs->get_read_start_position()) {
+        return true;
+    }
+    if (rhs->get_read_start_position() < lhs->get_read_start_position()) {
+        return false;
+    }
+    if (lhs->same_strands() > rhs->same_strands()) {
+        return true;
+    }
+    if (rhs->same_strands() > lhs->same_strands()) {
+        return false;
+    }
+    if (lhs->get_prg_id() < rhs->get_prg_id()) {
+        return true;
+    }
+    if (rhs->get_prg_id() < lhs->get_prg_id()) {
+        return false;
+    }
+    if (lhs->get_prg_path() < rhs->get_prg_path()) {
+        return true;
+    }
+    if (rhs->get_prg_path() < lhs->get_prg_path()) {
+        return false;
+    }
+    return false;
+}
+
 bool clusterComp::operator()(
-    const MinimizerHitCluster lhs, const MinimizerHitCluster rhs)
+    const Hits &lhs, const Hits &rhs)
 {
     if ((*lhs.begin())->get_read_id() < (*rhs.begin())->get_read_id()) {
         return true;
@@ -113,17 +147,17 @@ bool clusterComp::operator()(
     if ((*rhs.begin())->get_prg_path() < (*lhs.begin())->get_prg_path()) {
         return false;
     }
-    if ((*lhs.begin())->is_forward() < (*rhs.begin())->is_forward()) {
+    if ((*lhs.begin())->same_strands() < (*rhs.begin())->same_strands()) {
         return true;
     }
-    if ((*rhs.begin())->is_forward() < (*lhs.begin())->is_forward()) {
+    if ((*rhs.begin())->same_strands() < (*lhs.begin())->same_strands()) {
         return false;
     }
     return false;
 }
 
 bool clusterComp_size::operator()(
-    const MinimizerHitCluster lhs, const MinimizerHitCluster rhs)
+    const Hits &lhs, const Hits &rhs)
 {
     if ((*lhs.begin())->get_read_id() < (*rhs.begin())->get_read_id()) {
         return true;
@@ -157,10 +191,10 @@ bool clusterComp_size::operator()(
     if ((*rhs.begin())->get_prg_path() < (*lhs.begin())->get_prg_path()) {
         return false;
     }
-    if ((*lhs.begin())->is_forward() < (*rhs.begin())->is_forward()) {
+    if ((*lhs.begin())->same_strands() < (*rhs.begin())->same_strands()) {
         return true;
     }
-    if ((*rhs.begin())->is_forward() < (*lhs.begin())->is_forward()) {
+    if ((*rhs.begin())->same_strands() < (*lhs.begin())->same_strands()) {
         return false;
     }
     return false;

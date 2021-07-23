@@ -312,7 +312,7 @@ void find_denovo_variants_multiprocess(CandidateRegions& candidate_regions,
                             << denovo_output_file.string();
 }
 
-void pandora_discover_core(const std::pair<SampleIdText, SampleFpath>& sample,
+void pandora_discover_core(const SampleData& sample,
     const std::shared_ptr<Index>& index,
     const std::vector<std::shared_ptr<LocalPRG>>& prgs, const DiscoverOptions& opt)
 {
@@ -334,9 +334,9 @@ void pandora_discover_core(const std::pair<SampleIdText, SampleFpath>& sample,
                             << sample_fpath << " (this will take a while)";
     auto pangraph = std::make_shared<pangenome::Graph>();
     uint32_t covg
-        = pangraph_from_read_file(sample_fpath, pangraph, index, prgs, opt.window_size,
+        = pangraph_from_read_file(sample, pangraph, index, prgs, opt.window_size,
             opt.kmer_size, opt.max_diff, opt.error_rate, opt.min_cluster_size,
-            opt.genome_size, opt.illumina, opt.clean, opt.max_covg, opt.threads);
+            opt.genome_size, opt.illumina, opt.clean, opt.max_covg, opt.threads, sample_outdir);
 
     const auto pangraph_gfa { sample_outdir / "pandora.pangraph.gfa" };
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
@@ -529,11 +529,11 @@ int pandora_discover(DiscoverOptions& opt)
     load_PRG_kmergraphs(prgs, opt.window_size, opt.kmer_size, opt.prgfile);
 
     BOOST_LOG_TRIVIAL(info) << "Loading read index file...";
-    std::vector<std::pair<SampleIdText, SampleFpath>> samples
+    std::vector<SampleData> samples
         = load_read_index(opt.reads_idx_file);
 
     // for each sample, run pandora discover
-    for (const std::pair<SampleIdText, SampleFpath>& sample : samples) {
+    for (const SampleData& sample : samples) {
         pandora_discover_core(sample, index, prgs, opt);
     }
 
