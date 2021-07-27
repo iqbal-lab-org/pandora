@@ -37,7 +37,9 @@ void SampleInfo::genotype_from_coverage_using_maximum_likelihood_path_as_referen
     if (this->is_gt_from_max_likelihood_path_valid()) {
         uint32_t valid_GT_from_maximum_likelihood_path
             = this->get_gt_from_max_likelihood_path();
+        set_gt_from_coverages_compatible(valid_GT_from_maximum_likelihood_path);
 
+        /*
         if (!check_if_coverage_information_is_correct()) {
             fatal_error("Error when genotyping: coverage information is inconsistent");
         }
@@ -59,7 +61,7 @@ void SampleInfo::genotype_from_coverage_using_maximum_likelihood_path_as_referen
 
         // TODO: I don't really like this side-effect - refactor this
         set_gt_from_coverages_compatible(GT_from_coverages);
-
+        */
     }
 }
 
