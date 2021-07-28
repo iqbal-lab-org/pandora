@@ -281,7 +281,7 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
 
             float considered_outnode_mean_with_boost = considered_outnode_mean;
             float max_mean_with_boost = max_mean;
-            float likelihood_boost = delta_length * likelihood_boost_per_node;
+            float likelihood_boost = std::abs(delta_length) * likelihood_boost_per_node;
             likelihood_boost = std::min(likelihood_boost, likelihood_boost_ceiling);
             if (is_longer_path) {
                 considered_outnode_mean_with_boost = considered_outnode_mean *
