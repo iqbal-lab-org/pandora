@@ -146,7 +146,7 @@ public:
 
     float find_max_path(std::vector<KmerNodePtr>& maxpath,
         const std::string& prob_model, const uint32_t& max_num_kmers_to_average,
-        const uint32_t& sample_id, const std::string &name="");
+        const uint32_t& sample_id, const pangenome::Node *pangenome_node = NULL);
 
     std::vector<std::vector<KmerNodePtr>> find_max_paths(
         uint32_t, const uint32_t& sample_id);

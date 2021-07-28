@@ -228,7 +228,7 @@ bool KmerGraphWithCoverage::coverage_is_zeroes(const uint32_t& sample_id)
 
 float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
     const std::string& prob_model, const uint32_t& max_num_kmers_to_average,
-    const uint32_t& sample_id, const std::string &name)
+    const uint32_t& sample_id, const pangenome::Node *pangenome_node)
 {
     // TODO: FIX THIS INNEFICIENCY I INTRODUCED
     const std::vector<KmerNodePtr> sorted_nodes(
@@ -256,19 +256,28 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
         max_sum = std::numeric_limits<float>::lowest();
         max_length = 1; // tie break with longest kmer path
         const auto& current_node = sorted_nodes[j - 1];
+        if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " current_node " << pangenome_node->prg->string_along_path(current_node->path);
         for (uint32_t i = 0; i != current_node->out_nodes.size(); ++i) {
             const auto& considered_outnode = current_node->out_nodes[i].lock();
+            if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode " << pangenome_node->prg->string_along_path(considered_outnode->path);
+
             const bool is_terminus_and_most_likely
                 = considered_outnode->id == sorted_nodes.back()->id
                 and thresh > max_mean + float_point_tolerance;
+            if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode is_terminus_and_most_likely? " << is_terminus_and_most_likely;
 
             float considered_outnode_mean = std::numeric_limits<float>::lowest();
             if (length_of_maxpath_from_node[considered_outnode->id])
                 considered_outnode_mean = max_sum_of_log_probs_from_node[considered_outnode->id] / length_of_maxpath_from_node[considered_outnode->id];
+            if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode considered_outnode_mean " << considered_outnode_mean;
+
             const int delta_length = int(length_of_maxpath_from_node[considered_outnode->id]) - max_length;
+            if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode delta_length " << delta_length;
 
             const bool is_longer_path = delta_length > 0;
+            if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode is_longer_path? " << is_longer_path;
             const bool is_shorter_path = delta_length < 0;
+            if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode is_shorter_path? " << is_shorter_path;
 
             float considered_outnode_mean_with_boost = considered_outnode_mean;
             float max_mean_with_boost = max_mean;
@@ -282,16 +291,22 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
                 max_mean_with_boost = max_mean * (1 - std::abs(delta_length)/1000.0);
             }
 
+            if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode considered_outnode_mean_with_boost " << considered_outnode_mean_with_boost;
+            if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode max_mean_with_boost " << max_mean_with_boost;
+
             const bool avg_log_likelihood_is_most_likely = considered_outnode_mean_with_boost > max_mean_with_boost + float_point_tolerance;
+            if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode avg_log_likelihood_is_most_likely? " << avg_log_likelihood_is_most_likely;
 
             const bool avg_log_likelihood_is_most_likely_without_boost =
                 considered_outnode_mean > max_mean + float_point_tolerance;
+            if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode avg_log_likelihood_is_most_likely_without_boost? " << avg_log_likelihood_is_most_likely_without_boost;
 
             if (avg_log_likelihood_is_most_likely != avg_log_likelihood_is_most_likely_without_boost) {
-                std::cout << name << " avg_log_likelihood_is_most_likely != avg_log_likelihood_is_most_likely_without_boost" << std::endl;
+                if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode avg_log_likelihood_is_most_likely != avg_log_likelihood_is_most_likely_without_boost";
             }
 
             if (is_terminus_and_most_likely or avg_log_likelihood_is_most_likely) {
+                if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode is_terminus_and_most_likely or avg_log_likelihood_is_most_likely";
                 float current_node_prob = get_prob(prob_model, current_node->id, sample_id);
                 current_node_prob = current_node_prob * likelihood_boost_per_node;
                 max_sum_of_log_probs_from_node[current_node->id] = current_node_prob
@@ -319,11 +334,17 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
                  */
 
                 if (considered_outnode->id != sorted_nodes.back()->id) {
+                    if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode is not terminus";
                     max_mean = considered_outnode_mean;
+                    if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode new max_mean " << max_mean;
                     max_sum = max_sum_of_log_probs_from_node[considered_outnode->id];
+                    if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode new max_sum " << max_sum;
                     max_length = length_of_maxpath_from_node[considered_outnode->id];
+                    if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode new max_length " << max_length;
                 } else {
+                    if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode is terminus";
                     max_mean = thresh;
+                    if (pangenome_node) BOOST_LOG_TRIVIAL(debug) << "[ML_path_algorithm] " << pangenome_node->name << " considered_outnode new max_mean " << max_mean;
                 }
             }
         }
