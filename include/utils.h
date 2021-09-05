@@ -129,4 +129,10 @@ std::vector<SampleData> load_read_index(const fs::path& read_index_fpath);
 
 std::string remove_spaces_from_string(const std::string& str);
 
+std::pair<int, std::string> build_memfd(const std::string &data);
+
+std::string exec(const char* cmd);
+
+void build_file(const std::string &filepath, const std::string &data);
+
 #endif

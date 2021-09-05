@@ -20,6 +20,17 @@
 #include "minimizermatch_file.h"
 #include "sam_file.h"
 
+#define _GNU_SOURCE
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <cstdio>
+#include <stdexcept>
+#include <string>
+#include <array>
+
 std::string now()
 {
     time_t now;
@@ -749,4 +760,71 @@ std::string remove_spaces_from_string(const std::string& str)
         }
     }
     return to_return;
+}
+
+// From https://stackoverflow.com/a/440240/5264075
+std::string generate_random_string(const int len) {
+
+    std::string tmp_s;
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+
+    srand( (unsigned) time(NULL) * getpid());
+
+    tmp_s.reserve(len);
+
+    for (int i = 0; i < len; ++i)
+        tmp_s += alphanum[rand() % (sizeof(alphanum) - 1)];
+
+    return tmp_s;
+}
+
+std::pair<int, std::string> build_memfd(const std::string &data) {
+    /* Create an anonymous file in tmpfs; allow seals to be
+       placed on the file */
+    std::string random_name = generate_random_string(64) + ".fa";
+    int fd = memfd_create(random_name.c_str(), MFD_ALLOW_SEALING);
+    if (fd == -1)
+        fatal_error("memfd could not be created");
+
+    /* set the size of the file */
+    if (ftruncate(fd, data.length()) == -1)
+        fatal_error("Could not truncate memfd");
+
+    if (write(fd, data.c_str(), data.size()) != (long)(data.size()))
+        fatal_error("Could not write all the data to memfd");
+
+    if (fcntl(fd, F_ADD_SEALS, F_SEAL_WRITE) == -1)
+        fatal_error("Could not add write seal to memfd");
+
+    if (fsync(fd) == -1)
+        fatal_error("Could not fsync memfd.");
+
+    std::stringstream ss_filepath;
+    ss_filepath << "/proc/" << getpid() << "/fd/memfd:" << random_name;
+    return std::make_pair(fd, ss_filepath.str());
+}
+
+// From https://stackoverflow.com/a/478960/5264075
+// Exec a command and returns stdout
+std::string exec(const char* cmd) {
+    std::array<char, 4096> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) {
+        throw std::runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
+}
+
+void build_file(const std::string &filepath, const std::string &data) {
+    ofstream output_file;
+    open_file_for_writing(filepath, output_file);
+    output_file.write(data.c_str(), data.size());
+    output_file.close();
 }
