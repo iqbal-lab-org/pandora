@@ -31,6 +31,9 @@
 #include <string>
 #include <array>
 
+#include <cstdio>
+#include <sys/wait.h>
+
 std::string now()
 {
     time_t now;
@@ -827,4 +830,9 @@ void build_file(const std::string &filepath, const std::string &data) {
     open_file_for_writing(filepath, output_file);
     output_file.write(data.c_str(), data.size());
     output_file.close();
+}
+
+bool tool_exists(const std::string &command) {
+    int ret = std::system(command.c_str());
+    return WEXITSTATUS(ret) == 0;
 }

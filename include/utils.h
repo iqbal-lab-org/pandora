@@ -135,4 +135,6 @@ std::string exec(const char* cmd);
 
 void build_file(const std::string &filepath, const std::string &data);
 
+bool tool_exists(const std::string &command);
+
 #endif
