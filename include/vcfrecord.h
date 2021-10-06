@@ -126,22 +126,10 @@ public:
     {
         return this->info.find("GRAPHTYPE=TOO_MANY_ALTS") != std::string::npos;
     }
-    virtual inline bool svtype_is_SNP() const
-    {
-        return this->info.find("SVTYPE=SNP") != std::string::npos;
-    }
-    virtual inline bool svtype_is_indel() const
-    {
-        return this->info.find("SVTYPE=INDEL") != std::string::npos;
-    }
-    virtual inline bool svtype_is_PH_SNPs() const
-    {
-        return this->info.find("SVTYPE=PH_SNPs") != std::string::npos;
-    }
-    virtual inline bool svtype_is_complex() const
-    {
-        return this->info.find("SVTYPE=COMPLEX") != std::string::npos;
-    }
+    virtual inline bool variant_class_is_snp() const;
+    virtual inline bool variant_class_is_indel() const;
+    virtual inline bool variant_class_is_phased_snps() const;
+    virtual inline bool variant_class_is_complex() const;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -216,7 +204,9 @@ protected:
     std::string chrom;
     uint32_t pos;
 
-    std::string infer_SVTYPE() const;
+    std::string infer_variant_class() const;
+
+    std::string variant_class_info_entry() const;
 
     virtual void correct_dot_alleles(
         char nucleotide, bool add_nucleotide_before_the_sequence);
