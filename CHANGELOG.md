@@ -9,6 +9,9 @@ project adheres to
 
 ## [Unreleased]
 
+### Changed
+- The VCF INFO field `SVTYPE` has now been changed to `VC` [[#249][249]]
+
 ## [0.9.1]
 
 ### Added
@@ -120,6 +123,7 @@ from this point will have their changes meticulously documented here.
 [223]: https://github.com/rmcolq/pandora/pull/223
 [224]: https://github.com/rmcolq/pandora/pull/224
 [234]: https://github.com/rmcolq/pandora/pull/234
+[249]: https://github.com/rmcolq/pandora/issues/249
 [265]: https://github.com/rmcolq/pandora/pull/265
 
 
