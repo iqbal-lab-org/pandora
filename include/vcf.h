@@ -54,6 +54,11 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // static constants for common VCF fields
+    static const std::string VARIANT_CLASS_ID;
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // adders
     virtual void add_record(const std::string& chrom, uint32_t position,
         const std::string& ref, const std::string& alt, const std::string& info = ".",
@@ -106,11 +111,11 @@ public:
     // to_string methods
     virtual std::string header() const;
     virtual std::string to_string(bool genotyping_from_maximum_likelihood,
-        bool genotyping_from_coverage, bool output_dot_allele = false,
-        bool graph_is_simple = true, bool graph_is_nested = true,
-        bool graph_has_too_many_alts = true, bool sv_type_is_snp = true,
-        bool sv_type_is_indel = true, bool sv_type_is_ph_snps = true,
-        bool sv_type_is_complex = true);
+                                  bool genotyping_from_coverage, bool output_dot_allele = false,
+                                  bool graph_is_simple = true, bool graph_is_nested = true,
+                                  bool graph_has_too_many_alts = true, bool variant_class_is_snp = true,
+                                  bool variant_class_is_indel = true, bool variant_class_is_ph_snps = true,
+                                  bool variant_class_is_complex = true);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -128,9 +133,9 @@ public:
     virtual void save(const fs::path& filepath, bool genotyping_from_maximum_likelihood,
         bool genotyping_from_coverage, bool output_dot_allele = false,
         bool graph_is_simple = true, bool graph_is_nested = true,
-        bool graph_has_too_many_alts = true, bool sv_type_is_snp = true,
-        bool sv_type_is_indel = true, bool sv_type_is_ph_snps = true,
-        bool sv_type_is_complex = true);
+        bool graph_has_too_many_alts = true, bool variant_class_is_snp = true,
+        bool variant_class_is_indel = true, bool variant_class_is_ph_snps = true,
+        bool variant_class_is_complex = true);
 
     // concatenate several VCF files that were previously written to disk as .vcfs into
     // a single VCF file

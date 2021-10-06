@@ -20,7 +20,7 @@ VCFRecord::VCFRecord(VCF const* parent_vcf, const std::string& chrom, uint32_t p
     add_new_alt(alt);
 
     if (this->info == ".") {
-        this->info = infer_SVTYPE();
+        this->info = this->variant_class_info_entry();
     }
 
     if (graph_type_info != "") {
@@ -42,26 +42,34 @@ VCFRecord::VCFRecord(VCF const* parent_vcf)
     set_ref_and_clear_alts(".");
 }
 
-std::string VCFRecord::infer_SVTYPE() const
-{
+std::string VCFRecord::infer_variant_class() const {
     // TODO: How to handle cases where there are more than 2 options, not all of one
     // type
     if (ref == "." and (alts.empty() or alts[0] == "."))
         return ".";
     else if (ref == "." or alts.empty() or alts[0] == ".")
-        return "SVTYPE=INDEL";
+        return "INDEL";
     else if (ref.length() == 1 and !alts.empty() and alts[0].length() == 1)
-        return "SVTYPE=SNP";
+        return "SNP";
     else if (!alts.empty() and alts[0].length() == ref.length())
-        return "SVTYPE=PH_SNPs";
+        return "PH_SNPs";
     else if (!alts.empty() and ref.length() < alts[0].length()
-        and ref.compare(0, ref.length(), alts[0], 0, ref.length()) == 0)
-        return "SVTYPE=INDEL";
+             and ref.compare(0, ref.length(), alts[0], 0, ref.length()) == 0)
+        return "INDEL";
     else if (!alts.empty() and alts[0].length() < ref.length()
-        and alts[0].compare(0, alts[0].length(), ref, 0, alts[0].length()) == 0)
-        return "SVTYPE=INDEL";
+             and alts[0].compare(0, alts[0].length(), ref, 0, alts[0].length()) == 0)
+        return "INDEL";
     else
-        return "SVTYPE=COMPLEX";
+        return "COMPLEX";
+}
+
+std::string VCFRecord::variant_class_info_entry() const {
+    auto vc{this->infer_variant_class()};
+    if (vc == ".") {
+        return vc;
+    } else {
+        return VCF::VARIANT_CLASS_ID + "=" + vc;
+    }
 }
 
 std::string VCFRecord::get_format(
@@ -336,4 +344,21 @@ void VCFRecord::reset_sample_infos_to_contain_the_given_number_of_samples(
     sampleIndex_to_sampleInfo.clear();
     sampleIndex_to_sampleInfo.emplace_back_several_empty_sample_infos(
         number_of_samples, get_number_of_alleles(), parent_vcf->genotyping_options);
+}
+
+inline bool VCFRecord::variant_class_is_snp() const
+{
+    return this->info.find(VCF::VARIANT_CLASS_ID + "=SNP") != std::string::npos;
+}
+inline bool VCFRecord::variant_class_is_indel() const
+{
+    return this->info.find(VCF::VARIANT_CLASS_ID + "=INDEL") != std::string::npos;
+}
+inline bool VCFRecord::variant_class_is_phased_snps() const
+{
+    return this->info.find(VCF::VARIANT_CLASS_ID + "=PH_SNPs") != std::string::npos;
+}
+inline bool VCFRecord::variant_class_is_complex() const
+{
+    return this->info.find(VCF::VARIANT_CLASS_ID + "=COMPLEX") != std::string::npos;
 }
