@@ -1187,7 +1187,7 @@ TEST(remove_spaces_from_string, simple_test___only_spaces)
 
 TEST(load_read_index, read_index_does_not_exist___expects_FatalRuntimeError)
 {
-    ASSERT_EXCEPTION(load_read_index(fs::path("inexistent_read_index.tsv")),
+    ASSERT_EXCEPTION(load_read_index(fs::path("nonexistent_read_index.tsv")),
         FatalRuntimeError, "Unable to open read index file");
 }
 
@@ -1204,6 +1204,19 @@ TEST(load_read_index, read_index_has_three_samples)
     EXPECT_EQ(actual, expected);
 }
 
+TEST(load_read_index, read_index_has_three_samples_and_no_empty_line_at_end)
+{
+    std::vector<std::pair<SampleIdText, SampleFpath>> actual
+            = load_read_index(fs::path("../../test/test_cases/sample_read_index_no_empty_line_at_end.tsv"));
+    std::vector<std::pair<SampleIdText, SampleFpath>> expected { {
+                                                                         std::make_pair("sample_1", "reads_1.fastq"),
+                                                                         std::make_pair("sample_2", "reads_2.fastq"),
+                                                                         std::make_pair("sample_3", "reads_3.fastq"),
+                                                                 } };
+
+    EXPECT_EQ(actual, expected);
+}
+
 TEST(load_read_index, read_index_has_three_samples_and_two_are_repeated)
 {
     std::vector<std::pair<SampleIdText, SampleFpath>> actual = load_read_index(
@@ -1216,3 +1229,10 @@ TEST(load_read_index, read_index_has_three_samples_and_two_are_repeated)
 
     EXPECT_EQ(actual, expected);
 }
+
+TEST(load_read_index, read_index_has_missing_column)
+{
+    ASSERT_EXCEPTION(load_read_index(fs::path("../../test/test_cases/malformatted_read_index.tsv")),
+                     FatalRuntimeError, "Malformatted read index file entry for sample_3");
+}
+
