@@ -2022,6 +2022,72 @@ TEST_F(CandidateRegion___get_variants___Fixture, insertion_in_the_end)
     EXPECT_EQ(actual, expected);
 }
 
+TEST_F(CandidateRegion___get_variants___Fixture, strict_insertions_described_before_pos)
+{
+    /*
+     * Testing if this is synchronized with make_prg update:
+     * Strict insertions happen "before" the specified position, e.g.:
+     * This is the variant:
+     * 10		A
+     * This is the sequence
+     * ACGTGTTTT G TAACTGTG...
+     *           ^ this is position 10 (1-based), the insertion point
+     * Where we will end up inserting will be:
+     * ACGTGTTTT AG TAACTGTG...
+     *           ^ insertion
+     */
+
+    CandidateRegion other_candidate(Interval(0, 45), "match", 1, std::vector<LocalNodePtr>(),
+        "ACGTGTTTTGTAACTGTGCCACACTCTCGAGACTGCATATGTGTC");
+    {
+        std::vector<std::string> actual
+            = other_candidate.get_variants("ACGTGTTTTACGGTAACTGTGCCACACTCTCGAGACTGCATATGTGTC");
+        std::vector<std::string> expected { "10\t\tACG" };
+        EXPECT_EQ(actual, expected);
+    }
+
+    {
+        std::vector<std::string> actual
+            = other_candidate.get_variants("ACGTGTTTTACGTAACTGTGCCACACTCTCGAGACTGCATATGTGTC");
+        std::vector<std::string> expected { "10\t\tAC" };
+        EXPECT_EQ(actual, expected);
+    }
+
+    {
+        std::vector<std::string> actual
+            = other_candidate.get_variants("ACGTGTTTTAGTAACTGTGCCACACTCTCGAGACTGCATATGTGTC");
+        std::vector<std::string> expected { "10\t\tA" };
+        EXPECT_EQ(actual, expected);
+    }
+}
+
+TEST_F(CandidateRegion___get_variants___Fixture, strict_deletions)
+{
+    // Testing if this is synchronized with make_prg update
+    CandidateRegion other_candidate(Interval(0, 45), "match", 1, std::vector<LocalNodePtr>(),
+        "ACGTGTTTTGTAACTGTGCCACACTCTCGAGACTGCATATGTGTC");
+    {
+        std::vector<std::string> actual
+            = other_candidate.get_variants("ACGTGTTTTGTAACTGTGCCACACTCTGACTGCATATGTGTC");
+        std::vector<std::string> expected { "28\tCGA\t" };
+        EXPECT_EQ(actual, expected);
+    }
+
+    {
+        std::vector<std::string> actual
+            = other_candidate.get_variants("ACGTGTTTTGTAACTGTGCCACACTCTAGACTGCATATGTGTC");
+        std::vector<std::string> expected { "28\tCG\t" };
+        EXPECT_EQ(actual, expected);
+    }
+
+    {
+        std::vector<std::string> actual
+            = other_candidate.get_variants("ACGTGTTTTGTAACTGTGCCACACTCTGAGACTGCATATGTGTC");
+        std::vector<std::string> expected { "28\tC\t" };
+        EXPECT_EQ(actual, expected);
+    }
+}
+
 TEST_F(CandidateRegion___get_variants___Fixture, multiple_insertion_in_the_start)
 {
     std::vector<std::string> actual
