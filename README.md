@@ -22,6 +22,8 @@
   - [Installation from source](#installation-from-source)
 - [Usage](#usage)
 
+> Colquhoun, R.M., Hall, M.B., Lima, L. *et al.* Pandora: nucleotide-resolution bacterial pan-genomics with reference graphs. *Genome Biol* **22,** 267 (2021). https://doi.org/10.1186/s13059-021-02473-1
+
 
 ## Introduction
 Pandora is a tool for bacterial genome analysis using a pangenome reference graph (PanRG). It allows gene presence/absence detection and genotyping of SNPs, indels and longer variants in one or a number of samples. Pandora works with Illumina or Nanopore data. For more details, see [our paper][pandora_2020_paper].
@@ -147,4 +149,4 @@ See [Usage](https://github.com/rmcolq/pandora/wiki/Usage).
 
 
 <!--Link References-->
-[pandora_2020_paper]: https://www.biorxiv.org/content/10.1101/2020.11.12.380378v2
+[pandora_2020_paper]: https://doi.org/10.1186/s13059-021-02473-1
