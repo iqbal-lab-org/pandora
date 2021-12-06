@@ -5,6 +5,7 @@
 #include "denovo_discovery/discover_main.h"
 #include <boost/algorithm/string.hpp>
 #include "utils.h"
+#include "denovo_discovery/racon.h"
 
 std::map<std::string, std::string> get_locus_to_reads(
     const fs::path &sample_outdir,
@@ -425,6 +426,8 @@ void pandora_discover_core(const SampleData& sample,
     const fs::path denovo_outdir { sample_outdir / "denovo" };
     fs::create_directories(denovo_outdir);
 
+    std::vector<std::string> all_denovo_sequences;
+    all_denovo_sequences.reserve(pangraph->nodes.size()*2 + 500);
 #pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 10)
     for (uint32_t i = 0; i < pangraphNodesAsVector.size(); ++i) {
         // add some progress
@@ -485,66 +488,19 @@ void pandora_discover_core(const SampleData& sample,
         locus_reads_filepath = (denovo_outdir / locus_reads_filepath).string();
         build_file(locus_reads_filepath, locus_to_reads[locus]);
 
-        // builds a mem_fd with the consensus seq
-        const std::string consensus_seq = ">consensus\n" + lmp_seq;
-        // TODO: use mem_fd back
-        // std::pair<int, std::string> consensus_fd_and_filepath = build_memfd(consensus_seq);
-        std::string locus_consensus_filepath;
+        Racon racon(locus, lmp_seq, denovo_outdir, locus_reads_filepath);
+        const std::string &polished_sequence = racon.get_polished_sequence();
+
+#pragma omp critical(all_denovo_sequences)
         {
-            std::stringstream ss;
-            ss << locus << ".consensus.fa";
-            locus_consensus_filepath = ss.str();
-        }
-        locus_consensus_filepath = (denovo_outdir / locus_consensus_filepath).string();
-        build_file(locus_consensus_filepath, consensus_seq);
-
-
-        // run minimap to get overlaps
-        const std::string paf_filepath {
-            (denovo_outdir / (locus + ".minimap2.out.paf")).string() };
-        std::stringstream minimap_ss;
-        minimap_ss << "minimap2 -x map-ont -o " << paf_filepath << " " <<
-            locus_consensus_filepath << " " << locus_reads_filepath;
-        const std::string minimap_str = minimap_ss.str();
-        exec(minimap_str.c_str());
-
-        // run racon to correct the ML seq
-        const std::string racon_out {
-            (denovo_outdir / (locus + ".racon.out")).string() };
-        std::stringstream racon_ss;
-        racon_ss << "racon -u " << locus_reads_filepath << " " << paf_filepath <<
-            " " << locus_consensus_filepath << " > " << racon_out;
-        const std::string racon_str = racon_ss.str();
-        exec(racon_str.c_str());
-
-        const bool racon_produced_no_output = get_vector_of_strings_from_file(racon_out).empty();
-        if (racon_produced_no_output) {
-            BOOST_LOG_TRIVIAL(warning) << "[Sample " << sample_name << ", Locus " << locus << "] " <<
-                "Racon produced an empty output";
-            fs::copy_file(locus_consensus_filepath, racon_out, fs::copy_option::overwrite_if_exists);
+            all_denovo_sequences.push_back(">" + locus);
+            all_denovo_sequences.push_back(polished_sequence);
         }
     }
-
 
     // remove the nodes marked as to be removed
     for (const auto& node_to_remove : nodes_to_remove) {
         pangraph->remove_node(node_to_remove);
-    }
-
-    // concat all denovo files
-    std::vector<std::string> all_denovo_sequences;
-    all_denovo_sequences.reserve(pangraph->nodes.size()*2 + 500);
-    for (const auto &node : pangraph->nodes) {
-        const std::string &locus = node.second->name;
-        const std::string racon_out {
-            (denovo_outdir / (locus + ".racon.out")).string() };
-        const std::vector<std::string> denovo_sequence = get_vector_of_strings_from_file(racon_out);
-        const bool only_one_denovo_sequence = denovo_sequence.size()==2;
-        if (!only_one_denovo_sequence) {
-            fatal_error("Racon outputted more than one sequence");
-        }
-        all_denovo_sequences.push_back(">" + locus);
-        all_denovo_sequences.push_back(denovo_sequence[1]);
     }
 
     // write denovo file
