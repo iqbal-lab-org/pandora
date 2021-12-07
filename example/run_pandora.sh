@@ -27,18 +27,19 @@ function download_tool {
   chmod +x "${executable}"
 }
 
-if [ "$#" -eq 0 ] ; then
-  # not conda env
-  pandora_executable="./pandora-linux-precompiled-v${pandora_version}"
-  if [ ! -f ${pandora_executable} ]; then
-    echo "pandora executable not found, downloading it..."
-    download_tool "${pandora_URL}" "${pandora_executable}"
-  fi
-else
-  # conda env
-  pandora_executable="pandora"
-fi
+#if [ "$#" -eq 0 ] ; then
+#  # not conda env
+#  pandora_executable="./pandora-linux-precompiled-v${pandora_version}"
+#  if [ ! -f ${pandora_executable} ]; then
+#    echo "pandora executable not found, downloading it..."
+#    download_tool "${pandora_URL}" "${pandora_executable}"
+#  fi
+#else
+#  # conda env
+#  pandora_executable="pandora"
+#fi
 
+pandora_executable="../cmake-build-debug-coverage/pandora"
 if [ ! -f "make_prg.sif" ]; then
   echo "make_prg image not found, pulling it..."
   singularity pull --name make_prg.sif "${make_prg_URL}"

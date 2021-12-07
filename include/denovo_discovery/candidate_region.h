@@ -43,20 +43,6 @@ using DenovoPaths = std::vector<std::string>;
 using ReadPileup = std::vector<std::string>;
 using ReadCoordinates = std::set<ReadCoordinate>;
 
-struct SimpleDenovoVariantRecord {
-public:
-    uint32_t pos;
-    std::string ref, alt;
-    SimpleDenovoVariantRecord(
-        uint32_t pos, const std::string& ref, const std::string& alt)
-        : pos(pos)
-        , ref(ref)
-        , alt(alt)
-    {
-    }
-    std::string to_string() const;
-};
-
 class CandidateRegionWriteBuffer;
 
 class CandidateRegion {

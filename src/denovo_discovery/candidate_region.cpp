@@ -2,15 +2,6 @@
 #include "utils.h"
 #include <seqan/align.h>
 
-std::string SimpleDenovoVariantRecord::to_string() const
-{
-    std::string ref_to_print = remove_spaces_from_string(ref);
-    std::string alt_to_print = remove_spaces_from_string(alt);
-    std::stringstream ss;
-    ss << pos << "\t" << ref_to_print << "\t" << alt_to_print;
-    return ss.str();
-}
-
 size_t std::hash<CandidateRegionIdentifier>::operator()(
     const CandidateRegionIdentifier& id) const
 {
@@ -249,54 +240,6 @@ void CandidateRegion::write_denovo_paths_to_buffer(CandidateRegionWriteBuffer& b
 std::vector<std::string> CandidateRegion::get_variants(
     const string& denovo_sequence) const
 {
-    using namespace seqan;
-    typedef String<char> TSequence; // sequence type
-    typedef Align<TSequence, ArrayGaps> TAlign; // align type
-    typedef Row<TAlign>::Type TRow; // gapped sequence type
-
-    // TODO: this can be further optimised by aligning the candidate region sequence
-    // with the candidate region alt (not the whole ML sequence with the whole ML alt)
-    TSequence ref = local_node_max_likelihood_sequence;
-    TSequence alt = denovo_sequence;
-
-    TAlign align;
-    resize(rows(align), 2);
-    assignSource(row(align, 0), ref);
-    assignSource(row(align, 1), alt);
-
-    TRow& ref_row = row(align, 0);
-    TRow& alt_row = row(align, 1);
-
-    globalAlignment(align, Score<int, Simple>(2, -1, -2, -4), AffineGaps());
-    bool append_to_previous = false;
-    std::vector<SimpleDenovoVariantRecord> denovo_variants;
-    for (size_t alignment_index = 0; alignment_index < length(ref_row);
-         ++alignment_index) {
-        char ref_base = (char)(ref_row[alignment_index]);
-        char alt_base = (char)(alt_row[alignment_index]);
-        const bool is_variant_position = ref_base != alt_base;
-        if (is_variant_position) {
-            if (append_to_previous) {
-                denovo_variants.back().ref += ref_base;
-                denovo_variants.back().alt += alt_base;
-            } else {
-                SimpleDenovoVariantRecord denovo_variant(
-                    toSourcePosition(ref_row, alignment_index) + 1,
-                    std::string(1, ref_base), std::string(1, alt_base));
-                denovo_variants.push_back(denovo_variant);
-            }
-            append_to_previous = true;
-        } else {
-            append_to_previous = false;
-        }
-    }
-
-    std::vector<std::string> denovo_variants_as_str;
-    for (const SimpleDenovoVariantRecord& denovo_variant : denovo_variants) {
-        denovo_variants_as_str.push_back(denovo_variant.to_string());
-    }
-
-    return denovo_variants_as_str;
 }
 
 TmpPanNode::TmpPanNode(const PanNodePtr& pangraph_node,

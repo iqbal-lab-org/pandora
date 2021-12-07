@@ -6,6 +6,7 @@
 #include <boost/algorithm/string.hpp>
 #include "utils.h"
 #include "denovo_discovery/racon.h"
+#include "denovo_discovery/denovo_record.h"
 
 std::map<std::string, std::string> get_locus_to_reads(
     const fs::path &sample_outdir,
@@ -231,24 +232,6 @@ void setup_discover_subcommand(CLI::App& app)
     discover_subcmd->callback([opt]() { pandora_discover(*opt); });
 }
 
-void concatenate_denovo_files(
-    const fs::path& output_filename, const std::vector<fs::path>& input_filenames)
-{
-    ofstream output_filehandler;
-    open_file_for_writing(output_filename.string(), output_filehandler);
-
-    output_filehandler << input_filenames.size() << " samples" << std::endl;
-
-    for (const fs::path& input_filename : input_filenames) {
-        ifstream input_filehandler;
-        open_file_for_reading(input_filename.string(), input_filehandler);
-        output_filehandler << input_filehandler.rdbuf();
-        input_filehandler.close();
-    }
-
-    output_filehandler.close();
-}
-
 void find_denovo_variants_core(std::vector<CandidateRegion*>& candidate_regions,
     const SampleIdText& sample_name, const fs::path& sample_outdir,
     const DenovoDiscovery& denovo, uint32_t child_id, uint32_t threads)
@@ -423,11 +406,18 @@ void pandora_discover_core(const SampleData& sample,
     std::map<std::string, std::string> locus_to_reads = get_locus_to_reads(
         sample_outdir, sample_name);
 
+    std::vector<std::string> all_denovo_sequences;
+    all_denovo_sequences.reserve(pangraph->nodes.size()*2 + 500);
+
+    // find denovo paths
     const fs::path denovo_outdir { sample_outdir / "denovo" };
     fs::create_directories(denovo_outdir);
 
-    std::vector<std::string> all_denovo_sequences;
-    all_denovo_sequences.reserve(pangraph->nodes.size()*2 + 500);
+    ofstream denovo_paths_out_core_file;
+    open_file_for_writing((denovo_outdir / "denovo_paths_core.txt").string(),
+        denovo_paths_out_core_file);
+
+    uint32_t number_of_loci_with_denovo_variants = 0;
 #pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 10)
     for (uint32_t i = 0; i < pangraphNodesAsVector.size(); ++i) {
         // add some progress
@@ -439,6 +429,7 @@ void pandora_discover_core(const SampleData& sample,
 
         // get the node
         const auto& pangraph_node = pangraphNodesAsVector[i];
+        const std::string& locus = pangraph_node->name;
 
         // add consensus path to fastaq
         std::vector<KmerNodePtr> kmp;
@@ -456,7 +447,6 @@ void pandora_discover_core(const SampleData& sample,
             continue;
         }
 
-        const std::string& locus = pangraph_node->name;
         const bool no_reads_mapped = locus_to_reads[locus].empty();
         if (no_reads_mapped) {
 #pragma omp critical(nodes_to_remove)
@@ -472,10 +462,6 @@ void pandora_discover_core(const SampleData& sample,
                 prgs[pangraph_node->prg_id]);
         }
 
-        BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << ", Locus " << locus << "] "
-                                << "Running racon to get denovo path";
-        const string lmp_seq = prgs[pangraph_node->prg_id]->string_along_path(lmp);
-
         // builds a mem_fd with the locus reads
         // std::pair<int, std::string> read_locus_fd_and_filepath = build_memfd(locus_to_reads[locus]);
         // TODO: use mem_fd back
@@ -488,6 +474,7 @@ void pandora_discover_core(const SampleData& sample,
         locus_reads_filepath = (denovo_outdir / locus_reads_filepath).string();
         build_file(locus_reads_filepath, locus_to_reads[locus]);
 
+        const string lmp_seq = prgs[pangraph_node->prg_id]->string_along_path(lmp);
         Racon racon(locus, lmp_seq, denovo_outdir, locus_reads_filepath);
         const std::string &polished_sequence = racon.get_polished_sequence();
 
@@ -496,8 +483,43 @@ void pandora_discover_core(const SampleData& sample,
             all_denovo_sequences.push_back(">" + locus);
             all_denovo_sequences.push_back(polished_sequence);
         }
-    }
 
+        const std::vector<DenovoVariantRecord> denovo_variants =
+            DenovoVariantRecord::get_variants_from_pair_of_sequences(lmp_seq, polished_sequence);
+
+        const bool we_have_denovo_variants = denovo_variants.size() > 0;
+        if (we_have_denovo_variants) {
+            const std::string lmp_as_string = LocalNode::to_string_vector(lmp);
+#pragma omp critical(denovo_paths_out_core_file)
+            {
+                ++number_of_loci_with_denovo_variants;
+                denovo_paths_out_core_file << locus << std::endl;
+                denovo_paths_out_core_file << lmp_as_string << std::endl;
+                denovo_paths_out_core_file << denovo_variants.size()
+                                           << " denovo variants for this locus" << std::endl;
+                for (const DenovoVariantRecord &denovo_variant : denovo_variants) {
+                    denovo_paths_out_core_file << denovo_variant.to_string() << std::endl;
+                }
+            }
+        }
+    }
+    denovo_paths_out_core_file.close();
+
+    ofstream denovo_paths_out_header_file;
+    open_file_for_writing((denovo_outdir / "denovo_paths_header.txt").string(),
+        denovo_paths_out_header_file);
+    denovo_paths_out_header_file << "Sample " << sample_name << std::endl;
+    denovo_paths_out_header_file << number_of_loci_with_denovo_variants <<
+        " loci with denovo variants" << std::endl;
+    denovo_paths_out_header_file.close();
+
+    fs::path denovo_paths_out_file(sample_outdir / "denovo_paths.txt");
+    std::vector<fs::path> denovo_paths_intermediary_files{
+        denovo_outdir / "denovo_paths_header.txt",
+        denovo_outdir / "denovo_paths_core.txt"
+    };
+    concatenate_text_files(denovo_paths_out_file, denovo_paths_intermediary_files);
+    
     // remove the nodes marked as to be removed
     for (const auto& node_to_remove : nodes_to_remove) {
         pangraph->remove_node(node_to_remove);
@@ -600,17 +622,22 @@ int pandora_discover(DiscoverOptions& opt)
     }
 
     // concatenate all denovo files
-//    std::vector<fs::path> denovo_paths_files;
-//    for (uint32_t sample_id = 0; sample_id < samples.size(); sample_id++) {
-//        const auto& sample = samples[sample_id];
-//        const auto& sample_name = sample.first;
-//        fs::path denovo_output_file = opt.outdir / sample_name / "denovo_paths.txt";
-//        denovo_paths_files.push_back(denovo_output_file);
-//    }
-//    fs::path denovo_output_file = opt.outdir / "denovo_paths.txt";
-//    concatenate_denovo_files(denovo_output_file, denovo_paths_files);
-//    BOOST_LOG_TRIVIAL(info) << "De novo variant paths written to "
-//                            << denovo_output_file.string();
+    std::vector<fs::path> denovo_paths_files;
+    std::vector<fs::path> denovo_sequences_files;
+    for (uint32_t sample_id = 0; sample_id < samples.size(); sample_id++) {
+        const auto& sample = samples[sample_id];
+        const auto& sample_name = sample.first;
+        fs::path denovo_path_output_file = opt.outdir / sample_name / "denovo_paths.txt";
+        denovo_paths_files.push_back(denovo_path_output_file);
+        fs::path denovo_sequence_output_file = opt.outdir / sample_name / "denovo_sequences.fa";
+        denovo_sequences_files.push_back(denovo_sequence_output_file);
+    }
+    fs::path denovo_paths_output_file = opt.outdir / "denovo_paths.txt";
+    std::string nb_of_samples_line(std::to_string(samples.size()) + " samples");
+    concatenate_text_files(denovo_paths_output_file, denovo_paths_files, nb_of_samples_line);
+
+    fs::path denovo_sequences_output_file = opt.outdir / "denovo_sequences.fa";
+    concatenate_text_files(denovo_sequences_output_file, denovo_sequences_files);
     BOOST_LOG_TRIVIAL(info) << "All done!";
 
     return 0;

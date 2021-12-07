@@ -137,4 +137,8 @@ void build_file(const std::string &filepath, const std::string &data);
 
 bool tool_exists(const std::string &command);
 
+void concatenate_text_files(
+    const fs::path& output_filename, const std::vector<fs::path>& input_filenames,
+    const std::string &prepend="");
+
 #endif

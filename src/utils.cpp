@@ -813,6 +813,7 @@ std::pair<int, std::string> build_memfd(const std::string &data) {
 // From https://stackoverflow.com/a/478960/5264075
 // Exec a command and returns stdout
 std::string exec(const char* cmd) {
+    std::cout << "Running " << cmd << std::endl;
     std::array<char, 4096> buffer;
     std::string result;
     std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
@@ -835,4 +836,25 @@ void build_file(const std::string &filepath, const std::string &data) {
 bool tool_exists(const std::string &command) {
     int ret = std::system(command.c_str());
     return WEXITSTATUS(ret) == 0;
+}
+
+void concatenate_text_files(
+    const fs::path& output_filename, const std::vector<fs::path>& input_filenames,
+    const std::string &prepend)
+{
+    ofstream output_filehandler;
+    open_file_for_writing(output_filename.string(), output_filehandler);
+
+    if (!prepend.empty()) {
+        output_filehandler << prepend << std::endl;
+    }
+
+    for (const fs::path& input_filename : input_filenames) {
+        ifstream input_filehandler;
+        open_file_for_reading(input_filename.string(), input_filehandler);
+        output_filehandler << input_filehandler.rdbuf();
+        input_filehandler.close();
+    }
+
+    output_filehandler.close();
 }
