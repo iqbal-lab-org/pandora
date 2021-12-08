@@ -813,7 +813,7 @@ std::pair<int, std::string> build_memfd(const std::string &data) {
 // From https://stackoverflow.com/a/478960/5264075
 // Exec a command and returns stdout
 std::string exec(const char* cmd) {
-    std::cout << "Running " << cmd << std::endl;
+    BOOST_LOG_TRIVIAL(debug) << "Running " << cmd;
     std::array<char, 4096> buffer;
     std::string result;
     std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);

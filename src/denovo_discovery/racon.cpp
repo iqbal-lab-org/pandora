@@ -21,7 +21,7 @@ bool Racon::run_another_round() {
     const std::string paf_filepath {
         (denovo_outdir / (locus + ".minimap2.out.paf")).string() };
     std::stringstream minimap_ss;
-    minimap_ss << "minimap2 -x map-ont -o " << paf_filepath << " " <<
+    minimap_ss << "minimap2 -t 1 -x map-ont -o " << paf_filepath << " " <<
         locus_consensus_filepath << " " << locus_reads_filepath;
     const std::string minimap_str = minimap_ss.str();
     exec(minimap_str.c_str());
@@ -45,8 +45,15 @@ bool Racon::run_another_round() {
     }
 
     const std::string &polished_consensus_seq = polished_record[1];
-    const bool racon_improved_the_consensus_seq =
-        polished_consensus_seq != consensus_seq;
+
+    const bool we_already_saw_this_consensus_seq =
+        std::find(consensus_seq_already_seen.begin(), consensus_seq_already_seen.end(),
+            polished_consensus_seq) != consensus_seq_already_seen.end();
+    const bool racon_improved_the_consensus_seq = not we_already_saw_this_consensus_seq;
+
+    if (not we_already_saw_this_consensus_seq) {
+        consensus_seq_already_seen.push_back(polished_consensus_seq);
+    }
 
     consensus_seq = polished_consensus_seq;
     number_of_rounds_executed++;
@@ -55,6 +62,8 @@ bool Racon::run_another_round() {
     fs::remove(paf_filepath);
     fs::remove(racon_out);
 
+    BOOST_LOG_TRIVIAL(debug) << "Ran racon " << number_of_rounds_executed << " times";
+
     return racon_improved_the_consensus_seq;
 }
 
@@ -62,7 +71,6 @@ void Racon::run() {
     while (number_of_rounds_executed < max_number_of_rounds_to_run &&
            previous_run_improved_consensus_seq) {
         previous_run_improved_consensus_seq = run_another_round();
-        ++number_of_rounds_executed;
     }
 }
 

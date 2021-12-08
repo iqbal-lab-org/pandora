@@ -13,6 +13,7 @@ private:
     uint32_t max_number_of_rounds_to_run;
     uint32_t number_of_rounds_executed;
     bool previous_run_improved_consensus_seq;
+    std::vector<std::string> consensus_seq_already_seen;
 
     // Runs a round of racon, effectively modifying consensus_seq and increasing the
     // number_of_rounds_executed.
@@ -33,7 +34,8 @@ public:
         : locus(locus), consensus_seq(consensus_seq), denovo_outdir(denovo_outdir),
         locus_reads_filepath(locus_reads_filepath),
         max_number_of_rounds_to_run(max_number_of_rounds_to_run),
-        number_of_rounds_executed(0), previous_run_improved_consensus_seq(true) {}
+        number_of_rounds_executed(0), previous_run_improved_consensus_seq(true),
+        consensus_seq_already_seen() {}
 
     const std::string & get_polished_sequence() {
         run();
