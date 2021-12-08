@@ -480,7 +480,8 @@ void pandora_discover_core(const SampleData& sample,
 
 #pragma omp critical(all_denovo_sequences)
         {
-            all_denovo_sequences.push_back(">" + locus);
+            all_denovo_sequences.push_back(">" + locus + " sample=" + sample_name +
+                " denovo_sequence");
             all_denovo_sequences.push_back(polished_sequence);
         }
 
