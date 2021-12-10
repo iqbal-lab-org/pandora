@@ -10,7 +10,7 @@ RUN apt update \
     && apt install -y software-properties-common \
     && apt-add-repository universe \
     && apt update \
-    && apt install --no-install-recommends -y build-essential git cmake wget \
+    && apt install --no-install-recommends -y build-essential git cmake wget gdb \
                    minimap2=2.17+dfsg-2 mafft=7.453-1 racon=1.4.10-1build1 \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
@@ -20,7 +20,8 @@ RUN apt update \
 #============================================
 # can override the build type with docker's --build-arg command
 # https://docs.docker.com/engine/reference/builder/#arg
-ARG PANDORA_BUILD_TYPE="Release"
+# ARG PANDORA_BUILD_TYPE="Release"
+ARG PANDORA_BUILD_TYPE="Debug"
 ENV PANDORA_DIR "/pandora/"
 
 COPY . $PANDORA_DIR
