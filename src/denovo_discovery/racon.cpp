@@ -39,12 +39,13 @@ bool Racon::run_another_round() {
     const std::vector<std::string> polished_record
         = get_vector_of_strings_from_file(racon_out);
 
-    const bool only_one_denovo_sequence = polished_record.size()==2;
-    if (!only_one_denovo_sequence) {
-        fatal_error("Racon outputted no sequences or more than one sequence");
+    std::string polished_consensus_seq;
+    const bool polishing_was_successful = polished_record.size()>=2;
+    if (polishing_was_successful) {
+        polished_consensus_seq = polished_record[1];
+    } else {
+        polished_consensus_seq = consensus_seq;
     }
-
-    const std::string &polished_consensus_seq = polished_record[1];
 
     const bool we_already_saw_this_consensus_seq =
         std::find(consensus_seq_already_seen.begin(), consensus_seq_already_seen.end(),
