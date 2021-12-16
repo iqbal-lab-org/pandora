@@ -475,7 +475,7 @@ void pandora_discover_core(const SampleData& sample,
         build_file(locus_reads_filepath, locus_to_reads[locus]);
 
         const string lmp_seq = prgs[pangraph_node->prg_id]->string_along_path(lmp);
-        Racon racon(locus, lmp_seq, denovo_outdir, locus_reads_filepath);
+        Racon racon(opt.illumina, locus, lmp_seq, denovo_outdir, locus_reads_filepath);
         const std::string &polished_sequence = racon.get_polished_sequence();
 
 #pragma omp critical(all_denovo_sequences)

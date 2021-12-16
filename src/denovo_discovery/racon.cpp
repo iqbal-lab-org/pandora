@@ -21,8 +21,9 @@ bool Racon::run_another_round() {
     const std::string paf_filepath {
         (denovo_outdir / (locus + ".minimap2.out.paf")).string() };
     std::stringstream minimap_ss;
-    minimap_ss << "minimap2 -t 1 -x map-ont -o " << paf_filepath << " " <<
-        locus_consensus_filepath << " " << locus_reads_filepath;
+    minimap_ss << "minimap2 -t 1 -x " << (illumina ? "sr" : "map-ont")
+               << " -o " << paf_filepath << " " << locus_consensus_filepath << " "
+               << locus_reads_filepath;
     const std::string minimap_str = minimap_ss.str();
     exec(minimap_str.c_str());
 
@@ -30,8 +31,8 @@ bool Racon::run_another_round() {
     const std::string racon_out {
         (denovo_outdir / (locus + ".racon.out")).string() };
     std::stringstream racon_ss;
-    racon_ss << "racon -u --no-trimming -t 1 " << locus_reads_filepath << " " << paf_filepath <<
-        " " << locus_consensus_filepath << " > " << racon_out;
+    racon_ss << "racon -u --no-trimming -t 1 " << locus_reads_filepath << " "
+             << paf_filepath << " " << locus_consensus_filepath << " > " << racon_out;
     const std::string racon_str = racon_ss.str();
     exec(racon_str.c_str());
 
