@@ -33,4 +33,3 @@ RUN cmake -DCMAKE_BUILD_TYPE="$PANDORA_BUILD_TYPE" -DHUNTER_JOBS_NUMBER=4 .. \
     && cd / \
     && rm -rf $PANDORA_DIR \
     && rm -rf /root/.hunter
-

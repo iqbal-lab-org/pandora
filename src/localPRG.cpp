@@ -463,11 +463,11 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
 {
     if (percentageDone >= 0)
         BOOST_LOG_TRIVIAL(info)
-            << "Sketch PRG " << name << " which has " << prg.nodes.size() << " nodes ("
-            << percentageDone << "% done)";
+            << "Started sketching PRG " << name << " which has " << prg.nodes.size() << " nodes ("
+            << percentageDone << "% already done)";
     else
         BOOST_LOG_TRIVIAL(info)
-            << "Sketch PRG " << name << " which has " << prg.nodes.size() << " nodes";
+            << "Started sketching PRG " << name << " which has " << prg.nodes.size() << " nodes";
 
     // clean up after any previous runs
     // although note we can't clear the index because it is also added to by other
@@ -499,6 +499,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
 
     // if this is a null prg, return the null kmergraph
     if (prg.nodes.size() == 1 and prg.nodes[0]->pos.length < k) {
+        BOOST_LOG_TRIVIAL(info) << "Finished sketching PRG " << name;
         return;
     }
 
@@ -508,6 +509,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                     // prg.nodes.begin()->second->id composed of exactly w+k-1 bases -
                     // NOTE: WALKS AND PATHS HERE ARE THE SAME, SINCE THIS IS A DAG!!!
     if (walk_paths.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "Finished sketching PRG " << name;
         return; // also trivially not true
     }
 
@@ -758,6 +760,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
     }
     kmer_prg.remove_shortcut_edges();
     kmer_prg.check();
+    BOOST_LOG_TRIVIAL(info) << "Finished sketching PRG " << name;
 }
 
 bool intervals_overlap(const Interval& first, const Interval& second)
