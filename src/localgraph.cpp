@@ -337,7 +337,7 @@ std::vector<LocalNodePtr> LocalGraph::nodes_along_string(
             }
             if (strcasecmp(query_string.c_str(), candidate_string.c_str()) == 0) {
                 return p;
-            } else if (candidate_string.size() > (uint)longest_length) {
+            } else if (candidate_string.size() > (size_t)longest_length) {
                 longest_path = p;
                 longest_length = candidate_string.size();
             }

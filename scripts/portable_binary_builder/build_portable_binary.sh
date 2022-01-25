@@ -15,5 +15,5 @@ fi
 
 docker run -t -i --rm \
   -v "${PANDORA_DIR}":/pandora \
-  leandroishilima/pandora_static_binary_toolchain:0.0.1 \
+  leandroishilima/pandora_static_binary_toolchain:0.0.2 \
   bash /pandora/scripts/portable_binary_builder/build_portable_binary_core.sh

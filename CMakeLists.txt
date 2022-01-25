@@ -16,16 +16,6 @@ project(${PROJECT_NAME_STR} VERSION "0.9.1" LANGUAGES C CXX)
 set(ADDITIONAL_VERSION_LABELS "")
 configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
-# add or not feature to print the stack trace
-if(PRINT_STACKTRACE)
-    message(STATUS "Printing meaningful stacktrace enabled, please have binutils-dev installed")
-    add_compile_definitions(BACKWARD_HAS_BFD=1)
-    set(BACKWARD_LIBRARIES "-lbfd")
-else()
-    set(BACKWARD_LIBRARIES "")
-endif()
-
-
 # C++11 required
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -40,12 +30,6 @@ endif ()
 
 # default flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_SYSTEM_NO_DEPRECATED -Wall -Wextra")
-
-if(PRINT_STACKTRACE)
-    # -g is to add debug symbols, to make backtraces meaningful.
-    # it does not impact performance (see https://stackoverflow.com/a/39223245)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-endif ()
 
 # compile with openmp only on Linux
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -152,7 +136,6 @@ target_link_libraries(${PROJECT_NAME}
         ${ZLIB_LIBRARY}
         ${CMAKE_DL_LIBS}
         ${STATIC_C_CXX}
-        ${BACKWARD_LIBRARIES}
         ${SEQAN_LIBRARIES}
         ${RT_LIBRARY}
 )
