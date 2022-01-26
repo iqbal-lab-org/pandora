@@ -478,6 +478,8 @@ void pandora_discover_core(const SampleData& sample,
         Racon racon(opt.illumina, locus, lmp_seq, denovo_outdir, locus_reads_filepath);
         const std::string &polished_sequence = racon.get_polished_sequence();
 
+        fs::remove(locus_reads_filepath);
+
 #pragma omp critical(all_denovo_sequences)
         {
             all_denovo_sequences.push_back(">" + locus + " sample=" + sample_name +
@@ -561,9 +563,6 @@ int pandora_discover(DiscoverOptions& opt)
     // checks if minimap2 and racon are available
     if (not tool_exists("minimap2 -h")) {
         throw std::logic_error("minimap2 not found");
-    }
-    if (not tool_exists("racon -h")) {
-        throw std::logic_error("racon not found");
     }
 
     auto log_level = boost::log::trivial::info;

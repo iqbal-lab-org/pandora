@@ -90,6 +90,12 @@ set(GATB_LIBS
 ########################################################################################################################
 
 ########################################################################################################################
+# INSTALL Racon
+add_subdirectory(thirdparty/racon)
+set(RACON_LIBRARY racon)
+########################################################################################################################
+
+########################################################################################################################
 # INSTALL GTEST
 hunter_add_package(GTest)
 find_package(GTest CONFIG REQUIRED)
@@ -131,6 +137,7 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/src
         ${PROJECT_SOURCE_DIR}/thirdparty/include
         ${PROJECT_SOURCE_DIR}/thirdparty/src
+        ${PROJECT_SOURCE_DIR}/thirdparty/racon/src
 )
 
 # Add definitions set by find_package (SeqAn).
@@ -154,6 +161,7 @@ add_dependencies(${PROJECT_NAME} gatb)
 
 target_link_libraries(${PROJECT_NAME}
         ${GATB_LIBS}
+        ${RACON_LIBRARY}
         ${Boost_LIBRARIES}
         ${ZLIB_LIBRARY}
         ${CMAKE_DL_LIBS}

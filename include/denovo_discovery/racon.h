@@ -16,12 +16,21 @@ private:
     bool previous_run_improved_consensus_seq;
     std::vector<std::string> consensus_seq_already_seen;
 
-    // Runs a round of racon, effectively modifying consensus_seq and increasing the
-    // number_of_rounds_executed.
+    // Runs racon with the given parameters and returns a polished sequence
+    static std::string run_racon_core(
+        const std::string &consensus_seq,
+        const std::string &reads_filepath,
+        const std::string &paf_filepath,
+        const std::string &polished_filepath);
+
+
+    // Runs a round of minimap2+racon, effectively modifying consensus_seq and
+    // increasing the number_of_rounds_executed.
     // Returns a bool, which means if racon improved the consensus seq or not.
     // If this bool is false, then it means racon cannot improve the consensus seq
     // anymore, and we should stop running it
     bool run_another_round();
+
 
     // Run racon for at most max_number_of_rounds_to_run (or until it does not improve
     // the consensus seq anymore)

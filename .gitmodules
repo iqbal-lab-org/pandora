@@ -7,3 +7,6 @@
 [submodule "thirdparty/seqan"]
 	path = thirdparty/seqan
 	url = https://github.com/seqan/seqan.git
+[submodule "thirdparty/racon"]
+	path = thirdparty/racon
+	url = https://github.com/lbcb-sci/racon
