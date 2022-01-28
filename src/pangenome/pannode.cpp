@@ -7,6 +7,7 @@
 #include "minihit.h"
 #include "localPRG.h"
 #include "OptionsAggregator.h"
+#include "denovo_discovery/denovo_utils.h"
 
 using namespace pangenome;
 

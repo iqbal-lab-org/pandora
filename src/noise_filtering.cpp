@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "pangenome/pangraph.h"
 #include "pangenome/pannode.h"
+#include "pangenome/panread.h"
 #include "de_bruijn/graph.h"
 #include "minihit.h"
 

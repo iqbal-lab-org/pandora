@@ -75,21 +75,6 @@ set(ZLIB_LIBRARY ZLIB::ZLIB)
 ########################################################################################################################
 
 ########################################################################################################################
-# INSTALL GATB
-include(${PROJECT_SOURCE_DIR}/ext/gatb.cmake)
-include_directories(SYSTEM
-        ${gatb_source_dir}/src
-        ${gatb_binary_dir}/include
-        )
-link_directories(${gatb_binary_dir}/lib)
-set(GATB_LIBS
-        gatbcore
-        hdf5
-        hdf5_tools
-    )
-########################################################################################################################
-
-########################################################################################################################
 # INSTALL Racon
 add_subdirectory(thirdparty/racon)
 set(RACON_LIBRARY racon)
@@ -157,10 +142,8 @@ file(GLOB_RECURSE SRC_FILES
         )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-add_dependencies(${PROJECT_NAME} gatb)
 
 target_link_libraries(${PROJECT_NAME}
-        ${GATB_LIBS}
         ${RACON_LIBRARY}
         ${Boost_LIBRARIES}
         ${ZLIB_LIBRARY}

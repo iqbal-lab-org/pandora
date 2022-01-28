@@ -37,6 +37,8 @@
  * means hash_64(x, mask)==hash_64(y, mask) if and only if x==y.
  */
 
+namespace pandora {
+
 unsigned char seq_nt4_table[256] = { 0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 2, 4,
@@ -144,4 +146,6 @@ std::pair<uint64_t, uint64_t> KmerHash::kmerhash(const std::string& s, const uin
     auto ret = std::make_pair(kmer[0], kmer[1]);
     lookup[s] = ret;
     return ret;
+}
+
 }

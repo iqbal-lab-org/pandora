@@ -141,4 +141,6 @@ void concatenate_text_files(
     const fs::path& output_filename, const std::vector<fs::path>& input_filenames,
     const std::string &prepend="");
 
+std::string reverse_complement(const std::string& forward);
+
 #endif

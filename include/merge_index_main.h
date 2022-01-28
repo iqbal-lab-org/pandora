@@ -6,6 +6,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
 
 #include "utils.h"
 #include "localPRG.h"

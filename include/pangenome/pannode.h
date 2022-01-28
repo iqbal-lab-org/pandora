@@ -10,7 +10,6 @@
 #include "localPRG.h"
 #include "pangenome/ns.cpp"
 #include "vcf.h"
-#include "denovo_discovery/denovo_utils.h"
 #include "pansample.h"
 #include "OptionsAggregator.h"
 

@@ -18,8 +18,6 @@
 #include "estimate_parameters.h"
 #include "noise_filtering.h"
 
-#include "denovo_discovery/denovo_utils.h"
-#include "denovo_discovery/denovo_discovery.h"
 #include "CLI11.hpp"
 
 using std::set;

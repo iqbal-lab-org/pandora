@@ -1,6 +1,7 @@
 #include "minimizermatch_file.h"
 #include "minihits.h"
 #include "minihit.h"
+#include "denovo_discovery/denovo_utils.h"
 
 MinimizerMatchFile::MinimizerMatchFile(const fs::path &filepath,
                                        const std::vector<std::shared_ptr<LocalPRG>>& prgs) :

@@ -11,8 +11,6 @@
 #include "pangenome/pangraph.h"
 #include "noise_filtering.h"
 #include "estimate_parameters.h"
-#include "denovo_discovery/candidate_region.h"
-#include "denovo_discovery/denovo_discovery.h"
 
 constexpr auto MAX_DENOVO_K { 32 };
 namespace fs = boost::filesystem;

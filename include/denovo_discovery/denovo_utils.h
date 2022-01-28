@@ -8,7 +8,6 @@
 #include <vector>
 #include "localnode.h"
 #include "minihits.h"
-#include "denovo_discovery/local_assembly.h"
 #include "interval.h"
 #include "minihit.h"
 #include "pangenome/ns.cpp"

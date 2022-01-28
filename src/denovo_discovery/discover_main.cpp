@@ -232,114 +232,6 @@ void setup_discover_subcommand(CLI::App& app)
     discover_subcmd->callback([opt]() { pandora_discover(*opt); });
 }
 
-void find_denovo_variants_core(std::vector<CandidateRegion*>& candidate_regions,
-    const SampleIdText& sample_name, const fs::path& sample_outdir,
-    const DenovoDiscovery& denovo, uint32_t child_id, uint32_t threads)
-{
-    // create temp dir
-    const auto temp_dir { sample_outdir / ("temp_child_" + int_to_string(child_id)) };
-    fs::create_directories(temp_dir);
-
-    CandidateRegionWriteBuffer buffer(sample_name);
-    for (uint32_t candidate_region_index = child_id;
-         candidate_region_index < candidate_regions.size();
-         candidate_region_index += threads) {
-        CandidateRegion& candidate_region { *(
-            candidate_regions[candidate_region_index]) };
-        denovo.find_paths_through_candidate_region(candidate_region, temp_dir);
-        candidate_region.write_denovo_paths_to_buffer(buffer);
-    }
-
-    // serialise the buffer
-    {
-        const auto buffer_binary_filename
-            = temp_dir / "candidate_regions_write_buffer.bin";
-        std::ofstream buffer_binary_filehandler(buffer_binary_filename.string());
-        boost::archive::text_oarchive buffer_binary_archive(buffer_binary_filehandler);
-        // write class instance to archive
-        buffer_binary_archive << buffer;
-        // archive and stream closed when destructors are called
-    }
-}
-
-void find_denovo_variants_multiprocess(CandidateRegions& candidate_regions,
-    const SampleIdText& sample_name, const fs::path& sample_outdir,
-    const DenovoDiscovery& denovo, uint32_t threads)
-{
-    // transforms CandidateRegions into a vector of pointers to CandidateRegion so that
-    // it is easier to multithread/multiprocess on it
-    std::vector<CandidateRegion*> candidate_regions_as_vector;
-    candidate_regions_as_vector.reserve(candidate_regions.size());
-    for (auto& element : candidate_regions) {
-        CandidateRegion* candidate_region_pointer = &(element.second);
-        candidate_regions_as_vector.push_back(candidate_region_pointer);
-    }
-
-    // forking due to GATB
-    size_t child_id;
-    bool on_child;
-    for (child_id = 0; child_id < threads; ++child_id) {
-        int child_process_id = fork();
-        bool error_creating_child_process = child_process_id == -1;
-        on_child = child_process_id == 0;
-
-        if (error_creating_child_process) {
-            fatal_error("Error creating child process.");
-        } else if (on_child) {
-            break;
-        } else {
-            BOOST_LOG_TRIVIAL(info) << "Child process id " << child_process_id
-                                    << " (child #" << child_id << ") created...";
-        }
-    }
-
-    if (on_child) {
-        find_denovo_variants_core(candidate_regions_as_vector, sample_name,
-            sample_outdir, denovo, child_id, threads);
-        std::exit(0);
-    } else {
-        // wait for all children to finish
-        for (child_id = 0; child_id < threads; ++child_id) {
-            int child_pid = wait(NULL);
-            bool error_on_waiting_for_child = child_pid == -1;
-            if (error_on_waiting_for_child) {
-                fatal_error("Error waiting for child process.");
-            } else {
-                BOOST_LOG_TRIVIAL(info)
-                    << "Child process " << child_pid << " finished!";
-            }
-        }
-    }
-
-    // add all candidate region write buffers to a central one
-    CandidateRegionWriteBuffer buffer(sample_name);
-    std::vector<fs::path> buffer_binary_filenames;
-    for (child_id = 0; child_id < threads; child_id++) {
-        CandidateRegionWriteBuffer child_buffer;
-        {
-            const auto child_temp_dir { sample_outdir
-                / ("temp_child_" + int_to_string(child_id)) };
-            const auto child_buffer_binary_filename
-                = child_temp_dir / "candidate_regions_write_buffer.bin";
-            // create and open an archive for input
-            std::ifstream child_buffer_binary_filehandler(
-                child_buffer_binary_filename.string());
-            boost::archive::text_iarchive child_buffer_binary_archive(
-                child_buffer_binary_filehandler);
-            // read class state from archive
-            child_buffer_binary_archive >> child_buffer;
-            // archive and stream closed when destructors are called
-        }
-        buffer.merge(child_buffer);
-    }
-
-    auto denovo_output_file = sample_outdir / "denovo_paths.txt";
-    buffer.write_to_file(denovo_output_file);
-    BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
-                            << "De novo variant paths written to "
-                            << denovo_output_file.string();
-}
-
 void pandora_discover_core(const SampleData& sample,
     const std::shared_ptr<Index>& index,
     const std::vector<std::shared_ptr<LocalPRG>>& prgs, const DiscoverOptions& opt)
@@ -413,7 +305,7 @@ void pandora_discover_core(const SampleData& sample,
     const fs::path denovo_outdir { sample_outdir / "denovo" };
     fs::create_directories(denovo_outdir);
 
-    ofstream denovo_paths_out_core_file;
+    std::ofstream denovo_paths_out_core_file;
     open_file_for_writing((denovo_outdir / "denovo_paths_core.txt").string(),
         denovo_paths_out_core_file);
 
@@ -474,7 +366,7 @@ void pandora_discover_core(const SampleData& sample,
         locus_reads_filepath = (denovo_outdir / locus_reads_filepath).string();
         build_file(locus_reads_filepath, locus_to_reads[locus]);
 
-        const string lmp_seq = prgs[pangraph_node->prg_id]->string_along_path(lmp);
+        const std::string lmp_seq = prgs[pangraph_node->prg_id]->string_along_path(lmp);
         Racon racon(opt.illumina, locus, lmp_seq, denovo_outdir, locus_reads_filepath);
         const std::string &polished_sequence = racon.get_polished_sequence();
 
@@ -508,7 +400,7 @@ void pandora_discover_core(const SampleData& sample,
     }
     denovo_paths_out_core_file.close();
 
-    ofstream denovo_paths_out_header_file;
+    std::ofstream denovo_paths_out_header_file;
     open_file_for_writing((denovo_outdir / "denovo_paths_header.txt").string(),
         denovo_paths_out_header_file);
     denovo_paths_out_header_file << "Sample " << sample_name << std::endl;
@@ -530,7 +422,7 @@ void pandora_discover_core(const SampleData& sample,
 
     // write denovo file
     fs::path denovo_filepath = sample_outdir / "denovo_sequences.fa";
-    ofstream denovo_filehandler;
+    std::ofstream denovo_filehandler;
     open_file_for_writing(denovo_filepath.string(), denovo_filehandler);
     for (const std::string &line : all_denovo_sequences) {
         denovo_filehandler << line << std::endl;

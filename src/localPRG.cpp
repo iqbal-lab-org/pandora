@@ -485,7 +485,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
     std::string kmer;
     uint64_t smallest;
     std::pair<uint64_t, uint64_t> kh;
-    KmerHash hash; // TODO: replace by GATB's MPHF?
+    pandora::KmerHash hash;
     uint32_t num_kmers_added = 0;
     KmerNodePtr kn, new_kn;
     std::vector<LocalNodePtr> n;
@@ -528,7 +528,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                        // constructor/assignment op in Path?
             if (!kmer_path.empty()) {
                 kmer = string_along_path(kmer_path); // get the string along the path
-                kh = hash.kmerhash(kmer, k); // TODO: replace by GATB's minimizer?
+                kh = hash.kmerhash(kmer, k);
                 smallest = std::min(smallest, std::min(kh.first, kh.second));
             }
         }

@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
+#include <atomic>
 
 #include <boost/log/trivial.hpp>
 

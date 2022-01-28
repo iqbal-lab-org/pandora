@@ -827,7 +827,7 @@ std::string exec(const char* cmd) {
 }
 
 void build_file(const std::string &filepath, const std::string &data) {
-    ofstream output_file;
+    std::ofstream output_file;
     open_file_for_writing(filepath, output_file);
     output_file.write(data.c_str(), data.size());
     output_file.close();
@@ -842,7 +842,7 @@ void concatenate_text_files(
     const fs::path& output_filename, const std::vector<fs::path>& input_filenames,
     const std::string &prepend)
 {
-    ofstream output_filehandler;
+    std::ofstream output_filehandler;
     open_file_for_writing(output_filename.string(), output_filehandler);
 
     if (!prepend.empty()) {
@@ -850,11 +850,24 @@ void concatenate_text_files(
     }
 
     for (const fs::path& input_filename : input_filenames) {
-        ifstream input_filehandler;
+        std::ifstream input_filehandler;
         open_file_for_reading(input_filename.string(), input_filehandler);
         output_filehandler << input_filehandler.rdbuf();
         input_filehandler.close();
     }
 
     output_filehandler.close();
+}
+
+std::string reverse_complement(const std::string& forward)
+{
+    const auto len { forward.size() };
+    std::string reverse(len, ' ');
+    for (size_t k = 0; k < len; k++) {
+        const char base { forward[k] };
+        const char magic = base & 2 ? 4 : 21;
+        reverse[len - k - 1] = base ^ magic;
+    }
+    reverse[len] = '\0';
+    return reverse;
 }

@@ -34,12 +34,12 @@ void Seq::initialize(
 bool Seq::add_letter_to_get_next_kmer(const char& letter, const uint64_t& shift1,
     const uint64_t& mask, uint32_t& buff, uint64_t (&kmer)[2], uint64_t (&kh)[2])
 {
-    uint32_t c = nt4((uint8_t)letter);
+    uint32_t c = pandora::nt4((uint8_t)letter);
     if (c < 4) { // not an ambiguous base
         kmer[0] = (kmer[0] << 2 | c) & mask; // forward k-mer
         kmer[1] = (kmer[1] >> 2) | (3ULL ^ c) << shift1; // reverse k-mer
-        kh[0] = hash64(kmer[0], mask);
-        kh[1] = hash64(kmer[1], mask);
+        kh[0] = pandora::hash64(kmer[0], mask);
+        kh[1] = pandora::hash64(kmer[1], mask);
         buff++;
         return true;
     } else {
