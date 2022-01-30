@@ -765,30 +765,8 @@ std::string remove_spaces_from_string(const std::string& str)
     return to_return;
 }
 
-// From https://stackoverflow.com/a/440240/5264075
-std::string generate_random_string(const int len) {
-
-    std::string tmp_s;
-    static const char alphanum[] =
-        "0123456789"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz";
-
-    srand( (unsigned) time(NULL) * getpid());
-
-    tmp_s.reserve(len);
-
-    for (int i = 0; i < len; ++i)
-        tmp_s += alphanum[rand() % (sizeof(alphanum) - 1)];
-
-    return tmp_s;
-}
-
 std::pair<int, std::string> build_memfd(const std::string &data) {
-    /* Create an anonymous file in tmpfs; allow seals to be
-       placed on the file */
-    std::string random_name = generate_random_string(64) + ".fa";
-    int fd = memfd_create(random_name.c_str(), MFD_ALLOW_SEALING);
+    int fd = memfd_create("pandora_memfd", MFD_ALLOW_SEALING);
     if (fd == -1)
         fatal_error("memfd could not be created");
 
@@ -806,7 +784,7 @@ std::pair<int, std::string> build_memfd(const std::string &data) {
         fatal_error("Could not fsync memfd.");
 
     std::stringstream ss_filepath;
-    ss_filepath << "/proc/" << getpid() << "/fd/memfd:" << random_name;
+    ss_filepath << "/proc/" << getpid() << "/fd/" << fd;
     return std::make_pair(fd, ss_filepath.str());
 }
 

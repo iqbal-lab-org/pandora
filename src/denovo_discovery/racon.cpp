@@ -2,6 +2,11 @@
 #include <sstream>
 #include "sequence.hpp"
 #include "polisher.hpp"
+#include "minimap.h"
+#include "kseq.h"
+#include "fastaq_handler.h"
+#include <zlib.h>
+
 
 std::string Racon::run_racon_core(
     const std::string &consensus_seq,
@@ -51,11 +56,81 @@ std::string Racon::run_racon_core(
     return polished_consensus_seq;
 }
 
+void run_minimap2_core(bool illumina, const std::string &locus_consensus_filepath,
+    const std::string &locus_reads_filepath, const std::string &paf_filepath) {
+    // setup minimap2 options
+    mm_idxopt_t iopt;
+    mm_mapopt_t mopt;
+    int n_threads = 1;
+    mm_verbose = 2; // disable message output to stderr
+    mm_set_opt(0, &iopt, &mopt);
+
+    if (illumina) {
+        mm_set_opt("sr", &iopt, &mopt);
+    } else {
+        mm_set_opt("map-ont", &iopt, &mopt);
+    }
+
+    // TODO: set k?
+    // iopt.k = kmer_prg->k;
+    mopt.flag |= MM_F_CIGAR; // perform alignment
+
+    // open index reader
+    mm_idx_reader_t *r = mm_idx_reader_open(locus_consensus_filepath.c_str(), &iopt, 0);
+    if (!r) {
+        fatal_error("Could not open mm_idx_reader_t for ", locus_consensus_filepath);
+    }
+
+    // open query seq file
+    gzFile query_seq_fd = gzopen(locus_reads_filepath.c_str(), "r");
+    if (!query_seq_fd) {
+        fatal_error(
+            "Could not open minimap2 query sequence file for ", locus_reads_filepath);
+    }
+
+    // minimap2 the reads
+    kseq_t *ks = kseq_init(query_seq_fd);
+    mm_idx_t *mi;
+    FILE* paf_filehandler = fopen(paf_filepath.c_str(), "w");
+    if (!paf_filehandler) {
+        fatal_error("Could not open PAF file: ", paf_filepath);
+    }
+
+    while ((mi = mm_idx_reader_read(r, n_threads)) != 0) { // traverse each part of the index
+            mm_mapopt_update(&mopt, mi); // this sets the maximum minimizer occurrence; TODO: set a better default in mm_mapopt_init()!
+            mm_tbuf_t *tbuf = mm_tbuf_init(); // thread buffer; for multi-threading, allocate one tbuf for each thread
+            gzrewind(query_seq_fd);
+            kseq_rewind(ks);
+            while (kseq_read(ks) >= 0) { // each kseq_read() call reads one query sequence
+                mm_reg1_t *reg;
+                int j, i, n_reg;
+                reg = mm_map(mi, ks->seq.l, ks->seq.s, &n_reg, tbuf, &mopt, 0); // get all hits for the query
+                for (j = 0; j < n_reg; ++j) { // traverse hits and print them out
+                    mm_reg1_t *r = &reg[j];
+                    assert(r->p); // with MM_F_CIGAR, this should not be NULL
+                    fprintf(paf_filehandler, "%s\t%d\t%d\t%d\t%c\t", ks->name.s, ks->seq.l, r->qs, r->qe, "+-"[r->rev]);
+                    fprintf(paf_filehandler, "%s\t%d\t%d\t%d\t%d\t%d\t%d\n", mi->seq[r->rid].name, mi->seq[r->rid].len,
+                        r->rs, r->re, r->mlen, r->blen, r->mapq);
+                    free(r->p);
+                }
+                free(reg);
+            }
+            mm_tbuf_destroy(tbuf);
+            mm_idx_destroy(mi);
+    }
+    fclose(paf_filehandler);
+    mm_idx_reader_close(r); // close the index reader
+    kseq_destroy(ks); // close the query file
+    gzclose(query_seq_fd);
+}
+
 bool Racon::run_another_round() {
     // builds a mem_fd with the consensus seq
     const std::string consensus_record = ">consensus\n" + consensus_seq;
-    // TODO: use mem_fd back
-    // std::pair<int, std::string> consensus_fd_and_filepath = build_memfd(consensus_record);
+    // TODO: use mem_fd when we can
+//    std::pair<int, std::string> consensus_fd_and_filepath =
+//        build_memfd(consensus_record, ".fa");
+//    std::string locus_consensus_filepath = consensus_fd_and_filepath.second;
     std::string locus_consensus_filepath;
     {
         std::stringstream ss;
@@ -69,12 +144,8 @@ bool Racon::run_another_round() {
     // run minimap to get overlaps
     const std::string paf_filepath {
         (denovo_outdir / (locus + ".minimap2.out.paf")).string() };
-    std::stringstream minimap_ss;
-    minimap_ss << "minimap2 -t 1 -x " << (illumina ? "sr" : "map-ont")
-               << " -o " << paf_filepath << " " << locus_consensus_filepath << " "
-               << locus_reads_filepath;
-    const std::string minimap_str = minimap_ss.str();
-    exec(minimap_str.c_str());
+    run_minimap2_core(illumina, locus_consensus_filepath, locus_reads_filepath,
+        paf_filepath);
 
     // run racon to correct the ML seq
     const std::string polished_consensus_seq = run_racon_core(
