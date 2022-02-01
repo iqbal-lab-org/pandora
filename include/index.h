@@ -13,6 +13,17 @@
 
 namespace fs = boost::filesystem;
 
+struct AddRecordToIndexParams {
+    const uint64_t kmer;
+    const uint32_t prg_id;
+    const prg::Path path;
+    const uint32_t knode_id;
+    const bool strand;
+    AddRecordToIndexParams(const uint64_t kmer, const uint32_t prg_id,
+        const prg::Path& path, const uint32_t knode_id, const bool strand) :
+        kmer(kmer), prg_id(prg_id), path(path), knode_id(knode_id), strand(strand){ }
+};
+
 class Index {
 public:
     std::unordered_map<uint64_t, std::vector<MiniRecord>*>
@@ -28,6 +39,10 @@ public:
     Index& operator=(Index&& other) = default; // move assignment operator
     virtual ~Index() = default; // destructor
 
+    void add_record(const AddRecordToIndexParams &params) {
+        add_record(params.kmer, params.prg_id, params.path, params.knode_id,
+            params.strand);
+    }
     void add_record(
         const uint64_t, const uint32_t, const prg::Path&, const uint32_t, const bool);
 
@@ -47,6 +62,7 @@ public:
 };
 
 void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    std::shared_ptr<Index>& index, uint32_t w, uint32_t k, const fs::path& outdir,
+    std::shared_ptr<Index>& index, uint32_t w, uint32_t k,
+    const uint32_t max_nb_minimiser_kmers, const fs::path& outdir,
     uint32_t threads = 1);
 #endif

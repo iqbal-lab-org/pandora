@@ -458,16 +458,31 @@ std::vector<PathPtr> LocalPRG::shift(prg::Path p) const
     return return_paths;
 }
 
+void LocalPRG::check_if_we_already_indexed_too_many_kmers(
+    const uint32_t num_kmers_added,
+    const uint32_t max_nb_minimiser_kmers
+    ) const {
+    const bool too_many_kmers_to_index = num_kmers_added > max_nb_minimiser_kmers;
+    if (too_many_kmers_to_index) {
+        std::stringstream ss;
+        ss << "Locus " << name << " has too many kmers to index (>"
+           << max_nb_minimiser_kmers << "), so we are ignoring it";
+        throw TooManyKmersToIndex(ss.str());
+    }
+}
+
 void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint32_t w,
-    const uint32_t k, double percentageDone)
+    const uint32_t k, const uint32_t max_nb_minimiser_kmers, double percentageDone)
 {
-    if (percentageDone >= 0)
+    if (percentageDone >= 0) {
         BOOST_LOG_TRIVIAL(info)
-            << "Started sketching PRG " << name << " which has " << prg.nodes.size() << " nodes ("
-            << percentageDone << "% already done)";
-    else
-        BOOST_LOG_TRIVIAL(info)
-            << "Started sketching PRG " << name << " which has " << prg.nodes.size() << " nodes";
+            << "Started sketching PRG " << name << " which has " << prg.nodes.size()
+            << " nodes (" << percentageDone << "% already done)";
+    }
+    else {
+        BOOST_LOG_TRIVIAL(info) << "Started sketching PRG " << name << " which has "
+                                << prg.nodes.size() << " nodes";
+    }
 
     // clean up after any previous runs
     // although note we can't clear the index because it is also added to by other
@@ -486,6 +501,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
     uint64_t smallest;
     std::pair<uint64_t, uint64_t> kh;
     pandora::KmerHash hash;
+    std::list<AddRecordToIndexParams> kmers_to_be_added_to_the_index;
     uint32_t num_kmers_added = 0;
     KmerNodePtr kn, new_kn;
     std::vector<LocalNodePtr> n;
@@ -496,6 +512,8 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
     kmer_path.initialize(d); // initializes this path with the null start
     kmer_prg.add_node(kmer_path);
     num_kmers_added += 1;
+    check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
+
 
     // if this is a null prg, return the null kmergraph
     if (prg.nodes.size() == 1 and prg.nodes[0]->pos.length < k) {
@@ -568,18 +586,19 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                         kn = kmer_prg.add_node_with_kh(
                             kmer_path, std::min(kh.first, kh.second), num_AT);
 
-// TODO: name these criticals
-#pragma omp critical
-                        { // and now to the index
-                            index->add_record(std::min(kh.first, kh.second), id,
-                                kmer_path, kn->id, (kh.first <= kh.second));
-                        }
-                        num_kmers_added += 1;
+                        // and now to the index
+                        kmers_to_be_added_to_the_index.emplace_back(
+                            std::min(kh.first, kh.second), id,
+                            kmer_path, kn->id, (kh.first <= kh.second));
+
                         kmer_prg.add_edge(old_kn, kn); // add an edge from the old
                                                        // minimizer kmer to the current
                         old_kn = kn; // update old minimizer kmer node
                         current_leaves.push_back(
                             kn); // add to the leaves - it is a leaf now
+
+                        num_kmers_added += 1;
+                        check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
                     }
                 }
             }
@@ -630,12 +649,10 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                     new_kn = kmer_prg.add_node_with_kh(
                         *(v.back()), std::min(kh.first, kh.second), num_AT);
 
-// TODO: name these criticals
-#pragma omp critical
-                    {
-                        index->add_record(std::min(kh.first, kh.second), id,
-                            *(v.back()), new_kn->id, (kh.first <= kh.second));
-                    }
+                    kmers_to_be_added_to_the_index.emplace_back(
+                        std::min(kh.first, kh.second), id,
+                        *(v.back()), new_kn->id, (kh.first <= kh.second));
+
                     kmer_prg.add_edge(kn, new_kn);
                     if (v.back()->get_end()
                         == (--(prg.nodes.end()))->second->pos.get_end()) {
@@ -646,6 +663,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                         current_leaves.push_back(new_kn);
                     }
                     num_kmers_added += 1;
+                    check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
                 } else {
                     kmer_prg.add_edge(kn, *found);
                     if (v.back()->get_end()
@@ -681,12 +699,9 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                             new_kn = kmer_prg.add_node_with_kh(
                                 *(v[j]), std::min(kh.first, kh.second), num_AT);
 
-// TODO: name these criticals
-#pragma omp critical
-                            {
-                                index->add_record(std::min(kh.first, kh.second), id,
-                                    *(v[j]), new_kn->id, (kh.first <= kh.second));
-                            }
+                            kmers_to_be_added_to_the_index.emplace_back(
+                                std::min(kh.first, kh.second), id,
+                                *(v[j]), new_kn->id, (kh.first <= kh.second));
 
                             // if there is more than one mini in the window, edge should
                             // go to the first, and from the first to the second
@@ -702,6 +717,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                                 current_leaves.push_back(new_kn);
                             }
                             num_kmers_added += 1;
+                            check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
                         } else {
                             kmer_prg.add_edge(old_kn, *found);
                             old_kn = *found;
@@ -746,10 +762,12 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
         (--(prg.nodes.end()))->second->pos.get_end()) };
     kmer_path.initialize(d);
     kn = kmer_prg.add_node(kmer_path);
-    num_kmers_added += 1;
     for (uint32_t i = 0; i != end_leaves.size(); ++i) {
         kmer_prg.add_edge(end_leaves[i], kn);
     }
+
+    num_kmers_added += 1;
+    check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
 
     // print, check and return
     const bool number_of_kmers_added_is_consistent
@@ -758,9 +776,20 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
         fatal_error(
             "Error when minimizing a local PRG: incorrect number of kmers added");
     }
+
+#pragma omp critical(add_kmers_to_index)
+    {
+        while (!kmers_to_be_added_to_the_index.empty()) {
+            index->add_record(kmers_to_be_added_to_the_index.front());
+            kmers_to_be_added_to_the_index.pop_front();
+        }
+    }
+
     kmer_prg.remove_shortcut_edges();
     kmer_prg.check();
-    BOOST_LOG_TRIVIAL(info) << "Finished sketching PRG " << name;
+
+    BOOST_LOG_TRIVIAL(info) << "Finished sketching PRG " << name << " - "
+        << num_kmers_added << " kmers indexed";
 }
 
 bool intervals_overlap(const Interval& first, const Interval& second)

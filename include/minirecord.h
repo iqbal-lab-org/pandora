@@ -14,7 +14,7 @@ struct MiniRecord {
 
     MiniRecord();
 
-    MiniRecord(const uint32_t, const prg::Path, const uint32_t, const bool);
+    MiniRecord(const uint32_t, const prg::Path &, const uint32_t, const bool);
 
     ~MiniRecord();
 

@@ -20,6 +20,10 @@
 using PanNodePtr = std::shared_ptr<pangenome::Node>;
 namespace fs = boost::filesystem;
 
+class TooManyKmersToIndex : public std::runtime_error {
+    using std::runtime_error::runtime_error;
+};
+
 /**
  * Represents a PRG of the many given as input to pandora
  */
@@ -34,6 +38,9 @@ private:
     static void check_if_vector_of_subintervals_is_consistent_with_envelopping_interval(
         const std::vector<Interval>& subintervals,
         const Interval& envelopping_interval);
+
+    void check_if_we_already_indexed_too_many_kmers(const uint32_t num_kmers_added,
+        const uint32_t max_nb_minimiser_kmers) const;
 
 public:
     uint32_t next_site; // denotes the id of the next variant site to be processed -
@@ -68,7 +75,8 @@ public:
     std::vector<PathPtr> shift(prg::Path) const;
 
     void minimizer_sketch(const std::shared_ptr<Index>& index, const uint32_t w,
-        const uint32_t k, double percentageDone = -1.0);
+        const uint32_t k, const uint32_t max_nb_minimiser_kmers,
+        double percentageDone = -1.0);
 
     // functions used once hits have been collected against the PRG
     std::vector<KmerNodePtr> kmernode_path_from_localnode_path(

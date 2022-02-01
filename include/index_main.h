@@ -26,6 +26,7 @@ struct IndexOptions {
     uint32_t id_offset { 0 };
     fs::path outfile;
     uint8_t verbosity { 0 };
+    uint32_t max_nb_minimiser_kmers { 500000 };
 };
 
 void setup_index_subcommand(CLI::App& app);
