@@ -6,4 +6,4 @@
 # to build: docker build . -t leandroishilima/pandora_static_binary_toolchain:0.0.2
 FROM alpine:3.15
 
-RUN apk update && apk add --no-cache binutils cmake make libgcc musl-dev gcc g++ bash linux-headers libexecinfo-dev
+RUN apk update && apk add --no-cache binutils cmake make libgcc musl-dev gcc g++ bash linux-headers libexecinfo-dev git
