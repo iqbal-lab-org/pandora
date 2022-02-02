@@ -59,6 +59,11 @@ set(ZLIB_LIBRARY ZLIB::ZLIB)
 ########################################################################################################################
 
 ########################################################################################################################
+# CUSTOM CONFIG MINIMAP2
+file(REMOVE_RECURSE ${PROJECT_SOURCE_DIR}/thirdparty/minimap2/lib)
+########################################################################################################################
+
+########################################################################################################################
 # INSTALL Racon
 add_subdirectory(thirdparty/racon)
 set(RACON_LIBRARY racon)
@@ -138,7 +143,7 @@ target_link_libraries(${PROJECT_NAME}
         ${STATIC_C_CXX}
         ${SEQAN_LIBRARIES}
         ${RT_LIBRARY}
-)
+        )
 
 #enable_testing()
 #add_subdirectory(test)
