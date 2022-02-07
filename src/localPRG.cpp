@@ -501,7 +501,8 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
     uint64_t smallest;
     std::pair<uint64_t, uint64_t> kh;
     pandora::KmerHash hash;
-    std::list<AddRecordToIndexParams> kmers_to_be_added_to_the_index;
+    std::vector<AddRecordToIndexParams> kmers_to_be_added_to_the_index;
+    kmers_to_be_added_to_the_index.reserve(4096);
     uint32_t num_kmers_added = 0;
     KmerNodePtr kn, new_kn;
     std::vector<LocalNodePtr> n;
@@ -779,11 +780,11 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
 
 #pragma omp critical(add_kmers_to_index)
     {
-        while (!kmers_to_be_added_to_the_index.empty()) {
-            index->add_record(kmers_to_be_added_to_the_index.front());
-            kmers_to_be_added_to_the_index.pop_front();
+        for (const AddRecordToIndexParams &params : kmers_to_be_added_to_the_index) {
+            index->add_record(params);
         }
     }
+    kmers_to_be_added_to_the_index.clear();
 
     kmer_prg.remove_shortcut_edges();
     kmer_prg.check();
