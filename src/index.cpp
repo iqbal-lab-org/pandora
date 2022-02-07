@@ -217,6 +217,7 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
             open_file_for_writing(gfa_file.string(), empty_gfa_fh);
             empty_gfa_fh.close();
         }
+        prgs[i]->kmer_prg.clear();  // saves some RAM
         ++nbOfPRGsDone;
     }
     BOOST_LOG_TRIVIAL(debug) << "Finished adding " << prgs.size() << " LocalPRGs";
