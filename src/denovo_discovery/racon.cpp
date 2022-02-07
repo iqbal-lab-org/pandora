@@ -147,9 +147,23 @@ bool Racon::run_another_round() {
     run_minimap2_core(illumina, locus_consensus_filepath, locus_reads_filepath,
         paf_filepath);
 
-    // run racon to correct the ML seq
-    const std::string polished_consensus_seq = run_racon_core(
-        consensus_seq, locus_reads_filepath, paf_filepath,locus_consensus_filepath);
+    // check if paf file is empty
+    std::ifstream paf_filehandler;
+    open_file_for_reading(paf_filepath, paf_filehandler);
+    const bool paf_file_is_empty =
+        paf_filehandler.peek() == std::ifstream::traits_type::eof();
+    paf_filehandler.close();
+
+    // polish the sequence
+    std::string polished_consensus_seq;
+    if (paf_file_is_empty) {
+        // racon errors out in this case, and it would not polish anything anyway
+        polished_consensus_seq = consensus_seq;
+    } else {
+        // run racon to correct the ML seq
+        polished_consensus_seq = run_racon_core(consensus_seq, locus_reads_filepath,
+            paf_filepath, locus_consensus_filepath);
+    }
 
     const bool we_already_saw_this_consensus_seq =
         std::find(consensus_seq_already_seen.begin(), consensus_seq_already_seen.end(),
