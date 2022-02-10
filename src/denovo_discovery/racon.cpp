@@ -14,6 +14,7 @@ std::string Racon::run_racon_core(
     const std::string &paf_filepath,
     const std::string &polished_filepath
     ) {
+    BOOST_LOG_TRIVIAL(info) << "Start Running Racon";
     uint32_t window_length = consensus_seq.size();
     double quality_threshold = 10.0;
     double error_threshold = 0.3;
@@ -53,11 +54,14 @@ std::string Racon::run_racon_core(
         polished_consensus_seq = consensus_seq;
     }
 
+    BOOST_LOG_TRIVIAL(info) << "End Running Racon";
     return polished_consensus_seq;
 }
 
 void run_minimap2_core(bool illumina, const std::string &locus_consensus_filepath,
     const std::string &locus_reads_filepath, const std::string &paf_filepath) {
+    BOOST_LOG_TRIVIAL(info) << "Start Running Minimap2";
+
     // setup minimap2 options
     mm_idxopt_t iopt;
     mm_mapopt_t mopt;
@@ -122,6 +126,8 @@ void run_minimap2_core(bool illumina, const std::string &locus_consensus_filepat
     mm_idx_reader_close(r); // close the index reader
     kseq_destroy(ks); // close the query file
     gzclose(query_seq_fd);
+
+    BOOST_LOG_TRIVIAL(info) << "End Running Minimap2";
 }
 
 bool Racon::run_another_round() {
