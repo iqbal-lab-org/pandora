@@ -310,7 +310,7 @@ void pandora_discover_core(const SampleData& sample,
         denovo_paths_out_core_file);
 
     uint32_t number_of_loci_with_denovo_variants = 0;
-#pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 10)
+#pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 1)
     for (uint32_t i = 0; i < pangraphNodesAsVector.size(); ++i) {
         // add some progress
         if (i && i % 100 == 0) {
@@ -458,12 +458,6 @@ int pandora_discover(DiscoverOptions& opt)
     } else if (opt.verbosity > 1) {
         log_level = boost::log::trivial::trace;
     }
-
-    // this is done so that everytime we write a log message, we flush the log
-    // if we don't do this, child processes will have messages buffered in their log
-    // object when forked and will output repeated log messages
-    boost::log::add_console_log(std::cout, boost::log::keywords::auto_flush = true);
-
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
 
     // =========
