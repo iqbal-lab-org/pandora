@@ -91,6 +91,8 @@ int pandora_index(IndexOptions const& opt)
         index->save(opt.prgfile, opt.window_size, opt.kmer_size);
     }
 
+    index->clear();
+
     BOOST_LOG_TRIVIAL(info) << "All done!";
     return 0;
 }

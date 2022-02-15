@@ -462,6 +462,7 @@ void LocalPRG::check_if_we_already_indexed_too_many_kmers(
     const uint32_t num_kmers_added,
     const uint32_t max_nb_minimiser_kmers
     ) const {
+    BOOST_LOG_TRIVIAL(info) << this->name << " " << num_kmers_added << " kmers indexed";
     const bool too_many_kmers_to_index = num_kmers_added > max_nb_minimiser_kmers;
     if (too_many_kmers_to_index) {
         std::stringstream ss;
@@ -575,6 +576,9 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
 
                 if (kh.first == smallest
                     or kh.second == smallest) { // if this kmer is the minimizer
+                    num_kmers_added += 1;
+                    check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
+
                     KmerNodePtr dummyKmerHoldingKmerPath
                         = std::make_shared<KmerNode>(KmerNode(0, kmer_path));
                     const auto found = kmer_prg.sorted_nodes.find(
@@ -597,9 +601,6 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                         old_kn = kn; // update old minimizer kmer node
                         current_leaves.push_back(
                             kn); // add to the leaves - it is a leaf now
-
-                        num_kmers_added += 1;
-                        check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
                     }
                 }
             }
@@ -641,6 +642,9 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
             kh = hash.kmerhash(kmer, k);
             if (std::min(kh.first, kh.second) <= kn->khash) {
                 // found next minimizer
+                num_kmers_added += 1;
+                check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
+
                 KmerNodePtr dummyKmerHoldingKmerPath
                     = std::make_shared<KmerNode>(KmerNode(0, *(v.back())));
                 const auto found = kmer_prg.sorted_nodes.find(dummyKmerHoldingKmerPath);
@@ -663,8 +667,6 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                         == current_leaves.end()) {
                         current_leaves.push_back(new_kn);
                     }
-                    num_kmers_added += 1;
-                    check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
                 } else {
                     kmer_prg.add_edge(kn, *found);
                     if (v.back()->get_end()
@@ -690,6 +692,10 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                     kmer = string_along_path(*(v[j]));
                     kh = hash.kmerhash(kmer, k);
                     if (kh.first == smallest or kh.second == smallest) {
+                        // minimiser found
+                        num_kmers_added += 1;
+                        check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
+
                         KmerNodePtr dummyKmerHoldingKmerPath
                             = std::make_shared<KmerNode>(KmerNode(0, *(v[j])));
                         const auto found
@@ -717,8 +723,6 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                                 == current_leaves.end()) {
                                 current_leaves.push_back(new_kn);
                             }
-                            num_kmers_added += 1;
-                            check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
                         } else {
                             kmer_prg.add_edge(old_kn, *found);
                             old_kn = *found;
