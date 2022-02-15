@@ -462,7 +462,6 @@ void LocalPRG::check_if_we_already_indexed_too_many_kmers(
     const uint32_t num_kmers_added,
     const uint32_t max_nb_minimiser_kmers
     ) const {
-    BOOST_LOG_TRIVIAL(info) << this->name << " " << num_kmers_added << " kmers indexed";
     const bool too_many_kmers_to_index = num_kmers_added > max_nb_minimiser_kmers;
     if (too_many_kmers_to_index) {
         std::stringstream ss;
