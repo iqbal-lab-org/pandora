@@ -775,12 +775,12 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
     check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
 
     // print, check and return
-    const bool number_of_kmers_added_is_consistent
-        = (num_kmers_added == 0) or (kmer_prg.nodes.size() == num_kmers_added);
-    if (!number_of_kmers_added_is_consistent) {
-        fatal_error(
-            "Error when minimizing a local PRG: incorrect number of kmers added");
-    }
+//    const bool number_of_kmers_added_is_consistent
+//        = (num_kmers_added == 0) or (kmer_prg.nodes.size() == num_kmers_added);
+//    if (!number_of_kmers_added_is_consistent) {
+//        fatal_error(
+//            "Error when minimizing a local PRG: incorrect number of kmers added");
+//    }
 
 #pragma omp critical(add_kmers_to_index)
     {
