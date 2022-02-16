@@ -462,12 +462,33 @@ void LocalPRG::check_if_we_already_indexed_too_many_kmers(
     const uint32_t num_kmers_added,
     const uint32_t max_nb_minimiser_kmers
     ) const {
+    BOOST_LOG_TRIVIAL(info) << this->name << " " << num_kmers_added << " kmers indexed";
     const bool too_many_kmers_to_index = num_kmers_added > max_nb_minimiser_kmers;
     if (too_many_kmers_to_index) {
         std::stringstream ss;
         ss << "Locus " << name << " has too many kmers to index (>"
            << max_nb_minimiser_kmers << "), so we are ignoring it";
         throw TooManyKmersToIndex(ss.str());
+    }
+}
+
+void LocalPRG::add_node_to_current_leaves(const KmerNodePtr &kn,
+    std::deque<KmerNodePtr> &current_leaves, uint32_t num_kmers_added,
+    uint32_t max_nb_minimiser_kmers) const {
+    BOOST_LOG_TRIVIAL(info) << this->name << " " << num_kmers_added << " kmers indexed";
+    BOOST_LOG_TRIVIAL(info) << this->name << " " << current_leaves.size() << " current leaves";
+    const bool too_many_kmers = (current_leaves.size() + num_kmers_added) > max_nb_minimiser_kmers;
+    if (too_many_kmers) {
+        std::stringstream ss;
+        ss << "Locus " << name << " has too many kmers + leaves to index (>"
+           << max_nb_minimiser_kmers << "), so we are ignoring it";
+        throw TooManyKmersToIndex(ss.str());
+    }
+
+    const bool node_is_not_already_in_leaves =
+        find(current_leaves.begin(), current_leaves.end(), kn)== current_leaves.end();
+    if (node_is_not_already_in_leaves) {
+        current_leaves.push_back(kn);
     }
 }
 
@@ -598,8 +619,9 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                         kmer_prg.add_edge(old_kn, kn); // add an edge from the old
                                                        // minimizer kmer to the current
                         old_kn = kn; // update old minimizer kmer node
-                        current_leaves.push_back(
-                            kn); // add to the leaves - it is a leaf now
+
+                        add_node_to_current_leaves(kn, current_leaves, num_kmers_added,
+                            max_nb_minimiser_kmers);
                     }
                 }
             }
@@ -661,20 +683,18 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                     if (v.back()->get_end()
                         == (--(prg.nodes.end()))->second->pos.get_end()) {
                         end_leaves.push_back(new_kn);
-                    } else if (find(
-                                   current_leaves.begin(), current_leaves.end(), new_kn)
-                        == current_leaves.end()) {
-                        current_leaves.push_back(new_kn);
+                    } else {
+                        add_node_to_current_leaves(new_kn, current_leaves, num_kmers_added,
+                            max_nb_minimiser_kmers);
                     }
                 } else {
                     kmer_prg.add_edge(kn, *found);
                     if (v.back()->get_end()
                         == (--(prg.nodes.end()))->second->pos.get_end()) {
                         end_leaves.push_back(*found);
-                    } else if (find(
-                                   current_leaves.begin(), current_leaves.end(), *found)
-                        == current_leaves.end()) {
-                        current_leaves.push_back(*found);
+                    } else {
+                        add_node_to_current_leaves(*found, current_leaves, num_kmers_added,
+                            max_nb_minimiser_kmers);
                     }
                 }
             } else if (v.size() == w) {
@@ -717,10 +737,9 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                             if (v.back()->get_end()
                                 == (--(prg.nodes.end()))->second->pos.get_end()) {
                                 end_leaves.push_back(new_kn);
-                            } else if (find(current_leaves.begin(),
-                                           current_leaves.end(), new_kn)
-                                == current_leaves.end()) {
-                                current_leaves.push_back(new_kn);
+                            } else {
+                                add_node_to_current_leaves(new_kn, current_leaves, num_kmers_added,
+                                    max_nb_minimiser_kmers);
                             }
                         } else {
                             kmer_prg.add_edge(old_kn, *found);
@@ -729,10 +748,9 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                             if (v.back()->get_end()
                                 == (--(prg.nodes.end()))->second->pos.get_end()) {
                                 end_leaves.push_back(*found);
-                            } else if (find(current_leaves.begin(),
-                                           current_leaves.end(), *found)
-                                == current_leaves.end()) {
-                                current_leaves.push_back(*found);
+                            } else {
+                                add_node_to_current_leaves(*found, current_leaves, num_kmers_added,
+                                    max_nb_minimiser_kmers);
                             }
                         }
                     }
