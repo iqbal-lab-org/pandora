@@ -1,4 +1,5 @@
 #include "localgraph.h"
+#include "localPRG.h"
 
 LocalGraph::LocalGraph() { }
 
@@ -131,7 +132,8 @@ void LocalGraph::read_gfa(const std::string& filepath)
 }
 
 std::vector<PathPtr> LocalGraph::walk(
-    const uint32_t& node_id, const uint32_t& pos, const uint32_t& len) const
+    const uint32_t& node_id, const uint32_t& pos, const uint32_t& len,
+    uint32_t max_nb_minimiser_kmers) const
 { // node_id: where to start the walk, pos: the position in the node_id, len = k+w-1 ->
   // the length that the walk has to go through - we are sketching kmers in a graph
     // walks from position pos in node node for length len bases
@@ -161,7 +163,13 @@ std::vector<PathPtr> LocalGraph::walk(
     if (len_added < len) {
         for (auto it = nodes.at(node_id)->outNodes.begin();
              it != nodes.at(node_id)->outNodes.end(); ++it) {
-            walk_paths = walk((*it)->id, (*it)->pos.start, len - len_added);
+            walk_paths = walk((*it)->id, (*it)->pos.start, len - len_added, max_nb_minimiser_kmers);
+
+            if (walk_paths.size() > max_nb_minimiser_kmers) {
+                throw TooManyKmersToIndex("Too many walks found");
+            }
+
+
             for (auto& walk_path : walk_paths) {
                 // Note, would have just added start interval to each item in
                 // walk_paths, but can't seem to force result of it2 to be non-const

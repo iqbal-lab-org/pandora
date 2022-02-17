@@ -462,7 +462,6 @@ void LocalPRG::check_if_we_already_indexed_too_many_kmers(
     const uint32_t num_kmers_added,
     const uint32_t max_nb_minimiser_kmers
     ) const {
-    BOOST_LOG_TRIVIAL(info) << this->name << " " << num_kmers_added << " kmers indexed";
     const bool too_many_kmers_to_index = num_kmers_added > max_nb_minimiser_kmers;
     if (too_many_kmers_to_index) {
         std::stringstream ss;
@@ -475,8 +474,6 @@ void LocalPRG::check_if_we_already_indexed_too_many_kmers(
 void LocalPRG::add_node_to_current_leaves(const KmerNodePtr &kn,
     std::deque<KmerNodePtr> &current_leaves, uint32_t num_kmers_added,
     uint32_t max_nb_minimiser_kmers) const {
-    BOOST_LOG_TRIVIAL(info) << this->name << " " << num_kmers_added << " kmers indexed";
-    BOOST_LOG_TRIVIAL(info) << this->name << " " << current_leaves.size() << " current leaves";
     const bool too_many_kmers = (current_leaves.size() + num_kmers_added) > max_nb_minimiser_kmers;
     if (too_many_kmers) {
         std::stringstream ss;
@@ -544,10 +541,16 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
     }
 
     // find first w,k minimizers
-    walk_paths = prg.walk(prg.nodes.begin()->second->id, 0,
-        w + k - 1); // get all walks to be checked - all walks from
-                    // prg.nodes.begin()->second->id composed of exactly w+k-1 bases -
-                    // NOTE: WALKS AND PATHS HERE ARE THE SAME, SINCE THIS IS A DAG!!!
+    try {
+        walk_paths = prg.walk(prg.nodes.begin()->second->id, 0, w + k - 1,
+            max_nb_minimiser_kmers); // get all walks to be checked - all walks from
+                                     // prg.nodes.begin()->second->id composed of exactly w+k-1 bases - NOTE: WALKS AND PATHS HERE ARE THE SAME, SINCE THIS IS A DAG!!!
+    }catch (const TooManyKmersToIndex &error) {
+        std::stringstream ss;
+        ss << "Locus " << name << " found an exceesive number of walks (>"
+           << max_nb_minimiser_kmers << "), so we are ignoring it";
+        throw TooManyKmersToIndex(ss.str());
+    }
     if (walk_paths.empty()) {
         BOOST_LOG_TRIVIAL(info) << "Finished sketching PRG " << name;
         return; // also trivially not true
@@ -583,7 +586,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                 n = nodes_along_path(
                     kmer_path); // and the nodes of the localPRG along this kmer_path
 
-                if (prg.walk(n.back()->id, n.back()->pos.get_end(), w + k - 1)
+                if (prg.walk(n.back()->id, n.back()->pos.get_end(), w + k - 1, max_nb_minimiser_kmers)
                         .empty()) { // if the walk from the last node and last base of
                                     // the path along this kmer is empty
                     while (kmer_path.get_end() >= n.back()->pos.get_end()
@@ -896,7 +899,7 @@ std::vector<LocalNodePtr> LocalPRG::localnode_path_from_kmernode_path(
     // extend to beginning of graph if possible
     bool overlap;
     if (localnode_path[0]->id != 0) {
-        walk_paths = prg.walk(0, 0, w);
+        walk_paths = prg.walk(0, 0, w, 1000000);
         for (uint32_t i = 0; i != walk_paths.size(); ++i) {
             walk_path = nodes_along_path(*(walk_paths[i]));
             // does it overlap
