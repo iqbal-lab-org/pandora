@@ -97,10 +97,12 @@ pandora
 /example/make_prg_*
 
 #portable binary build dir
-build_portable_executable
-pandora-linux-precompiled
+build_portable_executable*
+pandora-linux-precompiled*
 
 /archives/
 /example/out/
 
 example/make_prg.sif
+/scripts/measure_performance_from_log/.ipynb_checkpoints/
+/build_test/
