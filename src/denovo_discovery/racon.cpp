@@ -183,8 +183,8 @@ bool Racon::run_another_round() {
     consensus_seq = polished_consensus_seq;
     number_of_rounds_executed++;
 
-    fs::remove(locus_consensus_filepath);
-    fs::remove(paf_filepath);
+    // fs::remove(locus_consensus_filepath);
+    // fs::remove(paf_filepath);
 
     BOOST_LOG_TRIVIAL(debug) << "Ran racon " << number_of_rounds_executed << " times";
 

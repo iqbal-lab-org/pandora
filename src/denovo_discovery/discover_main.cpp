@@ -370,7 +370,7 @@ void pandora_discover_core(const SampleData& sample,
         Racon racon(opt.illumina, locus, lmp_seq, denovo_outdir, locus_reads_filepath);
         const std::string &polished_sequence = racon.get_polished_sequence();
 
-        fs::remove(locus_reads_filepath);
+        // fs::remove(locus_reads_filepath);
 
 #pragma omp critical(all_denovo_sequences)
         {
@@ -429,7 +429,7 @@ void pandora_discover_core(const SampleData& sample,
     }
     denovo_filehandler.close();
 
-    fs::remove_all(denovo_outdir);
+    // fs::remove_all(denovo_outdir);
 
     consensus_fq.save(sample_outdir / "pandora.consensus.fq.gz");
 
