@@ -28,7 +28,7 @@ std::map<std::string, std::string> get_locus_to_reads(
             const std::string &locus = words[2];
             const std::string &read_seq = words[9];
             std::stringstream ss;
-            ss << ">" << read_name << "_rand_id_" << random_int() << "\n" << read_seq << "\n";
+            ss << ">" << read_name << "\n" << read_seq << "\n";
             locus_to_vector_of_reads[locus].push_back(ss.str());
         }
     }
