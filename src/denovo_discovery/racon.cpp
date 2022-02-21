@@ -58,7 +58,9 @@ std::string Racon::run_racon_core(
     return polished_consensus_seq;
 }
 
-void run_minimap2_core(bool illumina, const std::string &locus_consensus_filepath,
+// Runs minimap2
+// @return the number of reads mapped (entries in the PAF file)
+uint32_t run_minimap2_core(bool illumina, const std::string &locus_consensus_filepath,
     const std::string &locus_reads_filepath, const std::string &paf_filepath) {
     BOOST_LOG_TRIVIAL(info) << "Start Running Minimap2";
 
@@ -100,6 +102,7 @@ void run_minimap2_core(bool illumina, const std::string &locus_consensus_filepat
         fatal_error("Could not open PAF file: ", paf_filepath);
     }
 
+    uint32_t number_of_reads_mapped = 0;
     while ((mi = mm_idx_reader_read(r, n_threads)) != 0) { // traverse each part of the index
             mm_mapopt_update(&mopt, mi); // this sets the maximum minimizer occurrence; TODO: set a better default in mm_mapopt_init()!
             mm_tbuf_t *tbuf = mm_tbuf_init(); // thread buffer; for multi-threading, allocate one tbuf for each thread
@@ -116,6 +119,7 @@ void run_minimap2_core(bool illumina, const std::string &locus_consensus_filepat
                     fprintf(paf_filehandler, "%s\t%d\t%d\t%d\t%d\t%d\t%d\n", mi->seq[r->rid].name, mi->seq[r->rid].len,
                         r->rs, r->re, r->mlen, r->blen, r->mapq);
                     free(r->p);
+                    ++number_of_reads_mapped;
                 }
                 free(reg);
             }
@@ -128,6 +132,8 @@ void run_minimap2_core(bool illumina, const std::string &locus_consensus_filepat
     gzclose(query_seq_fd);
 
     BOOST_LOG_TRIVIAL(info) << "End Running Minimap2";
+
+    return number_of_reads_mapped;
 }
 
 bool Racon::run_another_round() {
@@ -150,21 +156,10 @@ bool Racon::run_another_round() {
     // run minimap to get overlaps
     const std::string paf_filepath {
         (denovo_outdir / (locus + ".minimap2.out.paf")).string() };
-    run_minimap2_core(illumina, locus_consensus_filepath, locus_reads_filepath,
-        paf_filepath);
+    uint32_t number_of_reads_mapped = run_minimap2_core(illumina,
+        locus_consensus_filepath, locus_reads_filepath, paf_filepath);
 
-    // check if paf file is empty
-    std::ifstream paf_filehandler;
-    open_file_for_reading(paf_filepath, paf_filehandler);
-    // TODO: this way of doing this did not work
-    // TODO: I think the eof bit is set after a failed read, or sth like that
-    // TODO: to improve later
-//    const bool paf_file_is_empty =
-//        paf_filehandler.peek() == std::ifstream::traits_type::eof();
-    // TODO: this is not the best way of doing things but it works
-    std::string dummy_word;
-    const bool paf_file_is_empty = !(paf_filehandler >> dummy_word);
-    paf_filehandler.close();
+    const bool paf_file_is_empty = number_of_reads_mapped == 0;
 
     // polish the sequence
     std::string polished_consensus_seq;
