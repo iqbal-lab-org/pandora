@@ -145,4 +145,6 @@ void concatenate_text_files(
 
 std::string reverse_complement(const std::string& forward);
 
+int random_int();
+
 #endif

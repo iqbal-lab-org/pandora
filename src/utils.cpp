@@ -30,6 +30,7 @@
 #include <stdexcept>
 #include <string>
 #include <array>
+#include <random>
 
 #include <cstdio>
 #include <sys/wait.h>
@@ -850,4 +851,11 @@ std::string reverse_complement(const std::string& forward)
     }
     reverse[len] = '\0';
     return reverse;
+}
+
+int random_int() {
+    static std::random_device dev;
+    static std::mt19937 rng(dev());
+    static std::uniform_int_distribution<std::mt19937::result_type> dist;
+    return dist(rng);
 }
