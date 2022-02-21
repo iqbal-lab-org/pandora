@@ -156,8 +156,14 @@ bool Racon::run_another_round() {
     // check if paf file is empty
     std::ifstream paf_filehandler;
     open_file_for_reading(paf_filepath, paf_filehandler);
-    const bool paf_file_is_empty =
-        paf_filehandler.peek() == std::ifstream::traits_type::eof();
+    // TODO: this way of doing this did not work
+    // TODO: I think the eof bit is set after a failed read, or sth like that
+    // TODO: to improve later
+//    const bool paf_file_is_empty =
+//        paf_filehandler.peek() == std::ifstream::traits_type::eof();
+    // TODO: this is not the best way of doing things but it works
+    std::string dummy_word;
+    const bool paf_file_is_empty = !(paf_filehandler >> dummy_word);
     paf_filehandler.close();
 
     // polish the sequence
