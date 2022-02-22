@@ -33,21 +33,26 @@ std::string Racon::run_racon_core(
     uint32_t cudaaligner_band_width = 0;
     bool cuda_banded_alignment = false;
 
-    std::unique_ptr<racon::Polisher> polisher = racon::createPolisher(
-        reads_filepath, paf_filepath, polished_filepath,
-        type == 0 ? racon::PolisherType::kC : racon::PolisherType::kF,
-        window_length, quality_threshold, error_threshold, trim, match, mismatch, gap,
-        num_threads, cudapoa_batches, cuda_banded_alignment, cudaaligner_batches,
-        cudaaligner_band_width);
-
-    polisher->initialize();
-
+    bool polishing_was_successful = false;
     std::vector<std::unique_ptr<racon::Sequence>> polished_sequences;
+    try {
+        std::unique_ptr<racon::Polisher> polisher
+            = racon::createPolisher(reads_filepath, paf_filepath, polished_filepath,
+                type == 0 ? racon::PolisherType::kC : racon::PolisherType::kF,
+                window_length, quality_threshold, error_threshold, trim, match,
+                mismatch, gap, num_threads, cudapoa_batches, cuda_banded_alignment,
+                cudaaligner_batches, cudaaligner_band_width);
 
-    polisher->polish(polished_sequences, drop_unpolished_sequences);
+        polisher->initialize();
+
+        polisher->polish(polished_sequences, drop_unpolished_sequences);
+
+        polishing_was_successful = polished_sequences.size()>=1;
+    }catch (const racon::EmptyOverlapSetError &empty_overlap_set_error) {
+        polishing_was_successful = false;
+    }
 
     std::string polished_consensus_seq;
-    const bool polishing_was_successful = polished_sequences.size()>=1;
     if (polishing_was_successful) {
         polished_consensus_seq = polished_sequences[0]->data();
     } else {
