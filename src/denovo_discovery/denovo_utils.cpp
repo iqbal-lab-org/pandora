@@ -10,7 +10,7 @@ std::map<std::string, std::string> get_locus_to_reads(
     open_file_for_reading((sample_outdir / (sample_name + ".filtered.sam")).string(),
         filtered_samfile);
     std::string line;
-    uint64_t read_order = 0;
+    uint64_t segment_order = 0;
     while (std::getline(filtered_samfile, line))
     {
         std::vector<std::string> words;
@@ -19,10 +19,17 @@ std::map<std::string, std::string> get_locus_to_reads(
         if (is_mapped) {
             const std::string &read_name = words[0];
             const std::string &locus = words[2];
-            const std::string &read_seq = words[9];
+            const std::string &segment_seq = words[9];
+            const std::string &left_flank_field = words[11];
+            const std::string &left_flank = left_flank_field.substr(5);
+            const std::string &right_flank_field = words[12];
+            const std::string &right_flank = right_flank_field.substr(5);
+            const std::string segment_seq_with_flanks =
+                left_flank + segment_seq + right_flank;
+
             std::stringstream ss;
-            ss << ">" << read_name << "_read_order_" << read_order << "\n" << read_seq << "\n";
-            ++read_order;
+            ss << ">" << read_name << "_seg_order_" << segment_order << "\n" << segment_seq_with_flanks << "\n";
+            ++segment_order;
             locus_to_vector_of_reads[locus].push_back(ss.str());
         }
     }

@@ -85,14 +85,35 @@ void SAMFile::write_sam_record_from_hit_cluster(
         at_least_a_single_mapping_was_output = true;
 
         const MinimizerHitPtr first_hit = *(cluster.begin());
-        file_handler << seq.name  << "\t"
+        const std::vector<bool> mapped_positions_bitset =
+            get_mapped_positions_bitset(seq, cluster);
+        const std::string cigar = get_cigar(mapped_positions_bitset);
+        const std::string segment_sequence = get_segment_sequence(seq, mapped_positions_bitset);
+
+        const uint32_t first_mapped_pos = get_first_mapped_position(mapped_positions_bitset);
+        const uint32_t left_flank_start = first_mapped_pos <= flank_size ? 0 :
+                                      first_mapped_pos - flank_size;
+        const uint32_t left_flank_length = first_mapped_pos - left_flank_start;
+        const std::string left_flank = seq.seq.substr(left_flank_start, left_flank_length);
+
+        const uint32_t last_mapped_pos = get_last_mapped_position(mapped_positions_bitset);
+        const uint32_t right_flank_start = last_mapped_pos;
+        const uint32_t right_flank_length =
+            (right_flank_start + flank_size) <= seq.seq.size() ? flank_size :
+            seq.seq.size() - right_flank_start;
+        const std::string right_flank = seq.seq.substr(right_flank_start, right_flank_length);
+
+        file_handler << seq.name << "[" << first_mapped_pos << ":" << last_mapped_pos << "]\t"
                      << "0\t"
                      << prgs[first_hit->get_prg_id()]->name << "\t"
                      << first_hit->get_prg_path() << "\t"
-                     << "254\t" << "\t"
+                     << "254\t"
+                     << cigar << "\t"
                      << "*\t0\t0\t"
-                     << seq.seq << "\t"
-                     << "*\t" << std::endl;
+                     << segment_sequence << "\t"
+                     << "*\t"
+                     << "LF:Z:" << left_flank << "\t"
+                     << "RF:Z:" << right_flank << std::endl;
     }
 
     if (!at_least_a_single_mapping_was_output) {
