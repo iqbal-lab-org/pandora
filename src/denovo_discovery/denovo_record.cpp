@@ -13,7 +13,6 @@ std::vector<DenovoVariantRecord> DenovoVariantRecord::get_variants_from_pair_of_
     const std::string &ref_as_str,
     const std::string &alt_as_str)
 {
-    BOOST_LOG_TRIVIAL(info) << "Start get_variants_from_pair_of_sequences";
     using namespace seqan;
     typedef String<char> TSequence; // sequence type
     typedef Align<TSequence, ArrayGaps> TAlign; // align type
@@ -56,6 +55,5 @@ std::vector<DenovoVariantRecord> DenovoVariantRecord::get_variants_from_pair_of_
         }
     }
 
-    BOOST_LOG_TRIVIAL(info) << "End get_variants_from_pair_of_sequences";
     return denovo_variants;
 }
