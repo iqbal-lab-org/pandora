@@ -6,8 +6,7 @@
 SAMFile::SAMFile(const fs::path &filepath,
                  const std::vector<std::shared_ptr<LocalPRG>>& prgs) :
     GenericFile(filepath), prgs(prgs) {
-    file_handler << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION
-                 << "\tCL:TODO" << std::endl;
+    file_handler << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION << std::endl;
 }
 
 std::vector<bool> SAMFile::get_mapped_positions_bitset(const Seq &seq, const Hits &cluster) const {
