@@ -64,3 +64,14 @@ void concatenate_all_denovo_files(const std::vector<SampleData> &samples,
     fs::path denovo_sequences_output_file = outdir / "denovo_sequences.fa";
     concatenate_text_files(denovo_sequences_output_file, denovo_sequences_files);
 }
+
+void write_denovo_header_file(const std::string &sample_name,
+    const fs::path &denovo_outdir, uint32_t number_of_loci_with_denovo_variants) {
+    std::ofstream denovo_paths_out_header_file;
+    open_file_for_writing((denovo_outdir / "denovo_paths_header.txt").string(),
+        denovo_paths_out_header_file);
+    denovo_paths_out_header_file << "Sample " << sample_name << std::endl;
+    denovo_paths_out_header_file << number_of_loci_with_denovo_variants <<
+        " loci with denovo variants" << std::endl;
+    denovo_paths_out_header_file.close();
+}

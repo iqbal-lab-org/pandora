@@ -300,13 +300,8 @@ void pandora_discover_core(const SampleData& sample,
     }
     denovo_paths_out_core_file.close();
 
-    std::ofstream denovo_paths_out_header_file;
-    open_file_for_writing((denovo_outdir / "denovo_paths_header.txt").string(),
-        denovo_paths_out_header_file);
-    denovo_paths_out_header_file << "Sample " << sample_name << std::endl;
-    denovo_paths_out_header_file << number_of_loci_with_denovo_variants <<
-        " loci with denovo variants" << std::endl;
-    denovo_paths_out_header_file.close();
+    write_denovo_header_file(sample_name, denovo_outdir,
+        number_of_loci_with_denovo_variants);
 
     fs::path denovo_paths_out_file(sample_outdir / "denovo_paths.txt");
     std::vector<fs::path> denovo_paths_intermediary_files{

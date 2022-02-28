@@ -20,4 +20,7 @@ std::map<std::string, std::string> get_locus_to_reads(
 void concatenate_all_denovo_files(const std::vector<SampleData> &samples,
     const fs::path &outdir);
 
+void write_denovo_header_file(const std::string &sample_name,
+    const fs::path &denovo_outdir, uint32_t number_of_loci_with_denovo_variants);
+
 #endif
