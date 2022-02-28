@@ -83,6 +83,7 @@ uint32_t Racon::run_minimap2_core(bool illumina,
 
     // TODO: do we set k to the k-value we use in pandora?
     // iopt.k = kmer_prg->k;
+    mopt.flag |= MM_F_CIGAR; // perform alignment - this is actually required
 
     // open index reader
     mm_idx_reader_t *r = mm_idx_reader_open(locus_consensus_filepath.c_str(), &iopt, 0);
