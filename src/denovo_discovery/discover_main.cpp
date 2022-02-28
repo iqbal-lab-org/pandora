@@ -3,54 +3,8 @@
 //
 
 #include "denovo_discovery/discover_main.h"
-#include <boost/algorithm/string.hpp>
-#include "utils.h"
 #include "denovo_discovery/racon.h"
 #include "denovo_discovery/denovo_record.h"
-
-std::map<std::string, std::string> get_locus_to_reads(
-    const fs::path &sample_outdir,
-    const std::string &sample_name
-) {
-    // get all reads from a locus and put in a vector (locus_to_vector_of_reads)
-    std::map<std::string, std::vector<std::string>> locus_to_vector_of_reads;
-    std::ifstream filtered_samfile;
-    open_file_for_reading((sample_outdir / (sample_name + ".filtered.sam")).string(),
-        filtered_samfile);
-    std::string line;
-    uint64_t read_order = 0;
-    while (std::getline(filtered_samfile, line))
-    {
-        std::vector<std::string> words;
-        boost::split(words, line, boost::is_any_of("\t"));
-        const bool is_mapped = words.size() >= 3 && words[1] == "0";
-        if (is_mapped) {
-            const std::string &read_name = words[0];
-            const std::string &locus = words[2];
-            const std::string &read_seq = words[9];
-            std::stringstream ss;
-            ss << ">" << read_name << "_read_order_" << read_order << "\n" << read_seq << "\n";
-            ++read_order;
-            locus_to_vector_of_reads[locus].push_back(ss.str());
-        }
-    }
-
-    // transforms the vector to a single string
-    std::map<std::string, std::string> locus_to_reads;
-    for(const auto &locus_to_vector_of_reads_it : locus_to_vector_of_reads) {
-        const std::string &locus = locus_to_vector_of_reads_it.first;
-        const std::vector<std::string> &reads = locus_to_vector_of_reads_it.second;
-
-        std::string reads_as_a_single_string;
-        for (const std::string &read : reads) {
-            reads_as_a_single_string += read;
-        }
-
-        locus_to_reads[locus] = reads_as_a_single_string;
-    }
-
-    return locus_to_reads;
-}
 
 void setup_discover_subcommand(CLI::App& app)
 {
@@ -393,10 +347,6 @@ void pandora_discover_core(const SampleData& sample,
             << " and can be updated with --genome_size";
     }
 
-    if (opt.output_mapped_read_fa) {
-        pangraph->save_mapped_read_strings(sample_fpath, sample_outdir);
-    }
-
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
                             << "Done discovering!";
 }
@@ -453,23 +403,7 @@ int pandora_discover(DiscoverOptions& opt)
         pandora_discover_core(sample, index, prgs, opt);
     }
 
-    // concatenate all denovo files
-    std::vector<fs::path> denovo_paths_files;
-    std::vector<fs::path> denovo_sequences_files;
-    for (uint32_t sample_id = 0; sample_id < samples.size(); sample_id++) {
-        const auto& sample = samples[sample_id];
-        const auto& sample_name = sample.first;
-        fs::path denovo_path_output_file = opt.outdir / sample_name / "denovo_paths.txt";
-        denovo_paths_files.push_back(denovo_path_output_file);
-        fs::path denovo_sequence_output_file = opt.outdir / sample_name / "denovo_sequences.fa";
-        denovo_sequences_files.push_back(denovo_sequence_output_file);
-    }
-    fs::path denovo_paths_output_file = opt.outdir / "denovo_paths.txt";
-    std::string nb_of_samples_line(std::to_string(samples.size()) + " samples");
-    concatenate_text_files(denovo_paths_output_file, denovo_paths_files, nb_of_samples_line);
-
-    fs::path denovo_sequences_output_file = opt.outdir / "denovo_sequences.fa";
-    concatenate_text_files(denovo_sequences_output_file, denovo_sequences_files);
+    concatenate_all_denovo_files(samples, opt.outdir);
     BOOST_LOG_TRIVIAL(info) << "All done!";
 
     return 0;

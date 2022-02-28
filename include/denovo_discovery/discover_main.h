@@ -6,6 +6,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/log/utility/setup/console.hpp>
 #include "CLI11.hpp"
+#include "denovo_discovery/denovo_utils.h"
 #include "utils.h"
 #include "index.h"
 #include "pangenome/pangraph.h"
