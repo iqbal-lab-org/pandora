@@ -397,10 +397,6 @@ int pandora_map(MapOptions& opt)
         }
     }
 
-    if (opt.output_mapped_read_fa) {
-        pangraph->save_mapped_read_strings(opt.readsfile, opt.outdir);
-    }
-
     BOOST_LOG_TRIVIAL(info) << "Done!";
      */
     return 0;
