@@ -18,8 +18,6 @@ std::vector<DenovoVariantRecord> DenovoVariantRecord::get_variants_from_pair_of_
     typedef Align<TSequence, ArrayGaps> TAlign; // align type
     typedef Row<TAlign>::Type TRow; // gapped sequence type
 
-    // TODO: this can be further optimised by aligning the candidate region sequence
-    // with the candidate region alt (not the whole ML sequence with the whole ML alt)
     TSequence ref(ref_as_str);
     TSequence alt(alt_as_str);
 
