@@ -83,11 +83,6 @@ void setup_discover_subcommand(CLI::App& app)
         ->group("Input/Output");
 
     discover_subcmd
-        ->add_flag("-M,--mapped-reads", opt->output_mapped_read_fa,
-            "Save a fasta file for each loci containing read parts which overlapped it")
-        ->group("Input/Output");
-
-    discover_subcmd
         ->add_flag("-I,--illumina", opt->illumina,
             "Reads are from Illumina. Alters error rate used and adjusts for shorter "
             "reads")

@@ -28,7 +28,6 @@ struct DiscoverOptions {
     uint32_t genome_size { 5000000 };
     uint32_t max_diff { 250 };
     bool output_kg { false };
-    bool output_mapped_read_fa { false };
     bool illumina { false };
     bool clean { false };
     bool binomial { false };
