@@ -40,11 +40,10 @@ private:
         const Interval& envelopping_interval);
 
     void check_if_we_already_indexed_too_many_kmers(const uint32_t num_kmers_added,
-        const uint32_t max_nb_minimiser_kmers) const;
+        const uint32_t indexing_upper_bound) const;
 
     void add_node_to_current_leaves(const KmerNodePtr &kn,
-        std::deque<KmerNodePtr> &current_leaves, uint32_t num_kmers_added,
-        uint32_t max_nb_minimiser_kmers) const;
+        std::deque<KmerNodePtr> &current_leaves, uint32_t indexing_upper_bound) const;
 
 public:
     uint32_t next_site; // denotes the id of the next variant site to be processed -
@@ -79,7 +78,7 @@ public:
     std::vector<PathPtr> shift(prg::Path) const;
 
     void minimizer_sketch(const std::shared_ptr<Index>& index, const uint32_t w,
-        const uint32_t k, const uint32_t max_nb_minimiser_kmers,
+        const uint32_t k, const uint32_t indexing_upper_bound,
         double percentageDone = -1.0);
 
     // functions used once hits have been collected against the PRG

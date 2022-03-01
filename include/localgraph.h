@@ -36,7 +36,7 @@ public:
     void read_gfa(const std::string&);
 
     std::vector<PathPtr> walk(const uint32_t&, const uint32_t&, const uint32_t&,
-        uint32_t max_nb_minimiser_kmers) const;
+        uint32_t indexing_upper_bound) const;
 
     std::vector<PathPtr> walk_back(
         const uint32_t&, const uint32_t&, const uint32_t&) const;
