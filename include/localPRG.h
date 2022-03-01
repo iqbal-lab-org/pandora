@@ -20,7 +20,7 @@
 using PanNodePtr = std::shared_ptr<pangenome::Node>;
 namespace fs = boost::filesystem;
 
-class TooManyKmersToIndex : public std::runtime_error {
+class IndexingLimitReached : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 

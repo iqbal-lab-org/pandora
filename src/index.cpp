@@ -208,7 +208,7 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
             prgs[i]->minimizer_sketch(index, w, k, indexing_upper_bound,
                 (((double)(nbOfPRGsDone.load())) / prgs.size()) * 100);
             prgs[i]->kmer_prg.save(gfa_file);
-        }catch (const TooManyKmersToIndex &error) {
+        }catch (const IndexingLimitReached &error) {
             BOOST_LOG_TRIVIAL(warning) << error.what();
 
             // create an empty gfa file

@@ -467,7 +467,7 @@ void LocalPRG::check_if_we_already_indexed_too_many_kmers(
         std::stringstream ss;
         ss << "Locus " << name << " has too many kmers to index (>"
            << indexing_upper_bound << "), so we are ignoring it";
-        throw TooManyKmersToIndex(ss.str());
+        throw IndexingLimitReached(ss.str());
     }
 }
 
@@ -478,7 +478,7 @@ void LocalPRG::add_node_to_current_leaves(const KmerNodePtr &kn,
         std::stringstream ss;
         ss << "Locus " << name << " has too many nodes to explore (>"
            << indexing_upper_bound << "), so we are ignoring it";
-        throw TooManyKmersToIndex(ss.str());
+        throw IndexingLimitReached(ss.str());
     }
 
     const bool node_is_not_already_in_leaves =
@@ -545,11 +545,11 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
         // prg.nodes.begin()->second->id composed of exactly w+k-1 bases
         walk_paths = prg.walk(prg.nodes.begin()->second->id, 0, w + k - 1,
             indexing_upper_bound);
-    }catch (const TooManyKmersToIndex &error) {
+    }catch (const IndexingLimitReached &error) {
         std::stringstream ss;
-        ss << "Locus " << name << " has an excessive number of walks (>"
+        ss << "Locus " << name << " has an excessive number of initial walks (>"
            << indexing_upper_bound << "), so we are ignoring it";
-        throw TooManyKmersToIndex(ss.str());
+        throw IndexingLimitReached(ss.str());
     }
     if (walk_paths.empty()) {
         BOOST_LOG_TRIVIAL(info) << "Finished sketching PRG " << name;

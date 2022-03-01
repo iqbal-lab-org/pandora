@@ -166,7 +166,7 @@ std::vector<PathPtr> LocalGraph::walk(
             walk_paths = walk((*it)->id, (*it)->pos.start, len - len_added, indexing_upper_bound);
 
             if (walk_paths.size() > indexing_upper_bound) {
-                throw TooManyKmersToIndex("Too many walks found");
+                throw IndexingLimitReached("Too many walks found");
             }
 
 
