@@ -94,11 +94,6 @@ void setup_map_subcommand(CLI::App& app)
         ->group("Input/Output");
 
     map_subcmd
-        ->add_flag("-M,--mapped-reads", opt->output_mapped_read_fa,
-            "Save a fasta file for each loci containing read parts which overlapped it")
-        ->group("Input/Output");
-
-    map_subcmd
         ->add_flag("-I,--illumina", opt->illumina,
             "Reads are from Illumina. Alters error rate used and adjusts for shorter "
             "reads")
@@ -395,10 +390,6 @@ int pandora_map(MapOptions& opt)
         } else {
             master_vcf.save(gt_vcf_filepath, false, true);
         }
-    }
-
-    if (opt.output_mapped_read_fa) {
-        pangraph->save_mapped_read_strings(opt.readsfile, opt.outdir);
     }
 
     BOOST_LOG_TRIVIAL(info) << "Done!";

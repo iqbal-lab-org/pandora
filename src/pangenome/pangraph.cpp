@@ -517,55 +517,6 @@ void pangenome::Graph::save_matrix(
     }
 }
 
-void pangenome::Graph::save_mapped_read_strings(
-    const fs::path& readfilepath, const fs::path& outdir, const int32_t buff)
-{
-    BOOST_LOG_TRIVIAL(debug) << "Save mapped read strings and coordinates";
-    fs::ofstream outhandle;
-    FastaqHandler readfile(readfilepath.string());
-    uint32_t start, end;
-
-    // for each node in pangraph, find overlaps and write to a file
-    std::vector<std::vector<uint32_t>> read_overlap_coordinates;
-    for (const auto& node_ptr : nodes) {
-        BOOST_LOG_TRIVIAL(debug)
-            << "Find coordinates for node " << node_ptr.second->name;
-        node_ptr.second->get_read_overlap_coordinates(read_overlap_coordinates);
-
-        const auto node_outpath { outdir / node_ptr.second->get_name()
-            / (node_ptr.second->get_name() + ".reads.fa") };
-        fs::create_directories(node_outpath.parent_path());
-        outhandle.open(node_outpath);
-
-        for (const auto& coord : read_overlap_coordinates) {
-            readfile.get_nth_read(coord[0]);
-            start = (uint32_t)std::max((int32_t)coord[1] - buff, 0);
-            end = std::min(coord[2] + (uint32_t)buff, (uint32_t)readfile.read.length());
-
-            const bool read_coordinates_are_valid = (coord[1] < coord[2])
-                && (start <= coord[1]) && (start <= readfile.read.length())
-                && (coord[2] <= readfile.read.length()) && (end >= coord[2])
-                && (start < end);
-            if (!read_coordinates_are_valid) {
-                fatal_error("When saving mapped reads, read coordinates are not valid");
-            }
-
-            outhandle << ">" << readfile.name << " pandora: " << coord[0] << " "
-                      << start << ":" << end;
-            if (coord[3]) {
-                outhandle << " + " << std::endl;
-            } else {
-                outhandle << " - " << std::endl;
-            }
-            outhandle << readfile.read.substr(start, end - start) << std::endl;
-        }
-        outhandle.close();
-        read_overlap_coordinates.clear();
-    }
-
-    readfile.close();
-}
-
 std::ostream& pangenome::operator<<(std::ostream& out, const pangenome::Graph& m)
 {
     for (const auto& n : m.nodes) {

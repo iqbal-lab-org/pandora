@@ -21,6 +21,10 @@ public:
             const std::vector<std::shared_ptr<LocalPRG>>& prgs);
     void write_sam_record_from_hit_cluster(
         const Seq &seq, const MinimizerHitClusters &clusters);
+
+private:
+    // some constants
+    const static uint32_t flank_size = 50;
 };
 
 #endif // PANDORA_SAM_FILE_H

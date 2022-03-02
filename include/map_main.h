@@ -41,7 +41,6 @@ struct MapOptions {
     bool output_kg { false };
     bool output_vcf { false };
     bool output_comparison_paths { false };
-    bool output_mapped_read_fa { false };
     bool illumina { false };
     bool clean { false };
     bool binomial { false };

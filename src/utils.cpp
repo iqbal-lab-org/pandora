@@ -806,12 +806,10 @@ std::string exec(const char* cmd) {
 }
 
 void build_file(const std::string &filepath, const std::string &data) {
-    BOOST_LOG_TRIVIAL(info) << "Start Build file " << filepath;
     std::ofstream output_file;
     open_file_for_writing(filepath, output_file);
     output_file.write(data.c_str(), data.size());
     output_file.close();
-    BOOST_LOG_TRIVIAL(info) << "End Build file " << filepath;
 }
 
 bool tool_exists(const std::string &command) {

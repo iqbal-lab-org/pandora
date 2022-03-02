@@ -147,8 +147,6 @@ public:
     // graph read/write
     void save_matrix(
         const fs::path& filepath, const std::vector<std::string>& sample_names);
-    void save_mapped_read_strings(
-        const fs::path& readfilepath, const fs::path& outdir, int32_t buff = 0);
     friend std::ostream& operator<<(std::ostream& out, const Graph& m);
 };
 

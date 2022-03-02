@@ -13,14 +13,11 @@ std::vector<DenovoVariantRecord> DenovoVariantRecord::get_variants_from_pair_of_
     const std::string &ref_as_str,
     const std::string &alt_as_str)
 {
-    BOOST_LOG_TRIVIAL(info) << "Start get_variants_from_pair_of_sequences";
     using namespace seqan;
     typedef String<char> TSequence; // sequence type
     typedef Align<TSequence, ArrayGaps> TAlign; // align type
     typedef Row<TAlign>::Type TRow; // gapped sequence type
 
-    // TODO: this can be further optimised by aligning the candidate region sequence
-    // with the candidate region alt (not the whole ML sequence with the whole ML alt)
     TSequence ref(ref_as_str);
     TSequence alt(alt_as_str);
 
@@ -56,6 +53,5 @@ std::vector<DenovoVariantRecord> DenovoVariantRecord::get_variants_from_pair_of_
         }
     }
 
-    BOOST_LOG_TRIVIAL(info) << "End get_variants_from_pair_of_sequences";
     return denovo_variants;
 }

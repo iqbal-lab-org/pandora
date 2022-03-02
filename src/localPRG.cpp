@@ -460,26 +460,25 @@ std::vector<PathPtr> LocalPRG::shift(prg::Path p) const
 
 void LocalPRG::check_if_we_already_indexed_too_many_kmers(
     const uint32_t num_kmers_added,
-    const uint32_t max_nb_minimiser_kmers
+    const uint32_t indexing_upper_bound
     ) const {
-    const bool too_many_kmers_to_index = num_kmers_added > max_nb_minimiser_kmers;
+    const bool too_many_kmers_to_index = num_kmers_added > indexing_upper_bound;
     if (too_many_kmers_to_index) {
         std::stringstream ss;
         ss << "Locus " << name << " has too many kmers to index (>"
-           << max_nb_minimiser_kmers << "), so we are ignoring it";
-        throw TooManyKmersToIndex(ss.str());
+           << indexing_upper_bound << "), so we are ignoring it";
+        throw IndexingLimitReached(ss.str());
     }
 }
 
 void LocalPRG::add_node_to_current_leaves(const KmerNodePtr &kn,
-    std::deque<KmerNodePtr> &current_leaves, uint32_t num_kmers_added,
-    uint32_t max_nb_minimiser_kmers) const {
-    const bool too_many_kmers = (current_leaves.size() + num_kmers_added) > max_nb_minimiser_kmers;
-    if (too_many_kmers) {
+    std::deque<KmerNodePtr> &current_leaves, uint32_t indexing_upper_bound) const {
+    const bool too_many_current_leaves = current_leaves.size() > indexing_upper_bound;
+    if (too_many_current_leaves) {
         std::stringstream ss;
-        ss << "Locus " << name << " has too many kmers + leaves to index (>"
-           << max_nb_minimiser_kmers << "), so we are ignoring it";
-        throw TooManyKmersToIndex(ss.str());
+        ss << "Locus " << name << " has too many nodes to explore (>"
+           << indexing_upper_bound << "), so we are ignoring it";
+        throw IndexingLimitReached(ss.str());
     }
 
     const bool node_is_not_already_in_leaves =
@@ -490,7 +489,7 @@ void LocalPRG::add_node_to_current_leaves(const KmerNodePtr &kn,
 }
 
 void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint32_t w,
-    const uint32_t k, const uint32_t max_nb_minimiser_kmers, double percentageDone)
+    const uint32_t k, const uint32_t indexing_upper_bound, double percentageDone)
 {
     if (percentageDone >= 0) {
         BOOST_LOG_TRIVIAL(info)
@@ -531,7 +530,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
     kmer_path.initialize(d); // initializes this path with the null start
     kmer_prg.add_node(kmer_path);
     num_kmers_added += 1;
-    check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
+    check_if_we_already_indexed_too_many_kmers(num_kmers_added, indexing_upper_bound);
 
 
     // if this is a null prg, return the null kmergraph
@@ -542,14 +541,15 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
 
     // find first w,k minimizers
     try {
+        // get all walks to be checked - all walks from
+        // prg.nodes.begin()->second->id composed of exactly w+k-1 bases
         walk_paths = prg.walk(prg.nodes.begin()->second->id, 0, w + k - 1,
-            max_nb_minimiser_kmers); // get all walks to be checked - all walks from
-                                     // prg.nodes.begin()->second->id composed of exactly w+k-1 bases - NOTE: WALKS AND PATHS HERE ARE THE SAME, SINCE THIS IS A DAG!!!
-    }catch (const TooManyKmersToIndex &error) {
+            indexing_upper_bound);
+    }catch (const IndexingLimitReached &error) {
         std::stringstream ss;
-        ss << "Locus " << name << " found an exceesive number of walks (>"
-           << max_nb_minimiser_kmers << "), so we are ignoring it";
-        throw TooManyKmersToIndex(ss.str());
+        ss << "Locus " << name << " has an excessive number of initial walks (>"
+           << indexing_upper_bound << "), so we are ignoring it";
+        throw IndexingLimitReached(ss.str());
     }
     if (walk_paths.empty()) {
         BOOST_LOG_TRIVIAL(info) << "Finished sketching PRG " << name;
@@ -586,7 +586,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                 n = nodes_along_path(
                     kmer_path); // and the nodes of the localPRG along this kmer_path
 
-                if (prg.walk(n.back()->id, n.back()->pos.get_end(), w + k - 1, max_nb_minimiser_kmers)
+                if (prg.walk(n.back()->id, n.back()->pos.get_end(), w + k - 1, indexing_upper_bound)
                         .empty()) { // if the walk from the last node and last base of
                                     // the path along this kmer is empty
                     while (kmer_path.get_end() >= n.back()->pos.get_end()
@@ -600,7 +600,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                 if (kh.first == smallest
                     or kh.second == smallest) { // if this kmer is the minimizer
                     num_kmers_added += 1;
-                    check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
+                    check_if_we_already_indexed_too_many_kmers(num_kmers_added, indexing_upper_bound);
 
                     KmerNodePtr dummyKmerHoldingKmerPath
                         = std::make_shared<KmerNode>(KmerNode(0, kmer_path));
@@ -623,8 +623,8 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                                                        // minimizer kmer to the current
                         old_kn = kn; // update old minimizer kmer node
 
-                        add_node_to_current_leaves(kn, current_leaves, num_kmers_added,
-                            max_nb_minimiser_kmers);
+                        add_node_to_current_leaves(kn, current_leaves,
+                            indexing_upper_bound);
                     }
                 }
             }
@@ -667,7 +667,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
             if (std::min(kh.first, kh.second) <= kn->khash) {
                 // found next minimizer
                 num_kmers_added += 1;
-                check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
+                check_if_we_already_indexed_too_many_kmers(num_kmers_added, indexing_upper_bound);
 
                 KmerNodePtr dummyKmerHoldingKmerPath
                     = std::make_shared<KmerNode>(KmerNode(0, *(v.back())));
@@ -687,8 +687,8 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                         == (--(prg.nodes.end()))->second->pos.get_end()) {
                         end_leaves.push_back(new_kn);
                     } else {
-                        add_node_to_current_leaves(new_kn, current_leaves, num_kmers_added,
-                            max_nb_minimiser_kmers);
+                        add_node_to_current_leaves(new_kn, current_leaves,
+                            indexing_upper_bound);
                     }
                 } else {
                     kmer_prg.add_edge(kn, *found);
@@ -696,8 +696,8 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                         == (--(prg.nodes.end()))->second->pos.get_end()) {
                         end_leaves.push_back(*found);
                     } else {
-                        add_node_to_current_leaves(*found, current_leaves, num_kmers_added,
-                            max_nb_minimiser_kmers);
+                        add_node_to_current_leaves(*found, current_leaves,
+                            indexing_upper_bound);
                     }
                 }
             } else if (v.size() == w) {
@@ -716,7 +716,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                     if (kh.first == smallest or kh.second == smallest) {
                         // minimiser found
                         num_kmers_added += 1;
-                        check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
+                        check_if_we_already_indexed_too_many_kmers(num_kmers_added, indexing_upper_bound);
 
                         KmerNodePtr dummyKmerHoldingKmerPath
                             = std::make_shared<KmerNode>(KmerNode(0, *(v[j])));
@@ -741,8 +741,8 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                                 == (--(prg.nodes.end()))->second->pos.get_end()) {
                                 end_leaves.push_back(new_kn);
                             } else {
-                                add_node_to_current_leaves(new_kn, current_leaves, num_kmers_added,
-                                    max_nb_minimiser_kmers);
+                                add_node_to_current_leaves(new_kn, current_leaves,
+                                    indexing_upper_bound);
                             }
                         } else {
                             kmer_prg.add_edge(old_kn, *found);
@@ -752,8 +752,8 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                                 == (--(prg.nodes.end()))->second->pos.get_end()) {
                                 end_leaves.push_back(*found);
                             } else {
-                                add_node_to_current_leaves(*found, current_leaves, num_kmers_added,
-                                    max_nb_minimiser_kmers);
+                                add_node_to_current_leaves(*found, current_leaves,
+                                    indexing_upper_bound);
                             }
                         }
                     }
@@ -792,15 +792,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
     }
 
     num_kmers_added += 1;
-    check_if_we_already_indexed_too_many_kmers(num_kmers_added, max_nb_minimiser_kmers);
-
-    // print, check and return
-//    const bool number_of_kmers_added_is_consistent
-//        = (num_kmers_added == 0) or (kmer_prg.nodes.size() == num_kmers_added);
-//    if (!number_of_kmers_added_is_consistent) {
-//        fatal_error(
-//            "Error when minimizing a local PRG: incorrect number of kmers added");
-//    }
+    check_if_we_already_indexed_too_many_kmers(num_kmers_added, indexing_upper_bound);
 
 #pragma omp critical(add_kmers_to_index)
     {

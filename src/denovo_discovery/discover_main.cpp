@@ -3,52 +3,8 @@
 //
 
 #include "denovo_discovery/discover_main.h"
-#include <boost/algorithm/string.hpp>
-#include "utils.h"
 #include "denovo_discovery/racon.h"
 #include "denovo_discovery/denovo_record.h"
-
-std::map<std::string, std::string> get_locus_to_reads(
-    const fs::path &sample_outdir,
-    const std::string &sample_name
-) {
-    // get all reads from a locus and put in a vector (locus_to_vector_of_reads)
-    std::map<std::string, std::vector<std::string>> locus_to_vector_of_reads;
-    std::ifstream filtered_samfile;
-    open_file_for_reading((sample_outdir / (sample_name + ".filtered.sam")).string(),
-        filtered_samfile);
-    std::string line;
-    while (std::getline(filtered_samfile, line))
-    {
-        std::vector<std::string> words;
-        boost::split(words, line, boost::is_any_of("\t"));
-        const bool is_mapped = words.size() >= 3 && words[1] == "0";
-        if (is_mapped) {
-            const std::string &read_name = words[0];
-            const std::string &locus = words[2];
-            const std::string &read_seq = words[9];
-            std::stringstream ss;
-            ss << ">" << read_name << "_rand_id_" << random_int() << "\n" << read_seq << "\n";
-            locus_to_vector_of_reads[locus].push_back(ss.str());
-        }
-    }
-
-    // transforms the vector to a single string
-    std::map<std::string, std::string> locus_to_reads;
-    for(const auto &locus_to_vector_of_reads_it : locus_to_vector_of_reads) {
-        const std::string &locus = locus_to_vector_of_reads_it.first;
-        const std::vector<std::string> &reads = locus_to_vector_of_reads_it.second;
-
-        std::string reads_as_a_single_string;
-        for (const std::string &read : reads) {
-            reads_as_a_single_string += read;
-        }
-
-        locus_to_reads[locus] = reads_as_a_single_string;
-    }
-
-    return locus_to_reads;
-}
 
 void setup_discover_subcommand(CLI::App& app)
 {
@@ -127,11 +83,6 @@ void setup_discover_subcommand(CLI::App& app)
         ->group("Input/Output");
 
     discover_subcmd
-        ->add_flag("-M,--mapped-reads", opt->output_mapped_read_fa,
-            "Save a fasta file for each loci containing read parts which overlapped it")
-        ->group("Input/Output");
-
-    discover_subcmd
         ->add_flag("-I,--illumina", opt->illumina,
             "Reads are from Illumina. Alters error rate used and adjusts for shorter "
             "reads")
@@ -157,57 +108,6 @@ void setup_discover_subcommand(CLI::App& app)
         ->capture_default_str()
         ->type_name("INT")
         ->group("Filtering");
-
-    discover_subcmd
-        ->add_option("--discover-k", opt->denovo_kmer_size,
-            "K-mer size to use when discovering novel variants")
-        ->capture_default_str()
-        ->check(CLI::Range(0, MAX_DENOVO_K)
-                    .description("[0-" + std::to_string(MAX_DENOVO_K) + ")"))
-        ->type_name("INT");
-
-    description = "Max. insertion size for novel variants. Warning: "
-                  "setting too long may impair performance";
-    discover_subcmd->add_option("--max-ins", opt->max_insertion_size, description)
-        ->capture_default_str()
-        ->type_name("INT");
-
-    description
-        = "Positions with coverage less than this will be tagged for variant discovery";
-    discover_subcmd
-        ->add_option("--covg-threshold", opt->min_candidate_covg, description)
-        ->capture_default_str()
-        ->type_name("INT");
-
-    description = "Min. length of consecutive positions below coverage threshold to "
-                  "trigger variant discovery";
-    discover_subcmd->add_option("-l", opt->min_candidate_len, description)
-        ->capture_default_str()
-        ->type_name("INT");
-
-    description = "Max. length of consecutive positions below coverage threshold to "
-                  "trigger variant discovery";
-    discover_subcmd->add_option("-L", opt->max_candidate_len, description)
-        ->capture_default_str()
-        ->type_name("INT");
-
-    description = "Merge candidate variant intervals within distance";
-    discover_subcmd->add_option("-d,--merge", opt->merge_dist, description)
-        ->capture_default_str()
-        ->type_name("INT");
-
-    description = "Maximum number of candidate variants allowed for a candidate region";
-    discover_subcmd->add_option("-N", opt->max_num_candidate_paths, description)
-        ->capture_default_str()
-        ->type_name("INT");
-
-    description = "Minimum node/kmer depth in the de Bruijn graph used for discovering "
-                  "variants";
-    discover_subcmd
-        ->add_option(
-            "--min-dbg-dp", opt->min_covg_for_node_in_assembly_graph, description)
-        ->capture_default_str()
-        ->type_name("INT");
 
     description
         = "Minimum size of a cluster of hits between a read and a loci to consider "
@@ -400,13 +300,8 @@ void pandora_discover_core(const SampleData& sample,
     }
     denovo_paths_out_core_file.close();
 
-    std::ofstream denovo_paths_out_header_file;
-    open_file_for_writing((denovo_outdir / "denovo_paths_header.txt").string(),
-        denovo_paths_out_header_file);
-    denovo_paths_out_header_file << "Sample " << sample_name << std::endl;
-    denovo_paths_out_header_file << number_of_loci_with_denovo_variants <<
-        " loci with denovo variants" << std::endl;
-    denovo_paths_out_header_file.close();
+    write_denovo_header_file(sample_name, denovo_outdir,
+        number_of_loci_with_denovo_variants);
 
     fs::path denovo_paths_out_file(sample_outdir / "denovo_paths.txt");
     std::vector<fs::path> denovo_paths_intermediary_files{
@@ -440,10 +335,6 @@ void pandora_discover_core(const SampleData& sample,
                "your genome_size accurate?"
             << " Genome size is assumed to be " << opt.genome_size
             << " and can be updated with --genome_size";
-    }
-
-    if (opt.output_mapped_read_fa) {
-        pangraph->save_mapped_read_strings(sample_fpath, sample_outdir);
     }
 
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
@@ -502,23 +393,7 @@ int pandora_discover(DiscoverOptions& opt)
         pandora_discover_core(sample, index, prgs, opt);
     }
 
-    // concatenate all denovo files
-    std::vector<fs::path> denovo_paths_files;
-    std::vector<fs::path> denovo_sequences_files;
-    for (uint32_t sample_id = 0; sample_id < samples.size(); sample_id++) {
-        const auto& sample = samples[sample_id];
-        const auto& sample_name = sample.first;
-        fs::path denovo_path_output_file = opt.outdir / sample_name / "denovo_paths.txt";
-        denovo_paths_files.push_back(denovo_path_output_file);
-        fs::path denovo_sequence_output_file = opt.outdir / sample_name / "denovo_sequences.fa";
-        denovo_sequences_files.push_back(denovo_sequence_output_file);
-    }
-    fs::path denovo_paths_output_file = opt.outdir / "denovo_paths.txt";
-    std::string nb_of_samples_line(std::to_string(samples.size()) + " samples");
-    concatenate_text_files(denovo_paths_output_file, denovo_paths_files, nb_of_samples_line);
-
-    fs::path denovo_sequences_output_file = opt.outdir / "denovo_sequences.fa";
-    concatenate_text_files(denovo_sequences_output_file, denovo_sequences_files);
+    concatenate_all_denovo_files(samples, opt.outdir);
     BOOST_LOG_TRIVIAL(info) << "All done!";
 
     return 0;

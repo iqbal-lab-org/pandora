@@ -49,11 +49,6 @@ public:
 
     void add_path(const std::vector<KmerNodePtr>&, const uint32_t& sample_id);
 
-    void get_read_overlap_coordinates(std::vector<std::vector<uint32_t>>&);
-
-    std::set<ReadCoordinate> get_read_overlap_coordinates(
-        const prg::Path& local_path, const uint32_t& min_number_hits = 2);
-
     void construct_multisample_vcf(VCF& master_vcf,
         const std::vector<LocalNodePtr>& vcf_reference_path,
         const std::shared_ptr<LocalPRG>& prg, const uint32_t w);

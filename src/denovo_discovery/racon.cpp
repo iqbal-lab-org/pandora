@@ -14,58 +14,64 @@ std::string Racon::run_racon_core(
     const std::string &paf_filepath,
     const std::string &polished_filepath
     ) {
-    BOOST_LOG_TRIVIAL(info) << "Start Running Racon";
-    uint32_t window_length = consensus_seq.size();
-    double quality_threshold = 10.0;
-    double error_threshold = 0.3;
-    bool trim = false;
+    uint32_t window_length = consensus_seq.size() + Racon::racon_window_padding;
+    const static double quality_threshold = 10.0;
+    const static double error_threshold = 0.3;
+    const static bool trim = false;
 
-    int8_t match = 3;
-    int8_t mismatch = -5;
-    int8_t gap = -4;
-    uint32_t type = 0;
+    const static int8_t match = 3;
+    const static int8_t mismatch = -5;
+    const static int8_t gap = -4;
+    const static uint32_t type = 0;
 
-    bool drop_unpolished_sequences = true;
-    uint32_t num_threads = 1;
+    const static bool drop_unpolished_sequences = true;
+    const static uint32_t num_threads = 1;
 
-    uint32_t cudapoa_batches = 0;
-    uint32_t cudaaligner_batches = 0;
-    uint32_t cudaaligner_band_width = 0;
-    bool cuda_banded_alignment = false;
+    const static uint32_t cudapoa_batches = 0;
+    const static uint32_t cudaaligner_batches = 0;
+    const static uint32_t cudaaligner_band_width = 0;
+    const static bool cuda_banded_alignment = false;
 
-    std::unique_ptr<racon::Polisher> polisher = racon::createPolisher(
-        reads_filepath, paf_filepath, polished_filepath,
-        type == 0 ? racon::PolisherType::kC : racon::PolisherType::kF,
-        window_length, quality_threshold, error_threshold, trim, match, mismatch, gap,
-        num_threads, cudapoa_batches, cuda_banded_alignment, cudaaligner_batches,
-        cudaaligner_band_width);
-
-    polisher->initialize();
-
+    bool polishing_was_successful;
     std::vector<std::unique_ptr<racon::Sequence>> polished_sequences;
+    try {
+        std::unique_ptr<racon::Polisher> polisher
+            = racon::createPolisher(reads_filepath, paf_filepath, polished_filepath,
+                type == 0 ? racon::PolisherType::kC : racon::PolisherType::kF,
+                window_length, quality_threshold, error_threshold, trim, match,
+                mismatch, gap, num_threads, cudapoa_batches, cuda_banded_alignment,
+                cudaaligner_batches, cudaaligner_band_width);
 
-    polisher->polish(polished_sequences, drop_unpolished_sequences);
+        polisher->initialize();
+
+        polisher->polish(polished_sequences, drop_unpolished_sequences);
+
+        polishing_was_successful = polished_sequences.size()>=1;
+    }catch (const racon::EmptyOverlapSetError &empty_overlap_set_error) {
+        polishing_was_successful = false;
+    }
 
     std::string polished_consensus_seq;
-    const bool polishing_was_successful = polished_sequences.size()>=1;
     if (polishing_was_successful) {
         polished_consensus_seq = polished_sequences[0]->data();
     } else {
         polished_consensus_seq = consensus_seq;
     }
 
-    BOOST_LOG_TRIVIAL(info) << "End Running Racon";
     return polished_consensus_seq;
 }
 
-void run_minimap2_core(bool illumina, const std::string &locus_consensus_filepath,
-    const std::string &locus_reads_filepath, const std::string &paf_filepath) {
-    BOOST_LOG_TRIVIAL(info) << "Start Running Minimap2";
+// Runs minimap2
+// Returns the number of reads mapped (entries in the PAF file)
+uint32_t Racon::run_minimap2_core(bool illumina,
+    const std::string &locus_consensus_filepath,
+    const std::string &locus_reads_filepath,
+    const std::string &paf_filepath) {
 
     // setup minimap2 options
     mm_idxopt_t iopt;
     mm_mapopt_t mopt;
-    int n_threads = 1;
+    const static int n_threads = 1;
     mm_verbose = 2; // disable message output to stderr
     mm_set_opt(0, &iopt, &mopt);
 
@@ -75,9 +81,9 @@ void run_minimap2_core(bool illumina, const std::string &locus_consensus_filepat
         mm_set_opt("map-ont", &iopt, &mopt);
     }
 
-    // TODO: set k?
+    // TODO: do we set k to the k-value we use in pandora?
     // iopt.k = kmer_prg->k;
-    mopt.flag |= MM_F_CIGAR; // perform alignment
+    mopt.flag |= MM_F_CIGAR; // perform alignment - this is actually required
 
     // open index reader
     mm_idx_reader_t *r = mm_idx_reader_open(locus_consensus_filepath.c_str(), &iopt, 0);
@@ -100,6 +106,7 @@ void run_minimap2_core(bool illumina, const std::string &locus_consensus_filepat
         fatal_error("Could not open PAF file: ", paf_filepath);
     }
 
+    uint32_t number_of_reads_mapped = 0;
     while ((mi = mm_idx_reader_read(r, n_threads)) != 0) { // traverse each part of the index
             mm_mapopt_update(&mopt, mi); // this sets the maximum minimizer occurrence; TODO: set a better default in mm_mapopt_init()!
             mm_tbuf_t *tbuf = mm_tbuf_init(); // thread buffer; for multi-threading, allocate one tbuf for each thread
@@ -116,6 +123,7 @@ void run_minimap2_core(bool illumina, const std::string &locus_consensus_filepat
                     fprintf(paf_filehandler, "%s\t%d\t%d\t%d\t%d\t%d\t%d\n", mi->seq[r->rid].name, mi->seq[r->rid].len,
                         r->rs, r->re, r->mlen, r->blen, r->mapq);
                     free(r->p);
+                    ++number_of_reads_mapped;
                 }
                 free(reg);
             }
@@ -127,7 +135,7 @@ void run_minimap2_core(bool illumina, const std::string &locus_consensus_filepat
     kseq_destroy(ks); // close the query file
     gzclose(query_seq_fd);
 
-    BOOST_LOG_TRIVIAL(info) << "End Running Minimap2";
+    return number_of_reads_mapped;
 }
 
 bool Racon::run_another_round() {
@@ -150,15 +158,10 @@ bool Racon::run_another_round() {
     // run minimap to get overlaps
     const std::string paf_filepath {
         (denovo_outdir / (locus + ".minimap2.out.paf")).string() };
-    run_minimap2_core(illumina, locus_consensus_filepath, locus_reads_filepath,
-        paf_filepath);
+    uint32_t number_of_reads_mapped = run_minimap2_core(illumina,
+        locus_consensus_filepath, locus_reads_filepath, paf_filepath);
 
-    // check if paf file is empty
-    std::ifstream paf_filehandler;
-    open_file_for_reading(paf_filepath, paf_filehandler);
-    const bool paf_file_is_empty =
-        paf_filehandler.peek() == std::ifstream::traits_type::eof();
-    paf_filehandler.close();
+    const bool paf_file_is_empty = number_of_reads_mapped == 0;
 
     // polish the sequence
     std::string polished_consensus_seq;
@@ -174,8 +177,6 @@ bool Racon::run_another_round() {
     const bool we_already_saw_this_consensus_seq =
         std::find(consensus_seq_already_seen.begin(), consensus_seq_already_seen.end(),
             polished_consensus_seq) != consensus_seq_already_seen.end();
-    const bool racon_improved_the_consensus_seq = not we_already_saw_this_consensus_seq;
-
     if (not we_already_saw_this_consensus_seq) {
         consensus_seq_already_seen.push_back(polished_consensus_seq);
     }
@@ -188,6 +189,7 @@ bool Racon::run_another_round() {
 
     BOOST_LOG_TRIVIAL(debug) << "Ran racon " << number_of_rounds_executed << " times";
 
+    const bool racon_improved_the_consensus_seq = not we_already_saw_this_consensus_seq;
     return racon_improved_the_consensus_seq;
 }
 
@@ -197,4 +199,3 @@ void Racon::run() {
         previous_run_improved_consensus_seq = run_another_round();
     }
 }
-

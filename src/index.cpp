@@ -177,7 +177,7 @@ bool Index::operator!=(const Index& other) const { return !(*this == other); }
 
 void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
     std::shared_ptr<Index>& index, const uint32_t w, const uint32_t k,
-    const uint32_t max_nb_minimiser_kmers, const fs::path& outdir, uint32_t threads)
+    const uint32_t indexing_upper_bound, const fs::path& outdir, uint32_t threads)
 {
     BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
     if (prgs.empty())
@@ -205,10 +205,10 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
                 + ".gfa") };
 
         try {
-            prgs[i]->minimizer_sketch(index, w, k, max_nb_minimiser_kmers,
+            prgs[i]->minimizer_sketch(index, w, k, indexing_upper_bound,
                 (((double)(nbOfPRGsDone.load())) / prgs.size()) * 100);
             prgs[i]->kmer_prg.save(gfa_file);
-        }catch (const TooManyKmersToIndex &error) {
+        }catch (const IndexingLimitReached &error) {
             BOOST_LOG_TRIVIAL(warning) << error.what();
 
             // create an empty gfa file

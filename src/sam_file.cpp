@@ -6,8 +6,7 @@
 SAMFile::SAMFile(const fs::path &filepath,
                  const std::vector<std::shared_ptr<LocalPRG>>& prgs) :
     GenericFile(filepath), prgs(prgs) {
-    file_handler << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION
-                 << "\tCL:TODO" << std::endl;
+    file_handler << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION << std::endl;
 }
 
 std::vector<bool> SAMFile::get_mapped_positions_bitset(const Seq &seq, const Hits &cluster) const {
@@ -90,8 +89,19 @@ void SAMFile::write_sam_record_from_hit_cluster(
         const std::string cigar = get_cigar(mapped_positions_bitset);
         const std::string segment_sequence = get_segment_sequence(seq, mapped_positions_bitset);
 
-        uint32_t first_mapped_pos = get_first_mapped_position(mapped_positions_bitset);
-        uint32_t last_mapped_pos = get_last_mapped_position(mapped_positions_bitset);
+        const uint32_t first_mapped_pos = get_first_mapped_position(mapped_positions_bitset);
+        const uint32_t left_flank_start = first_mapped_pos <= flank_size ? 0 :
+                                      first_mapped_pos - flank_size;
+        const uint32_t left_flank_length = first_mapped_pos - left_flank_start;
+        const std::string left_flank = seq.seq.substr(left_flank_start, left_flank_length);
+
+        const uint32_t last_mapped_pos = get_last_mapped_position(mapped_positions_bitset);
+        const uint32_t right_flank_start = last_mapped_pos;
+        const uint32_t right_flank_length =
+            (right_flank_start + flank_size) <= seq.seq.size() ? flank_size :
+            seq.seq.size() - right_flank_start;
+        const std::string right_flank = seq.seq.substr(right_flank_start, right_flank_length);
+
         file_handler << seq.name << "[" << first_mapped_pos << ":" << last_mapped_pos << "]\t"
                      << "0\t"
                      << prgs[first_hit->get_prg_id()]->name << "\t"
@@ -100,7 +110,9 @@ void SAMFile::write_sam_record_from_hit_cluster(
                      << cigar << "\t"
                      << "*\t0\t0\t"
                      << segment_sequence << "\t"
-                     << "*\t" << std::endl;
+                     << "*\t"
+                     << "LF:Z:" << left_flank << "\t"
+                     << "RF:Z:" << right_flank << std::endl;
     }
 
     if (!at_least_a_single_mapping_was_output) {
