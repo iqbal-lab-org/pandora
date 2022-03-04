@@ -520,7 +520,6 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
     pandora::KmerHash hash;
     std::vector<AddRecordToIndexParams> kmers_to_be_added_to_the_index;
     kmers_to_be_added_to_the_index.reserve(4096);
-    uint32_t num_kmers_added = 0;
     KmerNodePtr kn, new_kn;
     std::vector<LocalNodePtr> n;
     size_t num_AT = 0;
@@ -529,8 +528,6 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
     d = { Interval(0, 0) };
     kmer_path.initialize(d); // initializes this path with the null start
     kmer_prg.add_node(kmer_path);
-    num_kmers_added += 1;
-    check_if_we_already_indexed_too_many_kmers(num_kmers_added, indexing_upper_bound);
 
 
     // if this is a null prg, return the null kmergraph
@@ -599,8 +596,8 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
 
                 if (kh.first == smallest
                     or kh.second == smallest) { // if this kmer is the minimizer
-                    num_kmers_added += 1;
-                    check_if_we_already_indexed_too_many_kmers(num_kmers_added, indexing_upper_bound);
+                    check_if_we_already_indexed_too_many_kmers(kmers_to_be_added_to_the_index.size(),
+                        indexing_upper_bound);
 
                     KmerNodePtr dummyKmerHoldingKmerPath
                         = std::make_shared<KmerNode>(KmerNode(0, kmer_path));
@@ -666,8 +663,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
             kh = hash.kmerhash(kmer, k);
             if (std::min(kh.first, kh.second) <= kn->khash) {
                 // found next minimizer
-                num_kmers_added += 1;
-                check_if_we_already_indexed_too_many_kmers(num_kmers_added, indexing_upper_bound);
+                check_if_we_already_indexed_too_many_kmers(kmers_to_be_added_to_the_index.size(), indexing_upper_bound);
 
                 KmerNodePtr dummyKmerHoldingKmerPath
                     = std::make_shared<KmerNode>(KmerNode(0, *(v.back())));
@@ -715,8 +711,8 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                     kh = hash.kmerhash(kmer, k);
                     if (kh.first == smallest or kh.second == smallest) {
                         // minimiser found
-                        num_kmers_added += 1;
-                        check_if_we_already_indexed_too_many_kmers(num_kmers_added, indexing_upper_bound);
+                        check_if_we_already_indexed_too_many_kmers(kmers_to_be_added_to_the_index.size(),
+                            indexing_upper_bound);
 
                         KmerNodePtr dummyKmerHoldingKmerPath
                             = std::make_shared<KmerNode>(KmerNode(0, *(v[j])));
@@ -791,22 +787,19 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
         kmer_prg.add_edge(end_leaves[i], kn);
     }
 
-    num_kmers_added += 1;
-    check_if_we_already_indexed_too_many_kmers(num_kmers_added, indexing_upper_bound);
-
 #pragma omp critical(add_kmers_to_index)
     {
         for (const AddRecordToIndexParams &params : kmers_to_be_added_to_the_index) {
             index->add_record(params);
         }
     }
-    kmers_to_be_added_to_the_index.clear();
-
-    kmer_prg.remove_shortcut_edges();
-    kmer_prg.check();
 
     BOOST_LOG_TRIVIAL(info) << "Finished sketching PRG " << name << " - "
-        << num_kmers_added << " kmers indexed";
+                            << kmers_to_be_added_to_the_index.size() << " kmers indexed";
+
+    kmers_to_be_added_to_the_index.clear();
+    kmer_prg.remove_shortcut_edges();
+    kmer_prg.check();
 }
 
 bool intervals_overlap(const Interval& first, const Interval& second)
