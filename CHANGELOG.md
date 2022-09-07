@@ -120,11 +120,12 @@ their changes meticulously documented here.
 
 - k-mer coverage underflow bug in `LocalPRG` [[#183][183]]
 
-[0.8.0]: https://github.com/rmcolq/pandora/releases/tag/0.8.0
-[0.9.0]: https://github.com/rmcolq/pandora/releases/tag/0.9.0
-[0.9.0-rc1]: https://github.com/rmcolq/pandora/releases/tag/0.9.0-rc1
-[0.9.0-rc2]: https://github.com/rmcolq/pandora/releases/tag/0.9.0-rc2
+[Unreleased]: https://github.com/rmcolq/pandora/compare/0.9.1...HEAD
 [0.9.1]: https://github.com/rmcolq/pandora/releases/tag/0.9.1
+[0.9.0]: https://github.com/rmcolq/pandora/releases/tag/0.9.0
+[0.9.0-rc2]: https://github.com/rmcolq/pandora/releases/tag/0.9.0-rc2
+[0.9.0-rc1]: https://github.com/rmcolq/pandora/releases/tag/0.9.0-rc1
+[0.8.0]: https://github.com/rmcolq/pandora/releases/tag/0.8.0
 [183]: https://github.com/rmcolq/pandora/issues/183
 [213]: https://github.com/rmcolq/pandora/issues/213
 [220]: https://github.com/rmcolq/pandora/pull/220
@@ -133,6 +134,5 @@ their changes meticulously documented here.
 [234]: https://github.com/rmcolq/pandora/pull/234
 [249]: https://github.com/rmcolq/pandora/issues/249
 [265]: https://github.com/rmcolq/pandora/pull/265
-[Unreleased]: https://github.com/rmcolq/pandora/compare/0.9.1...HEAD
 [v0.7.0]: https://github.com/rmcolq/pandora/releases/tag/v0.7.0
 
