@@ -1242,7 +1242,10 @@ TEST(splitAmbiguous, noAmbiguous)
     const std::string s("ACGT");
 
     const auto actual(split_ambiguous(s));
-    const std::vector<std::string> expected { s };
+
+    const std::vector<std::string> expected_substrs { s };
+    const std::vector<std::size_t> expected_offsets { 0 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
 
     EXPECT_EQ(actual, expected);
 }
@@ -1252,7 +1255,11 @@ TEST(splitAmbiguous, emptySequence)
     const std::string s("");
 
     const auto actual(split_ambiguous(s));
-    const std::vector<std::string> expected;
+
+    const std::vector<std::string> expected_substrs;
+    const std::vector<std::size_t> expected_offsets;
+    const auto expected = make_pair(expected_substrs, expected_offsets);
+
 
     EXPECT_EQ(actual, expected);
 }
@@ -1262,7 +1269,11 @@ TEST(splitAmbiguous, allAmbiguous)
     const std::string s("NXDW");
 
     const auto actual(split_ambiguous(s));
-    const std::vector<std::string> expected;
+
+    const std::vector<std::string> expected_substrs;
+    const std::vector<std::size_t> expected_offsets;
+    const auto expected = make_pair(expected_substrs, expected_offsets);
+
 
     EXPECT_EQ(actual, expected);
 }
@@ -1272,7 +1283,10 @@ TEST(splitAmbiguous, firstLetterIsAmbiguous)
     const std::string s("NACGT");
 
     const auto actual(split_ambiguous(s));
-    const std::vector<std::string> expected { "ACGT" };
+
+    const std::vector<std::string> expected_substrs { "ACGT" };
+    const std::vector<std::size_t> expected_offsets { 1 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
 
     EXPECT_EQ(actual, expected);
 }
@@ -1282,7 +1296,10 @@ TEST(splitAmbiguous, firstTwoLettersAreAmbiguous)
     const std::string s("NWACGT");
 
     const auto actual(split_ambiguous(s));
-    const std::vector<std::string> expected { "ACGT" };
+
+    const std::vector<std::string> expected_substrs { "ACGT" };
+    const std::vector<std::size_t> expected_offsets { 2 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
 
     EXPECT_EQ(actual, expected);
 }
@@ -1292,7 +1309,10 @@ TEST(splitAmbiguous, lastLetterIsAmbiguous)
     const std::string s("ACGTN");
 
     const auto actual(split_ambiguous(s));
-    const std::vector<std::string> expected { "ACGT" };
+
+    const std::vector<std::string> expected_substrs { "ACGT" };
+    const std::vector<std::size_t> expected_offsets { 0 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
 
     EXPECT_EQ(actual, expected);
 }
@@ -1302,7 +1322,10 @@ TEST(splitAmbiguous, lastTwoLettersAreAmbiguous)
     const std::string s("ACGTNW");
 
     const auto actual(split_ambiguous(s));
-    const std::vector<std::string> expected { "ACGT" };
+
+    const std::vector<std::string> expected_substrs { "ACGT" };
+    const std::vector<std::size_t> expected_offsets { 0 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
 
     EXPECT_EQ(actual, expected);
 }
@@ -1312,7 +1335,10 @@ TEST(splitAmbiguous, ambiguousBaseInMiddle)
     const std::string s("ACNGT");
 
     const auto actual(split_ambiguous(s));
-    const std::vector<std::string> expected { "AC", "GT" };
+
+    const std::vector<std::string> expected_substrs { "AC", "GT" };
+    const std::vector<std::size_t> expected_offsets { 0, 3 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
 
     EXPECT_EQ(actual, expected);
 }
@@ -1322,7 +1348,10 @@ TEST(splitAmbiguous, ambiguousBaseOffCentre)
     const std::string s("AWCGT");
 
     const auto actual(split_ambiguous(s));
-    const std::vector<std::string> expected { "A", "CGT" };
+
+    const std::vector<std::string> expected_substrs { "A", "CGT" };
+    const std::vector<std::size_t> expected_offsets { 0, 2 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
 
     EXPECT_EQ(actual, expected);
 }
@@ -1332,7 +1361,10 @@ TEST(splitAmbiguous, twoAmbiguousInMiddle)
     const std::string s("AWXCGT");
 
     const auto actual(split_ambiguous(s));
-    const std::vector<std::string> expected { "A", "CGT" };
+
+    const std::vector<std::string> expected_substrs { "A", "CGT" };
+    const std::vector<std::size_t> expected_offsets { 0, 3 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
 
     EXPECT_EQ(actual, expected);
 }
@@ -1342,7 +1374,10 @@ TEST(splitAmbiguous, twoAmbiguousSpacedOut)
     const std::string s("AWCNGT");
 
     const auto actual(split_ambiguous(s));
-    const std::vector<std::string> expected { "A", "C", "GT" };
+
+    const std::vector<std::string> expected_substrs { "A", "C", "GT" };
+    const std::vector<std::size_t> expected_offsets { 0, 2, 4 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
 
     EXPECT_EQ(actual, expected);
 }
@@ -1352,7 +1387,11 @@ TEST(splitAmbiguous, twoAmbiguousSpacedOutRuns)
     const std::string s("AWXCNXGT");
 
     const auto actual(split_ambiguous(s));
-    const std::vector<std::string> expected { "A", "C", "GT" };
+
+    const std::vector<std::string> expected_substrs { "A", "C", "GT" };
+    const std::vector<std::size_t> expected_offsets { 0, 3, 6 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
+
 
     EXPECT_EQ(actual, expected);
 }

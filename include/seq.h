@@ -12,6 +12,7 @@ public:
     uint32_t id;
     std::string name;
     std::vector<std::string> seq;
+    std::vector<size_t> offsets;
     std::set<Minimizer> sketch;
 
     Seq(uint32_t, const std::string&, const std::string&, uint32_t, uint32_t);
@@ -30,11 +31,16 @@ public:
 
     void add_new_smallest_minimizer(std::vector<Minimizer>&, uint64_t&);
 
-    void minimizer_sketch(const uint32_t w, const uint32_t k);
-
     uint64_t length() const;
 
     friend std::ostream& operator<<(std::ostream& out, const Seq& data);
+
+    void minimizer_sketch(const uint32_t w, const uint32_t k);
+
+private:
+    void minimizer_sketch(const std::string &s, const size_t seq_offset,
+        const uint32_t w, const uint32_t k);
+
 };
 
 #endif

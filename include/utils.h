@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <string>
 #include <limits>
+#include <utility>
 #include <boost/filesystem/path.hpp>
 #include "minihits.h"
 #include "pangenome/ns.cpp"
@@ -131,6 +132,6 @@ std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
 
 std::string remove_spaces_from_string(const std::string& str);
 
-std::vector<std::string> split_ambiguous(const std::string& s, uint8_t delim = 4);
+std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const std::string& s, uint8_t delim = 4);
 
 #endif

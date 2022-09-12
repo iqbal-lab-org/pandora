@@ -15,7 +15,9 @@ Seq::Seq(uint32_t i, const std::string& n, const std::string& p, uint32_t w, uin
     : id(i)
     , name(n)
 {
-    seq = split_ambiguous(p);
+    auto seqs_and_offsets = split_ambiguous(p);
+    seq = seqs_and_offsets.first;
+    offsets = seqs_and_offsets.second;
     minimizer_sketch(w, k);
 }
 
@@ -26,7 +28,9 @@ void Seq::initialize(
 {
     id = i;
     name = n;
-    seq = split_ambiguous(p);
+    auto seqs_and_offsets = split_ambiguous(p);
+    seq = seqs_and_offsets.first;
+    offsets = seqs_and_offsets.second;
     sketch.clear();
     minimizer_sketch(w, k);
 }
@@ -95,7 +99,14 @@ void Seq::add_new_smallest_minimizer(vector<Minimizer>& window, uint64_t& smalle
     window.clear();
 }
 
-void Seq::minimizer_sketch(const uint32_t w, const uint32_t k)
+void Seq::minimizer_sketch(const uint32_t w, const uint32_t k) {
+    for (size_t i = 0; i < seq.size(); ++i) {
+        minimizer_sketch(seq[i], offsets[i], w, k);
+    }
+}
+
+void Seq::minimizer_sketch(const std::string &s, const size_t seq_offset,
+    const uint32_t w, const uint32_t k)
 {
     // initializations
     uint64_t shift1 = 2 * (k - 1), mask = (1ULL << 2 * k) - 1,
@@ -105,39 +116,37 @@ void Seq::minimizer_sketch(const uint32_t w, const uint32_t k)
     vector<Minimizer> window; // will store all k-mers as Minimizer in the window
     window.reserve(w);
 
-    for (auto &s : seq) {
-        const bool sequence_too_short_to_sketch = s.length() + 1 < w + k;
-        if (sequence_too_short_to_sketch)
-            continue;
+    const bool sequence_too_short_to_sketch = s.length() + 1 < w + k;
+    if (sequence_too_short_to_sketch)
+        return;
 
-        for (const char letter : s) {
-            const bool added = add_letter_to_get_next_kmer(letter, shift1, mask, buff,
-                kmer,
-                kh); // add the next base and remove the first one to get the next kmer
-            if (not added)
-                return;
+    for (const char letter : s) {
+        const bool added = add_letter_to_get_next_kmer(letter, shift1, mask, buff,
+            kmer,
+            kh); // add the next base and remove the first one to get the next kmer
+        if (not added)
+            return;
 
-            if (buff >= k) {
-                window.push_back(Minimizer(
-                    std::min(kh[0], kh[1]), buff - k, buff, (kh[0] <= kh[1])));
-            }
+        if (buff >= k) {
+            window.push_back(Minimizer(
+                std::min(kh[0], kh[1]), buff - k + seq_offset, buff + seq_offset, (kh[0] <= kh[1])));
+        }
 
-            if (window.size() == w) {
-                minimize_window(window,
-                    smallest); // finds the minimizer in the window, add the minimizer to the sketch set and erase everything until the minimizer
-            } else if (buff >= w + k
-                and window.back().canonical_kmer_hash <= smallest) {
-                add_new_smallest_minimizer(window,
-                    smallest); // add the last element of the window (a Minimizer) to the sketch, update the smallest and clear the window
-            }
+        if (window.size() == w) {
+            minimize_window(window,
+                smallest); // finds the minimizer in the window, add the minimizer to the sketch set and erase everything until the minimizer
+        } else if (buff >= w + k
+            and window.back().canonical_kmer_hash <= smallest) {
+            add_new_smallest_minimizer(window,
+                smallest); // add the last element of the window (a Minimizer) to the sketch, update the smallest and clear the window
+        }
 
-            const bool window_has_shortened = window.size() < w;
-            if (!window_has_shortened) {
-                fatal_error(
-                    "Error when sketching sequence: a minimizer should have been added "
-                    "and windows should have size < ",
-                    w, " (is ", window.size(), ")");
-            }
+        const bool window_has_shortened = window.size() < w;
+        if (!window_has_shortened) {
+            fatal_error(
+                "Error when sketching sequence: a minimizer should have been added "
+                "and windows should have size < ",
+                w, " (is ", window.size(), ")");
         }
     }
 }
@@ -151,7 +160,7 @@ std::ostream& operator<<(std::ostream& out, Seq const& data)
 uint64_t Seq::length() const
 {
     uint64_t l{0};
-    for (auto &s: seq) {
+    for (const auto &s: seq) {
         l += s.length();
     }
     return l;

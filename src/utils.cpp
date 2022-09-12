@@ -635,9 +635,10 @@ std::string remove_spaces_from_string(const std::string& str)
     return to_return;
 }
 
-std::vector<std::string> split_ambiguous(const std::string& s, uint8_t delim)
+std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const std::string& s, uint8_t delim)
 {
-    std::vector<std::string> elems;
+    std::vector<std::string> substrs;
+    std::vector<size_t> offsets;
     auto start { 0 };
     auto i { 0 };
     auto l { 0 };
@@ -645,7 +646,8 @@ std::vector<std::string> split_ambiguous(const std::string& s, uint8_t delim)
         uint32_t c = nt4((uint8_t)ch);
         if (c == delim) {
             if (l > 0) {
-                elems.emplace_back(s.substr(start, l));
+                substrs.emplace_back(s.substr(start, l));
+                offsets.emplace_back(start);
             }
             start = i + 1;
             l = 0;
@@ -655,7 +657,8 @@ std::vector<std::string> split_ambiguous(const std::string& s, uint8_t delim)
         ++i;
     }
     if (l > 0) {
-        elems.emplace_back(s.substr(start, l));
+        substrs.emplace_back(s.substr(start, l));
+        offsets.emplace_back(start);
     }
-    return elems;
+    return std::make_pair(substrs, offsets);
 }
