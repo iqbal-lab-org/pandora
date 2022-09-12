@@ -97,18 +97,18 @@ void Seq::add_new_smallest_minimizer(vector<Minimizer>& window, uint64_t& smalle
 
 void Seq::minimizer_sketch(const uint32_t w, const uint32_t k)
 {
+    // initializations
+    uint64_t shift1 = 2 * (k - 1), mask = (1ULL << 2 * k) - 1,
+        smallest = std::numeric_limits<uint64_t>::max(), kmer[2] = { 0, 0 },
+        kh[2] = { 0, 0 };
+    uint32_t buff = 0;
+    vector<Minimizer> window; // will store all k-mers as Minimizer in the window
+    window.reserve(w);
+
     for (auto &s : seq) {
         const bool sequence_too_short_to_sketch = s.length() + 1 < w + k;
         if (sequence_too_short_to_sketch)
-            return;
-
-        // initializations
-        uint64_t shift1 = 2 * (k - 1), mask = (1ULL << 2 * k) - 1,
-                 smallest = std::numeric_limits<uint64_t>::max(), kmer[2] = { 0, 0 },
-                 kh[2] = { 0, 0 };
-        uint32_t buff = 0;
-        vector<Minimizer> window; // will store all k-mers as Minimizer in the window
-        window.reserve(w);
+            continue;
 
         for (const char letter : s) {
             const bool added = add_letter_to_get_next_kmer(letter, shift1, mask, buff,

@@ -96,6 +96,25 @@ TEST(SeqTest, sketchIncludesEveryLetter)
     }
 }
 
+TEST(SeqTest, sketchSkipsAmbiguousBaseAtStart)
+{
+    const string seq = "NGCTAATGTGTT";
+    const auto w { 1 };
+    const auto k { 3 };
+    Seq s1(0, "0", seq, w, k);
+
+    set<int> pos_exclude { 0 };
+    set<int> pos_include {};
+    for (auto it = s1.sketch.begin(); it != s1.sketch.end(); ++it) {
+        for (uint32_t j = (*it).pos_of_kmer_in_read.start;
+             j < (*it).pos_of_kmer_in_read.get_end(); ++j) {
+            EXPECT_TRUE(pos_exclude.find(j) == pos_exclude.end()) << (*it);
+            pos_include.insert(j);
+        }
+    }
+    EXPECT_EQ(pos_include.size(), seq.length() - 1);
+}
+
 TEST(SeqTest, lengthNoAmbiguous)
 {
     const std::string s { "AGCTAATGCGTT" };
@@ -120,21 +139,3 @@ TEST(SeqTest, lengthTwoAmbiguous)
     EXPECT_EQ(seq.length(), s.length() - 2);
 }
 
-TEST(SeqTest, sketchSkipsAmbiguousBaseAtStart)
-{
-    const string seq = "NGCTAATGTGTT";
-    const auto w { 1 };
-    const auto k { 3 };
-    Seq s1(0, "0", seq, w, k);
-
-    set<int> pos_exclude { 0 };
-    set<int> pos_include {};
-    for (auto it = s1.sketch.begin(); it != s1.sketch.end(); ++it) {
-        for (uint32_t j = (*it).pos_of_kmer_in_read.start;
-             j < (*it).pos_of_kmer_in_read.get_end(); ++j) {
-            EXPECT_TRUE(pos_exclude.find(j) == pos_exclude.end()) << (*it);
-            pos_include.insert(j);
-        }
-    }
-    EXPECT_EQ(pos_include.size(), seq.length() - 1);
-}
