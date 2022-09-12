@@ -11,7 +11,7 @@ class Seq {
 public:
     uint32_t id;
     std::string name;
-    std::string seq;
+    std::vector<std::string> seq;
     std::set<Minimizer> sketch;
 
     Seq(uint32_t, const std::string&, const std::string&, uint32_t, uint32_t);
@@ -31,6 +31,8 @@ public:
     void add_new_smallest_minimizer(std::vector<Minimizer>&, uint64_t&);
 
     void minimizer_sketch(const uint32_t w, const uint32_t k);
+
+    uint64_t length() const;
 
     friend std::ostream& operator<<(std::ostream& out, const Seq& data);
 };

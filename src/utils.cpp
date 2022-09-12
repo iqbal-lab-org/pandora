@@ -1,4 +1,3 @@
-#include <cstring>
 #include <iomanip>
 #include <unordered_map>
 #include <vector>
@@ -466,7 +465,7 @@ uint32_t pangraph_from_read_file(const std::string& filepath,
                             coverageExceeded = true;
                         } else {
                             // no other thread still signalized exceeding max coverage
-                            covg += sequence.seq.length();
+                            covg += sequence.length();
                             if (covg / genome_size > max_covg) {
                                 // oops, we are the first one to see max_covg being
                                 // exceeded, print and exit!
@@ -484,8 +483,8 @@ uint32_t pangraph_from_read_file(const std::string& filepath,
                     continue;
                 }
 
-                const auto expected_number_kmers_in_read_sketch { sequence.seq.length()
-                    * 2 / (w + 1) };
+                const auto expected_number_kmers_in_read_sketch { sequence.length() * 2
+                    / (w + 1) };
 
                 // get the minizer hits
                 auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
@@ -594,7 +593,8 @@ std::string transform_cli_gsize(std::string str)
 std::string make_absolute(std::string str) { return fs::absolute(str).string(); }
 
 std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
-        const fs::path &read_index_fpath) {
+    const fs::path& read_index_fpath)
+{
     std::map<SampleIdText, SampleFpath> samples;
     std::string name, line;
     fs::ifstream instream(read_index_fpath);
@@ -606,8 +606,8 @@ std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
         if (std::getline(linestream, name, '\t')) {
             if (samples.find(name) != samples.end()) {
                 BOOST_LOG_TRIVIAL(warning)
-                        << "Warning: non-unique sample ids given! Only the last "
-                           "of these will be kept";
+                    << "Warning: non-unique sample ids given! Only the last "
+                       "of these will be kept";
             }
             std::string reads_path;
             linestream >> reads_path;
@@ -620,7 +620,7 @@ std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
     BOOST_LOG_TRIVIAL(info) << "Finished loading " << samples.size()
                             << " samples from read index";
     return std::vector<std::pair<SampleIdText, SampleFpath>>(
-            samples.begin(), samples.end());
+        samples.begin(), samples.end());
 }
 
 std::string remove_spaces_from_string(const std::string& str)
@@ -633,4 +633,29 @@ std::string remove_spaces_from_string(const std::string& str)
         }
     }
     return to_return;
+}
+
+std::vector<std::string> split_ambiguous(const std::string& s, uint8_t delim)
+{
+    std::vector<std::string> elems;
+    auto start { 0 };
+    auto i { 0 };
+    auto l { 0 };
+    for (auto& ch : s) {
+        uint32_t c = nt4((uint8_t)ch);
+        if (c == delim) {
+            if (l > 0) {
+                elems.emplace_back(s.substr(start, l));
+            }
+            start = i + 1;
+            l = 0;
+        } else {
+            ++l;
+        }
+        ++i;
+    }
+    if (l > 0) {
+        elems.emplace_back(s.substr(start, l));
+    }
+    return elems;
 }

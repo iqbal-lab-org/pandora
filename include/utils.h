@@ -14,6 +14,7 @@
 #include <boost/log/trivial.hpp>
 #include <sstream>
 #include "fatal_error.h"
+#include "inthash.h"
 
 namespace fs = boost::filesystem;
 
@@ -129,5 +130,7 @@ std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
     const fs::path& read_index_fpath);
 
 std::string remove_spaces_from_string(const std::string& str);
+
+std::vector<std::string> split_ambiguous(const std::string& s, uint8_t delim = 4);
 
 #endif

@@ -14,8 +14,8 @@ using std::vector;
 Seq::Seq(uint32_t i, const std::string& n, const std::string& p, uint32_t w, uint32_t k)
     : id(i)
     , name(n)
-    , seq(p)
 {
+    seq = split_ambiguous(p);
     minimizer_sketch(w, k);
 }
 
@@ -26,7 +26,7 @@ void Seq::initialize(
 {
     id = i;
     name = n;
-    seq = p;
+    seq = split_ambiguous(p);
     sketch.clear();
     minimizer_sketch(w, k);
 }
@@ -97,45 +97,47 @@ void Seq::add_new_smallest_minimizer(vector<Minimizer>& window, uint64_t& smalle
 
 void Seq::minimizer_sketch(const uint32_t w, const uint32_t k)
 {
-    const bool sequence_too_short_to_sketch = seq.length() + 1 < w + k;
-    if (sequence_too_short_to_sketch)
-        return;
-
-    // initializations
-    uint64_t shift1 = 2 * (k - 1), mask = (1ULL << 2 * k) - 1,
-             smallest = std::numeric_limits<uint64_t>::max(), kmer[2] = { 0, 0 },
-             kh[2] = { 0, 0 };
-    uint32_t buff = 0;
-    vector<Minimizer> window; // will store all k-mers as Minimizer in the window
-    window.reserve(w);
-
-    for (const char letter : seq) {
-        const bool added = add_letter_to_get_next_kmer(letter, shift1, mask, buff, kmer,
-            kh); // add the next base and remove the first one to get the next kmer
-        if (not added)
+    for (auto &s : seq) {
+        const bool sequence_too_short_to_sketch = s.length() + 1 < w + k;
+        if (sequence_too_short_to_sketch)
             return;
 
-        if (buff >= k) {
-            window.push_back(
-                Minimizer(std::min(kh[0], kh[1]), buff - k, buff, (kh[0] <= kh[1])));
-        }
+        // initializations
+        uint64_t shift1 = 2 * (k - 1), mask = (1ULL << 2 * k) - 1,
+                 smallest = std::numeric_limits<uint64_t>::max(), kmer[2] = { 0, 0 },
+                 kh[2] = { 0, 0 };
+        uint32_t buff = 0;
+        vector<Minimizer> window; // will store all k-mers as Minimizer in the window
+        window.reserve(w);
 
-        if (window.size() == w) {
-            minimize_window(window,
-                smallest); // finds the minimizer in the window, add the minimizer to
-                           // the sketch set and erase everything until the minimizer
-        } else if (buff >= w + k and window.back().canonical_kmer_hash <= smallest) {
-            add_new_smallest_minimizer(window,
-                smallest); // add the last element of the window (a Minimizer) to the
-                           // sketch, update the smallest and clear the window
-        }
+        for (const char letter : s) {
+            const bool added = add_letter_to_get_next_kmer(letter, shift1, mask, buff,
+                kmer,
+                kh); // add the next base and remove the first one to get the next kmer
+            if (not added)
+                return;
 
-        const bool window_has_shortened = window.size() < w;
-        if (!window_has_shortened) {
-            fatal_error(
-                "Error when sketching sequence: a minimizer should have been added "
-                "and windows should have size < ",
-                w, " (is ", window.size(), ")");
+            if (buff >= k) {
+                window.push_back(Minimizer(
+                    std::min(kh[0], kh[1]), buff - k, buff, (kh[0] <= kh[1])));
+            }
+
+            if (window.size() == w) {
+                minimize_window(window,
+                    smallest); // finds the minimizer in the window, add the minimizer to the sketch set and erase everything until the minimizer
+            } else if (buff >= w + k
+                and window.back().canonical_kmer_hash <= smallest) {
+                add_new_smallest_minimizer(window,
+                    smallest); // add the last element of the window (a Minimizer) to the sketch, update the smallest and clear the window
+            }
+
+            const bool window_has_shortened = window.size() < w;
+            if (!window_has_shortened) {
+                fatal_error(
+                    "Error when sketching sequence: a minimizer should have been added "
+                    "and windows should have size < ",
+                    w, " (is ", window.size(), ")");
+            }
         }
     }
 }
@@ -144,4 +146,13 @@ std::ostream& operator<<(std::ostream& out, Seq const& data)
 {
     out << data.name;
     return out;
+}
+
+uint64_t Seq::length() const
+{
+    uint64_t l{0};
+    for (auto &s: seq) {
+        l += s.length();
+    }
+    return l;
 }

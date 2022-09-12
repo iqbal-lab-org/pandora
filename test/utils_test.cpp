@@ -1206,13 +1206,13 @@ TEST(load_read_index, read_index_has_three_samples)
 
 TEST(load_read_index, read_index_has_three_samples_and_no_empty_line_at_end)
 {
-    std::vector<std::pair<SampleIdText, SampleFpath>> actual
-            = load_read_index(fs::path("../../test/test_cases/sample_read_index_no_empty_line_at_end.tsv"));
+    std::vector<std::pair<SampleIdText, SampleFpath>> actual = load_read_index(
+        fs::path("../../test/test_cases/sample_read_index_no_empty_line_at_end.tsv"));
     std::vector<std::pair<SampleIdText, SampleFpath>> expected { {
-                                                                         std::make_pair("sample_1", "reads_1.fastq"),
-                                                                         std::make_pair("sample_2", "reads_2.fastq"),
-                                                                         std::make_pair("sample_3", "reads_3.fastq"),
-                                                                 } };
+        std::make_pair("sample_1", "reads_1.fastq"),
+        std::make_pair("sample_2", "reads_2.fastq"),
+        std::make_pair("sample_3", "reads_3.fastq"),
+    } };
 
     EXPECT_EQ(actual, expected);
 }
@@ -1232,7 +1232,127 @@ TEST(load_read_index, read_index_has_three_samples_and_two_are_repeated)
 
 TEST(load_read_index, read_index_has_missing_column)
 {
-    ASSERT_EXCEPTION(load_read_index(fs::path("../../test/test_cases/malformatted_read_index.tsv")),
-                     FatalRuntimeError, "Malformatted read index file entry for sample_3");
+    ASSERT_EXCEPTION(
+        load_read_index(fs::path("../../test/test_cases/malformatted_read_index.tsv")),
+        FatalRuntimeError, "Malformatted read index file entry for sample_3");
 }
 
+TEST(splitAmbiguous, noAmbiguous)
+{
+    const std::string s("ACGT");
+
+    const auto actual(split_ambiguous(s));
+    const std::vector<std::string> expected { s };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, emptySequence)
+{
+    const std::string s("");
+
+    const auto actual(split_ambiguous(s));
+    const std::vector<std::string> expected;
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, allAmbiguous)
+{
+    const std::string s("NXDW");
+
+    const auto actual(split_ambiguous(s));
+    const std::vector<std::string> expected;
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, firstLetterIsAmbiguous)
+{
+    const std::string s("NACGT");
+
+    const auto actual(split_ambiguous(s));
+    const std::vector<std::string> expected { "ACGT" };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, firstTwoLettersAreAmbiguous)
+{
+    const std::string s("NWACGT");
+
+    const auto actual(split_ambiguous(s));
+    const std::vector<std::string> expected { "ACGT" };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, lastLetterIsAmbiguous)
+{
+    const std::string s("ACGTN");
+
+    const auto actual(split_ambiguous(s));
+    const std::vector<std::string> expected { "ACGT" };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, lastTwoLettersAreAmbiguous)
+{
+    const std::string s("ACGTNW");
+
+    const auto actual(split_ambiguous(s));
+    const std::vector<std::string> expected { "ACGT" };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, ambiguousBaseInMiddle)
+{
+    const std::string s("ACNGT");
+
+    const auto actual(split_ambiguous(s));
+    const std::vector<std::string> expected { "AC", "GT" };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, ambiguousBaseOffCentre)
+{
+    const std::string s("AWCGT");
+
+    const auto actual(split_ambiguous(s));
+    const std::vector<std::string> expected { "A", "CGT" };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, twoAmbiguousInMiddle)
+{
+    const std::string s("AWXCGT");
+
+    const auto actual(split_ambiguous(s));
+    const std::vector<std::string> expected { "A", "CGT" };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, twoAmbiguousSpacedOut)
+{
+    const std::string s("AWCNGT");
+
+    const auto actual(split_ambiguous(s));
+    const std::vector<std::string> expected { "A", "C", "GT" };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, twoAmbiguousSpacedOutRuns)
+{
+    const std::string s("AWXCNXGT");
+
+    const auto actual(split_ambiguous(s));
+    const std::vector<std::string> expected { "A", "C", "GT" };
+
+    EXPECT_EQ(actual, expected);
+}
