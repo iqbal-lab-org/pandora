@@ -14,6 +14,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixed
 
 - More robust TSV file parsing. Empty line no longer required at end [[#213][213]]
+- Handle ambiguous bases properly instead of skipping to next readonce we reach one [[#294][294]]
 
 ## [0.9.1]
 
@@ -134,5 +135,6 @@ their changes meticulously documented here.
 [234]: https://github.com/rmcolq/pandora/pull/234
 [249]: https://github.com/rmcolq/pandora/issues/249
 [265]: https://github.com/rmcolq/pandora/pull/265
+[294]: https://github.com/rmcolq/pandora/issues/294
 [v0.7.0]: https://github.com/rmcolq/pandora/releases/tag/v0.7.0
 
