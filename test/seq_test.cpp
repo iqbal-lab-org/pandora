@@ -3,6 +3,7 @@
 #include "interval.h"
 #include <cstdint>
 #include <iostream>
+#include <numeric>
 
 using namespace std;
 
@@ -169,7 +170,7 @@ TEST(SeqTest, sketchSkipsAmbiguousBaseTwoInMiddle)
             pos_include.insert(j);
         }
     }
-    EXPECT_EQ(pos_include.size(), seq.length() - 4);
+    EXPECT_EQ(pos_include.size(), seq.length() - pos_exclude.size());
 }
 
 TEST(SeqTest, sketchSkipsAmbiguousNoStretchesOfK)
@@ -187,6 +188,25 @@ TEST(SeqTest, sketchSkipsAmbiguousNoStretchesOfK)
         }
     }
     EXPECT_TRUE(pos_include.empty());
+}
+
+TEST(SeqTest, sketchSkipsAmbiguousWindowDropsAmbiguous)
+{
+    const string seq = "AACTCGCGCGCGCCGAGCTGACCGACATNNNNCGGCTCACCGGCGAGATCAACACCCTGGCCCAGC";
+    const auto w { 14 };
+    const auto k { 15 };
+    Seq s1(0, "0", seq, w, k);
+
+    std::set<int> pos_exclude{28, 29, 30, 31};
+    set<int> pos_include {};
+    for (auto it = s1.sketch.begin(); it != s1.sketch.end(); ++it) {
+        for (uint32_t j = (*it).pos_of_kmer_in_read.start;
+             j < (*it).pos_of_kmer_in_read.get_end(); ++j) {
+            EXPECT_TRUE(pos_exclude.find(j) == pos_exclude.end()) << (*it).pos_of_kmer_in_read;
+            pos_include.insert(j);
+        }
+    }
+    EXPECT_EQ(s1.sketch.size(), 5);  // is 8 total, but there are some duplicates that the set removes
 }
 
 TEST(SeqTest, lengthNoAmbiguous)
