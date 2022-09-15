@@ -14,7 +14,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixed
 
 - More robust TSV file parsing. Empty line no longer required at end [[#213][213]]
-- Handle ambiguous bases properly instead of skipping to next readonce we reach one [[#294][294]]
+- Handle ambiguous bases properly instead of skipping to next read once we reach one [[#294][294]]
 
 ## [0.9.1]
 
