@@ -16,7 +16,7 @@ Seq::Seq(uint32_t i, const std::string& n, const std::string& p, uint32_t w, uin
     , name(n)
 {
     auto seqs_and_offsets = split_ambiguous(p);
-    seq = seqs_and_offsets.first;
+    subseqs = seqs_and_offsets.first;
     offsets = seqs_and_offsets.second;
     minimizer_sketch(w, k);
 }
@@ -29,7 +29,7 @@ void Seq::initialize(
     id = i;
     name = n;
     auto seqs_and_offsets = split_ambiguous(p);
-    seq = seqs_and_offsets.first;
+    subseqs = seqs_and_offsets.first;
     offsets = seqs_and_offsets.second;
     sketch.clear();
     minimizer_sketch(w, k);
@@ -100,8 +100,8 @@ void Seq::add_new_smallest_minimizer(vector<Minimizer>& window, uint64_t& smalle
 }
 
 void Seq::minimizer_sketch(const uint32_t w, const uint32_t k) {
-    for (size_t i = 0; i < seq.size(); ++i) {
-        minimizer_sketch(seq[i], offsets[i], w, k);
+    for (size_t i = 0; i < subseqs.size(); ++i) {
+        minimizer_sketch(subseqs[i], offsets[i], w, k);
     }
 }
 
@@ -160,7 +160,7 @@ std::ostream& operator<<(std::ostream& out, Seq const& data)
 uint64_t Seq::length() const
 {
     uint64_t l{0};
-    for (const auto &s: seq) {
+    for (const auto &s: subseqs) {
         l += s.length();
     }
     return l;

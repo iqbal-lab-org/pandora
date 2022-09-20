@@ -13,7 +13,7 @@ TEST(SeqTest, create)
     EXPECT_EQ((uint)0, s1.id);
     EXPECT_EQ("0", s1.name);
     const std::vector<std::string> expected_seq { "AGCTAATGCGTT" };
-    EXPECT_EQ(expected_seq, s1.seq);
+    EXPECT_EQ(expected_seq, s1.subseqs);
 }
 
 TEST(SeqTest, initialize)
@@ -23,7 +23,7 @@ TEST(SeqTest, initialize)
     EXPECT_EQ((uint)1, s1.id);
     EXPECT_EQ("new", s1.name);
     const std::vector<std::string> expected_seq { "AGCTAATGCATA" };
-    EXPECT_EQ(expected_seq, s1.seq);
+    EXPECT_EQ(expected_seq, s1.subseqs);
 }
 
 TEST(SeqTest, sketchShortReads)

@@ -11,9 +11,12 @@ class Seq {
 public:
     uint32_t id;
     std::string name;
-    std::vector<std::string> seq;
-    std::vector<size_t> offsets;
     std::set<Minimizer> sketch;
+
+    // the original sequence is split into several valid subsequences (composed of ACGT only)
+    std::vector<std::string> subseqs;  // these are the subsequences themselves
+    std::vector<size_t> offsets;  // these are the subsequences offsets on the original string
+
 
     Seq(uint32_t, const std::string&, const std::string&, uint32_t, uint32_t);
 
