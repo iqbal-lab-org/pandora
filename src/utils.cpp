@@ -8,7 +8,6 @@
 #include <ctime>
 #include <algorithm>
 #include <boost/filesystem.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 #include "utils.h"
 #include "seq.h"
@@ -636,60 +635,30 @@ std::string remove_spaces_from_string(const std::string& str)
     return to_return;
 }
 
-template<class UnaryPredicate >
-std::list<std::vector<uint32_t>> split_on_predicate(std::vector<uint32_t> &original, UnaryPredicate predicate) {
-    std::list<std::vector<uint32_t>> split;
-    boost::split(split, original, predicate, boost::algorithm::token_compress_on);
-    auto remove_index = std::remove_if(split.begin(), split.end(),
-        [](const std::vector<uint32_t> &hashed_substr) { return hashed_substr.empty(); } );
-    split.erase(remove_index, split.end());
-    return split;
-}
-
 std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const std::string& s, uint8_t delim)
 {
-    // encode the input string
-    std::vector<uint32_t> hashed_string(s.size());
-    std::transform(s.begin(), s.end(), hashed_string.begin(), nt4);
-
-    // get the runs of valid and ambiguous bases
-    std::list<std::vector<uint32_t>> valid_substrs = split_on_predicate(hashed_string,
-        [delim](uint8_t c){ return c == delim; });
-    std::list<std::vector<uint32_t>> ambiguous_substrs = split_on_predicate(hashed_string,
-        [delim](uint8_t c){ return c != delim; });
-
-    // edge case: no valid bases found
-    const bool no_valid_bases = valid_substrs.empty();
-    if (no_valid_bases) {
-        return std::make_pair(std::vector<std::string>(), std::vector<size_t>());
+    std::vector<std::string> substrs;
+    std::vector<size_t> offsets;
+    auto start { 0 };
+    auto i { 0 };
+    auto l { 0 };
+    for (auto& ch : s) {
+        uint32_t c = nt4((uint8_t)ch);
+        if (c == delim) {
+            if (l > 0) {
+                substrs.emplace_back(s.substr(start, l));
+                offsets.emplace_back(start);
+            }
+            start = i + 1;
+            l = 0;
+        } else {
+            ++l;
+        }
+        ++i;
     }
-
-    // decode valid_substrs
-    std::vector<std::string> decoded_valid_substrs(valid_substrs.size());
-    auto decoded_valid_substrs_it = decoded_valid_substrs.begin();
-    for (auto valid_substrs_it = valid_substrs.begin(); valid_substrs_it != valid_substrs.end(); ++valid_substrs_it, ++decoded_valid_substrs_it) {
-        decoded_valid_substrs_it->append("*", valid_substrs_it->size());
-        std::transform(valid_substrs_it->begin(), valid_substrs_it->end(), decoded_valid_substrs_it->begin(),
-            [](const uint32_t coded_base) { return "ACGT"[coded_base]; });
+    if (l > 0) {
+        substrs.emplace_back(s.substr(start, l));
+        offsets.emplace_back(start);
     }
-
-    // compute offsets
-    const bool first_run_is_ambiguous = hashed_string[0] == delim;
-    size_t first_offset = 0;
-    if (first_run_is_ambiguous) {
-        // edge case: sequence starts with ambiguous bases
-        first_offset = ambiguous_substrs.front().size();
-        ambiguous_substrs.pop_front();
-    }
-    std::vector<size_t> offsets{first_offset};
-
-    auto valid_substrs_it = valid_substrs.begin();
-    size_t previous_substr_len = valid_substrs_it->size();
-    for (++valid_substrs_it; valid_substrs_it != valid_substrs.end(); ++valid_substrs_it) {
-        offsets.push_back(offsets.back() + previous_substr_len + ambiguous_substrs.front().size());
-        ambiguous_substrs.pop_front();
-        previous_substr_len = valid_substrs_it->size();
-    }
-
-    return std::make_pair(decoded_valid_substrs, offsets);
+    return std::make_pair(substrs, offsets);
 }
