@@ -7,6 +7,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.9.2]
+
 ### Changed
 
 - The VCF INFO field `SVTYPE` has now been changed to `VC` [[#249][249]]
@@ -122,6 +124,7 @@ their changes meticulously documented here.
 - k-mer coverage underflow bug in `LocalPRG` [[#183][183]]
 
 [Unreleased]: https://github.com/rmcolq/pandora/compare/0.9.1...HEAD
+[0.9.2]: https://github.com/rmcolq/pandora/compare/0.9.2...0.9.1
 [0.9.1]: https://github.com/rmcolq/pandora/releases/tag/0.9.1
 [0.9.0]: https://github.com/rmcolq/pandora/releases/tag/0.9.0
 [0.9.0-rc2]: https://github.com/rmcolq/pandora/releases/tag/0.9.0-rc2
