@@ -132,6 +132,6 @@ std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
 
 std::string remove_spaces_from_string(const std::string& str);
 
-std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const std::string& s, uint8_t delim = 4);
+std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const std::string& input_string, uint8_t delim = 4);
 
 #endif
