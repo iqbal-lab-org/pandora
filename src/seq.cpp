@@ -35,24 +35,21 @@ void Seq::initialize(
     minimizer_sketch(w, k);
 }
 
-bool Seq::add_letter_to_get_next_kmer(const char& letter, const uint64_t& shift1,
+void Seq::add_letter_to_get_next_kmer(const char& letter, const uint64_t& shift1,
     const uint64_t& mask, uint32_t& buff, uint64_t (&kmer)[2], uint64_t (&kh)[2])
 {
     uint32_t c = nt4((uint8_t)letter);
-    if (c < 4) { // not an ambiguous base
-        kmer[0] = (kmer[0] << 2 | c) & mask; // forward k-mer
-        kmer[1] = (kmer[1] >> 2) | (3ULL ^ c) << shift1; // reverse k-mer
-        kh[0] = hash64(kmer[0], mask);
-        kh[1] = hash64(kmer[1], mask);
-        buff++;
-        return true;
-    } else {
-        BOOST_LOG_TRIVIAL(warning)
-            << now() << "bad letter - found a non AGCT base in read so skipping read "
-            << name;
-        sketch.clear();
-        return false;
+
+    const bool is_an_ambiguous_base = c >= 4;
+    if (is_an_ambiguous_base) {
+        fatal_error("Found an ambiguous base in Seq::add_letter_to_get_next_kmer()");
     }
+
+    kmer[0] = (kmer[0] << 2 | c) & mask; // forward k-mer
+    kmer[1] = (kmer[1] >> 2) | (3ULL ^ c) << shift1; // reverse k-mer
+    kh[0] = hash64(kmer[0], mask);
+    kh[1] = hash64(kmer[1], mask);
+    buff++;
 }
 
 uint64_t find_smallest_kmer_value(
@@ -121,11 +118,8 @@ void Seq::minimizer_sketch(const std::string &s, const size_t seq_offset,
         return;
 
     for (const char letter : s) {
-        const bool added = add_letter_to_get_next_kmer(letter, shift1, mask, buff,
-            kmer,
-            kh); // add the next base and remove the first one to get the next kmer
-        if (not added)
-            return;
+        // add the next base and remove the first one to get the next kmer
+        add_letter_to_get_next_kmer(letter, shift1, mask, buff,kmer,kh);
 
         if (buff >= k) {
             window.push_back(Minimizer(

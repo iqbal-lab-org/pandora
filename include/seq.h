@@ -25,7 +25,7 @@ public:
     void initialize(
         uint32_t, const std::string&, const std::string&, uint32_t, uint32_t);
 
-    bool add_letter_to_get_next_kmer(const char&, const uint64_t&, const uint64_t&,
+    void add_letter_to_get_next_kmer(const char&, const uint64_t&, const uint64_t&,
         uint32_t&, uint64_t (&)[2], uint64_t (&)[2]);
 
     void add_minimizing_kmers_to_sketch(const std::vector<Minimizer>&, const uint64_t&);
