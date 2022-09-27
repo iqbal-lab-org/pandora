@@ -1,5 +1,7 @@
 #include "vcf.h"
 
+const std::string VCF::VARIANT_CLASS_ID{"VC"};
+
 void VCF::add_record_core(const VCFRecord& vr)
 {
     records.push_back(std::make_shared<VCFRecord>(vr));
@@ -128,7 +130,7 @@ void VCF::add_a_new_record_discovered_in_a_sample_and_genotype_it(
             }
         } else {
             add_record(
-                chrom, pos, ref, alt, "SVTYPE=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
+                chrom, pos, ref, alt, VCF::VARIANT_CLASS_ID + "=COMPLEX", "GRAPHTYPE=TOO_MANY_ALTS");
             records.back()
                 ->sampleIndex_to_sampleInfo[sample_index]
                 .set_gt_from_max_likelihood_path(1);
@@ -437,18 +439,19 @@ std::vector<VCFRecord*> VCF::get_all_records_overlapping_the_given_record(
     return overlapping_records;
 }
 
-void VCF::save(const fs::path& filepath, bool genotyping_from_maximum_likelihood,
-    bool genotyping_from_coverage, bool output_dot_allele, bool graph_is_simple,
-    bool graph_is_nested, bool graph_has_too_many_alts, bool sv_type_is_snp,
-    bool sv_type_is_indel, bool sv_type_is_ph_snps, bool sv_type_is_complex)
-{
+void VCF::save(const fs::path &filepath, bool genotyping_from_maximum_likelihood,
+               bool genotyping_from_coverage, bool output_dot_allele, bool graph_is_simple,
+               bool graph_is_nested, bool graph_has_too_many_alts, bool variant_class_is_snp,
+               bool variant_class_is_indel, bool variant_class_is_ph_snps,
+               bool variant_class_is_complex) {
     BOOST_LOG_TRIVIAL(debug) << "Saving VCF to " << filepath;
     fs::ofstream handle;
     handle.open(filepath);
     handle << this->to_string(genotyping_from_maximum_likelihood,
-        genotyping_from_coverage, output_dot_allele, graph_is_simple, graph_is_nested,
-        graph_has_too_many_alts, sv_type_is_snp, sv_type_is_indel, sv_type_is_ph_snps,
-        sv_type_is_complex);
+                              genotyping_from_coverage, output_dot_allele, graph_is_simple, graph_is_nested,
+                              graph_has_too_many_alts, variant_class_is_snp, variant_class_is_indel,
+                              variant_class_is_ph_snps,
+                              variant_class_is_complex);
     handle.close();
     BOOST_LOG_TRIVIAL(debug) << "Finished saving " << this->records.size()
                              << " entries to file";
@@ -482,7 +485,7 @@ std::string VCF::header() const
     header += "##ALT=<ID=COMPLEX,Description=\"Complex variant, collection of SNPs and "
               "indels\">\n";
     header
-        += "##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of variant\">\n";
+        += "##INFO=<ID=" + VCF::VARIANT_CLASS_ID + ",Number=1,Type=String,Description=\"Type (class) of variant\">\n";
     header += "##ALT=<ID=SIMPLE,Description=\"Graph bubble is simple\">\n";
     header += "##ALT=<ID=NESTED,Description=\"Variation site was a nested feature in "
               "the graph\">\n";
@@ -521,16 +524,15 @@ std::string VCF::header() const
 }
 
 std::string VCF::to_string(bool genotyping_from_maximum_likelihood,
-    bool genotyping_from_coverage, bool output_dot_allele, bool graph_is_simple,
-    bool graph_is_nested, bool graph_has_too_many_alts, bool sv_type_is_snp,
-    bool sv_type_is_indel, bool sv_type_is_ph_snps, bool sv_type_is_complex)
-{
+                           bool genotyping_from_coverage, bool output_dot_allele, bool graph_is_simple,
+                           bool graph_is_nested, bool graph_has_too_many_alts, bool variant_class_is_snp,
+                           bool variant_class_is_indel, bool variant_class_is_ph_snps, bool variant_class_is_complex) {
     const bool only_one_flag_is_set
-        = ((int)(genotyping_from_maximum_likelihood) + (int)(genotyping_from_coverage))
-        == 1;
+            = ((int) (genotyping_from_maximum_likelihood) + (int) (genotyping_from_coverage))
+              == 1;
     if (!only_one_flag_is_set) {
         fatal_error(
-            "Error on stringifying VCF record: incompatible genotyping options");
+                "Error on stringifying VCF record: incompatible genotyping options");
     }
 
     std::stringstream out;
@@ -540,28 +542,28 @@ std::string VCF::to_string(bool genotyping_from_maximum_likelihood,
     // TODO: remove this side effect or always keep the VCF sorted
     sort_records();
 
-    for (const auto& record : this->records) {
+    for (const auto &record : this->records) {
         const bool record_has_dot_allele_and_should_be_output
-            = output_dot_allele and record->contains_dot_allele();
+                = output_dot_allele and record->contains_dot_allele();
 
         const bool graph_type_condition_is_satisfied
-            = (graph_is_simple and record->graph_type_is_simple())
-            or (graph_is_nested and record->graph_type_is_nested())
-            or (graph_has_too_many_alts and record->graph_type_has_too_many_alts());
-        const bool sv_type_condition_is_satisfied
-            = (sv_type_is_snp and record->svtype_is_SNP())
-            or (sv_type_is_indel and record->svtype_is_indel())
-            or (sv_type_is_ph_snps and record->svtype_is_PH_SNPs())
-            or (sv_type_is_complex and record->svtype_is_complex());
-        const bool graph_and_sv_type_conditions_are_satisfied
-            = graph_type_condition_is_satisfied and sv_type_condition_is_satisfied;
+                = (graph_is_simple and record->graph_type_is_simple())
+                  or (graph_is_nested and record->graph_type_is_nested())
+                  or (graph_has_too_many_alts and record->graph_type_has_too_many_alts());
+        const bool variant_class_condition_is_satisfied
+                = (variant_class_is_snp and record->variant_class_is_snp())
+                  or (variant_class_is_indel and record->variant_class_is_indel())
+                  or (variant_class_is_ph_snps and record->variant_class_is_phased_snps())
+                  or (variant_class_is_complex and record->variant_class_is_complex());
+        const bool graph_and_variant_class_conditions_are_satisfied
+                = graph_type_condition_is_satisfied and variant_class_condition_is_satisfied;
 
         const bool record_should_be_output = record_has_dot_allele_and_should_be_output
-            or graph_and_sv_type_conditions_are_satisfied;
+                                             or graph_and_variant_class_conditions_are_satisfied;
 
         if (record_should_be_output) {
             out << record->to_string(
-                genotyping_from_maximum_likelihood, genotyping_from_coverage)
+                    genotyping_from_maximum_likelihood, genotyping_from_coverage)
                 << std::endl;
         }
     }

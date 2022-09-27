@@ -1148,7 +1148,7 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ((uint)1, vcf.get_records()[0]->get_pos());
     EXPECT_EQ("GC", vcf.get_records()[0]->get_ref());
     EXPECT_EQ("G", vcf.get_records()[0]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.get_records()[0]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=INDEL;GRAPHTYPE=SIMPLE", vcf.get_records()[0]->info);
 
     vcf = create_VCF_with_default_parameters();
     vector<LocalNodePtr> lmp = { l2.prg.nodes[0], l2.prg.nodes[2], l2.prg.nodes[3] };
@@ -1159,7 +1159,7 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ((uint)1, vcf.get_records()[0]->get_pos());
     EXPECT_EQ("G", vcf.get_records()[0]->get_ref());
     EXPECT_EQ("GC", vcf.get_records()[0]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.get_records()[0]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=INDEL;GRAPHTYPE=SIMPLE", vcf.get_records()[0]->info);
 
     vcf = create_VCF_with_default_parameters();
     l3.build_vcf_from_reference_path(vcf, l3.prg.top_path());
@@ -1170,11 +1170,11 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ((uint)1, vcf.get_records()[0]->get_pos());
     EXPECT_EQ("GC", vcf.get_records()[0]->get_ref());
     EXPECT_EQ("G", vcf.get_records()[0]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=NESTED", vcf.get_records()[0]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=INDEL;GRAPHTYPE=NESTED", vcf.get_records()[0]->info);
     EXPECT_EQ((uint)2, vcf.get_records()[1]->get_pos());
     EXPECT_EQ("C", vcf.get_records()[1]->get_ref());
     EXPECT_EQ("T", vcf.get_records()[1]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=NESTED", vcf.get_records()[1]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=SNP;GRAPHTYPE=NESTED", vcf.get_records()[1]->info);
 
     vcf = create_VCF_with_default_parameters();
     ;
@@ -1187,11 +1187,11 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ((uint)1, vcf.get_records()[0]->get_pos());
     EXPECT_EQ("GT", vcf.get_records()[0]->get_ref());
     EXPECT_EQ("G", vcf.get_records()[0]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=NESTED", vcf.get_records()[0]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=INDEL;GRAPHTYPE=NESTED", vcf.get_records()[0]->info);
     EXPECT_EQ((uint)2, vcf.get_records()[1]->get_pos());
     EXPECT_EQ("T", vcf.get_records()[1]->get_ref());
     EXPECT_EQ("C", vcf.get_records()[1]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=NESTED", vcf.get_records()[1]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=SNP;GRAPHTYPE=NESTED", vcf.get_records()[1]->info);
 
     vcf = create_VCF_with_default_parameters();
     ;
@@ -1203,11 +1203,11 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ((uint)1, vcf.get_records()[0]->get_pos());
     EXPECT_EQ("G", vcf.get_records()[0]->get_ref());
     EXPECT_EQ("GC", vcf.get_records()[0]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.get_records()[0]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=INDEL;GRAPHTYPE=SIMPLE", vcf.get_records()[0]->info);
     EXPECT_EQ((uint)1, vcf.get_records()[1]->get_pos());
     EXPECT_EQ("G", vcf.get_records()[1]->get_ref());
     EXPECT_EQ("GT", vcf.get_records()[1]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=INDEL;GRAPHTYPE=SIMPLE", vcf.get_records()[1]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=INDEL;GRAPHTYPE=SIMPLE", vcf.get_records()[1]->info);
 
     vcf = create_VCF_with_default_parameters();
     ;
@@ -1219,29 +1219,29 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ((uint)119, vcf.get_records()[0]->get_pos());
     EXPECT_EQ("T", vcf.get_records()[0]->get_ref());
     EXPECT_EQ("C", vcf.get_records()[0]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[0]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[0]->info);
 
     EXPECT_EQ((uint)158, vcf.get_records()[1]->get_pos());
     EXPECT_EQ("TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG",
         vcf.get_records()[1]->get_ref());
     EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA",
         vcf.get_records()[1]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE", vcf.get_records()[1]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=PH_SNPs;GRAPHTYPE=SIMPLE", vcf.get_records()[1]->info);
 
     EXPECT_EQ((uint)251, vcf.get_records()[2]->get_pos());
     EXPECT_EQ("A", vcf.get_records()[2]->get_ref());
     EXPECT_EQ("G", vcf.get_records()[2]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[2]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[2]->info);
 
     EXPECT_EQ((uint)272, vcf.get_records()[3]->get_pos());
     EXPECT_EQ("A", vcf.get_records()[3]->get_ref());
     EXPECT_EQ("C", vcf.get_records()[3]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[3]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[3]->info);
 
     EXPECT_EQ((uint)293, vcf.get_records()[4]->get_pos());
     EXPECT_EQ("G", vcf.get_records()[4]->get_ref());
     EXPECT_EQ("T", vcf.get_records()[4]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[4]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[4]->info);
 
     vcf = create_VCF_with_default_parameters();
     ;
@@ -1256,29 +1256,29 @@ TEST(LocalPRGTest, build_vcf)
     EXPECT_EQ((uint)119, vcf.get_records()[0]->get_pos());
     EXPECT_EQ("C", vcf.get_records()[0]->get_ref());
     EXPECT_EQ("T", vcf.get_records()[0]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[0]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[0]->info);
 
     EXPECT_EQ((uint)158, vcf.get_records()[1]->get_pos());
     EXPECT_EQ("TTCACTGACTGATGACCGAGTGCTGAAAGAAGTCATGCGACTGGGGGCGTTG",
         vcf.get_records()[1]->get_ref());
     EXPECT_EQ("CTCACTGACTGATGATCGGGTACTGAAAGAAGTTATGAGACTGGGGGCGTTA",
         vcf.get_records()[1]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE", vcf.get_records()[1]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=PH_SNPs;GRAPHTYPE=SIMPLE", vcf.get_records()[1]->info);
 
     EXPECT_EQ((uint)251, vcf.get_records()[2]->get_pos());
     EXPECT_EQ("G", vcf.get_records()[2]->get_ref());
     EXPECT_EQ("A", vcf.get_records()[2]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[2]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[2]->info);
 
     EXPECT_EQ((uint)272, vcf.get_records()[3]->get_pos());
     EXPECT_EQ("A", vcf.get_records()[3]->get_ref());
     EXPECT_EQ("C", vcf.get_records()[3]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[3]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[3]->info);
 
     EXPECT_EQ((uint)293, vcf.get_records()[4]->get_pos());
     EXPECT_EQ("T", vcf.get_records()[4]->get_ref());
     EXPECT_EQ("G", vcf.get_records()[4]->get_alts()[0]);
-    EXPECT_EQ("SVTYPE=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[4]->info);
+    EXPECT_EQ(VCF::VARIANT_CLASS_ID + "=SNP;GRAPHTYPE=SIMPLE", vcf.get_records()[4]->info);
 
     vcf = create_VCF_with_default_parameters();
     ;

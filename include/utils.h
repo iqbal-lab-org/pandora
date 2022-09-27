@@ -8,12 +8,14 @@
 #include <cstdint>
 #include <string>
 #include <limits>
+#include <utility>
 #include <boost/filesystem/path.hpp>
 #include "minihits.h"
 #include "pangenome/ns.cpp"
 #include <boost/log/trivial.hpp>
 #include <sstream>
 #include "fatal_error.h"
+#include "inthash.h"
 
 namespace fs = boost::filesystem;
 
@@ -129,5 +131,7 @@ std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
     const fs::path& read_index_fpath);
 
 std::string remove_spaces_from_string(const std::string& str);
+
+std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const std::string& input_string, uint8_t delim = 4);
 
 #endif

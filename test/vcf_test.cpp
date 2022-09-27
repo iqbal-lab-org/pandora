@@ -1440,8 +1440,8 @@ TEST(VCFTest___merge_multi_allelic,
     vcf.add_samples({ "sample1", "sample2" });
 
     // add two bi-allelic records to be merged
-    vcf.add_record("chrom1", 5, "A", "C", "SVTYPE=SNP", "GRAPHTYPE=SIMPLE");
-    vcf.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP", "GRAPHTYPE=SIMPLE");
+    vcf.add_record("chrom1", 5, "A", "C", VCF::VARIANT_CLASS_ID + "=SNP", "GRAPHTYPE=SIMPLE");
+    vcf.add_record("chrom1", 5, "A", "G", VCF::VARIANT_CLASS_ID + "=SNP", "GRAPHTYPE=SIMPLE");
 
     // causing conflict and using genotype from the coverages to solve
     vcf.get_records()[0]->sampleIndex_to_sampleInfo[0].set_gt_from_max_likelihood_path(
@@ -2147,7 +2147,7 @@ TEST_F(VCFTest___header___Fixture, header)
           "##ALT=<ID=INDEL,Description=\"Insertion-deletion\">\n"
           "##ALT=<ID=COMPLEX,Description=\"Complex variant, collection of SNPs and "
           "indels\">\n"
-          "##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of variant\">\n"
+          "##INFO=<ID=" + VCF::VARIANT_CLASS_ID + ",Number=1,Type=String,Description=\"Type (class) of variant\">\n"
           "##ALT=<ID=SIMPLE,Description=\"Graph bubble is simple\">\n"
           "##ALT=<ID=NESTED,Description=\"Variation site was a nested feature in the "
           "graph\">\n"
@@ -2204,17 +2204,17 @@ protected:
         : vcf_with_all_records(
             std::make_shared<VCF_DummyHeader_Mock>(&default_genotyping_options))
         , graph_type_is_simple_sv_is_snp(VCFRecord(vcf_with_all_records.get(), "0", 0,
-              "0", "0", "SVTYPE=SNP", "GRAPHTYPE=SIMPLE"))
+              "0", "0", VCF::VARIANT_CLASS_ID + "=SNP", "GRAPHTYPE=SIMPLE"))
         , graph_type_is_nested_sv_is_snp(VCFRecord(vcf_with_all_records.get(), "0", 1,
-              "0", "0", "SVTYPE=SNP", "GRAPHTYPE=NESTED"))
+              "0", "0", VCF::VARIANT_CLASS_ID + "=SNP", "GRAPHTYPE=NESTED"))
         , graph_type_has_too_many_alts_sv_is_snp(VCFRecord(vcf_with_all_records.get(),
-              "0", 2, "0", "0", "SVTYPE=SNP", "GRAPHTYPE=TOO_MANY_ALTS"))
+              "0", 2, "0", "0", VCF::VARIANT_CLASS_ID + "=SNP", "GRAPHTYPE=TOO_MANY_ALTS"))
         , graph_type_is_simple_sv_is_indel(VCFRecord(vcf_with_all_records.get(), "0", 3,
-              "0", "0", "SVTYPE=INDEL", "GRAPHTYPE=SIMPLE"))
+              "0", "0", VCF::VARIANT_CLASS_ID + "=INDEL", "GRAPHTYPE=SIMPLE"))
         , graph_type_is_simple_sv_is_ph_snps(VCFRecord(vcf_with_all_records.get(), "0",
-              4, "0", "0", "SVTYPE=PH_SNPs", "GRAPHTYPE=SIMPLE"))
+              4, "0", "0", VCF::VARIANT_CLASS_ID + "=PH_SNPs", "GRAPHTYPE=SIMPLE"))
         , graph_type_is_simple_sv_is_complex(VCFRecord(vcf_with_all_records.get(), "0",
-              5, "0", "0", "SVTYPE=COMPLEX", "GRAPHTYPE=SIMPLE"))
+              5, "0", "0", VCF::VARIANT_CLASS_ID + "=COMPLEX", "GRAPHTYPE=SIMPLE"))
         , record_with_dot_allele(
               VCFRecord(vcf_with_all_records.get(), "0", 6, ".", ".", ".", "."))
     {
@@ -2245,72 +2245,72 @@ protected:
     void TearDown() override { }
 };
 
-TEST_F(VCFTest___to_string___Fixture, graph_type_is_simple_sv_is_snp)
+TEST_F(VCFTest___to_string___Fixture, graph_type_is_simple_vc_is_snp)
 {
     std::string actual = vcf_with_all_records->to_string(
         true, false, false, true, false, false, true, false, false, false);
 
-    std::string expected = "##Dummy_header;\n0\t1\t.\t0\t0\t.\t.\tSVTYPE=SNP;GRAPHTYPE="
+    std::string expected = "##Dummy_header;\n0\t1\t.\t0\t0\t.\t.\tVC=SNP;GRAPHTYPE="
                            "SIMPLE\tGT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_COVG:MED_"
                            "REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS\t\n";
 
     EXPECT_EQ(actual, expected);
 }
 
-TEST_F(VCFTest___to_string___Fixture, graph_type_is_nested_sv_is_snp)
+TEST_F(VCFTest___to_string___Fixture, graph_type_is_nested_vc_is_snp)
 {
     std::string actual = vcf_with_all_records->to_string(
         true, false, false, false, true, false, true, false, false, false);
 
-    std::string expected = "##Dummy_header;\n0\t2\t.\t0\t0\t.\t.\tSVTYPE=SNP;GRAPHTYPE="
+    std::string expected = "##Dummy_header;\n0\t2\t.\t0\t0\t.\t.\t" + VCF::VARIANT_CLASS_ID + "=SNP;GRAPHTYPE="
                            "NESTED\tGT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_COVG:MED_"
                            "REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS\t\n";
 
     EXPECT_EQ(actual, expected);
 }
 
-TEST_F(VCFTest___to_string___Fixture, graph_type_has_too_many_alts_sv_is_snp)
+TEST_F(VCFTest___to_string___Fixture, graph_type_has_too_many_alts_vc_is_snp)
 {
     std::string actual = vcf_with_all_records->to_string(
         true, false, false, false, false, true, true, false, false, false);
 
-    std::string expected = "##Dummy_header;\n0\t3\t.\t0\t0\t.\t.\tSVTYPE=SNP;GRAPHTYPE="
+    std::string expected = "##Dummy_header;\n0\t3\t.\t0\t0\t.\t.\t" + VCF::VARIANT_CLASS_ID + "=SNP;GRAPHTYPE="
                            "TOO_MANY_ALTS\tGT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_COVG:"
                            "MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS\t\n";
 
     EXPECT_EQ(actual, expected);
 }
 
-TEST_F(VCFTest___to_string___Fixture, graph_type_is_simple_sv_is_indel)
+TEST_F(VCFTest___to_string___Fixture, graph_type_is_simple_vc_is_indel)
 {
     std::string actual = vcf_with_all_records->to_string(
         true, false, false, true, false, false, false, true, false, false);
 
-    std::string expected = "##Dummy_header;\n0\t4\t.\t0\t0\t.\t.\tSVTYPE=INDEL;"
+    std::string expected = "##Dummy_header;\n0\t4\t.\t0\t0\t.\t.\t" + VCF::VARIANT_CLASS_ID + "=INDEL;"
                            "GRAPHTYPE=SIMPLE\tGT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_"
                            "COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS\t\n";
 
     EXPECT_EQ(actual, expected);
 }
 
-TEST_F(VCFTest___to_string___Fixture, graph_type_is_simple_sv_is_ph_snps)
+TEST_F(VCFTest___to_string___Fixture, graph_type_is_simple_vc_is_ph_snps)
 {
     std::string actual = vcf_with_all_records->to_string(
         true, false, false, true, false, false, false, false, true, false);
 
-    std::string expected = "##Dummy_header;\n0\t5\t.\t0\t0\t.\t.\tSVTYPE=PH_SNPs;"
+    std::string expected = "##Dummy_header;\n0\t5\t.\t0\t0\t.\t.\t" + VCF::VARIANT_CLASS_ID + "=PH_SNPs;"
                            "GRAPHTYPE=SIMPLE\tGT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_"
                            "COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS\t\n";
 
     EXPECT_EQ(actual, expected);
 }
 
-TEST_F(VCFTest___to_string___Fixture, graph_type_is_simple_sv_is_complex)
+TEST_F(VCFTest___to_string___Fixture, graph_type_is_simple_vc_is_complex)
 {
     std::string actual = vcf_with_all_records->to_string(
         true, false, false, true, false, false, false, false, false, true);
 
-    std::string expected = "##Dummy_header;\n0\t6\t.\t0\t0\t.\t.\tSVTYPE=COMPLEX;"
+    std::string expected = "##Dummy_header;\n0\t6\t.\t0\t0\t.\t.\t" + VCF::VARIANT_CLASS_ID + "=COMPLEX;"
                            "GRAPHTYPE=SIMPLE\tGT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_"
                            "COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS\t\n";
 
@@ -2346,22 +2346,22 @@ TEST_F(VCFTest___to_string___Fixture, no_records_filtered_out)
 
     std::string expected = "##Dummy_header;\n";
     expected
-        += "0\t1\t.\t0\t0\t.\t.\tSVTYPE=SNP;GRAPHTYPE=SIMPLE\tGT:MEAN_FWD_COVG:MEAN_"
+        += "0\t1\t.\t0\t0\t.\t.\t" + VCF::VARIANT_CLASS_ID + "=SNP;GRAPHTYPE=SIMPLE\tGT:MEAN_FWD_COVG:MEAN_"
            "REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS\t\n";
     expected
-        += "0\t2\t.\t0\t0\t.\t.\tSVTYPE=SNP;GRAPHTYPE=NESTED\tGT:MEAN_FWD_COVG:MEAN_"
+        += "0\t2\t.\t0\t0\t.\t.\t" + VCF::VARIANT_CLASS_ID + "=SNP;GRAPHTYPE=NESTED\tGT:MEAN_FWD_COVG:MEAN_"
            "REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS\t\n";
     expected
-        += "0\t3\t.\t0\t0\t.\t.\tSVTYPE=SNP;GRAPHTYPE=TOO_MANY_ALTS\tGT:MEAN_FWD_COVG:"
+        += "0\t3\t.\t0\t0\t.\t.\t" + VCF::VARIANT_CLASS_ID + "=SNP;GRAPHTYPE=TOO_MANY_ALTS\tGT:MEAN_FWD_COVG:"
            "MEAN_REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS\t\n";
     expected
-        += "0\t4\t.\t0\t0\t.\t.\tSVTYPE=INDEL;GRAPHTYPE=SIMPLE\tGT:MEAN_FWD_COVG:MEAN_"
+        += "0\t4\t.\t0\t0\t.\t.\t" + VCF::VARIANT_CLASS_ID + "=INDEL;GRAPHTYPE=SIMPLE\tGT:MEAN_FWD_COVG:MEAN_"
            "REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS\t\n";
     expected
-        += "0\t5\t.\t0\t0\t.\t.\tSVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE\tGT:MEAN_FWD_COVG:"
+        += "0\t5\t.\t0\t0\t.\t.\t" + VCF::VARIANT_CLASS_ID + "=PH_SNPs;GRAPHTYPE=SIMPLE\tGT:MEAN_FWD_COVG:"
            "MEAN_REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS\t\n";
     expected
-        += "0\t6\t.\t0\t0\t.\t.\tSVTYPE=COMPLEX;GRAPHTYPE=SIMPLE\tGT:MEAN_FWD_COVG:"
+        += "0\t6\t.\t0\t0\t.\t.\t" + VCF::VARIANT_CLASS_ID + "=COMPLEX;GRAPHTYPE=SIMPLE\tGT:MEAN_FWD_COVG:"
            "MEAN_REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS\t\n";
     expected += "0\t7\t.\t.\t.\t.\t.\t.;.\tGT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_COVG:"
                 "MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS\t\n";
@@ -2369,92 +2369,6 @@ TEST_F(VCFTest___to_string___Fixture, no_records_filtered_out)
     EXPECT_EQ(actual, expected);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// OLD serialization TESTS
-// WILL NOT BE READDED AS WE DO NOT NEED FULL SERIALIZATION OF VCFs (ONLY SAVE, WHICH
-// JUST WRAPS VCF::to_string()), WHICH IS TESTED WITH A NEW TEST
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// class VCFTest___serialization___Fixture : public ::testing::Test {
-// protected:
-//    VCF vcf_with_zero_records;
-//    VCF vcf_with_one_record;
-//    VCF vcf_with_three_records;
-//    void SetUp() override {
-//        {
-//            vcf_with_one_record.add_record("chrom1", 5, "A", "G",
-//            "GRAPHTYPE=SIMPLE;SVTYPE=SNP");
-//        }
-//
-//        {
-//            vcf_with_three_records.add_record("chrom1", 5, "A", "G",
-//            "GRAPHTYPE=SIMPLE;SVTYPE=SNP");
-//            vcf_with_three_records.add_record("chrom1", 46, "T", "TA",
-//            "GRAPHTYPE=SIMPLE;SVTYPE=SNP"); VCFRecord vcf_record = VCFRecord("chrom1",
-//            79, "C", "G", "GRAPHTYPE=SIMPLE;SVTYPE=SNP"); std::vector<std::string>
-//            empty_sample_names = {}; vcf_with_three_records.add_record(vcf_record,
-//            empty_sample_names);
-//        }
-//    }
-//
-//    void TearDown() override {
-//    }
-//};
-//
-// TEST_F(VCFTest___serialization___Fixture,
-// save_vcf_with_zero_records___load_vcf___expect_equal_vcf) {
-//    vcf_with_zero_records.save("vcf_serialization_test_zero.vcf");
-//
-//    VCF actual;
-//    actual.load("vcf_serialization_test_zero.vcf");
-//
-//    VCF& expected = vcf_with_zero_records;
-//    EXPECT_EQ(actual, expected);
-//}
-//
-// TEST_F(VCFTest___serialization___Fixture,
-// save_vcf_with_one_record___load_vcf___expect_equal_vcf) {
-//    vcf_with_one_record.save("vcf_serialization_test_one.vcf");
-//
-//    VCF actual;
-//    actual.load("vcf_serialization_test_one.vcf");
-//
-//    VCF& expected = vcf_with_one_record;
-//    EXPECT_EQ(actual, expected);
-//}
-//
-//
-// TEST_F(VCFTest___serialization___Fixture,
-// save_vcf_with_three_records___load_vcf___expect_equal_vcf) {
-//    vcf_with_three_records.save("vcf_serialization_test_three.vcf");
-//
-//    VCF actual;
-//    actual.load("vcf_serialization_test_three.vcf");
-//
-//    VCF& expected = vcf_with_three_records;
-//    EXPECT_EQ(actual, expected);
-//}
-//
-//
-// TEST(VCFTest, filter) {
-//    VCF vcf, vcf1, vcf2, vcf3, vcf4;
-//    vcf.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
-//    vcf.add_record("chrom1", 46, "T", "TA", "SVTYPE=INDEL;GRAPHTYPE=NESTED");
-//    vcf.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
-//    vcf.add_record("chrom1", 79, "CTT", "ATA", "SVTYPE=PH_SNPs;GRAPHTYPE=NESTED");
-//    vcf.save("vcf_filter_test.vcf", false, true, false, false, true, false, true,
-//    false);
-//
-//    vcf1.add_record("chrom1", 5, "A", "G", "SVTYPE=SNP;GRAPHTYPE=SIMPLE");
-//    vcf1.add_record("chrom1", 79, "CTT", "GTA", "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE");
-//    vcf2.load("vcf_filter_test.vcf");
-//    EXPECT_EQ(vcf2, vcf1);
-//
-//    vcf.save("vcf_filter_test.vcf", false, true, true, false, false, false, true,
-//    false); vcf3.add_record("chrom1", 79, "CTT", "GTA",
-//    "SVTYPE=PH_SNPs;GRAPHTYPE=SIMPLE"); vcf3.add_record("chrom1", 79, "CTT", "ATA",
-//    "SVTYPE=PH_SNPs;GRAPHTYPE=NESTED"); vcf4.load("vcf_filter_test.vcf");
-//    EXPECT_EQ(vcf3, vcf4);
-//}
 
 class VCFTest___save___Fixture : public ::testing::Test {
 protected:
