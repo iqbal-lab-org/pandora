@@ -869,7 +869,7 @@ std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const s
     auto current_index { 0 };
     auto valid_substring_length { 0 };
     for (const auto& base : input_string) {
-        const uint32_t coded_base = nt4(base);
+        const uint32_t coded_base = pandora::nt4(base);
         const bool is_ambiguous = coded_base == delim;
         if (is_ambiguous) {
             if (valid_substring_length > 0) {

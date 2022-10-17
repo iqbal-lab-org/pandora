@@ -10,12 +10,12 @@ SAMFile::SAMFile(const fs::path &filepath,
 }
 
 std::vector<bool> SAMFile::get_mapped_positions_bitset(const Seq &seq, const Hits &cluster) const {
-    std::vector<bool> mapped_positions_bitset(seq.seq.size(), 0);
+    std::vector<bool> mapped_positions_bitset(seq.full_seq.size(), false);
     for (const MinimizerHitPtr &hit : cluster) {
         const uint32_t read_start_position = hit->get_read_start_position();
         const uint32_t read_end_position = hit->get_read_start_position()+hit->get_prg_path().length();
         for (uint32_t pos = read_start_position; pos < read_end_position; ++pos) {
-            mapped_positions_bitset[pos] = 1;
+            mapped_positions_bitset[pos] = true;
         }
     }
     return mapped_positions_bitset;
@@ -71,7 +71,7 @@ std::string SAMFile::get_segment_sequence(const Seq &seq,
     const uint32_t first_mapped_position = get_first_mapped_position(mapped_positions_bitset);
     const uint32_t last_mapped_position = get_last_mapped_position(mapped_positions_bitset);
     const uint32_t number_of_bases_between_first_and_last = last_mapped_position - first_mapped_position;
-    return seq.seq.substr(first_mapped_position, number_of_bases_between_first_and_last);
+    return seq.full_seq.substr(first_mapped_position, number_of_bases_between_first_and_last);
 }
 
 void SAMFile::write_sam_record_from_hit_cluster(
@@ -93,14 +93,14 @@ void SAMFile::write_sam_record_from_hit_cluster(
         const uint32_t left_flank_start = first_mapped_pos <= flank_size ? 0 :
                                       first_mapped_pos - flank_size;
         const uint32_t left_flank_length = first_mapped_pos - left_flank_start;
-        const std::string left_flank = seq.seq.substr(left_flank_start, left_flank_length);
+        const std::string left_flank = seq.full_seq.substr(left_flank_start, left_flank_length);
 
         const uint32_t last_mapped_pos = get_last_mapped_position(mapped_positions_bitset);
         const uint32_t right_flank_start = last_mapped_pos;
         const uint32_t right_flank_length =
-            (right_flank_start + flank_size) <= seq.seq.size() ? flank_size :
-            seq.seq.size() - right_flank_start;
-        const std::string right_flank = seq.seq.substr(right_flank_start, right_flank_length);
+            (right_flank_start + flank_size) <= seq.full_seq.size() ? flank_size :
+            seq.full_seq.size() - right_flank_start;
+        const std::string right_flank = seq.full_seq.substr(right_flank_start, right_flank_length);
 
         file_handler << seq.name << "[" << first_mapped_pos << ":" << last_mapped_pos << "]\t"
                      << "0\t"
