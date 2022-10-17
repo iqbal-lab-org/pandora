@@ -30,14 +30,13 @@ uint32_t get_last_mapped_position(const std::vector<bool> &mapped_positions_bits
         mapped_positions_bitset.rbegin(), mapped_positions_bitset.rend(), 1);
 }
 
-std::string SAMFile::get_cigar(const std::vector<bool> &mapped_positions_bitset) const {
-    std::stringstream cigar_ss;
-
+Cigar SAMFile::get_cigar(const std::vector<bool> &mapped_positions_bitset) const {
+    Cigar cigar;
     const uint32_t first_mapped_position = get_first_mapped_position(mapped_positions_bitset);
     const uint32_t last_mapped_position = get_last_mapped_position(mapped_positions_bitset);
 
     if (first_mapped_position > 0) {
-        cigar_ss << first_mapped_position << "S";
+        cigar.add_entry('S', first_mapped_position);
     }
 
     uint32_t consecutive_equal_bits_length = 0;
@@ -48,22 +47,22 @@ std::string SAMFile::get_cigar(const std::vector<bool> &mapped_positions_bitset)
         if (extend_window) {
             ++consecutive_equal_bits_length;
         }else {
-            const std::string cigar_char = consecutive_bit_value ? "=" : "X";
-            cigar_ss << consecutive_equal_bits_length << cigar_char;
+            const char cigar_char = consecutive_bit_value ? '=' : 'X';
+            cigar.add_entry(cigar_char, consecutive_equal_bits_length);
             consecutive_equal_bits_length = 1;
             consecutive_bit_value = !consecutive_bit_value;
         }
     }
     {
-        const std::string cigar_char = consecutive_bit_value ? "=" : "X";
-        cigar_ss << consecutive_equal_bits_length << cigar_char;
+        const char cigar_char = consecutive_bit_value ? '=' : 'X';
+        cigar.add_entry(cigar_char, consecutive_equal_bits_length);
     }
 
     const uint32_t number_of_bases_after_last = mapped_positions_bitset.size() - last_mapped_position;
     if (number_of_bases_after_last > 0) {
-        cigar_ss << number_of_bases_after_last << "S";
+        cigar.add_entry('S', number_of_bases_after_last);
     }
-    return cigar_ss.str();
+    return cigar;
 }
 
 std::string SAMFile::get_segment_sequence(const Seq &seq,
@@ -86,7 +85,7 @@ void SAMFile::write_sam_record_from_hit_cluster(
         const MinimizerHitPtr first_hit = *(cluster.begin());
         const std::vector<bool> mapped_positions_bitset =
             get_mapped_positions_bitset(seq, cluster);
-        const std::string cigar = get_cigar(mapped_positions_bitset);
+        const Cigar cigar = get_cigar(mapped_positions_bitset);
         const std::string segment_sequence = get_segment_sequence(seq, mapped_positions_bitset);
 
         const uint32_t first_mapped_pos = get_first_mapped_position(mapped_positions_bitset);
