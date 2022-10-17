@@ -7,6 +7,16 @@ SAMFile::SAMFile(const fs::path &filepath,
                  const std::vector<std::shared_ptr<LocalPRG>>& prgs) :
     GenericFile(filepath), prgs(prgs) {
     file_handler << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION << std::endl;
+    file_handler << "@CO\tLF: left flank sequence, the sequence before the first "
+                    "mapped kmer, soft-clipped" << std::endl;
+    file_handler << "@CO\tRF: right flank sequence, the sequence after the last "
+                    "mapped kmer, soft-clipped" << std::endl;
+    file_handler << "@CO\tPPCH: Prg Paths of the Cluster of Hits: the PRG path of each "
+                    "hit in considered cluster of hits" << std::endl;
+    file_handler << "@CO\tNM: Total number of mismatches in the quasi-alignment" << std::endl;
+    file_handler << "@CO\tAS: Alignment score (number of matches)" << std::endl;
+    file_handler << "@CO\tnn: Number of ambiguous bases in the quasi-alignment" << std::endl;
+    file_handler << "@CO\tcm: Number of minimizers in the quasi-alignment" << std::endl;
 }
 
 std::vector<bool> SAMFile::get_mapped_positions_bitset(const Seq &seq, const Hits &cluster) const {
