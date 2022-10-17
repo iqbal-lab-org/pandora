@@ -4,7 +4,6 @@
 
 #include <boost/log/trivial.hpp>
 
-#include "inthash.h"
 #include "minimizer.h"
 #include "seq.h"
 #include "utils.h"
@@ -38,7 +37,7 @@ void Seq::initialize(
 void Seq::add_letter_to_get_next_kmer(const char& letter, const uint64_t& shift1,
     const uint64_t& mask, uint32_t& buff, uint64_t (&kmer)[2], uint64_t (&kh)[2])
 {
-    uint32_t c = nt4((uint8_t)letter);
+    uint32_t c = pandora::nt4((uint8_t)letter);
 
     const bool is_an_ambiguous_base = c >= 4;
     if (is_an_ambiguous_base) {
@@ -47,8 +46,8 @@ void Seq::add_letter_to_get_next_kmer(const char& letter, const uint64_t& shift1
 
     kmer[0] = (kmer[0] << 2 | c) & mask; // forward k-mer
     kmer[1] = (kmer[1] >> 2) | (3ULL ^ c) << shift1; // reverse k-mer
-    kh[0] = hash64(kmer[0], mask);
-    kh[1] = hash64(kmer[1], mask);
+    kh[0] = pandora::hash64(kmer[0], mask);
+    kh[1] = pandora::hash64(kmer[1], mask);
     buff++;
 }
 
@@ -159,3 +158,5 @@ uint64_t Seq::length() const
     }
     return l;
 }
+
+std::string Seq::substr(size_t pos, size_t count) const { return std::string(); }

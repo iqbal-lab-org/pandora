@@ -16,7 +16,7 @@ void MinimizerMatchFile::write_hits(const Seq &seq, const Hits &hits) {
     for (const MinimizerHitPtr &hit : hits) {
         const uint32_t read_start_position = hit->get_read_start_position();
         const uint32_t read_end_position = hit->get_read_start_position()+hit->get_prg_path().length();
-        std::string kmer = seq.seq.substr(read_start_position, hit->get_prg_path().length());
+        std::string kmer = seq.substr(read_start_position, hit->get_prg_path().length());
         if (hit->read_strand == 0) {
             kmer = reverse_complement(kmer);
         }

@@ -6,6 +6,7 @@
 #include <set>
 #include <ostream>
 #include "minimizer.h"
+#include "inthash.h"
 
 class Seq {
 public:
@@ -39,6 +40,17 @@ public:
     friend std::ostream& operator<<(std::ostream& out, const Seq& data);
 
     void minimizer_sketch(const uint32_t w, const uint32_t k);
+
+    /// Take a substring of the Seq object. This extracts the corresponding substrings
+    /// from the `subseqs` based on the `offsets` positions.
+    /// If the requested substring extends past the end of the string, i.e. the count
+    /// is greater than size() - pos (e.g. if count == npos), the returned substring is [pos, size()).
+    /// Where the interval to be extract overlaps a "gap" (i.e., where the original
+    /// read had an ambiguous base(s)), TODO: what do we do in this?
+    /// \param pos position of the first character to include
+    /// \param count length of the substring
+    /// \return String containing the substring [pos, pos+count) or [pos, size()).
+    std::string substr(size_t pos, size_t count = std::string::npos) const;
 
 private:
     void minimizer_sketch(const std::string &s, const size_t seq_offset,
