@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include "utils.h"
 #include "fastaq_handler.h"
 
 FastaqHandler::FastaqHandler(const std::string filepath)
@@ -38,6 +39,7 @@ void FastaqHandler::get_next()
     ++this->num_reads_parsed;
     this->name = this->inbuf->name.s;
     this->read = this->inbuf->seq.s;
+    to_upper(this->read);
 }
 
 void FastaqHandler::get_nth_read(const uint32_t& idx)

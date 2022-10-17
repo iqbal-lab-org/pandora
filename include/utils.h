@@ -147,6 +147,10 @@ void concatenate_text_files(
 
 std::string reverse_complement(const std::string& forward);
 
+inline void to_upper(std::string &str) {
+    std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+}
+
 int random_int();
 std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const std::string& input_string, uint8_t delim = 4);
 
