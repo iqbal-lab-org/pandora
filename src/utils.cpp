@@ -1,4 +1,3 @@
-#include <cstring>
 #include <iomanip>
 #include <unordered_map>
 #include <vector>
@@ -585,7 +584,7 @@ uint32_t pangraph_from_read_file(const SampleData &sample,
                             coverageExceeded = true;
                         } else {
                             // no other thread still signalized exceeding max coverage
-                            covg += sequence.seq.length();
+                            covg += sequence.length();
                             if (covg / genome_size > max_covg) {
                                 // oops, we are the first one to see max_covg being
                                 // exceeded, print and exit!
@@ -603,8 +602,8 @@ uint32_t pangraph_from_read_file(const SampleData &sample,
                     continue;
                 }
 
-                const auto expected_number_kmers_in_read_sketch { sequence.seq.length()
-                    * 2 / (w + 1) };
+                const auto expected_number_kmers_in_read_sketch { sequence.length() * 2
+                    / (w + 1) };
 
                 // get the minimizer hits
                 auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
@@ -730,23 +729,26 @@ std::vector<SampleData> load_read_index(
     const fs::path& read_index_fpath)
 {
     std::map<SampleIdText, SampleFpath> samples;
-    std::string name, reads_path, line;
+    std::string name, line;
     fs::ifstream instream(read_index_fpath);
-    if (instream.is_open()) {
-        while (getline(instream, line).good()) {
-            std::istringstream linestream(line);
-            if (std::getline(linestream, name, '\t')) {
-                linestream >> reads_path;
-                if (samples.find(name) != samples.end()) {
-                    BOOST_LOG_TRIVIAL(warning)
-                        << "Warning: non-unique sample ids given! Only the last "
-                           "of these will be kept";
-                }
-                samples[name] = reads_path;
-            }
-        }
-    } else {
+    if (instream.fail()) {
         fatal_error("Unable to open read index file ", read_index_fpath);
+    }
+    while (getline(instream, line)) {
+        std::istringstream linestream(line);
+        if (std::getline(linestream, name, '\t')) {
+            if (samples.find(name) != samples.end()) {
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Warning: non-unique sample ids given! Only the last "
+                       "of these will be kept";
+            }
+            std::string reads_path;
+            linestream >> reads_path;
+            if (reads_path.empty()) {
+                fatal_error("Malformatted read index file entry for ", name);
+            }
+            samples[name] = reads_path;
+        }
     }
     BOOST_LOG_TRIVIAL(info) << "Finished loading " << samples.size()
                             << " samples from read index";
@@ -851,9 +853,39 @@ std::string reverse_complement(const std::string& forward)
     return reverse;
 }
 
-int random_int() {
+int random_int()
+{
     static std::random_device dev;
     static std::mt19937 rng(dev());
     static std::uniform_int_distribution<std::mt19937::result_type> dist;
     return dist(rng);
+}
+
+std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const std::string& input_string, uint8_t delim)
+{
+    std::vector<std::string> substrs;
+    std::vector<size_t> offsets;
+    auto start { 0 };
+    auto current_index { 0 };
+    auto valid_substring_length { 0 };
+    for (const auto& base : input_string) {
+        const uint32_t coded_base = nt4(base);
+        const bool is_ambiguous = coded_base == delim;
+        if (is_ambiguous) {
+            if (valid_substring_length > 0) {
+                substrs.emplace_back(input_string.substr(start, valid_substring_length));
+                offsets.emplace_back(start);
+            }
+            start = current_index + 1;
+            valid_substring_length = 0;
+        } else {
+            ++valid_substring_length;
+        }
+        ++current_index;
+    }
+    if (valid_substring_length > 0) {
+        substrs.emplace_back(input_string.substr(start, valid_substring_length));
+        offsets.emplace_back(start);
+    }
+    return std::make_pair(substrs, offsets);
 }

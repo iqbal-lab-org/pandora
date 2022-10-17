@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <string>
 #include <limits>
+#include <utility>
 #include <boost/filesystem/path.hpp>
 #include "minihits.h"
 #include "pangenome/ns.cpp"
@@ -16,6 +17,7 @@
 #include <sstream>
 #include "fatal_error.h"
 #include "paf_file.h"
+#include "inthash.h"
 
 namespace fs = boost::filesystem;
 
@@ -146,5 +148,6 @@ void concatenate_text_files(
 std::string reverse_complement(const std::string& forward);
 
 int random_int();
+std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const std::string& input_string, uint8_t delim = 4);
 
 #endif

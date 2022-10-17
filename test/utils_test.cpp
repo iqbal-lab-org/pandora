@@ -1187,7 +1187,7 @@ TEST(remove_spaces_from_string, simple_test___only_spaces)
 
 TEST(load_read_index, read_index_does_not_exist___expects_FatalRuntimeError)
 {
-    ASSERT_EXCEPTION(load_read_index(fs::path("inexistent_read_index.tsv")),
+    ASSERT_EXCEPTION(load_read_index(fs::path("nonexistent_read_index.tsv")),
         FatalRuntimeError, "Unable to open read index file");
 }
 
@@ -1196,6 +1196,19 @@ TEST(load_read_index, read_index_has_three_samples)
     std::vector<SampleData> actual
         = load_read_index(fs::path("../../test/test_cases/sample_read_index.tsv"));
     std::vector<SampleData> expected { {
+        std::make_pair("sample_1", "reads_1.fastq"),
+        std::make_pair("sample_2", "reads_2.fastq"),
+        std::make_pair("sample_3", "reads_3.fastq"),
+    } };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(load_read_index, read_index_has_three_samples_and_no_empty_line_at_end)
+{
+    std::vector<std::pair<SampleIdText, SampleFpath>> actual = load_read_index(
+        fs::path("../../test/test_cases/sample_read_index_no_empty_line_at_end.tsv"));
+    std::vector<std::pair<SampleIdText, SampleFpath>> expected { {
         std::make_pair("sample_1", "reads_1.fastq"),
         std::make_pair("sample_2", "reads_2.fastq"),
         std::make_pair("sample_3", "reads_3.fastq"),
@@ -1213,6 +1226,172 @@ TEST(load_read_index, read_index_has_three_samples_and_two_are_repeated)
         std::make_pair("sample_2", "second_reads_2.fastq"),
         std::make_pair("sample_3", "fourth_reads_3.fastq"),
     } };
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(load_read_index, read_index_has_missing_column)
+{
+    ASSERT_EXCEPTION(
+        load_read_index(fs::path("../../test/test_cases/malformatted_read_index.tsv")),
+        FatalRuntimeError, "Malformatted read index file entry for sample_3");
+}
+
+TEST(splitAmbiguous, noAmbiguous)
+{
+    const std::string s("ACGT");
+
+    const auto actual(split_ambiguous(s));
+
+    const std::vector<std::string> expected_substrs { s };
+    const std::vector<std::size_t> expected_offsets { 0 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, emptySequence)
+{
+    const std::string s("");
+
+    const auto actual(split_ambiguous(s));
+
+    const std::vector<std::string> expected_substrs;
+    const std::vector<std::size_t> expected_offsets;
+    const auto expected = make_pair(expected_substrs, expected_offsets);
+
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, allAmbiguous)
+{
+    const std::string s("NXDW");
+
+    const auto actual(split_ambiguous(s));
+
+    const std::vector<std::string> expected_substrs;
+    const std::vector<std::size_t> expected_offsets;
+    const auto expected = make_pair(expected_substrs, expected_offsets);
+
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, firstLetterIsAmbiguous)
+{
+    const std::string s("NACGT");
+
+    const auto actual(split_ambiguous(s));
+
+    const std::vector<std::string> expected_substrs { "ACGT" };
+    const std::vector<std::size_t> expected_offsets { 1 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, firstTwoLettersAreAmbiguous)
+{
+    const std::string s("NWACGT");
+
+    const auto actual(split_ambiguous(s));
+
+    const std::vector<std::string> expected_substrs { "ACGT" };
+    const std::vector<std::size_t> expected_offsets { 2 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, lastLetterIsAmbiguous)
+{
+    const std::string s("ACGTN");
+
+    const auto actual(split_ambiguous(s));
+
+    const std::vector<std::string> expected_substrs { "ACGT" };
+    const std::vector<std::size_t> expected_offsets { 0 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, lastTwoLettersAreAmbiguous)
+{
+    const std::string s("ACGTNW");
+
+    const auto actual(split_ambiguous(s));
+
+    const std::vector<std::string> expected_substrs { "ACGT" };
+    const std::vector<std::size_t> expected_offsets { 0 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, ambiguousBaseInMiddle)
+{
+    const std::string s("ACNGT");
+
+    const auto actual(split_ambiguous(s));
+
+    const std::vector<std::string> expected_substrs { "AC", "GT" };
+    const std::vector<std::size_t> expected_offsets { 0, 3 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, ambiguousBaseOffCentre)
+{
+    const std::string s("AWCGT");
+
+    const auto actual(split_ambiguous(s));
+
+    const std::vector<std::string> expected_substrs { "A", "CGT" };
+    const std::vector<std::size_t> expected_offsets { 0, 2 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, twoAmbiguousInMiddle)
+{
+    const std::string s("AWXCGT");
+
+    const auto actual(split_ambiguous(s));
+
+    const std::vector<std::string> expected_substrs { "A", "CGT" };
+    const std::vector<std::size_t> expected_offsets { 0, 3 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, twoAmbiguousSpacedOut)
+{
+    const std::string s("AWCNGT");
+
+    const auto actual(split_ambiguous(s));
+
+    const std::vector<std::string> expected_substrs { "A", "C", "GT" };
+    const std::vector<std::size_t> expected_offsets { 0, 2, 4 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(splitAmbiguous, twoAmbiguousSpacedOutRuns)
+{
+    const std::string s("AWXCNXGT");
+
+    const auto actual(split_ambiguous(s));
+
+    const std::vector<std::string> expected_substrs { "A", "C", "GT" };
+    const std::vector<std::size_t> expected_offsets { 0, 3, 6 };
+    const auto expected = make_pair(expected_substrs, expected_offsets);
+
 
     EXPECT_EQ(actual, expected);
 }
