@@ -101,17 +101,45 @@ void SAMFile::write_sam_record_from_hit_cluster(
             seq.full_seq.size() - right_flank_start;
         const std::string right_flank = seq.full_seq.substr(right_flank_start, right_flank_length);
 
+        std::stringstream cluster_of_hits_prg_paths_ss;
+        for (const MinimizerHitPtr &hit : cluster) {
+            cluster_of_hits_prg_paths_ss << hit->get_prg_path() << "->";
+        }
+
+        auto number_ambiguous_bases = std::count_if(
+            segment_sequence.begin(), segment_sequence.end(),
+            [](char base) -> bool {
+                switch (base) {
+                case 'A':
+                case 'C':
+                case 'G':
+                case 'T':
+                    return true;
+                default:
+                    return false;
+                }
+            }
+        );
+
+        uint32_t number_of_mismatches = cigar.number_of_mismatches();
+        uint32_t alignment_score = segment_sequence.size() - number_of_mismatches;
+
         file_handler << seq.name << "[" << first_mapped_pos << ":" << last_mapped_pos << "]\t"
                      << "0\t"
                      << prgs[first_hit->get_prg_id()]->name << "\t"
                      << first_hit->get_prg_path() << "\t"
-                     << "254\t"
+                     << "255\t"
                      << cigar << "\t"
                      << "*\t0\t0\t"
                      << segment_sequence << "\t"
                      << "*\t"
                      << "LF:Z:" << left_flank << "\t"
-                     << "RF:Z:" << right_flank << std::endl;
+                     << "RF:Z:" << right_flank << "\t"
+                     << "PPCH:Z:" << cluster_of_hits_prg_paths_ss.str() << "\t"
+                     << "NM:i:" << number_of_mismatches << "\t"
+                     << "AS:i:" << alignment_score << "\t"
+                     << "nn:i:" << number_ambiguous_bases << "\t"
+                     << "cm:i:" << cluster.size() << std::endl;
     }
 
     if (!at_least_a_single_mapping_was_output) {
