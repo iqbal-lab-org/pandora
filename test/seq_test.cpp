@@ -232,16 +232,3 @@ TEST(SeqTest, lengthTwoAmbiguous)
 
     EXPECT_EQ(seq.length(), s.length() - 2);
 }
-
-TEST(SubstrTest, emptySeqReturnsEmpty)
-{
-    const std::string s { "" };
-    const Seq seq(0, "0", s, 3, 3);
-    const auto pos{0};
-    const auto count{std::string::npos};
-
-    const auto actual = seq.substr(pos, count);
-    const std::string expected = std::string() ;
-
-    EXPECT_EQ(actual, expected);
-}
