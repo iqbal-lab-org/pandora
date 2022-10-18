@@ -136,7 +136,7 @@ uint32_t Racon::run_minimap2_core(const std::string &locus_consensus_filepath,
 }
 
 bool Racon::run_another_round() {
-    const std::string consensus_record = ">consensus\n" + consensus_seq;
+    const std::string consensus_record = ">consensus_" + locus + "\n" + consensus_seq;
 
     // [TODO RACON]: switch to memfd to improve performance whenever we can
     // builds a mem_fd with the consensus seq
@@ -183,8 +183,10 @@ bool Racon::run_another_round() {
     consensus_seq = polished_consensus_seq;
     number_of_rounds_executed++;
 
-    // fs::remove(locus_consensus_filepath);
-    // fs::remove(paf_filepath);
+    if (!keep_extra_debugging_files) {
+        fs::remove(locus_consensus_filepath);
+        fs::remove(paf_filepath);
+    }
 
     BOOST_LOG_TRIVIAL(debug) << "Ran racon " << number_of_rounds_executed << " times";
 
@@ -196,5 +198,18 @@ void Racon::run() {
     while (number_of_rounds_executed < max_number_of_rounds_to_run &&
            previous_run_improved_consensus_seq) {
         previous_run_improved_consensus_seq = run_another_round();
+    }
+
+    if (keep_extra_debugging_files) {
+        // build a file on disk with the polished consensus
+        std::string polished_consensus_filepath;
+        {
+            std::stringstream ss;
+            ss << locus << ".consensus.racon." << number_of_rounds_executed << "_rounds.fa";
+            polished_consensus_filepath = ss.str();
+        }
+        polished_consensus_filepath = (denovo_outdir / polished_consensus_filepath).string();
+        build_file(polished_consensus_filepath,
+            std::string(">polished_consensus_" + locus + "\n" + consensus_seq));
     }
 }

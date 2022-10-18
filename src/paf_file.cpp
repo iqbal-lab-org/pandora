@@ -2,7 +2,7 @@
 #include "minihits.h"
 #include "minihit.h"
 PafFile::PafFile(const fs::path &filepath) : GenericFile(filepath) {
-    file_handler << "read_idx\tmlen\tmstart\tmend\tmstrands\tprg_idx\tnmatch\talen\tmapq" << std::endl;
+    (*this) << "read_idx\tmlen\tmstart\tmend\tmstrands\tprg_idx\tnmatch\talen\tmapq" << "\n";
 }
 
 void PafFile::write_clusters(const MinimizerHitClusters &clusters) {
@@ -50,13 +50,13 @@ void PafFile::write_cluster(const Hits &cluster, uint32_t number_of_hits_in_read
     size_t alen = highest_position - lowest_position + 1;
     uint32_t mapq = 256 - (nmatch / alen * 256);
 
-    file_handler << first_hit->get_read_id() << "\t"
-                 << number_of_hits_in_read << "\t"
-                 << lowest_position << "\t"
-                 << highest_position << "\t"
-                 << strands_info << "\t"
-                 << first_hit->minimizer_from_PRG.prg_id << "\t"
-                 << nmatch << "\t"
-                 << alen << "\t"
-                 << mapq << std::endl;
+    (*this)  << first_hit->get_read_id() << "\t"
+             << number_of_hits_in_read << "\t"
+             << lowest_position << "\t"
+             << highest_position << "\t"
+             << strands_info << "\t"
+             << first_hit->minimizer_from_PRG.prg_id << "\t"
+             << nmatch << "\t"
+             << alen << "\t"
+             << mapq << "\n";
 }

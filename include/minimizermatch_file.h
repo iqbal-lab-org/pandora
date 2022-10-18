@@ -14,7 +14,8 @@ private:
 public:
     MinimizerMatchFile(const fs::path &filepath,
                        // just to convert prg IDs to prg names
-                       const std::vector<std::shared_ptr<LocalPRG>>& prgs);
+                       const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+                       bool is_fake_file = false);
     void write_hits(const Seq &seq, const Hits &hits);
 };
 

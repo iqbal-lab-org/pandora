@@ -7,17 +7,17 @@ SAMFile::SAMFile(const fs::path &filepath,
                  const std::vector<std::shared_ptr<LocalPRG>>& prgs,
                  const uint32_t flank_size) :
     GenericFile(filepath), prgs(prgs), flank_size(flank_size) {
-    file_handler << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION << std::endl;
-    file_handler << "@CO\tLF: left flank sequence, the sequence before the first "
-                    "mapped kmer, soft-clipped, max " << flank_size << " bps" << std::endl;
-    file_handler << "@CO\tRF: right flank sequence, the sequence after the last "
-                    "mapped kmer, soft-clipped, max " << flank_size << " bps" << std::endl;
-    file_handler << "@CO\tPPCH: Prg Paths of the Cluster of Hits: the PRG path of each "
-                    "hit in considered cluster of hits" << std::endl;
-    file_handler << "@CO\tNM: Total number of mismatches in the quasi-alignment" << std::endl;
-    file_handler << "@CO\tAS: Alignment score (number of matches)" << std::endl;
-    file_handler << "@CO\tnn: Number of ambiguous bases in the quasi-alignment" << std::endl;
-    file_handler << "@CO\tcm: Number of minimizers in the quasi-alignment" << std::endl;
+    (*this) << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION << "\n";
+    (*this) << "@CO\tLF: left flank sequence, the sequence before the first "
+               "mapped kmer, soft-clipped, max " << flank_size << " bps\n";
+    (*this) << "@CO\tRF: right flank sequence, the sequence after the last "
+               "mapped kmer, soft-clipped, max " << flank_size << " bps\n";
+    (*this) << "@CO\tPPCH: Prg Paths of the Cluster of Hits: the PRG path of each "
+               "hit in considered cluster of hits\n";
+    (*this) << "@CO\tNM: Total number of mismatches in the quasi-alignment\n";
+    (*this) << "@CO\tAS: Alignment score (number of matches)\n";
+    (*this) << "@CO\tnn: Number of ambiguous bases in the quasi-alignment\n";
+    (*this) << "@CO\tcm: Number of minimizers in the quasi-alignment\n";
 }
 
 std::vector<bool> SAMFile::get_mapped_positions_bitset(const Seq &seq, const Hits &cluster) const {
@@ -135,26 +135,26 @@ void SAMFile::write_sam_record_from_hit_cluster(
         uint32_t number_of_mismatches = cigar.number_of_mismatches();
         uint32_t alignment_score = segment_sequence.size() - number_of_mismatches;
 
-        file_handler << seq.name << "[" << first_mapped_pos << ":" << last_mapped_pos << "]\t"
-                     << "0\t"
-                     << prgs[first_hit->get_prg_id()]->name << "\t"
-                     << first_hit->get_prg_path() << "\t"
-                     << "255\t"
-                     << cigar << "\t"
-                     << "*\t0\t0\t"
-                     << segment_sequence << "\t"
-                     << "*\t"
-                     << "LF:Z:" << left_flank << "\t"
-                     << "RF:Z:" << right_flank << "\t"
-                     << "PPCH:Z:" << cluster_of_hits_prg_paths_ss.str() << "\t"
-                     << "NM:i:" << number_of_mismatches << "\t"
-                     << "AS:i:" << alignment_score << "\t"
-                     << "nn:i:" << number_ambiguous_bases << "\t"
-                     << "cm:i:" << cluster.size() << std::endl;
+        (*this)  << seq.name << "[" << first_mapped_pos << ":" << last_mapped_pos << "]\t"
+                 << "0\t"
+                 << prgs[first_hit->get_prg_id()]->name << "\t"
+                 << first_hit->get_prg_path() << "\t"
+                 << "255\t"
+                 << cigar << "\t"
+                 << "*\t0\t0\t"
+                 << segment_sequence << "\t"
+                 << "*\t"
+                 << "LF:Z:" << left_flank << "\t"
+                 << "RF:Z:" << right_flank << "\t"
+                 << "PPCH:Z:" << cluster_of_hits_prg_paths_ss.str() << "\t"
+                 << "NM:i:" << number_of_mismatches << "\t"
+                 << "AS:i:" << alignment_score << "\t"
+                 << "nn:i:" << number_ambiguous_bases << "\t"
+                 << "cm:i:" << cluster.size() << "\n";
     }
 
     if (!at_least_a_single_mapping_was_output) {
-        file_handler << seq.name << "\t" << "4\t*\t*\t0\t*\t*\t0\t0\t*\t*\t" << std::endl;
+        (*this) << seq.name << "\t" << "4\t*\t*\t0\t*\t*\t0\t0\t*\t*\t" << "\n";
     }
 }
 

@@ -125,6 +125,12 @@ void setup_discover_subcommand(CLI::App& app)
         ->type_name("INT")
         ->group("Consensus/Variant Calling");
 
+    discover_subcmd
+        ->add_flag("--keep-extra-debugging-files", opt->keep_extra_debugging_files,
+            "If should keep extra debugging files. Warning: this might "
+            "create thousands of files.")
+        ->group("Debugging");
+
     discover_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
 
@@ -157,7 +163,7 @@ void pandora_discover_core(const SampleData& sample,
         = pangraph_from_read_file(sample, pangraph, index, prgs,
         opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate, sample_outdir,
         opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
-        opt.threads);
+        opt.threads, opt.keep_extra_debugging_files);
 
     const auto pangraph_gfa { sample_outdir / "pandora.pangraph.gfa" };
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
@@ -271,10 +277,12 @@ void pandora_discover_core(const SampleData& sample,
 
         const std::string lmp_seq = prgs[pangraph_node->prg_id]->string_along_path(lmp);
         Racon racon(opt.illumina, opt.kmer_size, locus, lmp_seq,
-            denovo_outdir, locus_reads_filepath);
+            denovo_outdir, locus_reads_filepath, 10, opt.keep_extra_debugging_files);
         const std::string &polished_sequence = racon.get_polished_sequence();
 
-        // fs::remove(locus_reads_filepath);
+        if (!opt.keep_extra_debugging_files) {
+            fs::remove(locus_reads_filepath);
+        }
 
 #pragma omp critical(all_denovo_sequences)
         {
@@ -328,7 +336,9 @@ void pandora_discover_core(const SampleData& sample,
     }
     denovo_filehandler.close();
 
-    // fs::remove_all(denovo_outdir);
+    if (!opt.keep_extra_debugging_files) {
+        fs::remove_all(denovo_outdir);
+    }
 
     consensus_fq.save(sample_outdir / "pandora.consensus.fq.gz");
 

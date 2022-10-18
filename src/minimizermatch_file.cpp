@@ -4,9 +4,10 @@
 #include "denovo_discovery/denovo_utils.h"
 
 MinimizerMatchFile::MinimizerMatchFile(const fs::path &filepath,
-                                       const std::vector<std::shared_ptr<LocalPRG>>& prgs) :
-    GenericFile(filepath), prgs(prgs) {
-    file_handler << "kmer\tread\tread_start\tread_end\tread_strand\tprg\tprg_strand\tprg_path" << std::endl;
+                                       const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+                                       bool is_fake_file) :
+    GenericFile(filepath, is_fake_file), prgs(prgs) {
+    (*this) << "kmer\tread\tread_start\tread_end\tread_strand\tprg\tprg_strand\tprg_path\n";
 }
 
 void MinimizerMatchFile::write_hits(const Seq &seq, const Hits &hits) {
@@ -21,13 +22,13 @@ void MinimizerMatchFile::write_hits(const Seq &seq, const Hits &hits) {
             kmer = reverse_complement(kmer);
         }
         const std::string prg_name = prgs[hit->get_prg_id()]->name;
-        file_handler << kmer << "\t"
-                     << seq.name << "\t"
-                     << read_start_position << "\t"
-                     << read_end_position << "\t"
-                     << hit->read_strand << "\t"
-                     << prg_name << "\t"
-                     << hit->get_prg_kmer_strand() << "\t"
-                     << hit->get_prg_path() << std::endl;
+        (*this)  << kmer << "\t"
+                 << seq.name << "\t"
+                 << read_start_position << "\t"
+                 << read_end_position << "\t"
+                 << hit->read_strand << "\t"
+                 << prg_name << "\t"
+                 << hit->get_prg_kmer_strand() << "\t"
+                 << hit->get_prg_path() << "\n";
     }
 }

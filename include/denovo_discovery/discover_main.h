@@ -35,6 +35,7 @@ struct DiscoverOptions {
     uint32_t min_cluster_size { 10 };
     uint32_t max_num_kmers_to_avg { 100 };
     bool clean_dbg { false };
+    bool keep_extra_debugging_files { false };
 };
 
 void setup_discover_subcommand(CLI::App& app);

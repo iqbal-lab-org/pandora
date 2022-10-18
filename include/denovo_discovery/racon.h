@@ -13,6 +13,7 @@ private:
     const fs::path &denovo_outdir;
     const std::string &locus_reads_filepath;
     const uint32_t max_number_of_rounds_to_run;
+    const bool keep_extra_debugging_files;
     uint32_t number_of_rounds_executed;
     bool previous_run_improved_consensus_seq;
     std::vector<std::string> consensus_seq_already_seen;
@@ -49,10 +50,12 @@ public:
     Racon(bool illumina, uint32_t kmer_size, const std::string &locus,
           const std::string &consensus_seq, const fs::path &denovo_outdir,
           const std::string &locus_reads_filepath,
-          uint32_t max_number_of_rounds_to_run = 10)
+          uint32_t max_number_of_rounds_to_run = 10,
+          bool keep_extra_debugging_files = false)
         : illumina(illumina), kmer_size(kmer_size), locus(locus), consensus_seq(consensus_seq),
         denovo_outdir(denovo_outdir), locus_reads_filepath(locus_reads_filepath),
         max_number_of_rounds_to_run(max_number_of_rounds_to_run),
+        keep_extra_debugging_files(keep_extra_debugging_files),
         number_of_rounds_executed(0), previous_run_improved_consensus_seq(true),
         consensus_seq_already_seen() {}
 
