@@ -375,7 +375,7 @@ int pandora_compare(CompareOptions& opt)
         pangraphNodesAsVector.push_back(*pan_id_to_node_mapping);
     }
 
-#pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 1)
+#pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 1) default(shared)
     for (uint32_t pangraph_node_index = 0;
          pangraph_node_index < pangraphNodesAsVector.size(); ++pangraph_node_index) {
         const auto& pangraph_node_entry = pangraphNodesAsVector[pangraph_node_index];

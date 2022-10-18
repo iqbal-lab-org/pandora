@@ -314,7 +314,7 @@ int pandora_map(MapOptions& opt)
         pangraphNodesAsVector.push_back(pan_id_to_node_mapping->second);
 
 // TODO: check the batch size
-#pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 10)
+#pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 10) default(shared)
     for (uint32_t i = 0; i < pangraphNodesAsVector.size(); ++i) {
         // add some progress
         if (i && i % 100 == 0) {

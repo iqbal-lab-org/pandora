@@ -211,7 +211,7 @@ void pandora_discover_core(const SampleData& sample,
         denovo_paths_out_core_file);
 
     uint32_t number_of_loci_with_denovo_variants = 0;
-#pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 1)
+#pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 1) default(shared)
     for (uint32_t i = 0; i < pangraphNodesAsVector.size(); ++i) {
         // add some progress
         if (i && i % 100 == 0) {

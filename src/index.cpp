@@ -197,7 +197,7 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
 
     // now fill index
     std::atomic_uint32_t nbOfPRGsDone { 0 };
-#pragma omp parallel for num_threads(threads) schedule(dynamic, 1)
+#pragma omp parallel for num_threads(threads) schedule(dynamic, 1) default(shared)
     for (uint32_t i = 0; i < prgs.size(); ++i) { // for each prg
         uint32_t dir = i / nbOfGFAsPerDir + 1;
         const auto gfa_file { outdir / int_to_string(dir)
