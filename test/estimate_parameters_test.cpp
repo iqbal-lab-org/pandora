@@ -178,9 +178,9 @@ void setup_index_estimate_parameters(
         "one with lots of null at start and end, and a long stretch in between",
         " 5  7  9  11 AGTTCTGAAACATTGCGCGTGAGATCTCTG 12 T 11  10 A 9  8 C 7  6 G 5 "));
     prgs.emplace_back(s);
-    prgs[0]->minimizer_sketch(index, 1, 6);
-    prgs[1]->minimizer_sketch(index, 1, 6);
-    prgs[2]->minimizer_sketch(index, 1, 6);
+    prgs[0]->minimizer_sketch(index, 1, 6, 10000000);
+    prgs[1]->minimizer_sketch(index, 1, 6, 10000000);
+    prgs[2]->minimizer_sketch(index, 1, 6, 10000000);
 }
 
 TEST(EstimateParameters_EstimateParameters, NoPangraphNodes)
@@ -211,8 +211,10 @@ TEST(EstimateParameters_EstimateParameters, PangraphWithNodes_SimpleBinomial)
 
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
     const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads.fa";
-    pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
-        min_cluster_size, genome_size, illumina);
+    const std::string sid{"sample"};
+    const SampleData sample = std::make_pair(sid, filepath);
+    pangraph_from_read_file(sample, pangraph, index, prgs, w, k, 1, e_rate,
+        sample_outdir, min_cluster_size, genome_size, illumina, 0, 0, 0);
     pangraph->add_hits_to_kmergraphs();
 
     auto expected_depth_covg
@@ -236,7 +238,7 @@ TEST(
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
     const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads3.fa";
     pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
-        min_cluster_size, genome_size, illumina);
+        sample_outdir, min_cluster_size, genome_size, illumina, 0, 0, 0);
     pangraph->add_hits_to_kmergraphs();
 
     auto expected_depth_covg
@@ -259,7 +261,7 @@ TEST(EstimateParameters_EstimateParameters, PangraphWithNodes_SimpleNegativeBino
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
     const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads.fa";
     pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
-        min_cluster_size, genome_size, illumina);
+        sample_outdir, min_cluster_size, genome_size, illumina, 0, 0, 0);
     pangraph->add_hits_to_kmergraphs();
 
     auto expected_depth_covg
@@ -283,7 +285,7 @@ TEST(EstimateParameters_EstimateParameters,
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
     const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads4.fa";
     pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
-        min_cluster_size, genome_size, illumina);
+        sample_outdir, min_cluster_size, genome_size, illumina, 0, 0, 0);
     pangraph->add_hits_to_kmergraphs();
 
     auto expected_depth_covg
@@ -308,7 +310,7 @@ TEST(EstimateParameters_EstimateParameters,
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
     const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads4.fa";
     pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
-        min_cluster_size, genome_size, illumina);
+        sample_outdir, min_cluster_size, genome_size, illumina, 0, 0, 0);
     pangraph->add_hits_to_kmergraphs();
 
     auto expected_depth_covg
@@ -332,7 +334,7 @@ TEST(EstimateParameters_EstimateParameters, PangraphWithNodes_NoiseReads)
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
     const auto filepath = TEST_CASE_DIR + "estimate_parameters_reads2.fa";
     pangraph_from_read_file(filepath, pangraph, index, prgs, w, k, 1, e_rate,
-        min_cluster_size, genome_size, illumina);
+        sample_outdir, min_cluster_size, genome_size, illumina, 0, 0, 0);
     pangraph->add_hits_to_kmergraphs();
 
     auto expected_depth_covg

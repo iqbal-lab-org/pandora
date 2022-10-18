@@ -154,9 +154,10 @@ void pandora_discover_core(const SampleData& sample,
                             << sample_fpath << " (this will take a while)";
     auto pangraph = std::make_shared<pangenome::Graph>();
     uint32_t covg
-        = pangraph_from_read_file(sample, pangraph, index, prgs, opt.window_size,
-            opt.kmer_size, opt.max_diff, opt.error_rate, opt.min_cluster_size,
-            opt.genome_size, opt.illumina, opt.clean, opt.max_covg, opt.threads, sample_outdir);
+        = pangraph_from_read_file(sample, pangraph, index, prgs,
+        opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate, sample_outdir,
+        opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
+        opt.threads);
 
     const auto pangraph_gfa { sample_outdir / "pandora.pangraph.gfa" };
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "

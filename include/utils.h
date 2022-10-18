@@ -98,12 +98,13 @@ MinimizerHitClusters get_minimizer_hit_clusters(const std::vector<std::shared_pt
     const uint32_t expected_number_kmers_in_short_read_sketch
     = std::numeric_limits<uint32_t>::max());
 
-uint32_t pangraph_from_read_file(const SampleData &sample,
-                                 std::shared_ptr<pangenome::Graph> pangraph, std::shared_ptr<Index> index,
-                                 const std::vector<std::shared_ptr<LocalPRG>>& prgs, const uint32_t w,
-                                 const uint32_t k, const int max_diff, const float& e_rate,
-                                 const uint32_t min_cluster_size, const uint32_t genome_size, const bool illumina,
-                                 const bool clean, const uint32_t max_covg, uint32_t threads, const fs::path &sample_outdir);
+uint32_t pangraph_from_read_file(const SampleData& sample,
+    std::shared_ptr<pangenome::Graph> pangraph, std::shared_ptr<Index> index,
+    const std::vector<std::shared_ptr<LocalPRG>>& prgs, const uint32_t w,
+    const uint32_t k, const int max_diff, const float& e_rate,
+    const fs::path& sample_outdir, const uint32_t min_cluster_size = 10,
+    const uint32_t genome_size = 5000000, const bool illumina = false, const bool clean = false,
+    const uint32_t max_covg = 300, uint32_t threads = 1);
 
 void infer_most_likely_prg_path_for_pannode(
     const std::vector<std::shared_ptr<LocalPRG>>&, PanNode*, uint32_t, float);

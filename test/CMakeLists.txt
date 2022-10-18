@@ -6,8 +6,6 @@ add_executable(${PROJECT_NAME}_test ${TEST_SRC_FILES})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
 
-add_dependencies(${PROJECT_NAME}_test gatb)
-
 target_include_directories(${PROJECT_NAME}_test PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         ${CMAKE_BINARY_DIR}/include

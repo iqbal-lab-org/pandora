@@ -253,9 +253,9 @@ int pandora_compare(CompareOptions& opt)
         BOOST_LOG_TRIVIAL(info) << "Constructing pangenome::Graph from read file "
                                 << sample_fpath << " (this will take a while)";
         uint32_t covg = pangraph_from_read_file(sample, pangraph_sample, index, prgs,
-            opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate,
+            opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate, sample_outdir,
             opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean,
-            opt.max_covg, opt.threads, sample_outdir);
+            opt.max_covg, opt.threads);
 
         const auto pangraph_gfa { sample_outdir / "pandora.pangraph.gfa" };
         BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file " << pangraph_gfa;

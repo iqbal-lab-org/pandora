@@ -145,7 +145,7 @@ target_link_libraries(${PROJECT_NAME}
         ${RT_LIBRARY}
         )
 
-#enable_testing()
-#add_subdirectory(test)
+enable_testing()
+add_subdirectory(test)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)

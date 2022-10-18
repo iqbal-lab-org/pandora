@@ -17,7 +17,7 @@ const std::string TEST_CASE_DIR = "../../test/test_cases/";
 TEST(IndexTest, add_record)
 {
     Index idx;
-    KmerHash hash;
+    pandora::KmerHash hash;
     deque<Interval> d = { Interval(3, 5), Interval(9, 12) };
     prg::Path p;
     p.initialize(d);
@@ -46,7 +46,7 @@ TEST(IndexTest, add_record)
 TEST(IndexTest, clear)
 {
     Index idx;
-    KmerHash hash;
+    pandora::KmerHash hash;
     deque<Interval> d = { Interval(3, 5), Interval(9, 12) };
     prg::Path p;
     p.initialize(d);
@@ -64,7 +64,7 @@ TEST(IndexTest, clear)
 TEST(IndexTest, save)
 {
     Index idx;
-    KmerHash hash;
+    pandora::KmerHash hash;
     deque<Interval> d = { Interval(3, 5), Interval(9, 12) };
     prg::Path p;
     p.initialize(d);
@@ -81,7 +81,7 @@ TEST(IndexTest, save)
 TEST(IndexTest, load)
 {
     Index idx1, idx2;
-    KmerHash hash;
+    pandora::KmerHash hash;
     deque<Interval> d = { Interval(3, 5), Interval(9, 12) };
     prg::Path p;
     p.initialize(d);
@@ -108,7 +108,7 @@ TEST(IndexTest, load)
 TEST(IndexTest, equals)
 {
     Index idx1, idx2;
-    KmerHash hash;
+    pandora::KmerHash hash;
     deque<Interval> d = { Interval(3, 5), Interval(9, 12) };
     prg::Path p;
     p.initialize(d);
@@ -126,7 +126,7 @@ TEST(IndexTest, equals)
 TEST(IndexTest, equals_fails)
 {
     Index idx1, idx2;
-    KmerHash hash;
+    pandora::KmerHash hash;
     deque<Interval> d = { Interval(3, 5), Interval(9, 12) };
     prg::Path p;
     p.initialize(d);
