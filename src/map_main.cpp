@@ -89,11 +89,6 @@ void setup_map_subcommand(CLI::App& app)
         ->group("Input/Output");
 
     map_subcmd
-        ->add_flag("-C,--comparison-paths", opt->output_comparison_paths,
-            "Save a fasta file for a random selection of paths through loci")
-        ->group("Input/Output");
-
-    map_subcmd
         ->add_flag("-I,--illumina", opt->illumina,
             "Reads are from Illumina. Alters error rate used and adjusts for shorter "
             "reads")
@@ -184,6 +179,12 @@ void setup_map_subcommand(CLI::App& app)
         ->capture_default_str()
         ->group("Genotyping");
 
+    map_subcmd
+        ->add_flag("--keep-extra-debugging-files", opt->keep_extra_debugging_files,
+            "If should keep extra debugging files. Warning: this might "
+            "create thousands of files.")
+        ->group("Debugging");
+
     map_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
 
@@ -193,7 +194,6 @@ void setup_map_subcommand(CLI::App& app)
 
 int pandora_map(MapOptions& opt)
 {
-    /*
     auto log_level = boost::log::trivial::info;
     if (opt.verbosity == 1) {
         log_level = boost::log::trivial::debug;
@@ -237,12 +237,6 @@ int pandora_map(MapOptions& opt)
         opt.min_allele_fraction_covg_gt, opt.min_total_covg_gt, opt.min_diff_covg_gt, 0,
         false);
 
-    fs::create_directories(opt.outdir);
-    const auto kmer_graphs_dir { opt.outdir / "kmer_graphs" };
-    if (opt.output_kg) {
-        fs::create_directories(kmer_graphs_dir);
-    }
-
     BOOST_LOG_TRIVIAL(info) << "Loading Index and LocalPRGs from file...";
     auto index = std::make_shared<Index>();
     index->load(opt.prgfile, opt.window_size, opt.kmer_size);
@@ -250,32 +244,40 @@ int pandora_map(MapOptions& opt)
     read_prg_file(prgs, opt.prgfile);
     load_PRG_kmergraphs(prgs, opt.window_size, opt.kmer_size, opt.prgfile);
 
+    fs::create_directories(opt.outdir);
+    const auto kmer_graphs_dir { opt.outdir / "kmer_graphs" };
+    if (opt.output_kg) {
+        fs::create_directories(kmer_graphs_dir);
+    }
+
     BOOST_LOG_TRIVIAL(info)
         << "Constructing pangenome::Graph from read file (this will take a while)...";
+    const SampleData sample(opt.readsfile.stem().string(), opt.readsfile.string());
     auto pangraph = std::make_shared<pangenome::Graph>();
-    uint32_t covg = pangraph_from_read_file(opt.readsfile.string(), pangraph, index,
-        prgs, opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate,
+    uint32_t covg
+        = pangraph_from_read_file(sample, pangraph, index, prgs,
+        opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate, opt.outdir,
         opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
-        opt.threads);
-
-    if (pangraph->nodes.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "Found non of the LocalPRGs in the reads.";
-        BOOST_LOG_TRIVIAL(info) << "Done!";
-        return 0;
-    }
+        opt.threads, opt.keep_extra_debugging_files);
 
     const auto pangraph_gfa { opt.outdir / "pandora.pangraph.gfa" };
     BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file " << pangraph_gfa;
     write_pangraph_gfa(pangraph_gfa, pangraph);
 
+    if (pangraph->nodes.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "Found none of the LocalPRGs in the reads.";
+        BOOST_LOG_TRIVIAL(info) << "Done!";
+        return 0;
+    }
+
     BOOST_LOG_TRIVIAL(info) << "Updating local PRGs with hits...";
-    uint32_t sample_id = 0;
     pangraph->add_hits_to_kmergraphs();
 
     BOOST_LOG_TRIVIAL(info) << "Estimating parameters for kmer graph model...";
     auto exp_depth_covg = estimate_parameters(pangraph, opt.outdir, opt.kmer_size,
-        opt.error_rate, covg, opt.binomial, sample_id);
+        opt.error_rate, covg, opt.binomial, 0);
     genotyping_options.add_exp_depth_covg(exp_depth_covg);
+
     if (genotyping_options.get_min_kmer_covg() == 0) {
         genotyping_options.set_min_kmer_covg(exp_depth_covg / 10);
     }
@@ -286,16 +288,23 @@ int pandora_map(MapOptions& opt)
     // shared variable - synced with critical(consensus_fq)
     Fastaq consensus_fq(true, true);
 
-    // shared variable - synced with critical(master_vcf)
-    VCF master_vcf(&genotyping_options);
-
-    // shared variable - synced with critical(candidate_regions)
-    CandidateRegions candidate_regions;
-
     // shared variable - will denote which nodes we have to remove after the
     // parallel loop synced with critical(nodes_to_remove)
     std::vector<pangenome::NodePtr> nodes_to_remove;
     nodes_to_remove.reserve(pangraph->nodes.size());
+
+    // transforms the pangraph->nodes from map to vector so that we can run it in
+    // parallel
+    // TODO: use OMP task instead?
+    std::vector<pangenome::NodePtr> pangraphNodesAsVector;
+    pangraphNodesAsVector.reserve(pangraph->nodes.size());
+    for (auto pan_id_to_node_mapping = pangraph->nodes.begin();
+         pan_id_to_node_mapping != pangraph->nodes.end(); ++pan_id_to_node_mapping) {
+        pangraphNodesAsVector.push_back(pan_id_to_node_mapping->second);
+    }
+
+    // shared variable - synced with critical(master_vcf)
+    VCF master_vcf(&genotyping_options);
 
     // this a read-only var, no need for sync
     VCFRefs vcf_refs;
@@ -304,16 +313,6 @@ int pandora_map(MapOptions& opt)
         load_vcf_refs_file(opt.vcf_refs_file, vcf_refs);
     }
 
-    // transforms the pangraph->nodes from map to vector so that we can run it in
-    // parallel
-    // TODO: use OMP task instead?
-    std::vector<pangenome::NodePtr> pangraphNodesAsVector;
-    pangraphNodesAsVector.reserve(pangraph->nodes.size());
-    for (auto pan_id_to_node_mapping = pangraph->nodes.begin();
-         pan_id_to_node_mapping != pangraph->nodes.end(); ++pan_id_to_node_mapping)
-        pangraphNodesAsVector.push_back(pan_id_to_node_mapping->second);
-
-// TODO: check the batch size
 #pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 10) default(shared)
     for (uint32_t i = 0; i < pangraphNodesAsVector.size(); ++i) {
         // add some progress
@@ -383,6 +382,8 @@ int pandora_map(MapOptions& opt)
         BOOST_LOG_TRIVIAL(info) << "Genotyping VCF...";
         master_vcf.genotype(opt.local_genotype);
         BOOST_LOG_TRIVIAL(info) << "Finished genotyping VCF";
+
+        // save the genotyped vcf to disk
         const auto gt_vcf_filepath { opt.outdir / "pandora_genotyped.vcf" };
         if (opt.snps_only) {
             master_vcf.save(gt_vcf_filepath, false, true, false, true, true, true, true,
@@ -393,6 +394,5 @@ int pandora_map(MapOptions& opt)
     }
 
     BOOST_LOG_TRIVIAL(info) << "Done!";
-     */
     return 0;
 }

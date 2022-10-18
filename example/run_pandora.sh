@@ -54,6 +54,8 @@ echo "Running ${make_prg_executable} from_msa"
 ${make_prg_executable} from_msa --threads 1 --input msas/ --output_prefix out/prgs/pangenome
 echo "Running ${pandora_executable} index"
 "${pandora_executable}" index --threads 1 out/prgs/pangenome.prg.fa
+echo "Running ${pandora_executable} map"
+"${pandora_executable}" map --keep-extra-debugging-files --threads 1 --genotype -o out/map_toy_sample_1 out/prgs/pangenome.prg.fa reads/toy_sample_1/toy_sample_1.100x.random.illumina.fastq
 echo "Running ${pandora_executable} compare"
 "${pandora_executable}" compare --keep-extra-debugging-files --threads 1 --genotype -o out/output_toy_example_no_denovo out/prgs/pangenome.prg.fa reads/read_index.tsv
 echo "Running pandora without denovo - done!"
