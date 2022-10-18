@@ -7,6 +7,7 @@
 class Racon {
 private:
     const bool illumina;
+    const uint32_t kmer_size;
     const std::string &locus;
     std::string consensus_seq;
     const fs::path &denovo_outdir;
@@ -18,9 +19,7 @@ private:
 
     // Runs minimap2 with the given parameters
     // @return : the number of reads mapped (entries in the output PAF file)
-    static uint32_t run_minimap2_core(bool illumina,
-        const std::string &locus_consensus_filepath,
-        const std::string &locus_reads_filepath,
+    uint32_t run_minimap2_core(const std::string &locus_consensus_filepath,
         const std::string &paf_filepath);
 
 
@@ -47,11 +46,11 @@ private:
     void run();
 
 public:
-    Racon(bool illumina, const std::string &locus,
+    Racon(bool illumina, uint32_t kmer_size, const std::string &locus,
           const std::string &consensus_seq, const fs::path &denovo_outdir,
           const std::string &locus_reads_filepath,
           uint32_t max_number_of_rounds_to_run = 10)
-        : illumina(illumina), locus(locus), consensus_seq(consensus_seq),
+        : illumina(illumina), kmer_size(kmer_size), locus(locus), consensus_seq(consensus_seq),
         denovo_outdir(denovo_outdir), locus_reads_filepath(locus_reads_filepath),
         max_number_of_rounds_to_run(max_number_of_rounds_to_run),
         number_of_rounds_executed(0), previous_run_improved_consensus_seq(true),

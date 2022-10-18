@@ -63,9 +63,7 @@ std::string Racon::run_racon_core(
 
 // Runs minimap2
 // Returns the number of reads mapped (entries in the PAF file)
-uint32_t Racon::run_minimap2_core(bool illumina,
-    const std::string &locus_consensus_filepath,
-    const std::string &locus_reads_filepath,
+uint32_t Racon::run_minimap2_core(const std::string &locus_consensus_filepath,
     const std::string &paf_filepath) {
 
     // setup minimap2 options
@@ -75,14 +73,13 @@ uint32_t Racon::run_minimap2_core(bool illumina,
     mm_verbose = 2; // disable message output to stderr
     mm_set_opt(0, &iopt, &mopt);
 
-    if (illumina) {
+    if (this->illumina) {
         mm_set_opt("sr", &iopt, &mopt);
     } else {
         mm_set_opt("map-ont", &iopt, &mopt);
     }
 
-    // TODO: do we set k to the k-value we use in pandora?
-    // iopt.k = kmer_prg->k;
+    iopt.k = this->kmer_size;
     mopt.flag |= MM_F_CIGAR; // perform alignment - this is actually required
 
     // open index reader
@@ -92,10 +89,10 @@ uint32_t Racon::run_minimap2_core(bool illumina,
     }
 
     // open query seq file
-    gzFile query_seq_fd = gzopen(locus_reads_filepath.c_str(), "r");
+    gzFile query_seq_fd = gzopen(this->locus_reads_filepath.c_str(), "r");
     if (!query_seq_fd) {
         fatal_error(
-            "Could not open minimap2 query sequence file for ", locus_reads_filepath);
+            "Could not open minimap2 query sequence file for ", this->locus_reads_filepath);
     }
 
     // minimap2 the reads
@@ -139,12 +136,15 @@ uint32_t Racon::run_minimap2_core(bool illumina,
 }
 
 bool Racon::run_another_round() {
-    // builds a mem_fd with the consensus seq
     const std::string consensus_record = ">consensus\n" + consensus_seq;
-    // TODO: use mem_fd when we can
+
+    // [TODO RACON]: switch to memfd to improve performance whenever we can
+    // builds a mem_fd with the consensus seq
 //    std::pair<int, std::string> consensus_fd_and_filepath =
 //        build_memfd(consensus_record, ".fa");
 //    std::string locus_consensus_filepath = consensus_fd_and_filepath.second;
+
+    // build a file on disk with the consensus_record
     std::string locus_consensus_filepath;
     {
         std::stringstream ss;
@@ -158,8 +158,7 @@ bool Racon::run_another_round() {
     // run minimap to get overlaps
     const std::string paf_filepath {
         (denovo_outdir / (locus + ".minimap2.out.paf")).string() };
-    uint32_t number_of_reads_mapped = run_minimap2_core(illumina,
-        locus_consensus_filepath, locus_reads_filepath, paf_filepath);
+    uint32_t number_of_reads_mapped = run_minimap2_core(locus_consensus_filepath, paf_filepath);
 
     const bool paf_file_is_empty = number_of_reads_mapped == 0;
 
