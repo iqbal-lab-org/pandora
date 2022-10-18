@@ -255,9 +255,11 @@ void pandora_discover_core(const SampleData& sample,
                 prgs[pangraph_node->prg_id]);
         }
 
+        // [TODO RACON]: switch to memfd to improve performance whenever we can
         // builds a mem_fd with the locus reads
         // std::pair<int, std::string> read_locus_fd_and_filepath = build_memfd(locus_to_reads[locus]);
-        // TODO: use mem_fd back
+
+        // build the reads file on disk
         std::string locus_reads_filepath;
         {
             std::stringstream ss;
