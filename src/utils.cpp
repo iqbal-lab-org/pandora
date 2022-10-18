@@ -530,7 +530,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
     uint32_t id { 0 };
 
     MinimizerMatchFile minimizer_matches(sample_outdir / (sample_name + ".minimatches"), prgs);
-    SAMFile filtered_mappings(sample_outdir / (sample_name + ".filtered.sam"), prgs);
+    SAMFile filtered_mappings(sample_outdir / (sample_name + ".filtered.sam"), prgs, k*2);
     GenericFile cluster_def_file(sample_outdir / (sample_name + ".clusters_def_report"));
     cluster_def_file.get_file_handler() <<
         "read\tprg\tstatus\tcluster_size\tnb_of_repeated_mini\tnb_of_unique_mini\tlength_based_threshold\tmin_cluster_size\tdistances_between_clusters" << std::endl;

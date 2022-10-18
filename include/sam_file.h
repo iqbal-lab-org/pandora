@@ -60,13 +60,14 @@ private:
 public:
     SAMFile(const fs::path &filepath,
             // just to convert prg IDs to prg names
-            const std::vector<std::shared_ptr<LocalPRG>>& prgs);
+            const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+            const uint32_t flank_size);
     void write_sam_record_from_hit_cluster(
         const Seq &seq, const MinimizerHitClusters &clusters);
 
 private:
     // some constants
-    const static uint32_t flank_size = 50;
+    const uint32_t flank_size;
 };
 
 #endif // PANDORA_SAM_FILE_H

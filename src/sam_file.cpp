@@ -4,13 +4,14 @@
 #include "version.h"
 
 SAMFile::SAMFile(const fs::path &filepath,
-                 const std::vector<std::shared_ptr<LocalPRG>>& prgs) :
-    GenericFile(filepath), prgs(prgs) {
+                 const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+                 const uint32_t flank_size) :
+    GenericFile(filepath), prgs(prgs), flank_size(flank_size) {
     file_handler << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION << std::endl;
     file_handler << "@CO\tLF: left flank sequence, the sequence before the first "
-                    "mapped kmer, soft-clipped" << std::endl;
+                    "mapped kmer, soft-clipped, max " << flank_size << " bps" << std::endl;
     file_handler << "@CO\tRF: right flank sequence, the sequence after the last "
-                    "mapped kmer, soft-clipped" << std::endl;
+                    "mapped kmer, soft-clipped, max " << flank_size << " bps" << std::endl;
     file_handler << "@CO\tPPCH: Prg Paths of the Cluster of Hits: the PRG path of each "
                     "hit in considered cluster of hits" << std::endl;
     file_handler << "@CO\tNM: Total number of mismatches in the quasi-alignment" << std::endl;
