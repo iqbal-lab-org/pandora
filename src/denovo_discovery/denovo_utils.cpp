@@ -21,9 +21,9 @@ std::map<std::string, std::string> get_locus_to_reads(
             const std::string &locus = words[2];
             const std::string &segment_seq = words[9];
             const std::string &left_flank_field = words[11];
-            const std::string &left_flank = left_flank_field.substr(5);
+            const std::string left_flank = left_flank_field.substr(5);
             const std::string &right_flank_field = words[12];
-            const std::string &right_flank = right_flank_field.substr(5);
+            const std::string right_flank = right_flank_field.substr(5);
             const std::string segment_seq_with_flanks =
                 left_flank + segment_seq + right_flank;
 
