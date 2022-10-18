@@ -515,7 +515,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
 
     // constant variables
     const double fraction_kmers_required_for_cluster = 0.5 / exp(e_rate * k);
-    const uint32_t nb_reads_to_map_in_a_batch = 1000; // nb of reads to map in a batch
+    const uint32_t nb_reads_to_map_in_a_batch = 1000;
 
     BOOST_LOG_TRIVIAL(trace) << tag << "e_rate: " << e_rate;
     BOOST_LOG_TRIVIAL(trace) << tag << "k: " << k;
