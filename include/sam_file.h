@@ -50,24 +50,32 @@ public:
     }
 };
 
-class SAMFile : public GenericFile {
+class SAMFile {
 private:
+    const fs::path filepath;
+    const fs::path tmp_filepath;
+    GenericFile* tmp_sam_file;
+    const std::vector<std::shared_ptr<LocalPRG>>& prgs;
+    std::map<std::string, uint32_t> prg_name_to_length;
+    const uint32_t flank_size;
+
     std::vector<bool> get_mapped_positions_bitset(const Seq &seq, const Hits &cluster) const;
     Cigar get_cigar(const std::vector<bool> &mapped_positions_bitset) const;
     std::string get_segment_sequence(const Seq &seq,
                                      const std::vector<bool> &mapped_positions_bitset) const;
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs;
+    std::string get_header() const;
+    void create_final_sam_file();
 public:
     SAMFile(const fs::path &filepath,
             // just to convert prg IDs to prg names
             const std::vector<std::shared_ptr<LocalPRG>>& prgs,
-            const uint32_t flank_size);
+            const uint32_t flank_size)
+        :filepath(filepath), tmp_filepath(filepath.string() + ".tmp"),
+         tmp_sam_file(new GenericFile(tmp_filepath)), prgs(prgs), flank_size(flank_size){}
+    virtual ~SAMFile();
     void write_sam_record_from_hit_cluster(
         const Seq &seq, const MinimizerHitClusters &clusters);
 
-private:
-    // some constants
-    const uint32_t flank_size;
 };
 
 #endif // PANDORA_SAM_FILE_H

@@ -4,22 +4,47 @@
 #include "version.h"
 #include "globals.h"
 
-SAMFile::SAMFile(const fs::path &filepath,
-                 const std::vector<std::shared_ptr<LocalPRG>>& prgs,
-                 const uint32_t flank_size) :
-    GenericFile(filepath), prgs(prgs), flank_size(flank_size) {
-    (*this) << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION
-            << "\tCL: " << PandoraGlobals::command_line << "\n";
-    (*this) << "@CO\tLF: left flank sequence, the sequence before the first "
-               "mapped kmer, soft-clipped, max " << flank_size << " bps\n";
-    (*this) << "@CO\tRF: right flank sequence, the sequence after the last "
-               "mapped kmer, soft-clipped, max " << flank_size << " bps\n";
-    (*this) << "@CO\tPPCH: Prg Paths of the Cluster of Hits: the PRG path of each "
-               "hit in considered cluster of hits\n";
-    (*this) << "@CO\tNM: Total number of mismatches in the quasi-alignment\n";
-    (*this) << "@CO\tAS: Alignment score (number of matches)\n";
-    (*this) << "@CO\tnn: Number of ambiguous bases in the quasi-alignment\n";
-    (*this) << "@CO\tcm: Number of minimizers in the quasi-alignment\n";
+std::string SAMFile::get_header() const {
+    std::stringstream ss;
+
+    for (const auto &prg_name_and_length : prg_name_to_length) {
+        ss << "@SQ\t"
+           << "SN:" << prg_name_and_length.first << "\t"
+           << "LN:" << prg_name_and_length.second << "\n";
+    }
+    ss << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION
+       << "\tCL: " << PandoraGlobals::command_line << "\n";
+    ss << "@CO\tLF: left flank sequence, the sequence before the first "
+          "mapped kmer, soft-clipped, max " << flank_size << " bps\n";
+    ss << "@CO\tRF: right flank sequence, the sequence after the last "
+          "mapped kmer, soft-clipped, max " << flank_size << " bps\n";
+    ss << "@CO\tPP: Prg Paths of the cluster of hits: the PRG path of each "
+          "hit in considered cluster of hits\n";
+    ss << "@CO\tNM: Total number of mismatches in the quasi-alignment\n";
+    ss << "@CO\tAS: Alignment score (number of matches)\n";
+    ss << "@CO\tnn: Number of ambiguous bases in the quasi-alignment\n";
+    ss << "@CO\tcm: Number of minimizers in the quasi-alignment\n";
+
+    return ss.str();
+}
+
+void SAMFile::create_final_sam_file() {
+    GenericFile sam_file(filepath);
+    sam_file << get_header();
+    std::ifstream sam_records_fh;
+    open_file_for_reading(tmp_filepath.string(), sam_records_fh);
+    sam_file << sam_records_fh.rdbuf();
+    sam_records_fh.close();
+}
+
+SAMFile::~SAMFile() {
+    try {
+        delete tmp_sam_file;  // closes tmp_sam_file
+        create_final_sam_file();
+        fs::remove(tmp_filepath);
+    } catch (...) {
+        fatal_error("Error creating SAM file: ", filepath.string());
+    };
 }
 
 std::vector<bool> SAMFile::get_mapped_positions_bitset(const Seq &seq, const Hits &cluster) const {
@@ -49,7 +74,7 @@ Cigar SAMFile::get_cigar(const std::vector<bool> &mapped_positions_bitset) const
     const uint32_t last_mapped_position = get_last_mapped_position(mapped_positions_bitset);
 
     if (first_mapped_position > 0) {
-        cigar.add_entry('S', first_mapped_position);
+        cigar.add_entry('H', first_mapped_position);
     }
 
     uint32_t consecutive_equal_bits_length = 0;
@@ -73,7 +98,7 @@ Cigar SAMFile::get_cigar(const std::vector<bool> &mapped_positions_bitset) const
 
     const uint32_t number_of_bases_after_last = mapped_positions_bitset.size() - last_mapped_position;
     if (number_of_bases_after_last > 0) {
-        cigar.add_entry('S', number_of_bases_after_last);
+        cigar.add_entry('H', number_of_bases_after_last);
     }
     return cigar;
 }
@@ -137,26 +162,32 @@ void SAMFile::write_sam_record_from_hit_cluster(
         uint32_t number_of_mismatches = cigar.number_of_mismatches();
         uint32_t alignment_score = segment_sequence.size() - number_of_mismatches;
 
-        (*this)  << seq.name << "[" << first_mapped_pos << ":" << last_mapped_pos << "]\t"
-                 << "0\t"
-                 << prgs[first_hit->get_prg_id()]->name << "\t"
-                 << first_hit->get_prg_path() << "\t"
-                 << "255\t"
-                 << cigar << "\t"
-                 << "*\t0\t0\t"
-                 << segment_sequence << "\t"
-                 << "*\t"
-                 << "LF:Z:" << left_flank << "\t"
-                 << "RF:Z:" << right_flank << "\t"
-                 << "PPCH:Z:" << cluster_of_hits_prg_paths_ss.str() << "\t"
-                 << "NM:i:" << number_of_mismatches << "\t"
-                 << "AS:i:" << alignment_score << "\t"
-                 << "nn:i:" << number_ambiguous_bases << "\t"
-                 << "cm:i:" << cluster.size() << "\n";
+        const std::string &prg_name = prgs[first_hit->get_prg_id()]->name;
+        const uint32_t prg_length = prgs[first_hit->get_prg_id()]->seq.size();
+        prg_name_to_length[prg_name] = prg_length;
+
+        const uint32_t alignment_start = first_hit->get_prg_path().begin()->start;
+
+        (*tmp_sam_file)  << seq.name << "\t"
+                         << "0\t"
+                         << prg_name << "\t"
+                         << alignment_start << "\t"
+                         << "255\t"
+                         << cigar << "\t"
+                         << "*\t0\t0\t"
+                         << segment_sequence << "\t"
+                         << "*\t"
+                         << "LF:Z:" << left_flank << "\t"
+                         << "RF:Z:" << right_flank << "\t"
+                         << "PP:Z:" << cluster_of_hits_prg_paths_ss.str() << "\t"
+                         << "NM:i:" << number_of_mismatches << "\t"
+                         << "AS:i:" << alignment_score << "\t"
+                         << "nn:i:" << number_ambiguous_bases << "\t"
+                         << "cm:i:" << cluster.size() << "\n";
     }
 
     if (!at_least_a_single_mapping_was_output) {
-        (*this) << seq.name << "\t" << "4\t*\t*\t0\t*\t*\t0\t0\t*\t*\t" << "\n";
+        (*tmp_sam_file) << seq.name << "\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n";
     }
 }
 
