@@ -5,15 +5,20 @@
 namespace fs = boost::filesystem;
 #include "forward_declarations.h"
 #include "generic_file.h"
+#include "seq.h"
+
 
 class PafFile : public GenericFile {
 private:
-    void write_cluster(const Hits &cluster, uint32_t number_of_hits_in_read,
-        const std::vector<MinimizerHitPtr> &sorted_minimizer_hits);
+    const std::vector<std::shared_ptr<LocalPRG>>& prgs;
+    void write_cluster(const Seq &seq, const Hits &cluster,
+        const std::vector<MinimizerHitPtr> &all_sorted_minimizer_hits);
 
 public:
-    PafFile(const fs::path &filepath);
-    void write_clusters(const MinimizerHitClusters &clusters);
+    PafFile(const fs::path &filepath,
+        const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+        bool is_fake_file = false);
+    void write_clusters(const Seq &seq, const MinimizerHitClusters &clusters);
 };
 
 #endif // PANDORA_PAF_FILE_H

@@ -623,6 +623,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                     add_clusters_to_pangraph(clusters_of_hits, pangraph, prgs);
                     filtered_mappings.write_sam_record_from_hit_cluster(
                         sequence, clusters_of_hits);
+                    paf_file.write_clusters(sequence, clusters_of_hits);
                 }
             }
 
