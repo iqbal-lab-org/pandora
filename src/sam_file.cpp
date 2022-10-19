@@ -14,6 +14,8 @@ std::string SAMFile::get_header() const {
     }
     ss << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION
        << "\tCL: " << PandoraGlobals::command_line << "\n";
+    ss << "@CO\tThe reference length (in @SQ header lines) and the POS field refer to "
+          "the string representation of the PRGs\n";
     ss << "@CO\tLF: left flank sequence, the sequence before the first "
           "mapped kmer, soft-clipped, max " << flank_size << " bps\n";
     ss << "@CO\tRF: right flank sequence, the sequence after the last "
