@@ -218,7 +218,7 @@ void decide_if_add_cluster_or_not(
     const Hits &current_cluster,
     const uint32_t number_of_equal_read_minimizers,
     const std::vector<uint32_t> &distances_between_hits,
-    GenericFile & cluster_def_file) {
+    ClusterDefFile& cluster_def_file) {
     // keep clusters which cover at least 1/2 the expected number of minihits
     const uint32_t length_based_threshold = std::min(
         prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length(),
@@ -261,7 +261,7 @@ void define_clusters(
     std::shared_ptr<MinimizerHits> minimizer_hits, const int max_diff,
     const float& fraction_kmers_required_for_cluster, const uint32_t min_cluster_size,
     const uint32_t expected_number_kmers_in_read_sketch,
-    GenericFile & cluster_def_file)
+    ClusterDefFile& cluster_def_file)
 {
     const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
 
@@ -329,7 +329,7 @@ void filter_clusters(
     const Seq &seq,
     MinimizerHitClusters& clusters_of_hits,
     const std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    GenericFile &cluster_filter_file)
+    ClusterFilterFile& cluster_filter_file)
 {
     const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
 
@@ -362,9 +362,9 @@ void filter_clusters(
 #pragma omp critical(cluster_filter_file)
                 {
                     cluster_filter_file
-                        << c_current->size() << "\t"
                         << seq.name << "\t"
                         << prgs[(*c_current->begin())->get_prg_id()]->name << "\t"
+                        << c_current->size() << "\t"
                         << "filtered_out\n";
                 }
                 clusters_of_hits.erase(c_current);
@@ -374,9 +374,9 @@ void filter_clusters(
 #pragma omp critical(cluster_filter_file)
                 {
                     cluster_filter_file
-                        << c_previous->size() << "\t"
                         << seq.name << "\t"
                         << prgs[(*c_previous->begin())->get_prg_id()]->name << "\t"
+                        << c_previous->size() << "\t"
                         << "filtered_out\n";
                 }
                 clusters_of_hits.erase(c_previous);
@@ -389,9 +389,9 @@ void filter_clusters(
 #pragma omp critical(cluster_filter_file)
         {
             cluster_filter_file
-                << cluster.size() << "\t"
                 << seq.name << "\t"
                 << prgs[(*cluster.begin())->get_prg_id()]->name << "\t"
+                << cluster.size() << "\t"
                 << "kept\n";
         }
 
@@ -473,8 +473,8 @@ MinimizerHitClusters get_minimizer_hit_clusters(
     std::shared_ptr<MinimizerHits> minimizer_hits,
     std::shared_ptr<pangenome::Graph> pangraph, const int max_diff,
     const uint32_t& genome_size, const float& fraction_kmers_required_for_cluster,
-    GenericFile &cluster_def_file,
-    GenericFile &cluster_filter_file,
+    ClusterDefFile &cluster_def_file,
+    ClusterFilterFile &cluster_filter_file,
     const uint32_t min_cluster_size,
     const uint32_t expected_number_kmers_in_read_sketch)
 {
@@ -491,7 +491,7 @@ MinimizerHitClusters get_minimizer_hit_clusters(
         fraction_kmers_required_for_cluster, min_cluster_size,
         expected_number_kmers_in_read_sketch, cluster_def_file);
 
-    filter_clusters(sample_name, seq,minimizer_hit_clusters, prgs, cluster_filter_file);
+    filter_clusters(sample_name, seq, minimizer_hit_clusters, prgs, cluster_filter_file);
     // filter_clusters2(clusters_of_hits, genome_size);
 
     return minimizer_hit_clusters;
@@ -529,10 +529,10 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
     SAMFile filtered_mappings(sample_outdir / (sample_name + ".filtered.sam"), prgs, k*2);
 
     MinimizerMatchFile minimizer_matches(sample_outdir / (sample_name + ".minimatches"), prgs, !keep_extra_debugging_files);
-    GenericFile cluster_def_file(sample_outdir / (sample_name + ".clusters_def_report"), !keep_extra_debugging_files);
-    cluster_def_file << "read\tprg\tstatus\tcluster_size\tnb_of_repeated_mini\tnb_of_unique_mini\tlength_based_threshold\tmin_cluster_size\tdistances_between_clusters\n";
-    GenericFile cluster_filter_file(sample_outdir / (sample_name + ".clusters_filter_report"), !keep_extra_debugging_files);
-    cluster_filter_file << "cluster_size\tread\tprg\tstatus\n";
+    PafFile paf_file(sample_outdir / (sample_name + ".minipaf"), prgs, !keep_extra_debugging_files);
+    ClusterDefFile cluster_def_file(sample_outdir / (sample_name + ".clusters_def_report"), !keep_extra_debugging_files);
+    ClusterFilterFile cluster_filter_file(sample_outdir / (sample_name + ".clusters_filter_report"), !keep_extra_debugging_files);
+
 
 // parallel region
 #pragma omp parallel num_threads(threads)

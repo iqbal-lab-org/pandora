@@ -18,6 +18,7 @@
 #include "fatal_error.h"
 #include "paf_file.h"
 #include "inthash.h"
+#include "cluster_files.h"
 
 namespace fs = boost::filesystem;
 
@@ -86,7 +87,13 @@ void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp>&,
     const std::vector<std::shared_ptr<LocalPRG>>&, std::shared_ptr<MinimizerHits>,
     const int, const float&, const uint32_t, const uint32_t);
 
-void filter_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp>&);
+void filter_clusters(
+    const std::string &sample_name,
+    const Seq &seq,
+    MinimizerHitClusters& clusters_of_hits,
+    const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    ClusterFilterFile& cluster_filter_file
+);
 
 void filter_clusters2(
     std::set<std::set<MinimizerHitPtr, pComp>, clusterComp>&, const uint32_t&);
