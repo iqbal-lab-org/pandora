@@ -7,7 +7,7 @@ MinimizerMatchFile::MinimizerMatchFile(const fs::path &filepath,
                                        const std::vector<std::shared_ptr<LocalPRG>>& prgs,
                                        bool is_fake_file) :
     GenericFile(filepath, is_fake_file), prgs(prgs) {
-    (*this) << "kmer\tread\tread_start\tread_end\tread_strand\tprg\tprg_strand\tprg_path\n";
+    (*this) << "kmer\tread\tread_start\tread_end\tread_strand\tprg\tprg_path\tprg_strand\n";
 }
 
 void MinimizerMatchFile::write_hits(const Seq &seq, const Hits &hits) {
@@ -26,9 +26,9 @@ void MinimizerMatchFile::write_hits(const Seq &seq, const Hits &hits) {
                  << seq.name << "\t"
                  << read_start_position << "\t"
                  << read_end_position << "\t"
-                 << hit->read_strand << "\t"
+                 << "-+"[hit->read_strand] << "\t"
                  << prg_name << "\t"
-                 << hit->get_prg_kmer_strand() << "\t"
-                 << hit->get_prg_path() << "\n";
+                 << hit->get_prg_path() << "\t"
+                 << "-+"[hit->get_prg_kmer_strand()] << "\n";
     }
 }
