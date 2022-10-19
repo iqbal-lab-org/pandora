@@ -2,12 +2,14 @@
 #include "minihits.h"
 #include "minihit.h"
 #include "version.h"
+#include "globals.h"
 
 SAMFile::SAMFile(const fs::path &filepath,
                  const std::vector<std::shared_ptr<LocalPRG>>& prgs,
                  const uint32_t flank_size) :
     GenericFile(filepath), prgs(prgs), flank_size(flank_size) {
-    (*this) << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION << "\n";
+    (*this) << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION
+            << "\tCL: " << PandoraGlobals::command_line << "\n";
     (*this) << "@CO\tLF: left flank sequence, the sequence before the first "
                "mapped kmer, soft-clipped, max " << flank_size << " bps\n";
     (*this) << "@CO\tRF: right flank sequence, the sequence after the last "
