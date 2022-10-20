@@ -20,6 +20,8 @@ std::string SAMFile::get_header() const {
           "mapped kmer, soft-clipped, max " << flank_size << " bps\n";
     ss << "@CO\tRF: right flank sequence, the sequence after the last "
           "mapped kmer, soft-clipped, max " << flank_size << " bps\n";
+    ss << "@CO\tMP: number of minimizer matches on the plus strand\n";
+    ss << "@CO\tMM: number of minimizer matches on the minus strand\n";
     ss << "@CO\tPP: Prg Paths of the cluster of hits: the PRG path of each "
           "hit in considered cluster of hits\n";
     ss << "@CO\tNM: Total number of mismatches in the quasi-alignment\n";
@@ -193,6 +195,8 @@ void SAMFile::write_sam_record_from_hit_cluster(
                          << "*\t"
                          << "LF:Z:" << left_flank << "\t"
                          << "RF:Z:" << right_flank << "\t"
+                         << "MP:i:" << plus_strand_count << "\t"
+                         << "MM:i:" << minus_strand_count << "\t"
                          << "PP:Z:" << cluster_of_hits_prg_paths_ss.str() << "\t"
                          << "NM:i:" << number_of_mismatches << "\t"
                          << "AS:i:" << alignment_score << "\t"
