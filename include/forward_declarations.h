@@ -6,12 +6,9 @@
 #include <tuple>
 
 struct MinimizerHit;
-class MinimizerHits;
 typedef std::shared_ptr<MinimizerHit> MinimizerHitPtr;
-struct pComp;
-typedef std::set<MinimizerHitPtr, pComp> Hits;
-struct clusterComp;
-typedef std::set<Hits, clusterComp> MinimizerHitClusters;
+class MinimizerHits;
+typedef std::set<MinimizerHits> MinimizerHitClusters;
 class LocalPRG;
 class KmerNode;
 using SampleIdText = std::string;

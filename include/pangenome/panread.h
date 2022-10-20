@@ -55,7 +55,7 @@ public:
     }
 
     void add_hits(
-        const NodePtr& node_ptr, const std::set<MinimizerHitPtr, pComp>& cluster);
+        const NodePtr& node_ptr, const MinimizerHits& cluster);
 
     std::pair<uint32_t, uint32_t> find_position(const std::vector<uint_least32_t>&,
         const std::vector<bool>&, const uint16_t min_overlap = 1);

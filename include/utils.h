@@ -83,9 +83,15 @@ void load_vcf_refs_file(const fs::path& filepath, VCFRefs& vcf_refs);
 
 void add_read_hits(const Seq&, const std::shared_ptr<MinimizerHits>&, const Index&);
 
-void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp>&,
-    const std::vector<std::shared_ptr<LocalPRG>>&, std::shared_ptr<MinimizerHits>,
-    const int, const float&, const uint32_t, const uint32_t);
+void define_clusters(
+    const std::string &sample_name,
+    const Seq &seq,
+    MinimizerHitClusters& clusters_of_hits,
+    const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    std::shared_ptr<MinimizerHits> minimizer_hits, const int max_diff,
+    const float& fraction_kmers_required_for_cluster, const uint32_t min_cluster_size,
+    const uint32_t expected_number_kmers_in_read_sketch,
+    ClusterDefFile& cluster_def_file);
 
 void filter_clusters(
     const std::string &sample_name,
@@ -96,7 +102,7 @@ void filter_clusters(
 );
 
 void filter_clusters2(
-    std::set<std::set<MinimizerHitPtr, pComp>, clusterComp>&, const uint32_t&);
+    MinimizerHits&, const uint32_t&);
 
 MinimizerHitClusters get_minimizer_hit_clusters(const std::vector<std::shared_ptr<LocalPRG>>& prgs,
     std::shared_ptr<MinimizerHits> minimizer_hits, std::shared_ptr<pangenome::Graph>,

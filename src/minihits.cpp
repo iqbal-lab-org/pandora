@@ -1,24 +1,15 @@
 #include <functional>
-#include <memory>
 #include "minihits.h"
 #include "minihit.h"
-#include "minirecord.h"
-#include "minimizer.h"
 
-void MinimizerHits::add_hit(const uint32_t i, const Minimizer& minimizer_from_read,
-    const MiniRecord& minimizer_from_PRG)
-{
+void MinimizerHits::insert(const uint32_t i, const Minimizer& minimizer_from_read,
+    const MiniRecord& minimizer_from_PRG) {
     MinimizerHitPtr mh(
         std::make_shared<MinimizerHit>(i, minimizer_from_read, minimizer_from_PRG));
-    hits.insert(mh);
+    this->insert(mh);
 }
 
-/*std::ostream& operator<< (std::ostream & out, MinimizerHits const& m) {
-    out << "(" << m.read_id << ", " << m.read_start_position << ", " << m.prg_id << ", "
-<< m.prg_path << ", " << strand << ")"; return out ;
-}*/
-
-bool pComp::operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs)
+bool pComp::operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) const
 {
     return (*lhs) < (*rhs);
 }
@@ -28,57 +19,7 @@ bool pEq::operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) con
     return *lhs == *rhs;
 }
 
-/*size_t Hash::operator()(const MinimizerHit* mh) const
-{
-    stringstream ss;
-    string temp;
-    ss << *mh;
-    ss >> temp;
-    return hash<string>()(temp);
-}*/
-
-bool pComp_path::operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs)
-{
-    // should be same id
-    if (lhs->get_prg_id() < rhs->get_prg_id()) {
-        return true;
-    }
-    if (rhs->get_prg_id() < lhs->get_prg_id()) {
-        return false;
-    }
-    // want those that match against the same prg_path together
-    if (lhs->get_prg_path() < rhs->get_prg_path()) {
-        return true;
-    }
-    if (rhs->get_prg_path() < lhs->get_prg_path()) {
-        return false;
-    }
-    // separated into two categories, corresponding to a forward, and a rev-complement
-    // hit, note fwd come first
-    if (lhs->same_strands() > rhs->same_strands()) {
-        return true;
-    }
-    if (rhs->same_strands() > lhs->same_strands()) {
-        return false;
-    }
-    // finally, make sure that hits from separate reads aren't removed from the set as
-    // "=="
-    if (lhs->get_read_id() < rhs->get_read_id()) {
-        return true;
-    }
-    if (rhs->get_read_id() < lhs->get_read_id()) {
-        return false;
-    }
-    if (lhs->get_read_start_position() < rhs->get_read_start_position()) {
-        return true;
-    }
-    if (rhs->get_read_start_position() < lhs->get_read_start_position()) {
-        return false;
-    }
-    return false;
-}
-
-bool pCompReadPositionFirst::operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) {
+bool pCompReadPositionFirst::operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) const {
     if (lhs->get_read_id() < rhs->get_read_id()) {
         return true;
     }
@@ -112,89 +53,47 @@ bool pCompReadPositionFirst::operator()(const MinimizerHitPtr& lhs, const Minimi
     return false;
 }
 
-bool clusterComp::operator()(
-    const Hits &lhs, const Hits &rhs)
+bool MinimizerHits::operator<(const MinimizerHits &rhs) const
 {
-    if ((*lhs.begin())->get_read_id() < (*rhs.begin())->get_read_id()) {
+    auto first_hit_from_left = *this->begin();
+    auto first_hit_from_right = *rhs.begin();
+
+    if (first_hit_from_left->get_read_id() < first_hit_from_right->get_read_id()) {
         return true;
     }
-    if ((*rhs.begin())->get_read_id() < (*lhs.begin())->get_read_id()) {
+    if (first_hit_from_right->get_read_id() < first_hit_from_left->get_read_id()) {
         return false;
     }
-    if ((*lhs.begin())->get_read_start_position()
-        < (*rhs.begin())->get_read_start_position()) {
+    if (first_hit_from_left->get_read_start_position()
+        < first_hit_from_right->get_read_start_position()) {
         return true;
     }
-    if ((*rhs.begin())->get_read_start_position()
-        < (*lhs.begin())->get_read_start_position()) {
+    if (first_hit_from_right->get_read_start_position()
+        < first_hit_from_left->get_read_start_position()) {
         return false;
     }
-    if (lhs.size() > rhs.size()) {
+    if (this->size() > rhs.size()) {
         return true;
     } // want bigger first!
-    if (rhs.size() > lhs.size()) {
+    if (rhs.size() > this->size()) {
         return false;
     }
-    if ((*lhs.begin())->get_prg_id() < (*rhs.begin())->get_prg_id()) {
+    if (first_hit_from_left->get_prg_id() < first_hit_from_right->get_prg_id()) {
         return true;
     }
-    if ((*rhs.begin())->get_prg_id() < (*lhs.begin())->get_prg_id()) {
+    if (first_hit_from_right->get_prg_id() < first_hit_from_left->get_prg_id()) {
         return false;
     }
-    if ((*lhs.begin())->get_prg_path() < (*rhs.begin())->get_prg_path()) {
+    if (first_hit_from_left->get_prg_path() < first_hit_from_right->get_prg_path()) {
         return true;
     }
-    if ((*rhs.begin())->get_prg_path() < (*lhs.begin())->get_prg_path()) {
+    if (first_hit_from_right->get_prg_path() < first_hit_from_left->get_prg_path()) {
         return false;
     }
-    if ((*lhs.begin())->same_strands() < (*rhs.begin())->same_strands()) {
+    if (first_hit_from_left->same_strands() < first_hit_from_right->same_strands()) {
         return true;
     }
-    if ((*rhs.begin())->same_strands() < (*lhs.begin())->same_strands()) {
-        return false;
-    }
-    return false;
-}
-
-bool clusterComp_size::operator()(
-    const Hits &lhs, const Hits &rhs)
-{
-    if ((*lhs.begin())->get_read_id() < (*rhs.begin())->get_read_id()) {
-        return true;
-    }
-    if ((*rhs.begin())->get_read_id() < (*lhs.begin())->get_read_id()) {
-        return false;
-    }
-    if (lhs.size() > rhs.size()) {
-        return true;
-    }
-    if (rhs.size() > lhs.size()) {
-        return false;
-    }
-    if ((*lhs.begin())->get_read_start_position()
-        < (*rhs.begin())->get_read_start_position()) {
-        return true;
-    }
-    if ((*rhs.begin())->get_read_start_position()
-        < (*lhs.begin())->get_read_start_position()) {
-        return false;
-    }
-    if ((*lhs.begin())->get_prg_id() < (*rhs.begin())->get_prg_id()) {
-        return true;
-    }
-    if ((*rhs.begin())->get_prg_id() < (*lhs.begin())->get_prg_id()) {
-        return false;
-    }
-    if ((*lhs.begin())->get_prg_path() < (*rhs.begin())->get_prg_path()) {
-        return true;
-    }
-    if ((*rhs.begin())->get_prg_path() < (*lhs.begin())->get_prg_path()) {
-        return false;
-    }
-    if ((*lhs.begin())->same_strands() < (*rhs.begin())->same_strands()) {
-        return true;
-    }
-    if ((*rhs.begin())->same_strands() < (*lhs.begin())->same_strands()) {
+    if (first_hit_from_right->same_strands() < first_hit_from_left->same_strands()) {
         return false;
     }
     return false;

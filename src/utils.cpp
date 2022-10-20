@@ -200,7 +200,7 @@ void add_read_hits(const Seq& sequence,
         if (minhashIt != index.minhash.end()) { // checks if the kmer is in the index
             // yes, add all hits of this minimizer hit to this kmer
             for (const MiniRecord& miniRecord : *(minhashIt->second)) {
-                minimizer_hits->add_hit(sequence.id, *sequenceSketchIt, miniRecord);
+                minimizer_hits->insert(sequence.id, *sequenceSketchIt, miniRecord);
             }
         }
     }
@@ -215,7 +215,7 @@ void decide_if_add_cluster_or_not(
     const uint32_t expected_number_kmers_in_read_sketch,
     const float fraction_kmers_required_for_cluster,
     const uint32_t min_cluster_size,
-    const Hits &current_cluster,
+    const MinimizerHits &current_cluster,
     const uint32_t number_of_equal_read_minimizers,
     const std::vector<uint32_t> &distances_between_hits,
     ClusterDefFile& cluster_def_file) {
@@ -266,21 +266,21 @@ void define_clusters(
     const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
 
     BOOST_LOG_TRIVIAL(trace) << tag << "Define clusters of hits from the "
-                             << minimizer_hits->hits.size() << " hits";
+                             << minimizer_hits->size() << " hits";
 
-    if (minimizer_hits->hits.empty()) {
+    if (minimizer_hits->empty()) {
         return;
     }
 
     // A cluster of hits should match same localPRG, each hit not more than max_diff
     // read bases from the last hit (this last bit is to handle repeat genes).
-    auto mh_previous = minimizer_hits->hits.begin();
-    Hits current_cluster;
+    auto mh_previous = minimizer_hits->begin();
+    MinimizerHits current_cluster;
     current_cluster.insert(*mh_previous);
     uint32_t number_of_equal_read_minimizers = 0;
     std::vector<uint32_t> distances_between_hits;
-    for (auto mh_current = ++minimizer_hits->hits.begin();
-         mh_current != minimizer_hits->hits.end(); ++mh_current) {
+    for (auto mh_current = ++minimizer_hits->begin();
+         mh_current != minimizer_hits->end(); ++mh_current) {
         const bool read_minimizer_is_the_same =
             (*mh_current)->get_read_start_position() == (*mh_previous)->get_read_start_position();
         number_of_equal_read_minimizers += (int)read_minimizer_is_the_same;
@@ -401,7 +401,7 @@ void filter_clusters(
                              << " clusters of hits";
 }
 
-void filter_clusters2(std::set<Hits, clusterComp>& clusters_of_hits,
+void filter_clusters2(MinimizerHitClusters& clusters_of_hits,
     const uint32_t& genome_size)
 {
     // Sort clusters by size, and filter out those small clusters which are entirely
@@ -412,7 +412,7 @@ void filter_clusters2(std::set<Hits, clusterComp>& clusters_of_hits,
         return;
     }
 
-    std::set<Hits, clusterComp_size> clusters_by_size(
+    MinimizerHitClusters clusters_by_size(
         clusters_of_hits.begin(), clusters_of_hits.end());
 
     auto it = clusters_by_size.begin();
@@ -483,7 +483,7 @@ MinimizerHitClusters get_minimizer_hit_clusters(
     // this step infers the gene order for a read and adds this to the pangraph
     // by defining clusters of hits, keeping those which are not noise and
     // then adding the inferred gene ordering
-    if (minimizer_hits->hits.empty()) {
+    if (minimizer_hits->empty()) {
         return minimizer_hit_clusters;
     }
 
@@ -609,7 +609,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                 // write unfiltered minimizer hits
 #pragma omp critical(minimizer_matches)
                 {
-                    minimizer_matches.write_hits(sequence, minimizer_hits->hits);
+                    minimizer_matches.write_hits(sequence, *minimizer_hits);
                 }
 
                 // infer

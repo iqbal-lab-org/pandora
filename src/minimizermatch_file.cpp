@@ -10,7 +10,7 @@ MinimizerMatchFile::MinimizerMatchFile(const fs::path &filepath,
     (*this) << "kmer\tread\tread_start\tread_end\tread_strand\tprg\tprg_path\tprg_strand\n";
 }
 
-void MinimizerMatchFile::write_hits(const Seq &seq, const Hits &hits) {
+void MinimizerMatchFile::write_hits(const Seq &seq, const MinimizerHits &hits) {
     std::vector<MinimizerHitPtr> sorted_hits;
     sorted_hits.insert(sorted_hits.end(), hits.begin(), hits.end());
     std::sort(sorted_hits.begin(), sorted_hits.end(), pCompReadPositionFirst());

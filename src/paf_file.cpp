@@ -12,18 +12,18 @@ PafFile::PafFile(const fs::path &filepath,
 
 void PafFile::write_clusters(const Seq &seq, const MinimizerHitClusters &clusters) {
     std::vector<MinimizerHitPtr> all_sorted_minimizer_hits;
-    for (const Hits& cluster : clusters) {
+    for (const MinimizerHits& cluster : clusters) {
         all_sorted_minimizer_hits.insert(all_sorted_minimizer_hits.end(),cluster.begin(), cluster.end());
     }
     std::sort(
         all_sorted_minimizer_hits.begin(), all_sorted_minimizer_hits.end(), pComp());
 
-    for (const Hits&cluster : clusters) {
+    for (const MinimizerHits&cluster : clusters) {
         this->write_cluster(seq, cluster, all_sorted_minimizer_hits);
     }
 }
 
-void PafFile::write_cluster(const Seq &seq, const Hits &cluster,
+void PafFile::write_cluster(const Seq &seq, const MinimizerHits &cluster,
                    const std::vector<MinimizerHitPtr> &all_sorted_minimizer_hits) {
     const MinimizerHitPtr first_hit = *(cluster.begin());
     std::vector<size_t> positions_of_hits;
@@ -39,7 +39,6 @@ void PafFile::write_cluster(const Seq &seq, const Hits &cluster,
     for (const MinimizerHitPtr &hit : cluster) {
         strands.push_back("-+"[hit->same_strands()]);
     }
-
     uint32_t plus_strand_count = std::count(strands.begin(), strands.end(), '+');
     uint32_t minus_strand_count = std::count(strands.begin(), strands.end(), '-');
 

@@ -7,48 +7,54 @@
 #include <memory>
 #include "minimizer.h"
 #include "minirecord.h"
+#include <memory>
 
 struct pComp {
-    bool operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs);
+    bool operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) const;
 };
 
 struct pCompReadPositionFirst {
-    bool operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs);
+    bool operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) const;
 };
 
 struct pEq {
     bool operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs) const;
 };
 
-struct Hash {
-    size_t operator()(const MinimizerHit* mh) const;
-};
-
-struct pComp_path {
-    bool operator()(const MinimizerHitPtr& lhs, const MinimizerHitPtr& rhs);
-};
-
-struct clusterComp {
-    bool operator()(const Hits &lhs, const Hits &rhs);
-};
-
-struct clusterComp_size {
-    bool operator()(const Hits &lhs, const Hits &rhs);
-};
 
 class MinimizerHits {
+private:
+    std::set<MinimizerHitPtr, pComp> hits;
+
 public:
     MinimizerHits() = default;
     ~MinimizerHits() = default;
 
-    Hits hits;
+    inline void insert(const MinimizerHitPtr minimizer_hit) {
+        hits.insert(minimizer_hit);
+    }
 
-    void add_hit(const uint32_t i, const Minimizer& minimizer_from_read,
+    void insert(const uint32_t i, const Minimizer& minimizer_from_read,
         const MiniRecord& minimizer_from_PRG);
 
-    void clear() { hits.clear(); }
+    inline auto size() const {
+        return hits.size();
+    }
 
-    // friend std::ostream &operator<<(std::ostream &out, const MinimizerHits &m);
+    inline auto empty() const {
+        return hits.empty();
+    }
+
+    inline auto begin () const {
+        return hits.begin();
+    }
+
+    inline auto end () const {
+        return hits.end();
+    }
+
+    inline void clear() { hits.clear(); }
+
+    bool operator<(const MinimizerHits &rhs) const;
 };
-
 #endif

@@ -59,7 +59,7 @@ private:
     std::map<std::string, uint32_t> prg_name_to_length;
     const uint32_t flank_size;
 
-    std::vector<bool> get_mapped_positions_bitset(const Seq &seq, const Hits &cluster) const;
+    std::vector<bool> get_mapped_positions_bitset(const Seq &seq, const MinimizerHits &cluster) const;
     Cigar get_cigar(const std::vector<bool> &mapped_positions_bitset) const;
     std::string get_segment_sequence(const Seq &seq,
                                      const std::vector<bool> &mapped_positions_bitset) const;

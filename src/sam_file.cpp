@@ -49,7 +49,7 @@ SAMFile::~SAMFile() {
     };
 }
 
-std::vector<bool> SAMFile::get_mapped_positions_bitset(const Seq &seq, const Hits &cluster) const {
+std::vector<bool> SAMFile::get_mapped_positions_bitset(const Seq &seq, const MinimizerHits &cluster) const {
     std::vector<bool> mapped_positions_bitset(seq.full_seq.size(), false);
     for (const MinimizerHitPtr &hit : cluster) {
         const uint32_t read_start_position = hit->get_read_start_position();
@@ -116,7 +116,7 @@ std::string SAMFile::get_segment_sequence(const Seq &seq,
 void SAMFile::write_sam_record_from_hit_cluster(
     const Seq &seq, const MinimizerHitClusters &clusters) {
     bool at_least_a_single_mapping_was_output = false;
-    for (const Hits &cluster : clusters) {
+    for (const MinimizerHits &cluster : clusters) {
         if (cluster.empty()) {
             continue;
         }
