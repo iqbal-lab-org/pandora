@@ -122,24 +122,42 @@ void SAMFile::write_sam_record_from_hit_cluster(
         }
         at_least_a_single_mapping_was_output = true;
 
+        uint32_t plus_strand_count, minus_strand_count;
+        std::tie(plus_strand_count, minus_strand_count) = cluster.get_strand_counts();
+        const bool is_plus_strand = plus_strand_count >= minus_strand_count;
+        const uint32_t flag = is_plus_strand ? 0 : 16;
+
         const MinimizerHitPtr first_hit = *(cluster.begin());
+        const std::string &prg_name = prgs[first_hit->get_prg_id()]->name;
+
+        const uint32_t alignment_start = first_hit->get_prg_path().begin()->start;
+
         const std::vector<bool> mapped_positions_bitset =
             get_mapped_positions_bitset(seq, cluster);
         const Cigar cigar = get_cigar(mapped_positions_bitset);
-        const std::string segment_sequence = get_segment_sequence(seq, mapped_positions_bitset);
+
+        std::string segment_sequence = get_segment_sequence(seq, mapped_positions_bitset);
 
         const uint32_t first_mapped_pos = get_first_mapped_position(mapped_positions_bitset);
         const uint32_t left_flank_start = first_mapped_pos <= flank_size ? 0 :
                                       first_mapped_pos - flank_size;
         const uint32_t left_flank_length = first_mapped_pos - left_flank_start;
-        const std::string left_flank = seq.full_seq.substr(left_flank_start, left_flank_length);
+        std::string left_flank = seq.full_seq.substr(left_flank_start, left_flank_length);
 
         const uint32_t last_mapped_pos = get_last_mapped_position(mapped_positions_bitset);
         const uint32_t right_flank_start = last_mapped_pos;
         const uint32_t right_flank_length =
             (right_flank_start + flank_size) <= seq.full_seq.size() ? flank_size :
             seq.full_seq.size() - right_flank_start;
-        const std::string right_flank = seq.full_seq.substr(right_flank_start, right_flank_length);
+        std::string right_flank = seq.full_seq.substr(right_flank_start, right_flank_length);
+
+        const bool is_reverse_complemented = not is_plus_strand;
+        if (is_reverse_complemented) {
+            segment_sequence = rev_complement(segment_sequence);
+            left_flank = rev_complement(left_flank);
+            right_flank = rev_complement(right_flank);
+            std::swap(left_flank, right_flank);
+        }
 
         std::stringstream cluster_of_hits_prg_paths_ss;
         for (const MinimizerHitPtr &hit : cluster) {
@@ -164,14 +182,8 @@ void SAMFile::write_sam_record_from_hit_cluster(
         uint32_t number_of_mismatches = cigar.number_of_mismatches();
         uint32_t alignment_score = segment_sequence.size() - number_of_mismatches;
 
-        const std::string &prg_name = prgs[first_hit->get_prg_id()]->name;
-        const uint32_t prg_length = prgs[first_hit->get_prg_id()]->seq.size();
-        prg_name_to_length[prg_name] = prg_length;
-
-        const uint32_t alignment_start = first_hit->get_prg_path().begin()->start;
-
         (*tmp_sam_file)  << seq.name << "\t"
-                         << "0\t"
+                         << flag << "\t"
                          << prg_name << "\t"
                          << alignment_start << "\t"
                          << "255\t"
@@ -186,6 +198,9 @@ void SAMFile::write_sam_record_from_hit_cluster(
                          << "AS:i:" << alignment_score << "\t"
                          << "nn:i:" << number_ambiguous_bases << "\t"
                          << "cm:i:" << cluster.size() << "\n";
+
+        const uint32_t prg_length = prgs[first_hit->get_prg_id()]->seq.size();
+        prg_name_to_length[prg_name] = prg_length;
     }
 
     if (!at_least_a_single_mapping_was_output) {

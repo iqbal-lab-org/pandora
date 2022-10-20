@@ -35,13 +35,8 @@ void PafFile::write_cluster(const Seq &seq, const MinimizerHits &cluster,
     size_t lowest_position = *std::min_element(positions_of_hits.begin(), positions_of_hits.end());
     size_t highest_position = *std::max_element(positions_of_hits.begin(), positions_of_hits.end());
 
-    std::vector<char> strands;
-    for (const MinimizerHitPtr &hit : cluster) {
-        strands.push_back("-+"[hit->same_strands()]);
-    }
-    uint32_t plus_strand_count = std::count(strands.begin(), strands.end(), '+');
-    uint32_t minus_strand_count = std::count(strands.begin(), strands.end(), '-');
-
+    uint32_t plus_strand_count, minus_strand_count;
+    std::tie(plus_strand_count, minus_strand_count) = cluster.get_strand_counts();
     std::string strands_info;
     if (minus_strand_count == 0) {
         // we are sure strand is +

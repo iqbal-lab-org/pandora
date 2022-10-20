@@ -56,5 +56,7 @@ public:
     inline void clear() { hits.clear(); }
 
     bool operator<(const MinimizerHits &rhs) const;
+
+    std::pair<uint32_t, uint32_t> get_strand_counts() const;
 };
 #endif

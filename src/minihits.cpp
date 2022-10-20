@@ -98,3 +98,14 @@ bool MinimizerHits::operator<(const MinimizerHits &rhs) const
     }
     return false;
 }
+
+std::pair<uint32_t, uint32_t> MinimizerHits::get_strand_counts() const {
+    std::vector<char> strands;
+    strands.reserve(hits.size());
+    for (const MinimizerHitPtr &hit : hits) {
+        strands.push_back("-+"[hit->same_strands()]);
+    }
+    uint32_t plus_strand_count = std::count(strands.begin(), strands.end(), '+');
+    uint32_t minus_strand_count = strands.size() - plus_strand_count;
+    return std::make_pair(plus_strand_count, minus_strand_count);
+}
