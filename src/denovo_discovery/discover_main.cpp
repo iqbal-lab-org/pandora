@@ -126,8 +126,8 @@ void setup_discover_subcommand(CLI::App& app)
         ->group("Consensus/Variant Calling");
 
     discover_subcmd
-        ->add_flag("--keep-extra-debugging-files", opt->keep_extra_debugging_files,
-            "If should keep extra debugging files. Warning: this might "
+        ->add_flag("-K,--debugging-files", opt->keep_extra_debugging_files,
+            "Keep extra debugging files. Warning: this might "
             "create thousands of files.")
         ->group("Debugging");
 
