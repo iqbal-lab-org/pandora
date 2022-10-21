@@ -12,7 +12,6 @@
 #include <utility>
 #include <boost/filesystem/path.hpp>
 #include "minihits.h"
-#include "pangenome/ns.cpp"
 #include <boost/log/trivial.hpp>
 #include <sstream>
 #include "fatal_error.h"
@@ -104,12 +103,17 @@ void filter_clusters(
 void filter_clusters2(
     MinimizerHits&, const uint32_t&);
 
-MinimizerHitClusters get_minimizer_hit_clusters(const std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    std::shared_ptr<MinimizerHits> minimizer_hits, std::shared_ptr<pangenome::Graph>,
-    const int, const uint32_t&, const float&, GenericFile &cluster_def_file,
-    GenericFile &cluster_filter_file, const uint32_t min_cluster_size = 10,
-    const uint32_t expected_number_kmers_in_short_read_sketch
-    = std::numeric_limits<uint32_t>::max());
+MinimizerHitClusters get_minimizer_hit_clusters(
+    const std::string &sample_name,
+    const Seq &seq,
+    const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    std::shared_ptr<MinimizerHits> minimizer_hits,
+    std::shared_ptr<pangenome::Graph> pangraph, const int max_diff,
+    const uint32_t& genome_size, const float& fraction_kmers_required_for_cluster,
+    ClusterDefFile &cluster_def_file,
+    ClusterFilterFile &cluster_filter_file,
+    const uint32_t min_cluster_size,
+    const uint32_t expected_number_kmers_in_read_sketch = std::numeric_limits<uint32_t>::max());
 
 uint32_t pangraph_from_read_file(const SampleData& sample,
     std::shared_ptr<pangenome::Graph> pangraph, std::shared_ptr<Index> index,

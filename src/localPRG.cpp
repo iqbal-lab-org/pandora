@@ -488,7 +488,7 @@ void LocalPRG::add_node_to_current_leaves(const KmerNodePtr &kn,
     }
 }
 
-void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint32_t w,
+void LocalPRG::minimizer_sketch(Index* index, const uint32_t w,
     const uint32_t k, const uint32_t indexing_upper_bound, double percentageDone)
 {
     if (percentageDone >= 0) {
@@ -967,7 +967,7 @@ std::vector<LocalNodePtr> LocalPRG::localnode_path_from_kmernode_path(
     return localnode_path;
 }
 
-std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr pan_node,
+std::vector<uint32_t> get_covgs_along_localnode_path(const pangenome::NodePtr pan_node,
     const std::vector<LocalNodePtr>& localnode_path,
     const std::vector<KmerNodePtr>& kmernode_path, const uint32_t& sample_id)
 {
@@ -1694,7 +1694,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF& vcf, const KmerGraphWithCoverage& kg
     }
 }
 
-void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, PanNodePtr pnode,
+void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePtr pnode,
     std::vector<KmerNodePtr>& kmp, std::vector<LocalNodePtr>& lmp, const uint32_t w,
     const bool bin, const uint32_t global_covg,
     const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id) const
@@ -1791,7 +1791,7 @@ std::vector<LocalNodePtr> LocalPRG::get_valid_vcf_reference(
     return reference_path;
 }
 
-void LocalPRG::add_variants_to_vcf(VCF& master_vcf, PanNodePtr pnode,
+void LocalPRG::add_variants_to_vcf(VCF& master_vcf, pangenome::NodePtr pnode,
     const std::string& vcf_ref, const std::vector<KmerNodePtr>& kmp,
     const std::vector<LocalNodePtr>& lmp, const uint32_t& sample_id,
     const std::string& sample_name)

@@ -1,6 +1,5 @@
 #include "gtest/gtest.h"
 #include "test_macro.cpp"
-#include "pangenome/ns.cpp"
 #include "pangenome_graph_class.h"
 #include "pangenome/pannode.h"
 #include "pangenome/panread.h"
@@ -166,7 +165,7 @@ TEST(PangenomeGraphNode, add_node_and_get_node)
 // and prg
 void setup_minimizerhit_cluster_prg_function(uint32_t prg_id, uint32_t read_id,
     MiniRecord* mr1, MinimizerHitPtr* minimizer_hit,
-    std::shared_ptr<std::set<MinimizerHitPtr, pComp>>* cluster_pointer,
+    std::shared_ptr<MinimizerHits>* cluster_pointer,
     std::shared_ptr<LocalPRG>* prg_pointer)
 {
     std::deque<Interval> raw_path = { Interval(7, 8), Interval(10, 14) };
@@ -179,7 +178,7 @@ void setup_minimizerhit_cluster_prg_function(uint32_t prg_id, uint32_t read_id,
     (*mr1) = MiniRecord(prg_id, path, prg_id, 0);
     (*minimizer_hit) = std::make_shared<MinimizerHit>(read_id, m1, *mr1);
 
-    (*cluster_pointer) = std::make_shared<std::set<MinimizerHitPtr, pComp>>();
+    (*cluster_pointer) = std::make_shared<MinimizerHits>();
     (*cluster_pointer)->insert(*minimizer_hit);
 
     (*prg_pointer) = std::make_shared<LocalPRG>(prg_id, "", "");
@@ -194,7 +193,7 @@ TEST(PangenomeGraph_add_hits_between_PRG_and_read, AddClusters)
     uint32_t read_id_1 = 100;
     MiniRecord mr1;
     MinimizerHitPtr minimizer_hit_1;
-    std::shared_ptr<std::set<MinimizerHitPtr, pComp>> cluster_pointer_1;
+    std::shared_ptr<MinimizerHits> cluster_pointer_1;
     std::shared_ptr<LocalPRG> prg_pointer_1;
     {
         setup_minimizerhit_cluster_prg_function(prg_id_1, read_id_1, &mr1,
@@ -231,7 +230,7 @@ TEST(PangenomeGraph_add_hits_between_PRG_and_read, AddClusters)
     uint32_t prg_id_2 = 2;
     MiniRecord mr2;
     MinimizerHitPtr minimizer_hit_2;
-    std::shared_ptr<std::set<MinimizerHitPtr, pComp>> cluster_pointer_2;
+    std::shared_ptr<MinimizerHits> cluster_pointer_2;
     std::shared_ptr<LocalPRG> prg_pointer_2;
     {
         setup_minimizerhit_cluster_prg_function(prg_id_2, read_id_1, &mr2,
@@ -274,7 +273,7 @@ TEST(PangenomeGraph_add_hits_between_PRG_and_read, AddClusters)
     uint32_t read_id_3 = 101;
     MiniRecord mr3;
     MinimizerHitPtr minimizer_hit_3;
-    std::shared_ptr<std::set<MinimizerHitPtr, pComp>> cluster_pointer_3;
+    std::shared_ptr<MinimizerHits> cluster_pointer_3;
     std::shared_ptr<LocalPRG> prg_pointer_3;
     {
         setup_minimizerhit_cluster_prg_function(prg_id_1, read_id_3, &mr3,
@@ -352,7 +351,7 @@ NodeDoesntAlreadyExist_PangenomeGraphNodeContainsReadPtr) { PGraphTester pg;
     pg.add_read(read_id);
     ReadPtr read_ptr = pg.get_read(read_id);
 
-    std::set<MinimizerHitPtr, pComp> mhs;
+    MinimizerHits mhs;
     uint32_t node_id = 0;
     uint32_t prg_id = 1;
 
@@ -372,7 +371,7 @@ TEST(PangenomeGraph_add_hits_between_PRG_and_read, AddTheSameClusterTwice)
     uint32_t read_id_1 = 100;
     MiniRecord mr1;
     MinimizerHitPtr minimizer_hit_1;
-    std::shared_ptr<std::set<MinimizerHitPtr, pComp>> cluster_pointer_1;
+    std::shared_ptr<MinimizerHits> cluster_pointer_1;
     std::shared_ptr<LocalPRG> prg_pointer_1;
     {
         setup_minimizerhit_cluster_prg_function(prg_id_1, read_id_1, &mr1,
@@ -441,7 +440,7 @@ NodeAlreadyExists_PangenomeGraphNodeReadsContainsReadTwice) { PGraphTester pg;
     pg.add_read(read_id);
     ReadPtr read_ptr = pg.get_read(read_id);
 
-    std::set<MinimizerHitPtr, pComp> mhs;
+    MinimizerHits mhs;
     uint32_t node_id = 0;
     uint32_t prg_id = 1;
 
@@ -470,7 +469,7 @@ TEST(PangenomeGraphAddNode, AddClusterWrongReadId_AssertCatches)
     MiniRecord mr1(prg_id, path, 0, 0);
     MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(not_read_id, m1, mr1));
 
-    std::set<MinimizerHitPtr, pComp> cluster;
+    MinimizerHits cluster;
     cluster.insert(minimizer_hit);
 
     PGraphTester pg;
@@ -485,7 +484,7 @@ TEST(PangenomeGraphAddNode, AddClusterWrongPrgId_AssertCatches)
     uint32_t read_id = 1;
     Read read(read_id);
 
-    std::set<MinimizerHitPtr, pComp> cluster;
+    MinimizerHits cluster;
     uint32_t prg_id = 4;
     uint32_t not_prg_id = 7;
     Interval interval(0, 5);
@@ -506,7 +505,7 @@ TEST(PangenomeGraphAddNode, AddClusterWrongPrgId_AssertCatches)
 
 /* this test is now comprised in TEST(PangenomeGraphNode, add_node_and_get_node)
 TEST(PangenomeGraphAddNode, AddNode_PangenomeGraphNodesContainsNodeId) {
-    std::set<MinimizerHitPtr, pComp> mhs;
+    MinimizerHits mhs;
     PGraphTester pg;
     uint32_t node_id = 0;
     uint32_t read_id = 1;
@@ -540,7 +539,7 @@ TEST(PangenomeGraphAddNode, AddNode_PangenomeGraphNodeHasRightProperties)
 
 TEST(PangenomeGraphAddNode, AddNode_PangenomeGraphReadHasRightProperties)
 {
-    std::set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     PGraphTester pg;
     uint32_t node_id = 0;
     uint32_t read_id = 1;
@@ -650,7 +649,7 @@ TEST(PangenomeGraphTest, add_node_sample)
 /* this test is not needed anymore as we don't have a clear function anymore
 TEST(PangenomeGraphTest, clear) {
     // read pg
-    std::set<MinimizerHitPtr, pComp> mhs;
+    MinimizerHits mhs;
 
     PGraphTester pg;
     pg.add_node(0, "0", 1, mhs);
@@ -758,7 +757,7 @@ TEST(PangenomeGraphTest, remove_node)
     auto l1 = std::make_shared<LocalPRG>(LocalPRG(1, "1", ""));
     auto l2 = std::make_shared<LocalPRG>(LocalPRG(2, "2", ""));
     auto l3 = std::make_shared<LocalPRG>(LocalPRG(3, "3", ""));
-    std::set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
 
     PGraphTester pg1, pg2;
     // read 0: 0->1->2->3
@@ -791,7 +790,7 @@ TEST(PangenomeGraphTest, remove_read)
     auto l3 = std::make_shared<LocalPRG>(LocalPRG(3, "3", ""));
     auto l4 = std::make_shared<LocalPRG>(LocalPRG(4, "4", ""));
     auto l5 = std::make_shared<LocalPRG>(LocalPRG(5, "5", ""));
-    std::set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
 
     PGraphTester pg1, pg2, pg3;
     // read 0: 0->1->2->3
@@ -846,7 +845,7 @@ TEST(PangenomeGraphTest, remove_low_covg_nodes)
     auto l3 = std::make_shared<LocalPRG>(LocalPRG(3, "3", ""));
     auto l4 = std::make_shared<LocalPRG>(LocalPRG(4, "4", ""));
     auto l5 = std::make_shared<LocalPRG>(LocalPRG(5, "5", ""));
-    std::set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
 
     PGraphTester pg1, pg2, pg3;
     // read 0: 0->1->2->3
@@ -972,7 +971,7 @@ TEST(PangenomeGraphTest, split_node_by_reads)
     auto l3 = std::make_shared<LocalPRG>(LocalPRG(3, "3", ""));
     auto l4 = std::make_shared<LocalPRG>(LocalPRG(4, "4", ""));
     auto l5 = std::make_shared<LocalPRG>(LocalPRG(5, "5", ""));
-    std::set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
 
     PGraphTester pg1, pg2, pg3;
     // read 0: 0->1->2->3
@@ -1121,70 +1120,6 @@ TEST(PangenomeGraphTest, save_matrix)
     pg.save_matrix(TEST_CASE_DIR + "pangraph_test_save.matrix", names);
 }
 
-TEST(PangenomeGraphTest, save_mapped_read_strings)
-{
-    PGraphTester pg;
-    pangenome::ReadPtr pr;
-    MinimizerHits mhits;
-    std::deque<Interval> d;
-    prg::Path p;
-
-    // read1
-    Minimizer m1(0, 1, 6, 0); // kmer, start, end, strand
-    d = { Interval(7, 8), Interval(10, 14) };
-    p.initialize(d);
-    MiniRecord mr1(0, p, 0, 0);
-    mhits.add_hit(1, m1, mr1); // read 1
-
-    Minimizer m2(0, 0, 5, 0);
-    d = { Interval(6, 10), Interval(11, 12) };
-    p.initialize(d);
-    MiniRecord mr2(0, p, 0, 0);
-    mhits.add_hit(1, m2, mr2);
-
-    Minimizer m3(0, 0, 5, 0);
-    d = { Interval(6, 10), Interval(12, 13) };
-    p.initialize(d);
-    MiniRecord mr3(0, p, 0, 0);
-    mhits.add_hit(1, m3, mr3);
-
-    auto l0 = std::make_shared<LocalPRG>(LocalPRG(0, "zero", ""));
-    pg.add_node(l0);
-    pg.add_hits_between_PRG_and_read(l0, 1, mhits.hits);
-    mhits.clear();
-
-    // read 2
-    Minimizer m4(0, 2, 7, 1);
-    d = { Interval(6, 10), Interval(11, 12) };
-    p.initialize(d);
-    MiniRecord mr4(0, p, 0, 0);
-    mhits.add_hit(2, m4, mr4);
-
-    Minimizer m5(0, 5, 10, 1);
-    d = { Interval(6, 10), Interval(12, 13) };
-    p.initialize(d);
-    MiniRecord mr5(0, p, 0, 0);
-    mhits.add_hit(2, m5, mr5);
-
-    pg.add_hits_between_PRG_and_read(l0, 2, mhits.hits);
-
-    std::string expected1
-        = ">read1 pandora: 1 0:6 + \nshould\n>read2 pandora: 2 2:10 - \nis time \n";
-    std::string expected2
-        = ">read2 pandora: 2 2:10 - \nis time \n>read1 pandora: 1 0:6 + \nshould\n";
-
-    pg.save_mapped_read_strings(TEST_CASE_DIR + "reads.fa", "save_mapped_read_strings");
-    std::ifstream ifs("save_mapped_read_strings/zero/zero.reads.fa");
-    std::string content(
-        (std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
-    EXPECT_TRUE((content == expected1) or (content == expected2));
-
-    pg.save_mapped_read_strings(TEST_CASE_DIR + "reads.fa", ".");
-    std::ifstream ifs2("zero/zero.reads.fa");
-    std::string content2(
-        (std::istreambuf_iterator<char>(ifs2)), (std::istreambuf_iterator<char>()));
-    EXPECT_TRUE((content2 == expected1) or (content2 == expected2));
-}
 
 TEST(PangenomeGraphTest, get_node_closest_vcf_reference_no_paths)
 {
@@ -1192,7 +1127,7 @@ TEST(PangenomeGraphTest, get_node_closest_vcf_reference_no_paths)
     std::string prg_name = "nested varsite";
     auto l3 = std::make_shared<LocalPRG>(prg_id, prg_name, "A 5 G 7 C 8 T 7  6 G 5 T");
     auto index = std::make_shared<Index>();
-    l3->minimizer_sketch(index, w, k);
+    l3->minimizer_sketch(index.get(), w, k);
 
     std::string sample_name = "null_test_sample";
     pangenome::Graph pangraph({ sample_name });
@@ -1211,7 +1146,7 @@ TEST(PangenomeGraphTest, get_node_closest_vcf_reference_one_path)
     std::string prg_name = "nested varsite";
     auto l3 = std::make_shared<LocalPRG>(prg_id, prg_name, "A 5 G 7 C 8 T 7  6 G 5 T");
     auto index = std::make_shared<Index>();
-    l3->minimizer_sketch(index, w, k);
+    l3->minimizer_sketch(index.get(), w, k);
 
     std::string sample_name = "single_test_sample";
     pangenome::Graph pangraph({ sample_name });
@@ -1238,7 +1173,7 @@ TEST(PangenomeGraphTest, get_node_closest_vcf_reference_three_paths)
     std::string prg_name = "nested varsite";
     auto l3 = std::make_shared<LocalPRG>(prg_id, prg_name, "A 5 G 7 C 8 T 7  6 G 5 T");
     auto index = std::make_shared<Index>();
-    l3->minimizer_sketch(index, w, k);
+    l3->minimizer_sketch(index.get(), w, k);
 
     pangenome::Graph pangraph({ "test_sample1", "test_sample1_again", "test_sample2" });
     auto& kg = l3->kmer_prg;
@@ -1272,7 +1207,7 @@ TEST(PangenomeGraphTest, copy_coverages_to_kmergraphs)
     std::string prg_name = "nested varsite", sample_name = "sample";
     auto l3 = std::make_shared<LocalPRG>(prg_id, prg_name, "A 5 G 7 C 8 T 7  6 G 5 T");
     auto index = std::make_shared<Index>();
-    l3->minimizer_sketch(index, w, k);
+    l3->minimizer_sketch(index.get(), w, k);
 
     pangenome::Graph ref_pangraph({ sample_name });
     auto sample_id = 0;
@@ -1359,7 +1294,7 @@ TEST(PangenomeGraphTest, infer_node_vcf_reference_path_no_file_strings)
         std::string prg_name = "prg" + std::to_string(prg_id);
         prgs.emplace_back(
             std::make_shared<LocalPRG>(LocalPRG(prg_id, prg_name, prg_string)));
-        prgs.back()->minimizer_sketch(index, w, k);
+        prgs.back()->minimizer_sketch(index.get(), w, k);
         pangraph.add_node(prgs.back());
         pangraph.add_hits_between_PRG_and_sample(prg_id, sample_name, empty);
         vcf_ref_paths.emplace_back(
@@ -1403,7 +1338,7 @@ TEST(PangenomeGraphTest, infer_node_vcf_reference_path_with_file_strings)
         std::string prg_name = "prg" + std::to_string(prg_id);
         prgs.emplace_back(
             std::make_shared<LocalPRG>(LocalPRG(prg_id, prg_name, prg_string)));
-        prgs.back()->minimizer_sketch(index, w, k);
+        prgs.back()->minimizer_sketch(index.get(), w, k);
         pangraph.add_node(prgs.back());
         pangraph.add_hits_between_PRG_and_sample(prg_id, sample_name, empty);
         vcf_ref_paths.emplace_back(

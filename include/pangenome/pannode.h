@@ -8,14 +8,11 @@
 #include "kmergraph.h"
 #include "kmergraphwithcoverage.h"
 #include "localPRG.h"
-#include "pangenome/ns.cpp"
 #include "vcf.h"
 #include "pansample.h"
 #include "OptionsAggregator.h"
 
 class LocalPRG;
-struct ReadCoordinate;
-using PanReadPtr = std::shared_ptr<pangenome::Read>;
 
 class pangenome::Node {
 public:

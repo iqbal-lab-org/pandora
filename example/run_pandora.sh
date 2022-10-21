@@ -55,20 +55,20 @@ ${make_prg_executable} from_msa --threads 1 --input msas/ --output_prefix out/pr
 echo "Running ${pandora_executable} index"
 "${pandora_executable}" index --threads 1 out/prgs/pangenome.prg.fa
 echo "Running ${pandora_executable} map"
-"${pandora_executable}" map --keep-extra-debugging-files --threads 1 --genotype -o out/map_toy_sample_1 out/prgs/pangenome.prg.fa reads/toy_sample_1/toy_sample_1.100x.random.illumina.fastq
+"${pandora_executable}" map -K --threads 1 --genotype -o out/map_toy_sample_1 out/prgs/pangenome.prg.fa reads/toy_sample_1/toy_sample_1.100x.random.illumina.fastq
 echo "Running ${pandora_executable} compare"
-"${pandora_executable}" compare --keep-extra-debugging-files --threads 1 --genotype -o out/output_toy_example_no_denovo out/prgs/pangenome.prg.fa reads/read_index.tsv
+"${pandora_executable}" compare -K --threads 1 --genotype -o out/output_toy_example_no_denovo out/prgs/pangenome.prg.fa reads/read_index.tsv
 echo "Running pandora without denovo - done!"
 
 echo "Running pandora with denovo..."
 echo "Running ${pandora_executable} discover"
-"${pandora_executable}" discover --keep-extra-debugging-files --threads 1 --outdir out/pandora_discover_out out/prgs/pangenome.prg.fa reads/read_index.tsv
+"${pandora_executable}" discover -K --threads 1 --outdir out/pandora_discover_out out/prgs/pangenome.prg.fa reads/read_index.tsv
 echo "Running ${make_prg_executable} update"
 ${make_prg_executable} update --threads 1 --update_DS out/prgs/pangenome.update_DS.zip --denovo_paths out/pandora_discover_out/denovo_paths.txt --output_prefix out/updated_prgs/pangenome_updated
 echo "Running ${pandora_executable} index on updated PRGs"
 "${pandora_executable}" index --threads 1 out/updated_prgs/pangenome_updated.prg.fa
 echo "Running ${pandora_executable} compare"
-"${pandora_executable}" compare --keep-extra-debugging-files --threads 1 --genotype -o out/output_toy_example_with_denovo out/updated_prgs/pangenome_updated.prg.fa reads/read_index.tsv
+"${pandora_executable}" compare -K --threads 1 --genotype -o out/output_toy_example_with_denovo out/updated_prgs/pangenome_updated.prg.fa reads/read_index.tsv
 echo "Running pandora with denovo - done!"
 
 if diff -rq -I '##fileDate.*' out out_truth ; then

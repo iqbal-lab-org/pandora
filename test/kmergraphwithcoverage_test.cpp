@@ -50,11 +50,11 @@ void check_coverages(const KmerGraphWithCoverage& kmergraph_with_coverage,
         for (uint32_t sample_index = 0; sample_index < nb_of_samples; ++sample_index) {
             EXPECT_EQ(
                 kmergraph_with_coverage.get_reverse_covg(node_index, sample_index),
-                expected_coverage[make_tuple(
+                expected_coverage[std::make_tuple(
                     node_index, pandora::Strand::Reverse, sample_index)]);
             EXPECT_EQ(
                 kmergraph_with_coverage.get_forward_covg(node_index, sample_index),
-                expected_coverage[make_tuple(
+                expected_coverage[std::make_tuple(
                     node_index, pandora::Strand::Forward, sample_index)]);
         }
     }
@@ -71,7 +71,7 @@ void set_covg_helper(KmerGraphWithCoverage& kmergraph_with_coverage,
         kmergraph_with_coverage.set_reverse_covg(node_id, value, sample_id);
     }
 
-    expected_coverage[make_tuple(node_id, strand, sample_id)] = value;
+    expected_coverage[std::make_tuple(node_id, strand, sample_id)] = value;
 }
 
 // increment the coverage in both kmergraph_with_coverage and expected_coverage
@@ -85,11 +85,11 @@ void increment_covg_helper(KmerGraphWithCoverage& kmergraph_with_coverage,
 
     if (is_forward) {
         kmergraph_with_coverage.increment_forward_covg(node_id, sample_id);
-        expected_coverage[make_tuple(node_id, pandora::Strand::Forward, sample_id)]
+        expected_coverage[std::make_tuple(node_id, pandora::Strand::Forward, sample_id)]
             = old_covg + 1;
     } else {
         kmergraph_with_coverage.increment_reverse_covg(node_id, sample_id);
-        expected_coverage[make_tuple(node_id, pandora::Strand::Reverse, sample_id)]
+        expected_coverage[std::make_tuple(node_id, pandora::Strand::Reverse, sample_id)]
             = old_covg + 1;
     }
 }
@@ -405,7 +405,7 @@ TEST(KmerGraphWithCoverageTest, findMaxPath_InvalidProbModel)
     kmergraph_with_coverage.num_reads = 5;
     kmergraph_with_coverage.kmer_prg->k = 3;
 
-    vector<KmerNodePtr> mp;
+    std::vector<KmerNodePtr> mp;
     kmergraph_with_coverage.set_binomial_parameter_p(0.01);
     ASSERT_EXCEPTION(kmergraph_with_coverage.find_max_path(
                          mp, "exp", max_num_kmers_to_average, sample_id),
@@ -425,12 +425,12 @@ TEST(KmerGraphWithCoverageTest, findMaxPathSimple)
     kmergraph_with_coverage.num_reads = 5;
     kmergraph_with_coverage.kmer_prg->k = 3;
 
-    vector<KmerNodePtr> mp;
+    std::vector<KmerNodePtr> mp;
     kmergraph_with_coverage.set_binomial_parameter_p(0.01);
     kmergraph_with_coverage.find_max_path(
         mp, "bin", max_num_kmers_to_average, sample_id);
-    vector<KmerNodePtr> exp_order = { kmergraph.nodes[1], kmergraph.nodes[2] };
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
+    std::vector<KmerNodePtr> exp_order = { kmergraph.nodes[1], kmergraph.nodes[2] };
+    EXPECT_ITERABLE_EQ(std::vector<KmerNodePtr>, exp_order, mp);
 
     mp.clear();
     kmergraph_with_coverage.set_forward_covg(1, 0, sample_id);
@@ -440,7 +440,7 @@ TEST(KmerGraphWithCoverageTest, findMaxPathSimple)
     kmergraph_with_coverage.find_max_path(
         mp, "bin", max_num_kmers_to_average, sample_id);
     exp_order = { kmergraph.nodes[5] };
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
+    EXPECT_ITERABLE_EQ(std::vector<KmerNodePtr>, exp_order, mp);
 }
 
 TEST(KmerGraphWithCoverageTest, findMaxPathSimple_WithMaxKmersInAvg)
@@ -456,12 +456,12 @@ TEST(KmerGraphWithCoverageTest, findMaxPathSimple_WithMaxKmersInAvg)
     kmergraph_with_coverage.num_reads = 5;
     kmergraph_with_coverage.kmer_prg->k = 3;
 
-    vector<KmerNodePtr> mp;
+    std::vector<KmerNodePtr> mp;
     kmergraph_with_coverage.set_binomial_parameter_p(0.01);
     kmergraph_with_coverage.find_max_path(
         mp, "bin", max_num_kmers_to_average, sample_id);
-    vector<KmerNodePtr> exp_order = { kmergraph.nodes[1], kmergraph.nodes[2] };
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
+    std::vector<KmerNodePtr> exp_order = { kmergraph.nodes[1], kmergraph.nodes[2] };
+    EXPECT_ITERABLE_EQ(std::vector<KmerNodePtr>, exp_order, mp);
 
     mp.clear();
     kmergraph_with_coverage.set_forward_covg(1, 0, sample_id);
@@ -471,7 +471,7 @@ TEST(KmerGraphWithCoverageTest, findMaxPathSimple_WithMaxKmersInAvg)
     kmergraph_with_coverage.find_max_path(
         mp, "bin", max_num_kmers_to_average, sample_id);
     exp_order = { kmergraph.nodes[5] };
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
+    EXPECT_ITERABLE_EQ(std::vector<KmerNodePtr>, exp_order, mp);
 }
 
 KmerGraph setup_2level_kmergraph()
@@ -546,9 +546,9 @@ TEST(KmerGraphWithCoverageTest, findMaxPath2Level_bin)
 
     auto mp_p = kmergraph_with_coverage.find_max_path(
         mp, "bin", max_num_kmers_to_average, sample_id);
-    vector<KmerNodePtr> exp_order = { kmergraph.nodes[4], kmergraph.nodes[5],
+    std::vector<KmerNodePtr> exp_order = { kmergraph.nodes[4], kmergraph.nodes[5],
         kmergraph.nodes[6], kmergraph.nodes[7] };
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
+    EXPECT_ITERABLE_EQ(std::vector<KmerNodePtr>, exp_order, mp);
 
     float exp_p = 0;
     for (uint i = 0; i != exp_order.size(); ++i) {
@@ -566,7 +566,7 @@ TEST(KmerGraphWithCoverageTest, findMaxPath2Level_bin)
     mp_p = kmergraph_with_coverage.find_max_path(
         mp, "bin", max_num_kmers_to_average, sample_id);
     exp_order = { kmergraph.nodes[8] };
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
+    EXPECT_ITERABLE_EQ(std::vector<KmerNodePtr>, exp_order, mp);
 
     exp_p = 0;
     for (uint i = 0; i != exp_order.size(); ++i) {
@@ -594,9 +594,9 @@ TEST(KmerGraphWithCoverageTest, findMaxPath2Level_nbin)
     std::vector<KmerNodePtr> mp;
     auto mp_p = kmergraph_with_coverage.find_max_path(
         mp, "nbin", max_num_kmers_to_average, sample_id);
-    vector<KmerNodePtr> exp_order = { kmergraph.nodes[4], kmergraph.nodes[5],
+    std::vector<KmerNodePtr> exp_order = { kmergraph.nodes[4], kmergraph.nodes[5],
         kmergraph.nodes[6], kmergraph.nodes[7] };
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
+    EXPECT_ITERABLE_EQ(std::vector<KmerNodePtr>, exp_order, mp);
 
     float exp_p = 0;
     for (uint i = 0; i != exp_order.size(); ++i) {
@@ -614,7 +614,7 @@ TEST(KmerGraphWithCoverageTest, findMaxPath2Level_nbin)
     mp_p = kmergraph_with_coverage.find_max_path(
         mp, "nbin", max_num_kmers_to_average, sample_id);
     exp_order = { kmergraph.nodes[8] };
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
+    EXPECT_ITERABLE_EQ(std::vector<KmerNodePtr>, exp_order, mp);
 
     exp_p = 0;
     for (uint i = 0; i != exp_order.size(); ++i) {
@@ -643,9 +643,9 @@ TEST(KmerGraphWithCoverageTest, findMaxPath2Level_lin)
     kmergraph_with_coverage.set_binomial_parameter_p(0.01);
     auto mp_p = kmergraph_with_coverage.find_max_path(
         mp, "lin", max_num_kmers_to_average, sample_id);
-    vector<KmerNodePtr> exp_order = { kmergraph.nodes[4], kmergraph.nodes[5],
+    std::vector<KmerNodePtr> exp_order = { kmergraph.nodes[4], kmergraph.nodes[5],
         kmergraph.nodes[6], kmergraph.nodes[7] };
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
+    EXPECT_ITERABLE_EQ(std::vector<KmerNodePtr>, exp_order, mp);
 
     float exp_p = 0;
     for (uint i = 0; i != exp_order.size(); ++i) {
@@ -663,7 +663,7 @@ TEST(KmerGraphWithCoverageTest, findMaxPath2Level_lin)
     mp_p = kmergraph_with_coverage.find_max_path(
         mp, "lin", max_num_kmers_to_average, sample_id);
     exp_order = { kmergraph.nodes[8] };
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mp);
+    EXPECT_ITERABLE_EQ(std::vector<KmerNodePtr>, exp_order, mp);
 
     exp_p = 0;
     for (uint i = 0; i != exp_order.size(); ++i) {
@@ -690,13 +690,13 @@ TEST(KmerGraphWithCoverageTest, find_max_paths_2Level) {
     kmergraph_with_coverage.kmer_prg->k = 3;
     kmergraph_with_coverage.set_p(0.01);
 
-    vector<vector<KmerNodePtr>> mps = kmergraph_with_coverage.find_max_paths(2,
-sample_id); EXPECT_EQ((uint) 2, mps.size()); vector<KmerNodePtr> exp_order =
+    std::vector<std::vector<KmerNodePtr>> mps = kmergraph_with_coverage.find_max_paths(2,
+sample_id); EXPECT_EQ((uint) 2, mps.size()); std::vector<KmerNodePtr> exp_order =
 {kmergraph.nodes[4], kmergraph.nodes[5], kmergraph.nodes[6], kmergraph.nodes[7]};
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mps[1]);
+    EXPECT_ITERABLE_EQ(std::vector<KmerNodePtr>, exp_order, mps[1]);
 
     exp_order = {kmergraph.nodes[8]};
-    EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order, mps[0]);
+    EXPECT_ITERABLE_EQ(std::vector<KmerNodePtr>, exp_order, mps[0]);
 }
  */
 
@@ -705,22 +705,22 @@ TEST(KmerGraphWithCoverageTest, random_paths)
     KmerGraph kmergraph = setup_2level_kmergraph();
     KmerGraphWithCoverage kmergraph_with_coverage(&kmergraph);
 
-    vector<vector<KmerNodePtr>> rps;
-    vector<KmerNodePtr> exp_order1 = { kmergraph.nodes[1], kmergraph.nodes[2],
+    std::vector<std::vector<KmerNodePtr>> rps;
+    std::vector<KmerNodePtr> exp_order1 = { kmergraph.nodes[1], kmergraph.nodes[2],
         kmergraph.nodes[3], kmergraph.nodes[7] };
-    vector<KmerNodePtr> exp_order2 = { kmergraph.nodes[4], kmergraph.nodes[5],
+    std::vector<KmerNodePtr> exp_order2 = { kmergraph.nodes[4], kmergraph.nodes[5],
         kmergraph.nodes[6], kmergraph.nodes[7] };
-    vector<KmerNodePtr> exp_order3 = { kmergraph.nodes[8] };
+    std::vector<KmerNodePtr> exp_order3 = { kmergraph.nodes[8] };
 
     rps = kmergraph_with_coverage.get_random_paths(10);
     for (uint i = 0; i != rps.size(); ++i) {
         for (uint j = 0; j != rps[i].size(); ++j) {
             if (rps[i][j]->id == 1) {
-                EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order1, rps[i]);
+                EXPECT_ITERABLE_EQ(std::vector<KmerNodePtr>, exp_order1, rps[i]);
             } else if (rps[i][j]->id == 4) {
-                EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order2, rps[i]);
+                EXPECT_ITERABLE_EQ(std::vector<KmerNodePtr>, exp_order2, rps[i]);
             } else if (rps[i][j]->id == 8) {
-                EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, exp_order3, rps[i]);
+                EXPECT_ITERABLE_EQ(std::vector<KmerNodePtr>, exp_order3, rps[i]);
             }
         }
     }
@@ -754,7 +754,7 @@ TEST(KmerGraphWithCoverageTest, save_covg_dist)
 TEST(KmerGraphWithCoverageTest, save_no_prg)
 {
     KmerGraph kmergraph;
-    deque<Interval> d = { Interval(0, 3) };
+    std::deque<Interval> d = { Interval(0, 3) };
     prg::Path p1, p2;
     p1.initialize(d);
     auto n1 = kmergraph.add_node(p1);
@@ -786,7 +786,7 @@ TEST(KmerGraphWithCoverageTest, save_no_prg)
 TEST(KmerGraphWithCoverageTest, load)
 {
     KmerGraph kmergraph;
-    deque<Interval> d = { Interval(0, 3) };
+    std::deque<Interval> d = { Interval(0, 3) };
     prg::Path p1, p2;
     p1.initialize(d);
     auto n1 = kmergraph.add_node(p1);

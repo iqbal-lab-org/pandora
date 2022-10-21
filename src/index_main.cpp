@@ -77,9 +77,9 @@ int pandora_index(IndexOptions const& opt)
 
     BOOST_LOG_TRIVIAL(info) << "Indexing PRG...";
     auto index = std::make_shared<Index>();
-    index_prgs(
-        prgs, index, opt.window_size, opt.kmer_size, opt.indexing_upper_bound,
-        kmer_prgs_outdir, opt.threads);
+    index->index_prgs(
+        prgs, opt.window_size, opt.kmer_size, kmer_prgs_outdir,
+        opt.indexing_upper_bound, opt.threads);
 
     // save index
     BOOST_LOG_TRIVIAL(info) << "Saving index...";

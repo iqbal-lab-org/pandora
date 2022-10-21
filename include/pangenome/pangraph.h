@@ -11,7 +11,6 @@
 
 #include "minihits.h"
 #include "localPRG.h"
-#include "pangenome/ns.cpp"
 
 namespace fs = boost::filesystem;
 

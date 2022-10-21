@@ -157,19 +157,19 @@ TEST(IndexTest, merging_indexes)
     auto outdir = TEST_CASE_DIR + "kgs/";
 
     read_prg_file(prgs, TEST_CASE_DIR + "prg1.fa", 1);
-    index_prgs(prgs, index, w, k, outdir);
+    index->index_prgs(prgs, w, k, outdir);
     index->save(TEST_CASE_DIR + "prg1.fa.idx");
 
     prgs.clear();
     index->clear();
     read_prg_file(prgs, TEST_CASE_DIR + "prg2.fa", 2);
-    index_prgs(prgs, index, w, k, outdir);
+    index->index_prgs(prgs, w, k, outdir);
     index->save(TEST_CASE_DIR + "prg2.fa.idx");
 
     prgs.clear();
     index->clear();
     read_prg_file(prgs, TEST_CASE_DIR + "prg3.fa", 3);
-    index_prgs(prgs, index, w, k, outdir);
+    index->index_prgs(prgs, w, k, outdir);
     index->save(TEST_CASE_DIR + "prg3.fa.idx");
 
     // merge
@@ -182,5 +182,5 @@ TEST(IndexTest, merging_indexes)
     prgs.clear();
     auto index_all = std::make_shared<Index>();
     read_prg_file(prgs, TEST_CASE_DIR + "prg0123.fa");
-    index_prgs(prgs, index_all, w, k, outdir);
+    index_all->index_prgs(prgs, w, k, outdir);
 }

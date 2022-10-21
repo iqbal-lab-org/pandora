@@ -16,9 +16,7 @@
 #include "vcf.h"
 #include "fastaq.h"
 #include <boost/filesystem.hpp>
-
-using PanNodePtr = std::shared_ptr<pangenome::Node>;
-namespace fs = boost::filesystem;
+#include "globals.h"
 
 class IndexingLimitReached : public std::runtime_error {
     using std::runtime_error::runtime_error;
@@ -77,8 +75,9 @@ public:
 
     std::vector<PathPtr> shift(prg::Path) const;
 
-    void minimizer_sketch(const std::shared_ptr<Index>& index, const uint32_t w,
-        const uint32_t k, const uint32_t indexing_upper_bound,
+    void minimizer_sketch(Index* index, const uint32_t w,
+        const uint32_t k,
+        const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
         double percentageDone = -1.0);
 
     // functions used once hits have been collected against the PRG
@@ -136,12 +135,12 @@ public:
         const std::vector<LocalNodePtr>& ref_path, const std::string& sample_name,
         const uint32_t& sample_id) const;
 
-    void add_consensus_path_to_fastaq(Fastaq&, PanNodePtr, std::vector<KmerNodePtr>&,
+    void add_consensus_path_to_fastaq(Fastaq&, pangenome::NodePtr, std::vector<KmerNodePtr>&,
         std::vector<LocalNodePtr>&, const uint32_t, const bool, const uint32_t,
         const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id) const;
     std::vector<LocalNodePtr> get_valid_vcf_reference(const std::string&) const;
 
-    void add_variants_to_vcf(VCF&, PanNodePtr, const std::string&,
+    void add_variants_to_vcf(VCF&, pangenome::NodePtr, const std::string&,
         const std::vector<KmerNodePtr>&, const std::vector<LocalNodePtr>&,
         const uint32_t& sample_id = 0, const std::string& sample_name = "sample");
 
@@ -156,7 +155,7 @@ bool operator<(const std::pair<std::vector<LocalNodePtr>, float>& p1,
 bool operator!=(
     const std::vector<KmerNodePtr>& lhs, const std::vector<KmerNodePtr>& rhs);
 
-std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr,
+std::vector<uint32_t> get_covgs_along_localnode_path(const pangenome::NodePtr,
     const std::vector<LocalNodePtr>&, const std::vector<KmerNodePtr>&,
     const uint32_t& sample_id);
 

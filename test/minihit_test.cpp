@@ -14,7 +14,7 @@ using namespace std;
 
 TEST(MinimizerHitTest, create)
 {
-    KmerHash hash;
+    pandora::KmerHash hash;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
     Minimizer m(min(kh.first, kh.second), 0, 5, 0);
     deque<Interval> d = { Interval(7, 8), Interval(10, 14) };
@@ -29,7 +29,7 @@ TEST(MinimizerHitTest, create)
     EXPECT_EQ(j, mh.get_prg_id());
     EXPECT_EQ(p, mh.get_prg_path());
     bool b = true;
-    EXPECT_EQ(b, mh.is_forward());
+    EXPECT_EQ(b, mh.same_strands());
 
     kh = hash.kmerhash("hell", 4);
     m = Minimizer(min(kh.first, kh.second), 1, 5, 0);
@@ -41,7 +41,7 @@ TEST(MinimizerHitTest, create)
 
 TEST(MinimizerHitTest, checkStrand)
 {
-    KmerHash hash;
+    pandora::KmerHash hash;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
     deque<Interval> d = { Interval(7, 8), Interval(10, 14) };
     prg::Path p;
@@ -52,27 +52,27 @@ TEST(MinimizerHitTest, checkStrand)
         ;
         MiniRecord mr(0, p, 0, 0);
         MinimizerHit mh(1, m, mr);
-        EXPECT_EQ(mh.is_forward(), true);
+        EXPECT_EQ(mh.same_strands(), true);
     }
 
     {
         Minimizer m(min(kh.first, kh.second), 0, 5, 1);
         MiniRecord mr(0, p, 0, 0);
         MinimizerHit mh(1, m, mr);
-        EXPECT_EQ(mh.is_forward(), false);
+        EXPECT_EQ(mh.same_strands(), false);
     }
 
     {
         Minimizer m(min(kh.first, kh.second), 0, 5, 0);
         MiniRecord mr(0, p, 0, 1);
         MinimizerHit mh(1, m, mr);
-        EXPECT_EQ(mh.is_forward(), false);
+        EXPECT_EQ(mh.same_strands(), false);
     }
 }
 
 TEST(MinimizerHitTest, equals)
 {
-    KmerHash hash;
+    pandora::KmerHash hash;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
     Minimizer m1(min(kh.first, kh.second), 0, 5, 0);
     deque<Interval> d = { Interval(7, 8), Interval(10, 14) };
@@ -95,7 +95,7 @@ TEST(MinimizerHitTest, equals)
 TEST(MinimizerHitTest, compare)
 {
     set<MinimizerHit> hits;
-    KmerHash hash;
+    pandora::KmerHash hash;
 
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
     Minimizer m12 = Minimizer(min(kh.first, kh.second), 1, 6, 0);

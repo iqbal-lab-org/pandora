@@ -9,9 +9,9 @@ class KmerNode;
 #include <ostream>
 #include <memory>
 #include <algorithm>
+#include "forward_declarations.h"
 
 #include "prg/path.h"
-#include "pangenome/ns.cpp"
 
 typedef std::shared_ptr<KmerNode> KmerNodePtr;
 typedef std::weak_ptr<KmerNode> WeakKmerNodePtr;

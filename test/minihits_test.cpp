@@ -12,11 +12,11 @@
 
 using namespace std;
 
-TEST(MinimizerHitsTest, add_hit)
+TEST(MinimizerHitsTest, insert)
 {
-    // tests both add_hit and that sort doesn't break. Doesn't test resut of sort
+    // tests both insert and that sort doesn't break. Doesn't test resut of sort
     MinimizerHits mhits;
-    KmerHash hash;
+    pandora::KmerHash hash;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
     deque<Interval> d = { Interval(7, 8), Interval(10, 14) };
     prg::Path p;
@@ -24,41 +24,41 @@ TEST(MinimizerHitsTest, add_hit)
 
     Minimizer m1(min(kh.first, kh.second), 1, 6, 0);
     MiniRecord mr1(0, p, 0, 0);
-    mhits.add_hit(1, m1, mr1);
-    EXPECT_EQ((uint)1, mhits.hits.size());
-    // mhits.add_hit(1, m, mr);
+    mhits.insert(1, m1, mr1);
+    EXPECT_EQ((uint)1, mhits.size());
+    // mhits.insert(1, m, mr);
     // EXPECT_EQ((uint)1, mhits.uhits.size());
-    mhits.add_hit(2, m1, mr1);
-    EXPECT_EQ((uint)2, mhits.hits.size());
+    mhits.insert(2, m1, mr1);
+    EXPECT_EQ((uint)2, mhits.size());
 
     Minimizer m3(min(kh.first, kh.second), 0, 5, 0);
     MiniRecord mr3(0, p, 0, 0);
-    mhits.add_hit(1, m3, mr3);
-    EXPECT_EQ((uint)3, mhits.hits.size());
+    mhits.insert(1, m3, mr3);
+    EXPECT_EQ((uint)3, mhits.size());
 
     d = { Interval(6, 10), Interval(11, 12) };
     p.initialize(d);
     Minimizer m4(min(kh.first, kh.second), 0, 5, 0);
     MiniRecord mr4(0, p, 0, 0);
-    mhits.add_hit(1, m4, mr4);
-    EXPECT_EQ((uint)4, mhits.hits.size());
+    mhits.insert(1, m4, mr4);
+    EXPECT_EQ((uint)4, mhits.size());
 
     d = { Interval(6, 10), Interval(12, 13) };
     p.initialize(d);
     Minimizer m5(min(kh.first, kh.second), 0, 5, 0);
     MiniRecord mr5(0, p, 0, 0);
-    mhits.add_hit(1, m5, mr5);
-    EXPECT_EQ((uint)5, mhits.hits.size());
+    mhits.insert(1, m5, mr5);
+    EXPECT_EQ((uint)5, mhits.size());
 
     uint32_t j(5);
-    EXPECT_EQ(j, mhits.hits.size());
+    EXPECT_EQ(j, mhits.size());
 }
 
 TEST(MinimizerHitsTest, pComp)
 {
     MinimizerHits mhits;
     vector<MinimizerHit> expected;
-    KmerHash hash;
+    pandora::KmerHash hash;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
     deque<Interval> d = { Interval(7, 8), Interval(10, 14) };
     prg::Path p;
@@ -66,40 +66,40 @@ TEST(MinimizerHitsTest, pComp)
 
     Minimizer m1(min(kh.first, kh.second), 1, 6, 0);
     MiniRecord mr1(0, p, 0, 0);
-    mhits.add_hit(1, m1, mr1);
+    mhits.insert(1, m1, mr1);
     expected.push_back(MinimizerHit(1, m1, mr1));
-    mhits.add_hit(0, m1, mr1);
+    mhits.insert(0, m1, mr1);
     expected.push_back(MinimizerHit(0, m1, mr1));
 
     Minimizer m2(min(kh.first, kh.second), 0, 5, 0);
     d = { Interval(6, 10), Interval(11, 12) };
     p.initialize(d);
     MiniRecord mr2(0, p, 0, 0);
-    mhits.add_hit(1, m2, mr2);
+    mhits.insert(1, m2, mr2);
     expected.push_back(MinimizerHit(1, m2, mr2));
 
     Minimizer m3(min(kh.first, kh.second), 0, 5, 0);
     d = { Interval(6, 10), Interval(12, 13) };
     p.initialize(d);
     MiniRecord mr3(0, p, 0, 0);
-    mhits.add_hit(1, m3, mr3);
+    mhits.insert(1, m3, mr3);
     expected.push_back(MinimizerHit(1, m3, mr3));
 
     uint32_t j(1);
-    for (set<MinimizerHitPtr, pComp>::iterator it = mhits.hits.begin();
-         it != --mhits.hits.end(); ++it) {
+    for (auto it = mhits.begin();
+         it != --mhits.end(); ++it) {
         EXPECT_EQ(expected[j], **it);
         j++;
     }
-    EXPECT_EQ(expected[0], **(--mhits.hits.end()));
+    EXPECT_EQ(expected[0], **(--mhits.end()));
 }
 
 TEST(MinimizerHitsTest, pComp_path)
 {
-    set<MinimizerHitPtr, pComp_path> mhitspath;
+    MinimizerHits mhitspath;
     MinimizerHits mhits;
     deque<MinimizerHit> expected;
-    KmerHash hash;
+    pandora::KmerHash hash;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
     deque<Interval> d = { Interval(7, 8), Interval(10, 14) };
     prg::Path p;
@@ -107,37 +107,36 @@ TEST(MinimizerHitsTest, pComp_path)
 
     Minimizer m1(min(kh.first, kh.second), 1, 6, 0);
     MiniRecord mr1(0, p, 0, 0);
-    mhits.add_hit(0, m1, mr1);
+    mhits.insert(0, m1, mr1);
     expected.push_back(MinimizerHit(0, m1, mr1));
-    mhits.add_hit(1, m1, mr1);
+    mhits.insert(1, m1, mr1);
     expected.push_back(MinimizerHit(1, m1, mr1));
 
     Minimizer m2(min(kh.first, kh.second), 0, 5, 0);
     MiniRecord mr2(0, p, 0, 0);
-    mhits.add_hit(2, m2, mr2);
+    mhits.insert(2, m2, mr2);
     expected.push_back(MinimizerHit(2, m2, mr2));
 
     d = { Interval(6, 10), Interval(12, 13) };
     p.initialize(d);
     Minimizer m3(min(kh.first, kh.second), 0, 5, 0);
     MiniRecord mr3(0, p, 0, 0);
-    mhits.add_hit(1, m3, mr3);
+    mhits.insert(1, m3, mr3);
     expected.push_front(MinimizerHit(1, m3, mr3));
 
     d = { Interval(6, 10), Interval(11, 12) };
     p.initialize(d);
     Minimizer m4(min(kh.first, kh.second), 0, 5, 0);
     MiniRecord mr4(0, p, 0, 0);
-    mhits.add_hit(1, m4, mr4);
+    mhits.insert(1, m4, mr4);
     expected.push_front(MinimizerHit(1, m4, mr4));
 
-    for (set<MinimizerHitPtr, pComp>::iterator it = mhits.hits.begin();
-         it != --mhits.hits.end(); ++it) {
+    for (auto it = mhits.begin();
+         it != --mhits.end(); ++it) {
         mhitspath.insert(*it);
     }
     uint32_t j(0);
-    for (set<MinimizerHitPtr, pComp_path>::iterator it = mhitspath.begin();
-         it != mhitspath.end(); ++it) {
+    for (auto it = mhitspath.begin(); it != mhitspath.end(); ++it) {
         EXPECT_EQ(expected[j], **it);
         j++;
     }
@@ -145,11 +144,11 @@ TEST(MinimizerHitsTest, pComp_path)
 
 TEST(MinimizerHitsTest, clusterComp)
 {
-    set<set<MinimizerHitPtr, pComp>, clusterComp> clusters_of_hits;
-    set<MinimizerHitPtr, pComp> current_cluster;
+    MinimizerHitClusters clusters_of_hits;
+    MinimizerHits current_cluster;
     vector<MinimizerHitPtr> expected1, expected2;
 
-    KmerHash hash;
+    pandora::KmerHash hash;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
     deque<Interval> d = { Interval(7, 8), Interval(10, 14) };
     prg::Path p;
@@ -201,7 +200,7 @@ TEST(MinimizerHitsTest, clusterComp)
     // check that this is indeed the cluster we think
     // note that can't sort the set of hits by pcomp without changing the defintion of
     // cluster comparison function
-    for (set<MinimizerHitPtr, pComp>::iterator it = clusters_of_hits.begin()->begin();
+    for (auto it = clusters_of_hits.begin()->begin();
          it != clusters_of_hits.begin()->end(); ++it) {
         EXPECT_EQ(((*expected2[0] == **it) or (*expected2[1] == **it)
                       or (*expected2[2] == **it)),

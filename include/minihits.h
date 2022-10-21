@@ -34,6 +34,13 @@ public:
         hits.insert(minimizer_hit);
     }
 
+    inline void insert(decltype(hits.begin()) begin, decltype(hits.end()) end) {
+        while (begin != end) {
+            this->insert(*begin);
+            begin++;
+        }
+    }
+
     void insert(const uint32_t i, const Minimizer& minimizer_from_read,
         const MiniRecord& minimizer_from_PRG);
 

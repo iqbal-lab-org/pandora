@@ -8,7 +8,6 @@
 #include <unordered_map>
 #include <minihit.h>
 #include "minihits.h"
-#include "pangenome/ns.cpp"
 
 class pangenome::Read {
 private:

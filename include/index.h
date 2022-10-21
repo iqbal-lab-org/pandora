@@ -10,6 +10,7 @@
 #include "minirecord.h"
 #include "prg/path.h"
 #include "utils.h"
+#include "globals.h"
 
 namespace fs = boost::filesystem;
 
@@ -59,10 +60,11 @@ public:
     bool operator==(const Index& other) const;
 
     bool operator!=(const Index& other) const;
+
+    void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
+        const uint32_t w, const uint32_t k, const fs::path& outdir,
+        const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
+        uint32_t threads = 1);
 };
 
-void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    std::shared_ptr<Index>& index, uint32_t w, uint32_t k,
-    const uint32_t indexing_upper_bound, const fs::path& outdir,
-    uint32_t threads = 1);
 #endif

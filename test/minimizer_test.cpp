@@ -21,7 +21,7 @@ struct Minimizer;
 
 TEST(MinimizerTest, create)
 {
-    KmerHash hash;
+    pandora::KmerHash hash;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
     Minimizer m1(kh.first, 0, 5, 0);
     kh = hash.kmerhash("ACGTG", 5);
@@ -58,7 +58,7 @@ TEST(MinimizerTest, create)
 
 TEST(MinimizerTest, less_than)
 {
-    KmerHash hash;
+    pandora::KmerHash hash;
     pair<uint64_t, uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
     Minimizer m1(kh1.first, 0, 5, 0);
     pair<uint64_t, uint64_t> kh2 = hash.kmerhash("ACGTA", 5);
@@ -99,7 +99,7 @@ TEST(MinimizerTest, less_than)
 
 TEST(MinimizerTest, equals)
 {
-    KmerHash hash;
+    pandora::KmerHash hash;
     pair<uint64_t, uint64_t> kh1 = hash.kmerhash("AGGTG", 5);
     Minimizer m1(kh1.first, 0, 5, 0);
     pair<uint64_t, uint64_t> kh2 = hash.kmerhash("ACGTA", 5);

@@ -16,6 +16,7 @@
 #include "utils.h"
 #include "localPRG.h"
 #include "CLI11.hpp"
+#include "globals.h"
 
 /// Collection of all options of index subcommand.
 struct IndexOptions {
@@ -26,7 +27,7 @@ struct IndexOptions {
     uint32_t id_offset { 0 };
     fs::path outfile;
     uint8_t verbosity { 0 };
-    uint32_t indexing_upper_bound { 10000000 };
+    uint32_t indexing_upper_bound { INDEXING_UPPER_BOUND_DEFAULT };
 };
 
 void setup_index_subcommand(CLI::App& app);

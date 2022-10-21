@@ -1,5 +1,4 @@
 #include "gtest/gtest.h"
-#include "pangenome/ns.cpp"
 #include "pangenome/pannode.h"
 #include "pangenome/pansample.h"
 #include <stdint.h>

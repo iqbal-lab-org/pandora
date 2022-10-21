@@ -175,9 +175,9 @@ bool Index::operator==(const Index& other) const
 
 bool Index::operator!=(const Index& other) const { return !(*this == other); }
 
-void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    std::shared_ptr<Index>& index, const uint32_t w, const uint32_t k,
-    const uint32_t indexing_upper_bound, const fs::path& outdir, uint32_t threads)
+void Index::index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    const uint32_t w, const uint32_t k, const fs::path& outdir,
+    const uint32_t indexing_upper_bound, uint32_t threads)
 {
     BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
     if (prgs.empty())
@@ -188,7 +188,7 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
     for (uint32_t i = 0; i != prgs.size(); ++i) {
         r += prgs[i]->seq.length();
     }
-    index->minhash.reserve(r);
+    this->minhash.reserve(r);
 
     // create the dirs for the index
     const int nbOfGFAsPerDir = 4000;
@@ -205,7 +205,7 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
                 + ".gfa") };
 
         try {
-            prgs[i]->minimizer_sketch(index, w, k, indexing_upper_bound,
+            prgs[i]->minimizer_sketch(this, w, k, indexing_upper_bound,
                 (((double)(nbOfPRGsDone.load())) / prgs.size()) * 100);
             prgs[i]->kmer_prg.save(gfa_file);
         }catch (const IndexingLimitReached &error) {
@@ -221,5 +221,5 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
         ++nbOfPRGsDone;
     }
     BOOST_LOG_TRIVIAL(debug) << "Finished adding " << prgs.size() << " LocalPRGs";
-    BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << index->minhash.size();
+    BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << this->minhash.size();
 }
