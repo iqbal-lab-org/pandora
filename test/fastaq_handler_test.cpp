@@ -48,27 +48,27 @@ TEST(FastaqHandlerTest, get_next)
     fh.get_next();
     EXPECT_EQ((uint32_t)1, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read0");
-    EXPECT_EQ(fh.read, "to be ignored");
+    EXPECT_EQ(fh.read, "TO BE IGNORED");
 
     fh.get_next();
     EXPECT_EQ((uint32_t)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
-    EXPECT_EQ(fh.read, "should copy the phrase *should*");
+    EXPECT_EQ(fh.read, "SHOULD COPY THE PHRASE *SHOULD*");
 
     fh.get_next();
     EXPECT_EQ((uint32_t)3, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read2");
-    EXPECT_EQ(fh.read, "this time we should get *is time *");
+    EXPECT_EQ(fh.read, "THIS TIME WE SHOULD GET *IS TIME *");
 
     fh.get_next();
     EXPECT_EQ((uint)4, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read3");
-    EXPECT_EQ(fh.read, "nonsense");
+    EXPECT_EQ(fh.read, "NONSENSE");
 
     fh.get_next();
     EXPECT_EQ((uint)5, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read4");
-    EXPECT_EQ(fh.read, "another junk line");
+    EXPECT_EQ(fh.read, "ANOTHER JUNK LINE");
 
     EXPECT_THROW(fh.get_next(), std::out_of_range);
 }
@@ -96,37 +96,37 @@ TEST(FastaqHandlerTest, get_nth_read_fa)
     fh.get_nth_read(1);
     EXPECT_EQ((uint32_t)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
-    EXPECT_EQ(fh.read, "should copy the phrase *should*");
+    EXPECT_EQ(fh.read, "SHOULD COPY THE PHRASE *SHOULD*");
 
     fh.get_nth_read(0);
     EXPECT_EQ((uint32_t)1, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read0");
-    EXPECT_EQ(fh.read, "to be ignored");
+    EXPECT_EQ(fh.read, "TO BE IGNORED");
 
     fh.get_nth_read(2);
     EXPECT_EQ((uint32_t)3, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read2");
-    EXPECT_EQ(fh.read, "this time we should get *is time *");
+    EXPECT_EQ(fh.read, "THIS TIME WE SHOULD GET *IS TIME *");
 
     fh.get_nth_read(1);
     EXPECT_EQ((uint32_t)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
-    EXPECT_EQ(fh.read, "should copy the phrase *should*");
+    EXPECT_EQ(fh.read, "SHOULD COPY THE PHRASE *SHOULD*");
 
     fh.get_nth_read(0);
     EXPECT_EQ((uint32_t)1, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read0");
-    EXPECT_EQ(fh.read, "to be ignored");
+    EXPECT_EQ(fh.read, "TO BE IGNORED");
 
     fh.get_nth_read(1);
     EXPECT_EQ((uint32_t)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
-    EXPECT_EQ(fh.read, "should copy the phrase *should*");
+    EXPECT_EQ(fh.read, "SHOULD COPY THE PHRASE *SHOULD*");
 
     fh.get_nth_read(2);
     EXPECT_EQ((uint32_t)3, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read2");
-    EXPECT_EQ(fh.read, "this time we should get *is time *");
+    EXPECT_EQ(fh.read, "THIS TIME WE SHOULD GET *IS TIME *");
 }
 
 TEST(FastaqHandlerTest, get_nth_read_fq)
@@ -197,37 +197,37 @@ TEST(FastaqHandlerTest, get_nth_read_fagz)
     fh.get_nth_read(1);
     EXPECT_EQ((uint)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
-    EXPECT_EQ(fh.read, "should copy the phrase *should*");
+    EXPECT_EQ(fh.read, "SHOULD COPY THE PHRASE *SHOULD*");
 
     fh.get_nth_read(0);
     EXPECT_EQ((uint)1, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read0");
-    EXPECT_EQ(fh.read, "to be ignored");
+    EXPECT_EQ(fh.read, "TO BE IGNORED");
 
     fh.get_nth_read(2);
     EXPECT_EQ((uint)3, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read2");
-    EXPECT_EQ(fh.read, "this time we should get *is time *");
+    EXPECT_EQ(fh.read, "THIS TIME WE SHOULD GET *IS TIME *");
 
     fh.get_nth_read(1);
     EXPECT_EQ((uint)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
-    EXPECT_EQ(fh.read, "should copy the phrase *should*");
+    EXPECT_EQ(fh.read, "SHOULD COPY THE PHRASE *SHOULD*");
 
     fh.get_nth_read(0);
     EXPECT_EQ((uint)1, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read0");
-    EXPECT_EQ(fh.read, "to be ignored");
+    EXPECT_EQ(fh.read, "TO BE IGNORED");
 
     fh.get_nth_read(1);
     EXPECT_EQ((uint)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
-    EXPECT_EQ(fh.read, "should copy the phrase *should*");
+    EXPECT_EQ(fh.read, "SHOULD COPY THE PHRASE *SHOULD*");
 
     fh.get_nth_read(2);
     EXPECT_EQ((uint)3, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read2");
-    EXPECT_EQ(fh.read, "this time we should get *is time *");
+    EXPECT_EQ(fh.read, "THIS TIME WE SHOULD GET *IS TIME *");
 }
 
 TEST(FastaqHandlerTest, get_nth_read_fqgz)
@@ -237,37 +237,37 @@ TEST(FastaqHandlerTest, get_nth_read_fqgz)
     fh.get_nth_read(1);
     EXPECT_EQ((uint)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
-    EXPECT_EQ(fh.read, "should copy the phrase *should*");
+    EXPECT_EQ(fh.read, "SHOULD COPY THE PHRASE *SHOULD*");
 
     fh.get_nth_read(0);
     EXPECT_EQ((uint)1, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read0");
-    EXPECT_EQ(fh.read, "to be ignored");
+    EXPECT_EQ(fh.read, "TO BE IGNORED");
 
     fh.get_nth_read(2);
     EXPECT_EQ((uint)3, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read2");
-    EXPECT_EQ(fh.read, "this time we should get *is time *");
+    EXPECT_EQ(fh.read, "THIS TIME WE SHOULD GET *IS TIME *");
 
     fh.get_nth_read(1);
     EXPECT_EQ((uint)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
-    EXPECT_EQ(fh.read, "should copy the phrase *should*");
+    EXPECT_EQ(fh.read, "SHOULD COPY THE PHRASE *SHOULD*");
 
     fh.get_nth_read(0);
     EXPECT_EQ((uint)1, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read0");
-    EXPECT_EQ(fh.read, "to be ignored");
+    EXPECT_EQ(fh.read, "TO BE IGNORED");
 
     fh.get_nth_read(1);
     EXPECT_EQ((uint)2, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read1");
-    EXPECT_EQ(fh.read, "should copy the phrase *should*");
+    EXPECT_EQ(fh.read, "SHOULD COPY THE PHRASE *SHOULD*");
 
     fh.get_nth_read(2);
     EXPECT_EQ((uint)3, fh.num_reads_parsed);
     EXPECT_EQ(fh.name, "read2");
-    EXPECT_EQ(fh.read, "this time we should get *is time *");
+    EXPECT_EQ(fh.read, "THIS TIME WE SHOULD GET *IS TIME *");
 }
 
 TEST(FastaqHandlerTest, close)

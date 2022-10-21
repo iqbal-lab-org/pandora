@@ -100,8 +100,11 @@ void filter_clusters(
     ClusterFilterFile& cluster_filter_file
 );
 
-void filter_clusters2(
-    MinimizerHits&, const uint32_t&);
+
+void add_clusters_to_pangraph(
+    const MinimizerHitClusters& minimizer_hit_clusters,
+    std::shared_ptr<pangenome::Graph> pangraph,
+    const std::vector<std::shared_ptr<LocalPRG>>& prgs);
 
 MinimizerHitClusters get_minimizer_hit_clusters(
     const std::string &sample_name,

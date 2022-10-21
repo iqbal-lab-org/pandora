@@ -94,54 +94,6 @@ TEST(MinimizerHitsTest, pComp)
     EXPECT_EQ(expected[0], **(--mhits.end()));
 }
 
-TEST(MinimizerHitsTest, pComp_path)
-{
-    MinimizerHits mhitspath;
-    MinimizerHits mhits;
-    deque<MinimizerHit> expected;
-    pandora::KmerHash hash;
-    pair<uint64_t, uint64_t> kh = hash.kmerhash("ACGTA", 5);
-    deque<Interval> d = { Interval(7, 8), Interval(10, 14) };
-    prg::Path p;
-    p.initialize(d);
-
-    Minimizer m1(min(kh.first, kh.second), 1, 6, 0);
-    MiniRecord mr1(0, p, 0, 0);
-    mhits.insert(0, m1, mr1);
-    expected.push_back(MinimizerHit(0, m1, mr1));
-    mhits.insert(1, m1, mr1);
-    expected.push_back(MinimizerHit(1, m1, mr1));
-
-    Minimizer m2(min(kh.first, kh.second), 0, 5, 0);
-    MiniRecord mr2(0, p, 0, 0);
-    mhits.insert(2, m2, mr2);
-    expected.push_back(MinimizerHit(2, m2, mr2));
-
-    d = { Interval(6, 10), Interval(12, 13) };
-    p.initialize(d);
-    Minimizer m3(min(kh.first, kh.second), 0, 5, 0);
-    MiniRecord mr3(0, p, 0, 0);
-    mhits.insert(1, m3, mr3);
-    expected.push_front(MinimizerHit(1, m3, mr3));
-
-    d = { Interval(6, 10), Interval(11, 12) };
-    p.initialize(d);
-    Minimizer m4(min(kh.first, kh.second), 0, 5, 0);
-    MiniRecord mr4(0, p, 0, 0);
-    mhits.insert(1, m4, mr4);
-    expected.push_front(MinimizerHit(1, m4, mr4));
-
-    for (auto it = mhits.begin();
-         it != --mhits.end(); ++it) {
-        mhitspath.insert(*it);
-    }
-    uint32_t j(0);
-    for (auto it = mhitspath.begin(); it != mhitspath.end(); ++it) {
-        EXPECT_EQ(expected[j], **it);
-        j++;
-    }
-}
-
 TEST(MinimizerHitsTest, clusterComp)
 {
     MinimizerHitClusters clusters_of_hits;

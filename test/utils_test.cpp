@@ -453,8 +453,10 @@ TEST(UtilsTest, simpleInferLocalPRGOrderForRead)
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
     ClusterDefFile cluster_def_file("", true);
     ClusterFilterFile cluster_filter_file("", true);
-    get_minimizer_hit_clusters("sample", s, prgs, minimizer_hits, pangraph, 1, 100, 0.1,
+    MinimizerHitClusters minimizer_hit_clusters = get_minimizer_hit_clusters(
+        "sample", s, prgs, minimizer_hits, pangraph, 1, 100, 0.1,
         cluster_def_file, cluster_filter_file, 1);
+    add_clusters_to_pangraph(minimizer_hit_clusters, pangraph, prgs);
 
     // create a pangraph object representing the truth we expect (prg 3 then 1)
     pangenome::Graph pg_exp;
@@ -690,8 +692,10 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead)
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
     ClusterDefFile cluster_def_file("", true);
     ClusterFilterFile cluster_filter_file("", true);
-    get_minimizer_hit_clusters("sample", s, prgs, minimizer_hits, pangraph, 1, 100, 0.1,
+    MinimizerHitClusters minimizer_hit_clusters = get_minimizer_hit_clusters(
+        "sample", s, prgs, minimizer_hits, pangraph, 1, 100, 0.1,
         cluster_def_file, cluster_filter_file, 1);
+    add_clusters_to_pangraph(minimizer_hit_clusters, pangraph, prgs);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other
@@ -938,8 +942,12 @@ TEST(UtilsTest, pangraphFromReadFile_Fa)
 
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
     SampleData sample_data{"reads_2", TEST_CASE_DIR + "read2.fa"};
+
+    fs::path outdir("reads_2_outdir");
+    fs::create_directories(outdir);
     pangraph_from_read_file(sample_data, pangraph, index, prgs, 1, 3, 1,
-        0.1, "reads_2_outdir", 1, 0, 0, 0, 0, 0);
+        0.1, outdir, 1);
+    fs::remove_all(outdir);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other
@@ -963,9 +971,13 @@ TEST(UtilsTest, pangraphFromReadFile_Fq)
     setup_index(prgs, index);
 
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
+
+    fs::path outdir("reads_2_outdir");
+    fs::create_directories(outdir);
     SampleData sample_data{"reads_2", TEST_CASE_DIR + "read2.fa"};
     pangraph_from_read_file(sample_data, pangraph, index, prgs, 1, 3, 1,
-        0.1, "reads_2_outdir", 1, 0, 0, 0, 0, 0);
+        0.1, outdir, 1);
+    fs::remove_all(outdir);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other
