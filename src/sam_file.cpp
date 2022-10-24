@@ -132,7 +132,7 @@ void SAMFile::write_sam_record_from_hit_cluster(
         const MinimizerHitPtr first_hit = *(cluster.begin());
         const std::string &prg_name = prgs[first_hit->get_prg_id()]->name;
 
-        const uint32_t alignment_start = first_hit->get_prg_path().begin()->start;
+        const uint32_t alignment_start = first_hit->get_prg_path().begin()->start + 1;
 
         const std::vector<bool> mapped_positions_bitset =
             get_mapped_positions_bitset(seq, cluster);
