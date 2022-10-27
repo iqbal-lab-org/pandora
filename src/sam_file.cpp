@@ -193,15 +193,15 @@ void SAMFile::write_sam_record_from_hit_cluster(
                          << "*\t0\t0\t"
                          << segment_sequence << "\t"
                          << "*\t"
-                         << "LF:Z:" << left_flank << "\t"
-                         << "RF:Z:" << right_flank << "\t"
-                         << "MP:i:" << plus_strand_count << "\t"
-                         << "MM:i:" << minus_strand_count << "\t"
-                         << "PP:Z:" << cluster_of_hits_prg_paths_ss.str() << "\t"
                          << "NM:i:" << number_of_mismatches << "\t"
                          << "AS:i:" << alignment_score << "\t"
                          << "nn:i:" << number_ambiguous_bases << "\t"
-                         << "cm:i:" << cluster.size() << "\n";
+                         << "cm:i:" << cluster.size() << "\t"
+                         << "MP:i:" << plus_strand_count << "\t"
+                         << "MM:i:" << minus_strand_count << "\t"
+                         << "LF:Z:" << left_flank << "\t"
+                         << "RF:Z:" << right_flank << "\t"
+                         << "PP:Z:" << cluster_of_hits_prg_paths_ss.str() << "\n";
 
         const uint32_t prg_length = prgs[first_hit->get_prg_id()]->seq.size();
         prg_name_to_length[prg_name] = prg_length;
