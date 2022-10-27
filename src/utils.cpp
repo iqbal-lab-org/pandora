@@ -245,6 +245,13 @@ void decide_if_add_cluster_or_not(
                          << length_based_threshold << "\t"
                          << min_cluster_size << "\t";
 
+        for (auto current_cluster_it=current_cluster.begin();
+             current_cluster_it != current_cluster.end();
+             current_cluster_it++) {
+            cluster_def_file << (*current_cluster_it)->get_read_start_position() << ",";
+        }
+        cluster_def_file << "\t";
+
         for (const auto &distance : distances_between_hits) {
             cluster_def_file << distance << ",";
         }

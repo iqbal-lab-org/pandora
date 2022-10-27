@@ -11,7 +11,7 @@ private:
 public:
     ClusterDefFile(const fs::path &filepath, bool is_fake_file = false)
         : GenericFile(filepath, is_fake_file){
-        (*this) << "read\tprg\tstatus\tcluster_size\tnb_of_repeated_mini\tnb_of_unique_mini\tlength_based_threshold\tmin_cluster_size\tdistances_between_hits\n";
+        (*this) << "read\tprg\tstatus\tcluster_size\tnb_of_repeated_mini\tnb_of_unique_mini\tlength_based_threshold\tmin_cluster_size\tread_hits_positions\tdistances_between_hits\n";
     }
 };
 
