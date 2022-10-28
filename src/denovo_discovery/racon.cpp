@@ -136,12 +136,12 @@ bool Racon::run_another_round() {
     const std::string consensus_record = ">consensus_" + locus + "\n" + consensus_seq;
 
     // builds a mem_fd with the consensus seq
-    const std::string locus_consensus_filepath = build_memfd(consensus_record);
+    const std::pair<int, std::string> locus_consensus_fd_and_filepath = build_memfd(consensus_record);
 
     // run minimap to get overlaps
     std::string paf = run_minimap2_core(
         this->locus_reads_filepath,
-        locus_consensus_filepath,
+        locus_consensus_fd_and_filepath.second,
         this->illumina, this->kmer_size);
     const bool paf_file_is_empty = paf.length() == 0;
 
@@ -152,13 +152,16 @@ bool Racon::run_another_round() {
         polished_consensus_seq = consensus_seq;
     } else {
         // builds memfd with paf file
-        const std::string paf_filepath = build_memfd(paf);
+        const std::pair<int, std::string> paf_fd_and_filepath = build_memfd(paf);
 
         // run racon to correct the ML seq
         polished_consensus_seq = run_racon_core(consensus_seq,
-            locus_reads_filepath, paf_filepath,
-            locus_consensus_filepath);
+            locus_reads_filepath, paf_fd_and_filepath.second,
+            locus_consensus_fd_and_filepath.second);
+
+        close(paf_fd_and_filepath.first);
     }
+    close(locus_consensus_fd_and_filepath.first);
 
     const bool we_already_saw_this_consensus_seq =
         std::find(consensus_seq_already_seen.begin(), consensus_seq_already_seen.end(),

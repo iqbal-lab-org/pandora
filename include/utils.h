@@ -155,7 +155,7 @@ std::string remove_spaces_from_string(const std::string& str);
 
 // Builds a file in memory
 // Returns filepath
-std::string build_memfd(const std::string &data);
+std::pair<int, std::string> build_memfd(const std::string &data);
 
 std::string exec(const char* cmd);
 

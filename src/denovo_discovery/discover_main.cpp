@@ -262,7 +262,7 @@ void pandora_discover_core(const SampleData& sample,
         }
 
         // builds a mem_fd with the locus reads
-        const std::string locus_reads_filepath = build_memfd(locus_to_reads[locus]);
+        const std::pair<int, std::string> locus_reads_fd_and_filepath = build_memfd(locus_to_reads[locus]);
 
         if (opt.keep_extra_debugging_files) {
             // build the reads file on disk
@@ -272,8 +272,10 @@ void pandora_discover_core(const SampleData& sample,
 
         const std::string lmp_seq = prgs[pangraph_node->prg_id]->string_along_path(lmp);
         Racon racon(opt.illumina, opt.kmer_size, locus, lmp_seq,
-            denovo_outdir, locus_reads_filepath, 10, opt.keep_extra_debugging_files);
+            denovo_outdir, locus_reads_fd_and_filepath.second, 10, opt.keep_extra_debugging_files);
         const std::string &polished_sequence = racon.get_polished_sequence();
+
+        close(locus_reads_fd_and_filepath.first);
 
 #pragma omp critical(all_denovo_sequences)
         {
