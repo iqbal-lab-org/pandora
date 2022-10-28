@@ -275,10 +275,6 @@ void pandora_discover_core(const SampleData& sample,
             denovo_outdir, locus_reads_filepath, 10, opt.keep_extra_debugging_files);
         const std::string &polished_sequence = racon.get_polished_sequence();
 
-        if (!opt.keep_extra_debugging_files) {
-            fs::remove(locus_reads_filepath);
-        }
-
 #pragma omp critical(all_denovo_sequences)
         {
             all_denovo_sequences.push_back(">" + locus + " sample=" + sample_name +
