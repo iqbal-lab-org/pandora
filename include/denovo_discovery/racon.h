@@ -19,18 +19,20 @@ private:
     std::vector<std::string> consensus_seq_already_seen;
 
     // Runs minimap2 with the given parameters
-    // @return : the number of reads mapped (entries in the output PAF file)
-    uint32_t run_minimap2_core(const std::string &locus_consensus_filepath,
-        const std::string &paf_filepath);
+    // @return : PAF string
+    static std::string run_minimap2_core(
+        const std::string &query_filepath,
+        const std::string &ref_filepath,
+        const bool illumina, const uint32_t kmer_size);
 
 
     // Runs racon with the given parameters
     // @return : a polished sequence
     static std::string run_racon_core(
-        const std::string &consensus_seq,
+        const std::string &sequence_to_be_corrected,
         const std::string &reads_filepath,
         const std::string &paf_filepath,
-        const std::string &polished_filepath);
+        const std::string &target_seq_filepath);
 
 
     // Runs a round of minimap2+racon

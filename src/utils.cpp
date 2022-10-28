@@ -772,7 +772,7 @@ std::string remove_spaces_from_string(const std::string& str)
     return to_return;
 }
 
-std::pair<int, std::string> build_memfd(const std::string &data) {
+std::string build_memfd(const std::string &data) {
     int fd = memfd_create("pandora_memfd", MFD_ALLOW_SEALING);
     if (fd == -1)
         fatal_error("memfd could not be created");
@@ -792,7 +792,7 @@ std::pair<int, std::string> build_memfd(const std::string &data) {
 
     std::stringstream ss_filepath;
     ss_filepath << "/proc/" << getpid() << "/fd/" << fd;
-    return std::make_pair(fd, ss_filepath.str());
+    return ss_filepath.str();
 }
 
 // From https://stackoverflow.com/a/478960/5264075

@@ -261,19 +261,14 @@ void pandora_discover_core(const SampleData& sample,
                 prgs[pangraph_node->prg_id]);
         }
 
-        // [TODO RACON]: switch to memfd to improve performance whenever we can
         // builds a mem_fd with the locus reads
-        // std::pair<int, std::string> read_locus_fd_and_filepath = build_memfd(locus_to_reads[locus]);
+        const std::string locus_reads_filepath = build_memfd(locus_to_reads[locus]);
 
-        // build the reads file on disk
-        std::string locus_reads_filepath;
-        {
-            std::stringstream ss;
-            ss << locus << ".reads.fa";
-            locus_reads_filepath = ss.str();
+        if (opt.keep_extra_debugging_files) {
+            // build the reads file on disk
+            build_file((denovo_outdir / (locus + ".reads.fa")).string(),
+                locus_to_reads[locus]);
         }
-        locus_reads_filepath = (denovo_outdir / locus_reads_filepath).string();
-        build_file(locus_reads_filepath, locus_to_reads[locus]);
 
         const std::string lmp_seq = prgs[pangraph_node->prg_id]->string_along_path(lmp);
         Racon racon(opt.illumina, opt.kmer_size, locus, lmp_seq,
