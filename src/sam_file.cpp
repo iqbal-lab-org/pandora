@@ -174,9 +174,9 @@ void SAMFile::write_sam_record_from_hit_cluster(
                 case 'C':
                 case 'G':
                 case 'T':
-                    return true;
-                default:
                     return false;
+                default:
+                    return true;
                 }
             }
         );
