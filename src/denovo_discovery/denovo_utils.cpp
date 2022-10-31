@@ -1,5 +1,18 @@
 #include "denovo_discovery/denovo_utils.h"
 
+
+size_t get_flank_field_pos(const std::vector<std::string> &words, const std::string &flank_prefix) {
+    for (size_t i=11; i<words.size(); i++) {
+        const std::string &word = words[i];
+        const bool found_flank_field = word.find(flank_prefix)==0;
+        if (found_flank_field) {
+            return i;
+        }
+    }
+
+    throw FatalRuntimeError("get_flank_field_pos(): could not find flank prefix " + flank_prefix);
+}
+
 std::map<std::string, std::string> get_locus_to_reads(
     const fs::path &sample_outdir,
     const std::string &sample_name
@@ -11,18 +24,31 @@ std::map<std::string, std::string> get_locus_to_reads(
         filtered_samfile);
     std::string line;
     uint64_t segment_order = 0;
+
+    size_t left_flank_field_pos = 0;
+    size_t right_flank_field_pos = 0;
+
     while (std::getline(filtered_samfile, line))
     {
+        const bool is_header = !line.empty() && line[0]=='@';
+        if (is_header) continue;
+
         std::vector<std::string> words;
         boost::split(words, line, boost::is_any_of("\t"));
         const bool is_mapped = words.size() >= 3 && (words[1] == "0" || words[1] == "16");
         if (is_mapped) {
+            const bool flanks_field_pos_should_be_found = left_flank_field_pos==0;
+            if (flanks_field_pos_should_be_found) {
+                left_flank_field_pos = get_flank_field_pos(words, "LF:Z:");
+                right_flank_field_pos = get_flank_field_pos(words, "RF:Z:");
+            }
+
             const std::string &read_name = words[0];
             const std::string &locus = words[2];
             const std::string &segment_seq = words[9];
-            const std::string &left_flank_field = words[11];
+            const std::string &left_flank_field = words[left_flank_field_pos];
             const std::string left_flank = left_flank_field.substr(5);
-            const std::string &right_flank_field = words[12];
+            const std::string &right_flank_field = words[right_flank_field_pos];
             const std::string right_flank = right_flank_field.substr(5);
             const std::string segment_seq_with_flanks =
                 left_flank + segment_seq + right_flank;

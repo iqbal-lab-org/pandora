@@ -11,6 +11,7 @@
 
 namespace fs = boost::filesystem;
 
+inline size_t get_flank_field_pos(const std::vector<std::string> &words, const std::string &flank_prefix);
 
 std::map<std::string, std::string> get_locus_to_reads(
     const fs::path &sample_outdir,
