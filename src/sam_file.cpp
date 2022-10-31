@@ -115,8 +115,9 @@ std::string SAMFile::get_segment_sequence(const Seq &seq,
     return seq.full_seq.substr(first_mapped_position, number_of_bases_between_first_and_last);
 }
 
-void SAMFile::write_sam_record_from_hit_cluster(
+std::string SAMFile::get_sam_record_from_hit_cluster(
     const Seq &seq, const MinimizerHitClusters &clusters) {
+    std::stringstream ss;
     bool at_least_a_single_mapping_was_output = false;
     for (const MinimizerHits &cluster : clusters) {
         if (cluster.empty()) {
@@ -184,31 +185,32 @@ void SAMFile::write_sam_record_from_hit_cluster(
         uint32_t number_of_mismatches = cigar.number_of_mismatches();
         uint32_t alignment_score = segment_sequence.size() - number_of_mismatches;
 
-        (*tmp_sam_file)  << seq.name << "\t"
-                         << flag << "\t"
-                         << prg_name << "\t"
-                         << alignment_start << "\t"
-                         << "255\t"
-                         << cigar << "\t"
-                         << "*\t0\t0\t"
-                         << segment_sequence << "\t"
-                         << "*\t"
-                         << "NM:i:" << number_of_mismatches << "\t"
-                         << "AS:i:" << alignment_score << "\t"
-                         << "nn:i:" << number_ambiguous_bases << "\t"
-                         << "cm:i:" << cluster.size() << "\t"
-                         << "MP:i:" << plus_strand_count << "\t"
-                         << "MM:i:" << minus_strand_count << "\t"
-                         << "LF:Z:" << left_flank << "\t"
-                         << "RF:Z:" << right_flank << "\t"
-                         << "PP:Z:" << cluster_of_hits_prg_paths_ss.str() << "\n";
+        ss  << seq.name << "\t"
+            << flag << "\t"
+            << prg_name << "\t"
+            << alignment_start << "\t"
+            << "255\t"
+            << cigar << "\t"
+            << "*\t0\t0\t"
+            << segment_sequence << "\t"
+            << "*\t"
+            << "NM:i:" << number_of_mismatches << "\t"
+            << "AS:i:" << alignment_score << "\t"
+            << "nn:i:" << number_ambiguous_bases << "\t"
+            << "cm:i:" << cluster.size() << "\t"
+            << "MP:i:" << plus_strand_count << "\t"
+            << "MM:i:" << minus_strand_count << "\t"
+            << "LF:Z:" << left_flank << "\t"
+            << "RF:Z:" << right_flank << "\t"
+            << "PP:Z:" << cluster_of_hits_prg_paths_ss.str() << "\n";
 
         const uint32_t prg_length = prgs[first_hit->get_prg_id()]->seq.size();
         prg_name_to_length[prg_name] = prg_length;
     }
 
     if (!at_least_a_single_mapping_was_output) {
-        (*tmp_sam_file) << seq.name << "\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n";
+        ss << seq.name << "\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n";
     }
-}
 
+    return ss.str();
+}

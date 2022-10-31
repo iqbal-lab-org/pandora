@@ -642,11 +642,12 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                     genome_size, fraction_kmers_required_for_cluster, cluster_def_file,
                     cluster_filter_file, min_cluster_size, expected_number_kmers_in_read_sketch);
 
+                const std::string sam_record = filtered_mappings.get_sam_record_from_hit_cluster(
+                    sequence, clusters_of_hits);
 #pragma omp critical(pangraph)
                 {
                     add_clusters_to_pangraph(clusters_of_hits, pangraph, prgs);
-                    filtered_mappings.write_sam_record_from_hit_cluster(
-                        sequence, clusters_of_hits);
+                    filtered_mappings.write_sam_record(sam_record);
                     if (!paf_file.is_fake_file) {
                         paf_file.write_clusters(sequence, clusters_of_hits);
                     }

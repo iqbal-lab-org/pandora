@@ -73,8 +73,15 @@ public:
         :filepath(filepath), tmp_filepath(filepath.string() + ".tmp"),
          tmp_sam_file(new GenericFile(tmp_filepath)), prgs(prgs), flank_size(flank_size){}
     virtual ~SAMFile();
-    void write_sam_record_from_hit_cluster(
-        const Seq &seq, const MinimizerHitClusters &clusters);
+
+    // Note: these two methods could be one, e.g. write_sam_record() could generate the
+    // SAM string and output it. The reason they are separate is solely for performance
+    // reasons. Each thread can get the SAM record description with get_sam_record_from_hit_cluster()
+    // first, and then synchronise just to write them to disk
+    std::string get_sam_record_from_hit_cluster(const Seq &seq, const MinimizerHitClusters &clusters);
+    void write_sam_record(const std::string &sam_record_as_str) {
+        (*tmp_sam_file) << sam_record_as_str;
+    }
 
 };
 
