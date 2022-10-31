@@ -277,11 +277,19 @@ void pandora_discover_core(const SampleData& sample,
 
         close(locus_reads_fd_and_filepath.first);
 
+        std::string denovo_sequence;
+        denovo_sequence.reserve(polished_sequence.size() + 1024);
+        denovo_sequence
+                .append(">")
+                .append(locus)
+                .append(" sample=")
+                .append(sample_name)
+                .append(" denovo_sequence\n")
+                .append(polished_sequence);
+
 #pragma omp critical(all_denovo_sequences)
         {
-            all_denovo_sequences.push_back(">" + locus + " sample=" + sample_name +
-                " denovo_sequence");
-            all_denovo_sequences.push_back(polished_sequence);
+            all_denovo_sequences.push_back(denovo_sequence);
         }
 
         const std::vector<DenovoVariantRecord> denovo_variants =
@@ -289,17 +297,25 @@ void pandora_discover_core(const SampleData& sample,
 
         const bool we_have_denovo_variants = denovo_variants.size() > 0;
         if (we_have_denovo_variants) {
-            const std::string lmp_as_string = LocalNode::to_string_vector(lmp);
+            std::string denovo_paths_description;
+            {
+                std::stringstream denovo_paths_out_core_file_ss;
+                denovo_paths_out_core_file_ss << locus << std::endl;
+                const std::string lmp_as_string = LocalNode::to_string_vector(lmp);
+                denovo_paths_out_core_file_ss << lmp_as_string << std::endl;
+                denovo_paths_out_core_file_ss << denovo_variants.size()
+                                              << " denovo variants for this locus" << std::endl;
+                for (const DenovoVariantRecord &denovo_variant : denovo_variants) {
+                    denovo_paths_out_core_file_ss << denovo_variant.to_string() << std::endl;
+                }
+
+                denovo_paths_description = denovo_paths_out_core_file_ss.str();
+            }
+
 #pragma omp critical(denovo_paths_out_core_file)
             {
                 ++number_of_loci_with_denovo_variants;
-                denovo_paths_out_core_file << locus << std::endl;
-                denovo_paths_out_core_file << lmp_as_string << std::endl;
-                denovo_paths_out_core_file << denovo_variants.size()
-                                           << " denovo variants for this locus" << std::endl;
-                for (const DenovoVariantRecord &denovo_variant : denovo_variants) {
-                    denovo_paths_out_core_file << denovo_variant.to_string() << std::endl;
-                }
+                denovo_paths_out_core_file << denovo_paths_description;
             }
         }
     }

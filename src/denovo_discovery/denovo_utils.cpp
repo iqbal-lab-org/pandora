@@ -20,11 +20,12 @@ std::map<std::string, std::string> get_locus_to_reads(
     // get all reads from a locus and put in a vector (locus_to_vector_of_reads)
     std::map<std::string, std::vector<std::string>> locus_to_vector_of_reads;
     std::ifstream filtered_samfile;
+
     open_file_for_reading((sample_outdir / (sample_name + ".filtered.sam")).string(),
         filtered_samfile);
+
     std::string line;
     uint64_t segment_order = 0;
-
     size_t left_flank_field_pos = 0;
     size_t right_flank_field_pos = 0;
 
