@@ -1,5 +1,5 @@
 #include "denovo_discovery/denovo_utils.h"
-
+#include <numeric>
 
 size_t get_flank_field_pos(const std::vector<std::string> &words, const std::string &flank_prefix) {
     for (size_t i=11; i<words.size(); i++) {
@@ -66,7 +66,12 @@ std::map<std::string, std::string> get_locus_to_reads(
         const std::string &locus = locus_to_vector_of_reads_it.first;
         const std::vector<std::string> &reads = locus_to_vector_of_reads_it.second;
 
+        size_t reads_string_size = std::accumulate(reads.begin(), reads.end(),
+            (size_t)0, [](uint32_t size, const std::string &read) {
+                return size + read.size();
+        });
         std::string reads_as_a_single_string;
+        reads_as_a_single_string.reserve(reads_string_size + 64);
         for (const std::string &read : reads) {
             reads_as_a_single_string += read;
         }
