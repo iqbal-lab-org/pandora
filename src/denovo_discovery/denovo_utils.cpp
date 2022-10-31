@@ -50,8 +50,10 @@ std::map<std::string, std::string> get_locus_to_reads(
             const std::string left_flank = left_flank_field.substr(5);
             const std::string &right_flank_field = words[right_flank_field_pos];
             const std::string right_flank = right_flank_field.substr(5);
-            const std::string segment_seq_with_flanks =
-                left_flank + segment_seq + right_flank;
+            std::string segment_seq_with_flanks;
+            segment_seq_with_flanks.reserve(
+                left_flank.size() + segment_seq.size() + right_flank.size() + 8);
+            segment_seq_with_flanks.append(left_flank).append(segment_seq).append(right_flank);
 
             std::stringstream ss;
             ss << ">" << read_name << "_seg_order_" << segment_order << "\n" << segment_seq_with_flanks << "\n";
