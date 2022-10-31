@@ -15,7 +15,7 @@ std::map<std::string, std::string> get_locus_to_reads(
     {
         std::vector<std::string> words;
         boost::split(words, line, boost::is_any_of("\t"));
-        const bool is_mapped = words.size() >= 3 && words[1] == "0";
+        const bool is_mapped = words.size() >= 3 && (words[1] == "0" || words[1] == "16");
         if (is_mapped) {
             const std::string &read_name = words[0];
             const std::string &locus = words[2];
