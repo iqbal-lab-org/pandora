@@ -229,33 +229,40 @@ void decide_if_add_cluster_or_not(
     const uint32_t cluster_size_threshold = std::max(length_based_threshold, min_cluster_size);
     const bool cluster_should_be_accepted = number_of_unique_mini_in_cluster >= cluster_size_threshold;
 
+    if (cluster_should_be_accepted) {
+        clusters_of_hits.insert(current_cluster);
+    }
+
+    // Note: this is a slow critical region and could be optimised, but there is no need
+    // to, as this is just run when debugging files should be created, and is expected
+    // to be slow.
+    if (!cluster_def_file.is_fake_file) {
 #pragma omp critical(cluster_def_file)
-    {
-        cluster_def_file << seq.name << "\t" << prgs[(*mh_previous)->get_prg_id()]->name << "\t";
-        if (cluster_should_be_accepted) {
-            cluster_def_file << "accepted\t";
-            clusters_of_hits.insert(current_cluster);
-        }else {
-            cluster_def_file << "rejected\t";
-        }
+        {
+            cluster_def_file << seq.name << "\t" << prgs[(*mh_previous)->get_prg_id()]->name << "\t";
+            if (cluster_should_be_accepted) {
+                cluster_def_file << "accepted\t";
+            }else {
+                cluster_def_file << "rejected\t";
+            }
+            cluster_def_file << current_cluster.size() << "\t"
+                             << number_of_equal_read_minimizers << "\t"
+                             << number_of_unique_mini_in_cluster << "\t"
+                             << length_based_threshold << "\t"
+                             << min_cluster_size << "\t";
 
-        cluster_def_file << current_cluster.size() << "\t"
-                         << number_of_equal_read_minimizers << "\t"
-                         << number_of_unique_mini_in_cluster << "\t"
-                         << length_based_threshold << "\t"
-                         << min_cluster_size << "\t";
+            for (auto current_cluster_it=current_cluster.begin();
+                 current_cluster_it != current_cluster.end();
+                 current_cluster_it++) {
+                cluster_def_file << (*current_cluster_it)->get_read_start_position() << ",";
+            }
+            cluster_def_file << "\t";
 
-        for (auto current_cluster_it=current_cluster.begin();
-             current_cluster_it != current_cluster.end();
-             current_cluster_it++) {
-            cluster_def_file << (*current_cluster_it)->get_read_start_position() << ",";
+            for (const auto &distance : distances_between_hits) {
+                cluster_def_file << distance << ",";
+            }
+            cluster_def_file << "\n";
         }
-        cluster_def_file << "\t";
-
-        for (const auto &distance : distances_between_hits) {
-            cluster_def_file << distance << ",";
-        }
-        cluster_def_file << "\n";
     }
 }
 
@@ -364,43 +371,52 @@ void filter_clusters(
         // but could also impose no more than 2k hits in overlap
         {
 
-            if (c_previous->size() >= c_current->size()) {
+            // Note: this is a slow critical region and could be optimised, but there is no need
+            // to, as this is just run when debugging files should be created, and is expected
+            // to be slow.
+            if (!cluster_filter_file.is_fake_file) {
 #pragma omp critical(cluster_filter_file)
                 {
-                    cluster_filter_file
-                        << seq.name << "\t"
-                        << prgs[(*c_current->begin())->get_prg_id()]->name << "\t"
-                        << c_current->size() << "\t"
-                        << "filtered_out\n";
+                    if (c_previous->size() >= c_current->size()) {
+                        cluster_filter_file
+                            << seq.name << "\t"
+                            << prgs[(*c_current->begin())->get_prg_id()]->name << "\t"
+                            << c_current->size() << "\t"
+                            << "filtered_out\n";
+                    } else {
+                        cluster_filter_file
+                            << seq.name << "\t"
+                            << prgs[(*c_previous->begin())->get_prg_id()]->name << "\t"
+                            << c_previous->size() << "\t"
+                            << "filtered_out\n";
+                    }
                 }
+            }
+
+
+            if (c_previous->size() >= c_current->size()) {
                 clusters_of_hits.erase(c_current);
                 c_current = c_previous;
-
             } else {
-#pragma omp critical(cluster_filter_file)
-                {
-                    cluster_filter_file
-                        << seq.name << "\t"
-                        << prgs[(*c_previous->begin())->get_prg_id()]->name << "\t"
-                        << c_previous->size() << "\t"
-                        << "filtered_out\n";
-                }
                 clusters_of_hits.erase(c_previous);
             }
         }
         c_previous = c_current;
     }
 
-    for (const auto &cluster : clusters_of_hits) {
+    // Note: this is a slow critical region and could be optimised, but there is no need
+    // to, as this is just run when debugging files should be created, and is expected
+    // to be slow.
+    if (!cluster_filter_file.is_fake_file) {
 #pragma omp critical(cluster_filter_file)
         {
-            cluster_filter_file
-                << seq.name << "\t"
-                << prgs[(*cluster.begin())->get_prg_id()]->name << "\t"
-                << cluster.size() << "\t"
-                << "kept\n";
+            for (const auto& cluster : clusters_of_hits) {
+                cluster_filter_file << seq.name << "\t"
+                                    << prgs[(*cluster.begin())->get_prg_id()]->name
+                                    << "\t" << cluster.size() << "\t"
+                                    << "kept\n";
+            }
         }
-
     }
 
     BOOST_LOG_TRIVIAL(trace) << tag << "Now have " << clusters_of_hits.size()
@@ -457,7 +473,7 @@ void filter_clusters2(MinimizerHitClusters& clusters_of_hits,
 
 void add_clusters_to_pangraph(
     const MinimizerHitClusters& minimizer_hit_clusters,
-    std::shared_ptr<pangenome::Graph> pangraph,
+    std::shared_ptr<pangenome::Graph> &pangraph,
     const std::vector<std::shared_ptr<LocalPRG>>& prgs)
 {
     BOOST_LOG_TRIVIAL(trace) << "Add clusters to PanGraph";
@@ -613,9 +629,11 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                 add_read_hits(sequence, minimizer_hits, *index);
 
                 // write unfiltered minimizer hits
+                if (!minimizer_matches.is_fake_file) {
 #pragma omp critical(minimizer_matches)
-                {
-                    minimizer_matches.write_hits(sequence, *minimizer_hits);
+                    {
+                        minimizer_matches.write_hits(sequence, *minimizer_hits);
+                    }
                 }
 
                 // infer
@@ -629,7 +647,9 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                     add_clusters_to_pangraph(clusters_of_hits, pangraph, prgs);
                     filtered_mappings.write_sam_record_from_hit_cluster(
                         sequence, clusters_of_hits);
-                    paf_file.write_clusters(sequence, clusters_of_hits);
+                    if (!paf_file.is_fake_file) {
+                        paf_file.write_clusters(sequence, clusters_of_hits);
+                    }
                 }
             }
 

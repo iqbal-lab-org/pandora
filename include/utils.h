@@ -101,9 +101,10 @@ void filter_clusters(
 );
 
 
-void add_clusters_to_pangraph(
+// inline because this is in a critical region
+inline void add_clusters_to_pangraph(
     const MinimizerHitClusters& minimizer_hit_clusters,
-    std::shared_ptr<pangenome::Graph> pangraph,
+    std::shared_ptr<pangenome::Graph> &pangraph,
     const std::vector<std::shared_ptr<LocalPRG>>& prgs);
 
 MinimizerHitClusters get_minimizer_hit_clusters(

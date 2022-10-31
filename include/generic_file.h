@@ -7,9 +7,9 @@ namespace fs = boost::filesystem;
 
 class GenericFile {
 private:
-    const bool is_fake_file;
     std::ofstream file_handler;
 public:
+    const bool is_fake_file;
     GenericFile(const fs::path &filepath, bool is_fake_file = false);
 
     virtual ~GenericFile() {
