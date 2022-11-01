@@ -14,6 +14,7 @@
 #include "seq.h"
 #include "kmernode.h"
 #include <stdint.h>
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 
 using namespace std;

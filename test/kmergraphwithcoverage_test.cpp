@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <cmath>
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 
 using namespace prg;

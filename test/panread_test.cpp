@@ -3,6 +3,7 @@
 #include "pangenome/pannode.h"
 #include "pangenome/panread.h"
 #include "pangenome_graph_class.h"
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 #include "minihit.h"
 #include <stdint.h>

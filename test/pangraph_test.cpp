@@ -8,6 +8,7 @@
 #include "localPRG.h"
 #include <cstdint>
 #include <iostream>
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 
 using namespace pangenome;

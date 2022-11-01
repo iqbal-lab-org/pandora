@@ -7,6 +7,7 @@
 #include "pangenome/panread.h"
 #include "minihit.h"
 #include "localPRG.h"
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 #include "forward_declarations.h"
 

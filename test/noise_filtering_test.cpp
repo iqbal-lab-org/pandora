@@ -5,6 +5,7 @@
 #include "pangenome/panread.h"
 #include "pangenome/pannode.h"
 #include "minihit.h"
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 
 using namespace std;

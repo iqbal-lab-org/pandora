@@ -781,18 +781,6 @@ std::vector<SampleData> load_read_index(
         samples.begin(), samples.end());
 }
 
-std::string remove_spaces_from_string(const std::string& str)
-{
-    std::string to_return;
-    to_return.reserve(str.size());
-    for (const char c : str) {
-        if (c != '-') {
-            to_return += c;
-        }
-    }
-    return to_return;
-}
-
 std::pair<int, std::string> build_memfd(const std::string &data) {
     int fd = memfd_create("pandora_memfd", MFD_ALLOW_SEALING);
     if (fd == -1)

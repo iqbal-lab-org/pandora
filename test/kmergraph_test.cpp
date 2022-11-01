@@ -10,6 +10,7 @@
 #include <cmath>
 #include <deque>
 #include "fatal_error.h"
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 
 using namespace prg;

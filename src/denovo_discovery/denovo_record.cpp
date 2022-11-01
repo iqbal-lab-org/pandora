@@ -2,11 +2,20 @@
 
 std::string DenovoVariantRecord::to_string() const
 {
-    std::string ref_to_print = remove_spaces_from_string(ref);
-    std::string alt_to_print = remove_spaces_from_string(alt);
     std::stringstream ss;
-    ss << pos << "\t" << ref_to_print << "\t" << alt_to_print;
+    ss << pos << "\t" << ref << "\t" << alt;
     return ss.str();
+}
+
+void add_and_reset_variant(std::vector<DenovoVariantRecord> &denovo_variants,
+    int64_t &variant_pos, std::string &variant_ref, std::string &variant_alt) {
+    const bool should_add_variant = variant_pos != -1;
+    if (should_add_variant) {
+        denovo_variants.emplace_back((uint32_t)variant_pos, variant_ref,
+            variant_alt);
+        variant_pos = -1;
+        variant_ref = variant_alt = "";
+    }
 }
 
 std::vector<DenovoVariantRecord> DenovoVariantRecord::get_variants_from_pair_of_sequences(
@@ -30,28 +39,28 @@ std::vector<DenovoVariantRecord> DenovoVariantRecord::get_variants_from_pair_of_
     TRow& alt_row = row(align, 1);
 
     globalAlignment(align, Score<int, Simple>(2, -1, -2, -4), AffineGaps());
-    bool append_to_previous = false;
+    bool start_of_variant = true;
     std::vector<DenovoVariantRecord> denovo_variants;
+    std::string variant_ref, variant_alt;
+    int64_t variant_pos=-1;
     for (size_t alignment_index = 0; alignment_index < length(ref_row);
          ++alignment_index) {
         char ref_base = (char)(ref_row[alignment_index]);
         char alt_base = (char)(alt_row[alignment_index]);
         const bool is_variant_position = ref_base != alt_base;
         if (is_variant_position) {
-            if (append_to_previous) {
-                denovo_variants.back().ref += ref_base;
-                denovo_variants.back().alt += alt_base;
-            } else {
-                DenovoVariantRecord denovo_variant(
-                    toSourcePosition(ref_row, alignment_index) + 1,
-                    std::string(1, ref_base), std::string(1, alt_base));
-                denovo_variants.push_back(denovo_variant);
+            if (start_of_variant) {
+                variant_pos = toSourcePosition(ref_row, alignment_index) + 1;
             }
-            append_to_previous = true;
+            if (ref_base != '-') variant_ref += ref_base;
+            if (alt_base != '-') variant_alt += alt_base;
+            start_of_variant = false;
         } else {
-            append_to_previous = false;
+            add_and_reset_variant(denovo_variants, variant_pos, variant_ref, variant_alt);
+            start_of_variant = true;
         }
     }
+    add_and_reset_variant(denovo_variants, variant_pos, variant_ref, variant_alt);
 
     return denovo_variants;
 }

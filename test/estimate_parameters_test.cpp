@@ -3,6 +3,7 @@
 #include "gtest/gtest.h"
 #include "pangenome/pangraph.h"
 #include "estimate_parameters.h"
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 
 using namespace std;
