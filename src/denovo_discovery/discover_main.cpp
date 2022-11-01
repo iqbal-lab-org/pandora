@@ -176,7 +176,7 @@ void pandora_discover_core(const SampleData& sample,
     pangraph->add_hits_to_kmergraphs();
 
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
-                            << "Find PRG paths and write to files...";
+                            << "Find PRG paths and discover novel alleles...";
 
     // paralell region!
     // shared variable - synced with critical(consensus_fq)
