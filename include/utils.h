@@ -100,9 +100,7 @@ void filter_clusters(
     ClusterFilterFile& cluster_filter_file
 );
 
-
-// inline because this is in a critical region
-inline void add_clusters_to_pangraph(
+void add_clusters_to_pangraph(
     const MinimizerHitClusters& minimizer_hit_clusters,
     std::shared_ptr<pangenome::Graph> &pangraph,
     const std::vector<std::shared_ptr<LocalPRG>>& prgs);
