@@ -94,11 +94,6 @@ void setup_discover_subcommand(CLI::App& app)
         ->group("Filtering");
 
     discover_subcmd
-        ->add_flag(
-            "--clean-dbg", opt->clean_dbg, "Clean the local assembly de Bruijn graph")
-        ->group("Filtering");
-
-    discover_subcmd
         ->add_flag("--bin", opt->binomial,
             "Use binomial model for kmer coverages [default: negative binomial]")
         ->group("Parameter Estimation");
