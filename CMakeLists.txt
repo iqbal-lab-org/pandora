@@ -16,16 +16,13 @@ project(${PROJECT_NAME_STR} VERSION "0.9.2" LANGUAGES C CXX)
 set(ADDITIONAL_VERSION_LABELS "")
 configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
-# C++11 required
+# C++14 required
 include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-if (COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif (COMPILER_SUPPORTS_CXX0X)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
+if (COMPILER_SUPPORTS_CXX14)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 else ()
-    message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER} has no C++11 support")
+    message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER} has no C++14 support")
 endif ()
 
 # default flags
@@ -56,6 +53,22 @@ endif()
 hunter_add_package(ZLIB)
 find_package(ZLIB 1.2.11 REQUIRED)
 set(ZLIB_LIBRARY ZLIB::ZLIB)
+########################################################################################################################
+
+########################################################################################################################
+# INSTALL Zipios
+SET(BUILD_DOCUMENTATION OFF CACHE BOOL "Build the Zipios documentation.")
+SET(BUILD_SHARED_LIBS OFF CACHE BOOL "Build the Zipios libraries shared.")
+set(BIN_INSTALL_DIR "${CMAKE_BINARY_DIR}/install" CACHE PATH "Location to install binaries relative to the install prefix.")
+set(INCLUDE_INSTALL_DIR "${CMAKE_BINARY_DIR}/include" CACHE PATH "Location to install headers relative to the install prefix.")
+set(LIB_INSTALL_DIR "${CMAKE_BINARY_DIR}/lib" CACHE PATH "Location to install libraries relative to the install prefix.")
+set(DATA_INSTALL_DIR "${CMAKE_BINARY_DIR}/data" CACHE PATH "Location to install data files relative to the install prefix.")
+include_directories(
+        ${PROJECT_SOURCE_DIR}/thirdparty/Zipios/
+        ${CMAKE_BINARY_DIR}/thirdparty/Zipios/
+)
+add_subdirectory(thirdparty/Zipios)
+set(ZIPIOS_LIBRARY zipios)
 ########################################################################################################################
 
 ########################################################################################################################
@@ -136,6 +149,7 @@ list(REMOVE_ITEM SRC_FILES ${PROJECT_SOURCE_DIR}/thirdparty/minimap2/main.c ${PR
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 target_link_libraries(${PROJECT_NAME}
+        ${ZIPIOS_LIBRARY}
         ${RACON_LIBRARY}
         ${Boost_LIBRARIES}
         ${ZLIB_LIBRARY}
