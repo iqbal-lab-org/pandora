@@ -10,6 +10,3 @@
 [submodule "thirdparty/racon"]
 	path = thirdparty/racon
 	url = https://github.com/leoisl/racon
-[submodule "thirdparty/Zipios"]
-	path = thirdparty/Zipios
-	url = https://github.com/Zipios/Zipios
