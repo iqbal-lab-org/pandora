@@ -167,15 +167,14 @@ bool Index::operator==(const Index& other) const
 
 bool Index::operator!=(const Index& other) const { return !(*this == other); }
 
-void Index::index_prgs(LocalPRGReaderGeneratorIterator &prg_it,
+void Index::index_prgs(LocalPRGReaderGeneratorIterator &prg_it, uintmax_t estimated_index_size,
     const uint32_t indexing_upper_bound, const uint32_t threads)
 {
     BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
     index_archive.prepare_new_entry("kmer_prgs.mgfas");
 
     this->minhash.clear();
-
-    this->minhash.reserve(100'000);
+    this->minhash.reserve(estimated_index_size);
 
     // now fill index
     std::atomic_uint32_t nb_of_prgs_done { 0 };

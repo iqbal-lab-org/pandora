@@ -79,8 +79,9 @@ public:
         const uint32_t threads = 1);
 
     void index_prgs(LocalPRGReaderGeneratorIterator &prg_it,
+        uintmax_t estimated_index_size=ESTIMATED_INDEX_SIZE_DEFAULT,
         const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
-        const uint32_t threads = 1);
+        const uint32_t threads=1);
 };
 
 #endif

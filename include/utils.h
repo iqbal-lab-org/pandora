@@ -171,4 +171,13 @@ inline void to_upper(std::string &str) {
 int random_int();
 std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const std::string& input_string, uint8_t delim = 4);
 
+uintmax_t get_number_of_bytes_in_file(const fs::path &file) {
+    const uintmax_t filesize = file.size();
+    const bool failed_to_get_filesize = filesize == static_cast<uintmax_t>(-1);
+    if (failed_to_get_filesize) {
+        fatal_error("Failed to get file size of file ", file.string());
+    }
+    return filesize;
+}
+
 #endif

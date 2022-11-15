@@ -1,4 +1,5 @@
 #include "index_main.h"
+#include "localPRG_reader.h"
 
 void setup_index_subcommand(CLI::App& app)
 {
@@ -34,10 +35,12 @@ void setup_index_subcommand(CLI::App& app)
         ->type_name("INT")
         ->capture_default_str();
 
-    index_subcmd->add_option("-o,--outfile", opt->outfile, "Filename for the index")
+    index_subcmd->add_option("-o,--outfile", opt->outfile, "Filename for the index. Must end in .zip")
         ->type_name("FILE")
+        ->check(CLI::NonexistentPath)
+        ->check(check_if_is_zip_file)
         ->transform(make_absolute)
-        ->default_str("<PRG>.kXX.wXX.idx");
+        ->default_str("<PRG>.zip");
 
     index_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
@@ -66,34 +69,24 @@ int pandora_index(IndexOptions const& opt)
         throw std::logic_error("K must be a positive integer");
     }
 
-    LocalPRG::do_path_memoization_in_nodes_along_path_method = true;
-
-    // load PRGs from file
-    std::vector<std::shared_ptr<LocalPRG>> prgs;
-    read_prg_file(prgs, opt.prgfile, opt.id_offset);
-
-    // get output directory for the gfa
-    const auto kmer_prgs_outdir { opt.prgfile.parent_path() / "kmer_prgs" };
-
-    BOOST_LOG_TRIVIAL(info) << "Indexing PRG...";
-    auto index = std::make_shared<Index>();
-    index->index_prgs(
-        prgs, opt.window_size, opt.kmer_size, kmer_prgs_outdir,
-        opt.indexing_upper_bound, opt.threads);
-
-    // save index
-    BOOST_LOG_TRIVIAL(info) << "Saving index...";
-    if (not opt.outfile.empty()) {
-        index->save(opt.outfile);
-    } else if (opt.id_offset > 0) {
-        const fs::path outfile { opt.prgfile.string() + "."
-            + std::to_string(opt.id_offset) };
-        index->save(outfile, opt.window_size, opt.kmer_size);
-    } else {
-        index->save(opt.prgfile, opt.window_size, opt.kmer_size);
+    fs::path outfile = opt.outfile;
+    if (outfile.empty()) {
+        outfile = fs::path(opt.prgfile.string() + ".panidx.zip");
     }
 
-    index->clear();
+    LocalPRG::do_path_memoization_in_nodes_along_path_method = true;
+
+    // load PRGs from file lazily (using generators)
+    LocalPRGGeneratorAndIterator prg_generator_and_it = LocalPRGReader::read_prg_file_as_generator(opt.prgfile);
+
+    // estimate the size of the index
+    uintmax_t estimated_index_size = get_number_of_bytes_in_file(opt.prgfile);
+
+    BOOST_LOG_TRIVIAL(info) << "Indexing PRG...";
+    auto index = std::make_shared<Index>(
+        opt.window_size, opt.kmer_size, outfile);
+    index->index_prgs(prg_generator_and_it.second, estimated_index_size,
+        opt.indexing_upper_bound, opt.threads);
 
     BOOST_LOG_TRIVIAL(info) << "All done!";
     return 0;
