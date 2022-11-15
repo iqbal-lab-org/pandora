@@ -28,10 +28,11 @@ struct AddRecordToIndexParams {
 
 class Index {
 private:
-    constexpr static uint32_t gfa_batch_size=4000;
     const uint32_t w;
     const uint32_t k;
     ZipFile index_archive;
+    std::vector<uint32_t> prg_min_path_lengths; // required to map to PRGs without actually loading them
+    std::vector<uint32_t> prg_names;  // required to produce mapping files
 
     void save_minhash();
 
