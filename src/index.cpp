@@ -57,7 +57,7 @@ void Index::save_minhash()
     {
         std::stringstream handle;
         handle << minhash.size() << std::endl;
-        index_archive.write_data(handle.str(), false);
+        index_archive.write_data(handle.str());
     }
 
 
@@ -68,7 +68,7 @@ void Index::save_minhash()
             handle << "\t" << mini_record;
         }
         handle << std::endl;
-        index_archive.write_data(handle.str(), false);
+        index_archive.write_data(handle.str());
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Saving minhash - done!";
@@ -171,7 +171,6 @@ void Index::index_prgs(LocalPRGReaderGeneratorIterator &prg_it, uintmax_t estima
     const uint32_t indexing_upper_bound, const uint32_t threads)
 {
     BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
-    index_archive.prepare_new_entry("kmer_prgs.mgfas");
 
     this->minhash.clear();
     this->minhash.reserve(estimated_index_size);
@@ -181,7 +180,7 @@ void Index::index_prgs(LocalPRGReaderGeneratorIterator &prg_it, uintmax_t estima
 #pragma omp parallel num_threads(threads)
     while (true) {
         std::shared_ptr<LocalPRG> local_prg(nullptr);
-#pragma omp critical(prg_it)
+#pragma omp critical(Index__index_prgs__prg_it)
         {
             local_prg = *prg_it;
             ++prg_it;
@@ -195,16 +194,21 @@ void Index::index_prgs(LocalPRGReaderGeneratorIterator &prg_it, uintmax_t estima
         try {
             local_prg->minimizer_sketch(this, w, k, indexing_upper_bound, -1);
             std::string prg_as_gfa = local_prg->kmer_prg.to_gfa(local_prg);
-            index_archive.write_data(prg_as_gfa, true);
+            std::string zip_path = local_prg->name + ".gfa";
+#pragma omp critical(Index__index_prgs__write_gfa_to_zip)
+            {
+                index_archive.prepare_new_entry(zip_path);
+                index_archive.write_data(prg_as_gfa);
+
+            }
+            ++nb_of_prgs_done;
         } catch (const IndexingLimitReached &error) {
             BOOST_LOG_TRIVIAL(warning) << error.what();
         }
-
-        ++nb_of_prgs_done;
     }
-    BOOST_LOG_TRIVIAL(debug) << "Finished adding " << nb_of_prgs_done << " LocalPRGs";
-    BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << this->minhash.size();
+    BOOST_LOG_TRIVIAL(debug) << "Finished adding " << nb_of_prgs_done << " LocalPRGs to the archive";
 
+    BOOST_LOG_TRIVIAL(debug) << "Number of keys in index: " << this->minhash.size();
     this->save_minhash();
 }
 

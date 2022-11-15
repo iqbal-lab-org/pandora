@@ -18,11 +18,6 @@ private:
             current_zip_archive_entry = nullptr;
         }
     }
-    inline void write_data_core(void* data, size_t data_size) {
-        if (archive_write_data(zip_archive, data, data_size) != data_size) {
-            fatal_error("Error writing zip data");
-        }
-    }
 
 public:
     // note: not explicit as we want to build from everything we can convert to a path
@@ -45,14 +40,9 @@ public:
 
 
     void prepare_new_entry(const std::string &zip_path);
-    inline void write_data(const std::string &data, bool synchronize) {
-        if (synchronize) {
-#pragma omp critical(pandora_zip_file__write_data)
-            {
-                write_data_core((void*)data.c_str(), data.size());
-            }
-        } else {
-            write_data_core((void*)data.c_str(), data.size());
+    inline void write_data(const std::string &data) {
+        if (archive_write_data(zip_archive, data.c_str(), data.size()) != data.size()) {
+            fatal_error("Error writing zip data");
         }
     }
 };
