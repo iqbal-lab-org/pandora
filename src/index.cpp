@@ -1,5 +1,4 @@
 #include <iostream>
-#include <fstream>
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
@@ -44,48 +43,40 @@ void Index::add_record(const uint64_t kmer, const uint32_t prg_id,
 
 void Index::clear()
 {
-    for (auto it = minhash.begin(); it != minhash.end();) {
-        delete it->second;
-        it = minhash.erase(it);
+    for (auto hash_and_minirecords : minhash) {
+        delete hash_and_minirecords.second;
     }
+    minhash.clear();
 }
 
-void Index::save(const fs::path& prgfile, uint32_t w, uint32_t k)
+void Index::save_minhash()
 {
-    const fs::path filepath { prgfile.string() + ".k" + std::to_string(k) + ".w"
-        + std::to_string(w) + ".idx" };
-    save(filepath);
-}
+    BOOST_LOG_TRIVIAL(debug) << "Saving minhash...";
+    index_archive.prepare_new_entry("_minhash");
 
-void Index::save(const fs::path& indexfile)
-{
-    BOOST_LOG_TRIVIAL(debug) << "Saving index to " << indexfile;
-    fs::ofstream handle;
-    handle.open(indexfile);
+    {
+        std::stringstream handle;
+        handle << minhash.size() << std::endl;
+        index_archive.write_data(handle.str(), false);
+    }
 
-    handle << minhash.size() << std::endl;
 
     for (auto& it : minhash) {
+        std::stringstream handle;
         handle << it.first << "\t" << it.second->size();
-        for (uint32_t j = 0; j != it.second->size(); ++j) {
-            handle << "\t" << (*(it.second))[j];
+        for (const MiniRecord &mini_record : *it.second) {
+            handle << "\t" << mini_record;
         }
         handle << std::endl;
+        index_archive.write_data(handle.str(), false);
     }
-    handle.close();
-    BOOST_LOG_TRIVIAL(debug) << "Finished saving " << minhash.size()
-                             << " entries to file";
+
+    BOOST_LOG_TRIVIAL(debug) << "Saving minhash - done!";
 }
 
-void Index::load(fs::path prgfile, uint32_t w, uint32_t k)
+Index Index::load(const fs::path& indexfile)
 {
-    const auto ext { ".k" + std::to_string(k) + ".w" + std::to_string(w) + ".idx" };
-    prgfile += ext;
-    load(prgfile);
-}
-
-void Index::load(const fs::path& indexfile)
-{
+    /*
     BOOST_LOG_TRIVIAL(debug) << "Loading index";
     BOOST_LOG_TRIVIAL(debug) << "File is " << indexfile;
     uint64_t key;
@@ -137,6 +128,7 @@ void Index::load(const fs::path& indexfile)
         BOOST_LOG_TRIVIAL(debug) << "Finished loading file. Index now contains "
                                  << minhash.size() << " entries";
     }
+     */
 }
 
 bool Index::operator==(const Index& other) const
@@ -175,51 +167,88 @@ bool Index::operator==(const Index& other) const
 
 bool Index::operator!=(const Index& other) const { return !(*this == other); }
 
-void Index::index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    const uint32_t w, const uint32_t k, const fs::path& outdir,
-    const uint32_t indexing_upper_bound, uint32_t threads)
+void Index::index_prgs(LocalPRGReaderGeneratorIterator &prg_it,
+    const uint32_t indexing_upper_bound, const uint32_t threads)
 {
     BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
+    index_archive.prepare_new_entry("kmer_prgs.mgfas");
+
+    this->minhash.clear();
+
+    this->minhash.reserve(100'000);
+
+    // now fill index
+    std::atomic_uint32_t nb_of_prgs_done { 0 };
+#pragma omp parallel num_threads(threads)
+    while (true) {
+        std::shared_ptr<LocalPRG> local_prg(nullptr);
+#pragma omp critical(prg_it)
+        {
+            local_prg = *prg_it;
+            ++prg_it;
+        }
+
+        const bool no_more_local_prgs_to_process = local_prg == nullptr;
+        if (no_more_local_prgs_to_process) {
+            break;
+        }
+
+        try {
+            local_prg->minimizer_sketch(this, w, k, indexing_upper_bound, -1);
+            std::string prg_as_gfa = local_prg->kmer_prg.to_gfa(local_prg);
+            index_archive.write_data(prg_as_gfa, true);
+        } catch (const IndexingLimitReached &error) {
+            BOOST_LOG_TRIVIAL(warning) << error.what();
+        }
+
+        ++nb_of_prgs_done;
+    }
+    BOOST_LOG_TRIVIAL(debug) << "Finished adding " << nb_of_prgs_done << " LocalPRGs";
+    BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << this->minhash.size();
+
+    this->save_minhash();
+}
+
+void Index::index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    const uint32_t indexing_upper_bound, const uint32_t threads)
+{
+    BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
+    index_archive.prepare_new_entry("kmer_prgs.mgfas");
+
+    this->minhash.clear();
+
     if (prgs.empty())
         return;
 
     // first reserve an estimated index size
-    uint32_t r = 0;
-    for (uint32_t i = 0; i != prgs.size(); ++i) {
-        r += prgs[i]->seq.length();
+    uint32_t estimated_index_size = 0;
+    for (const auto &prg : prgs) {
+        estimated_index_size += prg->seq.length();
     }
-    this->minhash.reserve(r);
+    this->minhash.reserve(estimated_index_size);
 
-    // create the dirs for the index
-    const int nbOfGFAsPerDir = 4000;
-    for (uint32_t i = 0; i <= prgs.size() / nbOfGFAsPerDir; ++i)
-        fs::create_directories(outdir / int_to_string(i + 1));
 
     // now fill index
-    std::atomic_uint32_t nbOfPRGsDone { 0 };
+    std::atomic_uint32_t nb_of_prgs_done { 0 };
 #pragma omp parallel for num_threads(threads) schedule(dynamic, 1) default(shared)
     for (uint32_t i = 0; i < prgs.size(); ++i) { // for each prg
-        uint32_t dir = i / nbOfGFAsPerDir + 1;
-        const auto gfa_file { outdir / int_to_string(dir)
-            / (prgs[i]->name + ".k" + std::to_string(k) + ".w" + std::to_string(w)
-                + ".gfa") };
-
+        std::shared_ptr<LocalPRG>& local_prg(prgs[i]);
         try {
-            prgs[i]->minimizer_sketch(this, w, k, indexing_upper_bound,
-                (((double)(nbOfPRGsDone.load())) / prgs.size()) * 100);
-            prgs[i]->kmer_prg.save(gfa_file);
-        }catch (const IndexingLimitReached &error) {
+            local_prg->minimizer_sketch(this, w, k, indexing_upper_bound,
+                (((double)(nb_of_prgs_done.load())) / prgs.size()) * 100);
+            std::string prg_as_gfa = local_prg->kmer_prg.to_gfa(local_prg);
+            index_archive.write_data(prg_as_gfa, true);
+        } catch (const IndexingLimitReached &error) {
             BOOST_LOG_TRIVIAL(warning) << error.what();
-
-            // create an empty gfa file
-            // TODO: change this when we refactor pandora index output to a single file?
-            std::ofstream empty_gfa_fh;
-            open_file_for_writing(gfa_file.string(), empty_gfa_fh);
-            empty_gfa_fh.close();
         }
-        prgs[i]->kmer_prg.clear();  // saves some RAM
-        ++nbOfPRGsDone;
+
+        // saves some RAM
+        local_prg.reset();
+
+        ++nb_of_prgs_done;
     }
     BOOST_LOG_TRIVIAL(debug) << "Finished adding " << prgs.size() << " LocalPRGs";
     BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << this->minhash.size();
+
+    this->save_minhash();
 }
