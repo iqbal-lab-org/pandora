@@ -44,10 +44,10 @@ bool pCompReadPositionFirst::operator()(const MinimizerHitPtr& lhs, const Minimi
     if (rhs->get_prg_id() < lhs->get_prg_id()) {
         return false;
     }
-    if (lhs->get_prg_path() < rhs->get_prg_path()) {
+    if (lhs->get_kmer_node_id() < rhs->get_kmer_node_id()) {
         return true;
     }
-    if (rhs->get_prg_path() < lhs->get_prg_path()) {
+    if (rhs->get_kmer_node_id() < lhs->get_kmer_node_id()) {
         return false;
     }
     return false;
@@ -84,10 +84,10 @@ bool MinimizerHits::operator<(const MinimizerHits &rhs) const
     if (first_hit_from_right->get_prg_id() < first_hit_from_left->get_prg_id()) {
         return false;
     }
-    if (first_hit_from_left->get_prg_path() < first_hit_from_right->get_prg_path()) {
+    if (first_hit_from_left->get_kmer_node_id() < first_hit_from_right->get_kmer_node_id()) {
         return true;
     }
-    if (first_hit_from_right->get_prg_path() < first_hit_from_left->get_prg_path()) {
+    if (first_hit_from_right->get_kmer_node_id() < first_hit_from_left->get_kmer_node_id()) {
         return false;
     }
     if (first_hit_from_left->same_strands() < first_hit_from_right->same_strands()) {
