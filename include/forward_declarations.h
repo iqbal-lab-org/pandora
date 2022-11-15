@@ -5,6 +5,7 @@
 #include <set>
 #include <tuple>
 #include <boost/filesystem.hpp>
+#include <boost/generator_iterator.hpp>
 
 
 struct MinimizerHit;
@@ -18,6 +19,11 @@ using SampleIdText = std::string;
 using SampleFpath = std::string;
 using SampleData = std::pair<SampleIdText, SampleFpath>;
 namespace fs = boost::filesystem;
+
+class LocalPRGReaderGenerator;
+using LocalPRGReaderGeneratorIterator = boost::generator_iterator_generator<LocalPRGReaderGenerator>::type;
+using LocalPRGReaderGeneratorPtr = std::shared_ptr<LocalPRGReaderGenerator>;
+using LocalPRGGeneratorAndIterator = std::pair<LocalPRGReaderGeneratorPtr, LocalPRGReaderGeneratorIterator>;
 
 namespace pangenome {
     class Node;

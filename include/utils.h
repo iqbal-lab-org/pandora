@@ -71,10 +71,6 @@ std::string rev_complement(std::string);
 
 float lognchoosek2(uint32_t, uint32_t, uint32_t);
 
-// probably should be moved to map_main.cpp
-void read_prg_file(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    const fs::path& filepath, uint32_t id = 0);
-
 void load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
     const uint32_t& w, const uint32_t& k, const fs::path& prgfile);
 
@@ -147,6 +143,8 @@ std::string transform_cli_gsize(std::string);
 
 // used to transform paths to absolute paths - designed to be used with CLI11 transform
 std::string make_absolute(std::string);
+
+std::string check_if_is_zip_file(const std::string &filename);
 
 std::vector<SampleData> load_read_index(const fs::path& read_index_fpath);
 
