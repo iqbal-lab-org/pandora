@@ -12,7 +12,7 @@ target_include_directories(${PROJECT_NAME}_test PUBLIC
         )
 
 target_link_libraries(${PROJECT_NAME}_test
-        ${ZIPIOS_LIBRARY}
+        ${LIBARCHIVE_LIBRARY}
         ${RACON_LIBRARY}
         ${Gtest_LIBRARIES}
         ${GATB_LIBS}

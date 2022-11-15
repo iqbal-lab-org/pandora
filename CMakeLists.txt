@@ -56,19 +56,17 @@ set(ZLIB_LIBRARY ZLIB::ZLIB)
 ########################################################################################################################
 
 ########################################################################################################################
-# INSTALL Zipios
-SET(BUILD_DOCUMENTATION OFF CACHE BOOL "Build the Zipios documentation.")
-SET(BUILD_SHARED_LIBS OFF CACHE BOOL "Build the Zipios libraries shared.")
-set(BIN_INSTALL_DIR "${CMAKE_BINARY_DIR}/install" CACHE PATH "Location to install binaries relative to the install prefix.")
-set(INCLUDE_INSTALL_DIR "${CMAKE_BINARY_DIR}/include" CACHE PATH "Location to install headers relative to the install prefix.")
-set(LIB_INSTALL_DIR "${CMAKE_BINARY_DIR}/lib" CACHE PATH "Location to install libraries relative to the install prefix.")
-set(DATA_INSTALL_DIR "${CMAKE_BINARY_DIR}/data" CACHE PATH "Location to install data files relative to the install prefix.")
-include_directories(
-        ${PROJECT_SOURCE_DIR}/thirdparty/Zipios/
-        ${CMAKE_BINARY_DIR}/thirdparty/Zipios/
-)
-add_subdirectory(thirdparty/Zipios)
-set(ZIPIOS_LIBRARY zipios)
+# INSTALL libarchive
+SET(ENABLE_TAR OFF CACHE BOOL "Enable tar building")
+SET(ENABLE_CPIO OFF CACHE BOOL "Enable cpio building")
+SET(ENABLE_CAT OFF CACHE BOOL "Enable cat building")
+SET(ENABLE_XATTR OFF CACHE BOOL "Enable extended attribute support")
+SET(ENABLE_ACL OFF CACHE BOOL "Enable ACL support")
+SET(ENABLE_ICONV OFF CACHE BOOL "Enable iconv support")
+SET(ENABLE_TEST OFF CACHE BOOL "Enable unit and regression tests")
+add_subdirectory(thirdparty/libarchive)
+set(LIBARCHIVE_LIBRARY archive_static)
+
 ########################################################################################################################
 
 ########################################################################################################################
@@ -117,6 +115,7 @@ include_directories(SYSTEM
         ${PROJECT_SOURCE_DIR}/thirdparty/cgranges/cpp
         ${SEQAN_INCLUDE_DIRS}
         ${PROJECT_SOURCE_DIR}/thirdparty/minimap2/
+        ${PROJECT_SOURCE_DIR}/thirdparty/libarchive/libarchive
         )
 
 # normal includes: warnings will be reported for these
@@ -149,7 +148,7 @@ list(REMOVE_ITEM SRC_FILES ${PROJECT_SOURCE_DIR}/thirdparty/minimap2/main.c ${PR
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 target_link_libraries(${PROJECT_NAME}
-        ${ZIPIOS_LIBRARY}
+        ${LIBARCHIVE_LIBRARY}
         ${RACON_LIBRARY}
         ${Boost_LIBRARIES}
         ${ZLIB_LIBRARY}
@@ -159,7 +158,7 @@ target_link_libraries(${PROJECT_NAME}
         ${RT_LIBRARY}
         )
 
-enable_testing()
-add_subdirectory(test)
+# enable_testing()
+# add_subdirectory(test)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
