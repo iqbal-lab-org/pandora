@@ -256,35 +256,36 @@ std::ostream& operator<<(std::ostream& out, KmerGraph const& data)
     return out;
 }
 
-// save the KmerGraph as gfa
-void KmerGraph::save(const fs::path& filepath, const std::shared_ptr<LocalPRG> localprg)
+// get the KmerGraph as gfa
+std::string KmerGraph::to_gfa(const std::shared_ptr<LocalPRG>& localprg) const
 {
-    fs::ofstream handle;
-    handle.open(filepath);
-    if (handle.is_open()) {
-        handle << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << std::endl;
-        for (const auto& c : nodes) {
-            handle << "S\t" << c->id << "\t";
+    const bool localprg_is_valid = localprg != nullptr;
 
-            if (localprg != nullptr) {
-                handle << localprg->string_along_path(c->path);
-            } else {
-                handle << c->path;
-            }
+    std::stringstream ss;
 
-            // TODO: leave as coverage 0 or change this?
-            handle << "\tFC:i:" << 0 << "\t"
-                   << "\tRC:i:" << 0 << std::endl;
-
-            for (uint32_t j = 0; j < c->out_nodes.size(); ++j) {
-                handle << "L\t" << c->id << "\t+\t" << c->out_nodes[j].lock()->id
-                       << "\t+\t0M" << std::endl;
-            }
-        }
-        handle.close();
-    } else {
-        fatal_error("Unable to open kmergraph file ", filepath);
+    if (localprg_is_valid) {
+        ss << "# " << localprg->name << std::endl;
     }
+
+    ss << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << std::endl;
+    for (const auto& c : nodes) {
+        ss << "S\t" << c->id << "\t";
+
+        if (localprg_is_valid) {
+            ss << localprg->string_along_path(c->path);
+        } else {
+            ss << c->path;
+        }
+
+        // TODO: leave as coverage 0 or change this?
+        ss << "\tFC:i:" << 0 << "\t" << "\tRC:i:" << 0 << std::endl;
+
+        for (uint32_t j = 0; j < c->out_nodes.size(); ++j) {
+            ss << "L\t" << c->id << "\t+\t" << c->out_nodes[j].lock()->id
+                   << "\t+\t0M" << std::endl;
+        }
+    }
+    return ss.str();
 }
 
 void KmerGraph::load(const fs::path& filepath)
