@@ -123,33 +123,6 @@ float lognchoosek2(uint32_t n, uint32_t k1, uint32_t k2)
     return total;
 }
 
-void read_prg_file(
-    std::vector<std::shared_ptr<LocalPRG>>& prgs, const fs::path& filepath, uint32_t id)
-{
-    BOOST_LOG_TRIVIAL(debug) << "Loading PRGs from file " << filepath;
-
-    FastaqHandler fh(filepath.string());
-    while (!fh.eof()) {
-        try {
-            fh.get_next();
-        } catch (std::out_of_range& err) {
-            break;
-        }
-        if (fh.name.empty() or fh.read.empty())
-            continue;
-        auto s = std::make_shared<LocalPRG>(LocalPRG(id, fh.name,
-            fh.read)); // build a node in the graph, which will represent a LocalPRG
-                       // (the graph is a list of nodes, each representing a LocalPRG)
-        if (s != nullptr) {
-            prgs.push_back(s);
-            id++;
-        } else {
-            fatal_error("Failed to make LocalPRG for ", fh.name);
-        }
-    }
-    BOOST_LOG_TRIVIAL(debug) << "Number of LocalPRGs read: " << prgs.size();
-}
-
 void load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
     const uint32_t& w, const uint32_t& k, const fs::path& prgfile)
 {
