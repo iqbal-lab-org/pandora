@@ -28,30 +28,85 @@ struct AddRecordToIndexParams {
 
 class Index {
 private:
+    ///////////////////////////////////////////////////////////////////////////////////
+    // attributes
     const uint32_t w;
     const uint32_t k;
-    ZipFile index_archive;
-    std::vector<uint32_t> prg_min_path_lengths; // required to map to PRGs without actually loading them
-    std::vector<uint32_t> prg_names;  // required to produce mapping files
 
-    void save_minhash();
+    // required to produce mapping files
+    std::vector<std::string> prg_names;
+
+    // required to map to PRGs without actually loading them
+    std::vector<uint32_t> prg_min_path_lengths;
+    ///////////////////////////////////////////////////////////////////////////////////
+
+    // explicitly disallowing the index to be built from other classes/modules
+    Index(const uint32_t w, const uint32_t k) : w(w), k(k) {}
+
+    // Note: prg_names is an r-value ref because we take ownership of it when building an index
+    Index(const uint32_t w, const uint32_t k, std::vector<std::string> &&prg_names) :
+        w(w), k(k), prg_names(std::move(prg_names)) {}
+
+    void index_prgs(ZipFile &index_archive,
+        LocalPRGReaderGeneratorIterator &prg_it,
+        uintmax_t estimated_index_size=ESTIMATED_INDEX_SIZE_DEFAULT,
+        const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
+        const uint32_t threads=1);
+
+    // Note: this is overloading is kept just for backwards compatibility with tests
+    void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
+        const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
+        const uint32_t threads = 1);
+
+
+    std::unordered_map<std::string, uint32_t> get_prg_names_to_prg_index() const;
+
+    void save_minhash(ZipFile &index_archive) const;
+
+    template <class Iterator>
+    static void save_values(ZipFile &index_archive, const std::string &zip_path,
+        Iterator begin, Iterator end) {
+        index_archive.prepare_new_entry(zip_path);
+        for (; begin != end; ++begin) {
+            std::stringstream ss;
+            ss << *begin << std::endl;
+            index_archive.write_data(ss.str());
+        }
+    }
+    inline void save_prg_names(ZipFile &index_archive) const {
+        save_values(index_archive, "_prg_names", prg_names.begin(), prg_names.end());
+    }
+    inline void save_prg_min_path_lengths(ZipFile &index_archive) const {
+        save_values(index_archive, "_prg_min_path_lengths",
+            prg_min_path_lengths.begin(), prg_min_path_lengths.end());
+    }
+    inline void save_metadata(ZipFile &index_archive) const {
+        std::vector<uint32_t> metadata{w, k};
+        save_values(index_archive, "_metadata", metadata.begin(), metadata.end());
+    }
 
 public:
+    ///////////////////////////////////////////////////////////////////////////////////
+    // attributes
     std::unordered_map<uint64_t, std::vector<MiniRecord>*> minhash; // TODO: move to private
+    ///////////////////////////////////////////////////////////////////////////////////
 
-    Index(const uint32_t w, const uint32_t k, const fs::path &outfilepath) :
-        w(w), k(k), index_archive(outfilepath), minhash() {}
     virtual ~Index() {
         clear();
     };
 
-    Index(Index&& other) = default; // move default constructor
-    Index& operator=(Index&& other) = delete; // move assignment operator
+    // moving indexes is allowed
+    Index(Index&& other) = default;
+    Index& operator=(Index&& other) = default;
 
-    // not allowed to copy/assign - better to prohibit these due to RAM issue of
-    // duplicating indexes
+    // copying indexes is not allowed
     Index(const Index& other) = delete;
     Index& operator=(const Index& other) = delete;
+
+    static void build_index_on_disk(const uint32_t w, const uint32_t k,
+        const fs::path &prg_filepath, const fs::path &out_filepath,
+        const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
+        const uint32_t threads=1);
 
     void clear();
 
@@ -67,22 +122,6 @@ public:
     bool operator==(const Index& other) const;
 
     bool operator!=(const Index& other) const;
-
-    /**
-     * Index the given PRGs. Non-trivial parameters explanation given below.
-     * @param optimise_RAM : a crucial parameter that allows us to optimise RAM when
-     * indexing the PRGs, but has the critical side-effect of deleting the PRGs as we
-     * scan through them. The index that is saved to the disk is
-     * @param indexing_upper_bound
-     */
-    void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-        const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
-        const uint32_t threads = 1);
-
-    void index_prgs(LocalPRGReaderGeneratorIterator &prg_it,
-        uintmax_t estimated_index_size=ESTIMATED_INDEX_SIZE_DEFAULT,
-        const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
-        const uint32_t threads=1);
 };
 
 #endif

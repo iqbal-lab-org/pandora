@@ -10,6 +10,51 @@
 #include "index.h"
 #include "localPRG.h"
 
+std::vector<std::string> get_prg_names(
+    const fs::path &prg_filepath, uintmax_t estimated_index_size) {
+    std::vector<std::string> prg_names;
+
+    // we estimate the number of PRGs thinking each PRG has the size of ~1000 chars/bytes
+    // not the best but not the worst estimation
+    prg_names.reserve(estimated_index_size/1000);
+
+    std::ifstream prg_ifstream;
+    open_file_for_reading(prg_filepath.string(), prg_ifstream);
+
+    std::string line;
+    while (std::getline(prg_ifstream, line))
+    {
+        if (!line.empty()) {
+            const bool is_header = line[0] == '>';
+            if (is_header) {
+                const std::string prg_name = line.substr(1);  // remove '>'
+                prg_names.push_back(prg_name);
+            }
+        }
+    }
+
+    prg_ifstream.close();
+
+    return prg_names;
+}
+
+void Index::build_index_on_disk(const uint32_t w, const uint32_t k, const fs::path &prg_filepath,
+    const fs::path &out_filepath, const uint32_t indexing_upper_bound,
+    const uint32_t threads) {
+    ZipFile index_archive(out_filepath);
+
+    uintmax_t estimated_index_size = get_number_of_bytes_in_file(prg_filepath);
+    std::vector<std::string> prg_names = get_prg_names(prg_filepath, estimated_index_size);
+
+    Index index(w, k, std::move(prg_names));
+
+    // load PRGs from file lazily (using generators)
+    LocalPRGGeneratorAndIterator prg_generator_and_it = LocalPRGReader::read_prg_file_as_generator(prg_filepath);
+
+    index.index_prgs(index_archive, prg_generator_and_it.second,
+        estimated_index_size, indexing_upper_bound, threads);
+}
+
 /**
  * Adds a k-mer to the index. This is *just* called to add minimizers.
  *
@@ -49,7 +94,7 @@ void Index::clear()
     minhash.clear();
 }
 
-void Index::save_minhash()
+void Index::save_minhash(ZipFile &index_archive) const
 {
     BOOST_LOG_TRIVIAL(debug) << "Saving minhash...";
     index_archive.prepare_new_entry("_minhash");
@@ -61,7 +106,7 @@ void Index::save_minhash()
     }
 
 
-    for (auto& it : minhash) {
+    for (const auto& it : minhash) {
         std::stringstream handle;
         handle << it.first << "\t" << it.second->size();
         for (const MiniRecord &mini_record : *it.second) {
@@ -167,19 +212,37 @@ bool Index::operator==(const Index& other) const
 
 bool Index::operator!=(const Index& other) const { return !(*this == other); }
 
-void Index::index_prgs(LocalPRGReaderGeneratorIterator &prg_it, uintmax_t estimated_index_size,
+std::unordered_map<std::string, uint32_t> Index::get_prg_names_to_prg_index() const {
+    std::unordered_map<std::string, uint32_t> prg_names_to_prg_index;
+    prg_names_to_prg_index.reserve(prg_names.size() * 2);
+    for (uint32_t prg_index=0; prg_index < prg_names.size(); prg_index++) {
+        prg_names_to_prg_index[prg_names[prg_index]] = prg_index;
+    }
+    return prg_names_to_prg_index;
+}
+
+void Index::index_prgs(ZipFile &index_archive,
+    LocalPRGReaderGeneratorIterator &prg_it, uintmax_t estimated_index_size,
     const uint32_t indexing_upper_bound, const uint32_t threads)
 {
     BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
 
-    this->minhash.clear();
+    // minhash init
     this->minhash.reserve(estimated_index_size);
+
+    // builds prg_names_to_prg_index to be used in the main loop
+    const std::unordered_map<std::string, uint32_t> prg_names_to_prg_index = get_prg_names_to_prg_index();
+
+    // fill prg_min_path_lengths with 0-ed values that will be set in the main loop
+    prg_min_path_lengths.resize(prg_names.size());
 
     // now fill index
     std::atomic_uint32_t nb_of_prgs_done { 0 };
-#pragma omp parallel num_threads(threads)
+// #pragma omp parallel num_threads(threads)
     while (true) {
         std::shared_ptr<LocalPRG> local_prg(nullptr);
+
+        // gets a new PRG
 #pragma omp critical(Index__index_prgs__prg_it)
         {
             local_prg = *prg_it;
@@ -193,28 +256,46 @@ void Index::index_prgs(LocalPRGReaderGeneratorIterator &prg_it, uintmax_t estima
 
         try {
             local_prg->minimizer_sketch(this, w, k, indexing_upper_bound, -1);
+
+            // zip file variables
             std::string prg_as_gfa = local_prg->kmer_prg.to_gfa(local_prg);
             std::string zip_path = local_prg->name + ".gfa";
+
+            // prg_min_path_lengths variables
+            uint32_t prg_index = prg_names_to_prg_index.at(local_prg->name);
+            uint32_t min_path_length = local_prg->kmer_prg.min_path_length();
+
 #pragma omp critical(Index__index_prgs__write_gfa_to_zip)
             {
                 index_archive.prepare_new_entry(zip_path);
                 index_archive.write_data(prg_as_gfa);
 
             }
+
+#pragma omp critical(Index__index_prgs__prg_min_path_lengths)
+            {
+                prg_min_path_lengths[prg_index] = min_path_length;
+            }
+
             ++nb_of_prgs_done;
         } catch (const IndexingLimitReached &error) {
             BOOST_LOG_TRIVIAL(warning) << error.what();
         }
     }
     BOOST_LOG_TRIVIAL(debug) << "Finished adding " << nb_of_prgs_done << " LocalPRGs to the archive";
-
     BOOST_LOG_TRIVIAL(debug) << "Number of keys in index: " << this->minhash.size();
-    this->save_minhash();
+
+    // save remaining data
+    this->save_minhash(index_archive);
+    this->save_prg_names(index_archive);
+    this->save_prg_min_path_lengths(index_archive);
+    this->save_metadata(index_archive);
 }
 
 void Index::index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
     const uint32_t indexing_upper_bound, const uint32_t threads)
 {
+    /*
     BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
     index_archive.prepare_new_entry("kmer_prgs.mgfas");
 
@@ -240,7 +321,7 @@ void Index::index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
             local_prg->minimizer_sketch(this, w, k, indexing_upper_bound,
                 (((double)(nb_of_prgs_done.load())) / prgs.size()) * 100);
             std::string prg_as_gfa = local_prg->kmer_prg.to_gfa(local_prg);
-            index_archive.write_data(prg_as_gfa, true);
+            index_archive.write_data(prg_as_gfa);
         } catch (const IndexingLimitReached &error) {
             BOOST_LOG_TRIVIAL(warning) << error.what();
         }
@@ -254,4 +335,5 @@ void Index::index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
     BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << this->minhash.size();
 
     this->save_minhash();
+     */
 }
