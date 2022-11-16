@@ -41,7 +41,7 @@ std::vector<std::string> get_prg_names(
 void Index::build_index_on_disk(const uint32_t w, const uint32_t k, const fs::path &prg_filepath,
     const fs::path &out_filepath, const uint32_t indexing_upper_bound,
     const uint32_t threads) {
-    ZipFile index_archive(out_filepath);
+    ZipFileWriter index_archive(out_filepath);
 
     uintmax_t estimated_index_size = get_number_of_bytes_in_file(prg_filepath);
     std::vector<std::string> prg_names = get_prg_names(prg_filepath, estimated_index_size);
@@ -94,7 +94,7 @@ void Index::clear()
     minhash.clear();
 }
 
-void Index::save_minhash(ZipFile &index_archive) const
+void Index::save_minhash(ZipFileWriter &index_archive) const
 {
     BOOST_LOG_TRIVIAL(debug) << "Saving minhash...";
     index_archive.prepare_new_entry("_minhash");
@@ -231,7 +231,7 @@ std::unordered_map<std::string, uint32_t> Index::get_prg_names_to_prg_index() co
     return prg_names_to_prg_index;
 }
 
-void Index::index_prgs(ZipFile &index_archive,
+void Index::index_prgs(ZipFileWriter &index_archive,
     LocalPRGReaderGeneratorIterator &prg_it, uintmax_t estimated_index_size,
     const uint32_t indexing_upper_bound, const uint32_t threads)
 {

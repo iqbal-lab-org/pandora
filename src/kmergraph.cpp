@@ -263,10 +263,6 @@ std::string KmerGraph::to_gfa(const std::shared_ptr<LocalPRG>& localprg) const
 
     std::stringstream ss;
 
-    if (localprg_is_valid) {
-        ss << "# " << localprg->name << std::endl;
-    }
-
     ss << "H\tVN:Z:1.0\tbn:Z:--linear --singlearr" << std::endl;
     for (const auto& c : nodes) {
         ss << "S\t" << c->id << "\t";

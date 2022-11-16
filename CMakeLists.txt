@@ -66,7 +66,27 @@ SET(ENABLE_ICONV OFF CACHE BOOL "Enable iconv support")
 SET(ENABLE_TEST OFF CACHE BOOL "Enable unit and regression tests")
 add_subdirectory(thirdparty/libarchive)
 set(LIBARCHIVE_LIBRARY archive_static)
+########################################################################################################################
 
+########################################################################################################################
+# INSTALL libzip
+SET(ENABLE_COMMONCRYPTO OFF CACHE BOOL "Enable use of CommonCrypto")
+SET(ENABLE_GNUTLS OFF CACHE BOOL "Enable use of GnuTLS")
+SET(ENABLE_MBEDTLS OFF CACHE BOOL "Enable use of mbed TLS")
+SET(ENABLE_OPENSSL OFF CACHE BOOL "Enable use of OpenSSL")
+SET(ENABLE_WINDOWS_CRYPTO OFF CACHE BOOL "Enable use of Windows cryptography libraries")
+SET(ENABLE_BZIP2 OFF CACHE BOOL "Enable use of BZip2")
+SET(ENABLE_LZMA OFF CACHE BOOL "Enable use of LZMA")
+SET(ENABLE_ZSTD OFF CACHE BOOL "Enable use of Zstandard")
+SET(BUILD_TOOLS OFF CACHE BOOL "Build tools in the src directory (zipcmp, zipmerge, ziptool)")
+SET(BUILD_REGRESS OFF CACHE BOOL "Build regression tests")
+SET(BUILD_EXAMPLES OFF CACHE BOOL "Build examples")
+SET(BUILD_DOC OFF CACHE BOOL "Build documentation")
+SET(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries")
+SET(LIBZIP_DO_INSTALL OFF CACHE BOOL "Install libzip and the related files")
+SET(SHARED_LIB_VERSIONNING OFF CACHE BOOL "Add SO version in .so build")
+add_subdirectory(thirdparty/libzip)
+set(LIBZIP_LIBRARY libzip::zip)
 ########################################################################################################################
 
 ########################################################################################################################
@@ -115,8 +135,9 @@ include_directories(SYSTEM
         ${PROJECT_SOURCE_DIR}/thirdparty/cgranges/cpp
         ${SEQAN_INCLUDE_DIRS}
         ${PROJECT_SOURCE_DIR}/thirdparty/minimap2/
+        ${PROJECT_SOURCE_DIR}/thirdparty/libzip/lib
         ${PROJECT_SOURCE_DIR}/thirdparty/libarchive/libarchive
-        )
+)
 
 # normal includes: warnings will be reported for these
 include_directories(
@@ -149,6 +170,7 @@ add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 target_link_libraries(${PROJECT_NAME}
         ${LIBARCHIVE_LIBRARY}
+        ${LIBZIP_LIBRARY}
         ${RACON_LIBRARY}
         ${Boost_LIBRARIES}
         ${ZLIB_LIBRARY}

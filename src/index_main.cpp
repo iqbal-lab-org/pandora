@@ -76,18 +76,11 @@ int pandora_index(IndexOptions const& opt)
 
     LocalPRG::do_path_memoization_in_nodes_along_path_method = true;
 
-    // load PRGs from file lazily (using generators)
-    LocalPRGGeneratorAndIterator prg_generator_and_it = LocalPRGReader::read_prg_file_as_generator(opt.prgfile);
-
-    // estimate the size of the index
-    uintmax_t estimated_index_size = get_number_of_bytes_in_file(opt.prgfile);
 
     BOOST_LOG_TRIVIAL(info) << "Indexing PRG...";
-    auto index = std::make_shared<Index>(
-        opt.window_size, opt.kmer_size, outfile);
-    index->index_prgs(prg_generator_and_it.second, estimated_index_size,
+    Index::build_index_on_disk(opt.window_size, opt.kmer_size, opt.prgfile, outfile,
         opt.indexing_upper_bound, opt.threads);
-
     BOOST_LOG_TRIVIAL(info) << "All done!";
+    
     return 0;
 }

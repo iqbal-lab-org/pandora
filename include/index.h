@@ -47,7 +47,7 @@ private:
     Index(const uint32_t w, const uint32_t k, std::vector<std::string> &&prg_names) :
         w(w), k(k), prg_names(std::move(prg_names)) {}
 
-    void index_prgs(ZipFile &index_archive,
+    void index_prgs(ZipFileWriter &index_archive,
         LocalPRGReaderGeneratorIterator &prg_it,
         uintmax_t estimated_index_size=ESTIMATED_INDEX_SIZE_DEFAULT,
         const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
@@ -62,10 +62,10 @@ private:
 
     std::unordered_map<std::string, uint32_t> get_prg_names_to_prg_index() const;
 
-    void save_minhash(ZipFile &index_archive) const;
+    void save_minhash(ZipFileWriter &index_archive) const;
 
     template <class Iterator>
-    static void save_values(ZipFile &index_archive, const std::string &zip_path,
+    static void save_values(ZipFileWriter &index_archive, const std::string &zip_path,
         Iterator begin, Iterator end) {
         index_archive.prepare_new_entry(zip_path);
         for (; begin != end; ++begin) {
@@ -74,14 +74,14 @@ private:
             index_archive.write_data(ss.str());
         }
     }
-    inline void save_prg_names(ZipFile &index_archive) const {
+    inline void save_prg_names(ZipFileWriter &index_archive) const {
         save_values(index_archive, "_prg_names", prg_names.begin(), prg_names.end());
     }
-    inline void save_prg_min_path_lengths(ZipFile &index_archive) const {
+    inline void save_prg_min_path_lengths(ZipFileWriter &index_archive) const {
         save_values(index_archive, "_prg_min_path_lengths",
             prg_min_path_lengths.begin(), prg_min_path_lengths.end());
     }
-    inline void save_metadata(ZipFile &index_archive) const {
+    inline void save_metadata(ZipFileWriter &index_archive) const {
         std::vector<uint32_t> metadata{w, k};
         save_values(index_archive, "_metadata", metadata.begin(), metadata.end());
     }
