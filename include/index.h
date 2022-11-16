@@ -54,6 +54,7 @@ private:
         const uint32_t threads=1);
 
     // Note: this is overloading is kept just for backwards compatibility with tests
+    // TODO: keep or implement this?
     void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
         const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
         const uint32_t threads = 1);
@@ -108,6 +109,8 @@ public:
         const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
         const uint32_t threads=1);
 
+    static Index load(const fs::path& indexfile);
+
     void clear();
 
     void add_record(const AddRecordToIndexParams &params) {
@@ -117,7 +120,7 @@ public:
     void add_record(
         const uint64_t, const uint32_t, const prg::Path&, const uint32_t, const bool);
 
-    static Index load(const fs::path& indexfile);
+
 
     bool operator==(const Index& other) const;
 

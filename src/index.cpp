@@ -178,6 +178,16 @@ Index Index::load(const fs::path& indexfile)
 
 bool Index::operator==(const Index& other) const
 {
+    if (this->w != other.w) {
+        return false;
+    }
+
+    if (this->k != other.k) {
+        return false;
+    }
+
+    // TODO: check prg_names and prg_min_path_lengths?
+
     if (this->minhash.size() != other.minhash.size()) {
         return false;
     }
@@ -238,7 +248,7 @@ void Index::index_prgs(ZipFile &index_archive,
 
     // now fill index
     std::atomic_uint32_t nb_of_prgs_done { 0 };
-// #pragma omp parallel num_threads(threads)
+#pragma omp parallel num_threads(threads)
     while (true) {
         std::shared_ptr<LocalPRG> local_prg(nullptr);
 
