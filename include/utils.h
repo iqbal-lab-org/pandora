@@ -71,6 +71,9 @@ std::string rev_complement(std::string);
 
 float lognchoosek2(uint32_t, uint32_t, uint32_t);
 
+void read_prg_file(
+    std::vector<std::shared_ptr<LocalPRG>>& prgs, const fs::path& filepath, uint32_t id=0);
+
 void load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
     const uint32_t& w, const uint32_t& k, const fs::path& prgfile);
 

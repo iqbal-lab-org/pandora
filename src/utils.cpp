@@ -123,6 +123,33 @@ float lognchoosek2(uint32_t n, uint32_t k1, uint32_t k2)
     return total;
 }
 
+void read_prg_file(
+    std::vector<std::shared_ptr<LocalPRG>>& prgs, const fs::path& filepath, uint32_t id)
+{
+    BOOST_LOG_TRIVIAL(debug) << "Loading PRGs from file " << filepath;
+
+    FastaqHandler fh(filepath.string());
+    while (!fh.eof()) {
+        try {
+            fh.get_next();
+        } catch (std::out_of_range& err) {
+            break;
+        }
+        if (fh.name.empty() or fh.read.empty())
+            continue;
+        auto s = std::make_shared<LocalPRG>(LocalPRG(id, fh.name,
+            fh.read)); // build a node in the graph, which will represent a LocalPRG
+                       // (the graph is a list of nodes, each representing a LocalPRG)
+        if (s != nullptr) {
+            prgs.push_back(s);
+            id++;
+        } else {
+            fatal_error("Failed to make LocalPRG for ", fh.name);
+        }
+    }
+    BOOST_LOG_TRIVIAL(debug) << "Number of LocalPRGs read: " << prgs.size();
+}
+
 void load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
     const uint32_t& w, const uint32_t& k, const fs::path& prgfile)
 {
@@ -194,6 +221,8 @@ void decide_if_add_cluster_or_not(
     ClusterDefFile& cluster_def_file) {
     // keep clusters which cover at least 1/2 the expected number of minihits
     const uint32_t length_based_threshold = std::min(
+        // TODO: to map, we need to know kmer_prg.min_path_length()
+        // TODO: we should do it without knowing loading the kmer_prg
         prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length(),
         expected_number_kmers_in_read_sketch)
                                       * fraction_kmers_required_for_cluster;
@@ -212,6 +241,8 @@ void decide_if_add_cluster_or_not(
     if (!cluster_def_file.is_fake_file) {
 #pragma omp critical(cluster_def_file)
         {
+            // TODO: to create this file, we either need to know the PRG names without loading the PRGs
+            // TODO: or to output the id
             cluster_def_file << seq.name << "\t" << prgs[(*mh_previous)->get_prg_id()]->name << "\t";
             if (cluster_should_be_accepted) {
                 cluster_def_file << "accepted\t";
@@ -353,12 +384,16 @@ void filter_clusters(
                     if (c_previous->size() >= c_current->size()) {
                         cluster_filter_file
                             << seq.name << "\t"
+                            // TODO: to create this file, we either need to know the PRG names without loading the PRGs
+                            // TODO: or to output the id
                             << prgs[(*c_current->begin())->get_prg_id()]->name << "\t"
                             << c_current->size() << "\t"
                             << "filtered_out\n";
                     } else {
                         cluster_filter_file
                             << seq.name << "\t"
+                            // TODO: to create this file, we either need to know the PRG names without loading the PRGs
+                            // TODO: or to output the id
                             << prgs[(*c_previous->begin())->get_prg_id()]->name << "\t"
                             << c_previous->size() << "\t"
                             << "filtered_out\n";
@@ -385,6 +420,8 @@ void filter_clusters(
         {
             for (const auto& cluster : clusters_of_hits) {
                 cluster_filter_file << seq.name << "\t"
+                                    // TODO: to create this file, we either need to know the PRG names without loading the PRGs
+                                    // TODO: or to output the id
                                     << prgs[(*cluster.begin())->get_prg_id()]->name
                                     << "\t" << cluster.size() << "\t"
                                     << "kept\n";
@@ -456,6 +493,7 @@ void add_clusters_to_pangraph(
 
     // to do this consider pairs of clusters in turn
     for (auto cluster : minimizer_hit_clusters) {
+        // TODO: here we know prgs[(*cluster.begin())->get_prg_id()] mapped, so we can keep this PRG in RAM
         pangraph->add_hits_between_PRG_and_read(prgs[(*cluster.begin())->get_prg_id()],
             (*cluster.begin())->get_read_id(), cluster);
     }
@@ -494,7 +532,7 @@ MinimizerHitClusters get_minimizer_hit_clusters(
 
 // TODO: this should be in a constructor of pangenome::Graph or in a factory class
 uint32_t pangraph_from_read_file(const SampleData& sample,
-    std::shared_ptr<pangenome::Graph> pangraph, std::shared_ptr<Index> index,
+    std::shared_ptr<pangenome::Graph> pangraph, const Index &index,
     const std::vector<std::shared_ptr<LocalPRG>>& prgs, const uint32_t w,
     const uint32_t k, const int max_diff, const float& e_rate,
     const fs::path& sample_outdir, const uint32_t min_cluster_size,
@@ -599,7 +637,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
 
                 // get the minimizer hits
                 auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
-                add_read_hits(sequence, minimizer_hits, *index);
+                add_read_hits(sequence, minimizer_hits, index);
 
                 // write unfiltered minimizer hits
                 if (!minimizer_matches.is_fake_file) {
