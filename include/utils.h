@@ -117,7 +117,7 @@ MinimizerHitClusters get_minimizer_hit_clusters(
     const uint32_t expected_number_kmers_in_read_sketch = std::numeric_limits<uint32_t>::max());
 
 uint32_t pangraph_from_read_file(const SampleData& sample,
-    std::shared_ptr<pangenome::Graph> pangraph, std::shared_ptr<Index> index,
+    std::shared_ptr<pangenome::Graph> pangraph, const Index &index,
     const std::vector<std::shared_ptr<LocalPRG>>& prgs, const uint32_t w,
     const uint32_t k, const int max_diff, const float& e_rate,
     const fs::path& sample_outdir, const uint32_t min_cluster_size = 10,

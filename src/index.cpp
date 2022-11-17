@@ -119,50 +119,43 @@ void Index::save_minhash(ZipFileWriter &index_archive) const
     BOOST_LOG_TRIVIAL(debug) << "Saving minhash - done!";
 }
 
-Index Index::load(const fs::path& indexfile)
-{
-    /*
-    BOOST_LOG_TRIVIAL(debug) << "Loading index";
-    BOOST_LOG_TRIVIAL(debug) << "File is " << indexfile;
+void Index::load_minhash(ZipFileReader &zip_file) {
     uint64_t key;
     size_t size;
     int c;
     MiniRecord mr;
     bool first = true;
 
-    fs::ifstream myfile(indexfile);
-    if (myfile.is_open()) {
-        while (myfile.good()) {
-            c = myfile.peek();
-            if (isdigit(c) and first) {
-                myfile >> size;
-                minhash.reserve(minhash.size() + size);
-                first = false;
-                myfile.ignore(1, '\t');
-            } else if (isdigit(c) and !first) {
-                myfile >> key;
-                myfile.ignore(1, '\t');
-                myfile >> size;
-                auto* vmr = new std::vector<MiniRecord>;
-                if (minhash.find(key) != minhash.end()) {
-                    vmr = minhash[key];
-                    vmr->reserve(vmr->size() + size);
-                } else {
-                    vmr->reserve(size);
-                    minhash[key] = vmr;
-                }
-                myfile.ignore(1, '\t');
-            } else if (c == EOF) {
-                break;
+    ZipInstreamBuffer zip_buffer(zip_file.archive, "_minhash");
+    std::istream zip_in(&zip_buffer);
+
+    while (zip_in.good()) {
+        c = zip_in.peek();
+        if (isdigit(c) and first) {
+            zip_in >> size;
+            minhash.reserve(minhash.size() + size);
+            first = false;
+            zip_in.ignore(1, '\t');
+        } else if (isdigit(c) and !first) {
+            zip_in >> key;
+            zip_in.ignore(1, '\t');
+            zip_in >> size;
+            auto* vmr = new std::vector<MiniRecord>;
+            if (minhash.find(key) != minhash.end()) {
+                vmr = minhash[key];
+                vmr->reserve(vmr->size() + size);
             } else {
-                myfile >> mr;
-                minhash[key]->push_back(mr);
-                myfile.ignore(1, '\t');
+                vmr->reserve(size);
+                minhash[key] = vmr;
             }
+            zip_in.ignore(1, '\t');
+        } else if (c == EOF) {
+            break;
+        } else {
+            zip_in >> mr;
+            minhash[key]->push_back(mr);
+            zip_in.ignore(1, '\t');
         }
-    } else {
-        fatal_error("Unable to open index file ", indexfile,
-            ". Does it exist? Have you run pandora index?");
     }
 
     if (minhash.size() <= 1) {
@@ -173,7 +166,21 @@ Index Index::load(const fs::path& indexfile)
         BOOST_LOG_TRIVIAL(debug) << "Finished loading file. Index now contains "
                                  << minhash.size() << " entries";
     }
-     */
+}
+
+Index Index::load(const fs::path& indexfile)
+{
+    BOOST_LOG_TRIVIAL(debug) << "Loading index";
+    BOOST_LOG_TRIVIAL(debug) << "File is " << indexfile;
+
+    ZipFileReader zip_file(indexfile);
+    auto w_and_k = zip_file.read_w_and_k();
+    auto prg_names = zip_file.read_prg_names();
+    auto prg_min_path_lengths = zip_file.read_prg_min_path_lengths();
+    Index index(w_and_k.first, w_and_k.second, std::move(prg_names),
+        std::move(prg_min_path_lengths));
+    index.load_minhash(zip_file);
+    return index;
 }
 
 bool Index::operator==(const Index& other) const
@@ -296,50 +303,4 @@ void Index::index_prgs(ZipFileWriter &index_archive,
     this->save_prg_names(index_archive);
     this->save_prg_min_path_lengths(index_archive);
     this->save_metadata(index_archive);
-}
-
-void Index::index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    const uint32_t indexing_upper_bound, const uint32_t threads)
-{
-    /*
-    BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
-    index_archive.prepare_new_entry("kmer_prgs.mgfas");
-
-    this->minhash.clear();
-
-    if (prgs.empty())
-        return;
-
-    // first reserve an estimated index size
-    uint32_t estimated_index_size = 0;
-    for (const auto &prg : prgs) {
-        estimated_index_size += prg->seq.length();
-    }
-    this->minhash.reserve(estimated_index_size);
-
-
-    // now fill index
-    std::atomic_uint32_t nb_of_prgs_done { 0 };
-#pragma omp parallel for num_threads(threads) schedule(dynamic, 1) default(shared)
-    for (uint32_t i = 0; i < prgs.size(); ++i) { // for each prg
-        std::shared_ptr<LocalPRG>& local_prg(prgs[i]);
-        try {
-            local_prg->minimizer_sketch(this, w, k, indexing_upper_bound,
-                (((double)(nb_of_prgs_done.load())) / prgs.size()) * 100);
-            std::string prg_as_gfa = local_prg->kmer_prg.to_gfa(local_prg);
-            index_archive.write_data(prg_as_gfa);
-        } catch (const IndexingLimitReached &error) {
-            BOOST_LOG_TRIVIAL(warning) << error.what();
-        }
-
-        // saves some RAM
-        local_prg.reset();
-
-        ++nb_of_prgs_done;
-    }
-    BOOST_LOG_TRIVIAL(debug) << "Finished adding " << prgs.size() << " LocalPRGs";
-    BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << this->minhash.size();
-
-    this->save_minhash();
-     */
 }

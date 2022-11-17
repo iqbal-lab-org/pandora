@@ -46,6 +46,9 @@ private:
     // Note: prg_names is an r-value ref because we take ownership of it when building an index
     Index(const uint32_t w, const uint32_t k, std::vector<std::string> &&prg_names) :
         w(w), k(k), prg_names(std::move(prg_names)) {}
+    Index(const uint32_t w, const uint32_t k, std::vector<std::string> &&prg_names,
+        std::vector<uint32_t> &&prg_min_path_lengths) :
+        w(w), k(k), prg_names(std::move(prg_names)), prg_min_path_lengths(std::move(prg_min_path_lengths)) {}
 
     void index_prgs(ZipFileWriter &index_archive,
         LocalPRGReaderGeneratorIterator &prg_it,
@@ -63,6 +66,7 @@ private:
     std::unordered_map<std::string, uint32_t> get_prg_names_to_prg_index() const;
 
     void save_minhash(ZipFileWriter &index_archive) const;
+    void load_minhash(ZipFileReader &zip_file);
 
     template <class Iterator>
     static void save_values(ZipFileWriter &index_archive, const std::string &zip_path,
