@@ -9,6 +9,9 @@
 #include "fastaq.h"
 #include "CLI11.hpp"
 
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+
 struct RandomOptions {
     std::string prgfile;
     bool compress { false };

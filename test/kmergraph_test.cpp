@@ -7,9 +7,10 @@
 #include "kmernode.h"
 #include "localPRG.h"
 #include <stdint.h>
-#include <iostream>
 #include <cmath>
+#include <deque>
 #include "fatal_error.h"
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 
 using namespace prg;
@@ -20,7 +21,7 @@ TEST(KmerGraphTest, add_node)
     KmerGraph kg;
     uint32_t sample_id = 0;
 
-    deque<Interval> d = { Interval(0, 3) };
+    std::deque<Interval> d = { Interval(0, 3) };
     prg::Path p;
     p.initialize(d);
     kg.add_node(p);
@@ -60,7 +61,7 @@ TEST(KmerGraphTest, add_node_with_kh)
     KmerGraph kg;
     uint32_t sample_id = 0;
 
-    deque<Interval> d = { Interval(0, 3) };
+    std::deque<Interval> d = { Interval(0, 3) };
     prg::Path p;
     p.initialize(d);
     uint64_t kh = 469;
@@ -80,7 +81,7 @@ TEST(KmerGraphTest, add_edge)
     // add edge and check it's there
     KmerGraph kg;
 
-    deque<Interval> d = { Interval(0, 3) };
+    std::deque<Interval> d = { Interval(0, 3) };
     prg::Path p1, p2, p3;
     p1.initialize(d);
     auto n1 = kg.add_node(p1);
@@ -121,7 +122,7 @@ TEST(KmerGraphTest, add_edge)
 TEST(KmerGraphTest, clear)
 {
     KmerGraph kg;
-    deque<Interval> d = { Interval(0, 3) };
+    std::deque<Interval> d = { Interval(0, 3) };
     prg::Path p1, p2;
     p1.initialize(d);
     auto n1 = kg.add_node(p1);
@@ -146,7 +147,7 @@ TEST(KmerGraphTest, clear)
 TEST(KmerGraphTest, equals)
 {
     KmerGraph kg1, kg2;
-    deque<Interval> d = { Interval(0, 3) };
+    std::deque<Interval> d = { Interval(0, 3) };
     prg::Path p1, p2, p3;
     p1.initialize(d);
     auto n1 = kg1.add_node(p1);
@@ -189,7 +190,7 @@ TEST(KmerGraphTest, equals)
 TEST(KmerGraphTest, copy)
 {
     KmerGraph kg1;
-    deque<Interval> d = { Interval(0, 3) };
+    std::deque<Interval> d = { Interval(0, 3) };
     prg::Path p1, p2, p3;
     p1.initialize(d);
     auto n1 = kg1.add_node(p1);
@@ -241,7 +242,7 @@ TEST(KmerGraphTest, assign)
 
 TEST(KmerGraphTest, sort_topologically)
 {
-    vector<KmerNodePtr> exp_sorted_nodes;
+    std::vector<KmerNodePtr> exp_sorted_nodes;
     KmerNodePtr n;
 
     KmerGraph kg;
@@ -285,7 +286,7 @@ TEST(KmerGraphTest, sort_topologically)
     kg.add_edge(kg.nodes[5], kg.nodes[6]);
 
     // for each node, outnodes are further along vector
-    set<KmerNodePtr>::iterator it;
+    std::set<KmerNodePtr>::iterator it;
     uint i = 0;
     for (auto c = kg.sorted_nodes.begin(); c != kg.sorted_nodes.end(); ++c) {
         for (const auto& d : (*c)->out_nodes) {
@@ -381,14 +382,14 @@ TEST(KmerGraphTest, remove_shortcut_edges)
           "72 CGAGTGGT 72 CGAGTGGC 71 GTGCAGTATCATCCCTGCGAAACTGATAAAAAAGAGC 73 A 74 G "
           "73 GAAAACGGAGAGCCGTTTTCCATAAA 75 T 76 C 75 GGAAAAGAG 29 ";
     auto l1 = std::make_shared<LocalPRG>(LocalPRG(1, "Cluster_6369", s));
-    l1->minimizer_sketch(index, w, k);
+    l1->minimizer_sketch(index.get(), w, k);
 
     s = "TTATAAAGTTCTGCAAATGGCGCCATCAAAGCGCCATTGACAGAGTTTTATTTCAATCACCTTTTTCGAGGTATCAAA"
         "AATCACGGGGTTTTAATCCCTTCCTCCAATAAGTACCAGTTTAATATTCTGAATGCCCGTCACGGGGCAACATAACCA"
         "CAGAGCCTTGCGGGGTGGGTCTATGGGGTAGGCAGTAATGCTTTCACTCTGTGGGCTGCTTTTATCCGCGTGAACTTA"
         "GGCTCACCACCGAAAGGAAAAGCA";
     auto l2 = std::make_shared<LocalPRG>(LocalPRG(1, "Cluster_15213", s));
-    l2->minimizer_sketch(index, w, k);
+    l2->minimizer_sketch(index.get(), w, k);
 }
 
 TEST(KmerGraphTest, save)
@@ -396,7 +397,7 @@ TEST(KmerGraphTest, save)
     auto l = std::make_shared<LocalPRG>(LocalPRG(1, "test localPRG", "ACGT"));
 
     KmerGraph kg;
-    deque<Interval> d = { Interval(0, 3) };
+    std::deque<Interval> d = { Interval(0, 3) };
     prg::Path p1, p2;
     p1.initialize(d);
     auto n1 = kg.add_node(p1);
@@ -413,7 +414,7 @@ TEST(KmerGraphTest, save)
 TEST(KmerGraphTest, save_no_prg)
 {
     KmerGraph kg;
-    deque<Interval> d = { Interval(0, 3) };
+    std::deque<Interval> d = { Interval(0, 3) };
     prg::Path p1, p2;
     p1.initialize(d);
     auto n1 = kg.add_node(p1);
@@ -430,7 +431,7 @@ TEST(KmerGraphTest, save_no_prg)
 TEST(KmerGraphTest, load)
 {
     KmerGraph kg, read_kg;
-    deque<Interval> d = { Interval(0, 3) };
+    std::deque<Interval> d = { Interval(0, 3) };
     prg::Path p1, p2;
     p1.initialize(d);
     auto n1 = kg.add_node(p1);

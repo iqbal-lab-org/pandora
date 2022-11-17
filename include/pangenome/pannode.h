@@ -8,15 +8,11 @@
 #include "kmergraph.h"
 #include "kmergraphwithcoverage.h"
 #include "localPRG.h"
-#include "pangenome/ns.cpp"
 #include "vcf.h"
-#include "denovo_discovery/denovo_utils.h"
 #include "pansample.h"
 #include "OptionsAggregator.h"
 
 class LocalPRG;
-struct ReadCoordinate;
-using PanReadPtr = std::shared_ptr<pangenome::Read>;
 
 class pangenome::Node {
 public:
@@ -49,11 +45,6 @@ public:
     std::string get_name() const;
 
     void add_path(const std::vector<KmerNodePtr>&, const uint32_t& sample_id);
-
-    void get_read_overlap_coordinates(std::vector<std::vector<uint32_t>>&);
-
-    std::set<ReadCoordinate> get_read_overlap_coordinates(
-        const prg::Path& local_path, const uint32_t& min_number_hits = 2);
 
     void construct_multisample_vcf(VCF& master_vcf,
         const std::vector<LocalNodePtr>& vcf_reference_path,

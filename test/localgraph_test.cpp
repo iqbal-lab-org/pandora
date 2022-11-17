@@ -7,6 +7,7 @@
 #include "localnode.h"
 #include <stdint.h>
 #include <iostream>
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 
 using namespace std;

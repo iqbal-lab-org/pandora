@@ -13,7 +13,14 @@ public:
     std::string name;
     std::set<Minimizer> sketch;
 
+    // the original sequence
+    std::string full_seq;
+
     // the original sequence is split into several valid subsequences (composed of ACGT only)
+    // TODO: now that we are storing the original sequence, these valid subsequences
+    // TODO: could be more efficiently stored with std::string_view instead,
+    // TODO: although I don't think the RAM improvement will be significant, so
+    // TODO: just adding this as a future note.
     std::vector<std::string> subseqs;  // these are the subsequences themselves
     std::vector<size_t> offsets;  // these are the subsequences offsets on the original string
 

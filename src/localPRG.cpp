@@ -458,16 +458,48 @@ std::vector<PathPtr> LocalPRG::shift(prg::Path p) const
     return return_paths;
 }
 
-void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint32_t w,
-    const uint32_t k, double percentageDone)
+void LocalPRG::check_if_we_already_indexed_too_many_kmers(
+    const uint32_t num_kmers_added,
+    const uint32_t indexing_upper_bound
+    ) const {
+    const bool too_many_kmers_to_index = num_kmers_added > indexing_upper_bound;
+    if (too_many_kmers_to_index) {
+        std::stringstream ss;
+        ss << "Locus " << name << " has too many kmers to index (>"
+           << indexing_upper_bound << "), so we are ignoring it";
+        throw IndexingLimitReached(ss.str());
+    }
+}
+
+void LocalPRG::add_node_to_current_leaves(const KmerNodePtr &kn,
+    std::deque<KmerNodePtr> &current_leaves, uint32_t indexing_upper_bound) const {
+    const bool too_many_current_leaves = current_leaves.size() > indexing_upper_bound;
+    if (too_many_current_leaves) {
+        std::stringstream ss;
+        ss << "Locus " << name << " has too many nodes to explore (>"
+           << indexing_upper_bound << "), so we are ignoring it";
+        throw IndexingLimitReached(ss.str());
+    }
+
+    const bool node_is_not_already_in_leaves =
+        find(current_leaves.begin(), current_leaves.end(), kn)== current_leaves.end();
+    if (node_is_not_already_in_leaves) {
+        current_leaves.push_back(kn);
+    }
+}
+
+void LocalPRG::minimizer_sketch(Index* index, const uint32_t w,
+    const uint32_t k, const uint32_t indexing_upper_bound, double percentageDone)
 {
-    if (percentageDone >= 0)
+    if (percentageDone >= 0) {
         BOOST_LOG_TRIVIAL(info)
-            << "Sketch PRG " << name << " which has " << prg.nodes.size() << " nodes ("
-            << percentageDone << "% done)";
-    else
-        BOOST_LOG_TRIVIAL(info)
-            << "Sketch PRG " << name << " which has " << prg.nodes.size() << " nodes";
+            << "Started sketching PRG " << name << " which has " << prg.nodes.size()
+            << " nodes (" << percentageDone << "% already done)";
+    }
+    else {
+        BOOST_LOG_TRIVIAL(info) << "Started sketching PRG " << name << " which has "
+                                << prg.nodes.size() << " nodes";
+    }
 
     // clean up after any previous runs
     // although note we can't clear the index because it is also added to by other
@@ -485,8 +517,9 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
     std::string kmer;
     uint64_t smallest;
     std::pair<uint64_t, uint64_t> kh;
-    KmerHash hash; // TODO: replace by GATB's MPHF?
-    uint32_t num_kmers_added = 0;
+    pandora::KmerHash hash;
+    std::vector<AddRecordToIndexParams> kmers_to_be_added_to_the_index;
+    kmers_to_be_added_to_the_index.reserve(4096);
     KmerNodePtr kn, new_kn;
     std::vector<LocalNodePtr> n;
     size_t num_AT = 0;
@@ -495,19 +528,28 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
     d = { Interval(0, 0) };
     kmer_path.initialize(d); // initializes this path with the null start
     kmer_prg.add_node(kmer_path);
-    num_kmers_added += 1;
+
 
     // if this is a null prg, return the null kmergraph
     if (prg.nodes.size() == 1 and prg.nodes[0]->pos.length < k) {
+        BOOST_LOG_TRIVIAL(info) << "Finished sketching PRG " << name;
         return;
     }
 
     // find first w,k minimizers
-    walk_paths = prg.walk(prg.nodes.begin()->second->id, 0,
-        w + k - 1); // get all walks to be checked - all walks from
-                    // prg.nodes.begin()->second->id composed of exactly w+k-1 bases -
-                    // NOTE: WALKS AND PATHS HERE ARE THE SAME, SINCE THIS IS A DAG!!!
+    try {
+        // get all walks to be checked - all walks from
+        // prg.nodes.begin()->second->id composed of exactly w+k-1 bases
+        walk_paths = prg.walk(prg.nodes.begin()->second->id, 0, w + k - 1,
+            indexing_upper_bound);
+    }catch (const IndexingLimitReached &error) {
+        std::stringstream ss;
+        ss << "Locus " << name << " has an excessive number of initial walks (>"
+           << indexing_upper_bound << "), so we are ignoring it";
+        throw IndexingLimitReached(ss.str());
+    }
     if (walk_paths.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "Finished sketching PRG " << name;
         return; // also trivially not true
     }
 
@@ -526,7 +568,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                        // constructor/assignment op in Path?
             if (!kmer_path.empty()) {
                 kmer = string_along_path(kmer_path); // get the string along the path
-                kh = hash.kmerhash(kmer, k); // TODO: replace by GATB's minimizer?
+                kh = hash.kmerhash(kmer, k);
                 smallest = std::min(smallest, std::min(kh.first, kh.second));
             }
         }
@@ -541,7 +583,7 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                 n = nodes_along_path(
                     kmer_path); // and the nodes of the localPRG along this kmer_path
 
-                if (prg.walk(n.back()->id, n.back()->pos.get_end(), w + k - 1)
+                if (prg.walk(n.back()->id, n.back()->pos.get_end(), w + k - 1, indexing_upper_bound)
                         .empty()) { // if the walk from the last node and last base of
                                     // the path along this kmer is empty
                     while (kmer_path.get_end() >= n.back()->pos.get_end()
@@ -554,6 +596,9 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
 
                 if (kh.first == smallest
                     or kh.second == smallest) { // if this kmer is the minimizer
+                    check_if_we_already_indexed_too_many_kmers(kmers_to_be_added_to_the_index.size(),
+                        indexing_upper_bound);
+
                     KmerNodePtr dummyKmerHoldingKmerPath
                         = std::make_shared<KmerNode>(KmerNode(0, kmer_path));
                     const auto found = kmer_prg.sorted_nodes.find(
@@ -566,18 +611,17 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                         kn = kmer_prg.add_node_with_kh(
                             kmer_path, std::min(kh.first, kh.second), num_AT);
 
-// TODO: name these criticals
-#pragma omp critical
-                        { // and now to the index
-                            index->add_record(std::min(kh.first, kh.second), id,
-                                kmer_path, kn->id, (kh.first <= kh.second));
-                        }
-                        num_kmers_added += 1;
+                        // and now to the index
+                        kmers_to_be_added_to_the_index.emplace_back(
+                            std::min(kh.first, kh.second), id,
+                            kmer_path, kn->id, (kh.first <= kh.second));
+
                         kmer_prg.add_edge(old_kn, kn); // add an edge from the old
                                                        // minimizer kmer to the current
                         old_kn = kn; // update old minimizer kmer node
-                        current_leaves.push_back(
-                            kn); // add to the leaves - it is a leaf now
+
+                        add_node_to_current_leaves(kn, current_leaves,
+                            indexing_upper_bound);
                     }
                 }
             }
@@ -619,6 +663,8 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
             kh = hash.kmerhash(kmer, k);
             if (std::min(kh.first, kh.second) <= kn->khash) {
                 // found next minimizer
+                check_if_we_already_indexed_too_many_kmers(kmers_to_be_added_to_the_index.size(), indexing_upper_bound);
+
                 KmerNodePtr dummyKmerHoldingKmerPath
                     = std::make_shared<KmerNode>(KmerNode(0, *(v.back())));
                 const auto found = kmer_prg.sorted_nodes.find(dummyKmerHoldingKmerPath);
@@ -628,31 +674,26 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                     new_kn = kmer_prg.add_node_with_kh(
                         *(v.back()), std::min(kh.first, kh.second), num_AT);
 
-// TODO: name these criticals
-#pragma omp critical
-                    {
-                        index->add_record(std::min(kh.first, kh.second), id,
-                            *(v.back()), new_kn->id, (kh.first <= kh.second));
-                    }
+                    kmers_to_be_added_to_the_index.emplace_back(
+                        std::min(kh.first, kh.second), id,
+                        *(v.back()), new_kn->id, (kh.first <= kh.second));
+
                     kmer_prg.add_edge(kn, new_kn);
                     if (v.back()->get_end()
                         == (--(prg.nodes.end()))->second->pos.get_end()) {
                         end_leaves.push_back(new_kn);
-                    } else if (find(
-                                   current_leaves.begin(), current_leaves.end(), new_kn)
-                        == current_leaves.end()) {
-                        current_leaves.push_back(new_kn);
+                    } else {
+                        add_node_to_current_leaves(new_kn, current_leaves,
+                            indexing_upper_bound);
                     }
-                    num_kmers_added += 1;
                 } else {
                     kmer_prg.add_edge(kn, *found);
                     if (v.back()->get_end()
                         == (--(prg.nodes.end()))->second->pos.get_end()) {
                         end_leaves.push_back(*found);
-                    } else if (find(
-                                   current_leaves.begin(), current_leaves.end(), *found)
-                        == current_leaves.end()) {
-                        current_leaves.push_back(*found);
+                    } else {
+                        add_node_to_current_leaves(*found, current_leaves,
+                            indexing_upper_bound);
                     }
                 }
             } else if (v.size() == w) {
@@ -669,6 +710,10 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                     kmer = string_along_path(*(v[j]));
                     kh = hash.kmerhash(kmer, k);
                     if (kh.first == smallest or kh.second == smallest) {
+                        // minimiser found
+                        check_if_we_already_indexed_too_many_kmers(kmers_to_be_added_to_the_index.size(),
+                            indexing_upper_bound);
+
                         KmerNodePtr dummyKmerHoldingKmerPath
                             = std::make_shared<KmerNode>(KmerNode(0, *(v[j])));
                         const auto found
@@ -679,12 +724,9 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                             new_kn = kmer_prg.add_node_with_kh(
                                 *(v[j]), std::min(kh.first, kh.second), num_AT);
 
-// TODO: name these criticals
-#pragma omp critical
-                            {
-                                index->add_record(std::min(kh.first, kh.second), id,
-                                    *(v[j]), new_kn->id, (kh.first <= kh.second));
-                            }
+                            kmers_to_be_added_to_the_index.emplace_back(
+                                std::min(kh.first, kh.second), id,
+                                *(v[j]), new_kn->id, (kh.first <= kh.second));
 
                             // if there is more than one mini in the window, edge should
                             // go to the first, and from the first to the second
@@ -694,12 +736,10 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                             if (v.back()->get_end()
                                 == (--(prg.nodes.end()))->second->pos.get_end()) {
                                 end_leaves.push_back(new_kn);
-                            } else if (find(current_leaves.begin(),
-                                           current_leaves.end(), new_kn)
-                                == current_leaves.end()) {
-                                current_leaves.push_back(new_kn);
+                            } else {
+                                add_node_to_current_leaves(new_kn, current_leaves,
+                                    indexing_upper_bound);
                             }
-                            num_kmers_added += 1;
                         } else {
                             kmer_prg.add_edge(old_kn, *found);
                             old_kn = *found;
@@ -707,10 +747,9 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
                             if (v.back()->get_end()
                                 == (--(prg.nodes.end()))->second->pos.get_end()) {
                                 end_leaves.push_back(*found);
-                            } else if (find(current_leaves.begin(),
-                                           current_leaves.end(), *found)
-                                == current_leaves.end()) {
-                                current_leaves.push_back(*found);
+                            } else {
+                                add_node_to_current_leaves(*found, current_leaves,
+                                    indexing_upper_bound);
                             }
                         }
                     }
@@ -744,18 +783,21 @@ void LocalPRG::minimizer_sketch(const std::shared_ptr<Index>& index, const uint3
         (--(prg.nodes.end()))->second->pos.get_end()) };
     kmer_path.initialize(d);
     kn = kmer_prg.add_node(kmer_path);
-    num_kmers_added += 1;
     for (uint32_t i = 0; i != end_leaves.size(); ++i) {
         kmer_prg.add_edge(end_leaves[i], kn);
     }
 
-    // print, check and return
-    const bool number_of_kmers_added_is_consistent
-        = (num_kmers_added == 0) or (kmer_prg.nodes.size() == num_kmers_added);
-    if (!number_of_kmers_added_is_consistent) {
-        fatal_error(
-            "Error when minimizing a local PRG: incorrect number of kmers added");
+#pragma omp critical(add_kmers_to_index)
+    {
+        for (const AddRecordToIndexParams &params : kmers_to_be_added_to_the_index) {
+            index->add_record(params);
+        }
     }
+
+    BOOST_LOG_TRIVIAL(info) << "Finished sketching PRG " << name << " - "
+                            << kmers_to_be_added_to_the_index.size() << " kmers indexed";
+
+    kmers_to_be_added_to_the_index.clear();
     kmer_prg.remove_shortcut_edges();
     kmer_prg.check();
 }
@@ -842,7 +884,7 @@ std::vector<LocalNodePtr> LocalPRG::localnode_path_from_kmernode_path(
     // extend to beginning of graph if possible
     bool overlap;
     if (localnode_path[0]->id != 0) {
-        walk_paths = prg.walk(0, 0, w);
+        walk_paths = prg.walk(0, 0, w, 1000000);
         for (uint32_t i = 0; i != walk_paths.size(); ++i) {
             walk_path = nodes_along_path(*(walk_paths[i]));
             // does it overlap
@@ -925,7 +967,7 @@ std::vector<LocalNodePtr> LocalPRG::localnode_path_from_kmernode_path(
     return localnode_path;
 }
 
-std::vector<uint32_t> get_covgs_along_localnode_path(const PanNodePtr pan_node,
+std::vector<uint32_t> get_covgs_along_localnode_path(const pangenome::NodePtr pan_node,
     const std::vector<LocalNodePtr>& localnode_path,
     const std::vector<KmerNodePtr>& kmernode_path, const uint32_t& sample_id)
 {
@@ -1652,7 +1694,7 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF& vcf, const KmerGraphWithCoverage& kg
     }
 }
 
-void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, PanNodePtr pnode,
+void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePtr pnode,
     std::vector<KmerNodePtr>& kmp, std::vector<LocalNodePtr>& lmp, const uint32_t w,
     const bool bin, const uint32_t global_covg,
     const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id) const
@@ -1749,7 +1791,7 @@ std::vector<LocalNodePtr> LocalPRG::get_valid_vcf_reference(
     return reference_path;
 }
 
-void LocalPRG::add_variants_to_vcf(VCF& master_vcf, PanNodePtr pnode,
+void LocalPRG::add_variants_to_vcf(VCF& master_vcf, pangenome::NodePtr pnode,
     const std::string& vcf_ref, const std::vector<KmerNodePtr>& kmp,
     const std::vector<LocalNodePtr>& lmp, const uint32_t& sample_id,
     const std::string& sample_name)

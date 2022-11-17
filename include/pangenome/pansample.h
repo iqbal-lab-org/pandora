@@ -5,11 +5,9 @@
 #include <cstdint>
 #include <vector>
 #include <unordered_map>
-#include "pangenome/ns.cpp"
+#include "forward_declarations.h"
 
 class KmerNode;
-
-typedef std::shared_ptr<KmerNode> KmerNodePtr;
 
 class pangenome::Sample {
 public:

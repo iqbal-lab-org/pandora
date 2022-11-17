@@ -1,211 +1,118 @@
 #include "denovo_discovery/denovo_utils.h"
+#include <numeric>
 
-PathComponents find_interval_and_flanks_in_localpath(const Interval& interval,
-    const std::vector<LocalNodePtr>& local_node_max_likelihood_path)
-{
-    if (interval.empty()) {
-        return PathComponents();
+size_t get_flank_field_pos(const std::vector<std::string> &words, const std::string &flank_prefix) {
+    for (size_t i=11; i<words.size(); i++) {
+        const std::string &word = words[i];
+        const bool found_flank_field = word.find(flank_prefix)==0;
+        if (found_flank_field) {
+            return i;
+        }
     }
 
-    uint32_t start { 0 };
-    uint32_t end { 0 };
-    bool found_start { false };
-    bool found_end { false };
-    uint32_t total_bases_traversed { 0 };
-    std::vector<Interval> intervals_found, flank_left_intervals, flank_right_intervals;
-    const auto interval_end { interval.get_end() };
+    throw FatalRuntimeError("get_flank_field_pos(): could not find flank prefix " + flank_prefix);
+}
 
-    for (const auto& current_node : local_node_max_likelihood_path) {
-        total_bases_traversed += current_node->pos.length;
-        start = current_node->pos.start;
-        const auto current_node_end { current_node->pos.get_end() };
+std::map<std::string, std::string> get_locus_to_reads(
+    const fs::path &sample_outdir,
+    const std::string &sample_name
+) {
+    // get all reads from a locus and put in a vector (locus_to_vector_of_reads)
+    std::map<std::string, std::vector<std::string>> locus_to_vector_of_reads;
+    std::ifstream filtered_samfile;
 
-        const auto havent_reached_interval_start { interval.start
-            >= total_bases_traversed };
-        if (havent_reached_interval_start) {
-            flank_left_intervals.emplace_back(current_node->pos);
-            continue;
-        }
+    open_file_for_reading((sample_outdir / (sample_name + ".filtered.sam")).string(),
+        filtered_samfile);
 
-        const auto found_node_interval_starts_in { (
-            not found_start and interval.start < total_bases_traversed) };
-        if (found_node_interval_starts_in) {
-            start = current_node_end - (total_bases_traversed - interval.start);
-            found_start = true;
+    std::string line;
+    uint64_t segment_order = 0;
+    size_t left_flank_field_pos = 0;
+    size_t right_flank_field_pos = 0;
 
-            const auto interval_starts_after_start_of_current_node { interval.start
-                > (total_bases_traversed - current_node->pos.length) };
-            if (interval_starts_after_start_of_current_node) {
-                flank_left_intervals.emplace_back(
-                    Interval(current_node->pos.start, start));
+    while (std::getline(filtered_samfile, line))
+    {
+        const bool is_header = !line.empty() && line[0]=='@';
+        if (is_header) continue;
+
+        std::vector<std::string> words;
+        boost::split(words, line, boost::is_any_of("\t"));
+        const bool is_mapped = words.size() >= 3 && (words[1] == "0" || words[1] == "16");
+        if (is_mapped) {
+            const bool flanks_field_pos_should_be_found = left_flank_field_pos==0;
+            if (flanks_field_pos_should_be_found) {
+                left_flank_field_pos = get_flank_field_pos(words, "LF:Z:");
+                right_flank_field_pos = get_flank_field_pos(words, "RF:Z:");
             }
 
-            const auto interval_doesnt_end_in_this_node { interval_end
-                > total_bases_traversed };
-            if (interval_doesnt_end_in_this_node) {
-                intervals_found.emplace_back(Interval(start, current_node_end));
-                continue;
-            }
-        }
+            const std::string &read_name = words[0];
+            const std::string &locus = words[2];
+            const std::string &segment_seq = words[9];
+            const std::string &left_flank_field = words[left_flank_field_pos];
+            const std::string left_flank = left_flank_field.substr(5);
+            const std::string &right_flank_field = words[right_flank_field_pos];
+            const std::string right_flank = right_flank_field.substr(5);
+            std::string segment_seq_with_flanks;
+            segment_seq_with_flanks.reserve(
+                left_flank.size() + segment_seq.size() + right_flank.size() + 8);
+            segment_seq_with_flanks.append(left_flank).append(segment_seq).append(right_flank);
 
-        const auto found_node_interval_ends_in { (
-            not found_end and interval_end <= total_bases_traversed) };
-        if (found_node_interval_ends_in) {
-            end = current_node_end - (total_bases_traversed - interval_end);
-
-            const auto interval_ends_before_end_of_current_node { interval_end
-                < total_bases_traversed };
-            if (interval_ends_before_end_of_current_node) {
-                flank_right_intervals.emplace_back(Interval(end, current_node_end));
-            }
-            intervals_found.emplace_back(Interval(start, end));
-            found_end = true;
-            continue;
-        }
-
-        const auto node_is_completely_contained_in_interval { interval.start
-                < total_bases_traversed
-            and interval_end > total_bases_traversed };
-        if (node_is_completely_contained_in_interval) {
-            intervals_found.emplace_back(
-                Interval(start, start + current_node->pos.length));
-            continue;
-        }
-
-        const auto past_interval_end { found_end
-            and interval_end < total_bases_traversed };
-        if (past_interval_end) {
-            flank_right_intervals.emplace_back(current_node->pos);
+            std::stringstream ss;
+            ss << ">" << read_name << "_seg_order_" << segment_order << "\n" << segment_seq_with_flanks << "\n";
+            ++segment_order;
+            locus_to_vector_of_reads[locus].push_back(ss.str());
         }
     }
 
-    prg::Path interval_as_path;
-    interval_as_path.initialize(intervals_found);
-    prg::Path left_flank_path;
-    left_flank_path.initialize(flank_left_intervals);
-    prg::Path right_flank_path;
-    right_flank_path.initialize(flank_right_intervals);
+    // transforms the vector to a single string
+    std::map<std::string, std::string> locus_to_reads;
+    for(const auto &locus_to_vector_of_reads_it : locus_to_vector_of_reads) {
+        const std::string &locus = locus_to_vector_of_reads_it.first;
+        const std::vector<std::string> &reads = locus_to_vector_of_reads_it.second;
 
-    PathComponents found_components { left_flank_path, interval_as_path,
-        right_flank_path };
-
-    return found_components;
-}
-
-std::vector<MinimizerHitPtr> find_hits_inside_path(
-    const std::vector<MinimizerHitPtr>& read_hits, const prg::Path& local_path)
-{
-    std::vector<MinimizerHitPtr> hits_inside_local_path;
-
-    if (local_path.empty()) {
-        return hits_inside_local_path;
-    }
-
-    for (const auto& current_read_hit : read_hits) {
-        for (const auto& interval : local_path) {
-            const auto& prg_path_of_current_read_hit = current_read_hit->get_prg_path();
-            const auto hit_is_to_left_of_path_start { interval.start
-                > prg_path_of_current_read_hit.get_end() };
-            const auto hit_is_to_right_of_current_interval { interval.get_end()
-                < prg_path_of_current_read_hit.get_start() };
-
-            if (hit_is_to_left_of_path_start) {
-                break;
-            } else if (hit_is_to_right_of_current_interval) {
-                continue;
-            } else if (prg_path_of_current_read_hit.is_subpath(local_path)) {
-                hits_inside_local_path.push_back(current_read_hit);
-                break;
-            }
+        size_t reads_string_size = std::accumulate(reads.begin(), reads.end(),
+            (size_t)0, [](uint32_t size, const std::string &read) {
+                return size + read.size();
+        });
+        std::string reads_as_a_single_string;
+        reads_as_a_single_string.reserve(reads_string_size + 64);
+        for (const std::string &read : reads) {
+            reads_as_a_single_string += read;
         }
+
+        locus_to_reads[locus] = reads_as_a_single_string;
     }
 
-    return hits_inside_local_path;
+    return locus_to_reads;
 }
 
-ReadCoordinate::ReadCoordinate(
-    uint32_t id, uint32_t start, uint32_t end, bool is_forward)
-    : id(id)
-    , start(start)
-    , end(end)
-    , is_forward(is_forward)
-{
-}
 
-bool ReadCoordinate::operator<(const ReadCoordinate& y) const
-{
-    if (this->id < y.id) {
-        return true;
+void concatenate_all_denovo_files(const std::vector<SampleData> &samples,
+    const fs::path &outdir) {
+    std::vector<fs::path> denovo_paths_files;
+    std::vector<fs::path> denovo_sequences_files;
+    for (uint32_t sample_id = 0; sample_id < samples.size(); sample_id++) {
+        const auto& sample = samples[sample_id];
+        const auto& sample_name = sample.first;
+        fs::path denovo_path_output_file = outdir / sample_name / "denovo_paths.txt";
+        denovo_paths_files.push_back(denovo_path_output_file);
+        fs::path denovo_sequence_output_file = outdir / sample_name / "denovo_sequences.fa";
+        denovo_sequences_files.push_back(denovo_sequence_output_file);
     }
-    if (this->id > y.id) {
-        return false;
-    }
+    fs::path denovo_paths_output_file = outdir / "denovo_paths.txt";
+    std::string nb_of_samples_line(std::to_string(samples.size()) + " samples");
+    concatenate_text_files(denovo_paths_output_file, denovo_paths_files, nb_of_samples_line);
 
-    if (this->start < y.start) {
-        return true;
-    }
-    if (this->start > y.start) {
-        return false;
-    }
-
-    if (this->end < y.end) {
-        return true;
-    }
-    if (this->end > y.end) {
-        return false;
-    }
-
-    if (this->is_forward and not y.is_forward) {
-        return true;
-    }
-    if (y.is_forward and not this->is_forward) {
-        return false;
-    }
-
-    return false;
+    fs::path denovo_sequences_output_file = outdir / "denovo_sequences.fa";
+    concatenate_text_files(denovo_sequences_output_file, denovo_sequences_files);
 }
 
-bool ReadCoordinate::operator==(const ReadCoordinate& y) const
-{
-    return ((this->id == y.id) and (this->start == y.start) and (this->end == y.end)
-        and (this->is_forward == y.is_forward));
-}
-
-bool ReadCoordinate::operator!=(const ReadCoordinate& y) const
-{
-    return (!(*this == y));
-}
-
-size_t std::hash<ReadCoordinate>::operator()(const ReadCoordinate& coordinate) const
-{
-    return hash<int>()(coordinate.start) ^ hash<int>()(coordinate.id)
-        ^ hash<int>()(coordinate.end) ^ hash<bool>()(coordinate.is_forward);
-}
-
-std::ostream& operator<<(std::ostream& out, ReadCoordinate const& y)
-{
-    out << "{" << y.id << ", " << y.start << ", " << y.end << ", " << y.is_forward
-        << "}";
-    return out;
-}
-
-PathComponents::PathComponents() = default;
-
-PathComponents::PathComponents(
-    prg::Path flank_left, prg::Path slice, prg::Path flank_right)
-    : flank_left(std::move(flank_left))
-    , slice(std::move(slice))
-    , flank_right(std::move(flank_right))
-{
-}
-
-bool PathComponents::operator==(const PathComponents& other) const
-{
-    return (flank_left == other.flank_left and flank_right == other.flank_right
-        and slice == other.slice);
-}
-
-bool PathComponents::operator!=(const PathComponents& other) const
-{
-    return (!(*this == other));
+void write_denovo_header_file(const std::string &sample_name,
+    const fs::path &denovo_outdir, uint32_t number_of_loci_with_denovo_variants) {
+    std::ofstream denovo_paths_out_header_file;
+    open_file_for_writing((denovo_outdir / "denovo_paths_header.txt").string(),
+        denovo_paths_out_header_file);
+    denovo_paths_out_header_file << "Sample " << sample_name << std::endl;
+    denovo_paths_out_header_file << number_of_loci_with_denovo_variants <<
+        " loci with denovo variants" << std::endl;
+    denovo_paths_out_header_file.close();
 }

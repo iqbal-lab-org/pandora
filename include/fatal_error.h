@@ -1,7 +1,6 @@
 #ifndef PANDORA_FATAL_ERROR_H
 #define PANDORA_FATAL_ERROR_H
 
-#include "backward.hpp"
 #include <sstream>
 
 template <typename T> std::string to_string(const T& element)
@@ -28,17 +27,7 @@ class FatalRuntimeError : public std::runtime_error {
 
 template <typename... Args> void fatal_error(Args const&... args)
 {
-    backward::StackTrace stacktrace;
-    stacktrace.load_here(32);
-    backward::Printer stacktrace_printer;
-    stacktrace_printer.address = true;
-    stacktrace_printer.object = true;
-    std::stringstream ss;
-    stacktrace_printer.print(stacktrace, ss);
-    throw FatalRuntimeError(stringer("[FATAL ERROR]: ", args...,
-        "\nAborting...\n\nDEBUG info (for developers, provide this if opening an "
-        "issue):\n",
-        ss.str()));
+    throw FatalRuntimeError(stringer("[FATAL ERROR]: ", args..., "\nAborting..."));
 }
 
 #endif // PANDORA_FATAL_ERROR_H

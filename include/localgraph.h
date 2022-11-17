@@ -15,6 +15,7 @@
 #include <boost/log/trivial.hpp>
 #include "utils.h"
 #include "fatal_error.h"
+#include "globals.h"
 
 class LocalGraph {
 public:
@@ -35,7 +36,8 @@ public:
 
     void read_gfa(const std::string&);
 
-    std::vector<PathPtr> walk(const uint32_t&, const uint32_t&, const uint32_t&) const;
+    std::vector<PathPtr> walk(const uint32_t&, const uint32_t&, const uint32_t&,
+        uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT) const;
 
     std::vector<PathPtr> walk_back(
         const uint32_t&, const uint32_t&, const uint32_t&) const;

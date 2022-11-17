@@ -6,6 +6,7 @@
 #include "gtest/gtest.h"
 #include "test_macro.cpp"
 #include "de_bruijn_graph_class.h"
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 
 using namespace debruijn;

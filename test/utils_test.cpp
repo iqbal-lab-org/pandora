@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <vector>
 #include "fatal_error.h"
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 
 using namespace std;
@@ -154,7 +155,7 @@ TEST(UtilsTest, addReadHits)
     MinimizerHits expected4;
 
     // initialize index as we would expect with example prgs 1 and 3 from above
-    KmerHash hash;
+    pandora::KmerHash hash;
     auto index = std::make_shared<Index>();
     deque<Interval> d = { Interval(0, 3) };
     prg::Path p;
@@ -168,8 +169,8 @@ TEST(UtilsTest, addReadHits)
     Minimizer min2(0, 1, 4, 0); // kmer, start, end, strand
     MiniRecord mr2(1, p, 0, 1);
     MinimizerHitPtr m2(make_shared<MinimizerHit>(0, min2, mr2));
-    expected1.hits.insert(m1);
-    expected2.hits.insert(m2);
+    expected1.insert(m1);
+    expected2.insert(m2);
     d = { Interval(1, 4) };
     p.initialize(d);
     kh = hash.kmerhash("GCT", 3);
@@ -183,8 +184,8 @@ TEST(UtilsTest, addReadHits)
     MiniRecord mr4(1, p, 0, 1);
     MinimizerHitPtr m4(make_shared<MinimizerHit>(0, min4, mr4));
 
-    expected2.hits.insert(m3);
-    expected1.hits.insert(m4);
+    expected2.insert(m3);
+    expected1.insert(m4);
     d = { Interval(0, 1), Interval(4, 5), Interval(8, 9) };
     p.initialize(d);
     kh = hash.kmerhash("AGC", 3);
@@ -196,8 +197,8 @@ TEST(UtilsTest, addReadHits)
     Minimizer min6(0, 1, 4, 0); // kmer, start, end, strand
     MiniRecord mr6(3, p, 0, 1);
     MinimizerHitPtr m6(make_shared<MinimizerHit>(0, min6, mr6));
-    expected1.hits.insert(m5);
-    expected2.hits.insert(m6);
+    expected1.insert(m5);
+    expected2.insert(m6);
     d = { Interval(0, 1), Interval(4, 5), Interval(12, 13) };
     p.initialize(d);
     kh = hash.kmerhash("AGT", 3);
@@ -206,7 +207,7 @@ TEST(UtilsTest, addReadHits)
     Minimizer min9(0, 0, 3, 1); // kmer, start, end, strand
     MiniRecord mr9(3, p, 0, 1);
     MinimizerHitPtr m9(make_shared<MinimizerHit>(0, min9, mr9));
-    expected3.hits.insert(m9);
+    expected3.insert(m9);
     d = { Interval(0, 1), Interval(19, 20), Interval(23, 24) };
     p.initialize(d);
     index->add_record(min(kh.first, kh.second), 3, p, 0, (kh.first < kh.second));
@@ -214,7 +215,7 @@ TEST(UtilsTest, addReadHits)
     Minimizer min10(0, 0, 3, 1); // kmer, start, end, strand
     MiniRecord mr10(3, p, 0, 1);
     MinimizerHitPtr m10(make_shared<MinimizerHit>(0, min10, mr10));
-    expected3.hits.insert(m10);
+    expected3.insert(m10);
     d = { Interval(4, 5), Interval(8, 9), Interval(16, 16), Interval(23, 24) };
     p.initialize(d);
     kh = hash.kmerhash("GCT", 3);
@@ -227,8 +228,8 @@ TEST(UtilsTest, addReadHits)
     Minimizer min8(0, 0, 3, 0); // kmer, start, end, strand
     MiniRecord mr8(3, p, 0, 1);
     MinimizerHitPtr m8(make_shared<MinimizerHit>(0, min8, mr8));
-    expected2.hits.insert(m7);
-    expected1.hits.insert(m8);
+    expected2.insert(m7);
+    expected1.insert(m8);
     d = { Interval(4, 5), Interval(12, 13), Interval(16, 16), Interval(23, 24) };
     p.initialize(d);
     kh = hash.kmerhash("GTT", 3);
@@ -237,14 +238,14 @@ TEST(UtilsTest, addReadHits)
     Minimizer min11(0, 1, 4, 1); // kmer, start, end, strand
     MiniRecord mr11(3, p, 0, 1);
     MinimizerHitPtr m11(make_shared<MinimizerHit>(0, min11, mr11));
-    expected4.hits.insert(m11);
+    expected4.insert(m11);
 
     Seq s(0, "read1", "AGC", 1, 3);
     add_read_hits(s, minimizer_hits, *index);
-    EXPECT_EQ(expected1.hits.size(), minimizer_hits->hits.size());
-    set<MinimizerHitPtr, pComp>::const_iterator it2 = expected1.hits.begin();
-    for (set<MinimizerHitPtr, pComp>::const_iterator it = minimizer_hits->hits.begin();
-         it != minimizer_hits->hits.end(); ++it) {
+    EXPECT_EQ(expected1.size(), minimizer_hits->size());
+    auto it2 = expected1.begin();
+    for (auto it = minimizer_hits->begin();
+         it != minimizer_hits->end(); ++it) {
         EXPECT_EQ(**it2, **it);
         it2++;
     }
@@ -254,28 +255,28 @@ TEST(UtilsTest, addReadHits)
 
     minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     uint32_t j = 0;
-    EXPECT_EQ(j, minimizer_hits->hits.size());
+    EXPECT_EQ(j, minimizer_hits->size());
     s = Seq(0, "read2", "AGTT", 2, 3);
     add_read_hits(s, minimizer_hits, *index);
-    EXPECT_EQ(expected4.hits.size(), minimizer_hits->hits.size());
-    it2 = expected4.hits.begin();
-    for (set<MinimizerHitPtr, pComp>::const_iterator it = minimizer_hits->hits.begin();
-         it != minimizer_hits->hits.end(); ++it) {
+    EXPECT_EQ(expected4.size(), minimizer_hits->size());
+    it2 = expected4.begin();
+    for (auto it = minimizer_hits->begin();
+         it != minimizer_hits->end(); ++it) {
         EXPECT_EQ(**it2, **it);
         it2++;
     }
 
     // but for w=1, only add one more hit, for GTT
-    expected3.hits.insert(m11);
+    expected3.insert(m11);
 
     minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
-    EXPECT_EQ(j, minimizer_hits->hits.size());
+    EXPECT_EQ(j, minimizer_hits->size());
     s = Seq(0, "read2", "AGTT", 1, 3);
     add_read_hits(s, minimizer_hits, *index);
-    EXPECT_EQ(expected3.hits.size(), minimizer_hits->hits.size());
-    it2 = expected3.hits.begin();
-    for (set<MinimizerHitPtr, pComp>::const_iterator it = minimizer_hits->hits.begin();
-         it != minimizer_hits->hits.end(); ++it) {
+    EXPECT_EQ(expected3.size(), minimizer_hits->size());
+    it2 = expected3.begin();
+    for (auto it = minimizer_hits->begin();
+         it != minimizer_hits->end(); ++it) {
         EXPECT_EQ(**it2, **it);
         it2++;
     }
@@ -284,13 +285,14 @@ TEST(UtilsTest, addReadHits)
     // and GCT
     minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     j = 0;
-    EXPECT_EQ(j, minimizer_hits->hits.size());
+    EXPECT_EQ(j, minimizer_hits->size());
     s = Seq(0, "read3", "AGCT", 1, 3);
     add_read_hits(s, minimizer_hits, *index);
-    expected1.hits.insert(expected2.hits.begin(), expected2.hits.end());
-    EXPECT_EQ(expected1.hits.size(), minimizer_hits->hits.size());
-    it2 = expected1.hits.begin();
-    for (auto it = minimizer_hits->hits.begin(); it != minimizer_hits->hits.end();
+
+    expected1.insert(expected2.begin(), expected2.end());
+    EXPECT_EQ(expected1.size(), minimizer_hits->size());
+    it2 = expected1.begin();
+    for (auto it = minimizer_hits->begin(); it != minimizer_hits->end();
          ++it) {
         EXPECT_EQ(**it2, **it);
         it2++;
@@ -300,70 +302,29 @@ TEST(UtilsTest, addReadHits)
     // AGC and GCT are joint minimums
     minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
     j = 0;
-    EXPECT_EQ(j, minimizer_hits->hits.size());
+    EXPECT_EQ(j, minimizer_hits->size());
     s = Seq(0, "read3", "AGCT", 2, 3);
     add_read_hits(s, minimizer_hits, *index);
-    EXPECT_EQ(expected1.hits.size(), minimizer_hits->hits.size());
-    it2 = expected1.hits.begin();
-    for (auto it = minimizer_hits->hits.begin(); it != minimizer_hits->hits.end();
+    EXPECT_EQ(expected1.size(), minimizer_hits->size());
+    it2 = expected1.begin();
+    for (auto it = minimizer_hits->begin(); it != minimizer_hits->end();
          ++it) {
         EXPECT_EQ(**it2, **it);
         it2++;
     }
 
-    expected1.hits.clear();
-    expected2.hits.clear();
-    expected3.hits.clear();
-    expected4.hits.clear();
+    expected1.clear();
+    expected2.clear();
+    expected3.clear();
+    expected4.clear();
     index->clear();
-}
-
-TEST(UtilsTest, filter_clusters2)
-{
-    deque<Interval> d = { Interval(0, 10) };
-    prg::Path p;
-    p.initialize(d);
-
-    set<MinimizerHitPtr, pComp> s;
-    set<set<MinimizerHitPtr, pComp>, clusterComp> ss, ss_exp;
-
-    MinimizerHitPtr mh;
-    for (uint i = 0; i != 6; ++i) {
-        Minimizer min1(0, i, i + 10, 0); // kmer, start, end, strand
-        MiniRecord mr1(0, p, 0, 0);
-        mh = make_shared<MinimizerHit>(1, min1, mr1);
-        s.insert(mh);
-    }
-    ss.insert(s);
-    ss_exp.insert(s);
-    s.clear();
-    for (uint i = 5; i != 15; ++i) {
-        Minimizer min2(0, i, i + 10, 0); // kmer, start, end, strand
-        MiniRecord mr2(1, p, 0, 0);
-        mh = make_shared<MinimizerHit>(1, min2, mr2);
-        s.insert(mh);
-    }
-    ss.insert(s);
-    ss_exp.insert(s);
-    s.clear();
-    for (uint i = 3; i != 7; ++i) {
-        Minimizer min3(0, i, i + 10, 0); // kmer, start, end, strand
-        MiniRecord mr3(2, p, 0, 0);
-        mh = make_shared<MinimizerHit>(1, min3, mr3);
-        s.insert(mh);
-    }
-    ss.insert(s);
-
-    filter_clusters2(ss, 20);
-
-    EXPECT_EQ(ss_exp.size(), ss.size());
 }
 
 TEST(UtilsTest, simpleInferLocalPRGOrderForRead)
 {
     // initialize minihits container
     auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
-    KmerHash hash;
+    pandora::KmerHash hash;
 
     // initialize a prgs object
     std::vector<std::shared_ptr<LocalPRG>> prgs;
@@ -491,7 +452,12 @@ TEST(UtilsTest, simpleInferLocalPRGOrderForRead)
 
     // initialize pangraph;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    infer_localPRG_order_for_reads(prgs, minimizer_hits, pangraph, 1, 100, 0.1, 1);
+    ClusterDefFile cluster_def_file("", true);
+    ClusterFilterFile cluster_filter_file("", true);
+    MinimizerHitClusters minimizer_hit_clusters = get_minimizer_hit_clusters(
+        "sample", s, prgs, minimizer_hits, pangraph, 1, 100, 0.1,
+        cluster_def_file, cluster_filter_file, 1);
+    add_clusters_to_pangraph(minimizer_hit_clusters, pangraph, prgs);
 
     // create a pangraph object representing the truth we expect (prg 3 then 1)
     pangenome::Graph pg_exp;
@@ -507,7 +473,7 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead)
 {
     // initialize minihits container
     auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
-    KmerHash hash;
+    pandora::KmerHash hash;
 
     // initialize a prgs object
     std::vector<std::shared_ptr<LocalPRG>> prgs;
@@ -725,7 +691,12 @@ TEST(UtilsTest, biggerInferLocalPRGOrderForRead)
 
     // initialize pangraph;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    infer_localPRG_order_for_reads(prgs, minimizer_hits, pangraph, 1, 100, 0.1, 1);
+    ClusterDefFile cluster_def_file("", true);
+    ClusterFilterFile cluster_filter_file("", true);
+    MinimizerHitClusters minimizer_hit_clusters = get_minimizer_hit_clusters(
+        "sample", s, prgs, minimizer_hits, pangraph, 1, 100, 0.1,
+        cluster_def_file, cluster_filter_file, 1);
+    add_clusters_to_pangraph(minimizer_hit_clusters, pangraph, prgs);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other
@@ -767,7 +738,7 @@ void setup_index(
     prgs.push_back(lp2);
     prgs.push_back(lp3);
 
-    KmerHash hash;
+    pandora::KmerHash hash;
     vector<KmerNodePtr> v;
     KmerNodePtr kn;
 
@@ -971,8 +942,13 @@ TEST(UtilsTest, pangraphFromReadFile_Fa)
     setup_index(prgs, index);
 
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    pangraph_from_read_file(
-        TEST_CASE_DIR + "read2.fa", pangraph, index, prgs, 1, 3, 1, 0.1, 1);
+    SampleData sample_data{"reads_2", TEST_CASE_DIR + "read2.fa"};
+
+    fs::path outdir("reads_2_outdir");
+    fs::create_directories(outdir);
+    pangraph_from_read_file(sample_data, pangraph, index, prgs, 1, 3, 1,
+        0.1, outdir, 1);
+    fs::remove_all(outdir);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other
@@ -996,8 +972,13 @@ TEST(UtilsTest, pangraphFromReadFile_Fq)
     setup_index(prgs, index);
 
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
-    pangraph_from_read_file(
-        TEST_CASE_DIR + "read2.fq", pangraph, index, prgs, 1, 3, 1, 0.1, 1);
+
+    fs::path outdir("reads_2_outdir");
+    fs::create_directories(outdir);
+    SampleData sample_data{"reads_2", TEST_CASE_DIR + "read2.fa"};
+    pangraph_from_read_file(sample_data, pangraph, index, prgs, 1, 3, 1,
+        0.1, outdir, 1);
+    fs::remove_all(outdir);
 
     // create a pangraph object representing the truth we expect (prg 3 4 2 1)
     // note that prgs 1, 3, 4 share no 3mer, but 2 shares a 3mer with each of 2 other
@@ -1155,36 +1136,6 @@ TEST(MakeAbsoluteTest, FileReturnsAbsolutePathToFile)
     EXPECT_EQ(actual, expected.string());
 }
 
-TEST(remove_spaces_from_string, simple_test___no_spaces)
-{
-    std::string str { "ACGT" };
-
-    const std::string expected { "ACGT" };
-    const std::string actual = remove_spaces_from_string(str);
-
-    EXPECT_EQ(actual, expected);
-}
-
-TEST(remove_spaces_from_string, simple_test___with_spaces)
-{
-    std::string str { "-A-C------G--T---" };
-
-    const std::string expected { "ACGT" };
-    const std::string actual = remove_spaces_from_string(str);
-
-    EXPECT_EQ(actual, expected);
-}
-
-TEST(remove_spaces_from_string, simple_test___only_spaces)
-{
-    std::string str { "---------" };
-
-    const std::string expected { "" };
-    const std::string actual = remove_spaces_from_string(str);
-
-    EXPECT_EQ(actual, expected);
-}
-
 TEST(load_read_index, read_index_does_not_exist___expects_FatalRuntimeError)
 {
     ASSERT_EXCEPTION(load_read_index(fs::path("nonexistent_read_index.tsv")),
@@ -1193,9 +1144,9 @@ TEST(load_read_index, read_index_does_not_exist___expects_FatalRuntimeError)
 
 TEST(load_read_index, read_index_has_three_samples)
 {
-    std::vector<std::pair<SampleIdText, SampleFpath>> actual
+    std::vector<SampleData> actual
         = load_read_index(fs::path("../../test/test_cases/sample_read_index.tsv"));
-    std::vector<std::pair<SampleIdText, SampleFpath>> expected { {
+    std::vector<SampleData> expected { {
         std::make_pair("sample_1", "reads_1.fastq"),
         std::make_pair("sample_2", "reads_2.fastq"),
         std::make_pair("sample_3", "reads_3.fastq"),
@@ -1219,9 +1170,9 @@ TEST(load_read_index, read_index_has_three_samples_and_no_empty_line_at_end)
 
 TEST(load_read_index, read_index_has_three_samples_and_two_are_repeated)
 {
-    std::vector<std::pair<SampleIdText, SampleFpath>> actual = load_read_index(
+    std::vector<SampleData> actual = load_read_index(
         fs::path("../../test/test_cases/sample_read_index_with_repeated_samples.tsv"));
-    std::vector<std::pair<SampleIdText, SampleFpath>> expected { {
+    std::vector<SampleData> expected { {
         std::make_pair("sample_1", "first_reads_1.fastq"),
         std::make_pair("sample_2", "second_reads_2.fastq"),
         std::make_pair("sample_3", "fourth_reads_3.fastq"),

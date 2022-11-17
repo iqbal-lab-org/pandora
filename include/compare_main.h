@@ -55,10 +55,10 @@ struct CompareOptions {
     float min_allele_fraction_covg_gt { 0 };
     float genotyping_error_rate { 0.01 };
     uint16_t confidence_threshold { 1 };
+    bool keep_extra_debugging_files { false };
 };
 
-std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
-    const fs::path& read_index_fpath);
+std::vector<SampleData> load_read_index(const fs::path& read_index_fpath);
 void setup_compare_subcommand(CLI::App& app);
 int pandora_compare(CompareOptions& opt);
 

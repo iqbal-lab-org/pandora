@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 #include "test_macro.cpp"
-#include "pangenome/ns.cpp"
 #include "pangenome/pannode.h"
 #include "pangenome/panread.h"
 #include "pangenome_graph_class.h"
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 #include "minihit.h"
 #include <stdint.h>
@@ -28,10 +28,10 @@ TEST(ReadAddHits, AddOneEmptyClusterToHits_ReadHitsSizeOne)
 {
     uint32_t read_id = 1;
     Read read(read_id);
-    std::set<MinimizerHitPtr, pComp> cluster;
+    MinimizerHits cluster;
     uint32_t prg_id = 4;
     auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "four", "") };
-    PanNodePtr pan_node = make_shared<pangenome::Node>(local_prg_ptr);
+    pangenome::NodePtr pan_node = std::make_shared<pangenome::Node>(local_prg_ptr);
     read.add_hits(pan_node, cluster);
 
     uint result = read.get_hits_as_unordered_map().size();
@@ -43,10 +43,10 @@ TEST(ReadAddHits, AddOneEmptyClusterToHits_ReadHitsMapContainsCorrectPrgId)
 {
     uint32_t read_id = 1;
     Read read(read_id);
-    std::set<MinimizerHitPtr, pComp> cluster;
+    MinimizerHits cluster;
     uint32_t prg_id = 4;
     auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "four", "") };
-    PanNodePtr pan_node = make_shared<pangenome::Node>(local_prg_ptr);
+    pangenome::NodePtr pan_node = std::make_shared<pangenome::Node>(local_prg_ptr);
     read.add_hits(pan_node, cluster);
 
     auto hits = read.get_hits_as_unordered_map();
@@ -58,7 +58,7 @@ TEST(ReadAddHits, AddClusterSecondTime_FatalRuntimeErrorAndReadHitsNotChanged)
 {
     uint32_t read_id = 1;
     Read read(read_id);
-    std::set<MinimizerHitPtr, pComp> cluster;
+    MinimizerHits cluster;
     uint32_t prg_id = 4;
 
     Interval interval(0, 5);
@@ -71,7 +71,7 @@ TEST(ReadAddHits, AddClusterSecondTime_FatalRuntimeErrorAndReadHitsNotChanged)
 
     cluster.insert(minimizer_hit);
     auto local_prg_ptr { std::make_shared<LocalPRG>(prg_id, "four", "") };
-    PanNodePtr pan_node = make_shared<pangenome::Node>(local_prg_ptr);
+    pangenome::NodePtr pan_node = std::make_shared<pangenome::Node>(local_prg_ptr);
     read.add_hits(pan_node, cluster);
     ASSERT_EXCEPTION(read.add_hits(pan_node, cluster), FatalRuntimeError,
         "Error when adding hits to Pangraph read");
@@ -82,10 +82,10 @@ TEST(ReadAddHits, AddSecondCluster_ReadHitsMapContainsCorrectPrgIds)
 {
     uint32_t read_id = 1;
     Read read(read_id);
-    std::set<MinimizerHitPtr, pComp> cluster;
+    MinimizerHits cluster;
     uint32_t prg_id = 4;
     auto local_prg_ptr_4 { std::make_shared<LocalPRG>(prg_id, "four", "") };
-    PanNodePtr pan_node_4 = make_shared<pangenome::Node>(local_prg_ptr_4);
+    pangenome::NodePtr pan_node_4 = std::make_shared<pangenome::Node>(local_prg_ptr_4);
     read.add_hits(pan_node_4, cluster);
 
     prg_id = 5;
@@ -98,7 +98,7 @@ TEST(ReadAddHits, AddSecondCluster_ReadHitsMapContainsCorrectPrgIds)
     MinimizerHitPtr minimizer_hit(std::make_shared<MinimizerHit>(read_id, m1, mr1));
     cluster.insert(minimizer_hit);
     auto local_prg_ptr_5 { std::make_shared<LocalPRG>(prg_id, "five", "") };
-    PanNodePtr pan_node_5 = make_shared<pangenome::Node>(local_prg_ptr_5);
+    pangenome::NodePtr pan_node_5 = std::make_shared<pangenome::Node>(local_prg_ptr_5);
     read.add_hits(pan_node_5, cluster);
     auto hits = read.get_hits_as_unordered_map();
     auto result = hits.find(prg_id) != hits.end();
@@ -107,7 +107,7 @@ TEST(ReadAddHits, AddSecondCluster_ReadHitsMapContainsCorrectPrgIds)
 
 TEST(PangenomeReadTest, find_position)
 {
-    std::set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     PGraphTester pg;
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -221,7 +221,7 @@ TEST(PangenomeReadTest, find_position)
 TEST(PangenomeReadTest, remove_node)
 {
 
-    std::set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
 
     PGraphTester pg;
     std::vector<WeakNodePtr> exp_read_nodes;
@@ -322,7 +322,7 @@ TEST(PangenomeReadTest, remove_node)
     Minimizer m1(0, i.start, i.get_end(), 0); // kmer, start, end, strand
     MiniRecord mr1(4, p, 0, 0);
     MinimizerHitPtr mh(std::make_shared<MinimizerHit>(4, m1, mr1));
-    std::set<MinimizerHitPtr, pComp> c;
+    MinimizerHits c;
     c.insert(mh);
     pg.reads[2]->add_hits(pg.nodes[4], c);
 
@@ -373,7 +373,7 @@ TEST(PangenomeReadTest, remove_node)
 
 TEST(PangenomeReadTest, remove_node_it)
 {
-    std::set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
 
     PGraphTester pg;
     std::vector<WeakNodePtr> exp_read_nodes;
@@ -475,7 +475,7 @@ TEST(PangenomeReadTest, remove_node_it)
     Minimizer m1(0, i.start, i.get_end(), 0); // kmer, start, end, strand
     MiniRecord mr1(4, p, 0, 0);
     MinimizerHitPtr mh(std::make_shared<MinimizerHit>(4, m1, mr1));
-    std::set<MinimizerHitPtr, pComp> c;
+    MinimizerHits c;
     c.insert(mh);
     pg.reads[2]->add_hits(pg.nodes[4], c);
 
@@ -526,7 +526,7 @@ TEST(PangenomeReadTest, remove_node_it)
 
 TEST(PangenomeReadTest, replace_node)
 {
-    std::set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
 
     pangenome::Graph pg;
 
@@ -635,7 +635,7 @@ TEST(PangenomeReadTest, replace_node)
     Minimizer m1(0, i.start, i.get_end(), 0); // kmer, start, end, strand
     MiniRecord mr1(4, p, 0, 0);
     MinimizerHitPtr mh(std::make_shared<MinimizerHit>(4, m1, mr1));
-    std::set<MinimizerHitPtr, pComp> c;
+    MinimizerHits c;
     c.insert(mh);
     pg.reads[1]->add_hits(pg.nodes[4], c);
     EXPECT_EQ(pg.reads[1]->get_hits_as_unordered_map()[4].size(), (uint)1);

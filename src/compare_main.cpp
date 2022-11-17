@@ -171,6 +171,12 @@ void setup_compare_subcommand(CLI::App& app)
         ->capture_default_str()
         ->group("Genotyping");
 
+    compare_subcmd
+        ->add_flag("-K,--debugging-files", opt->keep_extra_debugging_files,
+            "Keep extra debugging files. Warning: this might "
+            "create thousands of files.")
+        ->group("Debugging");
+
     compare_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
 
@@ -203,6 +209,7 @@ int pandora_compare(CompareOptions& opt)
         opt.max_diff = 2 * opt.kmer_size + 1;
     }
     // ==========
+
     if (opt.window_size > opt.kmer_size) {
         throw std::logic_error("W must NOT be greater than K");
     }
@@ -252,10 +259,10 @@ int pandora_compare(CompareOptions& opt)
 
         BOOST_LOG_TRIVIAL(info) << "Constructing pangenome::Graph from read file "
                                 << sample_fpath << " (this will take a while)";
-        uint32_t covg = pangraph_from_read_file(sample_fpath, pangraph_sample, index,
-            prgs, opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate,
+        uint32_t covg = pangraph_from_read_file(sample, pangraph_sample, index, prgs,
+            opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate, sample_outdir,
             opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean,
-            opt.max_covg, opt.threads);
+            opt.max_covg, opt.threads, opt.keep_extra_debugging_files);
 
         const auto pangraph_gfa { sample_outdir / "pandora.pangraph.gfa" };
         BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file " << pangraph_gfa;
@@ -375,7 +382,7 @@ int pandora_compare(CompareOptions& opt)
         pangraphNodesAsVector.push_back(*pan_id_to_node_mapping);
     }
 
-#pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 1)
+#pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 1) default(shared)
     for (uint32_t pangraph_node_index = 0;
          pangraph_node_index < pangraphNodesAsVector.size(); ++pangraph_node_index) {
         const auto& pangraph_node_entry = pangraphNodesAsVector[pangraph_node_index];

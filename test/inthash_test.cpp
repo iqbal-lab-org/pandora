@@ -12,7 +12,7 @@
 
 using namespace std;
 
-TEST(InthashTest, checkCharToInt) { test_table(); }
+TEST(InthashTest, checkCharToInt) { pandora::test_table(); }
 
 set<string> generate_kmers(vector<string> v, uint32_t k)
 {
@@ -43,7 +43,7 @@ set<string> generate_kmers(vector<string> v, uint32_t k)
 TEST(InthashTest, check1to1)
 {
     vector<uint32_t> ks = { 3, 5 };
-    KmerHash hash;
+    pandora::KmerHash hash;
     for (vector<uint32_t>::iterator jt = ks.begin(); jt != ks.end(); ++jt) {
         uint32_t k = *jt;
         // generate kmers for a given k

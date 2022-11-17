@@ -16,16 +16,6 @@ project(${PROJECT_NAME_STR} VERSION "0.9.2" LANGUAGES C CXX)
 set(ADDITIONAL_VERSION_LABELS "")
 configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
-# add or not feature to print the stack trace
-if(PRINT_STACKTRACE)
-    message(STATUS "Printing meaningful stacktrace enabled, please have binutils-dev installed")
-    add_compile_definitions(BACKWARD_HAS_BFD=1)
-    set(BACKWARD_LIBRARIES "-lbfd")
-else()
-    set(BACKWARD_LIBRARIES "")
-endif()
-
-
 # C++11 required
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -40,12 +30,6 @@ endif ()
 
 # default flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_SYSTEM_NO_DEPRECATED -Wall -Wextra")
-
-if(PRINT_STACKTRACE)
-    # -g is to add debug symbols, to make backtraces meaningful.
-    # it does not impact performance (see https://stackoverflow.com/a/39223245)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-endif ()
 
 # compile with openmp only on Linux
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -75,18 +59,14 @@ set(ZLIB_LIBRARY ZLIB::ZLIB)
 ########################################################################################################################
 
 ########################################################################################################################
-# INSTALL GATB
-include(${PROJECT_SOURCE_DIR}/ext/gatb.cmake)
-include_directories(SYSTEM
-        ${gatb_source_dir}/src
-        ${gatb_binary_dir}/include
-        )
-link_directories(${gatb_binary_dir}/lib)
-set(GATB_LIBS
-        gatbcore
-        hdf5
-        hdf5_tools
-    )
+# CUSTOM CONFIG MINIMAP2
+file(REMOVE_RECURSE ${PROJECT_SOURCE_DIR}/thirdparty/minimap2/lib)
+########################################################################################################################
+
+########################################################################################################################
+# INSTALL Racon
+add_subdirectory(thirdparty/racon)
+set(RACON_LIBRARY racon)
 ########################################################################################################################
 
 ########################################################################################################################
@@ -123,6 +103,7 @@ include_directories(SYSTEM
         ${CMAKE_BINARY_DIR}/include
         ${PROJECT_SOURCE_DIR}/thirdparty/cgranges/cpp
         ${SEQAN_INCLUDE_DIRS}
+        ${PROJECT_SOURCE_DIR}/thirdparty/minimap2/
         )
 
 # normal includes: warnings will be reported for these
@@ -131,6 +112,7 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/src
         ${PROJECT_SOURCE_DIR}/thirdparty/include
         ${PROJECT_SOURCE_DIR}/thirdparty/src
+        ${PROJECT_SOURCE_DIR}/thirdparty/racon/src
 )
 
 # Add definitions set by find_package (SeqAn).
@@ -147,21 +129,21 @@ file(GLOB_RECURSE SRC_FILES
         ${PROJECT_SOURCE_DIR}/thirdparty/src/*.cpp
         ${PROJECT_SOURCE_DIR}/thirdparty/include/*.hpp
         ${PROJECT_SOURCE_DIR}/thirdparty/include/*.h
+        ${PROJECT_SOURCE_DIR}/thirdparty/minimap2/*.c
         )
+list(REMOVE_ITEM SRC_FILES ${PROJECT_SOURCE_DIR}/thirdparty/minimap2/main.c ${PROJECT_SOURCE_DIR}/thirdparty/minimap2/example.c)
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-add_dependencies(${PROJECT_NAME} gatb)
 
 target_link_libraries(${PROJECT_NAME}
-        ${GATB_LIBS}
+        ${RACON_LIBRARY}
         ${Boost_LIBRARIES}
         ${ZLIB_LIBRARY}
         ${CMAKE_DL_LIBS}
         ${STATIC_C_CXX}
-        ${BACKWARD_LIBRARIES}
         ${SEQAN_LIBRARIES}
         ${RT_LIBRARY}
-)
+        )
 
 enable_testing()
 add_subdirectory(test)

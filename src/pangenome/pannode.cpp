@@ -7,6 +7,7 @@
 #include "minihit.h"
 #include "localPRG.h"
 #include "OptionsAggregator.h"
+#include "denovo_discovery/denovo_utils.h"
 
 using namespace pangenome;
 
@@ -97,51 +98,6 @@ void pangenome::Node::add_path(
     }
 }
 
-void pangenome::Node::get_read_overlap_coordinates(
-    std::vector<std::vector<uint32_t>>& read_overlap_coordinates)
-{
-    read_overlap_coordinates.reserve(reads.size());
-    std::vector<uint32_t> coordinate;
-
-    auto read_count = 0;
-    for (const auto& read_ptr : reads) {
-        read_count++;
-        auto hits = read_ptr->get_hits_as_unordered_map();
-        if (hits.at(prg_id).size() < 2)
-            continue;
-
-        auto hit_ptr_iter = hits.at(prg_id).begin();
-        uint32_t start = (*hit_ptr_iter)->get_read_start_position();
-        uint32_t end = 0;
-        for (const auto& hit_ptr : hits.at(prg_id)) {
-            start = std::min(start, hit_ptr->get_read_start_position());
-            end = std::max(end,
-                hit_ptr->get_read_start_position() + hit_ptr->get_prg_path().length());
-        }
-
-        const bool read_coordinates_are_valid = end > start;
-        if (!read_coordinates_are_valid) {
-            fatal_error("Error finding the read overlap coordinates for node ", name,
-                " and read ", read_ptr->id, " (the ", read_count,
-                "th on this node). Found end ", end, " after found start ", start);
-        }
-
-        coordinate = { read_ptr->id, start, end, (*hit_ptr_iter)->is_forward() };
-        read_overlap_coordinates.push_back(coordinate);
-    }
-
-    if (not read_overlap_coordinates.empty()) {
-        sort(read_overlap_coordinates.begin(), read_overlap_coordinates.end(),
-            [](const std::vector<uint32_t>& a, const std::vector<uint32_t>& b) {
-                for (uint32_t i = 0; i < a.size(); ++i) {
-                    if (a[i] != b[i]) {
-                        return a[i] < b[i];
-                    }
-                }
-                return false;
-            });
-    }
-}
 
 void pangenome::Node::construct_multisample_vcf(VCF& master_vcf,
     const std::vector<LocalNodePtr>& vcf_reference_path,
@@ -200,42 +156,4 @@ std::ostream& pangenome::operator<<(std::ostream& out, pangenome::Node const& n)
 {
     out << n.node_id << "," << n.prg_id << " covg: " << n.covg;
     return out;
-}
-
-std::set<ReadCoordinate> pangenome::Node::get_read_overlap_coordinates(
-    const prg::Path& local_path, const uint32_t& min_number_hits)
-{
-    std::set<ReadCoordinate> read_overlap_coordinates;
-
-    for (const auto& current_read : this->reads) {
-        auto hits = current_read->get_hits_as_unordered_map();
-        const auto read_hits_inside_path { find_hits_inside_path(
-            hits.at(this->prg_id), local_path) };
-
-        if (read_hits_inside_path.size() < min_number_hits) {
-            continue;
-        }
-
-        const auto read_hits_iter { read_hits_inside_path.cbegin() };
-        uint32_t start { (*read_hits_iter)->get_read_start_position() };
-        uint32_t end { 0 };
-
-        for (const auto& read_hit : read_hits_inside_path) {
-            start = std::min(start, read_hit->get_read_start_position());
-            end = std::max(end,
-                read_hit->get_read_start_position()
-                    + read_hit->get_prg_path().length());
-        }
-
-        const bool read_coordinates_are_valid = end > start;
-        if (!read_coordinates_are_valid) {
-            fatal_error("Error finding the read overlap coordinates for node ", name,
-                " and read ", current_read->id, ". Found end ", end,
-                " after found start ", start);
-        }
-
-        read_overlap_coordinates.emplace(
-            current_read->id, start, end, (*read_hits_iter)->is_forward());
-    }
-    return read_overlap_coordinates;
 }
