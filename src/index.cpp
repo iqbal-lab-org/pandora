@@ -247,7 +247,6 @@ void Index::index_prgs(ZipFileWriter &index_archive,
     prg_min_path_lengths.resize(prg_names.size());
 
     // now fill index
-    std::atomic_uint32_t nb_of_prgs_done { 0 };
 #pragma omp parallel num_threads(threads)
     while (true) {
         std::shared_ptr<LocalPRG> local_prg(nullptr);
@@ -286,13 +285,10 @@ void Index::index_prgs(ZipFileWriter &index_archive,
             {
                 prg_min_path_lengths[prg_index] = min_path_length;
             }
-
-            ++nb_of_prgs_done;
         } catch (const IndexingLimitReached &error) {
             BOOST_LOG_TRIVIAL(warning) << error.what();
         }
     }
-    BOOST_LOG_TRIVIAL(debug) << "Finished adding " << nb_of_prgs_done << " LocalPRGs to the archive";
     BOOST_LOG_TRIVIAL(debug) << "Number of keys in index: " << this->minhash.size();
 
     // save remaining data
