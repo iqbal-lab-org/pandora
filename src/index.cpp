@@ -168,18 +168,36 @@ void Index::load_minhash(ZipFileReader &zip_file) {
     }
 }
 
-Index Index::load(const fs::path& indexfile)
+Index Index::load(const fs::path& indexfile, std::vector<std::shared_ptr<LocalPRG>>& prgs)
 {
     BOOST_LOG_TRIVIAL(debug) << "Loading index";
     BOOST_LOG_TRIVIAL(debug) << "File is " << indexfile;
 
     ZipFileReader zip_file(indexfile);
+
+    BOOST_LOG_TRIVIAL(debug) << "Loading metadata";
     auto w_and_k = zip_file.read_w_and_k();
+
+    BOOST_LOG_TRIVIAL(debug) << "Loading prg names";
     auto prg_names = zip_file.read_prg_names();
+
+    BOOST_LOG_TRIVIAL(debug) << "Loading prg min path lengths";
     auto prg_min_path_lengths = zip_file.read_prg_min_path_lengths();
     Index index(w_and_k.first, w_and_k.second, std::move(prg_names),
         std::move(prg_min_path_lengths));
+
+    BOOST_LOG_TRIVIAL(debug) << "Loading minhash";
     index.load_minhash(zip_file);
+
+    BOOST_LOG_TRIVIAL(debug) << "Loading kmer prgs";
+    for (const auto& prg : prgs) {
+        const auto filename { prg->name + ".gfa" };
+        std::string gfa_as_str = zip_file.read_full_text_file_as_single_string(filename);
+        std::stringstream gfa_ss;
+        gfa_ss << gfa_as_str;
+        prg->kmer_prg.load(gfa_ss);
+    }
+
     return index;
 }
 
@@ -274,7 +292,7 @@ void Index::index_prgs(ZipFileWriter &index_archive,
             local_prg->minimizer_sketch(this, w, k, indexing_upper_bound, -1);
 
             // zip file variables
-            std::string prg_as_gfa = local_prg->kmer_prg.to_gfa(local_prg);
+            std::string prg_as_gfa = local_prg->kmer_prg.to_gfa();
             std::string zip_path = local_prg->name + ".gfa";
 
             // prg_min_path_lengths variables

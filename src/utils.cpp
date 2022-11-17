@@ -150,27 +150,6 @@ void read_prg_file(
     BOOST_LOG_TRIVIAL(debug) << "Number of LocalPRGs read: " << prgs.size();
 }
 
-void load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    const uint32_t& w, const uint32_t& k, const fs::path& prgfile)
-{
-    BOOST_LOG_TRIVIAL(debug) << "Loading kmer_prgs from files";
-    const auto kmer_prgs_dir { prgfile.parent_path() / "kmer_prgs" };
-
-    auto dir_num = 0;
-    fs::path dir;
-    for (const auto& prg : prgs) {
-        if (prg->id % 4000 == 0) {
-            dir = kmer_prgs_dir / int_to_string(dir_num + 1);
-            dir_num++;
-            if (not fs::exists(dir))
-                dir = kmer_prgs_dir;
-        }
-        const auto filename { prg->name + ".k" + std::to_string(k) + ".w"
-            + std::to_string(w) + ".gfa" };
-        prg->kmer_prg.load(dir / filename);
-    }
-}
-
 void load_vcf_refs_file(const fs::path& filepath, VCFRefs& vcf_refs)
 {
     BOOST_LOG_TRIVIAL(info) << "Loading VCF refs from file " << filepath;

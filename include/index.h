@@ -113,7 +113,7 @@ public:
         const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
         const uint32_t threads=1);
 
-    static Index load(const fs::path& indexfile);
+    static Index load(const fs::path& indexfile, std::vector<std::shared_ptr<LocalPRG>>& prgs);
 
     void clear();
 

@@ -60,7 +60,10 @@ public:
 class ZipFileReader {
 private:
     struct zip *archive;
-    std::vector<std::string> read_full_text_file(const std::string &zip_path);
+    std::string read_full_text_file_as_single_string(const std::string &zip_path);
+    inline std::vector<std::string> read_full_text_file(const std::string &zip_path) {
+        return split(read_full_text_file_as_single_string(zip_path), "\n");
+    }
 
     static std::pair<zip_file*, struct zip_stat> open_file_inside_zip(
         struct zip *archive, const std::string &zip_path);

@@ -257,7 +257,7 @@ std::ostream& operator<<(std::ostream& out, KmerGraph const& data)
 }
 
 // get the KmerGraph as gfa
-std::string KmerGraph::to_gfa(const std::shared_ptr<LocalPRG>& localprg) const
+std::string KmerGraph::to_gfa(const std::shared_ptr<LocalPRG> localprg) const
 {
     const bool localprg_is_valid = localprg != nullptr;
 
@@ -284,7 +284,7 @@ std::string KmerGraph::to_gfa(const std::shared_ptr<LocalPRG>& localprg) const
     return ss.str();
 }
 
-void KmerGraph::load(const fs::path& filepath)
+void KmerGraph::load(std::stringstream &stream)
 {
     clear();
 
@@ -295,138 +295,132 @@ void KmerGraph::load(const fs::path& filepath)
     prg::Path p;
     uint32_t num_nodes = 0;
 
-    fs::ifstream myfile(filepath);
-    if (myfile.is_open()) {
+    while (getline(stream, line).good()) {
+        if (line[0] == 'S') {
+            split_line = split(line, "\t");
 
-        while (getline(myfile, line).good()) {
-            if (line[0] == 'S') {
-                split_line = split(line, "\t");
-
-                const bool line_is_consistent = split_line.size() >= 4;
-                if (!line_is_consistent) {
-                    fatal_error("Error reading GFA. Offending line: ", line);
-                }
-
-                id = std::stoi(split_line[1]);
-                num_nodes = std::max(num_nodes, id);
+            const bool line_is_consistent = split_line.size() >= 4;
+            if (!line_is_consistent) {
+                fatal_error("Error reading GFA. Offending line: ", line);
             }
+
+            id = std::stoi(split_line[1]);
+            num_nodes = std::max(num_nodes, id);
         }
-        myfile.clear();
-        myfile.seekg(0, myfile.beg);
-        nodes.reserve(num_nodes);
-        std::vector<uint16_t> outnode_counts(num_nodes + 1, 0),
-            innode_counts(num_nodes + 1, 0);
+    }
+    stream.clear();
+    stream.seekg(0, stream.beg);
+    nodes.reserve(num_nodes);
+    std::vector<uint16_t> outnode_counts(num_nodes + 1, 0),
+        innode_counts(num_nodes + 1, 0);
 
-        while (getline(myfile, line).good()) {
-            if (line[0] == 'S') {
-                split_line = split(line, "\t");
+    while (getline(stream, line).good()) {
+        if (line[0] == 'S') {
+            split_line = split(line, "\t");
 
-                const bool line_is_consistent = split_line.size() >= 4;
-                if (!line_is_consistent) {
-                    fatal_error("Error reading GFA. Offending line: ", line);
-                }
-
-                id = stoi(split_line[1]);
-                ss << split_line[2];
-                char c = ss.peek();
-
-                if (!isdigit(c)) {
-                    fatal_error("Error reading GFA: cannot read in this sort of "
-                                "kmergraph GFA as it ",
-                        "does not label nodes with their PRG path. ",
-                        "Offending line: ", line);
-                }
-
-                ss >> p;
-                ss.clear();
-
-                KmerNodePtr kmer_node = std::make_shared<KmerNode>(id, p);
-
-                const bool id_is_consistent
-                    = (id == nodes.size() or num_nodes - id == nodes.size());
-                if (!id_is_consistent) {
-                    fatal_error("Error reading GFA: node ID is inconsistent.",
-                        "id = ", id, ", ", "nodes.size() = ", nodes.size(), ", ",
-                        "num_nodes = ", num_nodes);
-                }
-
-                nodes.push_back(kmer_node);
-                sorted_nodes.insert(kmer_node);
-                if (k == 0 and p.length() > 0) {
-                    k = p.length();
-                }
-                if (split_line.size() >= 6) {
-                    kmer_node->num_AT = std::stoi(split_line[5]);
-                }
-            } else if (line[0] == 'L') {
-                split_line = split(line, "\t");
-
-                const bool line_is_consistent = split_line.size() >= 5;
-                if (!line_is_consistent) {
-                    fatal_error("Error reading GFA. Offending line: ", line);
-                }
-
-                const int from_node = stoi(split_line[1]);
-                const int to_node = stoi(split_line[3]);
-                const bool from_node_in_range = from_node < (int)outnode_counts.size();
-                const bool to_node_in_range = to_node < (int)innode_counts.size();
-                if (!from_node_in_range) {
-                    fatal_error(
-                        "Error reading GFA: from_node out of range: ", from_node,
-                        ">=", outnode_counts.size(), ". Offending line: ", line);
-                }
-                if (!to_node_in_range) {
-                    fatal_error("Error reading GFA: to_node out of range: ", to_node,
-                        ">=", innode_counts.size(), ". Offending line: ", line);
-                }
-
-                outnode_counts[stoi(split_line[1])] += 1;
-                innode_counts[stoi(split_line[3])] += 1;
+            const bool line_is_consistent = split_line.size() >= 4;
+            if (!line_is_consistent) {
+                fatal_error("Error reading GFA. Offending line: ", line);
             }
-        }
 
-        if (id == 0) {
-            reverse(nodes.begin(), nodes.end());
-        }
+            id = stoi(split_line[1]);
+            ss << split_line[2];
+            char c = ss.peek();
 
-        id = 0;
-        for (const auto& n : nodes) {
-            const bool id_is_consistent = (nodes[id]->id == id)
-                && (n->id < outnode_counts.size()) && (n->id < innode_counts.size());
+            if (!isdigit(c)) {
+                fatal_error("Error reading GFA: cannot read in this sort of "
+                            "kmergraph GFA as it ",
+                    "does not label nodes with their PRG path. ",
+                    "Offending line: ", line);
+            }
+
+            ss >> p;
+            ss.clear();
+
+            KmerNodePtr kmer_node = std::make_shared<KmerNode>(id, p);
+
+            const bool id_is_consistent
+                = (id == nodes.size() or num_nodes - id == nodes.size());
             if (!id_is_consistent) {
-                fatal_error("Error reading GFA: node: ", n,
-                    " has inconsistent id, should be ", id);
+                fatal_error("Error reading GFA: node ID is inconsistent.",
+                    "id = ", id, ", ", "nodes.size() = ", nodes.size(), ", ",
+                    "num_nodes = ", num_nodes);
             }
-            id++;
-            n->out_nodes.reserve(outnode_counts[n->id]);
-            n->in_nodes.reserve(innode_counts[n->id]);
-        }
 
-        myfile.clear();
-        myfile.seekg(0, myfile.beg);
-
-        while (getline(myfile, line).good()) {
-            if (line[0] == 'L') {
-                split_line = split(line, "\t");
-
-                const bool line_is_consistent = split_line.size() >= 5;
-                if (!line_is_consistent) {
-                    fatal_error("Error reading GFA. Offending line: ", line);
-                }
-
-                if (split_line[2] == split_line[4]) {
-                    from = std::stoi(split_line[1]);
-                    to = std::stoi(split_line[3]);
-                } else {
-                    // never happens
-                    from = std::stoi(split_line[3]);
-                    to = std::stoi(split_line[1]);
-                }
-                add_edge(nodes[from], nodes[to]);
+            nodes.push_back(kmer_node);
+            sorted_nodes.insert(kmer_node);
+            if (k == 0 and p.length() > 0) {
+                k = p.length();
             }
+            if (split_line.size() >= 6) {
+                kmer_node->num_AT = std::stoi(split_line[5]);
+            }
+        } else if (line[0] == 'L') {
+            split_line = split(line, "\t");
+
+            const bool line_is_consistent = split_line.size() >= 5;
+            if (!line_is_consistent) {
+                fatal_error("Error reading GFA. Offending line: ", line);
+            }
+
+            const int from_node = stoi(split_line[1]);
+            const int to_node = stoi(split_line[3]);
+            const bool from_node_in_range = from_node < (int)outnode_counts.size();
+            const bool to_node_in_range = to_node < (int)innode_counts.size();
+            if (!from_node_in_range) {
+                fatal_error(
+                    "Error reading GFA: from_node out of range: ", from_node,
+                    ">=", outnode_counts.size(), ". Offending line: ", line);
+            }
+            if (!to_node_in_range) {
+                fatal_error("Error reading GFA: to_node out of range: ", to_node,
+                    ">=", innode_counts.size(), ". Offending line: ", line);
+            }
+
+            outnode_counts[stoi(split_line[1])] += 1;
+            innode_counts[stoi(split_line[3])] += 1;
         }
-    } else {
-        fatal_error("Error reading GFA: unable to open kmergraph file: ", filepath);
+    }
+
+    if (id == 0) {
+        reverse(nodes.begin(), nodes.end());
+    }
+
+    id = 0;
+    for (const auto& n : nodes) {
+        const bool id_is_consistent = (nodes[id]->id == id)
+            && (n->id < outnode_counts.size()) && (n->id < innode_counts.size());
+        if (!id_is_consistent) {
+            fatal_error("Error reading GFA: node: ", n,
+                " has inconsistent id, should be ", id);
+        }
+        id++;
+        n->out_nodes.reserve(outnode_counts[n->id]);
+        n->in_nodes.reserve(innode_counts[n->id]);
+    }
+
+    stream.clear();
+    stream.seekg(0, stream.beg);
+
+    while (getline(stream, line).good()) {
+        if (line[0] == 'L') {
+            split_line = split(line, "\t");
+
+            const bool line_is_consistent = split_line.size() >= 5;
+            if (!line_is_consistent) {
+                fatal_error("Error reading GFA. Offending line: ", line);
+            }
+
+            if (split_line[2] == split_line[4]) {
+                from = std::stoi(split_line[1]);
+                to = std::stoi(split_line[3]);
+            } else {
+                // never happens
+                from = std::stoi(split_line[3]);
+                to = std::stoi(split_line[1]);
+            }
+            add_edge(nodes[from], nodes[to]);
+        }
     }
 }
 

@@ -81,6 +81,6 @@ int pandora_index(IndexOptions const& opt)
     Index::build_index_on_disk(opt.window_size, opt.kmer_size, opt.prgfile, outfile,
         opt.indexing_upper_bound, opt.threads);
     BOOST_LOG_TRIVIAL(info) << "All done!";
-    
+
     return 0;
 }
