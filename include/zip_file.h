@@ -60,6 +60,10 @@ public:
 class ZipFileReader {
 private:
     struct zip *archive;
+    std::vector<std::string> read_full_text_file(const std::string &zip_path);
+
+    static std::pair<zip_file*, struct zip_stat> open_file_inside_zip(
+        struct zip *archive, const std::string &zip_path);
 public:
     ZipFileReader(const fs::path &path) {
         int err;
@@ -74,32 +78,58 @@ public:
         }
     }
 
-    std::string get_file_given_path(const std::string &zip_path) {
-        zip_int64_t zip_file_location = zip_name_locate(archive, zip_path.c_str(), 0);
-        zip_file *pFile = zip_fopen_index(archive, zip_file_location, 0);
-        /*
-        if( NULL == pFile){
-            qDebug()<<"fopen is NULL"<<zip_strerror(m_zip);
-            return QByteArray();
-        }
-         */
+    inline std::pair<uint32_t, uint32_t> read_w_and_k() {
+        std::vector<std::string> w_and_k_as_strings = read_full_text_file("_metadata");
+        return std::make_pair(std::stoi(w_and_k_as_strings[0]),
+                              std::stoi(w_and_k_as_strings[1]));
+    }
+
+    inline std::vector<std::string> read_prg_names() {
+        return read_full_text_file("_prg_names");
+    }
+
+    inline std::vector<uint32_t> read_prg_min_path_lengths() {
+        std::vector<std::string> prg_min_path_lengths_as_strs = read_full_text_file("_prg_min_path_lengths");
+        std::vector<uint32_t> prg_min_path_lengths(prg_min_path_lengths_as_strs.size());
+        std::transform(prg_min_path_lengths_as_strs.begin(),
+                       prg_min_path_lengths_as_strs.end(),
+                       prg_min_path_lengths.begin(),
+                       [](const std::string &str) { return std::stoi(str); }
+        );
+        return prg_min_path_lengths;
+    }
+
+    friend class ZipInstreamBuffer;
+    friend class Index;
+};
+
+
+// Adapted from https://stackoverflow.com/a/9140328/5264075
+class ZipInstreamBuffer : public std::streambuf {
+private:
+    zip_file* file_;
+    enum { s_size = 8196 };
+    char buffer_[s_size];
+
+public:
+    ZipInstreamBuffer(struct zip *archive, const std::string &zip_path){
         struct zip_stat stat;
-        int rStat = zip_stat_index(archive, zip_file_location, 0, &stat);
-        /*
-        if( -1 == rStat ){
-            qDebug()<<"stat failed : "<<zip_strerror(m_zip);
-            return QByteArray();
+        std::tie(file_, stat) = ZipFileReader::open_file_inside_zip(archive, zip_path);
+    }
+    ~ZipInstreamBuffer(){
+        if(zip_fclose(file_) != 0) {
+            fatal_error("Unable to close");
         }
-         */
-        const int length = stat.size;
-        char buffer[length +1 ];
-        int rRead = zip_fread(pFile,buffer,sizeof(buffer));
-        /*
-        if( -1 == rRead ){
-            qDebug()<<"read failed : "<<zip_strerror(m_zip);
-            return QByteArray();
-        }*/
-        return std::string(buffer);
+    }
+
+protected:
+    int underflow() override {
+        int rc(zip_fread(this->file_, this->buffer_, s_size));
+        this->setg(this->buffer_, this->buffer_,
+            this->buffer_ + std::max(0, rc));
+        return this->gptr() == this->egptr()
+            ? traits_type::eof()
+            : traits_type::to_int_type(*this->gptr());
     }
 };
 
