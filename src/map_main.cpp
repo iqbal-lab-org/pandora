@@ -237,12 +237,9 @@ int pandora_map(MapOptions& opt)
         opt.min_allele_fraction_covg_gt, opt.min_total_covg_gt, opt.min_diff_covg_gt, 0,
         false);
 
-    BOOST_LOG_TRIVIAL(info) << "Loading Index and LocalPRGs from file...";
-    auto index = std::make_shared<Index>();
-    index->load(opt.prgfile, opt.window_size, opt.kmer_size);
-    std::vector<std::shared_ptr<LocalPRG>> prgs;
-    read_prg_file(prgs, opt.prgfile);
-    load_PRG_kmergraphs(prgs, opt.window_size, opt.kmer_size, opt.prgfile);
+    BOOST_LOG_TRIVIAL(info) << "Loading Index...";
+    Index index = Index::load(opt.prgfile.string() + ".panidx.zip");
+    BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
 
     fs::create_directories(opt.outdir);
     const auto kmer_graphs_dir { opt.outdir / "kmer_graphs" };
@@ -255,7 +252,7 @@ int pandora_map(MapOptions& opt)
     const SampleData sample(opt.readsfile.stem().string(), opt.readsfile.string());
     auto pangraph = std::make_shared<pangenome::Graph>();
     uint32_t covg
-        = pangraph_from_read_file(sample, pangraph, index, prgs,
+        = pangraph_from_read_file(sample, pangraph, index,
         opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate, opt.outdir,
         opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
         opt.threads, opt.keep_extra_debugging_files);
@@ -309,7 +306,7 @@ int pandora_map(MapOptions& opt)
     // this a read-only var, no need for sync
     VCFRefs vcf_refs;
     if (opt.output_vcf and !opt.vcf_refs_file.empty()) {
-        vcf_refs.reserve(prgs.size());
+        vcf_refs.reserve(index.get_number_of_prgs());
         load_vcf_refs_file(opt.vcf_refs_file, vcf_refs);
     }
 
@@ -326,17 +323,19 @@ int pandora_map(MapOptions& opt)
 
         // get the vcf_ref, if applicable
         std::string vcf_ref;
+        const std::string &prg_name = index.get_prg_name_given_id(pangraph_node->prg_id);
         if (opt.output_vcf and !opt.vcf_refs_file.empty()
-            and vcf_refs.find(prgs[pangraph_node->prg_id]->name) != vcf_refs.end()) {
-            vcf_ref = vcf_refs[prgs[pangraph_node->prg_id]->name];
+            and vcf_refs.find(prg_name) != vcf_refs.end()) {
+            vcf_ref = vcf_refs[prg_name];
         }
 
         // add consensus path to fastaq
+        LocalPRG* prg = index.get_prg_given_id(pangraph_node->prg_id);
+
         std::vector<KmerNodePtr> kmp;
         std::vector<LocalNodePtr> lmp;
-        prgs[pangraph_node->prg_id]->add_consensus_path_to_fastaq(consensus_fq,
-            pangraph_node, kmp, lmp, opt.window_size, opt.binomial, covg,
-            opt.max_num_kmers_to_avg, 0);
+        prg->add_consensus_path_to_fastaq(consensus_fq, pangraph_node, kmp, lmp,
+            opt.window_size, opt.binomial, covg, opt.max_num_kmers_to_avg, 0);
 
         if (kmp.empty()) {
 #pragma omp critical(nodes_to_remove)
@@ -347,16 +346,13 @@ int pandora_map(MapOptions& opt)
         }
 
         if (opt.output_kg) {
-            pangraph_node->kmer_prg_with_coverage.save(
-                kmer_graphs_dir / (pangraph_node->get_name() + ".kg.gfa"),
-                prgs[pangraph_node->prg_id]);
+            pangraph_node->kmer_prg_with_coverage.save(kmer_graphs_dir / (pangraph_node->get_name() + ".kg.gfa"), prg);
         }
 
         if (opt.output_vcf) {
             // TODO: this takes a lot of time and should be optimized, but it is
             // only called in this part, so maybe this should be low prioritized
-            prgs[pangraph_node->prg_id]->add_variants_to_vcf(
-                master_vcf, pangraph_node, vcf_ref, kmp, lmp);
+            prg->add_variants_to_vcf(master_vcf, pangraph_node, vcf_ref, kmp, lmp);
         }
     }
 
