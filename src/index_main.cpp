@@ -76,7 +76,6 @@ int pandora_index(IndexOptions const& opt)
 
     LocalPRG::do_path_memoization_in_nodes_along_path_method = true;
 
-
     BOOST_LOG_TRIVIAL(info) << "Indexing PRG...";
     Index::build_index_on_disk(opt.window_size, opt.kmer_size, opt.prgfile, outfile,
         opt.indexing_upper_bound, opt.threads);

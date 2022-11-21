@@ -403,7 +403,7 @@ void KmerGraphWithCoverage::save_covg_dist(const std::string& filepath)
 // save the KmerGraph as gfa
 // TODO: THIS SHOULD BE RECODED, WE ARE DUPLICATING CODE HERE (SEE KmerGraph::save())!!!
 void KmerGraphWithCoverage::save(
-    const fs::path& filepath, const std::shared_ptr<LocalPRG> localprg) const
+    const fs::path& filepath, LocalPRG* localprg) const
 {
     uint32_t sample_id = 0;
 
