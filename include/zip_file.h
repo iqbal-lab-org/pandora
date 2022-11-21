@@ -8,6 +8,11 @@
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
 
+
+constexpr size_t zip_file_buffer_size = 16*1024; //16 kb
+
+
+// Use this class to write to Zip files
 class ZipFileWriter {
 private:
     struct archive *zip_archive;
@@ -21,7 +26,7 @@ private:
     }
 
 public:
-    // note: not explicit as we want to build from everything we can convert to a path
+    // Note: this constructor is not explicit as we want to build from everything we can convert to a path
     ZipFileWriter(const fs::path &path) : current_zip_archive_entry(nullptr) {
         zip_archive = archive_write_new();
         archive_write_set_format_zip(zip_archive);
@@ -39,7 +44,11 @@ public:
     ZipFileWriter(const ZipFileWriter& other) = delete;
     ZipFileWriter& operator=(const ZipFileWriter& other) = delete;
 
-
+    /**
+     * Creates a new entry in the zip file.
+     * Data to this entry can be written through the write_data() method.
+     * @param zip_path : Path of the entry in the zip file
+     */
     inline void prepare_new_entry(const std::string &zip_path) {
         cleanup_previous_entry();
         current_zip_archive_entry = archive_entry_new();
@@ -50,13 +59,31 @@ public:
         }
     }
 
-    inline void write_data(const std::string &data) {
-        if (archive_write_data(zip_archive, data.c_str(), data.size()) != data.size()) {
-            fatal_error("Error writing zip data");
+    /**
+     * Writes the given data to the prepared new entry done with prepare_new_entry() method.
+     * Be careful when using this method, as it requires the whole data to be in memory
+     * before writing. Can be used to write data in chunks.
+     */
+    void write_data(const std::string &data);
+
+    /**
+     * Writes the lines from the given ifstream to the prepared new entry done with prepare_new_entry() method.
+     * Note that this just works for text files.
+     * Use this to write text files from disk to this zip file.
+     */
+    inline void write_from_text_stream(std::ifstream& data_source) {
+        std::string line;
+        while (std::getline(data_source, line)) {
+            line += "\n";
+            write_data(line);
         }
     }
 };
 
+
+// Use this class to read from Zip files.
+// There are some convenience methods here.
+// See ZipIfstream class for reading from files from Zip using streams.
 class ZipFileReader {
 private:
     struct zip *archive;
@@ -68,6 +95,7 @@ private:
     static std::pair<zip_file*, struct zip_stat> open_file_inside_zip(
         struct zip *archive, const std::string &zip_path);
 public:
+    // Note: this constructor is not explicit as we want to build from everything we can convert to a path
     ZipFileReader(const fs::path &path) {
         int err;
         if ((archive = zip_open(path.c_str(), ZIP_RDONLY, &err)) == nullptr) {
@@ -81,16 +109,16 @@ public:
         }
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////
+    // List of convenient read methods for pandora
     inline std::pair<uint32_t, uint32_t> read_w_and_k() {
         std::vector<std::string> w_and_k_as_strings = read_full_text_file("_metadata");
         return std::make_pair(std::stoi(w_and_k_as_strings[0]),
                               std::stoi(w_and_k_as_strings[1]));
     }
-
     inline std::vector<std::string> read_prg_names() {
         return read_full_text_file("_prg_names");
     }
-
     inline std::vector<uint32_t> read_prg_min_path_lengths() {
         std::vector<std::string> prg_min_path_lengths_as_strs = read_full_text_file("_prg_min_path_lengths");
         std::vector<uint32_t> prg_min_path_lengths(prg_min_path_lengths_as_strs.size());
@@ -101,39 +129,67 @@ public:
         );
         return prg_min_path_lengths;
     }
+    ////////////////////////////////////////////////////////////////////////////////////
 
-    friend class ZipInstreamBuffer;
+    friend class ZipIfstream;
     friend class Index;
 };
 
-
-// Adapted from https://stackoverflow.com/a/9140328/5264075
-class ZipInstreamBuffer : public std::streambuf {
+class ZipIfstream {
 private:
-    zip_file* file_;
-    enum { s_size = 8196 };
-    char buffer_[s_size];
+    // Adapted from https://stackoverflow.com/a/9140328/5264075
+    class ZipInstreamBuffer : public std::streambuf {
+    private:
+        zip_file* file_;
+        char buffer_[zip_file_buffer_size];
 
-public:
-    ZipInstreamBuffer(struct zip *archive, const std::string &zip_path){
-        struct zip_stat stat;
-        std::tie(file_, stat) = ZipFileReader::open_file_inside_zip(archive, zip_path);
-    }
-    ~ZipInstreamBuffer(){
-        if(zip_fclose(file_) != 0) {
-            fatal_error("Unable to close");
+    public:
+        ZipInstreamBuffer(struct zip *archive, const std::string &zip_path){
+            struct zip_stat stat;
+            std::tie(file_, stat) = ZipFileReader::open_file_inside_zip(archive, zip_path);
         }
+        ~ZipInstreamBuffer(){
+            if(zip_fclose(file_) != 0) {
+                fatal_error("Unable to close");
+            }
+        }
+    protected:
+        int underflow() override {
+            int rc(zip_fread(this->file_, this->buffer_, zip_file_buffer_size));
+            this->setg(this->buffer_, this->buffer_,
+                this->buffer_ + std::max(0, rc));
+            return this->gptr() == this->egptr()
+                ? traits_type::eof()
+                : traits_type::to_int_type(*this->gptr());
+        }
+    };
+
+    ZipInstreamBuffer zip_buffer;
+    std::istream zip_ifs;
+public:
+    ZipIfstream(struct zip *archive, const std::string &zip_path) :
+        zip_buffer(archive, zip_path), zip_ifs(&zip_buffer) { }
+
+    inline auto good() const {
+        return zip_ifs.good();
     }
 
-protected:
-    int underflow() override {
-        int rc(zip_fread(this->file_, this->buffer_, s_size));
-        this->setg(this->buffer_, this->buffer_,
-            this->buffer_ + std::max(0, rc));
-        return this->gptr() == this->egptr()
-            ? traits_type::eof()
-            : traits_type::to_int_type(*this->gptr());
+    inline auto peek() {
+        return zip_ifs.peek();
+    }
+
+    inline void ignore(std::streamsize size, char delim) {
+        zip_ifs.ignore(size, delim);
+    }
+
+    template <class T>
+    ZipIfstream& operator>>(T& data) {
+        zip_ifs >> data;
+        return *this;
     }
 };
+
+
+
 
 #endif // PANDORA_ZIP_FILE_H
