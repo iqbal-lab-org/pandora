@@ -38,6 +38,10 @@ private:
 
     // required to map to PRGs without actually loading them
     std::vector<uint32_t> prg_min_path_lengths;
+
+    // populated when loading an index - just valid for index consumption commands
+    // e.g. map, compare, discover, etc
+    std::vector<std::shared_ptr<LocalPRG>> prgs;
     ///////////////////////////////////////////////////////////////////////////////////
 
     // explicitly disallowing the index to be built from other classes/modules
@@ -46,24 +50,22 @@ private:
     // Note: prg_names is an r-value ref because we take ownership of it when building an index
     Index(const uint32_t w, const uint32_t k, std::vector<std::string> &&prg_names) :
         w(w), k(k), prg_names(std::move(prg_names)) {
-        prg_min_path_lengths.reserve(this->prg_names.size());
+        prg_min_path_lengths.reserve(get_number_of_prgs());
+        prgs.reserve(get_number_of_prgs());
     }
     Index(const uint32_t w, const uint32_t k, std::vector<std::string> &&prg_names,
         std::vector<uint32_t> &&prg_min_path_lengths) :
-        w(w), k(k), prg_names(std::move(prg_names)), prg_min_path_lengths(std::move(prg_min_path_lengths)) {}
+        w(w), k(k), prg_names(std::move(prg_names)), prg_min_path_lengths(std::move(prg_min_path_lengths)) {
+        prgs.reserve(get_number_of_prgs());
+    }
+
+    void load_prgs(ZipFileReader &zip_file);
 
     void index_prgs(ZipFileWriter &index_archive,
         LocalPRGReaderGeneratorIterator &prg_it,
         uintmax_t estimated_index_size=ESTIMATED_INDEX_SIZE_DEFAULT,
         const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
         const uint32_t threads=1);
-
-    // Note: this is overloading is kept just for backwards compatibility with tests
-    // TODO: keep or implement this?
-    void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-        const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
-        const uint32_t threads = 1);
-
 
     std::unordered_map<std::string, uint32_t> get_prg_names_to_prg_index() const;
 
@@ -110,12 +112,30 @@ public:
     Index(const Index& other) = delete;
     Index& operator=(const Index& other) = delete;
 
+    ////////////////////////////////////////////////////////////////////////////////////
+    // public interface to build and load indexes
     static void build_index_on_disk(const uint32_t w, const uint32_t k,
         const fs::path &prg_filepath, const fs::path &out_filepath,
         const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
         const uint32_t threads=1);
+    static Index load(const fs::path& indexfile);
+    ////////////////////////////////////////////////////////////////////////////////////
 
-    static Index load(const fs::path& indexfile, std::vector<std::shared_ptr<LocalPRG>>& prgs);
+    inline size_t get_number_of_prgs() const {
+        return prg_names.size();
+    }
+
+    inline const std::string & get_prg_name_given_id(size_t id) const {
+        return prg_names[id];
+    }
+
+    inline LocalPRG* get_prg_given_id(size_t id) const {
+        return prgs[id].get();
+    }
+
+    inline const std::vector<std::shared_ptr<LocalPRG>> & get_prgs() const {
+        return prgs;
+    }
 
     void clear();
 
@@ -125,8 +145,6 @@ public:
     }
     void add_record(
         const uint64_t, const uint32_t, const prg::Path&, const uint32_t, const bool);
-
-
 
     bool operator==(const Index& other) const;
 

@@ -176,9 +176,33 @@ void Index::load_minhash(ZipFileReader &zip_file) {
     }
 }
 
-Index Index::load(const fs::path& indexfile, std::vector<std::shared_ptr<LocalPRG>>& prgs)
+void Index::load_prgs(ZipFileReader &zip_file) {
+    fs::path prg_file = zip_file.extract_prgs();
+    uint32_t id = 0;
+    FastaqHandler fh(prg_file.string());
+    while (!fh.eof()) {
+        try {
+            fh.get_next();
+        } catch (std::out_of_range& err) {
+            break;
+        }
+        if (fh.name.empty() or fh.read.empty())
+            continue;
+        auto s = std::make_shared<LocalPRG>(LocalPRG(id, fh.name,
+            fh.read)); // build a node in the graph, which will represent a LocalPRG
+                       // (the graph is a list of nodes, each representing a LocalPRG)
+        if (s != nullptr) {
+            prgs.push_back(s);
+            id++;
+        } else {
+            fatal_error("Failed to make LocalPRG for ", fh.name);
+        }
+    }
+    fs::remove(prg_file);
+}
+
+Index Index::load(const fs::path& indexfile)
 {
-    BOOST_LOG_TRIVIAL(debug) << "Loading index";
     BOOST_LOG_TRIVIAL(debug) << "File is " << indexfile;
 
     ZipFileReader zip_file(indexfile);
@@ -197,8 +221,11 @@ Index Index::load(const fs::path& indexfile, std::vector<std::shared_ptr<LocalPR
     BOOST_LOG_TRIVIAL(debug) << "Loading minhash";
     index.load_minhash(zip_file);
 
+    BOOST_LOG_TRIVIAL(debug) << "Loading prgs";
+    index.load_prgs(zip_file);
+
     BOOST_LOG_TRIVIAL(debug) << "Loading kmer prgs";
-    for (const auto& prg : prgs) {
+    for (const auto& prg : index.prgs) {
         const auto filename { prg->name + ".gfa" };
         std::string gfa_as_str = zip_file.read_full_text_file_as_single_string(filename);
         std::stringstream gfa_ss;
